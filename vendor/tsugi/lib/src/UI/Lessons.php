@@ -76,6 +76,36 @@ class Lessons {
       margin: 0;
       z-index: 100;
 }
+
+.progress-badge {
+    display: inline-block;
+    margin-left: 0.3em;
+    vertical-align: middle;
+    font-size: 0.75em;
+    line-height: 1;
+}
+
+.progress-badge-check {
+    display: inline-block;
+    background-color: #28a745;
+    color: white;
+    padding: 0.15em 0.4em;
+    border-radius: 0.25em;
+    font-weight: bold;
+    font-size: 0.85em;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.progress-badge-percent {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 0.15em 0.4em;
+    border-radius: 0.25em;
+    font-weight: bold;
+    font-size: 0.85em;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
 </style>
 <?php
         // See if there are any carousels in the lessons
@@ -762,6 +792,16 @@ class Lessons {
     public function renderAll($buffer=false)
     {
         ob_start();
+
+         // Load all the Grades so far
+         $allgrades = array();
+         if ( isset($_SESSION['id']) && isset($_SESSION['context_id'])) {
+             $rows = \Tsugi\Grades\GradeUtil::loadGradesForCourse($_SESSION['id'], $_SESSION['context_id']);
+             foreach($rows as $row) {
+                 $allgrades[$row['resource_link_id']] = $row['grade'];
+             }
+         }
+
         echo('<div typeof="Course">'."\n");
         echo('<h1>'.$this->lessons->title."</h1>\n");
         echo('<p property="description">'.$this->lessons->description."</p>\n");
@@ -771,17 +811,58 @@ class Lessons {
         foreach($this->lessons->modules as $module) {
         if ( isset($module->hidden) && $module->hidden ) continue;
 	    if ( isset($module->login) && $module->login && !isset($_SESSION['id']) ) continue;
+
+            // Calculate progress for legacy format (scan lti array for resource_link_ids)
+            $possible_points = 0;
+            $actual_points = 0;
+            if ( isset($module->lti) ) {
+                $ltis = $module->lti;
+                if ( ! is_array($ltis) ) $ltis = array($ltis);
+                foreach($ltis as $lti) {
+                    if ( isset($lti->resource_link_id) ) {
+                        $possible_points += 1.0;
+                        if ( isset($allgrades[$lti->resource_link_id]) && is_numeric($allgrades[$lti->resource_link_id]) ) {
+                            $actual_points += $allgrades[$lti->resource_link_id];
+                        }
+                    }
+                }
+            }
             $count++;
+            // Calculate percent for icon coloring
+            $percent = 0;
+            if ( $possible_points > 0 ) {
+                $percent = round(($actual_points / $possible_points)*100);
+            }
+            
             echo('<div class="card"><div>'."\n");
             $href = U::get_rest_path() . '/' . urlencode($module->anchor);
             if ( isset($module->icon) ) {
-                echo('<i class="fa '.$module->icon.' fa-2x" aria-hidden="true" style="float: left; padding-right: 5px;"></i>');
+                $icon_color = '';
+                if ( $percent == 100 ) {
+                    $icon_color = 'color: #28a745;'; // Green for 100%
+                } else if ( $percent > 0 && $percent < 100 ) {
+                    $icon_color = 'color: #007bff;'; // Blue for 1-99%
+                }
+                echo('<i class="fa '.$module->icon.' fa-2x" aria-hidden="true" style="float: left; padding-right: 5px;'.$icon_color.'"></i>');
             }
             if ( isset($module->image) ) {
                 echo('<img class="tsugi-all-modules-image-icon" aria-hidden="true" style="float: left; width: 2em; padding-right: 5px;" src="'.self::expandLink($module->image).'">');
             }
             echo('<a href="'.$href.'">'."\n");
-            echo($count.': '.$module->title."<br clear=\"all\"/>\n");
+            echo($count.': '.$module->title);
+            // Display progress badges
+            if ( $possible_points > 0 ) {
+                if ( $percent == 0 ) {
+                    // No badge for 0%
+                } else if ( $percent == 100 ) {
+                    // Green badge with 100% for complete
+                    echo('<span class="progress-badge progress-badge-check" title="Complete: 100%">100%</span>');
+                } else {
+                    // Blue badge with percentage for 1-99%
+                    echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
+                }
+            }
+            echo("<br clear=\"all\"/>\n");
             if ( isset($module->description) ) {
                 $desc = $module->description;
                 if ( strlen($desc) > 1000 ) $desc = substr($desc, 0, 1000);

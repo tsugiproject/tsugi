@@ -7654,12 +7654,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "f9934c8d3eec7e23cf990869597a8411b80fe619"
+                "reference": "0437022e489ee72820f5a80a21f8b923b2da3fe7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/f9934c8d3eec7e23cf990869597a8411b80fe619",
-                "reference": "f9934c8d3eec7e23cf990869597a8411b80fe619",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/0437022e489ee72820f5a80a21f8b923b2da3fe7",
+                "reference": "0437022e489ee72820f5a80a21f8b923b2da3fe7",
                 "shasum": ""
             },
             "require": {
