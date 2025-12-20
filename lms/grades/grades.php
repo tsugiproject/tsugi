@@ -61,28 +61,29 @@ if ( ! $context_title ) {
 }
 
 if ( isset($_GET['link_id'] ) ) {
-    $query_parms = array(":LID" => $link_id, ":CID" => $context_id);
+    $query_parms = array(":LID" => $link_id);
     $searchfields = array("R.user_id", "displayname", "grade", "R.updated_at", "server_grade", "retrieved_at");
+    // Optimized: Start with lti_result filtered by link_id and grade, then join to user
+    // Removed redundant context_id check since link_id is already unique
     $class_sql =
-        "SELECT R.user_id AS user_id, displayname, grade,
-            R.updated_at as updated_at, server_grade, retrieved_at
-        FROM {$p}lti_result AS R JOIN {$p}lti_link as L
-            ON R.link_id = L.link_id
-        JOIN {$p}lti_user as U
-            ON R.user_id = U.user_id
-        WHERE R.link_id = :LID AND L.context_id = :CID AND R.grade IS NOT NULL";
+        "SELECT R.user_id AS user_id, U.displayname, R.grade,
+            R.updated_at as updated_at, R.server_grade, R.retrieved_at
+        FROM {$p}lti_result AS R
+        INNER JOIN {$p}lti_user as U ON R.user_id = U.user_id
+        WHERE R.link_id = :LID AND R.grade IS NOT NULL AND R.deleted = 0";
 } else {
     $query_parms = array(":CID" => $context_id);
     $orderfields = array("R.user_id", "displayname", "email", "user_key", "grade_count");
     $searchfields = array("R.user_id", "displayname", "email", "user_key");
+    // Optimized: Start with lti_link filtered by context_id, then join to results
+    // This reduces the initial dataset before joining
     $summary_sql =
-        "SELECT R.user_id AS user_id, displayname, email, COUNT(grade) AS grade_count, user_key
-        FROM {$p}lti_result AS R JOIN {$p}lti_link as L
-            ON R.link_id = L.link_id
-        JOIN {$p}lti_user as U
-            ON R.user_id = U.user_id
-        WHERE L.context_id = :CID AND R.grade IS NOT NULL
-        GROUP BY R.user_id";
+        "SELECT R.user_id AS user_id, U.displayname, U.email, COUNT(R.grade) AS grade_count, U.user_key
+        FROM {$p}lti_link as L
+        INNER JOIN {$p}lti_result AS R ON L.link_id = R.link_id AND R.grade IS NOT NULL AND R.deleted = 0
+        INNER JOIN {$p}lti_user as U ON R.user_id = U.user_id
+        WHERE L.context_id = :CID
+        GROUP BY R.user_id, U.displayname, U.email, U.user_key";
 }
 
 $lstmt = $PDOX->queryDie(
