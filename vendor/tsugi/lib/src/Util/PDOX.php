@@ -378,6 +378,19 @@ class PDOX extends \PDO {
     }
 
     /**
+     * Check if an index exists on a table
+     *
+     * @param string $indexname The name of the index to check
+     * @param string $tablename The name of the table
+     * @return bool True if the index exists, false otherwise
+     */
+    function indexExists($indexname, $tablename)
+    {
+        $indexes = $this->indexes($tablename);
+        return in_array($indexname, $indexes);
+    }
+
+    /**
      * Insure that a column exists
      *
      * @param $table The name of the table like '{$CFG->dbprefix}lti_result'
