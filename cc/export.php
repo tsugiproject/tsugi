@@ -15,6 +15,136 @@ if ( ! isset($CFG->lessons) ) {
 // Load the Lesson
 $l = new Lessons($CFG->lessons);
 
+// Helper function to process a single item for CC export
+function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtube, $topic) {
+    global $CFG;
+    $type = isset($item_obj->type) ? $item_obj->type : '';
+    
+    // Skip text type for now
+    if ( $type == 'text' ) return;
+    
+    // Handle header type - add as Canvas sub-header (no resource needed)
+    if ( $type == 'header' ) {
+        $header_text = isset($item_obj->text) ? $item_obj->text : (isset($item_obj->title) ? $item_obj->title : '');
+        if ( $header_text ) {
+            $cc_dom->add_header_item($sub_module, $header_text);
+        }
+        return;
+    }
+    
+    // Handle video type
+    if ( $type == 'video' ) {
+        $title = __('Video:').' '.$item_obj->title;
+        if ( $youtube && isset($CFG->youtube_url) ) {
+            $custom_arr = array();
+            $endpoint = U::absolute_url($CFG->youtube_url);
+            $endpoint = U::add_url_parm($endpoint, 'v', $item_obj->youtube);
+            $extensions = array('apphome' => $CFG->apphome);
+            if ( $youtube == 'track_grade' ) {
+                $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+            } else {
+                $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+            }
+        } else {
+            $url = 'https://www.youtube.com/watch?v=' . $item_obj->youtube;
+            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
+        }
+        return;
+    }
+    
+    // Handle slide type
+    if ( $type == 'slide' ) {
+        $slide_title = isset($item_obj->title) ? $item_obj->title : basename(isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : ''));
+        $slide_href = isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : '');
+        $url = U::absolute_url($slide_href);
+        $title = 'Slides: '.$slide_title;
+        $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
+        return;
+    }
+    
+    // Handle reference type
+    if ( $type == 'reference' ) {
+        $title = $item_obj->title;
+        $url = U::absolute_url($item_obj->href);
+        $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
+        return;
+    }
+    
+    // Handle assignment type
+    if ( $type == 'assignment' ) {
+        $url = U::absolute_url(isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : ''));
+        $title = 'Assignment: '.$module->title;
+        $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
+        return;
+    }
+    
+    // Handle solution type
+    if ( $type == 'solution' ) {
+        $url = U::absolute_url(isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : ''));
+        $title = 'Solution: '.$module->title;
+        $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
+        return;
+    }
+    
+    // Handle lti type
+    if ( $type == 'lti' ) {
+        $title = isset($item_obj->title) ? $item_obj->title : $module->title;
+        if (strpos($title, ':') === false ) $title = 'Tool: '.$title;
+        $custom_arr = array();
+        if ( isset($item_obj->custom) ) {
+            foreach($item_obj->custom as $custom) {
+                if ( isset($custom->value) ) {
+                    $custom_arr[$custom->key] = $custom->value;
+                }
+                if ( isset($custom->json) ) {
+                    $custom_arr[$custom->key] = json_encode($custom->json);
+                }
+            }
+        }
+        $endpoint = U::absolute_url($item_obj->launch);
+        $endpoint = U::add_url_parm($endpoint, 'inherit', $item_obj->resource_link_id);
+        $extensions = array('apphome' => $CFG->apphome);
+        $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+        return;
+    }
+    
+    // Handle discussion type
+    if ( $type == 'discussion' && $topic != "none" ) {
+        $title = isset($item_obj->title) ? $item_obj->title : $module->title;
+        $text = isset($item_obj->description) ? $item_obj->description : $module->description;
+
+        // If there is no LTI involved
+        if ( $topic == "lms" || ! isset($CFG->tdiscus) ) {
+            $cc_dom->zip_add_topic_to_module($zip, $sub_module, $title, $text);
+            return;
+        }
+
+        $title = __('Discussion:').' '.$title;
+        $custom_arr = array();
+        if ( isset($item_obj->custom) ) {
+            foreach($item_obj->custom as $custom) {
+                if ( isset($custom->value) ) {
+                    $custom_arr[$custom->key] = $custom->value;
+                }
+                if ( isset($custom->json) ) {
+                    $custom_arr[$custom->key] = json_encode($custom->json);
+                }
+            }
+        }
+
+        $endpoint = U::absolute_url($CFG->tdiscus);
+        $endpoint = U::add_url_parm($endpoint, 'inherit', $item_obj->resource_link_id);
+        $extensions = array('apphome' => $CFG->apphome);
+
+        if ( $topic == 'lti_grade' ) {
+            $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+        } else {
+            $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions);
+        }
+        return;
+    }
+}
+
 // Check if this is a remote import from Canvas
 if ( isset($_POST['ext_content_return_url']) ) {
     $return_url = $_POST['ext_content_return_url'];
@@ -151,6 +281,18 @@ foreach($l->lessons->modules as $module) {
         $sub_module = $cc_dom->add_module($module->title);
     }
 
+    // Check if module uses items array (new format)
+    if ( isset($module->items) && is_array($module->items) && count($module->items) > 0 ) {
+        // New format: process items array - each item is a flat object with a type field
+        foreach($module->items as $item) {
+            $item_obj = is_array($item) ? (object)$item : $item;
+            process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtube, $topic);
+        }
+        // Skip legacy format if items array was processed
+        continue;
+    }
+
+    // Legacy format: process old arrays (videos, lti, etc.)
     if ( isset($module->videos) ) {
         foreach($module->videos as $video ) {
             $title = __('Video:').' '.$video->title;

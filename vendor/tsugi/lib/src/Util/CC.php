@@ -374,6 +374,35 @@ class CC extends \Tsugi\Util\TsugiDOM {
         }
     }
 
+    /**
+     * Add a header item as a Canvas sub-header (no resource, just metadata)
+     *
+     * @param $module DOMNode The module or sub module where we are adding the header
+     * @param $title The title/text of the header
+     *
+     * @return The DOMNode of the newly added header item
+     */
+    public function add_header_item($module, $title) {
+        $this->resource_count++;
+        $resource_str = str_pad($this->resource_count.'',6,'0',STR_PAD_LEFT);
+        $this->last_identifier = 'H_'.$resource_str;
+
+        // Add item to manifest without identifierref (Canvas sub-header)
+        $header_item = $this->add_child_ns(CC::CC_1_1_CP, $module, 'item', null, array('identifier' => $this->last_identifier));
+        $new_title = $this->add_child_ns(CC::CC_1_1_CP, $header_item, 'title', $title);
+
+        // Add to Canvas module metadata as ContextModuleSubHeader
+        if ( $this->canvas_items ) {
+            $w = $this->canvas_module_meta->child_tags(CanvasModuleMeta::content_type_ContextModuleSubHeader);
+            $w[CanvasModuleMeta::title] = $title;
+            // ContextModuleSubHeader does NOT have identifierref
+            unset($w[CanvasModuleMeta::identifierref]);
+            $item = $this->canvas_module_meta->add_item($this->canvas_items, $this->last_identifier, $w);
+        }
+
+        return $header_item;
+    }
+
     /*
      * Add a topic item and create the file within the ZIP
      *

@@ -97,39 +97,28 @@ foreach($lessons['modules'] as &$module) {
     
     // Convert slides (can be string, single object, or array)
     if (isset($module['slides'])) {
-        $has_slides = false;
-        if (is_string($module['slides'])) {
+        $slide_items = array();
+        if (is_string($module['slides']) && !empty($module['slides'])) {
             // Single string slide
-            $has_slides = true;
             $slide_url = $normalizeUrl($module['slides']);
-            $items[] = array(
-                'type' => 'header',
-                'text' => 'Slides',
-                'level' => 2
-            );
-            $items[] = array(
+            $slide_items[] = array(
                 'type' => 'slide',
                 'title' => basename($module['slides']),
                 'href' => $slide_url
             );
         } else if (is_array($module['slides']) && count($module['slides']) > 0) {
             // Array of slides
-            $has_slides = true;
-            $items[] = array(
-                'type' => 'header',
-                'text' => 'Slides',
-                'level' => 2
-            );
             foreach($module['slides'] as $slide) {
-                if (is_string($slide)) {
+                if (is_string($slide) && !empty($slide)) {
                     $slide_url = $normalizeUrl($slide);
-                    $items[] = array(
+                    $slide_items[] = array(
                         'type' => 'slide',
                         'title' => basename($slide),
                         'href' => $slide_url
                     );
-                } else {
-                    $slide_arr = is_array($slide) ? $slide : (array)$slide;
+                } else if (!is_array($slide)) {
+                    // Single object slide
+                    $slide_arr = (array)$slide;
                     // Normalize href or url if present
                     if (isset($slide_arr['href'])) {
                         $slide_arr['href'] = $normalizeUrl($slide_arr['href']);
@@ -137,17 +126,21 @@ foreach($lessons['modules'] as &$module) {
                     if (isset($slide_arr['url'])) {
                         $slide_arr['url'] = $normalizeUrl($slide_arr['url']);
                     }
-                    $items[] = array_merge(array('type' => 'slide'), $slide_arr);
+                    $slide_items[] = array_merge(array('type' => 'slide'), $slide_arr);
+                } else {
+                    // Array slide object
+                    // Normalize href or url if present
+                    if (isset($slide['href'])) {
+                        $slide['href'] = $normalizeUrl($slide['href']);
+                    }
+                    if (isset($slide['url'])) {
+                        $slide['url'] = $normalizeUrl($slide['url']);
+                    }
+                    $slide_items[] = array_merge(array('type' => 'slide'), $slide);
                 }
             }
-        } else if (!is_array($module['slides'])) {
+        } else if (!is_array($module['slides']) && !empty($module['slides'])) {
             // Single object slide
-            $has_slides = true;
-            $items[] = array(
-                'type' => 'header',
-                'text' => 'Slides',
-                'level' => 2
-            );
             $slide_obj = (array)$module['slides'];
             // Normalize href or url if present
             if (isset($slide_obj['href'])) {
@@ -156,7 +149,17 @@ foreach($lessons['modules'] as &$module) {
             if (isset($slide_obj['url'])) {
                 $slide_obj['url'] = $normalizeUrl($slide_obj['url']);
             }
-            $items[] = array_merge(array('type' => 'slide'), $slide_obj);
+            $slide_items[] = array_merge(array('type' => 'slide'), $slide_obj);
+        }
+        
+        // Only add header if we have slide items
+        if (count($slide_items) > 0) {
+            $items[] = array(
+                'type' => 'header',
+                'text' => 'Slides',
+                'level' => 2
+            );
+            $items = array_merge($items, $slide_items);
         }
     }
     
@@ -214,7 +217,7 @@ foreach($lessons['modules'] as &$module) {
     }
     
     // Convert assignment
-    if (isset($module['assignment'])) {
+    if (isset($module['assignment']) && !empty($module['assignment'])) {
         $assignment_url = $normalizeUrl($module['assignment']);
         $items[] = array(
             'type' => 'header',
@@ -228,7 +231,7 @@ foreach($lessons['modules'] as &$module) {
     }
     
     // Convert solution
-    if (isset($module['solution'])) {
+    if (isset($module['solution']) && !empty($module['solution'])) {
         $solution_url = $normalizeUrl($module['solution']);
         $items[] = array(
             'type' => 'header',
