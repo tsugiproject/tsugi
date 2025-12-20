@@ -51,4 +51,70 @@ class CC_LTITest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($xmlout,$save);
 
     }
+
+    /**
+     * Test set_launch_url() method
+     */
+    public function testSetLaunchUrl() {
+        $lti_dom = new CC_LTI();
+        $lti_dom->set_title('Test Tool');
+        $lti_dom->set_launch_url('http://example.com/launch');
+        $save = $lti_dom->saveXML();
+        
+        $this->assertStringContainsString('<blti:launch_url>http://example.com/launch</blti:launch_url>', $save,
+            'set_launch_url should add launch_url element');
+    }
+
+    /**
+     * Test set_icon() method
+     */
+    public function testSetIcon() {
+        $lti_dom = new CC_LTI();
+        $lti_dom->set_title('Test Tool');
+        $lti_dom->set_icon('http://example.com/icon.png');
+        $save = $lti_dom->saveXML();
+        
+        $this->assertStringContainsString('<blti:icon>http://example.com/icon.png</blti:icon>', $save,
+            'set_icon should add icon element');
+    }
+
+    /**
+     * Test set_secure_icon() method
+     */
+    public function testSetSecureIcon() {
+        $lti_dom = new CC_LTI();
+        $lti_dom->set_title('Test Tool');
+        $lti_dom->set_secure_icon('https://example.com/secure-icon.png');
+        $save = $lti_dom->saveXML();
+        
+        $this->assertStringContainsString('<blti:secure_icon>https://example.com/secure-icon.png</blti:secure_icon>', $save,
+            'set_secure_icon should add secure_icon element');
+    }
+
+    /**
+     * Test all icon and launch URL methods together
+     * 
+     * Note: set_secure_launch_url() also sets launch_url to the same value,
+     * so if both are called, the last one wins for launch_url.
+     */
+    public function testAllLaunchAndIconMethods() {
+        $lti_dom = new CC_LTI();
+        $lti_dom->set_title('Complete Tool');
+        $lti_dom->set_description('A tool with all launch and icon options');
+        // Call set_secure_launch_url last since it also sets launch_url
+        $lti_dom->set_secure_launch_url('https://example.com/secure-launch');
+        $lti_dom->set_icon('http://example.com/icon.png');
+        $lti_dom->set_secure_icon('https://example.com/secure-icon.png');
+        $save = $lti_dom->saveXML();
+        
+        // set_secure_launch_url sets both launch_url and secure_launch_url to the same value
+        $this->assertStringContainsString('<blti:launch_url>https://example.com/secure-launch</blti:launch_url>', $save,
+            'Should contain launch_url (set by set_secure_launch_url)');
+        $this->assertStringContainsString('<blti:secure_launch_url>https://example.com/secure-launch</blti:secure_launch_url>', $save,
+            'Should contain secure_launch_url');
+        $this->assertStringContainsString('<blti:icon>http://example.com/icon.png</blti:icon>', $save,
+            'Should contain icon');
+        $this->assertStringContainsString('<blti:secure_icon>https://example.com/secure-icon.png</blti:secure_icon>', $save,
+            'Should contain secure_icon');
+    }
 }

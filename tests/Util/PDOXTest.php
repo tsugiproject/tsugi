@@ -668,4 +668,55 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
         $this->assertArrayHasKey(':NAME', $result5);
         $this->assertArrayNotHasKey(':UID', $result5);
     }
+
+    /**
+     * Test indexExists() - checks if an index exists on a table
+     * 
+     * This method uses indexes() to get all indexes for a table and checks if
+     * the specified index name is in that list. Since it requires a database
+     * connection, we mock the indexes() method to return a known set of indexes.
+     */
+    public function testIndexExists() {
+        $PDOX = $this->getMockBuilder(mockPDOX::class)
+            ->setMethods(['indexes'])
+            ->getMock();
+        
+        // Mock indexes() to return a known set of index names
+        $mockIndexes = ['PRIMARY', 'idx_user_id', 'idx_email', 'idx_created_at'];
+        $PDOX->method('indexes')->willReturn($mockIndexes);
+        
+        // Test that existing indexes return true
+        $this->assertTrue($PDOX->indexExists('PRIMARY', 'test_table'), 
+            'indexExists should return true for PRIMARY index');
+        $this->assertTrue($PDOX->indexExists('idx_user_id', 'test_table'), 
+            'indexExists should return true for idx_user_id index');
+        $this->assertTrue($PDOX->indexExists('idx_email', 'test_table'), 
+            'indexExists should return true for idx_email index');
+        $this->assertTrue($PDOX->indexExists('idx_created_at', 'test_table'), 
+            'indexExists should return true for idx_created_at index');
+        
+        // Test that non-existing indexes return false
+        $this->assertFalse($PDOX->indexExists('nonexistent_index', 'test_table'), 
+            'indexExists should return false for nonexistent index');
+        $this->assertFalse($PDOX->indexExists('idx_missing', 'test_table'), 
+            'indexExists should return false for missing index');
+        
+        // Test with empty indexes array
+        $PDOXEmpty = $this->getMockBuilder(mockPDOX::class)
+            ->setMethods(['indexes'])
+            ->getMock();
+        $PDOXEmpty->method('indexes')->willReturn([]);
+        
+        $this->assertFalse($PDOXEmpty->indexExists('any_index', 'test_table'), 
+            'indexExists should return false when no indexes exist');
+        
+        // Test case sensitivity (index names are case-sensitive in MySQL)
+        // Note: in_array() is case-sensitive, so indexExists() will be case-sensitive
+        $this->assertFalse($PDOX->indexExists('primary', 'test_table'), 
+            'indexExists should be case-sensitive - lowercase primary should not match PRIMARY');
+        $this->assertFalse($PDOX->indexExists('IDX_USER_ID', 'test_table'), 
+            'indexExists should be case-sensitive - uppercase IDX_USER_ID should not match lowercase idx_user_id');
+        $this->assertFalse($PDOX->indexExists('IDX_EMAIL', 'test_table'), 
+            'indexExists should be case-sensitive - uppercase IDX_EMAIL should not match lowercase idx_email');
+    }
 }
