@@ -499,7 +499,11 @@ array( "{$CFG->dbprefix}lti_result",
     -- Note service_id is not part of the key on purpose
     -- It is data that can change and can be null in LTI 2.0
     CONSTRAINT `{$CFG->dbprefix}lti_result_const_1` UNIQUE(link_id, user_id),
-    CONSTRAINT `{$CFG->dbprefix}lti_result_const_pk`  PRIMARY KEY (result_id)
+    CONSTRAINT `{$CFG->dbprefix}lti_result_const_pk`  PRIMARY KEY (result_id),
+    
+    -- Indexes for performance optimization (grades queries)
+    KEY `{$CFG->dbprefix}lti_result_indx_link_deleted_grade` (link_id, deleted, grade),
+    KEY `{$CFG->dbprefix}lti_result_indx_link_user_grade` (link_id, user_id, grade, deleted)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 // Nonce is not connected using foreign key for performance
@@ -1197,17 +1201,26 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo("Unable to generate public/private pair: ".$retval."<br/>\n");
     }
 
-    // It seems like some automatically created LTI1.1 keys between
-    // 2017-10-25 and 2019-07-04 ended up with the wrong key_sha256 for the
-    // key_key value - because of the way LTIX.php works it is as if these keys
-    // don't exist
-    /* Removed 2020-Sep-30 - I am sure the keys are cleaned up by now.
-    $sql = "UPDATE {$CFG->dbprefix}lti_key SET key_sha256=sha2(key_key, 256)
-        WHERE key_key IS NOT NULL AND key_sha256 != sha2(key_key, 256);";
-    echo("Upgrading: ".$sql."<br/>\n");
-    error_log("Upgrading: ".$sql);
-    $q = $PDOX->queryReturnError($sql);
-     */
+    // Add indexes that might not be there
+    $indexes_to_create = array(
+        "{$CFG->dbprefix}lti_result_indx_link_deleted_grade" => 
+            "CREATE INDEX `{$CFG->dbprefix}lti_result_indx_link_deleted_grade` ON {$CFG->dbprefix}lti_result (link_id, deleted, grade)",
+        "{$CFG->dbprefix}lti_result_indx_link_user_grade" => 
+            "CREATE INDEX `{$CFG->dbprefix}lti_result_indx_link_user_grade` ON {$CFG->dbprefix}lti_result (link_id, user_id, grade, deleted)"
+    );
+    
+    foreach($indexes_to_create as $index_name => $sql) {
+        if ( ! $PDOX->indexExists($index_name, "{$CFG->dbprefix}lti_result") ) {
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) {
+                $message = "Non-Fatal error creating index: ".$q->errorImplode;
+                error_log($message);
+                echo($message."<br/>\n");
+            }
+        }
+    }
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
