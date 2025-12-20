@@ -564,6 +564,54 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
         $this->assertStringNotContainsString(':ID', $result10);
         $this->assertStringNotContainsString(':NAME', $result10);
         $this->assertStringNotContainsString(':EMAIL', $result10);
+
+        // Test placeholder appearing multiple times in SQL (all occurrences should be replaced)
+        $sql11 = "SELECT * FROM users WHERE id = :ID OR parent_id = :ID";
+        $params11 = array(':ID' => 789);
+        $result11 = \Tsugi\Util\PDOX::sqlDisplay($sql11, $params11);
+        $this->assertEquals(2, substr_count($result11, '789'), 'Placeholder appearing twice should be replaced twice');
+        $this->assertStringNotContainsString(':ID', $result11);
+
+        // Test empty string value
+        $sql12 = "SELECT * FROM users WHERE name = :NAME";
+        $params12 = array(':NAME' => '');
+        $result12 = \Tsugi\Util\PDOX::sqlDisplay($sql12, $params12);
+        $this->assertStringContainsString("''", $result12, 'Empty string should be wrapped in quotes');
+        $this->assertStringNotContainsString(':NAME', $result12);
+
+        // Test zero values (numeric zero)
+        $sql13 = "SELECT * FROM users WHERE id = :ID AND count = :COUNT";
+        $params13 = array(':ID' => 0, ':COUNT' => 0);
+        $result13 = \Tsugi\Util\PDOX::sqlDisplay($sql13, $params13);
+        $this->assertEquals(2, substr_count($result13, '0'), 'Zero should appear twice');
+        $this->assertStringNotContainsString(':ID', $result13);
+        $this->assertStringNotContainsString(':COUNT', $result13);
+
+        // Test float values
+        $sql14 = "SELECT * FROM products WHERE price = :PRICE";
+        $params14 = array(':PRICE' => 19.99);
+        $result14 = \Tsugi\Util\PDOX::sqlDisplay($sql14, $params14);
+        $this->assertStringContainsString('19.99', $result14, 'Float value should be displayed correctly');
+        $this->assertStringNotContainsString(':PRICE', $result14);
+
+        // Test boolean values (PHP treats true/false as numeric in some contexts)
+        // Note: In PHP, is_numeric(true) returns false, is_numeric(false) returns false
+        // So booleans will be treated as strings and wrapped in quotes
+        $sql15 = "SELECT * FROM users WHERE active = :ACTIVE AND verified = :VERIFIED";
+        $params15 = array(':ACTIVE' => true, ':VERIFIED' => false);
+        $result15 = \Tsugi\Util\PDOX::sqlDisplay($sql15, $params15);
+        // Booleans are not numeric, so they'll be treated as strings
+        // true becomes "1", false becomes "" (empty string) when converted to string
+        $this->assertStringNotContainsString(':ACTIVE', $result15);
+        $this->assertStringNotContainsString(':VERIFIED', $result15);
+
+        // Test string "0" (should be treated as string, not numeric)
+        $sql16 = "SELECT * FROM users WHERE code = :CODE";
+        $params16 = array(':CODE' => '0');
+        $result16 = \Tsugi\Util\PDOX::sqlDisplay($sql16, $params16);
+        // String "0" is numeric in PHP, so it will be displayed without quotes
+        $this->assertStringContainsString('0', $result16);
+        $this->assertStringNotContainsString(':CODE', $result16);
     }
 
     /**
