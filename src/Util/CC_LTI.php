@@ -91,6 +91,27 @@ class CC_LTI extends \Tsugi\Util\TsugiDOM {
         $this->add_child_ns(CC::LTICM_NS, $tag, 'property', $value, array("name"=>$key));
     }
 
+    /**
+     * Set a Canvas-specific extension property
+     * 
+     * @param string $key The property name
+     * @param string $value The property value
+     */
+    public function set_canvas_extension($key, $value) {
+        $xpath = new \DOMXPath($this);
+        $xpath->registerNamespace('blti', CC::BLTI_NS);
+        // Find or create the canvas.instructure.com extensions tag
+        $canvas_extensions = $xpath->query('//blti:extensions[@platform="canvas.instructure.com"]');
+        if ( $canvas_extensions->length == 0 ) {
+            // Create canvas extensions tag
+            $root = $this->documentElement;
+            $canvas_tag = $this->add_child_ns(CC::BLTI_NS, $root, 'extensions', null, array('platform' => 'canvas.instructure.com'));
+        } else {
+            $canvas_tag = $canvas_extensions->item(0);
+        }
+        $this->add_child_ns(CC::LTICM_NS, $canvas_tag, 'property', $value, array("name"=>$key));
+    }
+
     public function saveXML(?\DOMNode $node = NULL, $options = 0) : string|false {
 
         // Clear out empty nodes

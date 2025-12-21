@@ -99,10 +99,13 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $endpoint = 'https://www.py4e.com/mod/gift/';
         $cc_dom->zip_add_lti_outcome_to_module($zip, $module2, 'Quiz: Single Table SQL', $endpoint, $custom_arr, $extensions);
 
-        $ltiOutcomeId = $cc_dom->last_identifier;
-        $ltiOutcomeIdRef = $cc_dom->last_identifierref;
-        $this->assertStringStartsWith('LT_', $ltiOutcomeId, 'LTI outcome identifier should start with LT_');
-        $this->assertEquals($ltiOutcomeId . '_R', $ltiOutcomeIdRef, 'identifierref should be identifier + _R');
+        // zip_add_lti_outcome_to_module creates both an LTI resource and an assignment resource.
+        // The assignment is what gets added to the module, so last_identifier is the assignment identifier.
+        $assignmentId = $cc_dom->last_identifier;
+        $assignmentIdRef = $cc_dom->last_identifierref;
+        $assignmentFile = $cc_dom->last_file; // File path like 'assignments/ASSIGNMENT_hash.xml'
+        $this->assertStringStartsWith('ID_', $assignmentId, 'Assignment identifier should start with ID_ (assignment type uses default prefix)');
+        $this->assertEquals($assignmentId . '_R', $assignmentIdRef, 'identifierref should be identifier + _R');
 
         $custom_arr = array();
         $extensions = array('apphome' => 'Apphome-value');
@@ -129,13 +132,15 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('<title>Autograder: Single Table SQL</title>', $save);
         $this->assertStringContainsString('<item identifier="' . $module2Id . '">', $save);
         $this->assertStringContainsString('<title>Week 2</title>', $save);
-        $this->assertStringContainsString('<item identifier="' . $ltiOutcomeId . '" identifierref="' . $ltiOutcomeIdRef . '">', $save);
+        $this->assertStringContainsString('<item identifier="' . $assignmentId . '" identifierref="' . $assignmentIdRef . '">', $save);
         $this->assertStringContainsString('<title>Quiz: Single Table SQL</title>', $save);
         $this->assertStringContainsString('<item identifier="' . $topicId . '" identifierref="' . $topicIdRef . '">', $save);
         $this->assertStringContainsString('<title>Discuss: Single Table SQL</title>', $save);
         $this->assertStringContainsString('<resource identifier="' . $webLinkIdRef . '" type="imswl_xmlv1p1">', $save);
         $this->assertStringContainsString('<resource identifier="' . $ltiLinkIdRef . '" type="imsbasiclti_xmlv1p0">', $save);
-        $this->assertStringContainsString('<resource identifier="' . $ltiOutcomeIdRef . '" type="imsbasiclti_xmlv1p0">', $save);
+        // zip_add_lti_outcome_to_module creates an assignment resource (not directly an LTI resource)
+        // The assignment resource type is 'associatedcontent/imscc_xmlv1p1/learning-application-resource'
+        $this->assertStringContainsString('<resource identifier="' . $assignmentIdRef . '" type="associatedcontent/imscc_xmlv1p1/learning-application-resource">', $save);
         $this->assertStringContainsString('<resource identifier="' . $topicIdRef . '" type="imsdt_v1p1">', $save);
 
         // Test canvas compatibility
@@ -154,10 +159,11 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('<identifierref>' . $ltiLinkIdRef . '</identifierref>', $meta);
         $this->assertStringContainsString('<module identifier="' . $module2Id . '">', $meta);
         $this->assertStringContainsString('<title>Week 2</title>', $meta);
-        $this->assertStringContainsString('<item identifier="' . $ltiOutcomeId . '">', $meta);
+        $this->assertStringContainsString('<item identifier="' . $assignmentId . '">', $meta);
         $this->assertStringContainsString('<content_type>Assignment</content_type>', $meta);
         $this->assertStringContainsString('<title>Quiz: Single Table SQL</title>', $meta);
-        $this->assertStringContainsString('<identifierref>' . $ltiOutcomeIdRef . '</identifierref>', $meta);
+        // Canvas assignments use the file path as identifierref, not the _R format
+        $this->assertStringContainsString('<identifierref>' . $assignmentFile . '</identifierref>', $meta);
         $this->assertStringContainsString('<item identifier="' . $topicId . '">', $meta);
         $this->assertStringContainsString('<content_type>DiscussionTopic</content_type>', $meta);
         $this->assertStringContainsString('<title>Discuss: Single Table SQL</title>', $meta);

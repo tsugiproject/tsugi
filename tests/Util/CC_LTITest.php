@@ -117,4 +117,45 @@ class CC_LTITest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('<blti:secure_icon>https://example.com/secure-icon.png</blti:secure_icon>', $save,
             'Should contain secure_icon');
     }
+
+    /**
+     * Test set_canvas_extension() method
+     * 
+     * This method sets Canvas-specific extension properties in a platform-specific
+     * extensions tag. It should create the canvas.instructure.com extensions tag
+     * if it doesn't exist, or add to it if it does.
+     */
+    public function testSetCanvasExtension() {
+        $lti_dom = new CC_LTI();
+        $lti_dom->set_title('Canvas Tool');
+        $lti_dom->set_canvas_extension('outcome', '10.0');
+        $save = $lti_dom->saveXML();
+        
+        // Should contain Canvas extensions tag with platform attribute
+        $this->assertStringContainsString('<blti:extensions platform="canvas.instructure.com">', $save,
+            'Should contain Canvas extensions tag with platform attribute');
+        // Should contain the property we set
+        $this->assertStringContainsString('<lticm:property name="outcome">10.0</lticm:property>', $save,
+            'Should contain the Canvas extension property');
+        
+        // Test adding multiple Canvas extensions
+        $lti_dom2 = new CC_LTI();
+        $lti_dom2->set_title('Canvas Tool 2');
+        $lti_dom2->set_canvas_extension('outcome', '10.0');
+        $lti_dom2->set_canvas_extension('privacy_level', 'public');
+        $save2 = $lti_dom2->saveXML();
+        
+        // Should contain both properties in the same Canvas extensions tag
+        $this->assertStringContainsString('<blti:extensions platform="canvas.instructure.com">', $save2,
+            'Should contain Canvas extensions tag');
+        $this->assertStringContainsString('<lticm:property name="outcome">10.0</lticm:property>', $save2,
+            'Should contain first Canvas extension property');
+        $this->assertStringContainsString('<lticm:property name="privacy_level">public</lticm:property>', $save2,
+            'Should contain second Canvas extension property');
+        
+        // Should only have one Canvas extensions tag (not create duplicates)
+        $canvasExtensionsCount = substr_count($save2, '<blti:extensions platform="canvas.instructure.com">');
+        $this->assertEquals(1, $canvasExtensionsCount,
+            'Should have exactly one Canvas extensions tag');
+    }
 }
