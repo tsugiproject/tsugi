@@ -31,5 +31,8 @@
     "require-dev": {
         "phpunit/phpunit": "9.*",
         "phpunit/php-timer": "v5.0.3"
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit tests --bootstrap vendor/autoload.php"
     }
 }

@@ -144,7 +144,11 @@ class Net {
 
         $ctx = stream_context_create($params);
         try {
-            $response = file_get_contents($url, false, $ctx);
+            $response = @file_get_contents($url, false, $ctx);
+            // Handle rate limiting (429) and other HTTP errors
+            if ($response === false) {
+                return false;
+            }
         } catch (Exception $e) {
             return false;
         }

@@ -483,6 +483,11 @@ class CC extends \Tsugi\Util\TsugiDOM {
     }
 
     function zip_add_lti_outcome_to_module($zip, $module, $title, $url, $custom=null, $extensions=null, $resourceLinkId=null, $parentPath=null) {
+        global $CFG;
+        
+        // Check if Canvas assignment wrapper extension is enabled (OFF by default)
+        $canvas_assignments = isset($CFG) ? ($CFG->getExtension('canvas_assignment_extension') ?? false) : false;
+        
         // Get parent path if not provided
         if ($parentPath === null) {
             $moduleHash = spl_object_hash($module);
@@ -503,7 +508,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $fileHash = substr($lti_identifier, strpos($lti_identifier, '_') + 1);
         $lti_file = 'xml/LT_'.$fileHash.'.xml';
         
-        // Create LTI resource in manifest (without module item)
+        // Create LTI resource in manifest (without module item initially)
         $lti_resource_id = $this->add_resource_only('imsbasiclti_xmlv1p0', $lti_identifier, $lti_file);
         
         // Generate and save LTI XML
@@ -520,36 +525,55 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $lti_dom->set_canvas_extension('outcome', '10.0');
         $zip->addFromString($lti_file, $lti_dom->saveXML());
 
-        // Create Canvas assignment resource
-        $assignment_identifier = $this->idGenerator->makeIdentifier('assignment', $title ?: '', $parentPath, array('lti_id' => $lti_identifier));
-        $assignment_fileHash = substr($assignment_identifier, strpos($assignment_identifier, '_') + 1);
-        $assignment_file = 'assignments/ASSIGNMENT_'.$assignment_fileHash.'.xml';
-        
-        // Create assignment resource and module item
-        $assignment_item = $this->add_resource_item($module, $title, 'associatedcontent/imscc_xmlv1p1/learning-application-resource', $assignment_identifier, $assignment_file);
-        $assignment_resource_id = $assignment_identifier . "_R";
-        
-        // Canvas requires LTI resources to be referenced in the organizations tree or they get discarded
-        // Add a nested item under the assignment item that references the LTI resource
-        // This ensures Canvas keeps the LTI resource when importing
-        $lti_item = $this->add_child_ns(CC::CC_1_1_CP, $assignment_item, 'item', null,
-            array('identifier' => $lti_identifier, "identifierref" => $lti_resource_id));
-        $hidden_title = $this->add_child_ns(CC::CC_1_1_CP, $lti_item, 'title', '(hidden)');
-        
-        // Generate and save Canvas assignment XML (references the LTI resource identifier)
-        // Canvas expects resource_link_id to match the LTI resource identifier in the manifest
-        // Use the actual launch URL instead of placeholder
-        $assignment_xml = $this->generate_canvas_assignment_xml($title, $lti_resource_id, $url, 10.0);
-        $zip->addFromString($assignment_file, $assignment_xml);
+        if ( $canvas_assignments ) {
+            // EXPERIMENTAL MODE: Generate Canvas assignment wrapper
+            // Create Canvas assignment resource
+            $assignment_identifier = $this->idGenerator->makeIdentifier('assignment', $title ?: '', $parentPath, array('lti_id' => $lti_identifier));
+            $assignment_fileHash = substr($assignment_identifier, strpos($assignment_identifier, '_') + 1);
+            $assignment_file = 'assignments/ASSIGNMENT_'.$assignment_fileHash.'.xml';
+            
+            // Create assignment resource and module item
+            $assignment_item = $this->add_resource_item($module, $title, 'associatedcontent/imscc_xmlv1p1/learning-application-resource', $assignment_identifier, $assignment_file);
+            $assignment_resource_id = $assignment_identifier . "_R";
+            
+            // Canvas requires LTI resources to be referenced in the organizations tree or they get discarded
+            // Add a nested item under the assignment item that references the LTI resource
+            // This ensures Canvas keeps the LTI resource when importing
+            $lti_item = $this->add_child_ns(CC::CC_1_1_CP, $assignment_item, 'item', null,
+                array('identifier' => $lti_identifier, "identifierref" => $lti_resource_id));
+            $hidden_title = $this->add_child_ns(CC::CC_1_1_CP, $lti_item, 'title', '(hidden)');
+            
+            // Generate and save Canvas assignment XML (references the LTI resource identifier)
+            // Canvas expects resource_link_id to match the LTI resource identifier in the manifest
+            // Use the actual launch URL instead of placeholder
+            $assignment_xml = $this->generate_canvas_assignment_xml($title, $lti_resource_id, $url, 10.0);
+            $zip->addFromString($assignment_file, $assignment_xml);
 
-        // Add to the ever-growing canvas_module_meta
-        if ( $this->canvas_items ) {
-            $w = $this->canvas_module_meta->child_tags(CanvasModuleMeta::content_type_Assignment);
-            $w[CanvasModuleMeta::title] = $title;
-            $w[CanvasModuleMeta::url] = $url;
-            $w[CanvasModuleMeta::identifierref] = $assignment_resource_id; // Reference assignment, not LTI
-            $w[CanvasModuleMeta::new_tab] = CanvasModuleMeta::new_tab_true;
-            $item = $this->canvas_module_meta->add_item($this->canvas_items, $assignment_identifier, $w);
+            // Add to the ever-growing canvas_module_meta
+            if ( $this->canvas_items ) {
+                $w = $this->canvas_module_meta->child_tags(CanvasModuleMeta::content_type_Assignment);
+                $w[CanvasModuleMeta::title] = $title;
+                $w[CanvasModuleMeta::url] = $url;
+                $w[CanvasModuleMeta::identifierref] = $assignment_resource_id; // Reference assignment, not LTI
+                $w[CanvasModuleMeta::new_tab] = CanvasModuleMeta::new_tab_true;
+                $item = $this->canvas_module_meta->add_item($this->canvas_items, $assignment_identifier, $w);
+            }
+        } else {
+            // DEFAULT MODE: Just create LTI resource with module item (no assignment wrapper)
+            // Create module item pointing directly to the LTI resource
+            $lti_item = $this->add_child_ns(CC::CC_1_1_CP, $module, 'item', null,
+                array('identifier' => $lti_identifier, "identifierref" => $lti_resource_id));
+            $lti_title = $this->add_child_ns(CC::CC_1_1_CP, $lti_item, 'title', $title);
+            
+            // Add to canvas_module_meta as LTI tool (not assignment)
+            if ( $this->canvas_items ) {
+                $w = $this->canvas_module_meta->child_tags(CanvasModuleMeta::content_type_ContextExternalTool);
+                $w[CanvasModuleMeta::title] = $title;
+                $w[CanvasModuleMeta::url] = $url;
+                $w[CanvasModuleMeta::identifierref] = $lti_resource_id;
+                $w[CanvasModuleMeta::new_tab] = CanvasModuleMeta::new_tab_true;
+                $item = $this->canvas_module_meta->add_item($this->canvas_items, $lti_identifier, $w);
+            }
         }
     }
 
