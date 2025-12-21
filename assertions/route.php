@@ -403,13 +403,7 @@ switch ($resource) {
                                     Add to LinkedIn
                                 </a>
                             </div>
-                            <div id="qr-code-container" style="display: none; margin-top: 15px;">
-                                <?php
-                                // Generate QR code for the badge landing page URL (only shown with completion badge)
-                                $qr_code_url = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($landing_url);
-                                ?>
-                                <img src="<?= htmlspecialchars($qr_code_url) ?>" alt="QR Code" style="border: 1px solid #ddd; padding: 5px; background: white;">
-                            </div>
+                            <div id="qr-code-container" style="display: none; margin-top: 15px; padding: 5px; background: white; border: 1px solid #ddd;"></div>
                         <?php elseif (!$completion_badge): ?>
                             <p style="margin-top: 15px; color: #666;">
                             This badge marks a learning milestone within the course. It represents progress toward a final, externally shareable credential.
@@ -456,6 +450,7 @@ switch ($resource) {
             <?php endif; ?>
         </div>
         
+        <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
         <script>
         // Function to toggle QR code visibility
         function toggleQRCode() {
@@ -465,6 +460,17 @@ switch ($resource) {
             if (qrContainer.style.display === 'none') {
                 qrContainer.style.display = 'block';
                 button.innerHTML = '<span class="glyphicon glyphicon-qrcode"></span> Hide QR Code';
+                // Generate QR code if not already generated
+                if (!qrContainer.hasChildNodes()) {
+                    new QRCode(qrContainer, {
+                        text: '<?= htmlspecialchars($landing_url, ENT_QUOTES) ?>',
+                        width: 150,
+                        height: 150,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                }
             } else {
                 qrContainer.style.display = 'none';
                 button.innerHTML = '<span class="glyphicon glyphicon-qrcode"></span> Show QR Code';
