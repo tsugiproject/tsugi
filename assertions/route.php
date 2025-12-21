@@ -44,6 +44,7 @@ if ($first_part === 'issuer.json') {
         $text = Badges::getOb2Issuer(null, null, null, null);
     }
     header('Content-Type: application/json');
+    header('Cache-Control: public, max-age=3600');
     header('Access-Control-Allow-Origin: *');
     echo($text);
     return;
@@ -94,6 +95,7 @@ if ($first_part === 'badge' && count($path_parts) === 2) {
             $text = Badges::getOb2Badge(null, $code, $badge, $title);
         }
         header('Content-Type: application/json');
+        header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
         echo($text);
         return;
@@ -200,6 +202,7 @@ switch ($resource) {
         // OB2 Assertion
         $text = Badges::getOb2Assertion($encrypted, $date, $code, $badge, $title, $email);
         header('Content-Type: application/json');
+        header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
         echo($text);
         break;
@@ -216,6 +219,7 @@ switch ($resource) {
         // OB2 BadgeClass
         $text = Badges::getOb2Badge($encrypted, $code, $badge, $title);
         header('Content-Type: application/json');
+        header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
         echo($text);
         break;
@@ -229,6 +233,7 @@ switch ($resource) {
             $text = Badges::getOb2Issuer($encrypted, $code, $badge, $title);
         }
         header('Content-Type: application/json');
+        header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
         echo($text);
         break;
