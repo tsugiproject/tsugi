@@ -81,31 +81,35 @@ class BadgesTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expectedNarrative, $decoded['evidence'][0]['narrative'], 'Should have correct narrative');
         
         // Check verification
-        $this->assertEquals('HostedBadge', $decoded['verification']['type'], 'Verification type should be HostedBadge');
+        $this->assertEquals('hosted', $decoded['verification']['type'], 'Verification type should be hosted');
     }
     
     /**
-     * Test OB2 Assertion with legacy assertion included
+     * Test OB2 Assertion date normalization (converts +00:00 to Z)
      */
-    public function testGetOb2AssertionWithLegacy()
+    public function testGetOb2AssertionDateNormalization()
     {
         global $CFG;
-        $CFG->badge_include_legacy = true;
         
         $encrypted = 'test-encrypted-id';
-        $date = '2024-01-15T10:30:00Z';
+        $dateWithOffset = '2024-01-15T10:30:00+00:00';
+        $dateExpected = '2024-01-15T10:30:00Z';
         $code = 'test-badge';
         $badge = (object)['title' => 'Test Badge'];
         $title = 'Test Course';
         $email = 'student@example.com';
         
-        $result = Badges::getOb2Assertion($encrypted, $date, $code, $badge, $title, $email);
+        $result = Badges::getOb2Assertion($encrypted, $dateWithOffset, $code, $badge, $title, $email);
         $decoded = json_decode($result, true);
         
-        $this->assertArrayHasKey('extensions', $decoded, 'Should have extensions when legacy enabled');
-        $this->assertArrayHasKey('legacyAssertion', $decoded['extensions'], 'Should have legacyAssertion');
-        $expectedLegacy = 'http://localhost/badges/assert.php?id=test-encrypted-id';
-        $this->assertEquals($expectedLegacy, $decoded['extensions']['legacyAssertion'], 'Should have correct legacy assertion URL');
+        // Date should be normalized to Z format
+        $this->assertEquals($dateExpected, $decoded['issuedOn'], 'Date should be normalized to Z format');
+        
+        // Test with date already in Z format
+        $dateZ = '2024-01-15T10:30:00Z';
+        $result2 = Badges::getOb2Assertion($encrypted, $dateZ, $code, $badge, $title, $email);
+        $decoded2 = json_decode($result2, true);
+        $this->assertEquals($dateZ, $decoded2['issuedOn'], 'Date already in Z format should remain unchanged');
     }
     
     /**

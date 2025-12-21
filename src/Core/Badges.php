@@ -111,34 +111,47 @@ class Badges {
     }
     
     /**
-     * Build badge class URL
+     * Build badge class URL (OB2 - no query params)
      * 
      * @param string $code The badge code
-     * @param string|null $format Optional format parameter (e.g., 'ob3')
      * @return string The badge class URL
      */
-    private static function buildBadgeUrl($code, $format = null) {
+    private static function buildBadgeUrl($code) {
         global $CFG;
-        $url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json";
-        if ($format) {
-            $url .= "?format=" . urlencode($format);
-        }
-        return $url;
+        return $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json";
     }
     
     /**
-     * Build issuer URL
+     * Build badge class URL with format (OB3 only)
      * 
-     * @param string|null $format Optional format parameter (e.g., 'ob3')
+     * @param string $code The badge code
+     * @param string $format Format parameter (e.g., 'ob3')
+     * @return string The badge class URL with format
+     */
+    private static function buildBadgeUrlWithFormat($code, $format) {
+        global $CFG;
+        return $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json?format=" . urlencode($format);
+    }
+    
+    /**
+     * Build issuer URL (OB2 - no query params)
+     * 
      * @return string The issuer URL
      */
-    private static function buildIssuerUrl($format = null) {
+    private static function buildIssuerUrl() {
         global $CFG;
-        $url = $CFG->wwwroot . "/assertions/issuer.json";
-        if ($format) {
-            $url .= "?format=" . urlencode($format);
-        }
-        return $url;
+        return $CFG->wwwroot . "/assertions/issuer.json";
+    }
+    
+    /**
+     * Build issuer URL with format (OB3 only)
+     * 
+     * @param string $format Format parameter (e.g., 'ob3')
+     * @return string The issuer URL with format
+     */
+    private static function buildIssuerUrlWithFormat($format) {
+        global $CFG;
+        return $CFG->wwwroot . "/assertions/issuer.json?format=" . urlencode($format);
     }
     
     /**
@@ -151,6 +164,23 @@ class Badges {
     private static function buildEvidenceNarrative($badge, $title) {
         global $CFG;
         return "Completed {$badge->title} in course $title at {$CFG->servicename}";
+    }
+    
+    /**
+     * Normalize ISO8601 date to Z format (required by Badgr/Credly)
+     * Converts +00:00 to Z
+     * 
+     * @param string $date ISO8601 date string
+     * @return string Date string ending with Z
+     */
+    private static function normalizeDateToZ($date) {
+        // Replace +00:00 with Z
+        $date = str_replace('+00:00', 'Z', $date);
+        // Also handle other timezone offsets that might be UTC
+        if (preg_match('/\+00:00$/', $date)) {
+            $date = str_replace('+00:00', 'Z', $date);
+        }
+        return $date;
     }
     
     /**
@@ -174,8 +204,8 @@ class Badges {
         $evidence = $CFG->apphome;
         $narrative = self::buildEvidenceNarrative($badge, $title);
         
-        // Legacy OB1 assertion reference for traceability
-        $legacy_assertion = $CFG->wwwroot . "/badges/assert.php?id=" . urlencode($encrypted);
+        // Normalize date to Z format (required by Badgr/Credly)
+        $issuedOn = self::normalizeDateToZ($date);
         
         $assertion = array(
             "@context" => self::OB2_CONTEXT,
@@ -187,7 +217,7 @@ class Badges {
                 "salt" => $CFG->badge_assert_salt,
                 "identity" => $recipient
             ),
-            "issuedOn" => $date,
+            "issuedOn" => $issuedOn,
             "badge" => $badge_url,
             "image" => $image,
             "evidence" => array(
@@ -198,16 +228,9 @@ class Badges {
                 )
             ),
             "verification" => array(
-                "type" => "HostedBadge"
+                "type" => "hosted"
             )
         );
-        
-        // Add legacy assertion reference in extensions
-        if (isset($CFG->badge_include_legacy) && $CFG->badge_include_legacy) {
-            $assertion["extensions"] = array(
-                "legacyAssertion" => $legacy_assertion
-            );
-        }
         
         return json_encode($assertion, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
@@ -290,8 +313,8 @@ class Badges {
         $image = $CFG->badge_url.'/'.$code.'.png';
         $recipient = 'sha256$' . hash('sha256', $email . $CFG->badge_assert_salt);
         $credential_id = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . ".vc.json";
-        $achievement_id = self::buildBadgeUrl($code, 'ob3');
-        $issuer_id = self::buildIssuerUrl('ob3');
+        $achievement_id = self::buildBadgeUrlWithFormat($code, 'ob3');
+        $issuer_id = self::buildIssuerUrlWithFormat('ob3');
         $evidence = $CFG->apphome;
         $narrative = self::buildEvidenceNarrative($badge, $title);
         
@@ -362,8 +385,8 @@ class Badges {
         global $CFG;
 
         $image = $CFG->badge_url.'/'.$code.'.png';
-        $achievement_id = self::buildBadgeUrl($code, 'ob3');
-        $issuer_id = self::buildIssuerUrl('ob3');
+        $achievement_id = self::buildBadgeUrlWithFormat($code, 'ob3');
+        $issuer_id = self::buildIssuerUrlWithFormat('ob3');
         $narrative = self::buildEvidenceNarrative($badge, $title);
         
         $achievement = array(
@@ -404,7 +427,7 @@ class Badges {
     public static function getOb3Issuer($encrypted = null, $code = null, $badge = null, $title = null) {
         global $CFG;
 
-        $issuer_id = self::buildIssuerUrl('ob3');
+        $issuer_id = self::buildIssuerUrlWithFormat('ob3');
         $issuer_email = self::getIssuerEmail();
         
         $issuer = array(
