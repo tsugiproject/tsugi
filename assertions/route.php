@@ -2,10 +2,10 @@
 
 define('COOKIE_SESSION', true);
 require_once('../config.php');
-require_once('assertion-util.php');
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\Badges;
 use \Tsugi\UI\Lessons;
 
 // Parse the URL to extract encrypted ID and resource type
@@ -39,9 +39,9 @@ if ($first_part === 'issuer.json') {
     }
     $format = isset($_GET['format']) ? $_GET['format'] : 'ob2';
     if ($format === 'ob3') {
-        $text = get_ob3_issuer(null, null, null, null);
+        $text = Badges::getOb3Issuer(null, null, null, null);
     } else {
-        $text = get_ob2_issuer(null, null, null, null);
+        $text = Badges::getOb2Issuer(null, null, null, null);
     }
     header('Content-Type: application/json');
     header('Access-Control-Allow-Origin: *');
@@ -89,9 +89,9 @@ if ($first_part === 'badge' && count($path_parts) === 2) {
         
         $format = isset($_GET['format']) ? $_GET['format'] : 'ob2';
         if ($format === 'ob3') {
-            $text = get_ob3_achievement(null, $code, $badge, $title);
+            $text = Badges::getOb3Achievement(null, $code, $badge, $title);
         } else {
-            $text = get_ob2_badge(null, $code, $badge, $title);
+            $text = Badges::getOb2Badge(null, $code, $badge, $title);
         }
         header('Content-Type: application/json');
         header('Access-Control-Allow-Origin: *');
@@ -180,7 +180,7 @@ if ( ! isset($CFG->lessons) ) {
 $PDOX = LTIX::getConnection();
 $l = new Lessons($CFG->lessons);
 
-$x = parse_assertion_id($encrypted, $l);
+$x = Badges::parseAssertionId($encrypted, $l);
 if ( is_string($x) ) {
     error_log("Assertion parse error: " . $x . " for encrypted: " . substr($encrypted, 0, 50) . "...");
     die_with_error_log($x);
@@ -198,7 +198,7 @@ $code = $pieces[1];
 switch ($resource) {
     case 'assert':
         // OB2 Assertion
-        $text = get_ob2_assertion($encrypted, $date, $code, $badge, $title, $email);
+        $text = Badges::getOb2Assertion($encrypted, $date, $code, $badge, $title, $email);
         header('Content-Type: application/json');
         header('Access-Control-Allow-Origin: *');
         echo($text);
@@ -206,7 +206,7 @@ switch ($resource) {
         
     case 'assert-vc':
         // OB3/VC Assertion
-        $text = get_ob3_assertion($encrypted, $date, $code, $badge, $title, $email);
+        $text = Badges::getOb3Assertion($encrypted, $date, $code, $badge, $title, $email);
         header('Content-Type: application/vc+json');
         header('Access-Control-Allow-Origin: *');
         echo($text);
@@ -214,7 +214,7 @@ switch ($resource) {
         
     case 'badge':
         // OB2 BadgeClass
-        $text = get_ob2_badge($encrypted, $code, $badge, $title);
+        $text = Badges::getOb2Badge($encrypted, $code, $badge, $title);
         header('Content-Type: application/json');
         header('Access-Control-Allow-Origin: *');
         echo($text);
@@ -224,9 +224,9 @@ switch ($resource) {
         // OB2/OB3 Issuer (default to OB2, can use ?format=ob3)
         $format = isset($_GET['format']) ? $_GET['format'] : 'ob2';
         if ($format === 'ob3') {
-            $text = get_ob3_issuer($encrypted, $code, $badge, $title);
+            $text = Badges::getOb3Issuer($encrypted, $code, $badge, $title);
         } else {
-            $text = get_ob2_issuer($encrypted, $code, $badge, $title);
+            $text = Badges::getOb2Issuer($encrypted, $code, $badge, $title);
         }
         header('Content-Type: application/json');
         header('Access-Control-Allow-Origin: *');
@@ -235,7 +235,7 @@ switch ($resource) {
         
     case 'achievement':
         // OB3 Achievement
-        $text = get_ob3_achievement($encrypted, $code, $badge, $title);
+        $text = Badges::getOb3Achievement($encrypted, $code, $badge, $title);
         header('Content-Type: application/json');
         header('Access-Control-Allow-Origin: *');
         echo($text);

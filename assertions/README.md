@@ -11,7 +11,7 @@ The assertions system provides modern badge formats while maintaining compatibil
 ### OB2 Assertion
 - **URL**: `/assertions/{encrypted-id}.json`
 - **Format**: Open Badges 2.0 JSON-LD
-- **Context**: `https://purl.imsglobal.org/spec/ob/v2p1/context.json`
+- **Context**: `https://w3id.org/openbadges/v2`
 - **Content-Type**: `application/json`
 - **Note**: Default format when Accept header is missing or doesn't request OB3
 
