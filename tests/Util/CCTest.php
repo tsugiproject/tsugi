@@ -134,6 +134,32 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('<title>Week 2</title>', $save);
         $this->assertStringContainsString('<item identifier="' . $assignmentId . '" identifierref="' . $assignmentIdRef . '">', $save);
         $this->assertStringContainsString('<title>Quiz: Single Table SQL</title>', $save);
+        
+        // Canvas requires LTI resources to be referenced in the organizations tree
+        // Verify that a nested item referencing the LTI resource exists under the assignment item
+        // The nested item should have identifierref matching an LTI resource (LT_*_R pattern)
+        // and title "(hidden)"
+        $this->assertStringContainsString('(hidden)', $save, 'Should contain hidden LTI item title');
+        
+        // Verify the LTI resource exists in the manifest (created by zip_add_lti_outcome_to_module)
+        // The LTI resource should have type "imsbasiclti_xmlv1p0" and identifier matching LT_*_R pattern
+        $this->assertMatchesRegularExpression(
+            '/<resource identifier="LT_[^"]+_R" type="imsbasiclti_xmlv1p0">/',
+            $save,
+            'Should contain LTI resource for the assignment'
+        );
+        
+        // Verify nested item structure: assignment item should contain a nested item
+        // The nested item should reference the LTI resource via identifierref
+        // Pattern: <item identifier="ASSIGNMENT_ID" identifierref="ASSIGNMENT_ID_R">...<item identifier="LT_..." identifierref="LT_..._R">
+        $assignmentItemPattern = '<item identifier="' . preg_quote($assignmentId, '/') . '"';
+        $nestedLtiItemPattern = '<item[^>]*identifierref="LT_[^"]+_R"';
+        $this->assertMatchesRegularExpression(
+            '/' . preg_quote($assignmentItemPattern, '/') . '[^>]*>.*?' . $nestedLtiItemPattern . '/s',
+            $save,
+            'Assignment item should contain nested LTI item with identifierref pointing to LTI resource'
+        );
+        
         $this->assertStringContainsString('<item identifier="' . $topicId . '" identifierref="' . $topicIdRef . '">', $save);
         $this->assertStringContainsString('<title>Discuss: Single Table SQL</title>', $save);
         $this->assertStringContainsString('<resource identifier="' . $webLinkIdRef . '" type="imswl_xmlv1p1">', $save);
@@ -162,8 +188,8 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('<item identifier="' . $assignmentId . '">', $meta);
         $this->assertStringContainsString('<content_type>Assignment</content_type>', $meta);
         $this->assertStringContainsString('<title>Quiz: Single Table SQL</title>', $meta);
-        // Canvas assignments use the file path as identifierref, not the _R format
-        $this->assertStringContainsString('<identifierref>' . $assignmentFile . '</identifierref>', $meta);
+        // Canvas assignments use the assignment resource identifier (_R format)
+        $this->assertStringContainsString('<identifierref>' . $assignmentIdRef . '</identifierref>', $meta);
         $this->assertStringContainsString('<item identifier="' . $topicId . '">', $meta);
         $this->assertStringContainsString('<content_type>DiscussionTopic</content_type>', $meta);
         $this->assertStringContainsString('<title>Discuss: Single Table SQL</title>', $meta);

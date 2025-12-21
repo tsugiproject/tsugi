@@ -331,6 +331,8 @@ class CC extends \Tsugi\Util\TsugiDOM {
 
     /**
      * Add a resource to the manifest.
+     * 
+     * @return \DOMNode The created item node
      */
     public function add_resource_item($module, $title, $type, $identifier, $file) {
         $this->last_file = $file;
@@ -351,7 +353,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
             array('identifier' => $this->last_identifierref, "type" => $type));
         $new_file = $this->add_child_ns(CC::CC_1_1_CP, $new_resource, 'file', null, array("href" => $file));
 
-        return $file;
+        return $new_item;
     }
 
     /**
@@ -524,7 +526,15 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $assignment_file = 'assignments/ASSIGNMENT_'.$assignment_fileHash.'.xml';
         
         // Create assignment resource and module item
-        $assignment_resource_id = $this->add_resource_item($module, $title, 'associatedcontent/imscc_xmlv1p1/learning-application-resource', $assignment_identifier, $assignment_file);
+        $assignment_item = $this->add_resource_item($module, $title, 'associatedcontent/imscc_xmlv1p1/learning-application-resource', $assignment_identifier, $assignment_file);
+        $assignment_resource_id = $assignment_identifier . "_R";
+        
+        // Canvas requires LTI resources to be referenced in the organizations tree or they get discarded
+        // Add a nested item under the assignment item that references the LTI resource
+        // This ensures Canvas keeps the LTI resource when importing
+        $lti_item = $this->add_child_ns(CC::CC_1_1_CP, $assignment_item, 'item', null,
+            array('identifier' => $lti_identifier, "identifierref" => $lti_resource_id));
+        $hidden_title = $this->add_child_ns(CC::CC_1_1_CP, $lti_item, 'title', '(hidden)');
         
         // Generate and save Canvas assignment XML (references the LTI resource identifier)
         // Canvas expects resource_link_id to match the LTI resource identifier in the manifest
