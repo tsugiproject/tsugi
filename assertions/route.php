@@ -258,6 +258,63 @@ switch ($resource) {
         $legacy_url = $CFG->wwwroot . "/badges/assert.php?id=" . urlencode($encrypted);
         $legacy_image_url = $CFG->wwwroot . "/badges/images/" . urlencode($encrypted) . ".png";
         
+        // Build landing URL for this badge assertion page (used as certUrl for LinkedIn)
+        $landing_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted);
+        
+        // Check if user is logged in and owns this badge
+        // Start session if not already started (needed to check login status)
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        // Get current logged-in user ID from session
+        $current_user_id = U::get($_SESSION, 'id');
+        $logged_in = !empty($current_user_id);
+        
+        // Get badge owner user ID from the encrypted assertion ID
+        // $pieces[0] contains the user_id of the badge owner
+        $badge_owner_user_id = isset($pieces[0]) ? intval($pieces[0]) : null;
+        
+        // Only show LinkedIn button if user is logged in AND owns this badge
+        $show_linkedin_button = $logged_in && ($current_user_id == $badge_owner_user_id);
+        
+        // Build LinkedIn "Add to Profile" URL if user owns the badge
+        $linkedin_url = null;
+        if ($show_linkedin_button) {
+            // Prepare badge details for LinkedIn
+            $badge_name = htmlspecialchars($badge->title, ENT_QUOTES, 'UTF-8');
+            $issuer_org_name = htmlspecialchars($CFG->servicename, ENT_QUOTES, 'UTF-8');
+            $issued_on = $date; // Already in ISO 8601 format from U::iso8601()
+            
+            // Build LinkedIn certification URL
+            // LinkedIn's profile/add endpoint for certifications
+            $linkedin_base_url = 'https://www.linkedin.com/profile/add';
+            $linkedin_params = array(
+                'name' => $badge_name,
+                'organizationName' => $issuer_org_name,
+                'certUrl' => $landing_url
+            );
+            
+            // Parse issued_on date to extract year and month for LinkedIn
+            // Defensive: if date parsing fails, just skip date parameters
+            if (!empty($issued_on)) {
+                try {
+                    // Try parsing ISO 8601 date (e.g., "2025-12-21T04:11:56Z")
+                    $date_obj = new DateTime($issued_on);
+                    if ($date_obj !== false) {
+                        $linkedin_params['issueYear'] = $date_obj->format('Y');
+                        $linkedin_params['issueMonth'] = $date_obj->format('m');
+                    }
+                } catch (Exception $e) {
+                    // If date parsing fails, just skip date parameters
+                    // LinkedIn will still accept the certification without dates
+                }
+            }
+            
+            // Build query string with proper URL encoding
+            $linkedin_url = $linkedin_base_url . '?' . http_build_query($linkedin_params);
+        }
+        
         $OUTPUT->header();
         // Add alternate link tag to head for badge assertion JSON
         echo('<link rel="alternate" type="application/json" href="' . htmlspecialchars($ob2_url) . '">' . "\n");
@@ -276,6 +333,16 @@ switch ($resource) {
                     <p><strong>Course:</strong> <?= htmlspecialchars($title) ?></p>
                     <p><strong>Issued:</strong> <?= htmlspecialchars($date) ?></p>
                     <p><strong>Issuer:</strong> <?= htmlspecialchars($CFG->servicename) ?></p>
+                    
+                    <?php
+                    // Only show LinkedIn button if user is logged in and owns this badge
+                    if ($show_linkedin_button && $linkedin_url): ?>
+                        <p style="margin-top: 15px;">
+                            <a href="<?= htmlspecialchars($linkedin_url) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                                Add to LinkedIn
+                            </a>
+                        </p>
+                    <?php endif; ?>
                 </div>
             </div>
             
