@@ -20,16 +20,26 @@ namespace Google\Service\Reseller;
 class RenewalSettings extends \Google\Model
 {
   /**
+   * Identifies the resource as a subscription renewal setting. Value:
+   * `subscriptions#renewalSettings`
+   *
    * @var string
    */
   public $kind;
   /**
+   * Renewal settings for the annual commitment plan. For more detailed
+   * information, see renewal options in the administrator help center. When
+   * renewing a subscription, the `renewalType` is a required property.
+   *
    * @var string
    */
   public $renewalType;
 
   /**
-   * @param string
+   * Identifies the resource as a subscription renewal setting. Value:
+   * `subscriptions#renewalSettings`
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -43,7 +53,11 @@ class RenewalSettings extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * Renewal settings for the annual commitment plan. For more detailed
+   * information, see renewal options in the administrator help center. When
+   * renewing a subscription, the `renewalType` is a required property.
+   *
+   * @param string $renewalType
    */
   public function setRenewalType($renewalType)
   {

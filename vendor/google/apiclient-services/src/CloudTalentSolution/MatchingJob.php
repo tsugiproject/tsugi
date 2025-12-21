@@ -24,20 +24,34 @@ class MatchingJob extends \Google\Model
   protected $jobType = Job::class;
   protected $jobDataType = '';
   /**
+   * A summary of the job with core information that's displayed on the search
+   * results listing page.
+   *
    * @var string
    */
   public $jobSummary;
   /**
+   * Contains snippets of text from the Job.title field most closely matching a
+   * search query's keywords, if available. The matching query keywords are
+   * enclosed in HTML bold tags.
+   *
    * @var string
    */
   public $jobTitleSnippet;
   /**
+   * Contains snippets of text from the Job.description and similar fields that
+   * most closely match a search query's keywords, if available. All HTML tags
+   * in the original fields are stripped when returned in this field, and
+   * matching query keywords are enclosed in HTML bold tags.
+   *
    * @var string
    */
   public $searchTextSnippet;
 
   /**
-   * @param CommuteInfo
+   * Commute information which is generated based on specified CommuteFilter.
+   *
+   * @param CommuteInfo $commuteInfo
    */
   public function setCommuteInfo(CommuteInfo $commuteInfo)
   {
@@ -51,7 +65,9 @@ class MatchingJob extends \Google\Model
     return $this->commuteInfo;
   }
   /**
-   * @param Job
+   * Job resource that matches the specified SearchJobsRequest.
+   *
+   * @param Job $job
    */
   public function setJob(Job $job)
   {
@@ -65,7 +81,10 @@ class MatchingJob extends \Google\Model
     return $this->job;
   }
   /**
-   * @param string
+   * A summary of the job with core information that's displayed on the search
+   * results listing page.
+   *
+   * @param string $jobSummary
    */
   public function setJobSummary($jobSummary)
   {
@@ -79,7 +98,11 @@ class MatchingJob extends \Google\Model
     return $this->jobSummary;
   }
   /**
-   * @param string
+   * Contains snippets of text from the Job.title field most closely matching a
+   * search query's keywords, if available. The matching query keywords are
+   * enclosed in HTML bold tags.
+   *
+   * @param string $jobTitleSnippet
    */
   public function setJobTitleSnippet($jobTitleSnippet)
   {
@@ -93,7 +116,12 @@ class MatchingJob extends \Google\Model
     return $this->jobTitleSnippet;
   }
   /**
-   * @param string
+   * Contains snippets of text from the Job.description and similar fields that
+   * most closely match a search query's keywords, if available. All HTML tags
+   * in the original fields are stripped when returned in this field, and
+   * matching query keywords are enclosed in HTML bold tags.
+   *
+   * @param string $searchTextSnippet
    */
   public function setSearchTextSnippet($searchTextSnippet)
   {

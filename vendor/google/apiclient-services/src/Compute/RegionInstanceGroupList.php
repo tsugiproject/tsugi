@@ -21,20 +21,33 @@ class RegionInstanceGroupList extends \Google\Collection
 {
   protected $collection_key = 'items';
   /**
+   * Output only. [Output Only] Unique identifier for the resource; defined by
+   * the server.
+   *
    * @var string
    */
   public $id;
   protected $itemsType = InstanceGroup::class;
   protected $itemsDataType = 'array';
   /**
+   * Output only. The resource type.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Output only. [Output Only] This token allows you to get the next page of
+   * results for list requests. If the number of results is larger
+   * thanmaxResults, use the nextPageToken as a value for the query parameter
+   * pageToken in the next list request. Subsequent list requests will have
+   * their own nextPageToken to continue paging through the results.
+   *
    * @var string
    */
   public $nextPageToken;
   /**
+   * Output only. [Output Only] Server-defined URL for this resource.
+   *
    * @var string
    */
   public $selfLink;
@@ -42,7 +55,10 @@ class RegionInstanceGroupList extends \Google\Collection
   protected $warningDataType = '';
 
   /**
-   * @param string
+   * Output only. [Output Only] Unique identifier for the resource; defined by
+   * the server.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -56,7 +72,9 @@ class RegionInstanceGroupList extends \Google\Collection
     return $this->id;
   }
   /**
-   * @param InstanceGroup[]
+   * A list of InstanceGroup resources.
+   *
+   * @param InstanceGroup[] $items
    */
   public function setItems($items)
   {
@@ -70,7 +88,9 @@ class RegionInstanceGroupList extends \Google\Collection
     return $this->items;
   }
   /**
-   * @param string
+   * Output only. The resource type.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -84,7 +104,13 @@ class RegionInstanceGroupList extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * Output only. [Output Only] This token allows you to get the next page of
+   * results for list requests. If the number of results is larger
+   * thanmaxResults, use the nextPageToken as a value for the query parameter
+   * pageToken in the next list request. Subsequent list requests will have
+   * their own nextPageToken to continue paging through the results.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -98,7 +124,9 @@ class RegionInstanceGroupList extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param string
+   * Output only. [Output Only] Server-defined URL for this resource.
+   *
+   * @param string $selfLink
    */
   public function setSelfLink($selfLink)
   {
@@ -112,7 +140,9 @@ class RegionInstanceGroupList extends \Google\Collection
     return $this->selfLink;
   }
   /**
-   * @param RegionInstanceGroupListWarning
+   * Output only. [Output Only] Informational warning message.
+   *
+   * @param RegionInstanceGroupListWarning $warning
    */
   public function setWarning(RegionInstanceGroupListWarning $warning)
   {

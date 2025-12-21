@@ -20,10 +20,14 @@ namespace Google\Service\CloudVideoIntelligence;
 class GoogleCloudVideointelligenceV1p1beta1DetectedLandmark extends \Google\Model
 {
   /**
+   * The confidence score of the detected landmark. Range [0, 1].
+   *
    * @var float
    */
   public $confidence;
   /**
+   * The name of this landmark, for example, left_hand, right_shoulder.
+   *
    * @var string
    */
   public $name;
@@ -31,7 +35,9 @@ class GoogleCloudVideointelligenceV1p1beta1DetectedLandmark extends \Google\Mode
   protected $pointDataType = '';
 
   /**
-   * @param float
+   * The confidence score of the detected landmark. Range [0, 1].
+   *
+   * @param float $confidence
    */
   public function setConfidence($confidence)
   {
@@ -45,7 +51,9 @@ class GoogleCloudVideointelligenceV1p1beta1DetectedLandmark extends \Google\Mode
     return $this->confidence;
   }
   /**
-   * @param string
+   * The name of this landmark, for example, left_hand, right_shoulder.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -59,7 +67,10 @@ class GoogleCloudVideointelligenceV1p1beta1DetectedLandmark extends \Google\Mode
     return $this->name;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1p1beta1NormalizedVertex
+   * The 2D point of the detected landmark using the normalized image coordinate
+   * system. The normalized coordinates have the range from 0 to 1.
+   *
+   * @param GoogleCloudVideointelligenceV1p1beta1NormalizedVertex $point
    */
   public function setPoint(GoogleCloudVideointelligenceV1p1beta1NormalizedVertex $point)
   {

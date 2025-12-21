@@ -20,20 +20,40 @@ namespace Google\Service\CloudHealthcare;
 class ProgressCounter extends \Google\Model
 {
   /**
+   * The number of units that failed in the operation.
+   *
    * @var string
    */
   public $failure;
   /**
+   * The number of units that are pending in the operation.
+   *
    * @var string
    */
   public $pending;
   /**
+   * The number of secondary units that failed in the operation.
+   *
+   * @var string
+   */
+  public $secondaryFailure;
+  /**
+   * The number of secondary units that succeeded in the operation.
+   *
+   * @var string
+   */
+  public $secondarySuccess;
+  /**
+   * The number of units that succeeded in the operation.
+   *
    * @var string
    */
   public $success;
 
   /**
-   * @param string
+   * The number of units that failed in the operation.
+   *
+   * @param string $failure
    */
   public function setFailure($failure)
   {
@@ -47,7 +67,9 @@ class ProgressCounter extends \Google\Model
     return $this->failure;
   }
   /**
-   * @param string
+   * The number of units that are pending in the operation.
+   *
+   * @param string $pending
    */
   public function setPending($pending)
   {
@@ -61,7 +83,41 @@ class ProgressCounter extends \Google\Model
     return $this->pending;
   }
   /**
-   * @param string
+   * The number of secondary units that failed in the operation.
+   *
+   * @param string $secondaryFailure
+   */
+  public function setSecondaryFailure($secondaryFailure)
+  {
+    $this->secondaryFailure = $secondaryFailure;
+  }
+  /**
+   * @return string
+   */
+  public function getSecondaryFailure()
+  {
+    return $this->secondaryFailure;
+  }
+  /**
+   * The number of secondary units that succeeded in the operation.
+   *
+   * @param string $secondarySuccess
+   */
+  public function setSecondarySuccess($secondarySuccess)
+  {
+    $this->secondarySuccess = $secondarySuccess;
+  }
+  /**
+   * @return string
+   */
+  public function getSecondarySuccess()
+  {
+    return $this->secondarySuccess;
+  }
+  /**
+   * The number of units that succeeded in the operation.
+   *
+   * @param string $success
    */
   public function setSuccess($success)
   {

@@ -21,6 +21,9 @@ class ListWorkspacesResponse extends \Google\Collection
 {
   protected $collection_key = 'workspaces';
   /**
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is empty, there are no subsequent pages.
+   *
    * @var string
    */
   public $nextPageToken;
@@ -28,7 +31,10 @@ class ListWorkspacesResponse extends \Google\Collection
   protected $workspacesDataType = 'array';
 
   /**
-   * @param string
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is empty, there are no subsequent pages.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -42,7 +48,9 @@ class ListWorkspacesResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param Workspace[]
+   * The list of workspaces.
+   *
+   * @param Workspace[] $workspaces
    */
   public function setWorkspaces($workspaces)
   {

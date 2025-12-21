@@ -25,7 +25,7 @@ class GaDataDataTableRowsC extends \Google\Model
   public $v;
 
   /**
-   * @param string
+   * @param string $v
    */
   public function setV($v)
   {

@@ -20,12 +20,16 @@ namespace Google\Service\Meet;
 class PhoneUser extends \Google\Model
 {
   /**
+   * Output only. Partially redacted user's phone number when calling.
+   *
    * @var string
    */
   public $displayName;
 
   /**
-   * @param string
+   * Output only. Partially redacted user's phone number when calling.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {

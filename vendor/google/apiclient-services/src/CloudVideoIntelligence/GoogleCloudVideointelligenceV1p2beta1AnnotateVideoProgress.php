@@ -24,7 +24,9 @@ class GoogleCloudVideointelligenceV1p2beta1AnnotateVideoProgress extends \Google
   protected $annotationProgressDataType = 'array';
 
   /**
-   * @param GoogleCloudVideointelligenceV1p2beta1VideoAnnotationProgress[]
+   * Progress metadata for all videos specified in `AnnotateVideoRequest`.
+   *
+   * @param GoogleCloudVideointelligenceV1p2beta1VideoAnnotationProgress[] $annotationProgress
    */
   public function setAnnotationProgress($annotationProgress)
   {

@@ -20,20 +20,32 @@ namespace Google\Service\CloudVideoIntelligence;
 class GoogleCloudVideointelligenceV1p3beta1Celebrity extends \Google\Model
 {
   /**
+   * Textual description of additional information about the celebrity, if
+   * applicable.
+   *
    * @var string
    */
   public $description;
   /**
+   * The celebrity name.
+   *
    * @var string
    */
   public $displayName;
   /**
+   * The resource name of the celebrity. Have the format `video-intelligence/kg-
+   * mid` indicates a celebrity from preloaded gallery. kg-mid is the id in
+   * Google knowledge graph, which is unique for the celebrity.
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param string
+   * Textual description of additional information about the celebrity, if
+   * applicable.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -47,7 +59,9 @@ class GoogleCloudVideointelligenceV1p3beta1Celebrity extends \Google\Model
     return $this->description;
   }
   /**
-   * @param string
+   * The celebrity name.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -61,7 +75,11 @@ class GoogleCloudVideointelligenceV1p3beta1Celebrity extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param string
+   * The resource name of the celebrity. Have the format `video-intelligence/kg-
+   * mid` indicates a celebrity from preloaded gallery. kg-mid is the id in
+   * Google knowledge graph, which is unique for the celebrity.
+   *
+   * @param string $name
    */
   public function setName($name)
   {

@@ -24,7 +24,10 @@ class TimeSeries extends \Google\Collection
   protected $datedValuesDataType = 'array';
 
   /**
-   * @param DatedValue[]
+   * List of datapoints in the timeseries, where each datapoint is a date-value
+   * pair.
+   *
+   * @param DatedValue[] $datedValues
    */
   public function setDatedValues($datedValues)
   {

@@ -20,20 +20,52 @@ namespace Google\Service\ManufacturerCenter;
 class GoogleShoppingManufacturersV1ProductCertification extends \Google\Model
 {
   /**
+   * Required. Name of the certification body.
+   *
    * @var string
    */
   public $authority;
   /**
+   * Optional. A unique code to identify the certification.
+   *
    * @var string
    */
   public $code;
   /**
+   * Optional. A URL link to the certification.
+   *
+   * @var string
+   */
+  public $link;
+  /**
+   * Optional. A URL link to the certification logo.
+   *
+   * @var string
+   */
+  public $logo;
+  /**
+   * Required. Name of the certification.
+   *
    * @var string
    */
   public $name;
+  /**
+   * Optional. The expiration date (UTC).
+   *
+   * @var string
+   */
+  public $validUntil;
+  /**
+   * Optional. A custom value of the certification.
+   *
+   * @var string
+   */
+  public $value;
 
   /**
-   * @param string
+   * Required. Name of the certification body.
+   *
+   * @param string $authority
    */
   public function setAuthority($authority)
   {
@@ -47,7 +79,9 @@ class GoogleShoppingManufacturersV1ProductCertification extends \Google\Model
     return $this->authority;
   }
   /**
-   * @param string
+   * Optional. A unique code to identify the certification.
+   *
+   * @param string $code
    */
   public function setCode($code)
   {
@@ -61,7 +95,41 @@ class GoogleShoppingManufacturersV1ProductCertification extends \Google\Model
     return $this->code;
   }
   /**
-   * @param string
+   * Optional. A URL link to the certification.
+   *
+   * @param string $link
+   */
+  public function setLink($link)
+  {
+    $this->link = $link;
+  }
+  /**
+   * @return string
+   */
+  public function getLink()
+  {
+    return $this->link;
+  }
+  /**
+   * Optional. A URL link to the certification logo.
+   *
+   * @param string $logo
+   */
+  public function setLogo($logo)
+  {
+    $this->logo = $logo;
+  }
+  /**
+   * @return string
+   */
+  public function getLogo()
+  {
+    return $this->logo;
+  }
+  /**
+   * Required. Name of the certification.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -73,6 +141,38 @@ class GoogleShoppingManufacturersV1ProductCertification extends \Google\Model
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * Optional. The expiration date (UTC).
+   *
+   * @param string $validUntil
+   */
+  public function setValidUntil($validUntil)
+  {
+    $this->validUntil = $validUntil;
+  }
+  /**
+   * @return string
+   */
+  public function getValidUntil()
+  {
+    return $this->validUntil;
+  }
+  /**
+   * Optional. A custom value of the certification.
+   *
+   * @param string $value
+   */
+  public function setValue($value)
+  {
+    $this->value = $value;
+  }
+  /**
+   * @return string
+   */
+  public function getValue()
+  {
+    return $this->value;
   }
 }
 

@@ -20,16 +20,22 @@ namespace Google\Service\HomeGraphService;
 class SyncRequest extends \Google\Model
 {
   /**
+   * Required. Third-party user ID.
+   *
    * @var string
    */
   public $agentUserId;
   /**
+   * Request ID used for debugging.
+   *
    * @var string
    */
   public $requestId;
 
   /**
-   * @param string
+   * Required. Third-party user ID.
+   *
+   * @param string $agentUserId
    */
   public function setAgentUserId($agentUserId)
   {
@@ -43,7 +49,9 @@ class SyncRequest extends \Google\Model
     return $this->agentUserId;
   }
   /**
-   * @param string
+   * Request ID used for debugging.
+   *
+   * @param string $requestId
    */
   public function setRequestId($requestId)
   {

@@ -21,10 +21,20 @@ class ProjectsGetXpnResources extends \Google\Collection
 {
   protected $collection_key = 'resources';
   /**
+   * Output only. [Output Only] Type of resource.
+   * Alwayscompute#projectsGetXpnResources for lists of service resources (a.k.a
+   * service projects)
+   *
    * @var string
    */
   public $kind;
   /**
+   * Output only. [Output Only] This token allows you to get the next page of
+   * results for list requests. If the number of results is larger
+   * thanmaxResults, use the nextPageToken as a value for the query parameter
+   * pageToken in the next list request. Subsequent list requests will have
+   * their own nextPageToken to continue paging through the results.
+   *
    * @var string
    */
   public $nextPageToken;
@@ -32,7 +42,11 @@ class ProjectsGetXpnResources extends \Google\Collection
   protected $resourcesDataType = 'array';
 
   /**
-   * @param string
+   * Output only. [Output Only] Type of resource.
+   * Alwayscompute#projectsGetXpnResources for lists of service resources (a.k.a
+   * service projects)
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -46,7 +60,13 @@ class ProjectsGetXpnResources extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * Output only. [Output Only] This token allows you to get the next page of
+   * results for list requests. If the number of results is larger
+   * thanmaxResults, use the nextPageToken as a value for the query parameter
+   * pageToken in the next list request. Subsequent list requests will have
+   * their own nextPageToken to continue paging through the results.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -60,7 +80,10 @@ class ProjectsGetXpnResources extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param XpnResourceId[]
+   * Service resources (a.k.a service projects) attached to this project as
+   * their shared VPC host.
+   *
+   * @param XpnResourceId[] $resources
    */
   public function setResources($resources)
   {

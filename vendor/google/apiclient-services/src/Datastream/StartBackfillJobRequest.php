@@ -19,6 +19,27 @@ namespace Google\Service\Datastream;
 
 class StartBackfillJobRequest extends \Google\Model
 {
+  protected $eventFilterType = EventFilter::class;
+  protected $eventFilterDataType = '';
+
+  /**
+   * Optional. Optional event filter. If not set, or empty, the backfill will be
+   * performed on the entire object. This is currently used for partial backfill
+   * and only supported for SQL Server sources.
+   *
+   * @param EventFilter $eventFilter
+   */
+  public function setEventFilter(EventFilter $eventFilter)
+  {
+    $this->eventFilter = $eventFilter;
+  }
+  /**
+   * @return EventFilter
+   */
+  public function getEventFilter()
+  {
+    return $this->eventFilter;
+  }
 }
 
 // Adding a class alias for backwards compatibility with the previous class name.

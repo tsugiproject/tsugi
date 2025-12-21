@@ -17,11 +17,16 @@
 
 namespace Google\Service\Integrations\Resource;
 
+use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaChangeCustomerConfigRequest;
+use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse;
 use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaDeprovisionClientRequest;
+use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest;
+use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse;
 use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaProvisionClientRequest;
 use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaReplaceServiceAccountRequest;
 use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaSwitchEncryptionRequest;
 use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaSwitchVariableMaskingRequest;
+use Google\Service\Integrations\GoogleCloudIntegrationsV1alphaToggleHttpRequest;
 use Google\Service\Integrations\GoogleProtobufEmpty;
 
 /**
@@ -34,6 +39,23 @@ use Google\Service\Integrations\GoogleProtobufEmpty;
  */
 class ProjectsLocationsClients extends \Google\Service\Resource
 {
+  /**
+   * Updates the client customer configuration for the given project and location
+   * resource name (clients.changeConfig)
+   *
+   * @param string $parent Required. Required: Format -
+   * projects/{project}/locations/{location}
+   * @param GoogleCloudIntegrationsV1alphaChangeCustomerConfigRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse
+   * @throws \Google\Service\Exception
+   */
+  public function changeConfig($parent, GoogleCloudIntegrationsV1alphaChangeCustomerConfigRequest $postBody, $optParams = [])
+  {
+    $params = ['parent' => $parent, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('changeConfig', [$params], GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse::class);
+  }
   /**
    * Perform the deprovisioning steps to disable a user GCP project to use IP and
    * purge all related data in a wipeout-compliant way. (clients.deprovision)
@@ -68,6 +90,23 @@ class ProjectsLocationsClients extends \Google\Service\Resource
     $params = ['parent' => $parent, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('provision', [$params], GoogleProtobufEmpty::class);
+  }
+  /**
+   * Perform post provisioning steps after client is provisioned.
+   * (clients.provisionClientPostProcessor)
+   *
+   * @param string $parent Required. Required: The ID of the GCP Project to be
+   * provisioned.
+   * @param GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse
+   * @throws \Google\Service\Exception
+   */
+  public function provisionClientPostProcessor($parent, GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest $postBody, $optParams = [])
+  {
+    $params = ['parent' => $parent, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('provisionClientPostProcessor', [$params], GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse::class);
   }
   /**
    * Update run-as service account for provisioned client (clients.replace)
@@ -117,6 +156,22 @@ class ProjectsLocationsClients extends \Google\Service\Resource
     $params = ['parent' => $parent, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('switchVariableMasking', [$params], GoogleProtobufEmpty::class);
+  }
+  /**
+   * Enable/Disable http call for provisioned client (clients.toggleHttp)
+   *
+   * @param string $parent Required. Required: The ID of the GCP Project to be
+   * provisioned.
+   * @param GoogleCloudIntegrationsV1alphaToggleHttpRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GoogleProtobufEmpty
+   * @throws \Google\Service\Exception
+   */
+  public function toggleHttp($parent, GoogleCloudIntegrationsV1alphaToggleHttpRequest $postBody, $optParams = [])
+  {
+    $params = ['parent' => $parent, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('toggleHttp', [$params], GoogleProtobufEmpty::class);
   }
 }
 

@@ -20,16 +20,22 @@ namespace Google\Service\Analytics;
 class UserDeletionRequestId extends \Google\Model
 {
   /**
+   * Type of user
+   *
    * @var string
    */
   public $type;
   /**
+   * The User's id
+   *
    * @var string
    */
   public $userId;
 
   /**
-   * @param string
+   * Type of user
+   *
+   * @param string $type
    */
   public function setType($type)
   {
@@ -43,7 +49,9 @@ class UserDeletionRequestId extends \Google\Model
     return $this->type;
   }
   /**
-   * @param string
+   * The User's id
+   *
+   * @param string $userId
    */
   public function setUserId($userId)
   {

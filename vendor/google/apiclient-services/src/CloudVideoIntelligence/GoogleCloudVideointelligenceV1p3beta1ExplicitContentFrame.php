@@ -20,30 +20,67 @@ namespace Google\Service\CloudVideoIntelligence;
 class GoogleCloudVideointelligenceV1p3beta1ExplicitContentFrame extends \Google\Model
 {
   /**
+   * Unspecified likelihood.
+   */
+  public const PORNOGRAPHY_LIKELIHOOD_LIKELIHOOD_UNSPECIFIED = 'LIKELIHOOD_UNSPECIFIED';
+  /**
+   * Very unlikely.
+   */
+  public const PORNOGRAPHY_LIKELIHOOD_VERY_UNLIKELY = 'VERY_UNLIKELY';
+  /**
+   * Unlikely.
+   */
+  public const PORNOGRAPHY_LIKELIHOOD_UNLIKELY = 'UNLIKELY';
+  /**
+   * Possible.
+   */
+  public const PORNOGRAPHY_LIKELIHOOD_POSSIBLE = 'POSSIBLE';
+  /**
+   * Likely.
+   */
+  public const PORNOGRAPHY_LIKELIHOOD_LIKELY = 'LIKELY';
+  /**
+   * Very likely.
+   */
+  public const PORNOGRAPHY_LIKELIHOOD_VERY_LIKELY = 'VERY_LIKELY';
+  /**
+   * Likelihood of the pornography content..
+   *
    * @var string
    */
   public $pornographyLikelihood;
   /**
+   * Time-offset, relative to the beginning of the video, corresponding to the
+   * video frame for this location.
+   *
    * @var string
    */
   public $timeOffset;
 
   /**
-   * @param string
+   * Likelihood of the pornography content..
+   *
+   * Accepted values: LIKELIHOOD_UNSPECIFIED, VERY_UNLIKELY, UNLIKELY, POSSIBLE,
+   * LIKELY, VERY_LIKELY
+   *
+   * @param self::PORNOGRAPHY_LIKELIHOOD_* $pornographyLikelihood
    */
   public function setPornographyLikelihood($pornographyLikelihood)
   {
     $this->pornographyLikelihood = $pornographyLikelihood;
   }
   /**
-   * @return string
+   * @return self::PORNOGRAPHY_LIKELIHOOD_*
    */
   public function getPornographyLikelihood()
   {
     return $this->pornographyLikelihood;
   }
   /**
-   * @param string
+   * Time-offset, relative to the beginning of the video, corresponding to the
+   * video frame for this location.
+   *
+   * @param string $timeOffset
    */
   public function setTimeOffset($timeOffset)
   {

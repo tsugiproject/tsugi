@@ -20,12 +20,16 @@ namespace Google\Service\Slides;
 class TableCell extends \Google\Model
 {
   /**
+   * Column span of the cell.
+   *
    * @var int
    */
   public $columnSpan;
   protected $locationType = TableCellLocation::class;
   protected $locationDataType = '';
   /**
+   * Row span of the cell.
+   *
    * @var int
    */
   public $rowSpan;
@@ -35,7 +39,9 @@ class TableCell extends \Google\Model
   protected $textDataType = '';
 
   /**
-   * @param int
+   * Column span of the cell.
+   *
+   * @param int $columnSpan
    */
   public function setColumnSpan($columnSpan)
   {
@@ -49,7 +55,9 @@ class TableCell extends \Google\Model
     return $this->columnSpan;
   }
   /**
-   * @param TableCellLocation
+   * The location of the cell within the table.
+   *
+   * @param TableCellLocation $location
    */
   public function setLocation(TableCellLocation $location)
   {
@@ -63,7 +71,9 @@ class TableCell extends \Google\Model
     return $this->location;
   }
   /**
-   * @param int
+   * Row span of the cell.
+   *
+   * @param int $rowSpan
    */
   public function setRowSpan($rowSpan)
   {
@@ -77,7 +87,9 @@ class TableCell extends \Google\Model
     return $this->rowSpan;
   }
   /**
-   * @param TableCellProperties
+   * The properties of the table cell.
+   *
+   * @param TableCellProperties $tableCellProperties
    */
   public function setTableCellProperties(TableCellProperties $tableCellProperties)
   {
@@ -91,7 +103,9 @@ class TableCell extends \Google\Model
     return $this->tableCellProperties;
   }
   /**
-   * @param TextContent
+   * The text content of the cell.
+   *
+   * @param TextContent $text
    */
   public function setText(TextContent $text)
   {

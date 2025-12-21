@@ -24,7 +24,9 @@ class DevicesListResponse extends \Google\Collection
   protected $deviceDataType = 'array';
 
   /**
-   * @param Device[]
+   * A managed device.
+   *
+   * @param Device[] $device
    */
   public function setDevice($device)
   {

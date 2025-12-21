@@ -20,18 +20,20 @@ namespace Google\Service\Integrations;
 class GoogleCloudIntegrationsV1alphaImportTemplateRequest extends \Google\Model
 {
   /**
+   * Required. Resource Name of the integration where template needs to be
+   * imported/inserted.
+   *
    * @var string
    */
   public $integration;
-  /**
-   * @var string
-   */
-  public $integrationRegion;
   protected $subIntegrationsType = GoogleCloudIntegrationsV1alphaUseTemplateRequestIntegrationDetails::class;
   protected $subIntegrationsDataType = 'map';
 
   /**
-   * @param string
+   * Required. Resource Name of the integration where template needs to be
+   * imported/inserted.
+   *
+   * @param string $integration
    */
   public function setIntegration($integration)
   {
@@ -45,21 +47,9 @@ class GoogleCloudIntegrationsV1alphaImportTemplateRequest extends \Google\Model
     return $this->integration;
   }
   /**
-   * @param string
-   */
-  public function setIntegrationRegion($integrationRegion)
-  {
-    $this->integrationRegion = $integrationRegion;
-  }
-  /**
-   * @return string
-   */
-  public function getIntegrationRegion()
-  {
-    return $this->integrationRegion;
-  }
-  /**
-   * @param GoogleCloudIntegrationsV1alphaUseTemplateRequestIntegrationDetails[]
+   * Optional. Sub Integration which would be created via templates.
+   *
+   * @param GoogleCloudIntegrationsV1alphaUseTemplateRequestIntegrationDetails[] $subIntegrations
    */
   public function setSubIntegrations($subIntegrations)
   {

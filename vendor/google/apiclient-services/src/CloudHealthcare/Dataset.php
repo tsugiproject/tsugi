@@ -22,16 +22,40 @@ class Dataset extends \Google\Model
   protected $encryptionSpecType = EncryptionSpec::class;
   protected $encryptionSpecDataType = '';
   /**
+   * Identifier. Resource name of the dataset, of the form
+   * `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}`.
+   *
    * @var string
    */
   public $name;
   /**
+   * Output only. Whether the dataset satisfies zone isolation.
+   *
+   * @var bool
+   */
+  public $satisfiesPzi;
+  /**
+   * Output only. Whether the dataset satisfies zone separation.
+   *
+   * @var bool
+   */
+  public $satisfiesPzs;
+  /**
+   * Optional. The default timezone used by this dataset. Must be a either a
+   * valid IANA time zone name such as "America/New_York" or empty, which
+   * defaults to UTC. This is used for parsing times in resources, such as HL7
+   * messages, where no explicit timezone is specified.
+   *
    * @var string
    */
   public $timeZone;
 
   /**
-   * @param EncryptionSpec
+   * Optional. Customer-managed encryption key spec for a Dataset. If set, this
+   * Dataset and all of its sub-resources will be secured by this key. If empty,
+   * the Dataset is secured by the default Google encryption key.
+   *
+   * @param EncryptionSpec $encryptionSpec
    */
   public function setEncryptionSpec(EncryptionSpec $encryptionSpec)
   {
@@ -45,7 +69,10 @@ class Dataset extends \Google\Model
     return $this->encryptionSpec;
   }
   /**
-   * @param string
+   * Identifier. Resource name of the dataset, of the form
+   * `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}`.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -59,7 +86,44 @@ class Dataset extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Output only. Whether the dataset satisfies zone isolation.
+   *
+   * @param bool $satisfiesPzi
+   */
+  public function setSatisfiesPzi($satisfiesPzi)
+  {
+    $this->satisfiesPzi = $satisfiesPzi;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzi()
+  {
+    return $this->satisfiesPzi;
+  }
+  /**
+   * Output only. Whether the dataset satisfies zone separation.
+   *
+   * @param bool $satisfiesPzs
+   */
+  public function setSatisfiesPzs($satisfiesPzs)
+  {
+    $this->satisfiesPzs = $satisfiesPzs;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzs()
+  {
+    return $this->satisfiesPzs;
+  }
+  /**
+   * Optional. The default timezone used by this dataset. Must be a either a
+   * valid IANA time zone name such as "America/New_York" or empty, which
+   * defaults to UTC. This is used for parsing times in resources, such as HL7
+   * messages, where no explicit timezone is specified.
+   *
+   * @param string $timeZone
    */
   public function setTimeZone($timeZone)
   {

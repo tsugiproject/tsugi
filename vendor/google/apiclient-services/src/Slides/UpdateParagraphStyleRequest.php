@@ -22,10 +22,19 @@ class UpdateParagraphStyleRequest extends \Google\Model
   protected $cellLocationType = TableCellLocation::class;
   protected $cellLocationDataType = '';
   /**
+   * The fields that should be updated. At least one field must be specified.
+   * The root `style` is implied and should not be specified. A single `"*"` can
+   * be used as short-hand for listing every field. For example, to update the
+   * paragraph alignment, set `fields` to `"alignment"`. To reset a property to
+   * its default value, include its field name in the field mask but leave the
+   * field itself unset.
+   *
    * @var string
    */
   public $fields;
   /**
+   * The object ID of the shape or table with the text to be styled.
+   *
    * @var string
    */
   public $objectId;
@@ -35,7 +44,11 @@ class UpdateParagraphStyleRequest extends \Google\Model
   protected $textRangeDataType = '';
 
   /**
-   * @param TableCellLocation
+   * The location of the cell in the table containing the paragraph(s) to style.
+   * If `object_id` refers to a table, `cell_location` must have a value.
+   * Otherwise, it must not.
+   *
+   * @param TableCellLocation $cellLocation
    */
   public function setCellLocation(TableCellLocation $cellLocation)
   {
@@ -49,7 +62,14 @@ class UpdateParagraphStyleRequest extends \Google\Model
     return $this->cellLocation;
   }
   /**
-   * @param string
+   * The fields that should be updated. At least one field must be specified.
+   * The root `style` is implied and should not be specified. A single `"*"` can
+   * be used as short-hand for listing every field. For example, to update the
+   * paragraph alignment, set `fields` to `"alignment"`. To reset a property to
+   * its default value, include its field name in the field mask but leave the
+   * field itself unset.
+   *
+   * @param string $fields
    */
   public function setFields($fields)
   {
@@ -63,7 +83,9 @@ class UpdateParagraphStyleRequest extends \Google\Model
     return $this->fields;
   }
   /**
-   * @param string
+   * The object ID of the shape or table with the text to be styled.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {
@@ -77,7 +99,9 @@ class UpdateParagraphStyleRequest extends \Google\Model
     return $this->objectId;
   }
   /**
-   * @param ParagraphStyle
+   * The paragraph's style.
+   *
+   * @param ParagraphStyle $style
    */
   public function setStyle(ParagraphStyle $style)
   {
@@ -91,7 +115,9 @@ class UpdateParagraphStyleRequest extends \Google\Model
     return $this->style;
   }
   /**
-   * @param Range
+   * The range of text containing the paragraph(s) to style.
+   *
+   * @param Range $textRange
    */
   public function setTextRange(Range $textRange)
   {

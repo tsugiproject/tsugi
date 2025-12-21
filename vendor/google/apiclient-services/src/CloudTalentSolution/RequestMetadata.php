@@ -20,26 +20,60 @@ namespace Google\Service\CloudTalentSolution;
 class RequestMetadata extends \Google\Model
 {
   /**
+   * Only set when any of domain, session_id and user_id isn't available for
+   * some reason. It is highly recommended not to set this field and provide
+   * accurate domain, session_id and user_id for the best service experience.
+   *
    * @var bool
    */
   public $allowMissingIds;
   protected $deviceInfoType = DeviceInfo::class;
   protected $deviceInfoDataType = '';
   /**
+   * Required if allow_missing_ids is unset or `false`. The client-defined scope
+   * or source of the service call, which typically is the domain on which the
+   * service has been implemented and is currently being run. For example, if
+   * the service is being run by client *Foo, Inc.*, on job board www.foo.com
+   * and career site www.bar.com, then this field is set to "foo.com" for use on
+   * the job board, and "bar.com" for use on the career site. Note that any
+   * improvements to the model for a particular tenant site rely on this field
+   * being set correctly to a unique domain. The maximum number of allowed
+   * characters is 255.
+   *
    * @var string
    */
   public $domain;
   /**
+   * Required if allow_missing_ids is unset or `false`. A unique session
+   * identification string. A session is defined as the duration of an end
+   * user's interaction with the service over a certain period. Obfuscate this
+   * field for privacy concerns before providing it to the service. Note that
+   * any improvements to the model for a particular tenant site rely on this
+   * field being set correctly to a unique session ID. The maximum number of
+   * allowed characters is 255.
+   *
    * @var string
    */
   public $sessionId;
   /**
+   * Required if allow_missing_ids is unset or `false`. A unique user
+   * identification string, as determined by the client. To have the strongest
+   * positive impact on search quality make sure the client-level is unique.
+   * Obfuscate this field for privacy concerns before providing it to the
+   * service. Note that any improvements to the model for a particular tenant
+   * site rely on this field being set correctly to a unique user ID. The
+   * maximum number of allowed characters is 255.
+   *
    * @var string
    */
   public $userId;
 
   /**
-   * @param bool
+   * Only set when any of domain, session_id and user_id isn't available for
+   * some reason. It is highly recommended not to set this field and provide
+   * accurate domain, session_id and user_id for the best service experience.
+   *
+   * @param bool $allowMissingIds
    */
   public function setAllowMissingIds($allowMissingIds)
   {
@@ -53,7 +87,10 @@ class RequestMetadata extends \Google\Model
     return $this->allowMissingIds;
   }
   /**
-   * @param DeviceInfo
+   * The type of device used by the job seeker at the time of the call to the
+   * service.
+   *
+   * @param DeviceInfo $deviceInfo
    */
   public function setDeviceInfo(DeviceInfo $deviceInfo)
   {
@@ -67,7 +104,17 @@ class RequestMetadata extends \Google\Model
     return $this->deviceInfo;
   }
   /**
-   * @param string
+   * Required if allow_missing_ids is unset or `false`. The client-defined scope
+   * or source of the service call, which typically is the domain on which the
+   * service has been implemented and is currently being run. For example, if
+   * the service is being run by client *Foo, Inc.*, on job board www.foo.com
+   * and career site www.bar.com, then this field is set to "foo.com" for use on
+   * the job board, and "bar.com" for use on the career site. Note that any
+   * improvements to the model for a particular tenant site rely on this field
+   * being set correctly to a unique domain. The maximum number of allowed
+   * characters is 255.
+   *
+   * @param string $domain
    */
   public function setDomain($domain)
   {
@@ -81,7 +128,15 @@ class RequestMetadata extends \Google\Model
     return $this->domain;
   }
   /**
-   * @param string
+   * Required if allow_missing_ids is unset or `false`. A unique session
+   * identification string. A session is defined as the duration of an end
+   * user's interaction with the service over a certain period. Obfuscate this
+   * field for privacy concerns before providing it to the service. Note that
+   * any improvements to the model for a particular tenant site rely on this
+   * field being set correctly to a unique session ID. The maximum number of
+   * allowed characters is 255.
+   *
+   * @param string $sessionId
    */
   public function setSessionId($sessionId)
   {
@@ -95,7 +150,15 @@ class RequestMetadata extends \Google\Model
     return $this->sessionId;
   }
   /**
-   * @param string
+   * Required if allow_missing_ids is unset or `false`. A unique user
+   * identification string, as determined by the client. To have the strongest
+   * positive impact on search quality make sure the client-level is unique.
+   * Obfuscate this field for privacy concerns before providing it to the
+   * service. Note that any improvements to the model for a particular tenant
+   * site rely on this field being set correctly to a unique user ID. The
+   * maximum number of allowed characters is 255.
+   *
+   * @param string $userId
    */
   public function setUserId($userId)
   {

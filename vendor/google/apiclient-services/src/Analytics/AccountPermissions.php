@@ -21,12 +21,18 @@ class AccountPermissions extends \Google\Collection
 {
   protected $collection_key = 'effective';
   /**
+   * All the permissions that the user has for this account. These include any
+   * implied permissions (e.g., EDIT implies VIEW).
+   *
    * @var string[]
    */
   public $effective;
 
   /**
-   * @param string[]
+   * All the permissions that the user has for this account. These include any
+   * implied permissions (e.g., EDIT implies VIEW).
+   *
+   * @param string[] $effective
    */
   public function setEffective($effective)
   {

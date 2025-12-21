@@ -20,12 +20,16 @@ namespace Google\Service\Advisorynotifications;
 class GoogleCloudAdvisorynotificationsV1NotificationSettings extends \Google\Model
 {
   /**
+   * Whether the associated NotificationType is enabled.
+   *
    * @var bool
    */
   public $enabled;
 
   /**
-   * @param bool
+   * Whether the associated NotificationType is enabled.
+   *
+   * @param bool $enabled
    */
   public function setEnabled($enabled)
   {

@@ -21,6 +21,10 @@ class ListSearchKeywordImpressionsMonthlyResponse extends \Google\Collection
 {
   protected $collection_key = 'searchKeywordsCounts';
   /**
+   * A token indicating the last paginated result returned. This can be used by
+   * succeeding requests to get the next "page" of keywords. It will only be
+   * present when there are more results to be returned.
+   *
    * @var string
    */
   public $nextPageToken;
@@ -28,7 +32,11 @@ class ListSearchKeywordImpressionsMonthlyResponse extends \Google\Collection
   protected $searchKeywordsCountsDataType = 'array';
 
   /**
-   * @param string
+   * A token indicating the last paginated result returned. This can be used by
+   * succeeding requests to get the next "page" of keywords. It will only be
+   * present when there are more results to be returned.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -42,7 +50,9 @@ class ListSearchKeywordImpressionsMonthlyResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param SearchKeywordCount[]
+   * Search terms which have been used to find a business.
+   *
+   * @param SearchKeywordCount[] $searchKeywordsCounts
    */
   public function setSearchKeywordsCounts($searchKeywordsCounts)
   {

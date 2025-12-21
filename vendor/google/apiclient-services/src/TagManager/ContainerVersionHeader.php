@@ -20,72 +20,94 @@ namespace Google\Service\TagManager;
 class ContainerVersionHeader extends \Google\Model
 {
   /**
+   * GTM Account ID.
+   *
    * @var string
    */
   public $accountId;
   /**
+   * GTM Container ID.
+   *
    * @var string
    */
   public $containerId;
   /**
+   * The Container Version ID uniquely identifies the GTM Container Version.
+   *
    * @var string
    */
   public $containerVersionId;
   /**
+   * A value of true indicates this container version has been deleted.
+   *
    * @var bool
    */
   public $deleted;
   /**
+   * Container version display name.
+   *
    * @var string
    */
   public $name;
   /**
+   * Number of clients in the container version.
+   *
    * @var string
    */
   public $numClients;
   /**
+   * Number of custom templates in the container version.
+   *
    * @var string
    */
   public $numCustomTemplates;
   /**
+   * Number of Google tag configs in the container version.
+   *
    * @var string
    */
   public $numGtagConfigs;
   /**
-   * @var string
-   */
-  public $numMacros;
-  /**
-   * @var string
-   */
-  public $numRules;
-  /**
+   * Number of tags in the container version.
+   *
    * @var string
    */
   public $numTags;
   /**
+   * Number of transformations in the container version.
+   *
    * @var string
    */
   public $numTransformations;
   /**
+   * Number of triggers in the container version.
+   *
    * @var string
    */
   public $numTriggers;
   /**
+   * Number of variables in the container version.
+   *
    * @var string
    */
   public $numVariables;
   /**
+   * Number of zones in the container version.
+   *
    * @var string
    */
   public $numZones;
   /**
+   * GTM Container Version's API relative path.
+   *
    * @var string
    */
   public $path;
 
   /**
-   * @param string
+   * GTM Account ID.
+   *
+   * @param string $accountId
    */
   public function setAccountId($accountId)
   {
@@ -99,7 +121,9 @@ class ContainerVersionHeader extends \Google\Model
     return $this->accountId;
   }
   /**
-   * @param string
+   * GTM Container ID.
+   *
+   * @param string $containerId
    */
   public function setContainerId($containerId)
   {
@@ -113,7 +137,9 @@ class ContainerVersionHeader extends \Google\Model
     return $this->containerId;
   }
   /**
-   * @param string
+   * The Container Version ID uniquely identifies the GTM Container Version.
+   *
+   * @param string $containerVersionId
    */
   public function setContainerVersionId($containerVersionId)
   {
@@ -127,7 +153,9 @@ class ContainerVersionHeader extends \Google\Model
     return $this->containerVersionId;
   }
   /**
-   * @param bool
+   * A value of true indicates this container version has been deleted.
+   *
+   * @param bool $deleted
    */
   public function setDeleted($deleted)
   {
@@ -141,7 +169,9 @@ class ContainerVersionHeader extends \Google\Model
     return $this->deleted;
   }
   /**
-   * @param string
+   * Container version display name.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -155,7 +185,9 @@ class ContainerVersionHeader extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Number of clients in the container version.
+   *
+   * @param string $numClients
    */
   public function setNumClients($numClients)
   {
@@ -169,7 +201,9 @@ class ContainerVersionHeader extends \Google\Model
     return $this->numClients;
   }
   /**
-   * @param string
+   * Number of custom templates in the container version.
+   *
+   * @param string $numCustomTemplates
    */
   public function setNumCustomTemplates($numCustomTemplates)
   {
@@ -183,7 +217,9 @@ class ContainerVersionHeader extends \Google\Model
     return $this->numCustomTemplates;
   }
   /**
-   * @param string
+   * Number of Google tag configs in the container version.
+   *
+   * @param string $numGtagConfigs
    */
   public function setNumGtagConfigs($numGtagConfigs)
   {
@@ -197,35 +233,9 @@ class ContainerVersionHeader extends \Google\Model
     return $this->numGtagConfigs;
   }
   /**
-   * @param string
-   */
-  public function setNumMacros($numMacros)
-  {
-    $this->numMacros = $numMacros;
-  }
-  /**
-   * @return string
-   */
-  public function getNumMacros()
-  {
-    return $this->numMacros;
-  }
-  /**
-   * @param string
-   */
-  public function setNumRules($numRules)
-  {
-    $this->numRules = $numRules;
-  }
-  /**
-   * @return string
-   */
-  public function getNumRules()
-  {
-    return $this->numRules;
-  }
-  /**
-   * @param string
+   * Number of tags in the container version.
+   *
+   * @param string $numTags
    */
   public function setNumTags($numTags)
   {
@@ -239,7 +249,9 @@ class ContainerVersionHeader extends \Google\Model
     return $this->numTags;
   }
   /**
-   * @param string
+   * Number of transformations in the container version.
+   *
+   * @param string $numTransformations
    */
   public function setNumTransformations($numTransformations)
   {
@@ -253,7 +265,9 @@ class ContainerVersionHeader extends \Google\Model
     return $this->numTransformations;
   }
   /**
-   * @param string
+   * Number of triggers in the container version.
+   *
+   * @param string $numTriggers
    */
   public function setNumTriggers($numTriggers)
   {
@@ -267,7 +281,9 @@ class ContainerVersionHeader extends \Google\Model
     return $this->numTriggers;
   }
   /**
-   * @param string
+   * Number of variables in the container version.
+   *
+   * @param string $numVariables
    */
   public function setNumVariables($numVariables)
   {
@@ -281,7 +297,9 @@ class ContainerVersionHeader extends \Google\Model
     return $this->numVariables;
   }
   /**
-   * @param string
+   * Number of zones in the container version.
+   *
+   * @param string $numZones
    */
   public function setNumZones($numZones)
   {
@@ -295,7 +313,9 @@ class ContainerVersionHeader extends \Google\Model
     return $this->numZones;
   }
   /**
-   * @param string
+   * GTM Container Version's API relative path.
+   *
+   * @param string $path
    */
   public function setPath($path)
   {

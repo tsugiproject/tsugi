@@ -20,16 +20,22 @@ namespace Google\Service\AirQuality;
 class AdditionalInfo extends \Google\Model
 {
   /**
+   * Text representing the pollutant's main health effects.
+   *
    * @var string
    */
   public $effects;
   /**
+   * Text representing the pollutant's main emission sources.
+   *
    * @var string
    */
   public $sources;
 
   /**
-   * @param string
+   * Text representing the pollutant's main health effects.
+   *
+   * @param string $effects
    */
   public function setEffects($effects)
   {
@@ -43,7 +49,9 @@ class AdditionalInfo extends \Google\Model
     return $this->effects;
   }
   /**
-   * @param string
+   * Text representing the pollutant's main emission sources.
+   *
+   * @param string $sources
    */
   public function setSources($sources)
   {

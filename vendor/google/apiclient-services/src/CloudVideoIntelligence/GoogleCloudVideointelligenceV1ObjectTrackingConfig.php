@@ -20,12 +20,18 @@ namespace Google\Service\CloudVideoIntelligence;
 class GoogleCloudVideointelligenceV1ObjectTrackingConfig extends \Google\Model
 {
   /**
+   * Model to use for object tracking. Supported values: "builtin/stable" (the
+   * default if unset) and "builtin/latest".
+   *
    * @var string
    */
   public $model;
 
   /**
-   * @param string
+   * Model to use for object tracking. Supported values: "builtin/stable" (the
+   * default if unset) and "builtin/latest".
+   *
+   * @param string $model
    */
   public function setModel($model)
   {

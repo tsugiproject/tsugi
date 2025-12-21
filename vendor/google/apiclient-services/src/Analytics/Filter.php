@@ -20,30 +20,40 @@ namespace Google\Service\Analytics;
 class Filter extends \Google\Model
 {
   /**
+   * Account ID to which this filter belongs.
+   *
    * @var string
    */
   public $accountId;
   protected $advancedDetailsType = FilterAdvancedDetails::class;
   protected $advancedDetailsDataType = '';
   /**
+   * Time this filter was created.
+   *
    * @var string
    */
   public $created;
   protected $excludeDetailsType = FilterExpression::class;
   protected $excludeDetailsDataType = '';
   /**
+   * Filter ID.
+   *
    * @var string
    */
   public $id;
   protected $includeDetailsType = FilterExpression::class;
   protected $includeDetailsDataType = '';
   /**
+   * Resource type for Analytics filter.
+   *
    * @var string
    */
   public $kind;
   protected $lowercaseDetailsType = FilterLowercaseDetails::class;
   protected $lowercaseDetailsDataType = '';
   /**
+   * Name of this filter.
+   *
    * @var string
    */
   public $name;
@@ -52,14 +62,21 @@ class Filter extends \Google\Model
   protected $searchAndReplaceDetailsType = FilterSearchAndReplaceDetails::class;
   protected $searchAndReplaceDetailsDataType = '';
   /**
+   * Link for this filter.
+   *
    * @var string
    */
   public $selfLink;
   /**
+   * Type of this filter. Possible values are INCLUDE, EXCLUDE, LOWERCASE,
+   * UPPERCASE, SEARCH_AND_REPLACE and ADVANCED.
+   *
    * @var string
    */
   public $type;
   /**
+   * Time this filter was last modified.
+   *
    * @var string
    */
   public $updated;
@@ -67,7 +84,9 @@ class Filter extends \Google\Model
   protected $uppercaseDetailsDataType = '';
 
   /**
-   * @param string
+   * Account ID to which this filter belongs.
+   *
+   * @param string $accountId
    */
   public function setAccountId($accountId)
   {
@@ -81,7 +100,9 @@ class Filter extends \Google\Model
     return $this->accountId;
   }
   /**
-   * @param FilterAdvancedDetails
+   * Details for the filter of the type ADVANCED.
+   *
+   * @param FilterAdvancedDetails $advancedDetails
    */
   public function setAdvancedDetails(FilterAdvancedDetails $advancedDetails)
   {
@@ -95,7 +116,9 @@ class Filter extends \Google\Model
     return $this->advancedDetails;
   }
   /**
-   * @param string
+   * Time this filter was created.
+   *
+   * @param string $created
    */
   public function setCreated($created)
   {
@@ -109,7 +132,9 @@ class Filter extends \Google\Model
     return $this->created;
   }
   /**
-   * @param FilterExpression
+   * Details for the filter of the type EXCLUDE.
+   *
+   * @param FilterExpression $excludeDetails
    */
   public function setExcludeDetails(FilterExpression $excludeDetails)
   {
@@ -123,7 +148,9 @@ class Filter extends \Google\Model
     return $this->excludeDetails;
   }
   /**
-   * @param string
+   * Filter ID.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -137,7 +164,9 @@ class Filter extends \Google\Model
     return $this->id;
   }
   /**
-   * @param FilterExpression
+   * Details for the filter of the type INCLUDE.
+   *
+   * @param FilterExpression $includeDetails
    */
   public function setIncludeDetails(FilterExpression $includeDetails)
   {
@@ -151,7 +180,9 @@ class Filter extends \Google\Model
     return $this->includeDetails;
   }
   /**
-   * @param string
+   * Resource type for Analytics filter.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -165,7 +196,9 @@ class Filter extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param FilterLowercaseDetails
+   * Details for the filter of the type LOWER.
+   *
+   * @param FilterLowercaseDetails $lowercaseDetails
    */
   public function setLowercaseDetails(FilterLowercaseDetails $lowercaseDetails)
   {
@@ -179,7 +212,9 @@ class Filter extends \Google\Model
     return $this->lowercaseDetails;
   }
   /**
-   * @param string
+   * Name of this filter.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -193,7 +228,10 @@ class Filter extends \Google\Model
     return $this->name;
   }
   /**
-   * @param FilterParentLink
+   * Parent link for this filter. Points to the account to which this filter
+   * belongs.
+   *
+   * @param FilterParentLink $parentLink
    */
   public function setParentLink(FilterParentLink $parentLink)
   {
@@ -207,7 +245,9 @@ class Filter extends \Google\Model
     return $this->parentLink;
   }
   /**
-   * @param FilterSearchAndReplaceDetails
+   * Details for the filter of the type SEARCH_AND_REPLACE.
+   *
+   * @param FilterSearchAndReplaceDetails $searchAndReplaceDetails
    */
   public function setSearchAndReplaceDetails(FilterSearchAndReplaceDetails $searchAndReplaceDetails)
   {
@@ -221,7 +261,9 @@ class Filter extends \Google\Model
     return $this->searchAndReplaceDetails;
   }
   /**
-   * @param string
+   * Link for this filter.
+   *
+   * @param string $selfLink
    */
   public function setSelfLink($selfLink)
   {
@@ -235,7 +277,10 @@ class Filter extends \Google\Model
     return $this->selfLink;
   }
   /**
-   * @param string
+   * Type of this filter. Possible values are INCLUDE, EXCLUDE, LOWERCASE,
+   * UPPERCASE, SEARCH_AND_REPLACE and ADVANCED.
+   *
+   * @param string $type
    */
   public function setType($type)
   {
@@ -249,7 +294,9 @@ class Filter extends \Google\Model
     return $this->type;
   }
   /**
-   * @param string
+   * Time this filter was last modified.
+   *
+   * @param string $updated
    */
   public function setUpdated($updated)
   {
@@ -263,7 +310,9 @@ class Filter extends \Google\Model
     return $this->updated;
   }
   /**
-   * @param FilterUppercaseDetails
+   * Details for the filter of the type UPPER.
+   *
+   * @param FilterUppercaseDetails $uppercaseDetails
    */
   public function setUppercaseDetails(FilterUppercaseDetails $uppercaseDetails)
   {

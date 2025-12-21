@@ -24,7 +24,9 @@ class BatchUpdateRowsResponse extends \Google\Collection
   protected $rowsDataType = 'array';
 
   /**
-   * @param Row[]
+   * The updated rows.
+   *
+   * @param Row[] $rows
    */
   public function setRows($rows)
   {

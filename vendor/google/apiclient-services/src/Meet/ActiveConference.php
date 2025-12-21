@@ -20,12 +20,20 @@ namespace Google\Service\Meet;
 class ActiveConference extends \Google\Model
 {
   /**
+   * Output only. Reference to 'ConferenceRecord' resource. Format:
+   * `conferenceRecords/{conference_record}` where `{conference_record}` is a
+   * unique ID for each instance of a call within a space.
+   *
    * @var string
    */
   public $conferenceRecord;
 
   /**
-   * @param string
+   * Output only. Reference to 'ConferenceRecord' resource. Format:
+   * `conferenceRecords/{conference_record}` where `{conference_record}` is a
+   * unique ID for each instance of a call within a space.
+   *
+   * @param string $conferenceRecord
    */
   public function setConferenceRecord($conferenceRecord)
   {

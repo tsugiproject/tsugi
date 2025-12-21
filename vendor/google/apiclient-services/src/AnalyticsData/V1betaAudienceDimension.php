@@ -20,12 +20,20 @@ namespace Google\Service\AnalyticsData;
 class V1betaAudienceDimension extends \Google\Model
 {
   /**
+   * Optional. The API name of the dimension. See the [API Dimensions](https://d
+   * evelopers.google.com/analytics/devguides/reporting/data/v1/audience-list-
+   * api-schema#dimensions) for the list of dimension names.
+   *
    * @var string
    */
   public $dimensionName;
 
   /**
-   * @param string
+   * Optional. The API name of the dimension. See the [API Dimensions](https://d
+   * evelopers.google.com/analytics/devguides/reporting/data/v1/audience-list-
+   * api-schema#dimensions) for the list of dimension names.
+   *
+   * @param string $dimensionName
    */
   public function setDimensionName($dimensionName)
   {

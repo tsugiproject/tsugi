@@ -20,12 +20,16 @@ namespace Google\Service\Slides;
 class CreateLineResponse extends \Google\Model
 {
   /**
+   * The object ID of the created line.
+   *
    * @var string
    */
   public $objectId;
 
   /**
-   * @param string
+   * The object ID of the created line.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {

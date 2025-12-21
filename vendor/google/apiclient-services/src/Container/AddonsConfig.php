@@ -33,12 +33,16 @@ class AddonsConfig extends \Google\Model
   protected $gcsFuseCsiDriverConfigDataType = '';
   protected $gkeBackupAgentConfigType = GkeBackupAgentConfig::class;
   protected $gkeBackupAgentConfigDataType = '';
+  protected $highScaleCheckpointingConfigType = HighScaleCheckpointingConfig::class;
+  protected $highScaleCheckpointingConfigDataType = '';
   protected $horizontalPodAutoscalingType = HorizontalPodAutoscaling::class;
   protected $horizontalPodAutoscalingDataType = '';
   protected $httpLoadBalancingType = HttpLoadBalancing::class;
   protected $httpLoadBalancingDataType = '';
   protected $kubernetesDashboardType = KubernetesDashboard::class;
   protected $kubernetesDashboardDataType = '';
+  protected $lustreCsiDriverConfigType = LustreCsiDriverConfig::class;
+  protected $lustreCsiDriverConfigDataType = '';
   protected $networkPolicyConfigType = NetworkPolicyConfig::class;
   protected $networkPolicyConfigDataType = '';
   protected $parallelstoreCsiDriverConfigType = ParallelstoreCsiDriverConfig::class;
@@ -49,7 +53,10 @@ class AddonsConfig extends \Google\Model
   protected $statefulHaConfigDataType = '';
 
   /**
-   * @param CloudRunConfig
+   * Configuration for the Cloud Run addon, which allows the user to use a
+   * managed Knative service.
+   *
+   * @param CloudRunConfig $cloudRunConfig
    */
   public function setCloudRunConfig(CloudRunConfig $cloudRunConfig)
   {
@@ -63,7 +70,10 @@ class AddonsConfig extends \Google\Model
     return $this->cloudRunConfig;
   }
   /**
-   * @param ConfigConnectorConfig
+   * Configuration for the ConfigConnector add-on, a Kubernetes extension to
+   * manage hosted Google Cloud services through the Kubernetes API.
+   *
+   * @param ConfigConnectorConfig $configConnectorConfig
    */
   public function setConfigConnectorConfig(ConfigConnectorConfig $configConnectorConfig)
   {
@@ -77,7 +87,9 @@ class AddonsConfig extends \Google\Model
     return $this->configConnectorConfig;
   }
   /**
-   * @param DnsCacheConfig
+   * Configuration for NodeLocalDNS, a dns cache running on cluster nodes
+   *
+   * @param DnsCacheConfig $dnsCacheConfig
    */
   public function setDnsCacheConfig(DnsCacheConfig $dnsCacheConfig)
   {
@@ -91,7 +103,9 @@ class AddonsConfig extends \Google\Model
     return $this->dnsCacheConfig;
   }
   /**
-   * @param GcePersistentDiskCsiDriverConfig
+   * Configuration for the Compute Engine Persistent Disk CSI driver.
+   *
+   * @param GcePersistentDiskCsiDriverConfig $gcePersistentDiskCsiDriverConfig
    */
   public function setGcePersistentDiskCsiDriverConfig(GcePersistentDiskCsiDriverConfig $gcePersistentDiskCsiDriverConfig)
   {
@@ -105,7 +119,9 @@ class AddonsConfig extends \Google\Model
     return $this->gcePersistentDiskCsiDriverConfig;
   }
   /**
-   * @param GcpFilestoreCsiDriverConfig
+   * Configuration for the Filestore CSI driver.
+   *
+   * @param GcpFilestoreCsiDriverConfig $gcpFilestoreCsiDriverConfig
    */
   public function setGcpFilestoreCsiDriverConfig(GcpFilestoreCsiDriverConfig $gcpFilestoreCsiDriverConfig)
   {
@@ -119,7 +135,9 @@ class AddonsConfig extends \Google\Model
     return $this->gcpFilestoreCsiDriverConfig;
   }
   /**
-   * @param GcsFuseCsiDriverConfig
+   * Configuration for the Cloud Storage Fuse CSI driver.
+   *
+   * @param GcsFuseCsiDriverConfig $gcsFuseCsiDriverConfig
    */
   public function setGcsFuseCsiDriverConfig(GcsFuseCsiDriverConfig $gcsFuseCsiDriverConfig)
   {
@@ -133,7 +151,9 @@ class AddonsConfig extends \Google\Model
     return $this->gcsFuseCsiDriverConfig;
   }
   /**
-   * @param GkeBackupAgentConfig
+   * Configuration for the Backup for GKE agent addon.
+   *
+   * @param GkeBackupAgentConfig $gkeBackupAgentConfig
    */
   public function setGkeBackupAgentConfig(GkeBackupAgentConfig $gkeBackupAgentConfig)
   {
@@ -147,7 +167,27 @@ class AddonsConfig extends \Google\Model
     return $this->gkeBackupAgentConfig;
   }
   /**
-   * @param HorizontalPodAutoscaling
+   * Configuration for the High Scale Checkpointing add-on.
+   *
+   * @param HighScaleCheckpointingConfig $highScaleCheckpointingConfig
+   */
+  public function setHighScaleCheckpointingConfig(HighScaleCheckpointingConfig $highScaleCheckpointingConfig)
+  {
+    $this->highScaleCheckpointingConfig = $highScaleCheckpointingConfig;
+  }
+  /**
+   * @return HighScaleCheckpointingConfig
+   */
+  public function getHighScaleCheckpointingConfig()
+  {
+    return $this->highScaleCheckpointingConfig;
+  }
+  /**
+   * Configuration for the horizontal pod autoscaling feature, which increases
+   * or decreases the number of replica pods a replication controller has based
+   * on the resource usage of the existing pods.
+   *
+   * @param HorizontalPodAutoscaling $horizontalPodAutoscaling
    */
   public function setHorizontalPodAutoscaling(HorizontalPodAutoscaling $horizontalPodAutoscaling)
   {
@@ -161,7 +201,10 @@ class AddonsConfig extends \Google\Model
     return $this->horizontalPodAutoscaling;
   }
   /**
-   * @param HttpLoadBalancing
+   * Configuration for the HTTP (L7) load balancing controller addon, which
+   * makes it easy to set up HTTP load balancers for services in a cluster.
+   *
+   * @param HttpLoadBalancing $httpLoadBalancing
    */
   public function setHttpLoadBalancing(HttpLoadBalancing $httpLoadBalancing)
   {
@@ -175,13 +218,21 @@ class AddonsConfig extends \Google\Model
     return $this->httpLoadBalancing;
   }
   /**
-   * @param KubernetesDashboard
+   * Configuration for the Kubernetes Dashboard. This addon is deprecated, and
+   * will be disabled in 1.15. It is recommended to use the Cloud Console to
+   * manage and monitor your Kubernetes clusters, workloads and applications.
+   * For more information, see: https://cloud.google.com/kubernetes-
+   * engine/docs/concepts/dashboards
+   *
+   * @deprecated
+   * @param KubernetesDashboard $kubernetesDashboard
    */
   public function setKubernetesDashboard(KubernetesDashboard $kubernetesDashboard)
   {
     $this->kubernetesDashboard = $kubernetesDashboard;
   }
   /**
+   * @deprecated
    * @return KubernetesDashboard
    */
   public function getKubernetesDashboard()
@@ -189,7 +240,27 @@ class AddonsConfig extends \Google\Model
     return $this->kubernetesDashboard;
   }
   /**
-   * @param NetworkPolicyConfig
+   * Configuration for the Lustre CSI driver.
+   *
+   * @param LustreCsiDriverConfig $lustreCsiDriverConfig
+   */
+  public function setLustreCsiDriverConfig(LustreCsiDriverConfig $lustreCsiDriverConfig)
+  {
+    $this->lustreCsiDriverConfig = $lustreCsiDriverConfig;
+  }
+  /**
+   * @return LustreCsiDriverConfig
+   */
+  public function getLustreCsiDriverConfig()
+  {
+    return $this->lustreCsiDriverConfig;
+  }
+  /**
+   * Configuration for NetworkPolicy. This only tracks whether the addon is
+   * enabled or not on the Master, it does not track whether network policy is
+   * enabled for the nodes.
+   *
+   * @param NetworkPolicyConfig $networkPolicyConfig
    */
   public function setNetworkPolicyConfig(NetworkPolicyConfig $networkPolicyConfig)
   {
@@ -203,7 +274,9 @@ class AddonsConfig extends \Google\Model
     return $this->networkPolicyConfig;
   }
   /**
-   * @param ParallelstoreCsiDriverConfig
+   * Configuration for the Cloud Storage Parallelstore CSI driver.
+   *
+   * @param ParallelstoreCsiDriverConfig $parallelstoreCsiDriverConfig
    */
   public function setParallelstoreCsiDriverConfig(ParallelstoreCsiDriverConfig $parallelstoreCsiDriverConfig)
   {
@@ -217,7 +290,9 @@ class AddonsConfig extends \Google\Model
     return $this->parallelstoreCsiDriverConfig;
   }
   /**
-   * @param RayOperatorConfig
+   * Optional. Configuration for Ray Operator addon.
+   *
+   * @param RayOperatorConfig $rayOperatorConfig
    */
   public function setRayOperatorConfig(RayOperatorConfig $rayOperatorConfig)
   {
@@ -231,7 +306,9 @@ class AddonsConfig extends \Google\Model
     return $this->rayOperatorConfig;
   }
   /**
-   * @param StatefulHAConfig
+   * Optional. Configuration for the StatefulHA add-on.
+   *
+   * @param StatefulHAConfig $statefulHaConfig
    */
   public function setStatefulHaConfig(StatefulHAConfig $statefulHaConfig)
   {

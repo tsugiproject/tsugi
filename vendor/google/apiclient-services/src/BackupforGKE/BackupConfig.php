@@ -20,30 +20,46 @@ namespace Google\Service\BackupforGKE;
 class BackupConfig extends \Google\Model
 {
   /**
+   * If True, include all namespaced resources
+   *
    * @var bool
    */
   public $allNamespaces;
   protected $encryptionKeyType = EncryptionKey::class;
   protected $encryptionKeyDataType = '';
   /**
+   * Optional. This flag specifies whether Kubernetes Secret resources should be
+   * included when they fall into the scope of Backups. Default: False
+   *
    * @var bool
    */
   public $includeSecrets;
   /**
+   * Optional. This flag specifies whether volume data should be backed up when
+   * PVCs are included in the scope of a Backup. Default: False
+   *
    * @var bool
    */
   public $includeVolumeData;
   /**
+   * Optional. If false, Backups will fail when Backup for GKE detects
+   * Kubernetes configuration that is non-standard or requires additional setup
+   * to restore. Default: False
+   *
    * @var bool
    */
   public $permissiveMode;
   protected $selectedApplicationsType = NamespacedNames::class;
   protected $selectedApplicationsDataType = '';
+  protected $selectedNamespaceLabelsType = ResourceLabels::class;
+  protected $selectedNamespaceLabelsDataType = '';
   protected $selectedNamespacesType = Namespaces::class;
   protected $selectedNamespacesDataType = '';
 
   /**
-   * @param bool
+   * If True, include all namespaced resources
+   *
+   * @param bool $allNamespaces
    */
   public function setAllNamespaces($allNamespaces)
   {
@@ -57,7 +73,12 @@ class BackupConfig extends \Google\Model
     return $this->allNamespaces;
   }
   /**
-   * @param EncryptionKey
+   * Optional. This defines a customer managed encryption key that will be used
+   * to encrypt the "config" portion (the Kubernetes resources) of Backups
+   * created via this plan. Default (empty): Config backup artifacts will not be
+   * encrypted.
+   *
+   * @param EncryptionKey $encryptionKey
    */
   public function setEncryptionKey(EncryptionKey $encryptionKey)
   {
@@ -71,7 +92,10 @@ class BackupConfig extends \Google\Model
     return $this->encryptionKey;
   }
   /**
-   * @param bool
+   * Optional. This flag specifies whether Kubernetes Secret resources should be
+   * included when they fall into the scope of Backups. Default: False
+   *
+   * @param bool $includeSecrets
    */
   public function setIncludeSecrets($includeSecrets)
   {
@@ -85,7 +109,10 @@ class BackupConfig extends \Google\Model
     return $this->includeSecrets;
   }
   /**
-   * @param bool
+   * Optional. This flag specifies whether volume data should be backed up when
+   * PVCs are included in the scope of a Backup. Default: False
+   *
+   * @param bool $includeVolumeData
    */
   public function setIncludeVolumeData($includeVolumeData)
   {
@@ -99,7 +126,11 @@ class BackupConfig extends \Google\Model
     return $this->includeVolumeData;
   }
   /**
-   * @param bool
+   * Optional. If false, Backups will fail when Backup for GKE detects
+   * Kubernetes configuration that is non-standard or requires additional setup
+   * to restore. Default: False
+   *
+   * @param bool $permissiveMode
    */
   public function setPermissiveMode($permissiveMode)
   {
@@ -113,7 +144,10 @@ class BackupConfig extends \Google\Model
     return $this->permissiveMode;
   }
   /**
-   * @param NamespacedNames
+   * If set, include just the resources referenced by the listed
+   * ProtectedApplications.
+   *
+   * @param NamespacedNames $selectedApplications
    */
   public function setSelectedApplications(NamespacedNames $selectedApplications)
   {
@@ -127,7 +161,26 @@ class BackupConfig extends \Google\Model
     return $this->selectedApplications;
   }
   /**
-   * @param Namespaces
+   * If set, the list of labels whose constituent namespaces were included in
+   * the Backup.
+   *
+   * @param ResourceLabels $selectedNamespaceLabels
+   */
+  public function setSelectedNamespaceLabels(ResourceLabels $selectedNamespaceLabels)
+  {
+    $this->selectedNamespaceLabels = $selectedNamespaceLabels;
+  }
+  /**
+   * @return ResourceLabels
+   */
+  public function getSelectedNamespaceLabels()
+  {
+    return $this->selectedNamespaceLabels;
+  }
+  /**
+   * If set, include just the resources in the listed namespaces.
+   *
+   * @param Namespaces $selectedNamespaces
    */
   public function setSelectedNamespaces(Namespaces $selectedNamespaces)
   {

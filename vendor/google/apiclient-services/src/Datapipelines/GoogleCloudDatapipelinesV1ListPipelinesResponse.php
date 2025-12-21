@@ -21,6 +21,9 @@ class GoogleCloudDatapipelinesV1ListPipelinesResponse extends \Google\Collection
 {
   protected $collection_key = 'pipelines';
   /**
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
    * @var string
    */
   public $nextPageToken;
@@ -28,7 +31,10 @@ class GoogleCloudDatapipelinesV1ListPipelinesResponse extends \Google\Collection
   protected $pipelinesDataType = 'array';
 
   /**
-   * @param string
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -42,7 +48,10 @@ class GoogleCloudDatapipelinesV1ListPipelinesResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param GoogleCloudDatapipelinesV1Pipeline[]
+   * Results that matched the filter criteria and were accessible to the caller.
+   * Results are always in descending order of pipeline creation date.
+   *
+   * @param GoogleCloudDatapipelinesV1Pipeline[] $pipelines
    */
   public function setPipelines($pipelines)
   {

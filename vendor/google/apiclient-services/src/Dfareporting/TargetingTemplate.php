@@ -20,26 +20,39 @@ namespace Google\Service\Dfareporting;
 class TargetingTemplate extends \Google\Model
 {
   /**
+   * Account ID of this targeting template. This field, if left unset, will be
+   * auto-generated on insert and is read-only after insert.
+   *
    * @var string
    */
   public $accountId;
   /**
+   * Advertiser ID of this targeting template. This is a required field on
+   * insert and is read-only after insert.
+   *
    * @var string
    */
   public $advertiserId;
   protected $advertiserIdDimensionValueType = DimensionValue::class;
   protected $advertiserIdDimensionValueDataType = '';
+  protected $contextualKeywordTargetingType = ContextualKeywordTargeting::class;
+  protected $contextualKeywordTargetingDataType = '';
   protected $dayPartTargetingType = DayPartTargeting::class;
   protected $dayPartTargetingDataType = '';
   protected $geoTargetingType = GeoTargeting::class;
   protected $geoTargetingDataType = '';
   /**
+   * ID of this targeting template. This is a read-only, auto-generated field.
+   *
    * @var string
    */
   public $id;
   protected $keyValueTargetingExpressionType = KeyValueTargetingExpression::class;
   protected $keyValueTargetingExpressionDataType = '';
   /**
+   * Identifies what kind of resource this is. Value: the fixed string
+   * "dfareporting#targetingTemplate".
+   *
    * @var string
    */
   public $kind;
@@ -48,10 +61,16 @@ class TargetingTemplate extends \Google\Model
   protected $listTargetingExpressionType = ListTargetingExpression::class;
   protected $listTargetingExpressionDataType = '';
   /**
+   * Name of this targeting template. This field is required. It must be less
+   * than 256 characters long and unique within an advertiser.
+   *
    * @var string
    */
   public $name;
   /**
+   * Subaccount ID of this targeting template. This field, if left unset, will
+   * be auto-generated on insert and is read-only after insert.
+   *
    * @var string
    */
   public $subaccountId;
@@ -59,7 +78,10 @@ class TargetingTemplate extends \Google\Model
   protected $technologyTargetingDataType = '';
 
   /**
-   * @param string
+   * Account ID of this targeting template. This field, if left unset, will be
+   * auto-generated on insert and is read-only after insert.
+   *
+   * @param string $accountId
    */
   public function setAccountId($accountId)
   {
@@ -73,7 +95,10 @@ class TargetingTemplate extends \Google\Model
     return $this->accountId;
   }
   /**
-   * @param string
+   * Advertiser ID of this targeting template. This is a required field on
+   * insert and is read-only after insert.
+   *
+   * @param string $advertiserId
    */
   public function setAdvertiserId($advertiserId)
   {
@@ -87,7 +112,10 @@ class TargetingTemplate extends \Google\Model
     return $this->advertiserId;
   }
   /**
-   * @param DimensionValue
+   * Dimension value for the ID of the advertiser. This is a read-only, auto-
+   * generated field.
+   *
+   * @param DimensionValue $advertiserIdDimensionValue
    */
   public function setAdvertiserIdDimensionValue(DimensionValue $advertiserIdDimensionValue)
   {
@@ -101,7 +129,25 @@ class TargetingTemplate extends \Google\Model
     return $this->advertiserIdDimensionValue;
   }
   /**
-   * @param DayPartTargeting
+   * Optional. Contextual keyword targeting criteria.
+   *
+   * @param ContextualKeywordTargeting $contextualKeywordTargeting
+   */
+  public function setContextualKeywordTargeting(ContextualKeywordTargeting $contextualKeywordTargeting)
+  {
+    $this->contextualKeywordTargeting = $contextualKeywordTargeting;
+  }
+  /**
+   * @return ContextualKeywordTargeting
+   */
+  public function getContextualKeywordTargeting()
+  {
+    return $this->contextualKeywordTargeting;
+  }
+  /**
+   * Time and day targeting criteria.
+   *
+   * @param DayPartTargeting $dayPartTargeting
    */
   public function setDayPartTargeting(DayPartTargeting $dayPartTargeting)
   {
@@ -115,7 +161,9 @@ class TargetingTemplate extends \Google\Model
     return $this->dayPartTargeting;
   }
   /**
-   * @param GeoTargeting
+   * Geographical targeting criteria.
+   *
+   * @param GeoTargeting $geoTargeting
    */
   public function setGeoTargeting(GeoTargeting $geoTargeting)
   {
@@ -129,7 +177,9 @@ class TargetingTemplate extends \Google\Model
     return $this->geoTargeting;
   }
   /**
-   * @param string
+   * ID of this targeting template. This is a read-only, auto-generated field.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -143,7 +193,9 @@ class TargetingTemplate extends \Google\Model
     return $this->id;
   }
   /**
-   * @param KeyValueTargetingExpression
+   * Key-value targeting criteria.
+   *
+   * @param KeyValueTargetingExpression $keyValueTargetingExpression
    */
   public function setKeyValueTargetingExpression(KeyValueTargetingExpression $keyValueTargetingExpression)
   {
@@ -157,7 +209,10 @@ class TargetingTemplate extends \Google\Model
     return $this->keyValueTargetingExpression;
   }
   /**
-   * @param string
+   * Identifies what kind of resource this is. Value: the fixed string
+   * "dfareporting#targetingTemplate".
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -171,7 +226,9 @@ class TargetingTemplate extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param LanguageTargeting
+   * Language targeting criteria.
+   *
+   * @param LanguageTargeting $languageTargeting
    */
   public function setLanguageTargeting(LanguageTargeting $languageTargeting)
   {
@@ -185,7 +242,9 @@ class TargetingTemplate extends \Google\Model
     return $this->languageTargeting;
   }
   /**
-   * @param ListTargetingExpression
+   * Remarketing list targeting criteria.
+   *
+   * @param ListTargetingExpression $listTargetingExpression
    */
   public function setListTargetingExpression(ListTargetingExpression $listTargetingExpression)
   {
@@ -199,7 +258,10 @@ class TargetingTemplate extends \Google\Model
     return $this->listTargetingExpression;
   }
   /**
-   * @param string
+   * Name of this targeting template. This field is required. It must be less
+   * than 256 characters long and unique within an advertiser.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -213,7 +275,10 @@ class TargetingTemplate extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Subaccount ID of this targeting template. This field, if left unset, will
+   * be auto-generated on insert and is read-only after insert.
+   *
+   * @param string $subaccountId
    */
   public function setSubaccountId($subaccountId)
   {
@@ -227,7 +292,9 @@ class TargetingTemplate extends \Google\Model
     return $this->subaccountId;
   }
   /**
-   * @param TechnologyTargeting
+   * Technology platform targeting criteria.
+   *
+   * @param TechnologyTargeting $technologyTargeting
    */
   public function setTechnologyTargeting(TechnologyTargeting $technologyTargeting)
   {

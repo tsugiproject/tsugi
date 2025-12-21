@@ -20,12 +20,16 @@ namespace Google\Service\Slides;
 class ReplaceAllShapesWithSheetsChartResponse extends \Google\Model
 {
   /**
+   * The number of shapes replaced with charts.
+   *
    * @var int
    */
   public $occurrencesChanged;
 
   /**
-   * @param int
+   * The number of shapes replaced with charts.
+   *
+   * @param int $occurrencesChanged
    */
   public function setOccurrencesChanged($occurrencesChanged)
   {

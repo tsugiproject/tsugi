@@ -20,16 +20,31 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaAccessDateRange extends \Google\Model
 {
   /**
+   * The inclusive end date for the query in the format `YYYY-MM-DD`. Cannot be
+   * before `startDate`. The format `NdaysAgo`, `yesterday`, or `today` is also
+   * accepted, and in that case, the date is inferred based on the current time
+   * in the request's time zone.
+   *
    * @var string
    */
   public $endDate;
   /**
+   * The inclusive start date for the query in the format `YYYY-MM-DD`. Cannot
+   * be after `endDate`. The format `NdaysAgo`, `yesterday`, or `today` is also
+   * accepted, and in that case, the date is inferred based on the current time
+   * in the request's time zone.
+   *
    * @var string
    */
   public $startDate;
 
   /**
-   * @param string
+   * The inclusive end date for the query in the format `YYYY-MM-DD`. Cannot be
+   * before `startDate`. The format `NdaysAgo`, `yesterday`, or `today` is also
+   * accepted, and in that case, the date is inferred based on the current time
+   * in the request's time zone.
+   *
+   * @param string $endDate
    */
   public function setEndDate($endDate)
   {
@@ -43,7 +58,12 @@ class GoogleAnalyticsAdminV1betaAccessDateRange extends \Google\Model
     return $this->endDate;
   }
   /**
-   * @param string
+   * The inclusive start date for the query in the format `YYYY-MM-DD`. Cannot
+   * be after `endDate`. The format `NdaysAgo`, `yesterday`, or `today` is also
+   * accepted, and in that case, the date is inferred based on the current time
+   * in the request's time zone.
+   *
+   * @param string $startDate
    */
   public function setStartDate($startDate)
   {

@@ -24,16 +24,23 @@ class AchievementResetMultipleForAllRequest extends \Google\Collection
         "achievementIds" => "achievement_ids",
   ];
   /**
+   * The IDs of achievements to reset.
+   *
    * @var string[]
    */
   public $achievementIds;
   /**
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesManagement#achievementResetMultipleForAllRequest`.
+   *
    * @var string
    */
   public $kind;
 
   /**
-   * @param string[]
+   * The IDs of achievements to reset.
+   *
+   * @param string[] $achievementIds
    */
   public function setAchievementIds($achievementIds)
   {
@@ -47,7 +54,10 @@ class AchievementResetMultipleForAllRequest extends \Google\Collection
     return $this->achievementIds;
   }
   /**
-   * @param string
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesManagement#achievementResetMultipleForAllRequest`.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {

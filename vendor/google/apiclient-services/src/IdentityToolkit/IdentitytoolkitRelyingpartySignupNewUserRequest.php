@@ -20,64 +20,96 @@ namespace Google\Service\IdentityToolkit;
 class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
 {
   /**
+   * The captcha challenge.
+   *
    * @var string
    */
   public $captchaChallenge;
   /**
+   * Response to the captcha.
+   *
    * @var string
    */
   public $captchaResponse;
   /**
+   * Whether to disable the user. Only can be used by service account.
+   *
    * @var bool
    */
   public $disabled;
   /**
+   * The name of the user.
+   *
    * @var string
    */
   public $displayName;
   /**
+   * The email of the user.
+   *
    * @var string
    */
   public $email;
   /**
+   * Mark the email as verified or not. Only can be used by service account.
+   *
    * @var bool
    */
   public $emailVerified;
   /**
+   * The GITKit token of the authenticated user.
+   *
    * @var string
    */
   public $idToken;
   /**
+   * Instance id token of the app.
+   *
    * @var string
    */
   public $instanceId;
   /**
+   * Privileged caller can create user with specified user id.
+   *
    * @var string
    */
   public $localId;
   /**
+   * The new password of the user.
+   *
    * @var string
    */
   public $password;
   /**
+   * Privileged caller can create user with specified phone number.
+   *
    * @var string
    */
   public $phoneNumber;
   /**
+   * The photo url of the user.
+   *
    * @var string
    */
   public $photoUrl;
   /**
+   * For multi-tenant use cases, in order to construct sign-in URL with the
+   * correct IDP parameters, Firebear needs to know which Tenant to retrieve IDP
+   * configs from.
+   *
    * @var string
    */
   public $tenantId;
   /**
+   * Tenant project number to be used for idp discovery.
+   *
    * @var string
    */
   public $tenantProjectNumber;
 
   /**
-   * @param string
+   * The captcha challenge.
+   *
+   * @param string $captchaChallenge
    */
   public function setCaptchaChallenge($captchaChallenge)
   {
@@ -91,7 +123,9 @@ class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
     return $this->captchaChallenge;
   }
   /**
-   * @param string
+   * Response to the captcha.
+   *
+   * @param string $captchaResponse
    */
   public function setCaptchaResponse($captchaResponse)
   {
@@ -105,7 +139,9 @@ class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
     return $this->captchaResponse;
   }
   /**
-   * @param bool
+   * Whether to disable the user. Only can be used by service account.
+   *
+   * @param bool $disabled
    */
   public function setDisabled($disabled)
   {
@@ -119,7 +155,9 @@ class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
     return $this->disabled;
   }
   /**
-   * @param string
+   * The name of the user.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -133,7 +171,9 @@ class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param string
+   * The email of the user.
+   *
+   * @param string $email
    */
   public function setEmail($email)
   {
@@ -147,7 +187,9 @@ class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
     return $this->email;
   }
   /**
-   * @param bool
+   * Mark the email as verified or not. Only can be used by service account.
+   *
+   * @param bool $emailVerified
    */
   public function setEmailVerified($emailVerified)
   {
@@ -161,7 +203,9 @@ class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
     return $this->emailVerified;
   }
   /**
-   * @param string
+   * The GITKit token of the authenticated user.
+   *
+   * @param string $idToken
    */
   public function setIdToken($idToken)
   {
@@ -175,7 +219,9 @@ class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
     return $this->idToken;
   }
   /**
-   * @param string
+   * Instance id token of the app.
+   *
+   * @param string $instanceId
    */
   public function setInstanceId($instanceId)
   {
@@ -189,7 +235,9 @@ class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
     return $this->instanceId;
   }
   /**
-   * @param string
+   * Privileged caller can create user with specified user id.
+   *
+   * @param string $localId
    */
   public function setLocalId($localId)
   {
@@ -203,7 +251,9 @@ class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
     return $this->localId;
   }
   /**
-   * @param string
+   * The new password of the user.
+   *
+   * @param string $password
    */
   public function setPassword($password)
   {
@@ -217,7 +267,9 @@ class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
     return $this->password;
   }
   /**
-   * @param string
+   * Privileged caller can create user with specified phone number.
+   *
+   * @param string $phoneNumber
    */
   public function setPhoneNumber($phoneNumber)
   {
@@ -231,7 +283,9 @@ class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
     return $this->phoneNumber;
   }
   /**
-   * @param string
+   * The photo url of the user.
+   *
+   * @param string $photoUrl
    */
   public function setPhotoUrl($photoUrl)
   {
@@ -245,7 +299,11 @@ class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
     return $this->photoUrl;
   }
   /**
-   * @param string
+   * For multi-tenant use cases, in order to construct sign-in URL with the
+   * correct IDP parameters, Firebear needs to know which Tenant to retrieve IDP
+   * configs from.
+   *
+   * @param string $tenantId
    */
   public function setTenantId($tenantId)
   {
@@ -259,7 +317,9 @@ class IdentitytoolkitRelyingpartySignupNewUserRequest extends \Google\Model
     return $this->tenantId;
   }
   /**
-   * @param string
+   * Tenant project number to be used for idp discovery.
+   *
+   * @param string $tenantProjectNumber
    */
   public function setTenantProjectNumber($tenantProjectNumber)
   {

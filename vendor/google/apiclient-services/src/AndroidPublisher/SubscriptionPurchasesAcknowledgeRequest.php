@@ -20,12 +20,18 @@ namespace Google\Service\AndroidPublisher;
 class SubscriptionPurchasesAcknowledgeRequest extends \Google\Model
 {
   /**
+   * Payload to attach to the purchase.
+   *
    * @var string
    */
   public $developerPayload;
+  protected $externalAccountIdsType = ExternalAccountIds::class;
+  protected $externalAccountIdsDataType = '';
 
   /**
-   * @param string
+   * Payload to attach to the purchase.
+   *
+   * @param string $developerPayload
    */
   public function setDeveloperPayload($developerPayload)
   {
@@ -37,6 +43,22 @@ class SubscriptionPurchasesAcknowledgeRequest extends \Google\Model
   public function getDeveloperPayload()
   {
     return $this->developerPayload;
+  }
+  /**
+   * Optional. User account identifier in your app.
+   *
+   * @param ExternalAccountIds $externalAccountIds
+   */
+  public function setExternalAccountIds(ExternalAccountIds $externalAccountIds)
+  {
+    $this->externalAccountIds = $externalAccountIds;
+  }
+  /**
+   * @return ExternalAccountIds
+   */
+  public function getExternalAccountIds()
+  {
+    return $this->externalAccountIds;
   }
 }
 

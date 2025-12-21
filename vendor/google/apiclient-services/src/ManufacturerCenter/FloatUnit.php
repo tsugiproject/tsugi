@@ -19,8 +19,15 @@ namespace Google\Service\ManufacturerCenter;
 
 class FloatUnit extends \Google\Model
 {
+  /**
+   * amount.
+   *
+   * @var 
+   */
   public $amount;
   /**
+   * unit.
+   *
    * @var string
    */
   public $unit;
@@ -34,7 +41,9 @@ class FloatUnit extends \Google\Model
     return $this->amount;
   }
   /**
-   * @param string
+   * unit.
+   *
+   * @param string $unit
    */
   public function setUnit($unit)
   {

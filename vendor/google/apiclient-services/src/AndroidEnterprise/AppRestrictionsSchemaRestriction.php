@@ -19,38 +19,92 @@ namespace Google\Service\AndroidEnterprise;
 
 class AppRestrictionsSchemaRestriction extends \Google\Collection
 {
+  /**
+   * A restriction of boolean type.
+   */
+  public const RESTRICTION_TYPE_bool = 'bool';
+  /**
+   * A restriction of string type.
+   */
+  public const RESTRICTION_TYPE_string = 'string';
+  /**
+   * A restriction of integer type.
+   */
+  public const RESTRICTION_TYPE_integer = 'integer';
+  /**
+   * A choice of one item from a set.
+   */
+  public const RESTRICTION_TYPE_choice = 'choice';
+  /**
+   * A choice of multiple items from a set.
+   */
+  public const RESTRICTION_TYPE_multiselect = 'multiselect';
+  /**
+   * A hidden restriction of string type (the default value can be used to pass
+   * along information that cannot be modified, such as a version code).
+   */
+  public const RESTRICTION_TYPE_hidden = 'hidden';
+  /**
+   * [M+ devices only] A bundle of restrictions
+   */
+  public const RESTRICTION_TYPE_bundle = 'bundle';
+  /**
+   * [M+ devices only] An array of restriction bundles
+   */
+  public const RESTRICTION_TYPE_bundleArray = 'bundleArray';
   protected $collection_key = 'nestedRestriction';
   protected $defaultValueType = AppRestrictionsSchemaRestrictionRestrictionValue::class;
   protected $defaultValueDataType = '';
   /**
+   * A longer description of the restriction, giving more detail of what it
+   * affects.
+   *
    * @var string
    */
   public $description;
   /**
+   * For choice or multiselect restrictions, the list of possible entries'
+   * human-readable names.
+   *
    * @var string[]
    */
   public $entry;
   /**
+   * For choice or multiselect restrictions, the list of possible entries'
+   * machine-readable values. These values should be used in the configuration,
+   * either as a single string value for a choice restriction or in a
+   * stringArray for a multiselect restriction.
+   *
    * @var string[]
    */
   public $entryValue;
   /**
+   * The unique key that the product uses to identify the restriction, e.g.
+   * "com.google.android.gm.fieldname".
+   *
    * @var string
    */
   public $key;
   protected $nestedRestrictionType = AppRestrictionsSchemaRestriction::class;
   protected $nestedRestrictionDataType = 'array';
   /**
+   * The type of the restriction.
+   *
    * @var string
    */
   public $restrictionType;
   /**
+   * The name of the restriction.
+   *
    * @var string
    */
   public $title;
 
   /**
-   * @param AppRestrictionsSchemaRestrictionRestrictionValue
+   * The default value of the restriction. bundle and bundleArray restrictions
+   * never have a default value.
+   *
+   * @param AppRestrictionsSchemaRestrictionRestrictionValue $defaultValue
    */
   public function setDefaultValue(AppRestrictionsSchemaRestrictionRestrictionValue $defaultValue)
   {
@@ -64,7 +118,10 @@ class AppRestrictionsSchemaRestriction extends \Google\Collection
     return $this->defaultValue;
   }
   /**
-   * @param string
+   * A longer description of the restriction, giving more detail of what it
+   * affects.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -78,7 +135,10 @@ class AppRestrictionsSchemaRestriction extends \Google\Collection
     return $this->description;
   }
   /**
-   * @param string[]
+   * For choice or multiselect restrictions, the list of possible entries'
+   * human-readable names.
+   *
+   * @param string[] $entry
    */
   public function setEntry($entry)
   {
@@ -92,7 +152,12 @@ class AppRestrictionsSchemaRestriction extends \Google\Collection
     return $this->entry;
   }
   /**
-   * @param string[]
+   * For choice or multiselect restrictions, the list of possible entries'
+   * machine-readable values. These values should be used in the configuration,
+   * either as a single string value for a choice restriction or in a
+   * stringArray for a multiselect restriction.
+   *
+   * @param string[] $entryValue
    */
   public function setEntryValue($entryValue)
   {
@@ -106,7 +171,10 @@ class AppRestrictionsSchemaRestriction extends \Google\Collection
     return $this->entryValue;
   }
   /**
-   * @param string
+   * The unique key that the product uses to identify the restriction, e.g.
+   * "com.google.android.gm.fieldname".
+   *
+   * @param string $key
    */
   public function setKey($key)
   {
@@ -120,7 +188,11 @@ class AppRestrictionsSchemaRestriction extends \Google\Collection
     return $this->key;
   }
   /**
-   * @param AppRestrictionsSchemaRestriction[]
+   * For bundle or bundleArray restrictions, the list of nested restrictions. A
+   * bundle restriction is always nested within a bundleArray restriction, and a
+   * bundleArray restriction is at most two levels deep.
+   *
+   * @param AppRestrictionsSchemaRestriction[] $nestedRestriction
    */
   public function setNestedRestriction($nestedRestriction)
   {
@@ -134,21 +206,28 @@ class AppRestrictionsSchemaRestriction extends \Google\Collection
     return $this->nestedRestriction;
   }
   /**
-   * @param string
+   * The type of the restriction.
+   *
+   * Accepted values: bool, string, integer, choice, multiselect, hidden,
+   * bundle, bundleArray
+   *
+   * @param self::RESTRICTION_TYPE_* $restrictionType
    */
   public function setRestrictionType($restrictionType)
   {
     $this->restrictionType = $restrictionType;
   }
   /**
-   * @return string
+   * @return self::RESTRICTION_TYPE_*
    */
   public function getRestrictionType()
   {
     return $this->restrictionType;
   }
   /**
-   * @param string
+   * The name of the restriction.
+   *
+   * @param string $title
    */
   public function setTitle($title)
   {

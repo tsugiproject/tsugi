@@ -150,6 +150,11 @@ class ArtifactRegistry extends \Google\Service
                   'type' => 'string',
                   'required' => true,
                 ],
+                'extraLocationTypes' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                  'repeated' => true,
+                ],
                 'filter' => [
                   'location' => 'query',
                   'type' => 'string',
@@ -226,6 +231,16 @@ class ArtifactRegistry extends \Google\Service
               'httpMethod' => 'DELETE',
               'parameters' => [
                 'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'exportArtifact' => [
+              'path' => 'v1/{+repository}:exportArtifact',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'repository' => [
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,

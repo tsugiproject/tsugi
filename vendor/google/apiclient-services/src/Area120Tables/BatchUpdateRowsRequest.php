@@ -24,7 +24,10 @@ class BatchUpdateRowsRequest extends \Google\Collection
   protected $requestsDataType = 'array';
 
   /**
-   * @param UpdateRowRequest[]
+   * Required. The request messages specifying the rows to update. A maximum of
+   * 500 rows can be modified in a single batch.
+   *
+   * @param UpdateRowRequest[] $requests
    */
   public function setRequests($requests)
   {

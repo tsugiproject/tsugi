@@ -25,7 +25,9 @@ class BetweenFilter extends \Google\Model
   protected $toValueDataType = '';
 
   /**
-   * @param NumericValue
+   * Begins with this number.
+   *
+   * @param NumericValue $fromValue
    */
   public function setFromValue(NumericValue $fromValue)
   {
@@ -39,7 +41,9 @@ class BetweenFilter extends \Google\Model
     return $this->fromValue;
   }
   /**
-   * @param NumericValue
+   * Ends with this number.
+   *
+   * @param NumericValue $toValue
    */
   public function setToValue(NumericValue $toValue)
   {

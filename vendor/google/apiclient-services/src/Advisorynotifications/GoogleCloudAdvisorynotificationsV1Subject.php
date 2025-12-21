@@ -23,7 +23,9 @@ class GoogleCloudAdvisorynotificationsV1Subject extends \Google\Model
   protected $textDataType = '';
 
   /**
-   * @param GoogleCloudAdvisorynotificationsV1Text
+   * The text content.
+   *
+   * @param GoogleCloudAdvisorynotificationsV1Text $text
    */
   public function setText(GoogleCloudAdvisorynotificationsV1Text $text)
   {

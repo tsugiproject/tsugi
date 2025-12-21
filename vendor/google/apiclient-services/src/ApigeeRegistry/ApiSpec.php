@@ -20,64 +20,125 @@ namespace Google\Service\ApigeeRegistry;
 class ApiSpec extends \Google\Model
 {
   /**
+   * Annotations attach non-identifying metadata to resources. Annotation keys
+   * and values are less restricted than those of labels, but should be
+   * generally used for small values of broad interest. Larger, topic- specific
+   * metadata should be stored in Artifacts.
+   *
    * @var string[]
    */
   public $annotations;
   /**
+   * Input only. The contents of the spec. Provided by API callers when specs
+   * are created or updated. To access the contents of a spec, use
+   * GetApiSpecContents.
+   *
    * @var string
    */
   public $contents;
   /**
+   * Output only. Creation timestamp; when the spec resource was created.
+   *
    * @var string
    */
   public $createTime;
   /**
+   * A detailed description.
+   *
    * @var string
    */
   public $description;
   /**
+   * A possibly-hierarchical name used to refer to the spec from other specs.
+   *
    * @var string
    */
   public $filename;
   /**
+   * Output only. A SHA-256 hash of the spec's contents. If the spec is gzipped,
+   * this is the hash of the uncompressed spec.
+   *
    * @var string
    */
   public $hash;
   /**
+   * Labels attach identifying metadata to resources. Identifying metadata can
+   * be used to filter list operations. Label keys and values can be no longer
+   * than 64 characters (Unicode codepoints), can only contain lowercase
+   * letters, numeric characters, underscores and dashes. International
+   * characters are allowed. No more than 64 user labels can be associated with
+   * one resource (System labels are excluded). See https://goo.gl/xmQnxf for
+   * more information and examples of labels. System reserved label keys are
+   * prefixed with `apigeeregistry.googleapis.com/` and cannot be changed.
+   *
    * @var string[]
    */
   public $labels;
   /**
+   * A style (format) descriptor for this spec that is specified as a [Media
+   * Type](https://en.wikipedia.org/wiki/Media_type). Possible values include
+   * `application/vnd.apigee.proto`, `application/vnd.apigee.openapi`, and
+   * `application/vnd.apigee.graphql`, with possible suffixes representing
+   * compression types. These hypothetical names are defined in the vendor tree
+   * defined in RFC6838 (https://tools.ietf.org/html/rfc6838) and are not final.
+   * Content types can specify compression. Currently only GZip compression is
+   * supported (indicated with "+gzip").
+   *
    * @var string
    */
   public $mimeType;
   /**
+   * Resource name.
+   *
    * @var string
    */
   public $name;
   /**
+   * Output only. Revision creation timestamp; when the represented revision was
+   * created.
+   *
    * @var string
    */
   public $revisionCreateTime;
   /**
+   * Output only. Immutable. The revision ID of the spec. A new revision is
+   * committed whenever the spec contents are changed. The format is an
+   * 8-character hexadecimal string.
+   *
    * @var string
    */
   public $revisionId;
   /**
+   * Output only. Last update timestamp: when the represented revision was last
+   * modified.
+   *
    * @var string
    */
   public $revisionUpdateTime;
   /**
+   * Output only. The size of the spec file in bytes. If the spec is gzipped,
+   * this is the size of the uncompressed spec.
+   *
    * @var int
    */
   public $sizeBytes;
   /**
+   * The original source URI of the spec (if one exists). This is an external
+   * location that can be used for reference purposes but which may not be
+   * authoritative since this external resource may change after the spec is
+   * retrieved.
+   *
    * @var string
    */
   public $sourceUri;
 
   /**
-   * @param string[]
+   * Annotations attach non-identifying metadata to resources. Annotation keys
+   * and values are less restricted than those of labels, but should be
+   * generally used for small values of broad interest. Larger, topic- specific
+   * metadata should be stored in Artifacts.
+   *
+   * @param string[] $annotations
    */
   public function setAnnotations($annotations)
   {
@@ -91,7 +152,11 @@ class ApiSpec extends \Google\Model
     return $this->annotations;
   }
   /**
-   * @param string
+   * Input only. The contents of the spec. Provided by API callers when specs
+   * are created or updated. To access the contents of a spec, use
+   * GetApiSpecContents.
+   *
+   * @param string $contents
    */
   public function setContents($contents)
   {
@@ -105,7 +170,9 @@ class ApiSpec extends \Google\Model
     return $this->contents;
   }
   /**
-   * @param string
+   * Output only. Creation timestamp; when the spec resource was created.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -119,7 +186,9 @@ class ApiSpec extends \Google\Model
     return $this->createTime;
   }
   /**
-   * @param string
+   * A detailed description.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -133,7 +202,9 @@ class ApiSpec extends \Google\Model
     return $this->description;
   }
   /**
-   * @param string
+   * A possibly-hierarchical name used to refer to the spec from other specs.
+   *
+   * @param string $filename
    */
   public function setFilename($filename)
   {
@@ -147,7 +218,10 @@ class ApiSpec extends \Google\Model
     return $this->filename;
   }
   /**
-   * @param string
+   * Output only. A SHA-256 hash of the spec's contents. If the spec is gzipped,
+   * this is the hash of the uncompressed spec.
+   *
+   * @param string $hash
    */
   public function setHash($hash)
   {
@@ -161,7 +235,16 @@ class ApiSpec extends \Google\Model
     return $this->hash;
   }
   /**
-   * @param string[]
+   * Labels attach identifying metadata to resources. Identifying metadata can
+   * be used to filter list operations. Label keys and values can be no longer
+   * than 64 characters (Unicode codepoints), can only contain lowercase
+   * letters, numeric characters, underscores and dashes. International
+   * characters are allowed. No more than 64 user labels can be associated with
+   * one resource (System labels are excluded). See https://goo.gl/xmQnxf for
+   * more information and examples of labels. System reserved label keys are
+   * prefixed with `apigeeregistry.googleapis.com/` and cannot be changed.
+   *
+   * @param string[] $labels
    */
   public function setLabels($labels)
   {
@@ -175,7 +258,16 @@ class ApiSpec extends \Google\Model
     return $this->labels;
   }
   /**
-   * @param string
+   * A style (format) descriptor for this spec that is specified as a [Media
+   * Type](https://en.wikipedia.org/wiki/Media_type). Possible values include
+   * `application/vnd.apigee.proto`, `application/vnd.apigee.openapi`, and
+   * `application/vnd.apigee.graphql`, with possible suffixes representing
+   * compression types. These hypothetical names are defined in the vendor tree
+   * defined in RFC6838 (https://tools.ietf.org/html/rfc6838) and are not final.
+   * Content types can specify compression. Currently only GZip compression is
+   * supported (indicated with "+gzip").
+   *
+   * @param string $mimeType
    */
   public function setMimeType($mimeType)
   {
@@ -189,7 +281,9 @@ class ApiSpec extends \Google\Model
     return $this->mimeType;
   }
   /**
-   * @param string
+   * Resource name.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -203,7 +297,10 @@ class ApiSpec extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Output only. Revision creation timestamp; when the represented revision was
+   * created.
+   *
+   * @param string $revisionCreateTime
    */
   public function setRevisionCreateTime($revisionCreateTime)
   {
@@ -217,7 +314,11 @@ class ApiSpec extends \Google\Model
     return $this->revisionCreateTime;
   }
   /**
-   * @param string
+   * Output only. Immutable. The revision ID of the spec. A new revision is
+   * committed whenever the spec contents are changed. The format is an
+   * 8-character hexadecimal string.
+   *
+   * @param string $revisionId
    */
   public function setRevisionId($revisionId)
   {
@@ -231,7 +332,10 @@ class ApiSpec extends \Google\Model
     return $this->revisionId;
   }
   /**
-   * @param string
+   * Output only. Last update timestamp: when the represented revision was last
+   * modified.
+   *
+   * @param string $revisionUpdateTime
    */
   public function setRevisionUpdateTime($revisionUpdateTime)
   {
@@ -245,7 +349,10 @@ class ApiSpec extends \Google\Model
     return $this->revisionUpdateTime;
   }
   /**
-   * @param int
+   * Output only. The size of the spec file in bytes. If the spec is gzipped,
+   * this is the size of the uncompressed spec.
+   *
+   * @param int $sizeBytes
    */
   public function setSizeBytes($sizeBytes)
   {
@@ -259,7 +366,12 @@ class ApiSpec extends \Google\Model
     return $this->sizeBytes;
   }
   /**
-   * @param string
+   * The original source URI of the spec (if one exists). This is an external
+   * location that can be used for reference purposes but which may not be
+   * authoritative since this external resource may change after the spec is
+   * retrieved.
+   *
+   * @param string $sourceUri
    */
   public function setSourceUri($sourceUri)
   {

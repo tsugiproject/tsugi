@@ -23,12 +23,17 @@ class ComputeInsightsRequest extends \Google\Collection
   protected $filterType = Filter::class;
   protected $filterDataType = '';
   /**
+   * Required. Insights to compute. Currently only INSIGHT_COUNT and
+   * INSIGHT_PLACES are supported.
+   *
    * @var string[]
    */
   public $insights;
 
   /**
-   * @param Filter
+   * Required. Insight filter.
+   *
+   * @param Filter $filter
    */
   public function setFilter(Filter $filter)
   {
@@ -42,7 +47,10 @@ class ComputeInsightsRequest extends \Google\Collection
     return $this->filter;
   }
   /**
-   * @param string[]
+   * Required. Insights to compute. Currently only INSIGHT_COUNT and
+   * INSIGHT_PLACES are supported.
+   *
+   * @param string[] $insights
    */
   public function setInsights($insights)
   {

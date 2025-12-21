@@ -23,12 +23,17 @@ class ListApiDeploymentsResponse extends \Google\Collection
   protected $apiDeploymentsType = ApiDeployment::class;
   protected $apiDeploymentsDataType = 'array';
   /**
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param ApiDeployment[]
+   * The deployments from the specified publisher.
+   *
+   * @param ApiDeployment[] $apiDeployments
    */
   public function setApiDeployments($apiDeployments)
   {
@@ -42,7 +47,10 @@ class ListApiDeploymentsResponse extends \Google\Collection
     return $this->apiDeployments;
   }
   /**
-   * @param string
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

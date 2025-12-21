@@ -22,24 +22,37 @@ class GoogleCloudDatapipelinesV1LaunchTemplateParameters extends \Google\Model
   protected $environmentType = GoogleCloudDatapipelinesV1RuntimeEnvironment::class;
   protected $environmentDataType = '';
   /**
+   * Required. The job name to use for the created job.
+   *
    * @var string
    */
   public $jobName;
   /**
+   * The runtime parameters to pass to the job.
+   *
    * @var string[]
    */
   public $parameters;
   /**
+   * Map of transform name prefixes of the job to be replaced to the
+   * corresponding name prefixes of the new job. Only applicable when updating a
+   * pipeline.
+   *
    * @var string[]
    */
   public $transformNameMapping;
   /**
+   * If set, replace the existing pipeline with the name specified by jobName
+   * with this pipeline, preserving state.
+   *
    * @var bool
    */
   public $update;
 
   /**
-   * @param GoogleCloudDatapipelinesV1RuntimeEnvironment
+   * The runtime environment for the job.
+   *
+   * @param GoogleCloudDatapipelinesV1RuntimeEnvironment $environment
    */
   public function setEnvironment(GoogleCloudDatapipelinesV1RuntimeEnvironment $environment)
   {
@@ -53,7 +66,9 @@ class GoogleCloudDatapipelinesV1LaunchTemplateParameters extends \Google\Model
     return $this->environment;
   }
   /**
-   * @param string
+   * Required. The job name to use for the created job.
+   *
+   * @param string $jobName
    */
   public function setJobName($jobName)
   {
@@ -67,7 +82,9 @@ class GoogleCloudDatapipelinesV1LaunchTemplateParameters extends \Google\Model
     return $this->jobName;
   }
   /**
-   * @param string[]
+   * The runtime parameters to pass to the job.
+   *
+   * @param string[] $parameters
    */
   public function setParameters($parameters)
   {
@@ -81,7 +98,11 @@ class GoogleCloudDatapipelinesV1LaunchTemplateParameters extends \Google\Model
     return $this->parameters;
   }
   /**
-   * @param string[]
+   * Map of transform name prefixes of the job to be replaced to the
+   * corresponding name prefixes of the new job. Only applicable when updating a
+   * pipeline.
+   *
+   * @param string[] $transformNameMapping
    */
   public function setTransformNameMapping($transformNameMapping)
   {
@@ -95,7 +116,10 @@ class GoogleCloudDatapipelinesV1LaunchTemplateParameters extends \Google\Model
     return $this->transformNameMapping;
   }
   /**
-   * @param bool
+   * If set, replace the existing pipeline with the name specified by jobName
+   * with this pipeline, preserving state.
+   *
+   * @param bool $update
    */
   public function setUpdate($update)
   {

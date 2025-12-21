@@ -23,7 +23,9 @@ class RemarketingAudienceAudienceDefinition extends \Google\Model
   protected $includeConditionsDataType = '';
 
   /**
-   * @param IncludeConditions
+   * Defines the conditions to include users to the audience.
+   *
+   * @param IncludeConditions $includeConditions
    */
   public function setIncludeConditions(IncludeConditions $includeConditions)
   {

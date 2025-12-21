@@ -21,56 +21,99 @@ class Trigger extends \Google\Collection
 {
   protected $collection_key = 'eventFilters';
   /**
+   * Optional. The name of the channel associated with the trigger in
+   * `projects/{project}/locations/{location}/channels/{channel}` format. You
+   * must provide a channel to receive events from Eventarc SaaS partners.
+   *
    * @var string
    */
   public $channel;
   protected $conditionsType = StateCondition::class;
   protected $conditionsDataType = 'map';
   /**
+   * Output only. The creation time.
+   *
    * @var string
    */
   public $createTime;
   protected $destinationType = Destination::class;
   protected $destinationDataType = '';
   /**
+   * Output only. This checksum is computed by the server based on the value of
+   * other fields, and might be sent only on create requests to ensure that the
+   * client has an up-to-date value before proceeding.
+   *
    * @var string
    */
   public $etag;
   /**
+   * Optional. EventDataContentType specifies the type of payload in MIME format
+   * that is expected from the CloudEvent data field. This is set to
+   * `application/json` if the value is not defined.
+   *
    * @var string
    */
   public $eventDataContentType;
   protected $eventFiltersType = EventFilter::class;
   protected $eventFiltersDataType = 'array';
   /**
+   * Optional. User labels attached to the triggers that can be used to group
+   * resources.
+   *
    * @var string[]
    */
   public $labels;
   /**
+   * Required. The resource name of the trigger. Must be unique within the
+   * location of the project and must be in
+   * `projects/{project}/locations/{location}/triggers/{trigger}` format.
+   *
    * @var string
    */
   public $name;
+  protected $retryPolicyType = RetryPolicy::class;
+  protected $retryPolicyDataType = '';
   /**
+   * Output only. Whether or not this Trigger satisfies the requirements of
+   * physical zone separation
+   *
    * @var bool
    */
   public $satisfiesPzs;
   /**
+   * Optional. The IAM service account email associated with the trigger. The
+   * service account represents the identity of the trigger. The
+   * `iam.serviceAccounts.actAs` permission must be granted on the service
+   * account to allow a principal to impersonate the service account. For more
+   * information, see the [Roles and permissions](/eventarc/docs/all-roles-
+   * permissions) page specific to the trigger destination.
+   *
    * @var string
    */
   public $serviceAccount;
   protected $transportType = Transport::class;
   protected $transportDataType = '';
   /**
+   * Output only. Server-assigned unique identifier for the trigger. The value
+   * is a UUID4 string and guaranteed to remain unchanged until the resource is
+   * deleted.
+   *
    * @var string
    */
   public $uid;
   /**
+   * Output only. The last-modified time.
+   *
    * @var string
    */
   public $updateTime;
 
   /**
-   * @param string
+   * Optional. The name of the channel associated with the trigger in
+   * `projects/{project}/locations/{location}/channels/{channel}` format. You
+   * must provide a channel to receive events from Eventarc SaaS partners.
+   *
+   * @param string $channel
    */
   public function setChannel($channel)
   {
@@ -84,7 +127,9 @@ class Trigger extends \Google\Collection
     return $this->channel;
   }
   /**
-   * @param StateCondition[]
+   * Output only. The reason(s) why a trigger is in FAILED state.
+   *
+   * @param StateCondition[] $conditions
    */
   public function setConditions($conditions)
   {
@@ -98,7 +143,9 @@ class Trigger extends \Google\Collection
     return $this->conditions;
   }
   /**
-   * @param string
+   * Output only. The creation time.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -112,7 +159,9 @@ class Trigger extends \Google\Collection
     return $this->createTime;
   }
   /**
-   * @param Destination
+   * Required. Destination specifies where the events should be sent to.
+   *
+   * @param Destination $destination
    */
   public function setDestination(Destination $destination)
   {
@@ -126,7 +175,11 @@ class Trigger extends \Google\Collection
     return $this->destination;
   }
   /**
-   * @param string
+   * Output only. This checksum is computed by the server based on the value of
+   * other fields, and might be sent only on create requests to ensure that the
+   * client has an up-to-date value before proceeding.
+   *
+   * @param string $etag
    */
   public function setEtag($etag)
   {
@@ -140,7 +193,11 @@ class Trigger extends \Google\Collection
     return $this->etag;
   }
   /**
-   * @param string
+   * Optional. EventDataContentType specifies the type of payload in MIME format
+   * that is expected from the CloudEvent data field. This is set to
+   * `application/json` if the value is not defined.
+   *
+   * @param string $eventDataContentType
    */
   public function setEventDataContentType($eventDataContentType)
   {
@@ -154,7 +211,11 @@ class Trigger extends \Google\Collection
     return $this->eventDataContentType;
   }
   /**
-   * @param EventFilter[]
+   * Required. Unordered list. The list of filters that applies to event
+   * attributes. Only events that match all the provided filters are sent to the
+   * destination.
+   *
+   * @param EventFilter[] $eventFilters
    */
   public function setEventFilters($eventFilters)
   {
@@ -168,7 +229,10 @@ class Trigger extends \Google\Collection
     return $this->eventFilters;
   }
   /**
-   * @param string[]
+   * Optional. User labels attached to the triggers that can be used to group
+   * resources.
+   *
+   * @param string[] $labels
    */
   public function setLabels($labels)
   {
@@ -182,7 +246,11 @@ class Trigger extends \Google\Collection
     return $this->labels;
   }
   /**
-   * @param string
+   * Required. The resource name of the trigger. Must be unique within the
+   * location of the project and must be in
+   * `projects/{project}/locations/{location}/triggers/{trigger}` format.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -196,7 +264,28 @@ class Trigger extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param bool
+   * Optional. The retry policy to use in the Trigger. If unset, event delivery
+   * will be retried for up to 24 hours by default:
+   * https://cloud.google.com/eventarc/docs/retry-events
+   *
+   * @param RetryPolicy $retryPolicy
+   */
+  public function setRetryPolicy(RetryPolicy $retryPolicy)
+  {
+    $this->retryPolicy = $retryPolicy;
+  }
+  /**
+   * @return RetryPolicy
+   */
+  public function getRetryPolicy()
+  {
+    return $this->retryPolicy;
+  }
+  /**
+   * Output only. Whether or not this Trigger satisfies the requirements of
+   * physical zone separation
+   *
+   * @param bool $satisfiesPzs
    */
   public function setSatisfiesPzs($satisfiesPzs)
   {
@@ -210,7 +299,14 @@ class Trigger extends \Google\Collection
     return $this->satisfiesPzs;
   }
   /**
-   * @param string
+   * Optional. The IAM service account email associated with the trigger. The
+   * service account represents the identity of the trigger. The
+   * `iam.serviceAccounts.actAs` permission must be granted on the service
+   * account to allow a principal to impersonate the service account. For more
+   * information, see the [Roles and permissions](/eventarc/docs/all-roles-
+   * permissions) page specific to the trigger destination.
+   *
+   * @param string $serviceAccount
    */
   public function setServiceAccount($serviceAccount)
   {
@@ -224,7 +320,12 @@ class Trigger extends \Google\Collection
     return $this->serviceAccount;
   }
   /**
-   * @param Transport
+   * Optional. To deliver messages, Eventarc might use other Google Cloud
+   * products as a transport intermediary. This field contains a reference to
+   * that transport intermediary. This information can be used for debugging
+   * purposes.
+   *
+   * @param Transport $transport
    */
   public function setTransport(Transport $transport)
   {
@@ -238,7 +339,11 @@ class Trigger extends \Google\Collection
     return $this->transport;
   }
   /**
-   * @param string
+   * Output only. Server-assigned unique identifier for the trigger. The value
+   * is a UUID4 string and guaranteed to remain unchanged until the resource is
+   * deleted.
+   *
+   * @param string $uid
    */
   public function setUid($uid)
   {
@@ -252,7 +357,9 @@ class Trigger extends \Google\Collection
     return $this->uid;
   }
   /**
-   * @param string
+   * Output only. The last-modified time.
+   *
+   * @param string $updateTime
    */
   public function setUpdateTime($updateTime)
   {

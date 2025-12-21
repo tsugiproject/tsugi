@@ -19,23 +19,44 @@ namespace Google\Service\GamesConfiguration;
 
 class LeaderboardConfiguration extends \Google\Model
 {
+  /**
+   * Default value. This value is unused.
+   */
+  public const SCORE_ORDER_SCORE_ORDER_UNSPECIFIED = 'SCORE_ORDER_UNSPECIFIED';
+  /**
+   * Larger scores posted are ranked higher.
+   */
+  public const SCORE_ORDER_LARGER_IS_BETTER = 'LARGER_IS_BETTER';
+  /**
+   * Smaller scores posted are ranked higher.
+   */
+  public const SCORE_ORDER_SMALLER_IS_BETTER = 'SMALLER_IS_BETTER';
   protected $draftType = LeaderboardConfigurationDetail::class;
   protected $draftDataType = '';
   /**
+   * The ID of the leaderboard.
+   *
    * @var string
    */
   public $id;
   /**
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesConfiguration#leaderboardConfiguration`.
+   *
    * @var string
    */
   public $kind;
   protected $publishedType = LeaderboardConfigurationDetail::class;
   protected $publishedDataType = '';
   /**
+   * Maximum score that can be posted to this leaderboard.
+   *
    * @var string
    */
   public $scoreMax;
   /**
+   * Minimum score that can be posted to this leaderboard.
+   *
    * @var string
    */
   public $scoreMin;
@@ -44,12 +65,16 @@ class LeaderboardConfiguration extends \Google\Model
    */
   public $scoreOrder;
   /**
+   * The token for this resource.
+   *
    * @var string
    */
   public $token;
 
   /**
-   * @param LeaderboardConfigurationDetail
+   * The draft data of the leaderboard.
+   *
+   * @param LeaderboardConfigurationDetail $draft
    */
   public function setDraft(LeaderboardConfigurationDetail $draft)
   {
@@ -63,7 +88,9 @@ class LeaderboardConfiguration extends \Google\Model
     return $this->draft;
   }
   /**
-   * @param string
+   * The ID of the leaderboard.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -77,7 +104,10 @@ class LeaderboardConfiguration extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesConfiguration#leaderboardConfiguration`.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -91,7 +121,9 @@ class LeaderboardConfiguration extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param LeaderboardConfigurationDetail
+   * The read-only published data of the leaderboard.
+   *
+   * @param LeaderboardConfigurationDetail $published
    */
   public function setPublished(LeaderboardConfigurationDetail $published)
   {
@@ -105,7 +137,9 @@ class LeaderboardConfiguration extends \Google\Model
     return $this->published;
   }
   /**
-   * @param string
+   * Maximum score that can be posted to this leaderboard.
+   *
+   * @param string $scoreMax
    */
   public function setScoreMax($scoreMax)
   {
@@ -119,7 +153,9 @@ class LeaderboardConfiguration extends \Google\Model
     return $this->scoreMax;
   }
   /**
-   * @param string
+   * Minimum score that can be posted to this leaderboard.
+   *
+   * @param string $scoreMin
    */
   public function setScoreMin($scoreMin)
   {
@@ -133,21 +169,23 @@ class LeaderboardConfiguration extends \Google\Model
     return $this->scoreMin;
   }
   /**
-   * @param string
+   * @param self::SCORE_ORDER_* $scoreOrder
    */
   public function setScoreOrder($scoreOrder)
   {
     $this->scoreOrder = $scoreOrder;
   }
   /**
-   * @return string
+   * @return self::SCORE_ORDER_*
    */
   public function getScoreOrder()
   {
     return $this->scoreOrder;
   }
   /**
-   * @param string
+   * The token for this resource.
+   *
+   * @param string $token
    */
   public function setToken($token)
   {

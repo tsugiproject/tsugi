@@ -20,32 +20,46 @@ namespace Google\Service\Analytics;
 class GaDataProfileInfo extends \Google\Model
 {
   /**
+   * Account ID to which this view (profile) belongs.
+   *
    * @var string
    */
   public $accountId;
   /**
+   * Internal ID for the web property to which this view (profile) belongs.
+   *
    * @var string
    */
   public $internalWebPropertyId;
   /**
+   * View (Profile) ID.
+   *
    * @var string
    */
   public $profileId;
   /**
+   * View (Profile) name.
+   *
    * @var string
    */
   public $profileName;
   /**
+   * Table ID for view (profile).
+   *
    * @var string
    */
   public $tableId;
   /**
+   * Web Property ID to which this view (profile) belongs.
+   *
    * @var string
    */
   public $webPropertyId;
 
   /**
-   * @param string
+   * Account ID to which this view (profile) belongs.
+   *
+   * @param string $accountId
    */
   public function setAccountId($accountId)
   {
@@ -59,7 +73,9 @@ class GaDataProfileInfo extends \Google\Model
     return $this->accountId;
   }
   /**
-   * @param string
+   * Internal ID for the web property to which this view (profile) belongs.
+   *
+   * @param string $internalWebPropertyId
    */
   public function setInternalWebPropertyId($internalWebPropertyId)
   {
@@ -73,7 +89,9 @@ class GaDataProfileInfo extends \Google\Model
     return $this->internalWebPropertyId;
   }
   /**
-   * @param string
+   * View (Profile) ID.
+   *
+   * @param string $profileId
    */
   public function setProfileId($profileId)
   {
@@ -87,7 +105,9 @@ class GaDataProfileInfo extends \Google\Model
     return $this->profileId;
   }
   /**
-   * @param string
+   * View (Profile) name.
+   *
+   * @param string $profileName
    */
   public function setProfileName($profileName)
   {
@@ -101,7 +121,9 @@ class GaDataProfileInfo extends \Google\Model
     return $this->profileName;
   }
   /**
-   * @param string
+   * Table ID for view (profile).
+   *
+   * @param string $tableId
    */
   public function setTableId($tableId)
   {
@@ -115,7 +137,9 @@ class GaDataProfileInfo extends \Google\Model
     return $this->tableId;
   }
   /**
-   * @param string
+   * Web Property ID to which this view (profile) belongs.
+   *
+   * @param string $webPropertyId
    */
   public function setWebPropertyId($webPropertyId)
   {

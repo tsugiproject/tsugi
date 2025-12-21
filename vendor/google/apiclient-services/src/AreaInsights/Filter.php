@@ -23,10 +23,18 @@ class Filter extends \Google\Collection
   protected $locationFilterType = LocationFilter::class;
   protected $locationFilterDataType = '';
   /**
+   * Optional. Restricts results to places whose operating status is included on
+   * this list. If operating_status is not set, OPERATING_STATUS_OPERATIONAL is
+   * used as default.
+   *
    * @var string[]
    */
   public $operatingStatus;
   /**
+   * Optional. Restricts results to places whose price level is included on this
+   * list. If `price_levels` is not set, all price levels are included in the
+   * results.
+   *
    * @var string[]
    */
   public $priceLevels;
@@ -36,7 +44,10 @@ class Filter extends \Google\Collection
   protected $typeFilterDataType = '';
 
   /**
-   * @param LocationFilter
+   * Required. Restricts results to places which are located in the area
+   * specified by location filters.
+   *
+   * @param LocationFilter $locationFilter
    */
   public function setLocationFilter(LocationFilter $locationFilter)
   {
@@ -50,7 +61,11 @@ class Filter extends \Google\Collection
     return $this->locationFilter;
   }
   /**
-   * @param string[]
+   * Optional. Restricts results to places whose operating status is included on
+   * this list. If operating_status is not set, OPERATING_STATUS_OPERATIONAL is
+   * used as default.
+   *
+   * @param string[] $operatingStatus
    */
   public function setOperatingStatus($operatingStatus)
   {
@@ -64,7 +79,11 @@ class Filter extends \Google\Collection
     return $this->operatingStatus;
   }
   /**
-   * @param string[]
+   * Optional. Restricts results to places whose price level is included on this
+   * list. If `price_levels` is not set, all price levels are included in the
+   * results.
+   *
+   * @param string[] $priceLevels
    */
   public function setPriceLevels($priceLevels)
   {
@@ -78,7 +97,11 @@ class Filter extends \Google\Collection
     return $this->priceLevels;
   }
   /**
-   * @param RatingFilter
+   * Optional. Restricts results to places whose average user ratings are in the
+   * range specified by rating_filter. If rating_filter is not set, all ratings
+   * are included in the result.
+   *
+   * @param RatingFilter $ratingFilter
    */
   public function setRatingFilter(RatingFilter $ratingFilter)
   {
@@ -92,7 +115,9 @@ class Filter extends \Google\Collection
     return $this->ratingFilter;
   }
   /**
-   * @param TypeFilter
+   * Required. Place type filters.
+   *
+   * @param TypeFilter $typeFilter
    */
   public function setTypeFilter(TypeFilter $typeFilter)
   {

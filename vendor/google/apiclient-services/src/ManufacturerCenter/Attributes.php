@@ -23,10 +23,16 @@ class Attributes extends \Google\Collection
   protected $additionalImageLinkType = Image::class;
   protected $additionalImageLinkDataType = 'array';
   /**
+   * The target age group of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#agegroup.
+   *
    * @var string
    */
   public $ageGroup;
   /**
+   * The brand name of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#brand.
+   *
    * @var string
    */
   public $brand;
@@ -35,142 +41,241 @@ class Attributes extends \Google\Collection
   protected $certificationType = GoogleShoppingManufacturersV1ProductCertification::class;
   protected $certificationDataType = 'array';
   /**
+   * The color of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#color.
+   *
    * @var string
    */
   public $color;
   protected $countType = Count::class;
   protected $countDataType = '';
   /**
+   * The description of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#description.
+   *
    * @var string
    */
   public $description;
   /**
+   * The disclosure date of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#disclosure.
+   *
    * @var string
    */
   public $disclosureDate;
   /**
+   * A list of excluded destinations such as "ClientExport",
+   * "ClientShoppingCatalog" or "PartnerShoppingCatalog". For more information,
+   * see https://support.google.com/manufacturers/answer/7443550
+   *
    * @var string[]
    */
   public $excludedDestination;
   protected $featureDescriptionType = FeatureDescription::class;
   protected $featureDescriptionDataType = 'array';
   /**
+   * The flavor of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#flavor.
+   *
    * @var string
    */
   public $flavor;
   /**
+   * The format of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#format.
+   *
    * @var string
    */
   public $format;
   /**
+   * The target gender of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#gender.
+   *
    * @var string
    */
   public $gender;
   protected $groceryType = Grocery::class;
   protected $groceryDataType = '';
   /**
+   * The Global Trade Item Number (GTIN) of the product. For more information,
+   * see https://support.google.com/manufacturers/answer/6124116#gtin.
+   *
    * @var string[]
    */
   public $gtin;
   protected $imageLinkType = Image::class;
   protected $imageLinkDataType = '';
   /**
+   * A list of included destinations such as "ClientExport",
+   * "ClientShoppingCatalog" or "PartnerShoppingCatalog". For more information,
+   * see https://support.google.com/manufacturers/answer/7443550
+   *
    * @var string[]
    */
   public $includedDestination;
   /**
+   * Optional. List of countries to show this product in. Countries provided in
+   * this attribute will override any of the countries configured at feed level.
+   * The values should be: the [CLDR territory
+   * code](http://www.unicode.org/repos/cldr/tags/latest/common/main/en.xml) of
+   * the countries in which this item will be shown.
+   *
    * @var string[]
    */
   public $intendedCountry;
   /**
+   * The item group id of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#itemgroupid.
+   *
    * @var string
    */
   public $itemGroupId;
   /**
+   * The material of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#material.
+   *
    * @var string
    */
   public $material;
   /**
+   * The Manufacturer Part Number (MPN) of the product. For more information,
+   * see https://support.google.com/manufacturers/answer/6124116#mpn.
+   *
    * @var string
    */
   public $mpn;
   protected $nutritionType = Nutrition::class;
   protected $nutritionDataType = '';
   /**
+   * The pattern of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#pattern.
+   *
    * @var string
    */
   public $pattern;
   protected $productDetailType = ProductDetail::class;
   protected $productDetailDataType = 'array';
   /**
+   * The product highlights. For more information, see
+   * https://support.google.com/manufacturers/answer/10066942
+   *
    * @var string[]
    */
   public $productHighlight;
   /**
+   * The name of the group of products related to the product. For more
+   * information, see
+   * https://support.google.com/manufacturers/answer/6124116#productline.
+   *
    * @var string
    */
   public $productLine;
   /**
+   * The canonical name of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#productname.
+   *
    * @var string
    */
   public $productName;
   /**
+   * The URL of the detail page of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#productpage.
+   *
    * @var string
    */
   public $productPageUrl;
   /**
+   * The type or category of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#producttype.
+   *
    * @var string[]
    */
   public $productType;
   /**
+   * The release date of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#release.
+   *
    * @var string
    */
   public $releaseDate;
   /**
+   * Rich product content. For more information, see
+   * https://support.google.com/manufacturers/answer/9389865
+   *
    * @var string[]
    */
   public $richProductContent;
   /**
+   * The scent of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#scent.
+   *
    * @var string
    */
   public $scent;
   /**
+   * The size of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#size.
+   *
    * @var string
    */
   public $size;
   /**
+   * The size system of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#sizesystem.
+   *
    * @var string
    */
   public $sizeSystem;
   /**
+   * The size type of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#sizetype.
+   *
    * @var string[]
    */
   public $sizeType;
   protected $suggestedRetailPriceType = Price::class;
   protected $suggestedRetailPriceDataType = '';
   /**
+   * The target client id. Should only be used in the accounts of the data
+   * partners. For more information, see
+   * https://support.google.com/manufacturers/answer/10857344
+   *
    * @var string
    */
   public $targetClientId;
   /**
+   * The theme of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#theme.
+   *
    * @var string
    */
   public $theme;
   /**
+   * The title of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#title.
+   *
    * @var string
    */
   public $title;
   /**
+   * The videos of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#video.
+   *
    * @var string[]
    */
   public $videoLink;
   /**
+   * Virtual Model (3d) asset link.
+   *
    * @var string
    */
   public $virtualModelLink;
 
   /**
-   * @param Image[]
+   * The additional images of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#addlimage.
+   *
+   * @param Image[] $additionalImageLink
    */
   public function setAdditionalImageLink($additionalImageLink)
   {
@@ -184,7 +289,10 @@ class Attributes extends \Google\Collection
     return $this->additionalImageLink;
   }
   /**
-   * @param string
+   * The target age group of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#agegroup.
+   *
+   * @param string $ageGroup
    */
   public function setAgeGroup($ageGroup)
   {
@@ -198,7 +306,10 @@ class Attributes extends \Google\Collection
     return $this->ageGroup;
   }
   /**
-   * @param string
+   * The brand name of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#brand.
+   *
+   * @param string $brand
    */
   public function setBrand($brand)
   {
@@ -212,7 +323,10 @@ class Attributes extends \Google\Collection
     return $this->brand;
   }
   /**
-   * @param Capacity
+   * The capacity of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#capacity.
+   *
+   * @param Capacity $capacity
    */
   public function setCapacity(Capacity $capacity)
   {
@@ -226,7 +340,9 @@ class Attributes extends \Google\Collection
     return $this->capacity;
   }
   /**
-   * @param GoogleShoppingManufacturersV1ProductCertification[]
+   * Optional. List of certifications claimed by this product.
+   *
+   * @param GoogleShoppingManufacturersV1ProductCertification[] $certification
    */
   public function setCertification($certification)
   {
@@ -240,7 +356,10 @@ class Attributes extends \Google\Collection
     return $this->certification;
   }
   /**
-   * @param string
+   * The color of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#color.
+   *
+   * @param string $color
    */
   public function setColor($color)
   {
@@ -254,7 +373,10 @@ class Attributes extends \Google\Collection
     return $this->color;
   }
   /**
-   * @param Count
+   * The count of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#count.
+   *
+   * @param Count $count
    */
   public function setCount(Count $count)
   {
@@ -268,7 +390,10 @@ class Attributes extends \Google\Collection
     return $this->count;
   }
   /**
-   * @param string
+   * The description of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#description.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -282,7 +407,10 @@ class Attributes extends \Google\Collection
     return $this->description;
   }
   /**
-   * @param string
+   * The disclosure date of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#disclosure.
+   *
+   * @param string $disclosureDate
    */
   public function setDisclosureDate($disclosureDate)
   {
@@ -296,7 +424,11 @@ class Attributes extends \Google\Collection
     return $this->disclosureDate;
   }
   /**
-   * @param string[]
+   * A list of excluded destinations such as "ClientExport",
+   * "ClientShoppingCatalog" or "PartnerShoppingCatalog". For more information,
+   * see https://support.google.com/manufacturers/answer/7443550
+   *
+   * @param string[] $excludedDestination
    */
   public function setExcludedDestination($excludedDestination)
   {
@@ -310,7 +442,10 @@ class Attributes extends \Google\Collection
     return $this->excludedDestination;
   }
   /**
-   * @param FeatureDescription[]
+   * The rich format description of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#featuredesc.
+   *
+   * @param FeatureDescription[] $featureDescription
    */
   public function setFeatureDescription($featureDescription)
   {
@@ -324,7 +459,10 @@ class Attributes extends \Google\Collection
     return $this->featureDescription;
   }
   /**
-   * @param string
+   * The flavor of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#flavor.
+   *
+   * @param string $flavor
    */
   public function setFlavor($flavor)
   {
@@ -338,7 +476,10 @@ class Attributes extends \Google\Collection
     return $this->flavor;
   }
   /**
-   * @param string
+   * The format of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#format.
+   *
+   * @param string $format
    */
   public function setFormat($format)
   {
@@ -352,7 +493,10 @@ class Attributes extends \Google\Collection
     return $this->format;
   }
   /**
-   * @param string
+   * The target gender of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#gender.
+   *
+   * @param string $gender
    */
   public function setGender($gender)
   {
@@ -366,7 +510,10 @@ class Attributes extends \Google\Collection
     return $this->gender;
   }
   /**
-   * @param Grocery
+   * Grocery Attributes. See more at
+   * https://support.google.com/manufacturers/answer/12098458#grocery.
+   *
+   * @param Grocery $grocery
    */
   public function setGrocery(Grocery $grocery)
   {
@@ -380,7 +527,10 @@ class Attributes extends \Google\Collection
     return $this->grocery;
   }
   /**
-   * @param string[]
+   * The Global Trade Item Number (GTIN) of the product. For more information,
+   * see https://support.google.com/manufacturers/answer/6124116#gtin.
+   *
+   * @param string[] $gtin
    */
   public function setGtin($gtin)
   {
@@ -394,7 +544,10 @@ class Attributes extends \Google\Collection
     return $this->gtin;
   }
   /**
-   * @param Image
+   * The image of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#image.
+   *
+   * @param Image $imageLink
    */
   public function setImageLink(Image $imageLink)
   {
@@ -408,7 +561,11 @@ class Attributes extends \Google\Collection
     return $this->imageLink;
   }
   /**
-   * @param string[]
+   * A list of included destinations such as "ClientExport",
+   * "ClientShoppingCatalog" or "PartnerShoppingCatalog". For more information,
+   * see https://support.google.com/manufacturers/answer/7443550
+   *
+   * @param string[] $includedDestination
    */
   public function setIncludedDestination($includedDestination)
   {
@@ -422,7 +579,13 @@ class Attributes extends \Google\Collection
     return $this->includedDestination;
   }
   /**
-   * @param string[]
+   * Optional. List of countries to show this product in. Countries provided in
+   * this attribute will override any of the countries configured at feed level.
+   * The values should be: the [CLDR territory
+   * code](http://www.unicode.org/repos/cldr/tags/latest/common/main/en.xml) of
+   * the countries in which this item will be shown.
+   *
+   * @param string[] $intendedCountry
    */
   public function setIntendedCountry($intendedCountry)
   {
@@ -436,7 +599,10 @@ class Attributes extends \Google\Collection
     return $this->intendedCountry;
   }
   /**
-   * @param string
+   * The item group id of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#itemgroupid.
+   *
+   * @param string $itemGroupId
    */
   public function setItemGroupId($itemGroupId)
   {
@@ -450,7 +616,10 @@ class Attributes extends \Google\Collection
     return $this->itemGroupId;
   }
   /**
-   * @param string
+   * The material of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#material.
+   *
+   * @param string $material
    */
   public function setMaterial($material)
   {
@@ -464,7 +633,10 @@ class Attributes extends \Google\Collection
     return $this->material;
   }
   /**
-   * @param string
+   * The Manufacturer Part Number (MPN) of the product. For more information,
+   * see https://support.google.com/manufacturers/answer/6124116#mpn.
+   *
+   * @param string $mpn
    */
   public function setMpn($mpn)
   {
@@ -478,7 +650,10 @@ class Attributes extends \Google\Collection
     return $this->mpn;
   }
   /**
-   * @param Nutrition
+   * Nutrition Attributes. See more at
+   * https://support.google.com/manufacturers/answer/12098458#food-servings.
+   *
+   * @param Nutrition $nutrition
    */
   public function setNutrition(Nutrition $nutrition)
   {
@@ -492,7 +667,10 @@ class Attributes extends \Google\Collection
     return $this->nutrition;
   }
   /**
-   * @param string
+   * The pattern of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#pattern.
+   *
+   * @param string $pattern
    */
   public function setPattern($pattern)
   {
@@ -506,7 +684,10 @@ class Attributes extends \Google\Collection
     return $this->pattern;
   }
   /**
-   * @param ProductDetail[]
+   * The details of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#productdetail.
+   *
+   * @param ProductDetail[] $productDetail
    */
   public function setProductDetail($productDetail)
   {
@@ -520,7 +701,10 @@ class Attributes extends \Google\Collection
     return $this->productDetail;
   }
   /**
-   * @param string[]
+   * The product highlights. For more information, see
+   * https://support.google.com/manufacturers/answer/10066942
+   *
+   * @param string[] $productHighlight
    */
   public function setProductHighlight($productHighlight)
   {
@@ -534,7 +718,11 @@ class Attributes extends \Google\Collection
     return $this->productHighlight;
   }
   /**
-   * @param string
+   * The name of the group of products related to the product. For more
+   * information, see
+   * https://support.google.com/manufacturers/answer/6124116#productline.
+   *
+   * @param string $productLine
    */
   public function setProductLine($productLine)
   {
@@ -548,7 +736,10 @@ class Attributes extends \Google\Collection
     return $this->productLine;
   }
   /**
-   * @param string
+   * The canonical name of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#productname.
+   *
+   * @param string $productName
    */
   public function setProductName($productName)
   {
@@ -562,7 +753,10 @@ class Attributes extends \Google\Collection
     return $this->productName;
   }
   /**
-   * @param string
+   * The URL of the detail page of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#productpage.
+   *
+   * @param string $productPageUrl
    */
   public function setProductPageUrl($productPageUrl)
   {
@@ -576,7 +770,10 @@ class Attributes extends \Google\Collection
     return $this->productPageUrl;
   }
   /**
-   * @param string[]
+   * The type or category of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#producttype.
+   *
+   * @param string[] $productType
    */
   public function setProductType($productType)
   {
@@ -590,7 +787,10 @@ class Attributes extends \Google\Collection
     return $this->productType;
   }
   /**
-   * @param string
+   * The release date of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#release.
+   *
+   * @param string $releaseDate
    */
   public function setReleaseDate($releaseDate)
   {
@@ -604,7 +804,10 @@ class Attributes extends \Google\Collection
     return $this->releaseDate;
   }
   /**
-   * @param string[]
+   * Rich product content. For more information, see
+   * https://support.google.com/manufacturers/answer/9389865
+   *
+   * @param string[] $richProductContent
    */
   public function setRichProductContent($richProductContent)
   {
@@ -618,7 +821,10 @@ class Attributes extends \Google\Collection
     return $this->richProductContent;
   }
   /**
-   * @param string
+   * The scent of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#scent.
+   *
+   * @param string $scent
    */
   public function setScent($scent)
   {
@@ -632,7 +838,10 @@ class Attributes extends \Google\Collection
     return $this->scent;
   }
   /**
-   * @param string
+   * The size of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#size.
+   *
+   * @param string $size
    */
   public function setSize($size)
   {
@@ -646,7 +855,10 @@ class Attributes extends \Google\Collection
     return $this->size;
   }
   /**
-   * @param string
+   * The size system of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#sizesystem.
+   *
+   * @param string $sizeSystem
    */
   public function setSizeSystem($sizeSystem)
   {
@@ -660,7 +872,10 @@ class Attributes extends \Google\Collection
     return $this->sizeSystem;
   }
   /**
-   * @param string[]
+   * The size type of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#sizetype.
+   *
+   * @param string[] $sizeType
    */
   public function setSizeType($sizeType)
   {
@@ -674,7 +889,10 @@ class Attributes extends \Google\Collection
     return $this->sizeType;
   }
   /**
-   * @param Price
+   * The suggested retail price (MSRP) of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#price.
+   *
+   * @param Price $suggestedRetailPrice
    */
   public function setSuggestedRetailPrice(Price $suggestedRetailPrice)
   {
@@ -688,7 +906,11 @@ class Attributes extends \Google\Collection
     return $this->suggestedRetailPrice;
   }
   /**
-   * @param string
+   * The target client id. Should only be used in the accounts of the data
+   * partners. For more information, see
+   * https://support.google.com/manufacturers/answer/10857344
+   *
+   * @param string $targetClientId
    */
   public function setTargetClientId($targetClientId)
   {
@@ -702,7 +924,10 @@ class Attributes extends \Google\Collection
     return $this->targetClientId;
   }
   /**
-   * @param string
+   * The theme of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#theme.
+   *
+   * @param string $theme
    */
   public function setTheme($theme)
   {
@@ -716,7 +941,10 @@ class Attributes extends \Google\Collection
     return $this->theme;
   }
   /**
-   * @param string
+   * The title of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#title.
+   *
+   * @param string $title
    */
   public function setTitle($title)
   {
@@ -730,7 +958,10 @@ class Attributes extends \Google\Collection
     return $this->title;
   }
   /**
-   * @param string[]
+   * The videos of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#video.
+   *
+   * @param string[] $videoLink
    */
   public function setVideoLink($videoLink)
   {
@@ -744,7 +975,9 @@ class Attributes extends \Google\Collection
     return $this->videoLink;
   }
   /**
-   * @param string
+   * Virtual Model (3d) asset link.
+   *
+   * @param string $virtualModelLink
    */
   public function setVirtualModelLink($virtualModelLink)
   {

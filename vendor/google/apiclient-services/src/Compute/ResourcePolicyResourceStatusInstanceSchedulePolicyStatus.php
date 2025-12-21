@@ -20,16 +20,26 @@ namespace Google\Service\Compute;
 class ResourcePolicyResourceStatusInstanceSchedulePolicyStatus extends \Google\Model
 {
   /**
+   * Output only. [Output Only] The last time the schedule successfully ran. The
+   * timestamp is an RFC3339 string.
+   *
    * @var string
    */
   public $lastRunStartTime;
   /**
+   * Output only. [Output Only] The next time the schedule is planned to run.
+   * The actual time might be slightly different. The timestamp is an RFC3339
+   * string.
+   *
    * @var string
    */
   public $nextRunStartTime;
 
   /**
-   * @param string
+   * Output only. [Output Only] The last time the schedule successfully ran. The
+   * timestamp is an RFC3339 string.
+   *
+   * @param string $lastRunStartTime
    */
   public function setLastRunStartTime($lastRunStartTime)
   {
@@ -43,7 +53,11 @@ class ResourcePolicyResourceStatusInstanceSchedulePolicyStatus extends \Google\M
     return $this->lastRunStartTime;
   }
   /**
-   * @param string
+   * Output only. [Output Only] The next time the schedule is planned to run.
+   * The actual time might be slightly different. The timestamp is an RFC3339
+   * string.
+   *
+   * @param string $nextRunStartTime
    */
   public function setNextRunStartTime($nextRunStartTime)
   {

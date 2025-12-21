@@ -23,22 +23,32 @@ class ListGroupsResponse extends \Google\Collection
   protected $errorsType = Errors::class;
   protected $errorsDataType = '';
   /**
+   * The Etag of this resource.
+   *
    * @var string
    */
   public $etag;
   protected $itemsType = Group::class;
   protected $itemsDataType = 'array';
   /**
+   * Identifies the API resource's type. The value will be
+   * `youtube#groupListResponse`.
+   *
    * @var string
    */
   public $kind;
   /**
+   * The token that can be used as the value of the `pageToken` parameter to
+   * retrieve the next page in the result set.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param Errors
+   * Apiary error details
+   *
+   * @param Errors $errors
    */
   public function setErrors(Errors $errors)
   {
@@ -52,7 +62,9 @@ class ListGroupsResponse extends \Google\Collection
     return $this->errors;
   }
   /**
-   * @param string
+   * The Etag of this resource.
+   *
+   * @param string $etag
    */
   public function setEtag($etag)
   {
@@ -66,7 +78,10 @@ class ListGroupsResponse extends \Google\Collection
     return $this->etag;
   }
   /**
-   * @param Group[]
+   * A list of groups that match the API request parameters. Each item in the
+   * list represents a `group` resource.
+   *
+   * @param Group[] $items
    */
   public function setItems($items)
   {
@@ -80,7 +95,10 @@ class ListGroupsResponse extends \Google\Collection
     return $this->items;
   }
   /**
-   * @param string
+   * Identifies the API resource's type. The value will be
+   * `youtube#groupListResponse`.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -94,7 +112,10 @@ class ListGroupsResponse extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * The token that can be used as the value of the `pageToken` parameter to
+   * retrieve the next page in the result set.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

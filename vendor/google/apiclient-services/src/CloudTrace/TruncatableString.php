@@ -20,16 +20,28 @@ namespace Google\Service\CloudTrace;
 class TruncatableString extends \Google\Model
 {
   /**
+   * The number of bytes removed from the original string. If this value is 0,
+   * then the string was not shortened.
+   *
    * @var int
    */
   public $truncatedByteCount;
   /**
+   * The shortened string. For example, if the original string is 500 bytes long
+   * and the limit of the string is 128 bytes, then `value` contains the first
+   * 128 bytes of the 500-byte string. Truncation always happens on a UTF8
+   * character boundary. If there are multi-byte characters in the string, then
+   * the length of the shortened string might be less than the size limit.
+   *
    * @var string
    */
   public $value;
 
   /**
-   * @param int
+   * The number of bytes removed from the original string. If this value is 0,
+   * then the string was not shortened.
+   *
+   * @param int $truncatedByteCount
    */
   public function setTruncatedByteCount($truncatedByteCount)
   {
@@ -43,7 +55,13 @@ class TruncatableString extends \Google\Model
     return $this->truncatedByteCount;
   }
   /**
-   * @param string
+   * The shortened string. For example, if the original string is 500 bytes long
+   * and the limit of the string is 128 bytes, then `value` contains the first
+   * 128 bytes of the 500-byte string. Truncation always happens on a UTF8
+   * character boundary. If there are multi-byte characters in the string, then
+   * the length of the shortened string might be less than the size limit.
+   *
+   * @param string $value
    */
   public function setValue($value)
   {

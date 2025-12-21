@@ -25,34 +25,52 @@ class Note extends \Google\Collection
   protected $bodyType = Section::class;
   protected $bodyDataType = '';
   /**
+   * Output only. When this note was created.
+   *
    * @var string
    */
   public $createTime;
   /**
+   * Output only. The resource name of this note. See general note on
+   * identifiers in KeepService.
+   *
    * @var string
    */
   public $name;
   protected $permissionsType = Permission::class;
   protected $permissionsDataType = 'array';
   /**
+   * The title of the note. Length must be less than 1,000 characters.
+   *
    * @var string
    */
   public $title;
   /**
+   * Output only. When this note was trashed. If `trashed`, the note is
+   * eventually deleted. If the note is not trashed, this field is not set (and
+   * the trashed field is `false`).
+   *
    * @var string
    */
   public $trashTime;
   /**
+   * Output only. `true` if this note has been trashed. If trashed, the note is
+   * eventually deleted.
+   *
    * @var bool
    */
   public $trashed;
   /**
+   * Output only. When this note was last modified.
+   *
    * @var string
    */
   public $updateTime;
 
   /**
-   * @param Attachment[]
+   * Output only. The attachments attached to this note.
+   *
+   * @param Attachment[] $attachments
    */
   public function setAttachments($attachments)
   {
@@ -66,7 +84,9 @@ class Note extends \Google\Collection
     return $this->attachments;
   }
   /**
-   * @param Section
+   * The body of the note.
+   *
+   * @param Section $body
    */
   public function setBody(Section $body)
   {
@@ -80,7 +100,9 @@ class Note extends \Google\Collection
     return $this->body;
   }
   /**
-   * @param string
+   * Output only. When this note was created.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -94,7 +116,10 @@ class Note extends \Google\Collection
     return $this->createTime;
   }
   /**
-   * @param string
+   * Output only. The resource name of this note. See general note on
+   * identifiers in KeepService.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -108,7 +133,10 @@ class Note extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param Permission[]
+   * Output only. The list of permissions set on the note. Contains at least one
+   * entry for the note owner.
+   *
+   * @param Permission[] $permissions
    */
   public function setPermissions($permissions)
   {
@@ -122,7 +150,9 @@ class Note extends \Google\Collection
     return $this->permissions;
   }
   /**
-   * @param string
+   * The title of the note. Length must be less than 1,000 characters.
+   *
+   * @param string $title
    */
   public function setTitle($title)
   {
@@ -136,7 +166,11 @@ class Note extends \Google\Collection
     return $this->title;
   }
   /**
-   * @param string
+   * Output only. When this note was trashed. If `trashed`, the note is
+   * eventually deleted. If the note is not trashed, this field is not set (and
+   * the trashed field is `false`).
+   *
+   * @param string $trashTime
    */
   public function setTrashTime($trashTime)
   {
@@ -150,7 +184,10 @@ class Note extends \Google\Collection
     return $this->trashTime;
   }
   /**
-   * @param bool
+   * Output only. `true` if this note has been trashed. If trashed, the note is
+   * eventually deleted.
+   *
+   * @param bool $trashed
    */
   public function setTrashed($trashed)
   {
@@ -164,7 +201,9 @@ class Note extends \Google\Collection
     return $this->trashed;
   }
   /**
-   * @param string
+   * Output only. When this note was last modified.
+   *
+   * @param string $updateTime
    */
   public function setUpdateTime($updateTime)
   {

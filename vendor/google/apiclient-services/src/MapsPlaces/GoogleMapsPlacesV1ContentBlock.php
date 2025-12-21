@@ -17,19 +17,23 @@
 
 namespace Google\Service\MapsPlaces;
 
-class GoogleMapsPlacesV1ContentBlock extends \Google\Model
+class GoogleMapsPlacesV1ContentBlock extends \Google\Collection
 {
+  protected $collection_key = 'referencedPlaces';
   protected $contentType = GoogleTypeLocalizedText::class;
   protected $contentDataType = '';
-  protected $referencesType = GoogleMapsPlacesV1References::class;
-  protected $referencesDataType = '';
   /**
-   * @var string
+   * The list of resource names of the referenced places. This name can be used
+   * in other APIs that accept Place resource names.
+   *
+   * @var string[]
    */
-  public $topic;
+  public $referencedPlaces;
 
   /**
-   * @param GoogleTypeLocalizedText
+   * Content related to the topic.
+   *
+   * @param GoogleTypeLocalizedText $content
    */
   public function setContent(GoogleTypeLocalizedText $content)
   {
@@ -43,32 +47,21 @@ class GoogleMapsPlacesV1ContentBlock extends \Google\Model
     return $this->content;
   }
   /**
-   * @param GoogleMapsPlacesV1References
+   * The list of resource names of the referenced places. This name can be used
+   * in other APIs that accept Place resource names.
+   *
+   * @param string[] $referencedPlaces
    */
-  public function setReferences(GoogleMapsPlacesV1References $references)
+  public function setReferencedPlaces($referencedPlaces)
   {
-    $this->references = $references;
+    $this->referencedPlaces = $referencedPlaces;
   }
   /**
-   * @return GoogleMapsPlacesV1References
+   * @return string[]
    */
-  public function getReferences()
+  public function getReferencedPlaces()
   {
-    return $this->references;
-  }
-  /**
-   * @param string
-   */
-  public function setTopic($topic)
-  {
-    $this->topic = $topic;
-  }
-  /**
-   * @return string
-   */
-  public function getTopic()
-  {
-    return $this->topic;
+    return $this->referencedPlaces;
   }
 }
 

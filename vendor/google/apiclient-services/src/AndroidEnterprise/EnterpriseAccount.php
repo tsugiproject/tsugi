@@ -20,12 +20,16 @@ namespace Google\Service\AndroidEnterprise;
 class EnterpriseAccount extends \Google\Model
 {
   /**
+   * The email address of the service account.
+   *
    * @var string
    */
   public $accountEmail;
 
   /**
-   * @param string
+   * The email address of the service account.
+   *
+   * @param string $accountEmail
    */
   public function setAccountEmail($accountEmail)
   {

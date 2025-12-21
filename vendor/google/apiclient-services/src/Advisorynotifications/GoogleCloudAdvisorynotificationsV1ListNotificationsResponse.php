@@ -21,18 +21,26 @@ class GoogleCloudAdvisorynotificationsV1ListNotificationsResponse extends \Googl
 {
   protected $collection_key = 'notifications';
   /**
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
    * @var string
    */
   public $nextPageToken;
   protected $notificationsType = GoogleCloudAdvisorynotificationsV1Notification::class;
   protected $notificationsDataType = 'array';
   /**
+   * Estimation of a total number of notifications.
+   *
    * @var int
    */
   public $totalSize;
 
   /**
-   * @param string
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -46,7 +54,9 @@ class GoogleCloudAdvisorynotificationsV1ListNotificationsResponse extends \Googl
     return $this->nextPageToken;
   }
   /**
-   * @param GoogleCloudAdvisorynotificationsV1Notification[]
+   * List of notifications under a given parent.
+   *
+   * @param GoogleCloudAdvisorynotificationsV1Notification[] $notifications
    */
   public function setNotifications($notifications)
   {
@@ -60,7 +70,9 @@ class GoogleCloudAdvisorynotificationsV1ListNotificationsResponse extends \Googl
     return $this->notifications;
   }
   /**
-   * @param int
+   * Estimation of a total number of notifications.
+   *
+   * @param int $totalSize
    */
   public function setTotalSize($totalSize)
   {

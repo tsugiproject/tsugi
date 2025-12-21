@@ -22,22 +22,34 @@ class Pollutant extends \Google\Model
   protected $additionalInfoType = AdditionalInfo::class;
   protected $additionalInfoDataType = '';
   /**
+   * The pollutant's code name (for example, "so2"). For a list of supported
+   * pollutant codes, see [Reported pollutants](/maps/documentation/air-
+   * quality/pollutants#reported_pollutants).
+   *
    * @var string
    */
   public $code;
   protected $concentrationType = Concentration::class;
   protected $concentrationDataType = '';
   /**
+   * The pollutant's display name. For example: "NOx".
+   *
    * @var string
    */
   public $displayName;
   /**
+   * The pollutant's full name. For chemical compounds, this is the IUPAC name.
+   * Example: "Sulfur Dioxide". For more information about the IUPAC names
+   * table, see https://iupac.org/what-we-do/periodic-table-of-elements/.
+   *
    * @var string
    */
   public $fullName;
 
   /**
-   * @param AdditionalInfo
+   * Additional information about the pollutant.
+   *
+   * @param AdditionalInfo $additionalInfo
    */
   public function setAdditionalInfo(AdditionalInfo $additionalInfo)
   {
@@ -51,7 +63,11 @@ class Pollutant extends \Google\Model
     return $this->additionalInfo;
   }
   /**
-   * @param string
+   * The pollutant's code name (for example, "so2"). For a list of supported
+   * pollutant codes, see [Reported pollutants](/maps/documentation/air-
+   * quality/pollutants#reported_pollutants).
+   *
+   * @param string $code
    */
   public function setCode($code)
   {
@@ -65,7 +81,10 @@ class Pollutant extends \Google\Model
     return $this->code;
   }
   /**
-   * @param Concentration
+   * The pollutant's concentration level measured by one of the standard air
+   * pollutation measure units.
+   *
+   * @param Concentration $concentration
    */
   public function setConcentration(Concentration $concentration)
   {
@@ -79,7 +98,9 @@ class Pollutant extends \Google\Model
     return $this->concentration;
   }
   /**
-   * @param string
+   * The pollutant's display name. For example: "NOx".
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -93,7 +114,11 @@ class Pollutant extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param string
+   * The pollutant's full name. For chemical compounds, this is the IUPAC name.
+   * Example: "Sulfur Dioxide". For more information about the IUPAC names
+   * table, see https://iupac.org/what-we-do/periodic-table-of-elements/.
+   *
+   * @param string $fullName
    */
   public function setFullName($fullName)
   {

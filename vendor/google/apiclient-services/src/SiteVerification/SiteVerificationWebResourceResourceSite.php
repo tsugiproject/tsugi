@@ -20,16 +20,24 @@ namespace Google\Service\SiteVerification;
 class SiteVerificationWebResourceResourceSite extends \Google\Model
 {
   /**
+   * The site identifier. If the type is set to SITE, the identifier is a URL.
+   * If the type is set to INET_DOMAIN, the site identifier is a domain name.
+   *
    * @var string
    */
   public $identifier;
   /**
+   * The site type. Can be SITE or INET_DOMAIN (domain name).
+   *
    * @var string
    */
   public $type;
 
   /**
-   * @param string
+   * The site identifier. If the type is set to SITE, the identifier is a URL.
+   * If the type is set to INET_DOMAIN, the site identifier is a domain name.
+   *
+   * @param string $identifier
    */
   public function setIdentifier($identifier)
   {
@@ -43,7 +51,9 @@ class SiteVerificationWebResourceResourceSite extends \Google\Model
     return $this->identifier;
   }
   /**
-   * @param string
+   * The site type. Can be SITE or INET_DOMAIN (domain name).
+   *
+   * @param string $type
    */
   public function setType($type)
   {

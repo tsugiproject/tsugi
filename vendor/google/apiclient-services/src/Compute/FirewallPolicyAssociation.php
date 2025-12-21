@@ -20,28 +20,43 @@ namespace Google\Service\Compute;
 class FirewallPolicyAssociation extends \Google\Model
 {
   /**
+   * The target that the firewall policy is attached to.
+   *
    * @var string
    */
   public $attachmentTarget;
   /**
+   * [Output Only] Deprecated, please use short name instead. The display name
+   * of the firewall policy of the association.
+   *
+   * @deprecated
    * @var string
    */
   public $displayName;
   /**
+   * Output only. [Output Only] The firewall policy ID of the association.
+   *
    * @var string
    */
   public $firewallPolicyId;
   /**
+   * The name for an association.
+   *
    * @var string
    */
   public $name;
   /**
+   * Output only. [Output Only] The short name of the firewall policy of the
+   * association.
+   *
    * @var string
    */
   public $shortName;
 
   /**
-   * @param string
+   * The target that the firewall policy is attached to.
+   *
+   * @param string $attachmentTarget
    */
   public function setAttachmentTarget($attachmentTarget)
   {
@@ -55,13 +70,18 @@ class FirewallPolicyAssociation extends \Google\Model
     return $this->attachmentTarget;
   }
   /**
-   * @param string
+   * [Output Only] Deprecated, please use short name instead. The display name
+   * of the firewall policy of the association.
+   *
+   * @deprecated
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
     $this->displayName = $displayName;
   }
   /**
+   * @deprecated
    * @return string
    */
   public function getDisplayName()
@@ -69,7 +89,9 @@ class FirewallPolicyAssociation extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param string
+   * Output only. [Output Only] The firewall policy ID of the association.
+   *
+   * @param string $firewallPolicyId
    */
   public function setFirewallPolicyId($firewallPolicyId)
   {
@@ -83,7 +105,9 @@ class FirewallPolicyAssociation extends \Google\Model
     return $this->firewallPolicyId;
   }
   /**
-   * @param string
+   * The name for an association.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -97,7 +121,10 @@ class FirewallPolicyAssociation extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Output only. [Output Only] The short name of the firewall policy of the
+   * association.
+   *
+   * @param string $shortName
    */
   public function setShortName($shortName)
   {

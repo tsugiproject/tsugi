@@ -24,18 +24,30 @@ class GoogleCloudDocumentaiV1BatchProcessRequest extends \Google\Model
   protected $inputDocumentsType = GoogleCloudDocumentaiV1BatchDocumentsInputConfig::class;
   protected $inputDocumentsDataType = '';
   /**
+   * Optional. The labels with user-defined metadata for the request. Label keys
+   * and values can be no longer than 63 characters (Unicode codepoints) and can
+   * only contain lowercase letters, numeric characters, underscores, and
+   * dashes. International characters are allowed. Label values are optional.
+   * Label keys must start with a letter.
+   *
    * @var string[]
    */
   public $labels;
   protected $processOptionsType = GoogleCloudDocumentaiV1ProcessOptions::class;
   protected $processOptionsDataType = '';
   /**
+   * Whether human review should be skipped for this request. Default to
+   * `false`.
+   *
+   * @deprecated
    * @var bool
    */
   public $skipHumanReview;
 
   /**
-   * @param GoogleCloudDocumentaiV1DocumentOutputConfig
+   * The output configuration for the BatchProcessDocuments method.
+   *
+   * @param GoogleCloudDocumentaiV1DocumentOutputConfig $documentOutputConfig
    */
   public function setDocumentOutputConfig(GoogleCloudDocumentaiV1DocumentOutputConfig $documentOutputConfig)
   {
@@ -49,7 +61,9 @@ class GoogleCloudDocumentaiV1BatchProcessRequest extends \Google\Model
     return $this->documentOutputConfig;
   }
   /**
-   * @param GoogleCloudDocumentaiV1BatchDocumentsInputConfig
+   * The input documents for the BatchProcessDocuments method.
+   *
+   * @param GoogleCloudDocumentaiV1BatchDocumentsInputConfig $inputDocuments
    */
   public function setInputDocuments(GoogleCloudDocumentaiV1BatchDocumentsInputConfig $inputDocuments)
   {
@@ -63,7 +77,13 @@ class GoogleCloudDocumentaiV1BatchProcessRequest extends \Google\Model
     return $this->inputDocuments;
   }
   /**
-   * @param string[]
+   * Optional. The labels with user-defined metadata for the request. Label keys
+   * and values can be no longer than 63 characters (Unicode codepoints) and can
+   * only contain lowercase letters, numeric characters, underscores, and
+   * dashes. International characters are allowed. Label values are optional.
+   * Label keys must start with a letter.
+   *
+   * @param string[] $labels
    */
   public function setLabels($labels)
   {
@@ -77,7 +97,9 @@ class GoogleCloudDocumentaiV1BatchProcessRequest extends \Google\Model
     return $this->labels;
   }
   /**
-   * @param GoogleCloudDocumentaiV1ProcessOptions
+   * Inference-time options for the process API
+   *
+   * @param GoogleCloudDocumentaiV1ProcessOptions $processOptions
    */
   public function setProcessOptions(GoogleCloudDocumentaiV1ProcessOptions $processOptions)
   {
@@ -91,13 +113,18 @@ class GoogleCloudDocumentaiV1BatchProcessRequest extends \Google\Model
     return $this->processOptions;
   }
   /**
-   * @param bool
+   * Whether human review should be skipped for this request. Default to
+   * `false`.
+   *
+   * @deprecated
+   * @param bool $skipHumanReview
    */
   public function setSkipHumanReview($skipHumanReview)
   {
     $this->skipHumanReview = $skipHumanReview;
   }
   /**
+   * @deprecated
    * @return bool
    */
   public function getSkipHumanReview()

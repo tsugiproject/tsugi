@@ -20,26 +20,49 @@ namespace Google\Service\AndroidProvisioningPartner;
 class PartnerUnclaim extends \Google\Model
 {
   /**
+   * Unspecified section type.
+   */
+  public const SECTION_TYPE_SECTION_TYPE_UNSPECIFIED = 'SECTION_TYPE_UNSPECIFIED';
+  /**
+   * SIM-lock section type.
+   */
+  public const SECTION_TYPE_SECTION_TYPE_SIM_LOCK = 'SECTION_TYPE_SIM_LOCK';
+  /**
+   * Zero-touch enrollment section type.
+   */
+  public const SECTION_TYPE_SECTION_TYPE_ZERO_TOUCH = 'SECTION_TYPE_ZERO_TOUCH';
+  /**
+   * Required. Device ID of the device.
+   *
    * @var string
    */
   public $deviceId;
   protected $deviceIdentifierType = DeviceIdentifier::class;
   protected $deviceIdentifierDataType = '';
   /**
+   * Required. The section type of the device's provisioning record.
+   *
    * @var string
    */
   public $sectionType;
   /**
+   * Optional. The duration of the vacation unlock starting from when the
+   * request is processed. (1 day is treated as 24 hours)
+   *
    * @var int
    */
   public $vacationModeDays;
   /**
+   * Optional. The expiration time of the vacation unlock.
+   *
    * @var string
    */
   public $vacationModeExpireTime;
 
   /**
-   * @param string
+   * Required. Device ID of the device.
+   *
+   * @param string $deviceId
    */
   public function setDeviceId($deviceId)
   {
@@ -53,7 +76,9 @@ class PartnerUnclaim extends \Google\Model
     return $this->deviceId;
   }
   /**
-   * @param DeviceIdentifier
+   * Required. Device identifier of the device.
+   *
+   * @param DeviceIdentifier $deviceIdentifier
    */
   public function setDeviceIdentifier(DeviceIdentifier $deviceIdentifier)
   {
@@ -67,21 +92,29 @@ class PartnerUnclaim extends \Google\Model
     return $this->deviceIdentifier;
   }
   /**
-   * @param string
+   * Required. The section type of the device's provisioning record.
+   *
+   * Accepted values: SECTION_TYPE_UNSPECIFIED, SECTION_TYPE_SIM_LOCK,
+   * SECTION_TYPE_ZERO_TOUCH
+   *
+   * @param self::SECTION_TYPE_* $sectionType
    */
   public function setSectionType($sectionType)
   {
     $this->sectionType = $sectionType;
   }
   /**
-   * @return string
+   * @return self::SECTION_TYPE_*
    */
   public function getSectionType()
   {
     return $this->sectionType;
   }
   /**
-   * @param int
+   * Optional. The duration of the vacation unlock starting from when the
+   * request is processed. (1 day is treated as 24 hours)
+   *
+   * @param int $vacationModeDays
    */
   public function setVacationModeDays($vacationModeDays)
   {
@@ -95,7 +128,9 @@ class PartnerUnclaim extends \Google\Model
     return $this->vacationModeDays;
   }
   /**
-   * @param string
+   * Optional. The expiration time of the vacation unlock.
+   *
+   * @param string $vacationModeExpireTime
    */
   public function setVacationModeExpireTime($vacationModeExpireTime)
   {

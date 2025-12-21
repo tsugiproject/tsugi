@@ -21,26 +21,37 @@ class Columns extends \Google\Collection
 {
   protected $collection_key = 'items';
   /**
+   * List of attributes names returned by columns.
+   *
    * @var string[]
    */
   public $attributeNames;
   /**
+   * Etag of collection. This etag can be compared with the last response etag
+   * to check if response has changed.
+   *
    * @var string
    */
   public $etag;
   protected $itemsType = Column::class;
   protected $itemsDataType = 'array';
   /**
+   * Collection type.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Total number of columns returned in the response.
+   *
    * @var int
    */
   public $totalResults;
 
   /**
-   * @param string[]
+   * List of attributes names returned by columns.
+   *
+   * @param string[] $attributeNames
    */
   public function setAttributeNames($attributeNames)
   {
@@ -54,7 +65,10 @@ class Columns extends \Google\Collection
     return $this->attributeNames;
   }
   /**
-   * @param string
+   * Etag of collection. This etag can be compared with the last response etag
+   * to check if response has changed.
+   *
+   * @param string $etag
    */
   public function setEtag($etag)
   {
@@ -68,7 +82,9 @@ class Columns extends \Google\Collection
     return $this->etag;
   }
   /**
-   * @param Column[]
+   * List of columns for a report type.
+   *
+   * @param Column[] $items
    */
   public function setItems($items)
   {
@@ -82,7 +98,9 @@ class Columns extends \Google\Collection
     return $this->items;
   }
   /**
-   * @param string
+   * Collection type.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -96,7 +114,9 @@ class Columns extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param int
+   * Total number of columns returned in the response.
+   *
+   * @param int $totalResults
    */
   public function setTotalResults($totalResults)
   {

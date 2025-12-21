@@ -24,7 +24,9 @@ class EnterprisesListResponse extends \Google\Collection
   protected $enterpriseDataType = 'array';
 
   /**
-   * @param Enterprise[]
+   * An enterprise.
+   *
+   * @param Enterprise[] $enterprise
    */
   public function setEnterprise($enterprise)
   {

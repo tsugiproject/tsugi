@@ -17,34 +17,106 @@
 
 namespace Google\Service\DiscoveryEngine;
 
-class GoogleCloudDiscoveryengineV1Chunk extends \Google\Model
+class GoogleCloudDiscoveryengineV1Chunk extends \Google\Collection
 {
+  protected $collection_key = 'dataUrls';
+  /**
+   * Output only. Annotation contents if the current chunk contains annotations.
+   *
+   * @var string[]
+   */
+  public $annotationContents;
+  protected $annotationMetadataType = GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata::class;
+  protected $annotationMetadataDataType = 'array';
   protected $chunkMetadataType = GoogleCloudDiscoveryengineV1ChunkChunkMetadata::class;
   protected $chunkMetadataDataType = '';
   /**
+   * Content is a string from a document (parsed content).
+   *
    * @var string
    */
   public $content;
   /**
+   * Output only. Image Data URLs if the current chunk contains images. Data
+   * URLs are composed of four parts: a prefix (data:), a MIME type indicating
+   * the type of data, an optional base64 token if non-textual, and the data
+   * itself: data:,
+   *
+   * @var string[]
+   */
+  public $dataUrls;
+  /**
+   * Output only. This field is OUTPUT_ONLY. It contains derived data that are
+   * not in the original input document.
+   *
    * @var array[]
    */
   public $derivedStructData;
   protected $documentMetadataType = GoogleCloudDiscoveryengineV1ChunkDocumentMetadata::class;
   protected $documentMetadataDataType = '';
   /**
+   * Unique chunk ID of the current chunk.
+   *
    * @var string
    */
   public $id;
   /**
+   * The full resource name of the chunk. Format: `projects/{project}/locations/
+   * {location}/collections/{collection}/dataStores/{data_store}/branches/{branc
+   * h}/documents/{document_id}/chunks/{chunk_id}`. This field must be a UTF-8
+   * encoded string with a length limit of 1024 characters.
+   *
    * @var string
    */
   public $name;
   protected $pageSpanType = GoogleCloudDiscoveryengineV1ChunkPageSpan::class;
   protected $pageSpanDataType = '';
+  /**
+   * Output only. Represents the relevance score based on similarity. Higher
+   * score indicates higher chunk relevance. The score is in range [-1.0, 1.0].
+   * Only populated on SearchResponse.
+   *
+   * @var 
+   */
   public $relevanceScore;
 
   /**
-   * @param GoogleCloudDiscoveryengineV1ChunkChunkMetadata
+   * Output only. Annotation contents if the current chunk contains annotations.
+   *
+   * @param string[] $annotationContents
+   */
+  public function setAnnotationContents($annotationContents)
+  {
+    $this->annotationContents = $annotationContents;
+  }
+  /**
+   * @return string[]
+   */
+  public function getAnnotationContents()
+  {
+    return $this->annotationContents;
+  }
+  /**
+   * Output only. The annotation metadata includes structured content in the
+   * current chunk.
+   *
+   * @param GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata[] $annotationMetadata
+   */
+  public function setAnnotationMetadata($annotationMetadata)
+  {
+    $this->annotationMetadata = $annotationMetadata;
+  }
+  /**
+   * @return GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata[]
+   */
+  public function getAnnotationMetadata()
+  {
+    return $this->annotationMetadata;
+  }
+  /**
+   * Output only. Metadata of the current chunk.
+   *
+   * @param GoogleCloudDiscoveryengineV1ChunkChunkMetadata $chunkMetadata
    */
   public function setChunkMetadata(GoogleCloudDiscoveryengineV1ChunkChunkMetadata $chunkMetadata)
   {
@@ -58,7 +130,9 @@ class GoogleCloudDiscoveryengineV1Chunk extends \Google\Model
     return $this->chunkMetadata;
   }
   /**
-   * @param string
+   * Content is a string from a document (parsed content).
+   *
+   * @param string $content
    */
   public function setContent($content)
   {
@@ -72,7 +146,29 @@ class GoogleCloudDiscoveryengineV1Chunk extends \Google\Model
     return $this->content;
   }
   /**
-   * @param array[]
+   * Output only. Image Data URLs if the current chunk contains images. Data
+   * URLs are composed of four parts: a prefix (data:), a MIME type indicating
+   * the type of data, an optional base64 token if non-textual, and the data
+   * itself: data:,
+   *
+   * @param string[] $dataUrls
+   */
+  public function setDataUrls($dataUrls)
+  {
+    $this->dataUrls = $dataUrls;
+  }
+  /**
+   * @return string[]
+   */
+  public function getDataUrls()
+  {
+    return $this->dataUrls;
+  }
+  /**
+   * Output only. This field is OUTPUT_ONLY. It contains derived data that are
+   * not in the original input document.
+   *
+   * @param array[] $derivedStructData
    */
   public function setDerivedStructData($derivedStructData)
   {
@@ -86,7 +182,9 @@ class GoogleCloudDiscoveryengineV1Chunk extends \Google\Model
     return $this->derivedStructData;
   }
   /**
-   * @param GoogleCloudDiscoveryengineV1ChunkDocumentMetadata
+   * Metadata of the document from the current chunk.
+   *
+   * @param GoogleCloudDiscoveryengineV1ChunkDocumentMetadata $documentMetadata
    */
   public function setDocumentMetadata(GoogleCloudDiscoveryengineV1ChunkDocumentMetadata $documentMetadata)
   {
@@ -100,7 +198,9 @@ class GoogleCloudDiscoveryengineV1Chunk extends \Google\Model
     return $this->documentMetadata;
   }
   /**
-   * @param string
+   * Unique chunk ID of the current chunk.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -114,7 +214,12 @@ class GoogleCloudDiscoveryengineV1Chunk extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * The full resource name of the chunk. Format: `projects/{project}/locations/
+   * {location}/collections/{collection}/dataStores/{data_store}/branches/{branc
+   * h}/documents/{document_id}/chunks/{chunk_id}`. This field must be a UTF-8
+   * encoded string with a length limit of 1024 characters.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -128,7 +233,9 @@ class GoogleCloudDiscoveryengineV1Chunk extends \Google\Model
     return $this->name;
   }
   /**
-   * @param GoogleCloudDiscoveryengineV1ChunkPageSpan
+   * Page span of the chunk.
+   *
+   * @param GoogleCloudDiscoveryengineV1ChunkPageSpan $pageSpan
    */
   public function setPageSpan(GoogleCloudDiscoveryengineV1ChunkPageSpan $pageSpan)
   {

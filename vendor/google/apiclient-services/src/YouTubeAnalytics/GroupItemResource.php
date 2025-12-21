@@ -20,16 +20,26 @@ namespace Google\Service\YouTubeAnalytics;
 class GroupItemResource extends \Google\Model
 {
   /**
+   * The channel, video, playlist, or asset ID that YouTube uses to uniquely
+   * identify the item that is being added to the group.
+   *
    * @var string
    */
   public $id;
   /**
+   * Identifies the type of resource being added to the group. Valid values for
+   * this property are: * `youtube#channel` * `youtube#playlist` *
+   * `youtube#video` * `youtubePartner#asset`
+   *
    * @var string
    */
   public $kind;
 
   /**
-   * @param string
+   * The channel, video, playlist, or asset ID that YouTube uses to uniquely
+   * identify the item that is being added to the group.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -43,7 +53,11 @@ class GroupItemResource extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * Identifies the type of resource being added to the group. Valid values for
+   * this property are: * `youtube#channel` * `youtube#playlist` *
+   * `youtube#video` * `youtubePartner#asset`
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {

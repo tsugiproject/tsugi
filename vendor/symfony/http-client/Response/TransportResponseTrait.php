@@ -30,6 +30,7 @@ use Symfony\Component\HttpClient\Internal\ClientState;
 trait TransportResponseTrait
 {
     private Canary $canary;
+    /** @var array<string, list<string>> */
     private array $headers = [];
     private array $info = [
         'response_headers' => [],
@@ -303,7 +304,7 @@ trait TransportResponseTrait
                 continue;
             }
 
-            if (-1 === self::select($multi, min($timeoutMin, $timeoutMax - $elapsedTimeout))) {
+            if (-1 === self::select($multi, min($timeoutMin, max(0, $timeoutMax - $elapsedTimeout)))) {
                 usleep((int) min(500, 1E6 * $timeoutMin));
             }
 

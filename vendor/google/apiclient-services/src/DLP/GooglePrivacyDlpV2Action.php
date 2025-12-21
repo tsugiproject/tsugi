@@ -27,6 +27,8 @@ class GooglePrivacyDlpV2Action extends \Google\Model
   protected $pubSubDataType = '';
   protected $publishFindingsToCloudDataCatalogType = GooglePrivacyDlpV2PublishFindingsToCloudDataCatalog::class;
   protected $publishFindingsToCloudDataCatalogDataType = '';
+  protected $publishFindingsToDataplexCatalogType = GooglePrivacyDlpV2PublishFindingsToDataplexCatalog::class;
+  protected $publishFindingsToDataplexCatalogDataType = '';
   protected $publishSummaryToCsccType = GooglePrivacyDlpV2PublishSummaryToCscc::class;
   protected $publishSummaryToCsccDataType = '';
   protected $publishToStackdriverType = GooglePrivacyDlpV2PublishToStackdriver::class;
@@ -35,7 +37,9 @@ class GooglePrivacyDlpV2Action extends \Google\Model
   protected $saveFindingsDataType = '';
 
   /**
-   * @param GooglePrivacyDlpV2Deidentify
+   * Create a de-identified copy of the input data.
+   *
+   * @param GooglePrivacyDlpV2Deidentify $deidentify
    */
   public function setDeidentify(GooglePrivacyDlpV2Deidentify $deidentify)
   {
@@ -49,7 +53,11 @@ class GooglePrivacyDlpV2Action extends \Google\Model
     return $this->deidentify;
   }
   /**
-   * @param GooglePrivacyDlpV2JobNotificationEmails
+   * Sends an email when the job completes. The email goes to IAM project owners
+   * and technical [Essential Contacts](https://cloud.google.com/resource-
+   * manager/docs/managing-notification-contacts).
+   *
+   * @param GooglePrivacyDlpV2JobNotificationEmails $jobNotificationEmails
    */
   public function setJobNotificationEmails(GooglePrivacyDlpV2JobNotificationEmails $jobNotificationEmails)
   {
@@ -63,7 +71,9 @@ class GooglePrivacyDlpV2Action extends \Google\Model
     return $this->jobNotificationEmails;
   }
   /**
-   * @param GooglePrivacyDlpV2PublishToPubSub
+   * Publish a notification to a Pub/Sub topic.
+   *
+   * @param GooglePrivacyDlpV2PublishToPubSub $pubSub
    */
   public function setPubSub(GooglePrivacyDlpV2PublishToPubSub $pubSub)
   {
@@ -77,13 +87,19 @@ class GooglePrivacyDlpV2Action extends \Google\Model
     return $this->pubSub;
   }
   /**
-   * @param GooglePrivacyDlpV2PublishFindingsToCloudDataCatalog
+   * Deprecated because Data Catalog is being turned down. Use
+   * publish_findings_to_dataplex_catalog to publish findings to Dataplex
+   * Universal Catalog.
+   *
+   * @deprecated
+   * @param GooglePrivacyDlpV2PublishFindingsToCloudDataCatalog $publishFindingsToCloudDataCatalog
    */
   public function setPublishFindingsToCloudDataCatalog(GooglePrivacyDlpV2PublishFindingsToCloudDataCatalog $publishFindingsToCloudDataCatalog)
   {
     $this->publishFindingsToCloudDataCatalog = $publishFindingsToCloudDataCatalog;
   }
   /**
+   * @deprecated
    * @return GooglePrivacyDlpV2PublishFindingsToCloudDataCatalog
    */
   public function getPublishFindingsToCloudDataCatalog()
@@ -91,7 +107,25 @@ class GooglePrivacyDlpV2Action extends \Google\Model
     return $this->publishFindingsToCloudDataCatalog;
   }
   /**
-   * @param GooglePrivacyDlpV2PublishSummaryToCscc
+   * Publish findings as an aspect to Dataplex Universal Catalog.
+   *
+   * @param GooglePrivacyDlpV2PublishFindingsToDataplexCatalog $publishFindingsToDataplexCatalog
+   */
+  public function setPublishFindingsToDataplexCatalog(GooglePrivacyDlpV2PublishFindingsToDataplexCatalog $publishFindingsToDataplexCatalog)
+  {
+    $this->publishFindingsToDataplexCatalog = $publishFindingsToDataplexCatalog;
+  }
+  /**
+   * @return GooglePrivacyDlpV2PublishFindingsToDataplexCatalog
+   */
+  public function getPublishFindingsToDataplexCatalog()
+  {
+    return $this->publishFindingsToDataplexCatalog;
+  }
+  /**
+   * Publish summary to Cloud Security Command Center (Alpha).
+   *
+   * @param GooglePrivacyDlpV2PublishSummaryToCscc $publishSummaryToCscc
    */
   public function setPublishSummaryToCscc(GooglePrivacyDlpV2PublishSummaryToCscc $publishSummaryToCscc)
   {
@@ -105,7 +139,9 @@ class GooglePrivacyDlpV2Action extends \Google\Model
     return $this->publishSummaryToCscc;
   }
   /**
-   * @param GooglePrivacyDlpV2PublishToStackdriver
+   * Enable Stackdriver metric dlp.googleapis.com/finding_count.
+   *
+   * @param GooglePrivacyDlpV2PublishToStackdriver $publishToStackdriver
    */
   public function setPublishToStackdriver(GooglePrivacyDlpV2PublishToStackdriver $publishToStackdriver)
   {
@@ -119,7 +155,9 @@ class GooglePrivacyDlpV2Action extends \Google\Model
     return $this->publishToStackdriver;
   }
   /**
-   * @param GooglePrivacyDlpV2SaveFindings
+   * Save resulting findings in a provided location.
+   *
+   * @param GooglePrivacyDlpV2SaveFindings $saveFindings
    */
   public function setSaveFindings(GooglePrivacyDlpV2SaveFindings $saveFindings)
   {

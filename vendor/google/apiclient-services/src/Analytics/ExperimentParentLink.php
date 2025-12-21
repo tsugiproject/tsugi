@@ -20,16 +20,24 @@ namespace Google\Service\Analytics;
 class ExperimentParentLink extends \Google\Model
 {
   /**
+   * Link to the view (profile) to which this experiment belongs. This field is
+   * read-only.
+   *
    * @var string
    */
   public $href;
   /**
+   * Value is "analytics#profile". This field is read-only.
+   *
    * @var string
    */
   public $type;
 
   /**
-   * @param string
+   * Link to the view (profile) to which this experiment belongs. This field is
+   * read-only.
+   *
+   * @param string $href
    */
   public function setHref($href)
   {
@@ -43,7 +51,9 @@ class ExperimentParentLink extends \Google\Model
     return $this->href;
   }
   /**
-   * @param string
+   * Value is "analytics#profile". This field is read-only.
+   *
+   * @param string $type
    */
   public function setType($type)
   {

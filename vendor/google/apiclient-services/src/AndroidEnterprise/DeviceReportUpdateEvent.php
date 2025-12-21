@@ -20,18 +20,24 @@ namespace Google\Service\AndroidEnterprise;
 class DeviceReportUpdateEvent extends \Google\Model
 {
   /**
+   * The Android ID of the device. This field will always be present.
+   *
    * @var string
    */
   public $deviceId;
   protected $reportType = DeviceReport::class;
   protected $reportDataType = '';
   /**
+   * The ID of the user. This field will always be present.
+   *
    * @var string
    */
   public $userId;
 
   /**
-   * @param string
+   * The Android ID of the device. This field will always be present.
+   *
+   * @param string $deviceId
    */
   public function setDeviceId($deviceId)
   {
@@ -45,7 +51,10 @@ class DeviceReportUpdateEvent extends \Google\Model
     return $this->deviceId;
   }
   /**
-   * @param DeviceReport
+   * The device report updated with the latest app states. This field will
+   * always be present.
+   *
+   * @param DeviceReport $report
    */
   public function setReport(DeviceReport $report)
   {
@@ -59,7 +68,9 @@ class DeviceReportUpdateEvent extends \Google\Model
     return $this->report;
   }
   /**
-   * @param string
+   * The ID of the user. This field will always be present.
+   *
+   * @param string $userId
    */
   public function setUserId($userId)
   {

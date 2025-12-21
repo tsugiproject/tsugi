@@ -26,7 +26,9 @@ class GoogleCloudVideointelligenceV1p3beta1CelebrityTrack extends \Google\Collec
   protected $faceTrackDataType = '';
 
   /**
-   * @param GoogleCloudVideointelligenceV1p3beta1RecognizedCelebrity[]
+   * Top N match of the celebrities for the face in this track.
+   *
+   * @param GoogleCloudVideointelligenceV1p3beta1RecognizedCelebrity[] $celebrities
    */
   public function setCelebrities($celebrities)
   {
@@ -40,7 +42,9 @@ class GoogleCloudVideointelligenceV1p3beta1CelebrityTrack extends \Google\Collec
     return $this->celebrities;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1p3beta1Track
+   * A track of a person's face.
+   *
+   * @param GoogleCloudVideointelligenceV1p3beta1Track $faceTrack
    */
   public function setFaceTrack(GoogleCloudVideointelligenceV1p3beta1Track $faceTrack)
   {

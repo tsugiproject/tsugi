@@ -20,6 +20,8 @@ namespace Google\Service\AndroidProvisioningPartner;
 class UpdateMetadataArguments extends \Google\Model
 {
   /**
+   * Required. Device ID of the device.
+   *
    * @var string
    */
   public $deviceId;
@@ -29,7 +31,9 @@ class UpdateMetadataArguments extends \Google\Model
   protected $deviceMetadataDataType = '';
 
   /**
-   * @param string
+   * Required. Device ID of the device.
+   *
+   * @param string $deviceId
    */
   public function setDeviceId($deviceId)
   {
@@ -43,7 +47,9 @@ class UpdateMetadataArguments extends \Google\Model
     return $this->deviceId;
   }
   /**
-   * @param DeviceIdentifier
+   * Required. Device identifier.
+   *
+   * @param DeviceIdentifier $deviceIdentifier
    */
   public function setDeviceIdentifier(DeviceIdentifier $deviceIdentifier)
   {
@@ -57,7 +63,9 @@ class UpdateMetadataArguments extends \Google\Model
     return $this->deviceIdentifier;
   }
   /**
-   * @param DeviceMetadata
+   * Required. The metadata to update.
+   *
+   * @param DeviceMetadata $deviceMetadata
    */
   public function setDeviceMetadata(DeviceMetadata $deviceMetadata)
   {

@@ -21,6 +21,9 @@ class ListTranscriptEntriesResponse extends \Google\Collection
 {
   protected $collection_key = 'transcriptEntries';
   /**
+   * Token to be circulated back for further List call if current List doesn't
+   * include all the transcript entries. Unset if all entries are returned.
+   *
    * @var string
    */
   public $nextPageToken;
@@ -28,7 +31,10 @@ class ListTranscriptEntriesResponse extends \Google\Collection
   protected $transcriptEntriesDataType = 'array';
 
   /**
-   * @param string
+   * Token to be circulated back for further List call if current List doesn't
+   * include all the transcript entries. Unset if all entries are returned.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -42,7 +48,9 @@ class ListTranscriptEntriesResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param TranscriptEntry[]
+   * List of TranscriptEntries in one page.
+   *
+   * @param TranscriptEntry[] $transcriptEntries
    */
   public function setTranscriptEntries($transcriptEntries)
   {

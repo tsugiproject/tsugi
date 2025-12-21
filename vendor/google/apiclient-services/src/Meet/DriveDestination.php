@@ -20,16 +20,28 @@ namespace Google\Service\Meet;
 class DriveDestination extends \Google\Model
 {
   /**
+   * Output only. Link used to play back the recording file in the browser. For
+   * example, `https://drive.google.com/file/d/{$fileId}/view`.
+   *
    * @var string
    */
   public $exportUri;
   /**
+   * Output only. The `fileId` for the underlying MP4 file. For example,
+   * "1kuceFZohVoCh6FulBHxwy6I15Ogpc4hP". Use `$ GET
+   * https://www.googleapis.com/drive/v3/files/{$fileId}?alt=media` to download
+   * the blob. For more information, see
+   * https://developers.google.com/drive/api/v3/reference/files/get.
+   *
    * @var string
    */
   public $file;
 
   /**
-   * @param string
+   * Output only. Link used to play back the recording file in the browser. For
+   * example, `https://drive.google.com/file/d/{$fileId}/view`.
+   *
+   * @param string $exportUri
    */
   public function setExportUri($exportUri)
   {
@@ -43,7 +55,13 @@ class DriveDestination extends \Google\Model
     return $this->exportUri;
   }
   /**
-   * @param string
+   * Output only. The `fileId` for the underlying MP4 file. For example,
+   * "1kuceFZohVoCh6FulBHxwy6I15Ogpc4hP". Use `$ GET
+   * https://www.googleapis.com/drive/v3/files/{$fileId}?alt=media` to download
+   * the blob. For more information, see
+   * https://developers.google.com/drive/api/v3/reference/files/get.
+   *
+   * @param string $file
    */
   public function setFile($file)
   {

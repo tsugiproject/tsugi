@@ -19,48 +19,106 @@ namespace Google\Service\AirQuality;
 
 class LookupHistoryRequest extends \Google\Collection
 {
+  /**
+   * The default value. Ignored if passed as a parameter.
+   */
+  public const UAQI_COLOR_PALETTE_COLOR_PALETTE_UNSPECIFIED = 'COLOR_PALETTE_UNSPECIFIED';
+  /**
+   * Determines whether to use a red/green palette.
+   */
+  public const UAQI_COLOR_PALETTE_RED_GREEN = 'RED_GREEN';
+  /**
+   * Determines whether to use a indigo/persian palette (dark theme).
+   */
+  public const UAQI_COLOR_PALETTE_INDIGO_PERSIAN_DARK = 'INDIGO_PERSIAN_DARK';
+  /**
+   * Determines whether to use a indigo/persian palette (light theme).
+   */
+  public const UAQI_COLOR_PALETTE_INDIGO_PERSIAN_LIGHT = 'INDIGO_PERSIAN_LIGHT';
   protected $collection_key = 'extraComputations';
   protected $customLocalAqisType = CustomLocalAqi::class;
   protected $customLocalAqisDataType = 'array';
   /**
+   * A timestamp for which to return historical data. The timestamp is rounded
+   * to the previous exact hour. Note: this will return hourly data for the
+   * requested timestamp only (i.e. a single hourly info element). For example,
+   * a request sent where the dateTime parameter is set to 2023-01-03T11:05:49Z
+   * will be rounded down to 2023-01-03T11:00:00Z. A timestamp in RFC3339 UTC
+   * "Zulu" format, with nanosecond resolution and up to nine fractional digits.
+   * Examples: "2014-10-02T15:01:23Z" and "2014-10-02T15:01:23.045123456Z".
+   *
    * @var string
    */
   public $dateTime;
   /**
+   * Optional. Additional features that can be optionally enabled. Specifying
+   * extra computations will result in the relevant elements and fields to be
+   * returned in the response.
+   *
    * @var string[]
    */
   public $extraComputations;
   /**
+   * Number from 1 to 720 that indicates the hours range for the request. For
+   * example: A value of 48 will yield data from the last 48 hours.
+   *
    * @var int
    */
   public $hours;
   /**
+   * Optional. Allows the client to choose the language for the response. If
+   * data cannot be provided for that language the API uses the closest match.
+   * Allowed values rely on the IETF standard. Default value is en.
+   *
    * @var string
    */
   public $languageCode;
   protected $locationType = LatLng::class;
   protected $locationDataType = '';
   /**
+   * Optional. The maximum number of hourly info records to return per page. The
+   * default is 72 and the max value is 168 (7 days of data).
+   *
    * @var int
    */
   public $pageSize;
   /**
+   * Optional. A page token received from a previous history call. It is used to
+   * retrieve the subsequent page. Note that when providing a value for this
+   * parameter all other parameters provided must match the call that provided
+   * the page token (the previous call).
+   *
    * @var string
    */
   public $pageToken;
   protected $periodType = Interval::class;
   protected $periodDataType = '';
   /**
+   * Optional. Determines the color palette used for data provided by the
+   * 'Universal Air Quality Index' (UAQI). This color palette is relevant just
+   * for UAQI, other AQIs have a predetermined color palette that can't be
+   * controlled.
+   *
    * @var string
    */
   public $uaqiColorPalette;
   /**
+   * Optional. If set to true, the Universal AQI will be included in the
+   * 'indexes' field of the response. Default value is true.
+   *
    * @var bool
    */
   public $universalAqi;
 
   /**
-   * @param CustomLocalAqi[]
+   * Optional. Expresses a 'country/region to AQI' relationship. Pairs a
+   * country/region with a desired AQI so that air quality data that is required
+   * for that country/region will be displayed according to the chosen AQI. This
+   * parameter can be used to specify a non-default AQI for a given country, for
+   * example, to get the US EPA index for Canada rather than the default index
+   * for Canada.
+   *
+   * @param CustomLocalAqi[] $customLocalAqis
    */
   public function setCustomLocalAqis($customLocalAqis)
   {
@@ -74,7 +132,15 @@ class LookupHistoryRequest extends \Google\Collection
     return $this->customLocalAqis;
   }
   /**
-   * @param string
+   * A timestamp for which to return historical data. The timestamp is rounded
+   * to the previous exact hour. Note: this will return hourly data for the
+   * requested timestamp only (i.e. a single hourly info element). For example,
+   * a request sent where the dateTime parameter is set to 2023-01-03T11:05:49Z
+   * will be rounded down to 2023-01-03T11:00:00Z. A timestamp in RFC3339 UTC
+   * "Zulu" format, with nanosecond resolution and up to nine fractional digits.
+   * Examples: "2014-10-02T15:01:23Z" and "2014-10-02T15:01:23.045123456Z".
+   *
+   * @param string $dateTime
    */
   public function setDateTime($dateTime)
   {
@@ -88,7 +154,11 @@ class LookupHistoryRequest extends \Google\Collection
     return $this->dateTime;
   }
   /**
-   * @param string[]
+   * Optional. Additional features that can be optionally enabled. Specifying
+   * extra computations will result in the relevant elements and fields to be
+   * returned in the response.
+   *
+   * @param string[] $extraComputations
    */
   public function setExtraComputations($extraComputations)
   {
@@ -102,7 +172,10 @@ class LookupHistoryRequest extends \Google\Collection
     return $this->extraComputations;
   }
   /**
-   * @param int
+   * Number from 1 to 720 that indicates the hours range for the request. For
+   * example: A value of 48 will yield data from the last 48 hours.
+   *
+   * @param int $hours
    */
   public function setHours($hours)
   {
@@ -116,7 +189,11 @@ class LookupHistoryRequest extends \Google\Collection
     return $this->hours;
   }
   /**
-   * @param string
+   * Optional. Allows the client to choose the language for the response. If
+   * data cannot be provided for that language the API uses the closest match.
+   * Allowed values rely on the IETF standard. Default value is en.
+   *
+   * @param string $languageCode
    */
   public function setLanguageCode($languageCode)
   {
@@ -130,7 +207,10 @@ class LookupHistoryRequest extends \Google\Collection
     return $this->languageCode;
   }
   /**
-   * @param LatLng
+   * Required. The latitude and longitude for which the API looks for air
+   * quality history data.
+   *
+   * @param LatLng $location
    */
   public function setLocation(LatLng $location)
   {
@@ -144,7 +224,10 @@ class LookupHistoryRequest extends \Google\Collection
     return $this->location;
   }
   /**
-   * @param int
+   * Optional. The maximum number of hourly info records to return per page. The
+   * default is 72 and the max value is 168 (7 days of data).
+   *
+   * @param int $pageSize
    */
   public function setPageSize($pageSize)
   {
@@ -158,7 +241,12 @@ class LookupHistoryRequest extends \Google\Collection
     return $this->pageSize;
   }
   /**
-   * @param string
+   * Optional. A page token received from a previous history call. It is used to
+   * retrieve the subsequent page. Note that when providing a value for this
+   * parameter all other parameters provided must match the call that provided
+   * the page token (the previous call).
+   *
+   * @param string $pageToken
    */
   public function setPageToken($pageToken)
   {
@@ -172,7 +260,10 @@ class LookupHistoryRequest extends \Google\Collection
     return $this->pageToken;
   }
   /**
-   * @param Interval
+   * Indicates the start and end period for which to get the historical data.
+   * The timestamp is rounded to the previous exact hour.
+   *
+   * @param Interval $period
    */
   public function setPeriod(Interval $period)
   {
@@ -186,21 +277,32 @@ class LookupHistoryRequest extends \Google\Collection
     return $this->period;
   }
   /**
-   * @param string
+   * Optional. Determines the color palette used for data provided by the
+   * 'Universal Air Quality Index' (UAQI). This color palette is relevant just
+   * for UAQI, other AQIs have a predetermined color palette that can't be
+   * controlled.
+   *
+   * Accepted values: COLOR_PALETTE_UNSPECIFIED, RED_GREEN, INDIGO_PERSIAN_DARK,
+   * INDIGO_PERSIAN_LIGHT
+   *
+   * @param self::UAQI_COLOR_PALETTE_* $uaqiColorPalette
    */
   public function setUaqiColorPalette($uaqiColorPalette)
   {
     $this->uaqiColorPalette = $uaqiColorPalette;
   }
   /**
-   * @return string
+   * @return self::UAQI_COLOR_PALETTE_*
    */
   public function getUaqiColorPalette()
   {
     return $this->uaqiColorPalette;
   }
   /**
-   * @param bool
+   * Optional. If set to true, the Universal AQI will be included in the
+   * 'indexes' field of the response. Default value is true.
+   *
+   * @param bool $universalAqi
    */
   public function setUniversalAqi($universalAqi)
   {

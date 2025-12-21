@@ -19,54 +19,120 @@ namespace Google\Service\WorkloadManager;
 
 class Rule extends \Google\Collection
 {
+  /**
+   * Not specified.
+   */
+  public const RULE_TYPE_RULE_TYPE_UNSPECIFIED = 'RULE_TYPE_UNSPECIFIED';
+  /**
+   * Baseline rules
+   */
+  public const RULE_TYPE_BASELINE = 'BASELINE';
+  /**
+   * Custom rules
+   */
+  public const RULE_TYPE_CUSTOM = 'CUSTOM';
   protected $collection_key = 'tags';
   /**
+   * The CAI asset type of the rule is evaluating, for joined asset types, it
+   * will be the corresponding primary asset types.
+   *
+   * @var string
+   */
+  public $assetType;
+  /**
+   * descrite rule in plain language
+   *
    * @var string
    */
   public $description;
   /**
+   * the name display in UI
+   *
    * @var string
    */
   public $displayName;
   /**
+   * the message template for rule
+   *
    * @var string
    */
   public $errorMessage;
   /**
+   * rule name
+   *
    * @var string
    */
   public $name;
   /**
+   * the primary category
+   *
    * @var string
    */
   public $primaryCategory;
   /**
+   * the remediation for the rule
+   *
    * @var string
    */
   public $remediation;
   /**
+   * Output only. the version of the rule
+   *
    * @var string
    */
   public $revisionId;
   /**
+   * The type of the rule.
+   *
+   * @var string
+   */
+  public $ruleType;
+  /**
+   * the secondary category
+   *
    * @var string
    */
   public $secondaryCategory;
   /**
+   * the severity of the rule
+   *
    * @var string
    */
   public $severity;
   /**
+   * List of user-defined tags
+   *
    * @var string[]
    */
   public $tags;
   /**
+   * the docuement url for the rule
+   *
    * @var string
    */
   public $uri;
 
   /**
-   * @param string
+   * The CAI asset type of the rule is evaluating, for joined asset types, it
+   * will be the corresponding primary asset types.
+   *
+   * @param string $assetType
+   */
+  public function setAssetType($assetType)
+  {
+    $this->assetType = $assetType;
+  }
+  /**
+   * @return string
+   */
+  public function getAssetType()
+  {
+    return $this->assetType;
+  }
+  /**
+   * descrite rule in plain language
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -80,7 +146,9 @@ class Rule extends \Google\Collection
     return $this->description;
   }
   /**
-   * @param string
+   * the name display in UI
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -94,7 +162,9 @@ class Rule extends \Google\Collection
     return $this->displayName;
   }
   /**
-   * @param string
+   * the message template for rule
+   *
+   * @param string $errorMessage
    */
   public function setErrorMessage($errorMessage)
   {
@@ -108,7 +178,9 @@ class Rule extends \Google\Collection
     return $this->errorMessage;
   }
   /**
-   * @param string
+   * rule name
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -122,7 +194,9 @@ class Rule extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param string
+   * the primary category
+   *
+   * @param string $primaryCategory
    */
   public function setPrimaryCategory($primaryCategory)
   {
@@ -136,7 +210,9 @@ class Rule extends \Google\Collection
     return $this->primaryCategory;
   }
   /**
-   * @param string
+   * the remediation for the rule
+   *
+   * @param string $remediation
    */
   public function setRemediation($remediation)
   {
@@ -150,7 +226,9 @@ class Rule extends \Google\Collection
     return $this->remediation;
   }
   /**
-   * @param string
+   * Output only. the version of the rule
+   *
+   * @param string $revisionId
    */
   public function setRevisionId($revisionId)
   {
@@ -164,7 +242,27 @@ class Rule extends \Google\Collection
     return $this->revisionId;
   }
   /**
-   * @param string
+   * The type of the rule.
+   *
+   * Accepted values: RULE_TYPE_UNSPECIFIED, BASELINE, CUSTOM
+   *
+   * @param self::RULE_TYPE_* $ruleType
+   */
+  public function setRuleType($ruleType)
+  {
+    $this->ruleType = $ruleType;
+  }
+  /**
+   * @return self::RULE_TYPE_*
+   */
+  public function getRuleType()
+  {
+    return $this->ruleType;
+  }
+  /**
+   * the secondary category
+   *
+   * @param string $secondaryCategory
    */
   public function setSecondaryCategory($secondaryCategory)
   {
@@ -178,7 +276,9 @@ class Rule extends \Google\Collection
     return $this->secondaryCategory;
   }
   /**
-   * @param string
+   * the severity of the rule
+   *
+   * @param string $severity
    */
   public function setSeverity($severity)
   {
@@ -192,7 +292,9 @@ class Rule extends \Google\Collection
     return $this->severity;
   }
   /**
-   * @param string[]
+   * List of user-defined tags
+   *
+   * @param string[] $tags
    */
   public function setTags($tags)
   {
@@ -206,7 +308,9 @@ class Rule extends \Google\Collection
     return $this->tags;
   }
   /**
-   * @param string
+   * the docuement url for the rule
+   *
+   * @param string $uri
    */
   public function setUri($uri)
   {

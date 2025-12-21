@@ -21,10 +21,15 @@ class ListVendorsResponse extends \Google\Collection
 {
   protected $collection_key = 'vendors';
   /**
+   * A token to retrieve the next page of results. Omitted if no further results
+   * are available.
+   *
    * @var string
    */
   public $nextPageToken;
   /**
+   * The total count of items in the list irrespective of pagination.
+   *
    * @var int
    */
   public $totalSize;
@@ -32,7 +37,10 @@ class ListVendorsResponse extends \Google\Collection
   protected $vendorsDataType = 'array';
 
   /**
-   * @param string
+   * A token to retrieve the next page of results. Omitted if no further results
+   * are available.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -46,7 +54,9 @@ class ListVendorsResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param int
+   * The total count of items in the list irrespective of pagination.
+   *
+   * @param int $totalSize
    */
   public function setTotalSize($totalSize)
   {
@@ -60,7 +70,10 @@ class ListVendorsResponse extends \Google\Collection
     return $this->totalSize;
   }
   /**
-   * @param Company[]
+   * List of vendors of the reseller partner. Fields `name`, `companyId` and
+   * `companyName` are populated to the Company object.
+   *
+   * @param Company[] $vendors
    */
   public function setVendors($vendors)
   {

@@ -25,28 +25,45 @@ class MediationReportSpec extends \Google\Collection
   protected $dimensionFiltersType = MediationReportSpecDimensionFilter::class;
   protected $dimensionFiltersDataType = 'array';
   /**
+   * List of dimensions of the report. The value combination of these dimensions
+   * determines the row of the report. If no dimensions are specified, the
+   * report returns a single row of requested metrics for the entire account.
+   *
    * @var string[]
    */
   public $dimensions;
   protected $localizationSettingsType = LocalizationSettings::class;
   protected $localizationSettingsDataType = '';
   /**
+   * Maximum number of report data rows to return. If the value is not set, the
+   * API returns as many rows as possible, up to 100000. Acceptable values are
+   * 1-100000, inclusive. Values larger than 100000 return an error.
+   *
    * @var int
    */
   public $maxReportRows;
   /**
+   * List of metrics of the report. A report must specify at least one metric.
+   *
    * @var string[]
    */
   public $metrics;
   protected $sortConditionsType = MediationReportSpecSortCondition::class;
   protected $sortConditionsDataType = 'array';
   /**
+   * A report time zone. Accepts an IANA TZ name values, such as
+   * "America/Los_Angeles." If no time zone is defined, the account default
+   * takes effect. Check default value by the get account action. **Warning:**
+   * The "America/Los_Angeles" is the only supported value at the moment.
+   *
    * @var string
    */
   public $timeZone;
 
   /**
-   * @param DateRange
+   * The date range for which the report is generated.
+   *
+   * @param DateRange $dateRange
    */
   public function setDateRange(DateRange $dateRange)
   {
@@ -60,7 +77,9 @@ class MediationReportSpec extends \Google\Collection
     return $this->dateRange;
   }
   /**
-   * @param MediationReportSpecDimensionFilter[]
+   * Describes which report rows to match based on their dimension values.
+   *
+   * @param MediationReportSpecDimensionFilter[] $dimensionFilters
    */
   public function setDimensionFilters($dimensionFilters)
   {
@@ -74,7 +93,11 @@ class MediationReportSpec extends \Google\Collection
     return $this->dimensionFilters;
   }
   /**
-   * @param string[]
+   * List of dimensions of the report. The value combination of these dimensions
+   * determines the row of the report. If no dimensions are specified, the
+   * report returns a single row of requested metrics for the entire account.
+   *
+   * @param string[] $dimensions
    */
   public function setDimensions($dimensions)
   {
@@ -88,7 +111,9 @@ class MediationReportSpec extends \Google\Collection
     return $this->dimensions;
   }
   /**
-   * @param LocalizationSettings
+   * Localization settings of the report.
+   *
+   * @param LocalizationSettings $localizationSettings
    */
   public function setLocalizationSettings(LocalizationSettings $localizationSettings)
   {
@@ -102,7 +127,11 @@ class MediationReportSpec extends \Google\Collection
     return $this->localizationSettings;
   }
   /**
-   * @param int
+   * Maximum number of report data rows to return. If the value is not set, the
+   * API returns as many rows as possible, up to 100000. Acceptable values are
+   * 1-100000, inclusive. Values larger than 100000 return an error.
+   *
+   * @param int $maxReportRows
    */
   public function setMaxReportRows($maxReportRows)
   {
@@ -116,7 +145,9 @@ class MediationReportSpec extends \Google\Collection
     return $this->maxReportRows;
   }
   /**
-   * @param string[]
+   * List of metrics of the report. A report must specify at least one metric.
+   *
+   * @param string[] $metrics
    */
   public function setMetrics($metrics)
   {
@@ -130,7 +161,12 @@ class MediationReportSpec extends \Google\Collection
     return $this->metrics;
   }
   /**
-   * @param MediationReportSpecSortCondition[]
+   * Describes the sorting of report rows. The order of the condition in the
+   * list defines its precedence; the earlier the condition, the higher its
+   * precedence. If no sort conditions are specified, the row ordering is
+   * undefined.
+   *
+   * @param MediationReportSpecSortCondition[] $sortConditions
    */
   public function setSortConditions($sortConditions)
   {
@@ -144,7 +180,12 @@ class MediationReportSpec extends \Google\Collection
     return $this->sortConditions;
   }
   /**
-   * @param string
+   * A report time zone. Accepts an IANA TZ name values, such as
+   * "America/Los_Angeles." If no time zone is defined, the account default
+   * takes effect. Check default value by the get account action. **Warning:**
+   * The "America/Los_Angeles" is the only supported value at the moment.
+   *
+   * @param string $timeZone
    */
   public function setTimeZone($timeZone)
   {

@@ -20,6 +20,9 @@ namespace Google\Service\AddressValidation;
 class GoogleMapsAddressvalidationV1ValidateAddressResponse extends \Google\Model
 {
   /**
+   * The UUID that identifies this response. If the address needs to be re-
+   * validated, this UUID *must* accompany the new request.
+   *
    * @var string
    */
   public $responseId;
@@ -27,7 +30,10 @@ class GoogleMapsAddressvalidationV1ValidateAddressResponse extends \Google\Model
   protected $resultDataType = '';
 
   /**
-   * @param string
+   * The UUID that identifies this response. If the address needs to be re-
+   * validated, this UUID *must* accompany the new request.
+   *
+   * @param string $responseId
    */
   public function setResponseId($responseId)
   {
@@ -41,7 +47,9 @@ class GoogleMapsAddressvalidationV1ValidateAddressResponse extends \Google\Model
     return $this->responseId;
   }
   /**
-   * @param GoogleMapsAddressvalidationV1ValidationResult
+   * The result of the address validation.
+   *
+   * @param GoogleMapsAddressvalidationV1ValidationResult $result
    */
   public function setResult(GoogleMapsAddressvalidationV1ValidationResult $result)
   {

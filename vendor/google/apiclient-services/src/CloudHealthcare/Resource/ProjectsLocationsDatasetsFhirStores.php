@@ -60,7 +60,8 @@ class ProjectsLocationsDatasetsFhirStores extends \Google\Service\Resource
    * instead of an Operation. No resources will be reindexed and the
    * `consent_config.enforced_admin_consents` field will be unchanged. To enforce
    * a consent check for data access, `consent_config.access_enforced` must be set
-   * to true for the FhirStore. (fhirStores.applyAdminConsents)
+   * to true for the FhirStore. FHIR Consent is not supported in DSTU2 or R5.
+   * (fhirStores.applyAdminConsents)
    *
    * @param string $name Required. The name of the FHIR store to enforce, in the
    * format `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/f
@@ -89,7 +90,8 @@ class ProjectsLocationsDatasetsFhirStores extends \Google\Service\Resource
    * [Viewing error logs in Cloud
    * Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)). To
    * enforce consent check for data access, `consent_config.access_enforced` must
-   * be set to true for the FhirStore. (fhirStores.applyConsents)
+   * be set to true for the FhirStore. FHIR Consent is not supported in DSTU2 or
+   * R5. (fhirStores.applyConsents)
    *
    * @param string $name Required. The name of the FHIR store to enforce, in the
    * format `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/f
@@ -152,9 +154,9 @@ class ProjectsLocationsDatasetsFhirStores extends \Google\Service\Resource
    * @opt_param string _type Optional. String of comma-delimited FHIR resource
    * types. If provided, only resources of the specified resource type(s) are
    * exported.
-   * @opt_param string organizeOutputBy Optional. Required. The FHIR resource type
-   * used to organize exported resources. Only supports "Patient". When organized
-   * by Patient resource, output files are grouped as follows: * Patient file(s)
+   * @opt_param string organizeOutputBy Required. The FHIR resource type used to
+   * organize exported resources. Only supports "Patient". When organized by
+   * Patient resource, output files are grouped as follows: * Patient file(s)
    * containing the Patient resources. Each Patient is sequentially followed by
    * all resources the Patient references, and all resources that reference the
    * Patient (equivalent to a GetPatientEverything request). * Individual files
@@ -205,7 +207,7 @@ class ProjectsLocationsDatasetsFhirStores extends \Google\Service\Resource
    *
    * @param string $sourceStore Required. Source FHIR store resource name. For
    * example, `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}
-   * /fhirStores/{fhir_store_id}`.
+   * /fhirStores/{fhir_store_id}`. R5 stores are not supported.
    * @param DeidentifyFhirStoreRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
@@ -234,7 +236,8 @@ class ProjectsLocationsDatasetsFhirStores extends \Google\Service\Resource
   }
   /**
    * Explains all the permitted/denied actor, purpose and environment for a given
-   * resource. (fhirStores.explainDataAccess)
+   * resource. FHIR Consent is not supported in DSTU2 or R5.
+   * (fhirStores.explainDataAccess)
    *
    * @param string $name Required. The name of the FHIR store to enforce, in the
    * format `projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/f
@@ -255,9 +258,15 @@ class ProjectsLocationsDatasetsFhirStores extends \Google\Service\Resource
   /**
    * Export resources from the FHIR store to the specified destination. This
    * method returns an Operation that can be used to track the status of the
-   * export by calling GetOperation. Immediate fatal errors appear in the error
-   * field, errors are also logged to Cloud Logging (see [Viewing error logs in
-   * Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)).
+   * export by calling GetOperation. To improve performance, it is recommended to
+   * make the `type` filter as specific as possible, including only the resource
+   * types that are absolutely needed. This minimizes the size of the initial
+   * dataset to be processed and is the most effective way to improve performance.
+   * While post-filters like `_since` are useful for refining results, they do not
+   * speed up the initial data retrieval phase, which is primarily governed by the
+   * `type` filter. Immediate fatal errors appear in the error field, errors are
+   * also logged to Cloud Logging (see [Viewing error logs in Cloud
+   * Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)).
    * Otherwise, when the operation finishes, a detailed response of type
    * ExportResourcesResponse is returned in the response field. The metadata field
    * type for this operation is OperationMetadata. (fhirStores.export)

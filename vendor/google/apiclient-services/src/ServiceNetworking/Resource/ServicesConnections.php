@@ -41,9 +41,10 @@ class ServicesConnections extends \Google\Service\Resource
    * for all supported services in the service producer's organization, so it only
    * needs to be invoked once. (connections.create)
    *
-   * @param string $parent The service that is managing peering connectivity for a
-   * service producer's organization. For Google services that support this
-   * functionality, this value is `services/servicenetworking.googleapis.com`.
+   * @param string $parent Required. The service that is managing peering
+   * connectivity for a service producer's organization. For Google services that
+   * support this functionality, this value is
+   * `services/servicenetworking.googleapis.com`.
    * @param Connection $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
@@ -80,16 +81,16 @@ class ServicesConnections extends \Google\Service\Resource
    * List the private connections that are configured in a service consumer's VPC
    * network. (connections.listServicesConnections)
    *
-   * @param string $parent The service that is managing peering connectivity for a
-   * service producer's organization. For Google services that support this
-   * functionality, this value is `services/servicenetworking.googleapis.com`. If
-   * you specify `services/-` as the parameter value, all configured peering
-   * services are listed.
+   * @param string $parent Required. The service that is managing peering
+   * connectivity for a service producer's organization. For Google services that
+   * support this functionality, this value is
+   * `services/servicenetworking.googleapis.com`. If you specify `services/-` as
+   * the parameter value, all configured peering services are listed.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string network The name of service consumer's VPC network that's
-   * connected with service producer network through a private connection. The
-   * network name must be in the following format:
+   * @opt_param string network Required. The name of service consumer's VPC
+   * network that's connected with service producer network through a private
+   * connection. The network name must be in the following format:
    * `projects/{project}/global/networks/{network}`. {project} is a project
    * number, such as in `12345` that includes the VPC service consumer's VPC
    * network. {network} is the name of the service consumer's VPC network.
@@ -106,9 +107,9 @@ class ServicesConnections extends \Google\Service\Resource
    * Updates the allocated ranges that are assigned to a connection.
    * (connections.patch)
    *
-   * @param string $name The private service connection that connects to a service
-   * producer organization. The name includes both the private service name and
-   * the VPC network peering name in the format of
+   * @param string $name Required. The private service connection that connects to
+   * a service producer organization. The name includes both the private service
+   * name and the VPC network peering name in the format of
    * `services/{peering_service_name}/connections/{vpc_peering_name}`. For Google
    * services that support this functionality, this is
    * `services/servicenetworking.googleapis.com/connections/servicenetworking-

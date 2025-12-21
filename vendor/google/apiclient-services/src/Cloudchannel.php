@@ -39,7 +39,7 @@ class Cloudchannel extends \Google\Service
   /** Manage users on your domain. */
   const APPS_ORDER =
       "https://www.googleapis.com/auth/apps.order";
-  /** View usage reports for your G Suite domain. */
+  /** View usage reports for your Google Workspace domain. */
   const APPS_REPORTS_USAGE_READONLY =
       "https://www.googleapis.com/auth/apps.reports.usage.readonly";
 
@@ -1079,6 +1079,10 @@ class Cloudchannel extends \Google\Service
                 'pageToken' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+                'returnPartialSuccess' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
               ],
             ],

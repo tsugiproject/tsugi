@@ -20,6 +20,9 @@ namespace Google\Service\GamesManagement;
 class ProfileSettings extends \Google\Model
 {
   /**
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesManagement#profileSettings`.
+   *
    * @var string
    */
   public $kind;
@@ -29,7 +32,10 @@ class ProfileSettings extends \Google\Model
   public $profileVisible;
 
   /**
-   * @param string
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesManagement#profileSettings`.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -43,7 +49,7 @@ class ProfileSettings extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param bool
+   * @param bool $profileVisible
    */
   public function setProfileVisible($profileVisible)
   {

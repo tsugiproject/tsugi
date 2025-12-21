@@ -20,20 +20,49 @@ namespace Google\Service\CloudTalentSolution;
 class CompletionResult extends \Google\Model
 {
   /**
+   * Default value.
+   */
+  public const TYPE_COMPLETION_TYPE_UNSPECIFIED = 'COMPLETION_TYPE_UNSPECIFIED';
+  /**
+   * Suggest job titles for jobs autocomplete. For CompletionType.JOB_TITLE
+   * type, only open jobs with the same language_codes are returned.
+   */
+  public const TYPE_JOB_TITLE = 'JOB_TITLE';
+  /**
+   * Suggest company names for jobs autocomplete. For
+   * CompletionType.COMPANY_NAME type, only companies having open jobs with the
+   * same language_codes are returned.
+   */
+  public const TYPE_COMPANY_NAME = 'COMPANY_NAME';
+  /**
+   * Suggest both job titles and company names for jobs autocomplete. For
+   * CompletionType.COMBINED type, only open jobs with the same language_codes
+   * or companies having open jobs with the same language_codes are returned.
+   */
+  public const TYPE_COMBINED = 'COMBINED';
+  /**
+   * The URI of the company image for COMPANY_NAME.
+   *
    * @var string
    */
   public $imageUri;
   /**
+   * The suggestion for the query.
+   *
    * @var string
    */
   public $suggestion;
   /**
+   * The completion topic.
+   *
    * @var string
    */
   public $type;
 
   /**
-   * @param string
+   * The URI of the company image for COMPANY_NAME.
+   *
+   * @param string $imageUri
    */
   public function setImageUri($imageUri)
   {
@@ -47,7 +76,9 @@ class CompletionResult extends \Google\Model
     return $this->imageUri;
   }
   /**
-   * @param string
+   * The suggestion for the query.
+   *
+   * @param string $suggestion
    */
   public function setSuggestion($suggestion)
   {
@@ -61,14 +92,19 @@ class CompletionResult extends \Google\Model
     return $this->suggestion;
   }
   /**
-   * @param string
+   * The completion topic.
+   *
+   * Accepted values: COMPLETION_TYPE_UNSPECIFIED, JOB_TITLE, COMPANY_NAME,
+   * COMBINED
+   *
+   * @param self::TYPE_* $type
    */
   public function setType($type)
   {
     $this->type = $type;
   }
   /**
-   * @return string
+   * @return self::TYPE_*
    */
   public function getType()
   {

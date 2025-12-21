@@ -19,6 +19,8 @@ namespace Google\Service\AndroidManagement\Resource;
 
 use Google\Service\AndroidManagement\AndroidmanagementEmpty;
 use Google\Service\AndroidManagement\Enterprise;
+use Google\Service\AndroidManagement\GenerateEnterpriseUpgradeUrlRequest;
+use Google\Service\AndroidManagement\GenerateEnterpriseUpgradeUrlResponse;
 use Google\Service\AndroidManagement\ListEnterprisesResponse;
 
 /**
@@ -86,6 +88,25 @@ class Enterprises extends \Google\Service\Resource
     $params = ['name' => $name];
     $params = array_merge($params, $optParams);
     return $this->call('delete', [$params], AndroidmanagementEmpty::class);
+  }
+  /**
+   * Generates an enterprise upgrade URL to upgrade an existing managed Google
+   * Play Accounts enterprise to a managed Google domain. See the guide
+   * (https://developers.google.com/android/management/upgrade-an-enterprise) for
+   * more details. (enterprises.generateEnterpriseUpgradeUrl)
+   *
+   * @param string $name Required. The name of the enterprise to be upgraded in
+   * the form enterprises/{enterpriseId}.
+   * @param GenerateEnterpriseUpgradeUrlRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GenerateEnterpriseUpgradeUrlResponse
+   * @throws \Google\Service\Exception
+   */
+  public function generateEnterpriseUpgradeUrl($name, GenerateEnterpriseUpgradeUrlRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('generateEnterpriseUpgradeUrl', [$params], GenerateEnterpriseUpgradeUrlResponse::class);
   }
   /**
    * Gets an enterprise. (enterprises.get)

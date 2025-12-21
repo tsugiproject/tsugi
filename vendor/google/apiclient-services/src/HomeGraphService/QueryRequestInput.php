@@ -23,7 +23,9 @@ class QueryRequestInput extends \Google\Model
   protected $payloadDataType = '';
 
   /**
-   * @param QueryRequestPayload
+   * Payload containing third-party device IDs.
+   *
+   * @param QueryRequestPayload $payload
    */
   public function setPayload(QueryRequestPayload $payload)
   {

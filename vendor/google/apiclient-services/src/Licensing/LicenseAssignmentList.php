@@ -21,22 +21,33 @@ class LicenseAssignmentList extends \Google\Collection
 {
   protected $collection_key = 'items';
   /**
+   * ETag of the resource.
+   *
    * @var string
    */
   public $etag;
   protected $itemsType = LicenseAssignment::class;
   protected $itemsDataType = 'array';
   /**
+   * Identifies the resource as a collection of LicenseAssignments.
+   *
    * @var string
    */
   public $kind;
   /**
+   * The token that you must submit in a subsequent request to retrieve
+   * additional license results matching your query parameters. The `maxResults`
+   * query string is related to the `nextPageToken` since `maxResults`
+   * determines how many entries are returned on each next page.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param string
+   * ETag of the resource.
+   *
+   * @param string $etag
    */
   public function setEtag($etag)
   {
@@ -50,7 +61,9 @@ class LicenseAssignmentList extends \Google\Collection
     return $this->etag;
   }
   /**
-   * @param LicenseAssignment[]
+   * The LicenseAssignments in this page of results.
+   *
+   * @param LicenseAssignment[] $items
    */
   public function setItems($items)
   {
@@ -64,7 +77,9 @@ class LicenseAssignmentList extends \Google\Collection
     return $this->items;
   }
   /**
-   * @param string
+   * Identifies the resource as a collection of LicenseAssignments.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -78,7 +93,12 @@ class LicenseAssignmentList extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * The token that you must submit in a subsequent request to retrieve
+   * additional license results matching your query parameters. The `maxResults`
+   * query string is related to the `nextPageToken` since `maxResults`
+   * determines how many entries are returned on each next page.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

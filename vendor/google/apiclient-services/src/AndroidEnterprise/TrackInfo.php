@@ -20,16 +20,26 @@ namespace Google\Service\AndroidEnterprise;
 class TrackInfo extends \Google\Model
 {
   /**
+   * A modifiable name for a track. This is the visible name in the play
+   * developer console.
+   *
    * @var string
    */
   public $trackAlias;
   /**
+   * Unmodifiable, unique track identifier. This identifier is the
+   * releaseTrackId in the url of the play developer console page that displays
+   * the track information.
+   *
    * @var string
    */
   public $trackId;
 
   /**
-   * @param string
+   * A modifiable name for a track. This is the visible name in the play
+   * developer console.
+   *
+   * @param string $trackAlias
    */
   public function setTrackAlias($trackAlias)
   {
@@ -43,7 +53,11 @@ class TrackInfo extends \Google\Model
     return $this->trackAlias;
   }
   /**
-   * @param string
+   * Unmodifiable, unique track identifier. This identifier is the
+   * releaseTrackId in the url of the play developer console page that displays
+   * the track information.
+   *
+   * @param string $trackId
    */
   public function setTrackId($trackId)
   {

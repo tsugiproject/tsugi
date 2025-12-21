@@ -21,10 +21,17 @@ class StorePage extends \Google\Collection
 {
   protected $collection_key = 'name';
   /**
+   * Unique ID of this page. Assigned by the server. Immutable once assigned.
+   *
    * @var string
    */
   public $id;
   /**
+   * Ordered list of pages a user should be able to reach from this page. The
+   * list can't include this page. It is recommended that the basic pages are
+   * created first, before adding the links between pages. The API doesn't
+   * verify that the pages exist or the pages are reachable.
+   *
    * @var string[]
    */
   public $link;
@@ -32,7 +39,9 @@ class StorePage extends \Google\Collection
   protected $nameDataType = 'array';
 
   /**
-   * @param string
+   * Unique ID of this page. Assigned by the server. Immutable once assigned.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -46,7 +55,12 @@ class StorePage extends \Google\Collection
     return $this->id;
   }
   /**
-   * @param string[]
+   * Ordered list of pages a user should be able to reach from this page. The
+   * list can't include this page. It is recommended that the basic pages are
+   * created first, before adding the links between pages. The API doesn't
+   * verify that the pages exist or the pages are reachable.
+   *
+   * @param string[] $link
    */
   public function setLink($link)
   {
@@ -60,7 +74,11 @@ class StorePage extends \Google\Collection
     return $this->link;
   }
   /**
-   * @param LocalizedText[]
+   * Ordered list of localized strings giving the name of this page. The text
+   * displayed is the one that best matches the user locale, or the first entry
+   * if there is no good match. There needs to be at least one entry.
+   *
+   * @param LocalizedText[] $name
    */
   public function setName($name)
   {

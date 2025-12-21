@@ -20,28 +20,40 @@ namespace Google\Service\Analytics;
 class FilterSearchAndReplaceDetails extends \Google\Model
 {
   /**
+   * Determines if the filter is case sensitive.
+   *
    * @var bool
    */
   public $caseSensitive;
   /**
+   * Field to use in the filter.
+   *
    * @var string
    */
   public $field;
   /**
+   * The Index of the custom dimension. Required if field is a CUSTOM_DIMENSION.
+   *
    * @var int
    */
   public $fieldIndex;
   /**
+   * Term to replace the search term with.
+   *
    * @var string
    */
   public $replaceString;
   /**
+   * Term to search.
+   *
    * @var string
    */
   public $searchString;
 
   /**
-   * @param bool
+   * Determines if the filter is case sensitive.
+   *
+   * @param bool $caseSensitive
    */
   public function setCaseSensitive($caseSensitive)
   {
@@ -55,7 +67,9 @@ class FilterSearchAndReplaceDetails extends \Google\Model
     return $this->caseSensitive;
   }
   /**
-   * @param string
+   * Field to use in the filter.
+   *
+   * @param string $field
    */
   public function setField($field)
   {
@@ -69,7 +83,9 @@ class FilterSearchAndReplaceDetails extends \Google\Model
     return $this->field;
   }
   /**
-   * @param int
+   * The Index of the custom dimension. Required if field is a CUSTOM_DIMENSION.
+   *
+   * @param int $fieldIndex
    */
   public function setFieldIndex($fieldIndex)
   {
@@ -83,7 +99,9 @@ class FilterSearchAndReplaceDetails extends \Google\Model
     return $this->fieldIndex;
   }
   /**
-   * @param string
+   * Term to replace the search term with.
+   *
+   * @param string $replaceString
    */
   public function setReplaceString($replaceString)
   {
@@ -97,7 +115,9 @@ class FilterSearchAndReplaceDetails extends \Google\Model
     return $this->replaceString;
   }
   /**
-   * @param string
+   * Term to search.
+   *
+   * @param string $searchString
    */
   public function setSearchString($searchString)
   {

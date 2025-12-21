@@ -20,48 +20,88 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaKeyEvent extends \Google\Model
 {
   /**
+   * Counting method not specified.
+   */
+  public const COUNTING_METHOD_COUNTING_METHOD_UNSPECIFIED = 'COUNTING_METHOD_UNSPECIFIED';
+  /**
+   * Each Event instance is considered a Key Event.
+   */
+  public const COUNTING_METHOD_ONCE_PER_EVENT = 'ONCE_PER_EVENT';
+  /**
+   * An Event instance is considered a Key Event at most once per session per
+   * user.
+   */
+  public const COUNTING_METHOD_ONCE_PER_SESSION = 'ONCE_PER_SESSION';
+  /**
+   * Required. The method by which Key Events will be counted across multiple
+   * events within a session.
+   *
    * @var string
    */
   public $countingMethod;
   /**
+   * Output only. Time when this key event was created in the property.
+   *
    * @var string
    */
   public $createTime;
   /**
+   * Output only. If set to true, this key event refers to a custom event. If
+   * set to false, this key event refers to a default event in GA. Default
+   * events typically have special meaning in GA. Default events are usually
+   * created for you by the GA system, but in some cases can be created by
+   * property admins. Custom events count towards the maximum number of custom
+   * key events that may be created per property.
+   *
    * @var bool
    */
   public $custom;
   protected $defaultValueType = GoogleAnalyticsAdminV1betaKeyEventDefaultValue::class;
   protected $defaultValueDataType = '';
   /**
+   * Output only. If set to true, this event can be deleted.
+   *
    * @var bool
    */
   public $deletable;
   /**
+   * Immutable. The event name for this key event. Examples: 'click', 'purchase'
+   *
    * @var string
    */
   public $eventName;
   /**
+   * Output only. Resource name of this key event. Format:
+   * properties/{property}/keyEvents/{key_event}
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param string
+   * Required. The method by which Key Events will be counted across multiple
+   * events within a session.
+   *
+   * Accepted values: COUNTING_METHOD_UNSPECIFIED, ONCE_PER_EVENT,
+   * ONCE_PER_SESSION
+   *
+   * @param self::COUNTING_METHOD_* $countingMethod
    */
   public function setCountingMethod($countingMethod)
   {
     $this->countingMethod = $countingMethod;
   }
   /**
-   * @return string
+   * @return self::COUNTING_METHOD_*
    */
   public function getCountingMethod()
   {
     return $this->countingMethod;
   }
   /**
-   * @param string
+   * Output only. Time when this key event was created in the property.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -75,7 +115,14 @@ class GoogleAnalyticsAdminV1betaKeyEvent extends \Google\Model
     return $this->createTime;
   }
   /**
-   * @param bool
+   * Output only. If set to true, this key event refers to a custom event. If
+   * set to false, this key event refers to a default event in GA. Default
+   * events typically have special meaning in GA. Default events are usually
+   * created for you by the GA system, but in some cases can be created by
+   * property admins. Custom events count towards the maximum number of custom
+   * key events that may be created per property.
+   *
+   * @param bool $custom
    */
   public function setCustom($custom)
   {
@@ -89,7 +136,9 @@ class GoogleAnalyticsAdminV1betaKeyEvent extends \Google\Model
     return $this->custom;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaKeyEventDefaultValue
+   * Optional. Defines a default value/currency for a key event.
+   *
+   * @param GoogleAnalyticsAdminV1betaKeyEventDefaultValue $defaultValue
    */
   public function setDefaultValue(GoogleAnalyticsAdminV1betaKeyEventDefaultValue $defaultValue)
   {
@@ -103,7 +152,9 @@ class GoogleAnalyticsAdminV1betaKeyEvent extends \Google\Model
     return $this->defaultValue;
   }
   /**
-   * @param bool
+   * Output only. If set to true, this event can be deleted.
+   *
+   * @param bool $deletable
    */
   public function setDeletable($deletable)
   {
@@ -117,7 +168,9 @@ class GoogleAnalyticsAdminV1betaKeyEvent extends \Google\Model
     return $this->deletable;
   }
   /**
-   * @param string
+   * Immutable. The event name for this key event. Examples: 'click', 'purchase'
+   *
+   * @param string $eventName
    */
   public function setEventName($eventName)
   {
@@ -131,7 +184,10 @@ class GoogleAnalyticsAdminV1betaKeyEvent extends \Google\Model
     return $this->eventName;
   }
   /**
-   * @param string
+   * Output only. Resource name of this key event. Format:
+   * properties/{property}/keyEvents/{key_event}
+   *
+   * @param string $name
    */
   public function setName($name)
   {

@@ -99,6 +99,11 @@ class CloudAlloyDBAdmin extends \Google\Service
                   'type' => 'string',
                   'required' => true,
                 ],
+                'extraLocationTypes' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                  'repeated' => true,
+                ],
                 'filter' => [
                   'location' => 'query',
                   'type' => 'string',
@@ -175,6 +180,10 @@ class CloudAlloyDBAdmin extends \Google\Service
                   'type' => 'string',
                   'required' => true,
                 ],
+                'view' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
               ],
             ],'list' => [
               'path' => 'v1/{+parent}/backups',
@@ -198,6 +207,10 @@ class CloudAlloyDBAdmin extends \Google\Service
                   'type' => 'integer',
                 ],
                 'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'view' => [
                   'location' => 'query',
                   'type' => 'string',
                 ],
@@ -406,6 +419,16 @@ class CloudAlloyDBAdmin extends \Google\Service
               ],
             ],'restore' => [
               'path' => 'v1/{+parent}/clusters:restore',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'restoreFromCloudSQL' => [
+              'path' => 'v1/{+parent}/clusters:restoreFromCloudSQL',
               'httpMethod' => 'POST',
               'parameters' => [
                 'parent' => [
@@ -793,6 +816,10 @@ class CloudAlloyDBAdmin extends \Google\Service
                   'location' => 'query',
                   'type' => 'string',
                 ],
+                'returnPartialSuccess' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
               ],
             ],
           ]
@@ -818,6 +845,10 @@ class CloudAlloyDBAdmin extends \Google\Service
                   'type' => 'integer',
                 ],
                 'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'scope' => [
                   'location' => 'query',
                   'type' => 'string',
                 ],

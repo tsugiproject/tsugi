@@ -20,10 +20,34 @@ namespace Google\Service\AdMob;
 class App extends \Google\Model
 {
   /**
+   * Default value for an unset field. Do not use.
+   */
+  public const APP_APPROVAL_STATE_APP_APPROVAL_STATE_UNSPECIFIED = 'APP_APPROVAL_STATE_UNSPECIFIED';
+  /**
+   * The app requires additional user action to be approved. Please refer to
+   * https://support.google.com/admob/answer/10564477 for details and next
+   * steps.
+   */
+  public const APP_APPROVAL_STATE_ACTION_REQUIRED = 'ACTION_REQUIRED';
+  /**
+   * The app is pending review.
+   */
+  public const APP_APPROVAL_STATE_IN_REVIEW = 'IN_REVIEW';
+  /**
+   * The app is approved and can serve ads.
+   */
+  public const APP_APPROVAL_STATE_APPROVED = 'APPROVED';
+  /**
+   * Output only. The approval state for the app. The field is read-only.
+   *
    * @var string
    */
   public $appApprovalState;
   /**
+   * The externally visible ID of the app which can be used to integrate with
+   * the AdMob SDK. This is a read only property. Example: ca-app-
+   * pub-9876543210987654~0123456789
+   *
    * @var string
    */
   public $appId;
@@ -32,30 +56,45 @@ class App extends \Google\Model
   protected $manualAppInfoType = AppManualAppInfo::class;
   protected $manualAppInfoDataType = '';
   /**
+   * Resource name for this app. Format is
+   * accounts/{publisher_id}/apps/{app_id_fragment} Example:
+   * accounts/pub-9876543210987654/apps/0123456789
+   *
    * @var string
    */
   public $name;
   /**
+   * Describes the platform of the app. Limited to "IOS" and "ANDROID".
+   *
    * @var string
    */
   public $platform;
 
   /**
-   * @param string
+   * Output only. The approval state for the app. The field is read-only.
+   *
+   * Accepted values: APP_APPROVAL_STATE_UNSPECIFIED, ACTION_REQUIRED,
+   * IN_REVIEW, APPROVED
+   *
+   * @param self::APP_APPROVAL_STATE_* $appApprovalState
    */
   public function setAppApprovalState($appApprovalState)
   {
     $this->appApprovalState = $appApprovalState;
   }
   /**
-   * @return string
+   * @return self::APP_APPROVAL_STATE_*
    */
   public function getAppApprovalState()
   {
     return $this->appApprovalState;
   }
   /**
-   * @param string
+   * The externally visible ID of the app which can be used to integrate with
+   * the AdMob SDK. This is a read only property. Example: ca-app-
+   * pub-9876543210987654~0123456789
+   *
+   * @param string $appId
    */
   public function setAppId($appId)
   {
@@ -69,7 +108,10 @@ class App extends \Google\Model
     return $this->appId;
   }
   /**
-   * @param AppLinkedAppInfo
+   * Immutable. The information for an app that is linked to an app store. This
+   * field is present if and only if the app is linked to an app store.
+   *
+   * @param AppLinkedAppInfo $linkedAppInfo
    */
   public function setLinkedAppInfo(AppLinkedAppInfo $linkedAppInfo)
   {
@@ -83,7 +125,11 @@ class App extends \Google\Model
     return $this->linkedAppInfo;
   }
   /**
-   * @param AppManualAppInfo
+   * The information for an app that is not linked to any app store. After an
+   * app is linked, this information is still retrivable. If no name is provided
+   * for the app upon creation, a placeholder name will be used.
+   *
+   * @param AppManualAppInfo $manualAppInfo
    */
   public function setManualAppInfo(AppManualAppInfo $manualAppInfo)
   {
@@ -97,7 +143,11 @@ class App extends \Google\Model
     return $this->manualAppInfo;
   }
   /**
-   * @param string
+   * Resource name for this app. Format is
+   * accounts/{publisher_id}/apps/{app_id_fragment} Example:
+   * accounts/pub-9876543210987654/apps/0123456789
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -111,7 +161,9 @@ class App extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Describes the platform of the app. Limited to "IOS" and "ANDROID".
+   *
+   * @param string $platform
    */
   public function setPlatform($platform)
   {

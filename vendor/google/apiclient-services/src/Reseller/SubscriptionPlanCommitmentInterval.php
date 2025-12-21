@@ -20,16 +20,25 @@ namespace Google\Service\Reseller;
 class SubscriptionPlanCommitmentInterval extends \Google\Model
 {
   /**
+   * An annual commitment plan's interval's `endTime` in milliseconds using the
+   * UNIX Epoch format. See an example Epoch converter.
+   *
    * @var string
    */
   public $endTime;
   /**
+   * An annual commitment plan's interval's `startTime` in milliseconds using
+   * UNIX Epoch format. See an example Epoch converter.
+   *
    * @var string
    */
   public $startTime;
 
   /**
-   * @param string
+   * An annual commitment plan's interval's `endTime` in milliseconds using the
+   * UNIX Epoch format. See an example Epoch converter.
+   *
+   * @param string $endTime
    */
   public function setEndTime($endTime)
   {
@@ -43,7 +52,10 @@ class SubscriptionPlanCommitmentInterval extends \Google\Model
     return $this->endTime;
   }
   /**
-   * @param string
+   * An annual commitment plan's interval's `startTime` in milliseconds using
+   * UNIX Epoch format. See an example Epoch converter.
+   *
+   * @param string $startTime
    */
   public function setStartTime($startTime)
   {

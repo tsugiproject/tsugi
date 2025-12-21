@@ -20,28 +20,46 @@ namespace Google\Service\YouTubeReporting;
 class GdataBlobstore2Info extends \Google\Model
 {
   /**
+   * gdata
+   *
    * @var string
    */
   public $blobGeneration;
   /**
+   * gdata
+   *
    * @var string
    */
   public $blobId;
   /**
+   * gdata
+   *
+   * @var string
+   */
+  public $downloadExternalReadToken;
+  /**
+   * gdata
+   *
    * @var string
    */
   public $downloadReadHandle;
   /**
+   * gdata
+   *
    * @var string
    */
   public $readToken;
   /**
+   * gdata
+   *
    * @var string
    */
   public $uploadMetadataContainer;
 
   /**
-   * @param string
+   * gdata
+   *
+   * @param string $blobGeneration
    */
   public function setBlobGeneration($blobGeneration)
   {
@@ -55,7 +73,9 @@ class GdataBlobstore2Info extends \Google\Model
     return $this->blobGeneration;
   }
   /**
-   * @param string
+   * gdata
+   *
+   * @param string $blobId
    */
   public function setBlobId($blobId)
   {
@@ -69,7 +89,25 @@ class GdataBlobstore2Info extends \Google\Model
     return $this->blobId;
   }
   /**
-   * @param string
+   * gdata
+   *
+   * @param string $downloadExternalReadToken
+   */
+  public function setDownloadExternalReadToken($downloadExternalReadToken)
+  {
+    $this->downloadExternalReadToken = $downloadExternalReadToken;
+  }
+  /**
+   * @return string
+   */
+  public function getDownloadExternalReadToken()
+  {
+    return $this->downloadExternalReadToken;
+  }
+  /**
+   * gdata
+   *
+   * @param string $downloadReadHandle
    */
   public function setDownloadReadHandle($downloadReadHandle)
   {
@@ -83,7 +121,9 @@ class GdataBlobstore2Info extends \Google\Model
     return $this->downloadReadHandle;
   }
   /**
-   * @param string
+   * gdata
+   *
+   * @param string $readToken
    */
   public function setReadToken($readToken)
   {
@@ -97,7 +137,9 @@ class GdataBlobstore2Info extends \Google\Model
     return $this->readToken;
   }
   /**
-   * @param string
+   * gdata
+   *
+   * @param string $uploadMetadataContainer
    */
   public function setUploadMetadataContainer($uploadMetadataContainer)
   {

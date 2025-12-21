@@ -19,70 +19,201 @@ namespace Google\Service\Parallelstore;
 
 class Instance extends \Google\Collection
 {
+  /**
+   * Default Deployment Type It is equivalent to SCRATCH
+   */
+  public const DEPLOYMENT_TYPE_DEPLOYMENT_TYPE_UNSPECIFIED = 'DEPLOYMENT_TYPE_UNSPECIFIED';
+  /**
+   * Scratch
+   */
+  public const DEPLOYMENT_TYPE_SCRATCH = 'SCRATCH';
+  /**
+   * Persistent
+   */
+  public const DEPLOYMENT_TYPE_PERSISTENT = 'PERSISTENT';
+  /**
+   * If not set, DirectoryStripeLevel will default to DIRECTORY_STRIPE_LEVEL_MAX
+   */
+  public const DIRECTORY_STRIPE_LEVEL_DIRECTORY_STRIPE_LEVEL_UNSPECIFIED = 'DIRECTORY_STRIPE_LEVEL_UNSPECIFIED';
+  /**
+   * Minimum directory striping
+   */
+  public const DIRECTORY_STRIPE_LEVEL_DIRECTORY_STRIPE_LEVEL_MIN = 'DIRECTORY_STRIPE_LEVEL_MIN';
+  /**
+   * Medium directory striping
+   */
+  public const DIRECTORY_STRIPE_LEVEL_DIRECTORY_STRIPE_LEVEL_BALANCED = 'DIRECTORY_STRIPE_LEVEL_BALANCED';
+  /**
+   * Maximum directory striping
+   */
+  public const DIRECTORY_STRIPE_LEVEL_DIRECTORY_STRIPE_LEVEL_MAX = 'DIRECTORY_STRIPE_LEVEL_MAX';
+  /**
+   * If not set, FileStripeLevel will default to FILE_STRIPE_LEVEL_BALANCED
+   */
+  public const FILE_STRIPE_LEVEL_FILE_STRIPE_LEVEL_UNSPECIFIED = 'FILE_STRIPE_LEVEL_UNSPECIFIED';
+  /**
+   * Minimum file striping
+   */
+  public const FILE_STRIPE_LEVEL_FILE_STRIPE_LEVEL_MIN = 'FILE_STRIPE_LEVEL_MIN';
+  /**
+   * Medium file striping
+   */
+  public const FILE_STRIPE_LEVEL_FILE_STRIPE_LEVEL_BALANCED = 'FILE_STRIPE_LEVEL_BALANCED';
+  /**
+   * Maximum file striping
+   */
+  public const FILE_STRIPE_LEVEL_FILE_STRIPE_LEVEL_MAX = 'FILE_STRIPE_LEVEL_MAX';
+  /**
+   * Not set.
+   */
+  public const STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED';
+  /**
+   * The instance is being created.
+   */
+  public const STATE_CREATING = 'CREATING';
+  /**
+   * The instance is available for use.
+   */
+  public const STATE_ACTIVE = 'ACTIVE';
+  /**
+   * The instance is being deleted.
+   */
+  public const STATE_DELETING = 'DELETING';
+  /**
+   * The instance is not usable.
+   */
+  public const STATE_FAILED = 'FAILED';
+  /**
+   * The instance is being upgraded.
+   */
+  public const STATE_UPGRADING = 'UPGRADING';
+  /**
+   * The instance is being repaired. This should only be used by instances using
+   * the `PERSISTENT` deployment type.
+   */
+  public const STATE_REPAIRING = 'REPAIRING';
   protected $collection_key = 'accessPoints';
   /**
+   * Output only. A list of IPv4 addresses used for client side configuration.
+   *
    * @var string[]
    */
   public $accessPoints;
   /**
+   * Required. Immutable. The instance's storage capacity in Gibibytes (GiB).
+   * Allowed values are between 12000 and 100000, in multiples of 4000; e.g.,
+   * 12000, 16000, 20000, ...
+   *
    * @var string
    */
   public $capacityGib;
   /**
+   * Output only. The time when the instance was created.
+   *
    * @var string
    */
   public $createTime;
   /**
+   * Output only. Deprecated: The version of DAOS software running in the
+   * instance.
+   *
+   * @deprecated
    * @var string
    */
   public $daosVersion;
   /**
+   * Optional. Immutable. The deployment type of the instance. Allowed values
+   * are: * `SCRATCH`: the instance is a scratch instance. * `PERSISTENT`: the
+   * instance is a persistent instance.
+   *
    * @var string
    */
   public $deploymentType;
   /**
+   * Optional. The description of the instance. 2048 characters or less.
+   *
    * @var string
    */
   public $description;
   /**
+   * Optional. Immutable. Stripe level for directories. Allowed values are: *
+   * `DIRECTORY_STRIPE_LEVEL_MIN`: recommended when directories contain a small
+   * number of files. * `DIRECTORY_STRIPE_LEVEL_BALANCED`: balances performance
+   * for workloads involving a mix of small and large directories. *
+   * `DIRECTORY_STRIPE_LEVEL_MAX`: recommended for directories with a large
+   * number of files.
+   *
    * @var string
    */
   public $directoryStripeLevel;
   /**
+   * Output only. Immutable. The ID of the IP address range being used by the
+   * instance's VPC network. This field is populated by the service and contains
+   * the value currently used by the service.
+   *
    * @var string
    */
   public $effectiveReservedIpRange;
   /**
+   * Optional. Immutable. Stripe level for files. Allowed values are: *
+   * `FILE_STRIPE_LEVEL_MIN`: offers the best performance for small size files.
+   * * `FILE_STRIPE_LEVEL_BALANCED`: balances performance for workloads
+   * involving a mix of small and large files. * `FILE_STRIPE_LEVEL_MAX`: higher
+   * throughput performance for larger files.
+   *
    * @var string
    */
   public $fileStripeLevel;
   /**
+   * Optional. Cloud Labels are a flexible and lightweight mechanism for
+   * organizing cloud resources into groups that reflect a customer's
+   * organizational needs and deployment strategies. See
+   * https://cloud.google.com/resource-manager/docs/labels-overview for details.
+   *
    * @var string[]
    */
   public $labels;
   /**
+   * Identifier. The resource name of the instance, in the format
+   * `projects/{project}/locations/{location}/instances/{instance_id}`.
+   *
    * @var string
    */
   public $name;
   /**
+   * Optional. Immutable. The name of the Compute Engine [VPC
+   * network](https://cloud.google.com/vpc/docs/vpc) to which the instance is
+   * connected.
+   *
    * @var string
    */
   public $network;
   /**
+   * Optional. Immutable. The ID of the IP address range being used by the
+   * instance's VPC network. See [Configure a VPC network](https://cloud.google.
+   * com/parallelstore/docs/vpc#create_and_configure_the_vpc). If no ID is
+   * provided, all ranges are considered.
+   *
    * @var string
    */
   public $reservedIpRange;
   /**
+   * Output only. The instance state.
+   *
    * @var string
    */
   public $state;
   /**
+   * Output only. The time when the instance was updated.
+   *
    * @var string
    */
   public $updateTime;
 
   /**
-   * @param string[]
+   * Output only. A list of IPv4 addresses used for client side configuration.
+   *
+   * @param string[] $accessPoints
    */
   public function setAccessPoints($accessPoints)
   {
@@ -96,7 +227,11 @@ class Instance extends \Google\Collection
     return $this->accessPoints;
   }
   /**
-   * @param string
+   * Required. Immutable. The instance's storage capacity in Gibibytes (GiB).
+   * Allowed values are between 12000 and 100000, in multiples of 4000; e.g.,
+   * 12000, 16000, 20000, ...
+   *
+   * @param string $capacityGib
    */
   public function setCapacityGib($capacityGib)
   {
@@ -110,7 +245,9 @@ class Instance extends \Google\Collection
     return $this->capacityGib;
   }
   /**
-   * @param string
+   * Output only. The time when the instance was created.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -124,13 +261,18 @@ class Instance extends \Google\Collection
     return $this->createTime;
   }
   /**
-   * @param string
+   * Output only. Deprecated: The version of DAOS software running in the
+   * instance.
+   *
+   * @deprecated
+   * @param string $daosVersion
    */
   public function setDaosVersion($daosVersion)
   {
     $this->daosVersion = $daosVersion;
   }
   /**
+   * @deprecated
    * @return string
    */
   public function getDaosVersion()
@@ -138,21 +280,29 @@ class Instance extends \Google\Collection
     return $this->daosVersion;
   }
   /**
-   * @param string
+   * Optional. Immutable. The deployment type of the instance. Allowed values
+   * are: * `SCRATCH`: the instance is a scratch instance. * `PERSISTENT`: the
+   * instance is a persistent instance.
+   *
+   * Accepted values: DEPLOYMENT_TYPE_UNSPECIFIED, SCRATCH, PERSISTENT
+   *
+   * @param self::DEPLOYMENT_TYPE_* $deploymentType
    */
   public function setDeploymentType($deploymentType)
   {
     $this->deploymentType = $deploymentType;
   }
   /**
-   * @return string
+   * @return self::DEPLOYMENT_TYPE_*
    */
   public function getDeploymentType()
   {
     return $this->deploymentType;
   }
   /**
-   * @param string
+   * Optional. The description of the instance. 2048 characters or less.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -166,21 +316,36 @@ class Instance extends \Google\Collection
     return $this->description;
   }
   /**
-   * @param string
+   * Optional. Immutable. Stripe level for directories. Allowed values are: *
+   * `DIRECTORY_STRIPE_LEVEL_MIN`: recommended when directories contain a small
+   * number of files. * `DIRECTORY_STRIPE_LEVEL_BALANCED`: balances performance
+   * for workloads involving a mix of small and large directories. *
+   * `DIRECTORY_STRIPE_LEVEL_MAX`: recommended for directories with a large
+   * number of files.
+   *
+   * Accepted values: DIRECTORY_STRIPE_LEVEL_UNSPECIFIED,
+   * DIRECTORY_STRIPE_LEVEL_MIN, DIRECTORY_STRIPE_LEVEL_BALANCED,
+   * DIRECTORY_STRIPE_LEVEL_MAX
+   *
+   * @param self::DIRECTORY_STRIPE_LEVEL_* $directoryStripeLevel
    */
   public function setDirectoryStripeLevel($directoryStripeLevel)
   {
     $this->directoryStripeLevel = $directoryStripeLevel;
   }
   /**
-   * @return string
+   * @return self::DIRECTORY_STRIPE_LEVEL_*
    */
   public function getDirectoryStripeLevel()
   {
     return $this->directoryStripeLevel;
   }
   /**
-   * @param string
+   * Output only. Immutable. The ID of the IP address range being used by the
+   * instance's VPC network. This field is populated by the service and contains
+   * the value currently used by the service.
+   *
+   * @param string $effectiveReservedIpRange
    */
   public function setEffectiveReservedIpRange($effectiveReservedIpRange)
   {
@@ -194,21 +359,35 @@ class Instance extends \Google\Collection
     return $this->effectiveReservedIpRange;
   }
   /**
-   * @param string
+   * Optional. Immutable. Stripe level for files. Allowed values are: *
+   * `FILE_STRIPE_LEVEL_MIN`: offers the best performance for small size files.
+   * * `FILE_STRIPE_LEVEL_BALANCED`: balances performance for workloads
+   * involving a mix of small and large files. * `FILE_STRIPE_LEVEL_MAX`: higher
+   * throughput performance for larger files.
+   *
+   * Accepted values: FILE_STRIPE_LEVEL_UNSPECIFIED, FILE_STRIPE_LEVEL_MIN,
+   * FILE_STRIPE_LEVEL_BALANCED, FILE_STRIPE_LEVEL_MAX
+   *
+   * @param self::FILE_STRIPE_LEVEL_* $fileStripeLevel
    */
   public function setFileStripeLevel($fileStripeLevel)
   {
     $this->fileStripeLevel = $fileStripeLevel;
   }
   /**
-   * @return string
+   * @return self::FILE_STRIPE_LEVEL_*
    */
   public function getFileStripeLevel()
   {
     return $this->fileStripeLevel;
   }
   /**
-   * @param string[]
+   * Optional. Cloud Labels are a flexible and lightweight mechanism for
+   * organizing cloud resources into groups that reflect a customer's
+   * organizational needs and deployment strategies. See
+   * https://cloud.google.com/resource-manager/docs/labels-overview for details.
+   *
+   * @param string[] $labels
    */
   public function setLabels($labels)
   {
@@ -222,7 +401,10 @@ class Instance extends \Google\Collection
     return $this->labels;
   }
   /**
-   * @param string
+   * Identifier. The resource name of the instance, in the format
+   * `projects/{project}/locations/{location}/instances/{instance_id}`.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -236,7 +418,11 @@ class Instance extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param string
+   * Optional. Immutable. The name of the Compute Engine [VPC
+   * network](https://cloud.google.com/vpc/docs/vpc) to which the instance is
+   * connected.
+   *
+   * @param string $network
    */
   public function setNetwork($network)
   {
@@ -250,7 +436,12 @@ class Instance extends \Google\Collection
     return $this->network;
   }
   /**
-   * @param string
+   * Optional. Immutable. The ID of the IP address range being used by the
+   * instance's VPC network. See [Configure a VPC network](https://cloud.google.
+   * com/parallelstore/docs/vpc#create_and_configure_the_vpc). If no ID is
+   * provided, all ranges are considered.
+   *
+   * @param string $reservedIpRange
    */
   public function setReservedIpRange($reservedIpRange)
   {
@@ -264,21 +455,28 @@ class Instance extends \Google\Collection
     return $this->reservedIpRange;
   }
   /**
-   * @param string
+   * Output only. The instance state.
+   *
+   * Accepted values: STATE_UNSPECIFIED, CREATING, ACTIVE, DELETING, FAILED,
+   * UPGRADING, REPAIRING
+   *
+   * @param self::STATE_* $state
    */
   public function setState($state)
   {
     $this->state = $state;
   }
   /**
-   * @return string
+   * @return self::STATE_*
    */
   public function getState()
   {
     return $this->state;
   }
   /**
-   * @param string
+   * Output only. The time when the instance was updated.
+   *
+   * @param string $updateTime
    */
   public function setUpdateTime($updateTime)
   {

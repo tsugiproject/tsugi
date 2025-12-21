@@ -23,12 +23,17 @@ class GoogleAnalyticsAdminV1betaListAccountsResponse extends \Google\Collection
   protected $accountsType = GoogleAnalyticsAdminV1betaAccount::class;
   protected $accountsDataType = 'array';
   /**
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param GoogleAnalyticsAdminV1betaAccount[]
+   * Results that were accessible to the caller.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccount[] $accounts
    */
   public function setAccounts($accounts)
   {
@@ -42,7 +47,10 @@ class GoogleAnalyticsAdminV1betaListAccountsResponse extends \Google\Collection
     return $this->accounts;
   }
   /**
-   * @param string
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

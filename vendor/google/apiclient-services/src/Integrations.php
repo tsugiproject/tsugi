@@ -405,7 +405,17 @@ class Integrations extends \Google\Service
         'clients',
         [
           'methods' => [
-            'deprovision' => [
+            'changeConfig' => [
+              'path' => 'v1/{+parent}/clients:changeConfig',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'deprovision' => [
               'path' => 'v1/{+parent}/clients:deprovision',
               'httpMethod' => 'POST',
               'parameters' => [
@@ -417,6 +427,16 @@ class Integrations extends \Google\Service
               ],
             ],'provision' => [
               'path' => 'v1/{+parent}/clients:provision',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'provisionClientPostProcessor' => [
+              'path' => 'v1/{+parent}/clients:provisionClientPostProcessor',
               'httpMethod' => 'POST',
               'parameters' => [
                 'parent' => [
@@ -447,6 +467,16 @@ class Integrations extends \Google\Service
               ],
             ],'switchVariableMasking' => [
               'path' => 'v1/{+parent}/clients:switchVariableMasking',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'toggleHttp' => [
+              'path' => 'v1/{+parent}/clients:toggleHttp',
               'httpMethod' => 'POST',
               'parameters' => [
                 'parent' => [
@@ -624,10 +654,6 @@ class Integrations extends \Google\Service
                   'type' => 'string',
                   'required' => true,
                 ],
-                'GCPCloudEventsMode' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
                 'triggerId' => [
                   'location' => 'query',
                   'type' => 'string',
@@ -667,6 +693,36 @@ class Integrations extends \Google\Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ],
+              ],
+            ],'search' => [
+              'path' => 'v1/{+parent}/integrations:search',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'enableNaturalLanguageQueryUnderstanding' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
+                'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'pageSize' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+                'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'query' => [
+                  'location' => 'query',
+                  'type' => 'string',
                 ],
               ],
             ],'test' => [
@@ -1013,6 +1069,16 @@ class Integrations extends \Google\Service
                   'required' => true,
                 ],
               ],
+            ],'test' => [
+              'path' => 'v1/{+name}:test',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'unpublish' => [
               'path' => 'v1/{+name}:unpublish',
               'httpMethod' => 'POST',
@@ -1139,40 +1205,6 @@ class Integrations extends \Google\Service
                 'readMask' => [
                   'location' => 'query',
                   'type' => 'string',
-                ],
-              ],
-            ],'listExecutions' => [
-              'path' => 'v1/{+parent}:executions',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'parent' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'filter' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-                'orderBy' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-                'pageSize' => [
-                  'location' => 'query',
-                  'type' => 'integer',
-                ],
-                'pageToken' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-                'readMask' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-                'truncateParams' => [
-                  'location' => 'query',
-                  'type' => 'boolean',
                 ],
               ],
             ],'patch' => [
@@ -2245,6 +2277,10 @@ class Integrations extends \Google\Service
                   'type' => 'string',
                   'required' => true,
                 ],
+                'enableNaturalLanguageQueryUnderstanding' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
                 'filter' => [
                   'location' => 'query',
                   'type' => 'string',
@@ -2258,6 +2294,10 @@ class Integrations extends \Google\Service
                   'type' => 'integer',
                 ],
                 'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'query' => [
                   'location' => 'query',
                   'type' => 'string',
                 ],

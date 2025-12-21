@@ -20,12 +20,16 @@ namespace Google\Service\Iam;
 class GoogleIamV2PolicyOperationMetadata extends \Google\Model
 {
   /**
+   * Timestamp when the `google.longrunning.Operation` was created.
+   *
    * @var string
    */
   public $createTime;
 
   /**
-   * @param string
+   * Timestamp when the `google.longrunning.Operation` was created.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {

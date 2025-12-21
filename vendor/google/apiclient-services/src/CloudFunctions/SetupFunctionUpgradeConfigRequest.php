@@ -19,6 +19,35 @@ namespace Google\Service\CloudFunctions;
 
 class SetupFunctionUpgradeConfigRequest extends \Google\Model
 {
+  /**
+   * Optional. The trigger's service account. The service account must have
+   * permission to invoke Cloud Run services, the permission is
+   * `run.routes.invoke`. If empty, defaults to the Compute Engine default
+   * service account: `{project_number}-compute@developer.gserviceaccount.com`.
+   *
+   * @var string
+   */
+  public $triggerServiceAccount;
+
+  /**
+   * Optional. The trigger's service account. The service account must have
+   * permission to invoke Cloud Run services, the permission is
+   * `run.routes.invoke`. If empty, defaults to the Compute Engine default
+   * service account: `{project_number}-compute@developer.gserviceaccount.com`.
+   *
+   * @param string $triggerServiceAccount
+   */
+  public function setTriggerServiceAccount($triggerServiceAccount)
+  {
+    $this->triggerServiceAccount = $triggerServiceAccount;
+  }
+  /**
+   * @return string
+   */
+  public function getTriggerServiceAccount()
+  {
+    return $this->triggerServiceAccount;
+  }
 }
 
 // Adding a class alias for backwards compatibility with the previous class name.

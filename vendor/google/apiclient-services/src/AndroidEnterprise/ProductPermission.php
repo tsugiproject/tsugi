@@ -20,16 +20,31 @@ namespace Google\Service\AndroidEnterprise;
 class ProductPermission extends \Google\Model
 {
   /**
+   * The permission is required by the app but has not yet been accepted by the
+   * enterprise.
+   */
+  public const STATE_required = 'required';
+  /**
+   * The permission has been accepted by the enterprise.
+   */
+  public const STATE_accepted = 'accepted';
+  /**
+   * An opaque string uniquely identifying the permission.
+   *
    * @var string
    */
   public $permissionId;
   /**
+   * Whether the permission has been accepted or not.
+   *
    * @var string
    */
   public $state;
 
   /**
-   * @param string
+   * An opaque string uniquely identifying the permission.
+   *
+   * @param string $permissionId
    */
   public function setPermissionId($permissionId)
   {
@@ -43,14 +58,18 @@ class ProductPermission extends \Google\Model
     return $this->permissionId;
   }
   /**
-   * @param string
+   * Whether the permission has been accepted or not.
+   *
+   * Accepted values: required, accepted
+   *
+   * @param self::STATE_* $state
    */
   public function setState($state)
   {
     $this->state = $state;
   }
   /**
-   * @return string
+   * @return self::STATE_*
    */
   public function getState()
   {

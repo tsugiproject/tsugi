@@ -20,34 +20,61 @@ namespace Google\Service\AirQuality;
 class AirQualityIndex extends \Google\Model
 {
   /**
+   * The index's numeric score. Examples: 10, 100. The value is not normalized
+   * and should only be interpreted in the context of its related air-quality
+   * index. For non-numeric indexes, this field will not be returned. Note: This
+   * field should be used for calculations, graph display, etc. For displaying
+   * the index score, you should use the AQI display field.
+   *
    * @var int
    */
   public $aqi;
   /**
+   * Textual representation of the index numeric score, that may include prefix
+   * or suffix symbols, which usually represents the worst index score. Example:
+   * >100 or 10+. Note: This field should be used when you want to display the
+   * index score. For non-numeric indexes, this field is empty.
+   *
    * @var string
    */
   public $aqiDisplay;
   /**
+   * Textual classification of the index numeric score interpretation. For
+   * example: "Excellent air quality".
+   *
    * @var string
    */
   public $category;
   /**
+   * The index's code. This field represents the index for programming purposes
+   * by using snake case instead of spaces. Examples: "uaqi", "fra_atmo".
+   *
    * @var string
    */
   public $code;
   protected $colorType = Color::class;
   protected $colorDataType = '';
   /**
+   * A human readable representation of the index name. Example: "AQI (US)"
+   *
    * @var string
    */
   public $displayName;
   /**
+   * The chemical symbol of the dominant pollutant. For example: "CO".
+   *
    * @var string
    */
   public $dominantPollutant;
 
   /**
-   * @param int
+   * The index's numeric score. Examples: 10, 100. The value is not normalized
+   * and should only be interpreted in the context of its related air-quality
+   * index. For non-numeric indexes, this field will not be returned. Note: This
+   * field should be used for calculations, graph display, etc. For displaying
+   * the index score, you should use the AQI display field.
+   *
+   * @param int $aqi
    */
   public function setAqi($aqi)
   {
@@ -61,7 +88,12 @@ class AirQualityIndex extends \Google\Model
     return $this->aqi;
   }
   /**
-   * @param string
+   * Textual representation of the index numeric score, that may include prefix
+   * or suffix symbols, which usually represents the worst index score. Example:
+   * >100 or 10+. Note: This field should be used when you want to display the
+   * index score. For non-numeric indexes, this field is empty.
+   *
+   * @param string $aqiDisplay
    */
   public function setAqiDisplay($aqiDisplay)
   {
@@ -75,7 +107,10 @@ class AirQualityIndex extends \Google\Model
     return $this->aqiDisplay;
   }
   /**
-   * @param string
+   * Textual classification of the index numeric score interpretation. For
+   * example: "Excellent air quality".
+   *
+   * @param string $category
    */
   public function setCategory($category)
   {
@@ -89,7 +124,10 @@ class AirQualityIndex extends \Google\Model
     return $this->category;
   }
   /**
-   * @param string
+   * The index's code. This field represents the index for programming purposes
+   * by using snake case instead of spaces. Examples: "uaqi", "fra_atmo".
+   *
+   * @param string $code
    */
   public function setCode($code)
   {
@@ -103,7 +141,9 @@ class AirQualityIndex extends \Google\Model
     return $this->code;
   }
   /**
-   * @param Color
+   * The color used to represent the AQI numeric score.
+   *
+   * @param Color $color
    */
   public function setColor(Color $color)
   {
@@ -117,7 +157,9 @@ class AirQualityIndex extends \Google\Model
     return $this->color;
   }
   /**
-   * @param string
+   * A human readable representation of the index name. Example: "AQI (US)"
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -131,7 +173,9 @@ class AirQualityIndex extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param string
+   * The chemical symbol of the dominant pollutant. For example: "CO".
+   *
+   * @param string $dominantPollutant
    */
   public function setDominantPollutant($dominantPollutant)
   {

@@ -19,9 +19,38 @@ namespace Google\Service\Slides;
 
 class ShapeProperties extends \Google\Model
 {
+  /**
+   * An unspecified content alignment. The content alignment is inherited from
+   * the parent if it exists.
+   */
+  public const CONTENT_ALIGNMENT_CONTENT_ALIGNMENT_UNSPECIFIED = 'CONTENT_ALIGNMENT_UNSPECIFIED';
+  /**
+   * An unsupported content alignment.
+   */
+  public const CONTENT_ALIGNMENT_CONTENT_ALIGNMENT_UNSUPPORTED = 'CONTENT_ALIGNMENT_UNSUPPORTED';
+  /**
+   * An alignment that aligns the content to the top of the content holder.
+   * Corresponds to ECMA-376 ST_TextAnchoringType 't'.
+   */
+  public const CONTENT_ALIGNMENT_TOP = 'TOP';
+  /**
+   * An alignment that aligns the content to the middle of the content holder.
+   * Corresponds to ECMA-376 ST_TextAnchoringType 'ctr'.
+   */
+  public const CONTENT_ALIGNMENT_MIDDLE = 'MIDDLE';
+  /**
+   * An alignment that aligns the content to the bottom of the content holder.
+   * Corresponds to ECMA-376 ST_TextAnchoringType 'b'.
+   */
+  public const CONTENT_ALIGNMENT_BOTTOM = 'BOTTOM';
   protected $autofitType = Autofit::class;
   protected $autofitDataType = '';
   /**
+   * The alignment of the content in the shape. If unspecified, the alignment is
+   * inherited from a parent placeholder if it exists. If the shape has no
+   * parent, the default alignment matches the alignment for new shapes created
+   * in the Slides editor.
+   *
    * @var string
    */
   public $contentAlignment;
@@ -35,7 +64,10 @@ class ShapeProperties extends \Google\Model
   protected $shapeBackgroundFillDataType = '';
 
   /**
-   * @param Autofit
+   * The autofit properties of the shape. This property is only set for shapes
+   * that allow text.
+   *
+   * @param Autofit $autofit
    */
   public function setAutofit(Autofit $autofit)
   {
@@ -49,21 +81,32 @@ class ShapeProperties extends \Google\Model
     return $this->autofit;
   }
   /**
-   * @param string
+   * The alignment of the content in the shape. If unspecified, the alignment is
+   * inherited from a parent placeholder if it exists. If the shape has no
+   * parent, the default alignment matches the alignment for new shapes created
+   * in the Slides editor.
+   *
+   * Accepted values: CONTENT_ALIGNMENT_UNSPECIFIED,
+   * CONTENT_ALIGNMENT_UNSUPPORTED, TOP, MIDDLE, BOTTOM
+   *
+   * @param self::CONTENT_ALIGNMENT_* $contentAlignment
    */
   public function setContentAlignment($contentAlignment)
   {
     $this->contentAlignment = $contentAlignment;
   }
   /**
-   * @return string
+   * @return self::CONTENT_ALIGNMENT_*
    */
   public function getContentAlignment()
   {
     return $this->contentAlignment;
   }
   /**
-   * @param Link
+   * The hyperlink destination of the shape. If unset, there is no link. Links
+   * are not inherited from parent placeholders.
+   *
+   * @param Link $link
    */
   public function setLink(Link $link)
   {
@@ -77,7 +120,12 @@ class ShapeProperties extends \Google\Model
     return $this->link;
   }
   /**
-   * @param Outline
+   * The outline of the shape. If unset, the outline is inherited from a parent
+   * placeholder if it exists. If the shape has no parent, then the default
+   * outline depends on the shape type, matching the defaults for new shapes
+   * created in the Slides editor.
+   *
+   * @param Outline $outline
    */
   public function setOutline(Outline $outline)
   {
@@ -91,7 +139,12 @@ class ShapeProperties extends \Google\Model
     return $this->outline;
   }
   /**
-   * @param Shadow
+   * The shadow properties of the shape. If unset, the shadow is inherited from
+   * a parent placeholder if it exists. If the shape has no parent, then the
+   * default shadow matches the defaults for new shapes created in the Slides
+   * editor. This property is read-only.
+   *
+   * @param Shadow $shadow
    */
   public function setShadow(Shadow $shadow)
   {
@@ -105,7 +158,12 @@ class ShapeProperties extends \Google\Model
     return $this->shadow;
   }
   /**
-   * @param ShapeBackgroundFill
+   * The background fill of the shape. If unset, the background fill is
+   * inherited from a parent placeholder if it exists. If the shape has no
+   * parent, then the default background fill depends on the shape type,
+   * matching the defaults for new shapes created in the Slides editor.
+   *
+   * @param ShapeBackgroundFill $shapeBackgroundFill
    */
   public function setShapeBackgroundFill(ShapeBackgroundFill $shapeBackgroundFill)
   {

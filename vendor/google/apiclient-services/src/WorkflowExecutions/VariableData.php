@@ -20,12 +20,16 @@ namespace Google\Service\WorkflowExecutions;
 class VariableData extends \Google\Model
 {
   /**
+   * Variables that are associated with this step.
+   *
    * @var array[]
    */
   public $variables;
 
   /**
-   * @param array[]
+   * Variables that are associated with this step.
+   *
+   * @param array[] $variables
    */
   public function setVariables($variables)
   {

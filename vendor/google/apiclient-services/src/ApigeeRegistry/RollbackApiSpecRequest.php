@@ -20,12 +20,18 @@ namespace Google\Service\ApigeeRegistry;
 class RollbackApiSpecRequest extends \Google\Model
 {
   /**
+   * Required. The revision ID to roll back to. It must be a revision of the
+   * same spec. Example: `c7cfa2a8`
+   *
    * @var string
    */
   public $revisionId;
 
   /**
-   * @param string
+   * Required. The revision ID to roll back to. It must be a revision of the
+   * same spec. Example: `c7cfa2a8`
+   *
+   * @param string $revisionId
    */
   public function setRevisionId($revisionId)
   {

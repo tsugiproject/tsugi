@@ -22,16 +22,24 @@ class Circle extends \Google\Model
   protected $latLngType = LatLng::class;
   protected $latLngDataType = '';
   /**
+   * **Format:** Must be in the format `places/PLACE_ID`, where `PLACE_ID` is
+   * the unique identifier of a place. For example:
+   * `places/ChIJgUbEo8cfqokR5lP9_Wh_DaM`.
+   *
    * @var string
    */
   public $place;
   /**
+   * Optional. The radius of the circle in meters
+   *
    * @var int
    */
   public $radius;
 
   /**
-   * @param LatLng
+   * The latitude and longitude of the center of the circle.
+   *
+   * @param LatLng $latLng
    */
   public function setLatLng(LatLng $latLng)
   {
@@ -45,7 +53,11 @@ class Circle extends \Google\Model
     return $this->latLng;
   }
   /**
-   * @param string
+   * **Format:** Must be in the format `places/PLACE_ID`, where `PLACE_ID` is
+   * the unique identifier of a place. For example:
+   * `places/ChIJgUbEo8cfqokR5lP9_Wh_DaM`.
+   *
+   * @param string $place
    */
   public function setPlace($place)
   {
@@ -59,7 +71,9 @@ class Circle extends \Google\Model
     return $this->place;
   }
   /**
-   * @param int
+   * Optional. The radius of the circle in meters
+   *
+   * @param int $radius
    */
   public function setRadius($radius)
   {

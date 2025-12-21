@@ -21,78 +21,163 @@ class CalendarListEntry extends \Google\Collection
 {
   protected $collection_key = 'defaultReminders';
   /**
+   * The effective access role that the authenticated user has on the calendar.
+   * Read-only. Possible values are: - "freeBusyReader" - Provides read access
+   * to free/busy information.  - "reader" - Provides read access to the
+   * calendar. Private events will appear to users with reader access, but event
+   * details will be hidden.  - "writer" - Provides read and write access to the
+   * calendar. Private events will appear to users with writer access, and event
+   * details will be visible.  - "owner" - Provides manager access to the
+   * calendar. This role has all of the permissions of the writer role with the
+   * additional ability to see and modify access levels of other users.
+   * Important: the owner role is different from the calendar's data owner. A
+   * calendar has a single data owner, but can have multiple users with owner
+   * role.
+   *
    * @var string
    */
   public $accessRole;
   /**
+   * Whether this calendar automatically accepts invitations. Only valid for
+   * resource calendars. Read-only.
+   *
+   * @var bool
+   */
+  public $autoAcceptInvitations;
+  /**
+   * The main color of the calendar in the hexadecimal format "#0088aa". This
+   * property supersedes the index-based colorId property. To set or change this
+   * property, you need to specify colorRgbFormat=true in the parameters of the
+   * insert, update and patch methods. Optional.
+   *
    * @var string
    */
   public $backgroundColor;
   /**
+   * The color of the calendar. This is an ID referring to an entry in the
+   * calendar section of the colors definition (see the colors endpoint). This
+   * property is superseded by the backgroundColor and foregroundColor
+   * properties and can be ignored when using these properties. Optional.
+   *
    * @var string
    */
   public $colorId;
   protected $conferencePropertiesType = ConferenceProperties::class;
   protected $conferencePropertiesDataType = '';
+  /**
+   * The email of the owner of the calendar. Set only for secondary calendars.
+   * Read-only.
+   *
+   * @var string
+   */
+  public $dataOwner;
   protected $defaultRemindersType = EventReminder::class;
   protected $defaultRemindersDataType = 'array';
   /**
+   * Whether this calendar list entry has been deleted from the calendar list.
+   * Read-only. Optional. The default is False.
+   *
    * @var bool
    */
   public $deleted;
   /**
+   * Description of the calendar. Optional. Read-only.
+   *
    * @var string
    */
   public $description;
   /**
+   * ETag of the resource.
+   *
    * @var string
    */
   public $etag;
   /**
+   * The foreground color of the calendar in the hexadecimal format "#ffffff".
+   * This property supersedes the index-based colorId property. To set or change
+   * this property, you need to specify colorRgbFormat=true in the parameters of
+   * the insert, update and patch methods. Optional.
+   *
    * @var string
    */
   public $foregroundColor;
   /**
+   * Whether the calendar has been hidden from the list. Optional. The attribute
+   * is only returned when the calendar is hidden, in which case the value is
+   * true.
+   *
    * @var bool
    */
   public $hidden;
   /**
+   * Identifier of the calendar.
+   *
    * @var string
    */
   public $id;
   /**
+   * Type of the resource ("calendar#calendarListEntry").
+   *
    * @var string
    */
   public $kind;
   /**
+   * Geographic location of the calendar as free-form text. Optional. Read-only.
+   *
    * @var string
    */
   public $location;
   protected $notificationSettingsType = CalendarListEntryNotificationSettings::class;
   protected $notificationSettingsDataType = '';
   /**
+   * Whether the calendar is the primary calendar of the authenticated user.
+   * Read-only. Optional. The default is False.
+   *
    * @var bool
    */
   public $primary;
   /**
+   * Whether the calendar content shows up in the calendar UI. Optional. The
+   * default is False.
+   *
    * @var bool
    */
   public $selected;
   /**
+   * Title of the calendar. Read-only.
+   *
    * @var string
    */
   public $summary;
   /**
+   * The summary that the authenticated user has set for this calendar.
+   * Optional.
+   *
    * @var string
    */
   public $summaryOverride;
   /**
+   * The time zone of the calendar. Optional. Read-only.
+   *
    * @var string
    */
   public $timeZone;
 
   /**
-   * @param string
+   * The effective access role that the authenticated user has on the calendar.
+   * Read-only. Possible values are: - "freeBusyReader" - Provides read access
+   * to free/busy information.  - "reader" - Provides read access to the
+   * calendar. Private events will appear to users with reader access, but event
+   * details will be hidden.  - "writer" - Provides read and write access to the
+   * calendar. Private events will appear to users with writer access, and event
+   * details will be visible.  - "owner" - Provides manager access to the
+   * calendar. This role has all of the permissions of the writer role with the
+   * additional ability to see and modify access levels of other users.
+   * Important: the owner role is different from the calendar's data owner. A
+   * calendar has a single data owner, but can have multiple users with owner
+   * role.
+   *
+   * @param string $accessRole
    */
   public function setAccessRole($accessRole)
   {
@@ -106,7 +191,29 @@ class CalendarListEntry extends \Google\Collection
     return $this->accessRole;
   }
   /**
-   * @param string
+   * Whether this calendar automatically accepts invitations. Only valid for
+   * resource calendars. Read-only.
+   *
+   * @param bool $autoAcceptInvitations
+   */
+  public function setAutoAcceptInvitations($autoAcceptInvitations)
+  {
+    $this->autoAcceptInvitations = $autoAcceptInvitations;
+  }
+  /**
+   * @return bool
+   */
+  public function getAutoAcceptInvitations()
+  {
+    return $this->autoAcceptInvitations;
+  }
+  /**
+   * The main color of the calendar in the hexadecimal format "#0088aa". This
+   * property supersedes the index-based colorId property. To set or change this
+   * property, you need to specify colorRgbFormat=true in the parameters of the
+   * insert, update and patch methods. Optional.
+   *
+   * @param string $backgroundColor
    */
   public function setBackgroundColor($backgroundColor)
   {
@@ -120,7 +227,12 @@ class CalendarListEntry extends \Google\Collection
     return $this->backgroundColor;
   }
   /**
-   * @param string
+   * The color of the calendar. This is an ID referring to an entry in the
+   * calendar section of the colors definition (see the colors endpoint). This
+   * property is superseded by the backgroundColor and foregroundColor
+   * properties and can be ignored when using these properties. Optional.
+   *
+   * @param string $colorId
    */
   public function setColorId($colorId)
   {
@@ -134,7 +246,10 @@ class CalendarListEntry extends \Google\Collection
     return $this->colorId;
   }
   /**
-   * @param ConferenceProperties
+   * Conferencing properties for this calendar, for example what types of
+   * conferences are allowed.
+   *
+   * @param ConferenceProperties $conferenceProperties
    */
   public function setConferenceProperties(ConferenceProperties $conferenceProperties)
   {
@@ -148,7 +263,26 @@ class CalendarListEntry extends \Google\Collection
     return $this->conferenceProperties;
   }
   /**
-   * @param EventReminder[]
+   * The email of the owner of the calendar. Set only for secondary calendars.
+   * Read-only.
+   *
+   * @param string $dataOwner
+   */
+  public function setDataOwner($dataOwner)
+  {
+    $this->dataOwner = $dataOwner;
+  }
+  /**
+   * @return string
+   */
+  public function getDataOwner()
+  {
+    return $this->dataOwner;
+  }
+  /**
+   * The default reminders that the authenticated user has for this calendar.
+   *
+   * @param EventReminder[] $defaultReminders
    */
   public function setDefaultReminders($defaultReminders)
   {
@@ -162,7 +296,10 @@ class CalendarListEntry extends \Google\Collection
     return $this->defaultReminders;
   }
   /**
-   * @param bool
+   * Whether this calendar list entry has been deleted from the calendar list.
+   * Read-only. Optional. The default is False.
+   *
+   * @param bool $deleted
    */
   public function setDeleted($deleted)
   {
@@ -176,7 +313,9 @@ class CalendarListEntry extends \Google\Collection
     return $this->deleted;
   }
   /**
-   * @param string
+   * Description of the calendar. Optional. Read-only.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -190,7 +329,9 @@ class CalendarListEntry extends \Google\Collection
     return $this->description;
   }
   /**
-   * @param string
+   * ETag of the resource.
+   *
+   * @param string $etag
    */
   public function setEtag($etag)
   {
@@ -204,7 +345,12 @@ class CalendarListEntry extends \Google\Collection
     return $this->etag;
   }
   /**
-   * @param string
+   * The foreground color of the calendar in the hexadecimal format "#ffffff".
+   * This property supersedes the index-based colorId property. To set or change
+   * this property, you need to specify colorRgbFormat=true in the parameters of
+   * the insert, update and patch methods. Optional.
+   *
+   * @param string $foregroundColor
    */
   public function setForegroundColor($foregroundColor)
   {
@@ -218,7 +364,11 @@ class CalendarListEntry extends \Google\Collection
     return $this->foregroundColor;
   }
   /**
-   * @param bool
+   * Whether the calendar has been hidden from the list. Optional. The attribute
+   * is only returned when the calendar is hidden, in which case the value is
+   * true.
+   *
+   * @param bool $hidden
    */
   public function setHidden($hidden)
   {
@@ -232,7 +382,9 @@ class CalendarListEntry extends \Google\Collection
     return $this->hidden;
   }
   /**
-   * @param string
+   * Identifier of the calendar.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -246,7 +398,9 @@ class CalendarListEntry extends \Google\Collection
     return $this->id;
   }
   /**
-   * @param string
+   * Type of the resource ("calendar#calendarListEntry").
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -260,7 +414,9 @@ class CalendarListEntry extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * Geographic location of the calendar as free-form text. Optional. Read-only.
+   *
+   * @param string $location
    */
   public function setLocation($location)
   {
@@ -274,7 +430,10 @@ class CalendarListEntry extends \Google\Collection
     return $this->location;
   }
   /**
-   * @param CalendarListEntryNotificationSettings
+   * The notifications that the authenticated user is receiving for this
+   * calendar.
+   *
+   * @param CalendarListEntryNotificationSettings $notificationSettings
    */
   public function setNotificationSettings(CalendarListEntryNotificationSettings $notificationSettings)
   {
@@ -288,7 +447,10 @@ class CalendarListEntry extends \Google\Collection
     return $this->notificationSettings;
   }
   /**
-   * @param bool
+   * Whether the calendar is the primary calendar of the authenticated user.
+   * Read-only. Optional. The default is False.
+   *
+   * @param bool $primary
    */
   public function setPrimary($primary)
   {
@@ -302,7 +464,10 @@ class CalendarListEntry extends \Google\Collection
     return $this->primary;
   }
   /**
-   * @param bool
+   * Whether the calendar content shows up in the calendar UI. Optional. The
+   * default is False.
+   *
+   * @param bool $selected
    */
   public function setSelected($selected)
   {
@@ -316,7 +481,9 @@ class CalendarListEntry extends \Google\Collection
     return $this->selected;
   }
   /**
-   * @param string
+   * Title of the calendar. Read-only.
+   *
+   * @param string $summary
    */
   public function setSummary($summary)
   {
@@ -330,7 +497,10 @@ class CalendarListEntry extends \Google\Collection
     return $this->summary;
   }
   /**
-   * @param string
+   * The summary that the authenticated user has set for this calendar.
+   * Optional.
+   *
+   * @param string $summaryOverride
    */
   public function setSummaryOverride($summaryOverride)
   {
@@ -344,7 +514,9 @@ class CalendarListEntry extends \Google\Collection
     return $this->summaryOverride;
   }
   /**
-   * @param string
+   * The time zone of the calendar. Optional. Read-only.
+   *
+   * @param string $timeZone
    */
   public function setTimeZone($timeZone)
   {

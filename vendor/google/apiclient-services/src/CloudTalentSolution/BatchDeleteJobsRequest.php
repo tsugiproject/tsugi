@@ -21,12 +21,22 @@ class BatchDeleteJobsRequest extends \Google\Collection
 {
   protected $collection_key = 'names';
   /**
+   * The names of the jobs to delete. The format is
+   * "projects/{project_id}/tenants/{tenant_id}/jobs/{job_id}". For example,
+   * "projects/foo/tenants/bar/jobs/baz". A maximum of 200 jobs can be deleted
+   * in a batch.
+   *
    * @var string[]
    */
   public $names;
 
   /**
-   * @param string[]
+   * The names of the jobs to delete. The format is
+   * "projects/{project_id}/tenants/{tenant_id}/jobs/{job_id}". For example,
+   * "projects/foo/tenants/bar/jobs/baz". A maximum of 200 jobs can be deleted
+   * in a batch.
+   *
+   * @param string[] $names
    */
   public function setNames($names)
   {

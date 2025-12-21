@@ -26,7 +26,10 @@ class GoogleAnalyticsAdminV1betaAccessRow extends \Google\Collection
   protected $metricValuesDataType = 'array';
 
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessDimensionValue[]
+   * List of dimension values. These values are in the same order as specified
+   * in the request.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessDimensionValue[] $dimensionValues
    */
   public function setDimensionValues($dimensionValues)
   {
@@ -40,7 +43,10 @@ class GoogleAnalyticsAdminV1betaAccessRow extends \Google\Collection
     return $this->dimensionValues;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessMetricValue[]
+   * List of metric values. These values are in the same order as specified in
+   * the request.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessMetricValue[] $metricValues
    */
   public function setMetricValues($metricValues)
   {

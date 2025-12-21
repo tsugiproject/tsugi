@@ -26,7 +26,11 @@ class BatchGetAmpUrlsResponse extends \Google\Collection
   protected $urlErrorsDataType = 'array';
 
   /**
-   * @param AmpUrl[]
+   * For each URL in BatchAmpUrlsRequest, the URL response. The response might
+   * not be in the same order as URLs in the batch request. If
+   * BatchAmpUrlsRequest contains duplicate URLs, AmpUrl is generated only once.
+   *
+   * @param AmpUrl[] $ampUrls
    */
   public function setAmpUrls($ampUrls)
   {
@@ -40,7 +44,9 @@ class BatchGetAmpUrlsResponse extends \Google\Collection
     return $this->ampUrls;
   }
   /**
-   * @param AmpUrlError[]
+   * The errors for requested URLs that have no AMP URL.
+   *
+   * @param AmpUrlError[] $urlErrors
    */
   public function setUrlErrors($urlErrors)
   {

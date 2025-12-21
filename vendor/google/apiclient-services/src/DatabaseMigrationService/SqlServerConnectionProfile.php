@@ -22,24 +22,58 @@ class SqlServerConnectionProfile extends \Google\Model
   protected $backupsType = SqlServerBackups::class;
   protected $backupsDataType = '';
   /**
+   * If the source is a Cloud SQL database, use this field to provide the Cloud
+   * SQL instance ID of the source.
+   *
    * @var string
    */
   public $cloudSqlId;
+  /**
+   * Optional. The project id of the Cloud SQL instance. If not provided, the
+   * project id of the connection profile will be used.
+   *
+   * @var string
+   */
+  public $cloudSqlProjectId;
+  /**
+   * Required. The name of the specific database within the host.
+   *
+   * @var string
+   */
+  public $database;
+  /**
+   * Optional. The Database Mirroring (DBM) port of the source SQL Server
+   * instance.
+   *
+   * @var int
+   */
+  public $dbmPort;
   protected $forwardSshConnectivityType = ForwardSshTunnelConnectivity::class;
   protected $forwardSshConnectivityDataType = '';
   /**
+   * Required. The IP or hostname of the source SQL Server database.
+   *
    * @var string
    */
   public $host;
   /**
+   * Required. Input only. The password for the user that Database Migration
+   * Service will be using to connect to the database. This field is not
+   * returned on request, and the value is encrypted when stored in Database
+   * Migration Service.
+   *
    * @var string
    */
   public $password;
   /**
+   * Output only. Indicates whether a new password is included in the request.
+   *
    * @var bool
    */
   public $passwordSet;
   /**
+   * Required. The network port of the source SQL Server database.
+   *
    * @var int
    */
   public $port;
@@ -52,12 +86,19 @@ class SqlServerConnectionProfile extends \Google\Model
   protected $staticIpConnectivityType = StaticIpConnectivity::class;
   protected $staticIpConnectivityDataType = '';
   /**
+   * Required. The username that Database Migration Service will use to connect
+   * to the database. The value is encrypted when stored in Database Migration
+   * Service.
+   *
    * @var string
    */
   public $username;
 
   /**
-   * @param SqlServerBackups
+   * The backup details in Cloud Storage for homogeneous migration to Cloud SQL
+   * for SQL Server.
+   *
+   * @param SqlServerBackups $backups
    */
   public function setBackups(SqlServerBackups $backups)
   {
@@ -71,7 +112,10 @@ class SqlServerConnectionProfile extends \Google\Model
     return $this->backups;
   }
   /**
-   * @param string
+   * If the source is a Cloud SQL database, use this field to provide the Cloud
+   * SQL instance ID of the source.
+   *
+   * @param string $cloudSqlId
    */
   public function setCloudSqlId($cloudSqlId)
   {
@@ -85,7 +129,59 @@ class SqlServerConnectionProfile extends \Google\Model
     return $this->cloudSqlId;
   }
   /**
-   * @param ForwardSshTunnelConnectivity
+   * Optional. The project id of the Cloud SQL instance. If not provided, the
+   * project id of the connection profile will be used.
+   *
+   * @param string $cloudSqlProjectId
+   */
+  public function setCloudSqlProjectId($cloudSqlProjectId)
+  {
+    $this->cloudSqlProjectId = $cloudSqlProjectId;
+  }
+  /**
+   * @return string
+   */
+  public function getCloudSqlProjectId()
+  {
+    return $this->cloudSqlProjectId;
+  }
+  /**
+   * Required. The name of the specific database within the host.
+   *
+   * @param string $database
+   */
+  public function setDatabase($database)
+  {
+    $this->database = $database;
+  }
+  /**
+   * @return string
+   */
+  public function getDatabase()
+  {
+    return $this->database;
+  }
+  /**
+   * Optional. The Database Mirroring (DBM) port of the source SQL Server
+   * instance.
+   *
+   * @param int $dbmPort
+   */
+  public function setDbmPort($dbmPort)
+  {
+    $this->dbmPort = $dbmPort;
+  }
+  /**
+   * @return int
+   */
+  public function getDbmPort()
+  {
+    return $this->dbmPort;
+  }
+  /**
+   * Forward SSH tunnel connectivity.
+   *
+   * @param ForwardSshTunnelConnectivity $forwardSshConnectivity
    */
   public function setForwardSshConnectivity(ForwardSshTunnelConnectivity $forwardSshConnectivity)
   {
@@ -99,7 +195,9 @@ class SqlServerConnectionProfile extends \Google\Model
     return $this->forwardSshConnectivity;
   }
   /**
-   * @param string
+   * Required. The IP or hostname of the source SQL Server database.
+   *
+   * @param string $host
    */
   public function setHost($host)
   {
@@ -113,7 +211,12 @@ class SqlServerConnectionProfile extends \Google\Model
     return $this->host;
   }
   /**
-   * @param string
+   * Required. Input only. The password for the user that Database Migration
+   * Service will be using to connect to the database. This field is not
+   * returned on request, and the value is encrypted when stored in Database
+   * Migration Service.
+   *
+   * @param string $password
    */
   public function setPassword($password)
   {
@@ -127,7 +230,9 @@ class SqlServerConnectionProfile extends \Google\Model
     return $this->password;
   }
   /**
-   * @param bool
+   * Output only. Indicates whether a new password is included in the request.
+   *
+   * @param bool $passwordSet
    */
   public function setPasswordSet($passwordSet)
   {
@@ -141,7 +246,9 @@ class SqlServerConnectionProfile extends \Google\Model
     return $this->passwordSet;
   }
   /**
-   * @param int
+   * Required. The network port of the source SQL Server database.
+   *
+   * @param int $port
    */
   public function setPort($port)
   {
@@ -155,7 +262,9 @@ class SqlServerConnectionProfile extends \Google\Model
     return $this->port;
   }
   /**
-   * @param PrivateConnectivity
+   * Private connectivity.
+   *
+   * @param PrivateConnectivity $privateConnectivity
    */
   public function setPrivateConnectivity(PrivateConnectivity $privateConnectivity)
   {
@@ -169,7 +278,9 @@ class SqlServerConnectionProfile extends \Google\Model
     return $this->privateConnectivity;
   }
   /**
-   * @param PrivateServiceConnectConnectivity
+   * Private Service Connect connectivity.
+   *
+   * @param PrivateServiceConnectConnectivity $privateServiceConnectConnectivity
    */
   public function setPrivateServiceConnectConnectivity(PrivateServiceConnectConnectivity $privateServiceConnectConnectivity)
   {
@@ -183,7 +294,9 @@ class SqlServerConnectionProfile extends \Google\Model
     return $this->privateServiceConnectConnectivity;
   }
   /**
-   * @param SslConfig
+   * SSL configuration for the destination to connect to the source database.
+   *
+   * @param SslConfig $ssl
    */
   public function setSsl(SslConfig $ssl)
   {
@@ -197,7 +310,9 @@ class SqlServerConnectionProfile extends \Google\Model
     return $this->ssl;
   }
   /**
-   * @param StaticIpConnectivity
+   * Static IP connectivity data (default, no additional details needed).
+   *
+   * @param StaticIpConnectivity $staticIpConnectivity
    */
   public function setStaticIpConnectivity(StaticIpConnectivity $staticIpConnectivity)
   {
@@ -211,7 +326,11 @@ class SqlServerConnectionProfile extends \Google\Model
     return $this->staticIpConnectivity;
   }
   /**
-   * @param string
+   * Required. The username that Database Migration Service will use to connect
+   * to the database. The value is encrypted when stored in Database Migration
+   * Service.
+   *
+   * @param string $username
    */
   public function setUsername($username)
   {

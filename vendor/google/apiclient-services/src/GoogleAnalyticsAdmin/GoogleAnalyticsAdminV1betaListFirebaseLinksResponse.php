@@ -23,12 +23,19 @@ class GoogleAnalyticsAdminV1betaListFirebaseLinksResponse extends \Google\Collec
   protected $firebaseLinksType = GoogleAnalyticsAdminV1betaFirebaseLink::class;
   protected $firebaseLinksDataType = 'array';
   /**
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages. Currently, Google
+   * Analytics supports only one FirebaseLink per property, so this will never
+   * be populated.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param GoogleAnalyticsAdminV1betaFirebaseLink[]
+   * List of FirebaseLinks. This will have at most one value.
+   *
+   * @param GoogleAnalyticsAdminV1betaFirebaseLink[] $firebaseLinks
    */
   public function setFirebaseLinks($firebaseLinks)
   {
@@ -42,7 +49,12 @@ class GoogleAnalyticsAdminV1betaListFirebaseLinksResponse extends \Google\Collec
     return $this->firebaseLinks;
   }
   /**
-   * @param string
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages. Currently, Google
+   * Analytics supports only one FirebaseLink per property, so this will never
+   * be populated.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

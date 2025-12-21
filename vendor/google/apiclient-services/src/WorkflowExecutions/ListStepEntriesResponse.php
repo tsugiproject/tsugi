@@ -21,18 +21,30 @@ class ListStepEntriesResponse extends \Google\Collection
 {
   protected $collection_key = 'stepEntries';
   /**
+   * A token to retrieve next page of results. Pass this value in the
+   * ListStepEntriesRequest.page_token field in the subsequent call to
+   * `ListStepEntries` method to retrieve the next page of results.
+   *
    * @var string
    */
   public $nextPageToken;
   protected $stepEntriesType = StepEntry::class;
   protected $stepEntriesDataType = 'array';
   /**
+   * Indicates the total number of StepEntries that matched the request filter.
+   * For running executions, this number shows the number of StepEntries that
+   * are executed thus far.
+   *
    * @var int
    */
   public $totalSize;
 
   /**
-   * @param string
+   * A token to retrieve next page of results. Pass this value in the
+   * ListStepEntriesRequest.page_token field in the subsequent call to
+   * `ListStepEntries` method to retrieve the next page of results.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -46,7 +58,9 @@ class ListStepEntriesResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param StepEntry[]
+   * The list of entries.
+   *
+   * @param StepEntry[] $stepEntries
    */
   public function setStepEntries($stepEntries)
   {
@@ -60,7 +74,11 @@ class ListStepEntriesResponse extends \Google\Collection
     return $this->stepEntries;
   }
   /**
-   * @param int
+   * Indicates the total number of StepEntries that matched the request filter.
+   * For running executions, this number shows the number of StepEntries that
+   * are executed thus far.
+   *
+   * @param int $totalSize
    */
   public function setTotalSize($totalSize)
   {

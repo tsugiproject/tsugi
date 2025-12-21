@@ -20,12 +20,22 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaAccessDimension extends \Google\Model
 {
   /**
+   * The API name of the dimension. See [Data Access Schema](https://developers.
+   * google.com/analytics/devguides/config/admin/v1/access-api-schema) for the
+   * list of dimensions supported in this API. Dimensions are referenced by name
+   * in `dimensionFilter` and `orderBys`.
+   *
    * @var string
    */
   public $dimensionName;
 
   /**
-   * @param string
+   * The API name of the dimension. See [Data Access Schema](https://developers.
+   * google.com/analytics/devguides/config/admin/v1/access-api-schema) for the
+   * list of dimensions supported in this API. Dimensions are referenced by name
+   * in `dimensionFilter` and `orderBys`.
+   *
+   * @param string $dimensionName
    */
   public function setDimensionName($dimensionName)
   {

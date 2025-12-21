@@ -21,24 +21,48 @@ class CustomAttribute extends \Google\Collection
 {
   protected $collection_key = 'stringValues';
   /**
+   * If the `filterable` flag is true, the custom field values may be used for
+   * custom attribute filters JobQuery.custom_attribute_filter. If false, these
+   * values may not be used for custom attribute filters. Default is false.
+   *
    * @var bool
    */
   public $filterable;
   /**
+   * If the `keyword_searchable` flag is true, the keywords in custom fields are
+   * searchable by keyword match. If false, the values are not searchable by
+   * keyword match. Default is false.
+   *
    * @var bool
    */
   public $keywordSearchable;
   /**
+   * Exactly one of string_values or long_values must be specified. This field
+   * is used to perform number range search. (`EQ`, `GT`, `GE`, `LE`, `LT`) over
+   * filterable `long_value`. Currently at most 1 long_values is supported.
+   *
    * @var string[]
    */
   public $longValues;
   /**
+   * Exactly one of string_values or long_values must be specified. This field
+   * is used to perform a string match (`CASE_SENSITIVE_MATCH` or
+   * `CASE_INSENSITIVE_MATCH`) search. For filterable `string_value`s, a maximum
+   * total number of 200 values is allowed, with each `string_value` has a byte
+   * size of no more than 500B. For unfilterable `string_values`, the maximum
+   * total byte size of unfilterable `string_values` is 50KB. Empty string isn't
+   * allowed.
+   *
    * @var string[]
    */
   public $stringValues;
 
   /**
-   * @param bool
+   * If the `filterable` flag is true, the custom field values may be used for
+   * custom attribute filters JobQuery.custom_attribute_filter. If false, these
+   * values may not be used for custom attribute filters. Default is false.
+   *
+   * @param bool $filterable
    */
   public function setFilterable($filterable)
   {
@@ -52,7 +76,11 @@ class CustomAttribute extends \Google\Collection
     return $this->filterable;
   }
   /**
-   * @param bool
+   * If the `keyword_searchable` flag is true, the keywords in custom fields are
+   * searchable by keyword match. If false, the values are not searchable by
+   * keyword match. Default is false.
+   *
+   * @param bool $keywordSearchable
    */
   public function setKeywordSearchable($keywordSearchable)
   {
@@ -66,7 +94,11 @@ class CustomAttribute extends \Google\Collection
     return $this->keywordSearchable;
   }
   /**
-   * @param string[]
+   * Exactly one of string_values or long_values must be specified. This field
+   * is used to perform number range search. (`EQ`, `GT`, `GE`, `LE`, `LT`) over
+   * filterable `long_value`. Currently at most 1 long_values is supported.
+   *
+   * @param string[] $longValues
    */
   public function setLongValues($longValues)
   {
@@ -80,7 +112,15 @@ class CustomAttribute extends \Google\Collection
     return $this->longValues;
   }
   /**
-   * @param string[]
+   * Exactly one of string_values or long_values must be specified. This field
+   * is used to perform a string match (`CASE_SENSITIVE_MATCH` or
+   * `CASE_INSENSITIVE_MATCH`) search. For filterable `string_value`s, a maximum
+   * total number of 200 values is allowed, with each `string_value` has a byte
+   * size of no more than 500B. For unfilterable `string_values`, the maximum
+   * total byte size of unfilterable `string_values` is 50KB. Empty string isn't
+   * allowed.
+   *
+   * @param string[] $stringValues
    */
   public function setStringValues($stringValues)
   {

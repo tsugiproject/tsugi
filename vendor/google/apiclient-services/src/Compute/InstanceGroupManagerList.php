@@ -21,20 +21,34 @@ class InstanceGroupManagerList extends \Google\Collection
 {
   protected $collection_key = 'items';
   /**
+   * Output only. [Output Only] Unique identifier for the resource; defined by
+   * the server.
+   *
    * @var string
    */
   public $id;
   protected $itemsType = InstanceGroupManager::class;
   protected $itemsDataType = 'array';
   /**
+   * Output only. [Output Only] The resource type, which is always
+   * compute#instanceGroupManagerList for a list of managed instance groups.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Output only. [Output Only] This token allows you to get the next page of
+   * results for list requests. If the number of results is larger
+   * thanmaxResults, use the nextPageToken as a value for the query parameter
+   * pageToken in the next list request. Subsequent list requests will have
+   * their own nextPageToken to continue paging through the results.
+   *
    * @var string
    */
   public $nextPageToken;
   /**
+   * Output only. [Output Only] Server-defined URL for this resource.
+   *
    * @var string
    */
   public $selfLink;
@@ -42,7 +56,10 @@ class InstanceGroupManagerList extends \Google\Collection
   protected $warningDataType = '';
 
   /**
-   * @param string
+   * Output only. [Output Only] Unique identifier for the resource; defined by
+   * the server.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -56,7 +73,9 @@ class InstanceGroupManagerList extends \Google\Collection
     return $this->id;
   }
   /**
-   * @param InstanceGroupManager[]
+   * A list of InstanceGroupManager resources.
+   *
+   * @param InstanceGroupManager[] $items
    */
   public function setItems($items)
   {
@@ -70,7 +89,10 @@ class InstanceGroupManagerList extends \Google\Collection
     return $this->items;
   }
   /**
-   * @param string
+   * Output only. [Output Only] The resource type, which is always
+   * compute#instanceGroupManagerList for a list of managed instance groups.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -84,7 +106,13 @@ class InstanceGroupManagerList extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * Output only. [Output Only] This token allows you to get the next page of
+   * results for list requests. If the number of results is larger
+   * thanmaxResults, use the nextPageToken as a value for the query parameter
+   * pageToken in the next list request. Subsequent list requests will have
+   * their own nextPageToken to continue paging through the results.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -98,7 +126,9 @@ class InstanceGroupManagerList extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param string
+   * Output only. [Output Only] Server-defined URL for this resource.
+   *
+   * @param string $selfLink
    */
   public function setSelfLink($selfLink)
   {
@@ -112,7 +142,9 @@ class InstanceGroupManagerList extends \Google\Collection
     return $this->selfLink;
   }
   /**
-   * @param InstanceGroupManagerListWarning
+   * Output only. [Output Only] Informational warning message.
+   *
+   * @param InstanceGroupManagerListWarning $warning
    */
   public function setWarning(InstanceGroupManagerListWarning $warning)
   {

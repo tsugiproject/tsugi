@@ -21,16 +21,22 @@ class GoogleIamAdminV1AuditDataPermissionDelta extends \Google\Collection
 {
   protected $collection_key = 'removedPermissions';
   /**
+   * Added permissions.
+   *
    * @var string[]
    */
   public $addedPermissions;
   /**
+   * Removed permissions.
+   *
    * @var string[]
    */
   public $removedPermissions;
 
   /**
-   * @param string[]
+   * Added permissions.
+   *
+   * @param string[] $addedPermissions
    */
   public function setAddedPermissions($addedPermissions)
   {
@@ -44,7 +50,9 @@ class GoogleIamAdminV1AuditDataPermissionDelta extends \Google\Collection
     return $this->addedPermissions;
   }
   /**
-   * @param string[]
+   * Removed permissions.
+   *
+   * @param string[] $removedPermissions
    */
   public function setRemovedPermissions($removedPermissions)
   {

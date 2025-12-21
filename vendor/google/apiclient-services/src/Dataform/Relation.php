@@ -19,60 +19,157 @@ namespace Google\Service\Dataform;
 
 class Relation extends \Google\Collection
 {
+  /**
+   * Default value.
+   */
+  public const FILE_FORMAT_FILE_FORMAT_UNSPECIFIED = 'FILE_FORMAT_UNSPECIFIED';
+  /**
+   * Apache Parquet format.
+   */
+  public const FILE_FORMAT_PARQUET = 'PARQUET';
+  /**
+   * Default value. This value is unused.
+   */
+  public const RELATION_TYPE_RELATION_TYPE_UNSPECIFIED = 'RELATION_TYPE_UNSPECIFIED';
+  /**
+   * The relation is a table.
+   */
+  public const RELATION_TYPE_TABLE = 'TABLE';
+  /**
+   * The relation is a view.
+   */
+  public const RELATION_TYPE_VIEW = 'VIEW';
+  /**
+   * The relation is an incrementalized table.
+   */
+  public const RELATION_TYPE_INCREMENTAL_TABLE = 'INCREMENTAL_TABLE';
+  /**
+   * The relation is a materialized view.
+   */
+  public const RELATION_TYPE_MATERIALIZED_VIEW = 'MATERIALIZED_VIEW';
+  /**
+   * Default value.
+   */
+  public const TABLE_FORMAT_TABLE_FORMAT_UNSPECIFIED = 'TABLE_FORMAT_UNSPECIFIED';
+  /**
+   * Apache Iceberg format.
+   */
+  public const TABLE_FORMAT_ICEBERG = 'ICEBERG';
   protected $collection_key = 'tags';
   /**
+   * Additional options that will be provided as key/value pairs into the
+   * options clause of a create table/view statement. See
+   * https://cloud.google.com/bigquery/docs/reference/standard-sql/data-
+   * definition-language for more information on which options are supported.
+   *
    * @var string[]
    */
   public $additionalOptions;
   /**
+   * A list of columns or SQL expressions used to cluster the table.
+   *
    * @var string[]
    */
   public $clusterExpressions;
+  /**
+   * Optional. The connection specifying the credentials to be used to read and
+   * write to external storage, such as Cloud Storage. The connection can have
+   * the form `{project}.{location}.{connection_id}` or
+   * `projects/{project}/locations/{location}/connections/{connection_id}", or
+   * be set to DEFAULT.
+   *
+   * @var string
+   */
+  public $connection;
   protected $dependencyTargetsType = Target::class;
   protected $dependencyTargetsDataType = 'array';
   /**
+   * Whether this action is disabled (i.e. should not be run).
+   *
    * @var bool
    */
   public $disabled;
+  /**
+   * Optional. The file format for the BigQuery table.
+   *
+   * @var string
+   */
+  public $fileFormat;
   protected $incrementalTableConfigType = IncrementalTableConfig::class;
   protected $incrementalTableConfigDataType = '';
   /**
+   * Sets the partition expiration in days.
+   *
    * @var int
    */
   public $partitionExpirationDays;
   /**
+   * The SQL expression used to partition the relation.
+   *
    * @var string
    */
   public $partitionExpression;
   /**
+   * SQL statements to be executed after creating the relation.
+   *
    * @var string[]
    */
   public $postOperations;
   /**
+   * SQL statements to be executed before creating the relation.
+   *
    * @var string[]
    */
   public $preOperations;
   protected $relationDescriptorType = RelationDescriptor::class;
   protected $relationDescriptorDataType = '';
   /**
+   * The type of this relation.
+   *
    * @var string
    */
   public $relationType;
   /**
+   * Specifies whether queries on this table must include a predicate filter
+   * that filters on the partitioning column.
+   *
    * @var bool
    */
   public $requirePartitionFilter;
   /**
+   * The SELECT query which returns rows which this relation should contain.
+   *
    * @var string
    */
   public $selectQuery;
   /**
+   * Optional. The fully qualified location prefix of the external folder where
+   * table data is stored. The URI should be in the format
+   * `gs://bucket/path_to_table/`.
+   *
+   * @var string
+   */
+  public $storageUri;
+  /**
+   * Optional. The table format for the BigQuery table.
+   *
+   * @var string
+   */
+  public $tableFormat;
+  /**
+   * Arbitrary, user-defined tags on this action.
+   *
    * @var string[]
    */
   public $tags;
 
   /**
-   * @param string[]
+   * Additional options that will be provided as key/value pairs into the
+   * options clause of a create table/view statement. See
+   * https://cloud.google.com/bigquery/docs/reference/standard-sql/data-
+   * definition-language for more information on which options are supported.
+   *
+   * @param string[] $additionalOptions
    */
   public function setAdditionalOptions($additionalOptions)
   {
@@ -86,7 +183,9 @@ class Relation extends \Google\Collection
     return $this->additionalOptions;
   }
   /**
-   * @param string[]
+   * A list of columns or SQL expressions used to cluster the table.
+   *
+   * @param string[] $clusterExpressions
    */
   public function setClusterExpressions($clusterExpressions)
   {
@@ -100,7 +199,29 @@ class Relation extends \Google\Collection
     return $this->clusterExpressions;
   }
   /**
-   * @param Target[]
+   * Optional. The connection specifying the credentials to be used to read and
+   * write to external storage, such as Cloud Storage. The connection can have
+   * the form `{project}.{location}.{connection_id}` or
+   * `projects/{project}/locations/{location}/connections/{connection_id}", or
+   * be set to DEFAULT.
+   *
+   * @param string $connection
+   */
+  public function setConnection($connection)
+  {
+    $this->connection = $connection;
+  }
+  /**
+   * @return string
+   */
+  public function getConnection()
+  {
+    return $this->connection;
+  }
+  /**
+   * A list of actions that this action depends on.
+   *
+   * @param Target[] $dependencyTargets
    */
   public function setDependencyTargets($dependencyTargets)
   {
@@ -114,7 +235,9 @@ class Relation extends \Google\Collection
     return $this->dependencyTargets;
   }
   /**
-   * @param bool
+   * Whether this action is disabled (i.e. should not be run).
+   *
+   * @param bool $disabled
    */
   public function setDisabled($disabled)
   {
@@ -128,7 +251,28 @@ class Relation extends \Google\Collection
     return $this->disabled;
   }
   /**
-   * @param IncrementalTableConfig
+   * Optional. The file format for the BigQuery table.
+   *
+   * Accepted values: FILE_FORMAT_UNSPECIFIED, PARQUET
+   *
+   * @param self::FILE_FORMAT_* $fileFormat
+   */
+  public function setFileFormat($fileFormat)
+  {
+    $this->fileFormat = $fileFormat;
+  }
+  /**
+   * @return self::FILE_FORMAT_*
+   */
+  public function getFileFormat()
+  {
+    return $this->fileFormat;
+  }
+  /**
+   * Configures `INCREMENTAL_TABLE` settings for this relation. Only set if
+   * `relation_type` is `INCREMENTAL_TABLE`.
+   *
+   * @param IncrementalTableConfig $incrementalTableConfig
    */
   public function setIncrementalTableConfig(IncrementalTableConfig $incrementalTableConfig)
   {
@@ -142,7 +286,9 @@ class Relation extends \Google\Collection
     return $this->incrementalTableConfig;
   }
   /**
-   * @param int
+   * Sets the partition expiration in days.
+   *
+   * @param int $partitionExpirationDays
    */
   public function setPartitionExpirationDays($partitionExpirationDays)
   {
@@ -156,7 +302,9 @@ class Relation extends \Google\Collection
     return $this->partitionExpirationDays;
   }
   /**
-   * @param string
+   * The SQL expression used to partition the relation.
+   *
+   * @param string $partitionExpression
    */
   public function setPartitionExpression($partitionExpression)
   {
@@ -170,7 +318,9 @@ class Relation extends \Google\Collection
     return $this->partitionExpression;
   }
   /**
-   * @param string[]
+   * SQL statements to be executed after creating the relation.
+   *
+   * @param string[] $postOperations
    */
   public function setPostOperations($postOperations)
   {
@@ -184,7 +334,9 @@ class Relation extends \Google\Collection
     return $this->postOperations;
   }
   /**
-   * @param string[]
+   * SQL statements to be executed before creating the relation.
+   *
+   * @param string[] $preOperations
    */
   public function setPreOperations($preOperations)
   {
@@ -198,7 +350,9 @@ class Relation extends \Google\Collection
     return $this->preOperations;
   }
   /**
-   * @param RelationDescriptor
+   * Descriptor for the relation and its columns.
+   *
+   * @param RelationDescriptor $relationDescriptor
    */
   public function setRelationDescriptor(RelationDescriptor $relationDescriptor)
   {
@@ -212,21 +366,29 @@ class Relation extends \Google\Collection
     return $this->relationDescriptor;
   }
   /**
-   * @param string
+   * The type of this relation.
+   *
+   * Accepted values: RELATION_TYPE_UNSPECIFIED, TABLE, VIEW, INCREMENTAL_TABLE,
+   * MATERIALIZED_VIEW
+   *
+   * @param self::RELATION_TYPE_* $relationType
    */
   public function setRelationType($relationType)
   {
     $this->relationType = $relationType;
   }
   /**
-   * @return string
+   * @return self::RELATION_TYPE_*
    */
   public function getRelationType()
   {
     return $this->relationType;
   }
   /**
-   * @param bool
+   * Specifies whether queries on this table must include a predicate filter
+   * that filters on the partitioning column.
+   *
+   * @param bool $requirePartitionFilter
    */
   public function setRequirePartitionFilter($requirePartitionFilter)
   {
@@ -240,7 +402,9 @@ class Relation extends \Google\Collection
     return $this->requirePartitionFilter;
   }
   /**
-   * @param string
+   * The SELECT query which returns rows which this relation should contain.
+   *
+   * @param string $selectQuery
    */
   public function setSelectQuery($selectQuery)
   {
@@ -254,7 +418,45 @@ class Relation extends \Google\Collection
     return $this->selectQuery;
   }
   /**
-   * @param string[]
+   * Optional. The fully qualified location prefix of the external folder where
+   * table data is stored. The URI should be in the format
+   * `gs://bucket/path_to_table/`.
+   *
+   * @param string $storageUri
+   */
+  public function setStorageUri($storageUri)
+  {
+    $this->storageUri = $storageUri;
+  }
+  /**
+   * @return string
+   */
+  public function getStorageUri()
+  {
+    return $this->storageUri;
+  }
+  /**
+   * Optional. The table format for the BigQuery table.
+   *
+   * Accepted values: TABLE_FORMAT_UNSPECIFIED, ICEBERG
+   *
+   * @param self::TABLE_FORMAT_* $tableFormat
+   */
+  public function setTableFormat($tableFormat)
+  {
+    $this->tableFormat = $tableFormat;
+  }
+  /**
+   * @return self::TABLE_FORMAT_*
+   */
+  public function getTableFormat()
+  {
+    return $this->tableFormat;
+  }
+  /**
+   * Arbitrary, user-defined tags on this action.
+   *
+   * @param string[] $tags
    */
   public function setTags($tags)
   {

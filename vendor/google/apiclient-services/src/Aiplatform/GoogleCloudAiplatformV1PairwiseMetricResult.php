@@ -20,16 +20,56 @@ namespace Google\Service\Aiplatform;
 class GoogleCloudAiplatformV1PairwiseMetricResult extends \Google\Model
 {
   /**
+   * Unspecified prediction choice.
+   */
+  public const PAIRWISE_CHOICE_PAIRWISE_CHOICE_UNSPECIFIED = 'PAIRWISE_CHOICE_UNSPECIFIED';
+  /**
+   * Baseline prediction wins
+   */
+  public const PAIRWISE_CHOICE_BASELINE = 'BASELINE';
+  /**
+   * Candidate prediction wins
+   */
+  public const PAIRWISE_CHOICE_CANDIDATE = 'CANDIDATE';
+  /**
+   * Winner cannot be determined
+   */
+  public const PAIRWISE_CHOICE_TIE = 'TIE';
+  protected $customOutputType = GoogleCloudAiplatformV1CustomOutput::class;
+  protected $customOutputDataType = '';
+  /**
+   * Output only. Explanation for pairwise metric score.
+   *
    * @var string
    */
   public $explanation;
   /**
+   * Output only. Pairwise metric choice.
+   *
    * @var string
    */
   public $pairwiseChoice;
 
   /**
-   * @param string
+   * Output only. Spec for custom output.
+   *
+   * @param GoogleCloudAiplatformV1CustomOutput $customOutput
+   */
+  public function setCustomOutput(GoogleCloudAiplatformV1CustomOutput $customOutput)
+  {
+    $this->customOutput = $customOutput;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1CustomOutput
+   */
+  public function getCustomOutput()
+  {
+    return $this->customOutput;
+  }
+  /**
+   * Output only. Explanation for pairwise metric score.
+   *
+   * @param string $explanation
    */
   public function setExplanation($explanation)
   {
@@ -43,14 +83,18 @@ class GoogleCloudAiplatformV1PairwiseMetricResult extends \Google\Model
     return $this->explanation;
   }
   /**
-   * @param string
+   * Output only. Pairwise metric choice.
+   *
+   * Accepted values: PAIRWISE_CHOICE_UNSPECIFIED, BASELINE, CANDIDATE, TIE
+   *
+   * @param self::PAIRWISE_CHOICE_* $pairwiseChoice
    */
   public function setPairwiseChoice($pairwiseChoice)
   {
     $this->pairwiseChoice = $pairwiseChoice;
   }
   /**
-   * @return string
+   * @return self::PAIRWISE_CHOICE_*
    */
   public function getPairwiseChoice()
   {

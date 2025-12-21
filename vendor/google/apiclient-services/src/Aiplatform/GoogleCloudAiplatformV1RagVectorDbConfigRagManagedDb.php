@@ -19,6 +19,44 @@ namespace Google\Service\Aiplatform;
 
 class GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDb extends \Google\Model
 {
+  protected $annType = GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbANN::class;
+  protected $annDataType = '';
+  protected $knnType = GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbKNN::class;
+  protected $knnDataType = '';
+
+  /**
+   * Performs an ANN search on RagCorpus. Use this if you have a lot of files (>
+   * 10K) in your RagCorpus and want to reduce the search latency.
+   *
+   * @param GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbANN $ann
+   */
+  public function setAnn(GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbANN $ann)
+  {
+    $this->ann = $ann;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbANN
+   */
+  public function getAnn()
+  {
+    return $this->ann;
+  }
+  /**
+   * Performs a KNN search on RagCorpus. Default choice if not specified.
+   *
+   * @param GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbKNN $knn
+   */
+  public function setKnn(GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbKNN $knn)
+  {
+    $this->knn = $knn;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbKNN
+   */
+  public function getKnn()
+  {
+    return $this->knn;
+  }
 }
 
 // Adding a class alias for backwards compatibility with the previous class name.

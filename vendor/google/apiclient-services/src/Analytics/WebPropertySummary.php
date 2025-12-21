@@ -21,38 +21,54 @@ class WebPropertySummary extends \Google\Collection
 {
   protected $collection_key = 'profiles';
   /**
+   * Web property ID of the form UA-XXXXX-YY.
+   *
    * @var string
    */
   public $id;
   /**
+   * Internal ID for this web property.
+   *
    * @var string
    */
   public $internalWebPropertyId;
   /**
+   * Resource type for Analytics WebPropertySummary.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Level for this web property. Possible values are STANDARD or PREMIUM.
+   *
    * @var string
    */
   public $level;
   /**
+   * Web property name.
+   *
    * @var string
    */
   public $name;
   protected $profilesType = ProfileSummary::class;
   protected $profilesDataType = 'array';
   /**
+   * Indicates whether this web property is starred or not.
+   *
    * @var bool
    */
   public $starred;
   /**
+   * Website url for this web property.
+   *
    * @var string
    */
   public $websiteUrl;
 
   /**
-   * @param string
+   * Web property ID of the form UA-XXXXX-YY.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -66,7 +82,9 @@ class WebPropertySummary extends \Google\Collection
     return $this->id;
   }
   /**
-   * @param string
+   * Internal ID for this web property.
+   *
+   * @param string $internalWebPropertyId
    */
   public function setInternalWebPropertyId($internalWebPropertyId)
   {
@@ -80,7 +98,9 @@ class WebPropertySummary extends \Google\Collection
     return $this->internalWebPropertyId;
   }
   /**
-   * @param string
+   * Resource type for Analytics WebPropertySummary.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -94,7 +114,9 @@ class WebPropertySummary extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * Level for this web property. Possible values are STANDARD or PREMIUM.
+   *
+   * @param string $level
    */
   public function setLevel($level)
   {
@@ -108,7 +130,9 @@ class WebPropertySummary extends \Google\Collection
     return $this->level;
   }
   /**
-   * @param string
+   * Web property name.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -122,7 +146,9 @@ class WebPropertySummary extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param ProfileSummary[]
+   * List of profiles under this web property.
+   *
+   * @param ProfileSummary[] $profiles
    */
   public function setProfiles($profiles)
   {
@@ -136,7 +162,9 @@ class WebPropertySummary extends \Google\Collection
     return $this->profiles;
   }
   /**
-   * @param bool
+   * Indicates whether this web property is starred or not.
+   *
+   * @param bool $starred
    */
   public function setStarred($starred)
   {
@@ -150,7 +178,9 @@ class WebPropertySummary extends \Google\Collection
     return $this->starred;
   }
   /**
-   * @param string
+   * Website url for this web property.
+   *
+   * @param string $websiteUrl
    */
   public function setWebsiteUrl($websiteUrl)
   {

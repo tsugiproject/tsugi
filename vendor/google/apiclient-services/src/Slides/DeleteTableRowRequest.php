@@ -22,12 +22,19 @@ class DeleteTableRowRequest extends \Google\Model
   protected $cellLocationType = TableCellLocation::class;
   protected $cellLocationDataType = '';
   /**
+   * The table to delete rows from.
+   *
    * @var string
    */
   public $tableObjectId;
 
   /**
-   * @param TableCellLocation
+   * The reference table cell location from which a row will be deleted. The row
+   * this cell spans will be deleted. If this is a merged cell, multiple rows
+   * will be deleted. If no rows remain in the table after this deletion, the
+   * whole table is deleted.
+   *
+   * @param TableCellLocation $cellLocation
    */
   public function setCellLocation(TableCellLocation $cellLocation)
   {
@@ -41,7 +48,9 @@ class DeleteTableRowRequest extends \Google\Model
     return $this->cellLocation;
   }
   /**
-   * @param string
+   * The table to delete rows from.
+   *
+   * @param string $tableObjectId
    */
   public function setTableObjectId($tableObjectId)
   {

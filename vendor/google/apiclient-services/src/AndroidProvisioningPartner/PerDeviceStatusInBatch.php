@@ -20,24 +20,79 @@ namespace Google\Service\AndroidProvisioningPartner;
 class PerDeviceStatusInBatch extends \Google\Model
 {
   /**
+   * Invalid code. Shouldn't be used.
+   */
+  public const STATUS_SINGLE_DEVICE_STATUS_UNSPECIFIED = 'SINGLE_DEVICE_STATUS_UNSPECIFIED';
+  /**
+   * Unknown error. We don't expect this error to occur here.
+   */
+  public const STATUS_SINGLE_DEVICE_STATUS_UNKNOWN_ERROR = 'SINGLE_DEVICE_STATUS_UNKNOWN_ERROR';
+  /**
+   * Other error. We know/expect this error, but there's no defined error code
+   * for the error.
+   */
+  public const STATUS_SINGLE_DEVICE_STATUS_OTHER_ERROR = 'SINGLE_DEVICE_STATUS_OTHER_ERROR';
+  /**
+   * Success.
+   */
+  public const STATUS_SINGLE_DEVICE_STATUS_SUCCESS = 'SINGLE_DEVICE_STATUS_SUCCESS';
+  /**
+   * Permission denied.
+   */
+  public const STATUS_SINGLE_DEVICE_STATUS_PERMISSION_DENIED = 'SINGLE_DEVICE_STATUS_PERMISSION_DENIED';
+  /**
+   * Invalid device identifier.
+   */
+  public const STATUS_SINGLE_DEVICE_STATUS_INVALID_DEVICE_IDENTIFIER = 'SINGLE_DEVICE_STATUS_INVALID_DEVICE_IDENTIFIER';
+  /**
+   * Invalid section type.
+   */
+  public const STATUS_SINGLE_DEVICE_STATUS_INVALID_SECTION_TYPE = 'SINGLE_DEVICE_STATUS_INVALID_SECTION_TYPE';
+  /**
+   * This section is claimed by another company.
+   */
+  public const STATUS_SINGLE_DEVICE_STATUS_SECTION_NOT_YOURS = 'SINGLE_DEVICE_STATUS_SECTION_NOT_YOURS';
+  /**
+   * Invalid pre-provisioning token.
+   */
+  public const STATUS_SINGLE_DEVICE_STATUS_INVALID_TOKEN = 'SINGLE_DEVICE_STATUS_INVALID_TOKEN';
+  /**
+   * Revoked pre-provisioning token.
+   */
+  public const STATUS_SINGLE_DEVICE_STATUS_REVOKED_TOKEN = 'SINGLE_DEVICE_STATUS_REVOKED_TOKEN';
+  /**
+   * Status used to indicate a failure due to a device limit being exceeded
+   */
+  public const STATUS_SINGLE_DEVICE_STATUS_DEVICE_LIMIT_EXCEEDED = 'SINGLE_DEVICE_STATUS_DEVICE_LIMIT_EXCEEDED';
+  /**
+   * If processing succeeds, the device ID of the device.
+   *
    * @var string
    */
   public $deviceId;
   /**
+   * If processing fails, the error type.
+   *
    * @var string
    */
   public $errorIdentifier;
   /**
+   * If processing fails, a developer message explaining what went wrong.
+   *
    * @var string
    */
   public $errorMessage;
   /**
+   * The result status of the device after processing.
+   *
    * @var string
    */
   public $status;
 
   /**
-   * @param string
+   * If processing succeeds, the device ID of the device.
+   *
+   * @param string $deviceId
    */
   public function setDeviceId($deviceId)
   {
@@ -51,7 +106,9 @@ class PerDeviceStatusInBatch extends \Google\Model
     return $this->deviceId;
   }
   /**
-   * @param string
+   * If processing fails, the error type.
+   *
+   * @param string $errorIdentifier
    */
   public function setErrorIdentifier($errorIdentifier)
   {
@@ -65,7 +122,9 @@ class PerDeviceStatusInBatch extends \Google\Model
     return $this->errorIdentifier;
   }
   /**
-   * @param string
+   * If processing fails, a developer message explaining what went wrong.
+   *
+   * @param string $errorMessage
    */
   public function setErrorMessage($errorMessage)
   {
@@ -79,14 +138,25 @@ class PerDeviceStatusInBatch extends \Google\Model
     return $this->errorMessage;
   }
   /**
-   * @param string
+   * The result status of the device after processing.
+   *
+   * Accepted values: SINGLE_DEVICE_STATUS_UNSPECIFIED,
+   * SINGLE_DEVICE_STATUS_UNKNOWN_ERROR, SINGLE_DEVICE_STATUS_OTHER_ERROR,
+   * SINGLE_DEVICE_STATUS_SUCCESS, SINGLE_DEVICE_STATUS_PERMISSION_DENIED,
+   * SINGLE_DEVICE_STATUS_INVALID_DEVICE_IDENTIFIER,
+   * SINGLE_DEVICE_STATUS_INVALID_SECTION_TYPE,
+   * SINGLE_DEVICE_STATUS_SECTION_NOT_YOURS, SINGLE_DEVICE_STATUS_INVALID_TOKEN,
+   * SINGLE_DEVICE_STATUS_REVOKED_TOKEN,
+   * SINGLE_DEVICE_STATUS_DEVICE_LIMIT_EXCEEDED
+   *
+   * @param self::STATUS_* $status
    */
   public function setStatus($status)
   {
     $this->status = $status;
   }
   /**
-   * @return string
+   * @return self::STATUS_*
    */
   public function getStatus()
   {

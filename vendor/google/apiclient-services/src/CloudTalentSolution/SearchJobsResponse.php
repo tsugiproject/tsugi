@@ -21,6 +21,14 @@ class SearchJobsResponse extends \Google\Collection
 {
   protected $collection_key = 'matchingJobs';
   /**
+   * If query broadening is enabled, we may append additional results from the
+   * broadened query. This number indicates how many of the jobs returned in the
+   * jobs field are from the broadened query. These results are always at the
+   * end of the jobs list. In particular, a value of 0, or if the field isn't
+   * set, all the jobs in the jobs list are from the original (without
+   * broadening) query. If this field is non-zero, subsequent requests with
+   * offset after this result set should contain all broadened results.
+   *
    * @var int
    */
   public $broadenedQueryJobsCount;
@@ -33,18 +41,32 @@ class SearchJobsResponse extends \Google\Collection
   protected $metadataType = ResponseMetadata::class;
   protected $metadataDataType = '';
   /**
+   * The token that specifies the starting position of the next page of results.
+   * This field is empty if there are no more results.
+   *
    * @var string
    */
   public $nextPageToken;
   protected $spellCorrectionType = SpellingCorrection::class;
   protected $spellCorrectionDataType = '';
   /**
+   * Number of jobs that match the specified query. Note: This size is precise
+   * only if the total is less than 100,000.
+   *
    * @var int
    */
   public $totalSize;
 
   /**
-   * @param int
+   * If query broadening is enabled, we may append additional results from the
+   * broadened query. This number indicates how many of the jobs returned in the
+   * jobs field are from the broadened query. These results are always at the
+   * end of the jobs list. In particular, a value of 0, or if the field isn't
+   * set, all the jobs in the jobs list are from the original (without
+   * broadening) query. If this field is non-zero, subsequent requests with
+   * offset after this result set should contain all broadened results.
+   *
+   * @param int $broadenedQueryJobsCount
    */
   public function setBroadenedQueryJobsCount($broadenedQueryJobsCount)
   {
@@ -58,7 +80,10 @@ class SearchJobsResponse extends \Google\Collection
     return $this->broadenedQueryJobsCount;
   }
   /**
-   * @param HistogramQueryResult[]
+   * The histogram results that match with specified
+   * SearchJobsRequest.histogram_queries.
+   *
+   * @param HistogramQueryResult[] $histogramQueryResults
    */
   public function setHistogramQueryResults($histogramQueryResults)
   {
@@ -72,7 +97,11 @@ class SearchJobsResponse extends \Google\Collection
     return $this->histogramQueryResults;
   }
   /**
-   * @param Location[]
+   * The location filters that the service applied to the specified query. If
+   * any filters are lat-lng based, the Location.location_type is
+   * Location.LocationType.LOCATION_TYPE_UNSPECIFIED.
+   *
+   * @param Location[] $locationFilters
    */
   public function setLocationFilters($locationFilters)
   {
@@ -86,7 +115,9 @@ class SearchJobsResponse extends \Google\Collection
     return $this->locationFilters;
   }
   /**
-   * @param MatchingJob[]
+   * The Job entities that match the specified SearchJobsRequest.
+   *
+   * @param MatchingJob[] $matchingJobs
    */
   public function setMatchingJobs($matchingJobs)
   {
@@ -100,7 +131,10 @@ class SearchJobsResponse extends \Google\Collection
     return $this->matchingJobs;
   }
   /**
-   * @param ResponseMetadata
+   * Additional information for the API invocation, such as the request tracking
+   * id.
+   *
+   * @param ResponseMetadata $metadata
    */
   public function setMetadata(ResponseMetadata $metadata)
   {
@@ -114,7 +148,10 @@ class SearchJobsResponse extends \Google\Collection
     return $this->metadata;
   }
   /**
-   * @param string
+   * The token that specifies the starting position of the next page of results.
+   * This field is empty if there are no more results.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -128,7 +165,9 @@ class SearchJobsResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param SpellingCorrection
+   * The spell checking result, and correction.
+   *
+   * @param SpellingCorrection $spellCorrection
    */
   public function setSpellCorrection(SpellingCorrection $spellCorrection)
   {
@@ -142,7 +181,10 @@ class SearchJobsResponse extends \Google\Collection
     return $this->spellCorrection;
   }
   /**
-   * @param int
+   * Number of jobs that match the specified query. Note: This size is precise
+   * only if the total is less than 100,000.
+   *
+   * @param int $totalSize
    */
   public function setTotalSize($totalSize)
   {

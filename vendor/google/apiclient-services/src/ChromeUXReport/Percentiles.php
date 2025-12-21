@@ -20,12 +20,16 @@ namespace Google\Service\ChromeUXReport;
 class Percentiles extends \Google\Model
 {
   /**
+   * 75% of users experienced the given metric at or below this value.
+   *
    * @var array
    */
   public $p75;
 
   /**
-   * @param array
+   * 75% of users experienced the given metric at or below this value.
+   *
+   * @param array $p75
    */
   public function setP75($p75)
   {

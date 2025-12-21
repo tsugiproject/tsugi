@@ -20,16 +20,23 @@ namespace Google\Service\AndroidEnterprise;
 class EnterprisesSendTestPushNotificationResponse extends \Google\Model
 {
   /**
+   * The message ID of the test push notification that was sent.
+   *
    * @var string
    */
   public $messageId;
   /**
+   * The name of the Cloud Pub/Sub topic to which notifications for this
+   * enterprise's enrolled account will be sent.
+   *
    * @var string
    */
   public $topicName;
 
   /**
-   * @param string
+   * The message ID of the test push notification that was sent.
+   *
+   * @param string $messageId
    */
   public function setMessageId($messageId)
   {
@@ -43,7 +50,10 @@ class EnterprisesSendTestPushNotificationResponse extends \Google\Model
     return $this->messageId;
   }
   /**
-   * @param string
+   * The name of the Cloud Pub/Sub topic to which notifications for this
+   * enterprise's enrolled account will be sent.
+   *
+   * @param string $topicName
    */
   public function setTopicName($topicName)
   {

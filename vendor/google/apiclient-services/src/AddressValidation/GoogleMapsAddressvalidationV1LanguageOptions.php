@@ -20,12 +20,22 @@ namespace Google\Service\AddressValidation;
 class GoogleMapsAddressvalidationV1LanguageOptions extends \Google\Model
 {
   /**
+   * Preview: Return a [google.maps.addressvalidation.v1.Address] in English.
+   * See
+   * [google.maps.addressvalidation.v1.ValidationResult.english_latin_address]
+   * for details.
+   *
    * @var bool
    */
   public $returnEnglishLatinAddress;
 
   /**
-   * @param bool
+   * Preview: Return a [google.maps.addressvalidation.v1.Address] in English.
+   * See
+   * [google.maps.addressvalidation.v1.ValidationResult.english_latin_address]
+   * for details.
+   *
+   * @param bool $returnEnglishLatinAddress
    */
   public function setReturnEnglishLatinAddress($returnEnglishLatinAddress)
   {

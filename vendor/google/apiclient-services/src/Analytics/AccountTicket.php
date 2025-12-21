@@ -22,16 +22,23 @@ class AccountTicket extends \Google\Model
   protected $accountType = Account::class;
   protected $accountDataType = '';
   /**
+   * Account ticket ID used to access the account ticket.
+   *
    * @var string
    */
   public $id;
   /**
+   * Resource type for account ticket.
+   *
    * @var string
    */
   public $kind;
   protected $profileType = Profile::class;
   protected $profileDataType = '';
   /**
+   * Redirect URI where the user will be sent after accepting Terms of Service.
+   * Must be configured in APIs console as a callback URL.
+   *
    * @var string
    */
   public $redirectUri;
@@ -39,7 +46,9 @@ class AccountTicket extends \Google\Model
   protected $webpropertyDataType = '';
 
   /**
-   * @param Account
+   * Account for this ticket.
+   *
+   * @param Account $account
    */
   public function setAccount(Account $account)
   {
@@ -53,7 +62,9 @@ class AccountTicket extends \Google\Model
     return $this->account;
   }
   /**
-   * @param string
+   * Account ticket ID used to access the account ticket.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -67,7 +78,9 @@ class AccountTicket extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * Resource type for account ticket.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -81,7 +94,9 @@ class AccountTicket extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param Profile
+   * View (Profile) for the account.
+   *
+   * @param Profile $profile
    */
   public function setProfile(Profile $profile)
   {
@@ -95,7 +110,10 @@ class AccountTicket extends \Google\Model
     return $this->profile;
   }
   /**
-   * @param string
+   * Redirect URI where the user will be sent after accepting Terms of Service.
+   * Must be configured in APIs console as a callback URL.
+   *
+   * @param string $redirectUri
    */
   public function setRedirectUri($redirectUri)
   {
@@ -109,7 +127,9 @@ class AccountTicket extends \Google\Model
     return $this->redirectUri;
   }
   /**
-   * @param Webproperty
+   * Web property for the account.
+   *
+   * @param Webproperty $webproperty
    */
   public function setWebproperty(Webproperty $webproperty)
   {

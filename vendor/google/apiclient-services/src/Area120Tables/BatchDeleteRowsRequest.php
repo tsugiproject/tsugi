@@ -21,12 +21,20 @@ class BatchDeleteRowsRequest extends \Google\Collection
 {
   protected $collection_key = 'names';
   /**
+   * Required. The names of the rows to delete. All rows must belong to the
+   * parent table or else the entire batch will fail. A maximum of 500 rows can
+   * be deleted in a batch. Format: tables/{table}/rows/{row}
+   *
    * @var string[]
    */
   public $names;
 
   /**
-   * @param string[]
+   * Required. The names of the rows to delete. All rows must belong to the
+   * parent table or else the entire batch will fail. A maximum of 500 rows can
+   * be deleted in a batch. Format: tables/{table}/rows/{row}
+   *
+   * @param string[] $names
    */
   public function setNames($names)
   {

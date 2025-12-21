@@ -23,12 +23,19 @@ class PivotHeader extends \Google\Collection
   protected $pivotDimensionHeadersType = PivotDimensionHeader::class;
   protected $pivotDimensionHeadersDataType = 'array';
   /**
+   * The cardinality of the pivot. The total number of rows for this pivot's
+   * fields regardless of how the parameters `offset` and `limit` are specified
+   * in the request.
+   *
    * @var int
    */
   public $rowCount;
 
   /**
-   * @param PivotDimensionHeader[]
+   * The size is the same as the cardinality of the corresponding dimension
+   * combinations.
+   *
+   * @param PivotDimensionHeader[] $pivotDimensionHeaders
    */
   public function setPivotDimensionHeaders($pivotDimensionHeaders)
   {
@@ -42,7 +49,11 @@ class PivotHeader extends \Google\Collection
     return $this->pivotDimensionHeaders;
   }
   /**
-   * @param int
+   * The cardinality of the pivot. The total number of rows for this pivot's
+   * fields regardless of how the parameters `offset` and `limit` are specified
+   * in the request.
+   *
+   * @param int $rowCount
    */
   public function setRowCount($rowCount)
   {

@@ -27,6 +27,14 @@ class GoogleAnalyticsAdminV1betaRunAccessReportResponse extends \Google\Collecti
   protected $quotaType = GoogleAnalyticsAdminV1betaAccessQuota::class;
   protected $quotaDataType = '';
   /**
+   * The total number of rows in the query result. `rowCount` is independent of
+   * the number of rows returned in the response, the `limit` request parameter,
+   * and the `offset` request parameter. For example if a query returns 175 rows
+   * and includes `limit` of 50 in the API request, the response will contain
+   * `rowCount` of 175 but only 50 rows. To learn more about this pagination
+   * parameter, see [Pagination](https://developers.google.com/analytics/devguid
+   * es/reporting/data/v1/basics#pagination).
+   *
    * @var int
    */
   public $rowCount;
@@ -34,7 +42,11 @@ class GoogleAnalyticsAdminV1betaRunAccessReportResponse extends \Google\Collecti
   protected $rowsDataType = 'array';
 
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessDimensionHeader[]
+   * The header for a column in the report that corresponds to a specific
+   * dimension. The number of DimensionHeaders and ordering of DimensionHeaders
+   * matches the dimensions present in rows.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessDimensionHeader[] $dimensionHeaders
    */
   public function setDimensionHeaders($dimensionHeaders)
   {
@@ -48,7 +60,11 @@ class GoogleAnalyticsAdminV1betaRunAccessReportResponse extends \Google\Collecti
     return $this->dimensionHeaders;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessMetricHeader[]
+   * The header for a column in the report that corresponds to a specific
+   * metric. The number of MetricHeaders and ordering of MetricHeaders matches
+   * the metrics present in rows.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessMetricHeader[] $metricHeaders
    */
   public function setMetricHeaders($metricHeaders)
   {
@@ -62,7 +78,10 @@ class GoogleAnalyticsAdminV1betaRunAccessReportResponse extends \Google\Collecti
     return $this->metricHeaders;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessQuota
+   * The quota state for this Analytics property including this request. This
+   * field doesn't work with account-level requests.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessQuota $quota
    */
   public function setQuota(GoogleAnalyticsAdminV1betaAccessQuota $quota)
   {
@@ -76,7 +95,15 @@ class GoogleAnalyticsAdminV1betaRunAccessReportResponse extends \Google\Collecti
     return $this->quota;
   }
   /**
-   * @param int
+   * The total number of rows in the query result. `rowCount` is independent of
+   * the number of rows returned in the response, the `limit` request parameter,
+   * and the `offset` request parameter. For example if a query returns 175 rows
+   * and includes `limit` of 50 in the API request, the response will contain
+   * `rowCount` of 175 but only 50 rows. To learn more about this pagination
+   * parameter, see [Pagination](https://developers.google.com/analytics/devguid
+   * es/reporting/data/v1/basics#pagination).
+   *
+   * @param int $rowCount
    */
   public function setRowCount($rowCount)
   {
@@ -90,7 +117,9 @@ class GoogleAnalyticsAdminV1betaRunAccessReportResponse extends \Google\Collecti
     return $this->rowCount;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessRow[]
+   * Rows of dimension value combinations and metric values in the report.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessRow[] $rows
    */
   public function setRows($rows)
   {

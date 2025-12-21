@@ -21,16 +21,36 @@ class SignBlobRequest extends \Google\Collection
 {
   protected $collection_key = 'delegates';
   /**
+   * The sequence of service accounts in a delegation chain. Each service
+   * account must be granted the `roles/iam.serviceAccountTokenCreator` role on
+   * its next service account in the chain. The last service account in the
+   * chain must be granted the `roles/iam.serviceAccountTokenCreator` role on
+   * the service account that is specified in the `name` field of the request.
+   * The delegates must have the following format:
+   * `projects/-/serviceAccounts/{ACCOUNT_EMAIL_OR_UNIQUEID}`. The `-` wildcard
+   * character is required; replacing it with a project ID is invalid.
+   *
    * @var string[]
    */
   public $delegates;
   /**
+   * Required. The bytes to sign.
+   *
    * @var string
    */
   public $payload;
 
   /**
-   * @param string[]
+   * The sequence of service accounts in a delegation chain. Each service
+   * account must be granted the `roles/iam.serviceAccountTokenCreator` role on
+   * its next service account in the chain. The last service account in the
+   * chain must be granted the `roles/iam.serviceAccountTokenCreator` role on
+   * the service account that is specified in the `name` field of the request.
+   * The delegates must have the following format:
+   * `projects/-/serviceAccounts/{ACCOUNT_EMAIL_OR_UNIQUEID}`. The `-` wildcard
+   * character is required; replacing it with a project ID is invalid.
+   *
+   * @param string[] $delegates
    */
   public function setDelegates($delegates)
   {
@@ -44,7 +64,9 @@ class SignBlobRequest extends \Google\Collection
     return $this->delegates;
   }
   /**
-   * @param string
+   * Required. The bytes to sign.
+   *
+   * @param string $payload
    */
   public function setPayload($payload)
   {

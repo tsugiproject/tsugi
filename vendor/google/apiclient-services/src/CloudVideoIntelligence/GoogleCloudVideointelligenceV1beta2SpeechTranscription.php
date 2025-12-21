@@ -23,12 +23,21 @@ class GoogleCloudVideointelligenceV1beta2SpeechTranscription extends \Google\Col
   protected $alternativesType = GoogleCloudVideointelligenceV1beta2SpeechRecognitionAlternative::class;
   protected $alternativesDataType = 'array';
   /**
+   * Output only. The [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt)
+   * language tag of the language in this result. This language code was
+   * detected to have the most likelihood of being spoken in the audio.
+   *
    * @var string
    */
   public $languageCode;
 
   /**
-   * @param GoogleCloudVideointelligenceV1beta2SpeechRecognitionAlternative[]
+   * May contain one or more recognition hypotheses (up to the maximum specified
+   * in `max_alternatives`). These alternatives are ordered in terms of
+   * accuracy, with the top (first) alternative being the most probable, as
+   * ranked by the recognizer.
+   *
+   * @param GoogleCloudVideointelligenceV1beta2SpeechRecognitionAlternative[] $alternatives
    */
   public function setAlternatives($alternatives)
   {
@@ -42,7 +51,11 @@ class GoogleCloudVideointelligenceV1beta2SpeechTranscription extends \Google\Col
     return $this->alternatives;
   }
   /**
-   * @param string
+   * Output only. The [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt)
+   * language tag of the language in this result. This language code was
+   * detected to have the most likelihood of being spoken in the audio.
+   *
+   * @param string $languageCode
    */
   public function setLanguageCode($languageCode)
   {

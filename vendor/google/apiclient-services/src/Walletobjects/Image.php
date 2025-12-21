@@ -22,14 +22,28 @@ class Image extends \Google\Model
   protected $contentDescriptionType = LocalizedString::class;
   protected $contentDescriptionDataType = '';
   /**
+   * Identifies what kind of resource this is. Value: the fixed string
+   * `"walletobjects#image"`.
+   *
+   * @deprecated
    * @var string
    */
   public $kind;
+  /**
+   * An ID for an already uploaded private image. Either this or source_uri
+   * should be set. Requests setting both or neither will be rejected. Please
+   * contact support to use private images.
+   *
+   * @var string
+   */
+  public $privateImageId;
   protected $sourceUriType = ImageUri::class;
   protected $sourceUriDataType = '';
 
   /**
-   * @param LocalizedString
+   * Description of the image used for accessibility.
+   *
+   * @param LocalizedString $contentDescription
    */
   public function setContentDescription(LocalizedString $contentDescription)
   {
@@ -43,13 +57,18 @@ class Image extends \Google\Model
     return $this->contentDescription;
   }
   /**
-   * @param string
+   * Identifies what kind of resource this is. Value: the fixed string
+   * `"walletobjects#image"`.
+   *
+   * @deprecated
+   * @param string $kind
    */
   public function setKind($kind)
   {
     $this->kind = $kind;
   }
   /**
+   * @deprecated
    * @return string
    */
   public function getKind()
@@ -57,7 +76,28 @@ class Image extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param ImageUri
+   * An ID for an already uploaded private image. Either this or source_uri
+   * should be set. Requests setting both or neither will be rejected. Please
+   * contact support to use private images.
+   *
+   * @param string $privateImageId
+   */
+  public function setPrivateImageId($privateImageId)
+  {
+    $this->privateImageId = $privateImageId;
+  }
+  /**
+   * @return string
+   */
+  public function getPrivateImageId()
+  {
+    return $this->privateImageId;
+  }
+  /**
+   * A URI for the image. Either this or private_image_id should be set.
+   * Requests setting both or neither will be rejected.
+   *
+   * @param ImageUri $sourceUri
    */
   public function setSourceUri(ImageUri $sourceUri)
   {

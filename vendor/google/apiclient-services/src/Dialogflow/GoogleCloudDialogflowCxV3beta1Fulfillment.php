@@ -25,28 +25,54 @@ class GoogleCloudDialogflowCxV3beta1Fulfillment extends \Google\Collection
   protected $conditionalCasesType = GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCases::class;
   protected $conditionalCasesDataType = 'array';
   /**
+   * If the flag is true, the agent will utilize LLM to generate a text
+   * response. If LLM generation fails, the defined responses in the fulfillment
+   * will be respected. This flag is only useful for fulfillments associated
+   * with no-match event handlers.
+   *
    * @var bool
    */
   public $enableGenerativeFallback;
+  protected $generatorsType = GoogleCloudDialogflowCxV3beta1FulfillmentGeneratorSettings::class;
+  protected $generatorsDataType = 'array';
   protected $messagesType = GoogleCloudDialogflowCxV3beta1ResponseMessage::class;
   protected $messagesDataType = 'array';
   /**
+   * Whether Dialogflow should return currently queued fulfillment response
+   * messages in streaming APIs. If a webhook is specified, it happens before
+   * Dialogflow invokes webhook. Warning: 1) This flag only affects streaming
+   * API. Responses are still queued and returned once in non-streaming API. 2)
+   * The flag can be enabled in any fulfillment but only the first 3 partial
+   * responses will be returned. You may only want to apply it to fulfillments
+   * that have slow webhooks.
+   *
    * @var bool
    */
   public $returnPartialResponses;
   protected $setParameterActionsType = GoogleCloudDialogflowCxV3beta1FulfillmentSetParameterAction::class;
   protected $setParameterActionsDataType = 'array';
   /**
+   * The value of this field will be populated in the WebhookRequest
+   * `fulfillmentInfo.tag` field by Dialogflow when the associated webhook is
+   * called. The tag is typically used by the webhook service to identify which
+   * fulfillment is being called, but it could be used for other purposes. This
+   * field is required if `webhook` is specified.
+   *
    * @var string
    */
   public $tag;
   /**
+   * The webhook to call. Format: `projects//locations//agents//webhooks/`.
+   *
    * @var string
    */
   public $webhook;
 
   /**
-   * @param GoogleCloudDialogflowCxV3beta1AdvancedSettings
+   * Hierarchical advanced settings for this fulfillment. The settings exposed
+   * at the lower level overrides the settings exposed at the higher level.
+   *
+   * @param GoogleCloudDialogflowCxV3beta1AdvancedSettings $advancedSettings
    */
   public function setAdvancedSettings(GoogleCloudDialogflowCxV3beta1AdvancedSettings $advancedSettings)
   {
@@ -60,7 +86,9 @@ class GoogleCloudDialogflowCxV3beta1Fulfillment extends \Google\Collection
     return $this->advancedSettings;
   }
   /**
-   * @param GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCases[]
+   * Conditional cases for this fulfillment.
+   *
+   * @param GoogleCloudDialogflowCxV3beta1FulfillmentConditionalCases[] $conditionalCases
    */
   public function setConditionalCases($conditionalCases)
   {
@@ -74,7 +102,12 @@ class GoogleCloudDialogflowCxV3beta1Fulfillment extends \Google\Collection
     return $this->conditionalCases;
   }
   /**
-   * @param bool
+   * If the flag is true, the agent will utilize LLM to generate a text
+   * response. If LLM generation fails, the defined responses in the fulfillment
+   * will be respected. This flag is only useful for fulfillments associated
+   * with no-match event handlers.
+   *
+   * @param bool $enableGenerativeFallback
    */
   public function setEnableGenerativeFallback($enableGenerativeFallback)
   {
@@ -88,7 +121,25 @@ class GoogleCloudDialogflowCxV3beta1Fulfillment extends \Google\Collection
     return $this->enableGenerativeFallback;
   }
   /**
-   * @param GoogleCloudDialogflowCxV3beta1ResponseMessage[]
+   * A list of Generators to be called during this fulfillment.
+   *
+   * @param GoogleCloudDialogflowCxV3beta1FulfillmentGeneratorSettings[] $generators
+   */
+  public function setGenerators($generators)
+  {
+    $this->generators = $generators;
+  }
+  /**
+   * @return GoogleCloudDialogflowCxV3beta1FulfillmentGeneratorSettings[]
+   */
+  public function getGenerators()
+  {
+    return $this->generators;
+  }
+  /**
+   * The list of rich message responses to present to the user.
+   *
+   * @param GoogleCloudDialogflowCxV3beta1ResponseMessage[] $messages
    */
   public function setMessages($messages)
   {
@@ -102,7 +153,15 @@ class GoogleCloudDialogflowCxV3beta1Fulfillment extends \Google\Collection
     return $this->messages;
   }
   /**
-   * @param bool
+   * Whether Dialogflow should return currently queued fulfillment response
+   * messages in streaming APIs. If a webhook is specified, it happens before
+   * Dialogflow invokes webhook. Warning: 1) This flag only affects streaming
+   * API. Responses are still queued and returned once in non-streaming API. 2)
+   * The flag can be enabled in any fulfillment but only the first 3 partial
+   * responses will be returned. You may only want to apply it to fulfillments
+   * that have slow webhooks.
+   *
+   * @param bool $returnPartialResponses
    */
   public function setReturnPartialResponses($returnPartialResponses)
   {
@@ -116,7 +175,9 @@ class GoogleCloudDialogflowCxV3beta1Fulfillment extends \Google\Collection
     return $this->returnPartialResponses;
   }
   /**
-   * @param GoogleCloudDialogflowCxV3beta1FulfillmentSetParameterAction[]
+   * Set parameter values before executing the webhook.
+   *
+   * @param GoogleCloudDialogflowCxV3beta1FulfillmentSetParameterAction[] $setParameterActions
    */
   public function setSetParameterActions($setParameterActions)
   {
@@ -130,7 +191,13 @@ class GoogleCloudDialogflowCxV3beta1Fulfillment extends \Google\Collection
     return $this->setParameterActions;
   }
   /**
-   * @param string
+   * The value of this field will be populated in the WebhookRequest
+   * `fulfillmentInfo.tag` field by Dialogflow when the associated webhook is
+   * called. The tag is typically used by the webhook service to identify which
+   * fulfillment is being called, but it could be used for other purposes. This
+   * field is required if `webhook` is specified.
+   *
+   * @param string $tag
    */
   public function setTag($tag)
   {
@@ -144,7 +211,9 @@ class GoogleCloudDialogflowCxV3beta1Fulfillment extends \Google\Collection
     return $this->tag;
   }
   /**
-   * @param string
+   * The webhook to call. Format: `projects//locations//agents//webhooks/`.
+   *
+   * @param string $webhook
    */
   public function setWebhook($webhook)
   {

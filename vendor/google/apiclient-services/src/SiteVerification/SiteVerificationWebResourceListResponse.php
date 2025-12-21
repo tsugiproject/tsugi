@@ -24,7 +24,9 @@ class SiteVerificationWebResourceListResponse extends \Google\Collection
   protected $itemsDataType = 'array';
 
   /**
-   * @param SiteVerificationWebResourceResource[]
+   * The list of sites that are owned by the authenticated user.
+   *
+   * @param SiteVerificationWebResourceResource[] $items
    */
   public function setItems($items)
   {

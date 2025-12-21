@@ -20,28 +20,40 @@ namespace Google\Service\Analytics;
 class FilterRef extends \Google\Model
 {
   /**
+   * Account ID to which this filter belongs.
+   *
    * @var string
    */
   public $accountId;
   /**
+   * Link for this filter.
+   *
    * @var string
    */
   public $href;
   /**
+   * Filter ID.
+   *
    * @var string
    */
   public $id;
   /**
+   * Kind value for filter reference.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Name of this filter.
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param string
+   * Account ID to which this filter belongs.
+   *
+   * @param string $accountId
    */
   public function setAccountId($accountId)
   {
@@ -55,7 +67,9 @@ class FilterRef extends \Google\Model
     return $this->accountId;
   }
   /**
-   * @param string
+   * Link for this filter.
+   *
+   * @param string $href
    */
   public function setHref($href)
   {
@@ -69,7 +83,9 @@ class FilterRef extends \Google\Model
     return $this->href;
   }
   /**
-   * @param string
+   * Filter ID.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -83,7 +99,9 @@ class FilterRef extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * Kind value for filter reference.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -97,7 +115,9 @@ class FilterRef extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * Name of this filter.
+   *
+   * @param string $name
    */
   public function setName($name)
   {

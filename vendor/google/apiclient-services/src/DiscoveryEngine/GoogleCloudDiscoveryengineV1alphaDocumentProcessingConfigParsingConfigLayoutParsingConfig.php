@@ -17,8 +17,194 @@
 
 namespace Google\Service\DiscoveryEngine;
 
-class GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfigLayoutParsingConfig extends \Google\Model
+class GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfigLayoutParsingConfig extends \Google\Collection
 {
+  protected $collection_key = 'structuredContentTypes';
+  /**
+   * Optional. If true, the processed document will be made available for the
+   * GetProcessedDocument API.
+   *
+   * @var bool
+   */
+  public $enableGetProcessedDocument;
+  /**
+   * Optional. If true, the LLM based annotation is added to the image during
+   * parsing.
+   *
+   * @var bool
+   */
+  public $enableImageAnnotation;
+  /**
+   * Optional. If true, the pdf layout will be refined using an LLM.
+   *
+   * @var bool
+   */
+  public $enableLlmLayoutParsing;
+  /**
+   * Optional. If true, the LLM based annotation is added to the table during
+   * parsing.
+   *
+   * @var bool
+   */
+  public $enableTableAnnotation;
+  /**
+   * Optional. List of HTML classes to exclude from the parsed content.
+   *
+   * @var string[]
+   */
+  public $excludeHtmlClasses;
+  /**
+   * Optional. List of HTML elements to exclude from the parsed content.
+   *
+   * @var string[]
+   */
+  public $excludeHtmlElements;
+  /**
+   * Optional. List of HTML ids to exclude from the parsed content.
+   *
+   * @var string[]
+   */
+  public $excludeHtmlIds;
+  /**
+   * Optional. Contains the required structure types to extract from the
+   * document. Supported values: * `shareholder-structure`
+   *
+   * @var string[]
+   */
+  public $structuredContentTypes;
+
+  /**
+   * Optional. If true, the processed document will be made available for the
+   * GetProcessedDocument API.
+   *
+   * @param bool $enableGetProcessedDocument
+   */
+  public function setEnableGetProcessedDocument($enableGetProcessedDocument)
+  {
+    $this->enableGetProcessedDocument = $enableGetProcessedDocument;
+  }
+  /**
+   * @return bool
+   */
+  public function getEnableGetProcessedDocument()
+  {
+    return $this->enableGetProcessedDocument;
+  }
+  /**
+   * Optional. If true, the LLM based annotation is added to the image during
+   * parsing.
+   *
+   * @param bool $enableImageAnnotation
+   */
+  public function setEnableImageAnnotation($enableImageAnnotation)
+  {
+    $this->enableImageAnnotation = $enableImageAnnotation;
+  }
+  /**
+   * @return bool
+   */
+  public function getEnableImageAnnotation()
+  {
+    return $this->enableImageAnnotation;
+  }
+  /**
+   * Optional. If true, the pdf layout will be refined using an LLM.
+   *
+   * @param bool $enableLlmLayoutParsing
+   */
+  public function setEnableLlmLayoutParsing($enableLlmLayoutParsing)
+  {
+    $this->enableLlmLayoutParsing = $enableLlmLayoutParsing;
+  }
+  /**
+   * @return bool
+   */
+  public function getEnableLlmLayoutParsing()
+  {
+    return $this->enableLlmLayoutParsing;
+  }
+  /**
+   * Optional. If true, the LLM based annotation is added to the table during
+   * parsing.
+   *
+   * @param bool $enableTableAnnotation
+   */
+  public function setEnableTableAnnotation($enableTableAnnotation)
+  {
+    $this->enableTableAnnotation = $enableTableAnnotation;
+  }
+  /**
+   * @return bool
+   */
+  public function getEnableTableAnnotation()
+  {
+    return $this->enableTableAnnotation;
+  }
+  /**
+   * Optional. List of HTML classes to exclude from the parsed content.
+   *
+   * @param string[] $excludeHtmlClasses
+   */
+  public function setExcludeHtmlClasses($excludeHtmlClasses)
+  {
+    $this->excludeHtmlClasses = $excludeHtmlClasses;
+  }
+  /**
+   * @return string[]
+   */
+  public function getExcludeHtmlClasses()
+  {
+    return $this->excludeHtmlClasses;
+  }
+  /**
+   * Optional. List of HTML elements to exclude from the parsed content.
+   *
+   * @param string[] $excludeHtmlElements
+   */
+  public function setExcludeHtmlElements($excludeHtmlElements)
+  {
+    $this->excludeHtmlElements = $excludeHtmlElements;
+  }
+  /**
+   * @return string[]
+   */
+  public function getExcludeHtmlElements()
+  {
+    return $this->excludeHtmlElements;
+  }
+  /**
+   * Optional. List of HTML ids to exclude from the parsed content.
+   *
+   * @param string[] $excludeHtmlIds
+   */
+  public function setExcludeHtmlIds($excludeHtmlIds)
+  {
+    $this->excludeHtmlIds = $excludeHtmlIds;
+  }
+  /**
+   * @return string[]
+   */
+  public function getExcludeHtmlIds()
+  {
+    return $this->excludeHtmlIds;
+  }
+  /**
+   * Optional. Contains the required structure types to extract from the
+   * document. Supported values: * `shareholder-structure`
+   *
+   * @param string[] $structuredContentTypes
+   */
+  public function setStructuredContentTypes($structuredContentTypes)
+  {
+    $this->structuredContentTypes = $structuredContentTypes;
+  }
+  /**
+   * @return string[]
+   */
+  public function getStructuredContentTypes()
+  {
+    return $this->structuredContentTypes;
+  }
 }
 
 // Adding a class alias for backwards compatibility with the previous class name.

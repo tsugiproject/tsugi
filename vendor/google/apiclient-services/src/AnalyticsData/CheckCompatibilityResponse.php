@@ -26,7 +26,9 @@ class CheckCompatibilityResponse extends \Google\Collection
   protected $metricCompatibilitiesDataType = 'array';
 
   /**
-   * @param DimensionCompatibility[]
+   * The compatibility of each dimension.
+   *
+   * @param DimensionCompatibility[] $dimensionCompatibilities
    */
   public function setDimensionCompatibilities($dimensionCompatibilities)
   {
@@ -40,7 +42,9 @@ class CheckCompatibilityResponse extends \Google\Collection
     return $this->dimensionCompatibilities;
   }
   /**
-   * @param MetricCompatibility[]
+   * The compatibility of each metric.
+   *
+   * @param MetricCompatibility[] $metricCompatibilities
    */
   public function setMetricCompatibilities($metricCompatibilities)
   {

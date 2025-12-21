@@ -20,20 +20,30 @@ namespace Google\Service\WorkflowExecutions;
 class Position extends \Google\Model
 {
   /**
+   * The source code column position (of the line) the current instruction was
+   * generated from.
+   *
    * @var string
    */
   public $column;
   /**
+   * The number of bytes of source code making up this stack trace element.
+   *
    * @var string
    */
   public $length;
   /**
+   * The source code line number the current instruction was generated from.
+   *
    * @var string
    */
   public $line;
 
   /**
-   * @param string
+   * The source code column position (of the line) the current instruction was
+   * generated from.
+   *
+   * @param string $column
    */
   public function setColumn($column)
   {
@@ -47,7 +57,9 @@ class Position extends \Google\Model
     return $this->column;
   }
   /**
-   * @param string
+   * The number of bytes of source code making up this stack trace element.
+   *
+   * @param string $length
    */
   public function setLength($length)
   {
@@ -61,7 +73,9 @@ class Position extends \Google\Model
     return $this->length;
   }
   /**
-   * @param string
+   * The source code line number the current instruction was generated from.
+   *
+   * @param string $line
    */
   public function setLine($line)
   {

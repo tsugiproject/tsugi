@@ -21,20 +21,34 @@ class NewPermissionsEvent extends \Google\Collection
 {
   protected $collection_key = 'requestedPermissions';
   /**
+   * The set of permissions that the enterprise admin has already approved for
+   * this application. Use Permissions.Get on the EMM API to retrieve details
+   * about these permissions.
+   *
    * @var string[]
    */
   public $approvedPermissions;
   /**
+   * The id of the product (e.g. "app:com.google.android.gm") for which new
+   * permissions were added. This field will always be present.
+   *
    * @var string
    */
   public $productId;
   /**
+   * The set of permissions that the app is currently requesting. Use
+   * Permissions.Get on the EMM API to retrieve details about these permissions.
+   *
    * @var string[]
    */
   public $requestedPermissions;
 
   /**
-   * @param string[]
+   * The set of permissions that the enterprise admin has already approved for
+   * this application. Use Permissions.Get on the EMM API to retrieve details
+   * about these permissions.
+   *
+   * @param string[] $approvedPermissions
    */
   public function setApprovedPermissions($approvedPermissions)
   {
@@ -48,7 +62,10 @@ class NewPermissionsEvent extends \Google\Collection
     return $this->approvedPermissions;
   }
   /**
-   * @param string
+   * The id of the product (e.g. "app:com.google.android.gm") for which new
+   * permissions were added. This field will always be present.
+   *
+   * @param string $productId
    */
   public function setProductId($productId)
   {
@@ -62,7 +79,10 @@ class NewPermissionsEvent extends \Google\Collection
     return $this->productId;
   }
   /**
-   * @param string[]
+   * The set of permissions that the app is currently requesting. Use
+   * Permissions.Get on the EMM API to retrieve details about these permissions.
+   *
+   * @param string[] $requestedPermissions
    */
   public function setRequestedPermissions($requestedPermissions)
   {

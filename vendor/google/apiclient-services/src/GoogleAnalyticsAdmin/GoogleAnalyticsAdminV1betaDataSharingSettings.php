@@ -20,32 +20,65 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaDataSharingSettings extends \Google\Model
 {
   /**
+   * Output only. Resource name. Format: accounts/{account}/dataSharingSettings
+   * Example: "accounts/1000/dataSharingSettings"
+   *
    * @var string
    */
   public $name;
   /**
+   * Deprecated. This field is no longer used and always returns false.
+   *
+   * @deprecated
    * @var bool
    */
   public $sharingWithGoogleAnySalesEnabled;
   /**
+   * Allows Google access to your Google Analytics account data, including
+   * account usage and configuration data, product spending, and users
+   * associated with your Google Analytics account, so that Google can help you
+   * make the most of Google products, providing you with insights, offers,
+   * recommendations, and optimization tips across Google Analytics and other
+   * Google products for business. This field maps to the "Recommendations for
+   * your business" field in the Google Analytics Admin UI.
+   *
    * @var bool
    */
   public $sharingWithGoogleAssignedSalesEnabled;
   /**
+   * Allows Google to use the data to improve other Google products or services.
+   * This fields maps to the "Google products & services" field in the Google
+   * Analytics Admin UI.
+   *
    * @var bool
    */
   public $sharingWithGoogleProductsEnabled;
   /**
+   * Allows Google technical support representatives access to your Google
+   * Analytics data and account when necessary to provide service and find
+   * solutions to technical issues. This field maps to the "Technical support"
+   * field in the Google Analytics Admin UI.
+   *
    * @var bool
    */
   public $sharingWithGoogleSupportEnabled;
   /**
+   * Enable features like predictions, modeled data, and benchmarking that can
+   * provide you with richer business insights when you contribute aggregated
+   * measurement data. The data you share (including information about the
+   * property from which it is shared) is aggregated and de-identified before
+   * being used to generate business insights. This field maps to the "Modeling
+   * contributions & business insights" field in the Google Analytics Admin UI.
+   *
    * @var bool
    */
   public $sharingWithOthersEnabled;
 
   /**
-   * @param string
+   * Output only. Resource name. Format: accounts/{account}/dataSharingSettings
+   * Example: "accounts/1000/dataSharingSettings"
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -59,13 +92,17 @@ class GoogleAnalyticsAdminV1betaDataSharingSettings extends \Google\Model
     return $this->name;
   }
   /**
-   * @param bool
+   * Deprecated. This field is no longer used and always returns false.
+   *
+   * @deprecated
+   * @param bool $sharingWithGoogleAnySalesEnabled
    */
   public function setSharingWithGoogleAnySalesEnabled($sharingWithGoogleAnySalesEnabled)
   {
     $this->sharingWithGoogleAnySalesEnabled = $sharingWithGoogleAnySalesEnabled;
   }
   /**
+   * @deprecated
    * @return bool
    */
   public function getSharingWithGoogleAnySalesEnabled()
@@ -73,7 +110,15 @@ class GoogleAnalyticsAdminV1betaDataSharingSettings extends \Google\Model
     return $this->sharingWithGoogleAnySalesEnabled;
   }
   /**
-   * @param bool
+   * Allows Google access to your Google Analytics account data, including
+   * account usage and configuration data, product spending, and users
+   * associated with your Google Analytics account, so that Google can help you
+   * make the most of Google products, providing you with insights, offers,
+   * recommendations, and optimization tips across Google Analytics and other
+   * Google products for business. This field maps to the "Recommendations for
+   * your business" field in the Google Analytics Admin UI.
+   *
+   * @param bool $sharingWithGoogleAssignedSalesEnabled
    */
   public function setSharingWithGoogleAssignedSalesEnabled($sharingWithGoogleAssignedSalesEnabled)
   {
@@ -87,7 +132,11 @@ class GoogleAnalyticsAdminV1betaDataSharingSettings extends \Google\Model
     return $this->sharingWithGoogleAssignedSalesEnabled;
   }
   /**
-   * @param bool
+   * Allows Google to use the data to improve other Google products or services.
+   * This fields maps to the "Google products & services" field in the Google
+   * Analytics Admin UI.
+   *
+   * @param bool $sharingWithGoogleProductsEnabled
    */
   public function setSharingWithGoogleProductsEnabled($sharingWithGoogleProductsEnabled)
   {
@@ -101,7 +150,12 @@ class GoogleAnalyticsAdminV1betaDataSharingSettings extends \Google\Model
     return $this->sharingWithGoogleProductsEnabled;
   }
   /**
-   * @param bool
+   * Allows Google technical support representatives access to your Google
+   * Analytics data and account when necessary to provide service and find
+   * solutions to technical issues. This field maps to the "Technical support"
+   * field in the Google Analytics Admin UI.
+   *
+   * @param bool $sharingWithGoogleSupportEnabled
    */
   public function setSharingWithGoogleSupportEnabled($sharingWithGoogleSupportEnabled)
   {
@@ -115,7 +169,14 @@ class GoogleAnalyticsAdminV1betaDataSharingSettings extends \Google\Model
     return $this->sharingWithGoogleSupportEnabled;
   }
   /**
-   * @param bool
+   * Enable features like predictions, modeled data, and benchmarking that can
+   * provide you with richer business insights when you contribute aggregated
+   * measurement data. The data you share (including information about the
+   * property from which it is shared) is aggregated and de-identified before
+   * being used to generate business insights. This field maps to the "Modeling
+   * contributions & business insights" field in the Google Analytics Admin UI.
+   *
+   * @param bool $sharingWithOthersEnabled
    */
   public function setSharingWithOthersEnabled($sharingWithOthersEnabled)
   {

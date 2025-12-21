@@ -20,20 +20,30 @@ namespace Google\Service\Analytics;
 class RealtimeDataColumnHeaders extends \Google\Model
 {
   /**
+   * Column Type. Either DIMENSION or METRIC.
+   *
    * @var string
    */
   public $columnType;
   /**
+   * Data type. Dimension column headers have only STRING as the data type.
+   * Metric column headers have data types for metric values such as INTEGER,
+   * DOUBLE, CURRENCY etc.
+   *
    * @var string
    */
   public $dataType;
   /**
+   * Column name.
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param string
+   * Column Type. Either DIMENSION or METRIC.
+   *
+   * @param string $columnType
    */
   public function setColumnType($columnType)
   {
@@ -47,7 +57,11 @@ class RealtimeDataColumnHeaders extends \Google\Model
     return $this->columnType;
   }
   /**
-   * @param string
+   * Data type. Dimension column headers have only STRING as the data type.
+   * Metric column headers have data types for metric values such as INTEGER,
+   * DOUBLE, CURRENCY etc.
+   *
+   * @param string $dataType
    */
   public function setDataType($dataType)
   {
@@ -61,7 +75,9 @@ class RealtimeDataColumnHeaders extends \Google\Model
     return $this->dataType;
   }
   /**
-   * @param string
+   * Column name.
+   *
+   * @param string $name
    */
   public function setName($name)
   {

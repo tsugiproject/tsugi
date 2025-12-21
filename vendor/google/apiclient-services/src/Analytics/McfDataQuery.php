@@ -27,52 +27,76 @@ class McfDataQuery extends \Google\Collection
         "startIndex" => "start-index",
   ];
   /**
+   * List of analytics dimensions.
+   *
    * @var string
    */
   public $dimensions;
   /**
+   * End date.
+   *
    * @var string
    */
   public $endDate;
   /**
+   * Comma-separated list of dimension or metric filters.
+   *
    * @var string
    */
   public $filters;
   /**
+   * Unique table ID.
+   *
    * @var string
    */
   public $ids;
   /**
+   * Maximum results per page.
+   *
    * @var int
    */
   public $maxResults;
   /**
+   * List of analytics metrics.
+   *
    * @var string[]
    */
   public $metrics;
   /**
+   * Desired sampling level
+   *
    * @var string
    */
   public $samplingLevel;
   /**
+   * Analytics advanced segment.
+   *
    * @var string
    */
   public $segment;
   /**
+   * List of dimensions or metrics based on which Analytics data is sorted.
+   *
    * @var string[]
    */
   public $sort;
   /**
+   * Start date.
+   *
    * @var string
    */
   public $startDate;
   /**
+   * Start index.
+   *
    * @var int
    */
   public $startIndex;
 
   /**
-   * @param string
+   * List of analytics dimensions.
+   *
+   * @param string $dimensions
    */
   public function setDimensions($dimensions)
   {
@@ -86,7 +110,9 @@ class McfDataQuery extends \Google\Collection
     return $this->dimensions;
   }
   /**
-   * @param string
+   * End date.
+   *
+   * @param string $endDate
    */
   public function setEndDate($endDate)
   {
@@ -100,7 +126,9 @@ class McfDataQuery extends \Google\Collection
     return $this->endDate;
   }
   /**
-   * @param string
+   * Comma-separated list of dimension or metric filters.
+   *
+   * @param string $filters
    */
   public function setFilters($filters)
   {
@@ -114,7 +142,9 @@ class McfDataQuery extends \Google\Collection
     return $this->filters;
   }
   /**
-   * @param string
+   * Unique table ID.
+   *
+   * @param string $ids
    */
   public function setIds($ids)
   {
@@ -128,7 +158,9 @@ class McfDataQuery extends \Google\Collection
     return $this->ids;
   }
   /**
-   * @param int
+   * Maximum results per page.
+   *
+   * @param int $maxResults
    */
   public function setMaxResults($maxResults)
   {
@@ -142,7 +174,9 @@ class McfDataQuery extends \Google\Collection
     return $this->maxResults;
   }
   /**
-   * @param string[]
+   * List of analytics metrics.
+   *
+   * @param string[] $metrics
    */
   public function setMetrics($metrics)
   {
@@ -156,7 +190,9 @@ class McfDataQuery extends \Google\Collection
     return $this->metrics;
   }
   /**
-   * @param string
+   * Desired sampling level
+   *
+   * @param string $samplingLevel
    */
   public function setSamplingLevel($samplingLevel)
   {
@@ -170,7 +206,9 @@ class McfDataQuery extends \Google\Collection
     return $this->samplingLevel;
   }
   /**
-   * @param string
+   * Analytics advanced segment.
+   *
+   * @param string $segment
    */
   public function setSegment($segment)
   {
@@ -184,7 +222,9 @@ class McfDataQuery extends \Google\Collection
     return $this->segment;
   }
   /**
-   * @param string[]
+   * List of dimensions or metrics based on which Analytics data is sorted.
+   *
+   * @param string[] $sort
    */
   public function setSort($sort)
   {
@@ -198,7 +238,9 @@ class McfDataQuery extends \Google\Collection
     return $this->sort;
   }
   /**
-   * @param string
+   * Start date.
+   *
+   * @param string $startDate
    */
   public function setStartDate($startDate)
   {
@@ -212,7 +254,9 @@ class McfDataQuery extends \Google\Collection
     return $this->startDate;
   }
   /**
-   * @param int
+   * Start index.
+   *
+   * @param int $startIndex
    */
   public function setStartIndex($startIndex)
   {

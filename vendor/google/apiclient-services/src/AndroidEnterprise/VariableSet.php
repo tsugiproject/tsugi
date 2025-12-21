@@ -20,16 +20,22 @@ namespace Google\Service\AndroidEnterprise;
 class VariableSet extends \Google\Model
 {
   /**
+   * The placeholder string; defined by EMM.
+   *
    * @var string
    */
   public $placeholder;
   /**
+   * The value of the placeholder, specific to the user.
+   *
    * @var string
    */
   public $userValue;
 
   /**
-   * @param string
+   * The placeholder string; defined by EMM.
+   *
+   * @param string $placeholder
    */
   public function setPlaceholder($placeholder)
   {
@@ -43,7 +49,9 @@ class VariableSet extends \Google\Model
     return $this->placeholder;
   }
   /**
-   * @param string
+   * The value of the placeholder, specific to the user.
+   *
+   * @param string $userValue
    */
   public function setUserValue($userValue)
   {

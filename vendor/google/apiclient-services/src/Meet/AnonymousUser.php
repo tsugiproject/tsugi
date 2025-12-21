@@ -20,12 +20,16 @@ namespace Google\Service\Meet;
 class AnonymousUser extends \Google\Model
 {
   /**
+   * Output only. User provided name when they join a conference anonymously.
+   *
    * @var string
    */
   public $displayName;
 
   /**
-   * @param string
+   * Output only. User provided name when they join a conference anonymously.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {

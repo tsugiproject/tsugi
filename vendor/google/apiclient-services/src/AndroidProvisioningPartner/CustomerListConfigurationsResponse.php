@@ -24,7 +24,9 @@ class CustomerListConfigurationsResponse extends \Google\Collection
   protected $configurationsDataType = 'array';
 
   /**
-   * @param Configuration[]
+   * The configurations.
+   *
+   * @param Configuration[] $configurations
    */
   public function setConfigurations($configurations)
   {

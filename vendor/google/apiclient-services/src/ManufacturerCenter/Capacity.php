@@ -20,16 +20,22 @@ namespace Google\Service\ManufacturerCenter;
 class Capacity extends \Google\Model
 {
   /**
+   * The unit of the capacity, i.e., MB, GB, or TB.
+   *
    * @var string
    */
   public $unit;
   /**
+   * The numeric value of the capacity.
+   *
    * @var string
    */
   public $value;
 
   /**
-   * @param string
+   * The unit of the capacity, i.e., MB, GB, or TB.
+   *
+   * @param string $unit
    */
   public function setUnit($unit)
   {
@@ -43,7 +49,9 @@ class Capacity extends \Google\Model
     return $this->unit;
   }
   /**
-   * @param string
+   * The numeric value of the capacity.
+   *
+   * @param string $value
    */
   public function setValue($value)
   {

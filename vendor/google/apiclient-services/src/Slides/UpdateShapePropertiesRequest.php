@@ -20,10 +20,20 @@ namespace Google\Service\Slides;
 class UpdateShapePropertiesRequest extends \Google\Model
 {
   /**
+   * The fields that should be updated. At least one field must be specified.
+   * The root `shapeProperties` is implied and should not be specified. A single
+   * `"*"` can be used as short-hand for listing every field. For example to
+   * update the shape background solid fill color, set `fields` to
+   * `"shapeBackgroundFill.solidFill.color"`. To reset a property to its default
+   * value, include its field name in the field mask but leave the field itself
+   * unset.
+   *
    * @var string
    */
   public $fields;
   /**
+   * The object ID of the shape the updates are applied to.
+   *
    * @var string
    */
   public $objectId;
@@ -31,7 +41,15 @@ class UpdateShapePropertiesRequest extends \Google\Model
   protected $shapePropertiesDataType = '';
 
   /**
-   * @param string
+   * The fields that should be updated. At least one field must be specified.
+   * The root `shapeProperties` is implied and should not be specified. A single
+   * `"*"` can be used as short-hand for listing every field. For example to
+   * update the shape background solid fill color, set `fields` to
+   * `"shapeBackgroundFill.solidFill.color"`. To reset a property to its default
+   * value, include its field name in the field mask but leave the field itself
+   * unset.
+   *
+   * @param string $fields
    */
   public function setFields($fields)
   {
@@ -45,7 +63,9 @@ class UpdateShapePropertiesRequest extends \Google\Model
     return $this->fields;
   }
   /**
-   * @param string
+   * The object ID of the shape the updates are applied to.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {
@@ -59,7 +79,9 @@ class UpdateShapePropertiesRequest extends \Google\Model
     return $this->objectId;
   }
   /**
-   * @param ShapeProperties
+   * The shape properties to update.
+   *
+   * @param ShapeProperties $shapeProperties
    */
   public function setShapeProperties(ShapeProperties $shapeProperties)
   {

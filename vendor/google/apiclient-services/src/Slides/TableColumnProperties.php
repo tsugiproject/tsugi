@@ -23,7 +23,9 @@ class TableColumnProperties extends \Google\Model
   protected $columnWidthDataType = '';
 
   /**
-   * @param Dimension
+   * Width of a column.
+   *
+   * @param Dimension $columnWidth
    */
   public function setColumnWidth(Dimension $columnWidth)
   {

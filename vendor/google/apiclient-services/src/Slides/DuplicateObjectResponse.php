@@ -20,12 +20,16 @@ namespace Google\Service\Slides;
 class DuplicateObjectResponse extends \Google\Model
 {
   /**
+   * The ID of the new duplicate object.
+   *
    * @var string
    */
   public $objectId;
 
   /**
-   * @param string
+   * The ID of the new duplicate object.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {

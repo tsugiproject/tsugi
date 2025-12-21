@@ -20,12 +20,16 @@ namespace Google\Service\AndroidEnterprise;
 class Administrator extends \Google\Model
 {
   /**
+   * The admin's email address.
+   *
    * @var string
    */
   public $email;
 
   /**
-   * @param string
+   * The admin's email address.
+   *
+   * @param string $email
    */
   public function setEmail($email)
   {

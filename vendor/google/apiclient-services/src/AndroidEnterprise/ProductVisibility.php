@@ -21,20 +21,31 @@ class ProductVisibility extends \Google\Collection
 {
   protected $collection_key = 'tracks';
   /**
+   * The product ID to make visible to the user. Required for each item in the
+   * productVisibility list.
+   *
    * @var string
    */
   public $productId;
   /**
+   * Grants the user visibility to the specified product track(s), identified by
+   * trackIds.
+   *
    * @var string[]
    */
   public $trackIds;
   /**
+   * Deprecated. Use trackIds instead.
+   *
    * @var string[]
    */
   public $tracks;
 
   /**
-   * @param string
+   * The product ID to make visible to the user. Required for each item in the
+   * productVisibility list.
+   *
+   * @param string $productId
    */
   public function setProductId($productId)
   {
@@ -48,7 +59,10 @@ class ProductVisibility extends \Google\Collection
     return $this->productId;
   }
   /**
-   * @param string[]
+   * Grants the user visibility to the specified product track(s), identified by
+   * trackIds.
+   *
+   * @param string[] $trackIds
    */
   public function setTrackIds($trackIds)
   {
@@ -62,7 +76,9 @@ class ProductVisibility extends \Google\Collection
     return $this->trackIds;
   }
   /**
-   * @param string[]
+   * Deprecated. Use trackIds instead.
+   *
+   * @param string[] $tracks
    */
   public function setTracks($tracks)
   {

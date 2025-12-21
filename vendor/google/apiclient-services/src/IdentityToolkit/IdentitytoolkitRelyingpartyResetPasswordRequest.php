@@ -20,24 +20,34 @@ namespace Google\Service\IdentityToolkit;
 class IdentitytoolkitRelyingpartyResetPasswordRequest extends \Google\Model
 {
   /**
+   * The email address of the user.
+   *
    * @var string
    */
   public $email;
   /**
+   * The new password inputted by the user.
+   *
    * @var string
    */
   public $newPassword;
   /**
+   * The old password inputted by the user.
+   *
    * @var string
    */
   public $oldPassword;
   /**
+   * The confirmation code.
+   *
    * @var string
    */
   public $oobCode;
 
   /**
-   * @param string
+   * The email address of the user.
+   *
+   * @param string $email
    */
   public function setEmail($email)
   {
@@ -51,7 +61,9 @@ class IdentitytoolkitRelyingpartyResetPasswordRequest extends \Google\Model
     return $this->email;
   }
   /**
-   * @param string
+   * The new password inputted by the user.
+   *
+   * @param string $newPassword
    */
   public function setNewPassword($newPassword)
   {
@@ -65,7 +77,9 @@ class IdentitytoolkitRelyingpartyResetPasswordRequest extends \Google\Model
     return $this->newPassword;
   }
   /**
-   * @param string
+   * The old password inputted by the user.
+   *
+   * @param string $oldPassword
    */
   public function setOldPassword($oldPassword)
   {
@@ -79,7 +93,9 @@ class IdentitytoolkitRelyingpartyResetPasswordRequest extends \Google\Model
     return $this->oldPassword;
   }
   /**
-   * @param string
+   * The confirmation code.
+   *
+   * @param string $oobCode
    */
   public function setOobCode($oobCode)
   {

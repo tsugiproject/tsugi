@@ -19,17 +19,41 @@ namespace Google\Service\Aiplatform;
 
 class GoogleCloudAiplatformV1PointwiseMetricResult extends \Google\Model
 {
+  protected $customOutputType = GoogleCloudAiplatformV1CustomOutput::class;
+  protected $customOutputDataType = '';
   /**
+   * Output only. Explanation for pointwise metric score.
+   *
    * @var string
    */
   public $explanation;
   /**
+   * Output only. Pointwise metric score.
+   *
    * @var float
    */
   public $score;
 
   /**
-   * @param string
+   * Output only. Spec for custom output.
+   *
+   * @param GoogleCloudAiplatformV1CustomOutput $customOutput
+   */
+  public function setCustomOutput(GoogleCloudAiplatformV1CustomOutput $customOutput)
+  {
+    $this->customOutput = $customOutput;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1CustomOutput
+   */
+  public function getCustomOutput()
+  {
+    return $this->customOutput;
+  }
+  /**
+   * Output only. Explanation for pointwise metric score.
+   *
+   * @param string $explanation
    */
   public function setExplanation($explanation)
   {
@@ -43,7 +67,9 @@ class GoogleCloudAiplatformV1PointwiseMetricResult extends \Google\Model
     return $this->explanation;
   }
   /**
-   * @param float
+   * Output only. Pointwise metric score.
+   *
+   * @param float $score
    */
   public function setScore($score)
   {

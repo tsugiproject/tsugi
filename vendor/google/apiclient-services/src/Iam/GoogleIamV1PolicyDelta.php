@@ -24,7 +24,9 @@ class GoogleIamV1PolicyDelta extends \Google\Collection
   protected $bindingDeltasDataType = 'array';
 
   /**
-   * @param GoogleIamV1BindingDelta[]
+   * The delta for Bindings between two policies.
+   *
+   * @param GoogleIamV1BindingDelta[] $bindingDeltas
    */
   public function setBindingDeltas($bindingDeltas)
   {

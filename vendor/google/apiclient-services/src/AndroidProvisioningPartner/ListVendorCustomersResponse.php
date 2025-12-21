@@ -23,16 +23,23 @@ class ListVendorCustomersResponse extends \Google\Collection
   protected $customersType = Company::class;
   protected $customersDataType = 'array';
   /**
+   * A token to retrieve the next page of results. Omitted if no further results
+   * are available.
+   *
    * @var string
    */
   public $nextPageToken;
   /**
+   * The total count of items in the list irrespective of pagination.
+   *
    * @var int
    */
   public $totalSize;
 
   /**
-   * @param Company[]
+   * List of customers of the vendor.
+   *
+   * @param Company[] $customers
    */
   public function setCustomers($customers)
   {
@@ -46,7 +53,10 @@ class ListVendorCustomersResponse extends \Google\Collection
     return $this->customers;
   }
   /**
-   * @param string
+   * A token to retrieve the next page of results. Omitted if no further results
+   * are available.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -60,7 +70,9 @@ class ListVendorCustomersResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param int
+   * The total count of items in the list irrespective of pagination.
+   *
+   * @param int $totalSize
    */
   public function setTotalSize($totalSize)
   {

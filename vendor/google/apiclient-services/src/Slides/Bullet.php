@@ -22,20 +22,28 @@ class Bullet extends \Google\Model
   protected $bulletStyleType = TextStyle::class;
   protected $bulletStyleDataType = '';
   /**
+   * The rendered bullet glyph for this paragraph.
+   *
    * @var string
    */
   public $glyph;
   /**
+   * The ID of the list this paragraph belongs to.
+   *
    * @var string
    */
   public $listId;
   /**
+   * The nesting level of this paragraph in the list.
+   *
    * @var int
    */
   public $nestingLevel;
 
   /**
-   * @param TextStyle
+   * The paragraph specific text style applied to this bullet.
+   *
+   * @param TextStyle $bulletStyle
    */
   public function setBulletStyle(TextStyle $bulletStyle)
   {
@@ -49,7 +57,9 @@ class Bullet extends \Google\Model
     return $this->bulletStyle;
   }
   /**
-   * @param string
+   * The rendered bullet glyph for this paragraph.
+   *
+   * @param string $glyph
    */
   public function setGlyph($glyph)
   {
@@ -63,7 +73,9 @@ class Bullet extends \Google\Model
     return $this->glyph;
   }
   /**
-   * @param string
+   * The ID of the list this paragraph belongs to.
+   *
+   * @param string $listId
    */
   public function setListId($listId)
   {
@@ -77,7 +89,9 @@ class Bullet extends \Google\Model
     return $this->listId;
   }
   /**
-   * @param int
+   * The nesting level of this paragraph in the list.
+   *
+   * @param int $nestingLevel
    */
   public function setNestingLevel($nestingLevel)
   {

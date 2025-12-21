@@ -19,17 +19,30 @@ namespace Google\Service\AndroidEnterprise;
 
 class Entitlement extends \Google\Model
 {
+  public const REASON_free = 'free';
+  public const REASON_groupLicense = 'groupLicense';
+  public const REASON_userPurchase = 'userPurchase';
   /**
+   * The ID of the product that the entitlement is for. For example,
+   * "app:com.google.android.gm".
+   *
    * @var string
    */
   public $productId;
   /**
+   * The reason for the entitlement. For example, "free" for free apps. This
+   * property is temporary: it will be replaced by the acquisition kind field of
+   * group licenses.
+   *
    * @var string
    */
   public $reason;
 
   /**
-   * @param string
+   * The ID of the product that the entitlement is for. For example,
+   * "app:com.google.android.gm".
+   *
+   * @param string $productId
    */
   public function setProductId($productId)
   {
@@ -43,14 +56,20 @@ class Entitlement extends \Google\Model
     return $this->productId;
   }
   /**
-   * @param string
+   * The reason for the entitlement. For example, "free" for free apps. This
+   * property is temporary: it will be replaced by the acquisition kind field of
+   * group licenses.
+   *
+   * Accepted values: free, groupLicense, userPurchase
+   *
+   * @param self::REASON_* $reason
    */
   public function setReason($reason)
   {
     $this->reason = $reason;
   }
   /**
-   * @return string
+   * @return self::REASON_*
    */
   public function getReason()
   {

@@ -19,16 +19,36 @@ namespace Google\Service\CloudFilestore;
 
 class Replication extends \Google\Collection
 {
+  /**
+   * Role not set.
+   */
+  public const ROLE_ROLE_UNSPECIFIED = 'ROLE_UNSPECIFIED';
+  /**
+   * The instance is the `ACTIVE` replication member, functions as the
+   * replication source instance.
+   */
+  public const ROLE_ACTIVE = 'ACTIVE';
+  /**
+   * The instance is the `STANDBY` replication member, functions as the
+   * replication destination instance.
+   */
+  public const ROLE_STANDBY = 'STANDBY';
   protected $collection_key = 'replicas';
   protected $replicasType = ReplicaConfig::class;
   protected $replicasDataType = 'array';
   /**
+   * Optional. The replication role. When creating a new replica, this field
+   * must be set to `STANDBY`.
+   *
    * @var string
    */
   public $role;
 
   /**
-   * @param ReplicaConfig[]
+   * Optional. Replication configuration for the replica instance associated
+   * with this instance. Only a single replica is supported.
+   *
+   * @param ReplicaConfig[] $replicas
    */
   public function setReplicas($replicas)
   {
@@ -42,14 +62,19 @@ class Replication extends \Google\Collection
     return $this->replicas;
   }
   /**
-   * @param string
+   * Optional. The replication role. When creating a new replica, this field
+   * must be set to `STANDBY`.
+   *
+   * Accepted values: ROLE_UNSPECIFIED, ACTIVE, STANDBY
+   *
+   * @param self::ROLE_* $role
    */
   public function setRole($role)
   {
     $this->role = $role;
   }
   /**
-   * @return string
+   * @return self::ROLE_*
    */
   public function getRole()
   {

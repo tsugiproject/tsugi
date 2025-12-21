@@ -20,10 +20,21 @@ namespace Google\Service\ContainerAnalysis;
 class ContaineranalysisGoogleDevtoolsCloudbuildV1BuiltImage extends \Google\Model
 {
   /**
+   * Output only. Path to the artifact in Artifact Registry.
+   *
+   * @var string
+   */
+  public $artifactRegistryPackage;
+  /**
+   * Docker Registry 2.0 digest.
+   *
    * @var string
    */
   public $digest;
   /**
+   * Name used to push the container image to Google Container Registry, as
+   * presented to `docker push`.
+   *
    * @var string
    */
   public $name;
@@ -31,7 +42,25 @@ class ContaineranalysisGoogleDevtoolsCloudbuildV1BuiltImage extends \Google\Mode
   protected $pushTimingDataType = '';
 
   /**
-   * @param string
+   * Output only. Path to the artifact in Artifact Registry.
+   *
+   * @param string $artifactRegistryPackage
+   */
+  public function setArtifactRegistryPackage($artifactRegistryPackage)
+  {
+    $this->artifactRegistryPackage = $artifactRegistryPackage;
+  }
+  /**
+   * @return string
+   */
+  public function getArtifactRegistryPackage()
+  {
+    return $this->artifactRegistryPackage;
+  }
+  /**
+   * Docker Registry 2.0 digest.
+   *
+   * @param string $digest
    */
   public function setDigest($digest)
   {
@@ -45,7 +74,10 @@ class ContaineranalysisGoogleDevtoolsCloudbuildV1BuiltImage extends \Google\Mode
     return $this->digest;
   }
   /**
-   * @param string
+   * Name used to push the container image to Google Container Registry, as
+   * presented to `docker push`.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -59,7 +91,9 @@ class ContaineranalysisGoogleDevtoolsCloudbuildV1BuiltImage extends \Google\Mode
     return $this->name;
   }
   /**
-   * @param ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan
+   * Output only. Stores timing information for pushing the specified image.
+   *
+   * @param ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan $pushTiming
    */
   public function setPushTiming(ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan $pushTiming)
   {

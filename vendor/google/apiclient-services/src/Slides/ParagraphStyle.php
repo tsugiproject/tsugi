@@ -20,10 +20,61 @@ namespace Google\Service\Slides;
 class ParagraphStyle extends \Google\Model
 {
   /**
+   * The paragraph alignment is inherited from the parent.
+   */
+  public const ALIGNMENT_ALIGNMENT_UNSPECIFIED = 'ALIGNMENT_UNSPECIFIED';
+  /**
+   * The paragraph is aligned to the start of the line. Left-aligned for LTR
+   * text, right-aligned otherwise.
+   */
+  public const ALIGNMENT_START = 'START';
+  /**
+   * The paragraph is centered.
+   */
+  public const ALIGNMENT_CENTER = 'CENTER';
+  /**
+   * The paragraph is aligned to the end of the line. Right-aligned for LTR
+   * text, left-aligned otherwise.
+   */
+  public const ALIGNMENT_END = 'END';
+  /**
+   * The paragraph is justified.
+   */
+  public const ALIGNMENT_JUSTIFIED = 'JUSTIFIED';
+  /**
+   * The text direction is inherited from the parent.
+   */
+  public const DIRECTION_TEXT_DIRECTION_UNSPECIFIED = 'TEXT_DIRECTION_UNSPECIFIED';
+  /**
+   * The text goes from left to right.
+   */
+  public const DIRECTION_LEFT_TO_RIGHT = 'LEFT_TO_RIGHT';
+  /**
+   * The text goes from right to left.
+   */
+  public const DIRECTION_RIGHT_TO_LEFT = 'RIGHT_TO_LEFT';
+  /**
+   * The spacing mode is inherited from the parent.
+   */
+  public const SPACING_MODE_SPACING_MODE_UNSPECIFIED = 'SPACING_MODE_UNSPECIFIED';
+  /**
+   * Paragraph spacing is always rendered.
+   */
+  public const SPACING_MODE_NEVER_COLLAPSE = 'NEVER_COLLAPSE';
+  /**
+   * Paragraph spacing is skipped between list elements.
+   */
+  public const SPACING_MODE_COLLAPSE_LISTS = 'COLLAPSE_LISTS';
+  /**
+   * The text alignment for this paragraph.
+   *
    * @var string
    */
   public $alignment;
   /**
+   * The text direction of this paragraph. If unset, the value defaults to
+   * LEFT_TO_RIGHT since text direction is not inherited.
+   *
    * @var string
    */
   public $direction;
@@ -34,6 +85,9 @@ class ParagraphStyle extends \Google\Model
   protected $indentStartType = Dimension::class;
   protected $indentStartDataType = '';
   /**
+   * The amount of space between lines, as a percentage of normal, where normal
+   * is represented as 100.0. If unset, the value is inherited from the parent.
+   *
    * @var float
    */
   public $lineSpacing;
@@ -42,40 +96,55 @@ class ParagraphStyle extends \Google\Model
   protected $spaceBelowType = Dimension::class;
   protected $spaceBelowDataType = '';
   /**
+   * The spacing mode for the paragraph.
+   *
    * @var string
    */
   public $spacingMode;
 
   /**
-   * @param string
+   * The text alignment for this paragraph.
+   *
+   * Accepted values: ALIGNMENT_UNSPECIFIED, START, CENTER, END, JUSTIFIED
+   *
+   * @param self::ALIGNMENT_* $alignment
    */
   public function setAlignment($alignment)
   {
     $this->alignment = $alignment;
   }
   /**
-   * @return string
+   * @return self::ALIGNMENT_*
    */
   public function getAlignment()
   {
     return $this->alignment;
   }
   /**
-   * @param string
+   * The text direction of this paragraph. If unset, the value defaults to
+   * LEFT_TO_RIGHT since text direction is not inherited.
+   *
+   * Accepted values: TEXT_DIRECTION_UNSPECIFIED, LEFT_TO_RIGHT, RIGHT_TO_LEFT
+   *
+   * @param self::DIRECTION_* $direction
    */
   public function setDirection($direction)
   {
     $this->direction = $direction;
   }
   /**
-   * @return string
+   * @return self::DIRECTION_*
    */
   public function getDirection()
   {
     return $this->direction;
   }
   /**
-   * @param Dimension
+   * The amount indentation for the paragraph on the side that corresponds to
+   * the end of the text, based on the current text direction. If unset, the
+   * value is inherited from the parent.
+   *
+   * @param Dimension $indentEnd
    */
   public function setIndentEnd(Dimension $indentEnd)
   {
@@ -89,7 +158,10 @@ class ParagraphStyle extends \Google\Model
     return $this->indentEnd;
   }
   /**
-   * @param Dimension
+   * The amount of indentation for the start of the first line of the paragraph.
+   * If unset, the value is inherited from the parent.
+   *
+   * @param Dimension $indentFirstLine
    */
   public function setIndentFirstLine(Dimension $indentFirstLine)
   {
@@ -103,7 +175,11 @@ class ParagraphStyle extends \Google\Model
     return $this->indentFirstLine;
   }
   /**
-   * @param Dimension
+   * The amount indentation for the paragraph on the side that corresponds to
+   * the start of the text, based on the current text direction. If unset, the
+   * value is inherited from the parent.
+   *
+   * @param Dimension $indentStart
    */
   public function setIndentStart(Dimension $indentStart)
   {
@@ -117,7 +193,10 @@ class ParagraphStyle extends \Google\Model
     return $this->indentStart;
   }
   /**
-   * @param float
+   * The amount of space between lines, as a percentage of normal, where normal
+   * is represented as 100.0. If unset, the value is inherited from the parent.
+   *
+   * @param float $lineSpacing
    */
   public function setLineSpacing($lineSpacing)
   {
@@ -131,7 +210,10 @@ class ParagraphStyle extends \Google\Model
     return $this->lineSpacing;
   }
   /**
-   * @param Dimension
+   * The amount of extra space above the paragraph. If unset, the value is
+   * inherited from the parent.
+   *
+   * @param Dimension $spaceAbove
    */
   public function setSpaceAbove(Dimension $spaceAbove)
   {
@@ -145,7 +227,10 @@ class ParagraphStyle extends \Google\Model
     return $this->spaceAbove;
   }
   /**
-   * @param Dimension
+   * The amount of extra space below the paragraph. If unset, the value is
+   * inherited from the parent.
+   *
+   * @param Dimension $spaceBelow
    */
   public function setSpaceBelow(Dimension $spaceBelow)
   {
@@ -159,14 +244,18 @@ class ParagraphStyle extends \Google\Model
     return $this->spaceBelow;
   }
   /**
-   * @param string
+   * The spacing mode for the paragraph.
+   *
+   * Accepted values: SPACING_MODE_UNSPECIFIED, NEVER_COLLAPSE, COLLAPSE_LISTS
+   *
+   * @param self::SPACING_MODE_* $spacingMode
    */
   public function setSpacingMode($spacingMode)
   {
     $this->spacingMode = $spacingMode;
   }
   /**
-   * @return string
+   * @return self::SPACING_MODE_*
    */
   public function getSpacingMode()
   {

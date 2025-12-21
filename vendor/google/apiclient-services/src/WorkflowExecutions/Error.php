@@ -20,10 +20,14 @@ namespace Google\Service\WorkflowExecutions;
 class Error extends \Google\Model
 {
   /**
+   * Human-readable stack trace string.
+   *
    * @var string
    */
   public $context;
   /**
+   * Error message and data returned represented as a JSON string.
+   *
    * @var string
    */
   public $payload;
@@ -31,7 +35,9 @@ class Error extends \Google\Model
   protected $stackTraceDataType = '';
 
   /**
-   * @param string
+   * Human-readable stack trace string.
+   *
+   * @param string $context
    */
   public function setContext($context)
   {
@@ -45,7 +51,9 @@ class Error extends \Google\Model
     return $this->context;
   }
   /**
-   * @param string
+   * Error message and data returned represented as a JSON string.
+   *
+   * @param string $payload
    */
   public function setPayload($payload)
   {
@@ -59,7 +67,9 @@ class Error extends \Google\Model
     return $this->payload;
   }
   /**
-   * @param StackTrace
+   * Stack trace with detailed information of where error was generated.
+   *
+   * @param StackTrace $stackTrace
    */
   public function setStackTrace(StackTrace $stackTrace)
   {

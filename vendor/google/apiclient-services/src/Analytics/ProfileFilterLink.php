@@ -22,26 +22,45 @@ class ProfileFilterLink extends \Google\Model
   protected $filterRefType = FilterRef::class;
   protected $filterRefDataType = '';
   /**
+   * Profile filter link ID.
+   *
    * @var string
    */
   public $id;
   /**
+   * Resource type for Analytics filter.
+   *
    * @var string
    */
   public $kind;
   protected $profileRefType = ProfileRef::class;
   protected $profileRefDataType = '';
   /**
+   * The rank of this profile filter link relative to the other filters linked
+   * to the same profile. For readonly (i.e., list and get) operations, the rank
+   * always starts at 1. For write (i.e., create, update, or delete) operations,
+   * you may specify a value between 0 and 255 inclusively, [0, 255]. In order
+   * to insert a link at the end of the list, either don't specify a rank or set
+   * a rank to a number greater than the largest rank in the list. In order to
+   * insert a link to the beginning of the list specify a rank that is less than
+   * or equal to 1. The new link will move all existing filters with the same or
+   * lower rank down the list. After the link is inserted/updated/deleted all
+   * profile filter links will be renumbered starting at 1.
+   *
    * @var int
    */
   public $rank;
   /**
+   * Link for this profile filter link.
+   *
    * @var string
    */
   public $selfLink;
 
   /**
-   * @param FilterRef
+   * Filter for this link.
+   *
+   * @param FilterRef $filterRef
    */
   public function setFilterRef(FilterRef $filterRef)
   {
@@ -55,7 +74,9 @@ class ProfileFilterLink extends \Google\Model
     return $this->filterRef;
   }
   /**
-   * @param string
+   * Profile filter link ID.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -69,7 +90,9 @@ class ProfileFilterLink extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * Resource type for Analytics filter.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -83,7 +106,9 @@ class ProfileFilterLink extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param ProfileRef
+   * View (Profile) for this link.
+   *
+   * @param ProfileRef $profileRef
    */
   public function setProfileRef(ProfileRef $profileRef)
   {
@@ -97,7 +122,18 @@ class ProfileFilterLink extends \Google\Model
     return $this->profileRef;
   }
   /**
-   * @param int
+   * The rank of this profile filter link relative to the other filters linked
+   * to the same profile. For readonly (i.e., list and get) operations, the rank
+   * always starts at 1. For write (i.e., create, update, or delete) operations,
+   * you may specify a value between 0 and 255 inclusively, [0, 255]. In order
+   * to insert a link at the end of the list, either don't specify a rank or set
+   * a rank to a number greater than the largest rank in the list. In order to
+   * insert a link to the beginning of the list specify a rank that is less than
+   * or equal to 1. The new link will move all existing filters with the same or
+   * lower rank down the list. After the link is inserted/updated/deleted all
+   * profile filter links will be renumbered starting at 1.
+   *
+   * @param int $rank
    */
   public function setRank($rank)
   {
@@ -111,7 +147,9 @@ class ProfileFilterLink extends \Google\Model
     return $this->rank;
   }
   /**
-   * @param string
+   * Link for this profile filter link.
+   *
+   * @param string $selfLink
    */
   public function setSelfLink($selfLink)
   {

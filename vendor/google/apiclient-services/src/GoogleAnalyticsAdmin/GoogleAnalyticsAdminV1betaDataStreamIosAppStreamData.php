@@ -20,16 +20,25 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaDataStreamIosAppStreamData extends \Google\Model
 {
   /**
+   * Required. Immutable. The Apple App Store Bundle ID for the app Example:
+   * "com.example.myiosapp"
+   *
    * @var string
    */
   public $bundleId;
   /**
+   * Output only. ID of the corresponding iOS app in Firebase, if any. This ID
+   * can change if the iOS app is deleted and recreated.
+   *
    * @var string
    */
   public $firebaseAppId;
 
   /**
-   * @param string
+   * Required. Immutable. The Apple App Store Bundle ID for the app Example:
+   * "com.example.myiosapp"
+   *
+   * @param string $bundleId
    */
   public function setBundleId($bundleId)
   {
@@ -43,7 +52,10 @@ class GoogleAnalyticsAdminV1betaDataStreamIosAppStreamData extends \Google\Model
     return $this->bundleId;
   }
   /**
-   * @param string
+   * Output only. ID of the corresponding iOS app in Firebase, if any. This ID
+   * can change if the iOS app is deleted and recreated.
+   *
+   * @param string $firebaseAppId
    */
   public function setFirebaseAppId($firebaseAppId)
   {

@@ -20,14 +20,33 @@ namespace Google\Service\Slides;
 class Video extends \Google\Model
 {
   /**
+   * The video source is unspecified.
+   */
+  public const SOURCE_SOURCE_UNSPECIFIED = 'SOURCE_UNSPECIFIED';
+  /**
+   * The video source is YouTube.
+   */
+  public const SOURCE_YOUTUBE = 'YOUTUBE';
+  /**
+   * The video source is Google Drive.
+   */
+  public const SOURCE_DRIVE = 'DRIVE';
+  /**
+   * The video source's unique identifier for this video.
+   *
    * @var string
    */
   public $id;
   /**
+   * The video source.
+   *
    * @var string
    */
   public $source;
   /**
+   * An URL to a video. The URL is valid as long as the source video exists and
+   * sharing settings do not change.
+   *
    * @var string
    */
   public $url;
@@ -35,7 +54,9 @@ class Video extends \Google\Model
   protected $videoPropertiesDataType = '';
 
   /**
-   * @param string
+   * The video source's unique identifier for this video.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -49,21 +70,28 @@ class Video extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * The video source.
+   *
+   * Accepted values: SOURCE_UNSPECIFIED, YOUTUBE, DRIVE
+   *
+   * @param self::SOURCE_* $source
    */
   public function setSource($source)
   {
     $this->source = $source;
   }
   /**
-   * @return string
+   * @return self::SOURCE_*
    */
   public function getSource()
   {
     return $this->source;
   }
   /**
-   * @param string
+   * An URL to a video. The URL is valid as long as the source video exists and
+   * sharing settings do not change.
+   *
+   * @param string $url
    */
   public function setUrl($url)
   {
@@ -77,7 +105,9 @@ class Video extends \Google\Model
     return $this->url;
   }
   /**
-   * @param VideoProperties
+   * The properties of the video.
+   *
+   * @param VideoProperties $videoProperties
    */
   public function setVideoProperties(VideoProperties $videoProperties)
   {

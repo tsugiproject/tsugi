@@ -24,7 +24,9 @@ class FetchMultiDailyMetricsTimeSeriesResponse extends \Google\Collection
   protected $multiDailyMetricTimeSeriesDataType = 'array';
 
   /**
-   * @param MultiDailyMetricTimeSeries[]
+   * DailyMetrics and their corresponding time series.
+   *
+   * @param MultiDailyMetricTimeSeries[] $multiDailyMetricTimeSeries
    */
   public function setMultiDailyMetricTimeSeries($multiDailyMetricTimeSeries)
   {

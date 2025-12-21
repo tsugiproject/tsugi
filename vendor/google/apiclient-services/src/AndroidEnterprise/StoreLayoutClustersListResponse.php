@@ -24,7 +24,9 @@ class StoreLayoutClustersListResponse extends \Google\Collection
   protected $clusterDataType = 'array';
 
   /**
-   * @param StoreCluster[]
+   * A store cluster of an enterprise.
+   *
+   * @param StoreCluster[] $cluster
    */
   public function setCluster($cluster)
   {

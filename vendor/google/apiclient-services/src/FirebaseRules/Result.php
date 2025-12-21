@@ -22,12 +22,17 @@ class Result extends \Google\Model
   protected $undefinedType = FirebaserulesEmpty::class;
   protected $undefinedDataType = '';
   /**
+   * The result is an actual value. The type of the value must match that of the
+   * type declared by the service.
+   *
    * @var array
    */
   public $value;
 
   /**
-   * @param FirebaserulesEmpty
+   * The result is undefined, meaning the result could not be computed.
+   *
+   * @param FirebaserulesEmpty $undefined
    */
   public function setUndefined(FirebaserulesEmpty $undefined)
   {
@@ -41,7 +46,10 @@ class Result extends \Google\Model
     return $this->undefined;
   }
   /**
-   * @param array
+   * The result is an actual value. The type of the value must match that of the
+   * type declared by the service.
+   *
+   * @param array $value
    */
   public function setValue($value)
   {

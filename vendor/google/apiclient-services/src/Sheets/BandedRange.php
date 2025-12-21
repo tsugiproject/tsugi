@@ -20,9 +20,18 @@ namespace Google\Service\Sheets;
 class BandedRange extends \Google\Model
 {
   /**
+   * The ID of the banded range. If unset, refer to banded_range_reference.
+   *
    * @var int
    */
   public $bandedRangeId;
+  /**
+   * Output only. The reference of the banded range, used to identify the ID
+   * that is not supported by the banded_range_id.
+   *
+   * @var string
+   */
+  public $bandedRangeReference;
   protected $columnPropertiesType = BandingProperties::class;
   protected $columnPropertiesDataType = '';
   protected $rangeType = GridRange::class;
@@ -31,7 +40,9 @@ class BandedRange extends \Google\Model
   protected $rowPropertiesDataType = '';
 
   /**
-   * @param int
+   * The ID of the banded range. If unset, refer to banded_range_reference.
+   *
+   * @param int $bandedRangeId
    */
   public function setBandedRangeId($bandedRangeId)
   {
@@ -45,7 +56,28 @@ class BandedRange extends \Google\Model
     return $this->bandedRangeId;
   }
   /**
-   * @param BandingProperties
+   * Output only. The reference of the banded range, used to identify the ID
+   * that is not supported by the banded_range_id.
+   *
+   * @param string $bandedRangeReference
+   */
+  public function setBandedRangeReference($bandedRangeReference)
+  {
+    $this->bandedRangeReference = $bandedRangeReference;
+  }
+  /**
+   * @return string
+   */
+  public function getBandedRangeReference()
+  {
+    return $this->bandedRangeReference;
+  }
+  /**
+   * Properties for column bands. These properties are applied on a column- by-
+   * column basis throughout all the columns in the range. At least one of
+   * row_properties or column_properties must be specified.
+   *
+   * @param BandingProperties $columnProperties
    */
   public function setColumnProperties(BandingProperties $columnProperties)
   {
@@ -59,7 +91,9 @@ class BandedRange extends \Google\Model
     return $this->columnProperties;
   }
   /**
-   * @param GridRange
+   * The range over which these properties are applied.
+   *
+   * @param GridRange $range
    */
   public function setRange(GridRange $range)
   {
@@ -73,7 +107,11 @@ class BandedRange extends \Google\Model
     return $this->range;
   }
   /**
-   * @param BandingProperties
+   * Properties for row bands. These properties are applied on a row-by-row
+   * basis throughout all the rows in the range. At least one of row_properties
+   * or column_properties must be specified.
+   *
+   * @param BandingProperties $rowProperties
    */
   public function setRowProperties(BandingProperties $rowProperties)
   {

@@ -21,79 +21,120 @@ class UserInfo extends \Google\Collection
 {
   protected $collection_key = 'providerUserInfo';
   /**
+   * User creation timestamp.
+   *
    * @var string
    */
   public $createdAt;
   /**
+   * The custom attributes to be set in the user's id token.
+   *
    * @var string
    */
   public $customAttributes;
   /**
+   * Whether the user is authenticated by the developer.
+   *
    * @var bool
    */
   public $customAuth;
   /**
+   * Whether the user is disabled.
+   *
    * @var bool
    */
   public $disabled;
   /**
+   * The name of the user.
+   *
    * @var string
    */
   public $displayName;
   /**
+   * The email of the user.
+   *
    * @var string
    */
   public $email;
   /**
+   * Whether the email has been verified.
+   *
    * @var bool
    */
   public $emailVerified;
   /**
+   * last login timestamp.
+   *
    * @var string
    */
   public $lastLoginAt;
   /**
+   * The local ID of the user.
+   *
    * @var string
    */
   public $localId;
   /**
+   * The user's hashed password.
+   *
    * @var string
    */
   public $passwordHash;
+  /**
+   * The timestamp when the password was last updated.
+   *
+   * @var 
+   */
   public $passwordUpdatedAt;
   /**
+   * User's phone number.
+   *
    * @var string
    */
   public $phoneNumber;
   /**
+   * The URL of the user profile photo.
+   *
    * @var string
    */
   public $photoUrl;
   protected $providerUserInfoType = UserInfoProviderUserInfo::class;
   protected $providerUserInfoDataType = 'array';
   /**
+   * The user's plain text password.
+   *
    * @var string
    */
   public $rawPassword;
   /**
+   * The user's password salt.
+   *
    * @var string
    */
   public $salt;
   /**
+   * User's screen name at Twitter or login name at Github.
+   *
    * @var string
    */
   public $screenName;
   /**
+   * Timestamp in seconds for valid login token.
+   *
    * @var string
    */
   public $validSince;
   /**
+   * Version of the user's password.
+   *
    * @var int
    */
   public $version;
 
   /**
-   * @param string
+   * User creation timestamp.
+   *
+   * @param string $createdAt
    */
   public function setCreatedAt($createdAt)
   {
@@ -107,7 +148,9 @@ class UserInfo extends \Google\Collection
     return $this->createdAt;
   }
   /**
-   * @param string
+   * The custom attributes to be set in the user's id token.
+   *
+   * @param string $customAttributes
    */
   public function setCustomAttributes($customAttributes)
   {
@@ -121,7 +164,9 @@ class UserInfo extends \Google\Collection
     return $this->customAttributes;
   }
   /**
-   * @param bool
+   * Whether the user is authenticated by the developer.
+   *
+   * @param bool $customAuth
    */
   public function setCustomAuth($customAuth)
   {
@@ -135,7 +180,9 @@ class UserInfo extends \Google\Collection
     return $this->customAuth;
   }
   /**
-   * @param bool
+   * Whether the user is disabled.
+   *
+   * @param bool $disabled
    */
   public function setDisabled($disabled)
   {
@@ -149,7 +196,9 @@ class UserInfo extends \Google\Collection
     return $this->disabled;
   }
   /**
-   * @param string
+   * The name of the user.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -163,7 +212,9 @@ class UserInfo extends \Google\Collection
     return $this->displayName;
   }
   /**
-   * @param string
+   * The email of the user.
+   *
+   * @param string $email
    */
   public function setEmail($email)
   {
@@ -177,7 +228,9 @@ class UserInfo extends \Google\Collection
     return $this->email;
   }
   /**
-   * @param bool
+   * Whether the email has been verified.
+   *
+   * @param bool $emailVerified
    */
   public function setEmailVerified($emailVerified)
   {
@@ -191,7 +244,9 @@ class UserInfo extends \Google\Collection
     return $this->emailVerified;
   }
   /**
-   * @param string
+   * last login timestamp.
+   *
+   * @param string $lastLoginAt
    */
   public function setLastLoginAt($lastLoginAt)
   {
@@ -205,7 +260,9 @@ class UserInfo extends \Google\Collection
     return $this->lastLoginAt;
   }
   /**
-   * @param string
+   * The local ID of the user.
+   *
+   * @param string $localId
    */
   public function setLocalId($localId)
   {
@@ -219,7 +276,9 @@ class UserInfo extends \Google\Collection
     return $this->localId;
   }
   /**
-   * @param string
+   * The user's hashed password.
+   *
+   * @param string $passwordHash
    */
   public function setPasswordHash($passwordHash)
   {
@@ -241,7 +300,9 @@ class UserInfo extends \Google\Collection
     return $this->passwordUpdatedAt;
   }
   /**
-   * @param string
+   * User's phone number.
+   *
+   * @param string $phoneNumber
    */
   public function setPhoneNumber($phoneNumber)
   {
@@ -255,7 +316,9 @@ class UserInfo extends \Google\Collection
     return $this->phoneNumber;
   }
   /**
-   * @param string
+   * The URL of the user profile photo.
+   *
+   * @param string $photoUrl
    */
   public function setPhotoUrl($photoUrl)
   {
@@ -269,7 +332,9 @@ class UserInfo extends \Google\Collection
     return $this->photoUrl;
   }
   /**
-   * @param UserInfoProviderUserInfo[]
+   * The IDP of the user.
+   *
+   * @param UserInfoProviderUserInfo[] $providerUserInfo
    */
   public function setProviderUserInfo($providerUserInfo)
   {
@@ -283,7 +348,9 @@ class UserInfo extends \Google\Collection
     return $this->providerUserInfo;
   }
   /**
-   * @param string
+   * The user's plain text password.
+   *
+   * @param string $rawPassword
    */
   public function setRawPassword($rawPassword)
   {
@@ -297,7 +364,9 @@ class UserInfo extends \Google\Collection
     return $this->rawPassword;
   }
   /**
-   * @param string
+   * The user's password salt.
+   *
+   * @param string $salt
    */
   public function setSalt($salt)
   {
@@ -311,7 +380,9 @@ class UserInfo extends \Google\Collection
     return $this->salt;
   }
   /**
-   * @param string
+   * User's screen name at Twitter or login name at Github.
+   *
+   * @param string $screenName
    */
   public function setScreenName($screenName)
   {
@@ -325,7 +396,9 @@ class UserInfo extends \Google\Collection
     return $this->screenName;
   }
   /**
-   * @param string
+   * Timestamp in seconds for valid login token.
+   *
+   * @param string $validSince
    */
   public function setValidSince($validSince)
   {
@@ -339,7 +412,9 @@ class UserInfo extends \Google\Collection
     return $this->validSince;
   }
   /**
-   * @param int
+   * Version of the user's password.
+   *
+   * @param int $version
    */
   public function setVersion($version)
   {

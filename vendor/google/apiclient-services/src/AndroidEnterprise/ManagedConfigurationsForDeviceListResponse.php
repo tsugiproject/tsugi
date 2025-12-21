@@ -24,7 +24,9 @@ class ManagedConfigurationsForDeviceListResponse extends \Google\Collection
   protected $managedConfigurationForDeviceDataType = 'array';
 
   /**
-   * @param ManagedConfiguration[]
+   * A managed configuration for an app on a specific device.
+   *
+   * @param ManagedConfiguration[] $managedConfigurationForDevice
    */
   public function setManagedConfigurationForDevice($managedConfigurationForDevice)
   {

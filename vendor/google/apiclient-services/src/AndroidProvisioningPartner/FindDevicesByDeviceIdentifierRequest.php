@@ -22,16 +22,24 @@ class FindDevicesByDeviceIdentifierRequest extends \Google\Model
   protected $deviceIdentifierType = DeviceIdentifier::class;
   protected $deviceIdentifierDataType = '';
   /**
+   * Required. The maximum number of devices to show in a page of results. Must
+   * be between 1 and 100 inclusive.
+   *
    * @var string
    */
   public $limit;
   /**
+   * A token specifying which result page to return.
+   *
    * @var string
    */
   public $pageToken;
 
   /**
-   * @param DeviceIdentifier
+   * Required. Required. The device identifier to search for. If serial number
+   * is provided then case insensitive serial number matches are allowed.
+   *
+   * @param DeviceIdentifier $deviceIdentifier
    */
   public function setDeviceIdentifier(DeviceIdentifier $deviceIdentifier)
   {
@@ -45,7 +53,10 @@ class FindDevicesByDeviceIdentifierRequest extends \Google\Model
     return $this->deviceIdentifier;
   }
   /**
-   * @param string
+   * Required. The maximum number of devices to show in a page of results. Must
+   * be between 1 and 100 inclusive.
+   *
+   * @param string $limit
    */
   public function setLimit($limit)
   {
@@ -59,7 +70,9 @@ class FindDevicesByDeviceIdentifierRequest extends \Google\Model
     return $this->limit;
   }
   /**
-   * @param string
+   * A token specifying which result page to return.
+   *
+   * @param string $pageToken
    */
   public function setPageToken($pageToken)
   {

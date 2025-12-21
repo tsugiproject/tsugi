@@ -20,39 +20,44 @@ namespace Google\Service\Dataproc;
 class AuthenticationConfig extends \Google\Model
 {
   /**
+   * If AuthenticationType is unspecified then END_USER_CREDENTIALS is used for
+   * 3.0 and newer runtimes, and SERVICE_ACCOUNT is used for older runtimes.
+   */
+  public const USER_WORKLOAD_AUTHENTICATION_TYPE_AUTHENTICATION_TYPE_UNSPECIFIED = 'AUTHENTICATION_TYPE_UNSPECIFIED';
+  /**
+   * Use service account credentials for authenticating to other services.
+   */
+  public const USER_WORKLOAD_AUTHENTICATION_TYPE_SERVICE_ACCOUNT = 'SERVICE_ACCOUNT';
+  /**
+   * Use OAuth credentials associated with the workload creator/user for
+   * authenticating to other services.
+   */
+  public const USER_WORKLOAD_AUTHENTICATION_TYPE_END_USER_CREDENTIALS = 'END_USER_CREDENTIALS';
+  /**
+   * Optional. Authentication type for the user workload running in containers.
+   *
    * @var string
    */
-  public $authenticationType;
-  protected $injectableCredentialsConfigType = InjectableCredentialsConfig::class;
-  protected $injectableCredentialsConfigDataType = '';
+  public $userWorkloadAuthenticationType;
 
   /**
-   * @param string
+   * Optional. Authentication type for the user workload running in containers.
+   *
+   * Accepted values: AUTHENTICATION_TYPE_UNSPECIFIED, SERVICE_ACCOUNT,
+   * END_USER_CREDENTIALS
+   *
+   * @param self::USER_WORKLOAD_AUTHENTICATION_TYPE_* $userWorkloadAuthenticationType
    */
-  public function setAuthenticationType($authenticationType)
+  public function setUserWorkloadAuthenticationType($userWorkloadAuthenticationType)
   {
-    $this->authenticationType = $authenticationType;
+    $this->userWorkloadAuthenticationType = $userWorkloadAuthenticationType;
   }
   /**
-   * @return string
+   * @return self::USER_WORKLOAD_AUTHENTICATION_TYPE_*
    */
-  public function getAuthenticationType()
+  public function getUserWorkloadAuthenticationType()
   {
-    return $this->authenticationType;
-  }
-  /**
-   * @param InjectableCredentialsConfig
-   */
-  public function setInjectableCredentialsConfig(InjectableCredentialsConfig $injectableCredentialsConfig)
-  {
-    $this->injectableCredentialsConfig = $injectableCredentialsConfig;
-  }
-  /**
-   * @return InjectableCredentialsConfig
-   */
-  public function getInjectableCredentialsConfig()
-  {
-    return $this->injectableCredentialsConfig;
+    return $this->userWorkloadAuthenticationType;
   }
 }
 

@@ -20,12 +20,16 @@ namespace Google\Service\Analytics;
 class UnsampledReportDriveDownloadDetails extends \Google\Model
 {
   /**
+   * Id of the document/file containing the report data.
+   *
    * @var string
    */
   public $documentId;
 
   /**
-   * @param string
+   * Id of the document/file containing the report data.
+   *
+   * @param string $documentId
    */
   public function setDocumentId($documentId)
   {

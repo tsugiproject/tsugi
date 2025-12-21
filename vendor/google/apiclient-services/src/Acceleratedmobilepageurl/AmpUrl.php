@@ -20,20 +20,29 @@ namespace Google\Service\Acceleratedmobilepageurl;
 class AmpUrl extends \Google\Model
 {
   /**
+   * The AMP URL pointing to the publisher's web server.
+   *
    * @var string
    */
   public $ampUrl;
   /**
+   * The [AMP Cache URL](/amp/cache/overview#amp-cache-url-format) pointing to
+   * the cached document in the Google AMP Cache.
+   *
    * @var string
    */
   public $cdnAmpUrl;
   /**
+   * The original non-AMP URL.
+   *
    * @var string
    */
   public $originalUrl;
 
   /**
-   * @param string
+   * The AMP URL pointing to the publisher's web server.
+   *
+   * @param string $ampUrl
    */
   public function setAmpUrl($ampUrl)
   {
@@ -47,7 +56,10 @@ class AmpUrl extends \Google\Model
     return $this->ampUrl;
   }
   /**
-   * @param string
+   * The [AMP Cache URL](/amp/cache/overview#amp-cache-url-format) pointing to
+   * the cached document in the Google AMP Cache.
+   *
+   * @param string $cdnAmpUrl
    */
   public function setCdnAmpUrl($cdnAmpUrl)
   {
@@ -61,7 +73,9 @@ class AmpUrl extends \Google\Model
     return $this->cdnAmpUrl;
   }
   /**
-   * @param string
+   * The original non-AMP URL.
+   *
+   * @param string $originalUrl
    */
   public function setOriginalUrl($originalUrl)
   {

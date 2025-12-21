@@ -22,24 +22,57 @@ class AzureBlobStorageData extends \Google\Model
   protected $azureCredentialsType = AzureCredentials::class;
   protected $azureCredentialsDataType = '';
   /**
+   * Required. The container to transfer from the Azure Storage account.
+   *
    * @var string
    */
   public $container;
   /**
+   * Optional. The Resource name of a secret in Secret Manager. The Azure SAS
+   * token must be stored in Secret Manager in JSON format: { "sas_token" :
+   * "SAS_TOKEN" } GoogleServiceAccount must be granted
+   * `roles/secretmanager.secretAccessor` for the resource. See [Configure
+   * access to a source: Microsoft Azure Blob Storage]
+   * (https://cloud.google.com/storage-transfer/docs/source-microsoft-
+   * azure#secret_manager) for more information. If `credentials_secret` is
+   * specified, do not specify azure_credentials. Format:
+   * `projects/{project_number}/secrets/{secret_name}`
+   *
    * @var string
    */
   public $credentialsSecret;
+  protected $federatedIdentityConfigType = FederatedIdentityConfig::class;
+  protected $federatedIdentityConfigDataType = '';
   /**
+   * Root path to transfer objects. Must be an empty string or full path name
+   * that ends with a '/'. This field is treated as an object prefix. As such,
+   * it should generally not begin with a '/'.
+   *
    * @var string
    */
   public $path;
   /**
+   * Service Directory Service to be used as the endpoint for transfers from a
+   * custom VPC. Format: `projects/{project_id}/locations/{location}/namespaces/
+   * {namespace}/services/{service}`
+   *
+   * @var string
+   */
+  public $privateNetworkService;
+  /**
+   * Required. The name of the Azure Storage account.
+   *
    * @var string
    */
   public $storageAccount;
 
   /**
-   * @param AzureCredentials
+   * Required. Input only. Credentials used to authenticate API requests to
+   * Azure. For information on our data retention policy for user credentials,
+   * see [User credentials](/storage-transfer/docs/data-retention#user-
+   * credentials).
+   *
+   * @param AzureCredentials $azureCredentials
    */
   public function setAzureCredentials(AzureCredentials $azureCredentials)
   {
@@ -53,7 +86,9 @@ class AzureBlobStorageData extends \Google\Model
     return $this->azureCredentials;
   }
   /**
-   * @param string
+   * Required. The container to transfer from the Azure Storage account.
+   *
+   * @param string $container
    */
   public function setContainer($container)
   {
@@ -67,7 +102,17 @@ class AzureBlobStorageData extends \Google\Model
     return $this->container;
   }
   /**
-   * @param string
+   * Optional. The Resource name of a secret in Secret Manager. The Azure SAS
+   * token must be stored in Secret Manager in JSON format: { "sas_token" :
+   * "SAS_TOKEN" } GoogleServiceAccount must be granted
+   * `roles/secretmanager.secretAccessor` for the resource. See [Configure
+   * access to a source: Microsoft Azure Blob Storage]
+   * (https://cloud.google.com/storage-transfer/docs/source-microsoft-
+   * azure#secret_manager) for more information. If `credentials_secret` is
+   * specified, do not specify azure_credentials. Format:
+   * `projects/{project_number}/secrets/{secret_name}`
+   *
+   * @param string $credentialsSecret
    */
   public function setCredentialsSecret($credentialsSecret)
   {
@@ -81,7 +126,29 @@ class AzureBlobStorageData extends \Google\Model
     return $this->credentialsSecret;
   }
   /**
-   * @param string
+   * Optional. Federated identity config of a user registered Azure application.
+   * If `federated_identity_config` is specified, do not specify
+   * azure_credentials or credentials_secret.
+   *
+   * @param FederatedIdentityConfig $federatedIdentityConfig
+   */
+  public function setFederatedIdentityConfig(FederatedIdentityConfig $federatedIdentityConfig)
+  {
+    $this->federatedIdentityConfig = $federatedIdentityConfig;
+  }
+  /**
+   * @return FederatedIdentityConfig
+   */
+  public function getFederatedIdentityConfig()
+  {
+    return $this->federatedIdentityConfig;
+  }
+  /**
+   * Root path to transfer objects. Must be an empty string or full path name
+   * that ends with a '/'. This field is treated as an object prefix. As such,
+   * it should generally not begin with a '/'.
+   *
+   * @param string $path
    */
   public function setPath($path)
   {
@@ -95,7 +162,27 @@ class AzureBlobStorageData extends \Google\Model
     return $this->path;
   }
   /**
-   * @param string
+   * Service Directory Service to be used as the endpoint for transfers from a
+   * custom VPC. Format: `projects/{project_id}/locations/{location}/namespaces/
+   * {namespace}/services/{service}`
+   *
+   * @param string $privateNetworkService
+   */
+  public function setPrivateNetworkService($privateNetworkService)
+  {
+    $this->privateNetworkService = $privateNetworkService;
+  }
+  /**
+   * @return string
+   */
+  public function getPrivateNetworkService()
+  {
+    return $this->privateNetworkService;
+  }
+  /**
+   * Required. The name of the Azure Storage account.
+   *
+   * @param string $storageAccount
    */
   public function setStorageAccount($storageAccount)
   {

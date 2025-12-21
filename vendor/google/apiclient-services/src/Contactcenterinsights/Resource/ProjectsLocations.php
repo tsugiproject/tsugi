@@ -17,11 +17,13 @@
 
 namespace Google\Service\Contactcenterinsights\Resource;
 
+use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest;
 use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequest;
 use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequest;
 use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1EncryptionSpec;
 use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1ListAllFeedbackLabelsResponse;
 use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1QueryMetricsRequest;
+use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequest;
 use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1Settings;
 use Google\Service\Contactcenterinsights\GoogleLongrunningOperation;
 
@@ -35,6 +37,22 @@ use Google\Service\Contactcenterinsights\GoogleLongrunningOperation;
  */
 class ProjectsLocations extends \Google\Service\Resource
 {
+  /**
+   * Delete feedback labels in bulk using a filter.
+   * (locations.bulkDeleteFeedbackLabels)
+   *
+   * @param string $parent Required. The parent resource for new feedback labels.
+   * @param GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GoogleLongrunningOperation
+   * @throws \Google\Service\Exception
+   */
+  public function bulkDeleteFeedbackLabels($parent, GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest $postBody, $optParams = [])
+  {
+    $params = ['parent' => $parent, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('bulkDeleteFeedbackLabels', [$params], GoogleLongrunningOperation::class);
+  }
   /**
    * Download feedback labels in bulk from an external source. Currently supports
    * exporting Quality AI example conversations with transcripts and question
@@ -144,6 +162,26 @@ class ProjectsLocations extends \Google\Service\Resource
     $params = ['location' => $location, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('queryMetrics', [$params], GoogleLongrunningOperation::class);
+  }
+  /**
+   * Generates a summary of predefined performance metrics for a set of
+   * conversations. Conversations can be specified by specifying a time window and
+   * an agent id, for now. The summary includes a comparison of metrics computed
+   * for conversations in the previous time period, and also a comparison with
+   * peers in the same time period. (locations.queryPerformanceOverview)
+   *
+   * @param string $parent Required. The parent resource of the conversations to
+   * derive performance stats from. "projects/{project}/locations/{location}"
+   * @param GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GoogleLongrunningOperation
+   * @throws \Google\Service\Exception
+   */
+  public function queryPerformanceOverview($parent, GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequest $postBody, $optParams = [])
+  {
+    $params = ['parent' => $parent, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('queryPerformanceOverview', [$params], GoogleLongrunningOperation::class);
   }
   /**
    * Updates project-level settings. (locations.updateSettings)

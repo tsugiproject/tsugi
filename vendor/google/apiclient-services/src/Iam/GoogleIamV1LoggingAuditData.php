@@ -23,7 +23,9 @@ class GoogleIamV1LoggingAuditData extends \Google\Model
   protected $policyDeltaDataType = '';
 
   /**
-   * @param GoogleIamV1PolicyDelta
+   * Policy delta between the original policy and the newly set policy.
+   *
+   * @param GoogleIamV1PolicyDelta $policyDelta
    */
   public function setPolicyDelta(GoogleIamV1PolicyDelta $policyDelta)
   {

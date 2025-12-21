@@ -20,20 +20,38 @@ namespace Google\Service\Reseller;
 class SubscriptionTransferInfo extends \Google\Model
 {
   /**
+   * The `skuId` of the current resold subscription. This is populated only when
+   * the customer has a subscription with a legacy SKU and the subscription
+   * resource is populated with the `skuId` of the SKU recommended for the
+   * transfer.
+   *
    * @var string
    */
   public $currentLegacySkuId;
   /**
+   * When inserting a subscription, this is the minimum number of seats listed
+   * in the transfer order for this product. For example, if the customer has 20
+   * users, the reseller cannot place a transfer order of 15 seats. The minimum
+   * is 20 seats.
+   *
    * @var int
    */
   public $minimumTransferableSeats;
   /**
+   * The time when transfer token or intent to transfer will expire. The time is
+   * in milliseconds using UNIX Epoch format.
+   *
    * @var string
    */
   public $transferabilityExpirationTime;
 
   /**
-   * @param string
+   * The `skuId` of the current resold subscription. This is populated only when
+   * the customer has a subscription with a legacy SKU and the subscription
+   * resource is populated with the `skuId` of the SKU recommended for the
+   * transfer.
+   *
+   * @param string $currentLegacySkuId
    */
   public function setCurrentLegacySkuId($currentLegacySkuId)
   {
@@ -47,7 +65,12 @@ class SubscriptionTransferInfo extends \Google\Model
     return $this->currentLegacySkuId;
   }
   /**
-   * @param int
+   * When inserting a subscription, this is the minimum number of seats listed
+   * in the transfer order for this product. For example, if the customer has 20
+   * users, the reseller cannot place a transfer order of 15 seats. The minimum
+   * is 20 seats.
+   *
+   * @param int $minimumTransferableSeats
    */
   public function setMinimumTransferableSeats($minimumTransferableSeats)
   {
@@ -61,7 +84,10 @@ class SubscriptionTransferInfo extends \Google\Model
     return $this->minimumTransferableSeats;
   }
   /**
-   * @param string
+   * The time when transfer token or intent to transfer will expire. The time is
+   * in milliseconds using UNIX Epoch format.
+   *
+   * @param string $transferabilityExpirationTime
    */
   public function setTransferabilityExpirationTime($transferabilityExpirationTime)
   {

@@ -24,7 +24,9 @@ class GoogleCloudVideointelligenceV1p3beta1AnnotateVideoResponse extends \Google
   protected $annotationResultsDataType = 'array';
 
   /**
-   * @param GoogleCloudVideointelligenceV1p3beta1VideoAnnotationResults[]
+   * Annotation results for all videos specified in `AnnotateVideoRequest`.
+   *
+   * @param GoogleCloudVideointelligenceV1p3beta1VideoAnnotationResults[] $annotationResults
    */
   public function setAnnotationResults($annotationResults)
   {

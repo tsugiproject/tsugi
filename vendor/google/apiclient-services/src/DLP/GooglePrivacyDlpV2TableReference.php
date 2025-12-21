@@ -20,16 +20,30 @@ namespace Google\Service\DLP;
 class GooglePrivacyDlpV2TableReference extends \Google\Model
 {
   /**
+   * Dataset ID of the table.
+   *
    * @var string
    */
   public $datasetId;
   /**
+   * The Google Cloud project ID of the project containing the table. If
+   * omitted, the project ID is inferred from the parent project. This field is
+   * required if the parent resource is an organization.
+   *
+   * @var string
+   */
+  public $projectId;
+  /**
+   * Name of the table.
+   *
    * @var string
    */
   public $tableId;
 
   /**
-   * @param string
+   * Dataset ID of the table.
+   *
+   * @param string $datasetId
    */
   public function setDatasetId($datasetId)
   {
@@ -43,7 +57,27 @@ class GooglePrivacyDlpV2TableReference extends \Google\Model
     return $this->datasetId;
   }
   /**
-   * @param string
+   * The Google Cloud project ID of the project containing the table. If
+   * omitted, the project ID is inferred from the parent project. This field is
+   * required if the parent resource is an organization.
+   *
+   * @param string $projectId
+   */
+  public function setProjectId($projectId)
+  {
+    $this->projectId = $projectId;
+  }
+  /**
+   * @return string
+   */
+  public function getProjectId()
+  {
+    return $this->projectId;
+  }
+  /**
+   * Name of the table.
+   *
+   * @param string $tableId
    */
   public function setTableId($tableId)
   {

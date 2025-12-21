@@ -20,16 +20,26 @@ namespace Google\Service\AirQuality;
 class CustomLocalAqi extends \Google\Model
 {
   /**
+   * The AQI to associate the country/region with. Value should be a [valid
+   * index](/maps/documentation/air-quality/laqis) code.
+   *
    * @var string
    */
   public $aqi;
   /**
+   * The country/region requiring the custom AQI. Value should be provided using
+   * [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
+   * code.
+   *
    * @var string
    */
   public $regionCode;
 
   /**
-   * @param string
+   * The AQI to associate the country/region with. Value should be a [valid
+   * index](/maps/documentation/air-quality/laqis) code.
+   *
+   * @param string $aqi
    */
   public function setAqi($aqi)
   {
@@ -43,7 +53,11 @@ class CustomLocalAqi extends \Google\Model
     return $this->aqi;
   }
   /**
-   * @param string
+   * The country/region requiring the custom AQI. Value should be provided using
+   * [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
+   * code.
+   *
+   * @param string $regionCode
    */
   public function setRegionCode($regionCode)
   {

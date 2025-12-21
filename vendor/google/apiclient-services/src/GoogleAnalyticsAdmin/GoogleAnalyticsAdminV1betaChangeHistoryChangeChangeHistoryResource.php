@@ -37,7 +37,9 @@ class GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource extends
   protected $propertyDataType = '';
 
   /**
-   * @param GoogleAnalyticsAdminV1betaAccount
+   * A snapshot of an Account resource in change history.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccount $account
    */
   public function setAccount(GoogleAnalyticsAdminV1betaAccount $account)
   {
@@ -51,7 +53,9 @@ class GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource extends
     return $this->account;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaConversionEvent
+   * A snapshot of a ConversionEvent resource in change history.
+   *
+   * @param GoogleAnalyticsAdminV1betaConversionEvent $conversionEvent
    */
   public function setConversionEvent(GoogleAnalyticsAdminV1betaConversionEvent $conversionEvent)
   {
@@ -65,7 +69,9 @@ class GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource extends
     return $this->conversionEvent;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaDataRetentionSettings
+   * A snapshot of a data retention settings resource in change history.
+   *
+   * @param GoogleAnalyticsAdminV1betaDataRetentionSettings $dataRetentionSettings
    */
   public function setDataRetentionSettings(GoogleAnalyticsAdminV1betaDataRetentionSettings $dataRetentionSettings)
   {
@@ -79,7 +85,9 @@ class GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource extends
     return $this->dataRetentionSettings;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaDataStream
+   * A snapshot of a DataStream resource in change history.
+   *
+   * @param GoogleAnalyticsAdminV1betaDataStream $dataStream
    */
   public function setDataStream(GoogleAnalyticsAdminV1betaDataStream $dataStream)
   {
@@ -93,7 +101,9 @@ class GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource extends
     return $this->dataStream;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaFirebaseLink
+   * A snapshot of a FirebaseLink resource in change history.
+   *
+   * @param GoogleAnalyticsAdminV1betaFirebaseLink $firebaseLink
    */
   public function setFirebaseLink(GoogleAnalyticsAdminV1betaFirebaseLink $firebaseLink)
   {
@@ -107,7 +117,9 @@ class GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource extends
     return $this->firebaseLink;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaGoogleAdsLink
+   * A snapshot of a GoogleAdsLink resource in change history.
+   *
+   * @param GoogleAnalyticsAdminV1betaGoogleAdsLink $googleAdsLink
    */
   public function setGoogleAdsLink(GoogleAnalyticsAdminV1betaGoogleAdsLink $googleAdsLink)
   {
@@ -121,7 +133,9 @@ class GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource extends
     return $this->googleAdsLink;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaMeasurementProtocolSecret
+   * A snapshot of a MeasurementProtocolSecret resource in change history.
+   *
+   * @param GoogleAnalyticsAdminV1betaMeasurementProtocolSecret $measurementProtocolSecret
    */
   public function setMeasurementProtocolSecret(GoogleAnalyticsAdminV1betaMeasurementProtocolSecret $measurementProtocolSecret)
   {
@@ -135,7 +149,9 @@ class GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource extends
     return $this->measurementProtocolSecret;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaProperty
+   * A snapshot of a Property resource in change history.
+   *
+   * @param GoogleAnalyticsAdminV1betaProperty $property
    */
   public function setProperty(GoogleAnalyticsAdminV1betaProperty $property)
   {

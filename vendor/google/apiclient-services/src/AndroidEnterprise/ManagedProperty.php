@@ -21,10 +21,15 @@ class ManagedProperty extends \Google\Collection
 {
   protected $collection_key = 'valueStringArray';
   /**
+   * The unique key that identifies the property.
+   *
    * @var string
    */
   public $key;
   /**
+   * The boolean value - this will only be present if type of the property is
+   * bool.
+   *
    * @var bool
    */
   public $valueBool;
@@ -33,20 +38,31 @@ class ManagedProperty extends \Google\Collection
   protected $valueBundleArrayType = ManagedPropertyBundle::class;
   protected $valueBundleArrayDataType = 'array';
   /**
+   * The integer value - this will only be present if type of the property is
+   * integer.
+   *
    * @var int
    */
   public $valueInteger;
   /**
+   * The string value - this will only be present if type of the property is
+   * string, choice or hidden.
+   *
    * @var string
    */
   public $valueString;
   /**
+   * The list of string values - this will only be present if type of the
+   * property is multiselect.
+   *
    * @var string[]
    */
   public $valueStringArray;
 
   /**
-   * @param string
+   * The unique key that identifies the property.
+   *
+   * @param string $key
    */
   public function setKey($key)
   {
@@ -60,7 +76,10 @@ class ManagedProperty extends \Google\Collection
     return $this->key;
   }
   /**
-   * @param bool
+   * The boolean value - this will only be present if type of the property is
+   * bool.
+   *
+   * @param bool $valueBool
    */
   public function setValueBool($valueBool)
   {
@@ -74,7 +93,10 @@ class ManagedProperty extends \Google\Collection
     return $this->valueBool;
   }
   /**
-   * @param ManagedPropertyBundle
+   * The bundle of managed properties - this will only be present if type of the
+   * property is bundle.
+   *
+   * @param ManagedPropertyBundle $valueBundle
    */
   public function setValueBundle(ManagedPropertyBundle $valueBundle)
   {
@@ -88,7 +110,10 @@ class ManagedProperty extends \Google\Collection
     return $this->valueBundle;
   }
   /**
-   * @param ManagedPropertyBundle[]
+   * The list of bundles of properties - this will only be present if type of
+   * the property is bundle_array.
+   *
+   * @param ManagedPropertyBundle[] $valueBundleArray
    */
   public function setValueBundleArray($valueBundleArray)
   {
@@ -102,7 +127,10 @@ class ManagedProperty extends \Google\Collection
     return $this->valueBundleArray;
   }
   /**
-   * @param int
+   * The integer value - this will only be present if type of the property is
+   * integer.
+   *
+   * @param int $valueInteger
    */
   public function setValueInteger($valueInteger)
   {
@@ -116,7 +144,10 @@ class ManagedProperty extends \Google\Collection
     return $this->valueInteger;
   }
   /**
-   * @param string
+   * The string value - this will only be present if type of the property is
+   * string, choice or hidden.
+   *
+   * @param string $valueString
    */
   public function setValueString($valueString)
   {
@@ -130,7 +161,10 @@ class ManagedProperty extends \Google\Collection
     return $this->valueString;
   }
   /**
-   * @param string[]
+   * The list of string values - this will only be present if type of the
+   * property is multiselect.
+   *
+   * @param string[] $valueStringArray
    */
   public function setValueStringArray($valueStringArray)
   {

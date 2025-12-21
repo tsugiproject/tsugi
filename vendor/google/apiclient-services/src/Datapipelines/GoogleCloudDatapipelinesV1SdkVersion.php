@@ -20,34 +20,66 @@ namespace Google\Service\Datapipelines;
 class GoogleCloudDatapipelinesV1SdkVersion extends \Google\Model
 {
   /**
+   * Dataflow is unaware of this version.
+   */
+  public const SDK_SUPPORT_STATUS_UNKNOWN = 'UNKNOWN';
+  /**
+   * This is a known version of an SDK, and is supported.
+   */
+  public const SDK_SUPPORT_STATUS_SUPPORTED = 'SUPPORTED';
+  /**
+   * A newer version of the SDK exists, and an update is recommended.
+   */
+  public const SDK_SUPPORT_STATUS_STALE = 'STALE';
+  /**
+   * This version of the SDK is deprecated and will eventually be unsupported.
+   */
+  public const SDK_SUPPORT_STATUS_DEPRECATED = 'DEPRECATED';
+  /**
+   * Support for this SDK version has ended and it should no longer be used.
+   */
+  public const SDK_SUPPORT_STATUS_UNSUPPORTED = 'UNSUPPORTED';
+  /**
+   * The support status for this SDK version.
+   *
    * @var string
    */
   public $sdkSupportStatus;
   /**
+   * The version of the SDK used to run the job.
+   *
    * @var string
    */
   public $version;
   /**
+   * A readable string describing the version of the SDK.
+   *
    * @var string
    */
   public $versionDisplayName;
 
   /**
-   * @param string
+   * The support status for this SDK version.
+   *
+   * Accepted values: UNKNOWN, SUPPORTED, STALE, DEPRECATED, UNSUPPORTED
+   *
+   * @param self::SDK_SUPPORT_STATUS_* $sdkSupportStatus
    */
   public function setSdkSupportStatus($sdkSupportStatus)
   {
     $this->sdkSupportStatus = $sdkSupportStatus;
   }
   /**
-   * @return string
+   * @return self::SDK_SUPPORT_STATUS_*
    */
   public function getSdkSupportStatus()
   {
     return $this->sdkSupportStatus;
   }
   /**
-   * @param string
+   * The version of the SDK used to run the job.
+   *
+   * @param string $version
    */
   public function setVersion($version)
   {
@@ -61,7 +93,9 @@ class GoogleCloudDatapipelinesV1SdkVersion extends \Google\Model
     return $this->version;
   }
   /**
-   * @param string
+   * A readable string describing the version of the SDK.
+   *
+   * @param string $versionDisplayName
    */
   public function setVersionDisplayName($versionDisplayName)
   {

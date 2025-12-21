@@ -23,12 +23,18 @@ class GoogleExampleLibraryagentV1ListBooksResponse extends \Google\Collection
   protected $booksType = GoogleExampleLibraryagentV1Book::class;
   protected $booksDataType = 'array';
   /**
+   * A token to retrieve next page of results. Pass this value in the
+   * ListBooksRequest.page_token field in the subsequent call to `ListBooks`
+   * method to retrieve the next page of results.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param GoogleExampleLibraryagentV1Book[]
+   * The list of books.
+   *
+   * @param GoogleExampleLibraryagentV1Book[] $books
    */
   public function setBooks($books)
   {
@@ -42,7 +48,11 @@ class GoogleExampleLibraryagentV1ListBooksResponse extends \Google\Collection
     return $this->books;
   }
   /**
-   * @param string
+   * A token to retrieve next page of results. Pass this value in the
+   * ListBooksRequest.page_token field in the subsequent call to `ListBooks`
+   * method to retrieve the next page of results.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

@@ -20,16 +20,22 @@ namespace Google\Service\GroupsMigration;
 class Groups extends \Google\Model
 {
   /**
+   * The kind of insert resource this is.
+   *
    * @var string
    */
   public $kind;
   /**
+   * The status of the insert request.
+   *
    * @var string
    */
   public $responseCode;
 
   /**
-   * @param string
+   * The kind of insert resource this is.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -43,7 +49,9 @@ class Groups extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * The status of the insert request.
+   *
+   * @param string $responseCode
    */
   public function setResponseCode($responseCode)
   {

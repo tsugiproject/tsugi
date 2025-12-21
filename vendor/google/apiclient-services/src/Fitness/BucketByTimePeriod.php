@@ -19,7 +19,12 @@ namespace Google\Service\Fitness;
 
 class BucketByTimePeriod extends \Google\Model
 {
+  public const TYPE_day = 'day';
+  public const TYPE_week = 'week';
+  public const TYPE_month = 'month';
   /**
+   * org.joda.timezone.DateTimeZone
+   *
    * @var string
    */
   public $timeZoneId;
@@ -33,7 +38,9 @@ class BucketByTimePeriod extends \Google\Model
   public $value;
 
   /**
-   * @param string
+   * org.joda.timezone.DateTimeZone
+   *
+   * @param string $timeZoneId
    */
   public function setTimeZoneId($timeZoneId)
   {
@@ -47,21 +54,21 @@ class BucketByTimePeriod extends \Google\Model
     return $this->timeZoneId;
   }
   /**
-   * @param string
+   * @param self::TYPE_* $type
    */
   public function setType($type)
   {
     $this->type = $type;
   }
   /**
-   * @return string
+   * @return self::TYPE_*
    */
   public function getType()
   {
     return $this->type;
   }
   /**
-   * @param int
+   * @param int $value
    */
   public function setValue($value)
   {

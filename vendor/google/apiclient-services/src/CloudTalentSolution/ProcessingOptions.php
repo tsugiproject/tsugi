@@ -20,16 +20,40 @@ namespace Google\Service\CloudTalentSolution;
 class ProcessingOptions extends \Google\Model
 {
   /**
+   * Default value.
+   */
+  public const HTML_SANITIZATION_HTML_SANITIZATION_UNSPECIFIED = 'HTML_SANITIZATION_UNSPECIFIED';
+  /**
+   * Disables sanitization on HTML input.
+   */
+  public const HTML_SANITIZATION_HTML_SANITIZATION_DISABLED = 'HTML_SANITIZATION_DISABLED';
+  /**
+   * Sanitizes HTML input, only accepts bold, italic, ordered list, and
+   * unordered list markup tags.
+   */
+  public const HTML_SANITIZATION_SIMPLE_FORMATTING_ONLY = 'SIMPLE_FORMATTING_ONLY';
+  /**
+   * If set to `true`, the service does not attempt to resolve a more precise
+   * address for the job.
+   *
    * @var bool
    */
   public $disableStreetAddressResolution;
   /**
+   * Option for job HTML content sanitization. Applied fields are: * description
+   * * applicationInfo.instruction * incentives * qualifications *
+   * responsibilities HTML tags in these fields may be stripped if sanitiazation
+   * isn't disabled. Defaults to HtmlSanitization.SIMPLE_FORMATTING_ONLY.
+   *
    * @var string
    */
   public $htmlSanitization;
 
   /**
-   * @param bool
+   * If set to `true`, the service does not attempt to resolve a more precise
+   * address for the job.
+   *
+   * @param bool $disableStreetAddressResolution
    */
   public function setDisableStreetAddressResolution($disableStreetAddressResolution)
   {
@@ -43,14 +67,22 @@ class ProcessingOptions extends \Google\Model
     return $this->disableStreetAddressResolution;
   }
   /**
-   * @param string
+   * Option for job HTML content sanitization. Applied fields are: * description
+   * * applicationInfo.instruction * incentives * qualifications *
+   * responsibilities HTML tags in these fields may be stripped if sanitiazation
+   * isn't disabled. Defaults to HtmlSanitization.SIMPLE_FORMATTING_ONLY.
+   *
+   * Accepted values: HTML_SANITIZATION_UNSPECIFIED, HTML_SANITIZATION_DISABLED,
+   * SIMPLE_FORMATTING_ONLY
+   *
+   * @param self::HTML_SANITIZATION_* $htmlSanitization
    */
   public function setHtmlSanitization($htmlSanitization)
   {
     $this->htmlSanitization = $htmlSanitization;
   }
   /**
-   * @return string
+   * @return self::HTML_SANITIZATION_*
    */
   public function getHtmlSanitization()
   {

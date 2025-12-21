@@ -20,12 +20,16 @@ namespace Google\Service\Slides;
 class ReplaceAllShapesWithImageResponse extends \Google\Model
 {
   /**
+   * The number of shapes replaced with images.
+   *
    * @var int
    */
   public $occurrencesChanged;
 
   /**
-   * @param int
+   * The number of shapes replaced with images.
+   *
+   * @param int $occurrencesChanged
    */
   public function setOccurrencesChanged($occurrencesChanged)
   {

@@ -20,48 +20,75 @@ namespace Google\Service\Analytics;
 class Webproperty extends \Google\Model
 {
   /**
+   * Account ID to which this web property belongs.
+   *
    * @var string
    */
   public $accountId;
   protected $childLinkType = WebpropertyChildLink::class;
   protected $childLinkDataType = '';
   /**
+   * Time this web property was created.
+   *
    * @var string
    */
   public $created;
   /**
+   * Set to true to reset the retention period of the user identifier with each
+   * new event from that user (thus setting the expiration date to current time
+   * plus retention period). Set to false to delete data associated with the
+   * user identifier automatically after the rentention period. This property
+   * cannot be set on insert.
+   *
    * @var bool
    */
   public $dataRetentionResetOnNewActivity;
   /**
+   * The length of time for which user and event data is retained. This property
+   * cannot be set on insert.
+   *
    * @var string
    */
   public $dataRetentionTtl;
   /**
+   * Default view (profile) ID.
+   *
    * @var string
    */
   public $defaultProfileId;
   /**
+   * Web property ID of the form UA-XXXXX-YY.
+   *
    * @var string
    */
   public $id;
   /**
+   * The industry vertical/category selected for this web property.
+   *
    * @var string
    */
   public $industryVertical;
   /**
+   * Internal ID for this web property.
+   *
    * @var string
    */
   public $internalWebPropertyId;
   /**
+   * Resource type for Analytics WebProperty.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Level for this web property. Possible values are STANDARD or PREMIUM.
+   *
    * @var string
    */
   public $level;
   /**
+   * Name of this web property.
+   *
    * @var string
    */
   public $name;
@@ -70,28 +97,40 @@ class Webproperty extends \Google\Model
   protected $permissionsType = WebpropertyPermissions::class;
   protected $permissionsDataType = '';
   /**
+   * View (Profile) count for this web property.
+   *
    * @var int
    */
   public $profileCount;
   /**
+   * Link for this web property.
+   *
    * @var string
    */
   public $selfLink;
   /**
+   * Indicates whether this web property is starred or not.
+   *
    * @var bool
    */
   public $starred;
   /**
+   * Time this web property was last modified.
+   *
    * @var string
    */
   public $updated;
   /**
+   * Website url for this web property.
+   *
    * @var string
    */
   public $websiteUrl;
 
   /**
-   * @param string
+   * Account ID to which this web property belongs.
+   *
+   * @param string $accountId
    */
   public function setAccountId($accountId)
   {
@@ -105,7 +144,10 @@ class Webproperty extends \Google\Model
     return $this->accountId;
   }
   /**
-   * @param WebpropertyChildLink
+   * Child link for this web property. Points to the list of views (profiles)
+   * for this web property.
+   *
+   * @param WebpropertyChildLink $childLink
    */
   public function setChildLink(WebpropertyChildLink $childLink)
   {
@@ -119,7 +161,9 @@ class Webproperty extends \Google\Model
     return $this->childLink;
   }
   /**
-   * @param string
+   * Time this web property was created.
+   *
+   * @param string $created
    */
   public function setCreated($created)
   {
@@ -133,7 +177,13 @@ class Webproperty extends \Google\Model
     return $this->created;
   }
   /**
-   * @param bool
+   * Set to true to reset the retention period of the user identifier with each
+   * new event from that user (thus setting the expiration date to current time
+   * plus retention period). Set to false to delete data associated with the
+   * user identifier automatically after the rentention period. This property
+   * cannot be set on insert.
+   *
+   * @param bool $dataRetentionResetOnNewActivity
    */
   public function setDataRetentionResetOnNewActivity($dataRetentionResetOnNewActivity)
   {
@@ -147,7 +197,10 @@ class Webproperty extends \Google\Model
     return $this->dataRetentionResetOnNewActivity;
   }
   /**
-   * @param string
+   * The length of time for which user and event data is retained. This property
+   * cannot be set on insert.
+   *
+   * @param string $dataRetentionTtl
    */
   public function setDataRetentionTtl($dataRetentionTtl)
   {
@@ -161,7 +214,9 @@ class Webproperty extends \Google\Model
     return $this->dataRetentionTtl;
   }
   /**
-   * @param string
+   * Default view (profile) ID.
+   *
+   * @param string $defaultProfileId
    */
   public function setDefaultProfileId($defaultProfileId)
   {
@@ -175,7 +230,9 @@ class Webproperty extends \Google\Model
     return $this->defaultProfileId;
   }
   /**
-   * @param string
+   * Web property ID of the form UA-XXXXX-YY.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -189,7 +246,9 @@ class Webproperty extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * The industry vertical/category selected for this web property.
+   *
+   * @param string $industryVertical
    */
   public function setIndustryVertical($industryVertical)
   {
@@ -203,7 +262,9 @@ class Webproperty extends \Google\Model
     return $this->industryVertical;
   }
   /**
-   * @param string
+   * Internal ID for this web property.
+   *
+   * @param string $internalWebPropertyId
    */
   public function setInternalWebPropertyId($internalWebPropertyId)
   {
@@ -217,7 +278,9 @@ class Webproperty extends \Google\Model
     return $this->internalWebPropertyId;
   }
   /**
-   * @param string
+   * Resource type for Analytics WebProperty.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -231,7 +294,9 @@ class Webproperty extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * Level for this web property. Possible values are STANDARD or PREMIUM.
+   *
+   * @param string $level
    */
   public function setLevel($level)
   {
@@ -245,7 +310,9 @@ class Webproperty extends \Google\Model
     return $this->level;
   }
   /**
-   * @param string
+   * Name of this web property.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -259,7 +326,10 @@ class Webproperty extends \Google\Model
     return $this->name;
   }
   /**
-   * @param WebpropertyParentLink
+   * Parent link for this web property. Points to the account to which this web
+   * property belongs.
+   *
+   * @param WebpropertyParentLink $parentLink
    */
   public function setParentLink(WebpropertyParentLink $parentLink)
   {
@@ -273,7 +343,9 @@ class Webproperty extends \Google\Model
     return $this->parentLink;
   }
   /**
-   * @param WebpropertyPermissions
+   * Permissions the user has for this web property.
+   *
+   * @param WebpropertyPermissions $permissions
    */
   public function setPermissions(WebpropertyPermissions $permissions)
   {
@@ -287,7 +359,9 @@ class Webproperty extends \Google\Model
     return $this->permissions;
   }
   /**
-   * @param int
+   * View (Profile) count for this web property.
+   *
+   * @param int $profileCount
    */
   public function setProfileCount($profileCount)
   {
@@ -301,7 +375,9 @@ class Webproperty extends \Google\Model
     return $this->profileCount;
   }
   /**
-   * @param string
+   * Link for this web property.
+   *
+   * @param string $selfLink
    */
   public function setSelfLink($selfLink)
   {
@@ -315,7 +391,9 @@ class Webproperty extends \Google\Model
     return $this->selfLink;
   }
   /**
-   * @param bool
+   * Indicates whether this web property is starred or not.
+   *
+   * @param bool $starred
    */
   public function setStarred($starred)
   {
@@ -329,7 +407,9 @@ class Webproperty extends \Google\Model
     return $this->starred;
   }
   /**
-   * @param string
+   * Time this web property was last modified.
+   *
+   * @param string $updated
    */
   public function setUpdated($updated)
   {
@@ -343,7 +423,9 @@ class Webproperty extends \Google\Model
     return $this->updated;
   }
   /**
-   * @param string
+   * Website url for this web property.
+   *
+   * @param string $websiteUrl
    */
   public function setWebsiteUrl($websiteUrl)
   {

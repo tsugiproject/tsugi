@@ -20,12 +20,16 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaAccessDimensionHeader extends \Google\Model
 {
   /**
+   * The dimension's name; for example 'userEmail'.
+   *
    * @var string
    */
   public $dimensionName;
 
   /**
-   * @param string
+   * The dimension's name; for example 'userEmail'.
+   *
+   * @param string $dimensionName
    */
   public function setDimensionName($dimensionName)
   {

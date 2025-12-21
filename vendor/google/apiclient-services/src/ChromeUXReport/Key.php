@@ -20,24 +20,65 @@ namespace Google\Service\ChromeUXReport;
 class Key extends \Google\Model
 {
   /**
+   * The default value, representing all device classes.
+   */
+  public const FORM_FACTOR_ALL_FORM_FACTORS = 'ALL_FORM_FACTORS';
+  /**
+   * The device class representing a "mobile"/"phone" sized client.
+   */
+  public const FORM_FACTOR_PHONE = 'PHONE';
+  /**
+   * The device class representing a "desktop"/"laptop" type full size client.
+   */
+  public const FORM_FACTOR_DESKTOP = 'DESKTOP';
+  /**
+   * The device class representing a "tablet" type client.
+   */
+  public const FORM_FACTOR_TABLET = 'TABLET';
+  /**
+   * The effective connection type is the general connection class that all
+   * users experienced for this record. This field uses the values ["offline",
+   * "slow-2G", "2G", "3G", "4G"] as specified in:
+   * https://wicg.github.io/netinfo/#effective-connection-types If the effective
+   * connection type is unspecified, then aggregated data over all effective
+   * connection types will be returned.
+   *
    * @var string
    */
   public $effectiveConnectionType;
   /**
+   * The form factor is the device class that all users used to access the site
+   * for this record. If the form factor is unspecified, then aggregated data
+   * over all form factors will be returned.
+   *
    * @var string
    */
   public $formFactor;
   /**
+   * Origin specifies the origin that this record is for. Note: When specifying
+   * an origin, data for loads under this origin over all pages are aggregated
+   * into origin level user experience data.
+   *
    * @var string
    */
   public $origin;
   /**
+   * Url specifies a specific url that this record is for. Note: When specifying
+   * a "url" only data for that specific url will be aggregated.
+   *
    * @var string
    */
   public $url;
 
   /**
-   * @param string
+   * The effective connection type is the general connection class that all
+   * users experienced for this record. This field uses the values ["offline",
+   * "slow-2G", "2G", "3G", "4G"] as specified in:
+   * https://wicg.github.io/netinfo/#effective-connection-types If the effective
+   * connection type is unspecified, then aggregated data over all effective
+   * connection types will be returned.
+   *
+   * @param string $effectiveConnectionType
    */
   public function setEffectiveConnectionType($effectiveConnectionType)
   {
@@ -51,21 +92,31 @@ class Key extends \Google\Model
     return $this->effectiveConnectionType;
   }
   /**
-   * @param string
+   * The form factor is the device class that all users used to access the site
+   * for this record. If the form factor is unspecified, then aggregated data
+   * over all form factors will be returned.
+   *
+   * Accepted values: ALL_FORM_FACTORS, PHONE, DESKTOP, TABLET
+   *
+   * @param self::FORM_FACTOR_* $formFactor
    */
   public function setFormFactor($formFactor)
   {
     $this->formFactor = $formFactor;
   }
   /**
-   * @return string
+   * @return self::FORM_FACTOR_*
    */
   public function getFormFactor()
   {
     return $this->formFactor;
   }
   /**
-   * @param string
+   * Origin specifies the origin that this record is for. Note: When specifying
+   * an origin, data for loads under this origin over all pages are aggregated
+   * into origin level user experience data.
+   *
+   * @param string $origin
    */
   public function setOrigin($origin)
   {
@@ -79,7 +130,10 @@ class Key extends \Google\Model
     return $this->origin;
   }
   /**
-   * @param string
+   * Url specifies a specific url that this record is for. Note: When specifying
+   * a "url" only data for that specific url will be aggregated.
+   *
+   * @param string $url
    */
   public function setUrl($url)
   {

@@ -20,48 +20,75 @@ namespace Google\Service\Reseller;
 class Address extends \Google\Model
 {
   /**
+   * A customer's physical address. An address can be composed of one to three
+   * lines. The `addressline2` and `addressLine3` are optional.
+   *
    * @var string
    */
   public $addressLine1;
   /**
+   * Line 2 of the address.
+   *
    * @var string
    */
   public $addressLine2;
   /**
+   * Line 3 of the address.
+   *
    * @var string
    */
   public $addressLine3;
   /**
+   * The customer contact's name. This is required.
+   *
    * @var string
    */
   public $contactName;
   /**
+   * For `countryCode` information, see the ISO 3166 country code elements.
+   * Verify that country is approved for resale of Google products. This
+   * property is required when creating a new customer.
+   *
    * @var string
    */
   public $countryCode;
   /**
+   * Identifies the resource as a customer address. Value: `customers#address`
+   *
    * @var string
    */
   public $kind;
   /**
+   * An example of a `locality` value is the city of `San Francisco`.
+   *
    * @var string
    */
   public $locality;
   /**
+   * The company or company division name. This is required.
+   *
    * @var string
    */
   public $organizationName;
   /**
+   * A `postalCode` example is a postal zip code such as `94043`. This property
+   * is required when creating a new customer.
+   *
    * @var string
    */
   public $postalCode;
   /**
+   * An example of a `region` value is `CA` for the state of California.
+   *
    * @var string
    */
   public $region;
 
   /**
-   * @param string
+   * A customer's physical address. An address can be composed of one to three
+   * lines. The `addressline2` and `addressLine3` are optional.
+   *
+   * @param string $addressLine1
    */
   public function setAddressLine1($addressLine1)
   {
@@ -75,7 +102,9 @@ class Address extends \Google\Model
     return $this->addressLine1;
   }
   /**
-   * @param string
+   * Line 2 of the address.
+   *
+   * @param string $addressLine2
    */
   public function setAddressLine2($addressLine2)
   {
@@ -89,7 +118,9 @@ class Address extends \Google\Model
     return $this->addressLine2;
   }
   /**
-   * @param string
+   * Line 3 of the address.
+   *
+   * @param string $addressLine3
    */
   public function setAddressLine3($addressLine3)
   {
@@ -103,7 +134,9 @@ class Address extends \Google\Model
     return $this->addressLine3;
   }
   /**
-   * @param string
+   * The customer contact's name. This is required.
+   *
+   * @param string $contactName
    */
   public function setContactName($contactName)
   {
@@ -117,7 +150,11 @@ class Address extends \Google\Model
     return $this->contactName;
   }
   /**
-   * @param string
+   * For `countryCode` information, see the ISO 3166 country code elements.
+   * Verify that country is approved for resale of Google products. This
+   * property is required when creating a new customer.
+   *
+   * @param string $countryCode
    */
   public function setCountryCode($countryCode)
   {
@@ -131,7 +168,9 @@ class Address extends \Google\Model
     return $this->countryCode;
   }
   /**
-   * @param string
+   * Identifies the resource as a customer address. Value: `customers#address`
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -145,7 +184,9 @@ class Address extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * An example of a `locality` value is the city of `San Francisco`.
+   *
+   * @param string $locality
    */
   public function setLocality($locality)
   {
@@ -159,7 +200,9 @@ class Address extends \Google\Model
     return $this->locality;
   }
   /**
-   * @param string
+   * The company or company division name. This is required.
+   *
+   * @param string $organizationName
    */
   public function setOrganizationName($organizationName)
   {
@@ -173,7 +216,10 @@ class Address extends \Google\Model
     return $this->organizationName;
   }
   /**
-   * @param string
+   * A `postalCode` example is a postal zip code such as `94043`. This property
+   * is required when creating a new customer.
+   *
+   * @param string $postalCode
    */
   public function setPostalCode($postalCode)
   {
@@ -187,7 +233,9 @@ class Address extends \Google\Model
     return $this->postalCode;
   }
   /**
-   * @param string
+   * An example of a `region` value is `CA` for the state of California.
+   *
+   * @param string $region
    */
   public function setRegion($region)
   {

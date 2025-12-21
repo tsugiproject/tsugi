@@ -21,16 +21,27 @@ class UpdateSlidesPositionRequest extends \Google\Collection
 {
   protected $collection_key = 'slideObjectIds';
   /**
+   * The index where the slides should be inserted, based on the slide
+   * arrangement before the move takes place. Must be between zero and the
+   * number of slides in the presentation, inclusive.
+   *
    * @var int
    */
   public $insertionIndex;
   /**
+   * The IDs of the slides in the presentation that should be moved. The slides
+   * in this list must be in existing presentation order, without duplicates.
+   *
    * @var string[]
    */
   public $slideObjectIds;
 
   /**
-   * @param int
+   * The index where the slides should be inserted, based on the slide
+   * arrangement before the move takes place. Must be between zero and the
+   * number of slides in the presentation, inclusive.
+   *
+   * @param int $insertionIndex
    */
   public function setInsertionIndex($insertionIndex)
   {
@@ -44,7 +55,10 @@ class UpdateSlidesPositionRequest extends \Google\Collection
     return $this->insertionIndex;
   }
   /**
-   * @param string[]
+   * The IDs of the slides in the presentation that should be moved. The slides
+   * in this list must be in existing presentation order, without duplicates.
+   *
+   * @param string[] $slideObjectIds
    */
   public function setSlideObjectIds($slideObjectIds)
   {

@@ -21,20 +21,16 @@ class AppAccessRiskVerdict extends \Google\Collection
 {
   protected $collection_key = 'appsDetected';
   /**
+   * List of detected app types signalled for App Access Risk.
+   *
    * @var string[]
    */
   public $appsDetected;
-  /**
-   * @var string
-   */
-  public $otherApps;
-  /**
-   * @var string
-   */
-  public $playOrSystemApps;
 
   /**
-   * @param string[]
+   * List of detected app types signalled for App Access Risk.
+   *
+   * @param string[] $appsDetected
    */
   public function setAppsDetected($appsDetected)
   {
@@ -46,34 +42,6 @@ class AppAccessRiskVerdict extends \Google\Collection
   public function getAppsDetected()
   {
     return $this->appsDetected;
-  }
-  /**
-   * @param string
-   */
-  public function setOtherApps($otherApps)
-  {
-    $this->otherApps = $otherApps;
-  }
-  /**
-   * @return string
-   */
-  public function getOtherApps()
-  {
-    return $this->otherApps;
-  }
-  /**
-   * @param string
-   */
-  public function setPlayOrSystemApps($playOrSystemApps)
-  {
-    $this->playOrSystemApps = $playOrSystemApps;
-  }
-  /**
-   * @return string
-   */
-  public function getPlayOrSystemApps()
-  {
-    return $this->playOrSystemApps;
   }
 }
 

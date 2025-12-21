@@ -18,11 +18,16 @@
 namespace Google\Service\OracleDatabase\Resource;
 
 use Google\Service\OracleDatabase\AutonomousDatabase;
+use Google\Service\OracleDatabase\FailoverAutonomousDatabaseRequest;
 use Google\Service\OracleDatabase\GenerateAutonomousDatabaseWalletRequest;
 use Google\Service\OracleDatabase\GenerateAutonomousDatabaseWalletResponse;
 use Google\Service\OracleDatabase\ListAutonomousDatabasesResponse;
 use Google\Service\OracleDatabase\Operation;
+use Google\Service\OracleDatabase\RestartAutonomousDatabaseRequest;
 use Google\Service\OracleDatabase\RestoreAutonomousDatabaseRequest;
+use Google\Service\OracleDatabase\StartAutonomousDatabaseRequest;
+use Google\Service\OracleDatabase\StopAutonomousDatabaseRequest;
+use Google\Service\OracleDatabase\SwitchoverAutonomousDatabaseRequest;
 
 /**
  * The "autonomousDatabases" collection of methods.
@@ -88,6 +93,24 @@ class ProjectsLocationsAutonomousDatabases extends \Google\Service\Resource
     return $this->call('delete', [$params], Operation::class);
   }
   /**
+   * Initiates a failover to target autonomous database from the associated
+   * primary database. (autonomousDatabases.failover)
+   *
+   * @param string $name Required. The name of the Autonomous Database in the
+   * following format: projects/{project}/locations/{location}/autonomousDatabases
+   * /{autonomous_database}.
+   * @param FailoverAutonomousDatabaseRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function failover($name, FailoverAutonomousDatabaseRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('failover', [$params], Operation::class);
+  }
+  /**
    * Generates a wallet for an Autonomous Database.
    * (autonomousDatabases.generateWallet)
    *
@@ -148,6 +171,54 @@ class ProjectsLocationsAutonomousDatabases extends \Google\Service\Resource
     return $this->call('list', [$params], ListAutonomousDatabasesResponse::class);
   }
   /**
+   * Updates the parameters of a single Autonomous Database.
+   * (autonomousDatabases.patch)
+   *
+   * @param string $name Identifier. The name of the Autonomous Database resource
+   * in the following format: projects/{project}/locations/{region}/autonomousData
+   * bases/{autonomous_database}
+   * @param AutonomousDatabase $postBody
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string requestId Optional. An optional ID to identify the request.
+   * This value is used to identify duplicate requests. If you make a request with
+   * the same request ID and the original request is still in progress or
+   * completed, the server ignores the second request. This prevents clients from
+   * accidentally creating duplicate commitments. The request ID must be a valid
+   * UUID with the exception that zero UUID is not supported
+   * (00000000-0000-0000-0000-000000000000).
+   * @opt_param string updateMask Optional. Field mask is used to specify the
+   * fields to be overwritten in the Exadata resource by the update. The fields
+   * specified in the update_mask are relative to the resource, not the full
+   * request. A field will be overwritten if it is in the mask. If the user does
+   * not provide a mask then all fields will be overwritten.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function patch($name, AutonomousDatabase $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('patch', [$params], Operation::class);
+  }
+  /**
+   * Restarts an Autonomous Database. (autonomousDatabases.restart)
+   *
+   * @param string $name Required. The name of the Autonomous Database in the
+   * following format: projects/{project}/locations/{location}/autonomousDatabases
+   * /{autonomous_database}.
+   * @param RestartAutonomousDatabaseRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function restart($name, RestartAutonomousDatabaseRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('restart', [$params], Operation::class);
+  }
+  /**
    * Restores a single Autonomous Database. (autonomousDatabases.restore)
    *
    * @param string $name Required. The name of the Autonomous Database in the
@@ -163,6 +234,58 @@ class ProjectsLocationsAutonomousDatabases extends \Google\Service\Resource
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('restore', [$params], Operation::class);
+  }
+  /**
+   * Starts an Autonomous Database. (autonomousDatabases.start)
+   *
+   * @param string $name Required. The name of the Autonomous Database in the
+   * following format: projects/{project}/locations/{location}/autonomousDatabases
+   * /{autonomous_database}.
+   * @param StartAutonomousDatabaseRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function start($name, StartAutonomousDatabaseRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('start', [$params], Operation::class);
+  }
+  /**
+   * Stops an Autonomous Database. (autonomousDatabases.stop)
+   *
+   * @param string $name Required. The name of the Autonomous Database in the
+   * following format: projects/{project}/locations/{location}/autonomousDatabases
+   * /{autonomous_database}.
+   * @param StopAutonomousDatabaseRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function stop($name, StopAutonomousDatabaseRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('stop', [$params], Operation::class);
+  }
+  /**
+   * Initiates a switchover of specified autonomous database to the associated
+   * peer database. (autonomousDatabases.switchover)
+   *
+   * @param string $name Required. The name of the Autonomous Database in the
+   * following format: projects/{project}/locations/{location}/autonomousDatabases
+   * /{autonomous_database}.
+   * @param SwitchoverAutonomousDatabaseRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function switchover($name, SwitchoverAutonomousDatabaseRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('switchover', [$params], Operation::class);
   }
 }
 

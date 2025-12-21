@@ -20,16 +20,31 @@ namespace Google\Service\SiteVerification;
 class SiteVerificationWebResourceGettokenResponse extends \Google\Model
 {
   /**
+   * The verification method to use in conjunction with this token. For FILE,
+   * the token should be placed in the top-level directory of the site, stored
+   * inside a file of the same name. For META, the token should be placed in the
+   * HEAD tag of the default page that is loaded for the site. For DNS, the
+   * token should be placed in a TXT record of the domain.
+   *
    * @var string
    */
   public $method;
   /**
+   * The verification token. The token must be placed appropriately in order for
+   * verification to succeed.
+   *
    * @var string
    */
   public $token;
 
   /**
-   * @param string
+   * The verification method to use in conjunction with this token. For FILE,
+   * the token should be placed in the top-level directory of the site, stored
+   * inside a file of the same name. For META, the token should be placed in the
+   * HEAD tag of the default page that is loaded for the site. For DNS, the
+   * token should be placed in a TXT record of the domain.
+   *
+   * @param string $method
    */
   public function setMethod($method)
   {
@@ -43,7 +58,10 @@ class SiteVerificationWebResourceGettokenResponse extends \Google\Model
     return $this->method;
   }
   /**
-   * @param string
+   * The verification token. The token must be placed appropriately in order for
+   * verification to succeed.
+   *
+   * @param string $token
    */
   public function setToken($token)
   {

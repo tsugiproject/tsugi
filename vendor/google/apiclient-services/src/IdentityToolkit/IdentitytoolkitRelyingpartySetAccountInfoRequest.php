@@ -21,100 +21,149 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
 {
   protected $collection_key = 'provider';
   /**
+   * The captcha challenge.
+   *
    * @var string
    */
   public $captchaChallenge;
   /**
+   * Response to the captcha.
+   *
    * @var string
    */
   public $captchaResponse;
   /**
+   * The timestamp when the account is created.
+   *
    * @var string
    */
   public $createdAt;
   /**
+   * The custom attributes to be set in the user's id token.
+   *
    * @var string
    */
   public $customAttributes;
   /**
+   * GCP project number of the requesting delegated app. Currently only intended
+   * for Firebase V1 migration.
+   *
    * @var string
    */
   public $delegatedProjectNumber;
   /**
+   * The attributes users request to delete.
+   *
    * @var string[]
    */
   public $deleteAttribute;
   /**
+   * The IDPs the user request to delete.
+   *
    * @var string[]
    */
   public $deleteProvider;
   /**
+   * Whether to disable the user.
+   *
    * @var bool
    */
   public $disableUser;
   /**
+   * The name of the user.
+   *
    * @var string
    */
   public $displayName;
   /**
+   * The email of the user.
+   *
    * @var string
    */
   public $email;
   /**
+   * Mark the email as verified or not.
+   *
    * @var bool
    */
   public $emailVerified;
   /**
+   * The GITKit token of the authenticated user.
+   *
    * @var string
    */
   public $idToken;
   /**
+   * Instance id token of the app.
+   *
    * @var string
    */
   public $instanceId;
   /**
+   * Last login timestamp.
+   *
    * @var string
    */
   public $lastLoginAt;
   /**
+   * The local ID of the user.
+   *
    * @var string
    */
   public $localId;
   /**
+   * The out-of-band code of the change email request.
+   *
    * @var string
    */
   public $oobCode;
   /**
+   * The new password of the user.
+   *
    * @var string
    */
   public $password;
   /**
+   * Privileged caller can update user with specified phone number.
+   *
    * @var string
    */
   public $phoneNumber;
   /**
+   * The photo url of the user.
+   *
    * @var string
    */
   public $photoUrl;
   /**
+   * The associated IDPs of the user.
+   *
    * @var string[]
    */
   public $provider;
   /**
+   * Whether return sts id token and refresh token instead of gitkit token.
+   *
    * @var bool
    */
   public $returnSecureToken;
   /**
+   * Mark the user to upgrade to federated login.
+   *
    * @var bool
    */
   public $upgradeToFederatedLogin;
   /**
+   * Timestamp in seconds for valid login token.
+   *
    * @var string
    */
   public $validSince;
 
   /**
-   * @param string
+   * The captcha challenge.
+   *
+   * @param string $captchaChallenge
    */
   public function setCaptchaChallenge($captchaChallenge)
   {
@@ -128,7 +177,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->captchaChallenge;
   }
   /**
-   * @param string
+   * Response to the captcha.
+   *
+   * @param string $captchaResponse
    */
   public function setCaptchaResponse($captchaResponse)
   {
@@ -142,7 +193,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->captchaResponse;
   }
   /**
-   * @param string
+   * The timestamp when the account is created.
+   *
+   * @param string $createdAt
    */
   public function setCreatedAt($createdAt)
   {
@@ -156,7 +209,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->createdAt;
   }
   /**
-   * @param string
+   * The custom attributes to be set in the user's id token.
+   *
+   * @param string $customAttributes
    */
   public function setCustomAttributes($customAttributes)
   {
@@ -170,7 +225,10 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->customAttributes;
   }
   /**
-   * @param string
+   * GCP project number of the requesting delegated app. Currently only intended
+   * for Firebase V1 migration.
+   *
+   * @param string $delegatedProjectNumber
    */
   public function setDelegatedProjectNumber($delegatedProjectNumber)
   {
@@ -184,7 +242,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->delegatedProjectNumber;
   }
   /**
-   * @param string[]
+   * The attributes users request to delete.
+   *
+   * @param string[] $deleteAttribute
    */
   public function setDeleteAttribute($deleteAttribute)
   {
@@ -198,7 +258,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->deleteAttribute;
   }
   /**
-   * @param string[]
+   * The IDPs the user request to delete.
+   *
+   * @param string[] $deleteProvider
    */
   public function setDeleteProvider($deleteProvider)
   {
@@ -212,7 +274,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->deleteProvider;
   }
   /**
-   * @param bool
+   * Whether to disable the user.
+   *
+   * @param bool $disableUser
    */
   public function setDisableUser($disableUser)
   {
@@ -226,7 +290,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->disableUser;
   }
   /**
-   * @param string
+   * The name of the user.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -240,7 +306,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->displayName;
   }
   /**
-   * @param string
+   * The email of the user.
+   *
+   * @param string $email
    */
   public function setEmail($email)
   {
@@ -254,7 +322,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->email;
   }
   /**
-   * @param bool
+   * Mark the email as verified or not.
+   *
+   * @param bool $emailVerified
    */
   public function setEmailVerified($emailVerified)
   {
@@ -268,7 +338,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->emailVerified;
   }
   /**
-   * @param string
+   * The GITKit token of the authenticated user.
+   *
+   * @param string $idToken
    */
   public function setIdToken($idToken)
   {
@@ -282,7 +354,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->idToken;
   }
   /**
-   * @param string
+   * Instance id token of the app.
+   *
+   * @param string $instanceId
    */
   public function setInstanceId($instanceId)
   {
@@ -296,7 +370,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->instanceId;
   }
   /**
-   * @param string
+   * Last login timestamp.
+   *
+   * @param string $lastLoginAt
    */
   public function setLastLoginAt($lastLoginAt)
   {
@@ -310,7 +386,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->lastLoginAt;
   }
   /**
-   * @param string
+   * The local ID of the user.
+   *
+   * @param string $localId
    */
   public function setLocalId($localId)
   {
@@ -324,7 +402,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->localId;
   }
   /**
-   * @param string
+   * The out-of-band code of the change email request.
+   *
+   * @param string $oobCode
    */
   public function setOobCode($oobCode)
   {
@@ -338,7 +418,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->oobCode;
   }
   /**
-   * @param string
+   * The new password of the user.
+   *
+   * @param string $password
    */
   public function setPassword($password)
   {
@@ -352,7 +434,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->password;
   }
   /**
-   * @param string
+   * Privileged caller can update user with specified phone number.
+   *
+   * @param string $phoneNumber
    */
   public function setPhoneNumber($phoneNumber)
   {
@@ -366,7 +450,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->phoneNumber;
   }
   /**
-   * @param string
+   * The photo url of the user.
+   *
+   * @param string $photoUrl
    */
   public function setPhotoUrl($photoUrl)
   {
@@ -380,7 +466,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->photoUrl;
   }
   /**
-   * @param string[]
+   * The associated IDPs of the user.
+   *
+   * @param string[] $provider
    */
   public function setProvider($provider)
   {
@@ -394,7 +482,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->provider;
   }
   /**
-   * @param bool
+   * Whether return sts id token and refresh token instead of gitkit token.
+   *
+   * @param bool $returnSecureToken
    */
   public function setReturnSecureToken($returnSecureToken)
   {
@@ -408,7 +498,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->returnSecureToken;
   }
   /**
-   * @param bool
+   * Mark the user to upgrade to federated login.
+   *
+   * @param bool $upgradeToFederatedLogin
    */
   public function setUpgradeToFederatedLogin($upgradeToFederatedLogin)
   {
@@ -422,7 +514,9 @@ class IdentitytoolkitRelyingpartySetAccountInfoRequest extends \Google\Collectio
     return $this->upgradeToFederatedLogin;
   }
   /**
-   * @param string
+   * Timestamp in seconds for valid login token.
+   *
+   * @param string $validSince
    */
   public function setValidSince($validSince)
   {

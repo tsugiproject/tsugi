@@ -28,7 +28,10 @@ class GoogleCloudVideointelligenceV1p3beta1LogoRecognitionAnnotation extends \Go
   protected $tracksDataType = 'array';
 
   /**
-   * @param GoogleCloudVideointelligenceV1p3beta1Entity
+   * Entity category information to specify the logo class that all the logo
+   * tracks within this LogoRecognitionAnnotation are recognized as.
+   *
+   * @param GoogleCloudVideointelligenceV1p3beta1Entity $entity
    */
   public function setEntity(GoogleCloudVideointelligenceV1p3beta1Entity $entity)
   {
@@ -42,7 +45,10 @@ class GoogleCloudVideointelligenceV1p3beta1LogoRecognitionAnnotation extends \Go
     return $this->entity;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1p3beta1VideoSegment[]
+   * All video segments where the recognized logo appears. There might be
+   * multiple instances of the same logo class appearing in one VideoSegment.
+   *
+   * @param GoogleCloudVideointelligenceV1p3beta1VideoSegment[] $segments
    */
   public function setSegments($segments)
   {
@@ -56,7 +62,10 @@ class GoogleCloudVideointelligenceV1p3beta1LogoRecognitionAnnotation extends \Go
     return $this->segments;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1p3beta1Track[]
+   * All logo tracks where the recognized logo appears. Each track corresponds
+   * to one logo instance appearing in consecutive frames.
+   *
+   * @param GoogleCloudVideointelligenceV1p3beta1Track[] $tracks
    */
   public function setTracks($tracks)
   {

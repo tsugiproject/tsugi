@@ -23,36 +23,60 @@ class Product extends \Google\Collection
   protected $attributesType = Attributes::class;
   protected $attributesDataType = '';
   /**
+   * The content language of the product as a two-letter ISO 639-1 language code
+   * (for example, en).
+   *
    * @var string
    */
   public $contentLanguage;
   protected $destinationStatusesType = DestinationStatus::class;
   protected $destinationStatusesDataType = 'array';
   /**
+   * Optional. The feed label for the product.
+   *
    * @var string
    */
   public $feedLabel;
   protected $issuesType = Issue::class;
   protected $issuesDataType = 'array';
   /**
+   * Name in the format `{target_country}:{content_language}:{product_id}`.
+   * `target_country` - The target country of the product as a CLDR territory
+   * code (for example, US). `content_language` - The content language of the
+   * product as a two-letter ISO 639-1 language code (for example, en).
+   * `product_id` - The ID of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#id.
+   *
    * @var string
    */
   public $name;
   /**
+   * Parent ID in the format `accounts/{account_id}`. `account_id` - The ID of
+   * the Manufacturer Center account.
+   *
    * @var string
    */
   public $parent;
   /**
+   * The ID of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#id.
+   *
    * @var string
    */
   public $productId;
   /**
+   * The target country of the product as a CLDR territory code (for example,
+   * US).
+   *
    * @var string
    */
   public $targetCountry;
 
   /**
-   * @param Attributes
+   * Attributes of the product uploaded to the Manufacturer Center. Manually
+   * edited attributes are taken into account.
+   *
+   * @param Attributes $attributes
    */
   public function setAttributes(Attributes $attributes)
   {
@@ -66,7 +90,10 @@ class Product extends \Google\Collection
     return $this->attributes;
   }
   /**
-   * @param string
+   * The content language of the product as a two-letter ISO 639-1 language code
+   * (for example, en).
+   *
+   * @param string $contentLanguage
    */
   public function setContentLanguage($contentLanguage)
   {
@@ -80,7 +107,9 @@ class Product extends \Google\Collection
     return $this->contentLanguage;
   }
   /**
-   * @param DestinationStatus[]
+   * The status of the destinations.
+   *
+   * @param DestinationStatus[] $destinationStatuses
    */
   public function setDestinationStatuses($destinationStatuses)
   {
@@ -94,7 +123,9 @@ class Product extends \Google\Collection
     return $this->destinationStatuses;
   }
   /**
-   * @param string
+   * Optional. The feed label for the product.
+   *
+   * @param string $feedLabel
    */
   public function setFeedLabel($feedLabel)
   {
@@ -108,7 +139,9 @@ class Product extends \Google\Collection
     return $this->feedLabel;
   }
   /**
-   * @param Issue[]
+   * A server-generated list of issues associated with the product.
+   *
+   * @param Issue[] $issues
    */
   public function setIssues($issues)
   {
@@ -122,7 +155,14 @@ class Product extends \Google\Collection
     return $this->issues;
   }
   /**
-   * @param string
+   * Name in the format `{target_country}:{content_language}:{product_id}`.
+   * `target_country` - The target country of the product as a CLDR territory
+   * code (for example, US). `content_language` - The content language of the
+   * product as a two-letter ISO 639-1 language code (for example, en).
+   * `product_id` - The ID of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#id.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -136,7 +176,10 @@ class Product extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param string
+   * Parent ID in the format `accounts/{account_id}`. `account_id` - The ID of
+   * the Manufacturer Center account.
+   *
+   * @param string $parent
    */
   public function setParent($parent)
   {
@@ -150,7 +193,10 @@ class Product extends \Google\Collection
     return $this->parent;
   }
   /**
-   * @param string
+   * The ID of the product. For more information, see
+   * https://support.google.com/manufacturers/answer/6124116#id.
+   *
+   * @param string $productId
    */
   public function setProductId($productId)
   {
@@ -164,7 +210,10 @@ class Product extends \Google\Collection
     return $this->productId;
   }
   /**
-   * @param string
+   * The target country of the product as a CLDR territory code (for example,
+   * US).
+   *
+   * @param string $targetCountry
    */
   public function setTargetCountry($targetCountry)
   {

@@ -20,12 +20,22 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaAccessMetric extends \Google\Model
 {
   /**
+   * The API name of the metric. See [Data Access Schema](https://developers.goo
+   * gle.com/analytics/devguides/config/admin/v1/access-api-schema) for the list
+   * of metrics supported in this API. Metrics are referenced by name in
+   * `metricFilter` & `orderBys`.
+   *
    * @var string
    */
   public $metricName;
 
   /**
-   * @param string
+   * The API name of the metric. See [Data Access Schema](https://developers.goo
+   * gle.com/analytics/devguides/config/admin/v1/access-api-schema) for the list
+   * of metrics supported in this API. Metrics are referenced by name in
+   * `metricFilter` & `orderBys`.
+   *
+   * @param string $metricName
    */
   public function setMetricName($metricName)
   {

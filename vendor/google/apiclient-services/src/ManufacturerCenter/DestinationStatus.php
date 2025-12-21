@@ -19,30 +19,62 @@ namespace Google\Service\ManufacturerCenter;
 
 class DestinationStatus extends \Google\Collection
 {
+  /**
+   * Unspecified status, never used.
+   */
+  public const STATUS_UNKNOWN = 'UNKNOWN';
+  /**
+   * The product is used for this destination.
+   */
+  public const STATUS_ACTIVE = 'ACTIVE';
+  /**
+   * The decision is still pending.
+   */
+  public const STATUS_PENDING = 'PENDING';
+  /**
+   * The product is disapproved. Please look at the issues.
+   */
+  public const STATUS_DISAPPROVED = 'DISAPPROVED';
   protected $collection_key = 'pendingCountries';
   /**
+   * Output only. List of country codes (ISO 3166-1 alpha-2) where the offer is
+   * approved.
+   *
    * @var string[]
    */
   public $approvedCountries;
   /**
+   * The name of the destination.
+   *
    * @var string
    */
   public $destination;
   /**
+   * Output only. List of country codes (ISO 3166-1 alpha-2) where the offer is
+   * disapproved.
+   *
    * @var string[]
    */
   public $disapprovedCountries;
   /**
+   * Output only. List of country codes (ISO 3166-1 alpha-2) where the offer is
+   * pending approval.
+   *
    * @var string[]
    */
   public $pendingCountries;
   /**
+   * The status of the destination.
+   *
    * @var string
    */
   public $status;
 
   /**
-   * @param string[]
+   * Output only. List of country codes (ISO 3166-1 alpha-2) where the offer is
+   * approved.
+   *
+   * @param string[] $approvedCountries
    */
   public function setApprovedCountries($approvedCountries)
   {
@@ -56,7 +88,9 @@ class DestinationStatus extends \Google\Collection
     return $this->approvedCountries;
   }
   /**
-   * @param string
+   * The name of the destination.
+   *
+   * @param string $destination
    */
   public function setDestination($destination)
   {
@@ -70,7 +104,10 @@ class DestinationStatus extends \Google\Collection
     return $this->destination;
   }
   /**
-   * @param string[]
+   * Output only. List of country codes (ISO 3166-1 alpha-2) where the offer is
+   * disapproved.
+   *
+   * @param string[] $disapprovedCountries
    */
   public function setDisapprovedCountries($disapprovedCountries)
   {
@@ -84,7 +121,10 @@ class DestinationStatus extends \Google\Collection
     return $this->disapprovedCountries;
   }
   /**
-   * @param string[]
+   * Output only. List of country codes (ISO 3166-1 alpha-2) where the offer is
+   * pending approval.
+   *
+   * @param string[] $pendingCountries
    */
   public function setPendingCountries($pendingCountries)
   {
@@ -98,14 +138,18 @@ class DestinationStatus extends \Google\Collection
     return $this->pendingCountries;
   }
   /**
-   * @param string
+   * The status of the destination.
+   *
+   * Accepted values: UNKNOWN, ACTIVE, PENDING, DISAPPROVED
+   *
+   * @param self::STATUS_* $status
    */
   public function setStatus($status)
   {
     $this->status = $status;
   }
   /**
-   * @return string
+   * @return self::STATUS_*
    */
   public function getStatus()
   {

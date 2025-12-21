@@ -20,12 +20,18 @@ namespace Google\Service\CloudTalentSolution;
 class HistogramQuery extends \Google\Model
 {
   /**
+   * An expression specifies a histogram request against matching jobs for
+   * searches. See SearchJobsRequest.histogram_queries for details about syntax.
+   *
    * @var string
    */
   public $histogramQuery;
 
   /**
-   * @param string
+   * An expression specifies a histogram request against matching jobs for
+   * searches. See SearchJobsRequest.histogram_queries for details about syntax.
+   *
+   * @param string $histogramQuery
    */
   public function setHistogramQuery($histogramQuery)
   {

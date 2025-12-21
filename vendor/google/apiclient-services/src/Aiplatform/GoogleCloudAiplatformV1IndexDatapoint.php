@@ -23,10 +23,21 @@ class GoogleCloudAiplatformV1IndexDatapoint extends \Google\Collection
   protected $crowdingTagType = GoogleCloudAiplatformV1IndexDatapointCrowdingTag::class;
   protected $crowdingTagDataType = '';
   /**
+   * Required. Unique identifier of the datapoint.
+   *
    * @var string
    */
   public $datapointId;
   /**
+   * Optional. The key-value map of additional metadata for the datapoint.
+   *
+   * @var array[]
+   */
+  public $embeddingMetadata;
+  /**
+   * Required. Feature embedding vector for dense index. An array of numbers
+   * with the length of [NearestNeighborSearchConfig.dimensions].
+   *
    * @var float[]
    */
   public $featureVector;
@@ -38,7 +49,10 @@ class GoogleCloudAiplatformV1IndexDatapoint extends \Google\Collection
   protected $sparseEmbeddingDataType = '';
 
   /**
-   * @param GoogleCloudAiplatformV1IndexDatapointCrowdingTag
+   * Optional. CrowdingTag of the datapoint, the number of neighbors to return
+   * in each crowding can be configured during query.
+   *
+   * @param GoogleCloudAiplatformV1IndexDatapointCrowdingTag $crowdingTag
    */
   public function setCrowdingTag(GoogleCloudAiplatformV1IndexDatapointCrowdingTag $crowdingTag)
   {
@@ -52,7 +66,9 @@ class GoogleCloudAiplatformV1IndexDatapoint extends \Google\Collection
     return $this->crowdingTag;
   }
   /**
-   * @param string
+   * Required. Unique identifier of the datapoint.
+   *
+   * @param string $datapointId
    */
   public function setDatapointId($datapointId)
   {
@@ -66,7 +82,26 @@ class GoogleCloudAiplatformV1IndexDatapoint extends \Google\Collection
     return $this->datapointId;
   }
   /**
-   * @param float[]
+   * Optional. The key-value map of additional metadata for the datapoint.
+   *
+   * @param array[] $embeddingMetadata
+   */
+  public function setEmbeddingMetadata($embeddingMetadata)
+  {
+    $this->embeddingMetadata = $embeddingMetadata;
+  }
+  /**
+   * @return array[]
+   */
+  public function getEmbeddingMetadata()
+  {
+    return $this->embeddingMetadata;
+  }
+  /**
+   * Required. Feature embedding vector for dense index. An array of numbers
+   * with the length of [NearestNeighborSearchConfig.dimensions].
+   *
+   * @param float[] $featureVector
    */
   public function setFeatureVector($featureVector)
   {
@@ -80,7 +115,11 @@ class GoogleCloudAiplatformV1IndexDatapoint extends \Google\Collection
     return $this->featureVector;
   }
   /**
-   * @param GoogleCloudAiplatformV1IndexDatapointNumericRestriction[]
+   * Optional. List of Restrict of the datapoint, used to perform "restricted
+   * searches" where boolean rule are used to filter the subset of the database
+   * eligible for matching. This uses numeric comparisons.
+   *
+   * @param GoogleCloudAiplatformV1IndexDatapointNumericRestriction[] $numericRestricts
    */
   public function setNumericRestricts($numericRestricts)
   {
@@ -94,7 +133,12 @@ class GoogleCloudAiplatformV1IndexDatapoint extends \Google\Collection
     return $this->numericRestricts;
   }
   /**
-   * @param GoogleCloudAiplatformV1IndexDatapointRestriction[]
+   * Optional. List of Restrict of the datapoint, used to perform "restricted
+   * searches" where boolean rule are used to filter the subset of the database
+   * eligible for matching. This uses categorical tokens. See:
+   * https://cloud.google.com/vertex-ai/docs/matching-engine/filtering
+   *
+   * @param GoogleCloudAiplatformV1IndexDatapointRestriction[] $restricts
    */
   public function setRestricts($restricts)
   {
@@ -108,7 +152,9 @@ class GoogleCloudAiplatformV1IndexDatapoint extends \Google\Collection
     return $this->restricts;
   }
   /**
-   * @param GoogleCloudAiplatformV1IndexDatapointSparseEmbedding
+   * Optional. Feature embedding vector for sparse index.
+   *
+   * @param GoogleCloudAiplatformV1IndexDatapointSparseEmbedding $sparseEmbedding
    */
   public function setSparseEmbedding(GoogleCloudAiplatformV1IndexDatapointSparseEmbedding $sparseEmbedding)
   {

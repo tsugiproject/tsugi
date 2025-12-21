@@ -20,9 +20,13 @@ namespace Google\Service\Document;
 class GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock extends \Google\Model
 {
   /**
+   * ID of the block.
+   *
    * @var string
    */
   public $blockId;
+  protected $boundingBoxType = GoogleCloudDocumentaiV1BoundingPoly::class;
+  protected $boundingBoxDataType = '';
   protected $listBlockType = GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock::class;
   protected $listBlockDataType = '';
   protected $pageSpanType = GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan::class;
@@ -33,7 +37,9 @@ class GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock extends \
   protected $textBlockDataType = '';
 
   /**
-   * @param string
+   * ID of the block.
+   *
+   * @param string $blockId
    */
   public function setBlockId($blockId)
   {
@@ -47,7 +53,25 @@ class GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock extends \
     return $this->blockId;
   }
   /**
-   * @param GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock
+   * Identifies the bounding box for the block.
+   *
+   * @param GoogleCloudDocumentaiV1BoundingPoly $boundingBox
+   */
+  public function setBoundingBox(GoogleCloudDocumentaiV1BoundingPoly $boundingBox)
+  {
+    $this->boundingBox = $boundingBox;
+  }
+  /**
+   * @return GoogleCloudDocumentaiV1BoundingPoly
+   */
+  public function getBoundingBox()
+  {
+    return $this->boundingBox;
+  }
+  /**
+   * Block consisting of list content/structure.
+   *
+   * @param GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock $listBlock
    */
   public function setListBlock(GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock $listBlock)
   {
@@ -61,7 +85,9 @@ class GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock extends \
     return $this->listBlock;
   }
   /**
-   * @param GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan
+   * Page span of the block.
+   *
+   * @param GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan $pageSpan
    */
   public function setPageSpan(GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan $pageSpan)
   {
@@ -75,7 +101,9 @@ class GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock extends \
     return $this->pageSpan;
   }
   /**
-   * @param GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock
+   * Block consisting of table content/structure.
+   *
+   * @param GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock $tableBlock
    */
   public function setTableBlock(GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock $tableBlock)
   {
@@ -89,7 +117,9 @@ class GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock extends \
     return $this->tableBlock;
   }
   /**
-   * @param GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock
+   * Block consisting of text content.
+   *
+   * @param GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock $textBlock
    */
   public function setTextBlock(GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock $textBlock)
   {

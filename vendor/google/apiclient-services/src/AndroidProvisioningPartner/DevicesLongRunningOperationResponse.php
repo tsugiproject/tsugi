@@ -23,12 +23,19 @@ class DevicesLongRunningOperationResponse extends \Google\Collection
   protected $perDeviceStatusType = OperationPerDevice::class;
   protected $perDeviceStatusDataType = 'array';
   /**
+   * A summary of how many items in the operation the server processed
+   * successfully. Updated as the operation progresses.
+   *
    * @var int
    */
   public $successCount;
 
   /**
-   * @param OperationPerDevice[]
+   * The processing status for each device in the operation. One
+   * `PerDeviceStatus` per device. The list order matches the items in the
+   * original request.
+   *
+   * @param OperationPerDevice[] $perDeviceStatus
    */
   public function setPerDeviceStatus($perDeviceStatus)
   {
@@ -42,7 +49,10 @@ class DevicesLongRunningOperationResponse extends \Google\Collection
     return $this->perDeviceStatus;
   }
   /**
-   * @param int
+   * A summary of how many items in the operation the server processed
+   * successfully. Updated as the operation progresses.
+   *
+   * @param int $successCount
    */
   public function setSuccessCount($successCount)
   {

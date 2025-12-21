@@ -23,12 +23,17 @@ class GoogleAnalyticsAdminV1betaListCustomDimensionsResponse extends \Google\Col
   protected $customDimensionsType = GoogleAnalyticsAdminV1betaCustomDimension::class;
   protected $customDimensionsDataType = 'array';
   /**
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param GoogleAnalyticsAdminV1betaCustomDimension[]
+   * List of CustomDimensions.
+   *
+   * @param GoogleAnalyticsAdminV1betaCustomDimension[] $customDimensions
    */
   public function setCustomDimensions($customDimensions)
   {
@@ -42,7 +47,10 @@ class GoogleAnalyticsAdminV1betaListCustomDimensionsResponse extends \Google\Col
     return $this->customDimensions;
   }
   /**
-   * @param string
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

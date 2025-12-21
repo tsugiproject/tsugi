@@ -20,20 +20,28 @@ namespace Google\Service\YouTubeAnalytics;
 class ResultTableColumnHeader extends \Google\Model
 {
   /**
+   * The type of the column (`DIMENSION` or `METRIC`).
+   *
    * @var string
    */
   public $columnType;
   /**
+   * The type of the data in the column (`STRING`, `INTEGER`, `FLOAT`, etc.).
+   *
    * @var string
    */
   public $dataType;
   /**
+   * The name of the dimension or metric.
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param string
+   * The type of the column (`DIMENSION` or `METRIC`).
+   *
+   * @param string $columnType
    */
   public function setColumnType($columnType)
   {
@@ -47,7 +55,9 @@ class ResultTableColumnHeader extends \Google\Model
     return $this->columnType;
   }
   /**
-   * @param string
+   * The type of the data in the column (`STRING`, `INTEGER`, `FLOAT`, etc.).
+   *
+   * @param string $dataType
    */
   public function setDataType($dataType)
   {
@@ -61,7 +71,9 @@ class ResultTableColumnHeader extends \Google\Model
     return $this->dataType;
   }
   /**
-   * @param string
+   * The name of the dimension or metric.
+   *
+   * @param string $name
    */
   public function setName($name)
   {

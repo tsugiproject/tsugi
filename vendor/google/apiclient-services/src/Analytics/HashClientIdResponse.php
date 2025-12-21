@@ -37,7 +37,7 @@ class HashClientIdResponse extends \Google\Model
   public $webPropertyId;
 
   /**
-   * @param string
+   * @param string $clientId
    */
   public function setClientId($clientId)
   {
@@ -51,7 +51,7 @@ class HashClientIdResponse extends \Google\Model
     return $this->clientId;
   }
   /**
-   * @param string
+   * @param string $hashedClientId
    */
   public function setHashedClientId($hashedClientId)
   {
@@ -65,7 +65,7 @@ class HashClientIdResponse extends \Google\Model
     return $this->hashedClientId;
   }
   /**
-   * @param string
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -79,7 +79,7 @@ class HashClientIdResponse extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * @param string $webPropertyId
    */
   public function setWebPropertyId($webPropertyId)
   {

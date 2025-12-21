@@ -23,12 +23,16 @@ class UploadAccountResponse extends \Google\Collection
   protected $errorType = UploadAccountResponseError::class;
   protected $errorDataType = 'array';
   /**
+   * The fixed string "identitytoolkit#UploadAccountResponse".
+   *
    * @var string
    */
   public $kind;
 
   /**
-   * @param UploadAccountResponseError[]
+   * The error encountered while processing the account info.
+   *
+   * @param UploadAccountResponseError[] $error
    */
   public function setError($error)
   {
@@ -42,7 +46,9 @@ class UploadAccountResponse extends \Google\Collection
     return $this->error;
   }
   /**
-   * @param string
+   * The fixed string "identitytoolkit#UploadAccountResponse".
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {

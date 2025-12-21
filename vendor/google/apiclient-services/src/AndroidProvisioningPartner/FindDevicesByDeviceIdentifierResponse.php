@@ -23,16 +23,23 @@ class FindDevicesByDeviceIdentifierResponse extends \Google\Collection
   protected $devicesType = Device::class;
   protected $devicesDataType = 'array';
   /**
+   * A token used to access the next page of results. Omitted if no further
+   * results are available.
+   *
    * @var string
    */
   public $nextPageToken;
   /**
+   * The total count of items in the list irrespective of pagination.
+   *
    * @var int
    */
   public $totalSize;
 
   /**
-   * @param Device[]
+   * Found devices.
+   *
+   * @param Device[] $devices
    */
   public function setDevices($devices)
   {
@@ -46,7 +53,10 @@ class FindDevicesByDeviceIdentifierResponse extends \Google\Collection
     return $this->devices;
   }
   /**
-   * @param string
+   * A token used to access the next page of results. Omitted if no further
+   * results are available.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -60,7 +70,9 @@ class FindDevicesByDeviceIdentifierResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param int
+   * The total count of items in the list irrespective of pagination.
+   *
+   * @param int $totalSize
    */
   public function setTotalSize($totalSize)
   {

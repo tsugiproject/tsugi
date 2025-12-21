@@ -20,6 +20,8 @@ namespace Google\Service\Slides;
 class PageElementProperties extends \Google\Model
 {
   /**
+   * The object ID of the page where the element is located.
+   *
    * @var string
    */
   public $pageObjectId;
@@ -29,7 +31,9 @@ class PageElementProperties extends \Google\Model
   protected $transformDataType = '';
 
   /**
-   * @param string
+   * The object ID of the page where the element is located.
+   *
+   * @param string $pageObjectId
    */
   public function setPageObjectId($pageObjectId)
   {
@@ -43,7 +47,9 @@ class PageElementProperties extends \Google\Model
     return $this->pageObjectId;
   }
   /**
-   * @param Size
+   * The size of the element.
+   *
+   * @param Size $size
    */
   public function setSize(Size $size)
   {
@@ -57,7 +63,9 @@ class PageElementProperties extends \Google\Model
     return $this->size;
   }
   /**
-   * @param AffineTransform
+   * The transform for the element.
+   *
+   * @param AffineTransform $transform
    */
   public function setTransform(AffineTransform $transform)
   {

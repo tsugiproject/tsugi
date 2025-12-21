@@ -23,12 +23,18 @@ class ListAccountsResponse extends \Google\Collection
   protected $accountsType = Account::class;
   protected $accountsDataType = 'array';
   /**
+   * Continuation token used to page through accounts. To retrieve the next page
+   * of the results, set the next request's "page_token" value to this.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param Account[]
+   * The Accounts returned in the list response. Represented by a partial view
+   * of the Account resource, populating `name` and `creation_request_id`.
+   *
+   * @param Account[] $accounts
    */
   public function setAccounts($accounts)
   {
@@ -42,7 +48,10 @@ class ListAccountsResponse extends \Google\Collection
     return $this->accounts;
   }
   /**
-   * @param string
+   * Continuation token used to page through accounts. To retrieve the next page
+   * of the results, set the next request's "page_token" value to this.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

@@ -20,28 +20,51 @@ namespace Google\Service\Datastream;
 class SqlServerProfile extends \Google\Model
 {
   /**
+   * Required. Database for the SQLServer connection.
+   *
    * @var string
    */
   public $database;
   /**
+   * Required. Hostname for the SQLServer connection.
+   *
    * @var string
    */
   public $hostname;
   /**
+   * Optional. Password for the SQLServer connection. Mutually exclusive with
+   * the `secret_manager_stored_password` field.
+   *
    * @var string
    */
   public $password;
   /**
+   * Port for the SQLServer connection, default value is 1433.
+   *
    * @var int
    */
   public $port;
   /**
+   * Optional. A reference to a Secret Manager resource name storing the
+   * SQLServer connection password. Mutually exclusive with the `password`
+   * field.
+   *
+   * @var string
+   */
+  public $secretManagerStoredPassword;
+  protected $sslConfigType = SqlServerSslConfig::class;
+  protected $sslConfigDataType = '';
+  /**
+   * Required. Username for the SQLServer connection.
+   *
    * @var string
    */
   public $username;
 
   /**
-   * @param string
+   * Required. Database for the SQLServer connection.
+   *
+   * @param string $database
    */
   public function setDatabase($database)
   {
@@ -55,7 +78,9 @@ class SqlServerProfile extends \Google\Model
     return $this->database;
   }
   /**
-   * @param string
+   * Required. Hostname for the SQLServer connection.
+   *
+   * @param string $hostname
    */
   public function setHostname($hostname)
   {
@@ -69,7 +94,10 @@ class SqlServerProfile extends \Google\Model
     return $this->hostname;
   }
   /**
-   * @param string
+   * Optional. Password for the SQLServer connection. Mutually exclusive with
+   * the `secret_manager_stored_password` field.
+   *
+   * @param string $password
    */
   public function setPassword($password)
   {
@@ -83,7 +111,9 @@ class SqlServerProfile extends \Google\Model
     return $this->password;
   }
   /**
-   * @param int
+   * Port for the SQLServer connection, default value is 1433.
+   *
+   * @param int $port
    */
   public function setPort($port)
   {
@@ -97,7 +127,43 @@ class SqlServerProfile extends \Google\Model
     return $this->port;
   }
   /**
-   * @param string
+   * Optional. A reference to a Secret Manager resource name storing the
+   * SQLServer connection password. Mutually exclusive with the `password`
+   * field.
+   *
+   * @param string $secretManagerStoredPassword
+   */
+  public function setSecretManagerStoredPassword($secretManagerStoredPassword)
+  {
+    $this->secretManagerStoredPassword = $secretManagerStoredPassword;
+  }
+  /**
+   * @return string
+   */
+  public function getSecretManagerStoredPassword()
+  {
+    return $this->secretManagerStoredPassword;
+  }
+  /**
+   * Optional. SSL configuration for the SQLServer connection.
+   *
+   * @param SqlServerSslConfig $sslConfig
+   */
+  public function setSslConfig(SqlServerSslConfig $sslConfig)
+  {
+    $this->sslConfig = $sslConfig;
+  }
+  /**
+   * @return SqlServerSslConfig
+   */
+  public function getSslConfig()
+  {
+    return $this->sslConfig;
+  }
+  /**
+   * Required. Username for the SQLServer connection.
+   *
+   * @param string $username
    */
   public function setUsername($username)
   {

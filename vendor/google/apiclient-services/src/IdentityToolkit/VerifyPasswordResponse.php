@@ -20,56 +20,85 @@ namespace Google\Service\IdentityToolkit;
 class VerifyPasswordResponse extends \Google\Model
 {
   /**
+   * The name of the user.
+   *
    * @var string
    */
   public $displayName;
   /**
+   * The email returned by the IdP. NOTE: The federated login user may not own
+   * the email.
+   *
    * @var string
    */
   public $email;
   /**
+   * If idToken is STS id token, then this field will be expiration time of STS
+   * id token in seconds.
+   *
    * @var string
    */
   public $expiresIn;
   /**
+   * The GITKit token for authenticated user.
+   *
    * @var string
    */
   public $idToken;
   /**
+   * The fixed string "identitytoolkit#VerifyPasswordResponse".
+   *
    * @var string
    */
   public $kind;
   /**
+   * The RP local ID if it's already been mapped to the IdP account identified
+   * by the federated ID.
+   *
    * @var string
    */
   public $localId;
   /**
+   * The OAuth2 access token.
+   *
    * @var string
    */
   public $oauthAccessToken;
   /**
+   * The OAuth2 authorization code.
+   *
    * @var string
    */
   public $oauthAuthorizationCode;
   /**
+   * The lifetime in seconds of the OAuth2 access token.
+   *
    * @var int
    */
   public $oauthExpireIn;
   /**
+   * The URI of the user's photo at IdP
+   *
    * @var string
    */
   public $photoUrl;
   /**
+   * If idToken is STS id token, then this field will be refresh token.
+   *
    * @var string
    */
   public $refreshToken;
   /**
+   * Whether the email is registered.
+   *
    * @var bool
    */
   public $registered;
 
   /**
-   * @param string
+   * The name of the user.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -83,7 +112,10 @@ class VerifyPasswordResponse extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param string
+   * The email returned by the IdP. NOTE: The federated login user may not own
+   * the email.
+   *
+   * @param string $email
    */
   public function setEmail($email)
   {
@@ -97,7 +129,10 @@ class VerifyPasswordResponse extends \Google\Model
     return $this->email;
   }
   /**
-   * @param string
+   * If idToken is STS id token, then this field will be expiration time of STS
+   * id token in seconds.
+   *
+   * @param string $expiresIn
    */
   public function setExpiresIn($expiresIn)
   {
@@ -111,7 +146,9 @@ class VerifyPasswordResponse extends \Google\Model
     return $this->expiresIn;
   }
   /**
-   * @param string
+   * The GITKit token for authenticated user.
+   *
+   * @param string $idToken
    */
   public function setIdToken($idToken)
   {
@@ -125,7 +162,9 @@ class VerifyPasswordResponse extends \Google\Model
     return $this->idToken;
   }
   /**
-   * @param string
+   * The fixed string "identitytoolkit#VerifyPasswordResponse".
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -139,7 +178,10 @@ class VerifyPasswordResponse extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * The RP local ID if it's already been mapped to the IdP account identified
+   * by the federated ID.
+   *
+   * @param string $localId
    */
   public function setLocalId($localId)
   {
@@ -153,7 +195,9 @@ class VerifyPasswordResponse extends \Google\Model
     return $this->localId;
   }
   /**
-   * @param string
+   * The OAuth2 access token.
+   *
+   * @param string $oauthAccessToken
    */
   public function setOauthAccessToken($oauthAccessToken)
   {
@@ -167,7 +211,9 @@ class VerifyPasswordResponse extends \Google\Model
     return $this->oauthAccessToken;
   }
   /**
-   * @param string
+   * The OAuth2 authorization code.
+   *
+   * @param string $oauthAuthorizationCode
    */
   public function setOauthAuthorizationCode($oauthAuthorizationCode)
   {
@@ -181,7 +227,9 @@ class VerifyPasswordResponse extends \Google\Model
     return $this->oauthAuthorizationCode;
   }
   /**
-   * @param int
+   * The lifetime in seconds of the OAuth2 access token.
+   *
+   * @param int $oauthExpireIn
    */
   public function setOauthExpireIn($oauthExpireIn)
   {
@@ -195,7 +243,9 @@ class VerifyPasswordResponse extends \Google\Model
     return $this->oauthExpireIn;
   }
   /**
-   * @param string
+   * The URI of the user's photo at IdP
+   *
+   * @param string $photoUrl
    */
   public function setPhotoUrl($photoUrl)
   {
@@ -209,7 +259,9 @@ class VerifyPasswordResponse extends \Google\Model
     return $this->photoUrl;
   }
   /**
-   * @param string
+   * If idToken is STS id token, then this field will be refresh token.
+   *
+   * @param string $refreshToken
    */
   public function setRefreshToken($refreshToken)
   {
@@ -223,7 +275,9 @@ class VerifyPasswordResponse extends \Google\Model
     return $this->refreshToken;
   }
   /**
-   * @param bool
+   * Whether the email is registered.
+   *
+   * @param bool $registered
    */
   public function setRegistered($registered)
   {

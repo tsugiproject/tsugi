@@ -20,40 +20,65 @@ namespace Google\Service\Licensing;
 class LicenseAssignment extends \Google\Model
 {
   /**
+   * ETag of the resource.
+   *
    * @var string
    */
   public $etags;
   /**
+   * Identifies the resource as a LicenseAssignment, which is
+   * `licensing#licenseAssignment`.
+   *
    * @var string
    */
   public $kind;
   /**
+   * A product's unique identifier. For more information about products in this
+   * version of the API, see Product and SKU IDs.
+   *
    * @var string
    */
   public $productId;
   /**
+   * Display Name of the product.
+   *
    * @var string
    */
   public $productName;
   /**
+   * Link to this page.
+   *
    * @var string
    */
   public $selfLink;
   /**
+   * A product SKU's unique identifier. For more information about available
+   * SKUs in this version of the API, see Products and SKUs.
+   *
    * @var string
    */
   public $skuId;
   /**
+   * Display Name of the sku of the product.
+   *
    * @var string
    */
   public $skuName;
   /**
+   * The user's current primary email address. If the user's email address
+   * changes, use the new email address in your API requests. Since a `userId`
+   * is subject to change, do not use a `userId` value as a key for persistent
+   * data. This key could break if the current user's email address changes. If
+   * the `userId` is suspended, the license status changes.
+   *
    * @var string
    */
   public $userId;
 
   /**
-   * @param string
+   * ETag of the resource.
+   *
+   * @param string $etags
    */
   public function setEtags($etags)
   {
@@ -67,7 +92,10 @@ class LicenseAssignment extends \Google\Model
     return $this->etags;
   }
   /**
-   * @param string
+   * Identifies the resource as a LicenseAssignment, which is
+   * `licensing#licenseAssignment`.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -81,7 +109,10 @@ class LicenseAssignment extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * A product's unique identifier. For more information about products in this
+   * version of the API, see Product and SKU IDs.
+   *
+   * @param string $productId
    */
   public function setProductId($productId)
   {
@@ -95,7 +126,9 @@ class LicenseAssignment extends \Google\Model
     return $this->productId;
   }
   /**
-   * @param string
+   * Display Name of the product.
+   *
+   * @param string $productName
    */
   public function setProductName($productName)
   {
@@ -109,7 +142,9 @@ class LicenseAssignment extends \Google\Model
     return $this->productName;
   }
   /**
-   * @param string
+   * Link to this page.
+   *
+   * @param string $selfLink
    */
   public function setSelfLink($selfLink)
   {
@@ -123,7 +158,10 @@ class LicenseAssignment extends \Google\Model
     return $this->selfLink;
   }
   /**
-   * @param string
+   * A product SKU's unique identifier. For more information about available
+   * SKUs in this version of the API, see Products and SKUs.
+   *
+   * @param string $skuId
    */
   public function setSkuId($skuId)
   {
@@ -137,7 +175,9 @@ class LicenseAssignment extends \Google\Model
     return $this->skuId;
   }
   /**
-   * @param string
+   * Display Name of the sku of the product.
+   *
+   * @param string $skuName
    */
   public function setSkuName($skuName)
   {
@@ -151,7 +191,13 @@ class LicenseAssignment extends \Google\Model
     return $this->skuName;
   }
   /**
-   * @param string
+   * The user's current primary email address. If the user's email address
+   * changes, use the new email address in your API requests. Since a `userId`
+   * is subject to change, do not use a `userId` value as a key for persistent
+   * data. This key could break if the current user's email address changes. If
+   * the `userId` is suspended, the license status changes.
+   *
+   * @param string $userId
    */
   public function setUserId($userId)
   {

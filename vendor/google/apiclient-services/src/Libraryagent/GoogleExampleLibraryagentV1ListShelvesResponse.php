@@ -21,6 +21,10 @@ class GoogleExampleLibraryagentV1ListShelvesResponse extends \Google\Collection
 {
   protected $collection_key = 'shelves';
   /**
+   * A token to retrieve next page of results. Pass this value in the
+   * ListShelvesRequest.page_token field in the subsequent call to `ListShelves`
+   * method to retrieve the next page of results.
+   *
    * @var string
    */
   public $nextPageToken;
@@ -28,7 +32,11 @@ class GoogleExampleLibraryagentV1ListShelvesResponse extends \Google\Collection
   protected $shelvesDataType = 'array';
 
   /**
-   * @param string
+   * A token to retrieve next page of results. Pass this value in the
+   * ListShelvesRequest.page_token field in the subsequent call to `ListShelves`
+   * method to retrieve the next page of results.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -42,7 +50,9 @@ class GoogleExampleLibraryagentV1ListShelvesResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param GoogleExampleLibraryagentV1Shelf[]
+   * The list of shelves.
+   *
+   * @param GoogleExampleLibraryagentV1Shelf[] $shelves
    */
   public function setShelves($shelves)
   {

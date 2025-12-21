@@ -20,28 +20,40 @@ namespace Google\Service\Localservices;
 class GoogleAdsHomeservicesLocalservicesV1BookingLead extends \Google\Model
 {
   /**
+   * Timestamp of when service is provided by advertiser.
+   *
    * @var string
    */
   public $bookingAppointmentTimestamp;
   /**
+   * Consumer email associated with the booking lead.
+   *
    * @var string
    */
   public $consumerEmail;
   /**
+   * Consumer phone number associated with the booking lead.
+   *
    * @var string
    */
   public $consumerPhoneNumber;
   /**
+   * Name of the customer who created the lead.
+   *
    * @var string
    */
   public $customerName;
   /**
+   * The job type of the specified lead.
+   *
    * @var string
    */
   public $jobType;
 
   /**
-   * @param string
+   * Timestamp of when service is provided by advertiser.
+   *
+   * @param string $bookingAppointmentTimestamp
    */
   public function setBookingAppointmentTimestamp($bookingAppointmentTimestamp)
   {
@@ -55,7 +67,9 @@ class GoogleAdsHomeservicesLocalservicesV1BookingLead extends \Google\Model
     return $this->bookingAppointmentTimestamp;
   }
   /**
-   * @param string
+   * Consumer email associated with the booking lead.
+   *
+   * @param string $consumerEmail
    */
   public function setConsumerEmail($consumerEmail)
   {
@@ -69,7 +83,9 @@ class GoogleAdsHomeservicesLocalservicesV1BookingLead extends \Google\Model
     return $this->consumerEmail;
   }
   /**
-   * @param string
+   * Consumer phone number associated with the booking lead.
+   *
+   * @param string $consumerPhoneNumber
    */
   public function setConsumerPhoneNumber($consumerPhoneNumber)
   {
@@ -83,7 +99,9 @@ class GoogleAdsHomeservicesLocalservicesV1BookingLead extends \Google\Model
     return $this->consumerPhoneNumber;
   }
   /**
-   * @param string
+   * Name of the customer who created the lead.
+   *
+   * @param string $customerName
    */
   public function setCustomerName($customerName)
   {
@@ -97,7 +115,9 @@ class GoogleAdsHomeservicesLocalservicesV1BookingLead extends \Google\Model
     return $this->customerName;
   }
   /**
-   * @param string
+   * The job type of the specified lead.
+   *
+   * @param string $jobType
    */
   public function setJobType($jobType)
   {

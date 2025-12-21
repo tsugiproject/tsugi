@@ -20,16 +20,22 @@ namespace Google\Service\Area120Tables;
 class LabeledItem extends \Google\Model
 {
   /**
+   * Internal id associated with the item.
+   *
    * @var string
    */
   public $id;
   /**
+   * Display string as entered by user.
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param string
+   * Internal id associated with the item.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -43,7 +49,9 @@ class LabeledItem extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * Display string as entered by user.
+   *
+   * @param string $name
    */
   public function setName($name)
   {

@@ -40,7 +40,9 @@ class GoogleCloudVideointelligenceV1VideoContext extends \Google\Collection
   protected $textDetectionConfigDataType = '';
 
   /**
-   * @param GoogleCloudVideointelligenceV1ExplicitContentDetectionConfig
+   * Config for EXPLICIT_CONTENT_DETECTION.
+   *
+   * @param GoogleCloudVideointelligenceV1ExplicitContentDetectionConfig $explicitContentDetectionConfig
    */
   public function setExplicitContentDetectionConfig(GoogleCloudVideointelligenceV1ExplicitContentDetectionConfig $explicitContentDetectionConfig)
   {
@@ -54,7 +56,9 @@ class GoogleCloudVideointelligenceV1VideoContext extends \Google\Collection
     return $this->explicitContentDetectionConfig;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1FaceDetectionConfig
+   * Config for FACE_DETECTION.
+   *
+   * @param GoogleCloudVideointelligenceV1FaceDetectionConfig $faceDetectionConfig
    */
   public function setFaceDetectionConfig(GoogleCloudVideointelligenceV1FaceDetectionConfig $faceDetectionConfig)
   {
@@ -68,7 +72,9 @@ class GoogleCloudVideointelligenceV1VideoContext extends \Google\Collection
     return $this->faceDetectionConfig;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1LabelDetectionConfig
+   * Config for LABEL_DETECTION.
+   *
+   * @param GoogleCloudVideointelligenceV1LabelDetectionConfig $labelDetectionConfig
    */
   public function setLabelDetectionConfig(GoogleCloudVideointelligenceV1LabelDetectionConfig $labelDetectionConfig)
   {
@@ -82,7 +88,9 @@ class GoogleCloudVideointelligenceV1VideoContext extends \Google\Collection
     return $this->labelDetectionConfig;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1ObjectTrackingConfig
+   * Config for OBJECT_TRACKING.
+   *
+   * @param GoogleCloudVideointelligenceV1ObjectTrackingConfig $objectTrackingConfig
    */
   public function setObjectTrackingConfig(GoogleCloudVideointelligenceV1ObjectTrackingConfig $objectTrackingConfig)
   {
@@ -96,7 +104,9 @@ class GoogleCloudVideointelligenceV1VideoContext extends \Google\Collection
     return $this->objectTrackingConfig;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1PersonDetectionConfig
+   * Config for PERSON_DETECTION.
+   *
+   * @param GoogleCloudVideointelligenceV1PersonDetectionConfig $personDetectionConfig
    */
   public function setPersonDetectionConfig(GoogleCloudVideointelligenceV1PersonDetectionConfig $personDetectionConfig)
   {
@@ -110,7 +120,11 @@ class GoogleCloudVideointelligenceV1VideoContext extends \Google\Collection
     return $this->personDetectionConfig;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1VideoSegment[]
+   * Video segments to annotate. The segments may overlap and are not required
+   * to be contiguous or span the whole video. If unspecified, each video is
+   * treated as a single segment.
+   *
+   * @param GoogleCloudVideointelligenceV1VideoSegment[] $segments
    */
   public function setSegments($segments)
   {
@@ -124,7 +138,9 @@ class GoogleCloudVideointelligenceV1VideoContext extends \Google\Collection
     return $this->segments;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1ShotChangeDetectionConfig
+   * Config for SHOT_CHANGE_DETECTION.
+   *
+   * @param GoogleCloudVideointelligenceV1ShotChangeDetectionConfig $shotChangeDetectionConfig
    */
   public function setShotChangeDetectionConfig(GoogleCloudVideointelligenceV1ShotChangeDetectionConfig $shotChangeDetectionConfig)
   {
@@ -138,7 +154,9 @@ class GoogleCloudVideointelligenceV1VideoContext extends \Google\Collection
     return $this->shotChangeDetectionConfig;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1SpeechTranscriptionConfig
+   * Config for SPEECH_TRANSCRIPTION.
+   *
+   * @param GoogleCloudVideointelligenceV1SpeechTranscriptionConfig $speechTranscriptionConfig
    */
   public function setSpeechTranscriptionConfig(GoogleCloudVideointelligenceV1SpeechTranscriptionConfig $speechTranscriptionConfig)
   {
@@ -152,7 +170,9 @@ class GoogleCloudVideointelligenceV1VideoContext extends \Google\Collection
     return $this->speechTranscriptionConfig;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1TextDetectionConfig
+   * Config for TEXT_DETECTION.
+   *
+   * @param GoogleCloudVideointelligenceV1TextDetectionConfig $textDetectionConfig
    */
   public function setTextDetectionConfig(GoogleCloudVideointelligenceV1TextDetectionConfig $textDetectionConfig)
   {

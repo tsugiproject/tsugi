@@ -20,30 +20,64 @@ namespace Google\Service\Slides;
 class UpdateLineCategoryRequest extends \Google\Model
 {
   /**
+   * Unspecified line category.
+   */
+  public const LINE_CATEGORY_LINE_CATEGORY_UNSPECIFIED = 'LINE_CATEGORY_UNSPECIFIED';
+  /**
+   * Straight connectors, including straight connector 1.
+   */
+  public const LINE_CATEGORY_STRAIGHT = 'STRAIGHT';
+  /**
+   * Bent connectors, including bent connector 2 to 5.
+   */
+  public const LINE_CATEGORY_BENT = 'BENT';
+  /**
+   * Curved connectors, including curved connector 2 to 5.
+   */
+  public const LINE_CATEGORY_CURVED = 'CURVED';
+  /**
+   * The line category to update to. The exact line type is determined based on
+   * the category to update to and how it's routed to connect to other page
+   * elements.
+   *
    * @var string
    */
   public $lineCategory;
   /**
+   * The object ID of the line the update is applied to. Only a line with a
+   * category indicating it is a "connector" can be updated. The line may be
+   * rerouted after updating its category.
+   *
    * @var string
    */
   public $objectId;
 
   /**
-   * @param string
+   * The line category to update to. The exact line type is determined based on
+   * the category to update to and how it's routed to connect to other page
+   * elements.
+   *
+   * Accepted values: LINE_CATEGORY_UNSPECIFIED, STRAIGHT, BENT, CURVED
+   *
+   * @param self::LINE_CATEGORY_* $lineCategory
    */
   public function setLineCategory($lineCategory)
   {
     $this->lineCategory = $lineCategory;
   }
   /**
-   * @return string
+   * @return self::LINE_CATEGORY_*
    */
   public function getLineCategory()
   {
     return $this->lineCategory;
   }
   /**
-   * @param string
+   * The object ID of the line the update is applied to. Only a line with a
+   * category indicating it is a "connector" can be updated. The line may be
+   * rerouted after updating its category.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {

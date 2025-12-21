@@ -20,12 +20,16 @@ namespace Google\Service\Slides;
 class RefreshSheetsChartRequest extends \Google\Model
 {
   /**
+   * The object ID of the chart to refresh.
+   *
    * @var string
    */
   public $objectId;
 
   /**
-   * @param string
+   * The object ID of the chart to refresh.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {

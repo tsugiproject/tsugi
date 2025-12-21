@@ -25,7 +25,10 @@ class TestRulesetRequest extends \Google\Model
   protected $testSuiteDataType = '';
 
   /**
-   * @param Source
+   * Optional. Optional `Source` to be checked for correctness. This field must
+   * not be set when the resource name refers to a `Ruleset`.
+   *
+   * @param Source $source
    */
   public function setSource(Source $source)
   {
@@ -39,7 +42,11 @@ class TestRulesetRequest extends \Google\Model
     return $this->source;
   }
   /**
-   * @param TestSuite
+   * Required. The tests to execute against the `Source`. When `Source` is
+   * provided inline, the test cases will only be run if the `Source` is
+   * syntactically and semantically valid. Inline `TestSuite` to run.
+   *
+   * @param TestSuite $testSuite
    */
   public function setTestSuite(TestSuite $testSuite)
   {

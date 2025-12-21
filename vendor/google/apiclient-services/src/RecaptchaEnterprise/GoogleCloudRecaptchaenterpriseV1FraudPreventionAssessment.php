@@ -17,21 +17,30 @@
 
 namespace Google\Service\RecaptchaEnterprise;
 
-class GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment extends \Google\Model
+class GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment extends \Google\Collection
 {
+  protected $collection_key = 'riskReasons';
   protected $behavioralTrustVerdictType = GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict::class;
   protected $behavioralTrustVerdictDataType = '';
   protected $cardTestingVerdictType = GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict::class;
   protected $cardTestingVerdictDataType = '';
+  protected $riskReasonsType = GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason::class;
+  protected $riskReasonsDataType = 'array';
   protected $stolenInstrumentVerdictType = GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict::class;
   protected $stolenInstrumentVerdictDataType = '';
   /**
+   * Output only. Probability of this transaction being fraudulent. Summarizes
+   * the combined risk of attack vectors below. Values are from 0.0 (lowest) to
+   * 1.0 (highest).
+   *
    * @var float
    */
   public $transactionRisk;
 
   /**
-   * @param GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict
+   * Output only. Assessment of this transaction for behavioral trust.
+   *
+   * @param GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict $behavioralTrustVerdict
    */
   public function setBehavioralTrustVerdict(GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict $behavioralTrustVerdict)
   {
@@ -45,7 +54,10 @@ class GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment extends \Google\
     return $this->behavioralTrustVerdict;
   }
   /**
-   * @param GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict
+   * Output only. Assessment of this transaction for risk of being part of a
+   * card testing attack.
+   *
+   * @param GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict $cardTestingVerdict
    */
   public function setCardTestingVerdict(GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict $cardTestingVerdict)
   {
@@ -59,7 +71,27 @@ class GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment extends \Google\
     return $this->cardTestingVerdict;
   }
   /**
-   * @param GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict
+   * Output only. Reasons why the transaction is probably fraudulent and
+   * received a high transaction risk score.
+   *
+   * @param GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason[] $riskReasons
+   */
+  public function setRiskReasons($riskReasons)
+  {
+    $this->riskReasons = $riskReasons;
+  }
+  /**
+   * @return GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason[]
+   */
+  public function getRiskReasons()
+  {
+    return $this->riskReasons;
+  }
+  /**
+   * Output only. Assessment of this transaction for risk of a stolen
+   * instrument.
+   *
+   * @param GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict $stolenInstrumentVerdict
    */
   public function setStolenInstrumentVerdict(GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict $stolenInstrumentVerdict)
   {
@@ -73,7 +105,11 @@ class GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment extends \Google\
     return $this->stolenInstrumentVerdict;
   }
   /**
-   * @param float
+   * Output only. Probability of this transaction being fraudulent. Summarizes
+   * the combined risk of attack vectors below. Values are from 0.0 (lowest) to
+   * 1.0 (highest).
+   *
+   * @param float $transactionRisk
    */
   public function setTransactionRisk($transactionRisk)
   {

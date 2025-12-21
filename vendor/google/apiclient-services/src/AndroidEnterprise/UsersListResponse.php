@@ -24,7 +24,9 @@ class UsersListResponse extends \Google\Collection
   protected $userDataType = 'array';
 
   /**
-   * @param User[]
+   * A user of an enterprise.
+   *
+   * @param User[] $user
    */
   public function setUser($user)
   {

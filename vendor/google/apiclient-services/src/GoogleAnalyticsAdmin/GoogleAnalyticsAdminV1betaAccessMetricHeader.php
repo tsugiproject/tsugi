@@ -20,12 +20,16 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaAccessMetricHeader extends \Google\Model
 {
   /**
+   * The metric's name; for example 'accessCount'.
+   *
    * @var string
    */
   public $metricName;
 
   /**
-   * @param string
+   * The metric's name; for example 'accessCount'.
+   *
+   * @param string $metricName
    */
   public function setMetricName($metricName)
   {

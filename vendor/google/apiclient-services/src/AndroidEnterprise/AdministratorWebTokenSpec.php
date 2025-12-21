@@ -23,10 +23,16 @@ class AdministratorWebTokenSpec extends \Google\Collection
   protected $managedConfigurationsType = AdministratorWebTokenSpecManagedConfigurations::class;
   protected $managedConfigurationsDataType = '';
   /**
+   * The URI of the parent frame hosting the iframe. To prevent XSS, the iframe
+   * may not be hosted at other URIs. This URI must be https. Use whitespaces to
+   * separate multiple parent URIs.
+   *
    * @var string
    */
   public $parent;
   /**
+   * Deprecated. Use PlaySearch.approveApps.
+   *
    * @var string[]
    */
   public $permission;
@@ -42,7 +48,9 @@ class AdministratorWebTokenSpec extends \Google\Collection
   protected $zeroTouchDataType = '';
 
   /**
-   * @param AdministratorWebTokenSpecManagedConfigurations
+   * Options for displaying the Managed Configuration page.
+   *
+   * @param AdministratorWebTokenSpecManagedConfigurations $managedConfigurations
    */
   public function setManagedConfigurations(AdministratorWebTokenSpecManagedConfigurations $managedConfigurations)
   {
@@ -56,7 +64,11 @@ class AdministratorWebTokenSpec extends \Google\Collection
     return $this->managedConfigurations;
   }
   /**
-   * @param string
+   * The URI of the parent frame hosting the iframe. To prevent XSS, the iframe
+   * may not be hosted at other URIs. This URI must be https. Use whitespaces to
+   * separate multiple parent URIs.
+   *
+   * @param string $parent
    */
   public function setParent($parent)
   {
@@ -70,7 +82,9 @@ class AdministratorWebTokenSpec extends \Google\Collection
     return $this->parent;
   }
   /**
-   * @param string[]
+   * Deprecated. Use PlaySearch.approveApps.
+   *
+   * @param string[] $permission
    */
   public function setPermission($permission)
   {
@@ -84,7 +98,9 @@ class AdministratorWebTokenSpec extends \Google\Collection
     return $this->permission;
   }
   /**
-   * @param AdministratorWebTokenSpecPlaySearch
+   * Options for displaying the managed Play Search apps page.
+   *
+   * @param AdministratorWebTokenSpecPlaySearch $playSearch
    */
   public function setPlaySearch(AdministratorWebTokenSpecPlaySearch $playSearch)
   {
@@ -98,7 +114,9 @@ class AdministratorWebTokenSpec extends \Google\Collection
     return $this->playSearch;
   }
   /**
-   * @param AdministratorWebTokenSpecPrivateApps
+   * Options for displaying the Private Apps page.
+   *
+   * @param AdministratorWebTokenSpecPrivateApps $privateApps
    */
   public function setPrivateApps(AdministratorWebTokenSpecPrivateApps $privateApps)
   {
@@ -112,7 +130,9 @@ class AdministratorWebTokenSpec extends \Google\Collection
     return $this->privateApps;
   }
   /**
-   * @param AdministratorWebTokenSpecStoreBuilder
+   * Options for displaying the Organize apps page.
+   *
+   * @param AdministratorWebTokenSpecStoreBuilder $storeBuilder
    */
   public function setStoreBuilder(AdministratorWebTokenSpecStoreBuilder $storeBuilder)
   {
@@ -126,7 +146,9 @@ class AdministratorWebTokenSpec extends \Google\Collection
     return $this->storeBuilder;
   }
   /**
-   * @param AdministratorWebTokenSpecWebApps
+   * Options for displaying the Web Apps page.
+   *
+   * @param AdministratorWebTokenSpecWebApps $webApps
    */
   public function setWebApps(AdministratorWebTokenSpecWebApps $webApps)
   {
@@ -140,7 +162,9 @@ class AdministratorWebTokenSpec extends \Google\Collection
     return $this->webApps;
   }
   /**
-   * @param AdministratorWebTokenSpecZeroTouch
+   * Options for displaying the Zero Touch page.
+   *
+   * @param AdministratorWebTokenSpecZeroTouch $zeroTouch
    */
   public function setZeroTouch(AdministratorWebTokenSpecZeroTouch $zeroTouch)
   {

@@ -22,18 +22,33 @@ class GroupItem extends \Google\Model
   protected $errorsType = Errors::class;
   protected $errorsDataType = '';
   /**
+   * The Etag of this resource.
+   *
    * @var string
    */
   public $etag;
   /**
+   * The ID that YouTube uses to uniquely identify the group that contains the
+   * item.
+   *
    * @var string
    */
   public $groupId;
   /**
+   * The ID that YouTube uses to uniquely identify the `channel`, `video`,
+   * `playlist`, or `asset` resource that is included in the group. Note that
+   * this ID refers specifically to the inclusion of that resource in a
+   * particular group and is different than the channel ID, video ID, playlist
+   * ID, or asset ID that uniquely identifies the resource itself. The
+   * `resource.id` property's value specifies the unique channel, video,
+   * playlist, or asset ID.
+   *
    * @var string
    */
   public $id;
   /**
+   * Identifies the API resource's type. The value will be `youtube#groupItem`.
+   *
    * @var string
    */
   public $kind;
@@ -41,7 +56,9 @@ class GroupItem extends \Google\Model
   protected $resourceDataType = '';
 
   /**
-   * @param Errors
+   * Apiary error details
+   *
+   * @param Errors $errors
    */
   public function setErrors(Errors $errors)
   {
@@ -55,7 +72,9 @@ class GroupItem extends \Google\Model
     return $this->errors;
   }
   /**
-   * @param string
+   * The Etag of this resource.
+   *
+   * @param string $etag
    */
   public function setEtag($etag)
   {
@@ -69,7 +88,10 @@ class GroupItem extends \Google\Model
     return $this->etag;
   }
   /**
-   * @param string
+   * The ID that YouTube uses to uniquely identify the group that contains the
+   * item.
+   *
+   * @param string $groupId
    */
   public function setGroupId($groupId)
   {
@@ -83,7 +105,15 @@ class GroupItem extends \Google\Model
     return $this->groupId;
   }
   /**
-   * @param string
+   * The ID that YouTube uses to uniquely identify the `channel`, `video`,
+   * `playlist`, or `asset` resource that is included in the group. Note that
+   * this ID refers specifically to the inclusion of that resource in a
+   * particular group and is different than the channel ID, video ID, playlist
+   * ID, or asset ID that uniquely identifies the resource itself. The
+   * `resource.id` property's value specifies the unique channel, video,
+   * playlist, or asset ID.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -97,7 +127,9 @@ class GroupItem extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * Identifies the API resource's type. The value will be `youtube#groupItem`.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -111,7 +143,10 @@ class GroupItem extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param GroupItemResource
+   * The `resource` object contains information that identifies the item being
+   * added to the group.
+   *
+   * @param GroupItemResource $resource
    */
   public function setResource(GroupItemResource $resource)
   {

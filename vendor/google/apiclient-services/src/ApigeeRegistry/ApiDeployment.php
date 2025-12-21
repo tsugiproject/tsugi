@@ -20,64 +20,116 @@ namespace Google\Service\ApigeeRegistry;
 class ApiDeployment extends \Google\Model
 {
   /**
+   * Text briefly describing how to access the endpoint. Changes to this value
+   * will not affect the revision.
+   *
    * @var string
    */
   public $accessGuidance;
   /**
+   * Annotations attach non-identifying metadata to resources. Annotation keys
+   * and values are less restricted than those of labels, but should be
+   * generally used for small values of broad interest. Larger, topic- specific
+   * metadata should be stored in Artifacts.
+   *
    * @var string[]
    */
   public $annotations;
   /**
+   * The full resource name (including revision ID) of the spec of the API being
+   * served by the deployment. Changes to this value will update the revision.
+   * Format: `projects/{project}/locations/{location}/apis/{api}/versions/{versi
+   * on}/specs/{spec@revision}`
+   *
    * @var string
    */
   public $apiSpecRevision;
   /**
+   * Output only. Creation timestamp; when the deployment resource was created.
+   *
    * @var string
    */
   public $createTime;
   /**
+   * A detailed description.
+   *
    * @var string
    */
   public $description;
   /**
+   * Human-meaningful name.
+   *
    * @var string
    */
   public $displayName;
   /**
+   * The address where the deployment is serving. Changes to this value will
+   * update the revision.
+   *
    * @var string
    */
   public $endpointUri;
   /**
+   * The address of the external channel of the API (e.g., the Developer
+   * Portal). Changes to this value will not affect the revision.
+   *
    * @var string
    */
   public $externalChannelUri;
   /**
+   * Text briefly identifying the intended audience of the API. Changes to this
+   * value will not affect the revision.
+   *
    * @var string
    */
   public $intendedAudience;
   /**
+   * Labels attach identifying metadata to resources. Identifying metadata can
+   * be used to filter list operations. Label keys and values can be no longer
+   * than 64 characters (Unicode codepoints), can only contain lowercase
+   * letters, numeric characters, underscores and dashes. International
+   * characters are allowed. No more than 64 user labels can be associated with
+   * one resource (System labels are excluded). See https://goo.gl/xmQnxf for
+   * more information and examples of labels. System reserved label keys are
+   * prefixed with `apigeeregistry.googleapis.com/` and cannot be changed.
+   *
    * @var string[]
    */
   public $labels;
   /**
+   * Resource name.
+   *
    * @var string
    */
   public $name;
   /**
+   * Output only. Revision creation timestamp; when the represented revision was
+   * created.
+   *
    * @var string
    */
   public $revisionCreateTime;
   /**
+   * Output only. Immutable. The revision ID of the deployment. A new revision
+   * is committed whenever the deployment contents are changed. The format is an
+   * 8-character hexadecimal string.
+   *
    * @var string
    */
   public $revisionId;
   /**
+   * Output only. Last update timestamp: when the represented revision was last
+   * modified.
+   *
    * @var string
    */
   public $revisionUpdateTime;
 
   /**
-   * @param string
+   * Text briefly describing how to access the endpoint. Changes to this value
+   * will not affect the revision.
+   *
+   * @param string $accessGuidance
    */
   public function setAccessGuidance($accessGuidance)
   {
@@ -91,7 +143,12 @@ class ApiDeployment extends \Google\Model
     return $this->accessGuidance;
   }
   /**
-   * @param string[]
+   * Annotations attach non-identifying metadata to resources. Annotation keys
+   * and values are less restricted than those of labels, but should be
+   * generally used for small values of broad interest. Larger, topic- specific
+   * metadata should be stored in Artifacts.
+   *
+   * @param string[] $annotations
    */
   public function setAnnotations($annotations)
   {
@@ -105,7 +162,12 @@ class ApiDeployment extends \Google\Model
     return $this->annotations;
   }
   /**
-   * @param string
+   * The full resource name (including revision ID) of the spec of the API being
+   * served by the deployment. Changes to this value will update the revision.
+   * Format: `projects/{project}/locations/{location}/apis/{api}/versions/{versi
+   * on}/specs/{spec@revision}`
+   *
+   * @param string $apiSpecRevision
    */
   public function setApiSpecRevision($apiSpecRevision)
   {
@@ -119,7 +181,9 @@ class ApiDeployment extends \Google\Model
     return $this->apiSpecRevision;
   }
   /**
-   * @param string
+   * Output only. Creation timestamp; when the deployment resource was created.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -133,7 +197,9 @@ class ApiDeployment extends \Google\Model
     return $this->createTime;
   }
   /**
-   * @param string
+   * A detailed description.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -147,7 +213,9 @@ class ApiDeployment extends \Google\Model
     return $this->description;
   }
   /**
-   * @param string
+   * Human-meaningful name.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -161,7 +229,10 @@ class ApiDeployment extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param string
+   * The address where the deployment is serving. Changes to this value will
+   * update the revision.
+   *
+   * @param string $endpointUri
    */
   public function setEndpointUri($endpointUri)
   {
@@ -175,7 +246,10 @@ class ApiDeployment extends \Google\Model
     return $this->endpointUri;
   }
   /**
-   * @param string
+   * The address of the external channel of the API (e.g., the Developer
+   * Portal). Changes to this value will not affect the revision.
+   *
+   * @param string $externalChannelUri
    */
   public function setExternalChannelUri($externalChannelUri)
   {
@@ -189,7 +263,10 @@ class ApiDeployment extends \Google\Model
     return $this->externalChannelUri;
   }
   /**
-   * @param string
+   * Text briefly identifying the intended audience of the API. Changes to this
+   * value will not affect the revision.
+   *
+   * @param string $intendedAudience
    */
   public function setIntendedAudience($intendedAudience)
   {
@@ -203,7 +280,16 @@ class ApiDeployment extends \Google\Model
     return $this->intendedAudience;
   }
   /**
-   * @param string[]
+   * Labels attach identifying metadata to resources. Identifying metadata can
+   * be used to filter list operations. Label keys and values can be no longer
+   * than 64 characters (Unicode codepoints), can only contain lowercase
+   * letters, numeric characters, underscores and dashes. International
+   * characters are allowed. No more than 64 user labels can be associated with
+   * one resource (System labels are excluded). See https://goo.gl/xmQnxf for
+   * more information and examples of labels. System reserved label keys are
+   * prefixed with `apigeeregistry.googleapis.com/` and cannot be changed.
+   *
+   * @param string[] $labels
    */
   public function setLabels($labels)
   {
@@ -217,7 +303,9 @@ class ApiDeployment extends \Google\Model
     return $this->labels;
   }
   /**
-   * @param string
+   * Resource name.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -231,7 +319,10 @@ class ApiDeployment extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Output only. Revision creation timestamp; when the represented revision was
+   * created.
+   *
+   * @param string $revisionCreateTime
    */
   public function setRevisionCreateTime($revisionCreateTime)
   {
@@ -245,7 +336,11 @@ class ApiDeployment extends \Google\Model
     return $this->revisionCreateTime;
   }
   /**
-   * @param string
+   * Output only. Immutable. The revision ID of the deployment. A new revision
+   * is committed whenever the deployment contents are changed. The format is an
+   * 8-character hexadecimal string.
+   *
+   * @param string $revisionId
    */
   public function setRevisionId($revisionId)
   {
@@ -259,7 +354,10 @@ class ApiDeployment extends \Google\Model
     return $this->revisionId;
   }
   /**
-   * @param string
+   * Output only. Last update timestamp: when the represented revision was last
+   * modified.
+   *
+   * @param string $revisionUpdateTime
    */
   public function setRevisionUpdateTime($revisionUpdateTime)
   {

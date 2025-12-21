@@ -20,14 +20,22 @@ namespace Google\Service\Slides;
 class SlideProperties extends \Google\Model
 {
   /**
+   * Whether the slide is skipped in the presentation mode. Defaults to false.
+   *
    * @var bool
    */
   public $isSkipped;
   /**
+   * The object ID of the layout that this slide is based on. This property is
+   * read-only.
+   *
    * @var string
    */
   public $layoutObjectId;
   /**
+   * The object ID of the master that this slide is based on. This property is
+   * read-only.
+   *
    * @var string
    */
   public $masterObjectId;
@@ -35,7 +43,9 @@ class SlideProperties extends \Google\Model
   protected $notesPageDataType = '';
 
   /**
-   * @param bool
+   * Whether the slide is skipped in the presentation mode. Defaults to false.
+   *
+   * @param bool $isSkipped
    */
   public function setIsSkipped($isSkipped)
   {
@@ -49,7 +59,10 @@ class SlideProperties extends \Google\Model
     return $this->isSkipped;
   }
   /**
-   * @param string
+   * The object ID of the layout that this slide is based on. This property is
+   * read-only.
+   *
+   * @param string $layoutObjectId
    */
   public function setLayoutObjectId($layoutObjectId)
   {
@@ -63,7 +76,10 @@ class SlideProperties extends \Google\Model
     return $this->layoutObjectId;
   }
   /**
-   * @param string
+   * The object ID of the master that this slide is based on. This property is
+   * read-only.
+   *
+   * @param string $masterObjectId
    */
   public function setMasterObjectId($masterObjectId)
   {
@@ -77,7 +93,15 @@ class SlideProperties extends \Google\Model
     return $this->masterObjectId;
   }
   /**
-   * @param Page
+   * The notes page that this slide is associated with. It defines the visual
+   * appearance of a notes page when printing or exporting slides with speaker
+   * notes. A notes page inherits properties from the notes master. The
+   * placeholder shape with type BODY on the notes page contains the speaker
+   * notes for this slide. The ID of this shape is identified by the
+   * speakerNotesObjectId field. The notes page is read-only except for the text
+   * content and styles of the speaker notes shape. This property is read-only.
+   *
+   * @param Page $notesPage
    */
   public function setNotesPage(Page $notesPage)
   {

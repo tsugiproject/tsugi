@@ -19,18 +19,46 @@ namespace Google\Service\Advisorynotifications;
 
 class GoogleCloudAdvisorynotificationsV1Notification extends \Google\Collection
 {
+  /**
+   * Default type
+   */
+  public const NOTIFICATION_TYPE_NOTIFICATION_TYPE_UNSPECIFIED = 'NOTIFICATION_TYPE_UNSPECIFIED';
+  /**
+   * Security and privacy advisory notifications
+   */
+  public const NOTIFICATION_TYPE_NOTIFICATION_TYPE_SECURITY_PRIVACY_ADVISORY = 'NOTIFICATION_TYPE_SECURITY_PRIVACY_ADVISORY';
+  /**
+   * Sensitive action notifications
+   */
+  public const NOTIFICATION_TYPE_NOTIFICATION_TYPE_SENSITIVE_ACTIONS = 'NOTIFICATION_TYPE_SENSITIVE_ACTIONS';
+  /**
+   * General security MSA
+   */
+  public const NOTIFICATION_TYPE_NOTIFICATION_TYPE_SECURITY_MSA = 'NOTIFICATION_TYPE_SECURITY_MSA';
+  /**
+   * Threat horizons MSA
+   */
+  public const NOTIFICATION_TYPE_NOTIFICATION_TYPE_THREAT_HORIZONS = 'NOTIFICATION_TYPE_THREAT_HORIZONS';
   protected $collection_key = 'messages';
   /**
+   * Output only. Time the notification was created.
+   *
    * @var string
    */
   public $createTime;
   protected $messagesType = GoogleCloudAdvisorynotificationsV1Message::class;
   protected $messagesDataType = 'array';
   /**
+   * The resource name of the notification. Format: organizations/{organization}
+   * /locations/{location}/notifications/{notification} or
+   * projects/{project}/locations/{location}/notifications/{notification}.
+   *
    * @var string
    */
   public $name;
   /**
+   * Type of notification
+   *
    * @var string
    */
   public $notificationType;
@@ -38,7 +66,9 @@ class GoogleCloudAdvisorynotificationsV1Notification extends \Google\Collection
   protected $subjectDataType = '';
 
   /**
-   * @param string
+   * Output only. Time the notification was created.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -52,7 +82,9 @@ class GoogleCloudAdvisorynotificationsV1Notification extends \Google\Collection
     return $this->createTime;
   }
   /**
-   * @param GoogleCloudAdvisorynotificationsV1Message[]
+   * A list of messages in the notification.
+   *
+   * @param GoogleCloudAdvisorynotificationsV1Message[] $messages
    */
   public function setMessages($messages)
   {
@@ -66,7 +98,11 @@ class GoogleCloudAdvisorynotificationsV1Notification extends \Google\Collection
     return $this->messages;
   }
   /**
-   * @param string
+   * The resource name of the notification. Format: organizations/{organization}
+   * /locations/{location}/notifications/{notification} or
+   * projects/{project}/locations/{location}/notifications/{notification}.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -80,21 +116,30 @@ class GoogleCloudAdvisorynotificationsV1Notification extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param string
+   * Type of notification
+   *
+   * Accepted values: NOTIFICATION_TYPE_UNSPECIFIED,
+   * NOTIFICATION_TYPE_SECURITY_PRIVACY_ADVISORY,
+   * NOTIFICATION_TYPE_SENSITIVE_ACTIONS, NOTIFICATION_TYPE_SECURITY_MSA,
+   * NOTIFICATION_TYPE_THREAT_HORIZONS
+   *
+   * @param self::NOTIFICATION_TYPE_* $notificationType
    */
   public function setNotificationType($notificationType)
   {
     $this->notificationType = $notificationType;
   }
   /**
-   * @return string
+   * @return self::NOTIFICATION_TYPE_*
    */
   public function getNotificationType()
   {
     return $this->notificationType;
   }
   /**
-   * @param GoogleCloudAdvisorynotificationsV1Subject
+   * The subject line of the notification.
+   *
+   * @param GoogleCloudAdvisorynotificationsV1Subject $subject
    */
   public function setSubject(GoogleCloudAdvisorynotificationsV1Subject $subject)
   {

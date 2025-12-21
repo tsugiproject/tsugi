@@ -19,56 +19,105 @@ namespace Google\Service\AndroidEnterprise;
 
 class AutoInstallConstraint extends \Google\Model
 {
+  public const CHARGING_STATE_CONSTRAINT_chargingStateConstraintUnspecified = 'chargingStateConstraintUnspecified';
   /**
+   * Device doesn't have to be charging.
+   */
+  public const CHARGING_STATE_CONSTRAINT_chargingNotRequired = 'chargingNotRequired';
+  /**
+   * Device has to be charging.
+   */
+  public const CHARGING_STATE_CONSTRAINT_chargingRequired = 'chargingRequired';
+  public const DEVICE_IDLE_STATE_CONSTRAINT_deviceIdleStateConstraintUnspecified = 'deviceIdleStateConstraintUnspecified';
+  /**
+   * Device doesn't have to be idle, app can be installed while the user is
+   * interacting with the device.
+   */
+  public const DEVICE_IDLE_STATE_CONSTRAINT_deviceIdleNotRequired = 'deviceIdleNotRequired';
+  /**
+   * Device has to be idle.
+   */
+  public const DEVICE_IDLE_STATE_CONSTRAINT_deviceIdleRequired = 'deviceIdleRequired';
+  public const NETWORK_TYPE_CONSTRAINT_networkTypeConstraintUnspecified = 'networkTypeConstraintUnspecified';
+  /**
+   * Any active networks (Wi-Fi, cellular, etc.).
+   */
+  public const NETWORK_TYPE_CONSTRAINT_anyNetwork = 'anyNetwork';
+  /**
+   * Any unmetered network (e.g. Wi-FI).
+   */
+  public const NETWORK_TYPE_CONSTRAINT_unmeteredNetwork = 'unmeteredNetwork';
+  /**
+   * Charging state constraint.
+   *
    * @var string
    */
   public $chargingStateConstraint;
   /**
+   * Device idle state constraint.
+   *
    * @var string
    */
   public $deviceIdleStateConstraint;
   /**
+   * Network type constraint.
+   *
    * @var string
    */
   public $networkTypeConstraint;
 
   /**
-   * @param string
+   * Charging state constraint.
+   *
+   * Accepted values: chargingStateConstraintUnspecified, chargingNotRequired,
+   * chargingRequired
+   *
+   * @param self::CHARGING_STATE_CONSTRAINT_* $chargingStateConstraint
    */
   public function setChargingStateConstraint($chargingStateConstraint)
   {
     $this->chargingStateConstraint = $chargingStateConstraint;
   }
   /**
-   * @return string
+   * @return self::CHARGING_STATE_CONSTRAINT_*
    */
   public function getChargingStateConstraint()
   {
     return $this->chargingStateConstraint;
   }
   /**
-   * @param string
+   * Device idle state constraint.
+   *
+   * Accepted values: deviceIdleStateConstraintUnspecified,
+   * deviceIdleNotRequired, deviceIdleRequired
+   *
+   * @param self::DEVICE_IDLE_STATE_CONSTRAINT_* $deviceIdleStateConstraint
    */
   public function setDeviceIdleStateConstraint($deviceIdleStateConstraint)
   {
     $this->deviceIdleStateConstraint = $deviceIdleStateConstraint;
   }
   /**
-   * @return string
+   * @return self::DEVICE_IDLE_STATE_CONSTRAINT_*
    */
   public function getDeviceIdleStateConstraint()
   {
     return $this->deviceIdleStateConstraint;
   }
   /**
-   * @param string
+   * Network type constraint.
+   *
+   * Accepted values: networkTypeConstraintUnspecified, anyNetwork,
+   * unmeteredNetwork
+   *
+   * @param self::NETWORK_TYPE_CONSTRAINT_* $networkTypeConstraint
    */
   public function setNetworkTypeConstraint($networkTypeConstraint)
   {
     $this->networkTypeConstraint = $networkTypeConstraint;
   }
   /**
-   * @return string
+   * @return self::NETWORK_TYPE_CONSTRAINT_*
    */
   public function getNetworkTypeConstraint()
   {

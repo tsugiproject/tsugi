@@ -21,16 +21,22 @@ class ResellernotifyGetwatchdetailsResponse extends \Google\Collection
 {
   protected $collection_key = 'serviceAccountEmailAddresses';
   /**
+   * List of registered service accounts.
+   *
    * @var string[]
    */
   public $serviceAccountEmailAddresses;
   /**
+   * Topic name of the PubSub
+   *
    * @var string
    */
   public $topicName;
 
   /**
-   * @param string[]
+   * List of registered service accounts.
+   *
+   * @param string[] $serviceAccountEmailAddresses
    */
   public function setServiceAccountEmailAddresses($serviceAccountEmailAddresses)
   {
@@ -44,7 +50,9 @@ class ResellernotifyGetwatchdetailsResponse extends \Google\Collection
     return $this->serviceAccountEmailAddresses;
   }
   /**
-   * @param string
+   * Topic name of the PubSub
+   *
+   * @param string $topicName
    */
   public function setTopicName($topicName)
   {

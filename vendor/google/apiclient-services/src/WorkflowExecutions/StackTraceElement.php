@@ -22,16 +22,22 @@ class StackTraceElement extends \Google\Model
   protected $positionType = Position::class;
   protected $positionDataType = '';
   /**
+   * The routine where the error occurred.
+   *
    * @var string
    */
   public $routine;
   /**
+   * The step the error occurred at.
+   *
    * @var string
    */
   public $step;
 
   /**
-   * @param Position
+   * The source position information of the stack trace element.
+   *
+   * @param Position $position
    */
   public function setPosition(Position $position)
   {
@@ -45,7 +51,9 @@ class StackTraceElement extends \Google\Model
     return $this->position;
   }
   /**
-   * @param string
+   * The routine where the error occurred.
+   *
+   * @param string $routine
    */
   public function setRoutine($routine)
   {
@@ -59,7 +67,9 @@ class StackTraceElement extends \Google\Model
     return $this->routine;
   }
   /**
-   * @param string
+   * The step the error occurred at.
+   *
+   * @param string $step
    */
   public function setStep($step)
   {

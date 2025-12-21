@@ -20,10 +20,14 @@ namespace Google\Service\CloudTrace;
 class AttributeValue extends \Google\Model
 {
   /**
+   * A Boolean value represented by `true` or `false`.
+   *
    * @var bool
    */
   public $boolValue;
   /**
+   * A 64-bit signed integer.
+   *
    * @var string
    */
   public $intValue;
@@ -31,7 +35,9 @@ class AttributeValue extends \Google\Model
   protected $stringValueDataType = '';
 
   /**
-   * @param bool
+   * A Boolean value represented by `true` or `false`.
+   *
+   * @param bool $boolValue
    */
   public function setBoolValue($boolValue)
   {
@@ -45,7 +51,9 @@ class AttributeValue extends \Google\Model
     return $this->boolValue;
   }
   /**
-   * @param string
+   * A 64-bit signed integer.
+   *
+   * @param string $intValue
    */
   public function setIntValue($intValue)
   {
@@ -59,7 +67,9 @@ class AttributeValue extends \Google\Model
     return $this->intValue;
   }
   /**
-   * @param TruncatableString
+   * A string up to 256 bytes long.
+   *
+   * @param TruncatableString $stringValue
    */
   public function setStringValue(TruncatableString $stringValue)
   {

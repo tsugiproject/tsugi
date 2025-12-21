@@ -31,7 +31,9 @@ class GoogleAnalyticsAdminV1betaAccessQuota extends \Google\Model
   protected $tokensPerProjectPerHourDataType = '';
 
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessQuotaStatus
+   * Properties can use up to 50 concurrent requests.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessQuotaStatus $concurrentRequests
    */
   public function setConcurrentRequests(GoogleAnalyticsAdminV1betaAccessQuotaStatus $concurrentRequests)
   {
@@ -45,7 +47,10 @@ class GoogleAnalyticsAdminV1betaAccessQuota extends \Google\Model
     return $this->concurrentRequests;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessQuotaStatus
+   * Properties and cloud project pairs can have up to 50 server errors per
+   * hour.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessQuotaStatus $serverErrorsPerProjectPerHour
    */
   public function setServerErrorsPerProjectPerHour(GoogleAnalyticsAdminV1betaAccessQuotaStatus $serverErrorsPerProjectPerHour)
   {
@@ -59,7 +64,10 @@ class GoogleAnalyticsAdminV1betaAccessQuota extends \Google\Model
     return $this->serverErrorsPerProjectPerHour;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessQuotaStatus
+   * Properties can use 250,000 tokens per day. Most requests consume fewer than
+   * 10 tokens.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessQuotaStatus $tokensPerDay
    */
   public function setTokensPerDay(GoogleAnalyticsAdminV1betaAccessQuotaStatus $tokensPerDay)
   {
@@ -73,7 +81,11 @@ class GoogleAnalyticsAdminV1betaAccessQuota extends \Google\Model
     return $this->tokensPerDay;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessQuotaStatus
+   * Properties can use 50,000 tokens per hour. An API request consumes a single
+   * number of tokens, and that number is deducted from all of the hourly,
+   * daily, and per project hourly quotas.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessQuotaStatus $tokensPerHour
    */
   public function setTokensPerHour(GoogleAnalyticsAdminV1betaAccessQuotaStatus $tokensPerHour)
   {
@@ -87,7 +99,12 @@ class GoogleAnalyticsAdminV1betaAccessQuota extends \Google\Model
     return $this->tokensPerHour;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessQuotaStatus
+   * Properties can use up to 25% of their tokens per project per hour. This
+   * amounts to Analytics 360 Properties can use 12,500 tokens per project per
+   * hour. An API request consumes a single number of tokens, and that number is
+   * deducted from all of the hourly, daily, and per project hourly quotas.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessQuotaStatus $tokensPerProjectPerHour
    */
   public function setTokensPerProjectPerHour(GoogleAnalyticsAdminV1betaAccessQuotaStatus $tokensPerProjectPerHour)
   {

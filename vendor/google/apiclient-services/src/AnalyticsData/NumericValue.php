@@ -19,8 +19,15 @@ namespace Google\Service\AnalyticsData;
 
 class NumericValue extends \Google\Model
 {
+  /**
+   * Double value
+   *
+   * @var 
+   */
   public $doubleValue;
   /**
+   * Integer value
+   *
    * @var string
    */
   public $int64Value;
@@ -34,7 +41,9 @@ class NumericValue extends \Google\Model
     return $this->doubleValue;
   }
   /**
-   * @param string
+   * Integer value
+   *
+   * @param string $int64Value
    */
   public function setInt64Value($int64Value)
   {

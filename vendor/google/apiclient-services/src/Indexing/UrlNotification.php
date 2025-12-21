@@ -20,20 +20,44 @@ namespace Google\Service\Indexing;
 class UrlNotification extends \Google\Model
 {
   /**
+   * Unspecified.
+   */
+  public const TYPE_URL_NOTIFICATION_TYPE_UNSPECIFIED = 'URL_NOTIFICATION_TYPE_UNSPECIFIED';
+  /**
+   * The given URL (Web document) has been updated.
+   */
+  public const TYPE_URL_UPDATED = 'URL_UPDATED';
+  /**
+   * The given URL (Web document) has been deleted.
+   */
+  public const TYPE_URL_DELETED = 'URL_DELETED';
+  /**
+   * Creation timestamp for this notification. Users should _not_ specify it,
+   * the field is ignored at the request time.
+   *
    * @var string
    */
   public $notifyTime;
   /**
+   * The URL life cycle event that Google is being notified about.
+   *
    * @var string
    */
   public $type;
   /**
+   * The object of this notification. The URL must be owned by the publisher of
+   * this notification and, in case of `URL_UPDATED` notifications, it _must_ be
+   * crawlable by Google.
+   *
    * @var string
    */
   public $url;
 
   /**
-   * @param string
+   * Creation timestamp for this notification. Users should _not_ specify it,
+   * the field is ignored at the request time.
+   *
+   * @param string $notifyTime
    */
   public function setNotifyTime($notifyTime)
   {
@@ -47,21 +71,30 @@ class UrlNotification extends \Google\Model
     return $this->notifyTime;
   }
   /**
-   * @param string
+   * The URL life cycle event that Google is being notified about.
+   *
+   * Accepted values: URL_NOTIFICATION_TYPE_UNSPECIFIED, URL_UPDATED,
+   * URL_DELETED
+   *
+   * @param self::TYPE_* $type
    */
   public function setType($type)
   {
     $this->type = $type;
   }
   /**
-   * @return string
+   * @return self::TYPE_*
    */
   public function getType()
   {
     return $this->type;
   }
   /**
-   * @param string
+   * The object of this notification. The URL must be owned by the publisher of
+   * this notification and, in case of `URL_UPDATED` notifications, it _must_ be
+   * crawlable by Google.
+   *
+   * @param string $url
    */
   public function setUrl($url)
   {

@@ -20,20 +20,28 @@ namespace Google\Service\Analytics;
 class Column extends \Google\Model
 {
   /**
+   * Map of attribute name and value for this column.
+   *
    * @var string[]
    */
   public $attributes;
   /**
+   * Column id.
+   *
    * @var string
    */
   public $id;
   /**
+   * Resource type for Analytics column.
+   *
    * @var string
    */
   public $kind;
 
   /**
-   * @param string[]
+   * Map of attribute name and value for this column.
+   *
+   * @param string[] $attributes
    */
   public function setAttributes($attributes)
   {
@@ -47,7 +55,9 @@ class Column extends \Google\Model
     return $this->attributes;
   }
   /**
-   * @param string
+   * Column id.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -61,7 +71,9 @@ class Column extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * Resource type for Analytics column.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {

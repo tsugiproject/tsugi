@@ -19,7 +19,12 @@ namespace Google\Service\Container;
 
 class BlueGreenSettings extends \Google\Model
 {
+  protected $autoscaledRolloutPolicyType = AutoscaledRolloutPolicy::class;
+  protected $autoscaledRolloutPolicyDataType = '';
   /**
+   * Time needed after draining entire blue pool. After this period, blue pool
+   * will be cleaned up.
+   *
    * @var string
    */
   public $nodePoolSoakDuration;
@@ -27,7 +32,26 @@ class BlueGreenSettings extends \Google\Model
   protected $standardRolloutPolicyDataType = '';
 
   /**
-   * @param string
+   * Autoscaled policy for cluster autoscaler enabled blue-green upgrade.
+   *
+   * @param AutoscaledRolloutPolicy $autoscaledRolloutPolicy
+   */
+  public function setAutoscaledRolloutPolicy(AutoscaledRolloutPolicy $autoscaledRolloutPolicy)
+  {
+    $this->autoscaledRolloutPolicy = $autoscaledRolloutPolicy;
+  }
+  /**
+   * @return AutoscaledRolloutPolicy
+   */
+  public function getAutoscaledRolloutPolicy()
+  {
+    return $this->autoscaledRolloutPolicy;
+  }
+  /**
+   * Time needed after draining entire blue pool. After this period, blue pool
+   * will be cleaned up.
+   *
+   * @param string $nodePoolSoakDuration
    */
   public function setNodePoolSoakDuration($nodePoolSoakDuration)
   {
@@ -41,7 +65,9 @@ class BlueGreenSettings extends \Google\Model
     return $this->nodePoolSoakDuration;
   }
   /**
-   * @param StandardRolloutPolicy
+   * Standard policy for the blue-green upgrade.
+   *
+   * @param StandardRolloutPolicy $standardRolloutPolicy
    */
   public function setStandardRolloutPolicy(StandardRolloutPolicy $standardRolloutPolicy)
   {

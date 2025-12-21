@@ -20,12 +20,18 @@ namespace Google\Service\AndroidEnterprise;
 class AppRestrictionsSchemaChangeEvent extends \Google\Model
 {
   /**
+   * The id of the product (e.g. "app:com.google.android.gm") for which the app
+   * restriction schema changed. This field will always be present.
+   *
    * @var string
    */
   public $productId;
 
   /**
-   * @param string
+   * The id of the product (e.g. "app:com.google.android.gm") for which the app
+   * restriction schema changed. This field will always be present.
+   *
+   * @param string $productId
    */
   public function setProductId($productId)
   {

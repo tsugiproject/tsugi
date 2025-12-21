@@ -20,20 +20,29 @@ namespace Google\Service\CloudVideoIntelligence;
 class GoogleCloudVideointelligenceV1p1beta1Entity extends \Google\Model
 {
   /**
+   * Textual description, e.g., `Fixed-gear bicycle`.
+   *
    * @var string
    */
   public $description;
   /**
+   * Opaque entity ID. Some IDs may be available in [Google Knowledge Graph
+   * Search API](https://developers.google.com/knowledge-graph/).
+   *
    * @var string
    */
   public $entityId;
   /**
+   * Language code for `description` in BCP-47 format.
+   *
    * @var string
    */
   public $languageCode;
 
   /**
-   * @param string
+   * Textual description, e.g., `Fixed-gear bicycle`.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -47,7 +56,10 @@ class GoogleCloudVideointelligenceV1p1beta1Entity extends \Google\Model
     return $this->description;
   }
   /**
-   * @param string
+   * Opaque entity ID. Some IDs may be available in [Google Knowledge Graph
+   * Search API](https://developers.google.com/knowledge-graph/).
+   *
+   * @param string $entityId
    */
   public function setEntityId($entityId)
   {
@@ -61,7 +73,9 @@ class GoogleCloudVideointelligenceV1p1beta1Entity extends \Google\Model
     return $this->entityId;
   }
   /**
-   * @param string
+   * Language code for `description` in BCP-47 format.
+   *
+   * @param string $languageCode
    */
   public function setLanguageCode($languageCode)
   {

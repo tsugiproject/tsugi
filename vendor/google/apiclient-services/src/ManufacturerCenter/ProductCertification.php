@@ -21,12 +21,17 @@ class ProductCertification extends \Google\Collection
 {
   protected $collection_key = 'productType';
   /**
+   * Required. This is the product's brand name. The brand is used to help
+   * identify your product.
+   *
    * @var string
    */
   public $brand;
   protected $certificationType = Certification::class;
   protected $certificationDataType = 'array';
   /**
+   * Optional. A 2-letter country code (ISO 3166-1 Alpha 2).
+   *
    * @var string[]
    */
   public $countryCode;
@@ -35,28 +40,48 @@ class ProductCertification extends \Google\Collection
   protected $issuesType = Issue::class;
   protected $issuesDataType = 'array';
   /**
+   * Optional. These are the Manufacturer Part Numbers (MPN). MPNs are used to
+   * uniquely identify a specific product among all products from the same
+   * manufacturer
+   *
    * @var string[]
    */
   public $mpn;
   /**
+   * Required. The unique name identifier of a product certification Format:
+   * accounts/{account}/languages/{language_code}/productCertifications/{id}
+   * Where `id` is a some unique identifier and `language_code` is a 2-letter
+   * ISO 639-1 code of a Shopping supported language according to
+   * https://support.google.com/merchants/answer/160637.
+   *
    * @var string
    */
   public $name;
   /**
+   * Optional. Another name for GTIN.
+   *
    * @var string[]
    */
   public $productCode;
   /**
+   * Optional. These are your own product categorization system in your product
+   * data.
+   *
    * @var string[]
    */
   public $productType;
   /**
+   * Required. This is to clearly identify the product you are certifying.
+   *
    * @var string
    */
   public $title;
 
   /**
-   * @param string
+   * Required. This is the product's brand name. The brand is used to help
+   * identify your product.
+   *
+   * @param string $brand
    */
   public function setBrand($brand)
   {
@@ -70,7 +95,9 @@ class ProductCertification extends \Google\Collection
     return $this->brand;
   }
   /**
-   * @param Certification[]
+   * Required. A list of certifications to link to the described product.
+   *
+   * @param Certification[] $certification
    */
   public function setCertification($certification)
   {
@@ -84,7 +111,9 @@ class ProductCertification extends \Google\Collection
     return $this->certification;
   }
   /**
-   * @param string[]
+   * Optional. A 2-letter country code (ISO 3166-1 Alpha 2).
+   *
+   * @param string[] $countryCode
    */
   public function setCountryCode($countryCode)
   {
@@ -98,7 +127,9 @@ class ProductCertification extends \Google\Collection
     return $this->countryCode;
   }
   /**
-   * @param DestinationStatus[]
+   * Output only. The statuses of the destinations.
+   *
+   * @param DestinationStatus[] $destinationStatuses
    */
   public function setDestinationStatuses($destinationStatuses)
   {
@@ -112,7 +143,9 @@ class ProductCertification extends \Google\Collection
     return $this->destinationStatuses;
   }
   /**
-   * @param Issue[]
+   * Output only. A server-generated list of issues associated with the product.
+   *
+   * @param Issue[] $issues
    */
   public function setIssues($issues)
   {
@@ -126,7 +159,11 @@ class ProductCertification extends \Google\Collection
     return $this->issues;
   }
   /**
-   * @param string[]
+   * Optional. These are the Manufacturer Part Numbers (MPN). MPNs are used to
+   * uniquely identify a specific product among all products from the same
+   * manufacturer
+   *
+   * @param string[] $mpn
    */
   public function setMpn($mpn)
   {
@@ -140,7 +177,13 @@ class ProductCertification extends \Google\Collection
     return $this->mpn;
   }
   /**
-   * @param string
+   * Required. The unique name identifier of a product certification Format:
+   * accounts/{account}/languages/{language_code}/productCertifications/{id}
+   * Where `id` is a some unique identifier and `language_code` is a 2-letter
+   * ISO 639-1 code of a Shopping supported language according to
+   * https://support.google.com/merchants/answer/160637.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -154,7 +197,9 @@ class ProductCertification extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param string[]
+   * Optional. Another name for GTIN.
+   *
+   * @param string[] $productCode
    */
   public function setProductCode($productCode)
   {
@@ -168,7 +213,10 @@ class ProductCertification extends \Google\Collection
     return $this->productCode;
   }
   /**
-   * @param string[]
+   * Optional. These are your own product categorization system in your product
+   * data.
+   *
+   * @param string[] $productType
    */
   public function setProductType($productType)
   {
@@ -182,7 +230,9 @@ class ProductCertification extends \Google\Collection
     return $this->productType;
   }
   /**
-   * @param string
+   * Required. This is to clearly identify the product you are certifying.
+   *
+   * @param string $title
    */
   public function setTitle($title)
   {

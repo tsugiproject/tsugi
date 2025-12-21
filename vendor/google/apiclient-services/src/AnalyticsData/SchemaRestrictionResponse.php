@@ -24,7 +24,12 @@ class SchemaRestrictionResponse extends \Google\Collection
   protected $activeMetricRestrictionsDataType = 'array';
 
   /**
-   * @param ActiveMetricRestriction[]
+   * All restrictions actively enforced in creating the report. For example,
+   * `purchaseRevenue` always has the restriction type `REVENUE_DATA`. However,
+   * this active response restriction is only populated if the user's custom
+   * role disallows access to `REVENUE_DATA`.
+   *
+   * @param ActiveMetricRestriction[] $activeMetricRestrictions
    */
   public function setActiveMetricRestrictions($activeMetricRestrictions)
   {

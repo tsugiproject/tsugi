@@ -23,16 +23,27 @@ class LookupForecastResponse extends \Google\Collection
   protected $hourlyForecastsType = HourlyForecast::class;
   protected $hourlyForecastsDataType = 'array';
   /**
+   * Optional. The token to retrieve the next page.
+   *
    * @var string
    */
   public $nextPageToken;
   /**
+   * Optional. The ISO_3166-1 alpha-2 code of the country/region corresponding
+   * to the location provided in the request. This field might be omitted from
+   * the response if the location provided in the request resides in a disputed
+   * territory.
+   *
    * @var string
    */
   public $regionCode;
 
   /**
-   * @param HourlyForecast[]
+   * Optional. Contains the air quality information for each hour in the
+   * requested range. For example, if the request is for 48 hours of forecast
+   * there will be 48 elements of hourly forecasts.
+   *
+   * @param HourlyForecast[] $hourlyForecasts
    */
   public function setHourlyForecasts($hourlyForecasts)
   {
@@ -46,7 +57,9 @@ class LookupForecastResponse extends \Google\Collection
     return $this->hourlyForecasts;
   }
   /**
-   * @param string
+   * Optional. The token to retrieve the next page.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -60,7 +73,12 @@ class LookupForecastResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param string
+   * Optional. The ISO_3166-1 alpha-2 code of the country/region corresponding
+   * to the location provided in the request. This field might be omitted from
+   * the response if the location provided in the request resides in a disputed
+   * territory.
+   *
+   * @param string $regionCode
    */
   public function setRegionCode($regionCode)
   {

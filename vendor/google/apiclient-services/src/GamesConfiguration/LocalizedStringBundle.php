@@ -21,6 +21,9 @@ class LocalizedStringBundle extends \Google\Collection
 {
   protected $collection_key = 'translations';
   /**
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesConfiguration#localizedStringBundle`.
+   *
    * @var string
    */
   public $kind;
@@ -28,7 +31,10 @@ class LocalizedStringBundle extends \Google\Collection
   protected $translationsDataType = 'array';
 
   /**
-   * @param string
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesConfiguration#localizedStringBundle`.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -42,7 +48,9 @@ class LocalizedStringBundle extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param LocalizedString[]
+   * The locale strings.
+   *
+   * @param LocalizedString[] $translations
    */
   public function setTranslations($translations)
   {

@@ -26,7 +26,9 @@ class CompleteQueryResponse extends \Google\Collection
   protected $metadataDataType = '';
 
   /**
-   * @param CompletionResult[]
+   * Results of the matching job/company candidates.
+   *
+   * @param CompletionResult[] $completionResults
    */
   public function setCompletionResults($completionResults)
   {
@@ -40,7 +42,10 @@ class CompleteQueryResponse extends \Google\Collection
     return $this->completionResults;
   }
   /**
-   * @param ResponseMetadata
+   * Additional information for the API invocation, such as the request tracking
+   * id.
+   *
+   * @param ResponseMetadata $metadata
    */
   public function setMetadata(ResponseMetadata $metadata)
   {

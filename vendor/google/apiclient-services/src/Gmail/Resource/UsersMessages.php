@@ -107,7 +107,8 @@ class UsersMessages extends \Google\Service\Resource
    * scanning and classification similar to receiving via SMTP. This method
    * doesn't perform SPF checks, so it might not work for some spam messages, such
    * as those attempting to perform domain spoofing. This method does not send a
-   * message. (messages.import)
+   * message. Note that the maximum size of the message is 150MB.
+   * (messages.import)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -157,7 +158,9 @@ class UsersMessages extends \Google\Service\Resource
     return $this->call('insert', [$params], Message::class);
   }
   /**
-   * Lists the messages in the user's mailbox. (messages.listUsersMessages)
+   * Lists the messages in the user's mailbox. For example usage, see [List Gmail
+   * messages](https://developers.google.com/workspace/gmail/api/guides/list-
+   * messages). (messages.listUsersMessages)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -168,8 +171,8 @@ class UsersMessages extends \Google\Service\Resource
    * @opt_param string labelIds Only return messages with labels that match all of
    * the specified label IDs. Messages in a thread might have labels that other
    * messages in the same thread don't have. To learn more, see [Manage labels on
-   * messages and threads](https://developers.google.com/gmail/api/guides/labels#m
-   * anage_labels_on_messages_threads).
+   * messages and threads](https://developers.google.com/workspace/gmail/api/guide
+   * s/labels#manage_labels_on_messages_threads).
    * @opt_param string maxResults Maximum number of messages to return. This field
    * defaults to 100. The maximum allowed value for this field is 500.
    * @opt_param string pageToken Page token to retrieve a specific page of results
@@ -207,7 +210,7 @@ class UsersMessages extends \Google\Service\Resource
   /**
    * Sends the specified message to the recipients in the `To`, `Cc`, and `Bcc`
    * headers. For example usage, see [Sending
-   * email](https://developers.google.com/gmail/api/guides/sending).
+   * email](https://developers.google.com/workspace/gmail/api/guides/sending).
    * (messages.send)
    *
    * @param string $userId The user's email address. The special value `me` can be

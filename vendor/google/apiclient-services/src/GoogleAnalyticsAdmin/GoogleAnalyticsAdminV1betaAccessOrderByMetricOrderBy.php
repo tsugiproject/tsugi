@@ -20,12 +20,16 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaAccessOrderByMetricOrderBy extends \Google\Model
 {
   /**
+   * A metric name in the request to order by.
+   *
    * @var string
    */
   public $metricName;
 
   /**
-   * @param string
+   * A metric name in the request to order by.
+   *
+   * @param string $metricName
    */
   public function setMetricName($metricName)
   {

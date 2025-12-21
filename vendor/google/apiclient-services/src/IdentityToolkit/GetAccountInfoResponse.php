@@ -21,6 +21,8 @@ class GetAccountInfoResponse extends \Google\Collection
 {
   protected $collection_key = 'users';
   /**
+   * The fixed string "identitytoolkit#GetAccountInfoResponse".
+   *
    * @var string
    */
   public $kind;
@@ -28,7 +30,9 @@ class GetAccountInfoResponse extends \Google\Collection
   protected $usersDataType = 'array';
 
   /**
-   * @param string
+   * The fixed string "identitytoolkit#GetAccountInfoResponse".
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -42,7 +46,9 @@ class GetAccountInfoResponse extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param UserInfo[]
+   * The info of the users.
+   *
+   * @param UserInfo[] $users
    */
   public function setUsers($users)
   {

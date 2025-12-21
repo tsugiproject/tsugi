@@ -20,6 +20,11 @@ namespace Google\Service\ChromeUXReport;
 class FractionTimeseries extends \Google\Collection
 {
   protected $collection_key = 'fractions';
+  /**
+   * Values between 0.0 and 1.0 (inclusive) and NaN.
+   *
+   * @var []
+   */
   public $fractions;
 
   public function setFractions($fractions)

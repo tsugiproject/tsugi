@@ -19,42 +19,192 @@ namespace Google\Service\CloudFilestore;
 
 class Instance extends \Google\Collection
 {
+  /**
+   * FILE_PROTOCOL_UNSPECIFIED serves a "not set" default value when a
+   * FileProtocol is a separate field in a message.
+   */
+  public const PROTOCOL_FILE_PROTOCOL_UNSPECIFIED = 'FILE_PROTOCOL_UNSPECIFIED';
+  /**
+   * NFS 3.0.
+   */
+  public const PROTOCOL_NFS_V3 = 'NFS_V3';
+  /**
+   * NFS 4.1.
+   */
+  public const PROTOCOL_NFS_V4_1 = 'NFS_V4_1';
+  /**
+   * State not set.
+   */
+  public const STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED';
+  /**
+   * The instance is being created.
+   */
+  public const STATE_CREATING = 'CREATING';
+  /**
+   * The instance is available for use.
+   */
+  public const STATE_READY = 'READY';
+  /**
+   * Work is being done on the instance. You can get further details from the
+   * `statusMessage` field of the `Instance` resource.
+   */
+  public const STATE_REPAIRING = 'REPAIRING';
+  /**
+   * The instance is shutting down.
+   */
+  public const STATE_DELETING = 'DELETING';
+  /**
+   * The instance is experiencing an issue and might be unusable. You can get
+   * further details from the `statusMessage` field of the `Instance` resource.
+   */
+  public const STATE_ERROR = 'ERROR';
+  /**
+   * The instance is restoring a backup to an existing file share and may be
+   * unusable during this time.
+   */
+  public const STATE_RESTORING = 'RESTORING';
+  /**
+   * The instance is suspended. You can get further details from the
+   * `suspension_reasons` field of the `Instance` resource.
+   */
+  public const STATE_SUSPENDED = 'SUSPENDED';
+  /**
+   * The instance is in the process of becoming suspended.
+   */
+  public const STATE_SUSPENDING = 'SUSPENDING';
+  /**
+   * The instance is in the process of becoming active.
+   */
+  public const STATE_RESUMING = 'RESUMING';
+  /**
+   * The instance is reverting to a snapshot.
+   */
+  public const STATE_REVERTING = 'REVERTING';
+  /**
+   * The replica instance is being promoted.
+   */
+  public const STATE_PROMOTING = 'PROMOTING';
+  /**
+   * Not set.
+   */
+  public const TIER_TIER_UNSPECIFIED = 'TIER_UNSPECIFIED';
+  /**
+   * STANDARD tier. BASIC_HDD is the preferred term for this tier.
+   */
+  public const TIER_STANDARD = 'STANDARD';
+  /**
+   * PREMIUM tier. BASIC_SSD is the preferred term for this tier.
+   */
+  public const TIER_PREMIUM = 'PREMIUM';
+  /**
+   * BASIC instances offer a maximum capacity of 63.9 TB. BASIC_HDD is an alias
+   * for STANDARD Tier, offering economical performance backed by HDD.
+   */
+  public const TIER_BASIC_HDD = 'BASIC_HDD';
+  /**
+   * BASIC instances offer a maximum capacity of 63.9 TB. BASIC_SSD is an alias
+   * for PREMIUM Tier, and offers improved performance backed by SSD.
+   */
+  public const TIER_BASIC_SSD = 'BASIC_SSD';
+  /**
+   * HIGH_SCALE instances offer expanded capacity and performance scaling
+   * capabilities.
+   */
+  public const TIER_HIGH_SCALE_SSD = 'HIGH_SCALE_SSD';
+  /**
+   * ENTERPRISE instances offer the features and availability needed for
+   * mission-critical workloads.
+   */
+  public const TIER_ENTERPRISE = 'ENTERPRISE';
+  /**
+   * ZONAL instances offer expanded capacity and performance scaling
+   * capabilities.
+   */
+  public const TIER_ZONAL = 'ZONAL';
+  /**
+   * REGIONAL instances offer the features and availability needed for mission-
+   * critical workloads.
+   */
+  public const TIER_REGIONAL = 'REGIONAL';
   protected $collection_key = 'suspensionReasons';
   /**
+   * Output only. The incremental increase or decrease in capacity, designated
+   * in some number of GB.
+   *
+   * @var string
+   */
+  public $capacityStepSizeGb;
+  /**
+   * Output only. The time when the instance was created.
+   *
    * @var string
    */
   public $createTime;
   /**
+   * Output only. Indicates whether this instance supports configuring its
+   * performance. If true, the user can configure the instance's performance by
+   * using the 'performance_config' field.
+   *
    * @var bool
    */
   public $customPerformanceSupported;
   /**
+   * Optional. Indicates whether the instance is protected against deletion.
+   *
    * @var bool
    */
   public $deletionProtectionEnabled;
   /**
+   * Optional. The reason for enabling deletion protection.
+   *
    * @var string
    */
   public $deletionProtectionReason;
   /**
+   * The description of the instance (2048 characters or less).
+   *
    * @var string
    */
   public $description;
+  protected $directoryServicesType = DirectoryServicesConfig::class;
+  protected $directoryServicesDataType = '';
   /**
+   * Server-specified ETag for the instance resource to prevent simultaneous
+   * updates from overwriting each other.
+   *
    * @var string
    */
   public $etag;
   protected $fileSharesType = FileShareConfig::class;
   protected $fileSharesDataType = 'array';
   /**
+   * KMS key name used for data encryption.
+   *
    * @var string
    */
   public $kmsKeyName;
   /**
+   * Resource labels to represent user provided metadata.
+   *
    * @var string[]
    */
   public $labels;
   /**
+   * Output only. The maximum capacity of the instance in GB.
+   *
+   * @var string
+   */
+  public $maxCapacityGb;
+  /**
+   * Output only. The minimum capacity of the instance in GB.
+   *
+   * @var string
+   */
+  public $minCapacityGb;
+  /**
+   * Output only. The resource name of the instance, in the format
+   * `projects/{project}/locations/{location}/instances/{instance}`.
+   *
    * @var string
    */
   public $name;
@@ -65,42 +215,87 @@ class Instance extends \Google\Collection
   protected $performanceLimitsType = PerformanceLimits::class;
   protected $performanceLimitsDataType = '';
   /**
+   * Immutable. The protocol indicates the access protocol for all shares in the
+   * instance. This field is immutable and it cannot be changed after the
+   * instance has been created. Default value: `NFS_V3`.
+   *
    * @var string
    */
   public $protocol;
   protected $replicationType = Replication::class;
   protected $replicationDataType = '';
   /**
+   * Output only. Reserved for future use.
+   *
    * @var bool
    */
   public $satisfiesPzi;
   /**
+   * Output only. Reserved for future use.
+   *
    * @var bool
    */
   public $satisfiesPzs;
   /**
+   * Output only. The instance state.
+   *
    * @var string
    */
   public $state;
   /**
+   * Output only. Additional information about the instance state, if available.
+   *
    * @var string
    */
   public $statusMessage;
   /**
+   * Output only. Field indicates all the reasons the instance is in "SUSPENDED"
+   * state.
+   *
    * @var string[]
    */
   public $suspensionReasons;
   /**
+   * Optional. Input only. Immutable. Tag key-value pairs bound to this
+   * resource. Each key must be a namespaced name and each value a short name.
+   * Example: "123456789012/environment" : "production",
+   * "123456789013/costCenter" : "marketing" See the documentation for more
+   * information: - Namespaced name: https://cloud.google.com/resource-
+   * manager/docs/tags/tags-creating-and-managing#retrieving_tag_key - Short
+   * name: https://cloud.google.com/resource-manager/docs/tags/tags-creating-
+   * and-managing#retrieving_tag_value
+   *
    * @var string[]
    */
   public $tags;
   /**
+   * The service tier of the instance.
+   *
    * @var string
    */
   public $tier;
 
   /**
-   * @param string
+   * Output only. The incremental increase or decrease in capacity, designated
+   * in some number of GB.
+   *
+   * @param string $capacityStepSizeGb
+   */
+  public function setCapacityStepSizeGb($capacityStepSizeGb)
+  {
+    $this->capacityStepSizeGb = $capacityStepSizeGb;
+  }
+  /**
+   * @return string
+   */
+  public function getCapacityStepSizeGb()
+  {
+    return $this->capacityStepSizeGb;
+  }
+  /**
+   * Output only. The time when the instance was created.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -114,7 +309,11 @@ class Instance extends \Google\Collection
     return $this->createTime;
   }
   /**
-   * @param bool
+   * Output only. Indicates whether this instance supports configuring its
+   * performance. If true, the user can configure the instance's performance by
+   * using the 'performance_config' field.
+   *
+   * @param bool $customPerformanceSupported
    */
   public function setCustomPerformanceSupported($customPerformanceSupported)
   {
@@ -128,7 +327,9 @@ class Instance extends \Google\Collection
     return $this->customPerformanceSupported;
   }
   /**
-   * @param bool
+   * Optional. Indicates whether the instance is protected against deletion.
+   *
+   * @param bool $deletionProtectionEnabled
    */
   public function setDeletionProtectionEnabled($deletionProtectionEnabled)
   {
@@ -142,7 +343,9 @@ class Instance extends \Google\Collection
     return $this->deletionProtectionEnabled;
   }
   /**
-   * @param string
+   * Optional. The reason for enabling deletion protection.
+   *
+   * @param string $deletionProtectionReason
    */
   public function setDeletionProtectionReason($deletionProtectionReason)
   {
@@ -156,7 +359,9 @@ class Instance extends \Google\Collection
     return $this->deletionProtectionReason;
   }
   /**
-   * @param string
+   * The description of the instance (2048 characters or less).
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -170,7 +375,27 @@ class Instance extends \Google\Collection
     return $this->description;
   }
   /**
-   * @param string
+   * Optional. Directory Services configuration for Kerberos-based
+   * authentication. Should only be set if protocol is "NFS_V4_1".
+   *
+   * @param DirectoryServicesConfig $directoryServices
+   */
+  public function setDirectoryServices(DirectoryServicesConfig $directoryServices)
+  {
+    $this->directoryServices = $directoryServices;
+  }
+  /**
+   * @return DirectoryServicesConfig
+   */
+  public function getDirectoryServices()
+  {
+    return $this->directoryServices;
+  }
+  /**
+   * Server-specified ETag for the instance resource to prevent simultaneous
+   * updates from overwriting each other.
+   *
+   * @param string $etag
    */
   public function setEtag($etag)
   {
@@ -184,7 +409,10 @@ class Instance extends \Google\Collection
     return $this->etag;
   }
   /**
-   * @param FileShareConfig[]
+   * File system shares on the instance. For this version, only a single file
+   * share is supported.
+   *
+   * @param FileShareConfig[] $fileShares
    */
   public function setFileShares($fileShares)
   {
@@ -198,7 +426,9 @@ class Instance extends \Google\Collection
     return $this->fileShares;
   }
   /**
-   * @param string
+   * KMS key name used for data encryption.
+   *
+   * @param string $kmsKeyName
    */
   public function setKmsKeyName($kmsKeyName)
   {
@@ -212,7 +442,9 @@ class Instance extends \Google\Collection
     return $this->kmsKeyName;
   }
   /**
-   * @param string[]
+   * Resource labels to represent user provided metadata.
+   *
+   * @param string[] $labels
    */
   public function setLabels($labels)
   {
@@ -226,7 +458,42 @@ class Instance extends \Google\Collection
     return $this->labels;
   }
   /**
-   * @param string
+   * Output only. The maximum capacity of the instance in GB.
+   *
+   * @param string $maxCapacityGb
+   */
+  public function setMaxCapacityGb($maxCapacityGb)
+  {
+    $this->maxCapacityGb = $maxCapacityGb;
+  }
+  /**
+   * @return string
+   */
+  public function getMaxCapacityGb()
+  {
+    return $this->maxCapacityGb;
+  }
+  /**
+   * Output only. The minimum capacity of the instance in GB.
+   *
+   * @param string $minCapacityGb
+   */
+  public function setMinCapacityGb($minCapacityGb)
+  {
+    $this->minCapacityGb = $minCapacityGb;
+  }
+  /**
+   * @return string
+   */
+  public function getMinCapacityGb()
+  {
+    return $this->minCapacityGb;
+  }
+  /**
+   * Output only. The resource name of the instance, in the format
+   * `projects/{project}/locations/{location}/instances/{instance}`.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -240,7 +507,10 @@ class Instance extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param NetworkConfig[]
+   * VPC networks to which the instance is connected. For this version, only a
+   * single network is supported.
+   *
+   * @param NetworkConfig[] $networks
    */
   public function setNetworks($networks)
   {
@@ -254,7 +524,9 @@ class Instance extends \Google\Collection
     return $this->networks;
   }
   /**
-   * @param PerformanceConfig
+   * Optional. Used to configure performance.
+   *
+   * @param PerformanceConfig $performanceConfig
    */
   public function setPerformanceConfig(PerformanceConfig $performanceConfig)
   {
@@ -268,7 +540,9 @@ class Instance extends \Google\Collection
     return $this->performanceConfig;
   }
   /**
-   * @param PerformanceLimits
+   * Output only. Used for getting performance limits.
+   *
+   * @param PerformanceLimits $performanceLimits
    */
   public function setPerformanceLimits(PerformanceLimits $performanceLimits)
   {
@@ -282,21 +556,29 @@ class Instance extends \Google\Collection
     return $this->performanceLimits;
   }
   /**
-   * @param string
+   * Immutable. The protocol indicates the access protocol for all shares in the
+   * instance. This field is immutable and it cannot be changed after the
+   * instance has been created. Default value: `NFS_V3`.
+   *
+   * Accepted values: FILE_PROTOCOL_UNSPECIFIED, NFS_V3, NFS_V4_1
+   *
+   * @param self::PROTOCOL_* $protocol
    */
   public function setProtocol($protocol)
   {
     $this->protocol = $protocol;
   }
   /**
-   * @return string
+   * @return self::PROTOCOL_*
    */
   public function getProtocol()
   {
     return $this->protocol;
   }
   /**
-   * @param Replication
+   * Optional. Replication configuration.
+   *
+   * @param Replication $replication
    */
   public function setReplication(Replication $replication)
   {
@@ -310,7 +592,9 @@ class Instance extends \Google\Collection
     return $this->replication;
   }
   /**
-   * @param bool
+   * Output only. Reserved for future use.
+   *
+   * @param bool $satisfiesPzi
    */
   public function setSatisfiesPzi($satisfiesPzi)
   {
@@ -324,7 +608,9 @@ class Instance extends \Google\Collection
     return $this->satisfiesPzi;
   }
   /**
-   * @param bool
+   * Output only. Reserved for future use.
+   *
+   * @param bool $satisfiesPzs
    */
   public function setSatisfiesPzs($satisfiesPzs)
   {
@@ -338,21 +624,28 @@ class Instance extends \Google\Collection
     return $this->satisfiesPzs;
   }
   /**
-   * @param string
+   * Output only. The instance state.
+   *
+   * Accepted values: STATE_UNSPECIFIED, CREATING, READY, REPAIRING, DELETING,
+   * ERROR, RESTORING, SUSPENDED, SUSPENDING, RESUMING, REVERTING, PROMOTING
+   *
+   * @param self::STATE_* $state
    */
   public function setState($state)
   {
     $this->state = $state;
   }
   /**
-   * @return string
+   * @return self::STATE_*
    */
   public function getState()
   {
     return $this->state;
   }
   /**
-   * @param string
+   * Output only. Additional information about the instance state, if available.
+   *
+   * @param string $statusMessage
    */
   public function setStatusMessage($statusMessage)
   {
@@ -366,7 +659,10 @@ class Instance extends \Google\Collection
     return $this->statusMessage;
   }
   /**
-   * @param string[]
+   * Output only. Field indicates all the reasons the instance is in "SUSPENDED"
+   * state.
+   *
+   * @param string[] $suspensionReasons
    */
   public function setSuspensionReasons($suspensionReasons)
   {
@@ -380,7 +676,16 @@ class Instance extends \Google\Collection
     return $this->suspensionReasons;
   }
   /**
-   * @param string[]
+   * Optional. Input only. Immutable. Tag key-value pairs bound to this
+   * resource. Each key must be a namespaced name and each value a short name.
+   * Example: "123456789012/environment" : "production",
+   * "123456789013/costCenter" : "marketing" See the documentation for more
+   * information: - Namespaced name: https://cloud.google.com/resource-
+   * manager/docs/tags/tags-creating-and-managing#retrieving_tag_key - Short
+   * name: https://cloud.google.com/resource-manager/docs/tags/tags-creating-
+   * and-managing#retrieving_tag_value
+   *
+   * @param string[] $tags
    */
   public function setTags($tags)
   {
@@ -394,14 +699,19 @@ class Instance extends \Google\Collection
     return $this->tags;
   }
   /**
-   * @param string
+   * The service tier of the instance.
+   *
+   * Accepted values: TIER_UNSPECIFIED, STANDARD, PREMIUM, BASIC_HDD, BASIC_SSD,
+   * HIGH_SCALE_SSD, ENTERPRISE, ZONAL, REGIONAL
+   *
+   * @param self::TIER_* $tier
    */
   public function setTier($tier)
   {
     $this->tier = $tier;
   }
   /**
-   * @return string
+   * @return self::TIER_*
    */
   public function getTier()
   {

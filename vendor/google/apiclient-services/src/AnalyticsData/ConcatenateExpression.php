@@ -21,16 +21,31 @@ class ConcatenateExpression extends \Google\Collection
 {
   protected $collection_key = 'dimensionNames';
   /**
+   * The delimiter placed between dimension names. Delimiters are often single
+   * characters such as "|" or "," but can be longer strings. If a dimension
+   * value contains the delimiter, both will be present in response with no
+   * distinction. For example if dimension 1 value = "US,FR", dimension 2 value
+   * = "JP", and delimiter = ",", then the response will contain "US,FR,JP".
+   *
    * @var string
    */
   public $delimiter;
   /**
+   * Names of dimensions. The names must refer back to names in the dimensions
+   * field of the request.
+   *
    * @var string[]
    */
   public $dimensionNames;
 
   /**
-   * @param string
+   * The delimiter placed between dimension names. Delimiters are often single
+   * characters such as "|" or "," but can be longer strings. If a dimension
+   * value contains the delimiter, both will be present in response with no
+   * distinction. For example if dimension 1 value = "US,FR", dimension 2 value
+   * = "JP", and delimiter = ",", then the response will contain "US,FR,JP".
+   *
+   * @param string $delimiter
    */
   public function setDelimiter($delimiter)
   {
@@ -44,7 +59,10 @@ class ConcatenateExpression extends \Google\Collection
     return $this->delimiter;
   }
   /**
-   * @param string[]
+   * Names of dimensions. The names must refer back to names in the dimensions
+   * field of the request.
+   *
+   * @param string[] $dimensionNames
    */
   public function setDimensionNames($dimensionNames)
   {

@@ -23,28 +23,43 @@ class GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse extends \Google\
   protected $eventParametersType = EnterpriseCrmFrontendsEventbusProtoEventParameters::class;
   protected $eventParametersDataType = '';
   /**
+   * Is true if any execution in the integration failed. False otherwise.
+   *
+   * @deprecated
    * @var bool
    */
   public $executionFailed;
   /**
+   * The id of the execution corresponding to this run of integration.
+   *
    * @var string
    */
   public $executionId;
   /**
+   * OUTPUT parameters in format of Map. Where Key is the name of the parameter.
+   * Note: Name of the system generated parameters are wrapped by backtick(`) to
+   * distinguish them from the user defined parameters.
+   *
    * @var array[]
    */
   public $outputParameters;
   protected $parameterEntriesType = EnterpriseCrmFrontendsEventbusProtoParameterEntry::class;
   protected $parameterEntriesDataType = 'array';
+  protected $parametersType = GoogleCloudIntegrationsV1alphaValueType::class;
+  protected $parametersDataType = 'map';
 
   /**
-   * @param EnterpriseCrmFrontendsEventbusProtoEventParameters
+   * Details for the integration that were executed.
+   *
+   * @deprecated
+   * @param EnterpriseCrmFrontendsEventbusProtoEventParameters $eventParameters
    */
   public function setEventParameters(EnterpriseCrmFrontendsEventbusProtoEventParameters $eventParameters)
   {
     $this->eventParameters = $eventParameters;
   }
   /**
+   * @deprecated
    * @return EnterpriseCrmFrontendsEventbusProtoEventParameters
    */
   public function getEventParameters()
@@ -52,13 +67,17 @@ class GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse extends \Google\
     return $this->eventParameters;
   }
   /**
-   * @param bool
+   * Is true if any execution in the integration failed. False otherwise.
+   *
+   * @deprecated
+   * @param bool $executionFailed
    */
   public function setExecutionFailed($executionFailed)
   {
     $this->executionFailed = $executionFailed;
   }
   /**
+   * @deprecated
    * @return bool
    */
   public function getExecutionFailed()
@@ -66,7 +85,9 @@ class GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse extends \Google\
     return $this->executionFailed;
   }
   /**
-   * @param string
+   * The id of the execution corresponding to this run of integration.
+   *
+   * @param string $executionId
    */
   public function setExecutionId($executionId)
   {
@@ -80,7 +101,11 @@ class GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse extends \Google\
     return $this->executionId;
   }
   /**
-   * @param array[]
+   * OUTPUT parameters in format of Map. Where Key is the name of the parameter.
+   * Note: Name of the system generated parameters are wrapped by backtick(`) to
+   * distinguish them from the user defined parameters.
+   *
+   * @param array[] $outputParameters
    */
   public function setOutputParameters($outputParameters)
   {
@@ -94,18 +119,39 @@ class GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse extends \Google\
     return $this->outputParameters;
   }
   /**
-   * @param EnterpriseCrmFrontendsEventbusProtoParameterEntry[]
+   * Parameters are a part of Event and can be used to communicate between
+   * different tasks that are part of the same integration execution.
+   *
+   * @deprecated
+   * @param EnterpriseCrmFrontendsEventbusProtoParameterEntry[] $parameterEntries
    */
   public function setParameterEntries($parameterEntries)
   {
     $this->parameterEntries = $parameterEntries;
   }
   /**
+   * @deprecated
    * @return EnterpriseCrmFrontendsEventbusProtoParameterEntry[]
    */
   public function getParameterEntries()
   {
     return $this->parameterEntries;
+  }
+  /**
+   * Optional. OUTPUT parameters from integration execution.
+   *
+   * @param GoogleCloudIntegrationsV1alphaValueType[] $parameters
+   */
+  public function setParameters($parameters)
+  {
+    $this->parameters = $parameters;
+  }
+  /**
+   * @return GoogleCloudIntegrationsV1alphaValueType[]
+   */
+  public function getParameters()
+  {
+    return $this->parameters;
   }
 }
 

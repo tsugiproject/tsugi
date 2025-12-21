@@ -21,50 +21,84 @@ class Device extends \Google\Collection
 {
   protected $collection_key = 'traits';
   /**
+   * Attributes for the traits supported by the device.
+   *
    * @var array[]
    */
   public $attributes;
   /**
+   * Custom device attributes stored in Home Graph and provided to your smart
+   * home Action in each [QUERY](https://developers.home.google.com/cloud-to-
+   * cloud/intents/query) and
+   * [EXECUTE](https://developers.home.google.com/cloud-to-
+   * cloud/intents/execute) intent. Data in this object has a few constraints:
+   * No sensitive information, including but not limited to Personally
+   * Identifiable Information.
+   *
    * @var array[]
    */
   public $customData;
   protected $deviceInfoType = DeviceInfo::class;
   protected $deviceInfoDataType = '';
   /**
+   * Third-party device ID.
+   *
    * @var string
    */
   public $id;
   protected $nameType = DeviceNames::class;
   protected $nameDataType = '';
   /**
+   * Indicates whether your smart home Action will report notifications to
+   * Google for this device via ReportStateAndNotification. If your smart home
+   * Action enables users to control device notifications, you should update
+   * this field and call RequestSyncDevices.
+   *
    * @var bool
    */
   public $notificationSupportedByAgent;
   protected $otherDeviceIdsType = AgentOtherDeviceId::class;
   protected $otherDeviceIdsDataType = 'array';
   /**
+   * Suggested name for the room where this device is installed. Google attempts
+   * to use this value during user setup.
+   *
    * @var string
    */
   public $roomHint;
   /**
+   * Suggested name for the structure where this device is installed. Google
+   * attempts to use this value during user setup.
+   *
    * @var string
    */
   public $structureHint;
   /**
+   * Traits supported by the device. See [device
+   * traits](https://developers.home.google.com/cloud-to-cloud/traits).
+   *
    * @var string[]
    */
   public $traits;
   /**
+   * Hardware type of the device. See [device
+   * types](https://developers.home.google.com/cloud-to-cloud/guides).
+   *
    * @var string
    */
   public $type;
   /**
+   * Indicates whether your smart home Action will report state of this device
+   * to Google via ReportStateAndNotification.
+   *
    * @var bool
    */
   public $willReportState;
 
   /**
-   * @param array[]
+   * Attributes for the traits supported by the device.
+   *
+   * @param array[] $attributes
    */
   public function setAttributes($attributes)
   {
@@ -78,7 +112,15 @@ class Device extends \Google\Collection
     return $this->attributes;
   }
   /**
-   * @param array[]
+   * Custom device attributes stored in Home Graph and provided to your smart
+   * home Action in each [QUERY](https://developers.home.google.com/cloud-to-
+   * cloud/intents/query) and
+   * [EXECUTE](https://developers.home.google.com/cloud-to-
+   * cloud/intents/execute) intent. Data in this object has a few constraints:
+   * No sensitive information, including but not limited to Personally
+   * Identifiable Information.
+   *
+   * @param array[] $customData
    */
   public function setCustomData($customData)
   {
@@ -92,7 +134,9 @@ class Device extends \Google\Collection
     return $this->customData;
   }
   /**
-   * @param DeviceInfo
+   * Device manufacturer, model, hardware version, and software version.
+   *
+   * @param DeviceInfo $deviceInfo
    */
   public function setDeviceInfo(DeviceInfo $deviceInfo)
   {
@@ -106,7 +150,9 @@ class Device extends \Google\Collection
     return $this->deviceInfo;
   }
   /**
-   * @param string
+   * Third-party device ID.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -120,7 +166,9 @@ class Device extends \Google\Collection
     return $this->id;
   }
   /**
-   * @param DeviceNames
+   * Names given to this device by your smart home Action.
+   *
+   * @param DeviceNames $name
    */
   public function setName(DeviceNames $name)
   {
@@ -134,7 +182,12 @@ class Device extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param bool
+   * Indicates whether your smart home Action will report notifications to
+   * Google for this device via ReportStateAndNotification. If your smart home
+   * Action enables users to control device notifications, you should update
+   * this field and call RequestSyncDevices.
+   *
+   * @param bool $notificationSupportedByAgent
    */
   public function setNotificationSupportedByAgent($notificationSupportedByAgent)
   {
@@ -148,7 +201,11 @@ class Device extends \Google\Collection
     return $this->notificationSupportedByAgent;
   }
   /**
-   * @param AgentOtherDeviceId[]
+   * Alternate IDs associated with this device. This is used to identify cloud
+   * synced devices enabled for [local
+   * fulfillment](https://developers.home.google.com/local-home/overview).
+   *
+   * @param AgentOtherDeviceId[] $otherDeviceIds
    */
   public function setOtherDeviceIds($otherDeviceIds)
   {
@@ -162,7 +219,10 @@ class Device extends \Google\Collection
     return $this->otherDeviceIds;
   }
   /**
-   * @param string
+   * Suggested name for the room where this device is installed. Google attempts
+   * to use this value during user setup.
+   *
+   * @param string $roomHint
    */
   public function setRoomHint($roomHint)
   {
@@ -176,7 +236,10 @@ class Device extends \Google\Collection
     return $this->roomHint;
   }
   /**
-   * @param string
+   * Suggested name for the structure where this device is installed. Google
+   * attempts to use this value during user setup.
+   *
+   * @param string $structureHint
    */
   public function setStructureHint($structureHint)
   {
@@ -190,7 +253,10 @@ class Device extends \Google\Collection
     return $this->structureHint;
   }
   /**
-   * @param string[]
+   * Traits supported by the device. See [device
+   * traits](https://developers.home.google.com/cloud-to-cloud/traits).
+   *
+   * @param string[] $traits
    */
   public function setTraits($traits)
   {
@@ -204,7 +270,10 @@ class Device extends \Google\Collection
     return $this->traits;
   }
   /**
-   * @param string
+   * Hardware type of the device. See [device
+   * types](https://developers.home.google.com/cloud-to-cloud/guides).
+   *
+   * @param string $type
    */
   public function setType($type)
   {
@@ -218,7 +287,10 @@ class Device extends \Google\Collection
     return $this->type;
   }
   /**
-   * @param bool
+   * Indicates whether your smart home Action will report state of this device
+   * to Google via ReportStateAndNotification.
+   *
+   * @param bool $willReportState
    */
   public function setWillReportState($willReportState)
   {

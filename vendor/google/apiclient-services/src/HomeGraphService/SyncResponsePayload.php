@@ -21,6 +21,8 @@ class SyncResponsePayload extends \Google\Collection
 {
   protected $collection_key = 'devices';
   /**
+   * Third-party user ID
+   *
    * @var string
    */
   public $agentUserId;
@@ -28,7 +30,9 @@ class SyncResponsePayload extends \Google\Collection
   protected $devicesDataType = 'array';
 
   /**
-   * @param string
+   * Third-party user ID
+   *
+   * @param string $agentUserId
    */
   public function setAgentUserId($agentUserId)
   {
@@ -42,7 +46,9 @@ class SyncResponsePayload extends \Google\Collection
     return $this->agentUserId;
   }
   /**
-   * @param Device[]
+   * Devices associated with the third-party user.
+   *
+   * @param Device[] $devices
    */
   public function setDevices($devices)
   {

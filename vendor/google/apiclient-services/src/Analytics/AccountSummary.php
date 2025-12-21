@@ -21,18 +21,26 @@ class AccountSummary extends \Google\Collection
 {
   protected $collection_key = 'webProperties';
   /**
+   * Account ID.
+   *
    * @var string
    */
   public $id;
   /**
+   * Resource type for Analytics AccountSummary.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Account name.
+   *
    * @var string
    */
   public $name;
   /**
+   * Indicates whether this account is starred or not.
+   *
    * @var bool
    */
   public $starred;
@@ -40,7 +48,9 @@ class AccountSummary extends \Google\Collection
   protected $webPropertiesDataType = 'array';
 
   /**
-   * @param string
+   * Account ID.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -54,7 +64,9 @@ class AccountSummary extends \Google\Collection
     return $this->id;
   }
   /**
-   * @param string
+   * Resource type for Analytics AccountSummary.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -68,7 +80,9 @@ class AccountSummary extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * Account name.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -82,7 +96,9 @@ class AccountSummary extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param bool
+   * Indicates whether this account is starred or not.
+   *
+   * @param bool $starred
    */
   public function setStarred($starred)
   {
@@ -96,7 +112,9 @@ class AccountSummary extends \Google\Collection
     return $this->starred;
   }
   /**
-   * @param WebPropertySummary[]
+   * List of web properties under this account.
+   *
+   * @param WebPropertySummary[] $webProperties
    */
   public function setWebProperties($webProperties)
   {

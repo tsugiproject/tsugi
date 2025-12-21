@@ -28,7 +28,9 @@ class CohortSpec extends \Google\Collection
   protected $cohortsRangeDataType = '';
 
   /**
-   * @param CohortReportSettings
+   * Optional settings for a cohort report.
+   *
+   * @param CohortReportSettings $cohortReportSettings
    */
   public function setCohortReportSettings(CohortReportSettings $cohortReportSettings)
   {
@@ -42,7 +44,11 @@ class CohortSpec extends \Google\Collection
     return $this->cohortReportSettings;
   }
   /**
-   * @param Cohort[]
+   * Defines the selection criteria to group users into cohorts. Most cohort
+   * reports define only a single cohort. If multiple cohorts are specified,
+   * each cohort can be recognized in the report by their name.
+   *
+   * @param Cohort[] $cohorts
    */
   public function setCohorts($cohorts)
   {
@@ -56,7 +62,10 @@ class CohortSpec extends \Google\Collection
     return $this->cohorts;
   }
   /**
-   * @param CohortsRange
+   * Cohort reports follow cohorts over an extended reporting date range. This
+   * range specifies an offset duration to follow the cohorts over.
+   *
+   * @param CohortsRange $cohortsRange
    */
   public function setCohortsRange(CohortsRange $cohortsRange)
   {

@@ -19,26 +19,116 @@ namespace Google\Service\CloudTalentSolution;
 
 class CompensationEntry extends \Google\Model
 {
+  /**
+   * Default value.
+   */
+  public const TYPE_COMPENSATION_TYPE_UNSPECIFIED = 'COMPENSATION_TYPE_UNSPECIFIED';
+  /**
+   * Base compensation: Refers to the fixed amount of money paid to an employee
+   * by an employer in return for work performed. Base compensation does not
+   * include benefits, bonuses or any other potential compensation from an
+   * employer.
+   */
+  public const TYPE_BASE = 'BASE';
+  /**
+   * Bonus.
+   */
+  public const TYPE_BONUS = 'BONUS';
+  /**
+   * Signing bonus.
+   */
+  public const TYPE_SIGNING_BONUS = 'SIGNING_BONUS';
+  /**
+   * Equity.
+   */
+  public const TYPE_EQUITY = 'EQUITY';
+  /**
+   * Profit sharing.
+   */
+  public const TYPE_PROFIT_SHARING = 'PROFIT_SHARING';
+  /**
+   * Commission.
+   */
+  public const TYPE_COMMISSIONS = 'COMMISSIONS';
+  /**
+   * Tips.
+   */
+  public const TYPE_TIPS = 'TIPS';
+  /**
+   * Other compensation type.
+   */
+  public const TYPE_OTHER_COMPENSATION_TYPE = 'OTHER_COMPENSATION_TYPE';
+  /**
+   * Default value.
+   */
+  public const UNIT_COMPENSATION_UNIT_UNSPECIFIED = 'COMPENSATION_UNIT_UNSPECIFIED';
+  /**
+   * Hourly.
+   */
+  public const UNIT_HOURLY = 'HOURLY';
+  /**
+   * Daily.
+   */
+  public const UNIT_DAILY = 'DAILY';
+  /**
+   * Weekly
+   */
+  public const UNIT_WEEKLY = 'WEEKLY';
+  /**
+   * Monthly.
+   */
+  public const UNIT_MONTHLY = 'MONTHLY';
+  /**
+   * Yearly.
+   */
+  public const UNIT_YEARLY = 'YEARLY';
+  /**
+   * One time.
+   */
+  public const UNIT_ONE_TIME = 'ONE_TIME';
+  /**
+   * Other compensation units.
+   */
+  public const UNIT_OTHER_COMPENSATION_UNIT = 'OTHER_COMPENSATION_UNIT';
   protected $amountType = Money::class;
   protected $amountDataType = '';
   /**
+   * Compensation description. For example, could indicate equity terms or
+   * provide additional context to an estimated bonus.
+   *
    * @var string
    */
   public $description;
+  /**
+   * Expected number of units paid each year. If not specified, when
+   * Job.employment_types is FULLTIME, a default value is inferred based on
+   * unit. Default values: - HOURLY: 2080 - DAILY: 260 - WEEKLY: 52 - MONTHLY:
+   * 12 - ANNUAL: 1
+   *
+   * @var 
+   */
   public $expectedUnitsPerYear;
   protected $rangeType = CompensationRange::class;
   protected $rangeDataType = '';
   /**
+   * Compensation type. Default is
+   * CompensationType.COMPENSATION_TYPE_UNSPECIFIED.
+   *
    * @var string
    */
   public $type;
   /**
+   * Frequency of the specified amount. Default is
+   * CompensationUnit.COMPENSATION_UNIT_UNSPECIFIED.
+   *
    * @var string
    */
   public $unit;
 
   /**
-   * @param Money
+   * Compensation amount.
+   *
+   * @param Money $amount
    */
   public function setAmount(Money $amount)
   {
@@ -52,7 +142,10 @@ class CompensationEntry extends \Google\Model
     return $this->amount;
   }
   /**
-   * @param string
+   * Compensation description. For example, could indicate equity terms or
+   * provide additional context to an estimated bonus.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -74,7 +167,9 @@ class CompensationEntry extends \Google\Model
     return $this->expectedUnitsPerYear;
   }
   /**
-   * @param CompensationRange
+   * Compensation range.
+   *
+   * @param CompensationRange $range
    */
   public function setRange(CompensationRange $range)
   {
@@ -88,28 +183,40 @@ class CompensationEntry extends \Google\Model
     return $this->range;
   }
   /**
-   * @param string
+   * Compensation type. Default is
+   * CompensationType.COMPENSATION_TYPE_UNSPECIFIED.
+   *
+   * Accepted values: COMPENSATION_TYPE_UNSPECIFIED, BASE, BONUS, SIGNING_BONUS,
+   * EQUITY, PROFIT_SHARING, COMMISSIONS, TIPS, OTHER_COMPENSATION_TYPE
+   *
+   * @param self::TYPE_* $type
    */
   public function setType($type)
   {
     $this->type = $type;
   }
   /**
-   * @return string
+   * @return self::TYPE_*
    */
   public function getType()
   {
     return $this->type;
   }
   /**
-   * @param string
+   * Frequency of the specified amount. Default is
+   * CompensationUnit.COMPENSATION_UNIT_UNSPECIFIED.
+   *
+   * Accepted values: COMPENSATION_UNIT_UNSPECIFIED, HOURLY, DAILY, WEEKLY,
+   * MONTHLY, YEARLY, ONE_TIME, OTHER_COMPENSATION_UNIT
+   *
+   * @param self::UNIT_* $unit
    */
   public function setUnit($unit)
   {
     $this->unit = $unit;
   }
   /**
-   * @return string
+   * @return self::UNIT_*
    */
   public function getUnit()
   {

@@ -17,20 +17,35 @@
 
 namespace Google\Service\Cloudchannel;
 
-class GoogleCloudChannelV1Price extends \Google\Model
+class GoogleCloudChannelV1Price extends \Google\Collection
 {
+  protected $collection_key = 'discountComponents';
   protected $basePriceType = GoogleTypeMoney::class;
   protected $basePriceDataType = '';
+  /**
+   * Discount percentage, represented as decimal. For example, a 20% discount
+   * will be represent as 0.2.
+   *
+   * @var 
+   */
   public $discount;
+  protected $discountComponentsType = GoogleCloudChannelV1DiscountComponent::class;
+  protected $discountComponentsDataType = 'array';
   protected $effectivePriceType = GoogleTypeMoney::class;
   protected $effectivePriceDataType = '';
   /**
+   * Link to external price list, such as link to Google Voice rate card.
+   *
    * @var string
    */
   public $externalPriceUri;
+  protected $pricePeriodType = GoogleCloudChannelV1Period::class;
+  protected $pricePeriodDataType = '';
 
   /**
-   * @param GoogleTypeMoney
+   * Base price.
+   *
+   * @param GoogleTypeMoney $basePrice
    */
   public function setBasePrice(GoogleTypeMoney $basePrice)
   {
@@ -52,7 +67,26 @@ class GoogleCloudChannelV1Price extends \Google\Model
     return $this->discount;
   }
   /**
-   * @param GoogleTypeMoney
+   * Breakdown of the discount into its components. This will be empty if there
+   * is no discount present.
+   *
+   * @param GoogleCloudChannelV1DiscountComponent[] $discountComponents
+   */
+  public function setDiscountComponents($discountComponents)
+  {
+    $this->discountComponents = $discountComponents;
+  }
+  /**
+   * @return GoogleCloudChannelV1DiscountComponent[]
+   */
+  public function getDiscountComponents()
+  {
+    return $this->discountComponents;
+  }
+  /**
+   * Effective Price after applying the discounts.
+   *
+   * @param GoogleTypeMoney $effectivePrice
    */
   public function setEffectivePrice(GoogleTypeMoney $effectivePrice)
   {
@@ -66,7 +100,9 @@ class GoogleCloudChannelV1Price extends \Google\Model
     return $this->effectivePrice;
   }
   /**
-   * @param string
+   * Link to external price list, such as link to Google Voice rate card.
+   *
+   * @param string $externalPriceUri
    */
   public function setExternalPriceUri($externalPriceUri)
   {
@@ -78,6 +114,23 @@ class GoogleCloudChannelV1Price extends \Google\Model
   public function getExternalPriceUri()
   {
     return $this->externalPriceUri;
+  }
+  /**
+   * The time period with respect to which base and effective prices are
+   * defined. Example: 1 month, 6 months, 1 year, etc.
+   *
+   * @param GoogleCloudChannelV1Period $pricePeriod
+   */
+  public function setPricePeriod(GoogleCloudChannelV1Period $pricePeriod)
+  {
+    $this->pricePeriod = $pricePeriod;
+  }
+  /**
+   * @return GoogleCloudChannelV1Period
+   */
+  public function getPricePeriod()
+  {
+    return $this->pricePeriod;
   }
 }
 

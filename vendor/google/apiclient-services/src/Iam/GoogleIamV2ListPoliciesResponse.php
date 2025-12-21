@@ -21,6 +21,9 @@ class GoogleIamV2ListPoliciesResponse extends \Google\Collection
 {
   protected $collection_key = 'policies';
   /**
+   * A page token that you can use in a ListPoliciesRequest to retrieve the next
+   * page. If this field is omitted, there are no additional pages.
+   *
    * @var string
    */
   public $nextPageToken;
@@ -28,7 +31,10 @@ class GoogleIamV2ListPoliciesResponse extends \Google\Collection
   protected $policiesDataType = 'array';
 
   /**
-   * @param string
+   * A page token that you can use in a ListPoliciesRequest to retrieve the next
+   * page. If this field is omitted, there are no additional pages.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -42,7 +48,9 @@ class GoogleIamV2ListPoliciesResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param GoogleIamV2Policy[]
+   * Metadata for the policies that are attached to the resource.
+   *
+   * @param GoogleIamV2Policy[] $policies
    */
   public function setPolicies($policies)
   {

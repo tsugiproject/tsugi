@@ -19,45 +19,101 @@ namespace Google\Service\AnalyticsData;
 
 class AudienceExport extends \Google\Collection
 {
+  /**
+   * Unspecified state will never be used.
+   */
+  public const STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED';
+  /**
+   * The AudienceExport is currently creating and will be available in the
+   * future. Creating occurs immediately after the CreateAudienceExport call.
+   */
+  public const STATE_CREATING = 'CREATING';
+  /**
+   * The AudienceExport is fully created and ready for querying. An
+   * AudienceExport is updated to active asynchronously from a request; this
+   * occurs some time (for example 15 minutes) after the initial create call.
+   */
+  public const STATE_ACTIVE = 'ACTIVE';
+  /**
+   * The AudienceExport failed to be created. It is possible that re-requesting
+   * this audience export will succeed.
+   */
+  public const STATE_FAILED = 'FAILED';
   protected $collection_key = 'dimensions';
   /**
+   * Required. The audience resource name. This resource name identifies the
+   * audience being listed and is shared between the Analytics Data & Admin
+   * APIs. Format: `properties/{property}/audiences/{audience}`
+   *
    * @var string
    */
   public $audience;
   /**
+   * Output only. The descriptive display name for this audience. For example,
+   * "Purchasers".
+   *
    * @var string
    */
   public $audienceDisplayName;
   /**
+   * Output only. The time when CreateAudienceExport was called and the
+   * AudienceExport began the `CREATING` state.
+   *
    * @var string
    */
   public $beginCreatingTime;
   /**
+   * Output only. The total quota tokens charged during creation of the
+   * AudienceExport. Because this token count is based on activity from the
+   * `CREATING` state, this tokens charged will be fixed once an AudienceExport
+   * enters the `ACTIVE` or `FAILED` states.
+   *
    * @var int
    */
   public $creationQuotaTokensCharged;
   protected $dimensionsType = V1betaAudienceDimension::class;
   protected $dimensionsDataType = 'array';
   /**
+   * Output only. Error message is populated when an audience export fails
+   * during creation. A common reason for such a failure is quota exhaustion.
+   *
    * @var string
    */
   public $errorMessage;
   /**
+   * Output only. Identifier. The audience export resource name assigned during
+   * creation. This resource name identifies this `AudienceExport`. Format:
+   * `properties/{property}/audienceExports/{audience_export}`
+   *
    * @var string
    */
   public $name;
+  /**
+   * Output only. The percentage completed for this audience export ranging
+   * between 0 to 100.
+   *
+   * @var 
+   */
   public $percentageCompleted;
   /**
+   * Output only. The total number of rows in the AudienceExport result.
+   *
    * @var int
    */
   public $rowCount;
   /**
+   * Output only. The current state for this AudienceExport.
+   *
    * @var string
    */
   public $state;
 
   /**
-   * @param string
+   * Required. The audience resource name. This resource name identifies the
+   * audience being listed and is shared between the Analytics Data & Admin
+   * APIs. Format: `properties/{property}/audiences/{audience}`
+   *
+   * @param string $audience
    */
   public function setAudience($audience)
   {
@@ -71,7 +127,10 @@ class AudienceExport extends \Google\Collection
     return $this->audience;
   }
   /**
-   * @param string
+   * Output only. The descriptive display name for this audience. For example,
+   * "Purchasers".
+   *
+   * @param string $audienceDisplayName
    */
   public function setAudienceDisplayName($audienceDisplayName)
   {
@@ -85,7 +144,10 @@ class AudienceExport extends \Google\Collection
     return $this->audienceDisplayName;
   }
   /**
-   * @param string
+   * Output only. The time when CreateAudienceExport was called and the
+   * AudienceExport began the `CREATING` state.
+   *
+   * @param string $beginCreatingTime
    */
   public function setBeginCreatingTime($beginCreatingTime)
   {
@@ -99,7 +161,12 @@ class AudienceExport extends \Google\Collection
     return $this->beginCreatingTime;
   }
   /**
-   * @param int
+   * Output only. The total quota tokens charged during creation of the
+   * AudienceExport. Because this token count is based on activity from the
+   * `CREATING` state, this tokens charged will be fixed once an AudienceExport
+   * enters the `ACTIVE` or `FAILED` states.
+   *
+   * @param int $creationQuotaTokensCharged
    */
   public function setCreationQuotaTokensCharged($creationQuotaTokensCharged)
   {
@@ -113,7 +180,9 @@ class AudienceExport extends \Google\Collection
     return $this->creationQuotaTokensCharged;
   }
   /**
-   * @param V1betaAudienceDimension[]
+   * Required. The dimensions requested and displayed in the query response.
+   *
+   * @param V1betaAudienceDimension[] $dimensions
    */
   public function setDimensions($dimensions)
   {
@@ -127,7 +196,10 @@ class AudienceExport extends \Google\Collection
     return $this->dimensions;
   }
   /**
-   * @param string
+   * Output only. Error message is populated when an audience export fails
+   * during creation. A common reason for such a failure is quota exhaustion.
+   *
+   * @param string $errorMessage
    */
   public function setErrorMessage($errorMessage)
   {
@@ -141,7 +213,11 @@ class AudienceExport extends \Google\Collection
     return $this->errorMessage;
   }
   /**
-   * @param string
+   * Output only. Identifier. The audience export resource name assigned during
+   * creation. This resource name identifies this `AudienceExport`. Format:
+   * `properties/{property}/audienceExports/{audience_export}`
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -163,7 +239,9 @@ class AudienceExport extends \Google\Collection
     return $this->percentageCompleted;
   }
   /**
-   * @param int
+   * Output only. The total number of rows in the AudienceExport result.
+   *
+   * @param int $rowCount
    */
   public function setRowCount($rowCount)
   {
@@ -177,14 +255,18 @@ class AudienceExport extends \Google\Collection
     return $this->rowCount;
   }
   /**
-   * @param string
+   * Output only. The current state for this AudienceExport.
+   *
+   * Accepted values: STATE_UNSPECIFIED, CREATING, ACTIVE, FAILED
+   *
+   * @param self::STATE_* $state
    */
   public function setState($state)
   {
     $this->state = $state;
   }
   /**
-   * @return string
+   * @return self::STATE_*
    */
   public function getState()
   {

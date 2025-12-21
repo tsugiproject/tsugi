@@ -20,10 +20,30 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaChangeHistoryChange extends \Google\Model
 {
   /**
+   * Action type unknown or not specified.
+   */
+  public const ACTION_ACTION_TYPE_UNSPECIFIED = 'ACTION_TYPE_UNSPECIFIED';
+  /**
+   * Resource was created in this change.
+   */
+  public const ACTION_CREATED = 'CREATED';
+  /**
+   * Resource was updated in this change.
+   */
+  public const ACTION_UPDATED = 'UPDATED';
+  /**
+   * Resource was deleted in this change.
+   */
+  public const ACTION_DELETED = 'DELETED';
+  /**
+   * The type of action that changed this resource.
+   *
    * @var string
    */
   public $action;
   /**
+   * Resource name of the resource whose changes are described by this entry.
+   *
    * @var string
    */
   public $resource;
@@ -33,21 +53,27 @@ class GoogleAnalyticsAdminV1betaChangeHistoryChange extends \Google\Model
   protected $resourceBeforeChangeDataType = '';
 
   /**
-   * @param string
+   * The type of action that changed this resource.
+   *
+   * Accepted values: ACTION_TYPE_UNSPECIFIED, CREATED, UPDATED, DELETED
+   *
+   * @param self::ACTION_* $action
    */
   public function setAction($action)
   {
     $this->action = $action;
   }
   /**
-   * @return string
+   * @return self::ACTION_*
    */
   public function getAction()
   {
     return $this->action;
   }
   /**
-   * @param string
+   * Resource name of the resource whose changes are described by this entry.
+   *
+   * @param string $resource
    */
   public function setResource($resource)
   {
@@ -61,7 +87,10 @@ class GoogleAnalyticsAdminV1betaChangeHistoryChange extends \Google\Model
     return $this->resource;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource
+   * Resource contents from after the change was made. If this resource was
+   * deleted in this change, this field will be missing.
+   *
+   * @param GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource $resourceAfterChange
    */
   public function setResourceAfterChange(GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource $resourceAfterChange)
   {
@@ -75,7 +104,10 @@ class GoogleAnalyticsAdminV1betaChangeHistoryChange extends \Google\Model
     return $this->resourceAfterChange;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource
+   * Resource contents from before the change was made. If this resource was
+   * created in this change, this field will be missing.
+   *
+   * @param GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource $resourceBeforeChange
    */
   public function setResourceBeforeChange(GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource $resourceBeforeChange)
   {

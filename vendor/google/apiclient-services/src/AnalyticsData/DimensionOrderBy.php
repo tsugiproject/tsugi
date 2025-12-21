@@ -20,16 +20,43 @@ namespace Google\Service\AnalyticsData;
 class DimensionOrderBy extends \Google\Model
 {
   /**
+   * Unspecified.
+   */
+  public const ORDER_TYPE_ORDER_TYPE_UNSPECIFIED = 'ORDER_TYPE_UNSPECIFIED';
+  /**
+   * Alphanumeric sort by Unicode code point. For example, "2" < "A" < "X" < "b"
+   * < "z".
+   */
+  public const ORDER_TYPE_ALPHANUMERIC = 'ALPHANUMERIC';
+  /**
+   * Case insensitive alphanumeric sort by lower case Unicode code point. For
+   * example, "2" < "A" < "b" < "X" < "z".
+   */
+  public const ORDER_TYPE_CASE_INSENSITIVE_ALPHANUMERIC = 'CASE_INSENSITIVE_ALPHANUMERIC';
+  /**
+   * Dimension values are converted to numbers before sorting. For example in
+   * NUMERIC sort, "25" < "100", and in `ALPHANUMERIC` sort, "100" < "25". Non-
+   * numeric dimension values all have equal ordering value below all numeric
+   * values.
+   */
+  public const ORDER_TYPE_NUMERIC = 'NUMERIC';
+  /**
+   * A dimension name in the request to order by.
+   *
    * @var string
    */
   public $dimensionName;
   /**
+   * Controls the rule for dimension value ordering.
+   *
    * @var string
    */
   public $orderType;
 
   /**
-   * @param string
+   * A dimension name in the request to order by.
+   *
+   * @param string $dimensionName
    */
   public function setDimensionName($dimensionName)
   {
@@ -43,14 +70,19 @@ class DimensionOrderBy extends \Google\Model
     return $this->dimensionName;
   }
   /**
-   * @param string
+   * Controls the rule for dimension value ordering.
+   *
+   * Accepted values: ORDER_TYPE_UNSPECIFIED, ALPHANUMERIC,
+   * CASE_INSENSITIVE_ALPHANUMERIC, NUMERIC
+   *
+   * @param self::ORDER_TYPE_* $orderType
    */
   public function setOrderType($orderType)
   {
     $this->orderType = $orderType;
   }
   /**
-   * @return string
+   * @return self::ORDER_TYPE_*
    */
   public function getOrderType()
   {

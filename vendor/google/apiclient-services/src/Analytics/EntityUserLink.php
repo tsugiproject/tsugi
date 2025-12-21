@@ -22,16 +22,22 @@ class EntityUserLink extends \Google\Model
   protected $entityType = EntityUserLinkEntity::class;
   protected $entityDataType = '';
   /**
+   * Entity user link ID
+   *
    * @var string
    */
   public $id;
   /**
+   * Resource type for entity user link.
+   *
    * @var string
    */
   public $kind;
   protected $permissionsType = EntityUserLinkPermissions::class;
   protected $permissionsDataType = '';
   /**
+   * Self link for this resource.
+   *
    * @var string
    */
   public $selfLink;
@@ -39,7 +45,10 @@ class EntityUserLink extends \Google\Model
   protected $userRefDataType = '';
 
   /**
-   * @param EntityUserLinkEntity
+   * Entity for this link. It can be an account, a web property, or a view
+   * (profile).
+   *
+   * @param EntityUserLinkEntity $entity
    */
   public function setEntity(EntityUserLinkEntity $entity)
   {
@@ -53,7 +62,9 @@ class EntityUserLink extends \Google\Model
     return $this->entity;
   }
   /**
-   * @param string
+   * Entity user link ID
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -67,7 +78,9 @@ class EntityUserLink extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * Resource type for entity user link.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -81,7 +94,9 @@ class EntityUserLink extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param EntityUserLinkPermissions
+   * Permissions the user has for this entity.
+   *
+   * @param EntityUserLinkPermissions $permissions
    */
   public function setPermissions(EntityUserLinkPermissions $permissions)
   {
@@ -95,7 +110,9 @@ class EntityUserLink extends \Google\Model
     return $this->permissions;
   }
   /**
-   * @param string
+   * Self link for this resource.
+   *
+   * @param string $selfLink
    */
   public function setSelfLink($selfLink)
   {
@@ -109,7 +126,9 @@ class EntityUserLink extends \Google\Model
     return $this->selfLink;
   }
   /**
-   * @param UserRef
+   * User reference.
+   *
+   * @param UserRef $userRef
    */
   public function setUserRef(UserRef $userRef)
   {

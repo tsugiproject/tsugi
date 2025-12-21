@@ -24,7 +24,9 @@ class BatchCreateRowsResponse extends \Google\Collection
   protected $rowsDataType = 'array';
 
   /**
-   * @param Row[]
+   * The created rows.
+   *
+   * @param Row[] $rows
    */
   public function setRows($rows)
   {

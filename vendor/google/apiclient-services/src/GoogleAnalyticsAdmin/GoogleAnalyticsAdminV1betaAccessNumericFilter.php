@@ -20,6 +20,32 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaAccessNumericFilter extends \Google\Model
 {
   /**
+   * Unspecified.
+   */
+  public const OPERATION_OPERATION_UNSPECIFIED = 'OPERATION_UNSPECIFIED';
+  /**
+   * Equal
+   */
+  public const OPERATION_EQUAL = 'EQUAL';
+  /**
+   * Less than
+   */
+  public const OPERATION_LESS_THAN = 'LESS_THAN';
+  /**
+   * Less than or equal
+   */
+  public const OPERATION_LESS_THAN_OR_EQUAL = 'LESS_THAN_OR_EQUAL';
+  /**
+   * Greater than
+   */
+  public const OPERATION_GREATER_THAN = 'GREATER_THAN';
+  /**
+   * Greater than or equal
+   */
+  public const OPERATION_GREATER_THAN_OR_EQUAL = 'GREATER_THAN_OR_EQUAL';
+  /**
+   * The operation type for this filter.
+   *
    * @var string
    */
   public $operation;
@@ -27,21 +53,28 @@ class GoogleAnalyticsAdminV1betaAccessNumericFilter extends \Google\Model
   protected $valueDataType = '';
 
   /**
-   * @param string
+   * The operation type for this filter.
+   *
+   * Accepted values: OPERATION_UNSPECIFIED, EQUAL, LESS_THAN,
+   * LESS_THAN_OR_EQUAL, GREATER_THAN, GREATER_THAN_OR_EQUAL
+   *
+   * @param self::OPERATION_* $operation
    */
   public function setOperation($operation)
   {
     $this->operation = $operation;
   }
   /**
-   * @return string
+   * @return self::OPERATION_*
    */
   public function getOperation()
   {
     return $this->operation;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaNumericValue
+   * A numeric value or a date value.
+   *
+   * @param GoogleAnalyticsAdminV1betaNumericValue $value
    */
   public function setValue(GoogleAnalyticsAdminV1betaNumericValue $value)
   {

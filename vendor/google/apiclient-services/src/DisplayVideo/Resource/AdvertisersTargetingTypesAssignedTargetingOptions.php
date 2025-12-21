@@ -39,7 +39,8 @@ class AdvertisersTargetingTypesAssignedTargetingOptions extends \Google\Service\
    * @param string $targetingType Required. Identifies the type of this assigned
    * targeting option. Supported targeting types: * `TARGETING_TYPE_CHANNEL` *
    * `TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION` * `TARGETING_TYPE_OMID` *
-   * `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION` * `TARGETING_TYPE_KEYWORD`
+   * `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION` * `TARGETING_TYPE_KEYWORD` *
+   * `TARGETING_TYPE_INVENTORY_MODE`
    * @param AssignedTargetingOption $postBody
    * @param array $optParams Optional parameters.
    * @return AssignedTargetingOption
@@ -59,7 +60,8 @@ class AdvertisersTargetingTypesAssignedTargetingOptions extends \Google\Service\
    * @param string $targetingType Required. Identifies the type of this assigned
    * targeting option. Supported targeting types: * `TARGETING_TYPE_CHANNEL` *
    * `TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION` * `TARGETING_TYPE_OMID` *
-   * `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION` * `TARGETING_TYPE_KEYWORD`
+   * `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION` * `TARGETING_TYPE_KEYWORD` *
+   * `TARGETING_TYPE_INVENTORY_MODE`
    * @param string $assignedTargetingOptionId Required. The ID of the assigned
    * targeting option to delete.
    * @param array $optParams Optional parameters.
@@ -82,7 +84,7 @@ class AdvertisersTargetingTypesAssignedTargetingOptions extends \Google\Service\
    * `TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION` * `TARGETING_TYPE_OMID` *
    * `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION` *
    * `TARGETING_TYPE_YOUTUBE_VIDEO` * `TARGETING_TYPE_YOUTUBE_CHANNEL` *
-   * `TARGETING_TYPE_KEYWORD`
+   * `TARGETING_TYPE_KEYWORD` * `TARGETING_TYPE_CONTENT_THEME_EXCLUSION`
    * @param string $assignedTargetingOptionId Required. An identifier unique to
    * the targeting type in this advertiser that identifies the assigned targeting
    * option being requested.
@@ -106,7 +108,7 @@ class AdvertisersTargetingTypesAssignedTargetingOptions extends \Google\Service\
    * `TARGETING_TYPE_CHANNEL` * `TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION` *
    * `TARGETING_TYPE_OMID` * `TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION` *
    * `TARGETING_TYPE_YOUTUBE_VIDEO` * `TARGETING_TYPE_YOUTUBE_CHANNEL` *
-   * `TARGETING_TYPE_KEYWORD`
+   * `TARGETING_TYPE_KEYWORD` * `TARGETING_TYPE_CONTENT_THEME_EXCLUSION`
    * @param array $optParams Optional parameters.
    *
    * @opt_param string filter Allows filtering by assigned targeting option

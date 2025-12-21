@@ -24,7 +24,10 @@ class BatchDeleteJobsResponse extends \Google\Collection
   protected $jobResultsDataType = 'array';
 
   /**
-   * @param JobResult[]
+   * List of job mutation results from a batch delete operation. It can change
+   * until operation status is FINISHED, FAILED or CANCELLED.
+   *
+   * @param JobResult[] $jobResults
    */
   public function setJobResults($jobResults)
   {

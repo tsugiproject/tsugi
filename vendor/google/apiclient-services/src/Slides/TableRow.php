@@ -28,7 +28,9 @@ class TableRow extends \Google\Collection
   protected $tableRowPropertiesDataType = '';
 
   /**
-   * @param Dimension
+   * Height of a row.
+   *
+   * @param Dimension $rowHeight
    */
   public function setRowHeight(Dimension $rowHeight)
   {
@@ -42,7 +44,12 @@ class TableRow extends \Google\Collection
     return $this->rowHeight;
   }
   /**
-   * @param TableCell[]
+   * Properties and contents of each cell. Cells that span multiple columns are
+   * represented only once with a column_span greater than 1. As a result, the
+   * length of this collection does not always match the number of columns of
+   * the entire table.
+   *
+   * @param TableCell[] $tableCells
    */
   public function setTableCells($tableCells)
   {
@@ -56,7 +63,9 @@ class TableRow extends \Google\Collection
     return $this->tableCells;
   }
   /**
-   * @param TableRowProperties
+   * Properties of the row.
+   *
+   * @param TableRowProperties $tableRowProperties
    */
   public function setTableRowProperties(TableRowProperties $tableRowProperties)
   {

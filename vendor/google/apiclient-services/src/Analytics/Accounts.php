@@ -23,36 +23,57 @@ class Accounts extends \Google\Collection
   protected $itemsType = Account::class;
   protected $itemsDataType = 'array';
   /**
+   * The maximum number of entries the response can contain, regardless of the
+   * actual number of entries returned. Its value ranges from 1 to 1000 with a
+   * value of 1000 by default, or otherwise specified by the max-results query
+   * parameter.
+   *
    * @var int
    */
   public $itemsPerPage;
   /**
+   * Collection type.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Next link for this account collection.
+   *
    * @var string
    */
   public $nextLink;
   /**
+   * Previous link for this account collection.
+   *
    * @var string
    */
   public $previousLink;
   /**
+   * The starting index of the entries, which is 1 by default or otherwise
+   * specified by the start-index query parameter.
+   *
    * @var int
    */
   public $startIndex;
   /**
+   * The total number of results for the query, regardless of the number of
+   * results in the response.
+   *
    * @var int
    */
   public $totalResults;
   /**
+   * Email ID of the authenticated user
+   *
    * @var string
    */
   public $username;
 
   /**
-   * @param Account[]
+   * A list of accounts.
+   *
+   * @param Account[] $items
    */
   public function setItems($items)
   {
@@ -66,7 +87,12 @@ class Accounts extends \Google\Collection
     return $this->items;
   }
   /**
-   * @param int
+   * The maximum number of entries the response can contain, regardless of the
+   * actual number of entries returned. Its value ranges from 1 to 1000 with a
+   * value of 1000 by default, or otherwise specified by the max-results query
+   * parameter.
+   *
+   * @param int $itemsPerPage
    */
   public function setItemsPerPage($itemsPerPage)
   {
@@ -80,7 +106,9 @@ class Accounts extends \Google\Collection
     return $this->itemsPerPage;
   }
   /**
-   * @param string
+   * Collection type.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -94,7 +122,9 @@ class Accounts extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * Next link for this account collection.
+   *
+   * @param string $nextLink
    */
   public function setNextLink($nextLink)
   {
@@ -108,7 +138,9 @@ class Accounts extends \Google\Collection
     return $this->nextLink;
   }
   /**
-   * @param string
+   * Previous link for this account collection.
+   *
+   * @param string $previousLink
    */
   public function setPreviousLink($previousLink)
   {
@@ -122,7 +154,10 @@ class Accounts extends \Google\Collection
     return $this->previousLink;
   }
   /**
-   * @param int
+   * The starting index of the entries, which is 1 by default or otherwise
+   * specified by the start-index query parameter.
+   *
+   * @param int $startIndex
    */
   public function setStartIndex($startIndex)
   {
@@ -136,7 +171,10 @@ class Accounts extends \Google\Collection
     return $this->startIndex;
   }
   /**
-   * @param int
+   * The total number of results for the query, regardless of the number of
+   * results in the response.
+   *
+   * @param int $totalResults
    */
   public function setTotalResults($totalResults)
   {
@@ -150,7 +188,9 @@ class Accounts extends \Google\Collection
     return $this->totalResults;
   }
   /**
-   * @param string
+   * Email ID of the authenticated user
+   *
+   * @param string $username
    */
   public function setUsername($username)
   {

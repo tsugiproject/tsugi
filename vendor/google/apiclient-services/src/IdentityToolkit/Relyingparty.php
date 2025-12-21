@@ -20,68 +20,103 @@ namespace Google\Service\IdentityToolkit;
 class Relyingparty extends \Google\Model
 {
   /**
+   * whether or not to install the android app on the device where the link is
+   * opened
+   *
    * @var bool
    */
   public $androidInstallApp;
   /**
+   * minimum version of the app. if the version on the device is lower than this
+   * version then the user is taken to the play store to upgrade the app
+   *
    * @var string
    */
   public $androidMinimumVersion;
   /**
+   * android package name of the android app to handle the action code
+   *
    * @var string
    */
   public $androidPackageName;
   /**
+   * whether or not the app can handle the oob code without first going to web
+   *
    * @var bool
    */
   public $canHandleCodeInApp;
   /**
+   * The recaptcha response from the user.
+   *
    * @var string
    */
   public $captchaResp;
   /**
+   * The recaptcha challenge presented to the user.
+   *
    * @var string
    */
   public $challenge;
   /**
+   * The url to continue to the Gitkit app
+   *
    * @var string
    */
   public $continueUrl;
   /**
+   * The email of the user.
+   *
    * @var string
    */
   public $email;
   /**
+   * iOS app store id to download the app if it's not already installed
+   *
    * @var string
    */
   public $iOSAppStoreId;
   /**
+   * the iOS bundle id of iOS app to handle the action code
+   *
    * @var string
    */
   public $iOSBundleId;
   /**
+   * The user's Gitkit login token for email change.
+   *
    * @var string
    */
   public $idToken;
   /**
+   * The fixed string "identitytoolkit#relyingparty".
+   *
    * @var string
    */
   public $kind;
   /**
+   * The new email if the code is for email change.
+   *
    * @var string
    */
   public $newEmail;
   /**
+   * The request type.
+   *
    * @var string
    */
   public $requestType;
   /**
+   * The IP address of the user.
+   *
    * @var string
    */
   public $userIp;
 
   /**
-   * @param bool
+   * whether or not to install the android app on the device where the link is
+   * opened
+   *
+   * @param bool $androidInstallApp
    */
   public function setAndroidInstallApp($androidInstallApp)
   {
@@ -95,7 +130,10 @@ class Relyingparty extends \Google\Model
     return $this->androidInstallApp;
   }
   /**
-   * @param string
+   * minimum version of the app. if the version on the device is lower than this
+   * version then the user is taken to the play store to upgrade the app
+   *
+   * @param string $androidMinimumVersion
    */
   public function setAndroidMinimumVersion($androidMinimumVersion)
   {
@@ -109,7 +147,9 @@ class Relyingparty extends \Google\Model
     return $this->androidMinimumVersion;
   }
   /**
-   * @param string
+   * android package name of the android app to handle the action code
+   *
+   * @param string $androidPackageName
    */
   public function setAndroidPackageName($androidPackageName)
   {
@@ -123,7 +163,9 @@ class Relyingparty extends \Google\Model
     return $this->androidPackageName;
   }
   /**
-   * @param bool
+   * whether or not the app can handle the oob code without first going to web
+   *
+   * @param bool $canHandleCodeInApp
    */
   public function setCanHandleCodeInApp($canHandleCodeInApp)
   {
@@ -137,7 +179,9 @@ class Relyingparty extends \Google\Model
     return $this->canHandleCodeInApp;
   }
   /**
-   * @param string
+   * The recaptcha response from the user.
+   *
+   * @param string $captchaResp
    */
   public function setCaptchaResp($captchaResp)
   {
@@ -151,7 +195,9 @@ class Relyingparty extends \Google\Model
     return $this->captchaResp;
   }
   /**
-   * @param string
+   * The recaptcha challenge presented to the user.
+   *
+   * @param string $challenge
    */
   public function setChallenge($challenge)
   {
@@ -165,7 +211,9 @@ class Relyingparty extends \Google\Model
     return $this->challenge;
   }
   /**
-   * @param string
+   * The url to continue to the Gitkit app
+   *
+   * @param string $continueUrl
    */
   public function setContinueUrl($continueUrl)
   {
@@ -179,7 +227,9 @@ class Relyingparty extends \Google\Model
     return $this->continueUrl;
   }
   /**
-   * @param string
+   * The email of the user.
+   *
+   * @param string $email
    */
   public function setEmail($email)
   {
@@ -193,7 +243,9 @@ class Relyingparty extends \Google\Model
     return $this->email;
   }
   /**
-   * @param string
+   * iOS app store id to download the app if it's not already installed
+   *
+   * @param string $iOSAppStoreId
    */
   public function setIOSAppStoreId($iOSAppStoreId)
   {
@@ -207,7 +259,9 @@ class Relyingparty extends \Google\Model
     return $this->iOSAppStoreId;
   }
   /**
-   * @param string
+   * the iOS bundle id of iOS app to handle the action code
+   *
+   * @param string $iOSBundleId
    */
   public function setIOSBundleId($iOSBundleId)
   {
@@ -221,7 +275,9 @@ class Relyingparty extends \Google\Model
     return $this->iOSBundleId;
   }
   /**
-   * @param string
+   * The user's Gitkit login token for email change.
+   *
+   * @param string $idToken
    */
   public function setIdToken($idToken)
   {
@@ -235,7 +291,9 @@ class Relyingparty extends \Google\Model
     return $this->idToken;
   }
   /**
-   * @param string
+   * The fixed string "identitytoolkit#relyingparty".
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -249,7 +307,9 @@ class Relyingparty extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * The new email if the code is for email change.
+   *
+   * @param string $newEmail
    */
   public function setNewEmail($newEmail)
   {
@@ -263,7 +323,9 @@ class Relyingparty extends \Google\Model
     return $this->newEmail;
   }
   /**
-   * @param string
+   * The request type.
+   *
+   * @param string $requestType
    */
   public function setRequestType($requestType)
   {
@@ -277,7 +339,9 @@ class Relyingparty extends \Google\Model
     return $this->requestType;
   }
   /**
-   * @param string
+   * The IP address of the user.
+   *
+   * @param string $userIp
    */
   public function setUserIp($userIp)
   {

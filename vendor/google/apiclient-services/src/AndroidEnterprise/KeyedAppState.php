@@ -19,29 +19,54 @@ namespace Google\Service\AndroidEnterprise;
 
 class KeyedAppState extends \Google\Model
 {
+  public const SEVERITY_severityUnknown = 'severityUnknown';
+  public const SEVERITY_severityInfo = 'severityInfo';
+  public const SEVERITY_severityError = 'severityError';
   /**
+   * Additional field intended for machine-readable data. For example, a number
+   * or JSON object. To prevent XSS, we recommend removing any HTML from the
+   * data before displaying it.
+   *
    * @var string
    */
   public $data;
   /**
+   * Key indicating what the app is providing a state for. The content of the
+   * key is set by the app's developer. To prevent XSS, we recommend removing
+   * any HTML from the key before displaying it. This field will always be
+   * present.
+   *
    * @var string
    */
   public $key;
   /**
+   * Free-form, human-readable message describing the app state. For example, an
+   * error message. To prevent XSS, we recommend removing any HTML from the
+   * message before displaying it.
+   *
    * @var string
    */
   public $message;
   /**
+   * Severity of the app state. This field will always be present.
+   *
    * @var string
    */
   public $severity;
   /**
+   * Timestamp of when the app set the state in milliseconds since epoch. This
+   * field will always be present.
+   *
    * @var string
    */
   public $stateTimestampMillis;
 
   /**
-   * @param string
+   * Additional field intended for machine-readable data. For example, a number
+   * or JSON object. To prevent XSS, we recommend removing any HTML from the
+   * data before displaying it.
+   *
+   * @param string $data
    */
   public function setData($data)
   {
@@ -55,7 +80,12 @@ class KeyedAppState extends \Google\Model
     return $this->data;
   }
   /**
-   * @param string
+   * Key indicating what the app is providing a state for. The content of the
+   * key is set by the app's developer. To prevent XSS, we recommend removing
+   * any HTML from the key before displaying it. This field will always be
+   * present.
+   *
+   * @param string $key
    */
   public function setKey($key)
   {
@@ -69,7 +99,11 @@ class KeyedAppState extends \Google\Model
     return $this->key;
   }
   /**
-   * @param string
+   * Free-form, human-readable message describing the app state. For example, an
+   * error message. To prevent XSS, we recommend removing any HTML from the
+   * message before displaying it.
+   *
+   * @param string $message
    */
   public function setMessage($message)
   {
@@ -83,21 +117,28 @@ class KeyedAppState extends \Google\Model
     return $this->message;
   }
   /**
-   * @param string
+   * Severity of the app state. This field will always be present.
+   *
+   * Accepted values: severityUnknown, severityInfo, severityError
+   *
+   * @param self::SEVERITY_* $severity
    */
   public function setSeverity($severity)
   {
     $this->severity = $severity;
   }
   /**
-   * @return string
+   * @return self::SEVERITY_*
    */
   public function getSeverity()
   {
     return $this->severity;
   }
   /**
-   * @param string
+   * Timestamp of when the app set the state in milliseconds since epoch. This
+   * field will always be present.
+   *
+   * @param string $stateTimestampMillis
    */
   public function setStateTimestampMillis($stateTimestampMillis)
   {

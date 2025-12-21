@@ -23,48 +23,74 @@ class Webfont extends \Google\Collection
   protected $axesType = Axis::class;
   protected $axesDataType = 'array';
   /**
+   * The category of the font.
+   *
    * @var string
    */
   public $category;
   /**
+   * The color format(s) available for this family.
+   *
    * @var string[]
    */
   public $colorCapabilities;
   /**
+   * The name of the font.
+   *
    * @var string
    */
   public $family;
   /**
+   * The font files (with all supported scripts) for each one of the available
+   * variants, as a key : value map.
+   *
    * @var string[]
    */
   public $files;
   /**
+   * This kind represents a webfont object in the webfonts service.
+   *
    * @var string
    */
   public $kind;
   /**
+   * The date (format "yyyy-MM-dd") the font was modified for the last time.
+   *
    * @var string
    */
   public $lastModified;
   /**
+   * Font URL for menu subset, a subset of the font that is enough to display
+   * the font name
+   *
    * @var string
    */
   public $menu;
   /**
+   * The scripts supported by the font.
+   *
    * @var string[]
    */
   public $subsets;
+  protected $tagsType = Tag::class;
+  protected $tagsDataType = 'array';
   /**
+   * The available variants for the font.
+   *
    * @var string[]
    */
   public $variants;
   /**
+   * The font version.
+   *
    * @var string
    */
   public $version;
 
   /**
-   * @param Axis[]
+   * Axis for variable fonts.
+   *
+   * @param Axis[] $axes
    */
   public function setAxes($axes)
   {
@@ -78,7 +104,9 @@ class Webfont extends \Google\Collection
     return $this->axes;
   }
   /**
-   * @param string
+   * The category of the font.
+   *
+   * @param string $category
    */
   public function setCategory($category)
   {
@@ -92,7 +120,9 @@ class Webfont extends \Google\Collection
     return $this->category;
   }
   /**
-   * @param string[]
+   * The color format(s) available for this family.
+   *
+   * @param string[] $colorCapabilities
    */
   public function setColorCapabilities($colorCapabilities)
   {
@@ -106,7 +136,9 @@ class Webfont extends \Google\Collection
     return $this->colorCapabilities;
   }
   /**
-   * @param string
+   * The name of the font.
+   *
+   * @param string $family
    */
   public function setFamily($family)
   {
@@ -120,7 +152,10 @@ class Webfont extends \Google\Collection
     return $this->family;
   }
   /**
-   * @param string[]
+   * The font files (with all supported scripts) for each one of the available
+   * variants, as a key : value map.
+   *
+   * @param string[] $files
    */
   public function setFiles($files)
   {
@@ -134,7 +169,9 @@ class Webfont extends \Google\Collection
     return $this->files;
   }
   /**
-   * @param string
+   * This kind represents a webfont object in the webfonts service.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -148,7 +185,9 @@ class Webfont extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * The date (format "yyyy-MM-dd") the font was modified for the last time.
+   *
+   * @param string $lastModified
    */
   public function setLastModified($lastModified)
   {
@@ -162,7 +201,10 @@ class Webfont extends \Google\Collection
     return $this->lastModified;
   }
   /**
-   * @param string
+   * Font URL for menu subset, a subset of the font that is enough to display
+   * the font name
+   *
+   * @param string $menu
    */
   public function setMenu($menu)
   {
@@ -176,7 +218,9 @@ class Webfont extends \Google\Collection
     return $this->menu;
   }
   /**
-   * @param string[]
+   * The scripts supported by the font.
+   *
+   * @param string[] $subsets
    */
   public function setSubsets($subsets)
   {
@@ -190,7 +234,25 @@ class Webfont extends \Google\Collection
     return $this->subsets;
   }
   /**
-   * @param string[]
+   * The tags that apply to this family.
+   *
+   * @param Tag[] $tags
+   */
+  public function setTags($tags)
+  {
+    $this->tags = $tags;
+  }
+  /**
+   * @return Tag[]
+   */
+  public function getTags()
+  {
+    return $this->tags;
+  }
+  /**
+   * The available variants for the font.
+   *
+   * @param string[] $variants
    */
   public function setVariants($variants)
   {
@@ -204,7 +266,9 @@ class Webfont extends \Google\Collection
     return $this->variants;
   }
   /**
-   * @param string
+   * The font version.
+   *
+   * @param string $version
    */
   public function setVersion($version)
   {

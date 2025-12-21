@@ -20,6 +20,11 @@ namespace Google\Service\ChromeUXReport;
 class Metric extends \Google\Collection
 {
   protected $collection_key = 'histogram';
+  /**
+   * For enum metrics, provides fractions which add up to approximately 1.0.
+   *
+   * @var []
+   */
   public $fractions;
   protected $histogramType = Bin::class;
   protected $histogramDataType = 'array';
@@ -35,7 +40,10 @@ class Metric extends \Google\Collection
     return $this->fractions;
   }
   /**
-   * @param Bin[]
+   * The histogram of user experiences for a metric. The histogram will have at
+   * least one bin and the densities of all bins will add up to ~1.
+   *
+   * @param Bin[] $histogram
    */
   public function setHistogram($histogram)
   {
@@ -49,7 +57,11 @@ class Metric extends \Google\Collection
     return $this->histogram;
   }
   /**
-   * @param Percentiles
+   * Commonly useful percentiles of the Metric. The value type for the
+   * percentiles will be the same as the value types given for the Histogram
+   * bins.
+   *
+   * @param Percentiles $percentiles
    */
   public function setPercentiles(Percentiles $percentiles)
   {

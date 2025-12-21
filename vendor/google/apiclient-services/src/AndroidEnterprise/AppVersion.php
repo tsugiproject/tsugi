@@ -19,34 +19,58 @@ namespace Google\Service\AndroidEnterprise;
 
 class AppVersion extends \Google\Collection
 {
+  public const TRACK_appTrackUnspecified = 'appTrackUnspecified';
+  public const TRACK_production = 'production';
+  public const TRACK_beta = 'beta';
+  public const TRACK_alpha = 'alpha';
   protected $collection_key = 'trackId';
   /**
+   * True if this version is a production APK.
+   *
    * @var bool
    */
   public $isProduction;
   /**
+   * The SDK version this app targets, as specified in the manifest of the APK.
+   * See http://developer.android.com/guide/topics/manifest/uses-sdk-
+   * element.html
+   *
    * @var int
    */
   public $targetSdkVersion;
   /**
+   * Deprecated, use trackId instead.
+   *
    * @var string
    */
   public $track;
   /**
+   * Track ids that the app version is published in. Replaces the track field
+   * (deprecated), but doesn't include the production track (see isProduction
+   * instead).
+   *
    * @var string[]
    */
   public $trackId;
   /**
+   * Unique increasing identifier for the app version.
+   *
    * @var int
    */
   public $versionCode;
   /**
+   * The string used in the Play store by the app developer to identify the
+   * version. The string is not necessarily unique or localized (for example,
+   * the string could be "1.4").
+   *
    * @var string
    */
   public $versionString;
 
   /**
-   * @param bool
+   * True if this version is a production APK.
+   *
+   * @param bool $isProduction
    */
   public function setIsProduction($isProduction)
   {
@@ -60,7 +84,11 @@ class AppVersion extends \Google\Collection
     return $this->isProduction;
   }
   /**
-   * @param int
+   * The SDK version this app targets, as specified in the manifest of the APK.
+   * See http://developer.android.com/guide/topics/manifest/uses-sdk-
+   * element.html
+   *
+   * @param int $targetSdkVersion
    */
   public function setTargetSdkVersion($targetSdkVersion)
   {
@@ -74,21 +102,29 @@ class AppVersion extends \Google\Collection
     return $this->targetSdkVersion;
   }
   /**
-   * @param string
+   * Deprecated, use trackId instead.
+   *
+   * Accepted values: appTrackUnspecified, production, beta, alpha
+   *
+   * @param self::TRACK_* $track
    */
   public function setTrack($track)
   {
     $this->track = $track;
   }
   /**
-   * @return string
+   * @return self::TRACK_*
    */
   public function getTrack()
   {
     return $this->track;
   }
   /**
-   * @param string[]
+   * Track ids that the app version is published in. Replaces the track field
+   * (deprecated), but doesn't include the production track (see isProduction
+   * instead).
+   *
+   * @param string[] $trackId
    */
   public function setTrackId($trackId)
   {
@@ -102,7 +138,9 @@ class AppVersion extends \Google\Collection
     return $this->trackId;
   }
   /**
-   * @param int
+   * Unique increasing identifier for the app version.
+   *
+   * @param int $versionCode
    */
   public function setVersionCode($versionCode)
   {
@@ -116,7 +154,11 @@ class AppVersion extends \Google\Collection
     return $this->versionCode;
   }
   /**
-   * @param string
+   * The string used in the Play store by the app developer to identify the
+   * version. The string is not necessarily unique or localized (for example,
+   * the string could be "1.4").
+   *
+   * @param string $versionString
    */
   public function setVersionString($versionString)
   {

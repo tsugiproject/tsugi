@@ -20,12 +20,16 @@ namespace Google\Service\IdentityToolkit;
 class IdentitytoolkitRelyingpartySetProjectConfigResponse extends \Google\Model
 {
   /**
+   * Project ID of the relying party.
+   *
    * @var string
    */
   public $projectId;
 
   /**
-   * @param string
+   * Project ID of the relying party.
+   *
+   * @param string $projectId
    */
   public function setProjectId($projectId)
   {

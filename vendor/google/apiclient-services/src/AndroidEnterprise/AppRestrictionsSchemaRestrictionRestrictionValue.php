@@ -19,44 +19,96 @@ namespace Google\Service\AndroidEnterprise;
 
 class AppRestrictionsSchemaRestrictionRestrictionValue extends \Google\Collection
 {
+  /**
+   * A restriction of boolean type.
+   */
+  public const TYPE_bool = 'bool';
+  /**
+   * A restriction of string type.
+   */
+  public const TYPE_string = 'string';
+  /**
+   * A restriction of integer type.
+   */
+  public const TYPE_integer = 'integer';
+  /**
+   * A choice of one item from a set.
+   */
+  public const TYPE_choice = 'choice';
+  /**
+   * A choice of multiple items from a set.
+   */
+  public const TYPE_multiselect = 'multiselect';
+  /**
+   * A hidden restriction of string type (the default value can be used to pass
+   * along information that cannot be modified, such as a version code).
+   */
+  public const TYPE_hidden = 'hidden';
+  /**
+   * [M+ devices only] A bundle of restrictions
+   */
+  public const TYPE_bundle = 'bundle';
+  /**
+   * [M+ devices only] An array of restriction bundles
+   */
+  public const TYPE_bundleArray = 'bundleArray';
   protected $collection_key = 'valueMultiselect';
   /**
+   * The type of the value being provided.
+   *
    * @var string
    */
   public $type;
   /**
+   * The boolean value - this will only be present if type is bool.
+   *
    * @var bool
    */
   public $valueBool;
   /**
+   * The integer value - this will only be present if type is integer.
+   *
    * @var int
    */
   public $valueInteger;
   /**
+   * The list of string values - this will only be present if type is
+   * multiselect.
+   *
    * @var string[]
    */
   public $valueMultiselect;
   /**
+   * The string value - this will be present for types string, choice and
+   * hidden.
+   *
    * @var string
    */
   public $valueString;
 
   /**
-   * @param string
+   * The type of the value being provided.
+   *
+   * Accepted values: bool, string, integer, choice, multiselect, hidden,
+   * bundle, bundleArray
+   *
+   * @param self::TYPE_* $type
    */
   public function setType($type)
   {
     $this->type = $type;
   }
   /**
-   * @return string
+   * @return self::TYPE_*
    */
   public function getType()
   {
     return $this->type;
   }
   /**
-   * @param bool
+   * The boolean value - this will only be present if type is bool.
+   *
+   * @param bool $valueBool
    */
   public function setValueBool($valueBool)
   {
@@ -70,7 +122,9 @@ class AppRestrictionsSchemaRestrictionRestrictionValue extends \Google\Collectio
     return $this->valueBool;
   }
   /**
-   * @param int
+   * The integer value - this will only be present if type is integer.
+   *
+   * @param int $valueInteger
    */
   public function setValueInteger($valueInteger)
   {
@@ -84,7 +138,10 @@ class AppRestrictionsSchemaRestrictionRestrictionValue extends \Google\Collectio
     return $this->valueInteger;
   }
   /**
-   * @param string[]
+   * The list of string values - this will only be present if type is
+   * multiselect.
+   *
+   * @param string[] $valueMultiselect
    */
   public function setValueMultiselect($valueMultiselect)
   {
@@ -98,7 +155,10 @@ class AppRestrictionsSchemaRestrictionRestrictionValue extends \Google\Collectio
     return $this->valueMultiselect;
   }
   /**
-   * @param string
+   * The string value - this will be present for types string, choice and
+   * hidden.
+   *
+   * @param string $valueString
    */
   public function setValueString($valueString)
   {

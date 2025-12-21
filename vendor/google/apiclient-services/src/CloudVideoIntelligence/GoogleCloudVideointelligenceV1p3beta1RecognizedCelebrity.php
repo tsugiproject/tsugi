@@ -22,12 +22,16 @@ class GoogleCloudVideointelligenceV1p3beta1RecognizedCelebrity extends \Google\M
   protected $celebrityType = GoogleCloudVideointelligenceV1p3beta1Celebrity::class;
   protected $celebrityDataType = '';
   /**
+   * Recognition confidence. Range [0, 1].
+   *
    * @var float
    */
   public $confidence;
 
   /**
-   * @param GoogleCloudVideointelligenceV1p3beta1Celebrity
+   * The recognized celebrity.
+   *
+   * @param GoogleCloudVideointelligenceV1p3beta1Celebrity $celebrity
    */
   public function setCelebrity(GoogleCloudVideointelligenceV1p3beta1Celebrity $celebrity)
   {
@@ -41,7 +45,9 @@ class GoogleCloudVideointelligenceV1p3beta1RecognizedCelebrity extends \Google\M
     return $this->celebrity;
   }
   /**
-   * @param float
+   * Recognition confidence. Range [0, 1].
+   *
+   * @param float $confidence
    */
   public function setConfidence($confidence)
   {

@@ -21,6 +21,9 @@ class ListParticipantSessionsResponse extends \Google\Collection
 {
   protected $collection_key = 'participantSessions';
   /**
+   * Token to be circulated back for further List call if current List doesn't
+   * include all the participants. Unset if all participants are returned.
+   *
    * @var string
    */
   public $nextPageToken;
@@ -28,7 +31,10 @@ class ListParticipantSessionsResponse extends \Google\Collection
   protected $participantSessionsDataType = 'array';
 
   /**
-   * @param string
+   * Token to be circulated back for further List call if current List doesn't
+   * include all the participants. Unset if all participants are returned.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -42,7 +48,9 @@ class ListParticipantSessionsResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param ParticipantSession[]
+   * List of participants in one page.
+   *
+   * @param ParticipantSession[] $participantSessions
    */
   public function setParticipantSessions($participantSessions)
   {

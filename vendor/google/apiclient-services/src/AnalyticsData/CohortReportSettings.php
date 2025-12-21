@@ -20,12 +20,18 @@ namespace Google\Service\AnalyticsData;
 class CohortReportSettings extends \Google\Model
 {
   /**
+   * If true, accumulates the result from first touch day to the end day. Not
+   * supported in `RunReportRequest`.
+   *
    * @var bool
    */
   public $accumulate;
 
   /**
-   * @param bool
+   * If true, accumulates the result from first touch day to the end day. Not
+   * supported in `RunReportRequest`.
+   *
+   * @param bool $accumulate
    */
   public function setAccumulate($accumulate)
   {

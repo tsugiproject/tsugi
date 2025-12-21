@@ -20,16 +20,23 @@ namespace Google\Service\GoogleMarketingPlatformAdminAPI;
 class Organization extends \Google\Model
 {
   /**
+   * The human-readable name for the organization.
+   *
    * @var string
    */
   public $displayName;
   /**
+   * Identifier. The resource name of the GMP organization. Format:
+   * organizations/{org_id}
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param string
+   * The human-readable name for the organization.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -43,7 +50,10 @@ class Organization extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param string
+   * Identifier. The resource name of the GMP organization. Format:
+   * organizations/{org_id}
+   *
+   * @param string $name
    */
   public function setName($name)
   {

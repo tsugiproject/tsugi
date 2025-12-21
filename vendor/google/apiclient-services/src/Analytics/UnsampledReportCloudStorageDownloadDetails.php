@@ -20,16 +20,22 @@ namespace Google\Service\Analytics;
 class UnsampledReportCloudStorageDownloadDetails extends \Google\Model
 {
   /**
+   * Id of the bucket the file object is stored in.
+   *
    * @var string
    */
   public $bucketId;
   /**
+   * Id of the file object containing the report data.
+   *
    * @var string
    */
   public $objectId;
 
   /**
-   * @param string
+   * Id of the bucket the file object is stored in.
+   *
+   * @param string $bucketId
    */
   public function setBucketId($bucketId)
   {
@@ -43,7 +49,9 @@ class UnsampledReportCloudStorageDownloadDetails extends \Google\Model
     return $this->bucketId;
   }
   /**
-   * @param string
+   * Id of the file object containing the report data.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {

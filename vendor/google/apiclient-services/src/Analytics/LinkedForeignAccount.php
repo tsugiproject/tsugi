@@ -20,48 +20,74 @@ namespace Google\Service\Analytics;
 class LinkedForeignAccount extends \Google\Model
 {
   /**
+   * Account ID to which this linked foreign account belongs.
+   *
    * @var string
    */
   public $accountId;
   /**
+   * Boolean indicating whether this is eligible for search.
+   *
    * @var bool
    */
   public $eligibleForSearch;
   /**
+   * Entity ad account link ID.
+   *
    * @var string
    */
   public $id;
   /**
+   * Internal ID for the web property to which this linked foreign account
+   * belongs.
+   *
    * @var string
    */
   public $internalWebPropertyId;
   /**
+   * Resource type for linked foreign account.
+   *
    * @var string
    */
   public $kind;
   /**
+   * The foreign account ID. For example the an Google Ads `linkedAccountId` has
+   * the following format XXX-XXX-XXXX.
+   *
    * @var string
    */
   public $linkedAccountId;
   /**
+   * Remarketing audience ID to which this linked foreign account belongs.
+   *
    * @var string
    */
   public $remarketingAudienceId;
   /**
+   * The status of this foreign account link.
+   *
    * @var string
    */
   public $status;
   /**
+   * The type of the foreign account. For example, `ADWORDS_LINKS`, `DBM_LINKS`,
+   * `MCC_LINKS` or `OPTIMIZE`.
+   *
    * @var string
    */
   public $type;
   /**
+   * Web property ID of the form UA-XXXXX-YY to which this linked foreign
+   * account belongs.
+   *
    * @var string
    */
   public $webPropertyId;
 
   /**
-   * @param string
+   * Account ID to which this linked foreign account belongs.
+   *
+   * @param string $accountId
    */
   public function setAccountId($accountId)
   {
@@ -75,7 +101,9 @@ class LinkedForeignAccount extends \Google\Model
     return $this->accountId;
   }
   /**
-   * @param bool
+   * Boolean indicating whether this is eligible for search.
+   *
+   * @param bool $eligibleForSearch
    */
   public function setEligibleForSearch($eligibleForSearch)
   {
@@ -89,7 +117,9 @@ class LinkedForeignAccount extends \Google\Model
     return $this->eligibleForSearch;
   }
   /**
-   * @param string
+   * Entity ad account link ID.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -103,7 +133,10 @@ class LinkedForeignAccount extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * Internal ID for the web property to which this linked foreign account
+   * belongs.
+   *
+   * @param string $internalWebPropertyId
    */
   public function setInternalWebPropertyId($internalWebPropertyId)
   {
@@ -117,7 +150,9 @@ class LinkedForeignAccount extends \Google\Model
     return $this->internalWebPropertyId;
   }
   /**
-   * @param string
+   * Resource type for linked foreign account.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -131,7 +166,10 @@ class LinkedForeignAccount extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * The foreign account ID. For example the an Google Ads `linkedAccountId` has
+   * the following format XXX-XXX-XXXX.
+   *
+   * @param string $linkedAccountId
    */
   public function setLinkedAccountId($linkedAccountId)
   {
@@ -145,7 +183,9 @@ class LinkedForeignAccount extends \Google\Model
     return $this->linkedAccountId;
   }
   /**
-   * @param string
+   * Remarketing audience ID to which this linked foreign account belongs.
+   *
+   * @param string $remarketingAudienceId
    */
   public function setRemarketingAudienceId($remarketingAudienceId)
   {
@@ -159,7 +199,9 @@ class LinkedForeignAccount extends \Google\Model
     return $this->remarketingAudienceId;
   }
   /**
-   * @param string
+   * The status of this foreign account link.
+   *
+   * @param string $status
    */
   public function setStatus($status)
   {
@@ -173,7 +215,10 @@ class LinkedForeignAccount extends \Google\Model
     return $this->status;
   }
   /**
-   * @param string
+   * The type of the foreign account. For example, `ADWORDS_LINKS`, `DBM_LINKS`,
+   * `MCC_LINKS` or `OPTIMIZE`.
+   *
+   * @param string $type
    */
   public function setType($type)
   {
@@ -187,7 +232,10 @@ class LinkedForeignAccount extends \Google\Model
     return $this->type;
   }
   /**
-   * @param string
+   * Web property ID of the form UA-XXXXX-YY to which this linked foreign
+   * account belongs.
+   *
+   * @param string $webPropertyId
    */
   public function setWebPropertyId($webPropertyId)
   {

@@ -17,19 +17,38 @@
 
 namespace Google\Service\Aiplatform;
 
-class GoogleCloudAiplatformV1FunctionCall extends \Google\Model
+class GoogleCloudAiplatformV1FunctionCall extends \Google\Collection
 {
+  protected $collection_key = 'partialArgs';
   /**
+   * Optional. The function parameters and values in JSON object format. See
+   * [FunctionDeclaration.parameters] for parameter details.
+   *
    * @var array[]
    */
   public $args;
   /**
+   * Optional. The name of the function to call. Matches
+   * [FunctionDeclaration.name].
+   *
    * @var string
    */
   public $name;
+  protected $partialArgsType = GoogleCloudAiplatformV1PartialArg::class;
+  protected $partialArgsDataType = 'array';
+  /**
+   * Optional. Whether this is the last part of the FunctionCall. If true,
+   * another partial message for the current FunctionCall is expected to follow.
+   *
+   * @var bool
+   */
+  public $willContinue;
 
   /**
-   * @param array[]
+   * Optional. The function parameters and values in JSON object format. See
+   * [FunctionDeclaration.parameters] for parameter details.
+   *
+   * @param array[] $args
    */
   public function setArgs($args)
   {
@@ -43,7 +62,10 @@ class GoogleCloudAiplatformV1FunctionCall extends \Google\Model
     return $this->args;
   }
   /**
-   * @param string
+   * Optional. The name of the function to call. Matches
+   * [FunctionDeclaration.name].
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -55,6 +77,40 @@ class GoogleCloudAiplatformV1FunctionCall extends \Google\Model
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * Optional. The partial argument value of the function call. If provided,
+   * represents the arguments/fields that are streamed incrementally.
+   *
+   * @param GoogleCloudAiplatformV1PartialArg[] $partialArgs
+   */
+  public function setPartialArgs($partialArgs)
+  {
+    $this->partialArgs = $partialArgs;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1PartialArg[]
+   */
+  public function getPartialArgs()
+  {
+    return $this->partialArgs;
+  }
+  /**
+   * Optional. Whether this is the last part of the FunctionCall. If true,
+   * another partial message for the current FunctionCall is expected to follow.
+   *
+   * @param bool $willContinue
+   */
+  public function setWillContinue($willContinue)
+  {
+    $this->willContinue = $willContinue;
+  }
+  /**
+   * @return bool
+   */
+  public function getWillContinue()
+  {
+    return $this->willContinue;
   }
 }
 

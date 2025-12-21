@@ -20,16 +20,24 @@ namespace Google\Service\Analytics;
 class CustomDataSourceChildLink extends \Google\Model
 {
   /**
+   * Link to the list of daily uploads for this custom data source. Link to the
+   * list of uploads for this custom data source.
+   *
    * @var string
    */
   public $href;
   /**
+   * Value is "analytics#dailyUploads". Value is "analytics#uploads".
+   *
    * @var string
    */
   public $type;
 
   /**
-   * @param string
+   * Link to the list of daily uploads for this custom data source. Link to the
+   * list of uploads for this custom data source.
+   *
+   * @param string $href
    */
   public function setHref($href)
   {
@@ -43,7 +51,9 @@ class CustomDataSourceChildLink extends \Google\Model
     return $this->href;
   }
   /**
-   * @param string
+   * Value is "analytics#dailyUploads". Value is "analytics#uploads".
+   *
+   * @param string $type
    */
   public function setType($type)
   {

@@ -20,6 +20,17 @@ namespace Google\Service\AnalyticsHub;
 class MessageTransform extends \Google\Model
 {
   /**
+   * Optional. If true, the transform is disabled and will not be applied to
+   * messages. Defaults to `false`.
+   *
+   * @var bool
+   */
+  public $disabled;
+  /**
+   * Optional. This field is deprecated, use the `disabled` field to disable
+   * transforms.
+   *
+   * @deprecated
    * @var bool
    */
   public $enabled;
@@ -27,13 +38,35 @@ class MessageTransform extends \Google\Model
   protected $javascriptUdfDataType = '';
 
   /**
-   * @param bool
+   * Optional. If true, the transform is disabled and will not be applied to
+   * messages. Defaults to `false`.
+   *
+   * @param bool $disabled
+   */
+  public function setDisabled($disabled)
+  {
+    $this->disabled = $disabled;
+  }
+  /**
+   * @return bool
+   */
+  public function getDisabled()
+  {
+    return $this->disabled;
+  }
+  /**
+   * Optional. This field is deprecated, use the `disabled` field to disable
+   * transforms.
+   *
+   * @deprecated
+   * @param bool $enabled
    */
   public function setEnabled($enabled)
   {
     $this->enabled = $enabled;
   }
   /**
+   * @deprecated
    * @return bool
    */
   public function getEnabled()
@@ -41,7 +74,10 @@ class MessageTransform extends \Google\Model
     return $this->enabled;
   }
   /**
-   * @param JavaScriptUDF
+   * Optional. JavaScript User Defined Function. If multiple JavaScriptUDF's are
+   * specified on a resource, each must have a unique `function_name`.
+   *
+   * @param JavaScriptUDF $javascriptUdf
    */
   public function setJavascriptUdf(JavaScriptUDF $javascriptUdf)
   {

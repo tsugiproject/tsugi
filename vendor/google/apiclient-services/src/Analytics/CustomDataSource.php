@@ -21,20 +21,28 @@ class CustomDataSource extends \Google\Collection
 {
   protected $collection_key = 'schema';
   /**
+   * Account ID to which this custom data source belongs.
+   *
    * @var string
    */
   public $accountId;
   protected $childLinkType = CustomDataSourceChildLink::class;
   protected $childLinkDataType = '';
   /**
+   * Time this custom data source was created.
+   *
    * @var string
    */
   public $created;
   /**
+   * Description of custom data source.
+   *
    * @var string
    */
   public $description;
   /**
+   * Custom data source ID.
+   *
    * @var string
    */
   public $id;
@@ -43,46 +51,67 @@ class CustomDataSource extends \Google\Collection
    */
   public $importBehavior;
   /**
+   * Resource type for Analytics custom data source.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Name of this custom data source.
+   *
    * @var string
    */
   public $name;
   protected $parentLinkType = CustomDataSourceParentLink::class;
   protected $parentLinkDataType = '';
   /**
+   * IDs of views (profiles) linked to the custom data source.
+   *
    * @var string[]
    */
   public $profilesLinked;
   /**
+   * Collection of schema headers of the custom data source.
+   *
    * @var string[]
    */
   public $schema;
   /**
+   * Link for this Analytics custom data source.
+   *
    * @var string
    */
   public $selfLink;
   /**
+   * Type of the custom data source.
+   *
    * @var string
    */
   public $type;
   /**
+   * Time this custom data source was last modified.
+   *
    * @var string
    */
   public $updated;
   /**
+   * Upload type of the custom data source.
+   *
    * @var string
    */
   public $uploadType;
   /**
+   * Web property ID of the form UA-XXXXX-YY to which this custom data source
+   * belongs.
+   *
    * @var string
    */
   public $webPropertyId;
 
   /**
-   * @param string
+   * Account ID to which this custom data source belongs.
+   *
+   * @param string $accountId
    */
   public function setAccountId($accountId)
   {
@@ -96,7 +125,7 @@ class CustomDataSource extends \Google\Collection
     return $this->accountId;
   }
   /**
-   * @param CustomDataSourceChildLink
+   * @param CustomDataSourceChildLink $childLink
    */
   public function setChildLink(CustomDataSourceChildLink $childLink)
   {
@@ -110,7 +139,9 @@ class CustomDataSource extends \Google\Collection
     return $this->childLink;
   }
   /**
-   * @param string
+   * Time this custom data source was created.
+   *
+   * @param string $created
    */
   public function setCreated($created)
   {
@@ -124,7 +155,9 @@ class CustomDataSource extends \Google\Collection
     return $this->created;
   }
   /**
-   * @param string
+   * Description of custom data source.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -138,7 +171,9 @@ class CustomDataSource extends \Google\Collection
     return $this->description;
   }
   /**
-   * @param string
+   * Custom data source ID.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -152,7 +187,7 @@ class CustomDataSource extends \Google\Collection
     return $this->id;
   }
   /**
-   * @param string
+   * @param string $importBehavior
    */
   public function setImportBehavior($importBehavior)
   {
@@ -166,7 +201,9 @@ class CustomDataSource extends \Google\Collection
     return $this->importBehavior;
   }
   /**
-   * @param string
+   * Resource type for Analytics custom data source.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -180,7 +217,9 @@ class CustomDataSource extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * Name of this custom data source.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -194,7 +233,10 @@ class CustomDataSource extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param CustomDataSourceParentLink
+   * Parent link for this custom data source. Points to the web property to
+   * which this custom data source belongs.
+   *
+   * @param CustomDataSourceParentLink $parentLink
    */
   public function setParentLink(CustomDataSourceParentLink $parentLink)
   {
@@ -208,7 +250,9 @@ class CustomDataSource extends \Google\Collection
     return $this->parentLink;
   }
   /**
-   * @param string[]
+   * IDs of views (profiles) linked to the custom data source.
+   *
+   * @param string[] $profilesLinked
    */
   public function setProfilesLinked($profilesLinked)
   {
@@ -222,7 +266,9 @@ class CustomDataSource extends \Google\Collection
     return $this->profilesLinked;
   }
   /**
-   * @param string[]
+   * Collection of schema headers of the custom data source.
+   *
+   * @param string[] $schema
    */
   public function setSchema($schema)
   {
@@ -236,7 +282,9 @@ class CustomDataSource extends \Google\Collection
     return $this->schema;
   }
   /**
-   * @param string
+   * Link for this Analytics custom data source.
+   *
+   * @param string $selfLink
    */
   public function setSelfLink($selfLink)
   {
@@ -250,7 +298,9 @@ class CustomDataSource extends \Google\Collection
     return $this->selfLink;
   }
   /**
-   * @param string
+   * Type of the custom data source.
+   *
+   * @param string $type
    */
   public function setType($type)
   {
@@ -264,7 +314,9 @@ class CustomDataSource extends \Google\Collection
     return $this->type;
   }
   /**
-   * @param string
+   * Time this custom data source was last modified.
+   *
+   * @param string $updated
    */
   public function setUpdated($updated)
   {
@@ -278,7 +330,9 @@ class CustomDataSource extends \Google\Collection
     return $this->updated;
   }
   /**
-   * @param string
+   * Upload type of the custom data source.
+   *
+   * @param string $uploadType
    */
   public function setUploadType($uploadType)
   {
@@ -292,7 +346,10 @@ class CustomDataSource extends \Google\Collection
     return $this->uploadType;
   }
   /**
-   * @param string
+   * Web property ID of the form UA-XXXXX-YY to which this custom data source
+   * belongs.
+   *
+   * @param string $webPropertyId
    */
   public function setWebPropertyId($webPropertyId)
   {

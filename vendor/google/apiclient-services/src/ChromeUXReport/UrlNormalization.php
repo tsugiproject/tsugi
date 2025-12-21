@@ -20,16 +20,24 @@ namespace Google\Service\ChromeUXReport;
 class UrlNormalization extends \Google\Model
 {
   /**
+   * The URL after any normalization actions. This is a valid user experience
+   * URL that could reasonably be looked up.
+   *
    * @var string
    */
   public $normalizedUrl;
   /**
+   * The original requested URL prior to any normalization actions.
+   *
    * @var string
    */
   public $originalUrl;
 
   /**
-   * @param string
+   * The URL after any normalization actions. This is a valid user experience
+   * URL that could reasonably be looked up.
+   *
+   * @param string $normalizedUrl
    */
   public function setNormalizedUrl($normalizedUrl)
   {
@@ -43,7 +51,9 @@ class UrlNormalization extends \Google\Model
     return $this->normalizedUrl;
   }
   /**
-   * @param string
+   * The original requested URL prior to any normalization actions.
+   *
+   * @param string $originalUrl
    */
   public function setOriginalUrl($originalUrl)
   {

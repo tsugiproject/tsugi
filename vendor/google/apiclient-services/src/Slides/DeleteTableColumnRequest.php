@@ -22,12 +22,19 @@ class DeleteTableColumnRequest extends \Google\Model
   protected $cellLocationType = TableCellLocation::class;
   protected $cellLocationDataType = '';
   /**
+   * The table to delete columns from.
+   *
    * @var string
    */
   public $tableObjectId;
 
   /**
-   * @param TableCellLocation
+   * The reference table cell location from which a column will be deleted. The
+   * column this cell spans will be deleted. If this is a merged cell, multiple
+   * columns will be deleted. If no columns remain in the table after this
+   * deletion, the whole table is deleted.
+   *
+   * @param TableCellLocation $cellLocation
    */
   public function setCellLocation(TableCellLocation $cellLocation)
   {
@@ -41,7 +48,9 @@ class DeleteTableColumnRequest extends \Google\Model
     return $this->cellLocation;
   }
   /**
-   * @param string
+   * The table to delete columns from.
+   *
+   * @param string $tableObjectId
    */
   public function setTableObjectId($tableObjectId)
   {

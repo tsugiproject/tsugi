@@ -24,7 +24,9 @@ class ListContent extends \Google\Collection
   protected $listItemsDataType = 'array';
 
   /**
-   * @param ListItem[]
+   * The items in the list. The number of items must be less than 1,000.
+   *
+   * @param ListItem[] $listItems
    */
   public function setListItems($listItems)
   {

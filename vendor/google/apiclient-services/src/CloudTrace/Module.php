@@ -25,7 +25,10 @@ class Module extends \Google\Model
   protected $moduleDataType = '';
 
   /**
-   * @param TruncatableString
+   * A unique identifier for the module, usually a hash of its contents (up to
+   * 128 bytes).
+   *
+   * @param TruncatableString $buildId
    */
   public function setBuildId(TruncatableString $buildId)
   {
@@ -39,7 +42,10 @@ class Module extends \Google\Model
     return $this->buildId;
   }
   /**
-   * @param TruncatableString
+   * For example: main binary, kernel modules, and dynamic libraries such as
+   * libc.so, sharedlib.so (up to 256 bytes).
+   *
+   * @param TruncatableString $module
    */
   public function setModule(TruncatableString $module)
   {

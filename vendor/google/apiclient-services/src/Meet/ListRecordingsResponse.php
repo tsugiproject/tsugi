@@ -21,6 +21,9 @@ class ListRecordingsResponse extends \Google\Collection
 {
   protected $collection_key = 'recordings';
   /**
+   * Token to be circulated back for further List call if current List doesn't
+   * include all the recordings. Unset if all recordings are returned.
+   *
    * @var string
    */
   public $nextPageToken;
@@ -28,7 +31,10 @@ class ListRecordingsResponse extends \Google\Collection
   protected $recordingsDataType = 'array';
 
   /**
-   * @param string
+   * Token to be circulated back for further List call if current List doesn't
+   * include all the recordings. Unset if all recordings are returned.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -42,7 +48,9 @@ class ListRecordingsResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param Recording[]
+   * List of recordings in one page.
+   *
+   * @param Recording[] $recordings
    */
   public function setRecordings($recordings)
   {

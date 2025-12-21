@@ -25,7 +25,10 @@ class GoogleCloudDatapipelinesV1Workload extends \Google\Model
   protected $dataflowLaunchTemplateRequestDataType = '';
 
   /**
-   * @param GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest
+   * Template information and additional parameters needed to launch a Dataflow
+   * job using the flex launch API.
+   *
+   * @param GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest $dataflowFlexTemplateRequest
    */
   public function setDataflowFlexTemplateRequest(GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest $dataflowFlexTemplateRequest)
   {
@@ -39,7 +42,10 @@ class GoogleCloudDatapipelinesV1Workload extends \Google\Model
     return $this->dataflowFlexTemplateRequest;
   }
   /**
-   * @param GoogleCloudDatapipelinesV1LaunchTemplateRequest
+   * Template information and additional parameters needed to launch a Dataflow
+   * job using the standard launch API.
+   *
+   * @param GoogleCloudDatapipelinesV1LaunchTemplateRequest $dataflowLaunchTemplateRequest
    */
   public function setDataflowLaunchTemplateRequest(GoogleCloudDatapipelinesV1LaunchTemplateRequest $dataflowLaunchTemplateRequest)
   {

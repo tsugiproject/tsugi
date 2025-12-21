@@ -19,13 +19,39 @@ namespace Google\Service\DiscoveryEngine;
 
 class GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpec extends \Google\Model
 {
+  /**
+   * Optional. Whether to disable spell correction. The default value is
+   * `false`.
+   *
+   * @var bool
+   */
+  public $disableSpellCorrection;
   protected $queryClassificationSpecType = GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQueryClassificationSpec::class;
   protected $queryClassificationSpecDataType = '';
   protected $queryRephraserSpecType = GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQueryRephraserSpec::class;
   protected $queryRephraserSpecDataType = '';
 
   /**
-   * @param GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQueryClassificationSpec
+   * Optional. Whether to disable spell correction. The default value is
+   * `false`.
+   *
+   * @param bool $disableSpellCorrection
+   */
+  public function setDisableSpellCorrection($disableSpellCorrection)
+  {
+    $this->disableSpellCorrection = $disableSpellCorrection;
+  }
+  /**
+   * @return bool
+   */
+  public function getDisableSpellCorrection()
+  {
+    return $this->disableSpellCorrection;
+  }
+  /**
+   * Query classification specification.
+   *
+   * @param GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQueryClassificationSpec $queryClassificationSpec
    */
   public function setQueryClassificationSpec(GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQueryClassificationSpec $queryClassificationSpec)
   {
@@ -39,7 +65,9 @@ class GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpec exten
     return $this->queryClassificationSpec;
   }
   /**
-   * @param GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQueryRephraserSpec
+   * Query rephraser specification.
+   *
+   * @param GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQueryRephraserSpec $queryRephraserSpec
    */
   public function setQueryRephraserSpec(GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQueryRephraserSpec $queryRephraserSpec)
   {

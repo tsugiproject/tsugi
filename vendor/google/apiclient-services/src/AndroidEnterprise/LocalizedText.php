@@ -20,16 +20,22 @@ namespace Google\Service\AndroidEnterprise;
 class LocalizedText extends \Google\Model
 {
   /**
+   * The BCP47 tag for a locale. (e.g. "en-US", "de").
+   *
    * @var string
    */
   public $locale;
   /**
+   * The text localized in the associated locale.
+   *
    * @var string
    */
   public $text;
 
   /**
-   * @param string
+   * The BCP47 tag for a locale. (e.g. "en-US", "de").
+   *
+   * @param string $locale
    */
   public function setLocale($locale)
   {
@@ -43,7 +49,9 @@ class LocalizedText extends \Google\Model
     return $this->locale;
   }
   /**
-   * @param string
+   * The text localized in the associated locale.
+   *
+   * @param string $text
    */
   public function setText($text)
   {

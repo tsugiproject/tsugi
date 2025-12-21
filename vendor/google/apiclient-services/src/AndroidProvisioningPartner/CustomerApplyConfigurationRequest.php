@@ -20,6 +20,9 @@ namespace Google\Service\AndroidProvisioningPartner;
 class CustomerApplyConfigurationRequest extends \Google\Model
 {
   /**
+   * Required. The configuration applied to the device in the format
+   * `customers/[CUSTOMER_ID]/configurations/[CONFIGURATION_ID]`.
+   *
    * @var string
    */
   public $configuration;
@@ -27,7 +30,10 @@ class CustomerApplyConfigurationRequest extends \Google\Model
   protected $deviceDataType = '';
 
   /**
-   * @param string
+   * Required. The configuration applied to the device in the format
+   * `customers/[CUSTOMER_ID]/configurations/[CONFIGURATION_ID]`.
+   *
+   * @param string $configuration
    */
   public function setConfiguration($configuration)
   {
@@ -41,7 +47,10 @@ class CustomerApplyConfigurationRequest extends \Google\Model
     return $this->configuration;
   }
   /**
-   * @param DeviceReference
+   * Required. The device the configuration is applied to. There are custom
+   * validations in ApplyConfigurationRequestValidator
+   *
+   * @param DeviceReference $device
    */
   public function setDevice(DeviceReference $device)
   {

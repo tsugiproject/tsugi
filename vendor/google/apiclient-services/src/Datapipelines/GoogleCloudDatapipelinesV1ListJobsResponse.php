@@ -23,12 +23,18 @@ class GoogleCloudDatapipelinesV1ListJobsResponse extends \Google\Collection
   protected $jobsType = GoogleCloudDatapipelinesV1Job::class;
   protected $jobsDataType = 'array';
   /**
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param GoogleCloudDatapipelinesV1Job[]
+   * Results that were accessible to the caller. Results are always in
+   * descending order of job creation date.
+   *
+   * @param GoogleCloudDatapipelinesV1Job[] $jobs
    */
   public function setJobs($jobs)
   {
@@ -42,7 +48,10 @@ class GoogleCloudDatapipelinesV1ListJobsResponse extends \Google\Collection
     return $this->jobs;
   }
   /**
-   * @param string
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

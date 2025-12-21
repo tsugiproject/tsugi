@@ -20,16 +20,34 @@ namespace Google\Service\CloudTalentSolution;
 class HistogramQueryResult extends \Google\Model
 {
   /**
+   * A map from the values of the facet associated with distinct values to the
+   * number of matching entries with corresponding value. The key format is: *
+   * (for string histogram) string values stored in the field. * (for named
+   * numeric bucket) name specified in `bucket()` function, like for `bucket(0,
+   * MAX, "non-negative")`, the key will be `non-negative`. * (for anonymous
+   * numeric bucket) range formatted as `-`, for example, `0-1000`, `MIN-0`, and
+   * `0-MAX`.
+   *
    * @var string[]
    */
   public $histogram;
   /**
+   * Requested histogram expression.
+   *
    * @var string
    */
   public $histogramQuery;
 
   /**
-   * @param string[]
+   * A map from the values of the facet associated with distinct values to the
+   * number of matching entries with corresponding value. The key format is: *
+   * (for string histogram) string values stored in the field. * (for named
+   * numeric bucket) name specified in `bucket()` function, like for `bucket(0,
+   * MAX, "non-negative")`, the key will be `non-negative`. * (for anonymous
+   * numeric bucket) range formatted as `-`, for example, `0-1000`, `MIN-0`, and
+   * `0-MAX`.
+   *
+   * @param string[] $histogram
    */
   public function setHistogram($histogram)
   {
@@ -43,7 +61,9 @@ class HistogramQueryResult extends \Google\Model
     return $this->histogram;
   }
   /**
-   * @param string
+   * Requested histogram expression.
+   *
+   * @param string $histogramQuery
    */
   public function setHistogramQuery($histogramQuery)
   {

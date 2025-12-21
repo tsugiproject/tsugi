@@ -20,26 +20,53 @@ namespace Google\Service\BigtableAdmin;
 class UndeleteTableMetadata extends \Google\Model
 {
   /**
+   * If set, the time at which this operation finished or was cancelled.
+   * DEPRECATED: Use finish_time instead.
+   *
+   * @deprecated
    * @var string
    */
   public $endTime;
   /**
+   * The time at which the operation failed or was completed successfully.
+   *
+   * @var string
+   */
+  public $finishTime;
+  /**
+   * The name of the table being restored.
+   *
    * @var string
    */
   public $name;
   /**
+   * The time at which the original request was received.
+   *
+   * @var string
+   */
+  public $requestTime;
+  /**
+   * The time at which this operation started. DEPRECATED: Use request_time
+   * instead.
+   *
+   * @deprecated
    * @var string
    */
   public $startTime;
 
   /**
-   * @param string
+   * If set, the time at which this operation finished or was cancelled.
+   * DEPRECATED: Use finish_time instead.
+   *
+   * @deprecated
+   * @param string $endTime
    */
   public function setEndTime($endTime)
   {
     $this->endTime = $endTime;
   }
   /**
+   * @deprecated
    * @return string
    */
   public function getEndTime()
@@ -47,7 +74,25 @@ class UndeleteTableMetadata extends \Google\Model
     return $this->endTime;
   }
   /**
-   * @param string
+   * The time at which the operation failed or was completed successfully.
+   *
+   * @param string $finishTime
+   */
+  public function setFinishTime($finishTime)
+  {
+    $this->finishTime = $finishTime;
+  }
+  /**
+   * @return string
+   */
+  public function getFinishTime()
+  {
+    return $this->finishTime;
+  }
+  /**
+   * The name of the table being restored.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -61,13 +106,34 @@ class UndeleteTableMetadata extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * The time at which the original request was received.
+   *
+   * @param string $requestTime
+   */
+  public function setRequestTime($requestTime)
+  {
+    $this->requestTime = $requestTime;
+  }
+  /**
+   * @return string
+   */
+  public function getRequestTime()
+  {
+    return $this->requestTime;
+  }
+  /**
+   * The time at which this operation started. DEPRECATED: Use request_time
+   * instead.
+   *
+   * @deprecated
+   * @param string $startTime
    */
   public function setStartTime($startTime)
   {
     $this->startTime = $startTime;
   }
   /**
+   * @deprecated
    * @return string
    */
   public function getStartTime()

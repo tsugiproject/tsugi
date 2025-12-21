@@ -19,46 +19,106 @@ namespace Google\Service\ManufacturerCenter;
 
 class Issue extends \Google\Collection
 {
+  /**
+   * Unspecified resolution, never used.
+   */
+  public const RESOLUTION_RESOLUTION_UNSPECIFIED = 'RESOLUTION_UNSPECIFIED';
+  /**
+   * The user who provided the data must act in order to resolve the issue (for
+   * example by correcting some data).
+   */
+  public const RESOLUTION_USER_ACTION = 'USER_ACTION';
+  /**
+   * The issue will be resolved automatically (for example image crawl or Google
+   * review). No action is required now. Resolution might lead to another issue
+   * (for example if crawl fails).
+   */
+  public const RESOLUTION_PENDING_PROCESSING = 'PENDING_PROCESSING';
+  /**
+   * Unspecified severity, never used.
+   */
+  public const SEVERITY_SEVERITY_UNSPECIFIED = 'SEVERITY_UNSPECIFIED';
+  /**
+   * Error severity. The issue prevents the usage of the whole item.
+   */
+  public const SEVERITY_ERROR = 'ERROR';
+  /**
+   * Warning severity. The issue is either one that prevents the usage of the
+   * attribute that triggered it or one that will soon prevent the usage of the
+   * whole item.
+   */
+  public const SEVERITY_WARNING = 'WARNING';
+  /**
+   * Info severity. The issue is one that doesn't require immediate attention.
+   * It is, for example, used to communicate which attributes are still pending
+   * review.
+   */
+  public const SEVERITY_INFO = 'INFO';
   protected $collection_key = 'applicableCountries';
   /**
+   * Output only. List of country codes (ISO 3166-1 alpha-2) where issue applies
+   * to the manufacturer product.
+   *
    * @var string[]
    */
   public $applicableCountries;
   /**
+   * If present, the attribute that triggered the issue. For more information
+   * about attributes, see
+   * https://support.google.com/manufacturers/answer/6124116.
+   *
    * @var string
    */
   public $attribute;
   /**
+   * Longer description of the issue focused on how to resolve it.
+   *
    * @var string
    */
   public $description;
   /**
+   * The destination this issue applies to.
+   *
    * @var string
    */
   public $destination;
   /**
+   * What needs to happen to resolve the issue.
+   *
    * @var string
    */
   public $resolution;
   /**
+   * The severity of the issue.
+   *
    * @var string
    */
   public $severity;
   /**
+   * The timestamp when this issue appeared.
+   *
    * @var string
    */
   public $timestamp;
   /**
+   * Short title describing the nature of the issue.
+   *
    * @var string
    */
   public $title;
   /**
+   * The server-generated type of the issue, for example,
+   * “INCORRECT_TEXT_FORMATTING”, “IMAGE_NOT_SERVEABLE”, etc.
+   *
    * @var string
    */
   public $type;
 
   /**
-   * @param string[]
+   * Output only. List of country codes (ISO 3166-1 alpha-2) where issue applies
+   * to the manufacturer product.
+   *
+   * @param string[] $applicableCountries
    */
   public function setApplicableCountries($applicableCountries)
   {
@@ -72,7 +132,11 @@ class Issue extends \Google\Collection
     return $this->applicableCountries;
   }
   /**
-   * @param string
+   * If present, the attribute that triggered the issue. For more information
+   * about attributes, see
+   * https://support.google.com/manufacturers/answer/6124116.
+   *
+   * @param string $attribute
    */
   public function setAttribute($attribute)
   {
@@ -86,7 +150,9 @@ class Issue extends \Google\Collection
     return $this->attribute;
   }
   /**
-   * @param string
+   * Longer description of the issue focused on how to resolve it.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -100,7 +166,9 @@ class Issue extends \Google\Collection
     return $this->description;
   }
   /**
-   * @param string
+   * The destination this issue applies to.
+   *
+   * @param string $destination
    */
   public function setDestination($destination)
   {
@@ -114,35 +182,45 @@ class Issue extends \Google\Collection
     return $this->destination;
   }
   /**
-   * @param string
+   * What needs to happen to resolve the issue.
+   *
+   * Accepted values: RESOLUTION_UNSPECIFIED, USER_ACTION, PENDING_PROCESSING
+   *
+   * @param self::RESOLUTION_* $resolution
    */
   public function setResolution($resolution)
   {
     $this->resolution = $resolution;
   }
   /**
-   * @return string
+   * @return self::RESOLUTION_*
    */
   public function getResolution()
   {
     return $this->resolution;
   }
   /**
-   * @param string
+   * The severity of the issue.
+   *
+   * Accepted values: SEVERITY_UNSPECIFIED, ERROR, WARNING, INFO
+   *
+   * @param self::SEVERITY_* $severity
    */
   public function setSeverity($severity)
   {
     $this->severity = $severity;
   }
   /**
-   * @return string
+   * @return self::SEVERITY_*
    */
   public function getSeverity()
   {
     return $this->severity;
   }
   /**
-   * @param string
+   * The timestamp when this issue appeared.
+   *
+   * @param string $timestamp
    */
   public function setTimestamp($timestamp)
   {
@@ -156,7 +234,9 @@ class Issue extends \Google\Collection
     return $this->timestamp;
   }
   /**
-   * @param string
+   * Short title describing the nature of the issue.
+   *
+   * @param string $title
    */
   public function setTitle($title)
   {
@@ -170,7 +250,10 @@ class Issue extends \Google\Collection
     return $this->title;
   }
   /**
-   * @param string
+   * The server-generated type of the issue, for example,
+   * “INCORRECT_TEXT_FORMATTING”, “IMAGE_NOT_SERVEABLE”, etc.
+   *
+   * @param string $type
    */
   public function setType($type)
   {

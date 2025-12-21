@@ -24,7 +24,9 @@ class PivotDimensionHeader extends \Google\Collection
   protected $dimensionValuesDataType = 'array';
 
   /**
-   * @param DimensionValue[]
+   * Values of multiple dimensions in a pivot.
+   *
+   * @param DimensionValue[] $dimensionValues
    */
   public function setDimensionValues($dimensionValues)
   {

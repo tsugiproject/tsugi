@@ -22,12 +22,16 @@ class Arg extends \Google\Model
   protected $anyValueType = FirebaserulesEmpty::class;
   protected $anyValueDataType = '';
   /**
+   * Argument exactly matches value provided.
+   *
    * @var array
    */
   public $exactValue;
 
   /**
-   * @param FirebaserulesEmpty
+   * Argument matches any value provided.
+   *
+   * @param FirebaserulesEmpty $anyValue
    */
   public function setAnyValue(FirebaserulesEmpty $anyValue)
   {
@@ -41,7 +45,9 @@ class Arg extends \Google\Model
     return $this->anyValue;
   }
   /**
-   * @param array
+   * Argument exactly matches value provided.
+   *
+   * @param array $exactValue
    */
   public function setExactValue($exactValue)
   {

@@ -21,16 +21,22 @@ class ActiveMetricRestriction extends \Google\Collection
 {
   protected $collection_key = 'restrictedMetricTypes';
   /**
+   * The name of the restricted metric.
+   *
    * @var string
    */
   public $metricName;
   /**
+   * The reason for this metric's restriction.
+   *
    * @var string[]
    */
   public $restrictedMetricTypes;
 
   /**
-   * @param string
+   * The name of the restricted metric.
+   *
+   * @param string $metricName
    */
   public function setMetricName($metricName)
   {
@@ -44,7 +50,9 @@ class ActiveMetricRestriction extends \Google\Collection
     return $this->metricName;
   }
   /**
-   * @param string[]
+   * The reason for this metric's restriction.
+   *
+   * @param string[] $restrictedMetricTypes
    */
   public function setRestrictedMetricTypes($restrictedMetricTypes)
   {

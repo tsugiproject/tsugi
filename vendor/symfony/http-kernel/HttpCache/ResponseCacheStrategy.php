@@ -185,7 +185,7 @@ class ResponseCacheStrategy implements ResponseCacheStrategyInterface
 
         // Etag headers cannot be merged, they render the response uncacheable
         // by default (except if the response also has max-age etc.).
-        if (null === $response->getEtag() && \in_array($response->getStatusCode(), [200, 203, 300, 301, 410])) {
+        if (null === $response->getEtag() && \in_array($response->getStatusCode(), [200, 203, 300, 301, 410], true)) {
             return false;
         }
 
@@ -222,7 +222,7 @@ class ResponseCacheStrategy implements ResponseCacheStrategyInterface
         }
 
         if (false !== $this->ageDirectives[$directive]) {
-            $value = min($value ?? PHP_INT_MAX, $expires ?? PHP_INT_MAX);
+            $value = min($value ?? \PHP_INT_MAX, $expires ?? \PHP_INT_MAX);
             $value -= $age;
             $this->ageDirectives[$directive] = null !== $this->ageDirectives[$directive] ? min($this->ageDirectives[$directive], $value) : $value;
         }

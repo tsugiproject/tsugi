@@ -23,12 +23,16 @@ class AppState extends \Google\Collection
   protected $keyedAppStateType = KeyedAppState::class;
   protected $keyedAppStateDataType = 'array';
   /**
+   * The package name of the app. This field will always be present.
+   *
    * @var string
    */
   public $packageName;
 
   /**
-   * @param KeyedAppState[]
+   * List of keyed app states. This field will always be present.
+   *
+   * @param KeyedAppState[] $keyedAppState
    */
   public function setKeyedAppState($keyedAppState)
   {
@@ -42,7 +46,9 @@ class AppState extends \Google\Collection
     return $this->keyedAppState;
   }
   /**
-   * @param string
+   * The package name of the app. This field will always be present.
+   *
+   * @param string $packageName
    */
   public function setPackageName($packageName)
   {

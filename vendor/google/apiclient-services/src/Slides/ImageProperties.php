@@ -20,10 +20,16 @@ namespace Google\Service\Slides;
 class ImageProperties extends \Google\Model
 {
   /**
+   * The brightness effect of the image. The value should be in the interval
+   * [-1.0, 1.0], where 0 means no effect. This property is read-only.
+   *
    * @var float
    */
   public $brightness;
   /**
+   * The contrast effect of the image. The value should be in the interval
+   * [-1.0, 1.0], where 0 means no effect. This property is read-only.
+   *
    * @var float
    */
   public $contrast;
@@ -38,12 +44,19 @@ class ImageProperties extends \Google\Model
   protected $shadowType = Shadow::class;
   protected $shadowDataType = '';
   /**
+   * The transparency effect of the image. The value should be in the interval
+   * [0.0, 1.0], where 0 means no effect and 1 means completely transparent.
+   * This property is read-only.
+   *
    * @var float
    */
   public $transparency;
 
   /**
-   * @param float
+   * The brightness effect of the image. The value should be in the interval
+   * [-1.0, 1.0], where 0 means no effect. This property is read-only.
+   *
+   * @param float $brightness
    */
   public function setBrightness($brightness)
   {
@@ -57,7 +70,10 @@ class ImageProperties extends \Google\Model
     return $this->brightness;
   }
   /**
-   * @param float
+   * The contrast effect of the image. The value should be in the interval
+   * [-1.0, 1.0], where 0 means no effect. This property is read-only.
+   *
+   * @param float $contrast
    */
   public function setContrast($contrast)
   {
@@ -71,7 +87,10 @@ class ImageProperties extends \Google\Model
     return $this->contrast;
   }
   /**
-   * @param CropProperties
+   * The crop properties of the image. If not set, the image is not cropped.
+   * This property is read-only.
+   *
+   * @param CropProperties $cropProperties
    */
   public function setCropProperties(CropProperties $cropProperties)
   {
@@ -85,7 +104,9 @@ class ImageProperties extends \Google\Model
     return $this->cropProperties;
   }
   /**
-   * @param Link
+   * The hyperlink destination of the image. If unset, there is no link.
+   *
+   * @param Link $link
    */
   public function setLink(Link $link)
   {
@@ -99,7 +120,9 @@ class ImageProperties extends \Google\Model
     return $this->link;
   }
   /**
-   * @param Outline
+   * The outline of the image. If not set, the image has no outline.
+   *
+   * @param Outline $outline
    */
   public function setOutline(Outline $outline)
   {
@@ -113,7 +136,10 @@ class ImageProperties extends \Google\Model
     return $this->outline;
   }
   /**
-   * @param Recolor
+   * The recolor effect of the image. If not set, the image is not recolored.
+   * This property is read-only.
+   *
+   * @param Recolor $recolor
    */
   public function setRecolor(Recolor $recolor)
   {
@@ -127,7 +153,10 @@ class ImageProperties extends \Google\Model
     return $this->recolor;
   }
   /**
-   * @param Shadow
+   * The shadow of the image. If not set, the image has no shadow. This property
+   * is read-only.
+   *
+   * @param Shadow $shadow
    */
   public function setShadow(Shadow $shadow)
   {
@@ -141,7 +170,11 @@ class ImageProperties extends \Google\Model
     return $this->shadow;
   }
   /**
-   * @param float
+   * The transparency effect of the image. The value should be in the interval
+   * [0.0, 1.0], where 0 means no effect and 1 means completely transparent.
+   * This property is read-only.
+   *
+   * @param float $transparency
    */
   public function setTransparency($transparency)
   {

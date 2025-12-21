@@ -19,36 +19,91 @@ namespace Google\Service\BeyondCorp;
 
 class GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway extends \Google\Collection
 {
+  /**
+   * Default value. This value is unused.
+   */
+  public const STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED';
+  /**
+   * SecurityGateway is being created.
+   */
+  public const STATE_CREATING = 'CREATING';
+  /**
+   * SecurityGateway is being updated.
+   */
+  public const STATE_UPDATING = 'UPDATING';
+  /**
+   * SecurityGateway is being deleted.
+   */
+  public const STATE_DELETING = 'DELETING';
+  /**
+   * SecurityGateway is running.
+   */
+  public const STATE_RUNNING = 'RUNNING';
+  /**
+   * SecurityGateway is down and may be restored in the future.
+   */
+  public const STATE_DOWN = 'DOWN';
+  /**
+   * SecurityGateway encountered an error and is in an indeterministic state.
+   */
+  public const STATE_ERROR = 'ERROR';
   protected $collection_key = 'externalIps';
   /**
+   * Output only. Timestamp when the resource was created.
+   *
    * @var string
    */
   public $createTime;
   /**
+   * Output only. Service account used for operations that involve resources in
+   * consumer projects.
+   *
+   * @var string
+   */
+  public $delegatingServiceAccount;
+  /**
+   * Optional. An arbitrary user-provided name for the SecurityGateway. Cannot
+   * exceed 64 characters.
+   *
    * @var string
    */
   public $displayName;
   /**
+   * Output only. IP addresses that will be used for establishing connection to
+   * the endpoints.
+   *
    * @var string[]
    */
   public $externalIps;
   protected $hubsType = GoogleCloudBeyondcorpSecuritygatewaysV1Hub::class;
   protected $hubsDataType = 'map';
   /**
+   * Identifier. Name of the resource.
+   *
    * @var string
    */
   public $name;
+  protected $proxyProtocolConfigType = GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig::class;
+  protected $proxyProtocolConfigDataType = '';
+  protected $serviceDiscoveryType = GoogleCloudBeyondcorpSecuritygatewaysV1ServiceDiscovery::class;
+  protected $serviceDiscoveryDataType = '';
   /**
+   * Output only. The operational state of the SecurityGateway.
+   *
    * @var string
    */
   public $state;
   /**
+   * Output only. Timestamp when the resource was last modified.
+   *
    * @var string
    */
   public $updateTime;
 
   /**
-   * @param string
+   * Output only. Timestamp when the resource was created.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -62,7 +117,27 @@ class GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway extends \Google\Col
     return $this->createTime;
   }
   /**
-   * @param string
+   * Output only. Service account used for operations that involve resources in
+   * consumer projects.
+   *
+   * @param string $delegatingServiceAccount
+   */
+  public function setDelegatingServiceAccount($delegatingServiceAccount)
+  {
+    $this->delegatingServiceAccount = $delegatingServiceAccount;
+  }
+  /**
+   * @return string
+   */
+  public function getDelegatingServiceAccount()
+  {
+    return $this->delegatingServiceAccount;
+  }
+  /**
+   * Optional. An arbitrary user-provided name for the SecurityGateway. Cannot
+   * exceed 64 characters.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -76,7 +151,10 @@ class GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway extends \Google\Col
     return $this->displayName;
   }
   /**
-   * @param string[]
+   * Output only. IP addresses that will be used for establishing connection to
+   * the endpoints.
+   *
+   * @param string[] $externalIps
    */
   public function setExternalIps($externalIps)
   {
@@ -90,7 +168,10 @@ class GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway extends \Google\Col
     return $this->externalIps;
   }
   /**
-   * @param GoogleCloudBeyondcorpSecuritygatewaysV1Hub[]
+   * Optional. Map of Hubs that represents regional data path deployment with
+   * GCP region as a key.
+   *
+   * @param GoogleCloudBeyondcorpSecuritygatewaysV1Hub[] $hubs
    */
   public function setHubs($hubs)
   {
@@ -104,7 +185,9 @@ class GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway extends \Google\Col
     return $this->hubs;
   }
   /**
-   * @param string
+   * Identifier. Name of the resource.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -118,21 +201,60 @@ class GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway extends \Google\Col
     return $this->name;
   }
   /**
-   * @param string
+   * Optional. Shared proxy configuration for all apps.
+   *
+   * @param GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig $proxyProtocolConfig
+   */
+  public function setProxyProtocolConfig(GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig $proxyProtocolConfig)
+  {
+    $this->proxyProtocolConfig = $proxyProtocolConfig;
+  }
+  /**
+   * @return GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig
+   */
+  public function getProxyProtocolConfig()
+  {
+    return $this->proxyProtocolConfig;
+  }
+  /**
+   * Optional. Settings related to the Service Discovery.
+   *
+   * @param GoogleCloudBeyondcorpSecuritygatewaysV1ServiceDiscovery $serviceDiscovery
+   */
+  public function setServiceDiscovery(GoogleCloudBeyondcorpSecuritygatewaysV1ServiceDiscovery $serviceDiscovery)
+  {
+    $this->serviceDiscovery = $serviceDiscovery;
+  }
+  /**
+   * @return GoogleCloudBeyondcorpSecuritygatewaysV1ServiceDiscovery
+   */
+  public function getServiceDiscovery()
+  {
+    return $this->serviceDiscovery;
+  }
+  /**
+   * Output only. The operational state of the SecurityGateway.
+   *
+   * Accepted values: STATE_UNSPECIFIED, CREATING, UPDATING, DELETING, RUNNING,
+   * DOWN, ERROR
+   *
+   * @param self::STATE_* $state
    */
   public function setState($state)
   {
     $this->state = $state;
   }
   /**
-   * @return string
+   * @return self::STATE_*
    */
   public function getState()
   {
     return $this->state;
   }
   /**
-   * @param string
+   * Output only. Timestamp when the resource was last modified.
+   *
+   * @param string $updateTime
    */
   public function setUpdateTime($updateTime)
   {

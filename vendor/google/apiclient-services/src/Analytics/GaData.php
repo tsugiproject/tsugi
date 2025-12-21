@@ -23,32 +23,49 @@ class GaData extends \Google\Collection
   protected $columnHeadersType = GaDataColumnHeaders::class;
   protected $columnHeadersDataType = 'array';
   /**
+   * Determines if Analytics data contains samples.
+   *
    * @var bool
    */
   public $containsSampledData;
   /**
+   * The last refreshed time in seconds for Analytics data.
+   *
    * @var string
    */
   public $dataLastRefreshed;
   protected $dataTableType = GaDataDataTable::class;
   protected $dataTableDataType = '';
   /**
+   * Unique ID for this data response.
+   *
    * @var string
    */
   public $id;
   /**
+   * The maximum number of rows the response can contain, regardless of the
+   * actual number of rows returned. Its value ranges from 1 to 10,000 with a
+   * value of 1000 by default, or otherwise specified by the max-results query
+   * parameter.
+   *
    * @var int
    */
   public $itemsPerPage;
   /**
+   * Resource type.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Link to next page for this Analytics data query.
+   *
    * @var string
    */
   public $nextLink;
   /**
+   * Link to previous page for this Analytics data query.
+   *
    * @var string
    */
   public $previousLink;
@@ -57,32 +74,52 @@ class GaData extends \Google\Collection
   protected $queryType = GaDataQuery::class;
   protected $queryDataType = '';
   /**
+   * Analytics data rows, where each row contains a list of dimension values
+   * followed by the metric values. The order of dimensions and metrics is same
+   * as specified in the request.
+   *
    * @var string[]
    */
   public $rows;
   /**
+   * The number of samples used to calculate the result.
+   *
    * @var string
    */
   public $sampleSize;
   /**
+   * Total size of the sample space from which the samples were selected.
+   *
    * @var string
    */
   public $sampleSpace;
   /**
+   * Link to this page.
+   *
    * @var string
    */
   public $selfLink;
   /**
+   * The total number of rows for the query, regardless of the number of rows in
+   * the response.
+   *
    * @var int
    */
   public $totalResults;
   /**
+   * Total values for the requested metrics over all the results, not just the
+   * results returned in this response. The order of the metric totals is same
+   * as the metric order specified in the request.
+   *
    * @var string[]
    */
   public $totalsForAllResults;
 
   /**
-   * @param GaDataColumnHeaders[]
+   * Column headers that list dimension names followed by the metric names. The
+   * order of dimensions and metrics is same as specified in the request.
+   *
+   * @param GaDataColumnHeaders[] $columnHeaders
    */
   public function setColumnHeaders($columnHeaders)
   {
@@ -96,7 +133,9 @@ class GaData extends \Google\Collection
     return $this->columnHeaders;
   }
   /**
-   * @param bool
+   * Determines if Analytics data contains samples.
+   *
+   * @param bool $containsSampledData
    */
   public function setContainsSampledData($containsSampledData)
   {
@@ -110,7 +149,9 @@ class GaData extends \Google\Collection
     return $this->containsSampledData;
   }
   /**
-   * @param string
+   * The last refreshed time in seconds for Analytics data.
+   *
+   * @param string $dataLastRefreshed
    */
   public function setDataLastRefreshed($dataLastRefreshed)
   {
@@ -124,7 +165,7 @@ class GaData extends \Google\Collection
     return $this->dataLastRefreshed;
   }
   /**
-   * @param GaDataDataTable
+   * @param GaDataDataTable $dataTable
    */
   public function setDataTable(GaDataDataTable $dataTable)
   {
@@ -138,7 +179,9 @@ class GaData extends \Google\Collection
     return $this->dataTable;
   }
   /**
-   * @param string
+   * Unique ID for this data response.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -152,7 +195,12 @@ class GaData extends \Google\Collection
     return $this->id;
   }
   /**
-   * @param int
+   * The maximum number of rows the response can contain, regardless of the
+   * actual number of rows returned. Its value ranges from 1 to 10,000 with a
+   * value of 1000 by default, or otherwise specified by the max-results query
+   * parameter.
+   *
+   * @param int $itemsPerPage
    */
   public function setItemsPerPage($itemsPerPage)
   {
@@ -166,7 +214,9 @@ class GaData extends \Google\Collection
     return $this->itemsPerPage;
   }
   /**
-   * @param string
+   * Resource type.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -180,7 +230,9 @@ class GaData extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * Link to next page for this Analytics data query.
+   *
+   * @param string $nextLink
    */
   public function setNextLink($nextLink)
   {
@@ -194,7 +246,9 @@ class GaData extends \Google\Collection
     return $this->nextLink;
   }
   /**
-   * @param string
+   * Link to previous page for this Analytics data query.
+   *
+   * @param string $previousLink
    */
   public function setPreviousLink($previousLink)
   {
@@ -208,7 +262,10 @@ class GaData extends \Google\Collection
     return $this->previousLink;
   }
   /**
-   * @param GaDataProfileInfo
+   * Information for the view (profile), for which the Analytics data was
+   * requested.
+   *
+   * @param GaDataProfileInfo $profileInfo
    */
   public function setProfileInfo(GaDataProfileInfo $profileInfo)
   {
@@ -222,7 +279,9 @@ class GaData extends \Google\Collection
     return $this->profileInfo;
   }
   /**
-   * @param GaDataQuery
+   * Analytics data request query parameters.
+   *
+   * @param GaDataQuery $query
    */
   public function setQuery(GaDataQuery $query)
   {
@@ -236,7 +295,11 @@ class GaData extends \Google\Collection
     return $this->query;
   }
   /**
-   * @param string[]
+   * Analytics data rows, where each row contains a list of dimension values
+   * followed by the metric values. The order of dimensions and metrics is same
+   * as specified in the request.
+   *
+   * @param string[] $rows
    */
   public function setRows($rows)
   {
@@ -250,7 +313,9 @@ class GaData extends \Google\Collection
     return $this->rows;
   }
   /**
-   * @param string
+   * The number of samples used to calculate the result.
+   *
+   * @param string $sampleSize
    */
   public function setSampleSize($sampleSize)
   {
@@ -264,7 +329,9 @@ class GaData extends \Google\Collection
     return $this->sampleSize;
   }
   /**
-   * @param string
+   * Total size of the sample space from which the samples were selected.
+   *
+   * @param string $sampleSpace
    */
   public function setSampleSpace($sampleSpace)
   {
@@ -278,7 +345,9 @@ class GaData extends \Google\Collection
     return $this->sampleSpace;
   }
   /**
-   * @param string
+   * Link to this page.
+   *
+   * @param string $selfLink
    */
   public function setSelfLink($selfLink)
   {
@@ -292,7 +361,10 @@ class GaData extends \Google\Collection
     return $this->selfLink;
   }
   /**
-   * @param int
+   * The total number of rows for the query, regardless of the number of rows in
+   * the response.
+   *
+   * @param int $totalResults
    */
   public function setTotalResults($totalResults)
   {
@@ -306,7 +378,11 @@ class GaData extends \Google\Collection
     return $this->totalResults;
   }
   /**
-   * @param string[]
+   * Total values for the requested metrics over all the results, not just the
+   * results returned in this response. The order of the metric totals is same
+   * as the metric order specified in the request.
+   *
+   * @param string[] $totalsForAllResults
    */
   public function setTotalsForAllResults($totalsForAllResults)
   {

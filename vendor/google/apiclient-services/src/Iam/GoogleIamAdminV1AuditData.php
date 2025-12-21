@@ -23,7 +23,9 @@ class GoogleIamAdminV1AuditData extends \Google\Model
   protected $permissionDeltaDataType = '';
 
   /**
-   * @param GoogleIamAdminV1AuditDataPermissionDelta
+   * The permission_delta when when creating or updating a Role.
+   *
+   * @param GoogleIamAdminV1AuditDataPermissionDelta $permissionDelta
    */
   public function setPermissionDelta(GoogleIamAdminV1AuditDataPermissionDelta $permissionDelta)
   {

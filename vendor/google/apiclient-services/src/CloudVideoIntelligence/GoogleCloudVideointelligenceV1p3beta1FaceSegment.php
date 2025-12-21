@@ -23,7 +23,9 @@ class GoogleCloudVideointelligenceV1p3beta1FaceSegment extends \Google\Model
   protected $segmentDataType = '';
 
   /**
-   * @param GoogleCloudVideointelligenceV1p3beta1VideoSegment
+   * Video segment where a face was detected.
+   *
+   * @param GoogleCloudVideointelligenceV1p3beta1VideoSegment $segment
    */
   public function setSegment(GoogleCloudVideointelligenceV1p3beta1VideoSegment $segment)
   {

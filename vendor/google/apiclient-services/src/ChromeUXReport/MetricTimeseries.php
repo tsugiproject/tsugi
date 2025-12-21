@@ -28,7 +28,9 @@ class MetricTimeseries extends \Google\Collection
   protected $percentilesTimeseriesDataType = '';
 
   /**
-   * @param FractionTimeseries[]
+   * Mapping from labels to timeseries of fractions attributed to this label.
+   *
+   * @param FractionTimeseries[] $fractionTimeseries
    */
   public function setFractionTimeseries($fractionTimeseries)
   {
@@ -42,7 +44,11 @@ class MetricTimeseries extends \Google\Collection
     return $this->fractionTimeseries;
   }
   /**
-   * @param TimeseriesBin[]
+   * The histogram of user experiences for a metric. The histogram will have at
+   * least one bin and the densities of all bins will add up to ~1, for each
+   * timeseries entry.
+   *
+   * @param TimeseriesBin[] $histogramTimeseries
    */
   public function setHistogramTimeseries($histogramTimeseries)
   {
@@ -56,7 +62,11 @@ class MetricTimeseries extends \Google\Collection
     return $this->histogramTimeseries;
   }
   /**
-   * @param TimeseriesPercentiles
+   * Commonly useful percentiles of the Metric. The value type for the
+   * percentiles will be the same as the value types given for the Histogram
+   * bins.
+   *
+   * @param TimeseriesPercentiles $percentilesTimeseries
    */
   public function setPercentilesTimeseries(TimeseriesPercentiles $percentilesTimeseries)
   {

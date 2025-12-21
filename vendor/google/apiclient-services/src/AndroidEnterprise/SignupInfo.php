@@ -20,20 +20,31 @@ namespace Google\Service\AndroidEnterprise;
 class SignupInfo extends \Google\Model
 {
   /**
+   * An opaque token that will be required, along with the Enterprise Token, for
+   * obtaining the enterprise resource from CompleteSignup.
+   *
    * @var string
    */
   public $completionToken;
   /**
+   * Deprecated.
+   *
    * @var string
    */
   public $kind;
   /**
+   * A URL under which the Admin can sign up for an enterprise. The page pointed
+   * to cannot be rendered in an iframe.
+   *
    * @var string
    */
   public $url;
 
   /**
-   * @param string
+   * An opaque token that will be required, along with the Enterprise Token, for
+   * obtaining the enterprise resource from CompleteSignup.
+   *
+   * @param string $completionToken
    */
   public function setCompletionToken($completionToken)
   {
@@ -47,7 +58,9 @@ class SignupInfo extends \Google\Model
     return $this->completionToken;
   }
   /**
-   * @param string
+   * Deprecated.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -61,7 +74,10 @@ class SignupInfo extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * A URL under which the Admin can sign up for an enterprise. The page pointed
+   * to cannot be rendered in an iframe.
+   *
+   * @param string $url
    */
   public function setUrl($url)
   {

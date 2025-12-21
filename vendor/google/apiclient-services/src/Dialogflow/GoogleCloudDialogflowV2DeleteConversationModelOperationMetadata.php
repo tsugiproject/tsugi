@@ -20,16 +20,31 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2DeleteConversationModelOperationMetadata extends \Google\Model
 {
   /**
+   * The resource name of the conversation model. Format:
+   * `projects//conversationModels/`
+   *
    * @var string
    */
   public $conversationModel;
   /**
+   * Timestamp when delete conversation model request was created. The time is
+   * measured on server side.
+   *
    * @var string
    */
   public $createTime;
+  /**
+   * The time when the operation finished.
+   *
+   * @var string
+   */
+  public $doneTime;
 
   /**
-   * @param string
+   * The resource name of the conversation model. Format:
+   * `projects//conversationModels/`
+   *
+   * @param string $conversationModel
    */
   public function setConversationModel($conversationModel)
   {
@@ -43,7 +58,10 @@ class GoogleCloudDialogflowV2DeleteConversationModelOperationMetadata extends \G
     return $this->conversationModel;
   }
   /**
-   * @param string
+   * Timestamp when delete conversation model request was created. The time is
+   * measured on server side.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -55,6 +73,22 @@ class GoogleCloudDialogflowV2DeleteConversationModelOperationMetadata extends \G
   public function getCreateTime()
   {
     return $this->createTime;
+  }
+  /**
+   * The time when the operation finished.
+   *
+   * @param string $doneTime
+   */
+  public function setDoneTime($doneTime)
+  {
+    $this->doneTime = $doneTime;
+  }
+  /**
+   * @return string
+   */
+  public function getDoneTime()
+  {
+    return $this->doneTime;
   }
 }
 

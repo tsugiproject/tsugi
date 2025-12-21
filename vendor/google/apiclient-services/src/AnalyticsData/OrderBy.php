@@ -20,6 +20,8 @@ namespace Google\Service\AnalyticsData;
 class OrderBy extends \Google\Model
 {
   /**
+   * If true, sorts by descending order.
+   *
    * @var bool
    */
   public $desc;
@@ -31,7 +33,9 @@ class OrderBy extends \Google\Model
   protected $pivotDataType = '';
 
   /**
-   * @param bool
+   * If true, sorts by descending order.
+   *
+   * @param bool $desc
    */
   public function setDesc($desc)
   {
@@ -45,7 +49,9 @@ class OrderBy extends \Google\Model
     return $this->desc;
   }
   /**
-   * @param DimensionOrderBy
+   * Sorts results by a dimension's values.
+   *
+   * @param DimensionOrderBy $dimension
    */
   public function setDimension(DimensionOrderBy $dimension)
   {
@@ -59,7 +65,9 @@ class OrderBy extends \Google\Model
     return $this->dimension;
   }
   /**
-   * @param MetricOrderBy
+   * Sorts results by a metric's values.
+   *
+   * @param MetricOrderBy $metric
    */
   public function setMetric(MetricOrderBy $metric)
   {
@@ -73,7 +81,9 @@ class OrderBy extends \Google\Model
     return $this->metric;
   }
   /**
-   * @param PivotOrderBy
+   * Sorts results by a metric's values within a pivot column group.
+   *
+   * @param PivotOrderBy $pivot
    */
   public function setPivot(PivotOrderBy $pivot)
   {

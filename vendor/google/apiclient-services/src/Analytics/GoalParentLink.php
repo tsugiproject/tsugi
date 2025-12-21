@@ -20,16 +20,22 @@ namespace Google\Service\Analytics;
 class GoalParentLink extends \Google\Model
 {
   /**
+   * Link to the view (profile) to which this goal belongs.
+   *
    * @var string
    */
   public $href;
   /**
+   * Value is "analytics#profile".
+   *
    * @var string
    */
   public $type;
 
   /**
-   * @param string
+   * Link to the view (profile) to which this goal belongs.
+   *
+   * @param string $href
    */
   public function setHref($href)
   {
@@ -43,7 +49,9 @@ class GoalParentLink extends \Google\Model
     return $this->href;
   }
   /**
-   * @param string
+   * Value is "analytics#profile".
+   *
+   * @param string $type
    */
   public function setType($type)
   {

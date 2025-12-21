@@ -20,24 +20,58 @@ namespace Google\Service\Slides;
 class Link extends \Google\Model
 {
   /**
+   * An unspecified relative slide link.
+   */
+  public const RELATIVE_LINK_RELATIVE_SLIDE_LINK_UNSPECIFIED = 'RELATIVE_SLIDE_LINK_UNSPECIFIED';
+  /**
+   * A link to the next slide.
+   */
+  public const RELATIVE_LINK_NEXT_SLIDE = 'NEXT_SLIDE';
+  /**
+   * A link to the previous slide.
+   */
+  public const RELATIVE_LINK_PREVIOUS_SLIDE = 'PREVIOUS_SLIDE';
+  /**
+   * A link to the first slide in the presentation.
+   */
+  public const RELATIVE_LINK_FIRST_SLIDE = 'FIRST_SLIDE';
+  /**
+   * A link to the last slide in the presentation.
+   */
+  public const RELATIVE_LINK_LAST_SLIDE = 'LAST_SLIDE';
+  /**
+   * If set, indicates this is a link to the specific page in this presentation
+   * with this ID. A page with this ID may not exist.
+   *
    * @var string
    */
   public $pageObjectId;
   /**
+   * If set, indicates this is a link to a slide in this presentation, addressed
+   * by its position.
+   *
    * @var string
    */
   public $relativeLink;
   /**
+   * If set, indicates this is a link to the slide at this zero-based index in
+   * the presentation. There may not be a slide at this index.
+   *
    * @var int
    */
   public $slideIndex;
   /**
+   * If set, indicates this is a link to the external web page at this URL.
+   *
    * @var string
    */
   public $url;
 
   /**
-   * @param string
+   * If set, indicates this is a link to the specific page in this presentation
+   * with this ID. A page with this ID may not exist.
+   *
+   * @param string $pageObjectId
    */
   public function setPageObjectId($pageObjectId)
   {
@@ -51,21 +85,30 @@ class Link extends \Google\Model
     return $this->pageObjectId;
   }
   /**
-   * @param string
+   * If set, indicates this is a link to a slide in this presentation, addressed
+   * by its position.
+   *
+   * Accepted values: RELATIVE_SLIDE_LINK_UNSPECIFIED, NEXT_SLIDE,
+   * PREVIOUS_SLIDE, FIRST_SLIDE, LAST_SLIDE
+   *
+   * @param self::RELATIVE_LINK_* $relativeLink
    */
   public function setRelativeLink($relativeLink)
   {
     $this->relativeLink = $relativeLink;
   }
   /**
-   * @return string
+   * @return self::RELATIVE_LINK_*
    */
   public function getRelativeLink()
   {
     return $this->relativeLink;
   }
   /**
-   * @param int
+   * If set, indicates this is a link to the slide at this zero-based index in
+   * the presentation. There may not be a slide at this index.
+   *
+   * @param int $slideIndex
    */
   public function setSlideIndex($slideIndex)
   {
@@ -79,7 +122,9 @@ class Link extends \Google\Model
     return $this->slideIndex;
   }
   /**
-   * @param string
+   * If set, indicates this is a link to the external web page at this URL.
+   *
+   * @param string $url
    */
   public function setUrl($url)
   {

@@ -20,30 +20,74 @@ namespace Google\Service\AddressValidation;
 class GoogleMapsAddressvalidationV1ProvideValidationFeedbackRequest extends \Google\Model
 {
   /**
+   * This value is unused. If the `ProvideValidationFeedbackRequest.conclusion`
+   * field is set to `VALIDATION_CONCLUSION_UNSPECIFIED`, an `INVALID_ARGUMENT`
+   * error will be returned.
+   */
+  public const CONCLUSION_VALIDATION_CONCLUSION_UNSPECIFIED = 'VALIDATION_CONCLUSION_UNSPECIFIED';
+  /**
+   * The version of the address returned by the Address Validation API was used
+   * for the transaction.
+   */
+  public const CONCLUSION_VALIDATED_VERSION_USED = 'VALIDATED_VERSION_USED';
+  /**
+   * The version of the address provided by the user was used for the
+   * transaction
+   */
+  public const CONCLUSION_USER_VERSION_USED = 'USER_VERSION_USED';
+  /**
+   * A version of the address that was entered after the last validation attempt
+   * but that was not re-validated was used for the transaction.
+   */
+  public const CONCLUSION_UNVALIDATED_VERSION_USED = 'UNVALIDATED_VERSION_USED';
+  /**
+   * The transaction was abandoned and the address was not used.
+   */
+  public const CONCLUSION_UNUSED = 'UNUSED';
+  /**
+   * Required. The outcome of the sequence of validation attempts. If this field
+   * is set to `VALIDATION_CONCLUSION_UNSPECIFIED`, an `INVALID_ARGUMENT` error
+   * will be returned.
+   *
    * @var string
    */
   public $conclusion;
   /**
+   * Required. The ID of the response that this feedback is for. This should be
+   * the response_id from the first response in a series of address validation
+   * attempts.
+   *
    * @var string
    */
   public $responseId;
 
   /**
-   * @param string
+   * Required. The outcome of the sequence of validation attempts. If this field
+   * is set to `VALIDATION_CONCLUSION_UNSPECIFIED`, an `INVALID_ARGUMENT` error
+   * will be returned.
+   *
+   * Accepted values: VALIDATION_CONCLUSION_UNSPECIFIED, VALIDATED_VERSION_USED,
+   * USER_VERSION_USED, UNVALIDATED_VERSION_USED, UNUSED
+   *
+   * @param self::CONCLUSION_* $conclusion
    */
   public function setConclusion($conclusion)
   {
     $this->conclusion = $conclusion;
   }
   /**
-   * @return string
+   * @return self::CONCLUSION_*
    */
   public function getConclusion()
   {
     return $this->conclusion;
   }
   /**
-   * @param string
+   * Required. The ID of the response that this feedback is for. This should be
+   * the response_id from the first response in a series of address validation
+   * attempts.
+   *
+   * @param string $responseId
    */
   public function setResponseId($responseId)
   {

@@ -23,16 +23,24 @@ class ReplaceAllTextRequest extends \Google\Collection
   protected $containsTextType = SubstringMatchCriteria::class;
   protected $containsTextDataType = '';
   /**
+   * If non-empty, limits the matches to page elements only on the given pages.
+   * Returns a 400 bad request error if given the page object ID of a notes
+   * master, or if a page with that object ID doesn't exist in the presentation.
+   *
    * @var string[]
    */
   public $pageObjectIds;
   /**
+   * The text that will replace the matched text.
+   *
    * @var string
    */
   public $replaceText;
 
   /**
-   * @param SubstringMatchCriteria
+   * Finds text in a shape matching this substring.
+   *
+   * @param SubstringMatchCriteria $containsText
    */
   public function setContainsText(SubstringMatchCriteria $containsText)
   {
@@ -46,7 +54,11 @@ class ReplaceAllTextRequest extends \Google\Collection
     return $this->containsText;
   }
   /**
-   * @param string[]
+   * If non-empty, limits the matches to page elements only on the given pages.
+   * Returns a 400 bad request error if given the page object ID of a notes
+   * master, or if a page with that object ID doesn't exist in the presentation.
+   *
+   * @param string[] $pageObjectIds
    */
   public function setPageObjectIds($pageObjectIds)
   {
@@ -60,7 +72,9 @@ class ReplaceAllTextRequest extends \Google\Collection
     return $this->pageObjectIds;
   }
   /**
-   * @param string
+   * The text that will replace the matched text.
+   *
+   * @param string $replaceText
    */
   public function setReplaceText($replaceText)
   {

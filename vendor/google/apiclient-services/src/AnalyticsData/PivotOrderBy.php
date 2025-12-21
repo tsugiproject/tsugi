@@ -21,6 +21,9 @@ class PivotOrderBy extends \Google\Collection
 {
   protected $collection_key = 'pivotSelections';
   /**
+   * In the response to order by, order rows by this column. Must be a metric
+   * name from the request.
+   *
    * @var string
    */
   public $metricName;
@@ -28,7 +31,10 @@ class PivotOrderBy extends \Google\Collection
   protected $pivotSelectionsDataType = 'array';
 
   /**
-   * @param string
+   * In the response to order by, order rows by this column. Must be a metric
+   * name from the request.
+   *
+   * @param string $metricName
    */
   public function setMetricName($metricName)
   {
@@ -42,7 +48,12 @@ class PivotOrderBy extends \Google\Collection
     return $this->metricName;
   }
   /**
-   * @param PivotSelection[]
+   * Used to select a dimension name and value pivot. If multiple pivot
+   * selections are given, the sort occurs on rows where all pivot selection
+   * dimension name and value pairs match the row's dimension name and value
+   * pair.
+   *
+   * @param PivotSelection[] $pivotSelections
    */
   public function setPivotSelections($pivotSelections)
   {

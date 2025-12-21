@@ -20,6 +20,40 @@ namespace Google\Service\Slides;
 class TableBorderProperties extends \Google\Model
 {
   /**
+   * Unspecified dash style.
+   */
+  public const DASH_STYLE_DASH_STYLE_UNSPECIFIED = 'DASH_STYLE_UNSPECIFIED';
+  /**
+   * Solid line. Corresponds to ECMA-376 ST_PresetLineDashVal value 'solid'.
+   * This is the default dash style.
+   */
+  public const DASH_STYLE_SOLID = 'SOLID';
+  /**
+   * Dotted line. Corresponds to ECMA-376 ST_PresetLineDashVal value 'dot'.
+   */
+  public const DASH_STYLE_DOT = 'DOT';
+  /**
+   * Dashed line. Corresponds to ECMA-376 ST_PresetLineDashVal value 'dash'.
+   */
+  public const DASH_STYLE_DASH = 'DASH';
+  /**
+   * Alternating dashes and dots. Corresponds to ECMA-376 ST_PresetLineDashVal
+   * value 'dashDot'.
+   */
+  public const DASH_STYLE_DASH_DOT = 'DASH_DOT';
+  /**
+   * Line with large dashes. Corresponds to ECMA-376 ST_PresetLineDashVal value
+   * 'lgDash'.
+   */
+  public const DASH_STYLE_LONG_DASH = 'LONG_DASH';
+  /**
+   * Alternating large dashes and dots. Corresponds to ECMA-376
+   * ST_PresetLineDashVal value 'lgDashDot'.
+   */
+  public const DASH_STYLE_LONG_DASH_DOT = 'LONG_DASH_DOT';
+  /**
+   * The dash style of the border.
+   *
    * @var string
    */
   public $dashStyle;
@@ -29,21 +63,28 @@ class TableBorderProperties extends \Google\Model
   protected $weightDataType = '';
 
   /**
-   * @param string
+   * The dash style of the border.
+   *
+   * Accepted values: DASH_STYLE_UNSPECIFIED, SOLID, DOT, DASH, DASH_DOT,
+   * LONG_DASH, LONG_DASH_DOT
+   *
+   * @param self::DASH_STYLE_* $dashStyle
    */
   public function setDashStyle($dashStyle)
   {
     $this->dashStyle = $dashStyle;
   }
   /**
-   * @return string
+   * @return self::DASH_STYLE_*
    */
   public function getDashStyle()
   {
     return $this->dashStyle;
   }
   /**
-   * @param TableBorderFill
+   * The fill of the table border.
+   *
+   * @param TableBorderFill $tableBorderFill
    */
   public function setTableBorderFill(TableBorderFill $tableBorderFill)
   {
@@ -57,7 +98,9 @@ class TableBorderProperties extends \Google\Model
     return $this->tableBorderFill;
   }
   /**
-   * @param Dimension
+   * The thickness of the border.
+   *
+   * @param Dimension $weight
    */
   public function setWeight(Dimension $weight)
   {

@@ -20,16 +20,45 @@ namespace Google\Service\NetAppFiles;
 class TieringPolicy extends \Google\Model
 {
   /**
+   * Unspecified.
+   */
+  public const TIER_ACTION_TIER_ACTION_UNSPECIFIED = 'TIER_ACTION_UNSPECIFIED';
+  /**
+   * When tiering is enabled, new cold data will be tiered.
+   */
+  public const TIER_ACTION_ENABLED = 'ENABLED';
+  /**
+   * When paused, tiering won't be performed on new data. Existing data stays
+   * tiered until accessed.
+   */
+  public const TIER_ACTION_PAUSED = 'PAUSED';
+  /**
+   * Optional. Time in days to mark the volume's data block as cold and make it
+   * eligible for tiering, can be range from 2-183. Default is 31.
+   *
    * @var int
    */
   public $coolingThresholdDays;
   /**
+   * Optional. Flag indicating that the hot tier bypass mode is enabled. Default
+   * is false. This is only applicable to Flex service level.
+   *
+   * @var bool
+   */
+  public $hotTierBypassModeEnabled;
+  /**
+   * Optional. Flag indicating if the volume has tiering policy enable/pause.
+   * Default is PAUSED.
+   *
    * @var string
    */
   public $tierAction;
 
   /**
-   * @param int
+   * Optional. Time in days to mark the volume's data block as cold and make it
+   * eligible for tiering, can be range from 2-183. Default is 31.
+   *
+   * @param int $coolingThresholdDays
    */
   public function setCoolingThresholdDays($coolingThresholdDays)
   {
@@ -43,14 +72,36 @@ class TieringPolicy extends \Google\Model
     return $this->coolingThresholdDays;
   }
   /**
-   * @param string
+   * Optional. Flag indicating that the hot tier bypass mode is enabled. Default
+   * is false. This is only applicable to Flex service level.
+   *
+   * @param bool $hotTierBypassModeEnabled
+   */
+  public function setHotTierBypassModeEnabled($hotTierBypassModeEnabled)
+  {
+    $this->hotTierBypassModeEnabled = $hotTierBypassModeEnabled;
+  }
+  /**
+   * @return bool
+   */
+  public function getHotTierBypassModeEnabled()
+  {
+    return $this->hotTierBypassModeEnabled;
+  }
+  /**
+   * Optional. Flag indicating if the volume has tiering policy enable/pause.
+   * Default is PAUSED.
+   *
+   * Accepted values: TIER_ACTION_UNSPECIFIED, ENABLED, PAUSED
+   *
+   * @param self::TIER_ACTION_* $tierAction
    */
   public function setTierAction($tierAction)
   {
     $this->tierAction = $tierAction;
   }
   /**
-   * @return string
+   * @return self::TIER_ACTION_*
    */
   public function getTierAction()
   {

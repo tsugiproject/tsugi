@@ -19,6 +19,8 @@ namespace Google\Service\Datastream;
 
 class BackfillAllStrategy extends \Google\Model
 {
+  protected $mongodbExcludedObjectsType = MongodbCluster::class;
+  protected $mongodbExcludedObjectsDataType = '';
   protected $mysqlExcludedObjectsType = MysqlRdbms::class;
   protected $mysqlExcludedObjectsDataType = '';
   protected $oracleExcludedObjectsType = OracleRdbms::class;
@@ -31,7 +33,25 @@ class BackfillAllStrategy extends \Google\Model
   protected $sqlServerExcludedObjectsDataType = '';
 
   /**
-   * @param MysqlRdbms
+   * MongoDB data source objects to avoid backfilling
+   *
+   * @param MongodbCluster $mongodbExcludedObjects
+   */
+  public function setMongodbExcludedObjects(MongodbCluster $mongodbExcludedObjects)
+  {
+    $this->mongodbExcludedObjects = $mongodbExcludedObjects;
+  }
+  /**
+   * @return MongodbCluster
+   */
+  public function getMongodbExcludedObjects()
+  {
+    return $this->mongodbExcludedObjects;
+  }
+  /**
+   * MySQL data source objects to avoid backfilling.
+   *
+   * @param MysqlRdbms $mysqlExcludedObjects
    */
   public function setMysqlExcludedObjects(MysqlRdbms $mysqlExcludedObjects)
   {
@@ -45,7 +65,9 @@ class BackfillAllStrategy extends \Google\Model
     return $this->mysqlExcludedObjects;
   }
   /**
-   * @param OracleRdbms
+   * Oracle data source objects to avoid backfilling.
+   *
+   * @param OracleRdbms $oracleExcludedObjects
    */
   public function setOracleExcludedObjects(OracleRdbms $oracleExcludedObjects)
   {
@@ -59,7 +81,9 @@ class BackfillAllStrategy extends \Google\Model
     return $this->oracleExcludedObjects;
   }
   /**
-   * @param PostgresqlRdbms
+   * PostgreSQL data source objects to avoid backfilling.
+   *
+   * @param PostgresqlRdbms $postgresqlExcludedObjects
    */
   public function setPostgresqlExcludedObjects(PostgresqlRdbms $postgresqlExcludedObjects)
   {
@@ -73,7 +97,9 @@ class BackfillAllStrategy extends \Google\Model
     return $this->postgresqlExcludedObjects;
   }
   /**
-   * @param SalesforceOrg
+   * Salesforce data source objects to avoid backfilling
+   *
+   * @param SalesforceOrg $salesforceExcludedObjects
    */
   public function setSalesforceExcludedObjects(SalesforceOrg $salesforceExcludedObjects)
   {
@@ -87,7 +113,9 @@ class BackfillAllStrategy extends \Google\Model
     return $this->salesforceExcludedObjects;
   }
   /**
-   * @param SqlServerRdbms
+   * SQLServer data source objects to avoid backfilling
+   *
+   * @param SqlServerRdbms $sqlServerExcludedObjects
    */
   public function setSqlServerExcludedObjects(SqlServerRdbms $sqlServerExcludedObjects)
   {

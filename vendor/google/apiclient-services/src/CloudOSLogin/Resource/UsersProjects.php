@@ -18,6 +18,8 @@
 namespace Google\Service\CloudOSLogin\Resource;
 
 use Google\Service\CloudOSLogin\OsloginEmpty;
+use Google\Service\CloudOSLogin\PosixAccount;
+use Google\Service\CloudOSLogin\ProvisionPosixAccountRequest;
 
 /**
  * The "projects" collection of methods.
@@ -45,6 +47,24 @@ class UsersProjects extends \Google\Service\Resource
     $params = ['name' => $name];
     $params = array_merge($params, $optParams);
     return $this->call('delete', [$params], OsloginEmpty::class);
+  }
+  /**
+   * Adds a POSIX account and returns the profile information. Default POSIX
+   * account information is set when no username and UID exist as part of the
+   * login profile. (projects.provisionPosixAccount)
+   *
+   * @param string $name Required. The unique ID for the user in format
+   * `users/{user}/projects/{project}`.
+   * @param ProvisionPosixAccountRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return PosixAccount
+   * @throws \Google\Service\Exception
+   */
+  public function provisionPosixAccount($name, ProvisionPosixAccountRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('provisionPosixAccount', [$params], PosixAccount::class);
   }
 }
 

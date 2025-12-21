@@ -20,20 +20,45 @@ namespace Google\Service\AnalyticsData;
 class Metric extends \Google\Model
 {
   /**
+   * A mathematical expression for derived metrics. For example, the metric
+   * Event count per user is `eventCount/totalUsers`.
+   *
    * @var string
    */
   public $expression;
   /**
+   * Indicates if a metric is invisible in the report response. If a metric is
+   * invisible, the metric will not produce a column in the response, but can be
+   * used in `metricFilter`, `orderBys`, or a metric `expression`.
+   *
    * @var bool
    */
   public $invisible;
   /**
+   * The name of the metric. See the [API Metrics](https://developers.google.com
+   * /analytics/devguides/reporting/data/v1/api-schema#metrics) for the list of
+   * metric names supported by core reporting methods such as `runReport` and
+   * `batchRunReports`. See [Realtime Metrics](https://developers.google.com/ana
+   * lytics/devguides/reporting/data/v1/realtime-api-schema#metrics) for the
+   * list of metric names supported by the `runRealtimeReport` method. See
+   * [Funnel Metrics](https://developers.google.com/analytics/devguides/reportin
+   * g/data/v1/exploration-api-schema#metrics) for the list of metric names
+   * supported by the `runFunnelReport` method. If `expression` is specified,
+   * `name` can be any string that you would like within the allowed character
+   * set. For example if `expression` is `screenPageViews/sessions`, you could
+   * call that metric's name = `viewsPerSession`. Metric names that you choose
+   * must match the regular expression `^[a-zA-Z0-9_]$`. Metrics are referenced
+   * by `name` in `metricFilter`, `orderBys`, and metric `expression`.
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param string
+   * A mathematical expression for derived metrics. For example, the metric
+   * Event count per user is `eventCount/totalUsers`.
+   *
+   * @param string $expression
    */
   public function setExpression($expression)
   {
@@ -47,7 +72,11 @@ class Metric extends \Google\Model
     return $this->expression;
   }
   /**
-   * @param bool
+   * Indicates if a metric is invisible in the report response. If a metric is
+   * invisible, the metric will not produce a column in the response, but can be
+   * used in `metricFilter`, `orderBys`, or a metric `expression`.
+   *
+   * @param bool $invisible
    */
   public function setInvisible($invisible)
   {
@@ -61,7 +90,22 @@ class Metric extends \Google\Model
     return $this->invisible;
   }
   /**
-   * @param string
+   * The name of the metric. See the [API Metrics](https://developers.google.com
+   * /analytics/devguides/reporting/data/v1/api-schema#metrics) for the list of
+   * metric names supported by core reporting methods such as `runReport` and
+   * `batchRunReports`. See [Realtime Metrics](https://developers.google.com/ana
+   * lytics/devguides/reporting/data/v1/realtime-api-schema#metrics) for the
+   * list of metric names supported by the `runRealtimeReport` method. See
+   * [Funnel Metrics](https://developers.google.com/analytics/devguides/reportin
+   * g/data/v1/exploration-api-schema#metrics) for the list of metric names
+   * supported by the `runFunnelReport` method. If `expression` is specified,
+   * `name` can be any string that you would like within the allowed character
+   * set. For example if `expression` is `screenPageViews/sessions`, you could
+   * call that metric's name = `viewsPerSession`. Metric names that you choose
+   * must match the regular expression `^[a-zA-Z0-9_]$`. Metrics are referenced
+   * by `name` in `metricFilter`, `orderBys`, and metric `expression`.
+   *
+   * @param string $name
    */
   public function setName($name)
   {

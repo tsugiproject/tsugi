@@ -23,7 +23,7 @@ use Google\Client;
  * Service definition for AppHub (v1).
  *
  * <p>
-</p>
+ * App Hub lets you build, operate, and manage applications on Google Cloud.</p>
  *
  * <p>
  * For more information about this service, see the API
@@ -44,6 +44,7 @@ class AppHub extends \Google\Service
   public $projects_locations_applications_workloads;
   public $projects_locations_discoveredServices;
   public $projects_locations_discoveredWorkloads;
+  public $projects_locations_extendedMetadataSchemas;
   public $projects_locations_operations;
   public $projects_locations_serviceProjectAttachments;
   public $rootUrlTemplate;
@@ -91,6 +92,16 @@ class AppHub extends \Google\Service
                   'required' => true,
                 ],
               ],
+            ],'getBoundary' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'list' => [
               'path' => 'v1/{+name}/locations',
               'httpMethod' => 'GET',
@@ -99,6 +110,11 @@ class AppHub extends \Google\Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ],
+                'extraLocationTypes' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                  'repeated' => true,
                 ],
                 'filter' => [
                   'location' => 'query',
@@ -121,6 +137,24 @@ class AppHub extends \Google\Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ],
+              ],
+            ],'updateBoundary' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'PATCH',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'requestId' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'updateMask' => [
+                  'location' => 'query',
+                  'type' => 'string',
                 ],
               ],
             ],
@@ -569,6 +603,44 @@ class AppHub extends \Google\Service
           ]
         ]
     );
+    $this->projects_locations_extendedMetadataSchemas = new AppHub\Resource\ProjectsLocationsExtendedMetadataSchemas(
+        $this,
+        $this->serviceName,
+        'extendedMetadataSchemas',
+        [
+          'methods' => [
+            'get' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'list' => [
+              'path' => 'v1/{+parent}/extendedMetadataSchemas',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'pageSize' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+                'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
     $this->projects_locations_operations = new AppHub\Resource\ProjectsLocationsOperations(
         $this,
         $this->serviceName,
@@ -625,6 +697,10 @@ class AppHub extends \Google\Service
                 'pageToken' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+                'returnPartialSuccess' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
               ],
             ],

@@ -19,44 +19,95 @@ namespace Google\Service\AirQuality;
 
 class LookupForecastRequest extends \Google\Collection
 {
+  /**
+   * The default value. Ignored if passed as a parameter.
+   */
+  public const UAQI_COLOR_PALETTE_COLOR_PALETTE_UNSPECIFIED = 'COLOR_PALETTE_UNSPECIFIED';
+  /**
+   * Determines whether to use a red/green palette.
+   */
+  public const UAQI_COLOR_PALETTE_RED_GREEN = 'RED_GREEN';
+  /**
+   * Determines whether to use a indigo/persian palette (dark theme).
+   */
+  public const UAQI_COLOR_PALETTE_INDIGO_PERSIAN_DARK = 'INDIGO_PERSIAN_DARK';
+  /**
+   * Determines whether to use a indigo/persian palette (light theme).
+   */
+  public const UAQI_COLOR_PALETTE_INDIGO_PERSIAN_LIGHT = 'INDIGO_PERSIAN_LIGHT';
   protected $collection_key = 'extraComputations';
   protected $customLocalAqisType = CustomLocalAqi::class;
   protected $customLocalAqisDataType = 'array';
   /**
+   * A timestamp for which to return the data for a specific point in time. The
+   * timestamp is rounded to the previous exact hour. Note: this will return
+   * hourly data for the requested timestamp only (i.e. a single hourly info
+   * element). For example, a request sent where the date_time parameter is set
+   * to 2023-01-03T11:05:49Z will be rounded down to 2023-01-03T11:00:00Z.
+   *
    * @var string
    */
   public $dateTime;
   /**
+   * Optional. Additional features that can be optionally enabled. Specifying
+   * extra computations will result in the relevant elements and fields to be
+   * returned in the response.
+   *
    * @var string[]
    */
   public $extraComputations;
   /**
+   * Optional. Allows the client to choose the language for the response. If
+   * data cannot be provided for that language the API uses the closest match.
+   * Allowed values rely on the IETF standard (default = 'en').
+   *
    * @var string
    */
   public $languageCode;
   protected $locationType = LatLng::class;
   protected $locationDataType = '';
   /**
+   * Optional. The maximum number of hourly info records to return per page
+   * (default = 24).
+   *
    * @var int
    */
   public $pageSize;
   /**
+   * Optional. A page token received from a previous forecast call. It is used
+   * to retrieve the subsequent page.
+   *
    * @var string
    */
   public $pageToken;
   protected $periodType = Interval::class;
   protected $periodDataType = '';
   /**
+   * Optional. Determines the color palette used for data provided by the
+   * 'Universal Air Quality Index' (UAQI). This color palette is relevant just
+   * for UAQI, other AQIs have a predetermined color palette that can't be
+   * controlled.
+   *
    * @var string
    */
   public $uaqiColorPalette;
   /**
+   * Optional. If set to true, the Universal AQI will be included in the
+   * 'indexes' field of the response (default = true).
+   *
    * @var bool
    */
   public $universalAqi;
 
   /**
-   * @param CustomLocalAqi[]
+   * Optional. Expresses a 'country/region to AQI' relationship. Pairs a
+   * country/region with a desired AQI so that air quality data that is required
+   * for that country/region will be displayed according to the chosen AQI. This
+   * parameter can be used to specify a non-default AQI for a given country, for
+   * example, to get the US EPA index for Canada rather than the default index
+   * for Canada.
+   *
+   * @param CustomLocalAqi[] $customLocalAqis
    */
   public function setCustomLocalAqis($customLocalAqis)
   {
@@ -70,7 +121,13 @@ class LookupForecastRequest extends \Google\Collection
     return $this->customLocalAqis;
   }
   /**
-   * @param string
+   * A timestamp for which to return the data for a specific point in time. The
+   * timestamp is rounded to the previous exact hour. Note: this will return
+   * hourly data for the requested timestamp only (i.e. a single hourly info
+   * element). For example, a request sent where the date_time parameter is set
+   * to 2023-01-03T11:05:49Z will be rounded down to 2023-01-03T11:00:00Z.
+   *
+   * @param string $dateTime
    */
   public function setDateTime($dateTime)
   {
@@ -84,7 +141,11 @@ class LookupForecastRequest extends \Google\Collection
     return $this->dateTime;
   }
   /**
-   * @param string[]
+   * Optional. Additional features that can be optionally enabled. Specifying
+   * extra computations will result in the relevant elements and fields to be
+   * returned in the response.
+   *
+   * @param string[] $extraComputations
    */
   public function setExtraComputations($extraComputations)
   {
@@ -98,7 +159,11 @@ class LookupForecastRequest extends \Google\Collection
     return $this->extraComputations;
   }
   /**
-   * @param string
+   * Optional. Allows the client to choose the language for the response. If
+   * data cannot be provided for that language the API uses the closest match.
+   * Allowed values rely on the IETF standard (default = 'en').
+   *
+   * @param string $languageCode
    */
   public function setLanguageCode($languageCode)
   {
@@ -112,7 +177,10 @@ class LookupForecastRequest extends \Google\Collection
     return $this->languageCode;
   }
   /**
-   * @param LatLng
+   * Required. The latitude and longitude for which the API looks for air
+   * quality data.
+   *
+   * @param LatLng $location
    */
   public function setLocation(LatLng $location)
   {
@@ -126,7 +194,10 @@ class LookupForecastRequest extends \Google\Collection
     return $this->location;
   }
   /**
-   * @param int
+   * Optional. The maximum number of hourly info records to return per page
+   * (default = 24).
+   *
+   * @param int $pageSize
    */
   public function setPageSize($pageSize)
   {
@@ -140,7 +211,10 @@ class LookupForecastRequest extends \Google\Collection
     return $this->pageSize;
   }
   /**
-   * @param string
+   * Optional. A page token received from a previous forecast call. It is used
+   * to retrieve the subsequent page.
+   *
+   * @param string $pageToken
    */
   public function setPageToken($pageToken)
   {
@@ -154,7 +228,10 @@ class LookupForecastRequest extends \Google\Collection
     return $this->pageToken;
   }
   /**
-   * @param Interval
+   * Indicates the start and end period for which to get the forecast data. The
+   * timestamp is rounded to the previous exact hour.
+   *
+   * @param Interval $period
    */
   public function setPeriod(Interval $period)
   {
@@ -168,21 +245,32 @@ class LookupForecastRequest extends \Google\Collection
     return $this->period;
   }
   /**
-   * @param string
+   * Optional. Determines the color palette used for data provided by the
+   * 'Universal Air Quality Index' (UAQI). This color palette is relevant just
+   * for UAQI, other AQIs have a predetermined color palette that can't be
+   * controlled.
+   *
+   * Accepted values: COLOR_PALETTE_UNSPECIFIED, RED_GREEN, INDIGO_PERSIAN_DARK,
+   * INDIGO_PERSIAN_LIGHT
+   *
+   * @param self::UAQI_COLOR_PALETTE_* $uaqiColorPalette
    */
   public function setUaqiColorPalette($uaqiColorPalette)
   {
     $this->uaqiColorPalette = $uaqiColorPalette;
   }
   /**
-   * @return string
+   * @return self::UAQI_COLOR_PALETTE_*
    */
   public function getUaqiColorPalette()
   {
     return $this->uaqiColorPalette;
   }
   /**
-   * @param bool
+   * Optional. If set to true, the Universal AQI will be included in the
+   * 'indexes' field of the response (default = true).
+   *
+   * @param bool $universalAqi
    */
   public function setUniversalAqi($universalAqi)
   {

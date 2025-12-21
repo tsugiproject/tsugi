@@ -25,7 +25,9 @@ class QueryHistoryResponse extends \Google\Model
   protected $urlNormalizationDetailsDataType = '';
 
   /**
-   * @param HistoryRecord
+   * The record that was found.
+   *
+   * @param HistoryRecord $record
    */
   public function setRecord(HistoryRecord $record)
   {
@@ -39,7 +41,10 @@ class QueryHistoryResponse extends \Google\Model
     return $this->record;
   }
   /**
-   * @param UrlNormalization
+   * These are details about automated normalization actions that were taken in
+   * order to make the requested `url_pattern` valid.
+   *
+   * @param UrlNormalization $urlNormalizationDetails
    */
   public function setUrlNormalizationDetails(UrlNormalization $urlNormalizationDetails)
   {

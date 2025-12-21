@@ -21,6 +21,8 @@ class ListNotesResponse extends \Google\Collection
 {
   protected $collection_key = 'notes';
   /**
+   * Next page's `page_token` field.
+   *
    * @var string
    */
   public $nextPageToken;
@@ -28,7 +30,9 @@ class ListNotesResponse extends \Google\Collection
   protected $notesDataType = 'array';
 
   /**
-   * @param string
+   * Next page's `page_token` field.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -42,7 +46,9 @@ class ListNotesResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param Note[]
+   * A page of notes.
+   *
+   * @param Note[] $notes
    */
   public function setNotes($notes)
   {

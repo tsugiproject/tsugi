@@ -692,6 +692,26 @@ class Dataflow extends \Google\Service
                   'required' => true,
                 ],
               ],
+            ],'getWorkerStacktraces' => [
+              'path' => 'v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getWorkerStacktraces',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'projectId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'location' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'jobId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'sendCapture' => [
               'path' => 'v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/sendCapture',
               'httpMethod' => 'POST',

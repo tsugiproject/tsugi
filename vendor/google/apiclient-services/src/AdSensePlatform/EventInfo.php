@@ -22,12 +22,18 @@ class EventInfo extends \Google\Model
   protected $billingAddressType = Address::class;
   protected $billingAddressDataType = '';
   /**
+   * Required. The email address that is associated with the publisher when
+   * performing the event.
+   *
    * @var string
    */
   public $email;
 
   /**
-   * @param Address
+   * The billing address of the publisher associated with this event, if
+   * available.
+   *
+   * @param Address $billingAddress
    */
   public function setBillingAddress(Address $billingAddress)
   {
@@ -41,7 +47,10 @@ class EventInfo extends \Google\Model
     return $this->billingAddress;
   }
   /**
-   * @param string
+   * Required. The email address that is associated with the publisher when
+   * performing the event.
+   *
+   * @param string $email
    */
   public function setEmail($email)
   {

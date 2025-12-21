@@ -17,13 +17,24 @@
 
 namespace Google\Service\VMwareEngine;
 
-class Constraints extends \Google\Model
+class Constraints extends \Google\Collection
 {
+  protected $collection_key = 'disallowedIntervals';
+  protected $disallowedIntervalsType = WeeklyTimeInterval::class;
+  protected $disallowedIntervalsDataType = 'array';
   /**
+   * Output only. Minimum number of hours must be allotted for the upgrade
+   * activities for each selected day. This is a minimum; the upgrade schedule
+   * can allot more hours for the given day.
+   *
    * @var int
    */
   public $minHoursDay;
   /**
+   * Output only. The minimum number of weekly hours must be allotted for the
+   * upgrade activities. This is just a minimum; the schedule can assign more
+   * weekly hours.
+   *
    * @var int
    */
   public $minHoursWeek;
@@ -31,7 +42,29 @@ class Constraints extends \Google\Model
   protected $rescheduleDateRangeDataType = '';
 
   /**
-   * @param int
+   * Output only. Output Only. A list of intervals in which maintenance windows
+   * are not allowed. Any time window that overlaps with any of these intervals
+   * will be considered invalid.
+   *
+   * @param WeeklyTimeInterval[] $disallowedIntervals
+   */
+  public function setDisallowedIntervals($disallowedIntervals)
+  {
+    $this->disallowedIntervals = $disallowedIntervals;
+  }
+  /**
+   * @return WeeklyTimeInterval[]
+   */
+  public function getDisallowedIntervals()
+  {
+    return $this->disallowedIntervals;
+  }
+  /**
+   * Output only. Minimum number of hours must be allotted for the upgrade
+   * activities for each selected day. This is a minimum; the upgrade schedule
+   * can allot more hours for the given day.
+   *
+   * @param int $minHoursDay
    */
   public function setMinHoursDay($minHoursDay)
   {
@@ -45,7 +78,11 @@ class Constraints extends \Google\Model
     return $this->minHoursDay;
   }
   /**
-   * @param int
+   * Output only. The minimum number of weekly hours must be allotted for the
+   * upgrade activities. This is just a minimum; the schedule can assign more
+   * weekly hours.
+   *
+   * @param int $minHoursWeek
    */
   public function setMinHoursWeek($minHoursWeek)
   {
@@ -59,7 +96,10 @@ class Constraints extends \Google\Model
     return $this->minHoursWeek;
   }
   /**
-   * @param Interval
+   * Output only. Output Only. The user can only reschedule an upgrade that
+   * starts within this range.
+   *
+   * @param Interval $rescheduleDateRange
    */
   public function setRescheduleDateRange(Interval $rescheduleDateRange)
   {

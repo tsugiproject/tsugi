@@ -20,36 +20,56 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaAccount extends \Google\Model
 {
   /**
+   * Output only. Time when this account was originally created.
+   *
    * @var string
    */
   public $createTime;
   /**
+   * Output only. Indicates whether this Account is soft-deleted or not. Deleted
+   * accounts are excluded from List results unless specifically requested.
+   *
    * @var bool
    */
   public $deleted;
   /**
+   * Required. Human-readable display name for this account.
+   *
    * @var string
    */
   public $displayName;
   /**
+   * Output only. The URI for a Google Marketing Platform organization resource.
+   * Only set when this account is connected to a GMP organization. Format:
+   * marketingplatformadmin.googleapis.com/organizations/{org_id}
+   *
    * @var string
    */
   public $gmpOrganization;
   /**
+   * Output only. Resource name of this account. Format: accounts/{account}
+   * Example: "accounts/100"
+   *
    * @var string
    */
   public $name;
   /**
+   * Country of business. Must be a Unicode CLDR region code.
+   *
    * @var string
    */
   public $regionCode;
   /**
+   * Output only. Time when account payload fields were last updated.
+   *
    * @var string
    */
   public $updateTime;
 
   /**
-   * @param string
+   * Output only. Time when this account was originally created.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -63,7 +83,10 @@ class GoogleAnalyticsAdminV1betaAccount extends \Google\Model
     return $this->createTime;
   }
   /**
-   * @param bool
+   * Output only. Indicates whether this Account is soft-deleted or not. Deleted
+   * accounts are excluded from List results unless specifically requested.
+   *
+   * @param bool $deleted
    */
   public function setDeleted($deleted)
   {
@@ -77,7 +100,9 @@ class GoogleAnalyticsAdminV1betaAccount extends \Google\Model
     return $this->deleted;
   }
   /**
-   * @param string
+   * Required. Human-readable display name for this account.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -91,7 +116,11 @@ class GoogleAnalyticsAdminV1betaAccount extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param string
+   * Output only. The URI for a Google Marketing Platform organization resource.
+   * Only set when this account is connected to a GMP organization. Format:
+   * marketingplatformadmin.googleapis.com/organizations/{org_id}
+   *
+   * @param string $gmpOrganization
    */
   public function setGmpOrganization($gmpOrganization)
   {
@@ -105,7 +134,10 @@ class GoogleAnalyticsAdminV1betaAccount extends \Google\Model
     return $this->gmpOrganization;
   }
   /**
-   * @param string
+   * Output only. Resource name of this account. Format: accounts/{account}
+   * Example: "accounts/100"
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -119,7 +151,9 @@ class GoogleAnalyticsAdminV1betaAccount extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Country of business. Must be a Unicode CLDR region code.
+   *
+   * @param string $regionCode
    */
   public function setRegionCode($regionCode)
   {
@@ -133,7 +167,9 @@ class GoogleAnalyticsAdminV1betaAccount extends \Google\Model
     return $this->regionCode;
   }
   /**
-   * @param string
+   * Output only. Time when account payload fields were last updated.
+   *
+   * @param string $updateTime
    */
   public function setUpdateTime($updateTime)
   {

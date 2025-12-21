@@ -21,34 +21,63 @@ class VmEndpointNatMappingsInterfaceNatMappings extends \Google\Collection
 {
   protected $collection_key = 'ruleMappings';
   /**
+   * Output only. List of all drain IP:port-range mappings assigned to this
+   * interface. These ranges are inclusive, that is, both the first and the last
+   * ports can be used for NAT. Example: ["2.2.2.2:12345-12355",
+   * "1.1.1.1:2234-2234"].
+   *
    * @var string[]
    */
   public $drainNatIpPortRanges;
   /**
+   * Output only. A list of all IP:port-range mappings assigned to this
+   * interface. These ranges are inclusive, that is, both the first and the last
+   * ports can be used for NAT. Example: ["2.2.2.2:12345-12355",
+   * "1.1.1.1:2234-2234"].
+   *
    * @var string[]
    */
   public $natIpPortRanges;
   /**
+   * Output only. Total number of drain ports across all NAT IPs allocated to
+   * this interface. It equals to the aggregated port number in the field
+   * drain_nat_ip_port_ranges.
+   *
    * @var int
    */
   public $numTotalDrainNatPorts;
   /**
+   * Output only. Total number of ports across all NAT IPs allocated to this
+   * interface. It equals to the aggregated port number in the field
+   * nat_ip_port_ranges.
+   *
    * @var int
    */
   public $numTotalNatPorts;
   protected $ruleMappingsType = VmEndpointNatMappingsInterfaceNatMappingsNatRuleMappings::class;
   protected $ruleMappingsDataType = 'array';
   /**
+   * Output only. Alias IP range for this interface endpoint. It will be a
+   * private (RFC 1918) IP range. Examples: "10.33.4.55/32", or
+   * "192.168.5.0/24".
+   *
    * @var string
    */
   public $sourceAliasIpRange;
   /**
+   * Output only. Primary IP of the VM for this NIC.
+   *
    * @var string
    */
   public $sourceVirtualIp;
 
   /**
-   * @param string[]
+   * Output only. List of all drain IP:port-range mappings assigned to this
+   * interface. These ranges are inclusive, that is, both the first and the last
+   * ports can be used for NAT. Example: ["2.2.2.2:12345-12355",
+   * "1.1.1.1:2234-2234"].
+   *
+   * @param string[] $drainNatIpPortRanges
    */
   public function setDrainNatIpPortRanges($drainNatIpPortRanges)
   {
@@ -62,7 +91,12 @@ class VmEndpointNatMappingsInterfaceNatMappings extends \Google\Collection
     return $this->drainNatIpPortRanges;
   }
   /**
-   * @param string[]
+   * Output only. A list of all IP:port-range mappings assigned to this
+   * interface. These ranges are inclusive, that is, both the first and the last
+   * ports can be used for NAT. Example: ["2.2.2.2:12345-12355",
+   * "1.1.1.1:2234-2234"].
+   *
+   * @param string[] $natIpPortRanges
    */
   public function setNatIpPortRanges($natIpPortRanges)
   {
@@ -76,7 +110,11 @@ class VmEndpointNatMappingsInterfaceNatMappings extends \Google\Collection
     return $this->natIpPortRanges;
   }
   /**
-   * @param int
+   * Output only. Total number of drain ports across all NAT IPs allocated to
+   * this interface. It equals to the aggregated port number in the field
+   * drain_nat_ip_port_ranges.
+   *
+   * @param int $numTotalDrainNatPorts
    */
   public function setNumTotalDrainNatPorts($numTotalDrainNatPorts)
   {
@@ -90,7 +128,11 @@ class VmEndpointNatMappingsInterfaceNatMappings extends \Google\Collection
     return $this->numTotalDrainNatPorts;
   }
   /**
-   * @param int
+   * Output only. Total number of ports across all NAT IPs allocated to this
+   * interface. It equals to the aggregated port number in the field
+   * nat_ip_port_ranges.
+   *
+   * @param int $numTotalNatPorts
    */
   public function setNumTotalNatPorts($numTotalNatPorts)
   {
@@ -104,7 +146,9 @@ class VmEndpointNatMappingsInterfaceNatMappings extends \Google\Collection
     return $this->numTotalNatPorts;
   }
   /**
-   * @param VmEndpointNatMappingsInterfaceNatMappingsNatRuleMappings[]
+   * Output only. Information about mappings provided by rules in this NAT.
+   *
+   * @param VmEndpointNatMappingsInterfaceNatMappingsNatRuleMappings[] $ruleMappings
    */
   public function setRuleMappings($ruleMappings)
   {
@@ -118,7 +162,11 @@ class VmEndpointNatMappingsInterfaceNatMappings extends \Google\Collection
     return $this->ruleMappings;
   }
   /**
-   * @param string
+   * Output only. Alias IP range for this interface endpoint. It will be a
+   * private (RFC 1918) IP range. Examples: "10.33.4.55/32", or
+   * "192.168.5.0/24".
+   *
+   * @param string $sourceAliasIpRange
    */
   public function setSourceAliasIpRange($sourceAliasIpRange)
   {
@@ -132,7 +180,9 @@ class VmEndpointNatMappingsInterfaceNatMappings extends \Google\Collection
     return $this->sourceAliasIpRange;
   }
   /**
-   * @param string
+   * Output only. Primary IP of the VM for this NIC.
+   *
+   * @param string $sourceVirtualIp
    */
   public function setSourceVirtualIp($sourceVirtualIp)
   {

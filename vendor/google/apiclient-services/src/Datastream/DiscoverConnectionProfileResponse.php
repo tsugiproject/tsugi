@@ -19,17 +19,39 @@ namespace Google\Service\Datastream;
 
 class DiscoverConnectionProfileResponse extends \Google\Model
 {
+  protected $mongodbClusterType = MongodbCluster::class;
+  protected $mongodbClusterDataType = '';
   protected $mysqlRdbmsType = MysqlRdbms::class;
   protected $mysqlRdbmsDataType = '';
   protected $oracleRdbmsType = OracleRdbms::class;
   protected $oracleRdbmsDataType = '';
   protected $postgresqlRdbmsType = PostgresqlRdbms::class;
   protected $postgresqlRdbmsDataType = '';
+  protected $salesforceOrgType = SalesforceOrg::class;
+  protected $salesforceOrgDataType = '';
   protected $sqlServerRdbmsType = SqlServerRdbms::class;
   protected $sqlServerRdbmsDataType = '';
 
   /**
-   * @param MysqlRdbms
+   * Enriched MongoDB cluster.
+   *
+   * @param MongodbCluster $mongodbCluster
+   */
+  public function setMongodbCluster(MongodbCluster $mongodbCluster)
+  {
+    $this->mongodbCluster = $mongodbCluster;
+  }
+  /**
+   * @return MongodbCluster
+   */
+  public function getMongodbCluster()
+  {
+    return $this->mongodbCluster;
+  }
+  /**
+   * Enriched MySQL RDBMS object.
+   *
+   * @param MysqlRdbms $mysqlRdbms
    */
   public function setMysqlRdbms(MysqlRdbms $mysqlRdbms)
   {
@@ -43,7 +65,9 @@ class DiscoverConnectionProfileResponse extends \Google\Model
     return $this->mysqlRdbms;
   }
   /**
-   * @param OracleRdbms
+   * Enriched Oracle RDBMS object.
+   *
+   * @param OracleRdbms $oracleRdbms
    */
   public function setOracleRdbms(OracleRdbms $oracleRdbms)
   {
@@ -57,7 +81,9 @@ class DiscoverConnectionProfileResponse extends \Google\Model
     return $this->oracleRdbms;
   }
   /**
-   * @param PostgresqlRdbms
+   * Enriched PostgreSQL RDBMS object.
+   *
+   * @param PostgresqlRdbms $postgresqlRdbms
    */
   public function setPostgresqlRdbms(PostgresqlRdbms $postgresqlRdbms)
   {
@@ -71,7 +97,25 @@ class DiscoverConnectionProfileResponse extends \Google\Model
     return $this->postgresqlRdbms;
   }
   /**
-   * @param SqlServerRdbms
+   * Enriched Salesforce organization.
+   *
+   * @param SalesforceOrg $salesforceOrg
+   */
+  public function setSalesforceOrg(SalesforceOrg $salesforceOrg)
+  {
+    $this->salesforceOrg = $salesforceOrg;
+  }
+  /**
+   * @return SalesforceOrg
+   */
+  public function getSalesforceOrg()
+  {
+    return $this->salesforceOrg;
+  }
+  /**
+   * Enriched SQLServer RDBMS object.
+   *
+   * @param SqlServerRdbms $sqlServerRdbms
    */
   public function setSqlServerRdbms(SqlServerRdbms $sqlServerRdbms)
   {

@@ -19,35 +19,78 @@ namespace Google\Service\Aiplatform;
 
 class GoogleCloudAiplatformV1ReasoningEngine extends \Google\Model
 {
+  protected $contextSpecType = GoogleCloudAiplatformV1ReasoningEngineContextSpec::class;
+  protected $contextSpecDataType = '';
   /**
+   * Output only. Timestamp when this ReasoningEngine was created.
+   *
    * @var string
    */
   public $createTime;
   /**
+   * Optional. The description of the ReasoningEngine.
+   *
    * @var string
    */
   public $description;
   /**
+   * Required. The display name of the ReasoningEngine.
+   *
    * @var string
    */
   public $displayName;
+  protected $encryptionSpecType = GoogleCloudAiplatformV1EncryptionSpec::class;
+  protected $encryptionSpecDataType = '';
   /**
+   * Optional. Used to perform consistent read-modify-write updates. If not set,
+   * a blind "overwrite" update happens.
+   *
    * @var string
    */
   public $etag;
   /**
+   * Labels for the ReasoningEngine.
+   *
+   * @var string[]
+   */
+  public $labels;
+  /**
+   * Identifier. The resource name of the ReasoningEngine. Format: `projects/{pr
+   * oject}/locations/{location}/reasoningEngines/{reasoning_engine}`
+   *
    * @var string
    */
   public $name;
   protected $specType = GoogleCloudAiplatformV1ReasoningEngineSpec::class;
   protected $specDataType = '';
   /**
+   * Output only. Timestamp when this ReasoningEngine was most recently updated.
+   *
    * @var string
    */
   public $updateTime;
 
   /**
-   * @param string
+   * Optional. Configuration for how Agent Engine sub-resources should manage
+   * context.
+   *
+   * @param GoogleCloudAiplatformV1ReasoningEngineContextSpec $contextSpec
+   */
+  public function setContextSpec(GoogleCloudAiplatformV1ReasoningEngineContextSpec $contextSpec)
+  {
+    $this->contextSpec = $contextSpec;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1ReasoningEngineContextSpec
+   */
+  public function getContextSpec()
+  {
+    return $this->contextSpec;
+  }
+  /**
+   * Output only. Timestamp when this ReasoningEngine was created.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -61,7 +104,9 @@ class GoogleCloudAiplatformV1ReasoningEngine extends \Google\Model
     return $this->createTime;
   }
   /**
-   * @param string
+   * Optional. The description of the ReasoningEngine.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -75,7 +120,9 @@ class GoogleCloudAiplatformV1ReasoningEngine extends \Google\Model
     return $this->description;
   }
   /**
-   * @param string
+   * Required. The display name of the ReasoningEngine.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -89,7 +136,28 @@ class GoogleCloudAiplatformV1ReasoningEngine extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param string
+   * Customer-managed encryption key spec for a ReasoningEngine. If set, this
+   * ReasoningEngine and all sub-resources of this ReasoningEngine will be
+   * secured by this key.
+   *
+   * @param GoogleCloudAiplatformV1EncryptionSpec $encryptionSpec
+   */
+  public function setEncryptionSpec(GoogleCloudAiplatformV1EncryptionSpec $encryptionSpec)
+  {
+    $this->encryptionSpec = $encryptionSpec;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1EncryptionSpec
+   */
+  public function getEncryptionSpec()
+  {
+    return $this->encryptionSpec;
+  }
+  /**
+   * Optional. Used to perform consistent read-modify-write updates. If not set,
+   * a blind "overwrite" update happens.
+   *
+   * @param string $etag
    */
   public function setEtag($etag)
   {
@@ -103,7 +171,26 @@ class GoogleCloudAiplatformV1ReasoningEngine extends \Google\Model
     return $this->etag;
   }
   /**
-   * @param string
+   * Labels for the ReasoningEngine.
+   *
+   * @param string[] $labels
+   */
+  public function setLabels($labels)
+  {
+    $this->labels = $labels;
+  }
+  /**
+   * @return string[]
+   */
+  public function getLabels()
+  {
+    return $this->labels;
+  }
+  /**
+   * Identifier. The resource name of the ReasoningEngine. Format: `projects/{pr
+   * oject}/locations/{location}/reasoningEngines/{reasoning_engine}`
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -117,7 +204,9 @@ class GoogleCloudAiplatformV1ReasoningEngine extends \Google\Model
     return $this->name;
   }
   /**
-   * @param GoogleCloudAiplatformV1ReasoningEngineSpec
+   * Optional. Configurations of the ReasoningEngine
+   *
+   * @param GoogleCloudAiplatformV1ReasoningEngineSpec $spec
    */
   public function setSpec(GoogleCloudAiplatformV1ReasoningEngineSpec $spec)
   {
@@ -131,7 +220,9 @@ class GoogleCloudAiplatformV1ReasoningEngine extends \Google\Model
     return $this->spec;
   }
   /**
-   * @param string
+   * Output only. Timestamp when this ReasoningEngine was most recently updated.
+   *
+   * @param string $updateTime
    */
   public function setUpdateTime($updateTime)
   {

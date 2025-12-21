@@ -24,7 +24,10 @@ class TableBorderRow extends \Google\Collection
   protected $tableBorderCellsDataType = 'array';
 
   /**
-   * @param TableBorderCell[]
+   * Properties of each border cell. When a border's adjacent table cells are
+   * merged, it is not included in the response.
+   *
+   * @param TableBorderCell[] $tableBorderCells
    */
   public function setTableBorderCells($tableBorderCells)
   {

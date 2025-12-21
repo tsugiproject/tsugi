@@ -24,7 +24,9 @@ class ColorScheme extends \Google\Collection
   protected $colorsDataType = 'array';
 
   /**
-   * @param ThemeColorPair[]
+   * The ThemeColorType and corresponding concrete color pairs.
+   *
+   * @param ThemeColorPair[] $colors
    */
   public function setColors($colors)
   {

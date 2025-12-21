@@ -8,7 +8,9 @@ use Illuminate\Contracts\Console\Application as ApplicationContract;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\ProcessUtils;
+use ReflectionClass;
 use Symfony\Component\Console\Application as SymfonyApplication;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Symfony\Component\Console\Exception\CommandNotFoundException;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -205,6 +207,20 @@ class Application extends SymfonyApplication implements ApplicationContract
     }
 
     /**
+     * Add an array of commands to the console.
+     *
+     * @param  array<int, \Symfony\Component\Console\Command\Command>  $commands
+     * @return void
+     */
+    #[\Override]
+    public function addCommands(array $commands): void
+    {
+        foreach ($commands as $command) {
+            $this->addCommand($command);
+        }
+    }
+
+    /**
      * Add a command to the console.
      *
      * @param  \Symfony\Component\Console\Command\Command  $command
@@ -212,6 +228,17 @@ class Application extends SymfonyApplication implements ApplicationContract
      */
     #[\Override]
     public function add(SymfonyCommand $command): ?SymfonyCommand
+    {
+        return $this->addCommand($command);
+    }
+
+    /**
+     * Add a command to the console.
+     *
+     * @param  \Symfony\Component\Console\Command\Command|callable  $command
+     * @return \Symfony\Component\Console\Command\Command|null
+     */
+    public function addCommand(SymfonyCommand|callable $command): ?SymfonyCommand
     {
         if ($command instanceof Command) {
             $command->setLaravel($this->laravel);
@@ -228,6 +255,11 @@ class Application extends SymfonyApplication implements ApplicationContract
      */
     protected function addToParent(SymfonyCommand $command)
     {
+        if (method_exists(SymfonyApplication::class, 'addCommand')) {
+            /** @phpstan-ignore staticMethod.notFound */
+            return parent::addCommand($command);
+        }
+
         return parent::add($command);
     }
 
@@ -239,12 +271,18 @@ class Application extends SymfonyApplication implements ApplicationContract
      */
     public function resolve($command)
     {
-        if (is_subclass_of($command, SymfonyCommand::class) && ($commandName = $command::getDefaultName())) {
-            foreach (explode('|', $commandName) as $name) {
-                $this->commandMap[$name] = $command;
-            }
+        if (is_subclass_of($command, SymfonyCommand::class)) {
+            $attribute = (new ReflectionClass($command))->getAttributes(AsCommand::class);
 
-            return null;
+            $commandName = ! empty($attribute) ? $attribute[0]->newInstance()->name : null;
+
+            if (! is_null($commandName)) {
+                foreach (explode('|', $commandName) as $name) {
+                    $this->commandMap[$name] = $command;
+                }
+
+                return null;
+            }
         }
 
         if ($command instanceof Command) {

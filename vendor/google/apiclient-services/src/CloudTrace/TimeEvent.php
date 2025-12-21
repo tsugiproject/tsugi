@@ -24,12 +24,16 @@ class TimeEvent extends \Google\Model
   protected $messageEventType = MessageEvent::class;
   protected $messageEventDataType = '';
   /**
+   * The timestamp indicating the time the event occurred.
+   *
    * @var string
    */
   public $time;
 
   /**
-   * @param Annotation
+   * Text annotation with a set of attributes.
+   *
+   * @param Annotation $annotation
    */
   public function setAnnotation(Annotation $annotation)
   {
@@ -43,7 +47,9 @@ class TimeEvent extends \Google\Model
     return $this->annotation;
   }
   /**
-   * @param MessageEvent
+   * An event describing a message sent/received between Spans.
+   *
+   * @param MessageEvent $messageEvent
    */
   public function setMessageEvent(MessageEvent $messageEvent)
   {
@@ -57,7 +63,9 @@ class TimeEvent extends \Google\Model
     return $this->messageEvent;
   }
   /**
-   * @param string
+   * The timestamp indicating the time the event occurred.
+   *
+   * @param string $time
    */
   public function setTime($time)
   {

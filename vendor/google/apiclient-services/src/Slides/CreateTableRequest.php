@@ -20,22 +20,36 @@ namespace Google\Service\Slides;
 class CreateTableRequest extends \Google\Model
 {
   /**
+   * Number of columns in the table.
+   *
    * @var int
    */
   public $columns;
   protected $elementPropertiesType = PageElementProperties::class;
   protected $elementPropertiesDataType = '';
   /**
+   * A user-supplied object ID. If you specify an ID, it must be unique among
+   * all pages and page elements in the presentation. The ID must start with an
+   * alphanumeric character or an underscore (matches regex `[a-zA-Z0-9_]`);
+   * remaining characters may include those as well as a hyphen or colon
+   * (matches regex `[a-zA-Z0-9_-:]`). The length of the ID must not be less
+   * than 5 or greater than 50. If you don't specify an ID, a unique one is
+   * generated.
+   *
    * @var string
    */
   public $objectId;
   /**
+   * Number of rows in the table.
+   *
    * @var int
    */
   public $rows;
 
   /**
-   * @param int
+   * Number of columns in the table.
+   *
+   * @param int $columns
    */
   public function setColumns($columns)
   {
@@ -49,7 +63,13 @@ class CreateTableRequest extends \Google\Model
     return $this->columns;
   }
   /**
-   * @param PageElementProperties
+   * The element properties for the table. The table will be created at the
+   * provided size, subject to a minimum size. If no size is provided, the table
+   * will be automatically sized. Table transforms must have a scale of 1 and no
+   * shear components. If no transform is provided, the table will be centered
+   * on the page.
+   *
+   * @param PageElementProperties $elementProperties
    */
   public function setElementProperties(PageElementProperties $elementProperties)
   {
@@ -63,7 +83,15 @@ class CreateTableRequest extends \Google\Model
     return $this->elementProperties;
   }
   /**
-   * @param string
+   * A user-supplied object ID. If you specify an ID, it must be unique among
+   * all pages and page elements in the presentation. The ID must start with an
+   * alphanumeric character or an underscore (matches regex `[a-zA-Z0-9_]`);
+   * remaining characters may include those as well as a hyphen or colon
+   * (matches regex `[a-zA-Z0-9_-:]`). The length of the ID must not be less
+   * than 5 or greater than 50. If you don't specify an ID, a unique one is
+   * generated.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {
@@ -77,7 +105,9 @@ class CreateTableRequest extends \Google\Model
     return $this->objectId;
   }
   /**
-   * @param int
+   * Number of rows in the table.
+   *
+   * @param int $rows
    */
   public function setRows($rows)
   {

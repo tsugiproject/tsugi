@@ -22,6 +22,8 @@ class GoogleAnalyticsAdminV1betaAccessFilter extends \Google\Model
   protected $betweenFilterType = GoogleAnalyticsAdminV1betaAccessBetweenFilter::class;
   protected $betweenFilterDataType = '';
   /**
+   * The dimension name or metric name.
+   *
    * @var string
    */
   public $fieldName;
@@ -33,7 +35,9 @@ class GoogleAnalyticsAdminV1betaAccessFilter extends \Google\Model
   protected $stringFilterDataType = '';
 
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessBetweenFilter
+   * A filter for two values.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessBetweenFilter $betweenFilter
    */
   public function setBetweenFilter(GoogleAnalyticsAdminV1betaAccessBetweenFilter $betweenFilter)
   {
@@ -47,7 +51,9 @@ class GoogleAnalyticsAdminV1betaAccessFilter extends \Google\Model
     return $this->betweenFilter;
   }
   /**
-   * @param string
+   * The dimension name or metric name.
+   *
+   * @param string $fieldName
    */
   public function setFieldName($fieldName)
   {
@@ -61,7 +67,9 @@ class GoogleAnalyticsAdminV1betaAccessFilter extends \Google\Model
     return $this->fieldName;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessInListFilter
+   * A filter for in list values.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessInListFilter $inListFilter
    */
   public function setInListFilter(GoogleAnalyticsAdminV1betaAccessInListFilter $inListFilter)
   {
@@ -75,7 +83,9 @@ class GoogleAnalyticsAdminV1betaAccessFilter extends \Google\Model
     return $this->inListFilter;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessNumericFilter
+   * A filter for numeric or date values.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessNumericFilter $numericFilter
    */
   public function setNumericFilter(GoogleAnalyticsAdminV1betaAccessNumericFilter $numericFilter)
   {
@@ -89,7 +99,9 @@ class GoogleAnalyticsAdminV1betaAccessFilter extends \Google\Model
     return $this->numericFilter;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessStringFilter
+   * Strings related filter.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessStringFilter $stringFilter
    */
   public function setStringFilter(GoogleAnalyticsAdminV1betaAccessStringFilter $stringFilter)
   {

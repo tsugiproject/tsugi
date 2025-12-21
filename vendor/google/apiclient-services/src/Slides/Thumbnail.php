@@ -20,20 +20,38 @@ namespace Google\Service\Slides;
 class Thumbnail extends \Google\Model
 {
   /**
+   * The content URL of the thumbnail image. The URL to the image has a default
+   * lifetime of 30 minutes. This URL is tagged with the account of the
+   * requester. Anyone with the URL effectively accesses the image as the
+   * original requester. Access to the image may be lost if the presentation's
+   * sharing settings change. The mime type of the thumbnail image is the same
+   * as specified in the `GetPageThumbnailRequest`.
+   *
    * @var string
    */
   public $contentUrl;
   /**
+   * The positive height in pixels of the thumbnail image.
+   *
    * @var int
    */
   public $height;
   /**
+   * The positive width in pixels of the thumbnail image.
+   *
    * @var int
    */
   public $width;
 
   /**
-   * @param string
+   * The content URL of the thumbnail image. The URL to the image has a default
+   * lifetime of 30 minutes. This URL is tagged with the account of the
+   * requester. Anyone with the URL effectively accesses the image as the
+   * original requester. Access to the image may be lost if the presentation's
+   * sharing settings change. The mime type of the thumbnail image is the same
+   * as specified in the `GetPageThumbnailRequest`.
+   *
+   * @param string $contentUrl
    */
   public function setContentUrl($contentUrl)
   {
@@ -47,7 +65,9 @@ class Thumbnail extends \Google\Model
     return $this->contentUrl;
   }
   /**
-   * @param int
+   * The positive height in pixels of the thumbnail image.
+   *
+   * @param int $height
    */
   public function setHeight($height)
   {
@@ -61,7 +81,9 @@ class Thumbnail extends \Google\Model
     return $this->height;
   }
   /**
-   * @param int
+   * The positive width in pixels of the thumbnail image.
+   *
+   * @param int $width
    */
   public function setWidth($width)
   {

@@ -23,16 +23,22 @@ class GoogleCloudVideointelligenceV1TextAnnotation extends \Google\Collection
   protected $segmentsType = GoogleCloudVideointelligenceV1TextSegment::class;
   protected $segmentsDataType = 'array';
   /**
+   * The detected text.
+   *
    * @var string
    */
   public $text;
   /**
+   * Feature version.
+   *
    * @var string
    */
   public $version;
 
   /**
-   * @param GoogleCloudVideointelligenceV1TextSegment[]
+   * All video segments where OCR detected text appears.
+   *
+   * @param GoogleCloudVideointelligenceV1TextSegment[] $segments
    */
   public function setSegments($segments)
   {
@@ -46,7 +52,9 @@ class GoogleCloudVideointelligenceV1TextAnnotation extends \Google\Collection
     return $this->segments;
   }
   /**
-   * @param string
+   * The detected text.
+   *
+   * @param string $text
    */
   public function setText($text)
   {
@@ -60,7 +68,9 @@ class GoogleCloudVideointelligenceV1TextAnnotation extends \Google\Collection
     return $this->text;
   }
   /**
-   * @param string
+   * Feature version.
+   *
+   * @param string $version
    */
   public function setVersion($version)
   {

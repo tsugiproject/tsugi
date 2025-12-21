@@ -22,12 +22,19 @@ class CommuteInfo extends \Google\Model
   protected $jobLocationType = Location::class;
   protected $jobLocationDataType = '';
   /**
+   * The number of seconds required to travel to the job location from the query
+   * location. A duration of 0 seconds indicates that the job isn't reachable
+   * within the requested duration, but was returned as part of an expanded
+   * query.
+   *
    * @var string
    */
   public $travelDuration;
 
   /**
-   * @param Location
+   * Location used as the destination in the commute calculation.
+   *
+   * @param Location $jobLocation
    */
   public function setJobLocation(Location $jobLocation)
   {
@@ -41,7 +48,12 @@ class CommuteInfo extends \Google\Model
     return $this->jobLocation;
   }
   /**
-   * @param string
+   * The number of seconds required to travel to the job location from the query
+   * location. A duration of 0 seconds indicates that the job isn't reachable
+   * within the requested duration, but was returned as part of an expanded
+   * query.
+   *
+   * @param string $travelDuration
    */
   public function setTravelDuration($travelDuration)
   {

@@ -19,16 +19,32 @@ namespace Google\Service\NetworkServices;
 
 class ListTcpRoutesResponse extends \Google\Collection
 {
-  protected $collection_key = 'tcpRoutes';
+  protected $collection_key = 'unreachable';
   /**
+   * If there might be more results than those appearing in this response, then
+   * `next_page_token` is included. To get the next set of results, call this
+   * method again using the value of `next_page_token` as `page_token`.
+   *
    * @var string
    */
   public $nextPageToken;
   protected $tcpRoutesType = TcpRoute::class;
   protected $tcpRoutesDataType = 'array';
+  /**
+   * Unreachable resources. Populated when the request opts into
+   * return_partial_success and reading across collections e.g. when attempting
+   * to list all resources across all supported locations.
+   *
+   * @var string[]
+   */
+  public $unreachable;
 
   /**
-   * @param string
+   * If there might be more results than those appearing in this response, then
+   * `next_page_token` is included. To get the next set of results, call this
+   * method again using the value of `next_page_token` as `page_token`.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -42,7 +58,9 @@ class ListTcpRoutesResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param TcpRoute[]
+   * List of TcpRoute resources.
+   *
+   * @param TcpRoute[] $tcpRoutes
    */
   public function setTcpRoutes($tcpRoutes)
   {
@@ -54,6 +72,24 @@ class ListTcpRoutesResponse extends \Google\Collection
   public function getTcpRoutes()
   {
     return $this->tcpRoutes;
+  }
+  /**
+   * Unreachable resources. Populated when the request opts into
+   * return_partial_success and reading across collections e.g. when attempting
+   * to list all resources across all supported locations.
+   *
+   * @param string[] $unreachable
+   */
+  public function setUnreachable($unreachable)
+  {
+    $this->unreachable = $unreachable;
+  }
+  /**
+   * @return string[]
+   */
+  public function getUnreachable()
+  {
+    return $this->unreachable;
   }
 }
 

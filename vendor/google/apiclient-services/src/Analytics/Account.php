@@ -22,38 +22,55 @@ class Account extends \Google\Model
   protected $childLinkType = AccountChildLink::class;
   protected $childLinkDataType = '';
   /**
+   * Time the account was created.
+   *
    * @var string
    */
   public $created;
   /**
+   * Account ID.
+   *
    * @var string
    */
   public $id;
   /**
+   * Resource type for Analytics account.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Account name.
+   *
    * @var string
    */
   public $name;
   protected $permissionsType = AccountPermissions::class;
   protected $permissionsDataType = '';
   /**
+   * Link for this account.
+   *
    * @var string
    */
   public $selfLink;
   /**
+   * Indicates whether this account is starred or not.
+   *
    * @var bool
    */
   public $starred;
   /**
+   * Time the account was last modified.
+   *
    * @var string
    */
   public $updated;
 
   /**
-   * @param AccountChildLink
+   * Child link for an account entry. Points to the list of web properties for
+   * this account.
+   *
+   * @param AccountChildLink $childLink
    */
   public function setChildLink(AccountChildLink $childLink)
   {
@@ -67,7 +84,9 @@ class Account extends \Google\Model
     return $this->childLink;
   }
   /**
-   * @param string
+   * Time the account was created.
+   *
+   * @param string $created
    */
   public function setCreated($created)
   {
@@ -81,7 +100,9 @@ class Account extends \Google\Model
     return $this->created;
   }
   /**
-   * @param string
+   * Account ID.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -95,7 +116,9 @@ class Account extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * Resource type for Analytics account.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -109,7 +132,9 @@ class Account extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * Account name.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -123,7 +148,9 @@ class Account extends \Google\Model
     return $this->name;
   }
   /**
-   * @param AccountPermissions
+   * Permissions the user has for this account.
+   *
+   * @param AccountPermissions $permissions
    */
   public function setPermissions(AccountPermissions $permissions)
   {
@@ -137,7 +164,9 @@ class Account extends \Google\Model
     return $this->permissions;
   }
   /**
-   * @param string
+   * Link for this account.
+   *
+   * @param string $selfLink
    */
   public function setSelfLink($selfLink)
   {
@@ -151,7 +180,9 @@ class Account extends \Google\Model
     return $this->selfLink;
   }
   /**
-   * @param bool
+   * Indicates whether this account is starred or not.
+   *
+   * @param bool $starred
    */
   public function setStarred($starred)
   {
@@ -165,7 +196,9 @@ class Account extends \Google\Model
     return $this->starred;
   }
   /**
-   * @param string
+   * Time the account was last modified.
+   *
+   * @param string $updated
    */
   public function setUpdated($updated)
   {

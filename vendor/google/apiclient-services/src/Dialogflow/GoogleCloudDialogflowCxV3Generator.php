@@ -21,12 +21,23 @@ class GoogleCloudDialogflowCxV3Generator extends \Google\Collection
 {
   protected $collection_key = 'placeholders';
   /**
+   * Required. The human-readable name of the generator, unique within the
+   * agent. The prompt contains pre-defined parameters such as $conversation,
+   * $last-user-utterance, etc. populated by Dialogflow. It can also contain
+   * custom placeholders which will be resolved during fulfillment.
+   *
    * @var string
    */
   public $displayName;
+  protected $llmModelSettingsType = GoogleCloudDialogflowCxV3LlmModelSettings::class;
+  protected $llmModelSettingsDataType = '';
   protected $modelParameterType = GoogleCloudDialogflowCxV3GeneratorModelParameter::class;
   protected $modelParameterDataType = '';
   /**
+   * The unique identifier of the generator. Must be set for the
+   * Generators.UpdateGenerator method. Generators.CreateGenerate populates the
+   * name automatically. Format: `projects//locations//agents//generators/`.
+   *
    * @var string
    */
   public $name;
@@ -36,7 +47,12 @@ class GoogleCloudDialogflowCxV3Generator extends \Google\Collection
   protected $promptTextDataType = '';
 
   /**
-   * @param string
+   * Required. The human-readable name of the generator, unique within the
+   * agent. The prompt contains pre-defined parameters such as $conversation,
+   * $last-user-utterance, etc. populated by Dialogflow. It can also contain
+   * custom placeholders which will be resolved during fulfillment.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -50,7 +66,25 @@ class GoogleCloudDialogflowCxV3Generator extends \Google\Collection
     return $this->displayName;
   }
   /**
-   * @param GoogleCloudDialogflowCxV3GeneratorModelParameter
+   * The LLM model settings.
+   *
+   * @param GoogleCloudDialogflowCxV3LlmModelSettings $llmModelSettings
+   */
+  public function setLlmModelSettings(GoogleCloudDialogflowCxV3LlmModelSettings $llmModelSettings)
+  {
+    $this->llmModelSettings = $llmModelSettings;
+  }
+  /**
+   * @return GoogleCloudDialogflowCxV3LlmModelSettings
+   */
+  public function getLlmModelSettings()
+  {
+    return $this->llmModelSettings;
+  }
+  /**
+   * Parameters passed to the LLM to configure its behavior.
+   *
+   * @param GoogleCloudDialogflowCxV3GeneratorModelParameter $modelParameter
    */
   public function setModelParameter(GoogleCloudDialogflowCxV3GeneratorModelParameter $modelParameter)
   {
@@ -64,7 +98,11 @@ class GoogleCloudDialogflowCxV3Generator extends \Google\Collection
     return $this->modelParameter;
   }
   /**
-   * @param string
+   * The unique identifier of the generator. Must be set for the
+   * Generators.UpdateGenerator method. Generators.CreateGenerate populates the
+   * name automatically. Format: `projects//locations//agents//generators/`.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -78,7 +116,9 @@ class GoogleCloudDialogflowCxV3Generator extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param GoogleCloudDialogflowCxV3GeneratorPlaceholder[]
+   * Optional. List of custom placeholders in the prompt text.
+   *
+   * @param GoogleCloudDialogflowCxV3GeneratorPlaceholder[] $placeholders
    */
   public function setPlaceholders($placeholders)
   {
@@ -92,7 +132,9 @@ class GoogleCloudDialogflowCxV3Generator extends \Google\Collection
     return $this->placeholders;
   }
   /**
-   * @param GoogleCloudDialogflowCxV3Phrase
+   * Required. Prompt for the LLM model.
+   *
+   * @param GoogleCloudDialogflowCxV3Phrase $promptText
    */
   public function setPromptText(GoogleCloudDialogflowCxV3Phrase $promptText)
   {

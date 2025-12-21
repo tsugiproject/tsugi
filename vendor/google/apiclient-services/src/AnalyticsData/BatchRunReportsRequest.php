@@ -24,7 +24,10 @@ class BatchRunReportsRequest extends \Google\Collection
   protected $requestsDataType = 'array';
 
   /**
-   * @param RunReportRequest[]
+   * Individual requests. Each request has a separate report response. Each
+   * batch request is allowed up to 5 requests.
+   *
+   * @param RunReportRequest[] $requests
    */
   public function setRequests($requests)
   {

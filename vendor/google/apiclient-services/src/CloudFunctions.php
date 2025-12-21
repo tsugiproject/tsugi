@@ -76,6 +76,11 @@ class CloudFunctions extends \Google\Service
                   'type' => 'string',
                   'required' => true,
                 ],
+                'extraLocationTypes' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                  'repeated' => true,
+                ],
                 'filter' => [
                   'location' => 'query',
                   'type' => 'string',
@@ -111,6 +116,16 @@ class CloudFunctions extends \Google\Service
               ],
             ],'commitFunctionUpgrade' => [
               'path' => 'v2/{+name}:commitFunctionUpgrade',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'commitFunctionUpgradeAsGen2' => [
+              'path' => 'v2/{+name}:commitFunctionUpgradeAsGen2',
               'httpMethod' => 'POST',
               'parameters' => [
                 'name' => [
@@ -331,6 +346,10 @@ class CloudFunctions extends \Google\Service
                 'pageToken' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+                'returnPartialSuccess' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
               ],
             ],

@@ -23,12 +23,17 @@ class DataType extends \Google\Collection
   protected $fieldType = DataTypeField::class;
   protected $fieldDataType = 'array';
   /**
+   * Each data type has a unique, namespaced, name. All data types in the
+   * com.google namespace are shared as part of the platform.
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param DataTypeField[]
+   * A field represents one dimension of a data type.
+   *
+   * @param DataTypeField[] $field
    */
   public function setField($field)
   {
@@ -42,7 +47,10 @@ class DataType extends \Google\Collection
     return $this->field;
   }
   /**
-   * @param string
+   * Each data type has a unique, namespaced, name. All data types in the
+   * com.google namespace are shared as part of the platform.
+   *
+   * @param string $name
    */
   public function setName($name)
   {

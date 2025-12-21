@@ -20,40 +20,60 @@ namespace Google\Service\IdentityToolkit;
 class UserInfoProviderUserInfo extends \Google\Model
 {
   /**
+   * The user's display name at the IDP.
+   *
    * @var string
    */
   public $displayName;
   /**
+   * User's email at IDP.
+   *
    * @var string
    */
   public $email;
   /**
+   * User's identifier at IDP.
+   *
    * @var string
    */
   public $federatedId;
   /**
+   * User's phone number.
+   *
    * @var string
    */
   public $phoneNumber;
   /**
+   * The user's photo url at the IDP.
+   *
    * @var string
    */
   public $photoUrl;
   /**
+   * The IdP ID. For white listed IdPs it's a short domain name, e.g.,
+   * google.com, aol.com, live.net and yahoo.com. For other OpenID IdPs it's the
+   * OP identifier.
+   *
    * @var string
    */
   public $providerId;
   /**
+   * User's raw identifier directly returned from IDP.
+   *
    * @var string
    */
   public $rawId;
   /**
+   * User's screen name at Twitter or login name at Github.
+   *
    * @var string
    */
   public $screenName;
 
   /**
-   * @param string
+   * The user's display name at the IDP.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -67,7 +87,9 @@ class UserInfoProviderUserInfo extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param string
+   * User's email at IDP.
+   *
+   * @param string $email
    */
   public function setEmail($email)
   {
@@ -81,7 +103,9 @@ class UserInfoProviderUserInfo extends \Google\Model
     return $this->email;
   }
   /**
-   * @param string
+   * User's identifier at IDP.
+   *
+   * @param string $federatedId
    */
   public function setFederatedId($federatedId)
   {
@@ -95,7 +119,9 @@ class UserInfoProviderUserInfo extends \Google\Model
     return $this->federatedId;
   }
   /**
-   * @param string
+   * User's phone number.
+   *
+   * @param string $phoneNumber
    */
   public function setPhoneNumber($phoneNumber)
   {
@@ -109,7 +135,9 @@ class UserInfoProviderUserInfo extends \Google\Model
     return $this->phoneNumber;
   }
   /**
-   * @param string
+   * The user's photo url at the IDP.
+   *
+   * @param string $photoUrl
    */
   public function setPhotoUrl($photoUrl)
   {
@@ -123,7 +151,11 @@ class UserInfoProviderUserInfo extends \Google\Model
     return $this->photoUrl;
   }
   /**
-   * @param string
+   * The IdP ID. For white listed IdPs it's a short domain name, e.g.,
+   * google.com, aol.com, live.net and yahoo.com. For other OpenID IdPs it's the
+   * OP identifier.
+   *
+   * @param string $providerId
    */
   public function setProviderId($providerId)
   {
@@ -137,7 +169,9 @@ class UserInfoProviderUserInfo extends \Google\Model
     return $this->providerId;
   }
   /**
-   * @param string
+   * User's raw identifier directly returned from IDP.
+   *
+   * @param string $rawId
    */
   public function setRawId($rawId)
   {
@@ -151,7 +185,9 @@ class UserInfoProviderUserInfo extends \Google\Model
     return $this->rawId;
   }
   /**
-   * @param string
+   * User's screen name at Twitter or login name at Github.
+   *
+   * @param string $screenName
    */
   public function setScreenName($screenName)
   {

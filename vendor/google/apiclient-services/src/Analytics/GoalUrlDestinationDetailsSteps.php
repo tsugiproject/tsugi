@@ -20,20 +20,28 @@ namespace Google\Service\Analytics;
 class GoalUrlDestinationDetailsSteps extends \Google\Model
 {
   /**
+   * Step name.
+   *
    * @var string
    */
   public $name;
   /**
+   * Step number.
+   *
    * @var int
    */
   public $number;
   /**
+   * URL for this step.
+   *
    * @var string
    */
   public $url;
 
   /**
-   * @param string
+   * Step name.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -47,7 +55,9 @@ class GoalUrlDestinationDetailsSteps extends \Google\Model
     return $this->name;
   }
   /**
-   * @param int
+   * Step number.
+   *
+   * @param int $number
    */
   public function setNumber($number)
   {
@@ -61,7 +71,9 @@ class GoalUrlDestinationDetailsSteps extends \Google\Model
     return $this->number;
   }
   /**
-   * @param string
+   * URL for this step.
+   *
+   * @param string $url
    */
   public function setUrl($url)
   {

@@ -23,7 +23,9 @@ class GenerateMediationReportRequest extends \Google\Model
   protected $reportSpecDataType = '';
 
   /**
-   * @param MediationReportSpec
+   * Network report specification.
+   *
+   * @param MediationReportSpec $reportSpec
    */
   public function setReportSpec(MediationReportSpec $reportSpec)
   {

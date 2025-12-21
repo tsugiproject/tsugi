@@ -25,7 +25,9 @@ class CollectionPeriod extends \Google\Model
   protected $lastDateDataType = '';
 
   /**
-   * @param Date
+   * The first day in the collection period, inclusive.
+   *
+   * @param Date $firstDate
    */
   public function setFirstDate(Date $firstDate)
   {
@@ -39,7 +41,9 @@ class CollectionPeriod extends \Google\Model
     return $this->firstDate;
   }
   /**
-   * @param Date
+   * The last day in the collection period, inclusive.
+   *
+   * @param Date $lastDate
    */
   public function setLastDate(Date $lastDate)
   {

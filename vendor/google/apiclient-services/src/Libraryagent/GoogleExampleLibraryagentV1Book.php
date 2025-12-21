@@ -20,24 +20,36 @@ namespace Google\Service\Libraryagent;
 class GoogleExampleLibraryagentV1Book extends \Google\Model
 {
   /**
+   * The name of the book author.
+   *
    * @var string
    */
   public $author;
   /**
+   * The resource name of the book. Book names have the form
+   * `shelves/{shelf_id}/books/{book_id}`. The name is ignored when creating a
+   * book.
+   *
    * @var string
    */
   public $name;
   /**
+   * Value indicating whether the book has been read.
+   *
    * @var bool
    */
   public $read;
   /**
+   * The title of the book.
+   *
    * @var string
    */
   public $title;
 
   /**
-   * @param string
+   * The name of the book author.
+   *
+   * @param string $author
    */
   public function setAuthor($author)
   {
@@ -51,7 +63,11 @@ class GoogleExampleLibraryagentV1Book extends \Google\Model
     return $this->author;
   }
   /**
-   * @param string
+   * The resource name of the book. Book names have the form
+   * `shelves/{shelf_id}/books/{book_id}`. The name is ignored when creating a
+   * book.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -65,7 +81,9 @@ class GoogleExampleLibraryagentV1Book extends \Google\Model
     return $this->name;
   }
   /**
-   * @param bool
+   * Value indicating whether the book has been read.
+   *
+   * @param bool $read
    */
   public function setRead($read)
   {
@@ -79,7 +97,9 @@ class GoogleExampleLibraryagentV1Book extends \Google\Model
     return $this->read;
   }
   /**
-   * @param string
+   * The title of the book.
+   *
+   * @param string $title
    */
   public function setTitle($title)
   {

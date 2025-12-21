@@ -20,20 +20,28 @@ namespace Google\Service\FirebaseRules;
 class FirebaserulesFile extends \Google\Model
 {
   /**
+   * Required. Textual Content.
+   *
    * @var string
    */
   public $content;
   /**
+   * Fingerprint (e.g. github sha) associated with the `File`.
+   *
    * @var string
    */
   public $fingerprint;
   /**
+   * Required. File name.
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param string
+   * Required. Textual Content.
+   *
+   * @param string $content
    */
   public function setContent($content)
   {
@@ -47,7 +55,9 @@ class FirebaserulesFile extends \Google\Model
     return $this->content;
   }
   /**
-   * @param string
+   * Fingerprint (e.g. github sha) associated with the `File`.
+   *
+   * @param string $fingerprint
    */
   public function setFingerprint($fingerprint)
   {
@@ -61,7 +71,9 @@ class FirebaserulesFile extends \Google\Model
     return $this->fingerprint;
   }
   /**
-   * @param string
+   * Required. File name.
+   *
+   * @param string $name
    */
   public function setName($name)
   {

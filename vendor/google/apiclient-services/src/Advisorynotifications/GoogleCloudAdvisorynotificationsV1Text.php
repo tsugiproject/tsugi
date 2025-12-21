@@ -20,20 +20,48 @@ namespace Google\Service\Advisorynotifications;
 class GoogleCloudAdvisorynotificationsV1Text extends \Google\Model
 {
   /**
+   * Not used.
+   */
+  public const LOCALIZATION_STATE_LOCALIZATION_STATE_UNSPECIFIED = 'LOCALIZATION_STATE_UNSPECIFIED';
+  /**
+   * Localization is not applicable for requested language. This can happen
+   * when: - The requested language was not supported by Advisory Notifications
+   * at the time of localization (including notifications created before the
+   * localization feature was launched). - The requested language is English, so
+   * only the English text is returned.
+   */
+  public const LOCALIZATION_STATE_LOCALIZATION_STATE_NOT_APPLICABLE = 'LOCALIZATION_STATE_NOT_APPLICABLE';
+  /**
+   * Localization for requested language is in progress, and not ready yet.
+   */
+  public const LOCALIZATION_STATE_LOCALIZATION_STATE_PENDING = 'LOCALIZATION_STATE_PENDING';
+  /**
+   * Localization for requested language is completed.
+   */
+  public const LOCALIZATION_STATE_LOCALIZATION_STATE_COMPLETED = 'LOCALIZATION_STATE_COMPLETED';
+  /**
+   * The English copy.
+   *
    * @var string
    */
   public $enText;
   /**
+   * Status of the localization.
+   *
    * @var string
    */
   public $localizationState;
   /**
+   * The requested localized copy (if applicable).
+   *
    * @var string
    */
   public $localizedText;
 
   /**
-   * @param string
+   * The English copy.
+   *
+   * @param string $enText
    */
   public function setEnText($enText)
   {
@@ -47,21 +75,29 @@ class GoogleCloudAdvisorynotificationsV1Text extends \Google\Model
     return $this->enText;
   }
   /**
-   * @param string
+   * Status of the localization.
+   *
+   * Accepted values: LOCALIZATION_STATE_UNSPECIFIED,
+   * LOCALIZATION_STATE_NOT_APPLICABLE, LOCALIZATION_STATE_PENDING,
+   * LOCALIZATION_STATE_COMPLETED
+   *
+   * @param self::LOCALIZATION_STATE_* $localizationState
    */
   public function setLocalizationState($localizationState)
   {
     $this->localizationState = $localizationState;
   }
   /**
-   * @return string
+   * @return self::LOCALIZATION_STATE_*
    */
   public function getLocalizationState()
   {
     return $this->localizationState;
   }
   /**
-   * @param string
+   * The requested localized copy (if applicable).
+   *
+   * @param string $localizedText
    */
   public function setLocalizedText($localizedText)
   {

@@ -22,6 +22,10 @@ class ConfigManagementState extends \Google\Model
   protected $binauthzStateType = ConfigManagementBinauthzState::class;
   protected $binauthzStateDataType = '';
   /**
+   * Output only. This field is set to the `cluster_name` field of the
+   * Membership Spec if it is not empty. Otherwise, it is set to the cluster's
+   * fleet membership name.
+   *
    * @var string
    */
   public $clusterName;
@@ -29,6 +33,12 @@ class ConfigManagementState extends \Google\Model
   protected $configSyncStateDataType = '';
   protected $hierarchyControllerStateType = ConfigManagementHierarchyControllerState::class;
   protected $hierarchyControllerStateDataType = '';
+  /**
+   * Output only. The Kubernetes API server version of the cluster.
+   *
+   * @var string
+   */
+  public $kubernetesApiServerVersion;
   protected $membershipSpecType = ConfigManagementSpec::class;
   protected $membershipSpecDataType = '';
   protected $operatorStateType = ConfigManagementOperatorState::class;
@@ -37,7 +47,9 @@ class ConfigManagementState extends \Google\Model
   protected $policyControllerStateDataType = '';
 
   /**
-   * @param ConfigManagementBinauthzState
+   * Output only. Binauthz status.
+   *
+   * @param ConfigManagementBinauthzState $binauthzState
    */
   public function setBinauthzState(ConfigManagementBinauthzState $binauthzState)
   {
@@ -51,7 +63,11 @@ class ConfigManagementState extends \Google\Model
     return $this->binauthzState;
   }
   /**
-   * @param string
+   * Output only. This field is set to the `cluster_name` field of the
+   * Membership Spec if it is not empty. Otherwise, it is set to the cluster's
+   * fleet membership name.
+   *
+   * @param string $clusterName
    */
   public function setClusterName($clusterName)
   {
@@ -65,7 +81,9 @@ class ConfigManagementState extends \Google\Model
     return $this->clusterName;
   }
   /**
-   * @param ConfigManagementConfigSyncState
+   * Output only. Current sync status.
+   *
+   * @param ConfigManagementConfigSyncState $configSyncState
    */
   public function setConfigSyncState(ConfigManagementConfigSyncState $configSyncState)
   {
@@ -79,7 +97,9 @@ class ConfigManagementState extends \Google\Model
     return $this->configSyncState;
   }
   /**
-   * @param ConfigManagementHierarchyControllerState
+   * Output only. Hierarchy Controller status.
+   *
+   * @param ConfigManagementHierarchyControllerState $hierarchyControllerState
    */
   public function setHierarchyControllerState(ConfigManagementHierarchyControllerState $hierarchyControllerState)
   {
@@ -93,7 +113,27 @@ class ConfigManagementState extends \Google\Model
     return $this->hierarchyControllerState;
   }
   /**
-   * @param ConfigManagementSpec
+   * Output only. The Kubernetes API server version of the cluster.
+   *
+   * @param string $kubernetesApiServerVersion
+   */
+  public function setKubernetesApiServerVersion($kubernetesApiServerVersion)
+  {
+    $this->kubernetesApiServerVersion = $kubernetesApiServerVersion;
+  }
+  /**
+   * @return string
+   */
+  public function getKubernetesApiServerVersion()
+  {
+    return $this->kubernetesApiServerVersion;
+  }
+  /**
+   * Output only. Membership configuration in the cluster. This represents the
+   * actual state in the cluster, while the MembershipSpec in the FeatureSpec
+   * represents the intended state.
+   *
+   * @param ConfigManagementSpec $membershipSpec
    */
   public function setMembershipSpec(ConfigManagementSpec $membershipSpec)
   {
@@ -107,7 +147,9 @@ class ConfigManagementState extends \Google\Model
     return $this->membershipSpec;
   }
   /**
-   * @param ConfigManagementOperatorState
+   * Output only. Current install status of ACM's Operator.
+   *
+   * @param ConfigManagementOperatorState $operatorState
    */
   public function setOperatorState(ConfigManagementOperatorState $operatorState)
   {
@@ -121,7 +163,9 @@ class ConfigManagementState extends \Google\Model
     return $this->operatorState;
   }
   /**
-   * @param ConfigManagementPolicyControllerState
+   * Output only. PolicyController status.
+   *
+   * @param ConfigManagementPolicyControllerState $policyControllerState
    */
   public function setPolicyControllerState(ConfigManagementPolicyControllerState $policyControllerState)
   {

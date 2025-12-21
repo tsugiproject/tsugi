@@ -20,42 +20,79 @@ namespace Google\Service\Compute;
 class SavedDisk extends \Google\Model
 {
   /**
+   * Default value indicating Architecture is not set.
+   */
+  public const ARCHITECTURE_ARCHITECTURE_UNSPECIFIED = 'ARCHITECTURE_UNSPECIFIED';
+  /**
+   * Machines with architecture ARM64
+   */
+  public const ARCHITECTURE_ARM64 = 'ARM64';
+  /**
+   * Machines with architecture X86_64
+   */
+  public const ARCHITECTURE_X86_64 = 'X86_64';
+  public const STORAGE_BYTES_STATUS_UPDATING = 'UPDATING';
+  public const STORAGE_BYTES_STATUS_UP_TO_DATE = 'UP_TO_DATE';
+  /**
+   * Output only. [Output Only] The architecture of the attached disk.
+   *
    * @var string
    */
   public $architecture;
   /**
+   * Output only. [Output Only] Type of the resource. Always compute#savedDisk
+   * for attached disks.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Output only. Specifies a URL of the disk attached to the source instance.
+   *
    * @var string
    */
   public $sourceDisk;
   /**
+   * Output only. [Output Only] Size of the individual disk snapshot used by
+   * this machine image.
+   *
    * @var string
    */
   public $storageBytes;
   /**
+   * Output only. [Output Only] An indicator whether storageBytes is in a stable
+   * state or it is being adjusted as a result of shared storage reallocation.
+   * This status can either be UPDATING, meaning the size of the snapshot is
+   * being updated, or UP_TO_DATE, meaning the size of the snapshot is up-to-
+   * date.
+   *
    * @var string
    */
   public $storageBytesStatus;
 
   /**
-   * @param string
+   * Output only. [Output Only] The architecture of the attached disk.
+   *
+   * Accepted values: ARCHITECTURE_UNSPECIFIED, ARM64, X86_64
+   *
+   * @param self::ARCHITECTURE_* $architecture
    */
   public function setArchitecture($architecture)
   {
     $this->architecture = $architecture;
   }
   /**
-   * @return string
+   * @return self::ARCHITECTURE_*
    */
   public function getArchitecture()
   {
     return $this->architecture;
   }
   /**
-   * @param string
+   * Output only. [Output Only] Type of the resource. Always compute#savedDisk
+   * for attached disks.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -69,7 +106,9 @@ class SavedDisk extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * Output only. Specifies a URL of the disk attached to the source instance.
+   *
+   * @param string $sourceDisk
    */
   public function setSourceDisk($sourceDisk)
   {
@@ -83,7 +122,10 @@ class SavedDisk extends \Google\Model
     return $this->sourceDisk;
   }
   /**
-   * @param string
+   * Output only. [Output Only] Size of the individual disk snapshot used by
+   * this machine image.
+   *
+   * @param string $storageBytes
    */
   public function setStorageBytes($storageBytes)
   {
@@ -97,14 +139,22 @@ class SavedDisk extends \Google\Model
     return $this->storageBytes;
   }
   /**
-   * @param string
+   * Output only. [Output Only] An indicator whether storageBytes is in a stable
+   * state or it is being adjusted as a result of shared storage reallocation.
+   * This status can either be UPDATING, meaning the size of the snapshot is
+   * being updated, or UP_TO_DATE, meaning the size of the snapshot is up-to-
+   * date.
+   *
+   * Accepted values: UPDATING, UP_TO_DATE
+   *
+   * @param self::STORAGE_BYTES_STATUS_* $storageBytesStatus
    */
   public function setStorageBytesStatus($storageBytesStatus)
   {
     $this->storageBytesStatus = $storageBytesStatus;
   }
   /**
-   * @return string
+   * @return self::STORAGE_BYTES_STATUS_*
    */
   public function getStorageBytesStatus()
   {

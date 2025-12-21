@@ -23,7 +23,9 @@ class CustomArea extends \Google\Model
   protected $polygonDataType = '';
 
   /**
-   * @param Polygon
+   * Required. The custom area represented as a polygon
+   *
+   * @param Polygon $polygon
    */
   public function setPolygon(Polygon $polygon)
   {

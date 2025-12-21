@@ -19,27 +19,59 @@ namespace Google\Service\Meet;
 
 class Recording extends \Google\Model
 {
+  /**
+   * Default, never used.
+   */
+  public const STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED';
+  /**
+   * An active recording session has started.
+   */
+  public const STATE_STARTED = 'STARTED';
+  /**
+   * This recording session has ended, but the recording file hasn't been
+   * generated yet.
+   */
+  public const STATE_ENDED = 'ENDED';
+  /**
+   * Recording file is generated and ready to download.
+   */
+  public const STATE_FILE_GENERATED = 'FILE_GENERATED';
   protected $driveDestinationType = DriveDestination::class;
   protected $driveDestinationDataType = '';
   /**
+   * Output only. Timestamp when the recording ended.
+   *
    * @var string
    */
   public $endTime;
   /**
+   * Output only. Resource name of the recording. Format:
+   * `conferenceRecords/{conference_record}/recordings/{recording}` where
+   * `{recording}` is a 1:1 mapping to each unique recording session during the
+   * conference.
+   *
    * @var string
    */
   public $name;
   /**
+   * Output only. Timestamp when the recording started.
+   *
    * @var string
    */
   public $startTime;
   /**
+   * Output only. Current state.
+   *
    * @var string
    */
   public $state;
 
   /**
-   * @param DriveDestination
+   * Output only. Recording is saved to Google Drive as an MP4 file. The
+   * `drive_destination` includes the Drive `fileId` that can be used to
+   * download the file using the `files.get` method of the Drive API.
+   *
+   * @param DriveDestination $driveDestination
    */
   public function setDriveDestination(DriveDestination $driveDestination)
   {
@@ -53,7 +85,9 @@ class Recording extends \Google\Model
     return $this->driveDestination;
   }
   /**
-   * @param string
+   * Output only. Timestamp when the recording ended.
+   *
+   * @param string $endTime
    */
   public function setEndTime($endTime)
   {
@@ -67,7 +101,12 @@ class Recording extends \Google\Model
     return $this->endTime;
   }
   /**
-   * @param string
+   * Output only. Resource name of the recording. Format:
+   * `conferenceRecords/{conference_record}/recordings/{recording}` where
+   * `{recording}` is a 1:1 mapping to each unique recording session during the
+   * conference.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -81,7 +120,9 @@ class Recording extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Output only. Timestamp when the recording started.
+   *
+   * @param string $startTime
    */
   public function setStartTime($startTime)
   {
@@ -95,14 +136,18 @@ class Recording extends \Google\Model
     return $this->startTime;
   }
   /**
-   * @param string
+   * Output only. Current state.
+   *
+   * Accepted values: STATE_UNSPECIFIED, STARTED, ENDED, FILE_GENERATED
+   *
+   * @param self::STATE_* $state
    */
   public function setState($state)
   {
     $this->state = $state;
   }
   /**
-   * @return string
+   * @return self::STATE_*
    */
   public function getState()
   {

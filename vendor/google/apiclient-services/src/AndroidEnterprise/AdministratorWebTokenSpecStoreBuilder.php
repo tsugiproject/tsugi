@@ -20,12 +20,16 @@ namespace Google\Service\AndroidEnterprise;
 class AdministratorWebTokenSpecStoreBuilder extends \Google\Model
 {
   /**
+   * Whether the Organize apps page is displayed. Default is true.
+   *
    * @var bool
    */
   public $enabled;
 
   /**
-   * @param bool
+   * Whether the Organize apps page is displayed. Default is true.
+   *
+   * @param bool $enabled
    */
   public function setEnabled($enabled)
   {

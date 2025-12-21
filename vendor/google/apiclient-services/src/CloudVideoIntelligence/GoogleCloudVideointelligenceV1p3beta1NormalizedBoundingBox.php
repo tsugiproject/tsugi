@@ -20,24 +20,34 @@ namespace Google\Service\CloudVideoIntelligence;
 class GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox extends \Google\Model
 {
   /**
+   * Bottom Y coordinate.
+   *
    * @var float
    */
   public $bottom;
   /**
+   * Left X coordinate.
+   *
    * @var float
    */
   public $left;
   /**
+   * Right X coordinate.
+   *
    * @var float
    */
   public $right;
   /**
+   * Top Y coordinate.
+   *
    * @var float
    */
   public $top;
 
   /**
-   * @param float
+   * Bottom Y coordinate.
+   *
+   * @param float $bottom
    */
   public function setBottom($bottom)
   {
@@ -51,7 +61,9 @@ class GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox extends \Google
     return $this->bottom;
   }
   /**
-   * @param float
+   * Left X coordinate.
+   *
+   * @param float $left
    */
   public function setLeft($left)
   {
@@ -65,7 +77,9 @@ class GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox extends \Google
     return $this->left;
   }
   /**
-   * @param float
+   * Right X coordinate.
+   *
+   * @param float $right
    */
   public function setRight($right)
   {
@@ -79,7 +93,9 @@ class GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox extends \Google
     return $this->right;
   }
   /**
-   * @param float
+   * Top Y coordinate.
+   *
+   * @param float $top
    */
   public function setTop($top)
   {

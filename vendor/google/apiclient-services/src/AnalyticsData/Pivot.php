@@ -21,18 +21,35 @@ class Pivot extends \Google\Collection
 {
   protected $collection_key = 'orderBys';
   /**
+   * Dimension names for visible columns in the report response. Including
+   * "dateRange" produces a date range column; for each row in the response,
+   * dimension values in the date range column will indicate the corresponding
+   * date range from the request.
+   *
    * @var string[]
    */
   public $fieldNames;
   /**
+   * The number of unique combinations of dimension values to return in this
+   * pivot. The `limit` parameter is required. A `limit` of 10,000 is common for
+   * single pivot requests. The product of the `limit` for each `pivot` in a
+   * `RunPivotReportRequest` must not exceed 250,000. For example, a two pivot
+   * request with `limit: 1000` in each pivot will fail because the product is
+   * `1,000,000`.
+   *
    * @var string
    */
   public $limit;
   /**
+   * Aggregate the metrics by dimensions in this pivot using the specified
+   * metric_aggregations.
+   *
    * @var string[]
    */
   public $metricAggregations;
   /**
+   * The row count of the start row. The first row is counted as row 0.
+   *
    * @var string
    */
   public $offset;
@@ -40,7 +57,12 @@ class Pivot extends \Google\Collection
   protected $orderBysDataType = 'array';
 
   /**
-   * @param string[]
+   * Dimension names for visible columns in the report response. Including
+   * "dateRange" produces a date range column; for each row in the response,
+   * dimension values in the date range column will indicate the corresponding
+   * date range from the request.
+   *
+   * @param string[] $fieldNames
    */
   public function setFieldNames($fieldNames)
   {
@@ -54,7 +76,14 @@ class Pivot extends \Google\Collection
     return $this->fieldNames;
   }
   /**
-   * @param string
+   * The number of unique combinations of dimension values to return in this
+   * pivot. The `limit` parameter is required. A `limit` of 10,000 is common for
+   * single pivot requests. The product of the `limit` for each `pivot` in a
+   * `RunPivotReportRequest` must not exceed 250,000. For example, a two pivot
+   * request with `limit: 1000` in each pivot will fail because the product is
+   * `1,000,000`.
+   *
+   * @param string $limit
    */
   public function setLimit($limit)
   {
@@ -68,7 +97,10 @@ class Pivot extends \Google\Collection
     return $this->limit;
   }
   /**
-   * @param string[]
+   * Aggregate the metrics by dimensions in this pivot using the specified
+   * metric_aggregations.
+   *
+   * @param string[] $metricAggregations
    */
   public function setMetricAggregations($metricAggregations)
   {
@@ -82,7 +114,9 @@ class Pivot extends \Google\Collection
     return $this->metricAggregations;
   }
   /**
-   * @param string
+   * The row count of the start row. The first row is counted as row 0.
+   *
+   * @param string $offset
    */
   public function setOffset($offset)
   {
@@ -96,7 +130,13 @@ class Pivot extends \Google\Collection
     return $this->offset;
   }
   /**
-   * @param OrderBy[]
+   * Specifies how dimensions are ordered in the pivot. In the first Pivot, the
+   * OrderBys determine Row and PivotDimensionHeader ordering; in subsequent
+   * Pivots, the OrderBys determine only PivotDimensionHeader ordering.
+   * Dimensions specified in these OrderBys must be a subset of
+   * Pivot.field_names.
+   *
+   * @param OrderBy[] $orderBys
    */
   public function setOrderBys($orderBys)
   {

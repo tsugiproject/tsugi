@@ -20,36 +20,62 @@ namespace Google\Service\Iam;
 class GoogleIamV1BindingDelta extends \Google\Model
 {
   /**
+   * Unspecified.
+   */
+  public const ACTION_ACTION_UNSPECIFIED = 'ACTION_UNSPECIFIED';
+  /**
+   * Addition of a Binding.
+   */
+  public const ACTION_ADD = 'ADD';
+  /**
+   * Removal of a Binding.
+   */
+  public const ACTION_REMOVE = 'REMOVE';
+  /**
+   * The action that was performed on a Binding. Required
+   *
    * @var string
    */
   public $action;
   protected $conditionType = GoogleTypeExpr::class;
   protected $conditionDataType = '';
   /**
+   * A single identity requesting access for a Google Cloud resource. Follows
+   * the same format of Binding.members. Required
+   *
    * @var string
    */
   public $member;
   /**
+   * Role that is assigned to `members`. For example, `roles/viewer`,
+   * `roles/editor`, or `roles/owner`. Required
+   *
    * @var string
    */
   public $role;
 
   /**
-   * @param string
+   * The action that was performed on a Binding. Required
+   *
+   * Accepted values: ACTION_UNSPECIFIED, ADD, REMOVE
+   *
+   * @param self::ACTION_* $action
    */
   public function setAction($action)
   {
     $this->action = $action;
   }
   /**
-   * @return string
+   * @return self::ACTION_*
    */
   public function getAction()
   {
     return $this->action;
   }
   /**
-   * @param GoogleTypeExpr
+   * The condition that is associated with this binding.
+   *
+   * @param GoogleTypeExpr $condition
    */
   public function setCondition(GoogleTypeExpr $condition)
   {
@@ -63,7 +89,10 @@ class GoogleIamV1BindingDelta extends \Google\Model
     return $this->condition;
   }
   /**
-   * @param string
+   * A single identity requesting access for a Google Cloud resource. Follows
+   * the same format of Binding.members. Required
+   *
+   * @param string $member
    */
   public function setMember($member)
   {
@@ -77,7 +106,10 @@ class GoogleIamV1BindingDelta extends \Google\Model
     return $this->member;
   }
   /**
-   * @param string
+   * Role that is assigned to `members`. For example, `roles/viewer`,
+   * `roles/editor`, or `roles/owner`. Required
+   *
+   * @param string $role
    */
   public function setRole($role)
   {

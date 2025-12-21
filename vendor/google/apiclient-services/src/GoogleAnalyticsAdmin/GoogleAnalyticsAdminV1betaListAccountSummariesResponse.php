@@ -23,12 +23,17 @@ class GoogleAnalyticsAdminV1betaListAccountSummariesResponse extends \Google\Col
   protected $accountSummariesType = GoogleAnalyticsAdminV1betaAccountSummary::class;
   protected $accountSummariesDataType = 'array';
   /**
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param GoogleAnalyticsAdminV1betaAccountSummary[]
+   * Account summaries of all accounts the caller has access to.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccountSummary[] $accountSummaries
    */
   public function setAccountSummaries($accountSummaries)
   {
@@ -42,7 +47,10 @@ class GoogleAnalyticsAdminV1betaListAccountSummariesResponse extends \Google\Col
     return $this->accountSummaries;
   }
   /**
-   * @param string
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

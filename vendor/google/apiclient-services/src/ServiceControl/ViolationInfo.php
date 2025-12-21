@@ -20,24 +20,62 @@ namespace Google\Service\ServiceControl;
 class ViolationInfo extends \Google\Model
 {
   /**
+   * Default value. This value should not be used.
+   */
+  public const POLICY_TYPE_POLICY_TYPE_UNSPECIFIED = 'POLICY_TYPE_UNSPECIFIED';
+  /**
+   * Indicates boolean policy constraint
+   */
+  public const POLICY_TYPE_BOOLEAN_CONSTRAINT = 'BOOLEAN_CONSTRAINT';
+  /**
+   * Indicates list policy constraint
+   */
+  public const POLICY_TYPE_LIST_CONSTRAINT = 'LIST_CONSTRAINT';
+  /**
+   * Indicates custom policy constraint
+   */
+  public const POLICY_TYPE_CUSTOM_CONSTRAINT = 'CUSTOM_CONSTRAINT';
+  /**
+   * Optional. Value that is being checked for the policy. This could be in
+   * encrypted form (if pii sensitive). This field will only be emitted in
+   * LIST_POLICY types
+   *
    * @var string
    */
   public $checkedValue;
   /**
+   * Optional. Constraint name
+   *
    * @var string
    */
   public $constraint;
   /**
+   * Optional. Provides extra information for the specific violated constraint.
+   * See the constraint's documentation to determine if this field is populated
+   * and what the structure of the message should be.
+   *
+   * @var array[]
+   */
+  public $constraintViolationInfo;
+  /**
+   * Optional. Error message that policy is indicating.
+   *
    * @var string
    */
   public $errorMessage;
   /**
+   * Optional. Indicates the type of the policy.
+   *
    * @var string
    */
   public $policyType;
 
   /**
-   * @param string
+   * Optional. Value that is being checked for the policy. This could be in
+   * encrypted form (if pii sensitive). This field will only be emitted in
+   * LIST_POLICY types
+   *
+   * @param string $checkedValue
    */
   public function setCheckedValue($checkedValue)
   {
@@ -51,7 +89,9 @@ class ViolationInfo extends \Google\Model
     return $this->checkedValue;
   }
   /**
-   * @param string
+   * Optional. Constraint name
+   *
+   * @param string $constraint
    */
   public function setConstraint($constraint)
   {
@@ -65,7 +105,27 @@ class ViolationInfo extends \Google\Model
     return $this->constraint;
   }
   /**
-   * @param string
+   * Optional. Provides extra information for the specific violated constraint.
+   * See the constraint's documentation to determine if this field is populated
+   * and what the structure of the message should be.
+   *
+   * @param array[] $constraintViolationInfo
+   */
+  public function setConstraintViolationInfo($constraintViolationInfo)
+  {
+    $this->constraintViolationInfo = $constraintViolationInfo;
+  }
+  /**
+   * @return array[]
+   */
+  public function getConstraintViolationInfo()
+  {
+    return $this->constraintViolationInfo;
+  }
+  /**
+   * Optional. Error message that policy is indicating.
+   *
+   * @param string $errorMessage
    */
   public function setErrorMessage($errorMessage)
   {
@@ -79,14 +139,19 @@ class ViolationInfo extends \Google\Model
     return $this->errorMessage;
   }
   /**
-   * @param string
+   * Optional. Indicates the type of the policy.
+   *
+   * Accepted values: POLICY_TYPE_UNSPECIFIED, BOOLEAN_CONSTRAINT,
+   * LIST_CONSTRAINT, CUSTOM_CONSTRAINT
+   *
+   * @param self::POLICY_TYPE_* $policyType
    */
   public function setPolicyType($policyType)
   {
     $this->policyType = $policyType;
   }
   /**
-   * @return string
+   * @return self::POLICY_TYPE_*
    */
   public function getPolicyType()
   {

@@ -23,7 +23,9 @@ class SpeakerSpotlight extends \Google\Model
   protected $speakerSpotlightPropertiesDataType = '';
 
   /**
-   * @param SpeakerSpotlightProperties
+   * The properties of the Speaker Spotlight.
+   *
+   * @param SpeakerSpotlightProperties $speakerSpotlightProperties
    */
   public function setSpeakerSpotlightProperties(SpeakerSpotlightProperties $speakerSpotlightProperties)
   {

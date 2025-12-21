@@ -21,6 +21,9 @@ class GoogleCloudVideointelligenceV1p2beta1TextSegment extends \Google\Collectio
 {
   protected $collection_key = 'frames';
   /**
+   * Confidence for the track of detected text. It is calculated as the highest
+   * over all frames where OCR detected text appears.
+   *
    * @var float
    */
   public $confidence;
@@ -30,7 +33,10 @@ class GoogleCloudVideointelligenceV1p2beta1TextSegment extends \Google\Collectio
   protected $segmentDataType = '';
 
   /**
-   * @param float
+   * Confidence for the track of detected text. It is calculated as the highest
+   * over all frames where OCR detected text appears.
+   *
+   * @param float $confidence
    */
   public function setConfidence($confidence)
   {
@@ -44,7 +50,9 @@ class GoogleCloudVideointelligenceV1p2beta1TextSegment extends \Google\Collectio
     return $this->confidence;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1p2beta1TextFrame[]
+   * Information related to the frames where OCR detected text appears.
+   *
+   * @param GoogleCloudVideointelligenceV1p2beta1TextFrame[] $frames
    */
   public function setFrames($frames)
   {
@@ -58,7 +66,9 @@ class GoogleCloudVideointelligenceV1p2beta1TextSegment extends \Google\Collectio
     return $this->frames;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1p2beta1VideoSegment
+   * Video segment where a text snippet was detected.
+   *
+   * @param GoogleCloudVideointelligenceV1p2beta1VideoSegment $segment
    */
   public function setSegment(GoogleCloudVideointelligenceV1p2beta1VideoSegment $segment)
   {

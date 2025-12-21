@@ -20,14 +20,25 @@ namespace Google\Service\Fitness;
 class Value extends \Google\Collection
 {
   protected $collection_key = 'mapVal';
+  /**
+   * Floating point value. When this is set, other values must not be set.
+   *
+   * @var 
+   */
   public $fpVal;
   /**
+   * Integer value. When this is set, other values must not be set.
+   *
    * @var int
    */
   public $intVal;
   protected $mapValType = ValueMapValEntry::class;
   protected $mapValDataType = 'array';
   /**
+   * String value. When this is set, other values must not be set. Strings
+   * should be kept small whenever possible. Data streams with large string
+   * values and high data frequency may be down sampled.
+   *
    * @var string
    */
   public $stringVal;
@@ -41,7 +52,9 @@ class Value extends \Google\Collection
     return $this->fpVal;
   }
   /**
-   * @param int
+   * Integer value. When this is set, other values must not be set.
+   *
+   * @param int $intVal
    */
   public function setIntVal($intVal)
   {
@@ -55,7 +68,12 @@ class Value extends \Google\Collection
     return $this->intVal;
   }
   /**
-   * @param ValueMapValEntry[]
+   * Map value. The valid key space and units for the corresponding value of
+   * each entry should be documented as part of the data type definition. Keys
+   * should be kept small whenever possible. Data streams with large keys and
+   * high data frequency may be down sampled.
+   *
+   * @param ValueMapValEntry[] $mapVal
    */
   public function setMapVal($mapVal)
   {
@@ -69,7 +87,11 @@ class Value extends \Google\Collection
     return $this->mapVal;
   }
   /**
-   * @param string
+   * String value. When this is set, other values must not be set. Strings
+   * should be kept small whenever possible. Data streams with large string
+   * values and high data frequency may be down sampled.
+   *
+   * @param string $stringVal
    */
   public function setStringVal($stringVal)
   {

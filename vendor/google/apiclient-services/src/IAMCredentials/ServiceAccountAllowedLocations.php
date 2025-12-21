@@ -21,16 +21,23 @@ class ServiceAccountAllowedLocations extends \Google\Collection
 {
   protected $collection_key = 'locations';
   /**
+   * Output only. The hex encoded bitmap of the trust boundary locations
+   *
    * @var string
    */
   public $encodedLocations;
   /**
+   * Output only. The human readable trust boundary locations. For example,
+   * ["us-central1", "europe-west1"]
+   *
    * @var string[]
    */
   public $locations;
 
   /**
-   * @param string
+   * Output only. The hex encoded bitmap of the trust boundary locations
+   *
+   * @param string $encodedLocations
    */
   public function setEncodedLocations($encodedLocations)
   {
@@ -44,7 +51,10 @@ class ServiceAccountAllowedLocations extends \Google\Collection
     return $this->encodedLocations;
   }
   /**
-   * @param string[]
+   * Output only. The human readable trust boundary locations. For example,
+   * ["us-central1", "europe-west1"]
+   *
+   * @param string[] $locations
    */
   public function setLocations($locations)
   {

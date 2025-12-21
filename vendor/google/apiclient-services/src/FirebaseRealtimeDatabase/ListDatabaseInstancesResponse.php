@@ -23,12 +23,20 @@ class ListDatabaseInstancesResponse extends \Google\Collection
   protected $instancesType = DatabaseInstance::class;
   protected $instancesDataType = 'array';
   /**
+   * If the result list is too large to fit in a single response, then a token
+   * is returned. If the string is empty, then this response is the last page of
+   * results. This token can be used in a subsequent call to
+   * `ListDatabaseInstances` to find the next group of database instances. Page
+   * tokens are short-lived and should not be persisted.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param DatabaseInstance[]
+   * List of each DatabaseInstance that is in the parent Firebase project.
+   *
+   * @param DatabaseInstance[] $instances
    */
   public function setInstances($instances)
   {
@@ -42,7 +50,13 @@ class ListDatabaseInstancesResponse extends \Google\Collection
     return $this->instances;
   }
   /**
-   * @param string
+   * If the result list is too large to fit in a single response, then a token
+   * is returned. If the string is empty, then this response is the last page of
+   * results. This token can be used in a subsequent call to
+   * `ListDatabaseInstances` to find the next group of database instances. Page
+   * tokens are short-lived and should not be persisted.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

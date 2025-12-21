@@ -20,12 +20,22 @@ namespace Google\Service\Slides;
 class DeleteObjectRequest extends \Google\Model
 {
   /**
+   * The object ID of the page or page element to delete. If after a delete
+   * operation a group contains only 1 or no page elements, the group is also
+   * deleted. If a placeholder is deleted on a layout, any empty inheriting
+   * placeholders are also deleted.
+   *
    * @var string
    */
   public $objectId;
 
   /**
-   * @param string
+   * The object ID of the page or page element to delete. If after a delete
+   * operation a group contains only 1 or no page elements, the group is also
+   * deleted. If a placeholder is deleted on a layout, any empty inheriting
+   * placeholders are also deleted.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {

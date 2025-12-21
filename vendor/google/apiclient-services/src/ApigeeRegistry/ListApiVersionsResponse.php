@@ -23,12 +23,17 @@ class ListApiVersionsResponse extends \Google\Collection
   protected $apiVersionsType = ApiVersion::class;
   protected $apiVersionsDataType = 'array';
   /**
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param ApiVersion[]
+   * The versions from the specified publisher.
+   *
+   * @param ApiVersion[] $apiVersions
    */
   public function setApiVersions($apiVersions)
   {
@@ -42,7 +47,10 @@ class ListApiVersionsResponse extends \Google\Collection
     return $this->apiVersions;
   }
   /**
-   * @param string
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

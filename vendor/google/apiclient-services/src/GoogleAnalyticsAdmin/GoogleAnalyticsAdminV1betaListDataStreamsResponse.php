@@ -23,12 +23,17 @@ class GoogleAnalyticsAdminV1betaListDataStreamsResponse extends \Google\Collecti
   protected $dataStreamsType = GoogleAnalyticsAdminV1betaDataStream::class;
   protected $dataStreamsDataType = 'array';
   /**
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param GoogleAnalyticsAdminV1betaDataStream[]
+   * List of DataStreams.
+   *
+   * @param GoogleAnalyticsAdminV1betaDataStream[] $dataStreams
    */
   public function setDataStreams($dataStreams)
   {
@@ -42,7 +47,10 @@ class GoogleAnalyticsAdminV1betaListDataStreamsResponse extends \Google\Collecti
     return $this->dataStreams;
   }
   /**
-   * @param string
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

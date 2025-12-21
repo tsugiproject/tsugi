@@ -19,35 +19,56 @@ namespace Google\Service\AndroidEnterprise;
 
 class Install extends \Google\Model
 {
+  public const INSTALL_STATE_installed = 'installed';
+  public const INSTALL_STATE_installPending = 'installPending';
   /**
+   * Install state. The state "installPending" means that an install request has
+   * recently been made and download to the device is in progress. The state
+   * "installed" means that the app has been installed. This field is read-only.
+   *
    * @var string
    */
   public $installState;
   /**
+   * The ID of the product that the install is for. For example,
+   * "app:com.google.android.gm".
+   *
    * @var string
    */
   public $productId;
   /**
+   * The version of the installed product. Guaranteed to be set only if the
+   * install state is "installed".
+   *
    * @var int
    */
   public $versionCode;
 
   /**
-   * @param string
+   * Install state. The state "installPending" means that an install request has
+   * recently been made and download to the device is in progress. The state
+   * "installed" means that the app has been installed. This field is read-only.
+   *
+   * Accepted values: installed, installPending
+   *
+   * @param self::INSTALL_STATE_* $installState
    */
   public function setInstallState($installState)
   {
     $this->installState = $installState;
   }
   /**
-   * @return string
+   * @return self::INSTALL_STATE_*
    */
   public function getInstallState()
   {
     return $this->installState;
   }
   /**
-   * @param string
+   * The ID of the product that the install is for. For example,
+   * "app:com.google.android.gm".
+   *
+   * @param string $productId
    */
   public function setProductId($productId)
   {
@@ -61,7 +82,10 @@ class Install extends \Google\Model
     return $this->productId;
   }
   /**
-   * @param int
+   * The version of the installed product. Guaranteed to be set only if the
+   * install state is "installed".
+   *
+   * @param int $versionCode
    */
   public function setVersionCode($versionCode)
   {

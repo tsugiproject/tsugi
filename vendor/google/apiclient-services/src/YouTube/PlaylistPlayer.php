@@ -20,12 +20,16 @@ namespace Google\Service\YouTube;
 class PlaylistPlayer extends \Google\Model
 {
   /**
+   * An
+   *
    * @var string
    */
   public $embedHtml;
 
   /**
-   * @param string
+   * An
+   *
+   * @param string $embedHtml
    */
   public function setEmbedHtml($embedHtml)
   {

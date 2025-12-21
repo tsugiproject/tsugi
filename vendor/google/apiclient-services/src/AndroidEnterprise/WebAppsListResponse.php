@@ -24,7 +24,9 @@ class WebAppsListResponse extends \Google\Collection
   protected $webAppDataType = 'array';
 
   /**
-   * @param WebApp[]
+   * The manifest describing a web app.
+   *
+   * @param WebApp[] $webApp
    */
   public function setWebApp($webApp)
   {

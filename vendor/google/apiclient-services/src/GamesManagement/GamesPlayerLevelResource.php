@@ -20,20 +20,28 @@ namespace Google\Service\GamesManagement;
 class GamesPlayerLevelResource extends \Google\Model
 {
   /**
+   * The level for the user.
+   *
    * @var int
    */
   public $level;
   /**
+   * The maximum experience points for this level.
+   *
    * @var string
    */
   public $maxExperiencePoints;
   /**
+   * The minimum experience points for this level.
+   *
    * @var string
    */
   public $minExperiencePoints;
 
   /**
-   * @param int
+   * The level for the user.
+   *
+   * @param int $level
    */
   public function setLevel($level)
   {
@@ -47,7 +55,9 @@ class GamesPlayerLevelResource extends \Google\Model
     return $this->level;
   }
   /**
-   * @param string
+   * The maximum experience points for this level.
+   *
+   * @param string $maxExperiencePoints
    */
   public function setMaxExperiencePoints($maxExperiencePoints)
   {
@@ -61,7 +71,9 @@ class GamesPlayerLevelResource extends \Google\Model
     return $this->maxExperiencePoints;
   }
   /**
-   * @param string
+   * The minimum experience points for this level.
+   *
+   * @param string $minExperiencePoints
    */
   public function setMinExperiencePoints($minExperiencePoints)
   {

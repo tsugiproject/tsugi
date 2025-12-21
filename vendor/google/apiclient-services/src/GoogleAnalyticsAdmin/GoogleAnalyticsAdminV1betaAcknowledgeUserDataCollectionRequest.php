@@ -20,12 +20,26 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionRequest extends \Google\Model
 {
   /**
+   * Required. An acknowledgement that the caller of this method understands the
+   * terms of user data collection. This field must contain the exact value: "I
+   * acknowledge that I have the necessary privacy disclosures and rights from
+   * my end users for the collection and processing of their data, including the
+   * association of such data with the visitation information Google Analytics
+   * collects from my site and/or app property."
+   *
    * @var string
    */
   public $acknowledgement;
 
   /**
-   * @param string
+   * Required. An acknowledgement that the caller of this method understands the
+   * terms of user data collection. This field must contain the exact value: "I
+   * acknowledge that I have the necessary privacy disclosures and rights from
+   * my end users for the collection and processing of their data, including the
+   * association of such data with the visitation information Google Analytics
+   * collects from my site and/or app property."
+   *
+   * @param string $acknowledgement
    */
   public function setAcknowledgement($acknowledgement)
   {

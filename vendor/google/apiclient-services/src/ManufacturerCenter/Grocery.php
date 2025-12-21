@@ -21,41 +21,64 @@ class Grocery extends \Google\Collection
 {
   protected $collection_key = 'nutritionClaim';
   /**
+   * Active ingredients.
+   *
    * @var string
    */
   public $activeIngredients;
+  /**
+   * Alcohol by volume.
+   *
+   * @var 
+   */
   public $alcoholByVolume;
   /**
+   * Allergens.
+   *
    * @var string
    */
   public $allergens;
   /**
+   * Derived nutrition claim.
+   *
    * @var string[]
    */
   public $derivedNutritionClaim;
   /**
+   * Directions.
+   *
    * @var string
    */
   public $directions;
   /**
+   * Indications.
+   *
    * @var string
    */
   public $indications;
   /**
+   * Ingredients.
+   *
    * @var string
    */
   public $ingredients;
   /**
+   * Nutrition claim.
+   *
    * @var string[]
    */
   public $nutritionClaim;
   /**
+   * Storage instructions.
+   *
    * @var string
    */
   public $storageInstructions;
 
   /**
-   * @param string
+   * Active ingredients.
+   *
+   * @param string $activeIngredients
    */
   public function setActiveIngredients($activeIngredients)
   {
@@ -77,7 +100,9 @@ class Grocery extends \Google\Collection
     return $this->alcoholByVolume;
   }
   /**
-   * @param string
+   * Allergens.
+   *
+   * @param string $allergens
    */
   public function setAllergens($allergens)
   {
@@ -91,7 +116,9 @@ class Grocery extends \Google\Collection
     return $this->allergens;
   }
   /**
-   * @param string[]
+   * Derived nutrition claim.
+   *
+   * @param string[] $derivedNutritionClaim
    */
   public function setDerivedNutritionClaim($derivedNutritionClaim)
   {
@@ -105,7 +132,9 @@ class Grocery extends \Google\Collection
     return $this->derivedNutritionClaim;
   }
   /**
-   * @param string
+   * Directions.
+   *
+   * @param string $directions
    */
   public function setDirections($directions)
   {
@@ -119,7 +148,9 @@ class Grocery extends \Google\Collection
     return $this->directions;
   }
   /**
-   * @param string
+   * Indications.
+   *
+   * @param string $indications
    */
   public function setIndications($indications)
   {
@@ -133,7 +164,9 @@ class Grocery extends \Google\Collection
     return $this->indications;
   }
   /**
-   * @param string
+   * Ingredients.
+   *
+   * @param string $ingredients
    */
   public function setIngredients($ingredients)
   {
@@ -147,7 +180,9 @@ class Grocery extends \Google\Collection
     return $this->ingredients;
   }
   /**
-   * @param string[]
+   * Nutrition claim.
+   *
+   * @param string[] $nutritionClaim
    */
   public function setNutritionClaim($nutritionClaim)
   {
@@ -161,7 +196,9 @@ class Grocery extends \Google\Collection
     return $this->nutritionClaim;
   }
   /**
-   * @param string
+   * Storage instructions.
+   *
+   * @param string $storageInstructions
    */
   public function setStorageInstructions($storageInstructions)
   {

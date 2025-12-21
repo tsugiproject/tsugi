@@ -23,28 +23,40 @@ class StreamObject extends \Google\Collection
   protected $backfillJobType = BackfillJob::class;
   protected $backfillJobDataType = '';
   /**
+   * Output only. The creation time of the object.
+   *
    * @var string
    */
   public $createTime;
+  protected $customizationRulesType = CustomizationRule::class;
+  protected $customizationRulesDataType = 'array';
   /**
+   * Required. Display name.
+   *
    * @var string
    */
   public $displayName;
   protected $errorsType = Error::class;
   protected $errorsDataType = 'array';
   /**
+   * Output only. Identifier. The object resource's name.
+   *
    * @var string
    */
   public $name;
   protected $sourceObjectType = SourceObjectIdentifier::class;
   protected $sourceObjectDataType = '';
   /**
+   * Output only. The last update time of the object.
+   *
    * @var string
    */
   public $updateTime;
 
   /**
-   * @param BackfillJob
+   * The latest backfill job that was initiated for the stream object.
+   *
+   * @param BackfillJob $backfillJob
    */
   public function setBackfillJob(BackfillJob $backfillJob)
   {
@@ -58,7 +70,9 @@ class StreamObject extends \Google\Collection
     return $this->backfillJob;
   }
   /**
-   * @param string
+   * Output only. The creation time of the object.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -72,7 +86,27 @@ class StreamObject extends \Google\Collection
     return $this->createTime;
   }
   /**
-   * @param string
+   * Output only. The customization rules for the object. These rules are
+   * derived from the parent Stream's `rule_sets` and represent the intended
+   * configuration for the object.
+   *
+   * @param CustomizationRule[] $customizationRules
+   */
+  public function setCustomizationRules($customizationRules)
+  {
+    $this->customizationRules = $customizationRules;
+  }
+  /**
+   * @return CustomizationRule[]
+   */
+  public function getCustomizationRules()
+  {
+    return $this->customizationRules;
+  }
+  /**
+   * Required. Display name.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -86,7 +120,9 @@ class StreamObject extends \Google\Collection
     return $this->displayName;
   }
   /**
-   * @param Error[]
+   * Output only. Active errors on the object.
+   *
+   * @param Error[] $errors
    */
   public function setErrors($errors)
   {
@@ -100,7 +136,9 @@ class StreamObject extends \Google\Collection
     return $this->errors;
   }
   /**
-   * @param string
+   * Output only. Identifier. The object resource's name.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -114,7 +152,9 @@ class StreamObject extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param SourceObjectIdentifier
+   * The object identifier in the data source.
+   *
+   * @param SourceObjectIdentifier $sourceObject
    */
   public function setSourceObject(SourceObjectIdentifier $sourceObject)
   {
@@ -128,7 +168,9 @@ class StreamObject extends \Google\Collection
     return $this->sourceObject;
   }
   /**
-   * @param string
+   * Output only. The last update time of the object.
+   *
+   * @param string $updateTime
    */
   public function setUpdateTime($updateTime)
   {

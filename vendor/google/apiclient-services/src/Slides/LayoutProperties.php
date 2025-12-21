@@ -20,20 +20,28 @@ namespace Google\Service\Slides;
 class LayoutProperties extends \Google\Model
 {
   /**
+   * The human-readable name of the layout.
+   *
    * @var string
    */
   public $displayName;
   /**
+   * The object ID of the master that this layout is based on.
+   *
    * @var string
    */
   public $masterObjectId;
   /**
+   * The name of the layout.
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param string
+   * The human-readable name of the layout.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -47,7 +55,9 @@ class LayoutProperties extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param string
+   * The object ID of the master that this layout is based on.
+   *
+   * @param string $masterObjectId
    */
   public function setMasterObjectId($masterObjectId)
   {
@@ -61,7 +71,9 @@ class LayoutProperties extends \Google\Model
     return $this->masterObjectId;
   }
   /**
-   * @param string
+   * The name of the layout.
+   *
+   * @param string $name
    */
   public function setName($name)
   {

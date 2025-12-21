@@ -20,12 +20,16 @@ namespace Google\Service\Keep;
 class Group extends \Google\Model
 {
   /**
+   * The group email.
+   *
    * @var string
    */
   public $email;
 
   /**
-   * @param string
+   * The group email.
+   *
+   * @param string $email
    */
   public function setEmail($email)
   {

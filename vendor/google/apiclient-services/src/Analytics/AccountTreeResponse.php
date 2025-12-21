@@ -22,6 +22,8 @@ class AccountTreeResponse extends \Google\Model
   protected $accountType = Account::class;
   protected $accountDataType = '';
   /**
+   * Resource type for account ticket.
+   *
    * @var string
    */
   public $kind;
@@ -31,7 +33,9 @@ class AccountTreeResponse extends \Google\Model
   protected $webpropertyDataType = '';
 
   /**
-   * @param Account
+   * The account created.
+   *
+   * @param Account $account
    */
   public function setAccount(Account $account)
   {
@@ -45,7 +49,9 @@ class AccountTreeResponse extends \Google\Model
     return $this->account;
   }
   /**
-   * @param string
+   * Resource type for account ticket.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -59,7 +65,9 @@ class AccountTreeResponse extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param Profile
+   * View (Profile) for the account.
+   *
+   * @param Profile $profile
    */
   public function setProfile(Profile $profile)
   {
@@ -73,7 +81,9 @@ class AccountTreeResponse extends \Google\Model
     return $this->profile;
   }
   /**
-   * @param Webproperty
+   * Web property for the account.
+   *
+   * @param Webproperty $webproperty
    */
   public function setWebproperty(Webproperty $webproperty)
   {

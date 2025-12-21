@@ -22,12 +22,16 @@ class GoogleCloudAdvisorynotificationsV1Attachment extends \Google\Model
   protected $csvType = GoogleCloudAdvisorynotificationsV1Csv::class;
   protected $csvDataType = '';
   /**
+   * The title of the attachment.
+   *
    * @var string
    */
   public $displayName;
 
   /**
-   * @param GoogleCloudAdvisorynotificationsV1Csv
+   * A CSV file attachment. Max size is 10 MB.
+   *
+   * @param GoogleCloudAdvisorynotificationsV1Csv $csv
    */
   public function setCsv(GoogleCloudAdvisorynotificationsV1Csv $csv)
   {
@@ -41,7 +45,9 @@ class GoogleCloudAdvisorynotificationsV1Attachment extends \Google\Model
     return $this->csv;
   }
   /**
-   * @param string
+   * The title of the attachment.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {

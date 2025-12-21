@@ -23,12 +23,16 @@ class GoalEventDetails extends \Google\Collection
   protected $eventConditionsType = GoalEventDetailsEventConditions::class;
   protected $eventConditionsDataType = 'array';
   /**
+   * Determines if the event value should be used as the value for this goal.
+   *
    * @var bool
    */
   public $useEventValue;
 
   /**
-   * @param GoalEventDetailsEventConditions[]
+   * List of event conditions.
+   *
+   * @param GoalEventDetailsEventConditions[] $eventConditions
    */
   public function setEventConditions($eventConditions)
   {
@@ -42,7 +46,9 @@ class GoalEventDetails extends \Google\Collection
     return $this->eventConditions;
   }
   /**
-   * @param bool
+   * Determines if the event value should be used as the value for this goal.
+   *
+   * @param bool $useEventValue
    */
   public function setUseEventValue($useEventValue)
   {

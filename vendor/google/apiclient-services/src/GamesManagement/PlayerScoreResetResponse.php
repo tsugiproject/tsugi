@@ -21,20 +21,31 @@ class PlayerScoreResetResponse extends \Google\Collection
 {
   protected $collection_key = 'resetScoreTimeSpans';
   /**
+   * The ID of an leaderboard for which player state has been updated.
+   *
    * @var string
    */
   public $definitionId;
   /**
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesManagement#playerScoreResetResponse`.
+   *
    * @var string
    */
   public $kind;
   /**
+   * The time spans of the updated score. Possible values are: - "`ALL_TIME`" -
+   * The score is an all-time score. - "`WEEKLY`" - The score is a weekly score.
+   * - "`DAILY`" - The score is a daily score.
+   *
    * @var string[]
    */
   public $resetScoreTimeSpans;
 
   /**
-   * @param string
+   * The ID of an leaderboard for which player state has been updated.
+   *
+   * @param string $definitionId
    */
   public function setDefinitionId($definitionId)
   {
@@ -48,7 +59,10 @@ class PlayerScoreResetResponse extends \Google\Collection
     return $this->definitionId;
   }
   /**
-   * @param string
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesManagement#playerScoreResetResponse`.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -62,7 +76,11 @@ class PlayerScoreResetResponse extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string[]
+   * The time spans of the updated score. Possible values are: - "`ALL_TIME`" -
+   * The score is an all-time score. - "`WEEKLY`" - The score is a weekly score.
+   * - "`DAILY`" - The score is a daily score.
+   *
+   * @param string[] $resetScoreTimeSpans
    */
   public function setResetScoreTimeSpans($resetScoreTimeSpans)
   {

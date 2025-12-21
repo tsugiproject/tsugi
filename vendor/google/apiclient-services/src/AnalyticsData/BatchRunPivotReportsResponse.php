@@ -21,6 +21,10 @@ class BatchRunPivotReportsResponse extends \Google\Collection
 {
   protected $collection_key = 'pivotReports';
   /**
+   * Identifies what kind of resource this message is. This `kind` is always the
+   * fixed string "analyticsData#batchRunPivotReports". Useful to distinguish
+   * between response types in JSON.
+   *
    * @var string
    */
   public $kind;
@@ -28,7 +32,11 @@ class BatchRunPivotReportsResponse extends \Google\Collection
   protected $pivotReportsDataType = 'array';
 
   /**
-   * @param string
+   * Identifies what kind of resource this message is. This `kind` is always the
+   * fixed string "analyticsData#batchRunPivotReports". Useful to distinguish
+   * between response types in JSON.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -42,7 +50,9 @@ class BatchRunPivotReportsResponse extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param RunPivotReportResponse[]
+   * Individual responses. Each response has a separate pivot report request.
+   *
+   * @param RunPivotReportResponse[] $pivotReports
    */
   public function setPivotReports($pivotReports)
   {

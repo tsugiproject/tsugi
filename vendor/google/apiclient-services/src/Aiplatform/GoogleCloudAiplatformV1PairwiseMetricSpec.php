@@ -20,24 +20,36 @@ namespace Google\Service\Aiplatform;
 class GoogleCloudAiplatformV1PairwiseMetricSpec extends \Google\Model
 {
   /**
+   * Optional. The field name of the baseline response.
+   *
    * @var string
    */
   public $baselineResponseFieldName;
   /**
+   * Optional. The field name of the candidate response.
+   *
    * @var string
    */
   public $candidateResponseFieldName;
+  protected $customOutputFormatConfigType = GoogleCloudAiplatformV1CustomOutputFormatConfig::class;
+  protected $customOutputFormatConfigDataType = '';
   /**
+   * Required. Metric prompt template for pairwise metric.
+   *
    * @var string
    */
   public $metricPromptTemplate;
   /**
+   * Optional. System instructions for pairwise metric.
+   *
    * @var string
    */
   public $systemInstruction;
 
   /**
-   * @param string
+   * Optional. The field name of the baseline response.
+   *
+   * @param string $baselineResponseFieldName
    */
   public function setBaselineResponseFieldName($baselineResponseFieldName)
   {
@@ -51,7 +63,9 @@ class GoogleCloudAiplatformV1PairwiseMetricSpec extends \Google\Model
     return $this->baselineResponseFieldName;
   }
   /**
-   * @param string
+   * Optional. The field name of the candidate response.
+   *
+   * @param string $candidateResponseFieldName
    */
   public function setCandidateResponseFieldName($candidateResponseFieldName)
   {
@@ -65,7 +79,28 @@ class GoogleCloudAiplatformV1PairwiseMetricSpec extends \Google\Model
     return $this->candidateResponseFieldName;
   }
   /**
-   * @param string
+   * Optional. CustomOutputFormatConfig allows customization of metric output.
+   * When this config is set, the default output is replaced with the raw output
+   * string. If a custom format is chosen, the `pairwise_choice` and
+   * `explanation` fields in the corresponding metric result will be empty.
+   *
+   * @param GoogleCloudAiplatformV1CustomOutputFormatConfig $customOutputFormatConfig
+   */
+  public function setCustomOutputFormatConfig(GoogleCloudAiplatformV1CustomOutputFormatConfig $customOutputFormatConfig)
+  {
+    $this->customOutputFormatConfig = $customOutputFormatConfig;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1CustomOutputFormatConfig
+   */
+  public function getCustomOutputFormatConfig()
+  {
+    return $this->customOutputFormatConfig;
+  }
+  /**
+   * Required. Metric prompt template for pairwise metric.
+   *
+   * @param string $metricPromptTemplate
    */
   public function setMetricPromptTemplate($metricPromptTemplate)
   {
@@ -79,7 +114,9 @@ class GoogleCloudAiplatformV1PairwiseMetricSpec extends \Google\Model
     return $this->metricPromptTemplate;
   }
   /**
-   * @param string
+   * Optional. System instructions for pairwise metric.
+   *
+   * @param string $systemInstruction
    */
   public function setSystemInstruction($systemInstruction)
   {

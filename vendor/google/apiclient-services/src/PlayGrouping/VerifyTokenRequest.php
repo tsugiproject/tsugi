@@ -20,12 +20,16 @@ namespace Google\Service\PlayGrouping;
 class VerifyTokenRequest extends \Google\Model
 {
   /**
+   * Required. Persona represented by the token. Format: personas/{persona}
+   *
    * @var string
    */
   public $persona;
 
   /**
-   * @param string
+   * Required. Persona represented by the token. Format: personas/{persona}
+   *
+   * @param string $persona
    */
   public function setPersona($persona)
   {

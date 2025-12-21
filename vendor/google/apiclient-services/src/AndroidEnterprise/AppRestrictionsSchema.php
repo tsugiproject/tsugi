@@ -21,6 +21,8 @@ class AppRestrictionsSchema extends \Google\Collection
 {
   protected $collection_key = 'restrictions';
   /**
+   * Deprecated.
+   *
    * @var string
    */
   public $kind;
@@ -28,7 +30,9 @@ class AppRestrictionsSchema extends \Google\Collection
   protected $restrictionsDataType = 'array';
 
   /**
-   * @param string
+   * Deprecated.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -42,7 +46,9 @@ class AppRestrictionsSchema extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param AppRestrictionsSchemaRestriction[]
+   * The set of restrictions that make up this schema.
+   *
+   * @param AppRestrictionsSchemaRestriction[] $restrictions
    */
   public function setRestrictions($restrictions)
   {

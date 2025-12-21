@@ -20,26 +20,42 @@ namespace Google\Service\AccessApproval;
 class ApproveDecision extends \Google\Model
 {
   /**
+   * The time at which approval was granted.
+   *
    * @var string
    */
   public $approveTime;
   /**
+   * True when the request has been auto-approved.
+   *
    * @var bool
    */
   public $autoApproved;
   /**
+   * The time at which the approval expires.
+   *
    * @var string
    */
   public $expireTime;
   /**
+   * If set, denotes the timestamp at which the approval is invalidated.
+   *
    * @var string
    */
   public $invalidateTime;
+  /**
+   * True when the request has been approved by the customer's defined policy.
+   *
+   * @var bool
+   */
+  public $policyApproved;
   protected $signatureInfoType = SignatureInfo::class;
   protected $signatureInfoDataType = '';
 
   /**
-   * @param string
+   * The time at which approval was granted.
+   *
+   * @param string $approveTime
    */
   public function setApproveTime($approveTime)
   {
@@ -53,7 +69,9 @@ class ApproveDecision extends \Google\Model
     return $this->approveTime;
   }
   /**
-   * @param bool
+   * True when the request has been auto-approved.
+   *
+   * @param bool $autoApproved
    */
   public function setAutoApproved($autoApproved)
   {
@@ -67,7 +85,9 @@ class ApproveDecision extends \Google\Model
     return $this->autoApproved;
   }
   /**
-   * @param string
+   * The time at which the approval expires.
+   *
+   * @param string $expireTime
    */
   public function setExpireTime($expireTime)
   {
@@ -81,7 +101,9 @@ class ApproveDecision extends \Google\Model
     return $this->expireTime;
   }
   /**
-   * @param string
+   * If set, denotes the timestamp at which the approval is invalidated.
+   *
+   * @param string $invalidateTime
    */
   public function setInvalidateTime($invalidateTime)
   {
@@ -95,7 +117,25 @@ class ApproveDecision extends \Google\Model
     return $this->invalidateTime;
   }
   /**
-   * @param SignatureInfo
+   * True when the request has been approved by the customer's defined policy.
+   *
+   * @param bool $policyApproved
+   */
+  public function setPolicyApproved($policyApproved)
+  {
+    $this->policyApproved = $policyApproved;
+  }
+  /**
+   * @return bool
+   */
+  public function getPolicyApproved()
+  {
+    return $this->policyApproved;
+  }
+  /**
+   * The signature for the ApprovalRequest and details on how it was signed.
+   *
+   * @param SignatureInfo $signatureInfo
    */
   public function setSignatureInfo(SignatureInfo $signatureInfo)
   {

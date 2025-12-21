@@ -22,12 +22,16 @@ class InstanceConsumptionData extends \Google\Model
   protected $consumptionInfoType = InstanceConsumptionInfo::class;
   protected $consumptionInfoDataType = '';
   /**
+   * Output only. Server-defined URL for the instance.
+   *
    * @var string
    */
   public $instance;
 
   /**
-   * @param InstanceConsumptionInfo
+   * Output only. Resources consumed by the instance.
+   *
+   * @param InstanceConsumptionInfo $consumptionInfo
    */
   public function setConsumptionInfo(InstanceConsumptionInfo $consumptionInfo)
   {
@@ -41,7 +45,9 @@ class InstanceConsumptionData extends \Google\Model
     return $this->consumptionInfo;
   }
   /**
-   * @param string
+   * Output only. Server-defined URL for the instance.
+   *
+   * @param string $instance
    */
   public function setInstance($instance)
   {

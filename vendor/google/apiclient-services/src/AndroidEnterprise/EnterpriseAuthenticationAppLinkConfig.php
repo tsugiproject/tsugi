@@ -20,12 +20,16 @@ namespace Google\Service\AndroidEnterprise;
 class EnterpriseAuthenticationAppLinkConfig extends \Google\Model
 {
   /**
+   * An authentication url.
+   *
    * @var string
    */
   public $uri;
 
   /**
-   * @param string
+   * An authentication url.
+   *
+   * @param string $uri
    */
   public function setUri($uri)
   {

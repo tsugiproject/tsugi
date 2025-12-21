@@ -21,20 +21,38 @@ class GoogleFirestoreAdminV1ImportDocumentsRequest extends \Google\Collection
 {
   protected $collection_key = 'namespaceIds';
   /**
+   * IDs of the collection groups to import. Unspecified means all collection
+   * groups that were included in the export. Each collection group in this list
+   * must be unique.
+   *
    * @var string[]
    */
   public $collectionIds;
   /**
+   * Location of the exported files. This must match the output_uri_prefix of an
+   * ExportDocumentsResponse from an export that has completed successfully.
+   * See: google.firestore.admin.v1.ExportDocumentsResponse.output_uri_prefix.
+   *
    * @var string
    */
   public $inputUriPrefix;
   /**
+   * An empty list represents all namespaces. This is the preferred usage for
+   * databases that don't use namespaces. An empty string element represents the
+   * default namespace. This should be used if the database has data in non-
+   * default namespaces, but doesn't want to include them. Each namespace in
+   * this list must be unique.
+   *
    * @var string[]
    */
   public $namespaceIds;
 
   /**
-   * @param string[]
+   * IDs of the collection groups to import. Unspecified means all collection
+   * groups that were included in the export. Each collection group in this list
+   * must be unique.
+   *
+   * @param string[] $collectionIds
    */
   public function setCollectionIds($collectionIds)
   {
@@ -48,7 +66,11 @@ class GoogleFirestoreAdminV1ImportDocumentsRequest extends \Google\Collection
     return $this->collectionIds;
   }
   /**
-   * @param string
+   * Location of the exported files. This must match the output_uri_prefix of an
+   * ExportDocumentsResponse from an export that has completed successfully.
+   * See: google.firestore.admin.v1.ExportDocumentsResponse.output_uri_prefix.
+   *
+   * @param string $inputUriPrefix
    */
   public function setInputUriPrefix($inputUriPrefix)
   {
@@ -62,7 +84,13 @@ class GoogleFirestoreAdminV1ImportDocumentsRequest extends \Google\Collection
     return $this->inputUriPrefix;
   }
   /**
-   * @param string[]
+   * An empty list represents all namespaces. This is the preferred usage for
+   * databases that don't use namespaces. An empty string element represents the
+   * default namespace. This should be used if the database has data in non-
+   * default namespaces, but doesn't want to include them. Each namespace in
+   * this list must be unique.
+   *
+   * @param string[] $namespaceIds
    */
   public function setNamespaceIds($namespaceIds)
   {

@@ -20,26 +20,45 @@ namespace Google\Service\Slides;
 class VideoProperties extends \Google\Model
 {
   /**
+   * Whether to enable video autoplay when the page is displayed in present
+   * mode. Defaults to false.
+   *
    * @var bool
    */
   public $autoPlay;
   /**
+   * The time at which to end playback, measured in seconds from the beginning
+   * of the video. If set, the end time should be after the start time. If not
+   * set or if you set this to a value that exceeds the video's length, the
+   * video will be played until its end.
+   *
    * @var string
    */
   public $end;
   /**
+   * Whether to mute the audio during video playback. Defaults to false.
+   *
    * @var bool
    */
   public $mute;
   protected $outlineType = Outline::class;
   protected $outlineDataType = '';
   /**
+   * The time at which to start playback, measured in seconds from the beginning
+   * of the video. If set, the start time should be before the end time. If you
+   * set this to a value that exceeds the video's length in seconds, the video
+   * will be played from the last second. If not set, the video will be played
+   * from the beginning.
+   *
    * @var string
    */
   public $start;
 
   /**
-   * @param bool
+   * Whether to enable video autoplay when the page is displayed in present
+   * mode. Defaults to false.
+   *
+   * @param bool $autoPlay
    */
   public function setAutoPlay($autoPlay)
   {
@@ -53,7 +72,12 @@ class VideoProperties extends \Google\Model
     return $this->autoPlay;
   }
   /**
-   * @param string
+   * The time at which to end playback, measured in seconds from the beginning
+   * of the video. If set, the end time should be after the start time. If not
+   * set or if you set this to a value that exceeds the video's length, the
+   * video will be played until its end.
+   *
+   * @param string $end
    */
   public function setEnd($end)
   {
@@ -67,7 +91,9 @@ class VideoProperties extends \Google\Model
     return $this->end;
   }
   /**
-   * @param bool
+   * Whether to mute the audio during video playback. Defaults to false.
+   *
+   * @param bool $mute
    */
   public function setMute($mute)
   {
@@ -81,7 +107,10 @@ class VideoProperties extends \Google\Model
     return $this->mute;
   }
   /**
-   * @param Outline
+   * The outline of the video. The default outline matches the defaults for new
+   * videos created in the Slides editor.
+   *
+   * @param Outline $outline
    */
   public function setOutline(Outline $outline)
   {
@@ -95,7 +124,13 @@ class VideoProperties extends \Google\Model
     return $this->outline;
   }
   /**
-   * @param string
+   * The time at which to start playback, measured in seconds from the beginning
+   * of the video. If set, the start time should be before the end time. If you
+   * set this to a value that exceeds the video's length in seconds, the video
+   * will be played from the last second. If not set, the video will be played
+   * from the beginning.
+   *
+   * @param string $start
    */
   public function setStart($start)
   {

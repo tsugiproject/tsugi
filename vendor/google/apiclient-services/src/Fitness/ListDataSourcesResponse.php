@@ -24,7 +24,9 @@ class ListDataSourcesResponse extends \Google\Collection
   protected $dataSourceDataType = 'array';
 
   /**
-   * @param DataSource[]
+   * A previously created data source.
+   *
+   * @param DataSource[] $dataSource
    */
   public function setDataSource($dataSource)
   {

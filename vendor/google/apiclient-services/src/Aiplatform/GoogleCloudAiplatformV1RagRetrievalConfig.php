@@ -21,13 +21,19 @@ class GoogleCloudAiplatformV1RagRetrievalConfig extends \Google\Model
 {
   protected $filterType = GoogleCloudAiplatformV1RagRetrievalConfigFilter::class;
   protected $filterDataType = '';
+  protected $rankingType = GoogleCloudAiplatformV1RagRetrievalConfigRanking::class;
+  protected $rankingDataType = '';
   /**
+   * Optional. The number of contexts to retrieve.
+   *
    * @var int
    */
   public $topK;
 
   /**
-   * @param GoogleCloudAiplatformV1RagRetrievalConfigFilter
+   * Optional. Config for filters.
+   *
+   * @param GoogleCloudAiplatformV1RagRetrievalConfigFilter $filter
    */
   public function setFilter(GoogleCloudAiplatformV1RagRetrievalConfigFilter $filter)
   {
@@ -41,7 +47,25 @@ class GoogleCloudAiplatformV1RagRetrievalConfig extends \Google\Model
     return $this->filter;
   }
   /**
-   * @param int
+   * Optional. Config for ranking and reranking.
+   *
+   * @param GoogleCloudAiplatformV1RagRetrievalConfigRanking $ranking
+   */
+  public function setRanking(GoogleCloudAiplatformV1RagRetrievalConfigRanking $ranking)
+  {
+    $this->ranking = $ranking;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1RagRetrievalConfigRanking
+   */
+  public function getRanking()
+  {
+    return $this->ranking;
+  }
+  /**
+   * Optional. The number of contexts to retrieve.
+   *
+   * @param int $topK
    */
   public function setTopK($topK)
   {

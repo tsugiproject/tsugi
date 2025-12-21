@@ -20,24 +20,54 @@ namespace Google\Service\DiscoveryEngine;
 class GoogleCloudDiscoveryengineV1FactChunk extends \Google\Model
 {
   /**
+   * Text content of the fact chunk. Can be at most 10K characters long.
+   *
    * @var string
    */
   public $chunkText;
   /**
+   * The domain of the source.
+   *
+   * @var string
+   */
+  public $domain;
+  /**
+   * The index of this chunk. Currently, only used for the streaming mode.
+   *
    * @var int
    */
   public $index;
   /**
+   * Source from which this fact chunk was retrieved. If it was retrieved from
+   * the GroundingFacts provided in the request then this field will contain the
+   * index of the specific fact from which this chunk was retrieved.
+   *
    * @var string
    */
   public $source;
   /**
+   * More fine-grained information for the source reference.
+   *
    * @var string[]
    */
   public $sourceMetadata;
+  /**
+   * The title of the source.
+   *
+   * @var string
+   */
+  public $title;
+  /**
+   * The URI of the source.
+   *
+   * @var string
+   */
+  public $uri;
 
   /**
-   * @param string
+   * Text content of the fact chunk. Can be at most 10K characters long.
+   *
+   * @param string $chunkText
    */
   public function setChunkText($chunkText)
   {
@@ -51,7 +81,25 @@ class GoogleCloudDiscoveryengineV1FactChunk extends \Google\Model
     return $this->chunkText;
   }
   /**
-   * @param int
+   * The domain of the source.
+   *
+   * @param string $domain
+   */
+  public function setDomain($domain)
+  {
+    $this->domain = $domain;
+  }
+  /**
+   * @return string
+   */
+  public function getDomain()
+  {
+    return $this->domain;
+  }
+  /**
+   * The index of this chunk. Currently, only used for the streaming mode.
+   *
+   * @param int $index
    */
   public function setIndex($index)
   {
@@ -65,7 +113,11 @@ class GoogleCloudDiscoveryengineV1FactChunk extends \Google\Model
     return $this->index;
   }
   /**
-   * @param string
+   * Source from which this fact chunk was retrieved. If it was retrieved from
+   * the GroundingFacts provided in the request then this field will contain the
+   * index of the specific fact from which this chunk was retrieved.
+   *
+   * @param string $source
    */
   public function setSource($source)
   {
@@ -79,7 +131,9 @@ class GoogleCloudDiscoveryengineV1FactChunk extends \Google\Model
     return $this->source;
   }
   /**
-   * @param string[]
+   * More fine-grained information for the source reference.
+   *
+   * @param string[] $sourceMetadata
    */
   public function setSourceMetadata($sourceMetadata)
   {
@@ -91,6 +145,38 @@ class GoogleCloudDiscoveryengineV1FactChunk extends \Google\Model
   public function getSourceMetadata()
   {
     return $this->sourceMetadata;
+  }
+  /**
+   * The title of the source.
+   *
+   * @param string $title
+   */
+  public function setTitle($title)
+  {
+    $this->title = $title;
+  }
+  /**
+   * @return string
+   */
+  public function getTitle()
+  {
+    return $this->title;
+  }
+  /**
+   * The URI of the source.
+   *
+   * @param string $uri
+   */
+  public function setUri($uri)
+  {
+    $this->uri = $uri;
+  }
+  /**
+   * @return string
+   */
+  public function getUri()
+  {
+    return $this->uri;
   }
 }
 

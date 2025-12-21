@@ -20,36 +20,52 @@ namespace Google\Service\IdentityToolkit;
 class EmailLinkSigninResponse extends \Google\Model
 {
   /**
+   * The user's email.
+   *
    * @var string
    */
   public $email;
   /**
+   * Expiration time of STS id token in seconds.
+   *
    * @var string
    */
   public $expiresIn;
   /**
+   * The STS id token to login the newly signed in user.
+   *
    * @var string
    */
   public $idToken;
   /**
+   * Whether the user is new.
+   *
    * @var bool
    */
   public $isNewUser;
   /**
+   * The fixed string "identitytoolkit#EmailLinkSigninResponse".
+   *
    * @var string
    */
   public $kind;
   /**
+   * The RP local ID of the user.
+   *
    * @var string
    */
   public $localId;
   /**
+   * The refresh token for the signed in user.
+   *
    * @var string
    */
   public $refreshToken;
 
   /**
-   * @param string
+   * The user's email.
+   *
+   * @param string $email
    */
   public function setEmail($email)
   {
@@ -63,7 +79,9 @@ class EmailLinkSigninResponse extends \Google\Model
     return $this->email;
   }
   /**
-   * @param string
+   * Expiration time of STS id token in seconds.
+   *
+   * @param string $expiresIn
    */
   public function setExpiresIn($expiresIn)
   {
@@ -77,7 +95,9 @@ class EmailLinkSigninResponse extends \Google\Model
     return $this->expiresIn;
   }
   /**
-   * @param string
+   * The STS id token to login the newly signed in user.
+   *
+   * @param string $idToken
    */
   public function setIdToken($idToken)
   {
@@ -91,7 +111,9 @@ class EmailLinkSigninResponse extends \Google\Model
     return $this->idToken;
   }
   /**
-   * @param bool
+   * Whether the user is new.
+   *
+   * @param bool $isNewUser
    */
   public function setIsNewUser($isNewUser)
   {
@@ -105,7 +127,9 @@ class EmailLinkSigninResponse extends \Google\Model
     return $this->isNewUser;
   }
   /**
-   * @param string
+   * The fixed string "identitytoolkit#EmailLinkSigninResponse".
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -119,7 +143,9 @@ class EmailLinkSigninResponse extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * The RP local ID of the user.
+   *
+   * @param string $localId
    */
   public function setLocalId($localId)
   {
@@ -133,7 +159,9 @@ class EmailLinkSigninResponse extends \Google\Model
     return $this->localId;
   }
   /**
-   * @param string
+   * The refresh token for the signed in user.
+   *
+   * @param string $refreshToken
    */
   public function setRefreshToken($refreshToken)
   {

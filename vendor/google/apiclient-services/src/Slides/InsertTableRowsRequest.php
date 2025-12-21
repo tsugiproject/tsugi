@@ -22,20 +22,32 @@ class InsertTableRowsRequest extends \Google\Model
   protected $cellLocationType = TableCellLocation::class;
   protected $cellLocationDataType = '';
   /**
+   * Whether to insert new rows below the reference cell location. - `True`:
+   * insert below the cell. - `False`: insert above the cell.
+   *
    * @var bool
    */
   public $insertBelow;
   /**
+   * The number of rows to be inserted. Maximum 20 per request.
+   *
    * @var int
    */
   public $number;
   /**
+   * The table to insert rows into.
+   *
    * @var string
    */
   public $tableObjectId;
 
   /**
-   * @param TableCellLocation
+   * The reference table cell location from which rows will be inserted. A new
+   * row will be inserted above (or below) the row where the reference cell is.
+   * If the reference cell is a merged cell, a new row will be inserted above
+   * (or below) the merged cell.
+   *
+   * @param TableCellLocation $cellLocation
    */
   public function setCellLocation(TableCellLocation $cellLocation)
   {
@@ -49,7 +61,10 @@ class InsertTableRowsRequest extends \Google\Model
     return $this->cellLocation;
   }
   /**
-   * @param bool
+   * Whether to insert new rows below the reference cell location. - `True`:
+   * insert below the cell. - `False`: insert above the cell.
+   *
+   * @param bool $insertBelow
    */
   public function setInsertBelow($insertBelow)
   {
@@ -63,7 +78,9 @@ class InsertTableRowsRequest extends \Google\Model
     return $this->insertBelow;
   }
   /**
-   * @param int
+   * The number of rows to be inserted. Maximum 20 per request.
+   *
+   * @param int $number
    */
   public function setNumber($number)
   {
@@ -77,7 +94,9 @@ class InsertTableRowsRequest extends \Google\Model
     return $this->number;
   }
   /**
-   * @param string
+   * The table to insert rows into.
+   *
+   * @param string $tableObjectId
    */
   public function setTableObjectId($tableObjectId)
   {

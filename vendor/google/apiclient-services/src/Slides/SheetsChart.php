@@ -20,22 +20,35 @@ namespace Google\Service\Slides;
 class SheetsChart extends \Google\Model
 {
   /**
+   * The ID of the specific chart in the Google Sheets spreadsheet that is
+   * embedded.
+   *
    * @var int
    */
   public $chartId;
   /**
+   * The URL of an image of the embedded chart, with a default lifetime of 30
+   * minutes. This URL is tagged with the account of the requester. Anyone with
+   * the URL effectively accesses the image as the original requester. Access to
+   * the image may be lost if the presentation's sharing settings change.
+   *
    * @var string
    */
   public $contentUrl;
   protected $sheetsChartPropertiesType = SheetsChartProperties::class;
   protected $sheetsChartPropertiesDataType = '';
   /**
+   * The ID of the Google Sheets spreadsheet that contains the source chart.
+   *
    * @var string
    */
   public $spreadsheetId;
 
   /**
-   * @param int
+   * The ID of the specific chart in the Google Sheets spreadsheet that is
+   * embedded.
+   *
+   * @param int $chartId
    */
   public function setChartId($chartId)
   {
@@ -49,7 +62,12 @@ class SheetsChart extends \Google\Model
     return $this->chartId;
   }
   /**
-   * @param string
+   * The URL of an image of the embedded chart, with a default lifetime of 30
+   * minutes. This URL is tagged with the account of the requester. Anyone with
+   * the URL effectively accesses the image as the original requester. Access to
+   * the image may be lost if the presentation's sharing settings change.
+   *
+   * @param string $contentUrl
    */
   public function setContentUrl($contentUrl)
   {
@@ -63,7 +81,9 @@ class SheetsChart extends \Google\Model
     return $this->contentUrl;
   }
   /**
-   * @param SheetsChartProperties
+   * The properties of the Sheets chart.
+   *
+   * @param SheetsChartProperties $sheetsChartProperties
    */
   public function setSheetsChartProperties(SheetsChartProperties $sheetsChartProperties)
   {
@@ -77,7 +97,9 @@ class SheetsChart extends \Google\Model
     return $this->sheetsChartProperties;
   }
   /**
-   * @param string
+   * The ID of the Google Sheets spreadsheet that contains the source chart.
+   *
+   * @param string $spreadsheetId
    */
   public function setSpreadsheetId($spreadsheetId)
   {

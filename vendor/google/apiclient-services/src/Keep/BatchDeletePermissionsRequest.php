@@ -21,12 +21,18 @@ class BatchDeletePermissionsRequest extends \Google\Collection
 {
   protected $collection_key = 'names';
   /**
+   * Required. The names of the permissions to delete. Format:
+   * `notes/{note}/permissions/{permission}`
+   *
    * @var string[]
    */
   public $names;
 
   /**
-   * @param string[]
+   * Required. The names of the permissions to delete. Format:
+   * `notes/{note}/permissions/{permission}`
+   *
+   * @param string[] $names
    */
   public function setNames($names)
   {

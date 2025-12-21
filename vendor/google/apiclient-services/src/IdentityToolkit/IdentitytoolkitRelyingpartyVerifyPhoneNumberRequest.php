@@ -36,6 +36,9 @@ class IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest extends \Google\Model
    */
   public $phoneNumber;
   /**
+   * The session info previously returned by IdentityToolkit-
+   * SendVerificationCode.
+   *
    * @var string
    */
   public $sessionInfo;
@@ -49,7 +52,7 @@ class IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest extends \Google\Model
   public $verificationProof;
 
   /**
-   * @param string
+   * @param string $code
    */
   public function setCode($code)
   {
@@ -63,7 +66,7 @@ class IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest extends \Google\Model
     return $this->code;
   }
   /**
-   * @param string
+   * @param string $idToken
    */
   public function setIdToken($idToken)
   {
@@ -77,7 +80,7 @@ class IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest extends \Google\Model
     return $this->idToken;
   }
   /**
-   * @param string
+   * @param string $operation
    */
   public function setOperation($operation)
   {
@@ -91,7 +94,7 @@ class IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest extends \Google\Model
     return $this->operation;
   }
   /**
-   * @param string
+   * @param string $phoneNumber
    */
   public function setPhoneNumber($phoneNumber)
   {
@@ -105,7 +108,10 @@ class IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest extends \Google\Model
     return $this->phoneNumber;
   }
   /**
-   * @param string
+   * The session info previously returned by IdentityToolkit-
+   * SendVerificationCode.
+   *
+   * @param string $sessionInfo
    */
   public function setSessionInfo($sessionInfo)
   {
@@ -119,7 +125,7 @@ class IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest extends \Google\Model
     return $this->sessionInfo;
   }
   /**
-   * @param string
+   * @param string $temporaryProof
    */
   public function setTemporaryProof($temporaryProof)
   {
@@ -133,7 +139,7 @@ class IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest extends \Google\Model
     return $this->temporaryProof;
   }
   /**
-   * @param string
+   * @param string $verificationProof
    */
   public function setVerificationProof($verificationProof)
   {

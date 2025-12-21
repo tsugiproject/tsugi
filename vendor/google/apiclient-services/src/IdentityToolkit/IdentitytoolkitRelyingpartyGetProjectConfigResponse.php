@@ -21,14 +21,20 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
 {
   protected $collection_key = 'idpConfig';
   /**
+   * Whether to allow password user sign in or sign up.
+   *
    * @var bool
    */
   public $allowPasswordUser;
   /**
+   * Browser API key, needed when making http request to Apiary.
+   *
    * @var string
    */
   public $apiKey;
   /**
+   * Authorized domains.
+   *
    * @var string[]
    */
   public $authorizedDomains;
@@ -39,6 +45,8 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
    */
   public $dynamicLinksDomain;
   /**
+   * Whether anonymous user is enabled.
+   *
    * @var bool
    */
   public $enableAnonymousUser;
@@ -47,12 +55,16 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
   protected $legacyResetPasswordTemplateType = EmailTemplate::class;
   protected $legacyResetPasswordTemplateDataType = '';
   /**
+   * Project ID of the relying party.
+   *
    * @var string
    */
   public $projectId;
   protected $resetPasswordTemplateType = EmailTemplate::class;
   protected $resetPasswordTemplateDataType = '';
   /**
+   * Whether to use email sending provided by Firebear.
+   *
    * @var bool
    */
   public $useEmailSending;
@@ -60,7 +72,9 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
   protected $verifyEmailTemplateDataType = '';
 
   /**
-   * @param bool
+   * Whether to allow password user sign in or sign up.
+   *
+   * @param bool $allowPasswordUser
    */
   public function setAllowPasswordUser($allowPasswordUser)
   {
@@ -74,7 +88,9 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
     return $this->allowPasswordUser;
   }
   /**
-   * @param string
+   * Browser API key, needed when making http request to Apiary.
+   *
+   * @param string $apiKey
    */
   public function setApiKey($apiKey)
   {
@@ -88,7 +104,9 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
     return $this->apiKey;
   }
   /**
-   * @param string[]
+   * Authorized domains.
+   *
+   * @param string[] $authorizedDomains
    */
   public function setAuthorizedDomains($authorizedDomains)
   {
@@ -102,7 +120,9 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
     return $this->authorizedDomains;
   }
   /**
-   * @param EmailTemplate
+   * Change email template.
+   *
+   * @param EmailTemplate $changeEmailTemplate
    */
   public function setChangeEmailTemplate(EmailTemplate $changeEmailTemplate)
   {
@@ -116,7 +136,7 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
     return $this->changeEmailTemplate;
   }
   /**
-   * @param string
+   * @param string $dynamicLinksDomain
    */
   public function setDynamicLinksDomain($dynamicLinksDomain)
   {
@@ -130,7 +150,9 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
     return $this->dynamicLinksDomain;
   }
   /**
-   * @param bool
+   * Whether anonymous user is enabled.
+   *
+   * @param bool $enableAnonymousUser
    */
   public function setEnableAnonymousUser($enableAnonymousUser)
   {
@@ -144,7 +166,9 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
     return $this->enableAnonymousUser;
   }
   /**
-   * @param IdpConfig[]
+   * OAuth2 provider configuration.
+   *
+   * @param IdpConfig[] $idpConfig
    */
   public function setIdpConfig($idpConfig)
   {
@@ -158,7 +182,9 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
     return $this->idpConfig;
   }
   /**
-   * @param EmailTemplate
+   * Legacy reset password email template.
+   *
+   * @param EmailTemplate $legacyResetPasswordTemplate
    */
   public function setLegacyResetPasswordTemplate(EmailTemplate $legacyResetPasswordTemplate)
   {
@@ -172,7 +198,9 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
     return $this->legacyResetPasswordTemplate;
   }
   /**
-   * @param string
+   * Project ID of the relying party.
+   *
+   * @param string $projectId
    */
   public function setProjectId($projectId)
   {
@@ -186,7 +214,9 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
     return $this->projectId;
   }
   /**
-   * @param EmailTemplate
+   * Reset password email template.
+   *
+   * @param EmailTemplate $resetPasswordTemplate
    */
   public function setResetPasswordTemplate(EmailTemplate $resetPasswordTemplate)
   {
@@ -200,7 +230,9 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
     return $this->resetPasswordTemplate;
   }
   /**
-   * @param bool
+   * Whether to use email sending provided by Firebear.
+   *
+   * @param bool $useEmailSending
    */
   public function setUseEmailSending($useEmailSending)
   {
@@ -214,7 +246,9 @@ class IdentitytoolkitRelyingpartyGetProjectConfigResponse extends \Google\Collec
     return $this->useEmailSending;
   }
   /**
-   * @param EmailTemplate
+   * Verify email template.
+   *
+   * @param EmailTemplate $verifyEmailTemplate
    */
   public function setVerifyEmailTemplate(EmailTemplate $verifyEmailTemplate)
   {

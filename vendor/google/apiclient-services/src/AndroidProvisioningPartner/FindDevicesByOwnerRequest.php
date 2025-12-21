@@ -19,30 +19,55 @@ namespace Google\Service\AndroidProvisioningPartner;
 
 class FindDevicesByOwnerRequest extends \Google\Collection
 {
+  /**
+   * Unspecified section type.
+   */
+  public const SECTION_TYPE_SECTION_TYPE_UNSPECIFIED = 'SECTION_TYPE_UNSPECIFIED';
+  /**
+   * SIM-lock section type.
+   */
+  public const SECTION_TYPE_SECTION_TYPE_SIM_LOCK = 'SECTION_TYPE_SIM_LOCK';
+  /**
+   * Zero-touch enrollment section type.
+   */
+  public const SECTION_TYPE_SECTION_TYPE_ZERO_TOUCH = 'SECTION_TYPE_ZERO_TOUCH';
   protected $collection_key = 'googleWorkspaceCustomerId';
   /**
+   * The list of customer IDs to search for.
+   *
    * @var string[]
    */
   public $customerId;
   /**
+   * The list of IDs of Google Workspace accounts to search for.
+   *
    * @var string[]
    */
   public $googleWorkspaceCustomerId;
   /**
+   * Required. The maximum number of devices to show in a page of results. Must
+   * be between 1 and 100 inclusive.
+   *
    * @var string
    */
   public $limit;
   /**
+   * A token specifying which result page to return.
+   *
    * @var string
    */
   public $pageToken;
   /**
+   * Required. The section type of the device's provisioning record.
+   *
    * @var string
    */
   public $sectionType;
 
   /**
-   * @param string[]
+   * The list of customer IDs to search for.
+   *
+   * @param string[] $customerId
    */
   public function setCustomerId($customerId)
   {
@@ -56,7 +81,9 @@ class FindDevicesByOwnerRequest extends \Google\Collection
     return $this->customerId;
   }
   /**
-   * @param string[]
+   * The list of IDs of Google Workspace accounts to search for.
+   *
+   * @param string[] $googleWorkspaceCustomerId
    */
   public function setGoogleWorkspaceCustomerId($googleWorkspaceCustomerId)
   {
@@ -70,7 +97,10 @@ class FindDevicesByOwnerRequest extends \Google\Collection
     return $this->googleWorkspaceCustomerId;
   }
   /**
-   * @param string
+   * Required. The maximum number of devices to show in a page of results. Must
+   * be between 1 and 100 inclusive.
+   *
+   * @param string $limit
    */
   public function setLimit($limit)
   {
@@ -84,7 +114,9 @@ class FindDevicesByOwnerRequest extends \Google\Collection
     return $this->limit;
   }
   /**
-   * @param string
+   * A token specifying which result page to return.
+   *
+   * @param string $pageToken
    */
   public function setPageToken($pageToken)
   {
@@ -98,14 +130,19 @@ class FindDevicesByOwnerRequest extends \Google\Collection
     return $this->pageToken;
   }
   /**
-   * @param string
+   * Required. The section type of the device's provisioning record.
+   *
+   * Accepted values: SECTION_TYPE_UNSPECIFIED, SECTION_TYPE_SIM_LOCK,
+   * SECTION_TYPE_ZERO_TOUCH
+   *
+   * @param self::SECTION_TYPE_* $sectionType
    */
   public function setSectionType($sectionType)
   {
     $this->sectionType = $sectionType;
   }
   /**
-   * @return string
+   * @return self::SECTION_TYPE_*
    */
   public function getSectionType()
   {

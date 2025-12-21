@@ -19,17 +19,43 @@ namespace Google\Service\ContainerAnalysis;
 
 class ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedPythonPackage extends \Google\Model
 {
+  /**
+   * Output only. Path to the artifact in Artifact Registry.
+   *
+   * @var string
+   */
+  public $artifactRegistryPackage;
   protected $fileHashesType = ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes::class;
   protected $fileHashesDataType = '';
   protected $pushTimingType = ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan::class;
   protected $pushTimingDataType = '';
   /**
+   * URI of the uploaded artifact.
+   *
    * @var string
    */
   public $uri;
 
   /**
-   * @param ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes
+   * Output only. Path to the artifact in Artifact Registry.
+   *
+   * @param string $artifactRegistryPackage
+   */
+  public function setArtifactRegistryPackage($artifactRegistryPackage)
+  {
+    $this->artifactRegistryPackage = $artifactRegistryPackage;
+  }
+  /**
+   * @return string
+   */
+  public function getArtifactRegistryPackage()
+  {
+    return $this->artifactRegistryPackage;
+  }
+  /**
+   * Hash types and values of the Python Artifact.
+   *
+   * @param ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes $fileHashes
    */
   public function setFileHashes(ContaineranalysisGoogleDevtoolsCloudbuildV1FileHashes $fileHashes)
   {
@@ -43,7 +69,9 @@ class ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedPythonPackage extends \
     return $this->fileHashes;
   }
   /**
-   * @param ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan
+   * Output only. Stores timing information for pushing the specified artifact.
+   *
+   * @param ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan $pushTiming
    */
   public function setPushTiming(ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan $pushTiming)
   {
@@ -57,7 +85,9 @@ class ContaineranalysisGoogleDevtoolsCloudbuildV1UploadedPythonPackage extends \
     return $this->pushTiming;
   }
   /**
-   * @param string
+   * URI of the uploaded artifact.
+   *
+   * @param string $uri
    */
   public function setUri($uri)
   {

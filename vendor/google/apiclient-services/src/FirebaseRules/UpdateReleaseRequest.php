@@ -22,12 +22,16 @@ class UpdateReleaseRequest extends \Google\Model
   protected $releaseType = Release::class;
   protected $releaseDataType = '';
   /**
+   * Optional. Specifies which fields to update.
+   *
    * @var string
    */
   public $updateMask;
 
   /**
-   * @param Release
+   * Required. `Release` to update.
+   *
+   * @param Release $release
    */
   public function setRelease(Release $release)
   {
@@ -41,7 +45,9 @@ class UpdateReleaseRequest extends \Google\Model
     return $this->release;
   }
   /**
-   * @param string
+   * Optional. Specifies which fields to update.
+   *
+   * @param string $updateMask
    */
   public function setUpdateMask($updateMask)
   {

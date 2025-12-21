@@ -24,7 +24,9 @@ class FilterExpressionList extends \Google\Collection
   protected $expressionsDataType = 'array';
 
   /**
-   * @param FilterExpression[]
+   * A list of filter expressions.
+   *
+   * @param FilterExpression[] $expressions
    */
   public function setExpressions($expressions)
   {

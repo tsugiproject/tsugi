@@ -25,12 +25,24 @@ class QueryAudienceExportResponse extends \Google\Collection
   protected $audienceRowsType = V1betaAudienceRow::class;
   protected $audienceRowsDataType = 'array';
   /**
+   * The total number of rows in the AudienceExport result. `rowCount` is
+   * independent of the number of rows returned in the response, the `limit`
+   * request parameter, and the `offset` request parameter. For example if a
+   * query returns 175 rows and includes `limit` of 50 in the API request, the
+   * response will contain `rowCount` of 175 but only 50 rows. To learn more
+   * about this pagination parameter, see [Pagination](https://developers.google
+   * .com/analytics/devguides/reporting/data/v1/basics#pagination).
+   *
    * @var int
    */
   public $rowCount;
 
   /**
-   * @param AudienceExport
+   * Configuration data about AudienceExport being queried. Returned to help
+   * interpret the audience rows in this response. For example, the dimensions
+   * in this AudienceExport correspond to the columns in the AudienceRows.
+   *
+   * @param AudienceExport $audienceExport
    */
   public function setAudienceExport(AudienceExport $audienceExport)
   {
@@ -44,7 +56,10 @@ class QueryAudienceExportResponse extends \Google\Collection
     return $this->audienceExport;
   }
   /**
-   * @param V1betaAudienceRow[]
+   * Rows for each user in an audience export. The number of rows in this
+   * response will be less than or equal to request's page size.
+   *
+   * @param V1betaAudienceRow[] $audienceRows
    */
   public function setAudienceRows($audienceRows)
   {
@@ -58,7 +73,15 @@ class QueryAudienceExportResponse extends \Google\Collection
     return $this->audienceRows;
   }
   /**
-   * @param int
+   * The total number of rows in the AudienceExport result. `rowCount` is
+   * independent of the number of rows returned in the response, the `limit`
+   * request parameter, and the `offset` request parameter. For example if a
+   * query returns 175 rows and includes `limit` of 50 in the API request, the
+   * response will contain `rowCount` of 175 but only 50 rows. To learn more
+   * about this pagination parameter, see [Pagination](https://developers.google
+   * .com/analytics/devguides/reporting/data/v1/basics#pagination).
+   *
+   * @param int $rowCount
    */
   public function setRowCount($rowCount)
   {

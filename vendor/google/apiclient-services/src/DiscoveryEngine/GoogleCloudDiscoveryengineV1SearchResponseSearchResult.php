@@ -24,12 +24,21 @@ class GoogleCloudDiscoveryengineV1SearchResponseSearchResult extends \Google\Mod
   protected $documentType = GoogleCloudDiscoveryengineV1Document::class;
   protected $documentDataType = '';
   /**
+   * Document.id of the searched Document.
+   *
    * @var string
    */
   public $id;
+  protected $modelScoresType = GoogleCloudDiscoveryengineV1DoubleList::class;
+  protected $modelScoresDataType = 'map';
+  protected $rankSignalsType = GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignals::class;
+  protected $rankSignalsDataType = '';
 
   /**
-   * @param GoogleCloudDiscoveryengineV1Chunk
+   * The chunk data in the search response if the
+   * SearchRequest.ContentSearchSpec.search_result_mode is set to CHUNKS.
+   *
+   * @param GoogleCloudDiscoveryengineV1Chunk $chunk
    */
   public function setChunk(GoogleCloudDiscoveryengineV1Chunk $chunk)
   {
@@ -43,7 +52,10 @@ class GoogleCloudDiscoveryengineV1SearchResponseSearchResult extends \Google\Mod
     return $this->chunk;
   }
   /**
-   * @param GoogleCloudDiscoveryengineV1Document
+   * The document data snippet in the search response. Only fields that are
+   * marked as `retrievable` are populated.
+   *
+   * @param GoogleCloudDiscoveryengineV1Document $document
    */
   public function setDocument(GoogleCloudDiscoveryengineV1Document $document)
   {
@@ -57,7 +69,9 @@ class GoogleCloudDiscoveryengineV1SearchResponseSearchResult extends \Google\Mod
     return $this->document;
   }
   /**
-   * @param string
+   * Document.id of the searched Document.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -69,6 +83,38 @@ class GoogleCloudDiscoveryengineV1SearchResponseSearchResult extends \Google\Mod
   public function getId()
   {
     return $this->id;
+  }
+  /**
+   * Output only. Google provided available scores.
+   *
+   * @param GoogleCloudDiscoveryengineV1DoubleList[] $modelScores
+   */
+  public function setModelScores($modelScores)
+  {
+    $this->modelScores = $modelScores;
+  }
+  /**
+   * @return GoogleCloudDiscoveryengineV1DoubleList[]
+   */
+  public function getModelScores()
+  {
+    return $this->modelScores;
+  }
+  /**
+   * Optional. A set of ranking signals associated with the result.
+   *
+   * @param GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignals $rankSignals
+   */
+  public function setRankSignals(GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignals $rankSignals)
+  {
+    $this->rankSignals = $rankSignals;
+  }
+  /**
+   * @return GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignals
+   */
+  public function getRankSignals()
+  {
+    return $this->rankSignals;
   }
 }
 

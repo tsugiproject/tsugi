@@ -20,16 +20,22 @@ namespace Google\Service\ManufacturerCenter;
 class Count extends \Google\Model
 {
   /**
+   * The unit in which these products are counted.
+   *
    * @var string
    */
   public $unit;
   /**
+   * The numeric value of the number of products in a package.
+   *
    * @var string
    */
   public $value;
 
   /**
-   * @param string
+   * The unit in which these products are counted.
+   *
+   * @param string $unit
    */
   public function setUnit($unit)
   {
@@ -43,7 +49,9 @@ class Count extends \Google\Model
     return $this->unit;
   }
   /**
-   * @param string
+   * The numeric value of the number of products in a package.
+   *
+   * @param string $value
    */
   public function setValue($value)
   {

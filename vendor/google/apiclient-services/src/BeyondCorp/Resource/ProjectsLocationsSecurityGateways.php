@@ -36,7 +36,7 @@ use Google\Service\BeyondCorp\GoogleLongrunningOperation;
 class ProjectsLocationsSecurityGateways extends \Google\Service\Resource
 {
   /**
-   * Creates a new SecurityGateway in a given project and location.
+   * Creates a new Security Gateway in a given project and location.
    * (securityGateways.create)
    *
    * @param string $parent Required. The resource project name of the
@@ -47,8 +47,9 @@ class ProjectsLocationsSecurityGateways extends \Google\Service\Resource
    *
    * @opt_param string requestId Optional. An optional request ID to identify
    * requests. Specify a unique request ID so that if you must retry your request,
-   * the server will know to ignore request if it has already been completed. The
-   * server will guarantee that for at least 60 minutes since the first request.
+   * the server will know to ignore the request if it has already been completed.
+   * The server will guarantee that for at least 60 minutes since the first
+   * request.
    * @opt_param string securityGatewayId Optional. User-settable SecurityGateway
    * resource ID. * Must start with a letter. * Must contain between 4-63
    * characters from `/a-z-/`. * Must end with a number or letter.
@@ -190,7 +191,7 @@ class ProjectsLocationsSecurityGateways extends \Google\Service\Resource
    * clients from accidentally creating duplicate commitments. The request ID must
    * be a valid UUID with the exception that zero UUID is not supported
    * (00000000-0000-0000-0000-000000000000).
-   * @opt_param string updateMask Required. Mutable fields include: display_name,
+   * @opt_param string updateMask Optional. Mutable fields include: display_name,
    * hubs.
    * @return GoogleLongrunningOperation
    * @throws \Google\Service\Exception

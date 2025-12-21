@@ -35,7 +35,7 @@ use Google\Service\Dataflow\SnapshotJobRequest;
 class ProjectsLocationsJobs extends \Google\Service\Resource
 {
   /**
-   * Creates a Cloud Dataflow job. To create a job, we recommend using
+   * Creates a Dataflow job. To create a job, we recommend using
    * `projects.locations.jobs.create` with a [regional endpoint]
    * (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints). Using
    * `projects.jobs.create` is not recommended, as your job will always start in

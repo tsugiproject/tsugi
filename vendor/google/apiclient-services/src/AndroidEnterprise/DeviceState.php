@@ -19,20 +19,34 @@ namespace Google\Service\AndroidEnterprise;
 
 class DeviceState extends \Google\Model
 {
+  public const ACCOUNT_STATE_enabled = 'enabled';
+  public const ACCOUNT_STATE_disabled = 'disabled';
   /**
+   * The state of the Google account on the device. "enabled" indicates that the
+   * Google account on the device can be used to access Google services
+   * (including Google Play), while "disabled" means that it cannot. A new
+   * device is initially in the "disabled" state.
+   *
    * @var string
    */
   public $accountState;
 
   /**
-   * @param string
+   * The state of the Google account on the device. "enabled" indicates that the
+   * Google account on the device can be used to access Google services
+   * (including Google Play), while "disabled" means that it cannot. A new
+   * device is initially in the "disabled" state.
+   *
+   * Accepted values: enabled, disabled
+   *
+   * @param self::ACCOUNT_STATE_* $accountState
    */
   public function setAccountState($accountState)
   {
     $this->accountState = $accountState;
   }
   /**
-   * @return string
+   * @return self::ACCOUNT_STATE_*
    */
   public function getAccountState()
   {

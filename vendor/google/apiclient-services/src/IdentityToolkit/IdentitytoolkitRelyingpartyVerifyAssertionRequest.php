@@ -20,60 +20,98 @@ namespace Google\Service\IdentityToolkit;
 class IdentitytoolkitRelyingpartyVerifyAssertionRequest extends \Google\Model
 {
   /**
+   * When it's true, automatically creates a new account if the user doesn't
+   * exist. When it's false, allows existing user to sign in normally and throws
+   * exception if the user doesn't exist.
+   *
    * @var bool
    */
   public $autoCreate;
   /**
+   * GCP project number of the requesting delegated app. Currently only intended
+   * for Firebase V1 migration.
+   *
    * @var string
    */
   public $delegatedProjectNumber;
   /**
+   * The GITKit token of the authenticated user.
+   *
    * @var string
    */
   public $idToken;
   /**
+   * Instance id token of the app.
+   *
    * @var string
    */
   public $instanceId;
   /**
+   * The GITKit token for the non-trusted IDP pending to be confirmed by the
+   * user.
+   *
    * @var string
    */
   public $pendingIdToken;
   /**
+   * The post body if the request is a HTTP POST.
+   *
    * @var string
    */
   public $postBody;
   /**
+   * The URI to which the IDP redirects the user back. It may contain federated
+   * login result params added by the IDP.
+   *
    * @var string
    */
   public $requestUri;
   /**
+   * Whether return 200 and IDP credential rather than throw exception when
+   * federated id is already linked.
+   *
    * @var bool
    */
   public $returnIdpCredential;
   /**
+   * Whether to return refresh tokens.
+   *
    * @var bool
    */
   public $returnRefreshToken;
   /**
+   * Whether return sts id token and refresh token instead of gitkit token.
+   *
    * @var bool
    */
   public $returnSecureToken;
   /**
+   * Session ID, which should match the one in previous createAuthUri request.
+   *
    * @var string
    */
   public $sessionId;
   /**
+   * For multi-tenant use cases, in order to construct sign-in URL with the
+   * correct IDP parameters, Firebear needs to know which Tenant to retrieve IDP
+   * configs from.
+   *
    * @var string
    */
   public $tenantId;
   /**
+   * Tenant project number to be used for idp discovery.
+   *
    * @var string
    */
   public $tenantProjectNumber;
 
   /**
-   * @param bool
+   * When it's true, automatically creates a new account if the user doesn't
+   * exist. When it's false, allows existing user to sign in normally and throws
+   * exception if the user doesn't exist.
+   *
+   * @param bool $autoCreate
    */
   public function setAutoCreate($autoCreate)
   {
@@ -87,7 +125,10 @@ class IdentitytoolkitRelyingpartyVerifyAssertionRequest extends \Google\Model
     return $this->autoCreate;
   }
   /**
-   * @param string
+   * GCP project number of the requesting delegated app. Currently only intended
+   * for Firebase V1 migration.
+   *
+   * @param string $delegatedProjectNumber
    */
   public function setDelegatedProjectNumber($delegatedProjectNumber)
   {
@@ -101,7 +142,9 @@ class IdentitytoolkitRelyingpartyVerifyAssertionRequest extends \Google\Model
     return $this->delegatedProjectNumber;
   }
   /**
-   * @param string
+   * The GITKit token of the authenticated user.
+   *
+   * @param string $idToken
    */
   public function setIdToken($idToken)
   {
@@ -115,7 +158,9 @@ class IdentitytoolkitRelyingpartyVerifyAssertionRequest extends \Google\Model
     return $this->idToken;
   }
   /**
-   * @param string
+   * Instance id token of the app.
+   *
+   * @param string $instanceId
    */
   public function setInstanceId($instanceId)
   {
@@ -129,7 +174,10 @@ class IdentitytoolkitRelyingpartyVerifyAssertionRequest extends \Google\Model
     return $this->instanceId;
   }
   /**
-   * @param string
+   * The GITKit token for the non-trusted IDP pending to be confirmed by the
+   * user.
+   *
+   * @param string $pendingIdToken
    */
   public function setPendingIdToken($pendingIdToken)
   {
@@ -143,7 +191,9 @@ class IdentitytoolkitRelyingpartyVerifyAssertionRequest extends \Google\Model
     return $this->pendingIdToken;
   }
   /**
-   * @param string
+   * The post body if the request is a HTTP POST.
+   *
+   * @param string $postBody
    */
   public function setPostBody($postBody)
   {
@@ -157,7 +207,10 @@ class IdentitytoolkitRelyingpartyVerifyAssertionRequest extends \Google\Model
     return $this->postBody;
   }
   /**
-   * @param string
+   * The URI to which the IDP redirects the user back. It may contain federated
+   * login result params added by the IDP.
+   *
+   * @param string $requestUri
    */
   public function setRequestUri($requestUri)
   {
@@ -171,7 +224,10 @@ class IdentitytoolkitRelyingpartyVerifyAssertionRequest extends \Google\Model
     return $this->requestUri;
   }
   /**
-   * @param bool
+   * Whether return 200 and IDP credential rather than throw exception when
+   * federated id is already linked.
+   *
+   * @param bool $returnIdpCredential
    */
   public function setReturnIdpCredential($returnIdpCredential)
   {
@@ -185,7 +241,9 @@ class IdentitytoolkitRelyingpartyVerifyAssertionRequest extends \Google\Model
     return $this->returnIdpCredential;
   }
   /**
-   * @param bool
+   * Whether to return refresh tokens.
+   *
+   * @param bool $returnRefreshToken
    */
   public function setReturnRefreshToken($returnRefreshToken)
   {
@@ -199,7 +257,9 @@ class IdentitytoolkitRelyingpartyVerifyAssertionRequest extends \Google\Model
     return $this->returnRefreshToken;
   }
   /**
-   * @param bool
+   * Whether return sts id token and refresh token instead of gitkit token.
+   *
+   * @param bool $returnSecureToken
    */
   public function setReturnSecureToken($returnSecureToken)
   {
@@ -213,7 +273,9 @@ class IdentitytoolkitRelyingpartyVerifyAssertionRequest extends \Google\Model
     return $this->returnSecureToken;
   }
   /**
-   * @param string
+   * Session ID, which should match the one in previous createAuthUri request.
+   *
+   * @param string $sessionId
    */
   public function setSessionId($sessionId)
   {
@@ -227,7 +289,11 @@ class IdentitytoolkitRelyingpartyVerifyAssertionRequest extends \Google\Model
     return $this->sessionId;
   }
   /**
-   * @param string
+   * For multi-tenant use cases, in order to construct sign-in URL with the
+   * correct IDP parameters, Firebear needs to know which Tenant to retrieve IDP
+   * configs from.
+   *
+   * @param string $tenantId
    */
   public function setTenantId($tenantId)
   {
@@ -241,7 +307,9 @@ class IdentitytoolkitRelyingpartyVerifyAssertionRequest extends \Google\Model
     return $this->tenantId;
   }
   /**
-   * @param string
+   * Tenant project number to be used for idp discovery.
+   *
+   * @param string $tenantProjectNumber
    */
   public function setTenantProjectNumber($tenantProjectNumber)
   {

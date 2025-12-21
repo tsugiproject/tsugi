@@ -20,12 +20,16 @@ namespace Google\Service\AdSensePlatform;
 class LookupAccountResponse extends \Google\Model
 {
   /**
+   * The name of the Account Format: platforms/{platform}/accounts/{account_id}
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param string
+   * The name of the Account Format: platforms/{platform}/accounts/{account_id}
+   *
+   * @param string $name
    */
   public function setName($name)
   {

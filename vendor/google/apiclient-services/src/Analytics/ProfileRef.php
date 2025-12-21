@@ -20,36 +20,53 @@ namespace Google\Service\Analytics;
 class ProfileRef extends \Google\Model
 {
   /**
+   * Account ID to which this view (profile) belongs.
+   *
    * @var string
    */
   public $accountId;
   /**
+   * Link for this view (profile).
+   *
    * @var string
    */
   public $href;
   /**
+   * View (Profile) ID.
+   *
    * @var string
    */
   public $id;
   /**
+   * Internal ID for the web property to which this view (profile) belongs.
+   *
    * @var string
    */
   public $internalWebPropertyId;
   /**
+   * Analytics view (profile) reference.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Name of this view (profile).
+   *
    * @var string
    */
   public $name;
   /**
+   * Web property ID of the form UA-XXXXX-YY to which this view (profile)
+   * belongs.
+   *
    * @var string
    */
   public $webPropertyId;
 
   /**
-   * @param string
+   * Account ID to which this view (profile) belongs.
+   *
+   * @param string $accountId
    */
   public function setAccountId($accountId)
   {
@@ -63,7 +80,9 @@ class ProfileRef extends \Google\Model
     return $this->accountId;
   }
   /**
-   * @param string
+   * Link for this view (profile).
+   *
+   * @param string $href
    */
   public function setHref($href)
   {
@@ -77,7 +96,9 @@ class ProfileRef extends \Google\Model
     return $this->href;
   }
   /**
-   * @param string
+   * View (Profile) ID.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -91,7 +112,9 @@ class ProfileRef extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * Internal ID for the web property to which this view (profile) belongs.
+   *
+   * @param string $internalWebPropertyId
    */
   public function setInternalWebPropertyId($internalWebPropertyId)
   {
@@ -105,7 +128,9 @@ class ProfileRef extends \Google\Model
     return $this->internalWebPropertyId;
   }
   /**
-   * @param string
+   * Analytics view (profile) reference.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -119,7 +144,9 @@ class ProfileRef extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * Name of this view (profile).
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -133,7 +160,10 @@ class ProfileRef extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Web property ID of the form UA-XXXXX-YY to which this view (profile)
+   * belongs.
+   *
+   * @param string $webPropertyId
    */
   public function setWebPropertyId($webPropertyId)
   {

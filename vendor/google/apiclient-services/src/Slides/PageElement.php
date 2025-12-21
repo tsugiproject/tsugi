@@ -20,6 +20,9 @@ namespace Google\Service\Slides;
 class PageElement extends \Google\Model
 {
   /**
+   * The description of the page element. Combined with title to display alt
+   * text. The field is not supported for Group elements.
+   *
    * @var string
    */
   public $description;
@@ -30,6 +33,10 @@ class PageElement extends \Google\Model
   protected $lineType = Line::class;
   protected $lineDataType = '';
   /**
+   * The object ID for this page element. Object IDs used by
+   * google.apps.slides.v1.Page and google.apps.slides.v1.PageElement share the
+   * same namespace.
+   *
    * @var string
    */
   public $objectId;
@@ -44,6 +51,9 @@ class PageElement extends \Google\Model
   protected $tableType = Table::class;
   protected $tableDataType = '';
   /**
+   * The title of the page element. Combined with description to display alt
+   * text. The field is not supported for Group elements.
+   *
    * @var string
    */
   public $title;
@@ -55,7 +65,10 @@ class PageElement extends \Google\Model
   protected $wordArtDataType = '';
 
   /**
-   * @param string
+   * The description of the page element. Combined with title to display alt
+   * text. The field is not supported for Group elements.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -69,7 +82,9 @@ class PageElement extends \Google\Model
     return $this->description;
   }
   /**
-   * @param Group
+   * A collection of page elements joined as a single unit.
+   *
+   * @param Group $elementGroup
    */
   public function setElementGroup(Group $elementGroup)
   {
@@ -83,7 +98,9 @@ class PageElement extends \Google\Model
     return $this->elementGroup;
   }
   /**
-   * @param Image
+   * An image page element.
+   *
+   * @param Image $image
    */
   public function setImage(Image $image)
   {
@@ -97,7 +114,9 @@ class PageElement extends \Google\Model
     return $this->image;
   }
   /**
-   * @param Line
+   * A line page element.
+   *
+   * @param Line $line
    */
   public function setLine(Line $line)
   {
@@ -111,7 +130,11 @@ class PageElement extends \Google\Model
     return $this->line;
   }
   /**
-   * @param string
+   * The object ID for this page element. Object IDs used by
+   * google.apps.slides.v1.Page and google.apps.slides.v1.PageElement share the
+   * same namespace.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {
@@ -125,7 +148,9 @@ class PageElement extends \Google\Model
     return $this->objectId;
   }
   /**
-   * @param Shape
+   * A generic shape.
+   *
+   * @param Shape $shape
    */
   public function setShape(Shape $shape)
   {
@@ -139,7 +164,10 @@ class PageElement extends \Google\Model
     return $this->shape;
   }
   /**
-   * @param SheetsChart
+   * A linked chart embedded from Google Sheets. Unlinked charts are represented
+   * as images.
+   *
+   * @param SheetsChart $sheetsChart
    */
   public function setSheetsChart(SheetsChart $sheetsChart)
   {
@@ -153,7 +181,9 @@ class PageElement extends \Google\Model
     return $this->sheetsChart;
   }
   /**
-   * @param Size
+   * The size of the page element.
+   *
+   * @param Size $size
    */
   public function setSize(Size $size)
   {
@@ -167,7 +197,9 @@ class PageElement extends \Google\Model
     return $this->size;
   }
   /**
-   * @param SpeakerSpotlight
+   * A Speaker Spotlight.
+   *
+   * @param SpeakerSpotlight $speakerSpotlight
    */
   public function setSpeakerSpotlight(SpeakerSpotlight $speakerSpotlight)
   {
@@ -181,7 +213,9 @@ class PageElement extends \Google\Model
     return $this->speakerSpotlight;
   }
   /**
-   * @param Table
+   * A table page element.
+   *
+   * @param Table $table
    */
   public function setTable(Table $table)
   {
@@ -195,7 +229,10 @@ class PageElement extends \Google\Model
     return $this->table;
   }
   /**
-   * @param string
+   * The title of the page element. Combined with description to display alt
+   * text. The field is not supported for Group elements.
+   *
+   * @param string $title
    */
   public function setTitle($title)
   {
@@ -209,7 +246,14 @@ class PageElement extends \Google\Model
     return $this->title;
   }
   /**
-   * @param AffineTransform
+   * The transform of the page element. The visual appearance of the page
+   * element is determined by its absolute transform. To compute the absolute
+   * transform, preconcatenate a page element's transform with the transforms of
+   * all of its parent groups. If the page element is not in a group, its
+   * absolute transform is the same as the value in this field. The initial
+   * transform for the newly created Group is always the identity transform.
+   *
+   * @param AffineTransform $transform
    */
   public function setTransform(AffineTransform $transform)
   {
@@ -223,7 +267,9 @@ class PageElement extends \Google\Model
     return $this->transform;
   }
   /**
-   * @param Video
+   * A video page element.
+   *
+   * @param Video $video
    */
   public function setVideo(Video $video)
   {
@@ -237,7 +283,9 @@ class PageElement extends \Google\Model
     return $this->video;
   }
   /**
-   * @param WordArt
+   * A word art page element.
+   *
+   * @param WordArt $wordArt
    */
   public function setWordArt(WordArt $wordArt)
   {

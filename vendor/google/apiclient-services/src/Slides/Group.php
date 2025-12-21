@@ -24,7 +24,9 @@ class Group extends \Google\Collection
   protected $childrenDataType = 'array';
 
   /**
-   * @param PageElement[]
+   * The collection of elements in the group. The minimum size of a group is 2.
+   *
+   * @param PageElement[] $children
    */
   public function setChildren($children)
   {

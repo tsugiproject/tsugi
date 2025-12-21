@@ -22,12 +22,17 @@ class TextElement extends \Google\Model
   protected $autoTextType = AutoText::class;
   protected $autoTextDataType = '';
   /**
+   * The zero-based end index of this text element, exclusive, in Unicode code
+   * units.
+   *
    * @var int
    */
   public $endIndex;
   protected $paragraphMarkerType = ParagraphMarker::class;
   protected $paragraphMarkerDataType = '';
   /**
+   * The zero-based start index of this text element, in Unicode code units.
+   *
    * @var int
    */
   public $startIndex;
@@ -35,7 +40,10 @@ class TextElement extends \Google\Model
   protected $textRunDataType = '';
 
   /**
-   * @param AutoText
+   * A TextElement representing a spot in the text that is dynamically replaced
+   * with content that can change over time.
+   *
+   * @param AutoText $autoText
    */
   public function setAutoText(AutoText $autoText)
   {
@@ -49,7 +57,10 @@ class TextElement extends \Google\Model
     return $this->autoText;
   }
   /**
-   * @param int
+   * The zero-based end index of this text element, exclusive, in Unicode code
+   * units.
+   *
+   * @param int $endIndex
    */
   public function setEndIndex($endIndex)
   {
@@ -63,7 +74,13 @@ class TextElement extends \Google\Model
     return $this->endIndex;
   }
   /**
-   * @param ParagraphMarker
+   * A marker representing the beginning of a new paragraph. The `start_index`
+   * and `end_index` of this TextElement represent the range of the paragraph.
+   * Other TextElements with an index range contained inside this paragraph's
+   * range are considered to be part of this paragraph. The range of indices of
+   * two separate paragraphs will never overlap.
+   *
+   * @param ParagraphMarker $paragraphMarker
    */
   public function setParagraphMarker(ParagraphMarker $paragraphMarker)
   {
@@ -77,7 +94,9 @@ class TextElement extends \Google\Model
     return $this->paragraphMarker;
   }
   /**
-   * @param int
+   * The zero-based start index of this text element, in Unicode code units.
+   *
+   * @param int $startIndex
    */
   public function setStartIndex($startIndex)
   {
@@ -91,7 +110,13 @@ class TextElement extends \Google\Model
     return $this->startIndex;
   }
   /**
-   * @param TextRun
+   * A TextElement representing a run of text where all of the characters in the
+   * run have the same TextStyle. The `start_index` and `end_index` of TextRuns
+   * will always be fully contained in the index range of a single
+   * `paragraph_marker` TextElement. In other words, a TextRun will never span
+   * multiple paragraphs.
+   *
+   * @param TextRun $textRun
    */
   public function setTextRun(TextRun $textRun)
   {

@@ -22,12 +22,17 @@ class ServiceAccount extends \Google\Model
   protected $keyType = ServiceAccountKey::class;
   protected $keyDataType = '';
   /**
+   * The account name of the service account, in the form of an email address.
+   * Assigned by the server.
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param ServiceAccountKey
+   * Credentials that can be used to authenticate as this ServiceAccount.
+   *
+   * @param ServiceAccountKey $key
    */
   public function setKey(ServiceAccountKey $key)
   {
@@ -41,7 +46,10 @@ class ServiceAccount extends \Google\Model
     return $this->key;
   }
   /**
-   * @param string
+   * The account name of the service account, in the form of an email address.
+   * Assigned by the server.
+   *
+   * @param string $name
    */
   public function setName($name)
   {

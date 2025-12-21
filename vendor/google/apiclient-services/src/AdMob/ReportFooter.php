@@ -21,6 +21,10 @@ class ReportFooter extends \Google\Collection
 {
   protected $collection_key = 'warnings';
   /**
+   * Total number of rows that matched the request. Warning: This count does NOT
+   * always match the number of rows in the response. Do not make that
+   * assumption when processing the response.
+   *
    * @var string
    */
   public $matchingRowCount;
@@ -28,7 +32,11 @@ class ReportFooter extends \Google\Collection
   protected $warningsDataType = 'array';
 
   /**
-   * @param string
+   * Total number of rows that matched the request. Warning: This count does NOT
+   * always match the number of rows in the response. Do not make that
+   * assumption when processing the response.
+   *
+   * @param string $matchingRowCount
    */
   public function setMatchingRowCount($matchingRowCount)
   {
@@ -42,7 +50,9 @@ class ReportFooter extends \Google\Collection
     return $this->matchingRowCount;
   }
   /**
-   * @param ReportWarning[]
+   * Warnings associated with generation of the report.
+   *
+   * @param ReportWarning[] $warnings
    */
   public function setWarnings($warnings)
   {

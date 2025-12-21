@@ -20,16 +20,22 @@ namespace Google\Service\Slides;
 class TableCellLocation extends \Google\Model
 {
   /**
+   * The 0-based column index.
+   *
    * @var int
    */
   public $columnIndex;
   /**
+   * The 0-based row index.
+   *
    * @var int
    */
   public $rowIndex;
 
   /**
-   * @param int
+   * The 0-based column index.
+   *
+   * @param int $columnIndex
    */
   public function setColumnIndex($columnIndex)
   {
@@ -43,7 +49,9 @@ class TableCellLocation extends \Google\Model
     return $this->columnIndex;
   }
   /**
-   * @param int
+   * The 0-based row index.
+   *
+   * @param int $rowIndex
    */
   public function setRowIndex($rowIndex)
   {

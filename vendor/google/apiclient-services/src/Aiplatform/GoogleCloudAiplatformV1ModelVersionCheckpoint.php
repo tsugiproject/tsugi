@@ -20,24 +20,28 @@ namespace Google\Service\Aiplatform;
 class GoogleCloudAiplatformV1ModelVersionCheckpoint extends \Google\Model
 {
   /**
+   * The ID of the checkpoint.
+   *
    * @var string
    */
   public $checkpointId;
   /**
+   * The epoch of the checkpoint.
+   *
    * @var string
    */
   public $epoch;
   /**
-   * @var string
-   */
-  public $name;
-  /**
+   * The step of the checkpoint.
+   *
    * @var string
    */
   public $step;
 
   /**
-   * @param string
+   * The ID of the checkpoint.
+   *
+   * @param string $checkpointId
    */
   public function setCheckpointId($checkpointId)
   {
@@ -51,7 +55,9 @@ class GoogleCloudAiplatformV1ModelVersionCheckpoint extends \Google\Model
     return $this->checkpointId;
   }
   /**
-   * @param string
+   * The epoch of the checkpoint.
+   *
+   * @param string $epoch
    */
   public function setEpoch($epoch)
   {
@@ -65,21 +71,9 @@ class GoogleCloudAiplatformV1ModelVersionCheckpoint extends \Google\Model
     return $this->epoch;
   }
   /**
-   * @param string
-   */
-  public function setName($name)
-  {
-    $this->name = $name;
-  }
-  /**
-   * @return string
-   */
-  public function getName()
-  {
-    return $this->name;
-  }
-  /**
-   * @param string
+   * The step of the checkpoint.
+   *
+   * @param string $step
    */
   public function setStep($step)
   {

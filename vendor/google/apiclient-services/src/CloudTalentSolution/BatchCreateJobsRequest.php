@@ -24,7 +24,10 @@ class BatchCreateJobsRequest extends \Google\Collection
   protected $jobsDataType = 'array';
 
   /**
-   * @param Job[]
+   * Required. The jobs to be created. A maximum of 200 jobs can be created in a
+   * batch.
+   *
+   * @param Job[] $jobs
    */
   public function setJobs($jobs)
   {

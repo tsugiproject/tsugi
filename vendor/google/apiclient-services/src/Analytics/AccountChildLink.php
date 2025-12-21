@@ -20,16 +20,22 @@ namespace Google\Service\Analytics;
 class AccountChildLink extends \Google\Model
 {
   /**
+   * Link to the list of web properties for this account.
+   *
    * @var string
    */
   public $href;
   /**
+   * Type of the child link. Its value is "analytics#webproperties".
+   *
    * @var string
    */
   public $type;
 
   /**
-   * @param string
+   * Link to the list of web properties for this account.
+   *
+   * @param string $href
    */
   public function setHref($href)
   {
@@ -43,7 +49,9 @@ class AccountChildLink extends \Google\Model
     return $this->href;
   }
   /**
-   * @param string
+   * Type of the child link. Its value is "analytics#webproperties".
+   *
+   * @param string $type
    */
   public function setType($type)
   {

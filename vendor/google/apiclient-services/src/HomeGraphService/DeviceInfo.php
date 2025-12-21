@@ -20,24 +20,34 @@ namespace Google\Service\HomeGraphService;
 class DeviceInfo extends \Google\Model
 {
   /**
+   * Device hardware version.
+   *
    * @var string
    */
   public $hwVersion;
   /**
+   * Device manufacturer.
+   *
    * @var string
    */
   public $manufacturer;
   /**
+   * Device model.
+   *
    * @var string
    */
   public $model;
   /**
+   * Device software version.
+   *
    * @var string
    */
   public $swVersion;
 
   /**
-   * @param string
+   * Device hardware version.
+   *
+   * @param string $hwVersion
    */
   public function setHwVersion($hwVersion)
   {
@@ -51,7 +61,9 @@ class DeviceInfo extends \Google\Model
     return $this->hwVersion;
   }
   /**
-   * @param string
+   * Device manufacturer.
+   *
+   * @param string $manufacturer
    */
   public function setManufacturer($manufacturer)
   {
@@ -65,7 +77,9 @@ class DeviceInfo extends \Google\Model
     return $this->manufacturer;
   }
   /**
-   * @param string
+   * Device model.
+   *
+   * @param string $model
    */
   public function setModel($model)
   {
@@ -79,7 +93,9 @@ class DeviceInfo extends \Google\Model
     return $this->model;
   }
   /**
-   * @param string
+   * Device software version.
+   *
+   * @param string $swVersion
    */
   public function setSwVersion($swVersion)
   {

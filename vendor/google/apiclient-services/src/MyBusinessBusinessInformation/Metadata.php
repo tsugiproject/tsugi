@@ -20,64 +20,112 @@ namespace Google\Service\MyBusinessBusinessInformation;
 class Metadata extends \Google\Model
 {
   /**
+   * Output only. Indicates whether the location can be deleted using the API.
+   *
    * @var bool
    */
   public $canDelete;
   /**
+   * Output only. Indicates if the listing is eligible for business calls.
+   *
    * @var bool
    */
   public $canHaveBusinessCalls;
   /**
+   * Output only. Indicates if the listing is eligible for food menu.
+   *
    * @var bool
    */
   public $canHaveFoodMenus;
   /**
+   * Output only. Indicates if the listing can modify the service list.
+   *
    * @var bool
    */
   public $canModifyServiceList;
   /**
+   * Output only. Indicates whether the location can operate on Health data.
+   *
    * @var bool
    */
   public $canOperateHealthData;
   /**
+   * Output only. Indicates if the listing can manage local posts. Deprecated:
+   * This field is no longer populated and will be removed in a future version.
+   *
+   * @deprecated
    * @var bool
    */
   public $canOperateLocalPost;
   /**
+   * Output only. Indicates whether the location can operate on Lodging data.
+   *
    * @var bool
    */
   public $canOperateLodgingData;
   /**
+   * Output only. The location resource that this location duplicates.
+   *
    * @var string
    */
   public $duplicateLocation;
   /**
+   * Output only. Indicates whether the place ID associated with this location
+   * has updates that need to be updated or rejected by the client. If this
+   * boolean is set, you should call the `getGoogleUpdated` method to lookup
+   * information that's needs to be verified.
+   *
    * @var bool
    */
   public $hasGoogleUpdated;
   /**
+   * Output only. Indicates whether any of this Location's properties are in the
+   * edit pending state.
+   *
    * @var bool
    */
   public $hasPendingEdits;
   /**
+   * Output only. Indicates if the listing has Voice of Merchant. If this
+   * boolean is false, you should call the locations.getVoiceOfMerchantState API
+   * to get details as to why they do not have Voice of Merchant.
+   *
    * @var bool
    */
   public $hasVoiceOfMerchant;
   /**
+   * Output only.
+   *
+   * @var bool
+   */
+  public $isParticularlyPersonalPlace;
+  /**
+   * Output only. A link to the location on Maps.
+   *
    * @var string
    */
   public $mapsUri;
   /**
+   * Output only. A link to the page on Google Search where a customer can leave
+   * a review for the location.
+   *
    * @var string
    */
   public $newReviewUri;
   /**
+   * Output only. If this locationappears on Google Maps, this field is
+   * populated with the place ID for the location. This ID can be used in
+   * various Places APIs. This field can be set during Create calls, but not for
+   * Update.
+   *
    * @var string
    */
   public $placeId;
 
   /**
-   * @param bool
+   * Output only. Indicates whether the location can be deleted using the API.
+   *
+   * @param bool $canDelete
    */
   public function setCanDelete($canDelete)
   {
@@ -91,7 +139,9 @@ class Metadata extends \Google\Model
     return $this->canDelete;
   }
   /**
-   * @param bool
+   * Output only. Indicates if the listing is eligible for business calls.
+   *
+   * @param bool $canHaveBusinessCalls
    */
   public function setCanHaveBusinessCalls($canHaveBusinessCalls)
   {
@@ -105,7 +155,9 @@ class Metadata extends \Google\Model
     return $this->canHaveBusinessCalls;
   }
   /**
-   * @param bool
+   * Output only. Indicates if the listing is eligible for food menu.
+   *
+   * @param bool $canHaveFoodMenus
    */
   public function setCanHaveFoodMenus($canHaveFoodMenus)
   {
@@ -119,7 +171,9 @@ class Metadata extends \Google\Model
     return $this->canHaveFoodMenus;
   }
   /**
-   * @param bool
+   * Output only. Indicates if the listing can modify the service list.
+   *
+   * @param bool $canModifyServiceList
    */
   public function setCanModifyServiceList($canModifyServiceList)
   {
@@ -133,7 +187,9 @@ class Metadata extends \Google\Model
     return $this->canModifyServiceList;
   }
   /**
-   * @param bool
+   * Output only. Indicates whether the location can operate on Health data.
+   *
+   * @param bool $canOperateHealthData
    */
   public function setCanOperateHealthData($canOperateHealthData)
   {
@@ -147,13 +203,18 @@ class Metadata extends \Google\Model
     return $this->canOperateHealthData;
   }
   /**
-   * @param bool
+   * Output only. Indicates if the listing can manage local posts. Deprecated:
+   * This field is no longer populated and will be removed in a future version.
+   *
+   * @deprecated
+   * @param bool $canOperateLocalPost
    */
   public function setCanOperateLocalPost($canOperateLocalPost)
   {
     $this->canOperateLocalPost = $canOperateLocalPost;
   }
   /**
+   * @deprecated
    * @return bool
    */
   public function getCanOperateLocalPost()
@@ -161,7 +222,9 @@ class Metadata extends \Google\Model
     return $this->canOperateLocalPost;
   }
   /**
-   * @param bool
+   * Output only. Indicates whether the location can operate on Lodging data.
+   *
+   * @param bool $canOperateLodgingData
    */
   public function setCanOperateLodgingData($canOperateLodgingData)
   {
@@ -175,7 +238,9 @@ class Metadata extends \Google\Model
     return $this->canOperateLodgingData;
   }
   /**
-   * @param string
+   * Output only. The location resource that this location duplicates.
+   *
+   * @param string $duplicateLocation
    */
   public function setDuplicateLocation($duplicateLocation)
   {
@@ -189,7 +254,12 @@ class Metadata extends \Google\Model
     return $this->duplicateLocation;
   }
   /**
-   * @param bool
+   * Output only. Indicates whether the place ID associated with this location
+   * has updates that need to be updated or rejected by the client. If this
+   * boolean is set, you should call the `getGoogleUpdated` method to lookup
+   * information that's needs to be verified.
+   *
+   * @param bool $hasGoogleUpdated
    */
   public function setHasGoogleUpdated($hasGoogleUpdated)
   {
@@ -203,7 +273,10 @@ class Metadata extends \Google\Model
     return $this->hasGoogleUpdated;
   }
   /**
-   * @param bool
+   * Output only. Indicates whether any of this Location's properties are in the
+   * edit pending state.
+   *
+   * @param bool $hasPendingEdits
    */
   public function setHasPendingEdits($hasPendingEdits)
   {
@@ -217,7 +290,11 @@ class Metadata extends \Google\Model
     return $this->hasPendingEdits;
   }
   /**
-   * @param bool
+   * Output only. Indicates if the listing has Voice of Merchant. If this
+   * boolean is false, you should call the locations.getVoiceOfMerchantState API
+   * to get details as to why they do not have Voice of Merchant.
+   *
+   * @param bool $hasVoiceOfMerchant
    */
   public function setHasVoiceOfMerchant($hasVoiceOfMerchant)
   {
@@ -231,7 +308,25 @@ class Metadata extends \Google\Model
     return $this->hasVoiceOfMerchant;
   }
   /**
-   * @param string
+   * Output only.
+   *
+   * @param bool $isParticularlyPersonalPlace
+   */
+  public function setIsParticularlyPersonalPlace($isParticularlyPersonalPlace)
+  {
+    $this->isParticularlyPersonalPlace = $isParticularlyPersonalPlace;
+  }
+  /**
+   * @return bool
+   */
+  public function getIsParticularlyPersonalPlace()
+  {
+    return $this->isParticularlyPersonalPlace;
+  }
+  /**
+   * Output only. A link to the location on Maps.
+   *
+   * @param string $mapsUri
    */
   public function setMapsUri($mapsUri)
   {
@@ -245,7 +340,10 @@ class Metadata extends \Google\Model
     return $this->mapsUri;
   }
   /**
-   * @param string
+   * Output only. A link to the page on Google Search where a customer can leave
+   * a review for the location.
+   *
+   * @param string $newReviewUri
    */
   public function setNewReviewUri($newReviewUri)
   {
@@ -259,7 +357,12 @@ class Metadata extends \Google\Model
     return $this->newReviewUri;
   }
   /**
-   * @param string
+   * Output only. If this locationappears on Google Maps, this field is
+   * populated with the place ID for the location. This ID can be used in
+   * various Places APIs. This field can be set during Create calls, but not for
+   * Update.
+   *
+   * @param string $placeId
    */
   public function setPlaceId($placeId)
   {

@@ -21,30 +21,53 @@ class DataPoint extends \Google\Collection
 {
   protected $collection_key = 'value';
   /**
+   * DO NOT USE THIS FIELD. It is ignored, and not stored.
+   *
+   * @deprecated
    * @var string
    */
   public $computationTimeMillis;
   /**
+   * The data type defining the format of the values in this data point.
+   *
    * @var string
    */
   public $dataTypeName;
   /**
+   * The end time of the interval represented by this data point, in nanoseconds
+   * since epoch.
+   *
    * @var string
    */
   public $endTimeNanos;
   /**
+   * Indicates the last time this data point was modified. Useful only in
+   * contexts where we are listing the data changes, rather than representing
+   * the current state of the data.
+   *
    * @var string
    */
   public $modifiedTimeMillis;
   /**
+   * If the data point is contained in a dataset for a derived data source, this
+   * field will be populated with the data source stream ID that created the
+   * data point originally. WARNING: do not rely on this field for anything
+   * other than debugging. The value of this field, if it is set at all, is an
+   * implementation detail and is not guaranteed to remain consistent.
+   *
    * @var string
    */
   public $originDataSourceId;
   /**
+   * The raw timestamp from the original SensorEvent.
+   *
    * @var string
    */
   public $rawTimestampNanos;
   /**
+   * The start time of the interval represented by this data point, in
+   * nanoseconds since epoch.
+   *
    * @var string
    */
   public $startTimeNanos;
@@ -52,13 +75,17 @@ class DataPoint extends \Google\Collection
   protected $valueDataType = 'array';
 
   /**
-   * @param string
+   * DO NOT USE THIS FIELD. It is ignored, and not stored.
+   *
+   * @deprecated
+   * @param string $computationTimeMillis
    */
   public function setComputationTimeMillis($computationTimeMillis)
   {
     $this->computationTimeMillis = $computationTimeMillis;
   }
   /**
+   * @deprecated
    * @return string
    */
   public function getComputationTimeMillis()
@@ -66,7 +93,9 @@ class DataPoint extends \Google\Collection
     return $this->computationTimeMillis;
   }
   /**
-   * @param string
+   * The data type defining the format of the values in this data point.
+   *
+   * @param string $dataTypeName
    */
   public function setDataTypeName($dataTypeName)
   {
@@ -80,7 +109,10 @@ class DataPoint extends \Google\Collection
     return $this->dataTypeName;
   }
   /**
-   * @param string
+   * The end time of the interval represented by this data point, in nanoseconds
+   * since epoch.
+   *
+   * @param string $endTimeNanos
    */
   public function setEndTimeNanos($endTimeNanos)
   {
@@ -94,7 +126,11 @@ class DataPoint extends \Google\Collection
     return $this->endTimeNanos;
   }
   /**
-   * @param string
+   * Indicates the last time this data point was modified. Useful only in
+   * contexts where we are listing the data changes, rather than representing
+   * the current state of the data.
+   *
+   * @param string $modifiedTimeMillis
    */
   public function setModifiedTimeMillis($modifiedTimeMillis)
   {
@@ -108,7 +144,13 @@ class DataPoint extends \Google\Collection
     return $this->modifiedTimeMillis;
   }
   /**
-   * @param string
+   * If the data point is contained in a dataset for a derived data source, this
+   * field will be populated with the data source stream ID that created the
+   * data point originally. WARNING: do not rely on this field for anything
+   * other than debugging. The value of this field, if it is set at all, is an
+   * implementation detail and is not guaranteed to remain consistent.
+   *
+   * @param string $originDataSourceId
    */
   public function setOriginDataSourceId($originDataSourceId)
   {
@@ -122,7 +164,9 @@ class DataPoint extends \Google\Collection
     return $this->originDataSourceId;
   }
   /**
-   * @param string
+   * The raw timestamp from the original SensorEvent.
+   *
+   * @param string $rawTimestampNanos
    */
   public function setRawTimestampNanos($rawTimestampNanos)
   {
@@ -136,7 +180,10 @@ class DataPoint extends \Google\Collection
     return $this->rawTimestampNanos;
   }
   /**
-   * @param string
+   * The start time of the interval represented by this data point, in
+   * nanoseconds since epoch.
+   *
+   * @param string $startTimeNanos
    */
   public function setStartTimeNanos($startTimeNanos)
   {
@@ -150,7 +197,13 @@ class DataPoint extends \Google\Collection
     return $this->startTimeNanos;
   }
   /**
-   * @param Value[]
+   * Values of each data type field for the data point. It is expected that each
+   * value corresponding to a data type field will occur in the same order that
+   * the field is listed with in the data type specified in a data source. Only
+   * one of integer and floating point fields will be populated, depending on
+   * the format enum value within data source's type field.
+   *
+   * @param Value[] $value
    */
   public function setValue($value)
   {

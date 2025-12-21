@@ -20,16 +20,28 @@ namespace Google\Service\DeveloperConnect;
 class OAuthCredential extends \Google\Model
 {
   /**
+   * Required. A SecretManager resource containing the OAuth token that
+   * authorizes the connection. Format: `projects/secrets/versions` or
+   * `projects/locations/secrets/versions` (if regional secrets are supported in
+   * that location).
+   *
    * @var string
    */
   public $oauthTokenSecretVersion;
   /**
+   * Output only. The username associated with this token.
+   *
    * @var string
    */
   public $username;
 
   /**
-   * @param string
+   * Required. A SecretManager resource containing the OAuth token that
+   * authorizes the connection. Format: `projects/secrets/versions` or
+   * `projects/locations/secrets/versions` (if regional secrets are supported in
+   * that location).
+   *
+   * @param string $oauthTokenSecretVersion
    */
   public function setOauthTokenSecretVersion($oauthTokenSecretVersion)
   {
@@ -43,7 +55,9 @@ class OAuthCredential extends \Google\Model
     return $this->oauthTokenSecretVersion;
   }
   /**
-   * @param string
+   * Output only. The username associated with this token.
+   *
+   * @param string $username
    */
   public function setUsername($username)
   {

@@ -24,16 +24,24 @@ class ScoresResetMultipleForAllRequest extends \Google\Collection
         "leaderboardIds" => "leaderboard_ids",
   ];
   /**
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesManagement#scoresResetMultipleForAllRequest`.
+   *
    * @var string
    */
   public $kind;
   /**
+   * The IDs of leaderboards to reset.
+   *
    * @var string[]
    */
   public $leaderboardIds;
 
   /**
-   * @param string
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesManagement#scoresResetMultipleForAllRequest`.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -47,7 +55,9 @@ class ScoresResetMultipleForAllRequest extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string[]
+   * The IDs of leaderboards to reset.
+   *
+   * @param string[] $leaderboardIds
    */
   public function setLeaderboardIds($leaderboardIds)
   {

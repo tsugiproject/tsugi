@@ -21,16 +21,22 @@ class GoogleAnalyticsAdminV1betaAccessInListFilter extends \Google\Collection
 {
   protected $collection_key = 'values';
   /**
+   * If true, the string value is case sensitive.
+   *
    * @var bool
    */
   public $caseSensitive;
   /**
+   * The list of string values. Must be non-empty.
+   *
    * @var string[]
    */
   public $values;
 
   /**
-   * @param bool
+   * If true, the string value is case sensitive.
+   *
+   * @param bool $caseSensitive
    */
   public function setCaseSensitive($caseSensitive)
   {
@@ -44,7 +50,9 @@ class GoogleAnalyticsAdminV1betaAccessInListFilter extends \Google\Collection
     return $this->caseSensitive;
   }
   /**
-   * @param string[]
+   * The list of string values. Must be non-empty.
+   *
+   * @param string[] $values
    */
   public function setValues($values)
   {

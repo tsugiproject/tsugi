@@ -20,20 +20,30 @@ namespace Google\Service\CloudVideoIntelligence;
 class GoogleCloudVideointelligenceV1p3beta1DetectedAttribute extends \Google\Model
 {
   /**
+   * Detected attribute confidence. Range [0, 1].
+   *
    * @var float
    */
   public $confidence;
   /**
+   * The name of the attribute, for example, glasses, dark_glasses, mouth_open.
+   * A full list of supported type names will be provided in the document.
+   *
    * @var string
    */
   public $name;
   /**
+   * Text value of the detection result. For example, the value for "HairColor"
+   * can be "black", "blonde", etc.
+   *
    * @var string
    */
   public $value;
 
   /**
-   * @param float
+   * Detected attribute confidence. Range [0, 1].
+   *
+   * @param float $confidence
    */
   public function setConfidence($confidence)
   {
@@ -47,7 +57,10 @@ class GoogleCloudVideointelligenceV1p3beta1DetectedAttribute extends \Google\Mod
     return $this->confidence;
   }
   /**
-   * @param string
+   * The name of the attribute, for example, glasses, dark_glasses, mouth_open.
+   * A full list of supported type names will be provided in the document.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -61,7 +74,10 @@ class GoogleCloudVideointelligenceV1p3beta1DetectedAttribute extends \Google\Mod
     return $this->name;
   }
   /**
-   * @param string
+   * Text value of the detection result. For example, the value for "HairColor"
+   * can be "black", "blonde", etc.
+   *
+   * @param string $value
    */
   public function setValue($value)
   {

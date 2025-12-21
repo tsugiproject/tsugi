@@ -20,16 +20,38 @@ namespace Google\Service\GoogleMarketingPlatformAdminAPI;
 class SetPropertyServiceLevelRequest extends \Google\Model
 {
   /**
+   * Service level unspecified.
+   */
+  public const SERVICE_LEVEL_ANALYTICS_SERVICE_LEVEL_UNSPECIFIED = 'ANALYTICS_SERVICE_LEVEL_UNSPECIFIED';
+  /**
+   * The standard version of Google Analytics.
+   */
+  public const SERVICE_LEVEL_ANALYTICS_SERVICE_LEVEL_STANDARD = 'ANALYTICS_SERVICE_LEVEL_STANDARD';
+  /**
+   * The premium version of Google Analytics.
+   */
+  public const SERVICE_LEVEL_ANALYTICS_SERVICE_LEVEL_360 = 'ANALYTICS_SERVICE_LEVEL_360';
+  /**
+   * Required. The Analytics property to change the ServiceLevel setting. This
+   * field is the name of the Google Analytics Admin API property resource.
+   * Format: analyticsadmin.googleapis.com/properties/{property_id}
+   *
    * @var string
    */
   public $analyticsProperty;
   /**
+   * Required. The service level to set for this property.
+   *
    * @var string
    */
   public $serviceLevel;
 
   /**
-   * @param string
+   * Required. The Analytics property to change the ServiceLevel setting. This
+   * field is the name of the Google Analytics Admin API property resource.
+   * Format: analyticsadmin.googleapis.com/properties/{property_id}
+   *
+   * @param string $analyticsProperty
    */
   public function setAnalyticsProperty($analyticsProperty)
   {
@@ -43,14 +65,19 @@ class SetPropertyServiceLevelRequest extends \Google\Model
     return $this->analyticsProperty;
   }
   /**
-   * @param string
+   * Required. The service level to set for this property.
+   *
+   * Accepted values: ANALYTICS_SERVICE_LEVEL_UNSPECIFIED,
+   * ANALYTICS_SERVICE_LEVEL_STANDARD, ANALYTICS_SERVICE_LEVEL_360
+   *
+   * @param self::SERVICE_LEVEL_* $serviceLevel
    */
   public function setServiceLevel($serviceLevel)
   {
     $this->serviceLevel = $serviceLevel;
   }
   /**
-   * @return string
+   * @return self::SERVICE_LEVEL_*
    */
   public function getServiceLevel()
   {

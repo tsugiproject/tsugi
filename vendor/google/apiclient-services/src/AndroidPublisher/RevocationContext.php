@@ -21,11 +21,16 @@ class RevocationContext extends \Google\Model
 {
   protected $fullRefundType = RevocationContextFullRefund::class;
   protected $fullRefundDataType = '';
+  protected $itemBasedRefundType = RevocationContextItemBasedRefund::class;
+  protected $itemBasedRefundDataType = '';
   protected $proratedRefundType = RevocationContextProratedRefund::class;
   protected $proratedRefundDataType = '';
 
   /**
-   * @param RevocationContextFullRefund
+   * Optional. Used when users should be refunded the full amount of latest
+   * charge on each item in the subscription.
+   *
+   * @param RevocationContextFullRefund $fullRefund
    */
   public function setFullRefund(RevocationContextFullRefund $fullRefund)
   {
@@ -39,7 +44,28 @@ class RevocationContext extends \Google\Model
     return $this->fullRefund;
   }
   /**
-   * @param RevocationContextProratedRefund
+   * Optional. Used when a specific item should be refunded in a subscription
+   * with add-on items.
+   *
+   * @param RevocationContextItemBasedRefund $itemBasedRefund
+   */
+  public function setItemBasedRefund(RevocationContextItemBasedRefund $itemBasedRefund)
+  {
+    $this->itemBasedRefund = $itemBasedRefund;
+  }
+  /**
+   * @return RevocationContextItemBasedRefund
+   */
+  public function getItemBasedRefund()
+  {
+    return $this->itemBasedRefund;
+  }
+  /**
+   * Optional. Used when users should be refunded a prorated amount they paid
+   * for their subscription based on the amount of time remaining in a
+   * subscription.
+   *
+   * @param RevocationContextProratedRefund $proratedRefund
    */
   public function setProratedRefund(RevocationContextProratedRefund $proratedRefund)
   {

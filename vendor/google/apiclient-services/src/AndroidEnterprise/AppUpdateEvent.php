@@ -20,12 +20,18 @@ namespace Google\Service\AndroidEnterprise;
 class AppUpdateEvent extends \Google\Model
 {
   /**
+   * The id of the product (e.g. "app:com.google.android.gm") that was updated.
+   * This field will always be present.
+   *
    * @var string
    */
   public $productId;
 
   /**
-   * @param string
+   * The id of the product (e.g. "app:com.google.android.gm") that was updated.
+   * This field will always be present.
+   *
+   * @param string $productId
    */
   public function setProductId($productId)
   {

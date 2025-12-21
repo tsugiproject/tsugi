@@ -20,50 +20,110 @@ namespace Google\Service\AbusiveExperienceReport;
 class SiteSummaryResponse extends \Google\Model
 {
   /**
+   * Not reviewed.
+   */
+  public const ABUSIVE_STATUS_UNKNOWN = 'UNKNOWN';
+  /**
+   * Passing.
+   */
+  public const ABUSIVE_STATUS_PASSING = 'PASSING';
+  /**
+   * Failing.
+   */
+  public const ABUSIVE_STATUS_FAILING = 'FAILING';
+  /**
+   * N/A.
+   */
+  public const FILTER_STATUS_UNKNOWN = 'UNKNOWN';
+  /**
+   * Enforcement is on.
+   */
+  public const FILTER_STATUS_ON = 'ON';
+  /**
+   * Enforcement is off.
+   */
+  public const FILTER_STATUS_OFF = 'OFF';
+  /**
+   * Enforcement is paused.
+   */
+  public const FILTER_STATUS_PAUSED = 'PAUSED';
+  /**
+   * Enforcement is pending.
+   */
+  public const FILTER_STATUS_PENDING = 'PENDING';
+  /**
+   * The site's Abusive Experience Report status.
+   *
    * @var string
    */
   public $abusiveStatus;
   /**
+   * The time at which
+   * [enforcement](https://support.google.com/webtools/answer/7538608) against
+   * the site began or will begin. Not set when the filter_status is OFF.
+   *
    * @var string
    */
   public $enforcementTime;
   /**
+   * The site's [enforcement
+   * status](https://support.google.com/webtools/answer/7538608).
+   *
    * @var string
    */
   public $filterStatus;
   /**
+   * The time at which the site's status last changed.
+   *
    * @var string
    */
   public $lastChangeTime;
   /**
+   * A link to the full Abusive Experience Report for the site. Not set in
+   * ViolatingSitesResponse. Note that you must complete the [Search Console
+   * verification process](https://support.google.com/webmasters/answer/9008080)
+   * for the site before you can access the full report.
+   *
    * @var string
    */
   public $reportUrl;
   /**
+   * The name of the reviewed site, e.g. `google.com`.
+   *
    * @var string
    */
   public $reviewedSite;
   /**
+   * Whether the site is currently under review.
+   *
    * @var bool
    */
   public $underReview;
 
   /**
-   * @param string
+   * The site's Abusive Experience Report status.
+   *
+   * Accepted values: UNKNOWN, PASSING, FAILING
+   *
+   * @param self::ABUSIVE_STATUS_* $abusiveStatus
    */
   public function setAbusiveStatus($abusiveStatus)
   {
     $this->abusiveStatus = $abusiveStatus;
   }
   /**
-   * @return string
+   * @return self::ABUSIVE_STATUS_*
    */
   public function getAbusiveStatus()
   {
     return $this->abusiveStatus;
   }
   /**
-   * @param string
+   * The time at which
+   * [enforcement](https://support.google.com/webtools/answer/7538608) against
+   * the site began or will begin. Not set when the filter_status is OFF.
+   *
+   * @param string $enforcementTime
    */
   public function setEnforcementTime($enforcementTime)
   {
@@ -77,21 +137,28 @@ class SiteSummaryResponse extends \Google\Model
     return $this->enforcementTime;
   }
   /**
-   * @param string
+   * The site's [enforcement
+   * status](https://support.google.com/webtools/answer/7538608).
+   *
+   * Accepted values: UNKNOWN, ON, OFF, PAUSED, PENDING
+   *
+   * @param self::FILTER_STATUS_* $filterStatus
    */
   public function setFilterStatus($filterStatus)
   {
     $this->filterStatus = $filterStatus;
   }
   /**
-   * @return string
+   * @return self::FILTER_STATUS_*
    */
   public function getFilterStatus()
   {
     return $this->filterStatus;
   }
   /**
-   * @param string
+   * The time at which the site's status last changed.
+   *
+   * @param string $lastChangeTime
    */
   public function setLastChangeTime($lastChangeTime)
   {
@@ -105,7 +172,12 @@ class SiteSummaryResponse extends \Google\Model
     return $this->lastChangeTime;
   }
   /**
-   * @param string
+   * A link to the full Abusive Experience Report for the site. Not set in
+   * ViolatingSitesResponse. Note that you must complete the [Search Console
+   * verification process](https://support.google.com/webmasters/answer/9008080)
+   * for the site before you can access the full report.
+   *
+   * @param string $reportUrl
    */
   public function setReportUrl($reportUrl)
   {
@@ -119,7 +191,9 @@ class SiteSummaryResponse extends \Google\Model
     return $this->reportUrl;
   }
   /**
-   * @param string
+   * The name of the reviewed site, e.g. `google.com`.
+   *
+   * @param string $reviewedSite
    */
   public function setReviewedSite($reviewedSite)
   {
@@ -133,7 +207,9 @@ class SiteSummaryResponse extends \Google\Model
     return $this->reviewedSite;
   }
   /**
-   * @param bool
+   * Whether the site is currently under review.
+   *
+   * @param bool $underReview
    */
   public function setUnderReview($underReview)
   {

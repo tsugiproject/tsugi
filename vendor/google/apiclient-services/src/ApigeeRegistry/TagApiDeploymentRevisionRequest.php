@@ -20,12 +20,18 @@ namespace Google\Service\ApigeeRegistry;
 class TagApiDeploymentRevisionRequest extends \Google\Model
 {
   /**
+   * Required. The tag to apply. The tag should be at most 40 characters, and
+   * match `a-z{3,39}`.
+   *
    * @var string
    */
   public $tag;
 
   /**
-   * @param string
+   * Required. The tag to apply. The tag should be at most 40 characters, and
+   * match `a-z{3,39}`.
+   *
+   * @param string $tag
    */
   public function setTag($tag)
   {

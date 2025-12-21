@@ -20,10 +20,14 @@ namespace Google\Service\Analytics;
 class UserRef extends \Google\Model
 {
   /**
+   * Email ID of this user.
+   *
    * @var string
    */
   public $email;
   /**
+   * User ID.
+   *
    * @var string
    */
   public $id;
@@ -33,7 +37,9 @@ class UserRef extends \Google\Model
   public $kind;
 
   /**
-   * @param string
+   * Email ID of this user.
+   *
+   * @param string $email
    */
   public function setEmail($email)
   {
@@ -47,7 +53,9 @@ class UserRef extends \Google\Model
     return $this->email;
   }
   /**
-   * @param string
+   * User ID.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -61,7 +69,7 @@ class UserRef extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * @param string $kind
    */
   public function setKind($kind)
   {

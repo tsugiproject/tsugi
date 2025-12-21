@@ -19,25 +19,40 @@ namespace Google\Service\AndroidEnterprise;
 
 class NewDeviceEvent extends \Google\Model
 {
+  public const MANAGEMENT_TYPE_managedDevice = 'managedDevice';
+  public const MANAGEMENT_TYPE_managedProfile = 'managedProfile';
   /**
+   * The Android ID of the device. This field will always be present.
+   *
    * @var string
    */
   public $deviceId;
   /**
+   * Policy app on the device.
+   *
    * @var string
    */
   public $dpcPackageName;
   /**
+   * Identifies the extent to which the device is controlled by an Android EMM
+   * in various deployment configurations. Possible values include: -
+   * "managedDevice", a device where the DPC is set as device owner, -
+   * "managedProfile", a device where the DPC is set as profile owner.
+   *
    * @var string
    */
   public $managementType;
   /**
+   * The ID of the user. This field will always be present.
+   *
    * @var string
    */
   public $userId;
 
   /**
-   * @param string
+   * The Android ID of the device. This field will always be present.
+   *
+   * @param string $deviceId
    */
   public function setDeviceId($deviceId)
   {
@@ -51,7 +66,9 @@ class NewDeviceEvent extends \Google\Model
     return $this->deviceId;
   }
   /**
-   * @param string
+   * Policy app on the device.
+   *
+   * @param string $dpcPackageName
    */
   public function setDpcPackageName($dpcPackageName)
   {
@@ -65,21 +82,30 @@ class NewDeviceEvent extends \Google\Model
     return $this->dpcPackageName;
   }
   /**
-   * @param string
+   * Identifies the extent to which the device is controlled by an Android EMM
+   * in various deployment configurations. Possible values include: -
+   * "managedDevice", a device where the DPC is set as device owner, -
+   * "managedProfile", a device where the DPC is set as profile owner.
+   *
+   * Accepted values: managedDevice, managedProfile
+   *
+   * @param self::MANAGEMENT_TYPE_* $managementType
    */
   public function setManagementType($managementType)
   {
     $this->managementType = $managementType;
   }
   /**
-   * @return string
+   * @return self::MANAGEMENT_TYPE_*
    */
   public function getManagementType()
   {
     return $this->managementType;
   }
   /**
-   * @param string
+   * The ID of the user. This field will always be present.
+   *
+   * @param string $userId
    */
   public function setUserId($userId)
   {

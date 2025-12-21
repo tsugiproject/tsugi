@@ -29,7 +29,10 @@ class GoogleAnalyticsAdminV1betaAccessFilterExpression extends \Google\Model
   protected $orGroupDataType = '';
 
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessFilter
+   * A primitive filter. In the same FilterExpression, all of the filter's field
+   * names need to be either all dimensions or all metrics.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessFilter $accessFilter
    */
   public function setAccessFilter(GoogleAnalyticsAdminV1betaAccessFilter $accessFilter)
   {
@@ -43,7 +46,9 @@ class GoogleAnalyticsAdminV1betaAccessFilterExpression extends \Google\Model
     return $this->accessFilter;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessFilterExpressionList
+   * Each of the FilterExpressions in the and_group has an AND relationship.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessFilterExpressionList $andGroup
    */
   public function setAndGroup(GoogleAnalyticsAdminV1betaAccessFilterExpressionList $andGroup)
   {
@@ -57,7 +62,9 @@ class GoogleAnalyticsAdminV1betaAccessFilterExpression extends \Google\Model
     return $this->andGroup;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessFilterExpression
+   * The FilterExpression is NOT of not_expression.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessFilterExpression $notExpression
    */
   public function setNotExpression(GoogleAnalyticsAdminV1betaAccessFilterExpression $notExpression)
   {
@@ -71,7 +78,9 @@ class GoogleAnalyticsAdminV1betaAccessFilterExpression extends \Google\Model
     return $this->notExpression;
   }
   /**
-   * @param GoogleAnalyticsAdminV1betaAccessFilterExpressionList
+   * Each of the FilterExpressions in the or_group has an OR relationship.
+   *
+   * @param GoogleAnalyticsAdminV1betaAccessFilterExpressionList $orGroup
    */
   public function setOrGroup(GoogleAnalyticsAdminV1betaAccessFilterExpressionList $orGroup)
   {

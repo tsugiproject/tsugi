@@ -20,12 +20,20 @@ namespace Google\Service\Slides;
 class RerouteLineRequest extends \Google\Model
 {
   /**
+   * The object ID of the line to reroute. Only a line with a category
+   * indicating it is a "connector" can be rerouted. The start and end
+   * connections of the line must be on different page elements.
+   *
    * @var string
    */
   public $objectId;
 
   /**
-   * @param string
+   * The object ID of the line to reroute. Only a line with a category
+   * indicating it is a "connector" can be rerouted. The start and end
+   * connections of the line must be on different page elements.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {

@@ -20,16 +20,32 @@ namespace Google\Service\Meet;
 class DocsDestination extends \Google\Model
 {
   /**
+   * Output only. The document ID for the underlying Google Docs transcript
+   * file. For example, "1kuceFZohVoCh6FulBHxwy6I15Ogpc4hP". Use the
+   * `documents.get` method of the Google Docs API
+   * (https://developers.google.com/docs/api/reference/rest/v1/documents/get) to
+   * fetch the content.
+   *
    * @var string
    */
   public $document;
   /**
+   * Output only. URI for the Google Docs transcript file. Use
+   * `https://docs.google.com/document/d/{$DocumentId}/view` to browse the
+   * transcript in the browser.
+   *
    * @var string
    */
   public $exportUri;
 
   /**
-   * @param string
+   * Output only. The document ID for the underlying Google Docs transcript
+   * file. For example, "1kuceFZohVoCh6FulBHxwy6I15Ogpc4hP". Use the
+   * `documents.get` method of the Google Docs API
+   * (https://developers.google.com/docs/api/reference/rest/v1/documents/get) to
+   * fetch the content.
+   *
+   * @param string $document
    */
   public function setDocument($document)
   {
@@ -43,7 +59,11 @@ class DocsDestination extends \Google\Model
     return $this->document;
   }
   /**
-   * @param string
+   * Output only. URI for the Google Docs transcript file. Use
+   * `https://docs.google.com/document/d/{$DocumentId}/view` to browse the
+   * transcript in the browser.
+   *
+   * @param string $exportUri
    */
   public function setExportUri($exportUri)
   {

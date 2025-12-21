@@ -20,18 +20,32 @@ namespace Google\Service\Slides;
 class AutoText extends \Google\Model
 {
   /**
+   * An unspecified autotext type.
+   */
+  public const TYPE_TYPE_UNSPECIFIED = 'TYPE_UNSPECIFIED';
+  /**
+   * Type for autotext that represents the current slide number.
+   */
+  public const TYPE_SLIDE_NUMBER = 'SLIDE_NUMBER';
+  /**
+   * The rendered content of this auto text, if available.
+   *
    * @var string
    */
   public $content;
   protected $styleType = TextStyle::class;
   protected $styleDataType = '';
   /**
+   * The type of this auto text.
+   *
    * @var string
    */
   public $type;
 
   /**
-   * @param string
+   * The rendered content of this auto text, if available.
+   *
+   * @param string $content
    */
   public function setContent($content)
   {
@@ -45,7 +59,9 @@ class AutoText extends \Google\Model
     return $this->content;
   }
   /**
-   * @param TextStyle
+   * The styling applied to this auto text.
+   *
+   * @param TextStyle $style
    */
   public function setStyle(TextStyle $style)
   {
@@ -59,14 +75,18 @@ class AutoText extends \Google\Model
     return $this->style;
   }
   /**
-   * @param string
+   * The type of this auto text.
+   *
+   * Accepted values: TYPE_UNSPECIFIED, SLIDE_NUMBER
+   *
+   * @param self::TYPE_* $type
    */
   public function setType($type)
   {
     $this->type = $type;
   }
   /**
-   * @return string
+   * @return self::TYPE_*
    */
   public function getType()
   {

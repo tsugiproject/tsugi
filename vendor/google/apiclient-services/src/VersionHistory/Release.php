@@ -17,24 +17,45 @@
 
 namespace Google\Service\VersionHistory;
 
-class Release extends \Google\Model
+class Release extends \Google\Collection
 {
+  protected $collection_key = 'rolloutData';
+  /**
+   * Rollout fraction. This fraction indicates the fraction of people that
+   * should receive this version in this release. If the fraction is not
+   * specified in ReleaseManager, the API will assume fraction is 1.
+   *
+   * @var 
+   */
   public $fraction;
   /**
+   * Rollout fraction group. Only fractions with the same fraction_group are
+   * statistically comparable: there may be non-fractional differences between
+   * different fraction groups.
+   *
    * @var string
    */
   public $fractionGroup;
   /**
+   * Release name. Format is "{product}/platforms/{platform}/channels/{channel}/
+   * versions/{version}/releases/{release}"
+   *
    * @var string
    */
   public $name;
   /**
+   * Whether or not the release was available for version pinning.
+   *
    * @var bool
    */
   public $pinnable;
+  protected $rolloutDataType = RolloutData::class;
+  protected $rolloutDataDataType = 'array';
   protected $servingType = Interval::class;
   protected $servingDataType = '';
   /**
+   * String containing just the version number. e.g. "84.0.4147.38"
+   *
    * @var string
    */
   public $version;
@@ -48,7 +69,11 @@ class Release extends \Google\Model
     return $this->fraction;
   }
   /**
-   * @param string
+   * Rollout fraction group. Only fractions with the same fraction_group are
+   * statistically comparable: there may be non-fractional differences between
+   * different fraction groups.
+   *
+   * @param string $fractionGroup
    */
   public function setFractionGroup($fractionGroup)
   {
@@ -62,7 +87,10 @@ class Release extends \Google\Model
     return $this->fractionGroup;
   }
   /**
-   * @param string
+   * Release name. Format is "{product}/platforms/{platform}/channels/{channel}/
+   * versions/{version}/releases/{release}"
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -76,7 +104,9 @@ class Release extends \Google\Model
     return $this->name;
   }
   /**
-   * @param bool
+   * Whether or not the release was available for version pinning.
+   *
+   * @param bool $pinnable
    */
   public function setPinnable($pinnable)
   {
@@ -90,7 +120,28 @@ class Release extends \Google\Model
     return $this->pinnable;
   }
   /**
-   * @param Interval
+   * Rollout-related metadata. Some releases are part of one or more A/B
+   * rollouts. This field contains the names and data describing this release's
+   * role in any rollouts.
+   *
+   * @param RolloutData[] $rolloutData
+   */
+  public function setRolloutData($rolloutData)
+  {
+    $this->rolloutData = $rolloutData;
+  }
+  /**
+   * @return RolloutData[]
+   */
+  public function getRolloutData()
+  {
+    return $this->rolloutData;
+  }
+  /**
+   * Timestamp interval of when the release was live. If end_time is
+   * unspecified, the release is currently live.
+   *
+   * @param Interval $serving
    */
   public function setServing(Interval $serving)
   {
@@ -104,7 +155,9 @@ class Release extends \Google\Model
     return $this->serving;
   }
   /**
-   * @param string
+   * String containing just the version number. e.g. "84.0.4147.38"
+   *
+   * @param string $version
    */
   public function setVersion($version)
   {

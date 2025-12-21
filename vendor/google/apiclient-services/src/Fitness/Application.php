@@ -20,24 +20,41 @@ namespace Google\Service\Fitness;
 class Application extends \Google\Model
 {
   /**
+   * An optional URI that can be used to link back to the application.
+   *
    * @var string
    */
   public $detailsUrl;
   /**
+   * The name of this application. This is required for REST clients, but we do
+   * not enforce uniqueness of this name. It is provided as a matter of
+   * convenience for other developers who would like to identify which REST
+   * created an Application or Data Source.
+   *
    * @var string
    */
   public $name;
   /**
+   * Package name for this application. This is used as a unique identifier when
+   * created by Android applications, but cannot be specified by REST clients.
+   * REST clients will have their developer project number reflected into the
+   * Data Source data stream IDs, instead of the packageName.
+   *
    * @var string
    */
   public $packageName;
   /**
+   * Version of the application. You should update this field whenever the
+   * application changes in a way that affects the computation of the data.
+   *
    * @var string
    */
   public $version;
 
   /**
-   * @param string
+   * An optional URI that can be used to link back to the application.
+   *
+   * @param string $detailsUrl
    */
   public function setDetailsUrl($detailsUrl)
   {
@@ -51,7 +68,12 @@ class Application extends \Google\Model
     return $this->detailsUrl;
   }
   /**
-   * @param string
+   * The name of this application. This is required for REST clients, but we do
+   * not enforce uniqueness of this name. It is provided as a matter of
+   * convenience for other developers who would like to identify which REST
+   * created an Application or Data Source.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -65,7 +87,12 @@ class Application extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Package name for this application. This is used as a unique identifier when
+   * created by Android applications, but cannot be specified by REST clients.
+   * REST clients will have their developer project number reflected into the
+   * Data Source data stream IDs, instead of the packageName.
+   *
+   * @param string $packageName
    */
   public function setPackageName($packageName)
   {
@@ -79,7 +106,10 @@ class Application extends \Google\Model
     return $this->packageName;
   }
   /**
-   * @param string
+   * Version of the application. You should update this field whenever the
+   * application changes in a way that affects the computation of the data.
+   *
+   * @param string $version
    */
   public function setVersion($version)
   {

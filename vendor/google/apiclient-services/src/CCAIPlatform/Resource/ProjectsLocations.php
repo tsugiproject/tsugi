@@ -18,8 +18,10 @@
 namespace Google\Service\CCAIPlatform\Resource;
 
 use Google\Service\CCAIPlatform\ContactCenterQuota;
+use Google\Service\CCAIPlatform\GenerateShiftsRequest;
 use Google\Service\CCAIPlatform\ListLocationsResponse;
 use Google\Service\CCAIPlatform\Location;
+use Google\Service\CCAIPlatform\Operation;
 
 /**
  * The "locations" collection of methods.
@@ -31,6 +33,23 @@ use Google\Service\CCAIPlatform\Location;
  */
 class ProjectsLocations extends \Google\Service\Resource
 {
+  /**
+   * Generates shifts constrained by various parameters.
+   * (locations.generateShifts)
+   *
+   * @param string $parent Required. Name of the parent resource associated with
+   * the request. Format: projects/{project}/locations/{location}
+   * @param GenerateShiftsRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function generateShifts($parent, GenerateShiftsRequest $postBody, $optParams = [])
+  {
+    $params = ['parent' => $parent, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('generateShifts', [$params], Operation::class);
+  }
   /**
    * Gets information about a location. (locations.get)
    *
@@ -53,6 +72,9 @@ class ProjectsLocations extends \Google\Service\Resource
    * applicable.
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string extraLocationTypes Optional. Do not use this field. It is
+   * unsupported and is ignored unless explicitly documented otherwise. This is
+   * primarily for internal usage.
    * @opt_param string filter A filter to narrow down results to a preferred
    * subset. The filtering language accepts strings like `"displayName=tokyo"`,
    * and is documented in more detail in [AIP-160](https://google.aip.dev/160).

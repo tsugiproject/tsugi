@@ -20,12 +20,16 @@ namespace Google\Service\Slides;
 class CreateVideoResponse extends \Google\Model
 {
   /**
+   * The object ID of the created video.
+   *
    * @var string
    */
   public $objectId;
 
   /**
-   * @param string
+   * The object ID of the created video.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {

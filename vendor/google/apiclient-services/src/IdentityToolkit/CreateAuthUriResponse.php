@@ -21,44 +21,64 @@ class CreateAuthUriResponse extends \Google\Collection
 {
   protected $collection_key = 'signinMethods';
   /**
+   * all providers the user has once used to do federated login
+   *
    * @var string[]
    */
   public $allProviders;
   /**
+   * The URI used by the IDP to authenticate the user.
+   *
    * @var string
    */
   public $authUri;
   /**
+   * True if captcha is required.
+   *
    * @var bool
    */
   public $captchaRequired;
   /**
+   * True if the authUri is for user's existing provider.
+   *
    * @var bool
    */
   public $forExistingProvider;
   /**
+   * The fixed string identitytoolkit#CreateAuthUriResponse".
+   *
    * @var string
    */
   public $kind;
   /**
+   * The provider ID of the auth URI.
+   *
    * @var string
    */
   public $providerId;
   /**
+   * Whether the user is registered if the identifier is an email.
+   *
    * @var bool
    */
   public $registered;
   /**
+   * Session ID which should be passed in the following verifyAssertion request.
+   *
    * @var string
    */
   public $sessionId;
   /**
+   * All sign-in methods this user has used.
+   *
    * @var string[]
    */
   public $signinMethods;
 
   /**
-   * @param string[]
+   * all providers the user has once used to do federated login
+   *
+   * @param string[] $allProviders
    */
   public function setAllProviders($allProviders)
   {
@@ -72,7 +92,9 @@ class CreateAuthUriResponse extends \Google\Collection
     return $this->allProviders;
   }
   /**
-   * @param string
+   * The URI used by the IDP to authenticate the user.
+   *
+   * @param string $authUri
    */
   public function setAuthUri($authUri)
   {
@@ -86,7 +108,9 @@ class CreateAuthUriResponse extends \Google\Collection
     return $this->authUri;
   }
   /**
-   * @param bool
+   * True if captcha is required.
+   *
+   * @param bool $captchaRequired
    */
   public function setCaptchaRequired($captchaRequired)
   {
@@ -100,7 +124,9 @@ class CreateAuthUriResponse extends \Google\Collection
     return $this->captchaRequired;
   }
   /**
-   * @param bool
+   * True if the authUri is for user's existing provider.
+   *
+   * @param bool $forExistingProvider
    */
   public function setForExistingProvider($forExistingProvider)
   {
@@ -114,7 +140,9 @@ class CreateAuthUriResponse extends \Google\Collection
     return $this->forExistingProvider;
   }
   /**
-   * @param string
+   * The fixed string identitytoolkit#CreateAuthUriResponse".
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -128,7 +156,9 @@ class CreateAuthUriResponse extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * The provider ID of the auth URI.
+   *
+   * @param string $providerId
    */
   public function setProviderId($providerId)
   {
@@ -142,7 +172,9 @@ class CreateAuthUriResponse extends \Google\Collection
     return $this->providerId;
   }
   /**
-   * @param bool
+   * Whether the user is registered if the identifier is an email.
+   *
+   * @param bool $registered
    */
   public function setRegistered($registered)
   {
@@ -156,7 +188,9 @@ class CreateAuthUriResponse extends \Google\Collection
     return $this->registered;
   }
   /**
-   * @param string
+   * Session ID which should be passed in the following verifyAssertion request.
+   *
+   * @param string $sessionId
    */
   public function setSessionId($sessionId)
   {
@@ -170,7 +204,9 @@ class CreateAuthUriResponse extends \Google\Collection
     return $this->sessionId;
   }
   /**
-   * @param string[]
+   * All sign-in methods this user has used.
+   *
+   * @param string[] $signinMethods
    */
   public function setSigninMethods($signinMethods)
   {

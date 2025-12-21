@@ -20,28 +20,74 @@ namespace Google\Service\FirebaseRealtimeDatabase;
 class DatabaseInstance extends \Google\Model
 {
   /**
+   * Unspecified state, likely the result of an error on the backend. This is
+   * only used for distinguishing unset values.
+   */
+  public const STATE_LIFECYCLE_STATE_UNSPECIFIED = 'LIFECYCLE_STATE_UNSPECIFIED';
+  /**
+   * The normal and active state.
+   */
+  public const STATE_ACTIVE = 'ACTIVE';
+  /**
+   * The database is in a disabled state. It can be re-enabled later.
+   */
+  public const STATE_DISABLED = 'DISABLED';
+  /**
+   * The database is in a deleted state.
+   */
+  public const STATE_DELETED = 'DELETED';
+  /**
+   * Unknown state, likely the result of an error on the backend. This is only
+   * used for distinguishing unset values.
+   */
+  public const TYPE_DATABASE_INSTANCE_TYPE_UNSPECIFIED = 'DATABASE_INSTANCE_TYPE_UNSPECIFIED';
+  /**
+   * The default database that is provisioned when a project is created.
+   */
+  public const TYPE_DEFAULT_DATABASE = 'DEFAULT_DATABASE';
+  /**
+   * A database that the user created.
+   */
+  public const TYPE_USER_DATABASE = 'USER_DATABASE';
+  /**
+   * Output only. Output Only. The globally unique hostname of the database.
+   *
    * @var string
    */
   public $databaseUrl;
   /**
+   * The fully qualified resource name of the database instance, in the form:
+   * `projects/{project-number}/locations/{location-id}/instances/{database-
+   * id}`.
+   *
    * @var string
    */
   public $name;
   /**
+   * Output only. The resource name of the project this instance belongs to. For
+   * example: `projects/{project-number}`.
+   *
    * @var string
    */
   public $project;
   /**
+   * Output only. The database's lifecycle state. Read-only.
+   *
    * @var string
    */
   public $state;
   /**
+   * Immutable. The database instance type. On creation only USER_DATABASE is
+   * allowed, which is also the default when omitted.
+   *
    * @var string
    */
   public $type;
 
   /**
-   * @param string
+   * Output only. Output Only. The globally unique hostname of the database.
+   *
+   * @param string $databaseUrl
    */
   public function setDatabaseUrl($databaseUrl)
   {
@@ -55,7 +101,11 @@ class DatabaseInstance extends \Google\Model
     return $this->databaseUrl;
   }
   /**
-   * @param string
+   * The fully qualified resource name of the database instance, in the form:
+   * `projects/{project-number}/locations/{location-id}/instances/{database-
+   * id}`.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -69,7 +119,10 @@ class DatabaseInstance extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Output only. The resource name of the project this instance belongs to. For
+   * example: `projects/{project-number}`.
+   *
+   * @param string $project
    */
   public function setProject($project)
   {
@@ -83,28 +136,38 @@ class DatabaseInstance extends \Google\Model
     return $this->project;
   }
   /**
-   * @param string
+   * Output only. The database's lifecycle state. Read-only.
+   *
+   * Accepted values: LIFECYCLE_STATE_UNSPECIFIED, ACTIVE, DISABLED, DELETED
+   *
+   * @param self::STATE_* $state
    */
   public function setState($state)
   {
     $this->state = $state;
   }
   /**
-   * @return string
+   * @return self::STATE_*
    */
   public function getState()
   {
     return $this->state;
   }
   /**
-   * @param string
+   * Immutable. The database instance type. On creation only USER_DATABASE is
+   * allowed, which is also the default when omitted.
+   *
+   * Accepted values: DATABASE_INSTANCE_TYPE_UNSPECIFIED, DEFAULT_DATABASE,
+   * USER_DATABASE
+   *
+   * @param self::TYPE_* $type
    */
   public function setType($type)
   {
     $this->type = $type;
   }
   /**
-   * @return string
+   * @return self::TYPE_*
    */
   public function getType()
   {

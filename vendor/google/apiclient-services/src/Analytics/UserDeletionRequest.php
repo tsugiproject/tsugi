@@ -20,30 +20,44 @@ namespace Google\Service\Analytics;
 class UserDeletionRequest extends \Google\Model
 {
   /**
+   * This marks the point in time for which all user data before should be
+   * deleted
+   *
    * @var string
    */
   public $deletionRequestTime;
   /**
+   * Firebase Project Id
+   *
    * @var string
    */
   public $firebaseProjectId;
   protected $idType = UserDeletionRequestId::class;
   protected $idDataType = '';
   /**
+   * Value is "analytics#userDeletionRequest".
+   *
    * @var string
    */
   public $kind;
   /**
+   * Property ID
+   *
    * @var string
    */
   public $propertyId;
   /**
+   * Web property ID of the form UA-XXXXX-YY.
+   *
    * @var string
    */
   public $webPropertyId;
 
   /**
-   * @param string
+   * This marks the point in time for which all user data before should be
+   * deleted
+   *
+   * @param string $deletionRequestTime
    */
   public function setDeletionRequestTime($deletionRequestTime)
   {
@@ -57,7 +71,9 @@ class UserDeletionRequest extends \Google\Model
     return $this->deletionRequestTime;
   }
   /**
-   * @param string
+   * Firebase Project Id
+   *
+   * @param string $firebaseProjectId
    */
   public function setFirebaseProjectId($firebaseProjectId)
   {
@@ -71,7 +87,9 @@ class UserDeletionRequest extends \Google\Model
     return $this->firebaseProjectId;
   }
   /**
-   * @param UserDeletionRequestId
+   * User ID.
+   *
+   * @param UserDeletionRequestId $id
    */
   public function setId(UserDeletionRequestId $id)
   {
@@ -85,7 +103,9 @@ class UserDeletionRequest extends \Google\Model
     return $this->id;
   }
   /**
-   * @param string
+   * Value is "analytics#userDeletionRequest".
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -99,7 +119,9 @@ class UserDeletionRequest extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param string
+   * Property ID
+   *
+   * @param string $propertyId
    */
   public function setPropertyId($propertyId)
   {
@@ -113,7 +135,9 @@ class UserDeletionRequest extends \Google\Model
     return $this->propertyId;
   }
   /**
-   * @param string
+   * Web property ID of the form UA-XXXXX-YY.
+   *
+   * @param string $webPropertyId
    */
   public function setWebPropertyId($webPropertyId)
   {

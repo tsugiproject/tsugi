@@ -21,6 +21,9 @@ class ListRulesetsResponse extends \Google\Collection
 {
   protected $collection_key = 'rulesets';
   /**
+   * The pagination token to retrieve the next page of results. If the value is
+   * empty, no further results remain.
+   *
    * @var string
    */
   public $nextPageToken;
@@ -28,7 +31,10 @@ class ListRulesetsResponse extends \Google\Collection
   protected $rulesetsDataType = 'array';
 
   /**
-   * @param string
+   * The pagination token to retrieve the next page of results. If the value is
+   * empty, no further results remain.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -42,7 +48,9 @@ class ListRulesetsResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param Ruleset[]
+   * List of `Ruleset` instances.
+   *
+   * @param Ruleset[] $rulesets
    */
   public function setRulesets($rulesets)
   {

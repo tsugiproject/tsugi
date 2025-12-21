@@ -34,14 +34,10 @@ class AppsServices extends \Google\Service\Resource
   /**
    * Deletes the specified service and all enclosed versions. (services.delete)
    *
-   * @param string $appsId Part of `name`. Name of the resource requested.
-   * Example: apps/myapp/services/default.
+   * @param string $appsId Part of `name`. Required. Name of the resource
+   * requested. Example: apps/myapp/services/default.
    * @param string $servicesId Part of `name`. See documentation of `appsId`.
    * @param array $optParams Optional parameters.
-   *
-   * @opt_param bool force Optional. If set to true, any versions of this service
-   * will also be deleted. (Otherwise, the request will only succeed if the
-   * service has no versions.)
    * @return Operation
    * @throws \Google\Service\Exception
    */
@@ -54,8 +50,8 @@ class AppsServices extends \Google\Service\Resource
   /**
    * Gets the current configuration of the specified service. (services.get)
    *
-   * @param string $appsId Part of `name`. Name of the resource requested.
-   * Example: apps/myapp/services/default.
+   * @param string $appsId Part of `name`. Required. Name of the resource
+   * requested. Example: apps/myapp/services/default.
    * @param string $servicesId Part of `name`. See documentation of `appsId`.
    * @param array $optParams Optional parameters.
    * @return Service
@@ -70,8 +66,8 @@ class AppsServices extends \Google\Service\Resource
   /**
    * Lists all the services in the application. (services.listAppsServices)
    *
-   * @param string $appsId Part of `parent`. Name of the parent Application
-   * resource. Example: apps/myapp.
+   * @param string $appsId Part of `parent`. Required. Name of the parent
+   * Application resource. Example: apps/myapp.
    * @param array $optParams Optional parameters.
    *
    * @opt_param int pageSize Maximum results to return per page.
@@ -89,8 +85,8 @@ class AppsServices extends \Google\Service\Resource
   /**
    * Updates the configuration of the specified service. (services.patch)
    *
-   * @param string $appsId Part of `name`. Name of the resource to update.
-   * Example: apps/myapp/services/default.
+   * @param string $appsId Part of `name`. Required. Name of the resource to
+   * update. Example: apps/myapp/services/default.
    * @param string $servicesId Part of `name`. See documentation of `appsId`.
    * @param Service $postBody
    * @param array $optParams Optional parameters.

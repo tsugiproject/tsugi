@@ -19,37 +19,83 @@ namespace Google\Service\DatabaseMigrationService;
 
 class PrivateConnection extends \Google\Model
 {
+  public const STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED';
   /**
+   * The private connection is in creation state - creating resources.
+   */
+  public const STATE_CREATING = 'CREATING';
+  /**
+   * The private connection has been created with all of its resources.
+   */
+  public const STATE_CREATED = 'CREATED';
+  /**
+   * The private connection creation has failed.
+   */
+  public const STATE_FAILED = 'FAILED';
+  /**
+   * The private connection is being deleted.
+   */
+  public const STATE_DELETING = 'DELETING';
+  /**
+   * Delete request has failed, resource is in invalid state.
+   */
+  public const STATE_FAILED_TO_DELETE = 'FAILED_TO_DELETE';
+  /**
+   * The private connection has been deleted.
+   */
+  public const STATE_DELETED = 'DELETED';
+  /**
+   * Output only. The create time of the resource.
+   *
    * @var string
    */
   public $createTime;
   /**
+   * The private connection display name.
+   *
    * @var string
    */
   public $displayName;
   protected $errorType = Status::class;
   protected $errorDataType = '';
   /**
+   * The resource labels for private connections to use to annotate any related
+   * underlying resources such as Compute Engine VMs. An object containing a
+   * list of "key": "value" pairs. Example: `{ "name": "wrench", "mass":
+   * "1.3kg", "count": "3" }`.
+   *
    * @var string[]
    */
   public $labels;
   /**
+   * The name of the resource.
+   *
    * @var string
    */
   public $name;
+  protected $pscInterfaceConfigType = PscInterfaceConfig::class;
+  protected $pscInterfaceConfigDataType = '';
   /**
+   * Output only. Reserved for future use.
+   *
    * @var bool
    */
   public $satisfiesPzi;
   /**
+   * Output only. Reserved for future use.
+   *
    * @var bool
    */
   public $satisfiesPzs;
   /**
+   * Output only. The state of the private connection.
+   *
    * @var string
    */
   public $state;
   /**
+   * Output only. The last update time of the resource.
+   *
    * @var string
    */
   public $updateTime;
@@ -57,7 +103,9 @@ class PrivateConnection extends \Google\Model
   protected $vpcPeeringConfigDataType = '';
 
   /**
-   * @param string
+   * Output only. The create time of the resource.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -71,7 +119,9 @@ class PrivateConnection extends \Google\Model
     return $this->createTime;
   }
   /**
-   * @param string
+   * The private connection display name.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -85,7 +135,9 @@ class PrivateConnection extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param Status
+   * Output only. The error details in case of state FAILED.
+   *
+   * @param Status $error
    */
   public function setError(Status $error)
   {
@@ -99,7 +151,12 @@ class PrivateConnection extends \Google\Model
     return $this->error;
   }
   /**
-   * @param string[]
+   * The resource labels for private connections to use to annotate any related
+   * underlying resources such as Compute Engine VMs. An object containing a
+   * list of "key": "value" pairs. Example: `{ "name": "wrench", "mass":
+   * "1.3kg", "count": "3" }`.
+   *
+   * @param string[] $labels
    */
   public function setLabels($labels)
   {
@@ -113,7 +170,9 @@ class PrivateConnection extends \Google\Model
     return $this->labels;
   }
   /**
-   * @param string
+   * The name of the resource.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -127,7 +186,25 @@ class PrivateConnection extends \Google\Model
     return $this->name;
   }
   /**
-   * @param bool
+   * PSC Interface configuration.
+   *
+   * @param PscInterfaceConfig $pscInterfaceConfig
+   */
+  public function setPscInterfaceConfig(PscInterfaceConfig $pscInterfaceConfig)
+  {
+    $this->pscInterfaceConfig = $pscInterfaceConfig;
+  }
+  /**
+   * @return PscInterfaceConfig
+   */
+  public function getPscInterfaceConfig()
+  {
+    return $this->pscInterfaceConfig;
+  }
+  /**
+   * Output only. Reserved for future use.
+   *
+   * @param bool $satisfiesPzi
    */
   public function setSatisfiesPzi($satisfiesPzi)
   {
@@ -141,7 +218,9 @@ class PrivateConnection extends \Google\Model
     return $this->satisfiesPzi;
   }
   /**
-   * @param bool
+   * Output only. Reserved for future use.
+   *
+   * @param bool $satisfiesPzs
    */
   public function setSatisfiesPzs($satisfiesPzs)
   {
@@ -155,21 +234,28 @@ class PrivateConnection extends \Google\Model
     return $this->satisfiesPzs;
   }
   /**
-   * @param string
+   * Output only. The state of the private connection.
+   *
+   * Accepted values: STATE_UNSPECIFIED, CREATING, CREATED, FAILED, DELETING,
+   * FAILED_TO_DELETE, DELETED
+   *
+   * @param self::STATE_* $state
    */
   public function setState($state)
   {
     $this->state = $state;
   }
   /**
-   * @return string
+   * @return self::STATE_*
    */
   public function getState()
   {
     return $this->state;
   }
   /**
-   * @param string
+   * Output only. The last update time of the resource.
+   *
+   * @param string $updateTime
    */
   public function setUpdateTime($updateTime)
   {
@@ -183,7 +269,9 @@ class PrivateConnection extends \Google\Model
     return $this->updateTime;
   }
   /**
-   * @param VpcPeeringConfig
+   * VPC peering configuration.
+   *
+   * @param VpcPeeringConfig $vpcPeeringConfig
    */
   public function setVpcPeeringConfig(VpcPeeringConfig $vpcPeeringConfig)
   {

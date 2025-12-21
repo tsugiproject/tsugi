@@ -25,20 +25,30 @@ class SearchResponse extends \Google\Collection
         "type" => "@type",
   ];
   /**
+   * The local context applicable for the response. See more details at
+   * http://www.w3.org/TR/json-ld/#context-definitions.
+   *
    * @var array
    */
   public $context;
   /**
+   * The schema type of top-level JSON-LD object, e.g. ItemList.
+   *
    * @var array
    */
   public $type;
   /**
+   * The item list of search results.
+   *
    * @var array[]
    */
   public $itemListElement;
 
   /**
-   * @param array
+   * The local context applicable for the response. See more details at
+   * http://www.w3.org/TR/json-ld/#context-definitions.
+   *
+   * @param array $context
    */
   public function setContext($context)
   {
@@ -52,7 +62,9 @@ class SearchResponse extends \Google\Collection
     return $this->context;
   }
   /**
-   * @param array
+   * The schema type of top-level JSON-LD object, e.g. ItemList.
+   *
+   * @param array $type
    */
   public function setType($type)
   {
@@ -66,7 +78,9 @@ class SearchResponse extends \Google\Collection
     return $this->type;
   }
   /**
-   * @param array[]
+   * The item list of search results.
+   *
+   * @param array[] $itemListElement
    */
   public function setItemListElement($itemListElement)
   {

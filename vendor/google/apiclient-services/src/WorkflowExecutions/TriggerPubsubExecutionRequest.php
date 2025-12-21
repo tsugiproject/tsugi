@@ -23,22 +23,38 @@ class TriggerPubsubExecutionRequest extends \Google\Model
         "gCPCloudEventsMode" => "GCPCloudEventsMode",
   ];
   /**
+   * Required. LINT: LEGACY_NAMES The query parameter value for
+   * __GCP_CloudEventsMode, set by the Eventarc service when configuring
+   * triggers.
+   *
    * @var string
    */
   public $gCPCloudEventsMode;
   /**
+   * The number of attempts that have been made to deliver this message. This is
+   * set by Pub/Sub for subscriptions that have the "dead letter" feature
+   * enabled, and hence provided here for compatibility, but is ignored by
+   * Workflows.
+   *
    * @var int
    */
   public $deliveryAttempt;
   protected $messageType = PubsubMessage::class;
   protected $messageDataType = '';
   /**
+   * Required. The subscription of the Pub/Sub push notification. Format:
+   * projects/{project}/subscriptions/{sub}
+   *
    * @var string
    */
   public $subscription;
 
   /**
-   * @param string
+   * Required. LINT: LEGACY_NAMES The query parameter value for
+   * __GCP_CloudEventsMode, set by the Eventarc service when configuring
+   * triggers.
+   *
+   * @param string $gCPCloudEventsMode
    */
   public function setGCPCloudEventsMode($gCPCloudEventsMode)
   {
@@ -52,7 +68,12 @@ class TriggerPubsubExecutionRequest extends \Google\Model
     return $this->gCPCloudEventsMode;
   }
   /**
-   * @param int
+   * The number of attempts that have been made to deliver this message. This is
+   * set by Pub/Sub for subscriptions that have the "dead letter" feature
+   * enabled, and hence provided here for compatibility, but is ignored by
+   * Workflows.
+   *
+   * @param int $deliveryAttempt
    */
   public function setDeliveryAttempt($deliveryAttempt)
   {
@@ -66,7 +87,9 @@ class TriggerPubsubExecutionRequest extends \Google\Model
     return $this->deliveryAttempt;
   }
   /**
-   * @param PubsubMessage
+   * Required. The message of the Pub/Sub push notification.
+   *
+   * @param PubsubMessage $message
    */
   public function setMessage(PubsubMessage $message)
   {
@@ -80,7 +103,10 @@ class TriggerPubsubExecutionRequest extends \Google\Model
     return $this->message;
   }
   /**
-   * @param string
+   * Required. The subscription of the Pub/Sub push notification. Format:
+   * projects/{project}/subscriptions/{sub}
+   *
+   * @param string $subscription
    */
   public function setSubscription($subscription)
   {

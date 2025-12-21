@@ -20,12 +20,16 @@ namespace Google\Service\Licensing;
 class LicenseAssignmentInsert extends \Google\Model
 {
   /**
+   * Email id of the user
+   *
    * @var string
    */
   public $userId;
 
   /**
-   * @param string
+   * Email id of the user
+   *
+   * @param string $userId
    */
   public function setUserId($userId)
   {

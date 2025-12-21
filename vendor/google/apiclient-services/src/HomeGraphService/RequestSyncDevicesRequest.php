@@ -20,16 +20,24 @@ namespace Google\Service\HomeGraphService;
 class RequestSyncDevicesRequest extends \Google\Model
 {
   /**
+   * Required. Third-party user ID.
+   *
    * @var string
    */
   public $agentUserId;
   /**
+   * Optional. If set, the request will be added to a queue and a response will
+   * be returned immediately. This enables concurrent requests for the given
+   * `agent_user_id`, but the caller will not receive any error responses.
+   *
    * @var bool
    */
   public $async;
 
   /**
-   * @param string
+   * Required. Third-party user ID.
+   *
+   * @param string $agentUserId
    */
   public function setAgentUserId($agentUserId)
   {
@@ -43,7 +51,11 @@ class RequestSyncDevicesRequest extends \Google\Model
     return $this->agentUserId;
   }
   /**
-   * @param bool
+   * Optional. If set, the request will be added to a queue and a response will
+   * be returned immediately. This enables concurrent requests for the given
+   * `agent_user_id`, but the caller will not receive any error responses.
+   *
+   * @param bool $async
    */
   public function setAsync($async)
   {

@@ -20,16 +20,26 @@ namespace Google\Service\AndroidEnterprise;
 class ProductSigningCertificate extends \Google\Model
 {
   /**
+   * The base64 urlsafe encoded SHA1 hash of the certificate. (This field is
+   * deprecated in favor of SHA2-256. It should not be used and may be removed
+   * at any time.)
+   *
    * @var string
    */
   public $certificateHashSha1;
   /**
+   * The base64 urlsafe encoded SHA2-256 hash of the certificate.
+   *
    * @var string
    */
   public $certificateHashSha256;
 
   /**
-   * @param string
+   * The base64 urlsafe encoded SHA1 hash of the certificate. (This field is
+   * deprecated in favor of SHA2-256. It should not be used and may be removed
+   * at any time.)
+   *
+   * @param string $certificateHashSha1
    */
   public function setCertificateHashSha1($certificateHashSha1)
   {
@@ -43,7 +53,9 @@ class ProductSigningCertificate extends \Google\Model
     return $this->certificateHashSha1;
   }
   /**
-   * @param string
+   * The base64 urlsafe encoded SHA2-256 hash of the certificate.
+   *
+   * @param string $certificateHashSha256
    */
   public function setCertificateHashSha256($certificateHashSha256)
   {

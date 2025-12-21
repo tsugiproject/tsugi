@@ -20,28 +20,74 @@ namespace Google\Service\CloudVideoIntelligence;
 class GoogleCloudVideointelligenceV1LabelDetectionConfig extends \Google\Model
 {
   /**
+   * Unspecified.
+   */
+  public const LABEL_DETECTION_MODE_LABEL_DETECTION_MODE_UNSPECIFIED = 'LABEL_DETECTION_MODE_UNSPECIFIED';
+  /**
+   * Detect shot-level labels.
+   */
+  public const LABEL_DETECTION_MODE_SHOT_MODE = 'SHOT_MODE';
+  /**
+   * Detect frame-level labels.
+   */
+  public const LABEL_DETECTION_MODE_FRAME_MODE = 'FRAME_MODE';
+  /**
+   * Detect both shot-level and frame-level labels.
+   */
+  public const LABEL_DETECTION_MODE_SHOT_AND_FRAME_MODE = 'SHOT_AND_FRAME_MODE';
+  /**
+   * The confidence threshold we perform filtering on the labels from frame-
+   * level detection. If not set, it is set to 0.4 by default. The valid range
+   * for this threshold is [0.1, 0.9]. Any value set outside of this range will
+   * be clipped. Note: For best results, follow the default threshold. We will
+   * update the default threshold everytime when we release a new model.
+   *
    * @var float
    */
   public $frameConfidenceThreshold;
   /**
+   * What labels should be detected with LABEL_DETECTION, in addition to video-
+   * level labels or segment-level labels. If unspecified, defaults to
+   * `SHOT_MODE`.
+   *
    * @var string
    */
   public $labelDetectionMode;
   /**
+   * Model to use for label detection. Supported values: "builtin/stable" (the
+   * default if unset) and "builtin/latest".
+   *
    * @var string
    */
   public $model;
   /**
+   * Whether the video has been shot from a stationary (i.e., non-moving)
+   * camera. When set to true, might improve detection accuracy for moving
+   * objects. Should be used with `SHOT_AND_FRAME_MODE` enabled.
+   *
    * @var bool
    */
   public $stationaryCamera;
   /**
+   * The confidence threshold we perform filtering on the labels from video-
+   * level and shot-level detections. If not set, it's set to 0.3 by default.
+   * The valid range for this threshold is [0.1, 0.9]. Any value set outside of
+   * this range will be clipped. Note: For best results, follow the default
+   * threshold. We will update the default threshold everytime when we release a
+   * new model.
+   *
    * @var float
    */
   public $videoConfidenceThreshold;
 
   /**
-   * @param float
+   * The confidence threshold we perform filtering on the labels from frame-
+   * level detection. If not set, it is set to 0.4 by default. The valid range
+   * for this threshold is [0.1, 0.9]. Any value set outside of this range will
+   * be clipped. Note: For best results, follow the default threshold. We will
+   * update the default threshold everytime when we release a new model.
+   *
+   * @param float $frameConfidenceThreshold
    */
   public function setFrameConfidenceThreshold($frameConfidenceThreshold)
   {
@@ -55,21 +101,31 @@ class GoogleCloudVideointelligenceV1LabelDetectionConfig extends \Google\Model
     return $this->frameConfidenceThreshold;
   }
   /**
-   * @param string
+   * What labels should be detected with LABEL_DETECTION, in addition to video-
+   * level labels or segment-level labels. If unspecified, defaults to
+   * `SHOT_MODE`.
+   *
+   * Accepted values: LABEL_DETECTION_MODE_UNSPECIFIED, SHOT_MODE, FRAME_MODE,
+   * SHOT_AND_FRAME_MODE
+   *
+   * @param self::LABEL_DETECTION_MODE_* $labelDetectionMode
    */
   public function setLabelDetectionMode($labelDetectionMode)
   {
     $this->labelDetectionMode = $labelDetectionMode;
   }
   /**
-   * @return string
+   * @return self::LABEL_DETECTION_MODE_*
    */
   public function getLabelDetectionMode()
   {
     return $this->labelDetectionMode;
   }
   /**
-   * @param string
+   * Model to use for label detection. Supported values: "builtin/stable" (the
+   * default if unset) and "builtin/latest".
+   *
+   * @param string $model
    */
   public function setModel($model)
   {
@@ -83,7 +139,11 @@ class GoogleCloudVideointelligenceV1LabelDetectionConfig extends \Google\Model
     return $this->model;
   }
   /**
-   * @param bool
+   * Whether the video has been shot from a stationary (i.e., non-moving)
+   * camera. When set to true, might improve detection accuracy for moving
+   * objects. Should be used with `SHOT_AND_FRAME_MODE` enabled.
+   *
+   * @param bool $stationaryCamera
    */
   public function setStationaryCamera($stationaryCamera)
   {
@@ -97,7 +157,14 @@ class GoogleCloudVideointelligenceV1LabelDetectionConfig extends \Google\Model
     return $this->stationaryCamera;
   }
   /**
-   * @param float
+   * The confidence threshold we perform filtering on the labels from video-
+   * level and shot-level detections. If not set, it's set to 0.3 by default.
+   * The valid range for this threshold is [0.1, 0.9]. Any value set outside of
+   * this range will be clipped. Note: For best results, follow the default
+   * threshold. We will update the default threshold everytime when we release a
+   * new model.
+   *
+   * @param float $videoConfidenceThreshold
    */
   public function setVideoConfidenceThreshold($videoConfidenceThreshold)
   {

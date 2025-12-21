@@ -21,10 +21,15 @@ class SiteVerificationWebResourceResource extends \Google\Collection
 {
   protected $collection_key = 'owners';
   /**
+   * The string used to identify this site. This value should be used in the
+   * "id" portion of the REST URL for the Get, Update, and Delete operations.
+   *
    * @var string
    */
   public $id;
   /**
+   * The email addresses of all verified owners.
+   *
    * @var string[]
    */
   public $owners;
@@ -32,7 +37,10 @@ class SiteVerificationWebResourceResource extends \Google\Collection
   protected $siteDataType = '';
 
   /**
-   * @param string
+   * The string used to identify this site. This value should be used in the
+   * "id" portion of the REST URL for the Get, Update, and Delete operations.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -46,7 +54,9 @@ class SiteVerificationWebResourceResource extends \Google\Collection
     return $this->id;
   }
   /**
-   * @param string[]
+   * The email addresses of all verified owners.
+   *
+   * @param string[] $owners
    */
   public function setOwners($owners)
   {
@@ -60,7 +70,9 @@ class SiteVerificationWebResourceResource extends \Google\Collection
     return $this->owners;
   }
   /**
-   * @param SiteVerificationWebResourceResourceSite
+   * The address and type of a site that is verified or will be verified.
+   *
+   * @param SiteVerificationWebResourceResourceSite $site
    */
   public function setSite(SiteVerificationWebResourceResourceSite $site)
   {

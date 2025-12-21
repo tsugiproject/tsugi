@@ -29,7 +29,7 @@ use Google\Client;
  *
  * <p>
  * For more information about this service, see the API
- * <a href="https://developers.google.com/admin-sdk/" target="_blank">Documentation</a>
+ * <a href="https://developers.google.com/workspace/admin/" target="_blank">Documentation</a>
  * </p>
  *
  * @author Google, Inc.
@@ -1978,7 +1978,11 @@ class Directory extends \Google\Service
         'users',
         [
           'methods' => [
-            'delete' => [
+            'createGuest' => [
+              'path' => 'admin/directory/v1/users:createGuest',
+              'httpMethod' => 'POST',
+              'parameters' => [],
+            ],'delete' => [
               'path' => 'admin/directory/v1/users/{userKey}',
               'httpMethod' => 'DELETE',
               'parameters' => [

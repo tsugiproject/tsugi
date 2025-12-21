@@ -25,28 +25,41 @@ class EntityAdWordsLink extends \Google\Collection
   protected $entityType = EntityAdWordsLinkEntity::class;
   protected $entityDataType = '';
   /**
+   * Entity Google Ads link ID
+   *
    * @var string
    */
   public $id;
   /**
+   * Resource type for entity Google Ads link.
+   *
    * @var string
    */
   public $kind;
   /**
+   * Name of the link. This field is required when creating a Google Ads link.
+   *
    * @var string
    */
   public $name;
   /**
+   * IDs of linked Views (Profiles) represented as strings.
+   *
    * @var string[]
    */
   public $profileIds;
   /**
+   * URL link for this Google Analytics - Google Ads link.
+   *
    * @var string
    */
   public $selfLink;
 
   /**
-   * @param AdWordsAccount[]
+   * A list of Google Ads client accounts. These cannot be MCC accounts. This
+   * field is required when creating a Google Ads link. It cannot be empty.
+   *
+   * @param AdWordsAccount[] $adWordsAccounts
    */
   public function setAdWordsAccounts($adWordsAccounts)
   {
@@ -60,7 +73,9 @@ class EntityAdWordsLink extends \Google\Collection
     return $this->adWordsAccounts;
   }
   /**
-   * @param EntityAdWordsLinkEntity
+   * Web property being linked.
+   *
+   * @param EntityAdWordsLinkEntity $entity
    */
   public function setEntity(EntityAdWordsLinkEntity $entity)
   {
@@ -74,7 +89,9 @@ class EntityAdWordsLink extends \Google\Collection
     return $this->entity;
   }
   /**
-   * @param string
+   * Entity Google Ads link ID
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -88,7 +105,9 @@ class EntityAdWordsLink extends \Google\Collection
     return $this->id;
   }
   /**
-   * @param string
+   * Resource type for entity Google Ads link.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -102,7 +121,9 @@ class EntityAdWordsLink extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * Name of the link. This field is required when creating a Google Ads link.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -116,7 +137,9 @@ class EntityAdWordsLink extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param string[]
+   * IDs of linked Views (Profiles) represented as strings.
+   *
+   * @param string[] $profileIds
    */
   public function setProfileIds($profileIds)
   {
@@ -130,7 +153,9 @@ class EntityAdWordsLink extends \Google\Collection
     return $this->profileIds;
   }
   /**
-   * @param string
+   * URL link for this Google Analytics - Google Ads link.
+   *
+   * @param string $selfLink
    */
   public function setSelfLink($selfLink)
   {

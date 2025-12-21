@@ -20,20 +20,30 @@ namespace Google\Service\Meet;
 class ParticipantSession extends \Google\Model
 {
   /**
+   * Output only. Timestamp when the user session ends. Unset if the user
+   * session hasn’t ended.
+   *
    * @var string
    */
   public $endTime;
   /**
+   * Identifier. Session id.
+   *
    * @var string
    */
   public $name;
   /**
+   * Output only. Timestamp when the user session starts.
+   *
    * @var string
    */
   public $startTime;
 
   /**
-   * @param string
+   * Output only. Timestamp when the user session ends. Unset if the user
+   * session hasn’t ended.
+   *
+   * @param string $endTime
    */
   public function setEndTime($endTime)
   {
@@ -47,7 +57,9 @@ class ParticipantSession extends \Google\Model
     return $this->endTime;
   }
   /**
-   * @param string
+   * Identifier. Session id.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -61,7 +73,9 @@ class ParticipantSession extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Output only. Timestamp when the user session starts.
+   *
+   * @param string $startTime
    */
   public function setStartTime($startTime)
   {

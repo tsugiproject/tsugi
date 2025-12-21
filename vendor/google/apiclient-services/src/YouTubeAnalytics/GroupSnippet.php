@@ -20,16 +20,24 @@ namespace Google\Service\YouTubeAnalytics;
 class GroupSnippet extends \Google\Model
 {
   /**
+   * The date and time that the group was created. The value is specified in ISO
+   * 8601 (YYYY-MM-DDThh:mm:ss.sZ) format.
+   *
    * @var string
    */
   public $publishedAt;
   /**
+   * The group name. The value must be a non-empty string.
+   *
    * @var string
    */
   public $title;
 
   /**
-   * @param string
+   * The date and time that the group was created. The value is specified in ISO
+   * 8601 (YYYY-MM-DDThh:mm:ss.sZ) format.
+   *
+   * @param string $publishedAt
    */
   public function setPublishedAt($publishedAt)
   {
@@ -43,7 +51,9 @@ class GroupSnippet extends \Google\Model
     return $this->publishedAt;
   }
   /**
-   * @param string
+   * The group name. The value must be a non-empty string.
+   *
+   * @param string $title
    */
   public function setTitle($title)
   {

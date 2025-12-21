@@ -27,7 +27,10 @@ class GenerateMediationReportResponse extends \Google\Model
   protected $rowDataType = '';
 
   /**
-   * @param ReportFooter
+   * Additional information about the generated report, such as warnings about
+   * the data.
+   *
+   * @param ReportFooter $footer
    */
   public function setFooter(ReportFooter $footer)
   {
@@ -41,7 +44,10 @@ class GenerateMediationReportResponse extends \Google\Model
     return $this->footer;
   }
   /**
-   * @param ReportHeader
+   * Report generation settings that describes the report contents, such as the
+   * report date range and localization settings.
+   *
+   * @param ReportHeader $header
    */
   public function setHeader(ReportHeader $header)
   {
@@ -55,7 +61,9 @@ class GenerateMediationReportResponse extends \Google\Model
     return $this->header;
   }
   /**
-   * @param ReportRow
+   * Actual report data.
+   *
+   * @param ReportRow $row
    */
   public function setRow(ReportRow $row)
   {

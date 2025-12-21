@@ -21,12 +21,20 @@ class ColumnDescription extends \Google\Collection
 {
   protected $collection_key = 'labels';
   /**
+   * Data type of the column Supported types are auto_id, boolean, boolean_list,
+   * creator, create_timestamp, date, dropdown, location, integer, integer_list,
+   * number, number_list, person, person_list, tags, check_list, text,
+   * text_list, update_timestamp, updater, relationship, file_attachment_list.
+   * These types directly map to the column types supported on Tables website.
+   *
    * @var string
    */
   public $dataType;
   protected $dateDetailsType = DateDetails::class;
   protected $dateDetailsDataType = '';
   /**
+   * Internal id for a column.
+   *
    * @var string
    */
   public $id;
@@ -35,14 +43,21 @@ class ColumnDescription extends \Google\Collection
   protected $lookupDetailsType = LookupDetails::class;
   protected $lookupDetailsDataType = '';
   /**
+   * Optional. Indicates whether or not multiple values are allowed for array
+   * types where such a restriction is possible.
+   *
    * @var bool
    */
   public $multipleValuesDisallowed;
   /**
+   * column name
+   *
    * @var string
    */
   public $name;
   /**
+   * Optional. Indicates that values for the column cannot be set by the user.
+   *
    * @var bool
    */
   public $readonly;
@@ -50,7 +65,13 @@ class ColumnDescription extends \Google\Collection
   protected $relationshipDetailsDataType = '';
 
   /**
-   * @param string
+   * Data type of the column Supported types are auto_id, boolean, boolean_list,
+   * creator, create_timestamp, date, dropdown, location, integer, integer_list,
+   * number, number_list, person, person_list, tags, check_list, text,
+   * text_list, update_timestamp, updater, relationship, file_attachment_list.
+   * These types directly map to the column types supported on Tables website.
+   *
+   * @param string $dataType
    */
   public function setDataType($dataType)
   {
@@ -64,7 +85,9 @@ class ColumnDescription extends \Google\Collection
     return $this->dataType;
   }
   /**
-   * @param DateDetails
+   * Optional. Additional details about a date column.
+   *
+   * @param DateDetails $dateDetails
    */
   public function setDateDetails(DateDetails $dateDetails)
   {
@@ -78,7 +101,9 @@ class ColumnDescription extends \Google\Collection
     return $this->dateDetails;
   }
   /**
-   * @param string
+   * Internal id for a column.
+   *
+   * @param string $id
    */
   public function setId($id)
   {
@@ -92,7 +117,12 @@ class ColumnDescription extends \Google\Collection
     return $this->id;
   }
   /**
-   * @param LabeledItem[]
+   * Optional. Range of labeled values for the column. Some columns like tags
+   * and drop-downs limit the values to a set of possible values. We return the
+   * range of values in such cases to help clients implement better user data
+   * validation.
+   *
+   * @param LabeledItem[] $labels
    */
   public function setLabels($labels)
   {
@@ -106,7 +136,12 @@ class ColumnDescription extends \Google\Collection
     return $this->labels;
   }
   /**
-   * @param LookupDetails
+   * Optional. Indicates that this is a lookup column whose value is derived
+   * from the relationship column specified in the details. Lookup columns can
+   * not be updated directly. To change the value you must update the associated
+   * relationship column.
+   *
+   * @param LookupDetails $lookupDetails
    */
   public function setLookupDetails(LookupDetails $lookupDetails)
   {
@@ -120,7 +155,10 @@ class ColumnDescription extends \Google\Collection
     return $this->lookupDetails;
   }
   /**
-   * @param bool
+   * Optional. Indicates whether or not multiple values are allowed for array
+   * types where such a restriction is possible.
+   *
+   * @param bool $multipleValuesDisallowed
    */
   public function setMultipleValuesDisallowed($multipleValuesDisallowed)
   {
@@ -134,7 +172,9 @@ class ColumnDescription extends \Google\Collection
     return $this->multipleValuesDisallowed;
   }
   /**
-   * @param string
+   * column name
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -148,7 +188,9 @@ class ColumnDescription extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param bool
+   * Optional. Indicates that values for the column cannot be set by the user.
+   *
+   * @param bool $readonly
    */
   public function setReadonly($readonly)
   {
@@ -162,7 +204,10 @@ class ColumnDescription extends \Google\Collection
     return $this->readonly;
   }
   /**
-   * @param RelationshipDetails
+   * Optional. Additional details about a relationship column. Specified when
+   * data_type is relationship.
+   *
+   * @param RelationshipDetails $relationshipDetails
    */
   public function setRelationshipDetails(RelationshipDetails $relationshipDetails)
   {

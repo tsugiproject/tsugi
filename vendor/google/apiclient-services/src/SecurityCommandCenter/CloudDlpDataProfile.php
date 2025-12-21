@@ -17,19 +17,42 @@
 
 namespace Google\Service\SecurityCommandCenter;
 
-class CloudDlpDataProfile extends \Google\Model
+class CloudDlpDataProfile extends \Google\Collection
 {
   /**
+   * Unspecified parent type.
+   */
+  public const PARENT_TYPE_PARENT_TYPE_UNSPECIFIED = 'PARENT_TYPE_UNSPECIFIED';
+  /**
+   * Organization-level configurations.
+   */
+  public const PARENT_TYPE_ORGANIZATION = 'ORGANIZATION';
+  /**
+   * Project-level configurations.
+   */
+  public const PARENT_TYPE_PROJECT = 'PROJECT';
+  protected $collection_key = 'infoTypes';
+  /**
+   * Name of the data profile, for example,
+   * `projects/123/locations/europe/tableProfiles/8383929`.
+   *
    * @var string
    */
   public $dataProfile;
+  protected $infoTypesType = InfoType::class;
+  protected $infoTypesDataType = 'array';
   /**
+   * The resource hierarchy level at which the data profile was generated.
+   *
    * @var string
    */
   public $parentType;
 
   /**
-   * @param string
+   * Name of the data profile, for example,
+   * `projects/123/locations/europe/tableProfiles/8383929`.
+   *
+   * @param string $dataProfile
    */
   public function setDataProfile($dataProfile)
   {
@@ -43,14 +66,35 @@ class CloudDlpDataProfile extends \Google\Model
     return $this->dataProfile;
   }
   /**
-   * @param string
+   * Type of information detected by SDP. Info type includes name, version and
+   * sensitivity of the detected information type.
+   *
+   * @param InfoType[] $infoTypes
+   */
+  public function setInfoTypes($infoTypes)
+  {
+    $this->infoTypes = $infoTypes;
+  }
+  /**
+   * @return InfoType[]
+   */
+  public function getInfoTypes()
+  {
+    return $this->infoTypes;
+  }
+  /**
+   * The resource hierarchy level at which the data profile was generated.
+   *
+   * Accepted values: PARENT_TYPE_UNSPECIFIED, ORGANIZATION, PROJECT
+   *
+   * @param self::PARENT_TYPE_* $parentType
    */
   public function setParentType($parentType)
   {
     $this->parentType = $parentType;
   }
   /**
-   * @return string
+   * @return self::PARENT_TYPE_*
    */
   public function getParentType()
   {

@@ -23,12 +23,17 @@ class ListApiSpecsResponse extends \Google\Collection
   protected $apiSpecsType = ApiSpec::class;
   protected $apiSpecsDataType = 'array';
   /**
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param ApiSpec[]
+   * The specs from the specified publisher.
+   *
+   * @param ApiSpec[] $apiSpecs
    */
   public function setApiSpecs($apiSpecs)
   {
@@ -42,7 +47,10 @@ class ListApiSpecsResponse extends \Google\Collection
     return $this->apiSpecs;
   }
   /**
-   * @param string
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

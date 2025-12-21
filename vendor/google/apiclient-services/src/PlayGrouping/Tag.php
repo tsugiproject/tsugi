@@ -20,28 +20,40 @@ namespace Google\Service\PlayGrouping;
 class Tag extends \Google\Model
 {
   /**
+   * A boolean value of the tag.
+   *
    * @var bool
    */
   public $booleanValue;
   /**
+   * A signed 64-bit integer value of the tag.
+   *
    * @var string
    */
   public $int64Value;
   /**
+   * Required. Key for the tag.
+   *
    * @var string
    */
   public $key;
   /**
+   * A string value of the tag.
+   *
    * @var string
    */
   public $stringValue;
   /**
+   * A time value of the tag.
+   *
    * @var string
    */
   public $timeValue;
 
   /**
-   * @param bool
+   * A boolean value of the tag.
+   *
+   * @param bool $booleanValue
    */
   public function setBooleanValue($booleanValue)
   {
@@ -55,7 +67,9 @@ class Tag extends \Google\Model
     return $this->booleanValue;
   }
   /**
-   * @param string
+   * A signed 64-bit integer value of the tag.
+   *
+   * @param string $int64Value
    */
   public function setInt64Value($int64Value)
   {
@@ -69,7 +83,9 @@ class Tag extends \Google\Model
     return $this->int64Value;
   }
   /**
-   * @param string
+   * Required. Key for the tag.
+   *
+   * @param string $key
    */
   public function setKey($key)
   {
@@ -83,7 +99,9 @@ class Tag extends \Google\Model
     return $this->key;
   }
   /**
-   * @param string
+   * A string value of the tag.
+   *
+   * @param string $stringValue
    */
   public function setStringValue($stringValue)
   {
@@ -97,7 +115,9 @@ class Tag extends \Google\Model
     return $this->stringValue;
   }
   /**
-   * @param string
+   * A time value of the tag.
+   *
+   * @param string $timeValue
    */
   public function setTimeValue($timeValue)
   {

@@ -43,7 +43,7 @@ class PeopleService extends \Google\Service
   /** See and download your contacts. */
   const CONTACTS_READONLY =
       "https://www.googleapis.com/auth/contacts.readonly";
-  /** See and download your organization's GSuite directory. */
+  /** See and download your organization's Google Workspace directory. */
   const DIRECTORY_READONLY =
       "https://www.googleapis.com/auth/directory.readonly";
   /** View your street addresses. */

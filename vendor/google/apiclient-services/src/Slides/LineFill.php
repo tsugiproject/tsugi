@@ -23,7 +23,9 @@ class LineFill extends \Google\Model
   protected $solidFillDataType = '';
 
   /**
-   * @param SolidFill
+   * Solid color fill.
+   *
+   * @param SolidFill $solidFill
    */
   public function setSolidFill(SolidFill $solidFill)
   {

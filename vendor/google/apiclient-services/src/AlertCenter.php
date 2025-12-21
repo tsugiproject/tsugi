@@ -28,14 +28,14 @@ use Google\Client;
  *
  * <p>
  * For more information about this service, see the API
- * <a href="https://developers.google.com/admin-sdk/alertcenter/" target="_blank">Documentation</a>
+ * <a href="https://developers.google.com/workspace/admin/alertcenter/" target="_blank">Documentation</a>
  * </p>
  *
  * @author Google, Inc.
  */
 class AlertCenter extends \Google\Service
 {
-  /** See and delete your domain's G Suite alerts, and send alert feedback. */
+  /** See and delete your domain's Google Workspace alerts, and send alert feedback. */
   const APPS_ALERTS =
       "https://www.googleapis.com/auth/apps.alerts";
 

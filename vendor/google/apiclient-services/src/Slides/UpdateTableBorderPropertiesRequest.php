@@ -20,14 +20,64 @@ namespace Google\Service\Slides;
 class UpdateTableBorderPropertiesRequest extends \Google\Model
 {
   /**
+   * All borders in the range.
+   */
+  public const BORDER_POSITION_ALL = 'ALL';
+  /**
+   * Borders at the bottom of the range.
+   */
+  public const BORDER_POSITION_BOTTOM = 'BOTTOM';
+  /**
+   * Borders on the inside of the range.
+   */
+  public const BORDER_POSITION_INNER = 'INNER';
+  /**
+   * Horizontal borders on the inside of the range.
+   */
+  public const BORDER_POSITION_INNER_HORIZONTAL = 'INNER_HORIZONTAL';
+  /**
+   * Vertical borders on the inside of the range.
+   */
+  public const BORDER_POSITION_INNER_VERTICAL = 'INNER_VERTICAL';
+  /**
+   * Borders at the left of the range.
+   */
+  public const BORDER_POSITION_LEFT = 'LEFT';
+  /**
+   * Borders along the outside of the range.
+   */
+  public const BORDER_POSITION_OUTER = 'OUTER';
+  /**
+   * Borders at the right of the range.
+   */
+  public const BORDER_POSITION_RIGHT = 'RIGHT';
+  /**
+   * Borders at the top of the range.
+   */
+  public const BORDER_POSITION_TOP = 'TOP';
+  /**
+   * The border position in the table range the updates should apply to. If a
+   * border position is not specified, the updates will apply to all borders in
+   * the table range.
+   *
    * @var string
    */
   public $borderPosition;
   /**
+   * The fields that should be updated. At least one field must be specified.
+   * The root `tableBorderProperties` is implied and should not be specified. A
+   * single `"*"` can be used as short-hand for listing every field. For example
+   * to update the table border solid fill color, set `fields` to
+   * `"tableBorderFill.solidFill.color"`. To reset a property to its default
+   * value, include its field name in the field mask but leave the field itself
+   * unset.
+   *
    * @var string
    */
   public $fields;
   /**
+   * The object ID of the table.
+   *
    * @var string
    */
   public $objectId;
@@ -37,21 +87,36 @@ class UpdateTableBorderPropertiesRequest extends \Google\Model
   protected $tableRangeDataType = '';
 
   /**
-   * @param string
+   * The border position in the table range the updates should apply to. If a
+   * border position is not specified, the updates will apply to all borders in
+   * the table range.
+   *
+   * Accepted values: ALL, BOTTOM, INNER, INNER_HORIZONTAL, INNER_VERTICAL,
+   * LEFT, OUTER, RIGHT, TOP
+   *
+   * @param self::BORDER_POSITION_* $borderPosition
    */
   public function setBorderPosition($borderPosition)
   {
     $this->borderPosition = $borderPosition;
   }
   /**
-   * @return string
+   * @return self::BORDER_POSITION_*
    */
   public function getBorderPosition()
   {
     return $this->borderPosition;
   }
   /**
-   * @param string
+   * The fields that should be updated. At least one field must be specified.
+   * The root `tableBorderProperties` is implied and should not be specified. A
+   * single `"*"` can be used as short-hand for listing every field. For example
+   * to update the table border solid fill color, set `fields` to
+   * `"tableBorderFill.solidFill.color"`. To reset a property to its default
+   * value, include its field name in the field mask but leave the field itself
+   * unset.
+   *
+   * @param string $fields
    */
   public function setFields($fields)
   {
@@ -65,7 +130,9 @@ class UpdateTableBorderPropertiesRequest extends \Google\Model
     return $this->fields;
   }
   /**
-   * @param string
+   * The object ID of the table.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {
@@ -79,7 +146,9 @@ class UpdateTableBorderPropertiesRequest extends \Google\Model
     return $this->objectId;
   }
   /**
-   * @param TableBorderProperties
+   * The table border properties to update.
+   *
+   * @param TableBorderProperties $tableBorderProperties
    */
   public function setTableBorderProperties(TableBorderProperties $tableBorderProperties)
   {
@@ -93,7 +162,11 @@ class UpdateTableBorderPropertiesRequest extends \Google\Model
     return $this->tableBorderProperties;
   }
   /**
-   * @param TableRange
+   * The table range representing the subset of the table to which the updates
+   * are applied. If a table range is not specified, the updates will apply to
+   * the entire table.
+   *
+   * @param TableRange $tableRange
    */
   public function setTableRange(TableRange $tableRange)
   {

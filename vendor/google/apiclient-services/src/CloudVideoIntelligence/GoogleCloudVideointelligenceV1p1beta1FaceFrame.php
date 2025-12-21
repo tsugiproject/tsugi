@@ -23,12 +23,18 @@ class GoogleCloudVideointelligenceV1p1beta1FaceFrame extends \Google\Collection
   protected $normalizedBoundingBoxesType = GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingBox::class;
   protected $normalizedBoundingBoxesDataType = 'array';
   /**
+   * Time-offset, relative to the beginning of the video, corresponding to the
+   * video frame for this location.
+   *
    * @var string
    */
   public $timeOffset;
 
   /**
-   * @param GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingBox[]
+   * Normalized Bounding boxes in a frame. There can be more than one boxes if
+   * the same face is detected in multiple locations within the current frame.
+   *
+   * @param GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingBox[] $normalizedBoundingBoxes
    */
   public function setNormalizedBoundingBoxes($normalizedBoundingBoxes)
   {
@@ -42,7 +48,10 @@ class GoogleCloudVideointelligenceV1p1beta1FaceFrame extends \Google\Collection
     return $this->normalizedBoundingBoxes;
   }
   /**
-   * @param string
+   * Time-offset, relative to the beginning of the video, corresponding to the
+   * video frame for this location.
+   *
+   * @param string $timeOffset
    */
   public function setTimeOffset($timeOffset)
   {

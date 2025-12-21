@@ -25,16 +25,22 @@ class GoogleCloudAdvisorynotificationsV1Message extends \Google\Collection
   protected $bodyType = GoogleCloudAdvisorynotificationsV1MessageBody::class;
   protected $bodyDataType = '';
   /**
+   * The Message creation timestamp.
+   *
    * @var string
    */
   public $createTime;
   /**
+   * Time when Message was localized
+   *
    * @var string
    */
   public $localizationTime;
 
   /**
-   * @param GoogleCloudAdvisorynotificationsV1Attachment[]
+   * The attachments to download.
+   *
+   * @param GoogleCloudAdvisorynotificationsV1Attachment[] $attachments
    */
   public function setAttachments($attachments)
   {
@@ -48,7 +54,9 @@ class GoogleCloudAdvisorynotificationsV1Message extends \Google\Collection
     return $this->attachments;
   }
   /**
-   * @param GoogleCloudAdvisorynotificationsV1MessageBody
+   * The message content.
+   *
+   * @param GoogleCloudAdvisorynotificationsV1MessageBody $body
    */
   public function setBody(GoogleCloudAdvisorynotificationsV1MessageBody $body)
   {
@@ -62,7 +70,9 @@ class GoogleCloudAdvisorynotificationsV1Message extends \Google\Collection
     return $this->body;
   }
   /**
-   * @param string
+   * The Message creation timestamp.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -76,7 +86,9 @@ class GoogleCloudAdvisorynotificationsV1Message extends \Google\Collection
     return $this->createTime;
   }
   /**
-   * @param string
+   * Time when Message was localized
+   *
+   * @param string $localizationTime
    */
   public function setLocalizationTime($localizationTime)
   {

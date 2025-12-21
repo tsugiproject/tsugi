@@ -20,6 +20,9 @@ namespace Google\Service\Keep;
 class CreatePermissionRequest extends \Google\Model
 {
   /**
+   * Required. The parent note where this permission will be created. Format:
+   * `notes/{note}`
+   *
    * @var string
    */
   public $parent;
@@ -27,7 +30,10 @@ class CreatePermissionRequest extends \Google\Model
   protected $permissionDataType = '';
 
   /**
-   * @param string
+   * Required. The parent note where this permission will be created. Format:
+   * `notes/{note}`
+   *
+   * @param string $parent
    */
   public function setParent($parent)
   {
@@ -41,7 +47,10 @@ class CreatePermissionRequest extends \Google\Model
     return $this->parent;
   }
   /**
-   * @param Permission
+   * Required. The permission to create. One of Permission.email, User.email or
+   * Group.email must be supplied.
+   *
+   * @param Permission $permission
    */
   public function setPermission(Permission $permission)
   {

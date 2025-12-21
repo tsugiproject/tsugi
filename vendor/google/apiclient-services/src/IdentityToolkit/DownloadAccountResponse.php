@@ -21,10 +21,15 @@ class DownloadAccountResponse extends \Google\Collection
 {
   protected $collection_key = 'users';
   /**
+   * The fixed string "identitytoolkit#DownloadAccountResponse".
+   *
    * @var string
    */
   public $kind;
   /**
+   * The next page token. To be used in a subsequent request to return the next
+   * page of results.
+   *
    * @var string
    */
   public $nextPageToken;
@@ -32,7 +37,9 @@ class DownloadAccountResponse extends \Google\Collection
   protected $usersDataType = 'array';
 
   /**
-   * @param string
+   * The fixed string "identitytoolkit#DownloadAccountResponse".
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -46,7 +53,10 @@ class DownloadAccountResponse extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param string
+   * The next page token. To be used in a subsequent request to return the next
+   * page of results.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -60,7 +70,9 @@ class DownloadAccountResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param UserInfo[]
+   * The user accounts data.
+   *
+   * @param UserInfo[] $users
    */
   public function setUsers($users)
   {

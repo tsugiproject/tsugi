@@ -20,6 +20,8 @@ namespace Google\Service\Slides;
 class SlidesList extends \Google\Model
 {
   /**
+   * The ID of the list.
+   *
    * @var string
    */
   public $listId;
@@ -27,7 +29,9 @@ class SlidesList extends \Google\Model
   protected $nestingLevelDataType = 'map';
 
   /**
-   * @param string
+   * The ID of the list.
+   *
+   * @param string $listId
    */
   public function setListId($listId)
   {
@@ -41,7 +45,11 @@ class SlidesList extends \Google\Model
     return $this->listId;
   }
   /**
-   * @param NestingLevel[]
+   * A map of nesting levels to the properties of bullets at the associated
+   * level. A list has at most nine levels of nesting, so the possible values
+   * for the keys of this map are 0 through 8, inclusive.
+   *
+   * @param NestingLevel[] $nestingLevel
    */
   public function setNestingLevel($nestingLevel)
   {

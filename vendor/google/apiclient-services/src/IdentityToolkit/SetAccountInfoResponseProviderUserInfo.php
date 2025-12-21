@@ -20,24 +20,36 @@ namespace Google\Service\IdentityToolkit;
 class SetAccountInfoResponseProviderUserInfo extends \Google\Model
 {
   /**
+   * The user's display name at the IDP.
+   *
    * @var string
    */
   public $displayName;
   /**
+   * User's identifier at IDP.
+   *
    * @var string
    */
   public $federatedId;
   /**
+   * The user's photo url at the IDP.
+   *
    * @var string
    */
   public $photoUrl;
   /**
+   * The IdP ID. For whitelisted IdPs it's a short domain name, e.g.,
+   * google.com, aol.com, live.net and yahoo.com. For other OpenID IdPs it's the
+   * OP identifier.
+   *
    * @var string
    */
   public $providerId;
 
   /**
-   * @param string
+   * The user's display name at the IDP.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -51,7 +63,9 @@ class SetAccountInfoResponseProviderUserInfo extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param string
+   * User's identifier at IDP.
+   *
+   * @param string $federatedId
    */
   public function setFederatedId($federatedId)
   {
@@ -65,7 +79,9 @@ class SetAccountInfoResponseProviderUserInfo extends \Google\Model
     return $this->federatedId;
   }
   /**
-   * @param string
+   * The user's photo url at the IDP.
+   *
+   * @param string $photoUrl
    */
   public function setPhotoUrl($photoUrl)
   {
@@ -79,7 +95,11 @@ class SetAccountInfoResponseProviderUserInfo extends \Google\Model
     return $this->photoUrl;
   }
   /**
-   * @param string
+   * The IdP ID. For whitelisted IdPs it's a short domain name, e.g.,
+   * google.com, aol.com, live.net and yahoo.com. For other OpenID IdPs it's the
+   * OP identifier.
+   *
+   * @param string $providerId
    */
   public function setProviderId($providerId)
   {

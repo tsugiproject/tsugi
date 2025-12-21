@@ -22,12 +22,16 @@ class QueryResponse extends \Google\Model
   protected $payloadType = QueryResponsePayload::class;
   protected $payloadDataType = '';
   /**
+   * Request ID used for debugging. Copied from the request.
+   *
    * @var string
    */
   public $requestId;
 
   /**
-   * @param QueryResponsePayload
+   * Device states for the devices given in the request.
+   *
+   * @param QueryResponsePayload $payload
    */
   public function setPayload(QueryResponsePayload $payload)
   {
@@ -41,7 +45,9 @@ class QueryResponse extends \Google\Model
     return $this->payload;
   }
   /**
-   * @param string
+   * Request ID used for debugging. Copied from the request.
+   *
+   * @param string $requestId
    */
   public function setRequestId($requestId)
   {

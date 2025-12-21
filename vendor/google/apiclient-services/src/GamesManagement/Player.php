@@ -20,46 +20,68 @@ namespace Google\Service\GamesManagement;
 class Player extends \Google\Model
 {
   /**
+   * The base URL for the image that represents the player.
+   *
    * @var string
    */
   public $avatarImageUrl;
   /**
+   * The url to the landscape mode player banner image.
+   *
    * @var string
    */
   public $bannerUrlLandscape;
   /**
+   * The url to the portrait mode player banner image.
+   *
    * @var string
    */
   public $bannerUrlPortrait;
   /**
+   * The name to display for the player.
+   *
    * @var string
    */
   public $displayName;
   protected $experienceInfoType = GamesPlayerExperienceInfoResource::class;
   protected $experienceInfoDataType = '';
   /**
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesManagement#player`.
+   *
    * @var string
    */
   public $kind;
   protected $nameType = PlayerName::class;
   protected $nameDataType = '';
   /**
+   * The player ID that was used for this player the first time they signed into
+   * the game in question. This is only populated for calls to player.get for
+   * the requesting player, only if the player ID has subsequently changed, and
+   * only to clients that support remapping player IDs.
+   *
    * @var string
    */
   public $originalPlayerId;
   /**
+   * The ID of the player.
+   *
    * @var string
    */
   public $playerId;
   protected $profileSettingsType = ProfileSettings::class;
   protected $profileSettingsDataType = '';
   /**
+   * The player's title rewarded for their game activities.
+   *
    * @var string
    */
   public $title;
 
   /**
-   * @param string
+   * The base URL for the image that represents the player.
+   *
+   * @param string $avatarImageUrl
    */
   public function setAvatarImageUrl($avatarImageUrl)
   {
@@ -73,7 +95,9 @@ class Player extends \Google\Model
     return $this->avatarImageUrl;
   }
   /**
-   * @param string
+   * The url to the landscape mode player banner image.
+   *
+   * @param string $bannerUrlLandscape
    */
   public function setBannerUrlLandscape($bannerUrlLandscape)
   {
@@ -87,7 +111,9 @@ class Player extends \Google\Model
     return $this->bannerUrlLandscape;
   }
   /**
-   * @param string
+   * The url to the portrait mode player banner image.
+   *
+   * @param string $bannerUrlPortrait
    */
   public function setBannerUrlPortrait($bannerUrlPortrait)
   {
@@ -101,7 +127,9 @@ class Player extends \Google\Model
     return $this->bannerUrlPortrait;
   }
   /**
-   * @param string
+   * The name to display for the player.
+   *
+   * @param string $displayName
    */
   public function setDisplayName($displayName)
   {
@@ -115,7 +143,9 @@ class Player extends \Google\Model
     return $this->displayName;
   }
   /**
-   * @param GamesPlayerExperienceInfoResource
+   * An object to represent Play Game experience information for the player.
+   *
+   * @param GamesPlayerExperienceInfoResource $experienceInfo
    */
   public function setExperienceInfo(GamesPlayerExperienceInfoResource $experienceInfo)
   {
@@ -129,7 +159,10 @@ class Player extends \Google\Model
     return $this->experienceInfo;
   }
   /**
-   * @param string
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesManagement#player`.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -143,7 +176,10 @@ class Player extends \Google\Model
     return $this->kind;
   }
   /**
-   * @param PlayerName
+   * An object representation of the individual components of the player's name.
+   * For some players, these fields may not be present.
+   *
+   * @param PlayerName $name
    */
   public function setName(PlayerName $name)
   {
@@ -157,7 +193,12 @@ class Player extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * The player ID that was used for this player the first time they signed into
+   * the game in question. This is only populated for calls to player.get for
+   * the requesting player, only if the player ID has subsequently changed, and
+   * only to clients that support remapping player IDs.
+   *
+   * @param string $originalPlayerId
    */
   public function setOriginalPlayerId($originalPlayerId)
   {
@@ -171,7 +212,9 @@ class Player extends \Google\Model
     return $this->originalPlayerId;
   }
   /**
-   * @param string
+   * The ID of the player.
+   *
+   * @param string $playerId
    */
   public function setPlayerId($playerId)
   {
@@ -185,7 +228,10 @@ class Player extends \Google\Model
     return $this->playerId;
   }
   /**
-   * @param ProfileSettings
+   * The player's profile settings. Controls whether or not the player's profile
+   * is visible to other players.
+   *
+   * @param ProfileSettings $profileSettings
    */
   public function setProfileSettings(ProfileSettings $profileSettings)
   {
@@ -199,7 +245,9 @@ class Player extends \Google\Model
     return $this->profileSettings;
   }
   /**
-   * @param string
+   * The player's title rewarded for their game activities.
+   *
+   * @param string $title
    */
   public function setTitle($title)
   {

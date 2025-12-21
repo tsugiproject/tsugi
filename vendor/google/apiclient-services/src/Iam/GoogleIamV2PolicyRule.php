@@ -22,12 +22,17 @@ class GoogleIamV2PolicyRule extends \Google\Model
   protected $denyRuleType = GoogleIamV2DenyRule::class;
   protected $denyRuleDataType = '';
   /**
+   * A user-specified description of the rule. This value can be up to 256
+   * characters.
+   *
    * @var string
    */
   public $description;
 
   /**
-   * @param GoogleIamV2DenyRule
+   * A rule for a deny policy.
+   *
+   * @param GoogleIamV2DenyRule $denyRule
    */
   public function setDenyRule(GoogleIamV2DenyRule $denyRule)
   {
@@ -41,7 +46,10 @@ class GoogleIamV2PolicyRule extends \Google\Model
     return $this->denyRule;
   }
   /**
-   * @param string
+   * A user-specified description of the rule. This value can be up to 256
+   * characters.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {

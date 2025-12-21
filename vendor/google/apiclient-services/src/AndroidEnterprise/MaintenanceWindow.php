@@ -20,16 +20,25 @@ namespace Google\Service\AndroidEnterprise;
 class MaintenanceWindow extends \Google\Model
 {
   /**
+   * Duration of the maintenance window, in milliseconds. The duration must be
+   * between 30 minutes and 24 hours (inclusive).
+   *
    * @var string
    */
   public $durationMs;
   /**
+   * Start time of the maintenance window, in milliseconds after midnight on the
+   * device. Windows can span midnight.
+   *
    * @var string
    */
   public $startTimeAfterMidnightMs;
 
   /**
-   * @param string
+   * Duration of the maintenance window, in milliseconds. The duration must be
+   * between 30 minutes and 24 hours (inclusive).
+   *
+   * @param string $durationMs
    */
   public function setDurationMs($durationMs)
   {
@@ -43,7 +52,10 @@ class MaintenanceWindow extends \Google\Model
     return $this->durationMs;
   }
   /**
-   * @param string
+   * Start time of the maintenance window, in milliseconds after midnight on the
+   * device. Windows can span midnight.
+   *
+   * @param string $startTimeAfterMidnightMs
    */
   public function setStartTimeAfterMidnightMs($startTimeAfterMidnightMs)
   {

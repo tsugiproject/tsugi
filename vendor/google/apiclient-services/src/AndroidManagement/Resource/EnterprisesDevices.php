@@ -34,9 +34,10 @@ use Google\Service\AndroidManagement\Operation;
 class EnterprisesDevices extends \Google\Service\Resource
 {
   /**
-   * Deletes a device. This operation wipes the device. Deleted devices do not
-   * show up in enterprises.devices.list calls and a 404 is returned from
-   * enterprises.devices.get. (devices.delete)
+   * Deletes a device. This operation attempts to wipe the device but this is not
+   * guaranteed to succeed if the device is offline for an extended period.
+   * Deleted devices do not show up in enterprises.devices.list calls and a 404 is
+   * returned from enterprises.devices.get. (devices.delete)
    *
    * @param string $name The name of the device in the form
    * enterprises/{enterpriseId}/devices/{deviceId}.
@@ -98,8 +99,9 @@ class EnterprisesDevices extends \Google\Service\Resource
    * enterprises/{enterpriseId}.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize The requested page size. The actual page size may be
-   * fixed to a min or max value.
+   * @opt_param int pageSize The requested page size. If unspecified, at most 10
+   * devices will be returned. The maximum value is 100; values above 100 will be
+   * coerced to 100. The limits can change over time.
    * @opt_param string pageToken A token identifying a page of results returned by
    * the server.
    * @return ListDevicesResponse

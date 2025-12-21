@@ -21,6 +21,9 @@ class AchievementResetAllResponse extends \Google\Collection
 {
   protected $collection_key = 'results';
   /**
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesManagement#achievementResetAllResponse`.
+   *
    * @var string
    */
   public $kind;
@@ -28,7 +31,10 @@ class AchievementResetAllResponse extends \Google\Collection
   protected $resultsDataType = 'array';
 
   /**
-   * @param string
+   * Uniquely identifies the type of this resource. Value is always the fixed
+   * string `gamesManagement#achievementResetAllResponse`.
+   *
+   * @param string $kind
    */
   public function setKind($kind)
   {
@@ -42,7 +48,9 @@ class AchievementResetAllResponse extends \Google\Collection
     return $this->kind;
   }
   /**
-   * @param AchievementResetResponse[]
+   * The achievement reset results.
+   *
+   * @param AchievementResetResponse[] $results
    */
   public function setResults($results)
   {

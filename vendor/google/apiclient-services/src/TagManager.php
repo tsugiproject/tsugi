@@ -549,7 +549,17 @@ class TagManager extends \Google\Service
         'workspaces',
         [
           'methods' => [
-            'create' => [
+            'bulk_update' => [
+              'path' => 'tagmanager/v2/{+path}/bulk_update',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'path' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'create' => [
               'path' => 'tagmanager/v2/{+parent}/workspaces',
               'httpMethod' => 'POST',
               'parameters' => [
@@ -1120,6 +1130,32 @@ class TagManager extends \Google\Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ],
+              ],
+            ],'import_from_gallery' => [
+              'path' => 'tagmanager/v2/{+parent}/templates:import_from_gallery',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'acknowledgePermissions' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
+                'galleryOwner' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'galleryRepository' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'gallerySha' => [
+                  'location' => 'query',
+                  'type' => 'string',
                 ],
               ],
             ],'list' => [

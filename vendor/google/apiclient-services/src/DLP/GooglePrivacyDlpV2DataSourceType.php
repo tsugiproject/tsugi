@@ -20,12 +20,20 @@ namespace Google\Service\DLP;
 class GooglePrivacyDlpV2DataSourceType extends \Google\Model
 {
   /**
+   * A string that identifies the type of resource being profiled. Current
+   * values: * google/bigquery/table * google/project * google/sql/table *
+   * google/gcs/bucket
+   *
    * @var string
    */
   public $dataSource;
 
   /**
-   * @param string
+   * A string that identifies the type of resource being profiled. Current
+   * values: * google/bigquery/table * google/project * google/sql/table *
+   * google/gcs/bucket
+   *
+   * @param string $dataSource
    */
   public function setDataSource($dataSource)
   {

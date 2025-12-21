@@ -106,7 +106,7 @@ class CoursesAnnouncements extends \Google\Service\Resource
    * maintain the integrity of its own data and permissions model, an add-on
    * should call this to validate query parameters and the requesting user's role
    * whenever the add-on is opened in an
-   * [iframe](https://developers.google.com/classroom/add-ons/get-
+   * [iframe](https://developers.google.com/workspace/classroom/add-ons/get-
    * started/iframes/iframes-overview). This method returns the following error
    * codes: * `PERMISSION_DENIED` for access errors. * `INVALID_ARGUMENT` if the
    * request is malformed. * `NOT_FOUND` if one of the identified resources does
@@ -126,8 +126,9 @@ class CoursesAnnouncements extends \Google\Service\Resource
    * the post.
    * @opt_param string attachmentId Optional. The identifier of the attachment.
    * This field is required for all requests except when the user is in the
-   * [Attachment Discovery iframe](https://developers.google.com/classroom/add-
-   * ons/get-started/iframes/attachment-discovery-iframe).
+   * [Attachment Discovery
+   * iframe](https://developers.google.com/workspace/classroom/add-ons/get-
+   * started/iframes/attachment-discovery-iframe).
    * @opt_param string postId Optional. Deprecated, use `item_id` instead.
    * @return AddOnContext
    * @throws \Google\Service\Exception
@@ -181,7 +182,8 @@ class CoursesAnnouncements extends \Google\Service\Resource
    * returns the following error codes: * `PERMISSION_DENIED` if the requesting
    * user is not permitted to access the requested course or course work or for
    * access errors. * `INVALID_ARGUMENT` if the request is malformed. *
-   * `NOT_FOUND` if the requested course or course work does not exist.
+   * `NOT_FOUND` if the requested course or course work does not exist. *
+   * `FAILED_PRECONDITION` for the following request error: * EmptyAssignees
    * (announcements.modifyAssignees)
    *
    * @param string $courseId Identifier of the course. This identifier can be

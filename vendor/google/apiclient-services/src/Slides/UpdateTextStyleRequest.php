@@ -22,10 +22,19 @@ class UpdateTextStyleRequest extends \Google\Model
   protected $cellLocationType = TableCellLocation::class;
   protected $cellLocationDataType = '';
   /**
+   * The fields that should be updated. At least one field must be specified.
+   * The root `style` is implied and should not be specified. A single `"*"` can
+   * be used as short-hand for listing every field. For example, to update the
+   * text style to bold, set `fields` to `"bold"`. To reset a property to its
+   * default value, include its field name in the field mask but leave the field
+   * itself unset.
+   *
    * @var string
    */
   public $fields;
   /**
+   * The object ID of the shape or table with the text to be styled.
+   *
    * @var string
    */
   public $objectId;
@@ -35,7 +44,11 @@ class UpdateTextStyleRequest extends \Google\Model
   protected $textRangeDataType = '';
 
   /**
-   * @param TableCellLocation
+   * The location of the cell in the table containing the text to style. If
+   * `object_id` refers to a table, `cell_location` must have a value.
+   * Otherwise, it must not.
+   *
+   * @param TableCellLocation $cellLocation
    */
   public function setCellLocation(TableCellLocation $cellLocation)
   {
@@ -49,7 +62,14 @@ class UpdateTextStyleRequest extends \Google\Model
     return $this->cellLocation;
   }
   /**
-   * @param string
+   * The fields that should be updated. At least one field must be specified.
+   * The root `style` is implied and should not be specified. A single `"*"` can
+   * be used as short-hand for listing every field. For example, to update the
+   * text style to bold, set `fields` to `"bold"`. To reset a property to its
+   * default value, include its field name in the field mask but leave the field
+   * itself unset.
+   *
+   * @param string $fields
    */
   public function setFields($fields)
   {
@@ -63,7 +83,9 @@ class UpdateTextStyleRequest extends \Google\Model
     return $this->fields;
   }
   /**
-   * @param string
+   * The object ID of the shape or table with the text to be styled.
+   *
+   * @param string $objectId
    */
   public function setObjectId($objectId)
   {
@@ -77,7 +99,12 @@ class UpdateTextStyleRequest extends \Google\Model
     return $this->objectId;
   }
   /**
-   * @param TextStyle
+   * The style(s) to set on the text. If the value for a particular style
+   * matches that of the parent, that style will be set to inherit. Certain text
+   * style changes may cause other changes meant to mirror the behavior of the
+   * Slides editor. See the documentation of TextStyle for more information.
+   *
+   * @param TextStyle $style
    */
   public function setStyle(TextStyle $style)
   {
@@ -91,7 +118,11 @@ class UpdateTextStyleRequest extends \Google\Model
     return $this->style;
   }
   /**
-   * @param Range
+   * The range of text to style. The range may be extended to include adjacent
+   * newlines. If the range fully contains a paragraph belonging to a list, the
+   * paragraph's bullet is also updated with the matching text style.
+   *
+   * @param Range $textRange
    */
   public function setTextRange(Range $textRange)
   {

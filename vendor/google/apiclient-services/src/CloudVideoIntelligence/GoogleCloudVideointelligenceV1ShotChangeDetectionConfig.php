@@ -20,12 +20,18 @@ namespace Google\Service\CloudVideoIntelligence;
 class GoogleCloudVideointelligenceV1ShotChangeDetectionConfig extends \Google\Model
 {
   /**
+   * Model to use for shot change detection. Supported values: "builtin/stable"
+   * (the default if unset), "builtin/latest", and "builtin/legacy".
+   *
    * @var string
    */
   public $model;
 
   /**
-   * @param string
+   * Model to use for shot change detection. Supported values: "builtin/stable"
+   * (the default if unset), "builtin/latest", and "builtin/legacy".
+   *
+   * @param string $model
    */
   public function setModel($model)
   {

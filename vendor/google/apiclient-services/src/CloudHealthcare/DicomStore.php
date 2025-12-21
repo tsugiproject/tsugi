@@ -21,20 +21,44 @@ class DicomStore extends \Google\Collection
 {
   protected $collection_key = 'streamConfigs';
   /**
+   * User-supplied key-value pairs used to organize DICOM stores. Label keys
+   * must be between 1 and 63 characters long, have a UTF-8 encoding of maximum
+   * 128 bytes, and must conform to the following PCRE regular expression:
+   * \p{Ll}\p{Lo}{0,62} Label values are optional, must be between 1 and 63
+   * characters long, have a UTF-8 encoding of maximum 128 bytes, and must
+   * conform to the following PCRE regular expression:
+   * [\p{Ll}\p{Lo}\p{N}_-]{0,63} No more than 64 labels can be associated with a
+   * given store.
+   *
    * @var string[]
    */
   public $labels;
   /**
+   * Identifier. Resource name of the DICOM store, of the form `projects/{projec
+   * t_id}/locations/{location_id}/datasets/{dataset_id}/dicomStores/{dicom_stor
+   * e_id}`.
+   *
    * @var string
    */
   public $name;
   protected $notificationConfigType = NotificationConfig::class;
   protected $notificationConfigDataType = '';
+  protected $notificationConfigsType = DicomNotificationConfig::class;
+  protected $notificationConfigsDataType = 'array';
   protected $streamConfigsType = GoogleCloudHealthcareV1DicomStreamConfig::class;
   protected $streamConfigsDataType = 'array';
 
   /**
-   * @param string[]
+   * User-supplied key-value pairs used to organize DICOM stores. Label keys
+   * must be between 1 and 63 characters long, have a UTF-8 encoding of maximum
+   * 128 bytes, and must conform to the following PCRE regular expression:
+   * \p{Ll}\p{Lo}{0,62} Label values are optional, must be between 1 and 63
+   * characters long, have a UTF-8 encoding of maximum 128 bytes, and must
+   * conform to the following PCRE regular expression:
+   * [\p{Ll}\p{Lo}\p{N}_-]{0,63} No more than 64 labels can be associated with a
+   * given store.
+   *
+   * @param string[] $labels
    */
   public function setLabels($labels)
   {
@@ -48,7 +72,11 @@ class DicomStore extends \Google\Collection
     return $this->labels;
   }
   /**
-   * @param string
+   * Identifier. Resource name of the DICOM store, of the form `projects/{projec
+   * t_id}/locations/{location_id}/datasets/{dataset_id}/dicomStores/{dicom_stor
+   * e_id}`.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -62,7 +90,10 @@ class DicomStore extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param NotificationConfig
+   * Optional. Notification destination for new DICOM instances. Supplied by the
+   * client.
+   *
+   * @param NotificationConfig $notificationConfig
    */
   public function setNotificationConfig(NotificationConfig $notificationConfig)
   {
@@ -76,7 +107,31 @@ class DicomStore extends \Google\Collection
     return $this->notificationConfig;
   }
   /**
-   * @param GoogleCloudHealthcareV1DicomStreamConfig[]
+   * Optional. Specifies where and whether to send notifications upon changes to
+   * a DICOM store.
+   *
+   * @param DicomNotificationConfig[] $notificationConfigs
+   */
+  public function setNotificationConfigs($notificationConfigs)
+  {
+    $this->notificationConfigs = $notificationConfigs;
+  }
+  /**
+   * @return DicomNotificationConfig[]
+   */
+  public function getNotificationConfigs()
+  {
+    return $this->notificationConfigs;
+  }
+  /**
+   * Optional. A list of streaming configs used to configure the destination of
+   * streaming exports for every DICOM instance insertion in this DICOM store.
+   * After a new config is added to `stream_configs`, DICOM instance insertions
+   * are streamed to the new destination. When a config is removed from
+   * `stream_configs`, the server stops streaming to that destination. Each
+   * config must contain a unique destination.
+   *
+   * @param GoogleCloudHealthcareV1DicomStreamConfig[] $streamConfigs
    */
   public function setStreamConfigs($streamConfigs)
   {

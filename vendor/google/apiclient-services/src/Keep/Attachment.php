@@ -21,16 +21,22 @@ class Attachment extends \Google\Collection
 {
   protected $collection_key = 'mimeType';
   /**
+   * The MIME types (IANA media types) in which the attachment is available.
+   *
    * @var string[]
    */
   public $mimeType;
   /**
+   * The resource name;
+   *
    * @var string
    */
   public $name;
 
   /**
-   * @param string[]
+   * The MIME types (IANA media types) in which the attachment is available.
+   *
+   * @param string[] $mimeType
    */
   public function setMimeType($mimeType)
   {
@@ -44,7 +50,9 @@ class Attachment extends \Google\Collection
     return $this->mimeType;
   }
   /**
-   * @param string
+   * The resource name;
+   *
+   * @param string $name
    */
   public function setName($name)
   {

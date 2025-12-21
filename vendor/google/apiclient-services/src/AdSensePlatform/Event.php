@@ -19,19 +19,37 @@ namespace Google\Service\AdSensePlatform;
 
 class Event extends \Google\Model
 {
+  /**
+   * Do not use. You must set an event type explicitly.
+   */
+  public const EVENT_TYPE_EVENT_TYPE_UNSPECIFIED = 'EVENT_TYPE_UNSPECIFIED';
+  /**
+   * Log in via platform.
+   */
+  public const EVENT_TYPE_LOG_IN_VIA_PLATFORM = 'LOG_IN_VIA_PLATFORM';
+  /**
+   * Sign up via platform.
+   */
+  public const EVENT_TYPE_SIGN_UP_VIA_PLATFORM = 'SIGN_UP_VIA_PLATFORM';
   protected $eventInfoType = EventInfo::class;
   protected $eventInfoDataType = '';
   /**
+   * Required. Event timestamp.
+   *
    * @var string
    */
   public $eventTime;
   /**
+   * Required. Event type.
+   *
    * @var string
    */
   public $eventType;
 
   /**
-   * @param EventInfo
+   * Required. Information associated with the event.
+   *
+   * @param EventInfo $eventInfo
    */
   public function setEventInfo(EventInfo $eventInfo)
   {
@@ -45,7 +63,9 @@ class Event extends \Google\Model
     return $this->eventInfo;
   }
   /**
-   * @param string
+   * Required. Event timestamp.
+   *
+   * @param string $eventTime
    */
   public function setEventTime($eventTime)
   {
@@ -59,14 +79,19 @@ class Event extends \Google\Model
     return $this->eventTime;
   }
   /**
-   * @param string
+   * Required. Event type.
+   *
+   * Accepted values: EVENT_TYPE_UNSPECIFIED, LOG_IN_VIA_PLATFORM,
+   * SIGN_UP_VIA_PLATFORM
+   *
+   * @param self::EVENT_TYPE_* $eventType
    */
   public function setEventType($eventType)
   {
     $this->eventType = $eventType;
   }
   /**
-   * @return string
+   * @return self::EVENT_TYPE_*
    */
   public function getEventType()
   {

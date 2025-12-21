@@ -22,12 +22,18 @@ class SearchKeywordCount extends \Google\Model
   protected $insightsValueType = InsightsValue::class;
   protected $insightsValueDataType = '';
   /**
+   * The lower-cased string that the user entered.
+   *
    * @var string
    */
   public $searchKeyword;
 
   /**
-   * @param InsightsValue
+   * One of either: 1) The sum of the number of unique users that used the
+   * keyword in a month, aggregated for each month requested. 2) A threshold
+   * that indicates that the actual value is below this threshold.
+   *
+   * @param InsightsValue $insightsValue
    */
   public function setInsightsValue(InsightsValue $insightsValue)
   {
@@ -41,7 +47,9 @@ class SearchKeywordCount extends \Google\Model
     return $this->insightsValue;
   }
   /**
-   * @param string
+   * The lower-cased string that the user entered.
+   *
+   * @param string $searchKeyword
    */
   public function setSearchKeyword($searchKeyword)
   {

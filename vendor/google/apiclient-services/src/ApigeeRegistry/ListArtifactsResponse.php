@@ -23,12 +23,17 @@ class ListArtifactsResponse extends \Google\Collection
   protected $artifactsType = Artifact::class;
   protected $artifactsDataType = 'array';
   /**
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * @param Artifact[]
+   * The artifacts from the specified publisher.
+   *
+   * @param Artifact[] $artifacts
    */
   public function setArtifacts($artifacts)
   {
@@ -42,7 +47,10 @@ class ListArtifactsResponse extends \Google\Collection
     return $this->artifacts;
   }
   /**
-   * @param string
+   * A token, which can be sent as `page_token` to retrieve the next page. If
+   * this field is omitted, there are no subsequent pages.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {

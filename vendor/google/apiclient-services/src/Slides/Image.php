@@ -20,6 +20,11 @@ namespace Google\Service\Slides;
 class Image extends \Google\Model
 {
   /**
+   * An URL to an image with a default lifetime of 30 minutes. This URL is
+   * tagged with the account of the requester. Anyone with the URL effectively
+   * accesses the image as the original requester. Access to the image may be
+   * lost if the presentation's sharing settings change.
+   *
    * @var string
    */
   public $contentUrl;
@@ -28,12 +33,20 @@ class Image extends \Google\Model
   protected $placeholderType = Placeholder::class;
   protected $placeholderDataType = '';
   /**
+   * The source URL is the URL used to insert the image. The source URL can be
+   * empty.
+   *
    * @var string
    */
   public $sourceUrl;
 
   /**
-   * @param string
+   * An URL to an image with a default lifetime of 30 minutes. This URL is
+   * tagged with the account of the requester. Anyone with the URL effectively
+   * accesses the image as the original requester. Access to the image may be
+   * lost if the presentation's sharing settings change.
+   *
+   * @param string $contentUrl
    */
   public function setContentUrl($contentUrl)
   {
@@ -47,7 +60,9 @@ class Image extends \Google\Model
     return $this->contentUrl;
   }
   /**
-   * @param ImageProperties
+   * The properties of the image.
+   *
+   * @param ImageProperties $imageProperties
    */
   public function setImageProperties(ImageProperties $imageProperties)
   {
@@ -61,7 +76,12 @@ class Image extends \Google\Model
     return $this->imageProperties;
   }
   /**
-   * @param Placeholder
+   * Placeholders are page elements that inherit from corresponding placeholders
+   * on layouts and masters. If set, the image is a placeholder image and any
+   * inherited properties can be resolved by looking at the parent placeholder
+   * identified by the Placeholder.parent_object_id field.
+   *
+   * @param Placeholder $placeholder
    */
   public function setPlaceholder(Placeholder $placeholder)
   {
@@ -75,7 +95,10 @@ class Image extends \Google\Model
     return $this->placeholder;
   }
   /**
-   * @param string
+   * The source URL is the URL used to insert the image. The source URL can be
+   * empty.
+   *
+   * @param string $sourceUrl
    */
   public function setSourceUrl($sourceUrl)
   {

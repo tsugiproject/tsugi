@@ -23,6 +23,8 @@ class GoogleCloudVideointelligenceV1p3beta1StreamingVideoAnnotationResults exten
   protected $explicitAnnotationType = GoogleCloudVideointelligenceV1p3beta1ExplicitContentAnnotation::class;
   protected $explicitAnnotationDataType = '';
   /**
+   * Timestamp of the processed frame in microseconds.
+   *
    * @var string
    */
   public $frameTimestamp;
@@ -34,7 +36,9 @@ class GoogleCloudVideointelligenceV1p3beta1StreamingVideoAnnotationResults exten
   protected $shotAnnotationsDataType = 'array';
 
   /**
-   * @param GoogleCloudVideointelligenceV1p3beta1ExplicitContentAnnotation
+   * Explicit content annotation results.
+   *
+   * @param GoogleCloudVideointelligenceV1p3beta1ExplicitContentAnnotation $explicitAnnotation
    */
   public function setExplicitAnnotation(GoogleCloudVideointelligenceV1p3beta1ExplicitContentAnnotation $explicitAnnotation)
   {
@@ -48,7 +52,9 @@ class GoogleCloudVideointelligenceV1p3beta1StreamingVideoAnnotationResults exten
     return $this->explicitAnnotation;
   }
   /**
-   * @param string
+   * Timestamp of the processed frame in microseconds.
+   *
+   * @param string $frameTimestamp
    */
   public function setFrameTimestamp($frameTimestamp)
   {
@@ -62,7 +68,9 @@ class GoogleCloudVideointelligenceV1p3beta1StreamingVideoAnnotationResults exten
     return $this->frameTimestamp;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1p3beta1LabelAnnotation[]
+   * Label annotation results.
+   *
+   * @param GoogleCloudVideointelligenceV1p3beta1LabelAnnotation[] $labelAnnotations
    */
   public function setLabelAnnotations($labelAnnotations)
   {
@@ -76,7 +84,9 @@ class GoogleCloudVideointelligenceV1p3beta1StreamingVideoAnnotationResults exten
     return $this->labelAnnotations;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1p3beta1ObjectTrackingAnnotation[]
+   * Object tracking results.
+   *
+   * @param GoogleCloudVideointelligenceV1p3beta1ObjectTrackingAnnotation[] $objectAnnotations
    */
   public function setObjectAnnotations($objectAnnotations)
   {
@@ -90,7 +100,9 @@ class GoogleCloudVideointelligenceV1p3beta1StreamingVideoAnnotationResults exten
     return $this->objectAnnotations;
   }
   /**
-   * @param GoogleCloudVideointelligenceV1p3beta1VideoSegment[]
+   * Shot annotation results. Each shot is represented as a video segment.
+   *
+   * @param GoogleCloudVideointelligenceV1p3beta1VideoSegment[] $shotAnnotations
    */
   public function setShotAnnotations($shotAnnotations)
   {

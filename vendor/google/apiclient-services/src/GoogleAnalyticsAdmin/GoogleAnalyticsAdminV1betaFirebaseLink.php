@@ -20,20 +20,32 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaFirebaseLink extends \Google\Model
 {
   /**
+   * Output only. Time when this FirebaseLink was originally created.
+   *
    * @var string
    */
   public $createTime;
   /**
+   * Output only. Example format: properties/1234/firebaseLinks/5678
+   *
    * @var string
    */
   public $name;
   /**
+   * Immutable. Firebase project resource name. When creating a FirebaseLink,
+   * you may provide this resource name using either a project number or project
+   * ID. Once this resource has been created, returned FirebaseLinks will always
+   * have a project_name that contains a project number. Format:
+   * 'projects/{project number}' Example: 'projects/1234'
+   *
    * @var string
    */
   public $project;
 
   /**
-   * @param string
+   * Output only. Time when this FirebaseLink was originally created.
+   *
+   * @param string $createTime
    */
   public function setCreateTime($createTime)
   {
@@ -47,7 +59,9 @@ class GoogleAnalyticsAdminV1betaFirebaseLink extends \Google\Model
     return $this->createTime;
   }
   /**
-   * @param string
+   * Output only. Example format: properties/1234/firebaseLinks/5678
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -61,7 +75,13 @@ class GoogleAnalyticsAdminV1betaFirebaseLink extends \Google\Model
     return $this->name;
   }
   /**
-   * @param string
+   * Immutable. Firebase project resource name. When creating a FirebaseLink,
+   * you may provide this resource name using either a project number or project
+   * ID. Once this resource has been created, returned FirebaseLinks will always
+   * have a project_name that contains a project number. Format:
+   * 'projects/{project number}' Example: 'projects/1234'
+   *
+   * @param string $project
    */
   public function setProject($project)
   {
