@@ -195,6 +195,7 @@ $date = U::iso8601($row['login_at']);
 $email = $row['email'];
 $title = $row['title'];
 $code = $pieces[1];
+$linkedin_badge = isset($badge->linkedin) ? $badge->linkedin : false;
 
 // Route to appropriate handler
 switch ($resource) {
@@ -355,7 +356,7 @@ switch ($resource) {
             
             <div class="row">
                 <div class="col-md-4">
-                    <img src="<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($badge->title) ?>" class="img-fluid" style="max-width: 200px;">
+                    <img id="badge-image" src="<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($badge->title) ?>" class="img-fluid" style="max-width: 200px;">
                 </div>
                 <div class="col-md-8">
                     <h2><?= htmlspecialchars($badge->title) ?></h2>
@@ -364,14 +365,33 @@ switch ($resource) {
                     <p><strong>Issuer:</strong> <?= htmlspecialchars($CFG->servicename) ?></p>
                     
                     <?php
-                    // Only show LinkedIn button if user is logged in and owns this badge
-                    if ($show_linkedin_button && $linkedin_url): ?>
-                        <p style="margin-top: 15px;">
-                            <a href="<?= htmlspecialchars($linkedin_url) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-                                Add to LinkedIn
-                            </a>
-                        </p>
-                    <?php endif; ?>
+                    // Show LinkedIn button or milestone message only if user is logged in and owns this badge
+                    if ($show_linkedin_button): 
+                        if ($linkedin_badge && $linkedin_url): ?>
+                            <div style="margin-top: 15px;">
+                                <a href="<?= htmlspecialchars($linkedin_url) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="margin-right: 10px;">
+                                    Add to LinkedIn
+                                </a>
+                                <button onclick="copyBadgeUrlToClipboard(this)" class="btn btn-default" style="margin-right: 10px;" title="Copy badge URL to clipboard">
+                                    <span class="glyphicon glyphicon-link"></span> Copy Badge URL
+                                </button>
+                                <button onclick="toggleQRCode()" class="btn btn-default" title="Show QR code">
+                                    <span class="glyphicon glyphicon-qrcode"></span> Show QR Code
+                                </button>
+                            </div>
+                            <div id="qr-code-container" style="display: none; margin-top: 15px;">
+                                <?php
+                                // Generate QR code for the badge landing page URL (only shown with LinkedIn badge)
+                                $qr_code_url = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($landing_url);
+                                ?>
+                                <img src="<?= htmlspecialchars($qr_code_url) ?>" alt="QR Code" style="border: 1px solid #ddd; padding: 5px; background: white;">
+                            </div>
+                        <?php elseif (!$linkedin_badge): ?>
+                            <p style="margin-top: 15px; color: #666;">
+                            This badge marks a learning milestone within the course. It represents progress toward a final, externally shareable credential.
+                            </p>
+                        <?php endif;
+                    endif; ?>
                 </div>
             </div>
             
@@ -411,6 +431,43 @@ switch ($resource) {
                 <p><strong>Credential ID:</strong> <code><?= htmlspecialchars($credential_id) ?></code></p>
             <?php endif; ?>
         </div>
+        
+        <script>
+        // Function to toggle QR code visibility
+        function toggleQRCode() {
+            const qrContainer = document.getElementById('qr-code-container');
+            const button = event.target.closest('button');
+            
+            if (qrContainer.style.display === 'none') {
+                qrContainer.style.display = 'block';
+                button.innerHTML = '<span class="glyphicon glyphicon-qrcode"></span> Hide QR Code';
+            } else {
+                qrContainer.style.display = 'none';
+                button.innerHTML = '<span class="glyphicon glyphicon-qrcode"></span> Show QR Code';
+            }
+        }
+        
+        // Function to copy badge URL to clipboard using tsugiscripts.js library
+        function copyBadgeUrlToClipboard(button) {
+            const badgeUrl = '<?= htmlspecialchars($landing_url, ENT_QUOTES, 'UTF-8') ?>';
+            const originalText = button.innerHTML;
+            
+            // Use the copyToClipboardNoScroll function from tsugiscripts.js
+            copyToClipboardNoScroll(button, badgeUrl);
+            
+            // Show success feedback
+            button.innerHTML = '<span class="glyphicon glyphicon-ok"></span> Copied!';
+            button.classList.remove('btn-default');
+            button.classList.add('btn-success');
+            
+            // Reset button after 2 seconds
+            setTimeout(function() {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-success');
+                button.classList.add('btn-default');
+            }, 2000);
+        }
+        </script>
         <?php
         $OUTPUT->footer();
         break;
