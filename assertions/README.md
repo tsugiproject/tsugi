@@ -6,6 +6,93 @@ This folder implements Open Badges 2.0 (OB2) and Open Badges 3.0 / Verifiable Cr
 
 The assertions system provides modern badge formats while maintaining compatibility with existing OB1 badges. All assertions use the same evidence (`$CFG->apphome`) as the OB1 implementation. This is a **storage-free** approach - no database tables needed, just like the `/badges` folder.
 
+## Configuration
+
+To enable badge assertions, configure the following values in your `config.php`:
+
+### Required Configuration
+
+1. **Badge Encryption Password**:
+   ```php
+   $CFG->badge_encrypt_password = "somethinglongwithhex387438758974987";
+   ```
+   Used to encrypt/decrypt badge assertion IDs. **Do not change** once badges have been issued.
+
+2. **Badge Assertion Salt**:
+   ```php
+   $CFG->badge_assert_salt = "mediumlengthhexstring";
+   ```
+   Used for hashing recipient email addresses in assertions. **Do not change** once badges have been issued.
+
+3. **Badge Image Path** (file system):
+   ```php
+   $CFG->badge_path = $CFG->dirroot . '/../bimages';
+   ```
+   File system path where badge PNG images are stored.
+
+4. **Badge Image URL** (web accessible):
+   ```php
+   $CFG->badge_url = $CFG->apphome . '/bimages';
+   ```
+   Public URL where badge images can be accessed via HTTP/HTTPS.
+
+5. **Lessons Configuration**:
+   ```php
+   $CFG->lessons = $CFG->dirroot . '/../lessons.json';
+   ```
+   Path to your `lessons.json` file that defines badges and their metadata.
+
+### Optional Configuration
+
+1. **Badge Organization Name** (for issuer and LinkedIn):
+   ```php
+   $CFG->badge_organization = "Your Organization Name";
+   ```
+   Organization name used in issuer assertions and LinkedIn badge integration. If not set, defaults to `"$CFG->servicedesc ($CFG->servicename)"` or just `$CFG->servicename`.
+
+2. **Badge Issuer Email**:
+   ```php
+   $CFG->badge_issuer_email = "badges@example.com";
+   ```
+   Email address for the Open Badges issuer (required for OB2 compliance). Defaults to a placeholder if not set.
+
+3. **Service Name**:
+   ```php
+   $CFG->servicename = "Your Service Name";
+   ```
+   Used as fallback for issuer organization name if `badge_organization` is not set.
+
+4. **Service Description**:
+   ```php
+   $CFG->servicedesc = "Your Service Description";
+   ```
+   Used in fallback organization name format: `"$CFG->servicedesc ($CFG->servicename)"`.
+
+### Badge Configuration in lessons.json
+
+Badges are defined in your `lessons.json` file. To mark a badge as a completion badge (eligible for LinkedIn sharing), add the `completion` field:
+
+```json
+{
+  "badges": [
+    {
+      "title": "Course Completion",
+      "image": "completion.png",
+      "completion": true
+    }
+  ]
+}
+```
+
+- Badges with `completion: true` will show the "Add to LinkedIn" button on the badge landing page (when viewed by the badge owner).
+- Badges without `completion: true` are considered "milestone badges" and will show a message indicating they represent progress toward a final credential.
+
+### Important Notes
+
+- **Do not change** `badge_encrypt_password` or `badge_assert_salt` after issuing badges, as this will break existing badge URLs.
+- Badge images must be accessible via the `badge_url` path.
+- The `lessons.json` file must contain badge definitions with image filenames matching the badge code.
+
 ## Endpoints
 
 ### OB2 Assertion

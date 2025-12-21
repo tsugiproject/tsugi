@@ -814,6 +814,8 @@ class ConfigInfo {
     public $badge_path = null; // $CFG->dirroot . '/../bimages';
     public $badge_url = null; // $CFG->apphome . '/bimages';
     public $badge_issuer_email = null; // "badge_issuer_email_not_set@example.com"; // Email address for Open Badges issuer (OB2 required field)
+    public $badge_organization = null; // Organization name for badge issuer assertions and LinkedIn badge organization. If not set, defaults to "$CFG->servicedesc ($CFG->servicename)"
+    public $badge_linkedin_url = null; // URL to LinkedIn organization/company page (e.g., "https://www.linkedin.com/company/py4e/"). If set, displays a LinkedIn link on badge pages.
 
     /**
      * The defaults for data expiration.  Data expiration is not done by default, but can
@@ -1028,6 +1030,29 @@ class ConfigInfo {
         $prefix = preg_replace('/https?:\/\//', '', $prefix);
         if (strlen($prefix) > 50 ) $prefix = md5($prefix);
         return $prefix;
+    }
+
+    /**
+     * Get the badge organization name with fallback logic
+     * 
+     * Returns $badge_organization if set, otherwise falls back to
+     * "$servicedesc ($servicename)" format, or just $servicename if servicedesc is not set.
+     * 
+     * @return string The badge organization name
+     */
+    public function getBadgeOrganization() : string {
+        // Use badge_organization if set
+        if (isset($this->badge_organization) && !empty($this->badge_organization)) {
+            return $this->badge_organization;
+        }
+        
+        // Build fallback: servicedesc (servicename) or just servicename if servicedesc not set
+        if (isset($this->servicedesc) && !empty($this->servicedesc)) {
+            return $this->servicedesc . ' (' . $this->servicename . ')';
+        }
+        
+        // Final fallback to just servicename
+        return $this->servicename;
     }
 }
 

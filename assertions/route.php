@@ -195,7 +195,7 @@ $date = U::iso8601($row['login_at']);
 $email = $row['email'];
 $title = $row['title'];
 $code = $pieces[1];
-$linkedin_badge = isset($badge->linkedin) ? $badge->linkedin : false;
+$completion_badge = isset($badge->completion) ? $badge->completion : false;
 
 // Route to appropriate handler
 switch ($resource) {
@@ -302,12 +302,28 @@ switch ($resource) {
         // Only show LinkedIn button if user is logged in AND owns this badge
         $show_linkedin_button = $logged_in && ($current_user_id == $badge_owner_user_id);
         
+        // Determine issuer organization name using badge_organization with fallback
+        // Use getBadgeOrganization() method if available, otherwise fall back to manual logic
+        if (method_exists($CFG, 'getBadgeOrganization')) {
+            $issuer_org_name = htmlspecialchars($CFG->getBadgeOrganization(), ENT_QUOTES, 'UTF-8');
+        } else {
+            // Fallback for older ConfigInfo versions without the method
+            if (isset($CFG->badge_organization) && !empty($CFG->badge_organization)) {
+                $issuer_org_name = htmlspecialchars($CFG->badge_organization, ENT_QUOTES, 'UTF-8');
+            } else {
+                if (isset($CFG->servicedesc) && !empty($CFG->servicedesc)) {
+                    $issuer_org_name = htmlspecialchars($CFG->servicedesc, ENT_QUOTES, 'UTF-8') . ' (' . htmlspecialchars($CFG->servicename, ENT_QUOTES, 'UTF-8') . ')';
+                } else {
+                    $issuer_org_name = htmlspecialchars($CFG->servicename, ENT_QUOTES, 'UTF-8');
+                }
+            }
+        }
+        
         // Build LinkedIn "Add to Profile" URL if user owns the badge
         $linkedin_url = null;
-        if ($show_linkedin_button) {
+        if ($show_linkedin_button && $completion_badge) {
             // Prepare badge details for LinkedIn
             $badge_name = htmlspecialchars($badge->title, ENT_QUOTES, 'UTF-8');
-            $issuer_org_name = htmlspecialchars($CFG->servicename, ENT_QUOTES, 'UTF-8');
             $issued_on = $date; // Already in ISO 8601 format from U::iso8601()
             
             // Build LinkedIn certification URL
@@ -362,12 +378,20 @@ switch ($resource) {
                     <h2><?= htmlspecialchars($badge->title) ?></h2>
                     <p><strong>Course:</strong> <?= htmlspecialchars($title) ?></p>
                     <p><strong>Issued:</strong> <?= htmlspecialchars($date) ?></p>
-                    <p><strong>Issuer:</strong> <?= htmlspecialchars($CFG->servicename) ?></p>
+                    <p><strong>Issuer:</strong> <?= $issuer_org_name ?>
+                    <?php
+                    // Show LinkedIn organization link if configured
+                    if (isset($CFG->badge_linkedin_url) && !empty($CFG->badge_linkedin_url)): ?>
+                        <a href="<?= htmlspecialchars($CFG->badge_linkedin_url) ?>" target="_blank" rel="noopener noreferrer" style="margin-left: 10px;">
+                            <span class="glyphicon glyphicon-link"></span> LinkedIn
+                        </a>
+                    <?php endif; ?>
+                    </p>
                     
                     <?php
                     // Show LinkedIn button or milestone message only if user is logged in and owns this badge
                     if ($show_linkedin_button): 
-                        if ($linkedin_badge && $linkedin_url): ?>
+                        if ($completion_badge && $linkedin_url): ?>
                             <div style="margin-top: 15px;">
                                 <button onclick="copyBadgeUrlToClipboard(this)" class="btn btn-default" style="margin-right: 10px;" title="Copy badge URL to clipboard">
                                     <span class="glyphicon glyphicon-link"></span> Copy Badge URL
@@ -381,12 +405,12 @@ switch ($resource) {
                             </div>
                             <div id="qr-code-container" style="display: none; margin-top: 15px;">
                                 <?php
-                                // Generate QR code for the badge landing page URL (only shown with LinkedIn badge)
+                                // Generate QR code for the badge landing page URL (only shown with completion badge)
                                 $qr_code_url = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($landing_url);
                                 ?>
                                 <img src="<?= htmlspecialchars($qr_code_url) ?>" alt="QR Code" style="border: 1px solid #ddd; padding: 5px; background: white;">
                             </div>
-                        <?php elseif (!$linkedin_badge): ?>
+                        <?php elseif (!$completion_badge): ?>
                             <p style="margin-top: 15px; color: #666;">
                             This badge marks a learning milestone within the course. It represents progress toward a final, externally shareable credential.
                             </p>
