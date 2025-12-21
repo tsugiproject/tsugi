@@ -259,6 +259,8 @@ switch ($resource) {
         $legacy_image_url = $CFG->wwwroot . "/badges/images/" . urlencode($encrypted) . ".png";
         
         $OUTPUT->header();
+        // Add alternate link tag to head for badge assertion JSON
+        echo('<link rel="alternate" type="application/json" href="' . htmlspecialchars($ob2_url) . '">' . "\n");
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         ?>
