@@ -266,6 +266,10 @@ $CFG->unify = false;
 $CFG->badge_encrypt_password = false; // "somethinglongwithhex387438758974987";
 $CFG->badge_assert_salt = false; // "mediumlengthhexstring";
 
+// Email address for Open Badges 2.x issuer (required field for OB2 compliance)
+// If not set, defaults to "badge_issuer_email_not_set@example.com"
+// $CFG->badge_issuer_email = "info@py4e.com";
+
 // This folder contains the badge images - This example
 // is for Embedded Tsugi and the badge images are in the
 // parent folder.

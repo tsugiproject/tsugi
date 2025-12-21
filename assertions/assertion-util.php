@@ -87,7 +87,7 @@ function get_ob2_assertion($encrypted, $date, $code, $badge, $title, $email) {
     $legacy_assertion = $CFG->wwwroot . "/badges/assert.php?id=" . urlencode($encrypted);
     
     $assertion = array(
-        "@context" => "https://purl.imsglobal.org/spec/ob/v2p1/context.json",
+        "@context" => "https://w3id.org/openbadges/v2",
         "type" => "Assertion",
         "id" => $assert_id,
         "recipient" => array(
@@ -132,7 +132,7 @@ function get_ob2_badge($encrypted, $code, $badge, $title) {
     $issuer_url = $CFG->wwwroot . "/assertions/issuer.json";
     
     $badge_class = array(
-        "@context" => "https://purl.imsglobal.org/spec/ob/v2p1/context.json",
+        "@context" => "https://w3id.org/openbadges/v2",
         "id" => $badge_url,
         "type" => "BadgeClass",
         "name" => $badge->title,
@@ -156,19 +156,19 @@ function get_ob2_issuer($encrypted, $code, $badge, $title) {
 
     $issuer_url = $CFG->wwwroot . "/assertions/issuer.json";
     
-    $issuer = array(
-        "@context" => "https://purl.imsglobal.org/spec/ob/v2p1/context.json",
-        "id" => $issuer_url,
-        "type" => "Profile",
-        "url" => $CFG->apphome,
-        "name" => $CFG->servicename,
-        "email" => isset($CFG->admin_email) ? $CFG->admin_email : null
-    );
+    // Use config email if set and not empty, otherwise default to placeholder
+    $issuer_email = (isset($CFG->badge_issuer_email) && !empty($CFG->badge_issuer_email)) 
+        ? $CFG->badge_issuer_email 
+        : "badge_issuer_email_not_set@example.com";
     
-    // Remove null email if not set
-    if ($issuer["email"] === null) {
-        unset($issuer["email"]);
-    }
+    $issuer = array(
+        "@context" => "https://w3id.org/openbadges/v2",
+        "id" => $issuer_url,
+        "type" => "Issuer",
+        "name" => $CFG->servicename,
+        "url" => $CFG->apphome,
+        "email" => $issuer_email
+    );
     
     return json_encode($issuer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 }
@@ -289,6 +289,11 @@ function get_ob3_issuer($encrypted, $code, $badge, $title) {
 
     $issuer_id = $CFG->wwwroot . "/assertions/issuer.json?format=ob3";
     
+    // Use config email if set and not empty, otherwise default to placeholder
+    $issuer_email = (isset($CFG->badge_issuer_email) && !empty($CFG->badge_issuer_email)) 
+        ? $CFG->badge_issuer_email 
+        : "badge_issuer_email_not_set@example.com";
+    
     $issuer = array(
         "@context" => array(
             "https://www.w3.org/ns/credentials/v2",
@@ -297,12 +302,9 @@ function get_ob3_issuer($encrypted, $code, $badge, $title) {
         "id" => $issuer_id,
         "type" => "Profile",
         "name" => $CFG->servicename,
-        "url" => $CFG->apphome
+        "url" => $CFG->apphome,
+        "email" => $issuer_email
     );
-    
-    if (isset($CFG->admin_email)) {
-        $issuer["email"] = $CFG->admin_email;
-    }
     
     return json_encode($issuer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 }

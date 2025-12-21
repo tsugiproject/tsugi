@@ -127,13 +127,20 @@ function get_issuer($encrypted, $code, $badge, $title) {
     $badge_issuer = $CFG->wwwroot . "/badges/badge-issuer.php";
     $parse = parse_url($CFG->wwwroot);
     $domain = $parse['host'];
+    
+    // Use config email if set and not empty, otherwise default to placeholder
+    $issuer_email = (isset($CFG->badge_issuer_email) && !empty($CFG->badge_issuer_email)) 
+        ? $CFG->badge_issuer_email 
+        : "badge_issuer_email_not_set@example.com";
+    
     $retval = <<< EOF
 {
   "@context": "https://w3id.org/openbadges/v2",
       "id": "$badge_issuer",
-      "type": "Profile",
+      "type": "Issuer",
       "url": "$CFG->apphome",
       "name": "$CFG->servicename",
+      "email": "$issuer_email",
       "org": "$CFG->servicename",
       "verification": {
          "allowedOrigins": "$domain"
