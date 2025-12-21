@@ -389,22 +389,23 @@ switch ($resource) {
                     </p>
                     
                     <?php
-                    // Show LinkedIn button or milestone message only if user is logged in and owns this badge
-                    if ($show_linkedin_button): 
-                        if ($completion_badge && $linkedin_url): ?>
-                            <div style="margin-top: 15px;">
-                                <button onclick="copyBadgeUrlToClipboard(this)" class="btn btn-default" style="margin-right: 10px;" title="Copy badge URL to clipboard">
-                                    <span class="glyphicon glyphicon-link"></span> Copy Badge URL
-                                </button>
-                                <button onclick="toggleQRCode()" class="btn btn-default" style="margin-right: 10px;" title="Show QR code">
-                                    <span class="glyphicon glyphicon-qrcode"></span> Show QR Code
-                                </button>
+                    // Show action buttons if user is logged in and owns this badge
+                    if ($show_linkedin_button): ?>
+                        <div style="margin-top: 15px;">
+                            <button onclick="copyBadgeUrlToClipboard(this)" class="btn btn-default" style="margin-right: 10px;" title="Copy badge URL to clipboard">
+                                <span class="glyphicon glyphicon-link"></span> Copy Badge URL
+                            </button>
+                            <button onclick="toggleQRCode()" class="btn btn-default" style="margin-right: 10px;" title="Show QR code">
+                                <span class="glyphicon glyphicon-qrcode"></span> Show QR Code
+                            </button>
+                            <?php if ($completion_badge && $linkedin_url): ?>
                                 <a href="<?= htmlspecialchars($linkedin_url) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary" title="Add to LinkedIn">
                                     Add to LinkedIn
                                 </a>
-                            </div>
-                            <div id="qr-code-container" style="display: none; margin-top: 15px; padding: 5px; background: white; border: 1px solid #ddd;"></div>
-                        <?php elseif (!$completion_badge): ?>
+                            <?php endif; ?>
+                        </div>
+                        <div id="qr-code-container" style="display: none; margin-top: 15px; padding: 5px; background: white; border: 1px solid #ddd;"></div>
+                        <?php if (!$completion_badge): ?>
                             <p style="margin-top: 15px; color: #666;">
                             This badge marks a learning milestone within the course. It represents progress toward a final, externally shareable credential.
                             </p>
