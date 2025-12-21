@@ -11,6 +11,7 @@ namespace Tsugi\Config;
  * and overide the fields in your config.php.
  */
 
+#[\AllowDynamicProperties]
 class ConfigInfo {
 
     /**
@@ -812,6 +813,7 @@ class ConfigInfo {
     public $badge_assert_salt = null; // "mediumlengthhexstring";
     public $badge_path = null; // $CFG->dirroot . '/../bimages';
     public $badge_url = null; // $CFG->apphome . '/bimages';
+    public $badge_issuer_email = null; // "badge_issuer_email_not_set@example.com"; // Email address for Open Badges issuer (OB2 required field)
 
     /**
      * The defaults for data expiration.  Data expiration is not done by default, but can
