@@ -296,6 +296,15 @@ switch ($resource) {
             
             <h3>Evidence</h3>
             <p><a href="<?= htmlspecialchars($CFG->apphome) ?>" target="_blank"><?= htmlspecialchars($CFG->apphome) ?></a></p>
+            
+            <hr>
+            
+            <h3>Validate Badge</h3>
+            <ul>
+                <li><a href="https://openbadgesvalidator.imsglobal.org/?url=<?= urlencode($ob2_url) ?>" target="_blank">Validate OB2 Assertion (IMS Global Validator)</a></li>
+                <li><a href="https://openbadgesvalidator.imsglobal.org/?url=<?= urlencode($badge_url) ?>" target="_blank">Validate OB2 Badge Class (IMS Global Validator)</a></li>
+                <li><a href="https://openbadgesvalidator.imsglobal.org/?url=<?= urlencode($issuer_url) ?>" target="_blank">Validate OB2 Issuer (IMS Global Validator)</a></li>
+            </ul>
         </div>
         <?php
         $OUTPUT->footer();
