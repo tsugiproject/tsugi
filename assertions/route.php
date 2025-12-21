@@ -261,6 +261,29 @@ switch ($resource) {
         // Build landing URL for this badge assertion page (used as certUrl for LinkedIn)
         $landing_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted);
         
+        // Compute digital signature (5 hex digits) - same algorithm as assignments page
+        // Uses badge owner's displayname and email from $row
+        $badge_owner_displayname = isset($row['displayname']) ? $row['displayname'] : '';
+        $badge_owner_email = isset($row['email']) ? $row['email'] : '';
+        $credential_id = null;
+        if (is_string($badge_owner_displayname) || is_string($badge_owner_email)) {
+            // Build output string matching assignments format: "displayname email" or just one if missing
+            $output = "";
+            if (is_string($badge_owner_displayname) && strlen($badge_owner_displayname) > 0) {
+                $output .= $badge_owner_displayname;
+            }
+            if (is_string($badge_owner_displayname) && strlen($badge_owner_displayname) > 0 && 
+                is_string($badge_owner_email) && strlen($badge_owner_email) > 0) {
+                $output .= ' ';
+            }
+            if (is_string($badge_owner_email) && strlen($badge_owner_email) > 0) {
+                $output .= $badge_owner_email;
+            }
+            // Compute signature: md5("42 " + output), then take first 5 hex digits
+            $sig = md5("42 " . $output);
+            $credential_id = substr($sig, 0, 5);
+        }
+        
         // Check if user is logged in and owns this badge
         // Start session if not already started (needed to check login status)
         if (session_status() === PHP_SESSION_NONE) {
@@ -294,6 +317,12 @@ switch ($resource) {
                 'organizationName' => $issuer_org_name,
                 'certUrl' => $landing_url
             );
+            
+            // Add credential ID (digital signature) if computed
+            // LinkedIn uses 'certId' parameter for the credential/certificate ID
+            if (!empty($credential_id)) {
+                $linkedin_params['certId'] = $credential_id;
+            }
             
             // Parse issued_on date to extract year and month for LinkedIn
             // Defensive: if date parsing fails, just skip date parameters
@@ -374,6 +403,13 @@ switch ($resource) {
                 <li><a href="https://openbadgesvalidator.imsglobal.org/?url=<?= urlencode($badge_url) ?>" target="_blank">Validate OB2 Badge Class (IMS Global Validator)</a></li>
                 <li><a href="https://openbadgesvalidator.imsglobal.org/?url=<?= urlencode($issuer_url) ?>" target="_blank">Validate OB2 Issuer (IMS Global Validator)</a></li>
             </ul>
+            
+            <?php
+            // Display digital signature (credential ID) near the bottom of the page
+            if (!empty($credential_id)): ?>
+                <hr>
+                <p><strong>Credential ID:</strong> <code><?= htmlspecialchars($credential_id) ?></code></p>
+            <?php endif; ?>
         </div>
         <?php
         $OUTPUT->footer();
