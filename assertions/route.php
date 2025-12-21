@@ -369,15 +369,15 @@ switch ($resource) {
                     if ($show_linkedin_button): 
                         if ($linkedin_badge && $linkedin_url): ?>
                             <div style="margin-top: 15px;">
-                                <a href="<?= htmlspecialchars($linkedin_url) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="margin-right: 10px;">
-                                    Add to LinkedIn
-                                </a>
                                 <button onclick="copyBadgeUrlToClipboard(this)" class="btn btn-default" style="margin-right: 10px;" title="Copy badge URL to clipboard">
                                     <span class="glyphicon glyphicon-link"></span> Copy Badge URL
                                 </button>
-                                <button onclick="toggleQRCode()" class="btn btn-default" title="Show QR code">
+                                <button onclick="toggleQRCode()" class="btn btn-default" style="margin-right: 10px;" title="Show QR code">
                                     <span class="glyphicon glyphicon-qrcode"></span> Show QR Code
                                 </button>
+                                <a href="<?= htmlspecialchars($linkedin_url) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary" title="Add to LinkedIn">
+                                    Add to LinkedIn
+                                </a>
                             </div>
                             <div id="qr-code-container" style="display: none; margin-top: 15px;">
                                 <?php
