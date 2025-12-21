@@ -12,4 +12,4 @@ $REGISTER_LTI2 = array(
 $LMS_ANALYTICS_TOOL = 'badges';
 $LMS_ANALYTICS_TITLE = 'Badges';
 $LMS_ANALYTICS_BACK = 'badges/';
-$LMS_ANALYTICS_STABLE_PATH = '/lms/badges';
+$LMS_ANALYTICS_STABLE_PATH = '/lms/badges2';

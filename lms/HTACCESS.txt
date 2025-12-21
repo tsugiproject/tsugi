@@ -8,7 +8,7 @@ RewriteCond %{HTTP_HOST} ^localhost(:[0-9]+)?$
 # Lessons
 RewriteRule ^py4e/lessons(/.*)?$ /py4e/lms/lessons$1 [L,QSA]
 # Badges
-RewriteRule ^py4e/badges(/.*)?$ /py4e/lms/badges$1 [L,QSA]
+RewriteRule ^py4e/badges(/.*)?$ /py4e/lms/badges2$1 [L,QSA]
 # Announcements
 RewriteRule ^py4e/announce(/.*)?$ /py4e/lms/announce$1 [L,QSA]
 
@@ -26,7 +26,7 @@ RewriteCond %{HTTP_HOST} !^localhost(:[0-9]+)?$
 # Lessons
 RewriteRule ^lessons(/.*)?$ /lms/lessons$1 [L,QSA]
 # Badges
-RewriteRule ^badges(/.*)?$ /lms/badges$1 [L,QSA]
+RewriteRule ^badges(/.*)?$ /lms/badges2$1 [L,QSA]
 # Announcements
 RewriteRule ^announce(/.*)?$ /lms/announce$1 [L,QSA]
 

@@ -19,7 +19,7 @@ if ( ! U::get($_SESSION,'id') ) {
 }
 
 // Record learner analytics (synthetic lti_link in this context)
-lmsRecordLaunchAnalytics('/lms/badges', 'Badges');
+lmsRecordLaunchAnalytics('/lms/badges2', 'Badges');
 
 if ( ! isset($CFG->lessons) ) {
     die_with_error_log('Cannot find lessons.json ($CFG->lessons)');

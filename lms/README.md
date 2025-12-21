@@ -10,7 +10,7 @@ For example, the code in:
 
 ./vendor/koseu/lib/src/Controllers/Badges.php
 
-Will end up in lms/badges/index.php
+Will end up in lms/badges2/index.php
 
 We will mount this at /badges using a .htaccess as shown in EXAMPLE_HTaccess.md
 
