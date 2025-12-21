@@ -58,6 +58,21 @@ class CCTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testZip() {
+        global $CFG;
+        
+        // Enable Canvas assignment extension for this test
+        // This is required for zip_add_lti_outcome_to_module to create assignment wrappers
+        $originalCFG = isset($CFG) ? $CFG : null;
+        
+        // Create a mock CFG object with getExtension method
+        $CFG = new class {
+            public $extensions = array();
+            
+            public function getExtension($key, $default = null) {
+                return $this->extensions[$key] ?? $default;
+            }
+        };
+        $CFG->extensions['canvas_assignment_extension'] = true;
 
         $filename = tempnam(sys_get_temp_dir(), 'cc.zip');
         unlink($filename);
@@ -202,7 +217,13 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $zip->addFromString('imsmanifest.xml',$cc_dom->saveXML());
 
         $zip->close();
-
+        
+        // Restore original CFG
+        if ($originalCFG === null) {
+            unset($CFG);
+        } else {
+            $CFG = $originalCFG;
+        }
 
     }
 }
