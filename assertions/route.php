@@ -442,7 +442,7 @@ switch ($resource) {
                 <li><a href="https://openbadgesvalidator.imsglobal.org/?url=<?= urlencode($badge_url) ?>" target="_blank">Validate OB2 Badge Class (IMS Global Validator)</a></li>
                 <li><a href="https://openbadgesvalidator.imsglobal.org/?url=<?= urlencode($issuer_url) ?>" target="_blank">Validate OB2 Issuer (IMS Global Validator)</a></li>
             </ul>
-            <p><a href="https://www.imsglobal.org/sites/default/files/Badges/OBv2p0Final/index.html" target="_blank">Official OB2 Specification</a> | <a href="https://www.imsglobal.org/spec/ob/v3p0" target="_blank">Official OB3 Specification</a> | <a href="#" onclick="showValidatorsModal(); return false;">About Other Badge Validators</a></p>
+            <p><a href="https://www.imsglobal.org/sites/default/files/Badges/OBv2p0Final/index.html" target="_blank">Official OB2 Specification</a> | <a href="https://www.imsglobal.org/spec/ob/v3p0" target="_blank">Official OB3 Specification</a> | <a href="#" data-toggle="modal" data-target="#validators-modal">About Other Badge Validators</a></p>
             
             <?php
             // Display digital signature (credential ID) near the bottom of the page
@@ -452,55 +452,43 @@ switch ($resource) {
             <?php endif; ?>
         </div>
         
-        <!-- Modal for Badge Validators Info -->
-        <div id="validators-modal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-            <div style="background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 600px; max-width: 90%; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h2 style="margin: 0;">About Credly, Badgr, and Other Badge Platforms</h2>
-                    <span onclick="hideValidatorsModal()" style="color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
-                </div>
-                <p>PY4E badges follow the open, specification-based Open Badges 2.0 format and are
-                independently verifiable through the public assertion links we provide. Some
-                commercial badge platforms—such as Credly, Badgr, and others—use proprietary
-                verification systems and require additional vendor-specific metadata that is not
-                part of the official OB2 specification. Because of this, don't be surprised if PY4E
-                badges do not validate on those services. This is not an indication that anything
-                is wrong with the badge; it simply reflects that those platforms expect badges to
-                be created and stored inside their own ecosystems and data formats. In some cases,
-                these vendors originally implemented early draft versions of the Open Badges
-                specification but never fully updated to the final standard. PY4E implements the
-                official, final specification directly to keep credentials portable, transparent,
-                technically correct, and fully under the learner's control—without locking badges
-                into a single vendor. We hope that, by adhering to the official specification,
-                pressure will build for vendors to update their ecosystems to support the final
-                standards. <!-- goblins tried to bake OB2 PNGs. ChatGPT and Dr. Chuck said no. -->
-                </p>
-                <div style="text-align: right; margin-top: 20px;">
-                    <button onclick="hideValidatorsModal()" class="btn btn-default">Close</button>
+        <!-- Bootstrap Modal for Badge Validators Info -->
+        <div class="modal fade" id="validators-modal" tabindex="-1" role="dialog" aria-labelledby="validators-modal-label" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="validators-modal-label">About Credly, Badgr, and Other Badge Platforms</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>PY4E badges follow the open, specification-based Open Badges 2.0 format and are
+                        independently verifiable through the public assertion links we provide. Some
+                        commercial badge platforms—such as Credly, Badgr, and others—use proprietary
+                        verification systems and require additional vendor-specific metadata that is not
+                        part of the official OB2 specification. Because of this, don't be surprised if PY4E
+                        badges do not validate on those services. This is not an indication that anything
+                        is wrong with the badge; it simply reflects that those platforms expect badges to
+                        be created and stored inside their own ecosystems and data formats. In some cases,
+                        these vendors originally implemented early draft versions of the Open Badges
+                        specification but never fully updated to the final standard. PY4E implements the
+                        official, final specification directly to keep credentials portable, transparent,
+                        technically correct, and fully under the learner's control—without locking badges
+                        into a single vendor. We hope that, by adhering to the official specification,
+                        pressure will build for vendors to update their ecosystems to support the final
+                        standards. <!-- goblins tried to bake OB2 PNGs. ChatGPT and Dr. Chuck said no. -->
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
                 </div>
             </div>
         </div>
         
         <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
         <script>
-        // Function to show validators modal
-        function showValidatorsModal() {
-            document.getElementById('validators-modal').style.display = 'block';
-        }
-        
-        // Function to hide validators modal
-        function hideValidatorsModal() {
-            document.getElementById('validators-modal').style.display = 'none';
-        }
-        
-        // Close modal when clicking outside of it
-        window.onclick = function(event) {
-            const modal = document.getElementById('validators-modal');
-            if (event.target == modal) {
-                hideValidatorsModal();
-            }
-        }
-        
         // Function to toggle QR code visibility
         function toggleQRCode() {
             const qrContainer = document.getElementById('qr-code-container');

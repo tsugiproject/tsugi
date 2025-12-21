@@ -34,7 +34,19 @@ JQuery
 
 While the existing code base uses and depends on jQuery a lot, new code should avoid using jQuery and prefer
 vanilla JavaScript.  We look for any opportunity to move towards vanilla JS.  We could even add routines
-in tsugiscripts.js to support vanilla JS use cases to avoind a lot of boilerplat spread all around?
+in tsugiscripts.js to support vanilla JS use cases to avoind a lot of boilerplate spread all around?
+
+Bootstrap
+---------
+
+Please use Bootstrap wherever possible, forms, modals, etc.  Bootstrap is the CSS language of Tsugi
+and included in every page.  Tsugi uses Bootstrap 3.x. All UI contributions should follow Bootstrap 3 patterns.
+You can check the current bootstrap version looking at the way headers are generated in Output.php.
+
+Fontawesome
+-----------
+
+Fontawesome is our primary icon library but only through version 5 - the last 100% free version.
 
 New versions of PHP
 -------------------
