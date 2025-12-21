@@ -161,9 +161,44 @@ class BadgesTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(Badges::OB2_CONTEXT, $decoded['@context'], 'Should have OB2 context');
         $this->assertEquals('Issuer', $decoded['type'], 'Should be Issuer type');
         $this->assertEquals('http://localhost/assertions/issuer.json', $decoded['id'], 'Should have correct issuer URL');
-        $this->assertEquals($CFG->servicename, $decoded['name'], 'Should have correct service name');
+        // Should use getBadgeOrganization() if available, otherwise servicename
+        $expectedName = method_exists($CFG, 'getBadgeOrganization') ? $CFG->getBadgeOrganization() : $CFG->servicename;
+        $this->assertEquals($expectedName, $decoded['name'], 'Should have correct issuer name');
         $this->assertEquals($CFG->apphome, $decoded['url'], 'Should have correct URL');
         $this->assertEquals($CFG->badge_issuer_email, $decoded['email'], 'Should have correct email');
+    }
+    
+    /**
+     * Test OB2 Issuer with badge_organization set
+     */
+    public function testGetOb2IssuerWithBadgeOrganization()
+    {
+        global $CFG;
+        $CFG->badge_organization = 'Custom Badge Organization';
+        
+        $result = Badges::getOb2Issuer();
+        $decoded = json_decode($result, true);
+        
+        $this->assertEquals('Custom Badge Organization', $decoded['name'], 'Should use badge_organization when set');
+    }
+    
+    /**
+     * Test OB2 Issuer with servicedesc fallback
+     */
+    public function testGetOb2IssuerWithServicedesc()
+    {
+        global $CFG;
+        $CFG->badge_organization = null;
+        $CFG->servicedesc = 'Service Description';
+        $CFG->servicename = 'Test Service';
+        
+        $result = Badges::getOb2Issuer();
+        $decoded = json_decode($result, true);
+        
+        $expectedName = method_exists($CFG, 'getBadgeOrganization') 
+            ? $CFG->getBadgeOrganization() 
+            : $CFG->servicename;
+        $this->assertEquals($expectedName, $decoded['name'], 'Should use getBadgeOrganization() fallback when badge_organization not set');
     }
     
     /**
@@ -340,9 +375,44 @@ class BadgesTest extends \PHPUnit\Framework\TestCase
         // Check type
         $this->assertEquals('Profile', $decoded['type'], 'Should be Profile type');
         $this->assertEquals('http://localhost/assertions/issuer.json?format=ob3', $decoded['id'], 'Should have correct issuer URL');
-        $this->assertEquals($CFG->servicename, $decoded['name'], 'Should have correct service name');
+        // Should use getBadgeOrganization() if available, otherwise servicename
+        $expectedName = method_exists($CFG, 'getBadgeOrganization') ? $CFG->getBadgeOrganization() : $CFG->servicename;
+        $this->assertEquals($expectedName, $decoded['name'], 'Should have correct issuer name');
         $this->assertEquals($CFG->apphome, $decoded['url'], 'Should have correct URL');
         $this->assertEquals($CFG->badge_issuer_email, $decoded['email'], 'Should have correct email');
+    }
+    
+    /**
+     * Test OB3 Issuer with badge_organization set
+     */
+    public function testGetOb3IssuerWithBadgeOrganization()
+    {
+        global $CFG;
+        $CFG->badge_organization = 'Custom Badge Organization';
+        
+        $result = Badges::getOb3Issuer();
+        $decoded = json_decode($result, true);
+        
+        $this->assertEquals('Custom Badge Organization', $decoded['name'], 'Should use badge_organization when set');
+    }
+    
+    /**
+     * Test OB3 Issuer with servicedesc fallback
+     */
+    public function testGetOb3IssuerWithServicedesc()
+    {
+        global $CFG;
+        $CFG->badge_organization = null;
+        $CFG->servicedesc = 'Service Description';
+        $CFG->servicename = 'Test Service';
+        
+        $result = Badges::getOb3Issuer();
+        $decoded = json_decode($result, true);
+        
+        $expectedName = method_exists($CFG, 'getBadgeOrganization') 
+            ? $CFG->getBadgeOrganization() 
+            : $CFG->servicename;
+        $this->assertEquals($expectedName, $decoded['name'], 'Should use getBadgeOrganization() fallback when badge_organization not set');
     }
     
     /**

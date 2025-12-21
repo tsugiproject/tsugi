@@ -150,4 +150,64 @@ class ConfigInfoTest extends \PHPUnit\Framework\TestCase
         $loginUrl = $CFG->getLoginUrl();
         $this->assertEquals('http://localhost:8888/tsugi/login', $loginUrl);
     }
+
+    public function testGetBadgeOrganizationWithBadgeOrganizationSet() {
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://localhost:8888/tsugi');
+        $CFG->badge_organization = 'Custom Organization Name';
+        
+        $result = $CFG->getBadgeOrganization();
+        $this->assertEquals('Custom Organization Name', $result);
+    }
+
+    public function testGetBadgeOrganizationWithServicedesc() {
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://localhost:8888/tsugi');
+        $CFG->servicedesc = 'Service Description';
+        $CFG->servicename = 'Service Name';
+        $CFG->badge_organization = null; // Explicitly not set
+        
+        $result = $CFG->getBadgeOrganization();
+        $this->assertEquals('Service Description (Service Name)', $result);
+    }
+
+    public function testGetBadgeOrganizationWithServicenameOnly() {
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://localhost:8888/tsugi');
+        $CFG->servicename = 'Service Name';
+        $CFG->servicedesc = false; // Not set
+        $CFG->badge_organization = null; // Explicitly not set
+        
+        $result = $CFG->getBadgeOrganization();
+        $this->assertEquals('Service Name', $result);
+    }
+
+    public function testGetBadgeOrganizationWithEmptyBadgeOrganization() {
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://localhost:8888/tsugi');
+        $CFG->badge_organization = '';
+        $CFG->servicedesc = 'Service Description';
+        $CFG->servicename = 'Service Name';
+        
+        // Empty string should fall back to servicedesc (servicename)
+        $result = $CFG->getBadgeOrganization();
+        $this->assertEquals('Service Description (Service Name)', $result);
+    }
+
+    public function testGetBadgeOrganizationFallbackOrder() {
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://localhost:8888/tsugi');
+        
+        // Test 1: badge_organization takes precedence
+        $CFG->badge_organization = 'Badge Org';
+        $CFG->servicedesc = 'Service Desc';
+        $CFG->servicename = 'Service Name';
+        $result = $CFG->getBadgeOrganization();
+        $this->assertEquals('Badge Org', $result);
+        
+        // Test 2: servicedesc (servicename) when badge_organization not set
+        $CFG->badge_organization = null;
+        $result = $CFG->getBadgeOrganization();
+        $this->assertEquals('Service Desc (Service Name)', $result);
+        
+        // Test 3: servicename only when both badge_organization and servicedesc not set
+        $CFG->servicedesc = false;
+        $result = $CFG->getBadgeOrganization();
+        $this->assertEquals('Service Name', $result);
+    }
 }

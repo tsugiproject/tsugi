@@ -284,11 +284,19 @@ class Badges {
         $issuer_url = self::buildIssuerUrl();
         $issuer_email = self::getIssuerEmail();
         
+        // Use getBadgeOrganization() method if available, otherwise fall back to servicename
+        if (method_exists($CFG, 'getBadgeOrganization')) {
+            $issuer_name = $CFG->getBadgeOrganization();
+        } else {
+            // Fallback for older ConfigInfo versions without the method
+            $issuer_name = $CFG->servicename;
+        }
+        
         $issuer = array(
             "@context" => self::OB2_CONTEXT,
             "id" => $issuer_url,
             "type" => "Issuer",
-            "name" => $CFG->servicename,
+            "name" => $issuer_name,
             "url" => $CFG->apphome,
             "email" => $issuer_email
         );
@@ -430,6 +438,14 @@ class Badges {
         $issuer_id = self::buildIssuerUrlWithFormat('ob3');
         $issuer_email = self::getIssuerEmail();
         
+        // Use getBadgeOrganization() method if available, otherwise fall back to servicename
+        if (method_exists($CFG, 'getBadgeOrganization')) {
+            $issuer_name = $CFG->getBadgeOrganization();
+        } else {
+            // Fallback for older ConfigInfo versions without the method
+            $issuer_name = $CFG->servicename;
+        }
+        
         $issuer = array(
             "@context" => array(
                 self::OB3_CREDENTIALS_CONTEXT,
@@ -437,7 +453,7 @@ class Badges {
             ),
             "id" => $issuer_id,
             "type" => "Profile",
-            "name" => $CFG->servicename,
+            "name" => $issuer_name,
             "url" => $CFG->apphome,
             "email" => $issuer_email
         );
