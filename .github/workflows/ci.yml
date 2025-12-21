@@ -1,19 +1,25 @@
 name: CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build-test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - uses: php-actions/composer@v6
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
       with:
-          php_version: 8.4
-    - uses: php-actions/phpunit@v3
-      with:
-          php_version: 8.4
-          bootstrap: vendor/autoload.php
-          configuration: phpunit.xml.dist
+        php-version: '8.4'
+        extensions: mbstring, xml, dom, json, curl
+        coverage: none
+    
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress --no-interaction
+    
+    - name: Run tests
+      run: composer test
 
