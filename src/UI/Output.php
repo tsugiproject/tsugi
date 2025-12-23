@@ -837,7 +837,7 @@ $('a').each(function (x) {
     }
 
     function enableSiteNav() {
-        $this->session_delete(self:SUPPRESS_SITE_NAV);
+        $this->session_forget(self::SUPPRESS_SITE_NAV);
     }
 
     /**
@@ -949,16 +949,22 @@ $('a').each(function (x) {
                 $retval .= $pad.'<p class="navbar-text">'.$entry->link.'</p>'."\n";
                 return $retval;
             }
-            if ( (strpos($url,'http:') === 0 || strpos($url,'https:') === 0 ) &&
-                ( ! is_string($CFG->apphome) || strpos($url, $CFG->apphome) === false ) &&
-                ( ! is_string($CFG->wwwroot) || strpos($url, $CFG->wwwroot) === false ) ) {
+            // Convert attr to string first to check if it contains target=
+            $attr_str = ($attr !== false && is_string($attr)) ? $attr : '';
+            $attr_has_target = ($attr_str !== '' && stripos($attr_str, 'target=') !== false);
+            
+            // Only add default target="_blank" if attr doesn't already specify a target
+            if ( ! $attr_has_target && 
+                 (strpos($url,'http:') === 0 || strpos($url,'https:') === 0 ) &&
+                 ( ! is_string($CFG->apphome) || strpos($url, $CFG->apphome) === false ) &&
+                 ( ! is_string($CFG->wwwroot) || strpos($url, $CFG->wwwroot) === false ) ) {
                 $target = ' target="_blank"';
             }
             $active = '';
             if ( $current_url == $url ) {
                 $active = ' class="active"';
             }
-            $retval .= $pad.'<li'.$active.'><a href="'.$url.'"'.$target.' '.$attr.'>'.$entry->link.'</a></li>'."\n";
+            $retval .= $pad.'<li'.$active.'><a href="'.$url.'"'.$target.' '.$attr_str.'>'.$entry->link.'</a></li>'."\n";
             return $retval;
         }
         $retval .= $pad.'<li class="dropdown">'."\n";

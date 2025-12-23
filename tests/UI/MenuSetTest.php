@@ -183,4 +183,94 @@ class MenuSetTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($export_str, $session_re_export);
     }
 
+    /**
+     * Test import with attr as string
+     */
+    public function testImportWithAttrString() {
+        $json_str = '{"home":{"link":"Home","href":"http://example.com/","attr":"class=\"test\" id=\"home\""},"left":false,"right":false}';
+        $set = \Tsugi\UI\MenuSet::import($json_str);
+        
+        $this->assertNotNull($set);
+        $this->assertNotNull($set->home);
+        $this->assertEquals('class="test" id="home"', $set->home->attr);
+    }
+
+    /**
+     * Test import with attr as object
+     */
+    public function testImportWithAttrObject() {
+        $json_str = '{"home":{"link":"Home","href":"http://example.com/","attr":{"class":"test","id":"home","data-value":"123"}},"left":false,"right":false}';
+        $set = \Tsugi\UI\MenuSet::import($json_str);
+        
+        $this->assertNotNull($set);
+        $this->assertNotNull($set->home);
+        // Should be converted to string format
+        $expected_attr = 'class="test" id="home" data-value="123"';
+        $this->assertEquals($expected_attr, $set->home->attr);
+    }
+
+    /**
+     * Test import with attr as array
+     */
+    public function testImportWithAttrArray() {
+        $json_str = '{"home":{"link":"Home","href":"http://example.com/","attr":{"class":"test","id":"home"}},"left":false,"right":false}';
+        $set = \Tsugi\UI\MenuSet::import($json_str);
+        
+        $this->assertNotNull($set);
+        $this->assertNotNull($set->home);
+        // Should be converted to string format
+        $expected_attr = 'class="test" id="home"';
+        $this->assertEquals($expected_attr, $set->home->attr);
+    }
+
+    /**
+     * Test import with attr containing special characters (XSS protection)
+     */
+    public function testImportWithAttrSpecialCharacters() {
+        $json_str = '{"home":{"link":"Home","href":"http://example.com/","attr":{"onclick":"alert(\'xss\')","class":"test"}},"left":false,"right":false}';
+        $set = \Tsugi\UI\MenuSet::import($json_str);
+        
+        $this->assertNotNull($set);
+        $this->assertNotNull($set->home);
+        // Should escape quotes properly
+        $attr = $set->home->attr;
+        $this->assertStringContainsString('onclick="alert(&#039;xss&#039;)"', $attr);
+        $this->assertStringContainsString('class="test"', $attr);
+    }
+
+    /**
+     * Test import with nested menu entries having attr as object
+     */
+    public function testImportWithNestedAttrObject() {
+        // Use the same format as export produces - left/right are arrays, not objects
+        $json_str = '{"home":{"link":"Home","href":"http://example.com/","attr":false},"left":[{"link":"Link 1","href":"link1.php","attr":{"class":"active","data-id":"1"}}],"right":false}';
+        $set = \Tsugi\UI\MenuSet::import($json_str);
+        
+        $this->assertNotNull($set);
+        $this->assertNotNull($set->left);
+        $this->assertTrue(is_object($set->left));
+        $this->assertCount(1, $set->left->menu);
+        $expected_attr = 'class="active" data-id="1"';
+        $this->assertEquals($expected_attr, $set->left->menu[0]->attr);
+    }
+
+    /**
+     * Test import/export round-trip with attr as object
+     */
+    public function testImportExportRoundTripWithAttrObject() {
+        $json_str = '{"home":{"link":"Home","href":"http://example.com/","attr":{"class":"navbar-brand","id":"home-link"}},"left":false,"right":false}';
+        $set = \Tsugi\UI\MenuSet::import($json_str);
+        
+        $this->assertNotNull($set);
+        $this->assertEquals('class="navbar-brand" id="home-link"', $set->home->attr);
+        
+        // Export and re-import
+        $export_str = $set->export(false);
+        $reimported = \Tsugi\UI\MenuSet::import($export_str);
+        
+        $this->assertNotNull($reimported);
+        // Note: export will serialize attr as string, so re-import will treat it as string
+        $this->assertEquals('class="navbar-brand" id="home-link"', $reimported->home->attr);
+    }
+
 }
