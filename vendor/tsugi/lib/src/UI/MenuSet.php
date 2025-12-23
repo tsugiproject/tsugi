@@ -111,9 +111,25 @@ class MenuSet {
             $json = json_decode($json_str); 
             // print_r($json);
             $retval = new MenuSet();
-            $retval->home = new \Tsugi\UI\MenuEntry($json->home->link, $json->home->href);
-            if ( isset($json->left) ) $retval->left = self::importRecurse($json->left, 0);
-            if ( isset($json->right) ) $retval->right = self::importRecurse($json->right, 0);
+            if ( isset($json->home) ) {
+                $attr = false;
+                if ( isset($json->home->attr) ) {
+                    if ( is_string($json->home->attr) ) {
+                        $attr = $json->home->attr;
+                    } else if ( is_object($json->home->attr) || is_array($json->home->attr) ) {
+                        // Convert object/array to string format for HTML attributes
+                        $attr_parts = array();
+                        $attr_obj = is_object($json->home->attr) ? (array)$json->home->attr : $json->home->attr;
+                        foreach($attr_obj as $key => $value) {
+                            $attr_parts[] = $key . '="' . htmlspecialchars($value, ENT_QUOTES) . '"';
+                        }
+                        $attr = implode(' ', $attr_parts);
+                    }
+                }
+                $retval->home = new \Tsugi\UI\MenuEntry($json->home->link, $json->home->href, $attr);
+            }
+            if ( isset($json->left) && $json->left !== false ) $retval->left = self::importRecurse($json->left, 0);
+            if ( isset($json->right) && $json->right !== false ) $retval->right = self::importRecurse($json->right, 0);
             return $retval;
         } catch (Exception $e) {
             return false;
@@ -128,11 +144,25 @@ class MenuSet {
         if ( ! is_array($entry) ) {
             $link = $entry->link;
             $href = $entry->href;
+            $attr = false;
+            if ( isset($entry->attr) ) {
+                if ( is_string($entry->attr) ) {
+                    $attr = $entry->attr;
+                } else if ( is_object($entry->attr) || is_array($entry->attr) ) {
+                    // Convert object/array to string format for HTML attributes
+                    $attr_parts = array();
+                    $attr_obj = is_object($entry->attr) ? (array)$entry->attr : $entry->attr;
+                    foreach($attr_obj as $key => $value) {
+                        $attr_parts[] = $key . '="' . htmlspecialchars($value, ENT_QUOTES) . '"';
+                    }
+                    $attr = implode(' ', $attr_parts);
+                }
+            }
             if ( is_string($href) || !is_object($href) ) {
-                return new \Tsugi\UI\MenuEntry($link, $href);
+                return new \Tsugi\UI\MenuEntry($link, $href, $attr);
             }
             $submenu = self::importRecurse($href, $depth+1);
-            return new \Tsugi\UI\MenuEntry($link, $submenu);
+            return new \Tsugi\UI\MenuEntry($link, $submenu, $attr);
         }
 
         $submenu = new \Tsugi\UI\Menu();
