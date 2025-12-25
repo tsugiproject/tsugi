@@ -71,6 +71,7 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtub
     if ( $type == 'slide' ) {
         $slide_title = isset($item_obj->title) ? $item_obj->title : basename(isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : ''));
         $slide_href = isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : '');
+        $slide_href = Lessons::expandLink($slide_href);
         $url = U::absolute_url($slide_href);
         $title = 'Slides: '.$slide_title;
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parentPath);
@@ -80,14 +81,17 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtub
     // Handle reference type
     if ( $type == 'reference' ) {
         $title = $item_obj->title;
-        $url = U::absolute_url($item_obj->href);
+        $href = Lessons::expandLink($item_obj->href);
+        $url = U::absolute_url($href);
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parentPath);
         return;
     }
     
     // Handle assignment type
     if ( $type == 'assignment' ) {
-        $url = U::absolute_url(isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : ''));
+        $href = isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : '');
+        $href = Lessons::expandLink($href);
+        $url = U::absolute_url($href);
         $title = 'Assignment: '.$module->title;
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parentPath);
         return;
@@ -95,7 +99,9 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtub
     
     // Handle solution type
     if ( $type == 'solution' ) {
-        $url = U::absolute_url(isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : ''));
+        $href = isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : '');
+        $href = Lessons::expandLink($href);
+        $url = U::absolute_url($href);
         $title = 'Solution: '.$module->title;
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parentPath);
         return;
@@ -347,7 +353,8 @@ foreach($l->lessons->modules as $module) {
 
     // Old way
     if ( isset($module->slides) && is_string($module->slides) ) {
-        $url = U::absolute_url($module->slides);
+        $slide_href = Lessons::expandLink($module->slides);
+        $url = U::absolute_url($slide_href);
         $title = 'Slides: '.$module->title;
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parent_path_legacy);
     }
@@ -362,6 +369,7 @@ foreach($l->lessons->modules as $module) {
                 $slide_title = $slide->title ;
                 $slide_href = $slide->href ;
             }
+            $slide_href = Lessons::expandLink($slide_href);
             $url = U::absolute_url($slide_href);
             $title = 'Slides: '.$slide_title;
             $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parent_path_legacy);
@@ -369,13 +377,15 @@ foreach($l->lessons->modules as $module) {
     }
 
     if ( isset($module->assignment) ) {
-        $url = U::absolute_url($module->assignment);
+        $href = Lessons::expandLink($module->assignment);
+        $url = U::absolute_url($href);
         $title = 'Assignment: '.$module->title;
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parent_path_legacy);
     }
 
     if ( isset($module->solution) ) {
-        $url = U::absolute_url($module->solution);
+        $href = Lessons::expandLink($module->solution);
+        $url = U::absolute_url($href);
         $title = 'Solution: '.$module->title;
         $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parent_path_legacy);
     }
@@ -383,7 +393,8 @@ foreach($l->lessons->modules as $module) {
     if ( isset($module->references) ) {
         foreach($module->references as $reference ) {
             $title = 'Reference: '.$reference->title;
-            $url = U::absolute_url($reference->href);
+            $href = Lessons::expandLink($reference->href);
+            $url = U::absolute_url($href);
             $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parent_path_legacy);
         }
     }
