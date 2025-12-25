@@ -98,6 +98,21 @@ class Lessons2 {
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
+/* Indent content lists that follow h2 headers */
+/* Target ul elements that come after h2 in the same container */
+h2 ~ ul.tsugi-lessons-content-list,
+h2 + ul.tsugi-lessons-content-list {
+    margin-left: 1.5em;
+    padding-left: 0.5em;
+}
+
+/* Also target ul elements that are descendants of containers that have h2 */
+div:has(> h2) ul.tsugi-lessons-content-list,
+li:has(> h2) ul.tsugi-lessons-content-list {
+    margin-left: 1.5em;
+    padding-left: 0.5em;
+}
+
 .progress-badge-percent {
     display: inline-block;
     background-color: #007bff;
@@ -374,6 +389,27 @@ class Lessons2 {
      */
     public static function expandLink($url) {
         global $CFG;
+        // Skip expansion if URL already starts with http:// or https://
+        if (strpos($url, 'http://') === 0 || strpos($url, 'https://') === 0) {
+            return $url;
+        }
+        
+        // Clean up duplicate placeholders first (e.g., {apphome}/{apphome} -> {apphome})
+        $url = preg_replace('#\{apphome\}/+\{apphome\}#', '{apphome}', $url);
+        $url = preg_replace('#\{wwwroot\}/+\{wwwroot\}#', '{wwwroot}', $url);
+        
+        // Check if URL already contains expanded apphome or wwwroot (prevent double expansion)
+        $has_expanded_apphome = isset($CFG->apphome) && strpos($url, $CFG->apphome) !== false;
+        $has_expanded_wwwroot = isset($CFG->wwwroot) && strpos($url, $CFG->wwwroot) !== false;
+        
+        if ($has_expanded_apphome || $has_expanded_wwwroot) {
+            // URL already contains expanded values, just remove any remaining placeholders
+            $url = str_replace(array('{apphome}', '{wwwroot}'), '', $url);
+            // Clean up any double slashes that might result
+            $url = preg_replace('#([^:])//+#', '$1/', $url);
+            return $url;
+        }
+        
         $search = array(
             "{apphome}",
             "{wwwroot}",
@@ -550,7 +586,7 @@ class Lessons2 {
                     // Handle headers - render outside list structure (aligned with title)
                     if ($type == 'header') {
                         if ($in_list && $current_section) {
-                            echo("</ul></li></ul>\n");
+                            echo("</ul>\n");
                             $in_list = false;
                         }
                         $current_section = null;
@@ -561,7 +597,7 @@ class Lessons2 {
                     // Handle text items - render outside list structure (aligned with title)
                     if ($type == 'text') {
                         if ($in_list && $current_section) {
-                            echo("</ul></li></ul>\n");
+                            echo("</ul>\n");
                             $in_list = false;
                             $current_section = null;
                         }
@@ -590,7 +626,7 @@ class Lessons2 {
                     // Start new list section if needed (indented under header)
                     if ($section_type && $section_type != $current_section) {
                         if ($in_list && $current_section) {
-                            echo("</ul></li></ul>\n");
+                            echo("</ul>\n");
                         }
                         $current_section = $section_type;
                         $in_list = true;
@@ -621,12 +657,11 @@ class Lessons2 {
                             'assignments' => 'oer:assessment',
                             'solutions' => 'oer:assessment'
                         );
-                        echo('<ul style="margin-left: 0; padding-left: 0;"><li typeof="'.$typeof_map[$section_type].'" class="'.$class_map[$section_type].'" style="margin-left: 0; padding-left: 0;">');
-                        echo('<ul class="'.$ul_class_map[$section_type].'" style="margin-left: 0; padding-left: 1em;">'."\n");
+                        echo('<ul typeof="'.$typeof_map[$section_type].'" class="'.$class_map[$section_type].' '.$ul_class_map[$section_type].' tsugi-lessons-content-list">'."\n");
                     } else if (!$section_type) {
                         // Non-grouped item (like chapters) - close list if open, render outside
                         if ($in_list && $current_section) {
-                            echo("</ul></li></ul>\n");
+                            echo("</ul>\n");
                             $in_list = false;
                             $current_section = null;
                         }
@@ -637,7 +672,7 @@ class Lessons2 {
                 
                 // Close any open list
                 if ($in_list && $current_section) {
-                    echo("</ul></li></ul>\n");
+                    echo("</ul>\n");
                 }
                 
                 if ( $debug_conversion && $has_legacy ) {
@@ -703,7 +738,7 @@ class Lessons2 {
                 echo("<p>");
                 echo($videotitle);
                 echo("</p>");
-                echo('<ul class="tsugi-lessons-module-videos-ul">'."\n");
+                echo('<ul class="tsugi-lessons-module-videos-ul tsugi-lessons-content-list">'."\n");
                 $lecno = 0;
                 foreach($videos as $video ) {
                     $media_file = $video->media ?? null;
@@ -800,7 +835,7 @@ class Lessons2 {
                 $slidestitle = __(self::getSetting($plural.'title', ucfirst($plural)));
                 echo(__($slidestitle));
                 echo("</p>");
-                echo('<ul class="tsugi-lessons-module-'.$plural.'-ul">'."\n");
+                echo('<ul class="tsugi-lessons-module-'.$plural.'-ul tsugi-lessons-content-list">'."\n");
                 foreach($module->slides as $slide ) {
                     if ( is_string($slide) ) {
                         $slide_title = basename($slide);
@@ -853,7 +888,7 @@ class Lessons2 {
                     echo("<p>");
                     echo(__($list_title));
                     echo("</p>");
-                    echo('<ul class="tsugi-lessons-module-'.$plural.'-ul">'."\n");
+                    echo('<ul class="tsugi-lessons-module-'.$plural.'-ul tsugi-lessons-content-list">'."\n");
                     foreach($module->{$plural} as $reference ) {
                         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-'.$singular.'">');
                         echo('<span class="tsugi-lessons-module-'.$singular.'-icon"></span>');
@@ -871,7 +906,7 @@ class Lessons2 {
                 $discussions = $module->discussions;
                 echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussions">');
                 echo(__('Discussions:'));
-                echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
+                echo('<ul class="tsugi-lessons-module-discussions-ul tsugi-lessons-content-list"> <!-- start of discussions -->'."\n");
                 foreach($discussions as $discussion ) {
                     $resource_link_title = isset($discussion->title) ? $discussion->title : $module->title;
                     echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
@@ -888,7 +923,7 @@ class Lessons2 {
                 $discussions = $module->discussions;
                 echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussions">');
                 echo(__('Discussions:'));
-                echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
+                echo('<ul class="tsugi-lessons-module-discussions-ul tsugi-lessons-content-list"> <!-- start of discussions -->'."\n");
                 $count = 0;
                 foreach($discussions as $discussion ) {
                     $resource_link_title = isset($discussion->title) ? $discussion->title : $module->title;
@@ -922,7 +957,7 @@ class Lessons2 {
                 $ltis = $module->lti;
                 echo('<li typeof="oer:assessment" class="tsugi-lessons-module-ltis">');
                 echo(__('Tools:'));
-                echo('<ul class="tsugi-lessons-module-ltis-ul"> <!-- start of ltis -->'."\n");
+                echo('<ul class="tsugi-lessons-module-ltis-ul tsugi-lessons-content-list"> <!-- start of ltis -->'."\n");
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
@@ -938,7 +973,7 @@ class Lessons2 {
                 $ltis = $module->lti;
                 echo('<li typeof="oer:assessment" class="tsugi-lessons-module-ltis">');
                 echo(__('Tools:'));
-                echo('<ul class="tsugi-lessons-module-ltis-ul"> <!-- start of ltis -->'."\n");
+                echo('<ul class="tsugi-lessons-module-ltis-ul tsugi-lessons-content-list"> <!-- start of ltis -->'."\n");
                 $count = 0;
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
