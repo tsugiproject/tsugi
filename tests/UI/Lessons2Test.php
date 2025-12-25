@@ -120,6 +120,105 @@ class Lessons2Test extends \PHPUnit\Framework\TestCase
     }
     
     /**
+     * Test expandLink() with URLs that already start with http:// or https://
+     */
+    public function testExpandLinkSkipsHttpUrls() {
+        global $CFG;
+        
+        // Test with http:// URL (should skip expansion)
+        $url = 'http://example.com/path';
+        $result = \Tsugi\UI\Lessons2::expandLink($url);
+        $this->assertEquals('http://example.com/path', $result, 'expandLink should skip URLs starting with http://');
+        
+        // Test with https:// URL (should skip expansion)
+        $url = 'https://example.com/path';
+        $result = \Tsugi\UI\Lessons2::expandLink($url);
+        $this->assertEquals('https://example.com/path', $result, 'expandLink should skip URLs starting with https://');
+        
+        // Test with http:// URL containing macros (should still skip)
+        $url = 'http://example.com/{apphome}/path';
+        $result = \Tsugi\UI\Lessons2::expandLink($url);
+        $this->assertEquals('http://example.com/{apphome}/path', $result, 'expandLink should skip URLs starting with http:// even if they contain macros');
+    }
+    
+    /**
+     * Test expandLink() with duplicate placeholders cleanup
+     */
+    public function testExpandLinkCleansDuplicatePlaceholders() {
+        global $CFG;
+        
+        // Test with duplicate {apphome} placeholders
+        $url = '{apphome}/{apphome}/path';
+        $result = \Tsugi\UI\Lessons2::expandLink($url);
+        $this->assertEquals('http://localhost/app/path', $result, 'expandLink should clean up duplicate {apphome} placeholders');
+        
+        // Test with duplicate {wwwroot} placeholders
+        $url = '{wwwroot}/{wwwroot}/path';
+        $result = \Tsugi\UI\Lessons2::expandLink($url);
+        $this->assertEquals('http://localhost/path', $result, 'expandLink should clean up duplicate {wwwroot} placeholders');
+        
+        // Test with multiple slashes between duplicates
+        $url = '{apphome}//{apphome}/path';
+        $result = \Tsugi\UI\Lessons2::expandLink($url);
+        $this->assertEquals('http://localhost/app/path', $result, 'expandLink should clean up duplicate placeholders with multiple slashes');
+    }
+    
+    /**
+     * Test expandLink() prevents double expansion
+     * 
+     * Note: URLs starting with http:// or https:// are returned as-is without processing.
+     * Double expansion prevention only works for URLs that don't start with http:// but
+     * contain the full expanded value (including protocol).
+     */
+    public function testExpandLinkPreventsDoubleExpansion() {
+        global $CFG;
+        
+        // Test that URLs starting with http:// are returned as-is (even with placeholders)
+        $url = 'http://localhost/app/some/path/{apphome}';
+        $result = \Tsugi\UI\Lessons2::expandLink($url);
+        $this->assertEquals('http://localhost/app/some/path/{apphome}', $result, 'expandLink should return http:// URLs as-is without processing');
+        
+        // Test double expansion prevention with a URL that contains full expanded apphome
+        // but doesn't start with http:// (edge case - unlikely in practice)
+        // Create a URL that has the full apphome value embedded
+        $url = 'someprefix' . $CFG->apphome . '/path/{apphome}';
+        $result = \Tsugi\UI\Lessons2::expandLink($url);
+        // Should detect that apphome is already present and remove placeholder
+        $this->assertStringNotContainsString('{apphome}', $result, 'expandLink should remove placeholders when URL already contains full expanded apphome');
+        $this->assertStringContainsString($CFG->apphome, $result, 'expandLink should preserve existing expanded apphome');
+        
+        // Test with wwwroot
+        $url = 'someprefix' . $CFG->wwwroot . '/path/{wwwroot}';
+        $result = \Tsugi\UI\Lessons2::expandLink($url);
+        $this->assertStringNotContainsString('{wwwroot}', $result, 'expandLink should remove placeholders when URL already contains full expanded wwwroot');
+    }
+    
+    /**
+     * Test expandLink() cleans up double slashes
+     */
+    public function testExpandLinkCleansDoubleSlashes() {
+        global $CFG;
+        
+        // Test that double slashes are cleaned up after placeholder removal
+        // Use a URL that contains full expanded apphome (not starting with http://)
+        $url = 'prefix' . $CFG->apphome . '/path//{apphome}';
+        $result = \Tsugi\UI\Lessons2::expandLink($url);
+        // After removing placeholder, should clean up double slashes
+        // The result should not have // after the apphome part
+        $pos = strpos($result, $CFG->apphome);
+        if ($pos !== false) {
+            $after_apphome = substr($result, $pos + strlen($CFG->apphome));
+            // Should not have double slashes (except http:// at the start)
+            $this->assertStringNotContainsString('//', $after_apphome, 'expandLink should clean up double slashes after placeholder removal');
+        }
+        
+        // Test normal expansion doesn't create double slashes
+        $url = '{apphome}/path';
+        $result = \Tsugi\UI\Lessons2::expandLink($url);
+        $this->assertEquals($CFG->apphome . '/path', $result, 'Normal expansion should create clean URLs');
+    }
+    
+    /**
      * Test makeUrlResource() static method - creates a URL resource object
      */
     public function testMakeUrlResource() {
