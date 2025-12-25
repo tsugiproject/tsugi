@@ -63,6 +63,11 @@ This allows you to manage Personally Identifiable Information (PII) for your lea
 Use this tool to encrypt strings using LTIX encryption methods. Note: This tool only supports encryption - decryption is only available to administrators.
 </p>
 </li>
+<li><p><a href="<?=$CFG->wwwroot?>/cc/" target="_blank">Download a copy of this course as an IMS Common Cartridge</a>
+</br>
+You can import this content into an LMS like Sakai, Canvas, Blackboard, D2L or Moodle.
+</p>
+</li>
 <?php if ( isset($CFG->google_classroom_secret) ) { ?>
 <li><p>(Experimental) <a href="gclass_login">Connect to Google Classroom</a>
 <?php
