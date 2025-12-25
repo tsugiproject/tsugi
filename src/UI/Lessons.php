@@ -372,6 +372,27 @@ class Lessons {
      */
     public static function expandLink($url) {
         global $CFG;
+        // Skip expansion if URL already starts with http:// or https://
+        if (strpos($url, 'http://') === 0 || strpos($url, 'https://') === 0) {
+            return $url;
+        }
+        
+        // Clean up duplicate placeholders first (e.g., {apphome}/{apphome} -> {apphome})
+        $url = preg_replace('#\{apphome\}/+\{apphome\}#', '{apphome}', $url);
+        $url = preg_replace('#\{wwwroot\}/+\{wwwroot\}#', '{wwwroot}', $url);
+        
+        // Check if URL already contains expanded apphome or wwwroot (prevent double expansion)
+        $has_expanded_apphome = isset($CFG->apphome) && strpos($url, $CFG->apphome) !== false;
+        $has_expanded_wwwroot = isset($CFG->wwwroot) && strpos($url, $CFG->wwwroot) !== false;
+        
+        if ($has_expanded_apphome || $has_expanded_wwwroot) {
+            // URL already contains expanded values, just remove any remaining placeholders
+            $url = str_replace(array('{apphome}', '{wwwroot}'), '', $url);
+            // Clean up any double slashes that might result
+            $url = preg_replace('#([^:])//+#', '$1/', $url);
+            return $url;
+        }
+        
         $search = array(
             "{apphome}",
             "{wwwroot}",
