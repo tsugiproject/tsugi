@@ -343,6 +343,18 @@ li:has(> h2) ul.tsugi-lessons-content-list {
                     if ( $discussion->resource_link_id == $resource_link_id) return $discussion;
                 }
             }
+            // Scan items array for LTI and discussion items
+            if ( isset($mod->items) && is_array($mod->items) ) {
+                foreach($mod->items as $item) {
+                    $item_obj = is_array($item) ? (object)$item : $item;
+                    if ( isset($item_obj->type) && isset($item_obj->resource_link_id) ) {
+                        if ( ($item_obj->type == 'lti' || $item_obj->type == 'discussion') 
+                             && $item_obj->resource_link_id == $resource_link_id ) {
+                            return $item_obj;
+                        }
+                    }
+                }
+            }
         }
         return null;
     }
@@ -361,6 +373,18 @@ li:has(> h2) ul.tsugi-lessons-content-list {
             if ( isset($mod->discussions) ) {
                 foreach($mod->discussions as $discussion ) {
                     if ( $discussion->resource_link_id == $resource_link_id) return $mod;
+                }
+            }
+            // Scan items array for LTI and discussion items
+            if ( isset($mod->items) && is_array($mod->items) ) {
+                foreach($mod->items as $item) {
+                    $item_obj = is_array($item) ? (object)$item : $item;
+                    if ( isset($item_obj->type) && isset($item_obj->resource_link_id) ) {
+                        if ( ($item_obj->type == 'lti' || $item_obj->type == 'discussion') 
+                             && $item_obj->resource_link_id == $resource_link_id ) {
+                            return $mod;
+                        }
+                    }
                 }
             }
         }

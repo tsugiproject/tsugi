@@ -266,5 +266,131 @@ class Lessons2Test extends \PHPUnit\Framework\TestCase
         $resource = \Tsugi\UI\Lessons2::makeUrlResource('video', 'Video: Special Title', 'http://example.com/video');
         $this->assertEquals('Video: Special Title', $resource->title, 'Title with colon should not get prefix added');
     }
+    
+    /**
+     * Test getLtiByRlid() method with items array support
+     */
+    public function testGetLtiByRlidWithItemsArray() {
+        $lessons2 = new class extends \Tsugi\UI\Lessons2 {
+            public function __construct() {
+                // Skip parent constructor
+            }
+        };
+        
+        // Set up lessons with items array containing LTI
+        $lessons2->lessons = new \stdClass();
+        $lessons2->lessons->modules = [
+            (object)[
+                'title' => 'Test Module',
+                'anchor' => 'test1',
+                'items' => [
+                    (object)[
+                        'type' => 'lti',
+                        'title' => 'Test LTI',
+                        'resource_link_id' => 'rlid123'
+                    ],
+                    (object)[
+                        'type' => 'discussion',
+                        'title' => 'Test Discussion',
+                        'resource_link_id' => 'rlid456'
+                    ]
+                ]
+            ]
+        ];
+        
+        // Test finding LTI in items array
+        $lti = $lessons2->getLtiByRlid('rlid123');
+        $this->assertNotNull($lti, 'getLtiByRlid should find LTI in items array');
+        $this->assertEquals('lti', $lti->type);
+        $this->assertEquals('Test LTI', $lti->title);
+        
+        // Test finding discussion in items array
+        $discussion = $lessons2->getLtiByRlid('rlid456');
+        $this->assertNotNull($discussion, 'getLtiByRlid should find discussion in items array');
+        $this->assertEquals('discussion', $discussion->type);
+        
+        // Test not found
+        $notFound = $lessons2->getLtiByRlid('nonexistent');
+        $this->assertNull($notFound, 'getLtiByRlid should return null for nonexistent resource_link_id');
+    }
+    
+    /**
+     * Test getModuleByRlid() method with items array support
+     */
+    public function testGetModuleByRlidWithItemsArray() {
+        $lessons2 = new class extends \Tsugi\UI\Lessons2 {
+            public function __construct() {
+                // Skip parent constructor
+            }
+        };
+        
+        // Set up lessons with items array
+        $module1 = (object)[
+            'title' => 'Module 1',
+            'anchor' => 'mod1',
+            'items' => [
+                (object)[
+                    'type' => 'lti',
+                    'title' => 'LTI 1',
+                    'resource_link_id' => 'rlid1'
+                ]
+            ]
+        ];
+        
+        $module2 = (object)[
+            'title' => 'Module 2',
+            'anchor' => 'mod2',
+            'items' => [
+                (object)[
+                    'type' => 'discussion',
+                    'title' => 'Discussion 1',
+                    'resource_link_id' => 'rlid2'
+                ]
+            ]
+        ];
+        
+        $lessons2->lessons = new \stdClass();
+        $lessons2->lessons->modules = [$module1, $module2];
+        
+        // Test finding module by LTI resource_link_id in items array
+        $foundModule = $lessons2->getModuleByRlid('rlid1');
+        $this->assertNotNull($foundModule, 'getModuleByRlid should find module with LTI in items array');
+        $this->assertEquals('Module 1', $foundModule->title);
+        
+        // Test finding module by discussion resource_link_id in items array
+        $foundModule = $lessons2->getModuleByRlid('rlid2');
+        $this->assertNotNull($foundModule, 'getModuleByRlid should find module with discussion in items array');
+        $this->assertEquals('Module 2', $foundModule->title);
+        
+        // Test not found
+        $notFound = $lessons2->getModuleByRlid('nonexistent');
+        $this->assertNull($notFound, 'getModuleByRlid should return null for nonexistent resource_link_id');
+    }
+    
+    /**
+     * Test getModuleByAnchor() method
+     */
+    public function testGetModuleByAnchor() {
+        $lessons2 = new class extends \Tsugi\UI\Lessons2 {
+            public function __construct() {
+                // Skip parent constructor
+            }
+        };
+        
+        $lessons2->lessons = new \stdClass();
+        $lessons2->lessons->modules = [
+            (object)['title' => 'Module 1', 'anchor' => 'mod1'],
+            (object)['title' => 'Module 2', 'anchor' => 'mod2']
+        ];
+        
+        // Test finding module by anchor
+        $module = $lessons2->getModuleByAnchor('mod1');
+        $this->assertNotNull($module, 'getModuleByAnchor should find module by anchor');
+        $this->assertEquals('Module 1', $module->title);
+        
+        // Test not found
+        $notFound = $lessons2->getModuleByAnchor('nonexistent');
+        $this->assertNull($notFound, 'getModuleByAnchor should return null for nonexistent anchor');
+    }
 }
 

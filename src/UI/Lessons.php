@@ -326,6 +326,18 @@ class Lessons {
                     if ( $discussion->resource_link_id == $resource_link_id) return $discussion;
                 }
             }
+            // Scan items array for LTI and discussion items
+            if ( isset($mod->items) && is_array($mod->items) ) {
+                foreach($mod->items as $item) {
+                    $item_obj = is_array($item) ? (object)$item : $item;
+                    if ( isset($item_obj->type) && isset($item_obj->resource_link_id) ) {
+                        if ( ($item_obj->type == 'lti' || $item_obj->type == 'discussion') 
+                             && $item_obj->resource_link_id == $resource_link_id ) {
+                            return $item_obj;
+                        }
+                    }
+                }
+            }
         }
         return null;
     }
@@ -344,6 +356,18 @@ class Lessons {
             if ( isset($mod->discussions) ) {
                 foreach($mod->discussions as $discussion ) {
                     if ( $discussion->resource_link_id == $resource_link_id) return $mod;
+                }
+            }
+            // Scan items array for LTI and discussion items
+            if ( isset($mod->items) && is_array($mod->items) ) {
+                foreach($mod->items as $item) {
+                    $item_obj = is_array($item) ? (object)$item : $item;
+                    if ( isset($item_obj->type) && isset($item_obj->resource_link_id) ) {
+                        if ( ($item_obj->type == 'lti' || $item_obj->type == 'discussion') 
+                             && $item_obj->resource_link_id == $resource_link_id ) {
+                            return $mod;
+                        }
+                    }
                 }
             }
         }
@@ -491,7 +515,7 @@ class Lessons {
             if ( isset($module->carousel) ) {
                 $carousel = $module->carousel;
                 $videotitle = __(self::getSetting('videos-title', 'Videos'));
-                echo($nostyle ? $video-title . ': <ul>' : '<ul class="bxslider">'."\n");
+                echo($nostyle ? $videotitle . ': <ul>' : '<ul class="bxslider">'."\n");
                 foreach($carousel as $video ) {
                     echo('<li>');
                     if ( $nostyle ) {
