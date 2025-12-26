@@ -121,7 +121,7 @@ if ( isset($_SESSION[$sess_key]) ) {
 $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
 $parms['ext_lti_form_id'] = $form_id;
 
-$endpoint = $lti->launch;
+$endpoint = $l->expandLink($lti->launch);
 $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
     "Finish Launch", $CFG->wwwroot, $CFG->servicename);
 
