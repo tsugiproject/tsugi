@@ -38,15 +38,15 @@ class GoogleLogin {
      */
     function getLoginUrl($state) {
         $loginUrl = "https://accounts.google.com/o/oauth2/auth?"
-            . "client_id=" . $this->client_id
-            . "&redirect_uri=" . $this->redirect
-            . "&state=" . $state
+            . "client_id=" . urlencode($this->client_id)
+            . "&redirect_uri=" . urlencode($this->redirect)
+            . "&state=" . urlencode($state)
             . "&response_type=code"
             . "&scope=email%20profile" 
             . "&include_granted_scopes=true";
 
         if ( $this->openid_realm ) {
-            $loginUrl .= "&openid.realm=" . $this->openid_realm;
+            $loginUrl .= "&openid.realm=" . urlencode($this->openid_realm);
         }
         return $loginUrl;
     }
@@ -63,8 +63,11 @@ class GoogleLogin {
         // This approach gets us the openid_id from the former realm
 
         $token_url = "https://www.googleapis.com/oauth2/v3/token";
-        $post = "code={$google_code}&client_id={$this->client_id}&client_secret={$this->client_secret}"
-            . "&redirect_uri={$this->redirect}&grant_type=authorization_code";
+        $post = "code=" . urlencode($google_code) 
+            . "&client_id=" . urlencode($this->client_id) 
+            . "&client_secret=" . urlencode($this->client_secret)
+            . "&redirect_uri=" . urlencode($this->redirect) 
+            . "&grant_type=authorization_code";
 
         if ( $this->openid_realm ) {
             $post .= "&openid.realm=" . $this->openid_realm;
