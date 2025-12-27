@@ -380,6 +380,23 @@ if ( $doLogin ) {
             $lti["context_key"] = $context_key;
         }
 
+        // Check if user is instructor and set role in LTI data
+        // Must be after context_id and id are set in session
+        $is_instructor = false;
+        if ( isset($context_id) && $context_id ) {
+            if ( isset($CFG->dirroot) ) {
+                $lms_util = $CFG->dirroot . '/lms/lms-util.php';
+                if ( file_exists($lms_util) ) {
+                    require_once($lms_util);
+                    $is_instructor = isInstructor();
+                }
+            }
+        }
+        $_SESSION['isinstructor'] = $is_instructor;
+        
+        // Set role in LTI launch data
+        $lti['role'] = $is_instructor ? LTIX::ROLE_INSTRUCTOR : LTIX::ROLE_LEARNER;
+
         // Set that data in the session.
         $_SESSION['lti'] = $lti;
 

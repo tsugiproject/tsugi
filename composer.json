@@ -37,7 +37,7 @@
         "react/dns" : ">=1.13.0",
         "react/socket" : ">=1.16.0",
 
-        "tsugi/lib": "dev-master#7e6ca647d3ff521ce65c0001d62477427e53865a",
+        "tsugi/lib": "dev-master#f391400204fae200f7818754be98ad8f44df9f76",
         "koseu/lib": "dev-master#c5a8e2bd56a33e1a65731a13ed4f350769c9ab3b"
     },
     "config": {
