@@ -3,7 +3,7 @@
 
 namespace Koseu\Core;
 
-class Application extends \Tsugi\Lumen\Application {
+class Application extends \Tsugi\UI\SimpleApplication {
 
     public function __construct($launch)
     {

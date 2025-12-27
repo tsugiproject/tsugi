@@ -5,7 +5,10 @@ use Tsugi\Controllers\Logout;
 use Tsugi\Controllers\Map;
 use Tsugi\Controllers\Profile;
 use Tsugi\Core\LTIX;
-use Tsugi\Lumen\Application;
+use Tsugi\UI\SimpleApplication;
+
+// Load helper functions
+require_once(__DIR__ . '/vendor/tsugi/lib/src/UI/helpers.php');
 
 define('COOKIE_SESSION', true);
 require_once('config.php');
@@ -20,11 +23,7 @@ if ( $file ) {
 
 $launch = LTIX::session_start();
 
-(new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(
-    dirname(__DIR__)
-))->bootstrap();
-
-$app = new Application($launch);
+$app = new SimpleApplication($launch);
 
 $app['tsugi']->output->buffer = false;
 

@@ -2,16 +2,15 @@
 
 namespace Tsugi\Controllers;
 
-use Laravel\Lumen\Routing\Controller;
-use Tsugi\Lumen\Application;
+use Tsugi\UI\SimpleApplication;
 use Symfony\Component\HttpFoundation\Request;
 
-class Profile extends Controller {
+class Profile {
 
     const ROUTE = '/profile';
     const REDIRECT = 'tsugi_controllers_profile';
 
-    public static function routes(Application $app, $prefix=self::ROUTE) {
+    public static function routes(SimpleApplication $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, function(Request $request) use ($app) {
             return Profile::getProfile($app);
         });
@@ -28,7 +27,7 @@ class Profile extends Controller {
             return Profile::postProfile($app);
         });
     }
-    public static function getProfile(Application $app)
+    public static function getProfile(SimpleApplication $app)
     {
         global $CFG, $PDOX, $OUTPUT;
         $home = isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
@@ -240,7 +239,7 @@ Send me notification mail for important things like my assignment was graded.
         echo($ret);
     }
 
-    public static function postProfile(Application $app)
+    public static function postProfile(SimpleApplication $app)
     {
         global $CFG, $PDOX;
         $p = $CFG->dbprefix;

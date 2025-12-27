@@ -2,17 +2,16 @@
 
 namespace Tsugi\Controllers;
 
-use Laravel\Lumen\Routing\Controller;
-use Tsugi\Lumen\Application;
+use Tsugi\UI\SimpleApplication;
 use Symfony\Component\HttpFoundation\Request;
 
 use \Tsugi\Util\U;
 
-class Analytics extends Controller {
+class Analytics {
 
     const ROUTE = '/analytics';
 
-    public static function routes(Application $app, $prefix=self::ROUTE) {
+    public static function routes(SimpleApplication $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, function (Request $request) use ($app) {
             return Analytics::getAnalytics($app);
         });
@@ -21,7 +20,7 @@ class Analytics extends Controller {
         });
     }
 
-    public static function getAnalytics(Application $app)
+    public static function getAnalytics(SimpleApplication $app)
     {
         global $CFG, $OUTPUT;
         $tsugi = $app['tsugi'];

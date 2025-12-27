@@ -2,20 +2,18 @@
 
 namespace Tsugi\Controllers;
 
-use Laravel\Lumen\Routing\Controller;
-use Laravel\Lumen\Routing\Router;
-use Tsugi\Lumen\Application;
+use Tsugi\UI\SimpleApplication;
 use Tsugi\Util\U;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 use \Tsugi\Core\LTIX;
 
-class Map extends Controller {
+class Map {
 
     const ROUTE = '/map';
 
-    public static function routes(Application $app, $prefix=self::ROUTE) {
+    public static function routes(SimpleApplication $app, $prefix=self::ROUTE) {
         $app->router->get($prefix.'/json', function (Request $request) use ($app) {
             return Map::getjson($app);
         });
@@ -27,7 +25,7 @@ class Map extends Controller {
         });
     }
 
-    public static function getMap(Application $app)
+    public static function getMap(SimpleApplication $app)
     {
         global $CFG;
         $tsugi = $app['tsugi'];
@@ -42,7 +40,7 @@ class Map extends Controller {
         return self::viewMap();
     }
 
-    public static function getjson(Application $app)
+    public static function getjson(SimpleApplication $app)
     {
         global $CFG;
         $tsugi = $app['tsugi'];

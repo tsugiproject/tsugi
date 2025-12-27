@@ -6,7 +6,7 @@ namespace Koseu\Controllers;
 use Tsugi\Util\U;
 use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
-use Tsugi\Lumen\Application;
+use Tsugi\UI\SimpleApplication;
 use Symfony\Component\HttpFoundation\Request;
 
 class Topics {
@@ -15,7 +15,7 @@ class Topics {
 
     const REDIRECT = 'koseu_controllers_topics';
 
-    public static function routes(Application $app, $prefix=self::ROUTE) {
+    public static function routes(SimpleApplication $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Topics@get');
         $app->router->get($prefix.'/', 'Topics@get');
         $app->router->get('/'.self::REDIRECT, 'Topics@get');
@@ -59,7 +59,7 @@ class Topics {
         $OUTPUT->footerEnd();
     }
 
-    public static function launch(Application $app, $anchor=null)
+    public static function launch(SimpleApplication $app, $anchor=null)
     {
         global $CFG;
         $tsugi = $app['tsugi'];

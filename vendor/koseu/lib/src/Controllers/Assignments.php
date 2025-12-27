@@ -2,7 +2,7 @@
 
 namespace Koseu\Controllers;
 
-use Tsugi\Lumen\Application;
+use Tsugi\UI\SimpleApplication;
 use Symfony\Component\HttpFoundation\Request;
 
 use \Tsugi\Grades\GradeUtil;
@@ -11,7 +11,7 @@ class Assignments {
 
     const ROUTE = '/assignments';
 
-    public static function routes(Application $app, $prefix=self::ROUTE) {
+    public static function routes(SimpleApplication $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Assignments@get');
         $app->router->get($prefix.'/', 'Assignments@get');
     }

@@ -2,17 +2,16 @@
 
 namespace Tsugi\Controllers;
 
-use Laravel\Lumen\Routing\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
 use \Tsugi\UI\GoogleLoginHandler;
-use Tsugi\Lumen\Application;
+use Tsugi\UI\SimpleApplication;
 
-class Login extends Controller {
+class Login {
 
     const ROUTE = '/login';
 
-    public static function routes(Application $app, $prefix=self::ROUTE) {
+    public static function routes(SimpleApplication $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Login@get');
         $app->router->get($prefix.'/', 'Login@get');
     }

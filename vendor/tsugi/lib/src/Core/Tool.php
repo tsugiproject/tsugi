@@ -75,7 +75,9 @@ class Tool {
 
         // Make a Tsugi Application
         $launch = \Tsugi\Core\LTIX::requireData();
-        $app = new \Tsugi\Lumen\Application($launch);
+        // Load helper functions
+        require_once(__DIR__ . '/../UI/helpers.php');
+        $app = new \Tsugi\UI\SimpleApplication($launch);
 
         // Add some routes
         if ( $this->analytics ) {

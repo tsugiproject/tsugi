@@ -2,7 +2,7 @@
 
 namespace Koseu\Controllers;
 
-use Tsugi\Lumen\Application;;
+use Tsugi\UI\SimpleApplication;
 use Symfony\Component\HttpFoundation\Request;
 
 use \Tsugi\Core\LTIX;
@@ -11,13 +11,13 @@ class Courses {
 
     const ROUTE = '/courses';
 
-    public static function routes(Application $app, $prefix=self::ROUTE) {
+    public static function routes(SimpleApplication $app, $prefix=self::ROUTE) {
         $app->router->get($prefix.'/json', function(Request $request) use ($app) {
             return Courses::getjson($app);
         });
     }
 
-    public static function getjson(Application $app)
+    public static function getjson(SimpleApplication $app)
     {
         global $CFG;
         $tsugi = $app['tsugi'];

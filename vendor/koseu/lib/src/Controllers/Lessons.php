@@ -5,7 +5,7 @@ namespace Koseu\Controllers;
 use Tsugi\Util\U;
 use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
-use Tsugi\Lumen\Application;
+use Tsugi\UI\SimpleApplication;
 use Symfony\Component\HttpFoundation\Request;
 
 class Lessons {
@@ -14,7 +14,7 @@ class Lessons {
 
     const REDIRECT = 'koseu_controllers_lessons';
 
-    public static function routes(Application $app, $prefix=self::ROUTE) {
+    public static function routes(SimpleApplication $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Lessons@get');
         $app->router->get($prefix.'/', 'Lessons@get');
         $app->router->get('/'.self::REDIRECT, 'Lessons@get');
