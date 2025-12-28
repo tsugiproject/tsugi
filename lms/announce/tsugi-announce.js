@@ -55,16 +55,16 @@ class TsugiAnnounce extends LitElement {
         
         .badge {
             position: absolute;
-            top: -0.5em;
-            right: -0.1em;
+            top: -0.2em;
+            right: -0.4em;
             background-color: #d9534f;
             color: white;
             border-radius: 0.35em;
-            padding: 0.08em 0.25em;
-            font-size: 0.45em;
+            padding: 0.12em 0.35em;
+            font-size: 0.6em;
             font-weight: bold;
             line-height: 1.2;
-            min-width: 0.7em;
+            min-width: 0.9em;
             text-align: center;
             box-shadow: 0 0.05em 0.15em rgba(0,0,0,0.3);
         }
