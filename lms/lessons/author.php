@@ -590,6 +590,15 @@ $(document).ready(function() {
         markChanged();
     });
     
+    // Event delegation for edit/delete buttons (so they work after reordering)
+    $(document).on('click', '.edit-item-btn', function() {
+        editItemFromButton(this);
+    });
+    
+    $(document).on('click', '.delete-item-btn', function() {
+        deleteItemFromButton(this);
+    });
+    
     // Warn before leaving with unsaved changes
     $(window).on('beforeunload', function() {
         if (hasChanges) {
@@ -691,8 +700,8 @@ function createItemHtml(item, moduleIndex, itemIndex) {
                     ${!isHeader ? `<span class="item-type ${type}" aria-label="${type}" title="${type}"><i class="fa ${getItemTypeIcon(type)}"></i></span>` : ''}
                     <span class="item-title">${escapeHtml(title)}</span>
                     <div class="item-actions">
-                        <button class="btn" onclick="editItem(${moduleIndex}, ${itemIndex})">Edit</button>
-                        <button class="btn btn-danger" onclick="deleteItem(${moduleIndex}, ${itemIndex})">Delete</button>
+                        <button class="btn edit-item-btn">Edit</button>
+                        <button class="btn btn-danger delete-item-btn">Delete</button>
                     </div>
                 </div>
             </div>
@@ -707,6 +716,37 @@ function getItemTitle(item) {
     if (item.type === 'assignment') return item.href || 'Assignment';
     if (item.type === 'slide') return item.href || 'Slide';
     return 'Untitled Item';
+}
+
+function rebuildModuleItemsArray($itemsList) {
+    // Rebuild a module's items array from DOM order
+    const moduleIndex = $itemsList.data('module-index');
+    if (moduleIndex === undefined || isNaN(moduleIndex)) return;
+    
+    const items = [];
+    
+    // Collect all items in their current DOM order
+    $itemsList.find('.item').each(function(index) {
+        const itemModuleIndex = parseInt($(this).attr('data-module-index'));
+        const oldItemIndex = parseInt($(this).attr('data-item-index'));
+        
+        // Get the actual item object from the correct module
+        if (itemModuleIndex !== undefined && !isNaN(itemModuleIndex) && 
+            oldItemIndex !== undefined && !isNaN(oldItemIndex) &&
+            lessonsData.modules[itemModuleIndex] &&
+            lessonsData.modules[itemModuleIndex].items &&
+            lessonsData.modules[itemModuleIndex].items[oldItemIndex] !== undefined) {
+            items.push(lessonsData.modules[itemModuleIndex].items[oldItemIndex]);
+        }
+        
+        // Update data attributes to reflect new position
+        $(this).attr('data-module-index', moduleIndex);
+        $(this).attr('data-item-index', index);
+    });
+    
+    // Update the module's items array
+    lessonsData.modules[moduleIndex].items = items;
+    markChanged();
 }
 
 function setupSortable() {
@@ -735,7 +775,7 @@ function setupSortable() {
         tolerance: 'pointer',
         connectWith: '.items-list',
         receive: function(event, ui) {
-            // Item was moved from another module - handle the move
+            // Item was moved from another module - rebuild target module's items array from DOM order
             const targetModuleIndex = $(this).data('module-index');
             const sourceModuleIndex = ui.sender ? ui.sender.data('module-index') : null;
             const sourceItemIndex = parseInt(ui.item.attr('data-item-index'));
@@ -747,65 +787,22 @@ function setupSortable() {
                 if (item) {
                     // Remove from source module
                     lessonsData.modules[sourceModuleIndex].items.splice(sourceItemIndex, 1);
-                    // Add to target module
-                    if (!lessonsData.modules[targetModuleIndex].items) {
-                        lessonsData.modules[targetModuleIndex].items = [];
-                    }
-                    lessonsData.modules[targetModuleIndex].items.push(item);
                     // Update data attributes on the moved item immediately
                     ui.item.attr('data-module-index', targetModuleIndex);
-                    markChanged();
                 }
             }
+            
+            // Always rebuild target module's items array from DOM order
+            rebuildModuleItemsArray($(this));
         },
         remove: function(event, ui) {
             // Item is being removed from this module (moved to another)
-            // The receive handler on the target will handle adding it
-            // We just need to rebuild this module's items array
-            const moduleIndex = $(this).data('module-index');
-            const items = [];
-            
-            $(this).find('.item').each(function(index) {
-                const itemModuleIndex = parseInt($(this).attr('data-module-index'));
-                const oldItemIndex = parseInt($(this).attr('data-item-index'));
-                
-                if (itemModuleIndex === moduleIndex && !isNaN(oldItemIndex) &&
-                    lessonsData.modules[moduleIndex].items &&
-                    lessonsData.modules[moduleIndex].items[oldItemIndex]) {
-                    items.push(lessonsData.modules[moduleIndex].items[oldItemIndex]);
-                }
-                $(this).attr('data-item-index', index);
-            });
-            
-            lessonsData.modules[moduleIndex].items = items;
-            markChanged();
+            // Rebuild this module's items array from remaining items
+            rebuildModuleItemsArray($(this));
         },
         update: function(event, ui) {
             // Handle reordering within a module - rebuild items array from DOM order
-            const moduleIndex = $(this).data('module-index');
-            const items = [];
-            
-            // Collect all items in their current DOM order
-            $(this).find('.item').each(function(index) {
-                const itemModuleIndex = parseInt($(this).attr('data-module-index'));
-                const oldItemIndex = parseInt($(this).attr('data-item-index'));
-                
-                // Get the actual item object from the correct module
-                if (itemModuleIndex !== undefined && !isNaN(itemModuleIndex) && 
-                    oldItemIndex !== undefined && !isNaN(oldItemIndex) &&
-                    lessonsData.modules[itemModuleIndex] &&
-                    lessonsData.modules[itemModuleIndex].items &&
-                    lessonsData.modules[itemModuleIndex].items[oldItemIndex]) {
-                    items.push(lessonsData.modules[itemModuleIndex].items[oldItemIndex]);
-                }
-                // Update data attributes to reflect new position
-                $(this).attr('data-module-index', moduleIndex);
-                $(this).attr('data-item-index', index);
-            });
-            
-            // Update the module's items array
-            lessonsData.modules[moduleIndex].items = items;
-            markChanged();
+            rebuildModuleItemsArray($(this));
         }
     });
 }
@@ -891,10 +888,27 @@ function addItem(moduleIndex) {
 }
 
 function editItem(moduleIndex, itemIndex) {
-    editingModuleIndex = moduleIndex;
-    editingItemIndex = itemIndex;
-    const item = lessonsData.modules[moduleIndex].items[itemIndex];
-    showItemModal('Edit Item', item);
+    // If called with parameters (for backwards compatibility)
+    if (moduleIndex !== undefined && itemIndex !== undefined) {
+        editingModuleIndex = moduleIndex;
+        editingItemIndex = itemIndex;
+        const item = lessonsData.modules[moduleIndex].items[itemIndex];
+        showItemModal('Edit Item', item);
+    }
+}
+
+function editItemFromButton(button) {
+    // Read indices from the item's data attributes
+    const $item = $(button).closest('.item');
+    const moduleIndex = parseInt($item.attr('data-module-index'));
+    const itemIndex = parseInt($item.attr('data-item-index'));
+    
+    if (!isNaN(moduleIndex) && !isNaN(itemIndex)) {
+        editingModuleIndex = moduleIndex;
+        editingItemIndex = itemIndex;
+        const item = lessonsData.modules[moduleIndex].items[itemIndex];
+        showItemModal('Edit Item', item);
+    }
 }
 
 function getDefaultItem() {
@@ -1162,11 +1176,29 @@ function saveItem() {
 }
 
 function deleteItem(moduleIndex, itemIndex) {
-    if (!confirm('Are you sure you want to delete this item?')) return;
+    // If called with parameters (for backwards compatibility)
+    if (moduleIndex !== undefined && itemIndex !== undefined) {
+        if (!confirm('Are you sure you want to delete this item?')) return;
+        
+        lessonsData.modules[moduleIndex].items.splice(itemIndex, 1);
+        renderModules();
+        markChanged();
+    }
+}
+
+function deleteItemFromButton(button) {
+    // Read indices from the item's data attributes
+    const $item = $(button).closest('.item');
+    const moduleIndex = parseInt($item.attr('data-module-index'));
+    const itemIndex = parseInt($item.attr('data-item-index'));
     
-    lessonsData.modules[moduleIndex].items.splice(itemIndex, 1);
-    renderModules();
-    markChanged();
+    if (!isNaN(moduleIndex) && !isNaN(itemIndex)) {
+        if (!confirm('Are you sure you want to delete this item?')) return;
+        
+        lessonsData.modules[moduleIndex].items.splice(itemIndex, 1);
+        renderModules();
+        markChanged();
+    }
 }
 
 function toggleModule(moduleIndex) {
