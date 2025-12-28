@@ -34,8 +34,8 @@ class TsugiAnnounce extends LitElement {
             user-select: none;
             position: relative;
             display: inline-block;
-            width: 1em;
-            height: 1em;
+            width: 2em;
+            height: 2em;
             line-height: 1;
             vertical-align: middle;
             padding: 0 0.15em;
