@@ -532,6 +532,41 @@ $OUTPUT->flashMessages();
     justify-content: flex-end;
     gap: 10px;
 }
+
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 3000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: white;
+    font-size: 16px;
+}
+
+.loading-overlay.active {
+    display: flex;
+}
+
+.loading-spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 </style>
 
 <div class="lesson-author">
@@ -570,6 +605,12 @@ $OUTPUT->flashMessages();
             <!-- Form will be inserted here -->
         </div>
     </div>
+</div>
+
+<!-- Loading overlay for drag-and-drop updates -->
+<div id="loading-overlay" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div>Updating structure...</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -612,6 +653,135 @@ function markChanged() {
         hasChanges = true;
         $('#save-bar').removeClass('hidden');
     }
+}
+
+// Loading overlay functions
+function showLoading() {
+    $('#loading-overlay').addClass('active');
+    // Disable sortable during update (if they exist)
+    try {
+        if ($('#modules-container').hasClass('ui-sortable')) {
+            $('#modules-container').sortable('disable');
+        }
+        $('.items-list').each(function() {
+            if ($(this).hasClass('ui-sortable')) {
+                $(this).sortable('disable');
+            }
+        });
+    } catch (e) {
+        // Sortable might not be initialized yet, ignore
+    }
+}
+
+function hideLoading() {
+    $('#loading-overlay').removeClass('active');
+    // Sortable will be re-initialized by setupSortable() after renderModules()
+    // So we don't need to re-enable here
+}
+
+/**
+ * Rebuilds the entire lessonsData structure from the current DOM state.
+ * This is the single source of truth - DOM is authoritative during drag operations.
+ */
+function rebuildLessonsDataFromDOM() {
+    const newModules = [];
+    
+    // Rebuild modules array from DOM order
+    $('#modules-container .module-container').each(function(moduleIndex) {
+        const $module = $(this);
+        const oldModuleIndex = parseInt($module.attr('data-module-index'));
+        
+        // Get the module data from lessonsData (preserve all properties)
+        const module = oldModuleIndex !== undefined && !isNaN(oldModuleIndex) && 
+                      lessonsData.modules[oldModuleIndex] 
+            ? JSON.parse(JSON.stringify(lessonsData.modules[oldModuleIndex]))
+            : {
+                title: 'Untitled Module',
+                anchor: '',
+                icon: '',
+                description: '',
+                items: []
+            };
+        
+        // Update module index in DOM
+        $module.attr('data-module-index', moduleIndex);
+        
+        // Rebuild items array from DOM order
+        const items = [];
+        const $itemsList = $module.find('.items-list');
+        
+        $itemsList.find('.item').each(function(itemIndex) {
+            const $item = $(this);
+            
+            // Get item from stored item-object (most reliable)
+            let item = $item.data('item-object');
+            
+            // If not found, try to get from current data attributes
+            if (!item) {
+                const itemModuleIndex = parseInt($item.attr('data-module-index'));
+                const oldItemIndex = parseInt($item.attr('data-item-index'));
+                
+                if (itemModuleIndex !== undefined && !isNaN(itemModuleIndex) && 
+                    oldItemIndex !== undefined && !isNaN(oldItemIndex) &&
+                    lessonsData.modules[itemModuleIndex] &&
+                    lessonsData.modules[itemModuleIndex].items &&
+                    lessonsData.modules[itemModuleIndex].items[oldItemIndex]) {
+                    item = JSON.parse(JSON.stringify(lessonsData.modules[itemModuleIndex].items[oldItemIndex]));
+                }
+            }
+            
+            // If still no item, create a default one (shouldn't happen, but safety)
+            if (!item) {
+                item = {
+                    type: 'header',
+                    text: 'Untitled Item',
+                    level: 2
+                };
+            }
+            
+            // Store item object on DOM element for future use
+            $item.data('item-object', item);
+            
+            // Update data attributes
+            $item.attr('data-module-index', moduleIndex);
+            $item.attr('data-item-index', itemIndex);
+            
+            items.push(item);
+        });
+        
+        module.items = items;
+        newModules.push(module);
+    });
+    
+    // Update lessonsData with rebuilt structure
+    lessonsData.modules = newModules;
+}
+
+/**
+ * Unified function to sync data from DOM and re-render.
+ * This ensures data consistency - DOM is source of truth, then we rebuild data and re-render.
+ */
+function syncDataAndRender() {
+    showLoading();
+    
+    // Use setTimeout to allow DOM to settle after drag operation
+    setTimeout(function() {
+        try {
+            // Rebuild data structure from DOM (DOM is source of truth)
+            rebuildLessonsDataFromDOM();
+            
+            // Re-render everything from the updated data
+            renderModules();
+            
+            // Mark that changes were made
+            markChanged();
+        } catch (error) {
+            console.error('Error syncing data and rendering:', error);
+            alert('An error occurred while updating. Please refresh the page.');
+        } finally {
+            hideLoading();
+        }
+    }, 50); // Small delay to ensure DOM is settled
 }
 
 function renderModules() {
@@ -782,20 +952,24 @@ function rebuildModuleItemsArray($itemsList) {
 }
 
 function setupSortable() {
+    // Destroy any existing sortable instances first (in case of re-render)
+    if ($('#modules-container').hasClass('ui-sortable')) {
+        $('#modules-container').sortable('destroy');
+    }
+    $('.items-list').each(function() {
+        if ($(this).hasClass('ui-sortable')) {
+            $(this).sortable('destroy');
+        }
+    });
+    
     // Make modules sortable
     $('#modules-container').sortable({
         handle: '.module-header .drag-handle',
         placeholder: 'ui-sortable-placeholder',
         tolerance: 'pointer',
         update: function(event, ui) {
-            const modules = [];
-            $('#modules-container .module-container').each(function(index) {
-                const oldIndex = $(this).data('module-index');
-                modules.push(lessonsData.modules[oldIndex]);
-                $(this).attr('data-module-index', index);
-            });
-            lessonsData.modules = modules;
-            markChanged();
+            // On any module reorder, sync data and re-render
+            syncDataAndRender();
         }
     });
     
@@ -806,80 +980,10 @@ function setupSortable() {
         placeholder: 'ui-sortable-placeholder',
         tolerance: 'pointer',
         connectWith: '.items-list',
-        receive: function(event, ui) {
-            // Item was moved from another module - rebuild target module's items array from DOM order
-            const targetModuleIndex = $(this).data('module-index');
-            
-            // The item should have been stored by the remove handler
-            // If not, something went wrong, but don't try to remove from source (remove handler already did that)
-            const storedItem = ui.item.data('moved-item');
-            if (storedItem) {
-                // Item was already captured and stored by remove handler
-                // Just update its module index
-                ui.item.attr('data-module-index', targetModuleIndex);
-            }
-            
-            // Always rebuild target module's items array from DOM order
-            rebuildModuleItemsArray($(this));
-        },
-        remove: function(event, ui) {
-            // Item is being removed from this module (moved to another)
-            const moduleIndex = $(this).data('module-index');
-            
-            // Check if this is a cross-module move (has a sender/target)
-            if (ui.sender && moduleIndex !== undefined && !isNaN(moduleIndex)) {
-                // CRITICAL: Get the item object from the DOM element's stored data
-                // This is the most reliable way - it's stored when the item was rendered
-                const itemToMove = ui.item.data('item-object');
-                
-                if (itemToMove) {
-                    // Store it for the receive handler to use
-                    ui.item.data('moved-item', JSON.parse(JSON.stringify(itemToMove)));
-                }
-                
-                // Manually rebuild source module's array, EXCLUDING the item being moved
-                // (Don't call rebuildModuleItemsArray because it would include the moved item)
-                const $itemsList = $(this);
-                const items = [];
-                let newIndex = 0;
-                
-                $itemsList.find('.item').each(function() {
-                    const $item = $(this);
-                    
-                    // Skip the item being moved (it's leaving this module)
-                    if ($item[0] === ui.item[0]) {
-                        return;
-                    }
-                    
-                    // Only process items that belong to this module
-                    const itemModuleIndex = parseInt($item.attr('data-module-index'));
-                    if (itemModuleIndex !== moduleIndex) {
-                        return;
-                    }
-                    
-                    // Get item from stored item-object
-                    const storedItem = $item.data('item-object');
-                    if (storedItem !== undefined) {
-                        items.push(storedItem);
-                    }
-                    
-                    // Update data attributes to reflect new position
-                    $item.attr('data-module-index', moduleIndex);
-                    $item.attr('data-item-index', newIndex);
-                    newIndex++;
-                });
-                
-                // Update the module's items array
-                lessonsData.modules[moduleIndex].items = items;
-                markChanged();
-            } else {
-                // Not a cross-module move, just rebuild normally
-                rebuildModuleItemsArray($(this));
-            }
-        },
         update: function(event, ui) {
-            // Handle reordering within a module - rebuild items array from DOM order
-            rebuildModuleItemsArray($(this));
+            // On any item reorder (within module or between modules), sync data and re-render
+            // This handles both same-module moves and cross-module moves
+            syncDataAndRender();
         }
     });
 }
