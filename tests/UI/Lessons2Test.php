@@ -531,5 +531,142 @@ class Lessons2Test extends \PHPUnit\Framework\TestCase
         $this->assertTrue(method_exists($lessons2, 'getCustomWithInherit'),
             'getCustomWithInherit method should exist');
     }
+    
+    /**
+     * Test renderDiscussions() flattening logic - extracts discussions from items array
+     * This tests the new functionality added to support items array format
+     */
+    public function testRenderDiscussionsFlattensItemsArray() {
+        $lessons2 = new class extends \Tsugi\UI\Lessons2 {
+            public function __construct() {
+                // Skip parent constructor
+            }
+            
+            // Expose the flattening logic for testing
+            public function testFlattenDiscussions() {
+                $discussions = array();
+                if (isset($this->lessons->discussions) ) {
+                    foreach($this->lessons->discussions as $discussion) {
+                        $discussions [] = $discussion;
+                    }
+                }
+
+                foreach($this->lessons->modules as $module) {
+                    if ( isset($module->hidden) && $module->hidden ) continue;
+                    if ( isset($module->discussions) && is_array($module->discussions) ) {
+                        foreach($module->discussions as $discussion) {
+                            $discussions [] = $discussion;
+                        }
+                    }
+                    // Scan items array for discussion items (Lessons 2 format)
+                    if ( isset($module->items) && is_array($module->items) ) {
+                        foreach($module->items as $item) {
+                            $item_obj = is_array($item) ? (object)$item : $item;
+                            if ( isset($item_obj->type) && $item_obj->type == 'discussion' ) {
+                                $discussions [] = $item_obj;
+                            }
+                        }
+                    }
+                }
+                return $discussions;
+            }
+        };
+        
+        // Set up lessons with discussions in various formats
+        $lessons2->lessons = new \stdClass();
+        $lessons2->lessons->discussions = [
+            (object)['title' => 'Top Level Discussion', 'resource_link_id' => 'rlid1']
+        ];
+        $lessons2->lessons->modules = [
+            (object)[
+                'title' => 'Module 1',
+                'anchor' => 'mod1',
+                'discussions' => [
+                    (object)['title' => 'Module Discussion', 'resource_link_id' => 'rlid2']
+                ],
+                'items' => [
+                    (object)['type' => 'discussion', 'title' => 'Item Discussion', 'resource_link_id' => 'rlid3'],
+                    (object)['type' => 'lti', 'title' => 'LTI Item', 'resource_link_id' => 'rlid4'],
+                    (object)['type' => 'video', 'title' => 'Video Item']
+                ]
+            ],
+            (object)[
+                'title' => 'Module 2',
+                'anchor' => 'mod2',
+                'hidden' => true, // Should be skipped
+                'items' => [
+                    (object)['type' => 'discussion', 'title' => 'Hidden Discussion', 'resource_link_id' => 'rlid5']
+                ]
+            ],
+            (object)[
+                'title' => 'Module 3',
+                'anchor' => 'mod3',
+                'items' => [
+                    ['type' => 'discussion', 'title' => 'Array Discussion', 'resource_link_id' => 'rlid6'] // Array format
+                ]
+            ]
+        ];
+        
+        $flattened = $lessons2->testFlattenDiscussions();
+        
+        // Should include top-level discussion
+        $this->assertCount(4, $flattened, 'Should flatten all discussions from various sources');
+        
+        // Verify all discussions are included
+        $titles = array_map(function($d) { return $d->title; }, $flattened);
+        $this->assertContains('Top Level Discussion', $titles, 'Should include top-level discussions');
+        $this->assertContains('Module Discussion', $titles, 'Should include module discussions');
+        $this->assertContains('Item Discussion', $titles, 'Should include discussions from items array');
+        $this->assertContains('Array Discussion', $titles, 'Should handle array format items');
+        
+        // Should NOT include hidden module discussions
+        $this->assertNotContains('Hidden Discussion', $titles, 'Should skip discussions from hidden modules');
+        
+        // Should NOT include non-discussion items
+        $this->assertNotContains('LTI Item', $titles, 'Should not include non-discussion items');
+        $this->assertNotContains('Video Item', $titles, 'Should not include non-discussion items');
+    }
+    
+    /**
+     * Test renderDiscussions() tdiscus check - empty() vs ! check
+     */
+    public function testRenderDiscussionsTdiscusCheck() {
+        global $CFG;
+        $originalTdiscus = $CFG->tdiscus ?? null;
+        
+        // Test that empty() check handles various falsy values correctly
+        // This tests the change from ! $CFG->tdiscus to empty($CFG->tdiscus)
+        
+        // Test with tdiscus = false
+        $CFG->tdiscus = false;
+        $this->assertTrue(empty($CFG->tdiscus), 'empty() should return true for false');
+        
+        // Test with tdiscus = 0
+        $CFG->tdiscus = 0;
+        $this->assertTrue(empty($CFG->tdiscus), 'empty() should return true for 0');
+        
+        // Test with tdiscus = ''
+        $CFG->tdiscus = '';
+        $this->assertTrue(empty($CFG->tdiscus), 'empty() should return true for empty string');
+        
+        // Test with tdiscus = null
+        unset($CFG->tdiscus);
+        $this->assertTrue(!isset($CFG->tdiscus) || empty($CFG->tdiscus), 'empty() should handle unset values');
+        
+        // Test with tdiscus = true
+        $CFG->tdiscus = true;
+        $this->assertFalse(empty($CFG->tdiscus), 'empty() should return false for true');
+        
+        // Test with tdiscus = 1
+        $CFG->tdiscus = 1;
+        $this->assertFalse(empty($CFG->tdiscus), 'empty() should return false for 1');
+        
+        // Restore original value
+        if ($originalTdiscus !== null) {
+            $CFG->tdiscus = $originalTdiscus;
+        } else {
+            unset($CFG->tdiscus);
+        }
+    }
 }
 

@@ -1225,9 +1225,18 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple bad
                     $discussions [] = $discussion;
                 }
             }
+            // Scan items array for discussion items (Lessons 2 format)
+            if ( isset($module->items) && is_array($module->items) ) {
+                foreach($module->items as $item) {
+                    $item_obj = is_array($item) ? (object)$item : $item;
+                    if ( isset($item_obj->type) && $item_obj->type == 'discussion' ) {
+                        $discussions [] = $item_obj;
+                    }
+                }
+            }
         }
 
-        if ( count($discussions) < 1 || ! isset($CFG->tdiscus) || ! $CFG->tdiscus ) {
+        if ( count($discussions) < 1 || ! isset($CFG->tdiscus) || empty($CFG->tdiscus) ) {
             echo('<h1>'.__('Discussions not available')."</h1>\n");
             $ob_output = ob_get_contents();
             ob_end_clean();
