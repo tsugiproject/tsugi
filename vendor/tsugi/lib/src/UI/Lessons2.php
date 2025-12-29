@@ -1437,14 +1437,29 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple bad
 
         foreach($this->lessons->modules as $module) {
             if ( isset($module->hidden) && $module->hidden ) continue;
-            if ( isset($module->discussions) && is_array($module->discussions) ) {
-                foreach($module->discussions as $discussion) {
-                    $discussions [] = $discussion;
+            
+            // Check if module uses items array (new format)
+            $has_items = isset($module->items) && is_array($module->items) && count($module->items) > 0;
+            
+            if ( $has_items ) {
+                // New format: scan items array for discussion items
+                foreach($module->items as $item) {
+                    $item_obj = is_array($item) ? (object)$item : $item;
+                    if ( isset($item_obj->type) && $item_obj->type == 'discussion' ) {
+                        $discussions [] = $item_obj;
+                    }
+                }
+            } else {
+                // Legacy format: scan discussions array
+                if ( isset($module->discussions) && is_array($module->discussions) ) {
+                    foreach($module->discussions as $discussion) {
+                        $discussions [] = $discussion;
+                    }
                 }
             }
         }
 
-        if ( count($discussions) < 1 || ! isset($CFG->tdiscus) || ! $CFG->tdiscus ) {
+        if ( count($discussions) < 1 || ! isset($CFG->tdiscus) || empty($CFG->tdiscus) ) {
             echo('<h1>'.__('Discussions not available')."</h1>\n");
             $ob_output = ob_get_contents();
             ob_end_clean();
