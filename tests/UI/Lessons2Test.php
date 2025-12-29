@@ -535,6 +535,7 @@ class Lessons2Test extends \PHPUnit\Framework\TestCase
     /**
      * Test renderDiscussions() flattening logic - extracts discussions from items array
      * This tests the new functionality added to support items array format
+     * IMPORTANT: When items array exists, discussions array should NOT be scanned to avoid duplicates
      */
     public function testRenderDiscussionsFlattensItemsArray() {
         $lessons2 = new class extends \Tsugi\UI\Lessons2 {
@@ -553,17 +554,23 @@ class Lessons2Test extends \PHPUnit\Framework\TestCase
 
                 foreach($this->lessons->modules as $module) {
                     if ( isset($module->hidden) && $module->hidden ) continue;
-                    if ( isset($module->discussions) && is_array($module->discussions) ) {
-                        foreach($module->discussions as $discussion) {
-                            $discussions [] = $discussion;
-                        }
-                    }
-                    // Scan items array for discussion items (Lessons 2 format)
-                    if ( isset($module->items) && is_array($module->items) ) {
+                    
+                    // Check if module uses items array (new format)
+                    $has_items = isset($module->items) && is_array($module->items) && count($module->items) > 0;
+                    
+                    if ( $has_items ) {
+                        // New format: scan items array for discussion items
                         foreach($module->items as $item) {
                             $item_obj = is_array($item) ? (object)$item : $item;
                             if ( isset($item_obj->type) && $item_obj->type == 'discussion' ) {
                                 $discussions [] = $item_obj;
+                            }
+                        }
+                    } else {
+                        // Legacy format: scan discussions array
+                        if ( isset($module->discussions) && is_array($module->discussions) ) {
+                            foreach($module->discussions as $discussion) {
+                                $discussions [] = $discussion;
                             }
                         }
                     }
@@ -604,20 +611,31 @@ class Lessons2Test extends \PHPUnit\Framework\TestCase
                 'items' => [
                     ['type' => 'discussion', 'title' => 'Array Discussion', 'resource_link_id' => 'rlid6'] // Array format
                 ]
+            ],
+            (object)[
+                'title' => 'Module 4',
+                'anchor' => 'mod4',
+                // No items array - should use legacy discussions array
+                'discussions' => [
+                    (object)['title' => 'Legacy Discussion', 'resource_link_id' => 'rlid7']
+                ]
             ]
         ];
         
         $flattened = $lessons2->testFlattenDiscussions();
         
-        // Should include top-level discussion
+        // Should include: top-level (1) + Module 1 items (1) + Module 3 items (1) + Module 4 legacy (1) = 4
         $this->assertCount(4, $flattened, 'Should flatten all discussions from various sources');
         
         // Verify all discussions are included
         $titles = array_map(function($d) { return $d->title; }, $flattened);
         $this->assertContains('Top Level Discussion', $titles, 'Should include top-level discussions');
-        $this->assertContains('Module Discussion', $titles, 'Should include module discussions');
         $this->assertContains('Item Discussion', $titles, 'Should include discussions from items array');
         $this->assertContains('Array Discussion', $titles, 'Should handle array format items');
+        $this->assertContains('Legacy Discussion', $titles, 'Should include legacy discussions when no items array');
+        
+        // Should NOT include Module Discussion from Module 1 (has items array, so discussions array is skipped)
+        $this->assertNotContains('Module Discussion', $titles, 'Should NOT scan discussions array when items array exists (avoids duplicates)');
         
         // Should NOT include hidden module discussions
         $this->assertNotContains('Hidden Discussion', $titles, 'Should skip discussions from hidden modules');

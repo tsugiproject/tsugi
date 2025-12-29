@@ -1437,17 +1437,23 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple bad
 
         foreach($this->lessons->modules as $module) {
             if ( isset($module->hidden) && $module->hidden ) continue;
-            if ( isset($module->discussions) && is_array($module->discussions) ) {
-                foreach($module->discussions as $discussion) {
-                    $discussions [] = $discussion;
-                }
-            }
-            // Scan items array for discussion items (Lessons 2 format)
-            if ( isset($module->items) && is_array($module->items) ) {
+            
+            // Check if module uses items array (new format)
+            $has_items = isset($module->items) && is_array($module->items) && count($module->items) > 0;
+            
+            if ( $has_items ) {
+                // New format: scan items array for discussion items
                 foreach($module->items as $item) {
                     $item_obj = is_array($item) ? (object)$item : $item;
                     if ( isset($item_obj->type) && $item_obj->type == 'discussion' ) {
                         $discussions [] = $item_obj;
+                    }
+                }
+            } else {
+                // Legacy format: scan discussions array
+                if ( isset($module->discussions) && is_array($module->discussions) ) {
+                    foreach($module->discussions as $discussion) {
+                        $discussions [] = $discussion;
                     }
                 }
             }
