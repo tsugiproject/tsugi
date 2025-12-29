@@ -59,12 +59,15 @@ if ( $action === 'delete' && $announcement_id ) {
     return;
 }
 
-// Get all announcements for this context
+// Get all announcements for this context with read counts
 $announcements = $PDOX->allRowsDie(
-    "SELECT A.*, U.displayname AS creator_name 
+    "SELECT A.*, U.displayname AS creator_name,
+            COUNT(D.dismissal_id) AS read_count
      FROM {$CFG->dbprefix}announcement AS A
      LEFT JOIN {$CFG->dbprefix}lti_user AS U ON A.user_id = U.user_id
+     LEFT JOIN {$CFG->dbprefix}announcement_dismissal AS D ON A.announcement_id = D.announcement_id
      WHERE A.context_id = :CID 
+     GROUP BY A.announcement_id, A.context_id, A.title, A.text, A.url, A.user_id, A.created_at, A.updated_at, U.displayname
      ORDER BY A.created_at DESC",
     array(':CID' => $context_id)
 );
@@ -94,6 +97,7 @@ $OUTPUT->flashMessages();
                         <th>URL</th>
                         <th>Created</th>
                         <th>Creator</th>
+                        <th>Read Count</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -113,6 +117,7 @@ $OUTPUT->flashMessages();
                             </td>
                             <td><?= date('M j, Y g:i A', strtotime($announcement['created_at'])) ?></td>
                             <td><?= htmlspecialchars($announcement['creator_name'] ?: 'Unknown') ?></td>
+                            <td><?= htmlspecialchars($announcement['read_count'] ?: '0') ?></td>
                             <td>
                                 <a href="<?= addSession('edit.php?id=' . $announcement['announcement_id']) ?>" 
                                    class="btn btn-sm btn-primary">Edit</a>
