@@ -443,6 +443,20 @@ li:has(> h2) ul.tsugi-lessons-content-list {
             $CFG->wwwroot,
         );
         $url = str_replace($search, $replace, $url);
+
+        // Hopefully, the URL starts with http:// or https://
+        if (strpos($url, 'http://') === 0 || strpos($url, 'https://') === 0) {
+            return $url;
+        }
+
+        // If we still don't have http:// or https://, and apphome is set, assume apphome, adding a / is the url sode not start with a slash
+        if ( $url !== '' && isset($CFG->apphome) ) {
+            if ( strpos($url, '/') !== 0 ) {    
+                $url = $CFG->apphome . '/' . $url;
+            } else {
+                $url = $CFG->apphome . $url;
+            }
+        }
         return $url;
     }
 
