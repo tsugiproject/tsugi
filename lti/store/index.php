@@ -843,14 +843,32 @@ if ( $l && $allow_lti ) {
     $active = '';
     $count = 0;
     foreach($l->lessons->modules as $module) {
-        if ( isset($module->lti) ) {
-            foreach($module->lti as $lti) {
-                if ( $count == 0 ) {
-                    echo("<ul>\n");
+        // Items array takes precedence - process items first
+        if ( isset($module->items) ) {
+            foreach($module->items as $item) {
+                if ( isset($item->type) && $item->type == 'lti' && isset($item->resource_link_id) ) {
+                    if ( $count == 0 ) {
+                        echo("<ul>\n");
+                    }
+                    $count++;
+                    $item_title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment');
+                    echo('<li><a href="index.php?assignment='.$item->resource_link_id.'">'.htmlentities($item_title).'</a>');
+                    echo("</li>\n");
                 }
-                $count++;
-                echo('<li><a href="index.php?assignment='.$lti->resource_link_id.'">'.htmlentities($lti->title).'</a>');
-                echo("</li>\n");
+            }
+        } else {
+            // Process legacy lti array only if items is not present
+            if ( isset($module->lti) ) {
+                $ltis = $module->lti;
+                if ( ! is_array($ltis) ) $ltis = array($ltis);
+                foreach($ltis as $lti) {
+                    if ( $count == 0 ) {
+                        echo("<ul>\n");
+                    }
+                    $count++;
+                    echo('<li><a href="index.php?assignment='.$lti->resource_link_id.'">'.htmlentities($lti->title).'</a>');
+                    echo("</li>\n");
+                }
             }
         }
     }
@@ -869,11 +887,29 @@ if ( $l ) foreach($l->lessons->modules as $module) {
     $resources = Lessons::getUrlResources($module);
     if ( ! $resources ) continue;
     $resource_count = $resource_count + count($resources);
-    if ( isset($module->lti) ) {
-        $assignment_count = $assignment_count + count($module->lti);
-    }
-    if ( isset($module->discussions) ) {
-        $discussion_count = $discussion_count + count($module->discussions);
+    // Items array takes precedence - count items first
+    if ( isset($module->items) ) {
+        foreach($module->items as $item) {
+            if ( isset($item->type) ) {
+                if ( $item->type == 'lti' && isset($item->resource_link_id) ) {
+                    $assignment_count++;
+                } else if ( $item->type == 'discussion' && isset($item->resource_link_id) ) {
+                    $discussion_count++;
+                }
+            }
+        }
+    } else {
+        // Count legacy arrays only if items is not present
+        if ( isset($module->lti) ) {
+            $ltis = $module->lti;
+            if ( ! is_array($ltis) ) $ltis = array($ltis);
+            $assignment_count = $assignment_count + count($ltis);
+        }
+        if ( isset($module->discussions) ) {
+            $discussions = $module->discussions;
+            if ( ! is_array($discussions) ) $discussions = array($discussions);
+            $discussion_count = $discussion_count + count($discussions);
+        }
     }
 }
 

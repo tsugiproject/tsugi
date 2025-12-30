@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "aa396e22161bdc9da573e107c5e5dbd1",
+    "content-hash": "cbd86228705c3cbc6a2a21b109b54fd6",
     "packages": [
         {
             "name": "brick/math",
@@ -7431,12 +7431,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "2393d76cb29086f4a3a1c422f62ef08ddc70d6c6"
+                "reference": "fcffd6cedef31e161f1d8f038e1361a896caf911"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/2393d76cb29086f4a3a1c422f62ef08ddc70d6c6",
-                "reference": "2393d76cb29086f4a3a1c422f62ef08ddc70d6c6",
+                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/fcffd6cedef31e161f1d8f038e1361a896caf911",
+                "reference": "fcffd6cedef31e161f1d8f038e1361a896caf911",
                 "shasum": ""
             },
             "require": {

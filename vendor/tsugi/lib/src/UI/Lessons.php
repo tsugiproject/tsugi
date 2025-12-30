@@ -216,36 +216,51 @@ class Lessons {
 
         // Make sure resource links are unique and remember them
         foreach($this->lessons->modules as $module) {
-            if ( isset($module->lti) ) {
-                $ltis = $module->lti;
-                if ( ! is_array($ltis) ) $ltis = array($ltis);
-                foreach($ltis as $lti) {
-                    if ( ! isset($lti->title) ) {
-                        die_with_error_log('Missing lti title in module:'. $module->title);
+            // Items array takes precedence - if present, skip legacy arrays
+            if ( isset($module->items) ) {
+                foreach($module->items as $item) {
+                    if ( !isset($item->type) ) continue;
+                    if ( ($item->type == 'lti' || $item->type == 'discussion') && isset($item->resource_link_id) ) {
+                        if (isset($this->resource_links[$item->resource_link_id]) ) {
+                            die_with_error_log('Duplicate resource link in Lessons '. $item->resource_link_id);
+                        }
+                        $this->resource_links[$item->resource_link_id] = $module->anchor;
                     }
-                    if ( ! isset($lti->resource_link_id) ) {
-                        die_with_error_log('Missing resource link in Lessons '. $lti->title);
-                    }
-                    if (isset($this->resource_links[$lti->resource_link_id]) ) {
-                        die_with_error_log('Duplicate resource link in Lessons '. $lti->resource_link_id);
-                    }
-                    $this->resource_links[$lti->resource_link_id] = $module->anchor;
                 }
-            }
-            if ( isset($module->discussions) ) {
-                $discussions = $module->discussions;
-                if ( ! is_array($discussions) ) $discussions = array($discussions);
-                foreach($discussions as $discussion) {
-                    if ( ! isset($discussion->title) ) {
-                        die_with_error_log('Missing discussion title in module:'. $module->title);
+            } else {
+                // Process legacy lti array only if items is not present
+                if ( isset($module->lti) ) {
+                    $ltis = $module->lti;
+                    if ( ! is_array($ltis) ) $ltis = array($ltis);
+                    foreach($ltis as $lti) {
+                        if ( ! isset($lti->title) ) {
+                            die_with_error_log('Missing lti title in module:'. $module->title);
+                        }
+                        if ( ! isset($lti->resource_link_id) ) {
+                            die_with_error_log('Missing resource link in Lessons '. $lti->title);
+                        }
+                        if (isset($this->resource_links[$lti->resource_link_id]) ) {
+                            die_with_error_log('Duplicate resource link in Lessons '. $lti->resource_link_id);
+                        }
+                        $this->resource_links[$lti->resource_link_id] = $module->anchor;
                     }
-                    if ( ! isset($discussion->resource_link_id) ) {
-                        die_with_error_log('Missing resource link in Lessons '. $discussion->title);
+                }
+                // Process legacy discussions array only if items is not present
+                if ( isset($module->discussions) ) {
+                    $discussions = $module->discussions;
+                    if ( ! is_array($discussions) ) $discussions = array($discussions);
+                    foreach($discussions as $discussion) {
+                        if ( ! isset($discussion->title) ) {
+                            die_with_error_log('Missing discussion title in module:'. $module->title);
+                        }
+                        if ( ! isset($discussion->resource_link_id) ) {
+                            die_with_error_log('Missing resource link in Lessons '. $discussion->title);
+                        }
+                        if (isset($this->resource_links[$discussion->resource_link_id]) ) {
+                            die_with_error_log('Duplicate resource link in Lessons '. $discussion->resource_link_id);
+                        }
+                        $this->resource_links[$discussion->resource_link_id] = $module->anchor;
                     }
-                    if (isset($this->resource_links[$discussion->resource_link_id]) ) {
-                        die_with_error_log('Duplicate resource link in Lessons '. $discussion->resource_link_id);
-                    }
-                    $this->resource_links[$discussion->resource_link_id] = $module->anchor;
                 }
             }
         }
@@ -872,17 +887,30 @@ class Lessons {
         if ( isset($module->hidden) && $module->hidden ) continue;
 	    if ( isset($module->login) && $module->login && !isset($_SESSION['id']) ) continue;
 
-            // Calculate progress for legacy format (scan lti array for resource_link_ids)
+            // Calculate progress - items array takes precedence
             $possible_points = 0;
             $actual_points = 0;
-            if ( isset($module->lti) ) {
-                $ltis = $module->lti;
-                if ( ! is_array($ltis) ) $ltis = array($ltis);
-                foreach($ltis as $lti) {
-                    if ( isset($lti->resource_link_id) ) {
+            // Process items array first (takes precedence)
+            if ( isset($module->items) ) {
+                foreach($module->items as $item) {
+                    if ( isset($item->type) && $item->type == 'lti' && isset($item->resource_link_id) ) {
                         $possible_points += 1.0;
-                        if ( isset($allgrades[$lti->resource_link_id]) && is_numeric($allgrades[$lti->resource_link_id]) ) {
-                            $actual_points += $allgrades[$lti->resource_link_id];
+                        if ( isset($allgrades[$item->resource_link_id]) && is_numeric($allgrades[$item->resource_link_id]) ) {
+                            $actual_points += $allgrades[$item->resource_link_id];
+                        }
+                    }
+                }
+            } else {
+                // Process legacy lti array only if items is not present
+                if ( isset($module->lti) ) {
+                    $ltis = $module->lti;
+                    if ( ! is_array($ltis) ) $ltis = array($ltis);
+                    foreach($ltis as $lti) {
+                        if ( isset($lti->resource_link_id) ) {
+                            $possible_points += 1.0;
+                            if ( isset($allgrades[$lti->resource_link_id]) && is_numeric($allgrades[$lti->resource_link_id]) ) {
+                                $actual_points += $allgrades[$lti->resource_link_id];
+                            }
                         }
                     }
                 }
@@ -958,17 +986,33 @@ class Lessons {
         $count = 0;
         foreach($this->lessons->modules as $module) {
             $count++;
-            if ( !isset($module->lti) ) continue;
+            // Items array takes precedence - check items first
+            $has_assignments = false;
+            if ( isset($module->items) ) {
+                foreach($module->items as $item) {
+                    if ( isset($item->type) && $item->type == 'lti' && isset($item->resource_link_id) ) {
+                        $has_assignments = true;
+                        break;
+                    }
+                }
+            } else if ( isset($module->lti) ) {
+                $has_assignments = true;
+            }
+            if ( !$has_assignments ) continue;
+            
             echo('<tr><td class="info" colspan="3">'."\n");
             $href = U::get_rest_parent() . '/lessons/' . urlencode($module->anchor);
             echo('<a href="'.$href.'">'."\n");
             echo($module->title);
             echo("</td></tr>");
-            if ( isset($module->lti) ) {
-                foreach($module->lti as $lti) {
+            
+            // Process items array first (takes precedence)
+            if ( isset($module->items) ) {
+                foreach($module->items as $item) {
+                    if ( !isset($item->type) || $item->type != 'lti' || !isset($item->resource_link_id) ) continue;
                     echo('<tr><td>');
-                    if ( isset($allgrades[$lti->resource_link_id]) ) {
-                        if ( $allgrades[$lti->resource_link_id] > 0.8 ) {
+                    if ( isset($allgrades[$item->resource_link_id]) ) {
+                        if ( $allgrades[$item->resource_link_id] > 0.8 ) {
                             echo('<i class="fa fa-check-square-o text-success" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
                         } else {
                             echo('<i class="fa fa-square-o text-warning" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
@@ -976,18 +1020,50 @@ class Lessons {
                     } else {
                             echo('<i class="fa fa-square-o text-danger" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
                     }
-                    echo("</td><td>".$lti->title."</td>\n");
-                    if ( isset($allgrades[$lti->resource_link_id]) ) {
-                        $datestring = U::get($alldates, $lti->resource_link_id, "");
+                    $item_title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment');
+                    echo("</td><td>".$item_title."</td>\n");
+                    if ( isset($allgrades[$item->resource_link_id]) ) {
+                        $datestring = U::get($alldates, $item->resource_link_id, "");
                         if ( strlen($datestring) > 0 ) {
                             $datestring = " (".substr($datestring,0,10).")";
                         }
-                        echo("<td>Score: ".(100*$allgrades[$lti->resource_link_id]).$datestring."</td>");
+                        echo("<td>Score: ".(100*$allgrades[$item->resource_link_id]).$datestring."</td>");
                     } else {
                         echo("<td>&nbsp;</td>");
                     }
 
                     echo("</tr>\n");
+                }
+            } else {
+                // Process legacy lti array only if items is not present
+                if ( isset($module->lti) ) {
+                    $ltis = $module->lti;
+                    if ( ! is_array($ltis) ) $ltis = array($ltis);
+                    foreach($ltis as $lti) {
+                        if ( !isset($lti->resource_link_id) ) continue;
+                        echo('<tr><td>');
+                        if ( isset($allgrades[$lti->resource_link_id]) ) {
+                            if ( $allgrades[$lti->resource_link_id] > 0.8 ) {
+                                echo('<i class="fa fa-check-square-o text-success" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
+                            } else {
+                                echo('<i class="fa fa-square-o text-warning" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
+                            }
+                        } else {
+                                echo('<i class="fa fa-square-o text-danger" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
+                        }
+                        echo("</td><td>".$lti->title."</td>\n");
+                        if ( isset($allgrades[$lti->resource_link_id]) ) {
+                            $datestring = U::get($alldates, $lti->resource_link_id, "");
+                            if ( strlen($datestring) > 0 ) {
+                                $datestring = " (".substr($datestring,0,10).")";
+                            }
+                            echo("<td>Score: ".(100*$allgrades[$lti->resource_link_id]).$datestring."</td>");
+                        } else {
+                            echo("<td>&nbsp;</td>");
+                        }
+
+                        echo("</tr>\n");
+                    }
                 }
             }
         }
@@ -1037,31 +1113,56 @@ class Lessons {
 
     public static function getUrlResources($module) {
         $resources = array();
-        if ( isset($module->carousel) ) {
-            foreach($module->carousel as $carousel ) {
-                $resources[] = self::makeUrlResource('video',$carousel->title,
-                    'https://www.youtube.com/watch?v='.urlencode($carousel->youtube));
+        // Items array takes precedence - process items first
+        if ( isset($module->items) ) {
+            foreach($module->items as $item) {
+                if ( !isset($item->type) ) continue;
+                if ( $item->type == 'video' && isset($item->youtube) ) {
+                    $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Video');
+                    $resources[] = self::makeUrlResource('video', $title,
+                        'https://www.youtube.com/watch?v='.urlencode($item->youtube));
+                } else if ( $item->type == 'slide' && isset($item->href) ) {
+                    $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : __('Slides').': '.$module->title);
+                    $resources[] = self::makeUrlResource('slides', $title, $item->href);
+                } else if ( $item->type == 'assignment' && isset($item->href) ) {
+                    $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment Specification');
+                    $resources[] = self::makeUrlResource('assignment', $title, $item->href);
+                } else if ( $item->type == 'solution' && isset($item->href) ) {
+                    $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment Solution');
+                    $resources[] = self::makeUrlResource('solution', $title, $item->href);
+                } else if ( $item->type == 'reference' && isset($item->href) ) {
+                    $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Reference');
+                    $resources[] = self::makeUrlResource('reference', $title, $item->href);
+                }
             }
-        }
-        if ( isset($module->videos) ) {
-            foreach($module->videos as $video ) {
-                $resources[] = self::makeUrlResource('video',$video->title,
-                    'https://www.youtube.com/watch?v='.urlencode($video->youtube));
+        } else {
+            // Process legacy arrays only if items is not present
+            if ( isset($module->carousel) ) {
+                foreach($module->carousel as $carousel ) {
+                    $resources[] = self::makeUrlResource('video',$carousel->title,
+                        'https://www.youtube.com/watch?v='.urlencode($carousel->youtube));
+                }
             }
-        }
-        if ( isset($module->slides) ) {
-            $resources[] = self::makeUrlResource('slides',__('Slides').': '.$module->title, $module->slides);
-        }
-        if ( isset($module->assignment) ) {
-            $resources[] = self::makeUrlResource('assignment','Assignment Specification', $module->assignment);
-        }
-        if ( isset($module->solution) ) {
-            $resources[] = self::makeUrlResource('solution','Assignment Solution', $module->solution);
-        }
-        if ( isset($module->references) ) {
-            foreach($module->references as $reference ) {
-                if ( !isset($reference->title) || ! isset($reference->href) ) continue;
-                $resources[] = self::makeUrlResource('reference',$reference->title, $reference->href);
+            if ( isset($module->videos) ) {
+                foreach($module->videos as $video ) {
+                    $resources[] = self::makeUrlResource('video',$video->title,
+                        'https://www.youtube.com/watch?v='.urlencode($video->youtube));
+                }
+            }
+            if ( isset($module->slides) ) {
+                $resources[] = self::makeUrlResource('slides',__('Slides').': '.$module->title, $module->slides);
+            }
+            if ( isset($module->assignment) ) {
+                $resources[] = self::makeUrlResource('assignment','Assignment Specification', $module->assignment);
+            }
+            if ( isset($module->solution) ) {
+                $resources[] = self::makeUrlResource('solution','Assignment Solution', $module->solution);
+            }
+            if ( isset($module->references) ) {
+                foreach($module->references as $reference ) {
+                    if ( !isset($reference->title) || ! isset($reference->href) ) continue;
+                    $resources[] = self::makeUrlResource('reference',$reference->title, $reference->href);
+                }
             }
         }
         return $resources;
