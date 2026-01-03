@@ -90,8 +90,12 @@ $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
-
 ?>
+<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 2px;">
+    <a href="index.php" class="btn btn-default" id="back-to-lessons-btn">
+        <span class="glyphicon glyphicon-arrow-left"></span> Back to Lessons
+    </a>
+</span>
 <style>
 .lesson-author {
     max-width: 1400px;
@@ -621,8 +625,27 @@ let hasChanges = false;
 let editingItemIndex = null;
 let editingModuleIndex = null;
 
+// Migrate FCPX to reference for video items
+function migrateFCPXToReference() {
+    if (!lessonsData.modules || !Array.isArray(lessonsData.modules)) {
+        return;
+    }
+    
+    lessonsData.modules.forEach(module => {
+        if (module.items && Array.isArray(module.items)) {
+            module.items.forEach(item => {
+                if (item.type === 'video' && item.FCPX && !item.reference) {
+                    item.reference = item.FCPX;
+                    delete item.FCPX;
+                }
+            });
+        }
+    });
+}
+
 // Initialize
 $(document).ready(function() {
+    migrateFCPXToReference();
     renderModules();
     setupSortable();
     
@@ -1088,6 +1111,12 @@ function editItemFromButton(button) {
         editingModuleIndex = moduleIndex;
         editingItemIndex = itemIndex;
         const item = lessonsData.modules[moduleIndex].items[itemIndex];
+        // Migrate FCPX to reference if needed
+        if (item.type === 'video' && item.FCPX && !item.reference) {
+            item.reference = item.FCPX;
+            delete item.FCPX;
+            markChanged();
+        }
         showItemModal('Edit Item', item);
     }
 }
@@ -1159,6 +1188,8 @@ function updateItemFormFields(item) {
             </div>
         `;
     } else if (type === 'video') {
+        // Handle FCPX migration for display
+        const referenceValue = item.reference || item.FCPX || '';
         fieldsHtml = `
             <div class="form-group">
                 <label>Title:</label>
@@ -1171,6 +1202,10 @@ function updateItemFormFields(item) {
             <div class="form-group">
                 <label>Media:</label>
                 <input type="text" id="edit-media" value="${escapeHtml(item.media || '')}">
+            </div>
+            <div class="form-group">
+                <label>Reference:</label>
+                <input type="text" id="edit-reference" value="${escapeHtml(referenceValue)}">
             </div>
         `;
     } else if (type === 'reference') {
@@ -1292,10 +1327,15 @@ function saveItem() {
             type: 'video',
             title: $('#edit-title').val(),
             youtube: $('#edit-youtube').val() || undefined,
-            media: $('#edit-media').val() || undefined
+            media: $('#edit-media').val() || undefined,
+            reference: $('#edit-reference').val() || undefined
         };
         // Remove undefined fields
         Object.keys(item).forEach(key => item[key] === undefined && delete item[key]);
+        // Ensure FCPX is removed if it exists (migrated to reference)
+        if (item.FCPX) {
+            delete item.FCPX;
+        }
     } else if (type === 'reference') {
         item = {
             type: 'reference',
