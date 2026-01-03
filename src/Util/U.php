@@ -168,7 +168,13 @@ class U {
      */
     public static function parse_rest_path($uri=false, $SERVER_SCRIPT_NAME=false /* unit test only */) {
         if ( ! $SERVER_SCRIPT_NAME ) $SERVER_SCRIPT_NAME = $_SERVER["SCRIPT_NAME"];  // /py4e/koseu.php
-        if ( ! $uri ) $uri = $_SERVER['REQUEST_URI'];     // /py4e/lessons/intro/happy
+        if ( ! $uri ) {
+            // Handle missing REQUEST_URI (e.g., CLI mode or certain web server configs)
+            if ( !isset($_SERVER['REQUEST_URI']) ) {
+                return false;
+            }
+            $uri = $_SERVER['REQUEST_URI'];     // /py4e/lessons/intro/happy
+        }
         // Remove Query string...
         $pos = strpos($uri, '?');
         if ( $pos !== false ) $uri = substr($uri,0,$pos);

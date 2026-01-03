@@ -89,6 +89,10 @@ class UTest extends \PHPUnit\Framework\TestCase
         // Running from the wrong directory
         $this->assertEquals(U::parse_rest_path('/a/b/c','/x/koseu.php'), false);
 
+        // Test that rest_path also returns false when parse_rest_path returns false
+        $CFG->wwwroot = "http://www.example.com:8888/tsugi";
+        $this->assertEquals(U::rest_path('/a/b/c','/x/koseu.php'), false);
+
         // Object version...
         $CFG->wwwroot = "http://www.example.com:8888/tsugi";
         $path = U::rest_path('/py4e/lessons/intro?x=2','/py4e/koseu.php');
