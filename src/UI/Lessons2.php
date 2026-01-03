@@ -123,6 +123,37 @@ li:has(> h2) ul.tsugi-lessons-content-list {
     font-size: 0.85em;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
+
+/* Remove list bullets and style icons for lesson items */
+ul.tsugi-lessons-content-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+ul.tsugi-lessons-content-list li {
+    list-style: none;
+    padding-left: 0;
+}
+
+ul.tsugi-lessons-content-list li i.fa {
+    color: #666;
+    width: 1.2em;
+    text-align: center;
+}
+
+/* Style for colored item type icons */
+.tsugi-item-type-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    font-size: 14px;
+    margin-right: 8px;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
 </style>
 <?php
         // See if there are any carousels in the lessons
@@ -722,7 +753,7 @@ li:has(> h2) ul.tsugi-lessons-content-list {
             if ( isset($module->carousel) ) {
                 $carousel = $module->carousel;
                 $videotitle = __(self::getSetting('videos-title', 'Videos'));
-                echo($nostyle ? $video-title . ': <ul>' : '<ul class="bxslider">'."\n");
+                echo($nostyle ? $videotitle . ': <ul>' : '<ul class="bxslider">'."\n");
                 foreach($carousel as $video ) {
                     echo('<li>');
                     if ( $nostyle ) {
@@ -1705,6 +1736,54 @@ $(function(){
     }
 
     /**
+     * Get icon class for an item type
+     */
+    private static function getItemTypeIcon($type) {
+        $icons = array(
+            'video' => 'fa-play-circle',
+            'reference' => 'fa-external-link',
+            'discussion' => 'fa-comments',
+            'lti' => 'fa-puzzle-piece',
+            'assignment' => 'fa-file-text',
+            'slide' => 'fa-file-powerpoint-o',
+            'solution' => 'fa-unlock',
+            'text' => 'fa-file-text-o',
+            'header' => 'fa-header'
+        );
+        return isset($icons[$type]) ? $icons[$type] : 'fa-circle';
+    }
+
+    /**
+     * Get background color for an item type icon
+     */
+    private static function getItemTypeColor($type) {
+        $colors = array(
+            'video' => '#dc3545',
+            'reference' => '#17a2b8',
+            'discussion' => '#ffc107',
+            'lti' => '#28a745',
+            'assignment' => '#fd7e14',
+            'slide' => '#6f42c1',
+            'solution' => '#6c757d',
+            'text' => '#6c757d',
+            'header' => 'transparent'
+        );
+        return isset($colors[$type]) ? $colors[$type] : '#6c757d';
+    }
+
+    /**
+     * Render an icon for an item type with styling
+     */
+    private static function renderItemIcon($type) {
+        $icon = self::getItemTypeIcon($type);
+        $color = self::getItemTypeColor($type);
+        $iconColor = ($type === 'discussion') ? '#333' : 'white';
+        echo('<span class="tsugi-item-type-icon tsugi-item-type-'.$type.'" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 3px; font-size: 14px; background-color: '.$color.'; margin-right: 8px; vertical-align: middle;">');
+        echo('<i class="fa '.$icon.'" aria-hidden="true" style="color: '.$iconColor.';"></i>');
+        echo('</span>');
+    }
+
+    /**
      * Render a single item from the items array
      */
     public function renderItem($item, $module, $nostyle=false) {
@@ -1811,7 +1890,9 @@ $(function(){
         if ( is_string($media_file) && is_string($media_base) && is_string($media_folder) &&
             file_exists($media_folder . '/' . $media_file) ) {
             $media_path = $media_base . '/' . $media_file;
-            echo('<a href="'.$media_path.'" target="_blank">'.htmlentities($item->title).'</a>');
+            echo('<a href="'.$media_path.'" target="_blank" style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon('video');
+            echo(htmlentities($item->title).'</a>');
         } else {
             $youtube = isset($item->youtube) ? $item->youtube : '';
             if ( $youtube ) {
@@ -1825,7 +1906,7 @@ $(function(){
   <div class="youtube-player" data-id="<?= $youtube ?>"></div>
   </div>
 </div>
-<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($item->title) ?></a>
+<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';" style="display: inline-flex; align-items: center;"><?php self::renderItemIcon('video'); ?><?= htmlentities($item->title) ?></a>
 <?php
             } else {
                 echo(htmlentities($item->title));
@@ -1870,9 +1951,10 @@ $(function(){
         $slide_href = self::expandLink($slide_href);
         
         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-slide">');
-        echo('<span class="tsugi-lessons-module-slide-icon"></span>');
         echo('<span class="tsugi-lessons-module-slide-link">');
-        self::nostyleLink($slide_title, $slide_href);
+        echo('<a href="'.$slide_href.'" target="_blank" class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
+        self::renderItemIcon('slide');
+        echo(htmlentities($slide_title)."</a>\n");
         echo("</span>\n");
         echo('</li>'."\n");
     }
@@ -1887,9 +1969,10 @@ $(function(){
         $href = self::expandLink($href);
         
         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-reference">');
-        echo('<span class="tsugi-lessons-module-reference-icon"></span>');
         echo('<span class="tsugi-lessons-module-reference-link">');
-        self::nostyleLink($title, $href);
+        echo('<a href="'.$href.'" target="_blank" class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
+        self::renderItemIcon('reference');
+        echo(htmlentities($title)."</a>\n");
         echo("</span>\n");
         echo('</li>'."\n");
     }
@@ -1906,7 +1989,9 @@ $(function(){
         
         // Not logged in
         if ( ! isset($_SESSION['secret']) ) {
-            echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
+            echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">');
+            self::renderItemIcon('discussion');
+            echo(htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
             echo("\n</li>\n");
             return;
         }
@@ -1917,7 +2002,11 @@ $(function(){
             && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
         {
             if ( $nostyle ) {
-                echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'.htmlentities($resource_link_title).' (Login Required) <br/>'."\n");
+                echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">');
+                echo('<span style="display: inline-flex; align-items: center;">');
+                self::renderItemIcon('discussion');
+                echo(htmlentities($resource_link_title).' (Login Required)');
+                echo('</span><br/>'."\n");
                 $discussionurl = U::add_url_parm($launch, 'inherit', $resource_link_id);
                 echo('<span style="color:green">'.htmlentities($discussionurl)."</span>\n");
                 echo("\n</li>\n");
@@ -1926,7 +2015,10 @@ $(function(){
             
             $rest_path = U::rest_path();
             $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $resource_link_id;
-            echo('<li class="tsugi-lessons-module-discussion"><a href="'.$launch_path.'">'.htmlentities($resource_link_title).'</a></li>'."\n");
+            echo('<li class="tsugi-lessons-module-discussion">');
+            echo('<a href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon('discussion');
+            echo(htmlentities($resource_link_title).'</a></li>'."\n");
         }
     }
 
@@ -1943,7 +2035,11 @@ $(function(){
         
         // Not logged in
         if ( ! isset($_SESSION['secret']) ) {
-            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
+            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">');
+            echo('<span style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon('lti');
+            echo(htmlentities($resource_link_title).' ('.__('Login Required').')');
+            echo('</span><br/>'."\n");
             echo("\n</li>\n");
             return;
         }
@@ -1953,7 +2049,11 @@ $(function(){
             && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
         {
             if ( $nostyle ) {
-                echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' (Login Required) <br/>'."\n");
+                echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">');
+                echo('<span style="display: inline-flex; align-items: center;">');
+                self::renderItemIcon('lti');
+                echo(htmlentities($resource_link_title).' (Login Required)');
+                echo('</span><br/>'."\n");
                 $ltiurl = U::add_url_parm($launch, 'inherit', $resource_link_id);
                 echo('<span style="color:green">'.htmlentities($ltiurl)."</span>\n");
                 echo("\n</li>\n");
@@ -1964,9 +2064,12 @@ $(function(){
             $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $resource_link_id;
             $title = isset($item->title) ? $item->title : "Autograder";
             
-            echo('<li class="tsugi-lessons-module-lti"><a');
+            echo('<li class="tsugi-lessons-module-lti">');
+            echo('<a');
             if ( $target == "_blank" ) echo(' target="_blank" onclick="alert(\'Link will open in a new browser tab...\');" ');
-            echo(' href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
+            echo(' href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon('lti');
+            echo(htmlentities($title).'</a></li>'."\n");
         }
     }
 
@@ -1979,11 +2082,15 @@ $(function(){
         $url = self::expandLink($url);
         
         if ( $nostyle ) {
-            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-assignment">'.__('Assignment Specification').':');
+            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-assignment">');
+            echo(__('Assignment Specification').':');
             self::nostyleUrl(__('Assignment Specification'), $url);
             echo('</li>'."\n");
         } else {
-            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-assignment"><a href="'.$url.'" target="_blank">'.__('Assignment Specification').'</a></li>'."\n");
+            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-assignment">');
+            echo('<a href="'.$url.'" target="_blank" style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon('assignment');
+            echo(__('Assignment Specification').'</a></li>'."\n");
         }
     }
 
@@ -1996,11 +2103,15 @@ $(function(){
         $url = self::expandLink($url);
         
         if ( $nostyle ) {
-            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-solution">'.__('Assignment Solution').':');
+            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-solution">');
+            echo(__('Assignment Solution').':');
             self::nostyleUrl(__('Assignment Solution'), $url);
             echo('</li>'."\n");
         } else {
-            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-solution"><a href="'.$url.'" target="_blank">'.__('Assignment Solution').'</a></li>'."\n");
+            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-solution">');
+            echo('<a href="'.$url.'" target="_blank" style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon('solution');
+            echo(__('Assignment Solution').'</a></li>'."\n");
         }
     }
 
