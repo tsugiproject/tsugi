@@ -1143,10 +1143,10 @@ function editModule(moduleIndex) {
 function saveModule() {
     if (editingModuleIndex === null) return;
     
-    lessonsData.modules[editingModuleIndex].title = $('#edit-title').val();
-    lessonsData.modules[editingModuleIndex].anchor = $('#edit-anchor').val();
-    lessonsData.modules[editingModuleIndex].icon = $('#edit-icon').val();
-    lessonsData.modules[editingModuleIndex].description = $('#edit-description').val();
+    lessonsData.modules[editingModuleIndex].title = $('#edit-title').val().trim();
+    lessonsData.modules[editingModuleIndex].anchor = $('#edit-anchor').val().trim();
+    lessonsData.modules[editingModuleIndex].icon = $('#edit-icon').val().trim();
+    lessonsData.modules[editingModuleIndex].description = $('#edit-description').val().trim();
     
     closeModal();
     renderModules();
@@ -1395,16 +1395,19 @@ function saveItem() {
     if (type === 'header') {
         item = {
             type: 'header',
-            text: $('#edit-text').val(),
+            text: $('#edit-text').val().trim(),
             level: parseInt($('#edit-level').val())
         };
     } else if (type === 'video') {
+        const youtubeVal = $('#edit-youtube').val().trim();
+        const mediaVal = $('#edit-media').val().trim();
+        const referenceVal = $('#edit-reference').val().trim();
         item = {
             type: 'video',
-            title: $('#edit-title').val(),
-            youtube: $('#edit-youtube').val() || undefined,
-            media: $('#edit-media').val() || undefined,
-            reference: $('#edit-reference').val() || undefined
+            title: $('#edit-title').val().trim(),
+            youtube: youtubeVal || undefined,
+            media: mediaVal || undefined,
+            reference: referenceVal || undefined
         };
         // Remove undefined fields
         Object.keys(item).forEach(key => item[key] === undefined && delete item[key]);
@@ -1415,21 +1418,21 @@ function saveItem() {
     } else if (type === 'reference') {
         item = {
             type: 'reference',
-            title: $('#edit-title').val(),
-            href: $('#edit-href').val()
+            title: $('#edit-title').val().trim(),
+            href: $('#edit-href').val().trim()
         };
     } else if (type === 'discussion') {
         item = {
             type: 'discussion',
-            title: $('#edit-title').val(),
-            launch: $('#edit-launch').val(),
-            resource_link_id: $('#edit-resource-link-id').val()
+            title: $('#edit-title').val().trim(),
+            launch: $('#edit-launch').val().trim(),
+            resource_link_id: $('#edit-resource-link-id').val().trim()
         };
     } else if (type === 'lti') {
         const custom = [];
         $('#custom-fields-container .custom-field').each(function() {
-            const key = $(this).find('.custom-key').val();
-            const value = $(this).find('.custom-value').val();
+            const key = $(this).find('.custom-key').val().trim();
+            const value = $(this).find('.custom-value').val().trim();
             if (key && value) {
                 custom.push({ key: key, value: value });
             }
@@ -1437,9 +1440,9 @@ function saveItem() {
         
         item = {
             type: 'lti',
-            title: $('#edit-title').val(),
-            launch: $('#edit-launch').val(),
-            resource_link_id: $('#edit-resource-link-id').val()
+            title: $('#edit-title').val().trim(),
+            launch: $('#edit-launch').val().trim(),
+            resource_link_id: $('#edit-resource-link-id').val().trim()
         };
         
         if (custom.length > 0) {
@@ -1448,13 +1451,13 @@ function saveItem() {
     } else if (type === 'assignment') {
         item = {
             type: 'assignment',
-            href: $('#edit-href').val()
+            href: $('#edit-href').val().trim()
         };
     } else if (type === 'slide') {
         item = {
             type: 'slide',
-            title: $('#edit-title').val(),
-            href: $('#edit-href').val()
+            title: $('#edit-title').val().trim(),
+            href: $('#edit-href').val().trim()
         };
     }
     
