@@ -250,6 +250,22 @@ $OUTPUT->flashMessages();
     border-color: #1e7e34;
 }
 
+.btn-icon {
+    padding: 6px 10px;
+    min-width: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    background: white;
+    color: #333;
+    border-color: #ccc;
+}
+
+.btn-icon:hover {
+    background: #f0f0f0;
+}
+
 .module-body {
     padding: 20px;
     display: block;
@@ -623,7 +639,9 @@ $OUTPUT->flashMessages();
     </div>
 
     <div class="add-module-btn">
-        <button class="btn btn-primary" onclick="addModule()">+ Add Module</button>
+        <button class="btn btn-icon" onclick="addModule()" title="Add Module">
+            <i class="fa fa-plus"></i>
+        </button>
     </div>
 </div>
 
@@ -939,8 +957,12 @@ function createModuleHtml(module, moduleIndex) {
                     </h3>
                 </div>
                 <div class="module-actions">
-                    <button class="btn" onclick="editModule(${moduleIndex})">Edit</button>
-                    <button class="btn btn-danger" onclick="deleteModule(${moduleIndex})">Delete</button>
+                    <button class="btn btn-icon" onclick="editModule(${moduleIndex})" title="Edit Module">
+                        <i class="fa fa-pencil"></i>
+                    </button>
+                    <button class="btn btn-icon" onclick="deleteModule(${moduleIndex})" title="Delete Module">
+                        <i class="fa fa-trash"></i>
+                    </button>
                 </div>
             </div>
             <div class="module-body">
@@ -949,7 +971,9 @@ function createModuleHtml(module, moduleIndex) {
                     ${itemsHtml}
                 </div>
                 <div class="add-item-btn">
-                    <button class="btn btn-primary" onclick="addItem(${moduleIndex})">+ Add Item</button>
+                    <button class="btn btn-icon" onclick="addItem(${moduleIndex})" title="Add Item">
+                        <i class="fa fa-plus"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -986,9 +1010,15 @@ function createItemHtml(item, moduleIndex, itemIndex) {
                     ${!isHeader ? `<span class="item-type ${type}" aria-label="${type}" title="${type}"><i class="fa ${getItemTypeIcon(type)}"></i></span>` : ''}
                     <span class="item-title">${escapeHtml(title)}</span>
                     <div class="item-actions">
-                        ${isHeader ? `<button class="btn btn-primary add-item-after-btn" onclick="addItemAfter(${moduleIndex}, ${itemIndex})" title="Add item after this header">+ Add Item</button>` : ''}
-                        <button class="btn edit-item-btn">Edit</button>
-                        <button class="btn btn-danger delete-item-btn">Delete</button>
+                        ${isHeader ? `<button class="btn btn-icon add-item-after-btn" onclick="addItemAfter(${moduleIndex}, ${itemIndex})" title="Add item after this header">
+                            <i class="fa fa-plus"></i>
+                        </button>` : ''}
+                        <button class="btn btn-icon edit-item-btn" title="Edit Item">
+                            <i class="fa fa-pencil"></i>
+                        </button>
+                        <button class="btn btn-icon delete-item-btn" title="Delete Item">
+                            <i class="fa fa-trash"></i>
+                        </button>
                     </div>
                 </div>
             </div>
