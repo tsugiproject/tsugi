@@ -363,6 +363,43 @@ $OUTPUT->flashMessages();
     margin-left: 10px;
 }
 
+.item.header-item {
+    background: #f8f9fa;
+    border-left: 3px solid #007bff;
+}
+
+.header-toggle {
+    cursor: pointer;
+    color: #666;
+    font-size: 14px;
+    padding: 4px 8px;
+    border: none;
+    background: transparent;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    transition: transform 0.2s ease;
+    margin-right: 8px;
+}
+
+.header-toggle:hover {
+    color: #333;
+}
+
+.header-toggle.collapsed {
+    transform: rotate(-90deg);
+}
+
+.header-toggle::before {
+    content: "▼";
+    font-size: 12px;
+}
+
+.item.collapsed-section {
+    display: none !important;
+    /* Hide from sortable as well - these items won't be draggable when collapsed */
+}
+
 .item-actions {
     display: flex;
     gap: 5px;
@@ -829,7 +866,7 @@ function renderModules() {
             }
         });
         
-        // Restore collapsed state from localStorage
+        // Restore collapsed state from localStorage for modules
         const stateKey = `module_${moduleIndex}_collapsed`;
         if (localStorage.getItem(stateKey) === 'true') {
             const moduleBody = moduleContainer.find('.module-body');
@@ -837,9 +874,43 @@ function renderModules() {
             moduleBody.addClass('collapsed');
             toggleButton.addClass('collapsed');
         }
+        
+        // Apply header section collapsed states
+        applyHeaderSectionStates(moduleIndex);
     });
     
     setupSortable();
+}
+
+/**
+ * Applies collapsed states to header sections based on localStorage
+ */
+function applyHeaderSectionStates(moduleIndex) {
+    const itemsList = $(`.items-list[data-module-index="${moduleIndex}"]`);
+    const items = itemsList.find('.item').toArray();
+    
+    items.forEach((itemElement, index) => {
+        const $item = $(itemElement);
+        const itemIndex = parseInt($item.attr('data-item-index'));
+        const stateKey = `header_${moduleIndex}_${itemIndex}_collapsed`;
+        const isCollapsed = localStorage.getItem(stateKey) === 'true';
+        
+        if (isCollapsed) {
+            // Find all items after this header until the next header or end
+            for (let i = index + 1; i < items.length; i++) {
+                const $nextItem = $(items[i]);
+                const nextItemData = $nextItem.data('item-object');
+                
+                // Stop at next header
+                if (nextItemData && nextItemData.type === 'header') {
+                    break;
+                }
+                
+                // Mark as collapsed section
+                $nextItem.addClass('collapsed-section');
+            }
+        }
+    });
 }
 
 function createModuleHtml(module, moduleIndex) {
@@ -894,11 +965,16 @@ function createItemHtml(item, moduleIndex, itemIndex) {
     const title = getItemTitle(item);
     const isHeader = type === 'header';
     
+    // Check if this header section is collapsed
+    const stateKey = `header_${moduleIndex}_${itemIndex}_collapsed`;
+    const isCollapsed = localStorage.getItem(stateKey) === 'true';
+    
     return `
-        <div class="item" data-module-index="${moduleIndex}" data-item-index="${itemIndex}">
+        <div class="item ${isHeader ? 'header-item' : ''}" data-module-index="${moduleIndex}" data-item-index="${itemIndex}">
             <span class="drag-handle" title="Drag to reorder"></span>
             <div class="item-content">
                 <div class="item-header">
+                    ${isHeader ? `<button class="header-toggle ${isCollapsed ? 'collapsed' : ''}" onclick="toggleHeaderSection(${moduleIndex}, ${itemIndex}, event)" title="Expand/Collapse section"></button>` : ''}
                     ${!isHeader ? `<span class="item-type ${type}" aria-label="${type}" title="${type}"><i class="fa ${getItemTypeIcon(type)}"></i></span>` : ''}
                     <span class="item-title">${escapeHtml(title)}</span>
                     <div class="item-actions">
@@ -1433,6 +1509,57 @@ function toggleModule(moduleIndex) {
     // Store state in localStorage
     const stateKey = `module_${moduleIndex}_collapsed`;
     if (moduleBody.hasClass('collapsed')) {
+        localStorage.setItem(stateKey, 'true');
+    } else {
+        localStorage.removeItem(stateKey);
+    }
+}
+
+function toggleHeaderSection(moduleIndex, itemIndex, event) {
+    // Prevent event from interfering with drag operations
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    
+    const itemsList = $(`.items-list[data-module-index="${moduleIndex}"]`);
+    const $headerItem = itemsList.find(`.item[data-item-index="${itemIndex}"]`);
+    const $toggleButton = $headerItem.find('.header-toggle');
+    
+    // Toggle collapsed state
+    const isCollapsed = $toggleButton.hasClass('collapsed');
+    const newCollapsedState = !isCollapsed;
+    
+    // Update toggle button
+    $toggleButton.toggleClass('collapsed');
+    
+    // Find all items after this header until the next header or end
+    const allItems = itemsList.find('.item').toArray();
+    const headerIndex = allItems.indexOf($headerItem[0]);
+    
+    if (headerIndex === -1) return;
+    
+    // Show or hide items between this header and the next header
+    for (let i = headerIndex + 1; i < allItems.length; i++) {
+        const $nextItem = $(allItems[i]);
+        const nextItemData = $nextItem.data('item-object');
+        
+        // Stop at next header
+        if (nextItemData && nextItemData.type === 'header') {
+            break;
+        }
+        
+        // Toggle visibility
+        if (newCollapsedState) {
+            $nextItem.addClass('collapsed-section');
+        } else {
+            $nextItem.removeClass('collapsed-section');
+        }
+    }
+    
+    // Store state in localStorage
+    const stateKey = `header_${moduleIndex}_${itemIndex}_collapsed`;
+    if (newCollapsedState) {
         localStorage.setItem(stateKey, 'true');
     } else {
         localStorage.removeItem(stateKey);
