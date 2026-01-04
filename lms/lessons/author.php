@@ -661,6 +661,7 @@ let lessonsData = <?= json_encode($lessons_data, JSON_PRETTY_PRINT | JSON_UNESCA
 let hasChanges = false;
 let editingItemIndex = null;
 let editingModuleIndex = null;
+let editingAfterItemIndex = null;
 
 // Migrate FCPX to reference for video items
 function migrateFCPXToReference() {
@@ -889,6 +890,13 @@ function applyHeaderSectionStates(moduleIndex) {
     const itemsList = $(`.items-list[data-module-index="${moduleIndex}"]`);
     const items = itemsList.find('.item').toArray();
     
+    // First, remove all collapsed-section classes to start fresh
+    // This prevents items from getting stuck in hidden state
+    items.forEach((itemElement) => {
+        $(itemElement).removeClass('collapsed-section');
+    });
+    
+    // Then apply collapsed states
     items.forEach((itemElement, index) => {
         const $item = $(itemElement);
         const itemIndex = parseInt($item.attr('data-item-index'));
@@ -978,6 +986,7 @@ function createItemHtml(item, moduleIndex, itemIndex) {
                     ${!isHeader ? `<span class="item-type ${type}" aria-label="${type}" title="${type}"><i class="fa ${getItemTypeIcon(type)}"></i></span>` : ''}
                     <span class="item-title">${escapeHtml(title)}</span>
                     <div class="item-actions">
+                        ${isHeader ? `<button class="btn btn-primary add-item-after-btn" onclick="addItemAfter(${moduleIndex}, ${itemIndex})" title="Add item after this header">+ Add Item</button>` : ''}
                         <button class="btn edit-item-btn">Edit</button>
                         <button class="btn btn-danger delete-item-btn">Delete</button>
                     </div>
@@ -1079,6 +1088,35 @@ function setupSortable() {
         placeholder: 'ui-sortable-placeholder',
         tolerance: 'pointer',
         connectWith: '.items-list',
+        receive: function(event, ui) {
+            // When an item is received (dropped) into a new list, check if it's in a collapsed section
+            const $droppedItem = ui.item;
+            const $itemsList = $(this);
+            const moduleIndex = parseInt($itemsList.attr('data-module-index'));
+            
+            // Find the header that this item is now under
+            const allItems = $itemsList.find('.item').toArray();
+            const droppedIndex = allItems.indexOf($droppedItem[0]);
+            
+            // Look backwards to find the nearest header
+            for (let i = droppedIndex - 1; i >= 0; i--) {
+                const $prevItem = $(allItems[i]);
+                const prevItemData = $prevItem.data('item-object');
+                
+                if (prevItemData && prevItemData.type === 'header') {
+                    const prevItemIndex = parseInt($prevItem.attr('data-item-index'));
+                    const stateKey = `header_${moduleIndex}_${prevItemIndex}_collapsed`;
+                    const isCollapsed = localStorage.getItem(stateKey) === 'true';
+                    
+                    // If the header is collapsed, expand it automatically
+                    if (isCollapsed) {
+                        localStorage.removeItem(stateKey);
+                        // The syncDataAndRender will handle re-rendering with expanded state
+                    }
+                    break;
+                }
+            }
+        },
         update: function(event, ui) {
             // On any item reorder (within module or between modules), sync data and re-render
             // This handles both same-module moves and cross-module moves
@@ -1164,6 +1202,13 @@ function deleteModule(moduleIndex) {
 function addItem(moduleIndex) {
     editingItemIndex = null;
     editingModuleIndex = moduleIndex;
+    showItemModal('Add Item', getDefaultItem());
+}
+
+function addItemAfter(moduleIndex, afterItemIndex) {
+    editingItemIndex = null;
+    editingModuleIndex = moduleIndex;
+    editingAfterItemIndex = afterItemIndex;
     showItemModal('Add Item', getDefaultItem());
 }
 
@@ -1467,7 +1512,12 @@ function saveItem() {
         if (!lessonsData.modules[editingModuleIndex].items) {
             lessonsData.modules[editingModuleIndex].items = [];
         }
-        lessonsData.modules[editingModuleIndex].items.push(item);
+        // If editingAfterItemIndex is set, insert after that item, otherwise append to end
+        if (editingAfterItemIndex !== null) {
+            lessonsData.modules[editingModuleIndex].items.splice(editingAfterItemIndex + 1, 0, item);
+        } else {
+            lessonsData.modules[editingModuleIndex].items.push(item);
+        }
     }
     
     closeModal();
@@ -1573,6 +1623,7 @@ function closeModal() {
     $('#item-modal').hide();
     editingItemIndex = null;
     editingModuleIndex = null;
+    editingAfterItemIndex = null;
 }
 
 function saveChanges() {
