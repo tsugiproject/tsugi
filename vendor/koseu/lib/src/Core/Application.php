@@ -7,7 +7,7 @@ class Application extends \Tsugi\UI\SimpleApplication {
 
     public function __construct($launch)
     {
-        parent::__construct($launch, __DIR__);
+        parent::__construct($launch);
         $this['tsugi']->output->buffer = false;
 
         $this->router->group([

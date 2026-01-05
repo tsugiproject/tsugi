@@ -55,6 +55,11 @@ class Launch {
     public $output;
 
     /**
+     * Configuration object (set by SimpleApplication)
+     */
+    public $cfg = null;
+
+    /**
      * Must be an array equivalent to $_REQUEST.  If this is present
      * We do not assume access to $_POST or $_GET and we assume
      * that we cannot use header() so the caller must

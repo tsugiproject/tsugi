@@ -12,7 +12,7 @@ use Tsugi\Util\U;
  * 
  * Provides a lightweight container and routing without Lumen dependencies
  */
-class SimpleApplication {
+class SimpleApplication implements \ArrayAccess {
     private $container = [];
     public $router;
     public $tsugi_path;
@@ -54,20 +54,20 @@ class SimpleApplication {
     /**
      * Array access for container
      */
-    public function offsetGet($key) {
-        return isset($this->container[$key]) ? $this->container[$key] : null;
+    public function offsetGet(mixed $offset): mixed {
+        return isset($this->container[$offset]) ? $this->container[$offset] : null;
     }
 
-    public function offsetSet($key, $value) {
-        $this->container[$key] = $value;
+    public function offsetSet(mixed $offset, mixed $value): void {
+        $this->container[$offset] = $value;
     }
 
-    public function offsetExists($key) {
-        return isset($this->container[$key]);
+    public function offsetExists(mixed $offset): bool {
+        return isset($this->container[$offset]);
     }
 
-    public function offsetUnset($key) {
-        unset($this->container[$key]);
+    public function offsetUnset(mixed $offset): void {
+        unset($this->container[$offset]);
     }
 
     /**
