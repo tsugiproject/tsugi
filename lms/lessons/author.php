@@ -1411,6 +1411,13 @@ function updateItemFormFields(item) {
                 <input type="text" id="edit-resource-link-id" value="${escapeHtml(item.resource_link_id || '')}">
             </div>
             <div class="form-group">
+                <label>Target:</label>
+                <select id="edit-target">
+                    <option value="">Default (same window)</option>
+                    <option value="_blank" ${item.target === '_blank' ? 'selected' : ''}>New Window (_blank)</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label>Custom Parameters:</label>
                 <div id="custom-fields-container">
                     ${customFieldsHtml}
@@ -1519,6 +1526,11 @@ function saveItem() {
             launch: $('#edit-launch').val().trim(),
             resource_link_id: $('#edit-resource-link-id').val().trim()
         };
+        
+        const targetVal = $('#edit-target').val().trim();
+        if (targetVal) {
+            item.target = targetVal;
+        }
         
         if (custom.length > 0) {
             item.custom = custom;
