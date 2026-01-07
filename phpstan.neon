@@ -1,10 +1,12 @@
 parameters:
     level: 3
     phpVersion: 80400
-    bootstrapFiles:
-        - phpstan-bootstrap.php
+    stubFiles:
+        - phpstan-stubs.php
     scanFiles:
-        - phpstan-bootstrap.php
+        - phpstan-stubs.php
+        - vendor/tsugi/lib/include/setup.php
+        - vendor/tsugi/lib/include/setup_i18n.php
     paths:
         - admin
         - api
