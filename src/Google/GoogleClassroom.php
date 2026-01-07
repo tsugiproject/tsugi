@@ -9,7 +9,7 @@ class GoogleClassroom {
 
     /**
      * Returns an authorized Clasroom API client.
-     * @return Google_Client the authorized client object
+     * @return \Google_Client the authorized client object
      */
     public static function getClient($accessTokenStr, $user_id=false) {
         global $CFG, $PDOX;

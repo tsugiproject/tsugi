@@ -700,7 +700,7 @@ class U {
     }
 
     public static function isGUIDValid($guid) {
-        return (preg_match("/^(\{)?[a-f\d]{8}(-[a-f\d]{4}){4}[a-f\d]{8}(?(1)\})$/i", $guid)
+        return (preg_match("/^(\{)?[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}(?(1)\})$/i", $guid)
     ? true : false);
     }
 
@@ -737,7 +737,7 @@ class U {
         if ( $string === false ) return 0;
         if ( $string === NULL ) return 0;
         if ( is_numeric($string) ) $string = $string . '';
-        if ( $string instanceof Stringable ) $string = $string . '';
+        if ( $string instanceof \Stringable ) $string = $string . '';
         if ( !is_string($string) ) return 0;
         return strlen($string);
     }
