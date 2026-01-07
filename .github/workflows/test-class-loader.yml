@@ -29,5 +29,8 @@ jobs:
           php -l about.php
           find admin api assertions cc cron dev ext gclass lms lti mod settings store util -name '*.php' -print0 | xargs -0 -n 1 php -l
 
+      - name: Util U.php unit tests
+        run: php test/util_u_test.php
+
       - name: PHPStan (dead code + array shape)
         run: phpstan analyse -c phpstan.neon --memory-limit=1G --no-progress
