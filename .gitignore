@@ -38,3 +38,7 @@ vendor/tsugi/lib/phpdoc.dist.xml
 vendor/tsugi/lib/phpunit.xml.dist
 vendor/tsugi/lib/tests/
 vendor/tsugi/lib/scripts/
+
+vendor/bin/phpstan
+vendor/bin/phpstan.phar
+vendor/phpstan/

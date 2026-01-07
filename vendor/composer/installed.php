@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '546e9f4758d1e3d5969c6e421f61e02c014916ab',
+        'reference' => '872920143258f324cc07c20d6cbc119d2de1707b',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '546e9f4758d1e3d5969c6e421f61e02c014916ab',
+            'reference' => '872920143258f324cc07c20d6cbc119d2de1707b',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -552,6 +552,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'phpstan/phpstan' => array(
+            'pretty_version' => '2.1.33',
+            'version' => '2.1.33.0',
+            'reference' => '9e800e6bee7d5bd02784d4c6069b48032d16224f',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../phpstan/phpstan',
+            'aliases' => array(),
+            'dev_requirement' => true,
+        ),
         'psr/cache' => array(
             'pretty_version' => '3.0.0',
             'version' => '3.0.0.0',
@@ -1075,7 +1084,7 @@
         'tsugi/lib' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'adc1d20bff732f2492d4d0f52aa7c38c3e44d9d7',
+            'reference' => '98f76a64ee0ea00287bebfffc35757fd29c583ca',
             'type' => 'library',
             'install_path' => __DIR__ . '/../tsugi/lib',
             'aliases' => array(
