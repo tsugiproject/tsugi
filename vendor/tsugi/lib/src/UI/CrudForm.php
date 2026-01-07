@@ -93,7 +93,7 @@ class CrudForm {
      *
      * @param $fields An array of fields to be inserted.  These items must be
      * in the $_POST data as well.
-     * @return int Returns the constant for SUCCESS, FAIL, or NONE
+     * @return array|int Returns the fetched row array or the constant for SUCCESS, FAIL, or NONE
      */
     public static function handleInsert($tablename, $fields) {
         global $PDOX;

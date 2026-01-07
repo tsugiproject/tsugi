@@ -40,8 +40,9 @@ $titles = array(
 // Handle the post data
 if ( U::get($_POST,'endpoint') ) {
     if ( strlen(U::get($_POST,'pubkey')) < 1 || strlen(U::get($_POST,'privkey'))) {
+        /** @var true|string $success */
         $success = LTI13::generatePKCS8Pair($publicKey, $privateKey);
-        if ( is_string($success) ) {
+        if ( $success !== true ) {
             $_SESSION['error'] = "Could not create key pair:".$success;
             header("Location: ".U::addsession($from_location));
             return;

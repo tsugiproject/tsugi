@@ -80,9 +80,7 @@ $sql = "SELECT membership_id, 'detail' AS 'Membership', context_id AS Context, M
         WHERE context_id = :CID";
 
 if ( !isAdmin() ) {
-    die ("Fix this");
-    $sql .= "\nWHERE R.user_id = :UID";
-    $query_parms = array(":UID" => $_SESSION['id']);
+    // Non-admins are already redirected above.
 }
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields);
@@ -110,4 +108,3 @@ $OUTPUT->flashMessages();
 Table::pagedTable($newrows, $searchfields, $searchfields, "member-detail");
 
 $OUTPUT->footer();
-

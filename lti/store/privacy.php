@@ -32,7 +32,7 @@ if ( inIframe() ) {
 <?php } ?>
 
 <?php if ( isset($LAUNCH->for_user->id) && $LAUNCH->for_user->id) { ?>
-<input type="hidden" name="for_user_id" value="<?= $LAUNCH->for_user-id ?>">
+<input type="hidden" name="for_user_id" value="<?= $LAUNCH->for_user->id ?>">
 <?php } ?>
 <br/>
 <input type="submit" value="Continue to Data Expiry" class="btn btn-primary">

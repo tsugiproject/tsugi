@@ -1,7 +1,9 @@
 parameters:
-    level: 0
+    level: 3
     phpVersion: 80400
     bootstrapFiles:
+        - phpstan-bootstrap.php
+    scanFiles:
         - phpstan-bootstrap.php
     paths:
         - admin
@@ -35,6 +37,7 @@ parameters:
     checkNullables: true
     checkExtraArguments: true
     checkMissingCallableSignature: true
+    checkMaybeUndefinedVariables: false
 
 services:
     -
@@ -43,6 +46,19 @@ services:
             - phpstan.rules.rule
     -
         class: PHPStan\Rules\DeadCode\UnusedPrivateConstantRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: PHPStan\Rules\DeadCode\UnusedPrivatePropertyRule
+        arguments:
+            extensionProvider: @PHPStan\Rules\Properties\ReadWritePropertiesExtensionProvider
+            alwaysWrittenTags: []
+            alwaysReadTags: []
+            checkUninitializedProperties: %checkUninitializedProperties%
+        tags:
+            - phpstan.rules.rule
+    -
+        class: PHPStan\Rules\DeadCode\UnreachableStatementRule
         tags:
             - phpstan.rules.rule
     nonexistentOffsetCheck:

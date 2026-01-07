@@ -18,6 +18,14 @@ namespace {
     /** @var bool $REDIRECTED */
     $REDIRECTED = false;
 
+    if (!defined('TSUGI_VERSION')) {
+        define('TSUGI_VERSION', 'dev');
+    }
+
+    if (!defined('TSUGI_MINIMUM_PHP')) {
+        define('TSUGI_MINIMUM_PHP', '8.4');
+    }
+
     if (!function_exists('_m')) {
         /** @return string */
         function _m(string $message, $textdomain = false)
@@ -93,6 +101,60 @@ namespace {
         function route_get_local_path(string $dir)
         {
             return $dir;
+        }
+    }
+
+    if (!class_exists('Google_Client')) {
+        class Google_Client
+        {
+            public function __construct($options = null)
+            {
+            }
+
+            public function getAccessToken()
+            {
+                return [];
+            }
+
+            public function setApplicationName($name): void
+            {
+            }
+
+            public function setScopes($scopes): void
+            {
+            }
+
+            public function setAccessType($type): void
+            {
+            }
+
+            public function fetchAccessTokenWithAuthCode($code)
+            {
+                return [];
+            }
+
+            public function setAccessToken($token): void
+            {
+            }
+
+            public function createAuthUrl()
+            {
+                return '';
+            }
+
+            public function isAccessTokenExpired(): bool
+            {
+                return false;
+            }
+
+            public function fetchAccessTokenWithRefreshToken($token): void
+            {
+            }
+
+            public function getRefreshToken()
+            {
+                return '';
+            }
         }
     }
 }
