@@ -29,7 +29,7 @@ function requireAdmin() {
 }
 
 function findTools($dir, &$retval, $filenames=array("index.php", "tsugi.php")) {
-    if ( ! is_array($filenames) ) $filenames = array($filenams);
+    if ( ! is_array($filenames) ) $filenames = array($filenames);
     if ( is_dir($dir) ) {
         if ($dh = opendir($dir)) {
             while (($sub = readdir($dh)) !== false) {
@@ -296,4 +296,3 @@ function trimAsMuchAsYouCan($path, $root) {
     $remainder = implode('/', $pieces);
     return $remainder;
 }
-

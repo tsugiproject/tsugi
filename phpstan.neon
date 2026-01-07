@@ -1,0 +1,64 @@
+parameters:
+    level: 0
+    phpVersion: 80400
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+    paths:
+        - admin
+        - api
+        - assertions
+        - cc
+        - cron
+        - dev
+        - ext
+        - gclass
+        - lms
+        - lti
+        - mod
+        - settings
+        - store
+        - util
+        - index.php
+        - login.php
+        - logout.php
+        - top.php
+        - tsugi.php
+        - about.php
+    excludePaths:
+        - vendor/*
+        - locale/*
+        - _files/*
+    reportUnmatchedIgnoredErrors: true
+    reportPossiblyNonexistentGeneralArrayOffset: true
+    reportPossiblyNonexistentConstantArrayOffset: true
+    checkUninitializedProperties: true
+    checkNullables: true
+    checkExtraArguments: true
+    checkMissingCallableSignature: true
+
+services:
+    -
+        class: PHPStan\Rules\DeadCode\UnusedPrivateMethodRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: PHPStan\Rules\DeadCode\UnusedPrivateConstantRule
+        tags:
+            - phpstan.rules.rule
+    nonexistentOffsetCheck:
+        class: PHPStan\Rules\Arrays\NonexistentOffsetInArrayDimFetchCheck
+        autowired: false
+        arguments:
+            - @PHPStan\Rules\RuleLevelHelper
+            - %reportMaybes%
+            - %reportPossiblyNonexistentGeneralArrayOffset%
+            - %reportPossiblyNonexistentConstantArrayOffset%
+    nonexistentOffsetRule:
+        class: PHPStan\Rules\Arrays\NonexistentOffsetInArrayDimFetchRule
+        autowired: false
+        arguments:
+            - @PHPStan\Rules\RuleLevelHelper
+            - @nonexistentOffsetCheck
+            - %reportMaybes%
+        tags:
+            - phpstan.rules.rule

@@ -1,22 +1,30 @@
 
-name: test-class-loader
-on: [push]
+name: php-8-4-ci
+on: [push, pull_request]
 jobs:
-  say-hello:
+  php84-lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Setup PHP 8.2
+      - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
-            php-version: '8.2'
+            php-version: '8.4'
+            tools: phpstan
 
       - run: php -version
 
-      - run: cp config-dist.php config.php
+      - name: Lint PHP sources (exclude vendor)
+        run: |
+          php -l index.php
+          php -l login.php
+          php -l logout.php
+          php -l top.php
+          php -l tsugi.php
+          php -l about.php
+          find admin api assertions cc cron dev ext gclass lms lti mod settings store util -name '*.php' -print0 | xargs -0 -n 1 php -l
 
-      - run: php test.php
-
-
+      - name: PHPStan (dead code + array shape)
+        run: phpstan analyse -c phpstan.neon --memory-limit=1G --no-progress

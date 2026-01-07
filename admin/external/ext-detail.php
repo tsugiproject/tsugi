@@ -51,7 +51,7 @@ if ( U::get($_POST,'endpoint') ) {
     }
 }
 $row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
-    $query_fields, $allow_edit, $allow_delete, $titles);
+    $query_fields, $allow_edit, $allow_delete);
 
 if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     header("Location: ".U::addsession($from_location));
@@ -71,4 +71,3 @@ if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 
 $OUTPUT->footer();
-

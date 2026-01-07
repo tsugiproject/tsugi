@@ -35,7 +35,7 @@ class MyNotify implements MessageComponentInterface {
         $this->clients = new \SplObjectStorage;
     }
 
-    public function onOpen(ConnectionInterface $conn) {
+    public function onOpen(ConnectionInterface $conn): void {
         // https://github.com/ratchetphp/Ratchet/issues/604
         // https://stackoverflow.com/questions/22761900/access-extra-parameters-in-ratchet-web-socket-requests
         $querystring = $querystring = $conn->httpRequest->getUri()->getQuery();
@@ -56,7 +56,7 @@ class MyNotify implements MessageComponentInterface {
         $this->clients->attach($conn);
     }
 
-    public function onMessage(ConnectionInterface $from, $msg) {
+    public function onMessage(ConnectionInterface $from, $msg): void {
         if ( ! isset($from->space) ) return;
         foreach ($this->clients as $client) {
             if ( ! isset($client->space) ) return;
@@ -71,11 +71,11 @@ class MyNotify implements MessageComponentInterface {
         }
     }
 
-    public function onClose(ConnectionInterface $conn) {
+    public function onClose(ConnectionInterface $conn): void {
         $this->clients->detach($conn);
     }
 
-    public function onError(ConnectionInterface $conn, \Exception $e) {
+    public function onError(ConnectionInterface $conn, \Exception $e): void {
         $conn->close();
     }
 }

@@ -94,7 +94,7 @@ if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
 
 // Handle the post data
 $row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
-    $query_fields, $allow_edit, $allow_delete, $titles);
+    $query_fields, $allow_edit, $allow_delete);
 
 if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     header('Location: '.$from_location);

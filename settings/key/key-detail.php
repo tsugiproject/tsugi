@@ -63,7 +63,7 @@ if ( U::get($_POST,'key_key') && U::get($_POST,'key_key') != $oldrow['key_key'] 
 
 // Handle the post data
 $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause,
-    $query_fields, $allow_edit, $allow_delete, $titles);
+    $query_fields, $allow_edit, $allow_delete);
 
 if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     header("Location: ".$from_location);
@@ -151,4 +151,3 @@ $(document).ready( function() {
 
 <?php
 $OUTPUT->footerEnd();
-

@@ -7,7 +7,7 @@ use \Tsugi\UI\Theme;
 
 require_once "../../config.php";
 require_once "../../admin/admin_util.php";
-require_once("dev-data.php");
+require_once __DIR__ . "/../../store/dev-data.php";
 
 // No parameter means we require CONTEXT, USER, and LINK
 $LAUNCH = LTIX::requireData(LTIX::USER);
