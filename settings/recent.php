@@ -4,13 +4,15 @@ if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 
 use \Tsugi\Util\U;
 use \Tsugi\UI\Table;
-use \Tsugi\UI\OUTPUT;
+use \Tsugi\UI\Output;
 use \Tsugi\Core\LTIX;
 
 require_once("../config.php");
 LTIX::session_start();
 
-die('This needs more work in lti_membership');
+if ( ! defined('TSUGI_RECENT_ENABLED') || ! TSUGI_RECENT_ENABLED ) {
+    die('This needs more work in lti_membership');
+}
 
 if ( ! U::get($_SESSION, 'id') ) {
     die('Must be logged in');
@@ -35,4 +37,3 @@ $view = false;
 Table::pagedAuto($user_sql, $query_parms, $searchfields, $orderfields, $view, $params);
 
 $OUTPUT->footer();
-

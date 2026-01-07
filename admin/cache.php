@@ -14,7 +14,7 @@ if (U::isKeyNotEmpty($_POST, "set") && U::isKeyNotEmpty($_POST, "set_value")) {
 }
 
 if (U::isKeyNotEmpty($_POST, "delete")) {
-    U::appCacheDelete('tsugi_test', U::get($_POST, "set_value"));
+    U::appCacheDelete('tsugi_test');
 }
 
 ?>
@@ -53,4 +53,3 @@ if ( U::apcuAvailable() ) {
 </ul>
 </body>
 </html>
-

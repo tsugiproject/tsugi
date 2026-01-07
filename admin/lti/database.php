@@ -1197,8 +1197,8 @@ $DATABASE_UPGRADE = function($oldversion) {
     echo("Checking lti_keyset<br/>\n");
     $success = \Tsugi\Core\Keyset::maintain();
     if ( is_string($success) ) {
-        error_log("Unable to generate public/private pair: ".$retval);
-        echo("Unable to generate public/private pair: ".$retval."<br/>\n");
+        error_log("Unable to generate public/private pair: ".$success);
+        echo("Unable to generate public/private pair: ".$success."<br/>\n");
     }
 
     // Add indexes that might not be there
@@ -1232,4 +1232,3 @@ $DATABASE_UPGRADE = function($oldversion) {
 if ( isset($CURRENT_FILE) ) {
     include $CFG->dirroot."/admin/migrate-run.php";
 }
-

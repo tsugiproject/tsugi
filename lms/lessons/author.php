@@ -1718,5 +1718,3 @@ window.onclick = function(event) {
 
 <?php
 $OUTPUT->footer();
-?>
-

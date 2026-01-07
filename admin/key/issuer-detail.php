@@ -47,10 +47,16 @@ $titles = array(
 );
 
 // Handle the post data
+/** @var array|int $row */
 $row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
-    $query_fields, $allow_edit, $allow_delete, $titles);
+    $query_fields, $allow_edit, $allow_delete);
 
 if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
+    header('Location: '.$from_location);
+    return;
+}
+if ( ! is_array($row) ) {
+    $_SESSION['error'] = 'Unable to load issuer details';
     header('Location: '.$from_location);
     return;
 }
@@ -196,4 +202,3 @@ if ($('#issuer_guid').length) {
 </script>
 <?php
 $OUTPUT->footerEnd();
-

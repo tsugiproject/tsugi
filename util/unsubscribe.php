@@ -67,7 +67,7 @@ if ( isset($_POST['id']) ) {
 </p>
 <form method="post" action="unsubscribe">
   <input type="hidden" name="id" value="<?php echo($id); ?>">
-  <input type="hidden" name="token" value="<?php echo(htmlencode($token)); ?>">
+  <input type="hidden" name="token" value="<?php echo(htmlent_utf8($token)); ?>">
   <input type="submit" value="Unsubscribe">
 </form>
 <p>

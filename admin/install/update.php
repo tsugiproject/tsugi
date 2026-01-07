@@ -10,7 +10,7 @@ require_once("install_util.php");
 
 if ( ! U::isCli() ) {
     session_start();
-    require_once("gate.php");
+    require_once __DIR__ . "/../gate.php";
     if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
     // https://stackoverflow.com/questions/3133209/how-to-flush-output-after-each-echo-call

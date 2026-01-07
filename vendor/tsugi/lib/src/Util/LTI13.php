@@ -1266,7 +1266,7 @@ class LTI13 {
      * @param string $publicKey Returned public key
      * @param string $privateKey Returned private key
      *
-     * @return string or true If there was an error, we return it, on success return true
+     * @return string|true If there was an error, we return it, on success return true
      */
     // https://stackoverflow.com/questions/6648337/generate-ssh-keypair-form-php
     public static function generatePKCS8Pair(&$publicKey, &$privateKey) {

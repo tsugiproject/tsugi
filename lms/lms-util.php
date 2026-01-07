@@ -243,7 +243,7 @@ function lmsRecordLaunchAnalytics($analytics_path, $title=null) {
 
     $link_id = lmsEnsureAnalyticsLink($context_id, $link_key, $title, $analytics_path);
 
-    if ( ! $link_id ) return;
+    if ( ! $link_id ) return false;
 
     // ---- Link activity (all users) ----
     $row = $PDOX->rowDie(
