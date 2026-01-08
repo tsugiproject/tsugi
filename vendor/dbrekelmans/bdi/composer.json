@@ -1,0 +1,32 @@
+{
+    "name": "dbrekelmans/bdi",
+    "description": "PHAR distribution of dbrekelmans/browser-driver-installer.",
+    "homepage": "https://github.com/dbrekelmans/bdi",
+    "authors": [
+        {
+            "name": "Daniël Brekelmans",
+            "homepage": "https://github.com/dbrekelmans"
+        },
+        {
+            "name": "Contributors",
+            "homepage": "https://github.com/dbrekelmans/bdi/graphs/contributors"
+        }
+    ],
+    "keywords": [
+        "browser-driver-installer"
+    ],
+    "license": "MIT",
+    "bin": [
+        "bdi",
+        "bdi.phar"
+    ],
+    "require": {
+        "php": "^8.1",
+        "ext-json": "*",
+        "ext-zip": "*",
+        "ext-zlib": "*"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

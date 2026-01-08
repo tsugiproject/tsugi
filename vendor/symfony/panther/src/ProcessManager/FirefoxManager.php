@@ -1,0 +1,136 @@
+<?php
+
+/*
+ * This file is part of the Panther project.
+ *
+ * (c) Kévin Dunglas <kevin@dunglas.dev>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace Symfony\Component\Panther\ProcessManager;
+
+use Facebook\WebDriver\Firefox\FirefoxOptions;
+use Facebook\WebDriver\Remote\DesiredCapabilities;
+use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Facebook\WebDriver\WebDriver;
+use Symfony\Component\Panther\Exception\RuntimeException;
+use Symfony\Component\Process\ExecutableFinder;
+use Symfony\Component\Process\Process;
+
+/**
+ * @author Kévin Dunglas <kevin@dunglas.dev>
+ */
+final class FirefoxManager implements BrowserManagerInterface
+{
+    use WebServerReadinessProbeTrait;
+
+    private Process $process;
+    private array $arguments;
+    private array $options;
+
+    /**
+     * @throws RuntimeException
+     */
+    public function __construct(?string $geckodriverBinary = null, ?array $arguments = null, array $options = [])
+    {
+        $this->options = array_merge($this->getDefaultOptions(), $options);
+        $this->process = new Process([$geckodriverBinary ?: $this->findGeckodriverBinary(), '--port='.$this->options['port']], null, null, null, null);
+        $this->arguments = $arguments ?? $this->getDefaultArguments();
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    public function start(): WebDriver
+    {
+        $url = $this->options['scheme'].'://'.$this->options['host'].':'.$this->options['port'];
+        if (!$this->process->isRunning()) {
+            $this->checkPortAvailable($this->options['host'], $this->options['port']);
+            $this->process->start();
+            $this->waitUntilReady($this->process, $url.$this->options['path'], 'firefox');
+        }
+
+        $firefoxOptions = [];
+        if (isset($_SERVER['PANTHER_FIREFOX_BINARY'])) {
+            $firefoxOptions['binary'] = $_SERVER['PANTHER_FIREFOX_BINARY'];
+        }
+        if ($this->arguments) {
+            $firefoxOptions['args'] = $this->arguments;
+        }
+
+        $capabilities = DesiredCapabilities::firefox();
+        $capabilities->setCapability('moz:firefoxOptions', $firefoxOptions);
+
+        // Prefer reduced motion, see https://developer.mozilla.org/fr/docs/Web/CSS/@media/prefers-reduced-motion
+        /** @var FirefoxOptions|array $firefoxOptions */
+        $firefoxOptions = $capabilities->getCapability('moz:firefoxOptions') ?? [];
+        $firefoxOptions = $firefoxOptions instanceof FirefoxOptions ? $firefoxOptions->toArray() : $firefoxOptions;
+        if (!filter_var($_SERVER['PANTHER_NO_REDUCED_MOTION'] ?? false, \FILTER_VALIDATE_BOOLEAN)) {
+            $firefoxOptions['prefs']['ui.prefersReducedMotion'] = 1;
+        } else {
+            $firefoxOptions['prefs']['ui.prefersReducedMotion'] = 0;
+        }
+        $capabilities->setCapability('moz:firefoxOptions', $firefoxOptions);
+
+        foreach ($this->options['capabilities'] as $capability => $value) {
+            $capabilities->setCapability($capability, $value);
+        }
+
+        return RemoteWebDriver::create($url, $capabilities, $this->options['connection_timeout_in_ms'] ?? null, $this->options['request_timeout_in_ms'] ?? null);
+    }
+
+    public function quit(): void
+    {
+        $this->process->stop();
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    private function findGeckodriverBinary(): string
+    {
+        if ($binary = (new ExecutableFinder())->find('geckodriver', null, ['./drivers'])) {
+            return $binary;
+        }
+
+        throw new RuntimeException('"geckodriver" binary not found. Install it using the package manager of your operating system or by running "composer require --dev dbrekelmans/bdi && vendor/bin/bdi detect drivers".');
+    }
+
+    private function getDefaultArguments(): array
+    {
+        $args = [];
+
+        // Enable the headless mode unless PANTHER_NO_HEADLESS is defined
+        if (!filter_var($_SERVER['PANTHER_NO_HEADLESS'] ?? false, \FILTER_VALIDATE_BOOLEAN)) {
+            $args[] = '--headless';
+        }
+
+        // Enable devtools for debugging
+        if (filter_var($_SERVER['PANTHER_DEVTOOLS'] ?? false, \FILTER_VALIDATE_BOOLEAN)) {
+            $args[] = '--devtools';
+        }
+
+        // Add custom arguments with PANTHER_FIREFOX_ARGUMENTS
+        if ($_SERVER['PANTHER_FIREFOX_ARGUMENTS'] ?? false) {
+            $arguments = explode(' ', $_SERVER['PANTHER_FIREFOX_ARGUMENTS']);
+            $args = array_merge($args, $arguments);
+        }
+
+        return $args;
+    }
+
+    private function getDefaultOptions(): array
+    {
+        return [
+            'scheme' => 'http',
+            'host' => '127.0.0.1',
+            'port' => 4444,
+            'path' => '/status',
+            'capabilities' => [],
+        ];
+    }
+}

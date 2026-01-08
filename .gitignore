@@ -14,6 +14,7 @@ solutions
 tmp
 config.php
 upgrading.php
+qa/config.php.backup
 error_log
 php-solutions
 phpDocumentor.phar

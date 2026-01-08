@@ -21,6 +21,9 @@ services:
         context: .
     depends_on:
       - db
+    environment:
+      TSUGI_ADMIN_PW: ${TSUGI_ADMIN_PW:-}
+      TSUGI_DOCKER_FORCE_CONFIG: ${TSUGI_DOCKER_FORCE_CONFIG:-0}
     volumes:
       - .:/var/www/html/tsugi:delegated
     ports:

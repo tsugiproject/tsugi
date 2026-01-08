@@ -47,6 +47,9 @@
         "phpstan": "phpstan analyse -c phpstan.neon --memory-limit=1G --no-progress"
     },
     "require-dev": {
-        "phpstan/phpstan": "^2.1"
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^11.0",
+        "symfony/panther": "^2.1",
+        "dbrekelmans/bdi": "^1.4"
     }
 }

@@ -96,6 +96,54 @@ if ( $identity ) foreach( $lms_identities as $lms_identity => $lms_data ) {
     }
 }
 
+// Allow minimal overrides in developer mode for QA launches
+if ( $CFG->DEVELOPER ) {
+    $override_map = array(
+        'roles' => array('roles', 'role'),
+        'context_id' => array('context_id'),
+        'context_title' => array('context_title', 'course_title'),
+        'context_label' => array('context_label', 'course_label'),
+        'context_type' => array('context_type', 'course_type'),
+        'lis_course_offering_sourcedid' => array('lis_course_offering_sourcedid', 'course_offering_sourcedid'),
+        'lis_course_section_sourcedid' => array('lis_course_section_sourcedid', 'course_section_sourcedid'),
+        'resource_link_id' => array('resource_link_id', 'link_id'),
+        'resource_link_title' => array('resource_link_title', 'link_title'),
+        'resource_link_description' => array('resource_link_description', 'link_description'),
+        'lis_person_name_full' => array('lis_person_name_full', 'user_name'),
+        'lis_person_name_given' => array('lis_person_name_given', 'user_given'),
+        'lis_person_name_family' => array('lis_person_name_family', 'user_family'),
+        'lis_person_contact_email_primary' => array('lis_person_contact_email_primary', 'user_email'),
+        'lis_person_sourcedid' => array('lis_person_sourcedid', 'user_sourcedid'),
+        'user_id' => array('user_id', 'user_key'),
+        'launch_presentation_locale' => array('launch_presentation_locale', 'locale'),
+        'tool_consumer_info_product_family_code' => array('tool_consumer_info_product_family_code', 'tc_product_family'),
+        'tool_consumer_info_version' => array('tool_consumer_info_version', 'tc_version'),
+        'tool_consumer_instance_guid' => array('tool_consumer_instance_guid', 'tc_guid'),
+        'tool_consumer_instance_description' => array('tool_consumer_instance_description', 'tc_description'),
+        'lis_outcome_service_url' => array('lis_outcome_service_url', 'outcome_service_url'),
+        'lis_result_sourcedid' => array('lis_result_sourcedid', 'result_sourcedid'),
+        'ext_memberships_id' => array('ext_memberships_id', 'memberships_id'),
+        'ext_memberships_url' => array('ext_memberships_url', 'memberships_url'),
+        'memberships_url' => array('memberships_url'),
+        'lineitems_url' => array('lineitems_url'),
+    );
+
+    foreach ( $override_map as $target => $keys ) {
+        foreach ( $keys as $key ) {
+            if ( array_key_exists($key, $_GET) ) {
+                $lmsdata[$target] = $_GET[$key];
+                break;
+            }
+        }
+    }
+
+    foreach ( $_GET as $key => $value ) {
+        if ( strpos($key, 'custom_') === 0 ) {
+            $lmsdata[$key] = $value;
+        }
+    }
+}
+
 // Load up the key and secret.
 $key = '12345';
 $secret = false;
@@ -218,8 +266,15 @@ $endpoint = U::remove_relative_path($endpoint);
 
 // Add oauth_callback to be compliant with the 1.0A spec
 $parms["oauth_callback"] = "about:blank";
-$parms['resource_link_id'] = md5($endpoint);
-$parms['resource_link_title'] = $install;
+if ( ! isset($parms['context_id']) ) {
+    $parms['context_id'] = md5($endpoint . ':context');
+}
+if ( ! isset($parms['resource_link_id']) ) {
+    $parms['resource_link_id'] = md5($endpoint);
+}
+if ( ! isset($parms['resource_link_title']) ) {
+    $parms['resource_link_title'] = $install;
+}
 $outcomes = false;
 if ( $outcomes ) {
     $parms['lis_outcome_service_url'] = $outcomes;
