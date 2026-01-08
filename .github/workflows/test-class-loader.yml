@@ -15,9 +15,12 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
             php-version: '8.4'
-            tools: phpstan
+            tools: composer
 
       - run: php -version
+
+      - name: Install PHP dependencies (including dev)
+        run: composer install --no-interaction --prefer-dist
 
       - name: Lint PHP sources (exclude vendor)
         run: |
@@ -33,4 +36,4 @@ jobs:
         run: php test/util_u_test.php
 
       - name: PHPStan (dead code + array shape)
-        run: phpstan analyse -c phpstan.neon --memory-limit=1G --no-progress
+        run: vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=1G --no-progress
