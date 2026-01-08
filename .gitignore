@@ -23,6 +23,7 @@ php-solutions
 phpDocumentor.phar
 phpunit.phar
 phpunit.xml
+!qa/phpunit.xml
 composer.phar
 .tmp_phpdoc
 .out_phpdoc
