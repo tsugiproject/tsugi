@@ -1,7 +1,4 @@
 # ./docker-compose.yml
-
-version: '3'
-
 services:
   db:
     container_name: tsugi_db
