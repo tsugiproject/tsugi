@@ -29,9 +29,9 @@ jobs:
 
       - name: Install Chromium
         run: |
-          sudo apt-get update
-          if ! sudo apt-get install -y chromium-browser; then
-            sudo apt-get install -y chromium
+          sudo apt-get -qq update
+          if ! sudo apt-get -qq install -y chromium-browser; then
+            sudo apt-get -qq install -y chromium
           fi
           if command -v chromium-browser >/dev/null; then
             echo "CHROME_BIN=$(command -v chromium-browser)" >> $GITHUB_ENV
