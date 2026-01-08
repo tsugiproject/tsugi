@@ -5,7 +5,7 @@ shopt -s nocaseglob
 cd tsugi
 
 # Setup the config file
-if [ "${TSUGI_DOCKER_FORCE_CONFIG:-0}" = "1" ] || [ ! -f config.php ]; then
+if [ ! -f config.php ]; then
 	echo "Setting up config.php file"
 	cp config-dist.php config.php
 	# Update the database to point to the container

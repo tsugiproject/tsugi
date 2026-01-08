@@ -86,10 +86,10 @@ unset($apphome);
 // You need to point this at a database with am account and password
 // that can create tables.   To make the initial tables go into Admin
 // to run the upgrade.php script which auto-creates the tables.
-$CFG->pdo       = 'mysql:host=127.0.0.1;dbname=tsugi';
-// $CFG->pdo       = 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
-$CFG->dbuser    = 'ltiuser';
-$CFG->dbpass    = 'ltipassword';
+$CFG->pdo       = getenv('TSUGI_PDO') ?: 'mysql:host=127.0.0.1;dbname=tsugi';
+// $CFG->pdo       = getenv('TSUGI_PDO') ?: 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
+$CFG->dbuser    = getenv('TSUGI_DB_USER') ?: 'ltiuser';
+$CFG->dbpass    = getenv('TSUGI_DB_PASS') ?: 'ltipassword';
 
 // Sometimes the PDO constructor call needs additional parameters
 // $CFG->pdo_options = array(\PDO::MYSQL_ATTR_SSL_CA => './BaltimoreCyberTrustRoot.crt.pem'))

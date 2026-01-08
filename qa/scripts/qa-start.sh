@@ -7,51 +7,12 @@ cd "$ROOT_DIR"
 
 export TSUGI_BASE_URL="${TSUGI_BASE_URL:-http://localhost:8888/tsugi}"
 export TSUGI_ADMIN_PW="${TSUGI_ADMIN_PW:-tsugi-admin}"
-export TSUGI_DOCKER_FORCE_CONFIG="${TSUGI_DOCKER_FORCE_CONFIG:-1}"
+export TSUGI_PDO="${TSUGI_PDO:-mysql:host=tsugi_db;dbname=tsugi}"
+export TSUGI_DB_USER="${TSUGI_DB_USER:-ltiuser}"
+export TSUGI_DB_PASS="${TSUGI_DB_PASS:-ltipassword}"
 
-BACKUP_FILE="$ROOT_DIR/qa/config.php.backup"
-if [ -f "$ROOT_DIR/config.php" ] && [ ! -f "$BACKUP_FILE" ]; then
-    cp "$ROOT_DIR/config.php" "$BACKUP_FILE"
-fi
-
-if [ "${TSUGI_DOCKER_FORCE_CONFIG}" = "1" ] || [ ! -f "$ROOT_DIR/config.php" ]; then
+if [ ! -f "$ROOT_DIR/config.php" ]; then
     cp "$ROOT_DIR/config-dist.php" "$ROOT_DIR/config.php"
-    php <<'PHP'
-<?php
-$path = 'config.php';
-$contents = file_get_contents($path);
-if ($contents === false) {
-    fwrite(STDERR, "Unable to read config.php\n");
-    exit(1);
-}
-$contents = str_replace('127.0.0.1', 'tsugi_db', $contents);
-file_put_contents($path, $contents);
-PHP
-fi
-
-if [ -n "${TSUGI_ADMIN_PW}" ]; then
-    php <<'PHP'
-<?php
-$path = 'config.php';
-$pw = getenv('TSUGI_ADMIN_PW');
-if ($pw === false || $pw === '') {
-    exit(0);
-}
-$contents = file_get_contents($path);
-if ($contents === false) {
-    fwrite(STDERR, "Unable to read config.php\n");
-    exit(1);
-}
-$escaped = str_replace("\\", "\\\\", $pw);
-$escaped = str_replace("'", "\\'", $escaped);
-$replacement = "\$CFG->adminpw = '" . $escaped . "';";
-$count = 0;
-$contents = preg_replace("/\\\$CFG->adminpw\\s*=\\s*[^;]*;/", $replacement, $contents, 1, $count);
-if ($count === 0) {
-    $contents .= "\n" . $replacement . "\n";
-}
-file_put_contents($path, $contents);
-PHP
 fi
 
 if [ "${TSUGI_QA_BOOTSTRAP_TOOLS:-1}" = "1" ]; then
