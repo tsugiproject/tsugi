@@ -4,6 +4,23 @@ use Symfony\Component\Panther\PantherTestCase;
 
 abstract class TsugiPantherTestCase extends PantherTestCase
 {
+    private static function ensureWebDriverLoaded(): void
+    {
+        if (class_exists('Facebook\\WebDriver\\Local\\LocalWebDriver')) {
+            return;
+        }
+
+        $base = dirname(__DIR__, 3) . '/vendor/php-webdriver/webdriver/lib';
+        $remote = $base . '/Remote/RemoteWebDriver.php';
+        $local = $base . '/Local/LocalWebDriver.php';
+        if (is_file($remote)) {
+            require_once $remote;
+        }
+        if (is_file($local)) {
+            require_once $local;
+        }
+    }
+
     protected static function baseUri(): string
     {
         $base = getenv('TSUGI_BASE_URL');
@@ -26,6 +43,7 @@ abstract class TsugiPantherTestCase extends PantherTestCase
 
     protected function pantherClient(): \Symfony\Component\Panther\Client
     {
+        self::ensureWebDriverLoaded();
         $base = self::baseUri();
 
         return self::createPantherClient([
