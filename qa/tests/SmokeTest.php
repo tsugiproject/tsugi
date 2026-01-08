@@ -14,11 +14,6 @@ final class SmokeTest extends TsugiPantherTestCase
             $client->getPageSource()
         );
 
-        $screenshotDir = __DIR__ . '/../screenshots';
-        if (!is_dir($screenshotDir)) {
-            mkdir($screenshotDir, 0775, true);
-        }
-
-        $client->takeScreenshot($screenshotDir . '/homepage.png');
+        $this->captureScreenshot($client, 'smoke-homepage');
     }
 }

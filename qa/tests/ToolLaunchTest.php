@@ -27,7 +27,8 @@ final class ToolLaunchTest extends TsugiPantherTestCase
         string $expectedText,
         array $query = [],
         ?string $rolePattern = null,
-        array $expectedSnippets = []
+        array $expectedSnippets = [],
+        ?string $screenshotName = null
     ): void
     {
         $client = $this->pantherClient();
@@ -73,6 +74,9 @@ final class ToolLaunchTest extends TsugiPantherTestCase
                     usleep(200000);
                     continue;
                 }
+                if ($screenshotName !== null) {
+                    $this->captureScreenshot($client, $screenshotName);
+                }
                 return;
             } catch (StaleElementReferenceException $exception) {
                 $driver->switchTo()->defaultContent();
@@ -94,13 +98,22 @@ final class ToolLaunchTest extends TsugiPantherTestCase
             'grade',
             'Grade Test Harness',
             ['identity' => 'instructor'],
-            '/\\[\"instructor\"\\]=&gt;\\s*bool\\(true\\)/'
+            '/\\[\"instructor\"\\]=&gt;\\s*bool\\(true\\)/',
+            [],
+            'tool-grade-instructor'
         );
     }
 
     public function testBlobToolLaunches(): void
     {
-        $this->assertToolLaunch('blob', 'Upload File', ['identity' => 'instructor']);
+        $this->assertToolLaunch(
+            'blob',
+            'Upload File',
+            ['identity' => 'instructor'],
+            null,
+            [],
+            'tool-blob-instructor'
+        );
     }
 
     public function testGradeToolLaunchesAsLearner(): void
@@ -109,7 +122,9 @@ final class ToolLaunchTest extends TsugiPantherTestCase
             'grade',
             'Grade Test Harness',
             ['identity' => 'learner1'],
-            '/\\[\"instructor\"\\]=&gt;\\s*bool\\(false\\)/'
+            '/\\[\"instructor\"\\]=&gt;\\s*bool\\(false\\)/',
+            [],
+            'tool-grade-learner'
         );
     }
 
@@ -122,13 +137,22 @@ final class ToolLaunchTest extends TsugiPantherTestCase
                 'identity' => 'learner1',
                 'roles' => 'Instructor,Administrator',
             ],
-            '/\\[\"instructor\"\\]=&gt;\\s*bool\\(true\\)/'
+            '/\\[\"instructor\"\\]=&gt;\\s*bool\\(true\\)/',
+            [],
+            'tool-grade-role-override'
         );
     }
 
     public function testBlobToolRejectsLearner(): void
     {
-        $this->assertToolLaunch('blob', 'Must be instructor', ['identity' => 'learner1']);
+        $this->assertToolLaunch(
+            'blob',
+            'Must be instructor',
+            ['identity' => 'learner1'],
+            null,
+            [],
+            'tool-blob-learner-reject'
+        );
     }
 
     public function testGradeToolHonorsOverrides(): void
@@ -162,7 +186,8 @@ final class ToolLaunchTest extends TsugiPantherTestCase
                 'qa-sourcedid',
                 'https://example.com/memberships',
                 'qa-memberships',
-            ]
+            ],
+            'tool-grade-overrides'
         );
     }
 }

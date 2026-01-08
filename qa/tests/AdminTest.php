@@ -32,5 +32,7 @@ final class AdminTest extends TsugiPantherTestCase
             'Administration Console',
             $client->getPageSource()
         );
+
+        $this->captureScreenshot($client, 'admin-console');
     }
 }

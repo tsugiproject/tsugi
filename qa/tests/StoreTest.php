@@ -13,5 +13,7 @@ final class StoreTest extends TsugiPantherTestCase
         $this->assertStringNotContainsString('No tools found.', $page);
         $this->assertStringContainsString('Grade Unit Test Tool', $page);
         $this->assertStringContainsString('Blob Upload/Download Test Tool', $page);
+
+        $this->captureScreenshot($client, 'store-home');
     }
 }
