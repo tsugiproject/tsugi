@@ -10,7 +10,6 @@ jobs:
     env:
       TSUGI_BASE_URL: http://localhost:8888/tsugi
       TSUGI_ADMIN_PW: tsugi-admin
-      TSUGI_DOCKER_FORCE_CONFIG: "1"
       PANTHER_NO_SANDBOX: "1"
 
     steps:
@@ -27,17 +26,8 @@ jobs:
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Install Chromium
-        run: |
-          sudo apt-get -qq update
-          if ! sudo apt-get -qq install -y chromium-browser; then
-            sudo apt-get -qq install -y chromium
-          fi
-          if command -v chromium-browser >/dev/null; then
-            echo "CHROME_BIN=$(command -v chromium-browser)" >> $GITHUB_ENV
-          elif command -v chromium >/dev/null; then
-            echo "CHROME_BIN=$(command -v chromium)" >> $GITHUB_ENV
-          fi
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v2
 
       - name: Install browser drivers
         run: vendor/bin/bdi detect drivers
