@@ -1,4 +1,4 @@
-name: QA (Panther)
+name: Docker Build + QA (Panther)
 
 on:
   pull_request:
@@ -63,6 +63,14 @@ jobs:
         env:
           PANTHER_CHROME_ARGUMENTS: "--headless=new --no-sandbox --disable-dev-shm-usage"
         run: vendor/bin/phpunit -c qa/phpunit.xml
+
+      - name: Upload homepage screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-homepage-screenshot
+          path: qa/screenshots/homepage.png
+          if-no-files-found: warn
 
       - name: Docker logs (on failure)
         if: failure()
