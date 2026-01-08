@@ -64,6 +64,19 @@ jobs:
           PANTHER_CHROME_ARGUMENTS: "--headless=new --no-sandbox --disable-dev-shm-usage"
         run: vendor/bin/phpunit -c qa/phpunit.xml
 
+      - name: Add screenshot to summary
+        if: always()
+        run: |
+          if [ -f qa/screenshots/homepage.png ]; then
+            echo "## Homepage screenshot" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "![](data:image/png;base64,$(base64 -w 0 qa/screenshots/homepage.png))" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## Homepage screenshot" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "_Screenshot not found: qa/screenshots/homepage.png_" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Upload homepage screenshot
         if: always()
         uses: actions/upload-artifact@v4
