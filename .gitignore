@@ -17,6 +17,7 @@ upgrading.php
 qa/config.php.backup
 qa/.phpunit.result.cache
 /.docker_data/
+/drivers/
 error_log
 php-solutions
 phpDocumentor.phar
