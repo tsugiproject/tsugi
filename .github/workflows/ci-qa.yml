@@ -1,0 +1,67 @@
+name: Docker Build + QA (Panther)
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    env:
+      TSUGI_BASE_URL: http://localhost:8888/tsugi
+      TSUGI_ADMIN_PW: tsugi-admin
+      PANTHER_NO_SANDBOX: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+          extensions: dom, xml, xmlwriter, mbstring
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v2
+
+      - name: Install browser drivers
+        run: vendor/bin/bdi detect drivers
+
+      - name: Bootstrap sample tools
+        run: ./qa/scripts/qa-bootstrap-tools.sh
+
+      - name: Start Tsugi (Docker)
+        run: docker compose up -d
+
+      - name: Wait for Tsugi
+        run: |
+          for i in {1..30}; do
+            if curl -fsS "${TSUGI_BASE_URL}" >/dev/null; then
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "Timed out waiting for ${TSUGI_BASE_URL}"
+          exit 1
+
+      - name: Run Panther QA
+        env:
+          PANTHER_CHROME_ARGUMENTS: "--headless=new --no-sandbox --disable-dev-shm-usage"
+        run: vendor/bin/phpunit -c qa/phpunit.xml
+
+      - name: Upload QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-screenshots
+          path: qa/screenshots
+          if-no-files-found: warn
+
+      - name: Docker logs (on failure)
+        if: failure()
+        run: docker compose logs --no-color

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="../vendor/autoload.php" colors="true">
+    <testsuites>
+        <testsuite name="tsugi-qa">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_ENV" value="test"/>
+        <env name="TSUGI_BASE_URL" value="http://localhost:8888/tsugi"/>
+        <env name="PANTHER_EXTERNAL_BASE_URI" value="http://localhost:8888/tsugi"/>
+        <server name="PANTHER_EXTERNAL_BASE_URI" value="http://localhost:8888/tsugi"/>
+    </php>
+</phpunit>

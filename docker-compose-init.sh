@@ -3,6 +3,7 @@
 shopt -s nocaseglob
 
 cd tsugi
+
 # Setup the config file
 if [ ! -f config.php ]; then
 	echo "Setting up config.php file"

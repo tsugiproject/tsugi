@@ -1,7 +1,4 @@
 # ./docker-compose.yml
-
-version: '3'
-
 services:
   db:
     container_name: tsugi_db
@@ -21,6 +18,11 @@ services:
         context: .
     depends_on:
       - db
+    environment:
+      TSUGI_ADMIN_PW: ${TSUGI_ADMIN_PW:-}
+      TSUGI_PDO: ${TSUGI_PDO:-}
+      TSUGI_DB_USER: ${TSUGI_DB_USER:-}
+      TSUGI_DB_PASS: ${TSUGI_DB_PASS:-}
     volumes:
       - .:/var/www/html/tsugi:delegated
     ports:
