@@ -5,9 +5,15 @@ It is designed to run against a local Tsugi instance started via Docker Compose.
 
 ## Quick start (local)
 
-1) Start Tsugi in Docker with a QA-friendly config:
+1) Start Tsugi in Docker:
 
-   ./qa/scripts/qa-start.sh
+   docker compose up -d
+
+   Optional DB overrides:
+   TSUGI_PDO='mysql:host=tsugi_db;dbname=tsugi' \
+   TSUGI_DB_USER=ltiuser \
+   TSUGI_DB_PASS=ltipassword \
+   docker compose up -d
 
 2) Run the QA suite:
 
@@ -24,14 +30,12 @@ Tool launch tests use sample tools from `qa/tools.txt`. You can run this manuall
 
 By default, tools are cloned into `mod/`, and a couple of sample tools are
 symlinked into `mod/` root so Tsugi can auto-register them.
-`qa-start.sh` will run this automatically unless you set
-`TSUGI_QA_BOOTSTRAP_TOOLS=0`.
 
 ## Notes
 
-- The QA start script may overwrite `config.php` to ensure Docker uses the container DB.
-  It saves a backup at `qa/config.php.backup` the first time it runs.
 - The admin test expects `TSUGI_ADMIN_PW` to be set and `config.php` to use it.
+- For Docker runs, set database env vars if you are not using the defaults:
+  `TSUGI_PDO`, `TSUGI_DB_USER`, and `TSUGI_DB_PASS` (all read from `config.php`).
 - Tool launch tests use the built-in store test harness (`/store/test/...`) and
   switch identities via `?identity=instructor|learner1`. You can override roles
   in developer mode with `?roles=Instructor` if needed.
