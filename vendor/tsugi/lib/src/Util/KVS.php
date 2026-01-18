@@ -74,7 +74,7 @@ class KVS {
     /*
      * Constructor
      *
-     *     $PDOX = new \Tsugi\Util\PDOX('sqlite::memory');
+     *     $PDOX = new \Tsugi\Util\PDOX('mysql:host=127.0.0.1;dbname=tsugi');
      *     $kvs = new KVS($PDOX, 'lti_result_kvs', 'result_id', 1, 'user_id', 1);
      */
     public function __construct($PDOX, $KVS_TABLE, $KVS_FK_NAME, $KVS_FK, $KVS_SK_NAME, $KVS_SK) {
@@ -84,9 +84,6 @@ class KVS {
         $this->KVS_FK = $KVS_FK;
         $this->KVS_SK_NAME = $KVS_SK_NAME;
         $this->KVS_SK = $KVS_SK;
-        // During unit tests...
-        $driver = $PDOX->getAttribute(\PDO::ATTR_DRIVER_NAME);
-        if ( strpos($driver, 'sqlite') !== false ) $this->NOW = "datetime('now')";
     }
 
     /*

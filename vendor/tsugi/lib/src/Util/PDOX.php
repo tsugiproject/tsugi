@@ -57,12 +57,6 @@ class PDOX extends \PDO {
      */
     public $PDOX_MetaEntries = array();
 
-    /**
-     * Our extension to make lastInsertId() work across MySQL and PostgreSQL
-     */
-    public $PGSQL_LastInsertId = 0;
-    public $PGSQL_LastInsertIdWarningCount = 0;
-
     private $PDOX_upsert_marker = '/* upsert */';
 
     public $sqlPatch;
@@ -101,7 +95,6 @@ class PDOX extends \PDO {
     function queryReturnError($sql, $arr=FALSE, $error_log=TRUE) {
         $this->PDOX_LastSqlQuery = False;
         if ( self::isInsertStatement($sql) ) {
-            $this->PGSQL_LastInsertId = 0;
             $this->PDOX_LastInsertStatement = False;
             if ( strpos($sql, $this->PDOX_upsert_marker) === false ) {
                 return self::upsertGetPKReturnError($sql, $arr, $error_log);
@@ -259,12 +252,7 @@ class PDOX extends \PDO {
      * Retrieve the metadata for a table.
      */
     function metadata($tablename) {
-        if ( ! $this->isPgSQL() ) {
-            $sql = "SHOW COLUMNS FROM ".$tablename;
-        } else {
-            $sql = 'SELECT column_name AS "Field", data_type AS "Type", is_nullable AS "Null"
-                FROM information_schema.columns WHERE table_name = \''.$tablename.'\';';
-        }
+        $sql = "SHOW COLUMNS FROM ".$tablename;
         $stmt = self::queryReturnErrorInternal($sql);
         if ( $stmt->success ) {
             $retval= $stmt->fetchAll();
@@ -280,11 +268,7 @@ class PDOX extends \PDO {
      * Retrieve the indexes for a table.
      */
     function indexDetail($tablename) {
-        if ( $this->isPgSQL() ) {
-            $sql = "PSQL NOT IMPLEMENTED ".$tablename;
-        } else {
-            $sql = 'SHOW INDEX FROM '.$tablename.';';
-        }
+        $sql = 'SHOW INDEX FROM '.$tablename.';';
         $stmt = self::queryReturnErrorInternal($sql);
         if ( $stmt->success ) {
             $retval= $stmt->fetchAll();
@@ -500,11 +484,12 @@ class PDOX extends \PDO {
 
     /**
      * Return true if the current connection is PgSQL
+     * @deprecated PostgreSQL support has been removed from Tsugi
      */
     function isPgSQL()
     {
         if ( self::getPDOXDriverName() == 'pgsql' ) {
-            error_log('Fatal: PostgreSQL support is deprecated/disabled in Tsugi. Refusing to run with a pgsql PDO driver.');
+            error_log('Fatal: PostgreSQL support has been removed from Tsugi. Refusing to run with a pgsql PDO driver.');
             die('Tsugi no longer supports PostgreSQL. Configure $CFG->pdo to use MySQL.');
         }
         return false;
@@ -512,11 +497,12 @@ class PDOX extends \PDO {
 
     /**
      * Return true if the current connection is SQLite
+     * @deprecated SQLite support has been removed from Tsugi
      */
     function isSQLite()
     {
         if ( self::getPDOXDriverName() == 'sqlite' ) {
-            error_log('Fatal: SQLite support is deprecated/disabled in Tsugi. Refusing to run with a sqlite PDO driver.');
+            error_log('Fatal: SQLite support has been removed from Tsugi. Refusing to run with a sqlite PDO driver.');
             die('Tsugi no longer supports SQLite. Configure $CFG->pdo to use MySQL.');
         }
         return false;
@@ -570,7 +556,6 @@ class PDOX extends \PDO {
         } else {
             $stmt = parent::prepare($statement, $options);
         }
-        // TODO: Comment this out for PHP 8.2 and later :( - This may break PostgreSQL - Which probably should be removed - Chuck 1-Aug-23
         // $stmt->PDOX = $this;
         if ( self::isInsertStatement($statement) ) {
             $this->PDOX_LastInsertStatement = $stmt;
@@ -640,13 +625,10 @@ class PDOX extends \PDO {
     }
 
     /**
-     * upsertGetPKReturnError - Insert or update a record and return the lastInsertID portably
+     * upsertGetPKReturnError - Insert or update a record and return the lastInsertID
      *
-     * Upsert is very non-portable between MySQL and PostgreSQL.  And even worse,
-     * the lastInsertID() does not work at all for PostgreSQL.
-     *
-     * So we use the (much simpler) MySQL INSERT format and add a meta comment to
-     * indicate the primary key and logical key(s).
+     * Uses MySQL INSERT ... ON DUPLICATE KEY UPDATE syntax with LAST_INSERT_ID() trick
+     * to get the primary key whether the INSERT works or the UPDATE clause is triggered.
      *
      * @param $sql The SQL to execute in a string.
      * @param $arr An optional array of the substitition values if needed by the query
@@ -666,46 +648,20 @@ class PDOX extends \PDO {
      *         ':user_id' => $row['user_id'],
      *         ':role' => $post['role']));
      *
-     * Methodology:
-     *
-     * MySQL is the easiest case and one statement because we just use a
-     * LAST_INSERT_ID(primary_key) trick to get the primary key whether
-     * the INSERT works or the UPDATE clause is triggered.  With this trick,
-     * the later call to lastInsertID() works regardless of whether the
-     * effect is an INSERT of UPDATE.
-     *
-     * PostgreSQL is one statement if we don't have an "ON DUPLICATE KEY UPDATE"
-     * clause.  We just use the "RETURNING primary_key" syntax and retrieve the new
-     * primary key and stash it so we can make our (override) lastInsertID() work.
-     *
-     * For queries requesting duplicate key UPDATE processing in PostgreSQL we
-     * break it into the INSERT ... RETURNING, and a SELECT to find the primary key
-     * if the INSERT hit a duplicate key (stashing the primary key).  And if there
-     * is an UPDATE clause, we run it using the primary key.
-     *
-     * A key to this is not to be transaction safe for the ON DUPLICATE handling for PotgreSQL.
-     * The use case * for this is either the classic upsert operation or not to
-     * fail when we see a race between multiple INSERT operations with the same
-     * logical key.  If two records INSERT the same record - we let one win and
-     * assume that eventually consistency is enough.
-     *
      * References:
      *
      *     https://www.php.net/manual/en/pdo.lastinsertid.php#102614
      *     https://dev.mysql.com/doc/refman/5.6/en/insert-on-duplicate.html
-     *     https://stackoverflow.com/questions/10492566/lastinsertid-does-not-work-in-postgresql
-     *     https://stackoverflow.com/questions/34708509/how-to-use-returning-with-on-conflict-in-postgresql
-     *     https://stackoverflow.com/questions/37204749/serial-in-postgres-is-being-increased-even-though-i-added-on-conflict-do-nothing
      */
     function upsertGetPKReturnError($sql, $values, $error_log=TRUE)
     {
         if ( stripos($sql, "RETURNING") !== false ) {
-            if ( ! $this->isPgSQL() ) error_log('$PDOX->upsertGetPKReturnError() RETURNING is a non-portable construct'."\n".$sql);
+            error_log('$PDOX->upsertGetPKReturnError() RETURNING is a non-portable construct'."\n".$sql);
             return self::queryReturnErrorInternal($sql, $values, $error_log);
         }
 
         if ( stripos($sql, "LAST_INSERT_ID") !== false ) {
-            if ( ! $this->isMySQL() ) error_log('$PDOX->upsertGetPKReturnError() LAST_INSERT_ID is a non-portable construct'."\n".$sql);
+            // Already has LAST_INSERT_ID, use as-is
             return self::queryReturnErrorInternal($sql, $values, $error_log);
         }
 
@@ -727,188 +683,26 @@ class PDOX extends \PDO {
             $sql_update = substr($sql, $pos+$len);
             $sql = substr($sql,0,$pos);
         }
-        // echo("<br/>sql=$sql\n"); echo("<br/>sql_update=$sql_update\n");
 
-        // Do the actual upsert
-        $this->PGSQL_LastInsertId = 0;
-
-        // https://dev.mysql.com/doc/refman/5.6/en/insert-on-duplicate.html
+        // MySQL implementation using LAST_INSERT_ID() trick
         $pk = U::get($meta, 'pk');
-        // For now MySQL and SQLITE
-        if ( $this->isMySQL() ) {
-            // If this table has no primary key - there is no need to handle lastInsertId()
-            if ( $pk == 'none') {
-                $retval = self::queryReturnErrorInternal($sql, $values);
-                return $retval;
-            }
-            $newsql = $sql .  "\nON DUPLICATE KEY UPDATE\n" .
-                "\n".$this->PDOX_upsert_marker." $pk=LAST_INSERT_ID($pk)";
-            if ( is_string($sql_update) ) $newsql = $newsql . ",\n" . $sql_update;
-            // echo("==========\n$newsql\n---------------\n");
-            $retval = self::queryReturnErrorInternal($newsql, $values);
+        // If this table has no primary key - there is no need to handle lastInsertId()
+        if ( $pk == 'none') {
+            $retval = self::queryReturnErrorInternal($sql, $values);
             return $retval;
         }
-
-        if ( $this->isSQLite() ) {
-            $newsql = $sql ;
-            if ( is_string($sql_update) ) $newsql = $newsql .
-                "\n".$this->PDOX_upsert_marker." ON DUPLICATE KEY UPDATE\n" . $sql_update;
-            // echo("==========\n$newsql\n---------------\n");
-            $retval = self::queryReturnErrorInternal($newsql, $values);
-            return $retval;
-        }
-
-        // https://stackoverflow.com/questions/34708509/how-to-use-returning-with-on-conflict-in-postgresql
-        // https://www.php.net/manual/en/pdo.lastinsertid.php#102614
-        if ( $this->isPgSQL() ) {
-
-            // If we have no ON DUPLICATE KEY, we can get away with adding a RETURNING
-
-            if ( ! is_string($sql_update) ) {
-                // If this table has no primary key - there is no need to handle lastInsertId()
-                if ( $pk == 'none') {
-                    $retval = self::queryReturnErrorInternal($sql, $values);
-                    return $retval;
-                }
-                $newsql = $sql .  "\n".$this->PDOX_upsert_marker." RETURNING $pk";
-                // echo("==========\n$newsql\n---------------\n");
-                $retval = self::queryReturnErrorInternal($newsql, $values);
-                if ( ! $retval->success ) return $retval;
-
-                // If the INSERT worked we record the returned key and we are done
-                if ( $retval->rowCount() > 0 ) {
-                    $row = $retval->fetch(\PDO::FETCH_NUM);
-                    if ( is_array($row) ) {
-                        $this->PGSQL_LastInsertId = $row[0];
-                    }
-                }
-                return $retval;
-            }
-
-            // We have an on DUPLICATE KEY - lets do this.
-            $table = U::get($meta, 'table');
-            $lkeys = U::get($meta, 'lk');
-
-            if ( !is_string($table) || !is_array($lkeys) || count($lkeys) < 1) {
-                error_log($sql);
-                die('$PDOX->upsertGetPKReturnError() needs "table" and "lk" entries in the $meta parameter for PostgreSQL');
-            }
-
-            // Construct a where clause from the logical keys provided in values
-            $whereclause = '';
-            $wherevalues = array();
-            foreach($lkeys as $lk) {
-                $valkey = ':' . $lk;
-                $value = U::get($values, $valkey, False);
-                if ( $value === False ) {
-                    error_log($sql);
-                    die('$PDOX->upsertGetPKReturnError() missing '.$valkey.' in the values array for PostgreSQL');
-                }
-                if ( U::strlen($whereclause) > 0 ) $whereclause .= ' AND ';
-                $whereclause .= $lk . '=' . $valkey;
-                $wherevalues[$valkey] = $value;
-            }
-            // echo("++++++\n".$whereclause."\n");var_dump($wherevalues);echo("\n---------\n");
-
-            // Check for the row existing before the insert to (a) avoid sequence explosion
-            // and (b) because it is inexpensive
-            // https://stackoverflow.com/questions/37204749/serial-in-postgres-is-being-increased-even-though-i-added-on-conflict-do-nothing
-
-            // Lets try to find that primary key and make sure the where clause is only hitting one record
-            $newsql = "SELECT $pk FROM $table WHERE ".$whereclause;
-
-            $rows = self::allRowsDie($newsql, $wherevalues);
-            $primary_key = False;
-            if ( count($rows) == 1 ) {
-                $primary_key = $rows[0][$pk];
-                $this->PGSQL_LastInsertId = $primary_key;
-            } else if ( count($rows) > 1 ) {
-                error_log($newsql."\n".'$PDOX->upsertGetPKReturnError() pre-SELECT expects 0 or 1 row, got '.count($rows));
-            }
-
-            // If it is not there, do the INSERT, but still allow for another thread doing
-            // the INSERT first.  If we win the race, get the returned primary key
-            if ( ! $primary_key ) {
-                $newsql = $sql .  "\n".$this->PDOX_upsert_marker." ON CONFLICT DO NOTHING RETURNING $pk";
-                // echo("==========\n$newsql\n---------------\n");
-                $retval = self::queryReturnErrorInternal($newsql, $values);
-                if ( ! $retval->success ) return $retval;
-
-                // If the INSERT worked we record the returned key and we are done
-                if ( $retval->rowCount() > 0 ) {
-                    $row = $retval->fetch(\PDO::FETCH_NUM);
-                    if ( is_array($row) ) {
-                        $this->PGSQL_LastInsertId = $row[0];
-                        return $retval;
-                    }
-                }
-            }
-
-            // In case there was a race we lost - lets double check for that primary key
-            // At this point, the record darn well better exist
-            if ( ! $primary_key ) {
-                $newsql = "SELECT $pk FROM $table WHERE ".$whereclause;
-
-                $rows = self::allRowsDie($newsql, $wherevalues);
-                if ( count($rows) != 1 ) {
-                    error_log($newsql."\n".'$PDOX->upsertGetPKReturnError() post-SELECT expects exactly 1 row, got '.count($rows));
-                    return $retval;
-                }
-
-                $primary_key = $rows[0][$pk];
-                $this->PGSQL_LastInsertId = $primary_key;
-            }
-
-            // At this point we should have a primary key which we will use for UPDATE
-            if ( $primary_key && is_string($sql_update) ) {
-                $updatevalues = array();
-                $updatevalues[':'.$pk] = $primary_key;
-                foreach($values as $key => $value) {
-                    if ( strpos($sql_update, $key) !== false) $updatevalues[$key] = $value;
-                }
-
-                $newsql = "UPDATE ".$table." SET\n" . $sql_update . "\nWHERE :$pk = $primary_key";
-
-                // echo("******\n".$newsql."\n");var_dump($updatevalues);echo("\n---------\n");
-
-                $retval = self::queryReturnErrorInternal($newsql, $updatevalues);
-                if ( ! $retval->success ) return $retval;
-            }
-
-            return $retval;
-        }
+        $newsql = $sql .  "\nON DUPLICATE KEY UPDATE\n" .
+            "\n".$this->PDOX_upsert_marker." $pk=LAST_INSERT_ID($pk)";
+        if ( is_string($sql_update) ) $newsql = $newsql . ",\n" . $sql_update;
+        $retval = self::queryReturnErrorInternal($newsql, $values);
+        return $retval;
     }
 
     /**
-     * lastInsertId - Override this in the name of portability
-     *
-     * This is needed because upsert in MySQL, and PostgreSQL are quite different
-     * and in particular lastInsertId() in stock PDO is only useful for MySQL.
+     * lastInsertId - Override to use parent implementation
      */
     function lastInsertId($seqname = NULL) : string|false {
-        // Is there is a sequence, assume they know what they are doing :)
-        if ( $seqname != NULL ) return parent::lastInsertId($seqname);
-        if ( ! $this->isPgSQL() ) return parent::lastInsertId($seqname);
-
-        if ( isset($this->PGSQL_LastInsertId) && $this->PGSQL_LastInsertId > 0 ) return($this->PGSQL_LastInsertId);
-
-        if ( isset($this->PDOX_LastInsertStatement) && $this->PDOX_LastInsertStatement instanceof \PDOStatement ) {
-            $stmt = $this->PDOX_LastInsertStatement;
-            if ( $stmt->rowCount() > 0 ) {
-                $row = $stmt->fetch(\PDO::FETCH_NUM);
-                if ( is_array($row) ) {
-                    $this->PGSQL_LastInsertId = $row[0];
-                    return $this->PGSQL_LastInsertId;
-                }
-            }
-        }
-
-        $msg = 'Unable to determine lastInsertId()';
-        if ( isset($this->PGSQL_LastInsertQuery) && is_string($this->PGSQL_LastInsertQuery) ) {
-            $msg = $this->PGSQL_LastInsertQuery . " unable to determing lastInsertId()";;
-        }
-        error_log($msg);
-        return $this->PGSQL_LastInsertId;
+        return parent::lastInsertId($seqname);
     }
 
     /** limitVars - Filter out substitution variables that are not needed
