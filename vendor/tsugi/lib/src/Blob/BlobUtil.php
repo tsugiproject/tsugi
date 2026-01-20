@@ -255,7 +255,6 @@ class BlobUtil {
                 $sql = "INSERT INTO {$CFG->dbprefix}blob_blob
                     (blob_sha256, content, created_at)
                     VALUES (?, ?, NOW())";
-                if ( $PDOX->isPgSQL() ) $sql .= "\n RETURNING blob_id";
                 $stmt = $PDOX->prepare($sql);
 
                 $stmt->bindParam(1, $sha256);
@@ -378,7 +377,6 @@ class BlobUtil {
                 $sql = "INSERT INTO {$CFG->dbprefix}blob_blob
                     (blob_sha256, content, created_at)
                     VALUES (?, ?, NOW())";
-                if ( $PDOX->isPgSQL() ) $sql .= "\n RETURNING blob_id";
                 $stmt = $PDOX->prepare($sql);
 
                 $stmt->bindParam(1, $sha256);

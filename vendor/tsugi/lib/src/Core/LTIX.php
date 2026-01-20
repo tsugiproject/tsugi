@@ -766,11 +766,6 @@ class LTIX {
                 // Store binary nonce in fixed-length CHAR field with no encoding
                 // https://stackoverflow.com/questions/3554296/how-to-store-hashes-in-mysql-databases-without-using-text-fields
                 $event_nonce = md5($event_nonce, True);   // Was UNHEX(MD5(:nonce)) in MySQL
-
-                // https://stackoverflow.com/questions/16001238/writing-to-a-bytea-field-error-invalid-byte-sequence-for-encoding-utf8-0x9
-                if ( $PDOX->isPgSQL() ) {
-                    $event_nonce = substr( base64_encode($event_nonce), 0, 16);
-                }
                 $event_launch = null;
                 $canvasUrl = U::get($request_data,'custom_sub_canvas_caliper_url');
                 if ( $canvasUrl ) {
