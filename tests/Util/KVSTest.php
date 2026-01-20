@@ -11,13 +11,13 @@ use \Tsugi\Util\KVS;
 class KVSTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * Skip all tests in this class since SQLite support has been deprecated in Tsugi.
+     * Skip all tests in this class since SQLite support has been removed from Tsugi.
      * These tests were written to use SQLite for testing, but Tsugi now requires MySQL.
      * TODO: Rewrite these tests to use MySQL or a test database configuration.
      */
     protected function setUp(): void
     {
-        $this->markTestSkipped('SQLite support has been deprecated in Tsugi. KVS tests need to be rewritten to use MySQL.');
+        $this->markTestSkipped('SQLite support has been removed from Tsugi. KVS tests need to be rewritten to use MySQL.');
     }
 
     public static $USE_DISK = true;
