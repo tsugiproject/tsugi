@@ -2973,60 +2973,6 @@
             "install-path": "../illuminate/view"
         },
         {
-            "name": "koseu/lib",
-            "version": "dev-master",
-            "version_normalized": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "c5a8e2bd56a33e1a65731a13ed4f350769c9ab3b"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/c5a8e2bd56a33e1a65731a13ed4f350769c9ab3b",
-                "reference": "c5a8e2bd56a33e1a65731a13ed4f350769c9ab3b",
-                "shasum": ""
-            },
-            "require": {
-                "laravel/lumen-framework": "v11.2.0",
-                "php": ">=8.4.0",
-                "tsugi/lib": "dev-master#ae69dfc503d9ddef430fdec924343b48a5cac2bd"
-            },
-            "time": "2025-06-05T09:36:42+00:00",
-            "default-branch": true,
-            "type": "library",
-            "installation-source": "dist",
-            "autoload": {
-                "psr-4": {
-                    "Koseu\\": "src/"
-                },
-                "exclude-from-classmap": [
-                    "/tests/",
-                    "phpdoc.dist.xml",
-                    "phpunit.xml.dist"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "csev",
-                    "email": "drchuck@gmail.com",
-                    "homepage": "http://www.dr-chuck.com/",
-                    "role": "Developer"
-                }
-            ],
-            "description": "A Next Generation Embeddable Learning Management System",
-            "homepage": "http://www.koseu.org/",
-            "support": {
-                "issues": "https://github.com/tsugiproject/koseu-php/issues",
-                "source": "https://github.com/tsugiproject/koseu-php/tree/master"
-            },
-            "install-path": "../koseu/lib"
-        },
-        {
             "name": "laravel/lumen-framework",
             "version": "v11.2.0",
             "version_normalized": "11.2.0.0",
