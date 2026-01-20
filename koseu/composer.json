@@ -1,0 +1,28 @@
+{
+    "name": "koseu/lib",
+    "description": "A Next Generation Embeddable Learning Management System",
+    "homepage": "http://www.koseu.org/",
+    "type": "library",
+    "license": "Apache-2.0",
+    "authors": [
+    {
+        "name": "csev",
+        "email": "drchuck@gmail.com",
+        "homepage": "http://www.dr-chuck.com/",
+        "role": "Developer"
+    }
+    ],
+    "autoload": {
+        "psr-4": {"Koseu\\": "src/"},
+        "exclude-from-classmap": [
+            "/tests/",
+            "phpdoc.dist.xml",
+            "phpunit.xml.dist"
+        ]
+    },
+    "require": {
+        "php": ">=8.4.0",
+        "laravel/lumen-framework": "v11.2.0",
+        "tsugi/lib": "dev-master#ae69dfc503d9ddef430fdec924343b48a5cac2bd"
+    }
+}
