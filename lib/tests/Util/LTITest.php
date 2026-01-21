@@ -23,7 +23,6 @@ require_once "src/Blob/BlobUtil.php";
 $dirroot = dirname(__FILE__).'/../';
 $wwwroot = 'http://localhost:8888';
 $CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);
-$CFG->vendorinclude = dirname(__FILE__).'/../../include';
 
 require_once "include/setup.php";
 

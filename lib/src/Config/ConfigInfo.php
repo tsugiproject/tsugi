@@ -767,14 +767,7 @@ class ConfigInfo {
      */
     public $dbversion = false;
 
-    /*
-     * vendorinclude is a legacy configuration value that is being phased out
-     * but retained for compatibility
-     *
-     * It is unlikely you need to change these.
-     */
-    public $vendorinclude = false;
-
+    public $vendorinclude = false;    // No longer used in the code base
     public $vendorroot = false;       // No longer used in the code base
     public $vendorstatic = false;     // No longer used in the code base
 
