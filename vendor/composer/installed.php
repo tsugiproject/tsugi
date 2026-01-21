@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'bf0f7887185191c118407fd7c891b5127adee632',
+        'reference' => '971a35ae7c13470594f1a3e3bc3a8b3c5910df9e',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'bf0f7887185191c118407fd7c891b5127adee632',
+            'reference' => '971a35ae7c13470594f1a3e3bc3a8b3c5910df9e',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -1059,17 +1059,6 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/var-dumper',
             'aliases' => array(),
-            'dev_requirement' => false,
-        ),
-        'tsugi/lib' => array(
-            'pretty_version' => 'dev-master',
-            'version' => 'dev-master',
-            'reference' => '49b2107797f2936631739ccef847405b3d26a27a',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../tsugi/lib',
-            'aliases' => array(
-                0 => '9999999-dev',
-            ),
             'dev_requirement' => false,
         ),
         'vlucas/phpdotenv' => array(

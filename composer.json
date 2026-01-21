@@ -34,13 +34,12 @@
         "react/stream" : ">=1.3.0",
         "react/promise-timer" : ">=1.11.0",
         "react/dns" : ">=1.13.0",
-        "react/socket" : ">=1.16.0",
-
-        "tsugi/lib": "dev-master#49b2107797f2936631739ccef847405b3d26a27a"
+        "react/socket" : ">=1.16.0"
     },
     "autoload": {
       "psr-4": {
-        "Koseu\\": "koseu/src/"
+        "Koseu\\": "koseu/src/",
+        "Tsugi\\": "lib/src/"
       }
     },
     "config": {

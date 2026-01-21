@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "460d4457eaba88c3c5a3557a4931d188",
+    "content-hash": "bf434ffcce0680571a4587cc36eaad82",
     "packages": [
         {
             "name": "brick/math",
@@ -7375,63 +7375,6 @@
             "time": "2025-10-27T20:36:44+00:00"
         },
         {
-            "name": "tsugi/lib",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/tsugiproject/tsugi-php.git",
-                "reference": "49b2107797f2936631739ccef847405b3d26a27a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/tsugi-php/zipball/49b2107797f2936631739ccef847405b3d26a27a",
-                "reference": "49b2107797f2936631739ccef847405b3d26a27a",
-                "shasum": ""
-            },
-            "require": {
-                "ezyang/htmlpurifier": "v4.18.0",
-                "firebase/php-jwt": "v6.11.1",
-                "laravel/lumen-framework": "v11.2.0",
-                "php": ">=8.4.0",
-                "phpseclib/phpseclib": "3.0.43"
-            },
-            "require-dev": {
-                "phpunit/php-timer": "v5.0.3",
-                "phpunit/phpunit": "9.*"
-            },
-            "default-branch": true,
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Tsugi\\": "src/"
-                },
-                "exclude-from-classmap": [
-                    "/tests/",
-                    "phpdoc.dist.xml",
-                    "phpunit.xml.dist"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "csev",
-                    "email": "drchuck@gmail.com",
-                    "homepage": "http://www.dr-chuck.com/",
-                    "role": "Developer"
-                }
-            ],
-            "description": "The PHP Library to build interoperable learning tools",
-            "homepage": "http://www.tsugi.org/",
-            "support": {
-                "issues": "https://github.com/tsugiproject/tsugi-php/issues",
-                "source": "https://github.com/tsugiproject/tsugi-php/tree/master"
-            },
-            "time": "2026-01-07T22:56:00+00:00"
-        },
-        {
             "name": "vlucas/phpdotenv",
             "version": "v5.6.2",
             "source": {
@@ -9780,9 +9723,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "tsugi/lib": 20
-    },
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

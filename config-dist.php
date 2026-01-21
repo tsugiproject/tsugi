@@ -21,7 +21,10 @@ $dirroot = realpath(dirname(__FILE__));
 
 // New for 2021 - We may need to do some tweaking before the autoloader wakes up
 // So we need to add this require to config.php before requiring autoload.php
-require_once $dirroot."/vendor/tsugi/lib/include/pre_config.php";
+
+// Prior to 21-Jan-2026, this was:
+// require_once $dirroot."/vendor/tsugi/lib/include/pre_config.php";
+require_once $dirroot."/lib/include/pre_config.php";
 
 // Activate the autoloader...
 $loader = require_once($dirroot."/vendor/autoload.php");
@@ -497,15 +500,9 @@ if ( isset($CFG->sessions_in_db) && $CFG->sessions_in_db ) {
     );
 }
 
-// The vendor include and root - generally leave these alone
-// unless you have a very custom checkout
-$CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/lib/util";
-$CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/lib/include";
-$CFG->vendorstatic = $CFG->wwwroot."/vendor/tsugi/lib/static";
-
 $CFG->lumen_storage = $CFG->dirroot."/storage/";
 
 // Leave these here
-require_once $CFG->vendorinclude."/setup.php";
-require_once $CFG->vendorinclude."/lms_lib.php";
+require_once $CFG->dirroot."/lib/include/setup.php";
+require_once $CFG->dirroot."/lib/include/lms_lib.php";
 // No trailing tag to avoid inadvertent white space

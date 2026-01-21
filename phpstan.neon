@@ -5,8 +5,8 @@ parameters:
         - phpstan-stubs.php
     scanFiles:
         - phpstan-stubs.php
-        - vendor/tsugi/lib/include/setup.php
-        - vendor/tsugi/lib/include/setup_i18n.php
+        - lib/include/setup.php
+        - lib/include/setup_i18n.php
     paths:
         - admin
         - api
