@@ -56,6 +56,69 @@ Edit `composer.json` and
 
     composer update --prefer-dist tsugi/lib
 
+Making Changes and Contributing Back
+-------------------------------------
+
+This `tsugi/lib` directory is a git subtree that tracks the upstream repository
+at [tsugiproject/tsugi-php](https://github.com/tsugiproject/tsugi-php). When you
+make changes to files in this subtree, you can push those changes back to the
+original repository as a pull request.
+
+### Workflow for Contributing Changes
+
+1. **Make your changes** in the `tsugi/lib` directory as you normally would.
+
+2. **Commit your changes** in the parent repository:
+
+        git add tsugi/lib
+        git commit -m "Your commit message describing the changes"
+
+3. **Push changes back to the upstream repository**:
+
+   First, ensure you have the upstream repository configured as a remote:
+
+        git remote add tsugi-php https://github.com/tsugiproject/tsugi-php.git
+
+   Then push the subtree changes to a branch in the upstream repository:
+
+        git subtree push --prefix=tsugi/lib tsugi-php your-branch-name
+
+   This will create a new branch `your-branch-name` in the upstream repository
+   with your changes.
+
+4. **Create a Pull Request**:
+
+   - Navigate to https://github.com/tsugiproject/tsugi-php
+   - You should see a banner suggesting to create a PR from your new branch
+   - Click "Compare & pull request" and fill out the PR description
+   - Submit the PR for review
+
+### Alternative: Using a Fork
+
+If you prefer to work with a fork of the upstream repository:
+
+1. **Fork the repository** at https://github.com/tsugiproject/tsugi-php
+
+2. **Add your fork as a remote**:
+
+        git remote add tsugi-php-fork https://github.com/YOUR-USERNAME/tsugi-php.git
+
+3. **Push to your fork**:
+
+        git subtree push --prefix=tsugi/lib tsugi-php-fork your-branch-name
+
+4. **Create a PR** from your fork's branch to the upstream repository.
+
+### Notes
+
+- The `git subtree push` command extracts only the commits that affect files
+  in the `tsugi/lib` directory and creates a clean history in the upstream
+  repository.
+- Make sure your commit messages are clear and descriptive, as they will be
+  preserved in the upstream repository.
+- If you encounter conflicts during the push, you may need to pull the latest
+  changes from upstream first using `git subtree pull`.
+
 Releasing
 ---------
 

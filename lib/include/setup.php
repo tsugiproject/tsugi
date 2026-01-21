@@ -45,7 +45,12 @@ if ( isset($CFG->upgrading) && $CFG->upgrading === true ) require_once("upgradin
 
 if ( is_string($CFG->staticroot) ) $CFG->staticroot = \Tsugi\Util\U::remove_relative_path($CFG->staticroot);
 
-require_once $CFG->dirroot."/lib/include/lms_lib.php";
+// Handle both cases: lib in parent directory structure vs standalone lib
+$lms_lib_path = $CFG->dirroot."/lib/include/lms_lib.php";
+if ( !file_exists($lms_lib_path) ) {
+    $lms_lib_path = $CFG->dirroot."/include/lms_lib.php";
+}
+require_once $lms_lib_path;
 
 // Check to see if pre_config was included
 // TODO: Make this a die() about a year after - Thu Nov 11 19:34:23 EST 2021
