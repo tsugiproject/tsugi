@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0362a131ff540388f9c19c4c763fd728",
+    "content-hash": "460d4457eaba88c3c5a3557a4931d188",
     "packages": [
         {
             "name": "brick/math",
@@ -2842,57 +2842,6 @@
                 "source": "https://github.com/laravel/framework"
             },
             "time": "2025-03-24T11:54:20+00:00"
-        },
-        {
-            "name": "koseu/lib",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/tsugiproject/koseu-php.git",
-                "reference": "c5a8e2bd56a33e1a65731a13ed4f350769c9ab3b"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/tsugiproject/koseu-php/zipball/c5a8e2bd56a33e1a65731a13ed4f350769c9ab3b",
-                "reference": "c5a8e2bd56a33e1a65731a13ed4f350769c9ab3b",
-                "shasum": ""
-            },
-            "require": {
-                "laravel/lumen-framework": "v11.2.0",
-                "php": ">=8.4.0",
-                "tsugi/lib": "dev-master#ae69dfc503d9ddef430fdec924343b48a5cac2bd"
-            },
-            "default-branch": true,
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Koseu\\": "src/"
-                },
-                "exclude-from-classmap": [
-                    "/tests/",
-                    "phpdoc.dist.xml",
-                    "phpunit.xml.dist"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "csev",
-                    "email": "drchuck@gmail.com",
-                    "homepage": "http://www.dr-chuck.com/",
-                    "role": "Developer"
-                }
-            ],
-            "description": "A Next Generation Embeddable Learning Management System",
-            "homepage": "http://www.koseu.org/",
-            "support": {
-                "issues": "https://github.com/tsugiproject/koseu-php/issues",
-                "source": "https://github.com/tsugiproject/koseu-php/tree/master"
-            },
-            "time": "2025-06-05T09:36:42+00:00"
         },
         {
             "name": "laravel/lumen-framework",
@@ -9832,7 +9781,6 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "koseu/lib": 20,
         "tsugi/lib": 20
     },
     "prefer-stable": false,

@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '8e2b34aafffa9373954314c0c18ec6bfa577a0df',
+        'reference' => 'bf0f7887185191c118407fd7c891b5127adee632',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '8e2b34aafffa9373954314c0c18ec6bfa577a0df',
+            'reference' => 'bf0f7887185191c118407fd7c891b5127adee632',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -422,17 +422,6 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../illuminate/view',
             'aliases' => array(),
-            'dev_requirement' => false,
-        ),
-        'koseu/lib' => array(
-            'pretty_version' => 'dev-master',
-            'version' => 'dev-master',
-            'reference' => 'c5a8e2bd56a33e1a65731a13ed4f350769c9ab3b',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../koseu/lib',
-            'aliases' => array(
-                0 => '9999999-dev',
-            ),
             'dev_requirement' => false,
         ),
         'laravel/lumen-framework' => array(
