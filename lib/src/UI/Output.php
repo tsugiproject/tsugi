@@ -535,17 +535,11 @@ $('a').each(function (x) {
     public static function getUtilUrl($path)
     {
         global $CFG;
-        if ( isset($CFG->utilroot) ) {
-            return $CFG->utilroot.$path;
-        }
 
         // From wwwroot
         $path = str_replace('.php','',$path);
         $retval = $CFG->wwwroot . '/util' . $path;
         return $retval;
-
-        // The old way from "vendor"
-        // return $CFG->vendorroot.$path;
     }
 
     /**
