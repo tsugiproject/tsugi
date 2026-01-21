@@ -768,13 +768,15 @@ class ConfigInfo {
     public $dbversion = false;
 
     /*
-     * These are here to override the defaults for the vendor folder naming conventions
+     * vendorinclude is a legacy configuration value that is being phased out
+     * but retained for compatibility
      *
      * It is unlikely you need to change these.
      */
-    public $vendorroot = false;
     public $vendorinclude = false;
-    public $vendorstatic = false;
+
+    public $vendorroot = false;       // No longer used in the code base
+    public $vendorstatic = false;     // No longer used in the code base
 
     /**
      * The autoloader to be used when loading classes.

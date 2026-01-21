@@ -499,9 +499,7 @@ if ( isset($CFG->sessions_in_db) && $CFG->sessions_in_db ) {
 
 // The vendor include and root - generally leave these alone
 // unless you have a very custom checkout
-$CFG->vendorroot = $CFG->wwwroot."/vendor/tsugi/lib/util";
 $CFG->vendorinclude = $CFG->dirroot."/vendor/tsugi/lib/include";
-$CFG->vendorstatic = $CFG->wwwroot."/vendor/tsugi/lib/static";
 
 $CFG->lumen_storage = $CFG->dirroot."/storage/";
 
