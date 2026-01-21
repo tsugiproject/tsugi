@@ -21,6 +21,9 @@ $dirroot = realpath(dirname(__FILE__));
 
 // New for 2021 - We may need to do some tweaking before the autoloader wakes up
 // So we need to add this require to config.php before requiring autoload.php
+
+// Prior to 21-Jan-2026, this was:
+// require_once $dirroot."/vendor/tsugi/lib/include/pre_config.php";
 require_once $dirroot."/lib/include/pre_config.php";
 
 // Activate the autoloader...
