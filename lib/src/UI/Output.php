@@ -178,16 +178,7 @@ body {
     top: 0px !important;
     }
 </style>
-<?php } ?>
-
-        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-        <!--[if lt IE 9]>
-          <script src="<?= $CFG->vendorstatic ?>/js/html5shiv/html5shiv.js"></script>
-          <script src="<?= $CFG->vendorstatic ?>/js/respond/respond.min.js"></script>
-        <![endif]-->
-
-    <?php
+<?php }
         if ( $this->session_get('CSRF_TOKEN') ) {
             echo('<script type="text/javascript">CSRF_TOKEN = "'.$this->session_get('CSRF_TOKEN').'";</script>'."\n");
         } else {
