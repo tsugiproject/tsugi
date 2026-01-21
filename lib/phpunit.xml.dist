@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    curl -O https://phar.phpunit.de/phpunit-8.phar
+    php phpunit-8.phar 
+
+<phpunit displayDetailsOnTestsThatTriggerDeprecations="true">
+
+-->
+<phpunit>
+    <testsuites>
+        <testsuite name="Module Test Suite">
+            <directory>tests/*</directory>
+            <!-- <exclude>mod/php-intro/lib</exclude> -->
+        </testsuite>
+    </testsuites>
+</phpunit>
