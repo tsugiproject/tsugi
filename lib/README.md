@@ -1,148 +1,100 @@
+## Making Changes to the Tsugi PHP Library
 
-Tsugi PHP Library
-=================
+The Tsugi PHP library is developed **only** in the main `tsugi` monorepo.
+The standalone `tsugi-php` repository is a **read-only mirror** used for
+Packagist distribution.
 
-[![Apereo Incubating badge](https://img.shields.io/badge/apereo-incubating-blue.svg?logo=data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAABmJLR0QA%2FwD%2FAP%2BgvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4QUTEi0ybN9p9wAAAiVJREFUKM9lkstLlGEUxn%2Fv%2B31joou0GTFKyswkKrrYdaEQ4cZAy4VQUS2iqH%2BrdUSNYmK0EM3IkjaChnmZKR0dHS0vpN%2FMe97TIqfMDpzN4XkeDg8%2Fw45R1XNAu%2Fe%2BGTgAqLX2KzAQRVGytLR0jN2jqo9FZFRVvfded66KehH5oKr3dpueiMiK915FRBeXcjo9k9K5zLz%2B3Nz8EyAqX51zdwGMqp738NSonlxf36Cn7zX9b4eYX8gSBAE1Bw9wpLaW%2BL5KWluukYjH31tr71vv%2FU0LJ5xzdL3q5dmLJK7gON5wjEQizsTkFMmeXkbHxtHfD14WkbYQaFZVMzk1zfDHERrPnqGz4wZ1tYfJ5%2FPMLOYYW16ltrqKRDyOMcYATXa7PRayixSc4%2FKFRhrqjxKGIWVlZVQkqpg1pYyvR%2BTFF2s5FFprVVXBAAqq%2F7a9uPKd1NomeTX4HXfrvZ8D2F9dTSwWMjwywueJLxQKBdLfZunue0Mqt8qPyMHf0HRorR0ArtbX1Zkrly7yPNnN1EyafZUVZLJZxjNLlHc%2BIlOxly0RyktC770fDIGX3vuOMAxOt19vJQxD%2BgeHmE6liMVKuNPawlZ9DWu2hG8bW1Tuib0LgqCrCMBDEckWAVjKLetMOq2ZhQV1zulGVFAnohv5wrSq3tpNzwMR%2BSQi%2FyEnIl5Ehpxzt4t6s9McRdGpIChpM8Y3ATXbkKdEZDAIgqQxZrKo%2FQUk5F9Xr20TrQAAAABJRU5ErkJggg%3D%3D)](https://www.apereo.org/content/projects-currently-incubation) [![Build Status](https://travis-ci.org/tsugiproject/tsugi-php.svg?branch=master)](https://travis-ci.org/tsugiproject/tsugi-php)
+### Canonical Rule
 
-This is part of the Tsugi PHP Project and contains the run-time objects and scripts that support PHP
-Tsugi applications and modules.
+> **All changes to the Tsugi PHP library must be committed and pushed to  
+> `tsugi` `master` before they are mirrored to `tsugi-php`.**
 
-* [PHP Tsugi](https://github.com/tsugiproject/tsugi)
+Changes flow one way:
 
-Here is some documentation for the APIs that are provided by this library:
+```
+tsugi (master, lib/) → tsugi-php (master) → Packagist
+```
 
-* [API Documentation](http://do1.dr-chuck.com/tsugi/phpdoc/)
+Direct commits or pull requests to `tsugi-php` are not accepted and may be
+overwritten.
 
+---
 
-In addition to being used as part of the base Tsugi installs, Tsugi standalone
-application or modules will generally pull this in as a
-[Packagist](https://packagist.org/packages/tsugi/lib) dependency
-using [Composer](http://getcomposer.org/).
+## Step-by-Step Workflow
 
-For samples of how to use this code in a standalone library or an application,
-please see the following repositories:
+### 1. Work in the main Tsugi repository
 
-* [Sample Tsugi Module](https://github.com/tsugiproject/tsugi-php-module) - Copy
-this if you want to start a fresh Tsugi Module from scratch.  If you are building
-a new tool from scratch, you should build it as a "Tsugi Module" following all
-of the Tsugi style guidance, using the Tsugi browser environment, and making
-full use of the Tsugi framework. This repository contains a basic
-"Tsugi Module" you can use as a starting point.
+Clone and work in the canonical repository:
 
-* [Sample Tsugi-Enabled Application](https://github.com/tsugiproject/tsugi-php-standalone) - You
-can also use Tsugi as a library and  add it to a few places in an existing application.
-This repository contains sample code showing how to use Tsugi as a library in an existing
-application.
+```bash
+git clone https://github.com/tsugiproject/tsugi.git
+cd tsugi
+```
 
-Unit Testing
-------------
+Make all code changes **only** under the `lib/` directory.
 
-To download PHPUnit (and any other development dependencies):
+---
 
-    composer install
+### 2. Commit and push to `tsugi` master
 
-To test:
+Before mirroring, changes **must** be committed and pushed to the canonical
+branch:
 
-    ./vendor/bin/phpunit tests --bootstrap vendor/autoload.php
+```bash
+git status
+git add lib/
+git commit -m "Describe the change to the Tsugi PHP library"
+git push origin master
+```
 
-To run one test:
+Only committed changes are eligible to be mirrored.
 
-    vendor/bin/phpunit --filter {EntryTest}
+---
 
-Pulling in to Tsugi
--------------------
+### 3. Mirror `lib/` to the `tsugi-php` repository
 
-Edit `composer.json` and
+From the **tsugi repository root**, run the mirror script:
 
-    composer update --prefer-dist tsugi/lib
+```bash
+qa/mirror-tsugi-php.sh
+```
 
-Making Changes and Contributing Back
--------------------------------------
+This script:
 
-This `tsugi/lib` directory is a git subtree that tracks the upstream repository
-at [tsugiproject/tsugi-php](https://github.com/tsugiproject/tsugi-php). When you
-make changes to files in this subtree, you can push those changes back to the
-original repository as a pull request.
+1. Extracts the `lib/` directory history
+2. Reconstructs it as a standalone repository
+3. Force-updates `tsugi-php` `master` using `--force-with-lease`
 
-### Workflow for Contributing Changes
+The result is an exact mirror of `tsugi/lib`.
 
-1. **Make your changes** in the `tsugi/lib` directory as you normally would.
+---
 
-2. **Commit your changes** in the parent repository:
+### 4. Verify (optional)
 
-        git add tsugi/lib
-        git commit -m "Your commit message describing the changes"
+After mirroring, you may verify that the change appears in the standalone repo:
 
-3. **Push changes back to the upstream repository**:
+```bash
+git ls-remote https://github.com/tsugiproject/tsugi-php.git
+```
 
-   First, ensure you have the upstream repository configured as a remote:
+or by browsing the repository on GitHub.
 
-        git remote add tsugi-php https://github.com/tsugiproject/tsugi-php.git
+---
 
-   Then push the subtree changes to a branch in the upstream repository:
+## Important Notes
 
-        git subtree push --prefix=tsugi/lib tsugi-php your-branch-name
+* The history in `tsugi-php` is a **projection** of the monorepo history and may
+  differ from earlier standalone commits.
+* Any commits made directly to `tsugi-php` may be replaced during the next
+  mirror operation.
+* All development discussion, issues, and pull requests belong in the main
+  `tsugi` repository.
 
-   This will create a new branch `your-branch-name` in the upstream repository
-   with your changes.
+---
 
-4. **Create a Pull Request**:
+## Summary
 
-   - Navigate to https://github.com/tsugiproject/tsugi-php
-   - You should see a banner suggesting to create a PR from your new branch
-   - Click "Compare & pull request" and fill out the PR description
-   - Submit the PR for review
+**If you remember only one thing:**
 
-### Alternative: Using a Fork
-
-If you prefer to work with a fork of the upstream repository:
-
-1. **Fork the repository** at https://github.com/tsugiproject/tsugi-php
-
-2. **Add your fork as a remote**:
-
-        git remote add tsugi-php-fork https://github.com/YOUR-USERNAME/tsugi-php.git
-
-3. **Push to your fork**:
-
-        git subtree push --prefix=tsugi/lib tsugi-php-fork your-branch-name
-
-4. **Create a PR** from your fork's branch to the upstream repository.
-
-### Notes
-
-- The `git subtree push` command extracts only the commits that affect files
-  in the `tsugi/lib` directory and creates a clean history in the upstream
-  repository.
-- Make sure your commit messages are clear and descriptive, as they will be
-  preserved in the upstream repository.
-- If you encounter conflicts during the push, you may need to pull the latest
-  changes from upstream first using `git subtree pull`.
-
-Releasing
----------
-
-This is stored in Packagist.
-
-    https://packagist.org/packages/tsugi/lib
-
-Making PHPDoc
--------------
-
-Read this:
-
-    https://github.com/FriendsOfPHP/Sami
-
-Curl this:
-
-    curl -O http://get.sensiolabs.org/sami.phar
-
-Run this:
-
-    rm -r /tmp/tsugi/
-    php sami.phar update sami-config-dist.php
-    mv /tmp/tsugi/sami.js /tmp/tsugi/s.js
-    sed 's/".html"/"index.html"/' < /tmp/tsugi/s.js > /tmp/tsugi/sami.js
-    rm /tmp/tsugi/s.js
-    open /tmp/tsugi/index.html
-
+> **Commit and push to `tsugi` `master` first.  
+> `tsugi-php` is generated from that state.**
