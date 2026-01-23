@@ -2,11 +2,8 @@
 To update only one thing whilst not bumping the transitive dependencies
 
     composer update tsugi/lib --no-dev
-    composer update symfony/browser-kit --no-dev
-
-And to ignore platform requirements:
-
-    composer update tsugi/lib --ignore-platform-reqs --no-dev
+    composer update symfony/browser-kit --no-dev --ignore-platform-reqs
+    composer update symfony/mime --ignore-platform-reqs --no-dev
 
 To advance dependencies
 
