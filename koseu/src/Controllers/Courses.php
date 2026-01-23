@@ -2,7 +2,7 @@
 
 namespace Koseu\Controllers;
 
-use Tsugi\Lumen\Application;;
+use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 
 use \Tsugi\Core\LTIX;
@@ -23,13 +23,13 @@ class Courses {
         $tsugi = $app['tsugi'];
         if ( !isset($tsugi->user)) {
         // if ( !isset($_SESSION['id'])) {
-            return view('Error',
-                array('error' => '<p>You are not logged in.</p>')
-                );
+            return \response()->json(
+                array('error' => 'You are not logged in.')
+            );
         }
 
         $PDOX = LTIX::getConnection();
-        $p = $tsugi->cfg->dbprefix;
+        $p = $CFG->dbprefix;
         
         $row = $PDOX->rowDie("SELECT profile_id FROM {$p}lti_user WHERE user_id = :UID;",
             array(':UID' => $tsugi->user->id)

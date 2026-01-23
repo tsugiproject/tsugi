@@ -92,6 +92,58 @@ or by browsing the repository on GitHub.
 
 ---
 
+---
+
+## Running Unit Tests
+
+The Tsugi PHP library includes a comprehensive test suite with 70+ test files covering Core, Util, UI, Crypt, and other components.
+
+### From the `/tsugi/lib` directory (monorepo)
+
+When working in the main `tsugi` repository:
+
+```bash
+cd tsugi/lib
+composer install  # Install dependencies if needed
+composer test     # Run all tests
+```
+
+Or run PHPUnit directly:
+
+```bash
+cd tsugi/lib
+./vendor/bin/phpunit --configuration phpunit.xml.dist
+```
+
+### From the `tsugi-php` mirror repository root
+
+When working in the standalone `tsugi-php` repository:
+
+```bash
+cd tsugi-php
+composer install  # Install dependencies if needed
+composer test     # Run all tests
+```
+
+Or run PHPUnit directly:
+
+```bash
+cd tsugi-php
+./vendor/bin/phpunit --configuration phpunit.xml.dist
+```
+
+### Running specific tests
+
+To run a specific test file or directory:
+
+```bash
+# From lib/ or tsugi-php root
+./vendor/bin/phpunit tests/Core/LaunchTest.php
+./vendor/bin/phpunit tests/Util/
+```
+
+---
+
 ## Summary
 
 **If you remember only one thing:**

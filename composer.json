@@ -2,8 +2,8 @@
     "require": {
         "php": ">=8.4.0",
         "phpseclib/phpseclib": "v3.0.43",
-        "laravel/lumen-framework": "v11.2.0",
         "firebase/php-jwt" : "v6.11.1",
+        "nikic/fast-route": "^1.3",
         "ezyang/htmlpurifier": "v4.18.0",
 
         "google/auth": ">=v1.47.0",

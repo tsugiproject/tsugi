@@ -8,6 +8,7 @@ use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class Topics {
 
@@ -70,26 +71,26 @@ class Topics {
 
         if ( ! isset($CFG->topics) ) {
             $app->tsugiFlashError(__('Cannot find topics.json ($CFG->topics)'));
-            return redirect($redirect_path);
+            return new RedirectResponse($redirect_path);
         }
 
         /// Load the Topic
         $l = new \Tsugi\UI\Topics($CFG->topics);
         if ( ! $l ) {
             $app->tsugiFlashError(__('Cannot load topics.'));
-            return redirect($redirect_path);
+            return new RedirectResponse($redirect_path);
         }
 
         $topic = $l->getTopicByRlid($anchor);
         if ( ! $topic ) {
             $app->tsugiFlashError(__('Cannot find topic resource link id'));
-            return redirect($redirect_path);
+            return new RedirectResponse($redirect_path);
         }
 
         $lti = $l->getLtiByRlid($anchor);
         if ( ! $lti ) {
             $app->tsugiFlashError(__('Cannot find lti resource link id'));
-            return redirect($redirect_path);
+            return new RedirectResponse($redirect_path);
         }
 
         // Check that the session has the minimums...
@@ -99,7 +100,7 @@ class Topics {
             // All good
         } else {
             $app->tsugiFlashError(__('Missing session data required for launch'));
-            return redirect($redirect_path);
+            return new RedirectResponse($redirect_path);
         }
 
         $resource_link_title = isset($lti->title) ? $lti->title : $topic->title;

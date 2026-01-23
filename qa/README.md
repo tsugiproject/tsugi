@@ -3,6 +3,23 @@
 This directory contains a PHP-native end-to-end test harness using Symfony Panther.
 It is designed to run against a local Tsugi instance started via Docker Compose.
 
+## Unit Tests for tsugi/lib
+
+Run unit tests for the Tsugi PHP library:
+
+```bash
+# Run all lib unit tests
+qa/test-lib.sh
+
+# Run a specific test file
+qa/test-lib.sh tests/Core/LaunchTest.php
+
+# Run tests in a directory
+qa/test-lib.sh tests/Util/
+```
+
+The script automatically detects whether to use `lib/vendor/bin/phpunit` (if lib has its own vendor) or `vendor/bin/phpunit` (using root dependencies).
+
 ## Quick start (local)
 
 1) Start Tsugi in Docker:
