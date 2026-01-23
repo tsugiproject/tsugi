@@ -33,6 +33,12 @@ class Badges {
     public static function parseAssertionId($encrypted, $lesson) {
         global $CFG, $PDOX;
         
+        // Check badge configuration
+        $config_error = self::checkBadgeConfig();
+        if ( $config_error !== false ) {
+            return $config_error;
+        }
+        
         if ( ! function_exists('hex2bin')) {
             function hex2bin($hexString) {
                 $hexLength = strlen($hexString);
@@ -85,6 +91,62 @@ class Badges {
         if ( $row === false ) return 'Metadata failed';
 
         return array($row, $png, $pieces, $badge);
+    }
+    
+    /**
+     * Check if badge configuration is properly set up
+     * Returns an error message string if configuration is missing, or false if OK
+     * 
+     * @return string|false Error message string or false if OK
+     */
+    public static function checkBadgeConfig() {
+        global $CFG;
+        
+        $missing = array();
+        
+        if ( !isset($CFG->badge_encrypt_password) || empty($CFG->badge_encrypt_password) || $CFG->badge_encrypt_password === false ) {
+            $missing[] = '$CFG->badge_encrypt_password';
+        }
+        
+        if ( !isset($CFG->badge_assert_salt) || empty($CFG->badge_assert_salt) || $CFG->badge_assert_salt === false ) {
+            $missing[] = '$CFG->badge_assert_salt';
+        }
+        
+        if ( !isset($CFG->badge_path) || empty($CFG->badge_path) ) {
+            $missing[] = '$CFG->badge_path';
+        }
+        
+        if ( !isset($CFG->badge_url) || empty($CFG->badge_url) ) {
+            $missing[] = '$CFG->badge_url';
+        }
+        
+        if ( count($missing) > 0 ) {
+            $msg = "<h2>Badge Configuration Required</h2>\n";
+            $msg .= "<p>The following badge configuration parameters are missing or not set in your <code>config.php</code>:</p>\n";
+            $msg .= "<ul>\n";
+            foreach($missing as $param) {
+                $msg .= "<li><code>" . htmlspecialchars($param) . "</code></li>\n";
+            }
+            $msg .= "</ul>\n";
+            $msg .= "<h3>How to Configure Badges</h3>\n";
+            $msg .= "<p>To enable badge functionality, add the following to your <code>config.php</code> file:</p>\n";
+            $msg .= "<pre>\n";
+            $msg .= "// Badge generation settings - once you set these values to something\n";
+            $msg .= "// other than false and start issuing badges - don't change these or\n";
+            $msg .= "// existing badge images that have been downloaded from the system\n";
+            $msg .= "// will be invalidated.\n";
+            $msg .= "\$CFG->badge_encrypt_password = \"somethinglongwithhex387438758974987\";\n";
+            $msg .= "\$CFG->badge_assert_salt = \"mediumlengthhexstring\";\n";
+            $msg .= "\n";
+            $msg .= "// This folder contains the badge images\n";
+            $msg .= "\$CFG->badge_path = \$CFG->dirroot . '/../bimages';\n";
+            $msg .= "\$CFG->badge_url = \$CFG->apphome . '/bimages';\n";
+            $msg .= "</pre>\n";
+            $msg .= "<p>For more information, see <code>config-dist.php</code> in your Tsugi installation.</p>\n";
+            return $msg;
+        }
+        
+        return false;
     }
     
     /**
@@ -197,6 +259,11 @@ class Badges {
     public static function getOb2Assertion($encrypted, $date, $code, $badge, $title, $email) {
         global $CFG;
 
+        $config_error = self::checkBadgeConfig();
+        if ( $config_error !== false ) {
+            return $config_error;
+        }
+
         $image = $CFG->badge_url.'/'.$code.'.png';
         $recipient = 'sha256$' . hash('sha256', $email . $CFG->badge_assert_salt);
         $assert_id = self::buildAssertionUrl($encrypted);
@@ -247,6 +314,11 @@ class Badges {
     public static function getOb2Badge($encrypted, $code, $badge, $title) {
         global $CFG;
 
+        $config_error = self::checkBadgeConfig();
+        if ( $config_error !== false ) {
+            return $config_error;
+        }
+
         $image = $CFG->badge_url.'/'.$code.'.png';
         $badge_url = self::buildBadgeUrl($code);
         $issuer_url = self::buildIssuerUrl();
@@ -280,6 +352,11 @@ class Badges {
      */
     public static function getOb2Issuer($encrypted = null, $code = null, $badge = null, $title = null) {
         global $CFG;
+
+        $config_error = self::checkBadgeConfig();
+        if ( $config_error !== false ) {
+            return $config_error;
+        }
 
         $issuer_url = self::buildIssuerUrl();
         $issuer_email = self::getIssuerEmail();
@@ -317,6 +394,11 @@ class Badges {
      */
     public static function getOb3Assertion($encrypted, $date, $code, $badge, $title, $email) {
         global $CFG;
+
+        $config_error = self::checkBadgeConfig();
+        if ( $config_error !== false ) {
+            return $config_error;
+        }
 
         $image = $CFG->badge_url.'/'.$code.'.png';
         $recipient = 'sha256$' . hash('sha256', $email . $CFG->badge_assert_salt);
@@ -392,6 +474,11 @@ class Badges {
     public static function getOb3Achievement($encrypted, $code, $badge, $title) {
         global $CFG;
 
+        $config_error = self::checkBadgeConfig();
+        if ( $config_error !== false ) {
+            return $config_error;
+        }
+
         $image = $CFG->badge_url.'/'.$code.'.png';
         $achievement_id = self::buildBadgeUrlWithFormat($code, 'ob3');
         $issuer_id = self::buildIssuerUrlWithFormat('ob3');
@@ -434,6 +521,11 @@ class Badges {
      */
     public static function getOb3Issuer($encrypted = null, $code = null, $badge = null, $title = null) {
         global $CFG;
+
+        $config_error = self::checkBadgeConfig();
+        if ( $config_error !== false ) {
+            return $config_error;
+        }
 
         $issuer_id = self::buildIssuerUrlWithFormat('ob3');
         $issuer_email = self::getIssuerEmail();

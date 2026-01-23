@@ -1244,24 +1244,64 @@ class Lessons {
     } else if ( !isset($_SESSION['id']) || ! isset($_SESSION['context_id']) ) {
         echo("<p>You must be logged in to see your badges.</p>\n");
     } else {
-        echo("<ul style=\"list-style: none;\">\n");
-        foreach($awarded as $badge) {
-            echo("<li><p>");
-            $code = basename($badge->image,'.png');
-            $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
-            $encrypted = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
-            echo('<a href="'.$CFG->wwwroot.'/assertions/'.$encrypted.'.html" target="_blank">');
-            echo('<img src="'.$CFG->wwwroot.'/badges/images/'.$encrypted.'.png" width="90"></a>');
-            echo($badge->title);
-            echo("</p></li>\n");
-        }
-        echo("</ul>\n");
+        // Check badge configuration before attempting to encrypt
+        if ( !isset($CFG->badge_encrypt_password) || empty($CFG->badge_encrypt_password) || $CFG->badge_encrypt_password === false ||
+             !isset($CFG->badge_path) || empty($CFG->badge_path) ||
+             !isset($CFG->badge_url) || empty($CFG->badge_url) ||
+             !isset($CFG->badge_assert_salt) || empty($CFG->badge_assert_salt) || $CFG->badge_assert_salt === false ) {
+            echo("<div class=\"alert alert-warning\">\n");
+            echo("<h3>Badge Configuration Required</h3>\n");
+            echo("<p>The following badge configuration parameters are missing or not set in your <code>config.php</code>:</p>\n");
+            echo("<ul>\n");
+            if ( !isset($CFG->badge_encrypt_password) || empty($CFG->badge_encrypt_password) || $CFG->badge_encrypt_password === false ) {
+                echo("<li><code>\$CFG->badge_encrypt_password</code></li>\n");
+            }
+            if ( !isset($CFG->badge_assert_salt) || empty($CFG->badge_assert_salt) || $CFG->badge_assert_salt === false ) {
+                echo("<li><code>\$CFG->badge_assert_salt</code></li>\n");
+            }
+            if ( !isset($CFG->badge_path) || empty($CFG->badge_path) ) {
+                echo("<li><code>\$CFG->badge_path</code></li>\n");
+            }
+            if ( !isset($CFG->badge_url) || empty($CFG->badge_url) ) {
+                echo("<li><code>\$CFG->badge_url</code></li>\n");
+            }
+            echo("</ul>\n");
+            echo("<h4>How to Configure Badges</h4>\n");
+            echo("<p>To enable badge functionality, add the following to your <code>config.php</code> file:</p>\n");
+            echo("<pre>\n");
+            echo("// Badge generation settings - once you set these values to something\n");
+            echo("// other than false and start issuing badges - don't change these or\n");
+            echo("// existing badge images that have been downloaded from the system\n");
+            echo("// will be invalidated.\n");
+            echo("\$CFG->badge_encrypt_password = \"somethinglongwithhex387438758974987\";\n");
+            echo("\$CFG->badge_assert_salt = \"mediumlengthhexstring\";\n");
+            echo("\n");
+            echo("// This folder contains the badge images\n");
+            echo("\$CFG->badge_path = \$CFG->dirroot . '/../bimages';\n");
+            echo("\$CFG->badge_url = \$CFG->apphome . '/bimages';\n");
+            echo("</pre>\n");
+            echo("<p>For more information, see <code>config-dist.php</code> in your Tsugi installation.</p>\n");
+            echo("</div>\n");
+        } else {
+            echo("<ul style=\"list-style: none;\">\n");
+            foreach($awarded as $badge) {
+                echo("<li><p>");
+                $code = basename($badge->image,'.png');
+                $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
+                $encrypted = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
+                echo('<a href="'.$CFG->wwwroot.'/assertions/'.$encrypted.'.html" target="_blank">');
+                echo('<img src="'.$CFG->wwwroot.'/badges/images/'.$encrypted.'.png" width="90"></a>');
+                echo($badge->title);
+                echo("</p></li>\n");
+            }
+            echo("</ul>\n");
 ?>
 <p>These badges contain the official Open Badge metadata.  You can download the badge and
 put it on your own server, or add the badge to a "badge packpack".  You could validate the badge
 using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple badge validator</a>.
 </p>
 <?php
+        }
     }
 ?>
 </div>
