@@ -33,6 +33,6 @@
         "phpunit/php-timer": "v5.0.3"
     },
     "scripts": {
-        "test": "./vendor/bin/phpunit tests --bootstrap vendor/autoload.php"
+        "test": "./vendor/bin/phpunit --configuration phpunit.xml.dist"
     }
 }

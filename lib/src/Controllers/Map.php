@@ -2,8 +2,7 @@
 
 namespace Tsugi\Controllers;
 
-use Laravel\Lumen\Routing\Controller;
-use Laravel\Lumen\Routing\Router;
+use Tsugi\Lumen\Controller;
 use Tsugi\Lumen\Application;
 use Tsugi\Util\U;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,7 +34,7 @@ class Map extends Controller {
             return self::viewError('<p>You are not logged in.</p>');
         }
 
-        if ( !isset($tsugi->cfg->google_map_api_key) ) {
+        if ( !isset($CFG->google_map_api_key) ) {
             return self::viewError('<p>There is no MAP api key ($CFG->google_map_api_key)</p>');
         }
 
@@ -50,13 +49,13 @@ class Map extends Controller {
             return self::viewError('<p>You are not logged in.</p>');
         }
 
-        if ( !isset($tsugi->cfg->google_map_api_key) ) {
+        if ( !isset($CFG->google_map_api_key) ) {
             return self::viewError('<p>There is no MAP api key ($CFG->google_map_api_key)</p>');
         }
 
         $PDOX = LTIX::getConnection();
         
-        $p = $tsugi->cfg->dbprefix;
+        $p = $CFG->dbprefix;
         $sql = "SELECT U.user_id, P.displayname, P.json 
             FROM {$p}lti_user AS U JOIN {$p}profile AS P
             ON U.profile_id = P.profile_id
@@ -91,7 +90,7 @@ class Map extends Controller {
         }
         if ( $center === false ) $center = array(42.279070216140425, -83.73981015789798);
         $retval = array('center' => $center, 'points' => $points );
-        return response()->json($retval);
+        return \response()->json($retval);
     }
 
     public static function viewMap()

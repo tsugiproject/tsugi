@@ -22,6 +22,12 @@ $encrypted = basename($pieces[count($pieces)-1],'.png');
 
 $x = parse_badge_id($encrypted, $l);
 if ( is_string($x) ) {
+    if ( strpos($x, '<h2>Badge Configuration Required</h2>') !== false ) {
+        // Configuration error - display as HTML
+        header('Content-Type: text/html; charset=utf-8');
+        echo($x);
+        exit();
+    }
     die_with_error_log($x);
 }
 $row = $x[0];
@@ -37,6 +43,12 @@ error_log('Assertion:'.$pieces[0].':'.$pieces[1].':'.$pieces[2]);
 $image = $CFG->badge_url.'/'.$code.'.png';
 
 $text = get_assertion($encrypted, $date, $code, $badge, $title, $email);
+if ( is_string($text) && strpos($text, '<h2>Badge Configuration Required</h2>') !== false ) {
+    // Configuration error - display as HTML
+    header('Content-Type: text/html; charset=utf-8');
+    echo($text);
+    exit();
+}
 
 // https://www.imsglobal.org/sites/default/files/Badges/OBv2p0Final/baking/index.html
 $png2 = Png::addOrReplaceTextInPng($png,"openbadges",$text, 'iTXt');

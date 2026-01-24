@@ -1,8 +1,7 @@
 <?php
 
 namespace Tsugi\Controllers;
-use Laravel\Lumen\Routing\Controller;
-use Laravel\Lumen\Routing\Router;
+use Tsugi\Lumen\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 

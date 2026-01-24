@@ -2,9 +2,10 @@
 
 namespace Tsugi\Controllers;
 
-use Laravel\Lumen\Routing\Controller;
+use Tsugi\Lumen\Controller;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use \Tsugi\Util\U;
 
@@ -28,7 +29,7 @@ class Analytics extends Controller {
         // echo("<pre>\n");var_dump($tsugi);
         if ( !isset($tsugi->user) ) {
             $app->tsugiFlashError(__('You are not logged in.'));
-            return redirect($redirect_path);
+            return new RedirectResponse($redirect_path);
         }
 
         $analytics_url = U::addSession($CFG->wwwroot."/api/analytics");

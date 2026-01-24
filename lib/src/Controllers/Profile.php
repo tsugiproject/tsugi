@@ -2,9 +2,10 @@
 
 namespace Tsugi\Controllers;
 
-use Laravel\Lumen\Routing\Controller;
+use Tsugi\Lumen\Controller;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class Profile extends Controller {
 
@@ -34,7 +35,7 @@ class Profile extends Controller {
         $home = isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
 
         if ( ! isset($_SESSION['profile_id']) ) {
-            return redirect($home);
+            return new RedirectResponse($home);
         }
         $stmt = $PDOX->queryDie(
                 "SELECT json FROM {$CFG->dbprefix}profile WHERE profile_id = :PID",
@@ -43,7 +44,7 @@ class Profile extends Controller {
         $profile_row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ( $profile_row === false ) {
             $app->tsugiFlashError(__('Unable to load profile'));
-            return redirect($home);
+            return new RedirectResponse($home);
         }
 
         $profile = json_decode($profile_row['json']);
@@ -248,7 +249,7 @@ Send me notification mail for important things like my assignment was graded.
         $home = isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
 
         if ( ! isset($_SESSION['profile_id']) ) {
-            return redirect($home);
+            return new RedirectResponse($home);
         }
 
         $stmt = $PDOX->queryDie(
@@ -258,7 +259,7 @@ Send me notification mail for important things like my assignment was graded.
         $profile_row = $stmt->fetch(\PDO::FETCH_ASSOC);
         if ( $profile_row === false ) {
             $app->tsugiFlashError(__('Unable to load profile'));
-            return redirect($home);
+            return new RedirectResponse($home);
         }
 
         $profile = json_decode($profile_row['json']);
@@ -287,7 +288,7 @@ Send me notification mail for important things like my assignment was graded.
                 array('JSON' => $new_json, 'PID' => $_SESSION['profile_id'])
                 );
         $app->tsugiFlashSuccess(__('Profile updated.'));
-        return redirect($home);
+        return new RedirectResponse($home);
     }
 }
 
