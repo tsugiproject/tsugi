@@ -125,5 +125,6 @@ $endpoint = $l->expandLink($lti->launch);
 $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
     "Finish Launch", $CFG->wwwroot, $CFG->servicename);
 
-$content = LTI::postLaunchHTML($parms, $endpoint, false /*debug */);
+$debug = $CFG->getExtension('launch_debug', false);
+$content = LTI::postLaunchHTML($parms, $endpoint, $debug);
 print($content);

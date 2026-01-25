@@ -78,8 +78,13 @@ class Lessons {
             return new RedirectResponse($redirect_path);
         }
 
-        /// Load the Lesson
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        /// Load the Lesson - use Lessons2 if enabled (same as get() method)
+        $use_lessons2 = $CFG->getExtension('lessons2_enable', false);
+        if ( $use_lessons2 ) {
+            $l = new \Tsugi\UI\Lessons2($CFG->lessons);
+        } else {
+            $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        }
         if ( ! $l ) {
             $app->tsugiFlashError(__('Cannot load lessons.'));
             return new RedirectResponse($redirect_path);
@@ -153,11 +158,14 @@ class Lessons {
         $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
         $parms['ext_lti_form_id'] = $form_id;
 
-        $endpoint = $lti->launch;
+        // Expand {apphome} placeholder to actual URL (like the old launch.php does)
+        $endpoint = $l->expandLink($lti->launch);
         $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
             "Finish Launch", $CFG->wwwroot, $CFG->servicename);
 
-        $content = LTI::postLaunchHTML($parms, $endpoint, false /*debug */);
+        // Check for launch debug flag - when true, form will pause before auto-submitting
+        $debug = $CFG->getExtension('launch_debug', false);
+        $content = LTI::postLaunchHTML($parms, $endpoint, $debug);
         print($content);
         return "";
     }
