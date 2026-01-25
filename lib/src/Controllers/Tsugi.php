@@ -17,6 +17,7 @@ class Tsugi extends \Tsugi\Lumen\Application {
         $this->router->group([
             'namespace' => 'Tsugi\Controllers',
         ], function () {
+            \Tsugi\Controllers\Announcements::routes($this);
             \Tsugi\Controllers\Assignments::routes($this);
             \Tsugi\Controllers\Badges::routes($this);
             \Tsugi\Controllers\Courses::routes($this);
@@ -25,6 +26,7 @@ class Tsugi extends \Tsugi\Lumen\Application {
             \Tsugi\Controllers\Login::routes($this);
             \Tsugi\Controllers\Logout::routes($this);
             \Tsugi\Controllers\Map::routes($this);
+            \Tsugi\Controllers\Pages::routes($this);
             \Tsugi\Controllers\Profile::routes($this);
             \Tsugi\Controllers\Topics::routes($this);
         });
