@@ -1,19 +1,19 @@
 <?php
 
-namespace Koseu\Controllers;
+namespace Tsugi\Controllers;
 
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 
 use \Tsugi\Grades\GradeUtil;
 
-class Badges {
+class Assignments {
 
-    const ROUTE = '/badges';
+    const ROUTE = '/assignments';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->router->get($prefix, 'Badges@get');
-        $app->router->get($prefix.'/', 'Badges@get');
+        $app->router->get($prefix, 'Assignments@get');
+        $app->router->get($prefix.'/', 'Assignments@get');
     }
 
     public function get(Request $request)
@@ -29,10 +29,12 @@ class Badges {
 
         // Load all the Grades so far
         $allgrades = array();
+        $alldates = array();
         if ( isset($_SESSION['id']) && isset($_SESSION['context_id'])) {
             $rows = GradeUtil::loadGradesForCourse($_SESSION['id'], $_SESSION['context_id']);
             foreach($rows as $row) {
                 $allgrades[$row['resource_link_id']] = $row['grade'];
+                $alldates[$row['resource_link_id']] = $row['updated_at'];
             }
         }
 
@@ -41,8 +43,7 @@ class Badges {
         $menu = false;
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        $l->renderBadges($allgrades, false);
+        $l->renderAssignments($allgrades, $alldates, false);
         $OUTPUT->footer();
-
     }
 }

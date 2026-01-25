@@ -1,34 +1,21 @@
 <?php
 
-
 namespace Koseu\Core;
 
-class Application extends \Tsugi\Lumen\Application {
+/**
+ * Koseu Application - Thin wrapper around Tsugi\Controllers\Tsugi
+ * 
+ * This class exists for backward compatibility during transition.
+ * New code should use \Tsugi\Controllers\Tsugi directly.
+ * 
+ * @deprecated Use \Tsugi\Controllers\Tsugi instead
+ */
+class Application extends \Tsugi\Controllers\Tsugi {
 
     public function __construct($launch)
     {
+        // Pass __DIR__ to maintain compatibility with existing behavior
         parent::__construct($launch, __DIR__);
-        $this['tsugi']->output->buffer = false;
-
-        $this->router->group([
-            'namespace' => 'Koseu\Controllers',
-        ], function () {
-            \Koseu\Controllers\Lessons::routes($this);
-            \Koseu\Controllers\Topics::routes($this);
-            \Koseu\Controllers\Discussions::routes($this);
-            \Koseu\Controllers\Badges::routes($this);
-            \Koseu\Controllers\Assignments::routes($this);
-            \Koseu\Controllers\Courses::routes($this);
-        });
-
-        $this->router->group([
-            'namespace' => 'Tsugi\Controllers',
-        ], function () {
-            \Tsugi\Controllers\Login::routes($this);
-            \Tsugi\Controllers\Logout::routes($this);
-            \Tsugi\Controllers\Profile::routes($this);
-            \Tsugi\Controllers\Map::routes($this);
-        });
     }
 }
 

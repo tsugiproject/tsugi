@@ -1,6 +1,6 @@
 <?php
 
-namespace Koseu\Controllers;
+namespace Tsugi\Controllers;
 
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;

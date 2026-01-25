@@ -1,7 +1,6 @@
 <?php
 
-
-namespace Koseu\Controllers;
+namespace Tsugi\Controllers;
 
 use Tsugi\Util\U;
 use Tsugi\Util\LTI;
@@ -10,19 +9,19 @@ use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
-class Topics {
+class Lessons {
 
-    const ROUTE = '/topics';
+    const ROUTE = '/lessons';
 
-    const REDIRECT = 'koseu_controllers_topics';
+    const REDIRECT = 'tsugi_controllers_lessons';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        $app->router->get($prefix, 'Topics@get');
-        $app->router->get($prefix.'/', 'Topics@get');
-        $app->router->get('/'.self::REDIRECT, 'Topics@get');
-        $app->router->get($prefix.'/{anchor}', 'Topics@get');
+        $app->router->get($prefix, 'Lessons@get');
+        $app->router->get($prefix.'/', 'Lessons@get');
+        $app->router->get('/'.self::REDIRECT, 'Lessons@get');
+        $app->router->get($prefix.'/{anchor}', 'Lessons@get');
         $app->router->get($prefix.'_launch/{anchor}', function(Request $request, $anchor = null) use ($app) {
-            return Topics::launch($app, $anchor);
+            return Lessons::launch($app, $anchor);
         });
     }
 
@@ -30,8 +29,8 @@ class Topics {
     {
         global $CFG, $OUTPUT;
 
-        if ( ! isset($CFG->topics) ) {
-            die_with_error_log('Cannot find topics.json ($CFG->topics)');
+        if ( ! isset($CFG->lessons) ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
         }
 
         // Turning on and off styling
@@ -43,20 +42,20 @@ class Topics {
             }
         }
 
-        // Load the Topic
-        $t = new \Tsugi\UI\Topics($CFG->topics,$anchor);
+        // Load the Lesson
+        $l = new \Tsugi\UI\Lessons($CFG->lessons,$anchor);
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $menu = false;
-        $OUTPUT->topNav($menu);
+        $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        $t->header();
+        $l->header();
         echo('<div class="container">');
-        $t->render();
+        $l->render();
         echo('</div>');
         $OUTPUT->footerStart();
-        $t->footer();
+        $l->footer();
         $OUTPUT->footerEnd();
     }
 
@@ -69,21 +68,21 @@ class Topics {
         $redirect_path = U::addSession($path->parent);
         if ( $redirect_path == '') $redirect_path = '/';
 
-        if ( ! isset($CFG->topics) ) {
-            $app->tsugiFlashError(__('Cannot find topics.json ($CFG->topics)'));
+        if ( ! isset($CFG->lessons) ) {
+            $app->tsugiFlashError(__('Cannot find lessons.json ($CFG->lessons)'));
             return new RedirectResponse($redirect_path);
         }
 
-        /// Load the Topic
-        $l = new \Tsugi\UI\Topics($CFG->topics);
+        /// Load the Lesson
+        $l = new \Tsugi\UI\Lessons($CFG->lessons);
         if ( ! $l ) {
-            $app->tsugiFlashError(__('Cannot load topics.'));
+            $app->tsugiFlashError(__('Cannot load lessons.'));
             return new RedirectResponse($redirect_path);
         }
 
-        $topic = $l->getTopicByRlid($anchor);
-        if ( ! $topic ) {
-            $app->tsugiFlashError(__('Cannot find topic resource link id'));
+        $module = $l->getModuleByRlid($anchor);
+        if ( ! $module ) {
+            $app->tsugiFlashError(__('Cannot find module resource link id'));
             return new RedirectResponse($redirect_path);
         }
 
@@ -94,8 +93,8 @@ class Topics {
         }
 
         // Check that the session has the minimums...
-        if ( isset($topic->lti) && U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
-            && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
+        if ( U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
+                && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
         {
             // All good
         } else {
@@ -103,7 +102,7 @@ class Topics {
             return new RedirectResponse($redirect_path);
         }
 
-        $resource_link_title = isset($lti->title) ? $lti->title : $topic->title;
+        $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
         $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;
         $secret = false;
         if ( isset($_SESSION['secret']) ) {
@@ -138,7 +137,7 @@ class Topics {
             }
         }
 
-        $return_url = $path->parent . '/' . str_replace('_launch', '', $path->controller) . '/' . $topic->anchor;
+        $return_url = $path->parent . '/' . str_replace('_launch', '', $path->controller) . '/' . $module->anchor;
         $parms['launch_presentation_return_url'] = $return_url;
 
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
@@ -157,4 +156,5 @@ class Topics {
         print($content);
         return "";
     }
+
 }
