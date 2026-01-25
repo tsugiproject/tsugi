@@ -274,7 +274,7 @@ class Announcements extends Tool {
         }
         </style>
 
-        <script src="<?= htmlspecialchars($this->toolHome(self::ROUTE) . '/dismiss.js') ?>"></script>
+        <script src="<?= htmlspecialchars($this->staticUrl('dismiss.js')) ?>"></script>
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             var showDismissedBtn = document.getElementById('show-dismissed-btn');

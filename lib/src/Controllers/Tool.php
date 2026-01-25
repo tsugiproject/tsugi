@@ -49,6 +49,104 @@ abstract class Tool {
     }
 
     /**
+     * Get the parent path one level above the tool home
+     * 
+     * This is useful for shared resources like static files that are mounted
+     * at a common path above individual controllers.
+     * 
+     * @param string $route The route constant for this tool (e.g., '/pages', '/announcements')
+     * @return string The parent path (e.g., '/py4e' if toolHome is '/py4e/pages')
+     */
+    protected function toolParent($route = null) {
+        // If no route provided, try to determine from current context
+        if ($route === null) {
+            // Try to get route from the class constant if it exists
+            $reflection = new \ReflectionClass($this);
+            if ($reflection->hasConstant('ROUTE')) {
+                $route = $reflection->getConstant('ROUTE');
+            } else {
+                // Fallback: use apphome
+                global $CFG;
+                return isset($CFG->apphome) ? $CFG->apphome : '/';
+            }
+        }
+        
+        $toolHome = $this->toolHome($route);
+        
+        // Remove the route from the end to get parent
+        if (substr($toolHome, -strlen($route)) === $route) {
+            $parent = substr($toolHome, 0, -strlen($route));
+            // Remove trailing slash
+            $parent = rtrim($parent, '/');
+            return $parent ?: '/';
+        }
+        
+        // Fallback: use apphome
+        global $CFG;
+        return isset($CFG->apphome) ? $CFG->apphome : '/';
+    }
+
+    /**
+     * Generate URL to another controller
+     * 
+     * @param string $controllerRoute The route of the target controller (e.g., '/pages', '/announcements')
+     * @param string|null $currentRoute Optional current route (defaults to detecting from context)
+     * @return string Full URL to the controller
+     */
+    protected function controllerUrl($controllerRoute, $currentRoute = null) {
+        $parent = $this->toolParent($currentRoute);
+        return $parent . $controllerRoute;
+    }
+
+    /**
+     * Static helper to determine the parent path dynamically from the request
+     * 
+     * This is useful for static methods that need to determine the base path
+     * without having a Tool instance. It uses the same logic as toolParent()
+     * but works as a static method.
+     * 
+     * @param string|null $route Optional route to look for (if null, tries to detect from request)
+     * @return string The parent path (e.g., '/py4e' or '/ca4e/tsugi')
+     */
+    public static function determineParentPath($route = null) {
+        global $CFG;
+        
+        // Get the current request URI
+        $requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+        $requestUri = strtok($requestUri, '?');
+        
+        if ($route !== null) {
+            // If route provided, find it in the URI and extract parent
+            $routePos = strpos($requestUri, $route);
+            if ($routePos !== false) {
+                $parentPath = substr($requestUri, 0, $routePos);
+                $parentPath = rtrim($parentPath, '/');
+                return $parentPath ?: '/';
+            }
+        } else {
+            // Try to detect by looking for common controller routes
+            $controllerRoutes = ['/announcements', '/pages', '/badges', '/grades', '/lessons', '/assignments', '/map', '/login', '/logout'];
+            foreach ($controllerRoutes as $testRoute) {
+                $routePos = strpos($requestUri, $testRoute);
+                if ($routePos !== false) {
+                    $parentPath = substr($requestUri, 0, $routePos);
+                    $parentPath = rtrim($parentPath, '/');
+                    return $parentPath ?: '/';
+                }
+            }
+        }
+        
+        // Fallback: try using rest_path
+        $path = U::rest_path();
+        if ($path && isset($path->parent)) {
+            return $path->parent;
+        }
+        
+        // Last resort: use apphome
+        return isset($CFG->apphome) ? $CFG->apphome : '/';
+    }
+
+    /**
      * Check if the current logged-in user is an instructor/admin for the current context
      * 
      * This method checks:
@@ -456,5 +554,40 @@ abstract class Tool {
         $OUTPUT->footerEnd();
         
         return "";
+    }
+
+    /**
+     * Generate URL for a controller-specific static file (JS, CSS, etc.)
+     * 
+     * Static files are served from tsugi/lib/src/Controllers/static/{ControllerName}/
+     * This method generates the proper URL for accessing these static files.
+     * 
+     * @param string $filename Static filename (e.g., 'tsugi-announce.js')
+     * @param string|null $controllerName Optional controller name (defaults to current controller)
+     * @return string Full URL to the static file
+     */
+    protected function staticUrl($filename, $controllerName = null)
+    {
+        // If controller name not provided, derive it from the class name
+        if ($controllerName === null) {
+            $className = get_class($this);
+            $parts = explode('\\', $className);
+            $controllerName = end($parts);
+        }
+        
+        // Use toolParent to determine the base path for static files
+        $basePath = $this->toolParent() . '/static';
+        
+        return \Tsugi\Controllers\StaticFiles::url($controllerName, $filename, $basePath);
+    }
+    
+    /**
+     * Alias for staticUrl() for backward compatibility
+     * 
+     * @deprecated Use staticUrl() instead
+     */
+    protected function assetUrl($filename, $controllerName = null)
+    {
+        return $this->staticUrl($filename, $controllerName);
     }
 }
