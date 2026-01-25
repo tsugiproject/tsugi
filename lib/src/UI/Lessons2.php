@@ -324,10 +324,11 @@ ul.tsugi-lessons-content-list li i.fa {
                 $count++;
                 if ( $anchor !== null && isset($mod->anchor) && $anchor != $mod->anchor ) continue;
                 if ( $index !== null && $index != $count ) continue;
-                if ( $anchor == null && isset($module->anchor) ) $anchor = $module->anchor;
+                if ( $anchor == null && isset($mod->anchor) ) $anchor = $mod->anchor;
                 $this->module = $mod;
                 $this->position = $count;
                 if ( $mod->anchor ) $this->anchor = $mod->anchor;
+                break; // Found the module, exit loop
             }
         }
 
@@ -516,6 +517,17 @@ ul.tsugi-lessons-content-list li i.fa {
         $nostyle = isset($_SESSION['nostyle']);
 
         $module = $this->module;
+        
+        // Ensure module is set
+        if ( !$module ) {
+            echo('<p>Error: Module not found.</p>');
+            $ob_output = ob_get_contents();
+            ob_end_clean();
+            if ( $buffer ) return $ob_output;
+            echo($ob_output);
+            return;
+        }
+        
 
         // Load all the Grades so far for progress badges
         $allgrades = array();
@@ -597,7 +609,16 @@ ul.tsugi-lessons-content-list li i.fa {
             }
 
             // Check if module uses items array (new format)
-            $has_items = isset($module->items) && is_array($module->items) && count($module->items) > 0;
+            // Direct access to items property - json_decode creates stdClass objects, arrays stay as arrays
+            $has_items = false;
+            $items_array = null;
+            if ( isset($module->items) ) {
+                $items_array = $module->items;
+                // json_decode keeps JSON arrays as PHP arrays, so this should work
+                if ( is_array($items_array) && count($items_array) > 0 ) {
+                    $has_items = true;
+                }
+            }
             $has_legacy = isset($module->videos) || isset($module->lti) || isset($module->discussions) || 
                          isset($module->references) || isset($module->slides) || isset($module->assignment) || 
                          isset($module->solution) || isset($module->carousel);
@@ -624,11 +645,10 @@ ul.tsugi-lessons-content-list li i.fa {
                 // Render items in order - headers and text align with title, grouped items are indented
                 $current_section = null;
                 $in_list = false;
-                foreach($module->items as $item) {
+                foreach($items_array as $item) {
                     $item_obj = is_array($item) ? (object)$item : $item;
                     // Skip malformed items (e.g., objects that should be arrays)
                     if ( isset($item_obj->type) && $item_obj->type == 'ltis' && isset($item_obj->items) && !is_array($item_obj->items) ) {
-                        echo('<!-- Skipping malformed ltis item - items should be an array -->');
                         continue;
                     }
                     

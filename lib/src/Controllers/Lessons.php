@@ -42,8 +42,13 @@ class Lessons {
             }
         }
 
-        // Load the Lesson
-        $l = new \Tsugi\UI\Lessons($CFG->lessons,$anchor);
+        // Load the Lesson - use Lessons2 if enabled
+        $use_lessons2 = $CFG->getExtension('lessons2_enable', false);
+        if ( $use_lessons2 ) {
+            $l = new \Tsugi\UI\Lessons2($CFG->lessons, $anchor);
+        } else {
+            $l = new \Tsugi\UI\Lessons($CFG->lessons, $anchor);
+        }
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
