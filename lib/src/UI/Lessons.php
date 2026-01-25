@@ -1156,6 +1156,19 @@ class Lessons {
             echo("<p>".__("Student:")." ".$display."</p>\n");
         }
         $awarded = array();
+        
+        // Check if badges data is present
+        if ( !isset($this->lessons->badges) || !is_array($this->lessons->badges) || count($this->lessons->badges) == 0 ) {
+            echo("<div class=\"alert alert-info\">\n");
+            echo("<p>No badges are configured for this course.</p>\n");
+            echo("<p>Badges can be configured in the lessons.json file by adding a \"badges\" array.</p>\n");
+            echo("</div>\n");
+            $ob_output = ob_get_contents();
+            ob_end_clean();
+            if ( $buffer ) return $ob_output;
+            echo($ob_output);
+            return;
+        }
 ?>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Progress</a></li>
