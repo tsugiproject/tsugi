@@ -809,7 +809,7 @@ ul.tsugi-lessons-content-list li i.fa {
                 echo("<p>");
                 echo($videotitle);
                 echo("</p>");
-                echo('<ul class="tsugi-lessons-module-videos-ul tsugi-lessons-content-list">'."\n");
+                echo('<ul class="tsugi-lessons-module-videos-ul">'."\n");
                 $lecno = 0;
                 foreach($videos as $video ) {
                     $media_file = $video->media ?? null;
@@ -906,7 +906,7 @@ ul.tsugi-lessons-content-list li i.fa {
                 $slidestitle = __(self::getSetting($plural.'title', ucfirst($plural)));
                 echo(__($slidestitle));
                 echo("</p>");
-                echo('<ul class="tsugi-lessons-module-'.$plural.'-ul tsugi-lessons-content-list">'."\n");
+                echo('<ul class="tsugi-lessons-module-'.$plural.'-ul">'."\n");
                 foreach($module->slides as $slide ) {
                     if ( is_string($slide) ) {
                         $slide_title = basename($slide);
@@ -959,7 +959,7 @@ ul.tsugi-lessons-content-list li i.fa {
                     echo("<p>");
                     echo(__($list_title));
                     echo("</p>");
-                    echo('<ul class="tsugi-lessons-module-'.$plural.'-ul tsugi-lessons-content-list">'."\n");
+                    echo('<ul class="tsugi-lessons-module-'.$plural.'-ul">'."\n");
                     foreach($module->{$plural} as $reference ) {
                         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-'.$singular.'">');
                         echo('<span class="tsugi-lessons-module-'.$singular.'-icon"></span>');
@@ -977,7 +977,7 @@ ul.tsugi-lessons-content-list li i.fa {
                 $discussions = $module->discussions;
                 echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussions">');
                 echo(__('Discussions:'));
-                echo('<ul class="tsugi-lessons-module-discussions-ul tsugi-lessons-content-list"> <!-- start of discussions -->'."\n");
+                echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
                 foreach($discussions as $discussion ) {
                     $resource_link_title = isset($discussion->title) ? $discussion->title : $module->title;
                     echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
@@ -994,7 +994,7 @@ ul.tsugi-lessons-content-list li i.fa {
                 $discussions = $module->discussions;
                 echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussions">');
                 echo(__('Discussions:'));
-                echo('<ul class="tsugi-lessons-module-discussions-ul tsugi-lessons-content-list"> <!-- start of discussions -->'."\n");
+                echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
                 $count = 0;
                 foreach($discussions as $discussion ) {
                     $resource_link_title = isset($discussion->title) ? $discussion->title : $module->title;
@@ -1028,7 +1028,7 @@ ul.tsugi-lessons-content-list li i.fa {
                 $ltis = $module->lti;
                 echo('<li typeof="oer:assessment" class="tsugi-lessons-module-ltis">');
                 echo(__('Tools:'));
-                echo('<ul class="tsugi-lessons-module-ltis-ul tsugi-lessons-content-list"> <!-- start of ltis -->'."\n");
+                echo('<ul class="tsugi-lessons-module-ltis-ul"> <!-- start of ltis -->'."\n");
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
@@ -1044,7 +1044,7 @@ ul.tsugi-lessons-content-list li i.fa {
                 $ltis = $module->lti;
                 echo('<li typeof="oer:assessment" class="tsugi-lessons-module-ltis">');
                 echo(__('Tools:'));
-                echo('<ul class="tsugi-lessons-module-ltis-ul tsugi-lessons-content-list"> <!-- start of ltis -->'."\n");
+                echo('<ul class="tsugi-lessons-module-ltis-ul"> <!-- start of ltis -->'."\n");
                 $count = 0;
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
