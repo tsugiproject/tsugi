@@ -67,7 +67,9 @@ abstract class Tool {
             } else {
                 // Fallback: use apphome
                 global $CFG;
-                return isset($CFG->apphome) ? $CFG->apphome : '/';
+                $apphome = isset($CFG->apphome) ? $CFG->apphome : '/';
+                // Normalize: return empty string if root to avoid double slashes in URL construction
+                return ($apphome === '/') ? '' : $apphome;
             }
         }
         
@@ -78,12 +80,15 @@ abstract class Tool {
             $parent = substr($toolHome, 0, -strlen($route));
             // Remove trailing slash
             $parent = rtrim($parent, '/');
-            return $parent ?: '/';
+            // Normalize: return empty string if root to avoid double slashes in URL construction
+            return ($parent === '') ? '' : ($parent ?: '');
         }
         
         // Fallback: use apphome
         global $CFG;
-        return isset($CFG->apphome) ? $CFG->apphome : '/';
+        $apphome = isset($CFG->apphome) ? $CFG->apphome : '/';
+        // Normalize: return empty string if root to avoid double slashes in URL construction
+        return ($apphome === '/') ? '' : $apphome;
     }
 
     /**
@@ -121,7 +126,8 @@ abstract class Tool {
             if ($routePos !== false) {
                 $parentPath = substr($requestUri, 0, $routePos);
                 $parentPath = rtrim($parentPath, '/');
-                return $parentPath ?: '/';
+                // Normalize: return empty string if root to avoid double slashes in URL construction
+                return ($parentPath === '') ? '' : ($parentPath ?: '');
             }
         } else {
             // Try to detect by looking for common controller routes
@@ -131,7 +137,8 @@ abstract class Tool {
                 if ($routePos !== false) {
                     $parentPath = substr($requestUri, 0, $routePos);
                     $parentPath = rtrim($parentPath, '/');
-                    return $parentPath ?: '/';
+                    // Normalize: return empty string if root to avoid double slashes in URL construction
+                    return ($parentPath === '') ? '' : ($parentPath ?: '');
                 }
             }
         }
@@ -139,11 +146,15 @@ abstract class Tool {
         // Fallback: try using rest_path
         $path = U::rest_path();
         if ($path && isset($path->parent)) {
-            return $path->parent;
+            $parent = $path->parent;
+            // Normalize: return empty string if root
+            return ($parent === '/') ? '' : $parent;
         }
         
         // Last resort: use apphome
-        return isset($CFG->apphome) ? $CFG->apphome : '/';
+        $apphome = isset($CFG->apphome) ? $CFG->apphome : '/';
+        // Normalize: return empty string if root to avoid double slashes in URL construction
+        return ($apphome === '/') ? '' : $apphome;
     }
 
     /**
@@ -576,7 +587,12 @@ abstract class Tool {
         }
         
         // Use toolParent to determine the base path for static files
-        $basePath = $this->toolParent() . '/static';
+        $parentPath = $this->toolParent();
+        // Normalize: if parent is "/", use empty string to avoid double slashes
+        if ($parentPath === '/') {
+            $parentPath = '';
+        }
+        $basePath = $parentPath . '/static';
         
         return \Tsugi\Controllers\StaticFiles::url($controllerName, $filename, $basePath);
     }

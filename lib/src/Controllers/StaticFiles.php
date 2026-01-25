@@ -151,6 +151,10 @@ class StaticFiles {
         if ($basePath === null) {
             // Use Tool's static method to determine parent path dynamically
             $parentPath = Tool::determineParentPath();
+            // Normalize: if parent is "/", use empty string to avoid double slashes
+            if ($parentPath === '/') {
+                $parentPath = '';
+            }
             $basePath = $parentPath . self::ROUTE;
         }
         
