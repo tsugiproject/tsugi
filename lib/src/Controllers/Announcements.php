@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class Announcements extends Tool {
 
     const ROUTE = '/announcements';
+    const NAME = 'Announcements';
     const REDIRECT = 'tsugi_controllers_announcements';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
@@ -100,7 +101,7 @@ class Announcements extends Tool {
         $user_id = $_SESSION['id'];
         
         // Record learner analytics
-        $this->lmsRecordLaunchAnalytics('/lms/announce', 'Announcements');
+        $this->lmsRecordLaunchAnalytics(self::ROUTE, self::NAME);
         
         // Check if user is instructor/admin
         $is_context_admin = $this->isInstructor();
@@ -273,7 +274,7 @@ class Announcements extends Tool {
         }
         </style>
 
-        <script src="/lms/announce/dismiss.js"></script>
+        <script src="<?= htmlspecialchars($this->toolHome(self::ROUTE) . '/dismiss.js') ?>"></script>
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             var showDismissedBtn = document.getElementById('show-dismissed-btn');
@@ -870,6 +871,6 @@ class Announcements extends Tool {
 
     public function analytics(Request $request)
     {
-        return $this->showAnalytics('announcements', 'Announcements', 'announcements/', '/lms/announce');
+        return $this->showAnalytics(self::ROUTE, self::NAME);
     }
 }

@@ -397,13 +397,13 @@ abstract class Tool {
     /**
      * Display analytics for an LMS tool
      * 
-     * @param string $tool_name The tool name (e.g., 'pages', 'announcements')
-     * @param string $title The display title (e.g., 'Pages', 'Announcements')
-     * @param string $back_path The back URL path relative to apphome (e.g., 'pages/', 'announcements/')
-     * @param string $stable_path The stable analytics path (e.g., '/lms/pages', '/lms/announce')
+     * Automatically derives back_url and stable_path from the route.
+     * 
+     * @param string $route The route constant (e.g., '/pages', '/announcements')
+     * @param string|null $title Optional display title (defaults to route without leading slash, capitalized)
      * @return string Empty string (outputs HTML directly)
      */
-    protected function showAnalytics($tool_name, $title, $back_path, $stable_path) {
+    protected function showAnalytics($route, $title = null) {
         global $CFG, $OUTPUT, $PDOX;
         
         $this->requireAuth();
@@ -414,6 +414,18 @@ abstract class Tool {
         
         LTIX::getConnection();
         
+        // Derive values from route
+        $stable_path = $route;
+        $back_url = $this->toolHome($route);
+        
+        // Derive title if not provided (remove leading slash and capitalize)
+        if ($title === null) {
+            $title = ucfirst(ltrim($route, '/'));
+        }
+        
+        // Derive tool_name from route (remove leading slash)
+        $tool_name = ltrim($route, '/');
+        
         $context_id = $_SESSION['context_id'] + 0;
         
         // Compute analytics link
@@ -423,11 +435,6 @@ abstract class Tool {
         if (!$analytics_link_id) {
             die_with_error_log('Unable to locate analytics link');
         }
-        
-        // Build back URL - use toolHome to get the actual mounted path
-        // Extract the route from back_path (e.g., 'pages/' -> '/pages')
-        $route = '/' . rtrim($back_path, '/');
-        $back_url = $this->toolHome($route);
         
         $analytics_url = $CFG->wwwroot . '/api/analytics_cookie.php?link_id=' . $analytics_link_id;
         

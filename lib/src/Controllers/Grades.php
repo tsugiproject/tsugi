@@ -11,6 +11,7 @@ use Tsugi\UI\Table;
 class Grades extends Tool {
 
     const ROUTE = '/grades';
+    const NAME = 'Grades';
     const REDIRECT = 'tsugi_controllers_grades';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
@@ -228,7 +229,7 @@ class Grades extends Tool {
         $force = $request->query->has('force') && $request->query->get('force') == 'yes';
         
         // Record learner analytics
-        $this->lmsRecordLaunchAnalytics('/lms/grades', 'Grade Book');
+        $this->lmsRecordLaunchAnalytics(self::ROUTE, 'Grade Book');
         
         // Check if user is instructor/admin for analytics button
         $is_admin = $this->isAdmin();
@@ -368,7 +369,7 @@ class Grades extends Tool {
         }
         
         // Record analytics (instructors don't get recorded, but we can still track the page)
-        $this->lmsRecordLaunchAnalytics('/lms/grades', 'Grade Book');
+        $this->lmsRecordLaunchAnalytics(self::ROUTE, 'Grade Book');
         
         // Check if user is instructor/admin for analytics button
         $is_admin = $this->isAdmin();
@@ -407,6 +408,6 @@ class Grades extends Tool {
      */
     public function analytics(Request $request)
     {
-        return $this->showAnalytics('grades', 'Grade Book', 'grades/', '/lms/grades');
+        return $this->showAnalytics(self::ROUTE, 'Grade Book');
     }
 }

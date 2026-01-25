@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class Pages extends Tool {
 
     const ROUTE = '/pages';
+    const NAME = 'Pages';
     const REDIRECT = 'tsugi_controllers_pages';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
@@ -138,8 +139,8 @@ class Pages extends Tool {
         }
         
         // Record learner analytics for this tool (not per-page within the tool)
-        $analytics_path = '/lms/pages';
-        $analytics_title = 'Pages';
+        $analytics_path = self::ROUTE;
+        $analytics_title = self::NAME;
         $this->lmsRecordLaunchAnalytics($analytics_path, $analytics_title);
         
         // If instructor/admin, add an analytics button
@@ -1149,6 +1150,6 @@ class Pages extends Tool {
 
     public function analytics(Request $request)
     {
-        return $this->showAnalytics('pages', 'Pages', 'pages/', '/lms/pages');
+        return $this->showAnalytics(self::ROUTE, self::NAME);
     }
 }
