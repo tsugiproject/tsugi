@@ -27,6 +27,9 @@ class BadgesTest extends \PHPUnit\Framework\TestCase
         $CFG->badge_assert_salt = 'test-salt-12345';
         $CFG->badge_issuer_email = 'issuer@example.com';
         $CFG->badge_include_legacy = false;
+        // Required for badge generation methods
+        $CFG->badge_encrypt_password = 'test-encrypt-password-123456789012345678901234567890';
+        $CFG->badge_path = sys_get_temp_dir(); // Use temp directory for tests
     }
     
     protected function tearDown(): void
