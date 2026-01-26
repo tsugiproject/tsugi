@@ -55,11 +55,6 @@ class StaticFiles {
      */
     public function serve(Request $request, $controller, $filename)
     {
-        // Log for debugging
-        error_log("StaticFiles::serve called - controller=$controller, filename=$filename");
-        error_log("StaticFiles::serve - REQUEST_URI=" . ($_SERVER['REQUEST_URI'] ?? 'not set'));
-        error_log("StaticFiles::serve - PATH_INFO=" . ($request->getPathInfo() ?? 'not set'));
-        
         // Security: Validate controller and filename to prevent directory traversal
         if (!preg_match('/^[a-zA-Z0-9_-]+$/', $controller)) {
             return new Response('Invalid controller name', 400);
