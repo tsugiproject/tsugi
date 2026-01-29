@@ -586,11 +586,11 @@ class Badges {
         }
         
         // Add LinkedIn URL if configured (as extension or additional property)
-        if (isset($CFG->badge_linkedin_url) && !empty($CFG->badge_linkedin_url)) {
+        if (isset($CFG->linkedin_url) && !empty($CFG->linkedin_url)) {
             if (!isset($issuer["extensions"])) {
                 $issuer["extensions"] = array();
             }
-            $issuer["extensions"]["linkedIn"] = $CFG->badge_linkedin_url;
+            $issuer["extensions"]["linkedIn"] = $CFG->linkedin_url;
         }
         
         return json_encode($issuer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
