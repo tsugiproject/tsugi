@@ -43,7 +43,7 @@ if ($first_part === 'issuer.json') {
     } else {
         $text = Badges::getOb2Issuer(null, null, null, null);
     }
-    header('Content-Type: application/json');
+    header('Content-Type: application/ld+json');
     header('Cache-Control: public, max-age=3600');
     header('Access-Control-Allow-Origin: *');
     echo($text);
@@ -94,7 +94,7 @@ if ($first_part === 'badge' && count($path_parts) === 2) {
         } else {
             $text = Badges::getOb2Badge(null, $code, $badge, $title);
         }
-        header('Content-Type: application/json');
+        header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
         echo($text);
@@ -202,7 +202,7 @@ switch ($resource) {
     case 'assert':
         // OB2 Assertion
         $text = Badges::getOb2Assertion($encrypted, $date, $code, $badge, $title, $email);
-        header('Content-Type: application/json');
+        header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
         echo($text);
@@ -211,7 +211,7 @@ switch ($resource) {
     case 'assert-vc':
         // OB3/VC Assertion
         $text = Badges::getOb3Assertion($encrypted, $date, $code, $badge, $title, $email);
-        header('Content-Type: application/vc+json');
+        header('Content-Type: application/ld+json');
         header('Access-Control-Allow-Origin: *');
         echo($text);
         break;
@@ -219,7 +219,7 @@ switch ($resource) {
     case 'badge':
         // OB2 BadgeClass
         $text = Badges::getOb2Badge($encrypted, $code, $badge, $title);
-        header('Content-Type: application/json');
+        header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
         echo($text);
@@ -242,7 +242,7 @@ switch ($resource) {
     case 'achievement':
         // OB3 Achievement
         $text = Badges::getOb3Achievement($encrypted, $code, $badge, $title);
-        header('Content-Type: application/json');
+        header('Content-Type: application/ld+json');
         header('Access-Control-Allow-Origin: *');
         echo($text);
         break;
@@ -331,9 +331,16 @@ switch ($resource) {
             $linkedin_base_url = 'https://www.linkedin.com/profile/add';
             $linkedin_params = array(
                 'name' => $badge_name,
-                'organizationName' => $issuer_org_name,
                 'certUrl' => $landing_url
             );
+            
+            // Prefer organizationId over organizationName
+            // Get organization ID from config, fallback to organization name if ID not set
+            if (isset($CFG->badge_organization_id) && !empty($CFG->badge_organization_id)) {
+                $linkedin_params['organizationId'] = $CFG->badge_organization_id;
+            } elseif (isset($CFG->badge_organization) && !empty($CFG->badge_organization)) {
+                $linkedin_params['organizationName'] = htmlspecialchars($CFG->badge_organization, ENT_QUOTES, 'UTF-8');
+            }
             
             // Add credential ID (digital signature) if computed
             // LinkedIn uses 'certId' parameter for the credential/certificate ID
@@ -363,7 +370,9 @@ switch ($resource) {
         
         $OUTPUT->header();
         // Add alternate link tag to head for badge assertion JSON
-        echo('<link rel="alternate" type="application/json" href="' . htmlspecialchars($ob2_url) . '">' . "\n");
+        echo('<link rel="alternate" type="application/ld+json" href="' . htmlspecialchars($ob2_url) . '">' . "\n");
+        echo('<link rel="badge" href="' . htmlspecialchars($ob2_url) . '">' . "\n");
+        echo('<link rel="canonical" href="' . htmlspecialchars($landing_url) . '">' . "\n");
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         ?>

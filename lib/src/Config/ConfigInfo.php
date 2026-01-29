@@ -859,6 +859,16 @@ class ConfigInfo {
      * $CFG->badge_linkedin_url = 'https://www.linkedin.com/company/learn-xp';
      */
     public $badge_linkedin_url = null;
+    
+    /**
+     * LinkedIn organization ID for badge sharing
+     * 
+     * The numeric organization ID used when generating LinkedIn "Add to Profile" URLs.
+     * This replaces organizationName in LinkedIn certification URLs.
+     * 
+     * $CFG->badge_organization_id = '4264503';
+     */
+    public $badge_organization_id = null;
 
     /**
      * The defaults for data expiration.  Data expiration is not done by default, but can
