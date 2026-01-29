@@ -480,8 +480,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $resources = Lessons::getUrlResources($module);
         $this->assertCount(1, $resources, 'getUrlResources should extract videos');
         
-        // Test with slides (skip test that uses __() function which requires Laravel translator)
-        // The slides test would require Laravel setup, so we'll test other resource types instead
+        // Test with slides
         
         // Test with assignment and solution
         $module = (object)[

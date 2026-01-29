@@ -1,5 +1,7 @@
 <?php
 
+require_once "src/Core/I18N.php";
+require_once "include/setup_i18n.php";
 require_once "src/UI/Lessons2.php";
 require_once "src/Config/ConfigInfo.php";
 
@@ -465,8 +467,7 @@ class Lessons2Test extends \PHPUnit\Framework\TestCase
         $resources = \Tsugi\UI\Lessons2::getUrlResources($module);
         $this->assertCount(1, $resources, 'getUrlResources should extract videos');
         
-        // Test with slides (skip test that uses __() function which requires Laravel translator)
-        // The slides test would require Laravel setup, so we'll test other resource types instead
+        // Test with slides
         
         // Test with assignment and solution
         $module = (object)[
@@ -1071,19 +1072,53 @@ class Lessons2Test extends \PHPUnit\Framework\TestCase
     }
     
     /**
-     * Test renderItem() method - assignment item (skips __() call to avoid translator dependency)
+     * Test renderItem() method - assignment item
      */
     public function testRenderItemAssignment() {
-        // Skip this test as it requires Laravel translator setup
-        $this->markTestSkipped('renderItem assignment requires Laravel translator setup');
+        $lessons2 = new class extends \Tsugi\UI\Lessons2 {
+            public function __construct() {
+                // Skip parent constructor
+            }
+        };
+        
+        $module = (object)['title' => 'Test Module'];
+        $item = (object)['type' => 'assignment', 'title' => 'Test Assignment', 'href' => 'http://example.com/assign'];
+        
+        ob_start();
+        $lessons2->renderItem($item, $module);
+        $output = ob_get_clean();
+        
+        $this->assertStringContainsString('Assignment Specification', $output, 'Should include assignment label');
+        $this->assertStringContainsString('http://example.com/assign', $output, 'Should include assignment URL');
+        // Verify icon is rendered
+        $this->assertStringContainsString('tsugi-item-type-icon', $output, 'Should render item type icon');
+        $this->assertStringContainsString('fa-file-text', $output, 'Should include assignment icon class');
+        $this->assertStringContainsString('tsugi-item-type-assignment', $output, 'Should include assignment type class');
     }
     
     /**
-     * Test renderItem() method - solution item (skips __() call to avoid translator dependency)
+     * Test renderItem() method - solution item
      */
     public function testRenderItemSolution() {
-        // Skip this test as it requires Laravel translator setup
-        $this->markTestSkipped('renderItem solution requires Laravel translator setup');
+        $lessons2 = new class extends \Tsugi\UI\Lessons2 {
+            public function __construct() {
+                // Skip parent constructor
+            }
+        };
+        
+        $module = (object)['title' => 'Test Module'];
+        $item = (object)['type' => 'solution', 'title' => 'Test Solution', 'href' => 'http://example.com/solution'];
+        
+        ob_start();
+        $lessons2->renderItem($item, $module);
+        $output = ob_get_clean();
+        
+        $this->assertStringContainsString('Assignment Solution', $output, 'Should include solution label');
+        $this->assertStringContainsString('http://example.com/solution', $output, 'Should include solution URL');
+        // Verify icon is rendered
+        $this->assertStringContainsString('tsugi-item-type-icon', $output, 'Should render item type icon');
+        $this->assertStringContainsString('fa-unlock', $output, 'Should include solution icon class');
+        $this->assertStringContainsString('tsugi-item-type-solution', $output, 'Should include solution type class');
     }
     
     /**
@@ -1272,53 +1307,125 @@ class Lessons2Test extends \PHPUnit\Framework\TestCase
     /**
      * Test renderItem() method - discussion item (not logged in)
      * Tests icon rendering and login required message
-     * Note: Requires Laravel translator for __('Login Required'), so testing structure only
      */
     public function testRenderItemDiscussion() {
+        global $_SESSION;
+        $originalSession = $_SESSION ?? null;
+        $_SESSION = []; // Not logged in
+        
         $lessons2 = new class extends \Tsugi\UI\Lessons2 {
             public function __construct() {
                 // Skip parent constructor
             }
         };
         
-        // Verify methods exist
-        $this->assertTrue(method_exists($lessons2, 'renderItem'), 'renderItem method should exist');
-        // Note: renderItemDiscussion is private, but we can verify renderItem handles discussion type
-        // The actual rendering requires Laravel translator for __('Login Required')
+        $module = (object)['title' => 'Test Module'];
+        $item = (object)['type' => 'discussion', 'title' => 'Test Discussion', 'resource_link_id' => 'rlid1'];
+        
+        ob_start();
+        $lessons2->renderItem($item, $module);
+        $output = ob_get_clean();
+        
+        $this->assertStringContainsString('Test Discussion', $output, 'Should include discussion title');
+        // Verify icon is rendered
+        $this->assertStringContainsString('tsugi-item-type-icon', $output, 'Should render item type icon');
+        $this->assertStringContainsString('fa-comments', $output, 'Should include discussion icon class');
+        $this->assertStringContainsString('tsugi-item-type-discussion', $output, 'Should include discussion type class');
+        
+        $_SESSION = $originalSession;
     }
     
     /**
      * Test renderItem() method - LTI item (not logged in)
      * Tests icon rendering and login required message
-     * Note: Requires Laravel translator for __('Login Required'), so testing structure only
      */
     public function testRenderItemLti() {
+        global $_SESSION;
+        $originalSession = $_SESSION ?? null;
+        $_SESSION = []; // Not logged in
+        
         $lessons2 = new class extends \Tsugi\UI\Lessons2 {
             public function __construct() {
                 // Skip parent constructor
             }
         };
         
-        // Verify methods exist
-        $this->assertTrue(method_exists($lessons2, 'renderItem'), 'renderItem method should exist');
-        // Note: renderItemLti is private, but we can verify renderItem handles LTI type
-        // The actual rendering requires Laravel translator for __('Login Required')
+        $module = (object)['title' => 'Test Module'];
+        $item = (object)['type' => 'lti', 'title' => 'Test LTI', 'resource_link_id' => 'rlid1'];
+        
+        ob_start();
+        $lessons2->renderItem($item, $module);
+        $output = ob_get_clean();
+        
+        $this->assertStringContainsString('Test LTI', $output, 'Should include LTI title');
+        // Verify icon is rendered
+        $this->assertStringContainsString('tsugi-item-type-icon', $output, 'Should render item type icon');
+        $this->assertStringContainsString('fa-puzzle-piece', $output, 'Should include LTI icon class');
+        $this->assertStringContainsString('tsugi-item-type-lti', $output, 'Should include LTI type class');
+        
+        $_SESSION = $originalSession;
     }
     
     /**
      * Test renderItem() method - chapters item
-     * Note: Requires Laravel translator setup, so skipping for now
      */
     public function testRenderItemChapters() {
-        $this->markTestSkipped('renderItem chapters requires Laravel translator setup');
+        $lessons2 = new class extends \Tsugi\UI\Lessons2 {
+            public function __construct() {
+                // Skip parent constructor
+            }
+        };
+        
+        $module = (object)['title' => 'Test Module'];
+        $item = (object)['type' => 'chapters', 'chapters' => 'http://example.com/chapters'];
+        
+        ob_start();
+        $lessons2->renderItem($item, $module);
+        $output = ob_get_clean();
+        
+        $this->assertStringContainsString('http://example.com/chapters', $output, 'Should include chapters URL');
+        $this->assertStringContainsString('Chapters', $output, 'Should include chapters label');
     }
     
     /**
      * Test renderItem() method - carousel item
-     * Note: Requires Laravel translator setup, so skipping for now
      */
     public function testRenderItemCarousel() {
-        $this->markTestSkipped('renderItem carousel requires Laravel translator setup');
+        global $OUTPUT;
+        $originalOutput = $OUTPUT ?? null;
+        
+        // Mock OUTPUT object
+        $OUTPUT = new class {
+            public function embedYouTube($youtube, $title) {
+                echo('<iframe src="https://www.youtube.com/embed/'.htmlentities($youtube).'" title="'.htmlentities($title).'"></iframe>');
+            }
+        };
+        
+        $lessons2 = new class extends \Tsugi\UI\Lessons2 {
+            public function __construct() {
+                // Skip parent constructor
+            }
+        };
+        
+        $module = (object)['title' => 'Test Module'];
+        $item = (object)[
+            'type' => 'carousel',
+            'items' => [
+                (object)['type' => 'video', 'title' => 'Video 1', 'youtube' => 'abc123'],
+                (object)['type' => 'video', 'title' => 'Video 2', 'youtube' => 'def456']
+            ]
+        ];
+        
+        ob_start();
+        $lessons2->renderItem($item, $module);
+        $output = ob_get_clean();
+        
+        $this->assertStringContainsString('Video 1', $output, 'Should render carousel videos');
+        $this->assertStringContainsString('Video 2', $output, 'Should render all carousel videos');
+        $this->assertStringContainsString('abc123', $output, 'Should include YouTube IDs');
+        $this->assertStringContainsString('def456', $output, 'Should include all YouTube IDs');
+        
+        $OUTPUT = $originalOutput;
     }
     
     /**
@@ -1377,7 +1484,6 @@ class Lessons2Test extends \PHPUnit\Framework\TestCase
     
     /**
      * Test renderSingle() with items array - verifies items are rendered
-     * Note: Requires Laravel translator setup for some functionality, so testing basic structure
      */
     public function testRenderSingleWithItemsArray() {
         global $_SESSION, $_SERVER, $CFG, $OUTPUT, $PDOX;

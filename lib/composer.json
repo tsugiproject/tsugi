@@ -23,7 +23,6 @@
     "require": {
         "php": ">=8.4.0",
         "phpseclib/phpseclib": "3.0.43",
-        "laravel/lumen-framework": "v11.2.0",
         "firebase/php-jwt" : "v6.11.1",
         "ezyang/htmlpurifier": "v4.18.0"
 
