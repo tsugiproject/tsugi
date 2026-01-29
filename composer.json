@@ -52,7 +52,7 @@
     },
     "require-dev": {
         "phpstan/phpstan": "^2.1",
-        "phpunit/phpunit": "^11.0",
+        "phpunit/phpunit": "^11.5.50",
         "symfony/panther": "^2.1",
         "dbrekelmans/bdi": "^1.4"
     }
