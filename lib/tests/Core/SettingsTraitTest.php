@@ -260,7 +260,7 @@ class SettingsTraitTest extends \PHPUnit\Framework\TestCase
     private function createContextWithSettings($settings) {
         // Create a partial mock of Context that mocks settingsGetAll
         $contextMock = $this->getMockBuilder(Context::class)
-            ->setMethods(['settingsGetAll', 'ltiParameter', 'ltiParameterUpdate'])
+            ->onlyMethods(['settingsGetAll', 'ltiParameter', 'ltiParameterUpdate'])
             ->getMock();
         
         $contextMock->id = 1;

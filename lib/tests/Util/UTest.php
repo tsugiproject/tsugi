@@ -12,7 +12,7 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, U::goodFolder($folder), $description);
     }
 
-    public function goodFolderProvider() {
+    public static function goodFolderProvider() {
         return [
             'Space character' => [' ', false, 'Folder with space should be invalid'],
             'Space in middle' => ['a b', false, 'Folder with space in middle should be invalid'],
@@ -35,7 +35,7 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, U::get_rest_path($input), $description);
     }
 
-    public function restPathProvider() {
+    public static function restPathProvider() {
         return [
             'Simple path' => ['/py4e/lessons/intro', '/py4e/lessons/intro', 'Simple path should remain unchanged'],
             'Path with trailing slash' => ['/py4e/lessons/intro/', '/py4e/lessons/intro', 'Trailing slash should be removed'],
@@ -51,7 +51,7 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, U::get_rest_parent($input), $description);
     }
 
-    public function restParentProvider() {
+    public static function restParentProvider() {
         return [
             'Simple path' => ['/py4e/lessons/intro', '/py4e/lessons', 'Parent path should be one level up'],
             'Path with query string' => ['/py4e/lessons/intro?x=2', '/py4e/lessons', 'Query string should be ignored'],
@@ -67,7 +67,7 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, U::remove_relative_path($input), $description);
     }
 
-    public function relativePathProvider() {
+    public static function relativePathProvider() {
         return [
             'No relative parts' => ['/a/b/c', '/a/b/c', 'Path without relative parts should remain unchanged'],
             'Trailing slash' => ['/a/b/c/', '/a/b/c/', 'Path with trailing slash should remain unchanged'],
@@ -354,7 +354,7 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, U::startsWith($haystack, $needle), $description);
     }
 
-    public function startsWithProvider() {
+    public static function startsWithProvider() {
         return [
             'Valid prefix' => ["csev@umich.edu", "csev", true, 'String should start with valid prefix'],
             'Empty prefix' => ["csev@umich.edu", "", true, 'Empty prefix should always match'],
@@ -374,7 +374,7 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, U::endsWith($haystack, $needle), $description);
     }
 
-    public function endsWithProvider() {
+    public static function endsWithProvider() {
         return [
             'Valid suffix' => ["csev@umich.edu", "@umich.edu", true, 'String should end with valid suffix'],
             'Empty suffix' => ["csev@umich.edu", "", true, 'Empty suffix should always match'],

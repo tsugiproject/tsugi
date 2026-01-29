@@ -211,7 +211,7 @@ class LinkTest extends \PHPUnit\Framework\TestCase
     ) {
         // Create a partial mock of Link that mocks settingsGetAll
         $linkMock = $this->getMockBuilder(Link::class)
-            ->setMethods(['settingsGetAll'])
+            ->onlyMethods(['settingsGetAll'])
             ->getMock();
         
         $linkMock->id = 1;

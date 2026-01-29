@@ -22,7 +22,7 @@ class UserTest extends \PHPUnit\Framework\TestCase
             "getDisplay should format user_id={$user_id}, displayname='{$displayname}', email='{$email}' correctly");
     }
 
-    public function getDisplayProvider() {
+    public static function getDisplayProvider() {
         return [
             'Both name and email' => [1, 'John Doe', 'john@example.com', 'John Doe (john@example.com)'],
             'Name only' => [2, 'Jane Smith', '', 'Jane Smith'],

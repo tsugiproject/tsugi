@@ -678,7 +678,7 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
      */
     public function testIndexExists() {
         $PDOX = $this->getMockBuilder(mockPDOX::class)
-            ->setMethods(['indexes'])
+            ->onlyMethods(['indexes'])
             ->getMock();
         
         // Mock indexes() to return a known set of index names
@@ -703,7 +703,7 @@ class PDOXTest extends \PHPUnit\Framework\TestCase
         
         // Test with empty indexes array
         $PDOXEmpty = $this->getMockBuilder(mockPDOX::class)
-            ->setMethods(['indexes'])
+            ->onlyMethods(['indexes'])
             ->getMock();
         $PDOXEmpty->method('indexes')->willReturn([]);
         
