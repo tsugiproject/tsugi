@@ -808,9 +808,57 @@ class ConfigInfo {
     public $badge_assert_salt = null; // "mediumlengthhexstring";
     public $badge_path = null; // $CFG->dirroot . '/../bimages';
     public $badge_url = null; // $CFG->apphome . '/bimages';
-    public $badge_issuer_email = null; // "badge_issuer_email_not_set@example.com"; // Email address for Open Badges issuer (OB2 required field)
-    public $badge_organization = null; // Organization name for badge issuer assertions and LinkedIn badge organization. If not set, defaults to "$CFG->servicedesc ($CFG->servicename)"
-    public $badge_linkedin_url = null; // URL to LinkedIn organization/company page (e.g., "https://www.linkedin.com/company/py4e/"). If set, displays a LinkedIn link on badge pages.
+    
+    /**
+     * Email address for Open Badges issuer (OB2 required field)
+     * 
+     * This email address is used in badge issuer assertions.
+     * If not set, defaults to "badge_issuer_email_not_set@example.com"
+     * 
+     * $CFG->badge_issuer_email = 'py4e@learnxp.com';
+     */
+    public $badge_issuer_email = null;
+    
+    /**
+     * Organization name for badge issuer assertions
+     * 
+     * If not set, defaults to the result of getBadgeOrganization() method,
+     * which falls back to "$CFG->servicedesc ($CFG->servicename)" format,
+     * or just $CFG->servicename if servicedesc is not set.
+     * 
+     * $CFG->badge_organization = 'Learning Experiences';
+     */
+    public $badge_organization = null;
+    
+    /**
+     * Organization URL for badge issuer assertions
+     * 
+     * The URL that represents the badge issuing organization.
+     * If not set, defaults to $CFG->apphome.
+     * 
+     * $CFG->badge_organization_url = 'https://www.learnxp.com';
+     */
+    public $badge_organization_url = null;
+    
+    /**
+     * Organization logo URL for badge issuer assertions
+     * 
+     * Optional logo image URL to include in OB3 issuer profiles.
+     * If set, will be included as an "image" property in the issuer JSON.
+     * 
+     * $CFG->badge_organization_logo = 'https://www.learnxp.com/logo-square.png';
+     */
+    public $badge_organization_logo = null;
+    
+    /**
+     * LinkedIn organization/company page URL
+     * 
+     * If set, displays a LinkedIn link on badge pages and may be included
+     * in badge issuer extensions.
+     * 
+     * $CFG->badge_linkedin_url = 'https://www.linkedin.com/company/learn-xp';
+     */
+    public $badge_linkedin_url = null;
 
     /**
      * The defaults for data expiration.  Data expiration is not done by default, but can

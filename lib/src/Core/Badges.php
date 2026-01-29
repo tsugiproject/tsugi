@@ -359,24 +359,40 @@ class Badges {
         }
 
         $issuer_url = self::buildIssuerUrl();
-        $issuer_email = self::getIssuerEmail();
         
-        // Use getBadgeOrganization() method if available, otherwise fall back to servicename
-        if (method_exists($CFG, 'getBadgeOrganization')) {
+        // Get issuer email with fallback
+        $issuer_email = (isset($CFG->badge_issuer_email) && !empty($CFG->badge_issuer_email)) 
+            ? $CFG->badge_issuer_email 
+            : self::getIssuerEmail();
+        
+        // Get issuer name with fallback
+        if (isset($CFG->badge_organization) && !empty($CFG->badge_organization)) {
+            $issuer_name = $CFG->badge_organization;
+        } elseif (method_exists($CFG, 'getBadgeOrganization')) {
             $issuer_name = $CFG->getBadgeOrganization();
         } else {
             // Fallback for older ConfigInfo versions without the method
             $issuer_name = $CFG->servicename;
         }
         
+        // Get issuer URL with fallback
+        $organization_url = (isset($CFG->badge_organization_url) && !empty($CFG->badge_organization_url))
+            ? $CFG->badge_organization_url
+            : $CFG->apphome;
+        
         $issuer = array(
             "@context" => self::OB2_CONTEXT,
             "id" => $issuer_url,
             "type" => "Issuer",
             "name" => $issuer_name,
-            "url" => $CFG->apphome,
+            "url" => $organization_url,
             "email" => $issuer_email
         );
+        
+        // Add logo if configured (OB2 uses simple string URL)
+        if (isset($CFG->badge_organization_logo) && !empty($CFG->badge_organization_logo)) {
+            $issuer["image"] = $CFG->badge_organization_logo;
+        }
         
         return json_encode($issuer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
@@ -528,15 +544,26 @@ class Badges {
         }
 
         $issuer_id = self::buildIssuerUrlWithFormat('ob3');
-        $issuer_email = self::getIssuerEmail();
         
-        // Use getBadgeOrganization() method if available, otherwise fall back to servicename
-        if (method_exists($CFG, 'getBadgeOrganization')) {
+        // Get issuer email with fallback
+        $issuer_email = (isset($CFG->badge_issuer_email) && !empty($CFG->badge_issuer_email)) 
+            ? $CFG->badge_issuer_email 
+            : self::getIssuerEmail();
+        
+        // Get issuer name with fallback
+        if (isset($CFG->badge_organization) && !empty($CFG->badge_organization)) {
+            $issuer_name = $CFG->badge_organization;
+        } elseif (method_exists($CFG, 'getBadgeOrganization')) {
             $issuer_name = $CFG->getBadgeOrganization();
         } else {
             // Fallback for older ConfigInfo versions without the method
             $issuer_name = $CFG->servicename;
         }
+        
+        // Get issuer URL with fallback
+        $issuer_url = (isset($CFG->badge_organization_url) && !empty($CFG->badge_organization_url))
+            ? $CFG->badge_organization_url
+            : $CFG->apphome;
         
         $issuer = array(
             "@context" => array(
@@ -546,9 +573,25 @@ class Badges {
             "id" => $issuer_id,
             "type" => "Profile",
             "name" => $issuer_name,
-            "url" => $CFG->apphome,
+            "url" => $issuer_url,
             "email" => $issuer_email
         );
+        
+        // Add logo if configured
+        if (isset($CFG->badge_organization_logo) && !empty($CFG->badge_organization_logo)) {
+            $issuer["image"] = array(
+                "id" => $CFG->badge_organization_logo,
+                "type" => "Image"
+            );
+        }
+        
+        // Add LinkedIn URL if configured (as extension or additional property)
+        if (isset($CFG->badge_linkedin_url) && !empty($CFG->badge_linkedin_url)) {
+            if (!isset($issuer["extensions"])) {
+                $issuer["extensions"] = array();
+            }
+            $issuer["extensions"]["linkedIn"] = $CFG->badge_linkedin_url;
+        }
         
         return json_encode($issuer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }

@@ -233,7 +233,7 @@ switch ($resource) {
         } else {
             $text = Badges::getOb2Issuer($encrypted, $code, $badge, $title);
         }
-        header('Content-Type: application/json');
+        header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
         echo($text);
