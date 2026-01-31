@@ -35,6 +35,7 @@ class Tsugi extends \Tsugi\Lumen\Application {
             \Tsugi\Controllers\Pages::routes($this);
             \Tsugi\Controllers\Profile::routes($this);
             \Tsugi\Controllers\Topics::routes($this);
+            \Tsugi\Controllers\Notifications::routes($this);
         });
     }
 }

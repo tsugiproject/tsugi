@@ -55,11 +55,6 @@ class StaticFiles {
      */
     public function serve(Request $request, $controller, $filename)
     {
-        // Log for debugging
-        error_log("StaticFiles::serve called - controller=$controller, filename=$filename");
-        error_log("StaticFiles::serve - REQUEST_URI=" . ($_SERVER['REQUEST_URI'] ?? 'not set'));
-        error_log("StaticFiles::serve - PATH_INFO=" . ($request->getPathInfo() ?? 'not set'));
-        
         // Security: Validate controller and filename to prevent directory traversal
         if (!preg_match('/^[a-zA-Z0-9_-]+$/', $controller)) {
             return new Response('Invalid controller name', 400);
@@ -73,19 +68,12 @@ class StaticFiles {
         // __DIR__ is /Users/csev/htdocs/ca4e/tsugi/lib/src/Controllers
         $controllerDir = __DIR__ . '/static/' . $controller;
         $filePath = $controllerDir . '/' . $filename;
-        
-        error_log("StaticFiles: controllerDir=$controllerDir");
-        error_log("StaticFiles: filePath=$filePath");
-        error_log("StaticFiles: __DIR__=" . __DIR__);
 
         // Security: Ensure file is within the static directory (prevent directory traversal)
         $realControllerDir = realpath($controllerDir);
         $realFilePath = realpath($filePath);
         
         if ($realControllerDir === false || $realFilePath === false) {
-            error_log("StaticFiles: Directory not found. controllerDir=$controllerDir, filePath=$filePath");
-            error_log("StaticFiles: __DIR__=" . __DIR__);
-            error_log("StaticFiles: controller=$controller, filename=$filename");
             return new Response('File not found: ' . basename($filePath) . " (dir: $controllerDir)", 404);
         }
         
@@ -95,7 +83,6 @@ class StaticFiles {
 
         // Check if file exists
         if (!file_exists($filePath) || !is_file($filePath)) {
-            error_log("StaticFiles: File does not exist. filePath=$filePath, realFilePath=$realFilePath");
             return new Response('File not found: ' . basename($filePath), 404);
         }
 

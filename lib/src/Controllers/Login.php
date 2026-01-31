@@ -24,9 +24,14 @@ class Login extends Controller {
         error_log('Session in login.php '.session_id());
 
         // Determine callback URL
-        $come_back = $CFG->wwwroot.'/login.php';
-        if ( isset($CFG->google_login_new) && $CFG->google_login_new ) {
-            $come_back = $CFG->wwwroot.'/login';
+        // Check for explicit redirect URI first, then fall back to automatic construction
+        if ( isset($CFG->google_login_redirect) && $CFG->google_login_redirect ) {
+            $come_back = $CFG->google_login_redirect;
+        } else {
+            $come_back = $CFG->wwwroot.'/login.php';
+            if ( isset($CFG->google_login_new) && $CFG->google_login_new ) {
+                $come_back = $CFG->wwwroot.'/login';
+            }
         }
 
         // Process login with redirect callback

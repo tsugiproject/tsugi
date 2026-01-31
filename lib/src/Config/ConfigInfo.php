@@ -697,6 +697,46 @@ class ConfigInfo {
     public $google_client_secret = false;
     public $google_map_api_key = false;
 
+    /**
+     * VAPID keys for push notifications
+     *
+     * VAPID (Voluntary Application Server Identification) keys are required
+     * for web push notifications. These keys identify your server to push
+     * notification services.
+     *
+     * To generate VAPID keys:
+     * 1. Use an online generator: https://giga.tools/developer-tools/vapid-key-generator
+     * 2. Or use Node.js: npm install -g web-push && web-push generate-vapid-keys
+     * 3. Or use the PHP script: php tsugi/scripts/generate-vapid-keys.php
+     *
+     * See tsugi/VAPID_SETUP.md for detailed instructions.
+     *
+     * The vapid_subject should be a mailto: URL with your email address.
+     * This is used to identify your server to push notification services.
+     *
+     * Example:
+     *     $CFG->vapid_public_key = 'BKx...long_base64_string...';
+     *     $CFG->vapid_private_key = 'xYz...long_base64_string...';
+     *     $CFG->vapid_subject = 'mailto:admin@example.com';
+     */
+    public $vapid_public_key = false;
+    public $vapid_private_key = false;
+    public $vapid_subject = false;
+
+    /**
+     * Explicit Google OAuth redirect URI (optional)
+     *
+     * If set, this will be used as the redirect URI for Google OAuth login.
+     * This should match exactly what you configure in Google's OAuth console.
+     *
+     * Example:
+     *     $CFG->google_login_redirect = 'https://local.ca4e.com/login';
+     *
+     * If not set, the redirect URI is automatically constructed from $wwwroot
+     * based on the $google_login_new setting.
+     */
+    public $google_login_redirect = false;
+
     /*
      * Tells Google to come back to "/login" after Google Login.
      * If set to false our login comes back to "login.php".
@@ -705,6 +745,8 @@ class ConfigInfo {
      * in Google.  And some old integrations used login.php.
      * New integrations should use "/login" and leave this true.
      * This is here to for old integrations.
+     *
+     * Note: This is ignored if $google_login_redirect is set.
      */
     public $google_login_new = true;
 

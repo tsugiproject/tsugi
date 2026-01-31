@@ -1,0 +1,13 @@
+# Deny all web access to scripts directory
+# These scripts are CLI-only and should not be accessible via web browser
+
+<IfModule mod_authz_core.c>
+    # Apache 2.4+
+    Require all denied
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    # Apache 2.2
+    Order deny,allow
+    Deny from all
+</IfModule>
