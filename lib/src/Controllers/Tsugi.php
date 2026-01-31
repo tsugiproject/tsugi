@@ -13,6 +13,9 @@ class Tsugi extends \Tsugi\Lumen\Application {
         parent::__construct($launch, $baseDir);
         $this['tsugi']->output->buffer = false;
 
+        // Register ServiceWorker route first (at root level, not in group)
+        \Tsugi\Controllers\ServiceWorkerController::routes($this);
+
         // Register all controllers in a single group since they're all in the same namespace
         $this->router->group([
             'namespace' => 'Tsugi\Controllers',
