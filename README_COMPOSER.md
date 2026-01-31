@@ -5,6 +5,10 @@ To update only one thing whilst not bumping the transitive dependencies
     composer update symfony/browser-kit --no-dev --ignore-platform-reqs
     composer update symfony/mime --ignore-platform-reqs --no-dev
 
+To add a dependency - don't edit composer.json - do this
+
+    composer require symfony/process:^7.2 --no-interaction --no-update --ignore-platform-reqs
+
 To advance dependencies
 
     composer update --ignore-platform-reqs --no-dev
