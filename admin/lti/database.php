@@ -29,7 +29,8 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}tsugi_string",
 "drop table if exists {$CFG->dbprefix}sessions",
 "drop table if exists {$CFG->dbprefix}profile",
-"drop table if exists {$CFG->dbprefix}push_subscriptions"
+"drop table if exists {$CFG->dbprefix}push_subscriptions",
+"drop table if exists {$CFG->dbprefix}notification"
 );
 
 // Note that the TEXT xxx_key fields are UNIQUE but not
@@ -720,6 +721,26 @@ array( "{$CFG->dbprefix}push_subscriptions",
     CONSTRAINT `{$CFG->dbprefix}push_subscriptions_const_pk` PRIMARY KEY (subscription_id),
     KEY `{$CFG->dbprefix}push_subscriptions_idx_user_id` (user_id),
     KEY `{$CFG->dbprefix}push_subscriptions_idx_user_browser` (user_id, browser_name)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}notification",
+"create table {$CFG->dbprefix}notification (
+    notification_id     INTEGER NOT NULL AUTO_INCREMENT,
+    user_id             INTEGER NOT NULL,
+    title               VARCHAR(512) NOT NULL,
+    text                TEXT NULL,
+    url                 VARCHAR(2048) NULL,
+    json                MEDIUMTEXT NULL,
+    read_at             TIMESTAMP NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `{$CFG->dbprefix}notification_const_pk` PRIMARY KEY (notification_id),
+    KEY `{$CFG->dbprefix}notification_idx_user_id` (user_id),
+    KEY `{$CFG->dbprefix}notification_idx_user_read` (user_id, read_at),
+    CONSTRAINT `{$CFG->dbprefix}notification_ibfk_1`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
 );
 

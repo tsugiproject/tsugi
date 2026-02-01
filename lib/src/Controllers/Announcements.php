@@ -427,13 +427,38 @@ class Announcements extends Tool {
             return new JsonResponse(['status' => 'error', 'detail' => 'Method not allowed'], 405);
         }
         
-        $announcement_id = U::get($_POST, 'announcement_id');
+        // Get POST data - FormData from fetch() should populate $_POST
+        // But Symfony Request might consume the body, so check both
+        $announcement_id = null;
+        $dismiss_raw = 1;
+        
+        // Try $_POST first (FormData from fetch() populates this)
+        if (!empty($_POST['announcement_id'])) {
+            $announcement_id = $_POST['announcement_id'];
+            $dismiss_raw = isset($_POST['dismiss']) ? $_POST['dismiss'] : 1;
+        } 
+        // Try Symfony Request
+        elseif ($request->request->has('announcement_id')) {
+            $announcement_id = $request->request->get('announcement_id');
+            $dismiss_raw = $request->request->get('dismiss', 1);
+        }
+        // Last resort: parse request body manually for FormData
+        else {
+            $content = $request->getContent();
+            if (!empty($content)) {
+                parse_str($content, $parsed);
+                if (isset($parsed['announcement_id'])) {
+                    $announcement_id = $parsed['announcement_id'];
+                    $dismiss_raw = isset($parsed['dismiss']) ? $parsed['dismiss'] : 1;
+                }
+            }
+        }
+        
         if (!$announcement_id || !is_numeric($announcement_id)) {
             return new JsonResponse(['status' => 'error', 'detail' => 'Invalid announcement_id'], 400);
         }
         
-        $dismiss = U::get($_POST, 'dismiss', 1);
-        $dismiss = ($dismiss == 1 || $dismiss === '1' || $dismiss === true) ? 1 : 0;
+        $dismiss = ($dismiss_raw == 1 || $dismiss_raw === '1' || $dismiss_raw === true || $dismiss_raw === 'true') ? 1 : 0;
         
         $user_id = $_SESSION['id'];
         $context_id = $_SESSION['context_id'];

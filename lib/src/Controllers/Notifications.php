@@ -3,10 +3,12 @@
 namespace Tsugi\Controllers;
 
 use Tsugi\Util\U;
+use Tsugi\Util\NotificationsService;
 use Tsugi\Core\LTIX;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class Notifications extends Tool {
 
@@ -16,6 +18,14 @@ class Notifications extends Tool {
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Notifications@index');
         $app->router->get($prefix.'/', 'Notifications@index');
+        $app->router->get($prefix.'/configure-push', 'Notifications@configurePush');
+        $app->router->get($prefix.'/send', 'Notifications@send');
+        $app->router->post($prefix.'/send', 'Notifications@sendPost');
+        $app->router->get($prefix.'/send-to-student', 'Notifications@sendToStudent');
+        $app->router->post($prefix.'/send-to-student', 'Notifications@sendToStudentPost');
+        $app->router->get($prefix.'/json', 'Notifications@json');
+        $app->router->post($prefix.'/mark-read', 'Notifications@markRead');
+        $app->router->post($prefix.'/mark-all-read', 'Notifications@markAllRead');
         $app->router->post($prefix.'/subscribe', 'Notifications@subscribe');
         $app->router->post($prefix.'/unsubscribe', 'Notifications@unsubscribe');
         $app->router->post($prefix.'/test', 'Notifications@test');
@@ -23,10 +33,10 @@ class Notifications extends Tool {
     }
 
     /**
-     * Main notifications page - allows users to enable/disable push notifications
+     * Main notifications page - shows user notifications in reverse chronological order
      */
     public function index(Request $request) {
-        global $OUTPUT, $PDOX, $CFG;
+        global $OUTPUT, $CFG;
 
         $this->requireAuth();
         
@@ -36,6 +46,246 @@ class Notifications extends Tool {
 
         // Record analytics
         $this->lmsRecordLaunchAnalytics(self::ROUTE, self::NAME);
+
+        // Get notifications for user (most recent first)
+        $notifications = NotificationsService::getForUser($user_id, false, 0);
+        $unread_count = NotificationsService::getUnreadCount($user_id);
+
+        $tool_home = $this->toolHome(self::ROUTE);
+        $configure_push_url = $tool_home . '/configure-push';
+        $json_url = $tool_home . '/json';
+        $mark_read_url = $tool_home . '/mark-read';
+        $mark_all_read_url = $tool_home . '/mark-all-read';
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12">
+                    <h1>Notifications</h1>
+                </div>
+            </div>
+            <div class="row" style="margin-bottom: 20px;">
+                <div class="col-xs-12">
+                    <div class="notification-actions">
+                        <a href="<?= htmlspecialchars($tool_home . '/send') ?>" class="btn btn-primary btn-sm">
+                            <span class="hidden-xs">Test Notification</span>
+                            <span class="visible-xs">Test</span>
+                        </a>
+                        <?php if ($this->isInstructor()): ?>
+                            <a href="<?= htmlspecialchars($tool_home . '/send-to-student') ?>" class="btn btn-success btn-sm">
+                                <span class="hidden-xs">Send to Student</span>
+                                <span class="visible-xs">To Student</span>
+                            </a>
+                        <?php endif; ?>
+                        <a href="<?= htmlspecialchars($configure_push_url) ?>" class="btn btn-default btn-sm">
+                            <span class="hidden-xs">Configure Push</span>
+                            <span class="visible-xs">Push</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <?php if ($unread_count > 0): ?>
+                <div class="alert alert-info">
+                    <div class="clearfix">
+                        <div class="pull-left" style="line-height: 34px;">
+                            <strong><?= $unread_count ?> unread notification<?= $unread_count > 1 ? 's' : '' ?></strong>
+                        </div>
+                        <div class="pull-right">
+                            <button id="mark-all-read-btn" class="btn btn-sm btn-primary" data-url="<?= htmlspecialchars($mark_all_read_url) ?>">
+                                Mark All as Read
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+            
+            <?php if (empty($notifications)): ?>
+                <div class="alert alert-info">
+                    <p>No notifications at this time.</p>
+                </div>
+            <?php else: ?>
+                <div id="notifications-list">
+                    <?php foreach ($notifications as $notification): ?>
+                        <div class="panel panel-default notification-item <?= $notification['read_at'] ? 'read' : 'unread' ?>" 
+                             data-notification-id="<?= htmlspecialchars($notification['notification_id']) ?>">
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-8">
+                                        <h3 class="panel-title" style="margin-top: 0;">
+                                            <?php if (!$notification['read_at']): ?>
+                                                <span class="badge" style="background: #d9534f; margin-right: 10px;">New</span>
+                                            <?php endif; ?>
+                                            <?= htmlspecialchars($notification['title']) ?>
+                                        </h3>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-4">
+                                        <div class="text-muted small" style="margin-top: 5px; text-align: right;">
+                                            <?= date('M j, Y g:i A', strtotime($notification['created_at'])) ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                                <?php if (!empty($notification['text'])): ?>
+                                <div class="notification-text">
+                                    <?= nl2br(htmlspecialchars($notification['text'])) ?>
+                                </div>
+                                <?php endif; ?>
+                                </div>
+                                <?php if (!empty($notification['url'])): ?>
+                                    <p class="notification-url" style="margin-top: 10px;">
+                                        <a href="<?= htmlspecialchars($notification['url']) ?>" target="_blank" class="btn btn-link">
+                                            Learn more <span class="glyphicon glyphicon-new-window"></span>
+                                        </a>
+                                    </p>
+                                <?php endif; ?>
+                                <?php if (!$notification['read_at']): ?>
+                                    <button class="btn btn-sm btn-primary mark-read-btn" 
+                                            data-notification-id="<?= htmlspecialchars($notification['notification_id']) ?>"
+                                            data-url="<?= htmlspecialchars($mark_read_url) ?>"
+                                            style="margin-top: 10px;">
+                                        Mark as Read
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <style>
+        .notification-item.unread {
+            border-left: 4px solid #d9534f;
+        }
+        .notification-item.read {
+            opacity: 0.7;
+        }
+        
+        /* Button actions - horizontal with wrapping */
+        .notification-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .notification-actions .btn {
+            margin: 0;
+        }
+        
+        /* Responsive alert - stack on very small screens */
+        @media (max-width: 480px) {
+            .alert .pull-left,
+            .alert .pull-right {
+                float: none !important;
+                display: block;
+                text-align: center;
+            }
+            .alert .pull-right {
+                margin-top: 10px;
+            }
+        }
+        
+        /* Responsive notification header */
+        @media (max-width: 480px) {
+            .notification-item .panel-heading .row {
+                margin: 0;
+            }
+            .notification-item .panel-heading .col-xs-12 {
+                padding: 0;
+            }
+            .notification-item .panel-heading .col-sm-4 {
+                margin-top: 5px;
+            }
+            .notification-item .panel-heading .col-sm-4 div {
+                text-align: left !important;
+            }
+        }
+        </style>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mark individual notification as read
+            document.querySelectorAll('.mark-read-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var notificationId = this.getAttribute('data-notification-id');
+                    var url = this.getAttribute('data-url');
+                    var item = this.closest('.notification-item');
+                    
+                    var formData = new FormData();
+                    formData.append('notification_id', notificationId);
+                    
+                    fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            item.classList.remove('unread');
+                            item.classList.add('read');
+                            var badge = item.querySelector('.badge');
+                            if (badge) badge.remove();
+                            var btn = item.querySelector('.mark-read-btn');
+                            if (btn) btn.remove();
+                            // Reload page to update unread count
+                            window.location.reload();
+                        } else {
+                            alert('Error marking notification as read: ' + (data.detail || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        alert('Error marking notification as read: ' + error.message);
+                    });
+                });
+            });
+            
+            // Mark all as read
+            var markAllReadBtn = document.getElementById('mark-all-read-btn');
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', function() {
+                    var url = this.getAttribute('data-url');
+                    
+                    fetch(url, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            window.location.reload();
+                        } else {
+                            alert('Error marking all as read: ' + (data.detail || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        alert('Error marking all as read: ' + error.message);
+                    });
+                });
+            }
+        });
+        </script>
+        <?php
+        $OUTPUT->footer();
+    }
+
+    /**
+     * Configure push notifications page - moved from main index page
+     */
+    public function configurePush(Request $request) {
+        global $OUTPUT, $PDOX, $CFG;
+
+        $this->requireAuth();
+        
+        LTIX::getConnection();
+        
+        $user_id = $_SESSION['id'];
+
+        // Record analytics
+        $this->lmsRecordLaunchAnalytics(self::ROUTE . '/configure-push', self::NAME . ' - Configure Push');
 
         // Check if user has active subscriptions (can have multiple - one per browser)
         $subscriptions = $this->getUserSubscriptions($user_id);
@@ -57,6 +307,7 @@ class Notifications extends Tool {
         }
 
         $tool_home = $this->toolHome(self::ROUTE);
+        $back_url = $tool_home;
         $subscribe_url = $tool_home . '/subscribe';
         $unsubscribe_url = $tool_home . '/unsubscribe';
         $test_url = $tool_home . '/test';
@@ -68,7 +319,11 @@ class Notifications extends Tool {
         $OUTPUT->flashMessages();
         ?>
         <div class="container">
-            <h1>Push Notifications</h1>
+            <h1>Configure Push Notifications
+                <span class="pull-right">
+                    <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default">Back to Notifications</a>
+                </span>
+            </h1>
             
             <div class="panel panel-default">
                 <div class="panel-body">
@@ -92,7 +347,7 @@ class Notifications extends Tool {
                                     <?php endforeach; ?>
                                 </ul>
                                 <button id="unsubscribe-btn" class="btn btn-danger" data-url="<?= htmlspecialchars($unsubscribe_url) ?>">
-                                    Disable All Notifications
+                                    Disable push notifications
                                 </button>
                                 <?php if (!$current_browser || !in_array($current_browser, array_column($subscriptions, 'browser_name'))): ?>
                                     <button id="subscribe-btn" class="btn btn-primary" data-url="<?= htmlspecialchars($subscribe_url) ?>" data-vapid-key-url="<?= htmlspecialchars($vapid_key_url) ?>" style="margin-left: 10px;">
@@ -115,7 +370,7 @@ class Notifications extends Tool {
                         <hr>
                         <h3>Instructor Tools</h3>
                         <button id="test-notification-btn" class="btn btn-default" data-url="<?= htmlspecialchars($test_url) ?>">
-                            Send Test Notification
+                            Send Test Push
                         </button>
                     <?php endif; ?>
 
@@ -402,6 +657,393 @@ class Notifications extends Tool {
                 'success' => false,
                 'error' => 'Exception: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Send notification form - allows user to send a notification to themselves
+     */
+    public function send(Request $request) {
+        global $OUTPUT;
+
+        $this->requireAuth();
+        
+        LTIX::getConnection();
+        
+        $user_id = $_SESSION['id'];
+
+        // Record analytics
+        $this->lmsRecordLaunchAnalytics(self::ROUTE . '/send', self::NAME . ' - Test Notification');
+
+        $tool_home = $this->toolHome(self::ROUTE);
+        $back_url = $tool_home;
+        $send_url = $tool_home . '/send';
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <div class="container">
+            <h1>Test Notification
+                <span class="pull-right">
+                    <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default">Back to Notifications</a>
+                </span>
+            </h1>
+            
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Test Notification to Yourself</h3>
+                </div>
+                <div class="panel-body">
+                    <p class="text-muted">This will send a notification to your account. Useful for testing or reminders.</p>
+                    
+                    <form method="POST" action="<?= htmlspecialchars($send_url) ?>">
+                        <div class="form-group">
+                            <label for="title">Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   value="<?= htmlspecialchars(U::get($_POST, 'title', '')) ?>" 
+                                   required
+                                   placeholder="Enter notification title">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="text">Text (optional)</label>
+                            <textarea class="form-control" id="text" name="text" rows="5"
+                                      placeholder="Enter notification message (optional)"><?= htmlspecialchars(U::get($_POST, 'text', '')) ?></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="url">URL (optional)</label>
+                            <input type="url" class="form-control" id="url" name="url" 
+                                   value="<?= htmlspecialchars(U::get($_POST, 'url', '')) ?>" 
+                                   placeholder="https://example.com">
+                            <small class="help-block">Optional link to include with the notification</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Send Test Notification</button>
+                        <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <?php
+        $OUTPUT->footer();
+    }
+
+    /**
+     * Process send notification form submission
+     */
+    public function sendPost(Request $request) {
+        global $CFG;
+
+        $this->requireAuth();
+        
+        LTIX::getConnection();
+        
+        $user_id = $_SESSION['id'];
+        
+        $tool_home = $this->toolHome(self::ROUTE);
+        $send_url = $tool_home . '/send';
+        $back_url = $tool_home;
+        
+        $title = trim(U::get($_POST, 'title'));
+        $text = trim(U::get($_POST, 'text'));
+        $url = trim(U::get($_POST, 'url'));
+        
+        if (empty($title)) {
+            $_SESSION['error'] = 'Title is required';
+            return new RedirectResponse($send_url);
+        }
+        
+        // Normalize empty values to null
+        if (empty($text)) {
+            $text = null;
+        }
+        if (empty($url)) {
+            $url = null;
+        }
+        
+        // Create notification using NotificationsService
+        $notification = NotificationsService::create($user_id, $title, $text, $url);
+        
+        if ($notification) {
+            $_SESSION['success'] = 'Notification sent successfully!';
+            return new RedirectResponse($back_url);
+        } else {
+            $_SESSION['error'] = 'Error sending notification. Please try again.';
+            return new RedirectResponse($send_url);
+        }
+    }
+
+    /**
+     * Send notification to student form - instructor only
+     */
+    public function sendToStudent(Request $request) {
+        global $OUTPUT, $PDOX, $CFG;
+
+        $this->requireInstructor('/notifications');
+        
+        LTIX::getConnection();
+        
+        $user_id = $_SESSION['id'];
+        $context_id = $_SESSION['context_id'];
+
+        // Record analytics
+        $this->lmsRecordLaunchAnalytics(self::ROUTE . '/send-to-student', self::NAME . ' - Send to Student');
+
+        // Get all students in the context (role < ROLE_INSTRUCTOR)
+        $p = $CFG->dbprefix;
+        $sql = "SELECT M.user_id, U.displayname, U.email,
+                    COALESCE(M.role_override, M.role, 0) AS role
+                FROM {$p}lti_membership AS M
+                JOIN {$p}lti_user AS U ON M.user_id = U.user_id
+                WHERE M.context_id = :CID
+                  AND COALESCE(M.role_override, M.role, 0) < :ROLE_INSTRUCTOR
+                ORDER BY U.displayname ASC";
+        
+        $students = $PDOX->allRowsDie($sql, array(
+            ':CID' => $context_id,
+            ':ROLE_INSTRUCTOR' => LTIX::ROLE_INSTRUCTOR
+        ));
+
+        $tool_home = $this->toolHome(self::ROUTE);
+        $back_url = $tool_home;
+        $send_url = $tool_home . '/send-to-student';
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <div class="container">
+            <h1>Send Notification to Student
+                <span class="pull-right">
+                    <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default">Back to Notifications</a>
+                </span>
+            </h1>
+            
+            <?php if (empty($students)): ?>
+                <div class="alert alert-warning">
+                    <p>No students found in this course.</p>
+                </div>
+            <?php else: ?>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Send Notification to a Student</h3>
+                    </div>
+                    <div class="panel-body">
+                        <p class="text-muted">Select a student and compose a notification to send to them.</p>
+                        
+                        <form method="POST" action="<?= htmlspecialchars($send_url) ?>">
+                            <div class="form-group">
+                                <label for="student_id">Student *</label>
+                                <select class="form-control" id="student_id" name="student_id" required>
+                                    <option value="">-- Select a student --</option>
+                                    <?php foreach ($students as $student): ?>
+                                        <option value="<?= htmlspecialchars($student['user_id']) ?>" 
+                                                <?= U::get($_POST, 'student_id') == $student['user_id'] ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($student['displayname']) ?>
+                                            <?php if (!empty($student['email'])): ?>
+                                                (<?= htmlspecialchars($student['email']) ?>)
+                                            <?php endif; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="title">Title *</label>
+                                <input type="text" class="form-control" id="title" name="title" 
+                                       value="<?= htmlspecialchars(U::get($_POST, 'title', '')) ?>" 
+                                       required
+                                       placeholder="Enter notification title">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="text">Text (optional)</label>
+                                <textarea class="form-control" id="text" name="text" rows="5"
+                                          placeholder="Enter notification message (optional)"><?= htmlspecialchars(U::get($_POST, 'text', '')) ?></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="url">URL (optional)</label>
+                                <input type="url" class="form-control" id="url" name="url" 
+                                       value="<?= htmlspecialchars(U::get($_POST, 'url', '')) ?>" 
+                                       placeholder="https://example.com">
+                                <small class="help-block">Optional link to include with the notification</small>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-success">Send Notification</button>
+                            <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default">Cancel</a>
+                        </form>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php
+        $OUTPUT->footer();
+    }
+
+    /**
+     * Process send notification to student form submission - instructor only
+     */
+    public function sendToStudentPost(Request $request) {
+        global $CFG, $PDOX;
+
+        $this->requireInstructor('/notifications');
+        
+        LTIX::getConnection();
+        
+        $user_id = $_SESSION['id'];
+        $context_id = $_SESSION['context_id'];
+        
+        $tool_home = $this->toolHome(self::ROUTE);
+        $send_url = $tool_home . '/send-to-student';
+        $back_url = $tool_home;
+        
+        $student_id = U::get($_POST, 'student_id');
+        $title = trim(U::get($_POST, 'title'));
+        $text = trim(U::get($_POST, 'text'));
+        $url = trim(U::get($_POST, 'url'));
+        
+        if (empty($student_id) || !is_numeric($student_id)) {
+            $_SESSION['error'] = 'Please select a student';
+            return new RedirectResponse($send_url);
+        }
+        
+        if (empty($title)) {
+            $_SESSION['error'] = 'Title is required';
+            return new RedirectResponse($send_url);
+        }
+        
+        // Verify the student is actually in this context and is a student (not instructor)
+        $p = $CFG->dbprefix;
+        $student_check = $PDOX->rowDie(
+            "SELECT M.user_id, U.displayname,
+                    COALESCE(M.role_override, M.role, 0) AS role
+             FROM {$p}lti_membership AS M
+             JOIN {$p}lti_user AS U ON M.user_id = U.user_id
+             WHERE M.context_id = :CID 
+               AND M.user_id = :SID
+               AND COALESCE(M.role_override, M.role, 0) < :ROLE_INSTRUCTOR",
+            array(
+                ':CID' => $context_id,
+                ':SID' => $student_id,
+                ':ROLE_INSTRUCTOR' => LTIX::ROLE_INSTRUCTOR
+            )
+        );
+        
+        if (!$student_check) {
+            $_SESSION['error'] = 'Invalid student selected or student not found in this course';
+            return new RedirectResponse($send_url);
+        }
+        
+        // Normalize empty values to null
+        if (empty($text)) {
+            $text = null;
+        }
+        if (empty($url)) {
+            $url = null;
+        }
+        
+        // Create notification using NotificationsService
+        $notification = NotificationsService::create($student_id, $title, $text, $url);
+        
+        if ($notification) {
+            $_SESSION['success'] = 'Notification sent successfully to ' . htmlspecialchars($student_check['displayname']) . '!';
+            return new RedirectResponse($back_url);
+        } else {
+            $_SESSION['error'] = 'Error sending notification. Please try again.';
+            return new RedirectResponse($send_url);
+        }
+    }
+
+    /**
+     * Get notifications as JSON (for bell icon component)
+     */
+    public function json(Request $request) {
+        global $CFG;
+        
+        $this->requireAuth();
+        
+        LTIX::getConnection();
+        
+        $user_id = $_SESSION['id'];
+        
+        $notifications = NotificationsService::getForUser($user_id, false, 50); // Limit to 50 most recent
+        $unread_count = NotificationsService::getUnreadCount($user_id);
+        
+        $result = array(
+            'status' => 'success',
+            'notifications' => array(),
+            'unread_count' => $unread_count
+        );
+        
+        foreach ($notifications as $notification) {
+            // Parse json field if present
+            $json_data = null;
+            if (!empty($notification['json'])) {
+                $decoded = json_decode($notification['json'], true);
+                $json_data = (json_last_error() === JSON_ERROR_NONE) ? $decoded : null;
+            }
+            
+            $result['notifications'][] = array(
+                'notification_id' => intval($notification['notification_id']),
+                'title' => $notification['title'],
+                'text' => $notification['text'],
+                'url' => $notification['url'],
+                'json' => $json_data,
+                'read_at' => $notification['read_at'],
+                'created_at' => $notification['created_at'],
+                'updated_at' => $notification['updated_at'],
+                'is_read' => !empty($notification['read_at'])
+            );
+        }
+        
+        return new JsonResponse($result);
+    }
+
+    /**
+     * Mark a notification as read
+     */
+    public function markRead(Request $request) {
+        $this->requireAuth();
+        
+        LTIX::getConnection();
+        
+        $user_id = $_SESSION['id'];
+        $notification_id = U::get($_POST, 'notification_id');
+        
+        if (!$notification_id || !is_numeric($notification_id)) {
+            return new JsonResponse(['status' => 'error', 'detail' => 'Invalid notification_id'], 400);
+        }
+        
+        $success = NotificationsService::markAsRead(intval($notification_id), $user_id);
+        
+        if ($success) {
+            return new JsonResponse(['status' => 'success']);
+        } else {
+            return new JsonResponse(['status' => 'error', 'detail' => 'Failed to mark notification as read'], 500);
+        }
+    }
+
+    /**
+     * Mark all notifications as read for the current user
+     */
+    public function markAllRead(Request $request) {
+        $this->requireAuth();
+        
+        LTIX::getConnection();
+        
+        $user_id = $_SESSION['id'];
+        
+        $success = NotificationsService::markAllAsRead($user_id);
+        
+        if ($success) {
+            return new JsonResponse(['status' => 'success']);
+        } else {
+            return new JsonResponse(['status' => 'error', 'detail' => 'Failed to mark all notifications as read'], 500);
         }
     }
 
