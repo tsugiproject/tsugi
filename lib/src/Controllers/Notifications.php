@@ -135,7 +135,6 @@ class Notifications extends Tool {
                                     <?= nl2br(htmlspecialchars($notification['text'])) ?>
                                 </div>
                                 <?php endif; ?>
-                                </div>
                                 <?php if (!empty($notification['url'])): ?>
                                     <p class="notification-url" style="margin-top: 10px;">
                                         <a href="<?= htmlspecialchars($notification['url']) ?>" target="_blank" class="btn btn-link">
@@ -765,12 +764,20 @@ class Notifications extends Tool {
         }
         
         // Create notification using NotificationsService
-        $notification = NotificationsService::create($user_id, $title, $text, $url);
-        
-        if ($notification) {
-            $_SESSION['success'] = 'Notification sent successfully!';
-            return new RedirectResponse($back_url);
-        } else {
+        try {
+            $notification = NotificationsService::create($user_id, $title, $text, $url);
+            
+            if ($notification) {
+                $_SESSION['success'] = 'Notification sent successfully!';
+                return new RedirectResponse($back_url);
+            } else {
+                $_SESSION['error'] = 'Error sending notification. Please try again.';
+                return new RedirectResponse($send_url);
+            }
+        } catch (\InvalidArgumentException $e) {
+            $_SESSION['error'] = 'Invalid notification data: ' . $e->getMessage();
+            return new RedirectResponse($send_url);
+        } catch (\Exception $e) {
             $_SESSION['error'] = 'Error sending notification. Please try again.';
             return new RedirectResponse($send_url);
         }
@@ -948,12 +955,20 @@ class Notifications extends Tool {
         }
         
         // Create notification using NotificationsService
-        $notification = NotificationsService::create($student_id, $title, $text, $url);
-        
-        if ($notification) {
-            $_SESSION['success'] = 'Notification sent successfully to ' . htmlspecialchars($student_check['displayname']) . '!';
-            return new RedirectResponse($back_url);
-        } else {
+        try {
+            $notification = NotificationsService::create($student_id, $title, $text, $url);
+            
+            if ($notification) {
+                $_SESSION['success'] = 'Notification sent successfully to ' . htmlspecialchars($student_check['displayname']) . '!';
+                return new RedirectResponse($back_url);
+            } else {
+                $_SESSION['error'] = 'Error sending notification. Please try again.';
+                return new RedirectResponse($send_url);
+            }
+        } catch (\InvalidArgumentException $e) {
+            $_SESSION['error'] = 'Invalid notification data: ' . $e->getMessage();
+            return new RedirectResponse($send_url);
+        } catch (\Exception $e) {
             $_SESSION['error'] = 'Error sending notification. Please try again.';
             return new RedirectResponse($send_url);
         }

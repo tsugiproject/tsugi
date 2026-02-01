@@ -25,8 +25,7 @@ class NotificationsService {
         global $PDOX, $CFG;
         
         if (empty($user_id) || empty($title)) {
-            error_log("NotificationsService::create - Missing required parameters");
-            return false;
+            throw new \InvalidArgumentException("NotificationsService::create - Missing required parameters: user_id and title are required");
         }
         
         // Normalize text - convert empty string to null
