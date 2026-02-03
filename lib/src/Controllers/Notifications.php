@@ -51,6 +51,9 @@ class Notifications extends Tool {
         $notifications = NotificationsService::getForUser($user_id, false, 0);
         $unread_count = NotificationsService::getUnreadCount($user_id);
 
+        // Check if VAPID keys are configured
+        $vapid_configured = !empty($CFG->vapid_public_key) && !empty($CFG->vapid_private_key);
+
         $tool_home = $this->toolHome(self::ROUTE);
         $configure_push_url = $tool_home . '/configure-push';
         $json_url = $tool_home . '/json';
@@ -81,10 +84,12 @@ class Notifications extends Tool {
                                 <span class="visible-xs">To Student</span>
                             </a>
                         <?php endif; ?>
-                        <a href="<?= htmlspecialchars($configure_push_url) ?>" class="btn btn-default btn-sm">
-                            <span class="hidden-xs">Configure Push</span>
-                            <span class="visible-xs">Push</span>
-                        </a>
+                        <?php if ($vapid_configured): ?>
+                            <a href="<?= htmlspecialchars($configure_push_url) ?>" class="btn btn-default btn-sm">
+                                <span class="hidden-xs">Configure Push</span>
+                                <span class="visible-xs">Push</span>
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -313,31 +318,8 @@ class Notifications extends Tool {
             $tool_home = $this->toolHome(self::ROUTE);
             $back_url = $tool_home;
             
-            $OUTPUT->header();
-            $OUTPUT->bodyStart();
-            $OUTPUT->topNav();
-            $OUTPUT->flashMessages();
-            ?>
-            <div class="container">
-                <h1>Configure Push Notifications
-                    <span class="pull-right">
-                        <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default">Back to Notifications</a>
-                    </span>
-                </h1>
-                
-                <div class="panel panel-default">
-                    <div class="panel-body">
-                        <div class="alert alert-warning">
-                            <h4>Push Notifications Not Configured</h4>
-                            <p>Push notifications are not available because VAPID keys have not been configured.</p>
-                            <p>Please contact your system administrator to configure VAPID keys in the configuration file.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <?php
-            $OUTPUT->footer();
-            return;
+            $_SESSION['error'] = 'Push notifications are not configured. VAPID keys are missing.';
+            return new RedirectResponse($back_url);
         }
 
         // Check if user has active subscriptions (can have multiple - one per browser)
