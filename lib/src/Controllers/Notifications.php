@@ -51,8 +51,10 @@ class Notifications extends Tool {
         $notifications = NotificationsService::getForUser($user_id, false, 0);
         $unread_count = NotificationsService::getUnreadCount($user_id);
 
-        // Check if VAPID keys are configured
+        // Check if service worker is enabled and VAPID keys are configured
+        $service_worker_enabled = isset($CFG->service_worker) && $CFG->service_worker;
         $vapid_configured = !empty($CFG->vapid_public_key) && !empty($CFG->vapid_private_key);
+        $push_enabled = $service_worker_enabled && $vapid_configured;
 
         $tool_home = $this->toolHome(self::ROUTE);
         $configure_push_url = $tool_home . '/configure-push';
@@ -84,7 +86,7 @@ class Notifications extends Tool {
                                 <span class="visible-xs">To Student</span>
                             </a>
                         <?php endif; ?>
-                        <?php if ($vapid_configured): ?>
+                        <?php if ($push_enabled): ?>
                             <a href="<?= htmlspecialchars($configure_push_url) ?>" class="btn btn-default btn-sm">
                                 <span class="hidden-xs">Configure Push</span>
                                 <span class="visible-xs">Push</span>
@@ -311,13 +313,19 @@ class Notifications extends Tool {
         // Record analytics
         $this->lmsRecordLaunchAnalytics(self::ROUTE . '/configure-push', self::NAME . ' - Configure Push');
 
-        // Check if VAPID keys are configured
+        // Check if service worker is enabled and VAPID keys are configured
+        $service_worker_enabled = isset($CFG->service_worker) && $CFG->service_worker;
         $vapid_configured = !empty($CFG->vapid_public_key) && !empty($CFG->vapid_private_key);
         
+        $tool_home = $this->toolHome(self::ROUTE);
+        $back_url = $tool_home;
+        
+        if (!$service_worker_enabled) {
+            $_SESSION['error'] = 'Service worker is not enabled. Push notifications are not available.';
+            return new RedirectResponse($back_url);
+        }
+        
         if (!$vapid_configured) {
-            $tool_home = $this->toolHome(self::ROUTE);
-            $back_url = $tool_home;
-            
             $_SESSION['error'] = 'Push notifications are not configured. VAPID keys are missing.';
             return new RedirectResponse($back_url);
         }
@@ -483,6 +491,12 @@ class Notifications extends Tool {
         
         LTIX::getConnection();
         
+        // Check if service worker is enabled
+        $service_worker_enabled = isset($CFG->service_worker) && $CFG->service_worker;
+        if (!$service_worker_enabled) {
+            return new JsonResponse(['error' => 'Service worker is not enabled'], 403);
+        }
+        
         $user_id = $_SESSION['id'];
 
         // Get subscription data from request
@@ -564,6 +578,12 @@ class Notifications extends Tool {
         
         LTIX::getConnection();
         
+        // Check if service worker is enabled
+        $service_worker_enabled = isset($CFG->service_worker) && $CFG->service_worker;
+        if (!$service_worker_enabled) {
+            return new JsonResponse(['error' => 'Service worker is not enabled'], 403);
+        }
+        
         $user_id = $_SESSION['id'];
         
         // Check if we should unsubscribe just current browser or all
@@ -627,6 +647,12 @@ class Notifications extends Tool {
             
             if (!$this->isInstructor()) {
                 return new JsonResponse(['error' => 'Instructor access required'], 403);
+            }
+
+            // Check if service worker is enabled
+            $service_worker_enabled = isset($CFG->service_worker) && $CFG->service_worker;
+            if (!$service_worker_enabled) {
+                return new JsonResponse(['error' => 'Service worker is not enabled'], 403);
             }
 
             $user_id = $_SESSION['id'];
@@ -1102,6 +1128,14 @@ class Notifications extends Tool {
      * Get VAPID public key for client-side subscription
      */
     public function getVapidPublicKey(Request $request) {
+        global $CFG;
+        
+        // Check if service worker is enabled
+        $service_worker_enabled = isset($CFG->service_worker) && $CFG->service_worker;
+        if (!$service_worker_enabled) {
+            return new JsonResponse(['error' => 'Service worker is not enabled'], 403);
+        }
+        
         $public_key = $this->getVapidPublicKeyValue();
         return new JsonResponse(['publicKey' => $public_key]);
     }

@@ -244,6 +244,13 @@ $CFG->google_map_api_key = false; // 'Ve8eH490843cIA9IGl8';
 
 $CFG->google_translate = false;
 
+// Enable service worker for push notifications and offline support
+// When set to true, enables the service worker registration script in the page footer.
+// The service worker is required for web push notifications to work.
+// Defaults to false. Set to true to enable service worker functionality.
+// Note: You must also configure VAPID keys for push notifications to work.
+// $CFG->service_worker = false;
+
 // VAPID keys for push notifications
 // VAPID (Voluntary Application Server Identification) keys are required for web push notifications.
 // These keys identify your server to push notification services.
