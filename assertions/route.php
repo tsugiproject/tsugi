@@ -7,6 +7,7 @@ use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Badges;
 use \Tsugi\UI\Lessons;
+use \Tsugi\LinkedIn\LinkedIn;
 
 // Parse the URL to extract encrypted ID and resource type
 $url = $_SERVER['REQUEST_URI'];
@@ -43,7 +44,7 @@ if ($first_part === 'issuer.json') {
     } else {
         $text = Badges::getOb2Issuer(null, null, null, null);
     }
-    header('Content-Type: application/json');
+    header('Content-Type: application/ld+json');
     header('Cache-Control: public, max-age=3600');
     header('Access-Control-Allow-Origin: *');
     echo($text);
@@ -94,7 +95,7 @@ if ($first_part === 'badge' && count($path_parts) === 2) {
         } else {
             $text = Badges::getOb2Badge(null, $code, $badge, $title);
         }
-        header('Content-Type: application/json');
+        header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
         echo($text);
@@ -202,7 +203,7 @@ switch ($resource) {
     case 'assert':
         // OB2 Assertion
         $text = Badges::getOb2Assertion($encrypted, $date, $code, $badge, $title, $email);
-        header('Content-Type: application/json');
+        header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
         echo($text);
@@ -211,7 +212,7 @@ switch ($resource) {
     case 'assert-vc':
         // OB3/VC Assertion
         $text = Badges::getOb3Assertion($encrypted, $date, $code, $badge, $title, $email);
-        header('Content-Type: application/vc+json');
+        header('Content-Type: application/ld+json');
         header('Access-Control-Allow-Origin: *');
         echo($text);
         break;
@@ -219,7 +220,7 @@ switch ($resource) {
     case 'badge':
         // OB2 BadgeClass
         $text = Badges::getOb2Badge($encrypted, $code, $badge, $title);
-        header('Content-Type: application/json');
+        header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
         echo($text);
@@ -233,7 +234,7 @@ switch ($resource) {
         } else {
             $text = Badges::getOb2Issuer($encrypted, $code, $badge, $title);
         }
-        header('Content-Type: application/json');
+        header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
         echo($text);
@@ -242,7 +243,7 @@ switch ($resource) {
     case 'achievement':
         // OB3 Achievement
         $text = Badges::getOb3Achievement($encrypted, $code, $badge, $title);
-        header('Content-Type: application/json');
+        header('Content-Type: application/ld+json');
         header('Access-Control-Allow-Origin: *');
         echo($text);
         break;
@@ -319,6 +320,9 @@ switch ($resource) {
             }
         }
         
+        // Create LinkedIn helper from config (used for both URL building and link tags)
+        $linkedin = LinkedIn::fromConfig($CFG);
+        
         // Build LinkedIn "Add to Profile" URL if user owns the badge
         $linkedin_url = null;
         if ($show_linkedin_button && $completion_badge) {
@@ -326,30 +330,16 @@ switch ($resource) {
             $badge_name = htmlspecialchars($badge->title, ENT_QUOTES, 'UTF-8');
             $issued_on = $date; // Already in ISO 8601 format from U::iso8601()
             
-            // Build LinkedIn certification URL
-            // LinkedIn's profile/add endpoint for certifications
-            $linkedin_base_url = 'https://www.linkedin.com/profile/add';
-            $linkedin_params = array(
-                'name' => $badge_name,
-                'organizationName' => $issuer_org_name,
-                'certUrl' => $landing_url
-            );
-            
-            // Add credential ID (digital signature) if computed
-            // LinkedIn uses 'certId' parameter for the credential/certificate ID
-            if (!empty($credential_id)) {
-                $linkedin_params['certId'] = $credential_id;
-            }
-            
             // Parse issued_on date to extract year and month for LinkedIn
-            // Defensive: if date parsing fails, just skip date parameters
+            $issueYear = null;
+            $issueMonth = null;
             if (!empty($issued_on)) {
                 try {
                     // Try parsing ISO 8601 date (e.g., "2025-12-21T04:11:56Z")
                     $date_obj = new DateTime($issued_on);
                     if ($date_obj !== false) {
-                        $linkedin_params['issueYear'] = $date_obj->format('Y');
-                        $linkedin_params['issueMonth'] = $date_obj->format('m');
+                        $issueYear = (int)$date_obj->format('Y');
+                        $issueMonth = (int)$date_obj->format('m');
                     }
                 } catch (Exception $e) {
                     // If date parsing fails, just skip date parameters
@@ -357,13 +347,22 @@ switch ($resource) {
                 }
             }
             
-            // Build query string with proper URL encoding
-            $linkedin_url = $linkedin_base_url . '?' . http_build_query($linkedin_params);
+            // Build LinkedIn certification URL using LinkedIn class
+            $linkedin_url = $linkedin->buildAddCertificationUrl(
+                $badge_name,
+                $landing_url,
+                $credential_id,
+                $issueYear,
+                $issueMonth
+            );
         }
         
         $OUTPUT->header();
-        // Add alternate link tag to head for badge assertion JSON
-        echo('<link rel="alternate" type="application/json" href="' . htmlspecialchars($ob2_url) . '">' . "\n");
+        // Add alternate link tags to head for badge assertion JSON using LinkedIn class
+        $linkTags = $linkedin->buildOb2HeadLinkTags($ob2_url, $landing_url);
+        foreach ($linkTags as $tag) {
+            echo($tag . "\n");
+        }
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         ?>
@@ -381,8 +380,8 @@ switch ($resource) {
                     <p><strong>Issuer:</strong> <?= $issuer_org_name ?>
                     <?php
                     // Show LinkedIn organization link if configured
-                    if (isset($CFG->badge_linkedin_url) && !empty($CFG->badge_linkedin_url)): ?>
-                        <a href="<?= htmlspecialchars($CFG->badge_linkedin_url) ?>" target="_blank" rel="noopener noreferrer" style="margin-left: 10px;">
+                    if (isset($CFG->linkedin_url) && !empty($CFG->linkedin_url)): ?>
+                        <a href="<?= htmlspecialchars($CFG->linkedin_url) ?>" target="_blank" rel="noopener noreferrer" style="margin-left: 10px;">
                             <span class="glyphicon glyphicon-link"></span> LinkedIn
                         </a>
                     <?php endif; ?>

@@ -47,7 +47,8 @@ class Profile extends Controller {
             return new RedirectResponse($home);
         }
 
-        $profile = json_decode($profile_row['json']);
+        $json_string = $profile_row['json'] ?? '';
+        $profile = json_decode($json_string);
         if ( ! is_object($profile) ) $profile = new \stdClass();
 
         $themeId = 0;
@@ -262,7 +263,8 @@ Send me notification mail for important things like my assignment was graded.
             return new RedirectResponse($home);
         }
 
-        $profile = json_decode($profile_row['json']);
+        $json_string = $profile_row['json'] ?? '';
+        $profile = json_decode($json_string);
         if ( ! is_object($profile) ) $profile = new \stdClass();
 
         $profile->subscribe = $_POST['subscribe']+0 ;

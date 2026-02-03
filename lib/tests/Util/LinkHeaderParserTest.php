@@ -44,7 +44,7 @@ class LinkHeaderParserTest extends \PHPUnit\Framework\TestCase
      *
      * @return array test items
      */
-    public function basicDataProvider()
+    public static function basicDataProvider()
     {
         return [
             'rql' => [

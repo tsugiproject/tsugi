@@ -323,7 +323,7 @@ $CFG->badge_assert_salt = false; // "mediumlengthhexstring";
 
 // LinkedIn organization/company page URL (optional)
 // If set, displays a LinkedIn link on badge pages
-// $CFG->badge_linkedin_url = "https://www.linkedin.com/company/py4e/";
+// $CFG->linkedin_url = "https://www.linkedin.com/company/py4e/";
 
 // This folder contains the badge images - This example
 // is for Embedded Tsugi and the badge images are in the

@@ -23,14 +23,13 @@
     "require": {
         "php": ">=8.4.0",
         "phpseclib/phpseclib": "3.0.43",
-        "laravel/lumen-framework": "v11.2.0",
         "firebase/php-jwt" : "v6.11.1",
         "ezyang/htmlpurifier": "v4.18.0"
 
     },
     "require-dev": {
-        "phpunit/phpunit": "9.*",
-        "phpunit/php-timer": "v5.0.3"
+        "phpunit/phpunit": "^11.5.50",
+        "phpunit/php-timer": "^7.0"
     },
     "scripts": {
         "test": "./vendor/bin/phpunit --configuration phpunit.xml.dist"
