@@ -74,11 +74,11 @@ class Announcements extends Tool {
             }
         }
 
-        // If there are undismissed announcements, show only those
-        // If no undismissed announcements, show dismissed ones directly
-        $announcements = count($undismissed) > 0 ? $undismissed : $dismissed;
+        // Only show undismissed announcements in main list
+        // Dismissed announcements are shown separately via toggle button
+        $announcements = $undismissed;
         $dismissed_count = count($dismissed);
-        $show_dismissed_section = count($undismissed) > 0 && $dismissed_count > 0;
+        $show_dismissed_section = $dismissed_count > 0;
 
         return array(
             'all_announcements' => $all_announcements,
@@ -143,35 +143,37 @@ class Announcements extends Tool {
                 </span>
             </h1>
             
-            <?php if (count($announcements) == 0): ?>
+            <?php if (count($undismissed) > 1): ?>
+                <div class="alert alert-info">
+                    <div class="clearfix">
+                        <div class="pull-left" style="line-height: 34px;">
+                            <strong><?= count($undismissed) ?> unread announcements</strong>
+                        </div>
+                        <div class="pull-right">
+                            <button id="mark-all-read-btn" class="btn btn-sm btn-primary" data-url="<?= htmlspecialchars($mark_all_read_url) ?>">
+                                Mark All as Read
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+            
+            <?php if ($show_dismissed_section): ?>
+                <p class="text-muted">
+                    <button id="show-dismissed-btn" class="btn btn-sm btn-link" style="padding: 0;" data-dismissed-count="<?= $dismissed_count ?>">
+                        Show previously seen announcements (<?= $dismissed_count ?>)
+                    </button>
+                </p>
+            <?php endif; ?>
+            
+            <?php if (count($undismissed) == 0 && count($dismissed) == 0): ?>
                 <div class="alert alert-info">
                     <p>No announcements at this time.</p>
                 </div>
-            <?php else: ?>
-                <?php if (count($undismissed) > 1): ?>
-                    <div class="alert alert-info">
-                        <div class="clearfix">
-                            <div class="pull-left" style="line-height: 34px;">
-                                <strong><?= count($undismissed) ?> unread announcements</strong>
-                            </div>
-                            <div class="pull-right">
-                                <button id="mark-all-read-btn" class="btn btn-sm btn-primary" data-url="<?= htmlspecialchars($mark_all_read_url) ?>">
-                                    Mark All as Read
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                <?php endif; ?>
-                <?php if ($show_dismissed_section): ?>
-                    <p class="text-muted">
-                        Dismissed: (<?= $dismissed_count ?>)
-                        <button id="show-dismissed-btn" class="btn btn-sm btn-link" style="padding: 0; margin-left: 5px;">SHOW</button>
-                    </p>
-                <?php endif; ?>
-                
+            <?php elseif (count($announcements) > 0): ?>
                 <div id="announcements-list">
                     <?php foreach ($announcements as $announcement): ?>
-                        <div class="panel panel-default announcement-item <?= $announcement['dismissed'] ? 'dismissed' : '' ?>" 
+                        <div class="panel panel-default announcement-item" 
                              data-announcement-id="<?= htmlspecialchars($announcement['announcement_id']) ?>">
                             <div class="panel-heading">
                                 <div class="row">
@@ -182,13 +184,11 @@ class Announcements extends Tool {
                                     </div>
                                     <div class="col-xs-12 col-sm-4">
                                         <div style="text-align: right; margin-top: 5px;">
-                                            <?php if (!$announcement['dismissed']): ?>
-                                                <button class="btn btn-sm btn-primary mark-read-btn" 
-                                                        data-announcement-id="<?= htmlspecialchars($announcement['announcement_id']) ?>"
-                                                        data-url="<?= htmlspecialchars($dismiss_url) ?>">
-                                                    Mark as Read
-                                                </button>
-                                            <?php endif; ?>
+                                            <button class="btn btn-sm btn-primary mark-read-btn" 
+                                                    data-announcement-id="<?= htmlspecialchars($announcement['announcement_id']) ?>"
+                                                    data-url="<?= htmlspecialchars($dismiss_url) ?>">
+                                                Mark as Read
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -215,46 +215,45 @@ class Announcements extends Tool {
                             </div>
                         </div>
                     <?php endforeach; ?>
-                    
-                    <?php if ($show_dismissed_section): ?>
-                        <?php foreach ($dismissed as $announcement): ?>
-                            <div class="panel panel-default announcement-item dismissed dismissed-hidden" 
-                                 data-announcement-id="<?= htmlspecialchars($announcement['announcement_id']) ?>"
-                                 style="display: none;">
-                                <div class="panel-heading">
-                                    <div class="row">
-                                        <div class="col-xs-12 col-sm-8">
-                                            <h3 class="panel-title" style="margin-top: 0;">
-                                                <?= htmlspecialchars($announcement['title']) ?>
-                                            </h3>
-                                        </div>
-                                        <div class="col-xs-12 col-sm-4">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="panel-body">
-                                    <div class="announcement-text">
-                                        <?= nl2br(htmlspecialchars($announcement['text'])) ?>
-                                    </div>
-                                    <?php if (!empty($announcement['url'])): ?>
-                                        <p class="announcement-url">
-                                            <a href="<?= htmlspecialchars($announcement['url']) ?>" target="_blank" class="btn btn-link">
-                                                Learn more <span class="glyphicon glyphicon-new-window"></span>
-                                            </a>
-                                        </p>
-                                    <?php endif; ?>
-                                    <div class="text-muted small">
-                                        <em>
-                                            Posted <?= date('M j, Y g:i A', strtotime($announcement['created_at'])) ?>
-                                            <?php if ($announcement['creator_name']): ?>
-                                                by <?= htmlspecialchars($announcement['creator_name']) ?>
-                                            <?php endif; ?>
-                                        </em>
+                </div>
+            <?php endif; ?>
+            
+            <?php if ($show_dismissed_section): ?>
+                <div id="dismissed-announcements-list" style="display: none;">
+                    <?php foreach ($dismissed as $announcement): ?>
+                        <div class="panel panel-default announcement-item dismissed" 
+                             data-announcement-id="<?= htmlspecialchars($announcement['announcement_id']) ?>">
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-8">
+                                        <h3 class="panel-title" style="margin-top: 0;">
+                                            <?= htmlspecialchars($announcement['title']) ?>
+                                        </h3>
                                     </div>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                            <div class="panel-body">
+                                <div class="announcement-text">
+                                    <?= nl2br(htmlspecialchars($announcement['text'])) ?>
+                                </div>
+                                <?php if (!empty($announcement['url'])): ?>
+                                    <p class="announcement-url">
+                                        <a href="<?= htmlspecialchars($announcement['url']) ?>" target="_blank" class="btn btn-link">
+                                            Learn more <span class="glyphicon glyphicon-new-window"></span>
+                                        </a>
+                                    </p>
+                                <?php endif; ?>
+                                <div class="text-muted small">
+                                    <em>
+                                        Posted <?= date('M j, Y g:i A', strtotime($announcement['created_at'])) ?>
+                                        <?php if ($announcement['creator_name']): ?>
+                                            by <?= htmlspecialchars($announcement['creator_name']) ?>
+                                        <?php endif; ?>
+                                    </em>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             <?php endif; ?>
         </div>
@@ -301,23 +300,22 @@ class Announcements extends Tool {
         document.addEventListener('DOMContentLoaded', function() {
             var showDismissedBtn = document.getElementById('show-dismissed-btn');
             if (showDismissedBtn) {
-                var dismissedHidden = true;
-                showDismissedBtn.addEventListener('click', function() {
-                    var dismissedItems = document.querySelectorAll('.dismissed-hidden');
-                    if (dismissedHidden) {
-                        dismissedItems.forEach(function(item) {
-                            item.style.display = '';
-                        });
-                        showDismissedBtn.textContent = 'HIDE';
-                        dismissedHidden = false;
-                    } else {
-                        dismissedItems.forEach(function(item) {
-                            item.style.display = 'none';
-                        });
-                        showDismissedBtn.textContent = 'SHOW';
-                        dismissedHidden = true;
-                    }
-                });
+                var dismissedAnnouncementsList = document.getElementById('dismissed-announcements-list');
+                if (dismissedAnnouncementsList) {
+                    var dismissedCount = parseInt(showDismissedBtn.getAttribute('data-dismissed-count')) || 0;
+                    var dismissedHidden = true;
+                    showDismissedBtn.addEventListener('click', function() {
+                        if (dismissedHidden) {
+                            dismissedAnnouncementsList.style.display = '';
+                            showDismissedBtn.textContent = 'Hide previously seen announcements (' + dismissedCount + ')';
+                            dismissedHidden = false;
+                        } else {
+                            dismissedAnnouncementsList.style.display = 'none';
+                            showDismissedBtn.textContent = 'Show previously seen announcements (' + dismissedCount + ')';
+                            dismissedHidden = true;
+                        }
+                    });
+                }
             }
             
             // Mark as read button handler
@@ -342,11 +340,57 @@ class Announcements extends Tool {
                             item.classList.add('dismissed');
                             this.remove();
                             
-                            // Hide if there are undismissed items
-                            var undismissedItems = document.querySelectorAll('#announcements-list .announcement-item:not(.dismissed)');
-                            if (undismissedItems.length > 0) {
-                                item.classList.add('dismissed-hidden');
-                                item.style.display = 'none';
+                            // Move to dismissed announcements list
+                            var dismissedAnnouncementsList = document.getElementById('dismissed-announcements-list');
+                            if (dismissedAnnouncementsList) {
+                                dismissedAnnouncementsList.appendChild(item);
+                                var currentDismissedCount = dismissedAnnouncementsList.querySelectorAll('.announcement-item').length;
+                                var showDismissedBtn = document.getElementById('show-dismissed-btn');
+                                if (showDismissedBtn) {
+                                    showDismissedBtn.setAttribute('data-dismissed-count', currentDismissedCount);
+                                    var isHidden = showDismissedBtn.textContent.includes('Show');
+                                    showDismissedBtn.textContent = (isHidden ? 'Show' : 'Hide') + ' previously seen announcements (' + currentDismissedCount + ')';
+                                } else {
+                                    // Create the button if it doesn't exist
+                                    var p = document.createElement('p');
+                                    p.className = 'text-muted';
+                                    var newBtn = document.createElement('button');
+                                    newBtn.id = 'show-dismissed-btn';
+                                    newBtn.className = 'btn btn-sm btn-link';
+                                    newBtn.style.padding = '0';
+                                    newBtn.setAttribute('data-dismissed-count', currentDismissedCount);
+                                    newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
+                                    p.appendChild(newBtn);
+                                    var container = document.querySelector('.container');
+                                    var announcementsList = document.getElementById('announcements-list');
+                                    if (announcementsList) {
+                                        container.insertBefore(p, announcementsList);
+                                    } else {
+                                        container.appendChild(p);
+                                    }
+                                    // Create dismissed list if it doesn't exist
+                                    if (!dismissedAnnouncementsList) {
+                                        var dismissedDiv = document.createElement('div');
+                                        dismissedDiv.id = 'dismissed-announcements-list';
+                                        dismissedDiv.style.display = 'none';
+                                        container.appendChild(dismissedDiv);
+                                        dismissedAnnouncementsList = dismissedDiv;
+                                    }
+                                    dismissedAnnouncementsList.appendChild(item);
+                                    // Attach event listener
+                                    var dismissedHidden = true;
+                                    newBtn.addEventListener('click', function() {
+                                        if (dismissedHidden) {
+                                            dismissedAnnouncementsList.style.display = '';
+                                            newBtn.textContent = 'Hide previously seen announcements (' + currentDismissedCount + ')';
+                                            dismissedHidden = false;
+                                        } else {
+                                            dismissedAnnouncementsList.style.display = 'none';
+                                            newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
+                                            dismissedHidden = true;
+                                        }
+                                    });
+                                }
                             }
                             
                             updateDismissedCount(1);
@@ -373,36 +417,18 @@ class Announcements extends Tool {
             document.querySelectorAll('.mark-read-btn').forEach(attachReadHandler);
             
             function updateDismissedCount(change) {
-                var dismissedText = document.querySelector('.text-muted');
-                if (dismissedText && dismissedText.textContent.includes('Dismissed:')) {
-                    var match = dismissedText.textContent.match(/Dismissed: \((\d+)\)/);
+                var showDismissedBtn = document.getElementById('show-dismissed-btn');
+                if (showDismissedBtn) {
+                    var match = showDismissedBtn.textContent.match(/\((\d+)\)/);
                     if (match) {
                         var currentCount = parseInt(match[1]);
                         var newCount = Math.max(0, currentCount + change);
                         if (newCount === 0) {
-                            dismissedText.parentElement.style.display = 'none';
+                            showDismissedBtn.parentElement.style.display = 'none';
                         } else {
-                            dismissedText.innerHTML = 'Dismissed: (' + newCount + ') <button id="show-dismissed-btn" class="btn btn-sm btn-link" style="padding: 0; margin-left: 5px;">SHOW</button>';
-                            var newBtn = document.getElementById('show-dismissed-btn');
-                            if (newBtn) {
-                                var dismissedHidden = true;
-                                newBtn.addEventListener('click', function() {
-                                    var dismissedItems = document.querySelectorAll('.dismissed-hidden');
-                                    if (dismissedHidden) {
-                                        dismissedItems.forEach(function(item) {
-                                            item.style.display = '';
-                                        });
-                                        newBtn.textContent = 'HIDE';
-                                        dismissedHidden = false;
-                                    } else {
-                                        dismissedItems.forEach(function(item) {
-                                            item.style.display = 'none';
-                                        });
-                                        newBtn.textContent = 'SHOW';
-                                        dismissedHidden = true;
-                                    }
-                                });
-                            }
+                            showDismissedBtn.setAttribute('data-dismissed-count', newCount);
+                            var isHidden = showDismissedBtn.textContent.includes('Show');
+                            showDismissedBtn.textContent = (isHidden ? 'Show' : 'Hide') + ' previously seen announcements (' + newCount + ')';
                         }
                     }
                 }
@@ -420,26 +446,38 @@ class Announcements extends Tool {
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
-                            // Mark all undismissed items as dismissed
+                            // Mark all undismissed items as dismissed and move to dismissed list
                             var undismissedItems = document.querySelectorAll('#announcements-list .announcement-item:not(.dismissed)');
+                            var dismissedAnnouncementsList = document.getElementById('dismissed-announcements-list');
+                            
+                            if (!dismissedAnnouncementsList) {
+                                // Create dismissed list if it doesn't exist
+                                var dismissedDiv = document.createElement('div');
+                                dismissedDiv.id = 'dismissed-announcements-list';
+                                dismissedDiv.style.display = 'none';
+                                var container = document.querySelector('.container');
+                                container.appendChild(dismissedDiv);
+                                dismissedAnnouncementsList = dismissedDiv;
+                            }
+                            
                             undismissedItems.forEach(function(item) {
                                 item.classList.add('dismissed');
                                 var readBtn = item.querySelector('.mark-read-btn');
                                 if (readBtn) {
                                     readBtn.remove();
                                 }
-                                
-                                // Hide the item if there are other undismissed items
-                                var remainingUndismissed = document.querySelectorAll('#announcements-list .announcement-item:not(.dismissed)');
-                                if (remainingUndismissed.length === 0) {
-                                    item.classList.add('dismissed-hidden');
-                                    item.style.display = 'none';
-                                }
+                                dismissedAnnouncementsList.appendChild(item);
                             });
                             
                             // Hide the "Mark all as read" alert
                             var alertEl = markAllReadBtn.closest('.alert-info');
                             if (alertEl) alertEl.style.display = 'none';
+                            
+                            // Hide the announcements list if empty
+                            var announcementsList = document.getElementById('announcements-list');
+                            if (announcementsList && announcementsList.querySelectorAll('.announcement-item:not(.dismissed)').length === 0) {
+                                announcementsList.style.display = 'none';
+                            }
                             
                             // Notify web component to refresh badge
                             if ('BroadcastChannel' in window) {
@@ -452,96 +490,43 @@ class Announcements extends Tool {
                             
                             // Update dismissed count
                             var dismissedCount = data.dismissed_count || undismissedItems.length;
-                            var dismissedText = document.querySelector('.text-muted');
-                            if (dismissedText && dismissedText.textContent.includes('Dismissed:')) {
-                                var match = dismissedText.textContent.match(/Dismissed: \((\d+)\)/);
-                                if (match) {
-                                    var currentCount = parseInt(match[1]);
-                                    var newCount = currentCount + dismissedCount;
-                                    dismissedText.innerHTML = 'Dismissed: (' + newCount + ') <button id="show-dismissed-btn" class="btn btn-sm btn-link" style="padding: 0; margin-left: 5px;">SHOW</button>';
-                                    
-                                    // Re-attach show button handler
-                                    var showBtn = document.getElementById('show-dismissed-btn');
-                                    if (showBtn) {
-                                        var dismissedHidden = true;
-                                        showBtn.addEventListener('click', function() {
-                                            var dismissedItems = document.querySelectorAll('.dismissed-hidden');
-                                            if (dismissedHidden) {
-                                                dismissedItems.forEach(function(item) {
-                                                    item.style.display = '';
-                                                });
-                                                showBtn.textContent = 'HIDE';
-                                                dismissedHidden = false;
-                                            } else {
-                                                dismissedItems.forEach(function(item) {
-                                                    item.style.display = 'none';
-                                                });
-                                                showBtn.textContent = 'SHOW';
-                                                dismissedHidden = true;
-                                            }
-                                        });
-                                    }
-                                } else {
-                                    // Create dismissed section if it doesn't exist
-                                    var announcementsList = document.getElementById('announcements-list');
-                                    if (announcementsList && dismissedCount > 0) {
-                                        var dismissedP = document.createElement('p');
-                                        dismissedP.className = 'text-muted';
-                                        dismissedP.innerHTML = 'Dismissed: (' + dismissedCount + ') <button id="show-dismissed-btn" class="btn btn-sm btn-link" style="padding: 0; margin-left: 5px;">SHOW</button>';
-                                        announcementsList.parentElement.insertBefore(dismissedP, announcementsList);
-                                        
-                                        var showBtn = document.getElementById('show-dismissed-btn');
-                                        if (showBtn) {
-                                            var dismissedHidden = true;
-                                            showBtn.addEventListener('click', function() {
-                                                var dismissedItems = document.querySelectorAll('.dismissed-hidden');
-                                                if (dismissedHidden) {
-                                                    dismissedItems.forEach(function(item) {
-                                                        item.style.display = '';
-                                                    });
-                                                    showBtn.textContent = 'HIDE';
-                                                    dismissedHidden = false;
-                                                } else {
-                                                    dismissedItems.forEach(function(item) {
-                                                        item.style.display = 'none';
-                                                    });
-                                                    showBtn.textContent = 'SHOW';
-                                                    dismissedHidden = true;
-                                                }
-                                            });
-                                        }
-                                    }
-                                }
-                            } else if (dismissedCount > 0) {
+                            var currentDismissedCount = dismissedAnnouncementsList.querySelectorAll('.announcement-item').length;
+                            var showDismissedBtn = document.getElementById('show-dismissed-btn');
+                            if (showDismissedBtn) {
+                                showDismissedBtn.setAttribute('data-dismissed-count', currentDismissedCount);
+                                var isHidden = showDismissedBtn.textContent.includes('Show');
+                                showDismissedBtn.textContent = (isHidden ? 'Show' : 'Hide') + ' previously seen announcements (' + currentDismissedCount + ')';
+                            } else {
                                 // Create dismissed section if it doesn't exist
+                                var dismissedP = document.createElement('p');
+                                dismissedP.className = 'text-muted';
+                                var newBtn = document.createElement('button');
+                                newBtn.id = 'show-dismissed-btn';
+                                newBtn.className = 'btn btn-sm btn-link';
+                                newBtn.style.padding = '0';
+                                newBtn.setAttribute('data-dismissed-count', currentDismissedCount);
+                                newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
+                                dismissedP.appendChild(newBtn);
+                                var container = document.querySelector('.container');
                                 var announcementsList = document.getElementById('announcements-list');
                                 if (announcementsList) {
-                                    var dismissedP = document.createElement('p');
-                                    dismissedP.className = 'text-muted';
-                                    dismissedP.innerHTML = 'Dismissed: (' + dismissedCount + ') <button id="show-dismissed-btn" class="btn btn-sm btn-link" style="padding: 0; margin-left: 5px;">SHOW</button>';
-                                    announcementsList.parentElement.insertBefore(dismissedP, announcementsList);
-                                    
-                                    var showBtn = document.getElementById('show-dismissed-btn');
-                                    if (showBtn) {
-                                        var dismissedHidden = true;
-                                        showBtn.addEventListener('click', function() {
-                                            var dismissedItems = document.querySelectorAll('.dismissed-hidden');
-                                            if (dismissedHidden) {
-                                                dismissedItems.forEach(function(item) {
-                                                    item.style.display = '';
-                                                });
-                                                showBtn.textContent = 'HIDE';
-                                                dismissedHidden = false;
-                                            } else {
-                                                dismissedItems.forEach(function(item) {
-                                                    item.style.display = 'none';
-                                                });
-                                                showBtn.textContent = 'SHOW';
-                                                dismissedHidden = true;
-                                            }
-                                        });
-                                    }
+                                    container.insertBefore(dismissedP, announcementsList);
+                                } else {
+                                    container.appendChild(dismissedP);
                                 }
+                                // Attach event listener
+                                var dismissedHidden = true;
+                                newBtn.addEventListener('click', function() {
+                                    if (dismissedHidden) {
+                                        dismissedAnnouncementsList.style.display = '';
+                                        newBtn.textContent = 'Hide previously seen announcements (' + currentDismissedCount + ')';
+                                        dismissedHidden = false;
+                                    } else {
+                                        dismissedAnnouncementsList.style.display = 'none';
+                                        newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
+                                        dismissedHidden = true;
+                                    }
+                                });
                             }
                         } else {
                             alert('Error marking all announcements as read: ' + (data.detail || 'Unknown error'));

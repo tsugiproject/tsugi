@@ -48,8 +48,23 @@ class Notifications extends Tool {
         $this->lmsRecordLaunchAnalytics(self::ROUTE, self::NAME);
 
         // Get notifications for user (most recent first)
-        $notifications = NotificationsService::getForUser($user_id, false, 0);
+        $all_notifications = NotificationsService::getForUser($user_id, false, 0);
         $unread_count = NotificationsService::getUnreadCount($user_id);
+        
+        // Separate unread and read notifications
+        $unread_notifications = array();
+        $read_notifications = array();
+        foreach ($all_notifications as $notification) {
+            if ($notification['read_at']) {
+                $read_notifications[] = $notification;
+            } else {
+                $unread_notifications[] = $notification;
+            }
+        }
+        
+        // Only show unread notifications by default
+        $notifications = $unread_notifications;
+        $read_count = count($read_notifications);
 
         // Check if service worker is enabled and VAPID keys are configured
         $service_worker_enabled = isset($CFG->service_worker) && $CFG->service_worker;
@@ -110,35 +125,77 @@ class Notifications extends Tool {
                 </div>
             <?php endif; ?>
             
-            <?php if (empty($notifications)): ?>
+            <?php if ($read_count > 0): ?>
+                <p class="text-muted">
+                    <button id="show-read-btn" class="btn btn-sm btn-link" style="padding: 0;" data-read-count="<?= $read_count ?>">
+                        Show previously seen notifications (<?= $read_count ?>)
+                    </button>
+                </p>
+            <?php endif; ?>
+            
+            <?php if (empty($unread_notifications) && empty($read_notifications)): ?>
                 <div class="alert alert-info">
                     <p>No notifications at this time.</p>
                 </div>
-            <?php else: ?>
+            <?php elseif (!empty($notifications)): ?>
                 <div id="notifications-list">
                     <?php foreach ($notifications as $notification): ?>
-                        <div class="panel panel-default notification-item <?= $notification['read_at'] ? 'read' : 'unread' ?>" 
+                        <div class="panel panel-default notification-item unread" 
                              data-notification-id="<?= htmlspecialchars($notification['notification_id']) ?>">
                             <div class="panel-heading">
                                 <div class="row">
                                     <div class="col-xs-12 col-sm-8">
                                         <h3 class="panel-title" style="margin-top: 0;">
-                                            <?php if (!$notification['read_at']): ?>
-                                                <span class="badge" style="background: #d9534f; margin-right: 10px;">New</span>
-                                            <?php endif; ?>
+                                            <span class="badge" style="background: #d9534f; margin-right: 10px;">New</span>
                                             <?= htmlspecialchars($notification['title']) ?>
                                         </h3>
                                     </div>
                                     <div class="col-xs-12 col-sm-4">
                                         <div style="text-align: right; margin-top: 5px;">
-                                            <?php if (!$notification['read_at']): ?>
-                                                <button class="btn btn-sm btn-primary mark-read-btn" 
-                                                        data-notification-id="<?= htmlspecialchars($notification['notification_id']) ?>"
-                                                        data-url="<?= htmlspecialchars($mark_read_url) ?>">
-                                                    Mark as Read
-                                                </button>
-                                            <?php endif; ?>
+                                            <button class="btn btn-sm btn-primary mark-read-btn" 
+                                                    data-notification-id="<?= htmlspecialchars($notification['notification_id']) ?>"
+                                                    data-url="<?= htmlspecialchars($mark_read_url) ?>">
+                                                Mark as Read
+                                            </button>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                                <?php if (!empty($notification['text'])): ?>
+                                <div class="notification-text">
+                                    <?= nl2br(htmlspecialchars($notification['text'])) ?>
+                                </div>
+                                <?php endif; ?>
+                                <?php if (!empty($notification['url'])): ?>
+                                    <p class="notification-url" style="margin-top: 10px;">
+                                        <a href="<?= htmlspecialchars($notification['url']) ?>" target="_blank" class="btn btn-link">
+                                            Notification Source <span class="glyphicon glyphicon-new-window"></span>
+                                        </a>
+                                    </p>
+                                <?php endif; ?>
+                                <div class="text-muted small">
+                                    <em>
+                                        <?= date('M j, Y g:i A', strtotime($notification['created_at'])) ?>
+                                    </em>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+            
+            <?php if ($read_count > 0): ?>
+                <div id="read-notifications-list" style="display: none;">
+                    <?php foreach ($read_notifications as $notification): ?>
+                        <div class="panel panel-default notification-item read" 
+                             data-notification-id="<?= htmlspecialchars($notification['notification_id']) ?>">
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-8">
+                                        <h3 class="panel-title" style="margin-top: 0;">
+                                            <?= htmlspecialchars($notification['title']) ?>
+                                        </h3>
                                     </div>
                                 </div>
                             </div>
@@ -173,6 +230,17 @@ class Notifications extends Tool {
         }
         .notification-item.read {
             opacity: 0.7;
+            border-left: 4px solid #5cb85c;
+        }
+        .notification-item.read .panel-heading {
+            background-color: #f0f8f0;
+        }
+        #read-notifications-list .notification-item {
+            opacity: 0.7;
+            border-left: 4px solid #5cb85c;
+        }
+        #read-notifications-list .notification-item .panel-heading {
+            background-color: #f0f8f0;
         }
         
         /* Button actions - horizontal with wrapping */
@@ -223,6 +291,27 @@ class Notifications extends Tool {
 
         <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Show/hide read notifications
+            var showReadBtn = document.getElementById('show-read-btn');
+            if (showReadBtn) {
+                var readNotificationsList = document.getElementById('read-notifications-list');
+                if (readNotificationsList) {
+                    var readCount = parseInt(showReadBtn.getAttribute('data-read-count')) || 0;
+                    var readHidden = true;
+                    showReadBtn.addEventListener('click', function() {
+                        if (readHidden) {
+                            readNotificationsList.style.display = '';
+                            showReadBtn.textContent = 'Hide previously seen notifications (' + readCount + ')';
+                            readHidden = false;
+                        } else {
+                            readNotificationsList.style.display = 'none';
+                            showReadBtn.textContent = 'Show previously seen notifications (' + readCount + ')';
+                            readHidden = true;
+                        }
+                    });
+                }
+            }
+            
             // Mark individual notification as read
             document.querySelectorAll('.mark-read-btn').forEach(function(btn) {
                 btn.addEventListener('click', function() {
@@ -246,6 +335,58 @@ class Notifications extends Tool {
                             if (badge) badge.remove();
                             var btn = item.querySelector('.mark-read-btn');
                             if (btn) btn.remove();
+                            // Move notification to read section
+                            item.classList.remove('unread');
+                            item.classList.add('read');
+                            var badge = item.querySelector('.badge');
+                            if (badge) badge.remove();
+                            var btn = item.querySelector('.mark-read-btn');
+                            if (btn) btn.remove();
+                            
+                            // Move to read notifications list
+                            var readNotificationsList = document.getElementById('read-notifications-list');
+                            if (readNotificationsList) {
+                                readNotificationsList.appendChild(item);
+                                var currentReadCount = readNotificationsList.querySelectorAll('.notification-item').length;
+                                var showReadBtn = document.getElementById('show-read-btn');
+                                if (showReadBtn) {
+                                    showReadBtn.setAttribute('data-read-count', currentReadCount);
+                                    var isHidden = showReadBtn.textContent.includes('Show');
+                                    showReadBtn.textContent = (isHidden ? 'Show' : 'Hide') + ' previously seen notifications (' + currentReadCount + ')';
+                                } else {
+                                    // Create the button if it doesn't exist
+                                    var p = document.createElement('p');
+                                    p.className = 'text-muted';
+                                    var newBtn = document.createElement('button');
+                                    newBtn.id = 'show-read-btn';
+                                    newBtn.className = 'btn btn-sm btn-link';
+                                    newBtn.style.padding = '0';
+                                    newBtn.setAttribute('data-read-count', currentReadCount);
+                                    newBtn.textContent = 'Show previously seen notifications (' + currentReadCount + ')';
+                                    p.appendChild(newBtn);
+                                    var container = document.querySelector('.container');
+                                    var notificationsList = document.getElementById('notifications-list');
+                                    if (notificationsList) {
+                                        container.insertBefore(p, notificationsList);
+                                    } else {
+                                        container.appendChild(p);
+                                    }
+                                    // Attach event listener
+                                    var readHidden = true;
+                                    newBtn.addEventListener('click', function() {
+                                        if (readHidden) {
+                                            readNotificationsList.style.display = '';
+                                            newBtn.textContent = 'Hide previously seen notifications (' + currentReadCount + ')';
+                                            readHidden = false;
+                                        } else {
+                                            readNotificationsList.style.display = 'none';
+                                            newBtn.textContent = 'Show previously seen notifications (' + currentReadCount + ')';
+                                            readHidden = true;
+                                        }
+                                    });
+                                }
+                            }
+                            
                             // Update unread count without reload
                             var unreadCountEl = document.querySelector('.alert-info strong');
                             if (unreadCountEl) {
@@ -260,6 +401,7 @@ class Notifications extends Tool {
                                     }
                                 }
                             }
+                            
                             // Notify web component to refresh badge
                             if ('BroadcastChannel' in window) {
                                 const channel = new BroadcastChannel('notifications-updates');
