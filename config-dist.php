@@ -258,6 +258,13 @@ $CFG->google_translate = false;
 // Defaults to 900 seconds (15 minutes). Set to 0 to disable de-duplication.
 // $CFG->notification_dedupe_window = 900;
 
+// Notification expiration period (in days)
+// Notifications older than this number of days will be automatically deleted
+// during opportunistic cleanup operations. Cleanup runs when notifications are
+// accessed, but at most once per hour to avoid performance impact.
+// Defaults to 30 days (1 month). Set to 0 to disable expiration.
+// $CFG->notification_expiration_days = 30;
+
 // VAPID keys for push notifications
 // VAPID (Voluntary Application Server Identification) keys are required for web push notifications.
 // These keys identify your server to push notification services.

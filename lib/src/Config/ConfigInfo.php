@@ -727,6 +727,20 @@ class ConfigInfo {
     public $notification_dedupe_window = 900;
 
     /**
+     * Notification expiration period (in days)
+     *
+     * Notifications older than this number of days will be automatically deleted
+     * during opportunistic cleanup operations. Cleanup runs when notifications are
+     * accessed, but at most once per hour to avoid performance impact.
+     *
+     * Defaults to 30 days (1 month). Set to 0 to disable expiration.
+     *
+     * Example:
+     *     $CFG->notification_expiration_days = 30; // 1 month
+     */
+    public $notification_expiration_days = 30;
+
+    /**
      * VAPID keys for push notifications
      *
      * VAPID (Voluntary Application Server Identification) keys are required

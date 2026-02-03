@@ -3,6 +3,7 @@
 namespace Tsugi\Util;
 
 use Tsugi\Core\LTIX;
+use Tsugi\Core\Cache;
 
 /**
  * NotificationsService - Utility class for managing user notifications
@@ -92,7 +93,6 @@ class NotificationsService {
                         return false;
                     }
                     
-                    error_log("NotificationsService::create - Updated existing notification (dedupe_key=$dedupe_key, notification_id=$notification_id, user_id=$user_id)");
                     return self::getById($notification_id);
                 }
             }
@@ -185,6 +185,11 @@ class NotificationsService {
         
         if (empty($user_id)) {
             return array();
+        }
+        
+        // Opportunistic cleanup - check if old notifications should be deleted
+        if (isset($CFG->notification_expiration_days) && $CFG->notification_expiration_days > 0) {
+            self::cleanupOldNotifications($CFG->notification_expiration_days);
         }
         
         LTIX::getConnection();
@@ -332,5 +337,77 @@ class NotificationsService {
             $parts[] = $additional;
         }
         return implode('-', $parts);
+    }
+    
+    /**
+     * Clean up old notifications (older than configured expiration days)
+     * 
+     * Uses opportunistic cleanup - only runs if cleanup hasn't run recently
+     * to avoid performance impact. This method is called automatically when
+     * notifications are fetched, but can also be called manually.
+     * 
+     * @param int $expiration_days Number of days after which to expire notifications (default: 30)
+     * @param int $min_interval_seconds Minimum seconds between cleanup runs (default: 3600 = 1 hour)
+     * @return array|false Returns array with cleanup stats on success, false if skipped or failed
+     */
+    public static function cleanupOldNotifications($expiration_days = 30, $min_interval_seconds = 3600) {
+        global $PDOX, $CFG;
+        
+        if ($expiration_days <= 0) {
+            // Expiration disabled
+            return false;
+        }
+        
+        LTIX::getConnection();
+        
+        // Check if cleanup was run recently using cache (avoid running too frequently)
+        $last_cleanup_key = 'notification_cleanup';
+        $cache_key = 'last_run';
+        $last_cleanup = Cache::check($last_cleanup_key, $cache_key);
+        
+        if ($last_cleanup !== false) {
+            $now = time();
+            if (($now - $last_cleanup) < $min_interval_seconds) {
+                // Cleanup ran recently, skip this time
+                return false;
+            }
+        }
+        
+        $p = $CFG->dbprefix;
+        
+        // Count notifications that will be deleted (for logging)
+        $count_sql = "SELECT COUNT(*) AS count 
+                      FROM {$p}notification 
+                      WHERE created_at < DATE_SUB(NOW(), INTERVAL :days DAY)";
+        $count_row = $PDOX->rowDie($count_sql, array(':days' => $expiration_days));
+        $count_to_delete = $count_row ? intval($count_row['count']) : 0;
+        
+        if ($count_to_delete == 0) {
+            // No notifications to delete, update timestamp and return
+            Cache::set($last_cleanup_key, $cache_key, time(), 7200); // Cache for 2 hours
+            return array('deleted' => 0, 'skipped' => true);
+        }
+        
+        // Delete old notifications
+        $delete_sql = "DELETE FROM {$p}notification 
+                       WHERE created_at < DATE_SUB(NOW(), INTERVAL :days DAY)";
+        $q = $PDOX->queryReturnError($delete_sql, array(':days' => $expiration_days));
+        
+        if (!$q->success) {
+            error_log("NotificationsService::cleanupOldNotifications - Database error: " . $q->errorImplode);
+            return false;
+        }
+        
+        // Update last cleanup timestamp in cache (expires in 2 hours)
+        Cache::set($last_cleanup_key, $cache_key, time(), 7200);
+        
+        $deleted_count = $q->rowCount();
+        error_log("NotificationsService::cleanupOldNotifications - Deleted $deleted_count notification(s) older than $expiration_days days");
+        
+        return array(
+            'deleted' => $deleted_count,
+            'skipped' => false,
+            'expiration_days' => $expiration_days
+        );
     }
 }
