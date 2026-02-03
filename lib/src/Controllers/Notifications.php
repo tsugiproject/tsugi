@@ -260,6 +260,14 @@ class Notifications extends Tool {
                                     }
                                 }
                             }
+                            // Notify web component to refresh badge
+                            if ('BroadcastChannel' in window) {
+                                const channel = new BroadcastChannel('notifications-updates');
+                                channel.postMessage({type: 'notification-read'});
+                                channel.close();
+                            }
+                            // Also dispatch custom event for compatibility
+                            document.dispatchEvent(new CustomEvent('notification-read'));
                         } else {
                             alert('Error marking notification as read: ' + (data.detail || 'Unknown error'));
                         }
@@ -282,6 +290,14 @@ class Notifications extends Tool {
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
+                            // Notify web component to refresh badge before reload
+                            if ('BroadcastChannel' in window) {
+                                const channel = new BroadcastChannel('notifications-updates');
+                                channel.postMessage({type: 'notifications-all-read'});
+                                channel.close();
+                            }
+                            // Also dispatch custom event for compatibility
+                            document.dispatchEvent(new CustomEvent('notifications-all-read'));
                             window.location.reload();
                         } else {
                             alert('Error marking all as read: ' + (data.detail || 'Unknown error'));

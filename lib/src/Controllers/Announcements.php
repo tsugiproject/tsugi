@@ -350,6 +350,15 @@ class Announcements extends Tool {
                             }
                             
                             updateDismissedCount(1);
+                            
+                            // Notify web component to refresh badge
+                            if ('BroadcastChannel' in window) {
+                                const channel = new BroadcastChannel('announcements-updates');
+                                channel.postMessage({type: 'announcement-dismissed'});
+                                channel.close();
+                            }
+                            // Also dispatch custom event for compatibility
+                            document.dispatchEvent(new CustomEvent('announcement-dismissed'));
                         } else {
                             alert('Error marking announcement as read: ' + (data.detail || 'Unknown error'));
                         }
@@ -431,6 +440,15 @@ class Announcements extends Tool {
                             // Hide the "Mark all as read" alert
                             var alertEl = markAllReadBtn.closest('.alert-info');
                             if (alertEl) alertEl.style.display = 'none';
+                            
+                            // Notify web component to refresh badge
+                            if ('BroadcastChannel' in window) {
+                                const channel = new BroadcastChannel('announcements-updates');
+                                channel.postMessage({type: 'announcements-all-dismissed'});
+                                channel.close();
+                            }
+                            // Also dispatch custom event for compatibility
+                            document.dispatchEvent(new CustomEvent('announcements-all-dismissed'));
                             
                             // Update dismissed count
                             var dismissedCount = data.dismissed_count || undismissedItems.length;
