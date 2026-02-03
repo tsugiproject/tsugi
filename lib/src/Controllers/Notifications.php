@@ -306,6 +306,40 @@ class Notifications extends Tool {
         // Record analytics
         $this->lmsRecordLaunchAnalytics(self::ROUTE . '/configure-push', self::NAME . ' - Configure Push');
 
+        // Check if VAPID keys are configured
+        $vapid_configured = !empty($CFG->vapid_public_key) && !empty($CFG->vapid_private_key);
+        
+        if (!$vapid_configured) {
+            $tool_home = $this->toolHome(self::ROUTE);
+            $back_url = $tool_home;
+            
+            $OUTPUT->header();
+            $OUTPUT->bodyStart();
+            $OUTPUT->topNav();
+            $OUTPUT->flashMessages();
+            ?>
+            <div class="container">
+                <h1>Configure Push Notifications
+                    <span class="pull-right">
+                        <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default">Back to Notifications</a>
+                    </span>
+                </h1>
+                
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="alert alert-warning">
+                            <h4>Push Notifications Not Configured</h4>
+                            <p>Push notifications are not available because VAPID keys have not been configured.</p>
+                            <p>Please contact your system administrator to configure VAPID keys in the configuration file.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php
+            $OUTPUT->footer();
+            return;
+        }
+
         // Check if user has active subscriptions (can have multiple - one per browser)
         $subscriptions = $this->getUserSubscriptions($user_id);
         $hasSubscription = !empty($subscriptions);
