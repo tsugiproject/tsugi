@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use \Tsugi\UI\GoogleLoginHandler;
 use Tsugi\Lumen\Application;
 
-class Login extends Controller {
+class Login extends Tool {
 
     const ROUTE = '/login';
 
@@ -34,14 +34,16 @@ class Login extends Controller {
         }
 
         // Process login with redirect callback
-        $result = GoogleLoginHandler::processLogin($come_back, function($result) {
+        // Capture parent path before closure so we can use it inside
+        $parentPath = $this->toolParent(self::ROUTE);
+        $result = GoogleLoginHandler::processLogin($come_back, function($result) use ($parentPath) {
             global $CFG;
             if ( isset($_SESSION['login_return']) ) {
                 $url = $_SESSION['login_return'];
                 unset($_SESSION['login_return']);
                 return $url;
             } else if ( $result->did_insert ) {
-                return $CFG->wwwroot.'/profile.php';
+                return $parentPath . '/profile';
             } else {
                 return isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
             }
