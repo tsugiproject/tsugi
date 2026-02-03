@@ -713,6 +713,20 @@ class ConfigInfo {
     public $service_worker = false;
 
     /**
+     * Notification de-duplication time window (in seconds)
+     *
+     * When two notifications with the same dedupe_key are created for the same user
+     * within this time window, the second will update the first instead of creating
+     * a new notification.
+     *
+     * Defaults to 900 seconds (15 minutes). Set to 0 to disable de-duplication.
+     *
+     * Example:
+     *     $CFG->notification_dedupe_window = 900; // 15 minutes
+     */
+    public $notification_dedupe_window = 900;
+
+    /**
      * VAPID keys for push notifications
      *
      * VAPID (Voluntary Application Server Identification) keys are required

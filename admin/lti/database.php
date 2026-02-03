@@ -731,12 +731,14 @@ array( "{$CFG->dbprefix}notification",
     text                TEXT NULL,
     url                 VARCHAR(2048) NULL,
     json                MEDIUMTEXT NULL,
+    dedupe_key          VARCHAR(255) NULL,
     read_at             TIMESTAMP NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `{$CFG->dbprefix}notification_const_pk` PRIMARY KEY (notification_id),
     KEY `{$CFG->dbprefix}notification_idx_user_id` (user_id),
     KEY `{$CFG->dbprefix}notification_idx_user_read` (user_id, read_at),
+    KEY `{$CFG->dbprefix}notification_idx_dedupe` (user_id, dedupe_key, created_at),
     CONSTRAINT `{$CFG->dbprefix}notification_ibfk_1`
         FOREIGN KEY (`user_id`)
         REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
@@ -890,6 +892,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         // 2024-09-17
         array('lti_result', 'attempts', 'INTEGER NULL'),
         array('lti_result', 'attempted_at', 'TIMESTAMP NULL'),
+
+        // 2025-02-02 - Add dedupe_key for notification de-duplication
+        array('notification', 'dedupe_key', 'VARCHAR(255) NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -1297,6 +1302,25 @@ $DATABASE_UPGRADE = function($oldversion) {
     
     foreach($indexes_to_create as $index_name => $sql) {
         if ( ! $PDOX->indexExists($index_name, "{$CFG->dbprefix}lti_result") ) {
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) {
+                $message = "Non-Fatal error creating index: ".$q->errorImplode;
+                error_log($message);
+                echo($message."<br/>\n");
+            }
+        }
+    }
+
+    // 2025-02-02 - Add dedupe index for notification de-duplication
+    $notification_indexes = array(
+        "{$CFG->dbprefix}notification_idx_dedupe" =>
+            "CREATE INDEX `{$CFG->dbprefix}notification_idx_dedupe` ON {$CFG->dbprefix}notification (user_id, dedupe_key, created_at)"
+    );
+    
+    foreach($notification_indexes as $index_name => $sql) {
+        if ( ! $PDOX->indexExists($index_name, "{$CFG->dbprefix}notification") ) {
             echo("Upgrading: ".$sql."<br/>\n");
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryReturnError($sql);

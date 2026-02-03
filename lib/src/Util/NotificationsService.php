@@ -19,9 +19,10 @@ class NotificationsService {
      * @param string|null $text Notification text/content (optional)
      * @param string|null $url Optional URL to link to
      * @param array|object|null $json Optional JSON data to store
+     * @param string|null $dedupe_key Optional deduplication key - if provided, notifications with the same key for the same user will be de-duplicated within the time window
      * @return array|false Returns notification data on success, false on failure
      */
-    public static function create($user_id, $title, $text = null, $url = null, $json = null) {
+    public static function create($user_id, $title, $text = null, $url = null, $json = null, $dedupe_key = null) {
         global $PDOX, $CFG;
         
         if (empty($user_id) || empty($title)) {
@@ -36,9 +37,71 @@ class NotificationsService {
         LTIX::getConnection();
         
         $p = $CFG->dbprefix;
+        
+        // Check for existing unread notification with same dedupe_key within time window
+        if (!empty($dedupe_key)) {
+            $dedupe_window = isset($CFG->notification_dedupe_window) ? intval($CFG->notification_dedupe_window) : 900;
+            
+            if ($dedupe_window > 0) {
+                // Look for existing unread notification with same dedupe_key within time window
+                $find_sql = "SELECT notification_id 
+                            FROM {$p}notification 
+                            WHERE user_id = :user_id 
+                              AND dedupe_key = :dedupe_key 
+                              AND dedupe_key IS NOT NULL
+                              AND read_at IS NULL
+                              AND created_at >= DATE_SUB(NOW(), INTERVAL :window_seconds SECOND)
+                            ORDER BY created_at DESC 
+                            LIMIT 1";
+                
+                $existing = $PDOX->rowDie($find_sql, array(
+                    ':user_id' => $user_id,
+                    ':dedupe_key' => $dedupe_key,
+                    ':window_seconds' => $dedupe_window
+                ));
+                
+                if ($existing && !empty($existing['notification_id'])) {
+                    // Update existing notification instead of creating new one
+                    $notification_id = intval($existing['notification_id']);
+                    
+                    // Convert json array/object to string if provided
+                    $json_value = null;
+                    if ($json !== null) {
+                        $json_value = is_string($json) ? $json : json_encode($json);
+                    }
+                    
+                    $update_sql = "UPDATE {$p}notification 
+                                  SET title = :title,
+                                      text = :text,
+                                      url = :url,
+                                      json = :json,
+                                      updated_at = NOW()
+                                  WHERE notification_id = :notification_id";
+                    
+                    $update_values = array(
+                        ':notification_id' => $notification_id,
+                        ':title' => $title,
+                        ':text' => $text,
+                        ':url' => $url,
+                        ':json' => $json_value
+                    );
+                    
+                    $q = $PDOX->queryReturnError($update_sql, $update_values);
+                    if (!$q->success) {
+                        error_log("NotificationsService::create - Database error updating notification: " . $q->errorImplode);
+                        return false;
+                    }
+                    
+                    error_log("NotificationsService::create - Updated existing notification (dedupe_key=$dedupe_key, notification_id=$notification_id, user_id=$user_id)");
+                    return self::getById($notification_id);
+                }
+            }
+        }
+        
+        // No existing notification found (or dedupe disabled), create new one
         $sql = "INSERT INTO {$p}notification 
-                (user_id, title, text, url, json, created_at, updated_at)
-                VALUES (:user_id, :title, :text, :url, :json, NOW(), NOW())";
+                (user_id, title, text, url, json, dedupe_key, created_at, updated_at)
+                VALUES (:user_id, :title, :text, :url, :json, :dedupe_key, NOW(), NOW())";
         
         // Convert json array/object to string if provided
         $json_value = null;
@@ -51,7 +114,8 @@ class NotificationsService {
             ':title' => $title,
             ':text' => $text,
             ':url' => $url,
-            ':json' => $json_value
+            ':json' => $json_value,
+            ':dedupe_key' => $dedupe_key
         );
         
         $q = $PDOX->queryReturnError($sql, $values);
@@ -100,7 +164,7 @@ class NotificationsService {
         LTIX::getConnection();
         
         $p = $CFG->dbprefix;
-        $sql = "SELECT notification_id, user_id, title, text, url, json, read_at, created_at, updated_at
+        $sql = "SELECT notification_id, user_id, title, text, url, json, dedupe_key, read_at, created_at, updated_at
                 FROM {$p}notification
                 WHERE notification_id = :notification_id";
         
@@ -126,7 +190,7 @@ class NotificationsService {
         LTIX::getConnection();
         
         $p = $CFG->dbprefix;
-        $sql = "SELECT notification_id, user_id, title, text, url, json, read_at, created_at, updated_at
+        $sql = "SELECT notification_id, user_id, title, text, url, json, dedupe_key, read_at, created_at, updated_at
                 FROM {$p}notification
                 WHERE user_id = :user_id";
         
@@ -248,5 +312,25 @@ class NotificationsService {
         ));
         
         return $q->success;
+    }
+    
+    /**
+     * Generate a dedupe key for a notification
+     * 
+     * @param string $source Source identifier (e.g., 'peer-grade', 'aipaper-comment')
+     * @param int $user_id User ID
+     * @param int|null $link_id Optional link/assignment ID
+     * @param string|null $additional Optional additional identifier
+     * @return string Dedupe key
+     */
+    public static function generateDedupeKey($source, $user_id, $link_id = null, $additional = null) {
+        $parts = array($source, $user_id);
+        if ($link_id !== null) {
+            $parts[] = $link_id;
+        }
+        if ($additional !== null) {
+            $parts[] = $additional;
+        }
+        return implode('-', $parts);
     }
 }

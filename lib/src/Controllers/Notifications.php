@@ -711,11 +711,15 @@ class Notifications extends Tool {
             try {
                 $tool_home = $this->toolHome(self::ROUTE);
                 $notification_url = $tool_home;
+                // Use dedupe_key so rapid test push notifications get de-duplicated
+                $dedupe_key = NotificationsService::generateDedupeKey('test-push', $user_id);
                 NotificationsService::create(
                     $user_id,
                     'Test Notification',
                     'This is a test notification from CA4E!',
-                    $notification_url
+                    $notification_url,
+                    null,
+                    $dedupe_key
                 );
             } catch (\Exception $e) {
                 // Log error but don't fail the test push notification
@@ -857,8 +861,11 @@ class Notifications extends Tool {
         }
         
         // Create notification using NotificationsService
+        // Use dedupe_key so rapid test notifications get de-duplicated
+        $dedupe_key = NotificationsService::generateDedupeKey('test', $user_id);
+        
         try {
-            $notification = NotificationsService::create($user_id, $title, $text, $url);
+            $notification = NotificationsService::create($user_id, $title, $text, $url, null, $dedupe_key);
             
             if ($notification) {
                 $_SESSION['success'] = 'Notification sent successfully!';
