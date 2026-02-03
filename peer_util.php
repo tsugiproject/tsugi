@@ -657,6 +657,8 @@ function deleteSubmission($assn_row, $submit_row) {
  */
 function notifyGradeChange($user_id, $grade, $old_grade = null, $assignment_title = null, $url = null)
 {
+    global $LINK;
+    
     // Check if NotificationsService class exists before using it
     // class_exists() will trigger Composer autoloader if available
     try {
@@ -685,11 +687,15 @@ function notifyGradeChange($user_id, $grade, $old_grade = null, $assignment_titl
         }
         
         $grade_percent = round($grade * 100, 1);
-        $text = "Your grade has been updated to {$grade_percent}%.";
+        $text = "Your grade has been updated to {$grade_percent}%." . ($old_grade !== null ? " (Previously " . round($old_grade * 100, 1) . "%)" : "");
         
-        $result = \Tsugi\Util\NotificationsService::create($user_id, $title, $text, $url);
+        // Generate dedupe_key based on assignment and user
+        $link_id = (isset($LINK) && is_object($LINK) && isset($LINK->id)) ? $LINK->id : 'unknown';
+        $dedupe_key = \Tsugi\Util\NotificationsService::generateDedupeKey('peer-grade', $user_id, $link_id);
+        
+        $result = \Tsugi\Util\NotificationsService::create($user_id, $title, $text, $url, null, $dedupe_key);
         if ($result !== false) {
-            error_log("Peer-grade notification sent successfully (user_id=$user_id, grade=$grade" . ($old_grade !== null ? ", old_grade=$old_grade" : "") . ", title=" . ($assignment_title ?? 'default') . ", url=" . ($url ?? 'null') . ")");
+            error_log("Peer-grade notification sent successfully (user_id=$user_id, grade=$grade" . ($old_grade !== null ? ", old_grade=$old_grade" : "") . ", title=" . ($assignment_title ?? 'default') . ", url=" . ($url ?? 'null') . ", dedupe_key=$dedupe_key)");
             return true;
         } else {
             error_log("Peer-grade notification failed: NotificationsService::create returned false (user_id=$user_id, grade=$grade, url=" . ($url ?? 'null') . ")");
