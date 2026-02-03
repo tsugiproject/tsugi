@@ -691,6 +691,21 @@ class Notifications extends Tool {
                 }
             }
 
+            // Also create an in-server notification
+            try {
+                $tool_home = $this->toolHome(self::ROUTE);
+                $notification_url = $tool_home;
+                NotificationsService::create(
+                    $user_id,
+                    'Test Notification',
+                    'This is a test notification from CA4E!',
+                    $notification_url
+                );
+            } catch (\Exception $e) {
+                // Log error but don't fail the test push notification
+                error_log("Error creating in-server notification for test push: " . $e->getMessage());
+            }
+
             if ($success_count > 0) {
                 $message = "Test notification sent to $success_count subscription(s)";
                 if ($failure_count > 0) {
