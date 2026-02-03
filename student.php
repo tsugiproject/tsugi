@@ -133,11 +133,26 @@ if ( isset($_POST['instSubmit']) || isset($_POST['instSubmitAdvance']) ) {
     $msg = "Submission updated";
     $computed_grade = computeGrade($assn_id, $assn_json, $user_id); // Does not cache
     $result = Result::lookupResultBypass($user_id);
+    $old_grade = null;
+    if ( $result && isset($result['grade']) && $result['grade'] != -1 ) {
+        $old_grade = floatval($result['grade']);
+    }
     $result['grade'] = -1; // Force resend
     $debug_log = array();
     $status = LTIX::gradeSend($computed_grade, $result, $debug_log); // This is the slow bit
     if ( $status === true ) {
         $_SESSION['success'] = 'Grade submitted to server';
+        // Send notification to the student whose grade was changed (only if grade actually changed)
+        // Use LTI launch_presentation_return_url if available, otherwise fall back to index
+        $notification_url = null;
+        if ( is_object($LAUNCH) && method_exists($LAUNCH, 'returnUrl') ) {
+            $notification_url = $LAUNCH->returnUrl();
+        }
+        if ( empty($notification_url) ) {
+            $notification_url = Table::makeUrl('index', $getparms);
+            $notification_url = addSession($notification_url);
+        }
+        notifyGradeChange($user_id, $computed_grade, $old_grade, $assn_json->title ?? null, $notification_url);
     } else {
         error_log("Problem sending grade ".$status);
         $_SESSION['error'] = 'Error sending grade to: '.$status;
