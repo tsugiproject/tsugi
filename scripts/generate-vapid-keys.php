@@ -73,6 +73,8 @@ echo "Add these to tsugi_settings.php:\n\n";
 echo "\$CFG->vapid_public_key = '" . $publicKeyBase64 . "';\n";
 echo "\$CFG->vapid_private_key = '" . $privateKeyBase64 . "';\n";
 echo "\$CFG->vapid_subject = 'mailto:drchuck@learnxp.com';\n\n";
+echo "IMPORTANT: Also set the service_worker configuration to enable push notifications:\n";
+echo "\$CFG->service_worker = true;\n\n";
 echo "========================================\n";
 echo "Public Key (for reference):\n";
 echo $publicKeyBase64 . "\n\n";
