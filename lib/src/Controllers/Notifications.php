@@ -149,7 +149,7 @@ class Notifications extends Tool {
                                 <?php if (!empty($notification['url'])): ?>
                                     <p class="notification-url" style="margin-top: 10px;">
                                         <a href="<?= htmlspecialchars($notification['url']) ?>" target="_blank" class="btn btn-link">
-                                            Learn more <span class="glyphicon glyphicon-new-window"></span>
+                                            Notification Source <span class="glyphicon glyphicon-new-window"></span>
                                         </a>
                                     </p>
                                 <?php endif; ?>
