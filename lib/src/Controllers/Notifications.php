@@ -88,11 +88,11 @@ class Notifications extends Tool {
                     </div>
                 </div>
             </div>
-            <?php if ($unread_count > 0): ?>
+            <?php if ($unread_count > 1): ?>
                 <div class="alert alert-info">
                     <div class="clearfix">
                         <div class="pull-left" style="line-height: 34px;">
-                            <strong><?= $unread_count ?> unread notification<?= $unread_count > 1 ? 's' : '' ?></strong>
+                            <strong><?= $unread_count ?> unread notifications</strong>
                         </div>
                         <div class="pull-right">
                             <button id="mark-all-read-btn" class="btn btn-sm btn-primary" data-url="<?= htmlspecialchars($mark_all_read_url) ?>">
@@ -123,8 +123,14 @@ class Notifications extends Tool {
                                         </h3>
                                     </div>
                                     <div class="col-xs-12 col-sm-4">
-                                        <div class="text-muted small" style="margin-top: 5px; text-align: right;">
-                                            <?= date('M j, Y g:i A', strtotime($notification['created_at'])) ?>
+                                        <div style="text-align: right; margin-top: 5px;">
+                                            <?php if (!$notification['read_at']): ?>
+                                                <button class="btn btn-sm btn-primary mark-read-btn" 
+                                                        data-notification-id="<?= htmlspecialchars($notification['notification_id']) ?>"
+                                                        data-url="<?= htmlspecialchars($mark_read_url) ?>">
+                                                    Mark as Read
+                                                </button>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>
@@ -142,14 +148,11 @@ class Notifications extends Tool {
                                         </a>
                                     </p>
                                 <?php endif; ?>
-                                <?php if (!$notification['read_at']): ?>
-                                    <button class="btn btn-sm btn-primary mark-read-btn" 
-                                            data-notification-id="<?= htmlspecialchars($notification['notification_id']) ?>"
-                                            data-url="<?= htmlspecialchars($mark_read_url) ?>"
-                                            style="margin-top: 10px;">
-                                        Mark as Read
-                                    </button>
-                                <?php endif; ?>
+                                <div class="text-muted small">
+                                    <em>
+                                        <?= date('M j, Y g:i A', strtotime($notification['created_at'])) ?>
+                                    </em>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -204,6 +207,11 @@ class Notifications extends Tool {
                 text-align: left !important;
             }
         }
+        
+        /* Ensure notification date styling matches announcements */
+        .notification-item .panel-body .text-muted {
+            margin-top: 10px;
+        }
         </style>
 
         <script>
@@ -231,8 +239,20 @@ class Notifications extends Tool {
                             if (badge) badge.remove();
                             var btn = item.querySelector('.mark-read-btn');
                             if (btn) btn.remove();
-                            // Reload page to update unread count
-                            window.location.reload();
+                            // Update unread count without reload
+                            var unreadCountEl = document.querySelector('.alert-info strong');
+                            if (unreadCountEl) {
+                                var match = unreadCountEl.textContent.match(/(\d+)/);
+                                if (match) {
+                                    var newCount = parseInt(match[1]) - 1;
+                                    if (newCount <= 0) {
+                                        var alertEl = unreadCountEl.closest('.alert-info');
+                                        if (alertEl) alertEl.style.display = 'none';
+                                    } else {
+                                        unreadCountEl.textContent = newCount + ' unread notification' + (newCount > 1 ? 's' : '');
+                                    }
+                                }
+                            }
                         } else {
                             alert('Error marking notification as read: ' + (data.detail || 'Unknown error'));
                         }

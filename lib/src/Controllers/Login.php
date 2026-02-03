@@ -4,6 +4,7 @@ namespace Tsugi\Controllers;
 
 use Tsugi\Lumen\Controller;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use \Tsugi\UI\GoogleLoginHandler;
 use Tsugi\Lumen\Application;
@@ -20,8 +21,6 @@ class Login extends Controller {
     public function get(Request $request)
     {
         global $CFG;
-
-        error_log('Session in login.php '.session_id());
 
         // Determine callback URL
         // Check for explicit redirect URI first, then fall back to automatic construction
@@ -50,15 +49,15 @@ class Login extends Controller {
 
         // Handle errors
         if ( $result->error ) {
+            error_log('Login.get() error: '.$result->error.' session_id='.session_id());
             $_SESSION["error"] = $result->error;
-            header('Location: '.$CFG->apphome.'/');
-            return "";
+            return new RedirectResponse($CFG->apphome.'/');
         }
 
         // Handle successful login redirect
         if ( $result->success && $result->redirect_url ) {
-            header('Location: '.$result->redirect_url);
-            return "";
+            error_log('Login.get() successful redirect to: '.$result->redirect_url.' session_id='.session_id());
+            return new RedirectResponse($result->redirect_url);
         }
 
         // Display login form
