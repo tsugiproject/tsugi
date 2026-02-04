@@ -758,4 +758,20 @@ class U {
         return htmlentities($string);
     }
 
+    /**
+     * Build a PHP 7 strlen for PHP 8.2 and later
+     *
+     * This is needed because in PHP 8.2 strlen() demands a string (i.e. can't handle false, etc)
+     */
+    public static function strlen($string) : int {
+        if ( !isset($string) ) return 0;
+        if ( $string === true ) return 0; // Depart from PHP on this one
+        if ( $string === false ) return 0;
+        if ( $string === NULL ) return 0;
+        if ( is_numeric($string) ) $string = $string . '';
+        if ( $string instanceof \Stringable ) $string = $string . '';
+        if ( !is_string($string) ) return 0;
+        return strlen($string);
+    }
+
 }

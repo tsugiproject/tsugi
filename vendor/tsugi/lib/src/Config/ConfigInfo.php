@@ -11,6 +11,7 @@ namespace Tsugi\Config;
  * and overide the fields in your config.php.
  */
 
+#[\AllowDynamicProperties]
 class ConfigInfo {
 
     /**
@@ -139,6 +140,61 @@ class ConfigInfo {
     public $dbprefix  = 't_';
 
     /**
+     * The slow_query setting indicated when we want PDOX to log a query for being too slow.
+     */
+    public $slow_query;
+
+    /**
+     * Support memcache for session caching
+     *
+     * Memcache is php-only and so is likely to require less overall dependencies.
+     *
+     * http://php.net/manual/en/memcache.sessions.php
+     *
+     * Installed on Ubuntu using
+     *
+     * apt-get install -y php${TSUGI_PHP_VERSION}-memcache
+     *
+     * You should only select one of memcache and memcached
+     *
+     * $CFG->memcache = 'tcp://memcache-tsugi.4984vw.cfg.use2.cache.amazonaws.com:11211';
+     *
+     * In addition to setting this variable, your config.php must include the code
+     * to configure the PHP session save handler as shown in config-dist.php
+     *
+     */
+    public $memcache;
+
+    /**
+     * Support memcached for session caching
+     *
+     * Memcached is a combination of PHP and C and so may require extra dependencies.
+     *
+     * http://php.net/manual/en/memcached.sessions.php
+     *
+     * Installed on Ubuntu using
+     *
+     * apt-get install -y php${TSUGI_PHP_VERSION}-memcached
+     *
+     * You should only select one of memcache and memcached
+     *
+     * $CFG->memcached = 'memcache-tsugi.4984vw.cfg.use2.cache.amazonaws.com:11211';
+     *
+     * Note no "tcp://" for the memcached version of the url
+     *
+     * In addition to setting this variable, your config.php must include the code
+     * to configure the PHP session save handler as shown in config-dist.php
+     */
+    public $memcached;
+
+    /**
+     * Adding in support for using Redis for session caching.
+     *
+     * $CFG->redis = 'tcp://localhost:6379?auth=addYourRedisPasswordHere';
+     */
+    public $redis;
+
+    /**
      * This is the PW that you need to access the Administration features of this application.
      *
      * You should change this from the default.
@@ -167,6 +223,11 @@ class ConfigInfo {
      * Default time zone - see http://www.php.net/....
      */
     public $timezone = 'America/New_York';
+
+    /**
+     * Indicate whether the PHP on this server wants to verify SSL or not
+     */
+    public $verifypeer;
 
     /**
      * Enable developer features of the application.
@@ -293,27 +354,39 @@ class ConfigInfo {
     public $sessionsalt = "warning:please-change-sessionsalt-89b543";
 
     /**
-     * Configure analytics for this Tsugi instance.
+     * Store sessions in database instead of default PHP session storage
      *
-     * Set to false if you do not want analytics - this uses the ga.js
-     * analytics and sets three custom parameters
-     * (oauth_consumer_key, context_id, and context_title)
-     * is they are set.
-     */
-    public $analytics_key = false;  // "UA-423997-16";
-    public $analytics_name = false; // "dr-chuck.com";
-
-    /**
-     * Configure universal analytics for this Tsugi instance.
+     * When enabled, Tsugi will use database-backed session storage
+     * instead of the default PHP session handler.
      *
-     * Set to false if you do not want universal analytics
+     * $CFG->sessions_in_db = false;
      */
-    public $universal_analytics = false;  // "UA-423997-16";
+    public $sessions_in_db = false;
 
     /*
-     * The default language for this systyem
+     * The default language for this system
      */
     public $lang = 'en';
+
+    /**
+     * Fallback locale when Accept-Language header is not available
+     *
+     * If set, this locale will be used when the browser doesn't provide
+     * an Accept-Language header or when locale detection fails.
+     *
+     * $CFG->fallbacklocale = 'de_DE';
+     */
+    public $fallbacklocale = false;
+
+    /**
+     * Enable translation checking/recording
+     *
+     * When enabled, Tsugi will record all translatable strings to the
+     * database for translation management.
+     *
+     * $CFG->checktranslation = true;
+     */
+    public $checktranslation = false;
 
     /**
      * Enable Google Translate on this site
@@ -394,6 +467,28 @@ class ConfigInfo {
      * $CFG->git_command = '/home/csev/git';
      */
     public $git_command = false;
+
+    /**
+     * If defined, this is displayed as the privacy URL when Tsugi
+     * is used as an "App Store".  If you want to use Google login,
+     * you need these URLs available on the OAuth application.
+     *
+     * You can see sample wording at:
+     *
+     * https://www.py4e.com/service.php
+     */
+    public $privacy_url = false;
+
+    /**
+     * If defined, this is displayed as the SLA URL when Tsugi
+     * is used as an "App Store".  If you want to use Google login,
+     * you need these URLs available on the OAuth application.
+     *
+     * You can see sample wording at:
+     *
+     * https://www.py4e.com/service.php
+     */
+    public $sla_url = false;
 
     /**
      *
@@ -602,6 +697,89 @@ class ConfigInfo {
     public $google_client_secret = false;
     public $google_map_api_key = false;
 
+    /**
+     * Enable service worker for push notifications and offline support
+     *
+     * When set to true, enables the service worker registration script
+     * in the page footer. The service worker is required for web push
+     * notifications to work.
+     *
+     * Defaults to false. Set to true to enable service worker functionality.
+     * Note: You must also configure VAPID keys for push notifications to work.
+     *
+     * Example:
+     *     $CFG->service_worker = true;
+     */
+    public $service_worker = false;
+
+    /**
+     * Notification de-duplication time window (in seconds)
+     *
+     * When two notifications with the same dedupe_key are created for the same user
+     * within this time window, the second will update the first instead of creating
+     * a new notification.
+     *
+     * Defaults to 900 seconds (15 minutes). Set to 0 to disable de-duplication.
+     *
+     * Example:
+     *     $CFG->notification_dedupe_window = 900; // 15 minutes
+     */
+    public $notification_dedupe_window = 900;
+
+    /**
+     * Notification expiration period (in days)
+     *
+     * Notifications older than this number of days will be automatically deleted
+     * during opportunistic cleanup operations. Cleanup runs when notifications are
+     * accessed, but at most once per hour to avoid performance impact.
+     *
+     * Defaults to 30 days (1 month). Set to 0 to disable expiration.
+     *
+     * Example:
+     *     $CFG->notification_expiration_days = 30; // 1 month
+     */
+    public $notification_expiration_days = 30;
+
+    /**
+     * VAPID keys for push notifications
+     *
+     * VAPID (Voluntary Application Server Identification) keys are required
+     * for web push notifications. These keys identify your server to push
+     * notification services.
+     *
+     * To generate VAPID keys:
+     * 1. Use an online generator: https://giga.tools/developer-tools/vapid-key-generator
+     * 2. Or use Node.js: npm install -g web-push && web-push generate-vapid-keys
+     * 3. Or use the PHP script: php tsugi/scripts/generate-vapid-keys.php
+     *
+     * See tsugi/VAPID_SETUP.md for detailed instructions.
+     *
+     * The vapid_subject should be a mailto: URL with your email address.
+     * This is used to identify your server to push notification services.
+     *
+     * Example:
+     *     $CFG->vapid_public_key = 'BKx...long_base64_string...';
+     *     $CFG->vapid_private_key = 'xYz...long_base64_string...';
+     *     $CFG->vapid_subject = 'mailto:admin@example.com';
+     */
+    public $vapid_public_key = false;
+    public $vapid_private_key = false;
+    public $vapid_subject = false;
+
+    /**
+     * Explicit Google OAuth redirect URI (optional)
+     *
+     * If set, this will be used as the redirect URI for Google OAuth login.
+     * This should match exactly what you configure in Google's OAuth console.
+     *
+     * Example:
+     *     $CFG->google_login_redirect = 'https://local.ca4e.com/login';
+     *
+     * If not set, the redirect URI is automatically constructed from $wwwroot
+     * based on the $google_login_new setting.
+     */
+    public $google_login_redirect = false;
+
     /*
      * Tells Google to come back to "/login" after Google Login.
      * If set to false our login comes back to "login.php".
@@ -610,6 +788,8 @@ class ConfigInfo {
      * in Google.  And some old integrations used login.php.
      * New integrations should use "/login" and leave this true.
      * This is here to for old integrations.
+     *
+     * Note: This is ignored if $google_login_redirect is set.
      */
     public $google_login_new = true;
 
@@ -624,6 +804,11 @@ class ConfigInfo {
      * $CFG->login_return_url = $CFG->apphome . "/welcome";
      */
     public $login_return_url = false;
+
+    /**
+     * Defaults to $CFG->apphome if defined and $CFG->wwwroot if that is not defined or false
+     */
+    public $logout_return_url;
 
     /**
      * If we have a web socket server, put its URL here
@@ -643,6 +828,23 @@ class ConfigInfo {
     public $websocket_url = false;
     public $websocket_proxyport = false;
 
+    /**
+     * If the web server is NOT behind a reverse proxy, you may optionally wish
+     * to ignore forwarded IP headers such as x-forwarded-for and variations by
+     * setting this to false. This will help to preserve authenticity of IPs by
+     * only trusting IP addresses directly seen by the server.
+     *
+     * Never set this to false if you ARE behind a reverse proxy, otherwise all
+     * requests will appear to originate from the same IP address (the proxy).
+     *
+     * If behind a reverse proxy, set to `true`:
+     *     $CFG->trust_forwarded_ip = true; // (default)
+     *
+     * If not using a reverse proxy, set to `false`:
+     *     $CFG->trust_forwarded_ip = false;
+     */
+    public $trust_forwarded_ip = true;
+
     /*
      * This is the internal version of the datbase.   This is an internal
      * value and set in setup.php and read in migrate.php - you should not
@@ -650,14 +852,9 @@ class ConfigInfo {
      */
     public $dbversion = false;
 
-    /*
-     * These are here to override the defaults for the vendor folder naming conventions
-     *
-     * It is unlikely you need to change these.
-     */
-    public $vendorroot = false;
-    public $vendorinclude = false;
-    public $vendorstatic = false;
+    public $vendorinclude = false;    // No longer used in the code base
+    public $vendorroot = false;       // No longer used in the code base
+    public $vendorstatic = false;     // No longer used in the code base
 
     /**
      * The autoloader to be used when loading classes.
@@ -686,6 +883,9 @@ class ConfigInfo {
     public $bootswatch_color = false;
     public $fontawesome = false;
     public $logo_url = null;  // Formerly Google Classroom
+    public $analytics_key = false;
+    public $analytics_name = false;
+    public $universal_analytics = false;
 
     /**
      * Badge generation settings - once you start issuing badges - don't change these
@@ -694,6 +894,67 @@ class ConfigInfo {
     public $badge_assert_salt = null; // "mediumlengthhexstring";
     public $badge_path = null; // $CFG->dirroot . '/../bimages';
     public $badge_url = null; // $CFG->apphome . '/bimages';
+    
+    /**
+     * Email address for Open Badges issuer (OB2 required field)
+     * 
+     * This email address is used in badge issuer assertions.
+     * If not set, defaults to "badge_issuer_email_not_set@example.com"
+     * 
+     * $CFG->badge_issuer_email = 'py4e@learnxp.com';
+     */
+    public $badge_issuer_email = null;
+    
+    /**
+     * Organization name for badge issuer assertions
+     * 
+     * If not set, defaults to the result of getBadgeOrganization() method,
+     * which falls back to "$CFG->servicedesc ($CFG->servicename)" format,
+     * or just $CFG->servicename if servicedesc is not set.
+     * 
+     * $CFG->badge_organization = 'Learning Experiences';
+     */
+    public $badge_organization = null;
+    
+    /**
+     * Organization URL for badge issuer assertions
+     * 
+     * The URL that represents the badge issuing organization.
+     * If not set, defaults to $CFG->apphome.
+     * 
+     * $CFG->badge_organization_url = 'https://www.learnxp.com';
+     */
+    public $badge_organization_url = null;
+    
+    /**
+     * Organization logo URL for badge issuer assertions
+     * 
+     * Optional logo image URL to include in OB3 issuer profiles.
+     * If set, will be included as an "image" property in the issuer JSON.
+     * 
+     * $CFG->badge_organization_logo = 'https://www.learnxp.com/logo-square.png';
+     */
+    public $badge_organization_logo = null;
+    
+    /**
+     * LinkedIn organization/company page URL
+     * 
+     * If set, displays a LinkedIn link on badge pages and may be included
+     * in badge issuer extensions.
+     * 
+     * $CFG->linkedin_url = 'https://www.linkedin.com/company/learn-xp';
+     */
+    public $linkedin_url = null;
+    
+    /**
+     * LinkedIn organization ID for badge sharing
+     * 
+     * The numeric organization ID used when generating LinkedIn "Add to Profile" URLs.
+     * This replaces organizationName in LinkedIn certification URLs.
+     * 
+     * $CFG->linkedin_organization_id = '4264503';
+     */
+    public $linkedin_organization_id = null;
 
     /**
      * The defaults for data expiration.  Data expiration is not done by default, but can
@@ -703,6 +964,23 @@ class ConfigInfo {
     public $expire_user_days = 400;  // One year
     public $expire_context_days = 600; // 1.5 Years
     public $expire_tenant_days = 800; // Two years
+
+    /**
+     * Legacy: Google Classroom support - this was an experiment and is no longer supported
+     * First, Go to https://console.developers.google.com/apis/credentials
+     * And add access to "Google Classroom API" to your google_client_id (above)
+
+     * (legacy) Set the secret to a long random string - this is used for internal
+     * url Tsugi signing - not for Google interactions.  Don't change it
+     * once you set it.
+     */
+    public $google_classroom_secret = null;
+
+    /**
+     * (legacy) This should be an absolute URL that will be used to populate previews
+     * in Google Classroom
+     */
+    public $google_classroom_logo = null;
 
     /**
      * Create the configuration object.
@@ -748,6 +1026,17 @@ class ConfigInfo {
         $this->extensions = array();
         $this->staticroot = 'https://static.tsugi.org';
         $this->lumen_storage = sprintf("%s/storage/", $dirroot);
+    }
+
+    function getExtension($key, $default=null) {
+	    return $this->extensions[$key] ?? $default;
+    }
+
+    /**
+     * Set an extension value
+     */
+    function setExtension($key, $value) {
+	    $this->extensions[$key] = $value;
     }
 
     function getCurrentFile($file) {
@@ -869,6 +1158,40 @@ class ConfigInfo {
         if ( strpos($this->wwwroot,'://localhost') !== false ) return true;
         if ( strpos($this->wwwroot,'://127.0.0.1') !== false ) return true;
         return false;
+    }
+
+    /**
+     * Return a prefix unique to this server for things like shared cache keys
+     */
+    public function serverPrefix() : string {
+        $prefix = $this->wwwroot;
+        if ( is_string($this->apphome) && strlen($this->apphome) > 0 ) $prefix = $this->apphome;
+        $prefix = preg_replace('/https?:\/\//', '', $prefix);
+        if (strlen($prefix) > 50 ) $prefix = md5($prefix);
+        return $prefix;
+    }
+
+    /**
+     * Get the badge organization name with fallback logic
+     * 
+     * Returns $badge_organization if set, otherwise falls back to
+     * "$servicedesc ($servicename)" format, or just $servicename if servicedesc is not set.
+     * 
+     * @return string The badge organization name
+     */
+    public function getBadgeOrganization() : string {
+        // Use badge_organization if set
+        if (isset($this->badge_organization) && !empty($this->badge_organization)) {
+            return $this->badge_organization;
+        }
+        
+        // Build fallback: servicedesc (servicename) or just servicename if servicedesc not set
+        if (isset($this->servicedesc) && !empty($this->servicedesc)) {
+            return $this->servicedesc . ' (' . $this->servicename . ')';
+        }
+        
+        // Final fallback to just servicename
+        return $this->servicename;
     }
 }
 

@@ -2,6 +2,8 @@
 
 namespace Tsugi\Util;
 
+use \Tsugi\Util\U;
+
 /**
  * This general purpose library for HTTP communications.
  *
@@ -101,7 +103,7 @@ class Net {
             if ( $pos < 1 ) continue;
             $key = substr($line,0,$pos);
             $value = trim(substr($line, $pos+1));
-            if ( strlen($key) < 1 || strlen($value) < 1 ) continue;
+            if ( empty($key) || empty($value) ) continue;
             $headermap[$key] = $value;
         }
         return $headermap;
@@ -142,12 +144,48 @@ class Net {
 
         $ctx = stream_context_create($params);
         try {
-            $response = file_get_contents($url, false, $ctx);
+            $response = @file_get_contents($url, false, $ctx);
+            // Handle rate limiting (429) and other HTTP errors
+            if ($response === false) {
+                return false;
+            }
         } catch (Exception $e) {
             return false;
         }
         return $response;
     }
+
+    /**
+     * Set the User-Agent header on a cURL handle.
+     *
+     * Canvas and other LMS platforms increasingly require a User-Agent
+     * identifying the originating product.  Tsugi provides a default but
+     * allows override using the CFG extension mechanism in your config.php file:
+     *
+     *     $CFG->setExtension('user_agent', 'MyTool/1.0 Tsugi/25.05');
+     *
+     * The default looks like this:
+     *
+     *     Tsugi/2025.12 (https://www.py4e/tsugi) PHP/8.4.1
+     *
+     * @param resource $ch A cURL handle
+     * @return void
+     */
+    public static function setUserAgentCurl($ch) {
+        global $CFG;
+
+        // Construct a robust default User-Agent
+        $default_agent = 'Tsugi/' .
+            (defined('TSUGI_VERSION') ? TSUGI_VERSION : 'dev') .
+            ' (' . (isset($CFG->wwwroot) ? $CFG->wwwroot : 'https://www.tsugi.org') . ')' .
+            ' PHP/' . phpversion();
+
+        // Allow overrides via extension mechanism
+        $user_agent = $CFG->getExtension('user_agent', $default_agent);
+
+        curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
+    }
+
 
     // Note - handles port numbers in URL automatically
     public static function getCurl($url, $header=false) {
@@ -181,6 +219,8 @@ class Net {
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
       }
+
+      self::setUserAgentCurl($ch); // Set the User-Agent header
 
       // Send to remote and return data to caller.
       $result = curl_exec($ch);
@@ -408,6 +448,8 @@ class Net {
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
       }
 
+      self::setUserAgentCurl($ch); // Set the User-Agent header
+
       // Send to remote and return data to caller.
       $result = curl_exec($ch);
       if ( $result === false ) {
@@ -474,6 +516,8 @@ class Net {
      */
     public static function getIP() {
 
+        global $CFG;
+
         //Just get the headers if we can or else use the SERVER global
         if ( function_exists( 'apache_request_headers' ) ) {
             $rawheaders = apache_request_headers();
@@ -485,7 +529,7 @@ class Net {
         $headers = array();
         foreach($rawheaders as $key => $value) {
             $key = trim(strtolower($key));
-            if ( !is_string($key) || strlen($key) < 1 ) continue;
+            if ( !is_string($key) || empty($key) ) continue;
             $headers[$key] = $value;
         }
 
