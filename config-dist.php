@@ -220,9 +220,18 @@ $CFG->autoapprovekeys = false; // A regex like - '/.+@gmail\\.com/'
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 
+// Google OAuth redirect URI configuration
+// If you want explicit control over the redirect URI, set this to match exactly
+// what you configure in Google's OAuth console (Authorized redirect URIs).
+// If not set, the redirect URI is automatically constructed from $wwwroot.
+//
+// $CFG->google_login_redirect = false; // Use automatic construction (default)
+// $CFG->google_login_redirect = 'https://local.ca4e.com/login'; // Explicit redirect URI
+
 // This is a legacy backwards compatibility.   In the round-trip to Google it used to
 // come back login.php after login was successful - If this is true, we come back
 // to login (without the php) - set this to false to restore the old pattern
+// Note: This is ignored if $google_login_redirect is set above.
 $CFG->google_login_new = true;
 $CFG->login_return_url = false;
 
@@ -234,6 +243,45 @@ $CFG->logout_return_url = false;
 $CFG->google_map_api_key = false; // 'Ve8eH490843cIA9IGl8';
 
 $CFG->google_translate = false;
+
+// Enable service worker for push notifications and offline support
+// When set to true, enables the service worker registration script in the page footer.
+// The service worker is required for web push notifications to work.
+// Defaults to false. Set to true to enable service worker functionality.
+// Note: You must also configure VAPID keys for push notifications to work.
+// $CFG->service_worker = false;
+
+// Notification de-duplication time window (in seconds)
+// When two notifications with the same dedupe_key are created for the same user
+// within this time window, the second will update the first instead of creating
+// a new notification.
+// Defaults to 900 seconds (15 minutes). Set to 0 to disable de-duplication.
+// $CFG->notification_dedupe_window = 900;
+
+// Notification expiration period (in days)
+// Notifications older than this number of days will be automatically deleted
+// during opportunistic cleanup operations. Cleanup runs when notifications are
+// accessed, but at most once per hour to avoid performance impact.
+// Defaults to 30 days (1 month). Set to 0 to disable expiration.
+// $CFG->notification_expiration_days = 30;
+
+// VAPID keys for push notifications
+// VAPID (Voluntary Application Server Identification) keys are required for web push notifications.
+// These keys identify your server to push notification services.
+//
+// To generate VAPID keys:
+// 1. Use an online generator: https://giga.tools/developer-tools/vapid-key-generator
+// 2. Or use Node.js: npm install -g web-push && web-push generate-vapid-keys
+// 3. Or use the PHP script: php scripts/generate-vapid-keys.php
+//
+// See tsugi/VAPID_SETUP.md for detailed instructions and alternatives.
+//
+// The vapid_subject should be a mailto: URL with your email address.
+// This is used to identify your server to push notification services.
+//
+// $CFG->vapid_public_key = false; // 'BKx...long_base64_string...';
+// $CFG->vapid_private_key = false; // 'xYz...long_base64_string...';
+// $CFG->vapid_subject = false; // 'mailto:admin@example.com';
 
 // You can specify a default menu for Tsugi to use across the site if there is no
 // defined menu given

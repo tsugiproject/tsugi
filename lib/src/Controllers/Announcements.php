@@ -21,6 +21,7 @@ class Announcements extends Tool {
         $app->router->get('/'.self::REDIRECT, 'Announcements@index');
         $app->router->get($prefix.'/json', 'Announcements@json');
         $app->router->post($prefix.'/dismiss', 'Announcements@dismiss');
+        $app->router->post($prefix.'/mark-all-read', 'Announcements@markAllRead');
         $app->router->get($prefix.'/add', 'Announcements@add');
         $app->router->post($prefix.'/add', 'Announcements@addPost');
         $app->router->get($prefix.'/edit/{id}', 'Announcements@edit');
@@ -73,11 +74,11 @@ class Announcements extends Tool {
             }
         }
 
-        // If there are undismissed announcements, show only those
-        // If no undismissed announcements, show dismissed ones directly
-        $announcements = count($undismissed) > 0 ? $undismissed : $dismissed;
+        // Only show undismissed announcements in main list
+        // Dismissed announcements are shown separately via toggle button
+        $announcements = $undismissed;
         $dismissed_count = count($dismissed);
-        $show_dismissed_section = count($undismissed) > 0 && $dismissed_count > 0;
+        $show_dismissed_section = $dismissed_count > 0;
 
         return array(
             'all_announcements' => $all_announcements,
@@ -121,6 +122,7 @@ class Announcements extends Tool {
         $analytics_url = $tool_home . '/analytics';
         $manage_url = $tool_home . '/manage';
         $dismiss_url = $tool_home . '/dismiss';
+        $mark_all_read_url = $tool_home . '/mark-all-read';
         
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -141,36 +143,55 @@ class Announcements extends Tool {
                 </span>
             </h1>
             
-            <?php if (count($announcements) == 0): ?>
+            <?php if (count($undismissed) > 1): ?>
+                <div class="alert alert-info">
+                    <div class="clearfix">
+                        <div class="pull-left" style="line-height: 34px;">
+                            <strong><?= count($undismissed) ?> unread announcements</strong>
+                        </div>
+                        <div class="pull-right">
+                            <button id="mark-all-read-btn" class="btn btn-sm btn-primary" data-url="<?= htmlspecialchars($mark_all_read_url) ?>">
+                                Mark All as Read
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+            
+            <?php if ($show_dismissed_section): ?>
+                <p class="text-muted">
+                    <button id="show-dismissed-btn" class="btn btn-sm btn-link" style="padding: 0;" data-dismissed-count="<?= $dismissed_count ?>">
+                        Show previously seen announcements (<?= $dismissed_count ?>)
+                    </button>
+                </p>
+            <?php endif; ?>
+            
+            <?php if (count($undismissed) == 0 && count($dismissed) == 0): ?>
                 <div class="alert alert-info">
                     <p>No announcements at this time.</p>
                 </div>
-            <?php else: ?>
-                <?php if ($show_dismissed_section): ?>
-                    <p class="text-muted">
-                        Dismissed: (<?= $dismissed_count ?>)
-                        <button id="show-dismissed-btn" class="btn btn-sm btn-link" style="padding: 0; margin-left: 5px;">SHOW</button>
-                    </p>
-                <?php endif; ?>
-                
+            <?php elseif (count($announcements) > 0): ?>
                 <div id="announcements-list">
                     <?php foreach ($announcements as $announcement): ?>
-                        <div class="panel panel-default announcement-item <?= $announcement['dismissed'] ? 'dismissed' : '' ?>" 
+                        <div class="panel panel-default announcement-item" 
                              data-announcement-id="<?= htmlspecialchars($announcement['announcement_id']) ?>">
                             <div class="panel-heading">
-                                <h3 class="panel-title">
-                                    <span class="dismiss-check-icon pull-right <?= $announcement['dismissed'] ? 'dismissed' : '' ?>" 
-                                          data-dismiss-toggle
-                                          data-dismiss-id="<?= htmlspecialchars($announcement['announcement_id']) ?>"
-                                          data-announcement-id="<?= htmlspecialchars($announcement['announcement_id']) ?>"
-                                          data-dismiss-title="Dismiss"
-                                          data-dismiss-title-undismiss="Undismiss"
-                                          title="<?= $announcement['dismissed'] ? 'Undismiss' : 'Dismiss' ?>"
-                                          style="cursor: pointer;">
-                                        <span class="glyphicon glyphicon-ok"></span>
-                                    </span>
-                                    <?= htmlspecialchars($announcement['title']) ?>
-                                </h3>
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-8">
+                                        <h3 class="panel-title" style="margin-top: 0;">
+                                            <?= htmlspecialchars($announcement['title']) ?>
+                                        </h3>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-4">
+                                        <div style="text-align: right; margin-top: 5px;">
+                                            <button class="btn btn-sm btn-primary mark-read-btn" 
+                                                    data-announcement-id="<?= htmlspecialchars($announcement['announcement_id']) ?>"
+                                                    data-url="<?= htmlspecialchars($dismiss_url) ?>">
+                                                Mark as Read
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="panel-body">
                                 <div class="announcement-text">
@@ -194,77 +215,50 @@ class Announcements extends Tool {
                             </div>
                         </div>
                     <?php endforeach; ?>
-                    
-                    <?php if ($show_dismissed_section): ?>
-                        <?php foreach ($dismissed as $announcement): ?>
-                            <div class="panel panel-default announcement-item dismissed dismissed-hidden" 
-                                 data-announcement-id="<?= htmlspecialchars($announcement['announcement_id']) ?>"
-                                 style="display: none;">
-                                <div class="panel-heading">
-                                    <h3 class="panel-title">
-                                        <span class="dismiss-check-icon pull-right dismissed" 
-                                              data-dismiss-toggle
-                                              data-dismiss-id="<?= htmlspecialchars($announcement['announcement_id']) ?>"
-                                              data-announcement-id="<?= htmlspecialchars($announcement['announcement_id']) ?>"
-                                              data-dismiss-title="Dismiss"
-                                              data-dismiss-title-undismiss="Undismiss"
-                                              title="Undismiss"
-                                              style="cursor: pointer;">
-                                            <span class="glyphicon glyphicon-ok"></span>
-                                        </span>
-                                        <?= htmlspecialchars($announcement['title']) ?>
-                                    </h3>
-                                </div>
-                                <div class="panel-body">
-                                    <div class="announcement-text">
-                                        <?= nl2br(htmlspecialchars($announcement['text'])) ?>
-                                    </div>
-                                    <?php if (!empty($announcement['url'])): ?>
-                                        <p class="announcement-url">
-                                            <a href="<?= htmlspecialchars($announcement['url']) ?>" target="_blank" class="btn btn-link">
-                                                Learn more <span class="glyphicon glyphicon-new-window"></span>
-                                            </a>
-                                        </p>
-                                    <?php endif; ?>
-                                    <div class="text-muted small">
-                                        <em>
-                                            Posted <?= date('M j, Y g:i A', strtotime($announcement['created_at'])) ?>
-                                            <?php if ($announcement['creator_name']): ?>
-                                                by <?= htmlspecialchars($announcement['creator_name']) ?>
-                                            <?php endif; ?>
-                                        </em>
+                </div>
+            <?php endif; ?>
+            
+            <?php if ($show_dismissed_section): ?>
+                <div id="dismissed-announcements-list" style="display: none;">
+                    <?php foreach ($dismissed as $announcement): ?>
+                        <div class="panel panel-default announcement-item dismissed" 
+                             data-announcement-id="<?= htmlspecialchars($announcement['announcement_id']) ?>">
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-8">
+                                        <h3 class="panel-title" style="margin-top: 0;">
+                                            <?= htmlspecialchars($announcement['title']) ?>
+                                        </h3>
                                     </div>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                            <div class="panel-body">
+                                <div class="announcement-text">
+                                    <?= nl2br(htmlspecialchars($announcement['text'])) ?>
+                                </div>
+                                <?php if (!empty($announcement['url'])): ?>
+                                    <p class="announcement-url">
+                                        <a href="<?= htmlspecialchars($announcement['url']) ?>" target="_blank" class="btn btn-link">
+                                            Learn more <span class="glyphicon glyphicon-new-window"></span>
+                                        </a>
+                                    </p>
+                                <?php endif; ?>
+                                <div class="text-muted small">
+                                    <em>
+                                        Posted <?= date('M j, Y g:i A', strtotime($announcement['created_at'])) ?>
+                                        <?php if ($announcement['creator_name']): ?>
+                                            by <?= htmlspecialchars($announcement['creator_name']) ?>
+                                        <?php endif; ?>
+                                    </em>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             <?php endif; ?>
         </div>
 
         <style>
-        .dismiss-check-icon {
-            font-size: 18px;
-            padding: 5px;
-            margin-left: 10px;
-            user-select: none;
-        }
-        .dismiss-check-icon:not(.dismissed) {
-            color: #999;
-            border: 2px solid #ccc;
-            border-radius: 3px;
-            padding: 3px 5px;
-        }
-        .dismiss-check-icon.dismissed {
-            color: #5cb85c;
-            background-color: #f0f8f0;
-            border: 2px solid #5cb85c;
-            border-radius: 3px;
-            padding: 3px 5px;
-        }
-        .dismiss-check-icon:hover {
-            opacity: 0.7;
-        }
         .announcement-item.dismissed {
             opacity: 0.7;
             border-left: 4px solid #5cb85c;
@@ -272,105 +266,276 @@ class Announcements extends Tool {
         .announcement-item.dismissed .panel-heading {
             background-color: #f0f8f0;
         }
+        /* Responsive announcement header */
+        @media (max-width: 480px) {
+            .announcement-item .panel-heading .row {
+                margin: 0;
+            }
+            .announcement-item .panel-heading .col-xs-12 {
+                padding: 0;
+            }
+            .announcement-item .panel-heading .col-sm-4 {
+                margin-top: 5px;
+            }
+            .announcement-item .panel-heading .col-sm-4 div {
+                text-align: left !important;
+            }
+        }
+        
+        /* Responsive alert - stack on very small screens */
+        @media (max-width: 480px) {
+            .alert .pull-left,
+            .alert .pull-right {
+                float: none !important;
+                display: block;
+                text-align: center;
+            }
+            .alert .pull-right {
+                margin-top: 10px;
+            }
+        }
         </style>
 
-        <script src="<?= htmlspecialchars($this->staticUrl('dismiss.js')) ?>"></script>
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             var showDismissedBtn = document.getElementById('show-dismissed-btn');
             if (showDismissedBtn) {
-                var dismissedHidden = true;
-                showDismissedBtn.addEventListener('click', function() {
-                    var dismissedItems = document.querySelectorAll('.dismissed-hidden');
-                    if (dismissedHidden) {
-                        dismissedItems.forEach(function(item) {
-                            item.style.display = '';
-                        });
-                        showDismissedBtn.textContent = 'HIDE';
-                        dismissedHidden = false;
-                    } else {
-                        dismissedItems.forEach(function(item) {
-                            item.style.display = 'none';
-                        });
-                        showDismissedBtn.textContent = 'SHOW';
-                        dismissedHidden = true;
-                    }
+                var dismissedAnnouncementsList = document.getElementById('dismissed-announcements-list');
+                if (dismissedAnnouncementsList) {
+                    var dismissedCount = parseInt(showDismissedBtn.getAttribute('data-dismissed-count')) || 0;
+                    var dismissedHidden = true;
+                    showDismissedBtn.addEventListener('click', function() {
+                        if (dismissedHidden) {
+                            dismissedAnnouncementsList.style.display = '';
+                            showDismissedBtn.textContent = 'Hide previously seen announcements (' + dismissedCount + ')';
+                            dismissedHidden = false;
+                        } else {
+                            dismissedAnnouncementsList.style.display = 'none';
+                            showDismissedBtn.textContent = 'Show previously seen announcements (' + dismissedCount + ')';
+                            dismissedHidden = true;
+                        }
+                    });
+                }
+            }
+            
+            // Mark as read button handler
+            function attachReadHandler(btn) {
+                btn.addEventListener('click', function() {
+                    var announcementId = this.getAttribute('data-announcement-id');
+                    var url = this.getAttribute('data-url');
+                    var item = this.closest('.announcement-item');
+                    var parentDiv = this.parentElement;
+                    
+                    var formData = new FormData();
+                    formData.append('announcement_id', announcementId);
+                    formData.append('dismiss', 1);
+                    
+                    fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            item.classList.add('dismissed');
+                            this.remove();
+                            
+                            // Move to dismissed announcements list
+                            var dismissedAnnouncementsList = document.getElementById('dismissed-announcements-list');
+                            if (dismissedAnnouncementsList) {
+                                dismissedAnnouncementsList.appendChild(item);
+                                var currentDismissedCount = dismissedAnnouncementsList.querySelectorAll('.announcement-item').length;
+                                var showDismissedBtn = document.getElementById('show-dismissed-btn');
+                                if (showDismissedBtn) {
+                                    showDismissedBtn.setAttribute('data-dismissed-count', currentDismissedCount);
+                                    var isHidden = showDismissedBtn.textContent.includes('Show');
+                                    showDismissedBtn.textContent = (isHidden ? 'Show' : 'Hide') + ' previously seen announcements (' + currentDismissedCount + ')';
+                                } else {
+                                    // Create the button if it doesn't exist
+                                    var p = document.createElement('p');
+                                    p.className = 'text-muted';
+                                    var newBtn = document.createElement('button');
+                                    newBtn.id = 'show-dismissed-btn';
+                                    newBtn.className = 'btn btn-sm btn-link';
+                                    newBtn.style.padding = '0';
+                                    newBtn.setAttribute('data-dismissed-count', currentDismissedCount);
+                                    newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
+                                    p.appendChild(newBtn);
+                                    var container = document.querySelector('.container');
+                                    var announcementsList = document.getElementById('announcements-list');
+                                    if (announcementsList) {
+                                        container.insertBefore(p, announcementsList);
+                                    } else {
+                                        container.appendChild(p);
+                                    }
+                                    // Create dismissed list if it doesn't exist
+                                    if (!dismissedAnnouncementsList) {
+                                        var dismissedDiv = document.createElement('div');
+                                        dismissedDiv.id = 'dismissed-announcements-list';
+                                        dismissedDiv.style.display = 'none';
+                                        container.appendChild(dismissedDiv);
+                                        dismissedAnnouncementsList = dismissedDiv;
+                                    }
+                                    dismissedAnnouncementsList.appendChild(item);
+                                    // Attach event listener
+                                    var dismissedHidden = true;
+                                    newBtn.addEventListener('click', function() {
+                                        if (dismissedHidden) {
+                                            dismissedAnnouncementsList.style.display = '';
+                                            newBtn.textContent = 'Hide previously seen announcements (' + currentDismissedCount + ')';
+                                            dismissedHidden = false;
+                                        } else {
+                                            dismissedAnnouncementsList.style.display = 'none';
+                                            newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
+                                            dismissedHidden = true;
+                                        }
+                                    });
+                                }
+                            }
+                            
+                            updateDismissedCount(1);
+                            
+                            // Notify web component to refresh badge
+                            if ('BroadcastChannel' in window) {
+                                const channel = new BroadcastChannel('announcements-updates');
+                                channel.postMessage({type: 'announcement-dismissed'});
+                                channel.close();
+                            }
+                            // Also dispatch custom event for compatibility
+                            document.dispatchEvent(new CustomEvent('announcement-dismissed'));
+                        } else {
+                            alert('Error marking announcement as read: ' + (data.detail || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        alert('Error marking announcement as read: ' + error.message);
+                    });
                 });
             }
             
-            if (typeof dismissToggle !== 'undefined') {
-                <?php $dismiss_url = $this->toolHome(self::ROUTE) . '/dismiss'; ?>
-                dismissToggle.init('<?= $dismiss_url ?>', {
-                    selector: '.dismiss-check-icon',
-                    idAttribute: 'data-announcement-id',
-                    itemSelector: '.announcement-item',
-                    dismissedClass: 'dismissed',
-                    formDataBuilder: function(itemId, dismiss) {
-                        var formData = new FormData();
-                        formData.append('announcement_id', itemId);
-                        formData.append('dismiss', dismiss ? 1 : 0);
-                        return formData;
-                    },
-                    updateUI: function(item, trigger, isDismissed) {
-                        if (isDismissed) {
-                            item.classList.add('dismissed');
-                            trigger.classList.add('dismissed');
-                            trigger.setAttribute('title', 'Undismiss');
-                            var undismissedItems = document.querySelectorAll('#announcements-list .announcement-item:not(.dismissed)');
-                            if (undismissedItems.length > 0) {
-                                item.classList.add('dismissed-hidden');
-                                item.style.display = 'none';
-                            }
-                            updateDismissedCount(1);
-                        } else {
-                            item.classList.remove('dismissed');
-                            item.classList.remove('dismissed-hidden');
-                            trigger.classList.remove('dismissed');
-                            trigger.setAttribute('title', 'Dismiss');
-                            item.style.display = '';
-                            updateDismissedCount(-1);
-                        }
-                    },
-                    onError: function(error, item, trigger) {
-                        alert(error);
-                    }
-                });
-            }
+            // Attach handlers to existing buttons
+            document.querySelectorAll('.mark-read-btn').forEach(attachReadHandler);
             
             function updateDismissedCount(change) {
-                var dismissedText = document.querySelector('.text-muted');
-                if (dismissedText) {
-                    var match = dismissedText.textContent.match(/Dismissed: \((\d+)\)/);
+                var showDismissedBtn = document.getElementById('show-dismissed-btn');
+                if (showDismissedBtn) {
+                    var match = showDismissedBtn.textContent.match(/\((\d+)\)/);
                     if (match) {
                         var currentCount = parseInt(match[1]);
                         var newCount = Math.max(0, currentCount + change);
                         if (newCount === 0) {
-                            dismissedText.style.display = 'none';
+                            showDismissedBtn.parentElement.style.display = 'none';
                         } else {
-                            dismissedText.innerHTML = 'Dismissed: (' + newCount + ') <button id="show-dismissed-btn" class="btn btn-sm btn-link" style="padding: 0; margin-left: 5px;">SHOW</button>';
-                            var newBtn = document.getElementById('show-dismissed-btn');
-                            if (newBtn) {
+                            showDismissedBtn.setAttribute('data-dismissed-count', newCount);
+                            var isHidden = showDismissedBtn.textContent.includes('Show');
+                            showDismissedBtn.textContent = (isHidden ? 'Show' : 'Hide') + ' previously seen announcements (' + newCount + ')';
+                        }
+                    }
+                }
+            }
+            
+            // Mark all as read button handler
+            var markAllReadBtn = document.getElementById('mark-all-read-btn');
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', function() {
+                    var url = this.getAttribute('data-url');
+                    
+                    fetch(url, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Mark all undismissed items as dismissed and move to dismissed list
+                            var undismissedItems = document.querySelectorAll('#announcements-list .announcement-item:not(.dismissed)');
+                            var dismissedAnnouncementsList = document.getElementById('dismissed-announcements-list');
+                            
+                            if (!dismissedAnnouncementsList) {
+                                // Create dismissed list if it doesn't exist
+                                var dismissedDiv = document.createElement('div');
+                                dismissedDiv.id = 'dismissed-announcements-list';
+                                dismissedDiv.style.display = 'none';
+                                var container = document.querySelector('.container');
+                                container.appendChild(dismissedDiv);
+                                dismissedAnnouncementsList = dismissedDiv;
+                            }
+                            
+                            undismissedItems.forEach(function(item) {
+                                item.classList.add('dismissed');
+                                var readBtn = item.querySelector('.mark-read-btn');
+                                if (readBtn) {
+                                    readBtn.remove();
+                                }
+                                dismissedAnnouncementsList.appendChild(item);
+                            });
+                            
+                            // Hide the "Mark all as read" alert
+                            var alertEl = markAllReadBtn.closest('.alert-info');
+                            if (alertEl) alertEl.style.display = 'none';
+                            
+                            // Hide the announcements list if empty
+                            var announcementsList = document.getElementById('announcements-list');
+                            if (announcementsList && announcementsList.querySelectorAll('.announcement-item:not(.dismissed)').length === 0) {
+                                announcementsList.style.display = 'none';
+                            }
+                            
+                            // Notify web component to refresh badge
+                            if ('BroadcastChannel' in window) {
+                                const channel = new BroadcastChannel('announcements-updates');
+                                channel.postMessage({type: 'announcements-all-dismissed'});
+                                channel.close();
+                            }
+                            // Also dispatch custom event for compatibility
+                            document.dispatchEvent(new CustomEvent('announcements-all-dismissed'));
+                            
+                            // Update dismissed count
+                            var dismissedCount = data.dismissed_count || undismissedItems.length;
+                            var currentDismissedCount = dismissedAnnouncementsList.querySelectorAll('.announcement-item').length;
+                            var showDismissedBtn = document.getElementById('show-dismissed-btn');
+                            if (showDismissedBtn) {
+                                showDismissedBtn.setAttribute('data-dismissed-count', currentDismissedCount);
+                                var isHidden = showDismissedBtn.textContent.includes('Show');
+                                showDismissedBtn.textContent = (isHidden ? 'Show' : 'Hide') + ' previously seen announcements (' + currentDismissedCount + ')';
+                            } else {
+                                // Create dismissed section if it doesn't exist
+                                var dismissedP = document.createElement('p');
+                                dismissedP.className = 'text-muted';
+                                var newBtn = document.createElement('button');
+                                newBtn.id = 'show-dismissed-btn';
+                                newBtn.className = 'btn btn-sm btn-link';
+                                newBtn.style.padding = '0';
+                                newBtn.setAttribute('data-dismissed-count', currentDismissedCount);
+                                newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
+                                dismissedP.appendChild(newBtn);
+                                var container = document.querySelector('.container');
+                                var announcementsList = document.getElementById('announcements-list');
+                                if (announcementsList) {
+                                    container.insertBefore(dismissedP, announcementsList);
+                                } else {
+                                    container.appendChild(dismissedP);
+                                }
+                                // Attach event listener
                                 var dismissedHidden = true;
                                 newBtn.addEventListener('click', function() {
-                                    var dismissedItems = document.querySelectorAll('.dismissed-hidden');
                                     if (dismissedHidden) {
-                                        dismissedItems.forEach(function(item) {
-                                            item.style.display = '';
-                                        });
-                                        newBtn.textContent = 'HIDE';
+                                        dismissedAnnouncementsList.style.display = '';
+                                        newBtn.textContent = 'Hide previously seen announcements (' + currentDismissedCount + ')';
                                         dismissedHidden = false;
                                     } else {
-                                        dismissedItems.forEach(function(item) {
-                                            item.style.display = 'none';
-                                        });
-                                        newBtn.textContent = 'SHOW';
+                                        dismissedAnnouncementsList.style.display = 'none';
+                                        newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
                                         dismissedHidden = true;
                                     }
                                 });
                             }
+                        } else {
+                            alert('Error marking all announcements as read: ' + (data.detail || 'Unknown error'));
                         }
-                    }
-                }
+                    })
+                    .catch(error => {
+                        alert('Error marking all announcements as read: ' + error.message);
+                    });
+                });
             }
         });
         </script>
@@ -427,13 +592,38 @@ class Announcements extends Tool {
             return new JsonResponse(['status' => 'error', 'detail' => 'Method not allowed'], 405);
         }
         
-        $announcement_id = U::get($_POST, 'announcement_id');
+        // Get POST data - FormData from fetch() should populate $_POST
+        // But Symfony Request might consume the body, so check both
+        $announcement_id = null;
+        $dismiss_raw = 1;
+        
+        // Try $_POST first (FormData from fetch() populates this)
+        if (!empty($_POST['announcement_id'])) {
+            $announcement_id = $_POST['announcement_id'];
+            $dismiss_raw = isset($_POST['dismiss']) ? $_POST['dismiss'] : 1;
+        } 
+        // Try Symfony Request
+        elseif ($request->request->has('announcement_id')) {
+            $announcement_id = $request->request->get('announcement_id');
+            $dismiss_raw = $request->request->get('dismiss', 1);
+        }
+        // Last resort: parse request body manually for FormData
+        else {
+            $content = $request->getContent();
+            if (!empty($content)) {
+                parse_str($content, $parsed);
+                if (isset($parsed['announcement_id'])) {
+                    $announcement_id = $parsed['announcement_id'];
+                    $dismiss_raw = isset($parsed['dismiss']) ? $parsed['dismiss'] : 1;
+                }
+            }
+        }
+        
         if (!$announcement_id || !is_numeric($announcement_id)) {
             return new JsonResponse(['status' => 'error', 'detail' => 'Invalid announcement_id'], 400);
         }
         
-        $dismiss = U::get($_POST, 'dismiss', 1);
-        $dismiss = ($dismiss == 1 || $dismiss === '1' || $dismiss === true) ? 1 : 0;
+        $dismiss = ($dismiss_raw == 1 || $dismiss_raw === '1' || $dismiss_raw === true || $dismiss_raw === 'true') ? 1 : 0;
         
         $user_id = $_SESSION['id'];
         $context_id = $_SESSION['context_id'];
@@ -489,6 +679,69 @@ class Announcements extends Tool {
         }
         
         return new JsonResponse(['status' => 'success']);
+    }
+
+    /**
+     * Mark all announcements as read (dismissed) for the current user
+     */
+    public function markAllRead(Request $request)
+    {
+        global $CFG, $PDOX;
+        
+        $this->requireAuth();
+        
+        LTIX::getConnection();
+        
+        if ($request->getMethod() !== 'POST') {
+            return new JsonResponse(['status' => 'error', 'detail' => 'Method not allowed'], 405);
+        }
+        
+        $user_id = $_SESSION['id'];
+        $context_id = $_SESSION['context_id'];
+        
+        // Get all undismissed announcements for this user in this context
+        $undismissed = $PDOX->allRowsDie(
+            "SELECT A.announcement_id
+             FROM {$CFG->dbprefix}announcement AS A
+             LEFT JOIN {$CFG->dbprefix}announcement_dismissal AS D 
+                 ON A.announcement_id = D.announcement_id AND D.user_id = :UID
+             WHERE A.context_id = :CID
+               AND D.dismissal_id IS NULL
+               AND A.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)",
+            array(':CID' => $context_id, ':UID' => $user_id)
+        );
+        
+        // Dismiss all undismissed announcements
+        $dismissed_count = 0;
+        foreach ($undismissed as $announcement) {
+            $announcement_id = intval($announcement['announcement_id']);
+            
+            // Check if already dismissed (shouldn't happen, but be safe)
+            $existing = $PDOX->rowDie(
+                "SELECT dismissal_id FROM {$CFG->dbprefix}announcement_dismissal 
+                 WHERE announcement_id = :AID AND user_id = :UID",
+                array(':AID' => $announcement_id, ':UID' => $user_id)
+            );
+            
+            if (!$existing) {
+                $sql = "INSERT INTO {$CFG->dbprefix}announcement_dismissal 
+                        (announcement_id, user_id, dismissed_at) 
+                        VALUES (:AID, :UID, NOW())";
+                $values = array(
+                    ':AID' => $announcement_id,
+                    ':UID' => $user_id
+                );
+                $q = $PDOX->queryReturnError($sql, $values);
+                if ($q->success) {
+                    $dismissed_count++;
+                }
+            }
+        }
+        
+        return new JsonResponse([
+            'status' => 'success',
+            'dismissed_count' => $dismissed_count
+        ]);
     }
 
     public function add(Request $request)

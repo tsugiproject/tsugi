@@ -68,19 +68,12 @@ class StaticFiles {
         // __DIR__ is /Users/csev/htdocs/ca4e/tsugi/lib/src/Controllers
         $controllerDir = __DIR__ . '/static/' . $controller;
         $filePath = $controllerDir . '/' . $filename;
-        
-        error_log("StaticFiles: controllerDir=$controllerDir");
-        error_log("StaticFiles: filePath=$filePath");
-        error_log("StaticFiles: __DIR__=" . __DIR__);
 
         // Security: Ensure file is within the static directory (prevent directory traversal)
         $realControllerDir = realpath($controllerDir);
         $realFilePath = realpath($filePath);
         
         if ($realControllerDir === false || $realFilePath === false) {
-            error_log("StaticFiles: Directory not found. controllerDir=$controllerDir, filePath=$filePath");
-            error_log("StaticFiles: __DIR__=" . __DIR__);
-            error_log("StaticFiles: controller=$controller, filename=$filename");
             return new Response('File not found: ' . basename($filePath) . " (dir: $controllerDir)", 404);
         }
         
@@ -90,7 +83,6 @@ class StaticFiles {
 
         // Check if file exists
         if (!file_exists($filePath) || !is_file($filePath)) {
-            error_log("StaticFiles: File does not exist. filePath=$filePath, realFilePath=$realFilePath");
             return new Response('File not found: ' . basename($filePath), 404);
         }
 

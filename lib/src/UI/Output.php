@@ -452,6 +452,18 @@ function googleTranslateElementInit() {
 
         }
 
+        // Load notifications web component
+        echo('<script type="module" src="' . htmlspecialchars($CFG->wwwroot . '/lib/src/Controllers/static/Notifications/tsugi-notifications.js') . '"></script>' . "\n");
+
+        // Register service worker for push notifications and offline support (if enabled)
+        $service_worker_enabled = isset($CFG->service_worker) && $CFG->service_worker;
+        if ($service_worker_enabled) {
+            $swTemplatePath = __DIR__ . '/../Controllers/static/ServiceWorker/service-worker-register.php';
+            if (file_exists($swTemplatePath)) {
+                include $swTemplatePath;
+            }
+        }
+
         if ( $this->session_get('APP_FOOTER') ) echo($this->session_get('APP_FOOTER'));
 
         // This was originallly supposed to be Fixed in 7.1.9 - but this seems to regress

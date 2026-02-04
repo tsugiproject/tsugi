@@ -28,7 +28,9 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}cal_context",
 "drop table if exists {$CFG->dbprefix}tsugi_string",
 "drop table if exists {$CFG->dbprefix}sessions",
-"drop table if exists {$CFG->dbprefix}profile"
+"drop table if exists {$CFG->dbprefix}profile",
+"drop table if exists {$CFG->dbprefix}push_subscriptions",
+"drop table if exists {$CFG->dbprefix}notification"
 );
 
 // Note that the TEXT xxx_key fields are UNIQUE but not
@@ -702,12 +704,94 @@ array( "{$CFG->dbprefix}cal_context",
 
     CONSTRAINT `{$CFG->dbprefix}cal_context_const_1` UNIQUE(key_id, context_sha256),
     CONSTRAINT `{$CFG->dbprefix}cal_context_const_pk` PRIMARY KEY (context_id)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}push_subscriptions",
+"create table {$CFG->dbprefix}push_subscriptions (
+    subscription_id     INTEGER NOT NULL AUTO_INCREMENT,
+    user_id             INTEGER NOT NULL,
+    endpoint            TEXT NOT NULL,
+    p256dh              TEXT NOT NULL,
+    auth                TEXT NOT NULL,
+    browser_name        VARCHAR(50) NULL,
+    browser_endpoint_type VARCHAR(20) NULL,
+    user_agent          TEXT NULL,
+    created_at          DATETIME NOT NULL,
+    updated_at          DATETIME NOT NULL,
+    CONSTRAINT `{$CFG->dbprefix}push_subscriptions_const_pk` PRIMARY KEY (subscription_id),
+    KEY `{$CFG->dbprefix}push_subscriptions_idx_user_id` (user_id),
+    KEY `{$CFG->dbprefix}push_subscriptions_idx_user_browser` (user_id, browser_name)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}notification",
+"create table {$CFG->dbprefix}notification (
+    notification_id     INTEGER NOT NULL AUTO_INCREMENT,
+    user_id             INTEGER NOT NULL,
+    title               VARCHAR(512) NOT NULL,
+    text                TEXT NULL,
+    url                 VARCHAR(2048) NULL,
+    json                MEDIUMTEXT NULL,
+    dedupe_key          VARCHAR(255) NULL,
+    read_at             TIMESTAMP NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `{$CFG->dbprefix}notification_const_pk` PRIMARY KEY (notification_id),
+    KEY `{$CFG->dbprefix}notification_idx_user_id` (user_id),
+    KEY `{$CFG->dbprefix}notification_idx_user_read` (user_id, read_at),
+    KEY `{$CFG->dbprefix}notification_idx_dedupe` (user_id, dedupe_key, created_at),
+    CONSTRAINT `{$CFG->dbprefix}notification_ibfk_1`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8")
 );
 
 // Called after a table has been created...
 $DATABASE_POST_CREATE = function($table) {
     global $CFG, $PDOX;
+    
+    // Migrate push_subscriptions table to support multiple subscriptions per user
+    if ($table == "{$CFG->dbprefix}push_subscriptions") {
+        // Check if browser_name column exists
+        $check_sql = "SHOW COLUMNS FROM {$CFG->dbprefix}push_subscriptions LIKE 'browser_name'";
+        $exists = $PDOX->rowDie($check_sql);
+        
+        if (!$exists) {
+            // Add new columns for browser tracking (fields will be added by $add_some_fields, but we need the index)
+            // Add composite index for user_id + browser_name
+            try {
+                $index_sql = "ALTER TABLE {$CFG->dbprefix}push_subscriptions 
+                             ADD KEY `{$CFG->dbprefix}push_subscriptions_idx_user_browser` (user_id, browser_name)";
+                $PDOX->queryDie($index_sql);
+            } catch (Exception $e) {
+                // Index might already exist, that's okay
+            }
+            
+            // Remove unique constraint on user_id if it exists (allows multiple subscriptions)
+            try {
+                $PDOX->queryDie("ALTER TABLE {$CFG->dbprefix}push_subscriptions DROP INDEX `{$CFG->dbprefix}push_subscriptions_const_user`");
+            } catch (Exception $e) {
+                // Index might not exist, that's okay
+            }
+            
+            // Update existing subscriptions with browser info based on endpoint
+            $update_sql = "UPDATE {$CFG->dbprefix}push_subscriptions 
+                          SET browser_name = CASE 
+                              WHEN endpoint LIKE '%fcm.googleapis.com%' THEN 'Chrome'
+                              WHEN endpoint LIKE '%updates.push.services.mozilla.com%' THEN 'Firefox'
+                              WHEN endpoint LIKE '%wns2-%' OR endpoint LIKE '%notify.windows.com%' THEN 'Edge'
+                              ELSE 'Unknown'
+                          END,
+                          browser_endpoint_type = CASE
+                              WHEN endpoint LIKE '%fcm.googleapis.com%' THEN 'fcm'
+                              WHEN endpoint LIKE '%updates.push.services.mozilla.com%' THEN 'mozilla'
+                              WHEN endpoint LIKE '%wns2-%' OR endpoint LIKE '%notify.windows.com%' THEN 'windows'
+                              ELSE 'unknown'
+                          END
+                          WHERE browser_name IS NULL";
+            $PDOX->queryDie($update_sql);
+        }
+    }
 
 
     if ( $table == "{$CFG->dbprefix}lti_key") {
@@ -760,6 +844,10 @@ $DATABASE_UPGRADE = function($oldversion) {
     // This is a place to make sure added fields are present
     // if you add a field to a table, put it in here and it will be auto-added
     $add_some_fields = array(
+        // Migrate push_subscriptions to support multiple browsers
+        array('push_subscriptions', 'browser_name', 'VARCHAR(50) NULL'),
+        array('push_subscriptions', 'browser_endpoint_type', 'VARCHAR(20) NULL'),
+        array('push_subscriptions', 'user_agent', 'TEXT NULL'),
         array('lti_issuer', 'issuer_title', 'TEXT NULL'),
         array('lti_key', 'key_title', 'TEXT NULL'),
         array('profile', 'google_translate', 'TINYINT(1) NOT NULL DEFAULT 0'),
@@ -804,6 +892,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         // 2024-09-17
         array('lti_result', 'attempts', 'INTEGER NULL'),
         array('lti_result', 'attempted_at', 'TIMESTAMP NULL'),
+
+        // 2025-02-02 - Add dedupe_key for notification de-duplication
+        array('notification', 'dedupe_key', 'VARCHAR(255) NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -1211,6 +1302,25 @@ $DATABASE_UPGRADE = function($oldversion) {
     
     foreach($indexes_to_create as $index_name => $sql) {
         if ( ! $PDOX->indexExists($index_name, "{$CFG->dbprefix}lti_result") ) {
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) {
+                $message = "Non-Fatal error creating index: ".$q->errorImplode;
+                error_log($message);
+                echo($message."<br/>\n");
+            }
+        }
+    }
+
+    // 2025-02-02 - Add dedupe index for notification de-duplication
+    $notification_indexes = array(
+        "{$CFG->dbprefix}notification_idx_dedupe" =>
+            "CREATE INDEX `{$CFG->dbprefix}notification_idx_dedupe` ON {$CFG->dbprefix}notification (user_id, dedupe_key, created_at)"
+    );
+    
+    foreach($notification_indexes as $index_name => $sql) {
+        if ( ! $PDOX->indexExists($index_name, "{$CFG->dbprefix}notification") ) {
             echo("Upgrading: ".$sql."<br/>\n");
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryReturnError($sql);

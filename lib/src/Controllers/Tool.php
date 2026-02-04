@@ -525,8 +525,7 @@ abstract class Tool {
         
         // Derive values from route
         $stable_path = $route;
-        $tool_home = $this->toolHome($route);
-        $back_url = $tool_home;
+        $back_url = $this->toolHome($route);
         
         // Derive title if not provided (remove leading slash and capitalize)
         if ($title === null) {
@@ -546,9 +545,6 @@ abstract class Tool {
             die_with_error_log('Unable to locate analytics link');
         }
         
-        // Build analytics URL relative to the controller's base path (same pattern as Pages.php)
-        // This handles cases like /py4e/lessons, /py4e/12345/lessons, /lessons, etc.
-        // Use toolHome() to get the full path, then append /api/analytics_cookie.php
         $analytics_url = $CFG->wwwroot . '/api/analytics_cookie.php?link_id=' . $analytics_link_id;
         
         $OUTPUT->header();
@@ -609,44 +605,5 @@ abstract class Tool {
     protected function assetUrl($filename, $controllerName = null)
     {
         return $this->staticUrl($filename, $controllerName);
-    }
-
-    /**
-     * Render a template file using the standard naming convention
-     * 
-     * Templates are located at: templates/{ControllerName}/{template_name}.inc.php
-     * The controller name is automatically derived from the current class name.
-     * 
-     * Example:
-     *   In Lessons.php: $this->renderTemplate('author_interface', ['lessons_title' => '...', ...])
-     *   Will include: templates/Lessons/author_interface.inc.php
-     * 
-     * @param string $templateName Template name without extension (e.g., 'author_interface')
-     * @param array $variables Associative array of variables to extract for the template
-     * @return string The rendered template output
-     */
-    protected function renderTemplate($templateName, array $variables = [])
-    {
-        // Derive controller name from class name
-        $className = get_class($this);
-        $parts = explode('\\', $className);
-        $controllerName = end($parts);
-        
-        // Build template path using convention: templates/{ControllerName}/{template_name}.inc.php
-        $templatePath = __DIR__ . '/templates/' . $controllerName . '/' . $templateName . '.inc.php';
-        
-        // Check if template exists
-        if (!file_exists($templatePath)) {
-            error_log("Template not found: {$templatePath}");
-            return '<p>Error: Template not found</p>';
-        }
-        
-        // Extract variables for template use
-        extract($variables);
-        
-        // Capture output
-        ob_start();
-        include($templatePath);
-        return ob_get_clean();
     }
 }

@@ -4,11 +4,12 @@ namespace Tsugi\Controllers;
 
 use Tsugi\Lumen\Controller;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use \Tsugi\UI\GoogleLoginHandler;
 use Tsugi\Lumen\Application;
 
-class Login extends Controller {
+class Login extends Tool {
 
     const ROUTE = '/login';
 
@@ -21,23 +22,28 @@ class Login extends Controller {
     {
         global $CFG;
 
-        error_log('Session in login.php '.session_id());
-
         // Determine callback URL
-        $come_back = $CFG->wwwroot.'/login.php';
-        if ( isset($CFG->google_login_new) && $CFG->google_login_new ) {
-            $come_back = $CFG->wwwroot.'/login';
+        // Check for explicit redirect URI first, then fall back to automatic construction
+        if ( isset($CFG->google_login_redirect) && $CFG->google_login_redirect ) {
+            $come_back = $CFG->google_login_redirect;
+        } else {
+            $come_back = $CFG->wwwroot.'/login.php';
+            if ( isset($CFG->google_login_new) && $CFG->google_login_new ) {
+                $come_back = $CFG->wwwroot.'/login';
+            }
         }
 
         // Process login with redirect callback
-        $result = GoogleLoginHandler::processLogin($come_back, function($result) {
+        // Capture parent path before closure so we can use it inside
+        $parentPath = $this->toolParent(self::ROUTE);
+        $result = GoogleLoginHandler::processLogin($come_back, function($result) use ($parentPath) {
             global $CFG;
             if ( isset($_SESSION['login_return']) ) {
                 $url = $_SESSION['login_return'];
                 unset($_SESSION['login_return']);
                 return $url;
             } else if ( $result->did_insert ) {
-                return $CFG->wwwroot.'/profile.php';
+                return $parentPath . '/profile';
             } else {
                 return isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
             }
@@ -45,15 +51,15 @@ class Login extends Controller {
 
         // Handle errors
         if ( $result->error ) {
+            error_log('Login.get() error: '.$result->error.' session_id='.session_id());
             $_SESSION["error"] = $result->error;
-            header('Location: '.$CFG->apphome.'/');
-            return "";
+            return new RedirectResponse($CFG->apphome.'/');
         }
 
         // Handle successful login redirect
         if ( $result->success && $result->redirect_url ) {
-            header('Location: '.$result->redirect_url);
-            return "";
+            error_log('Login.get() successful redirect to: '.$result->redirect_url.' session_id='.session_id());
+            return new RedirectResponse($result->redirect_url);
         }
 
         // Display login form
