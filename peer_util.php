@@ -645,3 +645,66 @@ function deleteSubmission($assn_row, $submit_row) {
     Cache::clear('peer_submit');
 }
 
+/**
+ * Send a notification to a student when their grade is changed
+ * 
+ * @param int $user_id The user ID of the student being graded
+ * @param float $grade The new grade (0.0 to 1.0)
+ * @param float|null $old_grade Optional old grade to compare (only notify if changed)
+ * @param string|null $assignment_title Optional assignment title for the notification
+ * @param string|null $url Optional URL to link to
+ * @return bool True if notification was sent (or not needed), false on error
+ */
+function notifyGradeChange($user_id, $grade, $old_grade = null, $assignment_title = null, $url = null)
+{
+    global $LINK;
+    
+    // Check if NotificationsService class exists before using it
+    // class_exists() will trigger Composer autoloader if available
+    try {
+        if (!class_exists('\Tsugi\Util\NotificationsService', true)) {
+            // Notification feature not available, silently skip
+            error_log("Peer-grade notification skipped: NotificationsService class not available (user_id=$user_id, grade=$grade, url=" . ($url ?? 'null') . ")");
+            return true;
+        }
+    } catch (\Exception $e) {
+        // If autoloader throws an exception, assume class doesn't exist
+        error_log("Peer-grade notification skipped: Exception checking NotificationsService class (user_id=$user_id, grade=$grade, url=" . ($url ?? 'null') . "): " . $e->getMessage());
+        return true;
+    }
+    
+    // If old_grade is provided, only notify if the grade actually changed
+    if ($old_grade !== null && abs($grade - $old_grade) < 0.0001) {
+        // Grade hasn't changed, no need to notify
+        error_log("Peer-grade notification skipped: Grade unchanged (user_id=$user_id, old_grade=$old_grade, new_grade=$grade, url=" . ($url ?? 'null') . ")");
+        return true;
+    }
+    
+    try {
+        $title = 'Your peer-grade assignment grade has been updated';
+        if ($assignment_title) {
+            $title = 'Grade updated: ' . $assignment_title;
+        }
+        
+        $grade_percent = round($grade * 100, 1);
+        $text = "Your grade has been updated to {$grade_percent}%." . ($old_grade !== null ? " (Previously " . round($old_grade * 100, 1) . "%)" : "");
+        
+        // Generate dedupe_key based on assignment and user
+        $link_id = (isset($LINK) && is_object($LINK) && isset($LINK->id)) ? $LINK->id : 'unknown';
+        $dedupe_key = \Tsugi\Util\NotificationsService::generateDedupeKey('peer-grade', $user_id, $link_id);
+        
+        $result = \Tsugi\Util\NotificationsService::create($user_id, $title, $text, $url, null, $dedupe_key);
+        if ($result !== false) {
+            error_log("Peer-grade notification sent successfully (user_id=$user_id, grade=$grade" . ($old_grade !== null ? ", old_grade=$old_grade" : "") . ", title=" . ($assignment_title ?? 'default') . ", url=" . ($url ?? 'null') . ", dedupe_key=$dedupe_key)");
+            return true;
+        } else {
+            error_log("Peer-grade notification failed: NotificationsService::create returned false (user_id=$user_id, grade=$grade, url=" . ($url ?? 'null') . ")");
+            return false;
+        }
+    } catch (\Exception $e) {
+        // Log error but don't fail the grade update
+        error_log("Error sending peer-grade notification (user_id=$user_id, grade=$grade, url=" . ($url ?? 'null') . "): " . $e->getMessage());
+        return false;
+    }
+}
+

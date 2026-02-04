@@ -38,8 +38,16 @@ if ( $grade <= 0 ) {
 
 // Lookup the result row if we are grading the non-current user
 $result = false;
+$old_grade = null;
 if ( $user_id != $USER->id ) {
     $result = Result::lookupResultBypass($user_id);
+} else {
+    // Get the old grade from the current user's result
+    $result = Result::lookupResultBypass($user_id);
+}
+// Get old grade if available
+if ( $result && isset($result['grade']) ) {
+    $old_grade = floatval($result['grade']);
 }
 
 // Send the grade
@@ -47,6 +55,17 @@ $debug_log = array();
 $status = LTIX::gradeSend($grade, $result, $debug_log); // This is the slow bit
 
 if ( $status === true ) {
+    // Send notification to the student whose grade was changed (only if grade actually changed)
+    // Use LTI launch_presentation_return_url if available, otherwise fall back to index
+    $notification_url = null;
+    if ( is_object($LAUNCH) && method_exists($LAUNCH, 'returnUrl') ) {
+        $notification_url = $LAUNCH->returnUrl();
+    }
+    if ( empty($notification_url) ) {
+        $notification_url = addSession('index');
+    }
+    notifyGradeChange($user_id, $grade, $old_grade, $assn_json->title ?? null, $notification_url);
+    
     if ( $user_id != $USER->id ) {
         $OUTPUT->jsonOutput(array("status" => $status, "debug" => $debug_log));
     } else {
