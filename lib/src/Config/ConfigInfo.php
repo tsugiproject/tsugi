@@ -936,6 +936,19 @@ class ConfigInfo {
     public $badge_organization_logo = null;
     
     /**
+     * OB3 DataIntegrityProof signing - Base64-encoded Ed25519 secret key (64 bytes).
+     * Run: php scripts/badge_ob3_keygen.php to generate. Required for 1EdTech OB3 certification.
+     * $CFG->badge_ob3_secret_key = 'base64-encoded-key';
+     */
+    public $badge_ob3_secret_key = null;
+    
+    /**
+     * OB3 verification method URL for proof (e.g. issuer URL + #key-0).
+     * $CFG->badge_ob3_verification_method_id = 'https://yoursite.com/tsugi/assertions/issuer.json#key-0';
+     */
+    public $badge_ob3_verification_method_id = null;
+    
+    /**
      * LinkedIn organization/company page URL
      * 
      * If set, displays a LinkedIn link on badge pages and may be included

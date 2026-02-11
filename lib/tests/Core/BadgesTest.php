@@ -260,8 +260,11 @@ class BadgesTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($CFG->servicename, $decoded['issuer']['name'], 'Should have correct issuer name');
         $this->assertEquals($CFG->apphome, $decoded['issuer']['url'], 'Should have correct issuer URL');
         
-        // Check issuance date
-        $this->assertEquals($date, $decoded['issuanceDate'], 'Should have correct issuance date');
+        // Check validFrom (VC 2.0)
+        $this->assertEquals($date, $decoded['validFrom'], 'Should have correct validFrom date');
+        
+        // Check name at credential level
+        $this->assertEquals('Test Badge', $decoded['name'], 'Should have credential name');
         
         // Check credential subject
         $this->assertIsArray($decoded['credentialSubject'], 'Credential subject should be array');
@@ -279,10 +282,10 @@ class BadgesTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('Image', $decoded['credentialSubject']['achievement']['image']['type'], 'Image type should be Image');
         $this->assertEquals('http://localhost/badges/test-badge.png', $decoded['credentialSubject']['achievement']['image']['id'], 'Should have correct image ID');
         
-        // Check evidence
-        $this->assertIsArray($decoded['credentialSubject']['evidence'], 'Evidence should be array');
-        $this->assertCount(1, $decoded['credentialSubject']['evidence'], 'Should have one evidence entry');
-        $this->assertEquals('Evidence', $decoded['credentialSubject']['evidence'][0]['type'], 'Evidence type should be Evidence');
+        // Check evidence at credential level (not credentialSubject)
+        $this->assertIsArray($decoded['evidence'], 'Evidence should be array at credential level');
+        $this->assertCount(1, $decoded['evidence'], 'Should have one evidence entry');
+        $this->assertEquals('Evidence', $decoded['evidence'][0]['type'], 'Evidence type should be Evidence');
     }
     
     /**
