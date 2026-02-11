@@ -1,0 +1,50 @@
+{
+    "name": "mmccook/php-json-canonicalization-scheme",
+    "description": "This is my package php-json-canonicalization-scheme",
+    "keywords": [
+        "mmccook",
+        "php-json-canonicalization-scheme"
+    ],
+    "homepage": "https://github.com/mmccook/php-json-canonicalization-scheme",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mark M. McCook",
+            "email": "mark.mccook@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.1"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.13",
+        "pestphp/pest": "^1.20",
+        "phpstan/phpstan": "^1.10",
+        "spatie/ray": "^1.28"
+    },
+    "autoload": {
+        "psr-4": {
+            "Mmccook\\JsonCanonicalizator\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Mmccook\\JsonCanonicalizator\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "format": "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --allow-risky=yes"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

@@ -48,6 +48,7 @@ return array(
     'Psr\\Cache\\' => array($vendorDir . '/psr/cache/src'),
     'ParagonIE\\ConstantTime\\' => array($vendorDir . '/paragonie/constant_time_encoding/src'),
     'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
+    'Mmccook\\JsonCanonicalizator\\' => array($vendorDir . '/mmccook/php-json-canonicalization-scheme/src'),
     'Minishlink\\WebPush\\' => array($vendorDir . '/minishlink/web-push/src'),
     'Koseu\\' => array($baseDir . '/koseu/src'),
     'Jose\\Component\\' => array($vendorDir . '/web-token/jwt-library'),

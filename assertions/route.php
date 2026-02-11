@@ -435,11 +435,13 @@ switch ($resource) {
             
             <hr>
             
-            <h3>Validate Badge</h3>
+            <h3>Badge Validation</h3>
+            <p><a href="https://vc.1ed.tech/validate" target="_blank">1EdTech VC Validator (vc.1ed.tech/validate)</a> — validate OB3 credentials</p>
             <ul>
                 <li><a href="https://openbadgesvalidator.imsglobal.org/?url=<?= urlencode($ob2_url) ?>" target="_blank">Validate OB2 Assertion (IMS Global Validator)</a></li>
                 <li><a href="https://openbadgesvalidator.imsglobal.org/?url=<?= urlencode($badge_url) ?>" target="_blank">Validate OB2 Badge Class (IMS Global Validator)</a></li>
                 <li><a href="https://openbadgesvalidator.imsglobal.org/?url=<?= urlencode($issuer_url) ?>" target="_blank">Validate OB2 Issuer (IMS Global Validator)</a></li>
+                <li><a href="https://vc.1ed.tech/" target="_blank">Validate OB3 Assertion (1EdTech VC Validator)</a></li>
             </ul>
             <p><a href="https://www.imsglobal.org/sites/default/files/Badges/OBv2p0Final/index.html" target="_blank">Official OB2 Specification</a> | <a href="https://www.imsglobal.org/spec/ob/v3p0" target="_blank">Official OB3 Specification</a> | <a href="#" data-toggle="modal" data-target="#validators-modal">About Other Badge Validators</a></p>
             

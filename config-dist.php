@@ -325,6 +325,12 @@ $CFG->badge_assert_salt = false; // "mediumlengthhexstring";
 // If set, displays a LinkedIn link on badge pages
 // $CFG->linkedin_url = "https://www.linkedin.com/company/py4e/";
 
+// OB3 DataIntegrityProof signing (required for 1EdTech OB3 certification)
+// Keygen requires PHP gmp or bcmath extension. Install if needed: apt-get install php-gmp (or php-bcmath)
+// Run: php scripts/badge_ob3_keygen.php from tsugi directory, then add the output to config.php
+// $CFG->badge_ob3_secret_key = "base64-encoded-64-byte-secret-key";
+// $CFG->badge_ob3_verification_method_id = "https://yoursite.com/tsugi/assertions/issuer.json#key-0";
+
 // This folder contains the badge images - This example
 // is for Embedded Tsugi and the badge images are in the
 // parent folder.

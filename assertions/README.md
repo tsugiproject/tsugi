@@ -56,13 +56,20 @@ To enable badge assertions, configure the following values in your `config.php`:
    ```
    Email address for the Open Badges issuer (required for OB2 compliance). Defaults to a placeholder if not set.
 
-3. **Service Name**:
+3. **OB3 DataIntegrityProof Signing** (required for 1EdTech OB3 certification):
+   ```php
+   $CFG->badge_ob3_secret_key = "base64-encoded-64-byte-secret-key";
+   $CFG->badge_ob3_verification_method_id = "https://yoursite.com/tsugi/assertions/issuer.json#key-0";
+   ```
+   Run `php scripts/badge_ob3_keygen.php` to generate a key pair. The keygen script requires PHP's `gmp` or `bcmath` extension—install one if needed: `apt-get install php-gmp` or `apt-get install php-bcmath`. Without these config values, OB3 badges will be missing the cryptographic proof. **Note:** The 1EdTech verifier at [vc.1ed.tech/validate](https://vc.1ed.tech/validate) requires `eddsa-rdfc-2022` for certification; this implementation uses `eddsa-jcs-2022` (both are in the W3C spec). Other verifiers (e.g. [Can I VC](https://canivc.com)) accept eddsa-jcs-2022. **Keep the secret key secure**—never commit it to version control.
+
+4. **Service Name**:
    ```php
    $CFG->servicename = "Your Service Name";
    ```
    Used as fallback for issuer organization name if `badge_organization` is not set.
 
-4. **Service Description**:
+5. **Service Description**:
    ```php
    $CFG->servicedesc = "Your Service Description";
    ```
@@ -167,8 +174,8 @@ The assertions include optional references to legacy OB1 badges when `$CFG->badg
 ## Differences from OB1
 
 1. **Modern Contexts**: Uses OB2/OB3 JSON-LD contexts
-2. **Structured Evidence**: Evidence is an array of Evidence objects (OB2) or embedded in credentialSubject (OB3)
-3. **Verifiable Credentials**: OB3 supports VC format for future-proofing
+2. **Structured Evidence**: Evidence is an array of Evidence objects (OB2) or at credential level (OB3)
+3. **Verifiable Credentials**: OB3 supports VC format with optional DataIntegrityProof (eddsa-jcs-2022) for certification
 4. **No Baking**: Assertions are served as JSON, not baked into PNG images
 5. **Same URL Pattern**: Uses the same encrypted ID parameter approach as OB1 badges
 
@@ -178,4 +185,6 @@ Validate OB2 badges using:
 - IMS Global Open Badges 2.0 Validator
 - Test import into Credly for LinkedIn sharing
 
-OB3 badges can be used with Verifiable Credentials platforms and newer badge systems.
+OB3 badges:
+- Validate at [vc.1ed.tech/validate](https://vc.1ed.tech/validate) (1EdTech OB3 validator)
+- Requires `badge_ob3_secret_key` and `badge_ob3_verification_method_id` for proof signing; otherwise validation will fail with "The verifiable credential is missing a proof"

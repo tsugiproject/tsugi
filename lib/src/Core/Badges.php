@@ -3,6 +3,7 @@
 namespace Tsugi\Core;
 
 use \Tsugi\Util\U;
+use \Tsugi\Util\Ob3DataIntegrity;
 use \Tsugi\Crypt\AesCtr;
 
 /**
@@ -427,6 +428,8 @@ class Badges {
         // Legacy OB1 assertion reference for traceability
         $legacy_assertion = $CFG->wwwroot . "/badges/assert.php?id=" . urlencode($encrypted);
         
+        // VC 2.0 uses validFrom (not issuanceDate); evidence at credential level (not credentialSubject)
+        $normalized_date = self::normalizeDateToZ($date);
         $credential = array(
             "@context" => array(
                 self::OB3_CREDENTIALS_CONTEXT,
@@ -434,13 +437,14 @@ class Badges {
             ),
             "id" => $credential_id,
             "type" => array("VerifiableCredential", "OpenBadgeCredential"),
+            "name" => $badge->title,
             "issuer" => array(
                 "id" => $issuer_id,
                 "type" => "Profile",
                 "name" => $CFG->servicename,
                 "url" => $CFG->apphome
             ),
-            "issuanceDate" => $date,
+            "validFrom" => $normalized_date,
             "credentialSubject" => array(
                 "id" => "mailto:" . $email,
                 "type" => "AchievementSubject",
@@ -457,13 +461,13 @@ class Badges {
                         "id" => $evidence,
                         "narrative" => $narrative
                     )
-                ),
-                "evidence" => array(
-                    array(
-                        "id" => $evidence,
-                        "type" => "Evidence",
-                        "narrative" => $narrative
-                    )
+                )
+            ),
+            "evidence" => array(
+                array(
+                    "id" => $evidence,
+                    "type" => "Evidence",
+                    "narrative" => $narrative
                 )
             )
         );
@@ -473,6 +477,21 @@ class Badges {
             $credential["credentialSubject"]["extensions"] = array(
                 "legacyAssertion" => $legacy_assertion
             );
+        }
+        
+        // Add DataIntegrityProof when OB3 signing is configured
+        if (!empty($CFG->badge_ob3_secret_key) && !empty($CFG->badge_ob3_verification_method_id)) {
+            $secretKey = base64_decode($CFG->badge_ob3_secret_key, true);
+            if ($secretKey !== false && strlen($secretKey) === SODIUM_CRYPTO_SIGN_SECRETKEYBYTES) {
+                $proof = Ob3DataIntegrity::createProof(
+                    $credential,
+                    $CFG->badge_ob3_verification_method_id,
+                    $secretKey
+                );
+                if ($proof !== null) {
+                    $credential["proof"] = $proof;
+                }
+            }
         }
         
         return json_encode($credential, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -591,6 +610,25 @@ class Badges {
                 $issuer["extensions"] = array();
             }
             $issuer["extensions"]["linkedIn"] = $CFG->linkedin_url;
+        }
+        
+        // Add verificationMethod for OB3 proof verification when signing is configured
+        if (!empty($CFG->badge_ob3_secret_key) && !empty($CFG->badge_ob3_verification_method_id)) {
+            $secretKey = base64_decode($CFG->badge_ob3_secret_key, true);
+            if ($secretKey !== false && strlen($secretKey) === SODIUM_CRYPTO_SIGN_SECRETKEYBYTES) {
+                $publicKey = Ob3DataIntegrity::secretKeyToPublicKey($secretKey);
+                $publicKeyMultibase = Ob3DataIntegrity::publicKeyToMultibase($publicKey);
+                if ($publicKeyMultibase !== '') {
+                    $issuer["verificationMethod"] = array(
+                        array(
+                            "id" => $CFG->badge_ob3_verification_method_id,
+                            "type" => "Multikey",
+                            "controller" => $issuer_id,
+                            "publicKeyMultibase" => $publicKeyMultibase
+                        )
+                    );
+                }
+            }
         }
         
         return json_encode($issuer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
