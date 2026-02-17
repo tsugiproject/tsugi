@@ -388,7 +388,7 @@ if ( $l && isset($_GET['assignment']) ) {
     }
 
     $title = $lti->title;
-    $path = $lti->launch;
+    $path = Lessons::expandLink($lti->launch);
     $path .= strpos($path,'?') === false ? '?' : '&';
     // Sigh - some LMSs don't handle custom - sigh
     $path .= 'inherit=' . urlencode($_GET['assignment']);
@@ -462,7 +462,8 @@ if ($l && count($content_items) > 0 ) {
             if ( ! $resources ) continue;
             if ( ! isset($resources[$index]) ) continue;
             $r = $resources[$index];
-            $retval->addContentItem($r->url, $r->title, $r->title, $r->thumbnail, $r->icon);
+            $res_url = is_array($r->url) ? $r->url[0] : $r->url;
+            $retval->addContentItem(Lessons::expandLink($res_url), $r->title, $r->title, $r->thumbnail, $r->icon);
             if ( $count == 0 ) {
                 echo("<p>Selected items:</p>\n");
                 echo("<ul>\n");
@@ -483,7 +484,7 @@ if ($l && count($content_items) > 0 ) {
             $lti = $resources[$index];
 
             $title = $lti->title;
-            $path = $lti->launch;
+            $path = Lessons::expandLink($lti->launch);
             $path .= strpos($path,'?') === false ? '?' : '&';
             // Sigh - some LMSs don't handle custom - sigh
             $path .= 'inherit=' . urlencode($lti->resource_link_id);
