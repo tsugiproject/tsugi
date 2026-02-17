@@ -6,7 +6,6 @@ use Tsugi\Util\U;
 use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\WebSocket;
-use \Tsugi\Crypt\SecureCookie;
 use Tsugi\UI\HandleBars;
 use Tsugi\UI\Theme;
 
@@ -1027,69 +1026,7 @@ EOF;
         $retval .= "  </div> <!--container -->\n";
         $retval .= "</nav>\n";
 
-        // See if the LTI login can be linked to the site login...
-        if ( isset($_SESSION['lti']) && !defined('COOKIE_SESSION') &&  isset($_COOKIE[$CFG->cookiename])) {
-            $ct = $_COOKIE[$CFG->cookiename];
-            // error_log("Cookie: $ct \n");
-            $pieces = SecureCookie::extract($ct);
-            $lti = $_SESSION['lti'];
-            // Contemplate: Do we care if the lti email matches the cookie email?
-            if ( is_array($pieces) && count($pieces) == 3 && isset($lti['user_id']) && !isset($lti['profile_id']) && isset($lti['user_email']) ) {
-                $linkprofile_url = self::getUtilUrl('/linkprofile.php');
-                $linkprofile_url = U::addSession($linkprofile_url);
-                $retval .= self::embeddedMenu($linkprofile_url, $pieces[1], $lti['user_email']);
-            }
-        }
         return $retval;
-    }
-
-    /**
-     * The embedded menu - for now just one button...
-     */
-    public static function embeddedMenu($url, $profile_email, $user_email) {
-        global $CFG;
-        if ( ! $CFG->unify ) return '';
-        if ( isset($_COOKIE['TSUGILINKDISMISS']) ) return '';
-        $message = htmlentities($profile_email);
-return <<< EOF
-<div id="tsugi-link-dialog" title="Read Only Dialog" style="display: none;">
-<p>{$CFG->servicename} Message: You already have an account on this web site.  Your current
-system-wide login is:
-<pre>
-$message
-</pre>
-Would you like to link these two accounts? </p><p>
-<button type="button" class="btn btn-primary"
-onclick="
-$.getJSON('$url', function(retval) {
-    tsugiSetCookie('TSUGILINKDISMISS', 'true', 30);
-    $('#tsugi-link-dialog').dialog( 'close' );
-    $('#tsugi-embed-menu').hide();
-}).error(function() {
-    alert('Error in JSON call');
-});
-return false;
-">Link Accounts</button>
-<button type="button" class="btn btn-secondary"
-onclick="
-tsugiSetCookie('TSUGILINKDISMISS', 'true', 30);
-$('#tsugi-link-dialog').dialog( 'close' );
-$('#tsugi-embed-menu').hide();
-return false
-;">Dismiss this notification</button>
-</p>
-</div>
-<div id="tsugi-embed-menu" style="display:none; position: fixed; top: 100px; right: 5px; width: 150px; ">
-<button
-style="float: right"  class="btn btn-default"
-onclick="tsugiEmbedKeep();showModal('Link Accounts','tsugi-link-dialog'); return false;"
->
-<span class="fa-stack fa-2x has-badge" data-count="1">
-  <i class="fa fa-square fa-stack-2x"></i>
-  <i class="fa fa-paper-plane fa-stack-1x fa-inverse"></i>
-</span>
-</button></div>
-EOF;
     }
 
 

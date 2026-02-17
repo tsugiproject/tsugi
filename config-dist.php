@@ -306,8 +306,8 @@ $CFG->google_translate = false;
 // The legacy value for this was false
 $CFG->verifypeer = false;
 
-// Whether or not to unify accounts between global site-wide login
-// and LTI launches
+// Legacy: Link Accounts feature (unify) - no longer implemented.
+// Previously allowed linking LTI-launched users to site-wide login.
 $CFG->unify = false;
 
 // Badge generation settings - once you set these values to something

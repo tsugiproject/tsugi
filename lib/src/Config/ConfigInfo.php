@@ -674,7 +674,9 @@ class ConfigInfo {
     public $prefer_lti1_for_grade_send = false;
 
     /*
-     * Set these to enable Tsugi's option to uify accounts by email address
+     * Legacy: Link Accounts feature (unify) - no longer implemented.
+     * Previously allowed linking LTI-launched users to site-wide login.
+     * Kept for config compatibility only.
      */
     public $unify = false;
 
