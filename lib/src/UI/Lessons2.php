@@ -2135,20 +2135,21 @@ $(function(){
      * Render an assignment item
      */
     private function renderItemAssignment($item, $nostyle=false) {
+        $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : __('Assignment Specification'));
         $url = isset($item->href) ? $item->href : (isset($item->url) ? $item->url : '');
         // Process {apphome} and other macros in the URL
         $url = self::expandLink($url);
         
         if ( $nostyle ) {
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-assignment">');
-            echo(__('Assignment Specification').':');
-            self::nostyleUrl(__('Assignment Specification'), $url);
+            echo(htmlentities($title).':');
+            self::nostyleUrl($title, $url);
             echo('</li>'."\n");
         } else {
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-assignment">');
             echo('<a href="'.$url.'" target="_blank" style="display: inline-flex; align-items: center;">');
             self::renderItemIcon('assignment');
-            echo(__('Assignment Specification').'</a></li>'."\n");
+            echo(htmlentities($title).'</a></li>'."\n");
         }
     }
 
