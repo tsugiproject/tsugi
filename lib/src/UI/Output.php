@@ -253,6 +253,9 @@ body {
             $retval .= "apphome: false,\n";
         }
         $retval .= "wwwroot: \"".$CFG->wwwroot."\",\n";
+        if ( isset($CFG->youtube_playlist) && $CFG->youtube_playlist ) {
+            $retval .= "youtube_playlist: ".self::json_encode_string_value($CFG->youtube_playlist).",\n";
+        }
         $websocket_url = (WebSocket::enabled() && $LINK) ? '"'.$CFG->websocket_url.'"' : 'false';
         $retval .= "websocket_url: ".$websocket_url.",\n";
         $websocket_token = (WebSocket::enabled() && $LINK) ? '"'.WebSocket::getToken($LINK->launch).'"' : 'false';

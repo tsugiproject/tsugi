@@ -168,6 +168,9 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 // point to the topics.json file
 // $CFG->topics = $CFG->dirroot.'/../topics.json';
 
+// YouTube playlist ID - when set, added to watch URLs so the full playlist appears
+// $CFG->youtube_playlist = 'PLlRFEj9h3CjHjgV3xeKMJGj7HHoQhCQZ';
+
 // This allows you to include various tool folders.  These are scanned
 // for register.php, database.php and index.php files to do automatic
 // table creation as well as making lists of tools in various UI places

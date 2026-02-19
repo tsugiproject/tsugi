@@ -778,7 +778,7 @@ ul.tsugi-lessons-content-list li i.fa {
                     echo('<li>');
                     if ( $nostyle ) {
                         echo(htmlentities($video->title)."<br/>");
-                        $yurl = 'https://www.youtube.com/watch?v='.$video->youtube;
+                        $yurl = U::youtubeWatchUrl($video->youtube);
                         self::nostyleUrl($video->title, $yurl);
                     } else {
                         $OUTPUT->embedYouTube($video->youtube, $video->title);
@@ -821,7 +821,7 @@ ul.tsugi-lessons-content-list li i.fa {
 <a href="<?= $media_path ?>" target="_blank"><?= htmlentities($video->title) ?></a>
 <?php
                     } else {
-                        $yurl = 'https://www.youtube.com/watch?v='.$video->youtube;
+                        $yurl = U::youtubeWatchUrl($video->youtube);
                         $lecno = $lecno + 1;
                         $navid = md5($lecno.$yurl);
                         // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
@@ -852,7 +852,7 @@ ul.tsugi-lessons-content-list li i.fa {
                     $lecno = $lecno + 1;
                     if ( isset($lecture->youtube) ) {
                         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-lecture tsugi-lessons-module-lecture-youtube">');
-                        $yurl = 'https://www.youtube.com/watch?v='.$lecture->youtube;
+                        $yurl = U::youtubeWatchUrl($lecture->youtube);
                         // self::nostyleLink($lecture->title, $yurl);
                         $navid = md5($lecno.$yurl);
                         // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
@@ -881,7 +881,7 @@ ul.tsugi-lessons-content-list li i.fa {
                         echo('</li>');
                     } else if ( isset($lecture->video) ) {
                         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-lecture tsugi-lessons-module-lecture-video">');
-                        $yurl = 'https://www.youtube.com/watch?v='.$lecture->video;
+                        $yurl = U::youtubeWatchUrl($lecture->video);
                         // self::nostyleLink($lecture->title, $lecture->video);
                         $navid = md5($lecno.$lecture->video);
 ?>
@@ -1342,7 +1342,7 @@ ul.tsugi-lessons-content-list li i.fa {
                 if ( $item->type == 'video' && isset($item->youtube) ) {
                     $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Video');
                     $resources[] = self::makeUrlResource('video', $title,
-                        'https://www.youtube.com/watch?v='.urlencode($item->youtube));
+                        U::youtubeWatchUrl($item->youtube));
                 } else if ( $item->type == 'slide' && isset($item->href) ) {
                     $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : __('Slides').': '.$module->title);
                     $resources[] = self::makeUrlResource('slides', $title, $item->href);
@@ -1362,13 +1362,13 @@ ul.tsugi-lessons-content-list li i.fa {
             if ( isset($module->carousel) ) {
                 foreach($module->carousel as $carousel ) {
                     $resources[] = self::makeUrlResource('video',$carousel->title,
-                        'https://www.youtube.com/watch?v='.urlencode($carousel->youtube));
+                        U::youtubeWatchUrl($carousel->youtube));
                 }
             }
             if ( isset($module->videos) ) {
                 foreach($module->videos as $video ) {
                     $resources[] = self::makeUrlResource('video',$video->title,
-                        'https://www.youtube.com/watch?v='.urlencode($video->youtube));
+                        U::youtubeWatchUrl($video->youtube));
                 }
             }
             if ( isset($module->slides) ) {
@@ -1954,7 +1954,7 @@ $(function(){
         } else {
             $youtube = isset($item->youtube) ? $item->youtube : '';
             if ( $youtube ) {
-                $yurl = 'https://www.youtube.com/watch?v='.$youtube;
+                $yurl = U::youtubeWatchUrl($youtube);
                 static $lecno = 0;
                 $lecno = $lecno + 1;
                 $navid = md5($lecno.$yurl);
@@ -2198,7 +2198,7 @@ $(function(){
             echo('<li>');
             if ( $nostyle ) {
                 echo(htmlentities($video->title)."<br/>");
-                $yurl = 'https://www.youtube.com/watch?v='.$video->youtube;
+                $yurl = U::youtubeWatchUrl($video->youtube);
                 self::nostyleUrl($video->title, $yurl);
             } else {
                 $OUTPUT->embedYouTube($video->youtube, $video->title);

@@ -310,6 +310,18 @@ class U {
         return $url;
     }
 
+    /**
+     * Build a YouTube watch URL, appending playlist when youtube_playlist is configured.
+     */
+    public static function youtubeWatchUrl($videoId) {
+        global $CFG;
+        $url = 'https://www.youtube.com/watch?v=' . $videoId;
+        if ( isset($CFG->youtube_playlist) && $CFG->youtube_playlist ) {
+            $url .= '&list=' . urlencode($CFG->youtube_playlist);
+        }
+        return $url;
+    }
+
     public static function absolute_url_ref(&$url) {
         $url = self::absolute_url($url);
     }

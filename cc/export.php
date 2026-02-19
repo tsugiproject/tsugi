@@ -61,7 +61,7 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtub
                 $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parentPath);
             }
         } else {
-            $url = 'https://www.youtube.com/watch?v=' . $item_obj->youtube;
+            $url = U::youtubeWatchUrl($item_obj->youtube);
             $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parentPath);
         }
         return;
@@ -345,7 +345,7 @@ foreach($l->lessons->modules as $module) {
                     $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parent_path_legacy);
                 }
             } else {
-                $url = 'https://www.youtube.com/watch?v=' . $video->youtube;
+                $url = U::youtubeWatchUrl($video->youtube);
                 $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parent_path_legacy);
             }
         }

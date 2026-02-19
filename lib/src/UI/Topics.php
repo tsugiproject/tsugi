@@ -334,7 +334,7 @@ class Topics {
             foreach($topic->videos as $video ) {
                 if (isset($video->youtube)) {
                     $resources[] = self::makeUrlResource('video',$video->title,
-                        'https://www.youtube.com/watch?v='.urlencode($video->youtube));
+                        U::youtubeWatchUrl($video->youtube));
                 } else if (isset($video->warpwire) && ($topics->warpwire_baseurl)) {
                     $resources[] = self::makeUrlResource('video',$video->title,
                         $topics->warpwire_baseurl.'/w/'.urlencode($video->warpwire));
@@ -454,7 +454,7 @@ class Topics {
                         if (isset($video->youtube)) {
                             if ( $nostyle ) {
                                 echo(htmlentities($video->title)."<br/>");
-                                $yurl = 'https://www.youtube.com/watch?v='.$video->youtube;
+                                $yurl = U::youtubeWatchUrl($video->youtube);
                                 self::nostyleUrl($video->title, $yurl);
                             } else {
                                 $OUTPUT->embedYouTube($video->youtube, $video->title);

@@ -636,6 +636,16 @@ class ConfigInfo {
      */
     public $youtube_url = false;
 
+    /**
+     * YouTube playlist ID for embedding or linking
+     *
+     * When set, this is added to the global _TSUGI JavaScript variable
+     * so tools can access it. Example: PLlRFEj9h3CjHjgV3xeKMJGj7HHoQhCQZ
+     *
+     * $CFG->youtube_playlist = 'PLlRFEj9h3CjHjgV3xeKMJGj7HHoQhCQZ';
+     */
+    public $youtube_playlist = false;
+
     /*
      * If we are going to use the lessons tool and/or badges, we need to
      * create and point to a lessons.json file
