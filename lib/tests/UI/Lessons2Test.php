@@ -1088,7 +1088,7 @@ class Lessons2Test extends \PHPUnit\Framework\TestCase
         $lessons2->renderItem($item, $module);
         $output = ob_get_clean();
         
-        $this->assertStringContainsString('Assignment Specification', $output, 'Should include assignment label');
+        $this->assertStringContainsString('Test Assignment', $output, 'Should include assignment title');
         $this->assertStringContainsString('http://example.com/assign', $output, 'Should include assignment URL');
         // Verify icon is rendered
         $this->assertStringContainsString('tsugi-item-type-icon', $output, 'Should render item type icon');

@@ -390,7 +390,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $file = $this->add_web_link($module, $title, $url, $parentPath);
         $web_dom = new CC_WebLink();
         $web_dom->set_title($title);
-        $web_dom->set_url($url, array("target" => "_iframe"));
+        $web_dom->set_url($url);
         $zip->addFromString($file,$web_dom->saveXML());
 
         // Add to the ever-growing canvas_module_meta

@@ -11,7 +11,7 @@ class CC_WebLink extends \Tsugi\Util\TsugiDOM {
 <webLink xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imswl_v1p1"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsccv1p1/imswl_v1p1 http://www.imsglobal.org/profile/cc/ccv1p1/ccv1p1_imswl_v1p1.xsd">
   <title>Wikipedia - Psychology</title>
-  <url href="http://en.wikipedia.org/wiki/Psychology" target="_iframe"/>
+  <url href="http://en.wikipedia.org/wiki/Psychology"/>
 </webLink>');
 
         $this->set_namespace(CC::WL_NS);
