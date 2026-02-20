@@ -69,7 +69,7 @@ class Lessons2 {
 }
  .card .tsugi-card-description {
     margin: 0.2em 0 0 0;
-    line-height: 1.5;
+    line-height: 2.0;
 }
 
 #loader {
