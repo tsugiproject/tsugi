@@ -106,6 +106,42 @@ class Lessons {
     font-size: 0.85em;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
+
+/* Close button for video/audio overlay dialogs */
+.tsugi-overlay-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    z-index: 10;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: white;
+    font-size: 1.5rem;
+    line-height: 1;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.tsugi-overlay-close:hover {
+    background: rgba(255,255,255,0.3);
+}
+.w3schools-overlay-content {
+    position: relative;
+}
+
+/* Button styled as link for video/lecture play triggers */
+.tsugi-video-play-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+}
 </style>
 <?php
         // See if there are any carousels in the lessons
@@ -430,7 +466,7 @@ class Lessons {
      */
     public static function nostyleUrl($title, $url) {
         $url = self::expandLink($url);
-        echo('<a href="'.$url.'" target="_blank" typeof="oer:SupportingMaterial">'.htmlentities($url)."</a>\n");
+        echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" typeof="oer:SupportingMaterial">'.htmlentities($url)."</a>\n");
         if ( isset($_SESSION['gc_count']) ) {
             echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
 	    echo(' data-title="'.htmlentities($title).'" ');
@@ -443,7 +479,7 @@ class Lessons {
      */
     public static function nostyleLink($title, $url) {
         $url = self::expandLink($url);
-        echo('<a href="'.$url.'" target="_blank" class="tsugi-lessons-link" typeof="oer:SupportingMaterial">'.htmlentities($title)."</a>\n");
+        echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link" typeof="oer:SupportingMaterial">'.htmlentities($title)."</a>\n");
         if ( isset($_SESSION['gc_count']) ) {
             echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
 	    echo(' data-title="'.htmlentities($title).'" ');
@@ -488,14 +524,14 @@ class Lessons {
             $disabled = ($this->position == 1) ? ' disabled' : '';
             $all = U::get_rest_parent();
             if ( $this->position == 1 ) {
-                echo('<li class="previous disabled"><a href="#" onclick="return false;">&larr; '.__('Previous').'</a></li>'."\n");
+                echo('<li class="previous disabled"><span>&larr; '.__('Previous').'</span></li>'."\n");
             } else {
                 $prev = $all . '/' . urlencode($this->lessons->modules[$this->position-2]->anchor);
                 echo('<li class="previous"><a href="'.$prev.'">&larr; '.__('Previous').'</a></li>'."\n");
             }
             echo('<li><a href="'.$all.'">'.__('All').' ('.$this->position.' / '.count($this->lessons->modules).')</a></li>');
             if ( $this->position >= count($this->lessons->modules) ) {
-                echo('<li class="next disabled"><a href="#" onclick="return false;">&rarr; '.__('Next').'</a></li>'."\n");
+                echo('<li class="next disabled"><span>&rarr; '.__('Next').'</span></li>'."\n");
             } else {
                 $next = $all . '/' . urlencode($this->lessons->modules[$this->position]->anchor);
                 echo('<li class="next"><a href="'.$next.'">&rarr; '.__('Next').'</a></li>'."\n");
@@ -556,7 +592,7 @@ class Lessons {
                         file_exists($media_folder . '/' . $media_file) ) {
                         $media_path = $media_base . '/' . $media_file;
 ?>
-<a href="<?= $media_path ?>" target="_blank"><?= htmlentities($video->title) ?></a>
+<a href="<?= $media_path ?>" target="_blank" rel="noopener noreferrer"><?= htmlentities($video->title) ?></a>
 <?php
                     } else {
                         $yurl = U::youtubeWatchUrl($video->youtube);
@@ -564,12 +600,13 @@ class Lessons {
                         $navid = md5($lecno.$yurl);
                         // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
 ?>
-<div id="<?= $navid ?>" class="w3schools-overlay">
+<div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Video: <?= htmlspecialchars($video->title, ENT_QUOTES, 'UTF-8') ?>">
   <div class="w3schools-overlay-content" style="background-color: black;">
+  <button type="button" class="tsugi-overlay-close" aria-label="Close" onclick="document.getElementById('<?= $navid ?>').style.display='none'; if(typeof labnolStopPlayers==='function') labnolStopPlayers();">×</button>
   <div class="youtube-player" data-id="<?= $video->youtube ?>"></div>
   </div>
 </div>
-<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($video->title) ?></a>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($video->title) ?></button>
 <?php
                     }
                     echo("</li>\n");
@@ -595,12 +632,13 @@ class Lessons {
                         $navid = md5($lecno.$yurl);
                         // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
 ?>
-<div id="<?= $navid ?>" class="w3schools-overlay">
+<div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Video: <?= htmlspecialchars($lecture->title, ENT_QUOTES, 'UTF-8') ?>">
   <div class="w3schools-overlay-content" style="background-color: black;">
+  <button type="button" class="tsugi-overlay-close" aria-label="Close" onclick="document.getElementById('<?= $navid ?>').style.display='none'; if(typeof labnolStopPlayers==='function') labnolStopPlayers();">×</button>
   <div class="youtube-player" data-id="<?= $lecture->youtube ?>"></div>
   </div>
 </div>
-<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></a>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
 <?php
                         echo('</li>');
                     } else if ( isset($lecture->audio) ) {
@@ -608,13 +646,14 @@ class Lessons {
                         // self::nostyleLink($lecture->title, $lecture->audio);
                         $navid = md5($lecno.$lecture->audio);
 ?>
-<div id="<?= $navid ?>" class="w3schools-overlay">
+<div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Audio: <?= htmlspecialchars($lecture->title, ENT_QUOTES, 'UTF-8') ?>">
   <div class="w3schools-overlay-content" style="background-color: black;">
+  <button type="button" class="tsugi-overlay-close" aria-label="Close" onclick="document.getElementById('<?= $navid ?>').style.display='none';">×</button>
 <h2><?= htmlentities($lecture->title) ?></h2>
   <audio controls preload='none' src="<?= self::expandLink($lecture->audio) ?>"></audio>
   </div>
 </div>
-<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></a>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
 <?php
                         echo('</li>');
                     } else if ( isset($lecture->video) ) {
@@ -623,12 +662,13 @@ class Lessons {
                         // self::nostyleLink($lecture->title, $lecture->video);
                         $navid = md5($lecno.$lecture->video);
 ?>
-<div id="<?= $navid ?>" class="w3schools-overlay">
+<div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Video: <?= htmlspecialchars($lecture->title, ENT_QUOTES, 'UTF-8') ?>">
   <div class="w3schools-overlay-content" style="background-color: black;">
+  <button type="button" class="tsugi-overlay-close" aria-label="Close" onclick="document.getElementById('<?= $navid ?>').style.display='none';">×</button>
   <video controls style="width:95%;" preload="none" src="<?= self::expandLink($lecture->video) ?>"></video>
   </div>
 </div>
-<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></a>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
 <?php
                         echo('</li>');
                     }
@@ -673,7 +713,7 @@ class Lessons {
                     self::nostyleUrl(__('Assignment Specification'), $module->assignment);
                     echo('</li>'."\n");
                 } else {
-                    echo('<li typeof="oer:assessment"><a href="'.$module->assignment.'" target="_blank">'.__('Assignment Specification').'</a></li>'."\n");
+                    echo('<li typeof="oer:assessment"><a href="'.$module->assignment.'" target="_blank" rel="noopener noreferrer">'.__('Assignment Specification').'</a></li>'."\n");
                 }
             }
             if ( isset($module->solution) ) {
@@ -682,7 +722,7 @@ class Lessons {
                     self::nostyleUrl(__('Assignment Solution'), $module->solution);
                     echo('</li>'."\n");
                 } else {
-                    echo('<li typeof="oer:assessment"><a href="'.$module->solution.'" target="_blank">'.__('Assignment Solution').'</a></li>'."\n");
+                    echo('<li typeof="oer:assessment"><a href="'.$module->solution.'" target="_blank" rel="noopener noreferrer">'.__('Assignment Solution').'</a></li>'."\n");
                 }
             }
 
@@ -719,9 +759,9 @@ class Lessons {
                 foreach($discussions as $discussion ) {
                     $resource_link_title = isset($discussion->title) ? $discussion->title : $module->title;
                     echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
-                    echo("\n</li>\n");
+                    echo("</li>\n");
                 }
-                echo("</li></ul><!-- end of discussions -->\n");
+                echo("</ul></li><!-- end of discussions -->\n");
             }
 
             // DISCUSSIONs logged in
@@ -755,10 +795,9 @@ class Lessons {
                     $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $discussion->resource_link_id;
                     $title = isset($discussion->title) ? $discussion->title : "Discussion";
                     echo('<li class="tsugi-lessons-module-discussion"><a href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
-                    echo("\n</li>\n");
                 }
 
-                echo("</li></ul><!-- end of discussions -->\n");
+                echo("</ul></li><!-- end of discussions -->\n");
             }
 
             // LTIs not logged in
@@ -770,9 +809,9 @@ class Lessons {
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
-                    echo("\n</li>\n");
+                    echo("</li>\n");
                 }
-                echo("</li></ul><!-- end of ltis -->\n");
+                echo("</ul></li><!-- end of ltis -->\n");
             }
 
             // LTIs logged in
@@ -809,10 +848,9 @@ class Lessons {
                     echo('<li class="tsugi-lessons-module-lti"><a');
                     if ( $target == "_blank" ) echo(' target="_blank" onclick="alert(\'Link will open in a new browser tab...\');" ');
                     echo(' href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
-                    echo("\n</li>\n");
                 }
 
-                echo("</li></ul><!-- end of ltis -->\n");
+                echo("</ul></li><!-- end of ltis -->\n");
             }
 
         echo("</ul>\n");
