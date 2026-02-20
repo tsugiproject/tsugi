@@ -59,13 +59,17 @@ class Lessons2 {
     padding: 0.5em;
     margin: 12px;
     border: 1px solid black;
-    height: 9em;
+    height: 12em;
     overflow-y: hidden;
 }
  .card div {
-    height: 8em;
+    height: 11em;
     overflow-y: hidden;
     text-overflow: ellipsis;
+}
+ .card .tsugi-card-description {
+    margin: 0.2em 0 0 0;
+    line-height: 1.5;
 }
 
 #loader {
@@ -1185,6 +1189,8 @@ ul.tsugi-lessons-content-list li i.fa {
             
             echo('<article class="card"><div>'."\n");
             $href = U::get_rest_path() . '/' . urlencode($module->anchor);
+            $link_label = $count.': '.$module->title;
+            echo('<a href="'.$href.'" aria-label="'.$link_label.'">'."\n");
             if ( isset($module->icon) ) {
                 $icon_color = '';
                 if ( $percent == 100 ) {
@@ -1197,8 +1203,7 @@ ul.tsugi-lessons-content-list li i.fa {
             if ( isset($module->image) ) {
                 echo('<img class="tsugi-all-modules-image-icon" aria-hidden="true" style="float: left; width: 2em; padding-right: 5px;" src="'.self::expandLink($module->image).'">');
             }
-            echo('<a href="'.$href.'">'."\n");
-            echo($count.': '.$module->title);
+            echo($link_label);
             if ( $possible_points > 0 ) {
                 if ( $percent == 0 ) {
                     // No badge for 0%
@@ -1210,11 +1215,10 @@ ul.tsugi-lessons-content-list li i.fa {
                     echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
                 }
             }
-            echo('<div style="clear:both;"></div>'."\n");
             if ( isset($module->description) ) {
                 $desc = $module->description;
                 if ( strlen($desc) > 1000 ) $desc = substr($desc, 0, 1000);
-                echo('<br/>'.$desc."\n");
+                echo('<br clear="all"><p class="tsugi-card-description">'.$desc."</p>\n");
             }
             echo("</a></div></article>\n");
             echo("<!--\n");
