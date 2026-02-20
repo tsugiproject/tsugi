@@ -11,6 +11,7 @@ require_once "../lms-util.php";
 function radio($var, $num, $val) {
     $ret =  '<input type="radio" name="'.$var.'" id="'.$var.$num.'" value="'.$num.'" ';
     if ( $num == $val ) $ret .= ' checked ';
+    $ret .= '>';
     echo($ret);
 }
 
@@ -182,72 +183,71 @@ function initialize() { }
 <div class="container">
 <?php
 
-echo('<h4>');echo($_SESSION['displayname']);
-echo(' ('.$_SESSION['email'].")</h4>\n");
+echo('<h1>');echo(htmlentities($_SESSION['displayname']));
+echo(' ('.htmlentities($_SESSION['email']).")</h1>\n");
 ?>
 
-    <p>
     <form method="POST">
         <div style="display: flex; justify-content: space-between;">
-            <div class="control-group">
+            <fieldset class="control-group">
+                <legend>Would you like to set a theme override?</legend>
+                <p><em>Overrides will only show if theme information is set in the launch data (such as from an LMS) or configured.</em></p>
                 <div class="controls">
-                    <p>Would you like to set a theme override?</p>
-                    <em>Overrides will only show if theme information is set in the launch data (such as from an LMS) or configured.</em>
                     <label class="radio">
-                        <?php radio('theme',0,$themeId); ?> >
+                        <?php radio('theme',0,$themeId); ?>
                         Use the default configuration
                     </label>
                     <label class="radio">
-                        <?php radio('theme',1,$themeId); ?> >
+                        <?php radio('theme',1,$themeId); ?>
                         Use light theme
                     </label>
                     <label class="radio">
-                        <?php radio('theme',2,$themeId); ?> >
+                        <?php radio('theme',2,$themeId); ?>
                         Use dark theme
                     </label>
                 </div>
-            </div>
+            </fieldset>
             <div class="control-group pull-right" style="margin-top: 20px">
                 <button type="submit" class="btn btn-primary visible-phone">Save</button>
-                <input class="btn btn-warning" type="button" onclick="location.href='<?= $home ?>/index.php'; return false;" value="Cancel"/>
+                <a href="<?= $home ?>/index.php" class="btn btn-warning">Cancel</a>
             </div>
         </div>
         <hr class="hidden-phone"/>
         <div style="display: flex; justify-content: space-between;">
-    <div class="control-group">
+    <fieldset class="control-group">
+    <legend>How much mail would you like us to send?</legend>
     <div class="controls">
-    How much mail would you like us to send?
     <label class="radio">
-    <?php radio('subscribe',-1,$subscribe); ?> >
+    <?php radio('subscribe',-1,$subscribe); ?>
     No mail will be sent.
     </label>
     <label class="radio">
-    <?php radio('subscribe',0,$subscribe); ?> >
+    <?php radio('subscribe',0,$subscribe); ?>
     Keep the mail level as low as possible.
     </label>
     <label class="radio">
-<?php radio('subscribe',1,$subscribe); ?> >
+<?php radio('subscribe',1,$subscribe); ?>
 Send only announcements.
 </label>
 <label class="radio">
-<?php radio('subscribe',2,$subscribe); ?> >
+<?php radio('subscribe',2,$subscribe); ?>
 Send me notification mail for important things like my assignment was graded.
 </label>
 </div>
-</div>
+</fieldset>
 <div class="control-group pull-right" style="margin-top: 20px">
     <button type="submit" class="btn btn-primary visible-phone">Save</button>
-    <input class="btn btn-warning" type="button" onclick="location.href='<?= $home ?>/index.php'; return false;" value="Cancel"/>
+    <a href="<?= $home ?>/index.php" class="btn btn-warning">Cancel</a>
 </div>
 </div>
 <?php if ( isset($CFG->google_map_api_key) && ! $CFG->OFFLINE ) { ?>
 <hr class="hidden-phone"/>
-    How would you like to be shown in maps.<br/>
-    <select name="map">
+    <label for="map_select">How would you like to be shown in maps?</label>
+    <select name="map" id="map_select">
     <option value="0">--- Please Select ---</option>
     <option <?php option(1,$map); ?>>Don't show me at all</option>
     <option <?php option(2,$map); ?>>Show only my location with no identifying information</option>
-    <option <?php option(3,$map); ?>>Show my name (<?php echo($_SESSION['displayname']); ?>)</option>
+    <option <?php option(3,$map); ?>>Show my name (<?php echo(htmlentities($_SESSION['displayname'] ?? '', ENT_QUOTES, 'UTF-8')); ?>)</option>
     </select>
     <p>
     Move the pointer on the map below until it is at the correct location.
@@ -259,13 +259,13 @@ Send me notification mail for important things like my assignment was graded.
     <button type="submit" style="margin-top: 40px" class="btn btn-primary">Save Profile Data</button>
     </div>
 
-    <div id="map_canvas" style="margin: 10px; width:400px; max-width: 100%; height:400px"></div>
+    <div id="map_canvas" style="margin: 10px; width:400px; max-width: 100%; height:400px" role="img" aria-label="Map showing your location. Drag the marker to update your position."></div>
 
     <div id="latlong" style="display:none" class="control-group">
-    <p>Latitude: <input size="30" type="text" id="latbox" name="lat" class="disabled"
+    <p><label for="latbox">Latitude:</label> <input size="30" type="text" id="latbox" name="lat" class="disabled"
     <?php echo(' value="'.htmlent_utf8($lat).'" '); ?>
     ></p>
-    <p>Longitude: <input size="30" type="text" id="lngbox" name="lng" class="disabled"
+    <p><label for="lngbox">Longitude:</label> <input size="30" type="text" id="lngbox" name="lng" class="disabled"
     <?php echo(' value="'.htmlent_utf8($lng).'" '); ?>
     ></p>
     </div>

@@ -61,6 +61,10 @@ $OUTPUT->header();
             border-bottom: 8px solid var(--secondary);
             flex-wrap: wrap;
         }
+        .title-container {
+            display: flex;
+            align-items: center;
+        }
         .test-header-icon {
             font-size: 3rem;
             margin-right: 20px;
@@ -194,24 +198,25 @@ if ( $fa_icon !== false ) {
 }
 
 ?>
+    <?php $modal_id = preg_replace('/[^a-zA-Z0-9_-]/', '_', $install); ?>
     <!-- Install modal -->
-    <div id="<?=urlencode($install)?>_modal" class="modal fade" role="dialog">
+    <div id="<?= htmlspecialchars($modal_id) ?>_modal" class="modal fade" role="dialog" aria-labelledby="<?= htmlspecialchars($modal_id) ?>_modal_title" aria-modal="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span class="fa fa-times" aria-hidden="true"></span><span class="sr-only">Cancel</span></button>
-                    <h4 class="modal-title">Install Learning App</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span class="fa fa-times" aria-hidden="true"></span></button>
+                    <h4 class="modal-title" id="<?= htmlspecialchars($modal_id) ?>_modal_title">Install Learning App</h4>
                 </div>
                 <div class="modal-body">
                     <form method="get" action="../index.php">
                         <input type="hidden" name="install" value="<?=urlencode($install)?>">
                         <div class="form-group">
-                            <label>Title</label>
-                            <input type="text" class="form-control" name="title" value="<?=htmlent_utf8($title)?>">
+                            <label for="<?= htmlspecialchars($modal_id) ?>_modal_title_input">Title</label>
+                            <input type="text" class="form-control" id="<?= htmlspecialchars($modal_id) ?>_modal_title_input" name="title" value="<?=htmlent_utf8($title)?>">
                         </div>
                         <div class="form-group">
-                            <label>Description</label>
-                            <textarea class="form-control" rows="5" name="description"><?=htmlent_utf8($text)?></textarea>
+                            <label for="<?= htmlspecialchars($modal_id) ?>_modal_desc_input">Description</label>
+                            <textarea class="form-control" rows="5" id="<?= htmlspecialchars($modal_id) ?>_modal_desc_input" name="description"><?=htmlent_utf8($text)?></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">Submit</button>
                         <button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>
@@ -233,36 +238,35 @@ if ( $fa_icon !== false ) {
         <?php
         if ( $fa_icon ) {
             ?>
-            <span class="fa <?= $fa_icon; ?> test-header-icon"></span>
+            <span class="fa <?= $fa_icon; ?> test-header-icon" aria-hidden="true"></span>
             <?php
         }
         ?>
-        <span class="test-header-text"><?= htmlent_utf8($title); ?></span>
+        <h1 class="test-header-text"><?= htmlent_utf8($title); ?></h1>
     </div>
     <div class="install-button-container">
     <?php
-        echo('<button type="button" class="btn btn-success" role="button" data-toggle="modal" data-target="#'.urlencode($install).'_modal"><span class="fa fa-plus" aria-hidden="true"></span> Install</button>');
+        echo('<button type="button" class="btn btn-success" data-toggle="modal" data-target="#'.htmlspecialchars($modal_id).'_modal"><span class="fa fa-plus" aria-hidden="true"></span> Install</button>');
     ?>
     </div>
 </div>
 <div class="content-container container-fluid">
-    <ul class="nav nav-tabs">
-        <li class="active"><a href="#test" onclick="console.log('yada');" data-toggle="tab" aria-expanded="true">Test</a></li>
-        <li><a href="#identity" data-toggle="tab" aria-expanded="false">
-                <?php if ( U::isNotEmpty($lmsdata['lis_person_name_full']) ) echo($lmsdata['lis_person_name_full']);
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="active" role="presentation"><a href="#test" id="test-tab" role="tab" data-toggle="tab" aria-selected="true" aria-controls="test">Test</a></li>
+        <li role="presentation"><a href="#identity" id="identity-tab" role="tab" data-toggle="tab" aria-selected="false" aria-controls="identity">
+                <?php if ( U::isNotEmpty($lmsdata['lis_person_name_full']) ) echo(htmlentities($lmsdata['lis_person_name_full']));
                 else echo('Anonymous');
-                ?>
-                &#9660;
+                ?><span aria-hidden="true"> &#9660;</span>
             </a>
         </li>
         <!-- <li><a href="#grades" data-toggle="tab" aria-expanded="false">Grades</a></li> -->
-        <li><a href="#debug" data-toggle="tab" aria-expanded="false">Debug</a></li>
+        <li role="presentation"><a href="#debug" id="debug-tab" role="tab" data-toggle="tab" aria-selected="false" aria-controls="debug">Debug</a></li>
     </ul>
     <div id="myTabContent" class="tab-content" style="margin-top:10px;">
-        <div class="tab-pane fade" id="identity">
-            <p>You have three four identities that you can use to test the tool.
+        <div class="tab-pane fade" id="identity" role="tabpanel" aria-labelledby="identity-tab">
+            <p>You have four identities that you can use to test the tool.
                 There is an instructor, two students, and an anonymous student.   You can quickly use this screen
-                to switch back and forth between these identities to test tool functionality under the differet roles.
+                to switch back and forth between these identities to test tool functionality under the different roles.
             </p>
             <ul>
                 <li><a href="<?= $rest_path->full ?>?identity=instructor">Jane Instructor</a></li>
@@ -271,7 +275,7 @@ if ( $fa_icon !== false ) {
                 <li><a href="<?= $rest_path->full ?>?identity=learner3">Anonymous</a></li>
             </ul>
         </div>
-        <div class="tab-pane fade active in" id="test">
+        <div class="tab-pane fade active in" id="test" role="tabpanel" aria-labelledby="test-tab">
             <?php
             $parms = $lmsdata;
             // Cleanup parms before we sign
@@ -316,7 +320,7 @@ if ( ! isset($parms['resource_link_title']) ) {
             print($content);
             ?>
         </div>
-        <div class="tab-pane fade" id="debug">
+        <div class="tab-pane fade" id="debug" role="tabpanel" aria-labelledby="debug-tab">
     <pre class="debug-output">
     Launch Parameters:
         <?php print_r($parms) ?>

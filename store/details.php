@@ -55,6 +55,10 @@ $OUTPUT->header();
     border-bottom: 8px solid var(--secondary);
     flex-wrap: wrap;
 }
+.title-container {
+    display: flex;
+    align-items: center;
+}
 .detail-header-icon {
     font-size: 3rem;
     margin-right: 20px;
@@ -132,11 +136,16 @@ $OUTPUT->header();
 .sidebar-header {
     font-size: large;
 }
-a.tool-url-link {
+a.tool-url-link, button.tool-url-link {
     text-decoration: none;
     padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
 }
-a.tool-url-link:hover, a.tool-url-link:focus, a.tool-url-link:active {
+a.tool-url-link:hover, a.tool-url-link:focus, a.tool-url-link:active,
+button.tool-url-link:hover, button.tool-url-link:focus, button.tool-url-link:active {
     color: var(--text-light);
     text-decoration: none;
 }
@@ -194,42 +203,11 @@ if (isset($registrations[$install])) {
     }
 }
 
-?>
-<div class="header-back-nav">
-    <ol class="breadcrumb">
-    <li><a href="<?= $rest_path->parent; ?>">Store</a></li>
-    <li class="active"><?= htmlent_utf8($title) ?></li>
-    </ol>
-</div>
-<div class="detail-header">
-    <div class="title-container">
-        <?php
-        if ( $fa_icon ) {
-            ?>
-            <span class="fa <?= $fa_icon; ?> detail-header-icon"></span>
-            <?php
-        }
-        ?>
-        <span class="detail-header-text"><?= htmlent_utf8($title); ?></span>
-    </div>
-    <div class="install-button-container">
-    <?php
-    if ( isset($_SESSION['gc_count']) ) {
-        echo('<a class="btn btn-success" href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
-        echo('" title="Install in Classroom" target="iframe-frame"'."\n");
-        echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
-        echo('<span class="fa fa-plus"></span> Install</a>'."\n");
-    }
-    ?>
-    </div>
-</div>
-<?php
-
 $OUTPUT->bodyStart();
 ?>
-<div id="overlay" class="overlay"
-   onclick="document.getElementById('overlay').style.display = 'none';" >
-<img id="overlay_img" src="<?= $OUTPUT->getSpinnerUrl(); ?>">
+<div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-label="Enlarged image" onclick="if(event.target===this)this.style.display='none'">
+   <button type="button" class="close" style="position:absolute;top:1rem;right:1rem;color:white;background:transparent;border:none;font-size:2rem;cursor:pointer;z-index:10001" onclick="document.getElementById('overlay').style.display='none'" aria-label="Close">×</button>
+   <img id="overlay_img" src="<?= $OUTPUT->getSpinnerUrl(); ?>" alt="">
 </div>
 <?php
 $OUTPUT->topNav();
@@ -248,6 +226,37 @@ if ( ! isset($registrations[$install])) {
     return;
 }
 
+?>
+<div class="header-back-nav">
+    <ol class="breadcrumb">
+    <li><a href="<?= $rest_path->parent; ?>">Store</a></li>
+    <li class="active"><?= htmlent_utf8($title) ?></li>
+    </ol>
+</div>
+<div class="detail-header">
+    <div class="title-container">
+        <?php
+        if ( $fa_icon ) {
+            ?>
+            <span class="fa <?= $fa_icon; ?> detail-header-icon" aria-hidden="true"></span>
+            <?php
+        }
+        ?>
+        <h1 class="detail-header-text"><?= htmlent_utf8($title); ?></h1>
+    </div>
+    <div class="install-button-container">
+    <?php
+    if ( isset($_SESSION['gc_count']) ) {
+        echo('<a class="btn btn-success" href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
+        echo('" title="Install in Classroom" target="iframe-frame"'."\n");
+        echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
+        echo('<span class="fa fa-plus" aria-hidden="true"></span> Install</a>'."\n");
+    }
+    ?>
+    </div>
+</div>
+<?php
+
 // Check if the tsugi.php is upgraded for this tool
 $register_json = $tool['url'].'register.json';
 $json_str = Net::doGet($register_json);
@@ -257,15 +266,15 @@ $register_good = $json_obj && isset($json_obj->name);
 // Start the output
 ?>
 <script src="https://apis.google.com/js/platform.js" async defer></script>
-<div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <iframe name="iframe-frame" style="height:200px" id="iframe-frame"
+<div id="iframe-dialog" title="Dialog content" style="display: none;">
+   <iframe name="iframe-frame" style="height:200px" id="iframe-frame" title="Dialog content"
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
 </div>
 <div id="url-dialog" title="URL Dialog" style="display: none;">
     <h1>Single Tool URLs</h1>
 <?php if ( isset($tool['messages']) && is_array($tool['messages']) && in_array('anonymous', $tool['messages']) ) { ?>
     <p>Anonymous Launch URL (LTI launch not needed)<br/>
-    <a href="<?= $tool['url'] ?>" target="_blank"><?= $tool['url'] ?></a>
+    <a href="<?= $tool['url'] ?>" target="_blank" rel="noopener noreferrer"><?= $tool['url'] ?></a>
     (No grades sent on anonymous lauches)
     </p>
 <?php } ?>
@@ -274,9 +283,9 @@ $register_good = $json_obj && isset($json_obj->name);
     </p>
 <?php if ( $register_good ) { ?>
     <p>Canvas Tool Configuration URL (XML)<br/>
-    <a href="<?= $tool['url'] ?>canvas-config.xml" target="_blank"><?= $tool['url'] ?>canvas-config.xml</a></p>
+    <a href="<?= $tool['url'] ?>canvas-config.xml" target="_blank" rel="noopener noreferrer"><?= $tool['url'] ?>canvas-config.xml</a></p>
     <p>Tsugi Registration URL (JSON)<br/>
-    <a href="<?= $tool['url'] ?>register.json" target="_blank"><?= $tool['url'] ?>register.json</a></p>
+    <a href="<?= $tool['url'] ?>register.json" target="_blank" rel="noopener noreferrer"><?= $tool['url'] ?>register.json</a></p>
 <?php } ?>
     <h1>Server-wide URLs</h1>
     <p>App Store (Supports IMS Deep Linking/Content Item)<br/>
@@ -284,7 +293,7 @@ $register_good = $json_obj && isset($json_obj->name);
     (Requires key and secret)
     </p>
     <p>App Store Canvas Configuration URL<br/>
-    <a href="<?= $CFG->wwwroot ?>/lti/store/canvas-config.xml" target="_blank"><?= $CFG->wwwroot ?>/lti/store/canvas-config.xml</a></p>
+    <a href="<?= $CFG->wwwroot ?>/lti/store/canvas-config.xml" target="_blank" rel="noopener noreferrer"><?= $CFG->wwwroot ?>/lti/store/canvas-config.xml</a></p>
 </div>
 
 <div class="content-container">
@@ -296,7 +305,7 @@ $register_good = $json_obj && isset($json_obj->name);
             <div class="bxslider">
             <?php
                     foreach($screen_shots as $idx=>$screen_shot ) { ?>
-                        <div class="slider-thumbnail" id="slider-thumbnail-<?= $idx; ?>"><img src="<?= $screen_shot; ?>" title="<?= htmlentities($title); ?>"></div>
+                        <div class="slider-thumbnail" id="slider-thumbnail-<?= $idx; ?>"><img src="<?= $screen_shot; ?>" alt="<?= htmlentities($title); ?> screenshot <?= $idx + 1; ?>" title="<?= htmlentities($title); ?>"></div>
                         <?php
                     }
             ?>
@@ -310,8 +319,8 @@ $register_good = $json_obj && isset($json_obj->name);
 
             echo('<form method="POST" style="display:inline" action="'.$rest_path->parent.'/test/'.urlencode($install).'">');
             echo('<div class="button-container">');
-            echo('<input type="submit" class="btn btn-primary" value="Try It"></form> ');
-            echo('</div>');
+            echo('<input type="submit" class="btn btn-primary" value="Try It">');
+            echo('</div></form>');
             if ( is_string(U::get($tool, 'documentation')) ) {
                 $doc_url = U::get($tool, 'documentation');
                 $tool_base = $tool['url'];
@@ -323,7 +332,7 @@ $register_good = $json_obj && isset($json_obj->name);
                 ?>
                 <div class="tool-link-container">
                     <div class="sidebar-header">Documentation</div>
-		    <a href="<?= $doc_url ?>" target="_blank">View in new window</a>.
+		    <a href="<?= $doc_url ?>" target="_blank" rel="noopener noreferrer">View in new window</a>.
                 </div>
                 <?php
             }
@@ -331,7 +340,7 @@ $register_good = $json_obj && isset($json_obj->name);
                 ?>
                 <div class="tool-link-container">
                     <div class="sidebar-header">Video Demo</div>
-		    <a href="<?= U::get($tool, 'video') ?>" target="_blank">View in new window</a>.
+		    <a href="<?= U::get($tool, 'video') ?>" target="_blank" rel="noopener noreferrer">View in new window</a>.
                 </div>
                 <?php
             }
@@ -364,12 +373,12 @@ $register_good = $json_obj && isset($json_obj->name);
             if ( is_string($source_url) ) {
                 ?>
                 <div class="tool-link-container">
-                    <a href="<?= $source_url; ?>" target="_blank" class="tool-url-link sidebar-header">Source Code <span class="fa fa-chevron-right"></span></a>
+                    <a href="<?= $source_url; ?>" target="_blank" rel="noopener noreferrer" class="tool-url-link sidebar-header">Source Code <span class="fa fa-chevron-right" aria-hidden="true"></span></a>
                 </div>
                 <?php
             }
             echo('<div class="tool-link-container">');
-            echo('<a href="#" class="tool-url-link sidebar-header" role="button" onclick="showModal(\'Tool URLs\',\'url-dialog\');">Tool URLs <span class="fa fa-chevron-right"></span></a>');
+            echo('<button type="button" class="tool-url-link sidebar-header btn-link" onclick="showModal(\'Tool URLs\',\'url-dialog\');">Tool URLs <span class="fa fa-chevron-right" aria-hidden="true"></span></button>');
             echo('</div>');
 
             if (is_array($keywords)) {
@@ -397,10 +406,10 @@ $register_good = $json_obj && isset($json_obj->name);
             <?php
 $script = isset($tool['script']) ? $tool['script'] : "index";
 $path = $tool['url'];
-echo("<p><ul>\n");
-if ( isset($CFG->privacy_url) ) {
+echo("<ul>\n");
+if ( isset($CFG->privacy_url) && $CFG->privacy_url !== '' ) {
     echo('<li><p><a href="'.$CFG->privacy_url.'"
-       target="_blank">'._m('Privacy Policy').'</a></p></li>'."\n");
+       target="_blank" rel="noopener noreferrer">'._m('Privacy Policy').'</a></p></li>'."\n");
 }
 $privacy_description = array(
  'anonymous' => _m('Does not require student email or name.'),
@@ -437,9 +446,9 @@ if ( $CFG->launchactivity ) {
     echo(_m('Can send analytics to learning record store.'));
     echo("</p></li>\n");
 }
-if ( isset($CFG->sla_url) ) {
+if ( isset($CFG->sla_url) && $CFG->sla_url !== '' ) {
     echo('<li><p><a href="'.$CFG->sla_url.'"
-       target="_blank">'._m('Service Level Agreement').'</a></p></li>'."\n");
+       target="_blank" rel="noopener noreferrer">'._m('Service Level Agreement').'</a></p></li>'."\n");
 }
 
 if ( isset($CFG->google_classroom_secret) ) {

@@ -79,12 +79,12 @@ class Output {
         echo '<div id="flashmessages">';
         if ( $this->session_get('error') ) {
             echo '<div class="alert alert-danger alert-banner" style="clear:both">
-                    <a href="#" class="close" data-dismiss="alert">&times;</a>'.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="'.htmlentities(_m('Dismiss')).'">&times;</button>'.
                 $this->session_get('error')."</div>\n";
             $this->session_forget('error');
         } else if ( isset($_GET['lti_errormsg']) ) {
             echo '<div class="alert alert-danger alert-banner" style="clear:both">
-                    <a href="#" class="close" data-dismiss="alert">&times;</a>'.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="'.htmlentities(_m('Dismiss')).'">&times;</button>'.
                 htmlentities($_GET['lti_errormsg'])."</div>";
 
             if ( isset($_GET['detail']) ) {
@@ -96,13 +96,14 @@ class Output {
 
         if ( $this->session_get('success') ) {
             echo '<div class="alert alert-success alert-banner" style="clear:both">
-                    <a href="#" class="close" data-dismiss="alert">&times;</a>'.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="'.htmlentities(_m('Dismiss')).'">&times;</button>'.
                 $this->session_get('success')."</div>\n";
 
             $this->session_forget('success');
         }
 
         echo '</div>'; // End flash messages container
+        echo '<main id="main-content">'."\n";
 
         $ob_output = ob_get_contents();
         ob_end_clean();
@@ -156,6 +157,20 @@ class Output {
           <link href="<?= $CFG->staticroot ?>/css/tsugi2.css" rel="stylesheet">
 
           <style>
+              .skip-link {
+                position: absolute;
+                left: -9999px;
+                z-index: 999;
+                padding: 1rem 1.5rem;
+                background: var(--primary, #337ab7);
+                color: white;
+                text-decoration: none;
+                border-radius: 0 0 4px 0;
+              }
+              .skip-link:focus {
+                left: 0;
+                top: 0;
+              }
               <?php
               if ( isset($CFG->extra_css) ) {
                   echo($CFG->extra_css."\n");
@@ -284,6 +299,7 @@ body {
 ?>
 </head>
 <body prefix="oer: http://oerschema.org">
+<a href="#main-content" class="skip-link"><?= _m('Skip to main content') ?></a>
 <div id="body_container">
 <script>
 if (window!=window.top) {
@@ -373,13 +389,14 @@ if (window!=window.top) {
     }
 
     function modalString($title, $msg, $id) {
+        $title_id = $id . '_title';
         $modal = <<< EOF
-<div id="$id" class="modal fade" role="dialog">
+<div id="$id" class="modal fade" role="dialog" aria-modal="true" aria-labelledby="$title_id">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span class="fa fa-times" aria-hidden="true"></span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title">$title</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span class="fa fa-times" aria-hidden="true"></span></button>
+                <h4 class="modal-title" id="$title_id">$title</h4>
             </div>
             <div class="modal-body">$msg</div>
             <div class="modal-footer">
@@ -624,7 +641,7 @@ $('a').each(function (x) {
             $this->session_forget('lti.gradeChangeNotify');
         }
 
-        echo("\n</div></body>\n</html>\n");
+        echo("\n</main>\n</div></body>\n</html>\n");
 
         $ob_output = ob_get_contents();
         ob_end_clean();
@@ -701,7 +718,7 @@ $('a').each(function (x) {
         if ( $url == "_close" ) {
             echo("<a href=\"#\" onclick=\"window_close();\" class=\"btn ".$button."\">".$text."</a>\n");
         } else {
-            echo("<a href==\"$url\"  class=\"btn ".$button."\">".$text."</button>\n");
+            echo("<a href=\"$url\" class=\"btn ".$button."\">".$text."</a>\n");
         }
     }
 
@@ -945,7 +962,7 @@ $('a').each(function (x) {
             $url = $entry->href;
             $attr = $entry->attr;
             if ( $url === false ) {
-                $retval .= $pad.'<p class="navbar-text">'.$entry->link.'</p>'."\n";
+                $retval .= $pad.'<li class="navbar-text">'.$entry->link.'</li>'."\n";
                 return $retval;
             }
             // Convert attr to string first to check if it contains target=
@@ -957,7 +974,7 @@ $('a').each(function (x) {
                  (strpos($url,'http:') === 0 || strpos($url,'https:') === 0 ) &&
                  ( ! is_string($CFG->apphome) || strpos($url, $CFG->apphome) === false ) &&
                  ( ! is_string($CFG->wwwroot) || strpos($url, $CFG->wwwroot) === false ) ) {
-                $target = ' target="_blank"';
+                $target = ' target="_blank" rel="noopener noreferrer"';
             }
             $active = '';
             if ( $current_url == $url ) {
@@ -972,7 +989,7 @@ $('a').each(function (x) {
             // Drop down link contains an image so add class to style
             $dropdown_link_class .= ' dropdown-img';
         }
-        $retval .= $pad.'  <a href="#" class="'.$dropdown_link_class.'" data-toggle="dropdown">'.$entry->link.' <span class="fa fa-caret-down" aria-hidden="true"></span></a>'."\n";
+        $retval .= $pad.'  <a href="#" class="'.$dropdown_link_class.'" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">'.$entry->link.' <span class="fa fa-caret-down" aria-hidden="true"></span></a>'."\n";
         $retval .= $pad.'  <ul class="dropdown-menu">'."\n";
         foreach($entry->href as $child) {
            $retval .= $this->recurseNav($child, $depth+1);
@@ -991,11 +1008,11 @@ $('a').each(function (x) {
            $retval = '<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation" id="tsugi_main_nav_bar" style="display:none">';
         }
 
+        $collapse_id = $is_tool_menu ? 'tsugi_tool_nav_collapse' : 'tsugi_main_nav_collapse';
 $retval .= <<< EOF
   <div class="container-fluid">
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-        <span class="sr-only">Toggle navigation</span>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#$collapse_id" aria-controls="$collapse_id" aria-expanded="false" aria-label="Toggle navigation">
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
@@ -1007,7 +1024,7 @@ EOF;
             $retval .= '      <a class="navbar-brand" href="'.$set->home->href.'">'.$set->home->link.'</a>'."\n";
         }
         $retval .= "    </div>\n";
-        $retval .= '    <div class="navbar-collapse collapse">'."\n";
+        $retval .= '    <div id="'.$collapse_id.'" class="navbar-collapse collapse">'."\n";
 
         if ( $set->left && count($set->left->menu) > 0 ) {
             $retval .= '      <ul class="nav navbar-nav navbar-main">'."\n";

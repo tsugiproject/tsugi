@@ -1065,7 +1065,7 @@ function renderAppPanel($name, $tool, $featured = false, $canInstall = true) {
     }
     echo(htmlent_utf8($title)."</h3>");
     if ( $fa_icon ) {
-        echo('<div><span class="tool-icon fa '.$fa_icon.'"></span></div>');
+        echo('<div><span class="tool-icon fa '.$fa_icon.'" aria-hidden="true"></span></div>');
     }
     echo('</div>'); // end heading container
     echo('</a>');
@@ -1084,7 +1084,7 @@ function renderAppPanel($name, $tool, $featured = false, $canInstall = true) {
         echo('<button type="button" class="btn btn-primary action-button" role="button" data-toggle="modal" data-target="#'.urlencode($name).'_modal"><span class="fa fa-plus" aria-hidden="true"></span> Install</button>');
         echo('</div>');
     } else {
-        echo('<div stlye="display: flex;">');
+        echo('<div style="display: flex;">');
         echo('<a href="details/'.urlencode($name).'" class="btn btn-primary action-button" role="button">Details</a> ');
         echo('</div>');
     }

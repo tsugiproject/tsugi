@@ -56,6 +56,10 @@ $OUTPUT->header();
     border-bottom: 8px solid var(--secondary);
     flex-wrap: wrap;
 }
+.title-container {
+    display: flex;
+    align-items: center;
+}
 .test-header-icon {
     font-size: 3rem;
     margin-right: 20px;
@@ -171,37 +175,6 @@ if ($registrations && isset($registrations[$install])) {
     if ( $fa_icon !== false ) {
         $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
     }
-?>
-    <div class="header-back-nav">
-        <ol class="breadcrumb">
-            <li><a href="<?= $rest_path->parent; ?>">Store</a></li>
-            <li><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>"><?= htmlent_utf8($title); ?></a></li>
-            <li class="active">Try It</li>
-        </ol>
-    </div>
-    <div class="test-header">
-    <div class="title-container">
-        <?php
-        if ( $fa_icon ) {
-            ?>
-            <span class="fa <?= $fa_icon; ?> test-header-icon"></span>
-            <?php
-        }
-        ?>
-        <span class="test-header-text"><?= htmlent_utf8($title); ?></span>
-    </div>
-    <div class="install-button-container">
-    <?php
-    if ( isset($_SESSION['gc_count']) ) {
-        echo('<a class="btn btn-success" href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
-        echo('" title="Install in Classroom" target="iframe-frame"'."\n");
-        echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
-        echo('<span class="fa fa-plus"></span> Install</a>'."\n");
-    }
-    ?>
-    </div>
-</div>
-<?php
 }
 
 $OUTPUT->bodyStart();
@@ -221,23 +194,51 @@ if ( ! isset($registrations[$install])) {
 }
 
 ?>
-<ul class="nav nav-tabs">
-  <li class="active"><a href="#test" onclick="console.log('yada');" data-toggle="tab" aria-expanded="true">Test</a></li>
-  <li><a href="#identity" data-toggle="tab" aria-expanded="false">
-                    <?php if ( U::strlen($lmsdata['lis_person_name_full']) > 0 ) echo($lmsdata['lis_person_name_full']);
+<div class="header-back-nav">
+    <ol class="breadcrumb">
+        <li><a href="<?= $rest_path->parent; ?>">Store</a></li>
+        <li><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>"><?= htmlent_utf8($title); ?></a></li>
+        <li class="active">Try It</li>
+    </ol>
+</div>
+<div class="test-header">
+    <div class="title-container">
+        <?php
+        if ( $fa_icon ) {
+            ?>
+            <span class="fa <?= $fa_icon; ?> test-header-icon" aria-hidden="true"></span>
+            <?php
+        }
+        ?>
+        <h1 class="test-header-text"><?= htmlent_utf8($title); ?></h1>
+    </div>
+    <div class="install-button-container">
+    <?php
+    if ( isset($_SESSION['gc_count']) ) {
+        echo('<a class="btn btn-success" href="'.$CFG->wwwroot.'/gclass/assign?lti='.urlencode($ltiurl).'&title='.urlencode($tool['name']));
+        echo('" title="Install in Classroom" target="iframe-frame"'."\n");
+        echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
+        echo('<span class="fa fa-plus" aria-hidden="true"></span> Install</a>'."\n");
+    }
+    ?>
+    </div>
+</div>
+<ul class="nav nav-tabs" role="tablist">
+  <li class="active" role="presentation"><a href="#test" id="test-tab" role="tab" data-toggle="tab" aria-selected="true" aria-controls="test">Test</a></li>
+  <li role="presentation"><a href="#identity" id="identity-tab" role="tab" data-toggle="tab" aria-selected="false" aria-controls="identity">
+                    <?php if ( U::strlen($lmsdata['lis_person_name_full']) > 0 ) echo(htmlentities($lmsdata['lis_person_name_full']));
                         else echo('Anonymous');
-                    ?>
-        &#9660;
+                    ?><span aria-hidden="true"> &#9660;</span>
         </a>
       </li>
   <!-- <li><a href="#grades" data-toggle="tab" aria-expanded="false">Grades</a></li> -->
-  <li><a href="#debug" data-toggle="tab" aria-expanded="false">Debug</a></li>
+  <li role="presentation"><a href="#debug" id="debug-tab" role="tab" data-toggle="tab" aria-selected="false" aria-controls="debug">Debug</a></li>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
-  <div class="tab-pane fade" id="identity">
-    <p>You have three four identities that you can use to test the tool.
+  <div class="tab-pane fade" id="identity" role="tabpanel" aria-labelledby="identity-tab">
+    <p>You have four identities that you can use to test the tool.
     There is an instructor, two students, and an anonymous student.   You can quickly use this screen 
-    to switch back and forth between these identities to test tool functionality under the differet roles.
+    to switch back and forth between these identities to test tool functionality under the different roles.
     </p>
     <ul>
       <li><a href="<?= $rest_path->full ?>?identity=instructor">Jane Instructor</a>
@@ -250,7 +251,7 @@ if ( ! isset($registrations[$install])) {
       <li><a href="<?= $rest_path->full ?>?identity=learner3">Anonymous</a> (Takes language from browser header)</li>
     </ul>
   </div>
-  <div class="tab-pane fade active in" id="test">
+  <div class="tab-pane fade active in" id="test" role="tabpanel" aria-labelledby="test-tab">
 <?php
 $parms = $lmsdata;
 // Cleanup parms before we sign
@@ -303,7 +304,7 @@ $content = LTI::postLaunchHTML($parms, $endpoint, isset($_POST['debug']), $ifram
 print($content);
 ?>
   </div>
-  <div class="tab-pane fade" id="debug">
+  <div class="tab-pane fade" id="debug" role="tabpanel" aria-labelledby="debug-tab">
     <pre class="debug-output">
     Launch Parameters:
     <?php print_r($parms) ?>

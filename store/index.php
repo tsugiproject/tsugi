@@ -231,7 +231,7 @@ $OUTPUT->flashMessages();
 ?>
 <script src="https://apis.google.com/js/platform.js" async defer></script>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <iframe name="iframe-frame" style="height:200px" id="iframe-frame"
+   <iframe name="iframe-frame" style="height:200px" id="iframe-frame" title="Dialog content"
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
 </div>
 <?php
@@ -342,7 +342,7 @@ function renderAppPanel($name, $tool, $featured = false) {
     }
     echo(htmlent_utf8($title)."</h3>");
     if ( $fa_icon ) {
-        echo('<div><span class="tool-icon fa '.$fa_icon.'"></span></div>');
+        echo('<div><span class="tool-icon fa '.$fa_icon.'" aria-hidden="true"></span></div>');
     }
     echo('</div>'); // end heading container
     echo('</a>');
@@ -366,7 +366,7 @@ function renderAppPanel($name, $tool, $featured = false) {
         echo('</a>'."\n");
         echo('</div>');
     } else {
-        echo('<div stlye="display: flex;">');
+        echo('<div style="display: flex;">');
         echo('<a href="details/'.urlencode($name).'" class="btn btn-primary action-button" role="button">Details</a> ');
         echo('</div>');
     }

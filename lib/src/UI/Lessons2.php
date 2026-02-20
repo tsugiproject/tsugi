@@ -141,6 +141,44 @@ ul.tsugi-lessons-content-list li i.fa {
     text-align: center;
 }
 
+/* Close button for video/audio overlay dialogs */
+.tsugi-overlay-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    z-index: 10;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: white;
+    font-size: 1.5rem;
+    line-height: 1;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.tsugi-overlay-close:hover {
+    background: rgba(255,255,255,0.3);
+}
+.w3schools-overlay-content {
+    position: relative;
+}
+
+/* Button styled as link for video/lecture play triggers */
+.tsugi-video-play-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+    display: inline-flex;
+    align-items: center;
+}
+
 /* Style for colored item type icons */
 .tsugi-item-type-icon {
     display: inline-flex;
@@ -479,7 +517,7 @@ ul.tsugi-lessons-content-list li i.fa {
      */
     public static function nostyleUrl($title, $url) {
         $url = self::expandLink($url);
-        echo('<a href="'.$url.'" target="_blank" typeof="oer:SupportingMaterial">'.htmlentities($url)."</a>\n");
+        echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" typeof="oer:SupportingMaterial">'.htmlentities($url)."</a>\n");
         if ( isset($_SESSION['gc_count']) ) {
             echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
 	    echo(' data-title="'.htmlentities($title).'" ');
@@ -492,7 +530,7 @@ ul.tsugi-lessons-content-list li i.fa {
      */
     public static function nostyleLink($title, $url) {
         $url = self::expandLink($url);
-        echo('<a href="'.$url.'" target="_blank" class="tsugi-lessons-link" typeof="oer:SupportingMaterial">'.htmlentities($title)."</a>\n");
+        echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link" typeof="oer:SupportingMaterial">'.htmlentities($title)."</a>\n");
         if ( isset($_SESSION['gc_count']) ) {
             echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
 	    echo(' data-title="'.htmlentities($title).'" ');
@@ -559,7 +597,7 @@ ul.tsugi-lessons-content-list li i.fa {
 ?>
 <script src="https://apis.google.com/js/platform.js" async defer></script>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <iframe name="iframe-frame" style="height:200px" id="iframe-frame"
+   <iframe name="iframe-frame" style="height:200px" id="iframe-frame" title="Dialog content"
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
 </div>
 <?php
@@ -638,7 +676,7 @@ ul.tsugi-lessons-content-list li i.fa {
                     }
                     echo('<p property="oer:description" class="tsugi-lessons-module-description">'.$module->description."</p>\n");
                     if ( isset($module->image) ) {
-                        echo('<br clear="all">');
+                        echo('<div style="clear:both;"></div>');
                     }
                 }
                 
@@ -794,7 +832,7 @@ ul.tsugi-lessons-content-list li i.fa {
                 }
                 echo('<p property="oer:description" class="tsugi-lessons-module-description">'.$module->description."</p>\n");
                 if ( isset($module->image) ) {
-                    echo('<br clear="all">');
+                    echo('<div style="clear:both;"></div>');
                 }
             }
 
@@ -818,7 +856,7 @@ ul.tsugi-lessons-content-list li i.fa {
                         file_exists($media_folder . '/' . $media_file) ) {
                         $media_path = $media_base . '/' . $media_file;
 ?>
-<a href="<?= $media_path ?>" target="_blank"><?= htmlentities($video->title) ?></a>
+<a href="<?= $media_path ?>" target="_blank" rel="noopener noreferrer"><?= htmlentities($video->title) ?></a>
 <?php
                     } else {
                         $yurl = U::youtubeWatchUrl($video->youtube);
@@ -826,12 +864,13 @@ ul.tsugi-lessons-content-list li i.fa {
                         $navid = md5($lecno.$yurl);
                         // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
 ?>
-<div id="<?= $navid ?>" class="w3schools-overlay">
+<div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Video: <?= htmlspecialchars($video->title, ENT_QUOTES, 'UTF-8') ?>">
   <div class="w3schools-overlay-content" style="background-color: black;">
+  <button type="button" class="tsugi-overlay-close" aria-label="Close" onclick="document.getElementById('<?= $navid ?>').style.display='none'; if(typeof labnolStopPlayers==='function') labnolStopPlayers();">×</button>
   <div class="youtube-player" data-id="<?= $video->youtube ?>"></div>
   </div>
 </div>
-<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($video->title) ?></a>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($video->title) ?></button>
 <?php
                     }
                     echo("</li>\n");
@@ -857,12 +896,13 @@ ul.tsugi-lessons-content-list li i.fa {
                         $navid = md5($lecno.$yurl);
                         // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
 ?>
-<div id="<?= $navid ?>" class="w3schools-overlay">
+<div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Video: <?= htmlspecialchars($lecture->title, ENT_QUOTES, 'UTF-8') ?>">
   <div class="w3schools-overlay-content" style="background-color: black;">
+  <button type="button" class="tsugi-overlay-close" aria-label="Close" onclick="document.getElementById('<?= $navid ?>').style.display='none'; if(typeof labnolStopPlayers==='function') labnolStopPlayers();">×</button>
   <div class="youtube-player" data-id="<?= $lecture->youtube ?>"></div>
   </div>
 </div>
-<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></a>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
 <?php
                         echo('</li>');
                     } else if ( isset($lecture->audio) ) {
@@ -870,13 +910,14 @@ ul.tsugi-lessons-content-list li i.fa {
                         // self::nostyleLink($lecture->title, $lecture->audio);
                         $navid = md5($lecno.$lecture->audio);
 ?>
-<div id="<?= $navid ?>" class="w3schools-overlay">
+<div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Audio: <?= htmlspecialchars($lecture->title, ENT_QUOTES, 'UTF-8') ?>">
   <div class="w3schools-overlay-content" style="background-color: black;">
+  <button type="button" class="tsugi-overlay-close" aria-label="Close" onclick="document.getElementById('<?= $navid ?>').style.display='none';">×</button>
 <h2><?= htmlentities($lecture->title) ?></h2>
   <audio controls preload='none' src="<?= self::expandLink($lecture->audio) ?>"></audio>
   </div>
 </div>
-<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></a>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
 <?php
                         echo('</li>');
                     } else if ( isset($lecture->video) ) {
@@ -885,12 +926,13 @@ ul.tsugi-lessons-content-list li i.fa {
                         // self::nostyleLink($lecture->title, $lecture->video);
                         $navid = md5($lecno.$lecture->video);
 ?>
-<div id="<?= $navid ?>" class="w3schools-overlay">
+<div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Video: <?= htmlspecialchars($lecture->title, ENT_QUOTES, 'UTF-8') ?>">
   <div class="w3schools-overlay-content" style="background-color: black;">
+  <button type="button" class="tsugi-overlay-close" aria-label="Close" onclick="document.getElementById('<?= $navid ?>').style.display='none';">×</button>
   <video controls style="width:95%;" preload="none" src="<?= self::expandLink($lecture->video) ?>"></video>
   </div>
 </div>
-<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></a>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
 <?php
                         echo('</li>');
                     }
@@ -935,7 +977,7 @@ ul.tsugi-lessons-content-list li i.fa {
                     self::nostyleUrl(__('Assignment Specification'), $module->assignment);
                     echo('</li>'."\n");
                 } else {
-                    echo('<li typeof="oer:assessment"><a href="'.$module->assignment.'" target="_blank">'.__('Assignment Specification').'</a></li>'."\n");
+                    echo('<li typeof="oer:assessment"><a href="'.$module->assignment.'" target="_blank" rel="noopener noreferrer">'.__('Assignment Specification').'</a></li>'."\n");
                 }
             }
             if ( isset($module->solution) ) {
@@ -944,7 +986,7 @@ ul.tsugi-lessons-content-list li i.fa {
                     self::nostyleUrl(__('Assignment Solution'), $module->solution);
                     echo('</li>'."\n");
                 } else {
-                    echo('<li typeof="oer:assessment"><a href="'.$module->solution.'" target="_blank">'.__('Assignment Solution').'</a></li>'."\n");
+                    echo('<li typeof="oer:assessment"><a href="'.$module->solution.'" target="_blank" rel="noopener noreferrer">'.__('Assignment Solution').'</a></li>'."\n");
                 }
             }
 
@@ -1069,7 +1111,7 @@ ul.tsugi-lessons-content-list li i.fa {
                     $target = isset($lti->target) ? $lti->target : false;
 
                     echo('<li class="tsugi-lessons-module-lti"><a');
-                    if ( $target == "_blank" ) echo(' target="_blank" onclick="alert(\'Link will open in a new browser tab...\');" ');
+                    if ( $target == "_blank" ) echo(' target="_blank" rel="noopener noreferrer" onclick="alert(\'Link will open in a new browser tab...\');" ');
                     echo(' href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
                     echo("\n</li>\n");
                 }
@@ -1141,7 +1183,7 @@ ul.tsugi-lessons-content-list li i.fa {
                 $percent = round(($actual_points / $possible_points)*100);
             }
             
-            echo('<div class="card"><div>'."\n");
+            echo('<article class="card"><div>'."\n");
             $href = U::get_rest_path() . '/' . urlencode($module->anchor);
             if ( isset($module->icon) ) {
                 $icon_color = '';
@@ -1168,13 +1210,13 @@ ul.tsugi-lessons-content-list li i.fa {
                     echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
                 }
             }
-            echo("<br clear=\"all\"/>\n");
+            echo('<div style="clear:both;"></div>'."\n");
             if ( isset($module->description) ) {
                 $desc = $module->description;
                 if ( strlen($desc) > 1000 ) $desc = substr($desc, 0, 1000);
                 echo('<br/>'.$desc."\n");
             }
-            echo("</a></div></div>\n");
+            echo("</a></div></article>\n");
             echo("<!--\n");
             print_r($allgrades);
             print_r($rlids);
@@ -1545,7 +1587,7 @@ ul.tsugi-lessons-content-list li i.fa {
                 $code = basename($badge->image,'.png');
                 $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
                 $encrypted = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
-                echo('<a href="'.$CFG->wwwroot.'/assertions/'.$encrypted.'.html" target="_blank">');
+                echo('<a href="'.$CFG->wwwroot.'/assertions/'.$encrypted.'.html" target="_blank" rel="noopener noreferrer">');
                 echo('<img src="'.$CFG->wwwroot.'/badges/images/'.$encrypted.'.png" width="90"></a>');
                 echo($badge->title);
                 echo("</p></li>\n");
@@ -1553,7 +1595,7 @@ ul.tsugi-lessons-content-list li i.fa {
             echo("</ul>\n");
             echo("<p>These badges contain the official Open Badge metadata.  You can download the badge and\n");
             echo("put it on your own server, or add the badge to a \"badge packpack\".  You could validate the badge\n");
-            echo("using <a href=\"http://www.dr-chuck.com/obi-sample/\" target=\"_blank\">A simple badge validator</a>.\n");
+            echo("using <a href=\"http://www.dr-chuck.com/obi-sample/\" target=\"_blank\" rel=\"noopener noreferrer\">A simple badge validator</a>.\n");
             echo("</p>\n");
         }
     }
@@ -1678,7 +1720,7 @@ ul.tsugi-lessons-content-list li i.fa {
 $(document).ready(function() {
     $('.w3schools-overlay').on('click', function(event) {
         if ( event.target.id == event.currentTarget.id ) {
-            // Sop our embedded YouTube Players
+            // Stop our embedded YouTube Players
             labnolStopPlayers();
             // https://stackoverflow.com/questions/4071872/html5-video-force-abort-of-buffering
             // https://stackoverflow.com/a/34058996
@@ -1948,7 +1990,7 @@ $(function(){
         if ( is_string($media_file) && is_string($media_base) && is_string($media_folder) &&
             file_exists($media_folder . '/' . $media_file) ) {
             $media_path = $media_base . '/' . $media_file;
-            echo('<a href="'.$media_path.'" target="_blank" style="display: inline-flex; align-items: center;">');
+            echo('<a href="'.$media_path.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
             self::renderItemIcon('video');
             echo(htmlentities($item->title).'</a>');
         } else {
@@ -1959,12 +2001,13 @@ $(function(){
                 $lecno = $lecno + 1;
                 $navid = md5($lecno.$yurl);
 ?>
-<div id="<?= $navid ?>" class="w3schools-overlay">
+<div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Video: <?= htmlspecialchars($item->title, ENT_QUOTES, 'UTF-8') ?>">
   <div class="w3schools-overlay-content" style="background-color: black;">
+  <button type="button" class="tsugi-overlay-close" aria-label="Close" onclick="document.getElementById('<?= $navid ?>').style.display='none'; if(typeof labnolStopPlayers==='function') labnolStopPlayers();">×</button>
   <div class="youtube-player" data-id="<?= $youtube ?>"></div>
   </div>
 </div>
-<a href="#" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';" style="display: inline-flex; align-items: center;"><?php self::renderItemIcon('video'); ?><?= htmlentities($item->title) ?></a>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?php self::renderItemIcon('video'); ?><?= htmlentities($item->title) ?></button>
 <?php
             } else {
                 echo(htmlentities($item->title));
@@ -2010,7 +2053,7 @@ $(function(){
         
         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-slide">');
         echo('<span class="tsugi-lessons-module-slide-link">');
-        echo('<a href="'.$slide_href.'" target="_blank" class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
+        echo('<a href="'.$slide_href.'" target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
         self::renderItemIcon('slide');
         echo(htmlentities($slide_title)."</a>\n");
         echo("</span>\n");
@@ -2028,7 +2071,7 @@ $(function(){
         
         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-reference">');
         echo('<span class="tsugi-lessons-module-reference-link">');
-        echo('<a href="'.$href.'" target="_blank" class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
+        echo('<a href="'.$href.'" target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
         self::renderItemIcon('reference');
         echo(htmlentities($title)."</a>\n");
         echo("</span>\n");
@@ -2124,7 +2167,7 @@ $(function(){
             
             echo('<li class="tsugi-lessons-module-lti">');
             echo('<a');
-            if ( $target == "_blank" ) echo(' target="_blank" onclick="alert(\'Link will open in a new browser tab...\');" ');
+            if ( $target == "_blank" ) echo(' target="_blank" rel="noopener noreferrer" onclick="alert(\'Link will open in a new browser tab...\');" ');
             echo(' href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
             self::renderItemIcon('lti');
             echo(htmlentities($title).'</a></li>'."\n");
@@ -2147,7 +2190,7 @@ $(function(){
             echo('</li>'."\n");
         } else {
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-assignment">');
-            echo('<a href="'.$url.'" target="_blank" style="display: inline-flex; align-items: center;">');
+            echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
             self::renderItemIcon('assignment');
             echo(htmlentities($title).'</a></li>'."\n");
         }
@@ -2168,7 +2211,7 @@ $(function(){
             echo('</li>'."\n");
         } else {
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-solution">');
-            echo('<a href="'.$url.'" target="_blank" style="display: inline-flex; align-items: center;">');
+            echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
             self::renderItemIcon('solution');
             echo(__('Assignment Solution').'</a></li>'."\n");
         }
