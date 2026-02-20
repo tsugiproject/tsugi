@@ -154,7 +154,7 @@ class Pages extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         ?>
-        <div class="container">
+        <main class="container" role="main" id="main-content">
             <?php if ($page): ?>
                 <h1 style="display: flex; justify-content: space-between; align-items: center;">
                     <span><?= htmlspecialchars($page['title']) ?></span>
@@ -162,7 +162,7 @@ class Pages extends Tool {
                     <?php if ($show_analytics): ?>
                         <?php $analytics_url = $tool_home . '/analytics'; ?>
                         <a href="<?= $analytics_url ?>" class="btn btn-default">
-                            <span class="glyphicon glyphicon-signal"></span> Analytics
+                            <span class="glyphicon glyphicon-signal" aria-hidden="true"></span> Analytics
                         </a>
                     <?php endif; ?>
                     <?php if ($is_instructor): ?>
@@ -181,7 +181,7 @@ class Pages extends Tool {
                     <?php if ($show_analytics): ?>
                         <?php $analytics_url = $tool_home . '/analytics'; ?>
                         <a href="<?= $analytics_url ?>" class="btn btn-default">
-                            <span class="glyphicon glyphicon-signal"></span> Analytics
+                            <span class="glyphicon glyphicon-signal" aria-hidden="true"></span> Analytics
                         </a>
                     <?php endif; ?>
                     <?php if ($is_instructor): ?>
@@ -190,11 +190,11 @@ class Pages extends Tool {
                     <?php endif; ?>
                     </span>
                 </h1>
-                <div class="alert alert-info">
+                <div class="alert alert-info" role="status">
                     <p>No page found.</p>
                 </div>
             <?php endif; ?>
-        </div>
+        </main>
         <?php
         $OUTPUT->footer();
     }
@@ -257,7 +257,7 @@ class Pages extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         ?>
-        <div class="container">
+        <main class="container" role="main" id="main-content">
             <h1>Add New Page</h1>
             
             <form method="post" id="page_form">
@@ -275,16 +275,16 @@ class Pages extends Tool {
                 </div>
                 
                 <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="published" value="1" 
+                    <label for="add_published">
+                        <input type="checkbox" name="published" id="add_published" value="1" 
                                <?= U::get($_POST, 'published') ? 'checked' : '' ?>>
                         Published (visible to students)
                     </label>
                 </div>
                 
                 <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="is_main" value="1" 
+                    <label for="add_is_main">
+                        <input type="checkbox" name="is_main" id="add_is_main" value="1" 
                                <?= U::get($_POST, 'is_main') ? 'checked' : '' ?>>
                         This is the main page
                     </label>
@@ -292,8 +292,8 @@ class Pages extends Tool {
                 </div>
                 
                 <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="is_front_page" value="1" 
+                    <label for="add_is_front_page">
+                        <input type="checkbox" name="is_front_page" id="add_is_front_page" value="1" 
                                <?= U::get($_POST, 'is_front_page') ? 'checked' : '' ?>>
                         This is the front page
                     </label>
@@ -305,7 +305,7 @@ class Pages extends Tool {
                     <a href="<?= $manage_url ?>" class="btn btn-default">Cancel</a>
                 </p>
             </form>
-        </div>
+        </main>
         <?php
         $OUTPUT->footerStart();
         ?>
@@ -313,15 +313,15 @@ class Pages extends Tool {
         #page-link-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         #page-link-modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 400px; max-width: 90%; }
         #page-link-list { max-height: 300px; overflow-y: auto; margin: 10px 0; }
-        .page-link-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #ddd; }
+        .page-link-item { display: block; width: 100%; padding: 8px; text-align: left; cursor: pointer; border: none; border-bottom: 1px solid #ddd; background: transparent; font-size: inherit; }
         .page-link-item:hover { background-color: #f0f0f0; }
         [data-page-link-button] { display: inline-flex !important; align-items: center !important; }
         [data-page-link-button] .ck-icon { width: 20px !important; height: 20px !important; }
         </style>
-        <div id="page-link-modal">
+        <div id="page-link-modal" role="dialog" aria-modal="true" aria-labelledby="page-link-modal-title" aria-describedby="page-link-list" tabindex="-1">
             <div id="page-link-modal-content">
-                <h3>Select a page to link</h3>
-                <div id="page-link-list"></div>
+                <h3 id="page-link-modal-title">Select a page to link</h3>
+                <div id="page-link-list" role="list"></div>
                 <button type="button" onclick="closePageLinkModal()" class="btn btn-default">Cancel</button>
             </div>
         </div>
@@ -371,28 +371,60 @@ class Pages extends Tool {
             listDiv.innerHTML = '';
             
             if (pagesList.length === 0) {
-                listDiv.innerHTML = '<p>No pages available.</p>';
+                listDiv.innerHTML = '<p role="status">No pages available.</p>';
                 return;
             }
             
             pagesList.forEach(function(page) {
-                var item = document.createElement('div');
+                var item = document.createElement('button');
+                item.type = 'button';
                 item.className = 'page-link-item';
                 item.textContent = page.title;
+                item.setAttribute('role', 'listitem');
                 item.onclick = function() {
                     insertPageLink(page);
                     closePageLinkModal();
+                };
+                item.onkeydown = function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        insertPageLink(page);
+                        closePageLinkModal();
+                    }
                 };
                 listDiv.appendChild(item);
             });
         }
 
+        var pageLinkModalFocusBeforeOpen = null;
+
         function showPageLinkModal() {
-            document.getElementById('page-link-modal').style.display = 'block';
+            var modal = document.getElementById('page-link-modal');
+            pageLinkModalFocusBeforeOpen = document.activeElement;
+            modal.style.display = 'block';
+            document.addEventListener('keydown', pageLinkModalKeyHandler);
+            var firstFocusable = modal.querySelector('.page-link-item') || modal.querySelector('button');
+            if (firstFocusable) {
+                firstFocusable.focus();
+            } else {
+                modal.focus();
+            }
         }
 
         function closePageLinkModal() {
-            document.getElementById('page-link-modal').style.display = 'none';
+            var modal = document.getElementById('page-link-modal');
+            modal.style.display = 'none';
+            document.removeEventListener('keydown', pageLinkModalKeyHandler);
+            if (pageLinkModalFocusBeforeOpen) {
+                pageLinkModalFocusBeforeOpen.focus();
+            }
+        }
+
+        function pageLinkModalKeyHandler(e) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                closePageLinkModal();
+            }
         }
 
         function insertPageLink(page) {
@@ -472,7 +504,7 @@ class Pages extends Tool {
             button.setAttribute('aria-label', 'Insert Page Link');
             button.setAttribute('title', 'Insert Page Link');
             button.setAttribute('data-page-link-button', 'true');
-            button.innerHTML = '<svg class="ck-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; fill: currentColor;"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.15.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>';
+            button.innerHTML = '<svg class="ck-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; fill: currentColor;" aria-hidden="true"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.15.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>';
             
             button.onclick = function(e) {
                 e.preventDefault();
@@ -641,7 +673,7 @@ class Pages extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         ?>
-        <div class="container">
+        <main class="container" role="main" id="main-content">
             <h1>Edit Page</h1>
             
             <form method="post" id="page_form">
@@ -659,16 +691,16 @@ class Pages extends Tool {
                 </div>
                 
                 <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="published" value="1" 
+                    <label for="edit_published">
+                        <input type="checkbox" name="published" id="edit_published" value="1" 
                                <?= (U::get($_POST, 'published', $page['published'])) ? 'checked' : '' ?>>
                         Published (visible to students)
                     </label>
                 </div>
                 
                 <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="is_main" value="1" 
+                    <label for="edit_is_main">
+                        <input type="checkbox" name="is_main" id="edit_is_main" value="1" 
                                <?= (U::get($_POST, 'is_main', $page['is_main'])) ? 'checked' : '' ?>>
                         This is the main page
                     </label>
@@ -676,8 +708,8 @@ class Pages extends Tool {
                 </div>
                 
                 <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="is_front_page" value="1" 
+                    <label for="edit_is_front_page">
+                        <input type="checkbox" name="is_front_page" id="edit_is_front_page" value="1" 
                                <?= (U::get($_POST, 'is_front_page', $page['is_front_page'] ?? 0)) ? 'checked' : '' ?>>
                         This is the front page
                     </label>
@@ -689,7 +721,7 @@ class Pages extends Tool {
                     <a href="<?= $manage_url ?>" class="btn btn-default">Cancel</a>
                 </p>
             </form>
-        </div>
+        </main>
         <?php
         $OUTPUT->footerStart();
         ?>
@@ -698,15 +730,15 @@ class Pages extends Tool {
         #page-link-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         #page-link-modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 400px; max-width: 90%; }
         #page-link-list { max-height: 300px; overflow-y: auto; margin: 10px 0; }
-        .page-link-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #ddd; }
+        .page-link-item { display: block; width: 100%; padding: 8px; text-align: left; cursor: pointer; border: none; border-bottom: 1px solid #ddd; background: transparent; font-size: inherit; }
         .page-link-item:hover { background-color: #f0f0f0; }
         [data-page-link-button] { display: inline-flex !important; align-items: center !important; }
         [data-page-link-button] .ck-icon { width: 20px !important; height: 20px !important; }
         </style>
-        <div id="page-link-modal">
+        <div id="page-link-modal" role="dialog" aria-modal="true" aria-labelledby="page-link-modal-title" aria-describedby="page-link-list" tabindex="-1">
             <div id="page-link-modal-content">
-                <h3>Select a page to link</h3>
-                <div id="page-link-list"></div>
+                <h3 id="page-link-modal-title">Select a page to link</h3>
+                <div id="page-link-list" role="list"></div>
                 <button type="button" onclick="closePageLinkModal()" class="btn btn-default">Cancel</button>
             </div>
         </div>
@@ -756,28 +788,60 @@ class Pages extends Tool {
             listDiv.innerHTML = '';
             
             if (pagesList.length === 0) {
-                listDiv.innerHTML = '<p>No pages available.</p>';
+                listDiv.innerHTML = '<p role="status">No pages available.</p>';
                 return;
             }
             
             pagesList.forEach(function(page) {
-                var item = document.createElement('div');
+                var item = document.createElement('button');
+                item.type = 'button';
                 item.className = 'page-link-item';
                 item.textContent = page.title;
+                item.setAttribute('role', 'listitem');
                 item.onclick = function() {
                     insertPageLink(page);
                     closePageLinkModal();
+                };
+                item.onkeydown = function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        insertPageLink(page);
+                        closePageLinkModal();
+                    }
                 };
                 listDiv.appendChild(item);
             });
         }
 
+        var pageLinkModalFocusBeforeOpen = null;
+
         function showPageLinkModal() {
-            document.getElementById('page-link-modal').style.display = 'block';
+            var modal = document.getElementById('page-link-modal');
+            pageLinkModalFocusBeforeOpen = document.activeElement;
+            modal.style.display = 'block';
+            document.addEventListener('keydown', pageLinkModalKeyHandler);
+            var firstFocusable = modal.querySelector('.page-link-item') || modal.querySelector('button');
+            if (firstFocusable) {
+                firstFocusable.focus();
+            } else {
+                modal.focus();
+            }
         }
 
         function closePageLinkModal() {
-            document.getElementById('page-link-modal').style.display = 'none';
+            var modal = document.getElementById('page-link-modal');
+            modal.style.display = 'none';
+            document.removeEventListener('keydown', pageLinkModalKeyHandler);
+            if (pageLinkModalFocusBeforeOpen) {
+                pageLinkModalFocusBeforeOpen.focus();
+            }
+        }
+
+        function pageLinkModalKeyHandler(e) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                closePageLinkModal();
+            }
         }
 
         function insertPageLink(page) {
@@ -857,7 +921,7 @@ class Pages extends Tool {
             button.setAttribute('aria-label', 'Insert Page Link');
             button.setAttribute('title', 'Insert Page Link');
             button.setAttribute('data-page-link-button', 'true');
-            button.innerHTML = '<svg class="ck-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; fill: currentColor;"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.15.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>';
+            button.innerHTML = '<svg class="ck-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; fill: currentColor;" aria-hidden="true"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.15.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>';
             
             button.onclick = function(e) {
                 e.preventDefault();
@@ -1011,7 +1075,7 @@ class Pages extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         ?>
-        <div class="container">
+        <main class="container" role="main" id="main-content">
             <h1>Manage Pages
                 <span class="pull-right">
                     <a href="<?= $back_url ?>" class="btn btn-default" style="margin-right: 10px;">Back</a>
@@ -1024,14 +1088,14 @@ class Pages extends Tool {
                     <p>No pages yet. <a href="<?= $add_url ?>">Create your first page</a>.</p>
                 </div>
             <?php else: ?>
-                <table class="table table-striped">
+                <table class="table table-striped" role="table">
                     <thead>
                         <tr>
-                            <th>Title</th>
-                            <th>Logical Key</th>
-                            <th>Status</th>
-                            <th>Updated</th>
-                            <th>Actions</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Logical Key</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Updated</th>
+                            <th scope="col">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1068,18 +1132,18 @@ class Pages extends Tool {
                                     <?php $edit_url = $tool_home . '/edit/' . $page['page_id']; ?>
                                     <a href="<?= $edit_url ?>" class="btn btn-xs btn-default">Edit</a>
                                     <?php $view_url = $pages_base . '/' . urlencode($page['logical_key']); ?>
-                                    <a href="<?= $view_url ?>" class="btn btn-xs btn-info" target="_blank">View</a>
+                                    <a href="<?= $view_url ?>" class="btn btn-xs btn-info" target="_blank" rel="noopener noreferrer" aria-label="View <?= htmlspecialchars($page['title']) ?> (opens in new tab)">View</a>
                                     <form method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to toggle the published status?');">
                                         <input type="hidden" name="action" value="toggle_published">
                                         <input type="hidden" name="page_id" value="<?= $page['page_id'] ?>">
-                                        <button type="submit" class="btn btn-xs btn-warning">
+                                        <button type="submit" class="btn btn-xs btn-warning" aria-label="<?= $page['published'] ? 'Unpublish' : 'Publish' ?> <?= htmlspecialchars($page['title']) ?>">
                                             <?= $page['published'] ? 'Unpublish' : 'Publish' ?>
                                         </button>
                                     </form>
                                     <form method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this page?');">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="page_id" value="<?= $page['page_id'] ?>">
-                                        <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                                        <button type="submit" class="btn btn-xs btn-danger" aria-label="Delete <?= htmlspecialchars($page['title']) ?>">Delete</button>
                                     </form>
                                 </td>
                             </tr>
@@ -1087,7 +1151,7 @@ class Pages extends Tool {
                     </tbody>
                 </table>
             <?php endif; ?>
-        </div>
+        </main>
         <?php
         $OUTPUT->footer();
     }
