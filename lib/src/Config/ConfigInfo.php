@@ -48,6 +48,13 @@ class ConfigInfo {
     public $apphome = null;
 
     /**
+     * Enable lesson authoring. Only set to true on localhost - never in production.
+     * When true, the /lessons/_author interface is available to instructors.
+     * When false (default), authoring is only allowed when wwwroot contains localhost or 127.0.0.1.
+     */
+    public $author_allow = false;
+
+    /**
      * This is how the system will refer to itself.
      */
     public $servicename = 'TSUGI (dev)';
@@ -1193,11 +1200,24 @@ class ConfigInfo {
 
     /**
      * Are we on localhost?
+     *
+     * Returns true if wwwroot contains localhost or 127.0.0.1.
      */
     public function localhost() {
         if ( strpos($this->wwwroot,'://localhost') !== false ) return true;
         if ( strpos($this->wwwroot,'://127.0.0.1') !== false ) return true;
         return false;
+    }
+
+    /**
+     * Is lesson authoring allowed?
+     *
+     * Returns true if localhost/127.0.0.1 in wwwroot, or if $CFG->author_allow is true.
+     * Use author_allow for dev domains like local.dj4e.com - only enable on localhost.
+     */
+    public function canAuthor() {
+        if ( $this->localhost() ) return true;
+        return !empty($this->author_allow);
     }
 
     /**

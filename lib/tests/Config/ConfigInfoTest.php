@@ -139,6 +139,15 @@ class ConfigInfoTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($CFG->localhost());
     }
 
+    public function testCanAuthor() {
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://localhost:8888/tsugi');
+        $this->assertTrue($CFG->canAuthor());
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
+        $this->assertFalse($CFG->canAuthor());
+        $CFG->author_allow = true;
+        $this->assertTrue($CFG->canAuthor());
+    }
+
     public function testGetLoginUrl() {
         $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
         $loginUrl = $CFG->getLoginUrl();

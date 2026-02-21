@@ -65,13 +65,13 @@ $menu = false;
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 $l->header();
-if ( $show_analytics || ($use_lessons2 && !$l->isSingle() && $CFG->localhost() && $is_instructor) ) {
+if ( $show_analytics || ($use_lessons2 && !$l->isSingle() && $CFG->canAuthor() && $is_instructor) ) {
     echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 2px;">');
     if ( $show_analytics ) {
         echo('<a href="analytics.php" class="btn btn-default" style="margin-right: 5px;"><span class="glyphicon glyphicon-signal"></span> Analytics</a>');
     }
-    // Show Author button if: using Lessons2, at top level (not in a module), on localhost, and instructor
-    if ( $use_lessons2 && !$l->isSingle() && $CFG->localhost() && $is_instructor ) {
+    // Show Author button if: using Lessons2, at top level (not in a module), author allowed, and instructor
+    if ( $use_lessons2 && !$l->isSingle() && $CFG->canAuthor() && $is_instructor ) {
         echo('<a href="author.php" class="btn btn-default"><span class="glyphicon glyphicon-edit"></span> Author</a>');
     }
     echo('</span>');

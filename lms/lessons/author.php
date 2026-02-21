@@ -21,8 +21,8 @@ header('Content-Type: text/html; charset=utf-8');
 session_start();
 
 // Security checks
-if ( ! $CFG->localhost() ) {
-    die('This tool only works on localhost');
+if ( ! $CFG->canAuthor() ) {
+    die('Lesson authoring is not enabled');
 }
 
 if ( ! isInstructor() ) {
