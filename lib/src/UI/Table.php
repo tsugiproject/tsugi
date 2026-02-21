@@ -178,7 +178,7 @@ class Table {
         echo('<div style="float:right">');
         if ( $page_start > 0 ) {
             echo('<form style="display: inline">');
-            echo('<input type="submit" value="Back" class="btn btn-default">');
+            echo('<button type="submit" class="btn btn-default" aria-label="'.htmlentities(_m('Previous page')).'">'._m('Back').'</button>');
             $page_back = $page_start - $page_length;
             if ( $page_back < 0 ) $page_back = 0;
             Table::doForm($params,Array('page_start' => $page_back));
@@ -186,7 +186,7 @@ class Table {
         }
         if ( $have_more ) {
             echo('<form style="display: inline">');
-            echo('<input type="submit" value="Next" class="btn btn-default"> ');
+            echo('<button type="submit" class="btn btn-default" aria-label="'.htmlentities(_m('Next page')).'">'._m('Next').'</button> ');
             $page_next = $page_start + $page_length;
             Table::doForm($params,Array('page_start' => $page_next));
             echo("</form>\n");
@@ -194,13 +194,12 @@ class Table {
         echo("</div>\n");
         echo('<form>');
         if ( is_array($searchfields) && count($searchfields) > 0 ) {
+        echo('<label for="paged_search_box" class="sr-only">'._m('Search').'</label>');
         echo('<input type="text" id="paged_search_box" value="'.htmlent_utf8($search).'" name="search_text">');
         Table::doForm($params,Array('search_text' => false, 'page_start' => false));
     ?>
-    <input type="submit" value="Search" class="btn btn-default">
-    <input type="submit" value="Clear Search" class="btn btn-default"
-    onclick="document.getElementById('paged_search_box').value = '';"
-    >
+    <button type="submit" class="btn btn-default"><?php echo(_m('Search')); ?></button>
+    <button type="submit" class="btn btn-default" onclick="document.getElementById('paged_search_box').value = '';" aria-label="<?php echo(htmlentities(_m('Clear search and show all results'))); ?>"><?php echo(_m('Clear Search')); ?></button>
 
 <?php
     }
@@ -226,9 +225,9 @@ class Table {
             if ( $first ) {
 ?>
 <span class="dropdown">
-  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-    Sort Order
-    <span class="caret"></span>
+  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="<?php echo(htmlentities(_m('Choose column to sort by'))); ?>">
+    <?php echo(_m('Sort Order')); ?>
+    <span class="caret" aria-hidden="true"></span>
   </button>
   <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
 <?php
@@ -247,7 +246,7 @@ class Table {
 
             echo('<li><a href="'.$detail.'">');
             echo(ucwords(str_replace('_',' ',$k)));
-            if ( $note ) echo ($note);
+            if ( $note ) echo (' <span aria-hidden="true">'.$note.'</span>');
             echo("</a></li>\n");
         }
 
@@ -294,6 +293,7 @@ class Table {
 
     <div style="padding:3px;">
     <table border="1" class="table table-hover table-condensed table-responsive">
+    <thead>
     <tr>
     <?php
 
@@ -319,7 +319,7 @@ class Table {
                     }
 
                     if ( $orderfields && ! Table::matchColumns($k, $orderfields ) ) {
-                        echo("<th>".CrudForm::fieldToTitle($k)."</th>\n");
+                        echo("<th scope=\"col\">".CrudForm::fieldToTitle($k)."</th>\n");
                         continue;
                     }
 
@@ -331,10 +331,11 @@ class Table {
                         $d = ($desc + 1) % 2;
                         $override['desc'] = $d;
                         $color = $d == 1 ?  'success' : 'info';
-                        $arrow = $d == 1 ?  ' &uarr;' : ' &darr;';
+                        $arrow = $d == 1 ?  ' <span aria-hidden="true">&uarr;</span>' : ' <span aria-hidden="true">&darr;</span>';
                     }
                     $stuff = Table::doUrl($params,$override);
-                    echo('<th class="'.$color.'">');
+                    $sort_attr = ($k == $order_by || ($order_by == '' && $k == 'id')) ? ' aria-sort="'.($desc == 1 ? 'descending' : 'ascending').'"' : '';
+                    echo('<th scope="col" class="'.$color.'"'.$sort_attr.'>');
                     echo(' <a href="'.$thispage);
                     if ( U::strlen($stuff) > 0 ) {
                         echo("?");
@@ -349,6 +350,7 @@ class Table {
             }
 
             $first = false;
+        echo("</thead>\n<tbody>\n");
             $link_name = false;
             echo("<tr>\n");
             foreach($row as $k => $v ) {
@@ -379,6 +381,7 @@ class Table {
             }
             echo("</tr>\n");
         }
+        echo("</tbody>\n");
         echo("</table>\n");
         echo("</div>\n");
     }
