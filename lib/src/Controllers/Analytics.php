@@ -41,7 +41,12 @@ class Analytics extends Controller {
         $OUTPUT->bodyStart();
         $OUTPUT->topNav($menu);
         $OUTPUT->flashMessages();
-        echo(\Tsugi\UI\Analytics::graphBody());
+        ?>
+        <main class="container" id="main-content">
+            <h1><?= __('Analytics') ?></h1>
+            <?= \Tsugi\UI\Analytics::graphBody() ?>
+        </main>
+        <?php
         $OUTPUT->footerStart();
         echo(\Tsugi\UI\Analytics::graphScript($analytics_url));
         $OUTPUT->footerEnd();

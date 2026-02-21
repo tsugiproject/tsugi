@@ -17,8 +17,8 @@ class Analytics {
     {
         global $LINK;
         if ( $right ) echo('<span style="position: fixed; right: 10px; top: 5px;">');
-        echo('<button onclick="showModal(\''.__('Analytics').' '.htmlentities($LINK->title).'\',\'analytics_div\'); return false;" type="button" class="btn btn-default">');
-        echo('<span class="glyphicon glyphicon-signal"></span></button>'."\n");
+        echo('<button onclick="showModal(\''.__('Analytics').' '.htmlentities($LINK->title).'\',\'analytics_div\'); return false;" type="button" class="btn btn-default" aria-label="'.htmlspecialchars(__('Analytics').' '.$LINK->title).'">');
+        echo('<span class="glyphicon glyphicon-signal" aria-hidden="true"></span></button>'."\n");
         if ( $right ) echo('</span>');
     }
 
@@ -28,7 +28,8 @@ class Analytics {
     public static function graphBody()
     {
         $x = <<<EOF
-<div id="chart_div" style="width: 100%; height: 400px;"></div>
+<div id="analytics-error" class="alert alert-danger" role="alert" style="display: none;"></div>
+<div id="chart_div" style="width: 100%; height: 400px;" role="img" aria-label="Analytics chart showing launch activity over time"></div>
 EOF;
         return $x;
     }
@@ -41,9 +42,13 @@ EOF;
         $x = <<<EOF
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
+    function showAnalyticsError(msg) {
+        var el = document.getElementById('analytics-error');
+        if (el) { el.textContent = msg; el.style.display = ''; } else { alert(msg); }
+    }
     $.getJSON('$json', function (x) {
         if ( typeof x == 'undefined' || typeof x.rows == 'undefined' ) {
-            alert('No analytics data');
+            showAnalyticsError('No analytics data');
             return;
         }
         var rows = Array();
@@ -76,7 +81,7 @@ EOF;
             chart.draw(data, options);
         }
     })
-    .fail(function() { alert("Error retrieving analytics data"); });
+    .fail(function() { showAnalyticsError("Error retrieving analytics data"); });
 </script>
 EOF;
         return $x;
