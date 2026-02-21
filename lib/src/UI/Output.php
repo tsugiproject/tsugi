@@ -139,6 +139,7 @@ class Output {
         <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
         <!-- Le styles -->
         <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/patch/accessibility-patch.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
         <?php if ( strpos($CFG->fontawesome, 'free-5.') > 0 ) { ?>
         <link href="<?= $CFG->fontawesome ?>/css/all.css" rel="stylesheet">
@@ -1217,6 +1218,7 @@ EOF;
     <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
     <!-- Le styles -->
     <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/patch/accessibility-patch.css" rel="stylesheet">
     <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
     <link href="<?= $CFG->fontawesome ?>/css/font-awesome.min.css" rel="stylesheet">
 
