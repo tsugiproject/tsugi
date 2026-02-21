@@ -67,15 +67,16 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav($menu);
 $OUTPUT->flashMessages();
 if ( $old_thread ) {
-    echo("<h1>".__('Editing Thread')."</h1>\n");
+    echo("<h1 id=\"add-thread-heading\">".__('Editing Thread')."</h1>\n");
 } else {
-    echo("<h1>".__('New Thread')."</h1>\n");
+    echo("<h1 id=\"add-thread-heading\">".__('New Thread')."</h1>\n");
 }
 ?>
-<div id="add-thread-div" title="<?= __("New Thread") ?>" >
+<div id="add-thread-div" title="<?= __("New Thread") ?>" role="region" aria-labelledby="add-thread-heading">
 <form id="add-thread-form" method="post">
-<p><?= __("Title:") ?> <br/>
-<input type="text" name="title" class="form-control"
+<p>
+<label for="add-thread-title"><?= __("Title:") ?></label><br/>
+<input type="text" id="add-thread-title" name="title" class="form-control" aria-required="true"
 <?php 
 if ( $old_thread ) {
     echo('value="'.htmlentities($old_thread['title'] ?? '').'" ');
@@ -83,8 +84,9 @@ if ( $old_thread ) {
 ?>
 >
 </p>
-<p><?= __("Description:") ?> <br/>
-<textarea id="editor" name="body" class="form-control">
+<p>
+<label for="editor"><?= __("Description:") ?></label><br/>
+<textarea id="editor" name="body" class="form-control" aria-required="true">
 <?php 
 if ( $old_thread ) {
     echo($purifier->purify($old_thread['body']));
@@ -94,9 +96,7 @@ if ( $old_thread ) {
 </p>
 <p>
 <input type="submit" id="add-thread-submit" value="<?= ($old_thread ? __('Update') : __('+ Thread')) ?>" >
-<input type="submit" id="add-thread-cancel" value="<?= __('Cancel') ?>"
-onclick='window.location.href="<?= addSession($TOOL_ROOT . '/') ?>";return false;'
->
+<button type="button" id="add-thread-cancel" onclick='window.location.href="<?= addSession($TOOL_ROOT . '/') ?>";'><?= __('Cancel') ?></button>
 </p>
 </form>
 </div>

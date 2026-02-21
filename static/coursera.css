@@ -1,3 +1,15 @@
+/* Visually hidden but available to screen readers */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 .tdiscus-user-name {
     font-weight: bold;
@@ -85,6 +97,14 @@
 .tdiscus-thread-container {
     padding: 10px;
     border: 1px grey solid;
+}
+
+.tdiscus-all-threads-link {
+    float: right;
+}
+
+.tdiscus-add-thread-link {
+    float: right;
 }
 
 .tdiscus-thread-title {

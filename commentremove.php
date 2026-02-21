@@ -54,21 +54,19 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav(false);
 $OUTPUT->flashMessages();
 
-echo("<h1>".__('Delete Comment')."</h1>\n");
+echo("<h1 id=\"delete-comment-heading\">".__('Delete Comment')."</h1>\n");
 
 ?>
-<div id="delete-comment-div" title="<?= __("Delete comment") ?>" >
+<div id="delete-comment-div" title="<?= __("Delete comment") ?>" role="region" aria-labelledby="delete-comment-heading">
 <form id="delete-comment-form" method="post">
-<p><?= __("Comment:") ?> <br/>
+<p><?= __("Comment:") ?><br/>
 <?php
-echo('<b>'.htmlentities($old_comment['comment'] ?? '').'</b></br>');
+echo('<b>'.htmlentities($old_comment['comment'] ?? '').'</b><br/>');
 ?>
 </p>
 <p>
 <input type="submit" id="delete-comment-submit" value="<?= __('Delete') ?>" >
-<input type="submit" id="delete-comment-cancel" value="<?= __('Cancel') ?>"
-onclick='window.location.href="<?= addSession($all_done) ?>";return false;'
->
+<button type="button" id="delete-comment-cancel" onclick='window.location.href="<?= addSession($all_done) ?>";'><?= __('Cancel') ?></button>
 </p>
 </form>
 </div>

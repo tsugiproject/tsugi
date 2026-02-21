@@ -53,24 +53,22 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav(false);
 $OUTPUT->flashMessages();
 
-echo("<h1>".__('Delete Thread')."</h1>\n");
+echo("<h1 id=\"delete-thread-heading\">".__('Delete Thread')."</h1>\n");
 
 ?>
-<p><?= __("Title:") ?> <br/>
+<div id="delete-thread-div" title="<?= __("Delete thread") ?>" role="region" aria-labelledby="delete-thread-heading">
+<p><?= __("Title:") ?><br/>
 <?php
-echo('<b>'.htmlentities($old_thread['title'] ?? '').'</b></br>');
+echo('<b>'.htmlentities($old_thread['title'] ?? '').'</b><br/>');
 ?>
 </p>
-<p><?= __("Description:") ?> <br/>
+<p><?= __("Description:") ?><br/>
 <?= $purifier->purify($old_thread['body']) ?>
 </p>
-<div id="delete-thread-div" title="<?= __("Delete thread") ?>" >
 <form id="delete-thread-form" method="post">
 <p>
 <input type="submit" id="delete-thread-submit" value="<?= __('Delete') ?>" >
-<input type="submit" id="delete-thread-cancel" value="<?= __('Cancel') ?>"
-onclick='window.location.href="<?= addSession($TOOL_ROOT.'/') ?>";return false;'
->
+<button type="button" id="delete-thread-cancel" onclick='window.location.href="<?= addSession($TOOL_ROOT.'/') ?>";'><?= __('Cancel') ?></button>
 </p>
 </form>
 </div>

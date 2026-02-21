@@ -84,7 +84,7 @@ $sortable = $THREADS->commentsSortableBy();
 $OUTPUT->flashMessages();
 echo('<div class="tdiscus-thread-container">'."\n");
 echo('<p>');
-echo('<a style="float: right;" href="'.$TOOL_ROOT.'/"><i class="fa fa-home" title="'.__('All Threads').'"></i> '.__('All Threads').'</a></p>');
+echo('<a class="tdiscus-all-threads-link" href="'.$TOOL_ROOT.'/"><i class="fa fa-home" aria-hidden="true"></i> '.__('All Threads').'</a></p>');
 echo('<span class="tdiscus-thread-title"><a href="'.$page_base.'"'.($thread['hidden'] ? ' style="text-decoration: line-through;"' : '').'>'.htmlentities($thread['title'] ?? '').'</a>');
 echo("</span></p>\n");
 ?>
@@ -111,14 +111,14 @@ onclick="document.querySelector('#tdiscus-add-comment-div').scrollIntoView({ beh
 -->
 </div>
 <?php if ( count($comments) > 0 ) { ?>
-<div class="tdiscus-comments-container">
+<div class="tdiscus-comments-container" role="region" aria-label="<?= htmlspecialchars(__('Comments')) ?>">
 <div class="tdiscus-comments-sort">
 <?php
 $TDISCUS->search_box($sortable);
 if ( $commenttop && ! $thread_locked) $TDISCUS->add_comment($thread_id);
 ?>
 </div>
-<div class="tdiscus-comments-list">
+<div class="tdiscus-comments-list" role="list" aria-label="<?= htmlspecialchars(__('Comment list')) ?>">
 
 <?php
     foreach($comments as $comment ) {

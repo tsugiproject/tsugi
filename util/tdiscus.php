@@ -50,12 +50,12 @@ $(document).ready( function () {
         $sortvalue = U::get($_GET,'sort');
 
         // https://www.w3schools.com/howto/howto_css_search_button.asp
-        echo('<div class="tdiscus-threads-search-sort"><form>'."\n");
+        echo('<div class="tdiscus-threads-search-sort" role="search"><form>'."\n");
         if ( is_array($sortby) ) {
 ?>
 <div class="tdiscus-threads-sort">
 <label for="sort"><?= __("Sort by") ?></label>
-<select name="sort" id="sort" onchange="this.form.submit();">
+<select name="sort" id="sort" onchange="this.form.submit();" aria-label="<?= htmlspecialchars(__("Sort by")) ?>">
 <?php
 foreach($sortby as $sort) {
   echo('<option value="'.$sort.'" '.($sortvalue == $sort ? 'selected="selected"' : '').' >'.__(ucfirst($sort)).'</option>'."\n");
@@ -67,11 +67,12 @@ foreach($sortby as $sort) {
         }
 ?>
 <div class="tdiscus-threads-search">
-  <input type="text" id="tdiscus-threads-search-input" placeholder="Search.." name="search"
-  <?= $searchvalue ?>
+  <label for="tdiscus-threads-search-input" class="visually-hidden"><?= __("Search") ?></label>
+  <input type="text" id="tdiscus-threads-search-input" placeholder="<?= htmlspecialchars(__("Search")) ?>..." name="search"
+  <?= $searchvalue ?> aria-label="<?= htmlspecialchars(__("Search threads")) ?>"
   >
-  <button type="submit"><i class="fa fa-search"></i></button>
-  <button type="submit" onclick='document.getElementById("tdiscus-threads-search-input").value = "";'><i class="fa fa-undo"></i></button>
+  <button type="submit" aria-label="<?= htmlspecialchars(__("Search")) ?>"><i class="fa fa-search" aria-hidden="true"></i></button>
+  <button type="button" onclick='document.getElementById("tdiscus-threads-search-input").value = ""; this.form.submit();' aria-label="<?= htmlspecialchars(__("Clear search")) ?>"><i class="fa fa-undo" aria-hidden="true"></i></button>
 </div>
 <?php
         echo("</form></div>\n");
@@ -93,7 +94,8 @@ foreach($sortby as $sort) {
             $indent = 20 + ($depth-3) * 2;
         }
 
-        echo('<div id="tdiscus-comment-container-'.$comment_id.'" class="tdiscus-comment-container" style="padding-left:'.$indent.'px;">'."\n");
+        $comment_author = $comment['displayname'] ?? '';
+        echo('<article id="tdiscus-comment-container-'.$comment_id.'" class="tdiscus-comment-container" style="padding-left:'.$indent.'px;" aria-label="'.htmlspecialchars(sprintf(__('Comment by %s'), $comment_author)).'">'."\n");
 
         if ( $LAUNCH->user->instructor ) {
            Tdiscus::renderBooleanSwitch('comment', $comment_id, 'hidden', 'hide', $hidden, 0, 'fa-eye-slash', 'orange');
@@ -102,14 +104,14 @@ foreach($sortby as $sort) {
         if ( $LAUNCH->user->instructor ) {
             Tdiscus::renderBooleanSwitch('comment', $comment_id, 'locked', 'lock', $locked, 0, 'fa-lock', 'orange');
         } else {
-            echo('<span '.($locked == 0 ? 'style="display:none;"' : '').'><i class="fa fa-lock fa-rotate-270" style="color: orange;"></i></span>');
+            echo('<span '.($locked == 0 ? 'style="display:none;"' : '').' aria-hidden="true"><i class="fa fa-lock fa-rotate-270" style="color: orange;"></i></span>');
         }
 ?>
   <span class="tdiscus-user-name"><?= htmlentities($comment['displayname'] ?? '') ?></span>
   <time class="timeago" datetime="<?= $comment['modified_at'] ?>"><?= $comment['modified_at'] ?></time>
   <?php if ( $comment['owned'] || $LAUNCH->user->instructor ) { ?>
-    <a href="<?= self::toolRoot() ?>/commentform/<?= $comment['comment_id'] ?>"><i class="fa fa-pencil"></i></a>
-    <a href="<?= self::toolRoot() ?>/commentremove/<?= $comment['comment_id'] ?>"><i class="fa fa-trash"></i></a>
+    <a href="<?= self::toolRoot() ?>/commentform/<?= $comment['comment_id'] ?>" aria-label="<?= htmlspecialchars(__("Edit comment")) ?>"><i class="fa fa-pencil" aria-hidden="true"></i></a>
+    <a href="<?= self::toolRoot() ?>/commentremove/<?= $comment['comment_id'] ?>" aria-label="<?= htmlspecialchars(__("Delete comment")) ?>"><i class="fa fa-trash" aria-hidden="true"></i></a>
   <?php } ?>
 <?php
         if ( $LAUNCH->user->instructor ) {
@@ -138,15 +140,16 @@ foreach($sortby as $sort) {
             Tdiscus::add_sub_comment($id, $thread_id, $comment_id, 1);
             echo('</div> <!-- tdiscus-sub-comment-container -->');
         }
-        echo('</div> <!-- tdiscus-comment-container -->');
+        echo('</article> <!-- tdiscus-comment-container -->');
     }
 
     public static function add_comment($thread_id) {
 ?>
-<div id="tdiscus-add-comment-div" class="tdiscus-add-comment-container" title="<?= __("Reply") ?>" >
+<div id="tdiscus-add-comment-div" class="tdiscus-add-comment-container" title="<?= __("Reply") ?>" role="region" aria-label="<?= htmlspecialchars(__("Add reply")) ?>">
 <form id="tdiscus-add-comment-form" method="post">
 <p>
-<textarea style="width:100%;" class="tdiscus-add-sub-comment-text" name="comment" class="form-control">
+<label for="tdiscus-add-comment-text-<?= $thread_id ?>" class="visually-hidden"><?= __("Your reply") ?></label>
+<textarea id="tdiscus-add-comment-text-<?= $thread_id ?>" style="width:100%;" class="tdiscus-add-sub-comment-text form-control" name="comment" aria-label="<?= htmlspecialchars(__("Your reply")) ?>">
 </textarea>
 </p>
 <p>
@@ -158,19 +161,21 @@ foreach($sortby as $sort) {
     }
 
     public static function add_sub_comment($html_id, $thread_id, $comment_id, $depth) {
+        $textarea_id = $html_id . '-textarea';
 ?>
-<div id="<?= $html_id ?>" class="tdiscus-add-sub-comment-container" title="<?= __("Reply") ?>"  style="display:none;">
+<div id="<?= $html_id ?>" class="tdiscus-add-sub-comment-container" title="<?= __("Reply") ?>" role="region" aria-label="<?= htmlspecialchars(__("Add reply")) ?>" style="display:none;">
 <form method="post" 
     data-click-done="<?= $html_id ?>_toggle" 
     class="tdiscus-add-sub-comment-form">
 <p>
 <input type="hidden" name="comment_id" value="<?= $comment_id ?>">
 <input type="hidden" name="thread_id" value="<?= $thread_id ?>">
-<textarea style="width:100%;" class="tdiscus-add-sub-comment-text" name="comment" class="form-control">
+<label for="<?= $textarea_id ?>" class="visually-hidden"><?= __("Your reply") ?></label>
+<textarea id="<?= $textarea_id ?>" style="width:100%;" class="tdiscus-add-sub-comment-text form-control" name="comment" aria-label="<?= htmlspecialchars(__("Your reply")) ?>">
 </textarea>
 </p>
 <p>
-<input type="submit" id="tdiscus-add-comment-submit" name="submit" value="<?= __('Reply') ?>" >
+<input type="submit" name="submit" value="<?= __('Reply') ?>" >
 </p>
 </form>
 </div>
@@ -232,8 +237,10 @@ foreach($sortby as $sort) {
         data-endpoint="<?= $type ?>setboolean/<?= $thread_id ?>/<?= $variable ?>/<?= $set ?>"
         data-confirm="<?= htmlentities(__('Do you want to '.$action.' this '.$uitype.'?')) ?>"
         title="<?= __(ucfirst($action)." ".ucfirst($uitype)) ?>"
+        aria-label="<?= htmlspecialchars(__(ucfirst($action)." ".ucfirst($uitype))) ?>"
+        role="button"
          <?= ($value == $set ? 'style="display:none;"' : '') ?>
-         ><i class="fa <?= $icon ?>" <?= ($color ? 'style="color: '.$color.'";' : '') ?>></i></a>
+         ><i class="fa <?= $icon ?>" aria-hidden="true" <?= ($color ? 'style="color: '.$color.'";' : '') ?>></i></a>
 <?php
     }
 
@@ -244,10 +251,13 @@ foreach($sortby as $sort) {
         id="<?= $id ?>_toggle"
         data-id="<?= $id ?>"
         class="tdiscus-toggle-api-call"
+        aria-label="<?= htmlspecialchars(__("Toggle").' '.$title) ?>"
+        aria-expanded="false"
+        role="button"
         title="<?= htmlentities(__("Toggle").' '.$title) ?>">
-        <i id="<?= $id ?>_icon_on" class="fa <?= $icon ?>"></i>
+        <i id="<?= $id ?>_icon_on" class="fa <?= $icon ?>" aria-hidden="true"></i>
         <i id="<?= $id ?>_icon_off" class="fa <?= $icon ?>"
-         style="display:none; <?= ($color ? ('color: '.$color.';') : '') ?>"></i></a>
+         style="display:none; <?= ($color ? ('color: '.$color.';') : '') ?>" aria-hidden="true"></i></a>
 <?php
     }
 
@@ -279,10 +289,14 @@ $(document).ready( function() {
 
     function toggleApiCall(ev) {
         ev.preventDefault()
-        var data_id = $(this).attr('data-id');
-        $('#'+data_id).toggle();
+        var $btn = $(this);
+        var data_id = $btn.attr('data-id');
+        var $target = $('#'+data_id);
+        var isExpanded = $target.is(':visible');
+        $target.toggle();
         $('#'+data_id+"_icon_on").toggle();
         $('#'+data_id+"_icon_off").toggle();
+        $btn.attr('aria-expanded', !isExpanded);
     }
 
    function handleSubmit(ev) {

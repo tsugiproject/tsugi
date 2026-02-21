@@ -52,13 +52,13 @@ $dicussion_title = strlen($LAUNCH->link->settingsGet('title')) > 0 ? $LAUNCH->li
 
 if ( $LAUNCH->link->settingsGet('depth') < 1 ) $LAUNCH->link->settingsSet('depth', '2');
 
-echo('<div>');
+echo('<div class="tdiscus-threads-header">');
 echo('<span class="tdiscus-threads-title">');
 echo('<a href="'.$comeback.'">');
 echo(htmlentities($dicussion_title));
 echo('</a></span>' );
-echo('<a style="float: right;" href="'.$TOOL_ROOT.'/threadform'.'">');
-echo('<i class="fa fa-plus"></i> ');
+echo('<a class="tdiscus-add-thread-link" href="'.$TOOL_ROOT.'/threadform'.'" aria-label="'.htmlspecialchars(__('Add Thread')).'">');
+echo('<i class="fa fa-plus" aria-hidden="true"></i> ');
 echo(__('Add Thread'));
 echo('</a>');
 echo('</div><br clear="all"/>'."\n");
@@ -85,7 +85,7 @@ $TDISCUS->search_box($sortable);
 if ( count($threads) < 1 ) {
     echo("<p>".__('No threads')."</p>\n");
 } else {
-    echo('<ul class="tdiscus-threads-list">');
+    echo('<ul class="tdiscus-threads-list" role="list" aria-label="'.htmlspecialchars(__('Discussion threads')).'">');
     echo('<!-- Total: '.$retval->total." next=".$retval->next."-->\n");
     foreach($threads as $thread ) {
         $pin = $thread['pin'];
@@ -110,18 +110,18 @@ if ( count($threads) < 1 ) {
         $TDISCUS->renderBooleanSwitch('threaduser', $thread_id, 'favorite', 'favorite', $favorite, 0, 'fa-star', 'green');
         // $TDISCUS->renderBooleanSwitch('threaduser', $thread_id, 'subscribe', 'subscribe', $subscribe, 0, 'fa-envelope', 'green');
     } else {
-        echo('<span '.($pin == 0 ? 'style="display:none;"' : '').'><i class="fa fa-thumbtack fa-rotate-270" style="color: orange;"></i></span>');
-        echo(' <span '.($locked == 0 ? 'style="display:none;"' : '').'><i class="fa fa-lock fa-rotate-270" style="color: orange;"></i></span>');
+        echo('<span '.($pin == 0 ? 'style="display:none;"' : '').' aria-hidden="true"><i class="fa fa-thumbtack fa-rotate-270" style="color: orange;"></i></span>');
+        echo(' <span '.($locked == 0 ? 'style="display:none;"' : '').' aria-hidden="true"><i class="fa fa-lock fa-rotate-270" style="color: orange;"></i></span>');
     }
     $unread_str = '';
-    if ( $unread > 0 ) $unread_str = ' <span class="tdiscus-thread-item-title-badge">'.$unread.'</span>';
+    if ( $unread > 0 ) $unread_str = ' <span class="tdiscus-thread-item-title-badge" aria-label="'.htmlspecialchars(sprintf(__('%d unread'), $unread)).'">'.$unread.'</span>';
 ?>
   <a href="<?= $TOOL_ROOT.'/thread/'.$thread['thread_id'] ?>">
   <b<?= ($hidden ? ' style="text-decoration: line-through;"' : '') ?>><?= htmlentities($thread['title'] ?? '') ?><?= $unread_str ?></b></a>
 <?php if ( $thread['owned'] || $LAUNCH->user->instructor ) { ?>
-    <span class="tdiscus-thread-owned-menu">
-    <a href="<?= $TOOL_ROOT ?>/threadform/<?= $thread['thread_id'] ?>"><i class="fa fa-pencil"></i></a>
-    <a href="<?= $TOOL_ROOT ?>/threadremove/<?= $thread['thread_id'] ?>"><i class="fa fa-trash"></i></a>
+    <span class="tdiscus-thread-owned-menu" role="group" aria-label="<?= htmlspecialchars(__('Thread actions')) ?>">
+    <a href="<?= $TOOL_ROOT ?>/threadform/<?= $thread['thread_id'] ?>" aria-label="<?= htmlspecialchars(__('Edit thread')) ?>"><i class="fa fa-pencil" aria-hidden="true"></i></a>
+    <a href="<?= $TOOL_ROOT ?>/threadremove/<?= $thread['thread_id'] ?>" aria-label="<?= htmlspecialchars(__('Delete thread')) ?>"><i class="fa fa-trash" aria-hidden="true"></i></a>
   <?php
     if ( $LAUNCH->user->instructor ) {
         $TDISCUS->renderBooleanSwitch('thread', $thread_id, 'pin', 'pin', $pin, 1, 'fa-thumbtack');
@@ -149,11 +149,9 @@ if ( count($threads) < 1 ) {
     }
 ?>
   </div>
-  <div class="tdiscus-thread-item-right" >
-<center>
-   Views: <?= $thread['views'] ?><br/>
-   Comments: <?= $thread['comments'] ?>
-</center>
+  <div class="tdiscus-thread-item-right" role="group" aria-label="<?= htmlspecialchars(__('Thread stats')) ?>">
+   <span><?= __('Views') ?>: <?= $thread['views'] ?></span><br/>
+   <span><?= __('Comments') ?>: <?= $thread['comments'] ?></span>
   </div>
   </li>
 <?php

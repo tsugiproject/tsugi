@@ -53,14 +53,16 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav(false);
 $OUTPUT->flashMessages();
 if ( $old_comment ) {
-    echo("<h1>".__('Edit Comment')."</h1>\n");
+    echo("<h1 id=\"edit-comment-heading\">".__('Edit Comment')."</h1>\n");
 } else {
-    echo("<h1>".__('Add Comment')."</h1>\n");
+    echo("<h1 id=\"edit-comment-heading\">".__('Add Comment')."</h1>\n");
 }
 ?>
-<div id="edit-comment-div" title="<?= __("Comment") ?>" >
+<div id="edit-comment-div" title="<?= __("Comment") ?>" role="region" aria-labelledby="edit-comment-heading">
 <form id="edit-comment-form" method="post">
-<input type="text" name="comment" class="form-control"
+<p>
+<label for="edit-comment-input"><?= __("Comment:") ?></label><br/>
+<input type="text" id="edit-comment-input" name="comment" class="form-control" aria-required="true"
 <?php 
 if ( $old_comment ) {
     echo('value="'.htmlentities($old_comment['comment'] ?? '').'" ');
@@ -70,9 +72,7 @@ if ( $old_comment ) {
 </p>
 <p>
 <input type="submit" id="edit-comment-submit" value="<?= __('Update') ?>" >
-<input type="submit" id="edit-comment-cancel" value="<?= __('Cancel') ?>"
-onclick='window.location.href="<?= addSession($TOOL_ROOT.'/thread/'.$thread_id) ?>";return false;'
->
+<button type="button" id="edit-comment-cancel" onclick='window.location.href="<?= addSession($TOOL_ROOT.'/thread/'.$thread_id) ?>";'><?= __('Cancel') ?></button>
 </p>
 </form>
 </div>
