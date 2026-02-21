@@ -46,10 +46,10 @@ $OUTPUT->flashMessages();
 ?>
 <h1>LTI Keys</h1>
 <p>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default active">LTI Keys</a>
-  <a href="using" class="btn btn-default">Using Your Key</a>
-  <a href="requests" class="btn btn-default">Key Requests</a>
-  <a href="<?= $CFG->wwwroot.'/settings/' ?>" class="btn btn-default">My Settings</a>
+  <a href="<?= htmlspecialchars(LTIX::curPageUrlFolder(), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default active" aria-label="LTI Keys (current page)">LTI Keys</a>
+  <a href="using" class="btn btn-default" aria-label="Using Your Key - instructions for LTI integration">Using Your Key</a>
+  <a href="requests" class="btn btn-default" aria-label="Key Requests">Key Requests</a>
+  <a href="<?= htmlspecialchars($CFG->wwwroot . '/settings/', ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default" aria-label="My Settings">My Settings</a>
 </p>
 <?php if ( count($newrows) < 1 ) { ?>
 <p>
@@ -57,7 +57,7 @@ You have no LTI Keys for this system.
 </p>
 <p>
 If you want to use the tools / content in this system
-in an LMS like Sakai, Moodle, Canvase, Blackboard or BrightSpace 
+in an LMS like Sakai, Moodle, Canvas, Blackboard or BrightSpace 
 you will need to request a key and have it approved.
 </p>
 <?php } else {

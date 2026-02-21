@@ -46,30 +46,30 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
-<div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="iframe-spinner"><br/>
-   <iframe name="iframe-frame" style="height:600px" id="iframe-frame"
+<div id="iframe-dialog" title="Read Only Dialog" style="display: none;" role="dialog" aria-modal="true" aria-label="Read only content">
+   <img src="<?= htmlspecialchars($OUTPUT->getSpinnerUrl(), ENT_QUOTES, 'UTF-8') ?>" id="iframe-spinner" alt="" role="presentation"><br/>
+   <iframe name="iframe-frame" style="height:600px" id="iframe-frame" title="Content viewer"
     onload="document.getElementById('iframe-spinner').style.display='none';">
    </iframe>
 </div>
 <h1>Manage Data Expiry</h1>
 <p>
-  <a href="<?= $CFG->wwwroot ?>/settings" class="btn btn-default">My Settings</a>
+  <a href="<?= htmlspecialchars($CFG->wwwroot, ENT_QUOTES, 'UTF-8') ?>/settings" class="btn btn-default" aria-label="My Settings">My Settings</a>
 </p>
 <form>
 <ul>
-<li>User count: <?= $user_count ?>  <br/>
+<li>User count: <?= (int)$user_count ?>  <br/>
 <ul>
 <li>
-Users with PII and no activity in
-<input type="text" name="pii_days" size=5 class="auto_days" value="<?= $pii_days ?>"> days:
-<?= $pii_expire ?>
+<label for="pii_days">Users with PII and no activity in</label>
+<input type="text" name="pii_days" id="pii_days" size=5 class="auto_days" value="<?= htmlspecialchars($pii_days, ENT_QUOTES, 'UTF-8') ?>"> days:
+<?= (int)$pii_expire ?>
 <?php if ( $pii_expire > 0 ) { ?>
   <br/>
-  <a href="pii-detail?pii_days=<?= $pii_days ?>" class="auto_expire btn btn-xs btn-default">View</a>
-  <a href="#" title="Expire PII" class="auto_expire btn btn-xs btn-danger"
-  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'pii-expire?pii_days=<?= $pii_days ?>', _TSUGI.spinnerUrl, true); return false;" >
-  Expire PII &gt; <?= $pii_days ?> Days
+  <a href="pii-detail?pii_days=<?= urlencode($pii_days) ?>" class="auto_expire btn btn-xs btn-default" aria-label="View PII expiry details">View</a>
+  <a href="#" title="Expire PII" class="auto_expire btn btn-xs btn-danger" role="button" aria-label="Expire PII older than <?= (int)$pii_days ?> days"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'pii-expire?pii_days=<?= urlencode($pii_days) ?>', _TSUGI.spinnerUrl, true); return false;" >
+  Expire PII &gt; <?= (int)$pii_days ?> Days
   </a>
 <?php } ?>
 </li>

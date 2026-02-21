@@ -41,39 +41,39 @@ $OUTPUT->flashMessages();
 applications in their courses.
 </p>
 <ul>
-<li><p><a href="context/">View My Contexts (Courses)</a>
-(<?= $course_count ?>)
+<li><p><a href="context/" aria-label="View My Contexts (Courses) - <?= (int)$course_count ?> context(s)">View My Contexts (Courses)</a>
+(<?= (int)$course_count ?>)
 </p>
 </li>
 <?php if ( $CFG->providekeys ) { ?>
-<li><p><a href="key">Manage LMS Access Keys</a>
-(<?= $key_count ?>)<br/>
+<li><p><a href="key" aria-label="Manage LMS Access Keys - <?= (int)$key_count ?> key(s)">Manage LMS Access Keys</a>
+(<?= (int)$key_count ?>)<br/>
 These tools can be integrated into Learning Management Systems
 that support the Learning Tools Interoperability specification.
 </p>
 </li>
 <?php } ?>
-<li><p><a href="expire/">Manage Data Expiry</a>
+<li><p><a href="expire/" aria-label="Manage Data Expiry">Manage Data Expiry</a>
 <br/>
 This allows you to manage Personally Identifiable Information (PII) for your learners in this system.
 </p>
 </li>
-<li><p><a href="encrypt">Encrypt Strings</a>
+<li><p><a href="encrypt" aria-label="Encrypt Strings">Encrypt Strings</a>
 <br/>
 Use this tool to encrypt strings using LTIX encryption methods. Note: This tool only supports encryption - decryption is only available to administrators.
 </p>
 </li>
-<li><p><a href="<?=$CFG->wwwroot?>/cc/" target="_blank">Download a copy of this course as an IMS Common Cartridge</a>
+<li><p><a href="<?= htmlspecialchars($CFG->wwwroot, ENT_QUOTES, 'UTF-8') ?>/cc/" target="_blank" rel="noopener noreferrer" aria-label="Download a copy of this course as an IMS Common Cartridge (opens in new window)">Download a copy of this course as an IMS Common Cartridge</a>
 </br>
 You can import this content into an LMS like Sakai, Canvas, Blackboard, D2L or Moodle.
 </p>
 </li>
 <?php if ( isset($CFG->google_classroom_secret) ) { ?>
-<li><p>(Experimental) <a href="gclass_login">Connect to Google Classroom</a>
+<li><p>(Experimental) <a href="gclass_login" aria-label="Connect to Google Classroom">Connect to Google Classroom</a>
 <?php
 $count = U::get($_SESSION,'gc_count');
 if ( $count ) {
-    echo('(Connected to '.$count.' classroom(s))');
+    echo('(Connected to ' . (int)$count . ' classroom(s))');
 } else {
     echo('(Not connected)');
 }
@@ -82,7 +82,7 @@ if ( $count ) {
 These 
 <?php
 if ( isset($_SESSION['gc_count']) ) {
-    echo('<a href="../store">tools</a>');
+    echo('<a href="../store" aria-label="Browse tools in the store">tools</a>');
 } else {
     echo('tools');
 }
@@ -92,7 +92,7 @@ if ( isset($_SESSION['gc_count']) ) {
 </li>
 <li>
 <p>
-<a href="https://myaccount.google.com/security" target="_blank">Manage my Google Account</a> (new window)<br/>
+<a href="https://myaccount.google.com/security" target="_blank" rel="noopener noreferrer" aria-label="Manage my Google Account (opens in new window)">Manage my Google Account</a> (new window)<br/>
 Use this page to view and manage which applications (including this one) that have access to your
 Google information.
 </p>
@@ -103,7 +103,7 @@ Google information.
 can visit the administrator dashboard.
 </p>
 <p>
-<b>Note:</b> The modal popups in this screen work best in the FireFox browser.
+<strong>Note:</strong> The modal popups in this screen work best in the FireFox browser.
 <?php
 
 $OUTPUT->footer();

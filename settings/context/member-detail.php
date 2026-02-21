@@ -59,7 +59,7 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 $title = "Membership";
-echo("<h1>$title</h1>\n<p>\n");
+echo("<h1>" . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . "</h1>\n<p>\n");
 $retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");

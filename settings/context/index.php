@@ -45,7 +45,7 @@ $OUTPUT->topNav();
 
 $OUTPUT->flashMessages();
 
-$extra_buttons = array(__("My Settings") =>   $CFG->wwwroot."/settings");
+$extra_buttons = array(__("My Settings") => htmlspecialchars($CFG->wwwroot, ENT_QUOTES, 'UTF-8') . "/settings");
 $params=false; // Defaults to _GET
 
 Table::pagedTable($newrows, $searchfields, $orderfields, "membership", $params, $extra_buttons);

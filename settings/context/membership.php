@@ -60,14 +60,14 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
 <p>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">View Contexts</a>
+  <a href="<?= htmlspecialchars(LTIX::curPageUrlFolder(), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default" aria-label="View Contexts">View Contexts</a>
   <a href="context-settings?context_id=<?= htmlentities($context_id) ?>" class="btn btn-success">View/Edit Context Settings</a>
   <a href="mailing-list.php?context_id=<?= htmlentities($context_id) ?>" class="btn btn-primary">Generate Mailing List</a>
 </p>
 <h1>Roster / Membership</h1>
 <?php
 
-$extra_buttons = array(__("All Contexts") =>   $CFG->wwwroot."/settings/context");
+$extra_buttons = array(__("All Contexts") => htmlspecialchars($CFG->wwwroot, ENT_QUOTES, 'UTF-8') . "/settings/context");
 $params=false; // Defaults to _GET
 Table::pagedTable($newrows, $searchfields, $searchfields, "member-detail", $params, $extra_buttons);
 

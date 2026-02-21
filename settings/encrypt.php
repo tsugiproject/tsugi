@@ -89,7 +89,7 @@ $OUTPUT->flashMessages();
 <p>Use this tool to encrypt strings using LTIX encryption methods. This tool only supports encryption - decryption is only available to administrators.</p>
 
 <?php if ( $error_message ) { ?>
-<div class="alert alert-danger"><?= $error_message ?></div>
+<div class="alert alert-danger" role="alert"><?= $error_message ?></div>
 <?php } ?>
 
 <div class="form-group" style="margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
@@ -110,7 +110,7 @@ $OUTPUT->flashMessages();
 </div>
 
 <p>
-<a href="<?= $CFG->wwwroot ?>/settings" class="btn btn-default">Back to Settings</a>
+<a href="<?= htmlspecialchars($CFG->wwwroot, ENT_QUOTES, 'UTF-8') ?>/settings" class="btn btn-default" aria-label="Back to Settings">Back to Settings</a>
 </p>
 
 <?php

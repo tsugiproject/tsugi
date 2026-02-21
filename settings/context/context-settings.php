@@ -111,8 +111,8 @@ $OUTPUT->flashMessages();
 ?>
 <h1>Context Settings</h1>
 <p>
-  <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">View Contexts</a>
-  <a href="membership?context_id=<?= htmlentities($context_id) ?>" class="btn btn-default">View Memberships</a>
+  <a href="<?= htmlspecialchars(LTIX::curPageUrlFolder(), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default" aria-label="View Contexts">View Contexts</a>
+  <a href="membership?context_id=<?= htmlentities($context_id) ?>" class="btn btn-default" aria-label="View Memberships">View Memberships</a>
 </p>
 
 <h2><?= htmlentities($context_title) ?></h2>
@@ -129,7 +129,7 @@ $OUTPUT->flashMessages();
     </div>
     
     <button type="submit" class="btn btn-primary">Save Settings</button>
-    <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">Cancel</a>
+    <a href="<?= htmlspecialchars(LTIX::curPageUrlFolder(), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default" aria-label="Cancel and return to contexts">Cancel</a>
 </form>
 
 <?php
