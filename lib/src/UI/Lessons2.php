@@ -1459,12 +1459,12 @@ ul.tsugi-lessons-content-list li i.fa {
         }
         $awarded = array();
 ?>
-<ul class="nav nav-tabs">
-  <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Progress</a></li>
-  <li class=""><a href="#profile" data-toggle="tab" aria-expanded="false">Badges Awarded</a></li>
+<ul class="nav nav-tabs" role="tablist">
+  <li class="active" role="presentation"><a href="#home" id="home-tab" data-toggle="tab" role="tab" aria-controls="home" aria-selected="true">Progress</a></li>
+  <li class="" role="presentation"><a href="#profile" id="profile-tab" data-toggle="tab" role="tab" aria-controls="profile" aria-selected="false">Badges Awarded</a></li>
 </ul>
 <div id="myTabContent" class="tab-content">
-  <div class="tab-pane fade active in" id="home">
+  <div class="tab-pane fade active in" id="home" role="tabpanel" aria-labelledby="home-tab">
 <?php
         echo('<table class="table table-striped table-hover "><tbody>'."\n");
         foreach($this->lessons->badges as $badge) {
@@ -1494,11 +1494,11 @@ ul.tsugi-lessons-content-list li i.fa {
                 echo('<i class="fa fa-certificate" aria-hidden="true" style="padding-right: 5px;"></i>');
             } else {
                 $image = $CFG->badge_url . '/' . $badge->image;
-                echo('<img src="'.$image.'" style="width: 4rem;"/> ');
+                echo('<img src="'.htmlspecialchars($image).'" alt="'.htmlspecialchars($badge->title).'" style="width: 4rem;"/> ');
             }
             echo($badge->title);
             echo('</td><td class="info" style="width: 30%; min-width: 200px;">');
-            echo('<div class="progress">');
+            echo('<div class="progress" role="progressbar" aria-valuenow="'.$progress.'" aria-valuemin="0" aria-valuemax="100" aria-label="'.htmlspecialchars($badge->title).': '.$progress.' percent">');
             echo('<div class="progress-bar progress-bar-'.$kind.'" style="width: '.$progress.'%"></div>');
             echo('</div>');
             echo("</td></tr>\n");
@@ -1523,12 +1523,12 @@ ul.tsugi-lessons-content-list li i.fa {
                 $badge_title = "Missing ". $resource_link_id;
                 if ( $lti != null ) $badge_title = $lti->title;
 
-                echo('<a href="'.$href.'">');
+                echo('<a href="'.htmlspecialchars($href).'">');
                 echo('<i class="fa fa-square-o text-info" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
-                echo($badge_title."</a>\n");
+                echo(htmlspecialchars($badge_title)."</a>\n");
                 echo('</td><td style="width: 30%; min-width: 200px;">');
-                echo('<a href="'.$href.'">');
-                echo('<div class="progress">');
+                echo('<a href="'.htmlspecialchars($href).'">');
+                echo('<div class="progress" role="progressbar" aria-valuenow="'.$progress.'" aria-valuemin="0" aria-valuemax="100" aria-label="'.htmlspecialchars($badge_title).': '.$progress.' percent">');
                 echo('<div class="progress-bar progress-bar-'.$kind.'" style="width: '.$progress.'%"></div>');
                 echo('</div>');
                 echo('</a>');
@@ -1538,7 +1538,7 @@ ul.tsugi-lessons-content-list li i.fa {
         echo('</tbody></table>'."\n");
 ?>
   </div>
-  <div class="tab-pane fade" id="profile">
+  <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
 <p></p>
 <?php
     if ( count($awarded) < 1 ) {

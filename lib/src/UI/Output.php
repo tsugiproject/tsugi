@@ -716,7 +716,7 @@ $('a').each(function (x) {
         if ( $text == "Cancel" || $text == _m("Cancel") ) $button = "btn-warning";
 
         if ( $url == "_close" ) {
-            echo("<a href=\"#\" onclick=\"window_close();\" class=\"btn ".$button."\">".$text."</a>\n");
+            echo("<button type=\"button\" onclick=\"window_close();\" class=\"btn ".$button."\">".$text."</button>\n");
         } else {
             echo("<a href=\"$url\" class=\"btn ".$button."\">".$text."</a>\n");
         }
@@ -729,7 +729,7 @@ $('a').each(function (x) {
         if ( $text === false ) $text = _m("Exit");
         $button = "btn-success";
         if ( $text == "Cancel" || $text == _m("Cancel") ) $button = "btn-warning";
-        echo("<a href=\"#\" onclick=\"window_close();\" class=\"btn ".$button."\">".$text."</a>\n");
+        echo("<button type=\"button\" onclick=\"window_close();\" class=\"btn ".$button."\">".$text."</button>\n");
     }
 
     function togglePre($title, $html) {
@@ -738,7 +738,7 @@ $('a').each(function (x) {
         $text = _m('Show/Hide');
         $detail = _m('characters retrieved');
         echo('<strong>'.htmlpre_utf8($title));
-        echo(' (<a href="#" onclick="dataToggle('."'".$div_id."'".');return false;">'.$text.'</a></strong>'."\n");
+        echo(' (<button type="button" class="btn btn-link" style="padding:0;vertical-align:baseline;" onclick="dataToggle('."'".$div_id."'".');return false;">'.$text.'</button></strong>'."\n");
         echo(' '.strlen($html).' '.$detail.')'."\n");
         echo('<pre id="'.$div_id.'" style="display:none; border: solid 1px">'."\n");
         echo(htmlpre_utf8($html));
@@ -1104,9 +1104,9 @@ EOF;
     function getScreenOverlay($show=true) {
         global $CFG;
         return
-            '<div class="tsugi_overlay" id="tsugi_overlay" style="position: fixed, display:'.
+            '<div class="tsugi_overlay" id="tsugi_overlay" role="status" aria-live="polite" aria-busy="true" style="position: fixed, display:'.
             ($show ? 'block' : 'none'). '">' . "\n" .
-            '<i style="color: blue;" class="fa fa-spinner fa-spin fa-5x fa-fw"></i>' . "\n" .
+            '<i style="color: blue;" class="fa fa-spinner fa-spin fa-5x fa-fw" aria-hidden="true"></i>' . "\n" .
             // '<img src="'.$CFG->staticroot.'/img/logos/apereo-logo-blue-spin.svg" id="tsugi_overlay_spinner" width="100px" height="100px">' . "\n" .
             '</div>' . "\n" ;
     }

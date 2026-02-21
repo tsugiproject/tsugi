@@ -66,7 +66,7 @@ class CrudForm {
             if ( strpos($field, "_sha256") > 0 ) continue;
 
             echo('<div class="form-group">'."\n");
-            echo('<label for="'.$field.'"><span id="'.$field.'_label">'.self::fieldToTitle($field, $titles)."<span><br/>\n");
+            echo('<label for="'.$field.'"><span id="'.$field.'_label">'.self::fieldToTitle($field, $titles)."</span><br/>\n");
 
             if ( strpos($field, "secret") !== false ) {
                 echo('<input id="'.$field.'" type="password" autocomplete="off" size="80" name="'.$field.'"');
@@ -227,8 +227,8 @@ class CrudForm {
                 if ( strpos($field, "secret") !== false || strpos($field, "privkey") !== false ) {
                     echo('<p id="'.$field.'">'."\n");
                     echo("<span style=\"display: none;\" id=\"text_{$i}\">".htmlent_utf8($value).'</span>');
-                    echo("<span id=\"show_{$i}\" onclick=\"$('#text_{$i}').show();$('#show_{$i}').hide();$('#hide_{$i}').show();\";>(Click to show)</span>\n");
-                    echo("<span id=\"hide_{$i}\" onclick=\"$('#text_{$i}').hide();$('#hide_{$i}').hide();$('#show_{$i}').show();\" style=\"display:none\";>(Click to hide)</span>\n");
+                    echo("<button type=\"button\" id=\"show_{$i}\" class=\"btn btn-link\" style=\"padding:0;vertical-align:baseline;\" onclick=\"$('#text_{$i}').show();$('#show_{$i}').hide();$('#hide_{$i}').show();\">"._m('Click to show')."</button>\n");
+                    echo("<button type=\"button\" id=\"hide_{$i}\" class=\"btn btn-link\" style=\"padding:0;vertical-align:baseline;display:none;\" onclick=\"$('#text_{$i}').hide();$('#hide_{$i}').hide();$('#show_{$i}').show();\">"._m('Click to hide')."</button>\n");
                     echo("\n</p>\n");
                 } else {
                     echo('<p id="'.$field.'">'.htmlent_utf8($value)."</p>\n");

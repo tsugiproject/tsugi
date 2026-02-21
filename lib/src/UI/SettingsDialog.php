@@ -117,8 +117,8 @@ class SettingsDialog {
         if ( ! $this->ready() ) return;
         $retval = "";
         if ( $right ) $retval .= '<span style="position: fixed; right: 10px; top: 5px;">';
-        $retval .= '<button type="button" '.$this->attr().' class="btn btn-default">';
-        $retval .= '<span class="glyphicon glyphicon-pencil"></span></button>'."\n";
+        $retval .= '<button type="button" '.$this->attr().' class="btn btn-default" aria-label="'.htmlspecialchars(__('Settings')).'">';
+        $retval .= '<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></button>'."\n";
         if ( $right ) $retval .= '</span>';
         return $retval;
     }
@@ -149,7 +149,7 @@ class SettingsDialog {
             $pos = "";
         }
 
-        echo '<button type="button" '.$this->attr().' class="btn btn-link '.$pos.'");>';
+        echo '<button type="button" '.$this->attr().' class="btn btn-link '.$pos.'">';
         echo '<span class="fas fa-cog" aria-hidden="true"></span> '.__("Settings").'</button>'."\n";
     }
 
@@ -165,16 +165,17 @@ class SettingsDialog {
     public function start() {
         global $OUTPUT;
         if ( ! $this->ready() ) return;
+        $settings_dialog_title_id = 'settings_dialog_title';
 ?>
 <!-- Modal -->
-<div id="settings" class="modal fade" role="dialog" style="display: none;">
+<div id="settings" class="modal fade" role="dialog" aria-modal="true" aria-labelledby="<?= $settings_dialog_title_id ?>" style="display: none;">
   <div class="modal-dialog">
 
     <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span class="fa fa-close" aria-hidden="true"></span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title"><?= (isset($this->title) ? htmlentities($this->title) : "") ?> <?=__("Settings")?></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="<?= htmlentities(__('Close')) ?>"><span class="fa fa-close" aria-hidden="true"></span></button>
+        <h4 id="<?= $settings_dialog_title_id ?>" class="modal-title"><?= (isset($this->title) ? htmlentities($this->title) : "") ?> <?=__("Settings")?></h4>
       </div>
       <div class="modal-body">
       <?php if ( $this->instructor() ) { ?>

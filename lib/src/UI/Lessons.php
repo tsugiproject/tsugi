@@ -606,7 +606,7 @@ class Lessons {
   <div class="youtube-player" data-id="<?= $video->youtube ?>"></div>
   </div>
 </div>
-<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($video->title) ?></button>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';" aria-label="<?= htmlspecialchars(_m('Play video').': '.$video->title, ENT_QUOTES, 'UTF-8') ?>"><?= htmlentities($video->title) ?></button>
 <?php
                     }
                     echo("</li>\n");
@@ -638,7 +638,7 @@ class Lessons {
   <div class="youtube-player" data-id="<?= $lecture->youtube ?>"></div>
   </div>
 </div>
-<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';" aria-label="<?= htmlspecialchars(_m('Play video').': '.$lecture->title, ENT_QUOTES, 'UTF-8') ?>"><?= htmlentities($lecture->title) ?></button>
 <?php
                         echo('</li>');
                     } else if ( isset($lecture->audio) ) {
@@ -653,7 +653,7 @@ class Lessons {
   <audio controls preload='none' src="<?= self::expandLink($lecture->audio) ?>"></audio>
   </div>
 </div>
-<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';" aria-label="<?= htmlspecialchars(_m('Play audio').': '.$lecture->title, ENT_QUOTES, 'UTF-8') ?>"><?= htmlentities($lecture->title) ?></button>
 <?php
                         echo('</li>');
                     } else if ( isset($lecture->video) ) {
@@ -668,7 +668,7 @@ class Lessons {
   <video controls style="width:95%;" preload="none" src="<?= self::expandLink($lecture->video) ?>"></video>
   </div>
 </div>
-<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';" aria-label="<?= htmlspecialchars(_m('Play video').': '.$lecture->title, ENT_QUOTES, 'UTF-8') ?>"><?= htmlentities($lecture->title) ?></button>
 <?php
                         echo('</li>');
                     }
@@ -784,8 +784,8 @@ class Lessons {
                         if ( isset($_SESSION['gc_count']) ) {
                             echo('<a href="'.$CFG->wwwroot.'/gclass/assign?rlid='.$discussion->resource_link_id);
                             echo('" title="Install Assignment in Classroom" target="iframe-frame"'."\n");
-                            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
-                            echo('<img height=16 width=16 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
+                            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" aria-label=\"".htmlspecialchars(_m('Install Assignment in Classroom'))."\">\n");
+                            echo('<img height="16" width="16" src="https://www.gstatic.com/classroom/logo_square_48.svg" alt=""></a>'."\n");
                         }
                         echo("\n</li>\n");
                         continue;
@@ -833,8 +833,8 @@ class Lessons {
                         if ( isset($_SESSION['gc_count']) ) {
                             echo('<a href="'.$CFG->wwwroot.'/gclass/assign?rlid='.$lti->resource_link_id);
                             echo('" title="Install Assignment in Classroom" target="iframe-frame"'."\n");
-                            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
-                            echo('<img height=16 width=16 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
+                            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" aria-label=\"".htmlspecialchars(_m('Install Assignment in Classroom'))."\">\n");
+                            echo('<img height="16" width="16" src="https://www.gstatic.com/classroom/logo_square_48.svg" alt=""></a>'."\n");
                         }
                         echo("\n</li>\n");
                         continue;
@@ -1243,7 +1243,7 @@ class Lessons {
                 echo('<i class="fa fa-certificate" aria-hidden="true" style="padding-right: 5px;"></i>');
             } else {
                 $image = $CFG->badge_url . '/' . $badge->image;
-                echo('<img src="'.htmlspecialchars($image).'" alt="" style="width: 4rem;"/> ');
+                echo('<img src="'.htmlspecialchars($image).'" alt="'.htmlspecialchars($badge->title).'" style="width: 4rem;"/> ');
             }
             echo(htmlspecialchars($badge->title));
             echo('</td><td class="info" style="width: 30%; min-width: 200px;">');

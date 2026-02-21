@@ -461,7 +461,7 @@ class Topics {
                             }
                         } else if (isset($video->warpwire) && $this->warpwire_baseurl) {
                             echo '<div class="videoWrapper">';
-                            echo('<iframe src="'.$this->warpwire_baseurl.'/w/'.$video->warpwire.'/?share=0&title=0" frameborder="0" scrolling="0" allow="autoplay; encrypted-media; fullscreen;  picture-in-picture;" allowfullscreen></iframe>');
+                            echo('<iframe src="'.$this->warpwire_baseurl.'/w/'.$video->warpwire.'/?share=0&title=0" frameborder="0" scrolling="0" allow="autoplay; encrypted-media; fullscreen;  picture-in-picture;" allowfullscreen title="'.htmlspecialchars($video->title).'"></iframe>');
                             echo '</div>';
                         } else if (isset($video->embed)) {
                             echo '<div class="videoWrapper">';
@@ -525,7 +525,7 @@ class Topics {
      */
 
     public static function nostyleUrl($title, $url) {
-        echo('<a href="'.$url.'" target="_blank" typeof="oer:SupportingMaterial">'.htmlentities($url)."</a>\n");
+        echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" typeof="oer:SupportingMaterial">'.htmlentities($url)."</a>\n");
         if ( isset($_SESSION['gc_count']) ) {
             echo('<div class="g-sharetoclassroom" data-size="16" data-url="'.$url.'" ');
             echo(' data-title="'.htmlentities($title).'" ');
