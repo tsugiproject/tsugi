@@ -78,7 +78,7 @@ class Profile extends Controller {
         $OUTPUT->flashMessages();
 
         if ( isset($CFG->google_map_api_key) && ! $CFG->OFFLINE ) { ?>
-                <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=<?= $CFG->google_map_api_key ?>"></script>
+                <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=<?= htmlspecialchars($CFG->google_map_api_key) ?>"></script>
                 <script type="text/javascript">
                 var map;
 
@@ -114,7 +114,7 @@ google.maps.event.addListener(marker, 'dragend', function (event) {
     <?php } ?>
 
     </script>
-    <div class="container">
+    <main class="container" id="main-content">
     <?php
 
 echo('<h1>');echo(htmlentities($_SESSION['displayname']));
@@ -143,7 +143,7 @@ echo(' ('.htmlentities($_SESSION['email']).")</h1>\n");
                 </fieldset>
                 <div class="control-group pull-right" style="margin-top: 20px">
                     <button type="submit" class="btn btn-primary visible-phone">Save</button>
-                    <a href="<?= $CFG->apphome ?>/index.php" class="btn btn-warning">Cancel</a>
+                    <a href="<?= htmlspecialchars($CFG->apphome) ?>/index.php" class="btn btn-warning" aria-label="<?= htmlspecialchars(__('Cancel and return')) ?>">Cancel</a>
                 </div>
             </div>
             <hr class="hidden-phone"/>
@@ -211,7 +211,7 @@ Send me notification mail for important things like my assignment was graded.
         </p>
         <?php } ?>
         </form>
-        </div>
+        </main>
         <?php
 
         // After jquery gets loaded at the *very* end...

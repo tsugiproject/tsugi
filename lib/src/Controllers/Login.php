@@ -84,28 +84,27 @@ class Login extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
 ?>
+<main class="container" id="main-content">
+<h1><?= __('Login') ?></h1>
 <div style="margin: 30px">
 <p>
-We here at <?= $CFG->servicename ?> use Google Accounts as our sole login.
+We here at <?= htmlspecialchars($CFG->servicename) ?> use Google Accounts as our sole login.
 We do not want to spend a lot of time verifying identity, resetting passwords,
 detecting robot-login storms, and other issues so we let Google do that hard work.
 </p>
 <form method="post">
-    <input class="btn btn-warning" type="button"
-    onclick="location.href='<?= $context['login_return'] ?>'; return false;" value="Cancel"
-        style="height: 2.5em;"/>
-    <a href="<?= $context['loginUrl'] ?>"><img src="<?= $CFG->staticroot ?>/img/google_signin_buttons/2x/btn_google_signin_dark_normal_web@2x.png"
-      title="<?= htmlentities(__('Sign in with Google')) ?>"
-      style="height: 3em;"></a>
+    <button type="button" class="btn btn-warning" onclick="location.href=<?= htmlspecialchars(json_encode($context['login_return'])) ?>; return false;" aria-label="<?= htmlspecialchars(__('Cancel login')) ?>" style="height: 2.5em;">Cancel</button>
+    <a href="<?= htmlspecialchars($context['loginUrl']) ?>" aria-label="<?= htmlspecialchars(__('Sign in with Google')) ?>"><img src="<?= htmlspecialchars($CFG->staticroot) ?>/img/google_signin_buttons/2x/btn_google_signin_dark_normal_web@2x.png" alt="<?= htmlspecialchars(__('Sign in with Google')) ?>" title="<?= htmlspecialchars(__('Sign in with Google')) ?>" style="height: 3em;"></a>
 </form>
 <p>
 So you must have a Google account and we will require your
 name and email address to login.  We do not need and do not receive your password - only Google
 will ask you for your password.  When you press login, you will be directed to the Google
 authentication system where you will be given the option to share your
-information with <?= $CFG->servicename ?>.
+information with <?= htmlspecialchars($CFG->servicename) ?>.
 </p>
 </div>
+</main>
 <?php
         $OUTPUT->footerStart();
         $OUTPUT->footerEnd();

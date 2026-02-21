@@ -29,6 +29,7 @@ class Analytics extends Controller {
         // echo("<pre>\n");var_dump($tsugi);
         if ( !isset($tsugi->user) ) {
             $app->tsugiFlashError(__('You are not logged in.'));
+            $redirect_path = isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
             return new RedirectResponse($redirect_path);
         }
 

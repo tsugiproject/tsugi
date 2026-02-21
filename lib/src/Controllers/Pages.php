@@ -161,13 +161,13 @@ class Pages extends Tool {
                     <span>
                     <?php if ($show_analytics): ?>
                         <?php $analytics_url = $tool_home . '/analytics'; ?>
-                        <a href="<?= $analytics_url ?>" class="btn btn-default">
+                        <a href="<?= htmlspecialchars($analytics_url) ?>" class="btn btn-default" aria-label="<?= htmlspecialchars(__('View page analytics')) ?>">
                             <span class="glyphicon glyphicon-signal" aria-hidden="true"></span> Analytics
                         </a>
                     <?php endif; ?>
                     <?php if ($is_instructor): ?>
                         <?php $manage_url = $tool_home . '/manage'; ?>
-                        <a href="<?= $manage_url ?>" class="btn btn-default">Manage Pages</a>
+                        <a href="<?= htmlspecialchars($manage_url) ?>" class="btn btn-default" aria-label="<?= htmlspecialchars(__('Manage pages')) ?>">Manage Pages</a>
                     <?php endif; ?>
                     </span>
                 </h1>
@@ -180,13 +180,13 @@ class Pages extends Tool {
                     <span>
                     <?php if ($show_analytics): ?>
                         <?php $analytics_url = $tool_home . '/analytics'; ?>
-                        <a href="<?= $analytics_url ?>" class="btn btn-default">
+                        <a href="<?= htmlspecialchars($analytics_url) ?>" class="btn btn-default" aria-label="<?= htmlspecialchars(__('View page analytics')) ?>">
                             <span class="glyphicon glyphicon-signal" aria-hidden="true"></span> Analytics
                         </a>
                     <?php endif; ?>
                     <?php if ($is_instructor): ?>
                         <?php $manage_url = $tool_home . '/manage'; ?>
-                        <a href="<?= $manage_url ?>" class="btn btn-default">Manage Pages</a>
+                        <a href="<?= htmlspecialchars($manage_url) ?>" class="btn btn-default" aria-label="<?= htmlspecialchars(__('Manage pages')) ?>">Manage Pages</a>
                     <?php endif; ?>
                     </span>
                 </h1>
@@ -1130,9 +1130,9 @@ class Pages extends Tool {
                                 </td>
                                 <td>
                                     <?php $edit_url = $tool_home . '/edit/' . $page['page_id']; ?>
-                                    <a href="<?= $edit_url ?>" class="btn btn-xs btn-default">Edit</a>
+                                    <a href="<?= htmlspecialchars($edit_url) ?>" class="btn btn-xs btn-default" aria-label="<?= htmlspecialchars(__('Edit')) ?> <?= htmlspecialchars($page['title']) ?>">Edit</a>
                                     <?php $view_url = $pages_base . '/' . urlencode($page['logical_key']); ?>
-                                    <a href="<?= $view_url ?>" class="btn btn-xs btn-info" target="_blank" rel="noopener noreferrer" aria-label="View <?= htmlspecialchars($page['title']) ?> (opens in new tab)">View</a>
+                                    <a href="<?= htmlspecialchars($view_url) ?>" class="btn btn-xs btn-info" target="_blank" rel="noopener noreferrer" aria-label="View <?= htmlspecialchars($page['title']) ?> (opens in new tab)">View</a>
                                     <form method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to toggle the published status?');">
                                         <input type="hidden" name="action" value="toggle_published">
                                         <input type="hidden" name="page_id" value="<?= $page['page_id'] ?>">

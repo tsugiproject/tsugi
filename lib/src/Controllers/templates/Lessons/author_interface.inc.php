@@ -554,8 +554,8 @@
     </div>
 
     <div class="add-module-btn">
-        <button class="btn btn-icon" onclick="addModule()" title="Add Module">
-            <i class="fa fa-plus"></i>
+        <button type="button" class="btn btn-icon" onclick="addModule()" title="Add Module" aria-label="Add module">
+            <i class="fa fa-plus" aria-hidden="true"></i>
         </button>
     </div>
 </div>
@@ -563,8 +563,8 @@
 <div id="save-bar" class="save-bar hidden">
     <div class="message">You have unsaved changes</div>
     <div class="actions">
-        <button class="btn btn-success" onclick="saveChanges()">Save Changes</button>
-        <button class="btn" onclick="discardChanges()">Discard</button>
+        <button type="button" class="btn btn-success" onclick="saveChanges()">Save Changes</button>
+        <button type="button" class="btn" onclick="discardChanges()">Discard</button>
     </div>
 </div>
 
@@ -573,7 +573,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <h2 id="modal-title">Edit Item</h2>
-            <span class="close" onclick="closeModal()">&times;</span>
+            <button type="button" class="close" onclick="closeModal()" aria-label="Close">&times;</button>
         </div>
         <div id="modal-body">
             <!-- Form will be inserted here -->
@@ -862,21 +862,21 @@ function createModuleHtml(module, moduleIndex) {
     return `
         <div class="module-container" data-module-index="${moduleIndex}">
             <div class="module-header">
-                <span class="drag-handle" title="Drag to reorder"></span>
-                <button class="expand-toggle" onclick="toggleModule(${moduleIndex})" title="Expand/Collapse">
+                <span class="drag-handle" title="Drag to reorder" aria-hidden="true"></span>
+                <button type="button" class="expand-toggle" onclick="toggleModule(${moduleIndex})" title="Expand/Collapse" aria-label="Expand or collapse module">
                 </button>
                 <div style="flex: 1;">
                     <h3 class="module-title">
-                        ${module.icon ? `<i class="fa ${escapeHtml(module.icon)} module-icon"></i>` : ''}
+                        ${module.icon ? `<i class="fa ${escapeHtml(module.icon)} module-icon" aria-hidden="true"></i>` : ''}
                         <span>${escapeHtml(module.title || 'Untitled Module')}</span>
                     </h3>
                 </div>
                 <div class="module-actions">
-                    <button class="btn btn-icon" onclick="editModule(${moduleIndex})" title="Edit Module">
-                        <i class="fa fa-pencil"></i>
+                    <button type="button" class="btn btn-icon" onclick="editModule(${moduleIndex})" title="Edit Module" aria-label="Edit module">
+                        <i class="fa fa-pencil" aria-hidden="true"></i>
                     </button>
-                    <button class="btn btn-icon" onclick="deleteModule(${moduleIndex})" title="Delete Module">
-                        <i class="fa fa-trash"></i>
+                    <button type="button" class="btn btn-icon" onclick="deleteModule(${moduleIndex})" title="Delete Module" aria-label="Delete module">
+                        <i class="fa fa-trash" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
@@ -886,8 +886,8 @@ function createModuleHtml(module, moduleIndex) {
                     ${itemsHtml}
                 </div>
                 <div class="add-item-btn">
-                    <button class="btn btn-icon" onclick="addItem(${moduleIndex})" title="Add Item">
-                        <i class="fa fa-plus"></i>
+                    <button type="button" class="btn btn-icon" onclick="addItem(${moduleIndex})" title="Add Item" aria-label="Add item">
+                        <i class="fa fa-plus" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
@@ -921,18 +921,18 @@ function createItemHtml(item, moduleIndex, itemIndex) {
             <span class="drag-handle" title="Drag to reorder"></span>
             <div class="item-content">
                 <div class="item-header">
-                    ${isHeader ? `<button class="header-toggle ${isCollapsed ? 'collapsed' : ''}" onclick="toggleHeaderSection(${moduleIndex}, ${itemIndex}, event)" title="Expand/Collapse section"></button>` : ''}
-                    ${!isHeader ? `<span class="item-type ${type}" aria-label="${type}" title="${type}"><i class="fa ${getItemTypeIcon(type)}"></i></span>` : ''}
+                        ${isHeader ? `<button type="button" class="header-toggle ${isCollapsed ? 'collapsed' : ''}" onclick="toggleHeaderSection(${moduleIndex}, ${itemIndex}, event)" title="Expand/Collapse section" aria-label="Expand or collapse section"></button>` : ''}
+                    ${!isHeader ? `<span class="item-type ${type}" aria-label="${type}" title="${type}"><i class="fa ${getItemTypeIcon(type)}" aria-hidden="true"></i></span>` : ''}
                     <span class="item-title">${escapeHtml(title)}</span>
                     <div class="item-actions">
-                        ${isHeader ? `<button class="btn btn-icon add-item-after-btn" onclick="addItemAfter(${moduleIndex}, ${itemIndex})" title="Add item after this header">
-                            <i class="fa fa-plus"></i>
+                        ${isHeader ? `<button type="button" class="btn btn-icon add-item-after-btn" onclick="addItemAfter(${moduleIndex}, ${itemIndex})" title="Add item after this header" aria-label="Add item after this header">
+                            <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>` : ''}
-                        <button class="btn btn-icon edit-item-btn" title="Edit Item">
-                            <i class="fa fa-pencil"></i>
+                        <button type="button" class="btn btn-icon edit-item-btn" title="Edit Item" aria-label="Edit item">
+                            <i class="fa fa-pencil" aria-hidden="true"></i>
                         </button>
-                        <button class="btn btn-icon delete-item-btn" title="Delete Item">
-                            <i class="fa fa-trash"></i>
+                        <button type="button" class="btn btn-icon delete-item-btn" title="Delete Item" aria-label="Delete item">
+                            <i class="fa fa-trash" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
@@ -1113,8 +1113,8 @@ function editModule(moduleIndex) {
             <textarea id="edit-description">${escapeHtml(module.description || '')}</textarea>
         </div>
         <div class="form-actions">
-            <button class="btn btn-primary" onclick="saveModule()">Save</button>
-            <button class="btn" onclick="closeModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveModule()">Save</button>
+            <button type="button" class="btn" onclick="closeModal()">Cancel</button>
         </div>
     `;
     
@@ -1213,8 +1213,8 @@ function showItemModal(title, item) {
         </div>
         <div id="item-form-fields"></div>
         <div class="form-actions">
-            <button class="btn btn-primary" onclick="saveItem()">Save</button>
-            <button class="btn" onclick="closeModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveItem()">Save</button>
+            <button type="button" class="btn" onclick="closeModal()">Cancel</button>
         </div>
     `;
     
