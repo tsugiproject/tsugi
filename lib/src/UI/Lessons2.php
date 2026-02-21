@@ -1252,6 +1252,31 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         echo($ob_output);
     }
 
+    private function renderAssignmentItem($resource_link_id, $title, $allgrades, $alldates) {
+        echo('<li class="assignments-item">');
+        echo('<span class="assignments-status">');
+        if ( isset($allgrades[$resource_link_id]) ) {
+            if ( $allgrades[$resource_link_id] > 0.8 ) {
+                echo('<i class="fa fa-check-square-o text-success" aria-hidden="true"></i>');
+            } else {
+                echo('<i class="fa fa-square-o text-warning" aria-hidden="true"></i>');
+            }
+        } else {
+            echo('<i class="fa fa-square-o text-danger" aria-hidden="true"></i>');
+        }
+        echo('</span><span class="assignments-title">'.htmlspecialchars($title).'</span>');
+        if ( isset($allgrades[$resource_link_id]) ) {
+            $datestring = U::get($alldates, $resource_link_id, "");
+            if ( strlen($datestring) > 0 ) {
+                $datestring = " (".substr($datestring,0,10).")";
+            }
+            echo('<span class="assignments-score">Score: '.(100*$allgrades[$resource_link_id]).$datestring.'</span>');
+        } else {
+            echo('<span class="assignments-score">&nbsp;</span>');
+        }
+        echo('</li>');
+    }
+
     public function renderAssignments($allgrades, $alldates, $buffer=false)
     {
         ob_start();
@@ -1268,10 +1293,8 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             $sig = md5("42 ".$output);
             echo(" | ".substr($sig,0,5)."</p>\n");
         }
-        echo('<table class="table table-striped table-hover "><tbody>'."\n");
-        $count = 0;
+        echo('<ul class="assignments-progress-list" role="list">'."\n");
         foreach($this->lessons->modules as $module) {
-            $count++;
             // Items array takes precedence - check items first
             $has_assignments = false;
             if ( isset($module->items) ) {
@@ -1286,39 +1309,16 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             }
             if ( !$has_assignments ) continue;
             
-            echo('<tr><td class="info" colspan="3">'."\n");
             $href = U::get_rest_parent() . '/lessons/' . urlencode($module->anchor);
-            echo('<a href="'.$href.'">'."\n");
-            echo($module->title);
-            echo("</td></tr>");
+            echo('<li class="assignments-module">');
+            echo('<a href="'.$href.'" class="assignments-module-link">'.htmlspecialchars($module->title).'</a>');
+            echo('<ul class="assignments-items" role="list">');
             
             // Process items array first (takes precedence)
             if ( isset($module->items) ) {
                 foreach($module->items as $item) {
                     if ( !isset($item->type) || $item->type != 'lti' || !isset($item->resource_link_id) ) continue;
-                    echo('<tr><td>');
-                    if ( isset($allgrades[$item->resource_link_id]) ) {
-                        if ( $allgrades[$item->resource_link_id] > 0.8 ) {
-                            echo('<i class="fa fa-check-square-o text-success" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
-                        } else {
-                            echo('<i class="fa fa-square-o text-warning" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
-                        }
-                    } else {
-                            echo('<i class="fa fa-square-o text-danger" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
-                    }
-                    $item_title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment');
-                    echo("</td><td>".$item_title."</td>\n");
-                    if ( isset($allgrades[$item->resource_link_id]) ) {
-                        $datestring = U::get($alldates, $item->resource_link_id, "");
-                        if ( strlen($datestring) > 0 ) {
-                            $datestring = " (".substr($datestring,0,10).")";
-                        }
-                        echo("<td>Score: ".(100*$allgrades[$item->resource_link_id]).$datestring."</td>");
-                    } else {
-                        echo("<td>&nbsp;</td>");
-                    }
-
-                    echo("</tr>\n");
+                    $this->renderAssignmentItem($item->resource_link_id, isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'), $allgrades, $alldates);
                 }
             } else {
                 // Process legacy lti array only if items is not present
@@ -1327,33 +1327,13 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                     if ( ! is_array($ltis) ) $ltis = array($ltis);
                     foreach($ltis as $lti) {
                         if ( !isset($lti->resource_link_id) ) continue;
-                        echo('<tr><td>');
-                        if ( isset($allgrades[$lti->resource_link_id]) ) {
-                            if ( $allgrades[$lti->resource_link_id] > 0.8 ) {
-                                echo('<i class="fa fa-check-square-o text-success" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
-                            } else {
-                                echo('<i class="fa fa-square-o text-warning" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
-                            }
-                        } else {
-                                echo('<i class="fa fa-square-o text-danger" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
-                        }
-                        echo("</td><td>".$lti->title."</td>\n");
-                        if ( isset($allgrades[$lti->resource_link_id]) ) {
-                            $datestring = U::get($alldates, $lti->resource_link_id, "");
-                            if ( strlen($datestring) > 0 ) {
-                                $datestring = " (".substr($datestring,0,10).")";
-                            }
-                            echo("<td>Score: ".(100*$allgrades[$lti->resource_link_id]).$datestring."</td>");
-                        } else {
-                            echo("<td>&nbsp;</td>");
-                        }
-
-                        echo("</tr>\n");
+                        $this->renderAssignmentItem($lti->resource_link_id, $lti->title, $allgrades, $alldates);
                     }
                 }
             }
+            echo('</ul></li>');
         }
-        echo('</tbody></table>'."\n");
+        echo('</ul>'."\n");
         $ob_output = ob_get_contents();
         ob_end_clean();
         if ( $buffer ) return $ob_output;
