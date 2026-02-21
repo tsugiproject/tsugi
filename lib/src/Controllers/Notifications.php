@@ -1076,11 +1076,7 @@ class Notifications extends Tool {
         $OUTPUT->flashMessages();
         ?>
         <main class="container" id="main-content">
-            <h1>Send Notification to Student
-                <span class="pull-right">
-                    <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default" aria-label="Back to notifications">Back to Notifications</a>
-                </span>
-            </h1>
+            <h1>Send Notification to Student</h1>
             
             <?php if (empty($students)): ?>
                 <div class="alert alert-warning">
@@ -1133,7 +1129,7 @@ class Notifications extends Tool {
                                 <small class="help-block">Optional link to include with the notification</small>
                             </div>
                             
-                            <button type="submit" class="btn btn-success">Send Notification</button>
+                            <button type="submit" class="btn btn-primary">Send Notification</button>
                             <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default">Cancel</a>
                         </form>
                     </div>
