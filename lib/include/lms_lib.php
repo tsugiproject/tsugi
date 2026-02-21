@@ -24,12 +24,12 @@ function line_out($output) {
 }
 
 function error_out($output) {
-    echo('<span style="color:red"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
+    echo('<span role="status" aria-live="polite" style="color:red"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
     flush();
 }
 
 function success_out($output) {
-    echo('<span style="color:green"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
+    echo('<span role="status" aria-live="polite" style="color:green"><strong>'.htmlent_utf8($output)."</strong></span><br/>\n");
     flush();
 }
 
