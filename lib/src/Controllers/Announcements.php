@@ -180,9 +180,9 @@ class Announcements extends Tool {
                             <div class="panel-heading">
                                 <div class="row">
                                     <div class="col-xs-12 col-sm-8">
-                                        <h3 class="panel-title" style="margin-top: 0;">
+                                        <h2 class="panel-title" style="margin-top: 0;">
                                             <?= htmlspecialchars($announcement['title']) ?>
-                                        </h3>
+                                        </h2>
                                     </div>
                                     <div class="col-xs-12 col-sm-4">
                                         <div style="text-align: right; margin-top: 5px;">
@@ -229,9 +229,9 @@ class Announcements extends Tool {
                             <div class="panel-heading">
                                 <div class="row">
                                     <div class="col-xs-12 col-sm-8">
-                                        <h3 class="panel-title" style="margin-top: 0;">
+                                        <h2 class="panel-title" style="margin-top: 0;">
                                             <?= htmlspecialchars($announcement['title']) ?>
-                                        </h3>
+                                        </h2>
                                     </div>
                                 </div>
                             </div>
@@ -796,7 +796,7 @@ class Announcements extends Tool {
             
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Create New Announcement</h3>
+                    <h2 class="panel-title">Create New Announcement</h2>
                 </div>
                 <div class="panel-body">
                     <form method="POST" action="<?= $add_url ?>">
@@ -926,7 +926,7 @@ class Announcements extends Tool {
             
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Edit Announcement</h3>
+                    <h2 class="panel-title">Edit Announcement</h2>
                 </div>
                 <div class="panel-body">
                     <form method="POST" action="<?= $edit_url ?>">

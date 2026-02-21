@@ -146,10 +146,10 @@ class Notifications extends Tool {
                             <div class="panel-heading">
                                 <div class="row">
                                     <div class="col-xs-12 col-sm-8">
-                                        <h3 class="panel-title" style="margin-top: 0;">
+                                        <h2 class="panel-title" style="margin-top: 0;">
                                             <span class="badge" style="background: #d9534f; margin-right: 10px;">New</span>
                                             <?= htmlspecialchars($notification['title']) ?>
-                                        </h3>
+                                        </h2>
                                     </div>
                                     <div class="col-xs-12 col-sm-4">
                                         <div style="text-align: right; margin-top: 5px;">
@@ -195,9 +195,9 @@ class Notifications extends Tool {
                             <div class="panel-heading">
                                 <div class="row">
                                     <div class="col-xs-12 col-sm-8">
-                                        <h3 class="panel-title" style="margin-top: 0;">
+                                        <h2 class="panel-title" style="margin-top: 0;">
                                             <?= htmlspecialchars($notification['title']) ?>
-                                        </h3>
+                                        </h2>
                                     </div>
                                 </div>
                             </div>
@@ -583,14 +583,14 @@ class Notifications extends Tool {
 
                     <?php if ($this->isInstructor()): ?>
                         <hr>
-                        <h3>Instructor Tools</h3>
+                        <h2>Instructor Tools</h2>
                         <button type="button" id="test-notification-btn" class="btn btn-default" data-url="<?= htmlspecialchars($test_url) ?>" aria-label="Send test push notification">
                             Send Test Push
                         </button>
                     <?php endif; ?>
 
                     <hr>
-                    <h3>Debug Information</h3>
+                    <h2>Debug Information</h2>
                     <div id="debug-info" style="background: #f5f5f5; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 12px;">
                         <div id="permission-status">Checking permission status...</div>
                         <div id="service-worker-status" style="margin-top: 10px;">Checking service worker...</div>
@@ -601,9 +601,9 @@ class Notifications extends Tool {
                     </button>
                     
                     <hr>
-                    <h3>How to Check Notification Settings</h3>
+                    <h2>How to Check Notification Settings</h2>
                     <div style="background: #e7f3ff; padding: 15px; border-radius: 4px; border-left: 4px solid #2196F3;">
-                        <h4>Chrome/Edge:</h4>
+                        <h3>Chrome/Edge:</h3>
                         <ol>
                             <li>Click the lock icon (<span aria-hidden="true">🔒</span>) or info icon (<span aria-hidden="true">i</span>) in the address bar</li>
                             <li>Click "Site settings"</li>
@@ -611,7 +611,7 @@ class Notifications extends Tool {
                             <li>Or go to: <code>chrome://settings/content/notifications</code> and check the "Allowed" list</li>
                         </ol>
                         
-                        <h4>Firefox:</h4>
+                        <h3>Firefox:</h3>
                         <ol>
                             <li>Click the lock icon in the address bar</li>
                             <li>Click "More Information"</li>
@@ -620,14 +620,14 @@ class Notifications extends Tool {
                             <li>Or go to: <code>about:preferences#privacy</code> → "Permissions" → "Notifications" → "Settings"</li>
                         </ol>
                         
-                        <h4>Safari:</h4>
+                        <h3>Safari:</h3>
                         <ol>
                             <li>Safari menu → Settings → Websites</li>
                             <li>Click "Notifications" in the left sidebar</li>
                             <li>Find <code>local.ca4e.com</code> and ensure it's set to "Allow"</li>
                         </ol>
                         
-                        <h4>macOS System Settings:</h4>
+                        <h3>macOS System Settings:</h3>
                         <ol>
                             <li>System Settings → Notifications</li>
                             <li>Find your browser (Chrome/Firefox/Safari)</li>
@@ -635,7 +635,7 @@ class Notifications extends Tool {
                             <li>Check "Do Not Disturb" isn't blocking notifications</li>
                         </ol>
                         
-                        <h4>Check Service Worker Console:</h4>
+                        <h3>Check Service Worker Console:</h3>
                         <ol>
                             <li>Open Developer Tools (F12 or Cmd+Option+I)</li>
                             <li>Go to "Application" tab (Chrome) or "Storage" tab (Firefox)</li>
@@ -937,15 +937,11 @@ class Notifications extends Tool {
         $OUTPUT->flashMessages();
         ?>
         <main class="container" id="main-content">
-            <h1>Test Notification
-                <span class="pull-right">
-                    <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default" aria-label="Back to notifications">Back to Notifications</a>
-                </span>
-            </h1>
+            <h1>Test Notification</h1>
             
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Test Notification to Yourself</h3>
+                    <h2 class="panel-title">Test Notification to Yourself</h2>
                 </div>
                 <div class="panel-body">
                     <p class="text-muted">This will send a notification to your account. Useful for testing or reminders.</p>
@@ -1093,7 +1089,7 @@ class Notifications extends Tool {
             <?php else: ?>
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h3 class="panel-title">Send Notification to a Student</h3>
+                        <h2 class="panel-title">Send Notification to a Student</h2>
                     </div>
                     <div class="panel-body">
                         <p class="text-muted">Select a student and compose a notification to send to them.</p>
