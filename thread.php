@@ -85,8 +85,8 @@ $OUTPUT->flashMessages();
 echo('<div class="tdiscus-thread-container">'."\n");
 echo('<p>');
 echo('<a class="tdiscus-all-threads-link" href="'.$TOOL_ROOT.'/"><i class="fa fa-home" aria-hidden="true"></i> '.__('All Threads').'</a></p>');
-echo('<span class="tdiscus-thread-title"><a href="'.$page_base.'"'.($thread['hidden'] ? ' style="text-decoration: line-through;"' : '').'>'.htmlentities($thread['title'] ?? '').'</a>');
-echo("</span></p>\n");
+echo('<h1 class="tdiscus-thread-title"><a href="'.$page_base.'"'.($thread['hidden'] ? ' style="text-decoration: line-through;"' : '').'>'.htmlentities($thread['title'] ?? '').'</a>');
+echo("</h1>\n");
 ?>
 <p class="tdiscus-thread-info">
 <span class="tdiscus-user-name"><?= $thread['displayname'] ?></span>
@@ -111,6 +111,7 @@ onclick="document.querySelector('#tdiscus-add-comment-div').scrollIntoView({ beh
 -->
 </div>
 <?php if ( count($comments) > 0 ) { ?>
+<h2 class="visually-hidden"><?= __('Comments') ?></h2>
 <div class="tdiscus-comments-container" role="region" aria-label="<?= htmlspecialchars(__('Comments')) ?>">
 <div class="tdiscus-comments-sort">
 <?php
