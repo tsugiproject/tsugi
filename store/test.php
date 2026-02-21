@@ -194,13 +194,13 @@ if ( ! isset($registrations[$install])) {
 }
 
 ?>
-<div class="header-back-nav">
+<nav class="header-back-nav" aria-label="Breadcrumb">
     <ol class="breadcrumb">
         <li><a href="<?= $rest_path->parent; ?>">Store</a></li>
         <li><a href="<?= $rest_path->parent ?>/details/<?= urlencode($install) ?>"><?= htmlent_utf8($title); ?></a></li>
         <li class="active">Try It</li>
     </ol>
-</div>
+</nav>
 <div class="test-header">
     <div class="title-container">
         <?php
@@ -225,7 +225,7 @@ if ( ! isset($registrations[$install])) {
 </div>
 <ul class="nav nav-tabs" role="tablist">
   <li class="active" role="presentation"><a href="#test" id="test-tab" role="tab" data-toggle="tab" aria-selected="true" aria-controls="test">Test</a></li>
-  <li role="presentation"><a href="#identity" id="identity-tab" role="tab" data-toggle="tab" aria-selected="false" aria-controls="identity">
+  <li role="presentation"><a href="#identity" id="identity-tab" role="tab" data-toggle="tab" aria-selected="false" aria-controls="identity" aria-label="Switch test identity: <?= U::strlen($lmsdata['lis_person_name_full']) > 0 ? htmlentities($lmsdata['lis_person_name_full']) : 'Anonymous' ?>">
                     <?php if ( U::strlen($lmsdata['lis_person_name_full']) > 0 ) echo(htmlentities($lmsdata['lis_person_name_full']));
                         else echo('Anonymous');
                     ?><span aria-hidden="true"> &#9660;</span>
@@ -293,19 +293,19 @@ $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
 ksort($parms);
 
 // targets is not present or included "iframe"
-$iframeattr = "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\" transparency";
+$iframeattr = "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\"";
 
 // "targets" =>  array("window"),
 if ( isset($tool["targets"]) && is_array($tool["targets"]) && ! in_array("iframe", $tool["targets"]) ) {
     $iframeattr = "_blank";
     echo("<p>Content Opened in New Browser Tab</p>\n");
 }
-$content = LTI::postLaunchHTML($parms, $endpoint, isset($_POST['debug']), $iframeattr);
+$content = LTI::postLaunchHTML($parms, $endpoint, isset($_POST['debug']), $iframeattr, false, $title);
 print($content);
 ?>
   </div>
   <div class="tab-pane fade" id="debug" role="tabpanel" aria-labelledby="debug-tab">
-    <pre class="debug-output">
+    <pre class="debug-output" aria-label="Launch parameters and OAuth debug information">
     Launch Parameters:
     <?php print_r($parms) ?>
     <hr/>

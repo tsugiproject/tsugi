@@ -145,7 +145,7 @@ class LTI {
         return $parms;
     }
 
-    public static function postLaunchHTML($newparms, $endpoint, $debug=false, $iframeattr=false, $endform=false) {
+    public static function postLaunchHTML($newparms, $endpoint, $debug=false, $iframeattr=false, $endform=false, $iframetitle=null) {
         global $LastOAuthBodyBaseString;
 
         if ( isset($newparms["ext_lti_element_id"]) ) {
@@ -217,8 +217,21 @@ class LTI {
         if ( $endform ) $r .= $endform;
         $r .= "</form>\n";
         if ( $iframeattr && $iframeattr != '_blank' && $iframeattr != '_pause') {
-            $r .= "<iframe class=\"lti_frameResize\" name=\"".$frame_id."\"  id=\"".$frame_id."\" src=\"\"\n";
-            $r .= $iframeattr . ">\n<p>".self::get_string("frames_required","basiclti")."</p>\n</iframe>\n";
+            $frame_title = $iframetitle;
+            if ( $frame_title === null && isset($newparms['resource_link_title']) ) {
+                $frame_title = $newparms['resource_link_title'];
+            }
+            if ( $frame_title === null || $frame_title === '' ) {
+                $frame_title = 'LTI tool content';
+            }
+            $frame_title_esc = htmlspecialchars($frame_title, ENT_QUOTES, 'UTF-8');
+            $r .= "<iframe class=\"lti_frameResize\" name=\"".$frame_id."\" id=\"".$frame_id."\" src=\"\" title=\"".$frame_title_esc."\"\n";
+            $r .= $iframeattr . ">\n";
+            $frames_msg = self::get_string("frames_required","basiclti");
+            if ( $frames_msg === 'frames_required' ) {
+                $frames_msg = 'Your browser does not support inline frames. Please use a browser that supports iframes to view this content.';
+            }
+            $r .= "<p>".htmlspecialchars($frames_msg)."</p>\n</iframe>\n";
         }
         // Remove session_name (i.e. PHPSESSID) if it was added.
         $r .= " <script type=\"text/javascript\"> \n" .
