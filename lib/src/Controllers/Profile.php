@@ -141,10 +141,6 @@ echo(' ('.htmlentities($_SESSION['email']).")</h1>\n");
                         </label>
                     </div>
                 </fieldset>
-                <div class="control-group pull-right" style="margin-top: 20px">
-                    <button type="submit" class="btn btn-primary visible-phone">Save</button>
-                    <a href="<?= htmlspecialchars($CFG->apphome) ?>/index.php" class="btn btn-warning" aria-label="<?= htmlspecialchars(__('Cancel and return')) ?>">Cancel</a>
-                </div>
             </div>
             <hr class="hidden-phone"/>
             <div style="display: flex; justify-content: space-between;">
@@ -169,10 +165,6 @@ Send me notification mail for important things like my assignment was graded.
 </label>
 </div>
 </fieldset>
-<div class="control-group pull-right" style="margin-top: 20px">
-    <button type="submit" class="btn btn-primary visible-phone">Save</button>
-    <a href="<?= $CFG->apphome ?>/index.php" class="btn btn-warning">Cancel</a>
-</div>
 </div>
 <?php if ( isset($CFG->google_map_api_key) && ! $CFG->OFFLINE ) { ?>
     <hr class="hidden-phone"/>
@@ -189,10 +181,6 @@ Send me notification mail for important things like my assignment was graded.
         location somewhere <i>near</i> where you live.  Perhaps in the same country, state, or city
         instead of your exact location.
         </p>
-        <div class="control-group pull-right hidden-phone">
-        <button type="submit" style="margin-top: 40px" class="btn btn-primary">Save Profile Data</button>
-        </div>
-
         <div id="map_canvas" style="margin: 10px; width:400px; max-width: 100%; height:400px" role="img" aria-label="Map showing your location. Drag the marker to update your position."></div>
 
         <div id="latlong" style="display:none" class="control-group">
@@ -210,6 +198,10 @@ Send me notification mail for important things like my assignment was graded.
         in the middle of a bar.  :)
         </p>
         <?php } ?>
+        <div class="control-group" style="margin-top: 20px;">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="<?= htmlspecialchars($CFG->apphome) ?>/index.php" class="btn btn-warning" aria-label="<?= htmlspecialchars(__('Cancel and return')) ?>">Cancel</a>
+        </div>
         </form>
         </main>
         <?php
