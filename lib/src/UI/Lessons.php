@@ -882,7 +882,7 @@ class Lessons {
          }
 
         echo('<div typeof="Course">'."\n");
-        echo('<h1>'.$this->lessons->title."</h1>\n");
+        echo('<h1>'.htmlspecialchars($this->lessons->title)."</h1>\n");
         echo('<p property="description">'.$this->lessons->description."</p>\n");
         echo('<div id="box">'."\n");
         $count = 0;
@@ -973,7 +973,7 @@ class Lessons {
     public function renderAssignments($allgrades, $alldates, $buffer=false)
     {
         ob_start();
-        echo('<h1>'.$this->lessons->title."</h1>\n");
+        echo('<h1>'.htmlspecialchars($this->lessons->title)."</h1>\n");
         $displayname = U::get($_SESSION, 'displayname');
         $email = U::get($_SESSION, 'email');
         if ( is_string($displayname) || is_string($email) ) {
@@ -1176,7 +1176,7 @@ class Lessons {
     {
         ob_start();
         global $CFG, $OUTPUT;
-        echo('<h1>'.$this->lessons->title."</h1>\n");
+        echo('<h1>'.htmlspecialchars($this->lessons->title)."</h1>\n");
         $display = '';
         $displayname = U::get($_SESSION, 'displayname');
         $email = U::get($_SESSION, 'email');
@@ -1191,7 +1191,7 @@ class Lessons {
             }
         }
         if (U::strlen($display) > 0 ) {
-            echo("<p>".__("Student:")." ".$display."</p>\n");
+            echo("<p>".__("Student:")." ".htmlspecialchars($display)."</p>\n");
         }
         $awarded = array();
         
@@ -1208,14 +1208,14 @@ class Lessons {
             return;
         }
 ?>
-<ul class="nav nav-tabs">
-  <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Progress</a></li>
-  <li class=""><a href="#profile" data-toggle="tab" aria-expanded="false">Badges Awarded</a></li>
+<ul class="nav nav-tabs" role="tablist">
+  <li class="active" role="presentation"><a href="#home" id="home-tab" data-toggle="tab" role="tab" aria-controls="home" aria-selected="true">Progress</a></li>
+  <li class="" role="presentation"><a href="#profile" id="profile-tab" data-toggle="tab" role="tab" aria-controls="profile" aria-selected="false">Badges Awarded</a></li>
 </ul>
 <div id="myTabContent" class="tab-content">
-  <div class="tab-pane fade active in" id="home">
+  <div class="tab-pane fade active in" id="home" role="tabpanel" aria-labelledby="home-tab">
 <?php
-        echo('<table class="table table-striped table-hover "><tbody>'."\n");
+        echo('<table class="table table-striped table-hover "><thead><tr><th scope="col">Assignment</th><th scope="col">Progress</th></tr></thead><tbody>'."\n");
         foreach($this->lessons->badges as $badge) {
             $threshold = $badge->threshold;
             $count = 0;
@@ -1243,11 +1243,11 @@ class Lessons {
                 echo('<i class="fa fa-certificate" aria-hidden="true" style="padding-right: 5px;"></i>');
             } else {
                 $image = $CFG->badge_url . '/' . $badge->image;
-                echo('<img src="'.$image.'" style="width: 4rem;"/> ');
+                echo('<img src="'.htmlspecialchars($image).'" alt="" style="width: 4rem;"/> ');
             }
-            echo($badge->title);
+            echo(htmlspecialchars($badge->title));
             echo('</td><td class="info" style="width: 30%; min-width: 200px;">');
-            echo('<div class="progress">');
+            echo('<div class="progress" role="progressbar" aria-valuenow="'.$progress.'" aria-valuemin="0" aria-valuemax="100" aria-label="'.htmlspecialchars($badge->title).': '.$progress.' percent">');
             echo('<div class="progress-bar progress-bar-'.$kind.'" style="width: '.$progress.'%"></div>');
             echo('</div>');
             echo("</td></tr>\n");
@@ -1272,12 +1272,12 @@ class Lessons {
                 $badge_title = "Missing ". $resource_link_id;
                 if ( $lti != null ) $badge_title = $lti->title;
 
-                echo('<a href="'.$href.'">');
+                echo('<a href="'.htmlspecialchars($href).'">');
                 echo('<i class="fa fa-square-o text-info" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
-                echo($badge_title."</a>\n");
+                echo(htmlspecialchars($badge_title)."</a>\n");
                 echo('</td><td style="width: 30%; min-width: 200px;">');
-                echo('<a href="'.$href.'">');
-                echo('<div class="progress">');
+                echo('<a href="'.htmlspecialchars($href).'">');
+                echo('<div class="progress" role="progressbar" aria-valuenow="'.$progress.'" aria-valuemin="0" aria-valuemax="100" aria-label="'.htmlspecialchars($badge_title).': '.$progress.' percent">');
                 echo('<div class="progress-bar progress-bar-'.$kind.'" style="width: '.$progress.'%"></div>');
                 echo('</div>');
                 echo('</a>');
@@ -1287,7 +1287,7 @@ class Lessons {
         echo('</tbody></table>'."\n");
 ?>
   </div>
-  <div class="tab-pane fade" id="profile">
+  <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
 <p></p>
 <?php
     if ( count($awarded) < 1 ) {
@@ -1340,16 +1340,18 @@ class Lessons {
                 $code = basename($badge->image,'.png');
                 $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
                 $encrypted = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
-                echo('<a href="'.$CFG->wwwroot.'/assertions/'.$encrypted.'.html" target="_blank">');
-                echo('<img src="'.$CFG->wwwroot.'/badges/images/'.$encrypted.'.png" width="90"></a>');
-                echo($badge->title);
+                $assert_url = $CFG->wwwroot.'/assertions/'.$encrypted.'.html';
+                $badge_img_url = $CFG->wwwroot.'/badges/images/'.$encrypted.'.png';
+                echo('<a href="'.htmlspecialchars($assert_url).'" target="_blank" rel="noopener noreferrer" aria-label="'.htmlspecialchars($badge->title).', opens in new window">');
+                echo('<img src="'.htmlspecialchars($badge_img_url).'" width="90" alt="'.htmlspecialchars($badge->title).'"></a>');
+                echo(htmlspecialchars($badge->title));
                 echo("</p></li>\n");
             }
             echo("</ul>\n");
 ?>
 <p>These badges contain the official Open Badge metadata.  You can download the badge and
 put it on your own server, or add the badge to a "badge packpack".  You could validate the badge
-using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank">A simple badge validator</a>.
+using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank" rel="noopener noreferrer" aria-label="A simple badge validator, opens in new window">A simple badge validator</a>.
 </p>
 <?php
         }
