@@ -133,15 +133,17 @@ class Announcements extends Tool {
             <h1>Announcements
                 <span class="pull-right">
                     <?php if ($show_analytics): ?>
-                        <a href="<?= $analytics_url ?>" class="btn btn-default">
-                            <span class="glyphicon glyphicon-signal"></span> Analytics
+                        <a href="<?= $analytics_url ?>" class="btn btn-default" aria-label="View announcements analytics">
+                            <span class="glyphicon glyphicon-signal" aria-hidden="true"></span> Analytics
                         </a>
                     <?php endif; ?>
                     <?php if ($is_context_admin): ?>
-                        <a href="<?= $manage_url ?>" class="btn btn-default">Manage Announcements</a>
+                        <a href="<?= $manage_url ?>" class="btn btn-default" aria-label="Manage announcements">Manage Announcements</a>
                     <?php endif; ?>
                 </span>
             </h1>
+            
+            <div id="announcements-error" class="alert alert-danger" role="alert" style="display: none;"></div>
             
             <?php if (count($undismissed) > 1): ?>
                 <div class="alert alert-info">
@@ -150,7 +152,7 @@ class Announcements extends Tool {
                             <strong><?= count($undismissed) ?> unread announcements</strong>
                         </div>
                         <div class="pull-right">
-                            <button id="mark-all-read-btn" class="btn btn-sm btn-primary" data-url="<?= htmlspecialchars($mark_all_read_url) ?>">
+                            <button type="button" id="mark-all-read-btn" class="btn btn-sm btn-primary" data-url="<?= htmlspecialchars($mark_all_read_url) ?>" aria-label="Mark all announcements as read">
                                 Mark All as Read
                             </button>
                         </div>
@@ -160,7 +162,7 @@ class Announcements extends Tool {
             
             <?php if ($show_dismissed_section): ?>
                 <p class="text-muted">
-                    <button id="show-dismissed-btn" class="btn btn-sm btn-link" style="padding: 0;" data-dismissed-count="<?= $dismissed_count ?>">
+                    <button type="button" id="show-dismissed-btn" class="btn btn-sm btn-link" style="padding: 0;" data-dismissed-count="<?= $dismissed_count ?>" aria-controls="dismissed-announcements-list" aria-expanded="false">
                         Show previously seen announcements (<?= $dismissed_count ?>)
                     </button>
                 </p>
@@ -184,9 +186,10 @@ class Announcements extends Tool {
                                     </div>
                                     <div class="col-xs-12 col-sm-4">
                                         <div style="text-align: right; margin-top: 5px;">
-                                            <button class="btn btn-sm btn-primary mark-read-btn" 
+                                            <button type="button" class="btn btn-sm btn-primary mark-read-btn" 
                                                     data-announcement-id="<?= htmlspecialchars($announcement['announcement_id']) ?>"
-                                                    data-url="<?= htmlspecialchars($dismiss_url) ?>">
+                                                    data-url="<?= htmlspecialchars($dismiss_url) ?>"
+                                                    aria-label="Mark <?= htmlspecialchars($announcement['title']) ?> as read">
                                                 Mark as Read
                                             </button>
                                         </div>
@@ -199,8 +202,8 @@ class Announcements extends Tool {
                                 </div>
                                 <?php if (!empty($announcement['url'])): ?>
                                     <p class="announcement-url">
-                                        <a href="<?= htmlspecialchars($announcement['url']) ?>" target="_blank" class="btn btn-link">
-                                            Learn more <span class="glyphicon glyphicon-new-window"></span>
+                                        <a href="<?= htmlspecialchars($announcement['url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-link" aria-label="Learn more, opens in new window">
+                                            Learn more <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span>
                                         </a>
                                     </p>
                                 <?php endif; ?>
@@ -238,8 +241,8 @@ class Announcements extends Tool {
                                 </div>
                                 <?php if (!empty($announcement['url'])): ?>
                                     <p class="announcement-url">
-                                        <a href="<?= htmlspecialchars($announcement['url']) ?>" target="_blank" class="btn btn-link">
-                                            Learn more <span class="glyphicon glyphicon-new-window"></span>
+                                        <a href="<?= htmlspecialchars($announcement['url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-link" aria-label="Learn more, opens in new window">
+                                            Learn more <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span>
                                         </a>
                                     </p>
                                 <?php endif; ?>
@@ -298,6 +301,16 @@ class Announcements extends Tool {
 
         <script>
         document.addEventListener('DOMContentLoaded', function() {
+            function showError(message) {
+                var errEl = document.getElementById('announcements-error');
+                if (errEl) {
+                    errEl.textContent = message;
+                    errEl.style.display = '';
+                } else {
+                    alert(message);
+                }
+            }
+            
             var showDismissedBtn = document.getElementById('show-dismissed-btn');
             if (showDismissedBtn) {
                 var dismissedAnnouncementsList = document.getElementById('dismissed-announcements-list');
@@ -308,10 +321,12 @@ class Announcements extends Tool {
                         if (dismissedHidden) {
                             dismissedAnnouncementsList.style.display = '';
                             showDismissedBtn.textContent = 'Hide previously seen announcements (' + dismissedCount + ')';
+                            showDismissedBtn.setAttribute('aria-expanded', 'true');
                             dismissedHidden = false;
                         } else {
                             dismissedAnnouncementsList.style.display = 'none';
                             showDismissedBtn.textContent = 'Show previously seen announcements (' + dismissedCount + ')';
+                            showDismissedBtn.setAttribute('aria-expanded', 'false');
                             dismissedHidden = true;
                         }
                     });
@@ -350,15 +365,19 @@ class Announcements extends Tool {
                                     showDismissedBtn.setAttribute('data-dismissed-count', currentDismissedCount);
                                     var isHidden = showDismissedBtn.textContent.includes('Show');
                                     showDismissedBtn.textContent = (isHidden ? 'Show' : 'Hide') + ' previously seen announcements (' + currentDismissedCount + ')';
+                                    showDismissedBtn.setAttribute('aria-expanded', isHidden ? 'false' : 'true');
                                 } else {
                                     // Create the button if it doesn't exist
                                     var p = document.createElement('p');
                                     p.className = 'text-muted';
                                     var newBtn = document.createElement('button');
                                     newBtn.id = 'show-dismissed-btn';
+                                    newBtn.type = 'button';
                                     newBtn.className = 'btn btn-sm btn-link';
                                     newBtn.style.padding = '0';
                                     newBtn.setAttribute('data-dismissed-count', currentDismissedCount);
+                                    newBtn.setAttribute('aria-controls', 'dismissed-announcements-list');
+                                    newBtn.setAttribute('aria-expanded', 'false');
                                     newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
                                     p.appendChild(newBtn);
                                     var container = document.querySelector('.container');
@@ -383,10 +402,12 @@ class Announcements extends Tool {
                                         if (dismissedHidden) {
                                             dismissedAnnouncementsList.style.display = '';
                                             newBtn.textContent = 'Hide previously seen announcements (' + currentDismissedCount + ')';
+                                            newBtn.setAttribute('aria-expanded', 'true');
                                             dismissedHidden = false;
                                         } else {
                                             dismissedAnnouncementsList.style.display = 'none';
                                             newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
+                                            newBtn.setAttribute('aria-expanded', 'false');
                                             dismissedHidden = true;
                                         }
                                     });
@@ -404,11 +425,11 @@ class Announcements extends Tool {
                             // Also dispatch custom event for compatibility
                             document.dispatchEvent(new CustomEvent('announcement-dismissed'));
                         } else {
-                            alert('Error marking announcement as read: ' + (data.detail || 'Unknown error'));
+                            showError('Error marking announcement as read: ' + (data.detail || 'Unknown error'));
                         }
                     })
                     .catch(error => {
-                        alert('Error marking announcement as read: ' + error.message);
+                        showError('Error marking announcement as read: ' + error.message);
                     });
                 });
             }
@@ -502,9 +523,12 @@ class Announcements extends Tool {
                                 dismissedP.className = 'text-muted';
                                 var newBtn = document.createElement('button');
                                 newBtn.id = 'show-dismissed-btn';
+                                newBtn.type = 'button';
                                 newBtn.className = 'btn btn-sm btn-link';
                                 newBtn.style.padding = '0';
                                 newBtn.setAttribute('data-dismissed-count', currentDismissedCount);
+                                newBtn.setAttribute('aria-controls', 'dismissed-announcements-list');
+                                newBtn.setAttribute('aria-expanded', 'false');
                                 newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
                                 dismissedP.appendChild(newBtn);
                                 var container = document.querySelector('.container');
@@ -520,20 +544,22 @@ class Announcements extends Tool {
                                     if (dismissedHidden) {
                                         dismissedAnnouncementsList.style.display = '';
                                         newBtn.textContent = 'Hide previously seen announcements (' + currentDismissedCount + ')';
+                                        newBtn.setAttribute('aria-expanded', 'true');
                                         dismissedHidden = false;
                                     } else {
                                         dismissedAnnouncementsList.style.display = 'none';
                                         newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
+                                        newBtn.setAttribute('aria-expanded', 'false');
                                         dismissedHidden = true;
                                     }
                                 });
                             }
                         } else {
-                            alert('Error marking all announcements as read: ' + (data.detail || 'Unknown error'));
+                            showError('Error marking all announcements as read: ' + (data.detail || 'Unknown error'));
                         }
                     })
                     .catch(error => {
-                        alert('Error marking all announcements as read: ' + error.message);
+                        showError('Error marking all announcements as read: ' + error.message);
                     });
                 });
             }
@@ -1031,13 +1057,13 @@ class Announcements extends Tool {
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>Title</th>
-                                <th>Text Preview</th>
-                                <th>URL</th>
-                                <th>Created</th>
-                                <th>Creator</th>
-                                <th>Read Count</th>
-                                <th>Actions</th>
+                                <th scope="col">Title</th>
+                                <th scope="col">Text Preview</th>
+                                <th scope="col">URL</th>
+                                <th scope="col">Created</th>
+                                <th scope="col">Creator</th>
+                                <th scope="col">Read Count</th>
+                                <th scope="col">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1047,7 +1073,7 @@ class Announcements extends Tool {
                                     <td><?= htmlspecialchars(substr($announcement['text'], 0, 100)) ?><?= strlen($announcement['text']) > 100 ? '...' : '' ?></td>
                                     <td>
                                         <?php if (!empty($announcement['url'])): ?>
-                                            <a href="<?= htmlspecialchars($announcement['url']) ?>" target="_blank">
+                                            <a href="<?= htmlspecialchars($announcement['url']) ?>" target="_blank" rel="noopener noreferrer" aria-label="View URL, opens in new window">
                                                 <?= htmlspecialchars(substr($announcement['url'], 0, 30)) ?><?= strlen($announcement['url']) > 30 ? '...' : '' ?>
                                             </a>
                                         <?php else: ?>
