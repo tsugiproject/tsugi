@@ -98,7 +98,7 @@ class Lessons {
 
 .progress-badge-percent {
     display: inline-block;
-    background-color: #007bff;
+    background-color: #0056b3;  /* Darker blue for WCAG 4.5:1 contrast with white */
     color: white;
     padding: 0.15em 0.4em;
     border-radius: 0.25em;
@@ -951,7 +951,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 if ( $percent == 100 ) {
                     $icon_color = 'color: #28a745;'; // Green for 100%
                 } else if ( $percent > 0 && $percent < 100 ) {
-                    $icon_color = 'color: #007bff;'; // Blue for 1-99%
+                    $icon_color = 'color: #0056b3;'; // Blue for 1-99% (matches progress-badge-percent)
                 }
                 echo('<i class="fa '.$module->icon.' fa-2x" aria-hidden="true" style="float: left; padding-right: 5px;'.$icon_color.'"></i>');
             }
