@@ -54,7 +54,7 @@ Subject:<br/>
 </p>
 <p>
 <input type="submit" onclick="$('#myspinner').show();return true;" name="delete" value="Send Mail"/>
-<img id="myspinner" src="<?= $OUTPUT->getSpinnerUrl() ?>" style="display:none">
+<img id="myspinner" src="<?= $OUTPUT->getSpinnerUrl() ?>" alt="" role="presentation" style="display:none">
 </p>
 </form>
 <p>

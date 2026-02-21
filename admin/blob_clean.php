@@ -83,7 +83,7 @@ $file_count = $row ? $row['count'] : 0;
 <form method="post">
 <input type="submit" onclick="$('#myspinner').show();return true;" name="migrate" value="Delete Blobs"/>
 <input type="submit" onclick="$('#myspinner').show();return true;" name="reset" value="Clear Results"/>
-<img id="myspinner" src="<?= $OUTPUT->getSpinnerUrl() ?>" style="display:none">
+<img id="myspinner" src="<?= $OUTPUT->getSpinnerUrl() ?>" alt="" role="presentation" style="display:none">
 </form>
 </p>
 <?php

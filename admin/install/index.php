@@ -53,7 +53,7 @@ the <b>config-dist.php</b> file.
 </p>
 </div>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <iframe name="iframe-frame" style="height:400px" id="iframe-frame"
+   <iframe name="iframe-frame" style="height:400px" id="iframe-frame" title="Module installation and git operations"
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
 </div>
 <p>This screen is a wrapper for the <b>git</b> command if it is installed in your system.
@@ -83,26 +83,26 @@ that have left the cluster.  Please be  patient.</p>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="home">
     <ul id="installed_ul">
-    <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
+    <li><img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner-installed" alt="" role="presentation"></li>
     </ul>
   </div>
 <?php if($other_nodes > 0 ) { ?>
   <div class="tab-pane fade" id="cluster-div">
     <ul id="cluster_ul">
-    <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
+    <li><img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner-cluster" alt="" role="presentation"></li>
     </ul>
   </div>
 <?php } ?>
 <?php if(isset($CFG->lessons)) { ?>
   <div class="tab-pane fade" id="required-div">
     <ul id="required_ul">
-    <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
+    <li><img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner-required" alt="" role="presentation"></li>
     </ul>
   </div>
 <?php } ?>
   <div class="tab-pane fade" id="available-div">
     <ul id="available_ul">
-    <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner">
+    <li><img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner-available" alt="" role="presentation"></li>
     </ul>
   </div>
   <div class="tab-pane fade" id="advanced-div">

@@ -143,7 +143,7 @@ class SettingsForm {
       <?php if ( $USER->instructor ) { ?>
         <form method="post" id="tsugi_settings_form">
       <?php } ?>
-            <img id="tsugi_settings_spinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display: none">
+            <img id="tsugi_settings_spinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" alt="" role="presentation" style="display: none">
             <span id="tsugi_settings_save_fail" class="text-danger" style="display:none;"><?php _me('Unable to save settings'); ?></span>
             <?php if ( $USER->instructor ) { ?>
             <input type="hidden" name="settings_internal_post" value="1"/>

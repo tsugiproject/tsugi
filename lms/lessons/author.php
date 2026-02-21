@@ -624,6 +624,13 @@ $OUTPUT->flashMessages();
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+@media (prefers-reduced-motion: reduce) {
+    .loading-spinner {
+        animation: none;
+        border-top-color: rgba(255, 255, 255, 0.6);
+    }
+}
 </style>
 
 <div class="lesson-author">
@@ -667,9 +674,9 @@ $OUTPUT->flashMessages();
 </div>
 
 <!-- Loading overlay for drag-and-drop updates -->
-<div id="loading-overlay" class="loading-overlay">
-    <div class="loading-spinner"></div>
-    <div>Updating structure...</div>
+<div id="loading-overlay" class="loading-overlay" role="status" aria-live="polite" aria-busy="false">
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <div id="loading-overlay-text">Updating structure...</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -736,7 +743,7 @@ function markChanged() {
 
 // Loading overlay functions
 function showLoading() {
-    $('#loading-overlay').addClass('active');
+    $('#loading-overlay').addClass('active').attr('aria-busy', 'true');
     // Disable sortable during update (if they exist)
     try {
         if ($('#modules-container').hasClass('ui-sortable')) {
@@ -753,7 +760,7 @@ function showLoading() {
 }
 
 function hideLoading() {
-    $('#loading-overlay').removeClass('active');
+    $('#loading-overlay').removeClass('active').attr('aria-busy', 'false');
     // Sortable will be re-initialized by setupSortable() after renderModules()
     // So we don't need to re-enable here
 }

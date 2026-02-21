@@ -49,8 +49,11 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="iframe-spinner"><br/>
-   <iframe name="iframe-frame" style="height:600px" id="iframe-frame"
+   <div id="iframe-spinner" role="status" aria-live="polite">
+   <img src="<?= $OUTPUT->getSpinnerUrl() ?>" alt="" role="presentation"><br/>
+   <span class="sr-only">Loading content</span>
+   </div>
+   <iframe name="iframe-frame" style="height:600px" id="iframe-frame" title="Data expiry management content"
     onload="document.getElementById('iframe-spinner').style.display='none';">
    </iframe>
 </div>

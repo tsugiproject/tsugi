@@ -47,8 +47,11 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;" role="dialog" aria-modal="true" aria-label="Read only content">
-   <img src="<?= htmlspecialchars($OUTPUT->getSpinnerUrl(), ENT_QUOTES, 'UTF-8') ?>" id="iframe-spinner" alt="" role="presentation"><br/>
-   <iframe name="iframe-frame" style="height:600px" id="iframe-frame" title="Content viewer"
+   <div id="iframe-spinner" role="status" aria-live="polite">
+   <img src="<?= htmlspecialchars($OUTPUT->getSpinnerUrl(), ENT_QUOTES, 'UTF-8') ?>" alt="" role="presentation"><br/>
+   <span class="sr-only">Loading content</span>
+   </div>
+   <iframe name="iframe-frame" style="height:600px" id="iframe-frame" title="Data expiry content viewer"
     onload="document.getElementById('iframe-spinner').style.display='none';">
    </iframe>
 </div>

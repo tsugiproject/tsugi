@@ -127,7 +127,7 @@ if ( $context_count > 0 || $user_count > 0 || $blob_count > 0 ) {
 <p>
 <form method="get">
 <input type="submit" onclick="$('#myspinner').show();return true;" name="delete" value="Delete Records"/>
-<img id="myspinner" src="<?= $OUTPUT->getSpinnerUrl() ?>" style="display:none">
+<img id="myspinner" src="<?= $OUTPUT->getSpinnerUrl() ?>" alt="" role="presentation" style="display:none">
 </form>
 </p>
 <?php

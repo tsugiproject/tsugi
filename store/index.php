@@ -231,7 +231,7 @@ $OUTPUT->flashMessages();
 ?>
 <script src="https://apis.google.com/js/platform.js" async defer></script>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-   <iframe name="iframe-frame" style="height:200px" id="iframe-frame" title="Dialog content"
+   <iframe name="iframe-frame" style="height:200px" id="iframe-frame" title="Install in classroom"
     src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
 </div>
 <?php

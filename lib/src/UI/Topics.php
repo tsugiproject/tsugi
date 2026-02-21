@@ -419,7 +419,7 @@ class Topics {
             ?>
             <script src="https://apis.google.com/js/platform.js" async defer></script>
             <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
-                <iframe name="iframe-frame" style="height:200px" id="iframe-frame"
+                <iframe name="iframe-frame" style="height:200px" id="iframe-frame" title="Course content viewer"
                         src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
             </div>
             <?php

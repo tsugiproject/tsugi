@@ -181,7 +181,7 @@ class SettingsDialog {
       <?php if ( $this->instructor() ) { ?>
         <form method="post">
       <?php } ?>
-            <img id="settings_spinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" style="display: none">
+            <img id="settings_spinner" src="<?php echo($OUTPUT->getSpinnerUrl()); ?>" alt="" role="presentation" style="display: none">
             <span id="save_fail" class="text-danger" style="display:none;"><?php _me('Unable to save settings'); ?></span>
             <?php if ( $this->instructor() ) { ?>
             <input type="hidden" name="settings_internal_post" value="1"/>

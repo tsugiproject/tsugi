@@ -185,7 +185,7 @@ $OUTPUT->bodyStart();
 ?>
 <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-label="Enlarged image" onclick="if(event.target===this)this.style.display='none'">
    <button type="button" class="close" style="position:absolute;top:1rem;right:1rem;color:white;background:transparent;border:none;font-size:2rem;cursor:pointer;z-index:10001" onclick="document.getElementById('overlay').style.display='none'" aria-label="Close">×</button>
-   <img id="overlay_img" src="<?= $OUTPUT->getSpinnerUrl(); ?>" alt="">
+   <img id="overlay_img" src="<?= $OUTPUT->getSpinnerUrl(); ?>" alt="" role="presentation">
 </div>
 <?php
 $OUTPUT->topNav();
@@ -231,11 +231,11 @@ $register_good = $json_obj && isset($json_obj->name);
 ?>
     <script src="https://apis.google.com/js/platform.js" async defer></script>
     <div id="iframe-dialog" title="Dialog content" style="display: none;">
-        <iframe name="iframe-frame" style="height:200px" id="iframe-frame" title="Dialog content"
+        <iframe name="iframe-frame" style="height:200px" id="iframe-frame" title="Install in classroom"
                 src="<?= $OUTPUT->getSpinnerUrl() ?>"></iframe>
     </div>
     <div id="image-dialog" title="Image Dialog" style="display: none;">
-        <img src="<?= $OUTPUT->getSpinnerUrl() ?>" style="width:100%" id="popup-image">
+        <img src="<?= $OUTPUT->getSpinnerUrl() ?>" style="width:100%" id="popup-image" alt="" role="presentation">
     </div>
     <div id="url-dialog" title="URL Dialog" style="display: none;">
         <h1>Single Tool URLs</h1>
