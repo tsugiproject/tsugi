@@ -844,7 +844,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                         $OUTPUT->embedYouTube($video->youtube, $video->title);
                     } else {
                         $yurl = U::youtubeWatchUrl($video->youtube);
-                        echo('<a href="'.htmlspecialchars($yurl).'" target="_blank" rel="noopener noreferrer">'.htmlentities($video->title).'</a>');
+                        echo('<a href="'.htmlspecialchars($yurl).'" target="_blank">'.htmlentities($video->title).'</a>');
                     }
                     echo('</li>');
                 }
@@ -899,7 +899,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 <button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($video->title) ?></button>
 <?php
                         } else {
-                        echo('<a href="'.htmlspecialchars($yurl).'" target="_blank" rel="noopener noreferrer">'.htmlentities($video->title).'</a>');
+                        echo('<a href="'.htmlspecialchars($yurl).'" target="_blank">'.htmlentities($video->title).'</a>');
                         }
                     }
                     echo("</li>\n");
@@ -934,7 +934,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 <button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
 <?php
                         } else {
-                        echo('<a href="'.htmlspecialchars($yurl).'" target="_blank" rel="noopener noreferrer">'.htmlentities($lecture->title).'</a>');
+                        echo('<a href="'.htmlspecialchars($yurl).'" target="_blank">'.htmlentities($lecture->title).'</a>');
                         }
                         echo('</li>');
                     } else if ( isset($lecture->audio) ) {
@@ -2023,7 +2023,7 @@ $(function(){
 <button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?php self::renderItemIcon('video'); ?><?= htmlentities($item->title) ?></button>
 <?php
                 } else {
-                echo('<a href="'.htmlspecialchars($yurl).'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
+                echo('<a href="'.htmlspecialchars($yurl).'" target="_blank" style="display: inline-flex; align-items: center;">');
                 self::renderItemIcon('video');
                 echo(htmlentities($item->title).'</a>');
                 }
@@ -2265,7 +2265,7 @@ $(function(){
                 $OUTPUT->embedYouTube($video->youtube, $video->title);
             } else {
                 $yurl = U::youtubeWatchUrl($video->youtube);
-                echo('<a href="'.htmlspecialchars($yurl).'" target="_blank" rel="noopener noreferrer">'.htmlentities($video->title).'</a>');
+                echo('<a href="'.htmlspecialchars($yurl).'" target="_blank">'.htmlentities($video->title).'</a>');
             }
             echo('</li>');
         }
