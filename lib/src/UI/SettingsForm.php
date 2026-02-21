@@ -503,15 +503,14 @@ class SettingsForm {
             return;
         }
 ?>
-        <label for="tsugi_setting_due">
-            <?= _m("Please enter a due date in ISO 8601 format (2015-01-30T20:30) or leave blank for no due date.
-            You can leave off the time to allow the assignment to be turned in any time during the day.") ?><br/>
-        <input type="text" class="tsugi_setting form-control" id="tsugi_setting_due" value="<?php echo(htmlspec_utf8($due)); ?>" name="due"></label>
-        <label for="tsugi_setting_timezone">
-            <?= _m("Please enter a valid PHP Time Zone like 'Pacific/Honolulu' (default).  If you are
-            teaching in many time zones around the world, 'Pacific/Honolulu' is a good time
-            zone to choose - this is why it is the default if it is available.") ?><br/>
-        <select name="timezone" id="tsugi_setting_timezone" class="tsugi_setting form-control">
+        <div class="form-group">
+            <label for="tsugi_setting_due"><?= _m("Due date") ?></label>
+            <input type="text" class="tsugi_setting form-control" id="tsugi_setting_due" value="<?php echo(htmlspec_utf8($due)); ?>" name="due">
+            <small class="form-text text-muted"><?= _m("ISO 8601 format (2015-01-30T20:30) or leave blank for no due date. You can leave off the time to allow turn-in any time during the day.") ?></small>
+        </div>
+        <div class="form-group">
+            <label for="tsugi_setting_timezone"><?= _m("Time zone") ?></label>
+            <select name="timezone" id="tsugi_setting_timezone" class="tsugi_setting form-control">
 <?php
             foreach(timezone_identifiers_list() as $tz ) {
                 echo('<option value="'.htmlspec_utf8($tz).'" ');
@@ -519,17 +518,22 @@ class SettingsForm {
                 echo('>'.htmlentities($tz)."</option>\n");
             }
 ?>
-        </select>
-        </label>
+            </select>
+            <small class="form-text text-muted"><?= _m("PHP Time Zone like 'Pacific/Honolulu'. Default is good for teaching across many time zones.") ?></small>
+        </div>
             <p><?= _m("The next two fields determine the 'overall penalty' for being late.  We define a time period
             (in seconds) and a fractional penalty per time period.  The penalty is assessed for each
             full or partial time period past the due date.  For example to deduct 20% per day, you would
             set the period to be 86400 (24*60*60) and the penalty to be 0.2.") ?>
             </p>
-        <label for="tsugi_setting_penalty_time"><?= _m("Please enter the penalty time period in seconds.") ?><br/>
-        <input type="number" id="tsugi_setting_penalty_time" class="tsugi_setting form-control" value="<?php echo(htmlspec_utf8($time)); ?>" name="penalty_time"></label>
-        <label for="tsugi_setting_penalty_cost"><?= _m("Please enter the penalty deduction as a decimal between 0.0 and 1.0.") ?><br/>
-        <input type="number" id="tsugi_setting_penalty_cost" class="tsugi_setting form-control" value="<?php echo(htmlspec_utf8($cost)); ?>" name="penalty_cost"></label>
+        <div class="form-group">
+            <label for="tsugi_setting_penalty_time"><?= _m("Penalty time period (seconds)") ?></label>
+            <input type="number" id="tsugi_setting_penalty_time" class="tsugi_setting form-control" value="<?php echo(htmlspec_utf8($time)); ?>" name="penalty_time">
+        </div>
+        <div class="form-group">
+            <label for="tsugi_setting_penalty_cost"><?= _m("Penalty deduction (0.0 to 1.0)") ?></label>
+            <input type="number" id="tsugi_setting_penalty_cost" class="tsugi_setting form-control" value="<?php echo(htmlspec_utf8($cost)); ?>" name="penalty_cost">
+        </div>
 <?php
     }
 
