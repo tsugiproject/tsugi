@@ -173,19 +173,18 @@ function showSubmission($assn_json, $submit_json, $assn_id, $user_id)
             $url = BlobUtil::getAccessUrlForBlob($blob_id);
             $title = 'Student image';
             if( isset($part->title) && U::isNotEmpty($part->title) ) $title = $part->title;
-            echo (' <a href="#" onclick="$(\'#myModal_'.$blob_id.'\').modal();"');
-            echo ('alt="'.htmlentities($title).'" title="'.htmlentities($title).'">');
-            echo ('<img src="'.addSession($url).'" width="240" style="max-width: 100%"></a>'."\n");
+            echo (' <a href="#myModal_'.$blob_id.'" onclick="$(\'#myModal_'.$blob_id.'\').modal(); return false;" aria-label="'.htmlentities($title).' - View larger" title="'.htmlentities($title).'">');
+            echo ('<img src="'.addSession($url).'" width="240" style="max-width: 100%" alt="'.htmlentities($title).'"></a>'."\n");
 ?>
 <div class="modal fade" id="myModal_<?php echo($blob_id); ?>">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title"><?php echo(htmlentities($title)); ?></h4>
       </div>
       <div class="modal-body">
-        <img src="<?php echo(addSession($url)); ?>" style="width:100%">
+        <img src="<?php echo(addSession($url)); ?>" style="width:100%" alt="<?php echo(htmlentities($title)); ?>">
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -198,11 +197,11 @@ function showSubmission($assn_json, $submit_json, $assn_id, $user_id)
             $title = 'Student PDF';
             if( isset($part->title) && U::isNotEmpty($part->title) ) $title = $part->title;
             // Need session because target="_blank"
-            echo ('<p><a href="'.addSession(safe_href($url)).'" target="_blank">');
+            echo ('<p><a href="'.addSession(safe_href($url)).'" target="_blank" rel="noopener noreferrer" aria-label="'.htmlentities($title).' - Opens in new window">');
             echo (htmlentities($title).'</a> (Will launch in new window)</p>'."\n");
         } else if ( $part->type == "url" && $urlno < count($urls) ) {
             $url = $urls[$urlno++];
-            echo ('<p><a href="'.safe_href($url).'" target="_blank">');
+            echo ('<p><a href="'.safe_href($url).'" target="_blank" rel="noopener noreferrer" aria-label="Open URL in new window">');
             echo (htmlentities(safe_href($url)).'</a> (Will launch in new window)</p>'."\n");
         } else if ( $part->type == "content_item" && $content_item_no < count($content_items) ) {
             $content_item = $content_items[$content_item_no++];
@@ -245,14 +244,14 @@ function showSubmission($assn_json, $submit_json, $assn_id, $user_id)
             if ( $row === FALSE || U::isEmpty($row['data']) ) {
                 echo("<p>No HTML Found</p>\n");
             } else {
-                echo ('<p>HTML: <a href="#" onclick="$(\'#myModal_html_'.$htmlno.'\').modal();">');
+                echo ('<p>HTML: <a href="#myModal_html_'.$htmlno.'" onclick="$(\'#myModal_html_'.$htmlno.'\').modal(); return false;" aria-label="View '.htmlentities($part->title).' in larger view">');
                 echo(htmlentities($part->title)."</a> (click to view)</p>\n");
 ?>
 <div class="modal fade" id="myModal_html_<?php echo($htmlno); ?>">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title"><?php echo(htmlentities($part->title)); ?></h4>
       </div>
       <div class="modal-body" id="html_content_<?php echo($htmlno); ?>">
@@ -278,14 +277,14 @@ html_loads.push(['html_content_<?php echo($htmlno); ?>', '<?= $json_url ?>']);
             if ( $row === FALSE || U::isEmpty($row['data']) ) {
                 echo("<p>No Code Found</p>\n");
             } else {
-                echo ('<p>Code: <a href="#" onclick="$(\'#myModal_code_'.$codeno.'\').modal();">');
+                echo ('<p>Code: <a href="#myModal_code_'.$codeno.'" onclick="$(\'#myModal_code_'.$codeno.'\').modal(); return false;" aria-label="View '.htmlentities($part->title).' in larger view">');
                 echo(htmlentities($part->title)."</a> (click to view)</p>\n");
 ?>
 <div class="modal fade" id="myModal_code_<?php echo($codeno); ?>">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h4 class="modal-title"><?php echo(htmlentities($part->title)); ?></h4>
       </div>
       <div class="modal-body">

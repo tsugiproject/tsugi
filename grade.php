@@ -220,19 +220,19 @@ echo('<p>'.htmlentities($assn_json->grading)."</p>\n");
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
 <input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
 <?php if ( $assn_json->peerpoints > 0 ) { ?>
-<input type="number" min="0" max="<?php echo($assn_json->peerpoints); ?>" name="points">
-(<?= $assn_json->peerpoints ?> points for full credit)<br/>
+<label for="grade_points">Points (<?= $assn_json->peerpoints ?> for full credit)</label>
+<input type="number" id="grade_points" min="0" max="<?php echo($assn_json->peerpoints); ?>" name="points"><br/>
 <?php } elseif ( $assn_json->rating > 0 ) { ?>
-<input type="number" min="0" max="<?php echo($assn_json->rating); ?>" name="points">
-On a scale of 1-<?= $assn_json->rating ?><br/>
+<label for="grade_points">Rating (1-<?= $assn_json->rating ?>)</label>
+<input type="number" id="grade_points" min="0" max="<?php echo($assn_json->rating); ?>" name="points"><br/>
 <?php } ?>
-Comments:<br/>
-<textarea rows="5" cols="60" name="note"></textarea><br/>
+<label for="grade_note">Comments</label><br/>
+<textarea rows="5" cols="60" name="note" id="grade_note"></textarea><br/>
 <input type="submit" value="Grade" class="btn btn-primary">
 <?php   if ( $assn_json->flag ) { ?>
-<input type="submit" name="showFlag" onclick="$('#flagform').toggle(); return false;" value="Flag" class="btn btn-danger">
+<button type="button" id="showFlagBtn" onclick="$('#flagform').toggle(); $('#showFlagBtn').attr('aria-expanded', $('#flagform').is(':visible')); return false;" class="btn btn-danger" aria-controls="flagform" aria-expanded="false">Flag</button>
 <?php } ?>
-<input type="submit" name="doCancel" onclick="location='<?php echo(addSession($url_goback));?>'; return false;" value="Cancel" class="btn btn-default">
+<button type="button" onclick="location='<?php echo(addSession($url_goback));?>'; return false;" class="btn btn-default">Cancel</button>
 </form>
 <?php   if ( $assn_json->flag ) { ?>
 <form method="post" id="flagform" style="display:none">
@@ -241,11 +241,12 @@ flagging when instructor attention is needed.</p>
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
 <input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
 <input type="hidden" value="1" name="doFlag">
-<textarea rows="5" cols="60" name="note"></textarea><br/>
+<label for="flag_note">Describe why you are flagging this submission for the instructor.</label><br/>
+<textarea rows="5" cols="60" name="note" id="flag_note"></textarea><br/>
 <input type="submit" name="flagSubmit"
     onclick="return confirm('Are you sure you want to bring this student submission to the attention of the instructor?');"
     value="Submit To Instructor" class="btn btn-primary">
-<input type="submit" name="doCancel" onclick="$('#flagform').toggle(); return false;" value="Cancel Flag" class="btn btn-default">
+<button type="button" onclick="$('#flagform').toggle(); $('#showFlagBtn').attr('aria-expanded', $('#flagform').is(':visible')); return false;" class="btn btn-default">Cancel Flag</button>
 </form>
 <?php } ?>
 <?php
@@ -255,7 +256,6 @@ $_SESSION['peer_submit_id'] = $submit_id;  // Our CSRF touch
 $OUTPUT->footerStart();
 ?>
 <script src="<?= U::get_rest_parent() ?>/static/prism.js" type="text/javascript"></script>
-</script>
 <?php
 load_htmls();
 $OUTPUT->footerEnd();

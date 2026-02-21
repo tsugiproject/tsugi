@@ -341,12 +341,12 @@ if ( $next_user_id_ungraded !== false ) {
         onclick="location=\''.addSession($studenturl).'\';
         return false">Next Ungraded Student</button> ');
 } else if ( $assn_json->instructorpoints > 0 ) {
-    echo('<button class="btn btn-normal" i
-        title="All students have instrucotr grades"
+    echo('<button class="btn btn-normal"
+        title="All students have instructor grades"
         disabled="disabled">Next Ungraded Student</button> ');
 }
-echo('<input type="submit" name="doExit" class="btn btn-success"
-    onclick="location=\''.addSession($STUDENT_RETURN).'\'; return false;" value="Exit">');
+echo('<button type="button" class="btn btn-success"
+    onclick="location=\''.addSession($STUDENT_RETURN).'\'; return false;" aria-label="Exit to student list">Exit</button>');
 echo("</div>");
 
 if ( $user_row != false ) {

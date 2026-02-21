@@ -363,11 +363,11 @@ if ( $assn_json != null ) {
         echo("student submissions.</p>\n");
     }
     if( isset($assn_json->assignment) ) {
-        echo('<br/>Assignment specification: <a href="'.$assn_json->assignment.'" target="_blank">');
+        echo('<br/>Assignment specification: <a href="'.$assn_json->assignment.'" target="_blank" rel="noopener noreferrer" aria-label="'.htmlentities(_m('Open assignment specification in new tab')).'">');
         echo($assn_json->assignment."</a>\n");
     }
     if( isset($assn_json->solution) ) {
-        echo('<br/>Sample solution: <a href="'.$assn_json->solution.'" target="_blank">');
+        echo('<br/>Sample solution: <a href="'.$assn_json->solution.'" target="_blank" rel="noopener noreferrer" aria-label="'.htmlentities(_m('Open sample solution in new tab')).'">');
         echo($assn_json->solution."</a>\n");
     }
     echo('</p></div>');
@@ -392,25 +392,34 @@ if ( $submit_row == false ) {
     $content_items = array();
     $html_items = array();
     foreach ( $assn_json->parts as $part ) {
+        $label_for = '';
+        if ( $part->type == 'image' || $part->type == 'pdf' ) $label_for = 'uploaded_file_'.$partno;
+        else if ( $part->type == 'url' ) $label_for = 'input_url_'.$partno;
+        else if ( $part->type == 'code' ) $label_for = 'input_code_'.$partno;
+        else if ( $part->type == 'html' ) $label_for = 'input_html_'.$partno;
         echo("\n<p>");
-        echo(htmlentities($part->title)."\n");
+        if ( $label_for ) {
+            echo('<label for="'.$label_for.'">'.htmlentities($part->title).'</label>'."\n");
+        } else {
+            echo(htmlentities($part->title)."\n");
+        }
         if ( $part->type == "image" ) {
             $image_count++;
             echo('<div class="image-upload-container" style="margin: 10px 0;">');
             echo('<input name="uploaded_file_'.$partno.'" id="uploaded_file_'.$partno.'" data-max-size="'.$image_max.'"
                 accept="image/png, image/jpeg, image/jpg"
-                type="file" class="tsugi_image" data-partno="'.$partno.'">');
+                type="file" class="tsugi_image" data-partno="'.$partno.'" aria-describedby="image_hint_'.$partno.'">');
             echo('<div id="image_preview_'.$partno.'" style="margin-top: 10px; display: none;">');
             echo('<img id="preview_img_'.$partno.'" src="" alt="Preview" style="max-width: 300px; max-height: 300px; border: 2px solid #007bff; border-radius: 4px; padding: 5px; background: #f8f9fa; display: block;">');
             echo('<div id="preview_info_'.$partno.'" style="margin-top: 8px; font-size: 0.9em; padding: 5px; background: #e9ecef; border-radius: 3px;"></div>');
             echo('</div>');
             echo('</div>');
-            echo('<p>(PNG or JPG files will be resized to be < 1MB)</p>');
+            echo('<p id="image_hint_'.$partno.'">(PNG or JPG files will be resized to be &lt; 1MB)</p>');
         } else if ( $part->type == "pdf" ) {
             $image_count++;
-            echo('<input name="uploaded_file_'.$partno.'" data-max-size="'.$pdf_max.'"
+            echo('<input name="uploaded_file_'.$partno.'" id="uploaded_file_'.$partno.'" data-max-size="'.$pdf_max.'"
                 accept="application/pdf"
-                type="file" class="tsugi_pdf"> (Please upload a PDF '.$pdf_max_text.' max)</p>');
+                type="file" class="tsugi_pdf" aria-describedby="pdf_max_'.$partno.'"> <span id="pdf_max_'.$partno.'">(Please upload a PDF '.$pdf_max_text.' max)</span></p>');
         } else if ( $part->type == "content_item" ) {
             $endpoint = $part->launch;
             $info = LTIX::getKeySecretForLaunch($endpoint);
@@ -420,26 +429,26 @@ if ( $submit_row == false ) {
             } else {
                 $icon = $CFG->staticroot.'/font-awesome-4.4.0/png/check-square.png';
                 echo('<br/><button type="button" onclick="showModalIframe(\''.$part->title.'\',
-                    \'content_item_dialog_'.$partno.'\',\'content_item_frame_'.$partno.'\', false); return false;">
-                    Select/Create Item</button>'."\n");
+                    \'content_item_dialog_'.$partno.'\',\'content_item_frame_'.$partno.'\', false); return false;"
+                    aria-label="Select or create item for '.htmlentities($part->title).'">Select/Create Item</button>'."\n");
                 echo('<img src="'.$icon.'" id="input_content_icon_'.$partno.'" style="display: none">'."\n");
                 echo('<br/><textarea name="input_content_item_'.$partno.'" id="input_content_item_'.$partno.'" rows="2" style="display: none; width: 90%"></textarea></p>');
             }
         } else if ( $part->type == "url" ) {
-            echo('<input name="input_url_'.$partno.'" type="url" size="80"></p>');
+            echo('<input name="input_url_'.$partno.'" id="input_url_'.$partno.'" type="url" size="80"></p>');
         } else if ( $part->type == "code" ) {
             echo('<br/><span id="input_code_remaining_'.$partno.'">Characters remaining: 10000</span><br/>');
-            echo('<textarea name="input_code_'.$partno.'" id="input_code_'.$partno.'" rows="10" style="width: 90%" maxlength="10000"></textarea></p>');
+            echo('<textarea name="input_code_'.$partno.'" id="input_code_'.$partno.'" rows="10" style="width: 90%" maxlength="10000" aria-describedby="input_code_remaining_'.$partno.'"></textarea></p>');
         } else if ( $part->type == "html" ) {
             $html_items[] = $partno;
             echo('<br/><span id="input_html_remaining_'.$partno.'">Characters remaining: 10000</span><br/>');
-            echo('<textarea name="input_html_'.$partno.'" id="input_html_'.$partno.'" rows="10" style="width: 90%" maxlength="10000"></textarea></p>');
+            echo('<textarea name="input_html_'.$partno.'" id="input_html_'.$partno.'" rows="10" style="width: 90%" maxlength="10000" aria-describedby="input_html_remaining_'.$partno.'"></textarea></p>');
         }
         $partno++;
     }
-    echo("<p>Enter optional comments below</p>\n");
+    echo('<p><label for="notes">Enter optional comments below</label></p>'."\n");
     echo('<span id="notes-remaining">Characters remaining: 1000</span><br/>');
-    echo('<textarea rows="5" style="width: 90%" name="notes" id="notes" maxlength="1000"></textarea><br/>');
+    echo('<textarea rows="5" style="width: 90%" name="notes" id="notes" maxlength="1000" aria-describedby="notes-remaining"></textarea><br/>');
     echo('<input type="submit" name="doSubmit" value="Submit" class="btn btn-default"> ');
     $OUTPUT->exitButton('Cancel');
     echo('</form>');
@@ -937,7 +946,8 @@ attention of the instructor.</p>
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
 <input type="hidden" value="<?php echo($USER->id); ?>" name="user_id">
 <input type="hidden" value="" id="flag_grade_id" name="grade_id">
-<textarea rows="5" cols="60" name="note"></textarea><br/>
+<label for="flag_note">Please describe why you are flagging this item for the instructor.</label><br/>
+<textarea rows="5" cols="60" name="note" id="flag_note"></textarea><br/>
 <input type="submit" name="doFlag"
     onclick="return confirm('Are you sure you want to bring this peer-grade entry to the attention of the instructor?');"
     value="Submit To Instructor"  class="btn btn-primary">
