@@ -82,27 +82,28 @@ class Notifications extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         ?>
-        <div class="container">
+        <main class="container" id="main-content">
             <div class="row">
                 <div class="col-xs-12">
                     <h1>Notifications</h1>
+                    <div id="notifications-error" class="alert alert-danger" role="alert" style="display: none;"></div>
                 </div>
             </div>
             <div class="row" style="margin-bottom: 20px;">
                 <div class="col-xs-12">
                     <div class="notification-actions">
-                        <a href="<?= htmlspecialchars($tool_home . '/send') ?>" class="btn btn-primary btn-sm">
+                        <a href="<?= htmlspecialchars($tool_home . '/send') ?>" class="btn btn-primary btn-sm" aria-label="Send test notification to yourself">
                             <span class="hidden-xs">Test Notification</span>
                             <span class="visible-xs">Test</span>
                         </a>
                         <?php if ($this->isInstructor()): ?>
-                            <a href="<?= htmlspecialchars($tool_home . '/send-to-student') ?>" class="btn btn-success btn-sm">
+                            <a href="<?= htmlspecialchars($tool_home . '/send-to-student') ?>" class="btn btn-success btn-sm" aria-label="Send notification to a student">
                                 <span class="hidden-xs">Send to Student</span>
                                 <span class="visible-xs">To Student</span>
                             </a>
                         <?php endif; ?>
                         <?php if ($push_enabled): ?>
-                            <a href="<?= htmlspecialchars($configure_push_url) ?>" class="btn btn-default btn-sm">
+                            <a href="<?= htmlspecialchars($configure_push_url) ?>" class="btn btn-default btn-sm" aria-label="Configure push notifications">
                                 <span class="hidden-xs">Configure Push</span>
                                 <span class="visible-xs">Push</span>
                             </a>
@@ -117,7 +118,7 @@ class Notifications extends Tool {
                             <strong><?= $unread_count ?> unread notifications</strong>
                         </div>
                         <div class="pull-right">
-                            <button id="mark-all-read-btn" class="btn btn-sm btn-primary" data-url="<?= htmlspecialchars($mark_all_read_url) ?>">
+                            <button type="button" id="mark-all-read-btn" class="btn btn-sm btn-primary" data-url="<?= htmlspecialchars($mark_all_read_url) ?>" aria-label="Mark all notifications as read">
                                 Mark All as Read
                             </button>
                         </div>
@@ -127,7 +128,7 @@ class Notifications extends Tool {
             
             <?php if ($read_count > 0): ?>
                 <p class="text-muted">
-                    <button id="show-read-btn" class="btn btn-sm btn-link" style="padding: 0;" data-read-count="<?= $read_count ?>">
+                    <button type="button" id="show-read-btn" class="btn btn-sm btn-link" style="padding: 0;" data-read-count="<?= $read_count ?>" aria-controls="read-notifications-list" aria-expanded="false">
                         Show previously seen notifications (<?= $read_count ?>)
                     </button>
                 </p>
@@ -152,9 +153,10 @@ class Notifications extends Tool {
                                     </div>
                                     <div class="col-xs-12 col-sm-4">
                                         <div style="text-align: right; margin-top: 5px;">
-                                            <button class="btn btn-sm btn-primary mark-read-btn" 
+                                            <button type="button" class="btn btn-sm btn-primary mark-read-btn" 
                                                     data-notification-id="<?= htmlspecialchars($notification['notification_id']) ?>"
-                                                    data-url="<?= htmlspecialchars($mark_read_url) ?>">
+                                                    data-url="<?= htmlspecialchars($mark_read_url) ?>"
+                                                    aria-label="Mark <?= htmlspecialchars($notification['title']) ?> as read">
                                                 Mark as Read
                                             </button>
                                         </div>
@@ -169,8 +171,8 @@ class Notifications extends Tool {
                                 <?php endif; ?>
                                 <?php if (!empty($notification['url'])): ?>
                                     <p class="notification-url" style="margin-top: 10px;">
-                                        <a href="<?= htmlspecialchars($notification['url']) ?>" target="_blank" class="btn btn-link">
-                                            Notification Source <span class="glyphicon glyphicon-new-window"></span>
+                                        <a href="<?= htmlspecialchars($notification['url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-link" aria-label="Notification source, opens in new window">
+                                            Notification Source <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span>
                                         </a>
                                     </p>
                                 <?php endif; ?>
@@ -207,8 +209,8 @@ class Notifications extends Tool {
                                 <?php endif; ?>
                                 <?php if (!empty($notification['url'])): ?>
                                     <p class="notification-url" style="margin-top: 10px;">
-                                        <a href="<?= htmlspecialchars($notification['url']) ?>" target="_blank" class="btn btn-link">
-                                            Notification Source <span class="glyphicon glyphicon-new-window"></span>
+                                        <a href="<?= htmlspecialchars($notification['url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-link" aria-label="Notification source, opens in new window">
+                                            Notification Source <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span>
                                         </a>
                                     </p>
                                 <?php endif; ?>
@@ -222,7 +224,7 @@ class Notifications extends Tool {
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
-        </div>
+        </main>
 
         <style>
         .notification-item.unread {
@@ -291,6 +293,10 @@ class Notifications extends Tool {
 
         <script>
         document.addEventListener('DOMContentLoaded', function() {
+            function showNotificationError(msg) {
+                var el = document.getElementById('notifications-error');
+                if (el) { el.textContent = msg; el.style.display = ''; } else { alert(msg); }
+            }
             // Show/hide read notifications
             var showReadBtn = document.getElementById('show-read-btn');
             if (showReadBtn) {
@@ -302,10 +308,12 @@ class Notifications extends Tool {
                         if (readHidden) {
                             readNotificationsList.style.display = '';
                             showReadBtn.textContent = 'Hide previously seen notifications (' + readCount + ')';
+                            showReadBtn.setAttribute('aria-expanded', 'true');
                             readHidden = false;
                         } else {
                             readNotificationsList.style.display = 'none';
                             showReadBtn.textContent = 'Show previously seen notifications (' + readCount + ')';
+                            showReadBtn.setAttribute('aria-expanded', 'false');
                             readHidden = true;
                         }
                     });
@@ -353,15 +361,19 @@ class Notifications extends Tool {
                                     showReadBtn.setAttribute('data-read-count', currentReadCount);
                                     var isHidden = showReadBtn.textContent.includes('Show');
                                     showReadBtn.textContent = (isHidden ? 'Show' : 'Hide') + ' previously seen notifications (' + currentReadCount + ')';
+                                    showReadBtn.setAttribute('aria-expanded', isHidden ? 'false' : 'true');
                                 } else {
                                     // Create the button if it doesn't exist
                                     var p = document.createElement('p');
                                     p.className = 'text-muted';
                                     var newBtn = document.createElement('button');
                                     newBtn.id = 'show-read-btn';
+                                    newBtn.type = 'button';
                                     newBtn.className = 'btn btn-sm btn-link';
                                     newBtn.style.padding = '0';
                                     newBtn.setAttribute('data-read-count', currentReadCount);
+                                    newBtn.setAttribute('aria-controls', 'read-notifications-list');
+                                    newBtn.setAttribute('aria-expanded', 'false');
                                     newBtn.textContent = 'Show previously seen notifications (' + currentReadCount + ')';
                                     p.appendChild(newBtn);
                                     var container = document.querySelector('.container');
@@ -377,10 +389,12 @@ class Notifications extends Tool {
                                         if (readHidden) {
                                             readNotificationsList.style.display = '';
                                             newBtn.textContent = 'Hide previously seen notifications (' + currentReadCount + ')';
+                                            newBtn.setAttribute('aria-expanded', 'true');
                                             readHidden = false;
                                         } else {
                                             readNotificationsList.style.display = 'none';
                                             newBtn.textContent = 'Show previously seen notifications (' + currentReadCount + ')';
+                                            newBtn.setAttribute('aria-expanded', 'false');
                                             readHidden = true;
                                         }
                                     });
@@ -411,11 +425,11 @@ class Notifications extends Tool {
                             // Also dispatch custom event for compatibility
                             document.dispatchEvent(new CustomEvent('notification-read'));
                         } else {
-                            alert('Error marking notification as read: ' + (data.detail || 'Unknown error'));
+                            showNotificationError('Error marking notification as read: ' + (data.detail || 'Unknown error'));
                         }
                     })
                     .catch(error => {
-                        alert('Error marking notification as read: ' + error.message);
+                        showNotificationError('Error marking notification as read: ' + error.message);
                     });
                 });
             });
@@ -442,11 +456,11 @@ class Notifications extends Tool {
                             document.dispatchEvent(new CustomEvent('notifications-all-read'));
                             window.location.reload();
                         } else {
-                            alert('Error marking all as read: ' + (data.detail || 'Unknown error'));
+                            showNotificationError('Error marking all as read: ' + (data.detail || 'Unknown error'));
                         }
                     })
                     .catch(error => {
-                        alert('Error marking all as read: ' + error.message);
+                        showNotificationError('Error marking all as read: ' + error.message);
                     });
                 });
             }
@@ -519,10 +533,10 @@ class Notifications extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         ?>
-        <div class="container">
+        <main class="container" id="main-content">
             <h1>Configure Push Notifications
                 <span class="pull-right">
-                    <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default">Back to Notifications</a>
+                    <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default" aria-label="Back to notifications">Back to Notifications</a>
                 </span>
             </h1>
             
@@ -547,11 +561,11 @@ class Notifications extends Tool {
                                         </li>
                                     <?php endforeach; ?>
                                 </ul>
-                                <button id="unsubscribe-btn" class="btn btn-danger" data-url="<?= htmlspecialchars($unsubscribe_url) ?>">
+                                <button type="button" id="unsubscribe-btn" class="btn btn-danger" data-url="<?= htmlspecialchars($unsubscribe_url) ?>" aria-label="Disable push notifications">
                                     Disable push notifications
                                 </button>
                                 <?php if (!$current_browser || !in_array($current_browser, array_column($subscriptions, 'browser_name'))): ?>
-                                    <button id="subscribe-btn" class="btn btn-primary" data-url="<?= htmlspecialchars($subscribe_url) ?>" data-vapid-key-url="<?= htmlspecialchars($vapid_key_url) ?>" style="margin-left: 10px;">
+                                    <button type="button" id="subscribe-btn" class="btn btn-primary" data-url="<?= htmlspecialchars($subscribe_url) ?>" data-vapid-key-url="<?= htmlspecialchars($vapid_key_url) ?>" style="margin-left: 10px;" aria-label="Subscribe to push notifications in <?= htmlspecialchars($current_browser ?? 'this browser') ?>">
                                         Subscribe in <?= htmlspecialchars($current_browser ?? 'this browser') ?>
                                     </button>
                                 <?php endif; ?>
@@ -560,7 +574,7 @@ class Notifications extends Tool {
                             <div class="alert alert-info">
                                 <strong>Notifications Disabled</strong>
                                 <p>Click the button below to enable push notifications<?= $current_browser ? ' in ' . htmlspecialchars($current_browser) : '' ?>.</p>
-                                <button id="subscribe-btn" class="btn btn-primary" data-url="<?= htmlspecialchars($subscribe_url) ?>" data-vapid-key-url="<?= htmlspecialchars($vapid_key_url) ?>">
+                                <button type="button" id="subscribe-btn" class="btn btn-primary" data-url="<?= htmlspecialchars($subscribe_url) ?>" data-vapid-key-url="<?= htmlspecialchars($vapid_key_url) ?>" aria-label="Enable push notifications">
                                     Enable Notifications
                                 </button>
                             </div>
@@ -570,7 +584,7 @@ class Notifications extends Tool {
                     <?php if ($this->isInstructor()): ?>
                         <hr>
                         <h3>Instructor Tools</h3>
-                        <button id="test-notification-btn" class="btn btn-default" data-url="<?= htmlspecialchars($test_url) ?>">
+                        <button type="button" id="test-notification-btn" class="btn btn-default" data-url="<?= htmlspecialchars($test_url) ?>" aria-label="Send test push notification">
                             Send Test Push
                         </button>
                     <?php endif; ?>
@@ -582,7 +596,7 @@ class Notifications extends Tool {
                         <div id="service-worker-status" style="margin-top: 10px;">Checking service worker...</div>
                         <div id="subscription-status" style="margin-top: 10px;">Checking subscription...</div>
                     </div>
-                    <button id="refresh-debug-btn" class="btn btn-sm btn-default" style="margin-top: 10px;">
+                    <button type="button" id="refresh-debug-btn" class="btn btn-sm btn-default" style="margin-top: 10px;" aria-label="Refresh debug information">
                         Refresh Debug Info
                     </button>
                     
@@ -591,7 +605,7 @@ class Notifications extends Tool {
                     <div style="background: #e7f3ff; padding: 15px; border-radius: 4px; border-left: 4px solid #2196F3;">
                         <h4>Chrome/Edge:</h4>
                         <ol>
-                            <li>Click the lock icon (🔒) or info icon (i) in the address bar</li>
+                            <li>Click the lock icon (<span aria-hidden="true">🔒</span>) or info icon (<span aria-hidden="true">i</span>) in the address bar</li>
                             <li>Click "Site settings"</li>
                             <li>Find "Notifications" and ensure it's set to "Allow"</li>
                             <li>Or go to: <code>chrome://settings/content/notifications</code> and check the "Allowed" list</li>
@@ -632,7 +646,7 @@ class Notifications extends Tool {
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
 
         <script type="module" src="<?= htmlspecialchars(\Tsugi\Controllers\StaticFiles::url('Notifications', 'notifications.js')) ?>"></script>
         <?php
@@ -922,10 +936,10 @@ class Notifications extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         ?>
-        <div class="container">
+        <main class="container" id="main-content">
             <h1>Test Notification
                 <span class="pull-right">
-                    <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default">Back to Notifications</a>
+                    <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default" aria-label="Back to notifications">Back to Notifications</a>
                 </span>
             </h1>
             
@@ -964,7 +978,7 @@ class Notifications extends Tool {
                     </form>
                 </div>
             </div>
-        </div>
+        </main>
         <?php
         $OUTPUT->footer();
     }
@@ -1065,10 +1079,10 @@ class Notifications extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         ?>
-        <div class="container">
+        <main class="container" id="main-content">
             <h1>Send Notification to Student
                 <span class="pull-right">
-                    <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default">Back to Notifications</a>
+                    <a href="<?= htmlspecialchars($back_url) ?>" class="btn btn-default" aria-label="Back to notifications">Back to Notifications</a>
                 </span>
             </h1>
             
@@ -1129,7 +1143,7 @@ class Notifications extends Tool {
                     </div>
                 </div>
             <?php endif; ?>
-        </div>
+        </main>
         <?php
         $OUTPUT->footer();
     }
