@@ -104,17 +104,23 @@ class Map extends Controller {
         $OUTPUT->flashMessages();
         $rest_path = U::rest_path();
 ?>
-<div class="container">
-<div id="map_canvas" style="width:100%; height:400px"></div>
-</div>
-<p id="counter" style="text-align:center; padding-top:10px; display:none">
-</p>
+<main class="container" id="main-content">
+<h1><?= __('Map') ?></h1>
+<div id="map-error" class="alert alert-danger" role="alert" style="display: none;"></div>
+<div id="map_canvas" style="width:100%; height:400px" role="img" aria-label="<?= htmlspecialchars(__('Map showing user locations')) ?>"></div>
+<p id="counter" style="text-align:center; padding-top:10px; display:none" aria-live="polite"></p>
+</main>
 <?php
         $OUTPUT->footerStart();
 ?>
-        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=<?= $CFG->google_map_api_key ?>"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=<?= htmlspecialchars($CFG->google_map_api_key) ?>"></script>
 <script type="text/javascript">
 var map;
+
+function showMapError(msg) {
+  var el = document.getElementById('map-error');
+  if (el) { el.textContent = msg; el.style.display = ''; } else { alert(msg); }
+}
 
 // https://developers.google.com/maps/documentation/javascript/reference
 function initialize_map(data) {
@@ -135,7 +141,7 @@ function initialize_map(data) {
     var row = data.points[i];
     if ( i < 3 ) { console.log(row); }
     var newLatlng = new google.maps.LatLng(row[0], row[1]);
-    var iconpath = '<?= $CFG->staticroot ?>/img/icons/';
+    var iconpath = <?= json_encode(rtrim($CFG->staticroot, '/') . '/img/icons/') ?>;
     var icon = row[3] ? 'green-dot.png' : 'green.png';
     var marker = new google.maps.Marker({
       position: newLatlng,
@@ -155,10 +161,11 @@ function initialize_map(data) {
 }
 
 $(document).ready(function() {
-    $.getJSON('<?= $rest_path->current ?>/json', function(data) {
+    $.getJSON('<?= htmlspecialchars($rest_path->current) ?>/json', function(data) {
         initialize_map(data);
-    } );
-
+    }).fail(function() {
+        showMapError('Error loading map data');
+    });
 } );
 </script>
 <?php
@@ -174,8 +181,12 @@ $(document).ready(function() {
         $menu = false;
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        echo("<h1>Error</h1>\n");
-        echo($msg);
+        ?>
+        <main class="container" id="main-content">
+        <h1><?= __('Error') ?></h1>
+        <?= $msg ?>
+        </main>
+        <?php
         $OUTPUT->footer();
     }
 }

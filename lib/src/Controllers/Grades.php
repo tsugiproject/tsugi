@@ -249,39 +249,43 @@ class Grades extends Tool {
         $OUTPUT->bodyStart();
         $OUTPUT->topNav($menu);
         $OUTPUT->flashMessages();
-        
+        ?>
+        <main class="container" id="main-content">
+        <h1><?= __('Grade Book') ?></h1>
+        <?php
         // Show analytics button if instructor/admin
         if ( $show_analytics ) {
             $tool_home = $this->toolHome(self::ROUTE);
             $analytics_url = $tool_home . '/analytics';
-            echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 2px;"><a href="'.$analytics_url.'" class="btn btn-default"><span class="glyphicon glyphicon-signal"></span> Analytics</a></span>');
+            echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 2px;"><a href="'.htmlspecialchars($analytics_url).'" class="btn btn-default" aria-label="'.htmlspecialchars(__('View grade analytics')).'"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> '.htmlspecialchars(__('Analytics')).'</a></span>');
         }
-        
-        echo("<p>Class: ".htmlspecialchars($context_title)."</p>\n");
-        
-        if ( $user_info !== false ) {
-            echo("<p>Results for ".htmlspecialchars($user_info['displayname'])."</p>\n");
-        }
-        
+        ?>
+        <p>Class: <?= htmlspecialchars($context_title) ?></p>
+        <?php if ( $user_info !== false ): ?>
+        <p>Results for <?= htmlspecialchars($user_info['displayname']) ?></p>
+        <?php endif; ?>
+        <?php
         $searchfields = array();
         Table::pagedTable($showrows, $searchfields, false);
         
         // Display user identity from session
-        $identity = __("Logged in as: ").U::get($_SESSION, 'user_key', '');
+        $identity = __("Logged in as: ").htmlspecialchars(U::get($_SESSION, 'user_key', ''));
         if ( U::get($_SESSION, 'email') ) {
-            $identity .= ' ' . htmlentities($_SESSION['email']);
+            $identity .= ' ' . htmlspecialchars($_SESSION['email']);
         }
         if ( U::get($_SESSION, 'displayname') ) {
-            $identity .= ' ' . htmlentities($_SESSION['displayname']);
+            $identity .= ' ' . htmlspecialchars($_SESSION['displayname']);
         }
         echo("<p>".$identity."</p>");
         
         if ( U::strlen(trim($retrieval_debug)) > 0 && $is_instructor ) {
             echo("<pre>\n");
-            echo(htmlentities($retrieval_debug));
+            echo(htmlspecialchars($retrieval_debug));
             echo("</pre>\n");
         }
-        
+        ?>
+        </main>
+        <?php
         $OUTPUT->footer();
     }
 
@@ -379,15 +383,21 @@ class Grades extends Tool {
         $OUTPUT->bodyStart();
         $OUTPUT->topNav($menu);
         $OUTPUT->flashMessages();
-        
+        ?>
+        <main class="container" id="main-content">
+        <h1><?= __('Grade Book') ?></h1>
+        <?php
         // Show analytics button
         if ( $show_analytics ) {
             $analytics_url = $tool_home . '/analytics';
-            echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 2px;"><a href="'.$analytics_url.'" class="btn btn-default"><span class="glyphicon glyphicon-signal"></span> Analytics</a></span>');
+            echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 2px;"><a href="'.htmlspecialchars($analytics_url).'" class="btn btn-default" aria-label="'.htmlspecialchars(__('View grade analytics')).'"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> '.htmlspecialchars(__('Analytics')).'</a></span>');
         }
-        
-        echo("<p>Class: ".htmlspecialchars($context_title)."</p>\n");
-        if ( $link_info ) echo("<p>Link: ".htmlspecialchars($link_info["title"])."</p>\n");
+        ?>
+        <p>Class: <?= htmlspecialchars($context_title) ?></p>
+        <?php if ( $link_info ): ?>
+        <p>Link: <?= htmlspecialchars($link_info["title"]) ?></p>
+        <?php endif; ?>
+        <?php
         
         // Build detail URL for pagedAuto
         $detail_url = U::reconstruct_query($tool_home . '/class', array("detail" => ""));
@@ -399,7 +409,9 @@ class Grades extends Tool {
         if ( $class_sql !== false ) {
             Table::pagedAuto($class_sql, $query_parms, $searchfields, $searchfields, $detail_url);
         }
-        
+        ?>
+        </main>
+        <?php
         $OUTPUT->footer();
     }
 
