@@ -840,8 +840,11 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                         echo(htmlentities($video->title)."<br/>");
                         $yurl = U::youtubeWatchUrl($video->youtube);
                         self::nostyleUrl($video->title, $yurl);
-                    } else {
+                    } else if ( !empty($CFG->youtube_use_labnol) ) {
                         $OUTPUT->embedYouTube($video->youtube, $video->title);
+                    } else {
+                        $yurl = U::youtubeWatchUrl($video->youtube);
+                        echo('<a href="'.htmlspecialchars($yurl).'" target="_blank" rel="noopener noreferrer">'.htmlentities($video->title).'</a>');
                     }
                     echo('</li>');
                 }
@@ -882,6 +885,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 <?php
                     } else {
                         $yurl = U::youtubeWatchUrl($video->youtube);
+                        if ( !empty($CFG->youtube_use_labnol) ) {
                         $lecno = $lecno + 1;
                         $navid = md5($lecno.$yurl);
                         // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
@@ -894,6 +898,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 </div>
 <button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($video->title) ?></button>
 <?php
+                        } else {
+                        echo('<a href="'.htmlspecialchars($yurl).'" target="_blank" rel="noopener noreferrer">'.htmlentities($video->title).'</a>');
+                        }
                     }
                     echo("</li>\n");
                 }
@@ -914,9 +921,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                     if ( isset($lecture->youtube) ) {
                         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-lecture tsugi-lessons-module-lecture-youtube">');
                         $yurl = U::youtubeWatchUrl($lecture->youtube);
-                        // self::nostyleLink($lecture->title, $yurl);
-                        $navid = md5($lecno.$yurl);
+                        if ( !empty($CFG->youtube_use_labnol) ) {
                         // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
+                        $navid = md5($lecno.$yurl);
 ?>
 <div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Video: <?= htmlspecialchars($lecture->title, ENT_QUOTES, 'UTF-8') ?>">
   <div class="w3schools-overlay-content" style="background-color: black;">
@@ -926,6 +933,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 </div>
 <button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
 <?php
+                        } else {
+                        echo('<a href="'.htmlspecialchars($yurl).'" target="_blank" rel="noopener noreferrer">'.htmlentities($lecture->title).'</a>');
+                        }
                         echo('</li>');
                     } else if ( isset($lecture->audio) ) {
                         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-lecture tsugi-lessons-module-lecture-audio">');
@@ -1999,6 +2009,7 @@ $(function(){
             $youtube = isset($item->youtube) ? $item->youtube : '';
             if ( $youtube ) {
                 $yurl = U::youtubeWatchUrl($youtube);
+                if ( !empty($CFG->youtube_use_labnol) ) {
                 static $lecno = 0;
                 $lecno = $lecno + 1;
                 $navid = md5($lecno.$yurl);
@@ -2011,6 +2022,11 @@ $(function(){
 </div>
 <button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?php self::renderItemIcon('video'); ?><?= htmlentities($item->title) ?></button>
 <?php
+                } else {
+                echo('<a href="'.htmlspecialchars($yurl).'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
+                self::renderItemIcon('video');
+                echo(htmlentities($item->title).'</a>');
+                }
             } else {
                 echo(htmlentities($item->title));
             }
@@ -2245,8 +2261,11 @@ $(function(){
                 echo(htmlentities($video->title)."<br/>");
                 $yurl = U::youtubeWatchUrl($video->youtube);
                 self::nostyleUrl($video->title, $yurl);
-            } else {
+            } else if ( !empty($CFG->youtube_use_labnol) ) {
                 $OUTPUT->embedYouTube($video->youtube, $video->title);
+            } else {
+                $yurl = U::youtubeWatchUrl($video->youtube);
+                echo('<a href="'.htmlspecialchars($yurl).'" target="_blank" rel="noopener noreferrer">'.htmlentities($video->title).'</a>');
             }
             echo('</li>');
         }

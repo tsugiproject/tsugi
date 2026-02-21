@@ -646,6 +646,22 @@ class ConfigInfo {
      */
     public $youtube_playlist = false;
 
+    /**
+     * Use labnol lightweight YouTube embeds in Lessons
+     *
+     * When true, YouTube videos use the labnol embed pattern (overlay with
+     * lazy-loaded player). When false (default), YouTube links render as
+     * simple <a href target="_blank"> links.
+     *
+     * Note: As of early 2026, it is likely pointless to turn this on, because
+     * YouTube and browser security / privacy / cookie changes have largely
+     * broken YouTube embedding.this mostly is an old deprecated feature
+     * that will likely be removed unless YouTube embedding is fixed.
+     *
+     * $CFG->youtube_use_labnol = true;
+     */
+    public $youtube_use_labnol = false;
+
     /*
      * If we are going to use the lessons tool and/or badges, we need to
      * create and point to a lessons.json file
