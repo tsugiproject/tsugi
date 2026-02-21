@@ -38,7 +38,9 @@ class Discussions {
         $menu = false;
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
+        echo('<main class="container" id="main-content">');
         $l->renderDiscussions(false);
+        echo('</main>');
         $OUTPUT->footer();
 
 

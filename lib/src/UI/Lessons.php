@@ -1411,7 +1411,7 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank" rel="noopene
             return;
         }
 
-        echo('<h1>'.__('Discussions:').' '.$this->lessons->title."</h1>\n");
+        echo('<h1>'.__('Discussions:').' '.htmlspecialchars($this->lessons->title)."</h1>\n");
 
         // TODO: Perhaps the tdiscus service will get promoted to Tsugi
         // but for now we bypass the abstraction and go straight to the source...
@@ -1437,7 +1437,7 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank" rel="noopene
         $launchable = U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
                 && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email');
 
-        echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
+        echo('<ul class="tsugi-lessons-module-discussions-ul" aria-label="'.htmlspecialchars(__('Discussion forums')).'">'."\n");
         foreach($discussions as $discussion ) {
             $resource_link_title = $discussion->title;
             $rest_path = U::rest_path();
@@ -1445,16 +1445,16 @@ using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank" rel="noopene
             $info = "";
             $row = U::get($rows_dict, $discussion->resource_link_id);
             if ( $row ) {
-                $info = '<br/>'.$row['thread_count'].' '.__('threads'). ' - '.__('last post').
-                    ' <time class="timeago" datetime="'.$row['modified_at'].'">'.$row['modified_at'].'</time>'.
+                $info = '<br/>'.htmlspecialchars($row['thread_count']).' '.__('threads'). ' - '.__('last post').
+                    ' <time class="timeago" datetime="'.htmlspecialchars($row['modified_at']).'">'.htmlspecialchars($row['modified_at']).'</time>'.
                     "\n";
             }
 
             echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'."\n");
             if ( $launchable ) {
-                echo('<a href="'.$launch_path.'">'.htmlentities($discussion->title).'</a>'.$info."\n");
+                echo('<a href="'.htmlspecialchars($launch_path).'">'.htmlspecialchars($discussion->title).'</a>'.$info."\n");
             } else {
-                echo(htmlentities($resource_link_title).' ('.__('Login Required').')'.$info."\n");
+                echo(htmlspecialchars($resource_link_title).' ('.__('Login Required').')'.$info."\n");
             }
             echo("</li>\n");
         }
