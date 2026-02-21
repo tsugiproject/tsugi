@@ -196,6 +196,25 @@ ul.tsugi-lessons-content-list li i.fa {
     vertical-align: middle;
     flex-shrink: 0;
 }
+
+/* Keep All button centered when prev/next are absent */
+ul.pager.tsugi-lessons-pager {
+    display: flex;
+    justify-content: space-between;
+    min-width: 200px;
+}
+ul.pager.tsugi-lessons-pager > li {
+    flex: 1;
+}
+ul.pager.tsugi-lessons-pager > li:first-child {
+    text-align: left;
+}
+ul.pager.tsugi-lessons-pager > li:nth-child(2) {
+    text-align: center;
+}
+ul.pager.tsugi-lessons-pager > li:last-child {
+    text-align: right;
+}
 </style>
 <?php
         // See if there are any carousels in the lessons
@@ -607,23 +626,22 @@ ul.tsugi-lessons-content-list li i.fa {
 <?php
         }
             if ( $this->getSetting('prev-next') == "right" ) {
-                echo('<div typeof="oer:Lesson" style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
+                echo('<div typeof="oer:Lesson" style="float:right; padding-left: 5px; vertical-align: text-top;"><ul class="pager tsugi-lessons-pager">'."\n");
             } else if ( $this->getSetting('prev-next') == "left" ) {
-                echo('<div typeof="oer:Lesson" style="float:left; padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
+                echo('<div typeof="oer:Lesson" style="float:left; padding-left: 5px; vertical-align: text-top;"><ul class="pager tsugi-lessons-pager">'."\n");
             } else {
-                echo('<div typeof="oer:Lesson" style="padding-left: 5px; vertical-align: text-top;"><ul class="pager">'."\n");
+                echo('<div typeof="oer:Lesson" style="padding-left: 5px; vertical-align: text-top;"><ul class="pager tsugi-lessons-pager">'."\n");
             }
-            $disabled = ($this->position == 1) ? ' disabled' : '';
             $all = U::get_rest_parent();
             if ( $this->position == 1 ) {
-                echo('<li class="previous disabled"><a href="#" onclick="return false;">&larr; '.__('Previous').'</a></li>'."\n");
+                echo('<li class="previous" style="visibility:hidden" aria-hidden="true">&larr; '.__('Previous').'</li>'."\n");
             } else {
                 $prev = $all . '/' . urlencode($this->lessons->modules[$this->position-2]->anchor);
                 echo('<li class="previous"><a href="'.$prev.'">&larr; '.__('Previous').'</a></li>'."\n");
             }
             echo('<li><a href="'.$all.'">'.__('All').' ('.$this->position.' / '.count($this->lessons->modules).')</a></li>');
             if ( $this->position >= count($this->lessons->modules) ) {
-                echo('<li class="next disabled"><a href="#" onclick="return false;">&rarr; '.__('Next').'</a></li>'."\n");
+                echo('<li class="next" style="visibility:hidden" aria-hidden="true">&rarr; '.__('Next').'</li>'."\n");
             } else {
                 $next = $all . '/' . urlencode($this->lessons->modules[$this->position]->anchor);
                 echo('<li class="next"><a href="'.$next.'">&rarr; '.__('Next').'</a></li>'."\n");
