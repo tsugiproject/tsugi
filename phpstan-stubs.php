@@ -17,6 +17,52 @@ namespace {
     /** @var bool $REDIRECTED */
     $REDIRECTED;
 
+    /**
+     * @return bool
+     */
+    function isAdmin(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    function isInstructor(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @param string|null $path
+     * @return string
+     */
+    function lmsAnalyticsKey(?string $path = null): string
+    {
+        return '';
+    }
+
+    /**
+     * @param int $context_id
+     * @param string $link_key
+     * @param string|null $title
+     * @param string|null $path
+     * @return int|false
+     */
+    function lmsEnsureAnalyticsLink(int $context_id, string $link_key, ?string $title = null, ?string $path = null): int|false
+    {
+        return false;
+    }
+
+    /**
+     * @param string $analytics_path
+     * @param string|null $title
+     * @return int|false
+     */
+    function lmsRecordLaunchAnalytics(string $analytics_path, ?string $title = null): int|false
+    {
+        return false;
+    }
 }
 
 namespace Ratchet {
