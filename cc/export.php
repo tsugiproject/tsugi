@@ -122,7 +122,7 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtub
                 }
             }
         }
-        $endpoint = U::absolute_url($item_obj->launch);
+        $endpoint = U::absolute_url(Lessons::expandLink($item_obj->launch));
         $endpoint = U::add_url_parm($endpoint, 'inherit', $item_obj->resource_link_id);
         $extensions = array('apphome' => $CFG->apphome);
         $resource_link_id = isset($item_obj->resource_link_id) ? $item_obj->resource_link_id : null;
@@ -414,7 +414,7 @@ foreach($l->lessons->modules as $module) {
                     }
                 }
             }
-            $endpoint = U::absolute_url($lti->launch);
+            $endpoint = U::absolute_url(Lessons::expandLink($lti->launch));
             // Sigh - some LMSs don't handle custom - sigh
             $endpoint = U::add_url_parm($endpoint, 'inherit', $lti->resource_link_id);
             $extensions = array('apphome' => $CFG->apphome);
