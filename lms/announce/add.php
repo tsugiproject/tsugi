@@ -5,7 +5,7 @@ use \Tsugi\Util\U;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../../config.php";
-require_once "../lms-util.php";
+require_once $CFG->dirroot . '/lib/include/lms-util.php';
 
 LTIX::getConnection();
 

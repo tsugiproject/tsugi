@@ -380,7 +380,7 @@ class GoogleLoginHandler {
         $is_instructor = false;
         if ( isset($context_id) && $context_id ) {
             if ( isset($CFG->dirroot) ) {
-                $lms_util = $CFG->dirroot . '/lms/lms-util.php';
+                $lms_util = $CFG->dirroot . '/lib/include/lms-util.php';
                 if ( file_exists($lms_util) ) {
                     require_once($lms_util);
                     $is_instructor = isInstructor();
