@@ -67,7 +67,7 @@
   font-size: 0.5em;
   padding: 0.25em 0.5em 0.25em 0.5em;
   border-radius: 50%;
-  background: red;
+  background: #b91c1c; /* Dark red: ~7:1 contrast with white (WCAG AAA) */
   color: white;
 }
 
