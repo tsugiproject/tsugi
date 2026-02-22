@@ -1285,6 +1285,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 echo(htmlspecialchars($badge_title)."</a>\n");
                 echo('</td><td style="width: 30%; min-width: 200px;">');
                 echo('<a href="'.htmlspecialchars($href).'">');
+                echo('<span class="sr-only">'.htmlspecialchars($badge_title).': '.$progress.'% '.__('complete').'</span>');
                 echo('<div class="progress" role="progressbar" aria-valuenow="'.$progress.'" aria-valuemin="0" aria-valuemax="100" aria-label="'.htmlspecialchars($badge_title).': '.$progress.' percent">');
                 echo('<div class="progress-bar progress-bar-'.$kind.'" style="width: '.$progress.'%"></div>');
                 echo('</div>');
@@ -1350,7 +1351,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 $encrypted = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
                 $assert_url = $CFG->wwwroot.'/assertions/'.$encrypted.'.html';
                 $badge_img_url = $CFG->wwwroot.'/badges/images/'.$encrypted.'.png';
-                echo('<a href="'.htmlspecialchars($assert_url).'" target="_blank" rel="noopener noreferrer" aria-label="'.htmlspecialchars($badge->title).', opens in new window">');
+                echo('<a href="'.htmlspecialchars($assert_url).'" target="_blank" rel="noopener noreferrer" aria-label="'.__('View badge assertion, opens in new window').'">');
                 echo('<img src="'.htmlspecialchars($badge_img_url).'" width="90" alt="'.htmlspecialchars($badge->title).'"></a>');
                 echo(htmlspecialchars($badge->title));
                 echo("</p></li>\n");

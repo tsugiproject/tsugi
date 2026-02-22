@@ -58,7 +58,7 @@ class Badges extends Tool {
         $OUTPUT->flashMessages();
         if ( $show_analytics ) {
             $analytics_url = $this->toolHome(self::ROUTE) . '/analytics';
-            echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 2px;"><a href="'.htmlspecialchars($analytics_url).'" class="btn btn-default" aria-label="'.htmlspecialchars(__('View badge analytics')).'"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> '.htmlspecialchars(__('Analytics')).'</a></span>');
+            echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 2px;"><a href="'.htmlspecialchars($analytics_url).'" class="btn btn-default"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> '.htmlspecialchars(__('Analytics')).'</a></span>');
         }
         echo('<main class="container" id="main-content">');
         $l->renderBadges($allgrades, false);
