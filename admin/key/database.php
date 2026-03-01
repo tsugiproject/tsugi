@@ -1,9 +1,6 @@
 <?php
 
-if ( ! isset($CFG) ) {
-    die("This file is not supposed to be accessed directly.  It is activated using
-        the 'Admin' feature from the main page of the application.");
-}
+if ( ! isset($CFG) ) exit;
 
 $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}key_request"

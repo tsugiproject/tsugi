@@ -20,7 +20,7 @@ not yet been created or you cannot connect to the database.
 MAMP or XAMPP, you may need to run commands like this:</p>
 <pre>
     USE mysql;
-    CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
+    CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8mb4;
     CREATE USER 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
     CREATE USER 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
     FLUSH PRIVILEGES;

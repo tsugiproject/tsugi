@@ -104,7 +104,7 @@ class ConfigInfo {
      * You will need to create a database, user, and password
      * like this:
      *
-     *     CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8;
+     *     CREATE DATABASE tsugi DEFAULT CHARACTER SET utf8mb4;
      *     GRANT ALL ON tsugi.* TO 'ltiuser'@'localhost' IDENTIFIED BY 'ltipassword';
      *     GRANT ALL ON tsugi.* TO 'ltiuser'@'127.0.0.1' IDENTIFIED BY 'ltipassword';
      *

@@ -1,5 +1,7 @@
 <?php
 
+if ( ! isset($CFG) ) exit;
+
 // If the table does not exist, these create statements will be used
 // And the version will be set to 1
 

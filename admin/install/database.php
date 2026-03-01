@@ -1,5 +1,7 @@
 <?php
 
+if ( ! isset($CFG) ) exit;
+
 $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lms_tools",
 "drop table if exists {$CFG->dbprefix}lms_tools_status"

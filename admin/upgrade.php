@@ -60,6 +60,18 @@ create table {$plugins} (
     echo("Created plugins table...<br/>\n");
 }
 
+// Migrate old lms plugin_path entries to new lib paths (one-time)
+$path_migrations = array(
+    'lms/announce/database.php' => 'lib/src/Controllers/database/Announcements/database.php',
+    'lms/pages/database.php' => 'lib/src/Controllers/database/Pages/database.php',
+);
+foreach ($path_migrations as $old_path => $new_path) {
+    $sql = "UPDATE {$plugins} SET plugin_path = :new_path WHERE plugin_path = :old_path";
+    $q = $PDOX->queryReturnError($sql, array(':new_path' => $new_path, ':old_path' => $old_path));
+    if ($q->success && $q->rowCount() > 0) {
+        echo("Migrated plugin_path: $old_path -> $new_path<br/>\n");
+    }
+}
 
 echo("Checking Core LTI Tables...<br/>\n");
 $tools = searchTwoLevels("database.php", $CFG->dirroot.'/admin');
@@ -77,13 +89,13 @@ foreach($tools as $k => $tool ) {
 }
 
 echo("Checking LMS Features Tables...<br/>\n");
-// Scan the lms folder for database.php files
-$lmstools = searchTwoLevels("database.php", $CFG->dirroot.'/lms');
-for($i=0; $i<count($lmstools); $i++) {
-    $lmstools[$i] = U::remove_relative_path($lmstools[$i]);
+// Scan lib/src/Controllers/database for database.php files (Announcements, Pages)
+$libdb = searchTwoLevels("database.php", $CFG->dirroot.'/lib/src/Controllers/database');
+for($i=0; $i<count($libdb); $i++) {
+    $libdb[$i] = U::remove_relative_path($libdb[$i]);
 }
-// Add lms database.php files, not already in the list
-foreach($lmstools as $tool) {
+// Add lib database.php files, not already in the list
+foreach($libdb as $tool) {
     if ( in_array($tool, $tools) ) continue;
     $tools[] = $tool;
 }

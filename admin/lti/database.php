@@ -7,6 +7,8 @@ if ( !isset($PDOX) ) {
     require $CFG->dirroot."/admin/migrate-setup.php";
 }
 
+if ( ! isset($CFG) ) exit;
+
 $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_result",
 "drop table if exists {$CFG->dbprefix}lti_service",
