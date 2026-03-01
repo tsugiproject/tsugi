@@ -24,6 +24,8 @@ class Lessons extends Tool {
         $app->router->get($prefix.'/_author', 'Lessons@author');
         $app->router->post($prefix.'/_author', 'Lessons@authorPost');
         $app->router->get($prefix.'/{anchor}', 'Lessons@get');
+        // Catch /lessons/foo/bar or deeper - redirect to /lessons (avoids 404)
+        $app->router->get($prefix.'/{anchor}/{path:.*}', 'Lessons@redirectToIndex');
         $app->router->get($prefix.'_launch/{anchor}', function(Request $request, $anchor = null) use ($app) {
             return Lessons::launch($app, $anchor);
         });
@@ -54,6 +56,13 @@ class Lessons extends Tool {
             $l = new \Tsugi\UI\Lessons($CFG->lessons, $anchor);
         }
 
+        // If we have an anchor in the path but it doesn't exist, redirect to /lessons
+        // (avoids rendering "all lessons" from /lessons/bob which breaks relative URLs)
+        if ( $anchor !== null && $anchor !== '' && $l->getModuleByAnchor($anchor) === null ) {
+            $url = U::addSession($this->toolHome(self::ROUTE));
+            return new RedirectResponse($url);
+        }
+
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $menu = false;
@@ -73,6 +82,14 @@ class Lessons extends Tool {
         $OUTPUT->footerStart();
         $l->footer();
         $OUTPUT->footerEnd();
+    }
+
+    /**
+     * Redirect multi-segment invalid paths (e.g. /lessons/bob/bob) to /lessons
+     */
+    public function redirectToIndex(Request $request, $anchor=null, $path=null)
+    {
+        return new RedirectResponse($this->toolHome(self::ROUTE));
     }
 
     /**
