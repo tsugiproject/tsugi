@@ -7,6 +7,8 @@ if ( !isset($PDOX) ) {
     require $CFG->dirroot."/admin/migrate-setup.php";
 }
 
+if ( ! isset($CFG) ) exit;
+
 // Dropping tables
 $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}peer_flag",
