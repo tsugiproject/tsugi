@@ -399,8 +399,9 @@ class Grades extends Tool {
         <?php endif; ?>
         <?php
         
-        // Build detail URL for pagedAuto
-        $detail_url = U::reconstruct_query($tool_home . '/class', array("detail" => ""));
+        // Build detail URL for pagedAuto - link to index (single-student view) so clicking
+        // a student in the class list dives into that student's grade detail
+        $detail_url = U::reconstruct_query($tool_home, array("detail" => ""));
         
         if ( $summary_sql !== false ) {
             Table::pagedAuto($summary_sql, $query_parms, $searchfields, $orderfields, $detail_url);
