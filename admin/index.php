@@ -104,6 +104,7 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'dbsize.php', _TSUGI.spinnerUrl); return false;" >
   Check database size
   </a></li>
+<li><a href="info.php" target="_blank">PHP Info</a></li>
 <li>
   <a href="#" title="Remove 12345 Data"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'clear12345', _TSUGI.spinnerUrl); return false;" >
