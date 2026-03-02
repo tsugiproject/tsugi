@@ -263,6 +263,8 @@ body {
         $retval .= "rest_path: ".json_encode(U::rest_path()).",\n";
         $launch_return_url = (is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->returnUrl()) ? $TSUGI_LAUNCH->returnUrl() : '';
         $retval .= "launch_presentation_return_url: " . ($launch_return_url ? self::json_encode_string_value($launch_return_url) : 'false') . ",\n";
+        $launch_error_return_url = (is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->errorReturnUrl()) ? $TSUGI_LAUNCH->errorReturnUrl() : '';
+        $retval .= "launch_presentation_error_return_url: " . ($launch_error_return_url ? self::json_encode_string_value($launch_error_return_url) : 'false') . ",\n";
         $retval .= "spinnerUrl: \"".self::getSpinnerUrl()."\",\n";
         $retval .= "staticroot: \"".$CFG->staticroot."\",\n";
         if ( isset ($CFG->apphome) ) {

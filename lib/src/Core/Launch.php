@@ -432,6 +432,21 @@ class Launch {
     }
 
     /**
+     * Return the error return URL for redirecting the user on error.
+     * When the platform provides a separate error_return_url (LTI 1.3), that is returned.
+     * Otherwise falls back to returnUrl() since the same URL is used for errors in LTI 1.1.
+     *
+     * @return string|null The error return URL or null if not set
+     */
+    public function errorReturnUrl() {
+        $claim = $this->ltiJWTClaim(LTI13::PRESENTATION_CLAIM, null);
+        if ( is_object($claim) && isset($claim->{LTI13::ERROR_RETURN_URL}) && $claim->{LTI13::ERROR_RETURN_URL} ) {
+            return $claim->{LTI13::ERROR_RETURN_URL};
+        }
+        return $this->returnUrl();
+    }
+
+    /**
      * Return a boolean indicating if this is an LTI Advantage launch
      *
      * @return bool True if this is an LTI Advantage launch, false otherwise

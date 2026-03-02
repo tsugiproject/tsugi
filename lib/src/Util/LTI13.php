@@ -33,6 +33,7 @@ class LTI13 {
     const DOCUMENT_TARGET_IFRAME =  'iframe';
     const DOCUMENT_TARGET_WINDOW =  'window';
     const RETURN_URL =  'return_url';
+    const ERROR_RETURN_URL =  'error_return_url';
 
     const LTI11_TRANSITION_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/lti1p1';
     const FOR_USER_CLAIM =  'https://purl.imsglobal.org/spec/lti/claim/for_user';
