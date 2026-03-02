@@ -1207,7 +1207,7 @@ EOF;
      * Display an HTML error dialog. Redirect destination is determined client-side from
      * TSUGI_browser_session() (TSUGI_SESSION_DATA) when available:
      * (a) launch_presentation_error_return_url, (b) launch_presentation_return_url,
-     * (c) apphome, (d) tsugi.org/launcherror as last resort.
+     * (c) $CFG->launcherror if configured. No return URL: dialog with no button.
      *
      * @param string $message Dialog title
      * @param string $msg Error message (displayed as "Detail: ...", used in URL params)
@@ -1220,7 +1220,7 @@ EOF;
         $msg = is_string($msg) ? trim($msg) : '';
         $detail = 'Detail: ' . $msg;
         $detail_extra = ( $extra !== false && is_string($extra) && strlen(trim($extra)) < 200 ) ? trim($extra) : '';
-        $launcherror_url = isset($CFG->launcherror) ? $CFG->launcherror : 'https://www.tsugi.org/launcherror';
+        $launcherror_url = isset($CFG->launcherror) && $CFG->launcherror ? $CFG->launcherror : '';
 
     ?><!DOCTYPE html>
 <html>
@@ -1264,7 +1264,6 @@ $( function() {
   var sess = typeof TSUGI_browser_session === 'function' ? TSUGI_browser_session() : null;
   var ltiErrorReturn = sess && sess.launch_presentation_error_return_url ? sess.launch_presentation_error_return_url : null;
   var ltiReturn = sess && sess.launch_presentation_return_url ? sess.launch_presentation_return_url : null;
-  var apphome = sess && sess.apphome ? sess.apphome : null;
   var ltiUrl = (ltiErrorReturn && ltiErrorReturn.length > 0) ? ltiErrorReturn : ltiReturn;
   var redirectUrl = null;
   var btnLabel = <?= json_encode(_m('Continue')) ?>;
@@ -1272,20 +1271,17 @@ $( function() {
     redirectUrl = ltiUrl + (ltiUrl.indexOf('?')>=0?'&':'?') + 'lti_errormsg=' + encodeURIComponent(errMsg);
     if ( errDetail && errDetail.length < 200 ) redirectUrl += '&detail=' + encodeURIComponent(errDetail);
     btnLabel = <?= json_encode(_m('Return to Learning System')) ?>;
-  } else if ( apphome && apphome.length > 0 ) {
-    redirectUrl = apphome + (apphome.indexOf('?')>=0?'&':'?') + 'detail=' + encodeURIComponent(errMsg);
-    btnLabel = <?= json_encode(_m('Return to Application')) ?>;
-  } else {
+  } else if ( launcherror && launcherror.length > 0 ) {
     redirectUrl = launcherror + (launcherror.indexOf('?')>=0?'&':'?') + 'detail=' + encodeURIComponent(errMsg);
     btnLabel = <?= json_encode(_m('Continue')) ?>;
   }
-  console.log('PHP message: <?= $message ?>');
-  console.log('PHP msg: <?= $msg ?>');
-  console.log('PHP detail: <?= $detail ?>'); 
-  console.log('Localstorage:', sess);
-
   var btns = {};
-  if ( redirectUrl ) btns[btnLabel] = function() { window.location.href = redirectUrl; };
+  if ( redirectUrl ) {
+    btns[btnLabel] = function() {
+      $(this).dialog("option", "buttons", {});
+      window.location.href = redirectUrl;
+    };
+  }
   $( "#dialog-confirm" ).dialog({
     resizable: false,
     height: "auto",
