@@ -441,7 +441,7 @@ class LTIX {
         if ( ! is_array($post) ) {
             $msg = '';
             if ( is_string($post) ) $msg = $post . ' ';
-            self::abort_with_error_log($msg, $request_data);
+            self::abort_with_error_log('LTI Launch Error: '.$msg, $request_data);
         }
 
         // We make up a Session ID Key because we don't want a new one
@@ -2085,7 +2085,7 @@ class LTIX {
                 } else if ( count($needed) > 0 ) {
                     self::wrapped_session_flush($session_object);
                     self::send403();
-                    $msg = 'This tool should be launched from a learning system using LTI';
+                    $msg = 'Session is missing, invalid or expired - please re-launch';
                     if ( is_string($detail) ) $msg .= ". Detail: ".$detail;
                     self::abort_with_error_log($msg,
                         U::get($_SERVER, 'HTTP_REFERER', Net::getIP())
@@ -2104,7 +2104,7 @@ class LTIX {
         // So it is just a warning - nothing much we can do except tell them.
         if ( count($needed) > 0 && self::wrapped_session_get($session_object, 'lti',null) === null ) {
             self::wrapped_session_flush($session_object);
-            self::abort_with_error_log('Session expired - please re-launch '.session_id(),
+            self::abort_with_error_log('Tool session missing or expired - please re-launch ',
                 U::get($_SERVER, 'HTTP_REFERER', Net::getIP())
             );
         }
@@ -2120,7 +2120,7 @@ class LTIX {
                 $_SERVER['HTTP_USER_AGENT'] != $session_agent ) {
                 self::wrapped_session_flush($session_object);
                 self::send403();
-                self::abort_with_error_log("Session has expired", " ".session_id()." HTTP_USER_AGENT ".
+                self::abort_with_error_log("Session has expired", "HTTP_USER_AGENT ".
                     (($session_agent !== null ) ? $session_agent : 'Empty Session user agent') .
                     ' ::: '.
                     (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'Empty browser user agent'),
@@ -2162,7 +2162,7 @@ class LTIX {
                         // Need to clear out session data
                         self::wrapped_session_flush($session_object);
                         self::send403();
-                        self::abort_with_error_log('Session address has expired', " ".session_id()." session_addr=".
+                        self::abort_with_error_log('Session address has expired', "session_addr=".
                             $session_addr.' current='.$ipaddr.' iphistory='.$iphistory, 'DIE:');
                     }
                 }
@@ -2177,7 +2177,7 @@ class LTIX {
             strpos($CFG->getScriptPath(), $session_script ) !== 0 ) {
             self::wrapped_session_flush($session_object);
             self::send403();
-            self::abort_with_error_log('Improper navigation detected', " ".session_id()." script_path ".
+            self::abort_with_error_log('Improper navigation detected', "script_path ".
                 $session_script.' /  '.$CFG->getScriptPath(), 'DIE:');
         }
 
@@ -2972,12 +2972,25 @@ class LTIX {
     }
 
     /**
-     * We are aborting this request.  If this is a launch, redirect back
+     * We are aborting this request.  If we are processing a launch request, redirect back.
+     * If this is a loss of session, show an error page that checks for things like
+     * sessionStorage to find the best place to redirect back to.
      */
     public static function abort_with_error_log($msg, $extra=false, $prefix="DIE:") {
         global $CFG;
 
+        // If we are actually processing a launch request, or have a valid session
+        $error_return_url = isset($_POST['launch_presentation_error_return_url']) ? $_POST['launch_presentation_error_return_url'] : null;
+        if ( ! $error_return_url && isset($_SESSION['lti_post']['launch_presentation_error_return_url']) ) {
+            $error_return_url = $_SESSION['lti_post']['launch_presentation_error_return_url'];
+        }
         $return_url = isset($_POST['launch_presentation_return_url']) ? $_POST['launch_presentation_return_url'] : null;
+        if ( ! $return_url && isset($_SESSION['lti_post']['launch_presentation_return_url']) ) {
+            $return_url = $_SESSION['lti_post']['launch_presentation_return_url'];
+        }
+        if ( is_string($error_return_url) && U::strlen(trim($error_return_url)) > 0 ) {
+            $return_url = trim($error_return_url);
+        }
         if ( is_array($extra) ) $extra = Output::safe_var_dump($extra);
 
         // make the msg a bit friendlier
@@ -3009,13 +3022,18 @@ class LTIX {
             exit();
         }
 
+        // If we are not processing a launch request, or do not have a valid session, or were not provided 
+        // with a return URL, show an error page.
         if ($return_url === null) {
             error_log($prefix.' '.$msg.' '.$extra);
             print_stack_trace();
-            $url = "https://www.tsugi.org/launcherror";
-            if ( isset($CFG->launcherror) ) $url = $CFG->launcherror;
-            $url = U::add_url_parm($url, "detail", $msg);
-            Output::htmlError("The LTI Launch Failed", "Detail: $msg", $url);
+            if ( isset($_SESSION['lti_post']) ) {
+                // We have a session, but it is somehow broken
+                Output::htmlError("The LTI Launch Errors", $msg, $extra);
+            } else {
+
+                Output::htmlError("LTI Session is Missing or Expired", $msg, $extra);
+            }
             exit();
         }
         $return_url .= ( strpos($return_url,'?') > 0 ) ? '&' : '?';

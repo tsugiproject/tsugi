@@ -141,13 +141,8 @@ class Output {
         <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/css/bootstrap.min.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/patch/accessibility-patch.css" rel="stylesheet">
         <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
-        <?php if ( strpos($CFG->fontawesome, 'free-5.') > 0 ) { ?>
-        <link href="<?= $CFG->fontawesome ?>/css/all.css" rel="stylesheet">
-        <link href="<?= $CFG->fontawesome ?>/css/v4-shims.css" rel="stylesheet">
-        <?php } else { ?>
-        <link href="<?= $CFG->fontawesome ?>/css/font-awesome.min.css" rel="stylesheet">
-        <?php }
-        
+        <?php self::outputFontAwesome(); ?>
+        <?php
         $theme = self::get_theme();
         if (isset($theme["font-url"])) {
             echo '<link href="'.$theme["font-url"].'" rel="stylesheet">';
@@ -1208,9 +1203,24 @@ EOF;
         return htmlent_utf8($result);
     }
 
-    public static function htmlError($message,$detail,$next=false) {
+    /**
+     * Display an HTML error dialog. Redirect destination is determined client-side from
+     * TSUGI_browser_session() (TSUGI_SESSION_DATA) when available:
+     * (a) launch_presentation_error_return_url, (b) launch_presentation_return_url,
+     * (c) apphome, (d) tsugi.org/launcherror as last resort.
+     *
+     * @param string $message Dialog title
+     * @param string $msg Error message (displayed as "Detail: ...", used in URL params)
+     * @param string|false $extra Optional extra detail for URL params (trimmed, max 200 chars)
+     */
+    public static function htmlError($message, $msg, $extra=false) {
         global $CFG;
-        if ( headers_sent() ) header('HTTP/1.1 400 '.$message);
+        if ( ! headers_sent() ) header('HTTP/1.1 400 '.$message);
+
+        $msg = is_string($msg) ? trim($msg) : '';
+        $detail = 'Detail: ' . $msg;
+        $detail_extra = ( $extra !== false && is_string($extra) && strlen(trim($extra)) < 200 ) ? trim($extra) : '';
+        $launcherror_url = isset($CFG->launcherror) ? $CFG->launcherror : 'https://www.tsugi.org/launcherror';
 
     ?><!DOCTYPE html>
 <html>
@@ -1224,45 +1234,67 @@ EOF;
     <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/patch/accessibility-patch.css" rel="stylesheet">
     <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
-    <link href="<?= $CFG->fontawesome ?>/css/font-awesome.min.css" rel="stylesheet">
+    <?php self::outputFontAwesome(); ?>
 
-      <?php
+    <script src="<?= $CFG->staticroot ?>/js/jquery-1.11.3.js"></script>
+    <script src="<?= $CFG->staticroot ?>/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+    <script src="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>
+
+    <?php
         $theme = self::get_theme();
         if (isset($theme["font-url"])) {
             echo '<link href="'.$theme["font-url"].'" rel="stylesheet">';
         }
         
-        self::output_theme_css($theme) ?>
-
-      <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
+        self::output_theme_css($theme)
+    ?>
+    <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
    </head>
 <body>
 <div id="dialog-confirm" style="display:none;" title="<?= htmlentities($message) ?>">
 <p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span><?= $detail ?></p>
 </div>
-<?php
-        echo('<script src="'.$CFG->staticroot.'/js/jquery-1.11.3.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/bootstrap-3.4.1/js/bootstrap.min.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/js/tsugiscripts.js"></script>'."\n");
-?>
+<script src="<?= $CFG->staticroot ?>/js/tsugiscripts.js"></script>
 <script>
-  $( function() {
-    $( "#dialog-confirm" ).dialog({
-      resizable: false,
-      height: "auto",
-      width: 400,
-      modal: true,
-      buttons: {
-<?php if ( $next ) { ?>
-        "Continue": function() {
-            window.location.href = "<?= $next ?>";
-        },
-<?php } ?>
-      }
-    });
-  } );
-  </script>
+
+$( function() {
+  var errMsg = <?= json_encode($msg) ?>;
+  var errDetail = <?= json_encode($detail_extra) ?>;
+  var launcherror = <?= json_encode($launcherror_url) ?>;
+  var sess = typeof TSUGI_browser_session === 'function' ? TSUGI_browser_session() : null;
+  var ltiErrorReturn = sess && sess.launch_presentation_error_return_url ? sess.launch_presentation_error_return_url : null;
+  var ltiReturn = sess && sess.launch_presentation_return_url ? sess.launch_presentation_return_url : null;
+  var apphome = sess && sess.apphome ? sess.apphome : null;
+  var ltiUrl = (ltiErrorReturn && ltiErrorReturn.length > 0) ? ltiErrorReturn : ltiReturn;
+  var redirectUrl = null;
+  var btnLabel = <?= json_encode(_m('Continue')) ?>;
+  if ( ltiUrl && ltiUrl.length > 0 ) {
+    redirectUrl = ltiUrl + (ltiUrl.indexOf('?')>=0?'&':'?') + 'lti_errormsg=' + encodeURIComponent(errMsg);
+    if ( errDetail && errDetail.length < 200 ) redirectUrl += '&detail=' + encodeURIComponent(errDetail);
+    btnLabel = <?= json_encode(_m('Return to Learning System')) ?>;
+  } else if ( apphome && apphome.length > 0 ) {
+    redirectUrl = apphome + (apphome.indexOf('?')>=0?'&':'?') + 'detail=' + encodeURIComponent(errMsg);
+    btnLabel = <?= json_encode(_m('Return to Application')) ?>;
+  } else {
+    redirectUrl = launcherror + (launcherror.indexOf('?')>=0?'&':'?') + 'detail=' + encodeURIComponent(errMsg);
+    btnLabel = <?= json_encode(_m('Continue')) ?>;
+  }
+  console.log('PHP message: <?= $message ?>');
+  console.log('PHP msg: <?= $msg ?>');
+  console.log('PHP detail: <?= $detail ?>'); 
+  console.log('Localstorage:', sess);
+
+  var btns = {};
+  if ( redirectUrl ) btns[btnLabel] = function() { window.location.href = redirectUrl; };
+  $( "#dialog-confirm" ).dialog({
+    resizable: false,
+    height: "auto",
+    width: 400,
+    modal: true,
+    buttons: btns
+  });
+});
+</script>
 </body>
 <?php
 }
@@ -1437,6 +1469,21 @@ EOF;
 
         $copy = $theme;
 
+    }
+
+    /**
+     * Output FontAwesome stylesheet link(s). FontAwesome 5 uses all.css + v4-shims;
+     * older versions use font-awesome.min.css.
+     */
+    public static function outputFontAwesome() {
+        global $CFG;
+        if ( empty($CFG->fontawesome) ) return;
+        if ( strpos($CFG->fontawesome, 'free-5.') > 0 ) {
+            echo '<link href="'.$CFG->fontawesome.'/css/all.css" rel="stylesheet">'."\n";
+            echo '<link href="'.$CFG->fontawesome.'/css/v4-shims.css" rel="stylesheet">'."\n";
+        } else {
+            echo '<link href="'.$CFG->fontawesome.'/css/font-awesome.min.css" rel="stylesheet">'."\n";
+        }
     }
 
     public static function output_theme_css($theme) {
