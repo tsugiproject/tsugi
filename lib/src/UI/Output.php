@@ -223,7 +223,7 @@ body {
      * in a string instead of being printed to the response.
      */
     function headerData() {
-        global $CFG, $CONTEXT, $USER, $LINK;
+        global $CFG, $CONTEXT, $USER, $LINK, $TSUGI_LAUNCH;
 
         // https://security.stackexchange.com/questions/110101/proper-way-to-protect-against-xss-when-output-is-directly-into-js-not-html
         $retval = "<script>\n var _TSUGI = {\n";
@@ -261,6 +261,8 @@ body {
         $retval .= "heartbeat: ".$heartbeat.",\n";
         $retval .= "heartbeat_url: \"".$heartbeat_url."\",\n";
         $retval .= "rest_path: ".json_encode(U::rest_path()).",\n";
+        $launch_return_url = (is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->returnUrl()) ? $TSUGI_LAUNCH->returnUrl() : '';
+        $retval .= "launch_presentation_return_url: " . ($launch_return_url ? self::json_encode_string_value($launch_return_url) : 'false') . ",\n";
         $retval .= "spinnerUrl: \"".self::getSpinnerUrl()."\",\n";
         $retval .= "staticroot: \"".$CFG->staticroot."\",\n";
         if ( isset ($CFG->apphome) ) {
