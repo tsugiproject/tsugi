@@ -319,7 +319,7 @@ if ( $start_time === false ) {
     $_SESSION['tsugi_permanent_start_time'] = time();
 }
 
-$launch = U::add_url_parm($path, 'PHPSESSID', session_id());
+$launch = U::add_url_parm($path, session_name(), session_id());
 
 if ( ! U::get($_GET,'debug') ) {
     header('Location: '.$launch);
