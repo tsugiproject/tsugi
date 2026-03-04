@@ -239,6 +239,9 @@ body {
         } else {
             $retval .= '            ajax_session: false,'."\n";
         }
+        $retval .= '            cookieless: '.(defined('COOKIE_SESSION') ? 'false' : 'true').",\n";
+        $browser_mark = LTIX::getBrowserMark();
+        $retval .= '            tsugi_browser_mark: '.($browser_mark ? self::json_encode_string_value($browser_mark) : 'false').",\n";
 
         if ( isset($USER->instructor) && $USER->instructor ) {
             $retval .= '            instructor: true,  // Use only for UI display'."\n";
