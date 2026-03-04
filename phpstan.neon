@@ -16,7 +16,6 @@ parameters:
         - dev
         - ext
         - gclass
-        - lms
         - lti
         - mod
         - settings
