@@ -12,3 +12,5 @@ Add feature to store browser mark in the outer iframe
 
 Add feature to attempt to retrieve browser mark via postmessage when ip address changes
 
+Remove auto login.
+
