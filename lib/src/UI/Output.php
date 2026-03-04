@@ -126,69 +126,10 @@ class Output {
 
         if ( $HEAD_CONTENT_SENT === true ) return;
         header('Content-Type: text/html; charset=utf-8');
-        $lang = isset($CFG->lang) && $CFG->lang ? $CFG->lang : 'en';
         ob_start();
-    ?><!DOCTYPE html>
-    <html lang="<?= $lang ?>">
-      <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><?= $CFG->servicename ?><?php if ( isset($CFG->context_title) ) echo(' - '.$CFG->context_title); ?></title>
-<?php echo($this->headerData()); ?>
-        <!-- Tiny bit of JS -->
-        <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
-        <!-- Le styles -->
-        <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/css/bootstrap.min.css" rel="stylesheet">
-        <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/patch/accessibility-patch.css" rel="stylesheet">
-        <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
-        <?php self::outputFontAwesome(); ?>
-        <?php
-        $theme = self::get_theme();
-        if (isset($theme["font-url"])) {
-            echo '<link href="'.$theme["font-url"].'" rel="stylesheet">';
-        }
-        
-        self::output_theme_css($theme) ?>
-
-          <link href="<?= $CFG->staticroot ?>/css/tsugi2.css" rel="stylesheet">
-
-          <style>
-              .skip-link {
-                position: absolute;
-                left: -9999px;
-                z-index: 999;
-                padding: 1rem 1.5rem;
-                background: var(--primary, #337ab7);
-                color: white;
-                text-decoration: none;
-                border-radius: 0 0 4px 0;
-              }
-              .skip-link:focus {
-                left: 0;
-                top: 0;
-              }
-              <?php
-              if ( isset($CFG->extra_css) ) {
-                  echo($CFG->extra_css."\n");
-              }
-              ?>
-          </style>
-<?php // https://lefkomedia.com/adding-external-link-indicator-with-css/
-  if ( $CFG->google_translate ) { ?>
-<style>
-a[target="_blank"]:after {
-    font-family: 'Font Awesome 5 Free';
-    font-weight: 600;
-    content: " \f35d";
-}
-.goog-te-banner-frame.skiptranslate {
-    display: none !important;
-    }
-body {
-    top: 0px !important;
-    }
-</style>
-<?php }
+        echo(self::headerStart());
+        echo($this->headerData());
+        echo(self::headerCss());
         if ( $this->session_get('CSRF_TOKEN') ) {
             echo('<script type="text/javascript">CSRF_TOKEN = "'.$this->session_get('CSRF_TOKEN').'";</script>'."\n");
         } else {
@@ -220,31 +161,35 @@ body {
     function headerData() {
         global $CFG, $CONTEXT, $USER, $LINK, $TSUGI_LAUNCH;
 
+        $pad = function($key, $width = 36) {
+            return str_pad($key . ':', $width + 1);
+        };
+
         // https://security.stackexchange.com/questions/110101/proper-way-to-protect-against-xss-when-output-is-directly-into-js-not-html
-        $retval = "<script>\n var _TSUGI = {\n";
+        $retval = "<script>\nvar _TSUGI = {\n";
         if ( isset($CONTEXT->title) ) {
-            $retval .= '            context_title: '.self::json_encode_string_value($CONTEXT->title).",\n";
+            $retval .= '    '.$pad('context_title').self::json_encode_string_value($CONTEXT->title).",\n";
         }
         if ( isset($LINK->title) ) {
-            $retval .= '            link_title: '.self::json_encode_string_value($LINK->title).",\n";
+            $retval .= '    '.$pad('link_title').self::json_encode_string_value($LINK->title).",\n";
         }
         if ( isset($USER->displayname) ) {
-            $retval .= '            user_displayname: '.self::json_encode_string_value($USER->displayname).",\n";
+            $retval .= '    '.$pad('user_displayname').self::json_encode_string_value($USER->displayname).",\n";
         }
         if ( isset($USER->locale) ) {
-            $retval .= '            user_locale: '.self::json_encode_string_value($USER->locale).",\n";
+            $retval .= '    '.$pad('user_locale').self::json_encode_string_value($USER->locale).",\n";
         }
         if ( U::strlen(session_id()) > 0 && ini_get('session.use_cookies') == '0' ) {
-            $retval .= '            ajax_session: "'.urlencode(session_name()).'='.urlencode(session_id()).'"'.",\n";
+            $retval .= '    '.$pad('ajax_session').'"'.urlencode(session_name()).'='.urlencode(session_id())."\",\n";
         } else {
-            $retval .= '            ajax_session: false,'."\n";
+            $retval .= '    '.$pad('ajax_session')."false,\n";
         }
-        $retval .= '            cookieless: '.(defined('COOKIE_SESSION') ? 'false' : 'true').",\n";
+        $retval .= '    '.$pad('cookieless').(defined('COOKIE_SESSION') ? 'false' : 'true').",\n";
         $browser_mark = LTIX::getBrowserMark();
-        $retval .= '            tsugi_browser_mark: '.($browser_mark ? self::json_encode_string_value($browser_mark) : 'false').",\n";
+        $retval .= '    '.$pad('tsugi_browser_mark').($browser_mark ? self::json_encode_string_value($browser_mark) : 'false').",\n";
 
         if ( isset($USER->instructor) && $USER->instructor ) {
-            $retval .= '            instructor: true,  // Use only for UI display'."\n";
+            $retval .= '    '.$pad('instructor')."true,  // Use only for UI display\n";
         }
         $heartbeat = 10*60*1000; // 10 minutes
         if ( isset($CFG->sessionlifetime) ) {
@@ -256,32 +201,32 @@ body {
         $heartbeat_url = U::add_url_parm($heartbeat_url,'msec',$heartbeat);
         $heartbeat_url = U::addSession($heartbeat_url);
 
-        $retval .= "heartbeat: ".$heartbeat.",\n";
-        $retval .= "heartbeat_url: \"".$heartbeat_url."\",\n";
-        $retval .= "rest_path: ".json_encode(U::rest_path()).",\n";
+        $retval .= '    '.$pad('heartbeat').$heartbeat.",\n";
+        $retval .= '    '.$pad('heartbeat_url').'"'.$heartbeat_url."\",\n";
+        $retval .= '    '.$pad('rest_path').json_encode(U::rest_path()).",\n";
         $launch_return_url = (is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->returnUrl()) ? $TSUGI_LAUNCH->returnUrl() : '';
-        $retval .= "launch_presentation_return_url: " . ($launch_return_url ? self::json_encode_string_value($launch_return_url) : 'false') . ",\n";
+        $retval .= '    '.$pad('launch_presentation_return_url').($launch_return_url ? self::json_encode_string_value($launch_return_url) : 'false') . ",\n";
         $launch_error_return_url = (is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->errorReturnUrl()) ? $TSUGI_LAUNCH->errorReturnUrl() : '';
-        $retval .= "launch_presentation_error_return_url: " . ($launch_error_return_url ? self::json_encode_string_value($launch_error_return_url) : 'false') . ",\n";
-        $retval .= "spinnerUrl: \"".self::getSpinnerUrl()."\",\n";
-        $retval .= "staticroot: \"".$CFG->staticroot."\",\n";
+        $retval .= '    '.$pad('launch_presentation_error_return_url').($launch_error_return_url ? self::json_encode_string_value($launch_error_return_url) : 'false') . ",\n";
+        $retval .= '    '.$pad('spinnerUrl').'"'.self::getSpinnerUrl()."\",\n";
+        $retval .= '    '.$pad('staticroot').'"'.$CFG->staticroot."\",\n";
         if ( isset ($CFG->apphome) ) {
-            $retval .= "apphome: \"".$CFG->apphome."\",\n";
+            $retval .= '    '.$pad('apphome').'"'.$CFG->apphome."\",\n";
         } else {
-            $retval .= "apphome: false,\n";
+            $retval .= '    '.$pad('apphome')."false,\n";
         }
-        $retval .= "wwwroot: \"".$CFG->wwwroot."\",\n";
+        $retval .= '    '.$pad('wwwroot').'"'.$CFG->wwwroot."\",\n";
         if ( isset($CFG->youtube_playlist) && $CFG->youtube_playlist ) {
-            $retval .= "youtube_playlist: ".self::json_encode_string_value($CFG->youtube_playlist).",\n";
+            $retval .= '    '.$pad('youtube_playlist').self::json_encode_string_value($CFG->youtube_playlist).",\n";
         }
         $websocket_url = (WebSocket::enabled() && $LINK) ? '"'.$CFG->websocket_url.'"' : 'false';
-        $retval .= "websocket_url: ".$websocket_url.",\n";
+        $retval .= '    '.$pad('websocket_url').$websocket_url.",\n";
         $websocket_token = (WebSocket::enabled() && $LINK) ? '"'.WebSocket::getToken($LINK->launch).'"' : 'false';
-        $retval .= "websocket_token: ".$websocket_token.",\n";
-        $retval .= "react_token: \"".session_id()."\",\n";
-        $retval .= "window_close_message: \""._m('Application complete - You can close this tab.')."\",\n";
-        $retval .= "session_expire_message: \""._m('Your session has expired')."\"\n";
-        $retval .= "\n}\n</script>\n";
+        $retval .= '    '.$pad('websocket_token').$websocket_token.",\n";
+        $retval .= '    '.$pad('react_token').'"'.session_id()."\",\n";
+        $retval .= '    '.$pad('window_close_message').self::json_encode_string_value(_m('Application complete - You can close this tab.')).",\n";
+        $retval .= '    '.$pad('session_expire_message').self::json_encode_string_value(_m('Your session has expired'))."\n";
+        $retval .= "};\n</script>\n";
         return $retval;
     }
 
@@ -443,16 +388,26 @@ EOF;
         return HandleBars::templateProcess($template);
     }
 
+    /**
+     * Return script tags for jQuery, Bootstrap, jQuery UI, timeago, handlebars, tmpl, tsugiscripts.
+     * Used by footerStart() and htmlError().
+     */
+    public static function footerScriptLinks() {
+        global $CFG;
+        $s = $CFG->staticroot;
+        return '<script src="'.$s.'/js/jquery-1.11.3.js"></script>'."\n"
+            .'<script src="'.$s.'/bootstrap-3.4.1/js/bootstrap.min.js"></script>'."\n"
+            .'<script src="'.$s.'/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>'."\n"
+            .'<script src="'.$s.'/js/jquery.timeago-1.6.3.js"></script>'."\n"
+            .'<script src="'.$s.'/js/handlebars-v4.0.2.js"></script>'."\n"
+            .'<script src="'.$s.'/tmpljs-3.8.0/tmpl.min.js"></script>'."\n"
+            .'<script src="'.$s.'/js/tsugiscripts.js"></script>'."\n";
+    }
+
     function footerStart() {
         global $CFG;
         ob_start();
-        echo('<script src="'.$CFG->staticroot.'/js/jquery-1.11.3.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/bootstrap-3.4.1/js/bootstrap.min.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/js/jquery.timeago-1.6.3.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/js/handlebars-v4.0.2.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/tmpljs-3.8.0/tmpl.min.js"></script>'."\n");
-        echo('<script src="'.$CFG->staticroot.'/js/tsugiscripts.js"></script>'."\n");
+        echo(self::footerScriptLinks());
 
 ?>
 <script type="text/javascript">
@@ -1225,39 +1180,15 @@ EOF;
         $detail_extra = ( $extra !== false && is_string($extra) && strlen(trim($extra)) < 200 ) ? trim($extra) : '';
         $launcherror_url = isset($CFG->launcherror) && $CFG->launcherror ? $CFG->launcherror : '';
 
-    ?><!DOCTYPE html>
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $CFG->servicename ?><?php if ( isset($CFG->context_title) ) echo(' - '.$CFG->context_title); ?></title>
-    <!-- Tiny bit of JS -->
-    <script src="<?= $CFG->staticroot ?>/js/tsugiscripts_head.js"></script>
-    <!-- Le styles -->
-    <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/css/bootstrap.min.css" rel="stylesheet">
-    <link href="<?= $CFG->staticroot ?>/bootstrap-3.4.1/patch/accessibility-patch.css" rel="stylesheet">
-    <link href="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
-    <?php self::outputFontAwesome(); ?>
-
-    <script src="<?= $CFG->staticroot ?>/js/jquery-1.11.3.js"></script>
-    <script src="<?= $CFG->staticroot ?>/bootstrap-3.4.1/js/bootstrap.min.js"></script>
-    <script src="<?= $CFG->staticroot ?>/js/jquery-ui-1.11.4/jquery-ui.min.js"></script>
-
-    <?php
-        $theme = self::get_theme();
-        if (isset($theme["font-url"])) {
-            echo '<link href="'.$theme["font-url"].'" rel="stylesheet">';
-        }
-        
-        self::output_theme_css($theme)
-    ?>
-    <link href="<?= $CFG->staticroot ?>/css/tsugi.css" rel="stylesheet">
+        echo(self::headerStart());
+        echo(self::headerCss());
+?>
    </head>
 <body>
 <div id="dialog-confirm" style="display:none;" title="<?= htmlentities($message) ?>">
 <p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span><?= $detail ?></p>
 </div>
-<script src="<?= $CFG->staticroot ?>/js/tsugiscripts.js"></script>
+<?= self::footerScriptLinks() ?>
 <script>
 
 $( function() {
@@ -1471,28 +1402,94 @@ $( function() {
     }
 
     /**
-     * Output FontAwesome stylesheet link(s). FontAwesome 5 uses all.css + v4-shims;
+     * Return doctype, html, head opening, meta, title, tsugiscripts_head.
+     * Callers add headerData (if applicable), headerCss, then close head. Used by header() and htmlError().
+     */
+    public static function headerStart() {
+        global $CFG;
+        $lang = isset($CFG->lang) && $CFG->lang ? $CFG->lang : 'en';
+        $title = $CFG->servicename;
+        if ( isset($CFG->context_title) && $CFG->context_title ) {
+            $title .= ' - '.$CFG->context_title;
+        }
+        $s = $CFG->staticroot;
+        return '<!DOCTYPE html>
+<html lang="'.htmlspecialchars($lang).'">
+  <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" >
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>'.htmlspecialchars($title).'</title>
+        <!-- Tiny bit of JS -->
+        <script src="'.$s.'/js/tsugiscripts_head.js"></script>
+';
+    }
+
+    /**
+     * Return all shared stylesheet links and inline CSS for the page header.
+     * Used by header() and htmlError().
+     */
+    public static function headerCss() {
+        global $CFG;
+        $s = $CFG->staticroot;
+        $ret = '        <!-- Le styles -->
+        <link href="'.$s.'/bootstrap-3.4.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="'.$s.'/bootstrap-3.4.1/patch/accessibility-patch.css" rel="stylesheet">
+        <link href="'.$s.'/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
+';
+        $ret .= self::getFontAwesomeLinks();
+        $theme = self::get_theme();
+        if (isset($theme["font-url"])) {
+            $ret .= '        <link href="'.htmlspecialchars($theme["font-url"]).'" rel="stylesheet">'."\n";
+        }
+        $ret .= self::getThemeCss($theme);
+        $ret .= '        <link href="'.$s.'/css/tsugi2.css" rel="stylesheet">'."\n";
+        if ( isset($CFG->extra_css) ) {
+            $ret .= '        <style>'."\n".$CFG->extra_css."\n".'        </style>';
+        }
+        if ( isset($CFG->google_translate) && $CFG->google_translate ) {
+            $ret .= '
+        <style>
+a[target="_blank"]:after {
+    font-family: \'Font Awesome 5 Free\';
+    font-weight: 600;
+    content: " \f35d";
+}
+.goog-te-banner-frame.skiptranslate {
+    display: none !important;
+    }
+body {
+    top: 0px !important;
+    }
+</style>';
+        }
+        return $ret;
+    }
+
+    /**
+     * Return FontAwesome stylesheet link(s). FontAwesome 5 uses all.css + v4-shims;
      * older versions use font-awesome.min.css.
      */
-    public static function outputFontAwesome() {
+    public static function getFontAwesomeLinks() {
         global $CFG;
-        if ( empty($CFG->fontawesome) ) return;
+        if ( empty($CFG->fontawesome) ) return '';
         if ( strpos($CFG->fontawesome, 'free-5.') > 0 ) {
-            echo '<link href="'.$CFG->fontawesome.'/css/all.css" rel="stylesheet">'."\n";
-            echo '<link href="'.$CFG->fontawesome.'/css/v4-shims.css" rel="stylesheet">'."\n";
-        } else {
-            echo '<link href="'.$CFG->fontawesome.'/css/font-awesome.min.css" rel="stylesheet">'."\n";
+            return '<link href="'.$CFG->fontawesome.'/css/all.css" rel="stylesheet">'."\n"
+                .'<link href="'.$CFG->fontawesome.'/css/v4-shims.css" rel="stylesheet">'."\n";
         }
+        return '<link href="'.$CFG->fontawesome.'/css/font-awesome.min.css" rel="stylesheet">'."\n";
     }
 
     public static function output_theme_css($theme) {
+        echo(self::getThemeCss($theme));
+    }
 
+    public static function getThemeCss($theme) {
         $style = '<style>:root {';
         foreach($theme as $name => $value ) {
             $style .= '--'.$name.':'.$value.";\n";
         }
         $style .= '}</style>';
-        echo($style);
+        return $style;
     }
 
 }
