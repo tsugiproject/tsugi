@@ -1280,12 +1280,19 @@ class LTIX {
 
     // Make sure to include the file in case multiple instances are running
     // on the same Operating System instance and they have not changed the
-    // session secret.  Also make these change every 30 minutes
+    // session secret.  Also make these change based on sessionlifetime
     public static function getCompositeKey($post, $session_secret) {
+        global $CFG;
         $key = U::get($post, 'issuer_key', U::get($post, 'key'));
         $user_info = U::get($post,'user_id') . U::get($post,'user_subject');
+        $bucket = 1800;
+        if ( isset($CFG->sessionlifetime) && is_numeric($CFG->sessionlifetime) ) {
+            $bucket = (int) ($CFG->sessionlifetime * 0.5);
+        }
+        $bucket = max(300, min(86400, $bucket));
+        $time = intval(time() / $bucket); 
         $comp = $session_secret .'::'. $key .'::'. $post['context_id'] .'::'.
-            U::get($post,'link_id')  .'::'. $user_info .'::'. intval(time() / 1800) .
+            U::get($post,'link_id')  .'::'. $user_info .'::'. $time .
             $_SERVER['HTTP_USER_AGENT'] . '::' . __FILE__;
         return md5($comp);
     }
