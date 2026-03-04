@@ -8,9 +8,7 @@ Move pre_config into setup.php
 
 Clean up the koseu folder.
 
-Add feature to store browser mark in the outer iframe
-
-Add feature to attempt to retrieve browser mark via postmessage when ip address changes
+Add feature to attempt to retrieve browser mark from sessionStorage on IP change
 
 Remove auto login.
 
