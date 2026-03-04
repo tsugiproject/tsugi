@@ -161,35 +161,31 @@ class Output {
     function headerData() {
         global $CFG, $CONTEXT, $USER, $LINK, $TSUGI_LAUNCH;
 
-        $pad = function($key, $width = 36) {
-            return str_pad($key . ':', $width + 1);
-        };
-
         // https://security.stackexchange.com/questions/110101/proper-way-to-protect-against-xss-when-output-is-directly-into-js-not-html
         $retval = "<script>\nvar _TSUGI = {\n";
         if ( isset($CONTEXT->title) ) {
-            $retval .= '    '.$pad('context_title').self::json_encode_string_value($CONTEXT->title).",\n";
+            $retval .= '  context_title: '.self::json_encode_string_value($CONTEXT->title).",\n";
         }
         if ( isset($LINK->title) ) {
-            $retval .= '    '.$pad('link_title').self::json_encode_string_value($LINK->title).",\n";
+            $retval .= '  link_title: '.self::json_encode_string_value($LINK->title).",\n";
         }
         if ( isset($USER->displayname) ) {
-            $retval .= '    '.$pad('user_displayname').self::json_encode_string_value($USER->displayname).",\n";
+            $retval .= '  user_displayname: '.self::json_encode_string_value($USER->displayname).",\n";
         }
         if ( isset($USER->locale) ) {
-            $retval .= '    '.$pad('user_locale').self::json_encode_string_value($USER->locale).",\n";
+            $retval .= '  user_locale: '.self::json_encode_string_value($USER->locale).",\n";
         }
         if ( U::strlen(session_id()) > 0 && ini_get('session.use_cookies') == '0' ) {
-            $retval .= '    '.$pad('ajax_session').'"'.urlencode(session_name()).'='.urlencode(session_id())."\",\n";
+            $retval .= '  ajax_session: "'.urlencode(session_name()).'='.urlencode(session_id()).'"'.",\n";
         } else {
-            $retval .= '    '.$pad('ajax_session')."false,\n";
+            $retval .= '  ajax_session: false,'."\n";
         }
-        $retval .= '    '.$pad('cookieless').(defined('COOKIE_SESSION') ? 'false' : 'true').",\n";
+        $retval .= '  cookieless: '.(defined('COOKIE_SESSION') ? 'false' : 'true').",\n";
         $browser_mark = LTIX::getBrowserMark();
-        $retval .= '    '.$pad('tsugi_browser_mark').($browser_mark ? self::json_encode_string_value($browser_mark) : 'false').",\n";
+        $retval .= '  tsugi_browser_mark: '.($browser_mark ? self::json_encode_string_value($browser_mark) : 'false').",\n";
 
         if ( isset($USER->instructor) && $USER->instructor ) {
-            $retval .= '    '.$pad('instructor')."true,  // Use only for UI display\n";
+            $retval .= '  instructor: true,  // Use only for UI display'."\n";
         }
         $heartbeat = 10*60*1000; // 10 minutes
         if ( isset($CFG->sessionlifetime) ) {
@@ -201,32 +197,32 @@ class Output {
         $heartbeat_url = U::add_url_parm($heartbeat_url,'msec',$heartbeat);
         $heartbeat_url = U::addSession($heartbeat_url);
 
-        $retval .= '    '.$pad('heartbeat').$heartbeat.",\n";
-        $retval .= '    '.$pad('heartbeat_url').'"'.$heartbeat_url."\",\n";
-        $retval .= '    '.$pad('rest_path').json_encode(U::rest_path()).",\n";
+        $retval .= "  heartbeat: ".$heartbeat.",\n";
+        $retval .= "  heartbeat_url: \"".$heartbeat_url."\",\n";
+        $retval .= "  rest_path: ".json_encode(U::rest_path()).",\n";
         $launch_return_url = (is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->returnUrl()) ? $TSUGI_LAUNCH->returnUrl() : '';
-        $retval .= '    '.$pad('launch_presentation_return_url').($launch_return_url ? self::json_encode_string_value($launch_return_url) : 'false') . ",\n";
+        $retval .= "  launch_presentation_return_url: " . ($launch_return_url ? self::json_encode_string_value($launch_return_url) : 'false') . ",\n";
         $launch_error_return_url = (is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->errorReturnUrl()) ? $TSUGI_LAUNCH->errorReturnUrl() : '';
-        $retval .= '    '.$pad('launch_presentation_error_return_url').($launch_error_return_url ? self::json_encode_string_value($launch_error_return_url) : 'false') . ",\n";
-        $retval .= '    '.$pad('spinnerUrl').'"'.self::getSpinnerUrl()."\",\n";
-        $retval .= '    '.$pad('staticroot').'"'.$CFG->staticroot."\",\n";
+        $retval .= "  launch_presentation_error_return_url: " . ($launch_error_return_url ? self::json_encode_string_value($launch_error_return_url) : 'false') . ",\n";
+        $retval .= "  spinnerUrl: \"".self::getSpinnerUrl()."\",\n";
+        $retval .= "  staticroot: \"".$CFG->staticroot."\",\n";
         if ( isset ($CFG->apphome) ) {
-            $retval .= '    '.$pad('apphome').'"'.$CFG->apphome."\",\n";
+            $retval .= "  apphome: \"".$CFG->apphome."\",\n";
         } else {
-            $retval .= '    '.$pad('apphome')."false,\n";
+            $retval .= "  apphome: false,\n";
         }
-        $retval .= '    '.$pad('wwwroot').'"'.$CFG->wwwroot."\",\n";
+        $retval .= "  wwwroot: \"".$CFG->wwwroot."\",\n";
         if ( isset($CFG->youtube_playlist) && $CFG->youtube_playlist ) {
-            $retval .= '    '.$pad('youtube_playlist').self::json_encode_string_value($CFG->youtube_playlist).",\n";
+            $retval .= "  youtube_playlist: ".self::json_encode_string_value($CFG->youtube_playlist).",\n";
         }
         $websocket_url = (WebSocket::enabled() && $LINK) ? '"'.$CFG->websocket_url.'"' : 'false';
-        $retval .= '    '.$pad('websocket_url').$websocket_url.",\n";
+        $retval .= "  websocket_url: ".$websocket_url.",\n";
         $websocket_token = (WebSocket::enabled() && $LINK) ? '"'.WebSocket::getToken($LINK->launch).'"' : 'false';
-        $retval .= '    '.$pad('websocket_token').$websocket_token.",\n";
-        $retval .= '    '.$pad('react_token').'"'.session_id()."\",\n";
-        $retval .= '    '.$pad('window_close_message').self::json_encode_string_value(_m('Application complete - You can close this tab.')).",\n";
-        $retval .= '    '.$pad('session_expire_message').self::json_encode_string_value(_m('Your session has expired'))."\n";
-        $retval .= "};\n</script>\n";
+        $retval .= "  websocket_token: ".$websocket_token.",\n";
+        $retval .= "  react_token: \"".session_id()."\",\n";
+        $retval .= "  window_close_message: \""._m('Application complete - You can close this tab.')."\",\n";
+        $retval .= "  session_expire_message: \""._m('Your session has expired')."\"\n";
+        $retval .= "}\n</script>\n";
         return $retval;
     }
 
@@ -1432,23 +1428,23 @@ $( function() {
         global $CFG;
         $s = $CFG->staticroot;
         $ret = '        <!-- Le styles -->
-        <link href="'.$s.'/bootstrap-3.4.1/css/bootstrap.min.css" rel="stylesheet">
-        <link href="'.$s.'/bootstrap-3.4.1/patch/accessibility-patch.css" rel="stylesheet">
-        <link href="'.$s.'/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
+<link href="'.$s.'/bootstrap-3.4.1/css/bootstrap.min.css" rel="stylesheet">
+<link href="'.$s.'/bootstrap-3.4.1/patch/accessibility-patch.css" rel="stylesheet">
+<link href="'.$s.'/js/jquery-ui-1.11.4/jquery-ui.min.css" rel="stylesheet">
 ';
         $ret .= self::getFontAwesomeLinks();
         $theme = self::get_theme();
         if (isset($theme["font-url"])) {
-            $ret .= '        <link href="'.htmlspecialchars($theme["font-url"]).'" rel="stylesheet">'."\n";
+            $ret .= '<link href="'.htmlspecialchars($theme["font-url"]).'" rel="stylesheet">'."\n";
         }
         $ret .= self::getThemeCss($theme);
-        $ret .= '        <link href="'.$s.'/css/tsugi2.css" rel="stylesheet">'."\n";
+        $ret .= '<link href="'.$s.'/css/tsugi2.css" rel="stylesheet">'."\n";
         if ( isset($CFG->extra_css) ) {
-            $ret .= '        <style>'."\n".$CFG->extra_css."\n".'        </style>';
+            $ret .= '<style>'."\n".$CFG->extra_css."\n</style>\n";
         }
         if ( isset($CFG->google_translate) && $CFG->google_translate ) {
             $ret .= '
-        <style>
+<style>
 a[target="_blank"]:after {
     font-family: \'Font Awesome 5 Free\';
     font-weight: 600;
@@ -1460,7 +1456,8 @@ a[target="_blank"]:after {
 body {
     top: 0px !important;
     }
-</style>';
+</style>
+';
         }
         return $ret;
     }
@@ -1488,7 +1485,7 @@ body {
         foreach($theme as $name => $value ) {
             $style .= '--'.$name.':'.$value.";\n";
         }
-        $style .= '}</style>';
+        $style .= '}</style>'."\n";
         return $style;
     }
 
