@@ -608,23 +608,53 @@ class Net {
 
     /**
      * Put as much oomph into setting a cookie as we can
+     *
+     * @param string $name Cookie name
+     * @param string $value Cookie value
+     * @param string $domain Cookie domain
+     * @param int $expires Unix timestamp for expiration
+     * @param bool $partitioned Add Partitioned attribute (CHIPS) for iframe/third-party use
      */
-    public static function setCookieStrong($name, $value, $domain, $expires) {
+    public static function setCookieStrong($name, $value, $domain, $expires, $partitioned = true) {
         $old_value = U::get($_COOKIE, $name);
         if (is_string($old_value) && U::strlen($old_value) > 1 ) {
             if ( $old_value == $value ) return;
         } else {
-            setcookie(
-                $name,
-                $value,
-                [
-                    'expires' => $expires,
-                    'path' => '/',
-                    'domain' => $domain,
-                    'samesite' => 'None',
-                    'secure' => true,
-                ]
-            );
+            if ( $partitioned && PHP_VERSION_ID >= 80500 ) {
+                setcookie(
+                    $name,
+                    $value,
+                    [
+                        'expires' => $expires,
+                        'path' => '/',
+                        'domain' => $domain,
+                        'samesite' => 'None',
+                        'secure' => true,
+                        'partitioned' => true,
+                    ]
+                );
+            } elseif ( $partitioned && PHP_VERSION_ID < 80500 ) {
+                $expires_str = gmdate('D, d M Y H:i:s \G\M\T', $expires);
+                header(sprintf(
+                    'Set-Cookie: %s=%s; expires=%s; path=/; domain=%s; secure; samesite=None; partitioned',
+                    $name,
+                    rawurlencode($value),
+                    $expires_str,
+                    $domain
+                ));
+            } else {
+                setcookie(
+                    $name,
+                    $value,
+                    [
+                        'expires' => $expires,
+                        'path' => '/',
+                        'domain' => $domain,
+                        'samesite' => 'None',
+                        'secure' => true,
+                    ]
+                );
+            }
         }
     }
 

@@ -370,9 +370,9 @@ class LTIX {
     }
 
     // Put as much oomph into setting a cookie as we can
-    public static function setCookieStrong($name, $value, $expires) {
+    public static function setCookieStrong($name, $value, $expires, $partitioned = true) {
         global $CFG;
-        Net::setCookieStrong($name, $value, parse_url($CFG->wwwroot)['host'], $expires);
+        Net::setCookieStrong($name, $value, parse_url($CFG->wwwroot)['host'], $expires, $partitioned);
     }
 
     public static function getBrowserMark() {
