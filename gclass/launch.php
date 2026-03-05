@@ -310,7 +310,7 @@ $lti['gc_coursework'] = $gc_coursework;
 $lti['gc_submit_id'] = $gc_submit_id;
 
 // Set that data in the session.
-$_SESSION['lti'] = $lti;
+$_SESSION[TSUGI_SESSION_LTI] = $lti;
 
 // Record their log in if this is the first for a session
 $start_time = U::get($_SESSION, 'tsugi_permanent_start_time', false);

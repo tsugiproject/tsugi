@@ -32,7 +32,7 @@ error_log('RPC session: '.$session_id."\n");
 session_id($session_id);
 
 session_start();
-$LTI = $_SESSION['lti'];
+$LTI = $_SESSION[TSUGI_SESSION_LTI];
 if ( ! $LTI ) return rpc_failure('Invalid session');
 
 $LAUNCH = LTIX::buildLaunch($LTI);

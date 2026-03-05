@@ -147,7 +147,7 @@ class GoogleClassroom {
     }
 
     public static function gradeSend($grade) {
-        $lti = U::get($_SESSION, 'lti');
+        $lti = U::get($_SESSION, TSUGI_SESSION_LTI);
         if ( ! is_array($lti) ) return "GoogleClassroom::gradeSend - LTI Session not setup";
 
         $gc_course = U::get($lti, 'gc_course');

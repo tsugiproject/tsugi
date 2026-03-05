@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '../lib/include/tsugi_constants.php';
+require_once __DIR__ . '/../lib/include/tsugi_constants.php';
 
 if ( isset($_GET[session_name()]) || isset($_GET[TSUGI_COOKIELESS_SESSION_NAME]) ) {
     $cookie = false;

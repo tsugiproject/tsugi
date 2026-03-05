@@ -14,7 +14,7 @@ $tsugi_key = U::get($_REQUEST, 'tsugi_key');
 
 session_start();
 
-$LTI = U::get($_SESSION, 'lti');
+$LTI = U::get($_SESSION, TSUGI_SESSION_LTI);
 
 $display_name = U::get($LTI, 'displayname');
 $user_id = U::get($LTI, 'user_id');

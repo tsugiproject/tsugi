@@ -43,7 +43,7 @@ if ( ! $endpoint ) {
 }
 
 $user_id = $_SESSION['id'];
-$key_id = $_SESSION['lti']['key_id'];
+$key_id = $_SESSION[TSUGI_SESSION_LTI]['key_id'];
 
 // Try access token from session when LTIX adds it.
 $accessTokenStr = GoogleClassroom::retrieve_instructor_token();

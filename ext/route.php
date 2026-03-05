@@ -44,7 +44,7 @@ if ( U::strlen($privkey) < 1 || U::strlen($pubkey) < 1 ) {
 // Handle all forms of launch
 $LTI = LTIX::requireData();
 
-$json = $_SESSION['lti'];
+$json = $_SESSION[TSUGI_SESSION_LTI];
 unset($json['event_nonce']);
 $jwt_claim = LTI13::base_jwt("iss","subj");
 $jwt_claim["lti"] = $json;

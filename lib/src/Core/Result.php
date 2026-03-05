@@ -318,7 +318,7 @@ class Result extends Entity {
 
         // Check is this is a Google Classroom Launch
         $GradeSendTransport = false;
-        if ( isset($_SESSION['lti']) && isset($_SESSION['lti']['gc_submit_id']) ) {
+        if ( isset($_SESSION[TSUGI_SESSION_LTI]) && isset($_SESSION[TSUGI_SESSION_LTI]['gc_submit_id']) ) {
             if ( is_array($debug_log) )  $debug_log[] = "Using Google Classroom";
             $GradeSendTransport = "Google";
             // TODO: Need to send to the user from $row
@@ -379,10 +379,10 @@ class Result extends Entity {
 
         // Update the session view of the grade
         if ( $status === true ) {
-            $ltidata = $this->session_get('lti');
+            $ltidata = $this->session_get(TSUGI_SESSION_LTI);
             if ( $ltidata && $row !== false ) {
                 $ltidata['grade'] = $grade;
-                $this->session_put('lti', $ltidata);
+                $this->session_put(TSUGI_SESSION_LTI, $ltidata);
             }
             if ( is_string($GradeSendTransport) ) {
                 $msg = 'Grade sent '.$grade.' id='.$USER->id.' via '.$GradeSendTransport;

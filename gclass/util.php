@@ -10,13 +10,13 @@ function sanity_check() {
         die_with_error_log('Error: Must be logged in to use Google Classroom');
     }
 
-    if ( !isset($_SESSION['lti']) ) {
+    if ( !isset($_SESSION[TSUGI_SESSION_LTI]) ) {
         $_SESSION['error'] = 'Please log out and back in.';
         header('Location: '.$CFG->apphome);
         return false;
     }
 
-    if ( !isset($_SESSION['lti']['key_id']) ) {
+    if ( !isset($_SESSION[TSUGI_SESSION_LTI]['key_id']) ) {
         die_with_error_log('Error: Session is missing key_id');
     }
 

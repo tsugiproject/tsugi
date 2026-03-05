@@ -551,7 +551,7 @@ $('a').each(function (x) {
             error_log("Heartbeat session_id=".$session_id." session_start=".session_id());
         }
 
-        if ( $session_id && ! U::get($_SESSION,'lti') ) {
+        if ( $session_id && ! U::get($_SESSION, TSUGI_SESSION_LTI) ) {
             error_log("Heartbeat session_id=".$session_id." missing lti value");
         }
 
@@ -574,7 +574,7 @@ $('a').each(function (x) {
         $retval = array("success" => true, "seconds" => $seconds,
                 "now" => $now, "count" => $count, "cookie" => $cookie,
                 "id" => session_id());
-        $lti = LTIX::wrapped_session_get($session_object, 'lti');
+        $lti = LTIX::wrapped_session_get($session_object, TSUGI_SESSION_LTI);
         $retval['lti'] = is_array($lti) && U::get($lti, 'key_id');
         $retval['sessionlifetime'] = $CFG->sessionlifetime;
         return $retval;
@@ -657,8 +657,8 @@ $('a').each(function (x) {
         if ( $text === false ) $text = _m("Exit");
         $url = Settings::linkGet('done');
         if ( $url == false ) {
-            if ( $this->session_get('lti_post') && isset($this->session_get('lti_post')['custom_done']) ) {
-                $url = $this->session_get('lti_post')['custom_done'];
+            if ( $this->session_get(TSUGI_SESSION_LTI_POST) && isset($this->session_get(TSUGI_SESSION_LTI_POST)['custom_done']) ) {
+                $url = $this->session_get(TSUGI_SESSION_LTI_POST)['custom_done'];
             } else if ( isset($_GET["done"]) ) {
                 $url = $_GET['done'];
             }
@@ -1307,11 +1307,11 @@ $( function() {
         if (is_object($TSUGI_LAUNCH)) {
             $launched_theme_base = null;
             $launched_dark_mode = null;
-            if (isset($_SESSION) && isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['theme_base'])) {
-                $launched_theme_base = $_SESSION['lti_post']['theme_base'];
+            if (isset($_SESSION) && isset($_SESSION[TSUGI_SESSION_LTI_POST]) && isset($_SESSION[TSUGI_SESSION_LTI_POST]['theme_base'])) {
+                $launched_theme_base = $_SESSION[TSUGI_SESSION_LTI_POST]['theme_base'];
             }
-            if (isset($_SESSION) && isset($_SESSION['lti_post']) && isset($_SESSION['lti_post']['theme_dark_mode'])) {
-                $launched_dark_mode = $_SESSION['lti_post']['theme_dark_mode'];
+            if (isset($_SESSION) && isset($_SESSION[TSUGI_SESSION_LTI_POST]) && isset($_SESSION[TSUGI_SESSION_LTI_POST]['theme_dark_mode'])) {
+                $launched_dark_mode = $_SESSION[TSUGI_SESSION_LTI_POST]['theme_dark_mode'];
             }
             if (isset($launched_theme_base)) {
                 $theme_base = U::isValidCSSColor($launched_theme_base) ? $launched_theme_base : $theme_base;

@@ -151,7 +151,7 @@ class Launch {
      * @return array|false The LTI parameter array or false if not available
      */
     public function ltiParameterArray() {
-        $row = $this->session_get('lti', false);
+        $row = $this->session_get(TSUGI_SESSION_LTI, false);
         return $row;
     }
 
@@ -180,7 +180,7 @@ class Launch {
         $lti = $this->ltiParameterArray();
         if ( ! $lti ) $lti = array(); // Should never happen
         if ( is_array($lti) ) $lti[$varname] = $value;
-        $lti = $this->session_put('lti', $lti);
+        $lti = $this->session_put(TSUGI_SESSION_LTI, $lti);
     }
 
     /**
@@ -189,7 +189,7 @@ class Launch {
      * @return array|false The original LTI POST array or false if not available
      */
     public function ltiRawPostArray() {
-        $lti_post = $this->session_get('lti_post', false);
+        $lti_post = $this->session_get(TSUGI_SESSION_LTI_POST, false);
         return $lti_post;
     }
 

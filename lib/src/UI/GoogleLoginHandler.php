@@ -390,7 +390,7 @@ class GoogleLoginHandler {
         $_SESSION['isinstructor'] = $is_instructor;
         $lti['role'] = $is_instructor ? LTIX::ROLE_INSTRUCTOR : LTIX::ROLE_LEARNER;
 
-        $_SESSION['lti'] = $lti;
+        $_SESSION[TSUGI_SESSION_LTI] = $lti;
         LTIX::noteLoggedIn($lti);
         SecureCookie::set($user_id, $userEmail, $context_id);
 

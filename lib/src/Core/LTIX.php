@@ -290,8 +290,8 @@ class LTIX {
             return $TSUGI_LAUNCH->ltiParameter($varname, $default);
         }
         if ( ! isset($_SESSION) ) return $default;
-        if ( ! isset($_SESSION['lti']) ) return $default;
-        $lti = $_SESSION['lti'];
+        if ( ! isset($_SESSION[TSUGI_SESSION_LTI]) ) return $default;
+        $lti = $_SESSION[TSUGI_SESSION_LTI];
         if ( ! isset($lti[$varname]) ) return $default;
         return $lti[$varname];
     }
@@ -307,8 +307,8 @@ class LTIX {
             return $TSUGI_LAUNCH->ltiRawPostArray();
         }
         if ( ! isset($_SESSION) ) return array();
-        if ( ! isset($_SESSION['lti_post']) ) return array();
-        return($_SESSION['lti_post']);
+        if ( ! isset($_SESSION[TSUGI_SESSION_LTI_POST]) ) return array();
+        return($_SESSION[TSUGI_SESSION_LTI_POST]);
     }
 
     /**
@@ -322,8 +322,8 @@ class LTIX {
             return $TSUGI_LAUNCH->ltiRawParameter($varname, $default);
         }
         if ( ! isset($_SESSION) ) return $default;
-        if ( ! isset($_SESSION['lti_post']) ) return $default;
-        $lti_post = $_SESSION['lti_post'];
+        if ( ! isset($_SESSION[TSUGI_SESSION_LTI_POST]) ) return $default;
+        $lti_post = $_SESSION[TSUGI_SESSION_LTI_POST];
         if ( ! isset($lti_post[$varname]) ) return $default;
         return $lti_post[$varname];
     }
@@ -799,8 +799,8 @@ class LTIX {
         $row['secret'] = self::encrypt_secret($row['secret']);
 
         // Put the information into the row variable and put row into session
-        self::wrapped_session_put($session_object, 'lti', $row);
-        self::wrapped_session_put($session_object, 'lti_post', $request_data);
+        self::wrapped_session_put($session_object, TSUGI_SESSION_LTI, $row);
+        self::wrapped_session_put($session_object, TSUGI_SESSION_LTI_POST, $request_data);
 
         if ( isset($_SERVER['HTTP_USER_AGENT']) ) {
             self::wrapped_session_put($session_object, 'HTTP_USER_AGENT', $_SERVER['HTTP_USER_AGENT']);
@@ -2109,7 +2109,7 @@ class LTIX {
         // This happens from time to time when someone closes and reopens a laptop
         // Or their computer goes to sleep and wakes back up hours later.
         // So it is just a warning - nothing much we can do except tell them.
-        if ( count($needed) > 0 && self::wrapped_session_get($session_object, 'lti',null) === null ) {
+        if ( count($needed) > 0 && self::wrapped_session_get($session_object, TSUGI_SESSION_LTI,null) === null ) {
             self::wrapped_session_flush($session_object);
             self::abort_with_error_log('Tool session missing or expired - please re-launch ',
                 U::get($_SERVER, 'HTTP_REFERER', Net::getIP())
@@ -2195,7 +2195,7 @@ class LTIX {
         self::wrapped_session_put($session_object, 'HEARTBEAT_COUNT', 0);
 
         // We don't have any launch data and don't need it
-        $LTI = self::wrapped_session_get($session_object, 'lti', null);
+        $LTI = self::wrapped_session_get($session_object, TSUGI_SESSION_LTI, null);
         if ( count($needed) == 0 && $LTI === null ) {
             return $TSUGI_LAUNCH;
         }
@@ -2295,7 +2295,7 @@ class LTIX {
 
             // Check to see if we are supposed to use SHA256 for this link
             $settings_method = $LINK->settingsGet('oauth_signature_method');
-            $post_data = self::wrapped_session_get($session_object, 'lti_post');
+            $post_data = self::wrapped_session_get($session_object, TSUGI_SESSION_LTI_POST);
             $launch_method = null;
             if ( is_array($post_data) ) $launch_method = U::get($post_data, 'oauth_signature_method');
 
@@ -2876,7 +2876,7 @@ class LTIX {
         }
 
         // Emulate a session launch
-        self::wrapped_session_put($session_object,'lti',$row);
+        self::wrapped_session_put($session_object, TSUGI_SESSION_LTI, $row);
 
         self::noteLoggedIn($row);
 
@@ -2988,12 +2988,12 @@ class LTIX {
 
         // If we are actually processing a launch request, or have a valid session
         $error_return_url = isset($_POST['launch_presentation_error_return_url']) ? $_POST['launch_presentation_error_return_url'] : null;
-        if ( ! $error_return_url && isset($_SESSION['lti_post']['launch_presentation_error_return_url']) ) {
-            $error_return_url = $_SESSION['lti_post']['launch_presentation_error_return_url'];
+        if ( ! $error_return_url && isset($_SESSION[TSUGI_SESSION_LTI_POST]['launch_presentation_error_return_url']) ) {
+            $error_return_url = $_SESSION[TSUGI_SESSION_LTI_POST]['launch_presentation_error_return_url'];
         }
         $return_url = isset($_POST['launch_presentation_return_url']) ? $_POST['launch_presentation_return_url'] : null;
-        if ( ! $return_url && isset($_SESSION['lti_post']['launch_presentation_return_url']) ) {
-            $return_url = $_SESSION['lti_post']['launch_presentation_return_url'];
+        if ( ! $return_url && isset($_SESSION[TSUGI_SESSION_LTI_POST]['launch_presentation_return_url']) ) {
+            $return_url = $_SESSION[TSUGI_SESSION_LTI_POST]['launch_presentation_return_url'];
         }
         if ( is_string($error_return_url) && U::strlen(trim($error_return_url)) > 0 ) {
             $return_url = trim($error_return_url);
@@ -3034,7 +3034,7 @@ class LTIX {
         if ($return_url === null) {
             error_log($prefix.' '.$msg.' '.$extra);
             print_stack_trace();
-            if ( isset($_SESSION['lti_post']) ) {
+            if ( isset($_SESSION[TSUGI_SESSION_LTI_POST]) ) {
                 // We have a session, but it is somehow broken
                 Output::htmlError("The LTI Launch Errors", $msg, $extra);
             } else {

@@ -14,7 +14,7 @@ use \Tsugi\Crypt\AesCtr;
 // Handle all forms of launch
 $LTI = LTIX::requireData();
 
-$json = $_SESSION['lti'];
+$json = $_SESSION[TSUGI_SESSION_LTI];
 $jwt_claim = LTI13::base_jwt("iss","subj");
 $jwt_claim["lti"] = $json;
 
