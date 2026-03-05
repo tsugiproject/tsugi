@@ -2,10 +2,5 @@
 Create badge table to "mint" badges so they are self contained
 and independent of other data.
 
-Move pre_config into setup.php
-
 Add feature to attempt to retrieve browser mark from sessionStorage on IP change
-
-Rename Session to _LTITSUGI
-
 

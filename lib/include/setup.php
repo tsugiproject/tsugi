@@ -52,13 +52,8 @@ if ( !file_exists($lms_lib_path) ) {
 }
 require_once $lms_lib_path;
 
-// Check to see if pre_config was included
-// TODO: Make this a die() about a year after - Thu Nov 11 19:34:23 EST 2021
-if ( !function_exists('_me') ) {
-    error_log('config.php out of date, you need to require "pre_config.php" before the autoloader starts - see config-dist.php for the needed command and where to put it in config.php');
-    // die('config.php out of date, you need to require "pre_config.php" before the autoloader starts - see config-dist.php for the needed command and where to put it in config.php');
-}
-
+// Setup Internationalizaton
+require_once (__DIR__."/setup_i18n.php");
 
 // Check if we have been asked to do cookie or cookieless sessions
 if ( defined('COOKIE_SESSION') ) {
@@ -71,6 +66,7 @@ if ( defined('COOKIE_SESSION') ) {
     ini_set('session.use_cookies', '0');
     ini_set('session.use_only_cookies',0);
     ini_set('session.use_trans_sid',1);
+    session_name("_LTI_TSUGI");
     error_reporting($previous);
 }
 
