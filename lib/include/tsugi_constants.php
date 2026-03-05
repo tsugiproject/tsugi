@@ -1,0 +1,4 @@
+<?php
+
+const TSUGI_COOKIELESS_SESSION_NAME = "_LTI_TSUGI";
+

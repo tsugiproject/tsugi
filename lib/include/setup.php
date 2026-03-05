@@ -4,6 +4,8 @@ use \Tsugi\Util\U;
 
 if ( ! isset($CFG) ) die("Please configure this product using config.php");
 
+require_once __DIR__ . '/tsugi_constants.php';
+
 // This is where we change the overall database version to trigger
 // upgrade checking - don't change this unless you want to trigger
 // database upgrade messages it should be the max of all versions in
@@ -66,7 +68,7 @@ if ( defined('COOKIE_SESSION') ) {
     ini_set('session.use_cookies', '0');
     ini_set('session.use_only_cookies',0);
     ini_set('session.use_trans_sid',1);
-    session_name("_LTI_TSUGI");
+    session_name(TSUGI_COOKIELESS_SESSION_NAME);
     error_reporting($previous);
 }
 
