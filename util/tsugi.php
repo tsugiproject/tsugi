@@ -1,6 +1,6 @@
 <?php
 
-if ( isset($_GET[session_name()]) ) {
+if ( isset($_GET[session_name()]) || isset($_GET["_LTI_TSUGI"]) ) {
     $cookie = false;
 } else {
     define('COOKIE_SESSION', true);
