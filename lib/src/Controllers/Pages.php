@@ -334,6 +334,7 @@ class Pages extends Tool {
         <?php $json_url = $tool_home . '/json'; ?>
         var pagesJsonUrl = '<?= $json_url ?>';
         var pagesBase = '<?= htmlspecialchars($pages_base) ?>';
+        var currentPageId = <?= isset($current_page_id) ? (int)$current_page_id : 'null' ?>;
 
         ClassicEditor.defaultConfig = {
             toolbar: {
@@ -373,12 +374,14 @@ class Pages extends Tool {
             
             listDiv.innerHTML = '';
             
-            if (pagesList.length === 0) {
+            var displayPages = currentPageId ? pagesList.filter(function(p) { return p.id != currentPageId; }) : pagesList;
+            
+            if (displayPages.length === 0) {
                 listDiv.innerHTML = '<p role="status">No pages available.</p>';
                 return;
             }
             
-            pagesList.forEach(function(page) {
+            displayPages.forEach(function(page) {
                 var item = document.createElement('button');
                 item.type = 'button';
                 item.className = 'page-link-item';
@@ -441,14 +444,12 @@ class Pages extends Tool {
                 if (selection.isCollapsed) {
                     const textNode = writer.createText(page.title);
                     const insertPosition = selection.getFirstPosition();
-                    model.insertContent(textNode, insertPosition);
-                    
-                    const range = writer.createRange(insertPosition, writer.createPositionAfter(textNode));
-                    writer.setSelection(range);
+                    const insertedRange = model.insertContent(textNode, insertPosition);
+                    writer.setSelection(insertedRange);
                 }
-                
-                editor.execute('link', url);
             });
+            
+            editor.execute('link', url);
         }
 
         $(document).ready( function () {
@@ -678,7 +679,7 @@ class Pages extends Tool {
         ?>
         <main class="container" role="main" id="main-content">
             <h1>Edit Page</h1>
-            
+
             <form method="post" id="page_form">
                 <div class="form-group">
                     <label for="title">Title:</label>
@@ -720,13 +721,14 @@ class Pages extends Tool {
                 </div>
                 
                 <p>
-                    <button type="submit" class="btn btn-primary">Update Page</button>
-                    <a href="<?= $manage_url ?>" class="btn btn-default">Cancel</a>
+                <button type="submit" class="btn btn-primary">Update Page</button>
+                <a href="<?= $manage_url ?>" class="btn btn-default">Cancel</a>
                 </p>
             </form>
         </main>
         <?php
         $OUTPUT->footerStart();
+        $current_page_id = (int)$page['page_id'];
         ?>
         <style>
         .ckeditor-container { min-height: 400px; }
@@ -751,6 +753,7 @@ class Pages extends Tool {
         <?php $json_url = $tool_home . '/json'; ?>
         var pagesJsonUrl = '<?= $json_url ?>';
         var pagesBase = '<?= htmlspecialchars($pages_base) ?>';
+        var currentPageId = <?= isset($current_page_id) ? (int)$current_page_id : 'null' ?>;
 
         ClassicEditor.defaultConfig = {
             toolbar: {
@@ -790,12 +793,14 @@ class Pages extends Tool {
             
             listDiv.innerHTML = '';
             
-            if (pagesList.length === 0) {
+            var displayPages = currentPageId ? pagesList.filter(function(p) { return p.id != currentPageId; }) : pagesList;
+            
+            if (displayPages.length === 0) {
                 listDiv.innerHTML = '<p role="status">No pages available.</p>';
                 return;
             }
             
-            pagesList.forEach(function(page) {
+            displayPages.forEach(function(page) {
                 var item = document.createElement('button');
                 item.type = 'button';
                 item.className = 'page-link-item';
@@ -858,14 +863,12 @@ class Pages extends Tool {
                 if (selection.isCollapsed) {
                     const textNode = writer.createText(page.title);
                     const insertPosition = selection.getFirstPosition();
-                    model.insertContent(textNode, insertPosition);
-                    
-                    const range = writer.createRange(insertPosition, writer.createPositionAfter(textNode));
-                    writer.setSelection(range);
+                    const insertedRange = model.insertContent(textNode, insertPosition);
+                    writer.setSelection(insertedRange);
                 }
-                
-                editor.execute('link', url);
             });
+            
+            editor.execute('link', url);
         }
 
         $(document).ready( function () {
