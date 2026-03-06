@@ -46,11 +46,14 @@ class Pages extends Tool {
         // Convert to lowercase
         $key = strtolower($title);
         
-        // Remove punctuation (keep alphanumeric, spaces, and dashes)
-        $key = preg_replace('/[^a-z0-9\s-]/', '', $key);
+        // Remove all punctuation (keep alphanumeric and spaces)
+        $key = preg_replace('/[^a-z0-9\s]/', '', $key);
         
-        // Replace sequences of spaces with single dash
-        $key = preg_replace('/\s+/', '-', $key);
+        // Reduce sequences of whitespace to a single space
+        $key = preg_replace('/\s+/', ' ', $key);
+        
+        // Convert spaces to dashes
+        $key = str_replace(' ', '-', $key);
         
         // Remove leading/trailing dashes
         $key = trim($key, '-');
