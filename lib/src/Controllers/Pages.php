@@ -169,6 +169,10 @@ class Pages extends Tool {
                         </a>
                     <?php endif; ?>
                     <?php if ($is_instructor): ?>
+                        <?php if ($page): ?>
+                        <?php $edit_url = $tool_home . '/edit/' . $page['page_id']; ?>
+                        <a href="<?= htmlspecialchars($edit_url) ?>" class="btn btn-primary" aria-label="<?= htmlspecialchars(__('Edit')) ?> <?= htmlspecialchars($page['title']) ?>">Edit</a>
+                        <?php endif; ?>
                         <?php $manage_url = $tool_home . '/manage'; ?>
                         <a href="<?= htmlspecialchars($manage_url) ?>" class="btn btn-default" aria-label="<?= htmlspecialchars(__('Manage pages')) ?>">Manage Pages</a>
                     <?php endif; ?>
