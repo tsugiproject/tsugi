@@ -313,9 +313,11 @@ class Pages extends Tool {
         $OUTPUT->footerStart();
         ?>
         <style>
-        #page-link-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        #page-link-modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 400px; max-width: 90%; }
-        #page-link-list { max-height: 300px; overflow-y: auto; margin: 10px 0; }
+        #page-link-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); transition: opacity 0.25s ease; opacity: 0; }
+        #page-link-modal.open { opacity: 1; }
+        #page-link-modal-content { position: fixed; right: 0; top: 0; height: 100%; width: 360px; max-width: 90%; background-color: #fefefe; padding: 20px; box-shadow: -4px 0 20px rgba(0,0,0,0.15); overflow-y: auto; transition: transform 0.25s ease; transform: translateX(100%); }
+        #page-link-modal.open #page-link-modal-content { transform: translateX(0); }
+        #page-link-list { max-height: calc(100vh - 120px); overflow-y: auto; margin: 10px 0; }
         .page-link-item { display: block; width: 100%; padding: 8px; text-align: left; cursor: pointer; border: none; border-bottom: 1px solid #ddd; background: transparent; font-size: inherit; }
         .page-link-item:hover { background-color: #f0f0f0; }
         [data-page-link-button] { display: inline-flex !important; align-items: center !important; }
@@ -408,6 +410,7 @@ class Pages extends Tool {
             var modal = document.getElementById('page-link-modal');
             pageLinkModalFocusBeforeOpen = document.activeElement;
             modal.style.display = 'block';
+            requestAnimationFrame(function() { modal.classList.add('open'); });
             document.addEventListener('keydown', pageLinkModalKeyHandler);
             var firstFocusable = modal.querySelector('.page-link-item') || modal.querySelector('button');
             if (firstFocusable) {
@@ -419,11 +422,14 @@ class Pages extends Tool {
 
         function closePageLinkModal() {
             var modal = document.getElementById('page-link-modal');
-            modal.style.display = 'none';
+            modal.classList.remove('open');
             document.removeEventListener('keydown', pageLinkModalKeyHandler);
-            if (pageLinkModalFocusBeforeOpen) {
-                pageLinkModalFocusBeforeOpen.focus();
-            }
+            setTimeout(function() {
+                modal.style.display = 'none';
+                if (pageLinkModalFocusBeforeOpen) {
+                    pageLinkModalFocusBeforeOpen.focus();
+                }
+            }, 250);
         }
 
         function pageLinkModalKeyHandler(e) {
@@ -732,9 +738,11 @@ class Pages extends Tool {
         ?>
         <style>
         .ckeditor-container { min-height: 400px; }
-        #page-link-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        #page-link-modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 400px; max-width: 90%; }
-        #page-link-list { max-height: 300px; overflow-y: auto; margin: 10px 0; }
+        #page-link-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); transition: opacity 0.25s ease; opacity: 0; }
+        #page-link-modal.open { opacity: 1; }
+        #page-link-modal-content { position: fixed; right: 0; top: 0; height: 100%; width: 360px; max-width: 90%; background-color: #fefefe; padding: 20px; box-shadow: -4px 0 20px rgba(0,0,0,0.15); overflow-y: auto; transition: transform 0.25s ease; transform: translateX(100%); }
+        #page-link-modal.open #page-link-modal-content { transform: translateX(0); }
+        #page-link-list { max-height: calc(100vh - 120px); overflow-y: auto; margin: 10px 0; }
         .page-link-item { display: block; width: 100%; padding: 8px; text-align: left; cursor: pointer; border: none; border-bottom: 1px solid #ddd; background: transparent; font-size: inherit; }
         .page-link-item:hover { background-color: #f0f0f0; }
         [data-page-link-button] { display: inline-flex !important; align-items: center !important; }
@@ -827,6 +835,7 @@ class Pages extends Tool {
             var modal = document.getElementById('page-link-modal');
             pageLinkModalFocusBeforeOpen = document.activeElement;
             modal.style.display = 'block';
+            requestAnimationFrame(function() { modal.classList.add('open'); });
             document.addEventListener('keydown', pageLinkModalKeyHandler);
             var firstFocusable = modal.querySelector('.page-link-item') || modal.querySelector('button');
             if (firstFocusable) {
@@ -838,11 +847,14 @@ class Pages extends Tool {
 
         function closePageLinkModal() {
             var modal = document.getElementById('page-link-modal');
-            modal.style.display = 'none';
+            modal.classList.remove('open');
             document.removeEventListener('keydown', pageLinkModalKeyHandler);
-            if (pageLinkModalFocusBeforeOpen) {
-                pageLinkModalFocusBeforeOpen.focus();
-            }
+            setTimeout(function() {
+                modal.style.display = 'none';
+                if (pageLinkModalFocusBeforeOpen) {
+                    pageLinkModalFocusBeforeOpen.focus();
+                }
+            }, 250);
         }
 
         function pageLinkModalKeyHandler(e) {
@@ -1137,8 +1149,6 @@ class Pages extends Tool {
                                 <td>
                                     <?php $edit_url = $tool_home . '/edit/' . $page['page_id']; ?>
                                     <a href="<?= htmlspecialchars($edit_url) ?>" class="btn btn-xs btn-default" aria-label="<?= htmlspecialchars(__('Edit')) ?> <?= htmlspecialchars($page['title']) ?>">Edit</a>
-                                    <?php $view_url = $pages_base . '/' . urlencode($page['logical_key']); ?>
-                                    <a href="<?= htmlspecialchars($view_url) ?>" class="btn btn-xs btn-info" target="_blank" rel="noopener noreferrer" aria-label="View <?= htmlspecialchars($page['title']) ?> (opens in new tab)">View</a>
                                     <form method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to toggle the published status?');">
                                         <input type="hidden" name="action" value="toggle_published">
                                         <input type="hidden" name="page_id" value="<?= $page['page_id'] ?>">
