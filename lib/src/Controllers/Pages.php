@@ -204,7 +204,14 @@ class Pages extends Tool {
             <?php endif; ?>
         </main>
         <?php
-        $OUTPUT->footer();
+        $OUTPUT->footerStart();
+        ?>
+        <style>
+        .page-content a { text-decoration: underline; }
+        .ck-editor .ck-content a, .ck.ck-editor__editable a { text-decoration: underline; }
+        </style>
+        <?php
+        $OUTPUT->footerEnd();
     }
 
     public function json(Request $request)
@@ -419,6 +426,7 @@ class Pages extends Tool {
         .page-link-expando.collapsed .page-link-expando-header .expando-chevron { transform: rotate(-90deg); }
         .page-link-expando-content { max-height: 280px; overflow-y: auto; transition: max-height 0.2s ease; }
         .page-link-expando.collapsed .page-link-expando-content { max-height: 0; overflow: hidden; }
+        .page-content a, .ck-editor .ck-content a, .ck.ck-editor__editable a { text-decoration: underline; }
         [data-page-link-button] { display: inline-flex !important; align-items: center !important; }
         [data-page-link-button] .ck-icon { width: 20px !important; height: 20px !important; }
         </style>
@@ -1033,6 +1041,7 @@ class Pages extends Tool {
         .page-link-expando.collapsed .page-link-expando-header .expando-chevron { transform: rotate(-90deg); }
         .page-link-expando-content { max-height: 280px; overflow-y: auto; transition: max-height 0.2s ease; }
         .page-link-expando.collapsed .page-link-expando-content { max-height: 0; overflow: hidden; }
+        .page-content a, .ck-editor .ck-content a, .ck.ck-editor__editable a { text-decoration: underline; }
         [data-page-link-button] { display: inline-flex !important; align-items: center !important; }
         [data-page-link-button] .ck-icon { width: 20px !important; height: 20px !important; }
         </style>
