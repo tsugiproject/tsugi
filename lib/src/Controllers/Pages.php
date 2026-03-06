@@ -264,22 +264,30 @@ class Pages extends Tool {
         $items = array();
 
         if (empty($apphome) || empty($lessons_file) || !is_readable($lessons_file)) {
-            return new JsonResponse($items);
+            return new JsonResponse(array('items' => $items, 'modules' => array()));
         }
 
         $json = @file_get_contents($lessons_file);
         if ($json === false) {
-            return new JsonResponse($items);
+            return new JsonResponse(array('items' => $items, 'modules' => array()));
         }
 
         $data = @json_decode($json, true);
         if (!is_array($data) || empty($data['modules'])) {
-            return new JsonResponse($items);
+            return new JsonResponse(array('items' => $items, 'modules' => array()));
         }
 
+        $top_level_modules = array();
         foreach ($data['modules'] as $module) {
             $module_title = U::get($module, 'title', '');
             $module_anchor = U::get($module, 'anchor', '');
+            if (!empty($module_title) && !empty($module_anchor)) {
+                $top_level_modules[] = array(
+                    'title' => $module_title,
+                    'url' => $apphome . '/lessons/' . $module_anchor,
+                    'anchor' => $module_anchor
+                );
+            }
             $module_items = U::get($module, 'items', array());
 
             foreach ($module_items as $item) {
@@ -324,7 +332,7 @@ class Pages extends Tool {
             }
         }
 
-        return new JsonResponse($items);
+        return new JsonResponse(array('items' => $items, 'modules' => $top_level_modules));
     }
 
     public function add(Request $request)
@@ -458,6 +466,7 @@ class Pages extends Tool {
                         callback: function(url) {
                             if (!url) return false;
                             if (pagesBase && url.indexOf(pagesBase) === 0) return false;
+                            if (appHome && url.indexOf(appHome + '/lessons') === 0) return false;
                             var slideExt = /\.(pptx?|pptm|pdf|key|odp)(\?|$)/i;
                             if (slideExt.test(url)) return true;
                             if (!appHome) return (url.indexOf('youtube.com') !== -1 || url.indexOf('youtu.be') !== -1);
@@ -475,13 +484,16 @@ class Pages extends Tool {
         var editor;
         var pagesList = [];
         var lessonsList = [];
+        var lessonsModules = [];
 
         Promise.all([
             fetch(pagesJsonUrl).then(function(r) { return r.json(); }),
             fetch(lessonsJsonUrl).then(function(r) { return r.json(); })
         ]).then(function(results) {
             pagesList = results[0] || [];
-            lessonsList = results[1] || [];
+            var lessonsData = results[1] || {};
+            lessonsList = lessonsData.items || (Array.isArray(lessonsData) ? lessonsData : []);
+            lessonsModules = lessonsData.modules || [];
             populatePageLinkList();
         }).catch(function(error) {
             console.error('Error loading link data:', error);
@@ -554,6 +566,37 @@ class Pages extends Tool {
 
                 var pagesExpando = createExpandoSection('Pages', displayPages.length, pagesContent, true);
                 listDiv.appendChild(pagesExpando);
+                hasContent = true;
+            }
+
+            if (lessonsModules.length > 0) {
+                var modulesContent = document.createElement('div');
+                modulesContent.className = 'page-link-expando-content';
+                modulesContent.setAttribute('role', 'list');
+
+                lessonsModules.forEach(function(moduleItem) {
+                    var item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'page-link-item';
+                    item.textContent = moduleItem.title;
+                    item.setAttribute('role', 'listitem');
+                    item.setAttribute('title', moduleItem.url);
+                    item.onclick = function() {
+                        insertLessonLink(moduleItem);
+                        closePageLinkModal();
+                    };
+                    item.onkeydown = function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            insertLessonLink(moduleItem);
+                            closePageLinkModal();
+                        }
+                    };
+                    modulesContent.appendChild(item);
+                });
+
+                var modulesExpando = createExpandoSection('Modules', lessonsModules.length, modulesContent, true);
+                listDiv.appendChild(modulesExpando);
                 hasContent = true;
             }
             
@@ -1037,6 +1080,7 @@ class Pages extends Tool {
                         callback: function(url) {
                             if (!url) return false;
                             if (pagesBase && url.indexOf(pagesBase) === 0) return false;
+                            if (appHome && url.indexOf(appHome + '/lessons') === 0) return false;
                             var slideExt = /\.(pptx?|pptm|pdf|key|odp)(\?|$)/i;
                             if (slideExt.test(url)) return true;
                             if (!appHome) return (url.indexOf('youtube.com') !== -1 || url.indexOf('youtu.be') !== -1);
@@ -1054,13 +1098,16 @@ class Pages extends Tool {
         var editor;
         var pagesList = [];
         var lessonsList = [];
+        var lessonsModules = [];
 
         Promise.all([
             fetch(pagesJsonUrl).then(function(r) { return r.json(); }),
             fetch(lessonsJsonUrl).then(function(r) { return r.json(); })
         ]).then(function(results) {
             pagesList = results[0] || [];
-            lessonsList = results[1] || [];
+            var lessonsData = results[1] || {};
+            lessonsList = lessonsData.items || (Array.isArray(lessonsData) ? lessonsData : []);
+            lessonsModules = lessonsData.modules || [];
             populatePageLinkList();
         }).catch(function(error) {
             console.error('Error loading link data:', error);
@@ -1133,6 +1180,37 @@ class Pages extends Tool {
 
                 var pagesExpando = createExpandoSection('Pages', displayPages.length, pagesContent, true);
                 listDiv.appendChild(pagesExpando);
+                hasContent = true;
+            }
+
+            if (lessonsModules.length > 0) {
+                var modulesContent = document.createElement('div');
+                modulesContent.className = 'page-link-expando-content';
+                modulesContent.setAttribute('role', 'list');
+
+                lessonsModules.forEach(function(moduleItem) {
+                    var item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'page-link-item';
+                    item.textContent = moduleItem.title;
+                    item.setAttribute('role', 'listitem');
+                    item.setAttribute('title', moduleItem.url);
+                    item.onclick = function() {
+                        insertLessonLink(moduleItem);
+                        closePageLinkModal();
+                    };
+                    item.onkeydown = function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            insertLessonLink(moduleItem);
+                            closePageLinkModal();
+                        }
+                    };
+                    modulesContent.appendChild(item);
+                });
+
+                var modulesExpando = createExpandoSection('Modules', lessonsModules.length, modulesContent, true);
+                listDiv.appendChild(modulesExpando);
                 hasContent = true;
             }
             
