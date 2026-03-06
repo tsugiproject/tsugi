@@ -21,6 +21,7 @@ class Pages extends Tool {
         $app->router->get('/'.self::REDIRECT, 'Pages@index');
         // Register specific routes BEFORE the parameterized route to avoid conflicts
         $app->router->get($prefix.'/json', 'Pages@json');
+        $app->router->get($prefix.'/lessons-json', 'Pages@lessonsJson');
         $app->router->get($prefix.'/add', 'Pages@add');
         $app->router->post($prefix.'/add', 'Pages@addPost');
         $app->router->get($prefix.'/edit/{id}', 'Pages@edit');
@@ -248,6 +249,84 @@ class Pages extends Tool {
         return new JsonResponse($formatted_pages);
     }
 
+    /**
+     * Return linkable items from lessons (modules) for the page-link picker.
+     * Includes LTI tools, slides, references, videos, discussions, etc.
+     */
+    public function lessonsJson(Request $request)
+    {
+        global $CFG;
+
+        $this->requireAuth();
+
+        $apphome = isset($CFG->apphome) ? rtrim($CFG->apphome, '/') : '';
+        $lessons_file = isset($CFG->lessons) ? $CFG->lessons : '';
+        $items = array();
+
+        if (empty($apphome) || empty($lessons_file) || !is_readable($lessons_file)) {
+            return new JsonResponse($items);
+        }
+
+        $json = @file_get_contents($lessons_file);
+        if ($json === false) {
+            return new JsonResponse($items);
+        }
+
+        $data = @json_decode($json, true);
+        if (!is_array($data) || empty($data['modules'])) {
+            return new JsonResponse($items);
+        }
+
+        foreach ($data['modules'] as $module) {
+            $module_title = U::get($module, 'title', '');
+            $module_anchor = U::get($module, 'anchor', '');
+            $module_items = U::get($module, 'items', array());
+
+            foreach ($module_items as $item) {
+                $type = U::get($item, 'type', '');
+                $title = U::get($item, 'title', '');
+                $url = null;
+
+                if ($type === 'header') {
+                    continue;
+                }
+
+                if ($type === 'lti' || $type === 'not-lti' || $type === 'discussion') {
+                    $resource_link_id = U::get($item, 'resource_link_id', '');
+                    if (!empty($resource_link_id)) {
+                        $url = $apphome . '/lessons_launch/' . rawurlencode($resource_link_id);
+                    }
+                } elseif ($type === 'slide' || $type === 'reference') {
+                    $href = U::get($item, 'href', '');
+                    if (!empty($href)) {
+                        $url = str_replace('{apphome}', $apphome, $href);
+                    }
+                } elseif ($type === 'video' && U::get($item, 'youtube', '')) {
+                    $youtube_id = trim(U::get($item, 'youtube', ''));
+                    if (!empty($youtube_id)) {
+                        $url = 'https://www.youtube.com/watch?v=' . $youtube_id;
+                    }
+                }
+
+                if (!empty($url) && !empty($title)) {
+                    $item_data = array(
+                        'title' => $title,
+                        'url' => $url,
+                        'module' => $module_title,
+                        'module_anchor' => $module_anchor,
+                        'type' => $type
+                    );
+                    if ($type === 'video') {
+                        $item_data['target_blank'] = true;
+                    }
+                    $items[] = $item_data;
+                }
+            }
+        }
+
+        return new JsonResponse($items);
+    }
+
     public function add(Request $request)
     {
         global $CFG, $OUTPUT;
@@ -258,6 +337,7 @@ class Pages extends Tool {
         $tool_home = $this->toolHome(self::ROUTE);
         $pages_base = $tool_home;
         $manage_url = $tool_home . '/manage';
+        $apphome = isset($CFG->apphome) ? rtrim($CFG->apphome, '/') : '';
         
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -324,22 +404,34 @@ class Pages extends Tool {
         #page-link-list { max-height: calc(100vh - 120px); overflow-y: auto; margin: 10px 0; }
         .page-link-item { display: block; width: 100%; padding: 8px; text-align: left; cursor: pointer; border: none; border-bottom: 1px solid #ddd; background: transparent; font-size: inherit; }
         .page-link-item:hover { background-color: #f0f0f0; }
+        .page-link-expando { margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; }
+        .page-link-expando-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; cursor: pointer; font-weight: bold; color: #555; font-size: 12px; text-transform: uppercase; background: #f8f8f8; border-radius: 4px; user-select: none; }
+        .page-link-expando-header:hover { background: #eee; }
+        .page-link-expando-header .expando-chevron { transition: transform 0.2s ease; display: inline-block; }
+        .page-link-expando.collapsed .page-link-expando-header .expando-chevron { transform: rotate(-90deg); }
+        .page-link-expando-content { max-height: 280px; overflow-y: auto; transition: max-height 0.2s ease; }
+        .page-link-expando.collapsed .page-link-expando-content { max-height: 0; overflow: hidden; }
         [data-page-link-button] { display: inline-flex !important; align-items: center !important; }
         [data-page-link-button] .ck-icon { width: 20px !important; height: 20px !important; }
         </style>
         <div id="page-link-modal" role="dialog" aria-modal="true" aria-labelledby="page-link-modal-title" aria-describedby="page-link-list" tabindex="-1">
             <div id="page-link-modal-content">
-                <h3 id="page-link-modal-title">Select a page to link</h3>
+                <div class="page-link-modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 id="page-link-modal-title" style="margin: 0;">Insert link</h3>
+                    <button type="button" onclick="closePageLinkModal()" class="btn btn-default">Cancel</button>
+                </div>
                 <div id="page-link-list" role="list"></div>
-                <button type="button" onclick="closePageLinkModal()" class="btn btn-default">Cancel</button>
             </div>
         </div>
 
         <script src="https://cdn.ckeditor.com/ckeditor5/16.0.0/classic/ckeditor.js"></script>
         <script type="text/javascript">
         <?php $json_url = $tool_home . '/json'; ?>
+        <?php $lessons_json_url = $tool_home . '/lessons-json'; ?>
         var pagesJsonUrl = '<?= $json_url ?>';
+        var lessonsJsonUrl = '<?= $lessons_json_url ?>';
         var pagesBase = '<?= htmlspecialchars($pages_base) ?>';
+        var appHome = '<?= htmlspecialchars(isset($apphome) ? $apphome : '') ?>';
         var currentPageId = <?= isset($current_page_id) ? (int)$current_page_id : 'null' ?>;
 
         ClassicEditor.defaultConfig = {
@@ -358,21 +450,73 @@ class Pages extends Tool {
                     'undo',
                     'redo'
                 ]
+            },
+            link: {
+                decorators: {
+                    openExternalInNewTab: {
+                        mode: 'automatic',
+                        callback: function(url) {
+                            if (!url) return false;
+                            if (pagesBase && url.indexOf(pagesBase) === 0) return false;
+                            var slideExt = /\.(pptx?|pptm|pdf|key|odp)(\?|$)/i;
+                            if (slideExt.test(url)) return true;
+                            if (!appHome) return (url.indexOf('youtube.com') !== -1 || url.indexOf('youtu.be') !== -1);
+                            return url.indexOf(appHome) !== 0;
+                        },
+                        attributes: {
+                            target: '_blank',
+                            rel: 'noopener noreferrer'
+                        }
+                    }
+                }
             }
         };
 
         var editor;
         var pagesList = [];
+        var lessonsList = [];
 
-        fetch(pagesJsonUrl)
-            .then(response => response.json())
-            .then(pages => {
-                pagesList = pages;
-                populatePageLinkList();
-            })
-            .catch(error => {
-                console.error('Error loading pages:', error);
-            });
+        Promise.all([
+            fetch(pagesJsonUrl).then(function(r) { return r.json(); }),
+            fetch(lessonsJsonUrl).then(function(r) { return r.json(); })
+        ]).then(function(results) {
+            pagesList = results[0] || [];
+            lessonsList = results[1] || [];
+            populatePageLinkList();
+        }).catch(function(error) {
+            console.error('Error loading link data:', error);
+        });
+
+        function createExpandoSection(title, count, itemsContainer, startCollapsed) {
+            var expando = document.createElement('div');
+            expando.className = 'page-link-expando' + (startCollapsed ? ' collapsed' : '');
+            expando.setAttribute('role', 'group');
+            expando.setAttribute('aria-label', title);
+
+            var header = document.createElement('div');
+            header.className = 'page-link-expando-header';
+            header.setAttribute('role', 'button');
+            header.setAttribute('aria-expanded', !startCollapsed);
+            header.setAttribute('tabindex', '0');
+            header.innerHTML = '<span>' + title + ' (' + count + ')</span><span class="expando-chevron" aria-hidden="true">&#9660;</span>';
+
+            header.onclick = function(e) {
+                e.preventDefault();
+                expando.classList.toggle('collapsed');
+                header.setAttribute('aria-expanded', !expando.classList.contains('collapsed'));
+            };
+            header.onkeydown = function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    expando.classList.toggle('collapsed');
+                    header.setAttribute('aria-expanded', !expando.classList.contains('collapsed'));
+                }
+            };
+
+            expando.appendChild(header);
+            expando.appendChild(itemsContainer);
+            return expando;
+        }
 
         function populatePageLinkList() {
             var listDiv = document.getElementById('page-link-list');
@@ -381,31 +525,100 @@ class Pages extends Tool {
             listDiv.innerHTML = '';
             
             var displayPages = currentPageId ? pagesList.filter(function(p) { return p.id != currentPageId; }) : pagesList;
+            var hasContent = false;
             
-            if (displayPages.length === 0) {
-                listDiv.innerHTML = '<p role="status">No pages available.</p>';
-                return;
-            }
-            
-            displayPages.forEach(function(page) {
-                var item = document.createElement('button');
-                item.type = 'button';
-                item.className = 'page-link-item';
-                item.textContent = page.title;
-                item.setAttribute('role', 'listitem');
-                item.onclick = function() {
-                    insertPageLink(page);
-                    closePageLinkModal();
-                };
-                item.onkeydown = function(e) {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
+            if (displayPages.length > 0) {
+                var pagesContent = document.createElement('div');
+                pagesContent.className = 'page-link-expando-content';
+                pagesContent.setAttribute('role', 'list');
+
+                displayPages.forEach(function(page) {
+                    var item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'page-link-item';
+                    item.textContent = page.title;
+                    item.setAttribute('role', 'listitem');
+                    item.onclick = function() {
                         insertPageLink(page);
                         closePageLinkModal();
-                    }
+                    };
+                    item.onkeydown = function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            insertPageLink(page);
+                            closePageLinkModal();
+                        }
+                    };
+                    pagesContent.appendChild(item);
+                });
+
+                var pagesExpando = createExpandoSection('Pages', displayPages.length, pagesContent, true);
+                listDiv.appendChild(pagesExpando);
+                hasContent = true;
+            }
+            
+            if (lessonsList.length > 0) {
+                var typeGroups = {
+                    video: { label: 'Videos', items: [] },
+                    discussion: { label: 'Discussions', items: [] },
+                    lti: { label: 'LTI & Tools', items: [] },
+                    'not-lti': { label: 'LTI & Tools', items: [] },
+                    reference: { label: 'References', items: [] },
+                    slide: { label: 'Slides', items: [] }
                 };
-                listDiv.appendChild(item);
-            });
+
+                lessonsList.forEach(function(lessonItem) {
+                    var t = lessonItem.type || 'reference';
+                    if (t === 'not-lti') t = 'lti';
+                    if (typeGroups[t]) typeGroups[t].items.push(lessonItem);
+                });
+
+                var ltiItems = (typeGroups.lti ? typeGroups.lti.items : []).concat(typeGroups['not-lti'] ? typeGroups['not-lti'].items : []);
+                var groupsToShow = [
+                    { label: 'Videos', items: typeGroups.video ? typeGroups.video.items : [] },
+                    { label: 'Discussions', items: typeGroups.discussion ? typeGroups.discussion.items : [] },
+                    { label: 'LTI & Tools', items: ltiItems },
+                    { label: 'References', items: typeGroups.reference ? typeGroups.reference.items : [] },
+                    { label: 'Slides', items: typeGroups.slide ? typeGroups.slide.items : [] }
+                ];
+
+                groupsToShow.forEach(function(group) {
+                    if (!group.items || group.items.length === 0) return;
+
+                    var content = document.createElement('div');
+                    content.className = 'page-link-expando-content';
+                    content.setAttribute('role', 'list');
+
+                    group.items.forEach(function(lessonItem) {
+                        var item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'page-link-item';
+                        item.textContent = lessonItem.title + (lessonItem.module ? ' (' + lessonItem.module + ')' : '');
+                        item.setAttribute('role', 'listitem');
+                        item.setAttribute('title', lessonItem.url);
+                        item.onclick = function() {
+                            insertLessonLink(lessonItem);
+                            closePageLinkModal();
+                        };
+                        item.onkeydown = function(e) {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                insertLessonLink(lessonItem);
+                                closePageLinkModal();
+                            }
+                        };
+                        content.appendChild(item);
+                    });
+
+                    var expando = createExpandoSection(group.label, group.items.length, content, true);
+                    listDiv.appendChild(expando);
+                    hasContent = true;
+                });
+            }
+            
+            if (!hasContent) {
+                listDiv.innerHTML = '<p role="status">No pages or lesson content available.</p>';
+            }
         }
 
         var pageLinkModalFocusBeforeOpen = null;
@@ -453,6 +666,26 @@ class Pages extends Tool {
             model.change(writer => {
                 if (selection.isCollapsed) {
                     const textNode = writer.createText(page.title);
+                    const insertPosition = selection.getFirstPosition();
+                    const insertedRange = model.insertContent(textNode, insertPosition);
+                    writer.setSelection(insertedRange);
+                }
+            });
+            
+            editor.execute('link', url);
+        }
+
+        function insertLessonLink(lessonItem) {
+            if (!editor) return;
+            
+            const model = editor.model;
+            const selection = model.document.selection;
+            const url = lessonItem.url;
+            const title = lessonItem.title;
+            
+            model.change(writer => {
+                if (selection.isCollapsed) {
+                    const textNode = writer.createText(title);
                     const insertPosition = selection.getFirstPosition();
                     const insertedRange = model.insertContent(textNode, insertPosition);
                     writer.setSelection(insertedRange);
@@ -659,6 +892,7 @@ class Pages extends Tool {
         $tool_home = $this->toolHome(self::ROUTE);
         $manage_url = $tool_home . '/manage';
         $pages_base = $tool_home;
+        $apphome = isset($CFG->apphome) ? rtrim($CFG->apphome, '/') : '';
         
         LTIX::getConnection();
         
@@ -749,22 +983,34 @@ class Pages extends Tool {
         #page-link-list { max-height: calc(100vh - 120px); overflow-y: auto; margin: 10px 0; }
         .page-link-item { display: block; width: 100%; padding: 8px; text-align: left; cursor: pointer; border: none; border-bottom: 1px solid #ddd; background: transparent; font-size: inherit; }
         .page-link-item:hover { background-color: #f0f0f0; }
+        .page-link-expando { margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; }
+        .page-link-expando-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; cursor: pointer; font-weight: bold; color: #555; font-size: 12px; text-transform: uppercase; background: #f8f8f8; border-radius: 4px; user-select: none; }
+        .page-link-expando-header:hover { background: #eee; }
+        .page-link-expando-header .expando-chevron { transition: transform 0.2s ease; display: inline-block; }
+        .page-link-expando.collapsed .page-link-expando-header .expando-chevron { transform: rotate(-90deg); }
+        .page-link-expando-content { max-height: 280px; overflow-y: auto; transition: max-height 0.2s ease; }
+        .page-link-expando.collapsed .page-link-expando-content { max-height: 0; overflow: hidden; }
         [data-page-link-button] { display: inline-flex !important; align-items: center !important; }
         [data-page-link-button] .ck-icon { width: 20px !important; height: 20px !important; }
         </style>
         <div id="page-link-modal" role="dialog" aria-modal="true" aria-labelledby="page-link-modal-title" aria-describedby="page-link-list" tabindex="-1">
             <div id="page-link-modal-content">
-                <h3 id="page-link-modal-title">Select a page to link</h3>
+                <div class="page-link-modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 id="page-link-modal-title" style="margin: 0;">Insert link</h3>
+                    <button type="button" onclick="closePageLinkModal()" class="btn btn-default">Cancel</button>
+                </div>
                 <div id="page-link-list" role="list"></div>
-                <button type="button" onclick="closePageLinkModal()" class="btn btn-default">Cancel</button>
             </div>
         </div>
 
         <script src="https://cdn.ckeditor.com/ckeditor5/16.0.0/classic/ckeditor.js"></script>
         <script type="text/javascript">
         <?php $json_url = $tool_home . '/json'; ?>
+        <?php $lessons_json_url = $tool_home . '/lessons-json'; ?>
         var pagesJsonUrl = '<?= $json_url ?>';
+        var lessonsJsonUrl = '<?= $lessons_json_url ?>';
         var pagesBase = '<?= htmlspecialchars($pages_base) ?>';
+        var appHome = '<?= htmlspecialchars(isset($apphome) ? $apphome : '') ?>';
         var currentPageId = <?= isset($current_page_id) ? (int)$current_page_id : 'null' ?>;
 
         ClassicEditor.defaultConfig = {
@@ -783,21 +1029,73 @@ class Pages extends Tool {
                     'undo',
                     'redo'
                 ]
+            },
+            link: {
+                decorators: {
+                    openExternalInNewTab: {
+                        mode: 'automatic',
+                        callback: function(url) {
+                            if (!url) return false;
+                            if (pagesBase && url.indexOf(pagesBase) === 0) return false;
+                            var slideExt = /\.(pptx?|pptm|pdf|key|odp)(\?|$)/i;
+                            if (slideExt.test(url)) return true;
+                            if (!appHome) return (url.indexOf('youtube.com') !== -1 || url.indexOf('youtu.be') !== -1);
+                            return url.indexOf(appHome) !== 0;
+                        },
+                        attributes: {
+                            target: '_blank',
+                            rel: 'noopener noreferrer'
+                        }
+                    }
+                }
             }
         };
 
         var editor;
         var pagesList = [];
+        var lessonsList = [];
 
-        fetch(pagesJsonUrl)
-            .then(response => response.json())
-            .then(pages => {
-                pagesList = pages;
-                populatePageLinkList();
-            })
-            .catch(error => {
-                console.error('Error loading pages:', error);
-            });
+        Promise.all([
+            fetch(pagesJsonUrl).then(function(r) { return r.json(); }),
+            fetch(lessonsJsonUrl).then(function(r) { return r.json(); })
+        ]).then(function(results) {
+            pagesList = results[0] || [];
+            lessonsList = results[1] || [];
+            populatePageLinkList();
+        }).catch(function(error) {
+            console.error('Error loading link data:', error);
+        });
+
+        function createExpandoSection(title, count, itemsContainer, startCollapsed) {
+            var expando = document.createElement('div');
+            expando.className = 'page-link-expando' + (startCollapsed ? ' collapsed' : '');
+            expando.setAttribute('role', 'group');
+            expando.setAttribute('aria-label', title);
+
+            var header = document.createElement('div');
+            header.className = 'page-link-expando-header';
+            header.setAttribute('role', 'button');
+            header.setAttribute('aria-expanded', !startCollapsed);
+            header.setAttribute('tabindex', '0');
+            header.innerHTML = '<span>' + title + ' (' + count + ')</span><span class="expando-chevron" aria-hidden="true">&#9660;</span>';
+
+            header.onclick = function(e) {
+                e.preventDefault();
+                expando.classList.toggle('collapsed');
+                header.setAttribute('aria-expanded', !expando.classList.contains('collapsed'));
+            };
+            header.onkeydown = function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    expando.classList.toggle('collapsed');
+                    header.setAttribute('aria-expanded', !expando.classList.contains('collapsed'));
+                }
+            };
+
+            expando.appendChild(header);
+            expando.appendChild(itemsContainer);
+            return expando;
+        }
 
         function populatePageLinkList() {
             var listDiv = document.getElementById('page-link-list');
@@ -806,31 +1104,100 @@ class Pages extends Tool {
             listDiv.innerHTML = '';
             
             var displayPages = currentPageId ? pagesList.filter(function(p) { return p.id != currentPageId; }) : pagesList;
+            var hasContent = false;
             
-            if (displayPages.length === 0) {
-                listDiv.innerHTML = '<p role="status">No pages available.</p>';
-                return;
-            }
-            
-            displayPages.forEach(function(page) {
-                var item = document.createElement('button');
-                item.type = 'button';
-                item.className = 'page-link-item';
-                item.textContent = page.title;
-                item.setAttribute('role', 'listitem');
-                item.onclick = function() {
-                    insertPageLink(page);
-                    closePageLinkModal();
-                };
-                item.onkeydown = function(e) {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
+            if (displayPages.length > 0) {
+                var pagesContent = document.createElement('div');
+                pagesContent.className = 'page-link-expando-content';
+                pagesContent.setAttribute('role', 'list');
+
+                displayPages.forEach(function(page) {
+                    var item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'page-link-item';
+                    item.textContent = page.title;
+                    item.setAttribute('role', 'listitem');
+                    item.onclick = function() {
                         insertPageLink(page);
                         closePageLinkModal();
-                    }
+                    };
+                    item.onkeydown = function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            insertPageLink(page);
+                            closePageLinkModal();
+                        }
+                    };
+                    pagesContent.appendChild(item);
+                });
+
+                var pagesExpando = createExpandoSection('Pages', displayPages.length, pagesContent, true);
+                listDiv.appendChild(pagesExpando);
+                hasContent = true;
+            }
+            
+            if (lessonsList.length > 0) {
+                var typeGroups = {
+                    video: { label: 'Videos', items: [] },
+                    discussion: { label: 'Discussions', items: [] },
+                    lti: { label: 'LTI & Tools', items: [] },
+                    'not-lti': { label: 'LTI & Tools', items: [] },
+                    reference: { label: 'References', items: [] },
+                    slide: { label: 'Slides', items: [] }
                 };
-                listDiv.appendChild(item);
-            });
+
+                lessonsList.forEach(function(lessonItem) {
+                    var t = lessonItem.type || 'reference';
+                    if (t === 'not-lti') t = 'lti';
+                    if (typeGroups[t]) typeGroups[t].items.push(lessonItem);
+                });
+
+                var ltiItems = (typeGroups.lti ? typeGroups.lti.items : []).concat(typeGroups['not-lti'] ? typeGroups['not-lti'].items : []);
+                var groupsToShow = [
+                    { label: 'Videos', items: typeGroups.video ? typeGroups.video.items : [] },
+                    { label: 'Discussions', items: typeGroups.discussion ? typeGroups.discussion.items : [] },
+                    { label: 'LTI & Tools', items: ltiItems },
+                    { label: 'References', items: typeGroups.reference ? typeGroups.reference.items : [] },
+                    { label: 'Slides', items: typeGroups.slide ? typeGroups.slide.items : [] }
+                ];
+
+                groupsToShow.forEach(function(group) {
+                    if (!group.items || group.items.length === 0) return;
+
+                    var content = document.createElement('div');
+                    content.className = 'page-link-expando-content';
+                    content.setAttribute('role', 'list');
+
+                    group.items.forEach(function(lessonItem) {
+                        var item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'page-link-item';
+                        item.textContent = lessonItem.title + (lessonItem.module ? ' (' + lessonItem.module + ')' : '');
+                        item.setAttribute('role', 'listitem');
+                        item.setAttribute('title', lessonItem.url);
+                        item.onclick = function() {
+                            insertLessonLink(lessonItem);
+                            closePageLinkModal();
+                        };
+                        item.onkeydown = function(e) {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                insertLessonLink(lessonItem);
+                                closePageLinkModal();
+                            }
+                        };
+                        content.appendChild(item);
+                    });
+
+                    var expando = createExpandoSection(group.label, group.items.length, content, true);
+                    listDiv.appendChild(expando);
+                    hasContent = true;
+                });
+            }
+            
+            if (!hasContent) {
+                listDiv.innerHTML = '<p role="status">No pages or lesson content available.</p>';
+            }
         }
 
         var pageLinkModalFocusBeforeOpen = null;
@@ -878,6 +1245,26 @@ class Pages extends Tool {
             model.change(writer => {
                 if (selection.isCollapsed) {
                     const textNode = writer.createText(page.title);
+                    const insertPosition = selection.getFirstPosition();
+                    const insertedRange = model.insertContent(textNode, insertPosition);
+                    writer.setSelection(insertedRange);
+                }
+            });
+            
+            editor.execute('link', url);
+        }
+
+        function insertLessonLink(lessonItem) {
+            if (!editor) return;
+            
+            const model = editor.model;
+            const selection = model.document.selection;
+            const url = lessonItem.url;
+            const title = lessonItem.title;
+            
+            model.change(writer => {
+                if (selection.isCollapsed) {
+                    const textNode = writer.createText(title);
                     const insertPosition = selection.getFirstPosition();
                     const insertedRange = model.insertContent(textNode, insertPosition);
                     writer.setSelection(insertedRange);
