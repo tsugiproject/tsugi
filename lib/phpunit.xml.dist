@@ -6,7 +6,7 @@
 <phpunit displayDetailsOnTestsThatTriggerDeprecations="true">
 
 -->
-<phpunit>
+<phpunit bootstrap="tests/bootstrap.php">
     <testsuites>
         <testsuite name="Module Test Suite">
             <directory>tests/*</directory>

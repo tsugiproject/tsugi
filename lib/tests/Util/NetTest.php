@@ -1,6 +1,6 @@
 <?php
 
-require "src/Util/Net.php";
+require_once "src/Util/Net.php";
 
 use \Tsugi\Util\Net;
 
