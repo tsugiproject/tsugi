@@ -1071,7 +1071,7 @@ class Announcements extends Tool {
                         <tbody>
                             <?php foreach ($announcements as $announcement): ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($announcement['title']) ?></td>
+                                    <td><a href="<?= htmlspecialchars($back_url) ?>" aria-label="View announcement: <?= htmlspecialchars($announcement['title']) ?>"><?= htmlspecialchars($announcement['title']) ?></a></td>
                                     <td><?= htmlspecialchars(substr($announcement['text'], 0, 100)) ?><?= strlen($announcement['text']) > 100 ? '...' : '' ?></td>
                                     <td>
                                         <?php if (!empty($announcement['url'])): ?>
