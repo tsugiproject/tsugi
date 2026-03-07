@@ -104,6 +104,30 @@ abstract class Tool {
     }
 
     /**
+     * Get link attributes for external vs same-site URLs
+     *
+     * Same-site links open in the current tab; external links get target="_blank"
+     * and rel="noopener noreferrer". Uses $CFG->apphome to determine same-site.
+     *
+     * @param string $url The link URL
+     * @param string $linkLabel Optional label for aria-label (default: 'Learn more')
+     * @return array ['attrs' => string, 'aria_label' => string, 'external' => bool]
+     */
+    protected function externalLinkAttrs($url, $linkLabel = 'Learn more') {
+        global $CFG;
+        $apphome = isset($CFG->apphome) ? rtrim($CFG->apphome, '/') : '';
+        $external = true;
+        if ($apphome && (strpos($url, $apphome) === 0 || (strpos($url, '/') === 0 && !preg_match('#^//#', $url)))) {
+            $external = false;
+        } elseif (strpos($url, '/') === 0 && !preg_match('#^//#', $url)) {
+            $external = false;
+        }
+        $attrs = $external ? ' target="_blank" rel="noopener noreferrer"' : '';
+        $aria_label = $external ? $linkLabel . ' (opens in new window)' : $linkLabel;
+        return ['attrs' => $attrs, 'aria_label' => $aria_label, 'external' => $external];
+    }
+
+    /**
      * Static helper to determine the parent path dynamically from the request
      * 
      * This is useful for static methods that need to determine the base path

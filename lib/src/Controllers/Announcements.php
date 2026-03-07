@@ -201,9 +201,10 @@ class Announcements extends Tool {
                                     <?= nl2br(htmlspecialchars($announcement['text'])) ?>
                                 </div>
                                 <?php if (!empty($announcement['url'])): ?>
+                                    <?php $link_attrs = $this->externalLinkAttrs($announcement['url']); ?>
                                     <p class="announcement-url">
-                                        <a href="<?= htmlspecialchars($announcement['url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-link" aria-label="Learn more, opens in new window">
-                                            Learn more <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span>
+                                        <a href="<?= htmlspecialchars($announcement['url']) ?>"<?= $link_attrs['attrs'] ?> class="btn btn-link" aria-label="<?= htmlspecialchars($link_attrs['aria_label']) ?>">
+                                            Learn more <?php if ($link_attrs['external']): ?><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span><?php endif; ?>
                                         </a>
                                     </p>
                                 <?php endif; ?>
@@ -240,9 +241,10 @@ class Announcements extends Tool {
                                     <?= nl2br(htmlspecialchars($announcement['text'])) ?>
                                 </div>
                                 <?php if (!empty($announcement['url'])): ?>
+                                    <?php $link_attrs = $this->externalLinkAttrs($announcement['url']); ?>
                                     <p class="announcement-url">
-                                        <a href="<?= htmlspecialchars($announcement['url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-link" aria-label="Learn more, opens in new window">
-                                            Learn more <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span>
+                                        <a href="<?= htmlspecialchars($announcement['url']) ?>"<?= $link_attrs['attrs'] ?> class="btn btn-link" aria-label="<?= htmlspecialchars($link_attrs['aria_label']) ?>">
+                                            Learn more <?php if ($link_attrs['external']): ?><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span><?php endif; ?>
                                         </a>
                                     </p>
                                 <?php endif; ?>
@@ -1073,7 +1075,8 @@ class Announcements extends Tool {
                                     <td><?= htmlspecialchars(substr($announcement['text'], 0, 100)) ?><?= strlen($announcement['text']) > 100 ? '...' : '' ?></td>
                                     <td>
                                         <?php if (!empty($announcement['url'])): ?>
-                                            <a href="<?= htmlspecialchars($announcement['url']) ?>" target="_blank" rel="noopener noreferrer" aria-label="View URL, opens in new window">
+                                            <?php $link_attrs = $this->externalLinkAttrs($announcement['url'], 'View URL'); ?>
+                                            <a href="<?= htmlspecialchars($announcement['url']) ?>"<?= $link_attrs['attrs'] ?> aria-label="<?= htmlspecialchars($link_attrs['aria_label']) ?>">
                                                 <?= htmlspecialchars(substr($announcement['url'], 0, 30)) ?><?= strlen($announcement['url']) > 30 ? '...' : '' ?>
                                             </a>
                                         <?php else: ?>
