@@ -7,6 +7,21 @@
 #
 set -euo pipefail
 
+echo ""
+echo "This script will:"
+echo "  1. Remove the existing vendor/ directory"
+echo "  2. Run composer install --no-dev (production deps only)"
+echo "  3. Optimize the autoloader"
+echo "  4. Restore legacy tsugi include files from git"
+echo "  5. Run the vendor hygiene check"
+echo ""
+read -p "Are you sure? Type Y to continue: " confirm
+if [ "$confirm" != "Y" ]; then
+  echo "Aborted."
+  exit 1
+fi
+echo ""
+
 echo "🔧 Building production vendor/ (deterministic)"
 
 # Must be run from repo root

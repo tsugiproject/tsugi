@@ -2,8 +2,13 @@
 
 namespace Tsugi\Controllers;
 
+require_once __DIR__ . '/../UI/CKEditor.php';
+
 use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
+
+// Ensure CKEditor helper is loaded (fallback if autoload misses it)
+require_once __DIR__ . '/../UI/CKEditor.php';
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -207,8 +212,7 @@ class Pages extends Tool {
         $OUTPUT->footerStart();
         ?>
         <style>
-        .page-content a { text-decoration: underline; }
-        .ck-editor .ck-content a, .ck.ck-editor__editable a { text-decoration: underline; }
+        <?php \Tsugi\UI\CKEditor::renderStyles(['includeLinkPicker' => false]); ?>
         </style>
         <?php
         $OUTPUT->footerEnd();
@@ -412,35 +416,11 @@ class Pages extends Tool {
         $OUTPUT->footerStart();
         ?>
         <style>
-        #page-link-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); transition: opacity 0.25s ease; opacity: 0; }
-        #page-link-modal.open { opacity: 1; }
-        #page-link-modal-content { position: fixed; right: 0; top: 0; height: 100%; width: 360px; max-width: 90%; background-color: #fefefe; padding: 20px; box-shadow: -4px 0 20px rgba(0,0,0,0.15); overflow-y: auto; transition: transform 0.25s ease; transform: translateX(100%); }
-        #page-link-modal.open #page-link-modal-content { transform: translateX(0); }
-        #page-link-list { max-height: calc(100vh - 120px); overflow-y: auto; margin: 10px 0; }
-        .page-link-item { display: block; width: 100%; padding: 8px; text-align: left; cursor: pointer; border: none; border-bottom: 1px solid #ddd; background: transparent; font-size: inherit; }
-        .page-link-item:hover { background-color: #f0f0f0; }
-        .page-link-expando { margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; }
-        .page-link-expando-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; cursor: pointer; font-weight: bold; color: #555; font-size: 12px; text-transform: uppercase; background: #f8f8f8; border-radius: 4px; user-select: none; }
-        .page-link-expando-header:hover { background: #eee; }
-        .page-link-expando-header .expando-chevron { transition: transform 0.2s ease; display: inline-block; }
-        .page-link-expando.collapsed .page-link-expando-header .expando-chevron { transform: rotate(-90deg); }
-        .page-link-expando-content { max-height: 280px; overflow-y: auto; transition: max-height 0.2s ease; }
-        .page-link-expando.collapsed .page-link-expando-content { max-height: 0; overflow: hidden; }
-        .page-content a, .ck-editor .ck-content a, .ck.ck-editor__editable a { text-decoration: underline; }
-        [data-page-link-button] { display: inline-flex !important; align-items: center !important; }
-        [data-page-link-button] .ck-icon { width: 20px !important; height: 20px !important; }
+        <?php \Tsugi\UI\CKEditor::renderStyles(['includeLinkPicker' => true]); ?>
         </style>
-        <div id="page-link-modal" role="dialog" aria-modal="true" aria-labelledby="page-link-modal-title" aria-describedby="page-link-list" tabindex="-1">
-            <div id="page-link-modal-content">
-                <div class="page-link-modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h3 id="page-link-modal-title" style="margin: 0;">Insert link</h3>
-                    <button type="button" onclick="closePageLinkModal()" class="btn btn-default">Cancel</button>
-                </div>
-                <div id="page-link-list" role="list"></div>
-            </div>
-        </div>
+        <?php \Tsugi\UI\CKEditor::renderLinkPickerModal('Insert link'); ?>
 
-        <script src="https://cdn.ckeditor.com/ckeditor5/16.0.0/classic/ckeditor.js"></script>
+        <?php \Tsugi\UI\CKEditor::renderScriptTag(); ?>
         <script type="text/javascript">
         <?php $json_url = $tool_home . '/json'; ?>
         <?php $lessons_json_url = $tool_home . '/lessons-json'; ?>
@@ -450,44 +430,7 @@ class Pages extends Tool {
         var appHome = '<?= htmlspecialchars(isset($apphome) ? $apphome : '') ?>';
         var currentPageId = <?= isset($current_page_id) ? (int)$current_page_id : 'null' ?>;
 
-        ClassicEditor.defaultConfig = {
-            toolbar: {
-                items: [
-                    'heading',
-                    '|',
-                    'bold',
-                    'italic',
-                    'link',
-                    'bulletedList',
-                    'numberedList',
-                    'blockQuote',
-                    'insertTable',
-                    'mediaEmbed',
-                    'undo',
-                    'redo'
-                ]
-            },
-            link: {
-                decorators: {
-                    openExternalInNewTab: {
-                        mode: 'automatic',
-                        callback: function(url) {
-                            if (!url) return false;
-                            if (pagesBase && url.indexOf(pagesBase) === 0) return false;
-                            if (appHome && url.indexOf(appHome + '/lessons') === 0) return false;
-                            var slideExt = /\.(pptx?|pptm|pdf|key|odp)(\?|$)/i;
-                            if (slideExt.test(url)) return true;
-                            if (!appHome) return (url.indexOf('youtube.com') !== -1 || url.indexOf('youtu.be') !== -1);
-                            return url.indexOf(appHome) !== 0;
-                        },
-                        attributes: {
-                            target: '_blank',
-                            rel: 'noopener noreferrer'
-                        }
-                    }
-                }
-            }
-        };
+        <?php \Tsugi\UI\CKEditor::renderConfigScript(); ?>
 
         var editor;
         var pagesList = [];
@@ -1026,36 +969,11 @@ class Pages extends Tool {
         $current_page_id = (int)$page['page_id'];
         ?>
         <style>
-        .ckeditor-container { min-height: 400px; }
-        #page-link-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); transition: opacity 0.25s ease; opacity: 0; }
-        #page-link-modal.open { opacity: 1; }
-        #page-link-modal-content { position: fixed; right: 0; top: 0; height: 100%; width: 360px; max-width: 90%; background-color: #fefefe; padding: 20px; box-shadow: -4px 0 20px rgba(0,0,0,0.15); overflow-y: auto; transition: transform 0.25s ease; transform: translateX(100%); }
-        #page-link-modal.open #page-link-modal-content { transform: translateX(0); }
-        #page-link-list { max-height: calc(100vh - 120px); overflow-y: auto; margin: 10px 0; }
-        .page-link-item { display: block; width: 100%; padding: 8px; text-align: left; cursor: pointer; border: none; border-bottom: 1px solid #ddd; background: transparent; font-size: inherit; }
-        .page-link-item:hover { background-color: #f0f0f0; }
-        .page-link-expando { margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; }
-        .page-link-expando-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; cursor: pointer; font-weight: bold; color: #555; font-size: 12px; text-transform: uppercase; background: #f8f8f8; border-radius: 4px; user-select: none; }
-        .page-link-expando-header:hover { background: #eee; }
-        .page-link-expando-header .expando-chevron { transition: transform 0.2s ease; display: inline-block; }
-        .page-link-expando.collapsed .page-link-expando-header .expando-chevron { transform: rotate(-90deg); }
-        .page-link-expando-content { max-height: 280px; overflow-y: auto; transition: max-height 0.2s ease; }
-        .page-link-expando.collapsed .page-link-expando-content { max-height: 0; overflow: hidden; }
-        .page-content a, .ck-editor .ck-content a, .ck.ck-editor__editable a { text-decoration: underline; }
-        [data-page-link-button] { display: inline-flex !important; align-items: center !important; }
-        [data-page-link-button] .ck-icon { width: 20px !important; height: 20px !important; }
+        <?php \Tsugi\UI\CKEditor::renderStyles(['includeLinkPicker' => true, 'extraStyles' => '.ckeditor-container { min-height: 400px; }']); ?>
         </style>
-        <div id="page-link-modal" role="dialog" aria-modal="true" aria-labelledby="page-link-modal-title" aria-describedby="page-link-list" tabindex="-1">
-            <div id="page-link-modal-content">
-                <div class="page-link-modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h3 id="page-link-modal-title" style="margin: 0;">Insert link</h3>
-                    <button type="button" onclick="closePageLinkModal()" class="btn btn-default">Cancel</button>
-                </div>
-                <div id="page-link-list" role="list"></div>
-            </div>
-        </div>
+        <?php \Tsugi\UI\CKEditor::renderLinkPickerModal('Insert link'); ?>
 
-        <script src="https://cdn.ckeditor.com/ckeditor5/16.0.0/classic/ckeditor.js"></script>
+        <?php \Tsugi\UI\CKEditor::renderScriptTag(); ?>
         <script type="text/javascript">
         <?php $json_url = $tool_home . '/json'; ?>
         <?php $lessons_json_url = $tool_home . '/lessons-json'; ?>
@@ -1065,44 +983,7 @@ class Pages extends Tool {
         var appHome = '<?= htmlspecialchars(isset($apphome) ? $apphome : '') ?>';
         var currentPageId = <?= isset($current_page_id) ? (int)$current_page_id : 'null' ?>;
 
-        ClassicEditor.defaultConfig = {
-            toolbar: {
-                items: [
-                    'heading',
-                    '|',
-                    'bold',
-                    'italic',
-                    'link',
-                    'bulletedList',
-                    'numberedList',
-                    'blockQuote',
-                    'insertTable',
-                    'mediaEmbed',
-                    'undo',
-                    'redo'
-                ]
-            },
-            link: {
-                decorators: {
-                    openExternalInNewTab: {
-                        mode: 'automatic',
-                        callback: function(url) {
-                            if (!url) return false;
-                            if (pagesBase && url.indexOf(pagesBase) === 0) return false;
-                            if (appHome && url.indexOf(appHome + '/lessons') === 0) return false;
-                            var slideExt = /\.(pptx?|pptm|pdf|key|odp)(\?|$)/i;
-                            if (slideExt.test(url)) return true;
-                            if (!appHome) return (url.indexOf('youtube.com') !== -1 || url.indexOf('youtu.be') !== -1);
-                            return url.indexOf(appHome) !== 0;
-                        },
-                        attributes: {
-                            target: '_blank',
-                            rel: 'noopener noreferrer'
-                        }
-                    }
-                }
-            }
-        };
+        <?php \Tsugi\UI\CKEditor::renderConfigScript(); ?>
 
         var editor;
         var pagesList = [];
