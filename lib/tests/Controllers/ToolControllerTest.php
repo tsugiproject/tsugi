@@ -12,7 +12,7 @@ require_once "src/Controllers/StaticFiles.php";
  * Excludes methods that require PDOX (database): isInstructor, lmsEnsureAnalyticsLink,
  * lmsRecordLaunchAnalytics, showAnalytics.
  */
-class ToolTest extends \PHPUnit\Framework\TestCase
+class ToolControllerTest extends \PHPUnit\Framework\TestCase
 {
     /** @var \Tsugi\Config\ConfigInfo */
     private $originalCFG;

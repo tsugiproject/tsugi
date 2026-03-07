@@ -3,7 +3,7 @@
 require_once("src/Core/Tool.php");
 use \Tsugi\Core\Tool;
 
-class ToolTest extends \PHPUnit\Framework\TestCase
+class CoreToolTest extends \PHPUnit\Framework\TestCase
 {
     public function testInstantiation() {
         $tool = new \Tsugi\Core\Tool();
