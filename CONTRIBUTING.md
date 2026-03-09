@@ -23,12 +23,5 @@ If you want to suggest a change, generate a [GitHub Pull Request](https://github
 
 ## The vendor Folder
 
-You will notice that there is a `vendor` folder.   While many suggest that this is bad practice, in order to keep our releases rock solid and out install / upgrade process extremely simple, we keep the vendor folder in the repo.  Within that folder you will see that two other Tsugi repos are also included:
-
-https://github.com/tsugiproject/tsugi-php
-
-https://github.com/tsugiproject/koseu-php
-
-You can open issues and submit pull requests to with the main `tsugi` repo or these other repos.  Regardless of where you start the process the branch manager (Chuck) will make sure your modifications are propogated across repositories.
-
+You will notice that there is a `vendor` folder.   While many suggest that this is bad practice, in order to keep our releases rock solid and out install / upgrade process extremely simple, we keep the vendor folder in the repo.
 
