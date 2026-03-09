@@ -104,7 +104,7 @@ class LTIX {
      * Silently check if this is a launch and if so, handle it and redirect
      * back to ourselves
      */
-    public static function launchCheck($needed=self::ALL, $session_object=null,$request_data=false) {
+    public static function launchCheck($needed=self::ALL, $request_data=false) {
         global $TSUGI_LAUNCH, $CFG;
         $needed = self::patchNeeded($needed);
 
@@ -125,17 +125,11 @@ class LTIX {
         if ( $LTI11 === false && $LTI13 === false ) return $detail;
 
 
-        $session_id = self::setupSession($needed,$session_object,$request_data);
+        $session_id = self::setupSession($needed, $request_data);
         if ( $session_id === false ) return false;
 
         // Redirect back to ourselves...
         $url = self::curPageUrl();
-
-        if ( $session_object !== null ) {
-            $TSUGI_LAUNCH->redirect_url = self::curPageUrl();
-            return true;
-        }
-
         $location = U::addSession($url);
         session_write_close();  // To avoid any race conditions...
 
@@ -179,104 +173,6 @@ class LTIX {
             error_log("Decryption mismatch: AesOpenSSL and AesCtr produced different results. secret: $secret");
         }
         return $decrlegacy;
-    }
-
-    /**
-     * Wrap getting a key from the session
-     */
-    public static function wrapped_session_get($session_object,$key,$default=null)
-    {
-        global $TSUGI_SESSION_OBJECT;
-        if ( $session_object === null && isset($TSUGI_SESSION_OBJECT) ) $session_object = $TSUGI_SESSION_OBJECT;
-        if ( is_object($session_object) ) {
-            return $session_object->get($key,$default);
-        }
-        if ( is_array($session_object) ) {
-            if ( isset($session_object[$key]) ) return $session_object[$key];
-            return $default;
-        }
-        if ( ! isset($_SESSION) ) return $default;
-        if ( ! isset($_SESSION[$key]) ) return $default;
-        return $_SESSION[$key];
-    }
-
-    /**
-     * Get all session values
-     */
-    public static function wrapped_session_all($session_object)
-    {
-        global $TSUGI_SESSION_OBJECT;
-        if ( $session_object === null && isset($TSUGI_SESSION_OBJECT) ) $session_object = $TSUGI_SESSION_OBJECT;
-        if ( is_object($session_object) ) {
-            return $session_object->all();
-        }
-        if ( is_array($session_object) ) {
-            $retval = array();
-            $retval = array_merge($retval,$session_object); // Make a copy
-            return $retval;
-        }
-        if ( ! isset($_SESSION) ) return array();
-        $retval = array();
-        $retval = array_merge($retval, $_SESSION);
-        return $retval;
-    }
-
-    /**
-     * Wrap setting a key from the session
-     */
-    public static function wrapped_session_put(&$session_object,$key,$value)
-    {
-        global $TSUGI_SESSION_OBJECT;
-        if ( $session_object === null && isset($TSUGI_SESSION_OBJECT) ) $session_object = $TSUGI_SESSION_OBJECT;
-        if ( is_object($session_object) ) {
-            $session_object->put($key,$value);
-            return;
-        }
-        if ( is_array($session_object) ) {
-            $session_object[$key] = $value;
-            return;
-        }
-        if ( isset($_SESSION) ) $_SESSION[$key] = $value;
-    }
-
-    /**
-     * Wrap forgetting a key from the session
-     */
-    public static function wrapped_session_forget(&$session_object,$key)
-    {
-        global $TSUGI_SESSION_OBJECT;
-        if ( $session_object === null && isset($TSUGI_SESSION_OBJECT) ) $session_object = $TSUGI_SESSION_OBJECT;
-        if ( is_object($session_object) ) {
-            $session_object->forget($key);
-            return;
-        }
-        if ( is_array($session_object) ) {
-            if ( isset($session_object[$key]) ) unset($session_object[$key]);
-            return;
-        }
-        if ( isset($_SESSION) && isset($_SESSION[$key]) ) unset($_SESSION[$key]);
-    }
-
-    /**
-     * Wrap flushing the session
-     */
-    public static function wrapped_session_flush(&$session_object)
-    {
-        global $TSUGI_SESSION_OBJECT;
-        if ( $session_object === null && isset($TSUGI_SESSION_OBJECT) ) $session_object = $TSUGI_SESSION_OBJECT;
-        if ( is_object($session_object) ) {
-            $session_object->flush();
-            return;
-        }
-        if ( is_array($session_object) ) {
-            foreach($session_object as $k => $v ) {
-                unset($session_object[$k]);
-            }
-            for ($i = 0; $i < count($session_object); $i++) {
-                unset($session_object[$i]);
-            }
-        }
-        session_unset();
     }
 
     /**
@@ -401,10 +297,9 @@ class LTIX {
     /**
      * Extract all of the post data, set up data in tables, and set up session.
      */
-    public static function setupSession($needed=self::ALL, $session_object=null, $request_data=false) {
-        global $CFG, $TSUGI_LAUNCH, $TSUGI_SESSION_OBJECT;
+    public static function setupSession($needed=self::ALL, $request_data=false) {
+        global $CFG, $TSUGI_LAUNCH;
         global $PDOX;
-        $TSUGI_SESSION_OBJECT = $session_object;
 
         $needed = self::patchNeeded($needed);
 
@@ -446,37 +341,33 @@ class LTIX {
 
         // We make up a Session ID Key because we don't want a new one
         // each time the same user launches the same link.
-        if ( $session_object === null ) {
-            if ( !defined('COOKIE_SESSION') ) {
-                $session_id = self::getCompositeKey($post, $CFG->sessionsalt);
-                session_id($session_id);
-                session_start();
-            // if we're using a cookie session, the session may already have been started; if not, start it now
-            // (if we call session_start() and the session has already been started, php will generate a notice, which we don't want)
-            } else if (U::isEmpty($_SESSION ?? null)) {
-                session_start();
-            }
-            $session_id = session_id();
+        if ( !defined('COOKIE_SESSION') ) {
+            $session_id = self::getCompositeKey($post, $CFG->sessionsalt);
+            session_id($session_id);
+            session_start();
+        } else if (U::isEmpty($_SESSION ?? [])) {
+            session_start();
+        }
+        $session_id = session_id();
 
-            // Since we might reuse session IDs, clean everything out except permanent stuff
-            if ( !defined('COOKIE_SESSION') ) {
-                $save_sess = self::wrapped_session_all($session_object);
-                self::wrapped_session_flush($session_object);
-                foreach($save_sess as $key => $v ) {
-                    if ( strpos($key, 'tsugi_permanent_') !== 0 ) continue;
-                    self::wrapped_session_put($session_object, $key, $v);
-                }
+        // Since we might reuse session IDs, clean everything out except permanent stuff
+        if ( !defined('COOKIE_SESSION') ) {
+            $save_sess = array_merge([], $_SESSION ?? []);
+            $_SESSION = [];
+            foreach($save_sess as $key => $v ) {
+                if ( strpos($key, 'tsugi_permanent_') !== 0 ) continue;
+                $_SESSION[$key] = $v;
             }
         }
 
-        self::wrapped_session_put($session_object,'LAST_ACTIVITY', time());
+        $_SESSION['LAST_ACTIVITY'] = time();
 
         // Copy the tsugi_nav into the session
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
         if ( isset($request_data['ext_tsugi_top_nav']) ) {
-            self::wrapped_session_put($session_object,$sess_key, $request_data['ext_tsugi_top_nav']);
+            $_SESSION[$sess_key] = $request_data['ext_tsugi_top_nav'];
         } else {
-            self::wrapped_session_forget($session_object,$sess_key);
+            unset($_SESSION[$sess_key]);
         }
 
         // Read all of the data from the database with a very long
@@ -641,8 +532,7 @@ class LTIX {
             // Just copy across
             if ( U::get($post,'lti13_deeplink') ) $row['lti13_deeplink'] = $post['lti13_deeplink'];
 
-            self::wrapped_session_put($session_object, 'tsugi_jwt', $jwt);
-            // self::wrapped_session_put($session_object, 'tsugi_raw_jwt', $raw_jwt);
+            $_SESSION['tsugi_jwt'] = $jwt;
         }
 
         // Store the launch path
@@ -677,7 +567,7 @@ class LTIX {
         // Update the login_at data and do analytics if requested
         // There are a lot of queryReturnError() calls because we don't want to
         // fail on "nice to have" analytics data.
-        $start_time = self::wrapped_session_get($session_object, 'tsugi_permanent_start_time', false);
+        $start_time = $_SESSION['tsugi_permanent_start_time'] ?? false;
 
         if ( isset($row['user_id']) && $start_time === false ) {
             self::noteLoggedIn($row);
@@ -793,21 +683,21 @@ class LTIX {
         }
 
         // Make sure we debounce really fast relaunches
-        self::wrapped_session_put($session_object, 'tsugi_permanent_start_time', time());
+        $_SESSION['tsugi_permanent_start_time'] = time();
 
         // Encrypt the secret before placing in the session
         $row['secret'] = self::encrypt_secret($row['secret']);
 
         // Put the information into the row variable and put row into session
-        self::wrapped_session_put($session_object, TSUGI_SESSION_LTI, $row);
-        self::wrapped_session_put($session_object, TSUGI_SESSION_LTI_POST, $request_data);
+        $_SESSION[TSUGI_SESSION_LTI] = $row;
+        $_SESSION[TSUGI_SESSION_LTI_POST] = $request_data;
 
         if ( isset($_SERVER['HTTP_USER_AGENT']) ) {
-            self::wrapped_session_put($session_object, 'HTTP_USER_AGENT', $_SERVER['HTTP_USER_AGENT']);
+            $_SESSION['HTTP_USER_AGENT'] = $_SERVER['HTTP_USER_AGENT'];
         }
         $ipaddr = Net::getIP();
         if ( is_string($ipaddr) ) {
-            self::wrapped_session_put($session_object, 'REMOTE_ADDR', $ipaddr);
+            $_SESSION['REMOTE_ADDR'] = $ipaddr;
             // Check our list of IP address history
             // TODO: decrypt
             $iphistory = U::get($_COOKIE, "TSUGI-HISTORY",'');
@@ -820,14 +710,14 @@ class LTIX {
         }
 
         $browser_mark = self::getBrowserMark();
-        self::wrapped_session_put($session_object, 'BROWSER_MARK', $browser_mark);
+        $_SESSION['BROWSER_MARK'] = $browser_mark;
 
-        self::wrapped_session_put($session_object, 'CSRF_TOKEN', uniqid());
+        $_SESSION['CSRF_TOKEN'] = uniqid();
 
         // Save this to make sure the user does not wander unless we launched from the root
         $scp = $CFG->getScriptPath();
         if ( U::isNotEmpty($scp) ) {
-            self::wrapped_session_put($session_object, 'script_path', $CFG->getScriptPath());
+            $_SESSION['script_path'] = $CFG->getScriptPath();
         }
 
         // Check if we can auto-login the system user
@@ -840,18 +730,14 @@ class LTIX {
         $breadcrumb .= ',';
         $breadcrumb .= isset($request_data['user_id']) ? str_replace(',',';', $request_data['user_id']) : '';
         $breadcrumb .= ',';
-        if ( $session_object === null ) {
-            $breadcrumb .= $session_id;
-        }
+        $breadcrumb .= $session_id;
         $breadcrumb .= ',';
         $breadcrumb .= self::curPageUrl();
         $breadcrumb .= ',';
-        $breadcrumb .= self::wrapped_session_get($session_object, 'email',' ');
+        $breadcrumb .= $_SESSION['email'] ?? ' ';
         error_log($breadcrumb);
 
-        if ( $session_object === null ) {
-            return $session_id;
-        }
+        return $session_id;
     }
 
     /**
@@ -2018,17 +1904,17 @@ class LTIX {
      * from the three sources and merged into a single array.  Can be null.
      */
     public static function requireDataOverride($needed,
-        $pdox, $session_object, $current_url, $request_data)
+        $pdox, $current_url, $request_data)
     {
         return self::requireDataPrivate($needed,
-            $pdox, $session_object, $current_url, $request_data);
+            $pdox, $current_url, $request_data);
     }
 
     /**
      * Internal method to handle the data setup
      */
     public static function requireDataPrivate($needed=self::ALL,
-        $pdox=null, $session_object=null, $current_url=null, $request_data=null)
+        $pdox=null, $current_url=null, $request_data=null)
     {
         global $CFG, $TSUGI_LAUNCH;
         global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT, $ROSTER;
@@ -2068,7 +1954,7 @@ class LTIX {
         if ( self::launchAuthorizationFlow($request_data) ) return;
 
         // Check if we are processing an LTI launch.  If so, handle it
-        $newlaunch = self::launchCheck($needed, $session_object, $request_data);
+        $newlaunch = self::launchCheck($needed, $request_data);
         $detail = $newlaunch;  // If we got a string back, save it
         $newlaunch = $newlaunch === true;   // A string is "false"
 
@@ -2079,53 +1965,43 @@ class LTIX {
         }
 
         // Check to see if the session already exists.
-        if ( $session_object === null ) {
-            $sess = session_name();
-            if ( ini_get('session.use_cookies') == '0' ) {
-                if ( $newlaunch || isset($_POST[$sess]) || isset($_GET[$sess]) ) {
-                    $session_id = $_POST[$sess] ?? $_GET[$sess] ?? null;
-                    // Do our best to restore a session
-                    if ( $session_id && session_id() == "" ) {
-                        session_id($session_id);
-                        session_start();
-                    }
-                } else if ( count($needed) > 0 ) {
-                    self::wrapped_session_flush($session_object);
-                    self::send403();
-                    $msg = 'Session is missing, invalid or expired - please re-launch';
-                    if ( is_string($detail) ) $msg .= ". Detail: ".$detail;
-                    self::abort_with_error_log($msg,
-                        U::get($_SERVER, 'HTTP_REFERER', Net::getIP())
-                    );
+        $sess = session_name();
+        if ( ini_get('session.use_cookies') == '0' ) {
+            if ( $newlaunch || isset($_POST[$sess]) || isset($_GET[$sess]) ) {
+                $session_id = $_POST[$sess] ?? $_GET[$sess] ?? null;
+                if ( $session_id && session_id() == "" ) {
+                    session_id($session_id);
+                    session_start();
                 }
-            }
-
-            // Start a session if it has not been started..
-            if ( session_id() == "" ) {
-                session_start();  // Should reassociate
+            } else if ( count($needed) > 0 ) {
+                $_SESSION = [];
+                self::send403();
+                $msg = 'Session is missing, invalid or expired - please re-launch';
+                if ( is_string($detail) ) $msg .= ". Detail: ".$detail;
+                self::abort_with_error_log($msg,
+                    U::get($_SERVER, 'HTTP_REFERER', Net::getIP())
+                );
             }
         }
 
-        // This happens from time to time when someone closes and reopens a laptop
-        // Or their computer goes to sleep and wakes back up hours later.
-        // So it is just a warning - nothing much we can do except tell them.
-        if ( count($needed) > 0 && self::wrapped_session_get($session_object, TSUGI_SESSION_LTI,null) === null ) {
-            self::wrapped_session_flush($session_object);
+        if ( session_id() == "" ) {
+            session_start();
+        }
+
+        if ( count($needed) > 0 && ($_SESSION[TSUGI_SESSION_LTI] ?? null) === null ) {
+            $_SESSION = [];
             self::abort_with_error_log('Tool session missing or expired - please re-launch ',
                 U::get($_SERVER, 'HTTP_REFERER', Net::getIP())
             );
         }
 
-        // Check the referrer...
-        $trusted = $session_object != null || self::checkReferer() || self::checkCSRF();
+        $trusted = self::checkReferer() || self::checkCSRF();
 
-        // Check to see if we switched browsers or IP addresses
-        // TODO: Change these to warnings once we get more data
-        $session_agent = self::wrapped_session_get($session_object, 'HTTP_USER_AGENT', null);
+        $session_agent = $_SESSION['HTTP_USER_AGENT'] ?? null;
         if ( count($needed) > 0 && (!$trusted) && $session_agent != null ) {
             if ( (!isset($_SERVER['HTTP_USER_AGENT'])) ||
                 $_SERVER['HTTP_USER_AGENT'] != $session_agent ) {
-                self::wrapped_session_flush($session_object);
+                $_SESSION = [];
                 self::send403();
                 self::abort_with_error_log("Session has expired", "HTTP_USER_AGENT ".
                     (($session_agent !== null ) ? $session_agent : 'Empty Session user agent') .
@@ -2141,10 +2017,10 @@ class LTIX {
 
         // We only check the first three octets as some systems wander through the addresses on
         // class C - Perhaps it is even NAT - who knows - but we forgive those on the same Class C
-        $session_addr = self::wrapped_session_get($session_object, 'REMOTE_ADDR', null);
+        $session_addr = $_SESSION['REMOTE_ADDR'] ?? null;
         $ipaddr = Net::getIP();
         $browser_mark = self::getBrowserMark();
-        $session_browser_mark = self::wrapped_session_get($session_object, 'BROWSER_MARK', null);
+        $session_browser_mark = $_SESSION['BROWSER_MARK'] ?? null;
         if ( count($needed) > 0 && (!$trusted) &&  $session_addr && $ipaddr &&
             Net::isRoutable($session_addr) && Net::isRoutable($ipaddr) ) {
             $sess_pieces = explode('.',$session_addr);
@@ -2154,7 +2030,7 @@ class LTIX {
                     $sess_pieces[2] != $serv_pieces[2] ) {
                     if ( strpos($iphistory, $session_addr) !== false ) {
                         error_log("IP Address changed, session_addr=".  $session_addr.' current='.$ipaddr." but trusting iphistory=".$iphistory);
-                        self::wrapped_session_put($session_object, 'REMOTE_ADDR', $ipaddr);
+                        $_SESSION['REMOTE_ADDR'] = $ipaddr;
                         // Add new IP Address to the Tsugi IP History if it is not there
                         if ( strpos($iphistory, $ipaddr) === false ) {
                             $iphistory .= '!' . $ipaddr;
@@ -2164,10 +2040,10 @@ class LTIX {
 
                     } else if ( $browser_mark == $session_browser_mark ) {
                         error_log("IP address change, trusting browser mark ".$browser_mark);
-                        self::wrapped_session_put($session_object, 'REMOTE_ADDR', $ipaddr);
+                        $_SESSION['REMOTE_ADDR'] = $ipaddr;
                     } else {
                         // Need to clear out session data
-                        self::wrapped_session_flush($session_object);
+                        $_SESSION = [];
                         self::send403();
                         self::abort_with_error_log('Session address has expired', "session_addr=".
                             $session_addr.' current='.$ipaddr.' iphistory='.$iphistory, 'DIE:');
@@ -2177,25 +2053,23 @@ class LTIX {
         }
 
         // Check to see if the user has navigated to a new place in the hierarchy
-        $session_script = self::wrapped_session_get($session_object, 'script_path', null);
+        $session_script = $_SESSION['script_path'] ?? null;
         if ( $session_script !== null &&
             (! endsWith(Output::getUtilUrl(''), $CFG->getScriptPath()) ) &&
             (! startsWith('api', $CFG->getScriptPath()) ) &&
             strpos($CFG->getScriptPath(), $session_script ) !== 0 ) {
-            self::wrapped_session_flush($session_object);
+            $_SESSION = [];
             self::send403();
             self::abort_with_error_log('Improper navigation detected', "script_path ".
                 $session_script.' /  '.$CFG->getScriptPath(), 'DIE:');
         }
 
         // Check to see if the session needs to be extended due to this request
-        self::checkHeartBeat($session_object);
+        self::checkHeartBeat();
 
-        // Restart the number of continuous heartbeats
-        self::wrapped_session_put($session_object, 'HEARTBEAT_COUNT', 0);
+        $_SESSION['HEARTBEAT_COUNT'] = 0;
 
-        // We don't have any launch data and don't need it
-        $LTI = self::wrapped_session_get($session_object, TSUGI_SESSION_LTI, null);
+        $LTI = $_SESSION[TSUGI_SESSION_LTI] ?? null;
         if ( count($needed) == 0 && $LTI === null ) {
             return $TSUGI_LAUNCH;
         }
@@ -2207,10 +2081,10 @@ class LTIX {
             }
         }
 
-        return self::buildLaunch($LTI, $session_object);
+        return self::buildLaunch($LTI);
     }
 
-    public static function buildLaunch($LTI, $session_object=null) {
+    public static function buildLaunch($LTI) {
         global $CFG, $TSUGI_LAUNCH, $TSUGI_KEY;
         global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT, $ROSTER;
 
@@ -2295,7 +2169,7 @@ class LTIX {
 
             // Check to see if we are supposed to use SHA256 for this link
             $settings_method = $LINK->settingsGet('oauth_signature_method');
-            $post_data = self::wrapped_session_get($session_object, TSUGI_SESSION_LTI_POST);
+            $post_data = $_SESSION[TSUGI_SESSION_LTI_POST] ?? null;
             $launch_method = null;
             if ( is_array($post_data) ) $launch_method = U::get($post_data, 'oauth_signature_method');
 
@@ -2729,22 +2603,22 @@ class LTIX {
 
     // See if we need to extend our session (heartbeat)
     // http://stackoverflow.com/questions/520237/how-do-i-expire-a-php-session-after-30-minutes
-    private static function checkHeartBeat($session_object=null) {
+    private static function checkHeartBeat() {
         global $CFG;
 
-        if ( session_id() == "" ) return;  // This should not start the session
+        if ( session_id() == "" ) return;
 
         if ( isset($CFG->sessionlifetime) ) {
-            if (self::wrapped_session_get($session_object,'LAST_ACTIVITY') ) {
+            if ( isset($_SESSION['LAST_ACTIVITY']) ) {
                 $heartbeat = $CFG->sessionlifetime/4;
-                $ellapsed = time() - self::wrapped_session_get($session_object,'LAST_ACTIVITY');
+                $ellapsed = time() - $_SESSION['LAST_ACTIVITY'];
                 if ( $ellapsed > $heartbeat ) {
-                    self::wrapped_session_put($session_object,'LAST_ACTIVITY', time());
+                    $_SESSION['LAST_ACTIVITY'] = time();
                     $filename = isset($_SERVER['SCRIPT_FILENAME']) ? $_SERVER['SCRIPT_FILENAME'] : '';
                     error_log("Heartbeat ".session_id().' '.$ellapsed.' '.$filename);
                 }
             } else {
-                self::wrapped_session_put($session_object,'LAST_ACTIVITY', time());
+                $_SESSION['LAST_ACTIVITY'] = time();
             }
         }
     }
@@ -2760,9 +2634,9 @@ class LTIX {
     }
 
     // Returns true for a good CSRF and false if we could not verify it
-    private static function checkCSRF($session_object=null) {
+    private static function checkCSRF() {
         global $CFG;
-        $token = self::wrapped_session_get($session_object,'CSRF_TOKEN');
+        $token = $_SESSION['CSRF_TOKEN'] ?? null;
         if ( ! $token ) return false;
         if ( isset($_POST['CSRF_TOKEN']) && $token == $_POST['CSRF_TOKEN'] ) return true;
         $headers = array_change_key_case(apache_request_headers());
@@ -2772,13 +2646,13 @@ class LTIX {
     }
 
     // Check the secure cookie and set login information appropriately
-    public static function loginSecureCookie($session_object=null) {
+    public static function loginSecureCookie() {
         global $CFG, $PDOX;
         $pieces = false;
         $id = false;
 
         // Only do this if we are not already logged in...
-        if ( self::wrapped_session_get($session_object,'id') || !isset($_COOKIE[$CFG->cookiename]) ||
+        if ( !empty($_SESSION['id']) || !isset($_COOKIE[$CFG->cookiename]) ||
              !isset($CFG->cookiepad) || $CFG->cookiepad === false) {
             return;
         }
@@ -2853,30 +2727,29 @@ class LTIX {
         unset($row['p_email']);
         unset($row['p_displayname']);
 
-        self::wrapped_session_put($session_object,'id',$row['user_id']);
-        self::wrapped_session_put($session_object,'email',$row['email']);
-        self::wrapped_session_put($session_object,'displayname',$row['displayname']);
-        self::wrapped_session_put($session_object,'profile_id',$row['profile_id']);
-        self::wrapped_session_put($session_object,'user_key',$row['user_key']);
-        self::wrapped_session_put($session_object,'avatar',$row['user_image']);
+        $_SESSION['id'] = $row['user_id'];
+        $_SESSION['email'] = $row['email'];
+        $_SESSION['displayname'] = $row['displayname'];
+        $_SESSION['profile_id'] = $row['profile_id'];
+        $_SESSION['user_key'] = $row['user_key'];
+        $_SESSION['avatar'] = $row['user_image'];
         if ( isset($row['key_key']) ) {
-            self::wrapped_session_put($session_object,'oauth_consumer_key',$row['key_key']);
+            $_SESSION['oauth_consumer_key'] = $row['key_key'];
         }
         if ( $row['role'] !== null ) {
-            self::wrapped_session_put($session_object,'context_key',$row['context_key']);
-            self::wrapped_session_put($session_object,'context_id',$row['context_id']);
+            $_SESSION['context_key'] = $row['context_key'];
+            $_SESSION['context_id'] = $row['context_id'];
         }
 
         if ( isset($row['secret']) ) {
             $row['secret'] = self::encrypt_secret($row['secret']);
-            self::wrapped_session_put($session_object,'secret', $row['secret']);
+            $_SESSION['secret'] = $row['secret'];
         }
         if ( isset($row['new_secret']) ) {
             $row['new_secret'] = self::encrypt_secret($row['new_secret']);
         }
 
-        // Emulate a session launch
-        self::wrapped_session_put($session_object, TSUGI_SESSION_LTI, $row);
+        $_SESSION[TSUGI_SESSION_LTI] = $row;
 
         self::noteLoggedIn($row);
 

@@ -7,9 +7,6 @@ require_once "src/UI/MenuSet.php";
 require_once "src/UI/Output.php";
 require_once "src/Config/ConfigInfo.php";
 require_once "src/Core/Launch.php";
-require_once "tests/Mock/MockSession.php";
-
-
 class MenuSetTest extends \PHPUnit\Framework\TestCase
 {
     public function testBasics() {
@@ -152,10 +149,11 @@ class MenuSetTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($export_str, $re_export_str);
         
         // Test storing in session and retrieving
-        // Create a Launch object with a mock session for Output to use
+        @session_id('test-session-'.uniqid());
+        @session_start();
+        $_SESSION = [];
+
         $launch = new \Tsugi\Core\Launch();
-        $launch->session_object = new MockSession();
-        
         $O = new \Tsugi\UI\Output();
         $O->launch = $launch;
         $O->topNavSession($set);

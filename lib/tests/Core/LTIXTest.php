@@ -3,7 +3,6 @@
 require_once "src/Core/LTIX.php";
 require_once "src/Util/PDOX.php";
 require_once "src/Config/ConfigInfo.php";
-require_once "tests/Mock/MockSession.php";
 
 use \Tsugi\Core\LTIX;
 
@@ -23,54 +22,28 @@ class LTIXTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(LTIX::ltiParameter('bob', 'sam'), 'sam');
     }
 
-    // Mostly make sure this does not blow up with a traceback
-    // The null code paths depends on the existence of the $_SESSION superglobal
-    // Which probably is not there in a unit test
-    public function testWrappedSessionNothing() {
-        $sess = null;
-        $this->assertEquals(LTIX::wrapped_session_get($sess,'x', 'sam'), 'sam');
-        LTIX::wrapped_session_put($sess,'x', 'y');
-        LTIX::wrapped_session_forget($sess,'x');
-        LTIX::wrapped_session_put($sess,'a', 'b');
-        LTIX::wrapped_session_put($sess,'a', 'c');
-        LTIX::wrapped_session_flush($sess);
-    }
+    /**
+     * Test session access via $_SESSION (replaces former wrapped_session tests)
+     */
+    public function testSessionAccess() {
+        $level_before = ob_get_level();
+        @session_id('test-session-'.uniqid());
+        @session_start();
+        $_SESSION = [];
 
-    public function exercise($sess) {
-        LTIX::wrapped_session_put($sess,'x', 'y');
-        $this->assertEquals(LTIX::wrapped_session_get($sess,'x', 'sam'), 'y');
-        $s = LTIX::wrapped_session_all($sess);
-        $this->assertArrayHasKey('x',$s);
-        $this->assertArrayNotHasKey('tsugi',$s);
-        $s['x']=42;  // Make sure we have a copy and cannot change x
-        $this->assertEquals(LTIX::wrapped_session_get($sess,'x', 'sam'), 'y');
-        $s = LTIX::wrapped_session_all($sess);
-        $this->assertArrayHasKey('x',$s);
-        $this->assertArrayNotHasKey('tsugi',$s);
-        LTIX::wrapped_session_forget($sess,'x');
-        $this->assertEquals(LTIX::wrapped_session_get($sess,'x', 'sam'), 'sam');
-        LTIX::wrapped_session_put($sess,'a', 'b');
-        $this->assertEquals(LTIX::wrapped_session_get($sess,'a', 'sam'), 'b');
-        LTIX::wrapped_session_put($sess,'a', 'c');
-        $this->assertEquals(LTIX::wrapped_session_get($sess,'a', 'sam'), 'c');
-        LTIX::wrapped_session_flush($sess);
-        $this->assertEquals(LTIX::wrapped_session_get($sess,'a', 'sam'), 'sam');
-        for($i=1; $i< 100; $i++) {
-            LTIX::wrapped_session_put($sess, $i, $i*$i);
+        $this->assertEquals('sam', $_SESSION['x'] ?? 'sam');
+        $_SESSION['x'] = 'y';
+        $this->assertEquals('y', $_SESSION['x'] ?? 'sam');
+        unset($_SESSION['x']);
+        $this->assertEquals('sam', $_SESSION['x'] ?? 'sam');
+        $_SESSION['a'] = 'b';
+        $_SESSION['a'] = 'c';
+        $this->assertEquals('c', $_SESSION['a'] ?? 'sam');
+        $_SESSION = [];
+        $this->assertEquals('sam', $_SESSION['a'] ?? 'sam');
+
+        while (ob_get_level() > $level_before) {
+            ob_end_clean();
         }
-        $this->assertEquals(LTIX::wrapped_session_get($sess, 10, 42), 100);
-        LTIX::wrapped_session_flush($sess);
-        $this->assertEquals(LTIX::wrapped_session_get($sess, 10, 42), 42);
     }
-
-    public function testWrappedSessionArray() {
-        $sess = array();
-        $this->exercise($sess);
-    }
-
-    public function testWrappedSessionObject() {
-        $sess = new MockSession();
-        $this->exercise($sess);
-    }
-
 }

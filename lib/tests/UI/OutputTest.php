@@ -3,8 +3,6 @@
 require_once "src/Core/SessionTrait.php";
 require_once "src/UI/Output.php";
 require_once "src/Core/Launch.php";
-require_once "tests/Mock/MockSession.php";
-
 use \Tsugi\UI\Output;
 
 class OutputTest extends \PHPUnit\Framework\TestCase
@@ -18,21 +16,23 @@ class OutputTest extends \PHPUnit\Framework\TestCase
      * Test suppressSiteNav and enableSiteNav methods
      */
     public function testSuppressAndEnableSiteNav() {
+        @session_id('test-session-'.uniqid());
+        @session_start();
+        $_SESSION = [];
+
         $launch = new \Tsugi\Core\Launch();
-        $launch->session_object = new MockSession();
-        
         $OUTPUT = new Output();
         $OUTPUT->launch = $launch;
-        
+
         // Initially should not be suppressed
         $suppressed = $OUTPUT->session_get(Output::SUPPRESS_SITE_NAV, false);
         $this->assertFalse($suppressed);
-        
+
         // Suppress site nav
         $OUTPUT->suppressSiteNav();
         $suppressed = $OUTPUT->session_get(Output::SUPPRESS_SITE_NAV, false);
         $this->assertTrue($suppressed);
-        
+
         // Enable site nav
         $OUTPUT->enableSiteNav();
         $suppressed = $OUTPUT->session_get(Output::SUPPRESS_SITE_NAV, false);

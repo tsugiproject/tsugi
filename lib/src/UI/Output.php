@@ -544,7 +544,6 @@ $('a').each(function (x) {
         self::headerJson();
 
         session_start();
-        $session_object = null;
 
         $session_id = U::get($_GET, session_name());
         if ( $session_id && $session_id != session_id() ) {
@@ -555,17 +554,12 @@ $('a').each(function (x) {
             error_log("Heartbeat session_id=".$session_id." missing lti value");
         }
 
-        // TODO: Make sure to do the right thing with the session eventially
-
-        // See how long since the last update of the activity time
         $now = time();
-        $seconds = $now - LTIX::wrapped_session_get($session_object, 'LAST_ACTIVITY', $now);
-        LTIX::wrapped_session_put($session_object, 'LAST_ACTIVITY', $now); // update last activity time stamp
+        $seconds = $now - ($_SESSION['LAST_ACTIVITY'] ?? $now);
+        $_SESSION['LAST_ACTIVITY'] = $now;
 
-        // Count the successive heartbeats without a request/response cycle
-        $count = LTIX::wrapped_session_get($session_object, 'HEARTBEAT_COUNT', 0);
-        $count++;
-        LTIX::wrapped_session_put($session_object, 'HEARTBEAT_COUNT', $count);
+        $count = ($_SESSION['HEARTBEAT_COUNT'] ?? 0) + 1;
+        $_SESSION['HEARTBEAT_COUNT'] = $count;
 
         if ( $count > 10 && ( $count % 100 ) == 0 ) {
             error_log("Heartbeat.php ".session_id().' '.$count);
@@ -574,7 +568,7 @@ $('a').each(function (x) {
         $retval = array("success" => true, "seconds" => $seconds,
                 "now" => $now, "count" => $count, "cookie" => $cookie,
                 "id" => session_id());
-        $lti = LTIX::wrapped_session_get($session_object, TSUGI_SESSION_LTI);
+        $lti = $_SESSION[TSUGI_SESSION_LTI] ?? null;
         $retval['lti'] = is_array($lti) && U::get($lti, 'key_id');
         $retval['sessionlifetime'] = $CFG->sessionlifetime;
         return $retval;

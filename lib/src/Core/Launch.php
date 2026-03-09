@@ -68,19 +68,6 @@ class Launch {
     public $current_url = null;
 
     /**
-     * If present, it means all session management is above us.
-     *
-     * Must be an object that supports
-     *     .get(key, default)
-     *     .put(key,value)
-     *     .forget(key)
-     *     flush()
-     *
-     * Required if request_parms is provided.
-     */
-    public $session_object = null;
-
-    /**
      * If this is non-null when we return, the caller must redirect to a GET of the same URL.
      */
     public $redirect_url = null;
@@ -112,7 +99,7 @@ class Launch {
      * @return mixed The session value or default
      */
     public function session_get($key, $default=null) {
-        return LTIX::wrapped_session_get($this->session_object,$key,$default);
+        return $_SESSION[$key] ?? $default;
     }
 
     /**
@@ -123,7 +110,7 @@ class Launch {
      * @return void
      */
     public function session_put($key, $value) {
-        return LTIX::wrapped_session_put($this->session_object,$key,$value);
+        $_SESSION[$key] = $value;
     }
 
     /**
@@ -133,7 +120,7 @@ class Launch {
      * @return void
      */
     public function session_forget($key) {
-        return LTIX::wrapped_session_forget($this->session_object,$key);
+        unset($_SESSION[$key]);
     }
 
     /**
@@ -142,7 +129,7 @@ class Launch {
      * @return void
      */
     public function session_flush() {
-        return LTIX::wrapped_session_flush($this->session_object);
+        $_SESSION = [];
     }
 
     /**
