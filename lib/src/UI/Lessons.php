@@ -6,6 +6,7 @@ use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\AesOpenSSL;
+use \Tsugi\Services\Badges\BadgeService;
 
 class Lessons {
 
@@ -1343,14 +1344,30 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             echo("<p>For more information, see <code>config-dist.php</code> in your Tsugi installation.</p>\n");
             echo("</div>\n");
         } else {
+            $PDOX = \Tsugi\Core\LTIX::getConnection();
+            $displayname = U::get($_SESSION, 'displayname', '');
+            $email = U::get($_SESSION, 'email', '');
+            $context_title = '';
+            $login_at = time();
+            $ctx_row = $PDOX->rowDie("SELECT title FROM {$CFG->dbprefix}lti_context WHERE context_id = :CID", array(':CID' => $_SESSION['context_id']));
+            if ( $ctx_row ) $context_title = $ctx_row['title'];
+            $user_row = $PDOX->rowDie("SELECT login_at FROM {$CFG->dbprefix}lti_user WHERE user_id = :UID", array(':UID' => $_SESSION['id']));
+            if ( $user_row && isset($user_row['login_at']) ) $login_at = $user_row['login_at'];
+
             echo("<ul style=\"list-style: none;\">\n");
             foreach($awarded as $badge) {
                 echo("<li><p>");
                 $code = basename($badge->image,'.png');
-                $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
-                $encrypted = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
-                $assert_url = $CFG->wwwroot.'/assertions/'.$encrypted.'.html';
-                $badge_img_url = $CFG->wwwroot.'/badges/images/'.$encrypted.'.png';
+                // Use existing minted GUID if present; otherwise use legacy hex (no minting here)
+                $badge_id = BadgeService::getMintedGuidIfExists($_SESSION['id'], $_SESSION['context_id'], $code);
+                if ( $badge_id === null ) {
+                    $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
+                    $badge_id = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
+                }
+                $assert_url = $CFG->wwwroot.'/assertions/'.urlencode($badge_id).'.html';
+                $badge_img_url = BadgeService::isMintedGuid($badge_id)
+                    ? $CFG->badge_url.'/'.$code.'.png'
+                    : $CFG->wwwroot.'/badges/images/'.urlencode($badge_id).'.png';
                 echo('<a href="'.htmlspecialchars($assert_url).'" target="_blank" rel="noopener noreferrer" aria-label="'.__('View badge assertion, opens in new window').'">');
                 echo('<img src="'.htmlspecialchars($badge_img_url).'" width="90" alt="'.htmlspecialchars($badge->title).'"></a>');
                 echo(htmlspecialchars($badge->title));
