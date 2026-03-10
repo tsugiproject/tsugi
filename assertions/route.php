@@ -552,13 +552,17 @@ switch ($resource) {
             <p><a href="<?= htmlspecialchars($CFG->apphome) ?>" target="_blank"><?= htmlspecialchars($CFG->apphome) ?></a></p>
             <?php
             $evidence_assignments = BadgeService::getAssignmentsForEvidence($code, $l);
-            if ( ! empty($evidence_assignments) ): ?>
-                <p><strong>Completed assignments:</strong></p>
-                <ul>
-                <?php foreach ( $evidence_assignments as $a ): ?>
-                    <li><?php if ( $a['href'] ): ?><a href="<?= htmlspecialchars($a['href']) ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($a['title']) ?></a><?php else: ?><?= htmlspecialchars($a['title']) ?><?php endif; ?></li>
-                <?php endforeach; ?>
-                </ul>
+            if ( ! empty($evidence_assignments) ):
+                $count = count($evidence_assignments);
+            ?>
+                <details style="margin-top: 8px;">
+                    <summary style="cursor: pointer;"><strong>Completed assignments (<?= (int) $count ?>)</strong></summary>
+                    <ul style="margin-top: 8px;">
+                    <?php foreach ( $evidence_assignments as $a ): ?>
+                        <li><?php if ( $a['href'] ): ?><a href="<?= htmlspecialchars($a['href']) ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($a['title']) ?></a><?php else: ?><?= htmlspecialchars($a['title']) ?><?php endif; ?></li>
+                    <?php endforeach; ?>
+                    </ul>
+                </details>
             <?php endif; ?>
             
             <hr>
