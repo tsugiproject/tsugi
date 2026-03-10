@@ -160,7 +160,7 @@ class MenuSetTest extends \PHPUnit\Framework\TestCase
         
         // Retrieve from session
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
-        $session_export = $O->session_get($sess_key);
+        $session_export = $_SESSION[$sess_key] ?? null;
         $this->assertNotNull($session_export);
         $this->assertEquals($export_str, $session_export);
         

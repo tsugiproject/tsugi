@@ -25,17 +25,17 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         $OUTPUT->launch = $launch;
 
         // Initially should not be suppressed
-        $suppressed = $OUTPUT->session_get(Output::SUPPRESS_SITE_NAV, false);
+        $suppressed = $_SESSION[Output::SUPPRESS_SITE_NAV] ?? false;
         $this->assertFalse($suppressed);
 
         // Suppress site nav
         $OUTPUT->suppressSiteNav();
-        $suppressed = $OUTPUT->session_get(Output::SUPPRESS_SITE_NAV, false);
+        $suppressed = $_SESSION[Output::SUPPRESS_SITE_NAV] ?? false;
         $this->assertTrue($suppressed);
 
         // Enable site nav
         $OUTPUT->enableSiteNav();
-        $suppressed = $OUTPUT->session_get(Output::SUPPRESS_SITE_NAV, false);
+        $suppressed = $_SESSION[Output::SUPPRESS_SITE_NAV] ?? false;
         $this->assertFalse($suppressed);
     }
 

@@ -92,54 +92,12 @@ class Launch {
     public $deeplink = null;
 
     /**
-     * Get a key from the session
-     *
-     * @param string $key The session key to retrieve
-     * @param mixed $default The default value if key doesn't exist
-     * @return mixed The session value or default
-     */
-    public function session_get($key, $default=null) {
-        return $_SESSION[$key] ?? $default;
-    }
-
-    /**
-     * Set a key in the session
-     *
-     * @param string $key The session key to set
-     * @param mixed $value The value to store
-     * @return void
-     */
-    public function session_put($key, $value) {
-        $_SESSION[$key] = $value;
-    }
-
-    /**
-     * Forget a key in the session
-     *
-     * @param string $key The session key to remove
-     * @return void
-     */
-    public function session_forget($key) {
-        unset($_SESSION[$key]);
-    }
-
-    /**
-     * Flush the session (clear all session data)
-     *
-     * @return void
-     */
-    public function session_flush() {
-        $_SESSION = [];
-    }
-
-    /**
      * Pull a keyed variable from the LTI data in the current session with default
      *
      * @return array|false The LTI parameter array or false if not available
      */
     public function ltiParameterArray() {
-        $row = $this->session_get(TSUGI_SESSION_LTI, false);
-        return $row;
+        return $_SESSION[TSUGI_SESSION_LTI] ?? false;
     }
 
     /**
@@ -167,7 +125,7 @@ class Launch {
         $lti = $this->ltiParameterArray();
         if ( ! $lti ) $lti = array(); // Should never happen
         if ( is_array($lti) ) $lti[$varname] = $value;
-        $lti = $this->session_put(TSUGI_SESSION_LTI, $lti);
+        $_SESSION[TSUGI_SESSION_LTI] = $lti;
     }
 
     /**
@@ -176,8 +134,7 @@ class Launch {
      * @return array|false The original LTI POST array or false if not available
      */
     public function ltiRawPostArray() {
-        $lti_post = $this->session_get(TSUGI_SESSION_LTI_POST, false);
-        return $lti_post;
+        return $_SESSION[TSUGI_SESSION_LTI_POST] ?? false;
     }
 
     /**
@@ -186,8 +143,7 @@ class Launch {
      * @return object|null The JWT object or null if not available
      */
     public function ltiRawJWT() {
-        $lti_jwt = $this->session_get('tsugi_jwt', null);
-        return $lti_jwt;
+        return $_SESSION['tsugi_jwt'] ?? null;
     }
 
     /**

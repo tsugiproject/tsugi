@@ -12,34 +12,6 @@ trait SessionTrait {
     // Assume $launch is there.
 
     /**
-     * Get a key from the session
-     */
-    public function session_get($key, $default=null) {
-        return $this->launch->session_get($key, $default);
-    }
-
-    /**
-     * Set a key in the session
-     */
-    public function session_put($key, $value) {
-        $this->launch->session_put($key, $value);
-    }
-
-   /**
-     * Forget a key in the session
-     */
-    public function session_forget($key) {
-        $this->launch->session_forget($key);
-    }
-
-    /**
-     * Flush the session
-     */
-    public function session_flush() {
-        return $this->launch->session_flush();
-    }
-
-    /**
      * Return the original $_POST array
      */
     public function ltiRawPostArray() {

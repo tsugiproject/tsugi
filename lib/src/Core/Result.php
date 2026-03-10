@@ -379,10 +379,10 @@ class Result extends Entity {
 
         // Update the session view of the grade
         if ( $status === true ) {
-            $ltidata = $this->session_get(TSUGI_SESSION_LTI);
+            $ltidata = $_SESSION[TSUGI_SESSION_LTI] ?? null;
             if ( $ltidata && $row !== false ) {
                 $ltidata['grade'] = $grade;
-                $this->session_put(TSUGI_SESSION_LTI, $ltidata);
+                $_SESSION[TSUGI_SESSION_LTI] = $ltidata;
             }
             if ( is_string($GradeSendTransport) ) {
                 $msg = 'Grade sent '.$grade.' id='.$USER->id.' via '.$GradeSendTransport;
@@ -391,7 +391,7 @@ class Result extends Entity {
             }
 
             // Send notification
-            $this->session_put('lti.gradeChangeNotify', true);
+            $_SESSION['lti.gradeChangeNotify'] = true;
         } else {
             $msg = 'Grade failure '.$grade.' id='.$USER->id.' via '.$GradeSendTransport;
             if ( is_array($debug_log) )  $debug_log[] = $msg;
@@ -431,18 +431,18 @@ class Result extends Entity {
         // Use LTIX to store the grade in out database send the grade back to the LMS.
         $debug_log = array();
         $retval = $this->gradeSend($gradetosend, false, $debug_log);
-        $this->session_put('debug_log', $debug_log);
+        $_SESSION['debug_log'] = $debug_log;
 
         if ( $retval === true ) {
-            $this->session_put('success', $scorestr);
+            $_SESSION['success'] = $scorestr;
         } else if ( $retval === false ) { // Stored locally
-            $this->session_put('success', $scorestr);
+            $_SESSION['success'] = $scorestr;
         } else if ( is_string($retval) ) {
-            $this->session_put('error', "Grade not sent: ".$retval);
+            $_SESSION['error'] = "Grade not sent: ".$retval;
         } else {
             $svd = Output::safe_var_dump($retval);
             error_log("Grade sending error:".$svd);
-            $this->session_put('error', "Grade sending error: ".substr($svd,0,100));
+            $_SESSION['error'] = "Grade sending error: ".substr($svd,0,100);
         }
     }
 

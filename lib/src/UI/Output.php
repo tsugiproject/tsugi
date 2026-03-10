@@ -77,11 +77,11 @@ class Output {
     function flashMessages() {
         ob_start();
         echo '<div id="flashmessages">';
-        if ( $this->session_get('error') ) {
+        if ( ($_SESSION['error'] ?? null) ) {
             echo '<div class="alert alert-danger alert-banner" style="clear:both">
                     <button type="button" class="close" data-dismiss="alert" aria-label="'.htmlentities(_m('Dismiss')).'">&times;</button>'.
-                $this->session_get('error')."</div>\n";
-            $this->session_forget('error');
+                ($_SESSION['error'] ?? null)."</div>\n";
+            unset($_SESSION['error']);
         } else if ( isset($_GET['lti_errormsg']) ) {
             echo '<div class="alert alert-danger alert-banner" style="clear:both">
                     <button type="button" class="close" data-dismiss="alert" aria-label="'.htmlentities(_m('Dismiss')).'">&times;</button>'.
@@ -94,12 +94,11 @@ class Output {
             }
         }
 
-        if ( $this->session_get('success') ) {
+        if ( ($_SESSION['success'] ?? null) ) {
             echo '<div class="alert alert-success alert-banner" style="clear:both">
                     <button type="button" class="close" data-dismiss="alert" aria-label="'.htmlentities(_m('Dismiss')).'">&times;</button>'.
-                $this->session_get('success')."</div>\n";
-
-            $this->session_forget('success');
+                ($_SESSION['success'] ?? null)."</div>\n";
+            unset($_SESSION['success']);
         }
 
         echo '</div>'; // End flash messages container
@@ -130,8 +129,8 @@ class Output {
         echo(self::headerStart());
         echo($this->headerData());
         echo(self::headerCss());
-        if ( $this->session_get('CSRF_TOKEN') ) {
-            echo('<script type="text/javascript">CSRF_TOKEN = "'.$this->session_get('CSRF_TOKEN').'";</script>'."\n");
+        if ( ($_SESSION['CSRF_TOKEN'] ?? null) ) {
+            echo('<script type="text/javascript">CSRF_TOKEN = "'.($_SESSION['CSRF_TOKEN'] ?? '').'";</script>'."\n");
         } else {
             echo('<script type="text/javascript">CSRF_TOKEN = "TODORemoveThis";</script>'."\n");
         }
@@ -142,7 +141,7 @@ class Output {
             echo('<script type="text/javascript">LTI_PARENT_IFRAME_ID = "'.$element_id.'";</script>'."\n");
         }
 
-        if ( $this->session_get('APP_HEADER') ) echo($this->session_get('APP_HEADER'));
+        if ( ($_SESSION['APP_HEADER'] ?? null) ) echo($_SESSION['APP_HEADER'] ?? '');
 
         $HEAD_CONTENT_SENT = true;
 
@@ -437,7 +436,7 @@ function googleTranslateElementInit() {
             }
         }
 
-        if ( $this->session_get('APP_FOOTER') ) echo($this->session_get('APP_FOOTER'));
+        if ( ($_SESSION['APP_FOOTER'] ?? null) ) echo($_SESSION['APP_FOOTER'] ?? '');
 
         // This was originallly supposed to be Fixed in 7.1.9 - but this seems to regress
         // periodically in PHP so - we will just keep doing it
@@ -577,7 +576,7 @@ $('a').each(function (x) {
     function footerEnd() {
         ob_start();
 
-        if ( $this->session_get('lti.gradeChangeNotify') ) {
+        if ( ($_SESSION['lti.gradeChangeNotify'] ?? null) ) {
 ?>
 <script>
             if ( typeof lti_gradeChangeNotify === 'function' ) {
@@ -586,7 +585,7 @@ $('a').each(function (x) {
             }
 </script>
 <?php
-            $this->session_forget('lti.gradeChangeNotify');
+            unset($_SESSION['lti.gradeChangeNotify']);
         }
 
         echo("\n</main>\n</div></body>\n</html>\n");
@@ -651,8 +650,9 @@ $('a').each(function (x) {
         if ( $text === false ) $text = _m("Exit");
         $url = Settings::linkGet('done');
         if ( $url == false ) {
-            if ( $this->session_get(TSUGI_SESSION_LTI_POST) && isset($this->session_get(TSUGI_SESSION_LTI_POST)['custom_done']) ) {
-                $url = $this->session_get(TSUGI_SESSION_LTI_POST)['custom_done'];
+            $lti_post = $_SESSION[TSUGI_SESSION_LTI_POST] ?? null;
+            if ( $lti_post && isset($lti_post['custom_done']) ) {
+                $url = $lti_post['custom_done'];
             } else if ( isset($_GET["done"]) ) {
                 $url = $_GET['done'];
             }
@@ -735,11 +735,11 @@ $('a').each(function (x) {
             $set->setHome($CFG->servicename, $R);
         }
         $set->addLeft(_m('Tools'), $R.'store');
-        if ( $this->session_get('id') ) {
+        if ( ($_SESSION['id'] ?? null) ) {
                 $set->addLeft(_m('Settings'), $R . 'settings');
         }
 
-        if ( $this->session_get('id') ) {
+        if ( ($_SESSION['id'] ?? null) ) {
             $submenu = new \Tsugi\UI\Menu();
             $submenu->addLink(_m('Profile'), $R.'profile');
             if ( $CFG->DEVELOPER || U::get($_COOKIE, 'adminmenu') ) {
@@ -747,7 +747,7 @@ $('a').each(function (x) {
             }
 
             $submenu->addLink(_m('Logout'), $R.'logout');
-            $set->addRight(htmlentities($this->session_get('displayname', '')), $submenu);
+            $set->addRight(htmlentities($_SESSION['displayname'] ?? ''), $submenu);
         } else {
             if ( $CFG->DEVELOPER || U::get($_COOKIE, 'adminmenu') ) {
                 $set->addLeft(_m('Admin'), $R.'admin');
@@ -770,8 +770,8 @@ $('a').each(function (x) {
      * Set header Content for any Tsugi-generated pages.
      */
     function setAppHeader($head) {
-        if ( $this->session_get('APP_HEADER') !== $head) {
-            $this->session_put('APP_HEADER', $head);
+        if ( ($_SESSION['APP_HEADER'] ?? null) !== $head) {
+            $_SESSION['APP_HEADER'] = $head;
         }
     }
 
@@ -779,8 +779,8 @@ $('a').each(function (x) {
      * Set footer Content for any Tsugi-generated pages.
      */
     function setAppFooter($foot) {
-        if ( $this->session_get('APP_FOOTER') !== $foot) {
-            $this->session_put('APP_FOOTER', $foot);
+        if ( ($_SESSION['APP_FOOTER'] ?? null) !== $foot) {
+            $_SESSION['APP_FOOTER'] = $foot;
         }
     }
 
@@ -791,17 +791,17 @@ $('a').each(function (x) {
         global $CFG;
         $export = $menuset->export();
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
-        if ( $this->session_get($sess_key) !== $export) {
-            $this->session_put($sess_key, $export);
+        if ( ($_SESSION[$sess_key] ?? null) !== $export) {
+            $_SESSION[$sess_key] = $export;
         }
     }
 
     function suppressSiteNav() {
-        $this->session_put(self::SUPPRESS_SITE_NAV, true);
+        $_SESSION[self::SUPPRESS_SITE_NAV] = true;
     }
 
     function enableSiteNav() {
-        $this->session_forget(self::SUPPRESS_SITE_NAV);
+        unset($_SESSION[self::SUPPRESS_SITE_NAV]);
     }
 
     /**
@@ -834,8 +834,8 @@ $('a').each(function (x) {
 
         // Canvas bug: launch_target is iframe even in new window (2017-01-10)
         $menu_set = false;
-        if ( $menu_set === false && $this->session_get($sess_key) ) {
-            $menu_set = \Tsugi\UI\MenuSet::import($this->session_get($sess_key));
+        if ( $menu_set === false && ($_SESSION[$sess_key] ?? null) ) {
+            $menu_set = \Tsugi\UI\MenuSet::import($_SESSION[$sess_key] ?? null);
         } else if ( $menu_set === true ) {
             $menu_set = self::defaultMenuSet();
         } else if ( $same_host && $launch_return_url ) {
@@ -871,7 +871,7 @@ $('a').each(function (x) {
             $menu_set = self::closeMenuSet();
         }
 
-        $suppressSiteNav = $this->session_get(self::SUPPRESS_SITE_NAV, false);
+        $suppressSiteNav = $_SESSION[self::SUPPRESS_SITE_NAV] ?? false;
         if (  $suppressSiteNav ) {
           $menu_txt = "";
         } else {
@@ -1287,7 +1287,7 @@ $( function() {
 
         // TODO: Enable this
         if ( false && is_object($TSUGI_LAUNCH) ) {
-            $theme = $TSUGI_LAUNCH->session_get('tsugi_theme');
+            $theme = $_SESSION['tsugi_theme'] ?? null;
             if ( is_array($theme) ) return $theme;
         }
 
@@ -1344,7 +1344,7 @@ $( function() {
             $theme = Theme::getLegacyTheme($theme_base, $dark_mode);
             // Default any remaining values that weren't already configured
             $theme = Theme::defaults($theme);
-            if (is_object($TSUGI_LAUNCH)) $TSUGI_LAUNCH->session_put('tsugi_theme', $theme);
+            if (is_object($TSUGI_LAUNCH)) $_SESSION['tsugi_theme'] = $theme;
             return $theme;
         }
 
@@ -1370,7 +1370,7 @@ $( function() {
         }
 
         if ( is_object($TSUGI_LAUNCH) ) {
-            $TSUGI_LAUNCH->session_put('tsugi_theme', $theme);
+            $_SESSION['tsugi_theme'] = $theme;
         }
 
         return $theme;

@@ -3,38 +3,39 @@
 require_once "src/Core/LTIX.php";
 require_once "src/Core/Launch.php";
 require_once "src/Util/PDOX.php";
+require_once "src/Util/U.php";
 require_once "src/Util/LTIConstants.php";
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Util\U;
 
 class LaunchTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * Test Launch session methods with $_SESSION
+     * Test U::session_empty and direct $_SESSION access
      */
-    public function testSessionMethods() {
+    public function testSessionEmpty() {
         @session_id('test-session-'.uniqid());
         @session_start();
         $_SESSION = [];
 
-        $launch = new \Tsugi\Core\Launch();
-        $this->assertEquals('sam', $launch->session_get('x', 'sam'));
-        $launch->session_put('x', 'y');
-        $this->assertEquals('y', $launch->session_get('x', 'sam'));
-        $launch->session_forget('x');
-        $this->assertEquals('sam', $launch->session_get('x', 'sam'));
-        $launch->session_put('a', 'b');
-        $this->assertEquals('b', $launch->session_get('a', 'sam'));
-        $launch->session_put('a', 'c');
-        $this->assertEquals('c', $launch->session_get('a', 'sam'));
-        $launch->session_flush();
-        $this->assertEquals('sam', $launch->session_get('a', 'sam'));
+        $this->assertEquals('sam', $_SESSION['x'] ?? 'sam');
+        $_SESSION['x'] = 'y';
+        $this->assertEquals('y', $_SESSION['x'] ?? 'sam');
+        unset($_SESSION['x']);
+        $this->assertEquals('sam', $_SESSION['x'] ?? 'sam');
+        $_SESSION['a'] = 'b';
+        $this->assertEquals('b', $_SESSION['a'] ?? 'sam');
+        $_SESSION['a'] = 'c';
+        $this->assertEquals('c', $_SESSION['a'] ?? 'sam');
+        U::session_empty();
+        $this->assertEquals('sam', $_SESSION['a'] ?? 'sam');
         for ($i = 1; $i < 100; $i++) {
-            $launch->session_put($i, $i * $i);
+            $_SESSION[$i] = $i * $i;
         }
-        $this->assertEquals(100, $launch->session_get(10, 42));
-        $launch->session_flush();
-        $this->assertEquals(42, $launch->session_get(10, 42));
+        $this->assertEquals(100, $_SESSION[10] ?? 42);
+        U::session_empty();
+        $this->assertEquals(42, $_SESSION[10] ?? 42);
     }
 
     public function testIsFunctions() {

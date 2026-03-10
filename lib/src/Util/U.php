@@ -23,6 +23,14 @@ class U {
         if ( strlen($retval) > 10 ) return '**********'.substr($retval,5);
     }
 
+    /**
+     * Empty the session (clear all session data).
+     * Use when you need to reset the session - easy to forget, so it lives here.
+     */
+    public static function session_empty() {
+        $_SESSION = [];
+    }
+
     public static function print_stack_trace() {
         ob_start();
         debug_print_backtrace();
