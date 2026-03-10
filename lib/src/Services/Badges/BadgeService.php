@@ -182,4 +182,90 @@ class BadgeService {
         return array('row' => $row, 'pieces' => $pieces, 'badge' => $badge);
     }
 
+    /**
+     * Get assignments for a badge from badge_assignments table.
+     *
+     * @return array Array of ['resource_link_id' => ..., 'resource_link_title' => ..., 'seq' => ...]
+     */
+    public static function getAssignmentsByCode(string $badge_code): array {
+        global $CFG, $PDOX;
+
+        if ( ! self::tableExistsFor('badge_assignments') ) {
+            return array();
+        }
+
+        $stmt = $PDOX->queryReturnError(
+            "SELECT resource_link_id, resource_link_title, seq FROM {$CFG->dbprefix}badge_assignments WHERE badge_code = :CODE ORDER BY seq, resource_link_id",
+            array(':CODE' => $badge_code)
+        );
+        if ( ! $stmt->success ) {
+            return array();
+        }
+        $rows = array();
+        while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
+            $rows[] = $row;
+        }
+        $stmt->closeCursor();
+        return $rows;
+    }
+
+    /**
+     * Get assignments for a badge - from badge_assignments table or fallback to lessons.
+     * Returns array of ['resource_link_id' => ..., 'title' => ..., 'href' => ... or null].
+     */
+    public static function getAssignmentsForEvidence(string $badge_code, $lessons): array {
+        global $CFG;
+        $base = rtrim($CFG->apphome ?? $CFG->wwwroot ?? '', '/');
+        $from_db = self::getAssignmentsByCode($badge_code);
+        if ( ! empty($from_db) ) {
+            $result = array();
+            foreach ( $from_db as $r ) {
+                $mod = $lessons->getModuleByRlid($r['resource_link_id']);
+                $href = $mod ? $base . '/lessons/' . urlencode($mod->anchor) : null;
+                $result[] = array(
+                    'resource_link_id' => $r['resource_link_id'],
+                    'title' => ! empty($r['resource_link_title']) ? $r['resource_link_title'] : $r['resource_link_id'],
+                    'href' => $href,
+                );
+            }
+            return $result;
+        }
+        $badge = null;
+        foreach ( $lessons->lessons->badges as $b ) {
+            if ( isset($b->image) && $b->image === $badge_code . '.png' ) {
+                $badge = $b;
+                break;
+            }
+        }
+        if ( ! $badge || ! isset($badge->assignments) ) {
+            return array();
+        }
+        $result = array();
+        foreach ( $badge->assignments as $resource_link_id ) {
+            $lti = $lessons->getLtiByRlid($resource_link_id);
+            $mod = $lessons->getModuleByRlid($resource_link_id);
+            $title = $lti ? $lti->title : $resource_link_id;
+            $href = $mod ? $base . '/lessons/' . urlencode($mod->anchor) : null;
+            $result[] = array(
+                'resource_link_id' => $resource_link_id,
+                'title' => $title,
+                'href' => $href,
+            );
+        }
+        return $result;
+    }
+
+    /**
+     * Check if a specific table exists.
+     */
+    private static function tableExistsFor(string $base_name): bool {
+        global $CFG, $PDOX;
+        $tname = $CFG->dbprefix . $base_name;
+        $q = $PDOX->queryReturnError(
+            "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = :tname LIMIT 1",
+            array(':tname' => $tname)
+        );
+        return $q->success && $q->rowCount() > 0;
+    }
+
 }

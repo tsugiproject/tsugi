@@ -550,6 +550,16 @@ switch ($resource) {
             
             <h3>Evidence</h3>
             <p><a href="<?= htmlspecialchars($CFG->apphome) ?>" target="_blank"><?= htmlspecialchars($CFG->apphome) ?></a></p>
+            <?php
+            $evidence_assignments = BadgeService::getAssignmentsForEvidence($code, $l);
+            if ( ! empty($evidence_assignments) ): ?>
+                <p><strong>Completed assignments:</strong></p>
+                <ul>
+                <?php foreach ( $evidence_assignments as $a ): ?>
+                    <li><?php if ( $a['href'] ): ?><a href="<?= htmlspecialchars($a['href']) ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($a['title']) ?></a><?php else: ?><?= htmlspecialchars($a['title']) ?><?php endif; ?></li>
+                <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
             
             <hr>
             
