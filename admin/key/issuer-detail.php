@@ -56,7 +56,7 @@ if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     return;
 }
 if ( ! is_array($row) ) {
-    $_SESSION['error'] = 'Unable to load issuer details';
+    U::flashError('Unable to load issuer details');
     header('Location: '.$from_location);
     return;
 }

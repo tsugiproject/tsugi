@@ -330,7 +330,7 @@ class GoogleLoginHandler {
         // Set up session and fake LTI launch
         $welcome = "Welcome ";
         if ( ! $didinsert ) $welcome .= "back ";
-        $_SESSION["success"] = $welcome.$displayName." (".$userEmail.")";
+        U::flashSuccess($welcome.$displayName." (".$userEmail.")");
 
         $lti = array();
         $lti['key_id'] = $google_key_id;

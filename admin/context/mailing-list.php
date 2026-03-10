@@ -13,13 +13,13 @@ header('Content-Type: text/html; charset=utf-8');
 session_start();
 
 if ( ! isset($_REQUEST['context_id']) ) {
-    $_SESSION['error'] = "No context_id provided";
+    U::flashError("No context_id provided");
     header('Location: '.LTIX::curPageUrlFolder());
     return;
 }
 
 if ( ! is_numeric($_REQUEST['context_id']) ) {
-    $_SESSION['error'] = "Invalid context_id";
+    U::flashError("Invalid context_id");
     header('Location: '.LTIX::curPageUrlFolder());
     return;
 }
@@ -30,7 +30,7 @@ $context_id = $_REQUEST['context_id'] + 0;
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['days']) ) {
     $days = $_POST['days'] + 0;
     if ( !is_numeric($_POST['days']) || $days < 1 || $days > 365 ) {
-        $_SESSION['error'] = "Days must be between 1 and 365";
+        U::flashError("Days must be between 1 and 365");
         header('Location: mailing-list.php?context_id='.$context_id);
         return;
     }
@@ -46,7 +46,7 @@ $include_opted_out = false;
 if ( isset($_REQUEST['days']) && is_numeric($_REQUEST['days']) ) {
     $days = $_REQUEST['days'] + 0;
     if ( $days < 1 || $days > 365 ) {
-        $_SESSION['error'] = "Days must be between 1 and 365";
+        U::flashError("Days must be between 1 and 365");
         $days = null;
     }
 }
@@ -89,7 +89,7 @@ if ( isAdmin() ) {
 }
 
 if ( ! $is_context_admin ) {
-    $_SESSION['error'] = "You must be an administrator or instructor for this context";
+    U::flashError("You must be an administrator or instructor for this context");
     $_SESSION['login_return'] = LTIX::curPageUrlFolder();
     header('Location: '.$CFG->wwwroot.'/login.php');
     return;

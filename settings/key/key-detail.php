@@ -50,13 +50,13 @@ $query_fields[":UID"] = $_SESSION['id'];
 $sql = CrudForm::selectSql($tablename, $fields, $where_clause);
 $oldrow = $PDOX->rowDie($sql, $query_fields);
 if ( $oldrow === false ) {
-    $_SESSION['error'] = "Unable to retrieve row";
+    U::flashError("Unable to retrieve row");
     header("Location: ".$from_location);
     return;
 }
 
 if ( U::get($_POST,'key_key') && U::get($_POST,'key_key') != $oldrow['key_key'] ) {
-    $_SESSION['error'] = "Cannot change key value";
+    U::flashError("Cannot change key value");
     header("Location: ".$from_location);
     return;
 }
@@ -71,7 +71,7 @@ if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     return;
 }
 if ( ! is_array($row) ) {
-    $_SESSION['error'] = 'Unable to load key details';
+    U::flashError('Unable to load key details');
     header("Location: ".$from_location);
     return;
 }
@@ -97,7 +97,7 @@ $settingsDialog = new \Tsugi\UI\SettingsDialog($key);
 $settingsDialog->instructor_override = true;
 $settingsDialog->ready_override = true;
 if ( $settingsDialog->handleSettingsPost() ) {
-    $_SESSION['success'] = __('Settings updated');
+    U::flashSuccess(__('Settings updated'));
     // Don't want this to effect the current logged in user
     unset($_SESSION['key_settings']);
     header( 'Location: '.addSession('key-detail.php?key_id='.htmlentities($_REQUEST['key_id'])) ) ;

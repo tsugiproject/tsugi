@@ -11,7 +11,7 @@ use \Tsugi\Core\LTIX;
 \Tsugi\Core\LTIX::getConnection();
 
 if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
-    $_SESSION['error'] = _m("This service does not accept requests for keys");
+    U::flashError(_m("This service does not accept requests for keys"));
     header('Location: '.$CFG->wwwroot);
     return;
 }
@@ -31,12 +31,12 @@ $goodsession = isset($_SESSION['id']) && isset($_SESSION['email']) && isset($_SE
 if ( $goodsession && isset($_POST['title']) &&
         isset($_POST['title']) && isset($_POST['notes']) ) {
     if ( U::strlen($_POST['title']) < 1 ) {
-        $_SESSION['error'] = _m("Requests must have titles");
+        U::flashError(_m("Requests must have titles"));
         header("Location: ".LTIX::curPageUrl());
         return;
     }
     if ( U::strlen($_POST['notes']) < 1 ) {
-        $_SESSION['error'] = _m("You must include a reason (i.e. what course you are teaching) in this request.");
+        U::flashError(_m("You must include a reason (i.e. what course you are teaching) in this request."));
         header("Location: ".LTIX::curPageUrl());
         return;
     }
@@ -94,9 +94,9 @@ if ( $goodsession && isset($_POST['title']) &&
             array('rid' => $request_id)
         );
 
-        $_SESSION['success'] = "Key Approved";
+        U::flashSuccess("Key Approved");
         if ( $subject ) {
-            $_SESSION['success'] = "Key Approved - Check your email ".$to;
+            U::flashSuccess("Key Approved - Check your email ".$to);
             error_log("Email sent to $to, Subject: $subject");
             $retval = Mail::send($to, $subject, $message, $user_id, $token);
             if ( $CFG->owneremail ) {
@@ -120,7 +120,7 @@ if ( $goodsession && isset($_POST['title']) &&
 
         $retval = Mail::send($to, $subject, $message, $user_id, $token);
     }
-    $_SESSION['success'] = "Record inserted";
+    U::flashSuccess("Record inserted");
     header("Location: ".LTIX::curPageUrlFolder());
     return;
 }

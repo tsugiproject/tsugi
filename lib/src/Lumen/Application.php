@@ -394,7 +394,7 @@ class Application implements \ArrayAccess
      */
     function tsugiFlashSuccess($message)
     {
-        $_SESSION['success'] = $message;
+        U::flashSuccess($message);
     }
 
     /**
@@ -402,7 +402,7 @@ class Application implements \ArrayAccess
      */
     function tsugiFlashError($message)
     {
-        $_SESSION['error'] = $message;
+        U::flashError($message);
     }
 
     /**

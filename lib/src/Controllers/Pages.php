@@ -797,7 +797,7 @@ class Pages extends Tool {
         $is_front_page = U::get($_POST, 'is_front_page', 0) ? 1 : 0;
         
         if (empty($title)) {
-            $_SESSION['error'] = 'Title is required';
+            U::flashError('Title is required');
             return new RedirectResponse($add_url);
         }
         
@@ -869,10 +869,10 @@ class Pages extends Tool {
         );
         $q = $PDOX->queryReturnError($sql, $values);
         if ($q->success) {
-            $_SESSION['success'] = 'Page created successfully';
+            U::flashSuccess('Page created successfully');
             return new RedirectResponse($manage_url);
         } else {
-            $_SESSION['error'] = 'Error creating page';
+            U::flashError('Error creating page');
             return new RedirectResponse($add_url);
         }
     }
@@ -894,7 +894,7 @@ class Pages extends Tool {
         $page_id = intval($id);
         
         if (!$page_id) {
-            $_SESSION['error'] = 'Invalid page ID';
+            U::flashError('Invalid page ID');
             return new RedirectResponse($manage_url);
         }
         
@@ -906,7 +906,7 @@ class Pages extends Tool {
         );
         
         if (!$page) {
-            $_SESSION['error'] = 'Page not found';
+            U::flashError('Page not found');
             return new RedirectResponse($manage_url);
         }
         
@@ -1349,7 +1349,7 @@ class Pages extends Tool {
         $is_front_page = U::get($_POST, 'is_front_page', 0) ? 1 : 0;
         
         if (empty($title)) {
-            $_SESSION['error'] = 'Title is required';
+            U::flashError('Title is required');
             $edit_url = $tool_home . '/edit/' . $page_id;
             return new RedirectResponse($edit_url);
         }
@@ -1414,10 +1414,10 @@ class Pages extends Tool {
         );
         $q = $PDOX->queryReturnError($sql, $values);
         if ($q->success) {
-            $_SESSION['success'] = 'Page updated successfully';
+            U::flashSuccess('Page updated successfully');
             return new RedirectResponse($manage_url);
         } else {
-            $_SESSION['error'] = 'Error updating page';
+            U::flashError('Error updating page');
             $edit_url = $tool_home . '/edit/' . $page_id;
             return new RedirectResponse($edit_url);
         }
@@ -1560,12 +1560,12 @@ class Pages extends Tool {
                         WHERE page_id = :PID AND context_id = :CID";
                 $q = $PDOX->queryReturnError($sql, array(':PID' => $page_id, ':CID' => $context_id));
                 if ($q->success) {
-                    $_SESSION['success'] = 'Page deleted successfully';
+                    U::flashSuccess('Page deleted successfully');
                 } else {
-                    $_SESSION['error'] = 'Error deleting page';
+                    U::flashError('Error deleting page');
                 }
             } else {
-                $_SESSION['error'] = 'Page not found';
+                U::flashError('Page not found');
             }
         }
         
@@ -1578,9 +1578,9 @@ class Pages extends Tool {
                 array(':PID' => $page_id, ':CID' => $context_id)
             );
             if ($q->success) {
-                $_SESSION['success'] = 'Page status updated successfully';
+                U::flashSuccess('Page status updated successfully');
             } else {
-                $_SESSION['error'] = 'Error updating page status';
+                U::flashError('Error updating page status');
             }
         }
         

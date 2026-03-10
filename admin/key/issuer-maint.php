@@ -34,7 +34,7 @@ if ( U::get($_POST, 'unused') ) {
         )
 ";
     $PDOX->queryDie($sql);
-    $_SESSION['success'] = "Issuers deleted";
+    U::flashSuccess("Issuers deleted");
     header("Location: issuer-maint.php");
     return;
 }
@@ -50,7 +50,7 @@ if ( U::get($_POST, 'ones') ) {
     $rows = $PDOX->allRowsDie($sql);
     // echo("<pre>\n");var_dump($rows);die();
     if ( !$rows || !is_array($rows) || count($rows) < 1 ) {
-        $_SESSION['success'] = "Nothing found to move...";
+        U::flashSuccess("Nothing found to move...");
         header("Location: issuer-maint.php");
         return;
     }
@@ -85,7 +85,7 @@ if ( U::get($_POST, 'ones') ) {
 
     }
 
-    $_SESSION['success'] = "Moved LMS Data to Key ($count)";
+    U::flashSuccess("Moved LMS Data to Key ($count)");
     header("Location: issuer-maint.php");
     return;
 }

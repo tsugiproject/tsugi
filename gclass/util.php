@@ -11,7 +11,7 @@ function sanity_check() {
     }
 
     if ( !isset($_SESSION[TSUGI_SESSION_LTI]) ) {
-        $_SESSION['error'] = 'Please log out and back in.';
+        U::flashError('Please log out and back in.');
         header('Location: '.$CFG->apphome);
         return false;
     }

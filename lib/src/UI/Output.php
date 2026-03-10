@@ -66,6 +66,11 @@ class Output {
 
     const SUPPRESS_SITE_NAV = 'TSUGI_OUTPUT_SUPPRESS_SITE_NAV';
 
+    /** Session key for error flash messages (must match U::FLASH_ERROR) */
+    const FLASH_ERROR = 'error';
+    /** Session key for success flash messages (must match U::FLASH_SUCCESS) */
+    const FLASH_SUCCESS = 'success';
+
     /**
      * Set the JSON header
      */
@@ -77,11 +82,11 @@ class Output {
     function flashMessages() {
         ob_start();
         echo '<div id="flashmessages">';
-        if ( ($_SESSION['error'] ?? null) ) {
+        if ( ($_SESSION[self::FLASH_ERROR] ?? null) ) {
             echo '<div class="alert alert-danger alert-banner" style="clear:both">
                     <button type="button" class="close" data-dismiss="alert" aria-label="'.htmlentities(_m('Dismiss')).'">&times;</button>'.
-                ($_SESSION['error'] ?? null)."</div>\n";
-            unset($_SESSION['error']);
+                ($_SESSION[self::FLASH_ERROR] ?? null)."</div>\n";
+            unset($_SESSION[self::FLASH_ERROR]);
         } else if ( isset($_GET['lti_errormsg']) ) {
             echo '<div class="alert alert-danger alert-banner" style="clear:both">
                     <button type="button" class="close" data-dismiss="alert" aria-label="'.htmlentities(_m('Dismiss')).'">&times;</button>'.
@@ -94,11 +99,11 @@ class Output {
             }
         }
 
-        if ( ($_SESSION['success'] ?? null) ) {
+        if ( ($_SESSION[self::FLASH_SUCCESS] ?? null) ) {
             echo '<div class="alert alert-success alert-banner" style="clear:both">
                     <button type="button" class="close" data-dismiss="alert" aria-label="'.htmlentities(_m('Dismiss')).'">&times;</button>'.
-                ($_SESSION['success'] ?? null)."</div>\n";
-            unset($_SESSION['success']);
+                ($_SESSION[self::FLASH_SUCCESS] ?? null)."</div>\n";
+            unset($_SESSION[self::FLASH_SUCCESS]);
         }
 
         echo '</div>'; // End flash messages container

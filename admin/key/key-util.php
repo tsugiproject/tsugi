@@ -11,7 +11,7 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
     //        (key_sha256 IS NOT NULL OR deploy_sha256 IS NOT NULL)
     //  )
     if ( empty($key_key) && empty($deploy_key) ) {
-        $_SESSION['error'] = "Either consumer key or deployment id are required";
+        U::flashError("Either consumer key or deployment id are required");
         return false;
     }
 
@@ -25,7 +25,7 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
     if ( (!empty($deploy_key) && ! $have_issuer) ||
          (empty($deploy_key) && $have_issuer) 
     ) {
-        $_SESSION['error'] = "You must specify an issuer when you specify a deployment id";
+        U::flashError("You must specify an issuer when you specify a deployment id");
         return false;
     }
      */
@@ -41,7 +41,7 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
             array(':key_sha256' => $key_sha256)
         );
         if ( $row ) {
-            $_SESSION['error'] = "Cannot add the same OAuth Consumer Key more than once";
+            U::flashError("Cannot add the same OAuth Consumer Key more than once");
             return false;
         }
     }
@@ -55,7 +55,7 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
             array(':key_sha256' => $key_sha256, ":deploy_sha256" => $deploy_sha256)
         );
         if ( $row ) {
-            $_SESSION['error'] = "The combination of Consumer key and Deployment ID must be unique";
+            U::flashError("The combination of Consumer key and Deployment ID must be unique");
             return false;
         }
     }
@@ -69,7 +69,7 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
             array(':issuer_id' => $issuer_id, ":deploy_sha256" => $deploy_sha256)
         );
         if ( $row ) {
-            $_SESSION['error'] = "The combination of Issuer and Deployment ID must be unique";
+            U::flashError("The combination of Issuer and Deployment ID must be unique");
             return false;
         }
     }

@@ -74,7 +74,7 @@ if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
     $redir = U::add_url_parm('key-detail', 'key_id', $key_id);
     $redir = U::add_url_parm($redir, 'edit', 'yes');
     if ( ! $row ) {
-        $_SESSION['error'] = "Could not load the old row";
+        U::flashError("Could not load the old row");
         header("Location: ".$redir);
         return;
     }
@@ -102,7 +102,7 @@ if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     return;
 }
 if ( ! is_array($row) ) {
-    $_SESSION['error'] = 'Unable to load key details';
+    U::flashError('Unable to load key details');
     header('Location: '.$from_location);
     return;
 }

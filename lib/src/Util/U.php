@@ -31,6 +31,27 @@ class U {
         $_SESSION = [];
     }
 
+    /** Session key for error flash messages (must match Output::FLASH_ERROR) */
+    const FLASH_ERROR = 'error';
+    /** Session key for success flash messages (must match Output::FLASH_SUCCESS) */
+    const FLASH_SUCCESS = 'success';
+
+    /**
+     * Set an error flash message. Use when $OUTPUT is not available (e.g. library code).
+     * Displayed by Output::flashMessages() on next render.
+     */
+    public static function flashError(string $message): void {
+        $_SESSION[self::FLASH_ERROR] = $message;
+    }
+
+    /**
+     * Set a success flash message. Use when $OUTPUT is not available (e.g. library code).
+     * Displayed by Output::flashMessages() on next render.
+     */
+    public static function flashSuccess(string $message): void {
+        $_SESSION[self::FLASH_SUCCESS] = $message;
+    }
+
     public static function print_stack_trace() {
         ob_start();
         debug_print_backtrace();

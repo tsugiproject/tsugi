@@ -41,7 +41,7 @@ $tenant_expire =  get_expirable_records('lti_key', $tenant_days);
 $pii_expire =  get_pii_count($pii_days);
 
 $check = sanity_check_days();
-if ( is_string($check) ) $_SESSION["error"] = $check;
+if ( is_string($check) ) U::flashError($check);
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();

@@ -38,7 +38,7 @@ if ( U::get($_POST,'endpoint') ) {
         /** @var true|string $success */
         $success = LTI13::generatePKCS8Pair($publicKey, $privateKey);
         if ( $success !== true ) {
-            $_SESSION['error'] = "Could not create key pair:".$success;
+            U::flashError("Could not create key pair:".$success);
             header("Location: ".U::addsession($from_location));
             return;
         }

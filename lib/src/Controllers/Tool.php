@@ -305,7 +305,7 @@ abstract class Tool {
     protected function requireInstructor($redirectUrl = null) {
         $this->requireAuth();
         if ( ! $this->isInstructor() ) {
-            $_SESSION['error'] = "You must be an administrator or instructor for this context";
+            U::flashError("You must be an administrator or instructor for this context");
             if ( $redirectUrl === null ) {
                 // Try to determine redirect URL from current route
                 $redirectUrl = '/';

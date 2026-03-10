@@ -67,10 +67,10 @@ try {
 if ( ! isset($CFG->lessons) || !isset($CFG->apphome) || ! $CFG->apphome ) {
     $courses = $results->getCourses();
     if (count($courses) == 0) {
-        $_SESSION['error'] = 'No Google Classroom Courses found';
+        U::flashError('No Google Classroom Courses found');
         login_redirect();
     } else {
-        $_SESSION['success'] = 'Connected to '.count($results->getCourses()).' Google Classroom courses.';
+        U::flashSuccess('Connected to '.count($results->getCourses()).' Google Classroom courses.');
         $_SESSION['gc_count'] = count($results);
         login_redirect();
     }
@@ -85,11 +85,11 @@ if (isset($l->lessons->modules[0]->anchor) ) {
 }
 
 if (count($results->getCourses()) == 0) {
-    $_SESSION['error'] = 'No Google Classroom Courses found';
+    U::flashError('No Google Classroom Courses found');
     login_redirect();
 } else {
-    $_SESSION['success'] = 'Found '.count($results->getCourses()).' Google Classroom courses. '.
-        'Use the icon by each link to install links / assignments into your Google Classroom.';
+    U::flashSuccess('Found '.count($results->getCourses()).' Google Classroom courses. '.
+        'Use the icon by each link to install links / assignments into your Google Classroom.');
     $_SESSION['gc_count'] = count($results);
     header('Location: '.$CFG->apphome.'/lessons/'.$firstmodule.'?nostyle=yes');
 }

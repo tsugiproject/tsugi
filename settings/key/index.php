@@ -3,13 +3,14 @@
 if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 
+use \Tsugi\Util\U;
 use \Tsugi\UI\Table;
 use \Tsugi\Core\LTIX;
 
 \Tsugi\Core\LTIX::getConnection();
 
 if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
-    $_SESSION['error'] = _("This service does not accept requests for keys");
+    U::flashError(_("This service does not accept requests for keys"));
     header('Location: '.$CFG->wwwroot);
     return;
 }

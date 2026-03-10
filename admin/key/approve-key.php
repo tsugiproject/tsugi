@@ -4,6 +4,7 @@ if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
 
+use \Tsugi\Util\U;
 use \Tsugi\UI\CrudForm;
 use \Tsugi\Core\Mail;
 
@@ -33,7 +34,7 @@ $row = $PDOX->rowDie(
 );
 
 if ( $row['state'] != 0 ) {
-    $_SESSION['error'] = 'Row not ready to be approved';
+    U::flashError('Row not ready to be approved');
     header("Location: ".$from_location);
 }
 
@@ -64,7 +65,7 @@ if ( isset($_POST['doReject']) && isset($_POST['request_id']) ) {
         $retval = Mail::send($to, $subject, $message, $user_id, $token);
     }
 
-    $_SESSION['success'] = 'Request denied';
+    U::flashSuccess('Request denied');
     header('Location: '.$from_location);
     return;
 }
@@ -113,7 +114,7 @@ if ( isset($_POST['doApprove']) && isset($_POST['request_id']) ) {
         $retval = Mail::send($to, $subject, $message, $user_id, $token);
     }
 
-    $_SESSION['success'] = 'Request approved';
+    U::flashSuccess('Request approved');
     header('Location: '.$from_location);
     return;
 }

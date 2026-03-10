@@ -48,12 +48,12 @@ class GoogleClassroom {
         if ( $accessToken && ! U::get($accessToken, 'refresh_token') ) {
             error_log("Bad accessToken");
             error_log(json_encode($accessToken));
-            $_SESSION['error'] = 'Did not get a proper Google Classroom token, '.
+            U::flashError('Did not get a proper Google Classroom token, '.
                 'either you have no access to Classroom, '.
                 'or you may need to revoke the permission for this app '.
                 '(' . $CFG->servicedesc . ') ' .
                 'at https://myaccount.google.com/u/0/security?pli=1 ' .
-                'and re-establish your connection to Classroom.'.
+                'and re-establish your connection to Classroom.');
             header('Location: '.$CFG->apphome);
     	return false;
         }

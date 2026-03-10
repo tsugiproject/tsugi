@@ -54,7 +54,7 @@ $result = GoogleLoginHandler::processLogin($come_back, function($result) {
 
 // Handle errors
 if ( $result->error ) {
-    $_SESSION["error"] = $result->error;
+    U::flashError($result->error);
     login_redirect();
     return;
 }

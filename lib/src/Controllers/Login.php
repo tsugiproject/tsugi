@@ -6,6 +6,7 @@ use Tsugi\Lumen\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+use \Tsugi\Util\U;
 use \Tsugi\UI\GoogleLoginHandler;
 use Tsugi\Lumen\Application;
 
@@ -52,7 +53,7 @@ class Login extends Tool {
         // Handle errors
         if ( $result->error ) {
             error_log('Login.get() error: '.$result->error.' session_id='.session_id());
-            $_SESSION["error"] = $result->error;
+            U::flashError($result->error);
             return new RedirectResponse($CFG->apphome.'/');
         }
 

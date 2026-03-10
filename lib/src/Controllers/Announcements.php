@@ -851,7 +851,7 @@ class Announcements extends Tool {
         $url = trim(U::get($_POST, 'url'));
         
         if (empty($title) || empty($text)) {
-            $_SESSION['error'] = 'Title and text are required';
+            U::flashError('Title and text are required');
             return new RedirectResponse($add_url);
         }
         
@@ -871,10 +871,10 @@ class Announcements extends Tool {
         );
         $q = $PDOX->queryReturnError($sql, $values);
         if ($q->success) {
-            $_SESSION['success'] = 'Announcement created successfully';
+            U::flashSuccess('Announcement created successfully');
             return new RedirectResponse($manage_url);
         } else {
-            $_SESSION['error'] = 'Error creating announcement';
+            U::flashError('Error creating announcement');
             return new RedirectResponse($add_url);
         }
     }
@@ -895,7 +895,7 @@ class Announcements extends Tool {
         $announcement_id = intval($id);
         
         if (!$announcement_id) {
-            $_SESSION['error'] = 'Invalid announcement ID';
+            U::flashError('Invalid announcement ID');
             return new RedirectResponse($manage_url);
         }
         
@@ -907,7 +907,7 @@ class Announcements extends Tool {
         );
         
         if (!$announcement) {
-            $_SESSION['error'] = 'Announcement not found';
+            U::flashError('Announcement not found');
             return new RedirectResponse($manage_url);
         }
         
@@ -980,7 +980,7 @@ class Announcements extends Tool {
         $url = trim(U::get($_POST, 'url'));
         
         if (empty($title) || empty($text)) {
-            $_SESSION['error'] = 'Title and text are required';
+            U::flashError('Title and text are required');
             $edit_url = $tool_home . '/edit/' . $announcement_id;
             return new RedirectResponse($edit_url);
         }
@@ -1001,10 +1001,10 @@ class Announcements extends Tool {
         );
         $q = $PDOX->queryReturnError($sql, $values);
         if ($q->success) {
-            $_SESSION['success'] = 'Announcement updated successfully';
+            U::flashSuccess('Announcement updated successfully');
             return new RedirectResponse($manage_url);
         } else {
-            $_SESSION['error'] = 'Error updating announcement';
+            U::flashError('Error updating announcement');
             $edit_url = $tool_home . '/edit/' . $announcement_id;
             return new RedirectResponse($edit_url);
         }
@@ -1139,12 +1139,12 @@ class Announcements extends Tool {
                         WHERE announcement_id = :AID AND context_id = :CID";
                 $q = $PDOX->queryReturnError($sql, array(':AID' => $announcement_id, ':CID' => $context_id));
                 if ($q->success) {
-                    $_SESSION['success'] = 'Announcement deleted successfully';
+                    U::flashSuccess('Announcement deleted successfully');
                 } else {
-                    $_SESSION['error'] = 'Error deleting announcement';
+                    U::flashError('Error deleting announcement');
                 }
             } else {
-                $_SESSION['error'] = 'Announcement not found';
+                U::flashError('Announcement not found');
             }
         }
         

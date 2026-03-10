@@ -18,7 +18,7 @@ if ( ! isAdmin() ) {
 }
 
 if ( ! isset($_REQUEST['context_id']) ) {
-    $_SESSION['error'] = "No context_id provided";
+    U::flashError("No context_id provided");
     header('Location: '.LTIX::curPageUrlFolder());
     return;
 }
@@ -33,7 +33,7 @@ if ( isset($_POST['settings_json']) ) {
     if ( !empty($settings_json) ) {
         $decoded = json_decode($settings_json, true);
         if ( json_last_error() !== JSON_ERROR_NONE ) {
-            $_SESSION['error'] = "Invalid JSON: " . json_last_error_msg();
+            U::flashError("Invalid JSON: " . json_last_error_msg());
         } else {
             // Save compact JSON (no formatting)
             $compact_json = json_encode($decoded);
@@ -47,9 +47,9 @@ if ( isset($_POST['settings_json']) ) {
             );
             
             if ( $stmt->success ) {
-                $_SESSION['success'] = "Context settings updated successfully";
+                U::flashSuccess("Context settings updated successfully");
             } else {
-                $_SESSION['error'] = "Failed to update settings";
+                U::flashError("Failed to update settings");
             }
         }
     } else {
@@ -61,9 +61,9 @@ if ( isset($_POST['settings_json']) ) {
         );
         
         if ( $stmt->success ) {
-            $_SESSION['success'] = "Context settings cleared successfully";
+            U::flashSuccess("Context settings cleared successfully");
         } else {
-            $_SESSION['error'] = "Failed to clear settings";
+            U::flashError("Failed to clear settings");
         }
     }
     // Always redirect after POST to avoid unhandled POST error
@@ -78,7 +78,7 @@ $context_row = $PDOX->rowDie("SELECT context_id, title, settings FROM {$CFG->dbp
 );
 
 if ( $context_row === false ) {
-    $_SESSION['error'] = "Context not found";
+    U::flashError("Context not found");
     header('Location: '.LTIX::curPageUrlFolder());
     return;
 }

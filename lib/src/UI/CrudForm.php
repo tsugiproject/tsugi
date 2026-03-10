@@ -130,7 +130,7 @@ class CrudForm {
 
                     // Nulls allowed
                     if ( !array_key_exists($key, $_POST) ) {
-                        $_SESSION['error'] = "Missing POST field: ".$key;
+                        U::flashError("Missing POST field: ".$key);
                         return self::CRUD_FAIL;
                     }
                     if ( $_POST[$key] === null ) {
@@ -143,7 +143,7 @@ class CrudForm {
                     if ( array_key_exists($key, $_POST) ) {
                         $value = $_POST[$field];
                     } else {
-                        $_SESSION['error'] = "Missing POST field: ".$field;
+                        U::flashError("Missing POST field: ".$field);
                         return self::CRUD_FAIL;
                     }
                 }
@@ -153,11 +153,11 @@ class CrudForm {
             $sql = "INSERT IGNORE INTO $tablename \n( $names ) VALUES ( $values )";
             $stmt = $PDOX->queryDie($sql, $parms);
             if ( $stmt->rowCount() < 1 ) {
-                $_SESSION['error'] = "Could not insert record: duplicate key";
+                U::flashError("Could not insert record: duplicate key");
                 return self::CRUD_FAIL;
             }
             error_log('Row count '.$stmt->rowCount());
-            $_SESSION['success'] = _m("Record Inserted");
+            U::flashSuccess(_m("Record Inserted"));
             return self::CRUD_SUCCESS;
         }
         return self::CRUD_NONE;
@@ -316,7 +316,7 @@ class CrudForm {
         $key = $fields['0'];
 
         if ( !isset($_REQUEST[$key]) ) {
-            $_SESSION['error'] = "Required $key= parameter";
+            U::flashError("Required $key= parameter");
             return self::CRUD_FAIL;
         }
 
@@ -334,7 +334,7 @@ class CrudForm {
         $sql = CrudForm::selectSql($tablename, $fields, $where_clause);
         $row = $PDOX->rowDie($sql, $query_parms);
         if ( $row === false ) {
-            $_SESSION['error'] = "Unable to retrieve row";
+            U::flashError("Unable to retrieve row");
             return self::CRUD_FAIL;
         }
 
@@ -342,7 +342,7 @@ class CrudForm {
         if ( $allow_delete && isset($_POST['doDelete']) ) {
             $sql = "DELETE FROM $tablename WHERE $where_clause";
             $stmt = $PDOX->queryDie($sql, $query_parms);
-            $_SESSION['success'] = _m("Record deleted");
+            U::flashSuccess(_m("Record deleted"));
             return self::CRUD_SUCCESS;
         }
 
@@ -388,7 +388,7 @@ class CrudForm {
 
                 // Nulls allowed
                 if ( !array_key_exists($field, $_POST) ) {
-                    $_SESSION['error'] = _m("Missing POST field: ").$field;
+                    U::flashError(_m("Missing POST field: ").$field);
                     return self::CRUD_FAIL;
                 }
                 $set .= $field."= :".$i;
@@ -396,7 +396,7 @@ class CrudForm {
             }
             $sql = "UPDATE $tablename SET $set WHERE $where_clause";
             $stmt = $PDOX->queryDie($sql, $parms);
-            $_SESSION['success'] = "Record Updated";
+            U::flashSuccess("Record Updated");
             return self::CRUD_SUCCESS;
         }
         return $row;

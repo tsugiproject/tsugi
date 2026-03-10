@@ -69,7 +69,7 @@ $issuer_id = U::get($_POST,'issuer_id');
 if ( count($_POST) > 0 ) {
     $key_title = U::get($_POST,'key_title');
     if ( !is_string($key_title) || empty($key_title) ) {
-        $_SESSION['error'] = 'Key title is required';
+        U::flashError('Key title is required');
         header("Location: key-add");
         return;
     }

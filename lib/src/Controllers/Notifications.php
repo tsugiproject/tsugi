@@ -493,12 +493,12 @@ class Notifications extends Tool {
         $back_url = $tool_home;
         
         if (!$service_worker_enabled) {
-            $_SESSION['error'] = 'Service worker is not enabled. Push notifications are not available.';
+            U::flashError('Service worker is not enabled. Push notifications are not available.');
             return new RedirectResponse($back_url);
         }
         
         if (!$vapid_configured) {
-            $_SESSION['error'] = 'Push notifications are not configured. VAPID keys are missing.';
+            U::flashError('Push notifications are not configured. VAPID keys are missing.');
             return new RedirectResponse($back_url);
         }
 
@@ -1000,7 +1000,7 @@ class Notifications extends Tool {
         $url = trim(U::get($_POST, 'url'));
         
         if (empty($title)) {
-            $_SESSION['error'] = 'Title is required';
+            U::flashError('Title is required');
             return new RedirectResponse($send_url);
         }
         
@@ -1020,17 +1020,17 @@ class Notifications extends Tool {
             $notification = NotificationsService::create($user_id, $title, $text, $url, null, $dedupe_key);
             
             if ($notification) {
-                $_SESSION['success'] = 'Notification sent successfully!';
+                U::flashSuccess('Notification sent successfully!');
                 return new RedirectResponse($back_url);
             } else {
-                $_SESSION['error'] = 'Error sending notification. Please try again.';
+                U::flashError('Error sending notification. Please try again.');
                 return new RedirectResponse($send_url);
             }
         } catch (\InvalidArgumentException $e) {
-            $_SESSION['error'] = 'Invalid notification data: ' . $e->getMessage();
+            U::flashError('Invalid notification data: ' . $e->getMessage());
             return new RedirectResponse($send_url);
         } catch (\Exception $e) {
-            $_SESSION['error'] = 'Error sending notification. Please try again.';
+            U::flashError('Error sending notification. Please try again.');
             return new RedirectResponse($send_url);
         }
     }
@@ -1163,12 +1163,12 @@ class Notifications extends Tool {
         $url = trim(U::get($_POST, 'url'));
         
         if (empty($student_id) || !is_numeric($student_id)) {
-            $_SESSION['error'] = 'Please select a student';
+            U::flashError('Please select a student');
             return new RedirectResponse($send_url);
         }
         
         if (empty($title)) {
-            $_SESSION['error'] = 'Title is required';
+            U::flashError('Title is required');
             return new RedirectResponse($send_url);
         }
         
@@ -1190,7 +1190,7 @@ class Notifications extends Tool {
         );
         
         if (!$student_check) {
-            $_SESSION['error'] = 'Invalid student selected or student not found in this course';
+            U::flashError('Invalid student selected or student not found in this course');
             return new RedirectResponse($send_url);
         }
         
@@ -1207,17 +1207,17 @@ class Notifications extends Tool {
             $notification = NotificationsService::create($student_id, $title, $text, $url);
             
             if ($notification) {
-                $_SESSION['success'] = 'Notification sent successfully to ' . htmlspecialchars($student_check['displayname']) . '!';
+                U::flashSuccess('Notification sent successfully to ' . htmlspecialchars($student_check['displayname']) . '!');
                 return new RedirectResponse($back_url);
             } else {
-                $_SESSION['error'] = 'Error sending notification. Please try again.';
+                U::flashError('Error sending notification. Please try again.');
                 return new RedirectResponse($send_url);
             }
         } catch (\InvalidArgumentException $e) {
-            $_SESSION['error'] = 'Invalid notification data: ' . $e->getMessage();
+            U::flashError('Invalid notification data: ' . $e->getMessage());
             return new RedirectResponse($send_url);
         } catch (\Exception $e) {
-            $_SESSION['error'] = 'Error sending notification. Please try again.';
+            U::flashError('Error sending notification. Please try again.');
             return new RedirectResponse($send_url);
         }
     }

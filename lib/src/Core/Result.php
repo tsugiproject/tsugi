@@ -434,15 +434,15 @@ class Result extends Entity {
         $_SESSION['debug_log'] = $debug_log;
 
         if ( $retval === true ) {
-            $_SESSION['success'] = $scorestr;
+            U::flashSuccess($scorestr);
         } else if ( $retval === false ) { // Stored locally
-            $_SESSION['success'] = $scorestr;
+            U::flashSuccess($scorestr);
         } else if ( is_string($retval) ) {
-            $_SESSION['error'] = "Grade not sent: ".$retval;
+            U::flashError("Grade not sent: ".$retval);
         } else {
             $svd = Output::safe_var_dump($retval);
             error_log("Grade sending error:".$svd);
-            $_SESSION['error'] = "Grade sending error: ".substr($svd,0,100);
+            U::flashError("Grade sending error: ".substr($svd,0,100));
         }
     }
 

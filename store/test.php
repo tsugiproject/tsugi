@@ -157,7 +157,7 @@ $row = $PDOX->rowDie(
     array(':DKEY' => $key));
 $secret = $row ? $row['secret'] : false;
 if ( $secret === false ) {
-    $_SESSION['error'] = 'Developer mode not properly configured';
+    U::flashError('Developer mode not properly configured');
     header('Location: '.$CFG->wwwroot);
     return;
 }

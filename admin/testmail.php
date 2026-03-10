@@ -17,9 +17,9 @@ if ( U::get($_POST,'email') && U::get($_POST,'subject') && U::get($_POST,'body')
     $body = U::get($_POST,'body');
     $retval = Mail::send($to, $subject, $body);
     if ( $retval ) {
-        $_SESSION['success'] = 'PHP mail() returned true';
+        U::flashSuccess('PHP mail() returned true');
     } else {
-        $_SESSION['error'] = 'PHP mail() returned false';
+        U::flashError('PHP mail() returned false');
     }
     header("Location: testmail.php");
     return;

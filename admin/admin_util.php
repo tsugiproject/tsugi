@@ -9,7 +9,7 @@ use \Tsugi\Crypt\SecureCookie;
 function requireLogin() {
     global $CFG, $OUTPUT;
     if ( $CFG->google_glient_id && ! isset($_SESSION['user_id']) ) {
-        $_SESSION['error'] = 'Login required';
+        U::flashError('Login required');
         $OUTPUT->doRedirect($CFG->wwwroot.'/login.php') ;
         exit();
     }
@@ -22,7 +22,7 @@ function isAdmin() {
 function requireAdmin() {
     global $CFG, $OUTPUT;
     if ( $CFG->google_glient_id && $_SESSION['admin'] != 'yes' ) {
-        $_SESSION['error'] = 'Login required';
+        U::flashError('Login required');
         $OUTPUT->doRedirect($CFG->wwwroot.'/login.php') ;
         exit();
     }

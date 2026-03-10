@@ -4,6 +4,7 @@ if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
 
+use \Tsugi\Util\U;
 use \Tsugi\UI\Table;
 use \Tsugi\Core\Mail;
 use \Tsugi\Core\LTIX;
@@ -11,7 +12,7 @@ use \Tsugi\Core\LTIX;
 \Tsugi\Core\LTIX::getConnection();
 
 if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
-    $_SESSION['error'] = _m("This service does not accept instructor requests for keys");
+    U::flashError(_m("This service does not accept instructor requests for keys"));
     header('Location: '.$CFG->wwwroot);
     return;
 }

@@ -4,6 +4,7 @@ if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../../admin/admin_util.php");
 
+use \Tsugi\Util\U;
 use \Tsugi\UI\CrudForm;
 use \Tsugi\Core\LTIX;
 
@@ -40,7 +41,7 @@ if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
     return;
 }
 if ( ! is_array($row) ) {
-    $_SESSION['error'] = 'Unable to load request details';
+    U::flashError('Unable to load request details');
     header("Location: ".$from_location);
     return;
 }
