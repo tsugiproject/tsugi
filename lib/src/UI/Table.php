@@ -361,13 +361,18 @@ class Table {
                     continue;
                 }
                 echo("<td>");
-                if ( $link_name !== false ) {
+                $href_key = '_href_' . $k;
+                if ( isset($row[$href_key]) && $row[$href_key] !== '' ) {
+                    echo('<a href="'.htmlspecialchars($row[$href_key], ENT_QUOTES, 'UTF-8').'">');
+                } elseif ( $link_name !== false ) {
                     $detail = Table::makeUrl($view,$params,Array($link_name => $link_val));
                     echo('<a href="'.$detail.'">');
                     if ( empty($v) ) $v = $link_name.':'.$link_val;
                 }
                 echo(htmlent_utf8($v));
-                if ( $link_name !== false ) {
+                if ( isset($row[$href_key]) && $row[$href_key] !== '' ) {
+                    echo('</a>');
+                } elseif ( $link_name !== false ) {
                     echo('</a>');
                 }
                 $link_name = false;

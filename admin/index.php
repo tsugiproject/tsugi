@@ -65,6 +65,7 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
 <li><a href="expire">Manage Data Expiry</a></li>
 <li><a href="context/">View Contexts</a></li>
 <li><a href="activity/">View Activity</a></li>
+<li><a href="badges/">Badges Awarded</a></li>
 <li><a href="users/">View Users</a></li>
 <li>
   <a href="#" title="Recent Logins"
