@@ -1332,33 +1332,37 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    // 2025-03-10 AGS Phase 1: Convert grading/activity_progress to VARCHAR(30), add AGS result columns
-    // Use column type check for idempotency - only MODIFY when still TINYINT
-    if ( $PDOX->isMySQL() && $PDOX->columnExists('grading_progress', "{$CFG->dbprefix}lti_result") ) {
-        $grading_col = $PDOX->describeColumn('grading_progress', "{$CFG->dbprefix}lti_result");
-        $grading_type = $grading_col ? strtolower(\Tsugi\Util\U::get($grading_col, "Type", "")) : "";
-        if ( strpos($grading_type, 'tinyint') !== false ) {
-            $sql = "ALTER TABLE {$CFG->dbprefix}lti_result MODIFY grading_progress VARCHAR(30) NOT NULL DEFAULT 'NotReady'";
-            echo("Upgrading: ".$sql."<br/>\n");
-            error_log("Upgrading: ".$sql);
-            $PDOX->queryReturnError($sql);
-
-            $sql = "UPDATE {$CFG->dbprefix}lti_result SET grading_progress = 'NotReady' WHERE grading_progress = '0'";
+    // 2025-03-10 AGS Phase 1: Replace unused TINYINT grading/activity_progress with VARCHAR(30)
+    // Two separate checks: if TINYINT drop it, if column missing add it. Columns were never read/written.
+    if ( $PDOX->isMySQL() ) {
+        if ( $PDOX->columnExists('grading_progress', "{$CFG->dbprefix}lti_result") ) {
+            $grading_col = $PDOX->describeColumn('grading_progress', "{$CFG->dbprefix}lti_result");
+            $grading_type = $grading_col ? strtolower(\Tsugi\Util\U::get($grading_col, "Type", "")) : "";
+            if ( strpos($grading_type, 'tinyint') !== false ) {
+                $sql = "ALTER TABLE {$CFG->dbprefix}lti_result DROP COLUMN grading_progress";
+                echo("Upgrading: ".$sql."<br/>\n");
+                error_log("Upgrading: ".$sql);
+                $PDOX->queryReturnError($sql);
+            }
+        }
+        if ( ! $PDOX->columnExists('grading_progress', "{$CFG->dbprefix}lti_result") ) {
+            $sql = "ALTER TABLE {$CFG->dbprefix}lti_result ADD COLUMN grading_progress VARCHAR(30) NOT NULL DEFAULT 'NotReady'";
             echo("Upgrading: ".$sql."<br/>\n");
             error_log("Upgrading: ".$sql);
             $PDOX->queryReturnError($sql);
         }
-    }
-    if ( $PDOX->isMySQL() && $PDOX->columnExists('activity_progress', "{$CFG->dbprefix}lti_result") ) {
-        $activity_col = $PDOX->describeColumn('activity_progress', "{$CFG->dbprefix}lti_result");
-        $activity_type = $activity_col ? strtolower(\Tsugi\Util\U::get($activity_col, "Type", "")) : "";
-        if ( strpos($activity_type, 'tinyint') !== false ) {
-            $sql = "ALTER TABLE {$CFG->dbprefix}lti_result MODIFY activity_progress VARCHAR(30) NOT NULL DEFAULT 'Initialized'";
-            echo("Upgrading: ".$sql."<br/>\n");
-            error_log("Upgrading: ".$sql);
-            $PDOX->queryReturnError($sql);
-
-            $sql = "UPDATE {$CFG->dbprefix}lti_result SET activity_progress = 'Initialized' WHERE activity_progress = '0'";
+        if ( $PDOX->columnExists('activity_progress', "{$CFG->dbprefix}lti_result") ) {
+            $activity_col = $PDOX->describeColumn('activity_progress', "{$CFG->dbprefix}lti_result");
+            $activity_type = $activity_col ? strtolower(\Tsugi\Util\U::get($activity_col, "Type", "")) : "";
+            if ( strpos($activity_type, 'tinyint') !== false ) {
+                $sql = "ALTER TABLE {$CFG->dbprefix}lti_result DROP COLUMN activity_progress";
+                echo("Upgrading: ".$sql."<br/>\n");
+                error_log("Upgrading: ".$sql);
+                $PDOX->queryReturnError($sql);
+            }
+        }
+        if ( ! $PDOX->columnExists('activity_progress', "{$CFG->dbprefix}lti_result") ) {
+            $sql = "ALTER TABLE {$CFG->dbprefix}lti_result ADD COLUMN activity_progress VARCHAR(30) NOT NULL DEFAULT 'Initialized'";
             echo("Upgrading: ".$sql."<br/>\n");
             error_log("Upgrading: ".$sql);
             $PDOX->queryReturnError($sql);
