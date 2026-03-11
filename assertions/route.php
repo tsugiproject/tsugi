@@ -8,6 +8,8 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Badges;
 use \Tsugi\UI\Lessons;
 use \Tsugi\LinkedIn\LinkedIn;
+use \Tsugi\Crypt\AesOpenSSL;
+use \Tsugi\Services\Badges\BadgeService;
 
 // Parse the URL to extract encrypted ID and resource type
 $url = $_SERVER['REQUEST_URI'];
@@ -32,6 +34,80 @@ if (empty($path_parts)) {
 }
 
 $first_part = $path_parts[0];
+
+// Handle publish route: /assertions/publish?id={hex} - mint badge and redirect to GUID URL
+if ($first_part === 'publish') {
+    $hex_id = isset($_GET['id']) ? trim($_GET['id']) : '';
+    if (empty($hex_id)) {
+        http_response_code(400);
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        echo("<h2>Bad Request</h2><p>Missing badge id.</p>\n");
+        $OUTPUT->footer();
+        return;
+    }
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $current_user_id = U::get($_SESSION, 'id');
+    if (empty($current_user_id)) {
+        http_response_code(403);
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        echo("<h2>Forbidden</h2><p>You must be logged in to publish a badge.</p>\n");
+        $OUTPUT->footer();
+        return;
+    }
+    if ( ! isset($CFG->lessons) ) {
+        die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+    }
+    $PDOX = LTIX::getConnection();
+    $l = new Lessons($CFG->lessons);
+    $parsed = Badges::parseAssertionId($hex_id, $l);
+    if ( is_string($parsed) ) {
+        http_response_code(404);
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        echo("<h2>Badge not found</h2><p>Invalid or expired badge id.</p>\n");
+        $OUTPUT->footer();
+        return;
+    }
+    $row = $parsed[0];
+    $pieces = $parsed[2];
+    $badge = $parsed[3];
+    $owner_user_id = intval($pieces[0]);
+    if ($current_user_id != $owner_user_id) {
+        http_response_code(403);
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        echo("<h2>Forbidden</h2><p>You can only publish your own badges.</p>\n");
+        $OUTPUT->footer();
+        return;
+    }
+    $code = $pieces[1];
+    $context_id = intval($pieces[2]);
+    $displayname = U::get($row, 'displayname', '');
+    $email = U::get($row, 'email', '');
+    $context_title = U::get($row, 'title', '');
+    $badge_title = isset($badge->title) ? $badge->title : '';
+    $guid = BadgeService::mintOrGet($current_user_id, $context_id, $code, $displayname, $email, $context_title, $badge_title);
+    if ($guid === false) {
+        http_response_code(500);
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        echo("<h2>Error</h2><p>Could not publish badge. Please try again later.</p>\n");
+        $OUTPUT->footer();
+        return;
+    }
+    $redirect_url = $CFG->wwwroot . '/assertions/' . urlencode($guid) . '.html';
+    header('Location: ' . $redirect_url, true, 302);
+    return;
+}
 
 // Handle fixed issuer route: /assertions/issuer.json
 if ($first_part === 'issuer.json') {
@@ -183,16 +259,41 @@ if ( ! isset($CFG->lessons) ) {
 $PDOX = LTIX::getConnection();
 $l = new Lessons($CFG->lessons);
 
-$x = Badges::parseAssertionId($encrypted, $l);
-if ( is_string($x) ) {
-    error_log("Assertion parse error: " . $x . " for encrypted: " . substr($encrypted, 0, 50) . "...");
-    die_with_error_log($x);
-}
-$row = $x[0];
-$pieces = $x[2];
-$badge = $x[3];
+$row = null;
+$pieces = null;
+$badge = null;
 
-$date = U::iso8601($row['login_at']);
+// Primary path: minted badge GUID (BadgeService)
+if ( BadgeService::isMintedGuid($encrypted) ) {
+    $data = BadgeService::getAssertionDataForGuid($encrypted, $l);
+    if ( $data ) {
+        $row = $data['row'];
+        $pieces = $data['pieces'];
+        $badge = $data['badge'];
+    }
+}
+
+// Fallback: hex assertion (always supported)
+if ( $row === null ) {
+    $x = Badges::parseAssertionId($encrypted, $l);
+    if ( ! is_string($x) ) {
+        $row = $x[0];
+        $pieces = $x[2];
+        $badge = $x[3];
+    }
+}
+
+if ( $row === null ) {
+    error_log("Assertion parse error: badge not found for id: " . substr($encrypted, 0, 50) . "...");
+    die_with_error_log('Badge not found');
+}
+
+// For minted badges, use issued_at (set at publish); for unminted, "right now" until published
+if ( BadgeService::isMintedGuid($encrypted) && isset($row['issued_at']) ) {
+    $date = U::iso8601($row['issued_at']);
+} else {
+    $date = U::iso8601();
+}
 $email = $row['email'];
 $title = $row['title'];
 $code = $pieces[1];
@@ -257,8 +358,14 @@ switch ($resource) {
         $badge_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json";
         $issuer_url = $CFG->wwwroot . "/assertions/issuer.json";
         $achievement_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json?format=ob3";
-        $legacy_url = $CFG->wwwroot . "/badges/assert.php?id=" . urlencode($encrypted);
-        $legacy_image_url = $CFG->wwwroot . "/badges/images/" . urlencode($encrypted) . ".png";
+        // OB1 legacy endpoints expect the long hex string; when viewing minted (GUID), generate it from pieces
+        $legacy_hex = $encrypted;
+        if ( BadgeService::isMintedGuid($encrypted) && isset($CFG->badge_encrypt_password) && $CFG->badge_encrypt_password ) {
+            $decrypted = $pieces[0] . ':' . $pieces[1] . ':' . $pieces[2];
+            $legacy_hex = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
+        }
+        $legacy_url = $CFG->wwwroot . "/badges/assert.php?id=" . urlencode($legacy_hex);
+        $legacy_image_url = $CFG->wwwroot . "/badges/images/" . urlencode($legacy_hex) . ".png";
         
         // Build landing URL for this badge assertion page (used as certUrl for LinkedIn)
         $landing_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted);
@@ -302,6 +409,8 @@ switch ($resource) {
         
         // Only show LinkedIn button if user is logged in AND owns this badge
         $show_linkedin_button = $logged_in && ($current_user_id == $badge_owner_user_id);
+        // Show Publish button only for legacy (unminted) badges when user owns it
+        $show_publish_button = $show_linkedin_button && ! BadgeService::isMintedGuid($encrypted);
         
         // Determine issuer organization name using badge_organization with fallback
         // Use getBadgeOrganization() method if available, otherwise fall back to manual logic
@@ -388,6 +497,15 @@ switch ($resource) {
                     </p>
                     
                     <?php
+                    // Show Publish button if viewing unminted badge and user owns it
+                    if ($show_publish_button): ?>
+                        <div style="margin-bottom: 15px;">
+                            <a href="<?= htmlspecialchars($CFG->wwwroot . '/assertions/publish?id=' . urlencode($encrypted)) ?>" class="btn btn-primary" title="Publish badge to get a permanent GUID URL">
+                                Publish Badge
+                            </a>
+                            <p class="text-muted" style="margin-top: 8px; font-size: 0.9em;">Publishing gives you a permanent, shortened URL for this badge that won't change and date stamps the badge.</p>
+                        </div>
+                    <?php endif;
                     // Show action buttons if user is logged in and owns this badge
                     if ($show_linkedin_button): ?>
                         <div style="margin-top: 15px;">
@@ -432,6 +550,20 @@ switch ($resource) {
             
             <h3>Evidence</h3>
             <p><a href="<?= htmlspecialchars($CFG->apphome) ?>" target="_blank"><?= htmlspecialchars($CFG->apphome) ?></a></p>
+            <?php
+            $evidence_assignments = BadgeService::getAssignmentsForEvidence($code, $l);
+            if ( ! empty($evidence_assignments) ):
+                $count = count($evidence_assignments);
+            ?>
+                <details style="margin-top: 8px;">
+                    <summary style="cursor: pointer;"><strong>Completed assignments (<?= (int) $count ?>)</strong></summary>
+                    <ul style="margin-top: 8px;">
+                    <?php foreach ( $evidence_assignments as $a ): ?>
+                        <li><?php if ( $a['href'] ): ?><a href="<?= htmlspecialchars($a['href']) ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars($a['title']) ?></a><?php else: ?><?= htmlspecialchars($a['title']) ?><?php endif; ?></li>
+                    <?php endforeach; ?>
+                    </ul>
+                </details>
+            <?php endif; ?>
             
             <hr>
             

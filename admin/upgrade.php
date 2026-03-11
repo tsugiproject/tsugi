@@ -100,6 +100,17 @@ foreach($libdb as $tool) {
     $tools[] = $tool;
 }
 
+echo("Checking Services Tables...<br/>\n");
+// Scan lib/src/Services for database.php files (e.g. Badges)
+$svcdb = searchTwoLevels("database.php", $CFG->dirroot.'/lib/src/Services');
+for($i=0; $i<count($svcdb); $i++) {
+    $svcdb[$i] = U::remove_relative_path($svcdb[$i]);
+}
+foreach($svcdb as $tool) {
+    if ( in_array($tool, $tools) ) continue;
+    $tools[] = $tool;
+}
+
 echo("Checking Installed Modules Tables...<br/>\n");
 // Scan the tools folders
 $moretools = findToolFiles("database.php", $CFG->dirroot);
