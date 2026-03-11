@@ -474,8 +474,13 @@ array( "{$CFG->dbprefix}lti_result",
     note               MEDIUMTEXT NULL,
     attempts           INTEGER NULL,
     server_grade       FLOAT NULL,
-    grading_progress   TINYINT(1) NOT NULL DEFAULT 0,
-    activity_progress  TINYINT(1) NOT NULL DEFAULT 0,
+    grading_progress   VARCHAR(30) NOT NULL DEFAULT 'NotReady',
+    activity_progress  VARCHAR(30) NOT NULL DEFAULT 'Initialized',
+    result_maximum     DOUBLE NULL,
+    lti13_result_id    TEXT NULL,
+    scoring_user_id    INTEGER NULL,
+    score_timestamp   TIMESTAMP NULL,
+    submitted_at       TIMESTAMP NULL,
 
     json               MEDIUMTEXT NULL,
     entity_version     INTEGER NOT NULL DEFAULT 0,
@@ -499,6 +504,11 @@ array( "{$CFG->dbprefix}lti_result",
         FOREIGN KEY (`service_id`)
         REFERENCES `{$CFG->dbprefix}lti_service` (`service_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_result_ibfk_4`
+        FOREIGN KEY (`scoring_user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
 
     -- Note service_id is not part of the key on purpose
     -- It is data that can change and can be null in LTI 2.0
@@ -881,9 +891,16 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         array('lti_keyset', 'keyset_title', 'TEXT NULL'),
 
-        array('lti_result', 'grading_progress', 'TINYINT(1) NOT NULL DEFAULT 0'),
-        array('lti_result', 'activity_progress', 'TINYINT(1) NOT NULL DEFAULT 0'),
+        array('lti_result', 'grading_progress', 'VARCHAR(30) NOT NULL DEFAULT \'NotReady\''),
+        array('lti_result', 'activity_progress', 'VARCHAR(30) NOT NULL DEFAULT \'Initialized\''),
         array('lti_link', 'score_maximum', 'DOUBLE NULL'),
+
+        // 2025-03-10 AGS Phase 1: result schema for Assignments and Grades Service
+        array('lti_result', 'result_maximum', 'DOUBLE NULL'),
+        array('lti_result', 'lti13_result_id', 'TEXT NULL'),
+        array('lti_result', 'scoring_user_id', 'INTEGER NULL'),
+        array('lti_result', 'score_timestamp', 'TIMESTAMP NULL'),
+        array('lti_result', 'submitted_at', 'TIMESTAMP NULL'),
 
         // 2023-05-11
         array('lti_key', 'unlock_code', 'MEDIUMTEXT NULL'),
@@ -1315,6 +1332,58 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // 2025-03-10 AGS Phase 1: Convert grading/activity_progress to VARCHAR(30), add AGS result columns
+    // Use column type check for idempotency - only MODIFY when still TINYINT
+    if ( $PDOX->isMySQL() && $PDOX->columnExists('grading_progress', "{$CFG->dbprefix}lti_result") ) {
+        $grading_col = $PDOX->describeColumn('grading_progress', "{$CFG->dbprefix}lti_result");
+        $grading_type = $grading_col ? strtolower(\Tsugi\Util\U::get($grading_col, "Type", "")) : "";
+        if ( strpos($grading_type, 'tinyint') !== false ) {
+            $sql = "ALTER TABLE {$CFG->dbprefix}lti_result MODIFY grading_progress VARCHAR(30) NOT NULL DEFAULT 'NotReady'";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $PDOX->queryReturnError($sql);
+
+            $sql = "UPDATE {$CFG->dbprefix}lti_result SET grading_progress = 'NotReady' WHERE grading_progress = '0'";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $PDOX->queryReturnError($sql);
+        }
+    }
+    if ( $PDOX->isMySQL() && $PDOX->columnExists('activity_progress', "{$CFG->dbprefix}lti_result") ) {
+        $activity_col = $PDOX->describeColumn('activity_progress', "{$CFG->dbprefix}lti_result");
+        $activity_type = $activity_col ? strtolower(\Tsugi\Util\U::get($activity_col, "Type", "")) : "";
+        if ( strpos($activity_type, 'tinyint') !== false ) {
+            $sql = "ALTER TABLE {$CFG->dbprefix}lti_result MODIFY activity_progress VARCHAR(30) NOT NULL DEFAULT 'Initialized'";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $PDOX->queryReturnError($sql);
+
+            $sql = "UPDATE {$CFG->dbprefix}lti_result SET activity_progress = 'Initialized' WHERE activity_progress = '0'";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $PDOX->queryReturnError($sql);
+        }
+    }
+
+    // Add FK for scoring_user_id if column exists and FK does not
+    if ( $PDOX->columnExists('scoring_user_id', "{$CFG->dbprefix}lti_result") ) {
+        $indexes = $PDOX->indexes("{$CFG->dbprefix}lti_result");
+        $fk_name = "{$CFG->dbprefix}lti_result_ibfk_4";
+        if ( ! in_array($fk_name, $indexes) ) {
+            $sql = "ALTER TABLE {$CFG->dbprefix}lti_result ADD CONSTRAINT `{$fk_name}`
+                FOREIGN KEY (`scoring_user_id`) REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+                ON DELETE SET NULL ON UPDATE CASCADE";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) {
+                $message = "Non-Fatal adding scoring_user_id FK: ".$q->errorImplode;
+                error_log($message);
+                echo($message."<br/>\n");
+            }
+        }
+    }
+
     // 2025-02-02 - Add dedupe index for notification de-duplication
     $notification_indexes = array(
         "{$CFG->dbprefix}notification_idx_dedupe" =>
@@ -1336,7 +1405,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202112011310;
+    return 202503100000;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

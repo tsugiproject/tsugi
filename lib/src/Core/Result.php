@@ -210,14 +210,28 @@ class Result extends Entity {
         // Get the IP Address
         $ipaddr = Net::getIP();
 
+        // Resolve activity_progress and grading_progress from $extra or use LTI13 defaults
+        $activity_progress = is_array($extra) && isset($extra[LTI13::ACTIVITY_PROGRESS])
+            ? $extra[LTI13::ACTIVITY_PROGRESS]
+            : LTI13::ACTIVITY_PROGRESS_COMPLETED;
+        $grading_progress = is_array($extra) && isset($extra[LTI13::GRADING_PROGRESS])
+            ? $extra[LTI13::GRADING_PROGRESS]
+            : LTI13::GRADING_PROGRESS_FULLYGRADED;
+
         // Update the local copy of the grade in the lti_result table
         if ( $PDOX !== false && ! empty($result_id) ) {
             $stmt = $PDOX->queryReturnError(
                 "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
-                    ipaddr = :IP, updated_at = NOW() WHERE result_id = :RID",
+                    ipaddr = :IP,
+                    activity_progress = :activity_progress,
+                    grading_progress = :grading_progress,
+                    score_timestamp = NOW(),
+                    updated_at = NOW() WHERE result_id = :RID",
                 array(
                     ':grade' => $grade,
                     ':IP' => $ipaddr,
+                    ':activity_progress' => $activity_progress,
+                    ':grading_progress' => $grading_progress,
                     ':RID' => $result_id)
             );
 
