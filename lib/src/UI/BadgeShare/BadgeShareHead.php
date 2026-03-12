@@ -18,6 +18,7 @@ class BadgeShareHead {
      * @param string      $issuerName  Issuer organization name for fallback
      * @param string      $imageUrl    Badge image URL (relative or absolute)
      * @param string|null $wwwroot     Base URL to make image absolute if needed
+     * @param string|null $fbAppId    Facebook App ID (optional; silences Facebook's "required" warning)
      * @return string HTML fragment of meta tags (newline-separated)
      */
     public static function render(
@@ -26,7 +27,8 @@ class BadgeShareHead {
         string $courseTitle,
         string $issuerName,
         string $imageUrl,
-        ?string $wwwroot = null
+        ?string $wwwroot = null,
+        ?string $fbAppId = null
     ): string {
         // Shared data used by all platforms (Facebook, Twitter, LinkedIn, Bluesky)
         $descSource = $courseTitle !== '' ? $courseTitle : $issuerName;
@@ -47,6 +49,9 @@ class BadgeShareHead {
         $out .= '<meta property="og:description" content="' . $ogDesc . '">' . "\n";  // Facebook, LinkedIn, Bluesky (preview text)
         $out .= '<meta property="og:image" content="' . $ogImage . '">' . "\n";       // Facebook, LinkedIn, Bluesky (preview image)
         $out .= '<meta property="og:url" content="' . $ogUrl . '">' . "\n";            // Facebook, LinkedIn, Bluesky
+        if ( $fbAppId !== null && $fbAppId !== '' ) {
+            $out .= '<meta property="fb:app_id" content="' . htmlspecialchars($fbAppId, ENT_QUOTES, 'UTF-8') . '">' . "\n";
+        }
 
         // Twitter Card (twitter:*) - Twitter/X only; prefers these over og: when present
         $out .= '<meta name="twitter:card" content="summary">' . "\n";         // Twitter

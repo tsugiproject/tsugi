@@ -413,8 +413,8 @@ switch ($resource) {
         $show_linkedin_button = $logged_in && ($current_user_id == $badge_owner_user_id);
         // Show Publish button only for legacy (unminted) badges when user owns it
         $show_publish_button = $show_linkedin_button && ! BadgeService::isMintedGuid($encrypted);
-        // Show Post to Twitter/Facebook/Bluesky/LinkedIn only after badge is published (minted)
-        $show_share_buttons = BadgeService::isMintedGuid($encrypted);
+        // Show Post to Twitter/Facebook/Bluesky/LinkedIn only when logged in, user owns badge, and badge is published (minted)
+        $show_share_buttons = $show_linkedin_button && BadgeService::isMintedGuid($encrypted);
         
         // Determine issuer organization name using badge_organization with fallback
         // Use getBadgeOrganization() method if available, otherwise fall back to manual logic
@@ -480,7 +480,8 @@ switch ($resource) {
             $title ?: $issuer_org_name,
             $issuer_org_name,
             $image,
-            $CFG->wwwroot ?? null
+            $CFG->wwwroot ?? null,
+            $CFG->facebook_app_id ?? null
         );
         echo("\n");
         $OUTPUT->bodyStart();
