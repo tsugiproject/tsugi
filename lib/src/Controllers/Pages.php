@@ -33,6 +33,8 @@ class Pages extends Tool {
         $app->router->post($prefix.'/edit/{id}', 'Pages@editPost');
         $app->router->get($prefix.'/manage', 'Pages@manage');
         $app->router->post($prefix.'/manage', 'Pages@managePost');
+        $app->router->get($prefix.'/history/{id}', 'Pages@history');
+        $app->router->post($prefix.'/history/restore', 'Pages@historyRestore');
         $app->router->get($prefix.'/analytics', 'Pages@analytics');
         // Parameterized route must come LAST
         $app->router->get($prefix.'/{logical_key}', 'Pages@index');
@@ -1397,6 +1399,13 @@ class Pages extends Tool {
                 array(':CID' => $context_id)
             );
         }
+
+        // Fetch current page to check if content changed (for history)
+        $current = $PDOX->rowDie(
+            "SELECT title, body FROM {$CFG->dbprefix}pages WHERE page_id = :PID AND context_id = :CID",
+            array(':PID' => $page_id, ':CID' => $context_id)
+        );
+        $content_changed = ($current && ($current['title'] !== $title || $current['body'] !== $body));
         
         $sql = "UPDATE {$CFG->dbprefix}pages 
                 SET title = :title, logical_key = :key, body = :body, 
@@ -1414,6 +1423,24 @@ class Pages extends Tool {
         );
         $q = $PDOX->queryReturnError($sql, $values);
         if ($q->success) {
+            // Save previous version to history only when content (title or body) actually changed
+            if ($content_changed && $current) {
+                $PDOX->queryDie(
+                    "INSERT INTO {$CFG->dbprefix}page_history (page_id, context_id, title, body) VALUES (:PID, :CID, :title, :body)",
+                    array(':PID' => $page_id, ':CID' => $context_id, ':title' => $current['title'], ':body' => $current['body'])
+                );
+                // Trim to last 5 per page (delete oldest)
+                $ids = $PDOX->allRowsDie(
+                    "SELECT history_id FROM {$CFG->dbprefix}page_history WHERE page_id = :PID ORDER BY saved_at DESC",
+                    array(':PID' => $page_id)
+                );
+                if (count($ids) > 5) {
+                    $to_delete = array_slice($ids, 5);
+                    foreach ($to_delete as $row) {
+                        $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}page_history WHERE history_id = :HID", array(':HID' => $row['history_id']));
+                    }
+                }
+            }
             U::flashSuccess('Page updated successfully');
             return new RedirectResponse($manage_url);
         } else {
@@ -1438,6 +1465,13 @@ class Pages extends Tool {
         
         $context_id = $_SESSION['context_id'];
         
+        // Get page_ids that have history (for showing History button)
+        $pages_with_history = $PDOX->allRowsDie(
+            "SELECT DISTINCT page_id FROM {$CFG->dbprefix}page_history WHERE context_id = :CID",
+            array(':CID' => $context_id)
+        );
+        $page_ids_with_history = array_column($pages_with_history, 'page_id');
+        
         // Get all pages for this context
         $pages = $PDOX->allRowsDie(
             "SELECT page_id, title, logical_key, published, is_main, is_front_page, created_at, updated_at 
@@ -1446,7 +1480,7 @@ class Pages extends Tool {
              ORDER BY is_main DESC, is_front_page DESC, title ASC",
             array(':CID' => $context_id)
         );
-        
+
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
@@ -1508,6 +1542,10 @@ class Pages extends Tool {
                                 <td>
                                     <?php $edit_url = $tool_home . '/edit/' . $page['page_id']; ?>
                                     <a href="<?= htmlspecialchars($edit_url) ?>" class="btn btn-xs btn-default" aria-label="<?= htmlspecialchars(__('Edit')) ?> <?= htmlspecialchars($page['title']) ?>">Edit</a>
+                                    <?php if (in_array($page['page_id'], $page_ids_with_history)): ?>
+                                    <?php $history_url = $tool_home . '/history/' . $page['page_id']; ?>
+                                    <a href="<?= htmlspecialchars($history_url) ?>" class="btn btn-xs btn-info" aria-label="<?= htmlspecialchars(__('History')) ?> <?= htmlspecialchars($page['title']) ?>">History</a>
+                                    <?php endif; ?>
                                     <form method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to toggle the published status?');">
                                         <input type="hidden" name="action" value="toggle_published">
                                         <input type="hidden" name="page_id" value="<?= $page['page_id'] ?>">
@@ -1584,6 +1622,245 @@ class Pages extends Tool {
             }
         }
         
+        return new RedirectResponse($manage_url);
+    }
+
+    public function history(Request $request, $id)
+    {
+        global $CFG, $OUTPUT, $PDOX;
+
+        $this->requireInstructor('/pages');
+
+        $tool_home = $this->toolHome(self::ROUTE);
+        $manage_url = $tool_home . '/manage';
+
+        LTIX::getConnection();
+
+        $context_id = $_SESSION['context_id'];
+        $page_id = intval($id);
+
+        $page = $PDOX->rowDie(
+            "SELECT page_id, title, body, logical_key, updated_at FROM {$CFG->dbprefix}pages 
+             WHERE page_id = :PID AND context_id = :CID",
+            array(':PID' => $page_id, ':CID' => $context_id)
+        );
+        if (!$page) {
+            U::flashError('Page not found');
+            return new RedirectResponse($manage_url);
+        }
+
+        $histories = $PDOX->allRowsDie(
+            "SELECT history_id, title, body, saved_at FROM {$CFG->dbprefix}page_history 
+             WHERE page_id = :PID AND context_id = :CID ORDER BY saved_at DESC",
+            array(':PID' => $page_id, ':CID' => $context_id)
+        );
+
+        if (count($histories) == 0) {
+            U::flashError('No history for this page');
+            return new RedirectResponse($manage_url);
+        }
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" role="main" id="main-content">
+            <h1>Page History: <?= htmlspecialchars($page['title']) ?>
+                <span class="pull-right">
+                    <a href="<?= $manage_url ?>" class="btn btn-default">Back to Manage</a>
+                    <a href="<?= $tool_home . '/edit/' . $page_id ?>" class="btn btn-primary">Edit Page</a>
+                </span>
+            </h1>
+
+            <p>Current version is shown below. Restore a previous version to make it the current page (current will be saved to history).</p>
+
+            <table class="table table-striped" role="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Saved At</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Chars</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php $currentCharCount = strlen($page['title'] ?? '') + strlen($page['body'] ?? ''); ?>
+                    <tr class="info">
+                        <td><?= date('Y-m-d H:i', strtotime($page['updated_at'])) ?></td>
+                        <td><?= htmlspecialchars($page['title']) ?> <span class="label label-info">Current</span></td>
+                        <td><?= number_format($currentCharCount) ?></td>
+                        <td><em>—</em></td>
+                    </tr>
+                    <?php foreach ($histories as $h): ?>
+                        <?php $charCount = strlen($h['title'] ?? '') + strlen($h['body'] ?? ''); ?>
+                        <tr>
+                            <td><?= date('Y-m-d H:i', strtotime($h['saved_at'])) ?></td>
+                            <td><?= htmlspecialchars($h['title']) ?></td>
+                            <td><?= number_format($charCount) ?></td>
+                            <td>
+                                <button type="button" class="btn btn-xs btn-default btn-diff" data-history-id="<?= (int)$h['history_id'] ?>"
+                                        data-title="<?= htmlspecialchars($h['title']) ?>"
+                                        data-body="<?= htmlspecialchars($h['body']) ?>">View / Diff</button>
+                                <form method="post" action="<?= $tool_home ?>/history/restore" style="display: inline;"
+                                      onsubmit="return confirm('Restore this version? The current version will be saved to history.');">
+                                    <input type="hidden" name="page_id" value="<?= $page_id ?>">
+                                    <input type="hidden" name="history_id" value="<?= (int)$h['history_id'] ?>">
+                                    <?php if (!empty($_SESSION['CSRF_TOKEN'])): ?>
+                                    <input type="hidden" name="CSRF_TOKEN" value="<?= htmlspecialchars($_SESSION['CSRF_TOKEN']) ?>">
+                                    <?php endif; ?>
+                                    <button type="submit" class="btn btn-xs btn-primary">Restore</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </main>
+
+        <div id="diff-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="diff-modal-label">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h2 class="modal-title" id="diff-modal-label">Compare with current</h2>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <h3>This version (saved date shown)</h3>
+                                <div id="diff-left" class="diff-panel"></div>
+                            </div>
+                            <div class="col-sm-6">
+                                <h3>Current version</h3>
+                                <div id="diff-right" class="diff-panel"></div>
+                            </div>
+                        </div>
+                        <hr>
+                        <h3>Text diff</h3>
+                        <div id="diff-output" class="diff-output"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+        .diff-panel { max-height: 200px; overflow: auto; border: 1px solid #ccc; padding: 8px; background: #f9f9f9; }
+        .diff-output { max-height: 300px; overflow: auto; border: 1px solid #ccc; padding: 8px; font-family: monospace; font-size: 12px; }
+        .diff-add { background: #dfd; }
+        .diff-remove { background: #fdd; }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.1.0/diff.min.js"></script>
+        <script>
+        (function() {
+            var currentTitle = <?= json_encode($page['title']) ?>;
+            var currentBody = <?= json_encode($page['body']) ?>;
+            document.querySelectorAll('.btn-diff').forEach(function(btn) {
+                btn.onclick = function() {
+                    var histTitle = btn.getAttribute('data-title');
+                    var histBody = btn.getAttribute('data-body');
+                    var leftPlain = htmlToPlainLines(histTitle + '\n\n' + histBody);
+                    var rightPlain = htmlToPlainLines(currentTitle + '\n\n' + currentBody);
+                    document.getElementById('diff-left').innerHTML = '<strong>' + escapeHtml(histTitle) + '</strong><hr>' + stripTags(histBody);
+                    document.getElementById('diff-right').innerHTML = '<strong>' + escapeHtml(currentTitle) + '</strong><hr>' + stripTags(currentBody);
+                    var diff = Diff.diffLines(leftPlain, rightPlain);
+                    var html = '';
+                    diff.forEach(function(part) {
+                        var cls = part.added ? 'diff-add' : (part.removed ? 'diff-remove' : '');
+                        var text = escapeHtml(part.value);
+                        if (part.added) text = '<ins>' + text + '</ins>';
+                        else if (part.removed) text = '<del>' + text + '</del>';
+                        html += '<div class="' + cls + '">' + text.replace(/\n/g, '<br>') + '</div>';
+                    });
+                    document.getElementById('diff-output').innerHTML = html || '(no changes)';
+                    $('#diff-modal').modal('show');
+                };
+            });
+            function escapeHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+            function stripTags(s) { var d = document.createElement('div'); d.innerHTML = s; return d.textContent || ''; }
+            function htmlToPlainLines(html) {
+                if (!html) return '';
+                var s = html.replace(/<\/(p|div|h[1-6]|li|tr|blockquote)>/gi, '\n')
+                    .replace(/<(br|hr)\s*\/?>/gi, '\n');
+                var d = document.createElement('div');
+                d.innerHTML = s;
+                var text = (d.textContent || d.innerText || '');
+                return text.split('\n').map(function(l) { return l.replace(/\s+/g, ' ').trim(); }).filter(Boolean).join('\n');
+            }
+        })();
+        </script>
+        <?php
+        $OUTPUT->footer();
+    }
+
+    public function historyRestore(Request $request)
+    {
+        global $CFG, $PDOX;
+
+        $this->requireInstructor('/pages');
+
+        $tool_home = $this->toolHome(self::ROUTE);
+        $manage_url = $tool_home . '/manage';
+
+        LTIX::getConnection();
+
+        $context_id = $_SESSION['context_id'];
+        $page_id = (int) U::get($_POST, 'page_id');
+        $history_id = (int) U::get($_POST, 'history_id');
+
+        if (!$page_id || !$history_id) {
+            U::flashError('Invalid restore request');
+            return new RedirectResponse($manage_url);
+        }
+
+        $page = $PDOX->rowDie(
+            "SELECT page_id, title, body, logical_key FROM {$CFG->dbprefix}pages 
+             WHERE page_id = :PID AND context_id = :CID",
+            array(':PID' => $page_id, ':CID' => $context_id)
+        );
+        $hist = $PDOX->rowDie(
+            "SELECT history_id, title, body FROM {$CFG->dbprefix}page_history 
+             WHERE history_id = :HID AND page_id = :PID AND context_id = :CID",
+            array(':HID' => $history_id, ':PID' => $page_id, ':CID' => $context_id)
+        );
+        if (!$page || !$hist) {
+            U::flashError('Page or history entry not found');
+            return new RedirectResponse($manage_url);
+        }
+
+        $logical_key = $this->generateLogicalKey($hist['title']);
+
+        $PDOX->beginTransaction();
+        try {
+            $PDOX->queryDie(
+                "INSERT INTO {$CFG->dbprefix}page_history (page_id, context_id, title, body) VALUES (:PID, :CID, :title, :body)",
+                array(':PID' => $page_id, ':CID' => $context_id, ':title' => $page['title'], ':body' => $page['body'])
+            );
+            $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}pages SET title = :title, logical_key = :key, body = :body, updated_at = NOW() WHERE page_id = :PID AND context_id = :CID",
+                array(':title' => $hist['title'], ':key' => $logical_key, ':body' => $hist['body'], ':PID' => $page_id, ':CID' => $context_id)
+            );
+            $PDOX->queryDie(
+                "DELETE FROM {$CFG->dbprefix}page_history WHERE history_id = :HID",
+                array(':HID' => $history_id)
+            );
+            $ids = $PDOX->allRowsDie(
+                "SELECT history_id FROM {$CFG->dbprefix}page_history WHERE page_id = :PID ORDER BY saved_at DESC",
+                array(':PID' => $page_id)
+            );
+            if (count($ids) > 5) {
+                foreach (array_slice($ids, 5) as $row) {
+                    $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}page_history WHERE history_id = :HID", array(':HID' => $row['history_id']));
+                }
+            }
+            $PDOX->commit();
+        } catch (\Exception $e) {
+            $PDOX->rollBack();
+            U::flashError('Error restoring: ' . $e->getMessage());
+            return new RedirectResponse($manage_url);
+        }
+
+        U::flashSuccess('Page restored successfully');
         return new RedirectResponse($manage_url);
     }
 

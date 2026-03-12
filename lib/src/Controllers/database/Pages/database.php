@@ -40,10 +40,37 @@ array( "{$CFG->dbprefix}pages",
     INDEX `{$CFG->dbprefix}pages_indx_4` ( is_main ),
     INDEX `{$CFG->dbprefix}pages_indx_5` ( is_front_page )
 
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;"),
+array( "{$CFG->dbprefix}page_history",
+"create table {$CFG->dbprefix}page_history (
+    history_id             INTEGER NOT NULL AUTO_INCREMENT,
+    page_id                INTEGER NOT NULL,
+    context_id             INTEGER NOT NULL,
+    title                  VARCHAR(512) NOT NULL,
+    body                   TEXT NOT NULL,
+    saved_at               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}page_history_pk` PRIMARY KEY (history_id),
+
+    CONSTRAINT `{$CFG->dbprefix}page_history_ibfk_1`
+        FOREIGN KEY (`page_id`)
+        REFERENCES `{$CFG->dbprefix}pages` (`page_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}page_history_ibfk_2`
+        FOREIGN KEY (`context_id`)
+        REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    INDEX `{$CFG->dbprefix}page_history_indx_1` ( page_id ),
+    INDEX `{$CFG->dbprefix}page_history_indx_2` ( context_id ),
+    INDEX `{$CFG->dbprefix}page_history_indx_3` ( saved_at )
+
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;")
 );
 
 $DATABASE_UNINSTALL = array(
+"drop table if exists {$CFG->dbprefix}page_history",
 "drop table if exists {$CFG->dbprefix}pages"
 );
 
@@ -74,6 +101,38 @@ $DATABASE_UPGRADE = function($oldversion) {
             }
         }
     }
+
+    // Add page_history table for existing installations
+    if ( $oldversion < 202503120000 ) {
+        $table_fields = $PDOX->metadata("{$CFG->dbprefix}page_history");
+        if ( $table_fields === false ) {
+            $sql = "create table {$CFG->dbprefix}page_history (
+                history_id             INTEGER NOT NULL AUTO_INCREMENT,
+                page_id                INTEGER NOT NULL,
+                context_id             INTEGER NOT NULL,
+                title                  VARCHAR(512) NOT NULL,
+                body                   TEXT NOT NULL,
+                saved_at               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT `{$CFG->dbprefix}page_history_pk` PRIMARY KEY (history_id),
+                CONSTRAINT `{$CFG->dbprefix}page_history_ibfk_1`
+                    FOREIGN KEY (`page_id`) REFERENCES `{$CFG->dbprefix}pages` (`page_id`)
+                    ON DELETE CASCADE ON UPDATE CASCADE,
+                CONSTRAINT `{$CFG->dbprefix}page_history_ibfk_2`
+                    FOREIGN KEY (`context_id`) REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
+                    ON DELETE CASCADE ON UPDATE CASCADE,
+                INDEX `{$CFG->dbprefix}page_history_indx_1` ( page_id ),
+                INDEX `{$CFG->dbprefix}page_history_indx_2` ( context_id ),
+                INDEX `{$CFG->dbprefix}page_history_indx_3` ( saved_at )
+            ) ENGINE = InnoDB DEFAULT CHARSET=utf8";
+            echo("Upgrading: creating page_history table<br/>\n");
+            error_log("Upgrading: creating page_history table");
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) {
+                echo("Warning: Could not create page_history: ".$q->errorImplode."<br/>\n");
+                error_log("Warning: Could not create page_history: ".$q->errorImplode);
+            }
+        }
+    }
     
-    return 202501180000;
+    return 202503120000;
 };
