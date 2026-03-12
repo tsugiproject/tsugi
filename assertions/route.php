@@ -11,6 +11,7 @@ use \Tsugi\LinkedIn\LinkedIn;
 use \Tsugi\Crypt\AesOpenSSL;
 use \Tsugi\Services\Badges\BadgeService;
 use \Tsugi\UI\BadgeShare\BadgeShareRegistry;
+use \Tsugi\UI\BadgeShare\BadgeShareHead;
 
 // Parse the URL to extract encrypted ID and resource type
 $url = $_SERVER['REQUEST_URI'];
@@ -469,12 +470,22 @@ switch ($resource) {
             );
         }
         
-        $OUTPUT->header();
-        // Add alternate link tags to head for badge assertion JSON using LinkedIn class
+        // Build head content: OB2/link tags (LinkedIn) + social preview meta (BadgeShareHead)
         $linkTags = $linkedin->buildOb2HeadLinkTags($ob2_url, $landing_url);
-        foreach ($linkTags as $tag) {
-            echo($tag . "\n");
-        }
+        $headExtra = implode("\n", $linkTags) . "\n";
+        $headExtra .= BadgeShareHead::render(
+            $landing_url,
+            $badge->title,
+            $title ?: $issuer_org_name,
+            $issuer_org_name,
+            $image,
+            $CFG->wwwroot ?? null
+        );
+        ob_start();
+        $OUTPUT->header();
+        $headerOutput = ob_get_clean();
+        $headerOutput = preg_replace('/<\/head>/i', $headExtra . '</head>', $headerOutput, 1);
+        echo $headerOutput;
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         ?>

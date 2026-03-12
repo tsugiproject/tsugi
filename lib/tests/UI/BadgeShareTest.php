@@ -6,6 +6,7 @@ require_once "src/UI/BadgeShare/FacebookShare.php";
 require_once "src/UI/BadgeShare/BlueskyShare.php";
 require_once "src/UI/BadgeShare/LinkedInShare.php";
 require_once "src/UI/BadgeShare/BadgeShareRegistry.php";
+require_once "src/UI/BadgeShare/BadgeShareHead.php";
 
 if (!function_exists('__')) {
     function __($str) { return $str; }
@@ -16,6 +17,7 @@ use \Tsugi\UI\BadgeShare\FacebookShare;
 use \Tsugi\UI\BadgeShare\BlueskyShare;
 use \Tsugi\UI\BadgeShare\LinkedInShare;
 use \Tsugi\UI\BadgeShare\BadgeShareRegistry;
+use \Tsugi\UI\BadgeShare\BadgeShareHead;
 
 class BadgeShareTest extends \PHPUnit\Framework\TestCase
 {
@@ -201,5 +203,40 @@ class BadgeShareTest extends \PHPUnit\Framework\TestCase
             $this->assertArrayHasKey('host', $parsed, $platform->getName() . ' should produce valid URL');
             $this->assertContains($parsed['scheme'], ['http', 'https'], $platform->getName() . ' should use http or https');
         }
+    }
+
+    public function testBadgeShareHeadRender(): void
+    {
+        $html = BadgeShareHead::render(
+            'https://example.com/assertions/m123.html',
+            'Origins of Computing',
+            'CA4E',
+            'Python for Everybody',
+            'https://example.com/bimages/ca4e_history.png',
+            'https://example.com'
+        );
+
+        $this->assertStringContainsString('og:type', $html);
+        $this->assertStringContainsString('og:title', $html);
+        $this->assertStringContainsString('og:description', $html);
+        $this->assertStringContainsString('og:image', $html);
+        $this->assertStringContainsString('og:url', $html);
+        $this->assertStringContainsString('twitter:card', $html);
+        $this->assertStringContainsString('Origins of Computing', $html);
+        $this->assertStringContainsString('https://example.com/bimages/ca4e_history.png', $html);
+    }
+
+    public function testBadgeShareHeadMakesRelativeImageAbsolute(): void
+    {
+        $html = BadgeShareHead::render(
+            'https://example.com/assertions/m123.html',
+            'Test Badge',
+            'Course',
+            'Issuer',
+            '/bimages/badge.png',
+            'https://example.com'
+        );
+
+        $this->assertStringContainsString('https://example.com/bimages/badge.png', $html);
     }
 }
