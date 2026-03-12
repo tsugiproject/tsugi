@@ -128,6 +128,7 @@ class Lessons {
 .tsugi-overlay-close:hover {
     background: rgba(255,255,255,0.3);
 }
+
 .w3schools-overlay-content {
     position: relative;
 }

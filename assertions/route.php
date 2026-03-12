@@ -10,6 +10,7 @@ use \Tsugi\UI\Lessons;
 use \Tsugi\LinkedIn\LinkedIn;
 use \Tsugi\Crypt\AesOpenSSL;
 use \Tsugi\Services\Badges\BadgeService;
+use \Tsugi\UI\BadgeShare\BadgeShareRegistry;
 
 // Parse the URL to extract encrypted ID and resource type
 $url = $_SERVER['REQUEST_URI'];
@@ -411,6 +412,8 @@ switch ($resource) {
         $show_linkedin_button = $logged_in && ($current_user_id == $badge_owner_user_id);
         // Show Publish button only for legacy (unminted) badges when user owns it
         $show_publish_button = $show_linkedin_button && ! BadgeService::isMintedGuid($encrypted);
+        // Show Post to Twitter/Facebook/Bluesky/LinkedIn only after badge is published (minted)
+        $show_share_buttons = BadgeService::isMintedGuid($encrypted);
         
         // Determine issuer organization name using badge_organization with fallback
         // Use getBadgeOrganization() method if available, otherwise fall back to manual logic
@@ -475,6 +478,13 @@ switch ($resource) {
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         ?>
+        <style>
+        .badge-share-links { list-style: none; display: inline; margin: 0; padding: 0; }
+        .badge-share-links li { display: inline; }
+        .badge-share-links li:not(:last-child)::after { content: " | "; color: #666; }
+        .badge-share-links .badge-share-link { font-size: 1.15rem; text-decoration: none; margin-right: 0.5em; color: #0056b3; }
+        .badge-share-links .badge-share-link:hover { color: #003366; text-decoration: underline; }
+        </style>
         <div class="container">
             <h1>Badge Assertion</h1>
             
@@ -515,9 +525,9 @@ switch ($resource) {
                             <button onclick="toggleQRCode()" class="btn btn-default" style="margin-right: 10px;" title="Show QR code">
                                 <span class="glyphicon glyphicon-qrcode"></span> Show QR Code
                             </button>
-                            <?php if ($completion_badge && $linkedin_url): ?>
-                                <a href="<?= htmlspecialchars($linkedin_url) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary" title="Add to LinkedIn">
-                                    Add to LinkedIn
+                            <?php if ($completion_badge && $linkedin_url && $show_share_buttons): ?>
+                                <a href="<?= htmlspecialchars($linkedin_url) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary" title="Add Credential to LinkedIn">
+                                    Add Credential to LinkedIn
                                 </a>
                             <?php endif; ?>
                         </div>
@@ -527,7 +537,14 @@ switch ($resource) {
                             This badge marks a learning milestone within the course. It represents progress toward a final, externally shareable credential.
                             </p>
                         <?php endif;
-                    endif; ?>
+                    endif;
+                    // Show Post to Twitter/Facebook/Bluesky/LinkedIn only after badge is published
+                    if ($show_share_buttons): ?>
+                        <div style="margin-top: 15px;">
+                            <p><strong>Share:</strong></p>
+                            <?= BadgeShareRegistry::renderShareLinks($landing_url, $badge->title, $title) ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
             
