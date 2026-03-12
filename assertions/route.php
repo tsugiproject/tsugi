@@ -470,10 +470,11 @@ switch ($resource) {
             );
         }
         
-        // Build head content: OB2/link tags (LinkedIn) + social preview meta (BadgeShareHead)
-        $linkTags = $linkedin->buildOb2HeadLinkTags($ob2_url, $landing_url);
-        $headExtra = implode("\n", $linkTags) . "\n";
-        $headExtra .= BadgeShareHead::render(
+        $OUTPUT->header();
+        echo "<!-- start of OB3 tags -->\n";
+        echo implode("\n", $linkedin->buildOb2HeadLinkTags($ob2_url, $landing_url)) . "\n";
+        echo "<!-- start of social media tags -->\n";
+        echo BadgeShareHead::render(
             $landing_url,
             $badge->title,
             $title ?: $issuer_org_name,
@@ -481,11 +482,7 @@ switch ($resource) {
             $image,
             $CFG->wwwroot ?? null
         );
-        ob_start();
-        $OUTPUT->header();
-        $headerOutput = ob_get_clean();
-        $headerOutput = preg_replace('/<\/head>/i', $headExtra . '</head>', $headerOutput, 1);
-        echo $headerOutput;
+        echo("\n");
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         ?>
