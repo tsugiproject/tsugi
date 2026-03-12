@@ -1426,8 +1426,8 @@ class Pages extends Tool {
             // Save previous version to history only when content (title or body) actually changed
             if ($content_changed && $current) {
                 $PDOX->queryDie(
-                    "INSERT INTO {$CFG->dbprefix}page_history (page_id, context_id, title, body) VALUES (:PID, :CID, :title, :body)",
-                    array(':PID' => $page_id, ':CID' => $context_id, ':title' => $current['title'], ':body' => $current['body'])
+                    "INSERT INTO {$CFG->dbprefix}page_history (page_id, title, body) VALUES (:PID, :title, :body)",
+                    array(':PID' => $page_id, ':title' => $current['title'], ':body' => $current['body'])
                 );
                 // Trim to last 5 per page (delete oldest)
                 $ids = $PDOX->allRowsDie(
@@ -1466,8 +1466,11 @@ class Pages extends Tool {
         $context_id = $_SESSION['context_id'];
         
         // Get page_ids that have history (for showing History button)
+        // Join via pages to scope to this context — context_id was removed from page_history (redundant via FK)
         $pages_with_history = $PDOX->allRowsDie(
-            "SELECT DISTINCT page_id FROM {$CFG->dbprefix}page_history WHERE context_id = :CID",
+            "SELECT DISTINCT ph.page_id FROM {$CFG->dbprefix}page_history ph
+             JOIN {$CFG->dbprefix}pages p ON ph.page_id = p.page_id
+             WHERE p.context_id = :CID",
             array(':CID' => $context_id)
         );
         $page_ids_with_history = array_column($pages_with_history, 'page_id');
@@ -1651,8 +1654,8 @@ class Pages extends Tool {
 
         $histories = $PDOX->allRowsDie(
             "SELECT history_id, title, body, saved_at FROM {$CFG->dbprefix}page_history 
-             WHERE page_id = :PID AND context_id = :CID ORDER BY saved_at DESC",
-            array(':PID' => $page_id, ':CID' => $context_id)
+             WHERE page_id = :PID ORDER BY saved_at DESC",
+            array(':PID' => $page_id)
         );
 
         if (count($histories) == 0) {
@@ -1820,8 +1823,8 @@ class Pages extends Tool {
         );
         $hist = $PDOX->rowDie(
             "SELECT history_id, title, body FROM {$CFG->dbprefix}page_history 
-             WHERE history_id = :HID AND page_id = :PID AND context_id = :CID",
-            array(':HID' => $history_id, ':PID' => $page_id, ':CID' => $context_id)
+             WHERE history_id = :HID AND page_id = :PID",
+            array(':HID' => $history_id, ':PID' => $page_id)
         );
         if (!$page || !$hist) {
             U::flashError('Page or history entry not found');
@@ -1833,8 +1836,8 @@ class Pages extends Tool {
         $PDOX->beginTransaction();
         try {
             $PDOX->queryDie(
-                "INSERT INTO {$CFG->dbprefix}page_history (page_id, context_id, title, body) VALUES (:PID, :CID, :title, :body)",
-                array(':PID' => $page_id, ':CID' => $context_id, ':title' => $page['title'], ':body' => $page['body'])
+                "INSERT INTO {$CFG->dbprefix}page_history (page_id, title, body) VALUES (:PID, :title, :body)",
+                array(':PID' => $page_id, ':title' => $page['title'], ':body' => $page['body'])
             );
             $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}pages SET title = :title, logical_key = :key, body = :body, updated_at = NOW() WHERE page_id = :PID AND context_id = :CID",

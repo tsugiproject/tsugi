@@ -45,7 +45,6 @@ array( "{$CFG->dbprefix}page_history",
 "create table {$CFG->dbprefix}page_history (
     history_id             INTEGER NOT NULL AUTO_INCREMENT,
     page_id                INTEGER NOT NULL,
-    context_id             INTEGER NOT NULL,
     title                  VARCHAR(512) NOT NULL,
     body                   TEXT NOT NULL,
     saved_at               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -57,13 +56,7 @@ array( "{$CFG->dbprefix}page_history",
         REFERENCES `{$CFG->dbprefix}pages` (`page_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    CONSTRAINT `{$CFG->dbprefix}page_history_ibfk_2`
-        FOREIGN KEY (`context_id`)
-        REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-
     INDEX `{$CFG->dbprefix}page_history_indx_1` ( page_id ),
-    INDEX `{$CFG->dbprefix}page_history_indx_2` ( context_id ),
     INDEX `{$CFG->dbprefix}page_history_indx_3` ( saved_at )
 
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;")
@@ -102,37 +95,36 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    // Add page_history table for existing installations
-    if ( $oldversion < 202503120000 ) {
-        $table_fields = $PDOX->metadata("{$CFG->dbprefix}page_history");
-        if ( $table_fields === false ) {
-            $sql = "create table {$CFG->dbprefix}page_history (
-                history_id             INTEGER NOT NULL AUTO_INCREMENT,
-                page_id                INTEGER NOT NULL,
-                context_id             INTEGER NOT NULL,
-                title                  VARCHAR(512) NOT NULL,
-                body                   TEXT NOT NULL,
-                saved_at               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                CONSTRAINT `{$CFG->dbprefix}page_history_pk` PRIMARY KEY (history_id),
-                CONSTRAINT `{$CFG->dbprefix}page_history_ibfk_1`
-                    FOREIGN KEY (`page_id`) REFERENCES `{$CFG->dbprefix}pages` (`page_id`)
-                    ON DELETE CASCADE ON UPDATE CASCADE,
-                CONSTRAINT `{$CFG->dbprefix}page_history_ibfk_2`
-                    FOREIGN KEY (`context_id`) REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
-                    ON DELETE CASCADE ON UPDATE CASCADE,
-                INDEX `{$CFG->dbprefix}page_history_indx_1` ( page_id ),
-                INDEX `{$CFG->dbprefix}page_history_indx_2` ( context_id ),
-                INDEX `{$CFG->dbprefix}page_history_indx_3` ( saved_at )
-            ) ENGINE = InnoDB DEFAULT CHARSET=utf8";
-            echo("Upgrading: creating page_history table<br/>\n");
-            error_log("Upgrading: creating page_history table");
-            $q = $PDOX->queryReturnError($sql);
-            if ( ! $q->success ) {
-                echo("Warning: Could not create page_history: ".$q->errorImplode."<br/>\n");
-                error_log("Warning: Could not create page_history: ".$q->errorImplode);
-            }
+    // Drop redundant context_id from page_history (context_id is reachable via page_id FK)
+    // Clear FK and index first so the column drop cannot be blocked by dependencies
+    $sql = "ALTER TABLE {$CFG->dbprefix}page_history DROP FOREIGN KEY `{$CFG->dbprefix}page_history_ibfk_2`";
+    $q = $PDOX->queryReturnError($sql, FALSE, FALSE);
+    if ( $q->success ) {
+        echo("Upgrading: dropped FK page_history_ibfk_2<br/>\n");
+        error_log("Upgrading: dropped FK page_history_ibfk_2");
+    }
+    
+    if ( $PDOX->indexExists("{$CFG->dbprefix}page_history_indx_2", "{$CFG->dbprefix}page_history") ) {
+        $sql = "ALTER TABLE {$CFG->dbprefix}page_history DROP INDEX `{$CFG->dbprefix}page_history_indx_2`";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            echo("Warning: Could not drop index page_history_indx_2: ".$q->errorImplode."<br/>\n");
+            error_log("Warning: Could not drop index page_history_indx_2: ".$q->errorImplode);
         }
     }
     
-    return 202503120000;
+    if ( $PDOX->columnExists('context_id', "{$CFG->dbprefix}page_history") ) {
+        $sql = "ALTER TABLE {$CFG->dbprefix}page_history DROP COLUMN context_id";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            echo("Warning: Could not drop context_id from page_history: ".$q->errorImplode."<br/>\n");
+            error_log("Warning: Could not drop context_id from page_history: ".$q->errorImplode);
+        }
+    }
+    
+    return 202503130000;
 };
