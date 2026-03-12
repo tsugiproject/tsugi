@@ -321,6 +321,8 @@ array( "{$CFG->dbprefix}lti_link",
 
     title               TEXT NULL,
     score_maximum       DOUBLE NULL,
+    start_datetime      TIMESTAMP NULL,
+    end_datetime        TIMESTAMP NULL,
 
     json                MEDIUMTEXT NULL,
     settings            MEDIUMTEXT NULL,
@@ -793,6 +795,10 @@ $DATABASE_UPGRADE = function($oldversion) {
         // 2024-09-17
         array('lti_result', 'attempts', 'INTEGER NULL'),
         array('lti_result', 'attempted_at', 'TIMESTAMP NULL'),
+
+        // 2025-03-11 AGS LineItem due dates (startDateTime/endDateTime)
+        array('lti_link', 'start_datetime', 'TIMESTAMP NULL'),
+        array('lti_link', 'end_datetime', 'TIMESTAMP NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
