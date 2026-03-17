@@ -115,8 +115,25 @@ class CKEditor {
 
         <?php endif; ?>
         <?php if ($includeLinkUnderline): ?>
-        .page-content a, .ck-editor .ck-content a, .ck.ck-editor__editable a { text-decoration: underline; }
+        .ck-editor .ck-content a, .ck.ck-editor__editable a { text-decoration: underline; }
         <?php endif; ?>
+        /* Make links in rendered page content stand out - override weak grey defaults */
+        .page-content a {
+            color: #0d6efd !important;
+            text-decoration: underline !important;
+            font-weight: 500;
+            transition: color 0.15s ease;
+        }
+        .page-content a:hover {
+            color: #0a58ca !important;
+            text-decoration: underline !important;
+        }
+        .page-content a:visited {
+            color: #6f42c1 !important;
+        }
+        .page-content a:visited:hover {
+            color: #5a32a3 !important;
+        }
         <?php if ($includeLinkPicker): ?>
         #page-link-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); transition: opacity 0.25s ease; opacity: 0; }
         #page-link-modal.open { opacity: 1; }
