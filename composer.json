@@ -1,7 +1,7 @@
 {
     "require": {
         "php": ">=8.4.0",
-        "phpseclib/phpseclib": "v3.0.43",
+        "phpseclib/phpseclib": "v3.0.50",
         "firebase/php-jwt" : "v6.11.1",
         "nikic/fast-route": "^1.3",
         "ezyang/htmlpurifier": "v4.18.0",
