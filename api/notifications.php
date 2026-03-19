@@ -75,6 +75,7 @@ if ($context_id) {
     $p = $CFG->dbprefix;
     
     // Get undismissed announcements for this context
+    // Show when: (no schedule + published) OR (publish_at has passed - "time has come" overrides draft)
     // Only show announcements created within the last 30 days, limit to 50
     $sql = "SELECT A.announcement_id, A.title, A.text, A.url, A.created_at, A.updated_at,
                 U.displayname AS creator_name,
@@ -84,6 +85,10 @@ if ($context_id) {
             LEFT JOIN {$p}announcement_dismissal AS D 
                 ON A.announcement_id = D.announcement_id AND D.user_id = :UID
             WHERE A.context_id = :CID
+              AND (
+                (A.publish_at IS NULL AND COALESCE(A.published, 1) = 1)
+                OR (A.publish_at IS NOT NULL AND A.publish_at <= NOW())
+              )
               AND A.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
               AND (D.dismissal_id IS NULL)
             ORDER BY A.created_at DESC

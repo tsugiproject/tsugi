@@ -14,6 +14,8 @@ array( "{$CFG->dbprefix}announcement",
     text                 TEXT NOT NULL,
     url                  VARCHAR(2048) NULL,
     user_id              INTEGER NOT NULL,
+    published            TINYINT NOT NULL DEFAULT 1,
+    publish_at           DATETIME NULL DEFAULT NULL,
     created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -65,8 +67,22 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}announcement"
 );
 
-// No upgrades yet
 $DATABASE_UPGRADE = function($oldversion) {
     global $CFG, $PDOX;
-    return 202501010000;
+
+    // Add published and publish_at columns for draft/scheduled publish feature
+    if ( ! $PDOX->columnExists('published', "{$CFG->dbprefix}announcement") ) {
+        $sql = "ALTER TABLE {$CFG->dbprefix}announcement ADD COLUMN published TINYINT NOT NULL DEFAULT 1";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryDie($sql);
+    }
+    if ( ! $PDOX->columnExists('publish_at', "{$CFG->dbprefix}announcement") ) {
+        $sql = "ALTER TABLE {$CFG->dbprefix}announcement ADD COLUMN publish_at DATETIME NULL DEFAULT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryDie($sql);
+    }
+
+    return 202503190000;
 };

@@ -45,6 +45,7 @@ class Announcements extends Tool {
         global $CFG, $PDOX;
         
         // Get all announcements for this context, including dismissal status
+        // Show when: (no schedule + published) OR (publish_at has passed - "time has come" overrides draft)
         // Only show announcements created within the last 30 days, limit to 50
         $sql = "SELECT A.announcement_id, A.title, A.text, A.url, A.created_at, A.updated_at,
                     U.displayname AS creator_name,
@@ -54,6 +55,10 @@ class Announcements extends Tool {
                 LEFT JOIN {$CFG->dbprefix}announcement_dismissal AS D 
                     ON A.announcement_id = D.announcement_id AND D.user_id = :UID
                 WHERE A.context_id = :CID
+                  AND (
+                    (A.publish_at IS NULL AND COALESCE(A.published, 1) = 1)
+                    OR (A.publish_at IS NOT NULL AND A.publish_at <= NOW())
+                  )
                   AND A.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
                 ORDER BY A.created_at DESC
                 LIMIT 50";
@@ -727,7 +732,7 @@ class Announcements extends Tool {
         $user_id = $_SESSION['id'];
         $context_id = $_SESSION['context_id'];
         
-        // Get all undismissed announcements for this user in this context
+        // Get all undismissed, visible announcements for this user in this context
         $undismissed = $PDOX->allRowsDie(
             "SELECT A.announcement_id
              FROM {$CFG->dbprefix}announcement AS A
@@ -735,6 +740,10 @@ class Announcements extends Tool {
                  ON A.announcement_id = D.announcement_id AND D.user_id = :UID
              WHERE A.context_id = :CID
                AND D.dismissal_id IS NULL
+               AND (
+                 (A.publish_at IS NULL AND COALESCE(A.published, 1) = 1)
+                 OR (A.publish_at IS NOT NULL AND A.publish_at <= NOW())
+               )
                AND A.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)",
             array(':CID' => $context_id, ':UID' => $user_id)
         );
@@ -777,6 +786,7 @@ class Announcements extends Tool {
         global $CFG, $OUTPUT;
         
         $this->requireInstructor('/announcements');
+        LTIX::getConnection();
         
         $tool_home = $this->toolHome(self::ROUTE);
         $manage_url = $tool_home . '/manage';
@@ -821,6 +831,23 @@ class Announcements extends Tool {
                                    placeholder="https://example.com">
                         </div>
                         
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="published" value="1" 
+                                           <?= (U::get($_POST, 'published', '1') !== '0') ? 'checked' : '' ?>>
+                                    Published (uncheck to save as draft)
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="publish_at">Auto-publish at (optional)</label>
+                            <input type="datetime-local" class="form-control" id="publish_at" name="publish_at" 
+                                   value="<?= htmlspecialchars(U::get($_POST, 'publish_at', '')) ?>">
+                            <p class="help-block">Leave empty to publish immediately. Set a future date/time to schedule.</p>
+                        </div>
+                        
                         <button type="submit" class="btn btn-primary">Create Announcement</button>
                         <a href="<?= $manage_url ?>" class="btn btn-default">Cancel</a>
                     </form>
@@ -859,15 +886,27 @@ class Announcements extends Tool {
             $url = null;
         }
         
+        $published = (U::get($_POST, 'published') === '1' || U::get($_POST, 'published') === 1) ? 1 : 0;
+        $publish_at_raw = trim(U::get($_POST, 'publish_at'));
+        $publish_at = null;
+        if (!empty($publish_at_raw)) {
+            $ts = strtotime($publish_at_raw);
+            if ($ts !== false) {
+                $publish_at = date('Y-m-d H:i:s', $ts);
+            }
+        }
+        
         $sql = "INSERT INTO {$CFG->dbprefix}announcement 
-                (context_id, title, text, url, user_id, created_at, updated_at) 
-                VALUES (:CID, :title, :text, :url, :UID, NOW(), NOW())";
+                (context_id, title, text, url, user_id, published, publish_at, created_at, updated_at) 
+                VALUES (:CID, :title, :text, :url, :UID, :published, :publish_at, NOW(), NOW())";
         $values = array(
             ':CID' => $context_id,
             ':title' => $title,
             ':text' => $text,
             ':url' => $url,
-            ':UID' => $user_id
+            ':UID' => $user_id,
+            ':published' => $published,
+            ':publish_at' => $publish_at
         );
         $q = $PDOX->queryReturnError($sql, $values);
         if ($q->success) {
@@ -951,6 +990,29 @@ class Announcements extends Tool {
                                    placeholder="https://example.com">
                         </div>
                         
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="published" value="1" 
+                                           <?= (isset($announcement['published']) ? (int)$announcement['published'] : 1) ? 'checked' : '' ?>>
+                                    Published (uncheck to save as draft)
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="publish_at">Auto-publish at (optional)</label>
+                            <?php 
+                            $publish_at_val = '';
+                            if (!empty($announcement['publish_at'])) {
+                                $publish_at_val = date('Y-m-d\TH:i', strtotime($announcement['publish_at']));
+                            }
+                            ?>
+                            <input type="datetime-local" class="form-control" id="publish_at" name="publish_at" 
+                                   value="<?= htmlspecialchars($publish_at_val) ?>">
+                            <p class="help-block">Leave empty to publish immediately. Set a future date/time to schedule.</p>
+                        </div>
+                        
                         <button type="submit" class="btn btn-primary">Update Announcement</button>
                         <a href="<?= $manage_url ?>" class="btn btn-default">Cancel</a>
                     </form>
@@ -989,13 +1051,25 @@ class Announcements extends Tool {
             $url = null;
         }
         
+        $published = (U::get($_POST, 'published') === '1' || U::get($_POST, 'published') === 1) ? 1 : 0;
+        $publish_at_raw = trim(U::get($_POST, 'publish_at'));
+        $publish_at = null;
+        if (!empty($publish_at_raw)) {
+            $ts = strtotime($publish_at_raw);
+            if ($ts !== false) {
+                $publish_at = date('Y-m-d H:i:s', $ts);
+            }
+        }
+        
         $sql = "UPDATE {$CFG->dbprefix}announcement 
-                SET title = :title, text = :text, url = :url, updated_at = NOW() 
+                SET title = :title, text = :text, url = :url, published = :published, publish_at = :publish_at, updated_at = NOW() 
                 WHERE announcement_id = :AID AND context_id = :CID";
         $values = array(
             ':title' => $title,
             ':text' => $text,
             ':url' => $url,
+            ':published' => $published,
+            ':publish_at' => $publish_at,
             ':AID' => $announcement_id,
             ':CID' => $context_id
         );
@@ -1024,7 +1098,7 @@ class Announcements extends Tool {
         
         $context_id = $_SESSION['context_id'];
         
-        // Get all announcements for this context with read counts
+        // Get all announcements for this context with read counts (includes drafts and scheduled)
         $announcements = $PDOX->allRowsDie(
             "SELECT A.*, U.displayname AS creator_name,
                     COUNT(D.dismissal_id) AS read_count
@@ -1032,7 +1106,7 @@ class Announcements extends Tool {
              LEFT JOIN {$CFG->dbprefix}lti_user AS U ON A.user_id = U.user_id
              LEFT JOIN {$CFG->dbprefix}announcement_dismissal AS D ON A.announcement_id = D.announcement_id
              WHERE A.context_id = :CID 
-             GROUP BY A.announcement_id, A.context_id, A.title, A.text, A.url, A.user_id, A.created_at, A.updated_at, U.displayname
+             GROUP BY A.announcement_id, A.context_id, A.title, A.text, A.url, A.user_id, A.published, A.publish_at, A.created_at, A.updated_at, U.displayname
              ORDER BY A.created_at DESC",
             array(':CID' => $context_id)
         );
@@ -1060,6 +1134,8 @@ class Announcements extends Tool {
                         <thead>
                             <tr>
                                 <th scope="col">Title</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Publish At</th>
                                 <th scope="col">Text Preview</th>
                                 <th scope="col">URL</th>
                                 <th scope="col">Created</th>
@@ -1070,8 +1146,21 @@ class Announcements extends Tool {
                         </thead>
                         <tbody>
                             <?php foreach ($announcements as $announcement): ?>
+                                <?php
+                                $pub = isset($announcement['published']) ? (int)$announcement['published'] : 1;
+                                $publish_at = isset($announcement['publish_at']) ? $announcement['publish_at'] : null;
+                                if ($pub === 0) {
+                                    $status = '<span class="label label-warning">Draft</span>';
+                                } elseif ($publish_at && strtotime($publish_at) > time()) {
+                                    $status = '<span class="label label-info">Scheduled ' . date('M j, g:i A', strtotime($publish_at)) . '</span>';
+                                } else {
+                                    $status = '<span class="label label-success">Published</span>';
+                                }
+                                ?>
                                 <tr>
                                     <td><a href="<?= htmlspecialchars($back_url) ?>" aria-label="View announcement: <?= htmlspecialchars($announcement['title']) ?>"><?= htmlspecialchars($announcement['title']) ?></a></td>
+                                    <td><?= $status ?></td>
+                                    <td><?= !empty($publish_at) ? date('M j, Y g:i A', strtotime($publish_at)) : '—' ?></td>
                                     <td><?= htmlspecialchars(substr($announcement['text'], 0, 100)) ?><?= strlen($announcement['text']) > 100 ? '...' : '' ?></td>
                                     <td>
                                         <?php if (!empty($announcement['url'])): ?>
@@ -1091,6 +1180,13 @@ class Announcements extends Tool {
                                         <a href="<?= $edit_url ?>" 
                                            class="btn btn-sm btn-primary">Edit</a>
                                         <?php $manage_url = $tool_home . '/manage'; ?>
+                                        <?php if ($pub === 0 || ($publish_at && strtotime($publish_at) > time())): ?>
+                                        <form method="POST" action="<?= $manage_url ?>" style="display: inline-block;">
+                                            <input type="hidden" name="action" value="publish">
+                                            <input type="hidden" name="announcement_id" value="<?= htmlspecialchars($announcement['announcement_id']) ?>">
+                                            <button type="submit" class="btn btn-sm btn-success">Publish</button>
+                                        </form>
+                                        <?php endif; ?>
                                         <form method="POST" action="<?= $manage_url ?>" 
                                               style="display: inline-block;" 
                                               onsubmit="return confirm('Are you sure you want to delete this announcement?');">
@@ -1127,7 +1223,26 @@ class Announcements extends Tool {
         $action = U::get($_POST, 'action');
         $announcement_id = U::get($_POST, 'announcement_id');
         
-        if ($action === 'delete' && $announcement_id) {
+        if ($action === 'publish' && $announcement_id) {
+            $check = $PDOX->rowDie(
+                "SELECT announcement_id FROM {$CFG->dbprefix}announcement 
+                 WHERE announcement_id = :AID AND context_id = :CID",
+                array(':AID' => $announcement_id, ':CID' => $context_id)
+            );
+            if ($check) {
+                $sql = "UPDATE {$CFG->dbprefix}announcement 
+                        SET published = 1, publish_at = NULL, updated_at = NOW()
+                        WHERE announcement_id = :AID AND context_id = :CID";
+                $q = $PDOX->queryReturnError($sql, array(':AID' => $announcement_id, ':CID' => $context_id));
+                if ($q->success) {
+                    U::flashSuccess('Announcement published successfully');
+                } else {
+                    U::flashError('Error publishing announcement');
+                }
+            } else {
+                U::flashError('Announcement not found');
+            }
+        } elseif ($action === 'delete' && $announcement_id) {
             // Verify ownership/context
             $check = $PDOX->rowDie(
                 "SELECT announcement_id FROM {$CFG->dbprefix}announcement 
