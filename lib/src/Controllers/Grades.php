@@ -337,10 +337,11 @@ class Grades extends Tool {
                 WHERE R.link_id = :LID AND R.grade IS NOT NULL AND R.deleted = 0";
         } else {
             $query_parms = array(":CID" => $context_id);
-            $orderfields = array("R.user_id", "displayname", "email", "user_key", "grade_count");
+            $orderfields = array("R.user_id", "displayname", "email", "user_key", "grade_count", "latest_grade_updated_at");
             $searchfields = array("R.user_id", "displayname", "email", "user_key");
             $summary_sql =
-                "SELECT R.user_id AS user_id, U.displayname, U.email, COUNT(R.grade) AS grade_count, U.user_key
+                "SELECT R.user_id AS user_id, U.displayname, U.email, COUNT(R.grade) AS grade_count, U.user_key,
+                    MAX(R.updated_at) AS latest_grade_updated_at
                 FROM {$p}lti_link as L
                 INNER JOIN {$p}lti_result AS R ON L.link_id = R.link_id AND R.grade IS NOT NULL AND R.deleted = 0
                 INNER JOIN {$p}lti_user as U ON R.user_id = U.user_id
@@ -404,7 +405,12 @@ class Grades extends Tool {
         $detail_url = U::reconstruct_query($tool_home, array("detail" => ""));
         
         if ( $summary_sql !== false ) {
-            Table::pagedAuto($summary_sql, $query_parms, $searchfields, $orderfields, $detail_url);
+            $params = $request->query->all();
+            if ( !isset($params['order_by']) ) {
+                $params['order_by'] = 'latest_grade_updated_at';
+                $params['desc'] = 1;
+            }
+            Table::pagedAuto($summary_sql, $query_parms, $searchfields, $orderfields, $detail_url, $params);
         }
         
         if ( $class_sql !== false ) {
