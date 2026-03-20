@@ -269,7 +269,6 @@ class LTI13 {
         $msg = 'Curl_error: '.curl_error($ch);
         error_log($msg);
         if( is_array($debug_log) ) $debug_log[] = $msg;
-        curl_close($ch);
         return $msg;
     }
 
@@ -488,8 +487,6 @@ class LTI13 {
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        curl_close ($ch);
-
         // echo $line_item;
         if ( is_array($debug_log) ) $debug_log[] = "Sent line item, received status=$httpcode\n".$line_item;
 
@@ -547,7 +544,6 @@ class LTI13 {
 
             $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $headerSize = curl_getinfo($ch , CURLINFO_HEADER_SIZE );
-            curl_close ($ch);
             if ( is_array($debug_log) ) $debug_log[] = "Sent roster request, received status=$httpcode (".U::strlen($membership)." characters)";
 
             if ( empty($membership) ) {
@@ -649,7 +645,6 @@ class LTI13 {
 
             $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $headerSize = curl_getinfo($ch , CURLINFO_HEADER_SIZE );
-            curl_close ($ch);
             if ( is_array($debug_log) ) $debug_log[] = "Sent groups request, received status=$httpcode (".U::strlen($lti_groups)." characters)";
 
             if ( empty($lti_groups) ) {
@@ -740,7 +735,6 @@ class LTI13 {
         if ( $lineitems === false ) return self::handle_curl_error($ch, $debug_log);
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close ($ch);
         if ( is_array($debug_log) ) $debug_log[] = "Sent lineitems request, received status=$httpcode (".U::strlen($lineitems)." characters)";
 
         $json = json_decode($lineitems, false);
@@ -794,7 +788,6 @@ class LTI13 {
         if ( $lineitem === false ) return self::handle_curl_error($ch, $debug_log);
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close ($ch);
         if ( is_array($debug_log) ) $debug_log[] = "Sent lineitem request, received status=$httpcode (".U::strlen($lineitem)." characters)";
 
         $json = json_decode($lineitem, false);
@@ -853,7 +846,6 @@ class LTI13 {
         if ( $results === false ) return self::handle_curl_error($ch, $debug_log);
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close ($ch);
         if ( is_array($debug_log) ) $debug_log[] = "Sent results request, received status=$httpcode (".U::strlen($results)." characters)";
         if ( is_array($debug_log)) $debug_log[] = substr($results, 0, 3000);
 
@@ -916,7 +908,6 @@ class LTI13 {
         if ( $response === false ) return self::handle_curl_error($ch, $debug_log);
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close ($ch);
         if ( is_array($debug_log) ) $debug_log[] = "Sent lineitem delete, received status=$httpcode (".U::strlen($response)." characters)";
 
         if ( Net::httpSuccess($httpcode) ) {
@@ -991,8 +982,6 @@ class LTI13 {
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        curl_close ($ch);
-
         if ( is_array($debug_log) ) $debug_log[] = "Created line item, received status=$httpcode\n".$line_item;
 
         if ( ! Net::httpSuccess($httpcode) ) {
@@ -1061,8 +1050,6 @@ class LTI13 {
         if ( $line_item === false ) return self::handle_curl_error($ch, $debug_log);
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        curl_close ($ch);
 
         if ( is_array($debug_log) ) $debug_log[] = "Updated line item, received status=$httpcode\n".$line_item;
 
@@ -1151,8 +1138,6 @@ class LTI13 {
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         if ( is_array($debug_log) ) $debug_log[] = "Returned token code $httpcode\n".$token_str;
         $token_data = json_decode($token_str, true);
-
-        curl_close ($ch);
 
         return $token_data;
     }

@@ -155,7 +155,6 @@ class GoogleLogin {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $json_response = curl_exec($curl);
         $this->last_response = $json_response;
-        curl_close($curl);
         return $json_response;
     }
 
@@ -169,7 +168,6 @@ class GoogleLogin {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
         $json_response = curl_exec($curl);
         $this->last_response = $json_response;
-        curl_close($curl);
         return $json_response;
     }
 
