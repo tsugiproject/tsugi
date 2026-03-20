@@ -233,7 +233,6 @@ class Net {
       $LastHeadersReceived = substr($result, 0, $header_size);
       $body = substr($result, $header_size);
       if ( $body === false ) $body = "";
-      curl_close($ch);
       return $body;
     }
 
@@ -465,7 +464,6 @@ class Net {
       $LastHeadersReceived = substr($result, 0, $header_size);
       $body = substr($result, $header_size);
       if ( $body === false ) $body = ''; // Handle empty body
-      curl_close($ch);
       $LastBODYContent = $body;
       $LastBODYImpl = "CURL";
       $LastBODYMethod = $method;
