@@ -970,7 +970,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             if ( isset($module->image) ) {
                 echo('<img class="tsugi-all-modules-image-icon" aria-hidden="true" style="float: left; width: 2em; padding-right: 5px;" src="'.self::expandLink($module->image).'">');
             }
-            echo('<a href="'.$href.'">'."\n");
+            echo('<a class="tsugi-lessons-module-card-link" href="'.$href.'">'."\n");
             echo($count.': '.$module->title);
             // Display progress badges
             if ( $possible_points > 0 ) {

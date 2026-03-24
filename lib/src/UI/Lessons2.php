@@ -1218,7 +1218,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             echo('<article class="card"><div>'."\n");
             $href = U::get_rest_path() . '/' . urlencode($module->anchor);
             $link_label = $count.': '.$module->title;
-            echo('<a href="'.$href.'" aria-label="'.$link_label.'">'."\n");
+            echo('<a class="tsugi-lessons-module-card-link" href="'.$href.'" aria-label="'.htmlspecialchars($link_label, ENT_QUOTES, 'UTF-8').'">'."\n");
             if ( isset($module->icon) ) {
                 $icon_color = '';
                 if ( $percent == 100 ) {
