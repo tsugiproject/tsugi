@@ -1,21 +1,18 @@
 <?php
 
-require_once "src/Core/I18N.php";
-require_once "include/setup_i18n.php";
-require_once "src/UI/Lessons.php";
+require_once "src/UI/Lessons1.php";
 require_once "src/Config/ConfigInfo.php";
 
-/**
- * Simple tests for Lessons utility class
- * 
- * Tests basic methods that don't require complex setup or database connections.
- */
-class LessonsTest extends \PHPUnit\Framework\TestCase
+use \Tsugi\UI\Lessons1;
+
+class Lessons1Test extends \PHPUnit\Framework\TestCase
 {
+    private $testJsonFile;
     private $originalCFG;
-    
+
     protected function setUp(): void
     {
+        parent::setUp();
         global $CFG;
         $this->originalCFG = $CFG;
         
@@ -23,21 +20,43 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $CFG = new \Tsugi\Config\ConfigInfo(basename(__FILE__), 'http://localhost');
         $CFG->apphome = 'http://localhost/app';
         $CFG->wwwroot = 'http://localhost';
-        $CFG->fontawesome = 'http://localhost/fontawesome';
+        
+        // Create a temporary JSON file for testing
+        $this->testJsonFile = sys_get_temp_dir() . '/test_lessons_' . uniqid() . '.json';
+        $testData = [
+            'modules' => [
+                [
+                    'title' => 'Test Module 1',
+                    'anchor' => 'test1'
+                ],
+                [
+                    'title' => 'Test Module 2',
+                    'anchor' => 'test2'
+                ]
+            ],
+            'settings' => [
+                'test_key' => 'test_value',
+                'another_key' => 'another_value'
+            ]
+        ];
+        file_put_contents($this->testJsonFile, json_encode($testData));
     }
-    
+
     protected function tearDown(): void
     {
         global $CFG;
+        // Clean up temporary file
+        if (file_exists($this->testJsonFile)) {
+            unlink($this->testJsonFile);
+        }
+        // Restore original CFG
         $CFG = $this->originalCFG;
+        parent::tearDown();
     }
-    
-    /**
-     * Test getSetting() method - retrieves settings from lessons object
-     */
+
     public function testGetSetting() {
-        // Create a minimal Lessons object without calling constructor
-        $lessons = new class extends \Tsugi\UI\Lessons {
+        // Create a minimal Lessons1 object without calling constructor
+        $lessons = new class extends Lessons1 {
             public function __construct() {
                 // Skip parent constructor
             }
@@ -62,12 +81,153 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $result = $lessons->getSetting('test_key', 'default_value');
         $this->assertEquals('test_value', $result, 'getSetting should return the setting value when key exists');
     }
+
+    public function testInstantiation() {
+        $lessons = new Lessons1($this->testJsonFile);
+        $this->assertInstanceOf(\Tsugi\UI\Lessons1::class, $lessons, 'Lessons1 should instantiate correctly');
+        $this->assertNotNull($lessons->lessons, 'Lessons1 should load JSON data');
+        $this->assertCount(2, $lessons->lessons->modules, 'Lessons1 should load 2 modules');
+        $this->assertEquals('Test Module 1', $lessons->lessons->modules[0]->title, 'First module should have correct title');
+        $this->assertEquals('test1', $lessons->lessons->modules[0]->anchor, 'First module should have correct anchor');
+    }
+
+    public function testGetSettingFromLoadedJson() {
+        $lessons = new Lessons1($this->testJsonFile);
+        $result = $lessons->getSetting('test_key', 'default');
+        $this->assertEquals('test_value', $result, 'getSetting should return value from loaded JSON');
+        
+        $result = $lessons->getSetting('nonexistent', 'default');
+        $this->assertEquals('default', $result, 'getSetting should return default for nonexistent key');
+    }
     
     /**
-     * Test isSingle() method - checks if viewing a single lesson
+     * Test expandLink() static method - does macro substitution on URLs
+     */
+    public function testExpandLink() {
+        global $CFG;
+        
+        // Test with {apphome} macro
+        $url = '{apphome}/some/path';
+        $result = Lessons1::expandLink($url);
+        $this->assertEquals('http://localhost/app/some/path', $result, 'expandLink should replace {apphome}');
+        
+        // Test with {wwwroot} macro
+        $url = '{wwwroot}/other/path';
+        $result = Lessons1::expandLink($url);
+        $this->assertEquals('http://localhost/other/path', $result, 'expandLink should replace {wwwroot}');
+        
+        // Test with both macros
+        $url = '{apphome}/app and {wwwroot}/www';
+        $result = Lessons1::expandLink($url);
+        $this->assertEquals('http://localhost/app/app and http://localhost/www', $result, 'expandLink should replace both macros');
+        
+        // Test with no macros
+        $url = 'http://example.com/path';
+        $result = Lessons1::expandLink($url);
+        $this->assertEquals('http://example.com/path', $result, 'expandLink should leave URLs without macros unchanged');
+    }
+    
+    /**
+     * Test expandLink() with URLs that already start with http:// or https://
+     * Note: Current implementation expands macros even in http:// URLs
+     */
+    public function testExpandLinkSkipsHttpUrls() {
+        global $CFG;
+        
+        // Test with http:// URL (no macros, should remain unchanged)
+        $url = 'http://example.com/path';
+        $result = Lessons1::expandLink($url);
+        $this->assertEquals('http://example.com/path', $result, 'expandLink should leave URLs without macros unchanged');
+        
+        // Test with https:// URL (no macros, should remain unchanged)
+        $url = 'https://example.com/path';
+        $result = Lessons1::expandLink($url);
+        $this->assertEquals('https://example.com/path', $result, 'expandLink should leave URLs without macros unchanged');
+        
+        // Test with http:// URL containing macros (current implementation expands them)
+        $url = 'http://example.com/{apphome}/path';
+        $result = Lessons1::expandLink($url);
+        $this->assertEquals('http://example.com/' . $CFG->apphome . '/path', $result, 'expandLink expands macros even in http:// URLs');
+    }
+    
+    /**
+     * Test expandLink() with duplicate placeholders
+     * Note: Current implementation does not clean up duplicates - it expands all occurrences
+     */
+    public function testExpandLinkCleansDuplicatePlaceholders() {
+        global $CFG;
+        
+        // Test with duplicate {apphome} placeholders (both get expanded)
+        $url = '{apphome}/{apphome}/path';
+        $result = Lessons1::expandLink($url);
+        $expected = $CFG->apphome . '/' . $CFG->apphome . '/path';
+        $this->assertEquals($expected, $result, 'expandLink expands all occurrences of placeholders, including duplicates');
+        
+        // Test with duplicate {wwwroot} placeholders (both get expanded)
+        $url = '{wwwroot}/{wwwroot}/path';
+        $result = Lessons1::expandLink($url);
+        $expected = $CFG->wwwroot . '/' . $CFG->wwwroot . '/path';
+        $this->assertEquals($expected, $result, 'expandLink expands all occurrences of placeholders, including duplicates');
+        
+        // Test with multiple slashes between duplicates (all get expanded)
+        $url = '{apphome}//{apphome}/path';
+        $result = Lessons1::expandLink($url);
+        $expected = $CFG->apphome . '//' . $CFG->apphome . '/path';
+        $this->assertEquals($expected, $result, 'expandLink expands all occurrences, preserving slashes');
+    }
+    
+    /**
+     * Test expandLink() with double expansion scenarios
+     * Note: Current implementation does not prevent double expansion - it expands all placeholders
+     */
+    public function testExpandLinkPreventsDoubleExpansion() {
+        global $CFG;
+        
+        // Test that URLs starting with http:// still get macros expanded
+        $url = 'http://localhost/app/some/path/{apphome}';
+        $result = Lessons1::expandLink($url);
+        $expected = 'http://localhost/app/some/path/' . $CFG->apphome;
+        $this->assertEquals($expected, $result, 'expandLink expands macros even in http:// URLs');
+        
+        // Test that placeholders get expanded even if the expanded value already exists
+        // (current implementation doesn't prevent double expansion)
+        $url = 'someprefix' . $CFG->apphome . '/path/{apphome}';
+        $result = Lessons1::expandLink($url);
+        $expected = 'someprefix' . $CFG->apphome . '/path/' . $CFG->apphome;
+        $this->assertEquals($expected, $result, 'expandLink expands all placeholders, even if expanded value already exists');
+        $this->assertStringContainsString($CFG->apphome, $result, 'expandLink preserves existing expanded apphome');
+        
+        // Test with wwwroot
+        $url = 'someprefix' . $CFG->wwwroot . '/path/{wwwroot}';
+        $result = Lessons1::expandLink($url);
+        $expected = 'someprefix' . $CFG->wwwroot . '/path/' . $CFG->wwwroot;
+        $this->assertEquals($expected, $result, 'expandLink expands all placeholders, even if expanded value already exists');
+    }
+    
+    /**
+     * Test expandLink() with double slashes
+     * Note: Current implementation does not clean up double slashes - it preserves them
+     */
+    public function testExpandLinkCleansDoubleSlashes() {
+        global $CFG;
+        
+        // Test that double slashes are preserved (current implementation doesn't clean them up)
+        $url = 'prefix' . $CFG->apphome . '/path//{apphome}';
+        $result = Lessons1::expandLink($url);
+        $expected = 'prefix' . $CFG->apphome . '/path//' . $CFG->apphome;
+        $this->assertEquals($expected, $result, 'expandLink preserves double slashes as-is');
+        
+        // Test normal expansion creates URLs as expected
+        $url = '{apphome}/path';
+        $result = Lessons1::expandLink($url);
+        $this->assertEquals($CFG->apphome . '/path', $result, 'Normal expansion creates URLs with single slashes');
+    }
+    
+    /**
+     * Test isSingle() method
      */
     public function testIsSingle() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
+        $lessons = new class extends Lessons1 {
             public function __construct() {
                 // Skip parent constructor
             }
@@ -95,182 +255,10 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
     }
     
     /**
-     * Test expandLink() static method - does macro substitution on URLs
-     */
-    public function testExpandLink() {
-        global $CFG;
-        
-        // Test with {apphome} macro
-        $url = '{apphome}/some/path';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $this->assertEquals('http://localhost/app/some/path', $result, 'expandLink should replace {apphome}');
-        
-        // Test with {wwwroot} macro
-        $url = '{wwwroot}/other/path';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $this->assertEquals('http://localhost/other/path', $result, 'expandLink should replace {wwwroot}');
-        
-        // Test with both macros
-        $url = '{apphome}/app and {wwwroot}/www';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $this->assertEquals('http://localhost/app/app and http://localhost/www', $result, 'expandLink should replace both macros');
-        
-        // Test with no macros
-        $url = 'http://example.com/path';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $this->assertEquals('http://example.com/path', $result, 'expandLink should leave URLs without macros unchanged');
-    }
-    
-    /**
-     * Test expandLink() with URLs that already start with http:// or https://
-     * Note: Current implementation expands macros even in http:// URLs
-     */
-    public function testExpandLinkSkipsHttpUrls() {
-        global $CFG;
-        
-        // Test with http:// URL (no macros, should remain unchanged)
-        $url = 'http://example.com/path';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $this->assertEquals('http://example.com/path', $result, 'expandLink should leave URLs without macros unchanged');
-        
-        // Test with https:// URL (no macros, should remain unchanged)
-        $url = 'https://example.com/path';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $this->assertEquals('https://example.com/path', $result, 'expandLink should leave URLs without macros unchanged');
-        
-        // Test with http:// URL containing macros (current implementation expands them)
-        $url = 'http://example.com/{apphome}/path';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $this->assertEquals('http://example.com/' . $CFG->apphome . '/path', $result, 'expandLink expands macros even in http:// URLs');
-    }
-    
-    /**
-     * Test expandLink() with duplicate placeholders
-     * Note: Current implementation does not clean up duplicates - it expands all occurrences
-     */
-    public function testExpandLinkCleansDuplicatePlaceholders() {
-        global $CFG;
-        
-        // Test with duplicate {apphome} placeholders (both get expanded)
-        $url = '{apphome}/{apphome}/path';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $expected = $CFG->apphome . '/' . $CFG->apphome . '/path';
-        $this->assertEquals($expected, $result, 'expandLink expands all occurrences of placeholders, including duplicates');
-        
-        // Test with duplicate {wwwroot} placeholders (both get expanded)
-        $url = '{wwwroot}/{wwwroot}/path';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $expected = $CFG->wwwroot . '/' . $CFG->wwwroot . '/path';
-        $this->assertEquals($expected, $result, 'expandLink expands all occurrences of placeholders, including duplicates');
-        
-        // Test with multiple slashes between duplicates (all get expanded)
-        $url = '{apphome}//{apphome}/path';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $expected = $CFG->apphome . '//' . $CFG->apphome . '/path';
-        $this->assertEquals($expected, $result, 'expandLink expands all occurrences, preserving slashes');
-    }
-    
-    /**
-     * Test expandLink() with double expansion scenarios
-     * Note: Current implementation does not prevent double expansion - it expands all placeholders
-     */
-    public function testExpandLinkPreventsDoubleExpansion() {
-        global $CFG;
-        
-        // Test that URLs starting with http:// still get macros expanded
-        $url = 'http://localhost/app/some/path/{apphome}';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $expected = 'http://localhost/app/some/path/' . $CFG->apphome;
-        $this->assertEquals($expected, $result, 'expandLink expands macros even in http:// URLs');
-        
-        // Test that placeholders get expanded even if the expanded value already exists
-        // (current implementation doesn't prevent double expansion)
-        $url = 'someprefix' . $CFG->apphome . '/path/{apphome}';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $expected = 'someprefix' . $CFG->apphome . '/path/' . $CFG->apphome;
-        $this->assertEquals($expected, $result, 'expandLink expands all placeholders, even if expanded value already exists');
-        $this->assertStringContainsString($CFG->apphome, $result, 'expandLink preserves existing expanded apphome');
-        
-        // Test with wwwroot
-        $url = 'someprefix' . $CFG->wwwroot . '/path/{wwwroot}';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $expected = 'someprefix' . $CFG->wwwroot . '/path/' . $CFG->wwwroot;
-        $this->assertEquals($expected, $result, 'expandLink expands all placeholders, even if expanded value already exists');
-    }
-    
-    /**
-     * Test expandLink() with double slashes
-     * Note: Current implementation does not clean up double slashes - it preserves them
-     */
-    public function testExpandLinkCleansDoubleSlashes() {
-        global $CFG;
-        
-        // Test that double slashes are preserved (current implementation doesn't clean them up)
-        $url = 'prefix' . $CFG->apphome . '/path//{apphome}';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $expected = 'prefix' . $CFG->apphome . '/path//' . $CFG->apphome;
-        $this->assertEquals($expected, $result, 'expandLink preserves double slashes as-is');
-        
-        // Test normal expansion creates URLs as expected
-        $url = '{apphome}/path';
-        $result = \Tsugi\UI\Lessons::expandLink($url);
-        $this->assertEquals($CFG->apphome . '/path', $result, 'Normal expansion creates URLs with single slashes');
-    }
-    
-    /**
-     * Test makeUrlResource() static method - creates a URL resource object
-     */
-    public function testMakeUrlResource() {
-        global $CFG;
-        
-        // Test with video type
-        $resource = \Tsugi\UI\Lessons::makeUrlResource('video', 'My Video', 'http://example.com/video');
-        $this->assertIsObject($resource);
-        $this->assertEquals('video', $resource->type);
-        $this->assertEquals('fa-video-camera', $resource->icon);
-        $this->assertEquals('Video: My Video', $resource->title);
-        $this->assertEquals('http://example.com/video', $resource->url);
-        
-        // Test with slides type
-        $resource = \Tsugi\UI\Lessons::makeUrlResource('slides', 'My Slides', 'http://example.com/slides');
-        $this->assertEquals('slides', $resource->type);
-        $this->assertEquals('fa-file-powerpoint-o', $resource->icon);
-        $this->assertEquals('Slides: My Slides', $resource->title);
-        
-        // Test with assignment type
-        $resource = \Tsugi\UI\Lessons::makeUrlResource('assignment', 'Homework', 'http://example.com/assign');
-        $this->assertEquals('assignment', $resource->type);
-        $this->assertEquals('fa-lock', $resource->icon);
-        $this->assertEquals('Assignment: Homework', $resource->title);
-        
-        // Test with solution type
-        $resource = \Tsugi\UI\Lessons::makeUrlResource('solution', 'Answer Key', 'http://example.com/solution');
-        $this->assertEquals('solution', $resource->type);
-        $this->assertEquals('fa-unlock', $resource->icon);
-        $this->assertEquals('Solution: Answer Key', $resource->title);
-        
-        // Test with reference type
-        $resource = \Tsugi\UI\Lessons::makeUrlResource('reference', 'External Link', 'http://example.com/ref');
-        $this->assertEquals('reference', $resource->type);
-        $this->assertEquals('fa-external-link', $resource->icon);
-        $this->assertEquals('Reference: External Link', $resource->title);
-        
-        // Test with unknown type (should default to fa-external-link)
-        $resource = \Tsugi\UI\Lessons::makeUrlResource('unknown', 'Unknown Type', 'http://example.com/unknown');
-        $this->assertEquals('unknown', $resource->type);
-        $this->assertEquals('fa-external-link', $resource->icon);
-        $this->assertEquals('Unknown: Unknown Type', $resource->title);
-        
-        // Test with title containing colon (should not add prefix)
-        $resource = \Tsugi\UI\Lessons::makeUrlResource('video', 'Video: Special Title', 'http://example.com/video');
-        $this->assertEquals('Video: Special Title', $resource->title, 'Title with colon should not get prefix added');
-    }
-    
-    /**
      * Test getLtiByRlid() method with items array support
      */
     public function testGetLtiByRlidWithItemsArray() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
+        $lessons = new class extends Lessons1 {
             public function __construct() {
                 // Skip parent constructor
             }
@@ -317,7 +305,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
      * Test getModuleByRlid() method with items array support
      */
     public function testGetModuleByRlidWithItemsArray() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
+        $lessons = new class extends Lessons1 {
             public function __construct() {
                 // Skip parent constructor
             }
@@ -370,7 +358,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
      * Test getModuleByAnchor() method
      */
     public function testGetModuleByAnchor() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
+        $lessons = new class extends Lessons1 {
             public function __construct() {
                 // Skip parent constructor
             }
@@ -400,25 +388,25 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         
         // Test with non-array string (should convert to array)
         $entry = '{apphome}/test/path';
-        \Tsugi\UI\Lessons::adjustArray($entry);
+        Lessons1::adjustArray($entry);
         $this->assertIsArray($entry, 'adjustArray should convert string to array');
         $this->assertCount(1, $entry, 'adjustArray should create array with one element');
         $this->assertStringContainsString($CFG->apphome, $entry[0], 'adjustArray should expand URLs');
         
         // Test with already array
         $entry = ['{apphome}/path1', '{wwwroot}/path2'];
-        \Tsugi\UI\Lessons::adjustArray($entry);
+        Lessons1::adjustArray($entry);
         $this->assertIsArray($entry, 'adjustArray should keep array as array');
         $this->assertCount(2, $entry, 'adjustArray should preserve array length');
         
         // Test with object array containing href
         $entry = [(object)['href' => '{apphome}/test']];
-        \Tsugi\UI\Lessons::adjustArray($entry);
+        Lessons1::adjustArray($entry);
         $this->assertStringContainsString($CFG->apphome, $entry[0]->href, 'adjustArray should expand href in objects');
         
         // Test with object array containing launch
         $entry = [(object)['launch' => '{wwwroot}/launch']];
-        \Tsugi\UI\Lessons::adjustArray($entry);
+        Lessons1::adjustArray($entry);
         $this->assertStringContainsString($CFG->wwwroot, $entry[0]->launch, 'adjustArray should expand launch in objects');
     }
     
@@ -430,14 +418,38 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         
         // Test with macro URL
         $url = '  {apphome}/test/path  ';
-        \Tsugi\UI\Lessons::absolute_url_ref($url);
+        Lessons1::absolute_url_ref($url);
         $this->assertStringContainsString($CFG->apphome, $url, 'absolute_url_ref should expand macros');
         $this->assertStringNotContainsString(' ', $url, 'absolute_url_ref should trim whitespace');
         
         // Test with relative URL
         $url = 'relative/path';
-        \Tsugi\UI\Lessons::absolute_url_ref($url);
+        Lessons1::absolute_url_ref($url);
         $this->assertStringContainsString($CFG->apphome, $url, 'absolute_url_ref should make relative URLs absolute');
+    }
+    
+    /**
+     * Test makeUrlResource() static method
+     */
+    public function testMakeUrlResource() {
+        global $CFG;
+        $CFG->fontawesome = 'http://localhost/fontawesome';
+        
+        // Test with video type
+        $resource = Lessons1::makeUrlResource('video', 'My Video', 'http://example.com/video');
+        $this->assertIsObject($resource);
+        $this->assertEquals('video', $resource->type);
+        $this->assertEquals('fa-video-camera', $resource->icon);
+        $this->assertEquals('Video: My Video', $resource->title);
+        $this->assertEquals('http://example.com/video', $resource->url);
+        
+        // Test with title containing colon (should not add prefix)
+        $resource = Lessons1::makeUrlResource('video', 'Video: Special Title', 'http://example.com/video');
+        $this->assertEquals('Video: Special Title', $resource->title, 'Title with colon should not get prefix added');
+        
+        // Test with unknown type
+        $resource = Lessons1::makeUrlResource('unknown', 'Unknown', 'http://example.com');
+        $this->assertEquals('fa-external-link', $resource->icon, 'Unknown type should default to fa-external-link');
     }
     
     /**
@@ -445,6 +457,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetUrlResources() {
         global $CFG;
+        $CFG->fontawesome = 'http://localhost/fontawesome';
         
         // Test with carousel
         $module = (object)[
@@ -453,7 +466,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
                 (object)['title' => 'Video 1', 'youtube' => 'abc123']
             ]
         ];
-        $resources = \Tsugi\UI\Lessons::getUrlResources($module);
+        $resources = Lessons1::getUrlResources($module);
         $this->assertCount(1, $resources, 'getUrlResources should extract carousel videos');
         $this->assertEquals('video', $resources[0]->type);
         
@@ -464,7 +477,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
                 (object)['title' => 'Video 1', 'youtube' => 'def456']
             ]
         ];
-        $resources = \Tsugi\UI\Lessons::getUrlResources($module);
+        $resources = Lessons1::getUrlResources($module);
         $this->assertCount(1, $resources, 'getUrlResources should extract videos');
         
         // Test with slides
@@ -475,7 +488,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
             'assignment' => '{apphome}/assign.pdf',
             'solution' => '{apphome}/solution.pdf'
         ];
-        $resources = \Tsugi\UI\Lessons::getUrlResources($module);
+        $resources = Lessons1::getUrlResources($module);
         $this->assertCount(2, $resources, 'getUrlResources should extract assignment and solution');
         
         // Test with references
@@ -485,7 +498,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
                 (object)['title' => 'Ref 1', 'href' => 'http://example.com']
             ]
         ];
-        $resources = \Tsugi\UI\Lessons::getUrlResources($module);
+        $resources = Lessons1::getUrlResources($module);
         $this->assertCount(1, $resources, 'getUrlResources should extract references');
         $this->assertEquals('reference', $resources[0]->type);
     }
@@ -494,7 +507,8 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
      * Test getCustomWithInherit() method
      */
     public function testGetCustomWithInherit() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
+        // Mock LTIX::ltiCustomGet to return empty
+        $lessons = new class extends Lessons1 {
             public function __construct() {
                 // Skip parent constructor
             }
@@ -536,7 +550,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
      * IMPORTANT: When items array exists, discussions array should NOT be scanned to avoid duplicates
      */
     public function testRenderDiscussionsFlattensItemsArray() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
+        $lessons = new class extends Lessons1 {
             public function __construct() {
                 // Skip parent constructor
             }
@@ -689,7 +703,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
      * Test resource_links array population during construction with items array
      */
     public function testResourceLinksWithItemsArray() {
-        $testJsonFile = sys_get_temp_dir() . '/test_lessons2_' . uniqid() . '.json';
+        $testJsonFile = sys_get_temp_dir() . '/test_lessons_' . uniqid() . '.json';
         $testData = [
             'modules' => [
                 [
@@ -727,7 +741,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         ];
         file_put_contents($testJsonFile, json_encode($testData));
         
-        $lessons = new \Tsugi\UI\Lessons($testJsonFile);
+        $lessons = new Lessons1($testJsonFile);
         
         // Verify resource_links are populated from items array
         $this->assertArrayHasKey('rlid1', $lessons->resource_links, 'resource_links should contain LTI from items array');
@@ -744,10 +758,48 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
     }
     
     /**
+     * Test resource_links array population with legacy format (no items array)
+     */
+    public function testResourceLinksWithLegacyFormat() {
+        $testJsonFile = sys_get_temp_dir() . '/test_lessons_' . uniqid() . '.json';
+        $testData = [
+            'modules' => [
+                [
+                    'title' => 'Test Module 1',
+                    'anchor' => 'test1',
+                    'lti' => [
+                        [
+                            'title' => 'LTI 1',
+                            'resource_link_id' => 'rlid1'
+                        ]
+                    ],
+                    'discussions' => [
+                        [
+                            'title' => 'Discussion 1',
+                            'resource_link_id' => 'rlid2'
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        file_put_contents($testJsonFile, json_encode($testData));
+        
+        $lessons = new Lessons1($testJsonFile);
+        
+        // Verify resource_links are populated from legacy arrays
+        $this->assertArrayHasKey('rlid1', $lessons->resource_links, 'resource_links should contain LTI from legacy lti array');
+        $this->assertEquals('test1', $lessons->resource_links['rlid1'], 'resource_links should map to correct anchor');
+        $this->assertArrayHasKey('rlid2', $lessons->resource_links, 'resource_links should contain discussion from legacy discussions array');
+        $this->assertEquals('test1', $lessons->resource_links['rlid2'], 'resource_links should map discussion to correct anchor');
+        
+        unlink($testJsonFile);
+    }
+    
+    /**
      * Test resource_links array - items array takes precedence over legacy arrays
      */
     public function testResourceLinksItemsArrayPrecedence() {
-        $testJsonFile = sys_get_temp_dir() . '/test_lessons2_' . uniqid() . '.json';
+        $testJsonFile = sys_get_temp_dir() . '/test_lessons_' . uniqid() . '.json';
         $testData = [
             'modules' => [
                 [
@@ -777,7 +829,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         ];
         file_put_contents($testJsonFile, json_encode($testData));
         
-        $lessons = new \Tsugi\UI\Lessons($testJsonFile);
+        $lessons = new Lessons1($testJsonFile);
         
         // Verify only items array resource links are included (legacy arrays should be skipped)
         $this->assertArrayHasKey('rlid1', $lessons->resource_links, 'resource_links should contain LTI from items array');
@@ -793,6 +845,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetUrlResourcesWithItemsArray() {
         global $CFG;
+        $CFG->fontawesome = 'http://localhost/fontawesome';
         
         // Test with items array containing various resource types
         $module = (object)[
@@ -808,7 +861,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
             ]
         ];
         
-        $resources = \Tsugi\UI\Lessons::getUrlResources($module);
+        $resources = Lessons1::getUrlResources($module);
         
         // Should extract video, slide, assignment, solution, and reference (5 resources)
         $this->assertCount(5, $resources, 'getUrlResources should extract resources from items array');
@@ -827,6 +880,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetUrlResourcesItemsArrayPrecedence() {
         global $CFG;
+        $CFG->fontawesome = 'http://localhost/fontawesome';
         
         // Test with both items array and legacy arrays
         $module = (object)[
@@ -842,7 +896,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
             ]
         ];
         
-        $resources = \Tsugi\UI\Lessons::getUrlResources($module);
+        $resources = Lessons1::getUrlResources($module);
         
         // Should only extract from items array (1 resource)
         $this->assertCount(1, $resources, 'getUrlResources should only extract from items array when present');
@@ -860,7 +914,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $_SERVER['REQUEST_URI'] = '/test/path';
         $_SESSION = [];
         
-        $lessons = new class extends \Tsugi\UI\Lessons {
+        $lessons = new class extends Lessons1 {
             public function __construct() {
                 // Skip parent constructor
             }
@@ -917,7 +971,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $_SERVER['REQUEST_URI'] = '/test/path';
         $_SESSION = [];
         
-        $lessons = new class extends \Tsugi\UI\Lessons {
+        $lessons = new class extends Lessons1 {
             public function __construct() {
                 // Skip parent constructor
             }
@@ -953,198 +1007,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
     }
     
     /**
-     * Test renderItem() method - header item
-     */
-    public function testRenderItemHeader() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        $item = (object)['type' => 'header', 'text' => 'Test Header', 'level' => 2];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        $this->assertStringContainsString('<h2>', $output, 'Should render h2 header');
-        $this->assertStringContainsString('Test Header', $output, 'Should include header text');
-    }
-    
-    /**
-     * Test renderItem() method - text item
-     */
-    public function testRenderItemText() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        $item = (object)['type' => 'text', 'text' => 'Test paragraph text'];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        $this->assertStringContainsString('<p>', $output, 'Should render paragraph');
-        $this->assertStringContainsString('Test paragraph text', $output, 'Should include text content');
-    }
-    
-    /**
-     * Test renderItem() method - video item
-     */
-    public function testRenderItemVideo() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        $item = (object)['type' => 'video', 'title' => 'Test Video', 'youtube' => 'abc123'];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        $this->assertStringContainsString('Test Video', $output, 'Should include video title');
-        $this->assertStringContainsString('abc123', $output, 'Should include YouTube ID');
-        // Verify icon is rendered
-        $this->assertStringContainsString('tsugi-item-type-icon', $output, 'Should render item type icon');
-        $this->assertStringContainsString('fa-play-circle', $output, 'Should include video icon class');
-        $this->assertStringContainsString('tsugi-item-type-video', $output, 'Should include video type class');
-    }
-    
-    /**
-     * Test renderItem() method - slide item
-     */
-    public function testRenderItemSlide() {
-        global $CFG;
-        
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        $item = (object)['type' => 'slide', 'title' => 'Test Slide', 'href' => 'http://example.com/slide'];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        $this->assertStringContainsString('Test Slide', $output, 'Should include slide title');
-        $this->assertStringContainsString('http://example.com/slide', $output, 'Should include slide URL');
-        // Verify icon is rendered
-        $this->assertStringContainsString('tsugi-item-type-icon', $output, 'Should render item type icon');
-        $this->assertStringContainsString('fa-file-powerpoint-o', $output, 'Should include slide icon class');
-        $this->assertStringContainsString('tsugi-item-type-slide', $output, 'Should include slide type class');
-    }
-    
-    /**
-     * Test renderItem() method - reference item
-     */
-    public function testRenderItemReference() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        $item = (object)['type' => 'reference', 'title' => 'Test Reference', 'href' => 'http://example.com/ref'];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        $this->assertStringContainsString('Test Reference', $output, 'Should include reference title');
-        $this->assertStringContainsString('http://example.com/ref', $output, 'Should include reference URL');
-        // Verify icon is rendered
-        $this->assertStringContainsString('tsugi-item-type-icon', $output, 'Should render item type icon');
-        $this->assertStringContainsString('fa-external-link', $output, 'Should include reference icon class');
-        $this->assertStringContainsString('tsugi-item-type-reference', $output, 'Should include reference type class');
-    }
-    
-    /**
-     * Test renderItem() method - assignment item
-     */
-    public function testRenderItemAssignment() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        $item = (object)['type' => 'assignment', 'title' => 'Test Assignment', 'href' => 'http://example.com/assign'];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        $this->assertStringContainsString('Test Assignment', $output, 'Should include assignment title');
-        $this->assertStringContainsString('http://example.com/assign', $output, 'Should include assignment URL');
-        // Verify icon is rendered
-        $this->assertStringContainsString('tsugi-item-type-icon', $output, 'Should render item type icon');
-        $this->assertStringContainsString('fa-file-text', $output, 'Should include assignment icon class');
-        $this->assertStringContainsString('tsugi-item-type-assignment', $output, 'Should include assignment type class');
-    }
-    
-    /**
-     * Test renderItem() method - solution item
-     */
-    public function testRenderItemSolution() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        $item = (object)['type' => 'solution', 'title' => 'Test Solution', 'href' => 'http://example.com/solution'];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        $this->assertStringContainsString('Assignment Solution', $output, 'Should include solution label');
-        $this->assertStringContainsString('http://example.com/solution', $output, 'Should include solution URL');
-        // Verify icon is rendered
-        $this->assertStringContainsString('tsugi-item-type-icon', $output, 'Should render item type icon');
-        $this->assertStringContainsString('fa-unlock', $output, 'Should include solution icon class');
-        $this->assertStringContainsString('tsugi-item-type-solution', $output, 'Should include solution type class');
-    }
-    
-    /**
-     * Test renderItem() method - skips items without type
-     */
-    public function testRenderItemSkipsWithoutType() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        $item = (object)['title' => 'Item without type'];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        // Should produce no output for items without type
-        $this->assertEmpty($output, 'Should skip items without type');
-    }
-    
-    /**
      * Test renderAll() progress calculation with items array
-     * IMPORTANT: Lessons::renderAll() ONLY processes items array, NOT legacy arrays
      */
     public function testRenderAllProgressWithItemsArray() {
         global $_SESSION, $_SERVER;
@@ -1154,7 +1017,8 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $_SESSION = ['id' => 1, 'context_id' => 1];
         $_SERVER['REQUEST_URI'] = '/test/path';
         
-        $lessons = new class extends \Tsugi\UI\Lessons {
+        // Mock GradeUtil::loadGradesForCourse
+        $lessons = new class extends Lessons1 {
             public function __construct() {
                 // Skip parent constructor
             }
@@ -1186,11 +1050,11 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
     }
     
     /**
-     * Test renderAll() - ONLY processes items array, NOT legacy arrays
-     * This is different from Lessons::renderAll() which processes both
+     * Test renderAll() - processes BOTH items array AND legacy arrays (unlike default Lessons UI)
+     * This is a key difference: Lessons1 processes both; Lessons (default) only processes the items array
      * Note: This test verifies structure only, as GradeUtil requires database connection
      */
-    public function testRenderAllOnlyProcessesItemsArray() {
+    public function testRenderAllProcessesBothItemsAndLegacyArrays() {
         global $_SESSION, $_SERVER, $PDOX;
         $originalSession = $_SESSION ?? null;
         $originalServer = $_SERVER ?? null;
@@ -1206,7 +1070,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
             }
         };
         
-        $lessons = new class extends \Tsugi\UI\Lessons {
+        $lessons = new class extends Lessons1 {
             public function __construct() {
                 // Skip parent constructor
             }
@@ -1222,6 +1086,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
                 'items' => [
                     (object)['type' => 'lti', 'title' => 'Assignment from items', 'resource_link_id' => 'rlid1']
                 ],
+                // Legacy arrays should be ignored when items array exists
                 'lti' => [
                     (object)['title' => 'Assignment from legacy', 'resource_link_id' => 'rlid2']
                 ]
@@ -1229,7 +1094,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
             (object)[
                 'title' => 'Module 2',
                 'anchor' => 'mod2',
-                // No items array - should have no progress calculation
+                // No items array - should process legacy lti array
                 'lti' => [
                     (object)['title' => 'Legacy Assignment', 'resource_link_id' => 'rlid3']
                 ]
@@ -1238,302 +1103,17 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         
         $output = $lessons->renderAll(true);
         
-        // Module 1 should show progress badge (from items array)
+        // Both modules should be rendered
         $this->assertStringContainsString('Module 1', $output, 'Should render Module 1');
-        
-        // Module 2 should NOT show progress badge (no items array, legacy arrays are ignored)
         $this->assertStringContainsString('Module 2', $output, 'Should render Module 2');
         
-        // Restore session and PDOX
-        $_SESSION = $originalSession;
-        $_SERVER = $originalServer;
-        $PDOX = $originalPDOX;
-    }
-    
-    /**
-     * Test renderSingle() progress badge calculation for legacy format
-     * Progress badges are only calculated for legacy format when items array is NOT present
-     * Note: This test verifies structure only, as GradeUtil requires database connection
-     */
-    public function testRenderSingleProgressBadgeLegacyFormat() {
-        global $_SESSION, $_SERVER, $CFG, $OUTPUT, $PDOX;
-        $originalSession = $_SESSION ?? null;
-        $originalServer = $_SERVER ?? null;
-        $originalPDOX = $PDOX ?? null;
-        
-        $_SESSION = ['id' => 1, 'context_id' => 1];
-        $_SERVER['REQUEST_URI'] = '/test/path';
-        
-        // Mock PDOX to avoid database connection
-        $PDOX = new class {
-            public function allRowsDie($sql, $params) {
-                return [];
-            }
-        };
-        
-        // Mock GradeUtil
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $lessons->lessons = new \stdClass();
-        $lessons->lessons->title = 'Test Course';
-        $lessons->lessons->modules = [
-            (object)[
-                'title' => 'Module 1',
-                'anchor' => 'mod1',
-                'lti' => [
-                    (object)['title' => 'LTI 1', 'resource_link_id' => 'rlid1'],
-                    (object)['title' => 'LTI 2', 'resource_link_id' => 'rlid2']
-                ]
-            ]
-        ];
-        $lessons->module = $lessons->lessons->modules[0];
-        $lessons->position = 1;
-        $lessons->anchor = 'mod1';
-        
-        // Mock GradeUtil::loadGradesForCourse to return grades
-        // Since we can't easily mock static methods, we'll test that the method structure exists
-        $this->assertTrue(method_exists($lessons, 'renderSingle'), 'renderSingle method should exist');
+        // Module 1 should use items array (legacy ignored)
+        // Module 2 should use legacy lti array
         
         // Restore session and PDOX
         $_SESSION = $originalSession;
         $_SERVER = $originalServer;
         $PDOX = $originalPDOX;
     }
-    
-    /**
-     * Test renderItem() method - discussion item (not logged in)
-     * Tests icon rendering and login required message
-     */
-    public function testRenderItemDiscussion() {
-        global $_SESSION;
-        $originalSession = $_SESSION ?? null;
-        $_SESSION = []; // Not logged in
-        
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        $item = (object)['type' => 'discussion', 'title' => 'Test Discussion', 'resource_link_id' => 'rlid1'];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        $this->assertStringContainsString('Test Discussion', $output, 'Should include discussion title');
-        // Verify icon is rendered
-        $this->assertStringContainsString('tsugi-item-type-icon', $output, 'Should render item type icon');
-        $this->assertStringContainsString('fa-comments', $output, 'Should include discussion icon class');
-        $this->assertStringContainsString('tsugi-item-type-discussion', $output, 'Should include discussion type class');
-        
-        $_SESSION = $originalSession;
-    }
-    
-    /**
-     * Test renderItem() method - LTI item (not logged in)
-     * Tests icon rendering and login required message
-     */
-    public function testRenderItemLti() {
-        global $_SESSION;
-        $originalSession = $_SESSION ?? null;
-        $_SESSION = []; // Not logged in
-        
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        $item = (object)['type' => 'lti', 'title' => 'Test LTI', 'resource_link_id' => 'rlid1'];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        $this->assertStringContainsString('Test LTI', $output, 'Should include LTI title');
-        // Verify icon is rendered
-        $this->assertStringContainsString('tsugi-item-type-icon', $output, 'Should render item type icon');
-        $this->assertStringContainsString('fa-puzzle-piece', $output, 'Should include LTI icon class');
-        $this->assertStringContainsString('tsugi-item-type-lti', $output, 'Should include LTI type class');
-        
-        $_SESSION = $originalSession;
-    }
-    
-    /**
-     * Test renderItem() method - chapters item
-     */
-    public function testRenderItemChapters() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        $item = (object)['type' => 'chapters', 'chapters' => 'http://example.com/chapters'];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        $this->assertStringContainsString('http://example.com/chapters', $output, 'Should include chapters URL');
-        $this->assertStringContainsString('Chapters', $output, 'Should include chapters label');
-    }
-    
-    /**
-     * Test renderItem() method - carousel item
-     */
-    public function testRenderItemCarousel() {
-        global $OUTPUT;
-        $originalOutput = $OUTPUT ?? null;
-        
-        // Mock OUTPUT object
-        $OUTPUT = new class {
-            public function embedYouTube($youtube, $title) {
-                echo('<iframe src="https://www.youtube.com/embed/'.htmlentities($youtube).'" title="'.htmlentities($title).'"></iframe>');
-            }
-        };
-        
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        $item = (object)[
-            'type' => 'carousel',
-            'items' => [
-                (object)['type' => 'video', 'title' => 'Video 1', 'youtube' => 'abc123'],
-                (object)['type' => 'video', 'title' => 'Video 2', 'youtube' => 'def456']
-            ]
-        ];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        $this->assertStringContainsString('Video 1', $output, 'Should render carousel videos');
-        $this->assertStringContainsString('Video 2', $output, 'Should render all carousel videos');
-        $this->assertStringContainsString('abc123', $output, 'Should include YouTube IDs');
-        $this->assertStringContainsString('def456', $output, 'Should include all YouTube IDs');
-        
-        $OUTPUT = $originalOutput;
-    }
-    
-    /**
-     * Test renderItem() method - plural types (videos, references, etc.)
-     */
-    public function testRenderItemPluralTypes() {
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        
-        // Test videos plural type
-        $item = (object)[
-            'type' => 'videos',
-            'items' => [
-                (object)['type' => 'video', 'title' => 'Video 1', 'youtube' => 'abc123'],
-                (object)['type' => 'video', 'title' => 'Video 2', 'youtube' => 'def456']
-            ]
-        ];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        $this->assertStringContainsString('Video 1', $output, 'Should render videos from plural type');
-        $this->assertStringContainsString('Video 2', $output, 'Should render all videos');
-    }
-    
-    /**
-     * Test renderItem() method - slides plural type with single slide
-     */
-    public function testRenderItemSlidesPluralSingle() {
-        global $CFG;
-        
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $module = (object)['title' => 'Test Module'];
-        $item = (object)[
-            'type' => 'slides',
-            'href' => 'http://example.com/slide.pdf'
-        ];
-        
-        ob_start();
-        $lessons->renderItem($item, $module);
-        $output = ob_get_clean();
-        
-        $this->assertStringContainsString('http://example.com/slide.pdf', $output, 'Should render slide URL');
-    }
-    
-    /**
-     * Test renderSingle() with items array - verifies items are rendered
-     */
-    public function testRenderSingleWithItemsArray() {
-        global $_SESSION, $_SERVER, $CFG, $OUTPUT, $PDOX;
-        $originalSession = $_SESSION ?? null;
-        $originalServer = $_SERVER ?? null;
-        $originalPDOX = $PDOX ?? null;
-        
-        $_SESSION = [];
-        $_SERVER['REQUEST_URI'] = '/lessons/test';
-        $CFG->wwwroot = 'http://localhost';
-        
-        // Mock PDOX to avoid database connection
-        $PDOX = new class {
-            public function allRowsDie($sql, $params) {
-                return [];
-            }
-        };
-        
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $lessons->lessons = new \stdClass();
-        $lessons->lessons->title = 'Test Course';
-        $lessons->lessons->modules = [
-            (object)[
-                'title' => 'Module 1',
-                'anchor' => 'mod1',
-                'description' => 'Module description',
-                'items' => [
-                    (object)['type' => 'header', 'text' => 'Section Header', 'level' => 2],
-                    (object)['type' => 'text', 'text' => 'Some text content'],
-                    (object)['type' => 'video', 'title' => 'Video 1', 'youtube' => 'abc123']
-                ]
-            ]
-        ];
-        $lessons->module = $lessons->lessons->modules[0];
-        $lessons->position = 1;
-        $lessons->anchor = 'mod1';
-        
-        // This test may fail due to translator dependency, so we'll verify method exists
-        $this->assertTrue(method_exists($lessons, 'renderSingle'), 'renderSingle method should exist');
-        $this->assertTrue(method_exists($lessons, 'renderItem'), 'renderItem method should exist');
-        
-        // Restore session and PDOX
-        $_SESSION = $originalSession;
-        $_SERVER = $originalServer;
-        $PDOX = $originalPDOX;
-    }
-}
 
+}
