@@ -1,15 +1,14 @@
 <?php
 
-
 namespace Tsugi\UI;
 
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\AesOpenSSL;
-use \Tsugi\Grades\GradeUtil;
+use \Tsugi\Services\Badges\BadgeService;
 
-class Lessons {
+class Lessons1 {
 
     /**
      * All the lessons
@@ -59,17 +58,13 @@ class Lessons {
     padding: 0.5em;
     margin: 12px;
     border: 1px solid black;
-    height: 12em;
+    height: 9em;
     overflow-y: hidden;
 }
  .card div {
-    height: 11em;
+    height: 8em;
     overflow-y: hidden;
     text-overflow: ellipsis;
-}
- .card .tsugi-card-description {
-    margin: 0.2em 0 0 0;
-    line-height: 2.0;
 }
 
 #loader {
@@ -102,21 +97,6 @@ class Lessons {
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
-/* Indent content lists that follow h2 headers */
-/* Target ul elements that come after h2 in the same container */
-h2 ~ ul.tsugi-lessons-content-list,
-h2 + ul.tsugi-lessons-content-list {
-    margin-left: 1.5em;
-    padding-left: 0.5em;
-}
-
-/* Also target ul elements that are descendants of containers that have h2 */
-div:has(> h2) ul.tsugi-lessons-content-list,
-li:has(> h2) ul.tsugi-lessons-content-list {
-    margin-left: 1.5em;
-    padding-left: 0.5em;
-}
-
 .progress-badge-percent {
     display: inline-block;
     background-color: #0056b3;  /* Darker blue for WCAG 4.5:1 contrast with white */
@@ -126,23 +106,6 @@ li:has(> h2) ul.tsugi-lessons-content-list {
     font-weight: bold;
     font-size: 0.85em;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-}
-
-/* Remove list bullets and style icons for lesson items */
-ul.tsugi-lessons-content-list {
-    list-style: none;
-    padding-left: 0;
-}
-
-ul.tsugi-lessons-content-list li {
-    list-style: none;
-    padding-left: 0;
-}
-
-ul.tsugi-lessons-content-list li i.fa {
-    color: #666;
-    width: 1.2em;
-    text-align: center;
 }
 
 /* Close button for video/audio overlay dialogs */
@@ -165,6 +128,7 @@ ul.tsugi-lessons-content-list li i.fa {
 .tsugi-overlay-close:hover {
     background: rgba(255,255,255,0.3);
 }
+
 .w3schools-overlay-content {
     position: relative;
 }
@@ -179,22 +143,6 @@ ul.tsugi-lessons-content-list li i.fa {
     color: inherit;
     cursor: pointer;
     text-align: left;
-    display: inline-flex;
-    align-items: center;
-}
-
-/* Style for colored item type icons */
-.tsugi-item-type-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border-radius: 3px;
-    font-size: 14px;
-    margin-right: 8px;
-    vertical-align: middle;
-    flex-shrink: 0;
 }
 
 /* Keep All button centered when prev/next are absent */
@@ -229,7 +177,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         }
         if ( isset($this->lessons->headers) && is_array($this->lessons->headers) ) {
             foreach($this->lessons->headers as $header) {
-                $header = self::expandLink($header);
+                $header = $this->expandLink($header);
                 echo($header);
                 echo("\n");
             }
@@ -385,11 +333,10 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 $count++;
                 if ( $anchor !== null && isset($mod->anchor) && $anchor != $mod->anchor ) continue;
                 if ( $index !== null && $index != $count ) continue;
-                if ( $anchor == null && isset($mod->anchor) ) $anchor = $mod->anchor;
+                if ( $anchor == null && isset($module->anchor) ) $anchor = $module->anchor;
                 $this->module = $mod;
                 $this->position = $count;
                 if ( $mod->anchor ) $this->anchor = $mod->anchor;
-                break; // Found the module, exit loop
             }
         }
 
@@ -578,43 +525,6 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         $nostyle = isset($_SESSION['nostyle']);
 
         $module = $this->module;
-        
-        // Ensure module is set
-        if ( !$module ) {
-            echo('<p>Error: Module not found.</p>');
-            $ob_output = ob_get_contents();
-            ob_end_clean();
-            if ( $buffer ) return $ob_output;
-            echo($ob_output);
-            return;
-        }
-        
-
-        // Load all the Grades so far for progress badges
-        $allgrades = array();
-        if ( isset($_SESSION['id']) && isset($_SESSION['context_id'])) {
-            $rows = GradeUtil::loadGradesForCourse($_SESSION['id'], $_SESSION['context_id']);
-            foreach($rows as $row) {
-                $allgrades[$row['resource_link_id']] = $row['grade'];
-            }
-        }
-
-        // Calculate progress for legacy format (scan lti array for resource_link_ids)
-        $possible_points = 0;
-        $actual_points = 0;
-        if ( isset($module->lti) && !isset($module->items) ) {
-            // Only calculate for legacy format (when items array is not present)
-            $ltis = $module->lti;
-            if ( ! is_array($ltis) ) $ltis = array($ltis);
-            foreach($ltis as $lti) {
-                if ( isset($lti->resource_link_id) ) {
-                    $possible_points += 1.0;
-                    if ( isset($allgrades[$lti->resource_link_id]) && is_numeric($allgrades[$lti->resource_link_id]) ) {
-                        $actual_points += $allgrades[$lti->resource_link_id];
-                    }
-                }
-            }
-        }
 
 	if ( $nostyle && isset($_SESSION['gc_count']) ) {
 ?>
@@ -647,189 +557,13 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 echo('<li class="next"><a href="'.$next.'">&rarr; '.__('Next').'</a></li>'."\n");
             }
             echo("</ul></div>\n");
-            echo('<h1 property="oer:name" class="tsugi-lessons-module-title">'.$module->title);
-            // Display progress badges for legacy format
-            if ( $possible_points > 0 ) {
-                $percent = round(($actual_points / $possible_points)*100);
-                if ( $percent == 0 ) {
-                    // No badge for 0%
-                } else if ( $percent == 100 ) {
-                    // Green badge with 100% for complete
-                    echo('<span class="progress-badge progress-badge-check" title="Complete: 100%">100%</span>');
-                } else {
-                    // Blue badge with percentage for 1-99%
-                    echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
-                }
-            }
-            echo("</h1>\n");
+            echo('<h1 property="oer:name" class="tsugi-lessons-module-title">'.$module->title."</h1>\n");
             $lessonurl = $CFG->apphome . U::get_rest_path();
             if ( $nostyle ) {
                 self::nostyleUrl($module->title, $lessonurl);
                 echo("<hr/>\n");
             }
 
-            // Check if module uses items array (new format)
-            // Direct access to items property - json_decode creates stdClass objects, arrays stay as arrays
-            $has_items = false;
-            $items_array = null;
-            if ( isset($module->items) ) {
-                $items_array = $module->items;
-                // json_decode keeps JSON arrays as PHP arrays, so this should work
-                if ( is_array($items_array) && count($items_array) > 0 ) {
-                    $has_items = true;
-                }
-            }
-            $has_legacy = isset($module->videos) || isset($module->lti) || isset($module->discussions) || 
-                         isset($module->references) || isset($module->slides) || isset($module->assignment) || 
-                         isset($module->solution) || isset($module->carousel);
-            
-            // Check debug flag
-            $debug_conversion = $CFG->getExtension('lessons_debug_conversion', false);
-            
-            if ( $has_items ) {
-                // New format: render items array
-                if ( $debug_conversion && $has_legacy ) {
-                    echo('<div style="border: 2px solid blue; padding: 10px; margin: 10px 0;"><h3 style="color: blue;">NEW FORMAT (items array):</h3>');
-                }
-                // Render description if present (aligned with title)
-                if ( isset($module->description) ) {
-                    if ( isset($module->image) ) {
-                        echo('<img class="tsugi-module-image-icon" aria-hidden="true" style="float: left; width: 2em; padding-right: 5px;" src="'.self::expandLink($module->image).'">');
-                    }
-                    echo('<p property="oer:description" class="tsugi-lessons-module-description">'.$module->description."</p>\n");
-                    if ( isset($module->image) ) {
-                        echo('<div style="clear:both;"></div>');
-                    }
-                }
-                
-                // Render items in order - headers and text align with title, grouped items are indented
-                $current_section = null;
-                $in_list = false;
-                foreach($items_array as $item) {
-                    $item_obj = is_array($item) ? (object)$item : $item;
-                    // Skip malformed items (e.g., objects that should be arrays)
-                    if ( isset($item_obj->type) && $item_obj->type == 'ltis' && isset($item_obj->items) && !is_array($item_obj->items) ) {
-                        continue;
-                    }
-                    
-                    $type = isset($item_obj->type) ? $item_obj->type : '';
-                    
-                    // Handle headers - render outside list structure (aligned with title)
-                    if ($type == 'header') {
-                        if ($in_list && $current_section) {
-                            echo("</ul>\n");
-                            $in_list = false;
-                        }
-                        $current_section = null;
-                        $this->renderItem($item_obj, $module, $nostyle);
-                        continue;
-                    }
-                    
-                    // Handle text items - render outside list structure (aligned with title)
-                    if ($type == 'text') {
-                        if ($in_list && $current_section) {
-                            echo("</ul>\n");
-                            $in_list = false;
-                            $current_section = null;
-                        }
-                        $this->renderItem($item_obj, $module, $nostyle);
-                        continue;
-                    }
-                    
-                    // Determine section type for grouping (these will be indented)
-                    $section_type = null;
-                    if (in_array($type, array('video'))) {
-                        $section_type = 'videos';
-                    } else if (in_array($type, array('reference'))) {
-                        $section_type = 'references';
-                    } else if (in_array($type, array('discussion'))) {
-                        $section_type = 'discussions';
-                    } else if (in_array($type, array('lti'))) {
-                        $section_type = 'ltis';
-                    } else if (in_array($type, array('slide'))) {
-                        $section_type = 'slides';
-                    } else if (in_array($type, array('assignment'))) {
-                        $section_type = 'assignments';
-                    } else if (in_array($type, array('solution'))) {
-                        $section_type = 'solutions';
-                    }
-                    
-                    // Start new list section if needed (indented under header)
-                    if ($section_type && $section_type != $current_section) {
-                        if ($in_list && $current_section) {
-                            echo("</ul>\n");
-                        }
-                        $current_section = $section_type;
-                        $in_list = true;
-                        $class_map = array(
-                            'videos' => 'tsugi-lessons-module-videos',
-                            'references' => 'tsugi-lessons-module-references',
-                            'discussions' => 'tsugi-lessons-module-discussions',
-                            'ltis' => 'tsugi-lessons-module-ltis',
-                            'slides' => 'tsugi-lessons-module-slides',
-                            'assignments' => 'tsugi-lessons-module-assignments',
-                            'solutions' => 'tsugi-lessons-module-solutions'
-                        );
-                        $ul_class_map = array(
-                            'videos' => 'tsugi-lessons-module-videos-ul',
-                            'references' => 'tsugi-lessons-module-references-ul',
-                            'discussions' => 'tsugi-lessons-module-discussions-ul',
-                            'ltis' => 'tsugi-lessons-module-ltis-ul',
-                            'slides' => 'tsugi-lessons-module-slides-ul',
-                            'assignments' => 'tsugi-lessons-module-assignments-ul',
-                            'solutions' => 'tsugi-lessons-module-solutions-ul'
-                        );
-                        $typeof_map = array(
-                            'videos' => 'oer:SupportingMaterial',
-                            'references' => 'oer:SupportingMaterial',
-                            'discussions' => 'oer:discussion',
-                            'ltis' => 'oer:assessment',
-                            'slides' => 'oer:SupportingMaterial',
-                            'assignments' => 'oer:assessment',
-                            'solutions' => 'oer:assessment'
-                        );
-                        echo('<ul typeof="'.$typeof_map[$section_type].'" class="'.$class_map[$section_type].' '.$ul_class_map[$section_type].' tsugi-lessons-content-list">'."\n");
-                    } else if (!$section_type) {
-                        // Non-grouped item (like chapters) - close list if open, render outside
-                        if ($in_list && $current_section) {
-                            echo("</ul>\n");
-                            $in_list = false;
-                            $current_section = null;
-                        }
-                    }
-                    
-                    $this->renderItem($item_obj, $module, $nostyle);
-                }
-                
-                // Close any open list
-                if ($in_list && $current_section) {
-                    echo("</ul>\n");
-                }
-                
-                if ( $debug_conversion && $has_legacy ) {
-                    echo('</div>');
-                    echo('<div style="border: 2px solid red; padding: 10px; margin: 10px 0;"><h3 style="color: red;">LEGACY FORMAT (old arrays):</h3>');
-                }
-                
-                // If debug is off or no legacy format, return early (only render items)
-                if ( !$debug_conversion || !$has_legacy ) {
-                    if ( $nostyle ) {
-                        $styleoff = U::get_rest_path() . '?nostyle=no';
-                        echo('<p><a href="'.$styleoff.'">');
-                        echo(__('Turn styling back on'));
-                        echo("</a>\n");
-                    }
-                    
-                    $ob_output = ob_get_contents();
-                    ob_end_clean();
-                    if ( $buffer ) return $ob_output;
-                    echo($ob_output);
-                    return;
-                }
-                // Otherwise continue to render legacy format below
-            }
-
-            // Legacy format: continue with existing rendering
             if ( isset($module->carousel) ) {
                 $carousel = $module->carousel;
                 $videotitle = __(self::getSetting('videos-title', 'Videos'));
@@ -857,7 +591,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 }
                 echo('<p property="oer:description" class="tsugi-lessons-module-description">'.$module->description."</p>\n");
                 if ( isset($module->image) ) {
-                    echo('<div style="clear:both;"></div>');
+                    echo('<br clear="all">');
                 }
             }
 
@@ -896,10 +630,10 @@ ul.pager.tsugi-lessons-pager > li:last-child {
   <div class="youtube-player" data-id="<?= $video->youtube ?>"></div>
   </div>
 </div>
-<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($video->title) ?></button>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';" aria-label="<?= htmlspecialchars(_m('Play video').': '.$video->title, ENT_QUOTES, 'UTF-8') ?>"><?= htmlentities($video->title) ?></button>
 <?php
                         } else {
-                        echo('<a href="'.htmlspecialchars($yurl).'" target="_blank">'.htmlentities($video->title).'</a>');
+                            echo('<a href="'.htmlspecialchars($yurl).'" target="_blank">'.htmlentities($video->title).'</a>');
                         }
                     }
                     echo("</li>\n");
@@ -922,8 +656,8 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-lecture tsugi-lessons-module-lecture-youtube">');
                         $yurl = U::youtubeWatchUrl($lecture->youtube);
                         if ( !empty($CFG->youtube_use_labnol) ) {
-                        // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
                         $navid = md5($lecno.$yurl);
+                        // https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
 ?>
 <div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Video: <?= htmlspecialchars($lecture->title, ENT_QUOTES, 'UTF-8') ?>">
   <div class="w3schools-overlay-content" style="background-color: black;">
@@ -931,10 +665,10 @@ ul.pager.tsugi-lessons-pager > li:last-child {
   <div class="youtube-player" data-id="<?= $lecture->youtube ?>"></div>
   </div>
 </div>
-<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';" aria-label="<?= htmlspecialchars(_m('Play video').': '.$lecture->title, ENT_QUOTES, 'UTF-8') ?>"><?= htmlentities($lecture->title) ?></button>
 <?php
                         } else {
-                        echo('<a href="'.htmlspecialchars($yurl).'" target="_blank">'.htmlentities($lecture->title).'</a>');
+                            echo('<a href="'.htmlspecialchars($yurl).'" target="_blank">'.htmlentities($lecture->title).'</a>');
                         }
                         echo('</li>');
                     } else if ( isset($lecture->audio) ) {
@@ -949,7 +683,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
   <audio controls preload='none' src="<?= self::expandLink($lecture->audio) ?>"></audio>
   </div>
 </div>
-<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';" aria-label="<?= htmlspecialchars(_m('Play audio').': '.$lecture->title, ENT_QUOTES, 'UTF-8') ?>"><?= htmlentities($lecture->title) ?></button>
 <?php
                         echo('</li>');
                     } else if ( isset($lecture->video) ) {
@@ -964,7 +698,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
   <video controls style="width:95%;" preload="none" src="<?= self::expandLink($lecture->video) ?>"></video>
   </div>
 </div>
-<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?= htmlentities($lecture->title) ?></button>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';" aria-label="<?= htmlspecialchars(_m('Play video').': '.$lecture->title, ENT_QUOTES, 'UTF-8') ?>"><?= htmlentities($lecture->title) ?></button>
 <?php
                         echo('</li>');
                     }
@@ -1055,9 +789,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 foreach($discussions as $discussion ) {
                     $resource_link_title = isset($discussion->title) ? $discussion->title : $module->title;
                     echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
-                    echo("\n</li>\n");
+                    echo("</li>\n");
                 }
-                echo("</li></ul><!-- end of discussions -->\n");
+                echo("</ul></li><!-- end of discussions -->\n");
             }
 
             // DISCUSSIONs logged in
@@ -1080,8 +814,8 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                         if ( isset($_SESSION['gc_count']) ) {
                             echo('<a href="'.$CFG->wwwroot.'/gclass/assign?rlid='.$discussion->resource_link_id);
                             echo('" title="Install Assignment in Classroom" target="iframe-frame"'."\n");
-                            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
-                            echo('<img height=16 width=16 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
+                            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" aria-label=\"".htmlspecialchars(_m('Install Assignment in Classroom'))."\">\n");
+                            echo('<img height="16" width="16" src="https://www.gstatic.com/classroom/logo_square_48.svg" alt=""></a>'."\n");
                         }
                         echo("\n</li>\n");
                         continue;
@@ -1091,10 +825,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                     $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $discussion->resource_link_id;
                     $title = isset($discussion->title) ? $discussion->title : "Discussion";
                     echo('<li class="tsugi-lessons-module-discussion"><a href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
-                    echo("\n</li>\n");
                 }
 
-                echo("</li></ul><!-- end of discussions -->\n");
+                echo("</ul></li><!-- end of discussions -->\n");
             }
 
             // LTIs not logged in
@@ -1106,9 +839,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
                     echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
-                    echo("\n</li>\n");
+                    echo("</li>\n");
                 }
-                echo("</li></ul><!-- end of ltis -->\n");
+                echo("</ul></li><!-- end of ltis -->\n");
             }
 
             // LTIs logged in
@@ -1130,8 +863,8 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                         if ( isset($_SESSION['gc_count']) ) {
                             echo('<a href="'.$CFG->wwwroot.'/gclass/assign?rlid='.$lti->resource_link_id);
                             echo('" title="Install Assignment in Classroom" target="iframe-frame"'."\n");
-                            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" >\n");
-                            echo('<img height=16 width=16 src="https://www.gstatic.com/classroom/logo_square_48.svg"></a>'."\n");
+                            echo("onclick=\"showModalIframe(this.title, 'iframe-dialog', 'iframe-frame', _TSUGI.spinnerUrl, true);\" aria-label=\"".htmlspecialchars(_m('Install Assignment in Classroom'))."\">\n");
+                            echo('<img height="16" width="16" src="https://www.gstatic.com/classroom/logo_square_48.svg" alt=""></a>'."\n");
                         }
                         echo("\n</li>\n");
                         continue;
@@ -1143,20 +876,14 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                     $target = isset($lti->target) ? $lti->target : false;
 
                     echo('<li class="tsugi-lessons-module-lti"><a');
-                    if ( $target == "_blank" ) echo(' target="_blank" rel="noopener noreferrer" onclick="alert(\'Link will open in a new browser tab...\');" ');
+                    if ( $target == "_blank" ) echo(' target="_blank" onclick="alert(\'Link will open in a new browser tab...\');" ');
                     echo(' href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
-                    echo("\n</li>\n");
                 }
 
-                echo("</li></ul><!-- end of ltis -->\n");
+                echo("</ul></li><!-- end of ltis -->\n");
             }
 
         echo("</ul>\n");
-        
-        // Close legacy format div if it was opened (debug mode only)
-        if ( $debug_conversion && $has_items && $has_legacy ) {
-            echo('</div>');
-        }
 
         if ( $nostyle ) {
             $styleoff = U::get_rest_path() . '?nostyle=no';
@@ -1178,15 +905,14 @@ ul.pager.tsugi-lessons-pager > li:last-child {
          // Load all the Grades so far
          $allgrades = array();
          if ( isset($_SESSION['id']) && isset($_SESSION['context_id'])) {
-             $rows = GradeUtil::loadGradesForCourse($_SESSION['id'], $_SESSION['context_id']);
+             $rows = \Tsugi\Grades\GradeUtil::loadGradesForCourse($_SESSION['id'], $_SESSION['context_id']);
              foreach($rows as $row) {
                  $allgrades[$row['resource_link_id']] = $row['grade'];
              }
          }
 
-
         echo('<div typeof="Course">'."\n");
-        echo('<h1>'.$this->lessons->title."</h1>\n");
+        echo('<h1>'.htmlspecialchars($this->lessons->title)."</h1>\n");
         echo('<p property="description">'.$this->lessons->description."</p>\n");
         echo('<div id="box">'."\n");
         $count = 0;
@@ -1195,17 +921,32 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         if ( isset($module->hidden) && $module->hidden ) continue;
 	    if ( isset($module->login) && $module->login && !isset($_SESSION['id']) ) continue;
 
+            // Calculate progress - items array takes precedence
             $possible_points = 0;
             $actual_points = 0;
-            $rlids = array();
+            // Process items array first (takes precedence)
             if ( isset($module->items) ) {
                 foreach($module->items as $item) {
-                    if ( $item->type != 'lti' || !isset($item->resource_link_id) ) continue;
-                    $possible_points += 1.0;
-                    if ( isset($allgrades[$item->resource_link_id]) && is_numeric($allgrades[$item->resource_link_id]) ) {
-                        $actual_points += $allgrades[$item->resource_link_id];
+                    if ( isset($item->type) && $item->type == 'lti' && isset($item->resource_link_id) ) {
+                        $possible_points += 1.0;
+                        if ( isset($allgrades[$item->resource_link_id]) && is_numeric($allgrades[$item->resource_link_id]) ) {
+                            $actual_points += $allgrades[$item->resource_link_id];
+                        }
                     }
-                    $rlids[] = $item->resource_link_id;
+                }
+            } else {
+                // Process legacy lti array only if items is not present
+                if ( isset($module->lti) ) {
+                    $ltis = $module->lti;
+                    if ( ! is_array($ltis) ) $ltis = array($ltis);
+                    foreach($ltis as $lti) {
+                        if ( isset($lti->resource_link_id) ) {
+                            $possible_points += 1.0;
+                            if ( isset($allgrades[$lti->resource_link_id]) && is_numeric($allgrades[$lti->resource_link_id]) ) {
+                                $actual_points += $allgrades[$lti->resource_link_id];
+                            }
+                        }
+                    }
                 }
             }
             $count++;
@@ -1215,10 +956,8 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 $percent = round(($actual_points / $possible_points)*100);
             }
             
-            echo('<article class="card"><div>'."\n");
+            echo('<div class="card"><div>'."\n");
             $href = U::get_rest_path() . '/' . urlencode($module->anchor);
-            $link_label = $count.': '.$module->title;
-            echo('<a class="tsugi-lessons-module-card-link" href="'.$href.'" aria-label="'.htmlspecialchars($link_label, ENT_QUOTES, 'UTF-8').'">'."\n");
             if ( isset($module->icon) ) {
                 $icon_color = '';
                 if ( $percent == 100 ) {
@@ -1231,7 +970,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             if ( isset($module->image) ) {
                 echo('<img class="tsugi-all-modules-image-icon" aria-hidden="true" style="float: left; width: 2em; padding-right: 5px;" src="'.self::expandLink($module->image).'">');
             }
-            echo($link_label);
+            echo('<a class="tsugi-lessons-module-card-link" href="'.$href.'">'."\n");
+            echo($count.': '.$module->title);
+            // Display progress badges
             if ( $possible_points > 0 ) {
                 if ( $percent == 0 ) {
                     // No badge for 0%
@@ -1243,16 +984,13 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                     echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
                 }
             }
+            echo("<br clear=\"all\"/>\n");
             if ( isset($module->description) ) {
                 $desc = $module->description;
                 if ( strlen($desc) > 1000 ) $desc = substr($desc, 0, 1000);
-                echo('<br clear="all"><p class="tsugi-card-description">'.$desc."</p>\n");
+                echo('<br/>'.$desc."\n");
             }
-            echo("</a></div></article>\n");
-            echo("<!--\n");
-            print_r($allgrades);
-            print_r($rlids);
-            echo("\n-->\n");
+            echo("</a></div></div>\n");
         }
         echo('</div> <!-- box -->'."\n");
         echo('</div> <!-- typeof="Course" -->'."\n");
@@ -1290,7 +1028,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
     public function renderAssignments($allgrades, $alldates, $buffer=false)
     {
         ob_start();
-        echo('<h1>'.$this->lessons->title."</h1>\n");
+        echo('<h1>'.htmlspecialchars($this->lessons->title)."</h1>\n");
         $displayname = U::get($_SESSION, 'displayname');
         $email = U::get($_SESSION, 'email');
         if ( is_string($displayname) || is_string($email) ) {
@@ -1448,7 +1186,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
     {
         ob_start();
         global $CFG, $OUTPUT;
-        echo('<h1>'.$this->lessons->title."</h1>\n");
+        echo('<h1>'.htmlspecialchars($this->lessons->title)."</h1>\n");
         $display = '';
         $displayname = U::get($_SESSION, 'displayname');
         $email = U::get($_SESSION, 'email');
@@ -1463,9 +1201,22 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             }
         }
         if (U::strlen($display) > 0 ) {
-            echo("<p>".__("Student:")." ".$display."</p>\n");
+            echo("<p>".__("Student:")." ".htmlspecialchars($display)."</p>\n");
         }
         $awarded = array();
+        
+        // Check if badges data is present
+        if ( !isset($this->lessons->badges) || !is_array($this->lessons->badges) || count($this->lessons->badges) == 0 ) {
+            echo("<div class=\"alert alert-info\">\n");
+            echo("<p>No badges are configured for this course.</p>\n");
+            echo("<p>Badges can be configured in the lessons.json file by adding a \"badges\" array.</p>\n");
+            echo("</div>\n");
+            $ob_output = ob_get_contents();
+            ob_end_clean();
+            if ( $buffer ) return $ob_output;
+            echo($ob_output);
+            return;
+        }
 ?>
 <ul class="nav nav-tabs" role="tablist">
   <li class="active" role="presentation"><a href="#home" id="home-tab" data-toggle="tab" role="tab" aria-controls="home" aria-selected="true">Progress</a></li>
@@ -1474,7 +1225,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 <div id="myTabContent" class="tab-content">
   <div class="tab-pane fade active in" id="home" role="tabpanel" aria-labelledby="home-tab">
 <?php
-        echo('<table class="table table-striped table-hover "><tbody>'."\n");
+        echo('<table class="table table-striped table-hover "><thead><tr><th scope="col">Assignment</th><th scope="col">Progress</th></tr></thead><tbody>'."\n");
         foreach($this->lessons->badges as $badge) {
             $threshold = $badge->threshold;
             $count = 0;
@@ -1504,7 +1255,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 $image = $CFG->badge_url . '/' . $badge->image;
                 echo('<img src="'.htmlspecialchars($image).'" alt="'.htmlspecialchars($badge->title).'" style="width: 4rem;"/> ');
             }
-            echo($badge->title);
+            echo(htmlspecialchars($badge->title));
             echo('</td><td class="info" style="width: 30%; min-width: 200px;">');
             echo('<div class="progress" role="progressbar" aria-valuenow="'.$progress.'" aria-valuemin="0" aria-valuemax="100" aria-label="'.htmlspecialchars($badge->title).': '.$progress.' percent">');
             echo('<div class="progress-bar progress-bar-'.$kind.'" style="width: '.$progress.'%"></div>');
@@ -1594,22 +1345,42 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             echo("<p>For more information, see <code>config-dist.php</code> in your Tsugi installation.</p>\n");
             echo("</div>\n");
         } else {
+            $PDOX = \Tsugi\Core\LTIX::getConnection();
+            $displayname = U::get($_SESSION, 'displayname', '');
+            $email = U::get($_SESSION, 'email', '');
+            $context_title = '';
+            $login_at = time();
+            $ctx_row = $PDOX->rowDie("SELECT title FROM {$CFG->dbprefix}lti_context WHERE context_id = :CID", array(':CID' => $_SESSION['context_id']));
+            if ( $ctx_row ) $context_title = $ctx_row['title'];
+            $user_row = $PDOX->rowDie("SELECT login_at FROM {$CFG->dbprefix}lti_user WHERE user_id = :UID", array(':UID' => $_SESSION['id']));
+            if ( $user_row && isset($user_row['login_at']) ) $login_at = $user_row['login_at'];
+
             echo("<ul style=\"list-style: none;\">\n");
             foreach($awarded as $badge) {
                 echo("<li><p>");
                 $code = basename($badge->image,'.png');
-                $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
-                $encrypted = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
-                echo('<a href="'.$CFG->wwwroot.'/assertions/'.$encrypted.'.html" target="_blank" rel="noopener noreferrer" aria-label="'.__('View badge assertion, opens in new window').'">');
-                echo('<img src="'.$CFG->wwwroot.'/badges/images/'.$encrypted.'.png" width="90" alt="'.htmlspecialchars($badge->title).'"></a>');
-                echo($badge->title);
+                // Use existing minted GUID if present; otherwise use legacy hex (no minting here)
+                $badge_id = BadgeService::getMintedGuidIfExists($_SESSION['id'], $_SESSION['context_id'], $code);
+                if ( $badge_id === null ) {
+                    $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
+                    $badge_id = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
+                }
+                $assert_url = $CFG->wwwroot.'/assertions/'.urlencode($badge_id).'.html';
+                $badge_img_url = BadgeService::isMintedGuid($badge_id)
+                    ? $CFG->badge_url.'/'.$code.'.png'
+                    : $CFG->wwwroot.'/badges/images/'.urlencode($badge_id).'.png';
+                echo('<a href="'.htmlspecialchars($assert_url).'" target="_blank" rel="noopener noreferrer" aria-label="'.__('View badge assertion, opens in new window').'">');
+                echo('<img src="'.htmlspecialchars($badge_img_url).'" width="90" alt="'.htmlspecialchars($badge->title).'"></a>');
+                echo(htmlspecialchars($badge->title));
                 echo("</p></li>\n");
             }
             echo("</ul>\n");
-            echo("<p>These badges contain the official Open Badge metadata.  You can download the badge and\n");
-            echo("put it on your own server, or add the badge to a \"badge packpack\".  You could validate the badge\n");
-            echo("using <a href=\"http://www.dr-chuck.com/obi-sample/\" target=\"_blank\" rel=\"noopener noreferrer\">A simple badge validator</a>.\n");
-            echo("</p>\n");
+?>
+<p>These badges contain the official Open Badge metadata.  You can download the badge and
+put it on your own server, or add the badge to a "badge packpack".  You could validate the badge
+using <a href="http://www.dr-chuck.com/obi-sample/" target="_blank" rel="noopener noreferrer" aria-label="A simple badge validator, opens in new window">A simple badge validator</a>.
+</p>
+<?php
         }
     }
 ?>
@@ -1667,7 +1438,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             return;
         }
 
-        echo('<h1>'.__('Discussions:').' '.$this->lessons->title."</h1>\n");
+        echo('<h1>'.__('Discussions:').' '.htmlspecialchars($this->lessons->title)."</h1>\n");
 
         // TODO: Perhaps the tdiscus service will get promoted to Tsugi
         // but for now we bypass the abstraction and go straight to the source...
@@ -1693,7 +1464,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         $launchable = U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
                 && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email');
 
-        echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
+        echo('<ul class="tsugi-lessons-module-discussions-ul" aria-label="'.htmlspecialchars(__('Discussion forums')).'">'."\n");
         foreach($discussions as $discussion ) {
             $resource_link_title = $discussion->title;
             $rest_path = U::rest_path();
@@ -1701,16 +1472,16 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             $info = "";
             $row = U::get($rows_dict, $discussion->resource_link_id);
             if ( $row ) {
-                $info = '<br/>'.$row['thread_count'].' '.__('threads'). ' - '.__('last post').
-                    ' <time class="timeago" datetime="'.$row['modified_at'].'">'.$row['modified_at'].'</time>'.
+                $info = '<br/>'.htmlspecialchars($row['thread_count']).' '.__('threads'). ' - '.__('last post').
+                    ' <time class="timeago" datetime="'.htmlspecialchars($row['modified_at']).'">'.htmlspecialchars($row['modified_at']).'</time>'.
                     "\n";
             }
 
             echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'."\n");
             if ( $launchable ) {
-                echo('<a href="'.$launch_path.'">'.htmlentities($discussion->title).'</a>'.$info."\n");
+                echo('<a href="'.htmlspecialchars($launch_path).'">'.htmlspecialchars($discussion->title).'</a>'.$info."\n");
             } else {
-                echo(htmlentities($resource_link_title).' ('.__('Login Required').')'.$info."\n");
+                echo(htmlspecialchars($resource_link_title).' ('.__('Login Required').')'.$info."\n");
             }
             echo("</li>\n");
         }
@@ -1733,7 +1504,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 $(document).ready(function() {
     $('.w3schools-overlay').on('click', function(event) {
         if ( event.target.id == event.currentTarget.id ) {
-            // Stop our embedded YouTube Players
+            // Sop our embedded YouTube Players
             labnolStopPlayers();
             // https://stackoverflow.com/questions/4071872/html5-video-force-abort-of-buffering
             // https://stackoverflow.com/a/34058996
@@ -1846,431 +1617,6 @@ $(function(){
             }
         }
         return false;
-    }
-
-    /**
-     * Get icon class for an item type
-     */
-    private static function getItemTypeIcon($type) {
-        $icons = array(
-            'video' => 'fa-play-circle',
-            'reference' => 'fa-external-link',
-            'discussion' => 'fa-comments',
-            'lti' => 'fa-puzzle-piece',
-            'assignment' => 'fa-file-text',
-            'slide' => 'fa-file-powerpoint-o',
-            'solution' => 'fa-unlock',
-            'text' => 'fa-file-text-o',
-            'header' => 'fa-header'
-        );
-        return isset($icons[$type]) ? $icons[$type] : 'fa-circle';
-    }
-
-    /**
-     * Get background color for an item type icon
-     */
-    private static function getItemTypeColor($type) {
-        $colors = array(
-            'video' => '#dc3545',
-            'reference' => '#17a2b8',
-            'discussion' => '#ffc107',
-            'lti' => '#28a745',
-            'assignment' => '#fd7e14',
-            'slide' => '#6f42c1',
-            'solution' => '#6c757d',
-            'text' => '#6c757d',
-            'header' => 'transparent'
-        );
-        return isset($colors[$type]) ? $colors[$type] : '#6c757d';
-    }
-
-    /**
-     * Render an icon for an item type with styling
-     */
-    private static function renderItemIcon($type) {
-        $icon = self::getItemTypeIcon($type);
-        $color = self::getItemTypeColor($type);
-        $iconColor = ($type === 'discussion') ? '#333' : 'white';
-        echo('<span class="tsugi-item-type-icon tsugi-item-type-'.$type.'" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 3px; font-size: 14px; background-color: '.$color.'; margin-right: 8px; vertical-align: middle;">');
-        echo('<i class="fa '.$icon.'" aria-hidden="true" style="color: '.$iconColor.';"></i>');
-        echo('</span>');
-    }
-
-    /**
-     * Render a single item from the items array
-     */
-    public function renderItem($item, $module, $nostyle=false) {
-        global $CFG, $OUTPUT;
-        
-        if ( !isset($item->type) ) {
-            return; // Skip items without a type
-        }
-        
-        $type = $item->type;
-        
-        switch($type) {
-            case 'header':
-                $this->renderItemHeader($item);
-                break;
-            case 'text':
-                $this->renderItemText($item);
-                break;
-            case 'video':
-                $this->renderItemVideo($item, $nostyle);
-                break;
-            case 'slide':
-                $this->renderItemSlide($item, $nostyle);
-                break;
-            case 'reference':
-                $this->renderItemReference($item, $nostyle);
-                break;
-            case 'discussion':
-                $this->renderItemDiscussion($item, $module, $nostyle);
-                break;
-            case 'lti':
-                $this->renderItemLti($item, $module, $nostyle);
-                break;
-            // Legacy plural types - convert to singular and re-render (backward compatibility)
-            case 'videos':
-            case 'references':
-            case 'discussions':
-            case 'ltis':
-            case 'slides':
-                // Convert plural to singular and render items
-                $singular_type = rtrim($type, 's'); // Remove trailing 's'
-                if (isset($item->items) && is_array($item->items)) {
-                    foreach($item->items as $subitem) {
-                        $subitem_obj = is_array($subitem) ? (object)$subitem : $subitem;
-                        if (!isset($subitem_obj->type)) $subitem_obj->type = $singular_type;
-                        $this->renderItem($subitem_obj, $module, $nostyle);
-                    }
-                } else if ($type == 'slides' && (isset($item->href) || isset($item->url))) {
-                    // Handle single slide object (legacy format)
-                    $item->type = 'slide';
-                    $this->renderItem($item, $module, $nostyle);
-                }
-                break;
-            case 'assignment':
-                $this->renderItemAssignment($item, $nostyle);
-                break;
-            case 'solution':
-                $this->renderItemSolution($item, $nostyle);
-                break;
-            case 'chapters':
-                $this->renderItemChapters($item);
-                break;
-            case 'carousel':
-                $this->renderItemCarousel($item, $nostyle);
-                break;
-            default:
-                // Unknown type, skip
-                break;
-        }
-    }
-
-    /**
-     * Render a header item
-     */
-    private function renderItemHeader($item) {
-        $level = isset($item->level) ? intval($item->level) : 2;
-        $text = isset($item->text) ? $item->text : (isset($item->title) ? $item->title : '');
-        $class = isset($item->class) ? ' class="'.$item->class.'"' : '';
-        echo("<h{$level}{$class}>".htmlentities($text)."</h{$level}>\n");
-    }
-
-    /**
-     * Render a text item
-     */
-    private function renderItemText($item) {
-        $text = isset($item->text) ? $item->text : (isset($item->content) ? $item->content : '');
-        $tag = isset($item->tag) ? $item->tag : 'p';
-        $class = isset($item->class) ? ' class="'.$item->class.'"' : '';
-        echo("<{$tag}{$class}>".$text."</{$tag}>\n");
-    }
-
-    /**
-     * Render a single video item
-     */
-    private function renderItemVideo($item, $nostyle=false) {
-        global $CFG, $OUTPUT;
-        
-        $media_folder = $CFG->getExtension('media_folder', null);
-        $media_base = $CFG->getExtension('media_base', null);
-        $media_file = isset($item->media) ? $item->media : null;
-        
-        echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-video">');
-        
-        if ( is_string($media_file) && is_string($media_base) && is_string($media_folder) &&
-            file_exists($media_folder . '/' . $media_file) ) {
-            $media_path = $media_base . '/' . $media_file;
-            echo('<a href="'.$media_path.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('video');
-            echo(htmlentities($item->title).'</a>');
-        } else {
-            $youtube = isset($item->youtube) ? $item->youtube : '';
-            if ( $youtube ) {
-                $yurl = U::youtubeWatchUrl($youtube);
-                if ( !empty($CFG->youtube_use_labnol) ) {
-                static $lecno = 0;
-                $lecno = $lecno + 1;
-                $navid = md5($lecno.$yurl);
-?>
-<div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Video: <?= htmlspecialchars($item->title, ENT_QUOTES, 'UTF-8') ?>">
-  <div class="w3schools-overlay-content" style="background-color: black;">
-  <button type="button" class="tsugi-overlay-close" aria-label="Close" onclick="document.getElementById('<?= $navid ?>').style.display='none'; if(typeof labnolStopPlayers==='function') labnolStopPlayers();">×</button>
-  <div class="youtube-player" data-id="<?= $youtube ?>"></div>
-  </div>
-</div>
-<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?php self::renderItemIcon('video'); ?><?= htmlentities($item->title) ?></button>
-<?php
-                } else {
-                echo('<a href="'.htmlspecialchars($yurl).'" target="_blank" style="display: inline-flex; align-items: center;">');
-                self::renderItemIcon('video');
-                echo(htmlentities($item->title).'</a>');
-                }
-            } else {
-                echo(htmlentities($item->title));
-            }
-        }
-        echo("</li>\n");
-    }
-
-    /**
-     * Render slides item (can be single slide or array)
-     */
-    private function renderItemSlides($item, $nostyle=false) {
-        if (isset($item->href) || isset($item->url)) {
-            // Single slide
-            $this->renderItemSlide($item, $nostyle);
-        } else if (isset($item->items) && is_array($item->items)) {
-            // Multiple slides
-            $singular = 'slide';
-            $plural = 'slides';
-            echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-'.$plural.'">');
-            echo("<p>");
-            $slidestitle = isset($item->title) ? $item->title : __('Slides');
-            echo(htmlentities($slidestitle));
-            echo("</p>");
-            echo('<ul class="tsugi-lessons-module-'.$plural.'-ul">'."\n");
-            foreach($item->items as $slide) {
-                $slide_obj = is_array($slide) ? (object)$slide : $slide;
-                $slide_obj->type = 'slide';
-                $this->renderItemSlide($slide_obj, $nostyle);
-            }
-            echo("</ul></li>\n");
-        }
-    }
-
-    /**
-     * Render a single slide item
-     */
-    private function renderItemSlide($item, $nostyle=false) {
-        $slide_title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : basename(isset($item->href) ? $item->href : (isset($item->url) ? $item->url : '')));
-        $slide_href = isset($item->href) ? $item->href : (isset($item->url) ? $item->url : '');
-        // Process {apphome} and other macros in the URL
-        $slide_href = self::expandLink($slide_href);
-        
-        echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-slide">');
-        echo('<span class="tsugi-lessons-module-slide-link">');
-        echo('<a href="'.$slide_href.'" target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
-        self::renderItemIcon('slide');
-        echo(htmlentities($slide_title)."</a>\n");
-        echo("</span>\n");
-        echo('</li>'."\n");
-    }
-
-    /**
-     * Render a reference item
-     */
-    private function renderItemReference($item, $nostyle=false) {
-        $title = isset($item->title) ? $item->title : '';
-        $href = isset($item->href) ? $item->href : (isset($item->url) ? $item->url : '');
-        // Process {apphome} and other macros in the URL
-        $href = self::expandLink($href);
-        
-        echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-reference">');
-        echo('<span class="tsugi-lessons-module-reference-link">');
-        echo('<a href="'.$href.'" target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
-        self::renderItemIcon('reference');
-        echo(htmlentities($title)."</a>\n");
-        echo("</span>\n");
-        echo('</li>'."\n");
-    }
-
-    /**
-     * Render a discussion item
-     */
-    private function renderItemDiscussion($item, $module, $nostyle=false) {
-        global $CFG;
-        
-        $resource_link_title = isset($item->title) ? $item->title : $module->title;
-        $launch = isset($item->launch) ? $item->launch : '';
-        $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : '';
-        
-        // Not logged in
-        if ( ! isset($_SESSION['secret']) ) {
-            echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">');
-            self::renderItemIcon('discussion');
-            echo(htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
-            echo("\n</li>\n");
-            return;
-        }
-        
-        // Logged in
-        if ( isset($CFG->tdiscus) && $CFG->tdiscus && 
-            U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
-            && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
-        {
-            if ( $nostyle ) {
-                echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">');
-                echo('<span style="display: inline-flex; align-items: center;">');
-                self::renderItemIcon('discussion');
-                echo(htmlentities($resource_link_title).' (Login Required)');
-                echo('</span><br/>'."\n");
-                $discussionurl = U::add_url_parm($launch, 'inherit', $resource_link_id);
-                echo('<span style="color:green">'.htmlentities($discussionurl)."</span>\n");
-                echo("\n</li>\n");
-                return;
-            }
-            
-            $rest_path = U::rest_path();
-            $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $resource_link_id;
-            echo('<li class="tsugi-lessons-module-discussion">');
-            echo('<a href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('discussion');
-            echo(htmlentities($resource_link_title).'</a></li>'."\n");
-        }
-    }
-
-    /**
-     * Render an LTI item
-     */
-    private function renderItemLti($item, $module, $nostyle=false) {
-        global $CFG;
-        
-        $resource_link_title = isset($item->title) ? $item->title : $module->title;
-        $launch = isset($item->launch) ? $item->launch : '';
-        $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : '';
-        $target = isset($item->target) ? $item->target : false;
-        
-        // Not logged in
-        if ( ! isset($_SESSION['secret']) ) {
-            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">');
-            echo('<span style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('lti');
-            echo(htmlentities($resource_link_title).' ('.__('Login Required').')');
-            echo('</span><br/>'."\n");
-            echo("\n</li>\n");
-            return;
-        }
-        
-        // Logged in
-        if ( U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
-            && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
-        {
-            if ( $nostyle ) {
-                echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">');
-                echo('<span style="display: inline-flex; align-items: center;">');
-                self::renderItemIcon('lti');
-                echo(htmlentities($resource_link_title).' (Login Required)');
-                echo('</span><br/>'."\n");
-                $ltiurl = U::add_url_parm($launch, 'inherit', $resource_link_id);
-                echo('<span style="color:green">'.htmlentities($ltiurl)."</span>\n");
-                echo("\n</li>\n");
-                return;
-            }
-            
-            $rest_path = U::rest_path();
-            $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $resource_link_id;
-            $title = isset($item->title) ? $item->title : "Autograder";
-            
-            echo('<li class="tsugi-lessons-module-lti">');
-            echo('<a');
-            if ( $target == "_blank" ) echo(' target="_blank" rel="noopener noreferrer" onclick="alert(\'Link will open in a new browser tab...\');" ');
-            echo(' href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('lti');
-            echo(htmlentities($title).'</a></li>'."\n");
-        }
-    }
-
-    /**
-     * Render an assignment item
-     */
-    private function renderItemAssignment($item, $nostyle=false) {
-        $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : __('Assignment Specification'));
-        $url = isset($item->href) ? $item->href : (isset($item->url) ? $item->url : '');
-        // Process {apphome} and other macros in the URL
-        $url = self::expandLink($url);
-        
-        if ( $nostyle ) {
-            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-assignment">');
-            echo(htmlentities($title).':');
-            self::nostyleUrl($title, $url);
-            echo('</li>'."\n");
-        } else {
-            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-assignment">');
-            echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('assignment');
-            echo(htmlentities($title).'</a></li>'."\n");
-        }
-    }
-
-    /**
-     * Render a solution item
-     */
-    private function renderItemSolution($item, $nostyle=false) {
-        $url = isset($item->href) ? $item->href : (isset($item->url) ? $item->url : '');
-        // Process {apphome} and other macros in the URL
-        $url = self::expandLink($url);
-        
-        if ( $nostyle ) {
-            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-solution">');
-            echo(__('Assignment Solution').':');
-            self::nostyleUrl(__('Assignment Solution'), $url);
-            echo('</li>'."\n");
-        } else {
-            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-solution">');
-            echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('solution');
-            echo(__('Assignment Solution').'</a></li>'."\n");
-        }
-    }
-
-    /**
-     * Render chapters item
-     */
-    private function renderItemChapters($item) {
-        $chapters = isset($item->text) ? $item->text : (isset($item->chapters) ? $item->chapters : '');
-        echo('<li typeof="SupportingMaterial">'.__('Chapters').': '.htmlentities($chapters).'</li>'."\n");
-    }
-
-    /**
-     * Render carousel item
-     */
-    private function renderItemCarousel($item, $nostyle=false) {
-        global $CFG, $OUTPUT;
-        
-        if (!isset($item->items) || !is_array($item->items)) {
-            return;
-        }
-        
-        $videotitle = __(self::getSetting('videos-title', 'Videos'));
-        echo($nostyle ? $videotitle . ': <ul>' : '<ul class="bxslider">'."\n");
-        foreach($item->items as $video) {
-            echo('<li>');
-            if ( $nostyle ) {
-                echo(htmlentities($video->title)."<br/>");
-                $yurl = U::youtubeWatchUrl($video->youtube);
-                self::nostyleUrl($video->title, $yurl);
-            } else if ( !empty($CFG->youtube_use_labnol) ) {
-                $OUTPUT->embedYouTube($video->youtube, $video->title);
-            } else {
-                $yurl = U::youtubeWatchUrl($video->youtube);
-                echo('<a href="'.htmlspecialchars($yurl).'" target="_blank">'.htmlentities($video->title).'</a>');
-            }
-            echo('</li>');
-        }
-        echo("</ul>\n");
     }
 
 }
