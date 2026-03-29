@@ -1415,6 +1415,12 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             $retval->title = ucwords($type) . ': ' . $title;
         }
         $retval->url = $url;
+        if ( is_string($url) && $url !== '' && in_array($type, array('slides', 'reference', 'assignment', 'solution'), true) ) {
+            if ( self::urlLooksLikePdf(self::expandLink($url)) ) {
+                $retval->icon = 'fa-file-pdf-o';
+                $retval->thumbnail = $CFG->fontawesome.'/png/'.str_replace('fa-','',$retval->icon).'.png';
+            }
+        }
         return $retval;
     }
 
@@ -1890,9 +1896,27 @@ $(function(){
     }
 
     /**
+     * Whether a URL path ends in .pdf (after expandLink-friendly strings).
+     */
+    private static function urlLooksLikePdf($url) {
+        if ( ! is_string($url) || $url === '' ) {
+            return false;
+        }
+        $path = parse_url($url, PHP_URL_PATH);
+        if ( $path === null || $path === '' || $path === false ) {
+            $path = $url;
+        }
+        return (bool) preg_match('/\.pdf$/i', $path);
+    }
+
+    /**
      * Get icon class for an item type
      */
-    private static function getItemTypeIcon($type) {
+    private static function getItemTypeIcon($type, $url_for_icon = null) {
+        if ( $url_for_icon !== null && self::urlLooksLikePdf($url_for_icon)
+            && in_array($type, array('slide', 'reference', 'assignment', 'solution'), true) ) {
+            return 'fa-file-pdf-o';
+        }
         $icons = array(
             'video' => 'fa-play-circle',
             'reference' => 'fa-external-link',
@@ -1910,7 +1934,11 @@ $(function(){
     /**
      * Get background color for an item type icon
      */
-    private static function getItemTypeColor($type) {
+    private static function getItemTypeColor($type, $url_for_icon = null) {
+        if ( $url_for_icon !== null && self::urlLooksLikePdf($url_for_icon)
+            && in_array($type, array('slide', 'reference', 'assignment', 'solution'), true) ) {
+            return '#b30b00';
+        }
         $colors = array(
             'video' => '#dc3545',
             'reference' => '#17a2b8',
@@ -1927,12 +1955,18 @@ $(function(){
 
     /**
      * Render an icon for an item type with styling
+     *
+     * @param string $type item type key
+     * @param string|null $url_for_icon expanded href; used to pick PDF icon for link-like types
      */
-    private static function renderItemIcon($type) {
-        $icon = self::getItemTypeIcon($type);
-        $color = self::getItemTypeColor($type);
+    private static function renderItemIcon($type, $url_for_icon = null) {
+        $icon = self::getItemTypeIcon($type, $url_for_icon);
+        $color = self::getItemTypeColor($type, $url_for_icon);
         $iconColor = ($type === 'discussion') ? '#333' : 'white';
-        echo('<span class="tsugi-item-type-icon tsugi-item-type-'.$type.'" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 3px; font-size: 14px; background-color: '.$color.'; margin-right: 8px; vertical-align: middle;">');
+        $pdf_class = ($url_for_icon !== null && self::urlLooksLikePdf($url_for_icon)
+            && in_array($type, array('slide', 'reference', 'assignment', 'solution'), true))
+            ? ' tsugi-lessons-pdf-icon' : '';
+        echo('<span class="tsugi-item-type-icon tsugi-item-type-'.$type.$pdf_class.'" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 3px; font-size: 14px; background-color: '.$color.'; margin-right: 8px; vertical-align: middle;">');
         echo('<i class="fa '.$icon.'" aria-hidden="true" style="color: '.$iconColor.';"></i>');
         echo('</span>');
     }
@@ -2114,7 +2148,7 @@ $(function(){
         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-slide">');
         echo('<span class="tsugi-lessons-module-slide-link">');
         echo('<a href="'.$slide_href.'" target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
-        self::renderItemIcon('slide');
+        self::renderItemIcon('slide', $slide_href);
         echo(htmlentities($slide_title)."</a>\n");
         echo("</span>\n");
         echo('</li>'."\n");
@@ -2132,7 +2166,7 @@ $(function(){
         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-reference">');
         echo('<span class="tsugi-lessons-module-reference-link">');
         echo('<a href="'.$href.'" target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
-        self::renderItemIcon('reference');
+        self::renderItemIcon('reference', $href);
         echo(htmlentities($title)."</a>\n");
         echo("</span>\n");
         echo('</li>'."\n");
@@ -2251,7 +2285,7 @@ $(function(){
         } else {
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-assignment">');
             echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('assignment');
+            self::renderItemIcon('assignment', $url);
             echo(htmlentities($title).'</a></li>'."\n");
         }
     }
@@ -2272,7 +2306,7 @@ $(function(){
         } else {
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-solution">');
             echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('solution');
+            self::renderItemIcon('solution', $url);
             echo(__('Assignment Solution').'</a></li>'."\n");
         }
     }
