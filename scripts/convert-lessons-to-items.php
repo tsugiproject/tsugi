@@ -2,7 +2,10 @@
 /**
  * Convert lessons.json from old format to new items array format
  * 
- * Usage: php convert-lessons-to-items.php [input.json] [output.json]
+ * Usage: php convert-lessons-to-items.php [input.json] [output.json] [keep]
+ *
+ * By default, legacy per-module arrays (slides, lectures, videos, etc.) are removed
+ * after conversion so only `items` remains. Pass keep as a third argument to retain them.
  * 
  * SECURITY: This script can only be run from the command line (CLI)
  */
@@ -14,13 +17,16 @@ if (php_sapi_name() !== 'cli') {
 }
 
 if ($argc < 2) {
-    echo "Usage: php convert-lessons-to-items.php [input.json] [output.json]\n";
-    echo "Example: php convert-lessons-to-items.php lessons.json lessons-items.json\n";
+    echo "Usage: php tsugi/scripts/convert-lessons-to-items.php [input.json] [output.json] [keep]\n";
+    echo "Example: php tsugi/scripts/convert-lessons-to-items.php lessons.json lessons-items.json\n";
+    echo "         php tsugi/scripts/convert-lessons-to-items.php lessons.json out.json keep\n";
+    echo "  (omit keep to drop legacy arrays from each module after building items)\n";
     exit(1);
 }
 
 $input_file = $argv[1];
 $output_file = isset($argv[2]) ? $argv[2] : str_replace('.json', '-items.json', $input_file);
+$keep_legacy = ($argc >= 4 && strtolower($argv[3]) === 'keep');
 
 if (!file_exists($input_file)) {
     echo "Error: Input file '$input_file' not found.\n";
@@ -94,14 +100,22 @@ foreach($lessons['modules'] as &$module) {
         }
     }
     
-    // Helper function to normalize URLs (adds {apphome}/ prefix if needed)
+    // Helper: add {apphome}/ for relative paths only — do not double-prefix Tsugi macros or absolute URLs
     $normalizeUrl = function($url) {
-        if (empty($url)) return $url;
-        // If URL doesn't start with http://, https://, or /
-        if (strpos($url, 'http://') !== 0 && strpos($url, 'https://') !== 0 && strpos($url, '/') !== 0) {
-            return '{apphome}/' . $url;
+        if ($url === null || $url === '') {
+            return $url;
         }
-        return $url;
+        if (!is_string($url)) {
+            return $url;
+        }
+        if (strpos($url, 'http://') === 0 || strpos($url, 'https://') === 0 || strpos($url, '/') === 0) {
+            return $url;
+        }
+        // Already uses expandLink macros (common in lessons.json)
+        if (strpos($url, '{apphome}') === 0 || strpos($url, '{wwwroot}') === 0) {
+            return $url;
+        }
+        return '{apphome}/' . $url;
     };
     
     // Convert slides (can be string, single object, or array)
@@ -371,17 +385,24 @@ foreach($lessons['modules'] as &$module) {
     
     // Add items array to module
     $module['items'] = $items;
-    
-    // Optionally remove old arrays (commented out for safety)
-    // unset($module['videos']);
-    // unset($module['references']);
-    // unset($module['discussions']);
-    // unset($module['lti']);
-    // unset($module['slides']);
-    // unset($module['carousel']);
-    // unset($module['assignment']);
-    // unset($module['solution']);
-    // unset($module['chapters']);
+
+    if (!$keep_legacy) {
+        $legacy_keys = array(
+            'carousel',
+            'slides',
+            'videos',
+            'lectures',
+            'references',
+            'discussions',
+            'lti',
+            'assignment',
+            'solution',
+            'chapters',
+        );
+        foreach ($legacy_keys as $key) {
+            unset($module[$key]);
+        }
+    }
 }
 
 // Write output
@@ -391,5 +412,8 @@ file_put_contents($output_file, $output_json);
 echo "Conversion complete!\n";
 echo "Input:  $input_file\n";
 echo "Output: $output_file\n";
-echo "\nNote: Old arrays are preserved in the output for backward compatibility.\n";
-echo "You can manually remove them after verifying the new format works.\n";
+if ($keep_legacy) {
+    echo "Legacy arrays: kept (keep flag).\n";
+} else {
+    echo "Legacy arrays: removed from each module (only items + module metadata remain).\n";
+}

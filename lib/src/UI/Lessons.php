@@ -314,6 +314,15 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 if ( ! is_string($this->lessons->modules[$i]->solution) ) die_with_error_log('Solution must be a string: '.$module->title);
                 self::absolute_url_ref($this->lessons->modules[$i]->solution);
             }
+
+            // Items array: same URL normalization as adjustArray() on legacy lti/discussions (launch, href, url)
+            if ( isset($this->lessons->modules[$i]->items) && is_array($this->lessons->modules[$i]->items) ) {
+                foreach ( $this->lessons->modules[$i]->items as $item ) {
+                    if ( is_object($item) ) {
+                        self::adjustItemsEntryUrls($item);
+                    }
+                }
+            }
         }
 
         // Patch badges
@@ -408,6 +417,38 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             if ( is_string($entry[$i]) ) self::absolute_url_ref($entry[$i]);
             if ( isset($entry[$i]->href) && is_string($entry[$i]->href) ) self::absolute_url_ref($entry[$i]->href);
             if ( isset($entry[$i]->launch) && is_string($entry[$i]->launch) ) self::absolute_url_ref($entry[$i]->launch);
+        }
+    }
+
+    /**
+     * Apply absolute_url_ref to launch/href/url on one items-array entry and nested item lists.
+     * Matches legacy adjustArray() behavior; expandLink() runs first so existing {apphome}/{wwwroot} stay correct.
+     */
+    private static function adjustItemsEntryUrls($item) {
+        if ( ! is_object($item) ) {
+            return;
+        }
+        if ( isset($item->launch) && is_string($item->launch) ) {
+            $u = $item->launch;
+            self::absolute_url_ref($u);
+            $item->launch = $u;
+        }
+        if ( isset($item->href) && is_string($item->href) ) {
+            $u = $item->href;
+            self::absolute_url_ref($u);
+            $item->href = $u;
+        }
+        if ( isset($item->url) && is_string($item->url) ) {
+            $u = $item->url;
+            self::absolute_url_ref($u);
+            $item->url = $u;
+        }
+        if ( isset($item->items) && is_array($item->items) ) {
+            foreach ( $item->items as $child ) {
+                if ( is_object($child) ) {
+                    self::adjustItemsEntryUrls($child);
+                }
+            }
         }
     }
 
