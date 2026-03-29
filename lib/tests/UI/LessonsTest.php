@@ -689,7 +689,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
      * Test resource_links array population during construction with items array
      */
     public function testResourceLinksWithItemsArray() {
-        $testJsonFile = sys_get_temp_dir() . '/test_lessons2_' . uniqid() . '.json';
+        $testJsonFile = sys_get_temp_dir() . '/test_lessons_' . uniqid() . '.json';
         $testData = [
             'modules' => [
                 [
@@ -747,7 +747,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
      * Test resource_links array - items array takes precedence over legacy arrays
      */
     public function testResourceLinksItemsArrayPrecedence() {
-        $testJsonFile = sys_get_temp_dir() . '/test_lessons2_' . uniqid() . '.json';
+        $testJsonFile = sys_get_temp_dir() . '/test_lessons_' . uniqid() . '.json';
         $testData = [
             'modules' => [
                 [

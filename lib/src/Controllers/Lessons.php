@@ -48,13 +48,7 @@ class Lessons extends Tool {
             }
         }
 
-        // Load the Lesson - use Lessons2 if enabled
-        $use_lessons2 = $CFG->getExtension('lessons2_enable', false);
-        if ( $use_lessons2 ) {
-            $l = new \Tsugi\UI\Lessons2($CFG->lessons, $anchor);
-        } else {
-            $l = new \Tsugi\UI\Lessons($CFG->lessons, $anchor);
-        }
+        $l = new \Tsugi\UI\Lessons($CFG->lessons, $anchor);
 
         // If we have an anchor in the path but it doesn't exist, redirect to /lessons
         // (avoids rendering "all lessons" from /lessons/bob which breaks relative URLs)
@@ -196,13 +190,7 @@ class Lessons extends Tool {
             return new RedirectResponse($redirect_path);
         }
 
-        /// Load the Lesson - use Lessons2 if enabled (same as get() method)
-        $use_lessons2 = $CFG->getExtension('lessons2_enable', false);
-        if ( $use_lessons2 ) {
-            $l = new \Tsugi\UI\Lessons2($CFG->lessons);
-        } else {
-            $l = new \Tsugi\UI\Lessons($CFG->lessons);
-        }
+        $l = new \Tsugi\UI\Lessons($CFG->lessons);
         if ( ! $l ) {
             $app->tsugiFlashError(__('Cannot load lessons.'));
             return new RedirectResponse($redirect_path);
