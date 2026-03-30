@@ -133,4 +133,27 @@ class GradeUtil {
         $rows = $PDOX->allRowsDie($sql,array(':UID' => $user_id, ':CID' => $context_id));
         return $rows;
     }
+
+    /**
+     * Due/start times from lti_link for a context, keyed by link_key (resource link id).
+     *
+     * @return array<string,array{start_datetime:mixed,end_datetime:mixed}>
+     */
+    public static function loadDueDatesForContext($context_id) {
+        global $CFG, $PDOX;
+        $p = $CFG->dbprefix;
+        $rows = $PDOX->allRowsDie(
+            "SELECT link_key, start_datetime, end_datetime FROM {$p}lti_link
+             WHERE context_id = :CID AND (deleted IS NULL OR deleted = 0)",
+            array(':CID' => $context_id)
+        );
+        $map = array();
+        foreach ( $rows as $row ) {
+            $map[$row['link_key']] = array(
+                'start_datetime' => $row['start_datetime'],
+                'end_datetime' => $row['end_datetime'],
+            );
+        }
+        return $map;
+    }
 }

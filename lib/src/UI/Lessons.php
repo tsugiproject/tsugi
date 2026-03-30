@@ -36,6 +36,12 @@ class Lessons {
      */
     public $resource_links;
 
+    /** @var array Grades by resource_link_id for due badges on single-module view */
+    private $lessonModuleGradesForBadges = array();
+
+    /** @var array Due rows by link_key from GradeUtil::loadDueDatesForContext */
+    private $lessonModuleDueDatesForBadges = array();
+
     /**
      * get a setting for the lesson
      */
@@ -127,6 +133,9 @@ li:has(> h2) ul.tsugi-lessons-content-list {
     font-size: 0.85em;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
+
+/* Single-module title bar uses floated icon/image like module cards */
+.tsugi-lessons-module-title-cardmatch { overflow: auto; }
 
 /* Remove list bullets and style icons for lesson items */
 ul.tsugi-lessons-content-list {
@@ -603,6 +612,74 @@ ul.pager.tsugi-lessons-pager > li:last-child {
     }
 
 
+    /**
+     * LTI assignment totals for module progress (items array, else legacy lti).
+     *
+     * @return array{0:float,1:float,2:string[]} possible points, actual points, resource_link_ids
+     */
+    private function moduleLtiProgressPoints($module, $allgrades) {
+        $possible = 0.0;
+        $actual = 0.0;
+        $rlids = array();
+        if ( isset($module->items) ) {
+            foreach ( $module->items as $item ) {
+                if ( ! isset($item->type) || $item->type != 'lti' || ! isset($item->resource_link_id) ) {
+                    continue;
+                }
+                $possible += 1.0;
+                $rlids[] = $item->resource_link_id;
+                if ( isset($allgrades[$item->resource_link_id]) && is_numeric($allgrades[$item->resource_link_id]) ) {
+                    $actual += $allgrades[$item->resource_link_id];
+                }
+            }
+        } elseif ( isset($module->lti) ) {
+            $ltis = $module->lti;
+            if ( ! is_array($ltis) ) {
+                $ltis = array($ltis);
+            }
+            foreach ( $ltis as $lti ) {
+                if ( ! isset($lti->resource_link_id) ) {
+                    continue;
+                }
+                $possible += 1.0;
+                $rlids[] = $lti->resource_link_id;
+                if ( isset($allgrades[$lti->resource_link_id]) && is_numeric($allgrades[$lti->resource_link_id]) ) {
+                    $actual += $allgrades[$lti->resource_link_id];
+                }
+            }
+        }
+        return array($possible, $actual, $rlids);
+    }
+
+    /**
+     * Single-module h1 matching the all-modules card header (icon tint, image, index:title, progress badge).
+     */
+    private function echoModuleTitleBarMatchingCard($module, $possible_points, $actual_points) {
+        $percent = 0;
+        if ( $possible_points > 0 ) {
+            $percent = (int) round(($actual_points / $possible_points) * 100);
+        }
+        echo('<h1 property="oer:name" class="tsugi-lessons-module-title tsugi-lessons-module-title-cardmatch">');
+        if ( isset($module->image) ) {
+            echo('<img class="tsugi-all-modules-image-icon" aria-hidden="true" style="float: left; width: 2em; padding-right: 5px;" src="'.self::expandLink($module->image).'">');
+        }
+        $title_line = $this->position . ': ' . $module->title;
+        echo(htmlentities($title_line));
+        if ( $possible_points > 0 ) {
+            if ( $percent == 0 ) {
+                // No badge for 0% (same as module cards)
+            } else if ( $percent == 100 ) {
+                echo('<span class="progress-badge progress-badge-check" title="Complete: 100%">100%</span>');
+            } else {
+                echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
+            }
+        }
+        echo("</h1>\n");
+        if ( isset($module->image) ) {
+            echo('<div class="tsugi-lessons-module-title-clearfix" style="clear:both;"></div>'."\n");
+        }
+    }
+
     /*
      * render a lesson
      */
@@ -639,23 +716,16 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 $allgrades[$row['resource_link_id']] = $row['grade'];
             }
         }
-
-        // Calculate progress for legacy format (scan lti array for resource_link_ids)
-        $possible_points = 0;
-        $actual_points = 0;
-        if ( isset($module->lti) && !isset($module->items) ) {
-            // Only calculate for legacy format (when items array is not present)
-            $ltis = $module->lti;
-            if ( ! is_array($ltis) ) $ltis = array($ltis);
-            foreach($ltis as $lti) {
-                if ( isset($lti->resource_link_id) ) {
-                    $possible_points += 1.0;
-                    if ( isset($allgrades[$lti->resource_link_id]) && is_numeric($allgrades[$lti->resource_link_id]) ) {
-                        $actual_points += $allgrades[$lti->resource_link_id];
-                    }
-                }
-            }
+        $this->lessonModuleGradesForBadges = $allgrades;
+        $this->lessonModuleDueDatesForBadges = array();
+        if ( isset($_SESSION['context_id']) ) {
+            $this->lessonModuleDueDatesForBadges = GradeUtil::loadDueDatesForContext($_SESSION['context_id']);
         }
+        echo('<style>'.$this->getDueDateBadgeCssShared().'</style>'."\n");
+
+        $modProgress = $this->moduleLtiProgressPoints($module, $allgrades);
+        $possible_points = $modProgress[0];
+        $actual_points = $modProgress[1];
 
 	if ( $nostyle && isset($_SESSION['gc_count']) ) {
 ?>
@@ -688,21 +758,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 echo('<li class="next"><a href="'.$next.'">&rarr; '.__('Next').'</a></li>'."\n");
             }
             echo("</ul></div>\n");
-            echo('<h1 property="oer:name" class="tsugi-lessons-module-title">'.$module->title);
-            // Display progress badges for legacy format
-            if ( $possible_points > 0 ) {
-                $percent = round(($actual_points / $possible_points)*100);
-                if ( $percent == 0 ) {
-                    // No badge for 0%
-                } else if ( $percent == 100 ) {
-                    // Green badge with 100% for complete
-                    echo('<span class="progress-badge progress-badge-check" title="Complete: 100%">100%</span>');
-                } else {
-                    // Blue badge with percentage for 1-99%
-                    echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
-                }
-            }
-            echo("</h1>\n");
+            $this->echoModuleTitleBarMatchingCard($module, $possible_points, $actual_points);
             $lessonurl = $CFG->apphome . U::get_rest_path();
             if ( $nostyle ) {
                 self::nostyleUrl($module->title, $lessonurl);
@@ -732,15 +788,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 if ( $debug_conversion && $has_legacy ) {
                     echo('<div style="border: 2px solid blue; padding: 10px; margin: 10px 0;"><h3 style="color: blue;">NEW FORMAT (items array):</h3>');
                 }
-                // Render description if present (aligned with title)
+                // Render description if present (module image is shown in title bar with the card-style header)
                 if ( isset($module->description) ) {
-                    if ( isset($module->image) ) {
-                        echo('<img class="tsugi-module-image-icon" aria-hidden="true" style="float: left; width: 2em; padding-right: 5px;" src="'.self::expandLink($module->image).'">');
-                    }
                     echo('<p property="oer:description" class="tsugi-lessons-module-description">'.$module->description."</p>\n");
-                    if ( isset($module->image) ) {
-                        echo('<div style="clear:both;"></div>');
-                    }
                 }
                 
                 // Render items in order - headers and text align with title, grouped items are indented
@@ -893,13 +943,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             }
 
             if ( isset($module->description) ) {
-                if ( isset($module->image) ) {
-                    echo('<img class="tsugi-module-image-icon" aria-hidden="true" style="float: left; width: 2em; padding-right: 5px;" src="'.self::expandLink($module->image).'">');
-                }
                 echo('<p property="oer:description" class="tsugi-lessons-module-description">'.$module->description."</p>\n");
-                if ( isset($module->image) ) {
-                    echo('<div style="clear:both;"></div>');
-                }
             }
 
             echo("<ul>\n");
@@ -1185,8 +1229,10 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 
                     echo('<li class="tsugi-lessons-module-lti"><a');
                     if ( $target == "_blank" ) echo(' target="_blank" rel="noopener noreferrer" onclick="alert(\'Link will open in a new browser tab...\');" ');
-                    echo(' href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
-                    echo("\n</li>\n");
+                    echo(' href="'.$launch_path.'">'.htmlentities($title).'</a>');
+                    $rlid = isset($lti->resource_link_id) ? $lti->resource_link_id : '';
+                    $this->echoDueDateBadgeForResourceLink($rlid, $this->lessonModuleGradesForBadges, $this->lessonModuleDueDatesForBadges);
+                    echo('</li>'."\n");
                 }
 
                 echo("</li></ul><!-- end of ltis -->\n");
@@ -1236,21 +1282,11 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         if ( isset($module->hidden) && $module->hidden ) continue;
 	    if ( isset($module->login) && $module->login && !isset($_SESSION['id']) ) continue;
 
-            $possible_points = 0;
-            $actual_points = 0;
-            $rlids = array();
-            if ( isset($module->items) ) {
-                foreach($module->items as $item) {
-                    if ( $item->type != 'lti' || !isset($item->resource_link_id) ) continue;
-                    $possible_points += 1.0;
-                    if ( isset($allgrades[$item->resource_link_id]) && is_numeric($allgrades[$item->resource_link_id]) ) {
-                        $actual_points += $allgrades[$item->resource_link_id];
-                    }
-                    $rlids[] = $item->resource_link_id;
-                }
-            }
+            $modProgress = $this->moduleLtiProgressPoints($module, $allgrades);
+            $possible_points = $modProgress[0];
+            $actual_points = $modProgress[1];
+            $rlids = $modProgress[2];
             $count++;
-            // Calculate percent for icon coloring
             $percent = 0;
             if ( $possible_points > 0 ) {
                 $percent = round(($actual_points / $possible_points)*100);
@@ -1303,7 +1339,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         echo($ob_output);
     }
 
-    private function renderAssignmentItem($resource_link_id, $title, $allgrades, $alldates) {
+    private function renderAssignmentItem($resource_link_id, $title, $allgrades, $alldates, $duedates = array()) {
         echo('<li class="assignments-item">');
         echo('<span class="assignments-status">');
         if ( isset($allgrades[$resource_link_id]) ) {
@@ -1315,7 +1351,11 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         } else {
             echo('<i class="fa fa-square-o text-danger" aria-hidden="true"></i>');
         }
-        echo('</span><span class="assignments-title">'.htmlspecialchars($title).'</span>');
+        echo('</span>');
+        echo('<span class="assignments-title-row">');
+        echo('<span class="assignments-title">'.htmlspecialchars($title).'</span>');
+        $this->echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates);
+        echo('</span>');
         if ( isset($allgrades[$resource_link_id]) ) {
             $datestring = U::get($alldates, $resource_link_id, "");
             if ( strlen($datestring) > 0 ) {
@@ -1328,7 +1368,178 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         echo('</li>');
     }
 
-    public function renderAssignments($allgrades, $alldates, $buffer=false)
+    /**
+     * Shared CSS for due badges (assignments list + single-module LTI rows).
+     * TODO: Refactor into tsugi-static once layout is stable.
+     */
+    private function getDueDateBadgeCssShared() {
+        return '
+.assignments-item .assignments-due-badge,
+.tsugi-lessons-module-lti .assignments-due-badge {
+  display: inline-block;
+  vertical-align: baseline;
+  margin-left: 0.5rem;
+  padding: 0.2em 0.55em;
+  border-radius: 0.35rem;
+  font-size: 0.8em;
+  font-weight: 600;
+  line-height: 1.25;
+  border: 1px solid transparent;
+}
+.tsugi-lessons-module-lti .assignments-due-badge { vertical-align: middle; }
+.assignments-item .assignments-due-state,
+.tsugi-lessons-module-lti .assignments-due-state {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.95em;
+}
+.assignments-item .assignments-due-detail,
+.tsugi-lessons-module-lti .assignments-due-detail { font-weight: 500; }
+.assignments-item .assignments-due-lbl,
+.tsugi-lessons-module-lti .assignments-due-lbl { font-weight: 600; }
+.assignments-item .assignments-due--completed,
+.assignments-item .assignments-due--future,
+.tsugi-lessons-module-lti .assignments-due--completed,
+.tsugi-lessons-module-lti .assignments-due--future {
+  background: #d4edda;
+  color: #155724;
+  border-color: #b8dabc;
+}
+.assignments-item .assignments-due--past,
+.tsugi-lessons-module-lti .assignments-due--past {
+  background: #f8d7da;
+  color: #721c24;
+  border-color: #f1bfc4;
+}
+.assignments-item .assignments-due--soon,
+.tsugi-lessons-module-lti .assignments-due--soon {
+  background: #fff3cd;
+  color: #856404;
+  border-color: #ffeaa7;
+}
+.assignments-item .assignments-due--neutral,
+.tsugi-lessons-module-lti .assignments-due--neutral {
+  background: #e9ecef;
+  color: #495057;
+  border-color: #dee2e6;
+}
+';
+    }
+
+    /**
+     * Due badge markup for one resource link (assignments page or module LTI line).
+     *
+     * @param array<string,array<string,mixed>> $duedates
+     * @param array<string,float> $allgrades
+     */
+    private function echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates) {
+        if ( $resource_link_id === '' || $resource_link_id === null ) {
+            return;
+        }
+        if ( ! isset($duedates[$resource_link_id]) || ! is_array($duedates[$resource_link_id]) ) {
+            return;
+        }
+        $end = U::get($duedates[$resource_link_id], 'end_datetime');
+        if ( ! U::isNotEmpty($end) ) {
+            return;
+        }
+        $t = strtotime($end);
+        $dateDisp = $t ? date('M j, Y', $t) : $end;
+        $mod = $this->assignmentsDueBadgeModifier($resource_link_id, $end, $allgrades);
+        $stateText = $this->assignmentsDueStateVisibleLabel($mod);
+        echo('<span class="assignments-due assignments-due-badge '.$mod.'">');
+        echo('<span class="assignments-due-state">'.htmlspecialchars($stateText).'</span>');
+        echo(' <span class="assignments-due-detail"><span class="assignments-due-lbl">'.__('Due').'</span> ');
+        echo(htmlspecialchars($dateDisp).'</span>');
+        echo('</span>');
+    }
+
+    /**
+     * Short visible label for due badge state (must not rely on color alone for accessibility).
+     */
+    private function assignmentsDueStateVisibleLabel($mod) {
+        switch ( $mod ) {
+            case 'assignments-due--completed':
+                return __('Completed');
+            case 'assignments-due--past':
+                return __('Late');
+            case 'assignments-due--soon':
+                return __('Due soon');
+            case 'assignments-due--future':
+                return __('Upcoming');
+            default:
+                return __('Due date');
+        }
+    }
+
+    /**
+     * CSS modifier for due-date badge on assignments list (completed / past / soon / future).
+     */
+    private function assignmentsDueBadgeModifier($resource_link_id, $end, $allgrades) {
+        $completed = isset($allgrades[$resource_link_id]) && $allgrades[$resource_link_id] > 0.8;
+        if ( $completed ) {
+            return 'assignments-due--completed';
+        }
+        $dueTs = strtotime($end);
+        if ( $dueTs === false ) {
+            return 'assignments-due--neutral';
+        }
+        $now = time();
+        if ( $now > $dueTs ) {
+            return 'assignments-due--past';
+        }
+        $sevenDays = 7 * 86400;
+        if ( ($dueTs - $now) <= $sevenDays ) {
+            return 'assignments-due--soon';
+        }
+        return 'assignments-due--future';
+    }
+
+    /**
+     * LTI assignment rows for the same modules shown on the assignments list (items array or legacy lti).
+     *
+     * @return array[] Each element: module_index, module_title, module_anchor, item_title, resource_link_id
+     */
+    public function enumerateLtiAssignmentItems() {
+        $list = array();
+        foreach ( $this->lessons->modules as $modIndex => $module ) {
+            if ( isset($module->items) ) {
+                foreach ( $module->items as $item ) {
+                    if ( ! isset($item->type) || $item->type != 'lti' || ! isset($item->resource_link_id) ) {
+                        continue;
+                    }
+                    $list[] = array(
+                        'module_index' => (int) $modIndex,
+                        'module_title' => $module->title,
+                        'module_anchor' => isset($module->anchor) ? $module->anchor : '',
+                        'item_title' => isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'),
+                        'resource_link_id' => $item->resource_link_id,
+                    );
+                }
+            } else if ( isset($module->lti) ) {
+                $ltis = $module->lti;
+                if ( ! is_array($ltis) ) {
+                    $ltis = array($ltis);
+                }
+                foreach ( $ltis as $lti ) {
+                    if ( ! isset($lti->resource_link_id) ) {
+                        continue;
+                    }
+                    $list[] = array(
+                        'module_index' => (int) $modIndex,
+                        'module_title' => $module->title,
+                        'module_anchor' => isset($module->anchor) ? $module->anchor : '',
+                        'item_title' => $lti->title,
+                        'resource_link_id' => $lti->resource_link_id,
+                    );
+                }
+            }
+        }
+        return $list;
+    }
+
+    public function renderAssignments($allgrades, $alldates, $buffer=false, $duedates=array())
     {
         ob_start();
         echo('<h1>'.$this->lessons->title."</h1>\n");
@@ -1344,6 +1555,17 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             $sig = md5("42 ".$output);
             echo(" | ".substr($sig,0,5)."</p>\n");
         }
+        // TODO: Refactor assignments list CSS below into tsugi-static (compiled/bundled stylesheet) once layout is stable.
+        echo('<style>
+.assignments-items { width: 100%; max-width: 100%; margin: 0; padding-left: 1.25rem; box-sizing: border-box; }
+.assignments-item { display: flex; flex-direction: row; align-items: baseline; width: 100%; max-width: 100%; gap: 0.5rem; box-sizing: border-box; }
+.assignments-item .assignments-status { flex: 0 0 auto; }
+/* Title + due share one flow (inline); this cell grows so margin-left:auto on score hits the right edge */
+.assignments-item .assignments-title-row { flex: 1 1 auto; min-width: 0; text-align: left; }
+.assignments-item .assignments-title { vertical-align: baseline; }
+.assignments-item .assignments-score { flex: 0 0 auto; text-align: right; margin-left: auto; min-width: 6.5rem; }
+'.$this->getDueDateBadgeCssShared().'
+</style>'."\n");
         echo('<ul class="assignments-progress-list" role="list">'."\n");
         foreach($this->lessons->modules as $module) {
             // Items array takes precedence - check items first
@@ -1369,7 +1591,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             if ( isset($module->items) ) {
                 foreach($module->items as $item) {
                     if ( !isset($item->type) || $item->type != 'lti' || !isset($item->resource_link_id) ) continue;
-                    $this->renderAssignmentItem($item->resource_link_id, isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'), $allgrades, $alldates);
+                    $this->renderAssignmentItem($item->resource_link_id, isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'), $allgrades, $alldates, $duedates);
                 }
             } else {
                 // Process legacy lti array only if items is not present
@@ -1378,7 +1600,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                     if ( ! is_array($ltis) ) $ltis = array($ltis);
                     foreach($ltis as $lti) {
                         if ( !isset($lti->resource_link_id) ) continue;
-                        $this->renderAssignmentItem($lti->resource_link_id, $lti->title, $allgrades, $alldates);
+                        $this->renderAssignmentItem($lti->resource_link_id, $lti->title, $allgrades, $alldates, $duedates);
                     }
                 }
             }
@@ -2264,7 +2486,9 @@ $(function(){
             if ( $target == "_blank" ) echo(' target="_blank" rel="noopener noreferrer" onclick="alert(\'Link will open in a new browser tab...\');" ');
             echo(' href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
             self::renderItemIcon('lti');
-            echo(htmlentities($title).'</a></li>'."\n");
+            echo(htmlentities($title).'</a>');
+            $this->echoDueDateBadgeForResourceLink($resource_link_id, $this->lessonModuleGradesForBadges, $this->lessonModuleDueDatesForBadges);
+            echo('</li>'."\n");
         }
     }
 
