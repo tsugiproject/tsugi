@@ -206,7 +206,12 @@ class Assignments extends Tool {
             echo('</td>');
             echo('<td>');
             if ( $hasRow ) {
-                echo('<input type="date" class="form-control" name="end[]" value="'.htmlspecialchars($endVal).'">');
+                $dueAria = sprintf(
+                    __('Due date for %1$s (resource link %2$s)'),
+                    $it['item_title'],
+                    $rlid
+                );
+                echo('<input type="date" class="form-control" name="end[]" value="'.htmlspecialchars($endVal).'" aria-label="'.htmlspecialchars($dueAria, ENT_QUOTES, 'UTF-8').'">');
                 echo('<input type="hidden" name="rlid[]" value="'.htmlspecialchars($rlid).'">');
             } else {
                 echo('<span class="text-muted">—</span>');
