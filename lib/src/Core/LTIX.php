@@ -1221,9 +1221,6 @@ class LTIX {
         $LTI13 = $issuer_key !== false;
         $for_user_subject = U::get($post, "for_user_subject", false);
 
-        // TODO: Remove this some time after 2024-07-30
-        $PDOX->insureColumnExists("{$CFG->dbprefix}lti_context", "lti13_context_groups_url", "TEXT NULL");
-
         if ( $LTI13 ) {
             $sql = "SELECT i.issuer_id, i.issuer_key, i.issuer_client, i.lti13_kid, i.lti13_keyset_url, i.lti13_keyset,
                 i.lti13_platform_pubkey, i.lti13_token_url, i.lti13_token_audience,
