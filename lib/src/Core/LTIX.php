@@ -2089,6 +2089,8 @@ class LTIX {
             $TSUGI_LAUNCH = new \Tsugi\Core\Launch();
         }
 
+        $TSUGI_LAUNCH->membership = null;
+
         // Populate the $USER $CONTEXT and $LINK objects
         if ( isset($LTI['user_id']) && ! is_object($USER) ) {
             $USER = new \Tsugi\Core\User();
@@ -2110,6 +2112,16 @@ class LTIX {
             $USER->instructor = isset($LTI['role']) && $LTI['role'] != 0 ;
             $USER->admin = isset($LTI['role']) && $LTI['role'] >= self::ROLE_ADMINISTRATOR;
             $TSUGI_LAUNCH->user = $USER;
+
+            $MEMBERSHIP = new \Tsugi\Core\Membership();
+            $MEMBERSHIP->launch = $TSUGI_LAUNCH;
+            if ( isset($LTI['membership_id']) ) {
+                $MEMBERSHIP->id = $LTI['membership_id'] + 0;
+            }
+            if ( isset($LTI['role']) ) {
+                $MEMBERSHIP->role = $LTI['role'] + 0;
+            }
+            $TSUGI_LAUNCH->membership = $MEMBERSHIP;
         }
 
         $TSUGI_LAUNCH->for_user = null;
@@ -2683,7 +2695,7 @@ class LTIX {
                 U.user_id AS user_id, U.user_key AS user_key,
                 U.displayname AS displayname, U.email AS email, U.image AS user_image,
                 P.displayname AS p_displayname, P.email AS p_email, P.image AS p_user_image,
-                role, C.context_key, C.context_id AS context_id,
+                M.membership_id AS membership_id, M.role AS role, C.context_key, C.context_id AS context_id,
                 C.title AS context_title, C.title AS resource_title,
                 K.key_id, K.key_key, K.secret, K.new_secret,
                 NULL AS nonce

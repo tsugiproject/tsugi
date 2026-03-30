@@ -35,6 +35,11 @@ class Launch {
     public $context;
 
     /**
+     * Get the launching user's Membership in the current context, when known.
+     */
+    public $membership;
+
+    /**
      * Get the Link associated with the launch.
      */
     public $link;

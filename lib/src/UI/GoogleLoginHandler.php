@@ -390,6 +390,17 @@ class GoogleLoginHandler {
         $_SESSION['isinstructor'] = $is_instructor;
         $lti['role'] = $is_instructor ? LTIX::ROLE_INSTRUCTOR : LTIX::ROLE_LEARNER;
 
+        if ( $context_id !== false && $user_id >= 1 ) {
+            $mrow = $PDOX->rowDie(
+                "SELECT membership_id FROM {$CFG->dbprefix}lti_membership
+                 WHERE context_id = :CID AND user_id = :UID LIMIT 1",
+                array(':CID' => $context_id, ':UID' => $user_id)
+            );
+            if ( is_array($mrow) && isset($mrow['membership_id']) ) {
+                $lti['membership_id'] = $mrow['membership_id'] + 0;
+            }
+        }
+
         $_SESSION[TSUGI_SESSION_LTI] = $lti;
         LTIX::noteLoggedIn($lti);
         SecureCookie::set($user_id, $userEmail, $context_id);
