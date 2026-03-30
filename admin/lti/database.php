@@ -289,6 +289,8 @@ array( "{$CFG->dbprefix}lti_context",
     login_count         BIGINT DEFAULT 0,
     login_time          BIGINT DEFAULT 0,
 
+    viewDueDates        TINYINT(1) NOT NULL DEFAULT 1,
+
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
@@ -377,6 +379,8 @@ array( "{$CFG->dbprefix}lti_membership",
 
     role                SMALLINT NULL,
     role_override       SMALLINT NULL,
+
+    viewDueDates        TINYINT(1) NOT NULL DEFAULT 1,
 
     json                MEDIUMTEXT NULL,
 
@@ -799,6 +803,10 @@ $DATABASE_UPGRADE = function($oldversion) {
         // 2025-03-11 AGS LineItem due dates (startDateTime/endDateTime)
         array('lti_link', 'start_datetime', 'TIMESTAMP NULL'),
         array('lti_link', 'end_datetime', 'TIMESTAMP NULL'),
+
+        // 2026-03-29 Per-context and per-membership visibility for due dates (existing rows default to on)
+        array('lti_context', 'viewDueDates', 'TINYINT(1) NOT NULL DEFAULT 1'),
+        array('lti_membership', 'viewDueDates', 'TINYINT(1) NOT NULL DEFAULT 1'),
     );
 
     foreach ( $add_some_fields as $add_field ) {

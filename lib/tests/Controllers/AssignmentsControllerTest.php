@@ -66,15 +66,29 @@ class AssignmentsControllerTest extends \PHPUnit\Framework\TestCase
             $uris[] = $route['uri'];
         }
         
-        // Should have /assignments route
+        // Should have /assignments and manage-due-dates routes
         $hasAssignmentsRoute = false;
+        $hasManageDueDates = false;
+        $hasAddLinkRows = false;
+        $hasApplyWeekly = false;
         foreach ($uris as $uri) {
-            if (strpos($uri, '/assignments') === 0) {
+            if (strpos($uri, '/assignments/manage-due-dates/apply-weekly') === 0) {
+                $hasApplyWeekly = true;
+            }
+            if (strpos($uri, '/assignments/manage-due-dates/add-link-rows') === 0) {
+                $hasAddLinkRows = true;
+            }
+            if (strpos($uri, '/assignments/manage-due-dates') === 0) {
+                $hasManageDueDates = true;
+            }
+            if ($uri === '/assignments' || $uri === '/assignments/') {
                 $hasAssignmentsRoute = true;
-                break;
             }
         }
         $this->assertTrue($hasAssignmentsRoute, 'Should register /assignments route');
+        $this->assertTrue($hasManageDueDates, 'Should register /assignments/manage-due-dates route');
+        $this->assertTrue($hasAddLinkRows, 'Should register /assignments/manage-due-dates/add-link-rows route');
+        $this->assertTrue($hasApplyWeekly, 'Should register /assignments/manage-due-dates/apply-weekly route');
     }
     
     /**
