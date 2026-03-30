@@ -89,8 +89,6 @@ class Lessons {
       z-index: 100;
 }
 
-<?php echo $this->getDueDateBadgeCssShared(); ?>
-
 /* Indent content lists that follow h2 headers */
 /* Target ul elements that come after h2 in the same container */
 h2 ~ ul.tsugi-lessons-content-list,
@@ -647,15 +645,15 @@ ul.pager.tsugi-lessons-pager > li:last-child {
      */
     private function dueModifierWorstRank($mod) {
         switch ( $mod ) {
-            case 'assignments-due--past':
+            case 'tsugi-assignments-due-past':
                 return 40;
-            case 'assignments-due--soon':
+            case 'tsugi-assignments-due-soon':
                 return 30;
-            case 'assignments-due--neutral':
+            case 'tsugi-assignments-due-neutral':
                 return 25;
-            case 'assignments-due--future':
+            case 'tsugi-assignments-due-future':
                 return 20;
-            case 'assignments-due--completed':
+            case 'tsugi-assignments-due-completed':
                 return 10;
             default:
                 return 0;
@@ -743,7 +741,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             }
             return;
         }
-        if ( $rollup['modifier'] === 'assignments-due--future' ) {
+        if ( $rollup['modifier'] === 'tsugi-assignments-due-future' ) {
             if ( $percent > 0 ) {
                 echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
                 return;
@@ -761,10 +759,10 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             $a11yExtras = ' title="'.htmlspecialchars($tip, ENT_QUOTES, 'UTF-8').'" aria-label="'.
                 htmlspecialchars($label, ENT_QUOTES, 'UTF-8').'"';
         }
-        echo('<span class="assignments-due assignments-due-badge '.$rollup['modifier'].'"'.$a11yExtras.'>');
-        echo('<span class="assignments-due-state">'.htmlspecialchars($stateText).'</span>');
+        echo('<span class="tsugi-assignments-due tsugi-assignments-due-badge '.$rollup['modifier'].'"'.$a11yExtras.'>');
+        echo('<span class="tsugi-assignments-due-state">'.htmlspecialchars($stateText).'</span>');
         if ( $show_rollup_due_date ) {
-            echo(' <span class="assignments-due-detail"><span class="assignments-due-lbl">'.__('Due').'</span> ');
+            echo(' <span class="tsugi-assignments-due-detail"><span class="tsugi-assignments-due-lbl">'.__('Due').'</span> ');
             echo(htmlspecialchars($rollup['date_disp']).'</span>');
         }
         echo('</span>');
@@ -795,14 +793,14 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             return '';
         }
         switch ( $rollup['modifier'] ) {
-            case 'assignments-due--past':
+            case 'tsugi-assignments-due-past':
                 return 'color: #b02a37;';
-            case 'assignments-due--soon':
+            case 'tsugi-assignments-due-soon':
                 return 'color: #856404;';
-            case 'assignments-due--future':
-            case 'assignments-due--completed':
+            case 'tsugi-assignments-due-future':
+            case 'tsugi-assignments-due-completed':
                 return 'color: #155724;';
-            case 'assignments-due--neutral':
+            case 'tsugi-assignments-due-neutral':
             default:
                 return 'color: #6c757d;';
         }
@@ -1443,7 +1441,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             $rollupForIcon = null;
             if ( $hasDueMode && $percent < 100 ) {
                 $rollupForIcon = $this->moduleWorstDueRollup($rlids, $allgrades, $duedates);
-                if ( $rollupForIcon !== null && $rollupForIcon['modifier'] === 'assignments-due--future' ) {
+                if ( $rollupForIcon !== null && $rollupForIcon['modifier'] === 'tsugi-assignments-due-future' ) {
                     $rollupForIcon = null;
                 }
             }
@@ -1481,8 +1479,8 @@ ul.pager.tsugi-lessons-pager > li:last-child {
     }
 
     private function renderAssignmentItem($resource_link_id, $title, $allgrades, $alldates, $duedates = array()) {
-        echo('<li class="assignments-item">');
-        echo('<span class="assignments-status">');
+        echo('<li class="tsugi-assignments-item">');
+        echo('<span class="tsugi-assignments-status">');
         if ( isset($allgrades[$resource_link_id]) ) {
             if ( $allgrades[$resource_link_id] > 0.8 ) {
                 echo('<i class="fa fa-check-square-o text-success" aria-hidden="true"></i>');
@@ -1493,8 +1491,8 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             echo('<i class="fa fa-square-o text-danger" aria-hidden="true"></i>');
         }
         echo('</span>');
-        echo('<span class="assignments-title-row">');
-        echo('<span class="assignments-title">'.htmlspecialchars($title).'</span>');
+        echo('<span class="tsugi-assignments-title-row">');
+        echo('<span class="tsugi-assignments-title">'.htmlspecialchars($title).'</span>');
         $this->echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates);
         echo('</span>');
         if ( isset($allgrades[$resource_link_id]) ) {
@@ -1502,115 +1500,11 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             if ( strlen($datestring) > 0 ) {
                 $datestring = " (".substr($datestring,0,10).")";
             }
-            echo('<span class="assignments-score">Score: '.(100*$allgrades[$resource_link_id]).$datestring.'</span>');
+            echo('<span class="tsugi-assignments-score">Score: '.(100*$allgrades[$resource_link_id]).$datestring.'</span>');
         } else {
-            echo('<span class="assignments-score">&nbsp;</span>');
+            echo('<span class="tsugi-assignments-score">&nbsp;</span>');
         }
         echo('</li>');
-    }
-
-    /**
-     * Progress + due badges: one scale and pill style for assignments list, module cards, title, and LTI rows.
-     * Injected from Lessons::header() and renderAssignments(). TODO: tsugi-static when stable.
-     */
-    private function getDueDateBadgeCssShared() {
-        return '
-/* Shared shell: same font, padding, radius everywhere (0.875rem meets small-text checks) */
-.assignments-item .assignments-due-badge,
-.tsugi-lessons-module-card-link .assignments-due-badge,
-.tsugi-lessons-module-title-cardmatch .assignments-due-badge,
-.tsugi-lessons-module-lti .assignments-due-badge {
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 0.5rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 0.35rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.35;
-  border: 1px solid transparent;
-  box-sizing: border-box;
-}
-/* Progress % on module cards + single-module title: match due pill shell; tint + dark text like due badges */
-.tsugi-lessons-module-card-link .progress-badge,
-.tsugi-lessons-module-title-cardmatch .progress-badge {
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 0.5rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 0.35rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.35;
-  border: 1px solid transparent;
-  box-sizing: border-box;
-}
-.tsugi-lessons-module-card-link .progress-badge-check,
-.tsugi-lessons-module-title-cardmatch .progress-badge-check {
-  background: #d4edda;
-  color: #155724;
-  border-color: #b8dabc;
-}
-.tsugi-lessons-module-card-link .progress-badge-percent,
-.tsugi-lessons-module-title-cardmatch .progress-badge-percent {
-  background: #cfe2ff;
-  color: #084298;
-  border-color: #9ec5fe;
-}
-.assignments-item .assignments-due-state,
-.tsugi-lessons-module-lti .assignments-due-state,
-.tsugi-lessons-module-card-link .assignments-due-state,
-.tsugi-lessons-module-title-cardmatch .assignments-due-state {
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  font-size: 1em;
-}
-.assignments-item .assignments-due-detail,
-.tsugi-lessons-module-lti .assignments-due-detail,
-.tsugi-lessons-module-card-link .assignments-due-detail,
-.tsugi-lessons-module-title-cardmatch .assignments-due-detail { font-weight: 500; font-size: 1em; }
-.assignments-item .assignments-due-lbl,
-.tsugi-lessons-module-lti .assignments-due-lbl,
-.tsugi-lessons-module-card-link .assignments-due-lbl,
-.tsugi-lessons-module-title-cardmatch .assignments-due-lbl { font-weight: 600; }
-.assignments-item .assignments-due--completed,
-.assignments-item .assignments-due--future,
-.tsugi-lessons-module-lti .assignments-due--completed,
-.tsugi-lessons-module-lti .assignments-due--future,
-.tsugi-lessons-module-card-link .assignments-due--completed,
-.tsugi-lessons-module-card-link .assignments-due--future,
-.tsugi-lessons-module-title-cardmatch .assignments-due--completed,
-.tsugi-lessons-module-title-cardmatch .assignments-due--future {
-  background: #d4edda;
-  color: #155724;
-  border-color: #b8dabc;
-}
-.assignments-item .assignments-due--past,
-.tsugi-lessons-module-lti .assignments-due--past,
-.tsugi-lessons-module-card-link .assignments-due--past,
-.tsugi-lessons-module-title-cardmatch .assignments-due--past {
-  background: #f8d7da;
-  color: #721c24;
-  border-color: #f1bfc4;
-}
-.assignments-item .assignments-due--soon,
-.tsugi-lessons-module-lti .assignments-due--soon,
-.tsugi-lessons-module-card-link .assignments-due--soon,
-.tsugi-lessons-module-title-cardmatch .assignments-due--soon {
-  background: #fff3cd;
-  color: #856404;
-  border-color: #ffeaa7;
-}
-.assignments-item .assignments-due--neutral,
-.tsugi-lessons-module-lti .assignments-due--neutral,
-.tsugi-lessons-module-card-link .assignments-due--neutral,
-.tsugi-lessons-module-title-cardmatch .assignments-due--neutral {
-  background: #e9ecef;
-  color: #495057;
-  border-color: #dee2e6;
-}
-';
     }
 
     /**
@@ -1634,9 +1528,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         $dateDisp = $t ? date('M j, Y', $t) : $end;
         $mod = $this->assignmentsDueBadgeModifier($resource_link_id, $end, $allgrades);
         $stateText = $this->assignmentsDueStateVisibleLabel($mod);
-        echo('<span class="assignments-due assignments-due-badge '.$mod.'">');
-        echo('<span class="assignments-due-state">'.htmlspecialchars($stateText).'</span>');
-        echo(' <span class="assignments-due-detail"><span class="assignments-due-lbl">'.__('Due').'</span> ');
+        echo('<span class="tsugi-assignments-due tsugi-assignments-due-badge '.$mod.'">');
+        echo('<span class="tsugi-assignments-due-state">'.htmlspecialchars($stateText).'</span>');
+        echo(' <span class="tsugi-assignments-due-detail"><span class="tsugi-assignments-due-lbl">'.__('Due').'</span> ');
         echo(htmlspecialchars($dateDisp).'</span>');
         echo('</span>');
     }
@@ -1646,13 +1540,13 @@ ul.pager.tsugi-lessons-pager > li:last-child {
      */
     private function assignmentsDueStateVisibleLabel($mod) {
         switch ( $mod ) {
-            case 'assignments-due--completed':
+            case 'tsugi-assignments-due-completed':
                 return __('Completed');
-            case 'assignments-due--past':
+            case 'tsugi-assignments-due-past':
                 return __('Late');
-            case 'assignments-due--soon':
+            case 'tsugi-assignments-due-soon':
                 return __('Due soon');
-            case 'assignments-due--future':
+            case 'tsugi-assignments-due-future':
                 return __('Upcoming');
             default:
                 return __('Due date');
@@ -1665,21 +1559,21 @@ ul.pager.tsugi-lessons-pager > li:last-child {
     private function assignmentsDueBadgeModifier($resource_link_id, $end, $allgrades) {
         $completed = isset($allgrades[$resource_link_id]) && $allgrades[$resource_link_id] > 0.8;
         if ( $completed ) {
-            return 'assignments-due--completed';
+            return 'tsugi-assignments-due-completed';
         }
         $dueTs = strtotime($end);
         if ( $dueTs === false ) {
-            return 'assignments-due--neutral';
+            return 'tsugi-assignments-due-neutral';
         }
         $now = time();
         if ( $now > $dueTs ) {
-            return 'assignments-due--past';
+            return 'tsugi-assignments-due-past';
         }
         $sevenDays = 7 * 86400;
         if ( ($dueTs - $now) <= $sevenDays ) {
-            return 'assignments-due--soon';
+            return 'tsugi-assignments-due-soon';
         }
-        return 'assignments-due--future';
+        return 'tsugi-assignments-due-future';
     }
 
     /**
@@ -1741,18 +1635,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             $sig = md5("42 ".$output);
             echo(" | ".substr($sig,0,5)."</p>\n");
         }
-        // TODO: Refactor assignments list CSS below into tsugi-static (compiled/bundled stylesheet) once layout is stable.
-        echo('<style>
-.assignments-items { width: 100%; max-width: 100%; margin: 0; padding-left: 1.25rem; box-sizing: border-box; }
-.assignments-item { display: flex; flex-direction: row; align-items: baseline; width: 100%; max-width: 100%; gap: 0.5rem; box-sizing: border-box; }
-.assignments-item .assignments-status { flex: 0 0 auto; }
-/* Title + due share one flow (inline); this cell grows so margin-left:auto on score hits the right edge */
-.assignments-item .assignments-title-row { flex: 1 1 auto; min-width: 0; text-align: left; }
-.assignments-item .assignments-title { vertical-align: baseline; }
-.assignments-item .assignments-score { flex: 0 0 auto; text-align: right; margin-left: auto; min-width: 6.5rem; }
-'.$this->getDueDateBadgeCssShared().'
-</style>'."\n");
-        echo('<ul class="assignments-progress-list" role="list">'."\n");
+        echo('<ul class="tsugi-assignments-progress-list" role="list">'."\n");
         foreach($this->lessons->modules as $module) {
             // Items array takes precedence - check items first
             $has_assignments = false;
@@ -1769,9 +1652,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             if ( !$has_assignments ) continue;
             
             $href = U::get_rest_parent() . '/lessons/' . urlencode($module->anchor);
-            echo('<li class="assignments-module">');
-            echo('<a href="'.$href.'" class="assignments-module-link">'.htmlspecialchars($module->title).'</a>');
-            echo('<ul class="assignments-items" role="list">');
+            echo('<li class="tsugi-assignments-module">');
+            echo('<a href="'.$href.'" class="tsugi-assignments-module-link">'.htmlspecialchars($module->title).'</a>');
+            echo('<ul class="tsugi-assignments-items" role="list">');
             
             // Process items array first (takes precedence)
             if ( isset($module->items) ) {
