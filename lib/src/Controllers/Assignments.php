@@ -19,6 +19,8 @@ class Assignments extends Tool {
         $app->router->post($prefix.'/manage-due-dates/add-link-rows/', 'Assignments@addMissingLinkRowsPost');
         $app->router->post($prefix.'/manage-due-dates/apply-weekly', 'Assignments@applyWeeklyDueDatesPost');
         $app->router->post($prefix.'/manage-due-dates/apply-weekly/', 'Assignments@applyWeeklyDueDatesPost');
+        $app->router->post($prefix.'/manage-due-dates/clear-all', 'Assignments@clearAllDueDatesPost');
+        $app->router->post($prefix.'/manage-due-dates/clear-all/', 'Assignments@clearAllDueDatesPost');
         $app->router->post($prefix.'/manage-due-dates', 'Assignments@manageDueDatesPost');
         $app->router->post($prefix.'/manage-due-dates/', 'Assignments@manageDueDatesPost');
         $app->router->get($prefix, 'Assignments@get');
@@ -171,6 +173,18 @@ class Assignments extends Tool {
         echo('<p class="text-muted" style="margin-top:0.75em;margin-bottom:0;">'.__('Only assignments that already have an LTI link row in this course are updated; add link rows first if needed.').'</p>');
         echo('</div>');
 
+        $clearAllAction = U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates/clear-all');
+        echo('<div class="well" style="margin-bottom:1.5em;">');
+        echo('<p><strong>'.__('Clear all due dates').'</strong></p>');
+        echo('<p>'.__('Sets due date to empty for every lesson assignment that has an LTI link row in this course.').'</p>');
+        echo('<form method="post" action="'.htmlspecialchars($clearAllAction).'" onsubmit=\'return confirm('.
+            json_encode(__('Remove all due dates for lesson assignments in this course?')).');\'>');
+        echo('<button type="submit" class="btn btn-warning">');
+        echo('<i class="fa fa-eraser" aria-hidden="true"></i> '.__('Clear all due dates'));
+        echo('</button>');
+        echo('</form>');
+        echo('</div>');
+
         echo('<form method="post" action="'.htmlspecialchars($action).'" class="table-responsive">'."\n");
         echo('<table class="table table-bordered table-striped">'."\n");
         echo('<thead><tr><th>'.__('Module').'</th><th>'.__('Assignment').'</th><th>'.__('Resource link').'</th><th>'.__('Due date').'</th></tr></thead>'."\n");
@@ -265,6 +279,47 @@ class Assignments extends Tool {
         }
 
         U::flashSuccess(__('Saved due dates.').' ('.$updated.' '.__('link row(s) updated').').');
+        return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
+    }
+
+    /**
+     * Set end_datetime to NULL for all enumerated lesson assignments that have a link row in this context.
+     */
+    public function clearAllDueDatesPost(Request $request)
+    {
+        global $CFG, $PDOX;
+
+        if ( ! isset($CFG->lessons) ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+        }
+        $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
+
+        $context_id = U::get($_SESSION, 'context_id');
+        $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        $allowed = array();
+        foreach ( $l->enumerateLtiAssignmentItems() as $it ) {
+            $allowed[$it['resource_link_id']] = true;
+        }
+
+        $p = $CFG->dbprefix;
+        $updated = 0;
+        foreach ( array_keys($allowed) as $rlid ) {
+            $stmt = $PDOX->queryReturnError(
+                "UPDATE {$p}lti_link SET end_datetime = NULL, updated_at = NOW()
+                 WHERE context_id = :CID AND link_key = :LK AND (deleted IS NULL OR deleted = 0)",
+                array(
+                    ':CID' => $context_id,
+                    ':LK' => $rlid,
+                )
+            );
+            if ( ! $stmt->success ) {
+                U::flashError(__('Could not clear due dates. Please try again.'));
+                return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
+            }
+            $updated += $stmt->rowCount();
+        }
+
+        U::flashSuccess(__('Cleared due dates.').' ('.$updated.' '.__('link row(s) updated').').');
         return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
     }
 

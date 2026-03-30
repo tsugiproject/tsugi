@@ -89,24 +89,7 @@ class Lessons {
       z-index: 100;
 }
 
-.progress-badge {
-    display: inline-block;
-    margin-left: 0.3em;
-    vertical-align: middle;
-    font-size: 0.75em;
-    line-height: 1;
-}
-
-.progress-badge-check {
-    display: inline-block;
-    background-color: #28a745;
-    color: white;
-    padding: 0.15em 0.4em;
-    border-radius: 0.25em;
-    font-weight: bold;
-    font-size: 0.85em;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-}
+<?php echo $this->getDueDateBadgeCssShared(); ?>
 
 /* Indent content lists that follow h2 headers */
 /* Target ul elements that come after h2 in the same container */
@@ -121,17 +104,6 @@ div:has(> h2) ul.tsugi-lessons-content-list,
 li:has(> h2) ul.tsugi-lessons-content-list {
     margin-left: 1.5em;
     padding-left: 0.5em;
-}
-
-.progress-badge-percent {
-    display: inline-block;
-    background-color: #0056b3;  /* Darker blue for WCAG 4.5:1 contrast with white */
-    color: white;
-    padding: 0.15em 0.4em;
-    border-radius: 0.25em;
-    font-weight: bold;
-    font-size: 0.85em;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 /* Single-module title bar uses floated icon/image like module cards */
@@ -652,28 +624,205 @@ ul.pager.tsugi-lessons-pager > li:last-child {
     }
 
     /**
-     * Single-module h1 matching the all-modules card header (icon tint, image, index:title, progress badge).
+     * True if any LTI in this module has end_datetime set in the current context.
+     *
+     * @param string[] $rlids
+     * @param array<string,array<string,mixed>> $duedates
      */
-    private function echoModuleTitleBarMatchingCard($module, $possible_points, $actual_points) {
-        $percent = 0;
-        if ( $possible_points > 0 ) {
-            $percent = (int) round(($actual_points / $possible_points) * 100);
+    private function moduleHasLtiDueDateInContext($rlids, $duedates) {
+        foreach ( $rlids as $rlid ) {
+            if ( ! isset($duedates[$rlid]) || ! is_array($duedates[$rlid]) ) {
+                continue;
+            }
+            $end = U::get($duedates[$rlid], 'end_datetime');
+            if ( U::isNotEmpty($end) ) {
+                return true;
+            }
         }
+        return false;
+    }
+
+    /**
+     * Higher = worse urgency for module rollup (matches per-assignment badge modifiers).
+     */
+    private function dueModifierWorstRank($mod) {
+        switch ( $mod ) {
+            case 'assignments-due--past':
+                return 40;
+            case 'assignments-due--soon':
+                return 30;
+            case 'assignments-due--neutral':
+                return 25;
+            case 'assignments-due--future':
+                return 20;
+            case 'assignments-due--completed':
+                return 10;
+            default:
+                return 0;
+        }
+    }
+
+    /**
+     * Worst due state among module LTI items that have an end_datetime (tie: earlier due wins).
+     *
+     * @param string[] $rlids
+     * @param array<string,float> $allgrades
+     * @param array<string,array<string,mixed>> $duedates
+     * @return array{modifier:string,end:string,date_disp:string}|null
+     */
+    private function moduleWorstDueRollup($rlids, $allgrades, $duedates) {
+        $best = null;
+        foreach ( $rlids as $rlid ) {
+            if ( ! isset($duedates[$rlid]) || ! is_array($duedates[$rlid]) ) {
+                continue;
+            }
+            $end = U::get($duedates[$rlid], 'end_datetime');
+            if ( ! U::isNotEmpty($end) ) {
+                continue;
+            }
+            $mod = $this->assignmentsDueBadgeModifier($rlid, $end, $allgrades);
+            $rank = $this->dueModifierWorstRank($mod);
+            $dueTs = strtotime($end);
+            if ( $best === null || $rank > $best['rank']
+                || ( $rank === $best['rank'] && $dueTs !== false && $best['due_ts'] !== false
+                    && $dueTs < $best['due_ts'] ) ) {
+                $t = $dueTs;
+                $dateDisp = $t ? date('M j, Y', $t) : $end;
+                $best = array(
+                    'modifier' => $mod,
+                    'end' => $end,
+                    'date_disp' => $dateDisp,
+                    'rank' => $rank,
+                    'due_ts' => $dueTs,
+                );
+            }
+        }
+        if ( $best === null ) {
+            return null;
+        }
+        return array(
+            'modifier' => $best['modifier'],
+            'end' => $best['end'],
+            'date_disp' => $best['date_disp'],
+        );
+    }
+
+    /**
+     * Progress or due rollup badge for module cards and single-module title (percent mode vs due mode).
+     *
+     * @param string[] $rlids
+     * @param array<string,float> $allgrades
+     * @param array<string,array<string,mixed>> $duedates
+     * @param bool $show_rollup_due_date If false (all-modules cards), status-only due badge (no date). Rollup Upcoming: show percent if above zero; at 0% cards show nothing, single-module title still shows upcoming due badge with date.
+     */
+    private function echoModuleAggregateProgressBadge($possible_points, $actual_points, $rlids, $allgrades, $duedates, $show_rollup_due_date = true) {
+        if ( $possible_points <= 0 ) {
+            return;
+        }
+        $percent = (int) round(($actual_points / $possible_points) * 100);
+        $hasDue = $this->moduleHasLtiDueDateInContext($rlids, $duedates);
+        if ( ! $hasDue ) {
+            if ( $percent == 0 ) {
+                return;
+            }
+            if ( $percent == 100 ) {
+                echo('<span class="progress-badge progress-badge-check" title="Complete: 100%">100%</span>');
+            } else {
+                echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
+            }
+            return;
+        }
+        if ( $percent == 100 ) {
+            echo('<span class="progress-badge progress-badge-check" title="Complete: 100%">100%</span>');
+            return;
+        }
+        $rollup = $this->moduleWorstDueRollup($rlids, $allgrades, $duedates);
+        if ( $rollup === null ) {
+            if ( $percent > 0 ) {
+                echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
+            }
+            return;
+        }
+        if ( $rollup['modifier'] === 'assignments-due--future' ) {
+            if ( $percent > 0 ) {
+                echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
+                return;
+            }
+            if ( ! $show_rollup_due_date ) {
+                return;
+            }
+            /* single-module title at 0%: fall through — show Upcoming + due date */
+        }
+        $stateText = $this->assignmentsDueStateVisibleLabel($rollup['modifier']);
+        $a11yExtras = '';
+        if ( ! $show_rollup_due_date ) {
+            $tip = __('Due').' '.$rollup['date_disp'];
+            $label = $stateText.'. '.$tip;
+            $a11yExtras = ' title="'.htmlspecialchars($tip, ENT_QUOTES, 'UTF-8').'" aria-label="'.
+                htmlspecialchars($label, ENT_QUOTES, 'UTF-8').'"';
+        }
+        echo('<span class="assignments-due assignments-due-badge '.$rollup['modifier'].'"'.$a11yExtras.'>');
+        echo('<span class="assignments-due-state">'.htmlspecialchars($stateText).'</span>');
+        if ( $show_rollup_due_date ) {
+            echo(' <span class="assignments-due-detail"><span class="assignments-due-lbl">'.__('Due').'</span> ');
+            echo(htmlspecialchars($rollup['date_disp']).'</span>');
+        }
+        echo('</span>');
+    }
+
+    /**
+     * Card icon color: percent mode uses blue/green; due mode uses rollup (100% stays green).
+     *
+     * @param array{modifier:string}|null $rollup from moduleWorstDueRollup when due mode and not 100%
+     */
+    private function moduleCardIconColorStyle($percent, $hasDueMode, $rollup) {
+        if ( ! $hasDueMode ) {
+            if ( $percent == 100 ) {
+                return 'color: #155724;';
+            }
+            if ( $percent > 0 && $percent < 100 ) {
+                return 'color: #084298;';
+            }
+            return '';
+        }
+        if ( $percent == 100 ) {
+            return 'color: #155724;';
+        }
+        if ( $rollup === null ) {
+            if ( $percent > 0 && $percent < 100 ) {
+                return 'color: #084298;';
+            }
+            return '';
+        }
+        switch ( $rollup['modifier'] ) {
+            case 'assignments-due--past':
+                return 'color: #b02a37;';
+            case 'assignments-due--soon':
+                return 'color: #856404;';
+            case 'assignments-due--future':
+            case 'assignments-due--completed':
+                return 'color: #155724;';
+            case 'assignments-due--neutral':
+            default:
+                return 'color: #6c757d;';
+        }
+    }
+
+    /**
+     * Single-module h1 matching the all-modules card header (image, index:title, progress or due rollup badge).
+     */
+    private function echoModuleTitleBarMatchingCard($module, $allgrades, $duedates) {
+        $modProgress = $this->moduleLtiProgressPoints($module, $allgrades);
+        $possible_points = $modProgress[0];
+        $actual_points = $modProgress[1];
+        $rlids = $modProgress[2];
         echo('<h1 property="oer:name" class="tsugi-lessons-module-title tsugi-lessons-module-title-cardmatch">');
         if ( isset($module->image) ) {
             echo('<img class="tsugi-all-modules-image-icon" aria-hidden="true" style="float: left; width: 2em; padding-right: 5px;" src="'.self::expandLink($module->image).'">');
         }
         $title_line = $this->position . ': ' . $module->title;
         echo(htmlentities($title_line));
-        if ( $possible_points > 0 ) {
-            if ( $percent == 0 ) {
-                // No badge for 0% (same as module cards)
-            } else if ( $percent == 100 ) {
-                echo('<span class="progress-badge progress-badge-check" title="Complete: 100%">100%</span>');
-            } else {
-                echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
-            }
-        }
+        $this->echoModuleAggregateProgressBadge($possible_points, $actual_points, $rlids, $allgrades, $duedates);
         echo("</h1>\n");
         if ( isset($module->image) ) {
             echo('<div class="tsugi-lessons-module-title-clearfix" style="clear:both;"></div>'."\n");
@@ -721,11 +870,6 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         if ( isset($_SESSION['context_id']) ) {
             $this->lessonModuleDueDatesForBadges = GradeUtil::loadDueDatesForContext($_SESSION['context_id']);
         }
-        echo('<style>'.$this->getDueDateBadgeCssShared().'</style>'."\n");
-
-        $modProgress = $this->moduleLtiProgressPoints($module, $allgrades);
-        $possible_points = $modProgress[0];
-        $actual_points = $modProgress[1];
 
 	if ( $nostyle && isset($_SESSION['gc_count']) ) {
 ?>
@@ -758,7 +902,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 echo('<li class="next"><a href="'.$next.'">&rarr; '.__('Next').'</a></li>'."\n");
             }
             echo("</ul></div>\n");
-            $this->echoModuleTitleBarMatchingCard($module, $possible_points, $actual_points);
+            $this->echoModuleTitleBarMatchingCard($module, $allgrades, $this->lessonModuleDueDatesForBadges);
             $lessonurl = $CFG->apphome . U::get_rest_path();
             if ( $nostyle ) {
                 self::nostyleUrl($module->title, $lessonurl);
@@ -1271,6 +1415,10 @@ ul.pager.tsugi-lessons-pager > li:last-child {
              }
          }
 
+        $duedates = array();
+        if ( isset($_SESSION['context_id']) ) {
+            $duedates = GradeUtil::loadDueDatesForContext($_SESSION['context_id']);
+        }
 
         echo('<div typeof="Course">'."\n");
         echo('<h1>'.$this->lessons->title."</h1>\n");
@@ -1289,7 +1437,15 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             $count++;
             $percent = 0;
             if ( $possible_points > 0 ) {
-                $percent = round(($actual_points / $possible_points)*100);
+                $percent = (int) round(($actual_points / $possible_points)*100);
+            }
+            $hasDueMode = $possible_points > 0 && $this->moduleHasLtiDueDateInContext($rlids, $duedates);
+            $rollupForIcon = null;
+            if ( $hasDueMode && $percent < 100 ) {
+                $rollupForIcon = $this->moduleWorstDueRollup($rlids, $allgrades, $duedates);
+                if ( $rollupForIcon !== null && $rollupForIcon['modifier'] === 'assignments-due--future' ) {
+                    $rollupForIcon = null;
+                }
             }
             
             echo('<article class="card"><div>'."\n");
@@ -1297,29 +1453,14 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             $link_label = $count.': '.$module->title;
             echo('<a class="tsugi-lessons-module-card-link" href="'.$href.'" aria-label="'.htmlspecialchars($link_label, ENT_QUOTES, 'UTF-8').'">'."\n");
             if ( isset($module->icon) ) {
-                $icon_color = '';
-                if ( $percent == 100 ) {
-                    $icon_color = 'color: #28a745;'; // Green for 100%
-                } else if ( $percent > 0 && $percent < 100 ) {
-                    $icon_color = 'color: #0056b3;'; // Blue for 1-99% (matches progress-badge-percent)
-                }
+                $icon_color = $this->moduleCardIconColorStyle($percent, $hasDueMode, $rollupForIcon);
                 echo('<i class="fa '.$module->icon.' fa-2x" aria-hidden="true" style="float: left; padding-right: 5px;'.$icon_color.'"></i>');
             }
             if ( isset($module->image) ) {
                 echo('<img class="tsugi-all-modules-image-icon" aria-hidden="true" style="float: left; width: 2em; padding-right: 5px;" src="'.self::expandLink($module->image).'">');
             }
             echo($link_label);
-            if ( $possible_points > 0 ) {
-                if ( $percent == 0 ) {
-                    // No badge for 0%
-                } else if ( $percent == 100 ) {
-                    // Green badge with 100% for complete
-                    echo('<span class="progress-badge progress-badge-check" title="Complete: 100%">100%</span>');
-                } else {
-                    // Blue badge with percentage for 1-99%
-                    echo('<span class="progress-badge progress-badge-percent" title="Progress: '.$percent.'%">'.$percent.'%</span>');
-                }
-            }
+            $this->echoModuleAggregateProgressBadge($possible_points, $actual_points, $rlids, $allgrades, $duedates, false);
             if ( isset($module->description) ) {
                 $desc = $module->description;
                 if ( strlen($desc) > 1000 ) $desc = substr($desc, 0, 1000);
@@ -1369,57 +1510,102 @@ ul.pager.tsugi-lessons-pager > li:last-child {
     }
 
     /**
-     * Shared CSS for due badges (assignments list + single-module LTI rows).
-     * TODO: Refactor into tsugi-static once layout is stable.
+     * Progress + due badges: one scale and pill style for assignments list, module cards, title, and LTI rows.
+     * Injected from Lessons::header() and renderAssignments(). TODO: tsugi-static when stable.
      */
     private function getDueDateBadgeCssShared() {
         return '
+/* Shared shell: same font, padding, radius everywhere (0.875rem meets small-text checks) */
 .assignments-item .assignments-due-badge,
+.tsugi-lessons-module-card-link .assignments-due-badge,
+.tsugi-lessons-module-title-cardmatch .assignments-due-badge,
 .tsugi-lessons-module-lti .assignments-due-badge {
   display: inline-block;
-  vertical-align: baseline;
+  vertical-align: middle;
   margin-left: 0.5rem;
-  padding: 0.2em 0.55em;
+  padding: 0.25rem 0.6rem;
   border-radius: 0.35rem;
-  font-size: 0.8em;
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.35;
   border: 1px solid transparent;
+  box-sizing: border-box;
 }
-.tsugi-lessons-module-lti .assignments-due-badge { vertical-align: middle; }
+/* Progress % on module cards + single-module title: match due pill shell; tint + dark text like due badges */
+.tsugi-lessons-module-card-link .progress-badge,
+.tsugi-lessons-module-title-cardmatch .progress-badge {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+}
+.tsugi-lessons-module-card-link .progress-badge-check,
+.tsugi-lessons-module-title-cardmatch .progress-badge-check {
+  background: #d4edda;
+  color: #155724;
+  border-color: #b8dabc;
+}
+.tsugi-lessons-module-card-link .progress-badge-percent,
+.tsugi-lessons-module-title-cardmatch .progress-badge-percent {
+  background: #cfe2ff;
+  color: #084298;
+  border-color: #9ec5fe;
+}
 .assignments-item .assignments-due-state,
-.tsugi-lessons-module-lti .assignments-due-state {
+.tsugi-lessons-module-lti .assignments-due-state,
+.tsugi-lessons-module-card-link .assignments-due-state,
+.tsugi-lessons-module-title-cardmatch .assignments-due-state {
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.95em;
+  letter-spacing: 0.03em;
+  font-size: 1em;
 }
 .assignments-item .assignments-due-detail,
-.tsugi-lessons-module-lti .assignments-due-detail { font-weight: 500; }
+.tsugi-lessons-module-lti .assignments-due-detail,
+.tsugi-lessons-module-card-link .assignments-due-detail,
+.tsugi-lessons-module-title-cardmatch .assignments-due-detail { font-weight: 500; font-size: 1em; }
 .assignments-item .assignments-due-lbl,
-.tsugi-lessons-module-lti .assignments-due-lbl { font-weight: 600; }
+.tsugi-lessons-module-lti .assignments-due-lbl,
+.tsugi-lessons-module-card-link .assignments-due-lbl,
+.tsugi-lessons-module-title-cardmatch .assignments-due-lbl { font-weight: 600; }
 .assignments-item .assignments-due--completed,
 .assignments-item .assignments-due--future,
 .tsugi-lessons-module-lti .assignments-due--completed,
-.tsugi-lessons-module-lti .assignments-due--future {
+.tsugi-lessons-module-lti .assignments-due--future,
+.tsugi-lessons-module-card-link .assignments-due--completed,
+.tsugi-lessons-module-card-link .assignments-due--future,
+.tsugi-lessons-module-title-cardmatch .assignments-due--completed,
+.tsugi-lessons-module-title-cardmatch .assignments-due--future {
   background: #d4edda;
   color: #155724;
   border-color: #b8dabc;
 }
 .assignments-item .assignments-due--past,
-.tsugi-lessons-module-lti .assignments-due--past {
+.tsugi-lessons-module-lti .assignments-due--past,
+.tsugi-lessons-module-card-link .assignments-due--past,
+.tsugi-lessons-module-title-cardmatch .assignments-due--past {
   background: #f8d7da;
   color: #721c24;
   border-color: #f1bfc4;
 }
 .assignments-item .assignments-due--soon,
-.tsugi-lessons-module-lti .assignments-due--soon {
+.tsugi-lessons-module-lti .assignments-due--soon,
+.tsugi-lessons-module-card-link .assignments-due--soon,
+.tsugi-lessons-module-title-cardmatch .assignments-due--soon {
   background: #fff3cd;
   color: #856404;
   border-color: #ffeaa7;
 }
 .assignments-item .assignments-due--neutral,
-.tsugi-lessons-module-lti .assignments-due--neutral {
+.tsugi-lessons-module-lti .assignments-due--neutral,
+.tsugi-lessons-module-card-link .assignments-due--neutral,
+.tsugi-lessons-module-title-cardmatch .assignments-due--neutral {
   background: #e9ecef;
   color: #495057;
   border-color: #dee2e6;
