@@ -15,18 +15,17 @@ class MembershipTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * isInstructor() must match isset($role) && $role != 0 used for User::$instructor in LTIX::buildLaunch.
+     * isInstructor() is true when role is set and >= ROLE_INSTRUCTOR.
      *
      * @dataProvider isInstructorProvider
      */
-    public function testIsInstructorMatchesUserInstructorRule($assignRole, $roleValue, $expected) {
+    public function testIsInstructor($assignRole, $roleValue, $expected) {
         $m = new Membership();
         if ( $assignRole ) {
             $m->role = $roleValue;
         }
-        $ltiRole = $assignRole ? $roleValue : null;
-        $userInstructor = isset($ltiRole) && $ltiRole != 0;
-        $this->assertSame($expected, $userInstructor, 'Sanity: provider expectation matches User rule');
+        $expectedFromLtix = $assignRole && $roleValue >= LTIX::ROLE_INSTRUCTOR;
+        $this->assertSame($expected, $expectedFromLtix, 'Sanity: provider matches >= ROLE_INSTRUCTOR');
         $this->assertSame($expected, $m->isInstructor());
     }
 
@@ -35,9 +34,10 @@ class MembershipTest extends \PHPUnit\Framework\TestCase
             'role not set (null property)' => [false, null, false],
             'learner zero' => [true, 0, false],
             'learner constant' => [true, LTIX::ROLE_LEARNER, false],
+            'below instructor' => [true, 500, false],
             'instructor' => [true, LTIX::ROLE_INSTRUCTOR, true],
             'administrator' => [true, LTIX::ROLE_ADMINISTRATOR, true],
-            'non-zero int' => [true, 1, true],
+            'non-zero but below instructor' => [true, 1, false],
         ];
     }
 
@@ -47,4 +47,5 @@ class MembershipTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(42, $m->id);
         $this->assertFalse($m->isInstructor());
     }
+
 }

@@ -376,6 +376,11 @@ class GoogleLoginHandler {
             $lti["context_key"] = $context_key;
         }
 
+        // Drop cached Membership for this context so isInstructor() / ensureInSession() reflect DB after login
+        if ( isset($context_id) && $context_id && isset($_SESSION['membership'][$context_id]) ) {
+            unset($_SESSION['membership'][$context_id]);
+        }
+
         // Check instructor status and set role
         $is_instructor = false;
         if ( isset($context_id) && $context_id ) {

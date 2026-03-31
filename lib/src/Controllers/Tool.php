@@ -4,6 +4,7 @@ namespace Tsugi\Controllers;
 
 use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
+use Tsugi\Core\Membership;
 
 /**
  * Base class for LMS tool controllers
@@ -190,14 +191,13 @@ abstract class Tool {
      * 3. If user owns the context or its key
      * 
      * Reads context_id and user_id from $_SESSION['context_id'] and $_SESSION['id'].
-     * Role values are cached in $_SESSION['role'][$context_id] as the maximum of role and role_override.
-     * Context/key ownership grants instructor status and is cached as ROLE_INSTRUCTOR.
+     * Delegates to Membership::ensureInSession(), which caches a Membership instance in
+     * $_SESSION['membership'][$context_id] (single lti_membership SELECT when missing;
+     * ownership query only when role must be resolved).
      * 
      * @return bool True if user is instructor/admin for the context, false otherwise
      */
     protected function isInstructor() {
-        global $CFG, $PDOX;
-        
         // Get context_id and user_id from session
         $context_id = U::get($_SESSION, 'context_id');
         $user_id = U::get($_SESSION, 'id');
@@ -212,65 +212,29 @@ abstract class Tool {
             return true;
         }
         
-        // Initialize role cache if not set
-        if ( ! isset($_SESSION['role']) ) {
-            $_SESSION['role'] = array();
-        }
-        
-        // Check cache first - if cached, use the cached role value to determine instructor status
-        if ( isset($_SESSION['role'][$context_id]) ) {
-            $cached_role = $_SESSION['role'][$context_id];
-            // Check if cached role indicates instructor (>= ROLE_INSTRUCTOR)
-            if ( $cached_role >= LTIX::ROLE_INSTRUCTOR ) {
-                return true;
-            }
-            // If cached role < INSTRUCTOR, user is not an instructor (ownership already checked)
+        $m = Membership::ensureInSession($context_id, $user_id);
+        return $m->isInstructor();
+    }
+
+    /**
+     * Whether the current user may see due dates in this context (lti_membership.viewDueDates).
+     *
+     * Loads Membership via ensureInSession(); for non-admins also calls isInstructor() so
+     * the same cached object is used for role checks in mixed call order.
+     *
+     * @return bool
+     */
+    protected function viewDueDates() {
+        $context_id = U::get($_SESSION, 'context_id');
+        $user_id = U::get($_SESSION, 'id');
+        if ( ! $context_id || ! $user_id ) {
             return false;
         }
-        
-        $max_role = 0;
-        $is_instructor = false;
-        
-        // Check if user is instructor/admin for this context via membership
-        $membership = $PDOX->rowDie(
-            "SELECT role, role_override FROM {$CFG->dbprefix}lti_membership 
-             WHERE context_id = :CID AND user_id = :UID",
-            array(':CID' => $context_id, ':UID' => $user_id)
-        );
-        if ( $membership ) {
-            $role = isset($membership['role']) ? ($membership['role'] + 0) : 0;
-            $role_override = isset($membership['role_override']) ? ($membership['role_override'] + 0) : 0;
-            // Cache the maximum role value
-            $max_role = max($role, $role_override);
-            // ROLE_INSTRUCTOR = 1000, ROLE_ADMINISTRATOR = 5000
-            if ( $max_role >= LTIX::ROLE_INSTRUCTOR ) {
-                $is_instructor = true;
-            }
+        $m = Membership::ensureInSession($context_id, $user_id);
+        if ( ! $this->isAdmin() ) {
+            $this->isInstructor();
         }
-        
-        // Also check if user owns the context or its key
-        // Context/key ownership grants instructor role and should be cached as ROLE_INSTRUCTOR
-        if ( ! $is_instructor ) {
-            $context_check = $PDOX->rowDie(
-                "SELECT context_id FROM {$CFG->dbprefix}lti_context
-                 WHERE context_id = :CID AND (
-                     key_id IN (SELECT key_id FROM {$CFG->dbprefix}lti_key WHERE user_id = :UID)
-                     OR user_id = :UID
-                 )",
-                array(':CID' => $context_id, ':UID' => $user_id)
-            );
-            if ( $context_check ) {
-                $is_instructor = true;
-                // Cache ownership as ROLE_INSTRUCTOR since it grants instructor status
-                $max_role = LTIX::ROLE_INSTRUCTOR;
-            }
-        }
-        
-        // Cache the role value
-        // This caches either the membership role or ROLE_INSTRUCTOR if granted via ownership
-        $_SESSION['role'][$context_id] = $max_role;
-        
-        return $is_instructor;
+        return ! empty($m->viewDueDates);
     }
 
     /**
