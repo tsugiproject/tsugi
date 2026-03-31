@@ -328,10 +328,15 @@ class ConfigInfo {
      * These values configure the cookie used to record the overall
      * login in a long-lived encrypted cookie.   Look at the library
      * code SecureCookie::create() for more detail on how these operate.
+     *
+     * When enable_secure_cookie_login is false (the default), Tsugi does not
+     * set or process that auto-login cookie; set it true to restore the
+     * long-lived encrypted login behavior.
      */
     public $cookiesecret = 'warning:please-change-cookie-secret-a289b543';
     public $cookiename = 'TSUGIAUTO';
     public $cookiepad = '390b246ea9';
+    public $enable_secure_cookie_login = false;
 
     /**
      * Configure mail sending.

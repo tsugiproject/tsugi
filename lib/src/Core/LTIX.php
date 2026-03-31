@@ -2657,6 +2657,9 @@ class LTIX {
     // Check the secure cookie and set login information appropriately
     public static function loginSecureCookie() {
         global $CFG, $PDOX;
+        if ( empty($CFG->enable_secure_cookie_login) ) {
+            return;
+        }
         $pieces = false;
         $id = false;
 
