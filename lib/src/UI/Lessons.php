@@ -585,16 +585,22 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 
     /**
      * LTI assignment totals for module progress (items array, else legacy lti).
+     * Only resource links with a non-empty end_datetime in the current context are counted
+     * (same rule as due-date badges); unscheduled LTI is excluded from possible and actual.
      *
+     * @param array<string,array<string,mixed>> $duedates
      * @return array{0:float,1:float,2:string[]} possible points, actual points, resource_link_ids
      */
-    private function moduleLtiProgressPoints($module, $allgrades) {
+    private function moduleLtiProgressPoints($module, $allgrades, $duedates) {
         $possible = 0.0;
         $actual = 0.0;
         $rlids = array();
         if ( isset($module->items) ) {
             foreach ( $module->items as $item ) {
                 if ( ! isset($item->type) || $item->type != 'lti' || ! isset($item->resource_link_id) ) {
+                    continue;
+                }
+                if ( ! $this->resourceLinkHasDueDateInContext($item->resource_link_id, $duedates) ) {
                     continue;
                 }
                 $possible += 1.0;
@@ -612,6 +618,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 if ( ! isset($lti->resource_link_id) ) {
                     continue;
                 }
+                if ( ! $this->resourceLinkHasDueDateInContext($lti->resource_link_id, $duedates) ) {
+                    continue;
+                }
                 $possible += 1.0;
                 $rlids[] = $lti->resource_link_id;
                 if ( isset($allgrades[$lti->resource_link_id]) && is_numeric($allgrades[$lti->resource_link_id]) ) {
@@ -623,6 +632,22 @@ ul.pager.tsugi-lessons-pager > li:last-child {
     }
 
     /**
+     * True when this resource link has end_datetime set for the current context (matches due badge rows).
+     *
+     * @param array<string,array<string,mixed>> $duedates
+     */
+    private function resourceLinkHasDueDateInContext($rlid, $duedates) {
+        if ( $rlid === '' || $rlid === null ) {
+            return false;
+        }
+        if ( ! isset($duedates[$rlid]) || ! is_array($duedates[$rlid]) ) {
+            return false;
+        }
+        $end = U::get($duedates[$rlid], 'end_datetime');
+        return U::isNotEmpty($end);
+    }
+
+    /**
      * True if any LTI in this module has end_datetime set in the current context.
      *
      * @param string[] $rlids
@@ -630,11 +655,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
      */
     private function moduleHasLtiDueDateInContext($rlids, $duedates) {
         foreach ( $rlids as $rlid ) {
-            if ( ! isset($duedates[$rlid]) || ! is_array($duedates[$rlid]) ) {
-                continue;
-            }
-            $end = U::get($duedates[$rlid], 'end_datetime');
-            if ( U::isNotEmpty($end) ) {
+            if ( $this->resourceLinkHasDueDateInContext($rlid, $duedates) ) {
                 return true;
             }
         }
@@ -720,6 +741,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         }
         $percent = (int) round(($actual_points / $possible_points) * 100);
         $hasDue = $this->moduleHasLtiDueDateInContext($rlids, $duedates);
+        echo("<!-- $hasDue $percent $possible_points $actual_points -->");
         if ( ! $hasDue ) {
             if ( $percent == 0 ) {
                 return;
@@ -811,7 +833,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
      * Single-module h1 matching the all-modules card header (image, index:title, progress or due rollup badge).
      */
     private function echoModuleTitleBarMatchingCard($module, $allgrades, $duedates) {
-        $modProgress = $this->moduleLtiProgressPoints($module, $allgrades);
+        $modProgress = $this->moduleLtiProgressPoints($module, $allgrades, $duedates);
         $possible_points = $modProgress[0];
         $actual_points = $modProgress[1];
         $rlids = $modProgress[2];
@@ -1425,7 +1447,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         if ( isset($module->hidden) && $module->hidden ) continue;
 	    if ( isset($module->login) && $module->login && !isset($_SESSION['id']) ) continue;
 
-            $modProgress = $this->moduleLtiProgressPoints($module, $allgrades);
+            $modProgress = $this->moduleLtiProgressPoints($module, $allgrades, $duedates);
             $possible_points = $modProgress[0];
             $actual_points = $modProgress[1];
             $rlids = $modProgress[2];
