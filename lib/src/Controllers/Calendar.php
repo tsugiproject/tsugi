@@ -125,7 +125,7 @@ class Calendar extends Tool {
         $dueMap = GradeUtil::loadDueDatesForDisplay($_SESSION['context_id']);
 
         $allgrades = array();
-        $rows = GradeUtil::loadGradesForCourse($_SESSION['id'], $_SESSION['context_id']);
+        $rows = GradeUtil::loadGradesCurrentUser();
         foreach ( $rows as $row ) {
             $allgrades[$row['resource_link_id']] = $row['grade'];
         }
@@ -176,11 +176,9 @@ class Calendar extends Tool {
             $dueMap = GradeUtil::loadDueDatesForDisplay($_SESSION['context_id']);
         }
         $allgrades = array();
-        if ( isset($_SESSION['id']) && isset($_SESSION['context_id']) ) {
-            $rows = GradeUtil::loadGradesForCourse($_SESSION['id'], $_SESSION['context_id']);
-            foreach ( $rows as $row ) {
-                $allgrades[$row['resource_link_id']] = $row['grade'];
-            }
+        $rows = GradeUtil::loadGradesCurrentUser();
+        foreach ( $rows as $row ) {
+            $allgrades[$row['resource_link_id']] = $row['grade'];
         }
         $byDate = $this->buildDueDatesByDay($items, $dueMap, $allgrades);
 

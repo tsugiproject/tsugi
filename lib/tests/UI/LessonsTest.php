@@ -1174,9 +1174,9 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
             ]
         ];
         
-        // Mock grades - need to mock GradeUtil::loadGradesForCourse
+        // Mock grades - need to mock GradeUtil::loadGradesCurrentUser
         // Since we can't easily mock static methods, we'll test the structure
-        // The actual progress calculation happens in renderAll() which calls GradeUtil::loadGradesForCourse
+        // The actual progress calculation happens in renderAll() which calls GradeUtil::loadGradesCurrentUser
         // We'll verify the method exists and can be called
         $this->assertTrue(method_exists($lessons, 'renderAll'), 'renderAll method should exist');
         
@@ -1294,7 +1294,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $lessons->position = 1;
         $lessons->anchor = 'mod1';
         
-        // Mock GradeUtil::loadGradesForCourse to return grades
+        // Mock GradeUtil::loadGradesCurrentUser to return grades
         // Since we can't easily mock static methods, we'll test that the method structure exists
         $this->assertTrue(method_exists($lessons, 'renderSingle'), 'renderSingle method should exist');
         

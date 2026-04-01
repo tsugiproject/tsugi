@@ -13,7 +13,12 @@ class GradeUtil {
     /** @internal Session cache location for {@see Cache::setContext} */
     private const DUE_DATES_CACHE_LOC = 'gradeutil_due_dates';
 
-    private const DUE_DATES_CACHE_TTL = 60;
+    private const DUE_DATES_CACHE_TTL = 300;
+
+    /** @internal Session cache for {@see loadGradesCurrentUser} */
+    private const GRADES_CURRENT_USER_CACHE_LOC = 'gradeutil_grades_current_user';
+
+    private const GRADES_CURRENT_USER_CACHE_TTL = 300;
 
     public static function gradeLoadAll() {
         global $CFG, $USER, $LINK, $PDOX;
@@ -140,6 +145,44 @@ class GradeUtil {
         WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL";
         $rows = $PDOX->allRowsDie($sql,array(':UID' => $user_id, ':CID' => $context_id));
         return $rows;
+    }
+
+    /**
+     * Grades for the logged-in user in the current course (uses PHP session keys id and context_id).
+     * Cached per context via {@see Cache::setContext} for {@see self::GRADES_CURRENT_USER_CACHE_TTL} seconds;
+     * on miss loads via {@see loadGradesForCourse}.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public static function loadGradesCurrentUser() {
+        $uid = isset($_SESSION['id']) ? (int) $_SESSION['id'] : 0;
+        $cid = isset($_SESSION['context_id']) ? (int) $_SESSION['context_id'] : 0;
+        if ( $uid < 1 || $cid < 1 ) {
+            return array();
+        }
+
+        $cached = Cache::getContext(self::GRADES_CURRENT_USER_CACHE_LOC, $cid);
+        if ( is_array($cached) ) {
+            return $cached;
+        }
+
+        LTIX::getConnection();
+
+        $rows = self::loadGradesForCourse($uid, $cid);
+        if ( ! is_array($rows) ) {
+            $rows = array();
+        }
+
+        Cache::setContext(self::GRADES_CURRENT_USER_CACHE_LOC, $cid, $rows, self::GRADES_CURRENT_USER_CACHE_TTL);
+
+        return $rows;
+    }
+
+    /**
+     * Clear all session data for {@see loadGradesCurrentUser} so the next request refetches from the database.
+     */
+    public static function invalidateGradesCurrentUser() {
+        Cache::clearContext(self::GRADES_CURRENT_USER_CACHE_LOC);
     }
 
     /**

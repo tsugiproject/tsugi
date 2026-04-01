@@ -8,6 +8,7 @@ use \Tsugi\Util\LTI13;
 use \Tsugi\UI\Output;
 use \Tsugi\Util\Net;
 use \Tsugi\Google\GoogleClassroom;
+use \Tsugi\Grades\GradeUtil;
 
 /**
  * This is a class to provide access to the user's result data.
@@ -237,6 +238,7 @@ class Result extends Entity {
 
             if ( $stmt->success ) {
                 $msg = "Grade stored locally result_id=".$result_id." grade=$grade";
+                GradeUtil::invalidateGradesCurrentUser();
             } else {
                 $msg = "Grade NOT stored locally result_id=".$result_id." grade=$grade";
             }

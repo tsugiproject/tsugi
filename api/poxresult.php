@@ -7,6 +7,7 @@ use \Tsugi\Util\LTI;
 use \Tsugi\Util\Net;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Result;
+use \Tsugi\Grades\GradeUtil;
 
 // For my application, We only allow application/xml
 $request_headers = OAuthUtil::get_headers();
@@ -193,6 +194,7 @@ if ( $operation == "replaceResultRequest" ) {
         ":LID" => $link_id, ":IP" => $ipaddr)
     );
     if( $retval->success) {
+        GradeUtil::invalidateGradesCurrentUser();
         echo(sprintf($response,uniqid(),'success', "Score deleted",$message_ref,$operation,$body_tag));
     } else {
         echo(sprintf($response,uniqid(),'failure', "Unable to delete ".htmlspec_utf8($sourcedid),$message_ref,$operation,$body_tag));

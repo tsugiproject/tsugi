@@ -5,6 +5,7 @@ namespace Tsugi\Controllers;
 use Tsugi\Util\U;
 use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
+use Tsugi\Grades\GradeUtil;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -15,6 +16,9 @@ class Lessons extends Tool {
     const ROUTE = '/lessons';
 
     const REDIRECT = 'tsugi_controllers_lessons';
+
+    /** @internal Set in {@see launch()}; next {@see get()} clears grade session cache (return from LTI tool). */
+    private const SESSION_RETURN_GRADE_REFRESH = 'tsugi_lessons_refresh_grades_on_view';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Lessons@get');
@@ -37,6 +41,11 @@ class Lessons extends Tool {
 
         if ( ! isset($CFG->lessons) ) {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+        }
+
+        if ( ! empty($_SESSION[self::SESSION_RETURN_GRADE_REFRESH]) ) {
+            GradeUtil::invalidateGradesCurrentUser();
+            unset($_SESSION[self::SESSION_RETURN_GRADE_REFRESH]);
         }
 
         // Turning on and off styling
@@ -217,6 +226,10 @@ class Lessons extends Tool {
             $app->tsugiFlashError(__('Missing session data required for launch'));
             return new RedirectResponse($redirect_path);
         }
+
+        // Fresh grade list: clear now and again on next Lessons page view (LTI return URL).
+        GradeUtil::invalidateGradesCurrentUser();
+        $_SESSION[self::SESSION_RETURN_GRADE_REFRESH] = 1;
 
         $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
         $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;

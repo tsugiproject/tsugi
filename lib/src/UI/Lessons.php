@@ -858,11 +858,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 
         // Load all the Grades so far for progress badges
         $allgrades = array();
-        if ( isset($_SESSION['id']) && isset($_SESSION['context_id'])) {
-            $rows = GradeUtil::loadGradesForCourse($_SESSION['id'], $_SESSION['context_id']);
-            foreach($rows as $row) {
-                $allgrades[$row['resource_link_id']] = $row['grade'];
-            }
+        $rows = GradeUtil::loadGradesCurrentUser();
+        foreach ( $rows as $row ) {
+            $allgrades[$row['resource_link_id']] = $row['grade'];
         }
         $this->lessonModuleGradesForBadges = $allgrades;
         $this->lessonModuleDueDatesForBadges = array();
@@ -1407,11 +1405,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 
          // Load all the Grades so far
          $allgrades = array();
-         if ( isset($_SESSION['id']) && isset($_SESSION['context_id'])) {
-             $rows = GradeUtil::loadGradesForCourse($_SESSION['id'], $_SESSION['context_id']);
-             foreach($rows as $row) {
-                 $allgrades[$row['resource_link_id']] = $row['grade'];
-             }
+         $rows = GradeUtil::loadGradesCurrentUser();
+         foreach ( $rows as $row ) {
+             $allgrades[$row['resource_link_id']] = $row['grade'];
          }
 
         $duedates = array();

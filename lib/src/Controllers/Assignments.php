@@ -99,12 +99,10 @@ class Assignments extends Tool {
 
         $allgrades = array();
         $alldates = array();
-        if ( isset($_SESSION['id']) && isset($_SESSION['context_id']) ) {
-            $rows = GradeUtil::loadGradesForCourse($_SESSION['id'], $_SESSION['context_id']);
-            foreach ( $rows as $row ) {
-                $allgrades[$row['resource_link_id']] = $row['grade'];
-                $alldates[$row['resource_link_id']] = $row['updated_at'];
-            }
+        $rows = GradeUtil::loadGradesCurrentUser();
+        foreach ( $rows as $row ) {
+            $allgrades[$row['resource_link_id']] = $row['grade'];
+            $alldates[$row['resource_link_id']] = $row['updated_at'];
         }
 
         $duedates = array();
