@@ -160,7 +160,20 @@ class TsugiTest extends \PHPUnit\Framework\TestCase
             }
         }
         $this->assertTrue($hasAssignmentsRoute, 'Assignments route should be registered');
-        
+
+        $hasCalendarRoute = false;
+        $hasCalendarJsonRoute = false;
+        foreach ($uris as $uri) {
+            if ($uri === '/calendar' || $uri === '/calendar/') {
+                $hasCalendarRoute = true;
+            }
+            if ($uri === '/calendar/json' || $uri === '/calendar/json/') {
+                $hasCalendarJsonRoute = true;
+            }
+        }
+        $this->assertTrue($hasCalendarRoute, 'Calendar route should be registered');
+        $this->assertTrue($hasCalendarJsonRoute, 'Calendar JSON route should be registered');
+
         // Badges controller should register /badges route
         $hasBadgesRoute = false;
         foreach ($uris as $uri) {

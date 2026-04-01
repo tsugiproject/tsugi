@@ -678,7 +678,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             if ( ! U::isNotEmpty($end) ) {
                 continue;
             }
-            $mod = $this->assignmentsDueBadgeModifier($rlid, $end, $allgrades);
+            $mod = self::assignmentsDueBadgeModifier($rlid, $end, $allgrades);
             $rank = $this->dueModifierWorstRank($mod);
             $dueTs = strtotime($end);
             if ( $best === null || $rank > $best['rank']
@@ -751,7 +751,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             }
             /* single-module title at 0%: fall through — show Upcoming + due date */
         }
-        $stateText = $this->assignmentsDueStateVisibleLabel($rollup['modifier']);
+        $stateText = self::assignmentsDueStateVisibleLabel($rollup['modifier']);
         $a11yExtras = '';
         if ( ! $show_rollup_due_date ) {
             $tip = __('Due').' '.$rollup['date_disp'];
@@ -1526,8 +1526,8 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         }
         $t = strtotime($end);
         $dateDisp = $t ? date('M j, Y', $t) : $end;
-        $mod = $this->assignmentsDueBadgeModifier($resource_link_id, $end, $allgrades);
-        $stateText = $this->assignmentsDueStateVisibleLabel($mod);
+        $mod = self::assignmentsDueBadgeModifier($resource_link_id, $end, $allgrades);
+        $stateText = self::assignmentsDueStateVisibleLabel($mod);
         echo('<span class="tsugi-assignments-due tsugi-assignments-due-badge '.$mod.'">');
         echo('<span class="tsugi-assignments-due-state">'.htmlspecialchars($stateText).'</span>');
         echo(' <span class="tsugi-assignments-due-detail"><span class="tsugi-assignments-due-lbl">'.__('Due').'</span> ');
@@ -1538,7 +1538,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
     /**
      * Short visible label for due badge state (must not rely on color alone for accessibility).
      */
-    private function assignmentsDueStateVisibleLabel($mod) {
+    public static function assignmentsDueStateVisibleLabel($mod) {
         switch ( $mod ) {
             case 'tsugi-assignments-due-completed':
                 return __('Completed');
@@ -1556,7 +1556,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
     /**
      * CSS modifier for due-date badge on assignments list (completed / past / soon / future).
      */
-    private function assignmentsDueBadgeModifier($resource_link_id, $end, $allgrades) {
+    public static function assignmentsDueBadgeModifier($resource_link_id, $end, $allgrades) {
         $completed = isset($allgrades[$resource_link_id]) && $allgrades[$resource_link_id] > 0.8;
         if ( $completed ) {
             return 'tsugi-assignments-due-completed';
