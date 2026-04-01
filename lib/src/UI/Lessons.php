@@ -753,10 +753,6 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             }
             return;
         }
-        if ( $percent == 100 ) {
-            echo('<span class="progress-badge progress-badge-check" title="Complete: 100%">100%</span>');
-            return;
-        }
         $rollup = $this->moduleWorstDueRollup($rlids, $allgrades, $duedates);
         if ( $rollup === null ) {
             if ( $percent > 0 ) {
