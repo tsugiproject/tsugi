@@ -584,9 +584,27 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 
 
     /**
+     * Whether this lessons LTI item is graded (counts toward rollups, assignments list, badges).
+     * JSON "result": false means ungraded; if result is omitted, the launch is treated as graded.
+     *
+     * @param object|null $lti_item Item with type lti, or legacy module lti object
+     * @return bool true if graded; false if explicitly ungraded
+     */
+    public static function ltiLaunchIsGraded($lti_item) {
+        if ( $lti_item === null || ! is_object($lti_item) ) {
+            return true;
+        }
+        if ( ! property_exists($lti_item, 'result') ) {
+            return true;
+        }
+        return $lti_item->result !== false;
+    }
+
+    /**
      * LTI assignment totals for module progress (items array, else legacy lti).
      * Only resource links with a non-empty end_datetime in the current context are counted
      * (same rule as due-date badges); unscheduled LTI is excluded from possible and actual.
+     * LTI entries with "result": false are excluded from points, actuals, and rollup rlids.
      *
      * @param array<string,array<string,mixed>> $duedates
      * @return array{0:float,1:float,2:string[]} possible points, actual points, resource_link_ids
@@ -598,6 +616,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         if ( isset($module->items) ) {
             foreach ( $module->items as $item ) {
                 if ( ! isset($item->type) || $item->type != 'lti' || ! isset($item->resource_link_id) ) {
+                    continue;
+                }
+                if ( ! self::ltiLaunchIsGraded($item) ) {
                     continue;
                 }
                 if ( ! $this->resourceLinkHasDueDateInContext($item->resource_link_id, $duedates) ) {
@@ -616,6 +637,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             }
             foreach ( $ltis as $lti ) {
                 if ( ! isset($lti->resource_link_id) ) {
+                    continue;
+                }
+                if ( ! self::ltiLaunchIsGraded($lti) ) {
                     continue;
                 }
                 if ( ! $this->resourceLinkHasDueDateInContext($lti->resource_link_id, $duedates) ) {
@@ -1390,7 +1414,8 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                     if ( $target == "_blank" ) echo(' target="_blank" rel="noopener noreferrer" onclick="alert(\'Link will open in a new browser tab...\');" ');
                     echo(' href="'.$launch_path.'">'.htmlentities($title).'</a>');
                     $rlid = isset($lti->resource_link_id) ? $lti->resource_link_id : '';
-                    $this->echoDueDateBadgeForResourceLink($rlid, $this->lessonModuleGradesForBadges, $this->lessonModuleDueDatesForBadges);
+                    $this->echoDueDateBadgeForResourceLink($rlid, $this->lessonModuleGradesForBadges, $this->lessonModuleDueDatesForBadges,
+                        self::ltiLaunchIsGraded($lti));
                     echo('</li>'."\n");
                 }
 
@@ -1493,10 +1518,13 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         echo($ob_output);
     }
 
-    private function renderAssignmentItem($resource_link_id, $title, $allgrades, $alldates, $duedates = array()) {
+    private function renderAssignmentItem($resource_link_id, $title, $allgrades, $alldates, $duedates = array(), $lti_item = null) {
+        $graded = self::ltiLaunchIsGraded($lti_item);
         echo('<li class="tsugi-assignments-item">');
         echo('<span class="tsugi-assignments-status">');
-        if ( isset($allgrades[$resource_link_id]) ) {
+        if ( ! $graded ) {
+            echo('<i class="fa fa-square-o text-muted" aria-hidden="true"></i>');
+        } else if ( isset($allgrades[$resource_link_id]) ) {
             if ( $allgrades[$resource_link_id] > 0.8 ) {
                 echo('<i class="fa fa-check-square-o text-success" aria-hidden="true"></i>');
             } else {
@@ -1508,9 +1536,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         echo('</span>');
         echo('<span class="tsugi-assignments-title-row">');
         echo('<span class="tsugi-assignments-title">'.htmlspecialchars($title).'</span>');
-        $this->echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates);
+        $this->echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates, $graded);
         echo('</span>');
-        if ( isset($allgrades[$resource_link_id]) ) {
+        if ( $graded && isset($allgrades[$resource_link_id]) ) {
             $datestring = U::get($alldates, $resource_link_id, "");
             if ( strlen($datestring) > 0 ) {
                 $datestring = " (".substr($datestring,0,10).")";
@@ -1527,8 +1555,9 @@ ul.pager.tsugi-lessons-pager > li:last-child {
      *
      * @param array<string,array<string,mixed>> $duedates
      * @param array<string,float> $allgrades
+     * @param bool $grades_affect_completion When false (ungraded LTI), due badge ignores stored grade for completed styling
      */
-    private function echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates) {
+    private function echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates, $grades_affect_completion = true) {
         if ( $resource_link_id === '' || $resource_link_id === null ) {
             return;
         }
@@ -1541,7 +1570,11 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         }
         $t = strtotime($end);
         $dateDisp = $t ? date('M j, Y', $t) : $end;
-        $mod = self::assignmentsDueBadgeModifier($resource_link_id, $end, $allgrades);
+        $grades_for_mod = $allgrades;
+        if ( ! $grades_affect_completion ) {
+            unset($grades_for_mod[$resource_link_id]);
+        }
+        $mod = self::assignmentsDueBadgeModifier($resource_link_id, $end, $grades_for_mod);
         $stateText = self::assignmentsDueStateVisibleLabel($mod);
         echo('<span class="tsugi-assignments-due tsugi-assignments-due-badge '.$mod.'">');
         echo('<span class="tsugi-assignments-due-state">'.htmlspecialchars($stateText).'</span>');
@@ -1594,14 +1627,18 @@ ul.pager.tsugi-lessons-pager > li:last-child {
     /**
      * LTI assignment rows for the same modules shown on the assignments list (items array or legacy lti).
      *
-     * @return array[] Each element: module_index, module_title, module_anchor, item_title, resource_link_id
+     * @param bool $for_due_date_management When true, omit items with "result": false (ungraded launches are not managed for due dates).
+     * @return array[] Each element: module_index, module_title, module_anchor, item_title, resource_link_id, participates_in_grades (same as ltiLaunchIsGraded())
      */
-    public function enumerateLtiAssignmentItems() {
+    public function enumerateLtiAssignmentItems($for_due_date_management = false) {
         $list = array();
         foreach ( $this->lessons->modules as $modIndex => $module ) {
             if ( isset($module->items) ) {
                 foreach ( $module->items as $item ) {
                     if ( ! isset($item->type) || $item->type != 'lti' || ! isset($item->resource_link_id) ) {
+                        continue;
+                    }
+                    if ( $for_due_date_management && ! self::ltiLaunchIsGraded($item) ) {
                         continue;
                     }
                     $list[] = array(
@@ -1610,6 +1647,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                         'module_anchor' => isset($module->anchor) ? $module->anchor : '',
                         'item_title' => isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'),
                         'resource_link_id' => $item->resource_link_id,
+                        'participates_in_grades' => self::ltiLaunchIsGraded($item),
                     );
                 }
             } else if ( isset($module->lti) ) {
@@ -1621,12 +1659,16 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                     if ( ! isset($lti->resource_link_id) ) {
                         continue;
                     }
+                    if ( $for_due_date_management && ! self::ltiLaunchIsGraded($lti) ) {
+                        continue;
+                    }
                     $list[] = array(
                         'module_index' => (int) $modIndex,
                         'module_title' => $module->title,
                         'module_anchor' => isset($module->anchor) ? $module->anchor : '',
                         'item_title' => $lti->title,
                         'resource_link_id' => $lti->resource_link_id,
+                        'participates_in_grades' => self::ltiLaunchIsGraded($lti),
                     );
                 }
             }
@@ -1661,13 +1703,23 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             $has_assignments = false;
             if ( isset($module->items) ) {
                 foreach($module->items as $item) {
-                    if ( isset($item->type) && $item->type == 'lti' && isset($item->resource_link_id) ) {
+                    if ( isset($item->type) && $item->type == 'lti' && isset($item->resource_link_id)
+                        && self::ltiLaunchIsGraded($item) ) {
                         $has_assignments = true;
                         break;
                     }
                 }
             } else if ( isset($module->lti) ) {
-                $has_assignments = true;
+                $ltis_check = $module->lti;
+                if ( ! is_array($ltis_check) ) {
+                    $ltis_check = array($ltis_check);
+                }
+                foreach ( $ltis_check as $lti_check ) {
+                    if ( isset($lti_check->resource_link_id) && self::ltiLaunchIsGraded($lti_check) ) {
+                        $has_assignments = true;
+                        break;
+                    }
+                }
             }
             if ( !$has_assignments ) continue;
             
@@ -1680,7 +1732,8 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             if ( isset($module->items) ) {
                 foreach($module->items as $item) {
                     if ( !isset($item->type) || $item->type != 'lti' || !isset($item->resource_link_id) ) continue;
-                    $this->renderAssignmentItem($item->resource_link_id, isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'), $allgrades, $alldates, $duedates);
+                    if ( ! self::ltiLaunchIsGraded($item) ) continue;
+                    $this->renderAssignmentItem($item->resource_link_id, isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'), $allgrades, $alldates, $duedates, $item);
                 }
             } else {
                 // Process legacy lti array only if items is not present
@@ -1689,7 +1742,8 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                     if ( ! is_array($ltis) ) $ltis = array($ltis);
                     foreach($ltis as $lti) {
                         if ( !isset($lti->resource_link_id) ) continue;
-                        $this->renderAssignmentItem($lti->resource_link_id, $lti->title, $allgrades, $alldates, $duedates);
+                        if ( ! self::ltiLaunchIsGraded($lti) ) continue;
+                        $this->renderAssignmentItem($lti->resource_link_id, $lti->title, $allgrades, $alldates, $duedates, $lti);
                     }
                 }
             }
@@ -1839,11 +1893,17 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             $total = 0;
             $scores = array();
             foreach($badge->assignments as $resource_link_id) {
+                $lti = $this->getLtiByRlid($resource_link_id);
+                $graded = self::ltiLaunchIsGraded($lti);
                 $score = 0;
-                if ( isset($allgrades[$resource_link_id]) ) $score = 100*$allgrades[$resource_link_id];
+                if ( $graded && isset($allgrades[$resource_link_id]) ) {
+                    $score = 100*$allgrades[$resource_link_id];
+                }
                 $scores[$resource_link_id] = $score;
-                $total = $total + $score;
-                $count = $count + 1;
+                if ( $graded ) {
+                    $total = $total + $score;
+                    $count = $count + 1;
+                }
             }
             $max = $count * 100;
             $progress = $max <= 0 ? 100 : intval(($total / $max)*100);
@@ -1869,8 +1929,12 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             echo('</div>');
             echo("</td></tr>\n");
             foreach($badge->assignments as $resource_link_id) {
+                $lti = $this->getLtiByRlid($resource_link_id);
+                $graded = self::ltiLaunchIsGraded($lti);
                 $score = 0;
-                if ( isset($allgrades[$resource_link_id]) ) $score = 100*$allgrades[$resource_link_id];
+                if ( $graded && isset($allgrades[$resource_link_id]) ) {
+                    $score = 100*$allgrades[$resource_link_id];
+                }
                 $progress = intval($score*100);
                 $kind = 'danger';
                 if ( $progress < 5 ) $progress = 5;
@@ -1878,7 +1942,6 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 if ( $progress > 50 ) $kind = 'info';
                 if ( $progress >= 100 ) $kind = 'success';
                 $module = $this->getModuleByRlid($resource_link_id);
-                $lti = $this->getLtiByRlid($resource_link_id);
 
                 echo('<tr><td>');
 
@@ -2584,7 +2647,8 @@ $(function(){
             echo(' href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
             self::renderItemIcon('lti');
             echo(htmlentities($title).'</a>');
-            $this->echoDueDateBadgeForResourceLink($resource_link_id, $this->lessonModuleGradesForBadges, $this->lessonModuleDueDatesForBadges);
+            $this->echoDueDateBadgeForResourceLink($resource_link_id, $this->lessonModuleGradesForBadges, $this->lessonModuleDueDatesForBadges,
+                self::ltiLaunchIsGraded($item));
             echo('</li>'."\n");
         }
     }

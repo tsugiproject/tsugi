@@ -210,7 +210,7 @@ class Assignments extends Tool {
 
         $context_id = U::get($_SESSION, 'context_id');
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
-        $items = $l->enumerateLtiAssignmentItems();
+        $items = $l->enumerateLtiAssignmentItems(true);
         $dueMap = $this->loadDueDatesByLinkKey($context_id);
 
         $OUTPUT->header();
@@ -335,7 +335,7 @@ class Assignments extends Tool {
         $context_id = U::get($_SESSION, 'context_id');
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $allowed = array();
-        foreach ( $l->enumerateLtiAssignmentItems() as $it ) {
+        foreach ( $l->enumerateLtiAssignmentItems(true) as $it ) {
             $allowed[$it['resource_link_id']] = true;
         }
 
@@ -402,7 +402,7 @@ class Assignments extends Tool {
         $context_id = U::get($_SESSION, 'context_id');
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $allowed = array();
-        foreach ( $l->enumerateLtiAssignmentItems() as $it ) {
+        foreach ( $l->enumerateLtiAssignmentItems(true) as $it ) {
             $allowed[$it['resource_link_id']] = true;
         }
 
@@ -457,7 +457,7 @@ class Assignments extends Tool {
         }
 
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
-        $items = $l->enumerateLtiAssignmentItems();
+        $items = $l->enumerateLtiAssignmentItems(true);
         $dueMap = $this->loadDueDatesByLinkKey($context_id);
 
         $p = $CFG->dbprefix;
@@ -518,7 +518,7 @@ class Assignments extends Tool {
 
         $context_id = U::get($_SESSION, 'context_id');
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
-        $items = $l->enumerateLtiAssignmentItems();
+        $items = $l->enumerateLtiAssignmentItems(true);
         $dueMap = $this->loadDueDatesByLinkKey($context_id);
 
         $p = $CFG->dbprefix;

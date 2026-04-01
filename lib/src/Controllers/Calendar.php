@@ -34,6 +34,21 @@ class Calendar extends Tool {
     }
 
     /**
+     * Omit a link's grade when computing due-badge state for ungraded ("result": false) LTI items.
+     *
+     * @param array<string,float> $allgrades
+     * @return array<string,float>
+     */
+    private static function gradesMapForDueModifier($allgrades, $linkKey, $participatesInGrades) {
+        if ( $participatesInGrades ) {
+            return $allgrades;
+        }
+        $g = $allgrades;
+        unset($g[$linkKey]);
+        return $g;
+    }
+
+    /**
      * @param array<string,float> $allgrades resource_link_id => grade (0..1)
      * @return array<string, list<array{title:string,href:string,module_title:string,due_mod:string}>>
      */
@@ -57,7 +72,8 @@ class Calendar extends Tool {
             if ( ! isset($byDate[$dateKey]) ) {
                 $byDate[$dateKey] = array();
             }
-            $dueMod = \Tsugi\UI\Lessons::assignmentsDueBadgeModifier($lk, $end, $allgrades);
+            $participates = ! isset($it['participates_in_grades']) || $it['participates_in_grades'];
+            $dueMod = \Tsugi\UI\Lessons::assignmentsDueBadgeModifier($lk, $end, self::gradesMapForDueModifier($allgrades, $lk, $participates));
             $byDate[$dateKey][] = array(
                 'title' => $it['item_title'],
                 'href' => $href,
@@ -88,7 +104,8 @@ class Calendar extends Tool {
             if ( $end === null || $end === '' ) {
                 continue;
             }
-            $mod = \Tsugi\UI\Lessons::assignmentsDueBadgeModifier($lk, $end, $allgrades);
+            $participates = ! isset($it['participates_in_grades']) || $it['participates_in_grades'];
+            $mod = \Tsugi\UI\Lessons::assignmentsDueBadgeModifier($lk, $end, self::gradesMapForDueModifier($allgrades, $lk, $participates));
             if ( $mod === 'tsugi-assignments-due-soon' ) {
                 $dueSoon++;
             } elseif ( $mod === 'tsugi-assignments-due-past' ) {
