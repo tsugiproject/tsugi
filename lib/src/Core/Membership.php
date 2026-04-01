@@ -7,10 +7,15 @@ namespace Tsugi\Core;
  *
  * Built from the same LTI session row as User and Context after launch or login.
  *
- * LMS tools also cache a populated instance per context in $_SESSION['membership'][$context_id]
- * via ensureInSession() (effective numeric role, viewDueDates, optional id).
+ * LMS tools cache a populated instance per context via {@see Cache::setContext}
+ * at {@see self::CACHE_LOCATION} (effective numeric role, viewDueDates, optional id).
  */
 class Membership {
+
+    /**
+     * Session cache slot for {@see ensureInSession()} (one Membership per context, no TTL).
+     */
+    public const CACHE_LOCATION = 'lti_membership';
 
     /**
      * @var Launch|false
@@ -44,7 +49,18 @@ class Membership {
     }
 
     /**
-     * Load or reuse $_SESSION['membership'][$context_id] for this user in one lti_membership SELECT
+     * Drop cached membership for a context (e.g. after login or membership changes).
+     */
+    public static function invalidateSessionCache($context_id) {
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return;
+        }
+        Cache::invalidateContext(self::CACHE_LOCATION, $cid);
+    }
+
+    /**
+     * Load or reuse context-scoped session cache for this user in one lti_membership SELECT
      * (plus ownership query when role must be resolved and membership is not already instructor-level).
      *
      * @param int $context_id
@@ -54,20 +70,16 @@ class Membership {
     public static function ensureInSession($context_id, $user_id) {
         global $CFG, $PDOX;
 
-        if ( ! isset($_SESSION['membership']) ) {
-            $_SESSION['membership'] = array();
-        }
-        if ( isset($_SESSION['membership'][$context_id]) ) {
-            $existing = $_SESSION['membership'][$context_id];
-            if ( $existing instanceof self ) {
-                return $existing;
-            }
+        $cid = (int) $context_id;
+        $cached = Cache::getContext(self::CACHE_LOCATION, $cid);
+        if ( $cached instanceof self ) {
+            return $cached;
         }
 
         $row = $PDOX->rowDie(
             "SELECT membership_id, role, role_override, viewDueDates FROM {$CFG->dbprefix}lti_membership
              WHERE context_id = :CID AND user_id = :UID",
-            array(':CID' => $context_id, ':UID' => $user_id)
+            array(':CID' => $cid, ':UID' => $user_id)
         );
 
         $m = new self();
@@ -100,7 +112,7 @@ class Membership {
                      key_id IN (SELECT key_id FROM {$CFG->dbprefix}lti_key WHERE user_id = :UID)
                      OR user_id = :UID
                  )",
-                array(':CID' => $context_id, ':UID' => $user_id)
+                array(':CID' => $cid, ':UID' => $user_id)
             );
             if ( $context_check ) {
                 $max_role = LTIX::ROLE_INSTRUCTOR;
@@ -109,7 +121,7 @@ class Membership {
 
         $m->role = $max_role;
 
-        $_SESSION['membership'][$context_id] = $m;
+        Cache::setContext(self::CACHE_LOCATION, $cid, $m, false);
         return $m;
     }
 }

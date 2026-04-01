@@ -31,6 +31,13 @@ namespace Tsugi\Core;
  * This strictly bounds overall cache data in the session to the
  * number of cache locations and avoids any need for a garbage
  * collection or an independent expire process.
+ *
+ * Context-scoped entries (setContext / getContext) use the same
+ * one-slot-per-location rule: each $cacheloc holds at most one
+ * bundle { context_id, ts, ttl, value }. A get for a different
+ * context removes the slot and returns null. Expiry uses ts + ttl
+ * (seconds); ttl 0 means no time-based expiry (context mismatch
+ * still invalidates).
  */
 
 class Cache {
@@ -105,6 +112,111 @@ class Cache {
             // error_log("Cache clear $cacheloc");
         }
         unset($_SESSION[$cacheloc]);
+    }
+
+    /**
+     * Store a value for one cache location, tied to a context id and optional TTL (seconds).
+     * Same session slot as getContext: overwrites any previous entry for this $cacheloc.
+     *
+     * @param string $cacheloc Location name (becomes cache_ prefix in session).
+     * @param int $context_id Context this value belongs to.
+     * @param mixed $value Data to cache; null or false removes the entry.
+     * @param int|false $expiresec TTL in seconds from stored ts, or false/0 for no time expiry.
+     */
+    public static function setContext($cacheloc, $context_id, $value, $expiresec = false)
+    {
+        $cacheloc = "cache_" . $cacheloc;
+        if ( $value === null || $value === false ) {
+            unset($_SESSION[$cacheloc]);
+            return;
+        }
+        $ttl = ( $expiresec === false || $expiresec === null ) ? 0 : (int) $expiresec;
+        $_SESSION[$cacheloc] = array(
+            'context_id' => (int) $context_id,
+            'ts' => time(),
+            'ttl' => $ttl,
+            'value' => $value,
+        );
+    }
+
+    /**
+     * Return the cached value for this location if context matches and entry is not expired.
+     * If the slot exists but context_id does not match, the entry is removed and null is returned.
+     * If the entry is time-expired (ttl > 0 and age >= ttl), it is removed and null is returned.
+     *
+     * @param string $cacheloc Location name.
+     * @param int $context_id Requesting context; must match stored context_id.
+     * @return mixed|null
+     */
+    public static function getContext($cacheloc, $context_id)
+    {
+        $cacheloc = "cache_" . $cacheloc;
+        if ( ! isset($_SESSION[$cacheloc]) || ! is_array($_SESSION[$cacheloc]) ) {
+            return null;
+        }
+        $row = $_SESSION[$cacheloc];
+        $want = (int) $context_id;
+        $have = isset($row['context_id']) ? (int) $row['context_id'] : -1;
+        if ( $want !== $have ) {
+            unset($_SESSION[$cacheloc]);
+            return null;
+        }
+        $ts = isset($row['ts']) ? (int) $row['ts'] : 0;
+        $ttl = isset($row['ttl']) ? (int) $row['ttl'] : 0;
+        if ( $ttl > 0 && $ts > 0 && (time() - $ts) >= $ttl ) {
+            unset($_SESSION[$cacheloc]);
+            return null;
+        }
+        if ( ! array_key_exists('value', $row ) ) {
+            unset($_SESSION[$cacheloc]);
+            return null;
+        }
+        return $row['value'];
+    }
+
+    /**
+     * Remove the context cache entry for this location (any stored context).
+     */
+    public static function clearContext($cacheloc)
+    {
+        $cacheloc = "cache_" . $cacheloc;
+        unset($_SESSION[$cacheloc]);
+    }
+
+    /**
+     * Remove the entry only if it is currently cached for the given context_id.
+     */
+    public static function invalidateContext($cacheloc, $context_id)
+    {
+        $cacheloc = "cache_" . $cacheloc;
+        if ( ! isset($_SESSION[$cacheloc]) || ! is_array($_SESSION[$cacheloc]) ) {
+            return;
+        }
+        $row = $_SESSION[$cacheloc];
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return;
+        }
+        $have = isset($row['context_id']) ? (int) $row['context_id'] : -1;
+        if ( $have === $cid ) {
+            unset($_SESSION[$cacheloc]);
+        }
+    }
+
+    /**
+     * Remove every Tsugi session cache entry (session keys starting with "cache_").
+     * Use after login or other events where cached user/context data must not leak across identities.
+     */
+    public static function clearAllSessionCaches()
+    {
+        if ( ! isset($_SESSION) || ! is_array($_SESSION) ) {
+            return;
+        }
+        foreach ( array_keys($_SESSION) as $k ) {
+            if ( is_string($k) && str_starts_with($k, 'cache_') ) {
+                unset($_SESSION[$k]);
+            }
+        }
     }
 
 }

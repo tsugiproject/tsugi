@@ -72,7 +72,7 @@ class Calendar extends Tool {
      * Count unfinished assignments that are “due soon” (within 7 days) or “late” (past due).
      *
      * @param array<int,array<string,mixed>> $items from Lessons::enumerateLtiAssignmentItems()
-     * @param array<string,array<string,mixed>> $dueMap from GradeUtil::loadDueDatesForContext()
+     * @param array<string,array<string,mixed>> $dueMap from GradeUtil::loadDueDatesForDisplay()
      * @param array<string,float> $allgrades resource_link_id => grade
      * @return array{due_soon:int,late:int}
      */
@@ -122,7 +122,7 @@ class Calendar extends Tool {
 
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $items = $l->enumerateLtiAssignmentItems();
-        $dueMap = GradeUtil::loadDueDatesForContext($_SESSION['context_id']);
+        $dueMap = GradeUtil::loadDueDatesForDisplay($_SESSION['context_id']);
 
         $allgrades = array();
         $rows = GradeUtil::loadGradesForCourse($_SESSION['id'], $_SESSION['context_id']);
@@ -173,7 +173,7 @@ class Calendar extends Tool {
         $items = $l->enumerateLtiAssignmentItems();
         $dueMap = array();
         if ( isset($_SESSION['context_id']) ) {
-            $dueMap = GradeUtil::loadDueDatesForContext($_SESSION['context_id']);
+            $dueMap = GradeUtil::loadDueDatesForDisplay($_SESSION['context_id']);
         }
         $allgrades = array();
         if ( isset($_SESSION['id']) && isset($_SESSION['context_id']) ) {

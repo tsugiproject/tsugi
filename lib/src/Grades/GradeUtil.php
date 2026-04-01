@@ -5,8 +5,16 @@ namespace Tsugi\Grades;
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\Cache;
+use \Tsugi\Core\Membership;
 
 class GradeUtil {
+
+    /** @internal Session cache location for {@see Cache::setContext} */
+    private const DUE_DATES_CACHE_LOC = 'gradeutil_due_dates';
+
+    private const DUE_DATES_CACHE_TTL = 60;
+
     public static function gradeLoadAll() {
         global $CFG, $USER, $LINK, $PDOX;
         $LAUNCH = LTIX::requireData(LTIX::LINK);
@@ -135,17 +143,41 @@ class GradeUtil {
     }
 
     /**
+     * Remove session-cached due dates for one context, or clear the slot if $context_id is null.
+     */
+    public static function invalidateDueDatesCache($context_id = null) {
+        if ( $context_id === null ) {
+            Cache::clearContext(self::DUE_DATES_CACHE_LOC);
+            return;
+        }
+        Cache::invalidateContext(self::DUE_DATES_CACHE_LOC, (int) $context_id);
+    }
+
+    /**
      * Due/start times from lti_link for a context, keyed by link_key (resource link id).
+     * Cached via {@see Cache::setContext} for {@see self::DUE_DATES_CACHE_TTL} seconds.
      *
      * @return array<string,array{start_datetime:mixed,end_datetime:mixed}>
      */
     public static function loadDueDatesForContext($context_id) {
         global $CFG, $PDOX;
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return array();
+        }
+
+        $cached = Cache::getContext(self::DUE_DATES_CACHE_LOC, $cid);
+        if ( is_array($cached) ) {
+            return $cached;
+        }
+
+        LTIX::getConnection();
+
         $p = $CFG->dbprefix;
         $rows = $PDOX->allRowsDie(
             "SELECT link_key, start_datetime, end_datetime FROM {$p}lti_link
              WHERE context_id = :CID AND (deleted IS NULL OR deleted = 0)",
-            array(':CID' => $context_id)
+            array(':CID' => $cid)
         );
         $map = array();
         foreach ( $rows as $row ) {
@@ -154,6 +186,78 @@ class GradeUtil {
                 'end_datetime' => $row['end_datetime'],
             );
         }
+
+        Cache::setContext(self::DUE_DATES_CACHE_LOC, $cid, $map, self::DUE_DATES_CACHE_TTL);
+
         return $map;
+    }
+
+    /**
+     * @param array<string,array<string,mixed>> $map
+     */
+    private static function dueMapHasScheduledEnd($map) {
+        if ( ! is_array($map) ) {
+            return false;
+        }
+        foreach ( $map as $row ) {
+            $end = isset($row['end_datetime']) ? $row['end_datetime'] : null;
+            if ( $end !== null && $end !== '' ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether the course has any assignment with a non-empty lti_link.end_datetime (ignores viewDueDates).
+     */
+    public static function contextHasAnyDueDate($context_id) {
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return false;
+        }
+        return self::dueMapHasScheduledEnd(self::loadDueDatesForContext($cid));
+    }
+
+    /**
+     * Due map for UI when the current user may see due dates (course has at least one due and
+     * lti_membership.viewDueDates allows it). Otherwise returns an empty array.
+     *
+     * Use for learner-facing surfaces (lessons, assignments list, calendar). Instructors editing
+     * due dates should use {@see loadDueDatesForContext} instead.
+     *
+     * @return array<string,array{start_datetime:mixed,end_datetime:mixed}>
+     */
+    public static function loadDueDatesForDisplay($context_id) {
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return array();
+        }
+        $map = self::loadDueDatesForContext($cid);
+        if ( ! self::dueMapHasScheduledEnd($map) ) {
+            return array();
+        }
+        $user_id = isset($_SESSION['id']) ? (int) $_SESSION['id'] : 0;
+        if ( $user_id < 1 ) {
+            return array();
+        }
+        LTIX::getConnection();
+        $m = Membership::ensureInSession($cid, $user_id);
+        if ( empty($m->viewDueDates) ) {
+            return array();
+        }
+        return $map;
+    }
+
+    /**
+     * Whether due-date UI should appear for the current user in this context.
+     *
+     * True when {@see loadDueDatesForDisplay} would return a non-empty map (at least one scheduled due
+     * and membership allows viewing).
+     *
+     * @return bool
+     */
+    public static function showDueDates($context_id) {
+        return self::loadDueDatesForDisplay($context_id) !== array();
     }
 }

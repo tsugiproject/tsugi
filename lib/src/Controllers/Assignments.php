@@ -7,6 +7,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Util\U;
+use Tsugi\Core\LTIX;
+use Tsugi\Core\Membership;
 
 class Assignments extends Tool {
 
@@ -23,6 +25,8 @@ class Assignments extends Tool {
         $app->router->post($prefix.'/manage-due-dates/clear-all/', 'Assignments@clearAllDueDatesPost');
         $app->router->post($prefix.'/manage-due-dates', 'Assignments@manageDueDatesPost');
         $app->router->post($prefix.'/manage-due-dates/', 'Assignments@manageDueDatesPost');
+        $app->router->post($prefix.'/toggle-view-due-dates', 'Assignments@toggleViewDueDatesPost');
+        $app->router->post($prefix.'/toggle-view-due-dates/', 'Assignments@toggleViewDueDatesPost');
         $app->router->get($prefix, 'Assignments@get');
         $app->router->get($prefix.'/', 'Assignments@get');
     }
@@ -32,6 +36,26 @@ class Assignments extends Tool {
      */
     private function loadDueDatesByLinkKey($context_id) {
         return GradeUtil::loadDueDatesForContext($context_id);
+    }
+
+    private function invalidateDueDatesSessionCache() {
+        $context_id = U::get($_SESSION, 'context_id');
+        if ( $context_id ) {
+            GradeUtil::invalidateDueDatesCache((int) $context_id);
+        }
+    }
+
+    /**
+     * After lti_membership or due-date visibility changes for this context.
+     */
+    private function invalidateMembershipAndDueDatesCache() {
+        $context_id = U::get($_SESSION, 'context_id');
+        if ( ! $context_id ) {
+            return;
+        }
+        $cid = (int) $context_id;
+        Membership::invalidateSessionCache($cid);
+        GradeUtil::invalidateDueDatesCache($cid);
     }
 
     /**
@@ -85,21 +109,96 @@ class Assignments extends Tool {
 
         $duedates = array();
         if ( isset($_SESSION['context_id']) ) {
-            $duedates = $this->loadDueDatesByLinkKey($_SESSION['context_id']);
+            $duedates = GradeUtil::loadDueDatesForDisplay($_SESSION['context_id']);
+        }
+
+        $showDueDateToggle = isset($_SESSION['id']) && isset($_SESSION['context_id'])
+            && GradeUtil::contextHasAnyDueDate((int) $_SESSION['context_id']);
+
+        $toolbar_html = null;
+        if ( $this->isInstructor() || $showDueDateToggle ) {
+            ob_start();
+            echo('<div style="display:flex;flex-wrap:wrap;gap:0.35em;justify-content:flex-end;align-items:center;">');
+            if ( $showDueDateToggle ) {
+                LTIX::getConnection();
+                $mm = Membership::ensureInSession((int) $_SESSION['context_id'], (int) $_SESSION['id']);
+                $hiding = empty($mm->viewDueDates);
+                $btnLabel = $hiding ? __('Show due dates') : __('Hide due dates');
+                $toggleAction = U::addSession($this->toolHome(self::ROUTE) . '/toggle-view-due-dates');
+                echo('<form method="post" action="'.htmlspecialchars($toggleAction).'" style="display:inline;margin:0;">');
+                echo('<button type="submit" class="btn btn-default btn-sm">'.htmlspecialchars($btnLabel).'</button>');
+                echo('</form>');
+            }
+            if ( $this->isInstructor() ) {
+                $md_url = U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates');
+                echo('<a href="'.htmlspecialchars($md_url).'" class="btn btn-default btn-sm"><i class="fa fa-calendar" aria-hidden="true"></i> '.__('Manage due dates').'</a>');
+            }
+            echo('</div>');
+            $toolbar_html = ob_get_clean();
         }
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        if ( $this->isInstructor() ) {
-            $md_url = U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates');
-            echo('<p class="text-right" style="margin-bottom:0.5em;">');
-            echo('<a href="'.htmlspecialchars($md_url).'" class="btn btn-default btn-sm"><i class="fa fa-calendar" aria-hidden="true"></i> '.__('Manage due dates').'</a>');
-            echo("</p>\n");
-        }
-        $l->renderAssignments($allgrades, $alldates, false, $duedates);
+        $l->renderAssignments($allgrades, $alldates, false, $duedates, $toolbar_html);
         $OUTPUT->footer();
+    }
+
+    /**
+     * Toggle lti_membership.viewDueDates for the current user in this context.
+     */
+    public function toggleViewDueDatesPost(Request $request)
+    {
+        global $CFG, $PDOX;
+
+        if ( ! isset($CFG->lessons) ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+        }
+        $this->requireAuth();
+        $context_id = U::get($_SESSION, 'context_id');
+        $user_id = U::get($_SESSION, 'id');
+        if ( ! $context_id || ! $user_id ) {
+            U::flashError(__('Context required.'));
+            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
+        }
+        $cid = (int) $context_id;
+        $uid = (int) $user_id;
+
+        LTIX::getConnection();
+
+        if ( ! GradeUtil::contextHasAnyDueDate($cid) ) {
+            U::flashError(__('This course has no due dates to show or hide.'));
+            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
+        }
+
+        $m = Membership::ensureInSession($cid, $uid);
+        $newVal = empty($m->viewDueDates) ? 1 : 0;
+
+        $p = $CFG->dbprefix;
+        $sql = "UPDATE {$p}lti_membership SET viewDueDates = :VDD, updated_at = NOW()
+            WHERE context_id = :CID AND user_id = :UID AND deleted = 0";
+        $stmt = $PDOX->queryReturnError($sql, array(
+            ':CID' => $cid,
+            ':UID' => $uid,
+            ':VDD' => $newVal,
+        ));
+        if ( ! $stmt->success ) {
+            U::flashError(__('Could not update your preference. Please try again.'));
+            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
+        }
+        if ( $stmt->rowCount() < 1 ) {
+            U::flashError(__('No course membership was found. Open this tool again from your course, then try again.'));
+            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
+        }
+
+        $this->invalidateMembershipAndDueDatesCache();
+        if ( $newVal ) {
+            U::flashSuccess(__('Due dates are shown for you in this course.'));
+        } else {
+            U::flashSuccess(__('Due dates are hidden for you in this course.'));
+        }
+        return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
     }
 
     public function manageDueDates(Request $request)
@@ -264,6 +363,7 @@ class Assignments extends Tool {
             }
             $endSql = self::parseDueDateEndOfDay($ends[$i]);
             if ( $ends[$i] !== '' && $endSql === null ) {
+                $this->invalidateDueDatesSessionCache();
                 U::flashError(__('Invalid due date for resource link: ').$rlid);
                 return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
             }
@@ -277,12 +377,14 @@ class Assignments extends Tool {
                 )
             );
             if ( ! $stmt->success ) {
+                $this->invalidateDueDatesSessionCache();
                 U::flashError(__('Could not save due dates. Please try again.'));
                 return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
             }
             $updated += $stmt->rowCount();
         }
 
+        $this->invalidateDueDatesSessionCache();
         U::flashSuccess(__('Saved due dates.').' ('.$updated.' '.__('link row(s) updated').').');
         return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
     }
@@ -318,12 +420,14 @@ class Assignments extends Tool {
                 )
             );
             if ( ! $stmt->success ) {
+                $this->invalidateDueDatesSessionCache();
                 U::flashError(__('Could not clear due dates. Please try again.'));
                 return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
             }
             $updated += $stmt->rowCount();
         }
 
+        $this->invalidateDueDatesSessionCache();
         U::flashSuccess(__('Cleared due dates.').' ('.$updated.' '.__('link row(s) updated').').');
         return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
     }
@@ -370,6 +474,7 @@ class Assignments extends Tool {
             $modIdx = isset($it['module_index']) ? (int) $it['module_index'] : 0;
             $dueTs = strtotime('+' . ($modIdx * 7) . ' days', $baseTs);
             if ( $dueTs === false ) {
+                $this->invalidateDueDatesSessionCache();
                 U::flashError(__('Could not compute a due date for resource link: ').$rlid);
                 return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
             }
@@ -384,6 +489,7 @@ class Assignments extends Tool {
                 )
             );
             if ( ! $stmt->success ) {
+                $this->invalidateDueDatesSessionCache();
                 U::flashError(__('Could not save due dates. Please try again.'));
                 return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
             }
@@ -394,6 +500,7 @@ class Assignments extends Tool {
         if ( $skipped > 0 ) {
             $msg .= ' '.sprintf(__('Skipped %d assignment(s) with no link row yet.'), $skipped);
         }
+        $this->invalidateDueDatesSessionCache();
         U::flashSuccess($msg);
         return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
     }
@@ -439,6 +546,7 @@ class Assignments extends Tool {
                 ':path' => null,
             ));
             if ( ! $stmt->success ) {
+                $this->invalidateDueDatesSessionCache();
                 U::flashError(__('Could not add link rows. Please try again.'));
                 return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
             }
@@ -453,6 +561,7 @@ class Assignments extends Tool {
         if ( $attempted < 1 ) {
             U::flashSuccess(__('No missing link rows; nothing to add.'));
         } else {
+            $this->invalidateDueDatesSessionCache();
             U::flashSuccess(
                 __('Added link rows.').' '.sprintf(__('New inserts: %d.'), $inserted).' '.
                 sprintf(__('Missing assignments processed: %d. Same insert as launch—no duplicate if a row already existed.'), $attempted)

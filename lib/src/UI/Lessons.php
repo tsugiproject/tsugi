@@ -39,7 +39,7 @@ class Lessons {
     /** @var array Grades by resource_link_id for due badges on single-module view */
     private $lessonModuleGradesForBadges = array();
 
-    /** @var array Due rows by link_key from GradeUtil::loadDueDatesForContext */
+    /** @var array Due rows by link_key from GradeUtil::loadDueDatesForDisplay */
     private $lessonModuleDueDatesForBadges = array();
 
     /**
@@ -866,7 +866,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         $this->lessonModuleGradesForBadges = $allgrades;
         $this->lessonModuleDueDatesForBadges = array();
         if ( isset($_SESSION['context_id']) ) {
-            $this->lessonModuleDueDatesForBadges = GradeUtil::loadDueDatesForContext($_SESSION['context_id']);
+            $this->lessonModuleDueDatesForBadges = GradeUtil::loadDueDatesForDisplay($_SESSION['context_id']);
         }
 
 	if ( $nostyle && isset($_SESSION['gc_count']) ) {
@@ -1415,7 +1415,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 
         $duedates = array();
         if ( isset($_SESSION['context_id']) ) {
-            $duedates = GradeUtil::loadDueDatesForContext($_SESSION['context_id']);
+            $duedates = GradeUtil::loadDueDatesForDisplay($_SESSION['context_id']);
         }
 
         echo('<div typeof="Course">'."\n");
@@ -1619,10 +1619,15 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         return $list;
     }
 
-    public function renderAssignments($allgrades, $alldates, $buffer=false, $duedates=array())
+    public function renderAssignments($allgrades, $alldates, $buffer=false, $duedates=array(), $toolbar_html=null)
     {
         ob_start();
         echo('<h1>'.$this->lessons->title."</h1>\n");
+        if ( is_string($toolbar_html) && $toolbar_html !== '' ) {
+            echo('<div class="clearfix tsugi-assignments-actions" style="margin-bottom:0.75em;">' . "\n");
+            echo('<div class="pull-right">' . $toolbar_html . '</div>' . "\n");
+            echo("</div>\n");
+        }
         $displayname = U::get($_SESSION, 'displayname');
         $email = U::get($_SESSION, 'email');
         if ( is_string($displayname) || is_string($email) ) {

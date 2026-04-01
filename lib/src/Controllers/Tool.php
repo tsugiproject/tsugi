@@ -192,7 +192,7 @@ abstract class Tool {
      * 
      * Reads context_id and user_id from $_SESSION['context_id'] and $_SESSION['id'].
      * Delegates to Membership::ensureInSession(), which caches a Membership instance in
-     * $_SESSION['membership'][$context_id] (single lti_membership SELECT when missing;
+     * context-scoped session cache via Membership::ensureInSession() (single lti_membership SELECT when missing;
      * ownership query only when role must be resolved).
      * 
      * @return bool True if user is instructor/admin for the context, false otherwise

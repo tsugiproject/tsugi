@@ -71,7 +71,11 @@ class AssignmentsControllerTest extends \PHPUnit\Framework\TestCase
         $hasManageDueDates = false;
         $hasAddLinkRows = false;
         $hasApplyWeekly = false;
+        $hasToggleViewDueDates = false;
         foreach ($uris as $uri) {
+            if (strpos($uri, '/assignments/toggle-view-due-dates') === 0) {
+                $hasToggleViewDueDates = true;
+            }
             if (strpos($uri, '/assignments/manage-due-dates/apply-weekly') === 0) {
                 $hasApplyWeekly = true;
             }
@@ -89,6 +93,7 @@ class AssignmentsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($hasManageDueDates, 'Should register /assignments/manage-due-dates route');
         $this->assertTrue($hasAddLinkRows, 'Should register /assignments/manage-due-dates/add-link-rows route');
         $this->assertTrue($hasApplyWeekly, 'Should register /assignments/manage-due-dates/apply-weekly route');
+        $this->assertTrue($hasToggleViewDueDates, 'Should register /assignments/toggle-view-due-dates route');
     }
     
     /**

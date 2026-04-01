@@ -16,7 +16,7 @@ require_once(__DIR__ . '/../../admin/admin_util.php');
  * 3. If user owns the context or its key
  *
  * Reads context_id and user_id from $_SESSION['context_id'] and $_SESSION['id'].
- * Caches a Membership instance in $_SESSION['membership'][$context_id] via Membership::ensureInSession().
+ * Caches a Membership instance via Membership::ensureInSession() (context-scoped session cache).
  *
  * @return bool True if user is instructor/admin for the context, false otherwise
  */
