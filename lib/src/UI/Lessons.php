@@ -8,6 +8,7 @@ use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\AesOpenSSL;
 use \Tsugi\Grades\GradeUtil;
+use \Tsugi\Services\Badges\BadgeService;
 
 class Lessons {
 
@@ -1943,8 +1944,16 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 $code = basename($badge->image,'.png');
                 $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
                 $encrypted = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
-                echo('<a href="'.$CFG->wwwroot.'/assertions/'.$encrypted.'.html" target="_blank" rel="noopener noreferrer" aria-label="'.__('View badge assertion, opens in new window').'">');
-                echo('<img src="'.$CFG->wwwroot.'/badges/images/'.$encrypted.'.png" width="90" alt="'.htmlspecialchars($badge->title).'"></a>');
+                $published_guid = BadgeService::getMintedGuidIfExists(
+                    (int) $_SESSION['id'],
+                    (int) $_SESSION['context_id'],
+                    $code
+                );
+                $assert_url = $published_guid !== null
+                    ? $CFG->wwwroot . '/assertions/' . rawurlencode($published_guid) . '.html'
+                    : $CFG->wwwroot . '/assertions/' . $encrypted . '.html';
+                echo('<a href="'.htmlspecialchars($assert_url).'" target="_blank" rel="noopener noreferrer" aria-label="'.__('View badge assertion, opens in new window').'">');
+                echo('<img src="'.htmlspecialchars($CFG->wwwroot.'/badges/images/'.$encrypted.'.png').'" width="90" alt="'.htmlspecialchars($badge->title).'"></a>');
                 echo($badge->title);
                 echo("</p></li>\n");
             }
