@@ -431,6 +431,7 @@ function googleTranslateElementInit() {
 
         // Load notifications web component
         echo('<script type="module" src="' . htmlspecialchars($CFG->wwwroot . '/lib/src/Controllers/static/Notifications/tsugi-notifications.js') . '"></script>' . "\n");
+        echo('<script type="module" src="' . htmlspecialchars($CFG->wwwroot . '/lib/src/Controllers/static/Calendar/tsugi-calendar-due.js') . '"></script>' . "\n");
 
         // Register service worker for push notifications and offline support (if enabled)
         $service_worker_enabled = isset($CFG->service_worker) && $CFG->service_worker;
