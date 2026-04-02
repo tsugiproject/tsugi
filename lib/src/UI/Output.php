@@ -905,6 +905,30 @@ $('a').each(function (x) {
         echo($menu_txt);
     }
 
+    /**
+     * Pull data-tsugi-li-class="a b" off the anchor attribute string (not rendered on &lt;a&gt;)
+     * and return a sanitized class list for the parent &lt;li&gt;.
+     */
+    private function extractLiClassesFromNavAttr(&$attr_str) {
+        $li_classes = '';
+        if ( ! is_string($attr_str) || $attr_str === '' ) {
+            return $li_classes;
+        }
+        if ( preg_match('/\bdata-tsugi-li-class\s*=\s*"([^"]*)"/i', $attr_str, $m) ) {
+            $parts = preg_split('/\s+/', trim($m[1]));
+            $safe = array();
+            foreach ( $parts as $p ) {
+                if ( $p !== '' && preg_match('/^[a-zA-Z][a-zA-Z0-9_-]*$/', $p) ) {
+                    $safe[] = $p;
+                }
+            }
+            $li_classes = implode(' ', $safe);
+            $attr_str = trim(preg_replace('/\s*\bdata-tsugi-li-class\s*=\s*"[^"]*"\s*/i', ' ', $attr_str));
+            $attr_str = trim(preg_replace('/\s+/', ' ', $attr_str));
+        }
+        return $li_classes;
+    }
+
     private function recurseNav($entry, $depth, $is_tool_nav = false) {
         global $CFG;
         $current_url = $is_tool_nav ? basename($_SERVER['PHP_SELF']) : $CFG->getCurrentUrl();
@@ -916,11 +940,16 @@ $('a').each(function (x) {
             $url = $entry->href;
             $attr = $entry->attr;
             if ( $url === false ) {
-                $retval .= $pad.'<li class="navbar-text">'.$entry->link.'</li>'."\n";
+                $li_class = 'navbar-text';
+                if ( $attr !== false && is_string($attr) && $attr !== '' ) {
+                    $li_class .= ' '.htmlspecialchars($attr, ENT_QUOTES, 'UTF-8');
+                }
+                $retval .= $pad.'<li class="'.$li_class.'">'.$entry->link.'</li>'."\n";
                 return $retval;
             }
             // Convert attr to string first to check if it contains target=
             $attr_str = ($attr !== false && is_string($attr)) ? $attr : '';
+            $li_extra_class = $this->extractLiClassesFromNavAttr($attr_str);
             $attr_has_target = ($attr_str !== '' && stripos($attr_str, 'target=') !== false);
             
             // Only add default target="_blank" if attr doesn't already specify a target
@@ -930,11 +959,18 @@ $('a').each(function (x) {
                  ( ! is_string($CFG->wwwroot) || strpos($url, $CFG->wwwroot) === false ) ) {
                 $target = ' target="_blank" rel="noopener noreferrer"';
             }
-            $active = '';
+            $li_class_parts = array();
             if ( $current_url == $url ) {
-                $active = ' class="active"';
+                $li_class_parts[] = 'active';
             }
-            $retval .= $pad.'<li'.$active.'><a href="'.$url.'"'.$target.' '.$attr_str.'>'.$entry->link.'</a></li>'."\n";
+            if ( $li_extra_class !== '' ) {
+                $li_class_parts[] = $li_extra_class;
+            }
+            $li_class_attr = '';
+            if ( count($li_class_parts) > 0 ) {
+                $li_class_attr = ' class="'.htmlspecialchars(implode(' ', $li_class_parts), ENT_QUOTES, 'UTF-8').'"';
+            }
+            $retval .= $pad.'<li'.$li_class_attr.'><a href="'.$url.'"'.$target.' '.$attr_str.'>'.$entry->link.'</a></li>'."\n";
             return $retval;
         }
         $retval .= $pad.'<li class="dropdown">'."\n";
