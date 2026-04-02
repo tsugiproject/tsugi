@@ -453,22 +453,10 @@ function googleTranslateElementInit() {
         // Fixed in 7.1.9
         // https://www.php.net/ChangeLog-7.php#7.1.9
         // https://stackoverflow.com/questions/44980654/how-can-i-make-trans-sid-cookie-less-sessions-work-in-php-7-1
-?>
-<script>
-$('a').each(function (x) {
-    var href = $(this).attr('href');
-    if ( ! href ) return;
-    if ( ! href.startsWith('#') ) return;
-    var pos = href.indexOf('/?');
-    if ( pos < 1 ) return;
-    // console.dir('Patching broken # href='+href);
-    href = href.substring(0,pos);
-    $(this).attr('href', href);
-});
-<?php
-// Hack to compensate for PHP 7.0 cookiless session failure
+
     if ( ini_get('session.use_cookies') == '0' ) {
 ?>
+<script>
 $('a').each(function (x) {
     var href = $(this).attr('href');
     var sess_name = '<?= session_name() ?>';
@@ -478,6 +466,8 @@ $('a').each(function (x) {
     if ( href.indexOf(sess_name) > 0 ) return;
     if ( href.startsWith('javascript:') ) return;
 
+    var withinTopNav = $(this).closest('#tsugi_main_nav_bar').length > 0;
+
     var localurl = true;
     if ( href.startsWith('http://') ) localurl = false;
     if ( href.startsWith('https://') ) localurl = false;
@@ -485,6 +475,7 @@ $('a').each(function (x) {
 
     if ( href.startsWith(_TSUGI.wwwroot) ) localurl = true;
     if ( _TSUGI.apphome && href.startsWith(_TSUGI.apphome) ) localurl = true;
+    if ( withinTopNav ) localurl = false;
 
     // console.log(href,localurl);
  
@@ -498,9 +489,9 @@ $('a').each(function (x) {
     // console.dir('Patching missing session href='+href);
     $(this).attr('href', href);
 });
+</script>
 <?php } ?>
 
-</script>
 <?php
         $ob_output = ob_get_contents();
         ob_end_clean();
@@ -840,7 +831,9 @@ $('a').each(function (x) {
 
         // Canvas bug: launch_target is iframe even in new window (2017-01-10)
         $menu_set = false;
-        if ( $menu_set === false && ($_SESSION[$sess_key] ?? null) ) {
+        if ( $menu_set === false && defined('COOKIE_SESSION') && $CFG->defaultmenu instanceof \Tsugi\UI\MenuSet) {
+            $menu_set = $CFG->defaultmenu;
+        } else if ( $menu_set === false && ($_SESSION[$sess_key] ?? null) ) {
             $menu_set = \Tsugi\UI\MenuSet::import($_SESSION[$sess_key] ?? null);
         } else if ( $menu_set === true ) {
             $menu_set = self::defaultMenuSet();

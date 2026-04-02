@@ -599,7 +599,7 @@ class ConfigInfo {
      *  ...
      * $CFG->defaultmenu = $set;
      */
-    public $defaultmenu;
+    public $defaultmenu = false;
 
     /*
      * If we are running Embedded Tsugi we need to set the
