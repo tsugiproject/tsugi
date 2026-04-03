@@ -25,6 +25,7 @@ if ( ! U::isCli() ) {
 }
 
 LTIX::getConnection();
+$t0 = microtime(true);
 
 $dryrun = ! ( isset($argv[1]) && $argv[1] === 'remove' );
 
@@ -71,4 +72,5 @@ while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
 }
 
 echo("# blob_file rows checked={$checked} missing_backing_file={$missing} " .
-    ($dryrun ? "would_delete={$deleted}\n" : "deleted={$deleted}\n"));
+    ($dryrun ? "would_delete={$deleted}" : "deleted={$deleted}") .
+    ' elapsed=' . sprintf('%.2fs', microtime(true) - $t0) . "\n");

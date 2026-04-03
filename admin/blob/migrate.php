@@ -9,6 +9,7 @@ require_once("../../config.php");
 if ( ! U::isCli() ) die('Must be command line');
 
 LTIX::getConnection();
+$t0 = microtime(true);
 
 $dryrun = ! ( isset($argv[1]) && $argv[1] == 'move');
 
@@ -48,7 +49,6 @@ $stop = 500;
 $checked = 0;
 $blob_moved = 0;
 
-$start = time();
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     if ( $stop > 0 && $checked >= $stop ) {
         echo("\nPartial Run: Stopped after $stop blobs\n");
@@ -74,7 +74,7 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         echo("File did not migrate file_id=$file_id\n");
     }
 }
-$delta = time() - $start;
 
-echo("# blobs checked=$checked moved=$blob_moved seconds=$delta\n");
+echo("# blobs checked=$checked moved=$blob_moved elapsed=" .
+    sprintf('%.2fs', microtime(true) - $t0) . "\n");
 

@@ -29,6 +29,8 @@ if ( ! file_exists($directory) ) {
     die("\$CFG->dataroot does not exist\n");
 }
 
+$t0 = microtime(true);
+
 $dryrun = ! ( isset($argv[1]) && $argv[1] == 'remove' );
 $verbose = isset($argv[1]) && $argv[1] == 'verbose';
 
@@ -117,4 +119,5 @@ if ( $dryrun ) {
     echo("This is a dry run, use 'php clean_dataroot_blobs.php remove' to actually remove the files.\n");
 }
 echo("# folders scan=$dscan skip=$dskip rm=$ddel\n");
-echo("# files scan=$fscan skip=$fskip good=$fgood rm=$fdel\n");
+echo("# files scan=$fscan skip=$fskip good=$fgood rm=$fdel elapsed=" .
+    sprintf('%.2fs', microtime(true) - $t0) . "\n");

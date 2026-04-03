@@ -18,6 +18,7 @@ if ( ! U::isCli() ) {
 }
 
 LTIX::getConnection();
+$t0 = microtime(true);
 
 $dryrun = ! ( isset($argv[1]) && $argv[1] == 'remove' );
 
@@ -61,4 +62,5 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     }
 }
 
-echo("# orphan blob_blob rows found=$checked delete=$deleted\n");
+echo("# orphan blob_blob rows found=$checked delete=$deleted elapsed=" .
+    sprintf('%.2fs', microtime(true) - $t0) . "\n");

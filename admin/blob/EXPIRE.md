@@ -6,6 +6,12 @@ See also [README.md](README.md) for how the three stores relate, and the sample 
 
 To print the configured dataroot path from the same `config.php` the app uses (CLI only), `cd` into `tsugi/admin/blob` and run `php show_dataroot.php`. Use it to set a shell variable, for example `DATAROOT=$(php show_dataroot.php)` (still from that directory).
 
+```bash
+cd /path/to/tsugi/admin/blob
+php show_dataroot.php
+# DATAROOT=$(php show_dataroot.php)
+```
+
 ---
 
 ## Top-down cleanup (lifecycle-driven orphans)
@@ -16,6 +22,13 @@ To print the configured dataroot path from the same `config.php` the app uses (C
 
 **Operational pattern.** On a schedule (for example monthly), scan `$CFG->dataroot` and remove files that are **not** referenced by any row in `blob_file`. In this tree, `clean_dataroot_blobs.php` implements that scan: it walks the hashed layout, checks each candidate file against `blob_file`, and can remove unreferenced files (dry run by default; `remove` to apply).
 
+```bash
+cd /path/to/tsugi/admin/blob
+php clean_dataroot_blobs.php              # dry run: lists rm targets
+php clean_dataroot_blobs.php verbose      # dry run with per-file OK lines
+php clean_dataroot_blobs.php remove       # actually unlink files / empty dirs
+```
+
 After removing orphan files, empty directories may remain; `clean_dataroot_blobs.php` also removes empty leaf directories when it is safe to do so.
 
 **Order of operations (typical).**
@@ -23,6 +36,12 @@ After removing orphan files, empty directories may remain; `clean_dataroot_blobs
 1. Application or admin workflows delete or expire contexts/users/tenants as policy requires (including `blob_file` cleanup if your code does that).
 2. Run `clean_dataroot_blobs.php` (dry run, then `remove`) to drop disk files with no `blob_file` reference.
 3. Optionally run `clean_blob_blob.php` to remove rows in `blob_blob` that no longer have any `blob_file` pointing at them (see README for when `blob_blob` is in use).
+
+```bash
+cd /path/to/tsugi/admin/blob
+php clean_blob_blob.php                   # dry run: orphan blob_blob rows
+php clean_blob_blob.php remove            # delete those blob_blob rows
+```
 
 ---
 
@@ -43,9 +62,7 @@ After removing orphan files, empty directories may remain; `clean_dataroot_blobs
 
    ```bash
    cd /path/to/tsugi/admin/blob
-   
-   php show_dataroot.php               # Must be set or this won't work
-   DATAROOT=/efs/sites/www.site.com    
+   DATAROOT=$(php show_dataroot.php)   # or: DATAROOT=/path/to/your/dataroot
 
    find "$DATAROOT" -type f -mtime +800 -atime +800 -print \
      | awk '{print "rm -f --", $0}'
@@ -72,7 +89,19 @@ After removing orphan files, empty directories may remain; `clean_dataroot_blobs
 
 The **`clean_blob_file.php`** script does that: it removes `blob_file` rows with a non-empty `path` where the path does not exist on disk (dry run by default; `remove` to apply). It complements **`clean_dataroot_blobs.php`**, which removes **disk** files that have no `blob_file` row. Run it after age-based or manual file deletion under `$CFG->dataroot`, then consider **`clean_blob_blob.php`** for orphaned `blob_blob` rows.
 
+```bash
+cd /path/to/tsugi/admin/blob
+php clean_blob_file.php                   # dry run: rows that would be deleted
+php clean_blob_file.php remove            # delete dangling blob_file rows
+```
+
 3. After DB rows for missing files are removed, run `clean_blob_blob.php` if you use `blob_blob`, so unreferenced blob content rows are removed.
+
+```bash
+cd /path/to/tsugi/admin/blob
+php clean_blob_blob.php
+php clean_blob_blob.php remove
+```
 
 ---
 
@@ -84,3 +113,15 @@ The **`clean_blob_file.php`** script does that: it removes `blob_file` rows with
 | Bottom-up | Age policy (`find` on atime **and** mtime) | Delete old files under `$CFG->dataroot` | Remove `blob_file` rows with missing backing files (`clean_blob_file.php`); then `clean_blob_blob.php` if applicable |
 
 Use **top-down** when the source of truth is the LMS or Tsugi lifecycle. Use **bottom-up** when the source of truth is a fixed retention window on disk. Many production setups combine both: periodic age pruning plus regular orphan sweeps after large context purges.
+
+Quick reference (always from `tsugi/admin/blob`):
+
+```bash
+php show_dataroot.php
+php clean_dataroot_blobs.php
+php clean_dataroot_blobs.php remove
+php clean_blob_file.php
+php clean_blob_file.php remove
+php clean_blob_blob.php
+php clean_blob_blob.php remove
+```
