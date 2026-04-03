@@ -4,6 +4,8 @@ Tsugi stores blob metadata in the database (primarily `blob_file`, and optionall
 
 See also [README.md](README.md) for how the three stores relate, and the sample runs of `clean_dataroot_blobs.php`, `clean_blob_file.php`, and `clean_blob_blob.php`.
 
+To print the configured dataroot path from the same `config.php` the app uses (CLI only), `cd` into `tsugi/admin/blob` and run `php show_dataroot.php`. Use it to set a shell variable, for example `DATAROOT=$(php show_dataroot.php)` (still from that directory).
+
 ---
 
 ## Top-down cleanup (lifecycle-driven orphans)
@@ -40,8 +42,10 @@ After removing orphan files, empty directories may remain; `clean_dataroot_blobs
    `find` measures **days**; `-mtime +800` and `-atime +800` mean last modified and last accessed are **more than 800 days** ago. Both must match.
 
    ```bash
-   grep dataroot ../../config.php    # Make sure there is a $CFG->dataroot
-   DATAROOT=/path/to/your/dataroot   # same as $CFG->dataroot
+   cd /path/to/tsugi/admin/blob
+   
+   php show_dataroot.php               # Must be set or this won't work
+   DATAROOT=/efs/sites/www.site.com    
 
    find "$DATAROOT" -type f -mtime +800 -atime +800 -print \
      | awk '{print "rm -f --", $0}'
