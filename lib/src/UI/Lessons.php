@@ -59,144 +59,6 @@ class Lessons {
     public function header($buffer=false) {
         global $CFG;
         ob_start();
-?>
-<style>
-    .card {
-    display: inline-block;
-    padding: 0.5em;
-    margin: 12px;
-    border: 1px solid black;
-    height: 12em;
-    overflow-y: hidden;
-}
- .card div {
-    height: 11em;
-    overflow-y: hidden;
-    text-overflow: ellipsis;
-}
- .card .tsugi-card-description {
-    margin: 0.2em 0 0 0;
-    line-height: 2.0;
-}
-
-#loader {
-      position: fixed;
-      left: 0px;
-      top: 0px;
-      width: 100%;
-      height: 100%;
-      background-color: white;
-      margin: 0;
-      z-index: 100;
-}
-
-/* Indent content lists that follow h2 headers */
-/* Target ul elements that come after h2 in the same container */
-h2 ~ ul.tsugi-lessons-content-list,
-h2 + ul.tsugi-lessons-content-list {
-    margin-left: 1.5em;
-    padding-left: 0.5em;
-}
-
-/* Also target ul elements that are descendants of containers that have h2 */
-div:has(> h2) ul.tsugi-lessons-content-list,
-li:has(> h2) ul.tsugi-lessons-content-list {
-    margin-left: 1.5em;
-    padding-left: 0.5em;
-}
-
-/* Single-module title bar uses floated icon/image like module cards */
-.tsugi-lessons-module-title-cardmatch { overflow: auto; }
-
-/* Remove list bullets and style icons for lesson items */
-ul.tsugi-lessons-content-list {
-    list-style: none;
-    padding-left: 0;
-}
-
-ul.tsugi-lessons-content-list li {
-    list-style: none;
-    padding-left: 0;
-}
-
-ul.tsugi-lessons-content-list li i.fa {
-    color: #666;
-    width: 1.2em;
-    text-align: center;
-}
-
-/* Close button for video/audio overlay dialogs */
-.tsugi-overlay-close {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    z-index: 10;
-    background: rgba(255,255,255,0.2);
-    border: 1px solid rgba(255,255,255,0.5);
-    color: white;
-    font-size: 1.5rem;
-    line-height: 1;
-    width: 2rem;
-    height: 2rem;
-    padding: 0;
-    cursor: pointer;
-    border-radius: 4px;
-}
-.tsugi-overlay-close:hover {
-    background: rgba(255,255,255,0.3);
-}
-.w3schools-overlay-content {
-    position: relative;
-}
-
-/* Button styled as link for video/lecture play triggers */
-.tsugi-video-play-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    margin: 0;
-    font: inherit;
-    color: inherit;
-    cursor: pointer;
-    text-align: left;
-    display: inline-flex;
-    align-items: center;
-}
-
-/* Style for colored item type icons */
-.tsugi-item-type-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border-radius: 3px;
-    font-size: 14px;
-    margin-right: 8px;
-    vertical-align: middle;
-    flex-shrink: 0;
-}
-
-/* Keep All button centered when prev/next are absent */
-ul.pager.tsugi-lessons-pager {
-    display: flex;
-    justify-content: space-between;
-    min-width: 200px;
-}
-ul.pager.tsugi-lessons-pager > li {
-    flex: 1;
-}
-ul.pager.tsugi-lessons-pager > li:first-child {
-    text-align: left;
-}
-ul.pager.tsugi-lessons-pager > li:nth-child(2) {
-    text-align: center;
-}
-ul.pager.tsugi-lessons-pager > li:last-child {
-    text-align: right;
-}
-</style>
-<?php
         // See if there are any carousels in the lessons
         $carousel = false;
         foreach($this->lessons->modules as $module) {
@@ -647,17 +509,20 @@ ul.pager.tsugi-lessons-pager > li:last-child {
 
     /**
      * LTI assignment totals for module progress (items array, else legacy lti).
-     * Only resource links with a non-empty end_datetime in the current context are counted
-     * (same rule as due-date badges); unscheduled LTI is excluded from possible and actual.
+     * When $duedates_for_display is non-empty ({@see GradeUtil::loadDueDatesForDisplay}), only
+     * resource links with a non-empty end_datetime in the current context are counted (due-date mode).
+     * When it is empty (no course due dates, or the learner has hidden due dates), every graded LTI
+     * launch in the module counts so percent-complete badges still work.
      * LTI entries with "result": false are excluded from points, actuals, and rollup rlids.
      *
-     * @param array<string,array<string,mixed>> $duedates
+     * @param array<string,array<string,mixed>> $duedates_for_display
      * @return array{0:float,1:float,2:string[]} possible points, actual points, resource_link_ids
      */
-    private function moduleLtiProgressPoints($module, $allgrades, $duedates) {
+    private function moduleLtiProgressPoints($module, $allgrades, $duedates_for_display) {
         $possible = 0.0;
         $actual = 0.0;
         $rlids = array();
+        $require_scheduled = ($duedates_for_display !== array());
         if ( isset($module->items) ) {
             foreach ( $module->items as $item ) {
                 if ( ! isset($item->type) || $item->type != 'lti' || ! isset($item->resource_link_id) ) {
@@ -666,7 +531,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 if ( ! self::ltiLaunchIsGraded($item) ) {
                     continue;
                 }
-                if ( ! $this->resourceLinkHasDueDateInContext($item->resource_link_id, $duedates) ) {
+                if ( $require_scheduled && ! $this->resourceLinkHasDueDateInContext($item->resource_link_id, $duedates_for_display) ) {
                     continue;
                 }
                 $possible += 1.0;
@@ -687,7 +552,7 @@ ul.pager.tsugi-lessons-pager > li:last-child {
                 if ( ! self::ltiLaunchIsGraded($lti) ) {
                     continue;
                 }
-                if ( ! $this->resourceLinkHasDueDateInContext($lti->resource_link_id, $duedates) ) {
+                if ( $require_scheduled && ! $this->resourceLinkHasDueDateInContext($lti->resource_link_id, $duedates_for_display) ) {
                     continue;
                 }
                 $possible += 1.0;
@@ -810,7 +675,6 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         }
         $percent = (int) round(($actual_points / $possible_points) * 100);
         $hasDue = $this->moduleHasLtiDueDateInContext($rlids, $duedates);
-        echo("<!-- $hasDue $percent $possible_points $actual_points -->");
         if ( ! $hasDue ) {
             if ( $percent == 0 ) {
                 return;
