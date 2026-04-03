@@ -62,7 +62,7 @@ php clean_blob_blob.php remove            # delete those blob_blob rows
 
    ```bash
    cd /path/to/tsugi/admin/blob
-    php show_dataroot.php   
+   php show_dataroot.php   
 
    DATAROOT=/efs/sites/www.ziggy.com
 
