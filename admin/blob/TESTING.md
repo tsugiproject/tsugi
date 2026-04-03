@@ -67,27 +67,27 @@ should have a blob in the `content` column.  They should have the same value in 
 * Look at each of the files in the browser and verify they both work
 * Navigate to `admin/blob` and run (you should not find any un referenced blobs)
 
-    php blobcheck.php
+    php clean_blob_blob.php
 
-    This is a dry run, use 'php blobcheck.php remove' to actually remove the blobs.
-    # unreferenced blobs found=0 delete=0
+    This is a dry run, use 'php clean_blob_blob.php remove' to actually remove the rows.
+    # orphan blob_blob rows found=0 delete=0
 
 * Delete both files and verify that the `blob_file` rows are gone - but the `blob_blob`
 row is still there!
 * Navigate to `admin/blob` and run (you should see the unreferenced blob)
 
-    php blobcheck.php
-    This is a dry run, use 'php blobcheck.php remove' to actually remove the blobs.
-    DELETE 5 9dad808bd56037d66276e679f7401c08e8723603627abf8f2f7d63b5ff214fb7
-    # unreferenced blobs found=1 delete=1
+    php clean_blob_blob.php
+    This is a dry run, use 'php clean_blob_blob.php remove' to actually remove the rows.
+    DELETE blob_blob blob_id=5 9dad808bd56037d66276e679f7401c08e8723603627abf8f2f7d63b5ff214fb7
+    # orphan blob_blob rows found=1 delete=1
 
 * This should *not* delete the blob - to do so, run:
 
-    php blobcheck.php remove
+    php clean_blob_blob.php remove
     This IS NOT A DRILL!
     ...
-    DELETE 5 9dad808bd56037d66276e679f7401c08e8723603627abf8f2f7d63b5ff214fb7
-    # unreferenced blobs found=1 delete=1
+    DELETE blob_blob blob_id=5 9dad808bd56037d66276e679f7401c08e8723603627abf8f2f7d63b5ff214fb7
+    # orphan blob_blob rows found=1 delete=1
 
 * Check in `blob_blob` and make sure the row is not there.
 
@@ -106,8 +106,8 @@ should have a blob in the `content` column.  They should have the same value in 
 
 * Navigate to `admin/blob` and run (you should not find any unreferenced files)
 
-    php filecheck.php 
-    This is a dry run, use 'php filecheck.php remove' to actually remove the files.
+    php clean_dataroot_blobs.php
+    This is a dry run, use 'php clean_dataroot_blobs.php remove' to actually remove the files.
     # folders scan=2 skip=0 rm=0
     # files scan=1 skip=0 good=1 rm=0
 
@@ -115,15 +115,15 @@ should have a blob in the `content` column.  They should have the same value in 
 on disk is still there!
 * Navigate to `admin/blob` and run (you should see the unreferenced file)
 
-    php filecheck.php 
-    This is a dry run, use 'php filecheck.php remove' to actually remove the files.
+    php clean_dataroot_blobs.php
+    This is a dry run, use 'php clean_dataroot_blobs.php remove' to actually remove the files.
     rm /Users/csev/tsugi_blobs/9d/ad/9dad808bd56037d66276e679f7401c0....
     # folders scan=2 skip=0 rm=0
     # files scan=1 skip=0 good=0 rm=1
 
 * This should *not* delete the file - to do so, run:
 
-    php filecheck.php remove
+    php clean_dataroot_blobs.php remove
     This IS NOT A DRILL!
     ...
     rm /Users/csev/tsugi_blobs/9d/ad/9dad808bd56037d66276e679f7401c08e8723603627abf8f2f7d63b5ff214fb7

@@ -40,6 +40,20 @@ $file_count = $row ? $row['count'] : 0;
 echo( $file_count );
 ?>
 </li>
+<li><code>blob_file</code> rows with no <code>context_id</code>
+<?php
+$row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}blob_file WHERE context_id IS NULL");
+$blob_no_context = $row ? $row['count'] : 0;
+echo( $blob_no_context );
+?>
+</li>
+<li><code>blob_file</code> rows with no <code>link_id</code>
+<?php
+$row = $PDOX->rowDie("SELECT COUNT(*) AS count FROM {$CFG->dbprefix}blob_file WHERE link_id IS NULL");
+$blob_no_link = $row ? $row['count'] : 0;
+echo( $blob_no_link );
+?>
+</li>
 <li>Blobs on disk
 <?php
 $row = $PDOX->rowDie("SELECT COUNT(DISTINCT(file_sha256)) AS count FROM {$CFG->dbprefix}blob_file WHERE path IS NOT NULL");

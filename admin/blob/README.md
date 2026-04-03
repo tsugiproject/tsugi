@@ -53,29 +53,40 @@ Then you can test migration from legacy `blob_file` to `blob_blob`.
 Sample Executions of Admin Scripts in admin/blob
 ------------------------------------------------
 
-    $ php blobcheck.php
-    This is a dry run, use 'php blobcheck.php remove' to actually remove the blobs.
-    DELETE 4 69893b55bd8c9c5c53df72e3ea7e325cd2df8729d87b4dedce43630d668e6e1b
-    # unreferenced blobs found=1 delete=1
+    $ php clean_blob_blob.php
+    This is a dry run, use 'php clean_blob_blob.php remove' to actually remove the rows.
+    DELETE blob_blob blob_id=4 69893b55bd8c9c5c53df72e3ea7e325cd2df8729d87b4dedce43630d668e6e1b
+    # orphan blob_blob rows found=1 delete=1
 
-    $ php blobcheck.php remove
+    $ php clean_blob_blob.php remove
     This IS NOT A DRILL!
     ...
-    DELETE 4 69893b55bd8c9c5c53df72e3ea7e325cd2df8729d87b4dedce43630d668e6e1b
-    # unreferenced blobs found=1 delete=1
+    DELETE blob_blob blob_id=4 69893b55bd8c9c5c53df72e3ea7e325cd2df8729d87b4dedce43630d668e6e1b
+    # orphan blob_blob rows found=1 delete=1
 
-    $ php blobcheck.php 
-    This is a dry run, use 'php blobcheck.php remove' to actually remove the blobs.
-    # unreferenced blobs found=0 delete=0
+    $ php clean_blob_blob.php
+    This is a dry run, use 'php clean_blob_blob.php remove' to actually remove the rows.
+    # orphan blob_blob rows found=0 delete=0
 
-    $ php filecheck.php 
-    This is a dry run, use 'php filecheck.php remove' to actually remove the files.
+    $ php clean_blob_file.php
+    Dry run: rows listed below would be deleted. Run: php clean_blob_file.php remove
+    DELETE blob_file file_id=12 sha256=abc... path=/path/to/missing/file
+    # blob_file rows checked=50 missing_backing_file=1 would_delete=1
+
+    $ php clean_blob_file.php remove
+    This IS NOT A DRILL!
+    ...
+    DELETE blob_file file_id=12 sha256=abc... path=/path/to/missing/file
+    # blob_file rows checked=50 missing_backing_file=1 deleted=1
+
+    $ php clean_dataroot_blobs.php
+    This is a dry run, use 'php clean_dataroot_blobs.php remove' to actually remove the files.
     rm /Users/csev/tsugi_blobs/7c/95/7c954...98548f526218ef633152934334967
-    This is a dry run, use 'php filecheck.php remove' to actually remove the files.
+    This is a dry run, use 'php clean_dataroot_blobs.php remove' to actually remove the files.
     # folders scan=4 skip=0 rm=0
     # files scan=2 skip=0 good=1 rm=1
 
-    $ php filecheck.php remove
+    $ php clean_dataroot_blobs.php remove
     This IS NOT A DRILL!
     ...
     rm /Users/csev/tsugi_blobs/7c/95/7c954...98548f526218ef633152934334967
@@ -84,9 +95,9 @@ Sample Executions of Admin Scripts in admin/blob
     # folders scan=4 skip=0 rm=2
     # files scan=2 skip=0 good=1 rm=1
 
-    $ php filecheck.php 
-    This is a dry run, use 'php filecheck.php remove' to actually remove the files.
-    This is a dry run, use 'php filecheck.php remove' to actually remove the files.
+    $ php clean_dataroot_blobs.php
+    This is a dry run, use 'php clean_dataroot_blobs.php remove' to actually remove the files.
+    This is a dry run, use 'php clean_dataroot_blobs.php remove' to actually remove the files.
     # folders scan=2 skip=0 rm=0
     # files scan=1 skip=0 good=1 rm=0
 

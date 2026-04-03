@@ -31,7 +31,7 @@ To remove unused files from the on-disk store, you must log in and
 run
 <pre>
 cd tsugi/admin/blob
-php filecheck.php
+php clean_dataroot_blobs.php
 </pre>
 since it is a long running task.
 </p>
@@ -99,9 +99,9 @@ all at once, you can log into the server
 and do the following:
 <pre>
 cd tsugi/admin/blob
-php blobcheck.php
+php clean_blob_blob.php
 </pre>
-The <b>blobcheck.php</b> tool has a dry run mode and must be
+The <b>clean_blob_blob.php</b> tool has a dry run mode and must be
 run under the same account (UID) as the web server process so
 that the web server can read and write the
 resulting files.
