@@ -277,17 +277,40 @@ class Pages extends Tool {
         $items = array();
 
         if (empty($apphome) || empty($lessons_file) || !is_readable($lessons_file)) {
-            return new JsonResponse(array('items' => $items, 'modules' => array()));
+            return new JsonResponse(array('items' => $items, 'modules' => array(), 'launches' => array()));
         }
 
         $json = @file_get_contents($lessons_file);
         if ($json === false) {
-            return new JsonResponse(array('items' => $items, 'modules' => array()));
+            return new JsonResponse(array('items' => $items, 'modules' => array(), 'launches' => array()));
         }
 
         $data = @json_decode($json, true);
         if (!is_array($data) || empty($data['modules'])) {
-            return new JsonResponse(array('items' => $items, 'modules' => array()));
+            return new JsonResponse(array('items' => $items, 'modules' => array(), 'launches' => array()));
+        }
+
+        $launches_out = array();
+        $top_launches = U::get($data, 'launches', array());
+        if (is_array($top_launches)) {
+            foreach ($top_launches as $launch) {
+                if (!is_array($launch)) {
+                    continue;
+                }
+                $type = U::get($launch, 'type', 'lti');
+                $title = U::get($launch, 'title', '');
+                $rlid = U::get($launch, 'resource_link_id', '');
+                if ($type !== 'lti' || $title === '' || $rlid === '') {
+                    continue;
+                }
+                $launches_out[] = array(
+                    'type' => $type,
+                    'title' => $title,
+                    'url' => $apphome . '/launch/' . rawurlencode($rlid),
+                    'resource_link_id' => $rlid,
+                    'result' => U::get($launch, 'result', true),
+                );
+            }
         }
 
         $top_level_modules = array();
@@ -345,7 +368,7 @@ class Pages extends Tool {
             }
         }
 
-        return new JsonResponse(array('items' => $items, 'modules' => $top_level_modules));
+        return new JsonResponse(array('items' => $items, 'modules' => $top_level_modules, 'launches' => $launches_out));
     }
 
     public function add(Request $request)

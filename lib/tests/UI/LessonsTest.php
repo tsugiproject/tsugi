@@ -391,6 +391,69 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $notFound = $lessons->getModuleByAnchor('nonexistent');
         $this->assertNull($notFound, 'getModuleByAnchor should return null for nonexistent anchor');
     }
+
+    /**
+     * getLaunches() returns [] when lessons JSON has no launches key
+     */
+    public function testGetLaunchesEmptyWhenMissing() {
+        $lessons = new class extends \Tsugi\UI\Lessons {
+            public function __construct() {
+                // Skip parent constructor
+            }
+        };
+        $lessons->lessons = new \stdClass();
+        $lessons->lessons->modules = [];
+        $this->assertSame(array(), $lessons->getLaunches());
+    }
+
+    /**
+     * Top-level "launches" in lessons JSON: getLaunches(), getLtiByRlid(), resource_links
+     */
+    public function testTopLevelLaunchesFromFile() {
+        $savedSession = $_SESSION ?? null;
+        $_SESSION = array('id' => 1);
+
+        $tmp = tempnam(sys_get_temp_dir(), 'tsugi-lessons-launch');
+        $data = array(
+            'title' => 'Test Course',
+            'modules' => array(
+                array(
+                    'title' => 'Module A',
+                    'anchor' => 'a',
+                ),
+            ),
+            'launches' => array(
+                array(
+                    'type' => 'lti',
+                    'title' => 'Class Leaderboard',
+                    'launch' => '{apphome}/mod/board/',
+                    'result' => false,
+                    'resource_link_id' => 'ca4e_01_leaderboard_x',
+                ),
+            ),
+        );
+        file_put_contents($tmp, json_encode($data));
+        try {
+            $L = new \Tsugi\UI\Lessons($tmp);
+            $list = $L->getLaunches();
+            $this->assertCount(1, $list, 'getLaunches should return top-level launches');
+            $this->assertEquals('Class Leaderboard', $list[0]->title);
+            $this->assertStringContainsString('mod/board', $list[0]->launch);
+
+            $lti = $L->getLtiByRlid('ca4e_01_leaderboard_x');
+            $this->assertNotNull($lti, 'getLtiByRlid should resolve course-level launches');
+            $this->assertEquals('Class Leaderboard', $lti->title);
+
+            $this->assertNull(
+                $L->getModuleByRlid('ca4e_01_leaderboard_x'),
+                'Course-level launches are not tied to a module'
+            );
+            $this->assertArrayHasKey('ca4e_01_leaderboard_x', $L->resource_links);
+        } finally {
+            @unlink($tmp);
+            $_SESSION = $savedSession;
+        }
+    }
     
     /**
      * Test adjustArray() static method - converts non-arrays to arrays and adjusts URLs

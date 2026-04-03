@@ -3,9 +3,7 @@
 namespace Tsugi\Controllers;
 
 use Tsugi\Util\U;
-use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
-use Tsugi\Grades\GradeUtil;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -16,9 +14,6 @@ class Lessons extends Tool {
     const ROUTE = '/lessons';
 
     const REDIRECT = 'tsugi_controllers_lessons';
-
-    /** @internal Set in {@see launch()}; next {@see get()} clears grade session cache (return from LTI tool). */
-    private const SESSION_RETURN_GRADE_REFRESH = 'tsugi_lessons_refresh_grades_on_view';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Lessons@get');
@@ -43,9 +38,9 @@ class Lessons extends Tool {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
         }
 
-        if ( ! empty($_SESSION[self::SESSION_RETURN_GRADE_REFRESH]) ) {
-            GradeUtil::invalidateGradesCurrentUser();
-            unset($_SESSION[self::SESSION_RETURN_GRADE_REFRESH]);
+        if ( ! empty($_SESSION[Tool::SESSION_LESSONS_GRADE_REFRESH_AFTER_LAUNCH]) ) {
+            \Tsugi\Grades\GradeUtil::invalidateGradesCurrentUser();
+            unset($_SESSION[Tool::SESSION_LESSONS_GRADE_REFRESH_AFTER_LAUNCH]);
         }
 
         // Turning on and off styling
@@ -188,7 +183,6 @@ class Lessons extends Tool {
     public static function launch(Application $app, $anchor=null)
     {
         global $CFG;
-        $tsugi = $app['tsugi'];
 
         $path = U::rest_path();
         $redirect_path = U::addSession($path->parent);
@@ -205,88 +199,29 @@ class Lessons extends Tool {
             return new RedirectResponse($redirect_path);
         }
 
-        $module = $l->getModuleByRlid($anchor);
-        if ( ! $module ) {
-            $app->tsugiFlashError(__('Cannot find module resource link id'));
-            return new RedirectResponse($redirect_path);
-        }
-
         $lti = $l->getLtiByRlid($anchor);
         if ( ! $lti ) {
             $app->tsugiFlashError(__('Cannot find lti resource link id'));
             return new RedirectResponse($redirect_path);
         }
 
-        // Check that the session has the minimums...
-        if ( U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
-                && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
-        {
-            // All good
-        } else {
-            $app->tsugiFlashError(__('Missing session data required for launch'));
-            return new RedirectResponse($redirect_path);
-        }
+        $module = $l->getModuleByRlid($anchor);
 
-        // Fresh grade list: clear now and again on next Lessons page view (LTI return URL).
-        GradeUtil::invalidateGradesCurrentUser();
-        $_SESSION[self::SESSION_RETURN_GRADE_REFRESH] = 1;
+        $lessons_base = $path->parent . '/' . str_replace('_launch', '', $path->controller);
+        $return_url = $module
+            ? $lessons_base . '/' . $module->anchor
+            : $lessons_base;
 
-        $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
-        $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;
-        $secret = false;
-        if ( isset($_SESSION['secret']) ) {
-            $secret = LTIX::decrypt_secret($_SESSION['secret']);
-        }
+        $fallback_title = ( $module && isset($module->title) ) ? $module->title : '';
 
-        $resource_link_id = $lti->resource_link_id;
-        $parms = array(
-            'lti_message_type' => 'basic-lti-launch-request',
-            'resource_link_id' => $resource_link_id,
-            'resource_link_title' => $resource_link_title,
-            'tool_consumer_info_product_family_code' => 'tsugi',
-            'tool_consumer_info_version' => '1.1',
-            'context_id' => $_SESSION['context_key'],
-            'context_label' => $CFG->context_title,
-            'context_title' => $CFG->context_title,
-            'user_id' => $_SESSION['user_key'],
-            'lis_person_name_full' => $_SESSION['displayname'],
-            'lis_person_contact_email_primary' => $_SESSION['email'],
-            'roles' => 'Learner'
+        return Tool::sendLti11LaunchFromLessonsItem(
+            $app,
+            $lti,
+            $return_url,
+            $redirect_path,
+            $fallback_title,
+            Tool::SESSION_LESSONS_GRADE_REFRESH_AFTER_LAUNCH
         );
-        if ( isset($_SESSION['avatar']) ) $parms['user_image'] = $_SESSION['avatar'];
-
-        if ( isset($lti->custom) ) {
-            foreach($lti->custom as $custom) {
-                if ( isset($custom->value) ) {
-                    $parms['custom_'.$custom->key] = $custom->value;
-                }
-                if ( isset($custom->json) ) {
-                    $parms['custom_'.$custom->key] = json_encode($custom->json);
-                }
-            }
-        }
-
-        $return_url = $path->parent . '/' . str_replace('_launch', '', $path->controller) . '/' . $module->anchor;
-        $parms['launch_presentation_return_url'] = $return_url;
-
-        $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
-        if ( isset($_SESSION[$sess_key]) ) {
-            // $parms['ext_tsugi_top_nav'] = $_SESSION[$sess_key];
-        }
-
-        $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
-        $parms['ext_lti_form_id'] = $form_id;
-
-        // Expand {apphome} placeholder to actual URL (like the old launch.php does)
-        $endpoint = $l->expandLink($lti->launch);
-        $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
-            "Finish Launch", $CFG->wwwroot, $CFG->servicename);
-
-        // Check for launch debug flag - when true, form will pause before auto-submitting
-        $debug = $CFG->getExtension('launch_debug', false);
-        $content = LTI::postLaunchHTML($parms, $endpoint, $debug);
-        print($content);
-        return "";
     }
 
 }

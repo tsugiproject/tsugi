@@ -3,8 +3,12 @@
 namespace Tsugi\Controllers;
 
 use Tsugi\Util\U;
+use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Membership;
+use Tsugi\Grades\GradeUtil;
+use Tsugi\Lumen\Application;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Base class for LMS tool controllers
@@ -13,6 +17,117 @@ use Tsugi\Core\Membership;
  * like instructor checking, analytics recording, etc.
  */
 abstract class Tool {
+
+    /**
+     * When set after an outbound LTI 1.1 launch, {@see \Tsugi\Controllers\Lessons::get()}
+     * clears the grade cache on the next lessons page view (tool return flow).
+     */
+    public const SESSION_LESSONS_GRADE_REFRESH_AFTER_LAUNCH = 'tsugi_lessons_refresh_grades_on_view';
+
+    /**
+     * Require LTI consumer session fields needed to sign an outbound LTI 1.1 launch.
+     *
+     * @return RedirectResponse|null Null if session is sufficient; redirect with flash otherwise.
+     */
+    public static function requireOutboundLti11LaunchSession(Application $app, $redirect_path) {
+        if ( U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
+                && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') ) {
+            return null;
+        }
+        $app->tsugiFlashError(__('Missing session data required for launch'));
+        return new RedirectResponse($redirect_path);
+    }
+
+    /**
+     * Build and print the auto-submit HTML for an LTI 1.1 basic-lti-launch-request to a tool URL
+     * described by a lessons.json / lessons-items item (same shape as {@see \Tsugi\UI\Lessons::getLtiByRlid()}).
+     *
+     * @param Application $app
+     * @param object $lti Must have resource_link_id, launch; optional title, custom
+     * @param string $launch_presentation_return_url Return URL after the external tool
+     * @param string $redirect_path_on_error Session addSession path for flash+redirect on failure
+     * @param string $fallback_resource_link_title Used when $lti->title is missing
+     * @param string|null $grade_refresh_session_key If non-null, {@see GradeUtil::invalidateGradesCurrentUser()} and set this session key (typically {@see self::SESSION_LESSONS_GRADE_REFRESH_AFTER_LAUNCH})
+     * @return RedirectResponse|string Empty string after HTML is printed; RedirectResponse on session failure only (caller handles other errors)
+     */
+    public static function sendLti11LaunchFromLessonsItem(
+        Application $app,
+        $lti,
+        $launch_presentation_return_url,
+        $redirect_path_on_error,
+        $fallback_resource_link_title = '',
+        $grade_refresh_session_key = null
+    ) {
+        $sessionRedirect = self::requireOutboundLti11LaunchSession($app, $redirect_path_on_error);
+        if ( $sessionRedirect !== null ) {
+            return $sessionRedirect;
+        }
+
+        if ( $grade_refresh_session_key !== null ) {
+            GradeUtil::invalidateGradesCurrentUser();
+            $_SESSION[$grade_refresh_session_key] = 1;
+        }
+
+        global $CFG;
+
+        $resource_link_title = ( isset($lti->title) && $lti->title !== '' )
+            ? $lti->title
+            : $fallback_resource_link_title;
+
+        $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;
+        $secret = false;
+        if ( isset($_SESSION['secret']) ) {
+            $secret = LTIX::decrypt_secret($_SESSION['secret']);
+        }
+
+        $resource_link_id = $lti->resource_link_id;
+        $parms = array(
+            'lti_message_type' => 'basic-lti-launch-request',
+            'resource_link_id' => $resource_link_id,
+            'resource_link_title' => $resource_link_title,
+            'tool_consumer_info_product_family_code' => 'tsugi',
+            'tool_consumer_info_version' => '1.1',
+            'context_id' => $_SESSION['context_key'],
+            'context_label' => $CFG->context_title,
+            'context_title' => $CFG->context_title,
+            'user_id' => $_SESSION['user_key'],
+            'lis_person_name_full' => $_SESSION['displayname'],
+            'lis_person_contact_email_primary' => $_SESSION['email'],
+            'roles' => 'Learner',
+            'launch_presentation_return_url' => $launch_presentation_return_url,
+        );
+        if ( isset($_SESSION['avatar']) ) {
+            $parms['user_image'] = $_SESSION['avatar'];
+        }
+
+        if ( isset($lti->custom) ) {
+            foreach ( $lti->custom as $custom ) {
+                if ( isset($custom->value) ) {
+                    $parms['custom_'.$custom->key] = $custom->value;
+                }
+                if ( isset($custom->json) ) {
+                    $parms['custom_'.$custom->key] = json_encode($custom->json);
+                }
+            }
+        }
+
+        $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
+        if ( isset($_SESSION[$sess_key]) ) {
+            // $parms['ext_tsugi_top_nav'] = $_SESSION[$sess_key];
+        }
+
+        $form_id = 'tsugi_form_id_'.bin2hex(openssl_random_pseudo_bytes(4));
+        $parms['ext_lti_form_id'] = $form_id;
+
+        $endpoint = \Tsugi\UI\Lessons::expandLink($lti->launch);
+        $parms = LTI::signParameters($parms, $endpoint, 'POST', $key, $secret,
+            'Finish Launch', $CFG->wwwroot, $CFG->servicename);
+
+        $debug = $CFG->getExtension('launch_debug', false);
+        $content = LTI::postLaunchHTML($parms, $endpoint, $debug);
+        print($content);
+        return '';
+    }
 
     /**
      * Get the base path for this tool (e.g., '/py4e/pages' or '/py4e/12345/pages')
@@ -156,7 +271,7 @@ abstract class Tool {
             }
         } else {
             // Try to detect by looking for common controller routes
-            $controllerRoutes = ['/announcements', '/pages', '/badges', '/grades', '/lessons', '/assignments', '/map', '/login', '/logout'];
+            $controllerRoutes = ['/announcements', '/pages', '/badges', '/grades', '/lessons', '/launch', '/assignments', '/map', '/login', '/logout'];
             foreach ($controllerRoutes as $testRoute) {
                 $routePos = strpos($requestUri, $testRoute);
                 if ($routePos !== false) {

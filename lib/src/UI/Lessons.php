@@ -363,6 +363,26 @@ ul.pager.tsugi-lessons-pager > li:last-child {
             }
         }
 
+        // Top-level course launches (LTI tools not tied to a module)
+        if ( isset($this->lessons->launches) ) {
+            self::adjustArray($this->lessons->launches);
+            foreach ( $this->lessons->launches as $launch ) {
+                if ( ! isset($launch->title) ) {
+                    die_with_error_log('All launches in lessons must have a title');
+                }
+                if ( ! isset($launch->resource_link_id) ) {
+                    die_with_error_log('All launches must have resource_link_id: '.$launch->title);
+                }
+                if ( ! isset($launch->launch) ) {
+                    die_with_error_log('All launches must have launch URL: '.$launch->title);
+                }
+                if ( isset($this->resource_links[$launch->resource_link_id]) ) {
+                    die_with_error_log('Duplicate resource link in Lessons '. $launch->resource_link_id);
+                }
+                $this->resource_links[$launch->resource_link_id] = '';
+            }
+        }
+
         $anchor = isset($_GET['anchor']) ? $_GET['anchor'] : $anchor;
         $index = isset($_GET['index']) ? $_GET['index'] : $index;
 
@@ -451,6 +471,19 @@ ul.pager.tsugi-lessons-pager > li:last-child {
     }
 
     /**
+     * Course-level launches from lessons JSON (top-level "launches" array).
+     *
+     * @return array<int, object> List of launch objects (type, title, launch URL, resource_link_id, etc.)
+     */
+    public function getLaunches() {
+        if ( ! isset($this->lessons->launches) ) {
+            return array();
+        }
+        $launches = $this->lessons->launches;
+        return is_array($launches) ? $launches : array($launches);
+    }
+
+    /**
      * Get an LTI or Discussion associated with a resource link ID
      */
     public function getLtiByRlid($resource_link_id)
@@ -458,6 +491,18 @@ ul.pager.tsugi-lessons-pager > li:last-child {
         if (isset($this->lessons->discussions) ) {
             foreach($this->lessons->discussions as $discussion) {
                 if ( $discussion->resource_link_id == $resource_link_id) return $discussion;
+            }
+        }
+
+        if ( isset($this->lessons->launches) ) {
+            foreach ( $this->getLaunches() as $launch ) {
+                $type = isset($launch->type) ? $launch->type : 'lti';
+                if ( $type !== 'lti' ) {
+                    continue;
+                }
+                if ( isset($launch->resource_link_id) && $launch->resource_link_id == $resource_link_id ) {
+                    return $launch;
+                }
             }
         }
 
