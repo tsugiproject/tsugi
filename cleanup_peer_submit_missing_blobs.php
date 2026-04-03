@@ -7,10 +7,12 @@
  * blob_file rows that still exist for the remaining ids on that submission.
  *
  * Usage (from mod/peer-grade):
- *   php cleanup_peer_submit_missing_blobs.php           dry run (default)
- *   php cleanup_peer_submit_missing_blobs.php remove  apply deletions
+ *   php cleanup_peer_submit_missing_blobs.php              dry run (default)
+ *   php cleanup_peer_submit_missing_blobs.php -v           dry run, echo each row as scanned
+ *   php cleanup_peer_submit_missing_blobs.php remove       apply deletions
+ *   php cleanup_peer_submit_missing_blobs.php -v remove    verbose + remove
  *
- * The word "remove" must be the last argument (e.g. future: extra flags before it).
+ * Verbose: -v, --verbose, or verbose. The word "remove" must be the last argument.
  */
 
 use Tsugi\Blob\BlobUtil;
@@ -30,9 +32,18 @@ if ( count($args) > 0 && end($args) === 'remove' ) {
     $do_remove = true;
     array_pop($args);
 }
-if ( count($args) > 0 ) {
-    fwrite(STDERR, "Unknown arguments: " . implode(' ', $args) . "\n");
-    fwrite(STDERR, "Usage: php cleanup_peer_submit_missing_blobs.php [remove]\n");
+$verbose = false;
+$unknown = array();
+foreach ( $args as $a ) {
+    if ( $a === '-v' || $a === '--verbose' || $a === 'verbose' ) {
+        $verbose = true;
+        continue;
+    }
+    $unknown[] = $a;
+}
+if ( count($unknown) > 0 ) {
+    fwrite(STDERR, "Unknown arguments: " . implode(' ', $unknown) . "\n");
+    fwrite(STDERR, "Usage: php cleanup_peer_submit_missing_blobs.php [-v|--verbose] [remove]\n");
     exit(1);
 }
 
@@ -104,19 +115,29 @@ while ( $row = $submitStmt->fetch(PDO::FETCH_ASSOC) ) {
 
     if ( U::isEmpty(trim((string) $json_str)) ) {
         $skipped_no_refs++;
+        if ( $verbose ) {
+            echo("SCAN submit_id={$submit_id} assn_id={$assn_id} user_id={$user_id} status=empty_json\n");
+        }
         continue;
     }
 
     $json = json_decode($json_str);
     if ( $json === null && json_last_error() !== JSON_ERROR_NONE ) {
         $bad_json++;
-        echo("SKIP bad JSON submit_id={$submit_id} assn_id={$assn_id} user_id={$user_id} error=" . json_last_error_msg() . "\n");
+        if ( $verbose ) {
+            echo("SCAN submit_id={$submit_id} assn_id={$assn_id} user_id={$user_id} status=bad_json error=" . json_last_error_msg() . "\n");
+        } else {
+            echo("SKIP bad JSON submit_id={$submit_id} assn_id={$assn_id} user_id={$user_id} error=" . json_last_error_msg() . "\n");
+        }
         continue;
     }
 
     $file_ids = peer_submit_referenced_file_ids($json);
     if ( count($file_ids) < 1 ) {
         $skipped_no_refs++;
+        if ( $verbose ) {
+            echo("SCAN submit_id={$submit_id} assn_id={$assn_id} user_id={$user_id} status=no_blob_refs\n");
+        }
         continue;
     }
 
@@ -131,12 +152,21 @@ while ( $row = $submitStmt->fetch(PDO::FETCH_ASSOC) ) {
     }
 
     if ( count($missing) < 1 ) {
+        if ( $verbose ) {
+            $refs = implode(',', $file_ids);
+            echo("SCAN submit_id={$submit_id} assn_id={$assn_id} user_id={$user_id} status=ok file_ids={$refs}\n");
+        }
         continue;
     }
 
     $orphan_candidates++;
     $missing_list = implode(',', $missing);
-    echo("ORPHAN submit_id={$submit_id} assn_id={$assn_id} user_id={$user_id} missing_file_id(s)={$missing_list}\n");
+    if ( $verbose ) {
+        $refs = implode(',', $file_ids);
+        echo("SCAN submit_id={$submit_id} assn_id={$assn_id} user_id={$user_id} status=orphan file_ids={$refs} missing_file_ids={$missing_list}\n");
+    } else {
+        echo("ORPHAN submit_id={$submit_id} assn_id={$assn_id} user_id={$user_id} missing_file_id(s)={$missing_list}\n");
+    }
 
     if ( ! $do_remove ) {
         continue;
