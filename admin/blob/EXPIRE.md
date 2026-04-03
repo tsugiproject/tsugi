@@ -62,7 +62,9 @@ php clean_blob_blob.php remove            # delete those blob_blob rows
 
    ```bash
    cd /path/to/tsugi/admin/blob
-   DATAROOT=$(php show_dataroot.php)   # or: DATAROOT=/path/to/your/dataroot
+    php show_dataroot.php   
+
+   DATAROOT=/efs/sites/www.ziggy.com
 
    find "$DATAROOT" -type f -mtime +800 -atime +800 -print \
      | awk '{print "rm -f --", $0}'
