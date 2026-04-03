@@ -19,10 +19,39 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 abstract class Tool {
 
     /**
-     * When set after an outbound LTI 1.1 launch, {@see \Tsugi\Controllers\Lessons::get()}
-     * clears the grade cache on the next lessons page view (tool return flow).
+     * When set after an outbound LTI 1.1 launch, the next {@see \Tsugi\Controllers\Lessons::get()}
+     * or {@see \Tsugi\Controllers\LaunchController::returnFromTool()} run clears the grade cache via
+     * {@see applyGradeRefreshAfterLaunchReturn()}.
      */
     public const SESSION_LESSONS_GRADE_REFRESH_AFTER_LAUNCH = 'tsugi_lessons_refresh_grades_on_view';
+
+    /**
+     * After an outbound LTI launch, if {@see SESSION_LESSONS_GRADE_REFRESH_AFTER_LAUNCH} is set,
+     * invalidate the current user's grade cache and clear the flag (next page load / return handler).
+     */
+    public static function applyGradeRefreshAfterLaunchReturn() {
+        if ( empty($_SESSION[self::SESSION_LESSONS_GRADE_REFRESH_AFTER_LAUNCH]) ) {
+            return;
+        }
+        GradeUtil::invalidateGradesCurrentUser();
+        unset($_SESSION[self::SESSION_LESSONS_GRADE_REFRESH_AFTER_LAUNCH]);
+    }
+
+    /**
+     * Site home for redirects: {@see ConfigInfo::$apphome} when set and non-empty, else {@see ConfigInfo::$wwwroot}.
+     *
+     * @return string Non-empty path or URL (defaults to '/')
+     */
+    public static function configuredHomeUrl() {
+        global $CFG;
+        if ( isset($CFG->apphome) && is_string($CFG->apphome) && trim($CFG->apphome) !== '' ) {
+            return rtrim($CFG->apphome, '/');
+        }
+        if ( isset($CFG->wwwroot) && is_string($CFG->wwwroot) && trim($CFG->wwwroot) !== '' ) {
+            return rtrim($CFG->wwwroot, '/');
+        }
+        return '/';
+    }
 
     /**
      * Require LTI consumer session fields needed to sign an outbound LTI 1.1 launch.

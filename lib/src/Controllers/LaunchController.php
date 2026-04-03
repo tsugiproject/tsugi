@@ -10,17 +10,32 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 /**
  * Outbound LTI 1.1 launches by lessons resource_link_id at /launch/{resource_link_id}.
  *
- * Same launch payload as {@see Lessons::launch()} (lessons_launch/…); return URL defaults to /lessons
- * or /lessons/{anchor} when the link belongs to a module.
+ * {@see launchByResourceLinkId()} sets `launch_presentation_return_url` to
+ * `/launch/_launch_return`, which runs {@see Tool::applyGradeRefreshAfterLaunchReturn()} and redirects
+ * to {@see Tool::configuredHomeUrl()} (apphome, or wwwroot when apphome is empty).
  */
 class LaunchController extends Tool {
 
     const ROUTE = '/launch';
 
+    /** Path segment for LTI return handling (must be registered before `{resource_link_id}`). */
+    const RETURN_SEGMENT = '_launch_return';
+
     public static function routes(Application $app, $prefix = self::ROUTE) {
+        $app->router->get($prefix.'/'.self::RETURN_SEGMENT, 'LaunchController@returnFromTool');
+        $app->router->get($prefix.'/'.self::RETURN_SEGMENT.'/', 'LaunchController@returnFromTool');
         $app->router->get($prefix.'/{resource_link_id}', function (Request $request, $resource_link_id = null) use ($app) {
             return self::launchByResourceLinkId($app, $resource_link_id);
         });
+    }
+
+    /**
+     * LTI return target: refresh grades if flagged, then redirect to site home.
+     */
+    public function returnFromTool(Request $request) {
+        Tool::applyGradeRefreshAfterLaunchReturn();
+        $home = Tool::configuredHomeUrl();
+        return new RedirectResponse(U::addSession($home));
     }
 
     /**
@@ -49,10 +64,7 @@ class LaunchController extends Tool {
 
         $module = $l->getModuleByRlid($resource_link_id);
 
-        $lessons_index = $path->parent . '/lessons';
-        $return_url = $module
-            ? $lessons_index . '/' . $module->anchor
-            : $lessons_index;
+        $return_url = $path->parent . self::ROUTE . '/' . self::RETURN_SEGMENT;
 
         $fallback_title = ( $module && isset($module->title) ) ? $module->title : '';
 

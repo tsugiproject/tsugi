@@ -56,14 +56,16 @@ class LaunchControllerTest extends \PHPUnit\Framework\TestCase
             $uris[] = $route['uri'];
         }
 
+        $hasReturn = in_array('/launch/_launch_return', $uris, true) || in_array('/launch/_launch_return/', $uris, true);
         $hasLaunch = false;
         foreach ($uris as $uri) {
-            if (strpos($uri, '/launch') === 0) {
+            if (strpos($uri, '/launch/{resource_link_id}') === 0) {
                 $hasLaunch = true;
                 break;
             }
         }
-        $this->assertTrue($hasLaunch, 'Should register /launch route');
+        $this->assertTrue($hasReturn, 'Should register /launch/_launch_return route');
+        $this->assertTrue($hasLaunch, 'Should register /launch/{resource_link_id} route');
     }
 
     public function testRouteConstant()

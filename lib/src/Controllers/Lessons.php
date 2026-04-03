@@ -38,10 +38,7 @@ class Lessons extends Tool {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
         }
 
-        if ( ! empty($_SESSION[Tool::SESSION_LESSONS_GRADE_REFRESH_AFTER_LAUNCH]) ) {
-            \Tsugi\Grades\GradeUtil::invalidateGradesCurrentUser();
-            unset($_SESSION[Tool::SESSION_LESSONS_GRADE_REFRESH_AFTER_LAUNCH]);
-        }
+        Tool::applyGradeRefreshAfterLaunchReturn();
 
         // Turning on and off styling
         if ( isset($_GET['nostyle']) ) {
