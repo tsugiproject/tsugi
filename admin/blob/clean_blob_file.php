@@ -5,6 +5,9 @@
  *
  * Complement to clean_dataroot_blobs.php: that script removes disk files with no blob_file row; this script
  * removes blob_file rows when the stored path does not exist (e.g. after age-based deletion).
+ * Path checks use the same resolution as blob serve (relative under dataroot; if the stored
+ * absolute path is missing and used an old dataroot prefix, the last three segments are
+ * tried under the current dataroot).
  *
  * Usage:
  *   php clean_blob_file.php           dry run: list rows that would be deleted
@@ -17,6 +20,7 @@
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Blob\BlobUtil;
 
 require_once("../../config.php");
 
@@ -57,7 +61,7 @@ while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
     $path = $row['path'];
     $sha = $row['file_sha256'];
 
-    if ( file_exists($path) ) {
+    if ( BlobUtil::resolveDiskBlobPath($path) !== false ) {
         continue;
     }
 

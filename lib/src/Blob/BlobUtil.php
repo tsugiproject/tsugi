@@ -164,6 +164,65 @@ class BlobUtil {
     }
 
     /**
+     * Turn blob_file.path into an absolute path using only dataroot prefix rules
+     * (no legacy last-three-segment remap). Relative paths are under $CFG->dataroot.
+     *
+     * @param string $stored_path Value from blob_file.path
+     * @return string|false Absolute path, or false if $stored_path is empty
+     */
+    public static function absoluteBlobPathFromStored($stored_path)
+    {
+        global $CFG;
+        if ( ! is_string($stored_path) || $stored_path === '' ) {
+            return false;
+        }
+        $file_path = $stored_path;
+        if ( strpos($file_path, '/') !== 0 ) {
+            $file_path = $CFG->dataroot . '/' . $file_path;
+        }
+        return $file_path;
+    }
+
+    /**
+     * Resolve blob_file.path to an absolute on-disk path if the file exists.
+     * Same rules as Tsugi\Blob\Access when serving disk-backed blobs:
+     * relative paths are under $CFG->dataroot; if the stored absolute path
+     * is outside the current dataroot and missing, try dataroot plus the
+     * last three path segments (two-level SHA prefix directory + filename).
+     *
+     * @param string $stored_path Non-empty path from blob_file.path
+     * @param bool $log_remap If true, log when the last-three fallback is used (e.g. blob serve).
+     * @return string|false Absolute path, or false if no backing file
+     */
+    public static function resolveDiskBlobPath($stored_path, $log_remap = false)
+    {
+        global $CFG;
+        $file_path = self::absoluteBlobPathFromStored($stored_path);
+        if ( $file_path === false ) {
+            return false;
+        }
+
+        if ( isset($CFG->dataroot) && $CFG->dataroot
+            && strpos($file_path, $CFG->dataroot) !== 0 && ! file_exists($file_path) ) {
+            $pieces = explode('/', $file_path);
+            if ( count($pieces) > 3 ) {
+                $last3 = array_slice($pieces, -3);
+                $np = $CFG->dataroot . '/' . implode('/', $last3);
+                if ( file_exists($np) ) {
+                    if ( $log_remap ) {
+                        error_log('Former data root');
+                    }
+                    $file_path = $np;
+                }
+            }
+        }
+        if ( ! file_exists($file_path) ) {
+            return false;
+        }
+        return $file_path;
+    }
+
+    /**
      * uploadToBlob - returns blob_id or false
      *
      * Returns false for any number of failures, for better detail, use
