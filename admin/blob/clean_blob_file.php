@@ -112,7 +112,11 @@ while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
         $lit = file_exists($direct) ? 'exists' : 'missing';
         echo("MISSING file_id={$file_id} sha256={$sha}\n");
         echo("  stored_path: {$stored}\n");
-        echo("  literal_absolute: {$direct} ({$lit}); could not resolve on disk (no file at path or dataroot/last-3 fallback)\n");
+        if ( $direct !== $stored ) {
+            echo("  literal_absolute: {$direct} ({$lit}); could not resolve on disk (no file at path or dataroot/last-3 fallback)\n");
+        } else {
+            echo("  ({$lit} at stored path); could not resolve on disk (no file at path or dataroot/last-3 fallback)\n");
+        }
         echo("DELETE blob_file file_id={$file_id} sha256={$sha} path={$stored}\n");
         if ( $apply ) {
             $del = $PDOX->prepare("DELETE FROM {$CFG->dbprefix}blob_file WHERE file_id = :FID");
@@ -144,7 +148,9 @@ while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
     $literal_status = file_exists($direct) ? 'exists' : 'missing';
     echo("MISMATCH file_id={$file_id} sha256={$sha}\n");
     echo("  stored_path: {$stored}\n");
-    echo("  literal_absolute: {$direct} ({$literal_status})\n");
+    if ( $direct !== $stored ) {
+        echo("  literal_absolute: {$direct} ({$literal_status})\n");
+    }
     echo("  resolves_to: {$resolved}\n");
 
     if ( ! $apply ) {
