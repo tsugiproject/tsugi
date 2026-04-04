@@ -159,6 +159,9 @@ $removed_orphans = 0;
 
 while ( $row = $submitStmt->fetch(PDO::FETCH_ASSOC) ) {
     $scanned++;
+    if ( $scanned % 1000 === 0 ) {
+        echo('# progress: scanned ' . $scanned . ' peer_submit rows (elapsed ' . sprintf('%.2fs', microtime(true) - $t0) . ")\n");
+    }
     $submit_id = (int) $row['submit_id'];
     $assn_id = (int) $row['assn_id'];
     $user_id = (int) $row['user_id'];
