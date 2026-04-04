@@ -50,13 +50,18 @@ $fscan = 0;
 $fskip = 0;
 $fgood = 0;
 $fdel = 0;
+$walked = 0;
 
 function scanFolder($directory, $top) {
     global $CFG, $PDOX, $verbose, $dryrun;
-    global $fscan, $dscan, $ddel, $fdel, $dskip, $fskip, $fgood;
+    global $fscan, $dscan, $ddel, $fdel, $dskip, $fskip, $fgood, $walked;
 
     $fcount = 0;
     foreach ( glob("{$directory}/*") as $file ) {
+        $walked++;
+        if ( $walked % 1000 === 0 ) {
+            echo("# progress: {$walked} dataroot tree entries processed...\n");
+        }
         if ( is_dir($file) ) {
             $fcount++;
             $dscan++;

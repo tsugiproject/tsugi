@@ -47,6 +47,9 @@ $deleted = 0;
 
 while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
     $checked++;
+    if ( $checked % 1000 === 0 ) {
+        echo("# progress: {$checked} blob_blob rows scanned...\n");
+    }
     $blob_sha256 = $row['blob_sha256'];
     $blob_id = $row['blob_id'];
     if ( ! $blob_id ) {

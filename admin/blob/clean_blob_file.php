@@ -84,6 +84,9 @@ $skipped_hash = 0;
 
 while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
     $checked++;
+    if ( $checked % 1000 === 0 ) {
+        echo("# progress: {$checked} blob_file rows processed...\n");
+    }
     $file_id = (int) $row['file_id'];
     $stored = $row['path'];
     $sha = $row['file_sha256'];

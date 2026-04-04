@@ -55,6 +55,9 @@ while ( $row = $stmt->fetch(PDO::FETCH_ASSOC) ) {
         break;
     }
     $checked++;
+    if ( $checked % 1000 === 0 ) {
+        echo("# progress: {$checked} blobs processed...\n");
+    }
     $file_id = $row['file_id'];
     $context_id = $row['context_id'];
     if ( $dryrun ) {
