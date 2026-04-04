@@ -11,7 +11,7 @@
  *   php fix_blob_file_prefix.php fix          UPDATE path to match resolved on-disk file
  *   php fix_blob_file_prefix.php -v fix       fix + verbose (order of flags free)
  *
- * Requires $CFG->dataroot. Rows with no resolvable file are skipped (see clean_blob_file.php).
+ * Requires $CFG->dataroot. Rows with no resolvable file emit MISSING (see clean_blob_file.php for deletion).
  * On fix, file_sha256 must match hash_file() of the resolved path or the row is skipped.
  */
 
@@ -73,6 +73,7 @@ if ( $stmt === false ) {
 
 $checked = 0;
 $mismatch = 0;
+$missing = 0;
 $updated = 0;
 $skipped_hash = 0;
 
@@ -84,11 +85,20 @@ while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
 
     $direct = BlobUtil::absoluteBlobPathFromStored($stored);
     if ( $direct === false ) {
+        $missing++;
+        echo("MISSING file_id={$file_id} sha256={$sha}\n");
+        echo("  stored_path: {$stored}\n");
+        echo("  (invalid or empty path after normalize)\n");
         continue;
     }
 
     $resolved = BlobUtil::resolveDiskBlobPath($stored, false);
     if ( $resolved === false ) {
+        $missing++;
+        $lit = file_exists($direct) ? 'exists' : 'missing';
+        echo("MISSING file_id={$file_id} sha256={$sha}\n");
+        echo("  stored_path: {$stored}\n");
+        echo("  literal_absolute: {$direct} ({$lit}); could not resolve on disk (no file at path or dataroot/last-3 fallback)\n");
         continue;
     }
 
@@ -136,6 +146,7 @@ while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
 }
 
 echo('# blob_file rows checked=' . $checked .
+    ' missing_on_disk=' . $missing .
     ' prefix_mismatch=' . $mismatch .
     ($do_fix ? " updated={$updated} skipped_bad_hash={$skipped_hash}" : '') .
     ' elapsed=' . sprintf('%.2fs', microtime(true) - $t0) . "\n");
