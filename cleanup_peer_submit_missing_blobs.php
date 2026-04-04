@@ -2,9 +2,11 @@
 
 /**
  * Scan peer_submit rows for blob_ids / pdf_ids pointing at blob_file.file_id.
- * If any referenced file_id has no row in blob_file, the submission is broken;
- * optionally delete that submission (and related peer_text), and remove any
- * blob_file rows that still exist for the remaining ids on that submission.
+ * If any referenced file_id has no row in blob_file, the submission is broken.
+ * Rows with invalid JSON in the json column are also removed (blobs found via
+ * backref peer_submit::submit_id::<submit_id> when possible).
+ * Optionally delete those submissions (and related peer_text), and remove any
+ * blob_file rows still present for referenced or backref-linked file_ids.
  *
  * Usage (from mod/peer-grade):
  *   php cleanup_peer_submit_missing_blobs.php              dry run (default)
@@ -54,11 +56,11 @@ $p = $CFG->dbprefix;
 $t0 = microtime(true);
 
 if ( $do_remove ) {
-    echo("This IS NOT A DRILL! Deleting peer_submit rows with missing blob_file references.\n");
+    echo("This IS NOT A DRILL! Deleting peer_submit rows (missing blobs and/or bad JSON).\n");
     echo("...\n");
     sleep(5);
 } else {
-    echo("Dry run: submissions listed below would be deleted. Run: php cleanup_peer_submit_missing_blobs.php remove\n");
+    echo("Dry run: orphan / bad_json submissions listed below would be deleted. Run: php cleanup_peer_submit_missing_blobs.php remove\n");
 }
 
 /**
@@ -91,6 +93,51 @@ function peer_submit_referenced_file_ids($json) {
     return array_map('intval', array_keys($ids));
 }
 
+/**
+ * Blob rows tagged for this submission after a successful save (see index.php setBackref).
+ *
+ * @return int[]
+ */
+function peer_cleanup_backref_blob_file_ids($PDOX, $p, $submit_id) {
+    $backref = $p . 'peer_submit::submit_id::' . (int) $submit_id;
+    $rows = $PDOX->allRowsDie(
+        "SELECT file_id FROM {$p}blob_file WHERE backref = :BR",
+        array(':BR' => $backref)
+    );
+    $ids = array();
+    foreach ( $rows as $r ) {
+        $fid = (int) U::get($r, 'file_id', 0);
+        if ( $fid > 0 ) {
+            $ids[$fid] = true;
+        }
+    }
+    return array_map('intval', array_keys($ids));
+}
+
+/**
+ * Delete blob files, peer_submit row, and peer_text for this user/assignment.
+ *
+ * @param int[] $blob_file_ids
+ */
+function peer_cleanup_purge_submission($PDOX, $p, $submit_id, $assn_id, $user_id, array $blob_file_ids) {
+    foreach ( array_unique($blob_file_ids) as $fid ) {
+        if ( $fid < 1 ) {
+            continue;
+        }
+        BlobUtil::deleteBlob($fid, 'admin_bypass');
+    }
+    $PDOX->queryDie(
+        "DELETE FROM {$p}peer_submit WHERE submit_id = :SID",
+        array(':SID' => $submit_id)
+    );
+    $PDOX->queryDie(
+        "DELETE FROM {$p}peer_text WHERE assn_id = :AID AND user_id = :UID",
+        array(':AID' => $assn_id, ':UID' => $user_id)
+    );
+    Cache::clear('peer_grade');
+    Cache::clear('peer_submit');
+}
+
 $existsStmt = $PDOX->prepare(
     "SELECT 1 FROM {$p}blob_file WHERE file_id = :FID LIMIT 1"
 );
@@ -107,6 +154,8 @@ $skipped_no_refs = 0;
 $bad_json = 0;
 $orphan_candidates = 0;
 $deleted = 0;
+$removed_bad_json = 0;
+$removed_orphans = 0;
 
 while ( $row = $submitStmt->fetch(PDO::FETCH_ASSOC) ) {
     $scanned++;
@@ -126,11 +175,19 @@ while ( $row = $submitStmt->fetch(PDO::FETCH_ASSOC) ) {
     $json = json_decode($json_str);
     if ( $json === null && json_last_error() !== JSON_ERROR_NONE ) {
         $bad_json++;
+        $jerr = json_last_error_msg();
         if ( $verbose ) {
-            echo("SCAN submit_id={$submit_id} assn_id={$assn_id} user_id={$user_id} status=bad_json error=" . json_last_error_msg() . "\n");
+            echo("SCAN submit_id={$submit_id} assn_id={$assn_id} user_id={$user_id} status=bad_json error={$jerr}\n");
         } else {
-            echo("SKIP bad JSON submit_id={$submit_id} assn_id={$assn_id} user_id={$user_id} error=" . json_last_error_msg() . "\n");
+            echo("BAD_JSON submit_id={$submit_id} assn_id={$assn_id} user_id={$user_id} error={$jerr}\n");
         }
+        if ( ! $do_remove ) {
+            continue;
+        }
+        $blob_ids = peer_cleanup_backref_blob_file_ids($PDOX, $p, $submit_id);
+        peer_cleanup_purge_submission($PDOX, $p, $submit_id, $assn_id, $user_id, $blob_ids);
+        $deleted++;
+        $removed_bad_json++;
         continue;
     }
 
@@ -174,30 +231,27 @@ while ( $row = $submitStmt->fetch(PDO::FETCH_ASSOC) ) {
         continue;
     }
 
+    $blob_ids_to_delete = array();
     foreach ( $file_ids as $fid ) {
         $existsStmt->execute(array(':FID' => $fid));
         $still = $existsStmt->fetch(PDO::FETCH_ASSOC);
         $existsStmt->closeCursor();
         if ( $still !== false ) {
-            BlobUtil::deleteBlob($fid, 'admin_bypass');
+            $blob_ids_to_delete[] = $fid;
         }
     }
-
-    $PDOX->queryDie(
-        "DELETE FROM {$p}peer_submit WHERE submit_id = :SID",
-        array(':SID' => $submit_id)
-    );
-    $PDOX->queryDie(
-        "DELETE FROM {$p}peer_text WHERE assn_id = :AID AND user_id = :UID",
-        array(':AID' => $assn_id, ':UID' => $user_id)
-    );
-    Cache::clear('peer_grade');
-    Cache::clear('peer_submit');
+    peer_cleanup_purge_submission($PDOX, $p, $submit_id, $assn_id, $user_id, $blob_ids_to_delete);
     $deleted++;
+    $removed_orphans++;
 }
 
+$would_total = $orphan_candidates + $bad_json;
 echo(
-    "# peer_submit scanned={$scanned} no_blob_refs={$skipped_no_refs} bad_json={$bad_json} " .
-    "orphan_submissions=" . ($do_remove ? "removed={$deleted}" : "would_remove={$orphan_candidates}") .
+    "# peer_submit scanned={$scanned} no_blob_refs={$skipped_no_refs} " .
+    "bad_json={$bad_json} orphans={$orphan_candidates} " .
+    ( $do_remove
+        ? "removed_total={$deleted} (orphans={$removed_orphans} bad_json={$removed_bad_json})"
+        : "would_remove_total={$would_total} (orphans={$orphan_candidates} bad_json={$bad_json})"
+    ) .
     ' elapsed=' . sprintf('%.2fs', microtime(true) - $t0) . "\n"
 );
