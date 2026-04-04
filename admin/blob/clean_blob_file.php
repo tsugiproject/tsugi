@@ -151,9 +151,9 @@ while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
     if ( $direct !== $stored ) {
         echo("  literal_absolute: {$direct} ({$literal_status})\n");
     }
-    echo("  resolves_to: {$resolved}\n");
 
     if ( ! $apply ) {
+        echo("  resolves_to: {$resolved}\n");
         continue;
     }
 
