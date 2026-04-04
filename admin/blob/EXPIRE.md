@@ -135,9 +135,13 @@ php clean_blob_blob.php remove
 
 ### Experience 2026-04-04
 
-So I cleaned these files up and applied them. The first step was to run `clean_blob_file.php`.
-This deleted entries from `blob_file` that I manually expired from disk a long time
-ago but had left hanging.
+So I cleaned these files up and applied them. 
+
+The first step is use find to delete files based on whenever - I use 800 days.  Doing `find` and
+`rm` is quick and the rest of the process works better with fewer files.
+
+The first step was to run `clean_blob_file.php`. This deleted entries from `blob_file` that
+are no longer in `dataroot` (i.e. from the above find/rm) or a earlier removal.
 
     MISSING file_id=504184 sha256=54ecc17a7740660dab8afbba328272e139c319f2a75efc4415c01d50545c4919
       stored_path: /efs/tsugi_blobs/54/ec/54ecc17a7740660dab8afbba328272e139c319f2a75efc4415c01d50545c4919
@@ -145,20 +149,28 @@ ago but had left hanging.
       path=/efs/tsugi_blobs/54/ec/54ecc17a7740660dab8afbba328272e139c319f2a75efc4415c01d50545c4919
 
 Also I had moved servers and not updated the blob paths because `blob_serve.php` automatically
-served from the new paths using the last three bits of the path. `clean_blob_file.php`
-also checks and changes the paths to the currennt `dataroot` like this:
+served from the new paths using the last three pieces of the path. `clean_blob_file.php`
+also checks and changes the paths to the current `dataroot` like this:
 
-  MISMATCH file_id=465189
-    sha256=ba53dfe9874b66646843b1bfa5a31770f003866bbd3bf1124076528c90024e58
-    stored_path: /efs/blobs/ba/53/ba53dfe9874b66646843b1bfa5a31770f003866bbd3bf1124076528c90024e58
-    UPDATED path -> /efs/sites/www.py4e.com/ba/53/ba53dfe9874b66646843b1bfa5a31770f003866bbd3bf1124076528c90024e58
+    MISMATCH file_id=465189
+        sha256=ba53dfe9874b66646843b1bfa5a31770f003866bbd3bf1124076528c90024e58
+        stored_path: /efs/blobs/ba/53/ba53dfe9874b66646843b1bfa5a31770f003866bbd3bf1124076528c90024e58
+        UPDATED path -> /efs/sites/www.py4e.com/ba/53/ba53dfe9874b66646843b1bfa5a31770f003866bbd3bf1124076528c90024e58
 
 Then I ran `clean_dataroot_blobs.php` to scan the dataroot for blobs that were in
 the `dataroot` but not in the `blob_file` table and remove them from `dataroot`.
+Often there are zero blobs in the DB so this is quick.
+
+Then I ran `clean_dataroot_blobs.php` as this looks through the `dataroot` and checks
+if there is a file in `dataroot` that is not referenced in `blob_file` and then deletes
+that file.  This happens if an expire of a user, context or tenant strands a file. FK
+processing deletes the `blob_file` table entry but not the disk since there is no stored
+procedure.
 
 Last, I cleaned up peer grading submissions pointing at no longer existent files.
 
     cd mod/peer-grade
     php cleanup_peer_submit_missing_blobs.php
 
-This might delete some files that might be left hanging.   So we might want to rerun the above two steps.
+This might delete some files that might be left hanging.   So we might want to rerun the above 
+steps to ensure super clean references.
