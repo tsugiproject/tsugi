@@ -6,8 +6,10 @@
  * Optionally rewrite path to the resolved absolute path under the current dataroot.
  *
  * Usage (from tsugi/admin/blob):
- *   php fix_blob_file_prefix.php           dry run: report mismatches
- *   php fix_blob_file_prefix.php fix       UPDATE path to match resolved on-disk file
+ *   php fix_blob_file_prefix.php              dry run: report mismatches
+ *   php fix_blob_file_prefix.php -v           also echo each row OK (on disk, path matches literal)
+ *   php fix_blob_file_prefix.php fix          UPDATE path to match resolved on-disk file
+ *   php fix_blob_file_prefix.php -v fix       fix + verbose (order of flags free)
  *
  * Requires $CFG->dataroot. Rows with no resolvable file are skipped (see clean_blob_file.php).
  * On fix, file_sha256 must match hash_file() of the resolved path or the row is skipped.
@@ -31,7 +33,22 @@ if ( ! isset($CFG->dataroot) || U::strlen((string) $CFG->dataroot) < 1 ) {
     exit(1);
 }
 
-$do_fix = isset($argv[1]) && $argv[1] === 'fix';
+$args = array_slice($argv, 1);
+$do_fix = false;
+$verbose = false;
+foreach ( $args as $a ) {
+    if ( $a === 'fix' ) {
+        $do_fix = true;
+        continue;
+    }
+    if ( $a === '-v' || $a === '--verbose' || $a === 'verbose' ) {
+        $verbose = true;
+        continue;
+    }
+    fwrite(STDERR, "Unknown argument: {$a}\n");
+    fwrite(STDERR, "Usage: php fix_blob_file_prefix.php [-v|--verbose|verbose] [fix]\n");
+    exit(1);
+}
 
 if ( $do_fix ) {
     echo("This IS NOT A DRILL! Updating blob_file.path to resolved absolute paths.\n");
@@ -40,6 +57,9 @@ if ( $do_fix ) {
     sleep(3);
 } else {
     echo("Dry run: mismatches listed below. Run: php fix_blob_file_prefix.php fix\n");
+    if ( $verbose ) {
+        echo("Verbose: OK lines list rows whose file exists and stored path matches (no prefix fix needed).\n");
+    }
 }
 
 $sql = "SELECT file_id, file_sha256, path
@@ -82,6 +102,11 @@ while ( $row = $stmt->fetch(\PDO::FETCH_ASSOC) ) {
     }
 
     if ( $same ) {
+        if ( $verbose ) {
+            echo("OK file_id={$file_id} sha256={$sha}\n");
+            echo("  stored_path: {$stored}\n");
+            echo("  on_disk: {$resolved} (literal path matches; no remap needed)\n");
+        }
         continue;
     }
 
