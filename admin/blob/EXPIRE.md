@@ -89,12 +89,13 @@ php clean_blob_blob.php remove            # delete those blob_blob rows
 
 2. **Reconcile the database:** scan `blob_file` (and `blob_blob` if used) and delete rows whose backing file no longer exists on disk. This step is the mirror image of top-down `clean_dataroot_blobs.php`: there you delete disk files with no row; here you delete rows whose `path` no longer references a file.
 
-The **`clean_blob_file.php`** script does that: it removes `blob_file` rows with a non-empty `path` where the path does not exist on disk (dry run by default; `remove` to apply). It complements **`clean_dataroot_blobs.php`**, which removes **disk** files that have no `blob_file` row. Run it after age-based or manual file deletion under `$CFG->dataroot`, then consider **`clean_blob_blob.php`** for orphaned `blob_blob` rows.
+The **`clean_blob_file.php`** script reconciles the database with disk: it reports or fixes legacy `path` values (old dataroot prefix → current absolute path) and removes `blob_file` rows whose file cannot be resolved on disk, using the same rules as blob serve (dry run by default; **`apply`**, **`remove`**, or **`fix`** to update paths and delete dangling rows). It complements **`clean_dataroot_blobs.php`**, which removes **disk** files that have no `blob_file` row. Run it after age-based or manual file deletion under `$CFG->dataroot`, then consider **`clean_blob_blob.php`** for orphaned `blob_blob` rows.
 
 ```bash
 cd /path/to/tsugi/admin/blob
-php clean_blob_file.php                   # dry run: rows that would be deleted
-php clean_blob_file.php remove            # delete dangling blob_file rows
+php clean_blob_file.php                   # dry run: MISSING / MISMATCH (+ optional -v for OK rows)
+php clean_blob_file.php apply             # update legacy paths; delete dangling blob_file rows
+# remove and fix are aliases for apply
 ```
 
 3. After DB rows for missing files are removed, run `clean_blob_blob.php` if you use `blob_blob`, so unreferenced blob content rows are removed.
@@ -123,7 +124,7 @@ php show_dataroot.php
 php clean_dataroot_blobs.php
 php clean_dataroot_blobs.php remove
 php clean_blob_file.php
-php clean_blob_file.php remove
+php clean_blob_file.php apply
 php clean_blob_blob.php
 php clean_blob_blob.php remove
 ```

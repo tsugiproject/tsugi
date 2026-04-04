@@ -69,15 +69,18 @@ Sample Executions of Admin Scripts in admin/blob
     # orphan blob_blob rows found=0 delete=0
 
     $ php clean_blob_file.php
-    Dry run: rows listed below would be deleted. Run: php clean_blob_file.php remove
-    DELETE blob_file file_id=12 sha256=abc... path=/path/to/missing/file
-    # blob_file rows checked=50 missing_backing_file=1 would_delete=1
+    Dry run: MISSING = no file on disk (would delete on apply); MISMATCH = legacy path (would update on apply).
+    Run: php clean_blob_file.php apply   (remove/fix are aliases for apply)
+    MISSING file_id=12 sha256=abc...
+      stored_path=/old/root/aa/bb/hash...
+      literal_absolute=... (missing); could not resolve on disk ...
+    DELETE blob_file file_id=12 sha256=abc... path=/old/root/aa/bb/hash...
+    # blob_file rows checked=50 missing_unresolvable=1 prefix_mismatch=0 would_delete=1 would_update=0
 
-    $ php clean_blob_file.php remove
+    $ php clean_blob_file.php apply
     This IS NOT A DRILL!
     ...
-    DELETE blob_file file_id=12 sha256=abc... path=/path/to/missing/file
-    # blob_file rows checked=50 missing_backing_file=1 deleted=1
+    # blob_file rows checked=50 missing_unresolvable=1 prefix_mismatch=0 deleted=1 updated=0 skipped_bad_hash=0
 
     $ php clean_dataroot_blobs.php
     This is a dry run, use 'php clean_dataroot_blobs.php remove' to actually remove the files.
