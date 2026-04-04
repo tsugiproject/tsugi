@@ -28,6 +28,19 @@ the Access code serves from any of the three locations.   Eventually in time, we
 migrate all blobs stored in `blob_file` into `blob_blob` and make the `blob_file.content`
 column obsolete.
 
+Recommended cleanup run order (disk-backed blobs)
+------------------------------------------------
+
+Run these from `tsugi/admin/blob` when reconciling the database with `$CFG->dataroot`:
+
+1. **`clean_blob_file.php`** — Dry run first, then **`apply`** (or **`remove`** / **`fix`**, same thing) when you are satisfied. This updates legacy absolute `path` values to the current dataroot, deletes `blob_file` rows whose file cannot be resolved on disk, and is the step that gives you a “clean bill of health” for path metadata.
+
+2. **`clean_dataroot_blobs.php`** — Only **after** step 1. It walks the dataroot tree and removes **files** that have no matching `blob_file` row (by `file_sha256`). If any `blob_file.path` is still an absolute path **outside** the current `$CFG->dataroot`, the script **refuses to run** and tells you to fix the database with `clean_blob_file.php` first — otherwise you risk deleting bytes that are still referenced via old path prefixes while the SHA lookup misses them.
+
+3. **`clean_blob_blob.php`** — After the above, if you use `blob_blob`, remove orphan rows that no longer have any `blob_file` reference.
+
+Bottom-up flows (e.g. age-based `find` deleting files under dataroot) should run **`clean_blob_file.php`** after files are removed from disk, **before** `clean_dataroot_blobs.php`, for the same reason.
+
 Test Harness
 ------------
 
@@ -52,6 +65,8 @@ Then you can test migration from legacy `blob_file` to `blob_blob`.
 
 Sample Executions of Admin Scripts in admin/blob
 ------------------------------------------------
+
+(Prefer the **Recommended cleanup run order** above: `clean_blob_file` → `clean_dataroot_blobs` → `clean_blob_blob`.)
 
     $ php clean_blob_blob.php
     This is a dry run, use 'php clean_blob_blob.php remove' to actually remove the rows.
