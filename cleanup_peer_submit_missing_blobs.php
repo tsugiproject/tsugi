@@ -55,6 +55,8 @@ $t0 = microtime(true);
 
 if ( $do_remove ) {
     echo("This IS NOT A DRILL! Deleting peer_submit rows with missing blob_file references.\n");
+    echo("...\n");
+    sleep(5);
 } else {
     echo("Dry run: submissions listed below would be deleted. Run: php cleanup_peer_submit_missing_blobs.php remove\n");
 }
