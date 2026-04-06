@@ -750,6 +750,7 @@ class Lessons {
             case 'tsugi-assignments-due-soon':
                 return 'color: #856404;';
             case 'tsugi-assignments-due-future':
+                return 'color: #495057;';
             case 'tsugi-assignments-due-completed':
                 return 'color: #155724;';
             case 'tsugi-assignments-due-neutral':
@@ -1427,7 +1428,7 @@ class Lessons {
         echo($ob_output);
     }
 
-    private function renderAssignmentItem($resource_link_id, $title, $allgrades, $alldates, $duedates = array(), $lti_item = null) {
+    private function renderAssignmentItem($resource_link_id, $title, $allgrades, $alldates, $duedates = array(), $lti_item = null, $module_anchor = '') {
         $graded = self::ltiLaunchIsGraded($lti_item);
         echo('<li class="tsugi-assignments-item">');
         echo('<span class="tsugi-assignments-status">');
@@ -1444,7 +1445,15 @@ class Lessons {
         }
         echo('</span>');
         echo('<span class="tsugi-assignments-title-row">');
-        echo('<span class="tsugi-assignments-title">'.htmlspecialchars($title).'</span>');
+        $title_esc = htmlspecialchars($title);
+        if ( is_string($module_anchor) && $module_anchor !== '' && is_string($resource_link_id) && $resource_link_id !== '' ) {
+            $mod_href = U::get_rest_parent() . '/lessons/' . rawurlencode($module_anchor);
+            $mod_href = htmlspecialchars($mod_href . '#' . self::domIdForResourceLink($resource_link_id));
+            $jump_lbl = htmlspecialchars(__('Open in module'), ENT_QUOTES, 'UTF-8');
+            echo('<a class="tsugi-assignments-title tsugi-assignments-title-link" href="'.$mod_href.'" title="'.$jump_lbl.'">'.$title_esc.'</a>');
+        } else {
+            echo('<span class="tsugi-assignments-title">'.$title_esc.'</span>');
+        }
         $this->echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates, $graded);
         echo('</span>');
         if ( $graded && isset($allgrades[$resource_link_id]) ) {
@@ -1513,6 +1522,25 @@ class Lessons {
     /**
      * CSS modifier for due-date badge on assignments list (completed / past / soon / future).
      */
+    /**
+     * Stable DOM id for an LTI resource link (assignments page jump targets → module list).
+     *
+     * @param string $resource_link_id
+     * @return string HTML id attribute value
+     */
+    public static function domIdForResourceLink($resource_link_id) {
+        $s = (string) $resource_link_id;
+        if ( $s === '' ) {
+            return 'tsugi-rl-empty';
+        }
+        $slug = preg_replace('/[^a-zA-Z0-9_-]+/', '-', $s);
+        $slug = trim($slug, '-');
+        if ( $slug === '' || strlen($slug) > 96 ) {
+            $slug = substr(sha1($s), 0, 16);
+        }
+        return 'tsugi-rl-' . $slug;
+    }
+
     public static function assignmentsDueBadgeModifier($resource_link_id, $end, $allgrades) {
         $completed = isset($allgrades[$resource_link_id]) && $allgrades[$resource_link_id] > 0.8;
         if ( $completed ) {
@@ -1642,7 +1670,7 @@ class Lessons {
                 foreach($module->items as $item) {
                     if ( !isset($item->type) || $item->type != 'lti' || !isset($item->resource_link_id) ) continue;
                     if ( ! self::ltiLaunchIsGraded($item) ) continue;
-                    $this->renderAssignmentItem($item->resource_link_id, isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'), $allgrades, $alldates, $duedates, $item);
+                    $this->renderAssignmentItem($item->resource_link_id, isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'), $allgrades, $alldates, $duedates, $item, isset($module->anchor) ? $module->anchor : '');
                 }
             } else {
                 // Process legacy lti array only if items is not present
@@ -1652,7 +1680,7 @@ class Lessons {
                     foreach($ltis as $lti) {
                         if ( !isset($lti->resource_link_id) ) continue;
                         if ( ! self::ltiLaunchIsGraded($lti) ) continue;
-                        $this->renderAssignmentItem($lti->resource_link_id, $lti->title, $allgrades, $alldates, $duedates, $lti);
+                        $this->renderAssignmentItem($lti->resource_link_id, $lti->title, $allgrades, $alldates, $duedates, $lti, isset($module->anchor) ? $module->anchor : '');
                     }
                 }
             }
@@ -2550,7 +2578,8 @@ $(function(){
             $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $resource_link_id;
             $title = isset($item->title) ? $item->title : "Autograder";
             
-            echo('<li class="tsugi-lessons-module-lti">');
+            $rl_dom_id = self::domIdForResourceLink($resource_link_id);
+            echo('<li class="tsugi-lessons-module-lti" id="'.htmlspecialchars($rl_dom_id, ENT_QUOTES, 'UTF-8').'">');
             echo('<a');
             if ( $target == "_blank" ) echo(' target="_blank" rel="noopener noreferrer" onclick="alert(\'Link will open in a new browser tab...\');" ');
             echo(' href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
