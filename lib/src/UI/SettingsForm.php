@@ -428,7 +428,7 @@ class SettingsForm {
         if ( $duedate === false ) return $retval;
 
         $penalty_time = Settings::linkGet('penalty_time') ? Settings::linkGet('penalty_time') + 0 : 24*60*60;
-        $penalty_cost = Settings::linkGet('penalty_cost') ? Settings::linkGet('penalty_cost') + 0.0 : 0.2;
+        $penalty_cost = Settings::linkGet('penalty_cost') ? Settings::linkGet('penalty_cost') + 0.0 : 0.05;
 
         $retval->penaltyinfo = sprintf(_m("Once the due date has passed your
             score will be reduced by %f percent and each %s after the due date,
@@ -487,7 +487,7 @@ class SettingsForm {
         $timezone = Settings::linkGet('timezone', 'Pacific/Honolulu');
         if ( ! in_array($timezone, timezone_identifiers_list()) ) $timezone = 'Pacific/Honolulu';
         $time = Settings::linkGet('penalty_time', 86400);
-        $cost = Settings::linkGet('penalty_cost', 0.2);
+        $cost = Settings::linkGet('penalty_cost', 0.05);
 
         if ( ! $USER->instructor ) {
             if ( empty($due) ) {
@@ -506,7 +506,7 @@ class SettingsForm {
         <div class="form-group">
             <label for="tsugi_setting_due"><?= _m("Due date") ?></label>
             <input type="text" class="tsugi_setting form-control" id="tsugi_setting_due" value="<?php echo(htmlspec_utf8($due)); ?>" name="due">
-            <small class="form-text text-muted"><?= _m("ISO 8601 format (2015-01-30T20:30) or leave blank for no due date. You can leave off the time to allow turn-in any time during the day.") ?></small>
+            <small class="form-text text-muted"><?= _m("ISO 8601 format (2026-04-06T20:30) or leave blank for no due date. You can leave off the time to allow turn-in any time during the day.") ?></small>
         </div>
         <div class="form-group">
             <label for="tsugi_setting_timezone"><?= _m("Time zone") ?></label>
@@ -523,8 +523,8 @@ class SettingsForm {
         </div>
             <p><?= _m("The next two fields determine the 'overall penalty' for being late.  We define a time period
             (in seconds) and a fractional penalty per time period.  The penalty is assessed for each
-            full or partial time period past the due date.  For example to deduct 20% per day, you would
-            set the period to be 86400 (24*60*60) and the penalty to be 0.2.") ?>
+            full or partial time period past the due date.  For example to deduct 5% per day, you would
+            set the period to be 86400 (24*60*60) and the penalty to be 0.05.") ?>
             </p>
         <div class="form-group">
             <label for="tsugi_setting_penalty_time"><?= _m("Penalty time period (seconds)") ?></label>

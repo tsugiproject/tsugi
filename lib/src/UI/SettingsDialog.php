@@ -443,7 +443,7 @@ class SettingsDialog {
         if ( $duedate === false ) return $retval;
 
         $penalty_time = $this->container->settingsGet('penalty_time') ? $this->container->settingsGet('penalty_time') + 0 : 24*60*60;
-        $penalty_cost = $this->container->settingsGet('penalty_cost') ? $this->container->settingsGet('penalty_cost') + 0.0 : 0.2;
+        $penalty_cost = $this->container->settingsGet('penalty_cost') ? $this->container->settingsGet('penalty_cost') + 0.0 : 0.05;
 
         $retval->penaltyinfo = sprintf(_m("Once the due date has passed your
             score will be reduced by %f percent and each %s after the due date,
@@ -501,7 +501,7 @@ class SettingsDialog {
         $timezone = $this->container->settingsGet('timezone', 'Pacific/Honolulu');
         if ( ! in_array($timezone, timezone_identifiers_list()) ) $timezone = 'Pacific/Honolulu';
         $time = $this->container->settingsGet('penalty_time', 86400);
-        $cost = $this->container->settingsGet('penalty_cost', 0.2);
+        $cost = $this->container->settingsGet('penalty_cost', 0.05);
 
         if ( ! $this->instructor() ) {
             if ( empty($due) ) {
@@ -520,7 +520,7 @@ class SettingsDialog {
         <div class="form-group">
             <label for="settings_due"><?= _m("Due date") ?></label>
             <input type="text" class="form-control" id="settings_due" value="<?php echo(htmlspec_utf8($due)); ?>" name="due">
-            <small class="form-text text-muted"><?= _m("ISO 8601 format (2015-01-30T20:30) or leave blank for no due date. You can leave off the time to allow turn-in any time during the day.") ?></small>
+            <small class="form-text text-muted"><?= _m("ISO 8601 format (2026-04-06T20:30) or leave blank for no due date. You can leave off the time to allow turn-in any time during the day.") ?></small>
         </div>
         <div class="form-group">
             <label for="settings_timezone"><?= _m("Time zone") ?></label>
@@ -537,8 +537,8 @@ class SettingsDialog {
         </div>
             <p><?= _m("The next two fields determine the 'overall penalty' for being late.  We define a time period
             (in seconds) and a fractional penalty per time period.  The penalty is assessed for each
-            full or partial time period past the due date.  For example to deduct 20% per day, you would
-            set the period to be 86400 (24*60*60) and the penalty to be 0.2.") ?>
+            full or partial time period past the due date.  For example to deduct 5% per day, you would
+            set the period to be 86400 (24*60*60) and the penalty to be 0.05.") ?>
             </p>
         <div class="form-group">
             <label for="settings_penalty_time"><?= _m("Penalty time period (seconds)") ?></label>
