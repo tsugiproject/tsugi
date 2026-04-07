@@ -9,6 +9,7 @@ use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class Discussions {
 
@@ -17,6 +18,7 @@ class Discussions {
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Discussions@get');
         $app->router->get($prefix.'/', 'Discussions@get');
+        $app->router->get($prefix.'/json', 'Discussions@json');
         $app->router->get($prefix.'_launch/{anchor}', function(Request $request, $anchor = null) use ($app) {
             return Discussions::launch($app, $anchor);
         });
@@ -136,6 +138,165 @@ class Discussions {
         $content = LTI::postLaunchHTML($parms, $endpoint, false /*debug */);
         print($content);
         return "";
+    }
+
+    public function json(Request $request)
+    {
+        global $CFG, $PDOX;
+
+        if ( ! U::get($_SESSION, 'id') || ! U::get($_SESSION, 'context_id') ) {
+            return new JsonResponse(array('status' => 'error', 'detail' => 'Must be logged in with context'), 401);
+        }
+
+        LTIX::getConnection();
+
+        $context_id = intval($_SESSION['context_id']);
+        $user_id = intval($_SESSION['id']);
+
+        $has_mentions = $this->tableExists($CFG->dbprefix.'tdiscus_mention');
+        $has_participation = $this->tableExists($CFG->dbprefix.'tdiscus_user_thread_participation');
+
+        $rows = $PDOX->allRowsDie("SELECT L.link_id, L.link_key
+            FROM {$CFG->dbprefix}lti_link L
+            WHERE L.context_id = :CID
+              AND EXISTS (
+                SELECT 1 FROM {$CFG->dbprefix}tdiscus_thread T
+                WHERE T.link_id = L.link_id
+              )
+            ORDER BY L.link_id",
+            array(':CID' => $context_id)
+        );
+
+        $include_participating_in_main = intval(U::get($_GET, 'include_participating', 0)) > 0;
+        $include_participation_as_personal = intval(U::get($_GET, 'participation_personal', 0)) > 0;
+
+        $by_discussion = array();
+        $totals = array('personal' => 0, 'participating' => 0, 'global' => 0, 'main_badge' => 0);
+        foreach ( $rows as $row ) {
+            $counts = $this->rollupsForLink(
+                intval($row['link_id']),
+                $user_id,
+                $has_mentions,
+                $has_participation,
+                $include_participation_as_personal
+            );
+            $main_badge = intval($counts['personal']);
+            if ( $include_participating_in_main ) {
+                $main_badge += intval($counts['participating']);
+            }
+
+            $by_discussion[] = array(
+                'link_id' => intval($row['link_id']),
+                'resource_link_id' => $row['link_key'],
+                'badge' => $counts,
+                'main_badge' => $main_badge,
+            );
+
+            $totals['personal'] += intval($counts['personal']);
+            $totals['participating'] += intval($counts['participating']);
+            $totals['global'] += intval($counts['global']);
+            $totals['main_badge'] += $main_badge;
+        }
+
+        return new JsonResponse(array(
+            'status' => 'success',
+            'totals' => $totals,
+            'discussions' => $by_discussion,
+            'config' => array(
+                'include_participating_in_main_badge' => $include_participating_in_main ? 1 : 0,
+                'include_participation_as_personal' => $include_participation_as_personal ? 1 : 0,
+            ),
+        ));
+    }
+
+    private function rollupsForLink($link_id, $user_id, $has_mentions, $has_participation, $include_participation_as_personal)
+    {
+        global $PDOX, $CFG;
+
+        $personal_join_mention = "";
+        $personal_is_mention = "FALSE";
+        if ( $has_mentions ) {
+            $personal_join_mention = "LEFT JOIN {$CFG->dbprefix}tdiscus_mention M
+                ON M.post_id = C.comment_id AND M.mentioned_user_id = :UID";
+            $personal_is_mention = "M.mentioned_user_id IS NOT NULL";
+        }
+
+        $personal_participation_clause = "FALSE";
+        if ( $has_participation && $include_participation_as_personal ) {
+            $personal_participation_clause = "EXISTS (
+                SELECT 1 FROM {$CFG->dbprefix}tdiscus_user_thread_participation UTP
+                WHERE UTP.user_id = :UID AND UTP.thread_id = C.thread_id
+            )";
+        }
+
+        $personal = $PDOX->rowDie("SELECT COUNT(DISTINCT C.comment_id) AS count
+            FROM {$CFG->dbprefix}tdiscus_comment C
+            JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = C.thread_id
+            LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread UT
+                ON UT.thread_id = C.thread_id AND UT.user_id = :UID
+            LEFT JOIN {$CFG->dbprefix}tdiscus_comment P ON P.comment_id = C.parent_id
+            $personal_join_mention
+            WHERE T.link_id = :LID
+              AND C.user_id <> :UID
+              AND C.created_at > COALESCE(UT.read_at, '1970-01-01 00:00:00')
+              AND (
+                    P.user_id = :UID
+                    OR (T.user_id = :UID AND C.parent_id > 0)
+                    OR $personal_is_mention
+                    OR $personal_participation_clause
+              )",
+            array(':UID' => $user_id, ':LID' => $link_id)
+        );
+
+        $participation_where = "COALESCE(UT.subscribe, 0) = 1";
+        if ( $has_participation ) {
+            $participation_where = "(
+                EXISTS (
+                    SELECT 1 FROM {$CFG->dbprefix}tdiscus_user_thread_participation UTP
+                    WHERE UTP.user_id = :UID AND UTP.thread_id = T.thread_id
+                )
+                OR COALESCE(UT.subscribe, 0) = 1
+            )";
+        }
+
+        $participating = $PDOX->rowDie("SELECT COUNT(*) AS count
+            FROM {$CFG->dbprefix}tdiscus_thread T
+            LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread UT
+                ON UT.thread_id = T.thread_id AND UT.user_id = :UID
+            WHERE T.link_id = :LID
+              AND $participation_where
+              AND (T.comments - COALESCE(UT.comments, 0)) > 0",
+            array(':UID' => $user_id, ':LID' => $link_id)
+        );
+
+        $global = $PDOX->rowDie("SELECT COUNT(*) AS count
+            FROM {$CFG->dbprefix}tdiscus_comment C
+            JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = C.thread_id
+            LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread UT
+                ON UT.thread_id = C.thread_id AND UT.user_id = :UID
+            WHERE T.link_id = :LID
+              AND C.user_id <> :UID
+              AND C.created_at > COALESCE(UT.read_at, '1970-01-01 00:00:00')",
+            array(':UID' => $user_id, ':LID' => $link_id)
+        );
+
+        return array(
+            'personal' => intval($personal['count']),
+            'participating' => intval($participating['count']),
+            'global' => intval($global['count']),
+        );
+    }
+
+    private function tableExists($table_name)
+    {
+        global $PDOX;
+        $row = $PDOX->rowDie("SELECT 1 AS present
+            FROM information_schema.tables
+            WHERE table_schema = DATABASE()
+              AND table_name = :TN",
+            array(':TN' => $table_name)
+        );
+        return is_array($row);
     }
 
 }

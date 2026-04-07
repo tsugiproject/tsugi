@@ -96,10 +96,8 @@ if ( count($threads) < 1 ) {
         $thread_id = $thread['thread_id'];
         $subscribe = $thread['subscribe'];
         $favorite = $thread['favorite'];
-        $unread = $thread['comments'] - $thread['user_comments'];
+        $unread = intval($thread['comments']) - intval($thread['user_comments']);
         if ( $unread < 0 ) $unread = 0;
-        // TODO: Remove this after a while
-        if ( $thread['user_comments'] < 1 ) $unread = 0;
 ?>
   <li class="tdiscus-thread-item">
   <div class="tdiscus-thread-item-left">
@@ -116,7 +114,26 @@ if ( count($threads) < 1 ) {
         echo(' <span '.($locked == 0 ? 'style="display:none;"' : '').' aria-hidden="true"><i class="fa fa-lock fa-rotate-270" style="color: orange;"></i></span>');
     }
     $unread_str = '';
-    if ( $unread > 0 ) $unread_str = ' <span class="tdiscus-thread-item-title-badge" aria-label="'.htmlspecialchars(sprintf(__('%d unread'), $unread)).'">'.$unread.'</span>';
+    if ( $unread > 0 ) {
+        $badge_class = 'tdiscus-thread-item-title-badge tdiscus-thread-item-title-badge-global';
+        $badge_label = sprintf(__('%d global unread'), $unread);
+        $is_personal = intval($thread['mention_unread']) > 0 ||
+            (intval($thread['personal_unread']) > 0 && intval($thread['user_comments']) > 0);
+        if ( $is_personal ) {
+            $badge_class = 'tdiscus-thread-item-title-badge tdiscus-thread-item-title-badge-personal';
+            $badge_label = sprintf(__('%d personal unread'), $unread);
+        } else if ( intval($thread['participating_unread']) > 0 ) {
+            $badge_class = 'tdiscus-thread-item-title-badge tdiscus-thread-item-title-badge-participating';
+            $badge_label = sprintf(__('%d participating unread'), $unread);
+        }
+        $unread_str = ' <span class="'.$badge_class.'" aria-label="'.htmlspecialchars($badge_label).'">'.$unread.'</span><!-- dbg u='.
+            intval($unread).
+            ' p='.intval($thread['personal_unread']).
+            ' m='.intval($thread['mention_unread']).
+            ' t='.intval($thread['participating_unread']).
+            ' uc='.intval($thread['user_comments']).
+            ' -->';
+    }
 ?>
   <a href="<?= $TOOL_ROOT.'/thread/'.$thread['thread_id'] ?>">
   <b<?= ($hidden ? ' style="text-decoration: line-through;"' : '') ?>><?= htmlentities($thread['title'] ?? '') ?><?= $unread_str ?></b></a>

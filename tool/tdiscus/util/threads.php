@@ -100,17 +100,25 @@ class Threads {
 
         $thread_id = $thread['thread_id'];
         $thread_comments = $thread['comments'];
-        if ( $thread_comments > 0 ) {
-            $stmt = $PDOX->queryDie("UPDATE {$CFG->dbprefix}tdiscus_user_thread
-                SET comments=(SELECT comments from {$CFG->dbprefix}tdiscus_thread WHERE thread_id = :TID)
-                WHERE thread_id = :TID AND user_id = :UID",
-                array(
-                    ':COMMENTS' => $thread_comments,
-                    ':TID' => $thread_id,
-                    ':UID' => $TSUGI_LAUNCH->user->id,
-                )
-            );
-        }
+        $PDOX->queryDie("INSERT IGNORE INTO {$CFG->dbprefix}tdiscus_user_thread
+            (thread_id, user_id, comments, read_at) VALUES
+            (:TID, :UID, :COMMENTS, NOW())",
+            array(
+                ':TID' => $thread_id,
+                ':UID' => $TSUGI_LAUNCH->user->id,
+                ':COMMENTS' => $thread_comments,
+            )
+        );
+
+        $PDOX->queryDie("UPDATE {$CFG->dbprefix}tdiscus_user_thread
+            SET comments=(SELECT comments from {$CFG->dbprefix}tdiscus_thread WHERE thread_id = :TID),
+                read_at=NOW()
+            WHERE thread_id = :TID AND user_id = :UID",
+            array(
+                ':TID' => $thread_id,
+                ':UID' => $TSUGI_LAUNCH->user->id,
+            )
+        );
     }
 
     public static function threadLoadForUpdate($thread_id) {
@@ -251,7 +259,43 @@ class Threads {
             CONCAT(CONVERT_TZ(COALESCE(T.updated_at, T.created_at), @@session.time_zone, '+00:00'), 'Z') AS modified_at,
             CASE WHEN T.user_id = :UID THEN TRUE ELSE FALSE END AS owned,
             (COALESCE(T.upvote, 0)-COALESCE(T.downvote, 0)) AS netvote,
-            UT.subscribe AS subscribe, COALESCE(UT.favorite,0) AS favorite
+            UT.subscribe AS subscribe, COALESCE(UT.favorite,0) AS favorite,
+            (
+                SELECT COUNT(DISTINCT C2.comment_id)
+                FROM {$CFG->dbprefix}tdiscus_comment C2
+                LEFT JOIN {$CFG->dbprefix}tdiscus_comment P2 ON P2.comment_id = C2.parent_id
+                LEFT JOIN {$CFG->dbprefix}tdiscus_mention M2
+                    ON M2.post_id = C2.comment_id AND M2.mentioned_user_id = :UID
+                WHERE C2.thread_id = T.thread_id
+                  AND C2.user_id <> :UID
+                  AND C2.created_at > COALESCE(UT.read_at, '1970-01-01 00:00:00')
+                  AND (
+                      P2.user_id = :UID
+                      OR (T.user_id = :UID AND C2.parent_id > 0)
+                      OR M2.mentioned_user_id IS NOT NULL
+                  )
+            ) AS personal_unread,
+            (
+                SELECT COUNT(DISTINCT C3.comment_id)
+                FROM {$CFG->dbprefix}tdiscus_comment C3
+                LEFT JOIN {$CFG->dbprefix}tdiscus_mention M3
+                    ON M3.post_id = C3.comment_id AND M3.mentioned_user_id = :UID
+                WHERE C3.thread_id = T.thread_id
+                  AND C3.user_id <> :UID
+                  AND C3.created_at > COALESCE(UT.read_at, '1970-01-01 00:00:00')
+                  AND M3.mentioned_user_id IS NOT NULL
+            ) AS mention_unread,
+            CASE
+                WHEN (T.comments - COALESCE(UT.comments, 0)) > 0
+                     AND (
+                        EXISTS (
+                            SELECT 1 FROM {$CFG->dbprefix}tdiscus_user_thread_participation UTP
+                            WHERE UTP.user_id = :UID AND UTP.thread_id = T.thread_id
+                        )
+                        OR COALESCE(UT.subscribe, 0) = 1
+                     )
+                THEN 1 ELSE 0
+            END AS participating_unread
         ";
 
         $from = "

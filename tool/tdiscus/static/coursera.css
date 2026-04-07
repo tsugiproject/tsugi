@@ -67,8 +67,22 @@
   font-size: 0.5em;
   padding: 0.25em 0.5em 0.25em 0.5em;
   border-radius: 50%;
-  background: #b91c1c; /* Dark red: ~7:1 contrast with white (WCAG AAA) */
-  color: white;
+  color: #111;
+}
+
+.tdiscus-thread-item-title-badge-personal {
+  background: #9f1239;
+  color: #fff;
+}
+
+.tdiscus-thread-item-title-badge-participating {
+  background: #fbbf24;
+  color: #111;
+}
+
+.tdiscus-thread-item-title-badge-global {
+  background: #d1d5db;
+  color: #111;
 }
 
 .tdiscus-staff-created {

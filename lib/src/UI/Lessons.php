@@ -2060,27 +2060,75 @@ class Lessons {
                 && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email');
 
         echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
+        $rest_path = U::rest_path();
+        $json_endpoint = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/json');
         foreach($discussions as $discussion ) {
             $resource_link_title = $discussion->title;
-            $rest_path = U::rest_path();
             $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $discussion->resource_link_id;
             $info = "";
             $row = U::get($rows_dict, $discussion->resource_link_id);
             if ( $row ) {
-                $info = '<br/>'.$row['thread_count'].' '.__('threads'). ' - '.__('last post').
-                    ' <time class="timeago" datetime="'.$row['modified_at'].'">'.$row['modified_at'].'</time>'.
-                    "\n";
+                $info = $row['thread_count'].' '.__('threads'). ' - '.__('last post').
+                    ' <time class="timeago" datetime="'.$row['modified_at'].'">'.$row['modified_at'].'</time>';
             }
 
-            echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'."\n");
+            echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion" data-resource-link-id="'.htmlspecialchars($discussion->resource_link_id).'">'."\n");
             if ( $launchable ) {
-                echo('<a href="'.$launch_path.'">'.htmlentities($discussion->title).'</a>'.$info."\n");
+                echo('<a href="'.$launch_path.'">'.htmlentities($discussion->title).'</a>');
             } else {
-                echo(htmlentities($resource_link_title).' ('.__('Login Required').')'.$info."\n");
+                echo(htmlentities($resource_link_title).' ('.__('Login Required').')');
+            }
+            echo('<span class="tsugi-discussion-rollup-badges" aria-live="polite"></span>');
+            if ( strlen($info) > 0 ) {
+                echo('<div class="tsugi-discussion-meta">'.$info.'</div>'."\n");
             }
             echo("</li>\n");
         }
         echo("</ul><!-- end of discussions -->\n");
+?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('<?= htmlentities($json_endpoint) ?>')
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (!data || data.status !== 'success' || !Array.isArray(data.discussions)) return;
+
+            var byKey = {};
+            data.discussions.forEach(function(disc) {
+                if (disc && disc.resource_link_id) byKey[disc.resource_link_id] = disc;
+            });
+
+            document.querySelectorAll('.tsugi-lessons-module-discussion[data-resource-link-id]').forEach(function(node) {
+                var key = node.getAttribute('data-resource-link-id');
+                var disc = byKey[key];
+                if (!disc || !disc.badge) return;
+
+                var personal = parseInt(disc.badge.personal || 0, 10);
+                var participating = parseInt(disc.badge.participating || 0, 10);
+                var global = parseInt(disc.badge.global || 0, 10);
+
+                var chip = '';
+                if (personal > 0) {
+                    chip = '<span class="badge tsugi-discussion-badge tsugi-discussion-badge-personal" title="Personal unread: ' + personal + '" aria-label="Personal unread: ' + personal + '">' + personal + '</span>';
+                } else if (participating > 0) {
+                    chip = '<span class="badge tsugi-discussion-badge tsugi-discussion-badge-participating" title="Participating unread: ' + participating + '" aria-label="Participating unread: ' + participating + '">' + participating + '</span>';
+                } else if (global > 0) {
+                    chip = '<span class="badge tsugi-discussion-badge tsugi-discussion-badge-global" title="Global activity unread: ' + global + '" aria-label="Global activity unread: ' + global + '">' + global + '</span>';
+                }
+                if (!chip) return;
+
+                var holder = node.querySelector('.tsugi-discussion-rollup-badges');
+                if (!holder) return;
+                holder.innerHTML = chip;
+                holder.appendChild(document.createComment(' dbg p=' + personal + ' t=' + participating + ' g=' + global + ' '));
+            });
+        })
+        .catch(function() {
+            // Keep discussions page usable even if badge rollups are unavailable.
+        });
+});
+</script>
+<?php
 
 
         $ob_output = ob_get_contents();
