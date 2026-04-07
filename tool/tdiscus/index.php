@@ -136,7 +136,7 @@ if ( count($threads) < 1 ) {
     }
 ?>
   <a href="<?= $TOOL_ROOT.'/thread/'.$thread['thread_id'] ?>">
-  <b<?= ($hidden ? ' style="text-decoration: line-through;"' : '') ?>><?= htmlentities($thread['title'] ?? '') ?><?= $unread_str ?></b></a>
+  <b<?= ($hidden ? ' style="text-decoration: line-through;"' : '') ?>><?= htmlentities($thread['title'] ?? '') ?></b></a>
 <?php if ( $thread['owned'] || $LAUNCH->user->instructor ) { ?>
     <span class="tdiscus-thread-owned-menu" role="group" aria-label="<?= htmlspecialchars(__('Thread actions')) ?>">
     <a href="<?= $TOOL_ROOT ?>/threadform/<?= $thread['thread_id'] ?>" aria-label="<?= htmlspecialchars(__('Edit thread')) ?>"><i class="fa fa-pencil" aria-hidden="true"></i></a>
@@ -154,6 +154,7 @@ if ( count($threads) < 1 ) {
 ?>
     </span>
 <?php } ?>
+<?= $unread_str ?>
 </p>
 <?php
     if ( $thread['staffcreate'] > 0 ) {
