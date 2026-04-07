@@ -20,13 +20,17 @@ if ( $settingsDialog->handleSettingsPost() ) {
 
 $THREADS = new Threads();
 $TDISCUS = new Tdiscus();
+$tool_root = Tdiscus::toolRoot();
+if ( isset($TOOL_ROOT) && is_string($TOOL_ROOT) && strlen($TOOL_ROOT) > 0 ) {
+    $tool_root = $TOOL_ROOT;
+}
 
 $OUTPUT->header();
 $TDISCUS->header();
 
 $pagesize = intval(U::get($_GET, 'pagesize', Threads::default_page_size));
 $start = intval(U::get($_GET, 'start', 0));
-$comeback = $TOOL_ROOT.'/';
+$comeback = $tool_root.'/';
 
 // Does not include start
 $copyparms = array('search', 'sort', 'pagesize');
@@ -57,7 +61,7 @@ echo('<span class="tdiscus-threads-title">');
 echo('<a href="'.$comeback.'">');
 echo(htmlentities($dicussion_title));
 echo('</a></span>' );
-echo('<a class="tdiscus-add-thread-link" href="'.$TOOL_ROOT.'/threadform'.'" aria-label="'.htmlspecialchars(__('Add Thread')).'">');
+echo('<a class="tdiscus-add-thread-link" href="'.$tool_root.'/threadform'.'" aria-label="'.htmlspecialchars(__('Add Thread')).'">');
 echo('<i class="fa fa-plus" aria-hidden="true"></i> ');
 echo(__('Add Thread'));
 echo('</a>');
@@ -135,12 +139,12 @@ if ( count($threads) < 1 ) {
             ' -->';
     }
 ?>
-  <a href="<?= $TOOL_ROOT.'/thread/'.$thread['thread_id'] ?>">
+  <a href="<?= $tool_root.'/thread/'.$thread['thread_id'] ?>">
   <b<?= ($hidden ? ' style="text-decoration: line-through;"' : '') ?>><?= htmlentities($thread['title'] ?? '') ?></b></a>
 <?php if ( $thread['owned'] || $LAUNCH->user->instructor ) { ?>
     <span class="tdiscus-thread-owned-menu" role="group" aria-label="<?= htmlspecialchars(__('Thread actions')) ?>">
-    <a href="<?= $TOOL_ROOT ?>/threadform/<?= $thread['thread_id'] ?>" aria-label="<?= htmlspecialchars(__('Edit thread')) ?>"><i class="fa fa-pencil" aria-hidden="true"></i></a>
-    <a href="<?= $TOOL_ROOT ?>/threadremove/<?= $thread['thread_id'] ?>" aria-label="<?= htmlspecialchars(__('Delete thread')) ?>"><i class="fa fa-trash" aria-hidden="true"></i></a>
+    <a href="<?= $tool_root ?>/threadform/<?= $thread['thread_id'] ?>" aria-label="<?= htmlspecialchars(__('Edit thread')) ?>"><i class="fa fa-pencil" aria-hidden="true"></i></a>
+    <a href="<?= $tool_root ?>/threadremove/<?= $thread['thread_id'] ?>" aria-label="<?= htmlspecialchars(__('Delete thread')) ?>"><i class="fa fa-trash" aria-hidden="true"></i></a>
   <?php
     if ( $LAUNCH->user->instructor ) {
         $TDISCUS->renderBooleanSwitch('thread', $thread_id, 'pin', 'pin', $pin, 1, 'fa-thumbtack');
