@@ -20,7 +20,7 @@ class Tdiscus {
     }
 
     public static function header() {
-        echo('<link href="'.self::toolRoot().'/static/coursera.css" rel="stylesheet">'."\n");
+        // Styles are centralized in tsugi-static/css/tsugi2.css.
     }
 
     public static function footer() {
@@ -67,7 +67,7 @@ foreach($sortby as $sort) {
         }
 ?>
 <div class="tdiscus-threads-search">
-  <label for="tdiscus-threads-search-input" class="visually-hidden"><?= __("Search") ?></label>
+  <label for="tdiscus-threads-search-input" class="tdiscus-visually-hidden"><?= __("Search") ?></label>
   <input type="text" id="tdiscus-threads-search-input" placeholder="<?= htmlspecialchars(__("Search")) ?>..." name="search"
   <?= $searchvalue ?> aria-label="<?= htmlspecialchars(__("Search threads")) ?>"
   >
@@ -148,7 +148,7 @@ foreach($sortby as $sort) {
 <div id="tdiscus-add-comment-div" class="tdiscus-add-comment-container" title="<?= __("Reply") ?>" role="region" aria-label="<?= htmlspecialchars(__("Add reply")) ?>">
 <form id="tdiscus-add-comment-form" method="post">
 <p>
-<label for="tdiscus-add-comment-text-<?= $thread_id ?>" class="visually-hidden"><?= __("Your reply") ?></label>
+<label for="tdiscus-add-comment-text-<?= $thread_id ?>" class="tdiscus-visually-hidden"><?= __("Your reply") ?></label>
 <textarea id="tdiscus-add-comment-text-<?= $thread_id ?>" style="width:100%;" class="tdiscus-add-sub-comment-text form-control" name="comment" aria-label="<?= htmlspecialchars(__("Your reply")) ?>">
 </textarea>
 </p>
@@ -170,7 +170,7 @@ foreach($sortby as $sort) {
 <p>
 <input type="hidden" name="comment_id" value="<?= $comment_id ?>">
 <input type="hidden" name="thread_id" value="<?= $thread_id ?>">
-<label for="<?= $textarea_id ?>" class="visually-hidden"><?= __("Your reply") ?></label>
+<label for="<?= $textarea_id ?>" class="tdiscus-visually-hidden"><?= __("Your reply") ?></label>
 <textarea id="<?= $textarea_id ?>" style="width:100%;" class="tdiscus-add-sub-comment-text form-control" name="comment" aria-label="<?= htmlspecialchars(__("Your reply")) ?>">
 </textarea>
 </p>
