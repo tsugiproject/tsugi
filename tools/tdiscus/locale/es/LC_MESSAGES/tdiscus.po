@@ -1,0 +1,27 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Tdiscus\n"
+"POT-Creation-Date: 2018-01-10 16:39-0500\n"
+"PO-Revision-Date: 2018-01-10 17:06-0500\n"
+"Last-Translator: Charles Severance <drchuck@gmail.com>\n"
+"Language-Team: Chuck\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.5\n"
+"X-Poedit-Basepath: /Applications/MAMP/htdocs/tsugi/mod/tdiscus\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-SearchPath-0: /Applications/MAMP/htdocs/tsugi/mod/tdiscus\n"
+
+#: /Applications/MAMP/htdocs/tsugi/mod/tdiscus/lctest.php:16
+#: /Applications/MAMP/htdocs/tsugi/mod/tdiscus/lctest.php:19
+msgid "Allow more than one thread."
+msgstr "Permitir más de un hilo."
+
+msgid "Time to create the form"
+msgstr "Es hora de crear la forma"
+
+msgid "This thread has not yet been created"
+msgstr "Este hilo aún no ha sido creado"

@@ -1,0 +1,416 @@
+html{
+	font-size: 7pt;
+}
+
+body{
+	font-family: 'Martel';
+	line-height: 2.6rem;
+	font-size: 1.45rem;
+	color:rgba(0,0,0,0.75);
+	line-height: 2.7rem;
+}
+p{
+	margin: 0;
+	padding: 0;
+
+}
+a{
+	color: inherit;
+}
+
+a:hover{
+	text-decoration: none;
+	cursor: pointer;
+}
+
+#top-logo{
+	height: 2.5rem;
+	display: inline-block;
+	margin-top: -0.4rem;
+	margin-left: 1.5rem;
+}
+
+.navbar-default{
+	background-color: white;
+	font-family: 'Open Sans';
+}
+
+.navbar-default .navbar-nav>li>a{
+	color: #2196F3;
+}
+
+.navbar-right :first-child{
+	
+}
+
+.body-container{
+	width: 80rem;
+	margin: 5rem auto;
+}
+
+.question-title{
+	font-size: 2rem;
+	margin: 2.5rem auto;
+}
+
+.answer-profile{
+	margin-bottom: 2rem;
+}
+
+.answer-profile a>img{
+	width: 4rem;
+	vertical-align: middle;
+	margin-right: 2rem;
+}
+
+.answer-profile-group{
+	display: inline-block;
+	vertical-align: middle;
+	font-family: "Open Sans";
+	line-height: 2.3rem;
+	font-size: 1.3rem;
+
+}
+
+.answer-profile-group a{
+	color: rgba(0,0,0,0.58);
+	font-weight: 600;
+}
+
+.answer-profile-group p{
+	color: #A0A4AA;
+	font-weight: 300;
+
+}
+
+.user-answer-box{
+	width: 100%;
+	padding: 1rem 1.5rem;
+	margin: 2.5rem auto;
+	border: #2196F3 solid 1px;
+	border-radius: 3px;
+
+}
+
+.user-answer-box img{
+	width: 2.8rem;
+}
+
+.user-answer-box p{
+	display: inline-block;
+	width: 80%;
+	font-family: "Open Sans";
+	color: #A0A4AA;
+	font-size: 1.3rem;
+	margin-left: 1.5rem;
+}
+
+.user-answer-box p span{
+	color: rgba(0,0,0,0.75);
+	font-weight: 600;
+}
+
+.answer-divider{
+	margin: 3rem auto;
+	font-family: "Open Sans";
+	color: rgba(0,0,0,0.75);
+	vertical-align: middle;
+}
+
+.answer-divider h2{
+	font-size: 1.8rem;
+	display: inline-block;
+	vertical-align: middle;
+	margin: 0;
+}
+
+.sort{
+	font-size: 1.3rem;
+	display: inline-block;
+	float: right;
+	vertical-align: middle;
+}
+
+.sort>p>span:first-child{
+	font-weight: 600;
+}
+
+.sort>p span{
+	margin: 0 0.5rem;
+}
+
+.answer-container{
+	border: #E5E5E5 solid 1px;
+	border-radius: 3px;
+
+}
+
+.answer-container .answer{
+	padding: 2rem 4rem;
+
+}
+
+.answer-container .response{
+	padding: 2rem 4rem;
+	background-color:rgba(245,245,249,.64);
+
+}
+
+.individual-response{
+	margin-bottom: 1rem;
+}
+
+.individual-response img{
+	width: 2.8rem;
+	display: inline-block;
+	margin: 0.8rem 1.5rem;
+	vertical-align: middle;
+}
+.individual-response p{
+	width: 90%;
+	display: inline-block;
+	font-size: 1.3rem;
+	vertical-align: middle;
+	line-height: 2.3rem;
+}
+
+.response>a{
+	font-family: "open sans";
+	font-weight: 600;
+	font-size: 1.3rem;
+	color: rgba(0,0,0,0.58);
+	margin-left: 2rem;
+}
+
+.answer-actions{
+	margin: 1.5rem auto 0.5rem auto;
+}
+
+.answer-actions>a span{
+	font-family: "Open Sans";
+	display: inline-block;
+	font-size: 1.3rem;
+	font-weight: 600;
+	color: #2196F3;
+	border: #2196F3 solid 1px;
+	border-radius: 0px 3px 3px 0px;
+	display: inline-block;
+	vertical-align: middle;
+	padding-right:1.5rem;
+	padding-left: 1.5rem;
+
+}
+
+.answer-actions>a span:first-child{
+	border-right: none;
+	border-radius: 3px 0px 0px 3px;
+
+}
+
+
+.answer-actions-button{
+	display: inline-block;
+	float: right;
+	vertical-align: middle;
+}
+
+.answer-actions-button a img{
+	vertical-align: middle;
+	height: 1.8rem;
+	margin-right: 2.5rem;
+}
+
+
+/*------styling for forum.php------*/
+
+.forum-body > *{
+	width: 110rem;
+	margin: auto;
+
+}
+
+.forum-nav{
+	margin: 1.5rem auto;
+}
+
+.forum-nav ul{
+	float: right;
+}
+
+.forum-nav ul li{
+	display: inline-block;
+}
+
+.forum-nav > a > img{
+	height: 3rem;
+}
+
+.forum-nav ul img{
+	height: 2rem;
+	margin-left: 1.5rem;
+}
+
+.forum-title{
+	width: 100%;
+	background-color: rgba(245,245,249,.64);
+
+}
+
+.forum-title-content{
+	width: 110rem;
+	margin: auto;
+	padding-top: 2rem;
+	padding-bottom: 1rem;
+}
+
+
+
+.forum-sub-nav{
+	color: #2196F3;
+	font-family: "Open Sans";
+	font-size: 1.45rem;
+}
+
+.forum-title-content h1{
+	font-size: 2.53rem;
+	display: inline-block;
+	padding-right: 2rem;
+	margin: 0;
+	color: rgba(0,0,0,.58);
+
+}
+
+.forum-title-content h2{
+	font-size: 1.63rem;
+	display: inline-block;
+	font-family: "Open Sans";
+	color: #A0A4AA;
+	font-weight: 400;
+}
+
+.forum-content >p{
+	margin: 1rem auto; 
+	font-family: 'Open Sans';
+	color: rgba(0,0,0,.58);
+	font-weight: 600;
+	position: relative;
+	text-align: right;
+}
+
+.forum-individual-topic{
+	margin-bottom: 4rem;
+
+}
+
+.forum-individual-topic-asker {
+	margin-top: 2rem;
+	width: 10rem;
+	display: inline-block;
+	margin-right: 5rem;
+	vertical-align: middle;
+}
+
+.forum-individual-topic-asker a >img{
+	width: 3rem;
+	display: block;
+	margin: auto;
+	margin-bottom: 0.5rem;
+}
+
+
+.forum-individual-topic-asker p a{
+	font-family: "Open Sans";
+	font-size: 1.45rem;
+	color:rgba(0,0,0,0.75);
+	margin: auto;
+}
+
+.forum-individual-topic-asker > p{
+	font-family: "Open Sans";
+	font-size: 1.2rem;
+	color: #9B9B9B;
+	margin: auto;
+	text-align: center;
+	line-height: 2rem;
+
+}
+
+.forum-individual-topic-summary{
+	display: inline-block;
+	width: 60rem;
+	vertical-align: middle;
+	margin-right: 9rem;
+	font-size: 1.45rem;
+}
+
+
+.forum-individual-topic-summary h3{
+	font-size: 1.7rem;
+	font-weight: 700;
+	
+}
+
+.forum-individual-topic-summary a img{
+	width: 2rem;
+	margin-right: 1rem;
+}
+
+
+.forum-individual-topic-stats{
+	display: inline-block;
+	width: 25rem;
+	vertical-align: middle;
+}
+
+.forum-individual-topic-stats img{
+	width: 2rem;
+	margin-right: 1rem;
+}
+
+
+.forum-individual-topic-stats-child{
+	display: inline-block;
+	width: 7rem;
+	text-align: center;
+	font-size: 1.2rem;
+	font-family: "Open Sans";
+	color: #9B9B9B;
+
+}
+
+
+.forum-individual-topic-stats-child span{
+	font-size: 1.5rem;
+	color:rgba(0,0,0,0.58);
+	font-weight: 600;
+}
+
+.forum-individual-topic-stats-child:last-child{
+	width: 10rem;
+}
+
+
+.forum-individual-topic-stats-child:last-child span{
+	font-size: 1.2rem;
+}
+
+.forum-bottom-pager{
+	float: right;
+	margin-bottom: 2rem;
+	font-family: "Open Sans";
+	color: #2196F3;
+	font-weight: 600;
+}
+
+.forum-bottom-pager li{
+	display: inline-block;
+	margin: 0.5rem;
+}
+
+.forum-bottom-pager-current{
+	text-decoration: underline;
+}
+
+.forum-individual-topic-pinned-divider{
+	border-bottom: #2196F3 solid 1px;
+}
