@@ -1,0 +1,86 @@
+
+Hi Chuck, all.
+
+First off, Happy New Year to everybody. I know it's not feeling too happy at the moment (it isn't in the UK either, believe me), but we have to keep our collective dander up.
+
+As a community member I'm very interested in the idea of a new forums tool for Sakai. I really despise the forums tool that we currently have - in fact it was a key component in the scuppering of Sakai's adoption at Lancaster (UK). Moodle's forum was just better, and forums/discussions was seen at Lancaster as core to the LMS' purpose. I reacted to that by writing YAFT, but it took me a month and by then the deal was done anyway. Futile, in retrospect.
+
+So, I'm all for a new forums tool - great idea :)
+
+In my view, a new forums tool has to do, or at least it would be preferable if it did these things:
+
+    Be multi placement, so we can replace Commons, and maybe other tools. Not that Commons is bad - it's just a kind of discussions tool.
+
+    Be fully indexable by Sakai's built in ES search indexing. This will imply deep linking from search results, too.
+
+    Work well with delegated access so that Sakai admins can ghost admin staff into the tool, auditors etc. Forums currently isn't DA compatible due to its byzantine role mapping system.
+
+    Work with import from site so we can use template sites or copy topic structure into new years.
+
+    Work with the new Unified Messaging Service (https://jira.sakaiproject.org/browse/SAK-44853) that I'm currently working on as my side project (the one I drop to fix bugs). That implies working with the email template service, with the email service and with the upcoming browser events interface (https://github.com/sakaiproject/sakai/pull/8550). My hope is that soon we'll be able to push events to the browser to add activity lights to tools, as one example - make the interface more interactive with having to refresh.
+    Work with bullhorns (part of the last bullet really)
+
+    Work with the calendar service in Sakai so we can have calendar events.
+
+    Work properly with gradebook and rubrics - forums/rubrics integration has always been a bit of a mess.
+
+    Work properly within transaction boundaries in Sakia: ie : participate in rollback if needed and help with referential integrity. 
+    Work with sitestats properly, ie: push events onto the Sakai event bus for other components to work with.
+    Be embeddable, anywhere, with just a tag. The tag may be a topic, or a thread, or just one message.
+
+
+I'm sure there's more, but that's all I can think of for the moment. If forums is replaced by anything, it should do all these things, imo. So if tdiscus is a candidate in folks' minds for replacing forums, it should address these points. If it isn't or never was, then it was still good for me to formulate my ideas about what the forums tool should do. Forums doesn't do a good few of these things as it stands, or if it does, it does them badly. Search isn't great, gb integration is patchy. There's probably more.
+
+Thoughts welcome!
+
+Cheers and stay safe everybody,
+Adrian.
+
+
+
+
+
+On Mon, 4 Jan 2021 at 16:32, Charles Severance <csev@umich.edu> wrote:
+
+    Hi all,
+
+    Over the holidays I build a threaded discussion tool using Tsugi that is launchable via LTI.  It is up and running, in production and has free hosting at www.tsugicloud.org.
+
+    Here is a demonstration video:
+
+    https://youtu.be/_be5vBiljng
+
+    You can see it in action live on
+
+    https://www.py4e.com/discussions
+
+    You can play with in my test harness where you can run with a test instructor and several students to exercise it at:
+
+    https://www.tsugicloud.org/tsugi/store/details/tdiscus
+
+    This is ready to be plugged into Sakai.  If you already have tsugicloud.org integrated into your Sakai, it is now available under you “Add Learning App”.
+
+    Here is the source code:
+
+    https://github.com/tsugitools/tdiscus
+
+    If you run your own Tsugi server, it is available for installation under Admin -> Manage Installed Modules
+
+    I have lots of plans for this tool - this is just the beginning - I would love to have some collaborators to evolve Tdiscus.
+
+    https://github.com/tsugitools/tdiscus/blob/master/README.md
+
+    Comments welcome.
+
+    /Chuck
+
+    -- 
+    You received this message because you are subscribed to the Google Groups "Sakai Users Group" group.
+    To unsubscribe from this group and stop receiving emails from it, send an email to sakai-user+unsubscribe@apereo.org.
+    To view this discussion on the web visit https://groups.google.com/a/apereo.org/d/msgid/sakai-user/F3754809-33EF-493E-B08E-02EC28CB8B72%40umich.edu.
+
+-- 
+You received this message because you are subscribed to the Google Groups "Sakai Users Group" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to sakai-user+unsubscribe@apereo.org.
+To view this discussion on the web visit https://groups.google.com/a/apereo.org/d/msgid/sakai-user/CAM0rk3Fum6WOFj_PNm5DWNqQMfBESrKmNgJJoAqwVBmod6fK5w%40mail.gmail.com.
+
