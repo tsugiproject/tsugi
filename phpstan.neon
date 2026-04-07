@@ -18,6 +18,7 @@ parameters:
         - gclass
         - lti
         - mod
+        - tool
         - settings
         - store
         - util

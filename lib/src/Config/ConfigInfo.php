@@ -427,7 +427,7 @@ class ConfigInfo {
      *  table creation as well as making lists of tools in various UI places
      *  such as ContentItem and Deep Linking.
      */
-    public $tool_folders = array("admin", "mod", "tools");
+    public $tool_folders = array("admin", "mod", "tool");
 
     /**
      * Indicate which folder to install new modules into.

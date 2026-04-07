@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 - Root entry points live in `index.php`, `login.php`, `logout.php`, and `admin/` for the administration console UI.
-- Core feature areas are organized by domain: `api/` (HTTP endpoints), `lti/` (LTI launch and flow), `mod/` (optional modules), `store/` (tool store), `util/` (shared helpers), and `locale/` (translations).
+- Core feature areas are organized by domain: `api/` (HTTP endpoints), `lti/` (LTI launch and flow), `mod/` (optional modules), `tool/` (in-tree tools shipped with this repo), `store/` (tool store), `util/` (shared helpers), and `locale/` (translations).
 - Configuration starts from `config-dist.php`; copy to `config.php` and edit for local secrets and settings.
 - Dependencies are vendored in `vendor/` (including `tsugi/lib` and `koseu/lib`), so changes there should be intentional and tracked.
 

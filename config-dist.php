@@ -178,14 +178,14 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 
 // For normal tsugi, by default we use the built-in admin tools, and
 // install new tools (see /admin/install/) into mod.  The store and other
-// UIs also scan tools/ under wwwroot (dirroot/tools) for register.php.
-$CFG->tool_folders = array("admin", "mod", "tools");
+// UIs also scan tool/ under wwwroot (dirroot/tool) for register.php.
+$CFG->tool_folders = array("admin", "mod", "tool");
 $CFG->install_folder = $CFG->dirroot.'/mod';
 
 // For Embedded Tsugi, you probably want to ignore the mod folder
 // in /tsugi and instead install new tools into "mod" in the parent folder
 if ( isset($CFG->apphome) ) {
-    $CFG->tool_folders = array("admin", "../tools", "../mod", "tools");
+    $CFG->tool_folders = array("admin", "../tools", "../mod", "tool");
     $CFG->install_folder = $CFG->dirroot.'/../mod';
 }
 
