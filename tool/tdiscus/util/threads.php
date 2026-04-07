@@ -22,6 +22,14 @@ class Threads {
         return intval($maxdepth);
     }
 
+    public static function includeParticipatingInMainBadge() {
+        return intval(Settings::linkGet('badge_include_participating', '0')) > 0;
+    }
+
+    public static function includeParticipationAsPersonal() {
+        return intval(Settings::linkGet('badge_participation_personal', '0')) > 0;
+    }
+
     public static function getPurifier()
     {
         $config = \HTMLPurifier_Config::createDefault();
@@ -324,7 +332,12 @@ class Threads {
             )
         );
 
-        return intval($PDOX->lastInsertId());
+        $thread_id = intval($PDOX->lastInsertId());
+        if ( $thread_id > 0 ) {
+            self::upsertThreadParticipation($thread_id, $TSUGI_LAUNCH->user->id);
+        }
+
+        return $thread_id;
     }
 
     public static function threadUserSetBoolean($thread_id, $column, $value)
@@ -531,6 +544,10 @@ class Threads {
         );
 
         $retval = intval($PDOX->lastInsertId());
+        if ( $retval > 0 ) {
+            self::upsertThreadParticipation($thread_id, $TSUGI_LAUNCH->user->id);
+            self::syncMentionsForComment($retval, $comment, $TSUGI_LAUNCH->user->id);
+        }
 
         // Update the thread
         if ( $retval > 0 ) {
@@ -563,10 +580,17 @@ class Threads {
             );
         }
 
-        // Up the tree we go...
-        // https://www.slideshare.net/billkarwin/models-for-hierarchical-data
+        // Up the tree we go using a closure table.
+        // Why closure tables: they let us fetch ancestors/descendants with simple joins,
+        // avoid recursive app logic, and keep subtree operations predictable.
+        // References:
+        // - Bill Karwin hierarchy models: https://www.slideshare.net/billkarwin/models-for-hierarchical-data
+        // - Closure table intro: https://www.vibepanda.io/resources/guide/handling-hierarchical-data-closure-tables-sql
+        // - Classic Q&A overview: https://stackoverflow.com/questions/192220/what-is-the-most-efficient-elegant-way-to-parse-a-flat-table-into-a-tree
 
         if ( $retval > 0 ) {
+            // Insert closure rows for all ancestors of parent -> new child,
+            // plus the reflexive row (child -> child at its depth marker).
             $stmt = $PDOX->queryDie("INSERT INTO {$CFG->dbprefix}tdiscus_closure
                 (parent_id, child_id, depth)
                 SELECT parent_id, :CID, depth FROM {$CFG->dbprefix}tdiscus_closure
@@ -576,8 +600,8 @@ class Threads {
             );
         }
 
-        // From the parent on up - they get an additional child node
-        // Yeah it is a sub-select - but it is no more than maxdepth...
+        // From parent upward, each ancestor gets +1 in denormalized children count.
+        // Sub-select cost is bounded by configured maxdepth, not by total table size.
         if ( $retval > 0 && $parent_id > 0 ) {
             $stmt = $PDOX->queryDie("UPDATE {$CFG->dbprefix}tdiscus_comment
                 SET children=COALESCE(children, 0) + 1, updated_at=NOW()
@@ -703,6 +727,8 @@ class Threads {
             )
         );
 
+        self::syncMentionsForComment($comment_id, $comment, $TSUGI_LAUNCH->user->id);
+
         // If we are updating a thread - update all its parent threads u the tree
         $maxdepth = self::maxDepth();
         if ( $maxdepth > 1 & $parent_id > 0 ) {
@@ -719,6 +745,146 @@ class Threads {
             );
         }
 
+    }
+
+    public static function unreadBadgeCounts()
+    {
+        global $PDOX, $TSUGI_LAUNCH, $CFG;
+
+        $uid = $TSUGI_LAUNCH->user->id;
+        $lid = $TSUGI_LAUNCH->link->id;
+
+        $extra_personal_clause = "";
+        if ( self::includeParticipationAsPersonal() ) {
+            $extra_personal_clause = " OR EXISTS (
+                SELECT 1 FROM {$CFG->dbprefix}tdiscus_user_thread_participation UTP
+                WHERE UTP.user_id = :UID AND UTP.thread_id = C.thread_id
+            )";
+        }
+
+        $personal_row = $PDOX->rowDie("SELECT COUNT(DISTINCT C.comment_id) AS count
+            FROM {$CFG->dbprefix}tdiscus_comment C
+            JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = C.thread_id
+            LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread UT
+                ON UT.thread_id = C.thread_id AND UT.user_id = :UID
+            LEFT JOIN {$CFG->dbprefix}tdiscus_comment P ON P.comment_id = C.parent_id
+            LEFT JOIN {$CFG->dbprefix}tdiscus_mention M
+                ON M.post_id = C.comment_id AND M.mentioned_user_id = :UID
+            WHERE T.link_id = :LID
+              AND C.user_id <> :UID
+              AND C.created_at > COALESCE(UT.read_at, '1970-01-01 00:00:00')
+              AND (
+                    P.user_id = :UID
+                    OR (T.user_id = :UID AND C.parent_id > 0)
+                    OR M.mentioned_user_id IS NOT NULL
+                    $extra_personal_clause
+              )",
+            array(':UID' => $uid, ':LID' => $lid)
+        );
+
+        $participating_row = $PDOX->rowDie("SELECT COUNT(*) AS count
+            FROM {$CFG->dbprefix}tdiscus_thread T
+            LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread UT
+                ON UT.thread_id = T.thread_id AND UT.user_id = :UID
+            WHERE T.link_id = :LID
+              AND (
+                    EXISTS (
+                        SELECT 1 FROM {$CFG->dbprefix}tdiscus_user_thread_participation UTP
+                        WHERE UTP.user_id = :UID AND UTP.thread_id = T.thread_id
+                    )
+                    OR COALESCE(UT.subscribe, 0) = 1
+              )
+              AND (T.comments - COALESCE(UT.comments, 0)) > 0",
+            array(':UID' => $uid, ':LID' => $lid)
+        );
+
+        $global_row = $PDOX->rowDie("SELECT COUNT(*) AS count
+            FROM {$CFG->dbprefix}tdiscus_comment C
+            JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = C.thread_id
+            WHERE T.link_id = :LID
+              AND C.user_id <> :UID
+              AND C.created_at > COALESCE((
+                    SELECT MAX(UT2.read_at)
+                    FROM {$CFG->dbprefix}tdiscus_user_thread UT2
+                    JOIN {$CFG->dbprefix}tdiscus_thread T2 ON T2.thread_id = UT2.thread_id
+                    WHERE UT2.user_id = :UID AND T2.link_id = :LID
+              ), '1970-01-01 00:00:00')",
+            array(':UID' => $uid, ':LID' => $lid)
+        );
+
+        return array(
+            'personal' => intval($personal_row['count']),
+            'participating' => intval($participating_row['count']),
+            'global' => intval($global_row['count']),
+        );
+    }
+
+    public static function mainBadgeCount($counts)
+    {
+        $main = intval($counts['personal']);
+        if ( self::includeParticipatingInMainBadge() ) {
+            $main = $main + intval($counts['participating']);
+        }
+        return $main;
+    }
+
+    private static function upsertThreadParticipation($thread_id, $user_id)
+    {
+        global $PDOX, $CFG;
+        $PDOX->queryDie("INSERT INTO {$CFG->dbprefix}tdiscus_user_thread_participation
+            (thread_id, user_id, last_posted_at)
+            VALUES (:TID, :UID, NOW())
+            ON DUPLICATE KEY UPDATE last_posted_at = NOW()",
+            array(
+                ':TID' => $thread_id,
+                ':UID' => $user_id,
+            )
+        );
+    }
+
+    private static function syncMentionsForComment($comment_id, $comment_text, $author_user_id)
+    {
+        global $PDOX, $CFG;
+
+        $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}tdiscus_mention WHERE post_id = :PID",
+            array(':PID' => $comment_id)
+        );
+
+        $mentioned_user_ids = self::extractMentionedUserIds($comment_text);
+        foreach ( $mentioned_user_ids as $mentioned_user_id ) {
+            if ( $mentioned_user_id == $author_user_id ) continue;
+
+            $row = $PDOX->rowDie("SELECT user_id
+                FROM {$CFG->dbprefix}lti_user
+                WHERE user_id = :UID",
+                array(':UID' => $mentioned_user_id)
+            );
+            if ( ! is_array($row) ) continue;
+
+            $PDOX->queryDie("INSERT IGNORE INTO {$CFG->dbprefix}tdiscus_mention
+                (post_id, mentioned_user_id, created_at)
+                VALUES (:PID, :UID, NOW())",
+                array(
+                    ':PID' => $comment_id,
+                    ':UID' => $mentioned_user_id,
+                )
+            );
+        }
+    }
+
+    private static function extractMentionedUserIds($comment_text)
+    {
+        $mentions = array();
+        if ( ! is_string($comment_text) || strlen($comment_text) < 2 ) return $mentions;
+
+        preg_match_all('/@([0-9]{1,11})\b/', $comment_text, $matches);
+        if ( ! isset($matches[1]) || ! is_array($matches[1]) ) return $mentions;
+
+        foreach ( $matches[1] as $raw_uid ) {
+            $uid = intval($raw_uid);
+            if ( $uid > 0 ) $mentions[$uid] = $uid;
+        }
+        return array_values($mentions);
     }
 
 }

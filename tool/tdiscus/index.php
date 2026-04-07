@@ -70,6 +70,8 @@ $settingsDialog->checkbox('grade',__('Give a 100% grade for a student making a p
 $settingsDialog->checkbox('commenttop',__('Put comment box before comments in thread display.'));
 // $settingsDialog->number('lockminutes',__('Number of minutes before posts are locked.'));
 $settingsDialog->number('maxdepth',__('Allowed depth of nested comments. Default is 2. Set to 1 for no nested comments.'));
+$settingsDialog->checkbox('badge_include_participating',__('Include participating thread activity in main badge.'));
+$settingsDialog->checkbox('badge_participation_personal',__('Treat participating thread activity as personal unread.'));
 $settingsDialog->dueDate();
 $settingsDialog->end();
 

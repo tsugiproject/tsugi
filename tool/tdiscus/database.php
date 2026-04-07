@@ -174,6 +174,48 @@ array( "{$CFG->dbprefix}tdiscus_user_user",
 
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
+array( "{$CFG->dbprefix}tdiscus_user_thread_participation",
+"create table {$CFG->dbprefix}tdiscus_user_thread_participation (
+    thread_id       INTEGER NOT NULL,
+    user_id         INTEGER NOT NULL,
+    last_posted_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}tdiscus_user_thread_participation_u1`
+        UNIQUE (`thread_id`, `user_id`),
+
+    CONSTRAINT `{$CFG->dbprefix}tdiscus_user_thread_participation_ibfk_1`
+        FOREIGN KEY (`thread_id`)
+        REFERENCES `{$CFG->dbprefix}tdiscus_thread` (`thread_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}tdiscus_user_thread_participation_ibfk_2`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}tdiscus_mention",
+"create table {$CFG->dbprefix}tdiscus_mention (
+    post_id              INTEGER NOT NULL,
+    mentioned_user_id    INTEGER NOT NULL,
+    created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}tdiscus_mention_u1`
+        UNIQUE (`post_id`, `mentioned_user_id`),
+
+    CONSTRAINT `{$CFG->dbprefix}tdiscus_mention_ibfk_1`
+        FOREIGN KEY (`post_id`)
+        REFERENCES `{$CFG->dbprefix}tdiscus_comment` (`comment_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}tdiscus_mention_ibfk_2`
+        FOREIGN KEY (`mentioned_user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
 
 /*
 https://stackoverflow.com/questions/192220/what-is-the-most-efficient-elegant-way-to-parse-a-flat-table-into-a-tree/192462#192462
@@ -262,6 +304,24 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log("Upgrading: ".$sql);
         $q = $PDOX->queryReturnError($sql);
     }
+
+    $PDOX->queryDie("CREATE TABLE IF NOT EXISTS {$CFG->dbprefix}tdiscus_user_thread_participation (
+        thread_id       INTEGER NOT NULL,
+        user_id         INTEGER NOT NULL,
+        last_posted_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(thread_id, user_id),
+        FOREIGN KEY (thread_id) REFERENCES {$CFG->dbprefix}tdiscus_thread(thread_id) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES {$CFG->dbprefix}lti_user(user_id) ON DELETE CASCADE ON UPDATE CASCADE
+    ) ENGINE = InnoDB DEFAULT CHARSET=utf8");
+
+    $PDOX->queryDie("CREATE TABLE IF NOT EXISTS {$CFG->dbprefix}tdiscus_mention (
+        post_id              INTEGER NOT NULL,
+        mentioned_user_id    INTEGER NOT NULL,
+        created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(post_id, mentioned_user_id),
+        FOREIGN KEY (post_id) REFERENCES {$CFG->dbprefix}tdiscus_comment(comment_id) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY (mentioned_user_id) REFERENCES {$CFG->dbprefix}lti_user(user_id) ON DELETE CASCADE ON UPDATE CASCADE
+    ) ENGINE = InnoDB DEFAULT CHARSET=utf8");
 
 
     return 202012101330;
