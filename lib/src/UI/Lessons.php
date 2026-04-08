@@ -2033,6 +2033,10 @@ class Lessons {
             return;
         }
 
+        $rest_path = U::rest_path();
+        $json_endpoint = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/json');
+        $mark_read_url = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/mark-read');
+
         echo('<h1>'.__('Discussions:').' '.$this->lessons->title."</h1>\n");
 
         // TODO: Perhaps the tdiscus service will get promoted to Tsugi
@@ -2060,8 +2064,6 @@ class Lessons {
                 && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email');
 
         echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
-        $rest_path = U::rest_path();
-        $json_endpoint = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/json');
         foreach($discussions as $discussion ) {
             $resource_link_title = $discussion->title;
             $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $discussion->resource_link_id;
@@ -2085,6 +2087,12 @@ class Lessons {
             echo("</li>\n");
         }
         echo("</ul><!-- end of discussions -->\n");
+
+        if ( U::get($_SESSION, 'id') && intval(U::get($_SESSION, 'context_id', 0)) > 0 ) {
+            echo('<form method="post" action="'.htmlspecialchars($mark_read_url).'" class="tsugi-discussions-mark-read-form" style="margin: 1em 0 0;">');
+            echo('<button type="submit" class="btn btn-default btn-sm">'.htmlentities(__('Mark all as read')).'</button>');
+            echo('</form>'."\n");
+        }
 ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {

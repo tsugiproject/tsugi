@@ -19,6 +19,7 @@ class Discussions {
         $app->router->get($prefix, 'Discussions@get');
         $app->router->get($prefix.'/', 'Discussions@get');
         $app->router->get($prefix.'/json', 'Discussions@json');
+        $app->router->post($prefix.'/mark-read', 'Discussions@markRead');
         $app->router->get($prefix.'_launch/{anchor}', function(Request $request, $anchor = null) use ($app) {
             return Discussions::launch($app, $anchor);
         });
@@ -207,6 +208,57 @@ class Discussions {
                 'include_participation_as_personal' => $include_participation_as_personal ? 1 : 0,
             ),
         ));
+    }
+
+    /**
+     * Mark every discussion thread in the current course context as read for the logged-in user.
+     * Aligns tdiscus_user_thread.comments with each thread and sets read_at (same idea as Threads::threadMarkAsReadForUserDao).
+     */
+    public function markRead(Request $request)
+    {
+        global $CFG, $PDOX;
+
+        $discussions_url = (isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot) . self::ROUTE;
+
+        if ( ! U::get($_SESSION, 'id') || ! U::get($_SESSION, 'context_id') ) {
+            U::flashError(__('You must be logged in with a course context to mark discussions as read.'));
+            return new RedirectResponse(U::addSession($discussions_url));
+        }
+
+        if ( ! U::isNotEmpty($CFG->tdiscus) || ! $CFG->tdiscus ) {
+            U::flashError(__('Discussions are not available on this site.'));
+            return new RedirectResponse(U::addSession($discussions_url));
+        }
+
+        LTIX::getConnection();
+
+        $context_id = intval($_SESSION['context_id']);
+        $user_id = intval($_SESSION['id']);
+
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}tdiscus_user_thread UT
+            JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = UT.thread_id
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            SET UT.read_at = NOW(), UT.comments = T.comments
+            WHERE L.context_id = :CID AND UT.user_id = :UID",
+            array(':CID' => $context_id, ':UID' => $user_id)
+        );
+
+        $PDOX->queryDie(
+            "INSERT INTO {$CFG->dbprefix}tdiscus_user_thread (thread_id, user_id, comments, read_at)
+            SELECT T.thread_id, :UID, T.comments, NOW()
+            FROM {$CFG->dbprefix}tdiscus_thread T
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            WHERE L.context_id = :CID
+              AND NOT EXISTS (
+                SELECT 1 FROM {$CFG->dbprefix}tdiscus_user_thread UT
+                WHERE UT.thread_id = T.thread_id AND UT.user_id = :UID2
+              )",
+            array(':UID' => $user_id, ':CID' => $context_id, ':UID2' => $user_id)
+        );
+
+        U::flashSuccess(__('All discussions in this course have been marked as read.'));
+        return new RedirectResponse(U::addSession($discussions_url));
     }
 
     private function rollupsForLink($link_id, $user_id, $has_mentions, $has_participation, $include_participation_as_personal)

@@ -85,6 +85,15 @@ class DiscussionsControllerTest extends \PHPUnit\Framework\TestCase
             }
         }
         $this->assertTrue($hasLaunchRoute, 'Should register /discussions_launch route');
+
+        $hasMarkReadRoute = false;
+        foreach ($uris as $uri) {
+            if (strpos($uri, '/discussions/mark-read') !== false) {
+                $hasMarkReadRoute = true;
+                break;
+            }
+        }
+        $this->assertTrue($hasMarkReadRoute, 'Should register POST /discussions/mark-read route');
     }
     
     /**
