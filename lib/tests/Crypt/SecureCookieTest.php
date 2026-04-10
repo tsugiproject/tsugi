@@ -3,6 +3,8 @@
 use \Tsugi\Crypt\SecureCookie;
 
 require_once('src/Crypt/AesOpenSSL.php');
+require_once('src/Crypt/Aes.php');
+require_once('src/Crypt/AesCtr.php');
 require_once('src/Crypt/SecureCookie.php');
 require_once "src/Config/ConfigInfo.php";
 
@@ -36,6 +38,28 @@ class SecureCookieTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($pieces[0], $id);
         $this->assertEquals($pieces[1], $guid);
         $this->assertEquals($pieces[2], $cid);
+    }
+
+    public function testSecureCookieOptions() {
+        $expires = time() + 1000;
+        $options = SecureCookie::cookieOptions($expires);
+
+        $this->assertEquals($expires, $options['expires']);
+        $this->assertEquals('/', $options['path']);
+        $this->assertTrue($options['secure']);
+        $this->assertTrue($options['httponly']);
+        $this->assertEquals('None', $options['samesite']);
+    }
+
+    public function testSecureCookieRejectsLegacyCiphertext() {
+        global $CFG;
+        $CFG = new \Tsugi\Config\ConfigInfo(basename(__FILE__),'http://localhost');
+        $CFG->cookiepad = 'Helloworld';
+        $CFG->cookiesecret = '0123456789abcdef0123456789abcdef';
+
+        $legacy = \Tsugi\Crypt\AesCtr::legacyEncrypt('Helloworld::1::xyzzy::999', $CFG->cookiesecret, 256);
+        $pieces = SecureCookie::extract($legacy, false);
+        $this->assertFalse($pieces);
     }
 
 }

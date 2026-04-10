@@ -16,10 +16,7 @@ class SecureCookie {
 
     public static function decrypt($cipher) {
         global $CFG;
-        // TODO: Use AesOpenSSL after time passes from March 1, 2022
-        // $plain = \Tsugi\Crypt\AesOpenSSL::decrypt($cipher, $CFG->cookiesecret) ;
-        $plain = \Tsugi\Crypt\AesCtr::decrypt($cipher, $CFG->cookiesecret, 256) ;
-        return $plain;
+        return \Tsugi\Crypt\AesOpenSSL::decrypt($cipher, $CFG->cookiesecret);
     }
 
     public static function create($id,$guid,$context_id,$debug=false) {
@@ -33,6 +30,7 @@ class SecureCookie {
     public static function extract($encr,$debug=false) {
         global $CFG;
         $pt = self::decrypt($encr);
+        if ( ! is_string($pt) ) return false;
         if ( $debug ) echo("PT2: $pt\n");
         $pieces = explode('::',$pt);
         if ( count($pieces) != 4 ) return false;
@@ -40,11 +38,21 @@ class SecureCookie {
         return Array($pieces[1], $pieces[2], $pieces[3]);
     }
 
+    public static function cookieOptions($expires) {
+        return array(
+            'expires' => $expires,
+            'path' => '/',
+            'secure' => true,
+            'httponly' => true,
+            'samesite' => 'None',
+        );
+    }
+
     // We also session_unset - because something is not right
     // See: http://php.net/manual/en/function.setcookie.php
     public static function delete() {
         global $CFG;
-        setcookie($CFG->cookiename,'',time() - 100, '/'); // Expire 100 seconds ago
+        setcookie($CFG->cookiename, '', self::cookieOptions(time() - 100)); // Expire 100 seconds ago
         session_unset();
     }
 
@@ -52,6 +60,6 @@ class SecureCookie {
     public static function set($user_id, $userEmail, $context_id) {
         global $CFG;
         $ct = self::create($user_id,$userEmail, $context_id);
-        setcookie($CFG->cookiename,$ct,time() + (86400 * 45), '/'); // 86400 = 1 day
+        setcookie($CFG->cookiename, $ct, self::cookieOptions(time() + (86400 * 45))); // 86400 = 1 day
     }
 }
