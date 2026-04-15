@@ -101,6 +101,29 @@ class LTI {
         }
     }
 
+    /**
+     * Normalize string values before OAuth signing for HTML form POST launches.
+     *
+     * Newlines and mixed line endings (CR/LF/CRLF) in parameter values often do not survive
+     * HTML hidden-field encoding and browser application/x-www-form-urlencoded submission
+     * the same way PHP represented them when signing, which breaks signature verification.
+     * Collapse whitespace so the signed string matches what POST delivers.
+     *
+     * @param array $parms
+     * @return array
+     */
+    private static function normalizeOAuthParameterValuesForSigning($parms) {
+        if ( ! is_array($parms) ) {
+            return $parms;
+        }
+        foreach ( $parms as $k => $v ) {
+            if ( is_string($v) ) {
+                $parms[$k] = trim(preg_replace('/\s+/u', ' ', $v));
+            }
+        }
+        return $parms;
+    }
+
     public static function signParameters($oldparms, $endpoint, $method, $oauth_consumer_key, $oauth_consumer_secret,
         $submit_text = false, $org_id = false, $org_desc = false)
     {
@@ -115,6 +138,8 @@ class LTI {
         if ( ! isset($parms["ext_lti_element_id"]) ) {
             $parms["ext_lti_element_id"] = "tsugi_element_id_".bin2Hex(openssl_random_pseudo_bytes(4));
         }
+
+        $parms = self::normalizeOAuthParameterValuesForSigning($parms);
 
         $test_token = '';
 

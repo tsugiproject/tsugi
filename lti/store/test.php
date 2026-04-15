@@ -278,6 +278,14 @@ if ( $fa_icon !== false ) {
         <div class="tab-pane fade active in" id="test" role="tabpanel" aria-labelledby="test-tab">
             <?php
             $parms = $lmsdata;
+            // Use the registered tool title/description as the fake LMS resource link (overrides dev-data placeholders).
+            if ( isset($tool['name']) && U::strlen(trim($tool['name'])) > 0 ) {
+                $parms['resource_link_title'] = $tool['name'];
+            }
+            if ( array_key_exists('description', $tool) ) {
+                $parms['resource_link_description'] = $tool['description'];
+            }
+
             // Cleanup parms before we sign
             foreach( $parms as $k => $val ) {
                 if (U::strlen(trim($parms[$k]) ) < 1 ) {
@@ -291,12 +299,12 @@ if ( $fa_icon !== false ) {
 
 // Add oauth_callback to be compliant with the 1.0A spec
 $parms["oauth_callback"] = "about:blank";
-if ( ! isset($parms['context_id']) ) {
-    $parms['context_id'] = md5($endpoint . ':context');
+// Shared fake course context for all Store test launches (same as dev-data; not per-tool).
+if ( ! isset($parms['context_id']) || U::strlen(trim((string) $parms['context_id'])) < 1 ) {
+    $parms['context_id'] = '456434513';
 }
-if ( ! isset($parms['resource_link_id']) ) {
-    $parms['resource_link_id'] = md5($endpoint);
-}
+// Numeric resource_link_id per tool (dev-data used a single shared id; hex md5 is awkward in UIs).
+$parms['resource_link_id'] = (string) sprintf('%u', crc32($endpoint));
 if ( ! isset($parms['resource_link_title']) ) {
     $parms['resource_link_title'] = $install;
 }
