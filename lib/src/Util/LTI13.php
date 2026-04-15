@@ -476,9 +476,9 @@ class LTI13 {
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        if ( is_array($debug_log) ) $debug_log[] = "Scores Url: ".$actual_url;
-        if ( is_array($debug_log) ) $debug_log[] = $headers;
-        if ( is_array($debug_log) ) $debug_log[] = $grade_call;
+        if ( is_array($debug_log) ) $debug_log[] = "POST to Scores Url: ".$actual_url;
+        if ( is_array($debug_log) ) $debug_log[] = json_encode($headers, JSON_PRETTY_PRINT);
+        if ( is_array($debug_log) ) $debug_log[] = json_encode($grade_call, JSON_PRETTY_PRINT);
 
         self::setUserAgentCurl($ch); // Set the User-Agent header
 
@@ -535,7 +535,7 @@ class LTI13 {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
             if ( is_array($debug_log) ) $debug_log[] = $membership_url;
-            if ( is_array($debug_log) ) $debug_log[] = $headers;
+            if ( is_array($debug_log) ) $debug_log[] = json_encode($headers, JSON_PRETTY_PRINT);
 
             self::setUserAgentCurl($ch); // Set the User-Agent header
 
@@ -636,7 +636,7 @@ class LTI13 {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
             if ( is_array($debug_log) ) $debug_log[] = $context_groups_url;
-            if ( is_array($debug_log) ) $debug_log[] = $headers;
+            if ( is_array($debug_log) ) $debug_log[] = json_encode($headers, JSON_PRETTY_PRINT);
 
             self::setUserAgentCurl($ch); // Set the User-Agent header
 
@@ -726,8 +726,8 @@ class LTI13 {
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        if (is_array($debug_log) ) $debug_log[] = 'Line Items URL: '.$lineitems_url;
-        if (is_array($debug_log) ) $debug_log[] = $headers;
+        if (is_array($debug_log) ) $debug_log[] = 'GET Line Items URL: '.$lineitems_url;
+        if (is_array($debug_log) ) $debug_log[] = json_encode($headers, JSON_PRETTY_PRINT);
 
         self::setUserAgentCurl($ch); // Set the User-Agent header
 
@@ -780,7 +780,7 @@ class LTI13 {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         if (is_array($debug_log) ) $debug_log[] = 'Line Items URL: '.$lineitem_url;
-        if (is_array($debug_log) ) $debug_log[] = $headers;
+        if (is_array($debug_log) ) $debug_log[] = json_encode($headers, JSON_PRETTY_PRINT);
 
         self::setUserAgentCurl($ch); // Set the User-Agent header
 
@@ -838,7 +838,7 @@ class LTI13 {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         if (is_array($debug_log) ) $debug_log[] = 'Line Items URL: '.$actual_url;
-        if (is_array($debug_log) ) $debug_log[] = $headers;
+        if (is_array($debug_log) ) $debug_log[] = json_encode($headers, JSON_PRETTY_PRINT);
 
         self::setUserAgentCurl($ch); // Set the User-Agent header
 
@@ -900,7 +900,7 @@ class LTI13 {
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
 
         if (is_array($debug_log) ) $debug_log[] = 'Line Item URL: '.$lineitem_url;
-        if (is_array($debug_log) ) $debug_log[] = $headers;
+        if (is_array($debug_log) ) $debug_log[] = json_encode($headers, JSON_PRETTY_PRINT);
 
         self::setUserAgentCurl($ch); // Set the User-Agent header
 
@@ -972,8 +972,9 @@ class LTI13 {
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        if (is_array($debug_log) ) $debug_log[] = 'Line Items URL: '.$lineitems_url;
-        if (is_array($debug_log) ) $debug_log[] = $headers;
+        if (is_array($debug_log) ) $debug_log[] = 'POST Line Items URL: '.$lineitems_url;
+        if (is_array($debug_log) ) $debug_log[] = json_encode($headers, JSON_PRETTY_PRINT);
+        if ( is_array($debug_log) ) $debug_log[] = json_encode($line_item, JSON_PRETTY_PRINT);
 
         self::setUserAgentCurl($ch); // Set the User-Agent header
 
@@ -1041,8 +1042,9 @@ class LTI13 {
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        if (is_array($debug_log) ) $debug_log[] = 'Line Item URL: '.$lineitem_url;
-        if (is_array($debug_log) ) $debug_log[] = $headers;
+        if (is_array($debug_log) ) $debug_log[] = 'PUT to Line Item URL: '.$lineitem_url;
+        if (is_array($debug_log) ) $debug_log[] = json_encode($headers, JSON_PRETTY_PRINT);
+        if (is_array($debug_log) ) $debug_log[] = json_encode($lineitem, JSON_PRETTY_PRINT);
 
         self::setUserAgentCurl($ch); // Set the User-Agent header
 
