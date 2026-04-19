@@ -255,10 +255,19 @@ if ( ! isset($registrations[$install])) {
 <?php
 $parms = $lmsdata;
 // Use the registered tool title/description as the fake LMS resource link (overrides dev-data placeholders).
-if ( isset($tool['name']) && U::strlen(trim($tool['name'])) > 0 ) {
+// In developer mode, do not replace values already set via query-string overrides (see $override_map above).
+$qaExplicitLinkTitle = $CFG->DEVELOPER && (
+    (isset($_GET['resource_link_title']) && U::strlen(trim((string) $_GET['resource_link_title'])) > 0) ||
+    (isset($_GET['link_title']) && U::strlen(trim((string) $_GET['link_title'])) > 0)
+);
+$qaExplicitLinkDesc = $CFG->DEVELOPER && (
+    (isset($_GET['resource_link_description']) && U::strlen(trim((string) $_GET['resource_link_description'])) > 0) ||
+    (isset($_GET['link_description']) && U::strlen(trim((string) $_GET['link_description'])) > 0)
+);
+if ( isset($tool['name']) && U::strlen(trim($tool['name'])) > 0 && ! $qaExplicitLinkTitle ) {
     $parms['resource_link_title'] = $tool['name'];
 }
-if ( array_key_exists('description', $tool) ) {
+if ( array_key_exists('description', $tool) && ! $qaExplicitLinkDesc ) {
     $parms['resource_link_description'] = $tool['description'];
 }
 

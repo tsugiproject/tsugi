@@ -8,12 +8,21 @@ use Facebook\WebDriver\Exception\StaleElementReferenceException;
 
 final class ToolLaunchTest extends TsugiPantherTestCase
 {
+    /**
+     * Normalize iframe HTML for assertions. WebDriver page source often HTML-entity-encodes
+     * text (e.g. " → &quot;, > → &gt;), which breaks regexes written for raw var_dump output.
+     */
+    private function normalizedToolHtml(string $source): string
+    {
+        return html_entity_decode($source, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
     private function instructorRolePattern(bool $expected): string
     {
-        if ($expected) {
-            return '/(?:\\["instructor"\\]|&quot;instructor&quot;|instructor)[^\\n<]{0,120}(?:bool\\(true\\)|=>\\s*1\\b|:\\s*true\\b)/i';
-        }
-        return '/(?:\\["instructor"\\]|&quot;instructor&quot;|instructor)[^\\n<]{0,120}(?:bool\\(false\\)|=>\\s*0\\b|:\\s*false\\b)/i';
+        // Grade sample tool uses var_dump($USER). PHP puts bool(true|false) on the line after
+        // ["instructor"]=>; match after normalizedToolHtml() so &quot;/&gt; from DOM serialization still match.
+        $bool = $expected ? 'true' : 'false';
+        return '/\\[\\s*"instructor"\\s*\\]\\s*=>\s*bool\\(' . $bool . '\\)/i';
     }
 
     private function findLaunchFrame(\Symfony\Component\Panther\Client $client): ?WebDriverElement
@@ -52,6 +61,8 @@ final class ToolLaunchTest extends TsugiPantherTestCase
 
         $driver = $client->getWebDriver();
         $deadline = microtime(true) + 15;
+        $lastSource = '';
+        $lastNormalized = '';
         do {
             $frame = $this->findLaunchFrame($client);
             if ($frame === null) {
@@ -63,17 +74,20 @@ final class ToolLaunchTest extends TsugiPantherTestCase
                 $source = $driver->getPageSource();
                 $driver->switchTo()->defaultContent();
 
-                if (!str_contains($source, $expectedText)) {
+                $lastSource = $source;
+                $lastNormalized = $this->normalizedToolHtml($source);
+
+                if (!str_contains($lastNormalized, $expectedText)) {
                     usleep(200000);
                     continue;
                 }
-                if ($rolePattern !== null && !preg_match($rolePattern, $source)) {
+                if ($rolePattern !== null && !preg_match($rolePattern, $lastNormalized)) {
                     usleep(200000);
                     continue;
                 }
                 $missingSnippet = false;
                 foreach ($expectedSnippets as $snippet) {
-                    if (!str_contains($source, $snippet)) {
+                    if (!str_contains($lastNormalized, $snippet)) {
                         $missingSnippet = true;
                         break;
                     }
@@ -92,12 +106,26 @@ final class ToolLaunchTest extends TsugiPantherTestCase
         } while (microtime(true) < $deadline);
 
         if ($rolePattern !== null) {
-            $this->fail("Expected tool content to match role pattern {$rolePattern}.");
+            $hint = $this->roleAssertionDebugHint($lastNormalized !== '' ? $lastNormalized : $lastSource);
+            $this->fail("Expected tool content to match role pattern {$rolePattern}.{$hint}");
         }
         if ($expectedSnippets !== []) {
             $this->fail('Expected tool content to include all required snippets.');
         }
         $this->fail("Expected tool content to contain '{$expectedText}'.");
+    }
+
+    private function roleAssertionDebugHint(string $normalizedOrRaw): string
+    {
+        if ($normalizedOrRaw === '') {
+            return ' (iframe had no captured source after waiting; check launch / iframe selector.)';
+        }
+        $pos = stripos($normalizedOrRaw, 'Global Tsugi Objects');
+        $slice = $pos !== false
+            ? substr($normalizedOrRaw, $pos, 3500)
+            : substr($normalizedOrRaw, 0, 3500);
+        $slice = preg_replace('/\s+/u', ' ', $slice) ?? $slice;
+        return "\n\nDecoded iframe excerpt (whitespace collapsed):\n" . $slice;
     }
 
     public function testGradeToolLaunches(): void
