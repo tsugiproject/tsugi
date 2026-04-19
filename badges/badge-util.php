@@ -3,24 +3,6 @@
 use \Tsugi\Crypt\AesCtr;
 use \Tsugi\Core\User;
 
-
-if ( ! function_exists('hex2bin')) {
-function hex2bin($hexString)
-{
-    $hexLength = strlen($hexString);
-    // only hex numbers is allowed
-    if ($hexLength % 2 != 0 || preg_match("/[^\da-fA-F]/",$hexString)) return FALSE;
-    unset($binString);
-    $binString = "";
-    for ($x = 1; $x <= $hexLength/2; $x++)
-    {
-     $binString .= chr(hexdec(substr($hexString,2 * $x - 2,2)));
-    }
-    return $binString;
-}
-
-}
-
 /**
  * Check if badge configuration is properly set up
  * Returns an error message string if configuration is missing, or false if OK

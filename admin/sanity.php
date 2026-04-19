@@ -8,14 +8,9 @@ if ( ! isset($CFG) ) {
     tsugi/config.php and edit config.php according to the installation instructions.');
 }
 
-if (!defined('PHP_VERSION_ID')) {
-    $version = explode('.', PHP_VERSION);
-
-    define('PHP_VERSION_ID', ((int) $version[0] * 10000 + (int) $version[1] * 100 + (int) $version[2]));
-}
-
-if ( PHP_VERSION_ID < 50300 ) {
-    die_with_error_log("This software requires PHP 5.3.0 or later");
+$min_php = defined('TSUGI_MINIMUM_PHP') ? TSUGI_MINIMUM_PHP : '8.4';
+if ( version_compare(PHP_VERSION, $min_php, '<') ) {
+    die_with_error_log("This software requires PHP {$min_php} or later (found ".PHP_VERSION.")");
 }
 
 if ( strpos(__FILE__,' ') !== false ) {

@@ -20,9 +20,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ( $method == "PUT" || $method == "DELETE" ) {
     // All good
 } else {
-    if (function_exists('http_response_code')) {
-        http_response_code(400);
-    }
+    http_response_code(400);
     error_log("Method not allowed in commit: $method");
     die("Transaction not found");
 }
@@ -35,9 +33,7 @@ $row = $PDOX->rowDie(
 );
 
 if ( $row == false ) {
-    if (function_exists('http_response_code')) {
-        http_response_code(404);
-    }
+    http_response_code(404);
     error_log("Transaction $commit not found $oauth_consumer_key");
     die("Transaction not found");
 }
@@ -45,9 +41,7 @@ if ( $row == false ) {
 error_log('LTIX::curPageUrl()='.LTIX::curPageUrl());
 $retval = LTI::verifyKeyAndSecret($oauth_consumer_key, $row['secret'],LTIX::curPageUrl());
 if ( $retval !== true ) {
-    if (function_exists('http_response_code')) {
-        http_response_code(404);
-    }
+    http_response_code(404);
     error_log("LTI Failure:".$retval[0]."\n".$retval[1]);
     die("LTI Failure:".$retval[0]."\n".$retval[1]);
 }

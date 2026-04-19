@@ -1116,12 +1116,6 @@ EOF;
      */
     public static function doRedirect($location) {
         if ( headers_sent() ) {
-            // Fixed in 7.1.9
-            // https://www.php.net/ChangeLog-7.php#7.1.9
-            // https://bugs.php.net/bug.php?id=74892
-            if ( version_compare(PHP_VERSION, '7.1.9') < 0 ) {
-                $location = U::addSession($location);
-            }
             echo('<a href="'.$location.'">Continue</a>'."\n");
         } else {
             if ( ini_get('session.use_cookies') == 0 ) {

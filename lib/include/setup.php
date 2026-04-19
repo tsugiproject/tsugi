@@ -12,14 +12,6 @@ require_once __DIR__ . '/tsugi_constants.php';
 // all database.php files.
 $CFG->dbversion = 202512130002;
 
-// Just turn this off to avoid security holes due to XML parsing
-if ( function_exists ( 'libxml_disable_entity_loader' ) && version_compare(PHP_VERSION, '8.0.0') < 0 ) libxml_disable_entity_loader();
-
-// Only exists in PHP 5 >= 5.5.0
-if ( ! function_exists ( 'json_last_error_msg' ) ) {
-    function json_last_error_msg() { return ""; }
-}
-
 function die_with_error_log($msg, $extra=false, $prefix="DIE:") {
     error_log($prefix.' '.$msg.' '.$extra);
     print_stack_trace();
@@ -151,17 +143,6 @@ function add_url_parm($url, $key, $val) {
 if (!function_exists('apache_request_headers')) {
     function apache_request_headers() {
         return U::apache_request_headers();
-    }
-}
-
-// http://stackoverflow.com/questions/3258634/php-how-to-send-http-response-code
-// Backwards compatibility http_response_code
-// For 4.3.0 <= PHP <= 5.4.0
-if (!function_exists('http_response_code'))
-{
-    function http_response_code($newcode = NULL)
-    {
-        return U::http_response_code($newcode);
     }
 }
 
