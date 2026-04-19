@@ -11,6 +11,11 @@ jobs:
       TSUGI_BASE_URL: http://localhost:8888/tsugi
       TSUGI_ADMIN_PW: tsugi-admin
       PANTHER_NO_SANDBOX: "1"
+      TSUGI_PDO: mysql:host=tsugi_db;dbname=tsugi
+      TSUGI_DB_USER: ltiuser
+      TSUGI_DB_PASS: ltipassword
+      TSUGI_WWWROOT: http://localhost:8888/tsugi
+      TSUGI_APPHOME: http://localhost:8888
 
     steps:
       - name: Checkout

@@ -4,13 +4,12 @@ shopt -s nocaseglob
 
 cd tsugi
 
-# Setup the config file
+# Setup the config file if missing (normally provided by the image + bind mount over config.php)
 if [ ! -f config.php ]; then
-	echo "Setting up config.php file"
-	cp config-dist.php config.php
-	# Update the database to point to the container
-	sed -i 's/127\.0\.0\.1/tsugi_db/g' config.php
+	echo "Setting up config.php from docker/tsugi-docker-config.php"
+	cp docker/tsugi-docker-config.php config.php
 fi
+# PDO and URLs are supplied via TSUGI_* in docker-compose.yml (see docker/tsugi-docker-config.php).
 
 echo "Waiting for DB"
 while ! nc -z tsugi_db 3306; do   

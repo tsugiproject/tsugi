@@ -1,104 +1,39 @@
 <?php
-// Configuration file - copy from config-dist.php to config.php
-// and then edit.  Since config.php has passwords and other secrets
-// never check config.php into a source repository
+/**
+ * Docker-only Tsugi configuration (mounted as tsugi/config.php by docker-compose.yml).
+ * Fully self-contained — does not load config-dist.php. For normal installs, copy
+ * config-dist.php to config.php and edit.
+ *
+ * TSUGI_* environment variables: see docker-compose.yml and qa/local-panther.sh
+ */
 
 use \Tsugi\Util\U;
 
-// uncomment for 500 error debugging during early install steps
-/*
-function __the_end(){
-    if(($err=error_get_last()))
-        die('<pre>'.print_r($err,true).'</pre>');
-}
-register_shutdown_function('__the_end');
-*/
-
-// If this file is symbolically linked you'll need to manually define the absolute path,
-// otherwise this will resolve incorrectly.
-
 $dirroot = realpath(dirname(__FILE__));
 
-// New for 2021 - We may need to do some tweaking before the autoloader wakes up
-// So we need to add this require to config.php before requiring autoload.php
-
-// Prior to 21-Jan-2026, this was:
-// require_once $dirroot."/vendor/tsugi/lib/include/pre_config.php";
 require_once $dirroot."/lib/include/pre_config.php";
-
-// Activate the autoloader...
 $loader = require_once($dirroot."/vendor/autoload.php");
 
-// If we just are using Tsugi but not part of another site
-$apphome = false;
-// $apphome = "https://www.tsugicloud.org";
-// $apphome = "http://localhost:8888/tsugi-org";
-
-// Set the path to the Tsugi folder without a trailing slash
-if ( $apphome ) {
-    $wwwroot = $apphome . '/tsugi';
-} else if ( U::get($_SERVER,'SERVER_PORT') == 8888 ) {
-    $wwwroot = 'http://localhost:8888/tsugi'; // Mac XAMP
-} else {
-    $wwwroot = "http://localhost/tsugi";
+$wwwroot = getenv('TSUGI_WWWROOT');
+if ( $wwwroot === false || $wwwroot === '' ) {
+    $wwwroot = 'http://localhost:8888/tsugi';
 }
-// Once you are on a real server delete the above if statement
-// and set the wwwroot directly.  This must be the actual URL used
-// on the Internet for LTI signatures to compute correctly
-// $wwwroot = "https://www.tsugicloud.org/tsugi";
-// $wwwroot = "https://fb610139.ngrok.io/tsugi";  // To test with ngrok
 
-// We store the configuration in a global object
-// Additional documentation on these fields is
-// available in that class or in the PHPDoc for that class
 unset($CFG);
 global $CFG;
 $CFG = new \Tsugi\Config\ConfigInfo($dirroot, $wwwroot);
 unset($wwwroot);
 unset($dirroot);
 $CFG->loader = $loader;
-$embedded_layout = (bool) $apphome;
-if ( $apphome ) {
-    $CFG->apphome = $apphome; // Embedded Tsugi
+
+$tsugi_apphome = getenv('TSUGI_APPHOME');
+if ( $tsugi_apphome !== false && $tsugi_apphome !== '' ) {
+    $CFG->apphome = $tsugi_apphome;
 }
-unset($apphome);
 
-// If we have a web socket server, put its URL here
-// Do not add a path here - just the host and port
-// Make sure the port is open on your server
-// $CFG->websocket_secret = 'changeme';
-// $CFG->websocket_url = 'ws://localhost:2021'; // Local dev test
-// $CFG->websocket_url = 'wss://socket.tsugicloud.org:443'; // Production
-
-// If you are running a reverse proxy (proxy_wstunnel) set this to the port
-// you will forward to in your apache config
-// $CFG->websocket_proxyport = 8080;
-
-// If the web server is NOT behind a reverse proxy, you may optionally wish
-// to ignore forwarded IP headers such as x-forwarded-for and variations by
-// setting this to false. This will help to preserve authenticity of IPs by
-// only trusting IP addresses directly seen by the server.
-//
-// Never set this to false if you ARE behind a reverse proxy, otherwise all
-// requests will appear to originate from the same IP address (the proxy).
-//
-// If behind a reverse proxy, set to `true`:
-//     $CFG->trust_forwarded_ip = true; // (default)
-//
-// If not using a reverse proxy, set to `false`:
-//     $CFG->trust_forwarded_ip = false;
-
-// Database connection information to configure the PDO connection
-// You need to point this at a database with an account and password
-// that can create tables.   To make the initial tables go into Admin
-// to run the upgrade.php script which auto-creates the tables.
-$CFG->pdo       = getenv('TSUGI_PDO') ?: 'mysql:host=127.0.0.1;dbname=tsugi';
-// $CFG->pdo       = getenv('TSUGI_PDO') ?: 'mysql:host=127.0.0.1;port=8889;dbname=tsugi'; // MAMP
+$CFG->pdo       = getenv('TSUGI_PDO') ?: 'mysql:host=tsugi_db;dbname=tsugi';
 $CFG->dbuser    = getenv('TSUGI_DB_USER') ?: 'ltiuser';
 $CFG->dbpass    = getenv('TSUGI_DB_PASS') ?: 'ltipassword';
-
-// Sometimes the PDO constructor call needs additional parameters
-// $CFG->pdo_options = array(\PDO::MYSQL_ATTR_SSL_CA => './BaltimoreCyberTrustRoot.crt.pem'))
 $CFG->pdo_options  = false;
 
 // These URLs are used in your app store, they are optional but
@@ -108,6 +43,7 @@ $CFG->pdo_options  = false;
 // so you might as well make them now :)
 // $CFG->privacy_url = 'https://www.tsugicloud.org/services/policies/privacy';
 // $CFG->sla_url = 'https://www.tsugicloud.org/services/policies/service-level-agreement';
+
 // Tools to hide in the store for non-admin users.  Each tool sets their status
 // in their register.php with a line like:
 //     "tool_phase" => "sample",
@@ -172,23 +108,11 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 
 // YouTube playlist ID - when set, added to watch URLs so the full playlist appears
 // $CFG->youtube_playlist = 'PLlRFEj9h3CjHjgV3xeKMJGj7HHoQhCQZ';
-// This allows you to include various tool folders.  These are scanned
-// for register.php, database.php and index.php files to do automatic
-// table creation as well as making lists of tools in various UI places
-// such as ContentItem.
-//
-// 1) Standalone Tsugi (default): admin/, mod/, and tool/ under this checkout.
-// 2) Embedded Tsugi: set $apphome near the top of this file; then $embedded_layout is true
-//    and we use ../tools and ../mod (sibling folders next to this tsugi/ tree).
-//
-// To add more roots (e.g. samples), extend $CFG->tool_folders after the embedded block.
+
+// Docker / Panther QA: standalone layout — tools under this checkout (e.g. mod/ from qa-bootstrap).
 $CFG->tool_folders = array("admin", "mod", "tool");
 $CFG->install_folder = $CFG->dirroot.'/mod';
 
-if ( $embedded_layout ) {
-    $CFG->tool_folders = array("admin", "../tools", "../mod", "tool");
-    $CFG->install_folder = $CFG->dirroot.'/../mod';
-}
 // Set to true to redirect to the upgrading.php script
 // Also copy upgrading-dist.php to upgrading.php and add your message
 $CFG->upgrading = false;

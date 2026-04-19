@@ -16,6 +16,8 @@ config.php
 upgrading.php
 qa/config.php.backup
 qa/.phpunit.result.cache
+# Panther / local-panther.sh (PNG screenshots on failure or captureScreenshot)
+/qa/screenshots/
 /.docker_data/
 /drivers/
 error_log

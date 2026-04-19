@@ -23,10 +23,17 @@ services:
       TSUGI_PDO: ${TSUGI_PDO:-}
       TSUGI_DB_USER: ${TSUGI_DB_USER:-}
       TSUGI_DB_PASS: ${TSUGI_DB_PASS:-}
+      TSUGI_WWWROOT: ${TSUGI_WWWROOT:-}
+      TSUGI_APPHOME: ${TSUGI_APPHOME:-}
     volumes:
+      # Bind-mount the tree for dev; overlay config.php with a stub that requires
+      # config-dist.php (avoids host secrets/MAMP settings). File bind mounts work
+      # reliably across Docker Desktop platforms; anonymous volumes on a single file do not.
       - .:/var/www/html/tsugi:delegated
+      - ./docker/tsugi-docker-config.php:/var/www/html/tsugi/config.php:ro
     ports:
-      - "8888:80"
+      # Host port (CI and docs default to 8888). Override locally, e.g. TSUGI_HOST_PORT=8000, to avoid MAMP.
+      - "${TSUGI_HOST_PORT:-8888}:80"
     command: bash -c "./tsugi/docker-compose-init.sh"
     stdin_open: true
     tty: true

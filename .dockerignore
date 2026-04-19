@@ -1,0 +1,6 @@
+# Never bake a developer's config.php (secrets, MAMP hosts) into the image.
+# The running container uses config produced from config-dist.php (see Dockerfile).
+config.php
+
+# Local DB data and large artifacts (optional speed-up for docker build)
+.docker_data
