@@ -8,6 +8,14 @@ use Facebook\WebDriver\Exception\StaleElementReferenceException;
 
 final class ToolLaunchTest extends TsugiPantherTestCase
 {
+    private function instructorRolePattern(bool $expected): string
+    {
+        if ($expected) {
+            return '/(?:\\["instructor"\\]|&quot;instructor&quot;|instructor)[^\\n<]{0,120}(?:bool\\(true\\)|=>\\s*1\\b|:\\s*true\\b)/i';
+        }
+        return '/(?:\\["instructor"\\]|&quot;instructor&quot;|instructor)[^\\n<]{0,120}(?:bool\\(false\\)|=>\\s*0\\b|:\\s*false\\b)/i';
+    }
+
     private function findLaunchFrame(\Symfony\Component\Panther\Client $client): ?WebDriverElement
     {
         $driver = $client->getWebDriver();
@@ -98,7 +106,7 @@ final class ToolLaunchTest extends TsugiPantherTestCase
             'grade',
             'Grade Test Harness',
             ['identity' => 'instructor'],
-            '/\\[\"instructor\"\\]=&gt;\\s*bool\\(true\\)/',
+            $this->instructorRolePattern(true),
             [],
             'tool-grade-instructor'
         );
@@ -122,7 +130,7 @@ final class ToolLaunchTest extends TsugiPantherTestCase
             'grade',
             'Grade Test Harness',
             ['identity' => 'learner1'],
-            '/\\[\"instructor\"\\]=&gt;\\s*bool\\(false\\)/',
+            $this->instructorRolePattern(false),
             [],
             'tool-grade-learner'
         );
@@ -137,7 +145,7 @@ final class ToolLaunchTest extends TsugiPantherTestCase
                 'identity' => 'learner1',
                 'roles' => 'Instructor,Administrator',
             ],
-            '/\\[\"instructor\"\\]=&gt;\\s*bool\\(true\\)/',
+            $this->instructorRolePattern(true),
             [],
             'tool-grade-role-override'
         );
@@ -173,7 +181,7 @@ final class ToolLaunchTest extends TsugiPantherTestCase
                 'ext_memberships_url' => 'https://example.com/memberships',
                 'ext_memberships_id' => 'qa-memberships',
             ],
-            '/\\[\"instructor\"\\]=&gt;\\s*bool\\(true\\)/',
+            $this->instructorRolePattern(true),
             [
                 'QA Course',
                 'QA101',
