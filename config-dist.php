@@ -182,11 +182,12 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 //    and we use ../tools and ../mod (sibling folders next to this tsugi/ tree).
 //
 // To add more roots (e.g. samples), extend $CFG->tool_folders after the embedded block.
-$CFG->tool_folders = array("admin", "mod", "tool");
+// These are loaded in order - in the case of duplicates, last wins
+$CFG->tool_folders = array("mod", "admin", "tool");
 $CFG->install_folder = $CFG->dirroot.'/mod';
 
 if ( $embedded_layout ) {
-    $CFG->tool_folders = array("admin", "tool", "../tools", "../mod");
+    $CFG->tool_folders = array("../tools", "../mod", "admin", "tool");
     $CFG->install_folder = $CFG->dirroot.'/../mod';
 }
 // Set to true to redirect to the upgrading.php script
