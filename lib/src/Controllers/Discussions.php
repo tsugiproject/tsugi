@@ -2,7 +2,8 @@
 
 namespace Tsugi\Controllers;
 
-use Tsugi\Util\U;
+
+use \Tsugi\Util\U;
 use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
 use Tsugi\Lumen\Application;
@@ -145,14 +146,14 @@ class Discussions {
     {
         global $CFG, $PDOX;
 
-        if ( ! \isLoggedIn() || ! \currentContextId() ) {
+        if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
             return new JsonResponse(array('status' => 'error', 'detail' => 'Must be logged in with context'), 401);
         }
 
         LTIX::getConnection();
 
-        $context_id = \currentContextId();
-        $user_id = \loggedInUserId();
+        $context_id = U::currentContextId();
+        $user_id = U::loggedInUserId();
 
         $has_mentions = $this->tableExists($CFG->dbprefix.'tdiscus_mention');
         $has_participation = $this->tableExists($CFG->dbprefix.'tdiscus_user_thread_participation');
@@ -220,7 +221,7 @@ class Discussions {
 
         $discussions_url = (isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot) . self::ROUTE;
 
-        if ( ! \isLoggedIn() || ! \currentContextId() ) {
+        if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
             U::flashError(__('You must be logged in with a course context to mark discussions as read.'));
             return new RedirectResponse(U::addSession($discussions_url));
         }
@@ -232,8 +233,8 @@ class Discussions {
 
         LTIX::getConnection();
 
-        $context_id = \currentContextId();
-        $user_id = \loggedInUserId();
+        $context_id = U::currentContextId();
+        $user_id = U::loggedInUserId();
 
         $PDOX->queryDie(
             "UPDATE {$CFG->dbprefix}tdiscus_user_thread UT

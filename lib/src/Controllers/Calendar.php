@@ -2,12 +2,13 @@
 
 namespace Tsugi\Controllers;
 
+
+use \Tsugi\Util\U;
 use Tsugi\Core\LTIX;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Tsugi\Grades\GradeUtil;
-use Tsugi\Util\U;
 
 class Calendar extends Tool {
 
@@ -128,7 +129,7 @@ class Calendar extends Tool {
                 500
             );
         }
-        if ( ! \isLoggedIn() || ! \currentContextId() ) {
+        if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
             return new JsonResponse(
                 array('status' => 'error', 'detail' => 'Authentication and course context required'),
                 401
@@ -139,7 +140,7 @@ class Calendar extends Tool {
 
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $items = $l->enumerateLtiAssignmentItems();
-        $dueMap = GradeUtil::loadDueDatesForDisplay(\currentContextId());
+        $dueMap = GradeUtil::loadDueDatesForDisplay(U::currentContextId());
 
         $allgrades = array();
         $rows = GradeUtil::loadGradesCurrentUser();
@@ -189,8 +190,8 @@ class Calendar extends Tool {
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $items = $l->enumerateLtiAssignmentItems();
         $dueMap = array();
-        if ( \currentContextId() !== 0 ) {
-            $dueMap = GradeUtil::loadDueDatesForDisplay(\currentContextId());
+        if ( U::currentContextId() !== 0 ) {
+            $dueMap = GradeUtil::loadDueDatesForDisplay(U::currentContextId());
         }
         $allgrades = array();
         $rows = GradeUtil::loadGradesCurrentUser();

@@ -148,15 +148,15 @@ class GradeUtil {
     }
 
     /**
-     * Grades for the logged-in user in the current course (uses \loggedInUserId() and \currentContextId()).
+     * Grades for the logged-in user in the current course (uses U::loggedInUserId() and U::currentContextId()).
      * Cached per context via {@see Cache::setContext} for {@see self::GRADES_CURRENT_USER_CACHE_TTL} seconds;
      * on miss loads via {@see loadGradesForCourse}.
      *
      * @return array<int,array<string,mixed>>
      */
     public static function loadGradesCurrentUser() {
-        $uid = \loggedInUserId();
-        $cid = \currentContextId();
+        $uid = U::loggedInUserId();
+        $cid = U::currentContextId();
         if ( $uid < 1 || $cid < 1 ) {
             return array();
         }
@@ -280,7 +280,7 @@ class GradeUtil {
         if ( ! self::dueMapHasScheduledEnd($map) ) {
             return array();
         }
-        $user_id = \loggedInUserId();
+        $user_id = U::loggedInUserId();
         if ( $user_id < 1 ) {
             return array();
         }

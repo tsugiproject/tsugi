@@ -2,9 +2,10 @@
 
 namespace Tsugi\Controllers;
 
+
+use \Tsugi\Util\U;
 require_once __DIR__ . '/../UI/CKEditor.php';
 
-use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
 
 // Ensure CKEditor helper is loaded (fallback if autoload misses it)
@@ -89,8 +90,8 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = \currentContextId();
-        $user_id = \loggedInUserId();
+        $context_id = U::currentContextId();
+        $user_id = U::loggedInUserId();
         
         // Check if user is instructor/admin for this context
         $is_instructor = $this->isInstructor();
@@ -228,7 +229,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = \currentContextId();
+        $context_id = U::currentContextId();
         
         // Get all pages for this context (instructors see all, students see only published)
         $is_instructor = $this->isInstructor();
@@ -812,8 +813,8 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = \currentContextId();
-        $user_id = \loggedInUserId();
+        $context_id = U::currentContextId();
+        $user_id = U::loggedInUserId();
         
         $title = trim(U::get($_POST, 'title'));
         $body = U::get($_POST, 'body', '');
@@ -915,7 +916,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = \currentContextId();
+        $context_id = U::currentContextId();
         $page_id = intval($id);
         
         if (!$page_id) {
@@ -1364,7 +1365,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = \currentContextId();
+        $context_id = U::currentContextId();
         $page_id = intval($id);
         
         $title = trim(U::get($_POST, 'title'));
@@ -1486,7 +1487,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = \currentContextId();
+        $context_id = U::currentContextId();
         
         // Get page_ids that have history (for showing History button)
         // Join via pages to scope to this context — context_id was removed from page_history (redundant via FK)
@@ -1606,7 +1607,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = \currentContextId();
+        $context_id = U::currentContextId();
         
         // Handle delete action
         $action = U::get($_POST, 'action');
@@ -1662,7 +1663,7 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = \currentContextId();
+        $context_id = U::currentContextId();
         $page_id = intval($id);
 
         $page = $PDOX->rowDie(
@@ -1830,7 +1831,7 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = \currentContextId();
+        $context_id = U::currentContextId();
         $page_id = (int) U::get($_POST, 'page_id');
         $history_id = (int) U::get($_POST, 'history_id');
 

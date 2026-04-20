@@ -31,6 +31,22 @@ class U {
         $_SESSION = [];
     }
 
+
+    /**
+     * Thin wrappers to keep lms_lib.php as the single source of truth.
+     */
+    public static function loggedInUserId() {
+        return (int) \loggedInUserId();
+    }
+
+    public static function currentContextId() {
+        return (int) \currentContextId();
+    }
+
+    public static function isLoggedIn() {
+        return \isLoggedIn();
+    }
+
     /** Session key for error flash messages (must match Output::FLASH_ERROR) */
     const FLASH_ERROR = 'error';
     /** Session key for success flash messages (must match Output::FLASH_SUCCESS) */

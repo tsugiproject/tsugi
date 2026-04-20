@@ -2,7 +2,8 @@
 
 namespace Tsugi\UI;
 
-use Tsugi\Util\U;
+
+use \Tsugi\Util\U;
 use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\WebSocket;
@@ -733,11 +734,11 @@ $('a').each(function (x) {
             $set->setHome($CFG->servicename, $R);
         }
         $set->addLeft(_m('Tools'), $R.'store');
-        if ( \isLoggedIn() ) {
+        if ( U::isLoggedIn() ) {
                 $set->addLeft(_m('Settings'), $R . 'settings');
         }
 
-        if ( \isLoggedIn() ) {
+        if ( U::isLoggedIn() ) {
             $submenu = new \Tsugi\UI\Menu();
             $submenu->addLink(_m('Profile'), $R.'profile');
             if ( $CFG->DEVELOPER || U::get($_COOKIE, 'adminmenu') ) {

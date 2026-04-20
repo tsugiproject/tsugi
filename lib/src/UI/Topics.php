@@ -2,9 +2,10 @@
 
 namespace Tsugi\UI;
 
+
+use \Tsugi\Util\U;
 use Tsugi\Core\LTIX;
 use Tsugi\Crypt\AesOpenSSL;
-use Tsugi\Util\U;
 
 
 class Topics {
@@ -77,7 +78,7 @@ class Topics {
         }
 
         // Filter topics based on login
-        if ( ! \isLoggedIn() ) {
+        if ( ! U::isLoggedIn() ) {
             $filtered_topics = array();
             $filtered = false;
             foreach($course->topics as $topic) {

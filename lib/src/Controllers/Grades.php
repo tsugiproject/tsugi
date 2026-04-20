@@ -2,7 +2,8 @@
 
 namespace Tsugi\Controllers;
 
-use Tsugi\Util\U;
+
+use \Tsugi\Util\U;
 use Tsugi\Core\LTIX;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
@@ -186,8 +187,8 @@ class Grades extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = \currentContextId();
-        $user_id = \loggedInUserId();
+        $context_id = U::currentContextId();
+        $user_id = U::loggedInUserId();
         $is_instructor = $this->isInstructor();
         
         $p = $CFG->dbprefix;
@@ -300,7 +301,7 @@ class Grades extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = \currentContextId();
+        $context_id = U::currentContextId();
         $p = $CFG->dbprefix;
         
         $link_id = 0;

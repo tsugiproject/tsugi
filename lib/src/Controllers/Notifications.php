@@ -2,7 +2,8 @@
 
 namespace Tsugi\Controllers;
 
-use Tsugi\Util\U;
+
+use \Tsugi\Util\U;
 use Tsugi\Util\NotificationsService;
 use Tsugi\Core\LTIX;
 use Tsugi\Lumen\Application;
@@ -42,7 +43,7 @@ class Notifications extends Tool {
         
         LTIX::getConnection();
         
-        $user_id = \loggedInUserId();
+        $user_id = U::loggedInUserId();
 
         // Record analytics
         $this->lmsRecordLaunchAnalytics(self::ROUTE, self::NAME);
@@ -480,7 +481,7 @@ class Notifications extends Tool {
         
         LTIX::getConnection();
         
-        $user_id = \loggedInUserId();
+        $user_id = U::loggedInUserId();
 
         // Record analytics
         $this->lmsRecordLaunchAnalytics(self::ROUTE . '/configure-push', self::NAME . ' - Configure Push');
@@ -669,7 +670,7 @@ class Notifications extends Tool {
             return new JsonResponse(['error' => 'Service worker is not enabled'], 403);
         }
         
-        $user_id = \loggedInUserId();
+        $user_id = U::loggedInUserId();
 
         // Get subscription data from request
         $subscription_json = $request->getContent();
@@ -756,7 +757,7 @@ class Notifications extends Tool {
             return new JsonResponse(['error' => 'Service worker is not enabled'], 403);
         }
         
-        $user_id = \loggedInUserId();
+        $user_id = U::loggedInUserId();
         
         // Check if we should unsubscribe just current browser or all
         $unsubscribe_all = $request->get('all', 'false') === 'true';
@@ -827,7 +828,7 @@ class Notifications extends Tool {
                 return new JsonResponse(['error' => 'Service worker is not enabled'], 403);
             }
 
-            $user_id = \loggedInUserId();
+            $user_id = U::loggedInUserId();
             $subscriptions = $this->getUserSubscriptions($user_id);
 
             if (empty($subscriptions)) {
@@ -922,7 +923,7 @@ class Notifications extends Tool {
         
         LTIX::getConnection();
         
-        $user_id = \loggedInUserId();
+        $user_id = U::loggedInUserId();
 
         // Record analytics
         $this->lmsRecordLaunchAnalytics(self::ROUTE . '/send', self::NAME . ' - Test Notification');
@@ -989,7 +990,7 @@ class Notifications extends Tool {
         
         LTIX::getConnection();
         
-        $user_id = \loggedInUserId();
+        $user_id = U::loggedInUserId();
         
         $tool_home = $this->toolHome(self::ROUTE);
         $send_url = $tool_home . '/send';
@@ -1045,8 +1046,8 @@ class Notifications extends Tool {
         
         LTIX::getConnection();
         
-        $user_id = \loggedInUserId();
-        $context_id = \currentContextId();
+        $user_id = U::loggedInUserId();
+        $context_id = U::currentContextId();
 
         // Record analytics
         $this->lmsRecordLaunchAnalytics(self::ROUTE . '/send-to-student', self::NAME . ' - Send to Student');
@@ -1150,8 +1151,8 @@ class Notifications extends Tool {
         
         LTIX::getConnection();
         
-        $user_id = \loggedInUserId();
-        $context_id = \currentContextId();
+        $user_id = U::loggedInUserId();
+        $context_id = U::currentContextId();
         
         $tool_home = $this->toolHome(self::ROUTE);
         $send_url = $tool_home . '/send-to-student';
@@ -1232,7 +1233,7 @@ class Notifications extends Tool {
         
         LTIX::getConnection();
         
-        $user_id = \loggedInUserId();
+        $user_id = U::loggedInUserId();
         
         $notifications = NotificationsService::getForUser($user_id, false, 50); // Limit to 50 most recent
         $unread_count = NotificationsService::getUnreadCount($user_id);
@@ -1275,7 +1276,7 @@ class Notifications extends Tool {
         
         LTIX::getConnection();
         
-        $user_id = \loggedInUserId();
+        $user_id = U::loggedInUserId();
         $notification_id = U::get($_POST, 'notification_id');
         
         if (!$notification_id || !is_numeric($notification_id)) {
@@ -1299,7 +1300,7 @@ class Notifications extends Tool {
         
         LTIX::getConnection();
         
-        $user_id = \loggedInUserId();
+        $user_id = U::loggedInUserId();
         
         $success = NotificationsService::markAllAsRead($user_id);
         
