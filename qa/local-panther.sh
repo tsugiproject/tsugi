@@ -6,7 +6,6 @@
 #   qa/local-panther.sh
 #   qa/local-panther.sh tests/ToolLaunchTest.php
 #   qa/local-panther.sh --skip-composer
-#   qa/local-panther.sh --skip-bootstrap tests/SomeTest.php
 
 set -euo pipefail
 
@@ -14,13 +13,12 @@ die() { echo "❌ $*" >&2; exit 1; }
 
 usage() {
   cat <<'EOF'
-Run Panther E2E tests (Composer → drivers → tool bootstrap → Docker → phpunit).
+Run Panther E2E tests (Composer → drivers → Docker → phpunit).
 
   qa/local-panther.sh [options] [phpunit-args...]
 
 Options:
   --skip-composer     Skip composer install
-  --skip-bootstrap    Skip qa/scripts/qa-bootstrap-tools.sh
   -h, --help          Show this help
 
 Environment (optional overrides):
@@ -43,12 +41,9 @@ EOF
 }
 
 SKIP_COMPOSER=0
-SKIP_BOOTSTRAP=0
-
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --skip-composer) SKIP_COMPOSER=1; shift ;;
-    --skip-bootstrap) SKIP_BOOTSTRAP=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) break ;;
   esac
@@ -96,11 +91,6 @@ PHPUNIT="vendor/bin/phpunit"
 
 echo "🌐 Installing browser drivers..."
 "$BDI" detect drivers
-
-if [[ "$SKIP_BOOTSTRAP" -eq 0 ]]; then
-  echo "🔧 Bootstrapping sample tools..."
-  ./qa/scripts/qa-bootstrap-tools.sh
-fi
 
 # If something (often MAMP on 8888) already listens on this host port and it is not our stack, docker bind will fail.
 if command -v lsof >/dev/null 2>&1; then

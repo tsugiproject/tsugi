@@ -37,9 +37,6 @@ jobs:
       - name: Install browser drivers
         run: vendor/bin/bdi detect drivers
 
-      - name: Bootstrap sample tools
-        run: ./qa/scripts/qa-bootstrap-tools.sh
-
       - name: Start Tsugi (Docker)
         run: docker compose up -d
 

@@ -11,8 +11,9 @@ final class StoreTest extends TsugiPantherTestCase
 
         $page = $client->getPageSource();
         $this->assertStringNotContainsString('No tools found.', $page);
-        $this->assertStringContainsString('Grade Unit Test Tool', $page);
-        $this->assertStringContainsString('Blob Upload/Download Test Tool', $page);
+        $this->assertStringContainsString('Quizzes', $page);
+        $this->assertStringContainsString('Peer-Graded Dropbox', $page);
+        $this->assertStringContainsString('Threaded Discussion', $page);
 
         $this->captureScreenshot($client, 'store-home');
     }

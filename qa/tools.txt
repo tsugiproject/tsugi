@@ -1,2 +1,0 @@
-https://github.com/tsugiproject/tsugi-php-samples.git
-https://github.com/tsugiproject/tsugi-php-exercises.git

@@ -17,7 +17,7 @@ From the repo root:
 ./qa/local-panther.sh
 ```
 
-The script runs Composer, browser drivers, tool bootstrap, `docker compose up -d --build`, waits for Tsugi, then PHPUnit. Optional arguments are forwarded to PHPUnit (for example a single test class).
+The script runs Composer, browser drivers, `docker compose up -d --build`, waits for Tsugi, then PHPUnit. Optional arguments are forwarded to PHPUnit (for example a single test class).
 
 ```bash
 ./qa/local-panther.sh tests/ToolLaunchTest.php
@@ -27,7 +27,6 @@ Skip steps when iterating:
 
 ```bash
 ./qa/local-panther.sh --skip-composer
-./qa/local-panther.sh --skip-bootstrap
 ```
 
 After changing `Dockerfile`, `.dockerignore`, `docker/tsugi-docker-config.php`, or `config-dist.php`, rebuild the web image (the script uses `docker compose up -d --build`).
@@ -63,11 +62,10 @@ The script automatically detects whether to use `lib/vendor/bin/phpunit` (if lib
    docker compose up -d --build
    ```
 
-2) Install drivers and bootstrap tools (first time or after changing tools):
+2) Install browser drivers:
 
    ```bash
    vendor/bin/bdi detect drivers
-   ./qa/scripts/qa-bootstrap-tools.sh
    ```
 
 3) Run the QA suite:
@@ -80,16 +78,10 @@ The script automatically detects whether to use `lib/vendor/bin/phpunit` (if lib
    vendor/bin/phpunit -c qa/phpunit.xml
    ```
 
-## Tool checkouts (required for tool launch tests)
+## Tool launch targets
 
-Tool launch tests use sample tools from `qa/tools.txt`. You can run this manually:
-
-```bash
-./qa/scripts/qa-bootstrap-tools.sh
-```
-
-By default, tools are cloned into `mod/`, and a couple of sample tools are
-symlinked into `mod/` root so Tsugi can auto-register them.
+Tool launch tests run against built-in tools under `tool/`: `gift`, `peer-grade`,
+and `tdiscus`.
 
 ## Notes
 
