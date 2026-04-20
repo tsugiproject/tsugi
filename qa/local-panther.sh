@@ -59,6 +59,11 @@ fi
 [[ -f "docker-compose.yml" ]] || die "docker-compose.yml not found in repo root."
 [[ -f "qa/phpunit.xml" ]] || die "qa/phpunit.xml not found."
 
+# Keep screenshot artifacts per-run so failures don't mix with stale images.
+if [[ -d "qa/screenshots" ]]; then
+  rm -f qa/screenshots/*.png
+fi
+
 # Keep host port, published port in docker-compose.yml, and Tsugi URL env in sync.
 # Default 8000 here so Apache/MAMP can keep 8888. CI does not run this script; it uses docker-compose's 8888 default.
 TSUGI_HOST_PORT="${TSUGI_HOST_PORT:-8000}"

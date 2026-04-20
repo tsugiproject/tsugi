@@ -10,6 +10,11 @@ use Facebook\WebDriver\WebDriverElement;
 
 abstract class ToolLaunchHarness extends TsugiPantherTestCase
 {
+    private const TOOL_ERROR_SNIPPETS = [
+        'Unhandled POST request',
+        'Failure connecting to the database, see error log',
+    ];
+
     protected function captureStep(\Symfony\Component\Panther\Client $client, string $flow, string $step): void
     {
         $this->captureScreenshot($client, $flow . '-' . $step);
@@ -57,8 +62,30 @@ abstract class ToolLaunchHarness extends TsugiPantherTestCase
         $driver = $client->getWebDriver();
         $deadline = microtime(true) + $timeoutSeconds;
         $lastNormalized = '';
+        $lastFrameText = '';
         $lastUrl = '';
+        $lastTopUrl = '';
+        $lastTopTitle = '';
+        $lastTopNormalized = '';
+        $lastFrameCount = 0;
+        $lastFrameSources = [];
         do {
+            $driver->switchTo()->defaultContent();
+            $lastTopUrl = (string) $driver->getCurrentURL();
+            $lastTopTitle = (string) $driver->getTitle();
+            $lastTopNormalized = $this->normalizedToolHtml($driver->getPageSource());
+            $frames = $driver->findElements(WebDriverBy::tagName('iframe'));
+            $lastFrameCount = count($frames);
+            $lastFrameSources = [];
+            $maxSources = min(3, $lastFrameCount);
+            for ($i = 0; $i < $maxSources; $i++) {
+                $src = (string) $frames[$i]->getAttribute('src');
+                if ($src === '') {
+                    $src = '[no src attribute]';
+                }
+                $lastFrameSources[] = $src;
+            }
+
             $frame = $this->findLaunchFrame($client);
             if ($frame === null) {
                 usleep(200000);
@@ -68,7 +95,9 @@ abstract class ToolLaunchHarness extends TsugiPantherTestCase
                 $driver->switchTo()->frame($frame);
                 $normalized = $this->normalizedToolHtml($driver->getPageSource());
                 $lastNormalized = $normalized;
+                $lastFrameText = trim((string) $driver->executeScript('return document.body ? (document.body.innerText || "") : "";'));
                 $lastUrl = (string) $driver->getCurrentURL();
+                $this->assertNoKnownToolErrors($normalized, $lastUrl);
                 $driver->switchTo()->defaultContent();
                 foreach ($expectedTexts as $expectedText) {
                     if (str_contains($normalized, $expectedText)) {
@@ -83,8 +112,21 @@ abstract class ToolLaunchHarness extends TsugiPantherTestCase
 
         $expectedLabel = implode("' OR '", $expectedTexts);
         $excerpt = $lastNormalized === '' ? '[no iframe HTML captured]' : substr(preg_replace('/\s+/u', ' ', $lastNormalized) ?? $lastNormalized, 0, 400);
+        $frameTextExcerpt = $lastFrameText === '' ? '[no iframe text captured]' : substr(preg_replace('/\s+/u', ' ', $lastFrameText) ?? $lastFrameText, 0, 400);
         $urlHint = $lastUrl === '' ? '[unknown iframe URL]' : $lastUrl;
-        $this->fail("Timed out waiting for tool iframe text: '{$expectedLabel}'. Last iframe URL: {$urlHint}. Iframe excerpt: {$excerpt}");
+        $topUrlHint = $lastTopUrl === '' ? '[unknown top URL]' : $lastTopUrl;
+        $topTitleHint = $lastTopTitle === '' ? '[unknown top title]' : $lastTopTitle;
+        $topExcerpt = $lastTopNormalized === '' ? '[no top-page HTML captured]' : substr(preg_replace('/\s+/u', ' ', $lastTopNormalized) ?? $lastTopNormalized, 0, 300);
+        $frameSourceHint = $lastFrameSources === [] ? '[no iframe src values]' : implode(', ', $lastFrameSources);
+        $debugShot = 'debug-timeout-' . date('Ymd-His');
+        $this->captureScreenshot($client, $debugShot);
+        $this->fail(
+            "Timed out waiting for tool iframe text: '{$expectedLabel}'. " .
+            "Last iframe URL: {$urlHint}. Iframe HTML excerpt: {$excerpt}. Iframe text excerpt: {$frameTextExcerpt}. " .
+            "Top URL: {$topUrlHint}. Top title: {$topTitleHint}. Top HTML excerpt: {$topExcerpt}. " .
+            "Visible iframe count: {$lastFrameCount}. First iframe src values: {$frameSourceHint}. " .
+            "Debug screenshot: qa/screenshots/{$debugShot}.png"
+        );
     }
 
     protected function inLaunchFrame(
@@ -174,6 +216,19 @@ abstract class ToolLaunchHarness extends TsugiPantherTestCase
     private function normalizedToolHtml(string $source): string
     {
         return html_entity_decode($source, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
+    private function assertNoKnownToolErrors(string $normalizedHtml, string $currentUrl): void
+    {
+        foreach (self::TOOL_ERROR_SNIPPETS as $snippet) {
+            if (!str_contains($normalizedHtml, $snippet)) {
+                continue;
+            }
+
+            $excerpt = substr(preg_replace('/\s+/u', ' ', $normalizedHtml) ?? $normalizedHtml, 0, 400);
+            $urlHint = $currentUrl === '' ? '[unknown iframe URL]' : $currentUrl;
+            $this->fail("Tool iframe shows known error '{$snippet}' at {$urlHint}. Iframe excerpt: {$excerpt}");
+        }
     }
 
     private function findLaunchFrame(\Symfony\Component\Panther\Client $client): ?WebDriverElement

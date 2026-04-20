@@ -10,7 +10,7 @@ final class ToolHappyPathTest extends ToolLaunchHarness
     {
         $client = $this->pantherClient();
         $this->launchTool($client, 'gift', ['identity' => 'instructor']);
-        $this->captureStep($client, 'gift-happy', '01-launched');
+        $this->captureStep($client, 'gift-happy', '00-launched');
         $this->waitForAnyFrameText($client, [
             'This quiz has not yet been configured',
             'Submit quiz',
@@ -47,8 +47,11 @@ final class ToolHappyPathTest extends ToolLaunchHarness
     {
         $client = $this->pantherClient();
         $this->launchTool($client, 'peer-grade', ['identity' => 'instructor']);
-        $this->captureStep($client, 'peer-grade-happy', '01-launched');
-        $this->waitForFrameText($client, 'This assignment is not yet configured');
+        $this->captureStep($client, 'peer-grade-happy', '00-launched');
+        $this->waitForAnyFrameText($client, [
+            'This assignment is not yet configured',
+            'Please Upload Your Submission',
+        ]);
 
         $title = 'Panther Peer Grade ' . date('YmdHis');
 
@@ -66,7 +69,23 @@ final class ToolHappyPathTest extends ToolLaunchHarness
             ]);
             $titleInput->clear();
             $titleInput->sendKeys($title);
-            $driver->executeScript('document.querySelector("form[method=\'post\']").submit();');
+            // peer-grade/configure.php handles save only when save_settings is posted.
+            $driver->executeScript(
+                'var form = document.querySelector("form[method=\'post\']");
+                 var save = document.querySelector("input[name=\"save_settings\"]");
+                 if (form && save) {
+                    if (form.requestSubmit) {
+                        form.requestSubmit(save);
+                    } else {
+                        var hidden = document.createElement("input");
+                        hidden.type = "hidden";
+                        hidden.name = "save_settings";
+                        hidden.value = save.value || "Save";
+                        form.appendChild(hidden);
+                        form.submit();
+                    }
+                 }'
+            );
         });
 
         $this->waitForAnyFrameText($client, [
@@ -81,7 +100,7 @@ final class ToolHappyPathTest extends ToolLaunchHarness
     {
         $client = $this->pantherClient();
         $this->launchTool($client, 'tdiscus', ['identity' => 'instructor']);
-        $this->captureStep($client, 'tdiscus-happy', '01-launched');
+        $this->captureStep($client, 'tdiscus-happy', '00-launched');
         $this->waitForFrameText($client, 'Add Thread');
 
         $threadTitle = 'Panther thread ' . date('YmdHis');
