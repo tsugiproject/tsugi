@@ -9,6 +9,7 @@ GIFT is a line-oriented plain text question format that is simple to understand
 and easily edited by hand or even stored in a repository like github.  The quizzes can
 be exported into QTI 1.2 format for import into other systems.",
 "messages" => array("launch", "launch_grade"),
+"tool_phase" => "core",
  "privacy_level" => "anonymous",  // anonymous, name_only, public
     "license" => "Apache",
     "languages" => array(

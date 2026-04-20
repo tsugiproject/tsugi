@@ -8,6 +8,7 @@ $REGISTER_LTI2 = array(
 URLs, text and code.  These tools can be peer-graded, instructor graded,
 or a blend of peer and instructor graded assignments.",
 "messages" => array("launch", "launch_grade"),
+"tool_phase" => "core",
  "privacy_level" => "public",  // anonymous, name_only, public
     "license" => "Apache",
     "languages" => array(

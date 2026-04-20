@@ -5,6 +5,7 @@ $REGISTER_LTI2 = array(
 "FontAwesome" => "fa-comments",
 "short_name" => "Discussion tool",
 "description" => "This is a threaded discussion tool that can be used through LTI.  Multi-level discussions are supported with instructor-controlled hierarchy depth. The instructor can pin, hide, or lock, threads.  The tool can be set up to award grades for students when they post a comment on a thread.  The tool can be placed many times in a course and each of the placements has its own set of threads and comments. Anonymous students can view the discussions but cannot post to threads.  The tool provides usage analytics.",
+"tool_phase" => "core",
     // By default, accept launch messages..
     "messages" => array("launch", "launch_grade"),
     "privacy_level" => "public",  // anonymous, name_only, public
