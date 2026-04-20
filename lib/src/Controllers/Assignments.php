@@ -39,7 +39,7 @@ class Assignments extends Tool {
     }
 
     private function invalidateDueDatesSessionCache() {
-        $context_id = U::get($_SESSION, 'context_id');
+        $context_id = currentContextId();
         if ( $context_id ) {
             GradeUtil::invalidateDueDatesCache((int) $context_id);
         }
@@ -49,7 +49,7 @@ class Assignments extends Tool {
      * After lti_membership or due-date visibility changes for this context.
      */
     private function invalidateMembershipAndDueDatesCache() {
-        $context_id = U::get($_SESSION, 'context_id');
+        $context_id = currentContextId();
         if ( ! $context_id ) {
             return;
         }
@@ -106,12 +106,12 @@ class Assignments extends Tool {
         }
 
         $duedates = array();
-        if ( isset($_SESSION['context_id']) ) {
-            $duedates = GradeUtil::loadDueDatesForDisplay($_SESSION['context_id']);
+        if ( currentContextId() !== 0 ) {
+            $duedates = GradeUtil::loadDueDatesForDisplay(currentContextId());
         }
 
-        $showDueDateToggle = isset($_SESSION['id']) && isset($_SESSION['context_id'])
-            && GradeUtil::contextHasAnyDueDate((int) $_SESSION['context_id']);
+        $showDueDateToggle = isLoggedIn() && currentContextId() !== 0
+            && GradeUtil::contextHasAnyDueDate(currentContextId());
 
         $toolbar_html = null;
         if ( $this->isInstructor() || $showDueDateToggle ) {
@@ -119,7 +119,7 @@ class Assignments extends Tool {
             echo('<div style="display:flex;flex-wrap:wrap;gap:0.35em;justify-content:flex-end;align-items:center;">');
             if ( $showDueDateToggle ) {
                 LTIX::getConnection();
-                $mm = Membership::ensureInSession((int) $_SESSION['context_id'], (int) $_SESSION['id']);
+                $mm = Membership::ensureInSession(currentContextId(), loggedInUserId());
                 $hiding = empty($mm->viewDueDates);
                 $btnLabel = $hiding ? __('Show due dates') : __('Hide due dates');
                 $toggleAction = U::addSession($this->toolHome(self::ROUTE) . '/toggle-view-due-dates');
@@ -154,8 +154,8 @@ class Assignments extends Tool {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
         }
         $this->requireAuth();
-        $context_id = U::get($_SESSION, 'context_id');
-        $user_id = U::get($_SESSION, 'id');
+        $context_id = currentContextId();
+        $user_id = loggedInUserId();
         if ( ! $context_id || ! $user_id ) {
             U::flashError(__('Context required.'));
             return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
@@ -208,7 +208,7 @@ class Assignments extends Tool {
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
 
-        $context_id = U::get($_SESSION, 'context_id');
+        $context_id = currentContextId();
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $items = $l->enumerateLtiAssignmentItems(true);
         $dueMap = $this->loadDueDatesByLinkKey($context_id);
@@ -332,7 +332,7 @@ class Assignments extends Tool {
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
 
-        $context_id = U::get($_SESSION, 'context_id');
+        $context_id = currentContextId();
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $allowed = array();
         foreach ( $l->enumerateLtiAssignmentItems(true) as $it ) {
@@ -399,7 +399,7 @@ class Assignments extends Tool {
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
 
-        $context_id = U::get($_SESSION, 'context_id');
+        $context_id = currentContextId();
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $allowed = array();
         foreach ( $l->enumerateLtiAssignmentItems(true) as $it ) {
@@ -442,7 +442,7 @@ class Assignments extends Tool {
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
 
-        $context_id = U::get($_SESSION, 'context_id');
+        $context_id = currentContextId();
         $raw = U::get($_POST, 'week1_due', '');
         $baseSql = self::parseDueDateEndOfDay($raw);
         if ( $baseSql === null ) {
@@ -516,7 +516,7 @@ class Assignments extends Tool {
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
 
-        $context_id = U::get($_SESSION, 'context_id');
+        $context_id = currentContextId();
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $items = $l->enumerateLtiAssignmentItems(true);
         $dueMap = $this->loadDueDatesByLinkKey($context_id);

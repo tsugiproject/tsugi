@@ -128,7 +128,7 @@ class Calendar extends Tool {
                 500
             );
         }
-        if ( ! U::get($_SESSION, 'id') || ! isset($_SESSION['context_id']) ) {
+        if ( ! isLoggedIn() || ! currentContextId() ) {
             return new JsonResponse(
                 array('status' => 'error', 'detail' => 'Authentication and course context required'),
                 401
@@ -139,7 +139,7 @@ class Calendar extends Tool {
 
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $items = $l->enumerateLtiAssignmentItems();
-        $dueMap = GradeUtil::loadDueDatesForDisplay($_SESSION['context_id']);
+        $dueMap = GradeUtil::loadDueDatesForDisplay(currentContextId());
 
         $allgrades = array();
         $rows = GradeUtil::loadGradesCurrentUser();
@@ -189,8 +189,8 @@ class Calendar extends Tool {
         $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $items = $l->enumerateLtiAssignmentItems();
         $dueMap = array();
-        if ( isset($_SESSION['context_id']) ) {
-            $dueMap = GradeUtil::loadDueDatesForDisplay($_SESSION['context_id']);
+        if ( currentContextId() !== 0 ) {
+            $dueMap = GradeUtil::loadDueDatesForDisplay(currentContextId());
         }
         $allgrades = array();
         $rows = GradeUtil::loadGradesCurrentUser();

@@ -15,17 +15,15 @@ require_once(__DIR__ . '/../../admin/admin_util.php');
  * 2. If user has instructor role or role_override in lti_membership table
  * 3. If user owns the context or its key
  *
- * Reads context_id and user_id from $_SESSION['context_id'] and $_SESSION['id'].
+ * Reads context_id from session; user id from session or $USER (see loggedInUserId()).
  * Caches a Membership instance via Membership::ensureInSession() (context-scoped session cache).
  *
  * @return bool True if user is instructor/admin for the context, false otherwise
  */
 function isInstructor() {
-    // Get context_id and user_id from session
-    $context_id = U::get($_SESSION, 'context_id');
-    $user_id = U::get($_SESSION, 'id');
+    $context_id = currentContextId();
+    $user_id = loggedInUserId();
 
-    // If context_id or user_id not in session, user is not an instructor
     if ( ! $context_id || ! $user_id ) {
         return false;
     }
@@ -168,7 +166,7 @@ function lmsRecordLaunchAnalytics($analytics_path, $title=null) {
     global $CFG, $PDOX;
 
     if ( ! isset($CFG->launchactivity) || ! $CFG->launchactivity ) return false;
-    if ( ! U::get($_SESSION,'id') || ! U::get($_SESSION,'context_id') ) return false;
+    if ( ! isLoggedIn() || ! currentContextId() ) return false;
     if ( isInstructor() ) return false; // mirror LTIX: only learner launches are logged
 
     // Ensure DB connection
@@ -176,8 +174,8 @@ function lmsRecordLaunchAnalytics($analytics_path, $title=null) {
         LTIX::getConnection();
     }
 
-    $context_id = $_SESSION['context_id'] + 0;
-    $user_id = $_SESSION['id'] + 0;
+    $context_id = currentContextId();
+    $user_id = loggedInUserId();
 
     $link_key = lmsAnalyticsKey($analytics_path);
 

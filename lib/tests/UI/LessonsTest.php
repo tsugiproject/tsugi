@@ -1299,13 +1299,26 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
             ]
         ];
         
-        $output = $lessons->renderAll(true);
-        
-        // Module 1 should show progress badge (from items array)
-        $this->assertStringContainsString('Module 1', $output, 'Should render Module 1');
-        
-        // Module 2 should NOT show progress badge (no items array, legacy arrays are ignored)
-        $this->assertStringContainsString('Module 2', $output, 'Should render Module 2');
+        // renderAll() now always loads grades via GradeUtil::loadGradesCurrentUser(),
+        // which hits the DB. Validate the same precedence behavior through the
+        // internal progress helper (no DB access required).
+        $method = new \ReflectionMethod(\Tsugi\UI\Lessons::class, 'moduleLtiProgressPoints');
+        $method->setAccessible(true);
+
+        $allgrades = ['rlid1' => 0.9, 'rlid2' => 0.3, 'rlid3' => 0.7];
+        $duedates = [];
+
+        // Module with items + legacy lti: only items should be counted.
+        $result1 = $method->invoke($lessons, $lessons->lessons->modules[0], $allgrades, $duedates);
+        $this->assertEquals(1.0, $result1[0], 'Possible points should come from items array only');
+        $this->assertEquals(0.9, $result1[1], 'Actual points should come from items resource_link_id');
+        $this->assertEquals(['rlid1'], $result1[2], 'RLIDs should come only from items array');
+
+        // Module without items should still use legacy lti.
+        $result2 = $method->invoke($lessons, $lessons->lessons->modules[1], $allgrades, $duedates);
+        $this->assertEquals(1.0, $result2[0], 'Legacy lti should be used when items array is absent');
+        $this->assertEquals(0.7, $result2[1], 'Actual points should come from legacy resource_link_id');
+        $this->assertEquals(['rlid3'], $result2[2], 'RLIDs should come from legacy lti when no items array');
         
         // Restore session and PDOX
         $_SESSION = $originalSession;

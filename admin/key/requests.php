@@ -15,7 +15,7 @@ session_start();
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
+if ( ! ( isLoggedIn() || isAdmin() ) ) {
     $_SESSION['login_return'] = LTIX::curPageUrlFolder();
     header('Location: '.$CFG->wwwroot.'/login');
     return;
@@ -29,7 +29,7 @@ $sql = "SELECT request_id, title, notes, state, admin, R.created_at, R.updated_a
 
 if ( !isAdmin() ) {
     $sql .= "\nWHERE R.user_id = :UID";
-    $query_parms = array(":UID" => $_SESSION['id']);
+    $query_parms = array(":UID" => loggedInUserId());
 }
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields);

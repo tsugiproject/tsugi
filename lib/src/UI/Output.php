@@ -733,11 +733,11 @@ $('a').each(function (x) {
             $set->setHome($CFG->servicename, $R);
         }
         $set->addLeft(_m('Tools'), $R.'store');
-        if ( ($_SESSION['id'] ?? null) ) {
+        if ( isLoggedIn() ) {
                 $set->addLeft(_m('Settings'), $R . 'settings');
         }
 
-        if ( ($_SESSION['id'] ?? null) ) {
+        if ( isLoggedIn() ) {
             $submenu = new \Tsugi\UI\Menu();
             $submenu->addLink(_m('Profile'), $R.'profile');
             if ( $CFG->DEVELOPER || U::get($_COOKIE, 'adminmenu') ) {

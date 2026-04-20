@@ -12,6 +12,12 @@
 - `composer update tsugi/lib` — update the Tsugi PHP runtime without bumping all transitive dependencies (see `README_COMPOSER.md`).
 - `composer update --ignore-platform-reqs` — advance dependencies when explicitly needed.
 
+## Session and auth helpers (`lib/include/lms_lib.php`)
+- **`isLoggedIn()`** means the current user id is non-zero (`loggedInUserId() !== 0`). It **does not** require a non-zero **`currentContextId()`** (course/context). Users can be authenticated site-wide without a course.
+- **Contexts and LTI:** The long-term model is that users **log in first**, then **pick among multiple contexts** (courses). **For now**, there is typically **one** active context at a time unless the request is an **LTI launch** (where the LMS may bind a course). **LTI launches can also be “no context”** (system-wide or non-course tools), so “logged in” must remain valid when **`currentContextId()` is zero**.
+- Use **`currentContextId()`** (and checks like `currentContextId() !== 0`) only when the code path **requires** a course/context. Do **not** change `isLoggedIn()` to require context, and do not “fix” call sites by folding context into login unless the product requirement explicitly asks for it.
+- **`loggedInUserId()`** and **`currentContextId()`** are paired by source (session vs `$USER`/`$CONTEXT`); see the docblocks in `lms_lib.php` before refactoring auth checks.
+
 ## Coding Style & Naming Conventions
 - Follow the existing PHP style in nearby files: 4-space indentation, braces on the same line, and compact, readable conditionals.
 - Use established naming patterns (`$CFG` for config, `Tsugi\` namespaces for core classes) and keep filenames lowercase with hyphens/underscores as already used.

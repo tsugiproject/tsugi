@@ -24,17 +24,16 @@ header('Content-Type: application/json; charset=utf-8');
 LTIX::getConnection();
 session_start();
 
-// Must be logged in via cookie session
-$user_id = U::get($_SESSION, 'id');
-if ( ! $user_id ) {
+// Must be logged in via cookie session (config.php loads lms_lib.php → isLoggedIn / loggedInUserId)
+if ( ! isLoggedIn() ) {
     http_response_code(403);
     echo(json_encode(array('status' => 'error', 'detail' => 'Not logged in'), JSON_PRETTY_PRINT));
     return;
 }
-$user_id = $user_id + 0;
+$user_id = loggedInUserId();
 
 // Get context_id from session (may not be set for all users)
-$context_id = U::get($_SESSION, 'context_id');
+$context_id = currentContextId();
 
 $result = array(
     'status' => 'success',

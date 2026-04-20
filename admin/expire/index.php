@@ -16,7 +16,7 @@ session_start();
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-if ( ! ( isset($_SESSION['id']) || isAdmin() ) ) {
+if ( ! ( isLoggedIn() || isAdmin() ) ) {
     $_SESSION['login_return'] = LTIX::curPageUrlFolder();
     header('Location: '.$CFG->wwwroot.'/login');
     return;

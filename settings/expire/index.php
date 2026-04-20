@@ -11,7 +11,7 @@ require_once("expire_util.php");
 
 session_start();
 
-if ( ! U::get($_SESSION,'id') ) {
+if ( ! isLoggedIn() ) {
     $login_return = U::reconstruct_query($CFG->wwwroot . '/settings/expire');
     $_SESSION['login_return'] = $login_return;
     Output::doRedirect($CFG->wwwroot.'/login.php');

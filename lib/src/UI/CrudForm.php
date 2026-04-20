@@ -273,7 +273,7 @@ class CrudForm {
      *     $tablename = "tsugi_lti_key";
      *     $fields = array("key_id", "key_key", "secret", "created_at", "updated_at");
      *     $where_clause .= "user_id = :UID";
-     *     $query_fields = array(":UID" => $_SESSION['id']);
+     *     $query_fields = array(":UID" => \loggedInUserId()); // lib/include/lms_lib.php (via config.php)
      *     $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause, $query_fields, true, true);
      *
      * This code very much depends on the $_POST data being generated from the
@@ -287,7 +287,8 @@ class CrudForm {
      * in particular it knows that key_id is a primary key. In the above
      * example, the ultimate WHERE clause will effectively be as follows:
      *
-     *     UPDATE ... WHERE key_id = $_POST['key_id'] AND user_id = $_SESSION['id']
+     *     UPDATE ... WHERE key_id = $_POST['key_id'] AND user_id = :UID
+     *     (with :UID bound to \loggedInUserId() from lms_lib.php)
      *
      * This way, even if the user forges the key_id data to be one that does
      * not belong to them, the AND clause will stop the UPDATE from happening.
@@ -296,7 +297,7 @@ class CrudForm {
      * array.
      *
      * If we were editing some context-wide data as instructor, we might add
-     * the current context_id of the logged in instructor to the WHERE clause.
+     * \currentContextId() (see lms_lib.php) to the WHERE clause.
      *
      * @param $fields An array of fields to be updated.  These items must be
      * in the $_POST data as well.  The primary key should be the first field

@@ -12,7 +12,7 @@ use \Tsugi\Core\LTIX;
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( ! isset($_SESSION['id']) ) {
+if ( ! isLoggedIn() ) {
     die('Must be logged in or admin');
 }
 
@@ -24,7 +24,7 @@ $allow_delete = true;
 $allow_edit = true;
 $fields = array("request_id", "title", "notes", "admin", "state", "lti", "created_at", "updated_at");
 $where_clause = "user_id = :UID";
-$query_fields[":UID"] = $_SESSION['id'];
+$query_fields[":UID"] = loggedInUserId();
 
 // Handle the post data
 $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause,

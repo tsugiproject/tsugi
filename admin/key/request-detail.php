@@ -28,7 +28,7 @@ if ( isAdmin() ) {
 } else {
     $fields = array("request_id", "title", "notes", "admin", "state", "lti", "created_at", "updated_at");
     $where_clause .= "user_id = :UID";
-    $query_fields[":UID"] = $_SESSION['id'];
+    $query_fields[":UID"] = loggedInUserId();
 }
 
 // Handle the post data

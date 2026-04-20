@@ -31,12 +31,13 @@ $context_id = $_REQUEST['context_id'] + 0;
 $is_context_admin = false;
 if ( isAdmin() ) {
     $is_context_admin = true;
-} else if ( U::get($_SESSION, 'id') ) {
+} else if ( isLoggedIn() ) {
+    $effective_uid = loggedInUserId();
     // Check if user is instructor/admin for this context
     $membership = $PDOX->rowDie(
         "SELECT role FROM {$CFG->dbprefix}lti_membership 
          WHERE context_id = :CID AND user_id = :UID",
-        array(':CID' => $context_id, ':UID' => $_SESSION['id'])
+        array(':CID' => $context_id, ':UID' => $effective_uid)
     );
     if ( $membership && isset($membership['role']) ) {
         $role = $membership['role'] + 0;
@@ -53,7 +54,7 @@ if ( isAdmin() ) {
                  key_id IN (SELECT key_id FROM {$CFG->dbprefix}lti_key WHERE user_id = :UID)
                  OR user_id = :UID
              )",
-            array(':CID' => $context_id, ':UID' => $_SESSION['id'])
+            array(':CID' => $context_id, ':UID' => $effective_uid)
         );
         if ( $context_check ) {
             $is_context_admin = true;

@@ -334,7 +334,7 @@ abstract class Tool {
      * 2. If user has instructor role or role_override in lti_membership table
      * 3. If user owns the context or its key
      * 
-     * Reads context_id and user_id from $_SESSION['context_id'] and $_SESSION['id'].
+     * Reads context via currentContextId(); user id via loggedInUserId() (session or globals).
      * Delegates to Membership::ensureInSession(), which caches a Membership instance in
      * context-scoped session cache via Membership::ensureInSession() (single lti_membership SELECT when missing;
      * ownership query only when role must be resolved).
@@ -342,11 +342,11 @@ abstract class Tool {
      * @return bool True if user is instructor/admin for the context, false otherwise
      */
     protected function isInstructor() {
-        // Get context_id and user_id from session
-        $context_id = U::get($_SESSION, 'context_id');
-        $user_id = U::get($_SESSION, 'id');
-        
-        // If context_id or user_id not in session, user is not an instructor
+        // Context from session or $CONTEXT; user id from session or $USER (see lms_lib.php)
+        $context_id = currentContextId();
+        $user_id = loggedInUserId();
+
+        // If context_id or user_id missing, user is not an instructor
         if ( ! $context_id || ! $user_id ) {
             return false;
         }
@@ -369,8 +369,8 @@ abstract class Tool {
      * @return bool
      */
     protected function viewDueDates() {
-        $context_id = U::get($_SESSION, 'context_id');
-        $user_id = U::get($_SESSION, 'id');
+        $context_id = currentContextId();
+        $user_id = loggedInUserId();
         if ( ! $context_id || ! $user_id ) {
             return false;
         }
@@ -396,10 +396,10 @@ abstract class Tool {
      * @throws \Exception If user is not logged in or context is missing
      */
     protected function requireAuth() {
-        if ( ! U::get($_SESSION, 'id') ) {
+        if ( ! isLoggedIn() ) {
             die('Must be logged in');
         }
-        if ( ! isset($_SESSION['context_id']) ) {
+        if ( ! currentContextId() ) {
             die('Context required');
         }
     }
@@ -553,7 +553,7 @@ abstract class Tool {
         global $CFG, $PDOX;
 
         if ( ! isset($CFG->launchactivity) || ! $CFG->launchactivity ) return false;
-        if ( ! U::get($_SESSION,'id') || ! U::get($_SESSION,'context_id') ) return false;
+        if ( ! isLoggedIn() || ! currentContextId() ) return false;
         if ( $this->isInstructor() ) return false; // mirror LTIX: only learner launches are logged
 
         // Ensure DB connection
@@ -561,8 +561,8 @@ abstract class Tool {
             LTIX::getConnection();
         }
 
-        $context_id = $_SESSION['context_id'] + 0;
-        $user_id = $_SESSION['id'] + 0;
+        $context_id = currentContextId();
+        $user_id = loggedInUserId();
 
         $link_key = $this->lmsAnalyticsKey($analytics_path);
 
@@ -667,7 +667,7 @@ abstract class Tool {
         // Derive tool_name from route (remove leading slash)
         $tool_name = ltrim($route, '/');
         
-        $context_id = $_SESSION['context_id'] + 0;
+        $context_id = currentContextId();
         
         // Compute analytics link
         $link_key = $this->lmsAnalyticsKey($stable_path);

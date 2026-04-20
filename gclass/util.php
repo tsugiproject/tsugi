@@ -6,7 +6,7 @@ use \Tsugi\Core\LTIX;
 function sanity_check() {
     global $CFG;
 
-    if ( !isset($_SESSION['id']) ) {
+    if ( ! isLoggedIn() ) {
         die_with_error_log('Error: Must be logged in to use Google Classroom');
     }
 

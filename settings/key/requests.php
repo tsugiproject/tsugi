@@ -19,13 +19,13 @@ if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( ! ( isset($_SESSION['id']) ) ) {
+if ( ! isLoggedIn() ) {
     $_SESSION['login_return'] = LTIX::curPageUrlFolder();
     header('Location: '.$CFG->wwwroot.'/login');
     return;
 }
 
-$goodsession = isset($_SESSION['id']) && isset($_SESSION['email']) && isset($_SESSION['displayname']) &&
+$goodsession = isLoggedIn() && isset($_SESSION['email']) && isset($_SESSION['displayname']) &&
     U::strlen($_SESSION['email']) > 0 && U::strlen($_SESSION['displayname']) > 0 ;
 
 if ( $goodsession && isset($_POST['title']) &&
@@ -44,7 +44,7 @@ if ( $goodsession && isset($_POST['title']) &&
         "INSERT INTO {$CFG->dbprefix}key_request
         (user_id, title, notes, state, lti, created_at, updated_at)
         VALUES ( :UID, :TITLE, :NOTES, 0, :LTI, NOW(), NOW() )",
-        array(":UID" => $_SESSION['id'], ":TITLE" => $_POST['title'],
+        array(":UID" => loggedInUserId(), ":TITLE" => $_POST['title'],
             ":NOTES" => $_POST['notes'], ":LTI" => 1)
     );
 
@@ -52,7 +52,7 @@ if ( $goodsession && isset($_POST['title']) &&
     if ( isset($CFG->autoapprovekeys) && U::strlen($CFG->autoapprovekeys) > 0 &&
         preg_match($CFG->autoapprovekeys, $_SESSION['email']) == 1) {
         // Set up the email variables
-        $user_id = $_SESSION['id'];
+        $user_id = loggedInUserId();
         $token = Mail::computeCheck($user_id);
         $to = $_SESSION['email'];
 
@@ -110,7 +110,7 @@ if ( $goodsession && isset($_POST['title']) &&
     }
 
     if ( $CFG->owneremail && $CFG->OFFLINE === false) {
-        $user_id = $_SESSION['id'];
+        $user_id = loggedInUserId();
         $token = Mail::computeCheck($user_id);
         $to = $CFG->owneremail;
         $subject = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )';
@@ -125,7 +125,7 @@ if ( $goodsession && isset($_POST['title']) &&
     return;
 }
 
-$query_parms = array(":UID" => $_SESSION['id']);
+$query_parms = array(":UID" => loggedInUserId());
 $searchfields = array("request_id", "title", "notes", "state", "admin", "email", "displayname", "R.created_at", "R.updated_at");
 $sql = "SELECT request_id, title, notes, state, admin, 
         R.created_at, R.updated_at, email, displayname

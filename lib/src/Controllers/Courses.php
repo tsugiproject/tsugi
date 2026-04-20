@@ -22,7 +22,6 @@ class Courses {
         global $CFG;
         $tsugi = $app['tsugi'];
         if ( !isset($tsugi->user)) {
-        // if ( !isset($_SESSION['id'])) {
             return \response()->json(
                 array('error' => 'You are not logged in.')
             );

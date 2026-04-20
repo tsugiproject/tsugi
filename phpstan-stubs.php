@@ -67,6 +67,32 @@ namespace {
     {
         return false;
     }
+
+    /**
+     * From lib/include/lms_lib.php (loaded via config); PHPStan does not analyse that file in paths.
+     *
+     * @return bool
+     */
+    function isLoggedIn(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @return int
+     */
+    function loggedInUserId(): int
+    {
+        return 0;
+    }
+
+    /**
+     * @return int
+     */
+    function currentContextId(): int
+    {
+        return 0;
+    }
 }
 
 namespace Ratchet {
