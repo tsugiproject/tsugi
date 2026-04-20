@@ -42,13 +42,13 @@ $context_url = $gc_course . ':' . $user_mini_sig;
 $context_key = 'gclass:' . $context_url;
 $context_sha256 = lti_sha256($context_key);
 
-if ( ! isset($_SESSION['id']) ) {
+if ( ! isLoggedIn() ) {
     $_SESSION['login_return'] = $path[0].'/'.$path[1].'/'.$path[2];
     header('Location: '.$CFG->wwwroot.'/login');
     return;
 }
 
-$user_id = $_SESSION['id'];
+$user_id = loggedInUserId();
 $user_email = $_SESSION['email'];
 $user_displayname = $_SESSION['displayname'];
 $user_key = $_SESSION['user_key'];
@@ -168,7 +168,7 @@ if ( $role != null ) {
         $access_token = $access_token_data['access_token'];
 
         $membership_info_url = "https://classroom.googleapis.com/v1/courses/".$gc_course.
-            "/students/".$_SESSION['email']."?alt=json&access_token=" .  $access_token;
+            "/students/".urlencode($user_email)."?alt=json&access_token=" .  $access_token;
 
         $response = \Tsugi\Util\Net::doGet($membership_info_url);
         $membership = json_decode($response);

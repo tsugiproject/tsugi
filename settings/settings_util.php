@@ -8,8 +8,9 @@ function settings_key_count() {
         FROM {$CFG->dbprefix}lti_key
         WHERE user_id = :UID";
     $key_count = 0;
-    if ( U::get($_SESSION, 'id') ) {
-        $row = $PDOX->rowDie($sql, array(':UID' => $_SESSION['id']));
+    $uid = loggedInUserId();
+    if ( $uid ) {
+        $row = $PDOX->rowDie($sql, array(':UID' => $uid));
         $key_count = U::get($row, 'count', 0);
     }
     return $key_count;
@@ -26,10 +27,11 @@ function settings_key_count() {
 function settings_context_administrable($context_id) {
     global $CFG, $PDOX;
     
-    if ( ! U::get($_SESSION, 'id') ) {
+    $uid = loggedInUserId();
+    if ( ! $uid ) {
         return false;
     }
-    
+
     $row = $PDOX->rowDie("SELECT context_id FROM {$CFG->dbprefix}lti_context
         WHERE context_id = :CID AND (
             key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
@@ -37,7 +39,7 @@ function settings_context_administrable($context_id) {
         )",
         array(
             ':CID' => $context_id,
-            ':UID' => $_SESSION['id']
+            ':UID' => $uid
         )
     );
     
@@ -50,7 +52,7 @@ function settings_context_administrable($context_id) {
 
 function settings_status($key_count) {
     global $CFG;
-    if ( ! U::get($_SESSION,'id') ) {
+    if ( ! isLoggedIn() ) {
         if ( $CFG->google_client_id ) {
             return "<p><b>You must log in to use these tools in your learning management system.  You can explore these tools and test them from this page without logging in.</b></p>";
         }

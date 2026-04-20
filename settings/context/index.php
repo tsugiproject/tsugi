@@ -12,11 +12,11 @@ use \Tsugi\Core\LTIX;
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( ! U::get($_SESSION,'id') ) {
+if ( ! isLoggedIn() ) {
     die('Must be logged in');
 }
 
-$query_parms = array(":UID" => $_SESSION['id']);
+$query_parms = array(":UID" => loggedInUserId());
 $searchfields = array("C.context_id", "title", "C.created_at", "C.updated_at", "C.login_at", "C.login_count");
 $sql = "SELECT C.context_id AS context_id, title, count(M.user_id) AS members, C.key_id AS key_value,
             C.login_at, C.login_count, C.created_at, C.updated_at

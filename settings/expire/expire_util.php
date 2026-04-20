@@ -43,8 +43,12 @@ function sanity_check_days($base=false, $days=false) {
 }
 
 function expire_sanity_check() {
-    if ( ! isset($_SESSION['id']) ) die('Must be logged in');
-    if ( $_SESSION['id'] == 0 ) die('Cannot be super user');
+    if ( ! isLoggedIn() ) {
+        die('Must be logged in');
+    }
+    if ( loggedInUserId() == 0 ) {
+        die('Cannot be super user');
+    }
 }
 
 /**
@@ -56,7 +60,7 @@ function get_owner_clause() {
     expire_sanity_check();
     return array(
         'sql' => " key_id IN (SELECT key_id from {$CFG->dbprefix}lti_key WHERE user_id = :UID) ",
-        'params' => array(':UID' => $_SESSION['id'])
+        'params' => array(':UID' => loggedInUserId())
     );
 }
 

@@ -63,6 +63,7 @@ class Map extends Controller {
         $rows = $PDOX->allRowsDie($sql);
         $center = false;
         $points = array();
+        $current_user_id = \loggedInUserId();
         foreach($rows as $row ) {
             if ( !isset($row['json']) ) continue;
             if ( !isset($row['user_id']) ) continue;
@@ -84,7 +85,7 @@ class Map extends Controller {
             }
             $display = $name;
             $points[] = array($lat, $lng, $display);
-            if ( isset($_SESSION['id']) && $_SESSION['id'] == $row['user_id'] ) {
+            if ( $current_user_id > 0 && $current_user_id == $row['user_id'] ) {
                 $center = array($lat,$lng);
             }
         }

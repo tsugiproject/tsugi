@@ -11,7 +11,7 @@ require_once("../../config.php");
 header('Content-Type: text/html; charset=utf-8');
 LTIX::session_start();
 
-if ( ! U::get($_SESSION,'id') ) {
+if ( ! isLoggedIn() ) {
     die('Must be admin');
 }
 
@@ -27,7 +27,7 @@ $row = $PDOX->rowDie("SELECT M.context_id
         OR C.user_id = :UID",
     array(
         ':MID' => $_REQUEST['membership_id'],
-        ':UID' => $_SESSION['id'])
+        ':UID' => loggedInUserId())
 );
 
 if ( $row === false || ! isset($row['context_id']) ) {

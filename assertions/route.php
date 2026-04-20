@@ -52,8 +52,8 @@ if ($first_part === 'publish') {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    $current_user_id = U::get($_SESSION, 'id');
-    if (empty($current_user_id)) {
+    $current_user_id = loggedInUserId();
+    if ($current_user_id === 0) {
         http_response_code(403);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -401,9 +401,9 @@ switch ($resource) {
             session_start();
         }
         
-        // Get current logged-in user ID from session
-        $current_user_id = U::get($_SESSION, 'id');
-        $logged_in = !empty($current_user_id);
+        // Get current logged-in user ID (session or $USER; see lms_lib.php)
+        $current_user_id = loggedInUserId();
+        $logged_in = $current_user_id !== 0;
         
         // Get badge owner user ID from the encrypted assertion ID
         // $pieces[0] contains the user_id of the badge owner

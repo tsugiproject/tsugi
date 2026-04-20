@@ -186,8 +186,8 @@ class Grades extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = $_SESSION['context_id'];
-        $user_id = $_SESSION['id'];
+        $context_id = currentContextId();
+        $user_id = loggedInUserId();
         $is_instructor = $this->isInstructor();
         
         $p = $CFG->dbprefix;
@@ -300,7 +300,7 @@ class Grades extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = $_SESSION['context_id'];
+        $context_id = currentContextId();
         $p = $CFG->dbprefix;
         
         $link_id = 0;

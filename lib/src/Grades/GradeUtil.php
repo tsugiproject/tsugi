@@ -148,15 +148,15 @@ class GradeUtil {
     }
 
     /**
-     * Grades for the logged-in user in the current course (uses PHP session keys id and context_id).
+     * Grades for the logged-in user in the current course (uses loggedInUserId() and currentContextId()).
      * Cached per context via {@see Cache::setContext} for {@see self::GRADES_CURRENT_USER_CACHE_TTL} seconds;
      * on miss loads via {@see loadGradesForCourse}.
      *
      * @return array<int,array<string,mixed>>
      */
     public static function loadGradesCurrentUser() {
-        $uid = isset($_SESSION['id']) ? (int) $_SESSION['id'] : 0;
-        $cid = isset($_SESSION['context_id']) ? (int) $_SESSION['context_id'] : 0;
+        $uid = loggedInUserId();
+        $cid = currentContextId();
         if ( $uid < 1 || $cid < 1 ) {
             return array();
         }
@@ -280,7 +280,7 @@ class GradeUtil {
         if ( ! self::dueMapHasScheduledEnd($map) ) {
             return array();
         }
-        $user_id = isset($_SESSION['id']) ? (int) $_SESSION['id'] : 0;
+        $user_id = loggedInUserId();
         if ( $user_id < 1 ) {
             return array();
         }

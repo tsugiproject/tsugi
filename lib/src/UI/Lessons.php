@@ -123,7 +123,7 @@ class Lessons {
         }
 
         // Filter modules based on login
-        if ( !isset($_SESSION['id']) ) {
+        if ( ! isLoggedIn() ) {
             $filtered_modules = array();
             $filtered = false;
             foreach($lessons->modules as $module) {
@@ -816,8 +816,8 @@ class Lessons {
         }
         $this->lessonModuleGradesForBadges = $allgrades;
         $this->lessonModuleDueDatesForBadges = array();
-        if ( isset($_SESSION['context_id']) ) {
-            $this->lessonModuleDueDatesForBadges = GradeUtil::loadDueDatesForDisplay($_SESSION['context_id']);
+        if ( currentContextId() !== 0 ) {
+            $this->lessonModuleDueDatesForBadges = GradeUtil::loadDueDatesForDisplay(currentContextId());
         }
 
 	if ( $nostyle && isset($_SESSION['gc_count']) ) {
@@ -1364,8 +1364,8 @@ class Lessons {
          }
 
         $duedates = array();
-        if ( isset($_SESSION['context_id']) ) {
-            $duedates = GradeUtil::loadDueDatesForDisplay($_SESSION['context_id']);
+        if ( currentContextId() !== 0 ) {
+            $duedates = GradeUtil::loadDueDatesForDisplay(currentContextId());
         }
 
         echo('<div typeof="Course">'."\n");
@@ -1376,7 +1376,7 @@ class Lessons {
 
         foreach($this->lessons->modules as $module) {
         if ( isset($module->hidden) && $module->hidden ) continue;
-	    if ( isset($module->login) && $module->login && !isset($_SESSION['id']) ) continue;
+	    if ( isset($module->login) && $module->login && ! isLoggedIn() ) continue;
 
             $modProgress = $this->moduleLtiProgressPoints($module, $allgrades, $duedates);
             $possible_points = $modProgress[0];
@@ -1910,7 +1910,7 @@ class Lessons {
 <?php
     if ( count($awarded) < 1 ) {
         echo("<p>No badges have been awarded yet.</p>");
-    } else if ( !isset($_SESSION['id']) || ! isset($_SESSION['context_id']) ) {
+    } else if ( ! isLoggedIn() || ! currentContextId() ) {
         echo("<p>You must be logged in to see your badges.</p>\n");
     } else {
         // Check badge configuration before attempting to encrypt
@@ -1956,11 +1956,11 @@ class Lessons {
             foreach($awarded as $badge) {
                 echo("<li><p>");
                 $code = basename($badge->image,'.png');
-                $decrypted = $_SESSION['id'].':'.$code.':'.$_SESSION['context_id'];
+                $decrypted = loggedInUserId().':'.$code.':'.currentContextId();
                 $encrypted = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
                 $published_guid = BadgeService::getMintedGuidIfExists(
-                    (int) $_SESSION['id'],
-                    (int) $_SESSION['context_id'],
+                    loggedInUserId(),
+                    currentContextId(),
                     $code
                 );
                 $assert_url = $published_guid !== null
@@ -2088,7 +2088,7 @@ class Lessons {
         }
         echo("</ul><!-- end of discussions -->\n");
 
-        if ( U::get($_SESSION, 'id') && intval(U::get($_SESSION, 'context_id', 0)) > 0 ) {
+        if ( isLoggedIn() && currentContextId() !== 0 ) {
             echo('<form method="post" action="'.htmlspecialchars($mark_read_url).'" class="tsugi-discussions-mark-read-form" style="margin: 1em 0 0;">');
             echo('<button type="submit" class="btn btn-default btn-sm">'.htmlentities(__('Mark all as read')).'</button>');
             echo('</form>'."\n");

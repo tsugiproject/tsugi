@@ -13,7 +13,7 @@ use \Tsugi\UI\SettingsDialog;
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 
-if ( ! U::get($_SESSION,'id') ) {
+if ( ! isLoggedIn() ) {
     die('Must be logged in');
 }
 
@@ -44,7 +44,7 @@ $titles = array(
 );
 
 $where_clause .= "user_id = :UID";
-$query_fields[":UID"] = $_SESSION['id'];
+$query_fields[":UID"] = loggedInUserId();
 
 // Load the row - to check a few things
 $sql = CrudForm::selectSql($tablename, $fields, $where_clause);

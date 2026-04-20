@@ -9,7 +9,7 @@ require_once("../config.php");
 require_once("settings_util.php");
 session_start();
 
-if ( ! U::get($_SESSION,'id') ) {
+if ( ! isLoggedIn() ) {
     $_SESSION['login_return'] = $CFG->wwwroot . '/settings';
     Output::doRedirect($CFG->wwwroot.'/login.php');
     return;
@@ -26,8 +26,9 @@ $sql = "SELECT count(C.context_id) AS count
          OR C.user_id = :UID";
 
 $course_count = 0;
-if ( U::get($_SESSION, 'id') ) {
-    $row = $PDOX->rowDie($sql, array(':UID' => $_SESSION['id']));
+$uid = loggedInUserId();
+if ( $uid ) {
+    $row = $PDOX->rowDie($sql, array(':UID' => $uid));
     $course_count = U::get($row, 'count', 0);
 }
 

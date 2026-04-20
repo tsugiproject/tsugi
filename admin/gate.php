@@ -23,7 +23,7 @@ try {
     $havedatabase = false;
 }
 
-if ( $havedatabase && $CFG->google_client_id && ! U::get($_SESSION,'id') ) {
+if ( $havedatabase && $CFG->google_client_id && ! isLoggedIn() ) {
     $_SESSION['login_return'] = $rest_path->full;
     Output::doRedirect($CFG->wwwroot.'/login.php');
     return;
@@ -39,10 +39,10 @@ if ( isset($_POST['passphrase']) ) {
 
         $_SESSION["admin"] = "yes";
         error_log("Admin login IP=".$_SERVER["REMOTE_ADDR"].
-            (isset($_SESSION['id']) ? " id=". $_SESSION['id'].' email='.$_SESSION['email'] : " developer mode"));
+            (isLoggedIn() ? " id=".loggedInUserId().' email='.U::get($_SESSION, 'email', '') : " developer mode"));
     } else {
         error_log("Admin bad pw IP=".$_SERVER["REMOTE_ADDR"].
-            (isset($_SESSION['id']) ? " id=". $_SESSION['id'].' email='.$_SESSION['email'] : " developer mode"));
+            (isLoggedIn() ? " id=".loggedInUserId().' email='.U::get($_SESSION, 'email', '') : " developer mode"));
     }
     $rest_path = \Tsugi\Util\U::rest_path();
     $redirect = U::reconstruct_query($rest_path->current);

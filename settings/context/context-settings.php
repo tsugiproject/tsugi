@@ -12,7 +12,7 @@ use \Tsugi\Core\LTIX;
 header('Content-Type: text/html; charset=utf-8');
 LTIX::session_start();
 
-if ( ! U::get($_SESSION,'id') ) {
+if ( ! isLoggedIn() ) {
     die('Must be logged in');
 }
 

@@ -14,7 +14,7 @@ if ( ! defined('TSUGI_RECENT_ENABLED') || ! TSUGI_RECENT_ENABLED ) {
     die('This needs more work in lti_membership');
 }
 
-if ( ! U::get($_SESSION, 'id') ) {
+if ( ! isLoggedIn() ) {
     die('Must be logged in');
 }
 

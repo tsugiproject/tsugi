@@ -60,7 +60,7 @@ $titles = array(
 
 if ( isset($_POST['issuer_id']) && empty($_POST['issuer_id']) ) $_POST['issuer_id'] = null;
 if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
-if ( isset($_POST['user_id']) && empty($_POST['user_id']) && isset($_SESSION['id']) ) $_POST['user_id'] = $_SESSION['id'];
+if ( isset($_POST['user_id']) && empty($_POST['user_id']) && isLoggedIn() ) $_POST['user_id'] = loggedInUserId();
 
 // Check the complex interaction of constraints
 $key_key = U::get($_POST,'key_key');
