@@ -155,8 +155,8 @@ class GradeUtil {
      * @return array<int,array<string,mixed>>
      */
     public static function loadGradesCurrentUser() {
-        $uid = loggedInUserId();
-        $cid = currentContextId();
+        $uid = \loggedInUserId();
+        $cid = \currentContextId();
         if ( $uid < 1 || $cid < 1 ) {
             return array();
         }
@@ -280,7 +280,7 @@ class GradeUtil {
         if ( ! self::dueMapHasScheduledEnd($map) ) {
             return array();
         }
-        $user_id = loggedInUserId();
+        $user_id = \loggedInUserId();
         if ( $user_id < 1 ) {
             return array();
         }
