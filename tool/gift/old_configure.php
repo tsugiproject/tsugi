@@ -93,7 +93,7 @@ if ( isset($_SESSION['gift']) ) {
 
 // Clean up the JSON for presentation
 if ( $gift === false || strlen($gift) < 1 ) {
-    if ( is_array($default) && $lock == false && in_array($default, $files) ) {
+    if ( is_string($default) && $lock == false && in_array($default, $files) ) {
         $gift = file_get_contents($CFG->giftquizzes.'/'.$default);
         $_SESSION['success'] = 'Loaded quiz '.$default.' as default';
     } else {

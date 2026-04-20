@@ -13,17 +13,17 @@ function parse_gift($text, &$questions, &$errors) {
         // print $line."\n";
         if ( strpos($line, "//") === 0 ) continue;
         if ($line == "" ) {
-            if ( strlen($question ?? '') > 0 ) {
+            if ( strlen($question) > 0 ) {
                 $raw_questions[] = $question;
                 $question = "";
             }
             continue;
         }
-        if ( strlen($question ?? '') > 0 ) $question .= "\n";
+        if ( strlen($question) > 0 ) $question .= "\n";
         $question .= $line;
     }
 
-    if ( strlen($question ?? '') > 0 ) {
+    if ( strlen($question) > 0 ) {
         $raw_questions[] = $question;
     }
 

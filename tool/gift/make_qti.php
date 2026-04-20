@@ -22,8 +22,8 @@ function plain_to_html_in_xml($questext) {
 
 /**
  * From http://stackoverflow.com/questions/3957360/generating-xml-document-in-php-escape-characters
- * @param $arr1 the single string that shall be masked
- * @return the resulting string with the masked characters
+ * @param string $arr1 the single string that shall be masked
+ * @return string the resulting string with the masked characters
  */
 function html_in_xml_replace_char($arr1)
 {
