@@ -186,7 +186,7 @@ $CFG->tool_folders = array("admin", "mod", "tool");
 $CFG->install_folder = $CFG->dirroot.'/mod';
 
 if ( $embedded_layout ) {
-    $CFG->tool_folders = array("admin", "../tools", "../mod", "tool");
+    $CFG->tool_folders = array("admin", "tool", "../tools", "../mod");
     $CFG->install_folder = $CFG->dirroot.'/../mod';
 }
 // Set to true to redirect to the upgrading.php script
