@@ -1,7 +1,7 @@
 <?php
 
-require_once "configure_parse.php";
-require_once "parse.php";
+require_once __DIR__ . "/../../configure_parse.php";
+require_once __DIR__ . "/../../parse.php";
 
 class ConfigureParseTest extends \PHPUnit\Framework\TestCase
 {

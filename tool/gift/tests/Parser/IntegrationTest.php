@@ -49,13 +49,13 @@ GIFT;
             $types[] = $q->type;
         }
         
-        $this->assertContains('true_false_question', $types, '', true);
-        $this->assertContains('multiple_choice_question', $types, '', true);
-        $this->assertContains('multiple_answers_question', $types, '', true);
-        $this->assertContains('short_answer_question', $types, '', true);
-        $this->assertContains('numerical_question', $types, '', true);
-        $this->assertContains('matching_question', $types, '', true);
-        $this->assertContains('essay_question', $types, '', true);
+        $this->assertContains('true_false_question', $types);
+        $this->assertContains('multiple_choice_question', $types);
+        $this->assertContains('multiple_answers_question', $types);
+        $this->assertContains('short_answer_question', $types);
+        $this->assertContains('numerical_question', $types);
+        $this->assertContains('matching_question', $types);
+        $this->assertContains('essay_question', $types);
     }
 
     /**

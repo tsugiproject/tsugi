@@ -26,7 +26,6 @@ if ( $row !== false ) {
 
 if ( $assn_id == false ) {
     die('This assignment is not yet set up');
-    return;
 }
 
 $row = $PDOX->rowDie("

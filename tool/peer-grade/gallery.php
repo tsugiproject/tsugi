@@ -4,6 +4,7 @@ use \Tsugi\Blob\BlobUtil;
 
 require_once "peer_util.php";
 
+use \Tsugi\Util\U;
 use \Tsugi\UI\Table;
 use \Tsugi\Core\LTIX;
 

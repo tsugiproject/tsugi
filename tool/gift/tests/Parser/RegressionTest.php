@@ -35,10 +35,10 @@ class RegressionTest extends ParserTest
             }
         }
         
-        $this->assertContains('#ff0000', $answers, '', true);
-        $this->assertContains('#00ff00', $answers, '', true);
-        $this->assertContains('#0000ff', $answers, '', true);
-        $this->assertContains('#ffffff', $answers, '', true);
+        $this->assertContains('#ff0000', $answers);
+        $this->assertContains('#00ff00', $answers);
+        $this->assertContains('#0000ff', $answers);
+        $this->assertContains('#ffffff', $answers);
     }
 
     /**

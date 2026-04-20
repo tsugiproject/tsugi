@@ -142,3 +142,59 @@ namespace Ratchet {
         }
     }
 }
+
+namespace PHPUnit\Framework {
+    /**
+     * Lightweight PHPUnit TestCase stub for static analysis in environments
+     * where phpunit classes are not available (for example some CI jobs).
+     */
+    abstract class TestCase
+    {
+        public function assertEquals(mixed $expected, mixed $actual, string $message = ''): void
+        {
+        }
+
+        public function assertTrue(mixed $condition, string $message = ''): void
+        {
+        }
+
+        public function assertFalse(mixed $condition, string $message = ''): void
+        {
+        }
+
+        public function assertCount(int $expectedCount, mixed $haystack, string $message = ''): void
+        {
+        }
+
+        /**
+         * @param iterable<mixed> $haystack
+         */
+        public function assertContains(mixed $needle, iterable $haystack, string $message = ''): void
+        {
+        }
+
+        public function assertNotEmpty(mixed $actual, string $message = ''): void
+        {
+        }
+
+        public function assertEmpty(mixed $actual, string $message = ''): void
+        {
+        }
+
+        public function assertGreaterThan(mixed $expected, mixed $actual, string $message = ''): void
+        {
+        }
+
+        public function assertGreaterThanOrEqual(mixed $expected, mixed $actual, string $message = ''): void
+        {
+        }
+
+        public function assertStringContainsString(string $needle, string $haystack, string $message = ''): void
+        {
+        }
+
+        public function markTestSkipped(string $message = ''): void
+        {
+        }
+    }
+}

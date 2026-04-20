@@ -348,7 +348,7 @@ function parse_gift($text, &$questions, &$errors) {
 
                 // echo("<pre>\n$i $ch\n</pre>\n");
                 // Finish up the previous entry
-                if ( strlen($answer_text ?? '') > 0 && ($ch == -1 || ($prevch != "\\" && ($ch == '=' || $ch == "~" )) ) ) {
+                if ( is_string($answer_text) && strlen($answer_text) > 0 && ($ch == -1 || ($prevch != "\\" && ($ch == '=' || $ch == "~" )) ) ) {
                     if ( $correct === null || $answer_text === false ) {
                         $errors[] = "Mal-formed answer sequence: ".$raw;
                         $parsed_answer = array();
@@ -424,7 +424,7 @@ function parse_gift($text, &$questions, &$errors) {
                 if ( $prevch != "\\" && $ch == '#' && $in_feedback === false ) {
                     // Only switch to feedback mode if we have some answer text already
                     // This handles cases like "=#ff0000" where # is part of the answer
-                    if ( $answer_text !== false && strlen(trim($answer_text ?? '')) > 0 ) {
+                    if ( $answer_text !== false && strlen(trim($answer_text)) > 0 ) {
                         $in_feedback = true;
                         continue;
                     }

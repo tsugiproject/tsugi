@@ -97,8 +97,8 @@ class ParserTest extends \PHPUnit\Framework\TestCase
                 $feedbacks[] = $ans[2];
             }
         }
-        $this->assertContains('Wrong!', $feedbacks, '', true);
-        $this->assertContains('Correct!', $feedbacks, '', true);
+        $this->assertContains('Wrong!', $feedbacks);
+        $this->assertContains('Correct!', $feedbacks);
     }
 
     public function testFalseAnswer() {
@@ -165,8 +165,8 @@ class ParserTest extends \PHPUnit\Framework\TestCase
         foreach ($q->parsed_answer as $ans) {
             $answers[] = $ans[1];
         }
-        $this->assertContains('#ff0000', $answers, '', true);
-        $this->assertContains('#00ff00', $answers, '', true);
+        $this->assertContains('#ff0000', $answers);
+        $this->assertContains('#00ff00', $answers);
     }
 
     public function testMultipleChoiceWithHexColorsAndFeedback() {
@@ -317,8 +317,8 @@ class ParserTest extends \PHPUnit\Framework\TestCase
         foreach ($q->parsed_answer as $ans) {
             $matches[] = $ans[1];
         }
-        $this->assertContains('cat -> cat food', $matches, '', true);
-        $this->assertContains('dog -> dog food', $matches, '', true);
+        $this->assertContains('cat -> cat food', $matches);
+        $this->assertContains('dog -> dog food', $matches);
     }
 
     public function testMatchingWithFeedback() {
