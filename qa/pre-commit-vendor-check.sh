@@ -68,6 +68,7 @@ exit(0);
   sed 's/^/   - /' /tmp/vendor_dev_found.$$ || true
   rm -f /tmp/vendor_dev_found.$$
   echo "   Vendor was built with dev deps enabled"
+  echo "   Fix: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader"
   exit 1
 }
 rm -f /tmp/vendor_dev_found.$$
