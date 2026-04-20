@@ -10,6 +10,11 @@ use Facebook\WebDriver\WebDriverElement;
 
 abstract class ToolLaunchHarness extends TsugiPantherTestCase
 {
+    protected function captureStep(\Symfony\Component\Panther\Client $client, string $flow, string $step): void
+    {
+        $this->captureScreenshot($client, $flow . '-' . $step);
+    }
+
     protected function launchTool(\Symfony\Component\Panther\Client $client, string $toolKey, array $query = []): void
     {
         $path = 'store/test/' . $toolKey;

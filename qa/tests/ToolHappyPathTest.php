@@ -10,6 +10,7 @@ final class ToolHappyPathTest extends ToolLaunchHarness
     {
         $client = $this->pantherClient();
         $this->launchTool($client, 'gift', ['identity' => 'instructor']);
+        $this->captureStep($client, 'gift-happy', '01-launched');
         $this->waitForAnyFrameText($client, [
             'This quiz has not yet been configured',
             'Submit quiz',
@@ -22,6 +23,7 @@ final class ToolHappyPathTest extends ToolLaunchHarness
             $driver->executeScript('window.location.href = "old_configure.php" + window.location.search;');
         });
         $this->waitForFrameText($client, 'The assignment is configured by carefully editing the gift below');
+        $this->captureStep($client, 'gift-happy', '02-configure-open');
 
         $this->inLaunchFrame($client, function ($driver) use ($giftText): void {
             $textarea = $this->findFirst($driver, [
@@ -37,6 +39,7 @@ final class ToolHappyPathTest extends ToolLaunchHarness
 
         $this->waitForFrameText($client, 'Quiz updated');
         $this->waitForFrameText($client, 'Submit quiz');
+        $this->captureStep($client, 'gift-happy', '03-configured');
         $this->captureScreenshot($client, 'tool-gift-happy-path');
     }
 
@@ -44,6 +47,7 @@ final class ToolHappyPathTest extends ToolLaunchHarness
     {
         $client = $this->pantherClient();
         $this->launchTool($client, 'peer-grade', ['identity' => 'instructor']);
+        $this->captureStep($client, 'peer-grade-happy', '01-launched');
         $this->waitForFrameText($client, 'This assignment is not yet configured');
 
         $title = 'Panther Peer Grade ' . date('YmdHis');
@@ -53,6 +57,7 @@ final class ToolHappyPathTest extends ToolLaunchHarness
             $driver->executeScript('window.location.href = "configure" + window.location.search;');
         });
         $this->waitForFrameText($client, 'Assignment Title');
+        $this->captureStep($client, 'peer-grade-happy', '02-configure-open');
 
         $this->inLaunchFrame($client, function ($driver) use ($title): void {
             $titleInput = $this->findFirst($driver, [
@@ -68,6 +73,7 @@ final class ToolHappyPathTest extends ToolLaunchHarness
             'Please Upload Your Submission',
             $title,
         ], 20);
+        $this->captureStep($client, 'peer-grade-happy', '03-configured');
         $this->captureScreenshot($client, 'tool-peer-grade-happy-path');
     }
 
@@ -75,6 +81,7 @@ final class ToolHappyPathTest extends ToolLaunchHarness
     {
         $client = $this->pantherClient();
         $this->launchTool($client, 'tdiscus', ['identity' => 'instructor']);
+        $this->captureStep($client, 'tdiscus-happy', '01-launched');
         $this->waitForFrameText($client, 'Add Thread');
 
         $threadTitle = 'Panther thread ' . date('YmdHis');
@@ -84,6 +91,7 @@ final class ToolHappyPathTest extends ToolLaunchHarness
             $driver->executeScript('window.location.href = "threadform" + window.location.search;');
         });
         $this->waitForFrameText($client, 'New Thread');
+        $this->captureStep($client, 'tdiscus-happy', '02-threadform-open');
 
         $this->inLaunchFrame($client, function ($driver) use ($threadTitle): void {
             // Build and submit a synthetic POST form so title/body are always present,
@@ -119,6 +127,7 @@ final class ToolHappyPathTest extends ToolLaunchHarness
             $this->assertStringNotContainsString('Title and body are required', $html);
             $this->assertStringContainsString($threadTitle, $html);
         });
+        $this->captureStep($client, 'tdiscus-happy', '03-thread-created');
         $this->captureScreenshot($client, 'tool-tdiscus-happy-path');
     }
 }
