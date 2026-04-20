@@ -32,6 +32,7 @@ parameters:
         - vendor/*
         - locale/*
         - _files/*
+        - mod/tsugi-php-samples/*
     reportUnmatchedIgnoredErrors: true
     reportPossiblyNonexistentGeneralArrayOffset: true
     reportPossiblyNonexistentConstantArrayOffset: true
