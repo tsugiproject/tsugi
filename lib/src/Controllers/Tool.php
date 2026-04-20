@@ -334,7 +334,7 @@ abstract class Tool {
      * 2. If user has instructor role or role_override in lti_membership table
      * 3. If user owns the context or its key
      * 
-     * Reads context via currentContextId(); user id via loggedInUserId() (session or globals).
+     * Reads context via \currentContextId(); user id via \loggedInUserId() (session or globals).
      * Delegates to Membership::ensureInSession(), which caches a Membership instance in
      * context-scoped session cache via Membership::ensureInSession() (single lti_membership SELECT when missing;
      * ownership query only when role must be resolved).
@@ -343,8 +343,8 @@ abstract class Tool {
      */
     protected function isInstructor() {
         // Context from session or $CONTEXT; user id from session or $USER (see lms_lib.php)
-        $context_id = currentContextId();
-        $user_id = loggedInUserId();
+        $context_id = \currentContextId();
+        $user_id = \loggedInUserId();
 
         // If context_id or user_id missing, user is not an instructor
         if ( ! $context_id || ! $user_id ) {
@@ -369,8 +369,8 @@ abstract class Tool {
      * @return bool
      */
     protected function viewDueDates() {
-        $context_id = currentContextId();
-        $user_id = loggedInUserId();
+        $context_id = \currentContextId();
+        $user_id = \loggedInUserId();
         if ( ! $context_id || ! $user_id ) {
             return false;
         }
@@ -396,10 +396,10 @@ abstract class Tool {
      * @throws \Exception If user is not logged in or context is missing
      */
     protected function requireAuth() {
-        if ( ! isLoggedIn() ) {
+        if ( ! \isLoggedIn() ) {
             die('Must be logged in');
         }
-        if ( ! currentContextId() ) {
+        if ( ! \currentContextId() ) {
             die('Context required');
         }
     }
@@ -553,7 +553,7 @@ abstract class Tool {
         global $CFG, $PDOX;
 
         if ( ! isset($CFG->launchactivity) || ! $CFG->launchactivity ) return false;
-        if ( ! isLoggedIn() || ! currentContextId() ) return false;
+        if ( ! \isLoggedIn() || ! \currentContextId() ) return false;
         if ( $this->isInstructor() ) return false; // mirror LTIX: only learner launches are logged
 
         // Ensure DB connection
@@ -561,8 +561,8 @@ abstract class Tool {
             LTIX::getConnection();
         }
 
-        $context_id = currentContextId();
-        $user_id = loggedInUserId();
+        $context_id = \currentContextId();
+        $user_id = \loggedInUserId();
 
         $link_key = $this->lmsAnalyticsKey($analytics_path);
 
@@ -667,7 +667,7 @@ abstract class Tool {
         // Derive tool_name from route (remove leading slash)
         $tool_name = ltrim($route, '/');
         
-        $context_id = currentContextId();
+        $context_id = \currentContextId();
         
         // Compute analytics link
         $link_key = $this->lmsAnalyticsKey($stable_path);

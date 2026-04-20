@@ -148,7 +148,7 @@ class GradeUtil {
     }
 
     /**
-     * Grades for the logged-in user in the current course (uses loggedInUserId() and currentContextId()).
+     * Grades for the logged-in user in the current course (uses \loggedInUserId() and \currentContextId()).
      * Cached per context via {@see Cache::setContext} for {@see self::GRADES_CURRENT_USER_CACHE_TTL} seconds;
      * on miss loads via {@see loadGradesForCourse}.
      *

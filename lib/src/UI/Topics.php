@@ -77,7 +77,7 @@ class Topics {
         }
 
         // Filter topics based on login
-        if ( ! isLoggedIn() ) {
+        if ( ! \isLoggedIn() ) {
             $filtered_topics = array();
             $filtered = false;
             foreach($course->topics as $topic) {
