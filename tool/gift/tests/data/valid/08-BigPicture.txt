@@ -1,0 +1,160 @@
+::BP_Q1::
+At the highest level, a Django web application exists to:
+{
+=Correct Answer~Render HTML files directly from disk
+~Replace the browser
+~Store data permanently
+}
+
+::BP_Q2::
+Which component initiates almost every interaction in a Django application?
+{
+=Correct Answer~Database
+~Template
+~Middleware
+}
+
+::BP_Q3::
+When a user clicks a link in the browser, what happens first on the server?
+{
+=Correct Answer~A template is rendered
+~A database query runs
+~A response is sent
+}
+
+::BP_Q4::
+Which file is consulted first to decide what code handles a request?
+{
+=Correct Answer~views.py
+~models.py
+~settings.py
+}
+
+::BP_Q5::
+What is the primary responsibility of URL routing?
+{
+=Correct Answer~Render templates
+~Validate user input
+~Store session data
+}
+
+::BP_Q6::
+What is the primary responsibility of a Django view?
+{
+=Correct Answer~Store data
+~Render CSS
+~Parse URLs
+}
+
+::BP_Q7::
+Which component is responsible for persistent data storage?
+{
+=Correct Answer~Views
+~Templates
+~Forms
+}
+
+::BP_Q8::
+What role do templates play in the big picture?
+{
+=Correct Answer~Handle business logic
+~Validate input
+~Route requests
+}
+
+::BP_Q9::
+Why is Django described as following MVC concepts?
+{
+=Correct Answer~It enforces strict file locations
+~It eliminates JavaScript
+~It uses controllers explicitly
+}
+
+::BP_Q10::
+Which Django file most closely represents the “controller” role?
+{
+=Correct Answer~models.py
+~templates
+~settings.py
+}
+
+::BP_Q11::
+Which Django file contains configuration that affects the entire project?
+{
+=Correct Answer~views.py
+~urls.py
+~models.py
+}
+
+::BP_Q12::
+What is the purpose of forms.py in the application flow?
+{
+=Correct Answer~Render HTML directly
+~Store session data
+~Define URL patterns
+}
+
+::BP_Q13::
+Why is routing kept separate from views?
+{
+=Correct Answer~To improve database performance
+~To simplify templates
+~To reduce HTML size
+}
+
+::BP_Q14::
+What does Django’s WSGI configuration primarily do?
+{
+=Correct Answer~Render templates
+~Process forms
+~Handle authentication
+}
+
+::BP_Q15::
+Which component determines *which* template is rendered?
+{
+=Correct Answer~Template
+~URL configuration
+~Model
+}
+
+::BP_Q16::
+Why is using named URL patterns considered best practice?
+{
+=Correct Answer~They improve performance
+~They hide URLs from users
+~They eliminate routing logic
+}
+
+::BP_Q17::
+What happens after a view finishes processing a request?
+{
+=Correct Answer~The database commits automatically
+~Templates take over routing
+~The session is destroyed
+}
+
+::BP_Q18::
+Which component should contain the least amount of logic?
+{
+=Correct Answer~Views
+~Forms
+~Models
+}
+
+::BP_Q19::
+Why is the “big picture” important when debugging Django applications?
+{
+=Correct Answer~Errors only occur in templates
+~Django hides all errors
+~The database always fails first
+}
+
+::BP_Q20::
+Which statement best summarizes the Django big picture?
+{
+=Correct Answer~Templates control the entire application
+~Models generate responses directly
+~URLs execute database queries
+}
+

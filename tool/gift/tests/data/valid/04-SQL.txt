@@ -1,0 +1,163 @@
+// Database queries
+
+::SQL_Q1::
+DBA most commonly stands for:
+{
+=Correct Answer~Database Administer
+~Data Base Architect
+~Debugging Boss Authority
+}
+
+::SQL_Q2::
+Structured Query Language (SQL) is used to:
+{
+=Correct Answer~Write Python programs
+~Design web pages
+~Manage network sockets
+}
+
+::SQL_Q3::
+Which SQL command is used to create a new table?
+{
+=Correct Answer~MAKE TABLE
+~NEW TABLE
+~BUILD TABLE
+}
+
+::SQL_Q4::
+Which SQL statement inserts a new row into a table?
+{
+=Correct Answer~ADD ROW
+~PUT DATA
+~APPEND
+}
+
+::SQL_Q5::
+Which keyword is used to add conditions to a SQL query?
+{
+=Correct Answer~IF
+~ONLYIF
+~FILTER
+}
+
+::SQL_Q6::
+Which SQL statement retrieves all rows from a table named Users?
+{
+=Correct Answer~RETRIEVE * FROM Users
+~SELECT all FROM Users
+~FETCH Users
+}
+
+::SQL_Q7::
+Which keyword causes query results to be returned in sorted order?
+{
+=Correct Answer~SORT
+~GROUP BY
+~ARRANGE
+}
+
+::SQL_Q8::
+What does the LIMIT clause do?
+{
+=Correct Answer~Limits the number of columns
+~Prevents table growth
+~Improves query security
+}
+
+::SQL_Q9::
+Which statement about primary keys is true?
+{
+=Correct Answer~They can safely be NULL
+~They store duplicate values
+~They must contain text
+}
+
+::SQL_Q10::
+Which type of key references a primary key in another table?
+{
+=Correct Answer~Secondary key
+~External key
+~Reference pointer
+}
+
+::SQL_Q11::
+Which SQL statement modifies existing rows in a table?
+{
+=Correct Answer~MODIFY
+~CHANGE
+~ALTER ROW
+}
+
+::SQL_Q12::
+Which SQL statement removes rows from a table?
+{
+=Correct Answer~DROP
+~REMOVE
+~CLEAR
+}
+
+::SQL_Q13::
+Which clause determines which rows are affected by UPDATE or DELETE?
+{
+=Correct Answer~ORDER BY
+~LIMIT
+~FROM
+}
+
+::SQL_Q14::
+What does AUTOINCREMENT do in a table definition?
+{
+=Correct Answer~Reuses deleted values
+~Sorts rows automatically
+~Speeds up SELECT queries
+}
+
+::SQL_Q15::
+Which SQLite command lists all tables in the database?
+{
+=Correct Answer~SHOW TABLES
+~LIST TABLES
+~DESCRIBE
+}
+
+::SQL_Q16::
+Which SQLite command shows the schema for a table?
+{
+=Correct Answer~.tables
+~.info
+~.layout
+}
+
+::SQL_Q17::
+Which data type is commonly used to store text in SQLite?
+{
+=Correct Answer~STRING
+~CHARACTER
+~WORD
+}
+
+::SQL_Q18::
+Which statement about storing images or PDFs in databases is true?
+{
+=Correct Answer~They cannot be stored at all
+~They must be compressed first
+~SQL does not support binary data
+}
+
+::SQL_Q19::
+Why might sorting data on disk not always be efficient?
+{
+=Correct Answer~Sorting increases storage size
+~Sorting requires indexes
+~Sorting corrupts data
+}
+
+::SQL_Q20::
+Which statement best reflects SQL best practice?
+{
+=Correct Answer~Retrieve all data and filter in Python
+~Avoid WHERE clauses
+~Store logic inside the database only
+}
+
+

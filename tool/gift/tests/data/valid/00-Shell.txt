@@ -1,0 +1,123 @@
+::Q0::What operating system are you using in PythonAnywhere when you 
+open a Bash shell?
+{
+=Correct Answer~Windows
+~MacOS
+~DEC VMS
+~MS/DOS
+}
+
+::Q1::Which of these commands must be typed when you start a new shell
+to activate your virtual environment to make sure you have the correct
+versions of Python and Django.
+{
+=Correct Answer~ls
+~cd
+~grep
+}
+
+::Q2::The Linux command to search files for a particular string is "grep".
+What does "grep" stand for?
+{
+=Correct Answer~General Regular Expression Parser
+~GReat Expression Printer
+~Go Research Explore Print
+}
+
+::Q3::Which of the following commands will exit the Python Shell?
+{
+=Correct Answer~.quit
+~return
+~grep
+}
+
+::Q4::What can you do in the Django Shell that you can't do in the Python
+Shell?
+{
+=Correct Answer~Use the print() function
+~write a for loop
+~check the syntax of a Python command
+}
+
+::Q5::What does it mean when you see the "..." command in the command
+line interface?
+{
+=Correct Answer~Python is waiting for a semicolon
+~You can enter more than one Linux command to be executed simultaneously
+~You have switched from Python to SQL
+}
+
+::Q6::What character is the SQLite command line tool looking for when you
+see the '...>' prompt?
+{
+=Correct Answer~period
+~pound sign
+~asterisk
+}
+
+::Q7::Which command do you use to exit the Django Shell?
+{
+=Correct Answer~.quit
+~return
+~grep
+}
+
+::Q8::Which command do you use to exit the SQLite comand line tool?
+{
+=Correct Answer~quit()
+~return
+~grep
+}
+
+::Q9::Which of these is a reserved word in the SQL (database) language?
+{
+=Correct Answer~print
+~return
+~grep
+}
+
+::Q10::Which command prompt generally ends in dollar sign ($)?
+{
+=Correct Answer~Python shell
+~Django shell
+~SQLite interface
+}
+
+::Q11::Which command prompt uses three chevrons (>>>)? 
+{
+=Correct Answer~Linux shell
+~SQLite interface
+~Mongo shell
+}
+
+::Q12::What is the most commonly used operating system for production servers
+in the cloud.
+{
+=Correct Answer~Windows
+~MacOS
+~DEC VMS
+~MS/DOS
+}
+
+::Q13::In the bash shell, what is the tab used for?
+{
+=Correct Answer~Scrolling up and down while reading an online manual page
+~Logging out
+~Scolling up and down in commands you previously typed
+}
+
+::Q14::In the bash shell, what are the arrow keys used for?
+{
+~File and folder completion
+~Scrolling up and down while reading an online manual page
+~Logging out
+=Correct Answer}
+
+::Q15::What does the "b" in "bash shell" stand for?
+{
+=Correct Answer~Bond (James Bond)
+~Best
+~Bivalve
+~Conch
+}
+

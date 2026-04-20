@@ -1,0 +1,159 @@
+::CS_Q1::
+Why were cookies introduced into HTTP?
+{
+=Correct Answer~To speed up page rendering
+~To reduce network traffic
+~To replace databases
+}
+
+::CS_Q2::
+Where are HTTP cookies stored?
+{
+=Correct Answer~In the Django application
+~In the database
+~In the web server configuration
+}
+
+::CS_Q3::
+Which protocol defines how cookies are exchanged?
+{
+=Correct Answer~HTML
+~CSS
+~SQL
+}
+
+::CS_Q4::
+Which Python data structure is most similar to cookie storage?
+{
+=Correct Answer~List
+~Tuple
+~Set
+}
+
+::CS_Q5::
+Which statement about cookies is true?
+{
+=Correct Answer~Any server can read any cookie
+~Cookies are shared across all websites
+~Cookies are encrypted by default
+}
+
+::CS_Q6::
+Which type of cookie is deleted when the browser closes?
+{
+=Correct Answer~Persistent cookie
+~Encrypted cookie
+~Secure cookie
+}
+
+::CS_Q7::
+Which Django method is used to set a cookie in a view?
+{
+=Correct Answer~request.set_cookie()
+~request.COOKIES.set()
+~response.cookies()
+}
+
+::CS_Q8::
+How many times must a cookie be set to persist across requests?
+{
+=Correct Answer~On every request
+~On every POST
+~On every response
+}
+
+::CS_Q9::
+What is the usual approach for creating a session identifier?
+{
+=Correct Answer~Increment a counter
+~Use the user’s email address
+~Hash the username
+}
+
+::CS_Q10::
+In Django, where is session data typically stored by default?
+{
+=Correct Answer~In the browser
+~In JavaScript variables
+~In cookies only
+}
+
+::CS_Q11::
+Which Django component manages session creation and persistence?
+{
+=Correct Answer~Views
+~Models
+~Templates
+}
+
+::CS_Q12::
+How do you store a value in the session in a Django view?
+{
+=Correct Answer~response.session['key'] =Correct Answer~request.session.set('key', value)
+~request.set_session('key', value)
+}
+
+::CS_Q13::
+What must be true for Django sessions to work correctly?
+{
+=Correct Answer~JavaScript must be enabled
+~The user must be logged in
+~The database must be read-only
+}
+
+::CS_Q14::
+What does request.session.get('x', 0) do?
+{
+=Correct Answer~Creates a new session
+~Deletes the session key
+~Encrypts the session data
+}
+
+::CS_Q15::
+Which table stores session data when using Django’s default configuration?
+{
+=Correct Answer~auth_user
+~session_data
+~django_cookie
+}
+
+::CS_Q16::
+Why is session data stored on the server instead of in cookies?
+{
+=Correct Answer~To reduce server load
+~To eliminate cookies
+~To avoid HTTP headers
+}
+
+::CS_Q17::
+What is stored in the browser to identify a session?
+{
+=Correct Answer~All session data
+~User credentials
+~Encrypted Python objects
+}
+
+::CS_Q18::
+Which HTTP response header is used to send cookies to the browser?
+{
+=Correct Answer~Cookie
+~Session
+~X-Session-ID
+}
+
+::CS_Q19::
+What happens if session middleware is disabled?
+{
+=Correct Answer~Cookies stop working
+~Templates fail to render
+~The database becomes read-only
+}
+
+::CS_Q20::
+Which statement best summarizes Django sessions?
+{
+=Correct Answer~They replace HTTP
+~They eliminate cookies entirely
+~They only work for authenticated users
+}
+

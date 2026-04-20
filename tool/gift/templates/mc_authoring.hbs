@@ -1,0 +1,21 @@
+<div class="possible-answer" id="possible_answer{{num}}_question{{count}}">
+  <label for="answer{{num}}_question{{count}}">{{__ 'Option'}}:</label>
+  <input type="text" class="answer-option form-control" name="answer{{num}}_question{{count}}" value="{{value}}">
+  <label for="answer{{num}}_iscorrect_question{{count}}">{{__ 'Correct'}}?</label>
+  <input type="checkbox" name="answer{{num}}_iscorrect_question{{count}}" {{#if isCorrect}}checked{{/if}}>
+  {{#unless first}}
+  <input type="button" class="btn btn-default" name="btn_remove_answer{{num}}_question{{count}}" value="-"
+  onclick="
+    $('#possible_answer{{num}}_question{{count}}').remove();
+    renumber_answers({{count}});
+    set_focus_on_lastinput('#content_question{{count}}');"
+    >
+  {{/unless}}
+  <input type="button" class="btn btn-default" name="btn_add_answer{{num}}_question{{count}}" id="btn_add_answer{{num}}_question{{count}}" value="+"
+  onclick="
+    addAnswer('#content_question{{count}}', 'mc_authoring');
+    renumber_answers({{count}});
+    set_focus_on_lastinput('#content_question{{count}}');"
+    {{#if value}}style="display:none"{{/if}}
+  >
+</div>

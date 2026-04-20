@@ -1,0 +1,51 @@
+<div class="question-container" id="question{{count}}">
+  <div>
+    <h1 class="question-title">{{__ 'Question'}} {{count}} (<span id="question{{count}}">{{PrettyType}}</span>)</h1>
+    <div class="question-controls">
+      <select class="form-control question-type-select" id="question{{count}}_type_select"
+        onchange="change_question_type('#question{{count}}')"
+      >
+        <option value=""> -- Change Question Type -- </option>
+        <option value="true_false_question">True/False Question</option>
+        <option value="multiple_choice_question">Multiple Choice/Multiple Answer Question</option>
+        <option value="short_answer_question">Short Answer Question</option>
+      </select>
+      <div>
+        <input type="button" class="btn btn-default" value="X" id="delete_question{{count}}" name="btn_remove_question{{count}}"
+        onclick='
+          $("#delete_question{{count}}").hide();
+          $("#question{{count}}_type_select").hide();
+          $("#confirm_delete_question{{count}}").show("fade");
+          $("#cancel_delete_question{{count}}").show("fade");
+        '>
+        <input type="button" class="btn btn-warning" value="Yes, Delete" id="confirm_delete_question{{count}}" style="display:none"
+        onclick='
+          $("#question{{count}}").remove();
+          renumber_questions();
+          '>
+        <input type="button" class="btn btn-info" value="Cancel" id="cancel_delete_question{{count}}" style="display:none"
+        onclick='
+        $("#confirm_delete_question{{count}}").hide();
+        $("#cancel_delete_question{{count}}").hide();
+        $("#delete_question{{count}}").show("fade");
+        $("#question{{count}}_type_select").show("fade");
+        '>
+      </div>
+    </div>
+  </div>
+  <label for="text_question{{count}}">{{__ 'Question Text:'}}</label>
+  <textarea rows="4" class="form-control" name="text_question{{count}}">{{question}}</textarea>
+  <input type="hidden" name="type_question{{count}}" id="type_question{{count}}" value="{{type}}">
+  <label for="html_question{{count}}" class="right">
+    <input type="checkbox" name="html_question{{count}}" {{#if html}}checked{{/if}}>
+    Use HTML in question text
+  </label>
+  <div class="question-content-container" id="content_question{{count}}"></div>
+  <label for="title_question{{count}}">{{__ 'Question Title'}}
+      <i class="fa fa-info-circle" 
+         title="{{__ 'This is only used to track the question in the question source.  It is not shown to students.'}}"
+         onclick="alert('{{__ 'This is only used to track the question in the question source.  It is not shown to students.'}}');return false;"
+      ></i>
+  </label>
+  <input type="text" class="form-control" name="title_question{{count}}" value="{{name}}" >
+</div>

@@ -1,0 +1,10 @@
+// True/False Question Examples
+
+::Q1:: Is 1+1=2? {T}
+
+::Q2:: Is 1+1=3? {F}
+
+::Q3:: Is the sky blue? {T#Correct! The sky is indeed blue.}
+
+::Q4:: Is water wet? {T#Wrong!#Correct! Water makes things wet, but water itself is not wet.}
+

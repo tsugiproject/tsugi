@@ -1,0 +1,12 @@
+// Numerical Question Examples
+
+::Q1:: What is 3 plus or minus 2? {#3:2}
+
+::Q2:: What is a number from 1 to 5? {#1..5}
+
+::Q3:: What is exactly 42? {#42}
+
+::Q4:: What is 3? {#3#Correct!}
+
+::Q5:: When was Ulysses S. Grant born? {# =1822:0 # Correct! Full credit. =%50%1822:2 # Half credit for being close.}
+

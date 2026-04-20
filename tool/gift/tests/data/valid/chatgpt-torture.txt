@@ -1,0 +1,194 @@
+// Tsugi GIFT “torture test”
+// Goal: exercise a wide spread of GIFT syntax features and edge cases.
+// You can import this file as-is. It intentionally includes punctuation,
+// colons, arrows, HTML-like text, quotes, and Django-ish snippets.
+
+$CATEGORY: DJ4E / GIFT Torture Test
+
+::TT_Q01_MCQ_Basic::
+HTTP is primarily a:
+{
+=Stateless request-response protocol
+~Programming language
+~Database engine
+~Template system
+}
+
+::TT_Q02_MCQ_WithColonsAndArrows::
+Which line looks like Python inheritance syntax?
+{
+=class Child(Parent):
+~class Child inherits Parent:
+~class Child -> Parent:
+~class Child from Parent:
+}
+
+::TT_Q03_MCQ_HTMLLikeText::
+Which HTML tag is used to create a hyperlink?
+{
+=<a>
+~<link>
+~<href>
+~<url>
+}
+
+::TT_Q04_TF_True::
+HTTP is stateless.
+{TRUE}
+
+::TT_Q05_TF_False::
+A password input type automatically encrypts the password before sending it.
+{FALSE}
+
+::TT_Q06_ShortAnswer_CaseInsensitive::
+What Django file typically contains URL routing rules?
+{
+=urls.py
+=urls
+}
+
+::TT_Q07_ShortAnswer_WithFeedback::
+What template tag inserts a CSRF token in Django templates?
+{
+={% csrf_token %}#Correct. This adds a hidden token to POST forms.
+=% csrf_token#Also acceptable without braces.
+~% csrf % #No such standard tag.
+}
+
+::TT_Q08_MultiAnswer_AllOrNothing::
+Select ALL HTTP methods that are commonly used for retrieval without changing server state.
+{
+~%-50% POST
+= GET
+= HEAD
+~%-50% DELETE
+}
+
+::TT_Q09_MultiAnswer_PartialCredit::
+Which are Django “layers” in the big picture?
+{
+=~%50% Views
+=~%50% Templates
+=~%50% Models
+~%-50% DNS
+~%-50% BIOS
+}
+
+::TT_Q10_Numeric_Exact::
+How many bits are represented by one hexadecimal digit?
+{#4}
+
+::TT_Q11_Numeric_Range::
+Accept any answer in the range 79..81 (inclusive). What is the default HTTP port?
+{#80:1}
+
+::TT_Q12_Numeric_WithUnitsTextInStem::
+A typical HTTPS port is:
+{#443}
+
+::TT_Q13_Matching_Basic::
+Match the term to its meaning:
+{
+=HTTP -> Application-layer protocol used by the web
+=TCP -> Reliable transport protocol
+=URL -> Location/address of a resource
+=HTML -> Markup for document structure
+}
+
+::TT_Q14_Matching_WithPunctuation::
+Match the Django component to the role (using punctuation and slashes):
+{
+=urls.py -> Routes paths to view code
+=views.py -> Handles requests and returns responses
+=models.py -> Defines data schema/relationships
+=templates -> Presentation layer (HTML)
+}
+
+::TT_Q15_Essay::
+Explain, at a high level, how “Owned Rows” prevents a user from editing someone else’s data.
+{}
+
+::TT_Q16_MCQ_FeedbackPerChoice::
+Which is the safest place to enforce authorization for “owned rows”?
+{
+=In the view or queryset filtering#Yes. Templates are not a security boundary.
+~In the template only#No. Users can still hit URLs directly.
+~In CSS#No, but points for style.
+~In the browser console#Also no.
+}
+
+::TT_Q17_MCQ_SpecialCharsAndQuotes::
+Which string is a valid Python dictionary key example?
+{
+="owner_id"
+~owner:id
+~owner->id
+~<owner>
+}
+
+::TT_Q18_ShortAnswer_MultipleAccepted::
+Name one Django mixin commonly used to require authentication on class-based views.
+{
+=LoginRequiredMixin
+=loginrequiredmixin
+}
+
+::TT_Q19_MCQ_EmbeddedCodeInStem::
+Given the snippet: if user.is_authenticated: allow access
+Which concept is being checked?
+{
+=Authentication state
+~CSRF token validity
+~Database migration status
+~CSS specificity
+}
+
+::TT_Q20_MultiAnswer_WithNegativeWeights::
+Which are good reasons to use POST-Redirect-GET after a successful form submission?
+{
+=~%50% Prevent duplicate submissions on refresh
+=~%50% Provide a clean URL after POST
+~%-50% Encrypt the form data automatically
+~%-50% Eliminate the need for CSRF tokens
+}
+
+::TT_Q21_Numeric_DecimalsAndTolerance::
+Accept answers close to pi (3.14 +/- 0.02) to test decimal tolerance.
+{#3.14:0.02}
+
+::TT_Q22_MCQ_ColonsInsideChoices::
+Which choice contains a colon (parser edge case)?
+{
+=Yes: this one has a colon
+~No this one does not
+~Also no
+~Still no
+}
+
+::TT_Q23_Matching_LongRightHand::
+Match each status code to its meaning:
+{
+=200 -> OK (success)
+=302 -> Redirect
+=403 -> Forbidden
+=404 -> Not found
+=500 -> Server error
+}
+
+::TT_Q24_ShortAnswer_WhitespaceVariants::
+What header does a server use to set cookies?
+{
+=Set-Cookie
+=Set Cookie
+=set-cookie
+}
+
+::TT_Q25_MCQ_Final_Sanity::
+Which statement best summarizes Django’s big picture?
+{
+=A request flows through routing, views, models, and templates to produce a response
+~Templates handle authorization
+~Models return HttpResponse objects directly
+~URLs render HTML without views
+}
+

@@ -1,0 +1,165 @@
+
+::VT_Q1::
+In Django, what component is primarily responsible for producing the HTTP response?
+{
+=Correct Answer~Template
+~Model
+~Browser
+}
+
+::VT_Q2::
+When an HTTP request arrives, which Django file is consulted first?
+{
+=Correct Answer~views.py
+~models.py
+~settings.py
+}
+
+::VT_Q3::
+What is the primary role of urls.py?
+{
+=Correct Answer~Render HTML
+~Store application data
+~Validate user input
+}
+
+::VT_Q4::
+Which Django construct receives the HttpRequest object?
+{
+=Correct Answer~Template
+~Model
+~Browser
+}
+
+::VT_Q5::
+What must every Django view return?
+{
+=Correct Answer~A template filename
+~A string
+~A dictionary
+}
+
+::VT_Q6::
+Why is directly inserting user input into HTML dangerous?
+{
+=Correct Answer~It slows down rendering
+~It causes routing errors
+~It breaks the database
+}
+
+::VT_Q7::
+Which Django utility function helps prevent XSS?
+{
+=Correct Answer~sanitize()
+~filter()
+~validate()
+}
+
+::VT_Q8::
+What does request.GET contain?
+{
+=Correct Answer~Posted form data only
+~Session variables
+~Template context
+}
+
+::VT_Q9::
+What advantage do URL path parameters have over GET parameters?
+{
+=Correct Answer~They are more secure
+~They avoid escaping
+~They work without views
+}
+
+::VT_Q10::
+Which of the following is a valid URL pattern parameter type?
+{
+=Correct Answer~number
+~float
+~string
+}
+
+::VT_Q11::
+Why are templates preferred over string concatenation?
+{
+=Correct Answer~They run faster
+~They eliminate Python
+~They bypass escaping rules
+}
+
+::VT_Q12::
+What does the Django template syntax {{ variable }} do?
+{
+=Correct Answer~Evaluates Python code
+~Defines a loop
+~Escapes the entire template
+}
+
+::VT_Q13::
+Which template tag controls logic such as conditions or loops?
+{
+=Correct Answer% %}
+~{{ }}
+~<% %>
+~[[ ]]
+}
+
+::VT_Q14::
+What does the |safe filter do?
+{
+=Correct Answer~Enables stronger escaping
+~Validates user input
+~Prevents template inheritance
+}
+
+::VT_Q15::
+What is the main benefit of template inheritance?
+{
+=Correct Answer~Faster page rendering
+~Better database performance
+~Simpler routing
+}
+
+::VT_Q16::
+Which tag is used to inherit from a base template?
+{
+=Correct Answer% extends %}
+~{% include %}
+~{% block %}
+~{% base %}
+}
+
+::VT_Q17::
+Why are templates often placed in application-specific namespaces?
+{
+=Correct Answer~To improve security
+~To simplify database access
+~To speed up rendering
+}
+
+::VT_Q18::
+What problem does URL reversing solve?
+{
+=Correct Answer~Improves browser compatibility
+~Prevents XSS
+~Speeds up routing
+}
+
+::VT_Q19::
+Which template tag generates URLs dynamically?
+{
+=Correct Answer% url %}
+~{% link %}
+~{% route %}
+~{% href %}
+}
+
+::VT_Q20::
+Which statement best summarizes views and templates?
+{
+=Correct Answer~Templates handle logic; views handle layout
+~Models generate HTML
+~URLs render templates directly
+}
+
+

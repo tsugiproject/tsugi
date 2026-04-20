@@ -1,0 +1,152 @@
+// HTML
+::Q1::[html] What is true about the following HMTL?
+<pre>
+&lt;a href="http://www.dr-chuck.com/page2.htm"&gt;Second Page&lt;/a&gt;
+</pre>
+{
+=Correct Answer~The reference is a relative reference
+~The HTML is improperly formed and there will be a syntax error
+~The text "Second Page" is improperly placed and will not be seen
+}
+
+::Q2::What do you put at the beginning of an HTML file to inform
+the browser which variant of HTML you will be using in this document?
+{
+=Correct Answer~<html>
+~<body>
+~<?xml version>
+~<meta type>
+~<xs:sequence>
+}
+
+::Q3::What is the preferred tag in modern HTML to indicate that text
+is to be shown in bold format?
+{
+=Correct Answer~b
+~bold
+~span
+~<xs:bold>
+}
+
+::Q4::What is the preferred tag in modern HTML to indicate that text
+is to be shown in italics format?
+{
+=Correct Answer~i
+~italics
+~span
+~<xs:italics>
+}
+
+::Q5::What organization is responsibile for standards for HTML and the web.
+{
+=Correct Answer~HTMLco.com
+~Unesco
+~CERN
+~NCSA
+}
+
+::Q6::What is the HTML tag for an item in a bulletted list?
+{
+=Correct Answer~list:item
+~bullet
+~item
+~tag
+}
+
+::Q7::Which is the correct ordering of opening tags in a well formed html
+document?
+{
+=Correct Answer~title head html body h1
+~body html h1 head title
+~h1 body title head html
+}
+
+::Q8::What is the start of an HTML comment?
+{
+=Correct Answer~/*
+~'''
+~\#
+}
+
+::Q9::What is the tag that is used in a document's <head> 
+area to set the text shown in the tab of the browser or title
+bar?
+{ =Correct Answer}
+
+::Q10::In HTML, what attribute is used to indicate text that will be
+shown if an image is not loaded or read to a user that is using a 
+screen reader?
+{ =Correct Answer}
+
+::HTML_Q1::
+What is the primary purpose of HTML?
+{
+=Correct Answer~To control page layout and styling
+~To execute logic on the server
+~To store data in a database
+}
+
+::HTML_Q2::
+HTML was originally invented in:
+{
+=Correct Answer~The late 1970s
+~The early 2000s
+~Last Tuesday
+}
+
+::HTML_Q3::
+Which organization was formed to develop open web standards?
+{
+=Correct Answer~Mozilla Foundation
+~Internet Engineering Task Force
+~HTML Committee of Doom
+}
+
+::HTML_Q4::
+Why does the W3C emphasize open standards?
+{
+=Correct Answer~To increase browser competition
+~To simplify programming
+~To make HTML harder to break
+}
+
+::HTML_Q5::
+Which of the following is a basic requirement of modern, valid HTML?
+{
+=Correct Answer~Tags must be uppercase
+~Whitespace must be exact
+~Browsers must enforce errors
+}
+
+::HTML_Q6::
+Which tag represents the main visible content of an HTML page?
+{
+=Correct Answer~<head>
+~<meta>
+~<doctype>
+}
+
+::HTML_Q7::
+What is the purpose of the <head> section in an HTML document?
+{
+=Correct Answer~To display visible content
+~To define links between pages
+~To store JavaScript variables
+}
+
+::HTML_Q8::
+When a URL points to a directory on a web server, which file is commonly loaded by default?
+{
+=Correct Answer~home.html
+~main.htm
+~default.txt
+}
+
+::HTML_Q9::
+Why do browsers tolerate badly formed HTML?
+{
+=Correct Answer~To enforce standards
+~To improve security
+~To reduce rendering time
+}
+

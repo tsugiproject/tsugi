@@ -1,0 +1,12 @@
+// Multiple Choice Question Examples
+
+::Q1:: What is 2+2? {=4 ~3 ~5 ~6}
+
+::Q2:: What is the capital of France? {=Paris ~London ~Berlin ~Madrid}
+
+::Q3:: Which color is red? {=#ff0000 ~#00ff00 ~#0000ff ~#ffffff}
+
+::Q4:: What is HTML? {=HyperText Markup Language#Correct! ~High-level Text Machine Language ~Hyper Transfer Markup Language ~None of the above}
+
+::Q5:: Choose the best answer {=Correct%100% ~Wrong ~Also wrong}
+

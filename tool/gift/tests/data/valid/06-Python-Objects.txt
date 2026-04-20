@@ -1,0 +1,161 @@
+::OO_Q1::
+In Python, what must exist before you can create an object?
+{
+=Correct Answer~A method
+~An attribute
+~A variable
+}
+
+::OO_Q2::
+What best describes a Python class?
+{
+=Correct Answer~A container for data
+~A function with state
+~A memory location
+}
+
+::OO_Q3::
+In Django, what is a class-based view?
+{
+=Correct Answer~A function that renders HTML
+~A database record
+~A template controller
+}
+
+::OO_Q4::
+When Django processes a request using a class-based view, it:
+{
+=Correct Answer~Uses the same instance for all users
+~Calls the class directly
+~Reuses a cached object
+}
+
+::OO_Q5::
+Which term best describes an object created from a class?
+{
+=Correct Answer~Attribute
+~Method
+~Template
+}
+
+::OO_Q6::
+In Python, what is an attribute?
+{
+=Correct Answer~A global variable
+~A function parameter
+~A template value
+}
+
+::OO_Q7::
+Which of the following are typically attributes of a Django view class?
+{
+=Correct Answer~request and response
+~session and cookies
+~URL patterns
+}
+
+::OO_Q8::
+What is the purpose of the __init__ method?
+{
+=Correct Answer~Destroy an instance
+~Handle an HTTP request
+~Render a template
+}
+
+::OO_Q9::
+Which OO concept allows Django to reuse and extend view behavior?
+{
+=Correct Answer~Encapsulation
+~Polymorphism
+~Destruction
+}
+
+::OO_Q10::
+Which syntax correctly defines inheritance in Python?
+{
+=Correct Answer~class Child inherits Parent using a keyword
+~class Child extends Parent using extends
+~class Child from Parent using from
+}
+
+
+::OO_Q11::
+In Django generic views, what does overriding a method do?
+{
+=Correct Answer~Changes the parent class
+~Creates a new object type
+~Disables inheritance
+}
+
+::OO_Q12::
+What does self represent inside a method?
+{
+=Correct Answer~The class definition
+~The request object
+~The URL resolver
+}
+
+::OO_Q13::
+Why does Django create a new view instance per request?
+{
+=Correct Answer~To improve database speed
+~To simplify templates
+~To reuse class attributes
+}
+
+::OO_Q14::
+What does calling super() typically do?
+{
+=Correct Answer~Skips the current method
+~Stops request processing
+~Creates a new instance
+}
+
+::OO_Q15::
+Which OO concept best explains Django mixins?
+{
+=Correct Answer~Encapsulation
+~Immutability
+~Garbage collection
+}
+
+::OO_Q16::
+Why are destructors (__del__) rarely useful in Django?
+{
+=Correct Answer~They are deprecated
+~They break inheritance
+~They cannot access attributes
+}
+
+::OO_Q17::
+Which built-in function lists an object’s methods and attributes?
+{
+=Correct Answer~id()
+~type()
+~help()
+}
+
+::OO_Q18::
+Why don’t templates usually call methods with parentheses?
+{
+=Correct Answer~Methods cannot be accessed in templates
+~Templates do not support objects
+~Parentheses are forbidden
+}
+
+::OO_Q19::
+Why is OO a good fit for web frameworks?
+{
+=Correct Answer~It eliminates HTTP
+~It simplifies HTML
+~It avoids configuration
+}
+
+::OO_Q20::
+Which statement best summarizes OO in Django?
+{
+=Correct Answer~Django replaces object-oriented programming
+~Templates manage object behavior
+~Views are global objects
+}
+

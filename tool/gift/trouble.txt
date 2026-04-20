@@ -1,0 +1,36 @@
+::Q1::Easy Question
+{
+=correct
+~incorrect
+~another incorrect
+}
+
+::Q2::Easy Question with feedback
+{
+=correct#feedback correct
+~incorrect#feedback incorrect
+~another incorrect
+}
+
+::Q3::Difficult question backslash n \n should be a new line
+double backslash n \\n should be backslash n
+escapes tilde \~ equals \= hash \# open curly \{ close curly \} colon \:
+{
+=correct answer 1/5
+escapes allowed in answer 
+tilde \~ equals \= hash \# backslash \\ open curly \{ close curly \} colon \:
+~incorrect answer 2/5
+newline \n does not work in answer - it just comes out as 'n'
+~incorrect part two 3/5
+escapes not actually needed in answer colon : open curly { 
+~incorrect part three 4/5
+escapes are required in answer for equals \= backslash \\ tilde \~ and  hash \# 
+~another incorrect 5/5
+}
+
+::Q4::Short Answer
+{
+=bob
+=sam
+=42
+}

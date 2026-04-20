@@ -1,0 +1,95 @@
+::Q1::Explain the difference between urls.py in mini_django and in an actual Django application.  { }
+
+::Q2::What file in mini_django is the equivalent to views.py in an actual Django application?  { }
+
+
+::Q3::[html] In <b>mini_django/urls.py</b> you have the following code.
+In one sentance, explain the overall goal of this code.
+<pre>
+def router(request: HttpRequest) -&gt; HttpResponse:
+    print('==== Routing to path:', request.path)
+    if request.path == '/' :
+        return views.root(request)
+    elif request.path.startswith('/dj4e') :
+        return views.dj4e(request)
+    elif request.path == '/js4e' :
+        return views.js4e(request)
+    elif request.path == '/broken' :
+        return views.broken(request)
+
+    # When all else fails send the 404 screen
+    else :
+        return view_fail(request, "404", "urls.py could not find a view for the path")
+</pre>
+{}
+
+::Q4::[html] In <b>mini_django/views.py</b> you have the following code.
+What is the purpose of the 'Content-Type' line?
+<pre>
+def dj4e(req: HttpRequest) -&gt; HttpResponse:
+    res = HttpResponse()
+    res.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    res.write("Django is fun")
+    return res
+</pre>
+{}
+
+::Q5::[html] In <b>mini_django/views.py</b> you have the following code.
+What is the purpose of the "302" in the code below?
+<pre>
+def js4e(req: HttpRequest) -&gt; HttpResponse:
+    res = HttpResponse()
+    res.code = "302"
+    res.headers['Location'] = '/dj4e'
+    res.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    res.write("You will only see this in the debugger!")
+    return res
+</pre>
+{}
+
+::Q6::[html] In <b>mini_django/views.py</b> you have the following code.
+What is the purpose of the "Location" headerin the code below?
+<pre>
+def js4e(req: HttpRequest) -&gt; HttpResponse:
+    res = HttpResponse()
+    res.code = "302"
+    res.headers['Location'] = '/dj4e'
+    res.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    res.write("You will only see this in the debugger!")
+    return res
+</pre>
+{}
+
+::Q7::[html] In <b>mini_django/views.py</b> you have the following code.
+Why won't the string "You will only see this in the debugger!" not appear
+to end-users in their browsers?
+<pre>
+def js4e(req: HttpRequest) -&gt; HttpResponse:
+    res = HttpResponse()
+    res.code = "302"
+    res.headers['Location'] = '/dj4e'
+    res.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    res.write("You will only see this in the debugger!")
+    return res
+</pre>
+{}
+
+::Q8::[html] In <b>mini_django.py</b> you have the following code.
+Cricle the line of code "waits" for the next incoming connection
+from a browser.
+<pre>
+def httpServer(router, port):
+    serversocket = socket(AF_INET, SOCK_STREAM)
+    try :
+        serversocket.bind(('0.0.0.0',port))
+        serversocket.listen(5)
+        while(1):
+            (clientsocket, address) = serversocket.accept()
+
+            rd = clientsocket.recv(5000).decode()
+            print(rd)
+            request = parseRequest(rd)
+            ....
+</pre>
+{}
+

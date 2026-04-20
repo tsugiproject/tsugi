@@ -1,0 +1,79 @@
+::Q1::In the mini_dango application, when a request is received, which of these methods is called first
+{
+=Correct Answer~responseSend
+~view_fail
+~router
+}
+
+::Q2::In the mini_django application views.py, which view triggers a 500 (unexpected server error) error?
+{
+~root
+~dj4e
+~js4e
+=Correct Answer}
+
+::Q3::In the mini_django applications, what is the type of the first parameter to a view function?
+{
+=Correct Answer~HttpResponse
+~HttpError
+~String
+~List
+}
+
+::Q4::In the mini_django applications, what is the type of the return value for a view function?
+{
+~HttpRequest
+=Correct Answer~HttpError
+~String
+~List
+}
+
+::Q5::In the mini_django application, what is the HTTP method that is submitted when the user types
+a URL into the browser the browser location field and presses enter?
+{
+=Correct Answer~POST
+~PUT
+~DELETE
+}
+
+::Q6::In the mini_django application, when the view wants to do a redirect,
+which HTTP response code is used?
+{
+~102
+~202
+=Correct Answer~402
+}
+
+::Q7::In the mini_django application, in the urls.py, what happens when the
+incoming path is not routed to a view function?
+{
+=Correct Answer~Return HttpResponse with a blank body
+~Return HttpResponse with a 500 code
+~Show a traceback indicating the line that failes
+}
+
+
+::Q8::What RFC is referenced in the lecture that describes the HTTP protocol:
+{
+=Correct Answer~rfc822
+~rfc9293
+~rfc1738
+}
+
+::Q9::What is the domain name used when you are running a server on your own computer and want to
+access that server in a browser on that same computer?
+{
+=Correct Answer~example.com
+~py4e.com
+~sysin.com
+}
+
+::Q10::What is the default port used to access mini_django when it starts up?
+{
+=Correct Answer~8080
+~8000
+~443
+~80
+}
+
+

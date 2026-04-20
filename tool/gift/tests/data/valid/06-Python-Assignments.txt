@@ -1,0 +1,154 @@
+::AS_Q1::
+In Python, what is a variable really?
+{
+=Correct Answer~A container holding a value
+~A fixed memory location
+~A data structure
+}
+
+::AS_Q2::
+What happens when you execute x = 42?
+{
+=Correct Answer~The value 42 is copied into x
+~Memory inside x is modified
+~x becomes immutable
+}
+
+::AS_Q3::
+After x = 42 and y = x, which is true?
+{
+=Correct Answer~y gets a copy of x
+~x is deleted
+~A new integer object is created
+}
+
+::AS_Q4::
+Which function helps determine whether two names refer to the same object?
+{
+=Correct Answer~type()
+~dir()
+~len()
+}
+
+::AS_Q5::
+Why is the “variable as a box” metaphor misleading?
+{
+=Correct Answer~Variables cannot change
+~Objects cannot be shared
+~Memory is hidden
+}
+
+::AS_Q6::
+Which of the following is an immutable type?
+{
+=Correct Answer~List
+~Dictionary
+~Set
+}
+
+::AS_Q7::
+Why does x = x + 1 create a new integer object?
+{
+=Correct Answer~x is read-only
+~Python copies eagerly
+~Garbage collection runs
+}
+
+::AS_Q8::
+What happens when you assign y = x where x is a list?
+{
+=Correct Answer~The list is copied
+~The list becomes immutable
+~A new list is created
+}
+
+::AS_Q9::
+Why can modifying x also change y in this case?
+{
+=Correct Answer~Lists are global
+~Assignment copies values
+~Python passes lists by value
+}
+
+::AS_Q10::
+Which creates a shallow copy of a list?
+{
+=Correct Answer~y =Correct Answer~y =Correct Answer~y =Correct Answer}
+
+::AS_Q11::
+What does assignment NEVER do in Python?
+{
+=Correct Answer~Bind a name
+~Rebind a name
+~Change what a name refers to
+}
+
+::AS_Q12::
+Why is shared mutable state dangerous?
+{
+=Correct Answer~It slows execution
+~It breaks templates
+~It confuses the garbage collector
+}
+
+::AS_Q13::
+How does this relate to Django views?
+{
+=Correct Answer~Views copy objects per request
+~Templates isolate state
+~Sessions fix assignment
+}
+
+::AS_Q14::
+Why are instance attributes safer than class attributes?
+{
+=Correct Answer~They are immutable
+~They are faster
+~They persist across requests
+}
+
+::AS_Q15::
+Which assignment creates a new binding?
+{
+=Correct Answer~x.append(1)
+~x.sort()
+~x.pop()
+}
+
+::AS_Q16::
+Which operation mutates an existing object?
+{
+=Correct Answer~x =Correct Answer~x =Correct Answer~x =Correct Answer}
+
+::AS_Q17::
+Why does Django avoid storing request-specific data on the class?
+{
+=Correct Answer~Classes cannot store data
+~Templates reset state
+~Sessions overwrite values
+}
+
+::AS_Q18::
+Which Python concept explains why per-request state works?
+{
+=Correct Answer~Variables are cleared automatically
+~Garbage collection runs immediately
+~Templates isolate data
+}
+
+::AS_Q19::
+How does understanding assignment help debugging?
+{
+=Correct Answer~It explains routing errors
+~It improves CSS layout
+~It fixes authentication
+}
+
+::AS_Q20::
+Which statement best summarizes Python assignment?
+{
+=Correct Answer~Assignment copies values into variables
+~Assignment allocates memory per variable
+~Assignment isolates state automatically
+}
+

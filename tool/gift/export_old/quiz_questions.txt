@@ -1,0 +1,344 @@
+
+
+- variations: 
+    - typeName: multipleChoice
+      prompt: |-
+          When Python is running in the interactive mode and displaying the chevron
+          prompt (>>>) - what question is Python asking you?
+      shuffleOptions: true
+      options: 
+        - answer: What Python statement would you like me to run?
+          isCorrect: true
+          feedback: ''
+          _id: fde9ff96199bb0b9eaf4078278a70d15
+        - answer: What Python script would you like me to run?
+          isCorrect: false
+          feedback: ''
+          _id: 51542d1050c3ba9dd943f34a65f72baa
+        - answer: What is your favourite color?
+          isCorrect: false
+          feedback: ''
+          _id: 02e4ad999eff6009106059dc7fc2268b
+        - answer: What is the next machine language instruction to run?
+          isCorrect: false
+          feedback: ''
+          _id: c76ee299c1b7b1c0c4865f9c6e22dc98
+      _id: xPkSvDaWEeWhPyIACzQMjQ
+    - typeName: multipleChoice
+      prompt: |-
+          When Python is running in the interactive mode and displaying the chevron
+          prompt (>>>) - what question is Python asking you?
+      shuffleOptions: true
+      options: 
+        - answer: What would you like to do?
+          isCorrect: true
+          feedback: ''
+          _id: ca8abadec5a89633fdf48818d1578409
+        - answer: What is your favourite color?
+          isCorrect: false
+          feedback: ''
+          _id: 02e4ad999eff6009106059dc7fc2268b
+        - answer: What is the next machine language instruction to run?
+          isCorrect: false
+          feedback: ''
+          _id: c76ee299c1b7b1c0c4865f9c6e22dc98
+        - answer: What Python script would you like me to run?
+          isCorrect: false
+          feedback: ''
+          _id: 51542d1050c3ba9dd943f34a65f72baa
+      _id: xPkSvTaWEeWhPyIACzQMjQ
+
+- variations: 
+    - typeName: multipleChoice
+      prompt: |-
+          What will the following program print out:
+        
+          ```python
+          >>> x = 15
+          >>> x = x + 5
+          >>> print(x)
+          ```
+      shuffleOptions: false
+      options: 
+        - answer: '20'
+          isCorrect: true
+          feedback: ''
+          _id: ecec5f0cbeac40521a3aeef66e0c7ef9
+        - answer: '5'
+          isCorrect: false
+          feedback: ''
+          _id: 44ba1de7d7c009a8a29db8109fb16cfe
+        - answer: '15'
+          isCorrect: false
+          feedback: ''
+          _id: 6087bb614753d7d36fd5a008e65cb2f9
+        - answer: '"print x"'
+          isCorrect: false
+          feedback: ''
+          _id: 5f69d3a98da6cc62897da54de2c8cc35
+        - answer: x + 5
+          isCorrect: false
+          feedback: ''
+          _id: f3260554daa9444e676ce70e55857198
+      _id: 1d3ffa6ef020fa9956b1e5b15b64e418
+
+- variations: 
+    - typeName: multipleChoice
+      prompt: 'Python scripts (files) have names that end with:'
+      shuffleOptions: true
+      options: 
+        - answer: .py
+          isCorrect: true
+          feedback: ''
+          _id: 29227c4db665a013ff648eada9ee8533
+        - answer: .exe
+          isCorrect: false
+          feedback: ''
+          _id: f2bfac7e097752e4fe52708c5a432bc4
+        - answer: .doc
+          isCorrect: false
+          feedback: ''
+          _id: 0f890b11e05bfc9c4dba2bc15949636d
+        - answer: .png
+          isCorrect: false
+          feedback: ''
+          _id: cce71264c085ddc30ca5fcaf58256c46
+      _id: 5e5e186bf083d262cf99ed9d149f1ba5
+
+- variations: 
+    - typeName: multipleChoice
+      prompt: Which of these words is a reserved word in Python?
+      shuffleOptions: false
+      options: 
+        - answer: while
+          isCorrect: true
+          feedback: ''
+          _id: edf293c7fd62d745b8c36b88b74bbe29
+        - answer: payroll
+          isCorrect: false
+          feedback: ''
+          _id: 7ec7b96ad099845c6451c39ad69c6d0c
+        - answer: names
+          isCorrect: false
+          feedback: ''
+          _id: 176f40d621a4373241990bb6a95bab54
+        - answer: pizza
+          isCorrect: false
+          feedback: ''
+          _id: eb4eb4d8745caece8fc4865108b18bfd
+      _id: xPkSvzaWEeWhPyIACzQMjQ
+    - typeName: checkbox
+      prompt: Which of these words are reserved words in Python?
+      shuffleOptions: true
+      options: 
+        - answer: if
+          isCorrect: true
+          feedback: ''
+          _id: 88417e05d8e018c369602744500197f7
+        - answer: break
+          isCorrect: true
+          feedback: ''
+          _id: 5403d0e0b82b8610ae4a5842c87e8109
+        - answer: todo
+          isCorrect: false
+          feedback: ''
+          _id: c6c18a9e22d07cd311c7493fea4b6b66
+        - answer: machine
+          isCorrect: false
+          feedback: ''
+          _id: b0b5eeb70e2c2e664a4a0d47374dd8f2
+        - answer: concat
+          isCorrect: false
+          feedback: ''
+          _id: a269b93fdb6dfd05d22dc587d4b2800a
+      _id: xPkSwjaWEeWhPyIACzQMjQ
+    - typeName: checkbox
+      prompt: Which of these words are reserved words in Python?
+      shuffleOptions: true
+      options: 
+        - answer: if
+          isCorrect: true
+          feedback: ''
+          _id: 88417e05d8e018c369602744500197f7
+        - answer: break
+          isCorrect: true
+          feedback: ''
+          _id: 5403d0e0b82b8610ae4a5842c87e8109
+        - answer: make
+          isCorrect: false
+          feedback: ''
+          _id: c6d6b071337d5b29f988348c4f232a0d
+        - answer: todo
+          isCorrect: false
+          feedback: ''
+          _id: c6c18a9e22d07cd311c7493fea4b6b66
+        - answer: concat
+          isCorrect: false
+          feedback: ''
+          _id: a269b93fdb6dfd05d22dc587d4b2800a
+      _id: xPkSwTaWEeWhPyIACzQMjQ
+    - typeName: multipleChoice
+      prompt: Which of these words is a reserved word in Python?
+      shuffleOptions: false
+      options: 
+        - answer: for
+          isCorrect: true
+          feedback: ''
+          _id: e7a2c1e522b1a541c76839cee3f31bb8
+        - answer: names
+          isCorrect: false
+          feedback: ''
+          _id: 176f40d621a4373241990bb6a95bab54
+        - answer: pizza
+          isCorrect: false
+          feedback: ''
+          _id: eb4eb4d8745caece8fc4865108b18bfd
+        - answer: payroll
+          isCorrect: false
+          feedback: ''
+          _id: 7ec7b96ad099845c6451c39ad69c6d0c
+      _id: xPkSwDaWEeWhPyIACzQMjQ
+
+- variations: 
+    - typeName: multipleChoice
+      prompt: What is the proper way to say “good-bye” to Python?
+      shuffleOptions: true
+      options: 
+        - answer: quit()
+          isCorrect: true
+          feedback: ''
+          _id: e83a88ace82ff6c79cf5a69792980442
+        - answer: // stop
+          isCorrect: false
+          feedback: ''
+          _id: 07365b2e4a09da09dff41758b04b4b86
+        - answer: '#EXIT'
+          isCorrect: false
+          feedback: ''
+          _id: a885954e0594f534f82b2513daa12796
+        - answer: while
+          isCorrect: false
+          feedback: ''
+          _id: c6d6908bbd79060d79dd4844e3b7d71f
+      _id: 267a50a9a5d965c5b86e9df7a3037793
+
+- variations: 
+    - typeName: multipleChoice
+      prompt: Which of the parts of a computer actually executes the program instructions?
+      shuffleOptions: true
+      options: 
+        - answer: Central Processing Unit
+          isCorrect: true
+          feedback: ''
+          _id: 36fe92a2884040c77ea79fed75717142
+        - answer: Main Memory
+          isCorrect: false
+          feedback: ''
+          _id: 129b4a1c1c6c629a55be4a79ac91f520
+        - answer: Secondary Memory
+          isCorrect: false
+          feedback: ''
+          _id: de91289cd48fe21d4e41fbfc34bdbd1f
+        - answer: Input/Output Devices
+          isCorrect: false
+          feedback: ''
+          _id: ca1dc7835d38b5195c1ffcbbf2f444b7
+      _id: fae43a3af55ebc0d44154bc74986d836
+
+- variations: 
+    - typeName: multipleChoice
+      prompt: What is "code" in the context of this course?
+      shuffleOptions: true
+      options: 
+        - answer: A sequence of instructions in a programming language
+          isCorrect: true
+          feedback: ''
+          _id: e20a946a49f621dd0da2468c2c3a7451
+        - answer: A password we use to unlock Python features
+          isCorrect: false
+          feedback: ''
+          _id: 53f2d5df35884c1df40e3ca8256801ff
+        - answer: A set of rules that govern the style of programs
+          isCorrect: false
+          feedback: ''
+          _id: bfcb6eb0435241261107b8d7b666d68b
+        - answer: A way to encrypt data during World War II
+          isCorrect: false
+          feedback: ''
+          _id: 401f5f67ae32279c8439cf50a6cce316
+      _id: 42066d8630419bf678a7e438dd14d8c0
+
+- variations: 
+    - typeName: multipleChoice
+      prompt: |-
+          A USB memory stick is an example of which of the following components of
+          computer architecture?
+      shuffleOptions: true
+      options: 
+        - answer: Secondary Memory
+          isCorrect: true
+          feedback: ''
+          _id: 7eb6f1c5bfac79af473029d5243ecef8
+        - answer: Central Processing Unit
+          isCorrect: false
+          feedback: ''
+          _id: d1f7573f4b5b93f07cf427a14d9ec9b7
+        - answer: Main Memory
+          isCorrect: false
+          feedback: ''
+          _id: 0beac064e0e0b477862f52e19d77565d
+        - answer: Output Device
+          isCorrect: false
+          feedback: ''
+          _id: ed02797740e154e309a12790e144ef87
+      _id: f70dbda3a9005a2d9be50cf34d27ba72
+
+- variations: 
+    - typeName: multipleChoice
+      prompt: What is the best way to think about a "Syntax Error" while programming?
+      shuffleOptions: true
+      options: 
+        - answer: The computer did not understand the statement that you entered
+          isCorrect: true
+          feedback: ''
+          _id: 69a77da90a95340a61c53c3e89d8768b
+        - answer: The computer needs to have its software upgraded
+          isCorrect: false
+          feedback: ''
+          _id: 13fd61fa1ef215f54bbba040e5bf2fa3
+        - answer: The computer is overheating and just wants you to stop to let it cool down
+          isCorrect: false
+          feedback: ''
+          _id: dbce44ce6545e7b723e54ea9bb4722b9
+        - answer: |-
+              The computer has used GPS to find your location and hates everyone from your
+              town
+          isCorrect: false
+          feedback: ''
+          _id: d4c3aaaedf827a1385481ec66658712b
+      _id: xPkSxTaWEeWhPyIACzQMjQ
+
+- variations: 
+    - typeName: multipleChoice
+      prompt: |-
+          Which of the following is **not** one of the programming patterns covered in
+          Chapter 1?
+      shuffleOptions: true
+      options: 
+        - answer: Random steps
+          isCorrect: true
+          feedback: ''
+          _id: 82d8acff514933da6fea85ec156d6be2
+        - answer: Conditional Steps
+          isCorrect: false
+          feedback: ''
+          _id: 5e4c89fc62fabfcc9f8505e9ef5f3a9b
+        - answer: Repeated Steps
+          isCorrect: false
+          feedback: ''
+          _id: d60961639e67f6e52ee5bf0bc4c470c6
+        - answer: Sequential Steps
+          isCorrect: false
+          feedback: ''
+          _id: 97d5a7ea5e89b2d667884e38356494e8
+      _id: 3107dab43f66ff516f557e0fce16b479

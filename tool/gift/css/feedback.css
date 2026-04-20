@@ -1,0 +1,18 @@
+span[class^='feedback'] {
+  border: 1px solid;
+  border-radius: 3px;
+  margin-left: 1em;
+  padding: .25em;
+}
+
+.feedback_correct {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.feedback_incorrect {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}

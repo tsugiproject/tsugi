@@ -1,0 +1,167 @@
+
+::GV_Q1::
+What problem are Django’s generic views primarily designed to solve?
+{
+=Correct Answer~Improving database performance
+~Replacing templates
+~Eliminating URLs
+}
+
+::GV_Q2::
+Which design principle best explains why generic views exist?
+{
+=Correct Answer~Separation of concerns
+~Loose coupling
+~Fail fast
+}
+
+::GV_Q3::
+Which Django generic view class is used to display a list of objects?
+{
+=Correct Answer~DetailView
+~TemplateView
+~FormView
+}
+
+::GV_Q4::
+Which Django generic view class is used to display a single object?
+{
+=Correct Answer~ListView
+~TemplateView
+~RedirectView
+}
+
+::GV_Q5::
+In ListView, which method is typically called first during request processing?
+{
+=Correct Answer~get_queryset()
+~get_context_data()
+~render_to_response()
+}
+
+::GV_Q6::
+In ListView, which method is called last?
+{
+=Correct Answer~get_queryset()
+~get_template_names()
+~dispatch()
+}
+
+::GV_Q7::
+In DetailView, which method is called earliest?
+{
+=Correct Answer~get_object()
+~get_queryset()
+~render_to_response()
+}
+
+::GV_Q8::
+In DetailView, which method is called latest?
+{
+=Correct Answer~get_object()
+~get_queryset()
+~dispatch()
+}
+
+::GV_Q9::
+By convention, if app_name is "abc" and the model is Dog, which template will
+DetailView look for?
+{
+=Correct Answer~templates/abc/dog.html
+~templates/dog_detail.html
+~templates/abc/detail_dog.html
+}
+
+::GV_Q10::
+By convention, which context variable contains the objects in a Dog ListView?
+{
+=Correct Answer~dogs
+~dog.objects
+~dog_queryset
+}
+
+::GV_Q11::
+Which class attribute overrides the template selected by convention?
+{
+=Correct Answer~template
+~template_override
+~render_template
+}
+
+::GV_Q12::
+In the class definition
+<pre>
+class ArticleListView(ListView):
+</pre>
+what does ListView represent?
+{
+=Correct Answer~The class being created
+~A function call
+~A template name
+}
+
+::GV_Q13::
+In the same definition, what does ArticleListView represent?
+{
+=Correct Answer~The class being extended
+~A URL pattern
+~A template variable
+}
+
+::GV_Q14::
+Where is the actual implementation of TemplateView located?
+{
+=Correct Answer~In views.py
+~In urls.py
+~In settings.py
+}
+
+::GV_Q15::
+What does the model attribute in a generic view specify?
+{
+=Correct Answer~Which template to render
+~Which URL to match
+~Which HTTP methods are allowed
+}
+
+::GV_Q16::
+Why does Django use “convention over configuration”?
+{
+=Correct Answer~To hide configuration options
+~To improve security
+~To simplify databases
+}
+
+::GV_Q17::
+Which method would you override to change which objects are retrieved?
+{
+=Correct Answer~get_template_names()
+~render_to_response()
+~dispatch()
+}
+
+::GV_Q18::
+Which method would you override to add extra data to the template context?
+{
+=Correct Answer~get_queryset()
+~dispatch()
+~get_template_names()
+}
+
+::GV_Q19::
+Which statement best describes what generic views provide?
+{
+=Correct Answer~A replacement for templates
+~Automatic form handling only
+~A shortcut around MVC
+}
+
+::GV_Q20::
+Which is a valid reason to override generic view behavior?
+{
+=Correct Answer~To avoid using models
+~To eliminate templates
+~To bypass URL routing
+}
+
+

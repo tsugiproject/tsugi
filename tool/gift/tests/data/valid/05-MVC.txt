@@ -1,0 +1,160 @@
+::MVC_Q1::
+What architectural pattern does Django roughly follow?
+{
+=Correct Answer~Model-Template-Database
+~View-Only Architecture
+~Three-Tier Networking
+}
+
+::MVC_Q2::
+In MVC, which component is responsible for persistent data storage?
+{
+=Correct Answer~View
+~Controller
+~Template
+}
+
+::MVC_Q3::
+Which MVC component is responsible for decision making and orchestration?
+{
+=Correct Answer~Model
+~View
+~Browser
+}
+
+::MVC_Q4::
+Which MVC component is primarily responsible for presentation?
+{
+=Correct Answer~Model
+~Controller
+~Database
+}
+
+::MVC_Q5::
+In Django, which file is consulted first when an HTTP request arrives?
+{
+=Correct Answer~views.py
+~models.py
+~settings.py
+}
+
+::MVC_Q6::
+What is the primary role of urls.py in Django?
+{
+=Correct Answer~Rendering HTML templates
+~Defining database tables
+~Handling user authentication
+}
+
+::MVC_Q7::
+Which Django file most closely corresponds to the MVC “Controller”?
+{
+=Correct Answer~models.py
+~templates
+~admin.py
+}
+
+::MVC_Q8::
+Which Django component most closely corresponds to the MVC “View”?
+{
+=Correct Answer~views.py
+~models.py
+~forms.py
+}
+
+::MVC_Q9::
+Which Django file defines database tables and relationships?
+{
+=Correct Answer~views.py
+~urls.py
+~templates
+}
+
+::MVC_Q10::
+Which of the following is most likely found in a Django template?
+{
+=Correct Answer~SQL queries
+~Routing rules
+~Business logic
+}
+
+::MVC_Q11::
+Which task typically happens first inside server-side request handling?
+{
+=Correct Answer~Build the HTML response
+~Retrieve data for display
+~Send the HTTP response
+}
+
+::MVC_Q12::
+Which component decides which template to render?
+{
+=Correct Answer~Model
+~Browser
+~Database
+}
+
+::MVC_Q13::
+Which component retrieves data from the database?
+{
+=Correct Answer~View
+~Template
+~Browser
+}
+
+::MVC_Q14::
+Which HTTP elements does the controller typically handle directly?
+{
+=Correct Answer~Only HTML rendering
+~Only database queries
+~Only static files
+}
+
+::MVC_Q15::
+What is the role of forms.py in Django?
+{
+=Correct Answer~Rendering HTML directly
+~Storing persistent data
+~Routing requests
+}
+
+::MVC_Q16::
+Which of the following best describes the controller’s role?
+{
+=Correct Answer~Stores long-term data
+~Defines page appearance
+~Manages HTTP connections only
+}
+
+::MVC_Q17::
+Why is MVC considered a “separation of concerns” pattern?
+{
+=Correct Answer~It reduces the number of files
+~It improves network performance
+~It eliminates HTML
+}
+
+::MVC_Q18::
+Where are cookies and session data typically accessed?
+{
+=Correct Answer~Model
+~Template
+~Database engine
+}
+
+::MVC_Q19::
+Which Django component would you use to manually inspect database contents?
+{
+=Correct Answer~Templates
+~urls.py
+~Static files
+}
+
+::MVC_Q20::
+Which statement best summarizes Django’s MVC interpretation?
+{
+=Correct Answer~Django ignores MVC entirely
+~Django places all logic in templates
+~Django treats the database as the controller
+}
+

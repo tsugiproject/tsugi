@@ -1,0 +1,163 @@
+// 01-Request-Response
+
+::HTTP_Q1::
+When a browser retrieves a web page using HTTP, which TCP port is used by default?
+{
+=Correct Answer~25
+~110
+~443
+}
+
+::HTTP_Q2::
+What HTTP method is normally used by a browser to retrieve a web page?
+{
+=Correct Answer~POST
+~PUT
+~DELETE
+}
+
+::HTTP_Q3::
+In HTTP, what does the second “T” stand for?
+{
+=Correct Answer~Transport
+~Transaction
+~Time
+}
+
+::HTTP_Q4::
+Which of the following is NOT a part of a Uniform Resource Locator (URL)?
+{
+=Correct Answer~Protocol
+~Host
+~Document path
+}
+
+::HTTP_Q5::
+Which HTML tag most commonly causes the browser to make an HTTP request when clicked?
+{
+=Correct Answer~img
+~div
+~p
+}
+
+::HTTP_Q6::
+Which organization develops and publishes Internet protocol standards?
+{
+=Correct Answer~World Wide Web Consortium (W3C)
+~ISO
+~Educause
+}
+
+::HTTP_Q7::
+Which HTTP response header tells the browser how to interpret the returned content?
+{
+=Correct Answer~Content-Length
+~ETag
+~Location
+}
+
+::HTTP_Q8::
+Which statement best describes an Internet socket?
+{
+=Correct Answer~A physical network cable
+~A browser feature
+~A temporary file on disk
+}
+
+::HTTP_Q9::
+What must exist before a client can successfully open a socket connection?
+{
+=Correct Answer~A matching client program
+~A shared filesystem
+~A database connection
+}
+
+::HTTP_Q10::
+Which TCP port is used by Simple Mail Transfer Protocol (SMTP)?
+{
+=Correct Answer~80
+~110
+~443
+}
+
+::HTTP_Q11::
+Which TCP port is used by default for HTTPS?
+{
+=Correct Answer~80
+~25
+~8080
+}
+
+::HTTP_Q12::
+RFC 2616 primarily describes which protocol?
+{
+=Correct Answer~FTP
+~SMTP
+~POP3
+}
+
+::HTTP_Q13::
+What is the basic sequence of an HTTP interaction?
+{
+=Correct Answer~Request, authenticate, encrypt, store
+~Send data, wait, retry, timeout
+~Open socket, write file, close file
+}
+
+::HTTP_Q14::
+In an HTTP request line, which part specifies the resource being requested?
+{
+=Correct Answer~HTTP version
+~Method name
+~Header block
+}
+
+::HTTP_Q15::
+Why does the socket code call encode() before sending data?
+{
+=Correct Answer~To compress the data
+~To encrypt the request
+~To validate the URL
+}
+
+::HTTP_Q16::
+Which of the following is NOT typically visible in browser developer tools?
+{
+=Correct Answer~Request headers
+~Response headers
+~HTTP status codes
+}
+
+::HTTP_Q17::
+In the sample server.py code, which function waits for incoming connections?
+{
+=Correct Answer~bind()
+~listen()
+~recv()
+}
+
+::HTTP_Q18::
+In the sample server.py code, which function will fail if the port is already in use?
+{
+=Correct Answer~listen()
+~accept()
+~recv()
+}
+
+::HTTP_Q19::
+Which Python library makes HTTP requests easiest for beginners?
+{
+=Correct Answer~socket
+~re
+~json
+}
+
+::HTTP_Q20::
+Why can JavaScript running in a browser not directly open raw sockets?
+{
+=Correct Answer~Because JavaScript lacks networking support
+~Because sockets require administrator privileges
+~Because HTTP replaced sockets
+}
+
+

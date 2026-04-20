@@ -1,0 +1,29 @@
+.dont_print {
+    display: none;
+}
+
+.do_print {
+    display: block;
+}
+
+body {
+    padding-top: 0px;
+}
+
+nav {
+    display: none;
+}
+
+textarea {
+    border: 0px solid black;
+    height: 140px;
+}
+
+ol li div p {
+    margin: 0px;
+    padding 0px;
+}
+
+ol li {
+    page-break-inside: avoid;
+}
