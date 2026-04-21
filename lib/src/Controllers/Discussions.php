@@ -489,6 +489,11 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
                 </form>
 
                 <?php if ( is_array($result) ) { ?>
+                    <?php
+                        $candidate_sql_comment = str_replace('--', '- -', (string) U::get($result, 'candidate_sql', ''));
+                        $delete_sql_comment = str_replace('--', '- -', (string) U::get($result, 'sql', ''));
+                        $params_comment = str_replace('--', '- -', json_encode(U::get($result, 'params', array()), JSON_PRETTY_PRINT));
+                    ?>
                     <div class="alert alert-info" style="margin-bottom: 0.75em;">
                         Matching threads for <strong><?= intval($result['months']) ?></strong> months: <strong><?= intval(U::get($result, 'count', 0)) ?></strong>
                         <?php if ( intval(U::get($result, 'confirmed', 0)) === 1 ) { ?>
@@ -499,16 +504,17 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
                             <?php } ?>
                         <?php } ?>
                     </div>
-                    <p style="margin-bottom: 0.4em;"><strong>Candidate SQL (limited batch)</strong></p>
-                    <pre style="max-height: 20em; overflow: auto;"><?= htmlspecialchars((string) U::get($result, 'candidate_sql', '')) ?></pre>
-                    <p style="margin-bottom: 0.4em;"><strong>SQL that would be used for deletion</strong></p>
-                    <pre style="max-height: 20em; overflow: auto;"><?= htmlspecialchars((string) U::get($result, 'sql', '')) ?></pre>
-                    <p style="margin-bottom: 0.4em;"><strong>Bound parameters</strong></p>
-                    <pre style="max-height: 10em; overflow: auto;"><?= htmlspecialchars(json_encode(U::get($result, 'params', array()), JSON_PRETTY_PRINT)) ?></pre>
+                    <!-- Candidate SQL (limited batch)
+<?= htmlspecialchars($candidate_sql_comment) ?>
+SQL used for deletion
+<?= htmlspecialchars($delete_sql_comment) ?>
+Bound parameters
+<?= htmlspecialchars($params_comment) ?>
+                    -->
                     <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline">
                         <input type="hidden" name="months" value="<?= intval($result['months']) ?>">
                         <input type="hidden" name="confirm" value="1">
-                        <button type="submit" class="btn btn-danger">Yes I am sure</button>
+                        <button type="submit" class="btn btn-danger">Delete Threads (no undo)</button>
                     </form>
                 <?php } ?>
             </div>
