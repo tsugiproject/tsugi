@@ -729,16 +729,18 @@ Bound parameters
 <?= htmlspecialchars($params_comment) ?>
                     -->
                     <?php if ( intval(U::get($result, 'count', 0)) > 0 ) { ?>
-                        <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline">
+                        <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline tsugi-expire-delete-form">
                             <input type="hidden" name="months" value="<?= intval($result['months']) ?>">
                             <input type="hidden" name="confirm" value="1">
-                            <button type="submit" class="btn btn-danger">Delete Threads (no undo)</button>
+                            <button type="submit" class="btn btn-danger"
+                                data-deleting-label="<?= htmlspecialchars(__('Deleting…')) ?>">Delete Threads (no undo)</button>
                         </form>
                     <?php } ?>
                 <?php } ?>
             </div>
         </div>
         <?php
+        $this->emitExpireDeleteFormEnhancements();
     }
 
     private function renderExpireCommentsDryRunPanel($action_url, $result=false, $oldest_comment_at=null, $tdiscus_threads_ok=true)
@@ -806,15 +808,69 @@ Bound parameters
 <?= htmlspecialchars($params_comment) ?>
                     -->
                     <?php if ( $tdiscus_threads_ok && intval(U::get($result, 'count', 0)) > 0 ) { ?>
-                        <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline">
+                        <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline tsugi-expire-delete-form">
                             <input type="hidden" name="months" value="<?= intval($result['months']) ?>">
                             <input type="hidden" name="confirm" value="1">
-                            <button type="submit" class="btn btn-danger">Delete Comments (no undo)</button>
+                            <button type="submit" class="btn btn-danger"
+                                data-deleting-label="<?= htmlspecialchars(__('Deleting…')) ?>">Delete Comments (no undo)</button>
                         </form>
                     <?php } ?>
                 <?php } ?>
             </div>
         </div>
+        <?php
+        $this->emitExpireDeleteFormEnhancements();
+    }
+
+    /**
+     * Disable delete buttons and show a spinner after submit (threads/comments expire confirm forms).
+     */
+    private function emitExpireDeleteFormEnhancements()
+    {
+        static $emitted = false;
+        if ( $emitted ) {
+            return;
+        }
+        $emitted = true;
+        ?>
+<style>
+@keyframes tsugiDiscussionsExpireSpin { to { transform: rotate(360deg); } }
+.tsugi-discussions-expire-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  vertical-align: text-bottom;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: tsugiDiscussionsExpireSpin .65s linear infinite;
+}
+</style>
+<script>
+(function () {
+  function enhance(form) {
+    if (!form || form.getAttribute('data-tsugi-expire-delete-bound')) return;
+    form.setAttribute('data-tsugi-expire-delete-bound', '1');
+    form.addEventListener('submit', function () {
+      var btn = form.querySelector('button[type="submit"]');
+      if (!btn || btn.disabled) return;
+      btn.disabled = true;
+      var label = btn.getAttribute('data-deleting-label') || 'Deleting…';
+      var spin = document.createElement('span');
+      spin.className = 'tsugi-discussions-expire-spinner';
+      spin.setAttribute('aria-hidden', 'true');
+      btn.textContent = '';
+      btn.appendChild(spin);
+      btn.appendChild(document.createTextNode(' ' + label));
+    });
+  }
+  var forms = document.querySelectorAll('form.tsugi-expire-delete-form');
+  for (var i = 0; i < forms.length; i++) {
+    enhance(forms[i]);
+  }
+})();
+</script>
         <?php
     }
 
