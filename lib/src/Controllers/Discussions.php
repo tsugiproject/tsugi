@@ -350,7 +350,7 @@ WHERE L.context_id = :CID
 
     public function expireThreads(Request $request)
     {
-        global $CFG, $OUTPUT;
+        global $CFG, $OUTPUT, $PDOX;
 
         if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
             U::flashError(__('You must be logged in with a course context to manage discussion expiration.'));
@@ -360,6 +360,26 @@ WHERE L.context_id = :CID
             U::flashError(__('Only instructors can run discussion expiration.'));
             return new RedirectResponse(U::addSession(self::ROUTE));
         }
+
+        LTIX::getConnection();
+        $context_id = U::currentContextId();
+        $oldest_post_row = $PDOX->rowDie(
+            "SELECT MIN(C.created_at) AS oldest_post_at
+                FROM {$CFG->dbprefix}tdiscus_comment C
+                JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = C.thread_id
+                JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+                WHERE L.context_id = :CID",
+            array(':CID' => $context_id)
+        );
+        $oldest_thread_row = $PDOX->rowDie(
+            "SELECT MIN(T.created_at) AS oldest_thread_at
+                FROM {$CFG->dbprefix}tdiscus_thread T
+                JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+                WHERE L.context_id = :CID",
+            array(':CID' => $context_id)
+        );
+        $oldest_post_at = U::get($oldest_post_row, 'oldest_post_at', null);
+        $oldest_thread_at = U::get($oldest_thread_row, 'oldest_thread_at', null);
 
         $dry_run_url = U::addSession(self::ROUTE.'/expire-threads-dry-run');
         $expire_result = U::get($_SESSION, 'discussions_expire_dry_run_result', false);
@@ -371,12 +391,12 @@ WHERE L.context_id = :CID
         $OUTPUT->flashMessages();
         echo('<main class="container" id="main-content">');
         echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE)).'" class="btn btn-default btn-sm">'.__('Back to Discussions').'</a></p>');
-        $this->renderExpireDryRunPanel($dry_run_url, $expire_result);
+        $this->renderExpireDryRunPanel($dry_run_url, $expire_result, $oldest_post_at, $oldest_thread_at);
         echo('</main>');
         $OUTPUT->footer();
     }
 
-    private function renderExpireDryRunPanel($action_url, $result=false)
+    private function renderExpireDryRunPanel($action_url, $result=false, $oldest_post_at=null, $oldest_thread_at=null)
     {
         $default_months = 2;
         if ( is_array($result) && isset($result['months']) ) {
@@ -387,6 +407,19 @@ WHERE L.context_id = :CID
         <div class="panel panel-warning" style="margin-bottom: 1.5em;">
             <div class="panel-heading"><strong>Instructor: Expire old discussion threads (dry run)</strong></div>
             <div class="panel-body">
+                <?php if ( is_string($oldest_post_at) && strlen($oldest_post_at) > 0 ) { ?>
+                    <p class="text-muted" style="margin-top: 0;">
+                        Oldest post date in this course: <strong><?= htmlspecialchars($oldest_post_at) ?></strong>
+                    </p>
+                <?php } else if ( is_string($oldest_thread_at) && strlen($oldest_thread_at) > 0 ) { ?>
+                    <p class="text-muted" style="margin-top: 0;">
+                        No posts found yet in this course. Oldest thread creation date: <strong><?= htmlspecialchars($oldest_thread_at) ?></strong>
+                    </p>
+                <?php } else { ?>
+                    <p class="text-muted" style="margin-top: 0;">
+                        No discussion threads found in this course.
+                    </p>
+                <?php } ?>
                 <p class="text-muted" style="margin-top: 0;">
                     This first version is dry run only. It never deletes data, and always shows the SQL that would run.
                 </p>
