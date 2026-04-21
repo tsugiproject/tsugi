@@ -6,6 +6,7 @@ namespace Tsugi\UI;
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\Membership;
 use \Tsugi\Crypt\AesOpenSSL;
 use \Tsugi\Grades\GradeUtil;
 use \Tsugi\Services\Badges\BadgeService;
@@ -2036,6 +2037,7 @@ class Lessons {
         $rest_path = U::rest_path();
         $json_endpoint = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/json');
         $mark_read_url = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/mark-read');
+        $expire_threads_url = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/expire-threads');
 
         echo('<h1>'.__('Discussions:').' '.$this->lessons->title."</h1>\n");
 
@@ -2089,9 +2091,20 @@ class Lessons {
         echo("</ul><!-- end of discussions -->\n");
 
         if ( U::isLoggedIn() && U::currentContextId() !== 0 ) {
-            echo('<form method="post" action="'.htmlspecialchars($mark_read_url).'" class="tsugi-discussions-mark-read-form" style="margin: 1em 0 0;">');
+            $show_expire_button = false;
+            LTIX::getConnection();
+            $membership = Membership::ensureInSession(U::currentContextId(), U::loggedInUserId());
+            if ( $membership && $membership->isInstructor() ) {
+                $show_expire_button = true;
+            }
+            echo('<div style="margin: 1em 0 0; display: flex; gap: 0.5em; flex-wrap: wrap;">');
+            echo('<form method="post" action="'.htmlspecialchars($mark_read_url).'" class="tsugi-discussions-mark-read-form" style="margin: 0;">');
             echo('<button type="submit" class="btn btn-default btn-sm">'.htmlentities(__('Mark all as read')).'</button>');
             echo('</form>'."\n");
+            if ( $show_expire_button ) {
+                echo('<a href="'.htmlspecialchars($expire_threads_url).'" class="btn btn-warning btn-sm">'.htmlentities(__('Expire old threads')).'</a>');
+            }
+            echo("</div>\n");
         }
 ?>
 <script>

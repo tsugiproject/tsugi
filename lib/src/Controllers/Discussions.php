@@ -12,15 +12,17 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-class Discussions {
+class Discussions extends Tool {
 
     const ROUTE = '/discussions';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Discussions@get');
         $app->router->get($prefix.'/', 'Discussions@get');
+        $app->router->get($prefix.'/expire-threads', 'Discussions@expireThreads');
         $app->router->get($prefix.'/json', 'Discussions@json');
         $app->router->post($prefix.'/mark-read', 'Discussions@markRead');
+        $app->router->post($prefix.'/expire-threads-dry-run', 'Discussions@expireThreadsDryRun');
         $app->router->get($prefix.'_launch/{anchor}', function(Request $request, $anchor = null) use ($app) {
             return Discussions::launch($app, $anchor);
         });
@@ -132,7 +134,12 @@ class Discussions {
         $form_id = "tsugi_form_id_".bin2Hex(openssl_random_pseudo_bytes(4));
         $parms['ext_lti_form_id'] = $form_id;
 
+        // Allow deployments to override lesson JSON launch URLs for discussions
+        // via $CFG->tdiscus (e.g., alternate host/path for tdiscus).
         $endpoint = $lti->launch;
+        if ( isset($CFG->tdiscus) && U::isNotEmpty($CFG->tdiscus) ) {
+            $endpoint = $CFG->tdiscus;
+        }
         \Tsugi\UI\Lessons::absolute_url_ref($endpoint);
         $parms = LTI::signParameters($parms, $endpoint, "POST", $key, $secret,
             "Finish Launch", $CFG->wwwroot, $CFG->servicename);
@@ -260,6 +267,159 @@ class Discussions {
 
         U::flashSuccess(__('All discussions in this course have been marked as read.'));
         return new RedirectResponse(U::addSession($discussions_url));
+    }
+
+    public function expireThreadsDryRun(Request $request)
+    {
+        global $CFG, $PDOX;
+
+        $expire_url = (isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot) . self::ROUTE . '/expire-threads';
+        $redirect_url = U::addSession($expire_url);
+
+        if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
+            U::flashError(__('You must be logged in with a course context to manage discussion expiration.'));
+            return new RedirectResponse($redirect_url);
+        }
+        if ( ! $this->isInstructor() ) {
+            U::flashError(__('Only instructors can run discussion expiration.'));
+            return new RedirectResponse($redirect_url);
+        }
+
+        $months_raw = trim((string) U::get($_POST, 'months', ''));
+        $months = intval($months_raw);
+        if ( ! ctype_digit($months_raw) || $months <= 1 ) {
+            U::flashError(__('Months must be a whole number greater than 1.'));
+            return new RedirectResponse($redirect_url);
+        }
+
+        LTIX::getConnection();
+        $context_id = U::currentContextId();
+        $confirm_raw = trim((string) U::get($_POST, 'confirm', ''));
+        $confirm = ($confirm_raw === '1');
+
+        $count_sql = "SELECT COUNT(*) AS count
+            FROM {$CFG->dbprefix}tdiscus_thread T
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            LEFT JOIN (
+                SELECT C.thread_id, MAX(C.created_at) AS latest_post_at
+                FROM {$CFG->dbprefix}tdiscus_comment C
+                GROUP BY C.thread_id
+            ) LC ON LC.thread_id = T.thread_id
+            WHERE L.context_id = :CID
+              AND T.created_at < DATE_SUB(NOW(), INTERVAL :MONTHS MONTH)
+              AND COALESCE(LC.latest_post_at, T.created_at) < DATE_SUB(NOW(), INTERVAL :MONTHS2 MONTH)";
+
+        $count_row = $PDOX->rowDie($count_sql, array(
+            ':CID' => $context_id,
+            ':MONTHS' => $months,
+            ':MONTHS2' => $months,
+        ));
+
+        $delete_sql = "DELETE T
+FROM {$CFG->dbprefix}tdiscus_thread T
+JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+LEFT JOIN (
+    SELECT C.thread_id, MAX(C.created_at) AS latest_post_at
+    FROM {$CFG->dbprefix}tdiscus_comment C
+    GROUP BY C.thread_id
+) LC ON LC.thread_id = T.thread_id
+WHERE L.context_id = :CID
+  AND T.created_at < DATE_SUB(NOW(), INTERVAL :MONTHS MONTH)
+  AND COALESCE(LC.latest_post_at, T.created_at) < DATE_SUB(NOW(), INTERVAL :MONTHS2 MONTH)";
+
+        $delete_count = intval(U::get($count_row, 'count', 0));
+        if ( $confirm ) {
+            U::flashSuccess(__('Dry run only: no threads were deleted after confirmation.'));
+        } else {
+            U::flashSuccess(__('Dry run complete: no threads were deleted.'));
+        }
+
+        $_SESSION['discussions_expire_dry_run_result'] = array(
+            'months' => $months,
+            'count' => $delete_count,
+            'confirmed' => $confirm ? 1 : 0,
+            'sql' => $delete_sql,
+            'params' => array(
+                ':CID' => $context_id,
+                ':MONTHS' => $months,
+                ':MONTHS2' => $months,
+            ),
+        );
+        return new RedirectResponse($redirect_url);
+    }
+
+    public function expireThreads(Request $request)
+    {
+        global $CFG, $OUTPUT;
+
+        if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
+            U::flashError(__('You must be logged in with a course context to manage discussion expiration.'));
+            return new RedirectResponse(U::addSession(self::ROUTE));
+        }
+        if ( ! $this->isInstructor() ) {
+            U::flashError(__('Only instructors can run discussion expiration.'));
+            return new RedirectResponse(U::addSession(self::ROUTE));
+        }
+
+        $dry_run_url = U::addSession(self::ROUTE.'/expire-threads-dry-run');
+        $expire_result = U::get($_SESSION, 'discussions_expire_dry_run_result', false);
+        unset($_SESSION['discussions_expire_dry_run_result']);
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        echo('<main class="container" id="main-content">');
+        echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE)).'" class="btn btn-default btn-sm">'.__('Back to Discussions').'</a></p>');
+        $this->renderExpireDryRunPanel($dry_run_url, $expire_result);
+        echo('</main>');
+        $OUTPUT->footer();
+    }
+
+    private function renderExpireDryRunPanel($action_url, $result=false)
+    {
+        $default_months = 2;
+        if ( is_array($result) && isset($result['months']) ) {
+            $default_months = intval($result['months']);
+            if ( $default_months <= 1 ) $default_months = 2;
+        }
+        ?>
+        <div class="panel panel-warning" style="margin-bottom: 1.5em;">
+            <div class="panel-heading"><strong>Instructor: Expire old discussion threads (dry run)</strong></div>
+            <div class="panel-body">
+                <p class="text-muted" style="margin-top: 0;">
+                    This first version is dry run only. It never deletes data, and always shows the SQL that would run.
+                </p>
+                <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline" style="margin-bottom: 1em;">
+                    <div class="form-group">
+                        <label for="expire-months">Months:</label>
+                        <input id="expire-months" type="number" min="2" step="1" name="months"
+                            class="form-control" style="width: 8em; margin-left: 0.5em;"
+                            value="<?= htmlspecialchars((string) $default_months) ?>" required>
+                    </div>
+                    <button type="submit" class="btn btn-warning" style="margin-left: 0.5em;">Dry Run</button>
+                </form>
+
+                <?php if ( is_array($result) ) { ?>
+                    <div class="alert alert-info" style="margin-bottom: 0.75em;">
+                        Matching threads for <strong><?= intval($result['months']) ?></strong> months: <strong><?= intval(U::get($result, 'count', 0)) ?></strong>
+                        <?php if ( intval(U::get($result, 'confirmed', 0)) === 1 ) { ?>
+                            <br/>Confirmation clicked, but this is still a no-op dry run.
+                        <?php } ?>
+                    </div>
+                    <p style="margin-bottom: 0.4em;"><strong>SQL that would be used for deletion</strong></p>
+                    <pre style="max-height: 20em; overflow: auto;"><?= htmlspecialchars((string) U::get($result, 'sql', '')) ?></pre>
+                    <p style="margin-bottom: 0.4em;"><strong>Bound parameters</strong></p>
+                    <pre style="max-height: 10em; overflow: auto;"><?= htmlspecialchars(json_encode(U::get($result, 'params', array()), JSON_PRETTY_PRINT)) ?></pre>
+                    <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline">
+                        <input type="hidden" name="months" value="<?= intval($result['months']) ?>">
+                        <input type="hidden" name="confirm" value="1">
+                        <button type="submit" class="btn btn-danger">Yes I am sure</button>
+                    </form>
+                <?php } ?>
+            </div>
+        </div>
+        <?php
     }
 
     private function rollupsForLink($link_id, $user_id, $has_mentions, $has_participation, $include_participation_as_personal)
