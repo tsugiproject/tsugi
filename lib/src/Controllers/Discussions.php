@@ -333,7 +333,8 @@ LIMIT ".self::EXPIRE_DELETE_BATCH_LIMIT;
         $delete_sql = "DELETE FROM {$CFG->dbprefix}tdiscus_thread
 WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_BATCH_LIMIT." ids)";
 
-        $delete_count = intval(U::get($count_row, 'count', 0));
+        $matching_before = intval(U::get($count_row, 'count', 0));
+        $matching_after = $matching_before;
         $deleted_now = 0;
         $limit_hit = 0;
         if ( $confirm ) {
@@ -362,8 +363,14 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
                     WHERE thread_id IN (".implode(',', $placeholders).")";
                 $stmt = $PDOX->queryDie($run_delete_sql, $delete_params);
                 $deleted_now = $stmt->rowCount();
-                $limit_hit = (count($thread_ids) >= self::EXPIRE_DELETE_BATCH_LIMIT && $delete_count > $deleted_now) ? 1 : 0;
+                $limit_hit = (count($thread_ids) >= self::EXPIRE_DELETE_BATCH_LIMIT && $matching_before > $deleted_now) ? 1 : 0;
             }
+            $after_row = $PDOX->rowDie($count_sql, array(
+                ':CID' => $context_id,
+                ':MONTHS' => $months,
+                ':MONTHS2' => $months,
+            ));
+            $matching_after = intval(U::get($after_row, 'count', 0));
             if ( $deleted_now > 0 ) {
                 if ( $limit_hit ) {
                     U::flashSuccess(__('Deleted ').$deleted_now.__(' threads. Batch limit reached (500). Run again to continue.'));
@@ -379,7 +386,8 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
 
         $_SESSION['discussions_expire_dry_run_result'] = array(
             'months' => $months,
-            'count' => $delete_count,
+            'count' => $matching_after,
+            'count_before' => $matching_before,
             'confirmed' => $confirm ? 1 : 0,
             'deleted_now' => $deleted_now,
             'limit_hit' => $limit_hit,
@@ -484,6 +492,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
                     <div class="alert alert-info" style="margin-bottom: 0.75em;">
                         Matching threads for <strong><?= intval($result['months']) ?></strong> months: <strong><?= intval(U::get($result, 'count', 0)) ?></strong>
                         <?php if ( intval(U::get($result, 'confirmed', 0)) === 1 ) { ?>
+                            <br/>Matching before delete: <strong><?= intval(U::get($result, 'count_before', U::get($result, 'count', 0))) ?></strong>
                             <br/>Deleted this run: <strong><?= intval(U::get($result, 'deleted_now', 0)) ?></strong>
                             <?php if ( intval(U::get($result, 'limit_hit', 0)) === 1 ) { ?>
                                 <br/>Batch limit reached (<?= intval(U::get($result, 'batch_limit', self::EXPIRE_DELETE_BATCH_LIMIT)) ?>). Run again to continue.
