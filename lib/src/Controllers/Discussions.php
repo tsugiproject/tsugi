@@ -21,9 +21,11 @@ class Discussions extends Tool {
         $app->router->get($prefix, 'Discussions@get');
         $app->router->get($prefix.'/', 'Discussions@get');
         $app->router->get($prefix.'/expire-threads', 'Discussions@expireThreads');
+        $app->router->get($prefix.'/expire-comments', 'Discussions@expireComments');
         $app->router->get($prefix.'/json', 'Discussions@json');
         $app->router->post($prefix.'/mark-read', 'Discussions@markRead');
         $app->router->post($prefix.'/expire-threads-dry-run', 'Discussions@expireThreadsDryRun');
+        $app->router->post($prefix.'/expire-comments-dry-run', 'Discussions@expireCommentsDryRun');
         $app->router->get($prefix.'_launch/{anchor}', function(Request $request, $anchor = null) use ($app) {
             return Discussions::launch($app, $anchor);
         });
@@ -451,6 +453,221 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         $OUTPUT->footer();
     }
 
+    public function expireCommentsDryRun(Request $request)
+    {
+        global $CFG, $PDOX;
+
+        $expire_url = (isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot) . self::ROUTE . '/expire-comments';
+        $redirect_url = U::addSession($expire_url);
+
+        if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
+            U::flashError(__('You must be logged in with a course context to manage discussion expiration.'));
+            return new RedirectResponse($redirect_url);
+        }
+        if ( ! $this->isInstructor() ) {
+            U::flashError(__('Only instructors can run discussion expiration.'));
+            return new RedirectResponse($redirect_url);
+        }
+
+        $months_raw = trim((string) U::get($_POST, 'months', ''));
+        $months = intval($months_raw);
+        if ( ! ctype_digit($months_raw) || $months <= 1 ) {
+            U::flashError(__('Months must be a whole number greater than 1.'));
+            return new RedirectResponse($redirect_url);
+        }
+
+        LTIX::getConnection();
+        $context_id = U::currentContextId();
+        $confirm_raw = trim((string) U::get($_POST, 'confirm', ''));
+        $confirm = ($confirm_raw === '1');
+
+        if ( ! $this->ensureTdiscusThreadsLoaded() ) {
+            U::flashError(__('Discussion tools are not available on this installation.'));
+            return new RedirectResponse($redirect_url);
+        }
+
+        $count_sql = $this->expireCommentsCountSql($CFG->dbprefix);
+        $count_row = $PDOX->rowDie($count_sql, array(
+            ':CID' => $context_id,
+            ':MONTHS' => $months,
+            ':MONTHS2' => $months,
+        ));
+
+        $delete_sql = "For each comment_id returned by the candidate query: \\Tdiscus\\Threads::commentDeleteDao(array('comment_id'=>..., 'parent_id'=>...), thread_id)";
+
+        $matching_before = intval(U::get($count_row, 'count', 0));
+        $matching_after = $matching_before;
+        $deleted_now = 0;
+        $limit_hit = 0;
+        if ( $confirm ) {
+            @set_time_limit(120);
+            for ( $i = 0; $i < self::EXPIRE_DELETE_BATCH_LIMIT && $matching_after > 0; $i++ ) {
+                $candidate_sql_one = $this->expireCommentsCandidateSql($CFG->dbprefix, 1);
+                $row = $PDOX->rowDie($candidate_sql_one, array(
+                    ':CID' => $context_id,
+                    ':MONTHS' => $months,
+                    ':MONTHS2' => $months,
+                ));
+                if ( ! is_array($row) ) {
+                    break;
+                }
+                $comment_id = intval(U::get($row, 'comment_id', 0));
+                $thread_id = intval(U::get($row, 'thread_id', 0));
+                if ( $comment_id <= 0 || $thread_id <= 0 ) {
+                    break;
+                }
+                $comment = array(
+                    'comment_id' => $comment_id,
+                    'parent_id' => intval(U::get($row, 'parent_id', 0)),
+                );
+                $retval = \Tdiscus\Threads::commentDeleteDao($comment, $thread_id);
+                if ( is_string($retval) ) {
+                    error_log('Discussions::expireCommentsDryRun commentDeleteDao failed for comment_id='.$comment_id.': '.$retval);
+                    continue;
+                }
+                $deleted_now++;
+                $after_row = $PDOX->rowDie($count_sql, array(
+                    ':CID' => $context_id,
+                    ':MONTHS' => $months,
+                    ':MONTHS2' => $months,
+                ));
+                $matching_after = intval(U::get($after_row, 'count', 0));
+            }
+            $limit_hit = ($deleted_now >= self::EXPIRE_DELETE_BATCH_LIMIT && $matching_after > 0) ? 1 : 0;
+            if ( $deleted_now > 0 ) {
+                if ( $limit_hit ) {
+                    U::flashSuccess(__('Deleted ').$deleted_now.__(' comment subtree(s). Batch limit reached (500). Run again to continue.'));
+                } else {
+                    U::flashSuccess(__('Deleted ').$deleted_now.__(' comment subtree(s).'));
+                }
+            } else {
+                U::flashSuccess(__('No matching comments were deleted.'));
+            }
+        } else {
+            U::flashSuccess(__('Dry run complete: no comments were deleted.'));
+        }
+
+        $_SESSION['discussions_expire_comments_dry_run_result'] = array(
+            'months' => $months,
+            'count' => $matching_after,
+            'count_before' => $matching_before,
+            'confirmed' => $confirm ? 1 : 0,
+            'deleted_now' => $deleted_now,
+            'limit_hit' => $limit_hit,
+            'batch_limit' => self::EXPIRE_DELETE_BATCH_LIMIT,
+            'candidate_sql' => $this->expireCommentsCandidateSql($CFG->dbprefix, self::EXPIRE_DELETE_BATCH_LIMIT),
+            'sql' => $delete_sql,
+            'params' => array(
+                ':CID' => $context_id,
+                ':MONTHS' => $months,
+                ':MONTHS2' => $months,
+            ),
+        );
+        return new RedirectResponse($redirect_url);
+    }
+
+    public function expireComments(Request $request)
+    {
+        global $CFG, $OUTPUT, $PDOX;
+
+        if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
+            U::flashError(__('You must be logged in with a course context to manage discussion expiration.'));
+            return new RedirectResponse(U::addSession(self::ROUTE));
+        }
+        if ( ! $this->isInstructor() ) {
+            U::flashError(__('Only instructors can run discussion expiration.'));
+            return new RedirectResponse(U::addSession(self::ROUTE));
+        }
+
+        LTIX::getConnection();
+        $context_id = U::currentContextId();
+        $oldest_comment_row = $PDOX->rowDie(
+            "SELECT MIN(C.created_at) AS oldest_comment_at
+                FROM {$CFG->dbprefix}tdiscus_comment C
+                JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = C.thread_id
+                JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+                WHERE L.context_id = :CID",
+            array(':CID' => $context_id)
+        );
+        $oldest_comment_at = U::get($oldest_comment_row, 'oldest_comment_at', null);
+
+        $dry_run_url = U::addSession(self::ROUTE.'/expire-comments-dry-run');
+        $expire_result = U::get($_SESSION, 'discussions_expire_comments_dry_run_result', false);
+        unset($_SESSION['discussions_expire_comments_dry_run_result']);
+        $tdiscus_threads_ok = $this->ensureTdiscusThreadsLoaded();
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        echo('<main class="container" id="main-content">');
+        echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE)).'" class="btn btn-default btn-sm">'.__('Back to Discussions').'</a></p>');
+        $this->renderExpireCommentsDryRunPanel($dry_run_url, $expire_result, $oldest_comment_at, $tdiscus_threads_ok);
+        echo('</main>');
+        $OUTPUT->footer();
+    }
+
+    /**
+     * Comments eligible for age-based removal: older than N months and no descendant newer than N months.
+     *
+     * @param string $p table prefix including trailing underscore segment as in $CFG->dbprefix
+     * @param int $limit max rows (use 1 in delete loop)
+     */
+    private function expireCommentsCandidateSql($p, $limit)
+    {
+        $limit = intval($limit);
+        if ( $limit < 1 ) {
+            $limit = 1;
+        }
+        return "SELECT C.comment_id, C.thread_id, C.parent_id
+FROM {$p}tdiscus_comment C
+JOIN {$p}tdiscus_thread T ON T.thread_id = C.thread_id
+JOIN {$p}lti_link L ON L.link_id = T.link_id
+WHERE L.context_id = :CID
+  AND C.created_at < DATE_SUB(NOW(), INTERVAL :MONTHS MONTH)
+  AND NOT EXISTS (
+    SELECT 1
+    FROM {$p}tdiscus_closure CL
+    JOIN {$p}tdiscus_comment D ON D.comment_id = CL.child_id
+    WHERE CL.parent_id = C.comment_id
+      AND CL.child_id <> C.comment_id
+      AND D.created_at >= DATE_SUB(NOW(), INTERVAL :MONTHS2 MONTH)
+  )
+ORDER BY C.created_at, C.comment_id
+LIMIT ".$limit;
+    }
+
+    private function expireCommentsCountSql($p)
+    {
+        return "SELECT COUNT(*) AS count
+FROM {$p}tdiscus_comment C
+JOIN {$p}tdiscus_thread T ON T.thread_id = C.thread_id
+JOIN {$p}lti_link L ON L.link_id = T.link_id
+WHERE L.context_id = :CID
+  AND C.created_at < DATE_SUB(NOW(), INTERVAL :MONTHS MONTH)
+  AND NOT EXISTS (
+    SELECT 1
+    FROM {$p}tdiscus_closure CL
+    JOIN {$p}tdiscus_comment D ON D.comment_id = CL.child_id
+    WHERE CL.parent_id = C.comment_id
+      AND CL.child_id <> C.comment_id
+      AND D.created_at >= DATE_SUB(NOW(), INTERVAL :MONTHS2 MONTH)
+  )";
+    }
+
+    private function ensureTdiscusThreadsLoaded()
+    {
+        global $CFG;
+        if ( class_exists('\Tdiscus\Threads', false) ) {
+            return true;
+        }
+        $path = $CFG->dirroot . '/tool/tdiscus/util/threads.php';
+        if ( is_readable($path) ) {
+            require_once $path;
+        }
+        return class_exists('\Tdiscus\Threads', false);
+    }
+
     private function renderExpireDryRunPanel($action_url, $result=false, $oldest_post_at=null, $oldest_thread_at=null)
     {
         $default_months = 2;
@@ -516,6 +733,83 @@ Bound parameters
                             <input type="hidden" name="months" value="<?= intval($result['months']) ?>">
                             <input type="hidden" name="confirm" value="1">
                             <button type="submit" class="btn btn-danger">Delete Threads (no undo)</button>
+                        </form>
+                    <?php } ?>
+                <?php } ?>
+            </div>
+        </div>
+        <?php
+    }
+
+    private function renderExpireCommentsDryRunPanel($action_url, $result=false, $oldest_comment_at=null, $tdiscus_threads_ok=true)
+    {
+        $default_months = 2;
+        if ( is_array($result) && isset($result['months']) ) {
+            $default_months = intval($result['months']);
+            if ( $default_months <= 1 ) {
+                $default_months = 2;
+            }
+        }
+        ?>
+        <div class="panel panel-warning" style="margin-bottom: 1.5em;">
+            <div class="panel-heading"><strong>Instructor: Expire old discussion comments</strong></div>
+            <div class="panel-body">
+                <?php if ( ! $tdiscus_threads_ok ) { ?>
+                    <div class="alert alert-danger" style="margin-top: 0;">
+                        The tdiscus tool (<code>tool/tdiscus/util/threads.php</code>) is not available, so comment expiration cannot run on this server.
+                    </div>
+                <?php } else if ( is_string($oldest_comment_at) && strlen($oldest_comment_at) > 0 ) { ?>
+                    <p class="text-muted" style="margin-top: 0;">
+                        Oldest comment date in this course: <strong><?= htmlspecialchars($oldest_comment_at) ?></strong>
+                    </p>
+                <?php } else { ?>
+                    <p class="text-muted" style="margin-top: 0;">
+                        No discussion comments found in this course.
+                    </p>
+                <?php } ?>
+                <p class="text-muted" style="margin-top: 0;">
+                    A comment is removed only when it is older than the cutoff <em>and</em> every reply under it (in the same thread) is also older than the cutoff.
+                    Deleting one match removes that comment and its whole subtree. Dry run shows counts and SQL; confirming deletes up to <?= intval(self::EXPIRE_DELETE_BATCH_LIMIT) ?> subtree(s) per run.
+                </p>
+                <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline" style="margin-bottom: 1em;">
+                    <div class="form-group">
+                        <label for="expire-comments-months">Months:</label>
+                        <input id="expire-comments-months" type="number" min="2" step="1" name="months"
+                            class="form-control" style="width: 8em; margin-left: 0.5em;"
+                            value="<?= htmlspecialchars((string) $default_months) ?>" required
+                            <?= $tdiscus_threads_ok ? '' : ' disabled' ?>>
+                    </div>
+                    <button type="submit" class="btn btn-warning" style="margin-left: 0.5em;"<?= $tdiscus_threads_ok ? '' : ' disabled' ?>>Dry Run</button>
+                </form>
+
+                <?php if ( is_array($result) ) { ?>
+                    <?php
+                        $candidate_sql_comment = str_replace('--', '- -', (string) U::get($result, 'candidate_sql', ''));
+                        $delete_sql_comment = str_replace('--', '- -', (string) U::get($result, 'sql', ''));
+                        $params_comment = str_replace('--', '- -', json_encode(U::get($result, 'params', array()), JSON_PRETTY_PRINT));
+                    ?>
+                    <div class="alert alert-info" style="margin-bottom: 0.75em;">
+                        Matching comment subtree roots for <strong><?= intval($result['months']) ?></strong> months: <strong><?= intval(U::get($result, 'count', 0)) ?></strong>
+                        <?php if ( intval(U::get($result, 'confirmed', 0)) === 1 ) { ?>
+                            <br/>Matching before delete: <strong><?= intval(U::get($result, 'count_before', U::get($result, 'count', 0))) ?></strong>
+                            <br/>Subtree roots deleted this run: <strong><?= intval(U::get($result, 'deleted_now', 0)) ?></strong>
+                            <?php if ( intval(U::get($result, 'limit_hit', 0)) === 1 ) { ?>
+                                <br/>Batch limit reached (<?= intval(U::get($result, 'batch_limit', self::EXPIRE_DELETE_BATCH_LIMIT)) ?>). Run again to continue.
+                            <?php } ?>
+                        <?php } ?>
+                    </div>
+                    <!-- Candidate SQL (limited batch)
+<?= htmlspecialchars($candidate_sql_comment) ?>
+SQL used for deletion
+<?= htmlspecialchars($delete_sql_comment) ?>
+Bound parameters
+<?= htmlspecialchars($params_comment) ?>
+                    -->
+                    <?php if ( $tdiscus_threads_ok && intval(U::get($result, 'count', 0)) > 0 ) { ?>
+                        <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline">
+                            <input type="hidden" name="months" value="<?= intval($result['months']) ?>">
+                            <input type="hidden" name="confirm" value="1">
+                            <button type="submit" class="btn btn-danger">Delete Comments (no undo)</button>
                         </form>
                     <?php } ?>
                 <?php } ?>

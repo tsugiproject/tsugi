@@ -2038,6 +2038,7 @@ class Lessons {
         $json_endpoint = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/json');
         $mark_read_url = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/mark-read');
         $expire_threads_url = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/expire-threads');
+        $expire_comments_url = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/expire-comments');
 
         echo('<h1>'.__('Discussions:').' '.$this->lessons->title."</h1>\n");
 
@@ -2103,6 +2104,7 @@ class Lessons {
             echo('</form>'."\n");
             if ( $show_expire_button ) {
                 echo('<a href="'.htmlspecialchars($expire_threads_url).'" class="btn btn-warning btn-sm">'.htmlentities(__('Expire old threads')).'</a>');
+                echo('<a href="'.htmlspecialchars($expire_comments_url).'" class="btn btn-warning btn-sm">'.htmlentities(__('Expire old comments')).'</a>');
             }
             echo("</div>\n");
         }

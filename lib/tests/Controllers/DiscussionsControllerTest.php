@@ -94,6 +94,24 @@ class DiscussionsControllerTest extends \PHPUnit\Framework\TestCase
             }
         }
         $this->assertTrue($hasMarkReadRoute, 'Should register POST /discussions/mark-read route');
+
+        $hasExpireCommentsRoute = false;
+        foreach ($uris as $uri) {
+            if (strpos($uri, '/discussions/expire-comments') !== false) {
+                $hasExpireCommentsRoute = true;
+                break;
+            }
+        }
+        $this->assertTrue($hasExpireCommentsRoute, 'Should register /discussions/expire-comments route');
+
+        $hasExpireCommentsDryRunRoute = false;
+        foreach ($uris as $uri) {
+            if (strpos($uri, '/discussions/expire-comments-dry-run') !== false) {
+                $hasExpireCommentsDryRunRoute = true;
+                break;
+            }
+        }
+        $this->assertTrue($hasExpireCommentsDryRunRoute, 'Should register POST /discussions/expire-comments-dry-run route');
     }
     
     /**
