@@ -17,16 +17,59 @@ if (php_sapi_name() !== 'cli') {
 }
 
 if ($argc < 2) {
-    echo "Usage: php tsugi/scripts/convert-lessons-to-items.php [input.json] [output.json] [keep]\n";
+    echo "Usage: php tsugi/scripts/convert-lessons-to-items.php [input.json] [output.json] [sections...] [keep]\n";
     echo "Example: php tsugi/scripts/convert-lessons-to-items.php lessons.json lessons-items.json\n";
     echo "         php tsugi/scripts/convert-lessons-to-items.php lessons.json out.json keep\n";
-    echo "  (omit keep to drop legacy arrays from each module after building items)\n";
+    echo "         php tsugi/scripts/convert-lessons-to-items.php lessons.json out.json lectures form\n";
+    echo "  sections: optional list (slides lectures videos references discussions lti assignment solution chapters form carousel)\n";
+    echo "  keep: keep legacy arrays/fields after building items\n";
     exit(1);
 }
 
 $input_file = $argv[1];
 $output_file = isset($argv[2]) ? $argv[2] : str_replace('.json', '-items.json', $input_file);
-$keep_legacy = ($argc >= 4 && strtolower($argv[3]) === 'keep');
+$raw_args = array_slice($argv, 3);
+$keep_legacy = false;
+$requested_sections = array();
+$section_aliases = array(
+    'carousel' => 'carousel',
+    'slide' => 'slides',
+    'slides' => 'slides',
+    'lecture' => 'lectures',
+    'lectures' => 'lectures',
+    'video' => 'videos',
+    'videos' => 'videos',
+    'reference' => 'references',
+    'references' => 'references',
+    'discussion' => 'discussions',
+    'discussions' => 'discussions',
+    'tool' => 'lti',
+    'tools' => 'lti',
+    'lti' => 'lti',
+    'assignment' => 'assignment',
+    'solution' => 'solution',
+    'chapter' => 'chapters',
+    'chapters' => 'chapters',
+    'form' => 'form',
+    'forms' => 'form',
+);
+foreach ($raw_args as $arg) {
+    $arg = strtolower(trim($arg));
+    if ($arg === '') continue;
+    if ($arg === 'keep') {
+        $keep_legacy = true;
+        continue;
+    }
+    if (isset($section_aliases[$arg])) {
+        $requested_sections[$section_aliases[$arg]] = true;
+    } else {
+        echo "Warning: Unknown section '$arg' ignored.\n";
+    }
+}
+$convert_all_sections = (count($requested_sections) === 0);
+$shouldConvert = function($section_name) use ($convert_all_sections, $requested_sections) {
+    return $convert_all_sections || isset($requested_sections[$section_name]);
+};
 
 if (!file_exists($input_file)) {
     echo "Error: Input file '$input_file' not found.\n";
@@ -66,6 +109,7 @@ function objectToArray($data) {
 // Convert each module
 foreach($lessons['modules'] as &$module) {
     $items = array();
+    $converted_legacy_keys = array();
     
     // Add description as text item if present
     if (isset($module['description'])) {
@@ -73,7 +117,7 @@ foreach($lessons['modules'] as &$module) {
     }
     
     // Convert carousel (can be single item or array)
-    if (isset($module['carousel']) && !empty($module['carousel'])) {
+    if ($shouldConvert('carousel') && isset($module['carousel']) && !empty($module['carousel'])) {
         $carousel_items = $module['carousel'];
         if (!is_array($carousel_items)) {
             $carousel_items = array($carousel_items);
@@ -91,6 +135,7 @@ foreach($lessons['modules'] as &$module) {
             }
         }
         if (count($carousel_video_items) > 0) {
+            $converted_legacy_keys['carousel'] = true;
             $items[] = array(
                 'type' => 'header',
                 'text' => 'Videos',
@@ -119,7 +164,7 @@ foreach($lessons['modules'] as &$module) {
     };
     
     // Convert slides (can be string, single object, or array)
-    if (isset($module['slides']) && !empty($module['slides'])) {
+    if ($shouldConvert('slides') && isset($module['slides']) && !empty($module['slides'])) {
         $slide_items = array();
         if (is_string($module['slides']) && !empty($module['slides'])) {
             // Single string slide
@@ -176,6 +221,7 @@ foreach($lessons['modules'] as &$module) {
         
         // Only add header if we have slide items
         if (count($slide_items) > 0) {
+            $converted_legacy_keys['slides'] = true;
             $items[] = array(
                 'type' => 'header',
                 'text' => 'Slides',
@@ -186,7 +232,7 @@ foreach($lessons['modules'] as &$module) {
     }
     
     // Convert videos (can be single item or array)
-    if (isset($module['videos']) && !empty($module['videos'])) {
+    if ($shouldConvert('videos') && isset($module['videos']) && !empty($module['videos'])) {
         $videos = $module['videos'];
         if (!is_array($videos)) {
             $videos = array($videos);
@@ -204,6 +250,7 @@ foreach($lessons['modules'] as &$module) {
             }
         }
         if (count($video_items) > 0) {
+            $converted_legacy_keys['videos'] = true;
             $items[] = array(
                 'type' => 'header',
                 'text' => 'Videos',
@@ -212,9 +259,37 @@ foreach($lessons['modules'] as &$module) {
             $items = array_merge($items, $video_items);
         }
     }
+
+    // Convert lectures (legacy key used in many course files)
+    if ($shouldConvert('lectures') && isset($module['lectures']) && !empty($module['lectures'])) {
+        $lectures = $module['lectures'];
+        if (!is_array($lectures)) {
+            $lectures = array($lectures);
+        }
+        $lecture_items = array();
+        foreach ($lectures as $lecture) {
+            if (!empty($lecture)) {
+                $lecture_arr = is_array($lecture) ? $lecture : (array)$lecture;
+                if (isset($lecture_arr['youtube']) && !empty($lecture_arr['youtube']) ||
+                    isset($lecture_arr['media']) && !empty($lecture_arr['media']) ||
+                    isset($lecture_arr['title']) && !empty($lecture_arr['title'])) {
+                    $lecture_items[] = array_merge(array('type' => 'video'), $lecture_arr);
+                }
+            }
+        }
+        if (count($lecture_items) > 0) {
+            $converted_legacy_keys['lectures'] = true;
+            $items[] = array(
+                'type' => 'header',
+                'text' => 'Videos',
+                'level' => 2
+            );
+            $items = array_merge($items, $lecture_items);
+        }
+    }
     
     // Convert references (can be single item or array)
-    if (isset($module['references']) && !empty($module['references'])) {
+    if ($shouldConvert('references') && isset($module['references']) && !empty($module['references'])) {
         $references = $module['references'];
         if (!is_array($references)) {
             $references = array($references);
@@ -234,6 +309,7 @@ foreach($lessons['modules'] as &$module) {
             }
         }
         if (count($ref_items) > 0) {
+            $converted_legacy_keys['references'] = true;
             $items[] = array(
                 'type' => 'header',
                 'text' => 'References',
@@ -244,7 +320,8 @@ foreach($lessons['modules'] as &$module) {
     }
     
     // Convert chapters
-    if (isset($module['chapters'])) {
+    if ($shouldConvert('chapters') && isset($module['chapters'])) {
+        $converted_legacy_keys['chapters'] = true;
         $items[] = array(
             'type' => 'chapters',
             'chapters' => $module['chapters']
@@ -252,7 +329,8 @@ foreach($lessons['modules'] as &$module) {
     }
     
     // Convert assignment
-    if (isset($module['assignment']) && !empty($module['assignment'])) {
+    if ($shouldConvert('assignment') && isset($module['assignment']) && !empty($module['assignment'])) {
+        $converted_legacy_keys['assignment'] = true;
         $assignment_url = $normalizeUrl($module['assignment']);
         $items[] = array(
             'type' => 'header',
@@ -266,7 +344,8 @@ foreach($lessons['modules'] as &$module) {
     }
     
     // Convert solution
-    if (isset($module['solution']) && !empty($module['solution'])) {
+    if ($shouldConvert('solution') && isset($module['solution']) && !empty($module['solution'])) {
+        $converted_legacy_keys['solution'] = true;
         $solution_url = $normalizeUrl($module['solution']);
         $items[] = array(
             'type' => 'header',
@@ -280,7 +359,7 @@ foreach($lessons['modules'] as &$module) {
     }
     
     // Convert discussions (can be single item or array)
-    if (isset($module['discussions']) && !empty($module['discussions'])) {
+    if ($shouldConvert('discussions') && isset($module['discussions']) && !empty($module['discussions'])) {
         $discussions = $module['discussions'];
         if (!is_array($discussions)) {
             $discussions = array($discussions);
@@ -297,6 +376,7 @@ foreach($lessons['modules'] as &$module) {
             }
         }
         if (count($disc_items) > 0) {
+            $converted_legacy_keys['discussions'] = true;
             $items[] = array(
                 'type' => 'header',
                 'text' => 'Discussions',
@@ -307,7 +387,7 @@ foreach($lessons['modules'] as &$module) {
     }
     
     // Convert lti (can be single object or array)
-    if (isset($module['lti']) && !empty($module['lti'])) {
+    if ($shouldConvert('lti') && isset($module['lti']) && !empty($module['lti'])) {
         $ltis_raw = $module['lti'];
         // Normalize to array of LTI items
         // Check if it's already an array of LTIs (numeric keys) or a single LTI object (associative array)
@@ -374,6 +454,7 @@ foreach($lessons['modules'] as &$module) {
         }
         
         if (count($lti_items) > 0) {
+            $converted_legacy_keys['lti'] = true;
             $items[] = array(
                 'type' => 'header',
                 'text' => 'Tools',
@@ -382,23 +463,60 @@ foreach($lessons['modules'] as &$module) {
             $items = array_merge($items, $lti_items);
         }
     }
+
+    // Convert form payloads to item entries, preserving all fields
+    if ($shouldConvert('form') && isset($module['form']) && !empty($module['form'])) {
+        $forms_raw = $module['form'];
+        if (!is_array($forms_raw)) {
+            $forms = array($forms_raw);
+        } else {
+            $is_list = array_keys($forms_raw) === range(0, count($forms_raw) - 1);
+            $forms = $is_list ? $forms_raw : array($forms_raw);
+        }
+        $form_items = array();
+        foreach ($forms as $form) {
+            if (empty($form)) continue;
+            $form_arr = is_array($form) ? $form : (array)$form;
+            if (isset($form_arr['href']) && !empty($form_arr['href'])) {
+                $form_arr['href'] = $normalizeUrl($form_arr['href']);
+            }
+            if (isset($form_arr['url']) && !empty($form_arr['url'])) {
+                $form_arr['url'] = $normalizeUrl($form_arr['url']);
+            }
+            $form_items[] = array_merge(array('type' => 'form'), $form_arr);
+        }
+        if (count($form_items) > 0) {
+            $converted_legacy_keys['form'] = true;
+            $items[] = array(
+                'type' => 'header',
+                'text' => 'Forms',
+                'level' => 2
+            );
+            $items = array_merge($items, $form_items);
+        }
+    }
     
     // Add items array to module
     $module['items'] = $items;
 
     if (!$keep_legacy) {
-        $legacy_keys = array(
-            'carousel',
-            'slides',
-            'videos',
-            'lectures',
-            'references',
-            'discussions',
-            'lti',
-            'assignment',
-            'solution',
-            'chapters',
-        );
+        if ($convert_all_sections) {
+            $legacy_keys = array(
+                'carousel',
+                'slides',
+                'videos',
+                'lectures',
+                'references',
+                'discussions',
+                'lti',
+                'assignment',
+                'solution',
+                'chapters',
+                'form',
+            );
+        } else {
+            $legacy_keys = array_keys($converted_legacy_keys);
+        }
         foreach ($legacy_keys as $key) {
             unset($module[$key]);
         }
