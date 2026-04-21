@@ -511,11 +511,13 @@ SQL used for deletion
 Bound parameters
 <?= htmlspecialchars($params_comment) ?>
                     -->
-                    <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline">
-                        <input type="hidden" name="months" value="<?= intval($result['months']) ?>">
-                        <input type="hidden" name="confirm" value="1">
-                        <button type="submit" class="btn btn-danger">Delete Threads (no undo)</button>
-                    </form>
+                    <?php if ( intval(U::get($result, 'count', 0)) > 0 ) { ?>
+                        <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline">
+                            <input type="hidden" name="months" value="<?= intval($result['months']) ?>">
+                            <input type="hidden" name="confirm" value="1">
+                            <button type="submit" class="btn btn-danger">Delete Threads (no undo)</button>
+                        </form>
+                    <?php } ?>
                 <?php } ?>
             </div>
         </div>
