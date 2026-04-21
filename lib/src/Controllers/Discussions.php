@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class Discussions extends Tool {
 
     const ROUTE = '/discussions';
+    const EXPIRE_DELETE_BATCH_LIMIT = 500;
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Discussions@get');
@@ -315,7 +316,7 @@ class Discussions extends Tool {
             ':MONTHS2' => $months,
         ));
 
-        $delete_sql = "DELETE T
+        $candidate_sql = "SELECT T.thread_id
 FROM {$CFG->dbprefix}tdiscus_thread T
 JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
 LEFT JOIN (
@@ -325,11 +326,53 @@ LEFT JOIN (
 ) LC ON LC.thread_id = T.thread_id
 WHERE L.context_id = :CID
   AND T.created_at < DATE_SUB(NOW(), INTERVAL :MONTHS MONTH)
-  AND COALESCE(LC.latest_post_at, T.created_at) < DATE_SUB(NOW(), INTERVAL :MONTHS2 MONTH)";
+  AND COALESCE(LC.latest_post_at, T.created_at) < DATE_SUB(NOW(), INTERVAL :MONTHS2 MONTH)
+ORDER BY COALESCE(LC.latest_post_at, T.created_at), T.thread_id
+LIMIT ".self::EXPIRE_DELETE_BATCH_LIMIT;
+
+        $delete_sql = "DELETE FROM {$CFG->dbprefix}tdiscus_thread
+WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_BATCH_LIMIT." ids)";
 
         $delete_count = intval(U::get($count_row, 'count', 0));
+        $deleted_now = 0;
+        $limit_hit = 0;
         if ( $confirm ) {
-            U::flashSuccess(__('Dry run only: no threads were deleted after confirmation.'));
+            @set_time_limit(30);
+            $candidate_rows = $PDOX->allRowsDie($candidate_sql, array(
+                ':CID' => $context_id,
+                ':MONTHS' => $months,
+                ':MONTHS2' => $months,
+            ));
+            $thread_ids = array();
+            foreach ( $candidate_rows as $row ) {
+                $thread_id = intval(U::get($row, 'thread_id', 0));
+                if ( $thread_id > 0 ) $thread_ids[] = $thread_id;
+            }
+            if ( count($thread_ids) > 0 ) {
+                $delete_params = array();
+                $placeholders = array();
+                $ix = 0;
+                foreach ( $thread_ids as $thread_id ) {
+                    $ix++;
+                    $ph = ':TID'.$ix;
+                    $placeholders[] = $ph;
+                    $delete_params[$ph] = $thread_id;
+                }
+                $run_delete_sql = "DELETE FROM {$CFG->dbprefix}tdiscus_thread
+                    WHERE thread_id IN (".implode(',', $placeholders).")";
+                $stmt = $PDOX->queryDie($run_delete_sql, $delete_params);
+                $deleted_now = $stmt->rowCount();
+                $limit_hit = (count($thread_ids) >= self::EXPIRE_DELETE_BATCH_LIMIT && $delete_count > $deleted_now) ? 1 : 0;
+            }
+            if ( $deleted_now > 0 ) {
+                if ( $limit_hit ) {
+                    U::flashSuccess(__('Deleted ').$deleted_now.__(' threads. Batch limit reached (500). Run again to continue.'));
+                } else {
+                    U::flashSuccess(__('Deleted ').$deleted_now.__(' threads.'));
+                }
+            } else {
+                U::flashSuccess(__('No matching threads were deleted.'));
+            }
         } else {
             U::flashSuccess(__('Dry run complete: no threads were deleted.'));
         }
@@ -338,6 +381,10 @@ WHERE L.context_id = :CID
             'months' => $months,
             'count' => $delete_count,
             'confirmed' => $confirm ? 1 : 0,
+            'deleted_now' => $deleted_now,
+            'limit_hit' => $limit_hit,
+            'batch_limit' => self::EXPIRE_DELETE_BATCH_LIMIT,
+            'candidate_sql' => $candidate_sql,
             'sql' => $delete_sql,
             'params' => array(
                 ':CID' => $context_id,
@@ -437,9 +484,14 @@ WHERE L.context_id = :CID
                     <div class="alert alert-info" style="margin-bottom: 0.75em;">
                         Matching threads for <strong><?= intval($result['months']) ?></strong> months: <strong><?= intval(U::get($result, 'count', 0)) ?></strong>
                         <?php if ( intval(U::get($result, 'confirmed', 0)) === 1 ) { ?>
-                            <br/>Confirmation clicked, but this is still a no-op dry run.
+                            <br/>Deleted this run: <strong><?= intval(U::get($result, 'deleted_now', 0)) ?></strong>
+                            <?php if ( intval(U::get($result, 'limit_hit', 0)) === 1 ) { ?>
+                                <br/>Batch limit reached (<?= intval(U::get($result, 'batch_limit', self::EXPIRE_DELETE_BATCH_LIMIT)) ?>). Run again to continue.
+                            <?php } ?>
                         <?php } ?>
                     </div>
+                    <p style="margin-bottom: 0.4em;"><strong>Candidate SQL (limited batch)</strong></p>
+                    <pre style="max-height: 20em; overflow: auto;"><?= htmlspecialchars((string) U::get($result, 'candidate_sql', '')) ?></pre>
                     <p style="margin-bottom: 0.4em;"><strong>SQL that would be used for deletion</strong></p>
                     <pre style="max-height: 20em; overflow: auto;"><?= htmlspecialchars((string) U::get($result, 'sql', '')) ?></pre>
                     <p style="margin-bottom: 0.4em;"><strong>Bound parameters</strong></p>
