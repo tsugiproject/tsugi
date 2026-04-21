@@ -452,7 +452,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         }
         ?>
         <div class="panel panel-warning" style="margin-bottom: 1.5em;">
-            <div class="panel-heading"><strong>Instructor: Expire old discussion threads (dry run)</strong></div>
+            <div class="panel-heading"><strong>Instructor: Expire old discussion threads</strong></div>
             <div class="panel-body">
                 <?php if ( is_string($oldest_post_at) && strlen($oldest_post_at) > 0 ) { ?>
                     <p class="text-muted" style="margin-top: 0;">
