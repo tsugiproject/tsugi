@@ -449,6 +449,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         echo('<main class="container" id="main-content">');
         echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE)).'" class="btn btn-default btn-sm">'.__('Back to Discussions').'</a></p>');
         $this->renderExpireDryRunPanel($dry_run_url, $expire_result, $oldest_post_at, $oldest_thread_at);
+        $this->emitExpireDeleteFormEnhancements();
         echo('</main>');
         $OUTPUT->footer();
     }
@@ -603,6 +604,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         echo('<main class="container" id="main-content">');
         echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE)).'" class="btn btn-default btn-sm">'.__('Back to Discussions').'</a></p>');
         $this->renderExpireCommentsDryRunPanel($dry_run_url, $expire_result, $oldest_comment_at, $tdiscus_threads_ok);
+        $this->emitExpireDeleteFormEnhancements();
         echo('</main>');
         $OUTPUT->footer();
     }
@@ -740,7 +742,6 @@ Bound parameters
             </div>
         </div>
         <?php
-        $this->emitExpireDeleteFormEnhancements();
     }
 
     private function renderExpireCommentsDryRunPanel($action_url, $result=false, $oldest_comment_at=null, $tdiscus_threads_ok=true)
@@ -819,7 +820,6 @@ Bound parameters
             </div>
         </div>
         <?php
-        $this->emitExpireDeleteFormEnhancements();
     }
 
     /**
@@ -827,11 +827,6 @@ Bound parameters
      */
     private function emitExpireDeleteFormEnhancements()
     {
-        static $emitted = false;
-        if ( $emitted ) {
-            return;
-        }
-        $emitted = true;
         ?>
 <style>
 @keyframes tsugiDiscussionsExpireSpin { to { transform: rotate(360deg); } }
@@ -849,26 +844,23 @@ Bound parameters
 </style>
 <script>
 (function () {
-  function enhance(form) {
-    if (!form || form.getAttribute('data-tsugi-expire-delete-bound')) return;
-    form.setAttribute('data-tsugi-expire-delete-bound', '1');
-    form.addEventListener('submit', function () {
-      var btn = form.querySelector('button[type="submit"]');
-      if (!btn || btn.disabled) return;
-      btn.disabled = true;
-      var label = btn.getAttribute('data-deleting-label') || 'Deleting…';
-      var spin = document.createElement('span');
-      spin.className = 'tsugi-discussions-expire-spinner';
-      spin.setAttribute('aria-hidden', 'true');
-      btn.textContent = '';
-      btn.appendChild(spin);
-      btn.appendChild(document.createTextNode(' ' + label));
-    });
-  }
-  var forms = document.querySelectorAll('form.tsugi-expire-delete-form');
-  for (var i = 0; i < forms.length; i++) {
-    enhance(forms[i]);
-  }
+  if (window.__tsugiExpireDeleteSubmitBound) return;
+  window.__tsugiExpireDeleteSubmitBound = true;
+  document.addEventListener('submit', function (ev) {
+    var form = ev.target;
+    if (!form || !form.classList || !form.classList.contains('tsugi-expire-delete-form')) return;
+    var btn = form.querySelector('button[type="submit"]');
+    if (!btn || btn.disabled) return;
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    var label = btn.getAttribute('data-deleting-label') || 'Deleting…';
+    var spin = document.createElement('span');
+    spin.className = 'tsugi-discussions-expire-spinner';
+    spin.setAttribute('aria-hidden', 'true');
+    btn.textContent = '';
+    btn.appendChild(spin);
+    btn.appendChild(document.createTextNode(' ' + label));
+  }, true);
 })();
 </script>
         <?php
