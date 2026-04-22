@@ -382,6 +382,15 @@ class Threads {
 
         $thread_id = intval($PDOX->lastInsertId());
         if ( $thread_id > 0 ) {
+            $PDOX->queryDie("INSERT INTO {$CFG->dbprefix}tdiscus_user_thread
+                (thread_id, user_id, subscribe)
+                VALUES (:TID, :UID, 1)
+                ON DUPLICATE KEY UPDATE subscribe = 1",
+                array(
+                    ':TID' => $thread_id,
+                    ':UID' => $TSUGI_LAUNCH->user->id,
+                )
+            );
             self::upsertThreadParticipation($thread_id, $TSUGI_LAUNCH->user->id);
         }
 
