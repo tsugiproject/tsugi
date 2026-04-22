@@ -25,6 +25,7 @@ class Discussions extends Tool {
         $app->router->get($prefix.'/expire-comments', 'Discussions@expireComments');
         $app->router->get($prefix.'/json', 'Discussions@json');
         $app->router->post($prefix.'/mark-read', 'Discussions@markRead');
+        $app->router->post($prefix.'/reset-unread-tracking', 'Discussions@resetUnreadTracking');
         $app->router->post($prefix.'/expire-threads-dry-run', 'Discussions@expireThreadsDryRun');
         $app->router->post($prefix.'/expire-comments-dry-run', 'Discussions@expireCommentsDryRun');
         $app->router->get($prefix.'_launch/{anchor}', function(Request $request, $anchor = null) use ($app) {
@@ -182,17 +183,22 @@ class Discussions extends Tool {
 
         $include_participating_in_main = intval(U::get($_GET, 'include_participating', 0)) > 0;
         $include_participation_as_personal = intval(U::get($_GET, 'participation_personal', 0)) > 0;
+        $has_read_baseline = $this->hasDiscussionReadBaseline($context_id, $user_id);
 
         $by_discussion = array();
         $totals = array('personal' => 0, 'participating' => 0, 'global' => 0, 'main_badge' => 0);
         foreach ( $rows as $row ) {
-            $counts = $this->rollupsForLink(
-                intval($row['link_id']),
-                $user_id,
-                $has_mentions,
-                $has_participation,
-                $include_participation_as_personal
-            );
+            if ( $has_read_baseline ) {
+                $counts = $this->rollupsForLink(
+                    intval($row['link_id']),
+                    $user_id,
+                    $has_mentions,
+                    $has_participation,
+                    $include_participation_as_personal
+                );
+            } else {
+                $counts = array('personal' => 0, 'participating' => 0, 'global' => 0);
+            }
             $main_badge = intval($counts['personal']);
             if ( $include_participating_in_main ) {
                 $main_badge += intval($counts['participating']);
@@ -632,11 +638,83 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         echo('<h1>'.__('Manage Discussions').'</h1>');
         echo('<p>'.__('Discussion maintenance tools for this course context.').'</p>');
         echo('<ul>');
+        echo('<li>');
+        echo('<a href="#" class="tsugi-discussions-reset-unread-tracking-link">'.__('Reset unread tracking for all users').'</a>');
+        echo(' <span class="text-muted">('.__('clears participation and per-thread read markers for this course').')</span>');
+        echo('<form method="post" action="'.htmlspecialchars(U::addSession(self::ROUTE.'/reset-unread-tracking')).'" class="tsugi-discussions-reset-unread-tracking-form" style="display:none;"></form>');
+        echo('</li>');
         echo('<li><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/expire-comments')).'">'.__('Expire old comments').'</a></li>');
         echo('<li><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/expire-threads')).'">'.__('Expire old threads').'</a></li>');
         echo('</ul>');
+?>
+<script>
+(function () {
+  if (window.__tsugiDiscussionsResetUnreadTrackingBound) return;
+  window.__tsugiDiscussionsResetUnreadTrackingBound = true;
+  document.addEventListener('click', function (ev) {
+    var link = ev.target;
+    if (!link || !link.classList || !link.classList.contains('tsugi-discussions-reset-unread-tracking-link')) return;
+    ev.preventDefault();
+    if (!window.confirm('Reset unread tracking for all users in this course?')) return;
+    var form = document.querySelector('.tsugi-discussions-reset-unread-tracking-form');
+    if (form) form.requestSubmit();
+  }, true);
+})();
+</script>
+<?php
         echo('</main>');
         $OUTPUT->footer();
+    }
+
+    /**
+     * Reset unread tracking state for all users in the current context.
+     *
+     * This intentionally does NOT insert any rows; it clears participation rows and
+     * nulls per-user thread read markers so users look like they have no read history.
+     */
+    public function resetUnreadTracking(Request $request)
+    {
+        global $CFG, $PDOX;
+
+        $manage_url = (isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot) . self::ROUTE . '/manage';
+        $redirect_url = U::addSession($manage_url);
+
+        if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
+            U::flashError(__('You must be logged in with a course context to manage discussions.'));
+            return new RedirectResponse($redirect_url);
+        }
+        if ( ! $this->isInstructor() ) {
+            U::flashError(__('Only instructors can manage discussions.'));
+            return new RedirectResponse($redirect_url);
+        }
+        if ( ! U::isNotEmpty($CFG->tdiscus) || ! $CFG->tdiscus ) {
+            U::flashError(__('Discussions are not available on this site.'));
+            return new RedirectResponse($redirect_url);
+        }
+
+        LTIX::getConnection();
+        $context_id = U::currentContextId();
+
+        $PDOX->queryDie(
+            "DELETE UTP FROM {$CFG->dbprefix}tdiscus_user_thread_participation UTP
+            JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = UTP.thread_id
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            WHERE L.context_id = :CID",
+            array(':CID' => $context_id)
+        );
+
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}tdiscus_user_thread UT
+            JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = UT.thread_id
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            SET UT.read_at = NULL,
+                UT.comments = 0
+            WHERE L.context_id = :CID",
+            array(':CID' => $context_id)
+        );
+
+        U::flashSuccess(__('Unread tracking has been reset for all users in this course.'));
+        return new RedirectResponse($redirect_url);
     }
 
     /**
@@ -982,6 +1060,22 @@ Bound parameters
             WHERE table_schema = DATABASE()
               AND table_name = :TN",
             array(':TN' => $table_name)
+        );
+        return is_array($row);
+    }
+
+    private function hasDiscussionReadBaseline($context_id, $user_id)
+    {
+        global $PDOX, $CFG;
+        $row = $PDOX->rowDie("SELECT 1 AS present
+            FROM {$CFG->dbprefix}tdiscus_user_thread UT
+            JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = UT.thread_id
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            WHERE L.context_id = :CID
+              AND UT.user_id = :UID
+              AND (UT.read_at IS NOT NULL OR COALESCE(UT.comments, 0) > 0)
+            LIMIT 1",
+            array(':CID' => $context_id, ':UID' => $user_id)
         );
         return is_array($row);
     }

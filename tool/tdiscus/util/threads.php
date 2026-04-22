@@ -61,6 +61,10 @@ class Threads {
         $row = self::threadLoad($thread_id);
         if ( ! $row ) return $row;
 
+        // First read in this course context: establish a baseline so only
+        // future activity counts as unread.
+        self::ensureContextReadBaselineForUser($TSUGI_LAUNCH->link->id, $TSUGI_LAUNCH->user->id);
+
         $stmt = $PDOX->queryDie("INSERT IGNORE INTO {$CFG->dbprefix}tdiscus_user_thread
             (thread_id, user_id, read_at) VALUES
             (:TID, :UID, NOW())
@@ -797,6 +801,9 @@ class Threads {
 
         $uid = $TSUGI_LAUNCH->user->id;
         $lid = $TSUGI_LAUNCH->link->id;
+        if ( ! self::hasContextReadBaselineForUser($lid, $uid) ) {
+            return array('personal' => 0, 'participating' => 0, 'global' => 0);
+        }
 
         $extra_personal_clause = "";
         if ( self::includeParticipationAsPersonal() ) {
@@ -883,6 +890,58 @@ class Threads {
                 ':TID' => $thread_id,
                 ':UID' => $user_id,
             )
+        );
+    }
+
+    private static function hasContextReadBaselineForUser($link_id, $user_id)
+    {
+        global $PDOX, $CFG;
+        $row = $PDOX->rowDie("SELECT 1 AS present
+            FROM {$CFG->dbprefix}tdiscus_user_thread UT
+            JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = UT.thread_id
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            JOIN {$CFG->dbprefix}lti_link L0 ON L0.context_id = L.context_id
+            WHERE L0.link_id = :LID
+              AND UT.user_id = :UID
+              AND (UT.read_at IS NOT NULL OR COALESCE(UT.comments, 0) > 0)
+            LIMIT 1",
+            array(':LID' => $link_id, ':UID' => $user_id)
+        );
+        return is_array($row);
+    }
+
+    private static function ensureContextReadBaselineForUser($link_id, $user_id)
+    {
+        global $PDOX, $CFG;
+        if ( self::hasContextReadBaselineForUser($link_id, $user_id) ) {
+            return;
+        }
+
+        $PDOX->queryDie("UPDATE {$CFG->dbprefix}tdiscus_user_thread UT
+            JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = UT.thread_id
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            JOIN {$CFG->dbprefix}lti_link L0 ON L0.context_id = L.context_id
+            SET UT.read_at = NOW(),
+                UT.comments = T.comments
+            WHERE L0.link_id = :LID
+              AND UT.user_id = :UID",
+            array(':LID' => $link_id, ':UID' => $user_id)
+        );
+
+        $PDOX->queryDie("INSERT INTO {$CFG->dbprefix}tdiscus_user_thread
+            (thread_id, user_id, comments, read_at)
+            SELECT T.thread_id, :UID, T.comments, NOW()
+            FROM {$CFG->dbprefix}tdiscus_thread T
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            JOIN {$CFG->dbprefix}lti_link L0 ON L0.context_id = L.context_id
+            WHERE L0.link_id = :LID
+              AND NOT EXISTS (
+                SELECT 1
+                FROM {$CFG->dbprefix}tdiscus_user_thread UT
+                WHERE UT.thread_id = T.thread_id
+                  AND UT.user_id = :UID2
+              )",
+            array(':LID' => $link_id, ':UID' => $user_id, ':UID2' => $user_id)
         );
     }
 
