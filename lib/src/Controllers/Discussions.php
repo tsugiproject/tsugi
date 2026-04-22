@@ -640,7 +640,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         echo('<ul>');
         echo('<li>');
         echo('<a href="#" class="tsugi-discussions-reset-unread-tracking-link">'.__('Reset unread tracking for all users').'</a>');
-        echo(' <span class="text-muted">('.__('clears participation and per-thread read markers for this course').')</span>');
+        echo(' <span class="text-muted">('.__('clears read tracking for this course; thread owners stay subscribed to their threads').')</span>');
         echo('<form method="post" action="'.htmlspecialchars(U::addSession(self::ROUTE.'/reset-unread-tracking')).'" class="tsugi-discussions-reset-unread-tracking-form" style="display:none;"></form>');
         echo('</li>');
         echo('<li><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/expire-comments')).'">'.__('Expire old comments').'</a></li>');
@@ -669,8 +669,9 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
     /**
      * Reset unread tracking state for all users in the current context.
      *
-     * This intentionally does NOT insert any rows; it clears participation rows and
-     * nulls per-user thread read markers so users look like they have no read history.
+     * Clears participation and nulls per-thread read markers for everyone, then
+     * re-applies thread-owner subscribe and participation so creators stay subscribed
+     * to their own threads (same as on thread create).
      */
     public function resetUnreadTracking(Request $request)
     {
@@ -710,6 +711,28 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
             SET UT.read_at = NULL,
                 UT.comments = 0
             WHERE L.context_id = :CID",
+            array(':CID' => $context_id)
+        );
+
+        // Thread owners should stay subscribed to their own threads (same as on create).
+        $PDOX->queryDie(
+            "INSERT INTO {$CFG->dbprefix}tdiscus_user_thread (thread_id, user_id, subscribe)
+            SELECT T.thread_id, T.user_id, 1
+            FROM {$CFG->dbprefix}tdiscus_thread T
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            WHERE L.context_id = :CID
+            ON DUPLICATE KEY UPDATE subscribe = 1",
+            array(':CID' => $context_id)
+        );
+
+        // Participation rows were cleared above; restore for thread creators only.
+        $PDOX->queryDie(
+            "INSERT INTO {$CFG->dbprefix}tdiscus_user_thread_participation (thread_id, user_id, last_posted_at)
+            SELECT T.thread_id, T.user_id, NOW()
+            FROM {$CFG->dbprefix}tdiscus_thread T
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            WHERE L.context_id = :CID
+            ON DUPLICATE KEY UPDATE last_posted_at = NOW()",
             array(':CID' => $context_id)
         );
 
