@@ -900,7 +900,7 @@ class Threads {
             FROM {$CFG->dbprefix}tdiscus_user_thread UT
             JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = UT.thread_id
             JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
-            JOIN {$CFG->dbprefix}lti_link L0 ON L0.context_id = L.context_id
+            JOIN {$CFG->dbprefix}lti_link L0 ON L0.context_id <=> L.context_id
             WHERE L0.link_id = :LID
               AND UT.user_id = :UID
               AND (UT.read_at IS NOT NULL OR COALESCE(UT.comments, 0) > 0)
@@ -920,7 +920,7 @@ class Threads {
         $PDOX->queryDie("UPDATE {$CFG->dbprefix}tdiscus_user_thread UT
             JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = UT.thread_id
             JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
-            JOIN {$CFG->dbprefix}lti_link L0 ON L0.context_id = L.context_id
+            JOIN {$CFG->dbprefix}lti_link L0 ON L0.context_id <=> L.context_id
             SET UT.read_at = NOW(),
                 UT.comments = T.comments
             WHERE L0.link_id = :LID
@@ -933,7 +933,7 @@ class Threads {
             SELECT T.thread_id, :UID, T.comments, NOW()
             FROM {$CFG->dbprefix}tdiscus_thread T
             JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
-            JOIN {$CFG->dbprefix}lti_link L0 ON L0.context_id = L.context_id
+            JOIN {$CFG->dbprefix}lti_link L0 ON L0.context_id <=> L.context_id
             WHERE L0.link_id = :LID
               AND NOT EXISTS (
                 SELECT 1
@@ -943,6 +943,12 @@ class Threads {
               )",
             array(':LID' => $link_id, ':UID' => $user_id, ':UID2' => $user_id)
         );
+    }
+
+    public static function hasReadBaselineForCurrentContext()
+    {
+        global $TSUGI_LAUNCH;
+        return self::hasContextReadBaselineForUser($TSUGI_LAUNCH->link->id, $TSUGI_LAUNCH->user->id);
     }
 
     private static function syncMentionsForComment($comment_id, $comment_text, $author_user_id)

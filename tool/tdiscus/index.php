@@ -83,6 +83,7 @@ $OUTPUT->flashMessages();
 
 $retval = $THREADS->threads();
 $threads = $retval->rows;
+$has_read_baseline = Threads::hasReadBaselineForCurrentContext();
 
 
 $sortable = $THREADS->threadsSortableBy();
@@ -100,7 +101,7 @@ if ( count($threads) < 1 ) {
         $thread_id = $thread['thread_id'];
         $subscribe = $thread['subscribe'];
         $favorite = $thread['favorite'];
-        $unread = intval($thread['comments']) - intval($thread['user_comments']);
+        $unread = $has_read_baseline ? (intval($thread['comments']) - intval($thread['user_comments'])) : 0;
         if ( $unread < 0 ) $unread = 0;
 ?>
   <li class="tdiscus-thread-item">
