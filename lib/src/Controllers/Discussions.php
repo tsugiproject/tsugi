@@ -715,11 +715,13 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         );
 
         // Thread owners should stay subscribed to their own threads (same as on create).
+        // Only rows where T.user_id still exists in lti_user (orphan threads skip cleanly).
         $PDOX->queryDie(
             "INSERT INTO {$CFG->dbprefix}tdiscus_user_thread (thread_id, user_id, subscribe)
             SELECT T.thread_id, T.user_id, 1
             FROM {$CFG->dbprefix}tdiscus_thread T
             JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            JOIN {$CFG->dbprefix}lti_user U ON U.user_id = T.user_id
             WHERE L.context_id = :CID
             ON DUPLICATE KEY UPDATE subscribe = 1",
             array(':CID' => $context_id)
@@ -731,6 +733,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
             SELECT T.thread_id, T.user_id, NOW()
             FROM {$CFG->dbprefix}tdiscus_thread T
             JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            JOIN {$CFG->dbprefix}lti_user U ON U.user_id = T.user_id
             WHERE L.context_id = :CID
             ON DUPLICATE KEY UPDATE last_posted_at = NOW()",
             array(':CID' => $context_id)
