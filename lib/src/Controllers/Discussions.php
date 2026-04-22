@@ -20,6 +20,7 @@ class Discussions extends Tool {
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Discussions@get');
         $app->router->get($prefix.'/', 'Discussions@get');
+        $app->router->get($prefix.'/manage', 'Discussions@manage');
         $app->router->get($prefix.'/expire-threads', 'Discussions@expireThreads');
         $app->router->get($prefix.'/expire-comments', 'Discussions@expireComments');
         $app->router->get($prefix.'/json', 'Discussions@json');
@@ -447,7 +448,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         echo('<main class="container" id="main-content">');
-        echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE)).'" class="btn btn-default btn-sm">'.__('Back to Discussions').'</a></p>');
+        echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/manage')).'" class="btn btn-default btn-sm">'.__('Back to Manage Discussions').'</a></p>');
         $this->renderExpireDryRunPanel($dry_run_url, $expire_result, $oldest_post_at, $oldest_thread_at);
         $this->emitExpireDeleteFormEnhancements();
         echo('</main>');
@@ -602,9 +603,38 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         echo('<main class="container" id="main-content">');
-        echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE)).'" class="btn btn-default btn-sm">'.__('Back to Discussions').'</a></p>');
+        echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/manage')).'" class="btn btn-default btn-sm">'.__('Back to Manage Discussions').'</a></p>');
         $this->renderExpireCommentsDryRunPanel($dry_run_url, $expire_result, $oldest_comment_at, $tdiscus_threads_ok);
         $this->emitExpireDeleteFormEnhancements();
+        echo('</main>');
+        $OUTPUT->footer();
+    }
+
+    public function manage(Request $request)
+    {
+        global $OUTPUT;
+
+        if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
+            U::flashError(__('You must be logged in with a course context to manage discussions.'));
+            return new RedirectResponse(U::addSession(self::ROUTE));
+        }
+        if ( ! $this->isInstructor() ) {
+            U::flashError(__('Only instructors can manage discussions.'));
+            return new RedirectResponse(U::addSession(self::ROUTE));
+        }
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        echo('<main class="container" id="main-content">');
+        echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE)).'" class="btn btn-default btn-sm">'.__('Back to Discussions').'</a></p>');
+        echo('<h1>'.__('Manage Discussions').'</h1>');
+        echo('<p>'.__('Discussion maintenance tools for this course context.').'</p>');
+        echo('<ul>');
+        echo('<li><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/expire-comments')).'">'.__('Expire old comments').'</a></li>');
+        echo('<li><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/expire-threads')).'">'.__('Expire old threads').'</a></li>');
+        echo('</ul>');
         echo('</main>');
         $OUTPUT->footer();
     }
