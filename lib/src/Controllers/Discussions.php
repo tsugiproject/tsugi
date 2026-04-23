@@ -21,11 +21,13 @@ class Discussions extends Tool {
         $app->router->get($prefix, 'Discussions@get');
         $app->router->get($prefix.'/', 'Discussions@get');
         $app->router->get($prefix.'/manage', 'Discussions@manage');
+        $app->router->get($prefix.'/scan-fix-unread-tracking', 'Discussions@scanFixUnreadTracking');
         $app->router->get($prefix.'/expire-threads', 'Discussions@expireThreads');
         $app->router->get($prefix.'/expire-comments', 'Discussions@expireComments');
         $app->router->get($prefix.'/json', 'Discussions@json');
         $app->router->post($prefix.'/mark-read', 'Discussions@markRead');
         $app->router->post($prefix.'/reset-unread-tracking', 'Discussions@resetUnreadTracking');
+        $app->router->post($prefix.'/scan-fix-unread-tracking-run', 'Discussions@scanFixUnreadTrackingRun');
         $app->router->post($prefix.'/expire-threads-dry-run', 'Discussions@expireThreadsDryRun');
         $app->router->post($prefix.'/expire-comments-dry-run', 'Discussions@expireCommentsDryRun');
         $app->router->get($prefix.'_launch/{anchor}', function(Request $request, $anchor = null) use ($app) {
@@ -643,6 +645,10 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         echo(' <span class="text-muted">('.__('clears read tracking for this course; thread owners stay subscribed to their threads').')</span>');
         echo('<form method="post" action="'.htmlspecialchars(U::addSession(self::ROUTE.'/reset-unread-tracking')).'" class="tsugi-discussions-reset-unread-tracking-form" style="display:none;"></form>');
         echo('</li>');
+        echo('<li>');
+        echo('<a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/scan-fix-unread-tracking')).'">'.__('Scan unread tracking (dry run) and optionally fix').'</a>');
+        echo(' <span class="text-muted">('.__('pre-scan first, then run fix in a second step').')</span>');
+        echo('</li>');
         echo('<li><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/expire-comments')).'">'.__('Expire old comments').'</a></li>');
         echo('<li><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/expire-threads')).'">'.__('Expire old threads').'</a></li>');
         echo('</ul>');
@@ -741,6 +747,375 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
 
         U::flashSuccess(__('Unread tracking has been reset for all users in this course.'));
         return new RedirectResponse($redirect_url);
+    }
+
+    public function scanFixUnreadTracking(Request $request)
+    {
+        global $CFG, $OUTPUT;
+
+        if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
+            U::flashError(__('You must be logged in with a course context to manage discussions.'));
+            return new RedirectResponse(U::addSession(self::ROUTE));
+        }
+        if ( ! $this->isInstructor() ) {
+            U::flashError(__('Only instructors can manage discussions.'));
+            return new RedirectResponse(U::addSession(self::ROUTE));
+        }
+        if ( ! U::isNotEmpty($CFG->tdiscus) || ! $CFG->tdiscus ) {
+            U::flashError(__('Discussions are not available on this site.'));
+            return new RedirectResponse(U::addSession(self::ROUTE.'/manage'));
+        }
+
+        LTIX::getConnection();
+        $context_id = U::currentContextId();
+        $counts = $this->unreadTrackingAuditCounts($context_id);
+        $details = $this->unreadTrackingAuditDetails($context_id, 15);
+        $likely_causes = $this->unreadTrackingLikelyCauses($counts);
+        $last_result = U::get($_SESSION, 'discussions_scan_fix_unread_result', false);
+        unset($_SESSION['discussions_scan_fix_unread_result']);
+        $run_url = U::addSession(self::ROUTE.'/scan-fix-unread-tracking-run');
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        echo('<main class="container" id="main-content">');
+        echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/manage')).'" class="btn btn-default btn-sm">'.__('Back to Manage Discussions').'</a></p>');
+        echo('<div class="panel panel-info" style="margin-bottom: 1.5em;">');
+        echo('<div class="panel-heading"><strong>'.__('Instructor: Unread tracking pre-scan (two phase)').'</strong></div>');
+        echo('<div class="panel-body">');
+        echo('<p class="text-muted" style="margin-top:0;">'.__('Use this page to inspect inconsistencies first (dry run), then run repair as a separate step.').'</p>');
+        echo('<ul>');
+        echo('<li>'.__('Invalid per-user counters (tdiscus_user_thread.comments outside valid range)').': <strong>'.intval(U::get($counts, 'invalid_user_thread_comments', 0)).'</strong></li>');
+        echo('<li>'.__('Missing owner subscribe rows').': <strong>'.intval(U::get($counts, 'missing_owner_subscribe', 0)).'</strong></li>');
+        echo('<li>'.__('Missing owner participation rows').': <strong>'.intval(U::get($counts, 'missing_owner_participation', 0)).'</strong></li>');
+        echo('</ul>');
+        if ( count($likely_causes) > 0 ) {
+            echo('<p style="margin-bottom:0.35em;"><strong>'.__('Likely causes to investigate').'</strong></p>');
+            echo('<ul>');
+            foreach ( $likely_causes as $cause ) {
+                echo('<li>'.htmlspecialchars($cause).'</li>');
+            }
+            echo('</ul>');
+        }
+
+        $snapshot = array(
+            'generated_at_utc' => gmdate('Y-m-d\TH:i:s\Z'),
+            'context_id' => intval($context_id),
+            'counts' => $counts,
+            'samples' => $details,
+        );
+        echo('<p style="margin-bottom:0.35em;"><strong>'.__('Diagnostic snapshot (copy/paste friendly)').'</strong></p>');
+        echo('<pre style="max-height: 24em; overflow:auto;">'.htmlspecialchars(json_encode($snapshot, JSON_PRETTY_PRINT)).'</pre>');
+
+        echo('<form method="post" action="'.htmlspecialchars($run_url).'" class="form-inline" style="margin-bottom:0.75em;">');
+        echo('<input type="hidden" name="confirm" value="0">');
+        echo('<button type="submit" class="btn btn-info">'.__('Run Pre-Scan Again (dry run)').'</button>');
+        echo('</form>');
+
+        echo('<form method="post" action="'.htmlspecialchars($run_url).'" class="form-inline tsugi-discussions-scan-fix-form">');
+        echo('<input type="hidden" name="confirm" value="1">');
+        echo('<button type="submit" class="btn btn-danger" data-running-label="'.htmlspecialchars(__('Applying repairs…')).'">'.__('Apply Repair (phase 2)').'</button>');
+        echo('</form>');
+
+        if ( is_array($last_result) ) {
+            echo('<hr/>');
+            echo('<p><strong>'.__('Last run result').'</strong></p>');
+            echo('<ul>');
+            echo('<li>'.__('Mode').': <strong>'.(intval(U::get($last_result, 'confirmed', 0)) === 1 ? __('repair') : __('dry run')).'</strong></li>');
+            echo('<li>'.__('Fixed user counters').': <strong>'.intval(U::get($last_result, 'fixed_comments', 0)).'</strong></li>');
+            echo('<li>'.__('Fixed owner subscribe rows').': <strong>'.intval(U::get($last_result, 'fixed_subscribe', 0)).'</strong></li>');
+            echo('<li>'.__('Fixed owner participation rows').': <strong>'.intval(U::get($last_result, 'fixed_participation', 0)).'</strong></li>');
+            echo('<li>'.__('Remaining findings').': <strong>'.intval(U::get($last_result, 'remaining', 0)).'</strong></li>');
+            echo('</ul>');
+            $before_counts = U::get($last_result, 'before_counts', array());
+            $after_counts = U::get($last_result, 'after_counts', array());
+            $before_details = U::get($last_result, 'before_details', array());
+            $last_snapshot = array(
+                'generated_at_utc' => gmdate('Y-m-d\TH:i:s\Z'),
+                'mode' => intval(U::get($last_result, 'confirmed', 0)) === 1 ? 'repair' : 'dry_run',
+                'before_counts' => $before_counts,
+                'after_counts' => $after_counts,
+                'before_samples' => $before_details,
+            );
+            echo('<p style="margin-bottom:0.35em;"><strong>'.__('Last run snapshot').'</strong></p>');
+            echo('<pre style="max-height: 20em; overflow:auto;">'.htmlspecialchars(json_encode($last_snapshot, JSON_PRETTY_PRINT)).'</pre>');
+        }
+        echo('</div>');
+        echo('</div>');
+?>
+<script>
+(function () {
+  if (window.__tsugiDiscussionsScanFixBound) return;
+  window.__tsugiDiscussionsScanFixBound = true;
+  document.addEventListener('submit', function (ev) {
+    var form = ev.target;
+    if (!form || !form.classList || !form.classList.contains('tsugi-discussions-scan-fix-form')) return;
+    if (!window.confirm('Apply unread tracking repairs for this course?')) {
+      ev.preventDefault();
+      return;
+    }
+    var btn = form.querySelector('button[type="submit"]');
+    if (!btn || btn.disabled) return;
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    btn.textContent = btn.getAttribute('data-running-label') || 'Applying repairs...';
+  }, true);
+})();
+</script>
+<?php
+        echo('</main>');
+        $OUTPUT->footer();
+    }
+
+    /**
+     * Scan and optionally repair common unread-tracking inconsistencies.
+     *
+     * confirm=0 => dry run only
+     * confirm=1 => apply idempotent repairs (no explicit transaction)
+     */
+    public function scanFixUnreadTrackingRun(Request $request)
+    {
+        global $CFG, $PDOX;
+
+        $scan_url = (isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot) . self::ROUTE . '/scan-fix-unread-tracking';
+        $redirect_url = U::addSession($scan_url);
+
+        if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
+            U::flashError(__('You must be logged in with a course context to manage discussions.'));
+            return new RedirectResponse($redirect_url);
+        }
+        if ( ! $this->isInstructor() ) {
+            U::flashError(__('Only instructors can manage discussions.'));
+            return new RedirectResponse($redirect_url);
+        }
+        if ( ! U::isNotEmpty($CFG->tdiscus) || ! $CFG->tdiscus ) {
+            U::flashError(__('Discussions are not available on this site.'));
+            return new RedirectResponse($redirect_url);
+        }
+
+        LTIX::getConnection();
+        $context_id = U::currentContextId();
+        $confirm_raw = trim((string) U::get($_POST, 'confirm', '0'));
+        $confirm = ($confirm_raw === '1');
+        $before = $this->unreadTrackingAuditCounts($context_id);
+        $before_details = $this->unreadTrackingAuditDetails($context_id, 15);
+
+        if ( $confirm ) {
+            // 1) Keep denormalized per-user comment counters within valid bounds.
+            $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}tdiscus_user_thread UT
+                JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = UT.thread_id
+                JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+                SET UT.comments = CASE
+                    WHEN COALESCE(UT.comments, 0) < 0 THEN 0
+                    WHEN COALESCE(UT.comments, 0) > COALESCE(T.comments, 0) THEN COALESCE(T.comments, 0)
+                    ELSE COALESCE(UT.comments, 0)
+                END
+                WHERE L.context_id = :CID
+                  AND (
+                      COALESCE(UT.comments, 0) < 0
+                      OR COALESCE(UT.comments, 0) > COALESCE(T.comments, 0)
+                      OR UT.comments IS NULL
+                  )",
+                array(':CID' => $context_id)
+            );
+
+            // 2) Ensure thread owners stay subscribed to their own threads.
+            $PDOX->queryDie(
+                "INSERT INTO {$CFG->dbprefix}tdiscus_user_thread (thread_id, user_id, subscribe)
+                SELECT T.thread_id, T.user_id, 1
+                FROM {$CFG->dbprefix}tdiscus_thread T
+                JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+                JOIN {$CFG->dbprefix}lti_user U ON U.user_id = T.user_id
+                WHERE L.context_id = :CID
+                ON DUPLICATE KEY UPDATE subscribe = 1",
+                array(':CID' => $context_id)
+            );
+
+            // 3) Ensure participation rows exist for thread creators.
+            $PDOX->queryDie(
+                "INSERT INTO {$CFG->dbprefix}tdiscus_user_thread_participation (thread_id, user_id, last_posted_at)
+                SELECT T.thread_id, T.user_id, COALESCE(T.updated_at, T.created_at)
+                FROM {$CFG->dbprefix}tdiscus_thread T
+                JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+                JOIN {$CFG->dbprefix}lti_user U ON U.user_id = T.user_id
+                WHERE L.context_id = :CID
+                ON DUPLICATE KEY UPDATE last_posted_at = GREATEST(
+                    COALESCE(tdiscus_user_thread_participation.last_posted_at, '1970-01-01 00:00:00'),
+                    COALESCE(VALUES(last_posted_at), '1970-01-01 00:00:00')
+                )",
+                array(':CID' => $context_id)
+            );
+        }
+
+        $after = $this->unreadTrackingAuditCounts($context_id);
+
+        $fixed_comments = max(0, intval(U::get($before, 'invalid_user_thread_comments', 0)) - intval(U::get($after, 'invalid_user_thread_comments', 0)));
+        $fixed_subscribe = max(0, intval(U::get($before, 'missing_owner_subscribe', 0)) - intval(U::get($after, 'missing_owner_subscribe', 0)));
+        $fixed_participation = max(0, intval(U::get($before, 'missing_owner_participation', 0)) - intval(U::get($after, 'missing_owner_participation', 0)));
+        $remaining = intval(U::get($after, 'invalid_user_thread_comments', 0))
+            + intval(U::get($after, 'missing_owner_subscribe', 0))
+            + intval(U::get($after, 'missing_owner_participation', 0));
+
+        $_SESSION['discussions_scan_fix_unread_result'] = array(
+            'confirmed' => $confirm ? 1 : 0,
+            'fixed_comments' => $fixed_comments,
+            'fixed_subscribe' => $fixed_subscribe,
+            'fixed_participation' => $fixed_participation,
+            'remaining' => $remaining,
+            'before_counts' => $before,
+            'after_counts' => $after,
+            'before_details' => $before_details,
+        );
+        if ( $confirm ) {
+            U::flashSuccess(
+                __('Unread tracking repair complete.').
+                ' '.__('Fixed user counters').': '.$fixed_comments.
+                ', '.__('owner subscribe rows').': '.$fixed_subscribe.
+                ', '.__('owner participation rows').': '.$fixed_participation.
+                '. '.__('Remaining findings').': '.$remaining
+            );
+        } else {
+            U::flashSuccess(
+                __('Unread tracking pre-scan complete (dry run).').
+                ' '.__('Current findings').': '.
+                __('invalid counters').'='.intval(U::get($before, 'invalid_user_thread_comments', 0)).
+                ', '.__('missing owner subscribe').'='.intval(U::get($before, 'missing_owner_subscribe', 0)).
+                ', '.__('missing owner participation').'='.intval(U::get($before, 'missing_owner_participation', 0))
+            );
+        }
+        return new RedirectResponse($redirect_url);
+    }
+
+    private function unreadTrackingAuditCounts($context_id)
+    {
+        global $CFG, $PDOX;
+
+        $invalid_comments = $PDOX->rowDie(
+            "SELECT COUNT(*) AS count
+            FROM {$CFG->dbprefix}tdiscus_user_thread UT
+            JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = UT.thread_id
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            WHERE L.context_id = :CID
+              AND (
+                  COALESCE(UT.comments, 0) < 0
+                  OR COALESCE(UT.comments, 0) > COALESCE(T.comments, 0)
+                  OR UT.comments IS NULL
+              )",
+            array(':CID' => $context_id)
+        );
+
+        $missing_owner_subscribe = $PDOX->rowDie(
+            "SELECT COUNT(*) AS count
+            FROM {$CFG->dbprefix}tdiscus_thread T
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            JOIN {$CFG->dbprefix}lti_user U ON U.user_id = T.user_id
+            LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread UT
+                ON UT.thread_id = T.thread_id AND UT.user_id = T.user_id
+            WHERE L.context_id = :CID
+              AND (UT.user_id IS NULL OR COALESCE(UT.subscribe, 0) <> 1)",
+            array(':CID' => $context_id)
+        );
+
+        $missing_owner_participation = $PDOX->rowDie(
+            "SELECT COUNT(*) AS count
+            FROM {$CFG->dbprefix}tdiscus_thread T
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            JOIN {$CFG->dbprefix}lti_user U ON U.user_id = T.user_id
+            LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread_participation UTP
+                ON UTP.thread_id = T.thread_id AND UTP.user_id = T.user_id
+            WHERE L.context_id = :CID
+              AND UTP.user_id IS NULL",
+            array(':CID' => $context_id)
+        );
+
+        return array(
+            'invalid_user_thread_comments' => intval(U::get($invalid_comments, 'count', 0)),
+            'missing_owner_subscribe' => intval(U::get($missing_owner_subscribe, 'count', 0)),
+            'missing_owner_participation' => intval(U::get($missing_owner_participation, 'count', 0)),
+        );
+    }
+
+    private function unreadTrackingAuditDetails($context_id, $limit=15)
+    {
+        global $CFG, $PDOX;
+        $limit = intval($limit);
+        if ( $limit < 1 ) $limit = 1;
+        if ( $limit > 100 ) $limit = 100;
+
+        $invalid_comments = $PDOX->allRowsDie(
+            "SELECT T.thread_id, UT.user_id,
+                    COALESCE(UT.comments, 0) AS user_comments,
+                    COALESCE(T.comments, 0) AS thread_comments,
+                    UT.read_at
+            FROM {$CFG->dbprefix}tdiscus_user_thread UT
+            JOIN {$CFG->dbprefix}tdiscus_thread T ON T.thread_id = UT.thread_id
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            WHERE L.context_id = :CID
+              AND (
+                  COALESCE(UT.comments, 0) < 0
+                  OR COALESCE(UT.comments, 0) > COALESCE(T.comments, 0)
+                  OR UT.comments IS NULL
+              )
+            ORDER BY T.thread_id, UT.user_id
+            LIMIT ".$limit,
+            array(':CID' => $context_id)
+        );
+
+        $missing_owner_subscribe = $PDOX->allRowsDie(
+            "SELECT T.thread_id, T.user_id AS owner_user_id,
+                    COALESCE(UT.subscribe, 0) AS owner_subscribe,
+                    T.created_at, T.updated_at
+            FROM {$CFG->dbprefix}tdiscus_thread T
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            JOIN {$CFG->dbprefix}lti_user U ON U.user_id = T.user_id
+            LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread UT
+                ON UT.thread_id = T.thread_id AND UT.user_id = T.user_id
+            WHERE L.context_id = :CID
+              AND (UT.user_id IS NULL OR COALESCE(UT.subscribe, 0) <> 1)
+            ORDER BY T.thread_id
+            LIMIT ".$limit,
+            array(':CID' => $context_id)
+        );
+
+        $missing_owner_participation = $PDOX->allRowsDie(
+            "SELECT T.thread_id, T.user_id AS owner_user_id, T.created_at, T.updated_at
+            FROM {$CFG->dbprefix}tdiscus_thread T
+            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
+            JOIN {$CFG->dbprefix}lti_user U ON U.user_id = T.user_id
+            LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread_participation UTP
+                ON UTP.thread_id = T.thread_id AND UTP.user_id = T.user_id
+            WHERE L.context_id = :CID
+              AND UTP.user_id IS NULL
+            ORDER BY T.thread_id
+            LIMIT ".$limit,
+            array(':CID' => $context_id)
+        );
+
+        return array(
+            'invalid_user_thread_comments_rows' => $invalid_comments,
+            'missing_owner_subscribe_rows' => $missing_owner_subscribe,
+            'missing_owner_participation_rows' => $missing_owner_participation,
+        );
+    }
+
+    private function unreadTrackingLikelyCauses($counts)
+    {
+        $causes = array();
+        if ( intval(U::get($counts, 'invalid_user_thread_comments', 0)) > 0 ) {
+            $causes[] = 'Per-user unread counters are denormalized; comment/thread deletes can leave UT.comments above current thread comment count until repair or re-read.';
+        }
+        if ( intval(U::get($counts, 'missing_owner_subscribe', 0)) > 0 ) {
+            $causes[] = 'Owner subscribe rows are typically created on thread create; historical rows or partial maintenance runs can leave owner subscribe unset.';
+        }
+        if ( intval(U::get($counts, 'missing_owner_participation', 0)) > 0 ) {
+            $causes[] = 'Participation rows are restored for owners during reset/repair and on posting; older data or interrupted maintenance may miss some owners.';
+        }
+        if ( count($causes) < 1 ) {
+            $causes[] = 'No inconsistencies detected by the current checks.';
+        }
+        return $causes;
     }
 
     /**
