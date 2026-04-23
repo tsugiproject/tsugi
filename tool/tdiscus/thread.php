@@ -36,7 +36,10 @@ if ( ! $thread ) {
 
 $come_back = $TOOL_ROOT . '/thread/' . $thread_id;
 $all_done = $TOOL_ROOT . '/';
-$discussion_title = strlen(Settings::linkget('title')) > 0 ? Settings::linkget('title') : $LAUNCH->link->title;
+$discussion_title = (strlen($LAUNCH->link->settingsGet('title')) > 0)
+    ? $LAUNCH->link->settingsGet('title')
+    : $LAUNCH->link->title;
+$threads_index_url = U::addSession($TOOL_ROOT . '/');
 
 if ( count($_POST) > 0 ) {
     $retval = $THREADS->commentInsertDao($thread, U::get($_POST, 'comment') );
@@ -84,7 +87,8 @@ $sortable = $THREADS->commentsSortableBy();
 $OUTPUT->flashMessages();
 echo('<div class="tdiscus-thread-container">'."\n");
 echo('<p>');
-echo('<a class="tdiscus-all-threads-link" href="'.$TOOL_ROOT.'/"><i class="fa fa-home" aria-hidden="true"></i> '.__('All Threads').'</a></p>');
+echo('<a class="tdiscus-all-threads-link" href="'.htmlspecialchars($threads_index_url).'" title="'.htmlspecialchars(__('All threads')).'">'.htmlentities($discussion_title).'</a>');
+echo("</p>\n");
 echo('<h1 class="tdiscus-thread-title"><a href="'.$page_base.'"'.($thread['hidden'] ? ' style="text-decoration: line-through;"' : '').'>'.htmlentities($thread['title'] ?? '').'</a>');
 echo("</h1>\n");
 ?>
