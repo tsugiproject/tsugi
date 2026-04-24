@@ -186,6 +186,17 @@ foreach($sortby as $sort) {
     // echo("<p>baseurl=$baseurl start=$start size=$pagesize total=$total</p>\n");
     if ( $start == 0 && $total < $pagesize ) return;
 
+    $page_url = function($offset) use ($baseurl) {
+        $parts = parse_url($baseurl);
+        $path = isset($parts['path']) ? $parts['path'] : $baseurl;
+        $query = array();
+        if ( isset($parts['query']) ) {
+            parse_str($parts['query'], $query);
+        }
+        $query['start'] = intval($offset);
+        return $path . '?' . http_build_query($query);
+    };
+
     $laststart = intval($total /$pagesize) * $pagesize;
     $showpages = self::default_paginator_width; // The number of pages
     $firststart = $start - (intval($showpages/2) * $pagesize);
@@ -194,28 +205,28 @@ foreach($sortby as $sort) {
 <nav aria-label="Page navigation">
   <ul class="pagination">
   <li class="page-item<?= ($start>0) ? '' : ' disabled'?>">
-    <a class="page-link" href="<?= U::add_url_parm($baseurl, 'start', "0") ?>" aria-label="First">
+    <a class="page-link" href="<?= $page_url(0) ?>" aria-label="First">
         First
       </a>
     </li>
 <?php
     if ( $firststart > 0 ) {
         $prefirststart = $firststart - $pagesize;
-        echo('<li class="page-item"><a class="page-link" href="'.U::add_url_parm($baseurl, 'start', $prefirststart).'">...</a></li>');
+        echo('<li class="page-item"><a class="page-link" href="'.$page_url($prefirststart).'">...</a></li>');
     }
     for($i=0;$i<$showpages;$i++) {
         if ( $firststart > $laststart ) break;
         $active = ($firststart == $start ) ? ' active' : '';
         $pageno = intval($firststart/$pagesize);
-        echo('<li class="page-item'.$active.'"><a class="page-link" href="'.U::add_url_parm($baseurl, 'start', $firststart).'">'.($pageno+1)."</a></li>\n");
+        echo('<li class="page-item'.$active.'"><a class="page-link" href="'.$page_url($firststart).'">'.($pageno+1)."</a></li>\n");
         $firststart = $firststart + $pagesize;
     }
     if ( $firststart <= $laststart ) {
-        echo('<li class="page-item"><a class="page-link" href="'.U::add_url_parm($baseurl, 'start', $firststart).'">...</a></li>');
+        echo('<li class="page-item"><a class="page-link" href="'.$page_url($firststart).'">...</a></li>');
     }
 ?>
     <li class="page-item<?= ($start<$laststart) ? '' : ' disabled'?>">
-      <a class="page-link" href="<?= U::add_url_parm($baseurl, 'start', ($laststart)) ?>" aria-label="Last">
+      <a class="page-link" href="<?= $page_url($laststart) ?>" aria-label="Last">
         Last
       </a>
     </li>
