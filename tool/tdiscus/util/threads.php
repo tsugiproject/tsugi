@@ -824,10 +824,8 @@ class Threads {
 
         $extra_personal_clause = "";
         if ( self::includeParticipationAsPersonal() ) {
-            $extra_personal_clause = " OR EXISTS (
-                SELECT 1 FROM {$CFG->dbprefix}tdiscus_user_thread_participation UTP
-                WHERE UTP.user_id = :UID AND UTP.thread_id = C.thread_id
-            )";
+            // Subscribe is the active "following" signal for unread rollups.
+            $extra_personal_clause = " OR COALESCE(UT.subscribe, 0) = 1";
         }
 
         $personal_row = $PDOX->rowDie("SELECT COUNT(DISTINCT C.comment_id) AS count
