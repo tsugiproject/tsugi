@@ -16,6 +16,8 @@ class Assignments extends Tool {
     const ROUTE = '/assignments';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
+        $app->router->get($prefix.'/student-progress', 'Assignments@studentProgress');
+        $app->router->get($prefix.'/student-progress/', 'Assignments@studentProgress');
         $app->router->get($prefix.'/manage-due-dates', 'Assignments@manageDueDates');
         $app->router->get($prefix.'/manage-due-dates/', 'Assignments@manageDueDates');
         $app->router->post($prefix.'/manage-due-dates/add-link-rows', 'Assignments@addMissingLinkRowsPost');
@@ -88,6 +90,18 @@ class Assignments extends Tool {
         return null;
     }
 
+    private function tableExists($table_name) {
+        global $PDOX;
+        $row = $PDOX->rowDie(
+            "SELECT 1 AS present
+            FROM information_schema.tables
+            WHERE table_schema = DATABASE()
+              AND table_name = :TN",
+            array(':TN' => $table_name)
+        );
+        return is_array($row);
+    }
+
     public function get(Request $request)
     {
         global $CFG, $OUTPUT;
@@ -131,6 +145,8 @@ class Assignments extends Tool {
             if ( $this->isInstructor() ) {
                 $md_url = U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates');
                 echo('<a href="'.htmlspecialchars($md_url).'" class="btn btn-default btn-sm"><i class="fa fa-calendar" aria-hidden="true"></i> '.__('Manage due dates').'</a>');
+                $sp_url = U::addSession($this->toolHome(self::ROUTE) . '/student-progress');
+                echo('<a href="'.htmlspecialchars($sp_url).'" class="btn btn-default btn-sm"><i class="fa fa-line-chart" aria-hidden="true"></i> '.__('Student Progress').'</a>');
             }
             echo('</div>');
             $toolbar_html = ob_get_clean();
@@ -141,6 +157,176 @@ class Assignments extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         $l->renderAssignments($allgrades, $alldates, false, $duedates, $toolbar_html);
+        $OUTPUT->footer();
+    }
+
+    public function studentProgress(Request $request)
+    {
+        global $CFG, $OUTPUT, $PDOX;
+
+        if ( ! isset($CFG->lessons) ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+        }
+        $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
+
+        LTIX::getConnection();
+        $context_id = U::currentContextId();
+        $p = $CFG->dbprefix;
+
+        $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        $assignment_items = $l->enumerateLtiAssignmentItems(true);
+        $assignment_rlids = array();
+        foreach ( $assignment_items as $it ) {
+            if ( isset($it['resource_link_id']) && U::isNotEmpty($it['resource_link_id']) ) {
+                $assignment_rlids[$it['resource_link_id']] = true;
+            }
+        }
+        $total_assignments = count($assignment_rlids);
+
+        $has_discussions = $this->tableExists($CFG->dbprefix.'tdiscus_comment') && $this->tableExists($CFG->dbprefix.'tdiscus_thread');
+        $comment_select = "0 AS comment_count";
+        $question_select = "0 AS question_count";
+        $discussion_joins = "";
+        if ( $has_discussions ) {
+            $comment_select = "COALESCE(CC.comment_count, 0) AS comment_count";
+            $question_select = "COALESCE(QQ.question_count, 0) AS question_count";
+            $discussion_joins = "
+        LEFT JOIN (
+            SELECT C.user_id, COUNT(*) AS comment_count
+            FROM {$p}tdiscus_comment C
+            JOIN {$p}tdiscus_thread T ON T.thread_id = C.thread_id
+            JOIN {$p}lti_link LL ON LL.link_id = T.link_id
+            WHERE LL.context_id = :CID2
+            GROUP BY C.user_id
+        ) CC ON CC.user_id = U.user_id
+        LEFT JOIN (
+            SELECT T.user_id, COUNT(*) AS question_count
+            FROM {$p}tdiscus_thread T
+            JOIN {$p}lti_link LL ON LL.link_id = T.link_id
+            WHERE LL.context_id = :CID4
+            GROUP BY T.user_id
+        ) QQ ON QQ.user_id = U.user_id";
+        }
+
+        $assignment_grade_clause = "FALSE";
+        $params = array(
+            ':CID' => $context_id,
+            ':CID3' => $context_id,
+        );
+        if ( $total_assignments > 0 ) {
+            $rlid_placeholders = array();
+            $i = 0;
+            foreach ( array_keys($assignment_rlids) as $rlid ) {
+                $i++;
+                $ph = ':RLID'.$i;
+                $rlid_placeholders[] = $ph;
+                $params[$ph] = $rlid;
+            }
+            $assignment_grade_clause = "L.link_key IN (".implode(',', $rlid_placeholders).")";
+        }
+        if ( $has_discussions ) {
+            $params[':CID2'] = $context_id;
+            $params[':CID4'] = $context_id;
+        }
+        $group_by_discussion = $has_discussions ? ", QQ.question_count, CC.comment_count" : "";
+
+        $sql = "SELECT
+            U.user_id,
+            U.displayname,
+            U.email,
+            M.created_at AS enrolled_at,
+            MAX(COALESCE(R.updated_at, M.updated_at)) AS last_visited_at,
+            COUNT(DISTINCT CASE
+                WHEN R.grade IS NOT NULL
+                    AND R.grade >= 0.8
+                    AND {$assignment_grade_clause}
+                THEN L.link_key
+                ELSE NULL
+            END) AS completed_assignments,
+            {$question_select},
+            {$comment_select}
+        FROM {$p}lti_membership M
+        JOIN {$p}lti_user U
+            ON U.user_id = M.user_id
+        LEFT JOIN {$p}lti_result R
+            ON R.user_id = U.user_id
+            AND R.deleted = 0
+        LEFT JOIN {$p}lti_link L
+            ON L.link_id = R.link_id
+            AND L.context_id = :CID
+        {$discussion_joins}
+        WHERE M.context_id = :CID3
+          AND M.deleted = 0
+        GROUP BY U.user_id, U.displayname, U.email, M.created_at{$group_by_discussion}
+        ORDER BY last_visited_at DESC, U.displayname";
+        $rows = $PDOX->allRowsDie($sql, $params);
+
+        $student_rows = array();
+        foreach ( $rows as $row ) {
+            $pct = 0;
+            if ( $total_assignments > 0 ) {
+                $pct = intval(round((intval($row['completed_assignments']) / $total_assignments) * 100));
+            }
+
+            $student_rows[] = array(
+                'displayname' => U::get($row, 'displayname', ''),
+                'email' => U::get($row, 'email', ''),
+                'enrolled_at' => U::get($row, 'enrolled_at', ''),
+                'last_visited_at' => U::get($row, 'last_visited_at', ''),
+                'progress_pct' => $pct,
+                'question_count' => intval(U::get($row, 'question_count', 0)),
+                'comment_count' => intval(U::get($row, 'comment_count', 0)),
+            );
+        }
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+
+        $back = U::addSession($this->toolHome(self::ROUTE));
+        echo('<p><a href="'.htmlspecialchars($back).'"><i class="fa fa-arrow-left" aria-hidden="true"></i> '.__('Back to Assignments').'</a></p>'."\n");
+        echo('<h1>'.__('Student Progress')."</h1>\n");
+        echo('<p>'.__('Instructor view of enrollment, recent activity, assignment completion, and discussion participation.')."</p>\n");
+        echo('<p class="text-muted">'.sprintf(__('Assignments complete uses %1$d lesson assignment(s) with grade >= 80%%.'), $total_assignments)."</p>\n");
+
+        if ( count($student_rows) < 1 ) {
+            echo('<p>'.__('No student memberships found in this course context.').'</p>');
+            $OUTPUT->footer();
+            return;
+        }
+
+        echo('<div class="table-responsive">');
+        echo('<table class="table table-bordered table-striped">');
+        echo('<thead><tr>');
+        echo('<th>'.__('Name').'</th>');
+        echo('<th>'.__('Enrolled').'</th>');
+        echo('<th>'.__('Last visited').'</th>');
+        echo('<th>'.__('Progress').'</th>');
+        echo('<th>'.__('Q&A questions asked').'</th>');
+        echo('<th>'.__('Q&A answers contributed').'</th>');
+        echo('</tr></thead>');
+        echo('<tbody>');
+
+        foreach ( $student_rows as $row ) {
+            $progress = intval($row['progress_pct']);
+            echo('<tr>');
+            echo('<td>');
+            echo(htmlspecialchars($row['displayname']));
+            if ( U::isNotEmpty($row['email']) ) {
+                echo('<br><small class="text-muted">'.htmlspecialchars($row['email']).'</small>');
+            }
+            echo('</td>');
+            echo('<td>'.htmlspecialchars((string) $row['enrolled_at']).'</td>');
+            echo('<td>'.htmlspecialchars((string) $row['last_visited_at']).'</td>');
+            echo('<td>'.htmlspecialchars((string) $progress).'%</td>');
+            echo('<td>'.htmlspecialchars((string) intval($row['question_count'])).'</td>');
+            echo('<td>'.htmlspecialchars((string) intval($row['comment_count'])).'</td>');
+            echo('</tr>');
+        }
+        echo('</tbody></table>');
+        echo('</div>');
+
         $OUTPUT->footer();
     }
 
