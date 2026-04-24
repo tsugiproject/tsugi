@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Membership;
+use Tsugi\UI\Table;
 
 class Assignments extends Tool {
 
@@ -185,11 +186,11 @@ class Assignments extends Tool {
 
         $has_discussions = $this->tableExists($CFG->dbprefix.'tdiscus_comment') && $this->tableExists($CFG->dbprefix.'tdiscus_thread');
         $comment_select = "0 AS comment_count";
-        $question_select = "0 AS question_count";
+        $question_select = "0 AS threads_started";
         $discussion_joins = "";
         if ( $has_discussions ) {
             $comment_select = "COALESCE(CC.comment_count, 0) AS comment_count";
-            $question_select = "COALESCE(QQ.question_count, 0) AS question_count";
+            $question_select = "COALESCE(QQ.question_count, 0) AS threads_started";
             $discussion_joins = "
         LEFT JOIN (
             SELECT C.user_id, COUNT(*) AS comment_count
@@ -230,6 +231,7 @@ class Assignments extends Tool {
         }
         $group_by_discussion = $has_discussions ? ", QQ.question_count, CC.comment_count" : "";
 
+        $assignment_count_sql = (int) $total_assignments;
         $sql = "SELECT
             U.user_id,
             U.displayname,
@@ -243,6 +245,19 @@ class Assignments extends Tool {
                 THEN L.link_key
                 ELSE NULL
             END) AS completed_assignments,
+            CASE
+                WHEN {$assignment_count_sql} > 0 THEN ROUND(
+                    100 * COUNT(DISTINCT CASE
+                        WHEN R.grade IS NOT NULL
+                            AND R.grade >= 0.8
+                            AND {$assignment_grade_clause}
+                        THEN L.link_key
+                        ELSE NULL
+                    END) / {$assignment_count_sql},
+                    0
+                )
+                ELSE 0
+            END AS progress_pct,
             {$question_select},
             {$comment_select}
         FROM {$p}lti_membership M
@@ -257,27 +272,7 @@ class Assignments extends Tool {
         {$discussion_joins}
         WHERE M.context_id = :CID3
           AND M.deleted = 0
-        GROUP BY U.user_id, U.displayname, U.email, M.created_at{$group_by_discussion}
-        ORDER BY last_visited_at DESC, U.displayname";
-        $rows = $PDOX->allRowsDie($sql, $params);
-
-        $student_rows = array();
-        foreach ( $rows as $row ) {
-            $pct = 0;
-            if ( $total_assignments > 0 ) {
-                $pct = intval(round((intval($row['completed_assignments']) / $total_assignments) * 100));
-            }
-
-            $student_rows[] = array(
-                'displayname' => U::get($row, 'displayname', ''),
-                'email' => U::get($row, 'email', ''),
-                'enrolled_at' => U::get($row, 'enrolled_at', ''),
-                'last_visited_at' => U::get($row, 'last_visited_at', ''),
-                'progress_pct' => $pct,
-                'question_count' => intval(U::get($row, 'question_count', 0)),
-                'comment_count' => intval(U::get($row, 'comment_count', 0)),
-            );
-        }
+        GROUP BY U.user_id, U.displayname, U.email, M.created_at{$group_by_discussion}";
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -290,42 +285,31 @@ class Assignments extends Tool {
         echo('<p>'.__('Instructor view of enrollment, recent activity, assignment completion, and discussion participation.')."</p>\n");
         echo('<p class="text-muted">'.sprintf(__('Assignments complete uses %1$d lesson assignment(s) with grade >= 80%%.'), $total_assignments)."</p>\n");
 
-        if ( count($student_rows) < 1 ) {
-            echo('<p>'.__('No student memberships found in this course context.').'</p>');
-            $OUTPUT->footer();
-            return;
+        $searchfields = array(
+            "U.displayname",
+            "U.email",
+        );
+        $orderfields = array(
+            "last_visited_at",
+            "displayname",
+            "email",
+            "enrolled_at",
+            "progress_pct",
+            "threads_started",
+            "comment_count",
+            "completed_assignments",
+        );
+
+        $table_params = $request->query->all();
+        if ( ! isset($table_params['order_by']) ) {
+            $table_params['order_by'] = 'last_visited_at';
+            $table_params['desc'] = 1;
+        }
+        if ( ! isset($table_params['page_length']) ) {
+            $table_params['page_length'] = 25;
         }
 
-        echo('<div class="table-responsive">');
-        echo('<table class="table table-bordered table-striped">');
-        echo('<thead><tr>');
-        echo('<th>'.__('Name').'</th>');
-        echo('<th>'.__('Enrolled').'</th>');
-        echo('<th>'.__('Last visited').'</th>');
-        echo('<th>'.__('Progress').'</th>');
-        echo('<th>'.__('Q&A questions asked').'</th>');
-        echo('<th>'.__('Q&A answers contributed').'</th>');
-        echo('</tr></thead>');
-        echo('<tbody>');
-
-        foreach ( $student_rows as $row ) {
-            $progress = intval($row['progress_pct']);
-            echo('<tr>');
-            echo('<td>');
-            echo(htmlspecialchars($row['displayname']));
-            if ( U::isNotEmpty($row['email']) ) {
-                echo('<br><small class="text-muted">'.htmlspecialchars($row['email']).'</small>');
-            }
-            echo('</td>');
-            echo('<td>'.htmlspecialchars((string) $row['enrolled_at']).'</td>');
-            echo('<td>'.htmlspecialchars((string) $row['last_visited_at']).'</td>');
-            echo('<td>'.htmlspecialchars((string) $progress).'%</td>');
-            echo('<td>'.htmlspecialchars((string) intval($row['question_count'])).'</td>');
-            echo('<td>'.htmlspecialchars((string) intval($row['comment_count'])).'</td>');
-            echo('</tr>');
-        }
-        echo('</tbody></table>');
-        echo('</div>');
+        Table::pagedAuto($sql, $params, $searchfields, $orderfields, false, $table_params);
 
         $OUTPUT->footer();
     }
