@@ -113,7 +113,6 @@ if ( count($threads) < 1 ) {
         $TDISCUS->renderBooleanSwitch('thread', $thread_id, 'hidden', 'hide', $hidden, 0, 'fa-eye-slash', 'orange');
         $TDISCUS->renderBooleanSwitch('thread', $thread_id, 'locked', 'lock', $locked, 0, 'fa-lock', 'orange');
         $TDISCUS->renderBooleanSwitch('threaduser', $thread_id, 'favorite', 'favorite', $favorite, 0, 'fa-star', 'green');
-        // $TDISCUS->renderBooleanSwitch('threaduser', $thread_id, 'subscribe', 'subscribe', $subscribe, 0, 'fa-envelope', 'green');
     } else {
         echo('<span '.($pin == 0 ? 'style="display:none;"' : '').' aria-hidden="true"><i class="fa fa-thumbtack fa-rotate-270" style="color: orange;"></i></span>');
         echo(' <span '.($locked == 0 ? 'style="display:none;"' : '').' aria-hidden="true"><i class="fa fa-lock fa-rotate-270" style="color: orange;"></i></span>');
@@ -140,10 +139,19 @@ if ( count($threads) < 1 ) {
             ' -->';
     }
 ?>
+  <?php
+      // Match hide/show layout and sizing:
+      // subscribed -> orange action icon on the left (same sizing as left controls)
+      $TDISCUS->renderBooleanSwitch('threaduser', $thread_id, 'subscribe', 'subscribe', $subscribe, 0, 'fa-bell', 'orange');
+  ?>
   <a href="<?= $tool_root.'/thread/'.$thread['thread_id'] ?>">
   <b<?= ($hidden ? ' style="text-decoration: line-through;"' : '') ?>><?= htmlentities($thread['title'] ?? '') ?></b></a>
 <?php if ( $thread['owned'] || $LAUNCH->user->instructor ) { ?>
     <span class="tdiscus-thread-owned-menu" role="group" aria-label="<?= htmlspecialchars(__('Thread actions')) ?>">
+    <?php
+        // unsubscribed: small blue subscribe action grouped with right-side controls
+        $TDISCUS->renderBooleanSwitch('threaduser', $thread_id, 'subscribe', 'subscribe', $subscribe, 1, 'fa-bell', '#337ab7');
+    ?>
     <a href="<?= $tool_root ?>/threadform/<?= $thread['thread_id'] ?>" aria-label="<?= htmlspecialchars(__('Edit thread')) ?>"><i class="fa fa-pencil" aria-hidden="true"></i></a>
     <a href="<?= $tool_root ?>/threadremove/<?= $thread['thread_id'] ?>" aria-label="<?= htmlspecialchars(__('Delete thread')) ?>"><i class="fa fa-trash" aria-hidden="true"></i></a>
   <?php
@@ -152,7 +160,6 @@ if ( count($threads) < 1 ) {
         $TDISCUS->renderBooleanSwitch('thread', $thread_id, 'hidden', 'hide', $hidden, 1, 'fa-eye-slash');
         $TDISCUS->renderBooleanSwitch('thread', $thread_id, 'locked', 'lock', $locked, 1, 'fa-lock');
         $TDISCUS->renderBooleanSwitch('threaduser', $thread_id, 'favorite', 'favorite', $favorite, 1, 'fa-star');
-        // $TDISCUS->renderBooleanSwitch('threaduser', $thread_id, 'subscribe', 'subscribe', $subscribe, 1, 'fa-envelope');
         // TODO: Make this work
         // $TDISCUS->renderBooleanSwitch('threaduser', $thread_id, 'comments', 'catch up', $unread, 1, 'fa-check');
     }

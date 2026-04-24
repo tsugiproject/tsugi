@@ -41,14 +41,18 @@ class Threads {
     public static function threadLoad($thread_id) {
         global $PDOX, $TSUGI_LAUNCH, $CFG;
 
-        $row = $PDOX->rowDie("SELECT *,
+        $row = $PDOX->rowDie("SELECT T.*,
+            U.displayname AS displayname,
+            COALESCE(UT.subscribe, 0) AS subscribe,
             CONCAT(CONVERT_TZ(COALESCE(T.updated_at, T.created_at), @@session.time_zone, '+00:00'), 'Z') AS modified_at,
             (COALESCE(T.upvote, 0)-COALESCE(T.downvote, 0)) AS netvote,
             CASE WHEN T.user_id = :UID THEN TRUE ELSE FALSE END AS owned
             FROM {$CFG->dbprefix}tdiscus_thread AS T
             JOIN {$CFG->dbprefix}lti_user AS U ON  U.user_id = T.user_id
+            LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread AS UT
+                ON UT.thread_id = T.thread_id AND UT.user_id = :UID
             LEFT JOIN {$CFG->dbprefix}tdiscus_user_user AS O ON O.user_id = :UID
-            WHERE link_id = :LID AND thread_id = :TID",
+            WHERE T.link_id = :LID AND T.thread_id = :TID",
             array(':LID' => $TSUGI_LAUNCH->link->id,  ':UID' => $TSUGI_LAUNCH->user->id, ':TID' => $thread_id)
         );
         return $row;
@@ -291,13 +295,7 @@ class Threads {
             ) AS mention_unread,
             CASE
                 WHEN (T.comments - COALESCE(UT.comments, 0)) > 0
-                     AND (
-                        EXISTS (
-                            SELECT 1 FROM {$CFG->dbprefix}tdiscus_user_thread_participation UTP
-                            WHERE UTP.user_id = :UID AND UTP.thread_id = T.thread_id
-                        )
-                        OR COALESCE(UT.subscribe, 0) = 1
-                     )
+                     AND COALESCE(UT.subscribe, 0) = 1
                 THEN 1 ELSE 0
             END AS participating_unread
         ";
@@ -602,6 +600,16 @@ class Threads {
 
         $retval = intval($PDOX->lastInsertId());
         if ( $retval > 0 ) {
+            // Any new post means "follow this thread" for this user.
+            $PDOX->queryDie("INSERT INTO {$CFG->dbprefix}tdiscus_user_thread
+                (thread_id, user_id, subscribe)
+                VALUES (:TID, :UID, 1)
+                ON DUPLICATE KEY UPDATE subscribe = 1",
+                array(
+                    ':TID' => $thread_id,
+                    ':UID' => $TSUGI_LAUNCH->user->id,
+                )
+            );
             self::upsertThreadParticipation($thread_id, $TSUGI_LAUNCH->user->id);
             self::syncMentionsForComment($retval, $comment, $TSUGI_LAUNCH->user->id);
         }
@@ -847,13 +855,7 @@ class Threads {
             LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread UT
                 ON UT.thread_id = T.thread_id AND UT.user_id = :UID
             WHERE T.link_id = :LID
-              AND (
-                    EXISTS (
-                        SELECT 1 FROM {$CFG->dbprefix}tdiscus_user_thread_participation UTP
-                        WHERE UTP.user_id = :UID AND UTP.thread_id = T.thread_id
-                    )
-                    OR COALESCE(UT.subscribe, 0) = 1
-              )
+              AND COALESCE(UT.subscribe, 0) = 1
               AND (T.comments - COALESCE(UT.comments, 0)) > 0",
             array(':UID' => $uid, ':LID' => $lid)
         );

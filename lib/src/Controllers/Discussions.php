@@ -170,7 +170,6 @@ class Discussions extends Tool {
         $user_id = U::loggedInUserId();
 
         $has_mentions = $this->tableExists($CFG->dbprefix.'tdiscus_mention');
-        $has_participation = $this->tableExists($CFG->dbprefix.'tdiscus_user_thread_participation');
 
         $rows = $PDOX->allRowsDie("SELECT L.link_id, L.link_key
             FROM {$CFG->dbprefix}lti_link L
@@ -195,7 +194,6 @@ class Discussions extends Tool {
                     intval($row['link_id']),
                     $user_id,
                     $has_mentions,
-                    $has_participation,
                     $include_participation_as_personal
                 );
             } else {
@@ -1375,7 +1373,7 @@ Bound parameters
         <?php
     }
 
-    private function rollupsForLink($link_id, $user_id, $has_mentions, $has_participation, $include_participation_as_personal)
+    private function rollupsForLink($link_id, $user_id, $has_mentions, $include_participation_as_personal)
     {
         global $PDOX, $CFG;
 
@@ -1388,11 +1386,8 @@ Bound parameters
         }
 
         $personal_participation_clause = "FALSE";
-        if ( $has_participation && $include_participation_as_personal ) {
-            $personal_participation_clause = "EXISTS (
-                SELECT 1 FROM {$CFG->dbprefix}tdiscus_user_thread_participation UTP
-                WHERE UTP.user_id = :UID AND UTP.thread_id = C.thread_id
-            )";
+        if ( $include_participation_as_personal ) {
+            $personal_participation_clause = "COALESCE(UT.subscribe, 0) = 1";
         }
 
         $personal = $PDOX->rowDie("SELECT COUNT(DISTINCT C.comment_id) AS count
@@ -1414,23 +1409,12 @@ Bound parameters
             array(':UID' => $user_id, ':LID' => $link_id)
         );
 
-        $participation_where = "COALESCE(UT.subscribe, 0) = 1";
-        if ( $has_participation ) {
-            $participation_where = "(
-                EXISTS (
-                    SELECT 1 FROM {$CFG->dbprefix}tdiscus_user_thread_participation UTP
-                    WHERE UTP.user_id = :UID AND UTP.thread_id = T.thread_id
-                )
-                OR COALESCE(UT.subscribe, 0) = 1
-            )";
-        }
-
         $participating = $PDOX->rowDie("SELECT COUNT(*) AS count
             FROM {$CFG->dbprefix}tdiscus_thread T
             LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread UT
                 ON UT.thread_id = T.thread_id AND UT.user_id = :UID
             WHERE T.link_id = :LID
-              AND $participation_where
+              AND COALESCE(UT.subscribe, 0) = 1
               AND (T.comments - COALESCE(UT.comments, 0)) > 0",
             array(':UID' => $user_id, ':LID' => $link_id)
         );

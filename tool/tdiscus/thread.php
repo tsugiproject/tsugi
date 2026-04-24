@@ -89,7 +89,14 @@ echo('<div class="tdiscus-thread-container">'."\n");
 echo('<p>');
 echo('<a class="tdiscus-all-threads-link" href="'.htmlspecialchars($threads_index_url).'" title="'.htmlspecialchars(__('All threads')).'">'.htmlentities($discussion_title).'</a>');
 echo("</p>\n");
-echo('<h1 class="tdiscus-thread-title"><a href="'.$page_base.'"'.($thread['hidden'] ? ' style="text-decoration: line-through;"' : '').'>'.htmlentities($thread['title'] ?? '').'</a>');
+echo('<h1 class="tdiscus-thread-title">');
+// subscribed: show orange unsubscribe action on the left (same sizing as left controls)
+$TDISCUS->renderBooleanSwitch('threaduser', $thread_id, 'subscribe', 'subscribe', intval($thread['subscribe']), 0, 'fa-bell', 'orange');
+echo('<a href="'.$page_base.'"'.($thread['hidden'] ? ' style="text-decoration: line-through;"' : '').'>'.htmlentities($thread['title'] ?? '').'</a>');
+echo(' <span class="tdiscus-thread-subscribe-menu" role="group" aria-label="'.htmlspecialchars(__('Thread subscription actions')).'" style="font-size:0.7em;">');
+// unsubscribed: show small blue subscribe action
+$TDISCUS->renderBooleanSwitch('threaduser', $thread_id, 'subscribe', 'subscribe', intval($thread['subscribe']), 1, 'fa-bell', '#337ab7');
+echo('</span>');
 echo("</h1>\n");
 ?>
 <p class="tdiscus-thread-info">
