@@ -638,17 +638,20 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         echo('<h1>'.__('Manage Discussions').'</h1>');
         echo('<p>'.__('Discussion maintenance tools for this course context.').'</p>');
         echo('<ul>');
+        // Temporarily hide reset unread tracking from UI; use scan/fix workflow instead.
+        /*
         echo('<li>');
         echo('<a href="#" class="tsugi-discussions-reset-unread-tracking-link">'.__('Reset unread tracking for all users').'</a>');
-        echo(' <span class="text-muted">('.__('clears read tracking for this course; thread owners stay subscribed to their threads').')</span>');
+        echo(' <span class="text-muted">('.__('clears read tracking for this course; subscription preferences are unchanged').')</span>');
         echo('<form method="post" action="'.htmlspecialchars(U::addSession(self::ROUTE.'/reset-unread-tracking')).'" class="tsugi-discussions-reset-unread-tracking-form" style="display:none;"></form>');
         echo('</li>');
+        */
+        echo('<li><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/expire-comments')).'">'.__('Expire old comments').'</a></li>');
+        echo('<li><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/expire-threads')).'">'.__('Expire old threads').'</a></li>');
         echo('<li>');
         echo('<a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/scan-fix-unread-tracking')).'">'.__('Scan unread tracking (dry run) and optionally fix').'</a>');
         echo(' <span class="text-muted">('.__('pre-scan first, then run fix in a second step').')</span>');
         echo('</li>');
-        echo('<li><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/expire-comments')).'">'.__('Expire old comments').'</a></li>');
-        echo('<li><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/expire-threads')).'">'.__('Expire old threads').'</a></li>');
         echo('</ul>');
 ?>
 <script>
@@ -673,9 +676,8 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
     /**
      * Reset unread tracking state for all users in the current context.
      *
-     * Clears participation and nulls per-thread read markers for everyone, then
-     * re-applies thread-owner subscribe and participation so creators stay subscribed
-     * to their own threads (same as on thread create).
+     * Clears participation and nulls per-thread read markers for everyone.
+     * Subscription preferences are left unchanged.
      */
     public function resetUnreadTracking(Request $request)
     {
@@ -715,19 +717,6 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
             SET UT.read_at = NULL,
                 UT.comments = 0
             WHERE L.context_id = :CID",
-            array(':CID' => $context_id)
-        );
-
-        // Thread owners should stay subscribed to their own threads (same as on create).
-        // Only rows where T.user_id still exists in lti_user (orphan threads skip cleanly).
-        $PDOX->queryDie(
-            "INSERT INTO {$CFG->dbprefix}tdiscus_user_thread (thread_id, user_id, subscribe)
-            SELECT T.thread_id, T.user_id, 1
-            FROM {$CFG->dbprefix}tdiscus_thread T
-            JOIN {$CFG->dbprefix}lti_link L ON L.link_id = T.link_id
-            JOIN {$CFG->dbprefix}lti_user U ON U.user_id = T.user_id
-            WHERE L.context_id = :CID
-            ON DUPLICATE KEY UPDATE subscribe = 1",
             array(':CID' => $context_id)
         );
 
