@@ -2045,15 +2045,20 @@ class Lessons {
         // but for now we bypass the abstraction and go straight to the source...
         $rows_dict = array();
         if ( U::get($_SESSION,'context_id') > 0 ) {
-            $rows = $PDOX->allRowsDie("SELECT L.link_key, L.link_sha256, count(L.link_sha256) AS thread_count,
+            $current_user_id = U::loggedInUserId();
+            $rows = $PDOX->allRowsDie("SELECT L.link_key, L.link_sha256,
+                COUNT(T.thread_id) AS thread_count,
+                SUM(CASE WHEN COALESCE(UT.subscribe, 0) = 1 THEN 1 ELSE 0 END) AS subscribed_threads,
                 CONCAT(CONVERT_TZ(MAX(COALESCE(T.updated_at, T.created_at)), @@session.time_zone, '+00:00'), 'Z')
                 AS modified_at
                 FROM {$CFG->dbprefix}lti_link AS L
                 JOIN {$CFG->dbprefix}tdiscus_thread AS T ON T.link_id = L.link_id
+                LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread AS UT
+                    ON UT.thread_id = T.thread_id AND UT.user_id = :UID
                 WHERE L.context_id = :CID
-                GROUP BY L.link_sha256
+                GROUP BY L.link_id, L.link_key, L.link_sha256
                 ORDER BY L.link_sha256",
-                array(':CID' => U::get($_SESSION,'context_id'))
+                array(':CID' => U::get($_SESSION,'context_id'), ':UID' => $current_user_id)
             );
             $rows_dict = array();
             foreach($rows as $row) {
@@ -2071,6 +2076,12 @@ class Lessons {
             $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $discussion->resource_link_id;
             $info = "";
             $row = U::get($rows_dict, $discussion->resource_link_id);
+            $subscribed_threads = intval(U::get($row, 'subscribed_threads', 0));
+            $bell_html = '';
+            if ( $subscribed_threads > 0 ) {
+                $bell_label = htmlentities(__('Subscribed threads').': '.$subscribed_threads);
+                $bell_html = ' <span style="color: #f0ad4e; font-size: 0.75em; vertical-align: middle;" title="'.$bell_label.'" aria-label="'.$bell_label.'">&#128276;</span>';
+            }
             if ( $row ) {
                 $info = $row['thread_count'].' '.__('threads'). ' - '.__('last post').
                     ' <time class="timeago" datetime="'.$row['modified_at'].'">'.$row['modified_at'].'</time>';
@@ -2078,9 +2089,9 @@ class Lessons {
 
             echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion" data-resource-link-id="'.htmlspecialchars($discussion->resource_link_id).'">'."\n");
             if ( $launchable ) {
-                echo('<a href="'.$launch_path.'">'.htmlentities($discussion->title).'</a>');
+                echo('<a href="'.$launch_path.'">'.htmlentities($discussion->title).$bell_html.'</a>');
             } else {
-                echo(htmlentities($resource_link_title).' ('.__('Login Required').')');
+                echo(htmlentities($resource_link_title).$bell_html.' ('.__('Login Required').')');
             }
             echo('<span class="tsugi-discussion-rollup-badges" aria-live="polite"></span>');
             if ( strlen($info) > 0 ) {
@@ -2141,7 +2152,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 var holder = node.querySelector('.tsugi-discussion-rollup-badges');
                 if (!holder) return;
                 holder.innerHTML = chip;
-                holder.appendChild(document.createComment(' dbg p=' + personal + ' t=' + participating + ' g=' + global + ' '));
             });
         })
         .catch(function() {
