@@ -91,18 +91,6 @@ class Assignments extends Tool {
         return null;
     }
 
-    private function tableExists($table_name) {
-        global $PDOX;
-        $row = $PDOX->rowDie(
-            "SELECT 1 AS present
-            FROM information_schema.tables
-            WHERE table_schema = DATABASE()
-              AND table_name = :TN",
-            array(':TN' => $table_name)
-        );
-        return is_array($row);
-    }
-
     public function get(Request $request)
     {
         global $CFG, $OUTPUT;
@@ -184,14 +172,9 @@ class Assignments extends Tool {
         }
         $total_assignments = count($assignment_rlids);
 
-        $has_discussions = $this->tableExists($CFG->dbprefix.'tdiscus_comment') && $this->tableExists($CFG->dbprefix.'tdiscus_thread');
-        $comment_select = "0 AS comment_count";
-        $question_select = "0 AS threads_started";
-        $discussion_joins = "";
-        if ( $has_discussions ) {
-            $comment_select = "COALESCE(CC.comment_count, 0) AS comment_count";
-            $question_select = "COALESCE(QQ.question_count, 0) AS threads_started";
-            $discussion_joins = "
+        $comment_select = "COALESCE(CC.comment_count, 0) AS comment_count";
+        $question_select = "COALESCE(QQ.question_count, 0) AS threads_started";
+        $discussion_joins = "
         LEFT JOIN (
             SELECT C.user_id, COUNT(*) AS comment_count
             FROM {$p}tdiscus_comment C
@@ -207,12 +190,13 @@ class Assignments extends Tool {
             WHERE LL.context_id = :CID4
             GROUP BY T.user_id
         ) QQ ON QQ.user_id = U.user_id";
-        }
 
         $assignment_grade_clause = "FALSE";
         $params = array(
             ':CID' => $context_id,
+            ':CID2' => $context_id,
             ':CID3' => $context_id,
+            ':CID4' => $context_id,
         );
         if ( $total_assignments > 0 ) {
             $rlid_placeholders = array();
@@ -225,11 +209,7 @@ class Assignments extends Tool {
             }
             $assignment_grade_clause = "L.link_key IN (".implode(',', $rlid_placeholders).")";
         }
-        if ( $has_discussions ) {
-            $params[':CID2'] = $context_id;
-            $params[':CID4'] = $context_id;
-        }
-        $group_by_discussion = $has_discussions ? ", QQ.question_count, CC.comment_count" : "";
+        $group_by_discussion = ", QQ.question_count, CC.comment_count";
 
         $assignment_count_sql = (int) $total_assignments;
         $sql = "SELECT
