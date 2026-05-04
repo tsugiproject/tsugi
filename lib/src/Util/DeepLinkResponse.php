@@ -65,7 +65,11 @@ $text='{
      * @param $custom An optional array of custom key / value pairs
      * @param $scoreMaximum The scoreMaximum if this is an assignment
      * @param $resourceId The resourceId for the item if it is an assignment
-     * @param array $additionalParms A key/value array of additional values to send
+     * @param array $additionalParms A key/value array of additional values to send.
+     *     For ltiResourceLink placements, optional ISO 8601 dateTimes:
+     *     availableStart, availableEnd (maps to ResourceLink.available.startDateTime / endDateTime),
+     *     submissionStart, submissionEnd (maps to ResourceLink.submission.startDateTime / endDateTime).
+     *     presentationDocumentTarget, placementWidth, placementHeight for iframe sizing; tag for lineItem.
      *
      */
     public function addLtiLinkItem($url, $title=false, $text=false,

@@ -220,6 +220,25 @@ $icon = false;
 if ( $fa_icon !== false ) {
     $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
 }
+$deeplink = isset($LAUNCH->deeplink) ? $LAUNCH->deeplink : false;
+$accept_lineitem = true;
+$accept_available = true;
+$accept_submission = true;
+if ( $deeplink ) {
+    $accept_lineitem = $deeplink->getClaim('accept_lineitem');
+    if ( $accept_lineitem === null ) $accept_lineitem = $deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_lineitem');
+    if ( $accept_lineitem === null ) $accept_lineitem = $deeplink->getClaim('https://www.moodle.org/spec/lti-dl/accept_lineitem');
+    if ( $accept_lineitem !== false ) $accept_lineitem = true;
+    $accept_available = $deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_available', $accept_lineitem);
+    if ( $accept_available !== false ) $accept_available = true;
+    $accept_submission = $deeplink->getClaim('https://www.sakailms.org/spec/lti-dl/accept_submission', $accept_lineitem);
+    if ( $accept_submission !== false ) $accept_submission = true;
+}
+$grade_launch = false;
+if ( isset($tool['messages']) && is_array($tool['messages']) &&
+    array_search('launch_grade', $tool['messages']) !== false ) {
+    $grade_launch = true;
+}
 
 // Check if the tsugi.php is upgraded for this tool
 $register_json = $tool['url'].'register.json';
@@ -277,6 +296,10 @@ $register_good = $json_obj && isset($json_obj->name);
                             <label for="<?= htmlspecialchars($modal_id) ?>_modal_desc_input">Description</label>
                             <textarea class="form-control" rows="5" id="<?= htmlspecialchars($modal_id) ?>_modal_desc_input" name="description"><?=htmlent_utf8($text)?></textarea>
                         </div>
+<?php
+                        $id_suffix = $modal_id;
+                        include __DIR__ . '/install_extra_fields.php';
+?>
                         <button type="submit" class="btn btn-primary">Submit</button>
                         <button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>
                     </form>
@@ -486,7 +509,65 @@ $OUTPUT->footerStart();
     <script src="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.js">
     </script>
     <script>
+        function toggleLineItem(item, id_suffix) {
+            var x = (item.value || item.options[item.selectedIndex].value);
+            if ( x == "send" ) {
+                $('#lineitem-fields_'+id_suffix).show();
+            } else {
+                $('#lineitem-fields_'+id_suffix).hide();
+                $('#'+id_suffix+'_scoreMaximum').val('');
+            }
+        }
+
+        function normalizeLocalDateTimes(form) {
+            var localFields = form.querySelectorAll('input[data-utc-target]');
+            localFields.forEach(function(field) {
+                var targetName = field.getAttribute('data-utc-target');
+                if (!targetName) return;
+                var hidden = form.querySelector('input[type="hidden"][name="' + targetName + '"]');
+                if (!hidden) return;
+                if (!field.value) {
+                    hidden.value = '';
+                    return;
+                }
+
+                var dateValue = field.value;
+                if (field.type === 'date') {
+                    var defaultTime = field.getAttribute('data-default-time') || '00:00';
+                    dateValue = field.value + 'T' + defaultTime;
+                }
+
+                var localDate = new Date(dateValue);
+                if (isNaN(localDate.getTime())) {
+                    hidden.value = '';
+                    return;
+                }
+                hidden.value = localDate.toISOString().replace('.000Z', 'Z');
+            });
+        }
+
+        </script>
+    <script src="modal_scroll_top.js"></script>
+    <script>
         $(document).ready(function() {
+            $('form').on('submit', function() {
+                normalizeLocalDateTimes(this);
+            });
+
+            $(document).on('change', 'input[data-lineitem-target]', function() {
+                if (!this.value) return;
+                var lineitemId = this.getAttribute('data-lineitem-target');
+                if (!lineitemId) return;
+                var selector = document.getElementById(lineitemId);
+                if (!selector) return;
+                selector.value = 'send';
+                if (typeof selector.dispatchEvent === 'function') {
+                    selector.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+
+            bindInstallModalScrollToTop();
+
             $('.bxslider').bxSlider({
                 useCSS: false,
                 adaptiveHeight: false,

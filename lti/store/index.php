@@ -344,6 +344,14 @@ if ( isset($_GET['install']) ) {
     foreach ( $extraParmList as $parm ) {
         $value = U::get($_GET, $parm);
         if ( ! $value ) continue;
+        // HTML5 type="date" yields YYYY-MM-DD; LTI DL expects xs:dateTime (e.g. ...Z).
+        if ( preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $value) ) {
+            if ( $parm === 'availableEnd' || $parm === 'submissionEnd' ) {
+                $value = $value . 'T23:59:59Z';
+            } else {
+                $value = $value . 'T00:00:00Z';
+            }
+        }
         $additionalParams[$parm] = $value;
     }
 
@@ -452,7 +460,6 @@ if ($l && count($content_items) > 0 ) {
     $count = 0;
     foreach($content_items as $ci) {
         $pieces = explode('::', $ci);
-        var_dump($pieces);
         if ( count($pieces) == 2 && is_numeric($pieces[1]) ) {
             $anchor = $pieces[0];
             $index = $pieces[1]+0;
@@ -685,46 +692,11 @@ if ( $registrations && $allow_lti ) {
                                 <label>Height (pixels)</label>
                                 <input type="number" class="form-control" name="placementHeight">
                             </div>
-                            <!-- https://www.imsglobal.org/spec/lti-dl/v2p0 -->
-<?php if ( $grade_launch && $accept_lineitem ) { ?>
-                            <div class="form-group">
-                                <label for="lineitem_<?= $count ?>">Configure LineItem</label> (Not all LMS placements support all features)
-                                <select name="lineitem" id="lineitem_<?= $count ?>" onchange="toggleLineItem(this, <?= $count ?>);">
-                                    <option value="none">No LineItem</option>
-                                    <option value="send">Send LineItem</option>
-                                </select>
-                            </div>
-<div class="lineitem-fields" id="lineitem-fields_<?= $count ?>" style="display:none;">
-                            <div class="form-group">
-                                <label for="scoreMaximum_<?= $count ?>">Maximum possible score for an activity.</label>
-                                <input type="number" class="form-control" id="scoreMaximum_<?= $count ?>" name="scoreMaximum">
-                            </div>
-                            <div class="form-group" for="resourceId_<?= $count ?>">
-                                <label>Tool provided ID for the resource. (optional) This is opaque to the LMS.</label>
-                                <input type="text" class="form-control" id="resourceId_<?= $count ?>" name="resourceId">
-                            </div>
-                            <div class="form-group">
-                                <label for="tag_<?= $count ?>">A tag used to mark this item. (optional) This is opaque to the LMS</label>
-                                <input type="text" class="form-control" id="tag_<?= $count ?>" name="tag">
-                            </div>
-<?php if ( $accept_available ) { ?>
-                            <div class="form-group">
-                                <label for="availableStart_<?= $count ?>">Available dates:</label>
-                                <input type="date" id="availableStart_<?= $count ?>" name="availableStart"> - 
-                                <input type="date" id="availableEnd_<?= $count ?>" name="availableEnd">
-                                <p>Please check this date in the LMS to make sure the time zone is correct.</p>
-                            </div>
-<?php } ?>
-<?php if ( $accept_submission ) { ?>
-                            <div class="form-group">
-                                <label for="submissionStart_<?= $count ?>">Submission dates:</label>
-                                <input type="date" id="submissionStart_<?= $count ?>" name="submissionStart"> - 
-                                <input type="date" id="submissionEnd_<?= $count ?>" name="submissionEnd">
-                                <p>Please check this date in the LMS to make sure the time zone is correct.</p>
-                            </div>
-<?php } ?>
-</div>
-<?php } ?>
+<?php
+                            // Shared deep-link/line-item fields to keep modal behavior in sync with details.php.
+                            $id_suffix = $count;
+                            include __DIR__ . '/install_extra_fields.php';
+?>
                             <div class="debug-claims" style="display:none;">
                             <div class="form-group">
                                 <label>Msg claim</label>
@@ -1136,14 +1108,42 @@ function toggleLineItem(item, count) {
        $('#lineitem-fields_'+count).show();
     } else {
        $('#lineitem-fields_'+count).hide();
-      $('#scoreMaximum_'+$count).val('');
+      $('#scoreMaximum_'+count).val('');
     }
+}
+
+function normalizeLocalDateTimes(form) {
+    var localFields = form.querySelectorAll('input[data-utc-target]');
+    localFields.forEach(function(field) {
+        var targetName = field.getAttribute('data-utc-target');
+        if (!targetName) return;
+        var hidden = form.querySelector('input[type="hidden"][name="' + targetName + '"]');
+        if (!hidden) return;
+        if (!field.value) {
+            hidden.value = '';
+            return;
+        }
+
+        var dateValue = field.value;
+        if (field.type === 'date') {
+            var defaultTime = field.getAttribute('data-default-time') || '00:00';
+            dateValue = field.value + 'T' + defaultTime;
+        }
+
+        var localDate = new Date(dateValue);
+        if (isNaN(localDate.getTime())) {
+            hidden.value = '';
+            return;
+        }
+        hidden.value = localDate.toISOString().replace('.000Z', 'Z');
+    });
 }
 
 </script>
 
     <script type="text/javascript" src="<?= $CFG->staticroot ?>/js/ftellipsis.js"></script>
     <script src="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.js"></script>
+    <script src="modal_scroll_top.js"></script>
     <script type="text/javascript">
         var filter = filter || {};
 
@@ -1191,6 +1191,18 @@ function toggleLineItem(item, count) {
             }
         });
 
+        $(document).on('change', 'input[data-lineitem-target]', function() {
+            if (!this.value) return;
+            var lineitemId = this.getAttribute('data-lineitem-target');
+            if (!lineitemId) return;
+            var selector = document.getElementById(lineitemId);
+            if (!selector) return;
+            selector.value = 'send';
+            if (typeof selector.dispatchEvent === 'function') {
+                selector.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+
         $(document).ready(function() {
             filter.setUpListener();
 
@@ -1206,6 +1218,12 @@ function toggleLineItem(item, count) {
                 speed: 750,
                 pause: 5000,
             });
+
+            $('form').on('submit', function() {
+                normalizeLocalDateTimes(this);
+            });
+
+            bindInstallModalScrollToTop();
         });
 
         // https://stackoverflow.com/questions/4471401/getting-value-of-html-checkbox-from-onclick-onchange-events
