@@ -86,9 +86,14 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
   Check Keyset
   </a></li>
 <li>
-  <a href="#" title="Check Cache"
+  <a href="#" title="Check Session Cache"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'cache', _TSUGI.spinnerUrl); return false;" >
-  Check Cache
+  Check Session Cache
+  </a></li>
+<li>
+  <a href="#" title="Check Object Cache"
+  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'mcache', _TSUGI.spinnerUrl); return false;" >
+  Check Object Cache
   </a></li>
 <li>
   <a href="#" title="Encrypt/Decrypt Strings"
