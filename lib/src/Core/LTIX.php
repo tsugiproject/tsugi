@@ -375,11 +375,6 @@ class LTIX {
         // $row = loadAllData($CFG->dbprefix, false, $post);
         $row = self::loadAllData($CFG->dbprefix, $CFG->dbprefix.'profile', $post);
 
-        // For LTI 1.3
-        if ( $row && U::get($post,'deployment_id') &&  ! U::get($row, 'deploy_key') ) {
-            self::abort_with_error_log('Found issuer, but did not find corresponding deployment: '.htmlentities(U::get($post,'deployment_id')));
-        }
-
         if ( ! $row || ! U::get($row, 'key_id') ) {
             if ( U::get($post,'key') ) {  // LTI 1.1
                 self::abort_with_error_log('Launch could not find key: '.htmlentities(U::get($post,'key')));
@@ -439,7 +434,10 @@ class LTIX {
             $deployment_id = $post['deployment_id'];
 
             if ( $key_id < 1 ) {
-                 self::abort_with_error_log("Could not find tenant/key for $issuer_key / clientid=$issuer_client deployment_id=$deployment_id");
+                $suffix = U::isNotEmpty($deployment_id)
+                    ? ' launch_deployment_id='.htmlentities($deployment_id)
+                    : '';
+                self::abort_with_error_log("Could not find tenant/key for $issuer_key / clientid=$issuer_client".$suffix);
             }
 
             $raw_jwt = LTI13::raw_jwt($request_data);
@@ -1327,8 +1325,9 @@ class LTIX {
         // Add the WHERE clause
         if ( $LTI13 ) {
             // TODO: Index lms_issuer_sha256
-            $sql .= "\nWHERE (k.deploy_key = :deployment_id OR k.deploy_key IS NULL)
-                AND (
+            // Resolve tenant by issuer + client_id only. The launch JWT's deployment_id is
+            // still copied into $row at runtime for LTI 1.3 services (e.g. AGS token requests).
+            $sql .= "\nWHERE (
                     (i.issuer_sha256 = :issuer_sha256 AND i.issuer_client = :issuer_client)
                     OR ( (lms_issuer_sha256 IS NULL OR lms_issuer_sha256 = :issuer_sha256 ) AND lms_client = :issuer_client )
                 )
@@ -1386,7 +1385,6 @@ class LTIX {
             $parms[':subject'] = $subject_sha256;
             $parms[':issuer_sha256'] = $post["issuer_sha256"];
             $parms[':issuer_client'] = $post["issuer_client"];
-            $parms[':deployment_id'] = $post["deployment_id"];
             if ( $for_user_subject ) $parms[":for_user_subject_sha256"] = lti_sha256($for_user_subject);
         } else {
             $parms[':key'] = lti_sha256($post['key']);
