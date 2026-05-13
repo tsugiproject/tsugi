@@ -2,6 +2,7 @@
 // In the top frame, we use cookies for session.
 if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
+require_once("../../admin/key/key-util.php");
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
@@ -39,7 +40,7 @@ if ( $inedit ) {
 $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
-    'deploy_key' => 'LTI 1.3: Deployment ID (from the Platform)',
+    'deploy_key' => 'LTI 1.3: Deployment ID (leave blank to accept any value from the LMS)',
     'issuer_id' => 'LTI 1.3: Issuer',
 );
 
@@ -59,6 +60,10 @@ if ( U::get($_POST,'key_key') && U::get($_POST,'key_key') != $oldrow['key_key'] 
     U::flashError("Cannot change key value");
     header("Location: ".$from_location);
     return;
+}
+
+if ( isset($_POST['deploy_key']) ) {
+    $_POST['deploy_key'] = normalize_deploy_key_input($_POST['deploy_key']);
 }
 
 // Handle the post data

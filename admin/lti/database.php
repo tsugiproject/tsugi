@@ -180,6 +180,7 @@ array( "{$CFG->dbprefix}lti_key",
         REFERENCES `{$CFG->dbprefix}lti_issuer` (`issuer_id`)
         ON DELETE SET NULL ON UPDATE CASCADE,
 
+    -- deploy_sha256 participates in uniqueness; NULL deploy_sha256 (wildcard deploy_key) allows multiple rows per issuer/key_sha256 in typical MySQL UNIQUE-with-NULL semantics.
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_1` UNIQUE(key_sha256, deploy_sha256),
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_2` UNIQUE(issuer_id, deploy_sha256),
     CONSTRAINT `{$CFG->dbprefix}lti_key_const_pk` PRIMARY KEY (key_id)

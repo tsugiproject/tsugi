@@ -2,7 +2,32 @@
 
 use \Tsugi\Util\U;
 
-function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $old_key_key=null, $old_deploy_key=null, $old_issuer_id=null) {
+/**
+ * Normalize LTI 1.3 deployment id from a form field for database storage.
+ *
+ * Empty string, whitespace only, or the literal "null" are stored as NULL.
+ * Leaving the field blank means the key accepts any deployment id sent by the LMS;
+ * Tsugi still uses the deployment id from the launch JWT for LTI 1.3 services (for example grading).
+ * Any other non-empty string is trimmed and stored as the specific deployment id.
+ *
+ * @param mixed $v Raw POST value
+ * @return string|null
+ */
+function normalize_deploy_key_input($v) {
+    if ( $v === null ) {
+        return null;
+    }
+    if ( ! is_string($v) ) {
+        return null;
+    }
+    $t = trim($v);
+    if ( $t === '' || strcasecmp($t, 'null') === 0 ) {
+        return null;
+    }
+    return $t;
+}
+
+function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $old_key_key=null, $old_deploy_key=null, $old_issuer_id=null, $lms_client=null) {
     global $PDOX, $CFG;
 
     // Enforce in software because MySQL can't do it
@@ -10,8 +35,14 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
     //  CHECK (
     //        (key_sha256 IS NOT NULL OR deploy_sha256 IS NOT NULL)
     //  )
-    if ( empty($key_key) && empty($deploy_key) ) {
-        U::flashError("Either consumer key or deployment id are required");
+    // deploy_key may be NULL/blank (accept any deployment id from the LMS; deploy_sha256 NULL); then we still need
+    // either an LTI 1.1 consumer key or enough LTI 1.3 identity (global issuer or platform issuer + client).
+    $have_oauth = U::isNotEmpty($key_key);
+    $have_deploy = U::isNotEmpty($deploy_key);
+    $have_global_issuer = ! empty($issuer_id) && (int) $issuer_id > 0;
+    $have_per_tenant_lti13 = U::isNotEmpty($lms_issuer) && U::isNotEmpty($lms_client);
+    if ( ! $have_oauth && ! $have_deploy && ! $have_global_issuer && ! $have_per_tenant_lti13 ) {
+        U::flashError('Either an LTI 1.1 consumer key, a specific LTI 1.3 deployment id, or LTI 1.3 issuer information (global issuer or platform issuer URL and client id) is required');
         return false;
     }
 

@@ -379,7 +379,16 @@ class LTIX {
             if ( U::get($post,'key') ) {  // LTI 1.1
                 self::abort_with_error_log('Launch could not find key: '.htmlentities(U::get($post,'key')));
             } else {
-                self::abort_with_error_log('Launch could not find issuer: '.htmlentities(U::get($post,'issuer_key')));
+                $suffix = '';
+                if ( U::isNotEmpty(U::get($post, 'issuer_client')) ) {
+                    $suffix .= ' client_id='.htmlentities(U::get($post, 'issuer_client'));
+                }
+                if ( U::isNotEmpty(U::get($post, 'deployment_id')) ) {
+                    $suffix .= ' deployment_id='.htmlentities(U::get($post, 'deployment_id'));
+                } else {
+                    $suffix .= ' deployment_id=(missing from JWT)';
+                }
+                self::abort_with_error_log('Launch could not find issuer: '.htmlentities(U::get($post,'issuer_key')).$suffix);
             }
         }
 
@@ -1325,11 +1334,17 @@ class LTIX {
         // Add the WHERE clause
         if ( $LTI13 ) {
             // TODO: Index lms_issuer_sha256
-            // Resolve tenant by issuer + client_id only. The launch JWT's deployment_id is
-            // still copied into $row at runtime for LTI 1.3 services (e.g. AGS token requests).
+            // Match tenant by issuer + client_id. deploy_key may be a specific deployment id,
+            // or NULL / empty so the key accepts any deployment id sent by the LMS.
+            // The launch JWT's deployment_id is still copied into $row at runtime for LTI 1.3
+            // services (e.g. AGS token requests).
             $sql .= "\nWHERE (
                     (i.issuer_sha256 = :issuer_sha256 AND i.issuer_client = :issuer_client)
                     OR ( (lms_issuer_sha256 IS NULL OR lms_issuer_sha256 = :issuer_sha256 ) AND lms_client = :issuer_client )
+                )
+                AND (
+                    (k.deploy_key IS NULL OR TRIM(k.deploy_key) = '')
+                    OR (:dep_q <> '' AND k.deploy_key = :dep_eq)
                 )
             ";
         } else {
@@ -1352,6 +1367,21 @@ class LTIX {
         if ( isset($post['service']) ) {
             $sql .= "
             AND (s.deleted IS NULL OR s.deleted = 0)";
+        }
+
+        // Prefer a key row whose deploy_key exactly matches the launch when both a blank
+        // deploy_key (any LMS value) and a specific deploy_key could match (ORDER BY ... LIMIT 1).
+        if ( $LTI13 ) {
+            $sql .= "
+            ORDER BY
+                CASE
+                    WHEN (k.deploy_key IS NOT NULL AND TRIM(k.deploy_key) <> ''
+                        AND :dep_q <> '' AND k.deploy_key = :dep_ord) THEN 0
+                    WHEN (k.deploy_key IS NULL OR TRIM(k.deploy_key) = '') THEN 1
+                    ELSE 2
+                END ASC,
+                k.key_id ASC
+            ";
         }
 
         // There should only be one :)
@@ -1385,6 +1415,11 @@ class LTIX {
             $parms[':subject'] = $subject_sha256;
             $parms[':issuer_sha256'] = $post["issuer_sha256"];
             $parms[':issuer_client'] = $post["issuer_client"];
+            $launch_deployment_id = U::get($post, 'deployment_id', '');
+            $launch_deployment_id = is_string($launch_deployment_id) ? trim($launch_deployment_id) : '';
+            $parms[':dep_q'] = $launch_deployment_id;
+            $parms[':dep_eq'] = $launch_deployment_id;
+            $parms[':dep_ord'] = $launch_deployment_id;
             if ( $for_user_subject ) $parms[":for_user_subject_sha256"] = lti_sha256($for_user_subject);
         } else {
             $parms[':key'] = lti_sha256($post['key']);

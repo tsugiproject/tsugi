@@ -1,6 +1,6 @@
 <h2>LTI 1.3</h2>
 <p>
-Blackboard useds a single issuer for all tenants, but
+Blackboard uses a single issuer for all tenants, but
 since the Blackboard developer portal assigns a <b>Well-Known/KeySet URL</b> that is unique
 to each Client ID, it is best to skip creating a reusable Issuer in Tsugi, and instead create a Key for each Tenant,
 select "No Global Issuer Selected" and set all the issuer values here
@@ -15,7 +15,7 @@ https://blackboard.com
 <b>LTI 1.3 Platform Client ID</b>
 fe3ebd13-39a4-42c4-8b83-194f08e77f8a  (just an example value)
 
-<b>LTI 1.3 Deployent ID</b>
+<b>LTI 1.3 Deployment ID</b>
 ea4e4459-2363-348e-bd38-048993689aa0  (just an example value)
 
 <b>LTI 1.3 Platform KeySet URL </b>

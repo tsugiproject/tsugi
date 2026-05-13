@@ -23,7 +23,8 @@ $rows = $PDOX->queryDie($patch_sql);
 
 $query_parms = array();
 $searchfields = array("K.key_id", "key_title", "key_key", "deploy_key", "K.login_at", "K.updated_at", "K.user_id", "issuer_key");
-$sql = "SELECT K.key_id AS key_id, key_title, key_key, secret, lms_issuer, I.issuer_key AS issuer_key, deploy_key, K.login_at AS login_at, K.updated_at as updated_at,
+$sql = "SELECT K.key_id AS key_id, key_title, key_key, secret, lms_issuer, K.lms_client AS lms_client,
+    K.issuer_id AS issuer_id, I.issuer_key AS issuer_key, deploy_key, K.login_at AS login_at, K.updated_at as updated_at,
     lms_issuer,
     K.user_id AS user_id
         FROM {$CFG->dbprefix}lti_key AS K
@@ -44,7 +45,13 @@ foreach ( $rows as $row ) {
     if ( is_string($row['key_key']) && !empty($row['key_key']) && is_string($row['secret']) && !empty($row['secret']) ) {
         $key_type .= 'LTI 1.1';
     }
-    if ( is_string($row['lms_issuer']) && !empty($row['lms_issuer'])  && is_string($row['deploy_key']) && !empty($row['deploy_key']) ) {
+    $lti13_lms = is_string($row['lms_issuer']) && !empty($row['lms_issuer'])
+        && is_string($row['lms_client']) && !empty($row['lms_client']);
+    $lti13_global = isset($row['issuer_id']) && is_numeric($row['issuer_id']) && (int) $row['issuer_id'] > 0;
+    if ( $lti13_lms ) {
+        if ( !empty($key_type) ) $key_type .= ' / ';
+        $key_type .= 'LTI 1.3';
+    } else if ( $lti13_global ) {
         if ( !empty($key_type) ) $key_type .= ' / ';
         $key_type .= 'LTI 1.3';
     } else if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && !empty($row['issuer_key']) && is_string($row['deploy_key']) && !empty($row['deploy_key'])) {
@@ -55,7 +62,13 @@ foreach ( $rows as $row ) {
     $newrow['key_type'] = $key_type;
     $issuer_key = $row['lms_issuer'];
     if ( !empty($row['issuer_key']) ) $issuer_key = "I: " . $row['issuer_key'];
-    if ( !empty($issuer_key) && !empty($row['deploy_key']) ) $issuer_key .= ' | ' . $row['deploy_key'];
+    if ( !empty($issuer_key) ) {
+        if ( is_string($row['deploy_key']) && strlen(trim($row['deploy_key'])) > 0 ) {
+            $issuer_key .= ' | ' . $row['deploy_key'];
+        } else {
+            $issuer_key .= ' | *';
+        }
+    }
     $newrow['issuer_|_deployment'] = $issuer_key;
     $newrow['login_at'] = $row['login_at'];
     $newrow['updated_at'] = $row['updated_at'];
