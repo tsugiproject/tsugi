@@ -36,6 +36,8 @@ require_once("sanity-db.php");
 </div>
 <h1>Administration Console</h1>
 <?php
+$issuer_deprecation_stats = tsugi_linked_issuer_deprecation_stats();
+tsugi_echo_issuer_deprecation_alert(tsugi_linked_issuer_deprecation_messages($issuer_deprecation_stats));
 echo("<p>\n");
 echo("Current PHP Version: ". phpversion(). "\n");
 if ( version_compare(PHP_VERSION, TSUGI_MINIMUM_PHP) < 0 ) {

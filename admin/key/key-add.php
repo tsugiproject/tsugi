@@ -79,6 +79,16 @@ if ( isset($_POST['doSave']) && isset($_POST['deploy_key']) ) {
     $_POST['deploy_key'] = normalize_deploy_key_input($_POST['deploy_key']);
 }
 
+if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
+    $deploy_key = U::get($_POST, 'deploy_key');
+    $lms_issuer = U::get($_POST, 'lms_issuer');
+    $lms_client = U::get($_POST, 'lms_client');
+    if ( ! validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, null, null, null, $lms_client) ) {
+        header("Location: key-add");
+        return;
+    }
+}
+
 $retval = CrudForm::handleInsert($tablename, $fields);
 if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
     header("Location: $from_location");
@@ -205,34 +215,7 @@ see the various URLs you can use to install Tsugi in your LMS.
 
 </div>
 <div class="tab-pane fade" id="canvas">
-<h2>LTI 1.3</h2>
-<p>
-Canvas works a little differently from the rest of the widely used LMS systems.  Canvas
-has a proprietary auto-installation process - but that process works on an <b>Issuer</b>
-rather than a <b>Tenant</b>.
-</p>
-<p>
-To use LTI 1.3 in Canvas,
-you should first create an Issuer in Tsugi and then use that Issuer to create
-the Tenant Key.  A Canvas Issuer is a set of URLs and a <b>Client ID</b>
-(like <b>38288000000000436</b>).  Once the issuer is created, you need
-to create a <b>deployment</b> in Canvas to get a <b>Deployment ID</b>
-(like <b>a16eaea622168ab8327cddef847ccabeea459a79</b>).
-You still create that deployment in Canvas; Tsugi does not need the deployment id stored on the tenant key unless you want this tenant to match only that deployment.
-</p>
-<p>
-Create a Tsugi tenant key by selecting the Canvas issuer. You may leave <b>Deployment ID</b> blank on the key so launches match on issuer and client id and accept any deployment id Canvas sends; or enter the Canvas deployment id if you want to restrict this tenant to that deployment only. The tenant should work once issuer, client, and (if you use it) deployment line up with Canvas.
-</p>
-<p>
-In Canvas you create a <b>Deployment ID</b> by using the <b>+ App</b> in your course settings,
-or by having an administrator do the <b>+ App</b> for you in a course or at some point higher in the organizational hierarchy.
-</p>
-<h2>LTI 1.1</h2>
-<p>
-To use LTI 1.1 in Canvas, create your key with a title, key, and secret and come back here
-to view the XML-based Canvas auto-installation URL.   Auto-installation of LTI 1.1 tools
-in Canvas is on a per-Tenant basis.
-</p>
+<?php require_once("canvas-detail.php"); ?>
 </div>
 <div class="tab-pane fade" id="blackboard">
 <?php

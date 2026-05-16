@@ -88,7 +88,7 @@ if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
     $lms_issuer_val = array_key_exists('lms_issuer', $_POST) ? $_POST['lms_issuer'] : $row['lms_issuer'];
     $lms_client_val = array_key_exists('lms_client', $_POST) ? $_POST['lms_client'] : $row['lms_client'];
 
-    $retval = validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer_val, $old_key_key, $old_deploy_key, $old_issuer_id, $lms_client_val);
+    $retval = validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer_val, $old_key_key, $old_deploy_key, $old_issuer_id, $lms_client_val, $key_id);
 
     if ( ! $retval ) {
         header("Location: ".$redir);
@@ -447,38 +447,7 @@ URL.
 
 </div>
 <div class="tab-pane fade" id="canvas">
-<h2>LTI 1.3</h2>
-<p>
-To use LTI 1.3 in Canvas,
-you should first create an Issuer in Tsugi and then use that Issuer to create
-the Tenant Key.  A Canvas Issuer is a set of URLs and a <b>Client ID</b>
-(like <b>38288000000000436</b>).  Once the issuer is created, you need
-to create a <b>deployment</b> in Canvas to get a <b>Deployment ID</b>
-(like <b>a16eaea622168ab8327cddef847ccabeea459a79</b>).
-You still create that deployment in Canvas; Tsugi does not need the deployment id stored on the tenant key unless you want this tenant to match only that deployment.
-</p>
-<p>
-Create a Tsugi tenant key by selecting the Canvas issuer. You may leave <b>Deployment ID</b> blank on the key so launches match on issuer and client id and accept any deployment id Canvas sends; or enter the Canvas deployment id if you want to restrict this tenant to that deployment only. The tenant should work once issuer, client, and (if you use it) deployment line up with Canvas.
-</p>
-<p>
-In Canvas you create a <b>Deployment ID</b> by using the <b>+ App</b> in your course settings,
-or by having an administrator do the <b>+ App</b> for you in a course or at some point higher in the organizational hierarchy.
-</p>
-<h2>LTI 1.1</h2>
-<p>
-You can install Tsugi as a
-<a href="http://www.imsglobal.org/specs/lticiv1p0/specification" target="_blank">Content-Item</a>
-(i.e. a tool picker) by using the <b>consumer_key</b> and <b>consumer_secret</b> and the following
-URL.
-</p>
-<p>
-<b>Canvas LTI 1.1 Configuration URL:
-<button href="#" onclick="copyToClipboardNoScroll(this, '<?= $canvasContentItemUrl ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
-</p>
-<p>
-<?= htmlentities($canvasContentItemUrl) ?>
-</p>
-
+<?php require_once("canvas-detail.php"); ?>
 </div>
 <div class="tab-pane fade" id="blackboard">
 
