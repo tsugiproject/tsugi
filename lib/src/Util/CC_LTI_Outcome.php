@@ -19,6 +19,9 @@ class CC_LTI_Outcome extends \Tsugi\Util\CC_LTI {
   <blti:description>Test a BLTI Link</blti:description>
   <blti:custom>
     <lticm:property name="caliper_url">$Caliper.url</lticm:property>
+    <lticm:property name="api_url">$Sakai.api.url</lticm:property>
+    <lticm:property name="direct_url">$Sakai.direct.url</lticm:property>
+    <lticm:property name="scopes">$Sakai.scopes.available</lticm:property>
   </blti:custom>
   <blti:extensions platform="www.tsugi.org">
     <lticm:property name="caliper_url">$Caliper.url</lticm:property>

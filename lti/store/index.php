@@ -375,6 +375,9 @@ if ( isset($_GET['install']) ) {
         'resourcelink_id_history' => '$ResourceLink.id.history',
         'context_id_history' => '$Context.id.history',
         'canvas_caliper_url' => '$Caliper.url',
+        'api_url' => '$Sakai.api.url',
+        'direct_url' => '$Sakai.direct.url',
+        'scopes' => '$Sakai.scopes.available',
         'coursegroup_id' => '$CourseGroup.id',
     );
 
@@ -406,6 +409,9 @@ if ( $l && isset($_GET['assignment']) ) {
     // Compute the custom values
     $custom = array();
     $custom['canvas_caliper_url'] = '$Caliper.url';
+    $custom['api_url'] = '$Sakai.api.url';
+    $custom['direct_url'] = '$Sakai.direct.url';
+    $custom['scopes'] = '$Sakai.scopes.available';
     if ( isset($lti->custom) ) {
         foreach($lti->custom as $entry) {
             if ( !isset($entry->key) ) continue;
@@ -501,6 +507,9 @@ if ($l && count($content_items) > 0 ) {
             // Compute the custom values
             $custom = array();
             $custom['canvas_caliper_url'] = '$Caliper.url';
+            $custom['api_url'] = '$Sakai.api.url';
+            $custom['direct_url'] = '$Sakai.direct.url';
+            $custom['scopes'] = '$Sakai.scopes.available';
             if ( isset($lti->custom) ) {
                 foreach($lti->custom as $entry) {
                     if ( !isset($entry->key) ) continue;

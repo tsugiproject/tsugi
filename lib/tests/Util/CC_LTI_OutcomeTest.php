@@ -23,6 +23,9 @@ class CC_LTI_OutcomeTest extends \PHPUnit\Framework\TestCase
   <blti:description>Create a single SQL table and insert some records.</blti:description>
   <blti:custom>
     <lticm:property name="caliper_url">$Caliper.url</lticm:property>
+    <lticm:property name="api_url">$Sakai.api.url</lticm:property>
+    <lticm:property name="direct_url">$Sakai.direct.url</lticm:property>
+    <lticm:property name="scopes">$Sakai.scopes.available</lticm:property>
     <lticm:property name="exercise">single_mysql.php</lticm:property>
   </blti:custom>
   <blti:extensions platform="www.tsugi.org">
