@@ -49,7 +49,7 @@ $realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret', 'd
 $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
-    'deploy_key' => 'LTI 1.3: Deployment ID (leave blank to accept any value from the LMS)',
+    'deploy_key' => 'LTI 1.3: Deployment ID (This is only a default, the tool will accept any value from the LMS)',
     'issuer_id' => 'LTI 1.3: Issuer',
     'unlock_code' => 'LTI 1.3: Dynamic Registration Unlock Code (one time use)',
 );
