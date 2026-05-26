@@ -6,6 +6,7 @@ use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\ContentItem;
 use \Tsugi\Core\DeepLinkResponse;
+use \Tsugi\Util\SakaiCustom;
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\LTI13;
@@ -367,19 +368,7 @@ if ( isset($_GET['install']) ) {
 
     if ( is_array($submissionReview) ) $additionalParams['submissionReview'] = $submissionReview;
 
-    $custom = array(
-        'availablestart' => '$ResourceLink.available.startDateTime',
-        'availableend' => '$ResourceLink.available.endDateTime',
-        'submissionstart' => '$ResourceLink.submission.startDateTime',
-        'submissionend' => '$ResourceLink.submission.endDateTime',
-        'resourcelink_id_history' => '$ResourceLink.id.history',
-        'context_id_history' => '$Context.id.history',
-        'canvas_caliper_url' => '$Caliper.url',
-        'api_url' => '$Sakai.api.url',
-        'direct_url' => '$Sakai.direct.url',
-        'scopes' => '$Sakai.scopes.available',
-        'coursegroup_id' => '$CourseGroup.id',
-    );
+    $custom = SakaiCustom::deepLinkCustom(true, true);
 
     $retval->addLtiLinkItem($path, $title, $text, $icon, $fa_icon, $custom, $scoreMaximum, $resourceId, $additionalParams);
 
@@ -407,11 +396,7 @@ if ( $l && isset($_GET['assignment']) ) {
     $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
 
     // Compute the custom values
-    $custom = array();
-    $custom['canvas_caliper_url'] = '$Caliper.url';
-    $custom['api_url'] = '$Sakai.api.url';
-    $custom['direct_url'] = '$Sakai.direct.url';
-    $custom['scopes'] = '$Sakai.scopes.available';
+    $custom = SakaiCustom::deepLinkCustom();
     if ( isset($lti->custom) ) {
         foreach($lti->custom as $entry) {
             if ( !isset($entry->key) ) continue;
@@ -505,11 +490,7 @@ if ($l && count($content_items) > 0 ) {
             $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
 
             // Compute the custom values
-            $custom = array();
-            $custom['canvas_caliper_url'] = '$Caliper.url';
-            $custom['api_url'] = '$Sakai.api.url';
-            $custom['direct_url'] = '$Sakai.direct.url';
-            $custom['scopes'] = '$Sakai.scopes.available';
+            $custom = SakaiCustom::deepLinkCustom();
             if ( isset($lti->custom) ) {
                 foreach($lti->custom as $entry) {
                     if ( !isset($entry->key) ) continue;

@@ -2,6 +2,7 @@
 
 require_once "../../config.php";
 
+use Tsugi\Util\SakaiCustom;
 use Tsugi\Util\U;
 
 // See the end of the file for some documentation references
@@ -39,17 +40,7 @@ if ( isset($CFG->servicedesc) && $CFG->servicedesc ) {
     $json->description = $CFG->servicedesc;
 }
 
-$json->custom_fields = (object) array(
-    'availableStart' => '$ResourceLink.available.startDateTime',
-    'availableEnd' => '$ResourceLink.available.endDateTime',
-    'submissionStart' => '$ResourceLink.submission.startDateTime',
-    'submissionEnd' => '$ResourceLink.submission.endDateTime',
-    'resourcelink_id_history' => '$ResourceLink.id.history',
-    'context_id_history' => '$Context.id.history',
-    'api_url' => '$Sakai.api.url',
-    'direct_url' => '$Sakai.direct.url',
-    'scopes' => '$Sakai.scopes.available',
-);
+$json->custom_fields = (object) SakaiCustom::deepLinkCustom(false);
 
 /* From IMS */
 

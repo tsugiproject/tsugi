@@ -1,4 +1,5 @@
 <?php
+use \Tsugi\Util\SakaiCustom;
 use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
 use \Tsugi\Util\LTI13;
@@ -146,11 +147,9 @@ $tool->claims = array( "iss", "sub", "name", "given_name", "family_name", "email
 
 // TODO: Issue #53 - Define placements...
 // TODO: Issue #59 - Message parsing order - Sakai takes first, Moodle takes last
-$custom_parameters = array(
-    "tsugi_from" => "www.tsugi.org",
-    "api_url" => '$Sakai.api.url',
-    "direct_url" => '$Sakai.direct.url',
-    "scopes" => '$Sakai.scopes.available',
+$custom_parameters = array_merge(
+    array("tsugi_from" => "www.tsugi.org"),
+    SakaiCustom::deepLinkCustom(false)
 );
 $tool->messages = array(
     // TODO: ContextPlacementLaunch
