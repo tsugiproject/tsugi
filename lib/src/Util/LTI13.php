@@ -974,7 +974,7 @@ class LTI13 {
 
         if (is_array($debug_log) ) $debug_log[] = 'POST Line Items URL: '.$lineitems_url;
         if (is_array($debug_log) ) $debug_log[] = json_encode($headers, JSON_PRETTY_PRINT);
-        if ( is_array($debug_log) ) $debug_log[] = json_encode($line_item, JSON_PRETTY_PRINT);
+        if ( is_array($debug_log) ) $debug_log[] = json_encode($lineitem, JSON_PRETTY_PRINT);
 
         self::setUserAgentCurl($ch); // Set the User-Agent header
 
