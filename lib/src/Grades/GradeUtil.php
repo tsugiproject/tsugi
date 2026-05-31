@@ -20,6 +20,11 @@ class GradeUtil {
 
     private const GRADES_CURRENT_USER_CACHE_TTL = 300;
 
+    /** @internal Session cache for {@see loadLinkIdsForContext} */
+    private const LINK_IDS_CACHE_LOC = 'gradeutil_link_ids';
+
+    private const LINK_IDS_CACHE_TTL = 300;
+
     public static function gradeLoadAll() {
         global $CFG, $USER, $LINK, $PDOX;
         $LAUNCH = LTIX::requireData(LTIX::LINK);
@@ -137,7 +142,7 @@ class GradeUtil {
         global $CFG, $PDOX;
         $p = $CFG->dbprefix;
         $sql =
-        "SELECT R.result_id AS result_id, L.title as title, L.link_key AS resource_link_id,
+        "SELECT R.result_id AS result_id, L.link_id AS link_id, L.title as title, L.link_key AS resource_link_id,
             R.grade AS grade, R.note AS note, R.updated_at AS updated_at, R.created_at AS created_at
         FROM {$p}lti_result AS R
         JOIN {$p}lti_link as L ON R.link_id = L.link_id
@@ -191,9 +196,46 @@ class GradeUtil {
     public static function invalidateDueDatesCache($context_id = null) {
         if ( $context_id === null ) {
             Cache::clearContext(self::DUE_DATES_CACHE_LOC);
+            Cache::clearContext(self::LINK_IDS_CACHE_LOC);
             return;
         }
         Cache::invalidateContext(self::DUE_DATES_CACHE_LOC, (int) $context_id);
+        Cache::invalidateContext(self::LINK_IDS_CACHE_LOC, (int) $context_id);
+    }
+
+    /**
+     * lti_link.link_id values for a context, keyed by link_key (resource link id).
+     *
+     * @return array<string,int>
+     */
+    public static function loadLinkIdsForContext($context_id) {
+        global $CFG, $PDOX;
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return array();
+        }
+
+        $cached = Cache::getContext(self::LINK_IDS_CACHE_LOC, $cid);
+        if ( is_array($cached) ) {
+            return $cached;
+        }
+
+        LTIX::getConnection();
+
+        $p = $CFG->dbprefix;
+        $rows = $PDOX->allRowsDie(
+            "SELECT link_key, link_id FROM {$p}lti_link
+             WHERE context_id = :CID AND (deleted IS NULL OR deleted = 0)",
+            array(':CID' => $cid)
+        );
+        $map = array();
+        foreach ( $rows as $row ) {
+            $map[$row['link_key']] = (int) $row['link_id'];
+        }
+
+        Cache::setContext(self::LINK_IDS_CACHE_LOC, $cid, $map, self::LINK_IDS_CACHE_TTL);
+
+        return $map;
     }
 
     /**

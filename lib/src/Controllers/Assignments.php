@@ -103,10 +103,20 @@ class Assignments extends Tool {
 
         $allgrades = array();
         $alldates = array();
+        $alllinkids = array();
         $rows = GradeUtil::loadGradesCurrentUser();
         foreach ( $rows as $row ) {
             $allgrades[$row['resource_link_id']] = $row['grade'];
             $alldates[$row['resource_link_id']] = $row['updated_at'];
+            if ( isset($row['link_id']) ) {
+                $alllinkids[$row['resource_link_id']] = (int) $row['link_id'];
+            }
+        }
+
+        if ( $this->isInstructor() && U::currentContextId() !== 0 ) {
+            foreach ( GradeUtil::loadLinkIdsForContext(U::currentContextId()) as $rlid => $link_id ) {
+                $alllinkids[$rlid] = (int) $link_id;
+            }
         }
 
         $duedates = array();
@@ -145,7 +155,12 @@ class Assignments extends Tool {
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        $l->renderAssignments($allgrades, $alldates, false, $duedates, $toolbar_html);
+        if ( ! U::isLoggedIn() ) {
+            $login_url = htmlspecialchars(U::addSession($CFG->apphome . '/login'));
+            echo('<p><a href="'.$login_url.'">'.__('Log in').'</a> ');
+            echo(__('to see your scores on these assignments.').'</p>'."\n");
+        }
+        $l->renderAssignments($allgrades, $alldates, false, $duedates, $toolbar_html, $alllinkids, $this->isInstructor());
         $OUTPUT->footer();
     }
 

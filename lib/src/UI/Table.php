@@ -362,6 +362,7 @@ class Table {
                 }
                 echo("<td>");
                 $href_key = '_href_' . $k;
+                $html_key = '_html_' . $k;
                 if ( isset($row[$href_key]) && $row[$href_key] !== '' ) {
                     echo('<a href="'.htmlspecialchars($row[$href_key], ENT_QUOTES, 'UTF-8').'">');
                 } elseif ( $link_name !== false ) {
@@ -369,7 +370,11 @@ class Table {
                     echo('<a href="'.$detail.'">');
                     if ( empty($v) ) $v = $link_name.':'.$link_val;
                 }
-                echo(htmlent_utf8($v));
+                if ( isset($row[$html_key]) && $row[$html_key] !== '' ) {
+                    echo($row[$html_key]);
+                } else {
+                    echo(htmlent_utf8($v));
+                }
                 if ( isset($row[$href_key]) && $row[$href_key] !== '' ) {
                     echo('</a>');
                 } elseif ( $link_name !== false ) {

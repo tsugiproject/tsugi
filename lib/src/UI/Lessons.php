@@ -55,11 +55,118 @@ class Lessons {
     }
 
     /**
+     * CSS for module cards, LTI progress/due badges (lessons and labs catalog).
+     */
+    public static function printLtiProgressStyles() {
+        echo('<style>
+.card {
+    display: inline-block;
+    padding: 0.5em;
+    margin: 12px;
+    border: 1px solid black;
+    height: 9em;
+    overflow-y: hidden;
+}
+.card div {
+    height: 8em;
+    overflow-y: hidden;
+    text-overflow: ellipsis;
+}
+.progress-badge {
+    display: inline-block;
+    margin-left: 0.35em;
+    vertical-align: middle;
+    font-size: 0.75em;
+    line-height: 1.2;
+}
+.progress-badge-check {
+    background-color: #28a745;
+    color: #fff;
+    padding: 0.15em 0.45em;
+    border-radius: 0.25em;
+    font-weight: bold;
+}
+.progress-badge-percent {
+    background-color: #007bff;
+    color: #fff;
+    padding: 0.15em 0.45em;
+    border-radius: 0.25em;
+    font-weight: bold;
+}
+.progress-badge-not-started {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 0.15em 0.45em;
+    border-radius: 0.25em;
+    font-weight: normal;
+}
+.tsugi-lti-link-meta {
+    display: inline;
+    margin-left: 0.25em;
+    white-space: nowrap;
+}
+.tsugi-assignments-due-badge {
+    display: inline-block;
+    margin-left: 0.35em;
+    padding: 0.12em 0.45em;
+    border-radius: 0.25em;
+    font-size: 0.75em;
+    line-height: 1.2;
+    vertical-align: middle;
+    border: 1px solid transparent;
+}
+.tsugi-assignments-due-completed {
+    background: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+.tsugi-assignments-due-past {
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+.tsugi-assignments-due-soon {
+    background: #fff3cd;
+    color: #856404;
+    border-color: #ffeeba;
+}
+.tsugi-assignments-due-future {
+    background: #e9ecef;
+    color: #495057;
+    border-color: #dee2e6;
+}
+.tsugi-assignments-due-neutral {
+    background: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+.tsugi-assignments-due-state {
+    font-weight: bold;
+}
+.tsugi-assignments-due-detail {
+    font-weight: normal;
+}
+.tsugi-assignments-rl-sig-sep {
+    color: #767676;
+    margin: 0 0.25em;
+    font-weight: normal;
+}
+.tsugi-assignments-rl-sig {
+    font-family: monospace;
+    font-size: 0.9em;
+    color: #343a40;
+    font-weight: 500;
+}
+</style>'."\n");
+    }
+
+    /**
      * emit the header material
      */
     public function header($buffer=false) {
         global $CFG;
         ob_start();
+        self::printLtiProgressStyles();
         // See if there are any carousels in the lessons
         $carousel = false;
         foreach($this->lessons->modules as $module) {
@@ -1325,8 +1432,7 @@ class Lessons {
                     if ( $target == "_blank" ) echo(' target="_blank" rel="noopener noreferrer" onclick="alert(\'Link will open in a new browser tab...\');" ');
                     echo(' href="'.$launch_path.'">'.htmlentities($title).'</a>');
                     $rlid = isset($lti->resource_link_id) ? $lti->resource_link_id : '';
-                    $this->echoDueDateBadgeForResourceLink($rlid, $this->lessonModuleGradesForBadges, $this->lessonModuleDueDatesForBadges,
-                        self::ltiLaunchIsGraded($lti));
+                    self::echoLtiLinkProgressIndicators($rlid, $lti, $this->lessonModuleGradesForBadges, $this->lessonModuleDueDatesForBadges);
                     echo('</li>'."\n");
                 }
 
@@ -1429,7 +1535,77 @@ class Lessons {
         echo($ob_output);
     }
 
-    private function renderAssignmentItem($resource_link_id, $title, $allgrades, $alldates, $duedates = array(), $lti_item = null, $module_anchor = '') {
+    /**
+     * First $count letters from $resource_link_id (ignoring non-letters; lowercase).
+     */
+    public static function resourceLinkIdLetterPrefix($resource_link_id, $count = 2) {
+        $letters = '';
+        $s = (string) $resource_link_id;
+        $len = strlen($s);
+        for ( $i = 0; $i < $len && strlen($letters) < $count; $i++ ) {
+            $c = $s[$i];
+            if ( ctype_alpha($c) ) {
+                $letters .= strtolower($c);
+            }
+        }
+        if ( strlen($letters) < $count ) {
+            $letters = str_pad($letters, $count, 'x');
+        }
+        return substr($letters, 0, $count);
+    }
+
+    /**
+     * Per-result signature for assignments: py345_61 from rlid + lti_link.link_id.
+     */
+    public static function resultLinkSignature($resource_link_id, $link_id) {
+        $prefix = self::resourceLinkIdLetterPrefix($resource_link_id, 2);
+        $mod = ((int) $link_id) % 1000;
+        $plaintext = $prefix . sprintf('%03d', $mod) . '_42';
+        $body = preg_replace('/_42$/', '', $plaintext);
+        return $body . '_' . substr(md5($plaintext), 0, 2);
+    }
+
+    /**
+     * HTML for the result signature (optional separator + monospace code).
+     */
+    public static function resultLinkSignatureMarkup($resource_link_id, $link_id, $with_separator = true) {
+        $rl_sig = self::resultLinkSignature($resource_link_id, $link_id);
+        $sig_lbl = htmlspecialchars(__('Result signature').': '.$rl_sig, ENT_QUOTES, 'UTF-8');
+        $sig = '<span class="tsugi-assignments-rl-sig" title="'.$sig_lbl.'" aria-label="'.$sig_lbl.'">'
+            . htmlspecialchars($rl_sig)
+            . '</span>';
+        if ( $with_separator ) {
+            return ' <span class="tsugi-assignments-rl-sig-sep" aria-hidden="true">|</span> ' . $sig;
+        }
+        return $sig;
+    }
+
+    /**
+     * Whether to show the result signature on a grade book row.
+     *
+     * @param float|int|string|null $grade Raw grade (0.0–1.0)
+     */
+    public static function shouldShowGradesResultSignature($resource_link_id, $grade, $is_instructor) {
+        if ( $is_instructor ) {
+            return true;
+        }
+        if ( $resource_link_id === '' || $resource_link_id === null ) {
+            return false;
+        }
+        return is_numeric($grade) && (float) $grade > 0.8;
+    }
+
+    /**
+     * Whether to show the per-result signature on an assignments row (instructors only).
+     *
+     * @param array<string,float> $allgrades
+     * @param array<string,int> $alllinkids
+     */
+    public static function shouldShowAssignmentResultSignature($resource_link_id, $allgrades, $alllinkids, $is_instructor) {
+        return (bool) $is_instructor;
+    }
+
+    private function renderAssignmentItem($resource_link_id, $title, $allgrades, $alldates, $duedates = array(), $lti_item = null, $module_anchor = '', $alllinkids = array(), $is_instructor = false) {
         $graded = self::ltiLaunchIsGraded($lti_item);
         echo('<li class="tsugi-assignments-item">');
         echo('<span class="tsugi-assignments-status">');
@@ -1455,7 +1631,11 @@ class Lessons {
         } else {
             echo('<span class="tsugi-assignments-title">'.$title_esc.'</span>');
         }
-        $this->echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates, $graded);
+        if ( self::shouldShowAssignmentResultSignature($resource_link_id, $allgrades, $alllinkids, $is_instructor) ) {
+            $link_id = isset($alllinkids[$resource_link_id]) ? (int) $alllinkids[$resource_link_id] : 0;
+            echo(self::resultLinkSignatureMarkup($resource_link_id, $link_id));
+        }
+        self::echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates, $graded);
         echo('</span>');
         if ( $graded && isset($allgrades[$resource_link_id]) ) {
             $datestring = U::get($alldates, $resource_link_id, "");
@@ -1470,13 +1650,81 @@ class Lessons {
     }
 
     /**
+     * Grade percent badge for one graded LTI link (0–100%).
+     *
+     * @param array<string,float> $allgrades
+     */
+    public static function echoLtiGradePercentBadge($resource_link_id, $allgrades) {
+        if ( $resource_link_id === '' || $resource_link_id === null ) {
+            return;
+        }
+        if ( ! isset($allgrades[$resource_link_id]) || ! is_numeric($allgrades[$resource_link_id]) ) {
+            return;
+        }
+        $grade = (float) $allgrades[$resource_link_id];
+        $pct = (int) round($grade * 100);
+        if ( $grade > 0.8 ) {
+            echo('<span class="progress-badge progress-badge-check" title="'.htmlspecialchars(__('Complete').': 100%', ENT_QUOTES, 'UTF-8').'">100%</span>');
+        } elseif ( $pct > 0 ) {
+            $tip = __('Score').': '.$pct.'%';
+            echo('<span class="progress-badge progress-badge-percent" title="'.htmlspecialchars($tip, ENT_QUOTES, 'UTF-8').'">'.$pct.'%</span>');
+        }
+    }
+
+    /**
+     * Due date, score percent, and not-started indicators for a graded LTI link (lessons + labs).
+     *
+     * @param object|null $lti_item lessons.json LTI item
+     * @param array<string,float> $allgrades
+     * @param array<string,array<string,mixed>> $duedates
+     */
+    public static function echoLtiLinkProgressIndicators($resource_link_id, $lti_item, $allgrades, $duedates) {
+        if ( ! self::ltiLaunchIsGraded($lti_item) ) {
+            return;
+        }
+        if ( $resource_link_id === '' || $resource_link_id === null ) {
+            return;
+        }
+
+        echo('<span class="tsugi-lti-link-meta">');
+
+        $has_due_badge = false;
+        $due_end = null;
+        if ( isset($duedates[$resource_link_id]) && is_array($duedates[$resource_link_id]) ) {
+            $due_end = U::get($duedates[$resource_link_id], 'end_datetime');
+            if ( U::isNotEmpty($due_end) ) {
+                $has_due_badge = true;
+            }
+        }
+
+        if ( $has_due_badge ) {
+            self::echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates, true);
+            $mod = self::assignmentsDueBadgeModifier($resource_link_id, $due_end, $allgrades);
+            if ( $mod === 'tsugi-assignments-due-completed' ) {
+                echo('</span>');
+                return;
+            }
+        }
+
+        if ( isset($allgrades[$resource_link_id]) && is_numeric($allgrades[$resource_link_id]) ) {
+            self::echoLtiGradePercentBadge($resource_link_id, $allgrades);
+        } elseif ( ! $has_due_badge ) {
+            echo('<span class="progress-badge progress-badge-not-started" title="'.htmlspecialchars(__('Not started'), ENT_QUOTES, 'UTF-8').'">');
+            echo(htmlspecialchars(__('Not started')));
+            echo('</span>');
+        }
+
+        echo('</span>');
+    }
+
+    /**
      * Due badge markup for one resource link (assignments page or module LTI line).
      *
      * @param array<string,array<string,mixed>> $duedates
      * @param array<string,float> $allgrades
      * @param bool $grades_affect_completion When false (ungraded LTI), due badge ignores stored grade for completed styling
      */
-    private function echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates, $grades_affect_completion = true) {
+    public static function echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates, $grades_affect_completion = true) {
         if ( $resource_link_id === '' || $resource_link_id === null ) {
             return;
         }
@@ -1512,7 +1760,7 @@ class Lessons {
             case 'tsugi-assignments-due-past':
                 return __('Late');
             case 'tsugi-assignments-due-soon':
-                return __('Due soon');
+                return __('Up next');
             case 'tsugi-assignments-due-future':
                 return __('Upcoming');
             default:
@@ -1614,9 +1862,10 @@ class Lessons {
         return $list;
     }
 
-    public function renderAssignments($allgrades, $alldates, $buffer=false, $duedates=array(), $toolbar_html=null)
+    public function renderAssignments($allgrades, $alldates, $buffer=false, $duedates=array(), $toolbar_html=null, $alllinkids=array(), $is_instructor=false)
     {
         ob_start();
+        self::printLtiProgressStyles();
         echo('<h1>'.$this->lessons->title."</h1>\n");
         if ( is_string($toolbar_html) && $toolbar_html !== '' ) {
             echo('<div class="clearfix tsugi-assignments-actions" style="margin-bottom:0.75em;">' . "\n");
@@ -1671,7 +1920,7 @@ class Lessons {
                 foreach($module->items as $item) {
                     if ( !isset($item->type) || $item->type != 'lti' || !isset($item->resource_link_id) ) continue;
                     if ( ! self::ltiLaunchIsGraded($item) ) continue;
-                    $this->renderAssignmentItem($item->resource_link_id, isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'), $allgrades, $alldates, $duedates, $item, isset($module->anchor) ? $module->anchor : '');
+                    $this->renderAssignmentItem($item->resource_link_id, isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'), $allgrades, $alldates, $duedates, $item, isset($module->anchor) ? $module->anchor : '', $alllinkids, $is_instructor);
                 }
             } else {
                 // Process legacy lti array only if items is not present
@@ -1681,7 +1930,7 @@ class Lessons {
                     foreach($ltis as $lti) {
                         if ( !isset($lti->resource_link_id) ) continue;
                         if ( ! self::ltiLaunchIsGraded($lti) ) continue;
-                        $this->renderAssignmentItem($lti->resource_link_id, $lti->title, $allgrades, $alldates, $duedates, $lti, isset($module->anchor) ? $module->anchor : '');
+                        $this->renderAssignmentItem($lti->resource_link_id, $lti->title, $allgrades, $alldates, $duedates, $lti, isset($module->anchor) ? $module->anchor : '', $alllinkids, $is_instructor);
                     }
                 }
             }
@@ -2664,8 +2913,7 @@ $(function(){
             echo(' href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
             self::renderItemIcon('lti');
             echo(htmlentities($title).'</a>');
-            $this->echoDueDateBadgeForResourceLink($resource_link_id, $this->lessonModuleGradesForBadges, $this->lessonModuleDueDatesForBadges,
-                self::ltiLaunchIsGraded($item));
+            self::echoLtiLinkProgressIndicators($resource_link_id, $item, $this->lessonModuleGradesForBadges, $this->lessonModuleDueDatesForBadges);
             echo('</li>'."\n");
         }
     }

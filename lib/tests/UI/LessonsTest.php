@@ -1611,5 +1611,43 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $_SERVER = $originalServer;
         $PDOX = $originalPDOX;
     }
+
+    public function testResourceLinkIdLetterPrefix() {
+        $this->assertEquals('py', \Tsugi\UI\Lessons::resourceLinkIdLetterPrefix('pythonauto_01_hello', 2));
+        $this->assertEquals('ab', \Tsugi\UI\Lessons::resourceLinkIdLetterPrefix('a1b2c3', 2));
+        $this->assertEquals('xx', \Tsugi\UI\Lessons::resourceLinkIdLetterPrefix('12345', 2));
+    }
+
+    public function testResultLinkSignature() {
+        $sig = \Tsugi\UI\Lessons::resultLinkSignature('pythonauto_01_hello', 12345);
+        $this->assertEquals('py345_61', $sig);
+        $this->assertMatchesRegularExpression('/^[a-z]{2}\d{3}_[a-f0-9]{2}$/', $sig);
+    }
+
+    public function testShouldShowAssignmentResultSignature() {
+        $rlid = 'pythonauto_01_hello';
+        $grades = array($rlid => 0.9);
+        $partial = array($rlid => 0.5);
+        $linkids = array($rlid => 12345);
+
+        $this->assertFalse(\Tsugi\UI\Lessons::shouldShowAssignmentResultSignature($rlid, $grades, $linkids, false));
+        $this->assertFalse(\Tsugi\UI\Lessons::shouldShowAssignmentResultSignature($rlid, $partial, $linkids, false));
+        $this->assertTrue(\Tsugi\UI\Lessons::shouldShowAssignmentResultSignature($rlid, $partial, $linkids, true));
+        $this->assertTrue(\Tsugi\UI\Lessons::shouldShowAssignmentResultSignature($rlid, array(), array(), true));
+        $this->assertFalse(\Tsugi\UI\Lessons::shouldShowAssignmentResultSignature($rlid, $grades, array(), false));
+    }
+
+    public function testShouldShowGradesResultSignature() {
+        $rlid = 'pythonauto_01_hello';
+        $this->assertTrue(\Tsugi\UI\Lessons::shouldShowGradesResultSignature($rlid, 0.9, false));
+        $this->assertFalse(\Tsugi\UI\Lessons::shouldShowGradesResultSignature($rlid, 0.5, false));
+        $this->assertTrue(\Tsugi\UI\Lessons::shouldShowGradesResultSignature($rlid, 0.5, true));
+    }
+
+    public function testResultLinkSignatureMarkup() {
+        $html = \Tsugi\UI\Lessons::resultLinkSignatureMarkup('pythonauto_01_hello', 12345);
+        $this->assertStringContainsString('py345_61', $html);
+        $this->assertStringContainsString('tsugi-assignments-rl-sig', $html);
+    }
 }
 

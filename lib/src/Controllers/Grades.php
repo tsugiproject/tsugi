@@ -8,6 +8,7 @@ use Tsugi\Core\LTIX;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Tsugi\UI\Table;
+use Tsugi\UI\Lessons;
 
 class Grades extends Tool {
 
@@ -75,6 +76,8 @@ class Grades extends Tool {
         foreach ( $rows as $row ) {
             $newrow = $row;
             unset($newrow['result_id']);
+            unset($newrow['resource_link_id']);
+            unset($newrow['link_id']);
             unset($newrow['diff_in_seconds']);
             unset($newrow['time_now']);
             unset($newrow['sourcedid']);
@@ -170,10 +173,81 @@ class Grades extends Tool {
             $row['grade'] = sprintf("%1.1f",$g);
             $g = $row['server_grade'] * 100.0;
             $row['server_grade'] = sprintf("%1.1f",$g);
-            $showrows[] = $row;
+            $showrows[] = $this->orderGradeBookColumns($row);
         }
         
         return array('rows' => $showrows, 'debug' => $retrieval_debug);
+    }
+
+    /**
+     * Put title (or displayname) before code, then remaining columns.
+     *
+     * @param array<string,mixed> $row
+     * @param string[] $leading
+     * @return array<string,mixed>
+     */
+    private function orderGradeBookColumns($row, $leading = array('title', 'code')) {
+        $ordered = array();
+        if ( array_key_exists('user_id', $row) ) {
+            $ordered['user_id'] = $row['user_id'];
+        }
+        foreach ( $leading as $key ) {
+            if ( array_key_exists($key, $row) ) {
+                $ordered[$key] = $row[$key];
+            }
+        }
+        foreach ( $row as $k => $v ) {
+            if ( strpos($k, '_') === 0 ) {
+                continue;
+            }
+            if ( array_key_exists($k, $ordered) ) {
+                continue;
+            }
+            $ordered[$k] = $v;
+        }
+        foreach ( $row as $k => $v ) {
+            if ( strpos($k, '_') === 0 ) {
+                $ordered[$k] = $v;
+            }
+        }
+        return $ordered;
+    }
+
+    /**
+     * Add a Code column with result signature markup when appropriate.
+     *
+     * @param array<int,array<string,mixed>> $rows
+     */
+    private function addGradeBookCodeColumn(&$rows, $is_instructor) {
+        foreach ( $rows as &$row ) {
+            $row['code'] = '';
+            unset($row['_html_title']);
+            $rlid = U::get($row, 'resource_link_id', U::get($row, 'link_key', ''));
+            $link_id = (int) U::get($row, 'link_id', 0);
+            if ( ! Lessons::shouldShowGradesResultSignature($rlid, U::get($row, 'grade'), $is_instructor) ) {
+                continue;
+            }
+            $row['_html_code'] = Lessons::resultLinkSignatureMarkup($rlid, $link_id, false);
+        }
+        unset($row);
+    }
+
+    /**
+     * @param array<int,array<string,mixed>> $rows
+     */
+    private function addClassViewCodeColumn(&$rows, $link_info) {
+        if ( ! is_array($link_info) ) {
+            return;
+        }
+        $rlid = U::get($link_info, 'link_key', '');
+        $link_id = (int) U::get($link_info, 'link_id', 0);
+        $html = Lessons::resultLinkSignatureMarkup($rlid, $link_id, false);
+        foreach ( $rows as &$row ) {
+            $row['code'] = '';
+            $row['_html_code'] = $html;
+            $row = $this->orderGradeBookColumns($row, array('displayname', 'code'));
+        }
+        unset($row);
     }
 
     /**
@@ -207,7 +281,8 @@ class Grades extends Tool {
         $query_parms = array(":UID" => $view_user_id, ":CID" => $context_id);
         $searchfields = array("L.title", "R.grade", "R.note", "R.updated_at", "retrieved_at");
         $user_sql =
-            "SELECT R.result_id AS result_id, L.title as title, R.grade AS grade, R.note AS note,
+            "SELECT R.result_id AS result_id, L.title as title, L.link_key AS resource_link_id,
+                L.link_id AS link_id, R.grade AS grade, R.note AS note,
                 R.updated_at as updated_at, server_grade, retrieved_at, sourcedid, result_url, service_key as service,
                 TIMESTAMPDIFF(SECOND,retrieved_at,NOW()) as diff_in_seconds, NOW() AS time_now
             FROM {$p}lti_result AS R
@@ -242,6 +317,7 @@ class Grades extends Tool {
         $rows = $PDOX->allRowsDie($newsql, $query_parms);
         
         // Process grades (retrieve server grades, sync, format)
+        $this->addGradeBookCodeColumn($rows, $is_instructor);
         $processed = $this->processGradeRows($rows, $force);
         $showrows = $processed['rows'];
         $retrieval_debug = $processed['debug'];
@@ -250,6 +326,7 @@ class Grades extends Tool {
         $OUTPUT->bodyStart();
         $OUTPUT->topNav($menu);
         $OUTPUT->flashMessages();
+        Lessons::printLtiProgressStyles();
         ?>
         <main class="container" id="main-content">
         <h1><?= __('Grade Book') ?></h1>
@@ -312,7 +389,7 @@ class Grades extends Tool {
         $link_info = false;
         if ( $link_id > 0 ) {
             $link_info = $PDOX->rowDie(
-                "SELECT link_id, title FROM {$p}lti_link 
+                "SELECT link_id, link_key, title FROM {$p}lti_link 
                  WHERE link_id = :LID AND context_id = :CID",
                 array(':LID' => $link_id, ':CID' => $context_id)
             );
@@ -385,6 +462,7 @@ class Grades extends Tool {
         $OUTPUT->bodyStart();
         $OUTPUT->topNav($menu);
         $OUTPUT->flashMessages();
+        Lessons::printLtiProgressStyles();
         ?>
         <main class="container" id="main-content">
         <h1><?= __('Grade Book') ?></h1>
@@ -415,7 +493,11 @@ class Grades extends Tool {
         }
         
         if ( $class_sql !== false ) {
-            Table::pagedAuto($class_sql, $query_parms, $searchfields, $searchfields, $detail_url);
+            $params = $request->query->all();
+            $newsql = Table::pagedQuery($class_sql, $query_parms, $searchfields, $searchfields, $params);
+            $class_rows = $PDOX->allRowsDie($newsql, $query_parms);
+            $this->addClassViewCodeColumn($class_rows, $link_info);
+            Table::pagedTable($class_rows, $searchfields, $searchfields, $detail_url, $params);
         }
         ?>
         </main>
