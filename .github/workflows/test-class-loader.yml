@@ -1,9 +1,15 @@
 
-name: php-8-4-ci
+name: PHP lint + PHPStan
+
 on: [push, pull_request]
+
 jobs:
-  php84-lint:
+  php-lint:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.4', '8.5']
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -11,16 +17,16 @@ jobs:
       - name: Create config.php for CI
         run: cp config-dist.php config.php
 
-      - name: Setup PHP 8.4
+      - name: Setup PHP ${{ matrix.php-version }}
         uses: shivammathur/setup-php@v2
         with:
-            php-version: '8.4'
-            tools: composer
+          php-version: ${{ matrix.php-version }}
+          tools: composer
 
       - run: php -version
 
       - name: Install PHP dependencies (including dev)
-        run: composer install --no-interaction --prefer-dist
+        run: composer install --no-interaction --prefer-dist --ignore-platform-reqs
 
       - name: Lint PHP sources (exclude vendor)
         run: |
