@@ -74,11 +74,11 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
      */
     private static array $freshCache = [];
 
-    public const VERSION = '7.4.2';
-    public const VERSION_ID = 70402;
+    public const VERSION = '7.4.13';
+    public const VERSION_ID = 70413;
     public const MAJOR_VERSION = 7;
     public const MINOR_VERSION = 4;
-    public const RELEASE_VERSION = 2;
+    public const RELEASE_VERSION = 13;
     public const EXTRA_VERSION = '';
 
     public const END_OF_MAINTENANCE = '11/2028';
@@ -104,7 +104,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
     public function boot(): void
     {
-        if (true === $this->booted) {
+        if ($this->booted) {
             if (!$this->requestStackSize && $this->resetServices) {
                 if ($this->container->has('services_resetter')) {
                     $this->container->get('services_resetter')->reset();
@@ -118,7 +118,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
             return;
         }
 
-        if (null === $this->container) {
+        if (!$this->container) {
             $this->preBoot();
         }
 
@@ -139,7 +139,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
     public function terminate(Request $request, Response $response): void
     {
-        if (false === $this->booted) {
+        if (!$this->booted) {
             return;
         }
 
@@ -150,7 +150,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
     public function shutdown(): void
     {
-        if (false === $this->booted) {
+        if (!$this->booted) {
             return;
         }
 
@@ -168,18 +168,18 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
     public function handle(Request $request, int $type = HttpKernelInterface::MAIN_REQUEST, bool $catch = true): Response
     {
-        if (!$this->booted) {
-            $container = $this->container ?? $this->preBoot();
+        if (!$this->container) {
+            $this->preBoot();
+        }
 
-            if ($container->has('http_cache')) {
-                $this->handlingHttpCache = true;
+        if (HttpKernelInterface::MAIN_REQUEST === $type && !$this->handlingHttpCache && $this->container->has('http_cache')) {
+            $this->handlingHttpCache = true;
 
-                try {
-                    return $container->get('http_cache')->handle($request, $type, $catch);
-                } finally {
-                    $this->handlingHttpCache = false;
-                    $this->resetServices = true;
-                }
+            try {
+                return $this->container->get('http_cache')->handle($request, $type, $catch);
+            } finally {
+                $this->handlingHttpCache = false;
+                $this->resetServices = true;
             }
         }
 
@@ -458,7 +458,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
 
         if ($collectDeprecations = $this->debug && !\defined('PHPUNIT_COMPOSER_INSTALL')) {
             $collectedLogs = [];
-            $previousHandler = set_error_handler(function ($type, $message, $file, $line) use (&$collectedLogs, &$previousHandler) {
+            $previousHandler = set_error_handler(static function ($type, $message, $file, $line) use (&$collectedLogs, &$previousHandler) {
                 if (\E_USER_DEPRECATED !== $type && \E_DEPRECATED !== $type) {
                     return $previousHandler ? $previousHandler($type, $message, $file, $line) : false;
                 }
@@ -614,7 +614,7 @@ abstract class Kernel implements KernelInterface, RebootableInterface, Terminabl
     {
         foreach (['cache' => $this->getCacheDir(), 'build' => $this->warmupDir ?: $this->getBuildDir()] as $name => $dir) {
             if (!is_dir($dir)) {
-                if (false === @mkdir($dir, 0o777, true) && !is_dir($dir)) {
+                if (!@mkdir($dir, 0o777, true) && !is_dir($dir)) {
                     throw new \RuntimeException(\sprintf('Unable to create the "%s" directory (%s).', $name, $dir));
                 }
             } elseif (!is_writable($dir)) {

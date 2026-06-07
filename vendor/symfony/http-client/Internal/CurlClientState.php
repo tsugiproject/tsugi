@@ -35,6 +35,9 @@ final class CurlClientState extends ClientState
     public int $execCounter = \PHP_INT_MIN;
     public ?LoggerInterface $logger = null;
 
+    /** @var array<string, true> Indexed by self::originKey() */
+    public array $ntlmRequiresFreshConnection = [];
+
     public static array $curlVersion;
 
     public function __construct(
@@ -48,16 +51,26 @@ final class CurlClientState extends ClientState
         unset($this->handle, $this->share);
     }
 
+    public static function originKey(string $scheme, string $host, ?int $port = null): string
+    {
+        $scheme = strtolower(rtrim($scheme, ':'));
+        $port ??= 'https' === $scheme ? 443 : 80;
+
+        return $scheme.'://'.strtolower($host).':'.$port;
+    }
+
     public function reset(): void
     {
         foreach ($this->pushedResponses as $url => $response) {
             $this->logger?->debug(\sprintf('Unused pushed response: "%s"', $url));
             curl_multi_remove_handle($this->handle, $response->handle);
+            unset($this->handlesActivity[(int) $response->handle]);
         }
 
         $this->pushedResponses = [];
         $this->dnsCache->evictions = $this->dnsCache->evictions ?: $this->dnsCache->removals;
         $this->dnsCache->removals = $this->dnsCache->hostnames = [];
+        $this->ntlmRequiresFreshConnection = [];
 
         unset($this->share);
     }
@@ -70,9 +83,10 @@ final class CurlClientState extends ClientState
             curl_share_setopt($this->share, \CURLSHOPT_SHARE, \CURL_LOCK_DATA_DNS);
             curl_share_setopt($this->share, \CURLSHOPT_SHARE, \CURL_LOCK_DATA_SSL_SESSION);
 
-            if (\defined('CURL_LOCK_DATA_CONNECT')) {
-                curl_share_setopt($this->share, \CURLSHOPT_SHARE, \CURL_LOCK_DATA_CONNECT);
-            }
+            // Don't share CURL_LOCK_DATA_CONNECT: easy handles attached to the same multi handle
+            // already share the connection cache, and adding it here creates a second pool that
+            // bypasses CURLMOPT_MAX_HOST_CONNECTIONS.
+            // See https://curl.se/libcurl/c/CURLSHOPT_SHARE.html#CURLLOCKDATACONNECT
 
             return $this->share;
         }
@@ -84,11 +98,12 @@ final class CurlClientState extends ClientState
             if (\defined('CURLPIPE_MULTIPLEX')) {
                 curl_multi_setopt($this->handle, \CURLMOPT_PIPELINING, \CURLPIPE_MULTIPLEX);
             }
-            if (\defined('CURLMOPT_MAX_HOST_CONNECTIONS') && 0 < $this->maxHostConnections) {
-                $this->maxHostConnections = curl_multi_setopt($this->handle, \CURLMOPT_MAX_HOST_CONNECTIONS, $this->maxHostConnections) ? min(50 * $this->maxHostConnections, 4294967295) : $this->maxHostConnections;
+            $maxHostConnections = $this->maxHostConnections;
+            if (\defined('CURLMOPT_MAX_HOST_CONNECTIONS') && 0 < $maxHostConnections) {
+                $maxHostConnections = curl_multi_setopt($this->handle, \CURLMOPT_MAX_HOST_CONNECTIONS, $maxHostConnections) ? min(50 * $maxHostConnections, 4294967295) : $maxHostConnections;
             }
-            if (\defined('CURLMOPT_MAXCONNECTS') && 0 < $this->maxHostConnections) {
-                curl_multi_setopt($this->handle, \CURLMOPT_MAXCONNECTS, $this->maxHostConnections);
+            if (\defined('CURLMOPT_MAXCONNECTS') && 0 < $maxHostConnections) {
+                curl_multi_setopt($this->handle, \CURLMOPT_MAXCONNECTS, $maxHostConnections);
             }
 
             // Skip configuring HTTP/2 push when it's unsupported or buggy, see https://bugs.php.net/77535

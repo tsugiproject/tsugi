@@ -6,6 +6,19 @@
 - Configuration starts from `config-dist.php`; copy to `config.php` and edit for local secrets and settings.
 - Dependencies are vendored in `vendor/` (including `tsugi/lib` and `koseu/lib`), so changes there should be intentional and tracked.
 
+## Dependency management (Composer)
+- **`vendor/` is committed to git** on purpose: production deploys do not run Composer, which avoids deploy-time network/hiccups and keeps releases reproducible. Any dependency bump must update **`composer.json`**, **`composer.lock`**, and the **`vendor/`** tree together in the same change.
+- See **`README_COMPOSER.md`** for day-to-day commands. Common patterns:
+  - `composer update <package> --ignore-platform-reqs -W --no-dev` — bump one direct dependency and its transitive updates without touching dev packages in the install.
+  - `composer update --ignore-platform-reqs --no-dev` — advance all production dependencies (use sparingly; review the diff).
+  - `composer audit` — check for security advisories before/after updates.
+- **`platform-check` is false** and the PHP constraint is `>=8.4.0`; do not raise the PHP version unless explicitly asked. Use `--ignore-platform-reqs` locally if your CLI PHP is newer (e.g. 8.5) than a package’s declared support.
+- **Pinning strategy:** security-sensitive packages (`phpseclib`, `firebase/php-jwt`, `htmlpurifier`) and patched Symfony CVE fixes use **exact versions** in `composer.json` so `composer update` cannot accidentally jump Symfony **8.0 → 8.1** or similar. Other libraries use `>=` floors; the lockfile is the real pin.
+- **Symfony is mixed 7.4 + 8.0** (e.g. `http-foundation`/`http-kernel` on 7.4.x, `routing`/`mime` on 8.0.x). That is intentional. When advancing Symfony, stay on **patch releases within the current minor** (e.g. 7.4.12, 8.0.13)—do not bump to 8.1 unless planned. Pin `error-handler` and `var-dumper` to **7.4.x** when updating `http-kernel` or Composer may pull 8.1.
+- **Do not remove direct dependencies** (e.g. `symfony/browser-kit`, `symfony/routing`) even if core Tsugi code does not import them; optional modules and tools rely on them.
+- **Deferred / coordinated upgrades** (do not batch casually): `firebase/php-jwt` 7.x (requires `google/auth` ^1.50 and `google/apiclient` ^2.19; test LTI 1.3 launches), `minishlink/web-push` 10.x, Symfony 8.1+, and `symfony/process` 8.x. Track these with `composer audit` and plan explicit upgrade PRs.
+- **`lib/composer.json`** (tsugi/lib submodule) has its own pins; keep `phpseclib` and JWT versions aligned with the root when you touch crypto/LTI dependencies.
+
 ## Build, Test, and Development Commands
 - `docker compose build` — build the local Docker image.
 - `docker compose up` — start the app and initialize the database; default URL is `http://localhost:8888/tsugi`.
