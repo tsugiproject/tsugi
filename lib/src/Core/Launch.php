@@ -50,6 +50,13 @@ class Launch {
     public $result;
 
     /**
+     * Site profile for the launching user (always set after buildLaunch()).
+     *
+     * When no profile is linked, this is an empty placeholder (id 0, premium 0).
+     */
+    public $profile;
+
+    /**
      * Return the PDOX connection used by Tsugi.
      */
     public $pdox;

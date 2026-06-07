@@ -25,6 +25,10 @@ $DATABASE_INSTALL = array(
     subscribe           SMALLINT NULL,
     google_translate    TINYINT(1) NOT NULL DEFAULT 0,
 
+    premium             INTEGER NOT NULL DEFAULT 0,
+    premium_at          TIMESTAMP NULL,
+    premium_json        MEDIUMTEXT NULL,
+
     json                MEDIUMTEXT NULL,
     login_at            TIMESTAMP NULL,
     entity_version      INTEGER NOT NULL DEFAULT 0,
@@ -41,6 +45,9 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     $add_some_fields = array(
         array('profile', 'google_translate', 'TINYINT(1) NOT NULL DEFAULT 0'),
+        array('profile', 'premium', 'INTEGER NOT NULL DEFAULT 0'),
+        array('profile', 'premium_at', 'TIMESTAMP NULL'),
+        array('profile', 'premium_json', 'MEDIUMTEXT NULL'),
         array('profile', 'deleted_at', 'TIMESTAMP NULL'),
         array('profile', 'updated_at', 'TIMESTAMP NULL'),
         array('profile', 'created_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP'),
@@ -58,5 +65,5 @@ $DATABASE_UPGRADE = function($oldversion) {
         $PDOX->queryReturnError($sql);
     }
 
-    return 202503100000;
+    return 202606070001;
 };

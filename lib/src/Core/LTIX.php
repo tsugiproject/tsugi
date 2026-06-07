@@ -1268,7 +1268,9 @@ class LTIX {
         if ( $profile_table ) {
             $sql .= ",
             p.profile_id, p.displayname AS profile_displayname, p.email AS profile_email,
-            p.subscribe AS profile_subscribe";
+            p.subscribe AS profile_subscribe,
+            p.premium AS profile_premium, p.premium_at AS profile_premium_at,
+            p.premium_json AS profile_premium_json";
         }
 
         if ( isset($post['service']) ) {
@@ -1946,6 +1948,7 @@ class LTIX {
         }
 
         $USER = null;
+        $PROFILE = null;
         $CONTEXT = null;
         $LINK = null;
         $RESULT = null;
@@ -2097,13 +2100,17 @@ class LTIX {
 
     public static function buildLaunch($LTI) {
         global $CFG, $TSUGI_LAUNCH, $TSUGI_KEY;
-        global $OUTPUT, $USER, $CONTEXT, $LINK, $RESULT, $ROSTER;
+        global $OUTPUT, $USER, $PROFILE, $CONTEXT, $LINK, $RESULT, $ROSTER;
 
         if ( ! isset($TSUGI_LAUNCH) ) {
             $TSUGI_LAUNCH = new \Tsugi\Core\Launch();
         }
 
         $TSUGI_LAUNCH->membership = null;
+
+        $lti_row = is_array($LTI) ? $LTI : array();
+        $PROFILE = \Tsugi\Core\Profile::fromLaunchRow($lti_row, $TSUGI_LAUNCH);
+        $TSUGI_LAUNCH->profile = $PROFILE;
 
         // Populate the $USER $CONTEXT and $LINK objects
         if ( isset($LTI['user_id']) && ! is_object($USER) ) {
