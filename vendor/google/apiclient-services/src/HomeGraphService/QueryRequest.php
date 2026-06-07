@@ -26,6 +26,13 @@ class QueryRequest extends \Google\Collection
    * @var string
    */
   public $agentUserId;
+  /**
+   * Optional. If true, the response will include device metadata in the
+   * device_metadata field.
+   *
+   * @var bool
+   */
+  public $includeDeviceMetadata;
   protected $inputsType = QueryRequestInput::class;
   protected $inputsDataType = 'array';
   /**
@@ -50,6 +57,23 @@ class QueryRequest extends \Google\Collection
   public function getAgentUserId()
   {
     return $this->agentUserId;
+  }
+  /**
+   * Optional. If true, the response will include device metadata in the
+   * device_metadata field.
+   *
+   * @param bool $includeDeviceMetadata
+   */
+  public function setIncludeDeviceMetadata($includeDeviceMetadata)
+  {
+    $this->includeDeviceMetadata = $includeDeviceMetadata;
+  }
+  /**
+   * @return bool
+   */
+  public function getIncludeDeviceMetadata()
+  {
+    return $this->includeDeviceMetadata;
   }
   /**
    * Required. Inputs containing third-party device IDs for which to get the

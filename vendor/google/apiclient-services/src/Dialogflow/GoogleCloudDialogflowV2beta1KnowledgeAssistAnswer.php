@@ -20,21 +20,17 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2beta1KnowledgeAssistAnswer extends \Google\Model
 {
   /**
-   * The name of the answer record. Format: `projects//locations//answer
-   * Records/`.
-   *
    * @var string
    */
   public $answerRecord;
+  protected $knowledgeAssistDebugInfoType = GoogleCloudDialogflowV2beta1KnowledgeAssistDebugInfo::class;
+  protected $knowledgeAssistDebugInfoDataType = '';
   protected $suggestedQueryType = GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerSuggestedQuery::class;
   protected $suggestedQueryDataType = '';
   protected $suggestedQueryAnswerType = GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswer::class;
   protected $suggestedQueryAnswerDataType = '';
 
   /**
-   * The name of the answer record. Format: `projects//locations//answer
-   * Records/`.
-   *
    * @param string $answerRecord
    */
   public function setAnswerRecord($answerRecord)
@@ -49,9 +45,20 @@ class GoogleCloudDialogflowV2beta1KnowledgeAssistAnswer extends \Google\Model
     return $this->answerRecord;
   }
   /**
-   * The query suggested based on the context. Suggestion is made only if it is
-   * different from the previous suggestion.
-   *
+   * @param GoogleCloudDialogflowV2beta1KnowledgeAssistDebugInfo $knowledgeAssistDebugInfo
+   */
+  public function setKnowledgeAssistDebugInfo(GoogleCloudDialogflowV2beta1KnowledgeAssistDebugInfo $knowledgeAssistDebugInfo)
+  {
+    $this->knowledgeAssistDebugInfo = $knowledgeAssistDebugInfo;
+  }
+  /**
+   * @return GoogleCloudDialogflowV2beta1KnowledgeAssistDebugInfo
+   */
+  public function getKnowledgeAssistDebugInfo()
+  {
+    return $this->knowledgeAssistDebugInfo;
+  }
+  /**
    * @param GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerSuggestedQuery $suggestedQuery
    */
   public function setSuggestedQuery(GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerSuggestedQuery $suggestedQuery)
@@ -66,9 +73,6 @@ class GoogleCloudDialogflowV2beta1KnowledgeAssistAnswer extends \Google\Model
     return $this->suggestedQuery;
   }
   /**
-   * The answer generated for the suggested query. Whether or not an answer is
-   * generated depends on how confident we are about the generated query.
-   *
    * @param GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswer $suggestedQueryAnswer
    */
   public function setSuggestedQueryAnswer(GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswer $suggestedQueryAnswer)

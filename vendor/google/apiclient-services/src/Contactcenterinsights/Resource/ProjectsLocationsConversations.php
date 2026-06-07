@@ -21,6 +21,7 @@ use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1BulkA
 use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1BulkDeleteConversationsRequest;
 use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1CalculateStatsResponse;
 use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1Conversation;
+use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1GenerateConversationSignedAudioResponse;
 use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1IngestConversationsRequest;
 use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1ListConversationsResponse;
 use Google\Service\Contactcenterinsights\GoogleCloudContactcenterinsightsV1SampleConversationsRequest;
@@ -131,6 +132,21 @@ class ProjectsLocationsConversations extends \Google\Service\Resource
     return $this->call('delete', [$params], GoogleProtobufEmpty::class);
   }
   /**
+   * Gets the signed URI for the audio for the given conversation.
+   * (conversations.generateSignedAudio)
+   *
+   * @param string $name Required. The name of the conversation to sign.
+   * @param array $optParams Optional parameters.
+   * @return GoogleCloudContactcenterinsightsV1GenerateConversationSignedAudioResponse
+   * @throws \Google\Service\Exception
+   */
+  public function generateSignedAudio($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('generateSignedAudio', [$params], GoogleCloudContactcenterinsightsV1GenerateConversationSignedAudioResponse::class);
+  }
+  /**
    * Gets a conversation. (conversations.get)
    *
    * @param string $name Required. The name of the conversation to get.
@@ -208,6 +224,9 @@ class ProjectsLocationsConversations extends \Google\Service\Resource
    * @opt_param bool allowMissing Optional. Defaults to false. If set to true, and
    * the conversation is not found, a new conversation will be created. In this
    * situation, `update_mask` is ignored.
+   * @opt_param bool conversationAutoLabelingUpdateConfig.allowAutoLabelingUpdate
+   * Optional. If set to true, the conversation will be updated with auto labeling
+   * results.
    * @opt_param string updateMask The list of fields to be updated. All possible
    * fields can be updated by passing `*`, or a subset of the following updateable
    * fields can be provided: * `agent_id` * `language_code` * `labels` *

@@ -19,66 +19,29 @@ namespace Google\Service\Dialogflow;
 
 class GoogleCloudDialogflowCxV3ExportAgentRequest extends \Google\Model
 {
-  /**
-   * Unspecified format.
-   */
   public const DATA_FORMAT_DATA_FORMAT_UNSPECIFIED = 'DATA_FORMAT_UNSPECIFIED';
-  /**
-   * Agent content will be exported as raw bytes.
-   */
   public const DATA_FORMAT_BLOB = 'BLOB';
-  /**
-   * Agent content will be exported in JSON Package format.
-   */
   public const DATA_FORMAT_JSON_PACKAGE = 'JSON_PACKAGE';
   /**
-   * Optional. The [Google Cloud
-   * Storage](https://cloud.google.com/storage/docs/) URI to export the agent
-   * to. The format of this URI must be `gs:`. If left unspecified, the
-   * serialized agent is returned inline. Dialogflow performs a write operation
-   * for the Cloud Storage object on the caller's behalf, so your request
-   * authentication must have write permissions for the object. For more
-   * information, see [Dialogflow access
-   * control](https://cloud.google.com/dialogflow/cx/docs/concept/access-
-   * control#storage).
-   *
    * @var string
    */
   public $agentUri;
   /**
-   * Optional. The data format of the exported agent. If not specified, `BLOB`
-   * is assumed.
-   *
    * @var string
    */
   public $dataFormat;
   /**
-   * Optional. Environment name. If not set, draft environment is assumed.
-   * Format: `projects//locations//agents//environments/`.
-   *
    * @var string
    */
   public $environment;
   protected $gitDestinationType = GoogleCloudDialogflowCxV3ExportAgentRequestGitDestination::class;
   protected $gitDestinationDataType = '';
   /**
-   * Optional. Whether to include BigQuery Export setting.
-   *
    * @var bool
    */
   public $includeBigqueryExportSettings;
 
   /**
-   * Optional. The [Google Cloud
-   * Storage](https://cloud.google.com/storage/docs/) URI to export the agent
-   * to. The format of this URI must be `gs:`. If left unspecified, the
-   * serialized agent is returned inline. Dialogflow performs a write operation
-   * for the Cloud Storage object on the caller's behalf, so your request
-   * authentication must have write permissions for the object. For more
-   * information, see [Dialogflow access
-   * control](https://cloud.google.com/dialogflow/cx/docs/concept/access-
-   * control#storage).
-   *
    * @param string $agentUri
    */
   public function setAgentUri($agentUri)
@@ -93,11 +56,6 @@ class GoogleCloudDialogflowCxV3ExportAgentRequest extends \Google\Model
     return $this->agentUri;
   }
   /**
-   * Optional. The data format of the exported agent. If not specified, `BLOB`
-   * is assumed.
-   *
-   * Accepted values: DATA_FORMAT_UNSPECIFIED, BLOB, JSON_PACKAGE
-   *
    * @param self::DATA_FORMAT_* $dataFormat
    */
   public function setDataFormat($dataFormat)
@@ -112,9 +70,6 @@ class GoogleCloudDialogflowCxV3ExportAgentRequest extends \Google\Model
     return $this->dataFormat;
   }
   /**
-   * Optional. Environment name. If not set, draft environment is assumed.
-   * Format: `projects//locations//agents//environments/`.
-   *
    * @param string $environment
    */
   public function setEnvironment($environment)
@@ -129,8 +84,6 @@ class GoogleCloudDialogflowCxV3ExportAgentRequest extends \Google\Model
     return $this->environment;
   }
   /**
-   * Optional. The Git branch to export the agent to.
-   *
    * @param GoogleCloudDialogflowCxV3ExportAgentRequestGitDestination $gitDestination
    */
   public function setGitDestination(GoogleCloudDialogflowCxV3ExportAgentRequestGitDestination $gitDestination)
@@ -145,8 +98,6 @@ class GoogleCloudDialogflowCxV3ExportAgentRequest extends \Google\Model
     return $this->gitDestination;
   }
   /**
-   * Optional. Whether to include BigQuery Export setting.
-   *
    * @param bool $includeBigqueryExportSettings
    */
   public function setIncludeBigqueryExportSettings($includeBigqueryExportSettings)

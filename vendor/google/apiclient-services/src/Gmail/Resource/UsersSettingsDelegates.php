@@ -33,15 +33,17 @@ class UsersSettingsDelegates extends \Google\Service\Resource
   /**
    * Adds a delegate with its verification status set directly to `accepted`,
    * without sending any verification email. The delegate user must be a member of
-   * the same Google Workspace organization as the delegator user. Gmail imposes
-   * limitations on the number of delegates and delegators each user in a Google
-   * Workspace organization can have. These limits depend on your organization,
-   * but in general each user can have up to 25 delegates and up to 10 delegators.
-   * Note that a delegate user must be referred to by their primary email address,
-   * and not an email alias. Also note that when a new delegate is created, there
-   * may be up to a one minute delay before the new delegate is available for use.
-   * This method is only available to service account clients that have been
-   * delegated domain-wide authority. (delegates.create)
+   * the same Google Workspace organization as the delegator user. For more
+   * information, see [Manage delegates](https://developers.google.com/workspace/g
+   * mail/api/guides/delegate_settings). Gmail imposes limitations on the number
+   * of delegates and delegators each user in a Google Workspace organization can
+   * have. These limits depend on your organization, but in general each user can
+   * have up to 25 delegates and up to 10 delegators. A delegate user must be
+   * referred to by their primary email address, and not an email alias. When a
+   * new delegate is created, there may be up to a one minute delay before the new
+   * delegate is available for use. This method is only available to service
+   * account clients that have been delegated domain-wide authority.
+   * (delegates.create)
    *
    * @param string $userId User's email address. The special value "me" can be
    * used to indicate the authenticated user.
@@ -58,10 +60,12 @@ class UsersSettingsDelegates extends \Google\Service\Resource
   }
   /**
    * Removes the specified delegate (which can be of any verification status), and
-   * revokes any verification that may have been required for using it. Note that
-   * a delegate user must be referred to by their primary email address, and not
-   * an email alias. This method is only available to service account clients that
-   * have been delegated domain-wide authority. (delegates.delete)
+   * revokes any verification that may have been required for using it. For more
+   * information, see [Manage delegates](https://developers.google.com/workspace/g
+   * mail/api/guides/delegate_settings). A delegate user must be referred to by
+   * their primary email address, and not an email alias. This method is only
+   * available to service account clients that have been delegated domain-wide
+   * authority. (delegates.delete)
    *
    * @param string $userId User's email address. The special value "me" can be
    * used to indicate the authenticated user.
@@ -77,10 +81,11 @@ class UsersSettingsDelegates extends \Google\Service\Resource
     return $this->call('delete', [$params]);
   }
   /**
-   * Gets the specified delegate. Note that a delegate user must be referred to by
-   * their primary email address, and not an email alias. This method is only
-   * available to service account clients that have been delegated domain-wide
-   * authority. (delegates.get)
+   * Gets the specified delegate. For more information, see [Manage delegates](htt
+   * ps://developers.google.com/workspace/gmail/api/guides/delegate_settings). A
+   * delegate user must be referred to by their primary email address, and not an
+   * email alias. This method is only available to service account clients that
+   * have been delegated domain-wide authority. (delegates.get)
    *
    * @param string $userId User's email address. The special value "me" can be
    * used to indicate the authenticated user.
@@ -97,8 +102,10 @@ class UsersSettingsDelegates extends \Google\Service\Resource
     return $this->call('get', [$params], Delegate::class);
   }
   /**
-   * Lists the delegates for the specified account. This method is only available
-   * to service account clients that have been delegated domain-wide authority.
+   * Lists the delegates for the specified account. For more information, see
+   * [Manage delegates](https://developers.google.com/workspace/gmail/api/guides/d
+   * elegate_settings). This method is only available to service account clients
+   * that have been delegated domain-wide authority.
    * (delegates.listUsersSettingsDelegates)
    *
    * @param string $userId User's email address. The special value "me" can be

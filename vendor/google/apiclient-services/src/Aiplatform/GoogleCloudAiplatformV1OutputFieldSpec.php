@@ -20,27 +20,29 @@ namespace Google\Service\Aiplatform;
 class GoogleCloudAiplatformV1OutputFieldSpec extends \Google\Model
 {
   /**
-   * Field type is unspecified.
+   * The field type is not specified. Defaults to CONTENT.
    */
   public const FIELD_TYPE_FIELD_TYPE_UNSPECIFIED = 'FIELD_TYPE_UNSPECIFIED';
   /**
-   * Arbitrary content field type.
+   * The field can contain any type of content, including text, images, and
+   * audio.
    */
   public const FIELD_TYPE_CONTENT = 'CONTENT';
   /**
-   * Text field type.
+   * The field contains only text.
    */
   public const FIELD_TYPE_TEXT = 'TEXT';
   /**
-   * Image field type.
+   * The field contains image data.
    */
   public const FIELD_TYPE_IMAGE = 'IMAGE';
   /**
-   * Audio field type.
+   * The field contains audio data.
    */
   public const FIELD_TYPE_AUDIO = 'AUDIO';
   /**
-   * Required. The name of the output field.
+   * Required. The name of this field in the generated synthetic data, such as
+   * "email_subject" or "customer_review".
    *
    * @var string
    */
@@ -52,17 +54,19 @@ class GoogleCloudAiplatformV1OutputFieldSpec extends \Google\Model
    */
   public $fieldType;
   /**
-   * Optional. Optional, but recommended. Additional guidance specific to this
-   * field to provide targeted instructions for the LLM to generate the content
-   * of a single output field. While the LLM can sometimes infer content from
-   * the field name, providing explicit guidance is preferred.
+   * Optional. Specific instructions for the large language model on how to
+   * generate content for this particular field. While the LLM can sometimes
+   * infer content from the field name, providing explicit guidance is
+   * preferred. For example, for a field named "review", the guidance could be
+   * "A positive review about a coffee maker."
    *
    * @var string
    */
   public $guidance;
 
   /**
-   * Required. The name of the output field.
+   * Required. The name of this field in the generated synthetic data, such as
+   * "email_subject" or "customer_review".
    *
    * @param string $fieldName
    */
@@ -96,10 +100,11 @@ class GoogleCloudAiplatformV1OutputFieldSpec extends \Google\Model
     return $this->fieldType;
   }
   /**
-   * Optional. Optional, but recommended. Additional guidance specific to this
-   * field to provide targeted instructions for the LLM to generate the content
-   * of a single output field. While the LLM can sometimes infer content from
-   * the field name, providing explicit guidance is preferred.
+   * Optional. Specific instructions for the large language model on how to
+   * generate content for this particular field. While the LLM can sometimes
+   * infer content from the field name, providing explicit guidance is
+   * preferred. For example, for a field named "review", the guidance could be
+   * "A positive review about a coffee maker."
    *
    * @param string $guidance
    */

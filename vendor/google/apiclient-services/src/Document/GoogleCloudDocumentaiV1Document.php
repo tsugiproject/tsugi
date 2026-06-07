@@ -20,6 +20,8 @@ namespace Google\Service\Document;
 class GoogleCloudDocumentaiV1Document extends \Google\Collection
 {
   protected $collection_key = 'textStyles';
+  protected $blobAssetsType = GoogleCloudDocumentaiV1DocumentBlobAsset::class;
+  protected $blobAssetsDataType = 'array';
   protected $chunkedDocumentType = GoogleCloudDocumentaiV1DocumentChunkedDocument::class;
   protected $chunkedDocumentDataType = '';
   /**
@@ -41,7 +43,7 @@ class GoogleCloudDocumentaiV1Document extends \Google\Collection
   protected $entitiesType = GoogleCloudDocumentaiV1DocumentEntity::class;
   protected $entitiesDataType = 'array';
   /**
-   * The entity revision id that `document.entities` field is based on. If this
+   * The entity revision ID that `document.entities` field is based on. If this
    * field is set and `entities_revisions` is not empty, the entities in
    * `document.entities` field are the entities in the entity revision with this
    * id and `document.entity_validation_output` field is the
@@ -91,6 +93,25 @@ class GoogleCloudDocumentaiV1Document extends \Google\Collection
    */
   public $uri;
 
+  /**
+   * Optional. The blob assets in this document. This is used to store the
+   * content of the inline blobs in this document, for example, image bytes,
+   * such that it can be referenced by other fields in the document via asset
+   * id.
+   *
+   * @param GoogleCloudDocumentaiV1DocumentBlobAsset[] $blobAssets
+   */
+  public function setBlobAssets($blobAssets)
+  {
+    $this->blobAssets = $blobAssets;
+  }
+  /**
+   * @return GoogleCloudDocumentaiV1DocumentBlobAsset[]
+   */
+  public function getBlobAssets()
+  {
+    return $this->blobAssets;
+  }
   /**
    * Document chunked based on chunking config.
    *
@@ -175,7 +196,7 @@ class GoogleCloudDocumentaiV1Document extends \Google\Collection
     return $this->entities;
   }
   /**
-   * The entity revision id that `document.entities` field is based on. If this
+   * The entity revision ID that `document.entities` field is based on. If this
    * field is set and `entities_revisions` is not empty, the entities in
    * `document.entities` field are the entities in the entity revision with this
    * id and `document.entity_validation_output` field is the

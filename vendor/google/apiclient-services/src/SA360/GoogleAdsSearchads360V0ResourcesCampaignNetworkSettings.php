@@ -33,14 +33,17 @@ class GoogleAdsSearchads360V0ResourcesCampaignNetworkSettings extends \Google\Mo
    */
   public $targetGoogleSearch;
   /**
-   * Whether ads will be served on the Google Partner Network. This is available
-   * only to some select Google partner accounts.
+   * Whether ads will be served on the partner network. This is available only
+   * to some select partner accounts. Unless you have been instructed to use
+   * this field, it likely does not apply to your account. This does not control
+   * whether ads will be served on Google Search Partners Network; use
+   * `target_search_network` for that instead.
    *
    * @var bool
    */
   public $targetPartnerSearchNetwork;
   /**
-   * Whether ads will be served on partner sites in the Google Search Network
+   * Whether ads will be served on sites in the Google Search Partners Network
    * (requires `target_google_search` to also be `true`).
    *
    * @var bool
@@ -81,8 +84,11 @@ class GoogleAdsSearchads360V0ResourcesCampaignNetworkSettings extends \Google\Mo
     return $this->targetGoogleSearch;
   }
   /**
-   * Whether ads will be served on the Google Partner Network. This is available
-   * only to some select Google partner accounts.
+   * Whether ads will be served on the partner network. This is available only
+   * to some select partner accounts. Unless you have been instructed to use
+   * this field, it likely does not apply to your account. This does not control
+   * whether ads will be served on Google Search Partners Network; use
+   * `target_search_network` for that instead.
    *
    * @param bool $targetPartnerSearchNetwork
    */
@@ -98,7 +104,7 @@ class GoogleAdsSearchads360V0ResourcesCampaignNetworkSettings extends \Google\Mo
     return $this->targetPartnerSearchNetwork;
   }
   /**
-   * Whether ads will be served on partner sites in the Google Search Network
+   * Whether ads will be served on sites in the Google Search Partners Network
    * (requires `target_google_search` to also be `true`).
    *
    * @param bool $targetSearchNetwork

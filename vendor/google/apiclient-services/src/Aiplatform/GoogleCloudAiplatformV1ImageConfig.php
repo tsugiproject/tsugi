@@ -38,6 +38,19 @@ class GoogleCloudAiplatformV1ImageConfig extends \Google\Model
    */
   public const PERSON_GENERATION_ALLOW_NONE = 'ALLOW_NONE';
   /**
+   * Unspecified value. The model will proceed with the default behavior, which
+   * is to allow generation of prominent people.
+   */
+  public const PROMINENT_PEOPLE_PROMINENT_PEOPLE_UNSPECIFIED = 'PROMINENT_PEOPLE_UNSPECIFIED';
+  /**
+   * Allows the model to generate images of prominent people.
+   */
+  public const PROMINENT_PEOPLE_ALLOW_PROMINENT_PEOPLE = 'ALLOW_PROMINENT_PEOPLE';
+  /**
+   * Prevents the model from generating images of prominent people.
+   */
+  public const PROMINENT_PEOPLE_BLOCK_PROMINENT_PEOPLE = 'BLOCK_PROMINENT_PEOPLE';
+  /**
    * Optional. The desired aspect ratio for the generated images. The following
    * aspect ratios are supported: "1:1" "2:3", "3:2" "3:4", "4:3" "4:5", "5:4"
    * "9:16", "16:9" "21:9"
@@ -60,6 +73,16 @@ class GoogleCloudAiplatformV1ImageConfig extends \Google\Model
    * @var string
    */
   public $personGeneration;
+  /**
+   * Optional. Controls whether prominent people (celebrities) generation is
+   * allowed. If used with personGeneration, personGeneration enum would take
+   * precedence. For instance, if ALLOW_NONE is set, all person generation would
+   * be blocked. If this field is unspecified, the default behavior is to allow
+   * prominent people.
+   *
+   * @var string
+   */
+  public $prominentPeople;
 
   /**
    * Optional. The desired aspect ratio for the generated images. The following
@@ -130,6 +153,29 @@ class GoogleCloudAiplatformV1ImageConfig extends \Google\Model
   public function getPersonGeneration()
   {
     return $this->personGeneration;
+  }
+  /**
+   * Optional. Controls whether prominent people (celebrities) generation is
+   * allowed. If used with personGeneration, personGeneration enum would take
+   * precedence. For instance, if ALLOW_NONE is set, all person generation would
+   * be blocked. If this field is unspecified, the default behavior is to allow
+   * prominent people.
+   *
+   * Accepted values: PROMINENT_PEOPLE_UNSPECIFIED, ALLOW_PROMINENT_PEOPLE,
+   * BLOCK_PROMINENT_PEOPLE
+   *
+   * @param self::PROMINENT_PEOPLE_* $prominentPeople
+   */
+  public function setProminentPeople($prominentPeople)
+  {
+    $this->prominentPeople = $prominentPeople;
+  }
+  /**
+   * @return self::PROMINENT_PEOPLE_*
+   */
+  public function getProminentPeople()
+  {
+    return $this->prominentPeople;
   }
 }
 

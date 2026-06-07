@@ -20,15 +20,11 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3Phrase extends \Google\Model
 {
   /**
-   * Required. Text input which can be used for prompt or banned phrases.
-   *
    * @var string
    */
   public $text;
 
   /**
-   * Required. Text input which can be used for prompt or banned phrases.
-   *
    * @param string $text
    */
   public function setText($text)

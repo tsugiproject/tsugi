@@ -38,8 +38,8 @@ class GoogleCloudDiscoveryengineV1ImportUserEventsMetadata extends \Google\Model
    */
   public $successCount;
   /**
-   * Operation last update time. If the operation is done, this is also the
-   * finish time.
+   * Output only. Operation last update time. If the operation is done, this is
+   * also the finish time.
    *
    * @var string
    */
@@ -94,8 +94,8 @@ class GoogleCloudDiscoveryengineV1ImportUserEventsMetadata extends \Google\Model
     return $this->successCount;
   }
   /**
-   * Operation last update time. If the operation is done, this is also the
-   * finish time.
+   * Output only. Operation last update time. If the operation is done, this is
+   * also the finish time.
    *
    * @param string $updateTime
    */

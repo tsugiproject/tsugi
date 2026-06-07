@@ -20,6 +20,7 @@ namespace Google\Service\Compute;
 class FirewallPolicy extends \Google\Collection
 {
   public const POLICY_TYPE_RDMA_ROCE_POLICY = 'RDMA_ROCE_POLICY';
+  public const POLICY_TYPE_ULL_POLICY = 'ULL_POLICY';
   public const POLICY_TYPE_VPC_POLICY = 'VPC_POLICY';
   protected $collection_key = 'rules';
   protected $associationsType = FirewallPolicyAssociation::class;
@@ -98,8 +99,8 @@ class FirewallPolicy extends \Google\Collection
    */
   public $parent;
   /**
-   * The type of the firewall policy. This field can be eitherVPC_POLICY or
-   * RDMA_ROCE_POLICY.
+   * The type of the firewall policy. This field can be one of VPC_POLICY,
+   * RDMA_ROCE_POLICY or ULL_POLICY.
    *
    * Note: if not specified then VPC_POLICY will be used.
    *
@@ -337,12 +338,12 @@ class FirewallPolicy extends \Google\Collection
     return $this->parent;
   }
   /**
-   * The type of the firewall policy. This field can be eitherVPC_POLICY or
-   * RDMA_ROCE_POLICY.
+   * The type of the firewall policy. This field can be one of VPC_POLICY,
+   * RDMA_ROCE_POLICY or ULL_POLICY.
    *
    * Note: if not specified then VPC_POLICY will be used.
    *
-   * Accepted values: RDMA_ROCE_POLICY, VPC_POLICY
+   * Accepted values: RDMA_ROCE_POLICY, ULL_POLICY, VPC_POLICY
    *
    * @param self::POLICY_TYPE_* $policyType
    */

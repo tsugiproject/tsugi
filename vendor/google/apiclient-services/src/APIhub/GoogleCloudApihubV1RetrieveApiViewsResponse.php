@@ -30,7 +30,7 @@ class GoogleCloudApihubV1RetrieveApiViewsResponse extends \Google\Collection
   public $nextPageToken;
 
   /**
-   * The list of API views.
+   * Output only. The list of API views.
    *
    * @param GoogleCloudApihubV1ApiView[] $apiViews
    */

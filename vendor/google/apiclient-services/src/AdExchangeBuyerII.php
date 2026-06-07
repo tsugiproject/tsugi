@@ -23,8 +23,8 @@ use Google\Client;
  * Service definition for AdExchangeBuyerII (v2beta1).
  *
  * <p>
- * Accesses the latest features for managing Authorized Buyers accounts, Real-
- * Time Bidding configurations and auction metrics, and Marketplace programmatic
+ * Access the latest features for managing Authorized Buyers accounts, Real-Time
+ * Bidding configurations and auction metrics, and Marketplace programmatic
  * deals.</p>
  *
  * <p>

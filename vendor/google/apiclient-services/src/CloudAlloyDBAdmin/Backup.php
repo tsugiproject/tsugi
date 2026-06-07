@@ -46,6 +46,10 @@ class Backup extends \Google\Model
    */
   public const DATABASE_VERSION_POSTGRES_17 = 'POSTGRES_17';
   /**
+   * The database version is Postgres 18.
+   */
+  public const DATABASE_VERSION_POSTGRES_18 = 'POSTGRES_18';
+  /**
    * The state of the backup is unknown.
    */
   public const STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED';
@@ -328,7 +332,7 @@ class Backup extends \Google\Model
    * the same database version.
    *
    * Accepted values: DATABASE_VERSION_UNSPECIFIED, POSTGRES_13, POSTGRES_14,
-   * POSTGRES_15, POSTGRES_16, POSTGRES_17
+   * POSTGRES_15, POSTGRES_16, POSTGRES_17, POSTGRES_18
    *
    * @param self::DATABASE_VERSION_* $databaseVersion
    */

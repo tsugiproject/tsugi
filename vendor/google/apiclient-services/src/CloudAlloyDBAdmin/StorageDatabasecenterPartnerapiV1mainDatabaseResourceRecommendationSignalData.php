@@ -521,6 +521,14 @@ class StorageDatabasecenterPartnerapiV1mainDatabaseResourceRecommendationSignalD
    */
   public const SIGNAL_TYPE_SIGNAL_TYPE_EXTENDED_SUPPORT = 'SIGNAL_TYPE_EXTENDED_SUPPORT';
   /**
+   * Change in performance KPIs.
+   */
+  public const SIGNAL_TYPE_SIGNAL_TYPE_PERFORMANCE_KPI_CHANGE = 'SIGNAL_TYPE_PERFORMANCE_KPI_CHANGE';
+  /**
+   * Database version nearing end of life.
+   */
+  public const SIGNAL_TYPE_SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE = 'SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE';
+  /**
    * Optional. Any other additional metadata specific to recommendation
    *
    * @var array[]
@@ -786,7 +794,8 @@ class StorageDatabasecenterPartnerapiV1mainDatabaseResourceRecommendationSignalD
    * SIGNAL_TYPE_MANY_IDLE_CONNECTIONS, SIGNAL_TYPE_REPLICATION_LAG,
    * SIGNAL_TYPE_OUTDATED_VERSION, SIGNAL_TYPE_OUTDATED_CLIENT,
    * SIGNAL_TYPE_DATABOOST_DISABLED,
-   * SIGNAL_TYPE_RECOMMENDED_MAINTENANCE_POLICIES, SIGNAL_TYPE_EXTENDED_SUPPORT
+   * SIGNAL_TYPE_RECOMMENDED_MAINTENANCE_POLICIES, SIGNAL_TYPE_EXTENDED_SUPPORT,
+   * SIGNAL_TYPE_PERFORMANCE_KPI_CHANGE, SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE
    *
    * @param self::SIGNAL_TYPE_* $signalType
    */

@@ -20,26 +20,17 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2beta1GenerateSuggestionsResponseGeneratorSuggestionAnswer extends \Google\Model
 {
   /**
-   * Answer record that uniquely identifies the suggestion. This can be used to
-   * provide suggestion feedback.
-   *
    * @var string
    */
   public $answerRecord;
   protected $generatorSuggestionType = GoogleCloudDialogflowV2beta1GeneratorSuggestion::class;
   protected $generatorSuggestionDataType = '';
   /**
-   * The name of the generator used to generate this suggestion. Format:
-   * `projects//locations//generators/`.
-   *
    * @var string
    */
   public $sourceGenerator;
 
   /**
-   * Answer record that uniquely identifies the suggestion. This can be used to
-   * provide suggestion feedback.
-   *
    * @param string $answerRecord
    */
   public function setAnswerRecord($answerRecord)
@@ -54,8 +45,6 @@ class GoogleCloudDialogflowV2beta1GenerateSuggestionsResponseGeneratorSuggestion
     return $this->answerRecord;
   }
   /**
-   * Suggestion details.
-   *
    * @param GoogleCloudDialogflowV2beta1GeneratorSuggestion $generatorSuggestion
    */
   public function setGeneratorSuggestion(GoogleCloudDialogflowV2beta1GeneratorSuggestion $generatorSuggestion)
@@ -70,9 +59,6 @@ class GoogleCloudDialogflowV2beta1GenerateSuggestionsResponseGeneratorSuggestion
     return $this->generatorSuggestion;
   }
   /**
-   * The name of the generator used to generate this suggestion. Format:
-   * `projects//locations//generators/`.
-   *
    * @param string $sourceGenerator
    */
   public function setSourceGenerator($sourceGenerator)

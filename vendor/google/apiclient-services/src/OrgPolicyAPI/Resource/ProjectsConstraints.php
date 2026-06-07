@@ -39,12 +39,10 @@ class ProjectsConstraints extends \Google\Service\Resource
    * * `organizations/{organization_id}`
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize Size of the pages to be returned. This is currently
-   * unsupported and will be ignored. The server may at any point start using this
-   * field to limit page size.
+   * @opt_param int pageSize Size of the pages to be returned. This is not used,
+   * but the server may at any point start using this field to limit page size.
    * @opt_param string pageToken Page token used to retrieve the next page. This
-   * is currently unsupported and will be ignored. The server may at any point
-   * start using this field.
+   * is not used, but the server may at any point start using this field.
    * @return GoogleCloudOrgpolicyV2ListConstraintsResponse
    * @throws \Google\Service\Exception
    */

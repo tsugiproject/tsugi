@@ -83,6 +83,19 @@ class Policy extends \Google\Collection
    */
   public const AUTO_DATE_AND_TIME_ZONE_AUTO_DATE_AND_TIME_ZONE_ENFORCED = 'AUTO_DATE_AND_TIME_ZONE_ENFORCED';
   /**
+   * Defaults to AUTOFILL_USER_CHOICE.
+   */
+  public const AUTOFILL_POLICY_AUTOFILL_POLICY_UNSPECIFIED = 'AUTOFILL_POLICY_UNSPECIFIED';
+  /**
+   * The user can choose and use an autofill service.
+   */
+  public const AUTOFILL_POLICY_AUTOFILL_USER_CHOICE = 'AUTOFILL_USER_CHOICE';
+  /**
+   * Autofill is disabled and the user is not allowed to change this setting.
+   * This is supported only on Android 8 and above.
+   */
+  public const AUTOFILL_POLICY_AUTOFILL_DISABLED = 'AUTOFILL_DISABLED';
+  /**
    * If camera_disabled is true, this is equivalent to CAMERA_ACCESS_DISABLED.
    * Otherwise, this is equivalent to CAMERA_ACCESS_USER_CHOICE.
    */
@@ -171,9 +184,7 @@ class Policy extends \Google\Collection
    */
   public const ENCRYPTION_POLICY_ENABLED_WITH_PASSWORD = 'ENABLED_WITH_PASSWORD';
   /**
-   * Unspecified. Defaults to displaying the enterprise name that's set at the
-   * time of device setup. In future, this will default to
-   * ENTERPRISE_DISPLAY_NAME_VISIBLE.
+   * Unspecified. Defaults to ENTERPRISE_DISPLAY_NAME_VISIBLE.
    */
   public const ENTERPRISE_DISPLAY_NAME_VISIBILITY_ENTERPRISE_DISPLAY_NAME_VISIBILITY_UNSPECIFIED = 'ENTERPRISE_DISPLAY_NAME_VISIBILITY_UNSPECIFIED';
   /**
@@ -391,10 +402,13 @@ class Policy extends \Google\Collection
    */
   public $autoTimeRequired;
   /**
-   * Whether applications other than the ones configured in applications are
-   * blocked from being installed. When set, applications that were installed
-   * under a previous policy but no longer appear in the policy are
-   * automatically uninstalled.
+   * Optional. The policy for the autofill service.
+   *
+   * @var string
+   */
+  public $autofillPolicy;
+  /**
+   * This field has no effect.
    *
    * @deprecated
    * @var bool
@@ -456,8 +470,8 @@ class Policy extends \Google\Collection
    */
   public $createWindowsDisabled;
   /**
-   * Controls which apps are allowed to act as credential providers on Android
-   * 14 and above. These apps store credentials, see this
+   * Optional. Controls which apps are allowed to act as credential providers on
+   * Android 14 and above. These apps store credentials, see this
    * (https://developer.android.com/training/sign-in/passkeys) and this (https:/
    * /developer.android.com/reference/androidx/credentials/CredentialManager)
    * for details. See also credentialProviderPolicy.
@@ -654,7 +668,9 @@ class Policy extends \Google\Collection
    */
   public $networkEscapeHatchEnabled;
   /**
-   * Whether resetting network settings is disabled.
+   * Whether resetting network settings is disabled. This applies only on fully
+   * managed devices. A NonComplianceDetail with MANAGEMENT_MODE is reported for
+   * other management modes.
    *
    * @var bool
    */
@@ -749,7 +765,8 @@ class Policy extends \Google\Collection
    */
   public $safeBootDisabled;
   /**
-   * Whether screen capture is disabled.
+   * Whether screen capture is disabled. This also blocks Circle to Search
+   * (https://support.google.com/android/answer/14508957).
    *
    * @var bool
    */
@@ -1132,10 +1149,26 @@ class Policy extends \Google\Collection
     return $this->autoTimeRequired;
   }
   /**
-   * Whether applications other than the ones configured in applications are
-   * blocked from being installed. When set, applications that were installed
-   * under a previous policy but no longer appear in the policy are
-   * automatically uninstalled.
+   * Optional. The policy for the autofill service.
+   *
+   * Accepted values: AUTOFILL_POLICY_UNSPECIFIED, AUTOFILL_USER_CHOICE,
+   * AUTOFILL_DISABLED
+   *
+   * @param self::AUTOFILL_POLICY_* $autofillPolicy
+   */
+  public function setAutofillPolicy($autofillPolicy)
+  {
+    $this->autofillPolicy = $autofillPolicy;
+  }
+  /**
+   * @return self::AUTOFILL_POLICY_*
+   */
+  public function getAutofillPolicy()
+  {
+    return $this->autofillPolicy;
+  }
+  /**
+   * This field has no effect.
    *
    * @deprecated
    * @param bool $blockApplicationsEnabled
@@ -1317,8 +1350,8 @@ class Policy extends \Google\Collection
     return $this->createWindowsDisabled;
   }
   /**
-   * Controls which apps are allowed to act as credential providers on Android
-   * 14 and above. These apps store credentials, see this
+   * Optional. Controls which apps are allowed to act as credential providers on
+   * Android 14 and above. These apps store credentials, see this
    * (https://developer.android.com/training/sign-in/passkeys) and this (https:/
    * /developer.android.com/reference/androidx/credentials/CredentialManager)
    * for details. See also credentialProviderPolicy.
@@ -1910,7 +1943,9 @@ class Policy extends \Google\Collection
     return $this->networkEscapeHatchEnabled;
   }
   /**
-   * Whether resetting network settings is disabled.
+   * Whether resetting network settings is disabled. This applies only on fully
+   * managed devices. A NonComplianceDetail with MANAGEMENT_MODE is reported for
+   * other management modes.
    *
    * @param bool $networkResetDisabled
    */
@@ -2276,7 +2311,8 @@ class Policy extends \Google\Collection
     return $this->safeBootDisabled;
   }
   /**
-   * Whether screen capture is disabled.
+   * Whether screen capture is disabled. This also blocks Circle to Search
+   * (https://support.google.com/android/answer/14508957).
    *
    * @param bool $screenCaptureDisabled
    */

@@ -58,14 +58,14 @@ class CoursesCourseWorkStudentSubmissions extends \Google\Service\Resource
   }
   /**
    * Returns a list of student submissions that the requester is permitted to
-   * view, factoring in the OAuth scopes of the request. `-` may be specified as
-   * the `course_work_id` to include student submissions for multiple course work
-   * items. Course students may only view their own work. Course teachers and
-   * domain administrators may view all student submissions. This method returns
-   * the following error codes: * `PERMISSION_DENIED` if the requesting user is
-   * not permitted to access the requested course or course work, or for access
-   * errors. * `INVALID_ARGUMENT` if the request is malformed. * `NOT_FOUND` if
-   * the requested course does not exist.
+   * view, factoring in the OAuth scopes of the request. A hyphen (`-`) may be
+   * specified as the `course_work_id` to include student submissions for multiple
+   * course work items. Course students may only view their own work. Course
+   * teachers and domain administrators may view all student submissions. This
+   * method returns the following error codes: * `PERMISSION_DENIED` if the
+   * requesting user is not permitted to access the requested course or course
+   * work, or for access errors. * `INVALID_ARGUMENT` if the request is malformed.
+   * * `NOT_FOUND` if the requested course does not exist.
    * (studentSubmissions.listCoursesCourseWorkStudentSubmissions)
    *
    * @param string $courseId Identifier of the course. This identifier can be

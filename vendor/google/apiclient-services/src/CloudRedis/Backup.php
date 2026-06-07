@@ -52,6 +52,18 @@ class Backup extends \Google\Collection
    */
   public const NODE_TYPE_REDIS_STANDARD_SMALL = 'REDIS_STANDARD_SMALL';
   /**
+   * Redis highcpu medium node_type.
+   */
+  public const NODE_TYPE_REDIS_HIGHCPU_MEDIUM = 'REDIS_HIGHCPU_MEDIUM';
+  /**
+   * Redis standard large node_type.
+   */
+  public const NODE_TYPE_REDIS_STANDARD_LARGE = 'REDIS_STANDARD_LARGE';
+  /**
+   * Redis highmem 2xlarge node_type.
+   */
+  public const NODE_TYPE_REDIS_HIGHMEM_2XLARGE = 'REDIS_HIGHMEM_2XLARGE';
+  /**
    * The default value, not set.
    */
   public const STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED';
@@ -312,7 +324,8 @@ class Backup extends \Google\Collection
    * Output only. Node type of the cluster.
    *
    * Accepted values: NODE_TYPE_UNSPECIFIED, REDIS_SHARED_CORE_NANO,
-   * REDIS_HIGHMEM_MEDIUM, REDIS_HIGHMEM_XLARGE, REDIS_STANDARD_SMALL
+   * REDIS_HIGHMEM_MEDIUM, REDIS_HIGHMEM_XLARGE, REDIS_STANDARD_SMALL,
+   * REDIS_HIGHCPU_MEDIUM, REDIS_STANDARD_LARGE, REDIS_HIGHMEM_2XLARGE
    *
    * @param self::NODE_TYPE_* $nodeType
    */

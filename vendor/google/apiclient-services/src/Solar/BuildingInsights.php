@@ -54,6 +54,8 @@ class BuildingInsights extends \Google\Model
   protected $boundingBoxDataType = '';
   protected $centerType = LatLng::class;
   protected $centerDataType = '';
+  protected $detectedArraysType = BuildingInsightsDetectedArrays::class;
+  protected $detectedArraysDataType = '';
   protected $imageryDateType = Date::class;
   protected $imageryDateDataType = '';
   protected $imageryProcessedDateType = Date::class;
@@ -139,6 +141,24 @@ class BuildingInsights extends \Google\Model
   public function getCenter()
   {
     return $this->center;
+  }
+  /**
+   * Solar arrays detected on the building. This field is only populated if
+   * DETECTED_ARRAYS is included in the request's
+   * FindClosestBuildingInsightsRequest.additional_insights.
+   *
+   * @param BuildingInsightsDetectedArrays $detectedArrays
+   */
+  public function setDetectedArrays(BuildingInsightsDetectedArrays $detectedArrays)
+  {
+    $this->detectedArrays = $detectedArrays;
+  }
+  /**
+   * @return BuildingInsightsDetectedArrays
+   */
+  public function getDetectedArrays()
+  {
+    return $this->detectedArrays;
   }
   /**
    * Date that the underlying imagery was acquired. This is approximate.

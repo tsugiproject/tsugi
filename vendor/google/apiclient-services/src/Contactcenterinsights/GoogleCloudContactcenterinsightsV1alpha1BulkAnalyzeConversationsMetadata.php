@@ -46,6 +46,13 @@ class GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsMetadata e
   public $failedAnalysesCount;
   protected $partialErrorsType = GoogleRpcStatus::class;
   protected $partialErrorsDataType = 'array';
+  /**
+   * Output only. If true, the labeling rules will be re-evaluated for the
+   * conversations.
+   *
+   * @var bool
+   */
+  public $relabel;
   protected $requestType = GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsRequest::class;
   protected $requestDataType = '';
   /**
@@ -136,6 +143,23 @@ class GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsMetadata e
   public function getPartialErrors()
   {
     return $this->partialErrors;
+  }
+  /**
+   * Output only. If true, the labeling rules will be re-evaluated for the
+   * conversations.
+   *
+   * @param bool $relabel
+   */
+  public function setRelabel($relabel)
+  {
+    $this->relabel = $relabel;
+  }
+  /**
+   * @return bool
+   */
+  public function getRelabel()
+  {
+    return $this->relabel;
   }
   /**
    * The original request for bulk analyze.

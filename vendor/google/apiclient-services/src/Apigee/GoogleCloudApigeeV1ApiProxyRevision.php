@@ -90,6 +90,14 @@ class GoogleCloudApigeeV1ApiProxyRevision extends \Google\Collection
    */
   public $lastModifiedAt;
   /**
+   * Output only. Whether this proxy revision is detected as an MCP (Model
+   * Context Protocol) proxy. A proxy revision is identified as MCP if it has a
+   * proxy endpoint with the `/mcp` base path that routes to the MCP target URL.
+   *
+   * @var bool
+   */
+  public $mcp;
+  /**
    * Name of the API proxy.
    *
    * @var string
@@ -367,6 +375,24 @@ class GoogleCloudApigeeV1ApiProxyRevision extends \Google\Collection
   public function getLastModifiedAt()
   {
     return $this->lastModifiedAt;
+  }
+  /**
+   * Output only. Whether this proxy revision is detected as an MCP (Model
+   * Context Protocol) proxy. A proxy revision is identified as MCP if it has a
+   * proxy endpoint with the `/mcp` base path that routes to the MCP target URL.
+   *
+   * @param bool $mcp
+   */
+  public function setMcp($mcp)
+  {
+    $this->mcp = $mcp;
+  }
+  /**
+   * @return bool
+   */
+  public function getMcp()
+  {
+    return $this->mcp;
   }
   /**
    * Name of the API proxy.

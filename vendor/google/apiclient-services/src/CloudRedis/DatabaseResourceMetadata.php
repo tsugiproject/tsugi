@@ -41,6 +41,10 @@ class DatabaseResourceMetadata extends \Google\Collection
    */
   public const CURRENT_STATE_STATE_OTHER = 'STATE_OTHER';
   /**
+   * Instance is in STOPPED state.
+   */
+  public const CURRENT_STATE_STOPPED = 'STOPPED';
+  /**
    * Default, to make it consistent with instance edition enum.
    */
   public const EDITION_EDITION_UNSPECIFIED = 'EDITION_UNSPECIFIED';
@@ -77,6 +81,10 @@ class DatabaseResourceMetadata extends \Google\Collection
    * For rest of the other category
    */
   public const EXPECTED_STATE_STATE_OTHER = 'STATE_OTHER';
+  /**
+   * Instance is in STOPPED state.
+   */
+  public const EXPECTED_STATE_STOPPED = 'STOPPED';
   /**
    * Unspecified.
    *
@@ -128,6 +136,18 @@ class DatabaseResourceMetadata extends \Google\Collection
    */
   public const INSTANCE_TYPE_SUB_RESOURCE_TYPE_EXTERNAL_PRIMARY = 'SUB_RESOURCE_TYPE_EXTERNAL_PRIMARY';
   /**
+   * An instance acting as Read Pool.
+   */
+  public const INSTANCE_TYPE_SUB_RESOURCE_TYPE_READ_POOL = 'SUB_RESOURCE_TYPE_READ_POOL';
+  /**
+   * Represents a reservation resource.
+   */
+  public const INSTANCE_TYPE_SUB_RESOURCE_TYPE_RESERVATION = 'SUB_RESOURCE_TYPE_RESERVATION';
+  /**
+   * Represents a dataset resource.
+   */
+  public const INSTANCE_TYPE_SUB_RESOURCE_TYPE_DATASET = 'SUB_RESOURCE_TYPE_DATASET';
+  /**
    * For rest of the other categories.
    */
   public const INSTANCE_TYPE_SUB_RESOURCE_TYPE_OTHER = 'SUB_RESOURCE_TYPE_OTHER';
@@ -159,7 +179,7 @@ class DatabaseResourceMetadata extends \Google\Collection
    * Replicated cluster encryption key inaccessible.
    */
   public const SUSPENSION_REASON_REPLICATED_CLUSTER_ENCRYPTION_KEY_INACCESSIBLE = 'REPLICATED_CLUSTER_ENCRYPTION_KEY_INACCESSIBLE';
-  protected $collection_key = 'entitlements';
+  protected $collection_key = 'resourceFlags';
   protected $availabilityConfigurationType = AvailabilityConfiguration::class;
   protected $availabilityConfigurationDataType = '';
   protected $backupConfigurationType = BackupConfiguration::class;
@@ -227,6 +247,12 @@ class DatabaseResourceMetadata extends \Google\Collection
   protected $machineConfigurationDataType = '';
   protected $maintenanceInfoType = ResourceMaintenanceInfo::class;
   protected $maintenanceInfoDataType = '';
+  /**
+   * Optional. The modes of the database resource.
+   *
+   * @var string[]
+   */
+  public $modes;
   protected $primaryResourceIdType = DatabaseResourceId::class;
   protected $primaryResourceIdDataType = '';
   /**
@@ -247,6 +273,8 @@ class DatabaseResourceMetadata extends \Google\Collection
    * @var string
    */
   public $resourceContainer;
+  protected $resourceFlagsType = ResourceFlags::class;
+  protected $resourceFlagsDataType = 'array';
   /**
    * Required. Different from DatabaseResourceId.unique_id, a resource name can
    * be reused over time. That is, after a resource named "ABC" is deleted, the
@@ -366,7 +394,7 @@ class DatabaseResourceMetadata extends \Google\Collection
    * Current state of the instance.
    *
    * Accepted values: STATE_UNSPECIFIED, HEALTHY, UNHEALTHY, SUSPENDED, DELETED,
-   * STATE_OTHER
+   * STATE_OTHER, STOPPED
    *
    * @param self::CURRENT_STATE_* $currentState
    */
@@ -440,7 +468,7 @@ class DatabaseResourceMetadata extends \Google\Collection
    * expected state will remain at the HEALTHY.
    *
    * Accepted values: STATE_UNSPECIFIED, HEALTHY, UNHEALTHY, SUSPENDED, DELETED,
-   * STATE_OTHER
+   * STATE_OTHER, STOPPED
    *
    * @param self::EXPECTED_STATE_* $expectedState
    */
@@ -495,7 +523,9 @@ class DatabaseResourceMetadata extends \Google\Collection
    * Accepted values: INSTANCE_TYPE_UNSPECIFIED, SUB_RESOURCE_TYPE_UNSPECIFIED,
    * PRIMARY, SECONDARY, READ_REPLICA, OTHER, SUB_RESOURCE_TYPE_PRIMARY,
    * SUB_RESOURCE_TYPE_SECONDARY, SUB_RESOURCE_TYPE_READ_REPLICA,
-   * SUB_RESOURCE_TYPE_EXTERNAL_PRIMARY, SUB_RESOURCE_TYPE_OTHER
+   * SUB_RESOURCE_TYPE_EXTERNAL_PRIMARY, SUB_RESOURCE_TYPE_READ_POOL,
+   * SUB_RESOURCE_TYPE_RESERVATION, SUB_RESOURCE_TYPE_DATASET,
+   * SUB_RESOURCE_TYPE_OTHER
    *
    * @param self::INSTANCE_TYPE_* $instanceType
    */
@@ -575,6 +605,22 @@ class DatabaseResourceMetadata extends \Google\Collection
     return $this->maintenanceInfo;
   }
   /**
+   * Optional. The modes of the database resource.
+   *
+   * @param string[] $modes
+   */
+  public function setModes($modes)
+  {
+    $this->modes = $modes;
+  }
+  /**
+   * @return string[]
+   */
+  public function getModes()
+  {
+    return $this->modes;
+  }
+  /**
    * Identifier for this resource's immediate parent/primary resource if the
    * current resource is a replica or derived form of another Database resource.
    * Else it would be NULL. REQUIRED if the immediate parent exists when first
@@ -644,6 +690,22 @@ class DatabaseResourceMetadata extends \Google\Collection
   public function getResourceContainer()
   {
     return $this->resourceContainer;
+  }
+  /**
+   * Optional. List of resource flags for the database resource.
+   *
+   * @param ResourceFlags[] $resourceFlags
+   */
+  public function setResourceFlags($resourceFlags)
+  {
+    $this->resourceFlags = $resourceFlags;
+  }
+  /**
+   * @return ResourceFlags[]
+   */
+  public function getResourceFlags()
+  {
+    return $this->resourceFlags;
   }
   /**
    * Required. Different from DatabaseResourceId.unique_id, a resource name can

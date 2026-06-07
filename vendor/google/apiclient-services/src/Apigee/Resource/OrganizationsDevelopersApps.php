@@ -172,9 +172,12 @@ class OrganizationsDevelopersApps extends \Google\Service\Resource
    * limit is 1000.
    * @opt_param bool expand Optional. Specifies whether to expand the results. Set
    * to `true` to expand the results. This query parameter is not valid if you use
-   * the `count` or `startKey` query parameters.
+   * the `count` or `startKey` query parameters. **Note**: If set to `true`, the
+   * `apigee.developerapps.get` permission is required.
    * @opt_param bool shallowExpand Optional. Specifies whether to expand the
    * results in shallow mode. Set to `true` to expand the results in shallow mode.
+   * **Note**: If set to `true`, the `apigee.developerapps.get` permission is
+   * required.
    * @opt_param string startKey **Note**: Must be used in conjunction with the
    * `count` parameter. Name of the developer app from which to start displaying
    * the list of developer apps. For example, if you're returning 50 developer
@@ -200,7 +203,11 @@ class OrganizationsDevelopersApps extends \Google\Service\Resource
    * changed. * Scopes associated with the app. Instead, use the
    * ReplaceDeveloperAppKey API. This API replaces the existing attributes with
    * those specified in the request. Include or exclude any existing attributes
-   * that you want to retain or delete, respectively. (apps.update)
+   * that you want to retain or delete, respectively. **Note:** We recommend that
+   * you avoid making concurrent update requests for the same resource. Near-
+   * simultaneous writes to the same entity can result in conflicts and unexpected
+   * behavior. Ensure operations are sequential when modifying a single resource.
+   * (apps.update)
    *
    * @param string $name Required. Name of the developer app. Use the following
    * structure in your request:

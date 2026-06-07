@@ -17,14 +17,17 @@
 
 namespace Google\Service\TagManager;
 
-class CreateContainerVersionResponse extends \Google\Model
+class CreateContainerVersionResponse extends \Google\Collection
 {
+  protected $collection_key = 'compilerErrors';
   /**
    * Compiler errors or not.
    *
    * @var bool
    */
   public $compilerError;
+  protected $compilerErrorsType = CompilerErrorLite::class;
+  protected $compilerErrorsDataType = 'array';
   protected $containerVersionType = ContainerVersion::class;
   protected $containerVersionDataType = '';
   /**
@@ -53,6 +56,22 @@ class CreateContainerVersionResponse extends \Google\Model
   public function getCompilerError()
   {
     return $this->compilerError;
+  }
+  /**
+   * Compiler error details.
+   *
+   * @param CompilerErrorLite[] $compilerErrors
+   */
+  public function setCompilerErrors($compilerErrors)
+  {
+    $this->compilerErrors = $compilerErrors;
+  }
+  /**
+   * @return CompilerErrorLite[]
+   */
+  public function getCompilerErrors()
+  {
+    return $this->compilerErrors;
   }
   /**
    * The container version created.

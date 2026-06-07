@@ -24,9 +24,6 @@ class GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerativeSourc
   protected $snippetsDataType = 'array';
 
   /**
-   * All snippets used for this Generative Prediction, with their source URI and
-   * data.
-   *
    * @param GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerativeSourceSnippet[] $snippets
    */
   public function setSnippets($snippets)

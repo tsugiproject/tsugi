@@ -19,6 +19,25 @@ namespace Google\Service\BigtableAdmin;
 
 class GoogleBigtableAdminV2TypeBool extends \Google\Model
 {
+  protected $encodingType = GoogleBigtableAdminV2TypeBoolEncoding::class;
+  protected $encodingDataType = '';
+
+  /**
+   * Specifies the encoding to use when converting to or from lower level types.
+   *
+   * @param GoogleBigtableAdminV2TypeBoolEncoding $encoding
+   */
+  public function setEncoding(GoogleBigtableAdminV2TypeBoolEncoding $encoding)
+  {
+    $this->encoding = $encoding;
+  }
+  /**
+   * @return GoogleBigtableAdminV2TypeBoolEncoding
+   */
+  public function getEncoding()
+  {
+    return $this->encoding;
+  }
 }
 
 // Adding a class alias for backwards compatibility with the previous class name.

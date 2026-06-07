@@ -30,9 +30,10 @@ class ListInstancesResponse extends \Google\Collection
    */
   public $nextPageToken;
   /**
-   * Locations that could not be reached. For example, ['us-west1-a', 'us-
-   * central1-b']. A ListInstancesResponse will only contain either instances or
-   * unreachables,
+   * Unordered list. Locations that could not be reached. For example,
+   * ['projects/{project_id}/locations/us-west1-a',
+   * 'projects/{project_id}/locations/us-central1-b']. A ListInstancesResponse
+   * will only contain either instances or unreachables,
    *
    * @var string[]
    */
@@ -72,9 +73,10 @@ class ListInstancesResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * Locations that could not be reached. For example, ['us-west1-a', 'us-
-   * central1-b']. A ListInstancesResponse will only contain either instances or
-   * unreachables,
+   * Unordered list. Locations that could not be reached. For example,
+   * ['projects/{project_id}/locations/us-west1-a',
+   * 'projects/{project_id}/locations/us-central1-b']. A ListInstancesResponse
+   * will only contain either instances or unreachables,
    *
    * @param string[] $unreachable
    */

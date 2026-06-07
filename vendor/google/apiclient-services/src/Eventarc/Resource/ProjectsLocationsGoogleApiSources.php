@@ -64,11 +64,11 @@ class ProjectsLocationsGoogleApiSources extends \Google\Service\Resource
    * @param string $name Required. The name of the GoogleApiSource to be deleted.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param bool allowMissing Optional. If set to true, and the MessageBus is
-   * not found, the request will succeed but no action will be taken on the
-   * server.
-   * @opt_param string etag Optional. If provided, the MessageBus will only be
-   * deleted if the etag matches the current etag on the resource.
+   * @opt_param bool allowMissing Optional. If set to true, and the
+   * GoogleApiSource is not found, the request will succeed but no action will be
+   * taken on the server.
+   * @opt_param string etag Optional. If provided, the GoogleApiSource will only
+   * be deleted if the etag matches the current etag on the resource.
    * @opt_param bool validateOnly Optional. If set, validate the request and
    * preview the review, but do not post it.
    * @return GoogleLongrunningOperation

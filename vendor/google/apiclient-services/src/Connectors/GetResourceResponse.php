@@ -19,6 +19,15 @@ namespace Google\Service\Connectors;
 
 class GetResourceResponse extends \Google\Model
 {
+  protected $internal_gapi_mappings = [
+        "meta" => "_meta",
+  ];
+  /**
+   * Metadata for the resource.
+   *
+   * @var array[]
+   */
+  public $meta;
   /**
    * The content of the resource.
    *
@@ -38,6 +47,22 @@ class GetResourceResponse extends \Google\Model
    */
   public $mimeType;
 
+  /**
+   * Metadata for the resource.
+   *
+   * @param array[] $meta
+   */
+  public function setMeta($meta)
+  {
+    $this->meta = $meta;
+  }
+  /**
+   * @return array[]
+   */
+  public function getMeta()
+  {
+    return $this->meta;
+  }
   /**
    * The content of the resource.
    *

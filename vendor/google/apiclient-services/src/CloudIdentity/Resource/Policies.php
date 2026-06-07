@@ -18,6 +18,7 @@
 namespace Google\Service\CloudIdentity\Resource;
 
 use Google\Service\CloudIdentity\ListPoliciesResponse;
+use Google\Service\CloudIdentity\Operation;
 use Google\Service\CloudIdentity\Policy;
 
 /**
@@ -30,6 +31,35 @@ use Google\Service\CloudIdentity\Policy;
  */
 class Policies extends \Google\Service\Resource
 {
+  /**
+   * Create a policy. (policies.create)
+   *
+   * @param Policy $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function create(Policy $postBody, $optParams = [])
+  {
+    $params = ['postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('create', [$params], Operation::class);
+  }
+  /**
+   * Delete a policy. (policies.delete)
+   *
+   * @param string $name Required. The name of the policy to delete. Format:
+   * `policies/{policy}`.
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function delete($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('delete', [$params], Operation::class);
+  }
   /**
    * Get a policy. (policies.get)
    *
@@ -54,16 +84,18 @@ class Policies extends \Google\Service\Resource
    * results. Policies can be filtered by application with this expression:
    * setting.type.matches('^settings/gmail\\..*$') Policies can be filtered by
    * setting type with this expression:
-   * setting.type.matches('^.*\\.service_status$') A maximum of one of the above
-   * setting.type clauses can be used. Policies can be filtered by customer with
-   * this expression: customer == "customers/{customer}" Where `customer` is the
-   * `id` from the [Admin SDK `Customer`
+   * setting.type.matches('^.*\\.service_status$') Policies can be filtered by
+   * customer with this expression: customer == "customers/{customer}" Where
+   * `customer` is the `id` from the [Admin SDK `Customer`
    * resource](https://developers.google.com/admin-
    * sdk/directory/reference/rest/v1/customers). You may use
    * `customers/my_customer` to specify your own organization. When no customer is
-   * mentioned it will be default to customers/my_customer. A maximum of one
-   * customer clause can be used. The above clauses can only be combined together
-   * in a single filter expression with the `&&` operator.
+   * mentioned it will be default to customers/my_customer. You may only filter on
+   * policies for a single customer at a time. The above clauses can be combined
+   * together in a single filter expression with the `&&` and `||` operators, like
+   * in the following example: customer == "customers/my_customer" && (
+   * setting.type.matches('^settings/gmail\\..*$') ||
+   * setting.type.matches('^.*\\.service_status$') )
    * @opt_param int pageSize Optional. The maximum number of results to return.
    * The service can return fewer than this number. If omitted or set to 0, the
    * default is 50 results per page. The maximum allowed value is 100. `page_size`
@@ -80,6 +112,23 @@ class Policies extends \Google\Service\Resource
     $params = [];
     $params = array_merge($params, $optParams);
     return $this->call('list', [$params], ListPoliciesResponse::class);
+  }
+  /**
+   * Update a policy. (policies.patch)
+   *
+   * @param string $name Output only. Identifier. The [resource
+   * name](https://cloud.google.com/apis/design/resource_names) of the Policy.
+   * Format: policies/{policy}.
+   * @param Policy $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function patch($name, Policy $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('patch', [$params], Operation::class);
   }
 }
 

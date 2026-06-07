@@ -20,6 +20,8 @@ namespace Google\Service\ContainerAnalysis;
 class ContaineranalysisGoogleDevtoolsCloudbuildV1Artifacts extends \Google\Collection
 {
   protected $collection_key = 'pythonPackages';
+  protected $genericArtifactsType = ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsGenericArtifact::class;
+  protected $genericArtifactsDataType = 'array';
   protected $goModulesType = ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsGoModule::class;
   protected $goModulesDataType = 'array';
   /**
@@ -38,9 +40,29 @@ class ContaineranalysisGoogleDevtoolsCloudbuildV1Artifacts extends \Google\Colle
   protected $npmPackagesDataType = 'array';
   protected $objectsType = ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsArtifactObjects::class;
   protected $objectsDataType = '';
+  protected $ociType = ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsOci::class;
+  protected $ociDataType = 'array';
   protected $pythonPackagesType = ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsPythonPackage::class;
   protected $pythonPackagesDataType = 'array';
 
+  /**
+   * Optional. A list of generic artifacts to be uploaded to Artifact Registry
+   * upon successful completion of all build steps. If any artifacts fail to be
+   * pushed, the build is marked FAILURE.
+   *
+   * @param ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsGenericArtifact[] $genericArtifacts
+   */
+  public function setGenericArtifacts($genericArtifacts)
+  {
+    $this->genericArtifacts = $genericArtifacts;
+  }
+  /**
+   * @return ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsGenericArtifact[]
+   */
+  public function getGenericArtifacts()
+  {
+    return $this->genericArtifacts;
+  }
   /**
    * Optional. A list of Go modules to be uploaded to Artifact Registry upon
    * successful completion of all build steps. If any objects fail to be pushed,
@@ -139,6 +161,26 @@ class ContaineranalysisGoogleDevtoolsCloudbuildV1Artifacts extends \Google\Colle
   public function getObjects()
   {
     return $this->objects;
+  }
+  /**
+   * Optional. A list of OCI images to be uploaded to Artifact Registry upon
+   * successful completion of all build steps. OCI images in the specified paths
+   * will be uploaded to the specified Artifact Registry repository using the
+   * builder service account's credentials. If any images fail to be pushed, the
+   * build is marked FAILURE.
+   *
+   * @param ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsOci[] $oci
+   */
+  public function setOci($oci)
+  {
+    $this->oci = $oci;
+  }
+  /**
+   * @return ContaineranalysisGoogleDevtoolsCloudbuildV1ArtifactsOci[]
+   */
+  public function getOci()
+  {
+    return $this->oci;
   }
   /**
    * A list of Python packages to be uploaded to Artifact Registry upon

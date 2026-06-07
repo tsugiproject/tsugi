@@ -94,6 +94,19 @@ class AutoscalingPolicy extends \Google\Collection
   protected $scaleInControlDataType = '';
   protected $scalingSchedulesType = AutoscalingPolicyScalingSchedule::class;
   protected $scalingSchedulesDataType = 'map';
+  /**
+   * The number of seconds that autoscaler waits for load stabilization before
+   * making scale-in decisions. This is referred to as the [stabilization
+   * period](/compute/docs/autoscaler#stabilization_period). This might appear
+   * as a delay in scaling in but it is an important mechanism for your
+   * application to not have fluctuating size due to short term load
+   * fluctuations.
+   *
+   * The default stabilization period is 600 seconds.
+   *
+   * @var int
+   */
+  public $stabilizationPeriodSec;
 
   /**
    * The number of seconds that your application takes to initialize on a VM
@@ -262,6 +275,29 @@ class AutoscalingPolicy extends \Google\Collection
   public function getScalingSchedules()
   {
     return $this->scalingSchedules;
+  }
+  /**
+   * The number of seconds that autoscaler waits for load stabilization before
+   * making scale-in decisions. This is referred to as the [stabilization
+   * period](/compute/docs/autoscaler#stabilization_period). This might appear
+   * as a delay in scaling in but it is an important mechanism for your
+   * application to not have fluctuating size due to short term load
+   * fluctuations.
+   *
+   * The default stabilization period is 600 seconds.
+   *
+   * @param int $stabilizationPeriodSec
+   */
+  public function setStabilizationPeriodSec($stabilizationPeriodSec)
+  {
+    $this->stabilizationPeriodSec = $stabilizationPeriodSec;
+  }
+  /**
+   * @return int
+   */
+  public function getStabilizationPeriodSec()
+  {
+    return $this->stabilizationPeriodSec;
   }
 }
 

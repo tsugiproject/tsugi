@@ -51,6 +51,10 @@ class Publishing extends \Google\Collection
    * Generative AI - https://developers.generativeai.google
    */
   public const ORGANIZATION_GENERATIVE_AI = 'GENERATIVE_AI';
+  /**
+   * Health Org.
+   */
+  public const ORGANIZATION_HEALTH = 'HEALTH';
   protected $collection_key = 'methodSettings';
   /**
    * Used as a tracking tag when collecting data about the APIs developer
@@ -254,7 +258,7 @@ class Publishing extends \Google\Collection
    * For whom the client library is being published.
    *
    * Accepted values: CLIENT_LIBRARY_ORGANIZATION_UNSPECIFIED, CLOUD, ADS,
-   * PHOTOS, STREET_VIEW, SHOPPING, GEO, GENERATIVE_AI
+   * PHOTOS, STREET_VIEW, SHOPPING, GEO, GENERATIVE_AI, HEALTH
    *
    * @param self::ORGANIZATION_* $organization
    */

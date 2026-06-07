@@ -49,6 +49,12 @@ class ConsumerConfig extends \Google\Collection
    */
   public $consumerImportSubnetRoutesWithPublicIp;
   /**
+   * Output only. If this is true, consumer peering is active.
+   *
+   * @var bool
+   */
+  public $consumerPeeringActive;
+  /**
    * Export custom routes flag value for peering from producer to consumer.
    *
    * @var bool
@@ -180,6 +186,22 @@ class ConsumerConfig extends \Google\Collection
   public function getConsumerImportSubnetRoutesWithPublicIp()
   {
     return $this->consumerImportSubnetRoutesWithPublicIp;
+  }
+  /**
+   * Output only. If this is true, consumer peering is active.
+   *
+   * @param bool $consumerPeeringActive
+   */
+  public function setConsumerPeeringActive($consumerPeeringActive)
+  {
+    $this->consumerPeeringActive = $consumerPeeringActive;
+  }
+  /**
+   * @return bool
+   */
+  public function getConsumerPeeringActive()
+  {
+    return $this->consumerPeeringActive;
   }
   /**
    * Export custom routes flag value for peering from producer to consumer.

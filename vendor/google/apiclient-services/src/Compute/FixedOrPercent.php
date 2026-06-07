@@ -20,8 +20,8 @@ namespace Google\Service\Compute;
 class FixedOrPercent extends \Google\Model
 {
   /**
-   * Output only. [Output Only] Absolute value of VM instances calculated based
-   * on the specific mode.
+   * Output only. Absolute value of VM instances calculated based on the
+   * specific mode.
    *
    *             - If the value is fixed, then the calculated      value is
    * equal to the fixed value.     - If the value is a percent, then the
@@ -48,8 +48,8 @@ class FixedOrPercent extends \Google\Model
   public $percent;
 
   /**
-   * Output only. [Output Only] Absolute value of VM instances calculated based
-   * on the specific mode.
+   * Output only. Absolute value of VM instances calculated based on the
+   * specific mode.
    *
    *             - If the value is fixed, then the calculated      value is
    * equal to the fixed value.     - If the value is a percent, then the

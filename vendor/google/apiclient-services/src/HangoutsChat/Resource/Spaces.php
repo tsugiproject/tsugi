@@ -20,6 +20,7 @@ namespace Google\Service\HangoutsChat\Resource;
 use Google\Service\HangoutsChat\ChatEmpty;
 use Google\Service\HangoutsChat\CompleteImportSpaceRequest;
 use Google\Service\HangoutsChat\CompleteImportSpaceResponse;
+use Google\Service\HangoutsChat\FindGroupChatsResponse;
 use Google\Service\HangoutsChat\ListSpacesResponse;
 use Google\Service\HangoutsChat\SearchSpacesResponse;
 use Google\Service\HangoutsChat\SetUpSpaceRequest;
@@ -195,6 +196,62 @@ class Spaces extends \Google\Service\Resource
     $params = [];
     $params = array_merge($params, $optParams);
     return $this->call('findDirectMessage', [$params], Space::class);
+  }
+  /**
+   * Returns all spaces with `spaceType == GROUP_CHAT`, whose human memberships
+   * contain exactly the calling user, and the users specified in
+   * `FindGroupChatsRequest.users`. Only members that have joined the conversation
+   * are supported. For an example, see [Find group
+   * chats](https://developers.google.com/workspace/chat/find-group-chats). If the
+   * calling user blocks, or is blocked by, some users, and no spaces with the
+   * entire specified set of users are found, this method returns spaces that
+   * don't include the blocked or blocking users. The specified set of users must
+   * contain only human (non-app) memberships. A request that contains non-human
+   * users doesn't return any spaces. Requires [user
+   * authentication](https://developers.google.com/workspace/chat/authenticate-
+   * authorize-chat-user) with one of the following [authorization
+   * scopes](https://developers.google.com/workspace/chat/authenticate-
+   * authorize#chat-api-scopes): -
+   * `https://www.googleapis.com/auth/chat.memberships.readonly` -
+   * `https://www.googleapis.com/auth/chat.memberships` (spaces.findGroupChats)
+   *
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param int pageSize Optional. The maximum number of spaces to return. The
+   * service might return fewer than this value. If unspecified, at most 10 spaces
+   * are returned. The maximum value is 30. If you use a value more than 30, it's
+   * automatically changed to 30. Negative values return an `INVALID_ARGUMENT`
+   * error.
+   * @opt_param string pageToken Optional. A page token, received from a previous
+   * call to find group chats. Provide this parameter to retrieve the subsequent
+   * page. When paginating, all other parameters provided should match the call
+   * that provided the token. Passing different values may lead to unexpected
+   * results.
+   * @opt_param string spaceView Requested space view type. If unset, defaults to
+   * `SPACE_VIEW_RESOURCE_NAME_ONLY`. Requests that specify `SPACE_VIEW_EXPANDED`
+   * must include scopes that allow reading space data, for example,
+   * https://www.googleapis.com/auth/chat.spaces or
+   * https://www.googleapis.com/auth/chat.spaces.readonly.
+   * @opt_param string users Optional. Resource names of all human users in group
+   * chat with the calling user. Chat apps can't be included in the request. The
+   * maximum number of users that can be specified in a single request is `49`.
+   * Format: `users/{user}`, where `{user}` is either the `id` for the
+   * [person](https://developers.google.com/people/api/rest/v1/people) from the
+   * People API, or the `id` for the [user](https://developers.google.com/admin-
+   * sdk/directory/reference/rest/v1/users) in the Directory API. For example, to
+   * find all group chats with the calling user and two other users, with People
+   * API profile IDs `123456789` and `987654321`, you can use `users/123456789`
+   * and `users/987654321`. You can also use the email as an alias for `{user}`.
+   * For example, `users/example@gmail.com` where `example@gmail.com` is the email
+   * of the Google Chat user.
+   * @return FindGroupChatsResponse
+   * @throws \Google\Service\Exception
+   */
+  public function findGroupChats($optParams = [])
+  {
+    $params = [];
+    $params = array_merge($params, $optParams);
+    return $this->call('findGroupChats', [$params], FindGroupChatsResponse::class);
   }
   /**
    * Returns details about a space. For an example, see [Get details about a
@@ -421,7 +478,7 @@ class Spaces extends \Google\Service\Resource
    * the page token. Passing different values to the other parameters might lead
    * to unexpected results.
    * @opt_param string query Required. A search query. You can search by using the
-   * following parameters: - `create_time` - `customer` - `display_name` -
+   * following parameters : - `create_time` - `customer` - `display_name` -
    * `external_user_allowed` - `last_active_time` - `space_history_state` -
    * `space_type` `create_time` and `last_active_time` accept a timestamp in
    * [RFC-3339](https://www.rfc-editor.org/rfc/rfc3339) format and the supported

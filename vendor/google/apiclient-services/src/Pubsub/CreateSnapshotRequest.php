@@ -42,7 +42,9 @@ class CreateSnapshotRequest extends \Google\Model
   /**
    * Optional. Input only. Immutable. Tag keys/values directly bound to this
    * resource. For example: "123/environment": "production", "123/costCenter":
-   * "marketing"
+   * "marketing" See
+   * https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags
+   * for more information on using tags with Pub/Sub resources.
    *
    * @var string[]
    */
@@ -91,7 +93,9 @@ class CreateSnapshotRequest extends \Google\Model
   /**
    * Optional. Input only. Immutable. Tag keys/values directly bound to this
    * resource. For example: "123/environment": "production", "123/costCenter":
-   * "marketing"
+   * "marketing" See
+   * https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags
+   * for more information on using tags with Pub/Sub resources.
    *
    * @param string[] $tags
    */

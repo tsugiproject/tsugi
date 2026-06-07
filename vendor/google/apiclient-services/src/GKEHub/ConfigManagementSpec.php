@@ -34,12 +34,14 @@ class ConfigManagementSpec extends \Google\Model
   protected $binauthzType = ConfigManagementBinauthzConfig::class;
   protected $binauthzDataType = '';
   /**
-   * Optional. The user-specified cluster name used by Config Sync cluster-name-
-   * selector annotation or ClusterSelector, for applying configs to only a
-   * subset of clusters. Omit this field if the cluster's fleet membership name
-   * is used by Config Sync cluster-name-selector annotation or ClusterSelector.
-   * Set this field if a name different from the cluster's fleet membership name
-   * is used by Config Sync cluster-name-selector annotation or ClusterSelector.
+   * Optional. User-specified cluster name used by the Config Sync cluster-name-
+   * selector annotation or ClusterSelector object, for applying configs to only
+   * a subset of clusters. Read more about the cluster-name-selector annotation
+   * and ClusterSelector object at https://docs.cloud.google.com/kubernetes-
+   * engine/config-sync/docs/how-to/cluster-scoped-objects#limiting-configs.
+   * Only set this field if a name different from the cluster's fleet membership
+   * name is used by the Config Sync cluster-name-selector annotation or
+   * ClusterSelector.
    *
    * @var string
    */
@@ -49,23 +51,28 @@ class ConfigManagementSpec extends \Google\Model
   protected $hierarchyControllerType = ConfigManagementHierarchyControllerConfig::class;
   protected $hierarchyControllerDataType = '';
   /**
-   * Optional. Enables automatic Feature management.
+   * Optional. Deprecated: From version 1.21.0, automatic Feature management is
+   * unavailable, and Config Sync only supports manual upgrades.
    *
+   * @deprecated
    * @var string
    */
   public $management;
   protected $policyControllerType = ConfigManagementPolicyController::class;
   protected $policyControllerDataType = '';
   /**
-   * Optional. Version of ACM installed.
+   * Optional. Version of Config Sync to install. Defaults to the latest
+   * supported Config Sync version if the config_sync field is enabled. See
+   * supported versions at https://cloud.google.com/kubernetes-engine/config-
+   * sync/docs/get-support-config-sync#version_support_policy.
    *
    * @var string
    */
   public $version;
 
   /**
-   * Optional. Binauthz conifguration for the cluster. Deprecated: This field
-   * will be ignored and should not be set.
+   * Optional. Deprecated: Binauthz configuration will be ignored and should not
+   * be set.
    *
    * @deprecated
    * @param ConfigManagementBinauthzConfig $binauthz
@@ -83,12 +90,14 @@ class ConfigManagementSpec extends \Google\Model
     return $this->binauthz;
   }
   /**
-   * Optional. The user-specified cluster name used by Config Sync cluster-name-
-   * selector annotation or ClusterSelector, for applying configs to only a
-   * subset of clusters. Omit this field if the cluster's fleet membership name
-   * is used by Config Sync cluster-name-selector annotation or ClusterSelector.
-   * Set this field if a name different from the cluster's fleet membership name
-   * is used by Config Sync cluster-name-selector annotation or ClusterSelector.
+   * Optional. User-specified cluster name used by the Config Sync cluster-name-
+   * selector annotation or ClusterSelector object, for applying configs to only
+   * a subset of clusters. Read more about the cluster-name-selector annotation
+   * and ClusterSelector object at https://docs.cloud.google.com/kubernetes-
+   * engine/config-sync/docs/how-to/cluster-scoped-objects#limiting-configs.
+   * Only set this field if a name different from the cluster's fleet membership
+   * name is used by the Config Sync cluster-name-selector annotation or
+   * ClusterSelector.
    *
    * @param string $cluster
    */
@@ -141,11 +150,13 @@ class ConfigManagementSpec extends \Google\Model
     return $this->hierarchyController;
   }
   /**
-   * Optional. Enables automatic Feature management.
+   * Optional. Deprecated: From version 1.21.0, automatic Feature management is
+   * unavailable, and Config Sync only supports manual upgrades.
    *
    * Accepted values: MANAGEMENT_UNSPECIFIED, MANAGEMENT_AUTOMATIC,
    * MANAGEMENT_MANUAL
    *
+   * @deprecated
    * @param self::MANAGEMENT_* $management
    */
   public function setManagement($management)
@@ -153,6 +164,7 @@ class ConfigManagementSpec extends \Google\Model
     $this->management = $management;
   }
   /**
+   * @deprecated
    * @return self::MANAGEMENT_*
    */
   public function getManagement()
@@ -180,7 +192,10 @@ class ConfigManagementSpec extends \Google\Model
     return $this->policyController;
   }
   /**
-   * Optional. Version of ACM installed.
+   * Optional. Version of Config Sync to install. Defaults to the latest
+   * supported Config Sync version if the config_sync field is enabled. See
+   * supported versions at https://cloud.google.com/kubernetes-engine/config-
+   * sync/docs/get-support-config-sync#version_support_policy.
    *
    * @param string $version
    */

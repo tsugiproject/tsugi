@@ -61,6 +61,14 @@ class ProjectsAppsDebugTokens extends \Google\Service\Resource
    * delete, in the format: ```
    * projects/{project_number}/apps/{app_id}/debugTokens/{debug_token_id} ```
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string etag Optional. The checksum to be validated against the
+   * current DebugToken, to ensure the client has an up-to-date value before
+   * proceeding. This checksum is computed by the server based on the values of
+   * fields in the DebugToken object, and can be obtained from the DebugToken
+   * object received from the last CreateDebugToken, GetDebugToken,
+   * ListDebugTokens, or UpdateDebugToken call. This etag is strongly validated as
+   * defined by RFC 7232.
    * @return GoogleProtobufEmpty
    * @throws \Google\Service\Exception
    */

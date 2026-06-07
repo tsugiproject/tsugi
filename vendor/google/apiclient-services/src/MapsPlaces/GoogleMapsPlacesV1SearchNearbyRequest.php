@@ -71,6 +71,13 @@ class GoogleMapsPlacesV1SearchNearbyRequest extends \Google\Collection
    */
   public $excludedTypes;
   /**
+   * Optional. If true, include businesses that are not yet open but will open
+   * in the future.
+   *
+   * @var bool
+   */
+  public $includeFutureOpeningBusinesses;
+  /**
    * Included primary Place type (e.g. "restaurant" or "gas_station") from
    * https://developers.google.com/maps/documentation/places/web-service/place-
    * types. A place can only have a single primary type from the supported types
@@ -203,6 +210,23 @@ class GoogleMapsPlacesV1SearchNearbyRequest extends \Google\Collection
   public function getExcludedTypes()
   {
     return $this->excludedTypes;
+  }
+  /**
+   * Optional. If true, include businesses that are not yet open but will open
+   * in the future.
+   *
+   * @param bool $includeFutureOpeningBusinesses
+   */
+  public function setIncludeFutureOpeningBusinesses($includeFutureOpeningBusinesses)
+  {
+    $this->includeFutureOpeningBusinesses = $includeFutureOpeningBusinesses;
+  }
+  /**
+   * @return bool
+   */
+  public function getIncludeFutureOpeningBusinesses()
+  {
+    return $this->includeFutureOpeningBusinesses;
   }
   /**
    * Included primary Place type (e.g. "restaurant" or "gas_station") from

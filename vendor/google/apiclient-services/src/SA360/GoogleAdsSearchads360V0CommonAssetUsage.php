@@ -157,6 +157,46 @@ class GoogleAdsSearchads360V0CommonAssetUsage extends \Google\Model
    */
   public const SERVED_ASSET_FIELD_TYPE_DESCRIPTION_PREFIX = 'DESCRIPTION_PREFIX';
   /**
+   * The asset is used as an app icon.
+   */
+  public const SERVED_ASSET_FIELD_TYPE_APP_ICON = 'APP_ICON';
+  /**
+   * The asset is used as an app title.
+   */
+  public const SERVED_ASSET_FIELD_TYPE_APP_TITLE = 'APP_TITLE';
+  /**
+   * The asset is used as an app screenshot.
+   */
+  public const SERVED_ASSET_FIELD_TYPE_APP_SCREENSHOT = 'APP_SCREENSHOT';
+  /**
+   * The asset is used as an app cover photo.
+   */
+  public const SERVED_ASSET_FIELD_TYPE_APP_COVER_PHOTO = 'APP_COVER_PHOTO';
+  /**
+   * The asset is used as an app short description.
+   */
+  public const SERVED_ASSET_FIELD_TYPE_APP_SHORT_DESCRIPTION = 'APP_SHORT_DESCRIPTION';
+  /**
+   * The asset is used as an app developer name.
+   */
+  public const SERVED_ASSET_FIELD_TYPE_APP_DEVELOPER_NAME = 'APP_DEVELOPER_NAME';
+  /**
+   * A headline asset used as a sitelink in position 1.
+   */
+  public const SERVED_ASSET_FIELD_TYPE_HEADLINE_AS_SITELINK_POSITION_ONE = 'HEADLINE_AS_SITELINK_POSITION_ONE';
+  /**
+   * A headline asset used as a sitelink in position 2.
+   */
+  public const SERVED_ASSET_FIELD_TYPE_HEADLINE_AS_SITELINK_POSITION_TWO = 'HEADLINE_AS_SITELINK_POSITION_TWO';
+  /**
+   * A description line asset used as a sitelink in position 1.
+   */
+  public const SERVED_ASSET_FIELD_TYPE_DESCRIPTION_LINE_HEADLINE_AS_SITELINK_POSITION_ONE = 'DESCRIPTION_LINE_HEADLINE_AS_SITELINK_POSITION_ONE';
+  /**
+   * A description line asset used as a sitelink in position 2.
+   */
+  public const SERVED_ASSET_FIELD_TYPE_DESCRIPTION_LINE_HEADLINE_AS_SITELINK_POSITION_TWO = 'DESCRIPTION_LINE_HEADLINE_AS_SITELINK_POSITION_TWO';
+  /**
    * Resource name of the asset.
    *
    * @var string
@@ -195,7 +235,12 @@ class GoogleAdsSearchads360V0CommonAssetUsage extends \Google\Model
    * MARKETING_IMAGE_IN_PORTRAIT, SQUARE_MARKETING_IMAGE,
    * PORTRAIT_MARKETING_IMAGE, LOGO, LANDSCAPE_LOGO, CALL_TO_ACTION,
    * YOU_TUBE_VIDEO, SITELINK, CALL, MOBILE_APP, CALLOUT, STRUCTURED_SNIPPET,
-   * PRICE, PROMOTION, AD_IMAGE, LEAD_FORM, BUSINESS_LOGO, DESCRIPTION_PREFIX
+   * PRICE, PROMOTION, AD_IMAGE, LEAD_FORM, BUSINESS_LOGO, DESCRIPTION_PREFIX,
+   * APP_ICON, APP_TITLE, APP_SCREENSHOT, APP_COVER_PHOTO,
+   * APP_SHORT_DESCRIPTION, APP_DEVELOPER_NAME,
+   * HEADLINE_AS_SITELINK_POSITION_ONE, HEADLINE_AS_SITELINK_POSITION_TWO,
+   * DESCRIPTION_LINE_HEADLINE_AS_SITELINK_POSITION_ONE,
+   * DESCRIPTION_LINE_HEADLINE_AS_SITELINK_POSITION_TWO
    *
    * @param self::SERVED_ASSET_FIELD_TYPE_* $servedAssetFieldType
    */

@@ -39,22 +39,17 @@ class DatastoreMountConfig extends \Google\Collection
    * NFS 3
    */
   public const NFS_VERSION_NFS_V3 = 'NFS_V3';
-  /**
-   * The default value. This value should never be used.
-   */
-  public const SECURITY_TYPE_SECURITY_TYPE_UNSPECIFIED = 'SECURITY_TYPE_UNSPECIFIED';
   protected $collection_key = 'servers';
   /**
-   * Optional. NFS is accessed by hosts in read mode Optional. Default value
-   * used will be READ_WRITE
+   * Optional. The access mode of the NFS volume. Optional. Default value used
+   * will be READ_WRITE
    *
    * @var string
    */
   public $accessMode;
   /**
-   * Required. The resource name of the datastore to unmount. The datastore
-   * requested to be mounted should be in same region/zone as the cluster.
-   * Resource names are schemeless URIs that follow the conventions in
+   * Required. The resource name of the datastore to mount. Resource names are
+   * schemeless URIs that follow the conventions in
    * https://cloud.google.com/apis/design/resource_names. For example:
    * `projects/my-project/locations/us-central1/datastores/my-datastore`
    *
@@ -77,12 +72,6 @@ class DatastoreMountConfig extends \Google\Collection
    */
   public $nfsVersion;
   /**
-   * Optional. ONLY required when NFS 4.1 version is used
-   *
-   * @var string
-   */
-  public $securityType;
-  /**
    * Output only. Server IP addresses of the NFS volume. For NFS 3, you can only
    * provide a single server IP address or DNS names.
    *
@@ -91,8 +80,8 @@ class DatastoreMountConfig extends \Google\Collection
   public $servers;
 
   /**
-   * Optional. NFS is accessed by hosts in read mode Optional. Default value
-   * used will be READ_WRITE
+   * Optional. The access mode of the NFS volume. Optional. Default value used
+   * will be READ_WRITE
    *
    * Accepted values: ACCESS_MODE_UNSPECIFIED, READ_ONLY, READ_WRITE
    *
@@ -110,9 +99,8 @@ class DatastoreMountConfig extends \Google\Collection
     return $this->accessMode;
   }
   /**
-   * Required. The resource name of the datastore to unmount. The datastore
-   * requested to be mounted should be in same region/zone as the cluster.
-   * Resource names are schemeless URIs that follow the conventions in
+   * Required. The resource name of the datastore to mount. Resource names are
+   * schemeless URIs that follow the conventions in
    * https://cloud.google.com/apis/design/resource_names. For example:
    * `projects/my-project/locations/us-central1/datastores/my-datastore`
    *
@@ -179,24 +167,6 @@ class DatastoreMountConfig extends \Google\Collection
   public function getNfsVersion()
   {
     return $this->nfsVersion;
-  }
-  /**
-   * Optional. ONLY required when NFS 4.1 version is used
-   *
-   * Accepted values: SECURITY_TYPE_UNSPECIFIED
-   *
-   * @param self::SECURITY_TYPE_* $securityType
-   */
-  public function setSecurityType($securityType)
-  {
-    $this->securityType = $securityType;
-  }
-  /**
-   * @return self::SECURITY_TYPE_*
-   */
-  public function getSecurityType()
-  {
-    return $this->securityType;
   }
   /**
    * Output only. Server IP addresses of the NFS volume. For NFS 3, you can only

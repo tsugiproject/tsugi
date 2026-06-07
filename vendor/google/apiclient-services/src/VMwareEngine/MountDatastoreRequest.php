@@ -38,6 +38,13 @@ class MountDatastoreRequest extends \Google\Model
    * @var string
    */
   public $requestId;
+  /**
+   * Optional. If set to `true`, only validates the request but doesn’t execute
+   * the request. If set to `false`, validates and executes the request.
+   *
+   * @var bool
+   */
+  public $validateOnly;
 
   /**
    * Required. The datastore mount configuration.
@@ -91,6 +98,23 @@ class MountDatastoreRequest extends \Google\Model
   public function getRequestId()
   {
     return $this->requestId;
+  }
+  /**
+   * Optional. If set to `true`, only validates the request but doesn’t execute
+   * the request. If set to `false`, validates and executes the request.
+   *
+   * @param bool $validateOnly
+   */
+  public function setValidateOnly($validateOnly)
+  {
+    $this->validateOnly = $validateOnly;
+  }
+  /**
+   * @return bool
+   */
+  public function getValidateOnly()
+  {
+    return $this->validateOnly;
   }
 }
 

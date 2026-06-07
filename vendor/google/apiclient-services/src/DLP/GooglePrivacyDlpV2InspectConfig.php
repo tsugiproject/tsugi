@@ -248,7 +248,8 @@ class GooglePrivacyDlpV2InspectConfig extends \Google\Collection
   /**
    * Set of rules to apply to the findings for this InspectConfig. Exclusion
    * rules, contained in the set are executed in the end, other rules are
-   * executed in the order they are specified for each info type.
+   * executed in the order they are specified for each info type. Not supported
+   * for the `metadata_key_value_expression` CustomInfoType.
    *
    * @param GooglePrivacyDlpV2InspectionRuleSet[] $ruleSet
    */

@@ -61,7 +61,7 @@ class Reservation extends \Google\Model
    * available in other reservations, the reservation will scale up to 1000
    * slots with 200 baseline and 800 idle slots. 2. if there are 500 idle slots
    * available in other reservations, the reservation will scale up to 700 slots
-   * with 200 baseline and 300 idle slots. Please note, in this mode, the
+   * with 200 baseline and 500 idle slots. Please note, in this mode, the
    * reservation might not be able to scale up to max_slots. Please note, in
    * this mode, the ignore_idle_slots field must be set to false. Otherwise the
    * request will be rejected with error code

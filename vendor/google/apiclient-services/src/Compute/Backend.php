@@ -28,6 +28,10 @@ class Backend extends \Google\Collection
    */
   public const BALANCING_MODE_CUSTOM_METRICS = 'CUSTOM_METRICS';
   /**
+   * Balance based on the number of in-flight requests.
+   */
+  public const BALANCING_MODE_IN_FLIGHT = 'IN_FLIGHT';
+  /**
    * Balance based on requests per second (RPS).
    */
   public const BALANCING_MODE_RATE = 'RATE';
@@ -47,6 +51,19 @@ class Backend extends \Google\Collection
    * Traffic will be sent to this backend first.
    */
   public const PREFERENCE_PREFERRED = 'PREFERRED';
+  /**
+   * Most of the requests are expected to take more than multiple seconds to
+   * finish.
+   */
+  public const TRAFFIC_DURATION_LONG = 'LONG';
+  /**
+   * Most requests are expected to finish with a sub-second latency.
+   */
+  public const TRAFFIC_DURATION_SHORT = 'SHORT';
+  /**
+   * Traffic duration is unspecified.
+   */
+  public const TRAFFIC_DURATION_TRAFFIC_DURATION_UNSPECIFIED = 'TRAFFIC_DURATION_UNSPECIFIED';
   protected $collection_key = 'customMetrics';
   /**
    * Specifies how to determine whether the backend of a load balancer can
@@ -141,6 +158,28 @@ class Backend extends \Google\Collection
    */
   public $maxConnectionsPerInstance;
   /**
+   * Defines a maximum number of in-flight requests for the whole NEG or
+   * instance group. Not available if backend's balancingMode isRATE or
+   * CONNECTION.
+   *
+   * @var int
+   */
+  public $maxInFlightRequests;
+  /**
+   * Defines a maximum number of in-flight requests for a single endpoint. Not
+   * available if backend's balancingMode is RATE or CONNECTION.
+   *
+   * @var int
+   */
+  public $maxInFlightRequestsPerEndpoint;
+  /**
+   * Defines a maximum number of in-flight requests for a single VM. Not
+   * available if backend's balancingMode is RATE or CONNECTION.
+   *
+   * @var int
+   */
+  public $maxInFlightRequestsPerInstance;
+  /**
    * Defines a maximum number of HTTP requests per second (RPS). For usage
    * guidelines, seeRate balancing mode and Utilization balancing mode.
    *
@@ -176,6 +215,8 @@ class Backend extends \Google\Collection
    * @var float
    */
   public $maxUtilization;
+  protected $orchestrationInfoType = BackendBackendOrchestrationInfo::class;
+  protected $orchestrationInfoDataType = '';
   /**
    * This field indicates whether this backend should be fully utilized before
    * sending traffic to backends with default preference. The possible values
@@ -188,6 +229,10 @@ class Backend extends \Google\Collection
    * @var string
    */
   public $preference;
+  /**
+   * @var string
+   */
+  public $trafficDuration;
 
   /**
    * Specifies how to determine whether the backend of a load balancer can
@@ -204,7 +249,7 @@ class Backend extends \Google\Collection
    * Backend.balancingMode is RATE. In the future, this incompatible combination
    * will be rejected.
    *
-   * Accepted values: CONNECTION, CUSTOM_METRICS, RATE, UTILIZATION
+   * Accepted values: CONNECTION, CUSTOM_METRICS, IN_FLIGHT, RATE, UTILIZATION
    *
    * @param self::BALANCING_MODE_* $balancingMode
    */
@@ -378,6 +423,58 @@ class Backend extends \Google\Collection
     return $this->maxConnectionsPerInstance;
   }
   /**
+   * Defines a maximum number of in-flight requests for the whole NEG or
+   * instance group. Not available if backend's balancingMode isRATE or
+   * CONNECTION.
+   *
+   * @param int $maxInFlightRequests
+   */
+  public function setMaxInFlightRequests($maxInFlightRequests)
+  {
+    $this->maxInFlightRequests = $maxInFlightRequests;
+  }
+  /**
+   * @return int
+   */
+  public function getMaxInFlightRequests()
+  {
+    return $this->maxInFlightRequests;
+  }
+  /**
+   * Defines a maximum number of in-flight requests for a single endpoint. Not
+   * available if backend's balancingMode is RATE or CONNECTION.
+   *
+   * @param int $maxInFlightRequestsPerEndpoint
+   */
+  public function setMaxInFlightRequestsPerEndpoint($maxInFlightRequestsPerEndpoint)
+  {
+    $this->maxInFlightRequestsPerEndpoint = $maxInFlightRequestsPerEndpoint;
+  }
+  /**
+   * @return int
+   */
+  public function getMaxInFlightRequestsPerEndpoint()
+  {
+    return $this->maxInFlightRequestsPerEndpoint;
+  }
+  /**
+   * Defines a maximum number of in-flight requests for a single VM. Not
+   * available if backend's balancingMode is RATE or CONNECTION.
+   *
+   * @param int $maxInFlightRequestsPerInstance
+   */
+  public function setMaxInFlightRequestsPerInstance($maxInFlightRequestsPerInstance)
+  {
+    $this->maxInFlightRequestsPerInstance = $maxInFlightRequestsPerInstance;
+  }
+  /**
+   * @return int
+   */
+  public function getMaxInFlightRequestsPerInstance()
+  {
+    return $this->maxInFlightRequestsPerInstance;
+  }
+  /**
    * Defines a maximum number of HTTP requests per second (RPS). For usage
    * guidelines, seeRate balancing mode and Utilization balancing mode.
    *
@@ -454,6 +551,22 @@ class Backend extends \Google\Collection
     return $this->maxUtilization;
   }
   /**
+   * Information about the resource or system that manages the backend.
+   *
+   * @param BackendBackendOrchestrationInfo $orchestrationInfo
+   */
+  public function setOrchestrationInfo(BackendBackendOrchestrationInfo $orchestrationInfo)
+  {
+    $this->orchestrationInfo = $orchestrationInfo;
+  }
+  /**
+   * @return BackendBackendOrchestrationInfo
+   */
+  public function getOrchestrationInfo()
+  {
+    return $this->orchestrationInfo;
+  }
+  /**
    * This field indicates whether this backend should be fully utilized before
    * sending traffic to backends with default preference. The possible values
    * are:        - PREFERRED: Backends with this preference level will be
@@ -476,6 +589,20 @@ class Backend extends \Google\Collection
   public function getPreference()
   {
     return $this->preference;
+  }
+  /**
+   * @param self::TRAFFIC_DURATION_* $trafficDuration
+   */
+  public function setTrafficDuration($trafficDuration)
+  {
+    $this->trafficDuration = $trafficDuration;
+  }
+  /**
+   * @return self::TRAFFIC_DURATION_*
+   */
+  public function getTrafficDuration()
+  {
+    return $this->trafficDuration;
   }
 }
 

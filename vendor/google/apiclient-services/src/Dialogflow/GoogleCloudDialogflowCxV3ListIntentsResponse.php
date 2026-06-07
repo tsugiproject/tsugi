@@ -23,17 +23,11 @@ class GoogleCloudDialogflowCxV3ListIntentsResponse extends \Google\Collection
   protected $intentsType = GoogleCloudDialogflowCxV3Intent::class;
   protected $intentsDataType = 'array';
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * The list of intents. There will be a maximum number of items returned based
-   * on the page_size field in the request.
-   *
    * @param GoogleCloudDialogflowCxV3Intent[] $intents
    */
   public function setIntents($intents)
@@ -48,9 +42,6 @@ class GoogleCloudDialogflowCxV3ListIntentsResponse extends \Google\Collection
     return $this->intents;
   }
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)

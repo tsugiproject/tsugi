@@ -21,9 +21,6 @@ class GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse extends \Google\Co
 {
   protected $collection_key = 'sessionEntityTypes';
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @var string
    */
   public $nextPageToken;
@@ -31,9 +28,6 @@ class GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse extends \Google\Co
   protected $sessionEntityTypesDataType = 'array';
 
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
@@ -48,9 +42,6 @@ class GoogleCloudDialogflowCxV3ListSessionEntityTypesResponse extends \Google\Co
     return $this->nextPageToken;
   }
   /**
-   * The list of session entity types. There will be a maximum number of items
-   * returned based on the page_size field in the request.
-   *
    * @param GoogleCloudDialogflowCxV3SessionEntityType[] $sessionEntityTypes
    */
   public function setSessionEntityTypes($sessionEntityTypes)

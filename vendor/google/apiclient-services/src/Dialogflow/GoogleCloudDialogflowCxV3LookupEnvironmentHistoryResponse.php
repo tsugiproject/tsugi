@@ -23,17 +23,11 @@ class GoogleCloudDialogflowCxV3LookupEnvironmentHistoryResponse extends \Google\
   protected $environmentsType = GoogleCloudDialogflowCxV3Environment::class;
   protected $environmentsDataType = 'array';
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * Represents a list of snapshots for an environment. Time of the snapshots is
-   * stored in `update_time`.
-   *
    * @param GoogleCloudDialogflowCxV3Environment[] $environments
    */
   public function setEnvironments($environments)
@@ -48,9 +42,6 @@ class GoogleCloudDialogflowCxV3LookupEnvironmentHistoryResponse extends \Google\
     return $this->environments;
   }
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)

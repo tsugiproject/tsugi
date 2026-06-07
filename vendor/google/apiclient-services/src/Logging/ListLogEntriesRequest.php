@@ -23,16 +23,16 @@ class ListLogEntriesRequest extends \Google\Collection
   /**
    * Optional. A filter that chooses which log entries to return. For more
    * information, see Logging query language
-   * (https://cloud.google.com/logging/docs/view/logging-query-language).Only
-   * log entries that match the filter are returned. An empty filter matches all
-   * log entries in the resources listed in resource_names. Referencing a parent
-   * resource that is not listed in resource_names will cause the filter to
-   * return no results. The maximum length of a filter is 20,000 characters.To
-   * make queries faster, you can make the filter more selective by using
-   * restrictions on indexed fields
-   * (https://cloud.google.com/logging/docs/view/logging-query-language#indexed-
-   * fields) as well as limit the time range of the query by adding range
-   * restrictions on the timestamp field.
+   * (https://docs.cloud.google.com/logging/docs/view/logging-query-
+   * language).Only log entries that match the filter are returned. An empty
+   * filter matches all log entries in the resources listed in resource_names.
+   * Referencing a parent resource that is not listed in resource_names will
+   * cause the filter to return no results. The maximum length of a filter is
+   * 20,000 characters.To make queries faster, you can make the filter more
+   * selective by using restrictions on indexed fields
+   * (https://docs.cloud.google.com/logging/docs/view/logging-query-
+   * language#indexed-fields) as well as limit the time range of the query by
+   * adding range restrictions on the timestamp field.
    *
    * @var string
    */
@@ -102,16 +102,16 @@ class ListLogEntriesRequest extends \Google\Collection
   /**
    * Optional. A filter that chooses which log entries to return. For more
    * information, see Logging query language
-   * (https://cloud.google.com/logging/docs/view/logging-query-language).Only
-   * log entries that match the filter are returned. An empty filter matches all
-   * log entries in the resources listed in resource_names. Referencing a parent
-   * resource that is not listed in resource_names will cause the filter to
-   * return no results. The maximum length of a filter is 20,000 characters.To
-   * make queries faster, you can make the filter more selective by using
-   * restrictions on indexed fields
-   * (https://cloud.google.com/logging/docs/view/logging-query-language#indexed-
-   * fields) as well as limit the time range of the query by adding range
-   * restrictions on the timestamp field.
+   * (https://docs.cloud.google.com/logging/docs/view/logging-query-
+   * language).Only log entries that match the filter are returned. An empty
+   * filter matches all log entries in the resources listed in resource_names.
+   * Referencing a parent resource that is not listed in resource_names will
+   * cause the filter to return no results. The maximum length of a filter is
+   * 20,000 characters.To make queries faster, you can make the filter more
+   * selective by using restrictions on indexed fields
+   * (https://docs.cloud.google.com/logging/docs/view/logging-query-
+   * language#indexed-fields) as well as limit the time range of the query by
+   * adding range restrictions on the timestamp field.
    *
    * @param string $filter
    */

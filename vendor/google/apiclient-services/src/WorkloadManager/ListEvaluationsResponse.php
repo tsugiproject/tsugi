@@ -36,7 +36,7 @@ class ListEvaluationsResponse extends \Google\Collection
   public $unreachable;
 
   /**
-   * The list of Evaluation
+   * The list of evaluations.
    *
    * @param Evaluation[] $evaluations
    */

@@ -76,6 +76,10 @@ class DiscoveryNote extends \Google\Model
    */
   public const ANALYSIS_KIND_SECRET = 'SECRET';
   /**
+   * This represents an AI skill analysis.
+   */
+  public const ANALYSIS_KIND_AI_SKILL_ANALYSIS = 'AI_SKILL_ANALYSIS';
+  /**
    * Required. Immutable. The kind of analysis that is handled by this
    * discovery.
    *
@@ -89,7 +93,8 @@ class DiscoveryNote extends \Google\Model
    *
    * Accepted values: NOTE_KIND_UNSPECIFIED, VULNERABILITY, BUILD, IMAGE,
    * PACKAGE, DEPLOYMENT, DISCOVERY, ATTESTATION, UPGRADE, COMPLIANCE,
-   * DSSE_ATTESTATION, VULNERABILITY_ASSESSMENT, SBOM_REFERENCE, SECRET
+   * DSSE_ATTESTATION, VULNERABILITY_ASSESSMENT, SBOM_REFERENCE, SECRET,
+   * AI_SKILL_ANALYSIS
    *
    * @param self::ANALYSIS_KIND_* $analysisKind
    */

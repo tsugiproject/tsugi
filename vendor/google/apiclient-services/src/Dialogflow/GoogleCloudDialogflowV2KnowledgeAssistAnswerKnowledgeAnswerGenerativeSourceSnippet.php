@@ -20,33 +20,23 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerativeSourceSnippet extends \Google\Model
 {
   /**
-   * Metadata of the document.
-   *
    * @var array[]
    */
   public $metadata;
   /**
-   * Text taken from that URI.
-   *
    * @var string
    */
   public $text;
   /**
-   * Title of the document.
-   *
    * @var string
    */
   public $title;
   /**
-   * URI the data is sourced from.
-   *
    * @var string
    */
   public $uri;
 
   /**
-   * Metadata of the document.
-   *
    * @param array[] $metadata
    */
   public function setMetadata($metadata)
@@ -61,8 +51,6 @@ class GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerativeSourc
     return $this->metadata;
   }
   /**
-   * Text taken from that URI.
-   *
    * @param string $text
    */
   public function setText($text)
@@ -77,8 +65,6 @@ class GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerativeSourc
     return $this->text;
   }
   /**
-   * Title of the document.
-   *
    * @param string $title
    */
   public function setTitle($title)
@@ -93,8 +79,6 @@ class GoogleCloudDialogflowV2KnowledgeAssistAnswerKnowledgeAnswerGenerativeSourc
     return $this->title;
   }
   /**
-   * URI the data is sourced from.
-   *
    * @param string $uri
    */
   public function setUri($uri)

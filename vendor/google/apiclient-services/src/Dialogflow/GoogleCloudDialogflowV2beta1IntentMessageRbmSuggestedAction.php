@@ -24,25 +24,17 @@ class GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedAction extends \Googl
   protected $openUrlType = GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionOpenUri::class;
   protected $openUrlDataType = '';
   /**
-   * Opaque payload that the Dialogflow receives in a user event when the user
-   * taps the suggested action. This data will be also forwarded to webhook to
-   * allow performing custom business logic.
-   *
    * @var string
    */
   public $postbackData;
   protected $shareLocationType = GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionShareLocation::class;
   protected $shareLocationDataType = '';
   /**
-   * Text to display alongside the action.
-   *
    * @var string
    */
   public $text;
 
   /**
-   * Suggested client side action: Dial a phone number
-   *
    * @param GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionDial $dial
    */
   public function setDial(GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionDial $dial)
@@ -57,8 +49,6 @@ class GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedAction extends \Googl
     return $this->dial;
   }
   /**
-   * Suggested client side action: Open a URI on device
-   *
    * @param GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionOpenUri $openUrl
    */
   public function setOpenUrl(GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionOpenUri $openUrl)
@@ -73,10 +63,6 @@ class GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedAction extends \Googl
     return $this->openUrl;
   }
   /**
-   * Opaque payload that the Dialogflow receives in a user event when the user
-   * taps the suggested action. This data will be also forwarded to webhook to
-   * allow performing custom business logic.
-   *
    * @param string $postbackData
    */
   public function setPostbackData($postbackData)
@@ -91,8 +77,6 @@ class GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedAction extends \Googl
     return $this->postbackData;
   }
   /**
-   * Suggested client side action: Share user location
-   *
    * @param GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionShareLocation $shareLocation
    */
   public function setShareLocation(GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionShareLocation $shareLocation)
@@ -107,8 +91,6 @@ class GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedAction extends \Googl
     return $this->shareLocation;
   }
   /**
-   * Text to display alongside the action.
-   *
    * @param string $text
    */
   public function setText($text)

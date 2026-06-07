@@ -56,8 +56,8 @@ class LogSink extends \Google\Collection
    * ects/[PROJECT_ID]/locations/[LOCATION_ID]/buckets/[BUCKET_ID]" The sink's
    * writer_identity, set when the sink is created, must have permission to
    * write to the destination or else the log entries are not exported. For more
-   * information, see Exporting Logs with Sinks
-   * (https://cloud.google.com/logging/docs/api/tasks/exporting-logs).
+   * information, see Route logs to supported destinations
+   * (https://docs.cloud.google.com/logging/docs/export/configure_export_v2).
    *
    * @var string
    */
@@ -73,9 +73,9 @@ class LogSink extends \Google\Collection
   protected $exclusionsDataType = 'array';
   /**
    * Optional. An advanced logs filter
-   * (https://cloud.google.com/logging/docs/view/advanced-queries). The only
-   * exported log entries are those that are in the resource owning the sink and
-   * that match the filter.For
+   * (https://docs.cloud.google.com/logging/docs/view/building-queries#queries-
+   * by-expression). The only exported log entries are those that are in the
+   * resource owning the sink and that match the filter.For
    * example:logName="projects/[PROJECT_ID]/logs/[LOG_ID]" AND severity>=ERROR
    *
    * @var string
@@ -153,13 +153,13 @@ class LogSink extends \Google\Collection
    * automatically by sinks.create and sinks.update based on the value of
    * unique_writer_identity in those methods.Until you grant this identity
    * write-access to the destination, log entry exports from this sink will
-   * fail. For more information, see Granting Access for a Resource
-   * (https://cloud.google.com/iam/docs/granting-roles-to-service-
-   * accounts#granting_access_to_a_service_account_for_a_resource). Consult the
-   * destination service's documentation to determine the appropriate IAM roles
-   * to assign to the identity.Sinks that have a destination that is a log
-   * bucket in the same project as the sink cannot have a writer_identity and no
-   * additional permissions are required.
+   * fail. For more information, see Manage access to projects, folders, and
+   * organizations (https://docs.cloud.google.com/iam/docs/granting-roles-to-
+   * service-accounts#granting_access_to_a_service_account_for_a_resource).
+   * Consult the destination service's documentation to determine the
+   * appropriate IAM roles to assign to the identity.Sinks that have a
+   * destination that is a log bucket in the same project as the sink cannot
+   * have a writer_identity and no additional permissions are required.
    *
    * @var string
    */
@@ -223,8 +223,8 @@ class LogSink extends \Google\Collection
    * ects/[PROJECT_ID]/locations/[LOCATION_ID]/buckets/[BUCKET_ID]" The sink's
    * writer_identity, set when the sink is created, must have permission to
    * write to the destination or else the log entries are not exported. For more
-   * information, see Exporting Logs with Sinks
-   * (https://cloud.google.com/logging/docs/api/tasks/exporting-logs).
+   * information, see Route logs to supported destinations
+   * (https://docs.cloud.google.com/logging/docs/export/configure_export_v2).
    *
    * @param string $destination
    */
@@ -276,9 +276,9 @@ class LogSink extends \Google\Collection
   }
   /**
    * Optional. An advanced logs filter
-   * (https://cloud.google.com/logging/docs/view/advanced-queries). The only
-   * exported log entries are those that are in the resource owning the sink and
-   * that match the filter.For
+   * (https://docs.cloud.google.com/logging/docs/view/building-queries#queries-
+   * by-expression). The only exported log entries are those that are in the
+   * resource owning the sink and that match the filter.For
    * example:logName="projects/[PROJECT_ID]/logs/[LOG_ID]" AND severity>=ERROR
    *
    * @param string $filter
@@ -429,13 +429,13 @@ class LogSink extends \Google\Collection
    * automatically by sinks.create and sinks.update based on the value of
    * unique_writer_identity in those methods.Until you grant this identity
    * write-access to the destination, log entry exports from this sink will
-   * fail. For more information, see Granting Access for a Resource
-   * (https://cloud.google.com/iam/docs/granting-roles-to-service-
-   * accounts#granting_access_to_a_service_account_for_a_resource). Consult the
-   * destination service's documentation to determine the appropriate IAM roles
-   * to assign to the identity.Sinks that have a destination that is a log
-   * bucket in the same project as the sink cannot have a writer_identity and no
-   * additional permissions are required.
+   * fail. For more information, see Manage access to projects, folders, and
+   * organizations (https://docs.cloud.google.com/iam/docs/granting-roles-to-
+   * service-accounts#granting_access_to_a_service_account_for_a_resource).
+   * Consult the destination service's documentation to determine the
+   * appropriate IAM roles to assign to the identity.Sinks that have a
+   * destination that is a log bucket in the same project as the sink cannot
+   * have a writer_identity and no additional permissions are required.
    *
    * @param string $writerIdentity
    */

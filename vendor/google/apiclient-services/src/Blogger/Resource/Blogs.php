@@ -37,7 +37,7 @@ class Blogs extends \Google\Service\Resource
    * @param array $optParams Optional parameters.
    *
    * @opt_param string maxPosts
-   * @opt_param string view
+   * @opt_param string view Unspecified is interpreted as READER.
    * @return Blog
    * @throws \Google\Service\Exception
    */
@@ -53,7 +53,7 @@ class Blogs extends \Google\Service\Resource
    * @param string $url
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string view
+   * @opt_param string view Unspecified is interpreted as READER.
    * @return Blog
    * @throws \Google\Service\Exception
    */
@@ -72,7 +72,8 @@ class Blogs extends \Google\Service\Resource
    * @opt_param bool fetchUserInfo
    * @opt_param string role
    * @opt_param string status Default value of status is LIVE.
-   * @opt_param string view
+   * @opt_param string view Unspecified is interpreted as the user's role on the
+   * blog.
    * @return BlogList
    * @throws \Google\Service\Exception
    */

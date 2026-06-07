@@ -20,24 +20,15 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2IntentFollowupIntentInfo extends \Google\Model
 {
   /**
-   * The unique identifier of the followup intent. Format:
-   * `projects//agent/intents/`.
-   *
    * @var string
    */
   public $followupIntentName;
   /**
-   * The unique identifier of the followup intent's parent. Format:
-   * `projects//agent/intents/`.
-   *
    * @var string
    */
   public $parentFollowupIntentName;
 
   /**
-   * The unique identifier of the followup intent. Format:
-   * `projects//agent/intents/`.
-   *
    * @param string $followupIntentName
    */
   public function setFollowupIntentName($followupIntentName)
@@ -52,9 +43,6 @@ class GoogleCloudDialogflowV2IntentFollowupIntentInfo extends \Google\Model
     return $this->followupIntentName;
   }
   /**
-   * The unique identifier of the followup intent's parent. Format:
-   * `projects//agent/intents/`.
-   *
    * @param string $parentFollowupIntentName
    */
   public function setParentFollowupIntentName($parentFollowupIntentName)

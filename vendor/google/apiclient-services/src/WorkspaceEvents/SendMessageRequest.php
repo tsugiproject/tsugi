@@ -29,6 +29,13 @@ class SendMessageRequest extends \Google\Model
    * @var array[]
    */
   public $metadata;
+  /**
+   * Optional tenant, provided as a path parameter. Experimental, might still
+   * change for 1.0 release.
+   *
+   * @var string
+   */
+  public $tenant;
 
   /**
    * Configuration for the send request.
@@ -77,6 +84,23 @@ class SendMessageRequest extends \Google\Model
   public function getMetadata()
   {
     return $this->metadata;
+  }
+  /**
+   * Optional tenant, provided as a path parameter. Experimental, might still
+   * change for 1.0 release.
+   *
+   * @param string $tenant
+   */
+  public function setTenant($tenant)
+  {
+    $this->tenant = $tenant;
+  }
+  /**
+   * @return string
+   */
+  public function getTenant()
+  {
+    return $this->tenant;
   }
 }
 

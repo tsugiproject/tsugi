@@ -20,42 +20,44 @@ namespace Google\Service\CloudDataplex;
 class GoogleCloudDataplexV1DataProduct extends \Google\Collection
 {
   protected $collection_key = 'ownerEmails';
+  protected $accessApprovalConfigType = GoogleCloudDataplexV1DataProductAccessApprovalConfig::class;
+  protected $accessApprovalConfigDataType = '';
   protected $accessGroupsType = GoogleCloudDataplexV1DataProductAccessGroup::class;
   protected $accessGroupsDataType = 'map';
   /**
-   * Output only. Number of Data Assets associated with this Data Product.
+   * Output only. Number of data assets associated with this data product.
    *
    * @var int
    */
   public $assetCount;
   /**
-   * Output only. The time at which the Data Product was created.
+   * Output only. The time at which the data product was created.
    *
    * @var string
    */
   public $createTime;
   /**
-   * Optional. Description of the Data Product.
+   * Optional. Description of the data product.
    *
    * @var string
    */
   public $description;
   /**
-   * Required. User-friendly display name of the Data Product.
+   * Required. User-friendly display name of the data product.
    *
    * @var string
    */
   public $displayName;
   /**
-   * This checksum is computed by the server based on the value of other fields,
-   * and may be sent on update and delete requests to ensure the client has an
-   * up-to-date value before proceeding.
+   * Optional. This checksum is computed by the server based on the value of
+   * other fields, and may be sent on update and delete requests to ensure the
+   * client has an up-to-date value before proceeding.
    *
    * @var string
    */
   public $etag;
   /**
-   * Optional. Base64 encoded image representing the Data Product. Max Size:
+   * Optional. Base64 encoded image representing the data product. Max Size:
    * 3.0MiB Expected image dimensions are 512x512 pixels, however the API only
    * performs validation on size of the encoded data. Note: For byte fields, the
    * content of the fields are base64-encoded (which increases the size of the
@@ -65,44 +67,63 @@ class GoogleCloudDataplexV1DataProduct extends \Google\Collection
    */
   public $icon;
   /**
-   * Optional. User-defined labels for the Data Product.
+   * Optional. User-defined labels for the data product.Example: {
+   * "environment": "production", "billing": "marketing-department" }
    *
    * @var string[]
    */
   public $labels;
   /**
-   * Identifier. Resource name of the Data Product. Format: projects/{project_id
+   * Identifier. Resource name of the data product. Format: projects/{project_id
    * _or_number}/locations/{location_id}/dataProducts/{data_product_id}.
    *
    * @var string
    */
   public $name;
   /**
-   * Required. Emails of the Data Product owners.
+   * Required. Emails of the data product owners.
    *
    * @var string[]
    */
   public $ownerEmails;
   /**
-   * Output only. System generated unique ID for the Data Product. This ID will
-   * be different if the Data Product is deleted and re-created with the same
+   * Output only. System generated unique ID for the data product. This ID will
+   * be different if the data product is deleted and re-created with the same
    * name.
    *
    * @var string
    */
   public $uid;
   /**
-   * Output only. The time at which the Data Product was last updated.
+   * Output only. The time at which the data product was last updated.
    *
    * @var string
    */
   public $updateTime;
 
   /**
-   * Optional. Data Product access groups by access group id as key. If Data
-   * Product is used only for packaging Data Assets, then access groups may be
-   * empty. However, if a Data Product is used for sharing Data Assets, then at
-   * least one access group must be specified.
+   * Optional. Configuration for access approval for the data product.
+   *
+   * @param GoogleCloudDataplexV1DataProductAccessApprovalConfig $accessApprovalConfig
+   */
+  public function setAccessApprovalConfig(GoogleCloudDataplexV1DataProductAccessApprovalConfig $accessApprovalConfig)
+  {
+    $this->accessApprovalConfig = $accessApprovalConfig;
+  }
+  /**
+   * @return GoogleCloudDataplexV1DataProductAccessApprovalConfig
+   */
+  public function getAccessApprovalConfig()
+  {
+    return $this->accessApprovalConfig;
+  }
+  /**
+   * Optional. Data product access groups by access group id as key. If data
+   * product is used only for packaging data assets, then access groups may be
+   * empty. However, if a data product is used for sharing data assets, then at
+   * least one access group must be specified.Example: { "analyst": { "id":
+   * "analyst", "displayName": "Analyst", "description": "Access group for
+   * analysts", "principal": { "googleGroup": "analysts@example.com" } } }
    *
    * @param GoogleCloudDataplexV1DataProductAccessGroup[] $accessGroups
    */
@@ -118,7 +139,7 @@ class GoogleCloudDataplexV1DataProduct extends \Google\Collection
     return $this->accessGroups;
   }
   /**
-   * Output only. Number of Data Assets associated with this Data Product.
+   * Output only. Number of data assets associated with this data product.
    *
    * @param int $assetCount
    */
@@ -134,7 +155,7 @@ class GoogleCloudDataplexV1DataProduct extends \Google\Collection
     return $this->assetCount;
   }
   /**
-   * Output only. The time at which the Data Product was created.
+   * Output only. The time at which the data product was created.
    *
    * @param string $createTime
    */
@@ -150,7 +171,7 @@ class GoogleCloudDataplexV1DataProduct extends \Google\Collection
     return $this->createTime;
   }
   /**
-   * Optional. Description of the Data Product.
+   * Optional. Description of the data product.
    *
    * @param string $description
    */
@@ -166,7 +187,7 @@ class GoogleCloudDataplexV1DataProduct extends \Google\Collection
     return $this->description;
   }
   /**
-   * Required. User-friendly display name of the Data Product.
+   * Required. User-friendly display name of the data product.
    *
    * @param string $displayName
    */
@@ -182,9 +203,9 @@ class GoogleCloudDataplexV1DataProduct extends \Google\Collection
     return $this->displayName;
   }
   /**
-   * This checksum is computed by the server based on the value of other fields,
-   * and may be sent on update and delete requests to ensure the client has an
-   * up-to-date value before proceeding.
+   * Optional. This checksum is computed by the server based on the value of
+   * other fields, and may be sent on update and delete requests to ensure the
+   * client has an up-to-date value before proceeding.
    *
    * @param string $etag
    */
@@ -200,7 +221,7 @@ class GoogleCloudDataplexV1DataProduct extends \Google\Collection
     return $this->etag;
   }
   /**
-   * Optional. Base64 encoded image representing the Data Product. Max Size:
+   * Optional. Base64 encoded image representing the data product. Max Size:
    * 3.0MiB Expected image dimensions are 512x512 pixels, however the API only
    * performs validation on size of the encoded data. Note: For byte fields, the
    * content of the fields are base64-encoded (which increases the size of the
@@ -220,7 +241,8 @@ class GoogleCloudDataplexV1DataProduct extends \Google\Collection
     return $this->icon;
   }
   /**
-   * Optional. User-defined labels for the Data Product.
+   * Optional. User-defined labels for the data product.Example: {
+   * "environment": "production", "billing": "marketing-department" }
    *
    * @param string[] $labels
    */
@@ -236,7 +258,7 @@ class GoogleCloudDataplexV1DataProduct extends \Google\Collection
     return $this->labels;
   }
   /**
-   * Identifier. Resource name of the Data Product. Format: projects/{project_id
+   * Identifier. Resource name of the data product. Format: projects/{project_id
    * _or_number}/locations/{location_id}/dataProducts/{data_product_id}.
    *
    * @param string $name
@@ -253,7 +275,7 @@ class GoogleCloudDataplexV1DataProduct extends \Google\Collection
     return $this->name;
   }
   /**
-   * Required. Emails of the Data Product owners.
+   * Required. Emails of the data product owners.
    *
    * @param string[] $ownerEmails
    */
@@ -269,8 +291,8 @@ class GoogleCloudDataplexV1DataProduct extends \Google\Collection
     return $this->ownerEmails;
   }
   /**
-   * Output only. System generated unique ID for the Data Product. This ID will
-   * be different if the Data Product is deleted and re-created with the same
+   * Output only. System generated unique ID for the data product. This ID will
+   * be different if the data product is deleted and re-created with the same
    * name.
    *
    * @param string $uid
@@ -287,7 +309,7 @@ class GoogleCloudDataplexV1DataProduct extends \Google\Collection
     return $this->uid;
   }
   /**
-   * Output only. The time at which the Data Product was last updated.
+   * Output only. The time at which the data product was last updated.
    *
    * @param string $updateTime
    */

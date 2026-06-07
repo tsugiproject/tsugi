@@ -57,6 +57,8 @@ class Tasks extends \Google\Service\Resource
    *
    * @opt_param int historyLength The number of most recent messages from the
    * task's history to retrieve.
+   * @opt_param string tenant Optional tenant, provided as a path parameter.
+   * Experimental, might still change for 1.0 release.
    * @return Task
    * @throws \Google\Service\Exception
    */
@@ -75,6 +77,9 @@ class Tasks extends \Google\Service\Resource
    * @param string $name The resource name of the task to subscribe to. Format:
    * tasks/{task_id}
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string tenant Optional tenant, provided as a path parameter.
+   * Experimental, might still change for 1.0 release.
    * @return StreamResponse
    * @throws \Google\Service\Exception
    */

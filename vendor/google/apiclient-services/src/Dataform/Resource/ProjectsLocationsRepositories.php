@@ -24,6 +24,8 @@ use Google\Service\Dataform\DataformEmpty;
 use Google\Service\Dataform\FetchRemoteBranchesResponse;
 use Google\Service\Dataform\FetchRepositoryHistoryResponse;
 use Google\Service\Dataform\ListRepositoriesResponse;
+use Google\Service\Dataform\MoveRepositoryRequest;
+use Google\Service\Dataform\Operation;
 use Google\Service\Dataform\Policy;
 use Google\Service\Dataform\QueryRepositoryDirectoryContentsResponse;
 use Google\Service\Dataform\ReadRepositoryFileResponse;
@@ -226,6 +228,22 @@ class ProjectsLocationsRepositories extends \Google\Service\Resource
     $params = ['parent' => $parent];
     $params = array_merge($params, $optParams);
     return $this->call('list', [$params], ListRepositoriesResponse::class);
+  }
+  /**
+   * Moves a Repository to a new location. (repositories.move)
+   *
+   * @param string $name Required. The full resource name of the repository to
+   * move.
+   * @param MoveRepositoryRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function move($name, MoveRepositoryRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('move', [$params], Operation::class);
   }
   /**
    * Updates a single Repository. **Note:** *This method does not fully implement

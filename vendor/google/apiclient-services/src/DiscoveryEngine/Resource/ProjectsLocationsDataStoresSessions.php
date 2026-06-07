@@ -40,6 +40,11 @@ class ProjectsLocationsDataStoresSessions extends \Google\Service\Resource
    * aStores/{data_store_id}`
    * @param GoogleCloudDiscoveryengineV1Session $postBody
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string sessionId Optional. The ID to use for the session, which
+   * will become the final component of the session's resource name. This value
+   * should be 1-63 characters, and valid characters are /a-z0-9{0,61}[a-z0-9]/.
+   * If not specified, a unique ID will be generated.
    * @return GoogleCloudDiscoveryengineV1Session
    * @throws \Google\Service\Exception
    */
@@ -97,14 +102,17 @@ class ProjectsLocationsDataStoresSessions extends \Google\Service\Resource
    * @opt_param string filter A comma-separated list of fields to filter by, in
    * EBNF grammar. The supported fields are: * `user_pseudo_id` * `state` *
    * `display_name` * `starred` * `is_pinned` * `labels` * `create_time` *
-   * `update_time` Examples: * `user_pseudo_id = some_id` * `display_name =
-   * "some_name"` * `starred = true` * `is_pinned=true AND (NOT labels:hidden)` *
-   * `create_time > "1970-01-01T12:00:00Z"`
+   * `update_time` * `collaborative_project` Examples: * `user_pseudo_id =
+   * some_id` * `display_name = "some_name"` * `starred = true` * `is_pinned=true
+   * AND (NOT labels:hidden)` * `create_time > "1970-01-01T12:00:00Z"` *
+   * `collaborative_project =
+   * "projects/123/locations/global/collections/default_collection/engines/"
+   * "default_engine/collaborative_projects/cp1"`
    * @opt_param string orderBy A comma-separated list of fields to order by,
    * sorted in ascending order. Use "desc" after a field name for descending.
    * Supported fields: * `update_time` * `create_time` * `session_name` *
-   * `is_pinned` Example: * `update_time desc` * `create_time` * `is_pinned
-   * desc,update_time desc`: list sessions by is_pinned first, then by
+   * `is_pinned` * `display_name` Example: * `update_time desc` * `create_time` *
+   * `is_pinned desc,update_time desc`: list sessions by is_pinned first, then by
    * update_time.
    * @opt_param int pageSize Maximum number of results to return. If unspecified,
    * defaults to 50. Max allowed value is 1000.

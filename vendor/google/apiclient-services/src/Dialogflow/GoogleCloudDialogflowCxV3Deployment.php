@@ -19,60 +19,34 @@ namespace Google\Service\Dialogflow;
 
 class GoogleCloudDialogflowCxV3Deployment extends \Google\Model
 {
-  /**
-   * State unspecified.
-   */
   public const STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED';
-  /**
-   * The deployment is running.
-   */
   public const STATE_RUNNING = 'RUNNING';
-  /**
-   * The deployment succeeded.
-   */
   public const STATE_SUCCEEDED = 'SUCCEEDED';
-  /**
-   * The deployment failed.
-   */
   public const STATE_FAILED = 'FAILED';
   /**
-   * End time of this deployment.
-   *
    * @var string
    */
   public $endTime;
   /**
-   * The name of the flow version for this deployment. Format:
-   * projects//locations//agents//flows//versions/.
-   *
    * @var string
    */
   public $flowVersion;
   /**
-   * The name of the deployment. Format:
-   * projects//locations//agents//environments//deployments/.
-   *
    * @var string
    */
   public $name;
   protected $resultType = GoogleCloudDialogflowCxV3DeploymentResult::class;
   protected $resultDataType = '';
   /**
-   * Start time of this deployment.
-   *
    * @var string
    */
   public $startTime;
   /**
-   * The current state of the deployment.
-   *
    * @var string
    */
   public $state;
 
   /**
-   * End time of this deployment.
-   *
    * @param string $endTime
    */
   public function setEndTime($endTime)
@@ -87,9 +61,6 @@ class GoogleCloudDialogflowCxV3Deployment extends \Google\Model
     return $this->endTime;
   }
   /**
-   * The name of the flow version for this deployment. Format:
-   * projects//locations//agents//flows//versions/.
-   *
    * @param string $flowVersion
    */
   public function setFlowVersion($flowVersion)
@@ -104,9 +75,6 @@ class GoogleCloudDialogflowCxV3Deployment extends \Google\Model
     return $this->flowVersion;
   }
   /**
-   * The name of the deployment. Format:
-   * projects//locations//agents//environments//deployments/.
-   *
    * @param string $name
    */
   public function setName($name)
@@ -121,8 +89,6 @@ class GoogleCloudDialogflowCxV3Deployment extends \Google\Model
     return $this->name;
   }
   /**
-   * Result of the deployment.
-   *
    * @param GoogleCloudDialogflowCxV3DeploymentResult $result
    */
   public function setResult(GoogleCloudDialogflowCxV3DeploymentResult $result)
@@ -137,8 +103,6 @@ class GoogleCloudDialogflowCxV3Deployment extends \Google\Model
     return $this->result;
   }
   /**
-   * Start time of this deployment.
-   *
    * @param string $startTime
    */
   public function setStartTime($startTime)
@@ -153,10 +117,6 @@ class GoogleCloudDialogflowCxV3Deployment extends \Google\Model
     return $this->startTime;
   }
   /**
-   * The current state of the deployment.
-   *
-   * Accepted values: STATE_UNSPECIFIED, RUNNING, SUCCEEDED, FAILED
-   *
    * @param self::STATE_* $state
    */
   public function setState($state)

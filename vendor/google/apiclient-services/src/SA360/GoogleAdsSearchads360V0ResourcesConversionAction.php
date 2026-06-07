@@ -123,6 +123,11 @@ class GoogleAdsSearchads360V0ResourcesConversionAction extends \Google\Model
    */
   public const CATEGORY_CONVERTED_LEAD = 'CONVERTED_LEAD';
   /**
+   * User watches an ad from a channel and later watches either the same video
+   * or a video from the same channel as the ad.
+   */
+  public const CATEGORY_YOUTUBE_FOLLOW_ON_VIEWS = 'YOUTUBE_FOLLOW_ON_VIEWS';
+  /**
    * Not specified.
    */
   public const STATUS_UNSPECIFIED = 'UNSPECIFIED';
@@ -480,7 +485,8 @@ class GoogleAdsSearchads360V0ResourcesConversionAction extends \Google\Model
    * SIGNUP, LEAD, DOWNLOAD, ADD_TO_CART, BEGIN_CHECKOUT, SUBSCRIBE_PAID,
    * PHONE_CALL_LEAD, IMPORTED_LEAD, SUBMIT_LEAD_FORM, BOOK_APPOINTMENT,
    * REQUEST_QUOTE, GET_DIRECTIONS, OUTBOUND_CLICK, CONTACT, ENGAGEMENT,
-   * STORE_VISIT, STORE_SALE, QUALIFIED_LEAD, CONVERTED_LEAD
+   * STORE_VISIT, STORE_SALE, QUALIFIED_LEAD, CONVERTED_LEAD,
+   * YOUTUBE_FOLLOW_ON_VIEWS
    *
    * @param self::CATEGORY_* $category
    */

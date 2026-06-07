@@ -40,6 +40,14 @@ class GoogleCloudVideointelligenceV1WordInfo extends \Google\Model
    */
   public $endTime;
   /**
+   * Output only. A distinct string value is assigned for every speaker within
+   * the audio. This field specifies which one of those speakers was detected to
+   * have spoken this word.
+   *
+   * @var string
+   */
+  public $speakerLabel;
+  /**
    * Output only. A distinct integer value is assigned for every speaker within
    * the audio. This field specifies which one of those speakers was detected to
    * have spoken this word. Value ranges from 1 up to diarization_speaker_count,
@@ -103,6 +111,24 @@ class GoogleCloudVideointelligenceV1WordInfo extends \Google\Model
   public function getEndTime()
   {
     return $this->endTime;
+  }
+  /**
+   * Output only. A distinct string value is assigned for every speaker within
+   * the audio. This field specifies which one of those speakers was detected to
+   * have spoken this word.
+   *
+   * @param string $speakerLabel
+   */
+  public function setSpeakerLabel($speakerLabel)
+  {
+    $this->speakerLabel = $speakerLabel;
+  }
+  /**
+   * @return string
+   */
+  public function getSpeakerLabel()
+  {
+    return $this->speakerLabel;
   }
   /**
    * Output only. A distinct integer value is assigned for every speaker within

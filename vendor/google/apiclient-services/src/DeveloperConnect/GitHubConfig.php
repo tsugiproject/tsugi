@@ -36,6 +36,10 @@ class GitHubConfig extends \Google\Model
    */
   public const GITHUB_APP_GEMINI_CODE_ASSIST = 'GEMINI_CODE_ASSIST';
   /**
+   * The Dataform GitHub Application.
+   */
+  public const GITHUB_APP_DATAFORM = 'DATAFORM';
+  /**
    * Optional. GitHub App installation id.
    *
    * @var string
@@ -97,7 +101,7 @@ class GitHubConfig extends \Google\Model
    * GitHub user or organization.
    *
    * Accepted values: GIT_HUB_APP_UNSPECIFIED, DEVELOPER_CONNECT, FIREBASE,
-   * GEMINI_CODE_ASSIST
+   * GEMINI_CODE_ASSIST, DATAFORM
    *
    * @param self::GITHUB_APP_* $githubApp
    */

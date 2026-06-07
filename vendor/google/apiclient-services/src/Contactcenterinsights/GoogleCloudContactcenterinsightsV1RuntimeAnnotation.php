@@ -31,6 +31,10 @@ class GoogleCloudContactcenterinsightsV1RuntimeAnnotation extends \Google\Model
   protected $answerFeedbackDataType = '';
   protected $articleSuggestionType = GoogleCloudContactcenterinsightsV1ArticleSuggestionData::class;
   protected $articleSuggestionDataType = '';
+  protected $cesEndSessionAnnotationType = GoogleCloudContactcenterinsightsV1CesEndSessionAnnotation::class;
+  protected $cesEndSessionAnnotationDataType = '';
+  protected $cesTurnAnnotationType = GoogleCloudContactcenterinsightsV1CesTurnAnnotation::class;
+  protected $cesTurnAnnotationDataType = '';
   protected $conversationSummarizationSuggestionType = GoogleCloudContactcenterinsightsV1ConversationSummarizationSuggestionData::class;
   protected $conversationSummarizationSuggestionDataType = '';
   /**
@@ -103,6 +107,38 @@ class GoogleCloudContactcenterinsightsV1RuntimeAnnotation extends \Google\Model
   public function getArticleSuggestion()
   {
     return $this->articleSuggestion;
+  }
+  /**
+   * The CES end session annotation.
+   *
+   * @param GoogleCloudContactcenterinsightsV1CesEndSessionAnnotation $cesEndSessionAnnotation
+   */
+  public function setCesEndSessionAnnotation(GoogleCloudContactcenterinsightsV1CesEndSessionAnnotation $cesEndSessionAnnotation)
+  {
+    $this->cesEndSessionAnnotation = $cesEndSessionAnnotation;
+  }
+  /**
+   * @return GoogleCloudContactcenterinsightsV1CesEndSessionAnnotation
+   */
+  public function getCesEndSessionAnnotation()
+  {
+    return $this->cesEndSessionAnnotation;
+  }
+  /**
+   * The CES turn annotation.
+   *
+   * @param GoogleCloudContactcenterinsightsV1CesTurnAnnotation $cesTurnAnnotation
+   */
+  public function setCesTurnAnnotation(GoogleCloudContactcenterinsightsV1CesTurnAnnotation $cesTurnAnnotation)
+  {
+    $this->cesTurnAnnotation = $cesTurnAnnotation;
+  }
+  /**
+   * @return GoogleCloudContactcenterinsightsV1CesTurnAnnotation
+   */
+  public function getCesTurnAnnotation()
+  {
+    return $this->cesTurnAnnotation;
   }
   /**
    * Conversation summarization suggestion data.

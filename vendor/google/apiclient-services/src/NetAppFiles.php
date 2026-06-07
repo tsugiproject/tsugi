@@ -49,6 +49,8 @@ class NetAppFiles extends \Google\Service
   public $projects_locations_kmsConfigs;
   public $projects_locations_operations;
   public $projects_locations_storagePools;
+  public $projects_locations_storagePools_backupConfigs;
+  public $projects_locations_storagePools_ontap;
   public $projects_locations_volumes;
   public $projects_locations_volumes_quotaRules;
   public $projects_locations_volumes_replications;
@@ -789,8 +791,28 @@ class NetAppFiles extends \Google\Service
                   'type' => 'string',
                 ],
               ],
+            ],'restoreVolume' => [
+              'path' => 'v1/{+name}:restoreVolume',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'switch' => [
               'path' => 'v1/{+name}:switch',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'updateBackupConfig' => [
+              'path' => 'v1/{+name}:updateBackupConfig',
               'httpMethod' => 'POST',
               'parameters' => [
                 'name' => [
@@ -804,6 +826,92 @@ class NetAppFiles extends \Google\Service
               'httpMethod' => 'POST',
               'parameters' => [
                 'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
+    $this->projects_locations_storagePools_backupConfigs = new NetAppFiles\Resource\ProjectsLocationsStoragePoolsBackupConfigs(
+        $this,
+        $this->serviceName,
+        'backupConfigs',
+        [
+          'methods' => [
+            'list' => [
+              'path' => 'v1/{+parent}/backupConfigs',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'orderBy' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'pageSize' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+                'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
+    $this->projects_locations_storagePools_ontap = new NetAppFiles\Resource\ProjectsLocationsStoragePoolsOntap(
+        $this,
+        $this->serviceName,
+        'ontap',
+        [
+          'methods' => [
+            'executeOntapDelete' => [
+              'path' => 'v1/{+ontapPath}',
+              'httpMethod' => 'DELETE',
+              'parameters' => [
+                'ontapPath' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'executeOntapGet' => [
+              'path' => 'v1/{+ontapPath}',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'ontapPath' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'executeOntapPatch' => [
+              'path' => 'v1/{+ontapPath}',
+              'httpMethod' => 'PATCH',
+              'parameters' => [
+                'ontapPath' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'executeOntapPost' => [
+              'path' => 'v1/{+ontapPath}',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'ontapPath' => [
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
@@ -845,6 +953,16 @@ class NetAppFiles extends \Google\Service
                 'force' => [
                   'location' => 'query',
                   'type' => 'boolean',
+                ],
+              ],
+            ],'establishPeering' => [
+              'path' => 'v1/{+name}:establishPeering',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
                 ],
               ],
             ],'get' => [

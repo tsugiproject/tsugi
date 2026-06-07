@@ -18,6 +18,8 @@
 namespace Google\Service\Apigee\Resource;
 
 use Google\Service\Apigee\GoogleCloudApigeeV1AppGroup;
+use Google\Service\Apigee\GoogleCloudApigeeV1AppGroupBalance;
+use Google\Service\Apigee\GoogleCloudApigeeV1AppGroupMonetizationConfig;
 use Google\Service\Apigee\GoogleCloudApigeeV1ListAppGroupsResponse;
 
 /**
@@ -86,6 +88,39 @@ class OrganizationsAppgroups extends \Google\Service\Resource
     return $this->call('get', [$params], GoogleCloudApigeeV1AppGroup::class);
   }
   /**
+   * Gets the account balance for the AppGroup. (appgroups.getBalance)
+   *
+   * @param string $name Required. Account balance for the AppGroup. Use the
+   * following structure in your request:
+   * `organizations/{org}/appgroups/{app_group}/balance`
+   * @param array $optParams Optional parameters.
+   * @return GoogleCloudApigeeV1AppGroupBalance
+   * @throws \Google\Service\Exception
+   */
+  public function getBalance($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('getBalance', [$params], GoogleCloudApigeeV1AppGroupBalance::class);
+  }
+  /**
+   * Gets the monetization configuration for the AppGroup.
+   * (appgroups.getMonetizationConfig)
+   *
+   * @param string $name Required. Monetization configuration for the AppGroup.
+   * Use the following structure in your request:
+   * `organizations/{org}/appgroups/{app_group}/monetizationConfig`
+   * @param array $optParams Optional parameters.
+   * @return GoogleCloudApigeeV1AppGroupMonetizationConfig
+   * @throws \Google\Service\Exception
+   */
+  public function getMonetizationConfig($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('getMonetizationConfig', [$params], GoogleCloudApigeeV1AppGroupMonetizationConfig::class);
+  }
+  /**
    * Lists all AppGroups in an organization. A maximum of 1000 AppGroups are
    * returned in the response if PageSize is not specified, or if the PageSize is
    * greater than 1000. (appgroups.listOrganizationsAppgroups)
@@ -116,8 +151,11 @@ class OrganizationsAppgroups extends \Google\Service\Resource
    * Updates an AppGroup. This API replaces the existing AppGroup details with
    * those specified in the request. Include or exclude any existing details that
    * you want to retain or delete, respectively. Note that the state of the
-   * AppGroup should be updated using `action`, and not via AppGroup.
-   * (appgroups.update)
+   * AppGroup should be updated using `action`, and not via AppGroup. **Note:** We
+   * recommend that you avoid making concurrent update requests for the same
+   * resource. Near-simultaneous writes to the same entity can result in conflicts
+   * and unexpected behavior. Ensure operations are sequential when modifying a
+   * single resource. (appgroups.update)
    *
    * @param string $name Required. Name of the AppGroup. Use the following
    * structure in your request: `organizations/{org}/appgroups/{app_group_name}`
@@ -135,6 +173,27 @@ class OrganizationsAppgroups extends \Google\Service\Resource
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('update', [$params], GoogleCloudApigeeV1AppGroup::class);
+  }
+  /**
+   * Updates the monetization configuration for the AppGroup. **Note:** We
+   * recommend that you avoid making concurrent update requests for the same
+   * resource. Near-simultaneous writes to the same entity can result in conflicts
+   * and unexpected behavior. Ensure operations are sequential when modifying a
+   * single resource. (appgroups.updateMonetizationConfig)
+   *
+   * @param string $name Required. Monetization configuration for the AppGroup.
+   * Use the following structure in your request:
+   * `organizations/{org}/appgroups/{app_group}/monetizationConfig`
+   * @param GoogleCloudApigeeV1AppGroupMonetizationConfig $postBody
+   * @param array $optParams Optional parameters.
+   * @return GoogleCloudApigeeV1AppGroupMonetizationConfig
+   * @throws \Google\Service\Exception
+   */
+  public function updateMonetizationConfig($name, GoogleCloudApigeeV1AppGroupMonetizationConfig $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('updateMonetizationConfig', [$params], GoogleCloudApigeeV1AppGroupMonetizationConfig::class);
   }
 }
 

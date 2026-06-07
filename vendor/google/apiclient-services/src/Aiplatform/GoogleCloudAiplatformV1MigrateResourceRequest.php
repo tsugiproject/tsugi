@@ -62,9 +62,10 @@ class GoogleCloudAiplatformV1MigrateResourceRequest extends \Google\Model
     return $this->migrateAutomlModelConfig;
   }
   /**
-   * Config for migrating Dataset in datalabeling.googleapis.com to Vertex AI's
-   * Dataset.
+   * Deprecated: Data labeling service is shut down. Config for migrating
+   * Dataset in datalabeling.googleapis.com to Vertex AI's Dataset.
    *
+   * @deprecated
    * @param GoogleCloudAiplatformV1MigrateResourceRequestMigrateDataLabelingDatasetConfig $migrateDataLabelingDatasetConfig
    */
   public function setMigrateDataLabelingDatasetConfig(GoogleCloudAiplatformV1MigrateResourceRequestMigrateDataLabelingDatasetConfig $migrateDataLabelingDatasetConfig)
@@ -72,6 +73,7 @@ class GoogleCloudAiplatformV1MigrateResourceRequest extends \Google\Model
     $this->migrateDataLabelingDatasetConfig = $migrateDataLabelingDatasetConfig;
   }
   /**
+   * @deprecated
    * @return GoogleCloudAiplatformV1MigrateResourceRequestMigrateDataLabelingDatasetConfig
    */
   public function getMigrateDataLabelingDatasetConfig()

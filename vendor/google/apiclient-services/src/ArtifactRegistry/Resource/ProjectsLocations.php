@@ -19,6 +19,7 @@ namespace Google\Service\ArtifactRegistry\Resource;
 
 use Google\Service\ArtifactRegistry\ListLocationsResponse;
 use Google\Service\ArtifactRegistry\Location;
+use Google\Service\ArtifactRegistry\ProjectConfig;
 use Google\Service\ArtifactRegistry\VPCSCConfig;
 
 /**
@@ -46,6 +47,21 @@ class ProjectsLocations extends \Google\Service\Resource
     return $this->call('get', [$params], Location::class);
   }
   /**
+   * Retrieves the project configuration. (locations.getProjectConfig)
+   *
+   * @param string $name Required. The name of the project's logging
+   * configuration: projects/{project}/locations/{location}/projectConfig
+   * @param array $optParams Optional parameters.
+   * @return ProjectConfig
+   * @throws \Google\Service\Exception
+   */
+  public function getProjectConfig($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('getProjectConfig', [$params], ProjectConfig::class);
+  }
+  /**
    * Retrieves the VPCSC Config for the Project. (locations.getVpcscConfig)
    *
    * @param string $name Required. The name of the VPCSCConfig resource.
@@ -60,8 +76,17 @@ class ProjectsLocations extends \Google\Service\Resource
     return $this->call('getVpcscConfig', [$params], VPCSCConfig::class);
   }
   /**
-   * Lists information about the supported locations for this service.
-   * (locations.listProjectsLocations)
+   * Lists information about the supported locations for this service. This method
+   * lists locations based on the resource scope provided in the
+   * [ListLocationsRequest.name] field: * **Global locations**: If `name` is
+   * empty, the method lists the public locations available to all projects. *
+   * **Project-specific locations**: If `name` follows the format
+   * `projects/{project}`, the method lists locations visible to that specific
+   * project. This includes public, private, or other project-specific locations
+   * enabled for the project. For gRPC and client library implementations, the
+   * resource name is passed as the `name` field. For direct service calls, the
+   * resource name is incorporated into the request path based on the specific
+   * service implementation and version. (locations.listProjectsLocations)
    *
    * @param string $name The resource that owns the locations collection, if
    * applicable.
@@ -85,6 +110,26 @@ class ProjectsLocations extends \Google\Service\Resource
     $params = ['name' => $name];
     $params = array_merge($params, $optParams);
     return $this->call('list', [$params], ListLocationsResponse::class);
+  }
+  /**
+   * Updates the project configuration. (locations.updateProjectConfig)
+   *
+   * @param string $name Identifier. The name of the project's configuration.
+   * Always of the form: projects/{project}/locations/{location}/projectConfig
+   * @param ProjectConfig $postBody
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string updateMask Optional. Field mask to support partial updates.
+   * See https://protobuf.dev/reference/protobuf/google.protobuf/#field-mask for
+   * more details.
+   * @return ProjectConfig
+   * @throws \Google\Service\Exception
+   */
+  public function updateProjectConfig($name, ProjectConfig $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('updateProjectConfig', [$params], ProjectConfig::class);
   }
   /**
    * Updates the VPCSC Config for the Project. (locations.updateVpcscConfig)

@@ -25,8 +25,6 @@ class GoogleCloudDialogflowCxV3ConversationTurn extends \Google\Model
   protected $virtualAgentOutputDataType = '';
 
   /**
-   * The user input.
-   *
    * @param GoogleCloudDialogflowCxV3ConversationTurnUserInput $userInput
    */
   public function setUserInput(GoogleCloudDialogflowCxV3ConversationTurnUserInput $userInput)
@@ -41,8 +39,6 @@ class GoogleCloudDialogflowCxV3ConversationTurn extends \Google\Model
     return $this->userInput;
   }
   /**
-   * The virtual agent output.
-   *
    * @param GoogleCloudDialogflowCxV3ConversationTurnVirtualAgentOutput $virtualAgentOutput
    */
   public function setVirtualAgentOutput(GoogleCloudDialogflowCxV3ConversationTurnVirtualAgentOutput $virtualAgentOutput)

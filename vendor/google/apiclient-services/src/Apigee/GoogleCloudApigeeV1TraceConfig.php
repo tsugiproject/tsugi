@@ -24,13 +24,21 @@ class GoogleCloudApigeeV1TraceConfig extends \Google\Model
    */
   public const EXPORTER_EXPORTER_UNSPECIFIED = 'EXPORTER_UNSPECIFIED';
   /**
-   * Jaeger exporter
+   * Exports events to Jaeger. Compatible with OpenCensus protocol.
    */
   public const EXPORTER_JAEGER = 'JAEGER';
   /**
-   * Cloudtrace exporter
+   * Exports events to Cloud Trace. Compatible with OpenCensus protocol.
    */
   public const EXPORTER_CLOUD_TRACE = 'CLOUD_TRACE';
+  /**
+   * OpenTelemetry Collector. Compatible with OpenTelemetry protocol.
+   */
+  public const EXPORTER_OPEN_TELEMETRY_COLLECTOR = 'OPEN_TELEMETRY_COLLECTOR';
+  /**
+   * Exports events to Cloud Trace. Compatible with OpenTelemetry protocol.
+   */
+  public const EXPORTER_OPEN_TELEMETRY_CLOUD_TRACE = 'OPEN_TELEMETRY_CLOUD_TRACE';
   /**
    * Required. Endpoint of the exporter.
    *
@@ -39,8 +47,9 @@ class GoogleCloudApigeeV1TraceConfig extends \Google\Model
   public $endpoint;
   /**
    * Required. Exporter that is used to view the distributed trace captured
-   * using OpenCensus. An exporter sends traces to any backend that is capable
-   * of consuming them. Recorded spans can be exported by registered exporters.
+   * using the chosen trace protocol. An exporter sends traces to any backend
+   * that is capable of consuming them. Recorded spans can be exported by
+   * registered exporters.
    *
    * @var string
    */
@@ -66,10 +75,12 @@ class GoogleCloudApigeeV1TraceConfig extends \Google\Model
   }
   /**
    * Required. Exporter that is used to view the distributed trace captured
-   * using OpenCensus. An exporter sends traces to any backend that is capable
-   * of consuming them. Recorded spans can be exported by registered exporters.
+   * using the chosen trace protocol. An exporter sends traces to any backend
+   * that is capable of consuming them. Recorded spans can be exported by
+   * registered exporters.
    *
-   * Accepted values: EXPORTER_UNSPECIFIED, JAEGER, CLOUD_TRACE
+   * Accepted values: EXPORTER_UNSPECIFIED, JAEGER, CLOUD_TRACE,
+   * OPEN_TELEMETRY_COLLECTOR, OPEN_TELEMETRY_CLOUD_TRACE
    *
    * @param self::EXPORTER_* $exporter
    */

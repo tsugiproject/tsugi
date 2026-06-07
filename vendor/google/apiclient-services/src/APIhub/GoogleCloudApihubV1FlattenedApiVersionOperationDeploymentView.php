@@ -29,7 +29,7 @@ class GoogleCloudApihubV1FlattenedApiVersionOperationDeploymentView extends \Goo
   protected $versionDataType = '';
 
   /**
-   * The API.
+   * Optional. The API.
    *
    * @param GoogleCloudApihubV1Api $api
    */
@@ -45,7 +45,7 @@ class GoogleCloudApihubV1FlattenedApiVersionOperationDeploymentView extends \Goo
     return $this->api;
   }
   /**
-   * The API operation.
+   * Optional. The API operation.
    *
    * @param GoogleCloudApihubV1ApiOperation $apiOperation
    */
@@ -61,7 +61,7 @@ class GoogleCloudApihubV1FlattenedApiVersionOperationDeploymentView extends \Goo
     return $this->apiOperation;
   }
   /**
-   * The deployment.
+   * Optional. The deployment.
    *
    * @param GoogleCloudApihubV1Deployment $deployment
    */
@@ -77,7 +77,7 @@ class GoogleCloudApihubV1FlattenedApiVersionOperationDeploymentView extends \Goo
     return $this->deployment;
   }
   /**
-   * The version.
+   * Optional. The version.
    *
    * @param GoogleCloudApihubV1Version $version
    */

@@ -19,6 +19,20 @@ namespace Google\Service\Aiplatform;
 
 class GoogleCloudAiplatformV1CopyModelRequest extends \Google\Model
 {
+  /**
+   * Optional. The user-provided custom service account to use to do the copy
+   * model. If empty, [Vertex AI Service Agent](https://cloud.google.com/vertex-
+   * ai/docs/general/access-control#service-agents) will be used to access
+   * resources needed to upload the model. This account must belong to the
+   * destination project where the model is copied to, i.e., the project
+   * specified in the `parent` field of this request and have the Vertex AI
+   * Service Agent role in the source project. Requires the user copying the
+   * Model to have the `iam.serviceAccounts.actAs` permission on this service
+   * account.
+   *
+   * @var string
+   */
+  public $customServiceAccount;
   protected $encryptionSpecType = GoogleCloudAiplatformV1EncryptionSpec::class;
   protected $encryptionSpecDataType = '';
   /**
@@ -47,6 +61,30 @@ class GoogleCloudAiplatformV1CopyModelRequest extends \Google\Model
    */
   public $sourceModel;
 
+  /**
+   * Optional. The user-provided custom service account to use to do the copy
+   * model. If empty, [Vertex AI Service Agent](https://cloud.google.com/vertex-
+   * ai/docs/general/access-control#service-agents) will be used to access
+   * resources needed to upload the model. This account must belong to the
+   * destination project where the model is copied to, i.e., the project
+   * specified in the `parent` field of this request and have the Vertex AI
+   * Service Agent role in the source project. Requires the user copying the
+   * Model to have the `iam.serviceAccounts.actAs` permission on this service
+   * account.
+   *
+   * @param string $customServiceAccount
+   */
+  public function setCustomServiceAccount($customServiceAccount)
+  {
+    $this->customServiceAccount = $customServiceAccount;
+  }
+  /**
+   * @return string
+   */
+  public function getCustomServiceAccount()
+  {
+    return $this->customServiceAccount;
+  }
   /**
    * Customer-managed encryption key options. If this is set, then the Model
    * copy will be encrypted with the provided encryption key.

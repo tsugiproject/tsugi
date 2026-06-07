@@ -104,7 +104,7 @@ class AutoRenewingPlan extends \Google\Model
   }
   /**
    * The current recurring price of the auto renewing plan. Note that the price
-   * does not take into account discounts and does not include taxes for tax-
+   * does not take into account discounts and does not include taxes. For tax-
    * exclusive pricing, please call orders.get API instead if transaction
    * details are needed.
    *

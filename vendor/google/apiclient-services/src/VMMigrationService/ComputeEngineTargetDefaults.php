@@ -64,6 +64,10 @@ class ComputeEngineTargetDefaults extends \Google\Collection
    */
   public const DISK_TYPE_COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED = 'COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED';
   /**
+   * Hyperdisk balanced high availability disk type.
+   */
+  public const DISK_TYPE_COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY = 'COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY';
+  /**
    * The license type is the default for the OS.
    */
   public const LICENSE_TYPE_COMPUTE_ENGINE_LICENSE_TYPE_DEFAULT = 'COMPUTE_ENGINE_LICENSE_TYPE_DEFAULT';
@@ -120,6 +124,8 @@ class ComputeEngineTargetDefaults extends \Google\Collection
    * @var string
    */
   public $diskType;
+  protected $disksType = PersistentDiskDefaults::class;
+  protected $disksDataType = 'array';
   /**
    * Optional. Defines whether the instance has integrity monitoring enabled.
    * This can be set to true only if the VM boot option is EFI, and vTPM is
@@ -356,7 +362,8 @@ class ComputeEngineTargetDefaults extends \Google\Collection
    * Accepted values: COMPUTE_ENGINE_DISK_TYPE_UNSPECIFIED,
    * COMPUTE_ENGINE_DISK_TYPE_STANDARD, COMPUTE_ENGINE_DISK_TYPE_SSD,
    * COMPUTE_ENGINE_DISK_TYPE_BALANCED,
-   * COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED
+   * COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED,
+   * COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY
    *
    * @param self::DISK_TYPE_* $diskType
    */
@@ -370,6 +377,22 @@ class ComputeEngineTargetDefaults extends \Google\Collection
   public function getDiskType()
   {
     return $this->diskType;
+  }
+  /**
+   * Optional. The details of each disk to create.
+   *
+   * @param PersistentDiskDefaults[] $disks
+   */
+  public function setDisks($disks)
+  {
+    $this->disks = $disks;
+  }
+  /**
+   * @return PersistentDiskDefaults[]
+   */
+  public function getDisks()
+  {
+    return $this->disks;
   }
   /**
    * Optional. Defines whether the instance has integrity monitoring enabled.

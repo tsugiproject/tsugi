@@ -40,6 +40,10 @@ class SpokeTypeCount extends \Google\Model
    */
   public const SPOKE_TYPE_VPC_NETWORK = 'VPC_NETWORK';
   /**
+   * Spokes that are NCC gateways.
+   */
+  public const SPOKE_TYPE_GATEWAY = 'GATEWAY';
+  /**
    * Spokes that are backed by a producer VPC network.
    */
   public const SPOKE_TYPE_PRODUCER_VPC_NETWORK = 'PRODUCER_VPC_NETWORK';
@@ -78,7 +82,7 @@ class SpokeTypeCount extends \Google\Model
    * Output only. The type of the spokes.
    *
    * Accepted values: SPOKE_TYPE_UNSPECIFIED, VPN_TUNNEL,
-   * INTERCONNECT_ATTACHMENT, ROUTER_APPLIANCE, VPC_NETWORK,
+   * INTERCONNECT_ATTACHMENT, ROUTER_APPLIANCE, VPC_NETWORK, GATEWAY,
    * PRODUCER_VPC_NETWORK
    *
    * @param self::SPOKE_TYPE_* $spokeType

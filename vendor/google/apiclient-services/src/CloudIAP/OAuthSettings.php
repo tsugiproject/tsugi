@@ -21,6 +21,26 @@ class OAuthSettings extends \Google\Collection
 {
   protected $collection_key = 'programmaticClients';
   /**
+   * Optional. OAuth 2.0 client ID used in the OAuth flow. This allows for
+   * client sharing. The risks of client sharing are outlined here:
+   * https://cloud.google.com/iap/docs/sharing-oauth-clients#risks.
+   *
+   * @var string
+   */
+  public $clientId;
+  /**
+   * Optional. Input only. OAuth secret paired with client ID.
+   *
+   * @var string
+   */
+  public $clientSecret;
+  /**
+   * Output only. OAuth secret SHA256 paired with client ID.
+   *
+   * @var string
+   */
+  public $clientSecretSha256;
+  /**
    * Domain hint to send as hd=? parameter in OAuth request flow. Enables
    * redirect to primary IDP by skipping Google's login screen.
    * https://developers.google.com/identity/protocols/OpenIDConnect#hd-param
@@ -37,6 +57,56 @@ class OAuthSettings extends \Google\Collection
    */
   public $programmaticClients;
 
+  /**
+   * Optional. OAuth 2.0 client ID used in the OAuth flow. This allows for
+   * client sharing. The risks of client sharing are outlined here:
+   * https://cloud.google.com/iap/docs/sharing-oauth-clients#risks.
+   *
+   * @param string $clientId
+   */
+  public function setClientId($clientId)
+  {
+    $this->clientId = $clientId;
+  }
+  /**
+   * @return string
+   */
+  public function getClientId()
+  {
+    return $this->clientId;
+  }
+  /**
+   * Optional. Input only. OAuth secret paired with client ID.
+   *
+   * @param string $clientSecret
+   */
+  public function setClientSecret($clientSecret)
+  {
+    $this->clientSecret = $clientSecret;
+  }
+  /**
+   * @return string
+   */
+  public function getClientSecret()
+  {
+    return $this->clientSecret;
+  }
+  /**
+   * Output only. OAuth secret SHA256 paired with client ID.
+   *
+   * @param string $clientSecretSha256
+   */
+  public function setClientSecretSha256($clientSecretSha256)
+  {
+    $this->clientSecretSha256 = $clientSecretSha256;
+  }
+  /**
+   * @return string
+   */
+  public function getClientSecretSha256()
+  {
+    return $this->clientSecretSha256;
+  }
   /**
    * Domain hint to send as hd=? parameter in OAuth request flow. Enables
    * redirect to primary IDP by skipping Google's login screen.

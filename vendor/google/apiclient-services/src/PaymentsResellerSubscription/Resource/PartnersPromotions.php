@@ -32,7 +32,7 @@ use Google\Service\PaymentsResellerSubscription\ListPromotionsResponse;
 class PartnersPromotions extends \Google\Service\Resource
 {
   /**
-   * Currently, it is only enabeld for **YouTube**. Finds eligible promotions for
+   * Currently, it is only enabled for **YouTube**. Finds eligible promotions for
    * the current user. The API requires user authorization via OAuth. The bare
    * minimum oauth scope `openid` is sufficient, which will skip the consent
    * screen. (promotions.findEligible)
@@ -53,7 +53,7 @@ class PartnersPromotions extends \Google\Service\Resource
   /**
    * Currently, it doesn't support **YouTube** promotions. Retrieves the
    * promotions, such as free trial, that can be used by the partner. It should be
-   * autenticated with a service account. (promotions.listPartnersPromotions)
+   * authenticated with a service account. (promotions.listPartnersPromotions)
    *
    * @param string $parent Required. The parent, the partner that can resell.
    * Format: partners/{partner}
@@ -72,8 +72,8 @@ class PartnersPromotions extends \Google\Service\Resource
    * youtubePayload.partnerEligibilityId=eligibility-id`
    * @opt_param int pageSize Optional. The maximum number of promotions to return.
    * The service may return fewer than this value. If unspecified, at most 50
-   * products will be returned. The maximum value is 1000; values above 1000 will
-   * be coerced to 1000.
+   * promotions will be returned. The maximum value is 1000; values above 1000
+   * will be coerced to 1000.
    * @opt_param string pageToken Optional. A page token, received from a previous
    * `ListPromotions` call. Provide this to retrieve the subsequent page. When
    * paginating, all other parameters provided to `ListPromotions` must match the

@@ -19,18 +19,48 @@ namespace Google\Service\Aiplatform;
 
 class GoogleCloudAiplatformV1EvaluationRunInferenceConfig extends \Google\Model
 {
+  protected $agentRunConfigType = GoogleCloudAiplatformV1EvaluationRunInferenceConfigAgentRunConfig::class;
+  protected $agentRunConfigDataType = '';
   protected $generationConfigType = GoogleCloudAiplatformV1GenerationConfig::class;
   protected $generationConfigDataType = '';
   /**
    * Optional. The fully qualified name of the publisher model or endpoint to
-   * use. Publisher model format:
-   * `projects/{project}/locations/{location}/publishers/models` Endpoint
-   * format: `projects/{project}/locations/{location}/endpoints/{endpoint}`
+   * use. Anthropic and Llama third-party models are also supported through
+   * Model Garden. Publisher model format:
+   * `projects/{project}/locations/{location}/publishers/models` Third-party
+   * model formats: `projects/{project}/locations/{location}/publishers/anthropi
+   * c/models/{model}` or
+   * `projects/{project}/locations/{location}/publishers/llama/models/{model}`
+   * Endpoint format:
+   * `projects/{project}/locations/{location}/endpoints/{endpoint}`
    *
    * @var string
    */
   public $model;
+  /**
+   * Optional. The parallelism of the evaluation run for the inference step. If
+   * not specified, the default parallelism will be used.
+   *
+   * @var int
+   */
+  public $parallelism;
 
+  /**
+   * Optional. Agent run config.
+   *
+   * @param GoogleCloudAiplatformV1EvaluationRunInferenceConfigAgentRunConfig $agentRunConfig
+   */
+  public function setAgentRunConfig(GoogleCloudAiplatformV1EvaluationRunInferenceConfigAgentRunConfig $agentRunConfig)
+  {
+    $this->agentRunConfig = $agentRunConfig;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1EvaluationRunInferenceConfigAgentRunConfig
+   */
+  public function getAgentRunConfig()
+  {
+    return $this->agentRunConfig;
+  }
   /**
    * Optional. Generation config.
    *
@@ -49,9 +79,14 @@ class GoogleCloudAiplatformV1EvaluationRunInferenceConfig extends \Google\Model
   }
   /**
    * Optional. The fully qualified name of the publisher model or endpoint to
-   * use. Publisher model format:
-   * `projects/{project}/locations/{location}/publishers/models` Endpoint
-   * format: `projects/{project}/locations/{location}/endpoints/{endpoint}`
+   * use. Anthropic and Llama third-party models are also supported through
+   * Model Garden. Publisher model format:
+   * `projects/{project}/locations/{location}/publishers/models` Third-party
+   * model formats: `projects/{project}/locations/{location}/publishers/anthropi
+   * c/models/{model}` or
+   * `projects/{project}/locations/{location}/publishers/llama/models/{model}`
+   * Endpoint format:
+   * `projects/{project}/locations/{location}/endpoints/{endpoint}`
    *
    * @param string $model
    */
@@ -65,6 +100,23 @@ class GoogleCloudAiplatformV1EvaluationRunInferenceConfig extends \Google\Model
   public function getModel()
   {
     return $this->model;
+  }
+  /**
+   * Optional. The parallelism of the evaluation run for the inference step. If
+   * not specified, the default parallelism will be used.
+   *
+   * @param int $parallelism
+   */
+  public function setParallelism($parallelism)
+  {
+    $this->parallelism = $parallelism;
+  }
+  /**
+   * @return int
+   */
+  public function getParallelism()
+  {
+    return $this->parallelism;
   }
 }
 

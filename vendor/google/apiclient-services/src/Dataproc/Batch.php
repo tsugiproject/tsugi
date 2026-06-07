@@ -87,6 +87,8 @@ class Batch extends \Google\Collection
   public $operation;
   protected $pysparkBatchType = PySparkBatch::class;
   protected $pysparkBatchDataType = '';
+  protected $pysparkNotebookBatchType = PySparkNotebookBatch::class;
+  protected $pysparkNotebookBatchDataType = '';
   protected $runtimeConfigType = RuntimeConfig::class;
   protected $runtimeConfigDataType = '';
   protected $runtimeInfoType = RuntimeInfo::class;
@@ -242,6 +244,22 @@ class Batch extends \Google\Collection
   public function getPysparkBatch()
   {
     return $this->pysparkBatch;
+  }
+  /**
+   * Optional. PySpark notebook batch config.
+   *
+   * @param PySparkNotebookBatch $pysparkNotebookBatch
+   */
+  public function setPysparkNotebookBatch(PySparkNotebookBatch $pysparkNotebookBatch)
+  {
+    $this->pysparkNotebookBatch = $pysparkNotebookBatch;
+  }
+  /**
+   * @return PySparkNotebookBatch
+   */
+  public function getPysparkNotebookBatch()
+  {
+    return $this->pysparkNotebookBatch;
   }
   /**
    * Optional. Runtime configuration for the batch execution.

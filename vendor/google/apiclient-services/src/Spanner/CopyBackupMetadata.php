@@ -35,7 +35,7 @@ class CopyBackupMetadata extends \Google\Model
   public $cancelTime;
   /**
    * The name of the backup being created through the copy operation. Values are
-   * of the form `projects//instances//backups/`.
+   * of the form `projects/{project}/instances/{instance}/backups/{backup}`.
    *
    * @var string
    */
@@ -44,7 +44,7 @@ class CopyBackupMetadata extends \Google\Model
   protected $progressDataType = '';
   /**
    * The name of the source backup that is being copied. Values are of the form
-   * `projects//instances//backups/`.
+   * `projects/{project}/instances/{instance}/backups/{backup}`.
    *
    * @var string
    */
@@ -76,7 +76,7 @@ class CopyBackupMetadata extends \Google\Model
   }
   /**
    * The name of the backup being created through the copy operation. Values are
-   * of the form `projects//instances//backups/`.
+   * of the form `projects/{project}/instances/{instance}/backups/{backup}`.
    *
    * @param string $name
    */
@@ -109,7 +109,7 @@ class CopyBackupMetadata extends \Google\Model
   }
   /**
    * The name of the source backup that is being copied. Values are of the form
-   * `projects//instances//backups/`.
+   * `projects/{project}/instances/{instance}/backups/{backup}`.
    *
    * @param string $sourceBackup
    */

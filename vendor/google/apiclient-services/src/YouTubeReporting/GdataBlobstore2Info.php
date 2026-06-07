@@ -54,6 +54,12 @@ class GdataBlobstore2Info extends \Google\Model
    *
    * @var string
    */
+  public $uploadFragmentListCreationInfo;
+  /**
+   * gdata
+   *
+   * @var string
+   */
   public $uploadMetadataContainer;
 
   /**
@@ -135,6 +141,22 @@ class GdataBlobstore2Info extends \Google\Model
   public function getReadToken()
   {
     return $this->readToken;
+  }
+  /**
+   * gdata
+   *
+   * @param string $uploadFragmentListCreationInfo
+   */
+  public function setUploadFragmentListCreationInfo($uploadFragmentListCreationInfo)
+  {
+    $this->uploadFragmentListCreationInfo = $uploadFragmentListCreationInfo;
+  }
+  /**
+   * @return string
+   */
+  public function getUploadFragmentListCreationInfo()
+  {
+    return $this->uploadFragmentListCreationInfo;
   }
   /**
    * gdata

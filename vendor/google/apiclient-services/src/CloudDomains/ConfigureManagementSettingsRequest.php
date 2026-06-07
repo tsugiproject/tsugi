@@ -29,6 +29,13 @@ class ConfigureManagementSettingsRequest extends \Google\Model
    * @var string
    */
   public $updateMask;
+  /**
+   * Optional. If set, validates the request without actually updating the
+   * management settings.
+   *
+   * @var bool
+   */
+  public $validateOnly;
 
   /**
    * Fields of the `ManagementSettings` to update.
@@ -63,6 +70,23 @@ class ConfigureManagementSettingsRequest extends \Google\Model
   public function getUpdateMask()
   {
     return $this->updateMask;
+  }
+  /**
+   * Optional. If set, validates the request without actually updating the
+   * management settings.
+   *
+   * @param bool $validateOnly
+   */
+  public function setValidateOnly($validateOnly)
+  {
+    $this->validateOnly = $validateOnly;
+  }
+  /**
+   * @return bool
+   */
+  public function getValidateOnly()
+  {
+    return $this->validateOnly;
   }
 }
 

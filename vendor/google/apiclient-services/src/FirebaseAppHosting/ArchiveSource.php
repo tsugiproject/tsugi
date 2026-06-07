@@ -35,7 +35,12 @@ class ArchiveSource extends \Google\Model
    */
   public $externalSignedUri;
   /**
-   * Optional. Relative path in the archive.
+   * Optional. The directory relative to the root of the archive to use as the
+   * root for the deployed web app. Defaults to use the root of the repository
+   * if not provided. If deploying a
+   * [monorepo](https://firebase.google.com/docs/app-hosting/monorepos), this
+   * should be the directory that contains the `package.json` or
+   * `apphosting.yaml` file.
    *
    * @var string
    */
@@ -49,8 +54,10 @@ class ArchiveSource extends \Google\Model
   public $userStorageUri;
 
   /**
-   * Optional. The author contained in the metadata of a version control change.
+   * Optional. Deprecated: Not used. The author contained in the metadata of a
+   * version control change.
    *
+   * @deprecated
    * @param SourceUserMetadata $author
    */
   public function setAuthor(SourceUserMetadata $author)
@@ -58,6 +65,7 @@ class ArchiveSource extends \Google\Model
     $this->author = $author;
   }
   /**
+   * @deprecated
    * @return SourceUserMetadata
    */
   public function getAuthor()
@@ -98,7 +106,12 @@ class ArchiveSource extends \Google\Model
     return $this->externalSignedUri;
   }
   /**
-   * Optional. Relative path in the archive.
+   * Optional. The directory relative to the root of the archive to use as the
+   * root for the deployed web app. Defaults to use the root of the repository
+   * if not provided. If deploying a
+   * [monorepo](https://firebase.google.com/docs/app-hosting/monorepos), this
+   * should be the directory that contains the `package.json` or
+   * `apphosting.yaml` file.
    *
    * @param string $rootDirectory
    */

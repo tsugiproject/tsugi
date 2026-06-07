@@ -124,6 +124,8 @@ class Volume extends \Google\Collection
    * @var string
    */
   public $capacityGib;
+  protected $cloneDetailsType = CloneDetails::class;
+  protected $cloneDetailsDataType = '';
   /**
    * Output only. Size of the volume cold tier data rounded down to the nearest
    * GiB.
@@ -188,11 +190,15 @@ class Volume extends \Google\Collection
   public $labels;
   /**
    * Optional. Flag indicating if the volume will be a large capacity volume or
-   * a regular volume.
+   * a regular volume. This field is used for legacy FILE pools. For Unified
+   * pools, use the `large_capacity_config` field instead. This field and
+   * `large_capacity_config` are mutually exclusive.
    *
    * @var bool
    */
   public $largeCapacity;
+  protected $largeCapacityConfigType = LargeCapacityConfig::class;
+  protected $largeCapacityConfigDataType = '';
   /**
    * Output only. Flag indicating if the volume is NFS LDAP enabled or not.
    *
@@ -419,6 +425,23 @@ class Volume extends \Google\Collection
     return $this->capacityGib;
   }
   /**
+   * Output only. If this volume is a clone, this field contains details about
+   * the clone.
+   *
+   * @param CloneDetails $cloneDetails
+   */
+  public function setCloneDetails(CloneDetails $cloneDetails)
+  {
+    $this->cloneDetails = $cloneDetails;
+  }
+  /**
+   * @return CloneDetails
+   */
+  public function getCloneDetails()
+  {
+    return $this->cloneDetails;
+  }
+  /**
    * Output only. Size of the volume cold tier data rounded down to the nearest
    * GiB.
    *
@@ -602,7 +625,9 @@ class Volume extends \Google\Collection
   }
   /**
    * Optional. Flag indicating if the volume will be a large capacity volume or
-   * a regular volume.
+   * a regular volume. This field is used for legacy FILE pools. For Unified
+   * pools, use the `large_capacity_config` field instead. This field and
+   * `large_capacity_config` are mutually exclusive.
    *
    * @param bool $largeCapacity
    */
@@ -616,6 +641,25 @@ class Volume extends \Google\Collection
   public function getLargeCapacity()
   {
     return $this->largeCapacity;
+  }
+  /**
+   * Optional. Large capacity config for the volume. Enables and configures
+   * large capacity for volumes in Unified pools with File protocols. Not
+   * applicable for Block protocols in Unified pools. This field and the legacy
+   * `large_capacity` boolean field are mutually exclusive.
+   *
+   * @param LargeCapacityConfig $largeCapacityConfig
+   */
+  public function setLargeCapacityConfig(LargeCapacityConfig $largeCapacityConfig)
+  {
+    $this->largeCapacityConfig = $largeCapacityConfig;
+  }
+  /**
+   * @return LargeCapacityConfig
+   */
+  public function getLargeCapacityConfig()
+  {
+    return $this->largeCapacityConfig;
   }
   /**
    * Output only. Flag indicating if the volume is NFS LDAP enabled or not.

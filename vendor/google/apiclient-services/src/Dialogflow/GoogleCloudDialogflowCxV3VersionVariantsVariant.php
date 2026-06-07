@@ -20,29 +20,19 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3VersionVariantsVariant extends \Google\Model
 {
   /**
-   * Whether the variant is for the control group.
-   *
    * @var bool
    */
   public $isControlGroup;
   /**
-   * Percentage of the traffic which should be routed to this version of flow.
-   * Traffic allocation for a single flow must sum up to 1.0.
-   *
    * @var float
    */
   public $trafficAllocation;
   /**
-   * The name of the flow version. Format:
-   * `projects//locations//agents//flows//versions/`.
-   *
    * @var string
    */
   public $version;
 
   /**
-   * Whether the variant is for the control group.
-   *
    * @param bool $isControlGroup
    */
   public function setIsControlGroup($isControlGroup)
@@ -57,9 +47,6 @@ class GoogleCloudDialogflowCxV3VersionVariantsVariant extends \Google\Model
     return $this->isControlGroup;
   }
   /**
-   * Percentage of the traffic which should be routed to this version of flow.
-   * Traffic allocation for a single flow must sum up to 1.0.
-   *
    * @param float $trafficAllocation
    */
   public function setTrafficAllocation($trafficAllocation)
@@ -74,9 +61,6 @@ class GoogleCloudDialogflowCxV3VersionVariantsVariant extends \Google\Model
     return $this->trafficAllocation;
   }
   /**
-   * The name of the flow version. Format:
-   * `projects//locations//agents//flows//versions/`.
-   *
    * @param string $version
    */
   public function setVersion($version)

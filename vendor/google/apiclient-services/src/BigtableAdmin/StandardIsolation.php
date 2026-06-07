@@ -26,6 +26,8 @@ class StandardIsolation extends \Google\Model
   public const PRIORITY_PRIORITY_LOW = 'PRIORITY_LOW';
   public const PRIORITY_PRIORITY_MEDIUM = 'PRIORITY_MEDIUM';
   public const PRIORITY_PRIORITY_HIGH = 'PRIORITY_HIGH';
+  protected $memoryConfigType = MemoryConfig::class;
+  protected $memoryConfigDataType = '';
   /**
    * The priority of requests sent using this app profile.
    *
@@ -33,6 +35,23 @@ class StandardIsolation extends \Google\Model
    */
   public $priority;
 
+  /**
+   * Optional. The memory config to use for requests sent using this app
+   * profile.
+   *
+   * @param MemoryConfig $memoryConfig
+   */
+  public function setMemoryConfig(MemoryConfig $memoryConfig)
+  {
+    $this->memoryConfig = $memoryConfig;
+  }
+  /**
+   * @return MemoryConfig
+   */
+  public function getMemoryConfig()
+  {
+    return $this->memoryConfig;
+  }
   /**
    * The priority of requests sent using this app profile.
    *

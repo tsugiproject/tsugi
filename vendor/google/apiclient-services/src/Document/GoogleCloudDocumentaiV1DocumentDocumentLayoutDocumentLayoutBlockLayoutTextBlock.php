@@ -20,6 +20,8 @@ namespace Google\Service\Document;
 class GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock extends \Google\Collection
 {
   protected $collection_key = 'blocks';
+  protected $annotationsType = GoogleCloudDocumentaiV1DocumentAnnotations::class;
+  protected $annotationsDataType = '';
   protected $blocksType = GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock::class;
   protected $blocksDataType = 'array';
   /**
@@ -37,6 +39,22 @@ class GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutText
    */
   public $type;
 
+  /**
+   * Annotation of the text block.
+   *
+   * @param GoogleCloudDocumentaiV1DocumentAnnotations $annotations
+   */
+  public function setAnnotations(GoogleCloudDocumentaiV1DocumentAnnotations $annotations)
+  {
+    $this->annotations = $annotations;
+  }
+  /**
+   * @return GoogleCloudDocumentaiV1DocumentAnnotations
+   */
+  public function getAnnotations()
+  {
+    return $this->annotations;
+  }
   /**
    * A text block could further have child blocks. Repeated blocks support
    * further hierarchies and nested blocks.

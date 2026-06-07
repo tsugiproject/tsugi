@@ -66,6 +66,16 @@ class GoogleCloudSecuritycenterV2Finding extends \Google\Collection
    */
   public const FINDING_CLASS_CHOKEPOINT = 'CHOKEPOINT';
   /**
+   * Describes a potential security risk due to the resource being exposed to
+   * the internet.
+   */
+  public const FINDING_CLASS_EXTERNAL_EXPOSURE = 'EXTERNAL_EXPOSURE';
+  /**
+   * Describes a potential security risk due to plaintext credentials, keys, or
+   * tokens being exposed in an asset or workload.
+   */
+  public const FINDING_CLASS_SECRET = 'SECRET';
+  /**
    * Unspecified.
    */
   public const MUTE_MUTE_UNSPECIFIED = 'MUTE_UNSPECIFIED';
@@ -148,10 +158,14 @@ class GoogleCloudSecuritycenterV2Finding extends \Google\Collection
   protected $accessDataType = '';
   protected $affectedResourcesType = GoogleCloudSecuritycenterV2AffectedResources::class;
   protected $affectedResourcesDataType = '';
+  protected $agentDataAccessEventsType = GoogleCloudSecuritycenterV2AgentDataAccessEvent::class;
+  protected $agentDataAccessEventsDataType = 'array';
   protected $aiModelType = GoogleCloudSecuritycenterV2AiModel::class;
   protected $aiModelDataType = '';
   protected $applicationType = GoogleCloudSecuritycenterV2Application::class;
   protected $applicationDataType = '';
+  protected $artifactGuardPoliciesType = GoogleCloudSecuritycenterV2ArtifactGuardPolicies::class;
+  protected $artifactGuardPoliciesDataType = '';
   protected $attackExposureType = GoogleCloudSecuritycenterV2AttackExposure::class;
   protected $attackExposureDataType = '';
   protected $backupDisasterRecoveryType = GoogleCloudSecuritycenterV2BackupDisasterRecovery::class;
@@ -221,6 +235,8 @@ class GoogleCloudSecuritycenterV2Finding extends \Google\Collection
    * @var string
    */
   public $description;
+  protected $discoveredWorkloadType = GoogleCloudSecuritycenterV2DiscoveredWorkload::class;
+  protected $discoveredWorkloadDataType = '';
   protected $diskType = GoogleCloudSecuritycenterV2Disk::class;
   protected $diskDataType = '';
   /**
@@ -237,6 +253,8 @@ class GoogleCloudSecuritycenterV2Finding extends \Google\Collection
   public $eventTime;
   protected $exfiltrationType = GoogleCloudSecuritycenterV2Exfiltration::class;
   protected $exfiltrationDataType = '';
+  protected $externalExposureType = GoogleCloudSecuritycenterV2ExternalExposure::class;
+  protected $externalExposureDataType = '';
   protected $externalSystemsType = GoogleCloudSecuritycenterV2ExternalSystem::class;
   protected $externalSystemsDataType = 'map';
   /**
@@ -358,6 +376,8 @@ class GoogleCloudSecuritycenterV2Finding extends \Google\Collection
    * @var string
    */
   public $parentDisplayName;
+  protected $policyViolationSummaryType = GoogleCloudSecuritycenterV2PolicyViolationSummary::class;
+  protected $policyViolationSummaryDataType = '';
   protected $processesType = GoogleCloudSecuritycenterV2Process::class;
   protected $processesDataType = 'array';
   /**
@@ -370,6 +390,8 @@ class GoogleCloudSecuritycenterV2Finding extends \Google\Collection
    * @var string
    */
   public $resourceName;
+  protected $secretType = GoogleCloudSecuritycenterV2Secret::class;
+  protected $secretDataType = '';
   protected $securityMarksType = GoogleCloudSecuritycenterV2SecurityMarks::class;
   protected $securityMarksDataType = '';
   protected $securityPostureType = GoogleCloudSecuritycenterV2SecurityPosture::class;
@@ -437,6 +459,22 @@ class GoogleCloudSecuritycenterV2Finding extends \Google\Collection
     return $this->affectedResources;
   }
   /**
+   * Agent data access events associated with the finding.
+   *
+   * @param GoogleCloudSecuritycenterV2AgentDataAccessEvent[] $agentDataAccessEvents
+   */
+  public function setAgentDataAccessEvents($agentDataAccessEvents)
+  {
+    $this->agentDataAccessEvents = $agentDataAccessEvents;
+  }
+  /**
+   * @return GoogleCloudSecuritycenterV2AgentDataAccessEvent[]
+   */
+  public function getAgentDataAccessEvents()
+  {
+    return $this->agentDataAccessEvents;
+  }
+  /**
    * The AI model associated with the finding.
    *
    * @param GoogleCloudSecuritycenterV2AiModel $aiModel
@@ -467,6 +505,22 @@ class GoogleCloudSecuritycenterV2Finding extends \Google\Collection
   public function getApplication()
   {
     return $this->application;
+  }
+  /**
+   * ArtifactGuardPolicies associated with the finding.
+   *
+   * @param GoogleCloudSecuritycenterV2ArtifactGuardPolicies $artifactGuardPolicies
+   */
+  public function setArtifactGuardPolicies(GoogleCloudSecuritycenterV2ArtifactGuardPolicies $artifactGuardPolicies)
+  {
+    $this->artifactGuardPolicies = $artifactGuardPolicies;
+  }
+  /**
+   * @return GoogleCloudSecuritycenterV2ArtifactGuardPolicies
+   */
+  public function getArtifactGuardPolicies()
+  {
+    return $this->artifactGuardPolicies;
   }
   /**
    * The results of an attack path simulation relevant to this finding.
@@ -810,6 +864,22 @@ class GoogleCloudSecuritycenterV2Finding extends \Google\Collection
     return $this->description;
   }
   /**
+   * DiscoveredWorkload associated with the finding.
+   *
+   * @param GoogleCloudSecuritycenterV2DiscoveredWorkload $discoveredWorkload
+   */
+  public function setDiscoveredWorkload(GoogleCloudSecuritycenterV2DiscoveredWorkload $discoveredWorkload)
+  {
+    $this->discoveredWorkload = $discoveredWorkload;
+  }
+  /**
+   * @return GoogleCloudSecuritycenterV2DiscoveredWorkload
+   */
+  public function getDiscoveredWorkload()
+  {
+    return $this->discoveredWorkload;
+  }
+  /**
    * Disk associated with the finding.
    *
    * @param GoogleCloudSecuritycenterV2Disk $disk
@@ -862,6 +932,22 @@ class GoogleCloudSecuritycenterV2Finding extends \Google\Collection
   public function getExfiltration()
   {
     return $this->exfiltration;
+  }
+  /**
+   * External exposure associated with the finding.
+   *
+   * @param GoogleCloudSecuritycenterV2ExternalExposure $externalExposure
+   */
+  public function setExternalExposure(GoogleCloudSecuritycenterV2ExternalExposure $externalExposure)
+  {
+    $this->externalExposure = $externalExposure;
+  }
+  /**
+   * @return GoogleCloudSecuritycenterV2ExternalExposure
+   */
+  public function getExternalExposure()
+  {
+    return $this->externalExposure;
   }
   /**
    * Output only. Third party SIEM/SOAR fields within SCC, contains external
@@ -919,7 +1005,8 @@ class GoogleCloudSecuritycenterV2Finding extends \Google\Collection
    *
    * Accepted values: FINDING_CLASS_UNSPECIFIED, THREAT, VULNERABILITY,
    * MISCONFIGURATION, OBSERVATION, SCC_ERROR, POSTURE_VIOLATION,
-   * TOXIC_COMBINATION, SENSITIVE_DATA_RISK, CHOKEPOINT
+   * TOXIC_COMBINATION, SENSITIVE_DATA_RISK, CHOKEPOINT, EXTERNAL_EXPOSURE,
+   * SECRET
    *
    * @param self::FINDING_CLASS_* $findingClass
    */
@@ -1323,6 +1410,22 @@ class GoogleCloudSecuritycenterV2Finding extends \Google\Collection
     return $this->parentDisplayName;
   }
   /**
+   * PolicyViolationSummary associated with the finding.
+   *
+   * @param GoogleCloudSecuritycenterV2PolicyViolationSummary $policyViolationSummary
+   */
+  public function setPolicyViolationSummary(GoogleCloudSecuritycenterV2PolicyViolationSummary $policyViolationSummary)
+  {
+    $this->policyViolationSummary = $policyViolationSummary;
+  }
+  /**
+   * @return GoogleCloudSecuritycenterV2PolicyViolationSummary
+   */
+  public function getPolicyViolationSummary()
+  {
+    return $this->policyViolationSummary;
+  }
+  /**
    * Represents operating system processes associated with the Finding.
    *
    * @param GoogleCloudSecuritycenterV2Process[] $processes
@@ -1357,6 +1460,22 @@ class GoogleCloudSecuritycenterV2Finding extends \Google\Collection
   public function getResourceName()
   {
     return $this->resourceName;
+  }
+  /**
+   * Secret associated with the finding.
+   *
+   * @param GoogleCloudSecuritycenterV2Secret $secret
+   */
+  public function setSecret(GoogleCloudSecuritycenterV2Secret $secret)
+  {
+    $this->secret = $secret;
+  }
+  /**
+   * @return GoogleCloudSecuritycenterV2Secret
+   */
+  public function getSecret()
+  {
+    return $this->secret;
   }
   /**
    * Output only. User specified security marks. These marks are entirely

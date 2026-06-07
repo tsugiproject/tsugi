@@ -21,8 +21,8 @@ class GoogleCloudOrgpolicyV2ListPoliciesResponse extends \Google\Collection
 {
   protected $collection_key = 'policies';
   /**
-   * Page token used to retrieve the next page. This is currently not used, but
-   * the server may at any point start supplying a valid token.
+   * Page token used to retrieve the next page. This is not used, but the server
+   * may at any point start supplying a valid token.
    *
    * @var string
    */
@@ -31,8 +31,8 @@ class GoogleCloudOrgpolicyV2ListPoliciesResponse extends \Google\Collection
   protected $policiesDataType = 'array';
 
   /**
-   * Page token used to retrieve the next page. This is currently not used, but
-   * the server may at any point start supplying a valid token.
+   * Page token used to retrieve the next page. This is not used, but the server
+   * may at any point start supplying a valid token.
    *
    * @param string $nextPageToken
    */

@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.19.3
+
+## 2.19.2
+
+## [2.19.1](https://github.com/googleapis/google-api-php-client/compare/v2.19.0...v2.19.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* Update phpseclib minimum version ([#2709](https://github.com/googleapis/google-api-php-client/issues/2709)) ([7bb27a5](https://github.com/googleapis/google-api-php-client/commit/7bb27a5357905200a9a8affe73a61a0aec69dde7))
+
+## [2.19.0](https://github.com/googleapis/google-api-php-client/compare/v2.18.4...v2.19.0) (2026-01-09)
+
+
+### Features
+
+* Support firebase/php-jwt version 6.0 and 7.0 ([#2696](https://github.com/googleapis/google-api-php-client/issues/2696)) ([70ea42a](https://github.com/googleapis/google-api-php-client/commit/70ea42a6aa29a1321825c3dcda39cf39174390ea))
+
+
+### Bug Fixes
+
+* Upload assets release job ([#2671](https://github.com/googleapis/google-api-php-client/issues/2671)) ([0f56ea7](https://github.com/googleapis/google-api-php-client/commit/0f56ea773cb51cc6131c442d112d7fd630b49b5c))
+
 ## [2.18.4](https://github.com/googleapis/google-api-php-client/compare/v2.18.3...v2.18.4) (2025-09-29)
 
 

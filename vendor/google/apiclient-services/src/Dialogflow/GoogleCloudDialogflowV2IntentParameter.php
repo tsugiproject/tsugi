@@ -21,68 +21,39 @@ class GoogleCloudDialogflowV2IntentParameter extends \Google\Collection
 {
   protected $collection_key = 'prompts';
   /**
-   * Optional. The default value to use when the `value` yields an empty result.
-   * Default values can be extracted from contexts by using the following
-   * syntax: `#context_name.parameter_name`.
-   *
    * @var string
    */
   public $defaultValue;
   /**
-   * Required. The name of the parameter.
-   *
    * @var string
    */
   public $displayName;
   /**
-   * Optional. The name of the entity type, prefixed with `@`, that describes
-   * values of the parameter. If the parameter is required, this must be
-   * provided.
-   *
    * @var string
    */
   public $entityTypeDisplayName;
   /**
-   * Optional. Indicates whether the parameter represents a list of values.
-   *
    * @var bool
    */
   public $isList;
   /**
-   * Optional. Indicates whether the parameter is required. That is, whether the
-   * intent cannot be completed without collecting the parameter value.
-   *
    * @var bool
    */
   public $mandatory;
   /**
-   * The unique identifier of this parameter.
-   *
    * @var string
    */
   public $name;
   /**
-   * Optional. The collection of prompts that the agent can present to the user
-   * in order to collect a value for the parameter.
-   *
    * @var string[]
    */
   public $prompts;
   /**
-   * Optional. The definition of the parameter value. It can be: - a constant
-   * string, - a parameter value defined as `$parameter_name`, - an original
-   * parameter value defined as `$parameter_name.original`, - a parameter value
-   * from some context defined as `#context_name.parameter_name`.
-   *
    * @var string
    */
   public $value;
 
   /**
-   * Optional. The default value to use when the `value` yields an empty result.
-   * Default values can be extracted from contexts by using the following
-   * syntax: `#context_name.parameter_name`.
-   *
    * @param string $defaultValue
    */
   public function setDefaultValue($defaultValue)
@@ -97,8 +68,6 @@ class GoogleCloudDialogflowV2IntentParameter extends \Google\Collection
     return $this->defaultValue;
   }
   /**
-   * Required. The name of the parameter.
-   *
    * @param string $displayName
    */
   public function setDisplayName($displayName)
@@ -113,10 +82,6 @@ class GoogleCloudDialogflowV2IntentParameter extends \Google\Collection
     return $this->displayName;
   }
   /**
-   * Optional. The name of the entity type, prefixed with `@`, that describes
-   * values of the parameter. If the parameter is required, this must be
-   * provided.
-   *
    * @param string $entityTypeDisplayName
    */
   public function setEntityTypeDisplayName($entityTypeDisplayName)
@@ -131,8 +96,6 @@ class GoogleCloudDialogflowV2IntentParameter extends \Google\Collection
     return $this->entityTypeDisplayName;
   }
   /**
-   * Optional. Indicates whether the parameter represents a list of values.
-   *
    * @param bool $isList
    */
   public function setIsList($isList)
@@ -147,9 +110,6 @@ class GoogleCloudDialogflowV2IntentParameter extends \Google\Collection
     return $this->isList;
   }
   /**
-   * Optional. Indicates whether the parameter is required. That is, whether the
-   * intent cannot be completed without collecting the parameter value.
-   *
    * @param bool $mandatory
    */
   public function setMandatory($mandatory)
@@ -164,8 +124,6 @@ class GoogleCloudDialogflowV2IntentParameter extends \Google\Collection
     return $this->mandatory;
   }
   /**
-   * The unique identifier of this parameter.
-   *
    * @param string $name
    */
   public function setName($name)
@@ -180,9 +138,6 @@ class GoogleCloudDialogflowV2IntentParameter extends \Google\Collection
     return $this->name;
   }
   /**
-   * Optional. The collection of prompts that the agent can present to the user
-   * in order to collect a value for the parameter.
-   *
    * @param string[] $prompts
    */
   public function setPrompts($prompts)
@@ -197,11 +152,6 @@ class GoogleCloudDialogflowV2IntentParameter extends \Google\Collection
     return $this->prompts;
   }
   /**
-   * Optional. The definition of the parameter value. It can be: - a constant
-   * string, - a parameter value defined as `$parameter_name`, - an original
-   * parameter value defined as `$parameter_name.original`, - a parameter value
-   * from some context defined as `#context_name.parameter_name`.
-   *
    * @param string $value
    */
   public function setValue($value)

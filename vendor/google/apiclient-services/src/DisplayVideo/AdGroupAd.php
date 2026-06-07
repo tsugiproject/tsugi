@@ -46,16 +46,13 @@ class AdGroupAd extends \Google\Collection
   public const ENTITY_STATUS_ENTITY_STATUS_SCHEDULED_FOR_DELETION = 'ENTITY_STATUS_SCHEDULED_FOR_DELETION';
   protected $collection_key = 'adUrls';
   /**
-   * The unique ID of the ad. Assigned by the system.
+   * Output only. The unique ID of the ad. Assigned by the system.
    *
    * @var string
    */
   public $adGroupAdId;
   /**
-   * The unique ID of the ad group that the ad belongs to. *Caution*: Parent ad
-   * groups for Demand Gen ads are not currently retrieveable using
-   * `advertisers.adGroups.list` or `advertisers.adGroups.get`. Demand Gen ads
-   * can be identified by the absence of the `ad_details` union field.
+   * Required. Immutable. The unique ID of the ad group that the ad belongs to.
    *
    * @var string
    */
@@ -65,7 +62,7 @@ class AdGroupAd extends \Google\Collection
   protected $adUrlsType = AdUrl::class;
   protected $adUrlsDataType = 'array';
   /**
-   * The unique ID of the advertiser the ad belongs to.
+   * Output only. The unique ID of the advertiser the ad belongs to.
    *
    * @var string
    */
@@ -74,9 +71,19 @@ class AdGroupAd extends \Google\Collection
   protected $audioAdDataType = '';
   protected $bumperAdType = BumperAd::class;
   protected $bumperAdDataType = '';
+  protected $dcmTrackingInfoType = DcmTrackingInfo::class;
+  protected $dcmTrackingInfoDataType = '';
+  protected $demandGenCarouselAdType = DemandGenCarouselAd::class;
+  protected $demandGenCarouselAdDataType = '';
+  protected $demandGenImageAdType = DemandGenImageAd::class;
+  protected $demandGenImageAdDataType = '';
+  protected $demandGenProductAdType = DemandGenProductAd::class;
+  protected $demandGenProductAdDataType = '';
+  protected $demandGenVideoAdType = DemandGenVideoAd::class;
+  protected $demandGenVideoAdDataType = '';
   /**
-   * The display name of the ad. Must be UTF-8 encoded with a maximum size of
-   * 255 bytes.
+   * Required. The display name of the ad. Must be UTF-8 encoded with a maximum
+   * size of 255 bytes.
    *
    * @var string
    */
@@ -84,7 +91,7 @@ class AdGroupAd extends \Google\Collection
   protected $displayVideoSourceAdType = DisplayVideoSourceAd::class;
   protected $displayVideoSourceAdDataType = '';
   /**
-   * The entity status of the ad.
+   * Required. The entity status of the ad.
    *
    * @var string
    */
@@ -94,7 +101,7 @@ class AdGroupAd extends \Google\Collection
   protected $mastheadAdType = MastheadAd::class;
   protected $mastheadAdDataType = '';
   /**
-   * The resource name of the ad.
+   * Output only. The resource name of the ad.
    *
    * @var string
    */
@@ -107,7 +114,7 @@ class AdGroupAd extends \Google\Collection
   protected $videoPerformanceAdDataType = '';
 
   /**
-   * The unique ID of the ad. Assigned by the system.
+   * Output only. The unique ID of the ad. Assigned by the system.
    *
    * @param string $adGroupAdId
    */
@@ -123,10 +130,7 @@ class AdGroupAd extends \Google\Collection
     return $this->adGroupAdId;
   }
   /**
-   * The unique ID of the ad group that the ad belongs to. *Caution*: Parent ad
-   * groups for Demand Gen ads are not currently retrieveable using
-   * `advertisers.adGroups.list` or `advertisers.adGroups.get`. Demand Gen ads
-   * can be identified by the absence of the `ad_details` union field.
+   * Required. Immutable. The unique ID of the ad group that the ad belongs to.
    *
    * @param string $adGroupId
    */
@@ -142,7 +146,7 @@ class AdGroupAd extends \Google\Collection
     return $this->adGroupId;
   }
   /**
-   * The policy approval status of the ad.
+   * Output only. The policy approval status of the ad.
    *
    * @param AdPolicy $adPolicy
    */
@@ -158,7 +162,7 @@ class AdGroupAd extends \Google\Collection
     return $this->adPolicy;
   }
   /**
-   * List of URLs used by the ad.
+   * Output only. List of URLs used by the ad.
    *
    * @param AdUrl[] $adUrls
    */
@@ -174,7 +178,7 @@ class AdGroupAd extends \Google\Collection
     return $this->adUrls;
   }
   /**
-   * The unique ID of the advertiser the ad belongs to.
+   * Output only. The unique ID of the advertiser the ad belongs to.
    *
    * @param string $advertiserId
    */
@@ -190,8 +194,9 @@ class AdGroupAd extends \Google\Collection
     return $this->advertiserId;
   }
   /**
-   * Details of an [audio ad](//support.google.com/displayvideo/answer/6274216)
-   * used for reach marketing objectives.
+   * Output only. Details of an [audio
+   * ad](//support.google.com/displayvideo/answer/6274216) used for reach
+   * marketing objectives.
    *
    * @param AudioAd $audioAd
    */
@@ -207,7 +212,7 @@ class AdGroupAd extends \Google\Collection
     return $this->audioAd;
   }
   /**
-   * Details of a [non-skippable short video
+   * Output only. Details of a [non-skippable short video
    * ad](//support.google.com/displayvideo/answer/6274216), equal to or less
    * than 6 seconds, used for reach.
    *
@@ -225,8 +230,103 @@ class AdGroupAd extends \Google\Collection
     return $this->bumperAd;
   }
   /**
-   * The display name of the ad. Must be UTF-8 encoded with a maximum size of
-   * 255 bytes.
+   * Optional. The DCM tracking ad info. Only valid for Demand Gen ads. To
+   * remove the DCM tracking ad info, please leave this field empty. Retrieval
+   * and management of Demand Gen resources is currently in beta. This field is
+   * only available to allowlisted users.
+   *
+   * @param DcmTrackingInfo $dcmTrackingInfo
+   */
+  public function setDcmTrackingInfo(DcmTrackingInfo $dcmTrackingInfo)
+  {
+    $this->dcmTrackingInfo = $dcmTrackingInfo;
+  }
+  /**
+   * @return DcmTrackingInfo
+   */
+  public function getDcmTrackingInfo()
+  {
+    return $this->dcmTrackingInfo;
+  }
+  /**
+   * Details of a [Demand Gen carousel ad](//support.google.com/displayvideo/ans
+   * wer/15598924?&sjid=11207068802760924844-NC#CarouselAd). Retrieval and
+   * management of Demand Gen resources is currently in beta. This field is only
+   * available to allowlisted users.
+   *
+   * @param DemandGenCarouselAd $demandGenCarouselAd
+   */
+  public function setDemandGenCarouselAd(DemandGenCarouselAd $demandGenCarouselAd)
+  {
+    $this->demandGenCarouselAd = $demandGenCarouselAd;
+  }
+  /**
+   * @return DemandGenCarouselAd
+   */
+  public function getDemandGenCarouselAd()
+  {
+    return $this->demandGenCarouselAd;
+  }
+  /**
+   * Details of a [Demand Gen image ad](//support.google.com/displayvideo/answer
+   * /15598924?&sjid=11207068802760924844-NC#ImageAd). Retrieval and management
+   * of Demand Gen resources is currently in beta. This field is only available
+   * to allowlisted users.
+   *
+   * @param DemandGenImageAd $demandGenImageAd
+   */
+  public function setDemandGenImageAd(DemandGenImageAd $demandGenImageAd)
+  {
+    $this->demandGenImageAd = $demandGenImageAd;
+  }
+  /**
+   * @return DemandGenImageAd
+   */
+  public function getDemandGenImageAd()
+  {
+    return $this->demandGenImageAd;
+  }
+  /**
+   * Details of a [Demand Gen product ad](//support.google.com/displayvideo/answ
+   * er/15598924?&sjid=11207068802760924844-NC#Product-onlyAd). Retrieval and
+   * management of Demand Gen resources is currently in beta. This field is only
+   * available to allowlisted users.
+   *
+   * @param DemandGenProductAd $demandGenProductAd
+   */
+  public function setDemandGenProductAd(DemandGenProductAd $demandGenProductAd)
+  {
+    $this->demandGenProductAd = $demandGenProductAd;
+  }
+  /**
+   * @return DemandGenProductAd
+   */
+  public function getDemandGenProductAd()
+  {
+    return $this->demandGenProductAd;
+  }
+  /**
+   * Details of a [Demand Gen video ad](//support.google.com/displayvideo/answer
+   * /15598924?&sjid=11207068802760924844-NC#VideoAd). Retrieval and management
+   * of Demand Gen resources is currently in beta. This field is only available
+   * to allowlisted users.
+   *
+   * @param DemandGenVideoAd $demandGenVideoAd
+   */
+  public function setDemandGenVideoAd(DemandGenVideoAd $demandGenVideoAd)
+  {
+    $this->demandGenVideoAd = $demandGenVideoAd;
+  }
+  /**
+   * @return DemandGenVideoAd
+   */
+  public function getDemandGenVideoAd()
+  {
+    return $this->demandGenVideoAd;
+  }
+  /**
+   * Required. The display name of the ad. Must be UTF-8 encoded with a maximum
+   * size of 255 bytes.
    *
    * @param string $displayName
    */
@@ -242,7 +342,7 @@ class AdGroupAd extends \Google\Collection
     return $this->displayName;
   }
   /**
-   * Details of an ad sourced from a Display & Video 360 creative.
+   * Output only. Details of an ad sourced from a Display & Video 360 creative.
    *
    * @param DisplayVideoSourceAd $displayVideoSourceAd
    */
@@ -258,7 +358,7 @@ class AdGroupAd extends \Google\Collection
     return $this->displayVideoSourceAd;
   }
   /**
-   * The entity status of the ad.
+   * Required. The entity status of the ad.
    *
    * Accepted values: ENTITY_STATUS_UNSPECIFIED, ENTITY_STATUS_ACTIVE,
    * ENTITY_STATUS_ARCHIVED, ENTITY_STATUS_DRAFT, ENTITY_STATUS_PAUSED,
@@ -278,7 +378,7 @@ class AdGroupAd extends \Google\Collection
     return $this->entityStatus;
   }
   /**
-   * Details of an [in-stream ad skippable after 5
+   * Output only. Details of an [in-stream ad skippable after 5
    * seconds](//support.google.com/displayvideo/answer/6274216), used for brand
    * awareness or reach marketing objectives.
    *
@@ -296,7 +396,7 @@ class AdGroupAd extends \Google\Collection
     return $this->inStreamAd;
   }
   /**
-   * Details of an [ad served on the YouTube Home
+   * Output only. Details of an [ad served on the YouTube Home
    * feed](//support.google.com/google-ads/answer/9709826).
    *
    * @param MastheadAd $mastheadAd
@@ -313,7 +413,7 @@ class AdGroupAd extends \Google\Collection
     return $this->mastheadAd;
   }
   /**
-   * The resource name of the ad.
+   * Output only. The resource name of the ad.
    *
    * @param string $name
    */
@@ -329,7 +429,7 @@ class AdGroupAd extends \Google\Collection
     return $this->name;
   }
   /**
-   * Details of a [non-skippable short in-stream video
+   * Output only. Details of a [non-skippable short in-stream video
    * ad](//support.google.com/displayvideo/answer/6274216), between 6 and 15
    * seconds, used for reach marketing objectives.
    *
@@ -347,7 +447,7 @@ class AdGroupAd extends \Google\Collection
     return $this->nonSkippableAd;
   }
   /**
-   * Details of an [ad promoting a
+   * Output only. Details of an [ad promoting a
    * video](//support.google.com/displayvideo/answer/6274216) that shows in
    * places of discovery.
    *
@@ -365,7 +465,7 @@ class AdGroupAd extends \Google\Collection
     return $this->videoDiscoverAd;
   }
   /**
-   * Details of an [ad used in a video action
+   * Output only. Details of an [ad used in a video action
    * campaign](//support.google.com/google-ads/answer/10147229) to drive actions
    * to the business, service or product.
    *

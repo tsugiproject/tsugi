@@ -88,6 +88,8 @@ class NodeKubeletConfig extends \Google\Collection
    * @var string
    */
   public $cpuManagerPolicy;
+  protected $crashLoopBackOffType = CrashLoopBackOffConfig::class;
+  protected $crashLoopBackOffDataType = '';
   /**
    * Optional. eviction_max_pod_grace_period_seconds is the maximum allowed
    * grace period (in seconds) to use when terminating pods in response to a
@@ -173,6 +175,29 @@ class NodeKubeletConfig extends \Google\Collection
    * @var string
    */
   public $podPidsLimit;
+  /**
+   * Optional. shutdown_grace_period_critical_pods_seconds is the maximum
+   * allowed grace period (in seconds) used to terminate critical pods during a
+   * node shutdown. This value should be <= shutdown_grace_period_seconds, and
+   * is only valid if shutdown_grace_period_seconds is set.
+   * https://kubernetes.io/docs/concepts/cluster-administration/node-shutdown/
+   * Range: [0, 120].
+   *
+   * @var int
+   */
+  public $shutdownGracePeriodCriticalPodsSeconds;
+  /**
+   * Optional. shutdown_grace_period_seconds is the maximum allowed grace period
+   * (in seconds) the total duration that the node should delay the shutdown
+   * during a graceful shutdown. This is the total grace period for pod
+   * termination for both regular and critical pods.
+   * https://kubernetes.io/docs/concepts/cluster-administration/node-shutdown/
+   * If set to 0, node will not enable the graceful node shutdown functionality.
+   * This field is only valid for Spot VMs. Allowed values: 0, 30, 120.
+   *
+   * @var int
+   */
+  public $shutdownGracePeriodSeconds;
   /**
    * Optional. Defines whether to enable single process OOM killer. If true,
    * will prevent the memory.oom.group flag from being set for container cgroups
@@ -312,6 +337,23 @@ class NodeKubeletConfig extends \Google\Collection
   public function getCpuManagerPolicy()
   {
     return $this->cpuManagerPolicy;
+  }
+  /**
+   * Optional. Contains configuration options to modify node-level parameters
+   * for container restart behavior.
+   *
+   * @param CrashLoopBackOffConfig $crashLoopBackOff
+   */
+  public function setCrashLoopBackOff(CrashLoopBackOffConfig $crashLoopBackOff)
+  {
+    $this->crashLoopBackOff = $crashLoopBackOff;
+  }
+  /**
+   * @return CrashLoopBackOffConfig
+   */
+  public function getCrashLoopBackOff()
+  {
+    return $this->crashLoopBackOff;
   }
   /**
    * Optional. eviction_max_pod_grace_period_seconds is the maximum allowed
@@ -543,6 +585,49 @@ class NodeKubeletConfig extends \Google\Collection
   public function getPodPidsLimit()
   {
     return $this->podPidsLimit;
+  }
+  /**
+   * Optional. shutdown_grace_period_critical_pods_seconds is the maximum
+   * allowed grace period (in seconds) used to terminate critical pods during a
+   * node shutdown. This value should be <= shutdown_grace_period_seconds, and
+   * is only valid if shutdown_grace_period_seconds is set.
+   * https://kubernetes.io/docs/concepts/cluster-administration/node-shutdown/
+   * Range: [0, 120].
+   *
+   * @param int $shutdownGracePeriodCriticalPodsSeconds
+   */
+  public function setShutdownGracePeriodCriticalPodsSeconds($shutdownGracePeriodCriticalPodsSeconds)
+  {
+    $this->shutdownGracePeriodCriticalPodsSeconds = $shutdownGracePeriodCriticalPodsSeconds;
+  }
+  /**
+   * @return int
+   */
+  public function getShutdownGracePeriodCriticalPodsSeconds()
+  {
+    return $this->shutdownGracePeriodCriticalPodsSeconds;
+  }
+  /**
+   * Optional. shutdown_grace_period_seconds is the maximum allowed grace period
+   * (in seconds) the total duration that the node should delay the shutdown
+   * during a graceful shutdown. This is the total grace period for pod
+   * termination for both regular and critical pods.
+   * https://kubernetes.io/docs/concepts/cluster-administration/node-shutdown/
+   * If set to 0, node will not enable the graceful node shutdown functionality.
+   * This field is only valid for Spot VMs. Allowed values: 0, 30, 120.
+   *
+   * @param int $shutdownGracePeriodSeconds
+   */
+  public function setShutdownGracePeriodSeconds($shutdownGracePeriodSeconds)
+  {
+    $this->shutdownGracePeriodSeconds = $shutdownGracePeriodSeconds;
+  }
+  /**
+   * @return int
+   */
+  public function getShutdownGracePeriodSeconds()
+  {
+    return $this->shutdownGracePeriodSeconds;
   }
   /**
    * Optional. Defines whether to enable single process OOM killer. If true,

@@ -27,6 +27,8 @@ class SpecificStartPosition extends \Google\Model
   protected $mysqlLogPositionDataType = '';
   protected $oracleScnPositionType = OracleScnPosition::class;
   protected $oracleScnPositionDataType = '';
+  protected $spannerChangeStreamPositionType = SpannerChangeStreamPosition::class;
+  protected $spannerChangeStreamPositionDataType = '';
   protected $sqlServerLsnPositionType = SqlServerLsnPosition::class;
   protected $sqlServerLsnPositionDataType = '';
 
@@ -93,6 +95,22 @@ class SpecificStartPosition extends \Google\Model
   public function getOracleScnPosition()
   {
     return $this->oracleScnPosition;
+  }
+  /**
+   * Optional. Spanner change stream position to start replicating from.
+   *
+   * @param SpannerChangeStreamPosition $spannerChangeStreamPosition
+   */
+  public function setSpannerChangeStreamPosition(SpannerChangeStreamPosition $spannerChangeStreamPosition)
+  {
+    $this->spannerChangeStreamPosition = $spannerChangeStreamPosition;
+  }
+  /**
+   * @return SpannerChangeStreamPosition
+   */
+  public function getSpannerChangeStreamPosition()
+  {
+    return $this->spannerChangeStreamPosition;
   }
   /**
    * SqlServer LSN to start replicating from.

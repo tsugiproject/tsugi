@@ -39,6 +39,13 @@ class GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsRequest extends 
    * @var string
    */
   public $parent;
+  /**
+   * Optional. If true, the labeling rules will be re-evaluated for the
+   * conversations.
+   *
+   * @var bool
+   */
+  public $relabel;
 
   /**
    * Required. Percentage of selected conversation to analyze, between [0, 100].
@@ -104,6 +111,23 @@ class GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsRequest extends 
   public function getParent()
   {
     return $this->parent;
+  }
+  /**
+   * Optional. If true, the labeling rules will be re-evaluated for the
+   * conversations.
+   *
+   * @param bool $relabel
+   */
+  public function setRelabel($relabel)
+  {
+    $this->relabel = $relabel;
+  }
+  /**
+   * @return bool
+   */
+  public function getRelabel()
+  {
+    return $this->relabel;
   }
 }
 

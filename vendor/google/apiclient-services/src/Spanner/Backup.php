@@ -33,6 +33,22 @@ class Backup extends \Google\Collection
    */
   public const DATABASE_DIALECT_POSTGRESQL = 'POSTGRESQL';
   /**
+   * Edition not specified.
+   */
+  public const MINIMUM_RESTORABLE_EDITION_EDITION_UNSPECIFIED = 'EDITION_UNSPECIFIED';
+  /**
+   * Standard edition.
+   */
+  public const MINIMUM_RESTORABLE_EDITION_STANDARD = 'STANDARD';
+  /**
+   * Enterprise edition.
+   */
+  public const MINIMUM_RESTORABLE_EDITION_ENTERPRISE = 'ENTERPRISE';
+  /**
+   * Enterprise Plus edition.
+   */
+  public const MINIMUM_RESTORABLE_EDITION_ENTERPRISE_PLUS = 'ENTERPRISE_PLUS';
+  /**
    * Not specified.
    */
   public const STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED';
@@ -70,7 +86,8 @@ class Backup extends \Google\Collection
   /**
    * Required for the CreateBackup operation. Name of the database from which
    * this backup was created. This needs to be in the same instance as the
-   * backup. Values are of the form `projects//instances//databases/`.
+   * backup. Values are of the form
+   * `projects/{project}/instances/{instance}/databases/{database}`.
    *
    * @var string
    */
@@ -141,13 +158,21 @@ class Backup extends \Google\Collection
    */
   public $maxExpireTime;
   /**
+   * Output only. The minimum edition required to successfully restore the
+   * backup. Populated only if the edition is Enterprise or Enterprise Plus.
+   *
+   * @var string
+   */
+  public $minimumRestorableEdition;
+  /**
    * Output only for the CreateBackup operation. Required for the UpdateBackup
    * operation. A globally unique identifier for the backup which cannot be
-   * changed. Values are of the form `projects//instances//backups/a-z*[a-z0-9]`
-   * The final segment of the name must be between 2 and 60 characters in
-   * length. The backup is stored in the location(s) specified in the instance
-   * configuration of the instance containing the backup, identified by the
-   * prefix of the backup name of the form `projects//instances/`.
+   * changed. Values are of the form
+   * `projects/{project}/instances/{instance}/backups/a-z*[a-z0-9]` The final
+   * segment of the name must be between 2 and 60 characters in length. The
+   * backup is stored in the location(s) specified in the instance configuration
+   * of the instance containing the backup, identified by the prefix of the
+   * backup name of the form `projects/{project}/instances/{instance}`.
    *
    * @var string
    */
@@ -166,20 +191,21 @@ class Backup extends \Google\Collection
   /**
    * Output only. The names of the destination backups being created by copying
    * this source backup. The backup names are of the form
-   * `projects//instances//backups/`. Referencing backups may exist in different
-   * instances. The existence of any referencing backup prevents the backup from
-   * being deleted. When the copy operation is done (either successfully
-   * completed or cancelled or the destination backup is deleted), the reference
-   * to the backup is removed.
+   * `projects/{project}/instances/{instance}/backups/{backup}`. Referencing
+   * backups may exist in different instances. The existence of any referencing
+   * backup prevents the backup from being deleted. When the copy operation is
+   * done (either successfully completed or cancelled or the destination backup
+   * is deleted), the reference to the backup is removed.
    *
    * @var string[]
    */
   public $referencingBackups;
   /**
    * Output only. The names of the restored databases that reference the backup.
-   * The database names are of the form `projects//instances//databases/`.
-   * Referencing databases may exist in different instances. The existence of
-   * any referencing database prevents the backup from being deleted. When a
+   * The database names are of the form
+   * `projects/{project}/instances/{instance}/databases/{database}`. Referencing
+   * databases may exist in different instances. The existence of any
+   * referencing database prevents the backup from being deleted. When a
    * restored database from the backup enters the `READY` state, the reference
    * to the backup is removed.
    *
@@ -254,7 +280,8 @@ class Backup extends \Google\Collection
   /**
    * Required for the CreateBackup operation. Name of the database from which
    * this backup was created. This needs to be in the same instance as the
-   * backup. Values are of the form `projects//instances//databases/`.
+   * backup. Values are of the form
+   * `projects/{project}/instances/{instance}/databases/{database}`.
    *
    * @param string $database
    */
@@ -447,13 +474,33 @@ class Backup extends \Google\Collection
     return $this->maxExpireTime;
   }
   /**
+   * Output only. The minimum edition required to successfully restore the
+   * backup. Populated only if the edition is Enterprise or Enterprise Plus.
+   *
+   * Accepted values: EDITION_UNSPECIFIED, STANDARD, ENTERPRISE, ENTERPRISE_PLUS
+   *
+   * @param self::MINIMUM_RESTORABLE_EDITION_* $minimumRestorableEdition
+   */
+  public function setMinimumRestorableEdition($minimumRestorableEdition)
+  {
+    $this->minimumRestorableEdition = $minimumRestorableEdition;
+  }
+  /**
+   * @return self::MINIMUM_RESTORABLE_EDITION_*
+   */
+  public function getMinimumRestorableEdition()
+  {
+    return $this->minimumRestorableEdition;
+  }
+  /**
    * Output only for the CreateBackup operation. Required for the UpdateBackup
    * operation. A globally unique identifier for the backup which cannot be
-   * changed. Values are of the form `projects//instances//backups/a-z*[a-z0-9]`
-   * The final segment of the name must be between 2 and 60 characters in
-   * length. The backup is stored in the location(s) specified in the instance
-   * configuration of the instance containing the backup, identified by the
-   * prefix of the backup name of the form `projects//instances/`.
+   * changed. Values are of the form
+   * `projects/{project}/instances/{instance}/backups/a-z*[a-z0-9]` The final
+   * segment of the name must be between 2 and 60 characters in length. The
+   * backup is stored in the location(s) specified in the instance configuration
+   * of the instance containing the backup, identified by the prefix of the
+   * backup name of the form `projects/{project}/instances/{instance}`.
    *
    * @param string $name
    */
@@ -492,11 +539,11 @@ class Backup extends \Google\Collection
   /**
    * Output only. The names of the destination backups being created by copying
    * this source backup. The backup names are of the form
-   * `projects//instances//backups/`. Referencing backups may exist in different
-   * instances. The existence of any referencing backup prevents the backup from
-   * being deleted. When the copy operation is done (either successfully
-   * completed or cancelled or the destination backup is deleted), the reference
-   * to the backup is removed.
+   * `projects/{project}/instances/{instance}/backups/{backup}`. Referencing
+   * backups may exist in different instances. The existence of any referencing
+   * backup prevents the backup from being deleted. When the copy operation is
+   * done (either successfully completed or cancelled or the destination backup
+   * is deleted), the reference to the backup is removed.
    *
    * @param string[] $referencingBackups
    */
@@ -513,9 +560,10 @@ class Backup extends \Google\Collection
   }
   /**
    * Output only. The names of the restored databases that reference the backup.
-   * The database names are of the form `projects//instances//databases/`.
-   * Referencing databases may exist in different instances. The existence of
-   * any referencing database prevents the backup from being deleted. When a
+   * The database names are of the form
+   * `projects/{project}/instances/{instance}/databases/{database}`. Referencing
+   * databases may exist in different instances. The existence of any
+   * referencing database prevents the backup from being deleted. When a
    * restored database from the backup enters the `READY` state, the reference
    * to the backup is removed.
    *

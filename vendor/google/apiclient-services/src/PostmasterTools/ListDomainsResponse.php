@@ -31,7 +31,7 @@ class ListDomainsResponse extends \Google\Collection
   public $nextPageToken;
 
   /**
-   * The list of domains.
+   * The domains that have been registered by the user.
    *
    * @param Domain[] $domains
    */

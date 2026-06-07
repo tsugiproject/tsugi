@@ -60,6 +60,16 @@ class CodebaseSource extends \Google\Model
    */
   public $hash;
   /**
+   * Output only. The resource name for the Developer Connect
+   * [`gitRepositoryLink`](https://cloud.google.com/developer-connect/docs/api/r
+   * eference/rest/v1/projects.locations.connections.gitRepositoryLinks) used
+   * for this build, in the format: `projects/{project}/locations/{location}/con
+   * nections/{connection}/gitRepositoryLinks/{repositoryLink}`
+   *
+   * @var string
+   */
+  public $repository;
+  /**
    * Output only. A URI linking to the codebase on an hosting provider's
    * website. May not be valid if the commit has been rebased or force-pushed
    * out of existence in the linked repository.
@@ -182,6 +192,26 @@ class CodebaseSource extends \Google\Model
   public function getHash()
   {
     return $this->hash;
+  }
+  /**
+   * Output only. The resource name for the Developer Connect
+   * [`gitRepositoryLink`](https://cloud.google.com/developer-connect/docs/api/r
+   * eference/rest/v1/projects.locations.connections.gitRepositoryLinks) used
+   * for this build, in the format: `projects/{project}/locations/{location}/con
+   * nections/{connection}/gitRepositoryLinks/{repositoryLink}`
+   *
+   * @param string $repository
+   */
+  public function setRepository($repository)
+  {
+    $this->repository = $repository;
+  }
+  /**
+   * @return string
+   */
+  public function getRepository()
+  {
+    return $this->repository;
   }
   /**
    * Output only. A URI linking to the codebase on an hosting provider's

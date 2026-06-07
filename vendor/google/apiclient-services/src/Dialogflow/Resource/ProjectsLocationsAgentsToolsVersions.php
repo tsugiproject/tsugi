@@ -34,10 +34,9 @@ use Google\Service\Dialogflow\GoogleProtobufEmpty;
 class ProjectsLocationsAgentsToolsVersions extends \Google\Service\Resource
 {
   /**
-   * Creates a version for the specified Tool. (versions.create)
+   * (versions.create)
    *
-   * @param string $parent Required. The tool to create a version for. Format:
-   * `projects//locations//agents//tools/`.
+   * @param string $parent
    * @param GoogleCloudDialogflowCxV3ToolVersion $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3ToolVersion
@@ -50,17 +49,12 @@ class ProjectsLocationsAgentsToolsVersions extends \Google\Service\Resource
     return $this->call('create', [$params], GoogleCloudDialogflowCxV3ToolVersion::class);
   }
   /**
-   * Deletes the specified version of the Tool. (versions.delete)
+   * (versions.delete)
    *
-   * @param string $name Required. The name of the tool version to delete. Format:
-   * `projects//locations//agents//tools//versions/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    *
-   * @opt_param bool force Optional. This field has no effect for Tools not being
-   * used. For Tools that are used: * If `force` is set to false, an error will be
-   * returned with message indicating the referenced resources. * If `force` is
-   * set to true, Dialogflow will remove the tool, as well as any references to
-   * the tool.
+   * @opt_param bool force
    * @return GoogleProtobufEmpty
    * @throws \Google\Service\Exception
    */
@@ -71,10 +65,9 @@ class ProjectsLocationsAgentsToolsVersions extends \Google\Service\Resource
     return $this->call('delete', [$params], GoogleProtobufEmpty::class);
   }
   /**
-   * Retrieves the specified version of the Tool. (versions.get)
+   * (versions.get)
    *
-   * @param string $name Required. The name of the tool version. Format:
-   * `projects//locations//agents//tools//versions/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3ToolVersion
    * @throws \Google\Service\Exception
@@ -86,17 +79,13 @@ class ProjectsLocationsAgentsToolsVersions extends \Google\Service\Resource
     return $this->call('get', [$params], GoogleCloudDialogflowCxV3ToolVersion::class);
   }
   /**
-   * List versions of the specified Tool.
    * (versions.listProjectsLocationsAgentsToolsVersions)
    *
-   * @param string $parent Required. The parent of the tool versions. Format:
-   * `projects//locations//agents//tools/`.
+   * @param string $parent
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize Optional. The maximum number of items to return in a
-   * single page. By default 100 and at most 1000.
-   * @opt_param string pageToken Optional. The next_page_token value returned from
-   * a previous list request.
+   * @opt_param int pageSize
+   * @opt_param string pageToken
    * @return GoogleCloudDialogflowCxV3ListToolVersionsResponse
    * @throws \Google\Service\Exception
    */
@@ -107,11 +96,9 @@ class ProjectsLocationsAgentsToolsVersions extends \Google\Service\Resource
     return $this->call('list', [$params], GoogleCloudDialogflowCxV3ListToolVersionsResponse::class);
   }
   /**
-   * Retrieves the specified version of the Tool and stores it as the current tool
-   * draft, returning the tool with resources updated. (versions.restore)
+   * (versions.restore)
    *
-   * @param string $name Required. The name of the tool version. Format:
-   * `projects//locations//agents//tools//versions/`.
+   * @param string $name
    * @param GoogleCloudDialogflowCxV3RestoreToolVersionRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3RestoreToolVersionResponse

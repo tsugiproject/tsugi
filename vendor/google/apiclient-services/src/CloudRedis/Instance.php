@@ -273,12 +273,12 @@ class Instance extends \Google\Collection
    */
   public $readReplicasMode;
   /**
-   * Optional. Redis configuration parameters, according to
-   * http://redis.io/topics/config. Currently, the only supported parameters
-   * are: Redis version 3.2 and newer: * maxmemory-policy * notify-keyspace-
-   * events Redis version 4.0 and newer: * activedefrag * lfu-decay-time * lfu-
-   * log-factor * maxmemory-gb Redis version 5.0 and newer: * stream-node-max-
-   * bytes * stream-node-max-entries
+   * Optional. Redis configuration parameters, according to [Redis configuration
+   * ](https://redis.io/docs/latest/operate/oss_and_stack/management/config/).
+   * Currently, the only supported parameters are: Redis version 3.2 and newer:
+   * * maxmemory-policy * notify-keyspace-events Redis version 4.0 and newer: *
+   * activedefrag * lfu-decay-time * lfu-log-factor * maxmemory-gb Redis version
+   * 5.0 and newer: * stream-node-max-bytes * stream-node-max-entries
    *
    * @var string[]
    */
@@ -808,12 +808,12 @@ class Instance extends \Google\Collection
     return $this->readReplicasMode;
   }
   /**
-   * Optional. Redis configuration parameters, according to
-   * http://redis.io/topics/config. Currently, the only supported parameters
-   * are: Redis version 3.2 and newer: * maxmemory-policy * notify-keyspace-
-   * events Redis version 4.0 and newer: * activedefrag * lfu-decay-time * lfu-
-   * log-factor * maxmemory-gb Redis version 5.0 and newer: * stream-node-max-
-   * bytes * stream-node-max-entries
+   * Optional. Redis configuration parameters, according to [Redis configuration
+   * ](https://redis.io/docs/latest/operate/oss_and_stack/management/config/).
+   * Currently, the only supported parameters are: Redis version 3.2 and newer:
+   * * maxmemory-policy * notify-keyspace-events Redis version 4.0 and newer: *
+   * activedefrag * lfu-decay-time * lfu-log-factor * maxmemory-gb Redis version
+   * 5.0 and newer: * stream-node-max-bytes * stream-node-max-entries
    *
    * @param string[] $redisConfigs
    */

@@ -49,6 +49,10 @@ class Workload extends \Google\Model
    */
   public const PARTNER_PARTNER_SOVEREIGN_CONTROLS_BY_CNTXT_NO_EKM = 'PARTNER_SOVEREIGN_CONTROLS_BY_CNTXT_NO_EKM';
   /**
+   * Enum representing Telefonica (Spain) partner.
+   */
+  public const PARTNER_PARTNER_SPAIN_DATA_BOUNDARY_BY_TELEFONICA = 'PARTNER_SPAIN_DATA_BOUNDARY_BY_TELEFONICA';
+  /**
    * Output only. Time the resource was created.
    *
    * @var string
@@ -220,7 +224,8 @@ class Workload extends \Google\Model
    * PARTNER_SOVEREIGN_CONTROLS_BY_T_SYSTEMS,
    * PARTNER_SOVEREIGN_CONTROLS_BY_SIA_MINSAIT,
    * PARTNER_SOVEREIGN_CONTROLS_BY_PSN, PARTNER_SOVEREIGN_CONTROLS_BY_CNTXT,
-   * PARTNER_SOVEREIGN_CONTROLS_BY_CNTXT_NO_EKM
+   * PARTNER_SOVEREIGN_CONTROLS_BY_CNTXT_NO_EKM,
+   * PARTNER_SPAIN_DATA_BOUNDARY_BY_TELEFONICA
    *
    * @param self::PARTNER_* $partner
    */

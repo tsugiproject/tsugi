@@ -78,7 +78,8 @@ class AndroidConfig extends \Google\Model
   /**
    * Message priority. Can take "normal" and "high" values. For more
    * information, see [Setting the priority of a
-   * message](https://goo.gl/GjONJv).
+   * message](https://firebase.google.com/docs/cloud-messaging/customize-
+   * messages/setting-message-priority).
    *
    * @var string
    */
@@ -225,7 +226,8 @@ class AndroidConfig extends \Google\Model
   /**
    * Message priority. Can take "normal" and "high" values. For more
    * information, see [Setting the priority of a
-   * message](https://goo.gl/GjONJv).
+   * message](https://firebase.google.com/docs/cloud-messaging/customize-
+   * messages/setting-message-priority).
    *
    * Accepted values: NORMAL, HIGH
    *

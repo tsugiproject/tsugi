@@ -19,7 +19,7 @@ namespace Google\Service\Reports;
 
 class ActivityEvents extends \Google\Collection
 {
-  protected $collection_key = 'resourceIds';
+  protected $collection_key = 'sensitiveParameters';
   /**
    * Name of the event. This is the specific name of the activity reported by
    * the API. And each `eventName` is related to a specific Google Workspace
@@ -42,6 +42,10 @@ class ActivityEvents extends \Google\Collection
    * @var string[]
    */
   public $resourceIds;
+  protected $sensitiveParametersType = ActivityEventsSensitiveParameters::class;
+  protected $sensitiveParametersDataType = 'array';
+  protected $statusType = ActivityEventsStatus::class;
+  protected $statusDataType = '';
   /**
    * Type of event. The Google Workspace service or feature that an
    * administrator changes is identified in the `type` property which identifies
@@ -110,6 +114,38 @@ class ActivityEvents extends \Google\Collection
   public function getResourceIds()
   {
     return $this->resourceIds;
+  }
+  /**
+   * Includes sensitive parameter value pairs for various applications.
+   *
+   * @param ActivityEventsSensitiveParameters[] $sensitiveParameters
+   */
+  public function setSensitiveParameters($sensitiveParameters)
+  {
+    $this->sensitiveParameters = $sensitiveParameters;
+  }
+  /**
+   * @return ActivityEventsSensitiveParameters[]
+   */
+  public function getSensitiveParameters()
+  {
+    return $this->sensitiveParameters;
+  }
+  /**
+   * Status of the event. Note: Not all events have status.
+   *
+   * @param ActivityEventsStatus $status
+   */
+  public function setStatus(ActivityEventsStatus $status)
+  {
+    $this->status = $status;
+  }
+  /**
+   * @return ActivityEventsStatus
+   */
+  public function getStatus()
+  {
+    return $this->status;
   }
   /**
    * Type of event. The Google Workspace service or feature that an

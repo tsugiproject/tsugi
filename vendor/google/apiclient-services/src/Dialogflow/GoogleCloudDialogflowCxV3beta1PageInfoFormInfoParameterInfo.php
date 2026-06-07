@@ -19,70 +19,32 @@ namespace Google\Service\Dialogflow;
 
 class GoogleCloudDialogflowCxV3beta1PageInfoFormInfoParameterInfo extends \Google\Model
 {
-  /**
-   * Not specified. This value should be never used.
-   */
   public const STATE_PARAMETER_STATE_UNSPECIFIED = 'PARAMETER_STATE_UNSPECIFIED';
-  /**
-   * Indicates that the parameter does not have a value.
-   */
   public const STATE_EMPTY = 'EMPTY';
-  /**
-   * Indicates that the parameter value is invalid. This field can be used by
-   * the webhook to invalidate the parameter and ask the server to collect it
-   * from the user again.
-   */
   public const STATE_INVALID = 'INVALID';
-  /**
-   * Indicates that the parameter has a value.
-   */
   public const STATE_FILLED = 'FILLED';
   /**
-   * Always present for WebhookRequest. Required for WebhookResponse. The human-
-   * readable name of the parameter, unique within the form. This field cannot
-   * be modified by the webhook.
-   *
    * @var string
    */
   public $displayName;
   /**
-   * Optional for WebhookRequest. Ignored for WebhookResponse. Indicates if the
-   * parameter value was just collected on the last conversation turn.
-   *
    * @var bool
    */
   public $justCollected;
   /**
-   * Optional for both WebhookRequest and WebhookResponse. Indicates whether the
-   * parameter is required. Optional parameters will not trigger prompts;
-   * however, they are filled if the user specifies them. Required parameters
-   * must be filled before form filling concludes.
-   *
    * @var bool
    */
   public $required;
   /**
-   * Always present for WebhookRequest. Required for WebhookResponse. The state
-   * of the parameter. This field can be set to INVALID by the webhook to
-   * invalidate the parameter; other values set by the webhook will be ignored.
-   *
    * @var string
    */
   public $state;
   /**
-   * Optional for both WebhookRequest and WebhookResponse. The value of the
-   * parameter. This field can be set by the webhook to change the parameter
-   * value.
-   *
    * @var array
    */
   public $value;
 
   /**
-   * Always present for WebhookRequest. Required for WebhookResponse. The human-
-   * readable name of the parameter, unique within the form. This field cannot
-   * be modified by the webhook.
-   *
    * @param string $displayName
    */
   public function setDisplayName($displayName)
@@ -97,9 +59,6 @@ class GoogleCloudDialogflowCxV3beta1PageInfoFormInfoParameterInfo extends \Googl
     return $this->displayName;
   }
   /**
-   * Optional for WebhookRequest. Ignored for WebhookResponse. Indicates if the
-   * parameter value was just collected on the last conversation turn.
-   *
    * @param bool $justCollected
    */
   public function setJustCollected($justCollected)
@@ -114,11 +73,6 @@ class GoogleCloudDialogflowCxV3beta1PageInfoFormInfoParameterInfo extends \Googl
     return $this->justCollected;
   }
   /**
-   * Optional for both WebhookRequest and WebhookResponse. Indicates whether the
-   * parameter is required. Optional parameters will not trigger prompts;
-   * however, they are filled if the user specifies them. Required parameters
-   * must be filled before form filling concludes.
-   *
    * @param bool $required
    */
   public function setRequired($required)
@@ -133,12 +87,6 @@ class GoogleCloudDialogflowCxV3beta1PageInfoFormInfoParameterInfo extends \Googl
     return $this->required;
   }
   /**
-   * Always present for WebhookRequest. Required for WebhookResponse. The state
-   * of the parameter. This field can be set to INVALID by the webhook to
-   * invalidate the parameter; other values set by the webhook will be ignored.
-   *
-   * Accepted values: PARAMETER_STATE_UNSPECIFIED, EMPTY, INVALID, FILLED
-   *
    * @param self::STATE_* $state
    */
   public function setState($state)
@@ -153,10 +101,6 @@ class GoogleCloudDialogflowCxV3beta1PageInfoFormInfoParameterInfo extends \Googl
     return $this->state;
   }
   /**
-   * Optional for both WebhookRequest and WebhookResponse. The value of the
-   * parameter. This field can be set by the webhook to change the parameter
-   * value.
-   *
    * @param array $value
    */
   public function setValue($value)

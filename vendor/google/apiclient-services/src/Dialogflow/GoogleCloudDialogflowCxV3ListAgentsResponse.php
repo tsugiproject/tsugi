@@ -23,17 +23,11 @@ class GoogleCloudDialogflowCxV3ListAgentsResponse extends \Google\Collection
   protected $agentsType = GoogleCloudDialogflowCxV3Agent::class;
   protected $agentsDataType = 'array';
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * The list of agents. There will be a maximum number of items returned based
-   * on the page_size field in the request.
-   *
    * @param GoogleCloudDialogflowCxV3Agent[] $agents
    */
   public function setAgents($agents)
@@ -48,9 +42,6 @@ class GoogleCloudDialogflowCxV3ListAgentsResponse extends \Google\Collection
     return $this->agents;
   }
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)

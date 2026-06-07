@@ -32,7 +32,7 @@ class MembershipFeature extends \Google\Model
    */
   public $deleteTime;
   /**
-   * GCP labels for this MembershipFeature.
+   * Google Cloud labels for this MembershipFeature.
    *
    * @var string[]
    */
@@ -92,7 +92,7 @@ class MembershipFeature extends \Google\Model
     return $this->deleteTime;
   }
   /**
-   * GCP labels for this MembershipFeature.
+   * Google Cloud labels for this MembershipFeature.
    *
    * @param string[] $labels
    */

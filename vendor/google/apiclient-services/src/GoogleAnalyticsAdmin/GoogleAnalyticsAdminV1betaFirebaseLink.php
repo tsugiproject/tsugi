@@ -26,7 +26,7 @@ class GoogleAnalyticsAdminV1betaFirebaseLink extends \Google\Model
    */
   public $createTime;
   /**
-   * Output only. Example format: properties/1234/firebaseLinks/5678
+   * Identifier. Example format: properties/1234/firebaseLinks/5678
    *
    * @var string
    */
@@ -59,7 +59,7 @@ class GoogleAnalyticsAdminV1betaFirebaseLink extends \Google\Model
     return $this->createTime;
   }
   /**
-   * Output only. Example format: properties/1234/firebaseLinks/5678
+   * Identifier. Example format: properties/1234/firebaseLinks/5678
    *
    * @param string $name
    */

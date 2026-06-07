@@ -50,10 +50,10 @@ class DeliveryPipeline extends \Google\Model
    */
   public $etag;
   /**
-   * Labels are attributes that can be set and used by both the user and by
-   * Cloud Deploy. Labels must meet the following constraints: * Keys and values
-   * can contain only lowercase letters, numeric characters, underscores, and
-   * dashes. * All characters must use UTF-8 encoding, and international
+   * Optional. Labels are attributes that can be set and used by both the user
+   * and by Cloud Deploy. Labels must meet the following constraints: * Keys and
+   * values can contain only lowercase letters, numeric characters, underscores,
+   * and dashes. * All characters must use UTF-8 encoding, and international
    * characters are allowed. * Keys must start with a lowercase letter or
    * international character. * Each resource is limited to a maximum of 64
    * labels. Both keys and values are additionally constrained to be <= 128
@@ -177,10 +177,10 @@ class DeliveryPipeline extends \Google\Model
     return $this->etag;
   }
   /**
-   * Labels are attributes that can be set and used by both the user and by
-   * Cloud Deploy. Labels must meet the following constraints: * Keys and values
-   * can contain only lowercase letters, numeric characters, underscores, and
-   * dashes. * All characters must use UTF-8 encoding, and international
+   * Optional. Labels are attributes that can be set and used by both the user
+   * and by Cloud Deploy. Labels must meet the following constraints: * Keys and
+   * values can contain only lowercase letters, numeric characters, underscores,
+   * and dashes. * All characters must use UTF-8 encoding, and international
    * characters are allowed. * Keys must start with a lowercase letter or
    * international character. * Each resource is limited to a maximum of 64
    * labels. Both keys and values are additionally constrained to be <= 128

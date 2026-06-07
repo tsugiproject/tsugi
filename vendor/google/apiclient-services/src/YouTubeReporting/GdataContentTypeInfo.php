@@ -42,6 +42,12 @@ class GdataContentTypeInfo extends \Google\Model
    *
    * @var string
    */
+  public $fromFusionId;
+  /**
+   * gdata
+   *
+   * @var string
+   */
   public $fromHeader;
   /**
    * gdata
@@ -49,6 +55,12 @@ class GdataContentTypeInfo extends \Google\Model
    * @var string
    */
   public $fromUrlPath;
+  /**
+   * gdata
+   *
+   * @var string
+   */
+  public $fusionIdDetectionMetadata;
 
   /**
    * gdata
@@ -101,6 +113,22 @@ class GdataContentTypeInfo extends \Google\Model
   /**
    * gdata
    *
+   * @param string $fromFusionId
+   */
+  public function setFromFusionId($fromFusionId)
+  {
+    $this->fromFusionId = $fromFusionId;
+  }
+  /**
+   * @return string
+   */
+  public function getFromFusionId()
+  {
+    return $this->fromFusionId;
+  }
+  /**
+   * gdata
+   *
    * @param string $fromHeader
    */
   public function setFromHeader($fromHeader)
@@ -129,6 +157,22 @@ class GdataContentTypeInfo extends \Google\Model
   public function getFromUrlPath()
   {
     return $this->fromUrlPath;
+  }
+  /**
+   * gdata
+   *
+   * @param string $fusionIdDetectionMetadata
+   */
+  public function setFusionIdDetectionMetadata($fusionIdDetectionMetadata)
+  {
+    $this->fusionIdDetectionMetadata = $fusionIdDetectionMetadata;
+  }
+  /**
+   * @return string
+   */
+  public function getFusionIdDetectionMetadata()
+  {
+    return $this->fusionIdDetectionMetadata;
   }
 }
 

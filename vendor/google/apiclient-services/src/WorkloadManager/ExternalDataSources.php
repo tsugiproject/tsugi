@@ -20,46 +20,50 @@ namespace Google\Service\WorkloadManager;
 class ExternalDataSources extends \Google\Model
 {
   /**
-   * Unknown type
+   * Unknown type.
    */
   public const TYPE_TYPE_UNSPECIFIED = 'TYPE_UNSPECIFIED';
   /**
-   * BigQuery table
+   * BigQuery table.
    */
   public const TYPE_BIG_QUERY_TABLE = 'BIG_QUERY_TABLE';
   /**
-   * Required. The asset type of the external data source this can be one of
-   * go/cai-asset-types to override the default asset type or it can be a custom
-   * type defined by the user custom type must match the asset type in the rule
+   * Required. The asset type of the external data source. This can be a
+   * supported Cloud Asset Inventory asset type (see
+   * https://cloud.google.com/asset-inventory/docs/supported-asset-types) to
+   * override the default asset type, or it can be a custom type defined by the
+   * user.
    *
    * @var string
    */
   public $assetType;
   /**
    * Optional. Name of external data source. The name will be used inside the
-   * rego/sql to refer the external data
+   * rego/sql to refer the external data.
    *
    * @var string
    */
   public $name;
   /**
-   * Required. Type of external data source
+   * Required. Type of external data source.
    *
    * @var string
    */
   public $type;
   /**
    * Required. URI of external data source. example of bq table
-   * {project_ID}.{dataset_ID}.{table_ID}
+   * {project_ID}.{dataset_ID}.{table_ID}.
    *
    * @var string
    */
   public $uri;
 
   /**
-   * Required. The asset type of the external data source this can be one of
-   * go/cai-asset-types to override the default asset type or it can be a custom
-   * type defined by the user custom type must match the asset type in the rule
+   * Required. The asset type of the external data source. This can be a
+   * supported Cloud Asset Inventory asset type (see
+   * https://cloud.google.com/asset-inventory/docs/supported-asset-types) to
+   * override the default asset type, or it can be a custom type defined by the
+   * user.
    *
    * @param string $assetType
    */
@@ -76,7 +80,7 @@ class ExternalDataSources extends \Google\Model
   }
   /**
    * Optional. Name of external data source. The name will be used inside the
-   * rego/sql to refer the external data
+   * rego/sql to refer the external data.
    *
    * @param string $name
    */
@@ -92,7 +96,7 @@ class ExternalDataSources extends \Google\Model
     return $this->name;
   }
   /**
-   * Required. Type of external data source
+   * Required. Type of external data source.
    *
    * Accepted values: TYPE_UNSPECIFIED, BIG_QUERY_TABLE
    *
@@ -111,7 +115,7 @@ class ExternalDataSources extends \Google\Model
   }
   /**
    * Required. URI of external data source. example of bq table
-   * {project_ID}.{dataset_ID}.{table_ID}
+   * {project_ID}.{dataset_ID}.{table_ID}.
    *
    * @param string $uri
    */

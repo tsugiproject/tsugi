@@ -56,38 +56,50 @@ class GoogleCloudAiplatformV1EmbedContentRequest extends \Google\Model
    */
   public const TASK_TYPE_CODE_RETRIEVAL_QUERY = 'CODE_RETRIEVAL_QUERY';
   /**
-   * Optional. Whether to silently truncate the input content if it's longer
-   * than the maximum sequence length.
+   * Optional. Deprecated: Please use EmbedContentConfig.auto_truncate instead.
+   * Whether to silently truncate the input content if it's longer than the
+   * maximum sequence length.
    *
+   * @deprecated
    * @var bool
    */
   public $autoTruncate;
   protected $contentType = GoogleCloudAiplatformV1Content::class;
   protected $contentDataType = '';
+  protected $embedContentConfigType = GoogleCloudAiplatformV1EmbedContentRequestEmbedContentConfig::class;
+  protected $embedContentConfigDataType = '';
   /**
-   * Optional. Optional reduced dimension for the output embedding. If set,
-   * excessive values in the output embedding are truncated from the end.
+   * Optional. Deprecated: Please use EmbedContentConfig.output_dimensionality
+   * instead. Reduced dimension for the output embedding. If set, excessive
+   * values in the output embedding are truncated from the end.
    *
+   * @deprecated
    * @var int
    */
   public $outputDimensionality;
   /**
-   * Optional. The task type of the embedding.
+   * Optional. Deprecated: Please use EmbedContentConfig.task_type instead. The
+   * task type of the embedding.
    *
+   * @deprecated
    * @var string
    */
   public $taskType;
   /**
-   * Optional. An optional title for the text.
+   * Optional. Deprecated: Please use EmbedContentConfig.title instead. The
+   * title for the text.
    *
+   * @deprecated
    * @var string
    */
   public $title;
 
   /**
-   * Optional. Whether to silently truncate the input content if it's longer
-   * than the maximum sequence length.
+   * Optional. Deprecated: Please use EmbedContentConfig.auto_truncate instead.
+   * Whether to silently truncate the input content if it's longer than the
+   * maximum sequence length.
    *
+   * @deprecated
    * @param bool $autoTruncate
    */
   public function setAutoTruncate($autoTruncate)
@@ -95,6 +107,7 @@ class GoogleCloudAiplatformV1EmbedContentRequest extends \Google\Model
     $this->autoTruncate = $autoTruncate;
   }
   /**
+   * @deprecated
    * @return bool
    */
   public function getAutoTruncate()
@@ -102,7 +115,7 @@ class GoogleCloudAiplatformV1EmbedContentRequest extends \Google\Model
     return $this->autoTruncate;
   }
   /**
-   * Required. Input content to be embedded. Required.
+   * Required. The content to be embedded.
    *
    * @param GoogleCloudAiplatformV1Content $content
    */
@@ -118,9 +131,27 @@ class GoogleCloudAiplatformV1EmbedContentRequest extends \Google\Model
     return $this->content;
   }
   /**
-   * Optional. Optional reduced dimension for the output embedding. If set,
-   * excessive values in the output embedding are truncated from the end.
+   * Optional. Configuration for the EmbedContent request.
    *
+   * @param GoogleCloudAiplatformV1EmbedContentRequestEmbedContentConfig $embedContentConfig
+   */
+  public function setEmbedContentConfig(GoogleCloudAiplatformV1EmbedContentRequestEmbedContentConfig $embedContentConfig)
+  {
+    $this->embedContentConfig = $embedContentConfig;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1EmbedContentRequestEmbedContentConfig
+   */
+  public function getEmbedContentConfig()
+  {
+    return $this->embedContentConfig;
+  }
+  /**
+   * Optional. Deprecated: Please use EmbedContentConfig.output_dimensionality
+   * instead. Reduced dimension for the output embedding. If set, excessive
+   * values in the output embedding are truncated from the end.
+   *
+   * @deprecated
    * @param int $outputDimensionality
    */
   public function setOutputDimensionality($outputDimensionality)
@@ -128,6 +159,7 @@ class GoogleCloudAiplatformV1EmbedContentRequest extends \Google\Model
     $this->outputDimensionality = $outputDimensionality;
   }
   /**
+   * @deprecated
    * @return int
    */
   public function getOutputDimensionality()
@@ -135,12 +167,14 @@ class GoogleCloudAiplatformV1EmbedContentRequest extends \Google\Model
     return $this->outputDimensionality;
   }
   /**
-   * Optional. The task type of the embedding.
+   * Optional. Deprecated: Please use EmbedContentConfig.task_type instead. The
+   * task type of the embedding.
    *
    * Accepted values: UNSPECIFIED, RETRIEVAL_QUERY, RETRIEVAL_DOCUMENT,
    * SEMANTIC_SIMILARITY, CLASSIFICATION, CLUSTERING, QUESTION_ANSWERING,
    * FACT_VERIFICATION, CODE_RETRIEVAL_QUERY
    *
+   * @deprecated
    * @param self::TASK_TYPE_* $taskType
    */
   public function setTaskType($taskType)
@@ -148,6 +182,7 @@ class GoogleCloudAiplatformV1EmbedContentRequest extends \Google\Model
     $this->taskType = $taskType;
   }
   /**
+   * @deprecated
    * @return self::TASK_TYPE_*
    */
   public function getTaskType()
@@ -155,8 +190,10 @@ class GoogleCloudAiplatformV1EmbedContentRequest extends \Google\Model
     return $this->taskType;
   }
   /**
-   * Optional. An optional title for the text.
+   * Optional. Deprecated: Please use EmbedContentConfig.title instead. The
+   * title for the text.
    *
+   * @deprecated
    * @param string $title
    */
   public function setTitle($title)
@@ -164,6 +201,7 @@ class GoogleCloudAiplatformV1EmbedContentRequest extends \Google\Model
     $this->title = $title;
   }
   /**
+   * @deprecated
    * @return string
    */
   public function getTitle()

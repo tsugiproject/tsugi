@@ -44,8 +44,12 @@ class ProjectsLocationsCollectionsEnginesServingConfigs extends \Google\Service\
    * serving config, such as `projects/locations/global/collections/default_collec
    * tion/engines/servingConfigs/default_serving_config`, or `projects/locations/g
    * lobal/collections/default_collection/dataStores/servingConfigs/default_servin
-   * g_config`. This field is used to identify the serving configuration name, set
-   * of models used to make the search.
+   * g_config`. Or the resource name of the agent engine serving config, such as:
+   * `projects/locations/global/collections/default_collection/engines/servingConf
+   * igs/default_agent_answer`. (use when `enable_agent_invocation` set to true,
+   * and you have custom `AI_MODE` agent engine configured) This field is used to
+   * identify the serving configuration name, set of models used to make the
+   * search.
    * @param GoogleCloudDiscoveryengineV1AnswerQueryRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDiscoveryengineV1AnswerQueryResponse
@@ -56,6 +60,30 @@ class ProjectsLocationsCollectionsEnginesServingConfigs extends \Google\Service\
     $params = ['servingConfig' => $servingConfig, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('answer', [$params], GoogleCloudDiscoveryengineV1AnswerQueryResponse::class);
+  }
+  /**
+   * Creates a ServingConfig. Note: The Google Cloud console works only with the
+   * default serving config. Additional ServingConfigs can be created and managed
+   * only via the API. A maximum of 100 ServingConfigs are allowed in an Engine,
+   * otherwise a RESOURCE_EXHAUSTED error is returned. (servingConfigs.create)
+   *
+   * @param string $parent Required. Full resource name of parent. Format: `projec
+   * ts/{project}/locations/{location}/collections/{collection}/engines/{engine}`
+   * @param GoogleCloudDiscoveryengineV1ServingConfig $postBody
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string servingConfigId Required. The ID to use for the
+   * ServingConfig, which will become the final component of the ServingConfig's
+   * resource name. This value should be 4-63 characters, and valid characters are
+   * /a-zA-Z0-9+/.
+   * @return GoogleCloudDiscoveryengineV1ServingConfig
+   * @throws \Google\Service\Exception
+   */
+  public function create($parent, GoogleCloudDiscoveryengineV1ServingConfig $postBody, $optParams = [])
+  {
+    $params = ['parent' => $parent, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('create', [$params], GoogleCloudDiscoveryengineV1ServingConfig::class);
   }
   /**
    * Deletes a ServingConfig. Returns a NOT_FOUND error if the ServingConfig does
@@ -216,8 +244,12 @@ class ProjectsLocationsCollectionsEnginesServingConfigs extends \Google\Service\
    * serving config, such as `projects/locations/global/collections/default_collec
    * tion/engines/servingConfigs/default_serving_config`, or `projects/locations/g
    * lobal/collections/default_collection/dataStores/servingConfigs/default_servin
-   * g_config`. This field is used to identify the serving configuration name, set
-   * of models used to make the search.
+   * g_config`. Or the resource name of the agent engine serving config, such as:
+   * `projects/locations/global/collections/default_collection/engines/servingConf
+   * igs/default_agent_answer`. (use when `enable_agent_invocation` set to true,
+   * and you have custom `AI_MODE` agent engine configured) This field is used to
+   * identify the serving configuration name, set of models used to make the
+   * search.
    * @param GoogleCloudDiscoveryengineV1AnswerQueryRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDiscoveryengineV1AnswerQueryResponse

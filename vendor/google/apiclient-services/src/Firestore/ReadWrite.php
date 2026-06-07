@@ -20,12 +20,56 @@ namespace Google\Service\Firestore;
 class ReadWrite extends \Google\Model
 {
   /**
+   * Start the transaction with the database-level default concurrency mode.
+   */
+  public const CONCURRENCY_MODE_CONCURRENCY_MODE_UNSPECIFIED = 'CONCURRENCY_MODE_UNSPECIFIED';
+  /**
+   * Use optimistic concurrency control for the new transaction.
+   */
+  public const CONCURRENCY_MODE_OPTIMISTIC = 'OPTIMISTIC';
+  /**
+   * Use pessimistic concurrency control for the new transaction.
+   */
+  public const CONCURRENCY_MODE_PESSIMISTIC = 'PESSIMISTIC';
+  /**
+   * Optional. The concurrency control mode to use for this transaction. A
+   * database is able to use different concurrency modes for different
+   * transactions simultaneously. 3rd party auth requests are only allowed to
+   * create optimistic read-write transactions and must specify that here even
+   * if the database-level setting is already configured to optimistic.
+   *
+   * @var string
+   */
+  public $concurrencyMode;
+  /**
    * An optional transaction to retry.
    *
    * @var string
    */
   public $retryTransaction;
 
+  /**
+   * Optional. The concurrency control mode to use for this transaction. A
+   * database is able to use different concurrency modes for different
+   * transactions simultaneously. 3rd party auth requests are only allowed to
+   * create optimistic read-write transactions and must specify that here even
+   * if the database-level setting is already configured to optimistic.
+   *
+   * Accepted values: CONCURRENCY_MODE_UNSPECIFIED, OPTIMISTIC, PESSIMISTIC
+   *
+   * @param self::CONCURRENCY_MODE_* $concurrencyMode
+   */
+  public function setConcurrencyMode($concurrencyMode)
+  {
+    $this->concurrencyMode = $concurrencyMode;
+  }
+  /**
+   * @return self::CONCURRENCY_MODE_*
+   */
+  public function getConcurrencyMode()
+  {
+    return $this->concurrencyMode;
+  }
   /**
    * An optional transaction to retry.
    *

@@ -248,6 +248,8 @@ class GoogleCloudDatacatalogV1Entry extends \Google\Model
   protected $serviceSpecDataType = '';
   protected $sourceSystemTimestampsType = GoogleCloudDatacatalogV1SystemTimestamps::class;
   protected $sourceSystemTimestampsDataType = '';
+  protected $spannerTableSpecType = GoogleCloudDatacatalogV1SpannerTableSpec::class;
+  protected $spannerTableSpecDataType = '';
   protected $sqlDatabaseSystemSpecType = GoogleCloudDatacatalogV1SqlDatabaseSystemSpec::class;
   protected $sqlDatabaseSystemSpecDataType = '';
   /**
@@ -740,6 +742,22 @@ class GoogleCloudDatacatalogV1Entry extends \Google\Model
   public function getSourceSystemTimestamps()
   {
     return $this->sourceSystemTimestamps;
+  }
+  /**
+   * Specification of a Spanner table.
+   *
+   * @param GoogleCloudDatacatalogV1SpannerTableSpec $spannerTableSpec
+   */
+  public function setSpannerTableSpec(GoogleCloudDatacatalogV1SpannerTableSpec $spannerTableSpec)
+  {
+    $this->spannerTableSpec = $spannerTableSpec;
+  }
+  /**
+   * @return GoogleCloudDatacatalogV1SpannerTableSpec
+   */
+  public function getSpannerTableSpec()
+  {
+    return $this->spannerTableSpec;
   }
   /**
    * Specification that applies to a relational database system. Only settable

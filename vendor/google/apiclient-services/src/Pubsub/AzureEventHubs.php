@@ -54,6 +54,12 @@ class AzureEventHubs extends \Google\Model
    */
   public const STATE_RESOURCE_GROUP_NOT_FOUND = 'RESOURCE_GROUP_NOT_FOUND';
   /**
+   * Indicates an error state where the ingestion source cannot be processed
+   * because the selected ingestion region is not permitted by the Regional
+   * Access Boundary (RAB) restrictions on the project's service account.
+   */
+  public const STATE_CONFLICTING_REGION_CONSTRAINTS = 'CONFLICTING_REGION_CONSTRAINTS';
+  /**
    * Optional. The client id of the Azure application that is being used to
    * authenticate Pub/Sub.
    *
@@ -194,7 +200,8 @@ class AzureEventHubs extends \Google\Model
    *
    * Accepted values: STATE_UNSPECIFIED, ACTIVE, EVENT_HUBS_PERMISSION_DENIED,
    * PUBLISH_PERMISSION_DENIED, NAMESPACE_NOT_FOUND, EVENT_HUB_NOT_FOUND,
-   * SUBSCRIPTION_NOT_FOUND, RESOURCE_GROUP_NOT_FOUND
+   * SUBSCRIPTION_NOT_FOUND, RESOURCE_GROUP_NOT_FOUND,
+   * CONFLICTING_REGION_CONSTRAINTS
    *
    * @param self::STATE_* $state
    */

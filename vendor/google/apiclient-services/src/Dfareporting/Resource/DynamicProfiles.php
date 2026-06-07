@@ -31,7 +31,8 @@ use Google\Service\Dfareporting\DynamicProfileGenerateCodeResponse;
 class DynamicProfiles extends \Google\Service\Resource
 {
   /**
-   * Generates code for a dynamic profile. (dynamicProfiles.generateCode)
+   * Generates code for a dynamic profile, which will need unescaping.
+   * (dynamicProfiles.generateCode)
    *
    * @param string $dynamicProfileId Required. Dynamic profile ID.
    * @param array $optParams Optional parameters.

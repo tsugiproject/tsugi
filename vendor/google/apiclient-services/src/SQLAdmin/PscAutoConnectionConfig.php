@@ -37,8 +37,8 @@ class PscAutoConnectionConfig extends \Google\Model
   public $consumerNetworkStatus;
   /**
    * Optional. This is the project ID of consumer service project of this
-   * consumer endpoint. Optional. This is only applicable if consumer_network is
-   * a shared vpc network.
+   * consumer endpoint. This is only applicable if `consumer_network` is a
+   * shared VPC network.
    *
    * @var string
    */
@@ -94,8 +94,8 @@ class PscAutoConnectionConfig extends \Google\Model
   }
   /**
    * Optional. This is the project ID of consumer service project of this
-   * consumer endpoint. Optional. This is only applicable if consumer_network is
-   * a shared vpc network.
+   * consumer endpoint. This is only applicable if `consumer_network` is a
+   * shared VPC network.
    *
    * @param string $consumerProject
    */

@@ -31,7 +31,9 @@ use Google\Service\Gmail\ListLabelsResponse;
 class UsersLabels extends \Google\Service\Resource
 {
   /**
-   * Creates a new label. (labels.create)
+   * Creates a label. For more information, see [Manage
+   * labels](https://developers.google.com/workspace/gmail/api/guides/labels).
+   * (labels.create)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -48,7 +50,10 @@ class UsersLabels extends \Google\Service\Resource
   }
   /**
    * Immediately and permanently deletes the specified label and removes it from
-   * any messages and threads that it is applied to. (labels.delete)
+   * any messages and threads that it's applied to. For more information, see
+   * [Manage
+   * labels](https://developers.google.com/workspace/gmail/api/guides/labels).
+   * (labels.delete)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -63,7 +68,9 @@ class UsersLabels extends \Google\Service\Resource
     return $this->call('delete', [$params]);
   }
   /**
-   * Gets the specified label. (labels.get)
+   * Gets the specified label. For more information, see [Manage
+   * labels](https://developers.google.com/workspace/gmail/api/guides/labels).
+   * (labels.get)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -79,7 +86,9 @@ class UsersLabels extends \Google\Service\Resource
     return $this->call('get', [$params], Label::class);
   }
   /**
-   * Lists all labels in the user's mailbox. (labels.listUsersLabels)
+   * Lists all labels in the user's mailbox. For more information, see [Manage
+   * labels](https://developers.google.com/workspace/gmail/api/guides/labels).
+   * (labels.listUsersLabels)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -94,7 +103,9 @@ class UsersLabels extends \Google\Service\Resource
     return $this->call('list', [$params], ListLabelsResponse::class);
   }
   /**
-   * Patch the specified label. (labels.patch)
+   * Patch the specified label. For more information, see [Manage
+   * labels](https://developers.google.com/workspace/gmail/api/guides/labels).
+   * (labels.patch)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -111,7 +122,9 @@ class UsersLabels extends \Google\Service\Resource
     return $this->call('patch', [$params], Label::class);
   }
   /**
-   * Updates the specified label. (labels.update)
+   * Updates the specified label. For more information, see [Manage
+   * labels](https://developers.google.com/workspace/gmail/api/guides/labels).
+   * (labels.update)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.

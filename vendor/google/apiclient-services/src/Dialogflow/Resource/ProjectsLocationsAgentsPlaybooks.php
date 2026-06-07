@@ -35,10 +35,9 @@ use Google\Service\Dialogflow\GoogleProtobufEmpty;
 class ProjectsLocationsAgentsPlaybooks extends \Google\Service\Resource
 {
   /**
-   * Creates a playbook in a specified agent. (playbooks.create)
+   * (playbooks.create)
    *
-   * @param string $parent Required. The agent to create a playbook for. Format:
-   * `projects//locations//agents/`.
+   * @param string $parent
    * @param GoogleCloudDialogflowCxV3Playbook $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3Playbook
@@ -51,10 +50,9 @@ class ProjectsLocationsAgentsPlaybooks extends \Google\Service\Resource
     return $this->call('create', [$params], GoogleCloudDialogflowCxV3Playbook::class);
   }
   /**
-   * Deletes a specified playbook. (playbooks.delete)
+   * (playbooks.delete)
    *
-   * @param string $name Required. The name of the playbook to delete. Format:
-   * `projects//locations//agents//playbooks/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    * @return GoogleProtobufEmpty
    * @throws \Google\Service\Exception
@@ -66,12 +64,9 @@ class ProjectsLocationsAgentsPlaybooks extends \Google\Service\Resource
     return $this->call('delete', [$params], GoogleProtobufEmpty::class);
   }
   /**
-   * Exports the specified playbook to a binary file. Note that resources (e.g.
-   * examples, tools) that the playbook references will also be exported.
    * (playbooks.export)
    *
-   * @param string $name Required. The name of the playbook to export. Format:
-   * `projects//locations//agents//playbooks/`.
+   * @param string $name
    * @param GoogleCloudDialogflowCxV3ExportPlaybookRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleLongrunningOperation
@@ -84,10 +79,9 @@ class ProjectsLocationsAgentsPlaybooks extends \Google\Service\Resource
     return $this->call('export', [$params], GoogleLongrunningOperation::class);
   }
   /**
-   * Retrieves the specified Playbook. (playbooks.get)
+   * (playbooks.get)
    *
-   * @param string $name Required. The name of the playbook. Format:
-   * `projects//locations//agents//playbooks/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3Playbook
    * @throws \Google\Service\Exception
@@ -99,11 +93,9 @@ class ProjectsLocationsAgentsPlaybooks extends \Google\Service\Resource
     return $this->call('get', [$params], GoogleCloudDialogflowCxV3Playbook::class);
   }
   /**
-   * Imports the specified playbook to the specified agent from a binary file.
    * (playbooks.import)
    *
-   * @param string $parent Required. The agent to import the playbook into.
-   * Format: `projects//locations//agents/`.
+   * @param string $parent
    * @param GoogleCloudDialogflowCxV3ImportPlaybookRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleLongrunningOperation
@@ -116,17 +108,13 @@ class ProjectsLocationsAgentsPlaybooks extends \Google\Service\Resource
     return $this->call('import', [$params], GoogleLongrunningOperation::class);
   }
   /**
-   * Returns a list of playbooks in the specified agent.
    * (playbooks.listProjectsLocationsAgentsPlaybooks)
    *
-   * @param string $parent Required. The agent to list playbooks from. Format:
-   * `projects//locations//agents/`.
+   * @param string $parent
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize The maximum number of items to return in a single
-   * page. By default 100 and at most 1000.
-   * @opt_param string pageToken The next_page_token value returned from a
-   * previous list request.
+   * @opt_param int pageSize
+   * @opt_param string pageToken
    * @return GoogleCloudDialogflowCxV3ListPlaybooksResponse
    * @throws \Google\Service\Exception
    */
@@ -137,15 +125,13 @@ class ProjectsLocationsAgentsPlaybooks extends \Google\Service\Resource
     return $this->call('list', [$params], GoogleCloudDialogflowCxV3ListPlaybooksResponse::class);
   }
   /**
-   * Updates the specified Playbook. (playbooks.patch)
+   * (playbooks.patch)
    *
-   * @param string $name The unique identifier of the playbook. Format:
-   * `projects//locations//agents//playbooks/`.
+   * @param string $name
    * @param GoogleCloudDialogflowCxV3Playbook $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string updateMask The mask to control which fields get updated. If
-   * the mask is not present, all fields will be updated.
+   * @opt_param string updateMask
    * @return GoogleCloudDialogflowCxV3Playbook
    * @throws \Google\Service\Exception
    */

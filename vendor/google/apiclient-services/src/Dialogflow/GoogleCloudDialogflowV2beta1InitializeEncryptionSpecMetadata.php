@@ -23,8 +23,6 @@ class GoogleCloudDialogflowV2beta1InitializeEncryptionSpecMetadata extends \Goog
   protected $requestDataType = '';
 
   /**
-   * Output only. The original request for initialization.
-   *
    * @param GoogleCloudDialogflowV2beta1InitializeEncryptionSpecRequest $request
    */
   public function setRequest(GoogleCloudDialogflowV2beta1InitializeEncryptionSpecRequest $request)

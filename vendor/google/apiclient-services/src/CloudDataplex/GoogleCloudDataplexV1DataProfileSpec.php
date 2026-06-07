@@ -20,6 +20,23 @@ namespace Google\Service\CloudDataplex;
 class GoogleCloudDataplexV1DataProfileSpec extends \Google\Model
 {
   /**
+   * Default value. This value is unused.
+   */
+  public const MODE_MODE_UNSPECIFIED = 'MODE_UNSPECIFIED';
+  /**
+   * Performs standard profiling. The behavior is controlled by other fields
+   * such as sampling_percent, row_filter, and column filters. This mode allows
+   * for full scans or custom sampling.
+   */
+  public const MODE_STANDARD = 'STANDARD';
+  /**
+   * Specifies lightweight profiling mode. This mode is optimized for low-
+   * latency, low-fidelity profiling.When this mode is selected, the following
+   * fields must not be set: sampling_percent, row_filter, include_fields, and
+   * exclude_fields.
+   */
+  public const MODE_LIGHTWEIGHT = 'LIGHTWEIGHT';
+  /**
    * Optional. If set, the latest DataScan job result will be published as
    * Dataplex Universal Catalog metadata.
    *
@@ -30,6 +47,12 @@ class GoogleCloudDataplexV1DataProfileSpec extends \Google\Model
   protected $excludeFieldsDataType = '';
   protected $includeFieldsType = GoogleCloudDataplexV1DataProfileSpecSelectedFields::class;
   protected $includeFieldsDataType = '';
+  /**
+   * Optional. The execution mode for the profile scan.
+   *
+   * @var string
+   */
+  public $mode;
   protected $postScanActionsType = GoogleCloudDataplexV1DataProfileSpecPostScanActions::class;
   protected $postScanActionsDataType = '';
   /**
@@ -101,6 +124,24 @@ class GoogleCloudDataplexV1DataProfileSpec extends \Google\Model
   public function getIncludeFields()
   {
     return $this->includeFields;
+  }
+  /**
+   * Optional. The execution mode for the profile scan.
+   *
+   * Accepted values: MODE_UNSPECIFIED, STANDARD, LIGHTWEIGHT
+   *
+   * @param self::MODE_* $mode
+   */
+  public function setMode($mode)
+  {
+    $this->mode = $mode;
+  }
+  /**
+   * @return self::MODE_*
+   */
+  public function getMode()
+  {
+    return $this->mode;
   }
   /**
    * Optional. Actions to take upon job completion..

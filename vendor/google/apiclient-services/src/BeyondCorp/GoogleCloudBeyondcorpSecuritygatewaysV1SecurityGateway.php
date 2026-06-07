@@ -77,6 +77,8 @@ class GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway extends \Google\Col
   public $externalIps;
   protected $hubsType = GoogleCloudBeyondcorpSecuritygatewaysV1Hub::class;
   protected $hubsDataType = 'map';
+  protected $loggingType = GoogleCloudBeyondcorpSecuritygatewaysV1LoggingConfig::class;
+  protected $loggingDataType = '';
   /**
    * Identifier. Name of the resource.
    *
@@ -183,6 +185,23 @@ class GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway extends \Google\Col
   public function getHubs()
   {
     return $this->hubs;
+  }
+  /**
+   * Optional. Configuration for Cloud Logging. If this field is present, the
+   * logging will be enabled.
+   *
+   * @param GoogleCloudBeyondcorpSecuritygatewaysV1LoggingConfig $logging
+   */
+  public function setLogging(GoogleCloudBeyondcorpSecuritygatewaysV1LoggingConfig $logging)
+  {
+    $this->logging = $logging;
+  }
+  /**
+   * @return GoogleCloudBeyondcorpSecuritygatewaysV1LoggingConfig
+   */
+  public function getLogging()
+  {
+    return $this->logging;
   }
   /**
    * Identifier. Name of the resource.

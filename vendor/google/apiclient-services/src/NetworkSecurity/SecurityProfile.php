@@ -36,6 +36,10 @@ class SecurityProfile extends \Google\Model
    */
   public const TYPE_CUSTOM_INTERCEPT = 'CUSTOM_INTERCEPT';
   /**
+   * Profile type for URL filtering.
+   */
+  public const TYPE_URL_FILTERING = 'URL_FILTERING';
+  /**
    * Output only. Resource creation timestamp.
    *
    * @var string
@@ -89,6 +93,8 @@ class SecurityProfile extends \Google\Model
    * @var string
    */
   public $updateTime;
+  protected $urlFilteringProfileType = UrlFilteringProfile::class;
+  protected $urlFilteringProfileDataType = '';
 
   /**
    * Output only. Resource creation timestamp.
@@ -228,7 +234,7 @@ class SecurityProfile extends \Google\Model
    * configures.
    *
    * Accepted values: PROFILE_TYPE_UNSPECIFIED, THREAT_PREVENTION,
-   * CUSTOM_MIRRORING, CUSTOM_INTERCEPT
+   * CUSTOM_MIRRORING, CUSTOM_INTERCEPT, URL_FILTERING
    *
    * @param self::TYPE_* $type
    */
@@ -258,6 +264,22 @@ class SecurityProfile extends \Google\Model
   public function getUpdateTime()
   {
     return $this->updateTime;
+  }
+  /**
+   * The URL filtering configuration for the SecurityProfile.
+   *
+   * @param UrlFilteringProfile $urlFilteringProfile
+   */
+  public function setUrlFilteringProfile(UrlFilteringProfile $urlFilteringProfile)
+  {
+    $this->urlFilteringProfile = $urlFilteringProfile;
+  }
+  /**
+   * @return UrlFilteringProfile
+   */
+  public function getUrlFilteringProfile()
+  {
+    return $this->urlFilteringProfile;
   }
 }
 

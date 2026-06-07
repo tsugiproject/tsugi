@@ -25,6 +25,8 @@ class Connector extends \Google\Model
    * @var string[]
    */
   public $annotations;
+  protected $clientCacheType = ClientCache::class;
+  protected $clientCacheDataType = '';
   /**
    * Output only. [Output only] Create time stamp.
    *
@@ -97,6 +99,22 @@ class Connector extends \Google\Model
   public function getAnnotations()
   {
     return $this->annotations;
+  }
+  /**
+   * Optional. The client cache settings of the connector.
+   *
+   * @param ClientCache $clientCache
+   */
+  public function setClientCache(ClientCache $clientCache)
+  {
+    $this->clientCache = $clientCache;
+  }
+  /**
+   * @return ClientCache
+   */
+  public function getClientCache()
+  {
+    return $this->clientCache;
   }
   /**
    * Output only. [Output only] Create time stamp.

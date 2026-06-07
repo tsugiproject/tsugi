@@ -20,15 +20,11 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2beta1ToolCallResultError extends \Google\Model
 {
   /**
-   * Optional. The error message of the function.
-   *
    * @var string
    */
   public $message;
 
   /**
-   * Optional. The error message of the function.
-   *
    * @param string $message
    */
   public function setMessage($message)

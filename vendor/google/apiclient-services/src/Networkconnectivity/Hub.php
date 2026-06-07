@@ -45,6 +45,11 @@ class Hub extends \Google\Collection
    */
   public const PRESET_TOPOLOGY_STAR = 'STAR';
   /**
+   * Hybrid inspection has 4 groups ('non-prod', 'prod', 'services', and
+   * 'untrusted') that are automatically created along with hub creation.
+   */
+  public const PRESET_TOPOLOGY_HYBRID_INSPECTION = 'HYBRID_INSPECTION';
+  /**
    * No state information available
    */
   public const STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED';
@@ -288,7 +293,7 @@ class Hub extends \Google\Collection
    * the preset_topology defaults to MESH. When policy_mode = CUSTOM, the
    * preset_topology is set to PRESET_TOPOLOGY_UNSPECIFIED.
    *
-   * Accepted values: PRESET_TOPOLOGY_UNSPECIFIED, MESH, STAR
+   * Accepted values: PRESET_TOPOLOGY_UNSPECIFIED, MESH, STAR, HYBRID_INSPECTION
    *
    * @param self::PRESET_TOPOLOGY_* $presetTopology
    */

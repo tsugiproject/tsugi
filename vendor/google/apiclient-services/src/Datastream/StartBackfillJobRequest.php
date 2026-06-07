@@ -25,7 +25,7 @@ class StartBackfillJobRequest extends \Google\Model
   /**
    * Optional. Optional event filter. If not set, or empty, the backfill will be
    * performed on the entire object. This is currently used for partial backfill
-   * and only supported for SQL Server sources.
+   * and only supported for SQL sources.
    *
    * @param EventFilter $eventFilter
    */

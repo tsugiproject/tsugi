@@ -23,17 +23,11 @@ class GoogleCloudDialogflowCxV3ListExamplesResponse extends \Google\Collection
   protected $examplesType = GoogleCloudDialogflowCxV3Example::class;
   protected $examplesDataType = 'array';
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * The list of examples. There will be a maximum number of items returned
-   * based on the page_size field in the request.
-   *
    * @param GoogleCloudDialogflowCxV3Example[] $examples
    */
   public function setExamples($examples)
@@ -48,9 +42,6 @@ class GoogleCloudDialogflowCxV3ListExamplesResponse extends \Google\Collection
     return $this->examples;
   }
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)

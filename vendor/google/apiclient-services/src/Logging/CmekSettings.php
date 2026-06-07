@@ -32,9 +32,10 @@ class CmekSettings extends \Google\Model
    * progress will be completed with the key that was in use when they started.
    * Decryption operations will be completed using the key that was used at the
    * time of encryption unless access to that key has been revoked.To disable
-   * CMEK for the Log Router, set this field to an empty string.See Enabling
-   * CMEK for Log Router (https://cloud.google.com/logging/docs/routing/managed-
-   * encryption) for more information.
+   * CMEK for the Log Router, set this field to an empty string.See Configure
+   * CMEK for Cloud Logging
+   * (https://docs.cloud.google.com/logging/docs/routing/managed-encryption) for
+   * more information.
    *
    * @var string
    */
@@ -64,9 +65,9 @@ class CmekSettings extends \Google\Model
    * access your Cloud KMS key.Before enabling CMEK for Log Router, you must
    * first assign the cloudkms.cryptoKeyEncrypterDecrypter role to the service
    * account that the Log Router will use to access your Cloud KMS key. Use
-   * GetCmekSettings to obtain the service account ID.See Enabling CMEK for Log
-   * Router (https://cloud.google.com/logging/docs/routing/managed-encryption)
-   * for more information.
+   * GetCmekSettings to obtain the service account ID.See Configure CMEK for
+   * Cloud Logging (https://docs.cloud.google.com/logging/docs/routing/managed-
+   * encryption) for more information.
    *
    * @var string
    */
@@ -85,9 +86,10 @@ class CmekSettings extends \Google\Model
    * progress will be completed with the key that was in use when they started.
    * Decryption operations will be completed using the key that was used at the
    * time of encryption unless access to that key has been revoked.To disable
-   * CMEK for the Log Router, set this field to an empty string.See Enabling
-   * CMEK for Log Router (https://cloud.google.com/logging/docs/routing/managed-
-   * encryption) for more information.
+   * CMEK for the Log Router, set this field to an empty string.See Configure
+   * CMEK for Cloud Logging
+   * (https://docs.cloud.google.com/logging/docs/routing/managed-encryption) for
+   * more information.
    *
    * @param string $kmsKeyName
    */
@@ -147,9 +149,9 @@ class CmekSettings extends \Google\Model
    * access your Cloud KMS key.Before enabling CMEK for Log Router, you must
    * first assign the cloudkms.cryptoKeyEncrypterDecrypter role to the service
    * account that the Log Router will use to access your Cloud KMS key. Use
-   * GetCmekSettings to obtain the service account ID.See Enabling CMEK for Log
-   * Router (https://cloud.google.com/logging/docs/routing/managed-encryption)
-   * for more information.
+   * GetCmekSettings to obtain the service account ID.See Configure CMEK for
+   * Cloud Logging (https://docs.cloud.google.com/logging/docs/routing/managed-
+   * encryption) for more information.
    *
    * @param string $serviceAccountId
    */

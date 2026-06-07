@@ -50,6 +50,22 @@ class ConfigBasedSignalData extends \Google\Model
    */
   public const SIGNAL_TYPE_SIGNAL_TYPE_EXTENDED_SUPPORT = 'SIGNAL_TYPE_EXTENDED_SUPPORT';
   /**
+   * Represents if a resource has no automated backup policy.
+   */
+  public const SIGNAL_TYPE_SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY = 'SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY';
+  /**
+   * Represents if a resource version is nearing end of life.
+   */
+  public const SIGNAL_TYPE_SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE = 'SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE';
+  /**
+   * Represents if the last backup of a resource is older than 24 hours.
+   */
+  public const SIGNAL_TYPE_SIGNAL_TYPE_LAST_BACKUP_OLD = 'SIGNAL_TYPE_LAST_BACKUP_OLD';
+  /**
+   * Represents if a resource is not protected by automatic failover.
+   */
+  public const SIGNAL_TYPE_SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER = 'SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER';
+  /**
    * Required. Full Resource name of the source resource.
    *
    * @var string
@@ -146,7 +162,10 @@ class ConfigBasedSignalData extends \Google\Model
    * Accepted values: SIGNAL_TYPE_UNSPECIFIED,
    * SIGNAL_TYPE_OUTDATED_MINOR_VERSION, SIGNAL_TYPE_DATABASE_AUDITING_DISABLED,
    * SIGNAL_TYPE_NO_ROOT_PASSWORD, SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS,
-   * SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS, SIGNAL_TYPE_EXTENDED_SUPPORT
+   * SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS, SIGNAL_TYPE_EXTENDED_SUPPORT,
+   * SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY,
+   * SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE, SIGNAL_TYPE_LAST_BACKUP_OLD,
+   * SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER
    *
    * @param self::SIGNAL_TYPE_* $signalType
    */

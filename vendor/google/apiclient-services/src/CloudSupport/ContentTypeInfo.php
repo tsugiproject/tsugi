@@ -42,6 +42,12 @@ class ContentTypeInfo extends \Google\Model
    *
    * @var string
    */
+  public $fromFusionId;
+  /**
+   * # gdata.* are outside protos with mising documentation
+   *
+   * @var string
+   */
   public $fromHeader;
   /**
    * # gdata.* are outside protos with mising documentation
@@ -49,6 +55,12 @@ class ContentTypeInfo extends \Google\Model
    * @var string
    */
   public $fromUrlPath;
+  /**
+   * # gdata.* are outside protos with mising documentation
+   *
+   * @var string
+   */
+  public $fusionIdDetectionMetadata;
 
   /**
    * # gdata.* are outside protos with mising documentation
@@ -101,6 +113,22 @@ class ContentTypeInfo extends \Google\Model
   /**
    * # gdata.* are outside protos with mising documentation
    *
+   * @param string $fromFusionId
+   */
+  public function setFromFusionId($fromFusionId)
+  {
+    $this->fromFusionId = $fromFusionId;
+  }
+  /**
+   * @return string
+   */
+  public function getFromFusionId()
+  {
+    return $this->fromFusionId;
+  }
+  /**
+   * # gdata.* are outside protos with mising documentation
+   *
    * @param string $fromHeader
    */
   public function setFromHeader($fromHeader)
@@ -129,6 +157,22 @@ class ContentTypeInfo extends \Google\Model
   public function getFromUrlPath()
   {
     return $this->fromUrlPath;
+  }
+  /**
+   * # gdata.* are outside protos with mising documentation
+   *
+   * @param string $fusionIdDetectionMetadata
+   */
+  public function setFusionIdDetectionMetadata($fusionIdDetectionMetadata)
+  {
+    $this->fusionIdDetectionMetadata = $fusionIdDetectionMetadata;
+  }
+  /**
+   * @return string
+   */
+  public function getFusionIdDetectionMetadata()
+  {
+    return $this->fusionIdDetectionMetadata;
   }
 }
 

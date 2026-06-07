@@ -85,6 +85,19 @@ class ExtensionChainExtension extends \Google\Collection
    */
   public $failOpen;
   /**
+   * Optional. List of the Envoy attributes to forward to the extension server.
+   * The attributes provided here are included as part of the
+   * `ProcessingRequest.attributes` field (of type `map`), where the keys are
+   * the attribute names. Refer to the
+   * [documentation](https://cloud.google.com/service-extensions/docs/cel-
+   * matcher-language-reference#attributes) for the names of attributes that can
+   * be forwarded. If omitted, no attributes are sent. Each element is a string
+   * indicating the attribute name.
+   *
+   * @var string[]
+   */
+  public $forwardAttributes;
+  /**
    * Optional. List of the HTTP headers to forward to the extension (from the
    * client or backend). If omitted, all headers are sent. Each element is a
    * string indicating the header name.
@@ -127,15 +140,11 @@ class ExtensionChainExtension extends \Google\Collection
    */
   public $name;
   /**
-   * Optional. When set to `TRUE`, enables `observability_mode` on the
-   * `ext_proc` filter. This makes `ext_proc` calls asynchronous. Envoy doesn't
-   * check for the response from `ext_proc` calls. For more information about
-   * the filter, see: https://www.envoyproxy.io/docs/envoy/v1.32.3/api-
-   * v3/extensions/filters/http/ext_proc/v3/ext_proc.proto#extensions-filters-
-   * http-ext-proc-v3-externalprocessor This field is helpful when you want to
-   * try out the extension in async log-only mode. Supported by regional
-   * `LbTrafficExtension` and `LbRouteExtension` resources. Only `STREAMED`
-   * (default) body processing mode is supported.
+   * Optional. When set to `true`, the calls to the extension backend are
+   * performed asynchronously, without pausing the processing of the ongoing
+   * request. In this mode, only `STREAMED` (default) body processing is
+   * supported. Responses, if any, are ignored. Supported by regional
+   * `LbTrafficExtension` and `LbRouteExtension` resources.
    *
    * @var bool
    */
@@ -254,6 +263,29 @@ class ExtensionChainExtension extends \Google\Collection
     return $this->failOpen;
   }
   /**
+   * Optional. List of the Envoy attributes to forward to the extension server.
+   * The attributes provided here are included as part of the
+   * `ProcessingRequest.attributes` field (of type `map`), where the keys are
+   * the attribute names. Refer to the
+   * [documentation](https://cloud.google.com/service-extensions/docs/cel-
+   * matcher-language-reference#attributes) for the names of attributes that can
+   * be forwarded. If omitted, no attributes are sent. Each element is a string
+   * indicating the attribute name.
+   *
+   * @param string[] $forwardAttributes
+   */
+  public function setForwardAttributes($forwardAttributes)
+  {
+    $this->forwardAttributes = $forwardAttributes;
+  }
+  /**
+   * @return string[]
+   */
+  public function getForwardAttributes()
+  {
+    return $this->forwardAttributes;
+  }
+  /**
    * Optional. List of the HTTP headers to forward to the extension (from the
    * client or backend). If omitted, all headers are sent. Each element is a
    * string indicating the header name.
@@ -326,15 +358,11 @@ class ExtensionChainExtension extends \Google\Collection
     return $this->name;
   }
   /**
-   * Optional. When set to `TRUE`, enables `observability_mode` on the
-   * `ext_proc` filter. This makes `ext_proc` calls asynchronous. Envoy doesn't
-   * check for the response from `ext_proc` calls. For more information about
-   * the filter, see: https://www.envoyproxy.io/docs/envoy/v1.32.3/api-
-   * v3/extensions/filters/http/ext_proc/v3/ext_proc.proto#extensions-filters-
-   * http-ext-proc-v3-externalprocessor This field is helpful when you want to
-   * try out the extension in async log-only mode. Supported by regional
-   * `LbTrafficExtension` and `LbRouteExtension` resources. Only `STREAMED`
-   * (default) body processing mode is supported.
+   * Optional. When set to `true`, the calls to the extension backend are
+   * performed asynchronously, without pausing the processing of the ongoing
+   * request. In this mode, only `STREAMED` (default) body processing is
+   * supported. Responses, if any, are ignored. Supported by regional
+   * `LbTrafficExtension` and `LbRouteExtension` resources.
    *
    * @param bool $observabilityMode
    */

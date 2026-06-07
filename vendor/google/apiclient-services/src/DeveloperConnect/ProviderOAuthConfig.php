@@ -72,7 +72,7 @@ class ProviderOAuthConfig extends \Google\Collection
    */
   public $scopes;
   /**
-   * Immutable. Developer Connect provided OAuth.
+   * Optional. Immutable. Developer Connect provided OAuth.
    *
    * @var string
    */
@@ -97,7 +97,7 @@ class ProviderOAuthConfig extends \Google\Collection
     return $this->scopes;
   }
   /**
-   * Immutable. Developer Connect provided OAuth.
+   * Optional. Immutable. Developer Connect provided OAuth.
    *
    * Accepted values: SYSTEM_PROVIDER_UNSPECIFIED, GITHUB, GITLAB, GOOGLE,
    * SENTRY, ROVO, NEW_RELIC, DATASTAX, DYNATRACE

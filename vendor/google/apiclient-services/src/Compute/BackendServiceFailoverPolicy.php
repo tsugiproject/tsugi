@@ -20,7 +20,7 @@ namespace Google\Service\Compute;
 class BackendServiceFailoverPolicy extends \Google\Model
 {
   /**
-   * This can be set to true only if the protocol isTCP.
+   * This can be set to true if the protocol isTCP, UDP, or UNSPECIFIED.
    *
    * The default is false.
    *
@@ -57,7 +57,7 @@ class BackendServiceFailoverPolicy extends \Google\Model
   public $failoverRatio;
 
   /**
-   * This can be set to true only if the protocol isTCP.
+   * This can be set to true if the protocol isTCP, UDP, or UNSPECIFIED.
    *
    * The default is false.
    *

@@ -19,7 +19,7 @@ namespace Google\Service\OracleDatabase;
 
 class ListExascaleDbStorageVaultsResponse extends \Google\Collection
 {
-  protected $collection_key = 'exascaleDbStorageVaults';
+  protected $collection_key = 'unreachable';
   protected $exascaleDbStorageVaultsType = ExascaleDbStorageVault::class;
   protected $exascaleDbStorageVaultsDataType = 'array';
   /**
@@ -31,6 +31,13 @@ class ListExascaleDbStorageVaultsResponse extends \Google\Collection
    * @var string
    */
   public $nextPageToken;
+  /**
+   * Unreachable locations when listing resources across all locations using
+   * wildcard location '-'.
+   *
+   * @var string[]
+   */
+  public $unreachable;
 
   /**
    * The ExascaleDbStorageVaults.
@@ -66,6 +73,23 @@ class ListExascaleDbStorageVaultsResponse extends \Google\Collection
   public function getNextPageToken()
   {
     return $this->nextPageToken;
+  }
+  /**
+   * Unreachable locations when listing resources across all locations using
+   * wildcard location '-'.
+   *
+   * @param string[] $unreachable
+   */
+  public function setUnreachable($unreachable)
+  {
+    $this->unreachable = $unreachable;
+  }
+  /**
+   * @return string[]
+   */
+  public function getUnreachable()
+  {
+    return $this->unreachable;
   }
 }
 

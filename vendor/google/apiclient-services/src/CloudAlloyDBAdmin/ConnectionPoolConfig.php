@@ -20,6 +20,12 @@ namespace Google\Service\CloudAlloyDBAdmin;
 class ConnectionPoolConfig extends \Google\Model
 {
   /**
+   * Output only. The number of running AuthProxy poolers per instance.
+   *
+   * @var int
+   */
+  public $authproxyPoolerCount;
+  /**
    * Optional. Whether to enable Managed Connection Pool (MCP).
    *
    * @var bool
@@ -38,6 +44,22 @@ class ConnectionPoolConfig extends \Google\Model
    */
   public $poolerCount;
 
+  /**
+   * Output only. The number of running AuthProxy poolers per instance.
+   *
+   * @param int $authproxyPoolerCount
+   */
+  public function setAuthproxyPoolerCount($authproxyPoolerCount)
+  {
+    $this->authproxyPoolerCount = $authproxyPoolerCount;
+  }
+  /**
+   * @return int
+   */
+  public function getAuthproxyPoolerCount()
+  {
+    return $this->authproxyPoolerCount;
+  }
   /**
    * Optional. Whether to enable Managed Connection Pool (MCP).
    *

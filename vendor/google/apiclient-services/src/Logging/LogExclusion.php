@@ -42,12 +42,12 @@ class LogExclusion extends \Google\Model
   public $disabled;
   /**
    * Required. An advanced logs filter
-   * (https://cloud.google.com/logging/docs/view/advanced-queries) that matches
-   * the log entries to be excluded. By using the sample function
-   * (https://cloud.google.com/logging/docs/view/advanced-queries#sample), you
-   * can exclude less than 100% of the matching log entries.For example, the
-   * following query matches 99% of low-severity log entries from Google Cloud
-   * Storage buckets:resource.type=gcs_bucket severity
+   * (https://docs.cloud.google.com/logging/docs/view/building-queries#queries-
+   * by-expression) that matches the log entries to be excluded. By using the
+   * sample function (https://docs.cloud.google.com/logging/docs/view/logging-
+   * query-language#sample), you can exclude less than 100% of the matching log
+   * entries.For example, the following query matches 99% of low-severity log
+   * entries from Google Cloud Storage buckets:resource.type=gcs_bucket severity
    *
    * @var string
    */
@@ -122,12 +122,12 @@ class LogExclusion extends \Google\Model
   }
   /**
    * Required. An advanced logs filter
-   * (https://cloud.google.com/logging/docs/view/advanced-queries) that matches
-   * the log entries to be excluded. By using the sample function
-   * (https://cloud.google.com/logging/docs/view/advanced-queries#sample), you
-   * can exclude less than 100% of the matching log entries.For example, the
-   * following query matches 99% of low-severity log entries from Google Cloud
-   * Storage buckets:resource.type=gcs_bucket severity
+   * (https://docs.cloud.google.com/logging/docs/view/building-queries#queries-
+   * by-expression) that matches the log entries to be excluded. By using the
+   * sample function (https://docs.cloud.google.com/logging/docs/view/logging-
+   * query-language#sample), you can exclude less than 100% of the matching log
+   * entries.For example, the following query matches 99% of low-severity log
+   * entries from Google Cloud Storage buckets:resource.type=gcs_bucket severity
    *
    * @param string $filter
    */

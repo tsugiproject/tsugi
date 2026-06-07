@@ -49,8 +49,7 @@ class FileShareConfig extends \Google\Collection
   /**
    * The resource name of the BackupDR backup, in the format `projects/{project_
    * id}/locations/{location_id}/backupVaults/{backupvault_id}/dataSources/{data
-   * source_id}/backups/{backup_id}`, TODO (b/443690479) - Remove visibility
-   * restrictions once the feature is ready
+   * source_id}/backups/{backup_id}`,
    *
    * @var string
    */
@@ -129,8 +128,7 @@ class FileShareConfig extends \Google\Collection
   /**
    * The resource name of the BackupDR backup, in the format `projects/{project_
    * id}/locations/{location_id}/backupVaults/{backupvault_id}/dataSources/{data
-   * source_id}/backups/{backup_id}`, TODO (b/443690479) - Remove visibility
-   * restrictions once the feature is ready
+   * source_id}/backups/{backup_id}`,
    *
    * @param string $sourceBackupdrBackup
    */

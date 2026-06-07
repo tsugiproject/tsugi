@@ -58,6 +58,8 @@ class Subscription extends \Google\Collection
   protected $analyticsHubSubscriptionInfoDataType = '';
   protected $bigqueryConfigType = BigQueryConfig::class;
   protected $bigqueryConfigDataType = '';
+  protected $bigtableConfigType = BigtableConfig::class;
+  protected $bigtableConfigDataType = '';
   protected $cloudStorageConfigType = CloudStorageConfig::class;
   protected $cloudStorageConfigDataType = '';
   protected $deadLetterPolicyType = DeadLetterPolicy::class;
@@ -127,7 +129,7 @@ class Subscription extends \Google\Collection
   protected $messageTransformsType = MessageTransform::class;
   protected $messageTransformsDataType = 'array';
   /**
-   * Required. The name of the subscription. It must have the format
+   * Required. Identifier. The name of the subscription. It must have the format
    * `"projects/{project}/subscriptions/{subscription}"`. `{subscription}` must
    * start with a letter, and contain only letters (`[A-Za-z]`), numbers
    * (`[0-9]`), dashes (`-`), underscores (`_`), periods (`.`), tildes (`~`),
@@ -162,7 +164,9 @@ class Subscription extends \Google\Collection
   /**
    * Optional. Input only. Immutable. Tag keys/values directly bound to this
    * resource. For example: "123/environment": "production", "123/costCenter":
-   * "marketing"
+   * "marketing" See
+   * https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags
+   * for more information on using tags with Pub/Sub resources.
    *
    * @var string[]
    */
@@ -219,7 +223,7 @@ class Subscription extends \Google\Collection
   }
   /**
    * Output only. Information about the associated Analytics Hub subscription.
-   * Only set if the subscritpion is created by Analytics Hub.
+   * Only set if the subscription is created by Analytics Hub.
    *
    * @param AnalyticsHubSubscriptionInfo $analyticsHubSubscriptionInfo
    */
@@ -250,6 +254,23 @@ class Subscription extends \Google\Collection
   public function getBigqueryConfig()
   {
     return $this->bigqueryConfig;
+  }
+  /**
+   * Optional. If delivery to Bigtable is used with this subscription, this
+   * field is used to configure it.
+   *
+   * @param BigtableConfig $bigtableConfig
+   */
+  public function setBigtableConfig(BigtableConfig $bigtableConfig)
+  {
+    $this->bigtableConfig = $bigtableConfig;
+  }
+  /**
+   * @return BigtableConfig
+   */
+  public function getBigtableConfig()
+  {
+    return $this->bigtableConfig;
   }
   /**
    * Optional. If delivery to Google Cloud Storage is used with this
@@ -449,7 +470,7 @@ class Subscription extends \Google\Collection
     return $this->messageTransforms;
   }
   /**
-   * Required. The name of the subscription. It must have the format
+   * Required. Identifier. The name of the subscription. It must have the format
    * `"projects/{project}/subscriptions/{subscription}"`. `{subscription}` must
    * start with a letter, and contain only letters (`[A-Za-z]`), numbers
    * (`[0-9]`), dashes (`-`), underscores (`_`), periods (`.`), tildes (`~`),
@@ -549,7 +570,9 @@ class Subscription extends \Google\Collection
   /**
    * Optional. Input only. Immutable. Tag keys/values directly bound to this
    * resource. For example: "123/environment": "production", "123/costCenter":
-   * "marketing"
+   * "marketing" See
+   * https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags
+   * for more information on using tags with Pub/Sub resources.
    *
    * @param string[] $tags
    */

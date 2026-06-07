@@ -56,9 +56,10 @@ class SavedQuery extends \Google\Model
    * Output only. Resource name of the saved query.In the format:
    * "projects/[PROJECT_ID]/locations/[LOCATION_ID]/savedQueries/[QUERY_ID]" For
    * a list of supported locations, see Supported Regions
-   * (https://cloud.google.com/logging/docs/region-support#bucket-regions)After
-   * the saved query is created, the location cannot be changed.If the user
-   * doesn't provide a QUERY_ID, the system will generate an alphanumeric ID.
+   * (https://docs.cloud.google.com/logging/docs/region-support#bucket-
+   * regions)After the saved query is created, the location cannot be changed.If
+   * the user doesn't provide a QUERY_ID, the system will generate an
+   * alphanumeric ID.
    *
    * @var string
    */
@@ -147,9 +148,10 @@ class SavedQuery extends \Google\Model
    * Output only. Resource name of the saved query.In the format:
    * "projects/[PROJECT_ID]/locations/[LOCATION_ID]/savedQueries/[QUERY_ID]" For
    * a list of supported locations, see Supported Regions
-   * (https://cloud.google.com/logging/docs/region-support#bucket-regions)After
-   * the saved query is created, the location cannot be changed.If the user
-   * doesn't provide a QUERY_ID, the system will generate an alphanumeric ID.
+   * (https://docs.cloud.google.com/logging/docs/region-support#bucket-
+   * regions)After the saved query is created, the location cannot be changed.If
+   * the user doesn't provide a QUERY_ID, the system will generate an
+   * alphanumeric ID.
    *
    * @param string $name
    */

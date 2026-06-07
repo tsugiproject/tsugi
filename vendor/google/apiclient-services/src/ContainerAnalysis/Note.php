@@ -75,7 +75,13 @@ class Note extends \Google\Collection
    * This represents a secret.
    */
   public const KIND_SECRET = 'SECRET';
+  /**
+   * This represents an AI skill analysis.
+   */
+  public const KIND_AI_SKILL_ANALYSIS = 'AI_SKILL_ANALYSIS';
   protected $collection_key = 'relatedUrl';
+  protected $aiSkillAnalysisType = AISkillAnalysisNote::class;
+  protected $aiSkillAnalysisDataType = '';
   protected $attestationType = AttestationNote::class;
   protected $attestationDataType = '';
   protected $buildType = BuildNote::class;
@@ -157,6 +163,22 @@ class Note extends \Google\Collection
   protected $vulnerabilityAssessmentType = VulnerabilityAssessmentNote::class;
   protected $vulnerabilityAssessmentDataType = '';
 
+  /**
+   * A note describing an AI skill analysis.
+   *
+   * @param AISkillAnalysisNote $aiSkillAnalysis
+   */
+  public function setAiSkillAnalysis(AISkillAnalysisNote $aiSkillAnalysis)
+  {
+    $this->aiSkillAnalysis = $aiSkillAnalysis;
+  }
+  /**
+   * @return AISkillAnalysisNote
+   */
+  public function getAiSkillAnalysis()
+  {
+    return $this->aiSkillAnalysis;
+  }
   /**
    * A note describing an attestation role.
    *
@@ -308,7 +330,8 @@ class Note extends \Google\Collection
    *
    * Accepted values: NOTE_KIND_UNSPECIFIED, VULNERABILITY, BUILD, IMAGE,
    * PACKAGE, DEPLOYMENT, DISCOVERY, ATTESTATION, UPGRADE, COMPLIANCE,
-   * DSSE_ATTESTATION, VULNERABILITY_ASSESSMENT, SBOM_REFERENCE, SECRET
+   * DSSE_ATTESTATION, VULNERABILITY_ASSESSMENT, SBOM_REFERENCE, SECRET,
+   * AI_SKILL_ANALYSIS
    *
    * @param self::KIND_* $kind
    */

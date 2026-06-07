@@ -17,8 +17,9 @@
 
 namespace Google\Service\SQLAdmin;
 
-class PointInTimeRestoreContext extends \Google\Model
+class PointInTimeRestoreContext extends \Google\Collection
 {
+  protected $collection_key = 'targetInstanceClearSettingsFieldNames';
   /**
    * Optional. The name of the allocated IP range for the internal IP Cloud SQL
    * instance. For example: "google-managed-services-default". If you set this,
@@ -70,11 +71,27 @@ class PointInTimeRestoreContext extends \Google\Model
    */
   public $privateNetwork;
   /**
+   * Optional. The region of the target instance where the datasource will be
+   * restored. For example: "us-central1".
+   *
+   * @var string
+   */
+  public $region;
+  /**
    * Target instance name.
    *
    * @var string
    */
   public $targetInstance;
+  /**
+   * Optional. Specifies the instance settings that will be cleared from the
+   * source instance. This field is only applicable for cross project PITRs.
+   *
+   * @var string[]
+   */
+  public $targetInstanceClearSettingsFieldNames;
+  protected $targetInstanceSettingsType = DatabaseInstance::class;
+  protected $targetInstanceSettingsDataType = '';
 
   /**
    * Optional. The name of the allocated IP range for the internal IP Cloud SQL
@@ -187,6 +204,23 @@ class PointInTimeRestoreContext extends \Google\Model
     return $this->privateNetwork;
   }
   /**
+   * Optional. The region of the target instance where the datasource will be
+   * restored. For example: "us-central1".
+   *
+   * @param string $region
+   */
+  public function setRegion($region)
+  {
+    $this->region = $region;
+  }
+  /**
+   * @return string
+   */
+  public function getRegion()
+  {
+    return $this->region;
+  }
+  /**
    * Target instance name.
    *
    * @param string $targetInstance
@@ -201,6 +235,40 @@ class PointInTimeRestoreContext extends \Google\Model
   public function getTargetInstance()
   {
     return $this->targetInstance;
+  }
+  /**
+   * Optional. Specifies the instance settings that will be cleared from the
+   * source instance. This field is only applicable for cross project PITRs.
+   *
+   * @param string[] $targetInstanceClearSettingsFieldNames
+   */
+  public function setTargetInstanceClearSettingsFieldNames($targetInstanceClearSettingsFieldNames)
+  {
+    $this->targetInstanceClearSettingsFieldNames = $targetInstanceClearSettingsFieldNames;
+  }
+  /**
+   * @return string[]
+   */
+  public function getTargetInstanceClearSettingsFieldNames()
+  {
+    return $this->targetInstanceClearSettingsFieldNames;
+  }
+  /**
+   * Optional. Specifies the instance settings that will be overridden from the
+   * source instance. This field is only applicable for cross project PITRs.
+   *
+   * @param DatabaseInstance $targetInstanceSettings
+   */
+  public function setTargetInstanceSettings(DatabaseInstance $targetInstanceSettings)
+  {
+    $this->targetInstanceSettings = $targetInstanceSettings;
+  }
+  /**
+   * @return DatabaseInstance
+   */
+  public function getTargetInstanceSettings()
+  {
+    return $this->targetInstanceSettings;
   }
 }
 

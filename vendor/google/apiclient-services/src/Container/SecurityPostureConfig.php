@@ -32,7 +32,12 @@ class SecurityPostureConfig extends \Google\Model
    */
   public const MODE_BASIC = 'BASIC';
   /**
-   * Applies the Security Posture off cluster Enterprise level features.
+   * Deprecated: Security Posture Enterprise features are no longer supported.
+   * For more details, see https://cloud.google.com/kubernetes-
+   * engine/docs/deprecations/posture-management-deprecation. Applies the
+   * Security Posture off cluster Enterprise level features.
+   *
+   * @deprecated
    */
   public const MODE_ENTERPRISE = 'ENTERPRISE';
   /**
@@ -44,7 +49,12 @@ class SecurityPostureConfig extends \Google\Model
    */
   public const VULNERABILITY_MODE_VULNERABILITY_DISABLED = 'VULNERABILITY_DISABLED';
   /**
-   * Applies basic vulnerability scanning on the cluster.
+   * Deprecated: Basic vulnerability scanning is no longer supported. For more
+   * details, see https://cloud.google.com/kubernetes-
+   * engine/docs/deprecations/posture-management-deprecation. Applies basic
+   * vulnerability scanning on the cluster.
+   *
+   * @deprecated
    */
   public const VULNERABILITY_MODE_VULNERABILITY_BASIC = 'VULNERABILITY_BASIC';
   /**

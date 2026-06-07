@@ -37,6 +37,12 @@ class Dataproc extends \Google\Service
   /** See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.. */
   const CLOUD_PLATFORM =
       "https://www.googleapis.com/auth/cloud-platform";
+  /** See, edit, configure, and delete your Google Cloud Dataproc data and see the email address for your Google Account. */
+  const DATAPROC =
+      "https://www.googleapis.com/auth/dataproc";
+  /** See your Google Cloud Dataproc data and the email address of your Google Account. */
+  const DATAPROC_READ_ONLY =
+      "https://www.googleapis.com/auth/dataproc.read-only";
 
   public $projects_locations_autoscalingPolicies;
   public $projects_locations_batches;

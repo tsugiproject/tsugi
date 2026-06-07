@@ -67,7 +67,7 @@ class DateElementProperties extends \Google\Model
    * Determines how the date part of the DateElement will be displayed in the
    * document. If unset, the default value is
    * DATE_FORMAT_MONTH_DAY_YEAR_ABBREVIATED, indicating the DateElement will be
-   * formatted as `MMM d, y` in `en_US`, or locale specific equivalent.
+   * formatted as `MMM d, y` in `en`, or locale specific equivalent.
    *
    * @var string
    */
@@ -79,9 +79,15 @@ class DateElementProperties extends \Google\Model
    */
   public $displayText;
   /**
-   * The locale of the document, as defined by the Unicode Common Locale Data
-   * Repository (CLDR) project. For example, `en_US`. If unset, the default
-   * locale is `en_US`.
+   * The language code of the DateElement. For example, `en`. If unset, the
+   * default locale is `en`. Limited to the following locales: `af`, `am`, `ar`,
+   * `as`, `az`, `be`, `bg`, `bn`, `ca`, `cs`, `da`, `de`, `el`, `en`, `en-CA`,
+   * `en-GB`, `es`, `es-419`, `et`, `eu`, `fa`, `fi`, `fil`, `fr`, `fr-CA`,
+   * `gl`, `gu`, `hi`, `hr`, `hu`, `hy`, `id`, `is`, `it`, `iw`, `ja`, `ka`,
+   * `kk`, `km`, `kn`, `ko`, `lo`, `lt`, `lv`, `mk`, `ml`, `mn`, `mr`, `ms`,
+   * `ne`, `nl`, `no`, `or`, `pa`, `pl`, `pt-BR`, `pt-PT`, `ro`, `ru`, `si`,
+   * `sk`, `sl`, `sq`, `sr`, `sv`, `sw`, `ta`, `te`, `th`, `tr`, `uk`, `ur`,
+   * `uz`, `vi`, `zh-CN`, `zh-HK`, `zh-TW`, `zu`, `cy`, `my`.
    *
    * @var string
    */
@@ -96,7 +102,7 @@ class DateElementProperties extends \Google\Model
   public $timeFormat;
   /**
    * The time zone of the DateElement, as defined by the Unicode Common Locale
-   * Data Repository (CLDR) project. For example, `America/New York`. If unset,
+   * Data Repository (CLDR) project. For example, `America/New_York`. If unset,
    * the default time zone is `etc/UTC`.
    *
    * @var string
@@ -109,7 +115,7 @@ class DateElementProperties extends \Google\Model
    * zone. For example, a timestamp of `18000` with a date format of
    * `DATE_FORMAT_ISO8601` and time format of `TIME_FORMAT_HOUR_MINUTE` would be
    * displayed as `1970-01-01 5:00 AM`. A timestamp of `18000` with date format
-   * of `DATE_FORMAT_8SO8601`, time format of `TIME_FORMAT_HOUR_MINUTE`, and
+   * of `DATE_FORMAT_ISO8601`, time format of `TIME_FORMAT_HOUR_MINUTE`, and
    * time zone set to `America/New_York` will instead be `1970-01-01 12:00 AM`.
    *
    * @var string
@@ -120,7 +126,7 @@ class DateElementProperties extends \Google\Model
    * Determines how the date part of the DateElement will be displayed in the
    * document. If unset, the default value is
    * DATE_FORMAT_MONTH_DAY_YEAR_ABBREVIATED, indicating the DateElement will be
-   * formatted as `MMM d, y` in `en_US`, or locale specific equivalent.
+   * formatted as `MMM d, y` in `en`, or locale specific equivalent.
    *
    * Accepted values: DATE_FORMAT_UNSPECIFIED, DATE_FORMAT_CUSTOM,
    * DATE_FORMAT_MONTH_DAY_ABBREVIATED, DATE_FORMAT_MONTH_DAY_FULL,
@@ -156,9 +162,15 @@ class DateElementProperties extends \Google\Model
     return $this->displayText;
   }
   /**
-   * The locale of the document, as defined by the Unicode Common Locale Data
-   * Repository (CLDR) project. For example, `en_US`. If unset, the default
-   * locale is `en_US`.
+   * The language code of the DateElement. For example, `en`. If unset, the
+   * default locale is `en`. Limited to the following locales: `af`, `am`, `ar`,
+   * `as`, `az`, `be`, `bg`, `bn`, `ca`, `cs`, `da`, `de`, `el`, `en`, `en-CA`,
+   * `en-GB`, `es`, `es-419`, `et`, `eu`, `fa`, `fi`, `fil`, `fr`, `fr-CA`,
+   * `gl`, `gu`, `hi`, `hr`, `hu`, `hy`, `id`, `is`, `it`, `iw`, `ja`, `ka`,
+   * `kk`, `km`, `kn`, `ko`, `lo`, `lt`, `lv`, `mk`, `ml`, `mn`, `mr`, `ms`,
+   * `ne`, `nl`, `no`, `or`, `pa`, `pl`, `pt-BR`, `pt-PT`, `ro`, `ru`, `si`,
+   * `sk`, `sl`, `sq`, `sr`, `sv`, `sw`, `ta`, `te`, `th`, `tr`, `uk`, `ur`,
+   * `uz`, `vi`, `zh-CN`, `zh-HK`, `zh-TW`, `zu`, `cy`, `my`.
    *
    * @param string $locale
    */
@@ -196,7 +208,7 @@ class DateElementProperties extends \Google\Model
   }
   /**
    * The time zone of the DateElement, as defined by the Unicode Common Locale
-   * Data Repository (CLDR) project. For example, `America/New York`. If unset,
+   * Data Repository (CLDR) project. For example, `America/New_York`. If unset,
    * the default time zone is `etc/UTC`.
    *
    * @param string $timeZoneId
@@ -219,7 +231,7 @@ class DateElementProperties extends \Google\Model
    * zone. For example, a timestamp of `18000` with a date format of
    * `DATE_FORMAT_ISO8601` and time format of `TIME_FORMAT_HOUR_MINUTE` would be
    * displayed as `1970-01-01 5:00 AM`. A timestamp of `18000` with date format
-   * of `DATE_FORMAT_8SO8601`, time format of `TIME_FORMAT_HOUR_MINUTE`, and
+   * of `DATE_FORMAT_ISO8601`, time format of `TIME_FORMAT_HOUR_MINUTE`, and
    * time zone set to `America/New_York` will instead be `1970-01-01 12:00 AM`.
    *
    * @param string $timestamp

@@ -137,14 +137,14 @@ class GoogleCloudRetailV2SearchRequest extends \Google\Collection
    */
   public $orderBy;
   /**
-   * The categories associated with a category page. Must be set for category
-   * navigation queries to achieve good search quality. The format should be the
-   * same as UserEvent.page_categories; To represent full path of category, use
-   * '>' sign to separate different hierarchies. If '>' is part of the category
-   * name, replace it with other character(s). Category pages include special
-   * pages such as sales or promotions. For instance, a special sale page may
-   * have the category hierarchy: "pageCategories" : ["Sales > 2017 Black Friday
-   * Deals"].
+   * Optional. The categories associated with a category page. Must be set for
+   * category navigation queries to achieve good search quality. The format
+   * should be the same as UserEvent.page_categories; To represent the full path
+   * of category, use '>' sign, with one space on each side, to separate
+   * different hierarchies. If '>' is part of the category name, replace it with
+   * other character(s). Category pages include special pages such as sales or
+   * promotions. For instance, a special sale page may have the category
+   * hierarchy: "pageCategories" : ["Sales > 2017 Black Friday Deals"].
    *
    * @var string[]
    */
@@ -173,7 +173,9 @@ class GoogleCloudRetailV2SearchRequest extends \Google\Collection
   /**
    * Optional. An id corresponding to a place, such as a store id or region id.
    * When specified, we use the price from the local inventory with the matching
-   * product's LocalInventory.place_id for revenue optimization.
+   * product's LocalInventory.place_id for revenue optimization. Note, the
+   * currency of the local inventory's price must match the currency of the
+   * product's price.
    *
    * @var string
    */
@@ -504,14 +506,14 @@ class GoogleCloudRetailV2SearchRequest extends \Google\Collection
     return $this->orderBy;
   }
   /**
-   * The categories associated with a category page. Must be set for category
-   * navigation queries to achieve good search quality. The format should be the
-   * same as UserEvent.page_categories; To represent full path of category, use
-   * '>' sign to separate different hierarchies. If '>' is part of the category
-   * name, replace it with other character(s). Category pages include special
-   * pages such as sales or promotions. For instance, a special sale page may
-   * have the category hierarchy: "pageCategories" : ["Sales > 2017 Black Friday
-   * Deals"].
+   * Optional. The categories associated with a category page. Must be set for
+   * category navigation queries to achieve good search quality. The format
+   * should be the same as UserEvent.page_categories; To represent the full path
+   * of category, use '>' sign, with one space on each side, to separate
+   * different hierarchies. If '>' is part of the category name, replace it with
+   * other character(s). Category pages include special pages such as sales or
+   * promotions. For instance, a special sale page may have the category
+   * hierarchy: "pageCategories" : ["Sales > 2017 Black Friday Deals"].
    *
    * @param string[] $pageCategories
    */
@@ -587,7 +589,9 @@ class GoogleCloudRetailV2SearchRequest extends \Google\Collection
   /**
    * Optional. An id corresponding to a place, such as a store id or region id.
    * When specified, we use the price from the local inventory with the matching
-   * product's LocalInventory.place_id for revenue optimization.
+   * product's LocalInventory.place_id for revenue optimization. Note, the
+   * currency of the local inventory's price must match the currency of the
+   * product's price.
    *
    * @param string $placeId
    */

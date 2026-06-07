@@ -20,28 +20,15 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpecBoostControlSpecControlPoint extends \Google\Model
 {
   /**
-   * Optional. Can be one of: 1. The numerical field value. 2. The duration spec
-   * for freshness: The value must be formatted as an XSD `dayTimeDuration`
-   * value (a restricted subset of an ISO 8601 duration value). The pattern for
-   * this is: `nDnM]`.
-   *
    * @var string
    */
   public $attributeValue;
   /**
-   * Optional. The value between -1 to 1 by which to boost the score if the
-   * attribute_value evaluates to the value specified above.
-   *
    * @var float
    */
   public $boostAmount;
 
   /**
-   * Optional. Can be one of: 1. The numerical field value. 2. The duration spec
-   * for freshness: The value must be formatted as an XSD `dayTimeDuration`
-   * value (a restricted subset of an ISO 8601 duration value). The pattern for
-   * this is: `nDnM]`.
-   *
    * @param string $attributeValue
    */
   public function setAttributeValue($attributeValue)
@@ -56,9 +43,6 @@ class GoogleCloudDialogflowCxV3BoostSpecConditionBoostSpecBoostControlSpecContro
     return $this->attributeValue;
   }
   /**
-   * Optional. The value between -1 to 1 by which to boost the score if the
-   * attribute_value evaluates to the value specified above.
-   *
    * @param float $boostAmount
    */
   public function setBoostAmount($boostAmount)

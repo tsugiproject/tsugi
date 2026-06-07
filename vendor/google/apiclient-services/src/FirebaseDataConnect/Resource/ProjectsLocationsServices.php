@@ -17,6 +17,10 @@
 
 namespace Google\Service\FirebaseDataConnect\Resource;
 
+use Google\Service\FirebaseDataConnect\GenerateQueryRequest;
+use Google\Service\FirebaseDataConnect\GenerateQueryResponse;
+use Google\Service\FirebaseDataConnect\GenerateSchemaRequest;
+use Google\Service\FirebaseDataConnect\GenerateSchemaResponse;
 use Google\Service\FirebaseDataConnect\GraphqlRequest;
 use Google\Service\FirebaseDataConnect\GraphqlResponse;
 use Google\Service\FirebaseDataConnect\ListServicesResponse;
@@ -102,12 +106,12 @@ class ProjectsLocationsServices extends \Google\Service\Resource
     return $this->call('delete', [$params], Operation::class);
   }
   /**
-   * Execute any GraphQL query and mutation against the Firebase Data Connect's
+   * Execute any GraphQL query or mutation against the Firebase SQL Connect's
    * generated GraphQL schema. Grants full read and write access to the connected
    * data sources. Note: Use introspection query to explore the generated GraphQL
    * schema. (services.executeGraphql)
    *
-   * @param string $name Required. The relative resource name of Firebase Data
+   * @param string $name Required. The relative resource name of Firebase SQL
    * Connect service, in the format: ```
    * projects/{project}/locations/{location}/services/{service} ```
    * @param GraphqlRequest $postBody
@@ -122,12 +126,12 @@ class ProjectsLocationsServices extends \Google\Service\Resource
     return $this->call('executeGraphql', [$params], GraphqlResponse::class);
   }
   /**
-   * Execute any GraphQL query against the Firebase Data Connect's generated
+   * Execute any GraphQL query against the Firebase SQL Connect's generated
    * GraphQL schema. Grants full read to the connected data sources.
    * `ExecuteGraphqlRead` is identical to `ExecuteGraphql` except it only accepts
    * read-only query. (services.executeGraphqlRead)
    *
-   * @param string $name Required. The relative resource name of Firebase Data
+   * @param string $name Required. The relative resource name of Firebase SQL
    * Connect service, in the format: ```
    * projects/{project}/locations/{location}/services/{service} ```
    * @param GraphqlRequest $postBody
@@ -140,6 +144,46 @@ class ProjectsLocationsServices extends \Google\Service\Resource
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('executeGraphqlRead', [$params], GraphqlResponse::class);
+  }
+  /**
+   * Generates a GraphQL query based on a natural language prompt and the provided
+   * schema context. This is a stateless method; the schema is provided per
+   * request to support local development states. Streams results with real-time
+   * status and output chunks. (services.generateQuery)
+   *
+   * @param string $name Required. The resource name of the service in which to
+   * generate the query. Format:
+   * projects/{project}/locations/{location}/services/{service}
+   * @param GenerateQueryRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GenerateQueryResponse
+   * @throws \Google\Service\Exception
+   */
+  public function generateQuery($name, GenerateQueryRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('generateQuery', [$params], GenerateQueryResponse::class);
+  }
+  /**
+   * Generates GraphQL schema based on a natural language prompt or data
+   * description. This allows users to scaffold new types and tables quickly.
+   * Streams results with real-time status and output chunks.
+   * (services.generateSchema)
+   *
+   * @param string $name Required. The resource name of the service in which to
+   * generate the schema. Format:
+   * projects/{project}/locations/{location}/services/{service}
+   * @param GenerateSchemaRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GenerateSchemaResponse
+   * @throws \Google\Service\Exception
+   */
+  public function generateSchema($name, GenerateSchemaRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('generateSchema', [$params], GenerateSchemaResponse::class);
   }
   /**
    * Gets details of a single Service. (services.get)
@@ -157,7 +201,7 @@ class ProjectsLocationsServices extends \Google\Service\Resource
     return $this->call('get', [$params], Service::class);
   }
   /**
-   * Execute introspection query against the Firebase Data Connect's generated
+   * Execute introspection query against the Firebase SQL Connect's generated
    * GraphQL schema. GraphQL introspection query provides metadata such as what
    * tables the schema have, what queries and mutations can be performed on the
    * schema, and so on. Read more at https://graphql.org/learn/introspection.
@@ -165,7 +209,7 @@ class ProjectsLocationsServices extends \Google\Service\Resource
    * SQL instance, which can be done via ExecuteGraphqlRead.
    * (services.introspectGraphql)
    *
-   * @param string $name Required. The relative resource name of Firebase Data
+   * @param string $name Required. The relative resource name of Firebase SQL
    * Connect service, in the format: ```
    * projects/{project}/locations/{location}/services/{service} ```
    * @param GraphqlRequest $postBody
@@ -208,10 +252,10 @@ class ProjectsLocationsServices extends \Google\Service\Resource
    * Updates the parameters of a single Service. (services.patch)
    *
    * @param string $name Identifier. The relative resource name of the Firebase
-   * Data Connect service, in the format: ```
+   * SQL Connect service, in the format: ```
    * projects/{project}/locations/{location}/services/{service} ``` Note that the
-   * service ID is specific to Firebase Data Connect and does not correspond to
-   * any of the instance IDs of the underlying data source connections.
+   * service ID is specific to Firebase SQL Connect and does not correspond to any
+   * of the instance IDs of the underlying data source connections.
    * @param Service $postBody
    * @param array $optParams Optional parameters.
    *

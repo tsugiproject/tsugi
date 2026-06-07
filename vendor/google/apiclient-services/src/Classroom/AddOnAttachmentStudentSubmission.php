@@ -45,6 +45,21 @@ class AddOnAttachmentStudentSubmission extends \Google\Model
    */
   public const POST_SUBMISSION_STATE_RECLAIMED_BY_STUDENT = 'RECLAIMED_BY_STUDENT';
   /**
+   * Output only. Identifier of the course work submission under which this
+   * attachment submission was made.
+   *
+   * @var string
+   */
+  public $courseWorkSubmissionId;
+  /**
+   * Output only. Classroom-assigned identifier for this student submission.
+   * This is unique among submissions for the relevant course work and add-on
+   * attachment combination.
+   *
+   * @var string
+   */
+  public $id;
+  /**
    * Student grade on this attachment. If unset, no grade was set.
    *
    * @var 
@@ -56,7 +71,50 @@ class AddOnAttachmentStudentSubmission extends \Google\Model
    * @var string
    */
   public $postSubmissionState;
+  /**
+   * Identifier for the student that owns this submission. Requires the user to
+   * be a teacher in the course and have permission to read student submissions.
+   * Read-only.
+   *
+   * @var string
+   */
+  public $userId;
 
+  /**
+   * Output only. Identifier of the course work submission under which this
+   * attachment submission was made.
+   *
+   * @param string $courseWorkSubmissionId
+   */
+  public function setCourseWorkSubmissionId($courseWorkSubmissionId)
+  {
+    $this->courseWorkSubmissionId = $courseWorkSubmissionId;
+  }
+  /**
+   * @return string
+   */
+  public function getCourseWorkSubmissionId()
+  {
+    return $this->courseWorkSubmissionId;
+  }
+  /**
+   * Output only. Classroom-assigned identifier for this student submission.
+   * This is unique among submissions for the relevant course work and add-on
+   * attachment combination.
+   *
+   * @param string $id
+   */
+  public function setId($id)
+  {
+    $this->id = $id;
+  }
+  /**
+   * @return string
+   */
+  public function getId()
+  {
+    return $this->id;
+  }
   public function setPointsEarned($pointsEarned)
   {
     $this->pointsEarned = $pointsEarned;
@@ -83,6 +141,24 @@ class AddOnAttachmentStudentSubmission extends \Google\Model
   public function getPostSubmissionState()
   {
     return $this->postSubmissionState;
+  }
+  /**
+   * Identifier for the student that owns this submission. Requires the user to
+   * be a teacher in the course and have permission to read student submissions.
+   * Read-only.
+   *
+   * @param string $userId
+   */
+  public function setUserId($userId)
+  {
+    $this->userId = $userId;
+  }
+  /**
+   * @return string
+   */
+  public function getUserId()
+  {
+    return $this->userId;
   }
 }
 

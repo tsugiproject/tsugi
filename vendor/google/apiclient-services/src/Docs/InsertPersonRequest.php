@@ -47,8 +47,8 @@ class InsertPersonRequest extends \Google\Model
    * Inserts the person mention at a specific index in the document. The person
    * mention must be inserted inside the bounds of an existing Paragraph. For
    * instance, it cannot be inserted at a table's start index (i.e. between the
-   * table and its preceding paragraph). People cannot be inserted inside an
-   * equation.
+   * table and its preceding paragraph). Person mentions cannot be inserted
+   * inside an equation.
    *
    * @param Location $location
    */

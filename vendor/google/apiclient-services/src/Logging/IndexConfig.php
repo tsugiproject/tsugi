@@ -42,8 +42,8 @@ class IndexConfig extends \Google\Model
    * Required. The LogEntry field path to index.Note that some paths are
    * automatically indexed, and other paths are not eligible for indexing. See
    * indexing documentation(
-   * https://cloud.google.com/logging/docs/analyze/custom-index) for details.For
-   * example: jsonPayload.request.status
+   * https://docs.cloud.google.com/logging/docs/analyze/custom-index) for
+   * details.For example: jsonPayload.request.status
    *
    * @var string
    */
@@ -76,8 +76,8 @@ class IndexConfig extends \Google\Model
    * Required. The LogEntry field path to index.Note that some paths are
    * automatically indexed, and other paths are not eligible for indexing. See
    * indexing documentation(
-   * https://cloud.google.com/logging/docs/analyze/custom-index) for details.For
-   * example: jsonPayload.request.status
+   * https://docs.cloud.google.com/logging/docs/analyze/custom-index) for
+   * details.For example: jsonPayload.request.status
    *
    * @param string $fieldPath
    */

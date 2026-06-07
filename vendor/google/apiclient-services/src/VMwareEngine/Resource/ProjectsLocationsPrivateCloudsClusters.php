@@ -60,8 +60,9 @@ class ProjectsLocationsPrivateCloudsClusters extends \Google\Service\Resource
    * @opt_param string requestId Optional. The request ID must be a valid UUID
    * with the exception that zero UUID is not supported
    * (00000000-0000-0000-0000-000000000000).
-   * @opt_param bool validateOnly Optional. True if you want the request to be
-   * validated and not executed; false otherwise.
+   * @opt_param bool validateOnly Optional. If set to `true`, only validates the
+   * request but doesn’t execute the request. If set to `false`, validates and
+   * executes the request.
    * @return Operation
    * @throws \Google\Service\Exception
    */
@@ -182,8 +183,7 @@ class ProjectsLocationsPrivateCloudsClusters extends \Google\Service\Resource
     return $this->call('list', [$params], ListClustersResponse::class);
   }
   /**
-   * Mounts a `Datastore` on a cluster resource Datastores are zonal resources
-   * (clusters.mountDatastore)
+   * Mounts a `Datastore` on a cluster resource (clusters.mountDatastore)
    *
    * @param string $name Required. The resource name of the cluster to mount the
    * datastore. Resource names are schemeless URIs that follow the conventions in
@@ -224,8 +224,9 @@ class ProjectsLocationsPrivateCloudsClusters extends \Google\Service\Resource
    * specified in the `updateMask` are relative to the resource, not the full
    * request. A field will be overwritten if it is in the mask. If the user does
    * not provide a mask then all fields will be overwritten.
-   * @opt_param bool validateOnly Optional. True if you want the request to be
-   * validated and not executed; false otherwise.
+   * @opt_param bool validateOnly Optional. If set to `true`, only validates the
+   * request but doesn’t execute the request. If set to `false`, validates and
+   * executes the request.
    * @return Operation
    * @throws \Google\Service\Exception
    */
@@ -278,8 +279,7 @@ class ProjectsLocationsPrivateCloudsClusters extends \Google\Service\Resource
     return $this->call('testIamPermissions', [$params], TestIamPermissionsResponse::class);
   }
   /**
-   * Mounts a `Datastore` on a cluster resource Datastores are zonal resources
-   * (clusters.unmountDatastore)
+   * Unmounts a `Datastore` on a cluster resource (clusters.unmountDatastore)
    *
    * @param string $name Required. The resource name of the cluster to unmount the
    * datastore. Resource names are schemeless URIs that follow the conventions in

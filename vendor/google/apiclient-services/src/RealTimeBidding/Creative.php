@@ -154,7 +154,9 @@ class Creative extends \Google\Collection
   protected $nativeType = NativeContent::class;
   protected $nativeDataType = '';
   /**
-   * Experimental field that can be used during the [FLEDGE Origin
+   * Deprecated: FLEDGE is no longer supported. See:
+   * https://privacysandbox.google.com/blog/update-on-plans-for-privacy-sandbox-
+   * technologies Experimental field that can be used during the [FLEDGE Origin
    * Trial](/authorized-buyers/rtb/fledge-origin-trial). The URL to fetch an
    * interest group ad used in [TURTLEDOVE on-device
    * auction](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#1-browsers-
@@ -163,6 +165,7 @@ class Creative extends \Google\Collection
    * rateBid()](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#32-on-
    * device-bidding).
    *
+   * @deprecated
    * @var string
    */
   public $renderUrl;
@@ -489,7 +492,9 @@ class Creative extends \Google\Collection
     return $this->native;
   }
   /**
-   * Experimental field that can be used during the [FLEDGE Origin
+   * Deprecated: FLEDGE is no longer supported. See:
+   * https://privacysandbox.google.com/blog/update-on-plans-for-privacy-sandbox-
+   * technologies Experimental field that can be used during the [FLEDGE Origin
    * Trial](/authorized-buyers/rtb/fledge-origin-trial). The URL to fetch an
    * interest group ad used in [TURTLEDOVE on-device
    * auction](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#1-browsers-
@@ -498,6 +503,7 @@ class Creative extends \Google\Collection
    * rateBid()](https://github.com/WICG/turtledove/blob/main/FLEDGE.md#32-on-
    * device-bidding).
    *
+   * @deprecated
    * @param string $renderUrl
    */
   public function setRenderUrl($renderUrl)
@@ -505,6 +511,7 @@ class Creative extends \Google\Collection
     $this->renderUrl = $renderUrl;
   }
   /**
+   * @deprecated
    * @return string
    */
   public function getRenderUrl()

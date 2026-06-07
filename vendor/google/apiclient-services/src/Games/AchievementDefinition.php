@@ -20,6 +20,20 @@ namespace Google\Service\Games;
 class AchievementDefinition extends \Google\Model
 {
   /**
+   * Default value. Should not be used.
+   */
+  public const ACHIEVEMENT_LIFECYCLE_STATE_ACHIEVEMENT_LIFECYCLE_STATE_UNSPECIFIED = 'ACHIEVEMENT_LIFECYCLE_STATE_UNSPECIFIED';
+  /**
+   * The achievement is active and published, and can be earned by players.
+   */
+  public const ACHIEVEMENT_LIFECYCLE_STATE_ACHIEVEMENT_LIFECYCLE_STATE_ACTIVE = 'ACHIEVEMENT_LIFECYCLE_STATE_ACTIVE';
+  /**
+   * The achievement is archived. It cannot be earned by players, and is hidden
+   * from players who have not already unlocked it. from players who haven't
+   * unlocked it.
+   */
+  public const ACHIEVEMENT_LIFECYCLE_STATE_ACHIEVEMENT_LIFECYCLE_STATE_ARCHIVED = 'ACHIEVEMENT_LIFECYCLE_STATE_ARCHIVED';
+  /**
    * Achievement is either locked or unlocked.
    */
   public const ACHIEVEMENT_TYPE_STANDARD = 'STANDARD';
@@ -39,6 +53,12 @@ class AchievementDefinition extends \Google\Model
    * Achievement is unlocked.
    */
   public const INITIAL_STATE_UNLOCKED = 'UNLOCKED';
+  /**
+   * Output only. The lifecycle state of the achievement.
+   *
+   * @var string
+   */
+  public $achievementLifecycleState;
   /**
    * The type of the achievement.
    *
@@ -121,6 +141,25 @@ class AchievementDefinition extends \Google\Model
    */
   public $unlockedIconUrl;
 
+  /**
+   * Output only. The lifecycle state of the achievement.
+   *
+   * Accepted values: ACHIEVEMENT_LIFECYCLE_STATE_UNSPECIFIED,
+   * ACHIEVEMENT_LIFECYCLE_STATE_ACTIVE, ACHIEVEMENT_LIFECYCLE_STATE_ARCHIVED
+   *
+   * @param self::ACHIEVEMENT_LIFECYCLE_STATE_* $achievementLifecycleState
+   */
+  public function setAchievementLifecycleState($achievementLifecycleState)
+  {
+    $this->achievementLifecycleState = $achievementLifecycleState;
+  }
+  /**
+   * @return self::ACHIEVEMENT_LIFECYCLE_STATE_*
+   */
+  public function getAchievementLifecycleState()
+  {
+    return $this->achievementLifecycleState;
+  }
   /**
    * The type of the achievement.
    *

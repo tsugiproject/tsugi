@@ -1388,6 +1388,10 @@ class SQLAdmin extends \Google\Service
                   'location' => 'query',
                   'type' => 'string',
                 ],
+                'revokeExistingRoles' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
               ],
             ],
           ]

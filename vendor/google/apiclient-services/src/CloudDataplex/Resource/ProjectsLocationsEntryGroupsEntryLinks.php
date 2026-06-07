@@ -83,6 +83,31 @@ class ProjectsLocationsEntryGroupsEntryLinks extends \Google\Service\Resource
     $params = array_merge($params, $optParams);
     return $this->call('get', [$params], GoogleCloudDataplexV1EntryLink::class);
   }
+  /**
+   * Updates an Entry Link. (entryLinks.patch)
+   *
+   * @param string $name Output only. Immutable. Identifier. The relative resource
+   * name of the Entry Link, of the form: projects/{project_id_or_number}/location
+   * s/{location_id}/entryGroups/{entry_group_id}/entryLinks/{entry_link_id}
+   * @param GoogleCloudDataplexV1EntryLink $postBody
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param bool allowMissing Optional. If set to true and the entry link
+   * doesn't exist, the service will create it.
+   * @opt_param string aspectKeys Optional. The map keys of the Aspects which the
+   * service should modify. It should be the aspect type reference in the format
+   * {project_id_or_number}.{location_id}.{aspect_type_id}.If this field is left
+   * empty, the service treats it as specifying exactly those Aspects present in
+   * the request.
+   * @return GoogleCloudDataplexV1EntryLink
+   * @throws \Google\Service\Exception
+   */
+  public function patch($name, GoogleCloudDataplexV1EntryLink $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('patch', [$params], GoogleCloudDataplexV1EntryLink::class);
+  }
 }
 
 // Adding a class alias for backwards compatibility with the previous class name.

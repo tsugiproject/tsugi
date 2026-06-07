@@ -46,6 +46,14 @@ class Build extends \Google\Collection
    * The build has failed.
    */
   public const STATE_FAILED = 'FAILED';
+  /**
+   * The build was skipped.
+   */
+  public const STATE_SKIPPED = 'SKIPPED';
+  /**
+   * The build has expired and may not be reused.
+   */
+  public const STATE_EXPIRED = 'EXPIRED';
   protected $collection_key = 'errors';
   /**
    * Optional. Unstructured key value map that may be set by external tools to
@@ -393,7 +401,7 @@ class Build extends \Google\Collection
    * Output only. The state of the build.
    *
    * Accepted values: STATE_UNSPECIFIED, BUILDING, BUILT, DEPLOYING, READY,
-   * FAILED
+   * FAILED, SKIPPED, EXPIRED
    *
    * @param self::STATE_* $state
    */

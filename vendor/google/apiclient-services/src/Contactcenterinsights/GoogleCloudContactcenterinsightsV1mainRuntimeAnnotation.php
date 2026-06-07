@@ -31,6 +31,10 @@ class GoogleCloudContactcenterinsightsV1mainRuntimeAnnotation extends \Google\Mo
   protected $answerFeedbackDataType = '';
   protected $articleSuggestionType = GoogleCloudContactcenterinsightsV1mainArticleSuggestionData::class;
   protected $articleSuggestionDataType = '';
+  protected $cesEndSessionAnnotationType = GoogleCloudContactcenterinsightsV1mainCesEndSessionAnnotation::class;
+  protected $cesEndSessionAnnotationDataType = '';
+  protected $cesTurnAnnotationType = GoogleCloudContactcenterinsightsV1mainCesTurnAnnotation::class;
+  protected $cesTurnAnnotationDataType = '';
   protected $conversationSummarizationSuggestionType = GoogleCloudContactcenterinsightsV1mainConversationSummarizationSuggestionData::class;
   protected $conversationSummarizationSuggestionDataType = '';
   /**
@@ -103,6 +107,38 @@ class GoogleCloudContactcenterinsightsV1mainRuntimeAnnotation extends \Google\Mo
   public function getArticleSuggestion()
   {
     return $this->articleSuggestion;
+  }
+  /**
+   * The CES end session annotation.
+   *
+   * @param GoogleCloudContactcenterinsightsV1mainCesEndSessionAnnotation $cesEndSessionAnnotation
+   */
+  public function setCesEndSessionAnnotation(GoogleCloudContactcenterinsightsV1mainCesEndSessionAnnotation $cesEndSessionAnnotation)
+  {
+    $this->cesEndSessionAnnotation = $cesEndSessionAnnotation;
+  }
+  /**
+   * @return GoogleCloudContactcenterinsightsV1mainCesEndSessionAnnotation
+   */
+  public function getCesEndSessionAnnotation()
+  {
+    return $this->cesEndSessionAnnotation;
+  }
+  /**
+   * The CES turn annotation.
+   *
+   * @param GoogleCloudContactcenterinsightsV1mainCesTurnAnnotation $cesTurnAnnotation
+   */
+  public function setCesTurnAnnotation(GoogleCloudContactcenterinsightsV1mainCesTurnAnnotation $cesTurnAnnotation)
+  {
+    $this->cesTurnAnnotation = $cesTurnAnnotation;
+  }
+  /**
+   * @return GoogleCloudContactcenterinsightsV1mainCesTurnAnnotation
+   */
+  public function getCesTurnAnnotation()
+  {
+    return $this->cesTurnAnnotation;
   }
   /**
    * Conversation summarization suggestion data.

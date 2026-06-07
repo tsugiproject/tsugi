@@ -24,10 +24,6 @@ class GoogleCloudDialogflowCxV3beta1PageInfoFormInfo extends \Google\Collection
   protected $parameterInfoDataType = 'array';
 
   /**
-   * Optional for both WebhookRequest and WebhookResponse. The parameters
-   * contained in the form. Note that the webhook cannot add or remove any form
-   * parameter.
-   *
    * @param GoogleCloudDialogflowCxV3beta1PageInfoFormInfoParameterInfo[] $parameterInfo
    */
   public function setParameterInfo($parameterInfo)

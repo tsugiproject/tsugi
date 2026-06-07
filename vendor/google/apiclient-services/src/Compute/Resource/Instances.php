@@ -1624,6 +1624,8 @@ class Instances extends \Google\Service\Resource
    * @param Instance $postBody
    * @param array $optParams Optional parameters.
    *
+   * @opt_param bool discardLocalSsd Whether to discard local SSDs from the
+   * instance during restart default value is false.
    * @opt_param string minimalAction Specifies the action to take when updating an
    * instance even if the updated properties do not require it. If not specified,
    * then Compute Engine acts based on the minimum action that the updated

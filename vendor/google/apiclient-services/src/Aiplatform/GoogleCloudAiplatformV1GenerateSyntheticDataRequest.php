@@ -22,7 +22,7 @@ class GoogleCloudAiplatformV1GenerateSyntheticDataRequest extends \Google\Collec
   protected $collection_key = 'outputFieldSpecs';
   /**
    * Required. The number of synthetic examples to generate. For this stateless
-   * API, the count is limited to a small number.
+   * API, you can generate up to 50 examples in a single request.
    *
    * @var int
    */
@@ -36,7 +36,7 @@ class GoogleCloudAiplatformV1GenerateSyntheticDataRequest extends \Google\Collec
 
   /**
    * Required. The number of synthetic examples to generate. For this stateless
-   * API, the count is limited to a small number.
+   * API, you can generate up to 50 examples in a single request.
    *
    * @param int $count
    */
@@ -52,8 +52,10 @@ class GoogleCloudAiplatformV1GenerateSyntheticDataRequest extends \Google\Collec
     return $this->count;
   }
   /**
-   * Optional. A list of few-shot examples to guide the model's output style and
-   * format.
+   * Optional. A list of few-shot examples that help the model understand the
+   * desired style, tone, and format of the generated synthetic data. Providing
+   * these few-shot examples can significantly improve the quality and relevance
+   * of the output.
    *
    * @param GoogleCloudAiplatformV1SyntheticExample[] $examples
    */
@@ -69,7 +71,8 @@ class GoogleCloudAiplatformV1GenerateSyntheticDataRequest extends \Google\Collec
     return $this->examples;
   }
   /**
-   * Required. The schema of the desired output, defined by a list of fields.
+   * Required. Defines the schema of each synthetic example to be generated,
+   * defined by a list of fields.
    *
    * @param GoogleCloudAiplatformV1OutputFieldSpec[] $outputFieldSpecs
    */
@@ -85,7 +88,8 @@ class GoogleCloudAiplatformV1GenerateSyntheticDataRequest extends \Google\Collec
     return $this->outputFieldSpecs;
   }
   /**
-   * Generate data from a high-level task description.
+   * Generates synthetic data based on a high-level description of the task or
+   * data you want.
    *
    * @param GoogleCloudAiplatformV1TaskDescriptionStrategy $taskDescription
    */

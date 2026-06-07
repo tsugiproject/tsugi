@@ -20,6 +20,15 @@ namespace Google\Service\Connectors;
 class Tool extends \Google\Collection
 {
   protected $collection_key = 'dependsOn';
+  protected $internal_gapi_mappings = [
+        "meta" => "_meta",
+  ];
+  /**
+   * Metadata for the tool.
+   *
+   * @var array[]
+   */
+  public $meta;
   protected $annotationsType = ToolAnnotations::class;
   protected $annotationsDataType = '';
   /**
@@ -45,6 +54,22 @@ class Tool extends \Google\Collection
   protected $outputSchemaType = JsonSchema::class;
   protected $outputSchemaDataType = '';
 
+  /**
+   * Metadata for the tool.
+   *
+   * @param array[] $meta
+   */
+  public function setMeta($meta)
+  {
+    $this->meta = $meta;
+  }
+  /**
+   * @return array[]
+   */
+  public function getMeta()
+  {
+    return $this->meta;
+  }
   /**
    * Annotations for the tool.
    *

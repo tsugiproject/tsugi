@@ -27,7 +27,7 @@ class GoogleCloudApihubV1FlattenedApiVersionDeploymentView extends \Google\Model
   protected $versionDataType = '';
 
   /**
-   * The API.
+   * Optional. The API.
    *
    * @param GoogleCloudApihubV1Api $api
    */
@@ -43,7 +43,7 @@ class GoogleCloudApihubV1FlattenedApiVersionDeploymentView extends \Google\Model
     return $this->api;
   }
   /**
-   * The deployment.
+   * Optional. The deployment.
    *
    * @param GoogleCloudApihubV1Deployment $deployment
    */
@@ -59,7 +59,7 @@ class GoogleCloudApihubV1FlattenedApiVersionDeploymentView extends \Google\Model
     return $this->deployment;
   }
   /**
-   * The version.
+   * Optional. The version.
    *
    * @param GoogleCloudApihubV1Version $version
    */

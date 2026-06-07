@@ -21,6 +21,8 @@ class GoogleCloudRunV2SourceCode extends \Google\Model
 {
   protected $cloudStorageSourceType = GoogleCloudRunV2CloudStorageSource::class;
   protected $cloudStorageSourceDataType = '';
+  protected $inlinedSourceType = GoogleCloudRunV2InlinedSource::class;
+  protected $inlinedSourceDataType = '';
 
   /**
    * The source is a Cloud Storage bucket.
@@ -37,6 +39,24 @@ class GoogleCloudRunV2SourceCode extends \Google\Model
   public function getCloudStorageSource()
   {
     return $this->cloudStorageSource;
+  }
+  /**
+   * Optional. Input only. Source code inlined in the request. Cloud Run will
+   * store the inlined_source to Cloud Storage and replace the field with
+   * cloud_storage_source.
+   *
+   * @param GoogleCloudRunV2InlinedSource $inlinedSource
+   */
+  public function setInlinedSource(GoogleCloudRunV2InlinedSource $inlinedSource)
+  {
+    $this->inlinedSource = $inlinedSource;
+  }
+  /**
+   * @return GoogleCloudRunV2InlinedSource
+   */
+  public function getInlinedSource()
+  {
+    return $this->inlinedSource;
   }
 }
 

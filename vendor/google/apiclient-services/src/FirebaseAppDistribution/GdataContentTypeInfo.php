@@ -40,6 +40,12 @@ class GdataContentTypeInfo extends \Google\Model
    */
   public $fromFileName;
   /**
+   * The content type of the file detected by Fusion ID. go/fusionid
+   *
+   * @var string
+   */
+  public $fromFusionId;
+  /**
    * The content type of the file as specified in the request headers, multipart
    * headers, or RUPIO start request.
    *
@@ -54,6 +60,13 @@ class GdataContentTypeInfo extends \Google\Model
    * @var string
    */
   public $fromUrlPath;
+  /**
+   * Metadata information from Fusion ID detection. Serialized
+   * FusionIdDetectionMetadata proto. Only set if from_fusion_id is set.
+   *
+   * @var string
+   */
+  public $fusionIdDetectionMetadata;
 
   /**
    * Scotty's best guess of what the content type of the file is.
@@ -106,6 +119,22 @@ class GdataContentTypeInfo extends \Google\Model
     return $this->fromFileName;
   }
   /**
+   * The content type of the file detected by Fusion ID. go/fusionid
+   *
+   * @param string $fromFusionId
+   */
+  public function setFromFusionId($fromFusionId)
+  {
+    $this->fromFusionId = $fromFusionId;
+  }
+  /**
+   * @return string
+   */
+  public function getFromFusionId()
+  {
+    return $this->fromFusionId;
+  }
+  /**
    * The content type of the file as specified in the request headers, multipart
    * headers, or RUPIO start request.
    *
@@ -139,6 +168,23 @@ class GdataContentTypeInfo extends \Google\Model
   public function getFromUrlPath()
   {
     return $this->fromUrlPath;
+  }
+  /**
+   * Metadata information from Fusion ID detection. Serialized
+   * FusionIdDetectionMetadata proto. Only set if from_fusion_id is set.
+   *
+   * @param string $fusionIdDetectionMetadata
+   */
+  public function setFusionIdDetectionMetadata($fusionIdDetectionMetadata)
+  {
+    $this->fusionIdDetectionMetadata = $fusionIdDetectionMetadata;
+  }
+  /**
+   * @return string
+   */
+  public function getFusionIdDetectionMetadata()
+  {
+    return $this->fusionIdDetectionMetadata;
   }
 }
 

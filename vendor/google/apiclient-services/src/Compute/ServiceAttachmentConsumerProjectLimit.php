@@ -27,6 +27,12 @@ class ServiceAttachmentConsumerProjectLimit extends \Google\Model
    */
   public $connectionLimit;
   /**
+   * The URL for the PSC endpoint to accept
+   *
+   * @var string
+   */
+  public $endpointUrl;
+  /**
    * The network URL for the network to set the limit for.
    *
    * @var string
@@ -55,6 +61,22 @@ class ServiceAttachmentConsumerProjectLimit extends \Google\Model
   public function getConnectionLimit()
   {
     return $this->connectionLimit;
+  }
+  /**
+   * The URL for the PSC endpoint to accept
+   *
+   * @param string $endpointUrl
+   */
+  public function setEndpointUrl($endpointUrl)
+  {
+    $this->endpointUrl = $endpointUrl;
+  }
+  /**
+   * @return string
+   */
+  public function getEndpointUrl()
+  {
+    return $this->endpointUrl;
   }
   /**
    * The network URL for the network to set the limit for.

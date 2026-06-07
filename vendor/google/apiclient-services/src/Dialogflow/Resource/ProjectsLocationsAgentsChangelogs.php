@@ -31,10 +31,9 @@ use Google\Service\Dialogflow\GoogleCloudDialogflowCxV3ListChangelogsResponse;
 class ProjectsLocationsAgentsChangelogs extends \Google\Service\Resource
 {
   /**
-   * Retrieves the specified Changelog. (changelogs.get)
+   * (changelogs.get)
    *
-   * @param string $name Required. The name of the changelog to get. Format:
-   * `projects//locations//agents//changelogs/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3Changelog
    * @throws \Google\Service\Exception
@@ -46,27 +45,14 @@ class ProjectsLocationsAgentsChangelogs extends \Google\Service\Resource
     return $this->call('get', [$params], GoogleCloudDialogflowCxV3Changelog::class);
   }
   /**
-   * Returns the list of Changelogs.
    * (changelogs.listProjectsLocationsAgentsChangelogs)
    *
-   * @param string $parent Required. The agent containing the changelogs. Format:
-   * `projects//locations//agents/`.
+   * @param string $parent
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string filter The filter string. Supports filter by user_email,
-   * resource, type and create_time. Some examples: 1. By user email: user_email =
-   * "someone@google.com" 2. By resource name: resource =
-   * "projects/123/locations/global/agents/456/flows/789" 3. By resource display
-   * name: display_name = "my agent" 4. By action: action = "Create" 5. By type:
-   * type = "flows" 6. By create time. Currently predicates on `create_time` and
-   * `create_time_epoch_seconds` are supported: create_time_epoch_seconds >
-   * 1551790877 AND create_time <= 2017-01-15T01:30:15.01Z 7. Combination of above
-   * filters: resource = "projects/123/locations/global/agents/456/flows/789" AND
-   * user_email = "someone@google.com" AND create_time <= 2017-01-15T01:30:15.01Z
-   * @opt_param int pageSize The maximum number of items to return in a single
-   * page. By default 100 and at most 1000.
-   * @opt_param string pageToken The next_page_token value returned from a
-   * previous list request.
+   * @opt_param string filter
+   * @opt_param int pageSize
+   * @opt_param string pageToken
    * @return GoogleCloudDialogflowCxV3ListChangelogsResponse
    * @throws \Google\Service\Exception
    */

@@ -20,30 +20,17 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2SuggestKnowledgeAssistResponse extends \Google\Model
 {
   /**
-   * Number of messages prior to and including latest_message to compile the
-   * suggestion. It may be smaller than the
-   * SuggestKnowledgeAssistRequest.context_size field in the request if there
-   * are fewer messages in the conversation.
-   *
    * @var int
    */
   public $contextSize;
   protected $knowledgeAssistAnswerType = GoogleCloudDialogflowV2KnowledgeAssistAnswer::class;
   protected $knowledgeAssistAnswerDataType = '';
   /**
-   * The name of the latest conversation message used to compile suggestion for.
-   * Format: `projects//locations//conversations//messages/`.
-   *
    * @var string
    */
   public $latestMessage;
 
   /**
-   * Number of messages prior to and including latest_message to compile the
-   * suggestion. It may be smaller than the
-   * SuggestKnowledgeAssistRequest.context_size field in the request if there
-   * are fewer messages in the conversation.
-   *
    * @param int $contextSize
    */
   public function setContextSize($contextSize)
@@ -58,8 +45,6 @@ class GoogleCloudDialogflowV2SuggestKnowledgeAssistResponse extends \Google\Mode
     return $this->contextSize;
   }
   /**
-   * Output only. Knowledge Assist suggestion.
-   *
    * @param GoogleCloudDialogflowV2KnowledgeAssistAnswer $knowledgeAssistAnswer
    */
   public function setKnowledgeAssistAnswer(GoogleCloudDialogflowV2KnowledgeAssistAnswer $knowledgeAssistAnswer)
@@ -74,9 +59,6 @@ class GoogleCloudDialogflowV2SuggestKnowledgeAssistResponse extends \Google\Mode
     return $this->knowledgeAssistAnswer;
   }
   /**
-   * The name of the latest conversation message used to compile suggestion for.
-   * Format: `projects//locations//conversations//messages/`.
-   *
    * @param string $latestMessage
    */
   public function setLatestMessage($latestMessage)

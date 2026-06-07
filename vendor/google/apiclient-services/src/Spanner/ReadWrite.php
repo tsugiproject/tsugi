@@ -20,27 +20,30 @@ namespace Google\Service\Spanner;
 class ReadWrite extends \Google\Model
 {
   /**
-   * Default value. * If isolation level is REPEATABLE_READ, then it is an error
-   * to specify `read_lock_mode`. Locking semantics default to `OPTIMISTIC`. No
-   * validation checks are done for reads, except to validate that the data that
-   * was served at the snapshot time is unchanged at commit time in the
-   * following cases: 1. reads done as part of queries that use `SELECT FOR
-   * UPDATE` 2. reads done as part of statements with a `LOCK_SCANNED_RANGES`
-   * hint 3. reads done as part of DML statements * At all other isolation
-   * levels, if `read_lock_mode` is the default value, then pessimistic read
-   * locks are used.
+   * Default value. * If isolation level is SERIALIZABLE, locking semantics
+   * default to `PESSIMISTIC`. * If isolation level is REPEATABLE_READ, locking
+   * semantics default to `OPTIMISTIC`. * See [Concurrency
+   * control](https://cloud.google.com/spanner/docs/concurrency-control) for
+   * more details.
    */
   public const READ_LOCK_MODE_READ_LOCK_MODE_UNSPECIFIED = 'READ_LOCK_MODE_UNSPECIFIED';
   /**
-   * Pessimistic lock mode. Read locks are acquired immediately on read.
-   * Semantics described only applies to SERIALIZABLE isolation.
+   * Pessimistic lock mode. Lock acquisition behavior depends on the isolation
+   * level in use. In SERIALIZABLE isolation, reads and writes acquire necessary
+   * locks during transaction statement execution. In REPEATABLE_READ isolation,
+   * reads that explicitly request to be locked and writes acquire locks. See
+   * [Concurrency control](https://cloud.google.com/spanner/docs/concurrency-
+   * control) for details on the types of locks acquired at each transaction
+   * step.
    */
   public const READ_LOCK_MODE_PESSIMISTIC = 'PESSIMISTIC';
   /**
-   * Optimistic lock mode. Locks for reads within the transaction are not
-   * acquired on read. Instead the locks are acquired on a commit to validate
-   * that read/queried data has not changed since the transaction started.
-   * Semantics described only applies to SERIALIZABLE isolation.
+   * Optimistic lock mode. Lock acquisition behavior depends on the isolation
+   * level in use. In both SERIALIZABLE and REPEATABLE_READ isolation, reads and
+   * writes do not acquire locks during transaction statement execution. See
+   * [Concurrency control](https://cloud.google.com/spanner/docs/concurrency-
+   * control) for details on how the guarantees of each isolation level are
+   * provided at commit time.
    */
   public const READ_LOCK_MODE_OPTIMISTIC = 'OPTIMISTIC';
   /**
@@ -52,7 +55,7 @@ class ReadWrite extends \Google\Model
    */
   public $multiplexedSessionPreviousTransactionId;
   /**
-   * Read lock mode for the transaction.
+   * The read lock mode for the transaction.
    *
    * @var string
    */
@@ -77,7 +80,7 @@ class ReadWrite extends \Google\Model
     return $this->multiplexedSessionPreviousTransactionId;
   }
   /**
-   * Read lock mode for the transaction.
+   * The read lock mode for the transaction.
    *
    * Accepted values: READ_LOCK_MODE_UNSPECIFIED, PESSIMISTIC, OPTIMISTIC
    *

@@ -27,7 +27,7 @@ class StopWorkstationRequest extends \Google\Model
    */
   public $etag;
   /**
-   * Optional. If set, validate the request and preview the review, but do not
+   * Optional. If set, validate the request and preview the result, but do not
    * actually apply it.
    *
    * @var bool
@@ -52,7 +52,7 @@ class StopWorkstationRequest extends \Google\Model
     return $this->etag;
   }
   /**
-   * Optional. If set, validate the request and preview the review, but do not
+   * Optional. If set, validate the request and preview the result, but do not
    * actually apply it.
    *
    * @param bool $validateOnly

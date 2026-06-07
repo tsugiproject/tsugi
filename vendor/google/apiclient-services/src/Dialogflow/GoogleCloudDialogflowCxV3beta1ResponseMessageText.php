@@ -21,26 +21,15 @@ class GoogleCloudDialogflowCxV3beta1ResponseMessageText extends \Google\Collecti
 {
   protected $collection_key = 'text';
   /**
-   * Output only. Whether the playback of this message can be interrupted by the
-   * end user's speech and the client can then starts the next Dialogflow
-   * request.
-   *
    * @var bool
    */
   public $allowPlaybackInterruption;
   /**
-   * Required. A collection of text response variants. If multiple variants are
-   * defined, only one text response variant is returned at runtime.
-   *
    * @var string[]
    */
   public $text;
 
   /**
-   * Output only. Whether the playback of this message can be interrupted by the
-   * end user's speech and the client can then starts the next Dialogflow
-   * request.
-   *
    * @param bool $allowPlaybackInterruption
    */
   public function setAllowPlaybackInterruption($allowPlaybackInterruption)
@@ -55,9 +44,6 @@ class GoogleCloudDialogflowCxV3beta1ResponseMessageText extends \Google\Collecti
     return $this->allowPlaybackInterruption;
   }
   /**
-   * Required. A collection of text response variants. If multiple variants are
-   * defined, only one text response variant is returned at runtime.
-   *
    * @param string[] $text
    */
   public function setText($text)

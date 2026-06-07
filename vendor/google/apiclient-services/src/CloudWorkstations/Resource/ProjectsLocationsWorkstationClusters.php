@@ -39,7 +39,7 @@ class ProjectsLocationsWorkstationClusters extends \Google\Service\Resource
    * @param array $optParams Optional parameters.
    *
    * @opt_param bool validateOnly Optional. If set, validate the request and
-   * preview the review, but do not actually apply it.
+   * preview the result, but do not actually apply it.
    * @opt_param string workstationClusterId Required. ID to use for the
    * workstation cluster.
    * @return Operation
@@ -65,7 +65,7 @@ class ProjectsLocationsWorkstationClusters extends \Google\Service\Resource
    * request only works if the workstation cluster has no configurations or
    * workstations.
    * @opt_param bool validateOnly Optional. If set, validate the request and
-   * preview the review, but do not apply it.
+   * preview the result, but do not apply it.
    * @return Operation
    * @throws \Google\Service\Exception
    */
@@ -123,7 +123,7 @@ class ProjectsLocationsWorkstationClusters extends \Google\Service\Resource
    * @opt_param string updateMask Required. Mask that specifies which fields in
    * the workstation cluster should be updated.
    * @opt_param bool validateOnly Optional. If set, validate the request and
-   * preview the review, but do not actually apply it.
+   * preview the result, but do not actually apply it.
    * @return Operation
    * @throws \Google\Service\Exception
    */

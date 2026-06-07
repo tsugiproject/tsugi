@@ -70,7 +70,7 @@ class Topic extends \Google\Collection
   protected $messageTransformsType = MessageTransform::class;
   protected $messageTransformsDataType = 'array';
   /**
-   * Required. The name of the topic. It must have the format
+   * Required. Identifier. The name of the topic. It must have the format
    * `"projects/{project}/topics/{topic}"`. `{topic}` must start with a letter,
    * and contain only letters (`[A-Za-z]`), numbers (`[0-9]`), dashes (`-`),
    * underscores (`_`), periods (`.`), tildes (`~`), plus (`+`) or percent signs
@@ -98,7 +98,9 @@ class Topic extends \Google\Collection
   /**
    * Optional. Input only. Immutable. Tag keys/values directly bound to this
    * resource. For example: "123/environment": "production", "123/costCenter":
-   * "marketing"
+   * "marketing" See
+   * https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags
+   * for more information on using tags with Pub/Sub resources.
    *
    * @var string[]
    */
@@ -215,7 +217,7 @@ class Topic extends \Google\Collection
     return $this->messageTransforms;
   }
   /**
-   * Required. The name of the topic. It must have the format
+   * Required. Identifier. The name of the topic. It must have the format
    * `"projects/{project}/topics/{topic}"`. `{topic}` must start with a letter,
    * and contain only letters (`[A-Za-z]`), numbers (`[0-9]`), dashes (`-`),
    * underscores (`_`), periods (`.`), tildes (`~`), plus (`+`) or percent signs
@@ -289,7 +291,9 @@ class Topic extends \Google\Collection
   /**
    * Optional. Input only. Immutable. Tag keys/values directly bound to this
    * resource. For example: "123/environment": "production", "123/costCenter":
-   * "marketing"
+   * "marketing" See
+   * https://{$universe.dns_names.final_documentation_domain}/pubsub/docs/tags
+   * for more information on using tags with Pub/Sub resources.
    *
    * @param string[] $tags
    */

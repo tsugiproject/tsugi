@@ -77,12 +77,12 @@ class ProjectsSubscriptions extends \Google\Service\Resource
    * for REST API requests, you must specify a name in the request.
    * (subscriptions.create)
    *
-   * @param string $name Required. The name of the subscription. It must have the
-   * format `"projects/{project}/subscriptions/{subscription}"`. `{subscription}`
-   * must start with a letter, and contain only letters (`[A-Za-z]`), numbers
-   * (`[0-9]`), dashes (`-`), underscores (`_`), periods (`.`), tildes (`~`), plus
-   * (`+`) or percent signs (`%`). It must be between 3 and 255 characters in
-   * length, and it must not start with `"goog"`.
+   * @param string $name Required. Identifier. The name of the subscription. It
+   * must have the format `"projects/{project}/subscriptions/{subscription}"`.
+   * `{subscription}` must start with a letter, and contain only letters
+   * (`[A-Za-z]`), numbers (`[0-9]`), dashes (`-`), underscores (`_`), periods
+   * (`.`), tildes (`~`), plus (`+`) or percent signs (`%`). It must be between 3
+   * and 255 characters in length, and it must not start with `"goog"`.
    * @param Subscription $postBody
    * @param array $optParams Optional parameters.
    * @return Subscription
@@ -245,12 +245,12 @@ class ProjectsSubscriptions extends \Google\Service\Resource
    * update mask. Note that certain properties of a subscription, such as its
    * topic, are not modifiable. (subscriptions.patch)
    *
-   * @param string $name Required. The name of the subscription. It must have the
-   * format `"projects/{project}/subscriptions/{subscription}"`. `{subscription}`
-   * must start with a letter, and contain only letters (`[A-Za-z]`), numbers
-   * (`[0-9]`), dashes (`-`), underscores (`_`), periods (`.`), tildes (`~`), plus
-   * (`+`) or percent signs (`%`). It must be between 3 and 255 characters in
-   * length, and it must not start with `"goog"`.
+   * @param string $name Required. Identifier. The name of the subscription. It
+   * must have the format `"projects/{project}/subscriptions/{subscription}"`.
+   * `{subscription}` must start with a letter, and contain only letters
+   * (`[A-Za-z]`), numbers (`[0-9]`), dashes (`-`), underscores (`_`), periods
+   * (`.`), tildes (`~`), plus (`+`) or percent signs (`%`). It must be between 3
+   * and 255 characters in length, and it must not start with `"goog"`.
    * @param UpdateSubscriptionRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Subscription

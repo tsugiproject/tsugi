@@ -30,7 +30,8 @@ class ListReleaseConfigsResponse extends \Google\Collection
   protected $releaseConfigsType = ReleaseConfig::class;
   protected $releaseConfigsDataType = 'array';
   /**
-   * Locations which could not be reached.
+   * Locations which could not be reached. LINT.ThenChange(//depot/google3/googl
+   * e/cloud/dataform/v2main/data_pipelines.proto:ListReleaseConfigsResponse)
    *
    * @var string[]
    */
@@ -70,7 +71,8 @@ class ListReleaseConfigsResponse extends \Google\Collection
     return $this->releaseConfigs;
   }
   /**
-   * Locations which could not be reached.
+   * Locations which could not be reached. LINT.ThenChange(//depot/google3/googl
+   * e/cloud/dataform/v2main/data_pipelines.proto:ListReleaseConfigsResponse)
    *
    * @param string[] $unreachable
    */

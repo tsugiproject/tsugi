@@ -24,6 +24,10 @@ class TvCampaignTimepoint extends \Google\Model
    */
   public const DATE_WINDOW_WEEKS_UNSPECIFIED = 'WEEKS_UNSPECIFIED';
   /**
+   * One Day.
+   */
+  public const DATE_WINDOW_DAYS_ONE = 'DAYS_ONE';
+  /**
    * One week.
    */
   public const DATE_WINDOW_WEEKS_ONE = 'WEEKS_ONE';
@@ -61,8 +65,8 @@ class TvCampaignTimepoint extends \Google\Model
   /**
    * The date window of the timepoint.
    *
-   * Accepted values: WEEKS_UNSPECIFIED, WEEKS_ONE, WEEKS_FOUR, WEEKS_EIGHT,
-   * WEEKS_TWELVE
+   * Accepted values: WEEKS_UNSPECIFIED, DAYS_ONE, WEEKS_ONE, WEEKS_FOUR,
+   * WEEKS_EIGHT, WEEKS_TWELVE
    *
    * @param self::DATE_WINDOW_* $dateWindow
    */

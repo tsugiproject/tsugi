@@ -20,22 +20,15 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3WebhookRequestIntentInfoIntentParameterValue extends \Google\Model
 {
   /**
-   * Always present. Original text value extracted from user utterance.
-   *
    * @var string
    */
   public $originalValue;
   /**
-   * Always present. Structured value for the parameter extracted from user
-   * utterance.
-   *
    * @var array
    */
   public $resolvedValue;
 
   /**
-   * Always present. Original text value extracted from user utterance.
-   *
    * @param string $originalValue
    */
   public function setOriginalValue($originalValue)
@@ -50,9 +43,6 @@ class GoogleCloudDialogflowCxV3WebhookRequestIntentInfoIntentParameterValue exte
     return $this->originalValue;
   }
   /**
-   * Always present. Structured value for the parameter extracted from user
-   * utterance.
-   *
    * @param array $resolvedValue
    */
   public function setResolvedValue($resolvedValue)

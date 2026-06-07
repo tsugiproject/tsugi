@@ -58,9 +58,9 @@ class BillingAccountsSinks extends \Google\Service\Resource
    * sink's destination must be in the same project as the sink itself.If this
    * field is set to true, or if the sink is owned by a non-project resource such
    * as an organization, then the value of writer_identity will be a service agent
-   * (https://cloud.google.com/iam/docs/service-account-types#service-agents) used
-   * by the sinks with the same parent. For more information, see writer_identity
-   * in LogSink.
+   * (https://docs.cloud.google.com/iam/docs/service-account-types#service-agents)
+   * used by the sinks with the same parent. For more information, see
+   * writer_identity in LogSink.
    * @return LogSink
    * @throws \Google\Service\Exception
    */
@@ -169,7 +169,7 @@ class BillingAccountsSinks extends \Google\Service\Resource
    * new values of this field: If the old and new values of this field are both
    * false or both true, then there is no change to the sink's writer_identity. If
    * the old value is false and the new value is true, then writer_identity is
-   * changed to a service agent (https://cloud.google.com/iam/docs/service-
+   * changed to a service agent (https://docs.cloud.google.com/iam/docs/service-
    * account-types#service-agents) owned by Cloud Logging. It is an error if the
    * old value is true and the new value is set to false or defaulted to false.
    * @opt_param string updateMask Optional. Field mask that specifies the fields
@@ -220,7 +220,7 @@ class BillingAccountsSinks extends \Google\Service\Resource
    * new values of this field: If the old and new values of this field are both
    * false or both true, then there is no change to the sink's writer_identity. If
    * the old value is false and the new value is true, then writer_identity is
-   * changed to a service agent (https://cloud.google.com/iam/docs/service-
+   * changed to a service agent (https://docs.cloud.google.com/iam/docs/service-
    * account-types#service-agents) owned by Cloud Logging. It is an error if the
    * old value is true and the new value is set to false or defaulted to false.
    * @opt_param string updateMask Optional. Field mask that specifies the fields

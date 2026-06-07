@@ -204,7 +204,7 @@ class GoogleAnalyticsAdminV1betaProperty extends \Google\Model
    */
   public $industryCategory;
   /**
-   * Output only. Resource name of this property. Format:
+   * Identifier. Resource name of this property. Format:
    * properties/{property_id} Example: "properties/1000"
    *
    * @var string
@@ -379,7 +379,7 @@ class GoogleAnalyticsAdminV1betaProperty extends \Google\Model
     return $this->industryCategory;
   }
   /**
-   * Output only. Resource name of this property. Format:
+   * Identifier. Resource name of this property. Format:
    * properties/{property_id} Example: "properties/1000"
    *
    * @param string $name

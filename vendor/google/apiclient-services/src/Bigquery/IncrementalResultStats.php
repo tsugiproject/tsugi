@@ -24,34 +24,71 @@ class IncrementalResultStats extends \Google\Model
    */
   public const DISABLED_REASON_DISABLED_REASON_UNSPECIFIED = 'DISABLED_REASON_UNSPECIFIED';
   /**
-   * Some other reason.
+   * Incremental results are/were disabled for reasons not covered by the other
+   * enum values, e.g. runtime issues.
    */
   public const DISABLED_REASON_OTHER = 'OTHER';
   /**
-   * Reason why incremental query results are/were not written by the query.
+   * Query includes an operation that is not supported.
+   */
+  public const DISABLED_REASON_UNSUPPORTED_OPERATOR = 'UNSUPPORTED_OPERATOR';
+  /**
+   * Output only. Reason why incremental query results are/were not written by
+   * the query.
    *
    * @var string
    */
   public $disabledReason;
   /**
-   * The time at which the result table's contents were modified. May be absent
-   * if no results have been written or the query has completed.
+   * Output only. Additional human-readable clarification, if available, for
+   * DisabledReason.
+   *
+   * @var string
+   */
+  public $disabledReasonDetails;
+  /**
+   * Output only. The time at which the first incremental result was written. If
+   * the query needed to restart internally, this only describes the final
+   * attempt.
+   *
+   * @var string
+   */
+  public $firstIncrementalRowTime;
+  /**
+   * Output only. Number of rows that were in the latest result set before query
+   * completion.
+   *
+   * @var string
+   */
+  public $incrementalRowCount;
+  /**
+   * Output only. The time at which the last incremental result was written.
+   * Does not include the final result written after query completion.
+   *
+   * @var string
+   */
+  public $lastIncrementalRowTime;
+  /**
+   * Output only. The time at which the result table's contents were modified.
+   * May be absent if no results have been written or the query has completed.
    *
    * @var string
    */
   public $resultSetLastModifyTime;
   /**
-   * The time at which the result table's contents were completely replaced. May
-   * be absent if no results have been written or the query has completed.
+   * Output only. The time at which the result table's contents were completely
+   * replaced. May be absent if no results have been written or the query has
+   * completed.
    *
    * @var string
    */
   public $resultSetLastReplaceTime;
 
   /**
-   * Reason why incremental query results are/were not written by the query.
+   * Output only. Reason why incremental query results are/were not written by
+   * the query.
    *
-   * Accepted values: DISABLED_REASON_UNSPECIFIED, OTHER
+   * Accepted values: DISABLED_REASON_UNSPECIFIED, OTHER, UNSUPPORTED_OPERATOR
    *
    * @param self::DISABLED_REASON_* $disabledReason
    */
@@ -67,8 +104,77 @@ class IncrementalResultStats extends \Google\Model
     return $this->disabledReason;
   }
   /**
-   * The time at which the result table's contents were modified. May be absent
-   * if no results have been written or the query has completed.
+   * Output only. Additional human-readable clarification, if available, for
+   * DisabledReason.
+   *
+   * @param string $disabledReasonDetails
+   */
+  public function setDisabledReasonDetails($disabledReasonDetails)
+  {
+    $this->disabledReasonDetails = $disabledReasonDetails;
+  }
+  /**
+   * @return string
+   */
+  public function getDisabledReasonDetails()
+  {
+    return $this->disabledReasonDetails;
+  }
+  /**
+   * Output only. The time at which the first incremental result was written. If
+   * the query needed to restart internally, this only describes the final
+   * attempt.
+   *
+   * @param string $firstIncrementalRowTime
+   */
+  public function setFirstIncrementalRowTime($firstIncrementalRowTime)
+  {
+    $this->firstIncrementalRowTime = $firstIncrementalRowTime;
+  }
+  /**
+   * @return string
+   */
+  public function getFirstIncrementalRowTime()
+  {
+    return $this->firstIncrementalRowTime;
+  }
+  /**
+   * Output only. Number of rows that were in the latest result set before query
+   * completion.
+   *
+   * @param string $incrementalRowCount
+   */
+  public function setIncrementalRowCount($incrementalRowCount)
+  {
+    $this->incrementalRowCount = $incrementalRowCount;
+  }
+  /**
+   * @return string
+   */
+  public function getIncrementalRowCount()
+  {
+    return $this->incrementalRowCount;
+  }
+  /**
+   * Output only. The time at which the last incremental result was written.
+   * Does not include the final result written after query completion.
+   *
+   * @param string $lastIncrementalRowTime
+   */
+  public function setLastIncrementalRowTime($lastIncrementalRowTime)
+  {
+    $this->lastIncrementalRowTime = $lastIncrementalRowTime;
+  }
+  /**
+   * @return string
+   */
+  public function getLastIncrementalRowTime()
+  {
+    return $this->lastIncrementalRowTime;
+  }
+  /**
+   * Output only. The time at which the result table's contents were modified.
+   * May be absent if no results have been written or the query has completed.
    *
    * @param string $resultSetLastModifyTime
    */
@@ -84,8 +190,9 @@ class IncrementalResultStats extends \Google\Model
     return $this->resultSetLastModifyTime;
   }
   /**
-   * The time at which the result table's contents were completely replaced. May
-   * be absent if no results have been written or the query has completed.
+   * Output only. The time at which the result table's contents were completely
+   * replaced. May be absent if no results have been written or the query has
+   * completed.
    *
    * @param string $resultSetLastReplaceTime
    */

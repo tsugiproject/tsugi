@@ -20,8 +20,6 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2beta1AgentCoachingSuggestionAgentActionSuggestion extends \Google\Model
 {
   /**
-   * Optional. The suggested action for the agent.
-   *
    * @var string
    */
   public $agentAction;
@@ -31,8 +29,6 @@ class GoogleCloudDialogflowV2beta1AgentCoachingSuggestionAgentActionSuggestion e
   protected $sourcesDataType = '';
 
   /**
-   * Optional. The suggested action for the agent.
-   *
    * @param string $agentAction
    */
   public function setAgentAction($agentAction)
@@ -47,8 +43,6 @@ class GoogleCloudDialogflowV2beta1AgentCoachingSuggestionAgentActionSuggestion e
     return $this->agentAction;
   }
   /**
-   * Output only. Duplicate check result for the agent action suggestion.
-   *
    * @param GoogleCloudDialogflowV2beta1AgentCoachingSuggestionDuplicateCheckResult $duplicateCheckResult
    */
   public function setDuplicateCheckResult(GoogleCloudDialogflowV2beta1AgentCoachingSuggestionDuplicateCheckResult $duplicateCheckResult)
@@ -63,8 +57,6 @@ class GoogleCloudDialogflowV2beta1AgentCoachingSuggestionAgentActionSuggestion e
     return $this->duplicateCheckResult;
   }
   /**
-   * Output only. Sources for the agent action suggestion.
-   *
    * @param GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSources $sources
    */
   public function setSources(GoogleCloudDialogflowV2beta1AgentCoachingSuggestionSources $sources)

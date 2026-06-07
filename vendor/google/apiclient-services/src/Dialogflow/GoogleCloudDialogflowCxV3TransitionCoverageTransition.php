@@ -20,17 +20,12 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3TransitionCoverageTransition extends \Google\Model
 {
   /**
-   * Whether the transition is covered by at least one of the agent's test
-   * cases.
-   *
    * @var bool
    */
   public $covered;
   protected $eventHandlerType = GoogleCloudDialogflowCxV3EventHandler::class;
   protected $eventHandlerDataType = '';
   /**
-   * The index of a transition in the transition list. Starting from 0.
-   *
    * @var int
    */
   public $index;
@@ -42,9 +37,6 @@ class GoogleCloudDialogflowCxV3TransitionCoverageTransition extends \Google\Mode
   protected $transitionRouteDataType = '';
 
   /**
-   * Whether the transition is covered by at least one of the agent's test
-   * cases.
-   *
    * @param bool $covered
    */
   public function setCovered($covered)
@@ -59,8 +51,6 @@ class GoogleCloudDialogflowCxV3TransitionCoverageTransition extends \Google\Mode
     return $this->covered;
   }
   /**
-   * Event handler.
-   *
    * @param GoogleCloudDialogflowCxV3EventHandler $eventHandler
    */
   public function setEventHandler(GoogleCloudDialogflowCxV3EventHandler $eventHandler)
@@ -75,8 +65,6 @@ class GoogleCloudDialogflowCxV3TransitionCoverageTransition extends \Google\Mode
     return $this->eventHandler;
   }
   /**
-   * The index of a transition in the transition list. Starting from 0.
-   *
    * @param int $index
    */
   public function setIndex($index)
@@ -91,8 +79,6 @@ class GoogleCloudDialogflowCxV3TransitionCoverageTransition extends \Google\Mode
     return $this->index;
   }
   /**
-   * The start node of a transition.
-   *
    * @param GoogleCloudDialogflowCxV3TransitionCoverageTransitionNode $source
    */
   public function setSource(GoogleCloudDialogflowCxV3TransitionCoverageTransitionNode $source)
@@ -107,8 +93,6 @@ class GoogleCloudDialogflowCxV3TransitionCoverageTransition extends \Google\Mode
     return $this->source;
   }
   /**
-   * The end node of a transition.
-   *
    * @param GoogleCloudDialogflowCxV3TransitionCoverageTransitionNode $target
    */
   public function setTarget(GoogleCloudDialogflowCxV3TransitionCoverageTransitionNode $target)
@@ -123,8 +107,6 @@ class GoogleCloudDialogflowCxV3TransitionCoverageTransition extends \Google\Mode
     return $this->target;
   }
   /**
-   * Intent route or condition route.
-   *
    * @param GoogleCloudDialogflowCxV3TransitionRoute $transitionRoute
    */
   public function setTransitionRoute(GoogleCloudDialogflowCxV3TransitionRoute $transitionRoute)

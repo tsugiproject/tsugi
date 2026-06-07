@@ -187,6 +187,13 @@ class TestIssue extends \Google\Model
    */
   public const TYPE_assetIssue = 'assetIssue';
   /**
+   * Licensing protection termination (Pairip) was detected.
+   */
+  public const TYPE_licensingProtectionTermination = 'licensingProtectionTermination';
+  protected $internal_gapi_mappings = [
+        "warningMigration" => "warning_migration",
+  ];
+  /**
    * Category of issue. Required.
    *
    * @var string
@@ -212,8 +219,8 @@ class TestIssue extends \Google\Model
    * @var string
    */
   public $type;
-  protected $warningType = Any::class;
-  protected $warningDataType = '';
+  protected $warningMigrationType = Any::class;
+  protected $warningMigrationDataType = '';
 
   /**
    * Category of issue. Required.
@@ -298,7 +305,8 @@ class TestIssue extends \Google\Model
    * usedRoboDirective, usedRoboIgnoreDirective, insufficientCoverage,
    * inAppPurchases, crashDialogError, uiElementsTooDeep, blankScreen,
    * overlappingUiElements, unityException, deviceOutOfMemory,
-   * logcatCollectionError, detectedAppSplashScreen, assetIssue
+   * logcatCollectionError, detectedAppSplashScreen, assetIssue,
+   * licensingProtectionTermination
    *
    * @param self::TYPE_* $type
    */
@@ -317,18 +325,18 @@ class TestIssue extends \Google\Model
    * Warning message with additional details of the issue. Should always be a
    * message from com.google.devtools.toolresults.v1.warnings
    *
-   * @param Any $warning
+   * @param Any $warningMigration
    */
-  public function setWarning(Any $warning)
+  public function setWarningMigration(Any $warningMigration)
   {
-    $this->warning = $warning;
+    $this->warningMigration = $warningMigration;
   }
   /**
    * @return Any
    */
-  public function getWarning()
+  public function getWarningMigration()
   {
-    return $this->warning;
+    return $this->warningMigration;
   }
 }
 

@@ -88,6 +88,13 @@ class SecurityProfileGroup extends \Google\Model
    * @var string
    */
   public $updateTime;
+  /**
+   * Optional. Reference to a SecurityProfile with the UrlFiltering
+   * configuration.
+   *
+   * @var string
+   */
+  public $urlFilteringProfile;
 
   /**
    * Output only. Resource creation timestamp.
@@ -257,6 +264,23 @@ class SecurityProfileGroup extends \Google\Model
   public function getUpdateTime()
   {
     return $this->updateTime;
+  }
+  /**
+   * Optional. Reference to a SecurityProfile with the UrlFiltering
+   * configuration.
+   *
+   * @param string $urlFilteringProfile
+   */
+  public function setUrlFilteringProfile($urlFilteringProfile)
+  {
+    $this->urlFilteringProfile = $urlFilteringProfile;
+  }
+  /**
+   * @return string
+   */
+  public function getUrlFilteringProfile()
+  {
+    return $this->urlFilteringProfile;
   }
 }
 

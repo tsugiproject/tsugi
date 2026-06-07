@@ -41,6 +41,8 @@ class OperationMetadata extends \Google\Model
   public $endTime;
   protected $previewMetadataType = PreviewOperationMetadata::class;
   protected $previewMetadataDataType = '';
+  protected $provisionDeploymentGroupMetadataType = ProvisionDeploymentGroupOperationMetadata::class;
+  protected $provisionDeploymentGroupMetadataDataType = '';
   /**
    * Output only. Identifies whether the user has requested cancellation of the
    * operation. Operations that have successfully been cancelled have
@@ -148,6 +150,22 @@ class OperationMetadata extends \Google\Model
   public function getPreviewMetadata()
   {
     return $this->previewMetadata;
+  }
+  /**
+   * Output only. Metadata about ProvisionDeploymentGroup operation state.
+   *
+   * @param ProvisionDeploymentGroupOperationMetadata $provisionDeploymentGroupMetadata
+   */
+  public function setProvisionDeploymentGroupMetadata(ProvisionDeploymentGroupOperationMetadata $provisionDeploymentGroupMetadata)
+  {
+    $this->provisionDeploymentGroupMetadata = $provisionDeploymentGroupMetadata;
+  }
+  /**
+   * @return ProvisionDeploymentGroupOperationMetadata
+   */
+  public function getProvisionDeploymentGroupMetadata()
+  {
+    return $this->provisionDeploymentGroupMetadata;
   }
   /**
    * Output only. Identifies whether the user has requested cancellation of the

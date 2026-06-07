@@ -75,7 +75,7 @@ class Cluster extends \Google\Collection
   protected $binaryAuthorizationDataType = '';
   /**
    * The IP address range of the container pods in this cluster, in
-   * [CIDR](http://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing)
+   * [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing)
    * notation (e.g. `10.96.0.0/14`). Leave blank to have one automatically
    * chosen or specify a `/14` block in `10.0.0.0/8`.
    *
@@ -88,6 +88,8 @@ class Cluster extends \Google\Collection
   protected $conditionsDataType = 'array';
   protected $confidentialNodesType = ConfidentialNodes::class;
   protected $confidentialNodesDataType = '';
+  protected $controlPlaneEgressType = ControlPlaneEgress::class;
+  protected $controlPlaneEgressDataType = '';
   protected $controlPlaneEndpointsConfigType = ControlPlaneEndpointsConfig::class;
   protected $controlPlaneEndpointsConfigDataType = '';
   protected $costManagementConfigType = CostManagementConfig::class;
@@ -280,6 +282,8 @@ class Cluster extends \Google\Collection
   public $loggingService;
   protected $maintenancePolicyType = MaintenancePolicy::class;
   protected $maintenancePolicyDataType = '';
+  protected $managedMachineLearningDiagnosticsConfigType = ManagedMachineLearningDiagnosticsConfig::class;
+  protected $managedMachineLearningDiagnosticsConfigDataType = '';
   protected $managedOpentelemetryConfigType = ManagedOpenTelemetryConfig::class;
   protected $managedOpentelemetryConfigDataType = '';
   protected $masterAuthType = MasterAuth::class;
@@ -327,6 +331,8 @@ class Cluster extends \Google\Collection
   protected $networkPolicyDataType = '';
   protected $nodeConfigType = NodeConfig::class;
   protected $nodeConfigDataType = '';
+  protected $nodeCreationConfigType = NodeCreationConfig::class;
+  protected $nodeCreationConfigDataType = '';
   /**
    * Output only. The size of the address space on each node for hosting
    * containers. This is provisioned from within the `container_ipv4_cidr`
@@ -375,8 +381,12 @@ class Cluster extends \Google\Collection
    * @var bool
    */
   public $satisfiesPzs;
+  protected $scheduleUpgradeConfigType = ScheduleUpgradeConfig::class;
+  protected $scheduleUpgradeConfigDataType = '';
   protected $secretManagerConfigType = SecretManagerConfig::class;
   protected $secretManagerConfigDataType = '';
+  protected $secretSyncConfigType = SecretSyncConfig::class;
+  protected $secretSyncConfigDataType = '';
   protected $securityPostureConfigType = SecurityPostureConfig::class;
   protected $securityPostureConfigDataType = '';
   /**
@@ -387,7 +397,7 @@ class Cluster extends \Google\Collection
   public $selfLink;
   /**
    * Output only. The IP address range of the Kubernetes services in this
-   * cluster, in [CIDR](http://en.wikipedia.org/wiki/Classless_Inter-
+   * cluster, in [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-
    * Domain_Routing) notation (e.g. `1.2.3.4/29`). Service addresses are
    * typically put in the last `/16` from the container CIDR.
    *
@@ -420,7 +430,7 @@ class Cluster extends \Google\Collection
   public $subnetwork;
   /**
    * Output only. The IP address range of the Cloud TPUs in this cluster, in
-   * [CIDR](http://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing)
+   * [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing)
    * notation (e.g. `1.2.3.4/29`). This field is deprecated due to the
    * deprecation of 2VM TPU. The end of life date for 2VM TPU is 2025-04-25.
    *
@@ -561,7 +571,7 @@ class Cluster extends \Google\Collection
   }
   /**
    * The IP address range of the container pods in this cluster, in
-   * [CIDR](http://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing)
+   * [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing)
    * notation (e.g. `10.96.0.0/14`). Leave blank to have one automatically
    * chosen or specify a `/14` block in `10.0.0.0/8`.
    *
@@ -579,8 +589,12 @@ class Cluster extends \Google\Collection
     return $this->clusterIpv4Cidr;
   }
   /**
-   * Enable/Disable Compliance Posture features for the cluster.
+   * Optional. Deprecated: Compliance Posture is no longer supported. For more
+   * details, see https://cloud.google.com/kubernetes-
+   * engine/docs/deprecations/posture-management-deprecation. Enable/Disable
+   * Compliance Posture features for the cluster.
    *
+   * @deprecated
    * @param CompliancePostureConfig $compliancePostureConfig
    */
   public function setCompliancePostureConfig(CompliancePostureConfig $compliancePostureConfig)
@@ -588,6 +602,7 @@ class Cluster extends \Google\Collection
     $this->compliancePostureConfig = $compliancePostureConfig;
   }
   /**
+   * @deprecated
    * @return CompliancePostureConfig
    */
   public function getCompliancePostureConfig()
@@ -626,6 +641,22 @@ class Cluster extends \Google\Collection
   public function getConfidentialNodes()
   {
     return $this->confidentialNodes;
+  }
+  /**
+   * Configuration for control plane egress control.
+   *
+   * @param ControlPlaneEgress $controlPlaneEgress
+   */
+  public function setControlPlaneEgress(ControlPlaneEgress $controlPlaneEgress)
+  {
+    $this->controlPlaneEgress = $controlPlaneEgress;
+  }
+  /**
+   * @return ControlPlaneEgress
+   */
+  public function getControlPlaneEgress()
+  {
+    return $this->controlPlaneEgress;
   }
   /**
    * Configuration for all cluster's control plane endpoints.
@@ -1192,6 +1223,22 @@ class Cluster extends \Google\Collection
     return $this->maintenancePolicy;
   }
   /**
+   * Configuration for Managed Machine Learning Diagnostics.
+   *
+   * @param ManagedMachineLearningDiagnosticsConfig $managedMachineLearningDiagnosticsConfig
+   */
+  public function setManagedMachineLearningDiagnosticsConfig(ManagedMachineLearningDiagnosticsConfig $managedMachineLearningDiagnosticsConfig)
+  {
+    $this->managedMachineLearningDiagnosticsConfig = $managedMachineLearningDiagnosticsConfig;
+  }
+  /**
+   * @return ManagedMachineLearningDiagnosticsConfig
+   */
+  public function getManagedMachineLearningDiagnosticsConfig()
+  {
+    return $this->managedMachineLearningDiagnosticsConfig;
+  }
+  /**
    * Configuration for Managed OpenTelemetry pipeline.
    *
    * @param ManagedOpenTelemetryConfig $managedOpentelemetryConfig
@@ -1397,6 +1444,22 @@ class Cluster extends \Google\Collection
   public function getNodeConfig()
   {
     return $this->nodeConfig;
+  }
+  /**
+   * Optional. Configuration for Node Creation Mode.
+   *
+   * @param NodeCreationConfig $nodeCreationConfig
+   */
+  public function setNodeCreationConfig(NodeCreationConfig $nodeCreationConfig)
+  {
+    $this->nodeCreationConfig = $nodeCreationConfig;
+  }
+  /**
+   * @return NodeCreationConfig
+   */
+  public function getNodeCreationConfig()
+  {
+    return $this->nodeCreationConfig;
   }
   /**
    * Output only. The size of the address space on each node for hosting
@@ -1639,6 +1702,22 @@ class Cluster extends \Google\Collection
     return $this->satisfiesPzs;
   }
   /**
+   * Optional. Configuration for scheduled upgrades.
+   *
+   * @param ScheduleUpgradeConfig $scheduleUpgradeConfig
+   */
+  public function setScheduleUpgradeConfig(ScheduleUpgradeConfig $scheduleUpgradeConfig)
+  {
+    $this->scheduleUpgradeConfig = $scheduleUpgradeConfig;
+  }
+  /**
+   * @return ScheduleUpgradeConfig
+   */
+  public function getScheduleUpgradeConfig()
+  {
+    return $this->scheduleUpgradeConfig;
+  }
+  /**
    * Secret CSI driver configuration.
    *
    * @param SecretManagerConfig $secretManagerConfig
@@ -1655,7 +1734,23 @@ class Cluster extends \Google\Collection
     return $this->secretManagerConfig;
   }
   /**
-   * Enable/Disable Security Posture API features for the cluster.
+   * Configuration for sync Secret Manager secrets as k8s secrets.
+   *
+   * @param SecretSyncConfig $secretSyncConfig
+   */
+  public function setSecretSyncConfig(SecretSyncConfig $secretSyncConfig)
+  {
+    $this->secretSyncConfig = $secretSyncConfig;
+  }
+  /**
+   * @return SecretSyncConfig
+   */
+  public function getSecretSyncConfig()
+  {
+    return $this->secretSyncConfig;
+  }
+  /**
+   * Optional. Enable/Disable Security Posture API features for the cluster.
    *
    * @param SecurityPostureConfig $securityPostureConfig
    */
@@ -1688,7 +1783,7 @@ class Cluster extends \Google\Collection
   }
   /**
    * Output only. The IP address range of the Kubernetes services in this
-   * cluster, in [CIDR](http://en.wikipedia.org/wiki/Classless_Inter-
+   * cluster, in [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-
    * Domain_Routing) notation (e.g. `1.2.3.4/29`). Service addresses are
    * typically put in the last `/16` from the container CIDR.
    *
@@ -1779,7 +1874,7 @@ class Cluster extends \Google\Collection
   }
   /**
    * Output only. The IP address range of the Cloud TPUs in this cluster, in
-   * [CIDR](http://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing)
+   * [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing)
    * notation (e.g. `1.2.3.4/29`). This field is deprecated due to the
    * deprecation of 2VM TPU. The end of life date for 2VM TPU is 2025-04-25.
    *

@@ -21,8 +21,7 @@ class InstanceGroupManagerAggregatedList extends \Google\Collection
 {
   protected $collection_key = 'unreachables';
   /**
-   * Output only. [Output Only] Unique identifier for the resource; defined by
-   * the server.
+   * Output only. Unique identifier for the resource; defined by the server.
    *
    * @var string
    */
@@ -30,7 +29,7 @@ class InstanceGroupManagerAggregatedList extends \Google\Collection
   protected $itemsType = InstanceGroupManagersScopedList::class;
   protected $itemsDataType = 'map';
   /**
-   * Output only. [Output Only] The resource type, which is
+   * Output only. The resource type, which is
    * alwayscompute#instanceGroupManagerAggregatedList for an aggregated list of
    * managed instance groups.
    *
@@ -38,23 +37,23 @@ class InstanceGroupManagerAggregatedList extends \Google\Collection
    */
   public $kind;
   /**
-   * Output only. [Output Only] This token allows you to get the next page of
-   * results for list requests. If the number of results is larger
-   * thanmaxResults, use the nextPageToken as a value for the query parameter
-   * pageToken in the next list request. Subsequent list requests will have
-   * their own nextPageToken to continue paging through the results.
+   * Output only. This token allows you to get the next page of results for list
+   * requests. If the number of results is larger thanmaxResults, use the
+   * nextPageToken as a value for the query parameter pageToken in the next list
+   * request. Subsequent list requests will have their own nextPageToken to
+   * continue paging through the results.
    *
    * @var string
    */
   public $nextPageToken;
   /**
-   * Output only. [Output Only] Server-defined URL for this resource.
+   * Output only. Server-defined URL for this resource.
    *
    * @var string
    */
   public $selfLink;
   /**
-   * Output only. [Output Only] Unreachable resources.
+   * Output only. Unreachable resources.
    *
    * @var string[]
    */
@@ -63,8 +62,7 @@ class InstanceGroupManagerAggregatedList extends \Google\Collection
   protected $warningDataType = '';
 
   /**
-   * Output only. [Output Only] Unique identifier for the resource; defined by
-   * the server.
+   * Output only. Unique identifier for the resource; defined by the server.
    *
    * @param string $id
    */
@@ -96,7 +94,7 @@ class InstanceGroupManagerAggregatedList extends \Google\Collection
     return $this->items;
   }
   /**
-   * Output only. [Output Only] The resource type, which is
+   * Output only. The resource type, which is
    * alwayscompute#instanceGroupManagerAggregatedList for an aggregated list of
    * managed instance groups.
    *
@@ -114,11 +112,11 @@ class InstanceGroupManagerAggregatedList extends \Google\Collection
     return $this->kind;
   }
   /**
-   * Output only. [Output Only] This token allows you to get the next page of
-   * results for list requests. If the number of results is larger
-   * thanmaxResults, use the nextPageToken as a value for the query parameter
-   * pageToken in the next list request. Subsequent list requests will have
-   * their own nextPageToken to continue paging through the results.
+   * Output only. This token allows you to get the next page of results for list
+   * requests. If the number of results is larger thanmaxResults, use the
+   * nextPageToken as a value for the query parameter pageToken in the next list
+   * request. Subsequent list requests will have their own nextPageToken to
+   * continue paging through the results.
    *
    * @param string $nextPageToken
    */
@@ -134,7 +132,7 @@ class InstanceGroupManagerAggregatedList extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * Output only. [Output Only] Server-defined URL for this resource.
+   * Output only. Server-defined URL for this resource.
    *
    * @param string $selfLink
    */
@@ -150,7 +148,7 @@ class InstanceGroupManagerAggregatedList extends \Google\Collection
     return $this->selfLink;
   }
   /**
-   * Output only. [Output Only] Unreachable resources.
+   * Output only. Unreachable resources.
    *
    * @param string[] $unreachables
    */
@@ -166,7 +164,7 @@ class InstanceGroupManagerAggregatedList extends \Google\Collection
     return $this->unreachables;
   }
   /**
-   * Output only. [Output Only] Informational warning message.
+   * Output only. Informational warning message.
    *
    * @param InstanceGroupManagerAggregatedListWarning $warning
    */

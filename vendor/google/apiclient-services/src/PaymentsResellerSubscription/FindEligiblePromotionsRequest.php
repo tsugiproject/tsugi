@@ -37,7 +37,7 @@ class FindEligiblePromotionsRequest extends \Google\Model
   public $filter;
   /**
    * Optional. The maximum number of promotions to return. The service may
-   * return fewer than this value. If unspecified, at most 50 products will be
+   * return fewer than this value. If unspecified, at most 50 promotions will be
    * returned. The maximum value is 1000; values above 1000 will be coerced to
    * 1000.
    *
@@ -45,10 +45,10 @@ class FindEligiblePromotionsRequest extends \Google\Model
    */
   public $pageSize;
   /**
-   * Optional. A page token, received from a previous `ListPromotions` call.
-   * Provide this to retrieve the subsequent page. When paginating, all other
-   * parameters provided to `ListPromotions` must match the call that provided
-   * the page token.
+   * Optional. A page token, received from a previous `FindEligiblePromotions`
+   * call. Provide this to retrieve the subsequent page. When paginating, all
+   * other parameters provided to `FindEligiblePromotions` must match the call
+   * that provided the page token.
    *
    * @var string
    */
@@ -82,7 +82,7 @@ class FindEligiblePromotionsRequest extends \Google\Model
   }
   /**
    * Optional. The maximum number of promotions to return. The service may
-   * return fewer than this value. If unspecified, at most 50 products will be
+   * return fewer than this value. If unspecified, at most 50 promotions will be
    * returned. The maximum value is 1000; values above 1000 will be coerced to
    * 1000.
    *
@@ -100,10 +100,10 @@ class FindEligiblePromotionsRequest extends \Google\Model
     return $this->pageSize;
   }
   /**
-   * Optional. A page token, received from a previous `ListPromotions` call.
-   * Provide this to retrieve the subsequent page. When paginating, all other
-   * parameters provided to `ListPromotions` must match the call that provided
-   * the page token.
+   * Optional. A page token, received from a previous `FindEligiblePromotions`
+   * call. Provide this to retrieve the subsequent page. When paginating, all
+   * other parameters provided to `FindEligiblePromotions` must match the call
+   * that provided the page token.
    *
    * @param string $pageToken
    */

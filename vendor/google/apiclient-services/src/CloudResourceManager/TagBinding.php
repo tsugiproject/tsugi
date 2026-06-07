@@ -22,7 +22,9 @@ class TagBinding extends \Google\Model
   /**
    * Output only. The name of the TagBinding. This is a String of the form:
    * `tagBindings/{full-resource-name}/{tag-value-name}` (e.g. `tagBindings/%2F%
-   * 2Fcloudresourcemanager.googleapis.com%2Fprojects%2F123/tagValues/456`).
+   * 2Fcloudresourcemanager.googleapis.com%2Fprojects%2F123/tagValues/456`) or
+   * `tagBindings/{full-resource-name}/{tag-key-name}` (e.g. `tagBindings/%2F%2F
+   * cloudresourcemanager.googleapis.com%2Fprojects%2F123/tagKeys/123`).
    *
    * @var string
    */
@@ -53,7 +55,9 @@ class TagBinding extends \Google\Model
   /**
    * Output only. The name of the TagBinding. This is a String of the form:
    * `tagBindings/{full-resource-name}/{tag-value-name}` (e.g. `tagBindings/%2F%
-   * 2Fcloudresourcemanager.googleapis.com%2Fprojects%2F123/tagValues/456`).
+   * 2Fcloudresourcemanager.googleapis.com%2Fprojects%2F123/tagValues/456`) or
+   * `tagBindings/{full-resource-name}/{tag-key-name}` (e.g. `tagBindings/%2F%2F
+   * cloudresourcemanager.googleapis.com%2Fprojects%2F123/tagKeys/123`).
    *
    * @param string $name
    */

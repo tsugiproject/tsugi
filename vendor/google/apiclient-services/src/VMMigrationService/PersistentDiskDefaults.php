@@ -40,6 +40,10 @@ class PersistentDiskDefaults extends \Google\Model
    */
   public const DISK_TYPE_COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED = 'COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED';
   /**
+   * Hyperdisk balanced high availability disk type.
+   */
+  public const DISK_TYPE_COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY = 'COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY';
+  /**
    * A map of labels to associate with the Persistent Disk.
    *
    * @var string[]
@@ -106,7 +110,8 @@ class PersistentDiskDefaults extends \Google\Model
    * Accepted values: COMPUTE_ENGINE_DISK_TYPE_UNSPECIFIED,
    * COMPUTE_ENGINE_DISK_TYPE_STANDARD, COMPUTE_ENGINE_DISK_TYPE_SSD,
    * COMPUTE_ENGINE_DISK_TYPE_BALANCED,
-   * COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED
+   * COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED,
+   * COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY
    *
    * @param self::DISK_TYPE_* $diskType
    */

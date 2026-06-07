@@ -31,6 +31,8 @@ class GoogleCloudApihubV1Config extends \Google\Model
    * Encryption using customer managed encryption key.
    */
   public const ENCRYPTION_TYPE_CMEK = 'CMEK';
+  protected $agentRegistrySyncConfigType = GoogleCloudApihubV1AgentRegistrySyncConfig::class;
+  protected $agentRegistrySyncConfigDataType = '';
   /**
    * Optional. The Customer Managed Encryption Key (CMEK) used for data
    * encryption. The CMEK name should follow the format of
@@ -64,6 +66,23 @@ class GoogleCloudApihubV1Config extends \Google\Model
    */
   public $vertexLocation;
 
+  /**
+   * Optional. The configuration for syncing MCP data in the API Hub instance to
+   * the Agent Registry.
+   *
+   * @param GoogleCloudApihubV1AgentRegistrySyncConfig $agentRegistrySyncConfig
+   */
+  public function setAgentRegistrySyncConfig(GoogleCloudApihubV1AgentRegistrySyncConfig $agentRegistrySyncConfig)
+  {
+    $this->agentRegistrySyncConfig = $agentRegistrySyncConfig;
+  }
+  /**
+   * @return GoogleCloudApihubV1AgentRegistrySyncConfig
+   */
+  public function getAgentRegistrySyncConfig()
+  {
+    return $this->agentRegistrySyncConfig;
+  }
   /**
    * Optional. The Customer Managed Encryption Key (CMEK) used for data
    * encryption. The CMEK name should follow the format of

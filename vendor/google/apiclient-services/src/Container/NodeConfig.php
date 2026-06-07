@@ -70,6 +70,14 @@ class NodeConfig extends \Google\Collection
   public $bootDiskKmsKey;
   protected $confidentialNodesType = ConfidentialNodes::class;
   protected $confidentialNodesDataType = '';
+  /**
+   * Consolidation delay defines duration after which the Cluster Autoscaler can
+   * scale down underutilized nodes. If not set, nodes are scaled down by
+   * default behavior, i.e. according to the chosen autoscaling profile.
+   *
+   * @var string
+   */
+  public $consolidationDelay;
   protected $containerdConfigType = ContainerdConfig::class;
   protected $containerdConfigDataType = '';
   /**
@@ -113,6 +121,8 @@ class NodeConfig extends \Google\Collection
   public $flexStart;
   protected $gcfsConfigType = GcfsConfig::class;
   protected $gcfsConfigDataType = '';
+  protected $gpuDirectConfigType = GPUDirectConfig::class;
+  protected $gpuDirectConfigDataType = '';
   protected $gvnicType = VirtualNIC::class;
   protected $gvnicDataType = '';
   /**
@@ -127,13 +137,18 @@ class NodeConfig extends \Google\Collection
   protected $kubeletConfigType = NodeKubeletConfig::class;
   protected $kubeletConfigDataType = '';
   /**
-   * The map of Kubernetes labels (key/value pairs) to be applied to each node.
-   * These will added in addition to any default label(s) that Kubernetes may
-   * apply to the node. In case of conflict in label keys, the applied set may
-   * differ depending on the Kubernetes version -- it's best to assume the
-   * behavior is undefined and conflicts should be avoided. For more
-   * information, including usage and the valid values, see:
-   * https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+   * The Kubernetes labels (key/value pairs) to apply to each node. The values
+   * in this field are added to the set of default labels Kubernetes applies to
+   * nodes. This field has the following restrictions: * Labels must use a valid
+   * Kubernetes syntax and character set, as defined in
+   * https://kubernetes.io/docs/concepts/overview/working-with-
+   * objects/labels/#syntax-and-character-set. * This field supports up to 1,024
+   * total characters in a single request. Depending on the Kubernetes version,
+   * keys in this field might conflict with the keys of the default labels,
+   * which might change which of your labels are applied to the nodes. Assume
+   * that the behavior is unpredictable and avoid label key conflicts. For more
+   * information about the default labels, see:
+   * https://kubernetes.io/docs/reference/labels-annotations-taints/
    *
    * @var string[]
    */
@@ -215,6 +230,8 @@ class NodeConfig extends \Google\Collection
    * @var string
    */
   public $nodeGroup;
+  protected $nodeImageConfigType = CustomImageConfig::class;
+  protected $nodeImageConfigDataType = '';
   /**
    * The set of Google API scopes to be made available on all of the node VMs
    * under the "default" service account. The following scopes are recommended,
@@ -289,6 +306,8 @@ class NodeConfig extends \Google\Collection
    * @var string[]
    */
   public $tags;
+  protected $taintConfigType = TaintConfig::class;
+  protected $taintConfigDataType = '';
   protected $taintsType = NodeTaint::class;
   protected $taintsDataType = 'array';
   protected $windowsNodeConfigType = WindowsNodeConfig::class;
@@ -383,6 +402,24 @@ class NodeConfig extends \Google\Collection
   public function getConfidentialNodes()
   {
     return $this->confidentialNodes;
+  }
+  /**
+   * Consolidation delay defines duration after which the Cluster Autoscaler can
+   * scale down underutilized nodes. If not set, nodes are scaled down by
+   * default behavior, i.e. according to the chosen autoscaling profile.
+   *
+   * @param string $consolidationDelay
+   */
+  public function setConsolidationDelay($consolidationDelay)
+  {
+    $this->consolidationDelay = $consolidationDelay;
+  }
+  /**
+   * @return string
+   */
+  public function getConsolidationDelay()
+  {
+    return $this->consolidationDelay;
   }
   /**
    * Parameters for containerd customization.
@@ -538,6 +575,22 @@ class NodeConfig extends \Google\Collection
     return $this->gcfsConfig;
   }
   /**
+   * The configuration for GPU Direct
+   *
+   * @param GPUDirectConfig $gpuDirectConfig
+   */
+  public function setGpuDirectConfig(GPUDirectConfig $gpuDirectConfig)
+  {
+    $this->gpuDirectConfig = $gpuDirectConfig;
+  }
+  /**
+   * @return GPUDirectConfig
+   */
+  public function getGpuDirectConfig()
+  {
+    return $this->gpuDirectConfig;
+  }
+  /**
    * Enable or disable gvnic in the node pool.
    *
    * @param VirtualNIC $gvnic
@@ -589,13 +642,18 @@ class NodeConfig extends \Google\Collection
     return $this->kubeletConfig;
   }
   /**
-   * The map of Kubernetes labels (key/value pairs) to be applied to each node.
-   * These will added in addition to any default label(s) that Kubernetes may
-   * apply to the node. In case of conflict in label keys, the applied set may
-   * differ depending on the Kubernetes version -- it's best to assume the
-   * behavior is undefined and conflicts should be avoided. For more
-   * information, including usage and the valid values, see:
-   * https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+   * The Kubernetes labels (key/value pairs) to apply to each node. The values
+   * in this field are added to the set of default labels Kubernetes applies to
+   * nodes. This field has the following restrictions: * Labels must use a valid
+   * Kubernetes syntax and character set, as defined in
+   * https://kubernetes.io/docs/concepts/overview/working-with-
+   * objects/labels/#syntax-and-character-set. * This field supports up to 1,024
+   * total characters in a single request. Depending on the Kubernetes version,
+   * keys in this field might conflict with the keys of the default labels,
+   * which might change which of your labels are applied to the nodes. Assume
+   * that the behavior is unpredictable and avoid label key conflicts. For more
+   * information about the default labels, see:
+   * https://kubernetes.io/docs/reference/labels-annotations-taints/
    *
    * @param string[] $labels
    */
@@ -801,6 +859,23 @@ class NodeConfig extends \Google\Collection
   public function getNodeGroup()
   {
     return $this->nodeGroup;
+  }
+  /**
+   * The node image configuration to use for this node pool. Note that this is
+   * only applicable for node pools using image_type=CUSTOM.
+   *
+   * @param CustomImageConfig $nodeImageConfig
+   */
+  public function setNodeImageConfig(CustomImageConfig $nodeImageConfig)
+  {
+    $this->nodeImageConfig = $nodeImageConfig;
+  }
+  /**
+   * @return CustomImageConfig
+   */
+  public function getNodeImageConfig()
+  {
+    return $this->nodeImageConfig;
   }
   /**
    * The set of Google API scopes to be made available on all of the node VMs
@@ -1046,6 +1121,22 @@ class NodeConfig extends \Google\Collection
   public function getTags()
   {
     return $this->tags;
+  }
+  /**
+   * Optional. The taint configuration for the node pool.
+   *
+   * @param TaintConfig $taintConfig
+   */
+  public function setTaintConfig(TaintConfig $taintConfig)
+  {
+    $this->taintConfig = $taintConfig;
+  }
+  /**
+   * @return TaintConfig
+   */
+  public function getTaintConfig()
+  {
+    return $this->taintConfig;
   }
   /**
    * List of kubernetes taints to be applied to each node. For more information,

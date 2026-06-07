@@ -20,14 +20,10 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2IntentMessageMediaContentResponseMediaObject extends \Google\Model
 {
   /**
-   * Required. Url where the media is stored.
-   *
    * @var string
    */
   public $contentUrl;
   /**
-   * Optional. Description of media card.
-   *
    * @var string
    */
   public $description;
@@ -36,15 +32,11 @@ class GoogleCloudDialogflowV2IntentMessageMediaContentResponseMediaObject extend
   protected $largeImageType = GoogleCloudDialogflowV2IntentMessageImage::class;
   protected $largeImageDataType = '';
   /**
-   * Required. Name of media card.
-   *
    * @var string
    */
   public $name;
 
   /**
-   * Required. Url where the media is stored.
-   *
    * @param string $contentUrl
    */
   public function setContentUrl($contentUrl)
@@ -59,8 +51,6 @@ class GoogleCloudDialogflowV2IntentMessageMediaContentResponseMediaObject extend
     return $this->contentUrl;
   }
   /**
-   * Optional. Description of media card.
-   *
    * @param string $description
    */
   public function setDescription($description)
@@ -75,8 +65,6 @@ class GoogleCloudDialogflowV2IntentMessageMediaContentResponseMediaObject extend
     return $this->description;
   }
   /**
-   * Optional. Icon to display above media content.
-   *
    * @param GoogleCloudDialogflowV2IntentMessageImage $icon
    */
   public function setIcon(GoogleCloudDialogflowV2IntentMessageImage $icon)
@@ -91,8 +79,6 @@ class GoogleCloudDialogflowV2IntentMessageMediaContentResponseMediaObject extend
     return $this->icon;
   }
   /**
-   * Optional. Image to display above media content.
-   *
    * @param GoogleCloudDialogflowV2IntentMessageImage $largeImage
    */
   public function setLargeImage(GoogleCloudDialogflowV2IntentMessageImage $largeImage)
@@ -107,8 +93,6 @@ class GoogleCloudDialogflowV2IntentMessageMediaContentResponseMediaObject extend
     return $this->largeImage;
   }
   /**
-   * Required. Name of media card.
-   *
    * @param string $name
    */
   public function setName($name)

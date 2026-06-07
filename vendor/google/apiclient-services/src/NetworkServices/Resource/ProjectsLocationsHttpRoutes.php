@@ -41,6 +41,7 @@ class ProjectsLocationsHttpRoutes extends \Google\Service\Resource
    *
    * @opt_param string httpRouteId Required. Short name of the HttpRoute resource
    * to be created.
+   * @opt_param string requestId Optional. Idempotent request UUID.
    * @return Operation
    * @throws \Google\Service\Exception
    */
@@ -88,6 +89,7 @@ class ProjectsLocationsHttpRoutes extends \Google\Service\Resource
    * HttpRoutes should be listed, specified in the format `projects/locations`.
    * @param array $optParams Optional parameters.
    *
+   * @opt_param string filter Optional. Filter expression to restrict the list.
    * @opt_param int pageSize Maximum number of HttpRoutes to return per call.
    * @opt_param string pageToken The value returned by the last
    * `ListHttpRoutesResponse` Indicates that this is a continuation of a prior

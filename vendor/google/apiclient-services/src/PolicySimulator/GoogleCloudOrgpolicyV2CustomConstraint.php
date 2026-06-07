@@ -20,8 +20,8 @@ namespace Google\Service\PolicySimulator;
 class GoogleCloudOrgpolicyV2CustomConstraint extends \Google\Collection
 {
   /**
-   * This is only used for distinguishing unset values and should never be used.
-   * Results in an error.
+   * This is only used for distinguishing unset values, and results in an error
+   * if used.
    */
   public const ACTION_TYPE_ACTION_TYPE_UNSPECIFIED = 'ACTION_TYPE_UNSPECIFIED';
   /**
@@ -71,11 +71,12 @@ class GoogleCloudOrgpolicyV2CustomConstraint extends \Google\Collection
   public $methodTypes;
   /**
    * Immutable. Name of the constraint. This is unique within the organization.
-   * Format of the name should be *
+   * The name must be of the form: *
    * `organizations/{organization_id}/customConstraints/{custom_constraint_id}`
    * Example: `organizations/123/customConstraints/custom.createOnlyE2TypeVms`
-   * The max length is 70 characters and the minimum length is 1. Note that the
-   * prefix `organizations/{organization_id}/customConstraints/` is not counted.
+   * The max length is 71 characters and the minimum length is 1. Note that the
+   * prefix `organizations/{organization_id}/customConstraints/custom.` is not
+   * counted.
    *
    * @var string
    */
@@ -186,11 +187,12 @@ class GoogleCloudOrgpolicyV2CustomConstraint extends \Google\Collection
   }
   /**
    * Immutable. Name of the constraint. This is unique within the organization.
-   * Format of the name should be *
+   * The name must be of the form: *
    * `organizations/{organization_id}/customConstraints/{custom_constraint_id}`
    * Example: `organizations/123/customConstraints/custom.createOnlyE2TypeVms`
-   * The max length is 70 characters and the minimum length is 1. Note that the
-   * prefix `organizations/{organization_id}/customConstraints/` is not counted.
+   * The max length is 71 characters and the minimum length is 1. Note that the
+   * prefix `organizations/{organization_id}/customConstraints/custom.` is not
+   * counted.
    *
    * @param string $name
    */

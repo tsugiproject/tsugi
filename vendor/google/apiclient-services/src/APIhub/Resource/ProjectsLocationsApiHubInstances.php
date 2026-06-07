@@ -87,13 +87,14 @@ class ProjectsLocationsApiHubInstances extends \Google\Service\Resource
     return $this->call('get', [$params], GoogleCloudApihubV1ApiHubInstance::class);
   }
   /**
-   * Looks up an Api Hub instance in a given GCP project. There will always be
-   * only one Api Hub instance for a GCP project across all locations.
-   * (apiHubInstances.lookup)
+   * Looks up an Api Hub instance in a given Google Cloud project. There will
+   * always be only one Api Hub instance for a Google Cloud project across all
+   * locations. (apiHubInstances.lookup)
    *
    * @param string $parent Required. There will always be only one Api Hub
-   * instance for a GCP project across all locations. The parent resource for the
-   * Api Hub instance resource. Format: `projects/{project}/locations/{location}`
+   * instance for a Google Cloud project across all locations. The parent resource
+   * for the Api Hub instance resource. Format:
+   * `projects/{project}/locations/{location}`
    * @param array $optParams Optional parameters.
    * @return GoogleCloudApihubV1LookupApiHubInstanceResponse
    * @throws \Google\Service\Exception
@@ -103,6 +104,27 @@ class ProjectsLocationsApiHubInstances extends \Google\Service\Resource
     $params = ['parent' => $parent];
     $params = array_merge($params, $optParams);
     return $this->call('lookup', [$params], GoogleCloudApihubV1LookupApiHubInstanceResponse::class);
+  }
+  /**
+   * Update an Api Hub instance. The following fields in the ApiHubInstance can be
+   * updated: * disable_search * vertex_location * agent_registry_sync_config The
+   * update_mask should be used to specify the fields being updated.
+   * (apiHubInstances.patch)
+   *
+   * @param string $name Identifier. Format:
+   * `projects/{project}/locations/{location}/apiHubInstances/{apiHubInstance}`.
+   * @param GoogleCloudApihubV1ApiHubInstance $postBody
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string updateMask Optional. The list of fields to update.
+   * @return GoogleLongrunningOperation
+   * @throws \Google\Service\Exception
+   */
+  public function patch($name, GoogleCloudApihubV1ApiHubInstance $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('patch', [$params], GoogleLongrunningOperation::class);
   }
 }
 

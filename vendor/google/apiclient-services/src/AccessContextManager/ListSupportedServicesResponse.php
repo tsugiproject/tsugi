@@ -21,8 +21,8 @@ class ListSupportedServicesResponse extends \Google\Collection
 {
   protected $collection_key = 'supportedServices';
   /**
-   * The pagination token to retrieve the next page of results. If the value is
-   * empty, no further results remain.
+   * Use this pagination token to retrieve the next page of results. An empty
+   * value indicates that no further results are available.
    *
    * @var string
    */
@@ -31,8 +31,8 @@ class ListSupportedServicesResponse extends \Google\Collection
   protected $supportedServicesDataType = 'array';
 
   /**
-   * The pagination token to retrieve the next page of results. If the value is
-   * empty, no further results remain.
+   * Use this pagination token to retrieve the next page of results. An empty
+   * value indicates that no further results are available.
    *
    * @param string $nextPageToken
    */

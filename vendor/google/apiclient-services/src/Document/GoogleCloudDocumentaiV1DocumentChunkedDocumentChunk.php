@@ -20,6 +20,8 @@ namespace Google\Service\Document;
 class GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk extends \Google\Collection
 {
   protected $collection_key = 'sourceBlockIds';
+  protected $chunkFieldsType = GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkField::class;
+  protected $chunkFieldsDataType = 'array';
   /**
    * ID of the chunk.
    *
@@ -45,6 +47,22 @@ class GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk extends \Google\Collec
    */
   public $sourceBlockIds;
 
+  /**
+   * Chunk fields inside this chunk.
+   *
+   * @param GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkField[] $chunkFields
+   */
+  public function setChunkFields($chunkFields)
+  {
+    $this->chunkFields = $chunkFields;
+  }
+  /**
+   * @return GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkField[]
+   */
+  public function getChunkFields()
+  {
+    return $this->chunkFields;
+  }
   /**
    * ID of the chunk.
    *

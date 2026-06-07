@@ -2,13 +2,13 @@
     "require": {
         "php": ">=8.4.0",
         "phpseclib/phpseclib": "3.0.52",
-        "firebase/php-jwt" : "v6.11.1",
+        "firebase/php-jwt" : "7.0.5",
         "nikic/fast-route": "^1.3",
         "ezyang/htmlpurifier": "v4.19.0",
 
-        "google/auth": ">=v1.47.0",
-        "google/apiclient": ">=v2.18.3",
-        "google/apiclient-services": ">=v0.396.0",
+        "google/auth": "^1.50",
+        "google/apiclient": "^2.19",
+        "google/apiclient-services": "^0.443",
 
         "nesbot/carbon" : ">=v3.9.1",
 

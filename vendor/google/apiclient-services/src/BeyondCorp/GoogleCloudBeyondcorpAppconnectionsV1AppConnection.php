@@ -58,7 +58,7 @@ class GoogleCloudBeyondcorpAppconnectionsV1AppConnection extends \Google\Collect
   protected $applicationEndpointDataType = '';
   /**
    * Optional. List of [google.cloud.beyondcorp.v1main.Connector.name] that are
-   * authorised to be associated with this AppConnection.
+   * authorized to be associated with this AppConnection.
    *
    * @var string[]
    */
@@ -147,7 +147,7 @@ class GoogleCloudBeyondcorpAppconnectionsV1AppConnection extends \Google\Collect
   }
   /**
    * Optional. List of [google.cloud.beyondcorp.v1main.Connector.name] that are
-   * authorised to be associated with this AppConnection.
+   * authorized to be associated with this AppConnection.
    *
    * @param string[] $connectors
    */

@@ -45,9 +45,10 @@ class Role extends \Google\Model
    * device.The app having this role type is set as the preferred home intent
    * and allowlisted for lock task mode. When there is an app with this role
    * type, status bar will be automatically disabled.This is preferable to
-   * setting installType to KIOSK.On Android 11 and above, the user control is
-   * disallowed but userControlSettings can be set to USER_CONTROL_ALLOWED to
-   * allow user control for the app with this role.
+   * setting installType to KIOSK.On Android 11 and above, when an app has this
+   * role, the user control is disallowed for all apps. The IT admin can set
+   * userControlSettings to USER_CONTROL_ALLOWED to allow user control for
+   * specific apps.
    */
   public const ROLE_TYPE_KIOSK = 'KIOSK';
   /**

@@ -61,7 +61,7 @@ class GoogleAnalyticsAdminV1betaCustomDimension extends \Google\Model
    */
   public $displayName;
   /**
-   * Output only. Resource name for this CustomDimension resource. Format:
+   * Identifier. Resource name for this CustomDimension resource. Format:
    * properties/{property}/customDimensions/{customDimension}
    *
    * @var string
@@ -142,7 +142,7 @@ class GoogleAnalyticsAdminV1betaCustomDimension extends \Google\Model
     return $this->displayName;
   }
   /**
-   * Output only. Resource name for this CustomDimension resource. Format:
+   * Identifier. Resource name for this CustomDimension resource. Format:
    * properties/{property}/customDimensions/{customDimension}
    *
    * @param string $name

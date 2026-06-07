@@ -85,20 +85,36 @@ class Endpoint extends \Google\Model
    */
   public const LOAD_BALANCER_TYPE_TCP_UDP_INTERNAL_LOAD_BALANCER = 'TCP_UDP_INTERNAL_LOAD_BALANCER';
   /**
-   * Default type if unspecified.
+   * Unspecified. The test will analyze all possible IP address locations. This
+   * might take longer and produce inaccurate or ambiguous results, so prefer
+   * specifying an explicit network type. The `project_id` field should be set
+   * to the project where the GCP endpoint is located, or where the non-GCP
+   * endpoint should be reachable from (via routes to non-GCP networks). The
+   * project might also be inferred from the Connectivity Test project or other
+   * projects referenced in the request.
    */
   public const NETWORK_TYPE_NETWORK_TYPE_UNSPECIFIED = 'NETWORK_TYPE_UNSPECIFIED';
   /**
-   * A network hosted within Google Cloud. To receive more detailed output,
-   * specify the URI for the source or destination network.
+   * A VPC network. Should be used for internal IP addresses in VPC networks.
+   * The `network` field should be set to the URI of this network. Only
+   * endpoints within this network will be considered.
    */
   public const NETWORK_TYPE_GCP_NETWORK = 'GCP_NETWORK';
   /**
-   * A network hosted outside of Google Cloud. This can be an on-premises
-   * network, an internet resource or a network hosted by another cloud
-   * provider.
+   * A non-GCP network (for example, an on-premises network or another cloud
+   * provider network). Should be used for internal IP addresses outside of
+   * Google Cloud. The `network` field should be set to the URI of the VPC
+   * network containing a corresponding Cloud VPN tunnel, Cloud Interconnect
+   * VLAN attachment, or a router appliance instance. Only endpoints reachable
+   * from the provided VPC network via the routes to non-GCP networks will be
+   * considered.
    */
   public const NETWORK_TYPE_NON_GCP_NETWORK = 'NON_GCP_NETWORK';
+  /**
+   * Internet. Should be used for internet-routable external IP addresses or IP
+   * addresses for global Google APIs and services.
+   */
+  public const NETWORK_TYPE_INTERNET = 'INTERNET';
   protected $appEngineVersionType = AppEngineVersionEndpoint::class;
   protected $appEngineVersionDataType = '';
   protected $cloudFunctionType = CloudFunctionEndpoint::class;
@@ -148,6 +164,13 @@ class Endpoint extends \Google\Model
    */
   public $gkeMasterCluster;
   /**
+   * A [GKE Pod](https://cloud.google.com/kubernetes-engine/docs/concepts/pod)
+   * URI.
+   *
+   * @var string
+   */
+  public $gkePod;
+  /**
    * A Compute Engine instance URI.
    *
    * @var string
@@ -173,15 +196,17 @@ class Endpoint extends \Google\Model
    */
   public $loadBalancerType;
   /**
-   * A VPC network URI.
+   * A VPC network URI. For source endpoints, used according to the
+   * `network_type`. For destination endpoints, used only when the source is an
+   * external IP address endpoint, and the destination is an internal IP address
+   * endpoint.
    *
    * @var string
    */
   public $network;
   /**
-   * Type of the network where the endpoint is located. Applicable only to
-   * source endpoint, as destination network type can be inferred from the
-   * source.
+   * For source endpoints, type of the network where the endpoint is located.
+   * Not relevant for destination endpoints.
    *
    * @var string
    */
@@ -194,13 +219,8 @@ class Endpoint extends \Google\Model
    */
   public $port;
   /**
-   * Project ID where the endpoint is located. The project ID can be derived
-   * from the URI if you provide a endpoint or network URI. The following are
-   * two cases where you may need to provide the project ID: 1. Only the IP
-   * address is specified, and the IP address is within a Google Cloud project.
-   * 2. When you are using Shared VPC and the IP address that you provide is
-   * from the service project. In this case, the network that the IP address
-   * resides in is defined in the host project.
+   * For source endpoints, endpoint project ID. Used according to the
+   * `network_type`. Not relevant for destination endpoints.
    *
    * @var string
    */
@@ -370,6 +390,23 @@ class Endpoint extends \Google\Model
     return $this->gkeMasterCluster;
   }
   /**
+   * A [GKE Pod](https://cloud.google.com/kubernetes-engine/docs/concepts/pod)
+   * URI.
+   *
+   * @param string $gkePod
+   */
+  public function setGkePod($gkePod)
+  {
+    $this->gkePod = $gkePod;
+  }
+  /**
+   * @return string
+   */
+  public function getGkePod()
+  {
+    return $this->gkePod;
+  }
+  /**
    * A Compute Engine instance URI.
    *
    * @param string $instance
@@ -442,7 +479,10 @@ class Endpoint extends \Google\Model
     return $this->loadBalancerType;
   }
   /**
-   * A VPC network URI.
+   * A VPC network URI. For source endpoints, used according to the
+   * `network_type`. For destination endpoints, used only when the source is an
+   * external IP address endpoint, and the destination is an internal IP address
+   * endpoint.
    *
    * @param string $network
    */
@@ -458,11 +498,11 @@ class Endpoint extends \Google\Model
     return $this->network;
   }
   /**
-   * Type of the network where the endpoint is located. Applicable only to
-   * source endpoint, as destination network type can be inferred from the
-   * source.
+   * For source endpoints, type of the network where the endpoint is located.
+   * Not relevant for destination endpoints.
    *
-   * Accepted values: NETWORK_TYPE_UNSPECIFIED, GCP_NETWORK, NON_GCP_NETWORK
+   * Accepted values: NETWORK_TYPE_UNSPECIFIED, GCP_NETWORK, NON_GCP_NETWORK,
+   * INTERNET
    *
    * @param self::NETWORK_TYPE_* $networkType
    */
@@ -495,13 +535,8 @@ class Endpoint extends \Google\Model
     return $this->port;
   }
   /**
-   * Project ID where the endpoint is located. The project ID can be derived
-   * from the URI if you provide a endpoint or network URI. The following are
-   * two cases where you may need to provide the project ID: 1. Only the IP
-   * address is specified, and the IP address is within a Google Cloud project.
-   * 2. When you are using Shared VPC and the IP address that you provide is
-   * from the service project. In this case, the network that the IP address
-   * resides in is defined in the host project.
+   * For source endpoints, endpoint project ID. Used according to the
+   * `network_type`. Not relevant for destination endpoints.
    *
    * @param string $projectId
    */

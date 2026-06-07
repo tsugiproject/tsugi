@@ -122,6 +122,32 @@ class GoogleCloudDiscoveryengineV1alphaFieldConfig extends \Google\Collection
    */
   public const RETRIEVABLE_OPTION_RETRIEVABLE_DISABLED = 'RETRIEVABLE_DISABLED';
   /**
+   * Value used when unset. Behaves as `DEFAULT_IMPORTANCE` if the field is
+   * searchable.
+   */
+  public const SEARCHABLE_FIELD_IMPORTANCE_SEARCHABLE_FIELD_IMPORTANCE_UNSPECIFIED = 'SEARCHABLE_FIELD_IMPORTANCE_UNSPECIFIED';
+  /**
+   * Provides a tiny signal for search.
+   */
+  public const SEARCHABLE_FIELD_IMPORTANCE_VERY_LOW_IMPORTANCE = 'VERY_LOW_IMPORTANCE';
+  /**
+   * Indicates the field is used for search, but is less important than the
+   * default.
+   */
+  public const SEARCHABLE_FIELD_IMPORTANCE_LOW_IMPORTANCE = 'LOW_IMPORTANCE';
+  /**
+   * Default importance. Equivalent to previous behavior.
+   */
+  public const SEARCHABLE_FIELD_IMPORTANCE_DEFAULT_IMPORTANCE = 'DEFAULT_IMPORTANCE';
+  /**
+   * More important than default fields.
+   */
+  public const SEARCHABLE_FIELD_IMPORTANCE_HIGH_IMPORTANCE = 'HIGH_IMPORTANCE';
+  /**
+   * Most important field for search.
+   */
+  public const SEARCHABLE_FIELD_IMPORTANCE_VERY_HIGH_IMPORTANCE = 'VERY_HIGH_IMPORTANCE';
+  /**
    * Value used when unset.
    */
   public const SEARCHABLE_OPTION_SEARCHABLE_OPTION_UNSPECIFIED = 'SEARCHABLE_OPTION_UNSPECIFIED';
@@ -255,6 +281,18 @@ class GoogleCloudDiscoveryengineV1alphaFieldConfig extends \Google\Collection
    * @var string[]
    */
   public $schemaOrgPaths;
+  /**
+   * Optional. Specifies the importance of the field when `searchable_option` is
+   * `SEARCHABLE_ENABLED`. If `searchable_option` is `SEARCHABLE_DISABLED`, this
+   * field is ignored. If `searchable_option` is `SEARCHABLE_ENABLED` and this
+   * is `SEARCHABLE_FIELD_IMPORTANCE_UNSPECIFIED`, it behaves as
+   * `DEFAULT_IMPORTANCE`. For more information, see [Weight searchable
+   * fields](https://cloud.google.com/generative-ai-app-builder/docs/configure-
+   * field-settings#weight-search).
+   *
+   * @var string
+   */
+  public $searchableFieldImportance;
   /**
    * If searchable_option is SEARCHABLE_ENABLED, field values are searchable by
    * text queries in SearchService.Search. If SEARCHABLE_ENABLED but field type
@@ -519,6 +557,32 @@ class GoogleCloudDiscoveryengineV1alphaFieldConfig extends \Google\Collection
   public function getSchemaOrgPaths()
   {
     return $this->schemaOrgPaths;
+  }
+  /**
+   * Optional. Specifies the importance of the field when `searchable_option` is
+   * `SEARCHABLE_ENABLED`. If `searchable_option` is `SEARCHABLE_DISABLED`, this
+   * field is ignored. If `searchable_option` is `SEARCHABLE_ENABLED` and this
+   * is `SEARCHABLE_FIELD_IMPORTANCE_UNSPECIFIED`, it behaves as
+   * `DEFAULT_IMPORTANCE`. For more information, see [Weight searchable
+   * fields](https://cloud.google.com/generative-ai-app-builder/docs/configure-
+   * field-settings#weight-search).
+   *
+   * Accepted values: SEARCHABLE_FIELD_IMPORTANCE_UNSPECIFIED,
+   * VERY_LOW_IMPORTANCE, LOW_IMPORTANCE, DEFAULT_IMPORTANCE, HIGH_IMPORTANCE,
+   * VERY_HIGH_IMPORTANCE
+   *
+   * @param self::SEARCHABLE_FIELD_IMPORTANCE_* $searchableFieldImportance
+   */
+  public function setSearchableFieldImportance($searchableFieldImportance)
+  {
+    $this->searchableFieldImportance = $searchableFieldImportance;
+  }
+  /**
+   * @return self::SEARCHABLE_FIELD_IMPORTANCE_*
+   */
+  public function getSearchableFieldImportance()
+  {
+    return $this->searchableFieldImportance;
   }
   /**
    * If searchable_option is SEARCHABLE_ENABLED, field values are searchable by

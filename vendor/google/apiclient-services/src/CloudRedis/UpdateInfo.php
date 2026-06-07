@@ -40,6 +40,18 @@ class UpdateInfo extends \Google\Model
    */
   public const TARGET_NODE_TYPE_REDIS_STANDARD_SMALL = 'REDIS_STANDARD_SMALL';
   /**
+   * Redis highcpu medium node_type.
+   */
+  public const TARGET_NODE_TYPE_REDIS_HIGHCPU_MEDIUM = 'REDIS_HIGHCPU_MEDIUM';
+  /**
+   * Redis standard large node_type.
+   */
+  public const TARGET_NODE_TYPE_REDIS_STANDARD_LARGE = 'REDIS_STANDARD_LARGE';
+  /**
+   * Redis highmem 2xlarge node_type.
+   */
+  public const TARGET_NODE_TYPE_REDIS_HIGHMEM_2XLARGE = 'REDIS_HIGHMEM_2XLARGE';
+  /**
    * Target node type for redis cluster.
    *
    * @var string
@@ -62,7 +74,8 @@ class UpdateInfo extends \Google\Model
    * Target node type for redis cluster.
    *
    * Accepted values: NODE_TYPE_UNSPECIFIED, REDIS_SHARED_CORE_NANO,
-   * REDIS_HIGHMEM_MEDIUM, REDIS_HIGHMEM_XLARGE, REDIS_STANDARD_SMALL
+   * REDIS_HIGHMEM_MEDIUM, REDIS_HIGHMEM_XLARGE, REDIS_STANDARD_SMALL,
+   * REDIS_HIGHCPU_MEDIUM, REDIS_STANDARD_LARGE, REDIS_HIGHMEM_2XLARGE
    *
    * @param self::TARGET_NODE_TYPE_* $targetNodeType
    */

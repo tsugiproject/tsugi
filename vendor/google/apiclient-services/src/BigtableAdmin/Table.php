@@ -46,10 +46,10 @@ class Table extends \Google\Model
    */
   public $deletionProtection;
   /**
-   * Immutable. The granularity (i.e. `MILLIS`) at which timestamps are stored
-   * in this table. Timestamps not matching the granularity will be rejected. If
-   * unspecified at creation time, the value will be set to `MILLIS`. Views:
-   * `SCHEMA_VIEW`, `FULL`.
+   * Immutable. The granularity at which timestamps are stored in this table.
+   * Timestamps not matching the granularity will be rejected. If unspecified at
+   * creation time, the value will be set to `MILLIS`. Views: `SCHEMA_VIEW`,
+   * `FULL`.
    *
    * @var string
    */
@@ -162,10 +162,10 @@ class Table extends \Google\Model
     return $this->deletionProtection;
   }
   /**
-   * Immutable. The granularity (i.e. `MILLIS`) at which timestamps are stored
-   * in this table. Timestamps not matching the granularity will be rejected. If
-   * unspecified at creation time, the value will be set to `MILLIS`. Views:
-   * `SCHEMA_VIEW`, `FULL`.
+   * Immutable. The granularity at which timestamps are stored in this table.
+   * Timestamps not matching the granularity will be rejected. If unspecified at
+   * creation time, the value will be set to `MILLIS`. Views: `SCHEMA_VIEW`,
+   * `FULL`.
    *
    * Accepted values: TIMESTAMP_GRANULARITY_UNSPECIFIED, MILLIS
    *

@@ -23,17 +23,11 @@ class GoogleCloudDialogflowCxV3ListGeneratorsResponse extends \Google\Collection
   protected $generatorsType = GoogleCloudDialogflowCxV3Generator::class;
   protected $generatorsDataType = 'array';
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * The list of generators. There will be a maximum number of items returned
-   * based on the page_size field in the request.
-   *
    * @param GoogleCloudDialogflowCxV3Generator[] $generators
    */
   public function setGenerators($generators)
@@ -48,9 +42,6 @@ class GoogleCloudDialogflowCxV3ListGeneratorsResponse extends \Google\Collection
     return $this->generators;
   }
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)

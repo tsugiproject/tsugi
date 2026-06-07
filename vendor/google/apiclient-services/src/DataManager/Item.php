@@ -19,15 +19,48 @@ namespace Google\Service\DataManager;
 
 class Item extends \Google\Collection
 {
-  protected $collection_key = 'additionalItemParameters';
+  protected $collection_key = 'customVariables';
   protected $additionalItemParametersType = ItemParameter::class;
   protected $additionalItemParametersDataType = 'array';
+  /**
+   * Optional. The conversion value associated with this item within the event,
+   * for cases where the conversion value is different for each item.
+   *
+   * @var 
+   */
+  public $conversionValue;
+  protected $customVariablesType = ItemCustomVariable::class;
+  protected $customVariablesDataType = 'array';
   /**
    * Optional. A unique identifier to reference the item.
    *
    * @var string
    */
   public $itemId;
+  /**
+   * Optional. The feed label of the Merchant Center feed. If countries are
+   * still being used, the 2-letter country code in ISO-3166-1 alpha-2 can be
+   * used instead. For Store Sales events this will override the value set at
+   * the cart level. This field is ignored for other events.
+   *
+   * @var string
+   */
+  public $merchantFeedLabel;
+  /**
+   * Optional. The language code in ISO 639-1 associated with the Merchant
+   * Center feed where your items are uploaded.
+   *
+   * @var string
+   */
+  public $merchantFeedLanguageCode;
+  /**
+   * Optional. The Merchant Center ID associated with the item. For Store Sales
+   * events this will override the value set at the cart level. This field is
+   * ignored for other events.
+   *
+   * @var string
+   */
+  public $merchantId;
   /**
    * Optional. The product ID within the Merchant Center account.
    *
@@ -67,6 +100,32 @@ class Item extends \Google\Collection
   {
     return $this->additionalItemParameters;
   }
+  public function setConversionValue($conversionValue)
+  {
+    $this->conversionValue = $conversionValue;
+  }
+  public function getConversionValue()
+  {
+    return $this->conversionValue;
+  }
+  /**
+   * Optional. Additional key/value pair information to send to the conversion
+   * containers (conversion action or Floodlight activity), when tracking per-
+   * item conversions.
+   *
+   * @param ItemCustomVariable[] $customVariables
+   */
+  public function setCustomVariables($customVariables)
+  {
+    $this->customVariables = $customVariables;
+  }
+  /**
+   * @return ItemCustomVariable[]
+   */
+  public function getCustomVariables()
+  {
+    return $this->customVariables;
+  }
   /**
    * Optional. A unique identifier to reference the item.
    *
@@ -82,6 +141,60 @@ class Item extends \Google\Collection
   public function getItemId()
   {
     return $this->itemId;
+  }
+  /**
+   * Optional. The feed label of the Merchant Center feed. If countries are
+   * still being used, the 2-letter country code in ISO-3166-1 alpha-2 can be
+   * used instead. For Store Sales events this will override the value set at
+   * the cart level. This field is ignored for other events.
+   *
+   * @param string $merchantFeedLabel
+   */
+  public function setMerchantFeedLabel($merchantFeedLabel)
+  {
+    $this->merchantFeedLabel = $merchantFeedLabel;
+  }
+  /**
+   * @return string
+   */
+  public function getMerchantFeedLabel()
+  {
+    return $this->merchantFeedLabel;
+  }
+  /**
+   * Optional. The language code in ISO 639-1 associated with the Merchant
+   * Center feed where your items are uploaded.
+   *
+   * @param string $merchantFeedLanguageCode
+   */
+  public function setMerchantFeedLanguageCode($merchantFeedLanguageCode)
+  {
+    $this->merchantFeedLanguageCode = $merchantFeedLanguageCode;
+  }
+  /**
+   * @return string
+   */
+  public function getMerchantFeedLanguageCode()
+  {
+    return $this->merchantFeedLanguageCode;
+  }
+  /**
+   * Optional. The Merchant Center ID associated with the item. For Store Sales
+   * events this will override the value set at the cart level. This field is
+   * ignored for other events.
+   *
+   * @param string $merchantId
+   */
+  public function setMerchantId($merchantId)
+  {
+    $this->merchantId = $merchantId;
+  }
+  /**
+   * @return string
+   */
+  public function getMerchantId()
+  {
+    return $this->merchantId;
   }
   /**
    * Optional. The product ID within the Merchant Center account.

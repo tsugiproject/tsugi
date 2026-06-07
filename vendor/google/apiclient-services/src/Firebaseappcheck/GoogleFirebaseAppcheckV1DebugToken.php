@@ -26,6 +26,15 @@ class GoogleFirebaseAppcheckV1DebugToken extends \Google\Model
    */
   public $displayName;
   /**
+   * Optional. This checksum is computed by the server based on the value of
+   * other fields, and may be sent on update and delete requests to ensure the
+   * client has an up-to-date value before proceeding. This etag is strongly
+   * validated as defined by RFC 7232.
+   *
+   * @var string
+   */
+  public $etag;
+  /**
    * Required. The relative resource name of the debug token, in the format: ```
    * projects/{project_number}/apps/{app_id}/debugTokens/{debug_token_id} ```
    *
@@ -65,6 +74,25 @@ class GoogleFirebaseAppcheckV1DebugToken extends \Google\Model
   public function getDisplayName()
   {
     return $this->displayName;
+  }
+  /**
+   * Optional. This checksum is computed by the server based on the value of
+   * other fields, and may be sent on update and delete requests to ensure the
+   * client has an up-to-date value before proceeding. This etag is strongly
+   * validated as defined by RFC 7232.
+   *
+   * @param string $etag
+   */
+  public function setEtag($etag)
+  {
+    $this->etag = $etag;
+  }
+  /**
+   * @return string
+   */
+  public function getEtag()
+  {
+    return $this->etag;
   }
   /**
    * Required. The relative resource name of the debug token, in the format: ```

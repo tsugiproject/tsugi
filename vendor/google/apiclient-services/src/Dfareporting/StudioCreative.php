@@ -72,7 +72,8 @@ class StudioCreative extends \Google\Collection
    */
   public $assetIds;
   /**
-   * Backup image asset ID of this studio creative.
+   * Backup image asset ID of this studio creative. It is a required field on
+   * insertion.
    *
    * @var string
    */
@@ -155,7 +156,8 @@ class StudioCreative extends \Google\Collection
     return $this->assetIds;
   }
   /**
-   * Backup image asset ID of this studio creative.
+   * Backup image asset ID of this studio creative. It is a required field on
+   * insertion.
    *
    * @param string $backupImageAssetId
    */

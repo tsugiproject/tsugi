@@ -148,6 +148,8 @@ class DeviceConnectivityManagement extends \Google\Model
   public $configureWifi;
   protected $preferentialNetworkServiceSettingsType = PreferentialNetworkServiceSettings::class;
   protected $preferentialNetworkServiceSettingsDataType = '';
+  protected $privateDnsSettingsType = PrivateDnsSettings::class;
+  protected $privateDnsSettingsDataType = '';
   /**
    * Controls tethering settings. Based on the value set, the user is partially
    * or fully disallowed from using different forms of tethering.
@@ -250,6 +252,22 @@ class DeviceConnectivityManagement extends \Google\Model
   public function getPreferentialNetworkServiceSettings()
   {
     return $this->preferentialNetworkServiceSettings;
+  }
+  /**
+   * Optional. The global private DNS settings.
+   *
+   * @param PrivateDnsSettings $privateDnsSettings
+   */
+  public function setPrivateDnsSettings(PrivateDnsSettings $privateDnsSettings)
+  {
+    $this->privateDnsSettings = $privateDnsSettings;
+  }
+  /**
+   * @return PrivateDnsSettings
+   */
+  public function getPrivateDnsSettings()
+  {
+    return $this->privateDnsSettings;
   }
   /**
    * Controls tethering settings. Based on the value set, the user is partially

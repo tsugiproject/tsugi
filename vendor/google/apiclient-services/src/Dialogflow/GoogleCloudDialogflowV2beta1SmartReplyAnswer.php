@@ -20,31 +20,19 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2beta1SmartReplyAnswer extends \Google\Model
 {
   /**
-   * The name of answer record, in the format of
-   * "projects//locations//answerRecords/"
-   *
    * @var string
    */
   public $answerRecord;
   /**
-   * Smart reply confidence. The system's confidence score that this reply is a
-   * good match for this conversation, as a value from 0.0 (completely
-   * uncertain) to 1.0 (completely certain).
-   *
    * @var float
    */
   public $confidence;
   /**
-   * The content of the reply.
-   *
    * @var string
    */
   public $reply;
 
   /**
-   * The name of answer record, in the format of
-   * "projects//locations//answerRecords/"
-   *
    * @param string $answerRecord
    */
   public function setAnswerRecord($answerRecord)
@@ -59,10 +47,6 @@ class GoogleCloudDialogflowV2beta1SmartReplyAnswer extends \Google\Model
     return $this->answerRecord;
   }
   /**
-   * Smart reply confidence. The system's confidence score that this reply is a
-   * good match for this conversation, as a value from 0.0 (completely
-   * uncertain) to 1.0 (completely certain).
-   *
    * @param float $confidence
    */
   public function setConfidence($confidence)
@@ -77,8 +61,6 @@ class GoogleCloudDialogflowV2beta1SmartReplyAnswer extends \Google\Model
     return $this->confidence;
   }
   /**
-   * The content of the reply.
-   *
    * @param string $reply
    */
   public function setReply($reply)

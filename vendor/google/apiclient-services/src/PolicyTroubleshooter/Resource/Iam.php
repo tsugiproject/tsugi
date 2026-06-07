@@ -17,8 +17,8 @@
 
 namespace Google\Service\PolicyTroubleshooter\Resource;
 
-use Google\Service\PolicyTroubleshooter\GoogleCloudPolicytroubleshooterV1TroubleshootIamPolicyRequest;
-use Google\Service\PolicyTroubleshooter\GoogleCloudPolicytroubleshooterV1TroubleshootIamPolicyResponse;
+use Google\Service\PolicyTroubleshooter\GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyRequest;
+use Google\Service\PolicyTroubleshooter\GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse;
 
 /**
  * The "iam" collection of methods.
@@ -32,19 +32,19 @@ class Iam extends \Google\Service\Resource
 {
   /**
    * Checks whether a principal has a specific permission for a specific resource,
-   * and explains why the principal does or does not have that permission.
+   * and explains why the principal does or doesn't have that permission.
    * (iam.troubleshoot)
    *
-   * @param GoogleCloudPolicytroubleshooterV1TroubleshootIamPolicyRequest $postBody
+   * @param GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyRequest $postBody
    * @param array $optParams Optional parameters.
-   * @return GoogleCloudPolicytroubleshooterV1TroubleshootIamPolicyResponse
+   * @return GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse
    * @throws \Google\Service\Exception
    */
-  public function troubleshoot(GoogleCloudPolicytroubleshooterV1TroubleshootIamPolicyRequest $postBody, $optParams = [])
+  public function troubleshoot(GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyRequest $postBody, $optParams = [])
   {
     $params = ['postBody' => $postBody];
     $params = array_merge($params, $optParams);
-    return $this->call('troubleshoot', [$params], GoogleCloudPolicytroubleshooterV1TroubleshootIamPolicyResponse::class);
+    return $this->call('troubleshoot', [$params], GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse::class);
   }
 }
 

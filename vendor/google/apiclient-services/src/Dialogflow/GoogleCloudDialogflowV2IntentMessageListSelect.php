@@ -23,21 +23,15 @@ class GoogleCloudDialogflowV2IntentMessageListSelect extends \Google\Collection
   protected $itemsType = GoogleCloudDialogflowV2IntentMessageListSelectItem::class;
   protected $itemsDataType = 'array';
   /**
-   * Optional. Subtitle of the list.
-   *
    * @var string
    */
   public $subtitle;
   /**
-   * Optional. The overall title of the list.
-   *
    * @var string
    */
   public $title;
 
   /**
-   * Required. List items.
-   *
    * @param GoogleCloudDialogflowV2IntentMessageListSelectItem[] $items
    */
   public function setItems($items)
@@ -52,8 +46,6 @@ class GoogleCloudDialogflowV2IntentMessageListSelect extends \Google\Collection
     return $this->items;
   }
   /**
-   * Optional. Subtitle of the list.
-   *
    * @param string $subtitle
    */
   public function setSubtitle($subtitle)
@@ -68,8 +60,6 @@ class GoogleCloudDialogflowV2IntentMessageListSelect extends \Google\Collection
     return $this->subtitle;
   }
   /**
-   * Optional. The overall title of the list.
-   *
    * @param string $title
    */
   public function setTitle($title)

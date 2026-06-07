@@ -20,43 +20,19 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2OriginalDetectIntentRequest extends \Google\Model
 {
   /**
-   * Optional. This field is set to the value of the `QueryParameters.payload`
-   * field passed in the request. Some integrations that query a Dialogflow
-   * agent may provide additional information in the payload. In particular, for
-   * the Dialogflow Phone Gateway integration, this field has the form: {
-   * "telephony": { "caller_id": "+18558363987" } } Note: The caller ID field
-   * (`caller_id`) will be redacted for Trial Edition agents and populated with
-   * the caller ID in [E.164 format](https://en.wikipedia.org/wiki/E.164) for
-   * Essentials Edition agents.
-   *
    * @var array[]
    */
   public $payload;
   /**
-   * The source of this request, e.g., `google`, `facebook`, `slack`. It is set
-   * by Dialogflow-owned servers.
-   *
    * @var string
    */
   public $source;
   /**
-   * Optional. The version of the protocol used for this request. This field is
-   * AoG-specific.
-   *
    * @var string
    */
   public $version;
 
   /**
-   * Optional. This field is set to the value of the `QueryParameters.payload`
-   * field passed in the request. Some integrations that query a Dialogflow
-   * agent may provide additional information in the payload. In particular, for
-   * the Dialogflow Phone Gateway integration, this field has the form: {
-   * "telephony": { "caller_id": "+18558363987" } } Note: The caller ID field
-   * (`caller_id`) will be redacted for Trial Edition agents and populated with
-   * the caller ID in [E.164 format](https://en.wikipedia.org/wiki/E.164) for
-   * Essentials Edition agents.
-   *
    * @param array[] $payload
    */
   public function setPayload($payload)
@@ -71,9 +47,6 @@ class GoogleCloudDialogflowV2OriginalDetectIntentRequest extends \Google\Model
     return $this->payload;
   }
   /**
-   * The source of this request, e.g., `google`, `facebook`, `slack`. It is set
-   * by Dialogflow-owned servers.
-   *
    * @param string $source
    */
   public function setSource($source)
@@ -88,9 +61,6 @@ class GoogleCloudDialogflowV2OriginalDetectIntentRequest extends \Google\Model
     return $this->source;
   }
   /**
-   * Optional. The version of the protocol used for this request. This field is
-   * AoG-specific.
-   *
    * @param string $version
    */
   public function setVersion($version)

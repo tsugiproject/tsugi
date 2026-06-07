@@ -55,6 +55,9 @@ class ProjectsLocationsVmwareEngineNetworks extends \Google\Service\Resource
    * second request. This prevents clients from accidentally creating duplicate
    * commitments. The request ID must be a valid UUID with the exception that zero
    * UUID is not supported (00000000-0000-0000-0000-000000000000).
+   * @opt_param bool validateOnly Optional. If set to `true`, only validates the
+   * request but doesn’t execute the request. If set to `false`, validates and
+   * executes the request.
    * @opt_param string vmwareEngineNetworkId Required. The user-provided
    * identifier of the new VMware Engine network. This identifier must be unique
    * among VMware Engine network resources within the parent and becomes the final
@@ -202,6 +205,9 @@ class ProjectsLocationsVmwareEngineNetworks extends \Google\Service\Resource
    * the full request. A field will be overwritten if it is in the mask. If the
    * user does not provide a mask then all fields will be overwritten. Only the
    * following fields can be updated: `description`.
+   * @opt_param bool validateOnly Optional. If set to `true`, only validates the
+   * request but doesn’t execute the request. If set to `false`, validates and
+   * executes the request.
    * @return Operation
    * @throws \Google\Service\Exception
    */

@@ -34,9 +34,9 @@ class Folders extends \Google\Service\Resource
    * Gets the Logging CMEK settings for the given resource.Note: CMEK for the Log
    * Router can be configured for Google Cloud projects, folders, organizations,
    * and billing accounts. Once configured for an organization, it applies to all
-   * projects and folders in the Google Cloud organization.See Enabling CMEK for
-   * Log Router (https://cloud.google.com/logging/docs/routing/managed-encryption)
-   * for more information. (folders.getCmekSettings)
+   * projects and folders in the Google Cloud organization.See Configure CMEK for
+   * Cloud Logging (https://docs.cloud.google.com/logging/docs/routing/managed-
+   * encryption) for more information. (folders.getCmekSettings)
    *
    * @param string $name Required. The resource for which to retrieve CMEK
    * settings. "projects/[PROJECT_ID]/cmekSettings"
@@ -61,8 +61,8 @@ class Folders extends \Google\Service\Resource
    * Gets the settings for the given resource.Note: Settings can be retrieved for
    * Google Cloud projects, folders, organizations, and billing accounts.See View
    * default resource settings for Logging
-   * (https://cloud.google.com/logging/docs/default-settings#view-org-settings)
-   * for more information. (folders.getSettings)
+   * (https://docs.cloud.google.com/logging/docs/default-settings#view-org-
+   * settings) for more information. (folders.getSettings)
    *
    * @param string $name Required. The resource for which to retrieve settings.
    * "projects/[PROJECT_ID]/settings" "organizations/[ORGANIZATION_ID]/settings"
@@ -90,7 +90,7 @@ class Folders extends \Google\Service\Resource
    * doesn't have the required roles/cloudkms.cryptoKeyEncrypterDecrypter role
    * assigned for the key. Access to the key is disabled.See Configure default
    * settings for organizations and folders
-   * (https://cloud.google.com/logging/docs/default-settings) for more
+   * (https://docs.cloud.google.com/logging/docs/default-settings) for more
    * information. (folders.updateSettings)
    *
    * @param string $name Required. The resource name for the settings to update.

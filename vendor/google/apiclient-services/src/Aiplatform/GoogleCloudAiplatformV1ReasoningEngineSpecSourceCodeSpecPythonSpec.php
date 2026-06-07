@@ -23,14 +23,16 @@ class GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecPythonSpec extends
    * Optional. The Python module to load as the entrypoint, specified as a fully
    * qualified module name. For example: path.to.agent. If not specified,
    * defaults to "agent". The project root will be added to Python sys.path,
-   * allowing imports to be specified relative to the root.
+   * allowing imports to be specified relative to the root. This field should
+   * not be set if the source is `agent_config_source`.
    *
    * @var string
    */
   public $entrypointModule;
   /**
    * Optional. The name of the callable object within the `entrypoint_module` to
-   * use as the application If not specified, defaults to "root_agent".
+   * use as the application If not specified, defaults to "root_agent". This
+   * field should not be set if the source is `agent_config_source`.
    *
    * @var string
    */
@@ -43,8 +45,8 @@ class GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecPythonSpec extends
    */
   public $requirementsFile;
   /**
-   * Optional. The version of Python to use. Support version includes 3.9, 3.10,
-   * 3.11, 3.12, 3.13. If not specified, default value is 3.10.
+   * Optional. The version of Python to use. Supported versions include 3.10,
+   * 3.11, 3.12, 3.13, 3.14. If not specified, default value is 3.10.
    *
    * @var string
    */
@@ -54,7 +56,8 @@ class GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecPythonSpec extends
    * Optional. The Python module to load as the entrypoint, specified as a fully
    * qualified module name. For example: path.to.agent. If not specified,
    * defaults to "agent". The project root will be added to Python sys.path,
-   * allowing imports to be specified relative to the root.
+   * allowing imports to be specified relative to the root. This field should
+   * not be set if the source is `agent_config_source`.
    *
    * @param string $entrypointModule
    */
@@ -71,7 +74,8 @@ class GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecPythonSpec extends
   }
   /**
    * Optional. The name of the callable object within the `entrypoint_module` to
-   * use as the application If not specified, defaults to "root_agent".
+   * use as the application If not specified, defaults to "root_agent". This
+   * field should not be set if the source is `agent_config_source`.
    *
    * @param string $entrypointObject
    */
@@ -104,8 +108,8 @@ class GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecPythonSpec extends
     return $this->requirementsFile;
   }
   /**
-   * Optional. The version of Python to use. Support version includes 3.9, 3.10,
-   * 3.11, 3.12, 3.13. If not specified, default value is 3.10.
+   * Optional. The version of Python to use. Supported versions include 3.10,
+   * 3.11, 3.12, 3.13, 3.14. If not specified, default value is 3.10.
    *
    * @param string $version
    */

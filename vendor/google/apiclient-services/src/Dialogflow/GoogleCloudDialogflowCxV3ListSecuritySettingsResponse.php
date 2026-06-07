@@ -21,9 +21,6 @@ class GoogleCloudDialogflowCxV3ListSecuritySettingsResponse extends \Google\Coll
 {
   protected $collection_key = 'securitySettings';
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @var string
    */
   public $nextPageToken;
@@ -31,9 +28,6 @@ class GoogleCloudDialogflowCxV3ListSecuritySettingsResponse extends \Google\Coll
   protected $securitySettingsDataType = 'array';
 
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
@@ -48,8 +42,6 @@ class GoogleCloudDialogflowCxV3ListSecuritySettingsResponse extends \Google\Coll
     return $this->nextPageToken;
   }
   /**
-   * The list of security settings.
-   *
    * @param GoogleCloudDialogflowCxV3SecuritySettings[] $securitySettings
    */
   public function setSecuritySettings($securitySettings)

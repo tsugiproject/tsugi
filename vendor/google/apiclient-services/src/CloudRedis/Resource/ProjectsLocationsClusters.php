@@ -17,6 +17,7 @@
 
 namespace Google\Service\CloudRedis\Resource;
 
+use Google\Service\CloudRedis\AddTokenAuthUserRequest;
 use Google\Service\CloudRedis\BackupClusterRequest;
 use Google\Service\CloudRedis\CertificateAuthority;
 use Google\Service\CloudRedis\Cluster;
@@ -34,6 +35,24 @@ use Google\Service\CloudRedis\RescheduleClusterMaintenanceRequest;
  */
 class ProjectsLocationsClusters extends \Google\Service\Resource
 {
+  /**
+   * Adds a token auth user for a token based auth enabled cluster.
+   * (clusters.addTokenAuthUser)
+   *
+   * @param string $cluster Required. The cluster resource that this token auth
+   * user will be added for. Format:
+   * projects/{project}/locations/{location}/clusters/{cluster}
+   * @param AddTokenAuthUserRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function addTokenAuthUser($cluster, AddTokenAuthUserRequest $postBody, $optParams = [])
+  {
+    $params = ['cluster' => $cluster, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('addTokenAuthUser', [$params], Operation::class);
+  }
   /**
    * Backup Redis Cluster. If this is the first time a backup is being created, a
    * backup collection will be created at the backend, and this backup belongs to
@@ -162,7 +181,7 @@ class ProjectsLocationsClusters extends \Google\Service\Resource
    * should only rely on response's `next_page_token` to determine if there are
    * more clusters left to be queried.
    * @opt_param string pageToken The `next_page_token` value returned from a
-   * previous ListClusters request, if any.
+   * previous `ListClusters` request, if any.
    * @return ListClustersResponse
    * @throws \Google\Service\Exception
    */

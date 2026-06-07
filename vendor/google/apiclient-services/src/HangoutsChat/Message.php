@@ -86,8 +86,9 @@ class Message extends \Google\Collection
    * formatting. This field might not capture all formatting visible in the UI,
    * but includes the following: * [Markup
    * syntax](https://developers.google.com/workspace/chat/format-messages) for
-   * bold, italic, strikethrough, monospace, monospace block, and bulleted list.
-   * * [User mentions](https://developers.google.com/workspace/chat/format-
+   * bold, italic, strikethrough, monospace, monospace block, bulleted list, and
+   * block quote. * [User
+   * mentions](https://developers.google.com/workspace/chat/format-
    * messages#messages-@mention) using the format ``. * Custom hyperlinks using
    * the format `<{url}|{rendered_text}>` where the first string is the URL and
    * the second is the rendered text—for example, ``. * Custom emoji using the
@@ -132,6 +133,13 @@ class Message extends \Google\Collection
   protected $quotedMessageMetadataDataType = '';
   protected $senderType = User::class;
   protected $senderDataType = '';
+  /**
+   * Output only. Whether this is a silent message. Silent messages are messages
+   * where Chat suppresses push notifications for recipients.
+   *
+   * @var bool
+   */
+  public $silent;
   protected $slashCommandType = SlashCommand::class;
   protected $slashCommandDataType = '';
   protected $spaceType = Space::class;
@@ -293,11 +301,15 @@ class Message extends \Google\Collection
   }
   /**
    * Optional. An array of [cards](https://developers.google.com/workspace/chat/
-   * api/reference/rest/v1/cards). Only Chat apps can create cards. If your Chat
-   * app [authenticates as a
+   * api/reference/rest/v1/cards). Chat apps can create cards with [app
+   * authentication](https://developers.google.com/workspace/chat/authenticate-
+   * authorize-chat-app). As part of the [Developer Preview
+   * Program](https://developers.google.com/workspace/preview), if your Chat app
+   * [authenticates as a
    * user](https://developers.google.com/workspace/chat/authenticate-authorize-
-   * chat-user), the messages can't contain cards. To learn how to create a
-   * message that contains cards, see [Send a
+   * chat-user), it can create card messages. If your Chat app is not part of
+   * Developer Preview Program, it can't create cards with user authentication.
+   * To learn how to create a message that contains cards, see [Send a
    * message](https://developers.google.com/workspace/chat/create-messages).
    * [Card builder](https://addons.gsuite.google.com/uikit/builder)
    *
@@ -428,8 +440,9 @@ class Message extends \Google\Collection
    * formatting. This field might not capture all formatting visible in the UI,
    * but includes the following: * [Markup
    * syntax](https://developers.google.com/workspace/chat/format-messages) for
-   * bold, italic, strikethrough, monospace, monospace block, and bulleted list.
-   * * [User mentions](https://developers.google.com/workspace/chat/format-
+   * bold, italic, strikethrough, monospace, monospace block, bulleted list, and
+   * block quote. * [User
+   * mentions](https://developers.google.com/workspace/chat/format-
    * messages#messages-@mention) using the format ``. * Custom hyperlinks using
    * the format `<{url}|{rendered_text}>` where the first string is the URL and
    * the second is the rendered text—for example, ``. * Custom emoji using the
@@ -471,8 +484,8 @@ class Message extends \Google\Collection
     return $this->lastUpdateTime;
   }
   /**
-   * Output only. A URL in `spaces.messages.text` that matches a link preview
-   * pattern. For more information, see [Preview
+   * Output only. A URL in the Chat message `text` field that matches a link
+   * preview pattern. For more information, see [Preview
    * links](https://developers.google.com/workspace/chat/preview-links).
    *
    * @param MatchedUrl $matchedUrl
@@ -522,9 +535,7 @@ class Message extends \Google\Collection
    * authentication](https://developers.google.com/workspace/chat/authenticate-
    * authorize-chat-app) and omit the following: * [Attachments](https://develop
    * ers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages.attachm
-   * ents) * [Accessory widgets](https://developers.google.com/workspace/chat/ap
-   * i/reference/rest/v1/spaces.messages#Message.AccessoryWidget) For details,
-   * see [Send a message
+   * ents) For details, see [Send a message
    * privately](https://developers.google.com/workspace/chat/create-
    * messages#private).
    *
@@ -583,6 +594,23 @@ class Message extends \Google\Collection
   public function getSender()
   {
     return $this->sender;
+  }
+  /**
+   * Output only. Whether this is a silent message. Silent messages are messages
+   * where Chat suppresses push notifications for recipients.
+   *
+   * @param bool $silent
+   */
+  public function setSilent($silent)
+  {
+    $this->silent = $silent;
+  }
+  /**
+   * @return bool
+   */
+  public function getSilent()
+  {
+    return $this->silent;
   }
   /**
    * Output only. Slash command information, if applicable.

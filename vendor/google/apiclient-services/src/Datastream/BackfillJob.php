@@ -70,6 +70,8 @@ class BackfillJob extends \Google\Collection
   protected $collection_key = 'errors';
   protected $errorsType = Error::class;
   protected $errorsDataType = 'array';
+  protected $eventFilterType = EventFilter::class;
+  protected $eventFilterDataType = '';
   /**
    * Output only. Backfill job's end time.
    *
@@ -110,6 +112,22 @@ class BackfillJob extends \Google\Collection
   public function getErrors()
   {
     return $this->errors;
+  }
+  /**
+   * Output only. The filter for performing a partial backfill.
+   *
+   * @param EventFilter $eventFilter
+   */
+  public function setEventFilter(EventFilter $eventFilter)
+  {
+    $this->eventFilter = $eventFilter;
+  }
+  /**
+   * @return EventFilter
+   */
+  public function getEventFilter()
+  {
+    return $this->eventFilter;
   }
   /**
    * Output only. Backfill job's end time.

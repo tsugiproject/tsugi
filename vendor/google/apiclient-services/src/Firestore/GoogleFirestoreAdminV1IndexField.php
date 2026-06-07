@@ -59,6 +59,8 @@ class GoogleFirestoreAdminV1IndexField extends \Google\Model
    * @var string
    */
   public $order;
+  protected $searchConfigType = GoogleFirestoreAdminV1SearchConfig::class;
+  protected $searchConfigDataType = '';
   protected $vectorConfigType = GoogleFirestoreAdminV1VectorConfig::class;
   protected $vectorConfigDataType = '';
 
@@ -115,6 +117,22 @@ class GoogleFirestoreAdminV1IndexField extends \Google\Model
   public function getOrder()
   {
     return $this->order;
+  }
+  /**
+   * Indicates that this field supports search operations.
+   *
+   * @param GoogleFirestoreAdminV1SearchConfig $searchConfig
+   */
+  public function setSearchConfig(GoogleFirestoreAdminV1SearchConfig $searchConfig)
+  {
+    $this->searchConfig = $searchConfig;
+  }
+  /**
+   * @return GoogleFirestoreAdminV1SearchConfig
+   */
+  public function getSearchConfig()
+  {
+    return $this->searchConfig;
   }
   /**
    * Indicates that this field supports nearest neighbor and distance operations

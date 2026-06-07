@@ -33,6 +33,17 @@ class GceRegionalPersistentDisk extends \Google\Model
    */
   public const RECLAIM_POLICY_RETAIN = 'RETAIN';
   /**
+   * Optional. Number of seconds to wait after initially creating or
+   * subsequently shutting down the workstation before converting its disk into
+   * a snapshot. This generally saves costs at the expense of greater startup
+   * time on next workstation start, as the service will need to create a disk
+   * from the archival snapshot. A value of `"0s"` indicates that the disk will
+   * never be archived.
+   *
+   * @var string
+   */
+  public $archiveTimeout;
+  /**
    * Optional. The [type of the persistent
    * disk](https://cloud.google.com/compute/docs/disks#disk-types) for the home
    * directory. Defaults to `"pd-standard"`.
@@ -75,6 +86,27 @@ class GceRegionalPersistentDisk extends \Google\Model
    */
   public $sourceSnapshot;
 
+  /**
+   * Optional. Number of seconds to wait after initially creating or
+   * subsequently shutting down the workstation before converting its disk into
+   * a snapshot. This generally saves costs at the expense of greater startup
+   * time on next workstation start, as the service will need to create a disk
+   * from the archival snapshot. A value of `"0s"` indicates that the disk will
+   * never be archived.
+   *
+   * @param string $archiveTimeout
+   */
+  public function setArchiveTimeout($archiveTimeout)
+  {
+    $this->archiveTimeout = $archiveTimeout;
+  }
+  /**
+   * @return string
+   */
+  public function getArchiveTimeout()
+  {
+    return $this->archiveTimeout;
+  }
   /**
    * Optional. The [type of the persistent
    * disk](https://cloud.google.com/compute/docs/disks#disk-types) for the home

@@ -40,7 +40,7 @@ class GoogleCloudConnectorsV1EncryptionKey extends \Google\Model
    */
   public $kmsKeyName;
   /**
-   * Type.
+   * Optional. Specifies the type of the encryption key.
    *
    * @var string
    */
@@ -65,7 +65,7 @@ class GoogleCloudConnectorsV1EncryptionKey extends \Google\Model
     return $this->kmsKeyName;
   }
   /**
-   * Type.
+   * Optional. Specifies the type of the encryption key.
    *
    * Accepted values: TYPE_UNSPECIFIED, GOOGLE_MANAGED, CUSTOMER_MANAGED
    *

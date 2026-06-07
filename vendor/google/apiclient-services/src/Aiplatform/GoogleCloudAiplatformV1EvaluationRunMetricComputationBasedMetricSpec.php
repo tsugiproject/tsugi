@@ -20,16 +20,40 @@ namespace Google\Service\Aiplatform;
 class GoogleCloudAiplatformV1EvaluationRunMetricComputationBasedMetricSpec extends \Google\Model
 {
   /**
+   * Unspecified computation based metric type.
+   */
+  public const TYPE_COMPUTATION_BASED_METRIC_TYPE_UNSPECIFIED = 'COMPUTATION_BASED_METRIC_TYPE_UNSPECIFIED';
+  /**
+   * Exact match metric.
+   */
+  public const TYPE_EXACT_MATCH = 'EXACT_MATCH';
+  /**
+   * BLEU metric.
+   */
+  public const TYPE_BLEU = 'BLEU';
+  /**
+   * ROUGE metric.
+   */
+  public const TYPE_ROUGE = 'ROUGE';
+  /**
+   * Optional. A map of parameters for the metric, e.g. {"rouge_type":
+   * "rougeL"}.
+   *
    * @var array[]
    */
   public $parameters;
   /**
+   * Required. The type of the computation based metric.
+   *
    * @var string
    */
   public $type;
 
   /**
-   * @param array[]
+   * Optional. A map of parameters for the metric, e.g. {"rouge_type":
+   * "rougeL"}.
+   *
+   * @param array[] $parameters
    */
   public function setParameters($parameters)
   {
@@ -43,14 +67,19 @@ class GoogleCloudAiplatformV1EvaluationRunMetricComputationBasedMetricSpec exten
     return $this->parameters;
   }
   /**
-   * @param string
+   * Required. The type of the computation based metric.
+   *
+   * Accepted values: COMPUTATION_BASED_METRIC_TYPE_UNSPECIFIED, EXACT_MATCH,
+   * BLEU, ROUGE
+   *
+   * @param self::TYPE_* $type
    */
   public function setType($type)
   {
     $this->type = $type;
   }
   /**
-   * @return string
+   * @return self::TYPE_*
    */
   public function getType()
   {

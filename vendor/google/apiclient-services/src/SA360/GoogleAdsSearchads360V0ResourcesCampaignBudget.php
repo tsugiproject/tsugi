@@ -59,9 +59,13 @@ class GoogleAdsSearchads360V0ResourcesCampaignBudget extends \Google\Model
    */
   public const PERIOD_CUSTOM_PERIOD = 'CUSTOM_PERIOD';
   /**
-   * The amount of the budget, in the local currency for the account. Amount is
-   * specified in micros, where one million is equivalent to one currency unit.
-   * Monthly spend is capped at 30.4 times this amount.
+   * The average daily amount to be spent by the campaign. This field is used
+   * when the CampaignBudget `period` is set to `DAILY`, which is the default.
+   * Amount is specified in micros in the account's local currency. One million
+   * micros is equivalent to one currency unit. The effective monthly spend is
+   * capped at 30.4 times this daily amount. This field is mutually exclusive
+   * with 'total_amount_micros'. Only one of 'amount_micros' or
+   * 'total_amount_micros' should be set.
    *
    * @var string
    */
@@ -90,9 +94,13 @@ class GoogleAdsSearchads360V0ResourcesCampaignBudget extends \Google\Model
   public $resourceName;
 
   /**
-   * The amount of the budget, in the local currency for the account. Amount is
-   * specified in micros, where one million is equivalent to one currency unit.
-   * Monthly spend is capped at 30.4 times this amount.
+   * The average daily amount to be spent by the campaign. This field is used
+   * when the CampaignBudget `period` is set to `DAILY`, which is the default.
+   * Amount is specified in micros in the account's local currency. One million
+   * micros is equivalent to one currency unit. The effective monthly spend is
+   * capped at 30.4 times this daily amount. This field is mutually exclusive
+   * with 'total_amount_micros'. Only one of 'amount_micros' or
+   * 'total_amount_micros' should be set.
    *
    * @param string $amountMicros
    */

@@ -20,7 +20,7 @@ namespace Google\Service\Container;
 class QueuedProvisioning extends \Google\Model
 {
   /**
-   * Denotes that this nodepool is QRM specific, meaning nodes can be only
+   * Denotes that this node pool is QRM specific, meaning nodes can be only
    * obtained through queuing via the Cluster Autoscaler ProvisioningRequest
    * API.
    *
@@ -29,7 +29,7 @@ class QueuedProvisioning extends \Google\Model
   public $enabled;
 
   /**
-   * Denotes that this nodepool is QRM specific, meaning nodes can be only
+   * Denotes that this node pool is QRM specific, meaning nodes can be only
    * obtained through queuing via the Cluster Autoscaler ProvisioningRequest
    * API.
    *

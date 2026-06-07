@@ -66,6 +66,11 @@ class MerchantReviewDestinationStatus extends \Google\Model
    */
   public const REPORTING_CONTEXT_FREE_LISTINGS = 'FREE_LISTINGS';
   /**
+   * [Free product listings on UCP
+   * checkout](https://developers.google.com/merchant/ucp).
+   */
+  public const REPORTING_CONTEXT_FREE_LISTINGS_UCP_CHECKOUT = 'FREE_LISTINGS_UCP_CHECKOUT';
+  /**
    * [Free local product
    * listings](https://support.google.com/merchants/answer/9825611).
    */
@@ -116,9 +121,10 @@ class MerchantReviewDestinationStatus extends \Google\Model
    * Accepted values: REPORTING_CONTEXT_ENUM_UNSPECIFIED, SHOPPING_ADS,
    * DISCOVERY_ADS, DEMAND_GEN_ADS, DEMAND_GEN_ADS_DISCOVER_SURFACE, VIDEO_ADS,
    * DISPLAY_ADS, LOCAL_INVENTORY_ADS, VEHICLE_INVENTORY_ADS, FREE_LISTINGS,
-   * FREE_LOCAL_LISTINGS, FREE_LOCAL_VEHICLE_LISTINGS, YOUTUBE_AFFILIATE,
-   * YOUTUBE_SHOPPING, CLOUD_RETAIL, LOCAL_CLOUD_RETAIL, PRODUCT_REVIEWS,
-   * MERCHANT_REVIEWS, YOUTUBE_CHECKOUT
+   * FREE_LISTINGS_UCP_CHECKOUT, FREE_LOCAL_LISTINGS,
+   * FREE_LOCAL_VEHICLE_LISTINGS, YOUTUBE_AFFILIATE, YOUTUBE_SHOPPING,
+   * CLOUD_RETAIL, LOCAL_CLOUD_RETAIL, PRODUCT_REVIEWS, MERCHANT_REVIEWS,
+   * YOUTUBE_CHECKOUT
    *
    * @param self::REPORTING_CONTEXT_* $reportingContext
    */

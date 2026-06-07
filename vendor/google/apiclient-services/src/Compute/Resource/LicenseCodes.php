@@ -17,7 +17,9 @@
 
 namespace Google\Service\Compute\Resource;
 
+use Google\Service\Compute\GlobalSetPolicyRequest;
 use Google\Service\Compute\LicenseCode;
+use Google\Service\Compute\Policy;
 use Google\Service\Compute\TestPermissionsRequest;
 use Google\Service\Compute\TestPermissionsResponse;
 
@@ -49,6 +51,45 @@ class LicenseCodes extends \Google\Service\Resource
     $params = ['project' => $project, 'licenseCode' => $licenseCode];
     $params = array_merge($params, $optParams);
     return $this->call('get', [$params], LicenseCode::class);
+  }
+  /**
+   * Gets the access control policy for a resource. May be empty if no such policy
+   * or resource exists. Caution* This resource is intended for use only by third-
+   * party partners who are creatingCloud Marketplace images.
+   * (licenseCodes.getIamPolicy)
+   *
+   * @param string $project Project ID for this request.
+   * @param string $resource Name or id of the resource for this request.
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param int optionsRequestedPolicyVersion Requested IAM Policy version.
+   * @return Policy
+   * @throws \Google\Service\Exception
+   */
+  public function getIamPolicy($project, $resource, $optParams = [])
+  {
+    $params = ['project' => $project, 'resource' => $resource];
+    $params = array_merge($params, $optParams);
+    return $this->call('getIamPolicy', [$params], Policy::class);
+  }
+  /**
+   * Sets the access control policy on the specified resource. Replaces any
+   * existing policy. Caution* This resource is intended for use only by third-
+   * party partners who are creatingCloud Marketplace images.
+   * (licenseCodes.setIamPolicy)
+   *
+   * @param string $project Project ID for this request.
+   * @param string $resource Name or id of the resource for this request.
+   * @param GlobalSetPolicyRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Policy
+   * @throws \Google\Service\Exception
+   */
+  public function setIamPolicy($project, $resource, GlobalSetPolicyRequest $postBody, $optParams = [])
+  {
+    $params = ['project' => $project, 'resource' => $resource, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('setIamPolicy', [$params], Policy::class);
   }
   /**
    * Returns permissions that a caller has on the specified resource. Caution*

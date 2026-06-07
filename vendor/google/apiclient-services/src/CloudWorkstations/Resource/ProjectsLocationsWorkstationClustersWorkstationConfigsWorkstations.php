@@ -48,7 +48,7 @@ class ProjectsLocationsWorkstationClustersWorkstationConfigsWorkstations extends
    * @param array $optParams Optional parameters.
    *
    * @opt_param bool validateOnly Optional. If set, validate the request and
-   * preview the review, but do not actually apply it.
+   * preview the result, but do not actually apply it.
    * @opt_param string workstationId Required. ID to use for the workstation.
    * @return Operation
    * @throws \Google\Service\Exception
@@ -68,7 +68,7 @@ class ProjectsLocationsWorkstationClustersWorkstationConfigsWorkstations extends
    * @opt_param string etag Optional. If set, the request will be rejected if the
    * latest version of the workstation on the server does not have this ETag.
    * @opt_param bool validateOnly Optional. If set, validate the request and
-   * preview the review, but do not actually apply it.
+   * preview the result, but do not actually apply it.
    * @return Operation
    * @throws \Google\Service\Exception
    */
@@ -191,13 +191,13 @@ class ProjectsLocationsWorkstationClustersWorkstationConfigsWorkstations extends
    * @param Workstation $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param bool allowMissing Optional. If set and the workstation
-   * configuration is not found, a new workstation configuration is created. In
-   * this situation, update_mask is ignored.
+   * @opt_param bool allowMissing Optional. If set and the workstation is not
+   * found, a new workstation is created. In this situation, update_mask is
+   * ignored.
    * @opt_param string updateMask Required. Mask specifying which fields in the
-   * workstation configuration should be updated.
+   * workstation should be updated.
    * @opt_param bool validateOnly Optional. If set, validate the request and
-   * preview the review, but do not actually apply it.
+   * preview the result, but do not actually apply it.
    * @return Operation
    * @throws \Google\Service\Exception
    */

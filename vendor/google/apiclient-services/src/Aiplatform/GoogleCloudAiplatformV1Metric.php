@@ -28,12 +28,16 @@ class GoogleCloudAiplatformV1Metric extends \Google\Collection
   public $aggregationMetrics;
   protected $bleuSpecType = GoogleCloudAiplatformV1BleuSpec::class;
   protected $bleuSpecDataType = '';
+  protected $computationBasedMetricSpecType = GoogleCloudAiplatformV1ComputationBasedMetricSpec::class;
+  protected $computationBasedMetricSpecDataType = '';
   protected $customCodeExecutionSpecType = GoogleCloudAiplatformV1CustomCodeExecutionSpec::class;
   protected $customCodeExecutionSpecDataType = '';
   protected $exactMatchSpecType = GoogleCloudAiplatformV1ExactMatchSpec::class;
   protected $exactMatchSpecDataType = '';
   protected $llmBasedMetricSpecType = GoogleCloudAiplatformV1LLMBasedMetricSpec::class;
   protected $llmBasedMetricSpecDataType = '';
+  protected $metadataType = GoogleCloudAiplatformV1MetricMetadata::class;
+  protected $metadataDataType = '';
   protected $pairwiseMetricSpecType = GoogleCloudAiplatformV1PairwiseMetricSpec::class;
   protected $pairwiseMetricSpecDataType = '';
   protected $pointwiseMetricSpecType = GoogleCloudAiplatformV1PointwiseMetricSpec::class;
@@ -74,6 +78,22 @@ class GoogleCloudAiplatformV1Metric extends \Google\Collection
   public function getBleuSpec()
   {
     return $this->bleuSpec;
+  }
+  /**
+   * Spec for a computation based metric.
+   *
+   * @param GoogleCloudAiplatformV1ComputationBasedMetricSpec $computationBasedMetricSpec
+   */
+  public function setComputationBasedMetricSpec(GoogleCloudAiplatformV1ComputationBasedMetricSpec $computationBasedMetricSpec)
+  {
+    $this->computationBasedMetricSpec = $computationBasedMetricSpec;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1ComputationBasedMetricSpec
+   */
+  public function getComputationBasedMetricSpec()
+  {
+    return $this->computationBasedMetricSpec;
   }
   /**
    * Spec for Custom Code Execution metric.
@@ -122,6 +142,23 @@ class GoogleCloudAiplatformV1Metric extends \Google\Collection
   public function getLlmBasedMetricSpec()
   {
     return $this->llmBasedMetricSpec;
+  }
+  /**
+   * Optional. Metadata about the metric, used for visualization and
+   * organization.
+   *
+   * @param GoogleCloudAiplatformV1MetricMetadata $metadata
+   */
+  public function setMetadata(GoogleCloudAiplatformV1MetricMetadata $metadata)
+  {
+    $this->metadata = $metadata;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1MetricMetadata
+   */
+  public function getMetadata()
+  {
+    return $this->metadata;
   }
   /**
    * Spec for pairwise metric.

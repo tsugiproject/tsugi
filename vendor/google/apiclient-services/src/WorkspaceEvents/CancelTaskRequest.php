@@ -19,6 +19,31 @@ namespace Google\Service\WorkspaceEvents;
 
 class CancelTaskRequest extends \Google\Model
 {
+  /**
+   * Optional tenant, provided as a path parameter. Experimental, might still
+   * change for 1.0 release.
+   *
+   * @var string
+   */
+  public $tenant;
+
+  /**
+   * Optional tenant, provided as a path parameter. Experimental, might still
+   * change for 1.0 release.
+   *
+   * @param string $tenant
+   */
+  public function setTenant($tenant)
+  {
+    $this->tenant = $tenant;
+  }
+  /**
+   * @return string
+   */
+  public function getTenant()
+  {
+    return $this->tenant;
+  }
 }
 
 // Adding a class alias for backwards compatibility with the previous class name.

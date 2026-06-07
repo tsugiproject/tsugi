@@ -44,7 +44,7 @@ class ProjectsLocationsWorkstationClustersWorkstationConfigs extends \Google\Ser
    * @param array $optParams Optional parameters.
    *
    * @opt_param bool validateOnly Optional. If set, validate the request and
-   * preview the review, but do not actually apply it.
+   * preview the result, but do not actually apply it.
    * @opt_param string workstationConfigId Required. ID to use for the workstation
    * configuration.
    * @return Operation
@@ -70,7 +70,7 @@ class ProjectsLocationsWorkstationClustersWorkstationConfigs extends \Google\Ser
    * configuration are also deleted. Otherwise, the request works only if the
    * workstation configuration has no workstations.
    * @opt_param bool validateOnly Optional. If set, validate the request and
-   * preview the review, but do not actually apply it.
+   * preview the result, but do not actually apply it.
    * @return Operation
    * @throws \Google\Service\Exception
    */
@@ -180,7 +180,7 @@ class ProjectsLocationsWorkstationClustersWorkstationConfigs extends \Google\Ser
    * @opt_param string updateMask Required. Mask specifying which fields in the
    * workstation configuration should be updated.
    * @opt_param bool validateOnly Optional. If set, validate the request and
-   * preview the review, but do not actually apply it.
+   * preview the result, but do not actually apply it.
    * @return Operation
    * @throws \Google\Service\Exception
    */

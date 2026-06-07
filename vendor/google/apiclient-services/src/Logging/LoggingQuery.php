@@ -22,8 +22,8 @@ class LoggingQuery extends \Google\Collection
   protected $collection_key = 'summaryFields';
   /**
    * Required. An advanced query using the Logging Query Language
-   * (https://cloud.google.com/logging/docs/view/logging-query-language). The
-   * maximum length of the filter is 20000 characters.
+   * (https://docs.cloud.google.com/logging/docs/view/logging-query-language).
+   * The maximum length of the filter is 20000 characters.
    *
    * @var string
    */
@@ -45,8 +45,8 @@ class LoggingQuery extends \Google\Collection
 
   /**
    * Required. An advanced query using the Logging Query Language
-   * (https://cloud.google.com/logging/docs/view/logging-query-language). The
-   * maximum length of the filter is 20000 characters.
+   * (https://docs.cloud.google.com/logging/docs/view/logging-query-language).
+   * The maximum length of the filter is 20000 characters.
    *
    * @param string $filter
    */

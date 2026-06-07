@@ -19,6 +19,8 @@ namespace Google\Service\Aiplatform;
 
 class GoogleCloudAiplatformV1EvaluationRunMetric extends \Google\Model
 {
+  protected $computationBasedMetricSpecType = GoogleCloudAiplatformV1EvaluationRunMetricComputationBasedMetricSpec::class;
+  protected $computationBasedMetricSpecDataType = '';
   protected $llmBasedMetricSpecType = GoogleCloudAiplatformV1EvaluationRunMetricLLMBasedMetricSpec::class;
   protected $llmBasedMetricSpecDataType = '';
   /**
@@ -29,11 +31,33 @@ class GoogleCloudAiplatformV1EvaluationRunMetric extends \Google\Model
   public $metric;
   protected $metricConfigType = GoogleCloudAiplatformV1Metric::class;
   protected $metricConfigDataType = '';
+  /**
+   * Optional. The resource name of the metric definition.
+   *
+   * @var string
+   */
+  public $metricResourceName;
   protected $predefinedMetricSpecType = GoogleCloudAiplatformV1EvaluationRunMetricPredefinedMetricSpec::class;
   protected $predefinedMetricSpecDataType = '';
   protected $rubricBasedMetricSpecType = GoogleCloudAiplatformV1EvaluationRunMetricRubricBasedMetricSpec::class;
   protected $rubricBasedMetricSpecDataType = '';
 
+  /**
+   * Spec for a computation based metric.
+   *
+   * @param GoogleCloudAiplatformV1EvaluationRunMetricComputationBasedMetricSpec $computationBasedMetricSpec
+   */
+  public function setComputationBasedMetricSpec(GoogleCloudAiplatformV1EvaluationRunMetricComputationBasedMetricSpec $computationBasedMetricSpec)
+  {
+    $this->computationBasedMetricSpec = $computationBasedMetricSpec;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1EvaluationRunMetricComputationBasedMetricSpec
+   */
+  public function getComputationBasedMetricSpec()
+  {
+    return $this->computationBasedMetricSpec;
+  }
   /**
    * Spec for an LLM based metric.
    *
@@ -81,6 +105,22 @@ class GoogleCloudAiplatformV1EvaluationRunMetric extends \Google\Model
   public function getMetricConfig()
   {
     return $this->metricConfig;
+  }
+  /**
+   * Optional. The resource name of the metric definition.
+   *
+   * @param string $metricResourceName
+   */
+  public function setMetricResourceName($metricResourceName)
+  {
+    $this->metricResourceName = $metricResourceName;
+  }
+  /**
+   * @return string
+   */
+  public function getMetricResourceName()
+  {
+    return $this->metricResourceName;
   }
   /**
    * Spec for a pre-defined metric.

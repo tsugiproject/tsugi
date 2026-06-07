@@ -20,14 +20,16 @@ namespace Google\Service\Aiplatform;
 class GoogleCloudAiplatformV1TaskDescriptionStrategy extends \Google\Model
 {
   /**
-   * Required. A high-level description of the synthetic data to be generated.
+   * Required. A general description of the type of synthetic data you want to
+   * generate. For example, "Generate customer reviews for a new smartphone."
    *
    * @var string
    */
   public $taskDescription;
 
   /**
-   * Required. A high-level description of the synthetic data to be generated.
+   * Required. A general description of the type of synthetic data you want to
+   * generate. For example, "Generate customer reviews for a new smartphone."
    *
    * @param string $taskDescription
    */

@@ -20,23 +20,15 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2beta1IntentMessageImage extends \Google\Model
 {
   /**
-   * A text description of the image to be used for accessibility, e.g., screen
-   * readers. Required if image_uri is set for CarouselSelect.
-   *
    * @var string
    */
   public $accessibilityText;
   /**
-   * Optional. The public URI to an image file.
-   *
    * @var string
    */
   public $imageUri;
 
   /**
-   * A text description of the image to be used for accessibility, e.g., screen
-   * readers. Required if image_uri is set for CarouselSelect.
-   *
    * @param string $accessibilityText
    */
   public function setAccessibilityText($accessibilityText)
@@ -51,8 +43,6 @@ class GoogleCloudDialogflowV2beta1IntentMessageImage extends \Google\Model
     return $this->accessibilityText;
   }
   /**
-   * Optional. The public URI to an image file.
-   *
    * @param string $imageUri
    */
   public function setImageUri($imageUri)

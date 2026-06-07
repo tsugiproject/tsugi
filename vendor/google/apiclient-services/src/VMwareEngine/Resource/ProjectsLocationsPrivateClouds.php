@@ -21,6 +21,7 @@ use Google\Service\VMwareEngine\AcceleratePrivateCloudDeletionRequest;
 use Google\Service\VMwareEngine\Credentials;
 use Google\Service\VMwareEngine\DnsForwarding;
 use Google\Service\VMwareEngine\ListPrivateCloudsResponse;
+use Google\Service\VMwareEngine\MigrateManagementVmsRequest;
 use Google\Service\VMwareEngine\Operation;
 use Google\Service\VMwareEngine\Policy;
 use Google\Service\VMwareEngine\PrivateCloud;
@@ -66,8 +67,9 @@ class ProjectsLocationsPrivateClouds extends \Google\Service\Resource
    * @opt_param string requestId Optional. The request ID must be a valid UUID
    * with the exception that zero UUID is not supported
    * (00000000-0000-0000-0000-000000000000).
-   * @opt_param bool validateOnly Optional. True if you want the request to be
-   * validated and not executed; false otherwise.
+   * @opt_param bool validateOnly Optional. If set to `true`, only validates the
+   * request but doesn’t execute the request. If set to `false`, validates and
+   * executes the request.
    * @return Operation
    * @throws \Google\Service\Exception
    */
@@ -235,6 +237,27 @@ class ProjectsLocationsPrivateClouds extends \Google\Service\Resource
     return $this->call('list', [$params], ListPrivateCloudsResponse::class);
   }
   /**
+   * Migrates the management VMs of the PC from the current management cluster to
+   * a workload cluster. Post this migration, the provided workload cluster
+   * becomes the management cluster (privateClouds.migrateManagementVms)
+   *
+   * @param string $name Required. The resource name of the private cloud whose
+   * management vms are getting migrated. Resource names are schemeless URIs that
+   * follow the conventions in
+   * https://cloud.google.com/apis/design/resource_names. For example:
+   * `projects/my-project/locations/us-central1-a/privateClouds/my-cloud`
+   * @param MigrateManagementVmsRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function migrateManagementVms($name, MigrateManagementVmsRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('migrateManagementVms', [$params], Operation::class);
+  }
+  /**
    * Modifies a `PrivateCloud` resource. Only the following fields can be updated:
    * `description`. Only fields specified in `updateMask` are applied. During
    * operation processing, the resource is temporarily in the `ACTIVE` state
@@ -257,6 +280,9 @@ class ProjectsLocationsPrivateClouds extends \Google\Service\Resource
    * fields specified in `updateMask` are relative to the resource, not the full
    * request. A field will be overwritten if it is in the mask. If the user does
    * not provide a mask then all fields will be overwritten.
+   * @opt_param bool validateOnly Optional. If set to `true`, only validates the
+   * request but doesn’t execute the request. If set to `false`, validates and
+   * executes the request.
    * @return Operation
    * @throws \Google\Service\Exception
    */

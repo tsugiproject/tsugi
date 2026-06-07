@@ -23,17 +23,11 @@ class GoogleCloudDialogflowCxV3ListFlowsResponse extends \Google\Collection
   protected $flowsType = GoogleCloudDialogflowCxV3Flow::class;
   protected $flowsDataType = 'array';
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * The list of flows. There will be a maximum number of items returned based
-   * on the page_size field in the request.
-   *
    * @param GoogleCloudDialogflowCxV3Flow[] $flows
    */
   public function setFlows($flows)
@@ -48,9 +42,6 @@ class GoogleCloudDialogflowCxV3ListFlowsResponse extends \Google\Collection
     return $this->flows;
   }
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)

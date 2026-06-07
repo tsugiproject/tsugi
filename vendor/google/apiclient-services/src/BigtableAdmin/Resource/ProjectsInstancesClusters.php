@@ -20,6 +20,7 @@ namespace Google\Service\BigtableAdmin\Resource;
 use Google\Service\BigtableAdmin\BigtableadminEmpty;
 use Google\Service\BigtableAdmin\Cluster;
 use Google\Service\BigtableAdmin\ListClustersResponse;
+use Google\Service\BigtableAdmin\MemoryLayer;
 use Google\Service\BigtableAdmin\Operation;
 
 /**
@@ -88,6 +89,23 @@ class ProjectsInstancesClusters extends \Google\Service\Resource
     $params = ['name' => $name];
     $params = array_merge($params, $optParams);
     return $this->call('get', [$params], Cluster::class);
+  }
+  /**
+   * Gets information about the memory layer of a cluster.
+   * (clusters.getMemoryLayer)
+   *
+   * @param string $name Required. The unique name of the requested cluster's
+   * memory layer. Values are of the form
+   * `projects/{project}/instances/{instance}/clusters/{cluster}/memoryLayer`.
+   * @param array $optParams Optional parameters.
+   * @return MemoryLayer
+   * @throws \Google\Service\Exception
+   */
+  public function getMemoryLayer($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('getMemoryLayer', [$params], MemoryLayer::class);
   }
   /**
    * Lists information about clusters in an instance.

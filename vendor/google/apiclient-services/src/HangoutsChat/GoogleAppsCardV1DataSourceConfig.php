@@ -19,11 +19,35 @@ namespace Google\Service\HangoutsChat;
 
 class GoogleAppsCardV1DataSourceConfig extends \Google\Model
 {
+  /**
+   * The minimum number of characters the user must enter before this data
+   * provider is triggered (i.e., before it starts returning results).
+   *
+   * @var int
+   */
+  public $minCharactersTrigger;
   protected $platformDataSourceType = GoogleAppsCardV1PlatformDataSource::class;
   protected $platformDataSourceDataType = '';
   protected $remoteDataSourceType = GoogleAppsCardV1Action::class;
   protected $remoteDataSourceDataType = '';
 
+  /**
+   * The minimum number of characters the user must enter before this data
+   * provider is triggered (i.e., before it starts returning results).
+   *
+   * @param int $minCharactersTrigger
+   */
+  public function setMinCharactersTrigger($minCharactersTrigger)
+  {
+    $this->minCharactersTrigger = $minCharactersTrigger;
+  }
+  /**
+   * @return int
+   */
+  public function getMinCharactersTrigger()
+  {
+    return $this->minCharactersTrigger;
+  }
   /**
    * The data is from a Google Workspace application.
    *

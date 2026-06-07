@@ -20,22 +20,15 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2ExportAgentResponse extends \Google\Model
 {
   /**
-   * Zip compressed raw byte content for agent.
-   *
    * @var string
    */
   public $agentContent;
   /**
-   * The URI to a file containing the exported agent. This field is populated
-   * only if `agent_uri` is specified in `ExportAgentRequest`.
-   *
    * @var string
    */
   public $agentUri;
 
   /**
-   * Zip compressed raw byte content for agent.
-   *
    * @param string $agentContent
    */
   public function setAgentContent($agentContent)
@@ -50,9 +43,6 @@ class GoogleCloudDialogflowV2ExportAgentResponse extends \Google\Model
     return $this->agentContent;
   }
   /**
-   * The URI to a file containing the exported agent. This field is populated
-   * only if `agent_uri` is specified in `ExportAgentRequest`.
-   *
    * @param string $agentUri
    */
   public function setAgentUri($agentUri)

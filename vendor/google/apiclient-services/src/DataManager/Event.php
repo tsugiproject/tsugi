@@ -40,6 +40,10 @@ class Event extends \Google\Collection
    */
   public const EVENT_SOURCE_PHONE = 'PHONE';
   /**
+   * The event was generated from a message.
+   */
+  public const EVENT_SOURCE_MESSAGE = 'MESSAGE';
+  /**
    * The event was generated from other sources.
    */
   public const EVENT_SOURCE_OTHER = 'OTHER';
@@ -48,6 +52,13 @@ class Event extends \Google\Collection
   protected $adIdentifiersDataType = '';
   protected $additionalEventParametersType = EventParameter::class;
   protected $additionalEventParametersDataType = 'array';
+  /**
+   * Optional. A unique identifier for the user instance of an app client for
+   * this GA4 app stream.
+   *
+   * @var string
+   */
+  public $appInstanceId;
   protected $cartDataType = CartData::class;
   protected $cartDataDataType = '';
   /**
@@ -84,6 +95,8 @@ class Event extends \Google\Collection
   public $destinationReferences;
   protected $eventDeviceInfoType = DeviceInfo::class;
   protected $eventDeviceInfoDataType = '';
+  protected $eventLocationType = EventLocation::class;
+  protected $eventLocationDataType = '';
   /**
    * Optional. The name of the event. Required for GA4 events.
    *
@@ -110,9 +123,11 @@ class Event extends \Google\Collection
    * @var string
    */
   public $lastUpdatedTimestamp;
+  protected $thirdPartyUserDataType = UserData::class;
+  protected $thirdPartyUserDataDataType = '';
   /**
-   * Optional. The unique identifier for this event. Required for conversions
-   * using multiple data sources.
+   * Optional. The unique identifier for this event. Required for events sent as
+   * an additional data source for tag conversions.
    *
    * @var string
    */
@@ -163,6 +178,23 @@ class Event extends \Google\Collection
   public function getAdditionalEventParameters()
   {
     return $this->additionalEventParameters;
+  }
+  /**
+   * Optional. A unique identifier for the user instance of an app client for
+   * this GA4 app stream.
+   *
+   * @param string $appInstanceId
+   */
+  public function setAppInstanceId($appInstanceId)
+  {
+    $this->appInstanceId = $appInstanceId;
+  }
+  /**
+   * @return string
+   */
+  public function getAppInstanceId()
+  {
+    return $this->appInstanceId;
   }
   /**
    * Optional. Information about the transaction and items associated with the
@@ -292,6 +324,23 @@ class Event extends \Google\Collection
     return $this->eventDeviceInfo;
   }
   /**
+   * Optional. Information gathered about the location of the user when this
+   * event occurred.
+   *
+   * @param EventLocation $eventLocation
+   */
+  public function setEventLocation(EventLocation $eventLocation)
+  {
+    $this->eventLocation = $eventLocation;
+  }
+  /**
+   * @return EventLocation
+   */
+  public function getEventLocation()
+  {
+    return $this->eventLocation;
+  }
+  /**
    * Optional. The name of the event. Required for GA4 events.
    *
    * @param string $eventName
@@ -310,7 +359,8 @@ class Event extends \Google\Collection
   /**
    * Optional. Signal for where the event happened (web, app, in-store, etc.).
    *
-   * Accepted values: EVENT_SOURCE_UNSPECIFIED, WEB, APP, IN_STORE, PHONE, OTHER
+   * Accepted values: EVENT_SOURCE_UNSPECIFIED, WEB, APP, IN_STORE, PHONE,
+   * MESSAGE, OTHER
    *
    * @param self::EVENT_SOURCE_* $eventSource
    */
@@ -375,8 +425,26 @@ class Event extends \Google\Collection
     return $this->lastUpdatedTimestamp;
   }
   /**
-   * Optional. The unique identifier for this event. Required for conversions
-   * using multiple data sources.
+   * Optional. The same type of data provided in user_data, but explicitly
+   * flagged as being provided as owned by a third-party and not first-party
+   * advertiser data.
+   *
+   * @param UserData $thirdPartyUserData
+   */
+  public function setThirdPartyUserData(UserData $thirdPartyUserData)
+  {
+    $this->thirdPartyUserData = $thirdPartyUserData;
+  }
+  /**
+   * @return UserData
+   */
+  public function getThirdPartyUserData()
+  {
+    return $this->thirdPartyUserData;
+  }
+  /**
+   * Optional. The unique identifier for this event. Required for events sent as
+   * an additional data source for tag conversions.
    *
    * @param string $transactionId
    */

@@ -37,6 +37,10 @@ class LiveChatMessageSnippet extends \Google\Model
   public const TYPE_superStickerEvent = 'superStickerEvent';
   public const TYPE_pollEvent = 'pollEvent';
   /**
+   * A virtual gift sent by a viewer to support a creator.
+   */
+  public const TYPE_giftEvent = 'giftEvent';
+  /**
    * The ID of the user that authored this message, this field is not always
    * filled. textMessageEvent - the user that wrote the message fanFundingEvent
    * - the user that funded the broadcast newSponsorEvent - the user that just
@@ -62,6 +66,8 @@ class LiveChatMessageSnippet extends \Google\Model
   public $displayMessage;
   protected $fanFundingEventDetailsType = LiveChatFanFundingEventDetails::class;
   protected $fanFundingEventDetailsDataType = '';
+  protected $giftDetailsType = LiveChatGiftDetails::class;
+  protected $giftDetailsDataType = '';
   protected $giftMembershipReceivedDetailsType = LiveChatGiftMembershipReceivedDetails::class;
   protected $giftMembershipReceivedDetailsDataType = '';
   /**
@@ -170,6 +176,22 @@ class LiveChatMessageSnippet extends \Google\Model
   public function getFanFundingEventDetails()
   {
     return $this->fanFundingEventDetails;
+  }
+  /**
+   * Details about the gift event, this is only set if the type is 'giftEvent'.
+   *
+   * @param LiveChatGiftDetails $giftDetails
+   */
+  public function setGiftDetails(LiveChatGiftDetails $giftDetails)
+  {
+    $this->giftDetails = $giftDetails;
+  }
+  /**
+   * @return LiveChatGiftDetails
+   */
+  public function getGiftDetails()
+  {
+    return $this->giftDetails;
   }
   /**
    * Details about the Gift Membership Received event, this is only set if the
@@ -389,7 +411,7 @@ class LiveChatMessageSnippet extends \Google\Model
    * chatEndedEvent, sponsorOnlyModeStartedEvent, sponsorOnlyModeEndedEvent,
    * newSponsorEvent, memberMilestoneChatEvent, membershipGiftingEvent,
    * giftMembershipReceivedEvent, messageDeletedEvent, messageRetractedEvent,
-   * userBannedEvent, superChatEvent, superStickerEvent, pollEvent
+   * userBannedEvent, superChatEvent, superStickerEvent, pollEvent, giftEvent
    *
    * @param self::TYPE_* $type
    */

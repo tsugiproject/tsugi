@@ -21,9 +21,6 @@ class GoogleCloudDialogflowCxV3TransitionRouteGroupCoverageCoverage extends \Goo
 {
   protected $collection_key = 'transitions';
   /**
-   * The percent of transition routes in the transition route group that are
-   * covered.
-   *
    * @var float
    */
   public $coverageScore;
@@ -33,9 +30,6 @@ class GoogleCloudDialogflowCxV3TransitionRouteGroupCoverageCoverage extends \Goo
   protected $transitionsDataType = 'array';
 
   /**
-   * The percent of transition routes in the transition route group that are
-   * covered.
-   *
    * @param float $coverageScore
    */
   public function setCoverageScore($coverageScore)
@@ -50,8 +44,6 @@ class GoogleCloudDialogflowCxV3TransitionRouteGroupCoverageCoverage extends \Goo
     return $this->coverageScore;
   }
   /**
-   * Transition route group metadata. Only name and displayName will be set.
-   *
    * @param GoogleCloudDialogflowCxV3TransitionRouteGroup $routeGroup
    */
   public function setRouteGroup(GoogleCloudDialogflowCxV3TransitionRouteGroup $routeGroup)
@@ -66,8 +58,6 @@ class GoogleCloudDialogflowCxV3TransitionRouteGroupCoverageCoverage extends \Goo
     return $this->routeGroup;
   }
   /**
-   * The list of transition routes and coverage in the transition route group.
-   *
    * @param GoogleCloudDialogflowCxV3TransitionRouteGroupCoverageCoverageTransition[] $transitions
    */
   public function setTransitions($transitions)

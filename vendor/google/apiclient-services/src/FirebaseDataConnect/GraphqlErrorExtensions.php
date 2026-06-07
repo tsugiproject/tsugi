@@ -177,7 +177,7 @@ class GraphqlErrorExtensions extends \Google\Collection
   /**
    * More detailed error message to assist debugging. It contains application
    * business logic that are inappropriate to leak publicly. In the emulator,
-   * Data Connect API always includes it to assist local development and
+   * SQL Connect API always includes it to assist local development and
    * debugging. In the backend, ConnectorService always hides it. GraphqlService
    * without impersonation always include it. GraphqlService with impersonation
    * includes it only if explicitly opted-in with `include_debug_details` in
@@ -229,7 +229,7 @@ class GraphqlErrorExtensions extends \Google\Collection
   /**
    * More detailed error message to assist debugging. It contains application
    * business logic that are inappropriate to leak publicly. In the emulator,
-   * Data Connect API always includes it to assist local development and
+   * SQL Connect API always includes it to assist local development and
    * debugging. In the backend, ConnectorService always hides it. GraphqlService
    * without impersonation always include it. GraphqlService with impersonation
    * includes it only if explicitly opted-in with `include_debug_details` in

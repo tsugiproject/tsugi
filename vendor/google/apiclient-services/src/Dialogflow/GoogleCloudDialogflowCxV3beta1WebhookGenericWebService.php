@@ -19,128 +19,50 @@ namespace Google\Service\Dialogflow;
 
 class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Collection
 {
-  /**
-   * HTTP method not specified.
-   */
   public const HTTP_METHOD_HTTP_METHOD_UNSPECIFIED = 'HTTP_METHOD_UNSPECIFIED';
-  /**
-   * HTTP POST Method.
-   */
   public const HTTP_METHOD_POST = 'POST';
-  /**
-   * HTTP GET Method.
-   */
   public const HTTP_METHOD_GET = 'GET';
-  /**
-   * HTTP HEAD Method.
-   */
   public const HTTP_METHOD_HEAD = 'HEAD';
-  /**
-   * HTTP PUT Method.
-   */
   public const HTTP_METHOD_PUT = 'PUT';
-  /**
-   * HTTP DELETE Method.
-   */
   public const HTTP_METHOD_DELETE = 'DELETE';
-  /**
-   * HTTP PATCH Method.
-   */
   public const HTTP_METHOD_PATCH = 'PATCH';
-  /**
-   * HTTP OPTIONS Method.
-   */
   public const HTTP_METHOD_OPTIONS = 'OPTIONS';
-  /**
-   * Service agent auth type unspecified. Default to ID_TOKEN.
-   */
   public const SERVICE_AGENT_AUTH_SERVICE_AGENT_AUTH_UNSPECIFIED = 'SERVICE_AGENT_AUTH_UNSPECIFIED';
-  /**
-   * No token used.
-   */
   public const SERVICE_AGENT_AUTH_NONE = 'NONE';
-  /**
-   * Use [ID token](https://cloud.google.com/docs/authentication/token-types#id)
-   * generated from service agent. This can be used to access Cloud Function and
-   * Cloud Run after you grant Invoker role to `service-@gcp-sa-
-   * dialogflow.iam.gserviceaccount.com`.
-   */
   public const SERVICE_AGENT_AUTH_ID_TOKEN = 'ID_TOKEN';
-  /**
-   * Use [access token](https://cloud.google.com/docs/authentication/token-
-   * types#access) generated from service agent. This can be used to access
-   * other Google Cloud APIs after you grant required roles to `service-@gcp-sa-
-   * dialogflow.iam.gserviceaccount.com`.
-   */
   public const SERVICE_AGENT_AUTH_ACCESS_TOKEN = 'ACCESS_TOKEN';
-  /**
-   * Default value. This value is unused.
-   */
   public const WEBHOOK_TYPE_WEBHOOK_TYPE_UNSPECIFIED = 'WEBHOOK_TYPE_UNSPECIFIED';
-  /**
-   * Represents a standard webhook.
-   */
   public const WEBHOOK_TYPE_STANDARD = 'STANDARD';
-  /**
-   * Represents a flexible webhook.
-   */
   public const WEBHOOK_TYPE_FLEXIBLE = 'FLEXIBLE';
   protected $collection_key = 'allowedCaCerts';
   /**
-   * Optional. Specifies a list of allowed custom CA certificates (in DER
-   * format) for HTTPS verification. This overrides the default SSL trust store.
-   * If this is empty or unspecified, Dialogflow will use Google's default trust
-   * store to verify certificates. N.B. Make sure the HTTPS server certificates
-   * are signed with "subject alt name". For instance a certificate can be self-
-   * signed using the following command, ``` openssl x509 -req -days 200 -in
-   * example.com.csr \ -signkey example.com.key \ -out example.com.crt \
-   * -extfile <(printf "\nsubjectAltName='DNS:www.example.com'") ```
-   *
    * @var string[]
    */
   public $allowedCaCerts;
   /**
-   * Optional. HTTP method for the flexible webhook calls. Standard webhook
-   * always uses POST.
-   *
    * @var string
    */
   public $httpMethod;
   protected $oauthConfigType = GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceOAuthConfig::class;
   protected $oauthConfigDataType = '';
   /**
-   * Optional. Maps the values extracted from specific fields of the flexible
-   * webhook response into session parameters. - Key: session parameter name -
-   * Value: field path in the webhook response
-   *
    * @var string[]
    */
   public $parameterMapping;
   /**
-   * The password for HTTP Basic authentication.
-   *
    * @deprecated
    * @var string
    */
   public $password;
   /**
-   * Optional. Defines a custom JSON object as request body to send to flexible
-   * webhook.
-   *
    * @var string
    */
   public $requestBody;
   /**
-   * The HTTP request headers to send together with webhook requests.
-   *
    * @var string[]
    */
   public $requestHeaders;
   /**
-   * Optional. The SecretManager secret version resource storing the
-   * username:password pair for HTTP Basic authentication. Format:
-   * `projects/{project}/secrets/{secret}/versions/{version}`
-   *
    * @var string
    */
   public $secretVersionForUsernamePassword;
@@ -149,44 +71,24 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
   protected $serviceAccountAuthConfigType = GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceServiceAccountAuthConfig::class;
   protected $serviceAccountAuthConfigDataType = '';
   /**
-   * Optional. Indicate the auth token type generated from the [Diglogflow
-   * service agent](https://cloud.google.com/iam/docs/service-agents#dialogflow-
-   * service-agent). The generated token is sent in the Authorization header.
-   *
    * @var string
    */
   public $serviceAgentAuth;
   /**
-   * Required. The webhook URI for receiving POST requests. It must use https
-   * protocol.
-   *
    * @var string
    */
   public $uri;
   /**
-   * The user name for HTTP Basic authentication.
-   *
    * @deprecated
    * @var string
    */
   public $username;
   /**
-   * Optional. Type of the webhook.
-   *
    * @var string
    */
   public $webhookType;
 
   /**
-   * Optional. Specifies a list of allowed custom CA certificates (in DER
-   * format) for HTTPS verification. This overrides the default SSL trust store.
-   * If this is empty or unspecified, Dialogflow will use Google's default trust
-   * store to verify certificates. N.B. Make sure the HTTPS server certificates
-   * are signed with "subject alt name". For instance a certificate can be self-
-   * signed using the following command, ``` openssl x509 -req -days 200 -in
-   * example.com.csr \ -signkey example.com.key \ -out example.com.crt \
-   * -extfile <(printf "\nsubjectAltName='DNS:www.example.com'") ```
-   *
    * @param string[] $allowedCaCerts
    */
   public function setAllowedCaCerts($allowedCaCerts)
@@ -201,12 +103,6 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
     return $this->allowedCaCerts;
   }
   /**
-   * Optional. HTTP method for the flexible webhook calls. Standard webhook
-   * always uses POST.
-   *
-   * Accepted values: HTTP_METHOD_UNSPECIFIED, POST, GET, HEAD, PUT, DELETE,
-   * PATCH, OPTIONS
-   *
    * @param self::HTTP_METHOD_* $httpMethod
    */
   public function setHttpMethod($httpMethod)
@@ -221,10 +117,6 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
     return $this->httpMethod;
   }
   /**
-   * Optional. The OAuth configuration of the webhook. If specified, Dialogflow
-   * will initiate the OAuth client credential flow to exchange an access token
-   * from the 3rd party platform and put it in the auth header.
-   *
    * @param GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceOAuthConfig $oauthConfig
    */
   public function setOauthConfig(GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceOAuthConfig $oauthConfig)
@@ -239,10 +131,6 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
     return $this->oauthConfig;
   }
   /**
-   * Optional. Maps the values extracted from specific fields of the flexible
-   * webhook response into session parameters. - Key: session parameter name -
-   * Value: field path in the webhook response
-   *
    * @param string[] $parameterMapping
    */
   public function setParameterMapping($parameterMapping)
@@ -257,8 +145,6 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
     return $this->parameterMapping;
   }
   /**
-   * The password for HTTP Basic authentication.
-   *
    * @deprecated
    * @param string $password
    */
@@ -275,9 +161,6 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
     return $this->password;
   }
   /**
-   * Optional. Defines a custom JSON object as request body to send to flexible
-   * webhook.
-   *
    * @param string $requestBody
    */
   public function setRequestBody($requestBody)
@@ -292,8 +175,6 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
     return $this->requestBody;
   }
   /**
-   * The HTTP request headers to send together with webhook requests.
-   *
    * @param string[] $requestHeaders
    */
   public function setRequestHeaders($requestHeaders)
@@ -308,10 +189,6 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
     return $this->requestHeaders;
   }
   /**
-   * Optional. The SecretManager secret version resource storing the
-   * username:password pair for HTTP Basic authentication. Format:
-   * `projects/{project}/secrets/{secret}/versions/{version}`
-   *
    * @param string $secretVersionForUsernamePassword
    */
   public function setSecretVersionForUsernamePassword($secretVersionForUsernamePassword)
@@ -326,12 +203,6 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
     return $this->secretVersionForUsernamePassword;
   }
   /**
-   * Optional. The HTTP request headers to send together with webhook requests.
-   * Header values are stored in SecretManager secret versions. When the same
-   * header name is specified in both `request_headers` and
-   * `secret_versions_for_request_headers`, the value in
-   * `secret_versions_for_request_headers` will be used.
-   *
    * @param GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceSecretVersionHeaderValue[] $secretVersionsForRequestHeaders
    */
   public function setSecretVersionsForRequestHeaders($secretVersionsForRequestHeaders)
@@ -346,8 +217,6 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
     return $this->secretVersionsForRequestHeaders;
   }
   /**
-   * Optional. Configuration for service account authentication.
-   *
    * @param GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceServiceAccountAuthConfig $serviceAccountAuthConfig
    */
   public function setServiceAccountAuthConfig(GoogleCloudDialogflowCxV3beta1WebhookGenericWebServiceServiceAccountAuthConfig $serviceAccountAuthConfig)
@@ -362,13 +231,6 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
     return $this->serviceAccountAuthConfig;
   }
   /**
-   * Optional. Indicate the auth token type generated from the [Diglogflow
-   * service agent](https://cloud.google.com/iam/docs/service-agents#dialogflow-
-   * service-agent). The generated token is sent in the Authorization header.
-   *
-   * Accepted values: SERVICE_AGENT_AUTH_UNSPECIFIED, NONE, ID_TOKEN,
-   * ACCESS_TOKEN
-   *
    * @param self::SERVICE_AGENT_AUTH_* $serviceAgentAuth
    */
   public function setServiceAgentAuth($serviceAgentAuth)
@@ -383,9 +245,6 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
     return $this->serviceAgentAuth;
   }
   /**
-   * Required. The webhook URI for receiving POST requests. It must use https
-   * protocol.
-   *
    * @param string $uri
    */
   public function setUri($uri)
@@ -400,8 +259,6 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
     return $this->uri;
   }
   /**
-   * The user name for HTTP Basic authentication.
-   *
    * @deprecated
    * @param string $username
    */
@@ -418,10 +275,6 @@ class GoogleCloudDialogflowCxV3beta1WebhookGenericWebService extends \Google\Col
     return $this->username;
   }
   /**
-   * Optional. Type of the webhook.
-   *
-   * Accepted values: WEBHOOK_TYPE_UNSPECIFIED, STANDARD, FLEXIBLE
-   *
    * @param self::WEBHOOK_TYPE_* $webhookType
    */
   public function setWebhookType($webhookType)

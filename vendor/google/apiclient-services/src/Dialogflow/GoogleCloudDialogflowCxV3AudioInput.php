@@ -20,13 +20,6 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3AudioInput extends \Google\Model
 {
   /**
-   * The natural language speech audio to be processed. A single request can
-   * contain up to 2 minutes of speech audio data. The transcribed text cannot
-   * contain more than 256 bytes. For non-streaming audio detect intent, both
-   * `config` and `audio` must be provided. For streaming audio detect intent,
-   * `config` must be provided in the first request and `audio` must be provided
-   * in all following requests.
-   *
    * @var string
    */
   public $audio;
@@ -34,13 +27,6 @@ class GoogleCloudDialogflowCxV3AudioInput extends \Google\Model
   protected $configDataType = '';
 
   /**
-   * The natural language speech audio to be processed. A single request can
-   * contain up to 2 minutes of speech audio data. The transcribed text cannot
-   * contain more than 256 bytes. For non-streaming audio detect intent, both
-   * `config` and `audio` must be provided. For streaming audio detect intent,
-   * `config` must be provided in the first request and `audio` must be provided
-   * in all following requests.
-   *
    * @param string $audio
    */
   public function setAudio($audio)
@@ -55,8 +41,6 @@ class GoogleCloudDialogflowCxV3AudioInput extends \Google\Model
     return $this->audio;
   }
   /**
-   * Required. Instructs the speech recognizer how to process the speech audio.
-   *
    * @param GoogleCloudDialogflowCxV3InputAudioConfig $config
    */
   public function setConfig(GoogleCloudDialogflowCxV3InputAudioConfig $config)

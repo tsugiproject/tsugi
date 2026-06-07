@@ -19,6 +19,8 @@ namespace Google\Service\Aiplatform;
 
 class GoogleCloudAiplatformV1SupervisedTuningSpec extends \Google\Model
 {
+  protected $evaluationConfigType = GoogleCloudAiplatformV1EvaluationConfig::class;
+  protected $evaluationConfigDataType = '';
   /**
    * Optional. If set to true, disable intermediate checkpoints for SFT and only
    * the last checkpoint will be exported. Otherwise, enable intermediate
@@ -46,6 +48,22 @@ class GoogleCloudAiplatformV1SupervisedTuningSpec extends \Google\Model
    */
   public $validationDatasetUri;
 
+  /**
+   * Optional. Evaluation Config for Tuning Job.
+   *
+   * @param GoogleCloudAiplatformV1EvaluationConfig $evaluationConfig
+   */
+  public function setEvaluationConfig(GoogleCloudAiplatformV1EvaluationConfig $evaluationConfig)
+  {
+    $this->evaluationConfig = $evaluationConfig;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1EvaluationConfig
+   */
+  public function getEvaluationConfig()
+  {
+    return $this->evaluationConfig;
+  }
   /**
    * Optional. If set to true, disable intermediate checkpoints for SFT and only
    * the last checkpoint will be exported. Otherwise, enable intermediate

@@ -31,6 +31,10 @@ class GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotation extends \Google\
   protected $answerFeedbackDataType = '';
   protected $articleSuggestionType = GoogleCloudContactcenterinsightsV1alpha1ArticleSuggestionData::class;
   protected $articleSuggestionDataType = '';
+  protected $cesEndSessionAnnotationType = GoogleCloudContactcenterinsightsV1alpha1CesEndSessionAnnotation::class;
+  protected $cesEndSessionAnnotationDataType = '';
+  protected $cesTurnAnnotationType = GoogleCloudContactcenterinsightsV1alpha1CesTurnAnnotation::class;
+  protected $cesTurnAnnotationDataType = '';
   protected $conversationSummarizationSuggestionType = GoogleCloudContactcenterinsightsV1alpha1ConversationSummarizationSuggestionData::class;
   protected $conversationSummarizationSuggestionDataType = '';
   /**
@@ -103,6 +107,38 @@ class GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotation extends \Google\
   public function getArticleSuggestion()
   {
     return $this->articleSuggestion;
+  }
+  /**
+   * The CES end session annotation.
+   *
+   * @param GoogleCloudContactcenterinsightsV1alpha1CesEndSessionAnnotation $cesEndSessionAnnotation
+   */
+  public function setCesEndSessionAnnotation(GoogleCloudContactcenterinsightsV1alpha1CesEndSessionAnnotation $cesEndSessionAnnotation)
+  {
+    $this->cesEndSessionAnnotation = $cesEndSessionAnnotation;
+  }
+  /**
+   * @return GoogleCloudContactcenterinsightsV1alpha1CesEndSessionAnnotation
+   */
+  public function getCesEndSessionAnnotation()
+  {
+    return $this->cesEndSessionAnnotation;
+  }
+  /**
+   * The CES turn annotation.
+   *
+   * @param GoogleCloudContactcenterinsightsV1alpha1CesTurnAnnotation $cesTurnAnnotation
+   */
+  public function setCesTurnAnnotation(GoogleCloudContactcenterinsightsV1alpha1CesTurnAnnotation $cesTurnAnnotation)
+  {
+    $this->cesTurnAnnotation = $cesTurnAnnotation;
+  }
+  /**
+   * @return GoogleCloudContactcenterinsightsV1alpha1CesTurnAnnotation
+   */
+  public function getCesTurnAnnotation()
+  {
+    return $this->cesTurnAnnotation;
   }
   /**
    * Conversation summarization suggestion data.

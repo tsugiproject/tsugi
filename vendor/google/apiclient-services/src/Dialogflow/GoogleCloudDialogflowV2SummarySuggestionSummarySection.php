@@ -20,21 +20,15 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2SummarySuggestionSummarySection extends \Google\Model
 {
   /**
-   * Required. Name of the section.
-   *
    * @var string
    */
   public $section;
   /**
-   * Required. Summary text for the section.
-   *
    * @var string
    */
   public $summary;
 
   /**
-   * Required. Name of the section.
-   *
    * @param string $section
    */
   public function setSection($section)
@@ -49,8 +43,6 @@ class GoogleCloudDialogflowV2SummarySuggestionSummarySection extends \Google\Mod
     return $this->section;
   }
   /**
-   * Required. Summary text for the section.
-   *
    * @param string $summary
    */
   public function setSummary($summary)

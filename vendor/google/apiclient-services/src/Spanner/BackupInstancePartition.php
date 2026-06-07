@@ -20,16 +20,18 @@ namespace Google\Service\Spanner;
 class BackupInstancePartition extends \Google\Model
 {
   /**
-   * A unique identifier for the instance partition. Values are of the form
-   * `projects//instances//instancePartitions/`
+   * A unique identifier for the instance partition. Values are of the form `pro
+   * jects/{project}/instances/{instance}/instancePartitions/{instance_partition
+   * _id}`
    *
    * @var string
    */
   public $instancePartition;
 
   /**
-   * A unique identifier for the instance partition. Values are of the form
-   * `projects//instances//instancePartitions/`
+   * A unique identifier for the instance partition. Values are of the form `pro
+   * jects/{project}/instances/{instance}/instancePartitions/{instance_partition
+   * _id}`
    *
    * @param string $instancePartition
    */

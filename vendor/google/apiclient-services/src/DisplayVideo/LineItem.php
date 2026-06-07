@@ -172,6 +172,11 @@ class LineItem extends \Google\Collection
    */
   public const LINE_ITEM_TYPE_LINE_ITEM_TYPE_VIDEO_OUT_OF_HOME = 'LINE_ITEM_TYPE_VIDEO_OUT_OF_HOME';
   /**
+   * Demand Gen ads. Retrieval and management of Demand Gen resources is
+   * currently in beta. This enum value is only available to allowlisted users.
+   */
+  public const LINE_ITEM_TYPE_LINE_ITEM_TYPE_DEMAND_GEN = 'LINE_ITEM_TYPE_DEMAND_GEN';
+  /**
    * Reservation type value is not specified or is unknown in this version.
    */
   public const RESERVATION_TYPE_RESERVATION_TYPE_UNSPECIFIED = 'RESERVATION_TYPE_UNSPECIFIED';
@@ -235,6 +240,8 @@ class LineItem extends \Google\Collection
    * @var string[]
    */
   public $creativeIds;
+  protected $demandGenSettingsType = DemandGenSettings::class;
+  protected $demandGenSettingsDataType = '';
   /**
    * Required. The display name of the line item. Must be UTF-8 encoded with a
    * maximum size of 240 bytes.
@@ -294,6 +301,18 @@ class LineItem extends \Google\Collection
    * @var string
    */
   public $name;
+  /**
+   * Optional. Whether to enable DV360's bid optimization for fixed bid line
+   * items. By default, DV360 optimizes your fixed bid by automatically lowering
+   * bids for impressions that are less likely to perform well. This
+   * optimization is enabled by default (value is true). When this field is set
+   * to `false`, this optimization is disabled, and the bid will not be lowered
+   * for any reason. This setting only applies to line items with a
+   * `bidding_strategy` of type `FIXED_BID`.
+   *
+   * @var bool
+   */
+  public $optimizeFixedBidding;
   protected $pacingType = Pacing::class;
   protected $pacingDataType = '';
   protected $partnerCostsType = PartnerCost::class;
@@ -450,6 +469,24 @@ class LineItem extends \Google\Collection
     return $this->creativeIds;
   }
   /**
+   * Optional. Settings specific to Demand Gen line items. Only applicable to
+   * Demand Gen line items. Retrieval and management of Demand Gen resources is
+   * currently in beta. This field is only available to allowlisted users.
+   *
+   * @param DemandGenSettings $demandGenSettings
+   */
+  public function setDemandGenSettings(DemandGenSettings $demandGenSettings)
+  {
+    $this->demandGenSettings = $demandGenSettings;
+  }
+  /**
+   * @return DemandGenSettings
+   */
+  public function getDemandGenSettings()
+  {
+    return $this->demandGenSettings;
+  }
+  /**
    * Required. The display name of the line item. Must be UTF-8 encoded with a
    * maximum size of 240 bytes.
    *
@@ -526,9 +563,10 @@ class LineItem extends \Google\Collection
     return $this->flight;
   }
   /**
-   * Required. The impression frequency cap settings of the line item. The
-   * max_impressions field in this settings object must be used if assigning a
-   * limited cap.
+   * Optional. Required if the line item type is not
+   * `LINE_ITEM_TYPE_DEMAND_GEN`. The impression frequency cap settings of the
+   * line item. The max_impressions field in this settings object must be used
+   * if assigning a limited cap.
    *
    * @param FrequencyCap $frequencyCap
    */
@@ -612,7 +650,8 @@ class LineItem extends \Google\Collection
    * LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_SIMPLE_OVER_THE_TOP,
    * LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_TARGET_FREQUENCY,
    * LINE_ITEM_TYPE_YOUTUBE_AND_PARTNERS_VIEW,
-   * LINE_ITEM_TYPE_DISPLAY_OUT_OF_HOME, LINE_ITEM_TYPE_VIDEO_OUT_OF_HOME
+   * LINE_ITEM_TYPE_DISPLAY_OUT_OF_HOME, LINE_ITEM_TYPE_VIDEO_OUT_OF_HOME,
+   * LINE_ITEM_TYPE_DEMAND_GEN
    *
    * @param self::LINE_ITEM_TYPE_* $lineItemType
    */
@@ -660,6 +699,28 @@ class LineItem extends \Google\Collection
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * Optional. Whether to enable DV360's bid optimization for fixed bid line
+   * items. By default, DV360 optimizes your fixed bid by automatically lowering
+   * bids for impressions that are less likely to perform well. This
+   * optimization is enabled by default (value is true). When this field is set
+   * to `false`, this optimization is disabled, and the bid will not be lowered
+   * for any reason. This setting only applies to line items with a
+   * `bidding_strategy` of type `FIXED_BID`.
+   *
+   * @param bool $optimizeFixedBidding
+   */
+  public function setOptimizeFixedBidding($optimizeFixedBidding)
+  {
+    $this->optimizeFixedBidding = $optimizeFixedBidding;
+  }
+  /**
+   * @return bool
+   */
+  public function getOptimizeFixedBidding()
+  {
+    return $this->optimizeFixedBidding;
   }
   /**
    * Required. The budget spending speed setting of the line item.

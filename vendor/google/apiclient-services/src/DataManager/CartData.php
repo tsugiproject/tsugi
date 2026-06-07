@@ -20,6 +20,15 @@ namespace Google\Service\DataManager;
 class CartData extends \Google\Collection
 {
   protected $collection_key = 'items';
+  /**
+   * Optional. The list of coupon codes that were applied to the cart. Cart-
+   * level and item-level coupon codes are independent. If the event is for a
+   * Google Analytics destination, only provide a single coupon code. Google
+   * Analytics ignores additional coupon codes.
+   *
+   * @var string[]
+   */
+  public $couponCodes;
   protected $itemsType = Item::class;
   protected $itemsDataType = 'array';
   /**
@@ -49,6 +58,25 @@ class CartData extends \Google\Collection
    */
   public $transactionDiscount;
 
+  /**
+   * Optional. The list of coupon codes that were applied to the cart. Cart-
+   * level and item-level coupon codes are independent. If the event is for a
+   * Google Analytics destination, only provide a single coupon code. Google
+   * Analytics ignores additional coupon codes.
+   *
+   * @param string[] $couponCodes
+   */
+  public function setCouponCodes($couponCodes)
+  {
+    $this->couponCodes = $couponCodes;
+  }
+  /**
+   * @return string[]
+   */
+  public function getCouponCodes()
+  {
+    return $this->couponCodes;
+  }
   /**
    * Optional. The list of items associated with the event.
    *

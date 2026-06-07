@@ -19,19 +19,10 @@ namespace Google\Service\Dialogflow;
 
 class GoogleCloudDialogflowCxV3DetectIntentRequest extends \Google\Model
 {
-  /**
-   * Not specified. `FULL` will be used.
-   */
   public const RESPONSE_VIEW_DETECT_INTENT_RESPONSE_VIEW_UNSPECIFIED = 'DETECT_INTENT_RESPONSE_VIEW_UNSPECIFIED';
-  /**
-   * Full response view includes all fields.
-   */
   public const RESPONSE_VIEW_DETECT_INTENT_RESPONSE_VIEW_FULL = 'DETECT_INTENT_RESPONSE_VIEW_FULL';
-  /**
-   * Basic response view omits the following fields: -
-   * QueryResult.diagnostic_info
-   */
   public const RESPONSE_VIEW_DETECT_INTENT_RESPONSE_VIEW_BASIC = 'DETECT_INTENT_RESPONSE_VIEW_BASIC';
+  public const RESPONSE_VIEW_DETECT_INTENT_RESPONSE_VIEW_DEFAULT = 'DETECT_INTENT_RESPONSE_VIEW_DEFAULT';
   protected $outputAudioConfigType = GoogleCloudDialogflowCxV3OutputAudioConfig::class;
   protected $outputAudioConfigDataType = '';
   protected $queryInputType = GoogleCloudDialogflowCxV3QueryInput::class;
@@ -39,16 +30,11 @@ class GoogleCloudDialogflowCxV3DetectIntentRequest extends \Google\Model
   protected $queryParamsType = GoogleCloudDialogflowCxV3QueryParameters::class;
   protected $queryParamsDataType = '';
   /**
-   * Optional. Specifies which fields in the QueryResult to return. If not set,
-   * the default is DETECT_INTENT_RESPONSE_VIEW_FULL.
-   *
    * @var string
    */
   public $responseView;
 
   /**
-   * Instructs the speech synthesizer how to generate the output audio.
-   *
    * @param GoogleCloudDialogflowCxV3OutputAudioConfig $outputAudioConfig
    */
   public function setOutputAudioConfig(GoogleCloudDialogflowCxV3OutputAudioConfig $outputAudioConfig)
@@ -63,8 +49,6 @@ class GoogleCloudDialogflowCxV3DetectIntentRequest extends \Google\Model
     return $this->outputAudioConfig;
   }
   /**
-   * Required. The input specification.
-   *
    * @param GoogleCloudDialogflowCxV3QueryInput $queryInput
    */
   public function setQueryInput(GoogleCloudDialogflowCxV3QueryInput $queryInput)
@@ -79,8 +63,6 @@ class GoogleCloudDialogflowCxV3DetectIntentRequest extends \Google\Model
     return $this->queryInput;
   }
   /**
-   * The parameters of this query.
-   *
    * @param GoogleCloudDialogflowCxV3QueryParameters $queryParams
    */
   public function setQueryParams(GoogleCloudDialogflowCxV3QueryParameters $queryParams)
@@ -95,12 +77,6 @@ class GoogleCloudDialogflowCxV3DetectIntentRequest extends \Google\Model
     return $this->queryParams;
   }
   /**
-   * Optional. Specifies which fields in the QueryResult to return. If not set,
-   * the default is DETECT_INTENT_RESPONSE_VIEW_FULL.
-   *
-   * Accepted values: DETECT_INTENT_RESPONSE_VIEW_UNSPECIFIED,
-   * DETECT_INTENT_RESPONSE_VIEW_FULL, DETECT_INTENT_RESPONSE_VIEW_BASIC
-   *
    * @param self::RESPONSE_VIEW_* $responseView
    */
   public function setResponseView($responseView)

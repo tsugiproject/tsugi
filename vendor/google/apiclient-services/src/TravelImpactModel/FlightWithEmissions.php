@@ -123,7 +123,7 @@ class FlightWithEmissions extends \Google\Model
     return $this->emissionsGramsPerPax;
   }
   /**
-   * Required. Matches the flight identifiers in the request. Note: all IATA
+   * Identifier. Matches the flight identifiers in the request. Note: all IATA
    * codes are capitalized.
    *
    * @param Flight $flight

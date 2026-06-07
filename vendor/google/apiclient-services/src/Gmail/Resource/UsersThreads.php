@@ -34,7 +34,9 @@ class UsersThreads extends \Google\Service\Resource
   /**
    * Immediately and permanently deletes the specified thread. Any messages that
    * belong to the thread are also deleted. This operation cannot be undone.
-   * Prefer `threads.trash` instead. (threads.delete)
+   * Prefer `threads.trash` instead. For more information, see [Manage
+   * threads](https://developers.google.com/workspace/gmail/api/guides/threads).
+   * (threads.delete)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -49,7 +51,9 @@ class UsersThreads extends \Google\Service\Resource
     return $this->call('delete', [$params]);
   }
   /**
-   * Gets the specified thread. (threads.get)
+   * Gets the specified thread. For more information, see [Manage
+   * threads](https://developers.google.com/workspace/gmail/api/guides/threads).
+   * (threads.get)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -69,7 +73,9 @@ class UsersThreads extends \Google\Service\Resource
     return $this->call('get', [$params], Thread::class);
   }
   /**
-   * Lists the threads in the user's mailbox. (threads.listUsersThreads)
+   * Lists the threads in the user's mailbox. For more information, see [Manage
+   * threads](https://developers.google.com/workspace/gmail/api/guides/threads).
+   * (threads.listUsersThreads)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -98,7 +104,9 @@ class UsersThreads extends \Google\Service\Resource
   }
   /**
    * Modifies the labels applied to the thread. This applies to all messages in
-   * the thread. (threads.modify)
+   * the thread. For more information, see [Manage
+   * threads](https://developers.google.com/workspace/gmail/api/guides/threads).
+   * (threads.modify)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -116,7 +124,9 @@ class UsersThreads extends \Google\Service\Resource
   }
   /**
    * Moves the specified thread to the trash. Any messages that belong to the
-   * thread are also moved to the trash. (threads.trash)
+   * thread are also moved to the trash. For more information, see [Manage
+   * threads](https://developers.google.com/workspace/gmail/api/guides/threads).
+   * (threads.trash)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -133,7 +143,9 @@ class UsersThreads extends \Google\Service\Resource
   }
   /**
    * Removes the specified thread from the trash. Any messages that belong to the
-   * thread are also removed from the trash. (threads.untrash)
+   * thread are also removed from the trash. For more information, see [Manage
+   * threads](https://developers.google.com/workspace/gmail/api/guides/threads).
+   * (threads.untrash)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.

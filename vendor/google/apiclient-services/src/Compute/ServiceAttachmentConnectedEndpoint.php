@@ -55,6 +55,12 @@ class ServiceAttachmentConnectedEndpoint extends \Google\Collection
    */
   public $endpoint;
   /**
+   * The url of a connected endpoint with resource id.
+   *
+   * @var string
+   */
+  public $endpointWithId;
+  /**
    * NAT IPs of the connected PSC endpoint and those of other endpoints
    * propagated from it.
    *
@@ -112,6 +118,22 @@ class ServiceAttachmentConnectedEndpoint extends \Google\Collection
   public function getEndpoint()
   {
     return $this->endpoint;
+  }
+  /**
+   * The url of a connected endpoint with resource id.
+   *
+   * @param string $endpointWithId
+   */
+  public function setEndpointWithId($endpointWithId)
+  {
+    $this->endpointWithId = $endpointWithId;
+  }
+  /**
+   * @return string
+   */
+  public function getEndpointWithId()
+  {
+    return $this->endpointWithId;
   }
   /**
    * NAT IPs of the connected PSC endpoint and those of other endpoints

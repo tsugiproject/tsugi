@@ -20,22 +20,15 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3ExportTestCasesResponse extends \Google\Model
 {
   /**
-   * Uncompressed raw byte content for test cases.
-   *
    * @var string
    */
   public $content;
   /**
-   * The URI to a file containing the exported test cases. This field is
-   * populated only if `gcs_uri` is specified in ExportTestCasesRequest.
-   *
    * @var string
    */
   public $gcsUri;
 
   /**
-   * Uncompressed raw byte content for test cases.
-   *
    * @param string $content
    */
   public function setContent($content)
@@ -50,9 +43,6 @@ class GoogleCloudDialogflowCxV3ExportTestCasesResponse extends \Google\Model
     return $this->content;
   }
   /**
-   * The URI to a file containing the exported test cases. This field is
-   * populated only if `gcs_uri` is specified in ExportTestCasesRequest.
-   *
    * @param string $gcsUri
    */
   public function setGcsUri($gcsUri)

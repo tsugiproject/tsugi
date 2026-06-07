@@ -38,6 +38,7 @@ class Assuredworkloads extends \Google\Service
   const CLOUD_PLATFORM =
       "https://www.googleapis.com/auth/cloud-platform";
 
+  public $assuredworkloads;
   public $organizations_locations_operations;
   public $organizations_locations_workloads;
   public $organizations_locations_workloads_updates;
@@ -61,6 +62,24 @@ class Assuredworkloads extends \Google\Service
     $this->version = 'v1';
     $this->serviceName = 'assuredworkloads';
 
+    $this->assuredworkloads = new Assuredworkloads\Resource\Assuredworkloads(
+        $this,
+        $this->serviceName,
+        'assuredworkloads',
+        [
+          'methods' => [
+            'archiveResourceEvents' => [
+              'path' => 'v1/assuredworkloads:archiveResourceEvents',
+              'httpMethod' => 'POST',
+              'parameters' => [],
+            ],'revertArchivedResourceEvents' => [
+              'path' => 'v1/assuredworkloads:revertArchivedResourceEvents',
+              'httpMethod' => 'POST',
+              'parameters' => [],
+            ],
+          ]
+        ]
+    );
     $this->organizations_locations_operations = new Assuredworkloads\Resource\OrganizationsLocationsOperations(
         $this,
         $this->serviceName,

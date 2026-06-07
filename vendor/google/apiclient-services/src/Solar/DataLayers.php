@@ -115,7 +115,7 @@ class DataLayers extends \Google\Collection
    */
   public $monthlyFluxUrl;
   /**
-   * The URL for an image of RGB data (aerial photo) of the region.
+   * The URL for an image of RGB data (aerial or satellite photo) of the region.
    *
    * @var string
    */
@@ -284,7 +284,7 @@ class DataLayers extends \Google\Collection
     return $this->monthlyFluxUrl;
   }
   /**
-   * The URL for an image of RGB data (aerial photo) of the region.
+   * The URL for an image of RGB data (aerial or satellite photo) of the region.
    *
    * @param string $rgbUrl
    */

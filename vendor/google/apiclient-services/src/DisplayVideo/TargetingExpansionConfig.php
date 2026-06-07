@@ -65,11 +65,25 @@ class TargetingExpansionConfig extends \Google\Model
    * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN` *
    * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED`
    * performance_goal_auto_bid: *
-   * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM`
+   * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM` This also applies if
+   * the line item inherits one of the above bid strategies from the parent
+   * insertion order. Bid strategies set at the insertion order-level will be
+   * inherited by their line items if the `InsertionOrder` budget field
+   * automationType is set to `INSERTION_ORDER_AUTOMATION_TYPE_BUDGET` or
+   * `INSERTION_ORDER_AUTOMATION_TYPE_BID_BUDGET`.
    *
    * @var bool
    */
   public $enableOptimizedTargeting;
+  /**
+   * Optional. Whether to exclude demographic expansion for Optimized Targeting.
+   * This field can only be set for Demand Gen ad groups. Retrieval and
+   * management of Demand Gen resources is currently in beta. This field is only
+   * available to allowlisted users.
+   *
+   * @var bool
+   */
+  public $excludeDemographicExpansion;
 
   /**
    * Output only. Magnitude of expansion for eligible first-party user lists
@@ -119,7 +133,12 @@ class TargetingExpansionConfig extends \Google\Model
    * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN` *
    * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED`
    * performance_goal_auto_bid: *
-   * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM`
+   * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM` This also applies if
+   * the line item inherits one of the above bid strategies from the parent
+   * insertion order. Bid strategies set at the insertion order-level will be
+   * inherited by their line items if the `InsertionOrder` budget field
+   * automationType is set to `INSERTION_ORDER_AUTOMATION_TYPE_BUDGET` or
+   * `INSERTION_ORDER_AUTOMATION_TYPE_BID_BUDGET`.
    *
    * @param bool $enableOptimizedTargeting
    */
@@ -133,6 +152,25 @@ class TargetingExpansionConfig extends \Google\Model
   public function getEnableOptimizedTargeting()
   {
     return $this->enableOptimizedTargeting;
+  }
+  /**
+   * Optional. Whether to exclude demographic expansion for Optimized Targeting.
+   * This field can only be set for Demand Gen ad groups. Retrieval and
+   * management of Demand Gen resources is currently in beta. This field is only
+   * available to allowlisted users.
+   *
+   * @param bool $excludeDemographicExpansion
+   */
+  public function setExcludeDemographicExpansion($excludeDemographicExpansion)
+  {
+    $this->excludeDemographicExpansion = $excludeDemographicExpansion;
+  }
+  /**
+   * @return bool
+   */
+  public function getExcludeDemographicExpansion()
+  {
+    return $this->excludeDemographicExpansion;
   }
 }
 

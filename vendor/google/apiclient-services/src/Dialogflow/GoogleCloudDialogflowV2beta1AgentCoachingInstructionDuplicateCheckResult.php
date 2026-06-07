@@ -24,8 +24,6 @@ class GoogleCloudDialogflowV2beta1AgentCoachingInstructionDuplicateCheckResult e
   protected $duplicateSuggestionsDataType = 'array';
 
   /**
-   * Output only. The duplicate suggestions.
-   *
    * @param GoogleCloudDialogflowV2beta1AgentCoachingInstructionDuplicateCheckResultDuplicateSuggestion[] $duplicateSuggestions
    */
   public function setDuplicateSuggestions($duplicateSuggestions)

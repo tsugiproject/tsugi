@@ -55,6 +55,10 @@ class Activities extends \Google\Service\Resource
    * example, the IP address can be the user's proxy server's address or a virtual
    * private network (VPN) address. This parameter supports both IPv4 and IPv6
    * address versions.
+   * @opt_param string applicationInfoFilter Optional. Used to filter on the
+   * `oAuthClientId` field present in [`ApplicationInfo`](#applicationinfo)
+   * message. **Usage** ``` GET...&applicationInfoFilter=oAuthClientId="clientId"
+   * GET...&applicationInfoFilter=oAuthClientId=%22clientId%22 ```
    * @opt_param string customerId The unique ID of the customer to retrieve data
    * for.
    * @opt_param string endTime Sets the end of the range of time shown in the
@@ -119,11 +123,19 @@ class Activities extends \Google\Service\Resource
    * allowlist. For more information about adding groups to filtering groups
    * allowlist, see [Filter results by Google
    * Group](https://support.google.com/a/answer/11482175)
+   * @opt_param bool includeSensitiveData Optional. When set to `true`, this field
+   * allows sensitive user-generated content to be included in the returned audit
+   * logs. This parameter is supported only for Rules (DLP) and Chat applications;
+   * using it with any other application will result in a permission error.
    * @opt_param int maxResults Determines how many activity records are shown on
    * each response page. For example, if the request sets `maxResults=1` and the
    * report has two activities, the report has two pages. The response's
    * `nextPageToken` property has the token to the second page. The `maxResults`
    * query string is optional in the request. The default value is 1000.
+   * @opt_param string networkInfoFilter Optional. Used to filter on the
+   * `regionCode` field present in [`NetworkInfo`](#networkinfo) message.
+   * **Usage** ``` GET...&networkInfoFilter=regionCode="IN"
+   * GET...&networkInfoFilter=regionCode=%22IN%22 ```
    * @opt_param string orgUnitID ID of the organizational unit to report on.
    * Activity records will be shown only for users who belong to the specified
    * organizational unit. Data before Dec 17, 2018 doesn't appear in the filtered
@@ -180,6 +192,10 @@ class Activities extends \Google\Service\Resource
    * and the current time when the request is made, or the API returns an error.
    * For Gmail requests, `startTime` and `endTime` must be provided and the
    * difference must not be greater than 30 days.
+   * @opt_param string statusFilter Optional. Used to filter on the `statusCode`
+   * field present in [`Status`](#status) message. **Usage** ```
+   * GET...&statusFilter=statusCode="200" GET...&statusFilter=statusCode=%22200%22
+   * ```
    * @return ActivitiesModel
    * @throws \Google\Service\Exception
    */

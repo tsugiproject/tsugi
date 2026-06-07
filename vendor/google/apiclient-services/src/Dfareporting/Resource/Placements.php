@@ -42,6 +42,18 @@ class Placements extends \Google\Service\Resource
    * @opt_param string placementIds Generate tags for these placements.
    * @opt_param string tagFormats Tag formats to generate for these placements.
    * *Note:* PLACEMENT_TAG_STANDARD can only be generated for 1x1 placements.
+   * @opt_param bool tagProperties.dcDbmMacroIncluded Optional. Indicates whether
+   * to include the dc_dbm macro in the generated tags. [Learn
+   * more](https://support.google.com/campaignmanager/answer/9280273) about this
+   * macro.
+   * @opt_param bool tagProperties.gppMacrosIncluded Optional. Indicates whether
+   * to include the GPP macro in the generated tags. [Learn
+   * more](https://support.google.com/campaignmanager/answer/10031693) about this
+   * macro.
+   * @opt_param bool tagProperties.tcfGdprMacrosIncluded Optional. Indicates
+   * whether to include the TCF macro in the generated tags. Default true. [Learn
+   * more](https://support.google.com/campaignmanager/answer/10031693) about this
+   * macro.
    * @return PlacementsGenerateTagsResponse
    * @throws \Google\Service\Exception
    */

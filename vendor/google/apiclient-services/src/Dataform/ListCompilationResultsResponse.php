@@ -30,7 +30,9 @@ class ListCompilationResultsResponse extends \Google\Collection
    */
   public $nextPageToken;
   /**
-   * Locations which could not be reached.
+   * Locations which could not be reached. LINT.ThenChange(//depot/google3/googl
+   * e/cloud/dataform/v2main/data_pipelines.proto:ListCompilationResultsResponse
+   * )
    *
    * @var string[]
    */
@@ -70,7 +72,9 @@ class ListCompilationResultsResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * Locations which could not be reached.
+   * Locations which could not be reached. LINT.ThenChange(//depot/google3/googl
+   * e/cloud/dataform/v2main/data_pipelines.proto:ListCompilationResultsResponse
+   * )
    *
    * @param string[] $unreachable
    */

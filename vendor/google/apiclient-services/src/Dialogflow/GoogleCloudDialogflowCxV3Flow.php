@@ -23,15 +23,10 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
   protected $advancedSettingsType = GoogleCloudDialogflowCxV3AdvancedSettings::class;
   protected $advancedSettingsDataType = '';
   /**
-   * The description of the flow. The maximum length is 500 characters. If
-   * exceeded, the request is rejected.
-   *
    * @var string
    */
   public $description;
   /**
-   * Required. The human-readable name of the flow.
-   *
    * @var string
    */
   public $displayName;
@@ -42,18 +37,12 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
   protected $knowledgeConnectorSettingsType = GoogleCloudDialogflowCxV3KnowledgeConnectorSettings::class;
   protected $knowledgeConnectorSettingsDataType = '';
   /**
-   * Indicates whether the flow is locked for changes. If the flow is locked,
-   * modifications to the flow will be rejected.
-   *
    * @var bool
    */
   public $locked;
   protected $multiLanguageSettingsType = GoogleCloudDialogflowCxV3FlowMultiLanguageSettings::class;
   protected $multiLanguageSettingsDataType = '';
   /**
-   * The unique identifier of the flow. Format:
-   * `projects//locations//agents//flows/`.
-   *
    * @var string
    */
   public $name;
@@ -62,14 +51,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
   protected $outputParameterDefinitionsType = GoogleCloudDialogflowCxV3ParameterDefinition::class;
   protected $outputParameterDefinitionsDataType = 'array';
   /**
-   * A flow's transition route group serve two purposes: * They are responsible
-   * for matching the user's first utterances in the flow. * They are inherited
-   * by every page's transition route groups. Transition route groups defined in
-   * the page have higher priority than those defined in the flow. Format:
-   * `projects//locations//agents//flows//transitionRouteGroups/` or
-   * `projects//locations//agents//transitionRouteGroups/` for agent-level
-   * groups.
-   *
    * @var string[]
    */
   public $transitionRouteGroups;
@@ -77,9 +58,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
   protected $transitionRoutesDataType = 'array';
 
   /**
-   * Hierarchical advanced settings for this flow. The settings exposed at the
-   * lower level overrides the settings exposed at the higher level.
-   *
    * @param GoogleCloudDialogflowCxV3AdvancedSettings $advancedSettings
    */
   public function setAdvancedSettings(GoogleCloudDialogflowCxV3AdvancedSettings $advancedSettings)
@@ -94,9 +72,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
     return $this->advancedSettings;
   }
   /**
-   * The description of the flow. The maximum length is 500 characters. If
-   * exceeded, the request is rejected.
-   *
    * @param string $description
    */
   public function setDescription($description)
@@ -111,8 +86,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
     return $this->description;
   }
   /**
-   * Required. The human-readable name of the flow.
-   *
    * @param string $displayName
    */
   public function setDisplayName($displayName)
@@ -127,14 +100,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
     return $this->displayName;
   }
   /**
-   * A flow's event handlers serve two purposes: * They are responsible for
-   * handling events (e.g. no match, webhook errors) in the flow. * They are
-   * inherited by every page's event handlers, which can be used to handle
-   * common events regardless of the current page. Event handlers defined in the
-   * page have higher priority than those defined in the flow. Unlike
-   * transition_routes, these handlers are evaluated on a first-match basis. The
-   * first one that matches the event get executed, with the rest being ignored.
-   *
    * @param GoogleCloudDialogflowCxV3EventHandler[] $eventHandlers
    */
   public function setEventHandlers($eventHandlers)
@@ -149,8 +114,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
     return $this->eventHandlers;
   }
   /**
-   * Optional. Defined structured input parameters for this flow.
-   *
    * @param GoogleCloudDialogflowCxV3ParameterDefinition[] $inputParameterDefinitions
    */
   public function setInputParameterDefinitions($inputParameterDefinitions)
@@ -165,8 +128,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
     return $this->inputParameterDefinitions;
   }
   /**
-   * Optional. Knowledge connector configuration.
-   *
    * @param GoogleCloudDialogflowCxV3KnowledgeConnectorSettings $knowledgeConnectorSettings
    */
   public function setKnowledgeConnectorSettings(GoogleCloudDialogflowCxV3KnowledgeConnectorSettings $knowledgeConnectorSettings)
@@ -181,9 +142,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
     return $this->knowledgeConnectorSettings;
   }
   /**
-   * Indicates whether the flow is locked for changes. If the flow is locked,
-   * modifications to the flow will be rejected.
-   *
    * @param bool $locked
    */
   public function setLocked($locked)
@@ -198,8 +156,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
     return $this->locked;
   }
   /**
-   * Optional. Multi-lingual agent settings for this flow.
-   *
    * @param GoogleCloudDialogflowCxV3FlowMultiLanguageSettings $multiLanguageSettings
    */
   public function setMultiLanguageSettings(GoogleCloudDialogflowCxV3FlowMultiLanguageSettings $multiLanguageSettings)
@@ -214,9 +170,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
     return $this->multiLanguageSettings;
   }
   /**
-   * The unique identifier of the flow. Format:
-   * `projects//locations//agents//flows/`.
-   *
    * @param string $name
    */
   public function setName($name)
@@ -231,8 +184,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
     return $this->name;
   }
   /**
-   * NLU related settings of the flow.
-   *
    * @param GoogleCloudDialogflowCxV3NluSettings $nluSettings
    */
   public function setNluSettings(GoogleCloudDialogflowCxV3NluSettings $nluSettings)
@@ -247,8 +198,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
     return $this->nluSettings;
   }
   /**
-   * Optional. Defined structured output parameters for this flow.
-   *
    * @param GoogleCloudDialogflowCxV3ParameterDefinition[] $outputParameterDefinitions
    */
   public function setOutputParameterDefinitions($outputParameterDefinitions)
@@ -263,14 +212,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
     return $this->outputParameterDefinitions;
   }
   /**
-   * A flow's transition route group serve two purposes: * They are responsible
-   * for matching the user's first utterances in the flow. * They are inherited
-   * by every page's transition route groups. Transition route groups defined in
-   * the page have higher priority than those defined in the flow. Format:
-   * `projects//locations//agents//flows//transitionRouteGroups/` or
-   * `projects//locations//agents//transitionRouteGroups/` for agent-level
-   * groups.
-   *
    * @param string[] $transitionRouteGroups
    */
   public function setTransitionRouteGroups($transitionRouteGroups)
@@ -285,16 +226,6 @@ class GoogleCloudDialogflowCxV3Flow extends \Google\Collection
     return $this->transitionRouteGroups;
   }
   /**
-   * A flow's transition routes serve two purposes: * They are responsible for
-   * matching the user's first utterances in the flow. * They are inherited by
-   * every page's transition routes and can support use cases such as the user
-   * saying "help" or "can I talk to a human?", which can be handled in a common
-   * way regardless of the current page. Transition routes defined in the page
-   * have higher priority than those defined in the flow. TransitionRoutes are
-   * evaluated in the following order: * TransitionRoutes with intent specified.
-   * * TransitionRoutes with only condition specified. TransitionRoutes with
-   * intent specified are inherited by pages in the flow.
-   *
    * @param GoogleCloudDialogflowCxV3TransitionRoute[] $transitionRoutes
    */
   public function setTransitionRoutes($transitionRoutes)

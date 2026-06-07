@@ -89,7 +89,8 @@ class ProjectsLocationsRagCorpora extends \Google\Service\Resource
    * to list the RagCorpora. Format: `projects/{project}/locations/{location}`
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize Optional. The standard list page size.
+   * @opt_param int pageSize Optional. The standard list page size. The maximum
+   * value is 100. If not specified, a default value of 100 will be used.
    * @opt_param string pageToken Optional. The standard list page token. Typically
    * obtained via ListRagCorporaResponse.next_page_token of the previous
    * VertexRagDataService.ListRagCorpora call.

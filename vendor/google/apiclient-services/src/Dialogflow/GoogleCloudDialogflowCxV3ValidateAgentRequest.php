@@ -20,15 +20,11 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3ValidateAgentRequest extends \Google\Model
 {
   /**
-   * If not specified, the agent's default language is used.
-   *
    * @var string
    */
   public $languageCode;
 
   /**
-   * If not specified, the agent's default language is used.
-   *
    * @param string $languageCode
    */
   public function setLanguageCode($languageCode)

@@ -32,16 +32,13 @@ use Google\Service\Dialogflow\GoogleProtobufEmpty;
 class ProjectsLocationsAgentsGenerators extends \Google\Service\Resource
 {
   /**
-   * Creates a generator in the specified agent. (generators.create)
+   * (generators.create)
    *
-   * @param string $parent Required. The agent to create a generator for. Format:
-   * `projects//locations//agents/`.
+   * @param string $parent
    * @param GoogleCloudDialogflowCxV3Generator $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string languageCode The language to create generators for the
-   * following fields: * `Generator.prompt_text.text` If not specified, the
-   * agent's default language is used.
+   * @opt_param string languageCode
    * @return GoogleCloudDialogflowCxV3Generator
    * @throws \Google\Service\Exception
    */
@@ -52,18 +49,12 @@ class ProjectsLocationsAgentsGenerators extends \Google\Service\Resource
     return $this->call('create', [$params], GoogleCloudDialogflowCxV3Generator::class);
   }
   /**
-   * Deletes the specified generators. (generators.delete)
+   * (generators.delete)
    *
-   * @param string $name Required. The name of the generator to delete. Format:
-   * `projects//locations//agents//generators/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    *
-   * @opt_param bool force This field has no effect for generators not being used.
-   * For generators that are used by pages/flows/transition route groups: * If
-   * `force` is set to false, an error will be returned with message indicating
-   * the referenced resources. * If `force` is set to true, Dialogflow will remove
-   * the generator, as well as any references to the generator (i.e. Generator) in
-   * fulfillments.
+   * @opt_param bool force
    * @return GoogleProtobufEmpty
    * @throws \Google\Service\Exception
    */
@@ -74,13 +65,12 @@ class ProjectsLocationsAgentsGenerators extends \Google\Service\Resource
     return $this->call('delete', [$params], GoogleProtobufEmpty::class);
   }
   /**
-   * Retrieves the specified generator. (generators.get)
+   * (generators.get)
    *
-   * @param string $name Required. The name of the generator. Format:
-   * `projects//locations//agents//generators/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string languageCode The language to list generators for.
+   * @opt_param string languageCode
    * @return GoogleCloudDialogflowCxV3Generator
    * @throws \Google\Service\Exception
    */
@@ -91,18 +81,14 @@ class ProjectsLocationsAgentsGenerators extends \Google\Service\Resource
     return $this->call('get', [$params], GoogleCloudDialogflowCxV3Generator::class);
   }
   /**
-   * Returns the list of all generators in the specified agent.
    * (generators.listProjectsLocationsAgentsGenerators)
    *
-   * @param string $parent Required. The agent to list all generators for. Format:
-   * `projects//locations//agents/`.
+   * @param string $parent
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string languageCode The language to list generators for.
-   * @opt_param int pageSize The maximum number of items to return in a single
-   * page. By default 100 and at most 1000.
-   * @opt_param string pageToken The next_page_token value returned from a
-   * previous list request.
+   * @opt_param string languageCode
+   * @opt_param int pageSize
+   * @opt_param string pageToken
    * @return GoogleCloudDialogflowCxV3ListGeneratorsResponse
    * @throws \Google\Service\Exception
    */
@@ -113,17 +99,14 @@ class ProjectsLocationsAgentsGenerators extends \Google\Service\Resource
     return $this->call('list', [$params], GoogleCloudDialogflowCxV3ListGeneratorsResponse::class);
   }
   /**
-   * Update the specified generator. (generators.patch)
+   * (generators.patch)
    *
-   * @param string $name The unique identifier of the generator. Must be set for
-   * the Generators.UpdateGenerator method. Generators.CreateGenerate populates
-   * the name automatically. Format: `projects//locations//agents//generators/`.
+   * @param string $name
    * @param GoogleCloudDialogflowCxV3Generator $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string languageCode The language to list generators for.
-   * @opt_param string updateMask The mask to control which fields get updated. If
-   * the mask is not present, all fields will be updated.
+   * @opt_param string languageCode
+   * @opt_param string updateMask
    * @return GoogleCloudDialogflowCxV3Generator
    * @throws \Google\Service\Exception
    */

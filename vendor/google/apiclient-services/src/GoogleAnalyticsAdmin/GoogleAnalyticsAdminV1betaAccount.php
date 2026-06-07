@@ -47,7 +47,7 @@ class GoogleAnalyticsAdminV1betaAccount extends \Google\Model
    */
   public $gmpOrganization;
   /**
-   * Output only. Resource name of this account. Format: accounts/{account}
+   * Identifier. Resource name of this account. Format: accounts/{account}
    * Example: "accounts/100"
    *
    * @var string
@@ -134,7 +134,7 @@ class GoogleAnalyticsAdminV1betaAccount extends \Google\Model
     return $this->gmpOrganization;
   }
   /**
-   * Output only. Resource name of this account. Format: accounts/{account}
+   * Identifier. Resource name of this account. Format: accounts/{account}
    * Example: "accounts/100"
    *
    * @param string $name

@@ -54,7 +54,7 @@ class GoogleAnalyticsAdminV1betaGoogleAdsLink extends \Google\Model
    */
   public $customerId;
   /**
-   * Output only. Format:
+   * Identifier. Format:
    * properties/{propertyId}/googleAdsLinks/{googleAdsLinkId} Note:
    * googleAdsLinkId is not the Google Ads customer ID.
    *
@@ -153,7 +153,7 @@ class GoogleAnalyticsAdminV1betaGoogleAdsLink extends \Google\Model
     return $this->customerId;
   }
   /**
-   * Output only. Format:
+   * Identifier. Format:
    * properties/{propertyId}/googleAdsLinks/{googleAdsLinkId} Note:
    * googleAdsLinkId is not the Google Ads customer ID.
    *
