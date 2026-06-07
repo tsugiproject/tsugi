@@ -13,14 +13,15 @@ To advance dependencies
 
     composer update --ignore-platform-reqs -W --no-dev
 
-IMPORTANT: vendor/ is committed but require-dev packages (phpunit, phpstan,
-myclabs/deep-copy, panther, etc.) are in .gitignore. Always end with:
+IMPORTANT: vendor/ is committed but require-dev packages are gitignored. After any
+composer update/require, production autoload is enforced automatically:
 
-    composer install --no-dev --ignore-platform-reqs
+    composer run finalize-vendor
 
-so vendor/composer/autoload_*.php does not reference packages that are not in git.
-If production fatals on myclabs/deep-copy or phpunit autoload paths, re-run that
-command and commit the regenerated vendor/composer/ files.
+(post-update-cmd runs this for you; agents must still run it before committing.)
+To install the git pre-commit guard:
+
+    bash qa/install-git-hooks.sh
 
 Make sure to allow it to work with any version of PHP
 

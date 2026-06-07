@@ -9,8 +9,8 @@
 ## Dependency management (Composer)
 - **`vendor/` is committed to git** on purpose: production deploys do not run Composer, which avoids deploy-time network/hiccups and keeps releases reproducible. Any dependency bump must update **`composer.json`**, **`composer.lock`**, and the **`vendor/`** tree together in the same change.
 - **Dev packages are gitignored.** `.gitignore` excludes `vendor/phpunit/`, `vendor/phpstan/`, `vendor/myclabs/`, `vendor/symfony/panther/`, and other `require-dev` trees. Production checkouts only get what git tracks.
-- **Always finish a vendor commit with `composer install --no-dev --ignore-platform-reqs`.** If you run `composer update` without `--no-dev`, Composer installs dev tools and rewrites `vendor/composer/autoload_*.php` to `require()` those packages—but they are **not committed**, so production fatals (e.g. missing `myclabs/deep-copy`). The lock file may still list dev deps for local QA; the committed autoload must match the gitignored production vendor only.
-- **Install git hooks after a fresh checkout:** run `bash qa/install-git-hooks.sh` so the pre-commit hook runs `qa/pre-commit-vendor-check.sh`. Agents should verify `.git/hooks/pre-commit` exists before composer/vendor commits (see `.cursor/rules/git-hooks-and-vendor.mdc`).
+- **Always finish a vendor commit with `composer run finalize-vendor`** (runs `composer install --no-dev` when needed, then `qa/pre-commit-vendor-check.sh`). This also runs automatically as `post-update-cmd` after `composer update` / `composer require`, but agents must run it explicitly when unsure.
+- **Install git hooks after a fresh checkout:** `bash qa/install-git-hooks.sh` (see `.cursor/rules/git-hooks-and-vendor.mdc`). Agents must verify the hook exists at session start.
 - See **`README_COMPOSER.md`** for day-to-day commands. Common patterns:
   - `composer update <package> --ignore-platform-reqs -W --no-dev` — bump one direct dependency and its transitive updates.
   - `composer install --no-dev --ignore-platform-reqs` — **required last step** before committing `vendor/`; regenerates autoload without dev references.

@@ -1,36 +1,46 @@
 ---
-description: Verify git pre-commit hook is installed; guard vendor/composer commits
+description: Mandatory git hooks and production vendor autoload after any Composer work
 alwaysApply: true
 ---
 
-# Git hooks and vendored dependencies
+# Git hooks and vendored dependencies (MANDATORY for agents)
 
-## Fresh checkout — check the hook first
+Production commits `vendor/` but **gitignores dev packages**. Dev-mode autoload **breaks production** (e.g. missing `myclabs/deep-copy`).
 
-At the **start of any session** (or when the user mentions composer, vendor, dependencies, or a fresh clone), verify the pre-commit hook is installed:
+## Session start
 
-```bash
-test -x .git/hooks/pre-commit && grep -q 'pre-commit-vendor-check' .git/hooks/pre-commit
-```
-
-If that fails, **tell the user** the hook is missing and run (or offer to run):
+Verify the pre-commit hook is installed. If not, **run it before any other work**:
 
 ```bash
-bash qa/install-git-hooks.sh
+test -x .git/hooks/pre-commit && grep -q 'pre-commit-vendor-check' .git/hooks/pre-commit || bash qa/install-git-hooks.sh
 ```
 
-Fresh checkouts do not install hooks automatically; without this hook, broken dev-mode `vendor/composer` autoload can be committed and **break production** (missing `myclabs/deep-copy`, etc.).
+## After ANY Composer command that changes dependencies
 
-## Before committing vendor or composer changes
+You **MUST NOT** mark composer/vendor work complete until this passes:
 
-When touching `composer.json`, `composer.lock`, or `vendor/`:
+```bash
+composer run finalize-vendor
+```
 
-1. Confirm the pre-commit hook is installed (command above).
-2. Finish dependency work with:
-   ```bash
-   composer install --no-dev --ignore-platform-reqs
-   bash qa/pre-commit-vendor-check.sh
-   ```
-3. Include `vendor/composer/` in the same commit as lockfile changes.
+(`composer update` / `composer require` run this automatically via `post-update-cmd`; **still run it explicitly** after `composer require --no-update`, manual lock edits, or if unsure.)
 
-Do not skip the `--no-dev` install before committing `vendor/`.
+`finalize-vendor` runs `composer install --no-dev` when needed, then `qa/pre-commit-vendor-check.sh`.
+
+## Before committing vendor or composer files
+
+1. Hook installed (above).
+2. `composer run finalize-vendor` succeeded.
+3. Commit includes **`vendor/composer/`** with lockfile changes.
+4. **Inspect** `git diff vendor/composer/autoload_files.php` — must **not** contain `myclabs`, `phpunit`, `phpstan`, or `php-webdriver`.
+
+If the user asks you to commit vendor changes and the check fails, **fix it first** — do not commit.
+
+## Local dev tools (phpstan/phpunit)
+
+Re-install dev tools only for local QA (not for commits):
+
+```bash
+composer install --ignore-platform-reqs
+composer run finalize-vendor   # back to production autoload before commit
+```

@@ -38,7 +38,7 @@ for file in "${AUTOLOAD_FILES[@]}"; do
     for pattern in "${FORBIDDEN[@]}"; do
         if grep -q "$pattern" "$file"; then
             echo "ERROR: $file references gitignored dev package: $pattern" >&2
-            echo "Run: composer install --no-dev --ignore-platform-reqs" >&2
+            echo "Run: composer run finalize-vendor" >&2
             fail=1
         fi
     done

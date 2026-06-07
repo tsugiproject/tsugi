@@ -59,7 +59,9 @@
     },
     "scripts": {
         "lint": "php -l index.php && php -l login.php && php -l logout.php && php -l top.php && php -l tsugi.php && php -l about.php && find admin api assertions cc cron dev ext gclass lms lti mod settings store util -name '*.php' -print0 | xargs -0 -n 1 php -l",
-        "phpstan": "phpstan analyse -c phpstan.neon --memory-limit=1G --no-progress"
+        "phpstan": "phpstan analyse -c phpstan.neon --memory-limit=1G --no-progress",
+        "finalize-vendor": "bash qa/finalize-vendor.sh",
+        "post-update-cmd": "@finalize-vendor"
     },
     "require-dev": {
         "phpstan/phpstan": "^2.1",
