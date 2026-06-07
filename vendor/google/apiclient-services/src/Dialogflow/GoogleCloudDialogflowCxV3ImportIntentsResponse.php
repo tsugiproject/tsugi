@@ -23,17 +23,11 @@ class GoogleCloudDialogflowCxV3ImportIntentsResponse extends \Google\Collection
   protected $conflictingResourcesType = GoogleCloudDialogflowCxV3ImportIntentsResponseConflictingResources::class;
   protected $conflictingResourcesDataType = '';
   /**
-   * The unique identifier of the imported intents. Format:
-   * `projects//locations//agents//intents/`.
-   *
    * @var string[]
    */
   public $intents;
 
   /**
-   * Info which resources have conflicts when REPORT_CONFLICT merge_option is
-   * set in ImportIntentsRequest.
-   *
    * @param GoogleCloudDialogflowCxV3ImportIntentsResponseConflictingResources $conflictingResources
    */
   public function setConflictingResources(GoogleCloudDialogflowCxV3ImportIntentsResponseConflictingResources $conflictingResources)
@@ -48,9 +42,6 @@ class GoogleCloudDialogflowCxV3ImportIntentsResponse extends \Google\Collection
     return $this->conflictingResources;
   }
   /**
-   * The unique identifier of the imported intents. Format:
-   * `projects//locations//agents//intents/`.
-   *
    * @param string[] $intents
    */
   public function setIntents($intents)

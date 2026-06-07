@@ -20,44 +20,27 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudLocationLocation extends \Google\Model
 {
   /**
-   * The friendly name for this location, typically a nearby city name. For
-   * example, "Tokyo".
-   *
    * @var string
    */
   public $displayName;
   /**
-   * Cross-service attributes for the location. For example
-   * {"cloud.googleapis.com/region": "us-east1"}
-   *
    * @var string[]
    */
   public $labels;
   /**
-   * The canonical id for this location. For example: `"us-east1"`.
-   *
    * @var string
    */
   public $locationId;
   /**
-   * Service-specific metadata. For example the available capacity at the given
-   * location.
-   *
    * @var array[]
    */
   public $metadata;
   /**
-   * Resource name for the location, which may vary between implementations. For
-   * example: `"projects/example-project/locations/us-east1"`
-   *
    * @var string
    */
   public $name;
 
   /**
-   * The friendly name for this location, typically a nearby city name. For
-   * example, "Tokyo".
-   *
    * @param string $displayName
    */
   public function setDisplayName($displayName)
@@ -72,9 +55,6 @@ class GoogleCloudLocationLocation extends \Google\Model
     return $this->displayName;
   }
   /**
-   * Cross-service attributes for the location. For example
-   * {"cloud.googleapis.com/region": "us-east1"}
-   *
    * @param string[] $labels
    */
   public function setLabels($labels)
@@ -89,8 +69,6 @@ class GoogleCloudLocationLocation extends \Google\Model
     return $this->labels;
   }
   /**
-   * The canonical id for this location. For example: `"us-east1"`.
-   *
    * @param string $locationId
    */
   public function setLocationId($locationId)
@@ -105,9 +83,6 @@ class GoogleCloudLocationLocation extends \Google\Model
     return $this->locationId;
   }
   /**
-   * Service-specific metadata. For example the available capacity at the given
-   * location.
-   *
    * @param array[] $metadata
    */
   public function setMetadata($metadata)
@@ -122,9 +97,6 @@ class GoogleCloudLocationLocation extends \Google\Model
     return $this->metadata;
   }
   /**
-   * Resource name for the location, which may vary between implementations. For
-   * example: `"projects/example-project/locations/us-east1"`
-   *
    * @param string $name
    */
   public function setName($name)

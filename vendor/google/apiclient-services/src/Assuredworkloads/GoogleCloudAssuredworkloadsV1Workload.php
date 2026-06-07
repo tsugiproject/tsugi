@@ -20,109 +20,18 @@ namespace Google\Service\Assuredworkloads;
 class GoogleCloudAssuredworkloadsV1Workload extends \Google\Collection
 {
   /**
-   * Unknown compliance regime.
+   * The default value. This value is used if the control package is omitted or
+   * unknown.
    */
   public const COMPLIANCE_REGIME_COMPLIANCE_REGIME_UNSPECIFIED = 'COMPLIANCE_REGIME_UNSPECIFIED';
   /**
-   * Information protection as per DoD IL4 requirements.
-   */
-  public const COMPLIANCE_REGIME_IL4 = 'IL4';
-  /**
-   * Criminal Justice Information Services (CJIS) Security policies.
-   */
-  public const COMPLIANCE_REGIME_CJIS = 'CJIS';
-  /**
-   * FedRAMP High data protection controls
-   */
-  public const COMPLIANCE_REGIME_FEDRAMP_HIGH = 'FEDRAMP_HIGH';
-  /**
-   * FedRAMP Moderate data protection controls
-   */
-  public const COMPLIANCE_REGIME_FEDRAMP_MODERATE = 'FEDRAMP_MODERATE';
-  /**
-   * Assured Workloads For US Regions data protection controls
-   */
-  public const COMPLIANCE_REGIME_US_REGIONAL_ACCESS = 'US_REGIONAL_ACCESS';
-  /**
-   * [DEPRECATED] Health Insurance Portability and Accountability Act controls
-   *
-   * @deprecated
-   */
-  public const COMPLIANCE_REGIME_HIPAA = 'HIPAA';
-  /**
-   * [DEPRECATED] Health Information Trust Alliance controls
-   *
-   * @deprecated
-   */
-  public const COMPLIANCE_REGIME_HITRUST = 'HITRUST';
-  /**
-   * Assured Workloads For EU Regions and Support controls
-   */
-  public const COMPLIANCE_REGIME_EU_REGIONS_AND_SUPPORT = 'EU_REGIONS_AND_SUPPORT';
-  /**
-   * Assured Workloads For Canada Regions and Support controls
-   */
-  public const COMPLIANCE_REGIME_CA_REGIONS_AND_SUPPORT = 'CA_REGIONS_AND_SUPPORT';
-  /**
-   * International Traffic in Arms Regulations
-   */
-  public const COMPLIANCE_REGIME_ITAR = 'ITAR';
-  /**
-   * Assured Workloads for Australia Regions and Support controls
-   */
-  public const COMPLIANCE_REGIME_AU_REGIONS_AND_US_SUPPORT = 'AU_REGIONS_AND_US_SUPPORT';
-  /**
-   * Assured Workloads for Partners;
+   * Specifies a [Sovereign Controls by
+   * Partners](https://cloud.google.com/sovereign-controls-by-
+   * partners/docs/overview) control package. To use this control package, you
+   * must also specify the partner field from the list of Sovereign Controls by
+   * Partners.
    */
   public const COMPLIANCE_REGIME_ASSURED_WORKLOADS_FOR_PARTNERS = 'ASSURED_WORKLOADS_FOR_PARTNERS';
-  /**
-   * Assured Workloads for Israel Regions
-   */
-  public const COMPLIANCE_REGIME_ISR_REGIONS = 'ISR_REGIONS';
-  /**
-   * Assured Workloads for Israel Regions
-   */
-  public const COMPLIANCE_REGIME_ISR_REGIONS_AND_SUPPORT = 'ISR_REGIONS_AND_SUPPORT';
-  /**
-   * Assured Workloads for Canada Protected B regime
-   */
-  public const COMPLIANCE_REGIME_CA_PROTECTED_B = 'CA_PROTECTED_B';
-  /**
-   * Information protection as per DoD IL5 requirements.
-   */
-  public const COMPLIANCE_REGIME_IL5 = 'IL5';
-  /**
-   * Information protection as per DoD IL2 requirements.
-   */
-  public const COMPLIANCE_REGIME_IL2 = 'IL2';
-  /**
-   * Assured Workloads for Japan Regions
-   */
-  public const COMPLIANCE_REGIME_JP_REGIONS_AND_SUPPORT = 'JP_REGIONS_AND_SUPPORT';
-  /**
-   * Assured Workloads Sovereign Controls KSA
-   */
-  public const COMPLIANCE_REGIME_KSA_REGIONS_AND_SUPPORT_WITH_SOVEREIGNTY_CONTROLS = 'KSA_REGIONS_AND_SUPPORT_WITH_SOVEREIGNTY_CONTROLS';
-  /**
-   * Assured Workloads for Regional Controls
-   */
-  public const COMPLIANCE_REGIME_REGIONAL_CONTROLS = 'REGIONAL_CONTROLS';
-  /**
-   * Healthcare and Life Science Controls
-   */
-  public const COMPLIANCE_REGIME_HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS = 'HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS';
-  /**
-   * Healthcare and Life Science Controls with US Support
-   */
-  public const COMPLIANCE_REGIME_HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS_US_SUPPORT = 'HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS_US_SUPPORT';
-  /**
-   * Internal Revenue Service 1075 controls
-   */
-  public const COMPLIANCE_REGIME_IRS_1075 = 'IRS_1075';
-  /**
-   * Canada Controlled Goods
-   */
-  public const COMPLIANCE_REGIME_CANADA_CONTROLLED_GOODS = 'CANADA_CONTROLLED_GOODS';
   /**
    * Australia Data Boundary and Support
    */
@@ -140,7 +49,7 @@ class GoogleCloudAssuredworkloadsV1Workload extends \Google\Collection
    */
   public const COMPLIANCE_REGIME_DATA_BOUNDARY_FOR_CANADA_PROTECTED_B = 'DATA_BOUNDARY_FOR_CANADA_PROTECTED_B';
   /**
-   * Data Boundary for CJIS
+   * Data Boundary for Criminal Justice Information Systems (CJIS)
    */
   public const COMPLIANCE_REGIME_DATA_BOUNDARY_FOR_CJIS = 'DATA_BOUNDARY_FOR_CJIS';
   /**
@@ -152,15 +61,15 @@ class GoogleCloudAssuredworkloadsV1Workload extends \Google\Collection
    */
   public const COMPLIANCE_REGIME_DATA_BOUNDARY_FOR_FEDRAMP_MODERATE = 'DATA_BOUNDARY_FOR_FEDRAMP_MODERATE';
   /**
-   * Data Boundary for IL2
+   * Data Boundary for Impact Level 2 (IL2)
    */
   public const COMPLIANCE_REGIME_DATA_BOUNDARY_FOR_IL2 = 'DATA_BOUNDARY_FOR_IL2';
   /**
-   * Data Boundary for IL4
+   * Data Boundary for Impact Level 4 (IL4)
    */
   public const COMPLIANCE_REGIME_DATA_BOUNDARY_FOR_IL4 = 'DATA_BOUNDARY_FOR_IL4';
   /**
-   * Data Boundary for IL5
+   * Data Boundary for Impact Level 5 (IL5)
    */
   public const COMPLIANCE_REGIME_DATA_BOUNDARY_FOR_IL5 = 'DATA_BOUNDARY_FOR_IL5';
   /**
@@ -168,41 +77,177 @@ class GoogleCloudAssuredworkloadsV1Workload extends \Google\Collection
    */
   public const COMPLIANCE_REGIME_DATA_BOUNDARY_FOR_IRS_PUBLICATION_1075 = 'DATA_BOUNDARY_FOR_IRS_PUBLICATION_1075';
   /**
-   * Data Boundary for ITAR
+   * Data Boundary for International Traffic in Arms Regulations (ITAR)
    */
   public const COMPLIANCE_REGIME_DATA_BOUNDARY_FOR_ITAR = 'DATA_BOUNDARY_FOR_ITAR';
   /**
-   * Data Boundary for EU Regions and Support
+   * European Union (EU) Data Boundary and Support
    */
   public const COMPLIANCE_REGIME_EU_DATA_BOUNDARY_AND_SUPPORT = 'EU_DATA_BOUNDARY_AND_SUPPORT';
   /**
-   * Data Boundary for Israel Regions
+   * Israel Data Boundary and Support
    */
   public const COMPLIANCE_REGIME_ISRAEL_DATA_BOUNDARY_AND_SUPPORT = 'ISRAEL_DATA_BOUNDARY_AND_SUPPORT';
   /**
-   * Data Boundary for US Regions and Support
+   * Japan Data Boundary
    */
-  public const COMPLIANCE_REGIME_US_DATA_BOUNDARY_AND_SUPPORT = 'US_DATA_BOUNDARY_AND_SUPPORT';
+  public const COMPLIANCE_REGIME_JAPAN_DATA_BOUNDARY = 'JAPAN_DATA_BOUNDARY';
   /**
-   * Data Boundary for US Healthcare and Life Sciences
-   */
-  public const COMPLIANCE_REGIME_US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES = 'US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES';
-  /**
-   * Data Boundary for US Healthcare and Life Sciences with Support
-   */
-  public const COMPLIANCE_REGIME_US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES_WITH_SUPPORT = 'US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES_WITH_SUPPORT';
-  /**
-   * KSA Data Boundary with Access Justifications
+   * Kingdom of Saudi Arabia (KSA) Data Boundary with Access Justifications
    */
   public const COMPLIANCE_REGIME_KSA_DATA_BOUNDARY_WITH_ACCESS_JUSTIFICATIONS = 'KSA_DATA_BOUNDARY_WITH_ACCESS_JUSTIFICATIONS';
   /**
-   * Regional Data Boundary
+   * Data boundary for one of Assured Workloads' *Free tier* control packages.
+   * Determines the region by specifying the data location during workload
+   * creation.
    */
   public const COMPLIANCE_REGIME_REGIONAL_DATA_BOUNDARY = 'REGIONAL_DATA_BOUNDARY';
   /**
-   * JAPAN Data Boundary
+   * United States (US) Data Boundary and Support
    */
-  public const COMPLIANCE_REGIME_JAPAN_DATA_BOUNDARY = 'JAPAN_DATA_BOUNDARY';
+  public const COMPLIANCE_REGIME_US_DATA_BOUNDARY_AND_SUPPORT = 'US_DATA_BOUNDARY_AND_SUPPORT';
+  /**
+   * United States (US) Data Boundary for Healthcare and Life Sciences
+   */
+  public const COMPLIANCE_REGIME_US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES = 'US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES';
+  /**
+   * United States (US) Data Boundary for Healthcare and Life Sciences with
+   * Support
+   */
+  public const COMPLIANCE_REGIME_US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES_WITH_SUPPORT = 'US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES_WITH_SUPPORT';
+  /**
+   * Use the AUSTRALIA_DATA_BOUNDARY_AND_SUPPORT enum for this control package
+   * instead, as the name of the associated Assured Workloads control package
+   * has changed.
+   */
+  public const COMPLIANCE_REGIME_AU_REGIONS_AND_US_SUPPORT = 'AU_REGIONS_AND_US_SUPPORT';
+  /**
+   * Use the DATA_BOUNDARY_FOR_CANADA_PROTECTED_B enum for this control package
+   * instead, as the name of the associated Assured Workloads control package
+   * has changed.
+   */
+  public const COMPLIANCE_REGIME_CA_PROTECTED_B = 'CA_PROTECTED_B';
+  /**
+   * Use the CANADA_DATA_BOUNDARY_AND_SUPPORT enum for this control package
+   * instead, as the name of the associated Assured Workloads control package
+   * has changed.
+   */
+  public const COMPLIANCE_REGIME_CA_REGIONS_AND_SUPPORT = 'CA_REGIONS_AND_SUPPORT';
+  /**
+   * Use the DATA_BOUNDARY_FOR_CANADA_CONTROLLED_GOODS enum for this control
+   * package instead, as the name of the associated Assured Workloads control
+   * package has changed.
+   */
+  public const COMPLIANCE_REGIME_CANADA_CONTROLLED_GOODS = 'CANADA_CONTROLLED_GOODS';
+  /**
+   * Use the DATA_BOUNDARY_FOR_CJIS enum for this control package instead, as
+   * the name of the associated Assured Workloads control package has changed.
+   */
+  public const COMPLIANCE_REGIME_CJIS = 'CJIS';
+  /**
+   * Use the EU_DATA_BOUNDARY_AND_SUPPORT enum for this control package instead,
+   * as the name of the associated Assured Workloads control package has
+   * changed.
+   */
+  public const COMPLIANCE_REGIME_EU_REGIONS_AND_SUPPORT = 'EU_REGIONS_AND_SUPPORT';
+  /**
+   * Use the DATA_BOUNDARY_FOR_FEDRAMP_HIGH enum for this control package
+   * instead, as the name of the associated Assured Workloads control package
+   * has changed.
+   */
+  public const COMPLIANCE_REGIME_FEDRAMP_HIGH = 'FEDRAMP_HIGH';
+  /**
+   * Use the DATA_BOUNDARY_FOR_FEDRAMP_MODERATE enum for this control package
+   * instead, as the name of the associated Assured Workloads control package
+   * has changed.
+   */
+  public const COMPLIANCE_REGIME_FEDRAMP_MODERATE = 'FEDRAMP_MODERATE';
+  /**
+   * Use the US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES enum for this
+   * control package instead, as the name of the associated Assured Workloads
+   * control package has changed.
+   */
+  public const COMPLIANCE_REGIME_HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS = 'HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS';
+  /**
+   * Use the US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES_WITH_SUPPORT enum
+   * for this control package instead, as the name of the associated Assured
+   * Workloads control package has changed.
+   */
+  public const COMPLIANCE_REGIME_HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS_US_SUPPORT = 'HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS_US_SUPPORT';
+  /**
+   * Deprecated: Consider using the Data Boundary for US Healthcare and Life
+   * Sciences control package instead.
+   *
+   * @deprecated
+   */
+  public const COMPLIANCE_REGIME_HIPAA = 'HIPAA';
+  /**
+   * Deprecated: Consider using the Data Boundary for US Healthcare and Life
+   * Sciences control package instead.
+   *
+   * @deprecated
+   */
+  public const COMPLIANCE_REGIME_HITRUST = 'HITRUST';
+  /**
+   * Use the DATA_BOUNDARY_FOR_IL2 enum for this control package instead, as the
+   * name of the associated Assured Workloads control package has changed.
+   */
+  public const COMPLIANCE_REGIME_IL2 = 'IL2';
+  /**
+   * Use the DATA_BOUNDARY_FOR_IL4 enum for this control package instead, as the
+   * name of the associated Assured Workloads control package has changed.
+   */
+  public const COMPLIANCE_REGIME_IL4 = 'IL4';
+  /**
+   * Use the DATA_BOUNDARY_FOR_IL5 enum for this control package instead, as the
+   * name of the associated Assured Workloads control package has changed.
+   */
+  public const COMPLIANCE_REGIME_IL5 = 'IL5';
+  /**
+   * Use the DATA_BOUNDARY_FOR_IRS_PUBLICATION_1075 enum for this control
+   * package instead, as the name of the associated Assured Workloads control
+   * package has changed.
+   */
+  public const COMPLIANCE_REGIME_IRS_1075 = 'IRS_1075';
+  /**
+   * Use the ISRAEL_DATA_BOUNDARY_AND_SUPPORT enum for this control package
+   * instead, as the name of the associated Assured Workloads control package
+   * has changed.
+   */
+  public const COMPLIANCE_REGIME_ISR_REGIONS = 'ISR_REGIONS';
+  /**
+   * Use the ISRAEL_DATA_BOUNDARY_AND_SUPPORT enum for this control package
+   * instead, as the name of the associated Assured Workloads control package
+   * has changed.
+   */
+  public const COMPLIANCE_REGIME_ISR_REGIONS_AND_SUPPORT = 'ISR_REGIONS_AND_SUPPORT';
+  /**
+   * Use the DATA_BOUNDARY_FOR_ITAR enum for this control package instead, as
+   * the name of the associated Assured Workloads control package has changed.
+   */
+  public const COMPLIANCE_REGIME_ITAR = 'ITAR';
+  /**
+   * Use the JAPAN_DATA_BOUNDARY enum for this control package instead, as the
+   * name of the associated Assured Workloads control package has changed.
+   */
+  public const COMPLIANCE_REGIME_JP_REGIONS_AND_SUPPORT = 'JP_REGIONS_AND_SUPPORT';
+  /**
+   * Use the KSA_DATA_BOUNDARY_WITH_ACCESS_JUSTIFICATIONS enum for this control
+   * package instead, as the name of the associated Assured Workloads control
+   * package has changed.
+   */
+  public const COMPLIANCE_REGIME_KSA_REGIONS_AND_SUPPORT_WITH_SOVEREIGNTY_CONTROLS = 'KSA_REGIONS_AND_SUPPORT_WITH_SOVEREIGNTY_CONTROLS';
+  /**
+   * Use the REGIONAL_DATA_BOUNDARY enum for this control package instead, as
+   * the name of the associated Assured Workloads control package has changed.
+   */
+  public const COMPLIANCE_REGIME_REGIONAL_CONTROLS = 'REGIONAL_CONTROLS';
+  /**
+   * Use the US_DATA_BOUNDARY_AND_SUPPORT enum for this control package instead,
+   * as the name of the associated Assured Workloads control package has
+   * changed.
+   */
+  public const COMPLIANCE_REGIME_US_REGIONAL_ACCESS = 'US_REGIONAL_ACCESS';
   /**
    * Default State for KAJ Enrollment.
    */
@@ -241,6 +286,10 @@ class GoogleCloudAssuredworkloadsV1Workload extends \Google\Collection
    * EKM.
    */
   public const PARTNER_SOVEREIGN_CONTROLS_BY_CNTXT_NO_EKM = 'SOVEREIGN_CONTROLS_BY_CNTXT_NO_EKM';
+  /**
+   * Enum representing Telefonica (Spain) partner.
+   */
+  public const PARTNER_SPAIN_DATA_BOUNDARY_BY_TELEFONICA = 'SPAIN_DATA_BOUNDARY_BY_TELEFONICA';
   protected $collection_key = 'resources';
   /**
    * Optional. The billing account used for the resources which are direct
@@ -333,10 +382,10 @@ class GoogleCloudAssuredworkloadsV1Workload extends \Google\Collection
   protected $partnerPermissionsDataType = '';
   /**
    * Optional. Billing account necessary for purchasing services from Sovereign
-   * Partners. This field is required for creating SIA/PSN/CNTXT partner
-   * workloads. The caller should have 'billing.resourceAssociations.create' IAM
-   * permission on this billing-account. The format of this string is
-   * billingAccounts/AAAAAA-BBBBBB-CCCCCC
+   * Partners. This field is required for creating SIA/PSN/CNTXT/Telefonica
+   * partner workloads. The caller should have
+   * 'billing.resourceAssociations.create' IAM permission on this billing-
+   * account. The format of this string is billingAccounts/AAAAAA-BBBBBB-CCCCCC
    *
    * @var string
    */
@@ -403,15 +452,8 @@ class GoogleCloudAssuredworkloadsV1Workload extends \Google\Collection
   /**
    * Required. Immutable. Compliance Regime associated with this workload.
    *
-   * Accepted values: COMPLIANCE_REGIME_UNSPECIFIED, IL4, CJIS, FEDRAMP_HIGH,
-   * FEDRAMP_MODERATE, US_REGIONAL_ACCESS, HIPAA, HITRUST,
-   * EU_REGIONS_AND_SUPPORT, CA_REGIONS_AND_SUPPORT, ITAR,
-   * AU_REGIONS_AND_US_SUPPORT, ASSURED_WORKLOADS_FOR_PARTNERS, ISR_REGIONS,
-   * ISR_REGIONS_AND_SUPPORT, CA_PROTECTED_B, IL5, IL2, JP_REGIONS_AND_SUPPORT,
-   * KSA_REGIONS_AND_SUPPORT_WITH_SOVEREIGNTY_CONTROLS, REGIONAL_CONTROLS,
-   * HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS,
-   * HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS_US_SUPPORT, IRS_1075,
-   * CANADA_CONTROLLED_GOODS, AUSTRALIA_DATA_BOUNDARY_AND_SUPPORT,
+   * Accepted values: COMPLIANCE_REGIME_UNSPECIFIED,
+   * ASSURED_WORKLOADS_FOR_PARTNERS, AUSTRALIA_DATA_BOUNDARY_AND_SUPPORT,
    * CANADA_DATA_BOUNDARY_AND_SUPPORT,
    * DATA_BOUNDARY_FOR_CANADA_CONTROLLED_GOODS,
    * DATA_BOUNDARY_FOR_CANADA_PROTECTED_B, DATA_BOUNDARY_FOR_CJIS,
@@ -419,11 +461,17 @@ class GoogleCloudAssuredworkloadsV1Workload extends \Google\Collection
    * DATA_BOUNDARY_FOR_IL2, DATA_BOUNDARY_FOR_IL4, DATA_BOUNDARY_FOR_IL5,
    * DATA_BOUNDARY_FOR_IRS_PUBLICATION_1075, DATA_BOUNDARY_FOR_ITAR,
    * EU_DATA_BOUNDARY_AND_SUPPORT, ISRAEL_DATA_BOUNDARY_AND_SUPPORT,
-   * US_DATA_BOUNDARY_AND_SUPPORT,
+   * JAPAN_DATA_BOUNDARY, KSA_DATA_BOUNDARY_WITH_ACCESS_JUSTIFICATIONS,
+   * REGIONAL_DATA_BOUNDARY, US_DATA_BOUNDARY_AND_SUPPORT,
    * US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES,
    * US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES_WITH_SUPPORT,
-   * KSA_DATA_BOUNDARY_WITH_ACCESS_JUSTIFICATIONS, REGIONAL_DATA_BOUNDARY,
-   * JAPAN_DATA_BOUNDARY
+   * AU_REGIONS_AND_US_SUPPORT, CA_PROTECTED_B, CA_REGIONS_AND_SUPPORT,
+   * CANADA_CONTROLLED_GOODS, CJIS, EU_REGIONS_AND_SUPPORT, FEDRAMP_HIGH,
+   * FEDRAMP_MODERATE, HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS,
+   * HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS_US_SUPPORT, HIPAA, HITRUST, IL2, IL4,
+   * IL5, IRS_1075, ISR_REGIONS, ISR_REGIONS_AND_SUPPORT, ITAR,
+   * JP_REGIONS_AND_SUPPORT, KSA_REGIONS_AND_SUPPORT_WITH_SOVEREIGNTY_CONTROLS,
+   * REGIONAL_CONTROLS, US_REGIONAL_ACCESS
    *
    * @param self::COMPLIANCE_REGIME_* $complianceRegime
    */
@@ -638,7 +686,7 @@ class GoogleCloudAssuredworkloadsV1Workload extends \Google\Collection
    * Accepted values: PARTNER_UNSPECIFIED, LOCAL_CONTROLS_BY_S3NS,
    * SOVEREIGN_CONTROLS_BY_T_SYSTEMS, SOVEREIGN_CONTROLS_BY_SIA_MINSAIT,
    * SOVEREIGN_CONTROLS_BY_PSN, SOVEREIGN_CONTROLS_BY_CNTXT,
-   * SOVEREIGN_CONTROLS_BY_CNTXT_NO_EKM
+   * SOVEREIGN_CONTROLS_BY_CNTXT_NO_EKM, SPAIN_DATA_BOUNDARY_BY_TELEFONICA
    *
    * @param self::PARTNER_* $partner
    */
@@ -672,10 +720,10 @@ class GoogleCloudAssuredworkloadsV1Workload extends \Google\Collection
   }
   /**
    * Optional. Billing account necessary for purchasing services from Sovereign
-   * Partners. This field is required for creating SIA/PSN/CNTXT partner
-   * workloads. The caller should have 'billing.resourceAssociations.create' IAM
-   * permission on this billing-account. The format of this string is
-   * billingAccounts/AAAAAA-BBBBBB-CCCCCC
+   * Partners. This field is required for creating SIA/PSN/CNTXT/Telefonica
+   * partner workloads. The caller should have
+   * 'billing.resourceAssociations.create' IAM permission on this billing-
+   * account. The format of this string is billingAccounts/AAAAAA-BBBBBB-CCCCCC
    *
    * @param string $partnerServicesBillingAccount
    */

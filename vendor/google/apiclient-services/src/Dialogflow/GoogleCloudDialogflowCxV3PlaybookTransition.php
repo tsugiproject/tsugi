@@ -20,22 +20,15 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3PlaybookTransition extends \Google\Model
 {
   /**
-   * Output only. The display name of the playbook.
-   *
    * @var string
    */
   public $displayName;
   /**
-   * Required. The unique identifier of the playbook. Format:
-   * `projects//locations//agents//playbooks/`.
-   *
    * @var string
    */
   public $playbook;
 
   /**
-   * Output only. The display name of the playbook.
-   *
    * @param string $displayName
    */
   public function setDisplayName($displayName)
@@ -50,9 +43,6 @@ class GoogleCloudDialogflowCxV3PlaybookTransition extends \Google\Model
     return $this->displayName;
   }
   /**
-   * Required. The unique identifier of the playbook. Format:
-   * `projects//locations//agents//playbooks/`.
-   *
    * @param string $playbook
    */
   public function setPlaybook($playbook)

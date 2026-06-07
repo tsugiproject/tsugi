@@ -26,8 +26,6 @@ class GoogleCloudDialogflowV2beta1ResponseMessage extends \Google\Model
   protected $mixedAudioType = GoogleCloudDialogflowV2beta1ResponseMessageMixedAudio::class;
   protected $mixedAudioDataType = '';
   /**
-   * Returns a response containing a custom, platform-specific payload.
-   *
    * @var array[]
    */
   public $payload;
@@ -37,9 +35,6 @@ class GoogleCloudDialogflowV2beta1ResponseMessage extends \Google\Model
   protected $textDataType = '';
 
   /**
-   * A signal that indicates the interaction with the Dialogflow agent has
-   * ended.
-   *
    * @param GoogleCloudDialogflowV2beta1ResponseMessageEndInteraction $endInteraction
    */
   public function setEndInteraction(GoogleCloudDialogflowV2beta1ResponseMessageEndInteraction $endInteraction)
@@ -54,8 +49,6 @@ class GoogleCloudDialogflowV2beta1ResponseMessage extends \Google\Model
     return $this->endInteraction;
   }
   /**
-   * Hands off conversation to a live agent.
-   *
    * @param GoogleCloudDialogflowV2beta1ResponseMessageLiveAgentHandoff $liveAgentHandoff
    */
   public function setLiveAgentHandoff(GoogleCloudDialogflowV2beta1ResponseMessageLiveAgentHandoff $liveAgentHandoff)
@@ -70,9 +63,6 @@ class GoogleCloudDialogflowV2beta1ResponseMessage extends \Google\Model
     return $this->liveAgentHandoff;
   }
   /**
-   * An audio response message composed of both the synthesized Dialogflow agent
-   * responses and the audios hosted in places known to the client.
-   *
    * @param GoogleCloudDialogflowV2beta1ResponseMessageMixedAudio $mixedAudio
    */
   public function setMixedAudio(GoogleCloudDialogflowV2beta1ResponseMessageMixedAudio $mixedAudio)
@@ -87,8 +77,6 @@ class GoogleCloudDialogflowV2beta1ResponseMessage extends \Google\Model
     return $this->mixedAudio;
   }
   /**
-   * Returns a response containing a custom, platform-specific payload.
-   *
    * @param array[] $payload
    */
   public function setPayload($payload)
@@ -103,9 +91,6 @@ class GoogleCloudDialogflowV2beta1ResponseMessage extends \Google\Model
     return $this->payload;
   }
   /**
-   * A signal that the client should transfer the phone call connected to this
-   * agent to a third-party endpoint.
-   *
    * @param GoogleCloudDialogflowV2beta1ResponseMessageTelephonyTransferCall $telephonyTransferCall
    */
   public function setTelephonyTransferCall(GoogleCloudDialogflowV2beta1ResponseMessageTelephonyTransferCall $telephonyTransferCall)
@@ -120,8 +105,6 @@ class GoogleCloudDialogflowV2beta1ResponseMessage extends \Google\Model
     return $this->telephonyTransferCall;
   }
   /**
-   * Returns a text response.
-   *
    * @param GoogleCloudDialogflowV2beta1ResponseMessageText $text
    */
   public function setText(GoogleCloudDialogflowV2beta1ResponseMessageText $text)

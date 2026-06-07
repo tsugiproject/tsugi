@@ -148,9 +148,10 @@ class BillingAccountsLocationsSavedQueries extends \Google\Service\Resource
    * format:
    * "projects/[PROJECT_ID]/locations/[LOCATION_ID]/savedQueries/[QUERY_ID]" For a
    * list of supported locations, see Supported Regions
-   * (https://cloud.google.com/logging/docs/region-support#bucket-regions)After
-   * the saved query is created, the location cannot be changed.If the user
-   * doesn't provide a QUERY_ID, the system will generate an alphanumeric ID.
+   * (https://docs.cloud.google.com/logging/docs/region-support#bucket-
+   * regions)After the saved query is created, the location cannot be changed.If
+   * the user doesn't provide a QUERY_ID, the system will generate an alphanumeric
+   * ID.
    * @param SavedQuery $postBody
    * @param array $optParams Optional parameters.
    *

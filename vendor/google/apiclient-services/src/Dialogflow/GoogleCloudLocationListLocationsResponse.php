@@ -23,15 +23,11 @@ class GoogleCloudLocationListLocationsResponse extends \Google\Collection
   protected $locationsType = GoogleCloudLocationLocation::class;
   protected $locationsDataType = 'array';
   /**
-   * The standard List next-page token.
-   *
    * @var string
    */
   public $nextPageToken;
 
   /**
-   * A list of locations that matches the specified filter in the request.
-   *
    * @param GoogleCloudLocationLocation[] $locations
    */
   public function setLocations($locations)
@@ -46,8 +42,6 @@ class GoogleCloudLocationListLocationsResponse extends \Google\Collection
     return $this->locations;
   }
   /**
-   * The standard List next-page token.
-   *
    * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)

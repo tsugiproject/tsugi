@@ -58,6 +58,15 @@ class GoogleCloudRecaptchaenterpriseV1TokenProperties extends \Google\Model
    */
   public const INVALID_REASON_UNEXPECTED_ACTION = 'UNEXPECTED_ACTION';
   /**
+   * The key used to generate the token does not match the `site_key`.
+   */
+  public const INVALID_REASON_KEY_MISMATCH = 'KEY_MISMATCH';
+  /**
+   * The domain of the page on which the token was generated does not match the
+   * `allowed_domains` configured in the `site_key`.
+   */
+  public const INVALID_REASON_DOMAIN_MISMATCH = 'DOMAIN_MISMATCH';
+  /**
    * Output only. Action name provided at token generation.
    *
    * @var string
@@ -97,11 +106,9 @@ class GoogleCloudRecaptchaenterpriseV1TokenProperties extends \Google\Model
    */
   public $iosBundleId;
   /**
-   * Output only. Whether the provided user response token is valid. When valid
-   * = false, the reason could be specified in invalid_reason or it could also
-   * be due to a user failing to solve a challenge or a sitekey mismatch (i.e
-   * the sitekey used to generate the token was different than the one specified
-   * in the assessment).
+   * Output only. Indicates whether the provided user response token is valid.
+   * If `false`, the token is invalid, either because the user failed the
+   * challenge or for a reason provided in the `invalid_reason` field.
    *
    * @var bool
    */
@@ -177,7 +184,8 @@ class GoogleCloudRecaptchaenterpriseV1TokenProperties extends \Google\Model
    * Output only. Reason associated with the response when valid = false.
    *
    * Accepted values: INVALID_REASON_UNSPECIFIED, UNKNOWN_INVALID_REASON,
-   * MALFORMED, EXPIRED, DUPE, MISSING, BROWSER_ERROR, UNEXPECTED_ACTION
+   * MALFORMED, EXPIRED, DUPE, MISSING, BROWSER_ERROR, UNEXPECTED_ACTION,
+   * KEY_MISMATCH, DOMAIN_MISMATCH
    *
    * @param self::INVALID_REASON_* $invalidReason
    */
@@ -210,11 +218,9 @@ class GoogleCloudRecaptchaenterpriseV1TokenProperties extends \Google\Model
     return $this->iosBundleId;
   }
   /**
-   * Output only. Whether the provided user response token is valid. When valid
-   * = false, the reason could be specified in invalid_reason or it could also
-   * be due to a user failing to solve a challenge or a sitekey mismatch (i.e
-   * the sitekey used to generate the token was different than the one specified
-   * in the assessment).
+   * Output only. Indicates whether the provided user response token is valid.
+   * If `false`, the token is invalid, either because the user failed the
+   * challenge or for a reason provided in the `invalid_reason` field.
    *
    * @param bool $valid
    */

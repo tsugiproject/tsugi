@@ -27,6 +27,8 @@ class GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock extends \
   public $blockId;
   protected $boundingBoxType = GoogleCloudDocumentaiV1BoundingPoly::class;
   protected $boundingBoxDataType = '';
+  protected $imageBlockType = GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutImageBlock::class;
+  protected $imageBlockDataType = '';
   protected $listBlockType = GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock::class;
   protected $listBlockDataType = '';
   protected $pageSpanType = GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan::class;
@@ -67,6 +69,22 @@ class GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock extends \
   public function getBoundingBox()
   {
     return $this->boundingBox;
+  }
+  /**
+   * Block consisting of image content.
+   *
+   * @param GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutImageBlock $imageBlock
+   */
+  public function setImageBlock(GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutImageBlock $imageBlock)
+  {
+    $this->imageBlock = $imageBlock;
+  }
+  /**
+   * @return GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutImageBlock
+   */
+  public function getImageBlock()
+  {
+    return $this->imageBlock;
   }
   /**
    * Block consisting of list content/structure.

@@ -23,11 +23,15 @@ class ResourceDetails extends \Google\Collection
   protected $appliedLabelsType = AppliedLabel::class;
   protected $appliedLabelsDataType = 'array';
   /**
-   * Identifier of the resource.
+   * Identifier of the resource, such as a doc_id for a Drive document, a
+   * conference_id for a Meet conference, or a "gaia_id/rfc2822_message_id" for
+   * an email.
    *
    * @var string
    */
   public $id;
+  protected $ownerDetailsType = OwnerDetails::class;
+  protected $ownerDetailsDataType = '';
   /**
    * Defines relationship of the resource to the events
    *
@@ -66,7 +70,9 @@ class ResourceDetails extends \Google\Collection
     return $this->appliedLabels;
   }
   /**
-   * Identifier of the resource.
+   * Identifier of the resource, such as a doc_id for a Drive document, a
+   * conference_id for a Meet conference, or a "gaia_id/rfc2822_message_id" for
+   * an email.
    *
    * @param string $id
    */
@@ -80,6 +86,22 @@ class ResourceDetails extends \Google\Collection
   public function getId()
   {
     return $this->id;
+  }
+  /**
+   * Owner details of the resource.
+   *
+   * @param OwnerDetails $ownerDetails
+   */
+  public function setOwnerDetails(OwnerDetails $ownerDetails)
+  {
+    $this->ownerDetails = $ownerDetails;
+  }
+  /**
+   * @return OwnerDetails
+   */
+  public function getOwnerDetails()
+  {
+    return $this->ownerDetails;
   }
   /**
    * Defines relationship of the resource to the events

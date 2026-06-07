@@ -116,6 +116,19 @@ class Certificate extends \Google\Collection
    * @var string
    */
   public $pemCsr;
+  /**
+   * Optional. The requested not_before_time of this Certificate. This field may
+   * only be set if the
+   * CaPool.IssuancePolicy.allow_requester_specified_not_before_time field is
+   * set to true for the issuing CaPool. If this field is specified, the
+   * certificate will be issued with this 'not_before_time'. If this is not
+   * specified, the 'not_before_time' will be set to the issuance time or
+   * issuance time minus backdate_duration depending on the CaPool
+   * configuration.
+   *
+   * @var string
+   */
+  public $requestedNotBeforeTime;
   protected $revocationDetailsType = RevocationDetails::class;
   protected $revocationDetailsDataType = '';
   /**
@@ -318,6 +331,29 @@ class Certificate extends \Google\Collection
   public function getPemCsr()
   {
     return $this->pemCsr;
+  }
+  /**
+   * Optional. The requested not_before_time of this Certificate. This field may
+   * only be set if the
+   * CaPool.IssuancePolicy.allow_requester_specified_not_before_time field is
+   * set to true for the issuing CaPool. If this field is specified, the
+   * certificate will be issued with this 'not_before_time'. If this is not
+   * specified, the 'not_before_time' will be set to the issuance time or
+   * issuance time minus backdate_duration depending on the CaPool
+   * configuration.
+   *
+   * @param string $requestedNotBeforeTime
+   */
+  public function setRequestedNotBeforeTime($requestedNotBeforeTime)
+  {
+    $this->requestedNotBeforeTime = $requestedNotBeforeTime;
+  }
+  /**
+   * @return string
+   */
+  public function getRequestedNotBeforeTime()
+  {
+    return $this->requestedNotBeforeTime;
   }
   /**
    * Output only. Details regarding the revocation of this Certificate. This

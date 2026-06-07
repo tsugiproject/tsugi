@@ -20,9 +20,9 @@ namespace Google\Service\Directory;
 class UserLocation extends \Google\Model
 {
   /**
-   * Textual location. This is most useful for display purposes to concisely
-   * describe the location. For example 'Mountain View, CA', 'Near Seattle',
-   * 'US-NYC-9TH 9A209A.''
+   * Required. Textual location. This is most useful for display purposes to
+   * concisely describe the location. For example 'Mountain View, CA', 'Near
+   * Seattle', 'US-NYC-9TH 9A209A.''
    *
    * @var string
    */
@@ -70,9 +70,9 @@ class UserLocation extends \Google\Model
   public $type;
 
   /**
-   * Textual location. This is most useful for display purposes to concisely
-   * describe the location. For example 'Mountain View, CA', 'Near Seattle',
-   * 'US-NYC-9TH 9A209A.''
+   * Required. Textual location. This is most useful for display purposes to
+   * concisely describe the location. For example 'Mountain View, CA', 'Near
+   * Seattle', 'US-NYC-9TH 9A209A.''
    *
    * @param string $area
    */

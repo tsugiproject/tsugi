@@ -23,8 +23,8 @@ use Google\Client;
  * Service definition for FirebaseDataConnect (v1).
  *
  * <p>
- * Firebase Data Connect is a relational database service for mobile and web
- * apps that lets you build and scale using a fully-managed PostgreSQL database
+ * Firebase SQL Connect is a relational database service for mobile and web apps
+ * that lets you build and scale using a fully-managed PostgreSQL database
  * powered by Cloud SQL. The REST API lets developers manage the connections to
  * their database, change the schema of their database, and query the database.</p>
  *
@@ -248,6 +248,26 @@ class FirebaseDataConnect extends \Google\Service
               ],
             ],'executeGraphqlRead' => [
               'path' => 'v1/{+name}:executeGraphqlRead',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'generateQuery' => [
+              'path' => 'v1/{+name}:generateQuery',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'generateSchema' => [
+              'path' => 'v1/{+name}:generateSchema',
               'httpMethod' => 'POST',
               'parameters' => [
                 'name' => [

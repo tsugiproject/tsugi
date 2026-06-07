@@ -17,7 +17,7 @@
 
 namespace Google\Service\Recommender;
 
-class GoogleCloudRecommenderV1Impact extends \Google\Collection
+class GoogleCloudRecommenderV1Impact extends \Google\Model
 {
   /**
    * Default unspecified category. Don't use directly.
@@ -47,7 +47,6 @@ class GoogleCloudRecommenderV1Impact extends \Google\Collection
    * Indicates a potential increase or decrease in reliability.
    */
   public const CATEGORY_RELIABILITY = 'RELIABILITY';
-  protected $collection_key = 'impactComponents';
   /**
    * Category that is being targeted.
    *
@@ -56,8 +55,6 @@ class GoogleCloudRecommenderV1Impact extends \Google\Collection
   public $category;
   protected $costProjectionType = GoogleCloudRecommenderV1CostProjection::class;
   protected $costProjectionDataType = '';
-  protected $impactComponentsType = GoogleCloudRecommenderV1Impact::class;
-  protected $impactComponentsDataType = 'array';
   protected $reliabilityProjectionType = GoogleCloudRecommenderV1ReliabilityProjection::class;
   protected $reliabilityProjectionDataType = '';
   protected $securityProjectionType = GoogleCloudRecommenderV1SecurityProjection::class;
@@ -105,24 +102,6 @@ class GoogleCloudRecommenderV1Impact extends \Google\Collection
   public function getCostProjection()
   {
     return $this->costProjection;
-  }
-  /**
-   * If populated, the impact contains multiple components. In this case, the
-   * top-level impact contains aggregated values and each component contains
-   * per-service details.
-   *
-   * @param GoogleCloudRecommenderV1Impact[] $impactComponents
-   */
-  public function setImpactComponents($impactComponents)
-  {
-    $this->impactComponents = $impactComponents;
-  }
-  /**
-   * @return GoogleCloudRecommenderV1Impact[]
-   */
-  public function getImpactComponents()
-  {
-    return $this->impactComponents;
   }
   /**
    * Use with CategoryType.RELIABILITY

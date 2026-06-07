@@ -20,22 +20,15 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3FlowTransition extends \Google\Model
 {
   /**
-   * Output only. The display name of the flow.
-   *
    * @var string
    */
   public $displayName;
   /**
-   * Required. The unique identifier of the flow. Format:
-   * `projects//locations//agents/`.
-   *
    * @var string
    */
   public $flow;
 
   /**
-   * Output only. The display name of the flow.
-   *
    * @param string $displayName
    */
   public function setDisplayName($displayName)
@@ -50,9 +43,6 @@ class GoogleCloudDialogflowCxV3FlowTransition extends \Google\Model
     return $this->displayName;
   }
   /**
-   * Required. The unique identifier of the flow. Format:
-   * `projects//locations//agents/`.
-   *
    * @param string $flow
    */
   public function setFlow($flow)

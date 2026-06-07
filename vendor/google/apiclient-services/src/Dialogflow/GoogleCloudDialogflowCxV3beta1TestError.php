@@ -22,21 +22,15 @@ class GoogleCloudDialogflowCxV3beta1TestError extends \Google\Model
   protected $statusType = GoogleRpcStatus::class;
   protected $statusDataType = '';
   /**
-   * The test case resource name.
-   *
    * @var string
    */
   public $testCase;
   /**
-   * The timestamp when the test was completed.
-   *
    * @var string
    */
   public $testTime;
 
   /**
-   * The status associated with the test.
-   *
    * @param GoogleRpcStatus $status
    */
   public function setStatus(GoogleRpcStatus $status)
@@ -51,8 +45,6 @@ class GoogleCloudDialogflowCxV3beta1TestError extends \Google\Model
     return $this->status;
   }
   /**
-   * The test case resource name.
-   *
    * @param string $testCase
    */
   public function setTestCase($testCase)
@@ -67,8 +59,6 @@ class GoogleCloudDialogflowCxV3beta1TestError extends \Google\Model
     return $this->testCase;
   }
   /**
-   * The timestamp when the test was completed.
-   *
    * @param string $testTime
    */
   public function setTestTime($testTime)

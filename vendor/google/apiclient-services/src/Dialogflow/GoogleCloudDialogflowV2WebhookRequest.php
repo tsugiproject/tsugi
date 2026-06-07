@@ -24,26 +24,15 @@ class GoogleCloudDialogflowV2WebhookRequest extends \Google\Model
   protected $queryResultType = GoogleCloudDialogflowV2QueryResult::class;
   protected $queryResultDataType = '';
   /**
-   * The unique identifier of the response. Contains the same value as
-   * `[Streaming]DetectIntentResponse.response_id`.
-   *
    * @var string
    */
   public $responseId;
   /**
-   * The unique identifier of detectIntent request session. Can be used to
-   * identify end-user inside webhook implementation. Format:
-   * `projects//agent/sessions/`, or
-   * `projects//agent/environments//users//sessions/`.
-   *
    * @var string
    */
   public $session;
 
   /**
-   * Optional. The contents of the original request that was passed to
-   * `[Streaming]DetectIntent` call.
-   *
    * @param GoogleCloudDialogflowV2OriginalDetectIntentRequest $originalDetectIntentRequest
    */
   public function setOriginalDetectIntentRequest(GoogleCloudDialogflowV2OriginalDetectIntentRequest $originalDetectIntentRequest)
@@ -58,9 +47,6 @@ class GoogleCloudDialogflowV2WebhookRequest extends \Google\Model
     return $this->originalDetectIntentRequest;
   }
   /**
-   * The result of the conversational query or event processing. Contains the
-   * same value as `[Streaming]DetectIntentResponse.query_result`.
-   *
    * @param GoogleCloudDialogflowV2QueryResult $queryResult
    */
   public function setQueryResult(GoogleCloudDialogflowV2QueryResult $queryResult)
@@ -75,9 +61,6 @@ class GoogleCloudDialogflowV2WebhookRequest extends \Google\Model
     return $this->queryResult;
   }
   /**
-   * The unique identifier of the response. Contains the same value as
-   * `[Streaming]DetectIntentResponse.response_id`.
-   *
    * @param string $responseId
    */
   public function setResponseId($responseId)
@@ -92,11 +75,6 @@ class GoogleCloudDialogflowV2WebhookRequest extends \Google\Model
     return $this->responseId;
   }
   /**
-   * The unique identifier of detectIntent request session. Can be used to
-   * identify end-user inside webhook implementation. Format:
-   * `projects//agent/sessions/`, or
-   * `projects//agent/environments//users//sessions/`.
-   *
    * @param string $session
    */
   public function setSession($session)

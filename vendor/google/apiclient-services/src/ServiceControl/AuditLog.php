@@ -20,6 +20,15 @@ namespace Google\Service\ServiceControl;
 class AuditLog extends \Google\Collection
 {
   protected $collection_key = 'authorizationInfo';
+  /**
+   * The API version identifier of the operation that uses interface based
+   * versioning (IBV). For example, `"2026-01-01-preview"`. The version
+   * identifier generally follows the format of [variant_]date[_decorator]. It
+   * should not be parsed because the exact format varies across services.
+   *
+   * @var string
+   */
+  public $apiVersionIdentifier;
   protected $authenticationInfoType = AuthenticationInfo::class;
   protected $authenticationInfoDataType = '';
   protected $authorizationInfoType = AuthorizationInfo::class;
@@ -111,6 +120,25 @@ class AuditLog extends \Google\Collection
   protected $statusType = Status::class;
   protected $statusDataType = '';
 
+  /**
+   * The API version identifier of the operation that uses interface based
+   * versioning (IBV). For example, `"2026-01-01-preview"`. The version
+   * identifier generally follows the format of [variant_]date[_decorator]. It
+   * should not be parsed because the exact format varies across services.
+   *
+   * @param string $apiVersionIdentifier
+   */
+  public function setApiVersionIdentifier($apiVersionIdentifier)
+  {
+    $this->apiVersionIdentifier = $apiVersionIdentifier;
+  }
+  /**
+   * @return string
+   */
+  public function getApiVersionIdentifier()
+  {
+    return $this->apiVersionIdentifier;
+  }
   /**
    * Authentication information.
    *

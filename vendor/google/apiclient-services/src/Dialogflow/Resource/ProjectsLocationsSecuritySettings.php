@@ -32,10 +32,9 @@ use Google\Service\Dialogflow\GoogleProtobufEmpty;
 class ProjectsLocationsSecuritySettings extends \Google\Service\Resource
 {
   /**
-   * Create security settings in the specified location. (securitySettings.create)
+   * (securitySettings.create)
    *
-   * @param string $parent Required. The location to create an SecuritySettings
-   * for. Format: `projects//locations/`.
+   * @param string $parent
    * @param GoogleCloudDialogflowCxV3SecuritySettings $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3SecuritySettings
@@ -48,10 +47,9 @@ class ProjectsLocationsSecuritySettings extends \Google\Service\Resource
     return $this->call('create', [$params], GoogleCloudDialogflowCxV3SecuritySettings::class);
   }
   /**
-   * Deletes the specified SecuritySettings. (securitySettings.delete)
+   * (securitySettings.delete)
    *
-   * @param string $name Required. The name of the SecuritySettings to delete.
-   * Format: `projects//locations//securitySettings/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    * @return GoogleProtobufEmpty
    * @throws \Google\Service\Exception
@@ -63,11 +61,9 @@ class ProjectsLocationsSecuritySettings extends \Google\Service\Resource
     return $this->call('delete', [$params], GoogleProtobufEmpty::class);
   }
   /**
-   * Retrieves the specified SecuritySettings. The returned settings may be stale
-   * by up to 1 minute. (securitySettings.get)
+   * (securitySettings.get)
    *
-   * @param string $name Required. Resource name of the settings. Format:
-   * `projects//locations//securitySettings/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3SecuritySettings
    * @throws \Google\Service\Exception
@@ -79,17 +75,13 @@ class ProjectsLocationsSecuritySettings extends \Google\Service\Resource
     return $this->call('get', [$params], GoogleCloudDialogflowCxV3SecuritySettings::class);
   }
   /**
-   * Returns the list of all security settings in the specified location.
    * (securitySettings.listProjectsLocationsSecuritySettings)
    *
-   * @param string $parent Required. The location to list all security settings
-   * for. Format: `projects//locations/`.
+   * @param string $parent
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize The maximum number of items to return in a single
-   * page. By default 20 and at most 100.
-   * @opt_param string pageToken The next_page_token value returned from a
-   * previous list request.
+   * @opt_param int pageSize
+   * @opt_param string pageToken
    * @return GoogleCloudDialogflowCxV3ListSecuritySettingsResponse
    * @throws \Google\Service\Exception
    */
@@ -100,17 +92,13 @@ class ProjectsLocationsSecuritySettings extends \Google\Service\Resource
     return $this->call('list', [$params], GoogleCloudDialogflowCxV3ListSecuritySettingsResponse::class);
   }
   /**
-   * Updates the specified SecuritySettings. (securitySettings.patch)
+   * (securitySettings.patch)
    *
-   * @param string $name Resource name of the settings. Required for the
-   * SecuritySettingsService.UpdateSecuritySettings method.
-   * SecuritySettingsService.CreateSecuritySettings populates the name
-   * automatically. Format: `projects//locations//securitySettings/`.
+   * @param string $name
    * @param GoogleCloudDialogflowCxV3SecuritySettings $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string updateMask Required. The mask to control which fields get
-   * updated. If the mask is not present, all fields will be updated.
+   * @opt_param string updateMask
    * @return GoogleCloudDialogflowCxV3SecuritySettings
    * @throws \Google\Service\Exception
    */

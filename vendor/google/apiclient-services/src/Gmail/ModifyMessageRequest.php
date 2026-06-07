@@ -20,6 +20,8 @@ namespace Google\Service\Gmail;
 class ModifyMessageRequest extends \Google\Collection
 {
   protected $collection_key = 'removeLabelIds';
+  protected $addClassificationLabelsType = ClassificationLabelValue::class;
+  protected $addClassificationLabelsDataType = 'array';
   /**
    * A list of IDs of labels to add to this message. You can add up to 100
    * labels with each update.
@@ -28,6 +30,12 @@ class ModifyMessageRequest extends \Google\Collection
    */
   public $addLabelIds;
   /**
+   * A list of Classification Label values to remove from this message.
+   *
+   * @var string[]
+   */
+  public $removeClassificationLabelIds;
+  /**
    * A list IDs of labels to remove from this message. You can remove up to 100
    * labels with each update.
    *
@@ -35,6 +43,28 @@ class ModifyMessageRequest extends \Google\Collection
    */
   public $removeLabelIds;
 
+  /**
+   * A list of classification label values to add. If a Classification Label
+   * with the same label ID is already applied to the message, fields with
+   * existing field IDs will be updated and fields with new field IDs will be
+   * added. There's a limit of 20 Classification Label values per request. If
+   * the message is already classified and the final total number of
+   * Classification Label values exceeds the maximum allowed number of
+   * Classification Label values per message, the modification fails.
+   *
+   * @param ClassificationLabelValue[] $addClassificationLabels
+   */
+  public function setAddClassificationLabels($addClassificationLabels)
+  {
+    $this->addClassificationLabels = $addClassificationLabels;
+  }
+  /**
+   * @return ClassificationLabelValue[]
+   */
+  public function getAddClassificationLabels()
+  {
+    return $this->addClassificationLabels;
+  }
   /**
    * A list of IDs of labels to add to this message. You can add up to 100
    * labels with each update.
@@ -51,6 +81,22 @@ class ModifyMessageRequest extends \Google\Collection
   public function getAddLabelIds()
   {
     return $this->addLabelIds;
+  }
+  /**
+   * A list of Classification Label values to remove from this message.
+   *
+   * @param string[] $removeClassificationLabelIds
+   */
+  public function setRemoveClassificationLabelIds($removeClassificationLabelIds)
+  {
+    $this->removeClassificationLabelIds = $removeClassificationLabelIds;
+  }
+  /**
+   * @return string[]
+   */
+  public function getRemoveClassificationLabelIds()
+  {
+    return $this->removeClassificationLabelIds;
   }
   /**
    * A list IDs of labels to remove from this message. You can remove up to 100

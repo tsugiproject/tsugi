@@ -53,7 +53,7 @@ class Organizations extends \Google\Service\Resource
     return $this->call('findSalesPartnerManagedClients', [$params], FindSalesPartnerManagedClientsResponse::class);
   }
   /**
-   * Lookup for a single organization. (organizations.get)
+   * Looks up a single organization. (organizations.get)
    *
    * @param string $name Required. The name of the Organization to retrieve.
    * Format: organizations/{org_id}
@@ -91,8 +91,8 @@ class Organizations extends \Google\Service\Resource
     return $this->call('list', [$params], ListOrganizationsResponse::class);
   }
   /**
-   * Get the usage and billing data for properties within the organization for the
-   * specified month. Per direct client org, user needs to be
+   * Gets the usage and billing data for properties within the organization for
+   * the specified month. Per direct client org, user needs to be
    * OrgAdmin/BillingAdmin on the organization in order to view the billing and
    * usage data. Per sales partner client org, user needs to be
    * OrgAdmin/BillingAdmin on the sales partner org in order to view the billing

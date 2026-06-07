@@ -95,6 +95,8 @@ class GoogleCloudDataplexV1DataScan extends \Google\Model
    * @var string
    */
   public $displayName;
+  protected $executionIdentityType = GoogleCloudDataplexV1ExecutionIdentity::class;
+  protected $executionIdentityDataType = '';
   protected $executionSpecType = GoogleCloudDataplexV1DataScanExecutionSpec::class;
   protected $executionSpecDataType = '';
   protected $executionStatusType = GoogleCloudDataplexV1DataScanExecutionStatus::class;
@@ -331,6 +333,23 @@ class GoogleCloudDataplexV1DataScan extends \Google\Model
   public function getDisplayName()
   {
     return $this->displayName;
+  }
+  /**
+   * Optional. Immutable. The identity to run the datascan. If not specified,
+   * defaults to the Dataplex Service Agent.
+   *
+   * @param GoogleCloudDataplexV1ExecutionIdentity $executionIdentity
+   */
+  public function setExecutionIdentity(GoogleCloudDataplexV1ExecutionIdentity $executionIdentity)
+  {
+    $this->executionIdentity = $executionIdentity;
+  }
+  /**
+   * @return GoogleCloudDataplexV1ExecutionIdentity
+   */
+  public function getExecutionIdentity()
+  {
+    return $this->executionIdentity;
   }
   /**
    * Optional. DataScan execution settings.If not specified, the fields in it

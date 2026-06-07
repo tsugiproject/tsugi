@@ -17,7 +17,7 @@
 
 namespace Google\Service\CloudAlloyDBAdmin;
 
-class StorageDatabasecenterPartnerapiV1mainDatabaseResourceSignalData extends \Google\Model
+class StorageDatabasecenterPartnerapiV1mainDatabaseResourceSignalData extends \Google\Collection
 {
   /**
    * Unspecified signal state.
@@ -70,6 +70,21 @@ class StorageDatabasecenterPartnerapiV1mainDatabaseResourceSignalData extends \G
    */
   public const SIGNAL_TYPE_SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY = 'SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY';
   /**
+   * Represents if a resource version is nearing end of life.
+   */
+  public const SIGNAL_TYPE_SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE = 'SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE';
+  /**
+   * Represents if the last backup of a resource is older than 24 hours.
+   */
+  public const SIGNAL_TYPE_SIGNAL_TYPE_LAST_BACKUP_OLD = 'SIGNAL_TYPE_LAST_BACKUP_OLD';
+  /**
+   * Represents if a resource is not protected by automatic failover.
+   */
+  public const SIGNAL_TYPE_SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER = 'SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER';
+  protected $collection_key = 'signalMetadataList';
+  protected $backupRunType = StorageDatabasecenterPartnerapiV1mainBackupRun::class;
+  protected $backupRunDataType = '';
+  /**
    * Required. Full Resource name of the source resource.
    *
    * @var string
@@ -81,14 +96,23 @@ class StorageDatabasecenterPartnerapiV1mainDatabaseResourceSignalData extends \G
    * @var string
    */
   public $lastRefreshTime;
+  /**
+   * Required. Resource location.
+   *
+   * @var string
+   */
+  public $location;
   protected $resourceIdType = StorageDatabasecenterPartnerapiV1mainDatabaseResourceId::class;
   protected $resourceIdDataType = '';
   /**
-   * Signal data for boolean signals.
+   * Deprecated: Use signal_metadata_list instead.
    *
+   * @deprecated
    * @var bool
    */
   public $signalBoolValue;
+  protected $signalMetadataListType = StorageDatabasecenterPartnerapiV1mainSignalMetadata::class;
+  protected $signalMetadataListDataType = 'array';
   /**
    * Required. Output only. Signal state of the signal
    *
@@ -102,6 +126,24 @@ class StorageDatabasecenterPartnerapiV1mainDatabaseResourceSignalData extends \G
    */
   public $signalType;
 
+  /**
+   * Deprecated: Use signal_metadata_list instead.
+   *
+   * @deprecated
+   * @param StorageDatabasecenterPartnerapiV1mainBackupRun $backupRun
+   */
+  public function setBackupRun(StorageDatabasecenterPartnerapiV1mainBackupRun $backupRun)
+  {
+    $this->backupRun = $backupRun;
+  }
+  /**
+   * @deprecated
+   * @return StorageDatabasecenterPartnerapiV1mainBackupRun
+   */
+  public function getBackupRun()
+  {
+    return $this->backupRun;
+  }
   /**
    * Required. Full Resource name of the source resource.
    *
@@ -135,6 +177,22 @@ class StorageDatabasecenterPartnerapiV1mainDatabaseResourceSignalData extends \G
     return $this->lastRefreshTime;
   }
   /**
+   * Required. Resource location.
+   *
+   * @param string $location
+   */
+  public function setLocation($location)
+  {
+    $this->location = $location;
+  }
+  /**
+   * @return string
+   */
+  public function getLocation()
+  {
+    return $this->location;
+  }
+  /**
    * Database resource id.
    *
    * @param StorageDatabasecenterPartnerapiV1mainDatabaseResourceId $resourceId
@@ -151,8 +209,9 @@ class StorageDatabasecenterPartnerapiV1mainDatabaseResourceSignalData extends \G
     return $this->resourceId;
   }
   /**
-   * Signal data for boolean signals.
+   * Deprecated: Use signal_metadata_list instead.
    *
+   * @deprecated
    * @param bool $signalBoolValue
    */
   public function setSignalBoolValue($signalBoolValue)
@@ -160,11 +219,29 @@ class StorageDatabasecenterPartnerapiV1mainDatabaseResourceSignalData extends \G
     $this->signalBoolValue = $signalBoolValue;
   }
   /**
+   * @deprecated
    * @return bool
    */
   public function getSignalBoolValue()
   {
     return $this->signalBoolValue;
+  }
+  /**
+   * This will support array of OneOf signal metadata information for a given
+   * signal type.
+   *
+   * @param StorageDatabasecenterPartnerapiV1mainSignalMetadata[] $signalMetadataList
+   */
+  public function setSignalMetadataList($signalMetadataList)
+  {
+    $this->signalMetadataList = $signalMetadataList;
+  }
+  /**
+   * @return StorageDatabasecenterPartnerapiV1mainSignalMetadata[]
+   */
+  public function getSignalMetadataList()
+  {
+    return $this->signalMetadataList;
   }
   /**
    * Required. Output only. Signal state of the signal
@@ -191,7 +268,9 @@ class StorageDatabasecenterPartnerapiV1mainDatabaseResourceSignalData extends \G
    * SIGNAL_TYPE_OUTDATED_MINOR_VERSION, SIGNAL_TYPE_DATABASE_AUDITING_DISABLED,
    * SIGNAL_TYPE_NO_ROOT_PASSWORD, SIGNAL_TYPE_EXPOSED_TO_PUBLIC_ACCESS,
    * SIGNAL_TYPE_UNENCRYPTED_CONNECTIONS, SIGNAL_TYPE_EXTENDED_SUPPORT,
-   * SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY
+   * SIGNAL_TYPE_NO_AUTOMATED_BACKUP_POLICY,
+   * SIGNAL_TYPE_VERSION_NEARING_END_OF_LIFE, SIGNAL_TYPE_LAST_BACKUP_OLD,
+   * SIGNAL_TYPE_NOT_PROTECTED_BY_AUTOMATIC_FAILOVER
    *
    * @param self::SIGNAL_TYPE_* $signalType
    */

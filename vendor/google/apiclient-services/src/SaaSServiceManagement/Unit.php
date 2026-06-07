@@ -103,6 +103,12 @@ class Unit extends \Google\Collection
    * @var string
    */
   public $etag;
+  /**
+   * Optional. Output only. Flag revisions used by this Unit.
+   *
+   * @var string[]
+   */
+  public $flagRevisions;
   protected $inputVariablesType = UnitVariable::class;
   protected $inputVariablesDataType = 'array';
   /**
@@ -151,6 +157,19 @@ class Unit extends \Google\Collection
    * @var string
    */
   public $release;
+  /**
+   * Output only. Reserved for future use.
+   *
+   * @var bool
+   */
+  public $satisfiesPzi;
+  /**
+   * Output only. Indicates whether the resource location satisfies Zone
+   * Separation constraints. This is false by default.
+   *
+   * @var bool
+   */
+  public $satisfiesPzs;
   /**
    * Optional. Output only. List of scheduled UnitOperations for this unit.
    *
@@ -315,6 +334,22 @@ class Unit extends \Google\Collection
     return $this->etag;
   }
   /**
+   * Optional. Output only. Flag revisions used by this Unit.
+   *
+   * @param string[] $flagRevisions
+   */
+  public function setFlagRevisions($flagRevisions)
+  {
+    $this->flagRevisions = $flagRevisions;
+  }
+  /**
+   * @return string[]
+   */
+  public function getFlagRevisions()
+  {
+    return $this->flagRevisions;
+  }
+  /**
    * Optional. Output only. Indicates the current input variables deployed by
    * the unit
    *
@@ -473,6 +508,39 @@ class Unit extends \Google\Collection
   public function getRelease()
   {
     return $this->release;
+  }
+  /**
+   * Output only. Reserved for future use.
+   *
+   * @param bool $satisfiesPzi
+   */
+  public function setSatisfiesPzi($satisfiesPzi)
+  {
+    $this->satisfiesPzi = $satisfiesPzi;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzi()
+  {
+    return $this->satisfiesPzi;
+  }
+  /**
+   * Output only. Indicates whether the resource location satisfies Zone
+   * Separation constraints. This is false by default.
+   *
+   * @param bool $satisfiesPzs
+   */
+  public function setSatisfiesPzs($satisfiesPzs)
+  {
+    $this->satisfiesPzs = $satisfiesPzs;
+  }
+  /**
+   * @return bool
+   */
+  public function getSatisfiesPzs()
+  {
+    return $this->satisfiesPzs;
   }
   /**
    * Optional. Output only. List of scheduled UnitOperations for this unit.

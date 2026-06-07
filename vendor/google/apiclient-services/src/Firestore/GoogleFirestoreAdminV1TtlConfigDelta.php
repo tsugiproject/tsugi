@@ -37,6 +37,13 @@ class GoogleFirestoreAdminV1TtlConfigDelta extends \Google\Model
    * @var string
    */
   public $changeType;
+  /**
+   * The offset, relative to the timestamp value in the TTL-enabled field, used
+   * determine the document's expiration time.
+   *
+   * @var string
+   */
+  public $expirationOffset;
 
   /**
    * Specifies how the TTL configuration is changing.
@@ -55,6 +62,23 @@ class GoogleFirestoreAdminV1TtlConfigDelta extends \Google\Model
   public function getChangeType()
   {
     return $this->changeType;
+  }
+  /**
+   * The offset, relative to the timestamp value in the TTL-enabled field, used
+   * determine the document's expiration time.
+   *
+   * @param string $expirationOffset
+   */
+  public function setExpirationOffset($expirationOffset)
+  {
+    $this->expirationOffset = $expirationOffset;
+  }
+  /**
+   * @return string
+   */
+  public function getExpirationOffset()
+  {
+    return $this->expirationOffset;
   }
 }
 

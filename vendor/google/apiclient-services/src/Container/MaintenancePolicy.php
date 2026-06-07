@@ -19,6 +19,8 @@ namespace Google\Service\Container;
 
 class MaintenancePolicy extends \Google\Model
 {
+  protected $disruptionBudgetType = DisruptionBudget::class;
+  protected $disruptionBudgetDataType = '';
   /**
    * A hash identifying the version of this policy, so that updates to fields of
    * the policy won't accidentally undo intermediate changes (and so that users
@@ -32,6 +34,22 @@ class MaintenancePolicy extends \Google\Model
   protected $windowType = MaintenanceWindow::class;
   protected $windowDataType = '';
 
+  /**
+   * Optional. The upgrade disruption budget for the cluster control plane.
+   *
+   * @param DisruptionBudget $disruptionBudget
+   */
+  public function setDisruptionBudget(DisruptionBudget $disruptionBudget)
+  {
+    $this->disruptionBudget = $disruptionBudget;
+  }
+  /**
+   * @return DisruptionBudget
+   */
+  public function getDisruptionBudget()
+  {
+    return $this->disruptionBudget;
+  }
   /**
    * A hash identifying the version of this policy, so that updates to fields of
    * the policy won't accidentally undo intermediate changes (and so that users

@@ -19,11 +19,13 @@ namespace Google\Service\NetworkSecurity;
 
 class AuthzPolicyAuthzRuleToRequestOperation extends \Google\Collection
 {
-  protected $collection_key = 'paths';
+  protected $collection_key = 'snis';
   protected $headerSetType = AuthzPolicyAuthzRuleToRequestOperationHeaderSet::class;
   protected $headerSetDataType = '';
   protected $hostsType = AuthzPolicyAuthzRuleStringMatch::class;
   protected $hostsDataType = 'array';
+  protected $mcpType = AuthzPolicyAuthzRuleToRequestOperationMCP::class;
+  protected $mcpDataType = '';
   /**
    * Optional. A list of HTTP methods to match against. Each entry must be a
    * valid HTTP method name (GET, PUT, POST, HEAD, PATCH, DELETE, OPTIONS). It
@@ -35,6 +37,8 @@ class AuthzPolicyAuthzRuleToRequestOperation extends \Google\Collection
   public $methods;
   protected $pathsType = AuthzPolicyAuthzRuleStringMatch::class;
   protected $pathsDataType = 'array';
+  protected $snisType = AuthzPolicyAuthzRuleStringMatch::class;
+  protected $snisDataType = 'array';
 
   /**
    * Optional. A list of headers to match against in http header.
@@ -70,6 +74,25 @@ class AuthzPolicyAuthzRuleToRequestOperation extends \Google\Collection
   public function getHosts()
   {
     return $this->hosts;
+  }
+  /**
+   * Optional. Defines the MCP protocol attributes to match on. If the MCP
+   * payload in the request body cannot be successfully parsed, the request will
+   * be denied. This field can be set only for AuthzPolicies targeting
+   * AgentGateway resources.
+   *
+   * @param AuthzPolicyAuthzRuleToRequestOperationMCP $mcp
+   */
+  public function setMcp(AuthzPolicyAuthzRuleToRequestOperationMCP $mcp)
+  {
+    $this->mcp = $mcp;
+  }
+  /**
+   * @return AuthzPolicyAuthzRuleToRequestOperationMCP
+   */
+  public function getMcp()
+  {
+    return $this->mcp;
   }
   /**
    * Optional. A list of HTTP methods to match against. Each entry must be a
@@ -110,6 +133,26 @@ class AuthzPolicyAuthzRuleToRequestOperation extends \Google\Collection
   public function getPaths()
   {
     return $this->paths;
+  }
+  /**
+   * Optional. A list of SNIs to match against. The match can be one of exact,
+   * prefix, suffix, or contains (substring match). If there is no SNI (i.e.
+   * plaintext HTTP traffic), the request will be denied. Matches are always
+   * case sensitive unless the ignoreCase is set. Limited to 10 SNIs per
+   * Authorization Policy.
+   *
+   * @param AuthzPolicyAuthzRuleStringMatch[] $snis
+   */
+  public function setSnis($snis)
+  {
+    $this->snis = $snis;
+  }
+  /**
+   * @return AuthzPolicyAuthzRuleStringMatch[]
+   */
+  public function getSnis()
+  {
+    return $this->snis;
   }
 }
 

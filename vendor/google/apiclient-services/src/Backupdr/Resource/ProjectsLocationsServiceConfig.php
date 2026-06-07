@@ -35,8 +35,8 @@ class ProjectsLocationsServiceConfig extends \Google\Service\Resource
    * (serviceConfig.initialize)
    *
    * @param string $name Required. The resource name of the serviceConfig used to
-   * initialize the service. Format:
-   * `projects/{project_id}/locations/{location}/serviceConfig`.
+   * initialize the service. The location must be the location of the BackupVault.
+   * Format: `projects/{project_id}/locations/{location}/serviceConfig`.
    * @param InitializeServiceRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation

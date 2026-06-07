@@ -52,6 +52,12 @@ class AwsKinesis extends \Google\Model
    */
   public const STATE_CONSUMER_NOT_FOUND = 'CONSUMER_NOT_FOUND';
   /**
+   * Indicates an error state where the ingestion source cannot be processed
+   * because the selected ingestion region is not permitted by the Regional
+   * Access Boundary (RAB) restrictions on the project's service account.
+   */
+  public const STATE_CONFLICTING_REGION_CONSTRAINTS = 'CONFLICTING_REGION_CONSTRAINTS';
+  /**
    * Required. AWS role ARN to be used for Federated Identity authentication
    * with Kinesis. Check the Pub/Sub docs for how to set up this role and the
    * required permissions that need to be attached to it.
@@ -148,7 +154,8 @@ class AwsKinesis extends \Google\Model
    * ingestion source.
    *
    * Accepted values: STATE_UNSPECIFIED, ACTIVE, KINESIS_PERMISSION_DENIED,
-   * PUBLISH_PERMISSION_DENIED, STREAM_NOT_FOUND, CONSUMER_NOT_FOUND
+   * PUBLISH_PERMISSION_DENIED, STREAM_NOT_FOUND, CONSUMER_NOT_FOUND,
+   * CONFLICTING_REGION_CONSTRAINTS
    *
    * @param self::STATE_* $state
    */

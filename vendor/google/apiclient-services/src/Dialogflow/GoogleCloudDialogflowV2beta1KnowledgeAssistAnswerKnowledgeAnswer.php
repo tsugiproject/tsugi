@@ -20,19 +20,19 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswer extends \Google\Model
 {
   /**
-   * The piece of text from the `source` that answers this suggested query.
-   *
    * @var string
    */
   public $answerText;
+  protected $eventSourceType = GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerEventSource::class;
+  protected $eventSourceDataType = '';
   protected $faqSourceType = GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerFaqSource::class;
   protected $faqSourceDataType = '';
   protected $generativeSourceType = GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource::class;
   protected $generativeSourceDataType = '';
+  protected $playbookSourceType = GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource::class;
+  protected $playbookSourceDataType = '';
 
   /**
-   * The piece of text from the `source` that answers this suggested query.
-   *
    * @param string $answerText
    */
   public function setAnswerText($answerText)
@@ -47,8 +47,20 @@ class GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswer extends \
     return $this->answerText;
   }
   /**
-   * Populated if the prediction came from FAQ.
-   *
+   * @param GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerEventSource $eventSource
+   */
+  public function setEventSource(GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerEventSource $eventSource)
+  {
+    $this->eventSource = $eventSource;
+  }
+  /**
+   * @return GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerEventSource
+   */
+  public function getEventSource()
+  {
+    return $this->eventSource;
+  }
+  /**
    * @param GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerFaqSource $faqSource
    */
   public function setFaqSource(GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerFaqSource $faqSource)
@@ -63,8 +75,6 @@ class GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswer extends \
     return $this->faqSource;
   }
   /**
-   * Populated if the prediction was Generative.
-   *
    * @param GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource $generativeSource
    */
   public function setGenerativeSource(GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource $generativeSource)
@@ -77,6 +87,20 @@ class GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswer extends \
   public function getGenerativeSource()
   {
     return $this->generativeSource;
+  }
+  /**
+   * @param GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource $playbookSource
+   */
+  public function setPlaybookSource(GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource $playbookSource)
+  {
+    $this->playbookSource = $playbookSource;
+  }
+  /**
+   * @return GoogleCloudDialogflowV2beta1KnowledgeAssistAnswerKnowledgeAnswerGenerativeSource
+   */
+  public function getPlaybookSource()
+  {
+    return $this->playbookSource;
   }
 }
 

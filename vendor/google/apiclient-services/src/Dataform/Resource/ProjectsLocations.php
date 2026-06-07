@@ -20,6 +20,7 @@ namespace Google\Service\Dataform\Resource;
 use Google\Service\Dataform\Config;
 use Google\Service\Dataform\ListLocationsResponse;
 use Google\Service\Dataform\Location;
+use Google\Service\Dataform\QueryUserRootContentsResponse;
 
 /**
  * The "locations" collection of methods.
@@ -60,16 +61,24 @@ class ProjectsLocations extends \Google\Service\Resource
     return $this->call('getConfig', [$params], Config::class);
   }
   /**
-   * Lists information about the supported locations for this service.
-   * (locations.listProjectsLocations)
+   * Lists information about the supported locations for this service. This method
+   * lists locations based on the resource scope provided in the
+   * ListLocationsRequest.name field: * **Global locations**: If `name` is empty,
+   * the method lists the public locations available to all projects. * **Project-
+   * specific locations**: If `name` follows the format `projects/{project}`, the
+   * method lists locations visible to that specific project. This includes
+   * public, private, or other project-specific locations enabled for the project.
+   * For gRPC and client library implementations, the resource name is passed as
+   * the `name` field. For direct service calls, the resource name is incorporated
+   * into the request path based on the specific service implementation and
+   * version. (locations.listProjectsLocations)
    *
    * @param string $name The resource that owns the locations collection, if
    * applicable.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string extraLocationTypes Optional. Do not use this field. It is
-   * unsupported and is ignored unless explicitly documented otherwise. This is
-   * primarily for internal usage.
+   * @opt_param string extraLocationTypes Optional. Do not use this field unless
+   * explicitly documented otherwise. This is primarily for internal usage.
    * @opt_param string filter A filter to narrow down results to a preferred
    * subset. The filtering language accepts strings like `"displayName=tokyo"`,
    * and is documented in more detail in [AIP-160](https://google.aip.dev/160).
@@ -85,6 +94,40 @@ class ProjectsLocations extends \Google\Service\Resource
     $params = ['name' => $name];
     $params = array_merge($params, $optParams);
     return $this->call('list', [$params], ListLocationsResponse::class);
+  }
+  /**
+   * Returns the contents of a caller's root folder in a given location. The root
+   * folder contains all resources that are created by the user and not contained
+   * in any other folder. (locations.queryUserRootContents)
+   *
+   * @param string $location Required. Location of the user root folder to list
+   * contents for. Format: projects/locations
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string filter Optional. Optional filtering for the returned list.
+   * Filtering is currently only supported on the `display_name` field. Example: *
+   * `filter="display_name="MyFolder""`
+   * @opt_param string orderBy Optional. Field to additionally sort results by.
+   * Will order Folders before Repositories, and then by `order_by` in ascending
+   * order. Supported keywords: display_name (default), created_at,
+   * last_modified_at. Examples: * `orderBy="display_name"` *
+   * `orderBy="display_name desc"`
+   * @opt_param int pageSize Optional. Maximum number of paths to return. The
+   * server may return fewer items than requested. If unspecified, the server will
+   * pick an appropriate default.
+   * @opt_param string pageToken Optional. Page token received from a previous
+   * `QueryUserRootContents` call. Provide this to retrieve the subsequent page.
+   * When paginating, all other parameters provided to
+   * `QueryUserRootFolderContents`, with the exception of `page_size`, must match
+   * the call that provided the page token.
+   * @return QueryUserRootContentsResponse
+   * @throws \Google\Service\Exception
+   */
+  public function queryUserRootContents($location, $optParams = [])
+  {
+    $params = ['location' => $location];
+    $params = array_merge($params, $optParams);
+    return $this->call('queryUserRootContents', [$params], QueryUserRootContentsResponse::class);
   }
   /**
    * Update default config for a given project and location. **Note:** *This

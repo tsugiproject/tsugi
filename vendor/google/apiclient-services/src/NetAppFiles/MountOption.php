@@ -40,6 +40,10 @@ class MountOption extends \Google\Model
    */
   public const PROTOCOL_ISCSI = 'ISCSI';
   /**
+   * NVMe protocol
+   */
+  public const PROTOCOL_NVME = 'NVME';
+  /**
    * Export string
    *
    * @var string
@@ -137,7 +141,7 @@ class MountOption extends \Google\Model
   /**
    * Protocol to mount with.
    *
-   * Accepted values: PROTOCOLS_UNSPECIFIED, NFSV3, NFSV4, SMB, ISCSI
+   * Accepted values: PROTOCOLS_UNSPECIFIED, NFSV3, NFSV4, SMB, ISCSI, NVME
    *
    * @param self::PROTOCOL_* $protocol
    */

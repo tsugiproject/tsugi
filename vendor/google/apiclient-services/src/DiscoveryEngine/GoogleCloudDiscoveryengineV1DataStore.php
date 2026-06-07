@@ -131,6 +131,8 @@ class GoogleCloudDiscoveryengineV1DataStore extends \Google\Collection
   public $displayName;
   protected $documentProcessingConfigType = GoogleCloudDiscoveryengineV1DocumentProcessingConfig::class;
   protected $documentProcessingConfigDataType = '';
+  protected $federatedSearchConfigType = GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfig::class;
+  protected $federatedSearchConfigDataType = '';
   protected $healthcareFhirConfigType = GoogleCloudDiscoveryengineV1HealthcareFhirConfig::class;
   protected $healthcareFhirConfigDataType = '';
   /**
@@ -381,6 +383,22 @@ class GoogleCloudDiscoveryengineV1DataStore extends \Google\Collection
   public function getDocumentProcessingConfig()
   {
     return $this->documentProcessingConfig;
+  }
+  /**
+   * Optional. If set, this DataStore is a federated search DataStore.
+   *
+   * @param GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfig $federatedSearchConfig
+   */
+  public function setFederatedSearchConfig(GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfig $federatedSearchConfig)
+  {
+    $this->federatedSearchConfig = $federatedSearchConfig;
+  }
+  /**
+   * @return GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfig
+   */
+  public function getFederatedSearchConfig()
+  {
+    return $this->federatedSearchConfig;
   }
   /**
    * Optional. Configuration for `HEALTHCARE_FHIR` vertical.

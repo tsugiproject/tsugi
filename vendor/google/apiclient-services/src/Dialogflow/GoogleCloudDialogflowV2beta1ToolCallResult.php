@@ -20,49 +20,45 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2beta1ToolCallResult extends \Google\Model
 {
   /**
-   * Optional. The name of the tool's action associated with this call.
-   *
    * @var string
    */
   public $action;
   /**
-   * Optional. The answer record associated with this tool call result.
-   *
    * @var string
    */
   public $answerRecord;
   /**
-   * Only populated if the response content is utf-8 encoded.
-   *
+   * @var string
+   */
+  public $cesApp;
+  /**
+   * @var string
+   */
+  public $cesTool;
+  /**
+   * @var string
+   */
+  public $cesToolset;
+  /**
    * @var string
    */
   public $content;
   /**
-   * Output only. Create time of the tool call result.
-   *
    * @var string
    */
   public $createTime;
   protected $errorType = GoogleCloudDialogflowV2beta1ToolCallResultError::class;
   protected $errorDataType = '';
   /**
-   * Only populated if the response content is not utf-8 encoded. (by definition
-   * byte fields are base64 encoded).
-   *
    * @var string
    */
   public $rawContent;
   /**
-   * Optional. The tool associated with this call. Format:
-   * `projects//locations//tools/`.
-   *
    * @var string
    */
   public $tool;
 
   /**
-   * Optional. The name of the tool's action associated with this call.
-   *
    * @param string $action
    */
   public function setAction($action)
@@ -77,8 +73,6 @@ class GoogleCloudDialogflowV2beta1ToolCallResult extends \Google\Model
     return $this->action;
   }
   /**
-   * Optional. The answer record associated with this tool call result.
-   *
    * @param string $answerRecord
    */
   public function setAnswerRecord($answerRecord)
@@ -93,8 +87,48 @@ class GoogleCloudDialogflowV2beta1ToolCallResult extends \Google\Model
     return $this->answerRecord;
   }
   /**
-   * Only populated if the response content is utf-8 encoded.
-   *
+   * @param string $cesApp
+   */
+  public function setCesApp($cesApp)
+  {
+    $this->cesApp = $cesApp;
+  }
+  /**
+   * @return string
+   */
+  public function getCesApp()
+  {
+    return $this->cesApp;
+  }
+  /**
+   * @param string $cesTool
+   */
+  public function setCesTool($cesTool)
+  {
+    $this->cesTool = $cesTool;
+  }
+  /**
+   * @return string
+   */
+  public function getCesTool()
+  {
+    return $this->cesTool;
+  }
+  /**
+   * @param string $cesToolset
+   */
+  public function setCesToolset($cesToolset)
+  {
+    $this->cesToolset = $cesToolset;
+  }
+  /**
+   * @return string
+   */
+  public function getCesToolset()
+  {
+    return $this->cesToolset;
+  }
+  /**
    * @param string $content
    */
   public function setContent($content)
@@ -109,8 +143,6 @@ class GoogleCloudDialogflowV2beta1ToolCallResult extends \Google\Model
     return $this->content;
   }
   /**
-   * Output only. Create time of the tool call result.
-   *
    * @param string $createTime
    */
   public function setCreateTime($createTime)
@@ -125,8 +157,6 @@ class GoogleCloudDialogflowV2beta1ToolCallResult extends \Google\Model
     return $this->createTime;
   }
   /**
-   * The tool call's error.
-   *
    * @param GoogleCloudDialogflowV2beta1ToolCallResultError $error
    */
   public function setError(GoogleCloudDialogflowV2beta1ToolCallResultError $error)
@@ -141,9 +171,6 @@ class GoogleCloudDialogflowV2beta1ToolCallResult extends \Google\Model
     return $this->error;
   }
   /**
-   * Only populated if the response content is not utf-8 encoded. (by definition
-   * byte fields are base64 encoded).
-   *
    * @param string $rawContent
    */
   public function setRawContent($rawContent)
@@ -158,9 +185,6 @@ class GoogleCloudDialogflowV2beta1ToolCallResult extends \Google\Model
     return $this->rawContent;
   }
   /**
-   * Optional. The tool associated with this call. Format:
-   * `projects//locations//tools/`.
-   *
    * @param string $tool
    */
   public function setTool($tool)

@@ -64,6 +64,15 @@ class GoogleCloudDiscoveryengineV1alphaSession extends \Google\Collection
    */
   public $name;
   /**
+   * Output only. Full resource name of an in-progress AsyncAssist operation for
+   * this session, e.g.
+   * `projects/locations/collections/engines/sessions/operations`. Set when the
+   * operation starts and cleared when it finishes.
+   *
+   * @var string
+   */
+  public $pendingAsyncAssistOperationId;
+  /**
    * Output only. The time the session started.
    *
    * @var string
@@ -168,6 +177,25 @@ class GoogleCloudDiscoveryengineV1alphaSession extends \Google\Collection
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * Output only. Full resource name of an in-progress AsyncAssist operation for
+   * this session, e.g.
+   * `projects/locations/collections/engines/sessions/operations`. Set when the
+   * operation starts and cleared when it finishes.
+   *
+   * @param string $pendingAsyncAssistOperationId
+   */
+  public function setPendingAsyncAssistOperationId($pendingAsyncAssistOperationId)
+  {
+    $this->pendingAsyncAssistOperationId = $pendingAsyncAssistOperationId;
+  }
+  /**
+   * @return string
+   */
+  public function getPendingAsyncAssistOperationId()
+  {
+    return $this->pendingAsyncAssistOperationId;
   }
   /**
    * Output only. The time the session started.

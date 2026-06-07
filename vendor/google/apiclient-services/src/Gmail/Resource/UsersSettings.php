@@ -34,8 +34,9 @@ use Google\Service\Gmail\VacationSettings;
 class UsersSettings extends \Google\Service\Resource
 {
   /**
-   * Gets the auto-forwarding setting for the specified account.
-   * (settings.getAutoForwarding)
+   * Gets the auto-forwarding setting for the specified account. For more
+   * information, see [Manage email forwarding](https://developers.google.com/work
+   * space/gmail/api/guides/forwarding_settings). (settings.getAutoForwarding)
    *
    * @param string $userId User's email address. The special value "me" can be
    * used to indicate the authenticated user.
@@ -50,7 +51,9 @@ class UsersSettings extends \Google\Service\Resource
     return $this->call('getAutoForwarding', [$params], AutoForwarding::class);
   }
   /**
-   * Gets IMAP settings. (settings.getImap)
+   * Gets IMAP settings. For more information, see [Configure POP and IMAP
+   * settings with the Gmail API](https://developers.google.com/workspace/gmail/ap
+   * i/guides/pop_imap_settings). (settings.getImap)
    *
    * @param string $userId User's email address. The special value "me" can be
    * used to indicate the authenticated user.
@@ -65,7 +68,9 @@ class UsersSettings extends \Google\Service\Resource
     return $this->call('getImap', [$params], ImapSettings::class);
   }
   /**
-   * Gets language settings. (settings.getLanguage)
+   * Gets language settings. For more information, see [Manage language
+   * settings](https://developers.google.com/workspace/gmail/api/guides/language-
+   * settings). (settings.getLanguage)
    *
    * @param string $userId User's email address. The special value "me" can be
    * used to indicate the authenticated user.
@@ -80,7 +85,9 @@ class UsersSettings extends \Google\Service\Resource
     return $this->call('getLanguage', [$params], LanguageSettings::class);
   }
   /**
-   * Gets POP settings. (settings.getPop)
+   * Gets POP settings. For more information, see [Configure POP and IMAP settings
+   * with the Gmail API](https://developers.google.com/workspace/gmail/api/guides/
+   * pop_imap_settings). (settings.getPop)
    *
    * @param string $userId User's email address. The special value "me" can be
    * used to indicate the authenticated user.
@@ -95,7 +102,9 @@ class UsersSettings extends \Google\Service\Resource
     return $this->call('getPop', [$params], PopSettings::class);
   }
   /**
-   * Gets vacation responder settings. (settings.getVacation)
+   * Gets vacation responder settings. For more information, see [Manage vacation
+   * settings with the Gmail API](https://developers.google.com/workspace/gmail/ap
+   * i/guides/vacation_settings). (settings.getVacation)
    *
    * @param string $userId User's email address. The special value "me" can be
    * used to indicate the authenticated user.
@@ -111,9 +120,11 @@ class UsersSettings extends \Google\Service\Resource
   }
   /**
    * Updates the auto-forwarding setting for the specified account. A verified
-   * forwarding address must be specified when auto-forwarding is enabled. This
-   * method is only available to service account clients that have been delegated
-   * domain-wide authority. (settings.updateAutoForwarding)
+   * forwarding address must be specified when auto-forwarding is enabled. For
+   * more information, see [Manage email forwarding](https://developers.google.com
+   * /workspace/gmail/api/guides/forwarding_settings). This method is only
+   * available to service account clients that have been delegated domain-wide
+   * authority. (settings.updateAutoForwarding)
    *
    * @param string $userId User's email address. The special value "me" can be
    * used to indicate the authenticated user.
@@ -129,7 +140,9 @@ class UsersSettings extends \Google\Service\Resource
     return $this->call('updateAutoForwarding', [$params], AutoForwarding::class);
   }
   /**
-   * Updates IMAP settings. (settings.updateImap)
+   * Updates IMAP settings. For more information, see [Configure POP and IMAP
+   * settings with the Gmail API](https://developers.google.com/workspace/gmail/ap
+   * i/guides/pop_imap_settings). (settings.updateImap)
    *
    * @param string $userId User's email address. The special value "me" can be
    * used to indicate the authenticated user.
@@ -145,12 +158,13 @@ class UsersSettings extends \Google\Service\Resource
     return $this->call('updateImap', [$params], ImapSettings::class);
   }
   /**
-   * Updates language settings. If successful, the return object contains the
-   * `displayLanguage` that was saved for the user, which may differ from the
-   * value passed into the request. This is because the requested
-   * `displayLanguage` may not be directly supported by Gmail but have a close
-   * variant that is, and so the variant may be chosen and saved instead.
-   * (settings.updateLanguage)
+   * Updates language settings. For more information, see [Manage language
+   * settings](https://developers.google.com/workspace/gmail/api/guides/language-
+   * settings). If successful, the return object contains the `displayLanguage`
+   * that was saved for the user, which may differ from the value passed into the
+   * request. This is because the requested `displayLanguage` may not be directly
+   * supported by Gmail but have a close variant that is, and so the variant may
+   * be chosen and saved instead. (settings.updateLanguage)
    *
    * @param string $userId User's email address. The special value "me" can be
    * used to indicate the authenticated user.
@@ -166,7 +180,9 @@ class UsersSettings extends \Google\Service\Resource
     return $this->call('updateLanguage', [$params], LanguageSettings::class);
   }
   /**
-   * Updates POP settings. (settings.updatePop)
+   * Updates POP settings. For more information, see [Configure POP and IMAP
+   * settings with the Gmail API](https://developers.google.com/workspace/gmail/ap
+   * i/guides/pop_imap_settings). (settings.updatePop)
    *
    * @param string $userId User's email address. The special value "me" can be
    * used to indicate the authenticated user.
@@ -182,7 +198,9 @@ class UsersSettings extends \Google\Service\Resource
     return $this->call('updatePop', [$params], PopSettings::class);
   }
   /**
-   * Updates vacation responder settings. (settings.updateVacation)
+   * Updates vacation responder settings. For more information, see [Manage
+   * vacation settings with the Gmail API](https://developers.google.com/workspace
+   * /gmail/api/guides/vacation_settings). (settings.updateVacation)
    *
    * @param string $userId User's email address. The special value "me" can be
    * used to indicate the authenticated user.

@@ -96,7 +96,7 @@ class GoogleAnalyticsAdminV1betaCustomMetric extends \Google\Collection
    */
   public $measurementUnit;
   /**
-   * Output only. Resource name for this CustomMetric resource. Format:
+   * Identifier. Resource name for this CustomMetric resource. Format:
    * properties/{property}/customMetrics/{customMetric}
    *
    * @var string
@@ -183,7 +183,7 @@ class GoogleAnalyticsAdminV1betaCustomMetric extends \Google\Collection
     return $this->measurementUnit;
   }
   /**
-   * Output only. Resource name for this CustomMetric resource. Format:
+   * Identifier. Resource name for this CustomMetric resource. Format:
    * properties/{property}/customMetrics/{customMetric}
    *
    * @param string $name

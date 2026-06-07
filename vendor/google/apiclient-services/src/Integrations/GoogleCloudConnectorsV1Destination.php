@@ -26,7 +26,8 @@ class GoogleCloudConnectorsV1Destination extends \Google\Model
    */
   public $host;
   /**
-   * The port is the target port number that is accepted by the destination.
+   * Optional. The port is the target port number that is accepted by the
+   * destination.
    *
    * @var int
    */
@@ -56,7 +57,8 @@ class GoogleCloudConnectorsV1Destination extends \Google\Model
     return $this->host;
   }
   /**
-   * The port is the target port number that is accepted by the destination.
+   * Optional. The port is the target port number that is accepted by the
+   * destination.
    *
    * @param int $port
    */

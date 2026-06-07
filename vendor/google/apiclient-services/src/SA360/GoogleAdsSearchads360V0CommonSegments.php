@@ -20,6 +20,29 @@ namespace Google\Service\SA360;
 class GoogleAdsSearchads360V0CommonSegments extends \Google\Collection
 {
   /**
+   * No value has been specified.
+   */
+  public const AD_FORMAT_TYPE_UNSPECIFIED = 'UNSPECIFIED';
+  /**
+   * Used for return value only. Represents value unknown in this version.
+   */
+  public const AD_FORMAT_TYPE_UNKNOWN = 'UNKNOWN';
+  /**
+   * An ad format that promotes a specific entity within a vertical, for
+   * example, a hotel ad in the Travel vertical on Search.
+   */
+  public const AD_FORMAT_TYPE_VERTICAL_ADS_PROMOTION = 'VERTICAL_ADS_PROMOTION';
+  /**
+   * An ad format for a booking link call-to-action within a vertical ad, for
+   * example a 'Book Now' link for a hotel ad.
+   */
+  public const AD_FORMAT_TYPE_VERTICAL_ADS_BOOKING_LINK = 'VERTICAL_ADS_BOOKING_LINK';
+  /**
+   * A standard text ad format. This is currently only used for ads on the
+   * Search network.
+   */
+  public const AD_FORMAT_TYPE_TEXT = 'TEXT';
+  /**
    * Not specified.
    */
   public const AD_NETWORK_TYPE_UNSPECIFIED = 'UNSPECIFIED';
@@ -154,6 +177,11 @@ class GoogleAdsSearchads360V0CommonSegments extends \Google\Collection
    * has further completed a chosen stage as defined by the lead gen advertiser.
    */
   public const CONVERSION_ACTION_CATEGORY_CONVERTED_LEAD = 'CONVERTED_LEAD';
+  /**
+   * User watches an ad from a channel and later watches either the same video
+   * or a video from the same channel as the ad.
+   */
+  public const CONVERSION_ACTION_CATEGORY_YOUTUBE_FOLLOW_ON_VIEWS = 'YOUTUBE_FOLLOW_ON_VIEWS';
   /**
    * Not specified.
    */
@@ -300,7 +328,45 @@ class GoogleAdsSearchads360V0CommonSegments extends \Google\Collection
    * The product condition is used.
    */
   public const PRODUCT_SOLD_CONDITION_USED = 'USED';
+  /**
+   * Not specified.
+   */
+  public const VERTICAL_ADS_VERTICAL_UNSPECIFIED = 'UNSPECIFIED';
+  /**
+   * Used for return value only. Represents value unknown in this version.
+   */
+  public const VERTICAL_ADS_VERTICAL_UNKNOWN = 'UNKNOWN';
+  /**
+   * Hotels travel vertical.
+   */
+  public const VERTICAL_ADS_VERTICAL_HOTELS = 'HOTELS';
+  /**
+   * Vacation rentals travel vertical.
+   */
+  public const VERTICAL_ADS_VERTICAL_VACATION_RENTALS = 'VACATION_RENTALS';
+  /**
+   * Rental cars travel vertical.
+   */
+  public const VERTICAL_ADS_VERTICAL_RENTAL_CARS = 'RENTAL_CARS';
+  /**
+   * Events travel vertical.
+   */
+  public const VERTICAL_ADS_VERTICAL_EVENTS = 'EVENTS';
+  /**
+   * Things to do travel vertical.
+   */
+  public const VERTICAL_ADS_VERTICAL_THINGS_TO_DO = 'THINGS_TO_DO';
+  /**
+   * Flights travel vertical.
+   */
+  public const VERTICAL_ADS_VERTICAL_FLIGHTS = 'FLIGHTS';
   protected $collection_key = 'rawEventConversionDimensions';
+  /**
+   * Ad Format type.
+   *
+   * @var string
+   */
+  public $adFormatType;
   /**
    * Ad network type.
    *
@@ -662,6 +728,65 @@ class GoogleAdsSearchads360V0CommonSegments extends \Google\Collection
   protected $rawEventConversionDimensionsType = GoogleAdsSearchads360V0CommonValue::class;
   protected $rawEventConversionDimensionsDataType = 'array';
   /**
+   * The display names of participants in an event listing, like performers,
+   * speakers, or teams.
+   *
+   * @var string
+   */
+  public $verticalAdsEventParticipantDisplayNames;
+  /**
+   * The class of the hotel. Generally in the range of 1 to 5 stars, but fully
+   * customizable in the hotel feed.
+   *
+   * @var string
+   */
+  public $verticalAdsHotelClass;
+  /**
+   * The listing associated with a listing impression, click or conversion.
+   *
+   * @var string
+   */
+  public $verticalAdsListing;
+  /**
+   * The brand associated with a specific listing within a Vertical Ads context,
+   * for example, the brand of a car rental, a vacation home, or an event.
+   *
+   * @var string
+   */
+  public $verticalAdsListingBrand;
+  /**
+   * The city where the vertical ads listing is located.
+   *
+   * @var string
+   */
+  public $verticalAdsListingCity;
+  /**
+   * The country where the vertical ads listing is located.
+   *
+   * @var string
+   */
+  public $verticalAdsListingCountry;
+  /**
+   * The region where the vertical ads listing is located.
+   *
+   * @var string
+   */
+  public $verticalAdsListingRegion;
+  /**
+   * A specific partner account within a Partner Center (for example, Hotel
+   * Center) that supplies inventory feed data for Vertical Ads.
+   *
+   * @var string
+   */
+  public $verticalAdsPartnerAccount;
+  /**
+   * Type of vertical ad, such as Vacation Rentals, Car Rentals, or Events, used
+   * to categorize and segment data in the context of Vertical Ads.
+   *
+   * @var string
+   */
+  public $verticalAdsVertical;
+  /**
    * Week as defined as Monday through Sunday, and represented by the date of
    * Monday. Formatted as yyyy-MM-dd.
    *
@@ -675,6 +800,25 @@ class GoogleAdsSearchads360V0CommonSegments extends \Google\Collection
    */
   public $year;
 
+  /**
+   * Ad Format type.
+   *
+   * Accepted values: UNSPECIFIED, UNKNOWN, VERTICAL_ADS_PROMOTION,
+   * VERTICAL_ADS_BOOKING_LINK, TEXT
+   *
+   * @param self::AD_FORMAT_TYPE_* $adFormatType
+   */
+  public function setAdFormatType($adFormatType)
+  {
+    $this->adFormatType = $adFormatType;
+  }
+  /**
+   * @return self::AD_FORMAT_TYPE_*
+   */
+  public function getAdFormatType()
+  {
+    return $this->adFormatType;
+  }
   /**
    * Ad network type.
    *
@@ -741,7 +885,8 @@ class GoogleAdsSearchads360V0CommonSegments extends \Google\Collection
    * SIGNUP, LEAD, DOWNLOAD, ADD_TO_CART, BEGIN_CHECKOUT, SUBSCRIBE_PAID,
    * PHONE_CALL_LEAD, IMPORTED_LEAD, SUBMIT_LEAD_FORM, BOOK_APPOINTMENT,
    * REQUEST_QUOTE, GET_DIRECTIONS, OUTBOUND_CLICK, CONTACT, ENGAGEMENT,
-   * STORE_VISIT, STORE_SALE, QUALIFIED_LEAD, CONVERTED_LEAD
+   * STORE_VISIT, STORE_SALE, QUALIFIED_LEAD, CONVERTED_LEAD,
+   * YOUTUBE_FOLLOW_ON_VIEWS
    *
    * @param self::CONVERSION_ACTION_CATEGORY_* $conversionActionCategory
    */
@@ -1701,6 +1846,158 @@ class GoogleAdsSearchads360V0CommonSegments extends \Google\Collection
   public function getRawEventConversionDimensions()
   {
     return $this->rawEventConversionDimensions;
+  }
+  /**
+   * The display names of participants in an event listing, like performers,
+   * speakers, or teams.
+   *
+   * @param string $verticalAdsEventParticipantDisplayNames
+   */
+  public function setVerticalAdsEventParticipantDisplayNames($verticalAdsEventParticipantDisplayNames)
+  {
+    $this->verticalAdsEventParticipantDisplayNames = $verticalAdsEventParticipantDisplayNames;
+  }
+  /**
+   * @return string
+   */
+  public function getVerticalAdsEventParticipantDisplayNames()
+  {
+    return $this->verticalAdsEventParticipantDisplayNames;
+  }
+  /**
+   * The class of the hotel. Generally in the range of 1 to 5 stars, but fully
+   * customizable in the hotel feed.
+   *
+   * @param string $verticalAdsHotelClass
+   */
+  public function setVerticalAdsHotelClass($verticalAdsHotelClass)
+  {
+    $this->verticalAdsHotelClass = $verticalAdsHotelClass;
+  }
+  /**
+   * @return string
+   */
+  public function getVerticalAdsHotelClass()
+  {
+    return $this->verticalAdsHotelClass;
+  }
+  /**
+   * The listing associated with a listing impression, click or conversion.
+   *
+   * @param string $verticalAdsListing
+   */
+  public function setVerticalAdsListing($verticalAdsListing)
+  {
+    $this->verticalAdsListing = $verticalAdsListing;
+  }
+  /**
+   * @return string
+   */
+  public function getVerticalAdsListing()
+  {
+    return $this->verticalAdsListing;
+  }
+  /**
+   * The brand associated with a specific listing within a Vertical Ads context,
+   * for example, the brand of a car rental, a vacation home, or an event.
+   *
+   * @param string $verticalAdsListingBrand
+   */
+  public function setVerticalAdsListingBrand($verticalAdsListingBrand)
+  {
+    $this->verticalAdsListingBrand = $verticalAdsListingBrand;
+  }
+  /**
+   * @return string
+   */
+  public function getVerticalAdsListingBrand()
+  {
+    return $this->verticalAdsListingBrand;
+  }
+  /**
+   * The city where the vertical ads listing is located.
+   *
+   * @param string $verticalAdsListingCity
+   */
+  public function setVerticalAdsListingCity($verticalAdsListingCity)
+  {
+    $this->verticalAdsListingCity = $verticalAdsListingCity;
+  }
+  /**
+   * @return string
+   */
+  public function getVerticalAdsListingCity()
+  {
+    return $this->verticalAdsListingCity;
+  }
+  /**
+   * The country where the vertical ads listing is located.
+   *
+   * @param string $verticalAdsListingCountry
+   */
+  public function setVerticalAdsListingCountry($verticalAdsListingCountry)
+  {
+    $this->verticalAdsListingCountry = $verticalAdsListingCountry;
+  }
+  /**
+   * @return string
+   */
+  public function getVerticalAdsListingCountry()
+  {
+    return $this->verticalAdsListingCountry;
+  }
+  /**
+   * The region where the vertical ads listing is located.
+   *
+   * @param string $verticalAdsListingRegion
+   */
+  public function setVerticalAdsListingRegion($verticalAdsListingRegion)
+  {
+    $this->verticalAdsListingRegion = $verticalAdsListingRegion;
+  }
+  /**
+   * @return string
+   */
+  public function getVerticalAdsListingRegion()
+  {
+    return $this->verticalAdsListingRegion;
+  }
+  /**
+   * A specific partner account within a Partner Center (for example, Hotel
+   * Center) that supplies inventory feed data for Vertical Ads.
+   *
+   * @param string $verticalAdsPartnerAccount
+   */
+  public function setVerticalAdsPartnerAccount($verticalAdsPartnerAccount)
+  {
+    $this->verticalAdsPartnerAccount = $verticalAdsPartnerAccount;
+  }
+  /**
+   * @return string
+   */
+  public function getVerticalAdsPartnerAccount()
+  {
+    return $this->verticalAdsPartnerAccount;
+  }
+  /**
+   * Type of vertical ad, such as Vacation Rentals, Car Rentals, or Events, used
+   * to categorize and segment data in the context of Vertical Ads.
+   *
+   * Accepted values: UNSPECIFIED, UNKNOWN, HOTELS, VACATION_RENTALS,
+   * RENTAL_CARS, EVENTS, THINGS_TO_DO, FLIGHTS
+   *
+   * @param self::VERTICAL_ADS_VERTICAL_* $verticalAdsVertical
+   */
+  public function setVerticalAdsVertical($verticalAdsVertical)
+  {
+    $this->verticalAdsVertical = $verticalAdsVertical;
+  }
+  /**
+   * @return self::VERTICAL_ADS_VERTICAL_*
+   */
+  public function getVerticalAdsVertical()
+  {
+    return $this->verticalAdsVertical;
   }
   /**
    * Week as defined as Monday through Sunday, and represented by the date of

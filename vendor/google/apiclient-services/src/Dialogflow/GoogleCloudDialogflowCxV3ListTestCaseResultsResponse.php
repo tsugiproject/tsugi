@@ -21,9 +21,6 @@ class GoogleCloudDialogflowCxV3ListTestCaseResultsResponse extends \Google\Colle
 {
   protected $collection_key = 'testCaseResults';
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @var string
    */
   public $nextPageToken;
@@ -31,9 +28,6 @@ class GoogleCloudDialogflowCxV3ListTestCaseResultsResponse extends \Google\Colle
   protected $testCaseResultsDataType = 'array';
 
   /**
-   * Token to retrieve the next page of results, or empty if there are no more
-   * results in the list.
-   *
    * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
@@ -48,8 +42,6 @@ class GoogleCloudDialogflowCxV3ListTestCaseResultsResponse extends \Google\Colle
     return $this->nextPageToken;
   }
   /**
-   * The list of test case results.
-   *
    * @param GoogleCloudDialogflowCxV3TestCaseResult[] $testCaseResults
    */
   public function setTestCaseResults($testCaseResults)

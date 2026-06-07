@@ -20,6 +20,18 @@ namespace Google\Service\CloudComposer;
 class PrivateEnvironmentConfig extends \Google\Model
 {
   /**
+   * Default networking type.
+   */
+  public const NETWORKING_TYPE_NETWORKING_TYPE_UNSPECIFIED = 'NETWORKING_TYPE_UNSPECIFIED';
+  /**
+   * Private IP Cloud Composer environment with no access to the internet.
+   */
+  public const NETWORKING_TYPE_PRIVATE = 'PRIVATE';
+  /**
+   * Cloud Composer environment with access to the internet.
+   */
+  public const NETWORKING_TYPE_PUBLIC = 'PUBLIC';
+  /**
    * Optional. When specified, the environment will use Private Service Connect
    * instead of VPC peerings to connect to Cloud SQL in the Tenant Project, and
    * the PSC endpoint in the Customer Project will use an IP address from this
@@ -70,7 +82,8 @@ class PrivateEnvironmentConfig extends \Google\Model
    * Optional. If `true`, a Private IP Cloud Composer environment is created. If
    * this field is set to true, `IPAllocationPolicy.use_ip_aliases` must be set
    * to true for Cloud Composer environments in versions
-   * composer-1.*.*-airflow-*.*.*.
+   * composer-1.*.*-airflow-*.*.*. This field is going to be deprecated. Use
+   * `networking_type` instead.
    *
    * @var bool
    */
@@ -85,6 +98,12 @@ class PrivateEnvironmentConfig extends \Google\Model
   public $enablePrivatelyUsedPublicIps;
   protected $networkingConfigType = NetworkingConfig::class;
   protected $networkingConfigDataType = '';
+  /**
+   * Optional. Networking type for the environment, either private or public.
+   *
+   * @var string
+   */
+  public $networkingType;
   protected $privateClusterConfigType = PrivateClusterConfig::class;
   protected $privateClusterConfigDataType = '';
   /**
@@ -207,7 +226,8 @@ class PrivateEnvironmentConfig extends \Google\Model
    * Optional. If `true`, a Private IP Cloud Composer environment is created. If
    * this field is set to true, `IPAllocationPolicy.use_ip_aliases` must be set
    * to true for Cloud Composer environments in versions
-   * composer-1.*.*-airflow-*.*.*.
+   * composer-1.*.*-airflow-*.*.*. This field is going to be deprecated. Use
+   * `networking_type` instead.
    *
    * @param bool $enablePrivateEnvironment
    */
@@ -256,6 +276,24 @@ class PrivateEnvironmentConfig extends \Google\Model
   public function getNetworkingConfig()
   {
     return $this->networkingConfig;
+  }
+  /**
+   * Optional. Networking type for the environment, either private or public.
+   *
+   * Accepted values: NETWORKING_TYPE_UNSPECIFIED, PRIVATE, PUBLIC
+   *
+   * @param self::NETWORKING_TYPE_* $networkingType
+   */
+  public function setNetworkingType($networkingType)
+  {
+    $this->networkingType = $networkingType;
+  }
+  /**
+   * @return self::NETWORKING_TYPE_*
+   */
+  public function getNetworkingType()
+  {
+    return $this->networkingType;
   }
   /**
    * Optional. Configuration for the private GKE cluster for a Private IP Cloud

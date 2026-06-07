@@ -99,6 +99,14 @@ class InterceptEndpointGroupAssociation extends \Google\Collection
    */
   public $network;
   /**
+   * Output only. Identifier used by the data-path. See the NSI GENEVE format
+   * for more details: https://docs.cloud.google.com/network-security-
+   * integration/docs/understand-geneve#network_id
+   *
+   * @var string
+   */
+  public $networkCookie;
+  /**
    * Output only. The current state of the resource does not match the user's
    * intended state, and the system is working to reconcile them. This part of
    * the normal operation (e.g. adding a new location to the target deployment
@@ -247,6 +255,24 @@ class InterceptEndpointGroupAssociation extends \Google\Collection
   public function getNetwork()
   {
     return $this->network;
+  }
+  /**
+   * Output only. Identifier used by the data-path. See the NSI GENEVE format
+   * for more details: https://docs.cloud.google.com/network-security-
+   * integration/docs/understand-geneve#network_id
+   *
+   * @param string $networkCookie
+   */
+  public function setNetworkCookie($networkCookie)
+  {
+    $this->networkCookie = $networkCookie;
+  }
+  /**
+   * @return string
+   */
+  public function getNetworkCookie()
+  {
+    return $this->networkCookie;
   }
   /**
    * Output only. The current state of the resource does not match the user's

@@ -36,6 +36,10 @@ class GoogleMapsPlacesV1Place extends \Google\Collection
    */
   public const BUSINESS_STATUS_CLOSED_PERMANENTLY = 'CLOSED_PERMANENTLY';
   /**
+   * The establishment will open in the future.
+   */
+  public const BUSINESS_STATUS_FUTURE_OPENING = 'FUTURE_OPENING';
+  /**
    * Place price level is unspecified or unknown.
    */
   public const PRICE_LEVEL_PRICE_LEVEL_UNSPECIFIED = 'PRICE_LEVEL_UNSPECIFIED';
@@ -150,6 +154,8 @@ class GoogleMapsPlacesV1Place extends \Google\Collection
   public $goodForWatchingSports;
   protected $googleMapsLinksType = GoogleMapsPlacesV1PlaceGoogleMapsLinks::class;
   protected $googleMapsLinksDataType = '';
+  protected $googleMapsTypeLabelType = GoogleTypeLocalizedText::class;
+  protected $googleMapsTypeLabelDataType = '';
   /**
    * A URL providing more information about this place.
    *
@@ -229,6 +235,8 @@ class GoogleMapsPlacesV1Place extends \Google\Collection
   public $nationalPhoneNumber;
   protected $neighborhoodSummaryType = GoogleMapsPlacesV1PlaceNeighborhoodSummary::class;
   protected $neighborhoodSummaryDataType = '';
+  protected $openingDateType = GoogleTypeDate::class;
+  protected $openingDateDataType = '';
   /**
    * Place provides outdoor seating.
    *
@@ -380,6 +388,8 @@ class GoogleMapsPlacesV1Place extends \Google\Collection
   public $takeout;
   protected $timeZoneType = GoogleTypeTimeZone::class;
   protected $timeZoneDataType = '';
+  protected $transitStationType = GoogleMapsPlacesV1TransitStation::class;
+  protected $transitStationDataType = '';
   /**
    * A set of type tags for this result. For example, "political" and
    * "locality". For the complete list of possible values, see Table A and Table
@@ -530,7 +540,7 @@ class GoogleMapsPlacesV1Place extends \Google\Collection
    * The business status for the place.
    *
    * Accepted values: BUSINESS_STATUS_UNSPECIFIED, OPERATIONAL,
-   * CLOSED_TEMPORARILY, CLOSED_PERMANENTLY
+   * CLOSED_TEMPORARILY, CLOSED_PERMANENTLY, FUTURE_OPENING
    *
    * @param self::BUSINESS_STATUS_* $businessStatus
    */
@@ -849,6 +859,27 @@ class GoogleMapsPlacesV1Place extends \Google\Collection
     return $this->googleMapsLinks;
   }
   /**
+   * The type label of the place on Google Maps, localized to the request
+   * language if applicable, for example, "Restaurant", "Cafe", "Airport", etc.
+   * The type label may be different from the primary type display name and may
+   * not be a supported type in [Places API Place Types
+   * table](https://developers.google.com/maps/documentation/places/web-
+   * service/place-types).
+   *
+   * @param GoogleTypeLocalizedText $googleMapsTypeLabel
+   */
+  public function setGoogleMapsTypeLabel(GoogleTypeLocalizedText $googleMapsTypeLabel)
+  {
+    $this->googleMapsTypeLabel = $googleMapsTypeLabel;
+  }
+  /**
+   * @return GoogleTypeLocalizedText
+   */
+  public function getGoogleMapsTypeLabel()
+  {
+    return $this->googleMapsTypeLabel;
+  }
+  /**
    * A URL providing more information about this place.
    *
    * @param string $googleMapsUri
@@ -1064,6 +1095,23 @@ class GoogleMapsPlacesV1Place extends \Google\Collection
   public function getNeighborhoodSummary()
   {
     return $this->neighborhoodSummary;
+  }
+  /**
+   * The date this place will open in the future. This field is only populated
+   * if the business status is FUTURE_OPENING.
+   *
+   * @param GoogleTypeDate $openingDate
+   */
+  public function setOpeningDate(GoogleTypeDate $openingDate)
+  {
+    $this->openingDate = $openingDate;
+  }
+  /**
+   * @return GoogleTypeDate
+   */
+  public function getOpeningDate()
+  {
+    return $this->openingDate;
   }
   /**
    * Place provides outdoor seating.
@@ -1605,6 +1653,22 @@ class GoogleMapsPlacesV1Place extends \Google\Collection
   public function getTimeZone()
   {
     return $this->timeZone;
+  }
+  /**
+   * The transit station information for the place.
+   *
+   * @param GoogleMapsPlacesV1TransitStation $transitStation
+   */
+  public function setTransitStation(GoogleMapsPlacesV1TransitStation $transitStation)
+  {
+    $this->transitStation = $transitStation;
+  }
+  /**
+   * @return GoogleMapsPlacesV1TransitStation
+   */
+  public function getTransitStation()
+  {
+    return $this->transitStation;
   }
   /**
    * A set of type tags for this result. For example, "political" and

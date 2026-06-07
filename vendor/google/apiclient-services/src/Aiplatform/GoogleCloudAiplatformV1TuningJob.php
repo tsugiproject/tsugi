@@ -17,7 +17,7 @@
 
 namespace Google\Service\Aiplatform;
 
-class GoogleCloudAiplatformV1TuningJob extends \Google\Model
+class GoogleCloudAiplatformV1TuningJob extends \Google\Collection
 {
   /**
    * The job state is unspecified.
@@ -69,6 +69,7 @@ class GoogleCloudAiplatformV1TuningJob extends \Google\Model
    * The job is partially succeeded, some results may be missing due to errors.
    */
   public const STATE_JOB_STATE_PARTIALLY_SUCCEEDED = 'JOB_STATE_PARTIALLY_SUCCEEDED';
+  protected $collection_key = 'evaluateDatasetRuns';
   /**
    * The base model that is being tuned. See [Supported
    * models](https://cloud.google.com/vertex-ai/generative-ai/docs/model-
@@ -101,6 +102,8 @@ class GoogleCloudAiplatformV1TuningJob extends \Google\Model
   public $endTime;
   protected $errorType = GoogleRpcStatus::class;
   protected $errorDataType = '';
+  protected $evaluateDatasetRunsType = GoogleCloudAiplatformV1EvaluateDatasetRun::class;
+  protected $evaluateDatasetRunsDataType = 'array';
   /**
    * Output only. The Experiment associated with this TuningJob.
    *
@@ -277,6 +280,22 @@ class GoogleCloudAiplatformV1TuningJob extends \Google\Model
   public function getError()
   {
     return $this->error;
+  }
+  /**
+   * Output only. Evaluation runs for the Tuning Job.
+   *
+   * @param GoogleCloudAiplatformV1EvaluateDatasetRun[] $evaluateDatasetRuns
+   */
+  public function setEvaluateDatasetRuns($evaluateDatasetRuns)
+  {
+    $this->evaluateDatasetRuns = $evaluateDatasetRuns;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1EvaluateDatasetRun[]
+   */
+  public function getEvaluateDatasetRuns()
+  {
+    return $this->evaluateDatasetRuns;
   }
   /**
    * Output only. The Experiment associated with this TuningJob.

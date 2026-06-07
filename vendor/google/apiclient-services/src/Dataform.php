@@ -124,6 +124,32 @@ class Dataform extends \Google\Service
                   'type' => 'string',
                 ],
               ],
+            ],'queryUserRootContents' => [
+              'path' => 'v1/{+location}:queryUserRootContents',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'location' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'orderBy' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'pageSize' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+                'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
             ],'updateConfig' => [
               'path' => 'v1/{+name}',
               'httpMethod' => 'PATCH',
@@ -148,7 +174,47 @@ class Dataform extends \Google\Service
         'folders',
         [
           'methods' => [
-            'getIamPolicy' => [
+            'create' => [
+              'path' => 'v1/{+parent}/folders',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'delete' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'DELETE',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'deleteTree' => [
+              'path' => 'v1/{+name}:deleteTree',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'get' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'getIamPolicy' => [
               'path' => 'v1/{+resource}:getIamPolicy',
               'httpMethod' => 'GET',
               'parameters' => [
@@ -160,6 +226,56 @@ class Dataform extends \Google\Service
                 'options.requestedPolicyVersion' => [
                   'location' => 'query',
                   'type' => 'integer',
+                ],
+              ],
+            ],'move' => [
+              'path' => 'v1/{+name}:move',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'patch' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'PATCH',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'updateMask' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],'queryFolderContents' => [
+              'path' => 'v1/{+folder}:queryFolderContents',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'folder' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'orderBy' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'pageSize' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+                'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
                 ],
               ],
             ],'setIamPolicy' => [
@@ -382,6 +498,16 @@ class Dataform extends \Google\Service
                 'pageToken' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+              ],
+            ],'move' => [
+              'path' => 'v1/{+name}:move',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
                 ],
               ],
             ],'patch' => [
@@ -999,6 +1125,10 @@ class Dataform extends \Google\Service
                   'location' => 'query',
                   'type' => 'string',
                 ],
+                'view' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
               ],
             ],'readFile' => [
               'path' => 'v1/{+workspace}:readFile',
@@ -1110,7 +1240,47 @@ class Dataform extends \Google\Service
         'teamFolders',
         [
           'methods' => [
-            'getIamPolicy' => [
+            'create' => [
+              'path' => 'v1/{+parent}/teamFolders',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'delete' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'DELETE',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'deleteTree' => [
+              'path' => 'v1/{+name}:deleteTree',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'get' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'getIamPolicy' => [
               'path' => 'v1/{+resource}:getIamPolicy',
               'httpMethod' => 'GET',
               'parameters' => [
@@ -1122,6 +1292,72 @@ class Dataform extends \Google\Service
                 'options.requestedPolicyVersion' => [
                   'location' => 'query',
                   'type' => 'integer',
+                ],
+              ],
+            ],'patch' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'PATCH',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'updateMask' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],'queryContents' => [
+              'path' => 'v1/{+teamFolder}:queryContents',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'teamFolder' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'orderBy' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'pageSize' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+                'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],'search' => [
+              'path' => 'v1/{+location}/teamFolders:search',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'location' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'orderBy' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'pageSize' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+                'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
                 ],
               ],
             ],'setIamPolicy' => [

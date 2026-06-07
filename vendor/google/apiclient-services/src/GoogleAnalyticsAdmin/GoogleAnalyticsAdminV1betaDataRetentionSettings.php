@@ -80,7 +80,7 @@ class GoogleAnalyticsAdminV1betaDataRetentionSettings extends \Google\Model
    */
   public $eventDataRetention;
   /**
-   * Output only. Resource name for this DataRetentionSetting resource. Format:
+   * Identifier. Resource name for this DataRetentionSetting resource. Format:
    * properties/{property}/dataRetentionSettings
    *
    * @var string
@@ -120,7 +120,7 @@ class GoogleAnalyticsAdminV1betaDataRetentionSettings extends \Google\Model
     return $this->eventDataRetention;
   }
   /**
-   * Output only. Resource name for this DataRetentionSetting resource. Format:
+   * Identifier. Resource name for this DataRetentionSetting resource. Format:
    * properties/{property}/dataRetentionSettings
    *
    * @param string $name

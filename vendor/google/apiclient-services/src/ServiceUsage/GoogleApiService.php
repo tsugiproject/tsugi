@@ -398,7 +398,7 @@ class GoogleApiService extends \Google\Collection
   }
   /**
    * Defines the monitored resources used by this service. This is required by
-   * the Service.monitoring and Service.logging configurations.
+   * the `Service.monitoring` and `Service.logging` configurations.
    *
    * @param MonitoredResourceDescriptor[] $monitoredResources
    */

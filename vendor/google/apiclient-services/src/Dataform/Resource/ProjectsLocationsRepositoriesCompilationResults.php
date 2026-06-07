@@ -51,7 +51,9 @@ class ProjectsLocationsRepositoriesCompilationResults extends \Google\Service\Re
   /**
    * Fetches a single CompilationResult. (compilationResults.get)
    *
-   * @param string $name Required. The compilation result's name.
+   * @param string $name Required. The compilation result's name. LINT.ThenChange(
+   * //depot/google3/google/cloud/dataform/v2main/data_pipelines.proto:GetCompilat
+   * ionResultRequest)
    * @param array $optParams Optional parameters.
    * @return CompilationResult
    * @throws \Google\Service\Exception
@@ -70,7 +72,9 @@ class ProjectsLocationsRepositoriesCompilationResults extends \Google\Service\Re
    * results. Must be in the format `projects/locations/repositories`.
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string filter Optional. Filter for the returned list.
+   * @opt_param string filter Optional. Filter for the returned list. LINT.ThenCha
+   * nge(//depot/google3/google/cloud/dataform/v2main/data_pipelines.proto:ListCom
+   * pilationResultsRequest)
    * @opt_param string orderBy Optional. This field only supports ordering by
    * `name` and `create_time`. If unspecified, the server will choose the
    * ordering. If specified, the default order is ascending for the `name` field.

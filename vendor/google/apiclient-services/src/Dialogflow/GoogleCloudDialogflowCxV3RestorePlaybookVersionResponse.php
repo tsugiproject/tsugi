@@ -23,8 +23,6 @@ class GoogleCloudDialogflowCxV3RestorePlaybookVersionResponse extends \Google\Mo
   protected $playbookDataType = '';
 
   /**
-   * The updated playbook.
-   *
    * @param GoogleCloudDialogflowCxV3Playbook $playbook
    */
   public function setPlaybook(GoogleCloudDialogflowCxV3Playbook $playbook)

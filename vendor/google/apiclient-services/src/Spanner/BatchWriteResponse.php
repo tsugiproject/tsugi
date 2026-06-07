@@ -22,7 +22,10 @@ class BatchWriteResponse extends \Google\Collection
   protected $collection_key = 'indexes';
   /**
    * The commit timestamp of the transaction that applied this batch. Present if
-   * `status` is `OK`, absent otherwise.
+   * status is OK and the mutation groups were applied, absent otherwise. For
+   * mutation groups with conditions, a status=OK and missing commit_timestamp
+   * means that the mutation groups were not applied due to the condition not
+   * being satisfied after evaluation.
    *
    * @var string
    */
@@ -39,7 +42,10 @@ class BatchWriteResponse extends \Google\Collection
 
   /**
    * The commit timestamp of the transaction that applied this batch. Present if
-   * `status` is `OK`, absent otherwise.
+   * status is OK and the mutation groups were applied, absent otherwise. For
+   * mutation groups with conditions, a status=OK and missing commit_timestamp
+   * means that the mutation groups were not applied due to the condition not
+   * being satisfied after evaluation.
    *
    * @param string $commitTimestamp
    */

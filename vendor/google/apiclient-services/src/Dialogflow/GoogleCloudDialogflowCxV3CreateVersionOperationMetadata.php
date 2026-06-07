@@ -20,17 +20,11 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3CreateVersionOperationMetadata extends \Google\Model
 {
   /**
-   * Name of the created version. Format:
-   * `projects//locations//agents//flows//versions/`.
-   *
    * @var string
    */
   public $version;
 
   /**
-   * Name of the created version. Format:
-   * `projects//locations//agents//flows//versions/`.
-   *
    * @param string $version
    */
   public function setVersion($version)

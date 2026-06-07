@@ -32,6 +32,10 @@ class Hash extends \Google\Model
    */
   public const TYPE_MD5 = 'MD5';
   /**
+   * Dirsum SHA256 hash.
+   */
+  public const TYPE_DIRSUM_SHA256 = 'DIRSUM_SHA256';
+  /**
    * The algorithm used to compute the hash value.
    *
    * @var string
@@ -47,7 +51,7 @@ class Hash extends \Google\Model
   /**
    * The algorithm used to compute the hash value.
    *
-   * Accepted values: HASH_TYPE_UNSPECIFIED, SHA256, MD5
+   * Accepted values: HASH_TYPE_UNSPECIFIED, SHA256, MD5, DIRSUM_SHA256
    *
    * @param self::TYPE_* $type
    */

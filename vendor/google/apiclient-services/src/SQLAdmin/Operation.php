@@ -100,7 +100,8 @@ class Operation extends \Google\Model
    */
   public const OPERATION_TYPE_DELETE_USER = 'DELETE_USER';
   /**
-   * Updates an existing user in a Cloud SQL instance.
+   * Updates an existing user in a Cloud SQL instance. If a user with the
+   * specified username doesn't exist, a new user is created.
    */
   public const OPERATION_TYPE_UPDATE_USER = 'UPDATE_USER';
   /**
@@ -249,6 +250,10 @@ class Operation extends \Google\Model
    * Creates a Cloud SQL read pool instance.
    */
   public const OPERATION_TYPE_CREATE_READ_POOL = 'CREATE_READ_POOL';
+  /**
+   * Pre-checks the major version upgrade operation.
+   */
+  public const OPERATION_TYPE_PRE_CHECK_MAJOR_VERSION_UPGRADE = 'PRE_CHECK_MAJOR_VERSION_UPGRADE';
   /**
    * The state of the operation is unknown.
    */
@@ -547,7 +552,8 @@ class Operation extends \Google\Model
    * UPDATE_BACKUP, ACQUIRE_SSRS_LEASE, RELEASE_SSRS_LEASE,
    * RECONFIGURE_OLD_PRIMARY, CLUSTER_MAINTENANCE, SELF_SERVICE_MAINTENANCE,
    * SWITCHOVER_TO_REPLICA, MAJOR_VERSION_UPGRADE, ADVANCED_BACKUP,
-   * MANAGE_BACKUP, ENHANCED_BACKUP, REPAIR_READ_POOL, CREATE_READ_POOL
+   * MANAGE_BACKUP, ENHANCED_BACKUP, REPAIR_READ_POOL, CREATE_READ_POOL,
+   * PRE_CHECK_MAJOR_VERSION_UPGRADE
    *
    * @param self::OPERATION_TYPE_* $operationType
    */

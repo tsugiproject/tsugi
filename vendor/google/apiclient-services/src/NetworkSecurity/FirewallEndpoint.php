@@ -41,10 +41,10 @@ class FirewallEndpoint extends \Google\Collection
   public const STATE_INACTIVE = 'INACTIVE';
   protected $collection_key = 'associations';
   /**
-   * Output only. List of networks that are associated with this endpoint in the
-   * local zone. This is a projection of the FirewallEndpointAssociations
-   * pointing at this endpoint. A network will only appear in this list after
-   * traffic routing is fully configured. Format:
+   * Output only. Deprecated: List of networks that are associated with this
+   * endpoint in the local zone. This is a projection of the
+   * FirewallEndpointAssociations pointing at this endpoint. A network will only
+   * appear in this list after traffic routing is fully configured. Format:
    * projects/{project}/global/networks/{name}.
    *
    * @deprecated
@@ -54,7 +54,9 @@ class FirewallEndpoint extends \Google\Collection
   protected $associationsType = FirewallEndpointAssociationReference::class;
   protected $associationsDataType = 'array';
   /**
-   * Required. Project to bill on endpoint uptime usage.
+   * Optional. Project to charge for the deployed firewall endpoint. This field
+   * must be specified when creating the endpoint in the organization scope, and
+   * should be omitted otherwise.
    *
    * @var string
    */
@@ -118,10 +120,10 @@ class FirewallEndpoint extends \Google\Collection
   public $updateTime;
 
   /**
-   * Output only. List of networks that are associated with this endpoint in the
-   * local zone. This is a projection of the FirewallEndpointAssociations
-   * pointing at this endpoint. A network will only appear in this list after
-   * traffic routing is fully configured. Format:
+   * Output only. Deprecated: List of networks that are associated with this
+   * endpoint in the local zone. This is a projection of the
+   * FirewallEndpointAssociations pointing at this endpoint. A network will only
+   * appear in this list after traffic routing is fully configured. Format:
    * projects/{project}/global/networks/{name}.
    *
    * @deprecated
@@ -158,7 +160,9 @@ class FirewallEndpoint extends \Google\Collection
     return $this->associations;
   }
   /**
-   * Required. Project to bill on endpoint uptime usage.
+   * Optional. Project to charge for the deployed firewall endpoint. This field
+   * must be specified when creating the endpoint in the organization scope, and
+   * should be omitted otherwise.
    *
    * @param string $billingProjectId
    */

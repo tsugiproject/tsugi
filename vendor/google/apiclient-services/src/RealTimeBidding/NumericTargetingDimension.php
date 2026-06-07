@@ -21,20 +21,20 @@ class NumericTargetingDimension extends \Google\Collection
 {
   protected $collection_key = 'includedIds';
   /**
-   * The IDs excluded in a configuration.
+   * The IDs excluded in a config.
    *
    * @var string[]
    */
   public $excludedIds;
   /**
-   * The IDs included in a configuration.
+   * The IDs included in a config.
    *
    * @var string[]
    */
   public $includedIds;
 
   /**
-   * The IDs excluded in a configuration.
+   * The IDs excluded in a config.
    *
    * @param string[] $excludedIds
    */
@@ -50,7 +50,7 @@ class NumericTargetingDimension extends \Google\Collection
     return $this->excludedIds;
   }
   /**
-   * The IDs included in a configuration.
+   * The IDs included in a config.
    *
    * @param string[] $includedIds
    */

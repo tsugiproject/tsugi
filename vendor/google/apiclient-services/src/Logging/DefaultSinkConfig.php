@@ -38,9 +38,9 @@ class DefaultSinkConfig extends \Google\Collection
   protected $exclusionsDataType = 'array';
   /**
    * Optional. An advanced logs filter
-   * (https://cloud.google.com/logging/docs/view/advanced-queries). The only
-   * exported log entries are those that are in the resource owning the sink and
-   * that match the filter.For
+   * (https://docs.cloud.google.com/logging/docs/view/building-queries#queries-
+   * by-expression). The only exported log entries are those that are in the
+   * resource owning the sink and that match the filter.For
    * example:logName="projects/[PROJECT_ID]/logs/[LOG_ID]" AND severity>=ERRORTo
    * match all logs, don't add exclusions and use the following line as the
    * value of filter:logName:*Cannot be empty or unset when the value of mode is
@@ -77,9 +77,9 @@ class DefaultSinkConfig extends \Google\Collection
   }
   /**
    * Optional. An advanced logs filter
-   * (https://cloud.google.com/logging/docs/view/advanced-queries). The only
-   * exported log entries are those that are in the resource owning the sink and
-   * that match the filter.For
+   * (https://docs.cloud.google.com/logging/docs/view/building-queries#queries-
+   * by-expression). The only exported log entries are those that are in the
+   * resource owning the sink and that match the filter.For
    * example:logName="projects/[PROJECT_ID]/logs/[LOG_ID]" AND severity>=ERRORTo
    * match all logs, don't add exclusions and use the following line as the
    * value of filter:logName:*Cannot be empty or unset when the value of mode is

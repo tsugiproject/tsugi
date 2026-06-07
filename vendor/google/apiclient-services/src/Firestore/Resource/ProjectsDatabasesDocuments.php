@@ -26,6 +26,8 @@ use Google\Service\Firestore\BeginTransactionResponse;
 use Google\Service\Firestore\CommitRequest;
 use Google\Service\Firestore\CommitResponse;
 use Google\Service\Firestore\Document;
+use Google\Service\Firestore\ExecutePipelineRequest;
+use Google\Service\Firestore\ExecutePipelineResponse;
 use Google\Service\Firestore\FirestoreEmpty;
 use Google\Service\Firestore\ListCollectionIdsRequest;
 use Google\Service\Firestore\ListCollectionIdsResponse;
@@ -171,6 +173,22 @@ class ProjectsDatabasesDocuments extends \Google\Service\Resource
     return $this->call('delete', [$params], FirestoreEmpty::class);
   }
   /**
+   * Executes a pipeline query. (documents.executePipeline)
+   *
+   * @param string $database Required. Database identifier, in the form
+   * `projects/{project}/databases/{database}`.
+   * @param ExecutePipelineRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return ExecutePipelineResponse
+   * @throws \Google\Service\Exception
+   */
+  public function executePipeline($database, ExecutePipelineRequest $postBody, $optParams = [])
+  {
+    $params = ['database' => $database, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('executePipeline', [$params], ExecutePipelineResponse::class);
+  }
+  /**
    * Gets a single document. (documents.get)
    *
    * @param string $name Required. The resource name of the Document to get. In
@@ -247,7 +265,9 @@ class ProjectsDatabasesDocuments extends \Google\Service\Resource
    * @param string $parent Required. The parent document. In the format:
    * `projects/{project_id}/databases/{database_id}/documents/{document_path}`.
    * For example: `projects/my-project/databases/my-
-   * database/documents/chatrooms/my-chatroom`
+   * database/documents/chatrooms/my-chatroom` Use
+   * `projects/{project_id}/databases/{database_id}/documents` to list top-level
+   * collections.
    * @param ListCollectionIdsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return ListCollectionIdsResponse

@@ -110,8 +110,9 @@ class SubscriptionLineItem extends \Google\Collection
   protected $oneTimeRecurrenceDetailsType = SubscriptionLineItemOneTimeRecurrenceDetails::class;
   protected $oneTimeRecurrenceDetailsDataType = '';
   /**
-   * Required. Product resource name that identifies one the line item The
-   * format is 'partners/{partner_id}/products/{product_id}'.
+   * Required. Product resource name that identifies the product associated with
+   * this line item. The format is
+   * 'partners/{partner_id}/products/{product_id}'.
    *
    * @var string
    */
@@ -288,8 +289,9 @@ class SubscriptionLineItem extends \Google\Collection
     return $this->oneTimeRecurrenceDetails;
   }
   /**
-   * Required. Product resource name that identifies one the line item The
-   * format is 'partners/{partner_id}/products/{product_id}'.
+   * Required. Product resource name that identifies the product associated with
+   * this line item. The format is
+   * 'partners/{partner_id}/products/{product_id}'.
    *
    * @param string $product
    */

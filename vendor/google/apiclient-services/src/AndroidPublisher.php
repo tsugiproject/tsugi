@@ -42,6 +42,7 @@ class AndroidPublisher extends \Google\Service
 
   public $applications;
   public $applications_deviceTierConfigs;
+  public $applications_tracks_releases;
   public $apprecovery;
   public $edits;
   public $edits_apks;
@@ -171,6 +172,26 @@ class AndroidPublisher extends \Google\Service
           ]
         ]
     );
+    $this->applications_tracks_releases = new AndroidPublisher\Resource\ApplicationsTracksReleases(
+        $this,
+        $this->serviceName,
+        'releases',
+        [
+          'methods' => [
+            'list' => [
+              'path' => 'androidpublisher/v3/{+parent}/releases',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
     $this->apprecovery = new AndroidPublisher\Resource\Apprecovery(
         $this,
         $this->serviceName,
@@ -269,6 +290,10 @@ class AndroidPublisher extends \Google\Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ],
+                'changesInReviewBehavior' => [
+                  'location' => 'query',
+                  'type' => 'string',
                 ],
                 'changesNotSentForReview' => [
                   'location' => 'query',
@@ -2611,6 +2636,21 @@ class AndroidPublisher extends \Google\Service
           'methods' => [
             'cancel' => [
               'path' => 'androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:cancel',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'packageName' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'token' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'defer' => [
+              'path' => 'androidpublisher/v3/applications/{packageName}/purchases/subscriptionsv2/tokens/{token}:defer',
               'httpMethod' => 'POST',
               'parameters' => [
                 'packageName' => [

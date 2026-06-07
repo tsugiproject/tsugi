@@ -27,7 +27,7 @@ class NfsDatastore extends \Google\Model
   protected $thirdPartyFileServiceDataType = '';
 
   /**
-   * Google service file service configuration
+   * Google file service configuration
    *
    * @param GoogleFileService $googleFileService
    */

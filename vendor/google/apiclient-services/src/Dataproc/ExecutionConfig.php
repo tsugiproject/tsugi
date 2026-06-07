@@ -55,6 +55,16 @@ class ExecutionConfig extends \Google\Collection
    */
   public $networkUri;
   /**
+   * Optional. Associates Resource Manager tags with the workload nodes. There
+   * is a max limit of 30 tags. Keys and values can be either in numeric format,
+   * such as tagKeys/{tag_key_id} and tagValues/{tag_value_id}, or in namespaced
+   * format, such as {org_id|project_id}/{tag_key_short_name} and
+   * {tag_value_short_name}.
+   *
+   * @var string[]
+   */
+  public $resourceManagerTags;
+  /**
    * Optional. Service account that used to execute workload.
    *
    * @var string
@@ -187,6 +197,26 @@ class ExecutionConfig extends \Google\Collection
   public function getNetworkUri()
   {
     return $this->networkUri;
+  }
+  /**
+   * Optional. Associates Resource Manager tags with the workload nodes. There
+   * is a max limit of 30 tags. Keys and values can be either in numeric format,
+   * such as tagKeys/{tag_key_id} and tagValues/{tag_value_id}, or in namespaced
+   * format, such as {org_id|project_id}/{tag_key_short_name} and
+   * {tag_value_short_name}.
+   *
+   * @param string[] $resourceManagerTags
+   */
+  public function setResourceManagerTags($resourceManagerTags)
+  {
+    $this->resourceManagerTags = $resourceManagerTags;
+  }
+  /**
+   * @return string[]
+   */
+  public function getResourceManagerTags()
+  {
+    return $this->resourceManagerTags;
   }
   /**
    * Optional. Service account that used to execute workload.

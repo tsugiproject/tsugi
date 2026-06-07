@@ -209,6 +209,12 @@ class GdataMedia extends \Google\Collection
    *
    * @var string
    */
+  public $sha512Hash;
+  /**
+   * gdata
+   *
+   * @var string
+   */
   public $timestamp;
   /**
    * gdata
@@ -677,6 +683,22 @@ class GdataMedia extends \Google\Collection
   public function getSha256Hash()
   {
     return $this->sha256Hash;
+  }
+  /**
+   * gdata
+   *
+   * @param string $sha512Hash
+   */
+  public function setSha512Hash($sha512Hash)
+  {
+    $this->sha512Hash = $sha512Hash;
+  }
+  /**
+   * @return string
+   */
+  public function getSha512Hash()
+  {
+    return $this->sha512Hash;
   }
   /**
    * gdata

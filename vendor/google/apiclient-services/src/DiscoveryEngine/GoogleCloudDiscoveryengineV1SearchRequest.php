@@ -97,10 +97,22 @@ class GoogleCloudDiscoveryengineV1SearchRequest extends \Google\Collection
   protected $contentSearchSpecDataType = '';
   protected $crowdingSpecsType = GoogleCloudDiscoveryengineV1SearchRequestCrowdingSpec::class;
   protected $crowdingSpecsDataType = 'array';
+  protected $customRankingParamsType = GoogleCloudDiscoveryengineV1SearchRequestCustomRankingParams::class;
+  protected $customRankingParamsDataType = '';
   protected $dataStoreSpecsType = GoogleCloudDiscoveryengineV1SearchRequestDataStoreSpec::class;
   protected $dataStoreSpecsDataType = 'array';
   protected $displaySpecType = GoogleCloudDiscoveryengineV1SearchRequestDisplaySpec::class;
   protected $displaySpecDataType = '';
+  /**
+   * Optional. The entity for customers that may run multiple different
+   * entities, domains, sites or regions, for example, "Google US", "Google
+   * Ads", "Waymo", "google.com", "youtube.com", etc. If this is set, it should
+   * be exactly matched with UserEvent.entity to get search results boosted by
+   * entity.
+   *
+   * @var string
+   */
+  public $entity;
   protected $facetSpecsType = GoogleCloudDiscoveryengineV1SearchRequestFacetSpec::class;
   protected $facetSpecsDataType = 'array';
   /**
@@ -133,6 +145,14 @@ class GoogleCloudDiscoveryengineV1SearchRequest extends \Google\Collection
   public $languageCode;
   protected $naturalLanguageQueryUnderstandingSpecType = GoogleCloudDiscoveryengineV1SearchRequestNaturalLanguageQueryUnderstandingSpec::class;
   protected $naturalLanguageQueryUnderstandingSpecDataType = '';
+  /**
+   * Optional. The maximum number of results to retrieve from each data store.
+   * If not specified, it will use the SearchRequest.DataStoreSpec.num_results
+   * if provided, otherwise there is no limit.
+   *
+   * @var int
+   */
+  public $numResultsPerDataStore;
   /**
    * A 0-indexed integer that specifies the current offset (that is, starting
    * result location, amongst the Documents deemed by the API as relevant) in
@@ -168,15 +188,15 @@ class GoogleCloudDiscoveryengineV1SearchRequest extends \Google\Collection
   /**
    * Optional. The categories associated with a category page. Must be set for
    * category navigation queries to achieve good search quality. The format
-   * should be the same as UserEvent.PageInfo.page_category. This field is the
-   * equivalent of the query for browse (navigation) queries. It's used by the
-   * browse model when the query is empty. If the field is empty, it will not be
-   * used by the browse model. If the field contains more than one element, only
-   * the first element will be used. To represent full path of a category, use
-   * '>' character to separate different hierarchies. If '>' is part of the
-   * category name, replace it with other character(s). For example, `Graphics
-   * Cards > RTX>4090 > Founders Edition` where "RTX > 4090" represents one
-   * level, can be rewritten as `Graphics Cards > RTX_4090 > Founders Edition`
+   * should be the same as PageInfo.page_category. This field is the equivalent
+   * of the query for browse (navigation) queries. It's used by the browse model
+   * when the query is empty. If the field is empty, it will not be used by the
+   * browse model. If the field contains more than one element, only the first
+   * element will be used. To represent full path of a category, use '>'
+   * character to separate different hierarchies. If '>' is part of the category
+   * name, replace it with other character(s). For example, `Graphics Cards >
+   * RTX>4090 > Founders Edition` where "RTX > 4090" represents one level, can
+   * be rewritten as `Graphics Cards > RTX_4090 > Founders Edition`
    *
    * @var string[]
    */
@@ -277,7 +297,15 @@ class GoogleCloudDiscoveryengineV1SearchRequest extends \Google\Collection
    * updated, a floating-point number (e.g., 0.25 means 15 minutes). *
    * `topicality_rank`: topicality adjustment as a rank. Uses proprietary Google
    * model to determine the keyword-based overlap between the query and the
-   * document. * `base_rank`: the default rank of the result
+   * document. * `base_rank`: the default rank of the result *
+   * `media_actor_match`: whether the media actor matches the query *
+   * `media_director_match`: whether the media director matches the query *
+   * `media_genre_match`: whether the media genre matches the query *
+   * `media_language_match`: whether the media language matches the query *
+   * `media_title_match`: whether the media title matches the query *
+   * `media_prefix_similarity_rank`: prefix similarity rank for media results *
+   * `media_semantic_similarity_rank`: semantic similarity rank for media
+   * results
    *
    * @var string
    */
@@ -291,10 +319,12 @@ class GoogleCloudDiscoveryengineV1SearchRequest extends \Google\Collection
   protected $relevanceScoreSpecType = GoogleCloudDiscoveryengineV1SearchRequestRelevanceScoreSpec::class;
   protected $relevanceScoreSpecDataType = '';
   /**
-   * The relevance threshold of the search results. Default to Google defined
-   * threshold, leveraging a balance of precision and recall to deliver both
-   * highly accurate results and comprehensive coverage of relevant information.
-   * This feature is not supported for healthcare search.
+   * The global relevance threshold of the search results. Defaults to Google
+   * defined threshold, leveraging a balance of precision and recall to deliver
+   * both highly accurate results and comprehensive coverage of relevant
+   * information. If more granular relevance filtering is required, use the
+   * `relevance_filter_spec` instead. This feature is not supported for
+   * healthcare search.
    *
    * @var string
    */
@@ -318,9 +348,7 @@ class GoogleCloudDiscoveryengineV1SearchRequest extends \Google\Collection
    * Example #2 (coordination between /search API calls and /answer API calls):
    * Call /answer API with the session ID generated in the first call. Here, the
    * answer generation happens in the context of the search results from the
-   * first search call. Multi-turn Search feature is currently at private GA
-   * stage. Please use v1alpha or v1beta version instead before we launch this
-   * feature to public GA. Or ask for allowlisting through Google Support team.
+   * first search call.
    *
    * @var string
    */
@@ -463,6 +491,22 @@ class GoogleCloudDiscoveryengineV1SearchRequest extends \Google\Collection
     return $this->crowdingSpecs;
   }
   /**
+   * Optional. Optional configuration for the Custom Ranking feature.
+   *
+   * @param GoogleCloudDiscoveryengineV1SearchRequestCustomRankingParams $customRankingParams
+   */
+  public function setCustomRankingParams(GoogleCloudDiscoveryengineV1SearchRequestCustomRankingParams $customRankingParams)
+  {
+    $this->customRankingParams = $customRankingParams;
+  }
+  /**
+   * @return GoogleCloudDiscoveryengineV1SearchRequestCustomRankingParams
+   */
+  public function getCustomRankingParams()
+  {
+    return $this->customRankingParams;
+  }
+  /**
    * Specifications that define the specific DataStores to be searched, along
    * with configurations for those data stores. This is only considered for
    * Engines with multiple data stores. For engines with a single data store,
@@ -497,6 +541,26 @@ class GoogleCloudDiscoveryengineV1SearchRequest extends \Google\Collection
   public function getDisplaySpec()
   {
     return $this->displaySpec;
+  }
+  /**
+   * Optional. The entity for customers that may run multiple different
+   * entities, domains, sites or regions, for example, "Google US", "Google
+   * Ads", "Waymo", "google.com", "youtube.com", etc. If this is set, it should
+   * be exactly matched with UserEvent.entity to get search results boosted by
+   * entity.
+   *
+   * @param string $entity
+   */
+  public function setEntity($entity)
+  {
+    $this->entity = $entity;
+  }
+  /**
+   * @return string
+   */
+  public function getEntity()
+  {
+    return $this->entity;
   }
   /**
    * Facet specifications for faceted search. If empty, no facets are returned.
@@ -600,6 +664,24 @@ class GoogleCloudDiscoveryengineV1SearchRequest extends \Google\Collection
     return $this->naturalLanguageQueryUnderstandingSpec;
   }
   /**
+   * Optional. The maximum number of results to retrieve from each data store.
+   * If not specified, it will use the SearchRequest.DataStoreSpec.num_results
+   * if provided, otherwise there is no limit.
+   *
+   * @param int $numResultsPerDataStore
+   */
+  public function setNumResultsPerDataStore($numResultsPerDataStore)
+  {
+    $this->numResultsPerDataStore = $numResultsPerDataStore;
+  }
+  /**
+   * @return int
+   */
+  public function getNumResultsPerDataStore()
+  {
+    return $this->numResultsPerDataStore;
+  }
+  /**
    * A 0-indexed integer that specifies the current offset (that is, starting
    * result location, amongst the Documents deemed by the API as relevant) in
    * search results. This field is only considered if page_token is unset. If
@@ -664,15 +746,15 @@ class GoogleCloudDiscoveryengineV1SearchRequest extends \Google\Collection
   /**
    * Optional. The categories associated with a category page. Must be set for
    * category navigation queries to achieve good search quality. The format
-   * should be the same as UserEvent.PageInfo.page_category. This field is the
-   * equivalent of the query for browse (navigation) queries. It's used by the
-   * browse model when the query is empty. If the field is empty, it will not be
-   * used by the browse model. If the field contains more than one element, only
-   * the first element will be used. To represent full path of a category, use
-   * '>' character to separate different hierarchies. If '>' is part of the
-   * category name, replace it with other character(s). For example, `Graphics
-   * Cards > RTX>4090 > Founders Edition` where "RTX > 4090" represents one
-   * level, can be rewritten as `Graphics Cards > RTX_4090 > Founders Edition`
+   * should be the same as PageInfo.page_category. This field is the equivalent
+   * of the query for browse (navigation) queries. It's used by the browse model
+   * when the query is empty. If the field is empty, it will not be used by the
+   * browse model. If the field contains more than one element, only the first
+   * element will be used. To represent full path of a category, use '>'
+   * character to separate different hierarchies. If '>' is part of the category
+   * name, replace it with other character(s). For example, `Graphics Cards >
+   * RTX>4090 > Founders Edition` where "RTX > 4090" represents one level, can
+   * be rewritten as `Graphics Cards > RTX_4090 > Founders Edition`
    *
    * @param string[] $pageCategories
    */
@@ -838,7 +920,15 @@ class GoogleCloudDiscoveryengineV1SearchRequest extends \Google\Collection
    * updated, a floating-point number (e.g., 0.25 means 15 minutes). *
    * `topicality_rank`: topicality adjustment as a rank. Uses proprietary Google
    * model to determine the keyword-based overlap between the query and the
-   * document. * `base_rank`: the default rank of the result
+   * document. * `base_rank`: the default rank of the result *
+   * `media_actor_match`: whether the media actor matches the query *
+   * `media_director_match`: whether the media director matches the query *
+   * `media_genre_match`: whether the media genre matches the query *
+   * `media_language_match`: whether the media language matches the query *
+   * `media_title_match`: whether the media title matches the query *
+   * `media_prefix_similarity_rank`: prefix similarity rank for media results *
+   * `media_semantic_similarity_rank`: semantic similarity rank for media
+   * results
    *
    * @param string $rankingExpression
    */
@@ -889,10 +979,12 @@ class GoogleCloudDiscoveryengineV1SearchRequest extends \Google\Collection
     return $this->relevanceScoreSpec;
   }
   /**
-   * The relevance threshold of the search results. Default to Google defined
-   * threshold, leveraging a balance of precision and recall to deliver both
-   * highly accurate results and comprehensive coverage of relevant information.
-   * This feature is not supported for healthcare search.
+   * The global relevance threshold of the search results. Defaults to Google
+   * defined threshold, leveraging a balance of precision and recall to deliver
+   * both highly accurate results and comprehensive coverage of relevant
+   * information. If more granular relevance filtering is required, use the
+   * `relevance_filter_spec` instead. This feature is not supported for
+   * healthcare search.
    *
    * Accepted values: RELEVANCE_THRESHOLD_UNSPECIFIED, LOWEST, LOW, MEDIUM, HIGH
    *
@@ -953,9 +1045,7 @@ class GoogleCloudDiscoveryengineV1SearchRequest extends \Google\Collection
    * Example #2 (coordination between /search API calls and /answer API calls):
    * Call /answer API with the session ID generated in the first call. Here, the
    * answer generation happens in the context of the search results from the
-   * first search call. Multi-turn Search feature is currently at private GA
-   * stage. Please use v1alpha or v1beta version instead before we launch this
-   * feature to public GA. Or ask for allowlisting through Google Support team.
+   * first search call.
    *
    * @param string $session
    */

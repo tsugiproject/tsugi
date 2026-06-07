@@ -53,9 +53,9 @@ class ProjectsLocationsCollections extends \Google\Service\Resource
    * @param string $name Required. Full resource name of DataConnector, such as `p
    * rojects/{project}/locations/{location}/collections/{collection_id}/dataConnec
    * tor`. If the caller does not have permission to access the DataConnector,
-   * regardless of whether or not it exists, a PERMISSION_DENIED error is
-   * returned. If the requested DataConnector does not exist, a NOT_FOUND error is
-   * returned.
+   * regardless of whether or not it exists, a `PERMISSION_DENIED` error is
+   * returned. If the requested DataConnector does not exist, a `NOT_FOUND` error
+   * is returned.
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDiscoveryengineV1DataConnector
    * @throws \Google\Service\Exception
@@ -69,20 +69,21 @@ class ProjectsLocationsCollections extends \Google\Service\Resource
   /**
    * Updates a DataConnector. (collections.updateDataConnector)
    *
-   * @param string $name Output only. The full resource name of the Data
-   * Connector. Format: `projects/locations/collections/dataConnector`.
+   * @param string $name Identifier. The full resource name of the Data Connector.
+   * Format: `projects/locations/collections/dataConnector`.
    * @param GoogleCloudDiscoveryengineV1DataConnector $postBody
    * @param array $optParams Optional parameters.
    *
    * @opt_param string updateMask Indicates which fields in the provided
-   * DataConnector to update. Supported field paths include: - refresh_interval -
-   * params - auto_run_disabled - action_config - action_config.action_params -
-   * action_config.service_name - destination_configs - blocking_reasons -
-   * sync_mode - incremental_sync_disabled - incremental_refresh_interval Note:
-   * Support for these fields may vary depending on the connector type. For
-   * example, not all connectors support `destination_configs`. If an unsupported
-   * or unknown field path is provided, the request will return an
-   * INVALID_ARGUMENT error.
+   * DataConnector to update. Supported field paths include: - `refresh_interval`
+   * - `params` - `auto_run_disabled` - `action_config` -
+   * `action_config.action_params` - `action_config.service_name` -
+   * `destination_configs` - `blocking_reasons` - `sync_mode` -
+   * `incremental_sync_disabled` - `incremental_refresh_interval` -
+   * `data_protection_policy` Note: Support for these fields may vary depending on
+   * the connector type. For example, not all connectors support
+   * `destination_configs`. If an unsupported or unknown field path is provided,
+   * the request will return an `INVALID_ARGUMENT` error.
    * @return GoogleCloudDiscoveryengineV1DataConnector
    * @throws \Google\Service\Exception
    */

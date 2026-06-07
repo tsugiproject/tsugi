@@ -75,8 +75,10 @@ class GoogleCloudAiplatformV1MigratableResource extends \Google\Model
     return $this->automlModel;
   }
   /**
-   * Output only. Represents one Dataset in datalabeling.googleapis.com.
+   * Output only. Deprecated: Data Labeling Dataset migration is no longer
+   * supported. Represents one Dataset in datalabeling.googleapis.com.
    *
+   * @deprecated
    * @param GoogleCloudAiplatformV1MigratableResourceDataLabelingDataset $dataLabelingDataset
    */
   public function setDataLabelingDataset(GoogleCloudAiplatformV1MigratableResourceDataLabelingDataset $dataLabelingDataset)
@@ -84,6 +86,7 @@ class GoogleCloudAiplatformV1MigratableResource extends \Google\Model
     $this->dataLabelingDataset = $dataLabelingDataset;
   }
   /**
+   * @deprecated
    * @return GoogleCloudAiplatformV1MigratableResourceDataLabelingDataset
    */
   public function getDataLabelingDataset()

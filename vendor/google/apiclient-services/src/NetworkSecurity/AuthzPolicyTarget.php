@@ -40,29 +40,33 @@ class AuthzPolicyTarget extends \Google\Collection
   public const LOAD_BALANCING_SCHEME_INTERNAL_SELF_MANAGED = 'INTERNAL_SELF_MANAGED';
   protected $collection_key = 'resources';
   /**
-   * Required. All gateways and forwarding rules referenced by this policy and
-   * extensions must share the same load balancing scheme. Supported values:
-   * `INTERNAL_MANAGED` and `EXTERNAL_MANAGED`. For more information, refer to
-   * [Backend services overview](https://cloud.google.com/load-
-   * balancing/docs/backend-service).
+   * Optional. All gateways and forwarding rules referenced by this policy and
+   * extensions must share the same load balancing scheme. Required only when
+   * targeting forwarding rules. If targeting Secure Web Proxy, this field must
+   * be `INTERNAL_MANAGED` or not specified. Must not be specified when
+   * targeting Agent Gateway. Supported values: `INTERNAL_MANAGED` and
+   * `EXTERNAL_MANAGED`. For more information, refer to [Backend services
+   * overview](https://cloud.google.com/load-balancing/docs/backend-service).
    *
    * @var string
    */
   public $loadBalancingScheme;
   /**
-   * Required. A list of references to the Forwarding Rules on which this policy
-   * will be applied.
+   * Required. A list of references to the Forwarding Rules, Secure Web Proxy
+   * Gateways, or Agent Gateways on which this policy will be applied.
    *
    * @var string[]
    */
   public $resources;
 
   /**
-   * Required. All gateways and forwarding rules referenced by this policy and
-   * extensions must share the same load balancing scheme. Supported values:
-   * `INTERNAL_MANAGED` and `EXTERNAL_MANAGED`. For more information, refer to
-   * [Backend services overview](https://cloud.google.com/load-
-   * balancing/docs/backend-service).
+   * Optional. All gateways and forwarding rules referenced by this policy and
+   * extensions must share the same load balancing scheme. Required only when
+   * targeting forwarding rules. If targeting Secure Web Proxy, this field must
+   * be `INTERNAL_MANAGED` or not specified. Must not be specified when
+   * targeting Agent Gateway. Supported values: `INTERNAL_MANAGED` and
+   * `EXTERNAL_MANAGED`. For more information, refer to [Backend services
+   * overview](https://cloud.google.com/load-balancing/docs/backend-service).
    *
    * Accepted values: LOAD_BALANCING_SCHEME_UNSPECIFIED, INTERNAL_MANAGED,
    * EXTERNAL_MANAGED, INTERNAL_SELF_MANAGED
@@ -81,8 +85,8 @@ class AuthzPolicyTarget extends \Google\Collection
     return $this->loadBalancingScheme;
   }
   /**
-   * Required. A list of references to the Forwarding Rules on which this policy
-   * will be applied.
+   * Required. A list of references to the Forwarding Rules, Secure Web Proxy
+   * Gateways, or Agent Gateways on which this policy will be applied.
    *
    * @param string[] $resources
    */

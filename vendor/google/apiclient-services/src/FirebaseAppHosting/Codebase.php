@@ -33,7 +33,11 @@ class Codebase extends \Google\Model
   public $repository;
   /**
    * Optional. If `repository` is provided, the directory relative to the root
-   * of the repository to use as the root for the deployed web app.
+   * of the repository to use as the root for the deployed web app. Defaults to
+   * use the root of the repository if not provided. If deploying a
+   * [monorepo](https://firebase.google.com/docs/app-hosting/monorepos), this
+   * should be the directory that contains the `package.json` or
+   * `apphosting.yaml` file.
    *
    * @var string
    */
@@ -63,7 +67,11 @@ class Codebase extends \Google\Model
   }
   /**
    * Optional. If `repository` is provided, the directory relative to the root
-   * of the repository to use as the root for the deployed web app.
+   * of the repository to use as the root for the deployed web app. Defaults to
+   * use the root of the repository if not provided. If deploying a
+   * [monorepo](https://firebase.google.com/docs/app-hosting/monorepos), this
+   * should be the directory that contains the `package.json` or
+   * `apphosting.yaml` file.
    *
    * @param string $rootDirectory
    */

@@ -213,7 +213,12 @@ class InsertionOrder extends \Google\Collection
   }
   /**
    * Optional. The bidding strategy of the insertion order. By default,
-   * fixed_bid is set.
+   * fixed_bid is set. If the budget field automationType is set to
+   * `INSERTION_ORDER_AUTOMATION_TYPE_BUDGET` or
+   * `INSERTION_ORDER_AUTOMATION_TYPE_BID_BUDGET`, the insertion order will
+   * impose this bidding strategy on its line items. If an imposed bidding
+   * strategy is not compatible with a line item's enableOptimizedTargeting
+   * setting, the optimized targeting setting will be updated.
    *
    * @param BiddingStrategy $bidStrategy
    */

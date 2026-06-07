@@ -21,29 +21,15 @@ class GoogleCloudDialogflowCxV3FilterSpecs extends \Google\Collection
 {
   protected $collection_key = 'dataStores';
   /**
-   * Optional. Data Stores where the boosting configuration is applied. The full
-   * names of the referenced data stores. Formats: `projects/{project}/locations
-   * /{location}/collections/{collection}/dataStores/{data_store}`
-   * `projects/{project}/locations/{location}/dataStores/{data_store}`
-   *
    * @var string[]
    */
   public $dataStores;
   /**
-   * Optional. The filter expression to be applied. Expression syntax is
-   * documented at https://cloud.google.com/generative-ai-app-
-   * builder/docs/filter-search-metadata#filter-expression-syntax
-   *
    * @var string
    */
   public $filter;
 
   /**
-   * Optional. Data Stores where the boosting configuration is applied. The full
-   * names of the referenced data stores. Formats: `projects/{project}/locations
-   * /{location}/collections/{collection}/dataStores/{data_store}`
-   * `projects/{project}/locations/{location}/dataStores/{data_store}`
-   *
    * @param string[] $dataStores
    */
   public function setDataStores($dataStores)
@@ -58,10 +44,6 @@ class GoogleCloudDialogflowCxV3FilterSpecs extends \Google\Collection
     return $this->dataStores;
   }
   /**
-   * Optional. The filter expression to be applied. Expression syntax is
-   * documented at https://cloud.google.com/generative-ai-app-
-   * builder/docs/filter-search-metadata#filter-expression-syntax
-   *
    * @param string $filter
    */
   public function setFilter($filter)

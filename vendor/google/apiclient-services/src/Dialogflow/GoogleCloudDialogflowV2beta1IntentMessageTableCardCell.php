@@ -20,15 +20,11 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2beta1IntentMessageTableCardCell extends \Google\Model
 {
   /**
-   * Required. Text in this cell.
-   *
    * @var string
    */
   public $text;
 
   /**
-   * Required. Text in this cell.
-   *
    * @param string $text
    */
   public function setText($text)

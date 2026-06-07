@@ -20,58 +20,39 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3Changelog extends \Google\Model
 {
   /**
-   * The action of the change.
-   *
    * @var string
    */
   public $action;
   /**
-   * The timestamp of the change.
-   *
    * @var string
    */
   public $createTime;
   /**
-   * The affected resource display name of the change.
-   *
    * @var string
    */
   public $displayName;
   /**
-   * The affected language code of the change.
-   *
    * @var string
    */
   public $languageCode;
   /**
-   * The unique identifier of the changelog. Format:
-   * `projects//locations//agents//changelogs/`.
-   *
    * @var string
    */
   public $name;
   /**
-   * The affected resource name of the change.
-   *
    * @var string
    */
   public $resource;
   /**
-   * The affected resource type.
-   *
    * @var string
    */
   public $type;
   /**
-   * Email address of the authenticated user.
-   *
    * @var string
    */
   public $userEmail;
 
   /**
-   * The action of the change.
-   *
    * @param string $action
    */
   public function setAction($action)
@@ -86,8 +67,6 @@ class GoogleCloudDialogflowCxV3Changelog extends \Google\Model
     return $this->action;
   }
   /**
-   * The timestamp of the change.
-   *
    * @param string $createTime
    */
   public function setCreateTime($createTime)
@@ -102,8 +81,6 @@ class GoogleCloudDialogflowCxV3Changelog extends \Google\Model
     return $this->createTime;
   }
   /**
-   * The affected resource display name of the change.
-   *
    * @param string $displayName
    */
   public function setDisplayName($displayName)
@@ -118,8 +95,6 @@ class GoogleCloudDialogflowCxV3Changelog extends \Google\Model
     return $this->displayName;
   }
   /**
-   * The affected language code of the change.
-   *
    * @param string $languageCode
    */
   public function setLanguageCode($languageCode)
@@ -134,9 +109,6 @@ class GoogleCloudDialogflowCxV3Changelog extends \Google\Model
     return $this->languageCode;
   }
   /**
-   * The unique identifier of the changelog. Format:
-   * `projects//locations//agents//changelogs/`.
-   *
    * @param string $name
    */
   public function setName($name)
@@ -151,8 +123,6 @@ class GoogleCloudDialogflowCxV3Changelog extends \Google\Model
     return $this->name;
   }
   /**
-   * The affected resource name of the change.
-   *
    * @param string $resource
    */
   public function setResource($resource)
@@ -167,8 +137,6 @@ class GoogleCloudDialogflowCxV3Changelog extends \Google\Model
     return $this->resource;
   }
   /**
-   * The affected resource type.
-   *
    * @param string $type
    */
   public function setType($type)
@@ -183,8 +151,6 @@ class GoogleCloudDialogflowCxV3Changelog extends \Google\Model
     return $this->type;
   }
   /**
-   * Email address of the authenticated user.
-   *
    * @param string $userEmail
    */
   public function setUserEmail($userEmail)

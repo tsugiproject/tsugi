@@ -23,30 +23,16 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
   protected $advancedSettingsType = GoogleCloudDialogflowCxV3AdvancedSettings::class;
   protected $advancedSettingsDataType = '';
   /**
-   * Indicates whether the Thumbs up/Thumbs down rating controls are need to be
-   * shown for the response in the Dialogflow Messenger widget.
-   *
    * @var bool
    */
   public $allowAnswerFeedback;
+  protected $currentFlowType = GoogleCloudDialogflowCxV3Flow::class;
+  protected $currentFlowDataType = '';
   protected $currentPageType = GoogleCloudDialogflowCxV3Page::class;
   protected $currentPageDataType = '';
   protected $dataStoreConnectionSignalsType = GoogleCloudDialogflowCxV3DataStoreConnectionSignals::class;
   protected $dataStoreConnectionSignalsDataType = '';
   /**
-   * The free-form diagnostic info. For example, this field could contain
-   * webhook call latency. The fields of this data can change without notice, so
-   * you should not write code that depends on its structure. One of the fields
-   * is called "Alternative Matched Intents", which may aid with debugging. The
-   * following describes these intent results: - The list is empty if no intent
-   * was matched to end-user input. - Only intents that are referenced in the
-   * currently active flow are included. - The matched intent is included. -
-   * Other intents that could have matched end-user input, but did not match
-   * because they are referenced by intent routes that are out of
-   * [scope](https://cloud.google.com/dialogflow/cx/docs/concept/handler#scope),
-   * are included. - Other intents referenced by intent routes in scope that
-   * matched end-user input, but had a lower confidence score.
-   *
    * @var array[]
    */
   public $diagnosticInfo;
@@ -55,39 +41,17 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
   protected $intentType = GoogleCloudDialogflowCxV3Intent::class;
   protected $intentDataType = '';
   /**
-   * The intent detection confidence. Values range from 0.0 (completely
-   * uncertain) to 1.0 (completely certain). This value is for informational
-   * purpose only and is only used to help match the best intent within the
-   * classification threshold. This value may change for the same end-user
-   * expression at any time due to a model retraining or change in
-   * implementation. This field is deprecated, please use QueryResult.match
-   * instead.
-   *
    * @deprecated
    * @var float
    */
   public $intentDetectionConfidence;
   /**
-   * The language that was triggered during intent detection. See [Language
-   * Support](https://cloud.google.com/dialogflow/cx/docs/reference/language)
-   * for a list of the currently supported language codes.
-   *
    * @var string
    */
   public $languageCode;
   protected $matchType = GoogleCloudDialogflowCxV3Match::class;
   protected $matchDataType = '';
   /**
-   * The collected session parameters. Depending on your protocol or client
-   * library language, this is a map, associative array, symbol table,
-   * dictionary, or JSON object composed of a collection of (MapKey, MapValue)
-   * pairs: * MapKey type: string * MapKey value: parameter name * MapValue
-   * type: If parameter's entity type is a composite entity then use map,
-   * otherwise, depending on the parameter value type, it could be one of
-   * string, number, boolean, null, list or map. * MapValue value: If
-   * parameter's entity type is a composite entity then use map from composite
-   * entity property names to property values, otherwise, use parameter value.
-   *
    * @var array[]
    */
   public $parameters;
@@ -96,38 +60,24 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
   protected $sentimentAnalysisResultType = GoogleCloudDialogflowCxV3SentimentAnalysisResult::class;
   protected $sentimentAnalysisResultDataType = '';
   /**
-   * If natural language text was provided as input, this field will contain a
-   * copy of the text.
-   *
    * @var string
    */
   public $text;
+  protected $traceBlocksType = GoogleCloudDialogflowCxV3TraceBlock::class;
+  protected $traceBlocksDataType = 'array';
   /**
-   * If natural language speech audio was provided as input, this field will
-   * contain the transcript for the audio.
-   *
    * @var string
    */
   public $transcript;
   /**
-   * If an event was provided as input, this field will contain the name of the
-   * event.
-   *
    * @var string
    */
   public $triggerEvent;
   /**
-   * If an intent was provided as input, this field will contain a copy of the
-   * intent identifier. Format: `projects//locations//agents//intents/`.
-   *
    * @var string
    */
   public $triggerIntent;
   /**
-   * The list of webhook payload in WebhookResponse.payload, in the order of
-   * call sequence. If some webhook call fails or doesn't return any payload, an
-   * empty `Struct` would be used instead.
-   *
    * @var array[]
    */
   public $webhookPayloads;
@@ -135,12 +85,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
   protected $webhookStatusesDataType = 'array';
 
   /**
-   * Returns the current advanced settings including IVR settings. Even though
-   * the operations configured by these settings are performed by Dialogflow,
-   * the client may need to perform special logic at the moment. For example, if
-   * Dialogflow exports audio to Google Cloud Storage, then the client may need
-   * to wait for the resulting object to appear in the bucket before proceeding.
-   *
    * @param GoogleCloudDialogflowCxV3AdvancedSettings $advancedSettings
    */
   public function setAdvancedSettings(GoogleCloudDialogflowCxV3AdvancedSettings $advancedSettings)
@@ -155,9 +99,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->advancedSettings;
   }
   /**
-   * Indicates whether the Thumbs up/Thumbs down rating controls are need to be
-   * shown for the response in the Dialogflow Messenger widget.
-   *
    * @param bool $allowAnswerFeedback
    */
   public function setAllowAnswerFeedback($allowAnswerFeedback)
@@ -172,9 +113,20 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->allowAnswerFeedback;
   }
   /**
-   * The current Page. Some, not all fields are filled in this message,
-   * including but not limited to `name` and `display_name`.
-   *
+   * @param GoogleCloudDialogflowCxV3Flow $currentFlow
+   */
+  public function setCurrentFlow(GoogleCloudDialogflowCxV3Flow $currentFlow)
+  {
+    $this->currentFlow = $currentFlow;
+  }
+  /**
+   * @return GoogleCloudDialogflowCxV3Flow
+   */
+  public function getCurrentFlow()
+  {
+    return $this->currentFlow;
+  }
+  /**
    * @param GoogleCloudDialogflowCxV3Page $currentPage
    */
   public function setCurrentPage(GoogleCloudDialogflowCxV3Page $currentPage)
@@ -189,9 +141,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->currentPage;
   }
   /**
-   * Optional. Data store connection feature output signals. Filled only when
-   * data stores are involved in serving the query.
-   *
    * @param GoogleCloudDialogflowCxV3DataStoreConnectionSignals $dataStoreConnectionSignals
    */
   public function setDataStoreConnectionSignals(GoogleCloudDialogflowCxV3DataStoreConnectionSignals $dataStoreConnectionSignals)
@@ -206,19 +155,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->dataStoreConnectionSignals;
   }
   /**
-   * The free-form diagnostic info. For example, this field could contain
-   * webhook call latency. The fields of this data can change without notice, so
-   * you should not write code that depends on its structure. One of the fields
-   * is called "Alternative Matched Intents", which may aid with debugging. The
-   * following describes these intent results: - The list is empty if no intent
-   * was matched to end-user input. - Only intents that are referenced in the
-   * currently active flow are included. - The matched intent is included. -
-   * Other intents that could have matched end-user input, but did not match
-   * because they are referenced by intent routes that are out of
-   * [scope](https://cloud.google.com/dialogflow/cx/docs/concept/handler#scope),
-   * are included. - Other intents referenced by intent routes in scope that
-   * matched end-user input, but had a lower confidence score.
-   *
    * @param array[] $diagnosticInfo
    */
   public function setDiagnosticInfo($diagnosticInfo)
@@ -233,9 +169,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->diagnosticInfo;
   }
   /**
-   * If a DTMF was provided as input, this field will contain a copy of the
-   * DtmfInput.
-   *
    * @param GoogleCloudDialogflowCxV3DtmfInput $dtmf
    */
   public function setDtmf(GoogleCloudDialogflowCxV3DtmfInput $dtmf)
@@ -250,11 +183,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->dtmf;
   }
   /**
-   * The Intent that matched the conversational query. Some, not all fields are
-   * filled in this message, including but not limited to: `name` and
-   * `display_name`. This field is deprecated, please use QueryResult.match
-   * instead.
-   *
    * @deprecated
    * @param GoogleCloudDialogflowCxV3Intent $intent
    */
@@ -271,14 +199,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->intent;
   }
   /**
-   * The intent detection confidence. Values range from 0.0 (completely
-   * uncertain) to 1.0 (completely certain). This value is for informational
-   * purpose only and is only used to help match the best intent within the
-   * classification threshold. This value may change for the same end-user
-   * expression at any time due to a model retraining or change in
-   * implementation. This field is deprecated, please use QueryResult.match
-   * instead.
-   *
    * @deprecated
    * @param float $intentDetectionConfidence
    */
@@ -295,10 +215,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->intentDetectionConfidence;
   }
   /**
-   * The language that was triggered during intent detection. See [Language
-   * Support](https://cloud.google.com/dialogflow/cx/docs/reference/language)
-   * for a list of the currently supported language codes.
-   *
    * @param string $languageCode
    */
   public function setLanguageCode($languageCode)
@@ -313,8 +229,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->languageCode;
   }
   /**
-   * Intent match result, could be an intent or an event.
-   *
    * @param GoogleCloudDialogflowCxV3Match $match
    */
   public function setMatch(GoogleCloudDialogflowCxV3Match $match)
@@ -329,16 +243,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->match;
   }
   /**
-   * The collected session parameters. Depending on your protocol or client
-   * library language, this is a map, associative array, symbol table,
-   * dictionary, or JSON object composed of a collection of (MapKey, MapValue)
-   * pairs: * MapKey type: string * MapKey value: parameter name * MapValue
-   * type: If parameter's entity type is a composite entity then use map,
-   * otherwise, depending on the parameter value type, it could be one of
-   * string, number, boolean, null, list or map. * MapValue value: If
-   * parameter's entity type is a composite entity then use map from composite
-   * entity property names to property values, otherwise, use parameter value.
-   *
    * @param array[] $parameters
    */
   public function setParameters($parameters)
@@ -353,10 +257,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->parameters;
   }
   /**
-   * The list of rich messages returned to the client. Responses vary from
-   * simple text messages to more sophisticated, structured payloads used to
-   * drive complex logic.
-   *
    * @param GoogleCloudDialogflowCxV3ResponseMessage[] $responseMessages
    */
   public function setResponseMessages($responseMessages)
@@ -371,9 +271,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->responseMessages;
   }
   /**
-   * The sentiment analyss result, which depends on
-   * `analyze_query_text_sentiment`, specified in the request.
-   *
    * @param GoogleCloudDialogflowCxV3SentimentAnalysisResult $sentimentAnalysisResult
    */
   public function setSentimentAnalysisResult(GoogleCloudDialogflowCxV3SentimentAnalysisResult $sentimentAnalysisResult)
@@ -388,9 +285,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->sentimentAnalysisResult;
   }
   /**
-   * If natural language text was provided as input, this field will contain a
-   * copy of the text.
-   *
    * @param string $text
    */
   public function setText($text)
@@ -405,9 +299,20 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->text;
   }
   /**
-   * If natural language speech audio was provided as input, this field will
-   * contain the transcript for the audio.
-   *
+   * @param GoogleCloudDialogflowCxV3TraceBlock[] $traceBlocks
+   */
+  public function setTraceBlocks($traceBlocks)
+  {
+    $this->traceBlocks = $traceBlocks;
+  }
+  /**
+   * @return GoogleCloudDialogflowCxV3TraceBlock[]
+   */
+  public function getTraceBlocks()
+  {
+    return $this->traceBlocks;
+  }
+  /**
    * @param string $transcript
    */
   public function setTranscript($transcript)
@@ -422,9 +327,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->transcript;
   }
   /**
-   * If an event was provided as input, this field will contain the name of the
-   * event.
-   *
    * @param string $triggerEvent
    */
   public function setTriggerEvent($triggerEvent)
@@ -439,9 +341,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->triggerEvent;
   }
   /**
-   * If an intent was provided as input, this field will contain a copy of the
-   * intent identifier. Format: `projects//locations//agents//intents/`.
-   *
    * @param string $triggerIntent
    */
   public function setTriggerIntent($triggerIntent)
@@ -456,10 +355,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->triggerIntent;
   }
   /**
-   * The list of webhook payload in WebhookResponse.payload, in the order of
-   * call sequence. If some webhook call fails or doesn't return any payload, an
-   * empty `Struct` would be used instead.
-   *
    * @param array[] $webhookPayloads
    */
   public function setWebhookPayloads($webhookPayloads)
@@ -474,8 +369,6 @@ class GoogleCloudDialogflowCxV3QueryResult extends \Google\Collection
     return $this->webhookPayloads;
   }
   /**
-   * The list of webhook call status in the order of call sequence.
-   *
    * @param GoogleRpcStatus[] $webhookStatuses
    */
   public function setWebhookStatuses($webhookStatuses)

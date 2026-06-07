@@ -37,7 +37,21 @@ class LicenseCode extends \Google\Collection
    * Reserved state.
    */
   public const STATE_TERMINATED = 'TERMINATED';
-  protected $collection_key = 'licenseAlias';
+  protected $collection_key = 'requiredCoattachedLicenses';
+  /**
+   * Specifies licenseCodes of licenses that can replace this license. Note:
+   * such replacements are allowed even if removable_from_disk is false.
+   *
+   * @var string[]
+   */
+  public $allowedReplacementLicenses;
+  /**
+   * If true, this license can be appended to an existing disk's set of
+   * licenses.
+   *
+   * @var bool
+   */
+  public $appendableToDisk;
   /**
    * Output only. [Output Only] Creation timestamp inRFC3339 text format.
    *
@@ -58,6 +72,14 @@ class LicenseCode extends \Google\Collection
    */
   public $id;
   /**
+   * Specifies licenseCodes of licenses that are incompatible with this license.
+   * If a license is incompatible with this license, it cannot be attached to
+   * the same disk or image.
+   *
+   * @var string[]
+   */
+  public $incompatibleLicenses;
+  /**
    * Output only. [Output Only] Type of resource. Always compute#licenseCode for
    * licenses.
    *
@@ -66,6 +88,14 @@ class LicenseCode extends \Google\Collection
   public $kind;
   protected $licenseAliasType = LicenseCodeLicenseAlias::class;
   protected $licenseAliasDataType = 'array';
+  protected $minimumRetentionType = Duration::class;
+  protected $minimumRetentionDataType = '';
+  /**
+   * If true, this license can only be used on VMs on multi tenant nodes.
+   *
+   * @var bool
+   */
+  public $multiTenantOnly;
   /**
    * Output only. [Output Only] Name of the resource. The name is 1-20
    * characters long and must be a valid 64 bit integer.
@@ -74,11 +104,39 @@ class LicenseCode extends \Google\Collection
    */
   public $name;
   /**
+   * If true, indicates this is an OS license. Only one OS license can be
+   * attached to a disk or image at a time.
+   *
+   * @var bool
+   */
+  public $osLicense;
+  /**
+   * If true, this license can be removed from a disk's set of licenses, with no
+   * replacement license needed.
+   *
+   * @var bool
+   */
+  public $removableFromDisk;
+  /**
+   * Specifies the set of permissible coattached licenseCodes of licenses that
+   * satisfy the coattachment requirement of this license. At least one license
+   * from the set must be attached to the same disk or image as this license.
+   *
+   * @var string[]
+   */
+  public $requiredCoattachedLicenses;
+  /**
    * Output only. [Output Only] Server-defined URL for the resource.
    *
    * @var string
    */
   public $selfLink;
+  /**
+   * If true, this license can only be used on VMs on sole tenant nodes.
+   *
+   * @var bool
+   */
+  public $soleTenantOnly;
   /**
    * Output only. [Output Only] Current state of this License Code.
    *
@@ -93,7 +151,47 @@ class LicenseCode extends \Google\Collection
    * @var bool
    */
   public $transferable;
+  /**
+   * Output only. [Output Only] Last update timestamp inRFC3339 text format.
+   *
+   * @var string
+   */
+  public $updateTimestamp;
 
+  /**
+   * Specifies licenseCodes of licenses that can replace this license. Note:
+   * such replacements are allowed even if removable_from_disk is false.
+   *
+   * @param string[] $allowedReplacementLicenses
+   */
+  public function setAllowedReplacementLicenses($allowedReplacementLicenses)
+  {
+    $this->allowedReplacementLicenses = $allowedReplacementLicenses;
+  }
+  /**
+   * @return string[]
+   */
+  public function getAllowedReplacementLicenses()
+  {
+    return $this->allowedReplacementLicenses;
+  }
+  /**
+   * If true, this license can be appended to an existing disk's set of
+   * licenses.
+   *
+   * @param bool $appendableToDisk
+   */
+  public function setAppendableToDisk($appendableToDisk)
+  {
+    $this->appendableToDisk = $appendableToDisk;
+  }
+  /**
+   * @return bool
+   */
+  public function getAppendableToDisk()
+  {
+    return $this->appendableToDisk;
+  }
   /**
    * Output only. [Output Only] Creation timestamp inRFC3339 text format.
    *
@@ -144,6 +242,24 @@ class LicenseCode extends \Google\Collection
     return $this->id;
   }
   /**
+   * Specifies licenseCodes of licenses that are incompatible with this license.
+   * If a license is incompatible with this license, it cannot be attached to
+   * the same disk or image.
+   *
+   * @param string[] $incompatibleLicenses
+   */
+  public function setIncompatibleLicenses($incompatibleLicenses)
+  {
+    $this->incompatibleLicenses = $incompatibleLicenses;
+  }
+  /**
+   * @return string[]
+   */
+  public function getIncompatibleLicenses()
+  {
+    return $this->incompatibleLicenses;
+  }
+  /**
    * Output only. [Output Only] Type of resource. Always compute#licenseCode for
    * licenses.
    *
@@ -178,6 +294,39 @@ class LicenseCode extends \Google\Collection
     return $this->licenseAlias;
   }
   /**
+   * If set, this license will be unable to be removed or replaced once attached
+   * to a disk until the minimum_retention period has passed.
+   *
+   * @param Duration $minimumRetention
+   */
+  public function setMinimumRetention(Duration $minimumRetention)
+  {
+    $this->minimumRetention = $minimumRetention;
+  }
+  /**
+   * @return Duration
+   */
+  public function getMinimumRetention()
+  {
+    return $this->minimumRetention;
+  }
+  /**
+   * If true, this license can only be used on VMs on multi tenant nodes.
+   *
+   * @param bool $multiTenantOnly
+   */
+  public function setMultiTenantOnly($multiTenantOnly)
+  {
+    $this->multiTenantOnly = $multiTenantOnly;
+  }
+  /**
+   * @return bool
+   */
+  public function getMultiTenantOnly()
+  {
+    return $this->multiTenantOnly;
+  }
+  /**
    * Output only. [Output Only] Name of the resource. The name is 1-20
    * characters long and must be a valid 64 bit integer.
    *
@@ -195,6 +344,58 @@ class LicenseCode extends \Google\Collection
     return $this->name;
   }
   /**
+   * If true, indicates this is an OS license. Only one OS license can be
+   * attached to a disk or image at a time.
+   *
+   * @param bool $osLicense
+   */
+  public function setOsLicense($osLicense)
+  {
+    $this->osLicense = $osLicense;
+  }
+  /**
+   * @return bool
+   */
+  public function getOsLicense()
+  {
+    return $this->osLicense;
+  }
+  /**
+   * If true, this license can be removed from a disk's set of licenses, with no
+   * replacement license needed.
+   *
+   * @param bool $removableFromDisk
+   */
+  public function setRemovableFromDisk($removableFromDisk)
+  {
+    $this->removableFromDisk = $removableFromDisk;
+  }
+  /**
+   * @return bool
+   */
+  public function getRemovableFromDisk()
+  {
+    return $this->removableFromDisk;
+  }
+  /**
+   * Specifies the set of permissible coattached licenseCodes of licenses that
+   * satisfy the coattachment requirement of this license. At least one license
+   * from the set must be attached to the same disk or image as this license.
+   *
+   * @param string[] $requiredCoattachedLicenses
+   */
+  public function setRequiredCoattachedLicenses($requiredCoattachedLicenses)
+  {
+    $this->requiredCoattachedLicenses = $requiredCoattachedLicenses;
+  }
+  /**
+   * @return string[]
+   */
+  public function getRequiredCoattachedLicenses()
+  {
+    return $this->requiredCoattachedLicenses;
+  }
+  /**
    * Output only. [Output Only] Server-defined URL for the resource.
    *
    * @param string $selfLink
@@ -209,6 +410,22 @@ class LicenseCode extends \Google\Collection
   public function getSelfLink()
   {
     return $this->selfLink;
+  }
+  /**
+   * If true, this license can only be used on VMs on sole tenant nodes.
+   *
+   * @param bool $soleTenantOnly
+   */
+  public function setSoleTenantOnly($soleTenantOnly)
+  {
+    $this->soleTenantOnly = $soleTenantOnly;
+  }
+  /**
+   * @return bool
+   */
+  public function getSoleTenantOnly()
+  {
+    return $this->soleTenantOnly;
   }
   /**
    * Output only. [Output Only] Current state of this License Code.
@@ -246,6 +463,22 @@ class LicenseCode extends \Google\Collection
   public function getTransferable()
   {
     return $this->transferable;
+  }
+  /**
+   * Output only. [Output Only] Last update timestamp inRFC3339 text format.
+   *
+   * @param string $updateTimestamp
+   */
+  public function setUpdateTimestamp($updateTimestamp)
+  {
+    $this->updateTimestamp = $updateTimestamp;
+  }
+  /**
+   * @return string
+   */
+  public function getUpdateTimestamp()
+  {
+    return $this->updateTimestamp;
   }
 }
 

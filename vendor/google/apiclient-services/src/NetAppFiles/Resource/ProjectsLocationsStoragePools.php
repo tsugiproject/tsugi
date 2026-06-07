@@ -19,8 +19,10 @@ namespace Google\Service\NetAppFiles\Resource;
 
 use Google\Service\NetAppFiles\ListStoragePoolsResponse;
 use Google\Service\NetAppFiles\Operation;
+use Google\Service\NetAppFiles\RestoreVolumeRequest;
 use Google\Service\NetAppFiles\StoragePool;
 use Google\Service\NetAppFiles\SwitchActiveReplicaZoneRequest;
+use Google\Service\NetAppFiles\UpdateBackupConfigRequest;
 use Google\Service\NetAppFiles\ValidateDirectoryServiceRequest;
 
 /**
@@ -127,6 +129,23 @@ class ProjectsLocationsStoragePools extends \Google\Service\Resource
     return $this->call('patch', [$params], Operation::class);
   }
   /**
+   * Restores a backup to an ONTAP-mode volume. (storagePools.restoreVolume)
+   *
+   * @param string $name Required. The resource name of the ONTAP mode storage
+   * pool, in the format of
+   * `projects/{project}/locations/{location}/storagePools/{storage_pool}`
+   * @param RestoreVolumeRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function restoreVolume($name, RestoreVolumeRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('restoreVolume', [$params], Operation::class);
+  }
+  /**
    * This operation will switch the active/replica zone for a regional
    * storagePool. (storagePools.switchProjectsLocationsStoragePools)
    *
@@ -141,6 +160,23 @@ class ProjectsLocationsStoragePools extends \Google\Service\Resource
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('switch', [$params], Operation::class);
+  }
+  /**
+   * Updates the backup configuration for an ONTAP-mode volume.
+   * (storagePools.updateBackupConfig)
+   *
+   * @param string $name Required. The resource name of the StoragePool, in the
+   * format: projects/{projectNumber}/locations/{locationId}/storagePools/{poolId}
+   * @param UpdateBackupConfigRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function updateBackupConfig($name, UpdateBackupConfigRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('updateBackupConfig', [$params], Operation::class);
   }
   /**
    * ValidateDirectoryService does a connectivity check for a directory service

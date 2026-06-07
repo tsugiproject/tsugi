@@ -17,8 +17,9 @@
 
 namespace Google\Service\BigtableAdmin;
 
-class AutomatedBackupPolicy extends \Google\Model
+class AutomatedBackupPolicy extends \Google\Collection
 {
+  protected $collection_key = 'locations';
   /**
    * How frequently automated backups should occur. The only supported value at
    * this time is 24 hours. An undefined frequency is treated as 24 hours.
@@ -26,6 +27,16 @@ class AutomatedBackupPolicy extends \Google\Model
    * @var string
    */
   public $frequency;
+  /**
+   * Optional. A list of Cloud Bigtable zones where automated backups are
+   * allowed to be created. If empty, automated backups will be created in all
+   * zones of the instance. Locations are in the format
+   * `projects/{project}/locations/{zone}`. You can set this field only for
+   * tables in Enterprise Plus instances.
+   *
+   * @var string[]
+   */
+  public $locations;
   /**
    * Required. How long the automated backups should be retained. Values must be
    * at least 3 days and at most 90 days.
@@ -50,6 +61,26 @@ class AutomatedBackupPolicy extends \Google\Model
   public function getFrequency()
   {
     return $this->frequency;
+  }
+  /**
+   * Optional. A list of Cloud Bigtable zones where automated backups are
+   * allowed to be created. If empty, automated backups will be created in all
+   * zones of the instance. Locations are in the format
+   * `projects/{project}/locations/{zone}`. You can set this field only for
+   * tables in Enterprise Plus instances.
+   *
+   * @param string[] $locations
+   */
+  public function setLocations($locations)
+  {
+    $this->locations = $locations;
+  }
+  /**
+   * @return string[]
+   */
+  public function getLocations()
+  {
+    return $this->locations;
   }
   /**
    * Required. How long the automated backups should be retained. Values must be

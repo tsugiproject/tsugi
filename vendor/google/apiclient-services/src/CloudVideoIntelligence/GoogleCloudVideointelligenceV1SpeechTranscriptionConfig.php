@@ -21,6 +21,13 @@ class GoogleCloudVideointelligenceV1SpeechTranscriptionConfig extends \Google\Co
 {
   protected $collection_key = 'speechContexts';
   /**
+   * Optional. Legacy field. This field must be a Cloud Storage URI prefix.
+   * (e.g., `gs://bucket/path/`).
+   *
+   * @var string
+   */
+  public $audioOutputUriPrefix;
+  /**
    * Optional. For file formats, such as MXF or MKV, supporting multiple audio
    * tracks, specify up to two tracks. Default: track 0.
    *
@@ -97,6 +104,23 @@ class GoogleCloudVideointelligenceV1SpeechTranscriptionConfig extends \Google\Co
   protected $speechContextsType = GoogleCloudVideointelligenceV1SpeechContext::class;
   protected $speechContextsDataType = 'array';
 
+  /**
+   * Optional. Legacy field. This field must be a Cloud Storage URI prefix.
+   * (e.g., `gs://bucket/path/`).
+   *
+   * @param string $audioOutputUriPrefix
+   */
+  public function setAudioOutputUriPrefix($audioOutputUriPrefix)
+  {
+    $this->audioOutputUriPrefix = $audioOutputUriPrefix;
+  }
+  /**
+   * @return string
+   */
+  public function getAudioOutputUriPrefix()
+  {
+    return $this->audioOutputUriPrefix;
+  }
   /**
    * Optional. For file formats, such as MXF or MKV, supporting multiple audio
    * tracks, specify up to two tracks. Default: track 0.

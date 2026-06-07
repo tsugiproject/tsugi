@@ -39,6 +39,10 @@ class Job extends \Google\Collection
    * Terminated due to an unrecoverable failure.
    */
   public const STATE_FAILED = 'FAILED';
+  /**
+   * Queued but not yet started.
+   */
+  public const STATE_QUEUED = 'QUEUED';
   protected $collection_key = 'errorSummaries';
   protected $bucketListType = BucketList::class;
   protected $bucketListDataType = '';
@@ -75,6 +79,13 @@ class Job extends \Google\Collection
   public $dryRun;
   protected $errorSummariesType = ErrorSummary::class;
   protected $errorSummariesDataType = 'array';
+  /**
+   * Output only. If true, this Job operates on multiple buckets. Multibucket
+   * jobs are subject to different quota limits than single-bucket jobs.
+   *
+   * @var bool
+   */
+  public $isMultiBucketJob;
   protected $loggingConfigType = LoggingConfig::class;
   protected $loggingConfigDataType = '';
   /**
@@ -104,6 +115,8 @@ class Job extends \Google\Collection
    * @var string
    */
   public $state;
+  protected $updateObjectCustomContextType = UpdateObjectCustomContext::class;
+  protected $updateObjectCustomContextDataType = '';
 
   /**
    * Specifies a list of buckets and their objects to be transformed.
@@ -237,6 +250,23 @@ class Job extends \Google\Collection
     return $this->errorSummaries;
   }
   /**
+   * Output only. If true, this Job operates on multiple buckets. Multibucket
+   * jobs are subject to different quota limits than single-bucket jobs.
+   *
+   * @param bool $isMultiBucketJob
+   */
+  public function setIsMultiBucketJob($isMultiBucketJob)
+  {
+    $this->isMultiBucketJob = $isMultiBucketJob;
+  }
+  /**
+   * @return bool
+   */
+  public function getIsMultiBucketJob()
+  {
+    return $this->isMultiBucketJob;
+  }
+  /**
    * Optional. Logging configuration.
    *
    * @param LoggingConfig $loggingConfig
@@ -340,7 +370,8 @@ class Job extends \Google\Collection
   /**
    * Output only. State of the job.
    *
-   * Accepted values: STATE_UNSPECIFIED, RUNNING, SUCCEEDED, CANCELED, FAILED
+   * Accepted values: STATE_UNSPECIFIED, RUNNING, SUCCEEDED, CANCELED, FAILED,
+   * QUEUED
    *
    * @param self::STATE_* $state
    */
@@ -354,6 +385,22 @@ class Job extends \Google\Collection
   public function getState()
   {
     return $this->state;
+  }
+  /**
+   * Update object custom context.
+   *
+   * @param UpdateObjectCustomContext $updateObjectCustomContext
+   */
+  public function setUpdateObjectCustomContext(UpdateObjectCustomContext $updateObjectCustomContext)
+  {
+    $this->updateObjectCustomContext = $updateObjectCustomContext;
+  }
+  /**
+   * @return UpdateObjectCustomContext
+   */
+  public function getUpdateObjectCustomContext()
+  {
+    return $this->updateObjectCustomContext;
   }
 }
 

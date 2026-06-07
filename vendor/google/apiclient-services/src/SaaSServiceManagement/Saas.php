@@ -19,6 +19,42 @@ namespace Google\Service\SaaSServiceManagement;
 
 class Saas extends \Google\Collection
 {
+  /**
+   * State type is unspecified.
+   */
+  public const STATE_STATE_TYPE_UNSPECIFIED = 'STATE_TYPE_UNSPECIFIED';
+  /**
+   * The Saas is ready
+   */
+  public const STATE_STATE_ACTIVE = 'STATE_ACTIVE';
+  /**
+   * In the process of importing, synchronizing or replicating
+   * ApplicationTemplates
+   */
+  public const STATE_STATE_RUNNING = 'STATE_RUNNING';
+  /**
+   * Failure during process of importing, synchronizing or replicating
+   * ApplicationTemplate processing
+   */
+  public const STATE_STATE_FAILED = 'STATE_FAILED';
+  /**
+   * Deprecated: Use STATE_ACTIVE.
+   *
+   * @deprecated
+   */
+  public const STATE_ACTIVE = 'ACTIVE';
+  /**
+   * Deprecated: Use STATE_RUNNING.
+   *
+   * @deprecated
+   */
+  public const STATE_RUNNING = 'RUNNING';
+  /**
+   * Deprecated: Use STATE_FAILED.
+   *
+   * @deprecated
+   */
+  public const STATE_FAILED = 'FAILED';
   protected $collection_key = 'locations';
   /**
    * Optional. Annotations is an unstructured key-value map stored with a
@@ -29,12 +65,16 @@ class Saas extends \Google\Collection
    * @var string[]
    */
   public $annotations;
+  protected $conditionsType = SaasCondition::class;
+  protected $conditionsDataType = 'array';
   /**
    * Output only. The timestamp when the resource was created.
    *
    * @var string
    */
   public $createTime;
+  protected $errorType = Status::class;
+  protected $errorDataType = '';
   /**
    * Output only. An opaque value that uniquely identifies a version or
    * generation of a resource. It can be used to confirm that the client and
@@ -60,6 +100,13 @@ class Saas extends \Google\Collection
    * @var string
    */
   public $name;
+  /**
+   * Output only. State of the Saas. It is always in ACTIVE state if the
+   * application_template is empty.
+   *
+   * @var string
+   */
+  public $state;
   /**
    * Output only. The unique identifier of the resource. UID is unique in the
    * time and space for this resource within the scope of the service. It is
@@ -99,6 +146,23 @@ class Saas extends \Google\Collection
     return $this->annotations;
   }
   /**
+   * Output only. A set of conditions which indicate the various conditions this
+   * resource can have.
+   *
+   * @param SaasCondition[] $conditions
+   */
+  public function setConditions($conditions)
+  {
+    $this->conditions = $conditions;
+  }
+  /**
+   * @return SaasCondition[]
+   */
+  public function getConditions()
+  {
+    return $this->conditions;
+  }
+  /**
    * Output only. The timestamp when the resource was created.
    *
    * @param string $createTime
@@ -113,6 +177,23 @@ class Saas extends \Google\Collection
   public function getCreateTime()
   {
     return $this->createTime;
+  }
+  /**
+   * Output only. If the state is FAILED, the corresponding error code and
+   * message. Defaults to code=OK for all other states.
+   *
+   * @param Status $error
+   */
+  public function setError(Status $error)
+  {
+    $this->error = $error;
+  }
+  /**
+   * @return Status
+   */
+  public function getError()
+  {
+    return $this->error;
   }
   /**
    * Output only. An opaque value that uniquely identifies a version or
@@ -183,6 +264,26 @@ class Saas extends \Google\Collection
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * Output only. State of the Saas. It is always in ACTIVE state if the
+   * application_template is empty.
+   *
+   * Accepted values: STATE_TYPE_UNSPECIFIED, STATE_ACTIVE, STATE_RUNNING,
+   * STATE_FAILED, ACTIVE, RUNNING, FAILED
+   *
+   * @param self::STATE_* $state
+   */
+  public function setState($state)
+  {
+    $this->state = $state;
+  }
+  /**
+   * @return self::STATE_*
+   */
+  public function getState()
+  {
+    return $this->state;
   }
   /**
    * Output only. The unique identifier of the resource. UID is unique in the

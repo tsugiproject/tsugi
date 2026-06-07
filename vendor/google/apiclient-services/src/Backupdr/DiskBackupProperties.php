@@ -56,6 +56,13 @@ class DiskBackupProperties extends \Google\Collection
    * @var bool
    */
   public $enableConfidentialCompute;
+  /**
+   * Optional. Defines if the guest flush is enabled for the source disk.
+   * Default value is false.
+   *
+   * @var bool
+   */
+  public $guestFlush;
   protected $guestOsFeatureType = GuestOsFeature::class;
   protected $guestOsFeatureDataType = 'array';
   /**
@@ -199,6 +206,23 @@ class DiskBackupProperties extends \Google\Collection
   public function getEnableConfidentialCompute()
   {
     return $this->enableConfidentialCompute;
+  }
+  /**
+   * Optional. Defines if the guest flush is enabled for the source disk.
+   * Default value is false.
+   *
+   * @param bool $guestFlush
+   */
+  public function setGuestFlush($guestFlush)
+  {
+    $this->guestFlush = $guestFlush;
+  }
+  /**
+   * @return bool
+   */
+  public function getGuestFlush()
+  {
+    return $this->guestFlush;
   }
   /**
    * A list of guest OS features that are applicable to this backup.

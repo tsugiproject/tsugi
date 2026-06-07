@@ -34,10 +34,9 @@ use Google\Service\Dialogflow\GoogleProtobufEmpty;
 class ProjectsLocationsAgentsPlaybooksVersions extends \Google\Service\Resource
 {
   /**
-   * Creates a version for the specified Playbook. (versions.create)
+   * (versions.create)
    *
-   * @param string $parent Required. The playbook to create a version for. Format:
-   * `projects//locations//agents//playbooks/`.
+   * @param string $parent
    * @param GoogleCloudDialogflowCxV3PlaybookVersion $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3PlaybookVersion
@@ -50,10 +49,9 @@ class ProjectsLocationsAgentsPlaybooksVersions extends \Google\Service\Resource
     return $this->call('create', [$params], GoogleCloudDialogflowCxV3PlaybookVersion::class);
   }
   /**
-   * Deletes the specified version of the Playbook. (versions.delete)
+   * (versions.delete)
    *
-   * @param string $name Required. The name of the playbook version to delete.
-   * Format: `projects//locations//agents//playbooks//versions/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    * @return GoogleProtobufEmpty
    * @throws \Google\Service\Exception
@@ -65,10 +63,9 @@ class ProjectsLocationsAgentsPlaybooksVersions extends \Google\Service\Resource
     return $this->call('delete', [$params], GoogleProtobufEmpty::class);
   }
   /**
-   * Retrieves the specified version of the Playbook. (versions.get)
+   * (versions.get)
    *
-   * @param string $name Required. The name of the playbook version. Format:
-   * `projects//locations//agents//playbooks//versions/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3PlaybookVersion
    * @throws \Google\Service\Exception
@@ -80,17 +77,13 @@ class ProjectsLocationsAgentsPlaybooksVersions extends \Google\Service\Resource
     return $this->call('get', [$params], GoogleCloudDialogflowCxV3PlaybookVersion::class);
   }
   /**
-   * Lists versions for the specified Playbook.
    * (versions.listProjectsLocationsAgentsPlaybooksVersions)
    *
-   * @param string $parent Required. The playbook to list versions for. Format:
-   * `projects//locations//agents//playbooks/`.
+   * @param string $parent
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize Optional. The maximum number of items to return in a
-   * single page. By default 100 and at most 1000.
-   * @opt_param string pageToken Optional. The next_page_token value returned from
-   * a previous list request.
+   * @opt_param int pageSize
+   * @opt_param string pageToken
    * @return GoogleCloudDialogflowCxV3ListPlaybookVersionsResponse
    * @throws \Google\Service\Exception
    */
@@ -101,12 +94,9 @@ class ProjectsLocationsAgentsPlaybooksVersions extends \Google\Service\Resource
     return $this->call('list', [$params], GoogleCloudDialogflowCxV3ListPlaybookVersionsResponse::class);
   }
   /**
-   * Retrieves the specified version of the Playbook and stores it as the current
-   * playbook draft, returning the playbook with resources updated.
    * (versions.restore)
    *
-   * @param string $name Required. The name of the playbook version. Format:
-   * `projects//locations//agents//playbooks//versions/`.
+   * @param string $name
    * @param GoogleCloudDialogflowCxV3RestorePlaybookVersionRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3RestorePlaybookVersionResponse

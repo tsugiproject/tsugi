@@ -110,6 +110,15 @@ class GoogleCloudAiplatformV1Schedule extends \Google\Model
   protected $lastScheduledRunResponseType = GoogleCloudAiplatformV1ScheduleRunResponse::class;
   protected $lastScheduledRunResponseDataType = '';
   /**
+   * Optional. Specifies the maximum number of active runs that can be executed
+   * concurrently for this Schedule. This limits the number of runs that can be
+   * in a non-terminal state at the same time. Currently, this field is only
+   * supported for requests of type CreatePipelineJobRequest.
+   *
+   * @var string
+   */
+  public $maxConcurrentActiveRunCount;
+  /**
    * Required. Maximum number of runs that can be started concurrently for this
    * Schedule. This is the limit for starting the scheduled requests and not the
    * execution of the operations/jobs created by the requests (if applicable).
@@ -363,6 +372,25 @@ class GoogleCloudAiplatformV1Schedule extends \Google\Model
   public function getLastScheduledRunResponse()
   {
     return $this->lastScheduledRunResponse;
+  }
+  /**
+   * Optional. Specifies the maximum number of active runs that can be executed
+   * concurrently for this Schedule. This limits the number of runs that can be
+   * in a non-terminal state at the same time. Currently, this field is only
+   * supported for requests of type CreatePipelineJobRequest.
+   *
+   * @param string $maxConcurrentActiveRunCount
+   */
+  public function setMaxConcurrentActiveRunCount($maxConcurrentActiveRunCount)
+  {
+    $this->maxConcurrentActiveRunCount = $maxConcurrentActiveRunCount;
+  }
+  /**
+   * @return string
+   */
+  public function getMaxConcurrentActiveRunCount()
+  {
+    return $this->maxConcurrentActiveRunCount;
   }
   /**
    * Required. Maximum number of runs that can be started concurrently for this

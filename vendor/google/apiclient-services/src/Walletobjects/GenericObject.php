@@ -24,57 +24,82 @@ class GenericObject extends \Google\Collection
    */
   public const GENERIC_TYPE_GENERIC_TYPE_UNSPECIFIED = 'GENERIC_TYPE_UNSPECIFIED';
   /**
-   * Season pass
+   * Represents a season pass.
    */
   public const GENERIC_TYPE_GENERIC_SEASON_PASS = 'GENERIC_SEASON_PASS';
   /**
-   * Utility bills
+   * Represents a utility bill.
    */
   public const GENERIC_TYPE_GENERIC_UTILITY_BILLS = 'GENERIC_UTILITY_BILLS';
   /**
-   * Parking pass
+   * Represents a parking pass.
    */
   public const GENERIC_TYPE_GENERIC_PARKING_PASS = 'GENERIC_PARKING_PASS';
   /**
-   * Voucher
+   * Represents a voucher.
    */
   public const GENERIC_TYPE_GENERIC_VOUCHER = 'GENERIC_VOUCHER';
   /**
-   * Gym membership cards
+   * Represents a gym membership card.
    */
   public const GENERIC_TYPE_GENERIC_GYM_MEMBERSHIP = 'GENERIC_GYM_MEMBERSHIP';
   /**
-   * Library membership cards
+   * Represents a library card.
    */
   public const GENERIC_TYPE_GENERIC_LIBRARY_MEMBERSHIP = 'GENERIC_LIBRARY_MEMBERSHIP';
   /**
-   * Reservations
+   * Represents a reservation.
    */
   public const GENERIC_TYPE_GENERIC_RESERVATIONS = 'GENERIC_RESERVATIONS';
   /**
-   * Auto-insurance cards
+   * Represents an auto-insurance card.
    */
   public const GENERIC_TYPE_GENERIC_AUTO_INSURANCE = 'GENERIC_AUTO_INSURANCE';
   /**
-   * Home-insurance cards
+   * Represents a home-insurance card.
    */
   public const GENERIC_TYPE_GENERIC_HOME_INSURANCE = 'GENERIC_HOME_INSURANCE';
   /**
-   * Entry tickets
+   * Represents an entry ticket.
    */
   public const GENERIC_TYPE_GENERIC_ENTRY_TICKET = 'GENERIC_ENTRY_TICKET';
   /**
-   * Receipts
+   * Represents a receipt.
    */
   public const GENERIC_TYPE_GENERIC_RECEIPT = 'GENERIC_RECEIPT';
   /**
-   * Loyalty cards. Please note that it is advisable to use a dedicated Loyalty
-   * card pass type instead of this generic type. A dedicated loyalty card pass
-   * type offers more features and functionality than a generic pass type.
+   * Represents a loyalty card. Please note that it is advisable to use a
+   * dedicated Loyalty card pass type instead of this generic type. A dedicated
+   * loyalty card pass type offers more features and functionality than a
+   * generic pass type.
    */
   public const GENERIC_TYPE_GENERIC_LOYALTY_CARD = 'GENERIC_LOYALTY_CARD';
   /**
-   * Other type
+   * Represents a business card.
+   */
+  public const GENERIC_TYPE_GENERIC_BUSINESS_CARD = 'GENERIC_BUSINESS_CARD';
+  /**
+   * Represents a barcode pass.
+   */
+  public const GENERIC_TYPE_GENERIC_BARCODE_PASS = 'GENERIC_BARCODE_PASS';
+  /**
+   * Represents a membership card.
+   */
+  public const GENERIC_TYPE_GENERIC_MEMBERSHIP_CARD = 'GENERIC_MEMBERSHIP_CARD';
+  /**
+   * Represents a student card.
+   */
+  public const GENERIC_TYPE_GENERIC_STUDENT_CARD = 'GENERIC_STUDENT_CARD';
+  /**
+   * Represents a transit pass.
+   */
+  public const GENERIC_TYPE_GENERIC_TRANSIT_PASS = 'GENERIC_TRANSIT_PASS';
+  /**
+   * Represents a vehicle registration.
+   */
+  public const GENERIC_TYPE_GENERIC_VEHICLE_REGISTRATION = 'GENERIC_VEHICLE_REGISTRATION';
+  /**
+   * Represents another type of generic pass.
    */
   public const GENERIC_TYPE_GENERIC_OTHER = 'GENERIC_OTHER';
   /**
@@ -317,7 +342,9 @@ class GenericObject extends \Google\Collection
    * GENERIC_UTILITY_BILLS, GENERIC_PARKING_PASS, GENERIC_VOUCHER,
    * GENERIC_GYM_MEMBERSHIP, GENERIC_LIBRARY_MEMBERSHIP, GENERIC_RESERVATIONS,
    * GENERIC_AUTO_INSURANCE, GENERIC_HOME_INSURANCE, GENERIC_ENTRY_TICKET,
-   * GENERIC_RECEIPT, GENERIC_LOYALTY_CARD, GENERIC_OTHER
+   * GENERIC_RECEIPT, GENERIC_LOYALTY_CARD, GENERIC_BUSINESS_CARD,
+   * GENERIC_BARCODE_PASS, GENERIC_MEMBERSHIP_CARD, GENERIC_STUDENT_CARD,
+   * GENERIC_TRANSIT_PASS, GENERIC_VEHICLE_REGISTRATION, GENERIC_OTHER
    *
    * @param self::GENERIC_TYPE_* $genericType
    */
@@ -717,7 +744,8 @@ class GenericObject extends \Google\Collection
     return $this->validTimeInterval;
   }
   /**
-   * Optional value added module data. Maximum of ten on the object.
+   * Optional value added module data. Maximum of fifteen on the object. For a
+   * pass only fifteen will be displayed.
    *
    * @param ValueAddedModuleData[] $valueAddedModuleData
    */

@@ -20,35 +20,19 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3beta1FulfillmentGeneratorSettings extends \Google\Model
 {
   /**
-   * Required. The generator to call. Format:
-   * `projects//locations//agents//generators/`.
-   *
    * @var string
    */
   public $generator;
   /**
-   * Map from placeholder parameter in the Generator to corresponding session
-   * parameters. By default, Dialogflow uses the session parameter with the same
-   * name to fill in the generator template. e.g. If there is a placeholder
-   * parameter `city` in the Generator, Dialogflow default to fill in the
-   * `$city` with `$session.params.city`. However, you may choose to fill
-   * `$city` with `$session.params.desination-city`. - Map key: parameter ID -
-   * Map value: session parameter name
-   *
    * @var string[]
    */
   public $inputParameters;
   /**
-   * Required. Output parameter which should contain the generator response.
-   *
    * @var string
    */
   public $outputParameter;
 
   /**
-   * Required. The generator to call. Format:
-   * `projects//locations//agents//generators/`.
-   *
    * @param string $generator
    */
   public function setGenerator($generator)
@@ -63,14 +47,6 @@ class GoogleCloudDialogflowCxV3beta1FulfillmentGeneratorSettings extends \Google
     return $this->generator;
   }
   /**
-   * Map from placeholder parameter in the Generator to corresponding session
-   * parameters. By default, Dialogflow uses the session parameter with the same
-   * name to fill in the generator template. e.g. If there is a placeholder
-   * parameter `city` in the Generator, Dialogflow default to fill in the
-   * `$city` with `$session.params.city`. However, you may choose to fill
-   * `$city` with `$session.params.desination-city`. - Map key: parameter ID -
-   * Map value: session parameter name
-   *
    * @param string[] $inputParameters
    */
   public function setInputParameters($inputParameters)
@@ -85,8 +61,6 @@ class GoogleCloudDialogflowCxV3beta1FulfillmentGeneratorSettings extends \Google
     return $this->inputParameters;
   }
   /**
-   * Required. Output parameter which should contain the generator response.
-   *
    * @param string $outputParameter
    */
   public function setOutputParameter($outputParameter)

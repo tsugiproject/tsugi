@@ -20,11 +20,35 @@ namespace Google\Service\StorageBatchOperations;
 class Counters extends \Google\Model
 {
   /**
-   * Output only. Number of objects failed.
+   * Output only. The number of objects that failed due to user errors or
+   * service errors.
    *
    * @var string
    */
   public $failedObjectCount;
+  /**
+   * Output only. Number of object custom contexts created. This field is only
+   * populated for jobs with the UpdateObjectCustomContext transformation.
+   *
+   * @var string
+   */
+  public $objectCustomContextsCreated;
+  /**
+   * Output only. Number of object custom contexts deleted. This field is only
+   * populated for jobs with the UpdateObjectCustomContext transformation.
+   *
+   * @var string
+   */
+  public $objectCustomContextsDeleted;
+  /**
+   * Output only. Number of object custom contexts updated. This counter tracks
+   * custom contexts where the key already existed, but the payload was
+   * modified. This field is only populated for jobs with the
+   * UpdateObjectCustomContext transformation.
+   *
+   * @var string
+   */
+  public $objectCustomContextsUpdated;
   /**
    * Output only. Number of objects completed.
    *
@@ -39,6 +63,14 @@ class Counters extends \Google\Model
    */
   public $totalBytesFound;
   /**
+   * Output only. The total number of bytes affected by the transformation. For
+   * example, this counts bytes deleted for `DeleteObject` operations and bytes
+   * rewritten for `RewriteObject` operations.
+   *
+   * @var string
+   */
+  public $totalBytesTransformed;
+  /**
    * Output only. Number of objects listed.
    *
    * @var string
@@ -46,7 +78,8 @@ class Counters extends \Google\Model
   public $totalObjectCount;
 
   /**
-   * Output only. Number of objects failed.
+   * Output only. The number of objects that failed due to user errors or
+   * service errors.
    *
    * @param string $failedObjectCount
    */
@@ -60,6 +93,59 @@ class Counters extends \Google\Model
   public function getFailedObjectCount()
   {
     return $this->failedObjectCount;
+  }
+  /**
+   * Output only. Number of object custom contexts created. This field is only
+   * populated for jobs with the UpdateObjectCustomContext transformation.
+   *
+   * @param string $objectCustomContextsCreated
+   */
+  public function setObjectCustomContextsCreated($objectCustomContextsCreated)
+  {
+    $this->objectCustomContextsCreated = $objectCustomContextsCreated;
+  }
+  /**
+   * @return string
+   */
+  public function getObjectCustomContextsCreated()
+  {
+    return $this->objectCustomContextsCreated;
+  }
+  /**
+   * Output only. Number of object custom contexts deleted. This field is only
+   * populated for jobs with the UpdateObjectCustomContext transformation.
+   *
+   * @param string $objectCustomContextsDeleted
+   */
+  public function setObjectCustomContextsDeleted($objectCustomContextsDeleted)
+  {
+    $this->objectCustomContextsDeleted = $objectCustomContextsDeleted;
+  }
+  /**
+   * @return string
+   */
+  public function getObjectCustomContextsDeleted()
+  {
+    return $this->objectCustomContextsDeleted;
+  }
+  /**
+   * Output only. Number of object custom contexts updated. This counter tracks
+   * custom contexts where the key already existed, but the payload was
+   * modified. This field is only populated for jobs with the
+   * UpdateObjectCustomContext transformation.
+   *
+   * @param string $objectCustomContextsUpdated
+   */
+  public function setObjectCustomContextsUpdated($objectCustomContextsUpdated)
+  {
+    $this->objectCustomContextsUpdated = $objectCustomContextsUpdated;
+  }
+  /**
+   * @return string
+   */
+  public function getObjectCustomContextsUpdated()
+  {
+    return $this->objectCustomContextsUpdated;
   }
   /**
    * Output only. Number of objects completed.
@@ -93,6 +179,24 @@ class Counters extends \Google\Model
   public function getTotalBytesFound()
   {
     return $this->totalBytesFound;
+  }
+  /**
+   * Output only. The total number of bytes affected by the transformation. For
+   * example, this counts bytes deleted for `DeleteObject` operations and bytes
+   * rewritten for `RewriteObject` operations.
+   *
+   * @param string $totalBytesTransformed
+   */
+  public function setTotalBytesTransformed($totalBytesTransformed)
+  {
+    $this->totalBytesTransformed = $totalBytesTransformed;
+  }
+  /**
+   * @return string
+   */
+  public function getTotalBytesTransformed()
+  {
+    return $this->totalBytesTransformed;
   }
   /**
    * Output only. Number of objects listed.

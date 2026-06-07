@@ -73,7 +73,8 @@ class CommonLanguageSettings extends \Google\Collection
     return $this->referenceDocsUri;
   }
   /**
-   * Configuration for which RPCs should be generated in the GAPIC client.
+   * Configuration for which RPCs should be generated in the GAPIC client. Note:
+   * This field should not be used in most cases.
    *
    * @param SelectiveGapicGeneration $selectiveGapicGeneration
    */

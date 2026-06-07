@@ -20,7 +20,7 @@ namespace Google\Service\Integrations;
 class GoogleCloudConnectorsV1TrafficShapingConfig extends \Google\Model
 {
   /**
-   * Required. * The duration over which the API call quota limits are
+   * Required. Specifies the duration over which the API call quota limits are
    * calculated. This duration is used to define the time window for evaluating
    * if the number of API calls made by a user is within the allowed quota
    * limits. For example: - To define a quota sampled over 16 seconds, set
@@ -42,7 +42,7 @@ class GoogleCloudConnectorsV1TrafficShapingConfig extends \Google\Model
   public $quotaLimit;
 
   /**
-   * Required. * The duration over which the API call quota limits are
+   * Required. Specifies the duration over which the API call quota limits are
    * calculated. This duration is used to define the time window for evaluating
    * if the number of API calls made by a user is within the allowed quota
    * limits. For example: - To define a quota sampled over 16 seconds, set

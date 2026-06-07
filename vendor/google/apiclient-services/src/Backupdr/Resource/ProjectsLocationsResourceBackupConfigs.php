@@ -17,6 +17,7 @@
 
 namespace Google\Service\Backupdr\Resource;
 
+use Google\Service\Backupdr\FetchResourceBackupConfigsResponse;
 use Google\Service\Backupdr\ListResourceBackupConfigsResponse;
 
 /**
@@ -30,12 +31,38 @@ use Google\Service\Backupdr\ListResourceBackupConfigsResponse;
 class ProjectsLocationsResourceBackupConfigs extends \Google\Service\Resource
 {
   /**
+   * Fetches ResourceBackupConfigs. (resourceBackupConfigs.fetch)
+   *
+   * @param string $parent Required. The project, folder or organization and
+   * location for which to retrieve resource backup configs. Format:
+   * 'projects/{project_id}/locations/{location}',
+   * 'folders/{folder_id}/locations/{location}', or
+   * 'organizations/{organization_id}/locations/{location}'.
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string filter Optional. Filtering results.
+   * @opt_param string orderBy Optional. Hint for how to order the results.
+   * @opt_param int pageSize Optional. Requested page size. Server may return
+   * fewer items than requested. If unspecified, server will use 100 as default.
+   * Maximum value is 500 and values above 500 will be coerced to 500.
+   * @opt_param string pageToken Optional. A token identifying a page of results
+   * the server should return.
+   * @return FetchResourceBackupConfigsResponse
+   * @throws \Google\Service\Exception
+   */
+  public function fetch($parent, $optParams = [])
+  {
+    $params = ['parent' => $parent];
+    $params = array_merge($params, $optParams);
+    return $this->call('fetch', [$params], FetchResourceBackupConfigsResponse::class);
+  }
+  /**
    * Lists ResourceBackupConfigs.
    * (resourceBackupConfigs.listProjectsLocationsResourceBackupConfigs)
    *
    * @param string $parent Required. The project and location for which to
    * retrieve resource backup configs. Format:
-   * 'projects/{project_id}/locations/{location}'. In Cloud Backup and DR,
+   * 'projects/{project_id}/locations/{location}'. In Google Cloud Backup and DR,
    * locations map to Google Cloud regions, for example **us-central1**.
    * @param array $optParams Optional parameters.
    *

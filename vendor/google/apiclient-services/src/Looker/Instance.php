@@ -118,6 +118,13 @@ class Instance extends \Google\Model
   protected $adminSettingsType = AdminSettings::class;
   protected $adminSettingsDataType = '';
   /**
+   * Optional. Indicates whether catalog integration is disabled for the Looker
+   * instance.
+   *
+   * @var bool
+   */
+  public $catalogIntegrationOptOut;
+  /**
    * Optional. Storage class of the instance.
    *
    * @var string
@@ -171,6 +178,8 @@ class Instance extends \Google\Model
    * @var bool
    */
   public $geminiEnabled;
+  protected $ingressIpAllowlistConfigType = IngressIpAllowlistConfig::class;
+  protected $ingressIpAllowlistConfigDataType = '';
   /**
    * Output only. Private Ingress IP (IPv4).
    *
@@ -297,6 +306,23 @@ class Instance extends \Google\Model
   public function getAdminSettings()
   {
     return $this->adminSettings;
+  }
+  /**
+   * Optional. Indicates whether catalog integration is disabled for the Looker
+   * instance.
+   *
+   * @param bool $catalogIntegrationOptOut
+   */
+  public function setCatalogIntegrationOptOut($catalogIntegrationOptOut)
+  {
+    $this->catalogIntegrationOptOut = $catalogIntegrationOptOut;
+  }
+  /**
+   * @return bool
+   */
+  public function getCatalogIntegrationOptOut()
+  {
+    return $this->catalogIntegrationOptOut;
   }
   /**
    * Optional. Storage class of the instance.
@@ -480,6 +506,22 @@ class Instance extends \Google\Model
   public function getGeminiEnabled()
   {
     return $this->geminiEnabled;
+  }
+  /**
+   * Optional. Ingress IP allowlist configuration for the Looker instance.
+   *
+   * @param IngressIpAllowlistConfig $ingressIpAllowlistConfig
+   */
+  public function setIngressIpAllowlistConfig(IngressIpAllowlistConfig $ingressIpAllowlistConfig)
+  {
+    $this->ingressIpAllowlistConfig = $ingressIpAllowlistConfig;
+  }
+  /**
+   * @return IngressIpAllowlistConfig
+   */
+  public function getIngressIpAllowlistConfig()
+  {
+    return $this->ingressIpAllowlistConfig;
   }
   /**
    * Output only. Private Ingress IP (IPv4).

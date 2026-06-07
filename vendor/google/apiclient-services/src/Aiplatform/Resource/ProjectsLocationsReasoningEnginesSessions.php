@@ -58,6 +58,12 @@ class ProjectsLocationsReasoningEnginesSessions extends \Google\Service\Resource
    * `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}`
    * @param GoogleCloudAiplatformV1Session $postBody
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string sessionId Optional. The user defined ID to use for session,
+   * which will become the final component of the session resource name. If not
+   * provided, Vertex AI will generate a value for this ID. This value may be up
+   * to 63 characters, and valid characters are `[a-z0-9-]`. The first and last
+   * characters must be a letter or number.
    * @return GoogleLongrunningOperation
    * @throws \Google\Service\Exception
    */
@@ -116,8 +122,8 @@ class ProjectsLocationsReasoningEnginesSessions extends \Google\Service\Resource
    * Supported fields: * `create_time` * `update_time` Example: `create_time
    * desc`.
    * @opt_param int pageSize Optional. The maximum number of sessions to return.
-   * The service may return fewer than this value. If unspecified, at most 100
-   * sessions will be returned.
+   * The service may return fewer than this value. If unspecified, the default
+   * page size is 100. Values greater than 100 will be capped at 100.
    * @opt_param string pageToken Optional. The next_page_token value returned from
    * a previous list SessionService.ListSessions call.
    * @return GoogleCloudAiplatformV1ListSessionsResponse

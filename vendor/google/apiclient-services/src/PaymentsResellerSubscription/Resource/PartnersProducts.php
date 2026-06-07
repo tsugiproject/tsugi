@@ -31,7 +31,7 @@ class PartnersProducts extends \Google\Service\Resource
 {
   /**
    * Currently, it doesn't support **YouTube** products. Retrieves the products
-   * that can be resold by the partner. It should be autenticated with a service
+   * that can be resold by the partner. It should be authenticated with a service
    * account. (products.listPartnersProducts)
    *
    * @param string $parent Required. The parent, the partner that can resell.

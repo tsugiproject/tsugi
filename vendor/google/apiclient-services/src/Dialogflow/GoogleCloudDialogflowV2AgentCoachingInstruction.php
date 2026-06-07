@@ -19,51 +19,40 @@ namespace Google\Service\Dialogflow;
 
 class GoogleCloudDialogflowV2AgentCoachingInstruction extends \Google\Model
 {
+  public const TRIGGERING_EVENT_TRIGGER_EVENT_UNSPECIFIED = 'TRIGGER_EVENT_UNSPECIFIED';
+  public const TRIGGERING_EVENT_END_OF_UTTERANCE = 'END_OF_UTTERANCE';
+  public const TRIGGERING_EVENT_MANUAL_CALL = 'MANUAL_CALL';
+  public const TRIGGERING_EVENT_CUSTOMER_MESSAGE = 'CUSTOMER_MESSAGE';
+  public const TRIGGERING_EVENT_AGENT_MESSAGE = 'AGENT_MESSAGE';
+  public const TRIGGERING_EVENT_TOOL_CALL_COMPLETION = 'TOOL_CALL_COMPLETION';
   /**
-   * Optional. The action that human agent should take. For example, "apologize
-   * for the slow shipping". If the users only want to use agent coaching for
-   * intent detection, agent_action can be empty
-   *
    * @var string
    */
   public $agentAction;
   /**
-   * Optional. The condition of the instruction. For example, "the customer
-   * wants to cancel an order". If the users want the instruction to be
-   * triggered unconditionally, the condition can be empty.
-   *
    * @var string
    */
   public $condition;
   /**
-   * Optional. The detailed description of this instruction.
-   *
    * @var string
    */
   public $displayDetails;
   /**
-   * Optional. Display name for the instruction.
-   *
    * @var string
    */
   public $displayName;
   protected $duplicateCheckResultType = GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResult::class;
   protected $duplicateCheckResultDataType = '';
   /**
-   * Optional. The action that system should take. For example, "call
-   * GetOrderTime with order_number={order number provided by the customer}". If
-   * the users don't have plugins or don't want to trigger plugins, the
-   * system_action can be empty
-   *
    * @var string
    */
   public $systemAction;
+  /**
+   * @var string
+   */
+  public $triggeringEvent;
 
   /**
-   * Optional. The action that human agent should take. For example, "apologize
-   * for the slow shipping". If the users only want to use agent coaching for
-   * intent detection, agent_action can be empty
-   *
    * @param string $agentAction
    */
   public function setAgentAction($agentAction)
@@ -78,10 +67,6 @@ class GoogleCloudDialogflowV2AgentCoachingInstruction extends \Google\Model
     return $this->agentAction;
   }
   /**
-   * Optional. The condition of the instruction. For example, "the customer
-   * wants to cancel an order". If the users want the instruction to be
-   * triggered unconditionally, the condition can be empty.
-   *
    * @param string $condition
    */
   public function setCondition($condition)
@@ -96,8 +81,6 @@ class GoogleCloudDialogflowV2AgentCoachingInstruction extends \Google\Model
     return $this->condition;
   }
   /**
-   * Optional. The detailed description of this instruction.
-   *
    * @param string $displayDetails
    */
   public function setDisplayDetails($displayDetails)
@@ -112,8 +95,6 @@ class GoogleCloudDialogflowV2AgentCoachingInstruction extends \Google\Model
     return $this->displayDetails;
   }
   /**
-   * Optional. Display name for the instruction.
-   *
    * @param string $displayName
    */
   public function setDisplayName($displayName)
@@ -128,8 +109,6 @@ class GoogleCloudDialogflowV2AgentCoachingInstruction extends \Google\Model
     return $this->displayName;
   }
   /**
-   * Output only. Duplication check for the AgentCoachingInstruction.
-   *
    * @param GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResult $duplicateCheckResult
    */
   public function setDuplicateCheckResult(GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResult $duplicateCheckResult)
@@ -144,11 +123,6 @@ class GoogleCloudDialogflowV2AgentCoachingInstruction extends \Google\Model
     return $this->duplicateCheckResult;
   }
   /**
-   * Optional. The action that system should take. For example, "call
-   * GetOrderTime with order_number={order number provided by the customer}". If
-   * the users don't have plugins or don't want to trigger plugins, the
-   * system_action can be empty
-   *
    * @param string $systemAction
    */
   public function setSystemAction($systemAction)
@@ -161,6 +135,20 @@ class GoogleCloudDialogflowV2AgentCoachingInstruction extends \Google\Model
   public function getSystemAction()
   {
     return $this->systemAction;
+  }
+  /**
+   * @param self::TRIGGERING_EVENT_* $triggeringEvent
+   */
+  public function setTriggeringEvent($triggeringEvent)
+  {
+    $this->triggeringEvent = $triggeringEvent;
+  }
+  /**
+   * @return self::TRIGGERING_EVENT_*
+   */
+  public function getTriggeringEvent()
+  {
+    return $this->triggeringEvent;
   }
 }
 

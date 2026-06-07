@@ -69,7 +69,7 @@ class Scope3FlightEmissions extends \Google\Model
   public $wtwEmissionsGramsPerPax;
 
   /**
-   * Required. Matches the flight identifiers in the request.
+   * Identifier. Matches the flight identifiers in the request.
    *
    * @param Scope3FlightSegment $flight
    */

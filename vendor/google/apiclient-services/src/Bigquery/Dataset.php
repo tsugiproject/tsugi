@@ -51,6 +51,14 @@ class Dataset extends \Google\Collection
   protected $accessType = DatasetAccess::class;
   protected $accessDataType = 'array';
   /**
+   * Output only. The origin of the dataset, one of: * (Unset) - Native BigQuery
+   * Dataset * BIGLAKE - Dataset is backed by a namespace stored natively in
+   * Biglake
+   *
+   * @var string
+   */
+  public $catalogSource;
+  /**
    * Output only. The time when this dataset was created, in milliseconds since
    * the epoch.
    *
@@ -243,7 +251,9 @@ class Dataset extends \Google\Collection
    * Output only. Same as `type` in `ListFormatDataset`. The type of the
    * dataset, one of: * DEFAULT - only accessible by owner and authorized
    * accounts, * PUBLIC - accessible by everyone, * LINKED - linked dataset, *
-   * EXTERNAL - dataset with definition in external metadata catalog.
+   * EXTERNAL - dataset with definition in external metadata catalog, *
+   * BIGLAKE_ICEBERG - a Biglake dataset accessible through the Iceberg API, *
+   * BIGLAKE_HIVE - a Biglake dataset accessible through the Hive API.
    *
    * @var string
    */
@@ -274,6 +284,24 @@ class Dataset extends \Google\Collection
   public function getAccess()
   {
     return $this->access;
+  }
+  /**
+   * Output only. The origin of the dataset, one of: * (Unset) - Native BigQuery
+   * Dataset * BIGLAKE - Dataset is backed by a namespace stored natively in
+   * Biglake
+   *
+   * @param string $catalogSource
+   */
+  public function setCatalogSource($catalogSource)
+  {
+    $this->catalogSource = $catalogSource;
+  }
+  /**
+   * @return string
+   */
+  public function getCatalogSource()
+  {
+    return $this->catalogSource;
   }
   /**
    * Output only. The time when this dataset was created, in milliseconds since
@@ -802,7 +830,9 @@ class Dataset extends \Google\Collection
    * Output only. Same as `type` in `ListFormatDataset`. The type of the
    * dataset, one of: * DEFAULT - only accessible by owner and authorized
    * accounts, * PUBLIC - accessible by everyone, * LINKED - linked dataset, *
-   * EXTERNAL - dataset with definition in external metadata catalog.
+   * EXTERNAL - dataset with definition in external metadata catalog, *
+   * BIGLAKE_ICEBERG - a Biglake dataset accessible through the Iceberg API, *
+   * BIGLAKE_HIVE - a Biglake dataset accessible through the Hive API.
    *
    * @param string $type
    */

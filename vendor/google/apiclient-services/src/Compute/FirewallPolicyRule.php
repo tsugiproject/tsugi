@@ -21,6 +21,8 @@ class FirewallPolicyRule extends \Google\Collection
 {
   public const DIRECTION_EGRESS = 'EGRESS';
   public const DIRECTION_INGRESS = 'INGRESS';
+  public const TARGET_TYPE_INSTANCES = 'INSTANCES';
+  public const TARGET_TYPE_INTERNAL_MANAGED_LB = 'INTERNAL_MANAGED_LB';
   protected $collection_key = 'targetServiceAccounts';
   /**
    * The Action to perform when the client connection triggers the rule. Valid
@@ -104,6 +106,19 @@ class FirewallPolicyRule extends \Google\Collection
    */
   public $securityProfileGroup;
   /**
+   * A list of forwarding rules to which this rule applies. This field allows
+   * you to control which load balancers get this rule. For example, the
+   * following are valid values:              - https://www.googleapis.com/compu
+   * te/v1/projects/project/global/forwardingRules/forwardingRule      - https:/
+   * /www.googleapis.com/compute/v1/projects/project/regions/region/forwardingRu
+   * les/forwardingRule      - projects/project/global/
+   * forwardingRules/forwardingRule      -
+   * projects/project/regions/region/forwardingRules/      forwardingRule
+   *
+   * @var string[]
+   */
+  public $targetForwardingRules;
+  /**
    * A list of network resource URLs to which this rule applies.  This field
    * allows you to control which network's VMs get this rule.  If this field is
    * left blank, all VMs within the organization will receive the rule.
@@ -120,6 +135,12 @@ class FirewallPolicyRule extends \Google\Collection
    * @var string[]
    */
   public $targetServiceAccounts;
+  /**
+   * Target types of the firewall policy rule. Default value is INSTANCES.
+   *
+   * @var string
+   */
+  public $targetType;
   /**
    * Boolean flag indicating if the traffic should be TLS decrypted. Can be set
    * only if action = 'apply_security_profile_group' and cannot be set for other
@@ -328,6 +349,29 @@ class FirewallPolicyRule extends \Google\Collection
     return $this->securityProfileGroup;
   }
   /**
+   * A list of forwarding rules to which this rule applies. This field allows
+   * you to control which load balancers get this rule. For example, the
+   * following are valid values:              - https://www.googleapis.com/compu
+   * te/v1/projects/project/global/forwardingRules/forwardingRule      - https:/
+   * /www.googleapis.com/compute/v1/projects/project/regions/region/forwardingRu
+   * les/forwardingRule      - projects/project/global/
+   * forwardingRules/forwardingRule      -
+   * projects/project/regions/region/forwardingRules/      forwardingRule
+   *
+   * @param string[] $targetForwardingRules
+   */
+  public function setTargetForwardingRules($targetForwardingRules)
+  {
+    $this->targetForwardingRules = $targetForwardingRules;
+  }
+  /**
+   * @return string[]
+   */
+  public function getTargetForwardingRules()
+  {
+    return $this->targetForwardingRules;
+  }
+  /**
    * A list of network resource URLs to which this rule applies.  This field
    * allows you to control which network's VMs get this rule.  If this field is
    * left blank, all VMs within the organization will receive the rule.
@@ -385,6 +429,24 @@ class FirewallPolicyRule extends \Google\Collection
   public function getTargetServiceAccounts()
   {
     return $this->targetServiceAccounts;
+  }
+  /**
+   * Target types of the firewall policy rule. Default value is INSTANCES.
+   *
+   * Accepted values: INSTANCES, INTERNAL_MANAGED_LB
+   *
+   * @param self::TARGET_TYPE_* $targetType
+   */
+  public function setTargetType($targetType)
+  {
+    $this->targetType = $targetType;
+  }
+  /**
+   * @return self::TARGET_TYPE_*
+   */
+  public function getTargetType()
+  {
+    return $this->targetType;
   }
   /**
    * Boolean flag indicating if the traffic should be TLS decrypted. Can be set

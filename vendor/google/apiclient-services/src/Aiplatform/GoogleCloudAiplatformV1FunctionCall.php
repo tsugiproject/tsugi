@@ -22,14 +22,14 @@ class GoogleCloudAiplatformV1FunctionCall extends \Google\Collection
   protected $collection_key = 'partialArgs';
   /**
    * Optional. The function parameters and values in JSON object format. See
-   * [FunctionDeclaration.parameters] for parameter details.
+   * FunctionDeclaration.parameters for parameter details.
    *
    * @var array[]
    */
   public $args;
   /**
    * Optional. The name of the function to call. Matches
-   * [FunctionDeclaration.name].
+   * FunctionDeclaration.name.
    *
    * @var string
    */
@@ -46,7 +46,7 @@ class GoogleCloudAiplatformV1FunctionCall extends \Google\Collection
 
   /**
    * Optional. The function parameters and values in JSON object format. See
-   * [FunctionDeclaration.parameters] for parameter details.
+   * FunctionDeclaration.parameters for parameter details.
    *
    * @param array[] $args
    */
@@ -63,7 +63,7 @@ class GoogleCloudAiplatformV1FunctionCall extends \Google\Collection
   }
   /**
    * Optional. The name of the function to call. Matches
-   * [FunctionDeclaration.name].
+   * FunctionDeclaration.name.
    *
    * @param string $name
    */

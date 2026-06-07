@@ -125,8 +125,7 @@ class ProjectsLocationsTransports extends \Google\Service\Resource
   /**
    * Updates the parameters of a single Transport. (transports.patch)
    *
-   * @param string $name Identifier. Name of the resource, see google.aip.dev/122
-   * for resource naming.
+   * @param string $name Identifier. Name of the resource.
    * @param Transport $postBody
    * @param array $optParams Optional parameters.
    *

@@ -20,6 +20,8 @@ namespace Google\Service\Document;
 class GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock extends \Google\Collection
 {
   protected $collection_key = 'headerRows';
+  protected $annotationsType = GoogleCloudDocumentaiV1DocumentAnnotations::class;
+  protected $annotationsDataType = '';
   protected $bodyRowsType = GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow::class;
   protected $bodyRowsDataType = 'array';
   /**
@@ -31,6 +33,22 @@ class GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTabl
   protected $headerRowsType = GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow::class;
   protected $headerRowsDataType = 'array';
 
+  /**
+   * Annotation of the table block.
+   *
+   * @param GoogleCloudDocumentaiV1DocumentAnnotations $annotations
+   */
+  public function setAnnotations(GoogleCloudDocumentaiV1DocumentAnnotations $annotations)
+  {
+    $this->annotations = $annotations;
+  }
+  /**
+   * @return GoogleCloudDocumentaiV1DocumentAnnotations
+   */
+  public function getAnnotations()
+  {
+    return $this->annotations;
+  }
   /**
    * Body rows containing main table content.
    *

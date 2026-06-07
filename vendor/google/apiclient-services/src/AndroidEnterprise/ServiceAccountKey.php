@@ -33,7 +33,8 @@ class ServiceAccountKey extends \Google\Model
   /**
    * The body of the private key credentials file, in string format. This is
    * only populated when the ServiceAccountKey is created, and is not stored by
-   * Google.
+   * Google. When type is "pkcs12", the contents of the data field is base64
+   * encoded and has the password "notasecret".
    *
    * @var string
    */
@@ -64,7 +65,8 @@ class ServiceAccountKey extends \Google\Model
   /**
    * The body of the private key credentials file, in string format. This is
    * only populated when the ServiceAccountKey is created, and is not stored by
-   * Google.
+   * Google. When type is "pkcs12", the contents of the data field is base64
+   * encoded and has the password "notasecret".
    *
    * @param string $data
    */

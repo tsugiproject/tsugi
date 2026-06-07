@@ -27,7 +27,9 @@ class FilterAction extends \Google\Collection
    */
   public $addLabelIds;
   /**
-   * Email address that the message should be forwarded to.
+   * Email address that the message should be forwarded to. This effectively
+   * redirects the message to the address specified in this field, maintaining
+   * the original sender in the "From" field.
    *
    * @var string
    */
@@ -56,7 +58,9 @@ class FilterAction extends \Google\Collection
     return $this->addLabelIds;
   }
   /**
-   * Email address that the message should be forwarded to.
+   * Email address that the message should be forwarded to. This effectively
+   * redirects the message to the address specified in this field, maintaining
+   * the original sender in the "From" field.
    *
    * @param string $forward
    */

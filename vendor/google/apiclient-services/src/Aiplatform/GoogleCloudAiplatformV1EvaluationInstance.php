@@ -19,7 +19,7 @@ namespace Google\Service\Aiplatform;
 
 class GoogleCloudAiplatformV1EvaluationInstance extends \Google\Model
 {
-  protected $agentDataType = GoogleCloudAiplatformV1EvaluationInstanceAgentData::class;
+  protected $agentDataType = GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentData::class;
   protected $agentDataDataType = '';
   protected $otherDataType = GoogleCloudAiplatformV1EvaluationInstanceMapInstance::class;
   protected $otherDataDataType = '';
@@ -33,23 +33,28 @@ class GoogleCloudAiplatformV1EvaluationInstance extends \Google\Model
   protected $rubricGroupsDataType = 'map';
 
   /**
-   * Optional. Data used for agent evaluation.
+   * Optional. Deprecated: Use `agent_eval_data` instead. Data used for agent
+   * evaluation.
    *
-   * @param GoogleCloudAiplatformV1EvaluationInstanceAgentData $agentData
+   * @deprecated
+   * @param GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentData $agentData
    */
-  public function setAgentData(GoogleCloudAiplatformV1EvaluationInstanceAgentData $agentData)
+  public function setAgentData(GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentData $agentData)
   {
     $this->agentData = $agentData;
   }
   /**
-   * @return GoogleCloudAiplatformV1EvaluationInstanceAgentData
+   * @deprecated
+   * @return GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentData
    */
   public function getAgentData()
   {
     return $this->agentData;
   }
   /**
-   * Optional. Other data used to populate placeholders based on their key.
+   * Optional. Other data used to populate placeholders based on their key. If a
+   * key conflicts with a field in the EvaluationInstance (e.g. `prompt`), the
+   * value of the field will take precedence over the value in other_data.
    *
    * @param GoogleCloudAiplatformV1EvaluationInstanceMapInstance $otherData
    */

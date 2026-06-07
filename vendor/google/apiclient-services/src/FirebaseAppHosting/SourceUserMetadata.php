@@ -20,29 +20,35 @@ namespace Google\Service\FirebaseAppHosting;
 class SourceUserMetadata extends \Google\Model
 {
   /**
-   * Output only. The user-chosen displayname. May be empty.
+   * Output only. Deprecated: Not used. The user-chosen displayname. May be
+   * empty.
    *
+   * @deprecated
    * @var string
    */
   public $displayName;
   /**
-   * Output only. The account email linked to the EUC that created the build.
-   * May be a service account or other robot account.
+   * Output only. Deprecated: Not used. The account email linked to the EUC that
+   * created the build. May be a service account or other robot account.
    *
+   * @deprecated
    * @var string
    */
   public $email;
   /**
-   * Output only. The URI of a profile photo associated with the user who
-   * created the build.
+   * Output only. Deprecated: Not used. The URI of a profile photo associated
+   * with the user who created the build.
    *
+   * @deprecated
    * @var string
    */
   public $imageUri;
 
   /**
-   * Output only. The user-chosen displayname. May be empty.
+   * Output only. Deprecated: Not used. The user-chosen displayname. May be
+   * empty.
    *
+   * @deprecated
    * @param string $displayName
    */
   public function setDisplayName($displayName)
@@ -50,6 +56,7 @@ class SourceUserMetadata extends \Google\Model
     $this->displayName = $displayName;
   }
   /**
+   * @deprecated
    * @return string
    */
   public function getDisplayName()
@@ -57,9 +64,10 @@ class SourceUserMetadata extends \Google\Model
     return $this->displayName;
   }
   /**
-   * Output only. The account email linked to the EUC that created the build.
-   * May be a service account or other robot account.
+   * Output only. Deprecated: Not used. The account email linked to the EUC that
+   * created the build. May be a service account or other robot account.
    *
+   * @deprecated
    * @param string $email
    */
   public function setEmail($email)
@@ -67,6 +75,7 @@ class SourceUserMetadata extends \Google\Model
     $this->email = $email;
   }
   /**
+   * @deprecated
    * @return string
    */
   public function getEmail()
@@ -74,9 +83,10 @@ class SourceUserMetadata extends \Google\Model
     return $this->email;
   }
   /**
-   * Output only. The URI of a profile photo associated with the user who
-   * created the build.
+   * Output only. Deprecated: Not used. The URI of a profile photo associated
+   * with the user who created the build.
    *
+   * @deprecated
    * @param string $imageUri
    */
   public function setImageUri($imageUri)
@@ -84,6 +94,7 @@ class SourceUserMetadata extends \Google\Model
     $this->imageUri = $imageUri;
   }
   /**
+   * @deprecated
    * @return string
    */
   public function getImageUri()

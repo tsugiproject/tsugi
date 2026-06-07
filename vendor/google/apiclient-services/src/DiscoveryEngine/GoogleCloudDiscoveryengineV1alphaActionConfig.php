@@ -26,6 +26,12 @@ class GoogleCloudDiscoveryengineV1alphaActionConfig extends \Google\Model
    */
   public $actionParams;
   /**
+   * Optional. Whether to create a BAP connection for the connector.
+   *
+   * @var bool
+   */
+  public $createBapConnection;
+  /**
    * Output only. The connector contains the necessary parameters and is
    * configured to support actions.
    *
@@ -54,6 +60,8 @@ class GoogleCloudDiscoveryengineV1alphaActionConfig extends \Google\Model
    * @var bool
    */
   public $useStaticSecrets;
+  protected $userDefinedScopesMappingType = GoogleCloudDiscoveryengineV1alphaActionConfigScopeList::class;
+  protected $userDefinedScopesMappingDataType = 'map';
 
   /**
    * Optional. Action parameters in structured json format.
@@ -70,6 +78,22 @@ class GoogleCloudDiscoveryengineV1alphaActionConfig extends \Google\Model
   public function getActionParams()
   {
     return $this->actionParams;
+  }
+  /**
+   * Optional. Whether to create a BAP connection for the connector.
+   *
+   * @param bool $createBapConnection
+   */
+  public function setCreateBapConnection($createBapConnection)
+  {
+    $this->createBapConnection = $createBapConnection;
+  }
+  /**
+   * @return bool
+   */
+  public function getCreateBapConnection()
+  {
+    return $this->createBapConnection;
   }
   /**
    * Output only. The connector contains the necessary parameters and is
@@ -139,6 +163,23 @@ class GoogleCloudDiscoveryengineV1alphaActionConfig extends \Google\Model
   public function getUseStaticSecrets()
   {
     return $this->useStaticSecrets;
+  }
+  /**
+   * Optional. Mapping from operation name to the list of scopes. Only be
+   * populated if there are user specified scopes.
+   *
+   * @param GoogleCloudDiscoveryengineV1alphaActionConfigScopeList[] $userDefinedScopesMapping
+   */
+  public function setUserDefinedScopesMapping($userDefinedScopesMapping)
+  {
+    $this->userDefinedScopesMapping = $userDefinedScopesMapping;
+  }
+  /**
+   * @return GoogleCloudDiscoveryengineV1alphaActionConfigScopeList[]
+   */
+  public function getUserDefinedScopesMapping()
+  {
+    return $this->userDefinedScopesMapping;
   }
 }
 

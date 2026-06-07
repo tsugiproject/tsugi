@@ -19,6 +19,31 @@ namespace Google\Service\AlertCenter;
 
 class ActionInfo extends \Google\Model
 {
+  /**
+   * Google Cloud Storage location of the content that violated the rule. This
+   * field has format: "/"
+   *
+   * @var string
+   */
+  public $evidenceLockerFilePath;
+
+  /**
+   * Google Cloud Storage location of the content that violated the rule. This
+   * field has format: "/"
+   *
+   * @param string $evidenceLockerFilePath
+   */
+  public function setEvidenceLockerFilePath($evidenceLockerFilePath)
+  {
+    $this->evidenceLockerFilePath = $evidenceLockerFilePath;
+  }
+  /**
+   * @return string
+   */
+  public function getEvidenceLockerFilePath()
+  {
+    return $this->evidenceLockerFilePath;
+  }
 }
 
 // Adding a class alias for backwards compatibility with the previous class name.

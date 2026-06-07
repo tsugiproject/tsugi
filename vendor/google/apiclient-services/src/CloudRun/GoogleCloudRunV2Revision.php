@@ -105,6 +105,18 @@ class GoogleCloudRunV2Revision extends \Google\Collection
    * @var string[]
    */
   public $annotations;
+  /**
+   * Output only. Arbitrary identifier for the API client.
+   *
+   * @var string
+   */
+  public $client;
+  /**
+   * Output only. Arbitrary version identifier for the API client.
+   *
+   * @var string
+   */
+  public $clientVersion;
   protected $conditionsType = GoogleCloudRunV2Condition::class;
   protected $conditionsDataType = 'array';
   protected $containersType = GoogleCloudRunV2Container::class;
@@ -201,7 +213,7 @@ class GoogleCloudRunV2Revision extends \Google\Collection
    * Stages](https://cloud.google.com/terms/launch-stages). Cloud Run supports
    * `ALPHA`, `BETA`, and `GA`. Note that this value might not be what was used
    * as input. For example, if ALPHA was provided as input in the parent
-   * resource, but only BETA and GA-level features are were, this field will be
+   * resource, but only BETA and GA-level features are used, this field will be
    * BETA.
    *
    * @var string
@@ -319,6 +331,38 @@ class GoogleCloudRunV2Revision extends \Google\Collection
     return $this->annotations;
   }
   /**
+   * Output only. Arbitrary identifier for the API client.
+   *
+   * @param string $client
+   */
+  public function setClient($client)
+  {
+    $this->client = $client;
+  }
+  /**
+   * @return string
+   */
+  public function getClient()
+  {
+    return $this->client;
+  }
+  /**
+   * Output only. Arbitrary version identifier for the API client.
+   *
+   * @param string $clientVersion
+   */
+  public function setClientVersion($clientVersion)
+  {
+    $this->clientVersion = $clientVersion;
+  }
+  /**
+   * @return string
+   */
+  public function getClientVersion()
+  {
+    return $this->clientVersion;
+  }
+  /**
    * Output only. The Condition of this Revision, containing its readiness
    * status, and detailed error information in case it did not reach a serving
    * state.
@@ -337,8 +381,7 @@ class GoogleCloudRunV2Revision extends \Google\Collection
     return $this->conditions;
   }
   /**
-   * Holds the single container that defines the unit of execution for this
-   * Revision.
+   * Holds the list which define the units of execution for this Revision.
    *
    * @param GoogleCloudRunV2Container[] $containers
    */
@@ -571,7 +614,7 @@ class GoogleCloudRunV2Revision extends \Google\Collection
    * Stages](https://cloud.google.com/terms/launch-stages). Cloud Run supports
    * `ALPHA`, `BETA`, and `GA`. Note that this value might not be what was used
    * as input. For example, if ALPHA was provided as input in the parent
-   * resource, but only BETA and GA-level features are were, this field will be
+   * resource, but only BETA and GA-level features are used, this field will be
    * BETA.
    *
    * Accepted values: LAUNCH_STAGE_UNSPECIFIED, UNIMPLEMENTED, PRELAUNCH,

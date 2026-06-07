@@ -44,6 +44,12 @@ class ProjectsLocationsReasoningEnginesMemories extends \Google\Service\Resource
    * `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}`
    * @param GoogleCloudAiplatformV1Memory $postBody
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string memoryId Optional. The user defined ID to use for memory,
+   * which will become the final component of the memory resource name. If not
+   * provided, Vertex AI will generate a value for this ID. This value may be up
+   * to 63 characters, and valid characters are `[a-z0-9-]`. The first character
+   * must be a letter, and the last character must be a letter or number.
    * @return GoogleLongrunningOperation
    * @throws \Google\Service\Exception
    */
@@ -134,9 +140,9 @@ class ProjectsLocationsReasoningEnginesMemories extends \Google\Service\Resource
   /**
    * Update a Memory. (memories.patch)
    *
-   * @param string $name Identifier. The resource name of the Memory. Format: `pro
-   * jects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}/memo
-   * ries/{memory}`
+   * @param string $name Identifier. Represents the resource name of the Memory.
+   * Format: `projects/{project}/locations/{location}/reasoningEngines/{reasoning_
+   * engine}/memories/{memory}`
    * @param GoogleCloudAiplatformV1Memory $postBody
    * @param array $optParams Optional parameters.
    *

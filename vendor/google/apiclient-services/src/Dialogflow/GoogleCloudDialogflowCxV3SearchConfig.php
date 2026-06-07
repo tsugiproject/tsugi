@@ -26,11 +26,6 @@ class GoogleCloudDialogflowCxV3SearchConfig extends \Google\Collection
   protected $filterSpecsDataType = 'array';
 
   /**
-   * Optional. Boosting configuration for the datastores. Maps from datastore
-   * name to their boost configuration. Do not specify more than one BoostSpecs
-   * for each datastore name. If multiple BoostSpecs are provided for the same
-   * datastore name, the behavior is undefined.
-   *
    * @param GoogleCloudDialogflowCxV3BoostSpecs[] $boostSpecs
    */
   public function setBoostSpecs($boostSpecs)
@@ -45,11 +40,6 @@ class GoogleCloudDialogflowCxV3SearchConfig extends \Google\Collection
     return $this->boostSpecs;
   }
   /**
-   * Optional. Filter configuration for the datastores. Maps from datastore name
-   * to the filter expression for that datastore. Do not specify more than one
-   * FilterSpecs for each datastore name. If multiple FilterSpecs are provided
-   * for the same datastore name, the behavior is undefined.
-   *
    * @param GoogleCloudDialogflowCxV3FilterSpecs[] $filterSpecs
    */
   public function setFilterSpecs($filterSpecs)

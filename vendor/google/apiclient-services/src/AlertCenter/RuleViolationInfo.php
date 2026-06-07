@@ -20,6 +20,14 @@ namespace Google\Service\AlertCenter;
 class RuleViolationInfo extends \Google\Collection
 {
   /**
+   * Unspecified agent type.
+   */
+  public const AGENT_TYPE_AGENT_TYPE_UNSPECIFIED = 'AGENT_TYPE_UNSPECIFIED';
+  /**
+   * Studio agent type.
+   */
+  public const AGENT_TYPE_STUDIO = 'STUDIO';
+  /**
    * Data source is unspecified.
    */
   public const DATA_SOURCE_DATA_SOURCE_UNSPECIFIED = 'DATA_SOURCE_UNSPECIFIED';
@@ -27,6 +35,10 @@ class RuleViolationInfo extends \Google\Collection
    * Drive data source.
    */
   public const DATA_SOURCE_DRIVE = 'DRIVE';
+  /**
+   * Gmail data source.
+   */
+  public const DATA_SOURCE_GMAIL = 'GMAIL';
   /**
    * Chrome data source.
    */
@@ -56,6 +68,10 @@ class RuleViolationInfo extends \Google\Collection
    */
   public const TRIGGER_DRIVE_SHARE = 'DRIVE_SHARE';
   /**
+   * An email message is sent.
+   */
+  public const TRIGGER_MAIL_BEING_SENT = 'MAIL_BEING_SENT';
+  /**
    * A file being downloaded in a Chrome browser.
    */
   public const TRIGGER_CHROME_FILE_DOWNLOAD = 'CHROME_FILE_DOWNLOAD';
@@ -83,7 +99,26 @@ class RuleViolationInfo extends \Google\Collection
    * A URL is visited within Chrome.
    */
   public const TRIGGER_CHROME_URL_VISITED = 'CHROME_URL_VISITED';
+  /**
+   * A file being transferred (copy or moved) between different file systems on
+   * ChromeOS.
+   */
+  public const TRIGGER_CHROMEOS_FILE_TRANSFER = 'CHROMEOS_FILE_TRANSFER';
+  /**
+   * Gemini access.
+   */
+  public const TRIGGER_GEMINI_ACCESS = 'GEMINI_ACCESS';
+  /**
+   * Agent execution.
+   */
+  public const TRIGGER_AGENT_EXECUTION = 'AGENT_EXECUTION';
   protected $collection_key = 'triggeredActionTypes';
+  /**
+   * Optional. Agent type that triggered the rule.
+   *
+   * @var string
+   */
+  public $agentType;
   /**
    * Source of the data.
    *
@@ -142,9 +177,27 @@ class RuleViolationInfo extends \Google\Collection
   public $triggeringUserEmail;
 
   /**
+   * Optional. Agent type that triggered the rule.
+   *
+   * Accepted values: AGENT_TYPE_UNSPECIFIED, STUDIO
+   *
+   * @param self::AGENT_TYPE_* $agentType
+   */
+  public function setAgentType($agentType)
+  {
+    $this->agentType = $agentType;
+  }
+  /**
+   * @return self::AGENT_TYPE_*
+   */
+  public function getAgentType()
+  {
+    return $this->agentType;
+  }
+  /**
    * Source of the data.
    *
-   * Accepted values: DATA_SOURCE_UNSPECIFIED, DRIVE, CHROME, CHAT
+   * Accepted values: DATA_SOURCE_UNSPECIFIED, DRIVE, GMAIL, CHROME, CHAT
    *
    * @param self::DATA_SOURCE_* $dataSource
    */
@@ -265,9 +318,10 @@ class RuleViolationInfo extends \Google\Collection
   /**
    * Trigger of the rule.
    *
-   * Accepted values: TRIGGER_UNSPECIFIED, DRIVE_SHARE, CHROME_FILE_DOWNLOAD,
-   * CHROME_FILE_UPLOAD, CHROME_WEB_CONTENT_UPLOAD, CHAT_MESSAGE_SENT,
-   * CHAT_ATTACHMENT_UPLOADED, CHROME_PAGE_PRINT, CHROME_URL_VISITED
+   * Accepted values: TRIGGER_UNSPECIFIED, DRIVE_SHARE, MAIL_BEING_SENT,
+   * CHROME_FILE_DOWNLOAD, CHROME_FILE_UPLOAD, CHROME_WEB_CONTENT_UPLOAD,
+   * CHAT_MESSAGE_SENT, CHAT_ATTACHMENT_UPLOADED, CHROME_PAGE_PRINT,
+   * CHROME_URL_VISITED, CHROMEOS_FILE_TRANSFER, GEMINI_ACCESS, AGENT_EXECUTION
    *
    * @param self::TRIGGER_* $trigger
    */

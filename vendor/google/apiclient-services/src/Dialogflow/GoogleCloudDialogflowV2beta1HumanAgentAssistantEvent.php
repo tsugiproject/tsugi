@@ -21,18 +21,10 @@ class GoogleCloudDialogflowV2beta1HumanAgentAssistantEvent extends \Google\Colle
 {
   protected $collection_key = 'suggestionResults';
   /**
-   * The conversation this notification refers to. Format:
-   * `projects//conversations/`.
-   *
    * @var string
    */
   public $conversation;
   /**
-   * The participant that the suggestion is compiled for. And This field is used
-   * to call Participants.ListSuggestions API. Format:
-   * `projects//conversations//participants/`. It will not be set in legacy
-   * workflow. HumanAgentAssistantConfig.name for more information.
-   *
    * @var string
    */
   public $participant;
@@ -40,9 +32,6 @@ class GoogleCloudDialogflowV2beta1HumanAgentAssistantEvent extends \Google\Colle
   protected $suggestionResultsDataType = 'array';
 
   /**
-   * The conversation this notification refers to. Format:
-   * `projects//conversations/`.
-   *
    * @param string $conversation
    */
   public function setConversation($conversation)
@@ -57,11 +46,6 @@ class GoogleCloudDialogflowV2beta1HumanAgentAssistantEvent extends \Google\Colle
     return $this->conversation;
   }
   /**
-   * The participant that the suggestion is compiled for. And This field is used
-   * to call Participants.ListSuggestions API. Format:
-   * `projects//conversations//participants/`. It will not be set in legacy
-   * workflow. HumanAgentAssistantConfig.name for more information.
-   *
    * @param string $participant
    */
   public function setParticipant($participant)
@@ -76,11 +60,6 @@ class GoogleCloudDialogflowV2beta1HumanAgentAssistantEvent extends \Google\Colle
     return $this->participant;
   }
   /**
-   * The suggestion results payload that this notification refers to. It will
-   * only be set when
-   * HumanAgentAssistantConfig.SuggestionConfig.group_suggestion_responses sets
-   * to true.
-   *
    * @param GoogleCloudDialogflowV2beta1SuggestionResult[] $suggestionResults
    */
   public function setSuggestionResults($suggestionResults)

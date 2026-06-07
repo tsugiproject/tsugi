@@ -97,7 +97,8 @@ class ProjectList extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * Projects to which the user has at least READ access.
+   * Projects to which the user has at least READ access. This field can be
+   * omitted if `totalItems` is 0.
    *
    * @param ProjectListProjects[] $projects
    */

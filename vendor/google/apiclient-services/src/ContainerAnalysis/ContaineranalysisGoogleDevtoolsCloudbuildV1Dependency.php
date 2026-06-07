@@ -26,6 +26,8 @@ class ContaineranalysisGoogleDevtoolsCloudbuildV1Dependency extends \Google\Mode
    * @var bool
    */
   public $empty;
+  protected $genericArtifactType = ContaineranalysisGoogleDevtoolsCloudbuildV1DependencyGenericArtifactDependency::class;
+  protected $genericArtifactDataType = '';
   protected $gitSourceType = ContaineranalysisGoogleDevtoolsCloudbuildV1DependencyGitSourceDependency::class;
   protected $gitSourceDataType = '';
 
@@ -45,6 +47,22 @@ class ContaineranalysisGoogleDevtoolsCloudbuildV1Dependency extends \Google\Mode
   public function getEmpty()
   {
     return $this->empty;
+  }
+  /**
+   * Represents a generic artifact as a build dependency.
+   *
+   * @param ContaineranalysisGoogleDevtoolsCloudbuildV1DependencyGenericArtifactDependency $genericArtifact
+   */
+  public function setGenericArtifact(ContaineranalysisGoogleDevtoolsCloudbuildV1DependencyGenericArtifactDependency $genericArtifact)
+  {
+    $this->genericArtifact = $genericArtifact;
+  }
+  /**
+   * @return ContaineranalysisGoogleDevtoolsCloudbuildV1DependencyGenericArtifactDependency
+   */
+  public function getGenericArtifact()
+  {
+    return $this->genericArtifact;
   }
   /**
    * Represents a git repository as a build dependency.

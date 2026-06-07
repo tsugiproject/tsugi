@@ -20,28 +20,15 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3ToolAuthenticationBearerTokenConfig extends \Google\Model
 {
   /**
-   * Optional. The name of the SecretManager secret version resource storing the
-   * Bearer token. If this field is set, the `token` field will be ignored.
-   * Format: `projects/{project}/secrets/{secret}/versions/{version}`
-   *
    * @var string
    */
   public $secretVersionForToken;
   /**
-   * Optional. The text token appended to the text `Bearer` to the request
-   * Authorization header. [Session parameters reference](https://cloud.google.c
-   * om/dialogflow/cx/docs/concept/parameter#session-ref) can be used to pass
-   * the token dynamically, e.g. `$session.params.parameter-id`.
-   *
    * @var string
    */
   public $token;
 
   /**
-   * Optional. The name of the SecretManager secret version resource storing the
-   * Bearer token. If this field is set, the `token` field will be ignored.
-   * Format: `projects/{project}/secrets/{secret}/versions/{version}`
-   *
    * @param string $secretVersionForToken
    */
   public function setSecretVersionForToken($secretVersionForToken)
@@ -56,11 +43,6 @@ class GoogleCloudDialogflowCxV3ToolAuthenticationBearerTokenConfig extends \Goog
     return $this->secretVersionForToken;
   }
   /**
-   * Optional. The text token appended to the text `Bearer` to the request
-   * Authorization header. [Session parameters reference](https://cloud.google.c
-   * om/dialogflow/cx/docs/concept/parameter#session-ref) can be used to pass
-   * the token dynamically, e.g. `$session.params.parameter-id`.
-   *
    * @param string $token
    */
   public function setToken($token)

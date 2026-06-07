@@ -33,7 +33,7 @@ class ProjectsLocationsDatastores extends \Google\Service\Resource
 {
   /**
    * Creates a new `Datastore` resource in a given project and location.
-   * Datastores are regional resources (datastores.create)
+   * (datastores.create)
    *
    * @param string $parent Required. The resource name of the location to create
    * the new datastore in. Resource names are schemeless URIs that follow the
@@ -156,9 +156,8 @@ class ProjectsLocationsDatastores extends \Google\Service\Resource
     return $this->call('list', [$params], ListDatastoresResponse::class);
   }
   /**
-   * Modifies a Datastore resource. Only the following fields can be updated:
-   * `description`. Only fields specified in `updateMask` are applied.
-   * (datastores.patch)
+   * Modifies a Datastore resource. Only fields specified in `updateMask` are
+   * applied. (datastores.patch)
    *
    * @param string $name Output only. Identifier. The resource name of this
    * datastore. Resource names are schemeless URIs that follow the conventions in
@@ -174,8 +173,7 @@ class ProjectsLocationsDatastores extends \Google\Service\Resource
    * fields to be overwritten in the Datastore resource by the update. The fields
    * specified in the `update_mask` are relative to the resource, not the full
    * request. A field will be overwritten if it is in the mask. If the user does
-   * not provide a mask then all fields will be overwritten. Only the following
-   * fields can be updated: `description`.
+   * not provide a mask then all fields will be overwritten.
    * @return Operation
    * @throws \Google\Service\Exception
    */

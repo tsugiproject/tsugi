@@ -20,6 +20,15 @@ namespace Google\Service\Compute;
 class ResourcePolicyWorkloadPolicy extends \Google\Model
 {
   /**
+   * The interconnected chips are pre-configured at the time of VM creation.
+   */
+  public const ACCELERATOR_TOPOLOGY_MODE_AUTO_CONNECT = 'AUTO_CONNECT';
+  /**
+   * The interconnected chips are connected on demand. At the time of VM
+   * creation, the chips are not connected.
+   */
+  public const ACCELERATOR_TOPOLOGY_MODE_PROVISION_ONLY = 'PROVISION_ONLY';
+  /**
    * VMs must be provisioned in the same block.
    */
   public const MAX_TOPOLOGY_DISTANCE_BLOCK = 'BLOCK';
@@ -47,6 +56,13 @@ class ResourcePolicyWorkloadPolicy extends \Google\Model
    * @var string
    */
   public $acceleratorTopology;
+  /**
+   * Specifies the connection mode for the accelerator topology. If not
+   * specified, the default is AUTO_CONNECT.
+   *
+   * @var string
+   */
+  public $acceleratorTopologyMode;
   /**
    * Specifies the maximum distance between instances.
    *
@@ -76,6 +92,25 @@ class ResourcePolicyWorkloadPolicy extends \Google\Model
   public function getAcceleratorTopology()
   {
     return $this->acceleratorTopology;
+  }
+  /**
+   * Specifies the connection mode for the accelerator topology. If not
+   * specified, the default is AUTO_CONNECT.
+   *
+   * Accepted values: AUTO_CONNECT, PROVISION_ONLY
+   *
+   * @param self::ACCELERATOR_TOPOLOGY_MODE_* $acceleratorTopologyMode
+   */
+  public function setAcceleratorTopologyMode($acceleratorTopologyMode)
+  {
+    $this->acceleratorTopologyMode = $acceleratorTopologyMode;
+  }
+  /**
+   * @return self::ACCELERATOR_TOPOLOGY_MODE_*
+   */
+  public function getAcceleratorTopologyMode()
+  {
+    return $this->acceleratorTopologyMode;
   }
   /**
    * Specifies the maximum distance between instances.

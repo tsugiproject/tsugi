@@ -20,20 +20,20 @@ namespace Google\Service\VMMigrationService;
 class PersistentDisk extends \Google\Model
 {
   /**
-   * The URI of the Persistent Disk.
+   * Output only. The URI of the Persistent Disk.
    *
    * @var string
    */
   public $diskUri;
   /**
-   * The ordinal number of the source VM disk.
+   * Output only. The ordinal number of the source VM disk.
    *
    * @var int
    */
   public $sourceDiskNumber;
 
   /**
-   * The URI of the Persistent Disk.
+   * Output only. The URI of the Persistent Disk.
    *
    * @param string $diskUri
    */
@@ -49,7 +49,7 @@ class PersistentDisk extends \Google\Model
     return $this->diskUri;
   }
   /**
-   * The ordinal number of the source VM disk.
+   * Output only. The ordinal number of the source VM disk.
    *
    * @param int $sourceDiskNumber
    */

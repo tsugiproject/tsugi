@@ -90,10 +90,10 @@ class PropertiesDataStreamsMeasurementProtocolSecrets extends \Google\Service\Re
    * properties/{property}/dataStreams/{dataStream}/measurementProtocolSecrets
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize The maximum number of resources to return. If
-   * unspecified, at most 10 resources will be returned. The maximum value is 10.
-   * Higher values will be coerced to the maximum.
-   * @opt_param string pageToken A page token, received from a previous
+   * @opt_param int pageSize Optional. The maximum number of resources to return.
+   * If unspecified, at most 10 resources will be returned. The maximum value is
+   * 10. Higher values will be coerced to the maximum.
+   * @opt_param string pageToken Optional. A page token, received from a previous
    * `ListMeasurementProtocolSecrets` call. Provide this to retrieve the
    * subsequent page. When paginating, all other parameters provided to
    * `ListMeasurementProtocolSecrets` must match the call that provided the page
@@ -110,9 +110,9 @@ class PropertiesDataStreamsMeasurementProtocolSecrets extends \Google\Service\Re
   /**
    * Updates a measurement protocol secret. (measurementProtocolSecrets.patch)
    *
-   * @param string $name Output only. Resource name of this secret. This secret
-   * may be a child of any type of stream. Format: properties/{property}/dataStrea
-   * ms/{dataStream}/measurementProtocolSecrets/{measurementProtocolSecret}
+   * @param string $name Identifier. Resource name of this secret. This secret may
+   * be a child of any type of stream. Format: properties/{property}/dataStreams/{
+   * dataStream}/measurementProtocolSecrets/{measurementProtocolSecret}
    * @param GoogleAnalyticsAdminV1betaMeasurementProtocolSecret $postBody
    * @param array $optParams Optional parameters.
    *

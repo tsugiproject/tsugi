@@ -48,6 +48,10 @@ class GoogleCloudDataplexV1DataScanJob extends \Google\Model
    */
   public const STATE_PENDING = 'PENDING';
   /**
+   * The DataScanJob succeeded with errors.
+   */
+  public const STATE_SUCCEEDED_WITH_ERRORS = 'SUCCEEDED_WITH_ERRORS';
+  /**
    * The data scan type is unspecified.
    */
   public const TYPE_DATA_SCAN_TYPE_UNSPECIFIED = 'DATA_SCAN_TYPE_UNSPECIFIED';
@@ -110,6 +114,12 @@ class GoogleCloudDataplexV1DataScanJob extends \Google\Model
    * @var string
    */
   public $name;
+  /**
+   * Output only. A message indicating partial failure details.
+   *
+   * @var string
+   */
+  public $partialFailureMessage;
   /**
    * Output only. The time when the DataScanJob was started.
    *
@@ -331,6 +341,22 @@ class GoogleCloudDataplexV1DataScanJob extends \Google\Model
     return $this->name;
   }
   /**
+   * Output only. A message indicating partial failure details.
+   *
+   * @param string $partialFailureMessage
+   */
+  public function setPartialFailureMessage($partialFailureMessage)
+  {
+    $this->partialFailureMessage = $partialFailureMessage;
+  }
+  /**
+   * @return string
+   */
+  public function getPartialFailureMessage()
+  {
+    return $this->partialFailureMessage;
+  }
+  /**
    * Output only. The time when the DataScanJob was started.
    *
    * @param string $startTime
@@ -350,7 +376,7 @@ class GoogleCloudDataplexV1DataScanJob extends \Google\Model
    * Output only. Execution state for the DataScanJob.
    *
    * Accepted values: STATE_UNSPECIFIED, RUNNING, CANCELING, CANCELLED,
-   * SUCCEEDED, FAILED, PENDING
+   * SUCCEEDED, FAILED, PENDING, SUCCEEDED_WITH_ERRORS
    *
    * @param self::STATE_* $state
    */

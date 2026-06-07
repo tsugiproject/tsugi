@@ -53,10 +53,10 @@ class Service extends \Google\Model
    */
   public $labels;
   /**
-   * Identifier. The relative resource name of the Firebase Data Connect
-   * service, in the format: ```
+   * Identifier. The relative resource name of the Firebase SQL Connect service,
+   * in the format: ```
    * projects/{project}/locations/{location}/services/{service} ``` Note that
-   * the service ID is specific to Firebase Data Connect and does not correspond
+   * the service ID is specific to Firebase SQL Connect and does not correspond
    * to any of the instance IDs of the underlying data source connections.
    *
    * @var string
@@ -166,10 +166,10 @@ class Service extends \Google\Model
     return $this->labels;
   }
   /**
-   * Identifier. The relative resource name of the Firebase Data Connect
-   * service, in the format: ```
+   * Identifier. The relative resource name of the Firebase SQL Connect service,
+   * in the format: ```
    * projects/{project}/locations/{location}/services/{service} ``` Note that
-   * the service ID is specific to Firebase Data Connect and does not correspond
+   * the service ID is specific to Firebase SQL Connect and does not correspond
    * to any of the instance IDs of the underlying data source connections.
    *
    * @param string $name

@@ -99,7 +99,7 @@ class GoogleCloudAiplatformV1PublisherModel extends \Google\Collection
    */
   public $launchStage;
   /**
-   * Output only. The resource name of the PublisherModel.
+   * Output only. Identifier. The resource name of the PublisherModel.
    *
    * @var string
    */
@@ -173,7 +173,7 @@ class GoogleCloudAiplatformV1PublisherModel extends \Google\Collection
     return $this->launchStage;
   }
   /**
-   * Output only. The resource name of the PublisherModel.
+   * Output only. Identifier. The resource name of the PublisherModel.
    *
    * @param string $name
    */

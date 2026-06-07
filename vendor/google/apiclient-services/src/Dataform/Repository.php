@@ -20,6 +20,14 @@ namespace Google\Service\Dataform;
 class Repository extends \Google\Model
 {
   /**
+   * Optional. The name of the containing folder of the repository. The field is
+   * immutable and it can be modified via a MoveRepository operation. Format:
+   * `projects/locations/folders`. or `projects/locations/teamFolders`.
+   *
+   * @var string
+   */
+  public $containingFolder;
+  /**
    * Output only. The timestamp of when the repository was created.
    *
    * @var string
@@ -87,9 +95,36 @@ class Repository extends \Google\Model
    * @var bool
    */
   public $setAuthenticatedUserAdmin;
+  /**
+   * Output only. The resource name of the TeamFolder that this Repository is
+   * associated with. This should take the format:
+   * projects/{project}/locations/{location}/teamFolders/{teamFolder}. If this
+   * is not set, the Repository is not associated with a TeamFolder.
+   *
+   * @var string
+   */
+  public $teamFolderName;
   protected $workspaceCompilationOverridesType = WorkspaceCompilationOverrides::class;
   protected $workspaceCompilationOverridesDataType = '';
 
+  /**
+   * Optional. The name of the containing folder of the repository. The field is
+   * immutable and it can be modified via a MoveRepository operation. Format:
+   * `projects/locations/folders`. or `projects/locations/teamFolders`.
+   *
+   * @param string $containingFolder
+   */
+  public function setContainingFolder($containingFolder)
+  {
+    $this->containingFolder = $containingFolder;
+  }
+  /**
+   * @return string
+   */
+  public function getContainingFolder()
+  {
+    return $this->containingFolder;
+  }
   /**
    * Output only. The timestamp of when the repository was created.
    *
@@ -276,6 +311,25 @@ class Repository extends \Google\Model
   public function getSetAuthenticatedUserAdmin()
   {
     return $this->setAuthenticatedUserAdmin;
+  }
+  /**
+   * Output only. The resource name of the TeamFolder that this Repository is
+   * associated with. This should take the format:
+   * projects/{project}/locations/{location}/teamFolders/{teamFolder}. If this
+   * is not set, the Repository is not associated with a TeamFolder.
+   *
+   * @param string $teamFolderName
+   */
+  public function setTeamFolderName($teamFolderName)
+  {
+    $this->teamFolderName = $teamFolderName;
+  }
+  /**
+   * @return string
+   */
+  public function getTeamFolderName()
+  {
+    return $this->teamFolderName;
   }
   /**
    * Optional. If set, fields of `workspace_compilation_overrides` override the

@@ -20,6 +20,7 @@ namespace Google\Service\Compute;
 class GuestOsFeature extends \Google\Model
 {
   public const TYPE_BARE_METAL_LINUX_COMPATIBLE = 'BARE_METAL_LINUX_COMPATIBLE';
+  public const TYPE_CCA_CAPABLE = 'CCA_CAPABLE';
   public const TYPE_FEATURE_TYPE_UNSPECIFIED = 'FEATURE_TYPE_UNSPECIFIED';
   public const TYPE_GVNIC = 'GVNIC';
   public const TYPE_IDPF = 'IDPF';
@@ -40,7 +41,7 @@ class GuestOsFeature extends \Google\Model
    * VIRTIO_SCSI_MULTIQUEUE    - WINDOWS    - MULTI_IP_SUBNET    -
    * UEFI_COMPATIBLE    - GVNIC    - SEV_CAPABLE    - SUSPEND_RESUME_COMPATIBLE
    * - SEV_LIVE_MIGRATABLE_V2    - SEV_SNP_CAPABLE    - TDX_CAPABLE    - IDPF
-   * - SNP_SVSM_CAPABLE
+   * - SNP_SVSM_CAPABLE    - CCA_CAPABLE
    *
    * For more information, see Enabling guest operating system features.
    *
@@ -54,13 +55,13 @@ class GuestOsFeature extends \Google\Model
    * VIRTIO_SCSI_MULTIQUEUE    - WINDOWS    - MULTI_IP_SUBNET    -
    * UEFI_COMPATIBLE    - GVNIC    - SEV_CAPABLE    - SUSPEND_RESUME_COMPATIBLE
    * - SEV_LIVE_MIGRATABLE_V2    - SEV_SNP_CAPABLE    - TDX_CAPABLE    - IDPF
-   * - SNP_SVSM_CAPABLE
+   * - SNP_SVSM_CAPABLE    - CCA_CAPABLE
    *
    * For more information, see Enabling guest operating system features.
    *
-   * Accepted values: BARE_METAL_LINUX_COMPATIBLE, FEATURE_TYPE_UNSPECIFIED,
-   * GVNIC, IDPF, MULTI_IP_SUBNET, SECURE_BOOT, SEV_CAPABLE,
-   * SEV_LIVE_MIGRATABLE, SEV_LIVE_MIGRATABLE_V2, SEV_SNP_CAPABLE,
+   * Accepted values: BARE_METAL_LINUX_COMPATIBLE, CCA_CAPABLE,
+   * FEATURE_TYPE_UNSPECIFIED, GVNIC, IDPF, MULTI_IP_SUBNET, SECURE_BOOT,
+   * SEV_CAPABLE, SEV_LIVE_MIGRATABLE, SEV_LIVE_MIGRATABLE_V2, SEV_SNP_CAPABLE,
    * SNP_SVSM_CAPABLE, TDX_CAPABLE, UEFI_COMPATIBLE, VIRTIO_SCSI_MULTIQUEUE,
    * WINDOWS
    *

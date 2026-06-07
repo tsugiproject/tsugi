@@ -26,6 +26,8 @@ class GoogleDevtoolsCloudbuildV1Dependency extends \Google\Model
    * @var bool
    */
   public $empty;
+  protected $genericArtifactType = GoogleDevtoolsCloudbuildV1GenericArtifactDependency::class;
+  protected $genericArtifactDataType = '';
   protected $gitSourceType = GoogleDevtoolsCloudbuildV1GitSourceDependency::class;
   protected $gitSourceDataType = '';
 
@@ -45,6 +47,22 @@ class GoogleDevtoolsCloudbuildV1Dependency extends \Google\Model
   public function getEmpty()
   {
     return $this->empty;
+  }
+  /**
+   * Represents a generic artifact as a build dependency.
+   *
+   * @param GoogleDevtoolsCloudbuildV1GenericArtifactDependency $genericArtifact
+   */
+  public function setGenericArtifact(GoogleDevtoolsCloudbuildV1GenericArtifactDependency $genericArtifact)
+  {
+    $this->genericArtifact = $genericArtifact;
+  }
+  /**
+   * @return GoogleDevtoolsCloudbuildV1GenericArtifactDependency
+   */
+  public function getGenericArtifact()
+  {
+    return $this->genericArtifact;
   }
   /**
    * Represents a git repository as a build dependency.

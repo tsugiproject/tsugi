@@ -141,11 +141,11 @@ class Properties extends \Google\Service\Resource
    * ancestor:accounts/123 | The account with account id: 123. | |
    * firebase_project:project-id | The firebase project with id: project-id. | |
    * firebase_project:123 | The firebase project with number: 123. | ```
-   * @opt_param int pageSize The maximum number of resources to return. The
-   * service may return fewer than this value, even if there are additional pages.
-   * If unspecified, at most 50 resources will be returned. The maximum value is
-   * 200; (higher values will be coerced to the maximum)
-   * @opt_param string pageToken A page token, received from a previous
+   * @opt_param int pageSize Optional. The maximum number of resources to return.
+   * The service may return fewer than this value, even if there are additional
+   * pages. If unspecified, at most 50 resources will be returned. The maximum
+   * value is 200; (higher values will be coerced to the maximum)
+   * @opt_param string pageToken Optional. A page token, received from a previous
    * `ListProperties` call. Provide this to retrieve the subsequent page. When
    * paginating, all other parameters provided to `ListProperties` must match the
    * call that provided the page token.
@@ -164,7 +164,7 @@ class Properties extends \Google\Service\Resource
   /**
    * Updates a property. (properties.patch)
    *
-   * @param string $name Output only. Resource name of this property. Format:
+   * @param string $name Identifier. Resource name of this property. Format:
    * properties/{property_id} Example: "properties/1000"
    * @param GoogleAnalyticsAdminV1betaProperty $postBody
    * @param array $optParams Optional parameters.
@@ -222,7 +222,7 @@ class Properties extends \Google\Service\Resource
    * Updates the singleton data retention settings for this property.
    * (properties.updateDataRetentionSettings)
    *
-   * @param string $name Output only. Resource name for this DataRetentionSetting
+   * @param string $name Identifier. Resource name for this DataRetentionSetting
    * resource. Format: properties/{property}/dataRetentionSettings
    * @param GoogleAnalyticsAdminV1betaDataRetentionSettings $postBody
    * @param array $optParams Optional parameters.

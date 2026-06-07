@@ -100,15 +100,21 @@ class SdfConfig extends \Google\Model
    * SDF version 7.1. Read the [v7 migration guide](/display-
    * video/api/structured-data-file/v7-migration-guide) before migrating to this
    * version.
+   *
+   * @deprecated
    */
   public const VERSION_SDF_VERSION_7_1 = 'SDF_VERSION_7_1';
   /**
    * SDF version 8. Read the [v8 migration guide](/display-video/api/structured-
    * data-file/v8-migration-guide) before migrating to this version.
+   *
+   * @deprecated
    */
   public const VERSION_SDF_VERSION_8 = 'SDF_VERSION_8';
   /**
    * SDF version 8.1.
+   *
+   * @deprecated
    */
   public const VERSION_SDF_VERSION_8_1 = 'SDF_VERSION_8_1';
   /**

@@ -113,6 +113,10 @@ class Settings extends \Google\Collection
    */
   public const EDITION_ENTERPRISE_PLUS = 'ENTERPRISE_PLUS';
   /**
+   * This instance is a Cloud SQL developer edition instance.
+   */
+  public const EDITION_DEVELOPER = 'DEVELOPER';
+  /**
    * This is an unknown pricing plan for this instance.
    */
   public const PRICING_PLAN_SQL_PRICING_PLAN_UNSPECIFIED = 'SQL_PRICING_PLAN_UNSPECIFIED';
@@ -141,6 +145,13 @@ class Settings extends \Google\Collection
    */
   public const REPLICATION_TYPE_ASYNCHRONOUS = 'ASYNCHRONOUS';
   protected $collection_key = 'denyMaintenancePeriods';
+  /**
+   * Optional. Whether the replica is in accelerated mode. This feature is in
+   * private preview and requires allowlisting to take effect.
+   *
+   * @var bool
+   */
+  public $acceleratedReplicaMode;
   /**
    * The activation policy specifies when the instance is activated; it is
    * applicable only when the instance state is RUNNABLE. Valid values: *
@@ -269,7 +280,7 @@ class Settings extends \Google\Collection
   protected $denyMaintenancePeriodsType = DenyMaintenancePeriod::class;
   protected $denyMaintenancePeriodsDataType = 'array';
   /**
-   * Optional. The edition of the instance.
+   * Optional. The edition type of the Cloud SQL instance.
    *
    * @var string
    */
@@ -393,6 +404,23 @@ class Settings extends \Google\Collection
    */
   public $userLabels;
 
+  /**
+   * Optional. Whether the replica is in accelerated mode. This feature is in
+   * private preview and requires allowlisting to take effect.
+   *
+   * @param bool $acceleratedReplicaMode
+   */
+  public function setAcceleratedReplicaMode($acceleratedReplicaMode)
+  {
+    $this->acceleratedReplicaMode = $acceleratedReplicaMode;
+  }
+  /**
+   * @return bool
+   */
+  public function getAcceleratedReplicaMode()
+  {
+    return $this->acceleratedReplicaMode;
+  }
   /**
    * The activation policy specifies when the instance is activated; it is
    * applicable only when the instance state is RUNNABLE. Valid values: *
@@ -775,9 +803,10 @@ class Settings extends \Google\Collection
     return $this->denyMaintenancePeriods;
   }
   /**
-   * Optional. The edition of the instance.
+   * Optional. The edition type of the Cloud SQL instance.
    *
-   * Accepted values: EDITION_UNSPECIFIED, ENTERPRISE, ENTERPRISE_PLUS
+   * Accepted values: EDITION_UNSPECIFIED, ENTERPRISE, ENTERPRISE_PLUS,
+   * DEVELOPER
    *
    * @param self::EDITION_* $edition
    */

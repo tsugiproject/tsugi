@@ -20,36 +20,19 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2beta1AnnotatedMessagePart extends \Google\Model
 {
   /**
-   * Optional. The [Dialogflow system entity
-   * type](https://cloud.google.com/dialogflow/docs/reference/system-entities)
-   * of this message part. If this is empty, Dialogflow could not annotate the
-   * phrase part with a system entity.
-   *
    * @var string
    */
   public $entityType;
   /**
-   * Optional. The [Dialogflow system entity formatted value
-   * ](https://cloud.google.com/dialogflow/docs/reference/system-entities) of
-   * this message part. For example for a system entity of type `@sys.unit-
-   * currency`, this may contain: { "amount": 5, "currency": "USD" }
-   *
    * @var array
    */
   public $formattedValue;
   /**
-   * Required. A part of a message possibly annotated with an entity.
-   *
    * @var string
    */
   public $text;
 
   /**
-   * Optional. The [Dialogflow system entity
-   * type](https://cloud.google.com/dialogflow/docs/reference/system-entities)
-   * of this message part. If this is empty, Dialogflow could not annotate the
-   * phrase part with a system entity.
-   *
    * @param string $entityType
    */
   public function setEntityType($entityType)
@@ -64,11 +47,6 @@ class GoogleCloudDialogflowV2beta1AnnotatedMessagePart extends \Google\Model
     return $this->entityType;
   }
   /**
-   * Optional. The [Dialogflow system entity formatted value
-   * ](https://cloud.google.com/dialogflow/docs/reference/system-entities) of
-   * this message part. For example for a system entity of type `@sys.unit-
-   * currency`, this may contain: { "amount": 5, "currency": "USD" }
-   *
    * @param array $formattedValue
    */
   public function setFormattedValue($formattedValue)
@@ -83,8 +61,6 @@ class GoogleCloudDialogflowV2beta1AnnotatedMessagePart extends \Google\Model
     return $this->formattedValue;
   }
   /**
-   * Required. A part of a message possibly annotated with an entity.
-   *
    * @param string $text
    */
   public function setText($text)

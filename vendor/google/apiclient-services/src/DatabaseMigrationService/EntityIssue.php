@@ -116,6 +116,10 @@ class EntityIssue extends \Google\Model
    */
   public const TYPE_ISSUE_TYPE_CONVERT = 'ISSUE_TYPE_CONVERT';
   /**
+   * Issue originated during the pull schema process
+   */
+  public const TYPE_ISSUE_TYPE_PULL_SCHEMA = 'ISSUE_TYPE_PULL_SCHEMA';
+  /**
    * Error/Warning code
    *
    * @var string
@@ -289,7 +293,7 @@ class EntityIssue extends \Google\Model
    * The type of the issue.
    *
    * Accepted values: ISSUE_TYPE_UNSPECIFIED, ISSUE_TYPE_DDL, ISSUE_TYPE_APPLY,
-   * ISSUE_TYPE_CONVERT
+   * ISSUE_TYPE_CONVERT, ISSUE_TYPE_PULL_SCHEMA
    *
    * @param self::TYPE_* $type
    */

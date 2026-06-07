@@ -21,36 +21,19 @@ class GoogleCloudDialogflowCxV3TestConfig extends \Google\Collection
 {
   protected $collection_key = 'trackingParameters';
   /**
-   * Flow name to start the test case with. Format:
-   * `projects//locations//agents//flows/`. Only one of `flow` and `page` should
-   * be set to indicate the starting point of the test case. If neither is set,
-   * the test case will start with start page on the default start flow.
-   *
    * @var string
    */
   public $flow;
   /**
-   * The page to start the test case with. Format:
-   * `projects//locations//agents//flows//pages/`. Only one of `flow` and `page`
-   * should be set to indicate the starting point of the test case. If neither
-   * is set, the test case will start with start page on the default start flow.
-   *
    * @var string
    */
   public $page;
   /**
-   * Session parameters to be compared when calculating differences.
-   *
    * @var string[]
    */
   public $trackingParameters;
 
   /**
-   * Flow name to start the test case with. Format:
-   * `projects//locations//agents//flows/`. Only one of `flow` and `page` should
-   * be set to indicate the starting point of the test case. If neither is set,
-   * the test case will start with start page on the default start flow.
-   *
    * @param string $flow
    */
   public function setFlow($flow)
@@ -65,11 +48,6 @@ class GoogleCloudDialogflowCxV3TestConfig extends \Google\Collection
     return $this->flow;
   }
   /**
-   * The page to start the test case with. Format:
-   * `projects//locations//agents//flows//pages/`. Only one of `flow` and `page`
-   * should be set to indicate the starting point of the test case. If neither
-   * is set, the test case will start with start page on the default start flow.
-   *
    * @param string $page
    */
   public function setPage($page)
@@ -84,8 +62,6 @@ class GoogleCloudDialogflowCxV3TestConfig extends \Google\Collection
     return $this->page;
   }
   /**
-   * Session parameters to be compared when calculating differences.
-   *
    * @param string[] $trackingParameters
    */
   public function setTrackingParameters($trackingParameters)

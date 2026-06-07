@@ -25,7 +25,6 @@ use Google\Service\DisplayVideo\BulkUpdateLineItemsResponse;
 use Google\Service\DisplayVideo\DisplayvideoEmpty;
 use Google\Service\DisplayVideo\DuplicateLineItemRequest;
 use Google\Service\DisplayVideo\DuplicateLineItemResponse;
-use Google\Service\DisplayVideo\GenerateDefaultLineItemRequest;
 use Google\Service\DisplayVideo\LineItem;
 use Google\Service\DisplayVideo\ListLineItemsResponse;
 
@@ -189,27 +188,6 @@ class AdvertisersLineItems extends \Google\Service\Resource
     $params = ['advertiserId' => $advertiserId, 'lineItemId' => $lineItemId, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('duplicate', [$params], DuplicateLineItemResponse::class);
-  }
-  /**
-   * Creates a new line item with settings (including targeting) inherited from
-   * the insertion order and an `ENTITY_STATUS_DRAFT` entity_status. Returns the
-   * newly created line item if successful. There are default values based on the
-   * three fields: * The insertion order's insertion_order_type * The insertion
-   * order's automation_type * The given line_item_type YouTube & Partners line
-   * items cannot be created or updated using the API. (lineItems.generateDefault)
-   *
-   * @param string $advertiserId Required. The ID of the advertiser this line item
-   * belongs to.
-   * @param GenerateDefaultLineItemRequest $postBody
-   * @param array $optParams Optional parameters.
-   * @return LineItem
-   * @throws \Google\Service\Exception
-   */
-  public function generateDefault($advertiserId, GenerateDefaultLineItemRequest $postBody, $optParams = [])
-  {
-    $params = ['advertiserId' => $advertiserId, 'postBody' => $postBody];
-    $params = array_merge($params, $optParams);
-    return $this->call('generateDefault', [$params], LineItem::class);
   }
   /**
    * Gets a line item. (lineItems.get)

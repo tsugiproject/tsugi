@@ -50,7 +50,7 @@ class WarningCount extends \Google\Model
    */
   public const REASON_PROCESSING_WARNING_REASON_INVALID_KEK = 'PROCESSING_WARNING_REASON_INVALID_KEK';
   /**
-   * Failed to decrypt th UserIdentifier data using the DEK.
+   * Failed to decrypt the UserIdentifier data using the DEK.
    */
   public const REASON_PROCESSING_WARNING_REASON_USER_IDENTIFIER_DECRYPTION_ERROR = 'PROCESSING_WARNING_REASON_USER_IDENTIFIER_DECRYPTION_ERROR';
   /**

@@ -24,24 +24,23 @@ class GooglePrivacyDlpV2TransformationResultStatus extends \Google\Model
    */
   public const RESULT_STATUS_TYPE_STATE_TYPE_UNSPECIFIED = 'STATE_TYPE_UNSPECIFIED';
   /**
-   * This will be set when a finding could not be transformed (i.e. outside user
-   * set bucket range).
+   * This is set when a finding cannot be transformed (i.e. outside user set
+   * bucket range).
    */
   public const RESULT_STATUS_TYPE_INVALID_TRANSFORM = 'INVALID_TRANSFORM';
   /**
-   * This will be set when a BigQuery transformation was successful but could
-   * not be stored back in BigQuery because the transformed row exceeds
-   * BigQuery's max row size.
+   * This is set when a transformation is successful but cannot be stored in
+   * BigQuery because the transformed row exceeds BigQuery's max row size.
    */
   public const RESULT_STATUS_TYPE_BIGQUERY_MAX_ROW_SIZE_EXCEEDED = 'BIGQUERY_MAX_ROW_SIZE_EXCEEDED';
   /**
-   * This will be set when there is a finding in the custom metadata of a file,
-   * but at the write time of the transformed file, this key / value pair is
+   * This is set when there is a finding in the custom metadata of a file, but
+   * at the write time of the transformed file, this key / value pair is
    * unretrievable.
    */
   public const RESULT_STATUS_TYPE_METADATA_UNRETRIEVABLE = 'METADATA_UNRETRIEVABLE';
   /**
-   * This will be set when the transformation and storing of it is successful.
+   * This is set when the transformation and its storage are successful.
    */
   public const RESULT_STATUS_TYPE_SUCCESS = 'SUCCESS';
   protected $detailsType = GoogleRpcStatus::class;

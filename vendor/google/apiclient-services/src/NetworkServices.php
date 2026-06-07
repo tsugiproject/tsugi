@@ -647,6 +647,10 @@ class NetworkServices extends \Google\Service
                   'location' => 'query',
                   'type' => 'string',
                 ],
+                'requestId' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
               ],
             ],'delete' => [
               'path' => 'v1/{+name}',
@@ -676,6 +680,10 @@ class NetworkServices extends \Google\Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ],
+                'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
                 ],
                 'pageSize' => [
                   'location' => 'query',

@@ -20,8 +20,8 @@ namespace Google\Service\OrgPolicyAPI;
 class GoogleCloudOrgpolicyV2Constraint extends \Google\Model
 {
   /**
-   * This is only used for distinguishing unset values and should never be used.
-   * Results in an error.
+   * This is only used for distinguishing unset values, and results in an error
+   * if set.
    */
   public const CONSTRAINT_DEFAULT_CONSTRAINT_DEFAULT_UNSPECIFIED = 'CONSTRAINT_DEFAULT_UNSPECIFIED';
   /**
@@ -56,8 +56,11 @@ class GoogleCloudOrgpolicyV2Constraint extends \Google\Model
    */
   public $displayName;
   /**
-   * Managed constraint and canned constraint sometimes can have equivalents.
-   * This field is used to store the equivalent constraint name.
+   * Defines the equivalent constraint name, if it exists. Managed constraints
+   * can have an equivalent legacy managed constraint, and legacy managed
+   * constraints can have an equivalent managed constraint. For example,
+   * "constraints/iam.disableServiceAccountKeyUpload" is equivalent to
+   * "constraints/iam.managed.disableServiceAccountKeyUpload".
    *
    * @var string
    */
@@ -156,8 +159,11 @@ class GoogleCloudOrgpolicyV2Constraint extends \Google\Model
     return $this->displayName;
   }
   /**
-   * Managed constraint and canned constraint sometimes can have equivalents.
-   * This field is used to store the equivalent constraint name.
+   * Defines the equivalent constraint name, if it exists. Managed constraints
+   * can have an equivalent legacy managed constraint, and legacy managed
+   * constraints can have an equivalent managed constraint. For example,
+   * "constraints/iam.disableServiceAccountKeyUpload" is equivalent to
+   * "constraints/iam.managed.disableServiceAccountKeyUpload".
    *
    * @param string $equivalentConstraint
    */

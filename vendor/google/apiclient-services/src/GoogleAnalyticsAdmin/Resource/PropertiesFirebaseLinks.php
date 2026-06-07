@@ -72,11 +72,11 @@ class PropertiesFirebaseLinks extends \Google\Service\Resource
    * `properties/1234`
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize The maximum number of resources to return. The
-   * service may return fewer than this value, even if there are additional pages.
-   * If unspecified, at most 50 resources will be returned. The maximum value is
-   * 200; (higher values will be coerced to the maximum)
-   * @opt_param string pageToken A page token, received from a previous
+   * @opt_param int pageSize Optional. The maximum number of resources to return.
+   * The service may return fewer than this value, even if there are additional
+   * pages. If unspecified, at most 50 resources will be returned. The maximum
+   * value is 200; (higher values will be coerced to the maximum)
+   * @opt_param string pageToken Optional. A page token, received from a previous
    * `ListFirebaseLinks` call. Provide this to retrieve the subsequent page. When
    * paginating, all other parameters provided to `ListFirebaseLinks` must match
    * the call that provided the page token.

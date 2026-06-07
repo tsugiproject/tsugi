@@ -22,20 +22,21 @@ class DiscoverConnectionProfileRequest extends \Google\Model
   protected $connectionProfileType = ConnectionProfile::class;
   protected $connectionProfileDataType = '';
   /**
-   * A reference to an existing connection profile.
+   * Optional. A reference to an existing connection profile.
    *
    * @var string
    */
   public $connectionProfileName;
   /**
-   * Whether to retrieve the full hierarchy of data objects (TRUE) or only the
-   * current level (FALSE).
+   * Optional. Whether to retrieve the full hierarchy of data objects (TRUE) or
+   * only the current level (FALSE).
    *
    * @var bool
    */
   public $fullHierarchy;
   /**
-   * The number of hierarchy levels below the current level to be retrieved.
+   * Optional. The number of hierarchy levels below the current level to be
+   * retrieved.
    *
    * @var int
    */
@@ -50,11 +51,13 @@ class DiscoverConnectionProfileRequest extends \Google\Model
   protected $postgresqlRdbmsDataType = '';
   protected $salesforceOrgType = SalesforceOrg::class;
   protected $salesforceOrgDataType = '';
+  protected $spannerDatabaseType = SpannerDatabase::class;
+  protected $spannerDatabaseDataType = '';
   protected $sqlServerRdbmsType = SqlServerRdbms::class;
   protected $sqlServerRdbmsDataType = '';
 
   /**
-   * An ad-hoc connection profile configuration.
+   * Optional. An ad-hoc connection profile configuration.
    *
    * @param ConnectionProfile $connectionProfile
    */
@@ -70,7 +73,7 @@ class DiscoverConnectionProfileRequest extends \Google\Model
     return $this->connectionProfile;
   }
   /**
-   * A reference to an existing connection profile.
+   * Optional. A reference to an existing connection profile.
    *
    * @param string $connectionProfileName
    */
@@ -86,8 +89,8 @@ class DiscoverConnectionProfileRequest extends \Google\Model
     return $this->connectionProfileName;
   }
   /**
-   * Whether to retrieve the full hierarchy of data objects (TRUE) or only the
-   * current level (FALSE).
+   * Optional. Whether to retrieve the full hierarchy of data objects (TRUE) or
+   * only the current level (FALSE).
    *
    * @param bool $fullHierarchy
    */
@@ -103,7 +106,8 @@ class DiscoverConnectionProfileRequest extends \Google\Model
     return $this->fullHierarchy;
   }
   /**
-   * The number of hierarchy levels below the current level to be retrieved.
+   * Optional. The number of hierarchy levels below the current level to be
+   * retrieved.
    *
    * @param int $hierarchyDepth
    */
@@ -119,7 +123,7 @@ class DiscoverConnectionProfileRequest extends \Google\Model
     return $this->hierarchyDepth;
   }
   /**
-   * MongoDB cluster to enrich with child data objects and metadata.
+   * Optional. MongoDB cluster to enrich with child data objects and metadata.
    *
    * @param MongodbCluster $mongodbCluster
    */
@@ -135,7 +139,7 @@ class DiscoverConnectionProfileRequest extends \Google\Model
     return $this->mongodbCluster;
   }
   /**
-   * MySQL RDBMS to enrich with child data objects and metadata.
+   * Optional. MySQL RDBMS to enrich with child data objects and metadata.
    *
    * @param MysqlRdbms $mysqlRdbms
    */
@@ -151,7 +155,7 @@ class DiscoverConnectionProfileRequest extends \Google\Model
     return $this->mysqlRdbms;
   }
   /**
-   * Oracle RDBMS to enrich with child data objects and metadata.
+   * Optional. Oracle RDBMS to enrich with child data objects and metadata.
    *
    * @param OracleRdbms $oracleRdbms
    */
@@ -167,7 +171,7 @@ class DiscoverConnectionProfileRequest extends \Google\Model
     return $this->oracleRdbms;
   }
   /**
-   * PostgreSQL RDBMS to enrich with child data objects and metadata.
+   * Optional. PostgreSQL RDBMS to enrich with child data objects and metadata.
    *
    * @param PostgresqlRdbms $postgresqlRdbms
    */
@@ -183,7 +187,8 @@ class DiscoverConnectionProfileRequest extends \Google\Model
     return $this->postgresqlRdbms;
   }
   /**
-   * Salesforce organization to enrich with child data objects and metadata.
+   * Optional. Salesforce organization to enrich with child data objects and
+   * metadata.
    *
    * @param SalesforceOrg $salesforceOrg
    */
@@ -199,7 +204,23 @@ class DiscoverConnectionProfileRequest extends \Google\Model
     return $this->salesforceOrg;
   }
   /**
-   * SQLServer RDBMS to enrich with child data objects and metadata.
+   * Optional. Spanner database to enrich with child data objects and metadata.
+   *
+   * @param SpannerDatabase $spannerDatabase
+   */
+  public function setSpannerDatabase(SpannerDatabase $spannerDatabase)
+  {
+    $this->spannerDatabase = $spannerDatabase;
+  }
+  /**
+   * @return SpannerDatabase
+   */
+  public function getSpannerDatabase()
+  {
+    return $this->spannerDatabase;
+  }
+  /**
+   * Optional. SQLServer RDBMS to enrich with child data objects and metadata.
    *
    * @param SqlServerRdbms $sqlServerRdbms
    */

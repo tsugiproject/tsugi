@@ -21,7 +21,7 @@ class GoogleCloudOrgpolicyV2AlternatePolicySpec extends \Google\Model
 {
   /**
    * Reference to the launch that will be used while audit logging and to
-   * control the launch. Should be set only in the alternate policy.
+   * control the launch. Set only in the alternate policy.
    *
    * @var string
    */
@@ -31,7 +31,7 @@ class GoogleCloudOrgpolicyV2AlternatePolicySpec extends \Google\Model
 
   /**
    * Reference to the launch that will be used while audit logging and to
-   * control the launch. Should be set only in the alternate policy.
+   * control the launch. Set only in the alternate policy.
    *
    * @param string $launch
    */

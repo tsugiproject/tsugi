@@ -33,6 +33,11 @@ class ResumeSubscriptionRequest extends \Google\Model
    * to be applicable.
    */
   public const RESUME_MODE_RESUME_MODE_RESTORE_EXISTING_BILLING_SCHEDULE = 'RESUME_MODE_RESTORE_EXISTING_BILLING_SCHEDULE';
+  /**
+   * Resume the subscription and start a new billing cycle immediately,
+   * resulting in a new charge.
+   */
+  public const RESUME_MODE_RESUME_MODE_IMMEDIATE_NEW_CYCLE = 'RESUME_MODE_IMMEDIATE_NEW_CYCLE';
   protected $cycleOptionsType = CycleOptions::class;
   protected $cycleOptionsDataType = '';
   /**
@@ -62,7 +67,8 @@ class ResumeSubscriptionRequest extends \Google\Model
    * Required. The mode to resume the subscription.
    *
    * Accepted values: RESUME_MODE_UNSPECIFIED, RESUME_MODE_CYCLE_OPTIONS,
-   * RESUME_MODE_RESTORE_EXISTING_BILLING_SCHEDULE
+   * RESUME_MODE_RESTORE_EXISTING_BILLING_SCHEDULE,
+   * RESUME_MODE_IMMEDIATE_NEW_CYCLE
    *
    * @param self::RESUME_MODE_* $resumeMode
    */

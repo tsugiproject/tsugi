@@ -54,19 +54,20 @@ class CopyBackupEncryptionConfig extends \Google\Collection
    * location is in `us-central1` or `nam3`, then the database instance must
    * also be in `us-central1` or `nam3`. The Cloud KMS key that is used to
    * encrypt and decrypt the restored database. Set this field only when
-   * encryption_type is `CUSTOMER_MANAGED_ENCRYPTION`. Values are of the form
-   * `projects//locations//keyRings//cryptoKeys/`.
+   * encryption_type is `CUSTOMER_MANAGED_ENCRYPTION`. Values are of the form `p
+   * rojects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{kms_
+   * key_name}`.
    *
    * @var string
    */
   public $kmsKeyName;
   /**
    * Optional. Specifies the KMS configuration for the one or more keys used to
-   * protect the backup. Values are of the form
-   * `projects//locations//keyRings//cryptoKeys/`. KMS keys specified can be in
-   * any order. The keys referenced by `kms_key_names` must fully cover all
-   * regions of the backup's instance configuration. Some examples: * For
-   * regional (single-region) instance configurations, specify a regional
+   * protect the backup. Values are of the form `projects/{project}/locations/{l
+   * ocation}/keyRings/{key_ring}/cryptoKeys/{kms_key_name}`. KMS keys specified
+   * can be in any order. The keys referenced by `kms_key_names` must fully
+   * cover all regions of the backup's instance configuration. Some examples: *
+   * For regional (single-region) instance configurations, specify a regional
    * location KMS key. * For multi-region instance configurations of type
    * `GOOGLE_MANAGED`, either specify a multi-region location KMS key or
    * multiple regional location KMS keys that cover all regions in the instance
@@ -107,8 +108,9 @@ class CopyBackupEncryptionConfig extends \Google\Collection
    * location is in `us-central1` or `nam3`, then the database instance must
    * also be in `us-central1` or `nam3`. The Cloud KMS key that is used to
    * encrypt and decrypt the restored database. Set this field only when
-   * encryption_type is `CUSTOMER_MANAGED_ENCRYPTION`. Values are of the form
-   * `projects//locations//keyRings//cryptoKeys/`.
+   * encryption_type is `CUSTOMER_MANAGED_ENCRYPTION`. Values are of the form `p
+   * rojects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{kms_
+   * key_name}`.
    *
    * @param string $kmsKeyName
    */
@@ -125,11 +127,11 @@ class CopyBackupEncryptionConfig extends \Google\Collection
   }
   /**
    * Optional. Specifies the KMS configuration for the one or more keys used to
-   * protect the backup. Values are of the form
-   * `projects//locations//keyRings//cryptoKeys/`. KMS keys specified can be in
-   * any order. The keys referenced by `kms_key_names` must fully cover all
-   * regions of the backup's instance configuration. Some examples: * For
-   * regional (single-region) instance configurations, specify a regional
+   * protect the backup. Values are of the form `projects/{project}/locations/{l
+   * ocation}/keyRings/{key_ring}/cryptoKeys/{kms_key_name}`. KMS keys specified
+   * can be in any order. The keys referenced by `kms_key_names` must fully
+   * cover all regions of the backup's instance configuration. Some examples: *
+   * For regional (single-region) instance configurations, specify a regional
    * location KMS key. * For multi-region instance configurations of type
    * `GOOGLE_MANAGED`, either specify a multi-region location KMS key or
    * multiple regional location KMS keys that cover all regions in the instance

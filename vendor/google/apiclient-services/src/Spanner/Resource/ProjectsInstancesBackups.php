@@ -49,7 +49,8 @@ class ProjectsInstancesBackups extends \Google\Service\Resource
    * same source backup. (backups.copy)
    *
    * @param string $parent Required. The name of the destination instance that
-   * will contain the backup copy. Values are of the form: `projects//instances/`.
+   * will contain the backup copy. Values are of the form:
+   * `projects/{project}/instances/{instance}`.
    * @param CopyBackupRequest $postBody
    * @param array $optParams Optional parameters.
    * @return Operation
@@ -75,13 +76,13 @@ class ProjectsInstancesBackups extends \Google\Service\Resource
    * is created. This must be the same instance that contains the database the
    * backup is created from. The backup will be stored in the locations specified
    * in the instance configuration of this instance. Values are of the form
-   * `projects//instances/`.
+   * `projects/{project}/instances/{instance}`.
    * @param Backup $postBody
    * @param array $optParams Optional parameters.
    *
    * @opt_param string backupId Required. The id of the backup to be created. The
    * `backup_id` appended to `parent` forms the full backup name of the form
-   * `projects//instances//backups/`.
+   * `projects/{project}/instances/{instance}/backups/{backup_id}`.
    * @opt_param string encryptionConfig.encryptionType Required. The encryption
    * type of the backup.
    * @opt_param string encryptionConfig.kmsKeyName Optional. This field is
@@ -92,19 +93,21 @@ class ProjectsInstancesBackups extends \Google\Service\Resource
    * `nam3`, then the database instance must also be in `us-central1` or `nam3`.
    * The Cloud KMS key that is used to encrypt and decrypt the restored database.
    * Set this field only when encryption_type is `CUSTOMER_MANAGED_ENCRYPTION`.
-   * Values are of the form `projects//locations//keyRings//cryptoKeys/`.
+   * Values are of the form `projects/{project}/locations/{location}/keyRings/{key
+   * _ring}/cryptoKeys/{kms_key_name}`.
    * @opt_param string encryptionConfig.kmsKeyNames Optional. Specifies the KMS
    * configuration for the one or more keys used to protect the backup. Values are
-   * of the form `projects//locations//keyRings//cryptoKeys/`. The keys referenced
-   * by `kms_key_names` must fully cover all regions of the backup's instance
-   * configuration. Some examples: * For regional (single-region) instance
-   * configurations, specify a regional location KMS key. * For multi-region
-   * instance configurations of type `GOOGLE_MANAGED`, either specify a multi-
-   * region location KMS key or multiple regional location KMS keys that cover all
-   * regions in the instance configuration. * For an instance configuration of
-   * type `USER_MANAGED`, specify only regional location KMS keys to cover each
-   * region in the instance configuration. Multi-region location KMS keys aren't
-   * supported for `USER_MANAGED` type instance configurations.
+   * of the form `projects/{project}/locations/{location}/keyRings/{key_ring}/cryp
+   * toKeys/{kms_key_name}`. The keys referenced by `kms_key_names` must fully
+   * cover all regions of the backup's instance configuration. Some examples: *
+   * For regional (single-region) instance configurations, specify a regional
+   * location KMS key. * For multi-region instance configurations of type
+   * `GOOGLE_MANAGED`, either specify a multi-region location KMS key or multiple
+   * regional location KMS keys that cover all regions in the instance
+   * configuration. * For an instance configuration of type `USER_MANAGED`,
+   * specify only regional location KMS keys to cover each region in the instance
+   * configuration. Multi-region location KMS keys aren't supported for
+   * `USER_MANAGED` type instance configurations.
    * @return Operation
    * @throws \Google\Service\Exception
    */
@@ -118,7 +121,7 @@ class ProjectsInstancesBackups extends \Google\Service\Resource
    * Deletes a pending or completed Backup. (backups.delete)
    *
    * @param string $name Required. Name of the backup to delete. Values are of the
-   * form `projects//instances//backups/`.
+   * form `projects/{project}/instances/{instance}/backups/{backup}`.
    * @param array $optParams Optional parameters.
    * @return SpannerEmpty
    * @throws \Google\Service\Exception
@@ -133,7 +136,7 @@ class ProjectsInstancesBackups extends \Google\Service\Resource
    * Gets metadata on a pending or completed Backup. (backups.get)
    *
    * @param string $name Required. Name of the backup. Values are of the form
-   * `projects//instances//backups/`.
+   * `projects/{project}/instances/{instance}/backups/{backup}`.
    * @param array $optParams Optional parameters.
    * @return Backup
    * @throws \Google\Service\Exception
@@ -173,7 +176,7 @@ class ProjectsInstancesBackups extends \Google\Service\Resource
    * `create_time`. (backups.listProjectsInstancesBackups)
    *
    * @param string $parent Required. The instance to list backups from. Values are
-   * of the form `projects//instances/`.
+   * of the form `projects/{project}/instances/{instance}`.
    * @param array $optParams Optional parameters.
    *
    * @opt_param string filter An expression that filters the list of returned
@@ -218,11 +221,11 @@ class ProjectsInstancesBackups extends \Google\Service\Resource
    * @param string $name Output only for the CreateBackup operation. Required for
    * the UpdateBackup operation. A globally unique identifier for the backup which
    * cannot be changed. Values are of the form
-   * `projects//instances//backups/a-z*[a-z0-9]` The final segment of the name
-   * must be between 2 and 60 characters in length. The backup is stored in the
-   * location(s) specified in the instance configuration of the instance
-   * containing the backup, identified by the prefix of the backup name of the
-   * form `projects//instances/`.
+   * `projects/{project}/instances/{instance}/backups/a-z*[a-z0-9]` The final
+   * segment of the name must be between 2 and 60 characters in length. The backup
+   * is stored in the location(s) specified in the instance configuration of the
+   * instance containing the backup, identified by the prefix of the backup name
+   * of the form `projects/{project}/instances/{instance}`.
    * @param Backup $postBody
    * @param array $optParams Optional parameters.
    *

@@ -30,17 +30,17 @@ class GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesRequest extends \Go
    */
   public $links;
   /**
-   * The maximum number of processes to return in a single page of the response.
-   * A page may contain fewer results than this value.
+   * Optional. The maximum number of processes to return in a single page of the
+   * response. A page may contain fewer results than this value.
    *
    * @var int
    */
   public $pageSize;
   /**
-   * The page token received from a previous `BatchSearchLinkProcesses` call.
-   * Use it to get the next page. When requesting subsequent pages of a
-   * response, remember that all parameters must match the values you provided
-   * in the original request.
+   * Optional. The page token received from a previous
+   * `BatchSearchLinkProcesses` call. Use it to get the next page. When
+   * requesting subsequent pages of a response, remember that all parameters
+   * must match the values you provided in the original request.
    *
    * @var string
    */
@@ -66,8 +66,8 @@ class GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesRequest extends \Go
     return $this->links;
   }
   /**
-   * The maximum number of processes to return in a single page of the response.
-   * A page may contain fewer results than this value.
+   * Optional. The maximum number of processes to return in a single page of the
+   * response. A page may contain fewer results than this value.
    *
    * @param int $pageSize
    */
@@ -83,10 +83,10 @@ class GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesRequest extends \Go
     return $this->pageSize;
   }
   /**
-   * The page token received from a previous `BatchSearchLinkProcesses` call.
-   * Use it to get the next page. When requesting subsequent pages of a
-   * response, remember that all parameters must match the values you provided
-   * in the original request.
+   * Optional. The page token received from a previous
+   * `BatchSearchLinkProcesses` call. Use it to get the next page. When
+   * requesting subsequent pages of a response, remember that all parameters
+   * must match the values you provided in the original request.
    *
    * @param string $pageToken
    */

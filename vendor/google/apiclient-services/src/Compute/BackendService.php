@@ -450,19 +450,18 @@ class BackendService extends \Google\Collection
    * are expected to contain non-standard    HTTP response header field
    * Endpoint-Load-Metrics. The reported    metrics to use for computing the
    * weights are specified via thecustomMetrics field.        This field is
-   * applicable to either:       - A regional backend service with the
-   * service_protocol set to HTTP,       HTTPS, HTTP2 or H2C, and
-   * load_balancing_scheme set to       INTERNAL_MANAGED.        - A global
-   * backend service with the       load_balancing_scheme set to
-   * INTERNAL_SELF_MANAGED, INTERNAL_MANAGED, or       EXTERNAL_MANAGED.
-   * If sessionAffinity is not configured—that is, if session    affinity
-   * remains at the default value of NONE—then the    default value for
-   * localityLbPolicy    is ROUND_ROBIN. If session affinity is set to a value
-   * other    than NONE,    then the default value for localityLbPolicy
-   * isMAGLEV.        Only ROUND_ROBIN and RING_HASH are supported    when the
-   * backend service is referenced by a URL map that is bound to    target gRPC
-   * proxy that has validateForProxyless field set to true.
-   * localityLbPolicy cannot be specified with haPolicy.
+   * applicable to either:       - A regional backend service with the service
+   * protocol set to HTTP,       HTTPS, HTTP2 or H2C, and load_balancing_scheme
+   * set to       INTERNAL_MANAGED.        - A global backend service with the
+   * load_balancing_scheme set to INTERNAL_SELF_MANAGED, INTERNAL_MANAGED, or
+   * EXTERNAL_MANAGED.            If sessionAffinity is not configured—that is,
+   * if session    affinity remains at the default value of NONE—then the
+   * default value for localityLbPolicy    is ROUND_ROBIN. If session affinity
+   * is set to a value other    than NONE,    then the default value for
+   * localityLbPolicy isMAGLEV.        Only ROUND_ROBIN and RING_HASH are
+   * supported    when the backend service is referenced by a URL map that is
+   * bound to    target gRPC proxy that has validateForProxyless field set to
+   * true.        localityLbPolicy cannot be specified with haPolicy.
    *
    * @var string
    */
@@ -504,6 +503,10 @@ class BackendService extends \Google\Collection
    * @var string
    */
   public $network;
+  protected $networkPassThroughLbTrafficPolicyType = BackendServiceNetworkPassThroughLbTrafficPolicy::class;
+  protected $networkPassThroughLbTrafficPolicyDataType = '';
+  protected $orchestrationInfoType = BackendServiceOrchestrationInfo::class;
+  protected $orchestrationInfoDataType = '';
   protected $outlierDetectionType = OutlierDetection::class;
   protected $outlierDetectionDataType = '';
   protected $paramsType = BackendServiceParams::class;
@@ -761,7 +764,7 @@ class BackendService extends \Google\Collection
    * whenlocalityLbPolicy is set to MAGLEV orRING_HASH.
    *
    * This field is applicable to either:        - A regional backend service
-   * with the service_protocol set to HTTP,    HTTPS, HTTP2 or H2C, and
+   * with the service protocol set to HTTP,    HTTPS, HTTP2 or H2C, and
    * load_balancing_scheme set to    INTERNAL_MANAGED.     - A global backend
    * service with the    load_balancing_scheme set to INTERNAL_SELF_MANAGED.
    *
@@ -1232,19 +1235,18 @@ class BackendService extends \Google\Collection
    * are expected to contain non-standard    HTTP response header field
    * Endpoint-Load-Metrics. The reported    metrics to use for computing the
    * weights are specified via thecustomMetrics field.        This field is
-   * applicable to either:       - A regional backend service with the
-   * service_protocol set to HTTP,       HTTPS, HTTP2 or H2C, and
-   * load_balancing_scheme set to       INTERNAL_MANAGED.        - A global
-   * backend service with the       load_balancing_scheme set to
-   * INTERNAL_SELF_MANAGED, INTERNAL_MANAGED, or       EXTERNAL_MANAGED.
-   * If sessionAffinity is not configured—that is, if session    affinity
-   * remains at the default value of NONE—then the    default value for
-   * localityLbPolicy    is ROUND_ROBIN. If session affinity is set to a value
-   * other    than NONE,    then the default value for localityLbPolicy
-   * isMAGLEV.        Only ROUND_ROBIN and RING_HASH are supported    when the
-   * backend service is referenced by a URL map that is bound to    target gRPC
-   * proxy that has validateForProxyless field set to true.
-   * localityLbPolicy cannot be specified with haPolicy.
+   * applicable to either:       - A regional backend service with the service
+   * protocol set to HTTP,       HTTPS, HTTP2 or H2C, and load_balancing_scheme
+   * set to       INTERNAL_MANAGED.        - A global backend service with the
+   * load_balancing_scheme set to INTERNAL_SELF_MANAGED, INTERNAL_MANAGED, or
+   * EXTERNAL_MANAGED.            If sessionAffinity is not configured—that is,
+   * if session    affinity remains at the default value of NONE—then the
+   * default value for localityLbPolicy    is ROUND_ROBIN. If session affinity
+   * is set to a value other    than NONE,    then the default value for
+   * localityLbPolicy isMAGLEV.        Only ROUND_ROBIN and RING_HASH are
+   * supported    when the backend service is referenced by a URL map that is
+   * bound to    target gRPC proxy that has validateForProxyless field set to
+   * true.        localityLbPolicy cannot be specified with haPolicy.
    *
    * Accepted values: INVALID_LB_POLICY, LEAST_REQUEST, MAGLEV,
    * ORIGINAL_DESTINATION, RANDOM, RING_HASH, ROUND_ROBIN,
@@ -1373,6 +1375,41 @@ class BackendService extends \Google\Collection
     return $this->network;
   }
   /**
+   * Configures traffic steering properties of internal passthrough Network Load
+   * Balancers.
+   *
+   * networkPassThroughLbTrafficPolicy cannot be specified with haPolicy.
+   *
+   * @param BackendServiceNetworkPassThroughLbTrafficPolicy $networkPassThroughLbTrafficPolicy
+   */
+  public function setNetworkPassThroughLbTrafficPolicy(BackendServiceNetworkPassThroughLbTrafficPolicy $networkPassThroughLbTrafficPolicy)
+  {
+    $this->networkPassThroughLbTrafficPolicy = $networkPassThroughLbTrafficPolicy;
+  }
+  /**
+   * @return BackendServiceNetworkPassThroughLbTrafficPolicy
+   */
+  public function getNetworkPassThroughLbTrafficPolicy()
+  {
+    return $this->networkPassThroughLbTrafficPolicy;
+  }
+  /**
+   * Information about the resource or system that manages the backend service.
+   *
+   * @param BackendServiceOrchestrationInfo $orchestrationInfo
+   */
+  public function setOrchestrationInfo(BackendServiceOrchestrationInfo $orchestrationInfo)
+  {
+    $this->orchestrationInfo = $orchestrationInfo;
+  }
+  /**
+   * @return BackendServiceOrchestrationInfo
+   */
+  public function getOrchestrationInfo()
+  {
+    return $this->orchestrationInfo;
+  }
+  /**
    * Settings controlling the ejection of unhealthy backend endpoints from the
    * load balancing pool of each individual proxy instance that processes the
    * traffic for the given backend service. If not set, this feature is
@@ -1397,10 +1434,10 @@ class BackendService extends \Google\Collection
    *
    * Applicable backend service types can be:        - A global backend service
    * with the loadBalancingScheme set to    INTERNAL_SELF_MANAGED or
-   * EXTERNAL_MANAGED.     - A regional backend    service with the
-   * serviceProtocol set to HTTP, HTTPS, HTTP2 or H2C, and
-   * loadBalancingScheme set to INTERNAL_MANAGED or EXTERNAL_MANAGED. Not
-   * supported for Serverless NEGs.
+   * EXTERNAL_MANAGED.     - A regional backend    service with the service
+   * protocol set to HTTP, HTTPS, HTTP2 or H2C, and    loadBalancingScheme set
+   * to INTERNAL_MANAGED or EXTERNAL_MANAGED. Not    supported for Serverless
+   * NEGs.
    *
    * Not supported when the backend service is referenced by a URL map that is
    * bound to target gRPC proxy that has validateForProxyless field set to true.

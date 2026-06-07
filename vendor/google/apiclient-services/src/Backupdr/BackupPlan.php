@@ -55,13 +55,15 @@ class BackupPlan extends \Google\Collection
    */
   public $backupVault;
   /**
-   * Output only. The Google Cloud Platform Service Account to be used by the
-   * BackupVault for taking backups. Specify the email address of the Backup
-   * Vault Service Account.
+   * Output only. The Google Cloud service account to be used by the BackupVault
+   * for taking backups. Specify the email address of the Backup Vault Service
+   * Account.
    *
    * @var string
    */
   public $backupVaultServiceAccount;
+  protected $computeInstanceBackupPlanPropertiesType = ComputeInstanceBackupPlanProperties::class;
+  protected $computeInstanceBackupPlanPropertiesDataType = '';
   /**
    * Output only. When the `BackupPlan` was created.
    *
@@ -78,6 +80,8 @@ class BackupPlan extends \Google\Collection
    * @var string
    */
   public $description;
+  protected $diskBackupPlanPropertiesType = DiskBackupPlanProperties::class;
+  protected $diskBackupPlanPropertiesDataType = '';
   /**
    * Optional. `etag` is returned from the service in the response. As a user of
    * the service, you may provide an etag value in this field to prevent stale
@@ -94,7 +98,7 @@ class BackupPlan extends \Google\Collection
    */
   public $labels;
   /**
-   * Optional. Applicable only for CloudSQL resource_type. Configures how long
+   * Optional. Applicable only for Cloud SQL resource_type. Configures how long
    * logs will be stored. It is defined in “days”. This value should be greater
    * than or equal to minimum enforced log retention duration of the backup
    * vault.
@@ -195,9 +199,9 @@ class BackupPlan extends \Google\Collection
     return $this->backupVault;
   }
   /**
-   * Output only. The Google Cloud Platform Service Account to be used by the
-   * BackupVault for taking backups. Specify the email address of the Backup
-   * Vault Service Account.
+   * Output only. The Google Cloud service account to be used by the BackupVault
+   * for taking backups. Specify the email address of the Backup Vault Service
+   * Account.
    *
    * @param string $backupVaultServiceAccount
    */
@@ -211,6 +215,24 @@ class BackupPlan extends \Google\Collection
   public function getBackupVaultServiceAccount()
   {
     return $this->backupVaultServiceAccount;
+  }
+  /**
+   * Optional. Defines optional properties specific to backups of compute
+   * instance-based resources, such as Compute Engine. This includes settings
+   * like whether to perform a guest flush.
+   *
+   * @param ComputeInstanceBackupPlanProperties $computeInstanceBackupPlanProperties
+   */
+  public function setComputeInstanceBackupPlanProperties(ComputeInstanceBackupPlanProperties $computeInstanceBackupPlanProperties)
+  {
+    $this->computeInstanceBackupPlanProperties = $computeInstanceBackupPlanProperties;
+  }
+  /**
+   * @return ComputeInstanceBackupPlanProperties
+   */
+  public function getComputeInstanceBackupPlanProperties()
+  {
+    return $this->computeInstanceBackupPlanProperties;
   }
   /**
    * Output only. When the `BackupPlan` was created.
@@ -249,6 +271,24 @@ class BackupPlan extends \Google\Collection
     return $this->description;
   }
   /**
+   * Optional. Defines optional properties specific to backups of disk-based
+   * resources, such as Compute Engine Persistent Disks. This includes settings
+   * like whether to perform a guest flush.
+   *
+   * @param DiskBackupPlanProperties $diskBackupPlanProperties
+   */
+  public function setDiskBackupPlanProperties(DiskBackupPlanProperties $diskBackupPlanProperties)
+  {
+    $this->diskBackupPlanProperties = $diskBackupPlanProperties;
+  }
+  /**
+   * @return DiskBackupPlanProperties
+   */
+  public function getDiskBackupPlanProperties()
+  {
+    return $this->diskBackupPlanProperties;
+  }
+  /**
    * Optional. `etag` is returned from the service in the response. As a user of
    * the service, you may provide an etag value in this field to prevent stale
    * resources.
@@ -284,7 +324,7 @@ class BackupPlan extends \Google\Collection
     return $this->labels;
   }
   /**
-   * Optional. Applicable only for CloudSQL resource_type. Configures how long
+   * Optional. Applicable only for Cloud SQL resource_type. Configures how long
    * logs will be stored. It is defined in “days”. This value should be greater
    * than or equal to minimum enforced log retention duration of the backup
    * vault.

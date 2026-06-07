@@ -20,15 +20,11 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3CodeBlock extends \Google\Model
 {
   /**
-   * Optional. Source code of the block in Python.
-   *
    * @var string
    */
   public $code;
 
   /**
-   * Optional. Source code of the block in Python.
-   *
    * @param string $code
    */
   public function setCode($code)

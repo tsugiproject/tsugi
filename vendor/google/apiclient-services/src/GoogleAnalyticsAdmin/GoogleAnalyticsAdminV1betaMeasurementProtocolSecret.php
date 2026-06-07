@@ -26,9 +26,9 @@ class GoogleAnalyticsAdminV1betaMeasurementProtocolSecret extends \Google\Model
    */
   public $displayName;
   /**
-   * Output only. Resource name of this secret. This secret may be a child of
-   * any type of stream. Format: properties/{property}/dataStreams/{dataStream}/
-   * measurementProtocolSecrets/{measurementProtocolSecret}
+   * Identifier. Resource name of this secret. This secret may be a child of any
+   * type of stream. Format: properties/{property}/dataStreams/{dataStream}/meas
+   * urementProtocolSecrets/{measurementProtocolSecret}
    *
    * @var string
    */
@@ -59,9 +59,9 @@ class GoogleAnalyticsAdminV1betaMeasurementProtocolSecret extends \Google\Model
     return $this->displayName;
   }
   /**
-   * Output only. Resource name of this secret. This secret may be a child of
-   * any type of stream. Format: properties/{property}/dataStreams/{dataStream}/
-   * measurementProtocolSecrets/{measurementProtocolSecret}
+   * Identifier. Resource name of this secret. This secret may be a child of any
+   * type of stream. Format: properties/{property}/dataStreams/{dataStream}/meas
+   * urementProtocolSecrets/{measurementProtocolSecret}
    *
    * @param string $name
    */

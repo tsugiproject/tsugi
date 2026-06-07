@@ -37,6 +37,15 @@ class CloudDataplex extends \Google\Service
   /** See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.. */
   const CLOUD_PLATFORM =
       "https://www.googleapis.com/auth/cloud-platform";
+  /** View your data across Google Cloud services and see the email address of your Google Account. */
+  const CLOUD_PLATFORM_READ_ONLY =
+      "https://www.googleapis.com/auth/cloud-platform.read-only";
+  /** See, edit, configure, and delete your Google Cloud Dataplex data and see the email address for your Google Account. */
+  const DATAPLEX_READ_WRITE =
+      "https://www.googleapis.com/auth/dataplex.read-write";
+  /** See your Google Cloud Dataplex data and the email address of your Google Account. */
+  const DATAPLEX_READONLY =
+      "https://www.googleapis.com/auth/dataplex.readonly";
 
   public $organizations_locations_encryptionConfigs;
   public $organizations_locations_operations;
@@ -44,6 +53,7 @@ class CloudDataplex extends \Google\Service
   public $projects_locations_aspectTypes;
   public $projects_locations_changeRequests;
   public $projects_locations_dataAttributeBindings;
+  public $projects_locations_dataDomains;
   public $projects_locations_dataProducts;
   public $projects_locations_dataProducts_dataAssets;
   public $projects_locations_dataScans;
@@ -61,10 +71,6 @@ class CloudDataplex extends \Google\Service
   public $projects_locations_governanceRules;
   public $projects_locations_lakes;
   public $projects_locations_lakes_actions;
-  public $projects_locations_lakes_content;
-  public $projects_locations_lakes_contentitems;
-  public $projects_locations_lakes_environments;
-  public $projects_locations_lakes_environments_sessions;
   public $projects_locations_lakes_tasks;
   public $projects_locations_lakes_tasks_jobs;
   public $projects_locations_lakes_zones;
@@ -73,6 +79,7 @@ class CloudDataplex extends \Google\Service
   public $projects_locations_lakes_zones_assets_actions;
   public $projects_locations_lakes_zones_entities;
   public $projects_locations_lakes_zones_entities_partitions;
+  public $projects_locations_metadataFeeds;
   public $projects_locations_metadataJobs;
   public $projects_locations_operations;
   public $rootUrlTemplate;
@@ -325,6 +332,16 @@ class CloudDataplex extends \Google\Service
                   'type' => 'string',
                 ],
               ],
+            ],'lookupContext' => [
+              'path' => 'v1/{+name}:lookupContext',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'lookupEntry' => [
               'path' => 'v1/{+name}:lookupEntry',
               'httpMethod' => 'GET',
@@ -351,6 +368,47 @@ class CloudDataplex extends \Google\Service
                 'view' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+              ],
+            ],'lookupEntryLinks' => [
+              'path' => 'v1/{+name}:lookupEntryLinks',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'entry' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'entryLinkTypes' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                  'repeated' => true,
+                ],
+                'entryMode' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'pageSize' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+                'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],'modifyEntry' => [
+              'path' => 'v1/{+name}:modifyEntry',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
                 ],
               ],
             ],'searchEntries' => [
@@ -527,7 +585,41 @@ class CloudDataplex extends \Google\Service
         'changeRequests',
         [
           'methods' => [
-            'getIamPolicy' => [
+            'approve' => [
+              'path' => 'v1/{+name}:approve',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'delete' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'DELETE',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'etag' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],'get' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'getIamPolicy' => [
               'path' => 'v1/{+resource}:getIamPolicy',
               'httpMethod' => 'GET',
               'parameters' => [
@@ -539,6 +631,56 @@ class CloudDataplex extends \Google\Service
                 'options.requestedPolicyVersion' => [
                   'location' => 'query',
                   'type' => 'integer',
+                ],
+              ],
+            ],'list' => [
+              'path' => 'v1/{+parent}/changeRequests',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'orderBy' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'pageSize' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+                'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],'patch' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'PATCH',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'updateMask' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],'reject' => [
+              'path' => 'v1/{+name}:reject',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
                 ],
               ],
             ],'setIamPolicy' => [
@@ -695,6 +837,50 @@ class CloudDataplex extends \Google\Service
           ]
         ]
     );
+    $this->projects_locations_dataDomains = new CloudDataplex\Resource\ProjectsLocationsDataDomains(
+        $this,
+        $this->serviceName,
+        'dataDomains',
+        [
+          'methods' => [
+            'getIamPolicy' => [
+              'path' => 'v1/{+resource}:getIamPolicy',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'resource' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'options.requestedPolicyVersion' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+              ],
+            ],'setIamPolicy' => [
+              'path' => 'v1/{+resource}:setIamPolicy',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'resource' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'testIamPermissions' => [
+              'path' => 'v1/{+resource}:testIamPermissions',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'resource' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
     $this->projects_locations_dataProducts = new CloudDataplex\Resource\ProjectsLocationsDataProducts(
         $this,
         $this->serviceName,
@@ -803,6 +989,16 @@ class CloudDataplex extends \Google\Service
                 'validateOnly' => [
                   'location' => 'query',
                   'type' => 'boolean',
+                ],
+              ],
+            ],'requestAccess' => [
+              'path' => 'v1/{+parent}:requestAccess',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
                 ],
               ],
             ],'setIamPolicy' => [
@@ -1089,7 +1285,17 @@ class CloudDataplex extends \Google\Service
         'jobs',
         [
           'methods' => [
-            'generateDataQualityRules' => [
+            'cancel' => [
+              'path' => 'v1/{+name}:cancel',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'generateDataQualityRules' => [
               'path' => 'v1/{+name}:generateDataQualityRules',
               'httpMethod' => 'POST',
               'parameters' => [
@@ -1674,6 +1880,25 @@ class CloudDataplex extends \Google\Service
                   'location' => 'path',
                   'type' => 'string',
                   'required' => true,
+                ],
+              ],
+            ],'patch' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'PATCH',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'allowMissing' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
+                'aspectKeys' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                  'repeated' => true,
                 ],
               ],
             ],
@@ -2418,408 +2643,6 @@ class CloudDataplex extends \Google\Service
           ]
         ]
     );
-    $this->projects_locations_lakes_content = new CloudDataplex\Resource\ProjectsLocationsLakesContent(
-        $this,
-        $this->serviceName,
-        'content',
-        [
-          'methods' => [
-            'create' => [
-              'path' => 'v1/{+parent}/content',
-              'httpMethod' => 'POST',
-              'parameters' => [
-                'parent' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'validateOnly' => [
-                  'location' => 'query',
-                  'type' => 'boolean',
-                ],
-              ],
-            ],'delete' => [
-              'path' => 'v1/{+name}',
-              'httpMethod' => 'DELETE',
-              'parameters' => [
-                'name' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],'get' => [
-              'path' => 'v1/{+name}',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'name' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'view' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-              ],
-            ],'getIamPolicy' => [
-              'path' => 'v1/{+resource}:getIamPolicy',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'resource' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'options.requestedPolicyVersion' => [
-                  'location' => 'query',
-                  'type' => 'integer',
-                ],
-              ],
-            ],'list' => [
-              'path' => 'v1/{+parent}/content',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'parent' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'filter' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-                'pageSize' => [
-                  'location' => 'query',
-                  'type' => 'integer',
-                ],
-                'pageToken' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-              ],
-            ],'patch' => [
-              'path' => 'v1/{+name}',
-              'httpMethod' => 'PATCH',
-              'parameters' => [
-                'name' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'updateMask' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-                'validateOnly' => [
-                  'location' => 'query',
-                  'type' => 'boolean',
-                ],
-              ],
-            ],'setIamPolicy' => [
-              'path' => 'v1/{+resource}:setIamPolicy',
-              'httpMethod' => 'POST',
-              'parameters' => [
-                'resource' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],'testIamPermissions' => [
-              'path' => 'v1/{+resource}:testIamPermissions',
-              'httpMethod' => 'POST',
-              'parameters' => [
-                'resource' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],
-          ]
-        ]
-    );
-    $this->projects_locations_lakes_contentitems = new CloudDataplex\Resource\ProjectsLocationsLakesContentitems(
-        $this,
-        $this->serviceName,
-        'contentitems',
-        [
-          'methods' => [
-            'create' => [
-              'path' => 'v1/{+parent}/contentitems',
-              'httpMethod' => 'POST',
-              'parameters' => [
-                'parent' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'validateOnly' => [
-                  'location' => 'query',
-                  'type' => 'boolean',
-                ],
-              ],
-            ],'delete' => [
-              'path' => 'v1/{+name}',
-              'httpMethod' => 'DELETE',
-              'parameters' => [
-                'name' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],'get' => [
-              'path' => 'v1/{+name}',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'name' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'view' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-              ],
-            ],'getIamPolicy' => [
-              'path' => 'v1/{+resource}:getIamPolicy',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'resource' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'options.requestedPolicyVersion' => [
-                  'location' => 'query',
-                  'type' => 'integer',
-                ],
-              ],
-            ],'list' => [
-              'path' => 'v1/{+parent}/contentitems',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'parent' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'filter' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-                'pageSize' => [
-                  'location' => 'query',
-                  'type' => 'integer',
-                ],
-                'pageToken' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-              ],
-            ],'patch' => [
-              'path' => 'v1/{+name}',
-              'httpMethod' => 'PATCH',
-              'parameters' => [
-                'name' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'updateMask' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-                'validateOnly' => [
-                  'location' => 'query',
-                  'type' => 'boolean',
-                ],
-              ],
-            ],'setIamPolicy' => [
-              'path' => 'v1/{+resource}:setIamPolicy',
-              'httpMethod' => 'POST',
-              'parameters' => [
-                'resource' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],'testIamPermissions' => [
-              'path' => 'v1/{+resource}:testIamPermissions',
-              'httpMethod' => 'POST',
-              'parameters' => [
-                'resource' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],
-          ]
-        ]
-    );
-    $this->projects_locations_lakes_environments = new CloudDataplex\Resource\ProjectsLocationsLakesEnvironments(
-        $this,
-        $this->serviceName,
-        'environments',
-        [
-          'methods' => [
-            'create' => [
-              'path' => 'v1/{+parent}/environments',
-              'httpMethod' => 'POST',
-              'parameters' => [
-                'parent' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'environmentId' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-                'validateOnly' => [
-                  'location' => 'query',
-                  'type' => 'boolean',
-                ],
-              ],
-            ],'delete' => [
-              'path' => 'v1/{+name}',
-              'httpMethod' => 'DELETE',
-              'parameters' => [
-                'name' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],'get' => [
-              'path' => 'v1/{+name}',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'name' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],'getIamPolicy' => [
-              'path' => 'v1/{+resource}:getIamPolicy',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'resource' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'options.requestedPolicyVersion' => [
-                  'location' => 'query',
-                  'type' => 'integer',
-                ],
-              ],
-            ],'list' => [
-              'path' => 'v1/{+parent}/environments',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'parent' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'filter' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-                'orderBy' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-                'pageSize' => [
-                  'location' => 'query',
-                  'type' => 'integer',
-                ],
-                'pageToken' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-              ],
-            ],'patch' => [
-              'path' => 'v1/{+name}',
-              'httpMethod' => 'PATCH',
-              'parameters' => [
-                'name' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'updateMask' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-                'validateOnly' => [
-                  'location' => 'query',
-                  'type' => 'boolean',
-                ],
-              ],
-            ],'setIamPolicy' => [
-              'path' => 'v1/{+resource}:setIamPolicy',
-              'httpMethod' => 'POST',
-              'parameters' => [
-                'resource' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],'testIamPermissions' => [
-              'path' => 'v1/{+resource}:testIamPermissions',
-              'httpMethod' => 'POST',
-              'parameters' => [
-                'resource' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-              ],
-            ],
-          ]
-        ]
-    );
-    $this->projects_locations_lakes_environments_sessions = new CloudDataplex\Resource\ProjectsLocationsLakesEnvironmentsSessions(
-        $this,
-        $this->serviceName,
-        'sessions',
-        [
-          'methods' => [
-            'list' => [
-              'path' => 'v1/{+parent}/sessions',
-              'httpMethod' => 'GET',
-              'parameters' => [
-                'parent' => [
-                  'location' => 'path',
-                  'type' => 'string',
-                  'required' => true,
-                ],
-                'filter' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-                'pageSize' => [
-                  'location' => 'query',
-                  'type' => 'integer',
-                ],
-                'pageToken' => [
-                  'location' => 'query',
-                  'type' => 'string',
-                ],
-              ],
-            ],
-          ]
-        ]
-    );
     $this->projects_locations_lakes_tasks = new CloudDataplex\Resource\ProjectsLocationsLakesTasks(
         $this,
         $this->serviceName,
@@ -3468,6 +3291,98 @@ class CloudDataplex extends \Google\Service
                 'pageToken' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
+    $this->projects_locations_metadataFeeds = new CloudDataplex\Resource\ProjectsLocationsMetadataFeeds(
+        $this,
+        $this->serviceName,
+        'metadataFeeds',
+        [
+          'methods' => [
+            'create' => [
+              'path' => 'v1/{+parent}/metadataFeeds',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'metadataFeedId' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
+              ],
+            ],'delete' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'DELETE',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'get' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'list' => [
+              'path' => 'v1/{+parent}/metadataFeeds',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'parent' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'filter' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'orderBy' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'pageSize' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+                'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],'patch' => [
+              'path' => 'v1/{+name}',
+              'httpMethod' => 'PATCH',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'updateMask' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
               ],
             ],

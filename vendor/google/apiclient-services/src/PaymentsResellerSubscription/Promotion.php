@@ -65,7 +65,7 @@ class Promotion extends \Google\Collection
   public $promotionType;
   /**
    * Output only. 2-letter ISO region code where the promotion is available in.
-   * Ex. "US" Please refers to: https://en.wikipedia.org/wiki/ISO_3166-1
+   * Ex. "US" Please refer to: https://en.wikipedia.org/wiki/ISO_3166-1
    *
    * @var string[]
    */
@@ -186,7 +186,7 @@ class Promotion extends \Google\Collection
   }
   /**
    * Output only. 2-letter ISO region code where the promotion is available in.
-   * Ex. "US" Please refers to: https://en.wikipedia.org/wiki/ISO_3166-1
+   * Ex. "US" Please refer to: https://en.wikipedia.org/wiki/ISO_3166-1
    *
    * @param string[] $regionCodes
    */

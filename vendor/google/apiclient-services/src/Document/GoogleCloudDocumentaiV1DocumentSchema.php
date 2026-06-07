@@ -27,11 +27,19 @@ class GoogleCloudDocumentaiV1DocumentSchema extends \Google\Collection
    */
   public $description;
   /**
-   * Display name to show to users.
+   * Display name to show users.
    *
    * @var string
    */
   public $displayName;
+  /**
+   * Optional. Document level prompt provided by the user. This custom text is
+   * injected into the AI model's prompt to provide extra, document-wide
+   * guidance for processing.
+   *
+   * @var string
+   */
+  public $documentPrompt;
   protected $entityTypesType = GoogleCloudDocumentaiV1DocumentSchemaEntityType::class;
   protected $entityTypesDataType = 'array';
   protected $metadataType = GoogleCloudDocumentaiV1DocumentSchemaMetadata::class;
@@ -54,7 +62,7 @@ class GoogleCloudDocumentaiV1DocumentSchema extends \Google\Collection
     return $this->description;
   }
   /**
-   * Display name to show to users.
+   * Display name to show users.
    *
    * @param string $displayName
    */
@@ -68,6 +76,24 @@ class GoogleCloudDocumentaiV1DocumentSchema extends \Google\Collection
   public function getDisplayName()
   {
     return $this->displayName;
+  }
+  /**
+   * Optional. Document level prompt provided by the user. This custom text is
+   * injected into the AI model's prompt to provide extra, document-wide
+   * guidance for processing.
+   *
+   * @param string $documentPrompt
+   */
+  public function setDocumentPrompt($documentPrompt)
+  {
+    $this->documentPrompt = $documentPrompt;
+  }
+  /**
+   * @return string
+   */
+  public function getDocumentPrompt()
+  {
+    return $this->documentPrompt;
   }
   /**
    * Entity types of the schema.

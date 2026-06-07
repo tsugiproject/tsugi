@@ -35,7 +35,26 @@ class AuthzPolicy extends \Google\Collection
    * Delegate the authorization decision to an external authorization engine.
    */
   public const ACTION_CUSTOM = 'CUSTOM';
-  protected $collection_key = 'httpRules';
+  /**
+   * Unspecified policy profile.
+   */
+  public const POLICY_PROFILE_POLICY_PROFILE_UNSPECIFIED = 'POLICY_PROFILE_UNSPECIFIED';
+  /**
+   * Applies to request authorization. `CUSTOM` authorization policies with
+   * Authz extensions will be allowed with `EXT_AUTHZ_GRPC` or `EXT_PROC_GRPC`
+   * protocols. Extensions are invoked only for request header events.
+   */
+  public const POLICY_PROFILE_REQUEST_AUTHZ = 'REQUEST_AUTHZ';
+  /**
+   * Applies to content security, sanitization, etc. Only `CUSTOM` action is
+   * allowed in this policy profile. AuthzExtensions in the custom provider must
+   * support `EXT_PROC_GRPC` protocol only and be capable of receiving all
+   * `EXT_PROC_GRPC` events (REQUEST_HEADERS, REQUEST_BODY, REQUEST_TRAILERS,
+   * RESPONSE_HEADERS, RESPONSE_BODY, RESPONSE_TRAILERS) with
+   * `FULL_DUPLEX_STREAMED` body send mode.
+   */
+  public const POLICY_PROFILE_CONTENT_AUTHZ = 'CONTENT_AUTHZ';
+  protected $collection_key = 'networkRules';
   /**
    * Required. Can be one of `ALLOW`, `DENY`, `CUSTOM`. When the action is
    * `CUSTOM`, `customProvider` must be specified. When the action is `ALLOW`,
@@ -86,6 +105,16 @@ class AuthzPolicy extends \Google\Collection
    * @var string
    */
   public $name;
+  protected $networkRulesType = AuthzPolicyAuthzRule::class;
+  protected $networkRulesDataType = 'array';
+  /**
+   * Optional. Immutable. Defines the type of authorization being performed. If
+   * not specified, `REQUEST_AUTHZ` is applied. This field cannot be changed
+   * once AuthzPolicy is created.
+   *
+   * @var string
+   */
+  public $policyProfile;
   protected $targetType = AuthzPolicyTarget::class;
   protected $targetDataType = '';
   /**
@@ -229,6 +258,46 @@ class AuthzPolicy extends \Google\Collection
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * Optional. A list of authorization network rules to match against the
+   * incoming request. A policy match occurs when at least one network rule
+   * matches the request. At least one network rule is required for Allow or
+   * Deny Action if no HTTP rules are provided. Network rules are mutually
+   * exclusive with HTTP rules. Limited to 5 rules.
+   *
+   * @param AuthzPolicyAuthzRule[] $networkRules
+   */
+  public function setNetworkRules($networkRules)
+  {
+    $this->networkRules = $networkRules;
+  }
+  /**
+   * @return AuthzPolicyAuthzRule[]
+   */
+  public function getNetworkRules()
+  {
+    return $this->networkRules;
+  }
+  /**
+   * Optional. Immutable. Defines the type of authorization being performed. If
+   * not specified, `REQUEST_AUTHZ` is applied. This field cannot be changed
+   * once AuthzPolicy is created.
+   *
+   * Accepted values: POLICY_PROFILE_UNSPECIFIED, REQUEST_AUTHZ, CONTENT_AUTHZ
+   *
+   * @param self::POLICY_PROFILE_* $policyProfile
+   */
+  public function setPolicyProfile($policyProfile)
+  {
+    $this->policyProfile = $policyProfile;
+  }
+  /**
+   * @return self::POLICY_PROFILE_*
+   */
+  public function getPolicyProfile()
+  {
+    return $this->policyProfile;
   }
   /**
    * Required. Specifies the set of resources to which this policy should be

@@ -19,6 +19,15 @@ namespace Google\Service\Connectors;
 
 class ConnectorsResource extends \Google\Model
 {
+  protected $internal_gapi_mappings = [
+        "meta" => "_meta",
+  ];
+  /**
+   * Metadata for the resource.
+   *
+   * @var array[]
+   */
+  public $meta;
   /**
    * A description of what this resource represents.
    *
@@ -50,6 +59,22 @@ class ConnectorsResource extends \Google\Model
    */
   public $uri;
 
+  /**
+   * Metadata for the resource.
+   *
+   * @param array[] $meta
+   */
+  public function setMeta($meta)
+  {
+    $this->meta = $meta;
+  }
+  /**
+   * @return array[]
+   */
+  public function getMeta()
+  {
+    return $this->meta;
+  }
   /**
    * A description of what this resource represents.
    *

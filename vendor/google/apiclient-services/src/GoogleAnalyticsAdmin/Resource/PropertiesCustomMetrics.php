@@ -104,8 +104,8 @@ class PropertiesCustomMetrics extends \Google\Service\Resource
   /**
    * Updates a CustomMetric on a property. (customMetrics.patch)
    *
-   * @param string $name Output only. Resource name for this CustomMetric
-   * resource. Format: properties/{property}/customMetrics/{customMetric}
+   * @param string $name Identifier. Resource name for this CustomMetric resource.
+   * Format: properties/{property}/customMetrics/{customMetric}
    * @param GoogleAnalyticsAdminV1betaCustomMetric $postBody
    * @param array $optParams Optional parameters.
    *

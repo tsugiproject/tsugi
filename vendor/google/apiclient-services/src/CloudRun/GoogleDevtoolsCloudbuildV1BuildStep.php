@@ -157,6 +157,8 @@ class GoogleDevtoolsCloudbuildV1BuildStep extends \Google\Collection
   public $name;
   protected $pullTimingType = GoogleDevtoolsCloudbuildV1TimeSpan::class;
   protected $pullTimingDataType = '';
+  protected $resultsType = GoogleDevtoolsCloudbuildV1StepResult::class;
+  protected $resultsDataType = 'array';
   /**
    * A shell script to be executed in the step. When script is provided, the
    * user cannot specify the entrypoint or args.
@@ -412,6 +414,22 @@ class GoogleDevtoolsCloudbuildV1BuildStep extends \Google\Collection
   public function getPullTiming()
   {
     return $this->pullTiming;
+  }
+  /**
+   * Declaration of results for this build step.
+   *
+   * @param GoogleDevtoolsCloudbuildV1StepResult[] $results
+   */
+  public function setResults($results)
+  {
+    $this->results = $results;
+  }
+  /**
+   * @return GoogleDevtoolsCloudbuildV1StepResult[]
+   */
+  public function getResults()
+  {
+    return $this->results;
   }
   /**
    * A shell script to be executed in the step. When script is provided, the

@@ -30,7 +30,7 @@ use Google\Service\Safebrowsing\GoogleSecuritySafebrowsingV5HashList;
 class HashList extends \Google\Service\Resource
 {
   /**
-   * Get the latest contents of a hash list. A hash list may either by a threat
+   * Gets the latest contents of a hash list. A hash list may either by a threat
    * list or a non-threat list such as the Global Cache. This is a standard Get
    * method as defined by https://google.aip.dev/131 and the HTTP method is also
    * GET. (hashList.get)

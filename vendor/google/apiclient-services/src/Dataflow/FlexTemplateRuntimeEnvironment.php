@@ -151,8 +151,8 @@ class FlexTemplateRuntimeEnvironment extends \Google\Collection
    */
   public $kmsKeyName;
   /**
-   * The machine type to use for launching the job. The default is
-   * n1-standard-1.
+   * The machine type to use for launching the job. If not set, Dataflow will
+   * select a default machine type.
    *
    * @var string
    */
@@ -467,8 +467,8 @@ class FlexTemplateRuntimeEnvironment extends \Google\Collection
     return $this->kmsKeyName;
   }
   /**
-   * The machine type to use for launching the job. The default is
-   * n1-standard-1.
+   * The machine type to use for launching the job. If not set, Dataflow will
+   * select a default machine type.
    *
    * @param string $launcherMachineType
    */

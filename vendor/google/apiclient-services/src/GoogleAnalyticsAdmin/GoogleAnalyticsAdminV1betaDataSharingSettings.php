@@ -20,7 +20,7 @@ namespace Google\Service\GoogleAnalyticsAdmin;
 class GoogleAnalyticsAdminV1betaDataSharingSettings extends \Google\Model
 {
   /**
-   * Output only. Resource name. Format: accounts/{account}/dataSharingSettings
+   * Identifier. Resource name. Format: accounts/{account}/dataSharingSettings
    * Example: "accounts/1000/dataSharingSettings"
    *
    * @var string
@@ -75,7 +75,7 @@ class GoogleAnalyticsAdminV1betaDataSharingSettings extends \Google\Model
   public $sharingWithOthersEnabled;
 
   /**
-   * Output only. Resource name. Format: accounts/{account}/dataSharingSettings
+   * Identifier. Resource name. Format: accounts/{account}/dataSharingSettings
    * Example: "accounts/1000/dataSharingSettings"
    *
    * @param string $name

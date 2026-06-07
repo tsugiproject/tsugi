@@ -37,6 +37,13 @@ class SkippedDetail extends \Google\Model
    * @var bool
    */
   public $incompatibleDevice;
+  /**
+   * Indicates that the test could not be scheduled in the requested time
+   * because no suitable device was available.
+   *
+   * @var bool
+   */
+  public $pendingTimeout;
 
   /**
    * If the App doesn't support the specific API level.
@@ -85,6 +92,23 @@ class SkippedDetail extends \Google\Model
   public function getIncompatibleDevice()
   {
     return $this->incompatibleDevice;
+  }
+  /**
+   * Indicates that the test could not be scheduled in the requested time
+   * because no suitable device was available.
+   *
+   * @param bool $pendingTimeout
+   */
+  public function setPendingTimeout($pendingTimeout)
+  {
+    $this->pendingTimeout = $pendingTimeout;
+  }
+  /**
+   * @return bool
+   */
+  public function getPendingTimeout()
+  {
+    return $this->pendingTimeout;
   }
 }
 

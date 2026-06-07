@@ -145,8 +145,11 @@ class ApplicationPolicy extends \Google\Collection
    * until the app is installed. After installation, users won't be able to
    * remove the app. You can only set this installType for one app per policy.
    * When this is present in the policy, status bar will be automatically
-   * disabled.If there is any app with KIOSK role, then this install type cannot
-   * be set for any app.
+   * disabled.On Android 11 and above, when an app has this install type, the
+   * user control is disallowed for all apps. The IT admin can set
+   * userControlSettings to USER_CONTROL_ALLOWED to allow user control for
+   * specific apps.If there is any app with KIOSK role, then this install type
+   * cannot be set for any app.
    *
    * @deprecated
    */
@@ -349,7 +352,8 @@ class ApplicationPolicy extends \Google\Collection
    * ManagedProperty. The field value must be compatible with the type of the
    * ManagedProperty: *type* *JSON value* BOOL true or false STRING string
    * INTEGER number CHOICE string MULTISELECT array of strings HIDDEN string
-   * BUNDLE_ARRAY array of objects
+   * BUNDLE_ARRAY array of objects Note: string values cannot be longer than
+   * 65535 characters.
    *
    * @var array[]
    */
@@ -703,7 +707,8 @@ class ApplicationPolicy extends \Google\Collection
    * ManagedProperty. The field value must be compatible with the type of the
    * ManagedProperty: *type* *JSON value* BOOL true or false STRING string
    * INTEGER number CHOICE string MULTISELECT array of strings HIDDEN string
-   * BUNDLE_ARRAY array of objects
+   * BUNDLE_ARRAY array of objects Note: string values cannot be longer than
+   * 65535 characters.
    *
    * @param array[] $managedConfiguration
    */

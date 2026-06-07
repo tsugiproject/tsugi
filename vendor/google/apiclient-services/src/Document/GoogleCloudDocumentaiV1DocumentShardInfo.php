@@ -20,6 +20,14 @@ namespace Google\Service\Document;
 class GoogleCloudDocumentaiV1DocumentShardInfo extends \Google\Model
 {
   /**
+   * The index of the first page in Document.pages in the overall document
+   * global pages. Available for document shards created by the document
+   * splitter.
+   *
+   * @var int
+   */
+  public $pageOffset;
+  /**
    * Total number of shards.
    *
    * @var string
@@ -39,6 +47,24 @@ class GoogleCloudDocumentaiV1DocumentShardInfo extends \Google\Model
    */
   public $textOffset;
 
+  /**
+   * The index of the first page in Document.pages in the overall document
+   * global pages. Available for document shards created by the document
+   * splitter.
+   *
+   * @param int $pageOffset
+   */
+  public function setPageOffset($pageOffset)
+  {
+    $this->pageOffset = $pageOffset;
+  }
+  /**
+   * @return int
+   */
+  public function getPageOffset()
+  {
+    return $this->pageOffset;
+  }
   /**
    * Total number of shards.
    *

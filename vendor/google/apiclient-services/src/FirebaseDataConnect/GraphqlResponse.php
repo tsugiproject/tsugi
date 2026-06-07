@@ -34,6 +34,8 @@ class GraphqlResponse extends \Google\Collection
   public $data;
   protected $errorsType = GraphqlError::class;
   protected $errorsDataType = 'array';
+  protected $extensionsType = GraphqlResponseExtensions::class;
+  protected $extensionsDataType = '';
 
   /**
    * The result of the execution of the requested operation. If an error was
@@ -60,7 +62,7 @@ class GraphqlResponse extends \Google\Collection
   /**
    * Errors of this response. If the data entry in the response is not present,
    * the errors entry must be present. It conforms to
-   * https://spec.graphql.org/draft/#sec-Errors.
+   * https://spec.graphql.org/draft/#sec-Errors .
    *
    * @param GraphqlError[] $errors
    */
@@ -74,6 +76,23 @@ class GraphqlResponse extends \Google\Collection
   public function getErrors()
   {
     return $this->errors;
+  }
+  /**
+   * Additional response information. It conforms to
+   * https://spec.graphql.org/draft/#sec-Extensions .
+   *
+   * @param GraphqlResponseExtensions $extensions
+   */
+  public function setExtensions(GraphqlResponseExtensions $extensions)
+  {
+    $this->extensions = $extensions;
+  }
+  /**
+   * @return GraphqlResponseExtensions
+   */
+  public function getExtensions()
+  {
+    return $this->extensions;
   }
 }
 

@@ -20,16 +20,40 @@ namespace Google\Service\SaaSServiceManagement;
 class RolloutStats extends \Google\Collection
 {
   protected $collection_key = 'operationsByState';
+  /**
+   * Optional. Output only. Estimated number of units based. The estimation is
+   * computed upon creation of the rollout.
+   *
+   * @var string
+   */
+  public $estimatedTotalUnitCount;
   protected $operationsByStateType = Aggregate::class;
   protected $operationsByStateDataType = 'array';
 
   /**
-   * Output only. A breakdown of the progress of operations triggered by the
-   * rollout. Provides a count of Operations by their state. This can be used to
-   * determine the number of units which have been updated, or are scheduled to
-   * be updated. There will be at most one entry per group. Possible values for
-   * operation groups are: - "SCHEDULED" - "PENDING" - "RUNNING" - "SUCCEEDED" -
-   * "FAILED" - "CANCELLED"
+   * Optional. Output only. Estimated number of units based. The estimation is
+   * computed upon creation of the rollout.
+   *
+   * @param string $estimatedTotalUnitCount
+   */
+  public function setEstimatedTotalUnitCount($estimatedTotalUnitCount)
+  {
+    $this->estimatedTotalUnitCount = $estimatedTotalUnitCount;
+  }
+  /**
+   * @return string
+   */
+  public function getEstimatedTotalUnitCount()
+  {
+    return $this->estimatedTotalUnitCount;
+  }
+  /**
+   * Optional. Output only. Unordered list. A breakdown of the progress of
+   * operations triggered by the rollout. Provides a count of Operations by
+   * their state. This can be used to determine the number of units which have
+   * been updated, or are scheduled to be updated. There will be at most one
+   * entry per group. Possible values for operation groups are: - "SCHEDULED" -
+   * "PENDING" - "RUNNING" - "SUCCEEDED" - "FAILED" - "CANCELLED"
    *
    * @param Aggregate[] $operationsByState
    */

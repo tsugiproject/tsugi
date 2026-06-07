@@ -59,6 +59,12 @@ class GoogleCloudAiplatformV1SessionEvent extends \Google\Model
    */
   public $name;
   /**
+   * Optional. Weakly typed raw event data in proto struct format.
+   *
+   * @var array[]
+   */
+  public $rawEvent;
+  /**
    * Required. Timestamp when the event was created on client side.
    *
    * @var string
@@ -195,6 +201,22 @@ class GoogleCloudAiplatformV1SessionEvent extends \Google\Model
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * Optional. Weakly typed raw event data in proto struct format.
+   *
+   * @param array[] $rawEvent
+   */
+  public function setRawEvent($rawEvent)
+  {
+    $this->rawEvent = $rawEvent;
+  }
+  /**
+   * @return array[]
+   */
+  public function getRawEvent()
+  {
+    return $this->rawEvent;
   }
   /**
    * Required. Timestamp when the event was created on client side.

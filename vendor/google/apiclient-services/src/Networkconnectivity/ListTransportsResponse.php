@@ -21,18 +21,24 @@ class ListTransportsResponse extends \Google\Collection
 {
   protected $collection_key = 'unreachable';
   /**
+   * A token identifying a page of results the server should return.
+   *
    * @var string
    */
   public $nextPageToken;
   protected $transportsType = Transport::class;
   protected $transportsDataType = 'array';
   /**
+   * Unordered list. Locations that could not be reached.
+   *
    * @var string[]
    */
   public $unreachable;
 
   /**
-   * @param string
+   * A token identifying a page of results the server should return.
+   *
+   * @param string $nextPageToken
    */
   public function setNextPageToken($nextPageToken)
   {
@@ -46,7 +52,9 @@ class ListTransportsResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * @param Transport[]
+   * The list of Transport.
+   *
+   * @param Transport[] $transports
    */
   public function setTransports($transports)
   {
@@ -60,7 +68,9 @@ class ListTransportsResponse extends \Google\Collection
     return $this->transports;
   }
   /**
-   * @param string[]
+   * Unordered list. Locations that could not be reached.
+   *
+   * @param string[] $unreachable
    */
   public function setUnreachable($unreachable)
   {

@@ -49,6 +49,15 @@ class PostgreSqlConnectionProfile extends \Google\Model
    */
   public $database;
   /**
+   * Optional. If true, Database Migration Service will use IAM database
+   * authentication to connect to the database.
+   *
+   * @var bool
+   */
+  public $enableIamAuthentication;
+  protected $forwardSshConnectivityType = ForwardSshTunnelConnectivity::class;
+  protected $forwardSshConnectivityDataType = '';
+  /**
    * Required. The IP or hostname of the source PostgreSQL database.
    *
    * @var string
@@ -82,6 +91,8 @@ class PostgreSqlConnectionProfile extends \Google\Model
    * @var int
    */
   public $port;
+  protected $privateConnectivityType = PrivateConnectivity::class;
+  protected $privateConnectivityDataType = '';
   protected $privateServiceConnectConnectivityType = PrivateServiceConnectConnectivity::class;
   protected $privateServiceConnectConnectivityDataType = '';
   protected $sslType = SslConfig::class;
@@ -146,6 +157,39 @@ class PostgreSqlConnectionProfile extends \Google\Model
   public function getDatabase()
   {
     return $this->database;
+  }
+  /**
+   * Optional. If true, Database Migration Service will use IAM database
+   * authentication to connect to the database.
+   *
+   * @param bool $enableIamAuthentication
+   */
+  public function setEnableIamAuthentication($enableIamAuthentication)
+  {
+    $this->enableIamAuthentication = $enableIamAuthentication;
+  }
+  /**
+   * @return bool
+   */
+  public function getEnableIamAuthentication()
+  {
+    return $this->enableIamAuthentication;
+  }
+  /**
+   * Forward SSH tunnel connectivity.
+   *
+   * @param ForwardSshTunnelConnectivity $forwardSshConnectivity
+   */
+  public function setForwardSshConnectivity(ForwardSshTunnelConnectivity $forwardSshConnectivity)
+  {
+    $this->forwardSshConnectivity = $forwardSshConnectivity;
+  }
+  /**
+   * @return ForwardSshTunnelConnectivity
+   */
+  public function getForwardSshConnectivity()
+  {
+    return $this->forwardSshConnectivity;
   }
   /**
    * Required. The IP or hostname of the source PostgreSQL database.
@@ -234,6 +278,22 @@ class PostgreSqlConnectionProfile extends \Google\Model
   public function getPort()
   {
     return $this->port;
+  }
+  /**
+   * Private connectivity.
+   *
+   * @param PrivateConnectivity $privateConnectivity
+   */
+  public function setPrivateConnectivity(PrivateConnectivity $privateConnectivity)
+  {
+    $this->privateConnectivity = $privateConnectivity;
+  }
+  /**
+   * @return PrivateConnectivity
+   */
+  public function getPrivateConnectivity()
+  {
+    return $this->privateConnectivity;
   }
   /**
    * Private service connect connectivity.

@@ -23,6 +23,11 @@ use Google\Service\Connectors\ExchangeAuthCodeRequest;
 use Google\Service\Connectors\ExchangeAuthCodeResponse;
 use Google\Service\Connectors\ExecuteSqlQueryRequest;
 use Google\Service\Connectors\ExecuteSqlQueryResponse;
+use Google\Service\Connectors\GenerateCustomToolspecRequest;
+use Google\Service\Connectors\GenerateCustomToolspecResponse;
+use Google\Service\Connectors\ListCustomToolNamesResponse;
+use Google\Service\Connectors\ListToolsPostRequest;
+use Google\Service\Connectors\ListToolsResponse;
 use Google\Service\Connectors\RefreshAccessTokenRequest;
 use Google\Service\Connectors\RefreshAccessTokenResponse;
 
@@ -61,6 +66,10 @@ class ProjectsLocationsConnections extends \Google\Service\Resource
    *
    * @param string $name
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string executionConfig.headers headers to be used for the request.
+   * For example: headers:'{"x-integration-connectors-managed-connection-
+   * id":"conn-id","x-integration-connectors-runtime-config":"runtime-cfg"}'
    * @return CheckStatusResponse
    * @throws \Google\Service\Exception
    */
@@ -107,6 +116,38 @@ class ProjectsLocationsConnections extends \Google\Service\Resource
     return $this->call('executeSqlQuery', [$params], ExecuteSqlQueryResponse::class);
   }
   /**
+   * Generate toolspec override for the given list of toolNames.
+   * (connections.generateConnectionToolspecOverride)
+   *
+   * @param string $name Required. Resource name of the Connection. Format:
+   * projects/{project}/locations/{location}/connections/{connection}
+   * @param GenerateCustomToolspecRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GenerateCustomToolspecResponse
+   * @throws \Google\Service\Exception
+   */
+  public function generateConnectionToolspecOverride($name, GenerateCustomToolspecRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('generateConnectionToolspecOverride', [$params], GenerateCustomToolspecResponse::class);
+  }
+  /**
+   * Lists custom tool names. (connections.listCustomToolNames)
+   *
+   * @param string $name Required. Resource name of the Connection. Format:
+   * projects/{project}/locations/{location}/connections/{connection}
+   * @param array $optParams Optional parameters.
+   * @return ListCustomToolNamesResponse
+   * @throws \Google\Service\Exception
+   */
+  public function listCustomToolNames($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('listCustomToolNames', [$params], ListCustomToolNamesResponse::class);
+  }
+  /**
    * RefreshAccessToken exchanges the OAuth refresh token (and other necessary
    * data) for a new access token (and new associated credentials).
    * (connections.refreshAccessToken)
@@ -122,6 +163,22 @@ class ProjectsLocationsConnections extends \Google\Service\Resource
     $params = ['name' => $name, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('refreshAccessToken', [$params], RefreshAccessTokenResponse::class);
+  }
+  /**
+   * Lists all available tools with POST. (connections.tools)
+   *
+   * @param string $parent Required. Resource name of the Connection. Format:
+   * projects/{project}/locations/{location}/connections/{connection}
+   * @param ListToolsPostRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return ListToolsResponse
+   * @throws \Google\Service\Exception
+   */
+  public function tools($parent, ListToolsPostRequest $postBody, $optParams = [])
+  {
+    $params = ['parent' => $parent, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('tools', [$params], ListToolsResponse::class);
   }
 }
 

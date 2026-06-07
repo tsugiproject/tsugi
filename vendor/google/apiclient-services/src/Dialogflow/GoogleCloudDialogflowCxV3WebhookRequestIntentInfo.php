@@ -20,22 +20,14 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3WebhookRequestIntentInfo extends \Google\Model
 {
   /**
-   * The confidence of the matched intent. Values range from 0.0 (completely
-   * uncertain) to 1.0 (completely certain).
-   *
    * @var float
    */
   public $confidence;
   /**
-   * Always present. The display name of the last matched intent.
-   *
    * @var string
    */
   public $displayName;
   /**
-   * Always present. The unique identifier of the last matched intent. Format:
-   * `projects//locations//agents//intents/`.
-   *
    * @var string
    */
   public $lastMatchedIntent;
@@ -43,9 +35,6 @@ class GoogleCloudDialogflowCxV3WebhookRequestIntentInfo extends \Google\Model
   protected $parametersDataType = 'map';
 
   /**
-   * The confidence of the matched intent. Values range from 0.0 (completely
-   * uncertain) to 1.0 (completely certain).
-   *
    * @param float $confidence
    */
   public function setConfidence($confidence)
@@ -60,8 +49,6 @@ class GoogleCloudDialogflowCxV3WebhookRequestIntentInfo extends \Google\Model
     return $this->confidence;
   }
   /**
-   * Always present. The display name of the last matched intent.
-   *
    * @param string $displayName
    */
   public function setDisplayName($displayName)
@@ -76,9 +63,6 @@ class GoogleCloudDialogflowCxV3WebhookRequestIntentInfo extends \Google\Model
     return $this->displayName;
   }
   /**
-   * Always present. The unique identifier of the last matched intent. Format:
-   * `projects//locations//agents//intents/`.
-   *
    * @param string $lastMatchedIntent
    */
   public function setLastMatchedIntent($lastMatchedIntent)
@@ -93,11 +77,6 @@ class GoogleCloudDialogflowCxV3WebhookRequestIntentInfo extends \Google\Model
     return $this->lastMatchedIntent;
   }
   /**
-   * Parameters identified as a result of intent matching. This is a map of the
-   * name of the identified parameter to the value of the parameter identified
-   * from the user's utterance. All parameters defined in the matched intent
-   * that are identified will be surfaced here.
-   *
    * @param GoogleCloudDialogflowCxV3WebhookRequestIntentInfoIntentParameterValue[] $parameters
    */
   public function setParameters($parameters)

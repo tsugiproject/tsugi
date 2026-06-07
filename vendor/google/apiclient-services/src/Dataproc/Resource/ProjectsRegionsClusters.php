@@ -209,7 +209,7 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * @opt_param string filter Optional. A filter constraining the clusters to
    * list. Filters are case-sensitive and have the following syntax:field = value
    * AND field = value ...where field is one of status.state, clusterName, or
-   * labels.[KEY], and [KEY] is a label key. value can be * to match all values.
+   * labels.[KEY], and [KEY] is a label key. value can be "*" to match all values.
    * status.state can be one of the following: ACTIVE, INACTIVE, CREATING,
    * RUNNING, ERROR, DELETING, UPDATING, STOPPING, or STOPPED. ACTIVE contains the
    * CREATING, UPDATING, and RUNNING states. INACTIVE contains the DELETING,
@@ -218,8 +218,11 @@ class ProjectsRegionsClusters extends \Google\Service\Resource
    * separated items are treated as having an implicit AND operator.Example
    * filter:status.state = ACTIVE AND clusterName = mycluster AND labels.env =
    * staging AND labels.starred = *
-   * @opt_param int pageSize Optional. The standard List page size.
-   * @opt_param string pageToken Optional. The standard List page token.
+   * @opt_param int pageSize Optional. The maximum number of clusters to return in
+   * each response. The service may return fewer than this value. If unspecified,
+   * the default value is 200. The maximum value is 1000.
+   * @opt_param string pageToken Optional. A page token received from a previous
+   * ListClusters call. Provide this token to retrieve the subsequent page.
    * @return ListClustersResponse
    * @throws \Google\Service\Exception
    */

@@ -45,6 +45,8 @@ class GoogleCloudDataplexV1DataDiscoverySpecStorageConfig extends \Google\Collec
   public $includePatterns;
   protected $jsonOptionsType = GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions::class;
   protected $jsonOptionsDataType = '';
+  protected $unstructuredDataOptionsType = GoogleCloudDataplexV1DataDiscoverySpecStorageConfigUnstructuredDataOptions::class;
+  protected $unstructuredDataOptionsDataType = '';
 
   /**
    * Optional. Configuration for CSV data.
@@ -118,6 +120,22 @@ class GoogleCloudDataplexV1DataDiscoverySpecStorageConfig extends \Google\Collec
   public function getJsonOptions()
   {
     return $this->jsonOptions;
+  }
+  /**
+   * Optional. Specifies configuration for unstructured data discovery.
+   *
+   * @param GoogleCloudDataplexV1DataDiscoverySpecStorageConfigUnstructuredDataOptions $unstructuredDataOptions
+   */
+  public function setUnstructuredDataOptions(GoogleCloudDataplexV1DataDiscoverySpecStorageConfigUnstructuredDataOptions $unstructuredDataOptions)
+  {
+    $this->unstructuredDataOptions = $unstructuredDataOptions;
+  }
+  /**
+   * @return GoogleCloudDataplexV1DataDiscoverySpecStorageConfigUnstructuredDataOptions
+   */
+  public function getUnstructuredDataOptions()
+  {
+    return $this->unstructuredDataOptions;
   }
 }
 

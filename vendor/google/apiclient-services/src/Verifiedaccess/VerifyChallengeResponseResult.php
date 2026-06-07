@@ -44,6 +44,11 @@ class VerifyChallengeResponseResult extends \Google\Model
    */
   public const KEY_TRUST_LEVEL_CHROME_BROWSER_NO_KEY = 'CHROME_BROWSER_NO_KEY';
   /**
+   * ChromeOS device without a signing key (e.g., Flex without TPM). Applies to
+   * both device and user contexts on ChromeOS.
+   */
+  public const KEY_TRUST_LEVEL_CHROME_OS_NO_KEY = 'CHROME_OS_NO_KEY';
+  /**
    * UNSPECIFIED.
    */
   public const PROFILE_KEY_TRUST_LEVEL_KEY_TRUST_LEVEL_UNSPECIFIED = 'KEY_TRUST_LEVEL_UNSPECIFIED';
@@ -67,6 +72,11 @@ class VerifyChallengeResponseResult extends \Google\Model
    * Chrome Browser without an attestation key.
    */
   public const PROFILE_KEY_TRUST_LEVEL_CHROME_BROWSER_NO_KEY = 'CHROME_BROWSER_NO_KEY';
+  /**
+   * ChromeOS device without a signing key (e.g., Flex without TPM). Applies to
+   * both device and user contexts on ChromeOS.
+   */
+  public const PROFILE_KEY_TRUST_LEVEL_CHROME_OS_NO_KEY = 'CHROME_OS_NO_KEY';
   /**
    * Output only. Attested device ID (ADID).
    *
@@ -257,7 +267,7 @@ class VerifyChallengeResponseResult extends \Google\Model
    *
    * Accepted values: KEY_TRUST_LEVEL_UNSPECIFIED, CHROME_OS_VERIFIED_MODE,
    * CHROME_OS_DEVELOPER_MODE, CHROME_BROWSER_HW_KEY, CHROME_BROWSER_OS_KEY,
-   * CHROME_BROWSER_NO_KEY
+   * CHROME_BROWSER_NO_KEY, CHROME_OS_NO_KEY
    *
    * @param self::KEY_TRUST_LEVEL_* $keyTrustLevel
    */
@@ -295,7 +305,7 @@ class VerifyChallengeResponseResult extends \Google\Model
    *
    * Accepted values: KEY_TRUST_LEVEL_UNSPECIFIED, CHROME_OS_VERIFIED_MODE,
    * CHROME_OS_DEVELOPER_MODE, CHROME_BROWSER_HW_KEY, CHROME_BROWSER_OS_KEY,
-   * CHROME_BROWSER_NO_KEY
+   * CHROME_BROWSER_NO_KEY, CHROME_OS_NO_KEY
    *
    * @param self::PROFILE_KEY_TRUST_LEVEL_* $profileKeyTrustLevel
    */

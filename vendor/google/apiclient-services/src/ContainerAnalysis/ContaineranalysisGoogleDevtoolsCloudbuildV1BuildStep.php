@@ -157,6 +157,8 @@ class ContaineranalysisGoogleDevtoolsCloudbuildV1BuildStep extends \Google\Colle
   public $name;
   protected $pullTimingType = ContaineranalysisGoogleDevtoolsCloudbuildV1TimeSpan::class;
   protected $pullTimingDataType = '';
+  protected $resultsType = ContaineranalysisGoogleDevtoolsCloudbuildV1StepResult::class;
+  protected $resultsDataType = 'array';
   /**
    * A shell script to be executed in the step. When script is provided, the
    * user cannot specify the entrypoint or args.
@@ -412,6 +414,22 @@ class ContaineranalysisGoogleDevtoolsCloudbuildV1BuildStep extends \Google\Colle
   public function getPullTiming()
   {
     return $this->pullTiming;
+  }
+  /**
+   * Declaration of results for this build step.
+   *
+   * @param ContaineranalysisGoogleDevtoolsCloudbuildV1StepResult[] $results
+   */
+  public function setResults($results)
+  {
+    $this->results = $results;
+  }
+  /**
+   * @return ContaineranalysisGoogleDevtoolsCloudbuildV1StepResult[]
+   */
+  public function getResults()
+  {
+    return $this->results;
   }
   /**
    * A shell script to be executed in the step. When script is provided, the

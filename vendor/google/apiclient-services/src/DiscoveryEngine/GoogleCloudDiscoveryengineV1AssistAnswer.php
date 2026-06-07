@@ -39,6 +39,11 @@ class GoogleCloudDiscoveryengineV1AssistAnswer extends \Google\Collection
    * Assist operation has been skipped.
    */
   public const STATE_SKIPPED = 'SKIPPED';
+  /**
+   * Assist operation has been cancelled (e.g. client closed the stream). May
+   * contain a partial response.
+   */
+  public const STATE_CANCELLED = 'CANCELLED';
   protected $collection_key = 'replies';
   /**
    * Reasons for not answering the assist call.
@@ -138,7 +143,8 @@ class GoogleCloudDiscoveryengineV1AssistAnswer extends \Google\Collection
   /**
    * State of the answer generation.
    *
-   * Accepted values: STATE_UNSPECIFIED, IN_PROGRESS, FAILED, SUCCEEDED, SKIPPED
+   * Accepted values: STATE_UNSPECIFIED, IN_PROGRESS, FAILED, SUCCEEDED,
+   * SKIPPED, CANCELLED
    *
    * @param self::STATE_* $state
    */

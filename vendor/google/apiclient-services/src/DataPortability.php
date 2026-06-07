@@ -124,6 +124,21 @@ class DataPortability extends \Google\Service
   /** Move a copy of the maps you created in My Maps. */
   const DATAPORTABILITY_MYMAPS_MAPS =
       "https://www.googleapis.com/auth/dataportability.mymaps.maps";
+  /** Copy Nest camera event data. */
+  const DATAPORTABILITY_NEST_CAMERA_EVENT =
+      "https://www.googleapis.com/auth/dataportability.nest.camera_event";
+  /** Copy Nest camera feature data. */
+  const DATAPORTABILITY_NEST_CAMERA_FEATURE =
+      "https://www.googleapis.com/auth/dataportability.nest.camera_feature";
+  /** Copy Nest camera footage. */
+  const DATAPORTABILITY_NEST_CAMERA_VIDEO =
+      "https://www.googleapis.com/auth/dataportability.nest.camera_video";
+  /** Copy your Nest Store and Nest Renew billing and payment information. */
+  const DATAPORTABILITY_NEST_STORE =
+      "https://www.googleapis.com/auth/dataportability.nest.store";
+  /** Copy your Nest user information. */
+  const DATAPORTABILITY_NEST_USER =
+      "https://www.googleapis.com/auth/dataportability.nest.user";
   /** Move a copy of your food purchase and reservation activity. */
   const DATAPORTABILITY_ORDER_RESERVE_PURCHASES_RESERVATIONS =
       "https://www.googleapis.com/auth/dataportability.order_reserve.purchases_reservations";

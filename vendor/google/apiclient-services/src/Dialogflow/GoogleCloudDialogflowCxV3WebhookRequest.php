@@ -21,15 +21,10 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
 {
   protected $collection_key = 'messages';
   /**
-   * Always present. The unique identifier of the DetectIntentResponse that will
-   * be returned to the API caller.
-   *
    * @var string
    */
   public $detectIntentResponseId;
   /**
-   * If DTMF was provided as input, this field will contain the DTMF digits.
-   *
    * @var string
    */
   public $dtmfDigits;
@@ -38,8 +33,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
   protected $intentInfoType = GoogleCloudDialogflowCxV3WebhookRequestIntentInfo::class;
   protected $intentInfoDataType = '';
   /**
-   * The language code specified in the original request.
-   *
    * @var string
    */
   public $languageCode;
@@ -50,8 +43,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
   protected $pageInfoType = GoogleCloudDialogflowCxV3PageInfo::class;
   protected $pageInfoDataType = '';
   /**
-   * Custom data set in QueryParameters.payload.
-   *
    * @var array[]
    */
   public $payload;
@@ -60,38 +51,23 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
   protected $sessionInfoType = GoogleCloudDialogflowCxV3SessionInfo::class;
   protected $sessionInfoDataType = '';
   /**
-   * If natural language text was provided as input, this field will contain a
-   * copy of the text.
-   *
    * @var string
    */
   public $text;
   /**
-   * If natural language speech audio was provided as input, this field will
-   * contain the transcript for the audio.
-   *
    * @var string
    */
   public $transcript;
   /**
-   * If an event was provided as input, this field will contain the name of the
-   * event.
-   *
    * @var string
    */
   public $triggerEvent;
   /**
-   * If an intent was provided as input, this field will contain a copy of the
-   * intent identifier. Format: `projects//locations//agents//intents/`.
-   *
    * @var string
    */
   public $triggerIntent;
 
   /**
-   * Always present. The unique identifier of the DetectIntentResponse that will
-   * be returned to the API caller.
-   *
    * @param string $detectIntentResponseId
    */
   public function setDetectIntentResponseId($detectIntentResponseId)
@@ -106,8 +82,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->detectIntentResponseId;
   }
   /**
-   * If DTMF was provided as input, this field will contain the DTMF digits.
-   *
    * @param string $dtmfDigits
    */
   public function setDtmfDigits($dtmfDigits)
@@ -122,9 +96,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->dtmfDigits;
   }
   /**
-   * Always present. Information about the fulfillment that triggered this
-   * webhook call.
-   *
    * @param GoogleCloudDialogflowCxV3WebhookRequestFulfillmentInfo $fulfillmentInfo
    */
   public function setFulfillmentInfo(GoogleCloudDialogflowCxV3WebhookRequestFulfillmentInfo $fulfillmentInfo)
@@ -139,8 +110,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->fulfillmentInfo;
   }
   /**
-   * Information about the last matched intent.
-   *
    * @param GoogleCloudDialogflowCxV3WebhookRequestIntentInfo $intentInfo
    */
   public function setIntentInfo(GoogleCloudDialogflowCxV3WebhookRequestIntentInfo $intentInfo)
@@ -155,8 +124,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->intentInfo;
   }
   /**
-   * The language code specified in the original request.
-   *
    * @param string $languageCode
    */
   public function setLanguageCode($languageCode)
@@ -171,8 +138,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->languageCode;
   }
   /**
-   * Information about the language of the request.
-   *
    * @param GoogleCloudDialogflowCxV3LanguageInfo $languageInfo
    */
   public function setLanguageInfo(GoogleCloudDialogflowCxV3LanguageInfo $languageInfo)
@@ -187,10 +152,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->languageInfo;
   }
   /**
-   * The list of rich message responses to present to the user. Webhook can
-   * choose to append or replace this list in
-   * WebhookResponse.fulfillment_response;
-   *
    * @param GoogleCloudDialogflowCxV3ResponseMessage[] $messages
    */
   public function setMessages($messages)
@@ -205,8 +166,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->messages;
   }
   /**
-   * Information about page status.
-   *
    * @param GoogleCloudDialogflowCxV3PageInfo $pageInfo
    */
   public function setPageInfo(GoogleCloudDialogflowCxV3PageInfo $pageInfo)
@@ -221,8 +180,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->pageInfo;
   }
   /**
-   * Custom data set in QueryParameters.payload.
-   *
    * @param array[] $payload
    */
   public function setPayload($payload)
@@ -237,9 +194,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->payload;
   }
   /**
-   * The sentiment analysis result of the current user request. The field is
-   * filled when sentiment analysis is configured to be enabled for the request.
-   *
    * @param GoogleCloudDialogflowCxV3WebhookRequestSentimentAnalysisResult $sentimentAnalysisResult
    */
   public function setSentimentAnalysisResult(GoogleCloudDialogflowCxV3WebhookRequestSentimentAnalysisResult $sentimentAnalysisResult)
@@ -254,8 +208,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->sentimentAnalysisResult;
   }
   /**
-   * Information about session status.
-   *
    * @param GoogleCloudDialogflowCxV3SessionInfo $sessionInfo
    */
   public function setSessionInfo(GoogleCloudDialogflowCxV3SessionInfo $sessionInfo)
@@ -270,9 +222,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->sessionInfo;
   }
   /**
-   * If natural language text was provided as input, this field will contain a
-   * copy of the text.
-   *
    * @param string $text
    */
   public function setText($text)
@@ -287,9 +236,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->text;
   }
   /**
-   * If natural language speech audio was provided as input, this field will
-   * contain the transcript for the audio.
-   *
    * @param string $transcript
    */
   public function setTranscript($transcript)
@@ -304,9 +250,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->transcript;
   }
   /**
-   * If an event was provided as input, this field will contain the name of the
-   * event.
-   *
    * @param string $triggerEvent
    */
   public function setTriggerEvent($triggerEvent)
@@ -321,9 +264,6 @@ class GoogleCloudDialogflowCxV3WebhookRequest extends \Google\Collection
     return $this->triggerEvent;
   }
   /**
-   * If an intent was provided as input, this field will contain a copy of the
-   * intent identifier. Format: `projects//locations//agents//intents/`.
-   *
    * @param string $triggerIntent
    */
   public function setTriggerIntent($triggerIntent)

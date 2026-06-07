@@ -166,9 +166,10 @@ class AccessPoliciesServicePerimeters extends \Google\Service\Resource
    * perimeters provided. This is done atomically. The long-running operation from
    * this RPC has a successful status after all replacements propagate to long-
    * lasting storage. Replacements containing errors result in an error response
-   * for the first error encountered. Upon an error, replacement are cancelled and
-   * existing service perimeters are not affected. The Operation.response field
-   * contains ReplaceServicePerimetersResponse. (servicePerimeters.replaceAll)
+   * for the first error encountered. Upon an error, replacements are cancelled
+   * and existing service perimeters are not affected. The Operation.response
+   * field contains ReplaceServicePerimetersResponse.
+   * (servicePerimeters.replaceAll)
    *
    * @param string $parent Required. Resource name for the access policy which
    * owns these Service Perimeters. Format: `accessPolicies/{policy_id}`
@@ -186,7 +187,9 @@ class AccessPoliciesServicePerimeters extends \Google\Service\Resource
   /**
    * Returns the IAM permissions that the caller has on the specified Access
    * Context Manager resource. The resource can be an AccessPolicy, AccessLevel,
-   * or ServicePerimeter. This method does not support other resources.
+   * or ServicePerimeter. This method does not support other resources. **IAM
+   * Permissions**: No specific IAM permission is required to call this method. It
+   * returns the subset of the requested permissions that the caller possesses.
    * (servicePerimeters.testIamPermissions)
    *
    * @param string $resource REQUIRED: The resource for which the policy detail is

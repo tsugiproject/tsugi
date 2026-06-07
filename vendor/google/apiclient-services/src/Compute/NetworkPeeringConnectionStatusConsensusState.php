@@ -26,9 +26,19 @@ class NetworkPeeringConnectionStatusConsensusState extends \Google\Model
   public const DELETE_STATUS_DELETE_ACKNOWLEDGED = 'DELETE_ACKNOWLEDGED';
   public const DELETE_STATUS_DELETE_STATUS_UNSPECIFIED = 'DELETE_STATUS_UNSPECIFIED';
   /**
+   * The local network admin requested to cancel their delete request after
+   * DELETE_ACKNOWLEDGED.
+   */
+  public const DELETE_STATUS_LOCAL_CANCEL_REQUESTED = 'LOCAL_CANCEL_REQUESTED';
+  /**
    * Network admin has requested deletion of this peering connection.
    */
   public const DELETE_STATUS_LOCAL_DELETE_REQUESTED = 'LOCAL_DELETE_REQUESTED';
+  /**
+   * The peer network admin requested to cancel their delete request after
+   * DELETE_ACKNOWLEDGED.
+   */
+  public const DELETE_STATUS_PEER_CANCEL_REQUESTED = 'PEER_CANCEL_REQUESTED';
   /**
    * The peer network admin has requested deletion of this peering connection.
    */
@@ -65,7 +75,8 @@ class NetworkPeeringConnectionStatusConsensusState extends \Google\Model
    * The status of the delete request.
    *
    * Accepted values: DELETE_ACKNOWLEDGED, DELETE_STATUS_UNSPECIFIED,
-   * LOCAL_DELETE_REQUESTED, PEER_DELETE_REQUESTED
+   * LOCAL_CANCEL_REQUESTED, LOCAL_DELETE_REQUESTED, PEER_CANCEL_REQUESTED,
+   * PEER_DELETE_REQUESTED
    *
    * @param self::DELETE_STATUS_* $deleteStatus
    */

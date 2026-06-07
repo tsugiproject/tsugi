@@ -38,6 +38,7 @@ class ProjectsLocationsKeys extends \Google\Service\Resource
    * supported value for location is `global`. (keys.create)
    *
    * @param string $parent Required. The project in which the API key is created.
+   * The parent field must be in format of "projects//locations/global".
    * @param V2Key $postBody
    * @param array $optParams Optional parameters.
    *
@@ -114,7 +115,7 @@ class ProjectsLocationsKeys extends \Google\Service\Resource
    * supported value for location is `global`. (keys.listProjectsLocationsKeys)
    *
    * @param string $parent Required. Lists all API keys associated with this
-   * project.
+   * project. The parent field must be in format of "projects//locations/global".
    * @param array $optParams Optional parameters.
    *
    * @opt_param int pageSize Optional. Specifies the maximum number of results to
@@ -136,7 +137,7 @@ class ProjectsLocationsKeys extends \Google\Service\Resource
    * isn't included in the response. NOTE: Key is a global resource; hence the
    * only supported value for location is `global`. (keys.patch)
    *
-   * @param string $name Output only. The resource name of the key. The `name` has
+   * @param string $name Identifier. The resource name of the key. The `name` has
    * the form: `projects//locations/global/keys/`. For example: `projects/12345686
    * 7718/locations/global/keys/b7ff1f9f-8275-410a-94dd-3855ee9b5dd2` NOTE: Key is
    * a global resource; hence the only supported value for location is `global`.

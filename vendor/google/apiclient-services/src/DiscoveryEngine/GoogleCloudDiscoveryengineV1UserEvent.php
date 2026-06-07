@@ -87,6 +87,16 @@ class GoogleCloudDiscoveryengineV1UserEvent extends \Google\Collection
    */
   public $engine;
   /**
+   * Optional. Represents the entity for customers that may run multiple
+   * different entities, domains, sites or regions, for example, `Google US`,
+   * `Google Ads`, `Waymo`, `google.com`, `youtube.com`, etc. We recommend that
+   * you set `entity` to get better per-entity search, completion, and
+   * prediction results.
+   *
+   * @var string
+   */
+  public $entity;
+  /**
    * Only required for UserEventService.ImportUserEvents method. Timestamp of
    * when the user event happened.
    *
@@ -363,6 +373,26 @@ class GoogleCloudDiscoveryengineV1UserEvent extends \Google\Collection
   public function getEngine()
   {
     return $this->engine;
+  }
+  /**
+   * Optional. Represents the entity for customers that may run multiple
+   * different entities, domains, sites or regions, for example, `Google US`,
+   * `Google Ads`, `Waymo`, `google.com`, `youtube.com`, etc. We recommend that
+   * you set `entity` to get better per-entity search, completion, and
+   * prediction results.
+   *
+   * @param string $entity
+   */
+  public function setEntity($entity)
+  {
+    $this->entity = $entity;
+  }
+  /**
+   * @return string
+   */
+  public function getEntity()
+  {
+    return $this->entity;
   }
   /**
    * Only required for UserEventService.ImportUserEvents method. Timestamp of

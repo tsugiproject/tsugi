@@ -86,14 +86,12 @@ class Assignment extends \Google\Model
    */
   public $assignee;
   /**
-   * Optional. This field controls if "Gemini in BigQuery"
-   * (https://cloud.google.com/gemini/docs/bigquery/overview) features should be
-   * enabled for this reservation assignment, which is not on by default.
-   * "Gemini in BigQuery" has a distinct compliance posture from BigQuery. If
-   * this field is set to true, the assignment job type is QUERY, and the parent
-   * reservation edition is ENTERPRISE_PLUS, then the assignment will give the
-   * grantee project/organization access to "Gemini in BigQuery" features.
+   * Optional. Deprecated: "Gemini in BigQuery" is now available by default for
+   * all BigQuery editions and should not be explicitly set. Controls if "Gemini
+   * in BigQuery" (https://cloud.google.com/gemini/docs/bigquery/overview)
+   * features should be enabled for this reservation assignment.
    *
+   * @deprecated
    * @var bool
    */
   public $enableGeminiInBigquery;
@@ -112,6 +110,23 @@ class Assignment extends \Google\Model
    * @var string
    */
   public $name;
+  /**
+   * Optional. Represents the principal for this assignment. If not empty, jobs
+   * run by this principal will utilize the associated reservation. Otherwise,
+   * jobs will fall back to using the reservation assigned to the project,
+   * folder, or organization (in that order). If no reservation is assigned at
+   * any of these levels, on-demand capacity will be used. The supported formats
+   * are: * `principal://goog/subject/USER_EMAIL_ADDRESS` for users, * `principa
+   * l://iam.googleapis.com/projects/-/serviceAccounts/SA_EMAIL_ADDRESS` for
+   * service accounts, * `principal://iam.googleapis.com/projects/PROJECT_NUMBER
+   * /locations/global/workloadIdentityPools/POOL_ID/subject/SUBJECT_ID` for
+   * workload identity pool identities. * The special value
+   * `unknown_or_deleted_user` represents principals which cannot be read from
+   * the user info service, for example deleted users.
+   *
+   * @var string
+   */
+  public $principal;
   protected $schedulingPolicyType = SchedulingPolicy::class;
   protected $schedulingPolicyDataType = '';
   /**
@@ -139,14 +154,12 @@ class Assignment extends \Google\Model
     return $this->assignee;
   }
   /**
-   * Optional. This field controls if "Gemini in BigQuery"
-   * (https://cloud.google.com/gemini/docs/bigquery/overview) features should be
-   * enabled for this reservation assignment, which is not on by default.
-   * "Gemini in BigQuery" has a distinct compliance posture from BigQuery. If
-   * this field is set to true, the assignment job type is QUERY, and the parent
-   * reservation edition is ENTERPRISE_PLUS, then the assignment will give the
-   * grantee project/organization access to "Gemini in BigQuery" features.
+   * Optional. Deprecated: "Gemini in BigQuery" is now available by default for
+   * all BigQuery editions and should not be explicitly set. Controls if "Gemini
+   * in BigQuery" (https://cloud.google.com/gemini/docs/bigquery/overview)
+   * features should be enabled for this reservation assignment.
    *
+   * @deprecated
    * @param bool $enableGeminiInBigquery
    */
   public function setEnableGeminiInBigquery($enableGeminiInBigquery)
@@ -154,6 +167,7 @@ class Assignment extends \Google\Model
     $this->enableGeminiInBigquery = $enableGeminiInBigquery;
   }
   /**
+   * @deprecated
    * @return bool
    */
   public function getEnableGeminiInBigquery()
@@ -198,6 +212,33 @@ class Assignment extends \Google\Model
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * Optional. Represents the principal for this assignment. If not empty, jobs
+   * run by this principal will utilize the associated reservation. Otherwise,
+   * jobs will fall back to using the reservation assigned to the project,
+   * folder, or organization (in that order). If no reservation is assigned at
+   * any of these levels, on-demand capacity will be used. The supported formats
+   * are: * `principal://goog/subject/USER_EMAIL_ADDRESS` for users, * `principa
+   * l://iam.googleapis.com/projects/-/serviceAccounts/SA_EMAIL_ADDRESS` for
+   * service accounts, * `principal://iam.googleapis.com/projects/PROJECT_NUMBER
+   * /locations/global/workloadIdentityPools/POOL_ID/subject/SUBJECT_ID` for
+   * workload identity pool identities. * The special value
+   * `unknown_or_deleted_user` represents principals which cannot be read from
+   * the user info service, for example deleted users.
+   *
+   * @param string $principal
+   */
+  public function setPrincipal($principal)
+  {
+    $this->principal = $principal;
+  }
+  /**
+   * @return string
+   */
+  public function getPrincipal()
+  {
+    return $this->principal;
   }
   /**
    * Optional. The scheduling policy to use for jobs and queries of this

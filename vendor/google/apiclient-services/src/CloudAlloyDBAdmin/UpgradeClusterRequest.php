@@ -46,6 +46,10 @@ class UpgradeClusterRequest extends \Google\Model
    */
   public const VERSION_POSTGRES_17 = 'POSTGRES_17';
   /**
+   * The database version is Postgres 18.
+   */
+  public const VERSION_POSTGRES_18 = 'POSTGRES_18';
+  /**
    * Optional. The current etag of the Cluster. If an etag is provided and does
    * not match the current etag of the Cluster, upgrade will be blocked and an
    * ABORTED error will be returned.
@@ -150,7 +154,7 @@ class UpgradeClusterRequest extends \Google\Model
    * Required. The version the cluster is going to be upgraded to.
    *
    * Accepted values: DATABASE_VERSION_UNSPECIFIED, POSTGRES_13, POSTGRES_14,
-   * POSTGRES_15, POSTGRES_16, POSTGRES_17
+   * POSTGRES_15, POSTGRES_16, POSTGRES_17, POSTGRES_18
    *
    * @param self::VERSION_* $version
    */

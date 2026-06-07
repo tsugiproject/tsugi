@@ -31,7 +31,7 @@ use Google\Service\Safebrowsing\GoogleSecuritySafebrowsingV5ListHashListsRespons
 class HashLists extends \Google\Service\Resource
 {
   /**
-   * Get multiple hash lists at once. It is very common for a client to need to
+   * Gets multiple hash lists at once. It is very common for a client to need to
    * get multiple hash lists. Using this method is preferred over using the
    * regular Get method multiple times. This is a standard batch Get method as
    * defined by https://google.aip.dev/231 and the HTTP method is also GET.
@@ -70,11 +70,11 @@ class HashLists extends \Google\Service\Resource
     return $this->call('batchGet', [$params], GoogleSecuritySafebrowsingV5BatchGetHashListsResponse::class);
   }
   /**
-   * List hash lists. In the V5 API, Google will never remove a hash list that has
-   * ever been returned by this method. This enables clients to skip using this
-   * method and simply hard-code all hash lists they need. This is a standard List
-   * method as defined by https://google.aip.dev/132 and the HTTP method is GET.
-   * (hashLists.listHashLists)
+   * Lists hash lists. In the V5 API, Google will never remove a hash list that
+   * has ever been returned by this method. This enables clients to skip using
+   * this method and simply hard-code all hash lists they need. This is a standard
+   * List method as defined by https://google.aip.dev/132 and the HTTP method is
+   * GET. (hashLists.listHashLists)
    *
    * @param array $optParams Optional parameters.
    *

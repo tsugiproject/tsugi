@@ -24,8 +24,6 @@ class GoogleCloudDialogflowCxV3beta1RunContinuousTestMetadata extends \Google\Co
   protected $errorsDataType = 'array';
 
   /**
-   * The test errors.
-   *
    * @param GoogleCloudDialogflowCxV3beta1TestError[] $errors
    */
   public function setErrors($errors)

@@ -24,32 +24,21 @@ class GoogleCloudDialogflowCxV3WebhookResponse extends \Google\Model
   protected $pageInfoType = GoogleCloudDialogflowCxV3PageInfo::class;
   protected $pageInfoDataType = '';
   /**
-   * Value to append directly to QueryResult.webhook_payloads.
-   *
    * @var array[]
    */
   public $payload;
   protected $sessionInfoType = GoogleCloudDialogflowCxV3SessionInfo::class;
   protected $sessionInfoDataType = '';
   /**
-   * The target flow to transition to. Format:
-   * `projects//locations//agents//flows/`.
-   *
    * @var string
    */
   public $targetFlow;
   /**
-   * The target page to transition to. Format:
-   * `projects//locations//agents//flows//pages/`.
-   *
    * @var string
    */
   public $targetPage;
 
   /**
-   * The fulfillment response to send to the user. This field can be omitted by
-   * the webhook if it does not intend to send any response to the user.
-   *
    * @param GoogleCloudDialogflowCxV3WebhookResponseFulfillmentResponse $fulfillmentResponse
    */
   public function setFulfillmentResponse(GoogleCloudDialogflowCxV3WebhookResponseFulfillmentResponse $fulfillmentResponse)
@@ -64,9 +53,6 @@ class GoogleCloudDialogflowCxV3WebhookResponse extends \Google\Model
     return $this->fulfillmentResponse;
   }
   /**
-   * Information about page status. This field can be omitted by the webhook if
-   * it does not intend to modify page status.
-   *
    * @param GoogleCloudDialogflowCxV3PageInfo $pageInfo
    */
   public function setPageInfo(GoogleCloudDialogflowCxV3PageInfo $pageInfo)
@@ -81,8 +67,6 @@ class GoogleCloudDialogflowCxV3WebhookResponse extends \Google\Model
     return $this->pageInfo;
   }
   /**
-   * Value to append directly to QueryResult.webhook_payloads.
-   *
    * @param array[] $payload
    */
   public function setPayload($payload)
@@ -97,9 +81,6 @@ class GoogleCloudDialogflowCxV3WebhookResponse extends \Google\Model
     return $this->payload;
   }
   /**
-   * Information about session status. This field can be omitted by the webhook
-   * if it does not intend to modify session status.
-   *
    * @param GoogleCloudDialogflowCxV3SessionInfo $sessionInfo
    */
   public function setSessionInfo(GoogleCloudDialogflowCxV3SessionInfo $sessionInfo)
@@ -114,9 +95,6 @@ class GoogleCloudDialogflowCxV3WebhookResponse extends \Google\Model
     return $this->sessionInfo;
   }
   /**
-   * The target flow to transition to. Format:
-   * `projects//locations//agents//flows/`.
-   *
    * @param string $targetFlow
    */
   public function setTargetFlow($targetFlow)
@@ -131,9 +109,6 @@ class GoogleCloudDialogflowCxV3WebhookResponse extends \Google\Model
     return $this->targetFlow;
   }
   /**
-   * The target page to transition to. Format:
-   * `projects//locations//agents//flows//pages/`.
-   *
    * @param string $targetPage
    */
   public function setTargetPage($targetPage)

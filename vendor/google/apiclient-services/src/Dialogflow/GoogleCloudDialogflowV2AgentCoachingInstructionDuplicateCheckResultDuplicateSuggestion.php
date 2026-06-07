@@ -20,29 +20,19 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResultDuplicateSuggestion extends \Google\Model
 {
   /**
-   * Output only. The answer record id of the past duplicate suggestion.
-   *
    * @var string
    */
   public $answerRecord;
   /**
-   * Output only. The similarity score of between the past and current
-   * suggestion.
-   *
    * @var float
    */
   public $similarityScore;
   /**
-   * Output only. The index of the duplicate suggestion in the past suggestion
-   * list.
-   *
    * @var int
    */
   public $suggestionIndex;
 
   /**
-   * Output only. The answer record id of the past duplicate suggestion.
-   *
    * @param string $answerRecord
    */
   public function setAnswerRecord($answerRecord)
@@ -57,9 +47,6 @@ class GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResultDuplica
     return $this->answerRecord;
   }
   /**
-   * Output only. The similarity score of between the past and current
-   * suggestion.
-   *
    * @param float $similarityScore
    */
   public function setSimilarityScore($similarityScore)
@@ -74,9 +61,6 @@ class GoogleCloudDialogflowV2AgentCoachingInstructionDuplicateCheckResultDuplica
     return $this->similarityScore;
   }
   /**
-   * Output only. The index of the duplicate suggestion in the past suggestion
-   * list.
-   *
    * @param int $suggestionIndex
    */
   public function setSuggestionIndex($suggestionIndex)

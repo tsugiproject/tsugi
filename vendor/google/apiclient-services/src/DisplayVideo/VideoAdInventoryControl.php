@@ -32,6 +32,13 @@ class VideoAdInventoryControl extends \Google\Model
    */
   public $allowInStream;
   /**
+   * Optional. Indicates whether ads can serve as non-skippable in-stream
+   * format.
+   *
+   * @var bool
+   */
+  public $allowNonSkippableInStream;
+  /**
    * Optional. Whether ads can serve as shorts format.
    *
    * @var bool
@@ -69,6 +76,23 @@ class VideoAdInventoryControl extends \Google\Model
   public function getAllowInStream()
   {
     return $this->allowInStream;
+  }
+  /**
+   * Optional. Indicates whether ads can serve as non-skippable in-stream
+   * format.
+   *
+   * @param bool $allowNonSkippableInStream
+   */
+  public function setAllowNonSkippableInStream($allowNonSkippableInStream)
+  {
+    $this->allowNonSkippableInStream = $allowNonSkippableInStream;
+  }
+  /**
+   * @return bool
+   */
+  public function getAllowNonSkippableInStream()
+  {
+    return $this->allowNonSkippableInStream;
   }
   /**
    * Optional. Whether ads can serve as shorts format.

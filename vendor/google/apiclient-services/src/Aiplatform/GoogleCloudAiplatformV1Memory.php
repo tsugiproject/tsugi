@@ -21,76 +21,81 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
 {
   protected $collection_key = 'topics';
   /**
-   * Output only. Timestamp when this Memory was created.
+   * Output only. Represents the timestamp when this Memory was created.
    *
    * @var string
    */
   public $createTime;
   /**
-   * Optional. Description of the Memory.
+   * Optional. Represents the description of the Memory.
    *
    * @var string
    */
   public $description;
   /**
-   * Optional. Input only. If true, no revision will be created for this
-   * request.
+   * Optional. Input only. Indicates whether no revision will be created for
+   * this request.
    *
    * @var bool
    */
   public $disableMemoryRevisions;
   /**
-   * Optional. Display name of the Memory.
+   * Optional. Represents the display name of the Memory.
    *
    * @var string
    */
   public $displayName;
   /**
-   * Optional. Timestamp of when this resource is considered expired. This is
-   * *always* provided on output when `expiration` is set on input, regardless
-   * of whether `expire_time` or `ttl` was provided.
+   * Optional. Represents the timestamp of when this resource is considered
+   * expired. This is *always* provided on output when `expiration` is set on
+   * input, regardless of whether `expire_time` or `ttl` was provided.
    *
    * @var string
    */
   public $expireTime;
   /**
-   * Required. Semantic knowledge extracted from the source content.
+   * Optional. Represents semantic knowledge extracted from the source content.
    *
    * @var string
    */
   public $fact;
+  protected $metadataType = GoogleCloudAiplatformV1MemoryMetadataValue::class;
+  protected $metadataDataType = 'map';
   /**
-   * Identifier. The resource name of the Memory. Format: `projects/{project}/lo
-   * cations/{location}/reasoningEngines/{reasoning_engine}/memories/{memory}`
+   * Identifier. Represents the resource name of the Memory. Format: `projects/{
+   * project}/locations/{location}/reasoningEngines/{reasoning_engine}/memories/
+   * {memory}`
    *
    * @var string
    */
   public $name;
   /**
-   * Optional. Input only. Timestamp of when the revision is considered expired.
-   * If not set, the memory revision will be kept until manually deleted.
+   * Optional. Input only. Represents the timestamp of when the revision is
+   * considered expired. If not set, the memory revision will be kept until
+   * manually deleted.
    *
    * @var string
    */
   public $revisionExpireTime;
   /**
-   * Optional. Input only. The labels to apply to the Memory Revision created as
-   * a result of this request.
+   * Optional. Input only. Represents the labels to apply to the Memory Revision
+   * created as a result of this request.
    *
    * @var string[]
    */
   public $revisionLabels;
   /**
-   * Optional. Input only. The TTL for the revision. The expiration time is
-   * computed: now + TTL.
+   * Optional. Input only. Represents the TTL for the revision. The expiration
+   * time is computed: now + TTL.
    *
    * @var string
    */
   public $revisionTtl;
   /**
-   * Required. Immutable. The scope of the Memory. Memories are isolated within
-   * their scope. The scope is defined when creating or generating memories.
-   * Scope values cannot contain the wildcard character '*'.
+   * Required. Immutable. Represents the scope of the Memory. Memories are
+   * isolated within their scope. The scope is defined when creating or
+   * generating memories. Scope values cannot contain the wildcard character
+   * '*'.
    *
    * @var string[]
    */
@@ -98,21 +103,22 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
   protected $topicsType = GoogleCloudAiplatformV1MemoryTopicId::class;
   protected $topicsDataType = 'array';
   /**
-   * Optional. Input only. The TTL for this resource. The expiration time is
-   * computed: now + TTL.
+   * Optional. Input only. Represents the TTL for this resource. The expiration
+   * time is computed: now + TTL.
    *
    * @var string
    */
   public $ttl;
   /**
-   * Output only. Timestamp when this Memory was most recently updated.
+   * Output only. Represents the timestamp when this Memory was most recently
+   * updated.
    *
    * @var string
    */
   public $updateTime;
 
   /**
-   * Output only. Timestamp when this Memory was created.
+   * Output only. Represents the timestamp when this Memory was created.
    *
    * @param string $createTime
    */
@@ -128,7 +134,7 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
     return $this->createTime;
   }
   /**
-   * Optional. Description of the Memory.
+   * Optional. Represents the description of the Memory.
    *
    * @param string $description
    */
@@ -144,8 +150,8 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
     return $this->description;
   }
   /**
-   * Optional. Input only. If true, no revision will be created for this
-   * request.
+   * Optional. Input only. Indicates whether no revision will be created for
+   * this request.
    *
    * @param bool $disableMemoryRevisions
    */
@@ -161,7 +167,7 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
     return $this->disableMemoryRevisions;
   }
   /**
-   * Optional. Display name of the Memory.
+   * Optional. Represents the display name of the Memory.
    *
    * @param string $displayName
    */
@@ -177,9 +183,9 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
     return $this->displayName;
   }
   /**
-   * Optional. Timestamp of when this resource is considered expired. This is
-   * *always* provided on output when `expiration` is set on input, regardless
-   * of whether `expire_time` or `ttl` was provided.
+   * Optional. Represents the timestamp of when this resource is considered
+   * expired. This is *always* provided on output when `expiration` is set on
+   * input, regardless of whether `expire_time` or `ttl` was provided.
    *
    * @param string $expireTime
    */
@@ -195,7 +201,7 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
     return $this->expireTime;
   }
   /**
-   * Required. Semantic knowledge extracted from the source content.
+   * Optional. Represents semantic knowledge extracted from the source content.
    *
    * @param string $fact
    */
@@ -211,8 +217,27 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
     return $this->fact;
   }
   /**
-   * Identifier. The resource name of the Memory. Format: `projects/{project}/lo
-   * cations/{location}/reasoningEngines/{reasoning_engine}/memories/{memory}`
+   * Optional. Represents user-provided metadata for the Memory. This
+   * information was provided when creating, updating, or generating the Memory.
+   * It was not generated by Memory Bank.
+   *
+   * @param GoogleCloudAiplatformV1MemoryMetadataValue[] $metadata
+   */
+  public function setMetadata($metadata)
+  {
+    $this->metadata = $metadata;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1MemoryMetadataValue[]
+   */
+  public function getMetadata()
+  {
+    return $this->metadata;
+  }
+  /**
+   * Identifier. Represents the resource name of the Memory. Format: `projects/{
+   * project}/locations/{location}/reasoningEngines/{reasoning_engine}/memories/
+   * {memory}`
    *
    * @param string $name
    */
@@ -228,8 +253,9 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
     return $this->name;
   }
   /**
-   * Optional. Input only. Timestamp of when the revision is considered expired.
-   * If not set, the memory revision will be kept until manually deleted.
+   * Optional. Input only. Represents the timestamp of when the revision is
+   * considered expired. If not set, the memory revision will be kept until
+   * manually deleted.
    *
    * @param string $revisionExpireTime
    */
@@ -245,8 +271,8 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
     return $this->revisionExpireTime;
   }
   /**
-   * Optional. Input only. The labels to apply to the Memory Revision created as
-   * a result of this request.
+   * Optional. Input only. Represents the labels to apply to the Memory Revision
+   * created as a result of this request.
    *
    * @param string[] $revisionLabels
    */
@@ -262,8 +288,8 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
     return $this->revisionLabels;
   }
   /**
-   * Optional. Input only. The TTL for the revision. The expiration time is
-   * computed: now + TTL.
+   * Optional. Input only. Represents the TTL for the revision. The expiration
+   * time is computed: now + TTL.
    *
    * @param string $revisionTtl
    */
@@ -279,9 +305,10 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
     return $this->revisionTtl;
   }
   /**
-   * Required. Immutable. The scope of the Memory. Memories are isolated within
-   * their scope. The scope is defined when creating or generating memories.
-   * Scope values cannot contain the wildcard character '*'.
+   * Required. Immutable. Represents the scope of the Memory. Memories are
+   * isolated within their scope. The scope is defined when creating or
+   * generating memories. Scope values cannot contain the wildcard character
+   * '*'.
    *
    * @param string[] $scope
    */
@@ -297,7 +324,7 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
     return $this->scope;
   }
   /**
-   * Optional. The Topics of the Memory.
+   * Optional. Represents the Topics of the Memory.
    *
    * @param GoogleCloudAiplatformV1MemoryTopicId[] $topics
    */
@@ -313,8 +340,8 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
     return $this->topics;
   }
   /**
-   * Optional. Input only. The TTL for this resource. The expiration time is
-   * computed: now + TTL.
+   * Optional. Input only. Represents the TTL for this resource. The expiration
+   * time is computed: now + TTL.
    *
    * @param string $ttl
    */
@@ -330,7 +357,8 @@ class GoogleCloudAiplatformV1Memory extends \Google\Collection
     return $this->ttl;
   }
   /**
-   * Output only. Timestamp when this Memory was most recently updated.
+   * Output only. Represents the timestamp when this Memory was most recently
+   * updated.
    *
    * @param string $updateTime
    */

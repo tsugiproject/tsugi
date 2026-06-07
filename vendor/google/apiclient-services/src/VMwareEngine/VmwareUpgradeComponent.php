@@ -76,6 +76,10 @@ class VmwareUpgradeComponent extends \Google\Model
    */
   public const COMPONENT_TYPE_CLUSTER = 'CLUSTER';
   /**
+   * VMware Tools.
+   */
+  public const COMPONENT_TYPE_VM_TOOLS = 'VM_TOOLS';
+  /**
    * The default value. This value should never be used.
    */
   public const STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED';
@@ -123,7 +127,7 @@ class VmwareUpgradeComponent extends \Google\Model
    *
    * Accepted values: VMWARE_COMPONENT_TYPE_UNSPECIFIED, VCENTER, ESXI, NSXT_UC,
    * NSXT_EDGE, NSXT_MGR, HCX, VSAN, DVS, NAMESERVER_VM, KMS_VM, WITNESS_VM,
-   * NSXT, CLUSTER
+   * NSXT, CLUSTER, VM_TOOLS
    *
    * @param self::COMPONENT_TYPE_* $componentType
    */

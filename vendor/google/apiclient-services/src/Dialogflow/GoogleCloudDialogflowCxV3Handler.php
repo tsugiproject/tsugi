@@ -25,8 +25,6 @@ class GoogleCloudDialogflowCxV3Handler extends \Google\Model
   protected $lifecycleHandlerDataType = '';
 
   /**
-   * A handler triggered by event.
-   *
    * @param GoogleCloudDialogflowCxV3HandlerEventHandler $eventHandler
    */
   public function setEventHandler(GoogleCloudDialogflowCxV3HandlerEventHandler $eventHandler)
@@ -41,8 +39,6 @@ class GoogleCloudDialogflowCxV3Handler extends \Google\Model
     return $this->eventHandler;
   }
   /**
-   * A handler triggered during specific lifecycle of the playbook execution.
-   *
    * @param GoogleCloudDialogflowCxV3HandlerLifecycleHandler $lifecycleHandler
    */
   public function setLifecycleHandler(GoogleCloudDialogflowCxV3HandlerLifecycleHandler $lifecycleHandler)

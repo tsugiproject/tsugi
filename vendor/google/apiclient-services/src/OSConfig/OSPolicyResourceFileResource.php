@@ -37,7 +37,7 @@ class OSPolicyResourceFileResource extends \Google\Model
    */
   public const STATE_CONTENTS_MATCH = 'CONTENTS_MATCH';
   /**
-   * A a file with this content. The size of the content is limited to 32KiB.
+   * A file with this content. The size of the content is limited to 32KiB.
    *
    * @var string
    */
@@ -71,7 +71,7 @@ class OSPolicyResourceFileResource extends \Google\Model
   public $state;
 
   /**
-   * A a file with this content. The size of the content is limited to 32KiB.
+   * A file with this content. The size of the content is limited to 32KiB.
    *
    * @param string $content
    */

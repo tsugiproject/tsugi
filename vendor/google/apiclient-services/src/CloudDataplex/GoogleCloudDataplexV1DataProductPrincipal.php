@@ -20,15 +20,22 @@ namespace Google\Service\CloudDataplex;
 class GoogleCloudDataplexV1DataProductPrincipal extends \Google\Model
 {
   /**
-   * Email of the Google Group, as per
+   * Optional. Email of the Google Group, as per
    * https://cloud.google.com/iam/docs/principals-overview#google-group.
    *
    * @var string
    */
   public $googleGroup;
+  /**
+   * Optional. Specifies the email of the producer service account, as per
+   * https://cloud.google.com/iam/docs/principals-overview#service-account.
+   *
+   * @var string
+   */
+  public $serviceAccount;
 
   /**
-   * Email of the Google Group, as per
+   * Optional. Email of the Google Group, as per
    * https://cloud.google.com/iam/docs/principals-overview#google-group.
    *
    * @param string $googleGroup
@@ -43,6 +50,23 @@ class GoogleCloudDataplexV1DataProductPrincipal extends \Google\Model
   public function getGoogleGroup()
   {
     return $this->googleGroup;
+  }
+  /**
+   * Optional. Specifies the email of the producer service account, as per
+   * https://cloud.google.com/iam/docs/principals-overview#service-account.
+   *
+   * @param string $serviceAccount
+   */
+  public function setServiceAccount($serviceAccount)
+  {
+    $this->serviceAccount = $serviceAccount;
+  }
+  /**
+   * @return string
+   */
+  public function getServiceAccount()
+  {
+    return $this->serviceAccount;
   }
 }
 

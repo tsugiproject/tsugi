@@ -23,22 +23,14 @@ class GoogleCloudDialogflowCxV3KnowledgeConnectorSettings extends \Google\Collec
   protected $dataStoreConnectionsType = GoogleCloudDialogflowCxV3DataStoreConnection::class;
   protected $dataStoreConnectionsDataType = 'array';
   /**
-   * Whether Knowledge Connector is enabled or not.
-   *
    * @var bool
    */
   public $enabled;
   /**
-   * The target flow to transition to. Format:
-   * `projects//locations//agents//flows/`.
-   *
    * @var string
    */
   public $targetFlow;
   /**
-   * The target page to transition to. Format:
-   * `projects//locations//agents//flows//pages/`.
-   *
    * @var string
    */
   public $targetPage;
@@ -46,8 +38,6 @@ class GoogleCloudDialogflowCxV3KnowledgeConnectorSettings extends \Google\Collec
   protected $triggerFulfillmentDataType = '';
 
   /**
-   * Optional. List of related data store connections.
-   *
    * @param GoogleCloudDialogflowCxV3DataStoreConnection[] $dataStoreConnections
    */
   public function setDataStoreConnections($dataStoreConnections)
@@ -62,8 +52,6 @@ class GoogleCloudDialogflowCxV3KnowledgeConnectorSettings extends \Google\Collec
     return $this->dataStoreConnections;
   }
   /**
-   * Whether Knowledge Connector is enabled or not.
-   *
    * @param bool $enabled
    */
   public function setEnabled($enabled)
@@ -78,9 +66,6 @@ class GoogleCloudDialogflowCxV3KnowledgeConnectorSettings extends \Google\Collec
     return $this->enabled;
   }
   /**
-   * The target flow to transition to. Format:
-   * `projects//locations//agents//flows/`.
-   *
    * @param string $targetFlow
    */
   public function setTargetFlow($targetFlow)
@@ -95,9 +80,6 @@ class GoogleCloudDialogflowCxV3KnowledgeConnectorSettings extends \Google\Collec
     return $this->targetFlow;
   }
   /**
-   * The target page to transition to. Format:
-   * `projects//locations//agents//flows//pages/`.
-   *
    * @param string $targetPage
    */
   public function setTargetPage($targetPage)
@@ -112,12 +94,6 @@ class GoogleCloudDialogflowCxV3KnowledgeConnectorSettings extends \Google\Collec
     return $this->targetPage;
   }
   /**
-   * The fulfillment to be triggered. When the answers from the Knowledge
-   * Connector are selected by Dialogflow, you can utitlize the request scoped
-   * parameter `$request.knowledge.answers` (contains up to the 5 highest
-   * confidence answers) and `$request.knowledge.questions` (contains the
-   * corresponding questions) to construct the fulfillment.
-   *
    * @param GoogleCloudDialogflowCxV3Fulfillment $triggerFulfillment
    */
   public function setTriggerFulfillment(GoogleCloudDialogflowCxV3Fulfillment $triggerFulfillment)

@@ -37,6 +37,12 @@ class CloudComposer extends \Google\Service
   /** See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account.. */
   const CLOUD_PLATFORM =
       "https://www.googleapis.com/auth/cloud-platform";
+  /** See, edit, configure, and delete your Google Cloud Composer data and see the email address for your Google Account. */
+  const CLOUDCOMPOSER =
+      "https://www.googleapis.com/auth/cloudcomposer";
+  /** See your Google Cloud Composer data and the email address of your Google Account. */
+  const CLOUDCOMPOSER_READONLY =
+      "https://www.googleapis.com/auth/cloudcomposer.readonly";
 
   public $projects_locations_environments;
   public $projects_locations_environments_userWorkloadsConfigMaps;

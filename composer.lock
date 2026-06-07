@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f06a3d33394ea7681bd5c7bffeca0e81",
+    "content-hash": "2a78b526bd77affbc71e60b995a70d1e",
     "packages": [
         {
             "name": "brick/math",
@@ -244,16 +244,16 @@
         },
         {
             "name": "firebase/php-jwt",
-            "version": "v6.11.1",
+            "version": "v7.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/php-jwt.git",
-                "reference": "d1e91ecf8c598d073d0995afa8cd5c75c6e19e66"
+                "reference": "47ad26bab5e7c70ae8a6f08ed25ff83631121380"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/php-jwt/zipball/d1e91ecf8c598d073d0995afa8cd5c75c6e19e66",
-                "reference": "d1e91ecf8c598d073d0995afa8cd5c75c6e19e66",
+                "url": "https://api.github.com/repos/googleapis/php-jwt/zipball/47ad26bab5e7c70ae8a6f08ed25ff83631121380",
+                "reference": "47ad26bab5e7c70ae8a6f08ed25ff83631121380",
                 "shasum": ""
             },
             "require": {
@@ -261,6 +261,7 @@
             },
             "require-dev": {
                 "guzzlehttp/guzzle": "^7.4",
+                "phpfastcache/phpfastcache": "^9.2",
                 "phpspec/prophecy-phpunit": "^2.0",
                 "phpunit/phpunit": "^9.5",
                 "psr/cache": "^2.0||^3.0",
@@ -300,38 +301,37 @@
                 "php"
             ],
             "support": {
-                "issues": "https://github.com/firebase/php-jwt/issues",
-                "source": "https://github.com/firebase/php-jwt/tree/v6.11.1"
+                "issues": "https://github.com/googleapis/php-jwt/issues",
+                "source": "https://github.com/googleapis/php-jwt/tree/v7.0.5"
             },
-            "time": "2025-04-09T20:32:01+00:00"
+            "time": "2026-04-01T20:38:03+00:00"
         },
         {
             "name": "google/apiclient",
-            "version": "v2.18.4",
+            "version": "v2.19.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-api-php-client.git",
-                "reference": "5b51fdb2cbd2a96088e3dfc6f565bdf6fb0af94b"
+                "reference": "a1f02761994fd9defb20f6f1449205fd66f450de"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-api-php-client/zipball/5b51fdb2cbd2a96088e3dfc6f565bdf6fb0af94b",
-                "reference": "5b51fdb2cbd2a96088e3dfc6f565bdf6fb0af94b",
+                "url": "https://api.github.com/repos/googleapis/google-api-php-client/zipball/a1f02761994fd9defb20f6f1449205fd66f450de",
+                "reference": "a1f02761994fd9defb20f6f1449205fd66f450de",
                 "shasum": ""
             },
             "require": {
-                "firebase/php-jwt": "^6.0",
+                "firebase/php-jwt": "^6.0||^7.0",
                 "google/apiclient-services": "~0.350",
                 "google/auth": "^1.37",
                 "guzzlehttp/guzzle": "^7.4.5",
                 "guzzlehttp/psr7": "^2.6",
                 "monolog/monolog": "^2.9||^3.0",
-                "php": "^8.1",
-                "phpseclib/phpseclib": "^3.0.36"
+                "php": "^8.1"
             },
             "require-dev": {
                 "cache/filesystem-adapter": "^1.1",
-                "composer/composer": "^1.10.23",
+                "composer/composer": "^2.9",
                 "phpcompatibility/php-compatibility": "^9.2",
                 "phpspec/prophecy-phpunit": "^2.1",
                 "phpunit/phpunit": "^9.6",
@@ -344,6 +344,9 @@
             },
             "type": "library",
             "extra": {
+                "component": {
+                    "entry": "src/Client.php"
+                },
                 "branch-alias": {
                     "dev-main": "2.x-dev"
                 }
@@ -370,22 +373,22 @@
             ],
             "support": {
                 "issues": "https://github.com/googleapis/google-api-php-client/issues",
-                "source": "https://github.com/googleapis/google-api-php-client/tree/v2.18.4"
+                "source": "https://github.com/googleapis/google-api-php-client/tree/v2.19.3"
             },
-            "time": "2025-09-30T04:23:07+00:00"
+            "time": "2026-05-04T21:00:36+00:00"
         },
         {
             "name": "google/apiclient-services",
-            "version": "v0.424.0",
+            "version": "v0.443.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-api-php-client-services.git",
-                "reference": "b368dcc5dce8043fed1b248a66020747d5cec353"
+                "reference": "102aba0523d5105adaffdcac6c0c74a527f2bbfc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/b368dcc5dce8043fed1b248a66020747d5cec353",
-                "reference": "b368dcc5dce8043fed1b248a66020747d5cec353",
+                "url": "https://api.github.com/repos/googleapis/google-api-php-client-services/zipball/102aba0523d5105adaffdcac6c0c74a527f2bbfc",
+                "reference": "102aba0523d5105adaffdcac6c0c74a527f2bbfc",
                 "shasum": ""
             },
             "require": {
@@ -414,36 +417,36 @@
             ],
             "support": {
                 "issues": "https://github.com/googleapis/google-api-php-client-services/issues",
-                "source": "https://github.com/googleapis/google-api-php-client-services/tree/v0.424.0"
+                "source": "https://github.com/googleapis/google-api-php-client-services/tree/v0.443.0"
             },
-            "time": "2025-12-15T00:58:22+00:00"
+            "time": "2026-05-29T01:56:23+00:00"
         },
         {
             "name": "google/auth",
-            "version": "v1.49.0",
+            "version": "v1.50.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-auth-library-php.git",
-                "reference": "68e3d88cb59a49f713e3db25d4f6bb3cc0b70764"
+                "reference": "58788f86d47e59de692c0dae0bb0c006bd0b6018"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-auth-library-php/zipball/68e3d88cb59a49f713e3db25d4f6bb3cc0b70764",
-                "reference": "68e3d88cb59a49f713e3db25d4f6bb3cc0b70764",
+                "url": "https://api.github.com/repos/googleapis/google-auth-library-php/zipball/58788f86d47e59de692c0dae0bb0c006bd0b6018",
+                "reference": "58788f86d47e59de692c0dae0bb0c006bd0b6018",
                 "shasum": ""
             },
             "require": {
-                "firebase/php-jwt": "^6.0",
+                "firebase/php-jwt": "^6.0||^7.0",
                 "guzzlehttp/guzzle": "^7.4.5",
                 "guzzlehttp/psr7": "^2.4.5",
                 "php": "^8.1",
                 "psr/cache": "^2.0||^3.0",
                 "psr/http-message": "^1.1||^2.0",
-                "psr/log": "^3.0"
+                "psr/log": "^2.0||^3.0"
             },
             "require-dev": {
                 "guzzlehttp/promises": "^2.0",
-                "kelvinmo/simplejwt": "0.7.1",
+                "kelvinmo/simplejwt": "^1.1.0",
                 "phpseclib/phpseclib": "^3.0.35",
                 "phpspec/prophecy-phpunit": "^2.1",
                 "phpunit/phpunit": "^9.6",
@@ -451,7 +454,7 @@
                 "squizlabs/php_codesniffer": "^4.0",
                 "symfony/filesystem": "^6.3||^7.3",
                 "symfony/process": "^6.0||^7.0",
-                "webmozart/assert": "^1.11"
+                "webmozart/assert": "^1.11||^2.0"
             },
             "suggest": {
                 "phpseclib/phpseclib": "May be used in place of OpenSSL for signing strings or for token management. Please require version ^2."
@@ -476,9 +479,9 @@
             "support": {
                 "docs": "https://cloud.google.com/php/docs/reference/auth/latest",
                 "issues": "https://github.com/googleapis/google-auth-library-php/issues",
-                "source": "https://github.com/googleapis/google-auth-library-php/tree/v1.49.0"
+                "source": "https://github.com/googleapis/google-auth-library-php/tree/v1.50.2"
             },
-            "time": "2025-11-06T21:27:55+00:00"
+            "time": "2026-05-29T19:22:31+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",

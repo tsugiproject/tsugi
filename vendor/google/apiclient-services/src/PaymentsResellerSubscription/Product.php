@@ -54,7 +54,7 @@ class Product extends \Google\Collection
   public $productType;
   /**
    * Output only. 2-letter ISO region code where the product is available in.
-   * Ex. "US" Please refers to: https://en.wikipedia.org/wiki/ISO_3166-1
+   * Ex. "US" Please refer to: https://en.wikipedia.org/wiki/ISO_3166-1
    *
    * @var string[]
    */
@@ -151,7 +151,7 @@ class Product extends \Google\Collection
   }
   /**
    * Output only. 2-letter ISO region code where the product is available in.
-   * Ex. "US" Please refers to: https://en.wikipedia.org/wiki/ISO_3166-1
+   * Ex. "US" Please refer to: https://en.wikipedia.org/wiki/ISO_3166-1
    *
    * @param string[] $regionCodes
    */

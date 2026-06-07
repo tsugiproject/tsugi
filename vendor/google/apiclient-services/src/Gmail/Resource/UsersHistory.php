@@ -31,7 +31,9 @@ class UsersHistory extends \Google\Service\Resource
 {
   /**
    * Lists the history of all changes to the given mailbox. History results are
-   * returned in chronological order (increasing `historyId`).
+   * returned in chronological order (increasing `historyId`). For more
+   * information, see [Synchronize clients with
+   * Gmail](https://developers.google.com/workspace/gmail/api/guides/sync).
    * (history.listUsersHistory)
    *
    * @param string $userId The user's email address. The special value `me` can be

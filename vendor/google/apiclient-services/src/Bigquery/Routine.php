@@ -101,6 +101,8 @@ class Routine extends \Google\Collection
   protected $collection_key = 'importedLibraries';
   protected $argumentsType = Argument::class;
   protected $argumentsDataType = 'array';
+  protected $buildStatusType = RoutineBuildStatus::class;
+  protected $buildStatusDataType = '';
   /**
    * Output only. The time when this routine was created, in milliseconds since
    * the epoch.
@@ -230,6 +232,24 @@ class Routine extends \Google\Collection
   public function getArguments()
   {
     return $this->arguments;
+  }
+  /**
+   * Output only. The build status of the routine. This field is only applicable
+   * to Python UDFs. [Preview](https://cloud.google.com/products/#product-
+   * launch-stages)
+   *
+   * @param RoutineBuildStatus $buildStatus
+   */
+  public function setBuildStatus(RoutineBuildStatus $buildStatus)
+  {
+    $this->buildStatus = $buildStatus;
+  }
+  /**
+   * @return RoutineBuildStatus
+   */
+  public function getBuildStatus()
+  {
+    return $this->buildStatus;
   }
   /**
    * Output only. The time when this routine was created, in milliseconds since

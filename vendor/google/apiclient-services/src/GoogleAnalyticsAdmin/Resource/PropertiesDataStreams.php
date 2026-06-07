@@ -101,7 +101,7 @@ class PropertiesDataStreams extends \Google\Service\Resource
   /**
    * Updates a DataStream on a property. (dataStreams.patch)
    *
-   * @param string $name Output only. Resource name of this Data Stream. Format:
+   * @param string $name Identifier. Resource name of this Data Stream. Format:
    * properties/{property_id}/dataStreams/{stream_id} Example:
    * "properties/1000/dataStreams/2000"
    * @param GoogleAnalyticsAdminV1betaDataStream $postBody

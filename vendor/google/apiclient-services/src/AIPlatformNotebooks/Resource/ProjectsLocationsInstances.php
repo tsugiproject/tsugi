@@ -221,8 +221,10 @@ class ProjectsLocationsInstances extends \Google\Service\Resource
    * Lists instances in a given project and location.
    * (instances.listProjectsLocationsInstances)
    *
-   * @param string $parent Required. Format:
-   * `parent=projects/{project_id}/locations/{location}`
+   * @param string $parent Required. The parent of the instance. Formats: -
+   * `projects/{project_id}/locations/{location}` to list instances in a specific
+   * zone. - `projects/{project_id}/locations/-` to list instances in all
+   * locations.
    * @param array $optParams Optional parameters.
    *
    * @opt_param string filter Optional. List filter.

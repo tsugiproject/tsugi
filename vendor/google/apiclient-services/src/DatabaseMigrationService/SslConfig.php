@@ -33,7 +33,7 @@ class SslConfig extends \Google\Model
    */
   public const TYPE_SERVER_CLIENT = 'SERVER_CLIENT';
   /**
-   * Mandates SSL encryption for all connections. This doesn’t require
+   * Mandates SSL encryption for all connections. This does not require
    * certificate verification.
    */
   public const TYPE_REQUIRED = 'REQUIRED';

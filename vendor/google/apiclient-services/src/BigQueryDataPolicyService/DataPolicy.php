@@ -51,6 +51,8 @@ class DataPolicy extends \Google\Collection
    */
   public const VERSION_V2 = 'V2';
   protected $collection_key = 'grantees';
+  protected $dataGovernanceTagType = DataGovernanceTag::class;
+  protected $dataGovernanceTagDataType = '';
   protected $dataMaskingPolicyType = DataMaskingPolicy::class;
   protected $dataMaskingPolicyDataType = '';
   /**
@@ -109,6 +111,22 @@ class DataPolicy extends \Google\Collection
    */
   public $version;
 
+  /**
+   * Optional. Data Governance tag bound to the Data Policy.
+   *
+   * @param DataGovernanceTag $dataGovernanceTag
+   */
+  public function setDataGovernanceTag(DataGovernanceTag $dataGovernanceTag)
+  {
+    $this->dataGovernanceTag = $dataGovernanceTag;
+  }
+  /**
+   * @return DataGovernanceTag
+   */
+  public function getDataGovernanceTag()
+  {
+    return $this->dataGovernanceTag;
+  }
   /**
    * Optional. The data masking policy that specifies the data masking rule to
    * use. It must be set if the data policy type is DATA_MASKING_POLICY.

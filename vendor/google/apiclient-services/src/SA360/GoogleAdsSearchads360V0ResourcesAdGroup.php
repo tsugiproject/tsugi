@@ -195,7 +195,10 @@ class GoogleAdsSearchads360V0ResourcesAdGroup extends \Google\Collection
    */
   public $adRotationMode;
   /**
-   * The maximum CPC (cost-per-click) bid.
+   * The maximum CPC (cost-per-click) bid. This field is used when the ad
+   * group's effective bidding strategy is Manual CPC. This field is not
+   * applicable and will be ignored if the ad group's campaign is using a
+   * portfolio bidding strategy.
    *
    * @var string
    */
@@ -341,7 +344,10 @@ class GoogleAdsSearchads360V0ResourcesAdGroup extends \Google\Collection
     return $this->adRotationMode;
   }
   /**
-   * The maximum CPC (cost-per-click) bid.
+   * The maximum CPC (cost-per-click) bid. This field is used when the ad
+   * group's effective bidding strategy is Manual CPC. This field is not
+   * applicable and will be ignored if the ad group's campaign is using a
+   * portfolio bidding strategy.
    *
    * @param string $cpcBidMicros
    */

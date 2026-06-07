@@ -105,17 +105,17 @@ class GoogleAdsSearchads360V0CommonMetrics extends \Google\Collection
    */
   public $allConversionsByConversionDate;
   /**
-   * The number of times people clicked the "Call" button to call a store during
-   * or after clicking an ad. This number doesn't include whether or not calls
-   * were connected, or the duration of any calls. This metric applies to feed
-   * items only.
+   * The number of times people clicked the "Call" button to call a business
+   * during or after clicking an ad. This number doesn't include whether or not
+   * calls were connected, or the duration of any calls. This metric applies to
+   * feed items only.
    *
    * @var 
    */
   public $allConversionsFromClickToCall;
   /**
    * The number of times people clicked a "Get directions" button to navigate to
-   * a store after clicking an ad. This metric applies to feed items only.
+   * a business after clicking an ad. This metric applies to feed items only.
    *
    * @var 
    */
@@ -135,37 +135,37 @@ class GoogleAdsSearchads360V0CommonMetrics extends \Google\Collection
    */
   public $allConversionsFromInteractionsValuePerInteraction;
   /**
-   * The number of times people clicked a link to view a store's menu after
+   * The number of times people clicked a link to view a business's menu after
    * clicking an ad. This metric applies to feed items only.
    *
    * @var 
    */
   public $allConversionsFromMenu;
   /**
-   * The number of times people placed an order at a store after clicking an ad.
-   * This metric applies to feed items only.
+   * The number of times people placed an order at a business after clicking an
+   * ad. This metric applies to feed items only.
    *
    * @var 
    */
   public $allConversionsFromOrder;
   /**
    * The number of other conversions (for example, posting a review or saving a
-   * location for a store) that occurred after people clicked an ad. This metric
-   * applies to feed items only.
+   * location for a business) that occurred after people clicked an ad. This
+   * metric applies to feed items only.
    *
    * @var 
    */
   public $allConversionsFromOtherEngagement;
   /**
-   * Estimated number of times people visited a store after clicking an ad. This
-   * metric applies to feed items only.
+   * Estimated number of times people visited a business after clicking an ad.
+   * This metric applies to feed items only.
    *
    * @var 
    */
   public $allConversionsFromStoreVisit;
   /**
-   * The number of times that people were taken to a store's URL after clicking
-   * an ad. This metric applies to feed items only.
+   * The number of times that people were taken to a business's URL after
+   * clicking an ad. This metric applies to feed items only.
    *
    * @var 
    */

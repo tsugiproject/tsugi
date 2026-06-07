@@ -36,6 +36,18 @@ class SslPolicy extends \Google\Collection
    */
   public const MIN_TLS_VERSION_TLS_1_3 = 'TLS_1_3';
   /**
+   * Default behavior: disabled until October 2026, enabled afterward.
+   */
+  public const POST_QUANTUM_KEY_EXCHANGE_DEFAULT = 'DEFAULT';
+  /**
+   * Disabled until October 2027, enabled afterward.
+   */
+  public const POST_QUANTUM_KEY_EXCHANGE_DEFERRED = 'DEFERRED';
+  /**
+   * Enabled now.
+   */
+  public const POST_QUANTUM_KEY_EXCHANGE_ENABLED = 'ENABLED';
+  /**
    * Compatible profile. Allows the broadset set of clients, even those which
    * support only out-of-date SSL features to negotiate with the load balancer.
    */
@@ -136,10 +148,24 @@ class SslPolicy extends \Google\Collection
    */
   public $name;
   /**
+   * One of DEFAULT, ENABLED, orDEFERRED. Controls whether the load balancer
+   * negotiates X25519MLKEM768 key exchange when clients advertise support for
+   * it. When set to DEFAULT, or if no SSL Policy is attached to the target
+   * proxy, the load balancer disallows X25519MLKEM768 key exchange before
+   * October 2026, and allows it afterward. When set to ENABLED, the load
+   * balancer allows X25519MLKEM768 key exchange. When set toDEFERRED, the load
+   * balancer disallows X25519MLKEM768 key exchange until October 2027, and
+   * allows it afterward.
+   *
+   * @var string
+   */
+  public $postQuantumKeyExchange;
+  /**
    * Profile specifies the set of SSL features that can be used by the load
    * balancer when negotiating SSL with clients. This can be one ofCOMPATIBLE,
-   * MODERN, RESTRICTED, orCUSTOM. If using CUSTOM, the set of SSL features to
-   * enable must be specified in the customFeatures field.
+   * MODERN, RESTRICTED,FIPS_202205, or CUSTOM. If usingCUSTOM, the set of SSL
+   * features to enable must be specified in the customFeatures field. If using
+   * FIPS_202205, the min_tls_version field must be set to TLS_1_2.
    *
    * @var string
    */
@@ -327,10 +353,36 @@ class SslPolicy extends \Google\Collection
     return $this->name;
   }
   /**
+   * One of DEFAULT, ENABLED, orDEFERRED. Controls whether the load balancer
+   * negotiates X25519MLKEM768 key exchange when clients advertise support for
+   * it. When set to DEFAULT, or if no SSL Policy is attached to the target
+   * proxy, the load balancer disallows X25519MLKEM768 key exchange before
+   * October 2026, and allows it afterward. When set to ENABLED, the load
+   * balancer allows X25519MLKEM768 key exchange. When set toDEFERRED, the load
+   * balancer disallows X25519MLKEM768 key exchange until October 2027, and
+   * allows it afterward.
+   *
+   * Accepted values: DEFAULT, DEFERRED, ENABLED
+   *
+   * @param self::POST_QUANTUM_KEY_EXCHANGE_* $postQuantumKeyExchange
+   */
+  public function setPostQuantumKeyExchange($postQuantumKeyExchange)
+  {
+    $this->postQuantumKeyExchange = $postQuantumKeyExchange;
+  }
+  /**
+   * @return self::POST_QUANTUM_KEY_EXCHANGE_*
+   */
+  public function getPostQuantumKeyExchange()
+  {
+    return $this->postQuantumKeyExchange;
+  }
+  /**
    * Profile specifies the set of SSL features that can be used by the load
    * balancer when negotiating SSL with clients. This can be one ofCOMPATIBLE,
-   * MODERN, RESTRICTED, orCUSTOM. If using CUSTOM, the set of SSL features to
-   * enable must be specified in the customFeatures field.
+   * MODERN, RESTRICTED,FIPS_202205, or CUSTOM. If usingCUSTOM, the set of SSL
+   * features to enable must be specified in the customFeatures field. If using
+   * FIPS_202205, the min_tls_version field must be set to TLS_1_2.
    *
    * Accepted values: COMPATIBLE, CUSTOM, FIPS_202205, MODERN, RESTRICTED
    *

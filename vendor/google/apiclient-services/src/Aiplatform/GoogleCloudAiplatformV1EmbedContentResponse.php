@@ -63,7 +63,7 @@ class GoogleCloudAiplatformV1EmbedContentResponse extends \Google\Model
     return $this->truncated;
   }
   /**
-   * Metadata about the response(s).
+   * Usage metadata about the response(s).
    *
    * @param GoogleCloudAiplatformV1UsageMetadata $usageMetadata
    */

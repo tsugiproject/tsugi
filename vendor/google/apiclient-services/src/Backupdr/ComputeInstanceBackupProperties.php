@@ -56,6 +56,14 @@ class ComputeInstanceBackupProperties extends \Google\Collection
   protected $guestAcceleratorType = AcceleratorConfig::class;
   protected $guestAcceleratorDataType = 'array';
   /**
+   * Optional. Indicates whether to perform a guest flush operation before
+   * taking a compute backup. When set to false, the system will create crash-
+   * consistent backups. Default value is false.
+   *
+   * @var bool
+   */
+  public $guestFlush;
+  /**
    * KeyRevocationActionType of the instance. Supported options are "STOP" and
    * "NONE". The default value is "NONE" if it is not specified.
    *
@@ -177,6 +185,24 @@ class ComputeInstanceBackupProperties extends \Google\Collection
   public function getGuestAccelerator()
   {
     return $this->guestAccelerator;
+  }
+  /**
+   * Optional. Indicates whether to perform a guest flush operation before
+   * taking a compute backup. When set to false, the system will create crash-
+   * consistent backups. Default value is false.
+   *
+   * @param bool $guestFlush
+   */
+  public function setGuestFlush($guestFlush)
+  {
+    $this->guestFlush = $guestFlush;
+  }
+  /**
+   * @return bool
+   */
+  public function getGuestFlush()
+  {
+    return $this->guestFlush;
   }
   /**
    * KeyRevocationActionType of the instance. Supported options are "STOP" and

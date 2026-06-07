@@ -50,8 +50,9 @@ class ProjectsLocationsSecurityGatewaysApplications extends \Google\Service\Reso
    * `/a-z-/`. * Must end with a number or letter.
    * @opt_param string requestId Optional. An optional request ID to identify
    * requests. Specify a unique request ID so that if you must retry your request,
-   * the server will know to ignore request if it has already been completed. The
-   * server will guarantee that for at least 60 minutes since the first request.
+   * the server will know to ignore the request if it has already been completed.
+   * The server will guarantee that for at least 60 minutes since the first
+   * request.
    * @return GoogleLongrunningOperation
    * @throws \Google\Service\Exception
    */

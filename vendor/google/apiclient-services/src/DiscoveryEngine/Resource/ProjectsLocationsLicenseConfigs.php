@@ -18,6 +18,7 @@
 namespace Google\Service\DiscoveryEngine\Resource;
 
 use Google\Service\DiscoveryEngine\GoogleCloudDiscoveryengineV1LicenseConfig;
+use Google\Service\DiscoveryEngine\GoogleCloudDiscoveryengineV1ListLicenseConfigsResponse;
 
 /**
  * The "licenseConfigs" collection of methods.
@@ -30,7 +31,9 @@ use Google\Service\DiscoveryEngine\GoogleCloudDiscoveryengineV1LicenseConfig;
 class ProjectsLocationsLicenseConfigs extends \Google\Service\Resource
 {
   /**
-   * Creates a LicenseConfig (licenseConfigs.create)
+   * Creates a LicenseConfig This method should only be used for creating
+   * NotebookLm licenses or Gemini Enterprise free trial licenses.
+   * (licenseConfigs.create)
    *
    * @param string $parent Required. The parent resource name, such as
    * `projects/{project}/locations/{location}`.
@@ -67,6 +70,30 @@ class ProjectsLocationsLicenseConfigs extends \Google\Service\Resource
     $params = ['name' => $name];
     $params = array_merge($params, $optParams);
     return $this->call('get', [$params], GoogleCloudDiscoveryengineV1LicenseConfig::class);
+  }
+  /**
+   * Lists all the LicenseConfigs associated with the project.
+   * (licenseConfigs.listProjectsLocationsLicenseConfigs)
+   *
+   * @param string $parent Required. The parent branch resource name, such as
+   * `projects/{project}/locations/{location}`.
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string filter Optional. The filter to apply to the list results.
+   * The supported fields are: * `subscription_tier` * `state` Examples: *
+   * `subscription_tier=SUBSCRIPTION_TIER_SEARCH,state=ACTIVE` - Lists all active
+   * search license configs. * `state=ACTIVE` - Lists all active license configs.
+   * The filter string should be a comma-separated list of field=value pairs.
+   * @opt_param int pageSize Optional. Not supported.
+   * @opt_param string pageToken Optional. Not supported.
+   * @return GoogleCloudDiscoveryengineV1ListLicenseConfigsResponse
+   * @throws \Google\Service\Exception
+   */
+  public function listProjectsLocationsLicenseConfigs($parent, $optParams = [])
+  {
+    $params = ['parent' => $parent];
+    $params = array_merge($params, $optParams);
+    return $this->call('list', [$params], GoogleCloudDiscoveryengineV1ListLicenseConfigsResponse::class);
   }
   /**
    * Updates the LicenseConfig (licenseConfigs.patch)

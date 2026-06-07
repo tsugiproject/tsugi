@@ -52,9 +52,30 @@ class DataDisk extends \Google\Collection
    */
   public const DISK_TYPE_PD_EXTREME = 'PD_EXTREME';
   /**
-   * Hyperdisk Balanced persistent disk type.
+   * Represents the Hyperdisk Balanced persistent disk type. Can be used as a
+   * boot disk or data disk.
    */
   public const DISK_TYPE_HYPERDISK_BALANCED = 'HYPERDISK_BALANCED';
+  /**
+   * Represents the Hyperdisk Extreme persistent disk type. Can only be used as
+   * a data disk.
+   */
+  public const DISK_TYPE_HYPERDISK_EXTREME = 'HYPERDISK_EXTREME';
+  /**
+   * Represents the Hyperdisk Throughput persistent disk type. Can only be used
+   * as a data disk.
+   */
+  public const DISK_TYPE_HYPERDISK_THROUGHPUT = 'HYPERDISK_THROUGHPUT';
+  /**
+   * Represents the Hyperdisk Balanced High Availability persistent disk type.
+   * Can be used as a boot disk or data disk.
+   */
+  public const DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY = 'HYPERDISK_BALANCED_HIGH_AVAILABILITY';
+  /**
+   * Represents the Hyperdisk ML persistent disk type. Can be used as a boot
+   * disk or data disk.
+   */
+  public const DISK_TYPE_HYPERDISK_ML = 'HYPERDISK_ML';
   protected $collection_key = 'resourcePolicies';
   /**
    * Optional. Input only. Disk encryption method used on the boot and data
@@ -132,7 +153,8 @@ class DataDisk extends \Google\Collection
    * Optional. Input only. Indicates the type of the disk.
    *
    * Accepted values: DISK_TYPE_UNSPECIFIED, PD_STANDARD, PD_SSD, PD_BALANCED,
-   * PD_EXTREME, HYPERDISK_BALANCED
+   * PD_EXTREME, HYPERDISK_BALANCED, HYPERDISK_EXTREME, HYPERDISK_THROUGHPUT,
+   * HYPERDISK_BALANCED_HIGH_AVAILABILITY, HYPERDISK_ML
    *
    * @param self::DISK_TYPE_* $diskType
    */

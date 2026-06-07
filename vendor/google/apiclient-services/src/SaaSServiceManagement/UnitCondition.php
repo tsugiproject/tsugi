@@ -57,6 +57,11 @@ class UnitCondition extends \Google\Model
    */
   public const TYPE_TYPE_OPERATION_ERROR = 'TYPE_OPERATION_ERROR';
   /**
+   * Condition type is flagsConfigInitialized. True when the flags configuration
+   * is synchronized and ready to be served.
+   */
+  public const TYPE_TYPE_FLAGS_CONFIG_INITIALIZED = 'TYPE_FLAGS_CONFIG_INITIALIZED';
+  /**
    * Required. Last time the condition transited from one status to another.
    *
    * @var string
@@ -160,7 +165,7 @@ class UnitCondition extends \Google\Model
    * Required. Type of the condition.
    *
    * Accepted values: TYPE_UNSPECIFIED, TYPE_READY, TYPE_UPDATING,
-   * TYPE_PROVISIONED, TYPE_OPERATION_ERROR
+   * TYPE_PROVISIONED, TYPE_OPERATION_ERROR, TYPE_FLAGS_CONFIG_INITIALIZED
    *
    * @param self::TYPE_* $type
    */

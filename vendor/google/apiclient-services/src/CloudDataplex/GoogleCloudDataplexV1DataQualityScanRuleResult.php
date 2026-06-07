@@ -84,6 +84,10 @@ class GoogleCloudDataplexV1DataQualityScanRuleResult extends \Google\Model
    */
   public const RULE_TYPE_SQL_ASSERTION = 'SQL_ASSERTION';
   /**
+   * See DataQualityRule.TemplateReference.
+   */
+  public const RULE_TYPE_TEMPLATE_REFERENCE = 'TEMPLATE_REFERENCE';
+  /**
    * The number of rows returned by the SQL statement in a SQL assertion rule.
    * This field is only valid for SQL assertion rules.
    *
@@ -354,7 +358,7 @@ class GoogleCloudDataplexV1DataQualityScanRuleResult extends \Google\Model
    * Accepted values: RULE_TYPE_UNSPECIFIED, NON_NULL_EXPECTATION,
    * RANGE_EXPECTATION, REGEX_EXPECTATION, ROW_CONDITION_EXPECTATION,
    * SET_EXPECTATION, STATISTIC_RANGE_EXPECTATION, TABLE_CONDITION_EXPECTATION,
-   * UNIQUENESS_EXPECTATION, SQL_ASSERTION
+   * UNIQUENESS_EXPECTATION, SQL_ASSERTION, TEMPLATE_REFERENCE
    *
    * @param self::RULE_TYPE_* $ruleType
    */

@@ -77,6 +77,13 @@ class Rollout extends \Google\Model
    */
   public $createTime;
   /**
+   * Output only. The timestamp when the resource was marked for deletion
+   * (deletion is an asynchronous operation).
+   *
+   * @var string
+   */
+  public $deleteTime;
+  /**
    * Optional. Output only. Output only snapshot of the effective unit filter at
    * Rollout start time. Contains a CEL(https://github.com/google/cel-spec)
    * expression consisting of a conjunction of Rollout.unit_filter and
@@ -105,6 +112,15 @@ class Rollout extends \Google\Model
    * @var string
    */
   public $etag;
+  /**
+   * Optional. Immutable. Name of the FlagRelease to be rolled out to the target
+   * Units. Release and FlagRelease are mutually exclusive. Note: `release`
+   * comment needs to be adjusted to mention that "Release and FlagRelease are
+   * mutually exclusive" when visibility restriction will be lifted.
+   *
+   * @var string
+   */
+  public $flagRelease;
   /**
    * Optional. The labels on the resource, which can be used for categorization.
    * similar to Kubernetes resource labels.
@@ -137,7 +153,7 @@ class Rollout extends \Google\Model
    */
   public $release;
   /**
-   * Optional. Immutable. Name of the RolloutKind this rollout is stemming from
+   * Required. Immutable. Name of the RolloutKind this rollout is stemming from
    * and adhering to.
    *
    * @var string
@@ -277,6 +293,23 @@ class Rollout extends \Google\Model
     return $this->createTime;
   }
   /**
+   * Output only. The timestamp when the resource was marked for deletion
+   * (deletion is an asynchronous operation).
+   *
+   * @param string $deleteTime
+   */
+  public function setDeleteTime($deleteTime)
+  {
+    $this->deleteTime = $deleteTime;
+  }
+  /**
+   * @return string
+   */
+  public function getDeleteTime()
+  {
+    return $this->deleteTime;
+  }
+  /**
    * Optional. Output only. Output only snapshot of the effective unit filter at
    * Rollout start time. Contains a CEL(https://github.com/google/cel-spec)
    * expression consisting of a conjunction of Rollout.unit_filter and
@@ -334,6 +367,25 @@ class Rollout extends \Google\Model
   public function getEtag()
   {
     return $this->etag;
+  }
+  /**
+   * Optional. Immutable. Name of the FlagRelease to be rolled out to the target
+   * Units. Release and FlagRelease are mutually exclusive. Note: `release`
+   * comment needs to be adjusted to mention that "Release and FlagRelease are
+   * mutually exclusive" when visibility restriction will be lifted.
+   *
+   * @param string $flagRelease
+   */
+  public function setFlagRelease($flagRelease)
+  {
+    $this->flagRelease = $flagRelease;
+  }
+  /**
+   * @return string
+   */
+  public function getFlagRelease()
+  {
+    return $this->flagRelease;
   }
   /**
    * Optional. The labels on the resource, which can be used for categorization.
@@ -407,7 +459,7 @@ class Rollout extends \Google\Model
     return $this->release;
   }
   /**
-   * Optional. Immutable. Name of the RolloutKind this rollout is stemming from
+   * Required. Immutable. Name of the RolloutKind this rollout is stemming from
    * and adhering to.
    *
    * @param string $rolloutKind

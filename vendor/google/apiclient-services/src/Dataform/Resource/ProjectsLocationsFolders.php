@@ -17,7 +17,13 @@
 
 namespace Google\Service\Dataform\Resource;
 
+use Google\Service\Dataform\DataformEmpty;
+use Google\Service\Dataform\DeleteFolderTreeRequest;
+use Google\Service\Dataform\Folder;
+use Google\Service\Dataform\MoveFolderRequest;
+use Google\Service\Dataform\Operation;
 use Google\Service\Dataform\Policy;
+use Google\Service\Dataform\QueryFolderContentsResponse;
 use Google\Service\Dataform\SetIamPolicyRequest;
 use Google\Service\Dataform\TestIamPermissionsRequest;
 use Google\Service\Dataform\TestIamPermissionsResponse;
@@ -32,6 +38,67 @@ use Google\Service\Dataform\TestIamPermissionsResponse;
  */
 class ProjectsLocationsFolders extends \Google\Service\Resource
 {
+  /**
+   * Creates a new Folder in a given project and location. (folders.create)
+   *
+   * @param string $parent Required. The location in which to create the Folder.
+   * Must be in the format `projects/locations`.
+   * @param Folder $postBody
+   * @param array $optParams Optional parameters.
+   * @return Folder
+   * @throws \Google\Service\Exception
+   */
+  public function create($parent, Folder $postBody, $optParams = [])
+  {
+    $params = ['parent' => $parent, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('create', [$params], Folder::class);
+  }
+  /**
+   * Deletes a single Folder. (folders.delete)
+   *
+   * @param string $name Required. The Folder's name.
+   * @param array $optParams Optional parameters.
+   * @return DataformEmpty
+   * @throws \Google\Service\Exception
+   */
+  public function delete($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('delete', [$params], DataformEmpty::class);
+  }
+  /**
+   * Deletes a Folder with its contents (Folders, Repositories, Workspaces,
+   * ReleaseConfigs, and WorkflowConfigs). (folders.deleteTree)
+   *
+   * @param string $name Required. The Folder's name. Format:
+   * projects/{project}/locations/{location}/folders/{folder}
+   * @param DeleteFolderTreeRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function deleteTree($name, DeleteFolderTreeRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('deleteTree', [$params], Operation::class);
+  }
+  /**
+   * Fetches a single Folder. (folders.get)
+   *
+   * @param string $name Required. The Folder's name.
+   * @param array $optParams Optional parameters.
+   * @return Folder
+   * @throws \Google\Service\Exception
+   */
+  public function get($name, $optParams = [])
+  {
+    $params = ['name' => $name];
+    $params = array_merge($params, $optParams);
+    return $this->call('get', [$params], Folder::class);
+  }
   /**
    * Gets the access control policy for a resource. Returns an empty policy if the
    * resource exists and does not have a policy set. (folders.getIamPolicy)
@@ -62,6 +129,74 @@ class ProjectsLocationsFolders extends \Google\Service\Resource
     $params = ['resource' => $resource];
     $params = array_merge($params, $optParams);
     return $this->call('getIamPolicy', [$params], Policy::class);
+  }
+  /**
+   * Moves a Folder to a new Folder, TeamFolder, or the root location.
+   * (folders.move)
+   *
+   * @param string $name Required. The full resource name of the Folder to move.
+   * @param MoveFolderRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return Operation
+   * @throws \Google\Service\Exception
+   */
+  public function move($name, MoveFolderRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('move', [$params], Operation::class);
+  }
+  /**
+   * Updates a single Folder. (folders.patch)
+   *
+   * @param string $name Identifier. The Folder's name.
+   * @param Folder $postBody
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string updateMask Optional. Specifies the fields to be updated in
+   * the Folder. If left unset, all fields that can be updated, will be updated. A
+   * few fields cannot be updated and will be ignored if specified in the
+   * update_mask (e.g. parent_name, team_folder_name).
+   * @return Folder
+   * @throws \Google\Service\Exception
+   */
+  public function patch($name, Folder $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('patch', [$params], Folder::class);
+  }
+  /**
+   * Returns the contents of a given Folder. (folders.queryFolderContents)
+   *
+   * @param string $folder Required. Resource name of the Folder to list contents
+   * for. Format: projects/locations/folders
+   * @param array $optParams Optional parameters.
+   *
+   * @opt_param string filter Optional. Optional filtering for the returned list.
+   * Filtering is currently only supported on the `display_name` field. Example: *
+   * `filter="display_name="MyFolder""`
+   * @opt_param string orderBy Optional. Field to additionally sort results by.
+   * Will order Folders before Repositories, and then by `order_by` in ascending
+   * order. Supported keywords: display_name (default), create_time,
+   * last_modified_time. Examples: * `orderBy="display_name"` *
+   * `orderBy="display_name desc"`
+   * @opt_param int pageSize Optional. Maximum number of paths to return. The
+   * server may return fewer items than requested. If unspecified, the server will
+   * pick an appropriate default.
+   * @opt_param string pageToken Optional. Page token received from a previous
+   * `QueryFolderContents` call. Provide this to retrieve the subsequent page.
+   * When paginating, all other parameters provided to `QueryFolderContents`, with
+   * the exception of `page_size`, must match the call that provided the page
+   * token.
+   * @return QueryFolderContentsResponse
+   * @throws \Google\Service\Exception
+   */
+  public function queryFolderContents($folder, $optParams = [])
+  {
+    $params = ['folder' => $folder];
+    $params = array_merge($params, $optParams);
+    return $this->call('queryFolderContents', [$params], QueryFolderContentsResponse::class);
   }
   /**
    * Sets the access control policy on the specified resource. Replaces any

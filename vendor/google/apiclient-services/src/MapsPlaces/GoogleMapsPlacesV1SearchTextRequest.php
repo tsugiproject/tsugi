@@ -37,6 +37,13 @@ class GoogleMapsPlacesV1SearchTextRequest extends \Google\Collection
   protected $evOptionsType = GoogleMapsPlacesV1SearchTextRequestEVOptions::class;
   protected $evOptionsDataType = '';
   /**
+   * Optional. If true, include businesses that are not yet open but will open
+   * in the future.
+   *
+   * @var bool
+   */
+  public $includeFutureOpeningBusinesses;
+  /**
    * Optional. Include pure service area businesses if the field is set to true.
    * Pure service area business is a business that visits or delivers to
    * customers directly but does not serve customers at their business address.
@@ -182,6 +189,23 @@ class GoogleMapsPlacesV1SearchTextRequest extends \Google\Collection
   public function getEvOptions()
   {
     return $this->evOptions;
+  }
+  /**
+   * Optional. If true, include businesses that are not yet open but will open
+   * in the future.
+   *
+   * @param bool $includeFutureOpeningBusinesses
+   */
+  public function setIncludeFutureOpeningBusinesses($includeFutureOpeningBusinesses)
+  {
+    $this->includeFutureOpeningBusinesses = $includeFutureOpeningBusinesses;
+  }
+  /**
+   * @return bool
+   */
+  public function getIncludeFutureOpeningBusinesses()
+  {
+    return $this->includeFutureOpeningBusinesses;
   }
   /**
    * Optional. Include pure service area businesses if the field is set to true.

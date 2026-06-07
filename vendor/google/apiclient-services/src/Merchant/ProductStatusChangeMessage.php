@@ -35,6 +35,10 @@ class ProductStatusChangeMessage extends \Google\Collection
    * Resource type : product
    */
   public const RESOURCE_TYPE_PRODUCT = 'PRODUCT';
+  /**
+   * Account service
+   */
+  public const RESOURCE_TYPE_ACCOUNT_SERVICE = 'ACCOUNT_SERVICE';
   protected $collection_key = 'changes';
   /**
    * The target account that owns the entity that changed. Format :
@@ -234,7 +238,7 @@ class ProductStatusChangeMessage extends \Google\Collection
   /**
    * The resource that changed, in this case it will always be `Product`.
    *
-   * Accepted values: RESOURCE_UNSPECIFIED, PRODUCT
+   * Accepted values: RESOURCE_UNSPECIFIED, PRODUCT, ACCOUNT_SERVICE
    *
    * @param self::RESOURCE_TYPE_* $resourceType
    */

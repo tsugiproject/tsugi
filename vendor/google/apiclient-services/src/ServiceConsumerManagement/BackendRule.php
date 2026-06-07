@@ -94,7 +94,9 @@ class BackendRule extends \Google\Model
   protected $overridesByRequestProtocolType = BackendRule::class;
   protected $overridesByRequestProtocolDataType = 'map';
   /**
-   * no-lint
+   * Path translation specifies how to combine the backend address with the
+   * request path in order to produce the appropriate forwarding URL for the
+   * request. See PathTranslation for more details.
    *
    * @var string
    */
@@ -241,7 +243,9 @@ class BackendRule extends \Google\Model
     return $this->overridesByRequestProtocol;
   }
   /**
-   * no-lint
+   * Path translation specifies how to combine the backend address with the
+   * request path in order to produce the appropriate forwarding URL for the
+   * request. See PathTranslation for more details.
    *
    * Accepted values: PATH_TRANSLATION_UNSPECIFIED, CONSTANT_ADDRESS,
    * APPEND_PATH_TO_ADDRESS

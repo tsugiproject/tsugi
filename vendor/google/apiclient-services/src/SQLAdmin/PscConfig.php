@@ -41,11 +41,33 @@ class PscConfig extends \Google\Collection
   protected $pscAutoConnectionsType = PscAutoConnectionConfig::class;
   protected $pscAutoConnectionsDataType = 'array';
   /**
+   * Optional. Indicates whether PSC DNS automation is enabled for this
+   * instance. When enabled, Cloud SQL provisions a universal DNS record across
+   * all networks configured with Private Service Connect (PSC) auto-
+   * connections. This will default to true for new instances when Private
+   * Service Connect is enabled.
+   *
+   * @var bool
+   */
+  public $pscAutoDnsEnabled;
+  /**
    * Whether PSC connectivity is enabled for this instance.
    *
    * @var bool
    */
   public $pscEnabled;
+  /**
+   * Optional. Indicates whether PSC write endpoint DNS automation is enabled
+   * for this instance. When enabled, Cloud SQL provisions a universal global
+   * DNS record across all networks configured with Private Service Connect
+   * (PSC) auto-connections that always points to the cluster primary instance.
+   * This feature is only supported for Enterprise Plus edition. This will
+   * default to true for new Enterprise Plus instances when
+   * `psc_auto_dns_enabled` is enabled.
+   *
+   * @var bool
+   */
+  public $pscWriteEndpointDnsEnabled;
 
   /**
    * Optional. The list of consumer projects that are allow-listed for PSC
@@ -103,6 +125,26 @@ class PscConfig extends \Google\Collection
     return $this->pscAutoConnections;
   }
   /**
+   * Optional. Indicates whether PSC DNS automation is enabled for this
+   * instance. When enabled, Cloud SQL provisions a universal DNS record across
+   * all networks configured with Private Service Connect (PSC) auto-
+   * connections. This will default to true for new instances when Private
+   * Service Connect is enabled.
+   *
+   * @param bool $pscAutoDnsEnabled
+   */
+  public function setPscAutoDnsEnabled($pscAutoDnsEnabled)
+  {
+    $this->pscAutoDnsEnabled = $pscAutoDnsEnabled;
+  }
+  /**
+   * @return bool
+   */
+  public function getPscAutoDnsEnabled()
+  {
+    return $this->pscAutoDnsEnabled;
+  }
+  /**
    * Whether PSC connectivity is enabled for this instance.
    *
    * @param bool $pscEnabled
@@ -117,6 +159,28 @@ class PscConfig extends \Google\Collection
   public function getPscEnabled()
   {
     return $this->pscEnabled;
+  }
+  /**
+   * Optional. Indicates whether PSC write endpoint DNS automation is enabled
+   * for this instance. When enabled, Cloud SQL provisions a universal global
+   * DNS record across all networks configured with Private Service Connect
+   * (PSC) auto-connections that always points to the cluster primary instance.
+   * This feature is only supported for Enterprise Plus edition. This will
+   * default to true for new Enterprise Plus instances when
+   * `psc_auto_dns_enabled` is enabled.
+   *
+   * @param bool $pscWriteEndpointDnsEnabled
+   */
+  public function setPscWriteEndpointDnsEnabled($pscWriteEndpointDnsEnabled)
+  {
+    $this->pscWriteEndpointDnsEnabled = $pscWriteEndpointDnsEnabled;
+  }
+  /**
+   * @return bool
+   */
+  public function getPscWriteEndpointDnsEnabled()
+  {
+    return $this->pscWriteEndpointDnsEnabled;
   }
 }
 

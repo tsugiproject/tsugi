@@ -35,6 +35,13 @@ class AdIdentifiers extends \Google\Model
   protected $landingPageDeviceInfoType = DeviceInfo::class;
   protected $landingPageDeviceInfoDataType = '';
   /**
+   * Optional. The mobile identifier for advertisers. This would be IDFA on iOS,
+   * AdID on Android, or other platforms’ identifiers for advertisers.
+   *
+   * @var string
+   */
+  public $mobileDeviceId;
+  /**
    * Optional. Session attributes for event attribution and modeling.
    *
    * @var string
@@ -97,6 +104,23 @@ class AdIdentifiers extends \Google\Model
   public function getLandingPageDeviceInfo()
   {
     return $this->landingPageDeviceInfo;
+  }
+  /**
+   * Optional. The mobile identifier for advertisers. This would be IDFA on iOS,
+   * AdID on Android, or other platforms’ identifiers for advertisers.
+   *
+   * @param string $mobileDeviceId
+   */
+  public function setMobileDeviceId($mobileDeviceId)
+  {
+    $this->mobileDeviceId = $mobileDeviceId;
+  }
+  /**
+   * @return string
+   */
+  public function getMobileDeviceId()
+  {
+    return $this->mobileDeviceId;
   }
   /**
    * Optional. Session attributes for event attribution and modeling.

@@ -31,10 +31,9 @@ use Google\Service\Dialogflow\GoogleCloudDialogflowCxV3TestCaseResult;
 class ProjectsLocationsAgentsTestCasesResults extends \Google\Service\Resource
 {
   /**
-   * Gets a test case result. (results.get)
+   * (results.get)
    *
-   * @param string $name Required. The name of the testcase. Format:
-   * `projects//locations//agents//testCases//results/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3TestCaseResult
    * @throws \Google\Service\Exception
@@ -46,31 +45,14 @@ class ProjectsLocationsAgentsTestCasesResults extends \Google\Service\Resource
     return $this->call('get', [$params], GoogleCloudDialogflowCxV3TestCaseResult::class);
   }
   /**
-   * Fetches the list of run results for the given test case. A maximum of 100
-   * results are kept for each test case.
    * (results.listProjectsLocationsAgentsTestCasesResults)
    *
-   * @param string $parent Required. The test case to list results for. Format:
-   * `projects//locations//agents//testCases/`. Specify a `-` as a wildcard for
-   * TestCase ID to list results across multiple test cases.
+   * @param string $parent
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string filter The filter expression used to filter test case
-   * results. See [API Filtering](https://aip.dev/160). The expression is case
-   * insensitive. Only 'AND' is supported for logical operators. The supported
-   * syntax is listed below in detail: [AND ] ... [AND latest] The supported
-   * fields and operators are: field operator `environment` `=`, `IN` (Use value
-   * `draft` for draft environment) `test_time` `>`, `<` `latest` only returns the
-   * latest test result in all results for each test case. Examples: *
-   * "environment=draft AND latest" matches the latest test result for each test
-   * case in the draft environment. * "environment IN (e1,e2)" matches any test
-   * case results with an environment resource name of either "e1" or "e2". *
-   * "test_time > 1602540713" matches any test case results with test time later
-   * than a unix timestamp in seconds 1602540713.
-   * @opt_param int pageSize The maximum number of items to return in a single
-   * page. By default 100 and at most 1000.
-   * @opt_param string pageToken The next_page_token value returned from a
-   * previous list request.
+   * @opt_param string filter
+   * @opt_param int pageSize
+   * @opt_param string pageToken
    * @return GoogleCloudDialogflowCxV3ListTestCaseResultsResponse
    * @throws \Google\Service\Exception
    */

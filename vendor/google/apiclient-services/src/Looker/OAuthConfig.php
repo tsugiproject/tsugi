@@ -33,6 +33,13 @@ class OAuthConfig extends \Google\Model
    * @var string
    */
   public $clientSecret;
+  /**
+   * Optional. Whether to use the shared OAuth client. Instances specifying this
+   * field do not need to provide client_id and client_secret.
+   *
+   * @var bool
+   */
+  public $sharedOauthClientEnabled;
 
   /**
    * Input only. Client ID from an external OAuth application. This is an input-
@@ -67,6 +74,23 @@ class OAuthConfig extends \Google\Model
   public function getClientSecret()
   {
     return $this->clientSecret;
+  }
+  /**
+   * Optional. Whether to use the shared OAuth client. Instances specifying this
+   * field do not need to provide client_id and client_secret.
+   *
+   * @param bool $sharedOauthClientEnabled
+   */
+  public function setSharedOauthClientEnabled($sharedOauthClientEnabled)
+  {
+    $this->sharedOauthClientEnabled = $sharedOauthClientEnabled;
+  }
+  /**
+   * @return bool
+   */
+  public function getSharedOauthClientEnabled()
+  {
+    return $this->sharedOauthClientEnabled;
   }
 }
 

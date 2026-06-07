@@ -28,8 +28,7 @@ class GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgorithm
    */
   public $ipHeaderIndex;
   /**
-   * Required. The name of the header to extract the client ip from. We are
-   * currently only supporting the X-Forwarded-For header.
+   * Required. The name of the header to extract the client ip from.
    *
    * @var string
    */
@@ -54,8 +53,7 @@ class GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgorithm
     return $this->ipHeaderIndex;
   }
   /**
-   * Required. The name of the header to extract the client ip from. We are
-   * currently only supporting the X-Forwarded-For header.
+   * Required. The name of the header to extract the client ip from.
    *
    * @param string $ipHeaderName
    */

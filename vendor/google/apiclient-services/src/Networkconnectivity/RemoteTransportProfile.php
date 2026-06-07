@@ -19,72 +19,125 @@ namespace Google\Service\Networkconnectivity;
 
 class RemoteTransportProfile extends \Google\Collection
 {
+  /**
+   * Unspecified key provisioning flow.
+   */
+  public const FLOW_KEY_PROVISIONING_FLOW_UNSPECIFIED = 'KEY_PROVISIONING_FLOW_UNSPECIFIED';
+  /**
+   * The activationKey field on the Transport must be included in a create or
+   * patch request to establish connectivity.
+   */
+  public const FLOW_INPUT_ONLY = 'INPUT_ONLY';
+  /**
+   * The generatedActivationKey field is populated and must be read from the
+   * resource and passed into the other provider.
+   */
+  public const FLOW_OUTPUT_ONLY = 'OUTPUT_ONLY';
+  /**
+   * Both activation key fields are allowed for establishing connectivity. If a
+   * key is input, the generated key is still present after provisioning is
+   * finished.
+   */
+  public const FLOW_INPUT_OR_OUTPUT = 'INPUT_OR_OUTPUT';
+  /**
+   * Unspecified state.
+   */
+  public const ORDER_STATE_STATE_UNSPECIFIED = 'STATE_UNSPECIFIED';
+  /**
+   * Not enough capacity for customers to order.
+   */
+  public const ORDER_STATE_CLOSED = 'CLOSED';
+  /**
+   * Enough capacity to fulfill an order.
+   */
+  public const ORDER_STATE_OPEN = 'OPEN';
+  /**
+   * Unspecified service level availability.
+   */
+  public const SLA_SERVICE_LEVEL_AVAILABILITY_UNSPECIFIED = 'SERVICE_LEVEL_AVAILABILITY_UNSPECIFIED';
+  /**
+   * This represents a 99.9% service level on the availability of the configured
+   * connectivity.
+   */
+  public const SLA_HIGH = 'HIGH';
+  /**
+   * This represents a 99.99% service level on the availability of the
+   * configured connectivity.
+   */
+  public const SLA_MAXIMUM = 'MAXIMUM';
   protected $collection_key = 'supportedBandwidths';
   /**
-   * @var string
-   */
-  public $createTime;
-  /**
+   * Output only. Description of the profile.
+   *
    * @var string
    */
   public $description;
   /**
+   * Output only. Human readable name of this profile, used to identify this
+   * profile in the UI.
+   *
+   * @var string
+   */
+  public $displayName;
+  /**
+   * Output only. Type of provisioning flows supported by this profile.
+   *
    * @var string
    */
   public $flow;
   /**
+   * Output only. Labels as key value pairs.
+   *
    * @var string[]
    */
   public $labels;
   /**
+   * Identifier. Name of the resource in the format of $provider-$site.
+   *
    * @var string
    */
   public $name;
   /**
+   * Output only. Order state for this profile.
+   *
    * @var string
    */
   public $orderState;
   /**
+   * Output only. Name of the provider on the other end of this profile. E.g.
+   * “Amazon Web Services” or “Microsoft Azure”.
+   *
    * @var string
    */
   public $provider;
   /**
+   * Output only. If the profile is a Cloud Service Provider with compute
+   * resources, this is populated with the region where connectivity is being
+   * established. If the profile provides facility-level selection, this is an
+   * identity of the facility any connections on this profile are going through.
+   *
    * @var string
    */
   public $providerSite;
   /**
-   * @var string
-   */
-  public $region;
-  /**
+   * Output only. Availability class that will be configured for this particular
+   * RemoteTransportProfile.
+   *
    * @var string
    */
   public $sla;
   /**
+   * Output only. List of bandwidth enum values that are supported by this
+   * profile.
+   *
    * @var string[]
    */
   public $supportedBandwidths;
-  /**
-   * @var string
-   */
-  public $updateTime;
 
   /**
-   * @param string
-   */
-  public function setCreateTime($createTime)
-  {
-    $this->createTime = $createTime;
-  }
-  /**
-   * @return string
-   */
-  public function getCreateTime()
-  {
-    return $this->createTime;
-  }
-  /**
-   * @param string
+   * Output only. Description of the profile.
+   *
+   * @param string $description
    */
   public function setDescription($description)
   {
@@ -98,21 +151,45 @@ class RemoteTransportProfile extends \Google\Collection
     return $this->description;
   }
   /**
-   * @param string
+   * Output only. Human readable name of this profile, used to identify this
+   * profile in the UI.
+   *
+   * @param string $displayName
+   */
+  public function setDisplayName($displayName)
+  {
+    $this->displayName = $displayName;
+  }
+  /**
+   * @return string
+   */
+  public function getDisplayName()
+  {
+    return $this->displayName;
+  }
+  /**
+   * Output only. Type of provisioning flows supported by this profile.
+   *
+   * Accepted values: KEY_PROVISIONING_FLOW_UNSPECIFIED, INPUT_ONLY,
+   * OUTPUT_ONLY, INPUT_OR_OUTPUT
+   *
+   * @param self::FLOW_* $flow
    */
   public function setFlow($flow)
   {
     $this->flow = $flow;
   }
   /**
-   * @return string
+   * @return self::FLOW_*
    */
   public function getFlow()
   {
     return $this->flow;
   }
   /**
-   * @param string[]
+   * Output only. Labels as key value pairs.
+   *
+   * @param string[] $labels
    */
   public function setLabels($labels)
   {
@@ -126,7 +203,9 @@ class RemoteTransportProfile extends \Google\Collection
     return $this->labels;
   }
   /**
-   * @param string
+   * Identifier. Name of the resource in the format of $provider-$site.
+   *
+   * @param string $name
    */
   public function setName($name)
   {
@@ -140,21 +219,28 @@ class RemoteTransportProfile extends \Google\Collection
     return $this->name;
   }
   /**
-   * @param string
+   * Output only. Order state for this profile.
+   *
+   * Accepted values: STATE_UNSPECIFIED, CLOSED, OPEN
+   *
+   * @param self::ORDER_STATE_* $orderState
    */
   public function setOrderState($orderState)
   {
     $this->orderState = $orderState;
   }
   /**
-   * @return string
+   * @return self::ORDER_STATE_*
    */
   public function getOrderState()
   {
     return $this->orderState;
   }
   /**
-   * @param string
+   * Output only. Name of the provider on the other end of this profile. E.g.
+   * “Amazon Web Services” or “Microsoft Azure”.
+   *
+   * @param string $provider
    */
   public function setProvider($provider)
   {
@@ -168,7 +254,12 @@ class RemoteTransportProfile extends \Google\Collection
     return $this->provider;
   }
   /**
-   * @param string
+   * Output only. If the profile is a Cloud Service Provider with compute
+   * resources, this is populated with the region where connectivity is being
+   * established. If the profile provides facility-level selection, this is an
+   * identity of the facility any connections on this profile are going through.
+   *
+   * @param string $providerSite
    */
   public function setProviderSite($providerSite)
   {
@@ -182,35 +273,29 @@ class RemoteTransportProfile extends \Google\Collection
     return $this->providerSite;
   }
   /**
-   * @param string
-   */
-  public function setRegion($region)
-  {
-    $this->region = $region;
-  }
-  /**
-   * @return string
-   */
-  public function getRegion()
-  {
-    return $this->region;
-  }
-  /**
-   * @param string
+   * Output only. Availability class that will be configured for this particular
+   * RemoteTransportProfile.
+   *
+   * Accepted values: SERVICE_LEVEL_AVAILABILITY_UNSPECIFIED, HIGH, MAXIMUM
+   *
+   * @param self::SLA_* $sla
    */
   public function setSla($sla)
   {
     $this->sla = $sla;
   }
   /**
-   * @return string
+   * @return self::SLA_*
    */
   public function getSla()
   {
     return $this->sla;
   }
   /**
-   * @param string[]
+   * Output only. List of bandwidth enum values that are supported by this
+   * profile.
+   *
+   * @param string[] $supportedBandwidths
    */
   public function setSupportedBandwidths($supportedBandwidths)
   {
@@ -222,20 +307,6 @@ class RemoteTransportProfile extends \Google\Collection
   public function getSupportedBandwidths()
   {
     return $this->supportedBandwidths;
-  }
-  /**
-   * @param string
-   */
-  public function setUpdateTime($updateTime)
-  {
-    $this->updateTime = $updateTime;
-  }
-  /**
-   * @return string
-   */
-  public function getUpdateTime()
-  {
-    return $this->updateTime;
   }
 }
 

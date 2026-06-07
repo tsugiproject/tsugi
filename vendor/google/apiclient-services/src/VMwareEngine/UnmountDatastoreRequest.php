@@ -35,6 +35,13 @@ class UnmountDatastoreRequest extends \Google\Model
    * @var string
    */
   public $requestId;
+  /**
+   * Optional. If set to `true`, only validates the request but doesn’t execute
+   * the request. If set to `false`, validates and executes the request.
+   *
+   * @var bool
+   */
+  public $validateOnly;
 
   /**
    * Required. The resource name of the datastore to unmount. Resource names are
@@ -71,6 +78,23 @@ class UnmountDatastoreRequest extends \Google\Model
   public function getRequestId()
   {
     return $this->requestId;
+  }
+  /**
+   * Optional. If set to `true`, only validates the request but doesn’t execute
+   * the request. If set to `false`, validates and executes the request.
+   *
+   * @param bool $validateOnly
+   */
+  public function setValidateOnly($validateOnly)
+  {
+    $this->validateOnly = $validateOnly;
+  }
+  /**
+   * @return bool
+   */
+  public function getValidateOnly()
+  {
+    return $this->validateOnly;
   }
 }
 

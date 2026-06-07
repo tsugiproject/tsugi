@@ -24,7 +24,7 @@ class SubscriptionCancellationDetails extends \Google\Model
    */
   public const REASON_CANCELLATION_REASON_UNSPECIFIED = 'CANCELLATION_REASON_UNSPECIFIED';
   /**
-   * Fraudualant transaction.
+   * Fraudulent transaction.
    */
   public const REASON_CANCELLATION_REASON_FRAUD = 'CANCELLATION_REASON_FRAUD';
   /**
@@ -32,7 +32,7 @@ class SubscriptionCancellationDetails extends \Google\Model
    */
   public const REASON_CANCELLATION_REASON_REMORSE = 'CANCELLATION_REASON_REMORSE';
   /**
-   * Accidential purchase.
+   * Accidental purchase.
    */
   public const REASON_CANCELLATION_REASON_ACCIDENTAL_PURCHASE = 'CANCELLATION_REASON_ACCIDENTAL_PURCHASE';
   /**

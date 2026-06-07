@@ -46,6 +46,10 @@ class UpgradeClusterStatus extends \Google\Collection
    */
   public const SOURCE_VERSION_POSTGRES_17 = 'POSTGRES_17';
   /**
+   * The database version is Postgres 18.
+   */
+  public const SOURCE_VERSION_POSTGRES_18 = 'POSTGRES_18';
+  /**
    * Unspecified status.
    */
   public const STATE_STATUS_UNSPECIFIED = 'STATUS_UNSPECIFIED';
@@ -103,6 +107,10 @@ class UpgradeClusterStatus extends \Google\Collection
    * The database version is Postgres 17.
    */
   public const TARGET_VERSION_POSTGRES_17 = 'POSTGRES_17';
+  /**
+   * The database version is Postgres 18.
+   */
+  public const TARGET_VERSION_POSTGRES_18 = 'POSTGRES_18';
   protected $collection_key = 'stages';
   /**
    * Whether the operation is cancellable.
@@ -151,7 +159,7 @@ class UpgradeClusterStatus extends \Google\Collection
    * Source database major version.
    *
    * Accepted values: DATABASE_VERSION_UNSPECIFIED, POSTGRES_13, POSTGRES_14,
-   * POSTGRES_15, POSTGRES_16, POSTGRES_17
+   * POSTGRES_15, POSTGRES_16, POSTGRES_17, POSTGRES_18
    *
    * @param self::SOURCE_VERSION_* $sourceVersion
    */
@@ -205,7 +213,7 @@ class UpgradeClusterStatus extends \Google\Collection
    * Target database major version.
    *
    * Accepted values: DATABASE_VERSION_UNSPECIFIED, POSTGRES_13, POSTGRES_14,
-   * POSTGRES_15, POSTGRES_16, POSTGRES_17
+   * POSTGRES_15, POSTGRES_16, POSTGRES_17, POSTGRES_18
    *
    * @param self::TARGET_VERSION_* $targetVersion
    */

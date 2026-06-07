@@ -59,7 +59,8 @@ class GooglePrivacyDlpV2CustomInfoType extends \Google\Collection
   protected $dictionaryDataType = '';
   /**
    * If set to EXCLUSION_TYPE_EXCLUDE this infoType will not cause a finding to
-   * be returned. It still can be used for rules matching.
+   * be returned. It still can be used for rules matching. Only supported for
+   * the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.
    *
    * @var string
    */
@@ -74,6 +75,8 @@ class GooglePrivacyDlpV2CustomInfoType extends \Google\Collection
    * @var string
    */
   public $likelihood;
+  protected $metadataKeyValueExpressionType = GooglePrivacyDlpV2MetadataKeyValueExpression::class;
+  protected $metadataKeyValueExpressionDataType = '';
   protected $regexType = GooglePrivacyDlpV2Regex::class;
   protected $regexDataType = '';
   protected $sensitivityScoreType = GooglePrivacyDlpV2SensitivityScore::class;
@@ -85,8 +88,8 @@ class GooglePrivacyDlpV2CustomInfoType extends \Google\Collection
 
   /**
    * Set of detection rules to apply to all findings of this CustomInfoType.
-   * Rules are applied in order that they are specified. Not supported for the
-   * `surrogate_type` CustomInfoType.
+   * Rules are applied in the order that they are specified. Only supported for
+   * the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.
    *
    * @param GooglePrivacyDlpV2DetectionRule[] $detectionRules
    */
@@ -119,7 +122,8 @@ class GooglePrivacyDlpV2CustomInfoType extends \Google\Collection
   }
   /**
    * If set to EXCLUSION_TYPE_EXCLUDE this infoType will not cause a finding to
-   * be returned. It still can be used for rules matching.
+   * be returned. It still can be used for rules matching. Only supported for
+   * the `dictionary`, `regex`, and `stored_type` CustomInfoTypes.
    *
    * Accepted values: EXCLUSION_TYPE_UNSPECIFIED, EXCLUSION_TYPE_EXCLUDE
    *
@@ -179,6 +183,22 @@ class GooglePrivacyDlpV2CustomInfoType extends \Google\Collection
     return $this->likelihood;
   }
   /**
+   * Key-value pair to detect in the metadata.
+   *
+   * @param GooglePrivacyDlpV2MetadataKeyValueExpression $metadataKeyValueExpression
+   */
+  public function setMetadataKeyValueExpression(GooglePrivacyDlpV2MetadataKeyValueExpression $metadataKeyValueExpression)
+  {
+    $this->metadataKeyValueExpression = $metadataKeyValueExpression;
+  }
+  /**
+   * @return GooglePrivacyDlpV2MetadataKeyValueExpression
+   */
+  public function getMetadataKeyValueExpression()
+  {
+    return $this->metadataKeyValueExpression;
+  }
+  /**
    * Regular expression based CustomInfoType.
    *
    * @param GooglePrivacyDlpV2Regex $regex
@@ -214,8 +234,7 @@ class GooglePrivacyDlpV2CustomInfoType extends \Google\Collection
     return $this->sensitivityScore;
   }
   /**
-   * Load an existing `StoredInfoType` resource for use in `InspectDataSource`.
-   * Not currently supported in `InspectContent`.
+   * Loads an existing `StoredInfoType` resource.
    *
    * @param GooglePrivacyDlpV2StoredType $storedType
    */

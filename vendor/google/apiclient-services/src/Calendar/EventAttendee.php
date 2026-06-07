@@ -26,6 +26,16 @@ class EventAttendee extends \Google\Model
    */
   public $additionalGuests;
   /**
+   * If present, indicates the status of an asynchronous operation ongoing for
+   * this attendee (e.g. listing of members of large attendee groups). Read-
+   * only. The default is to not be present. Possible values are:   -
+   * "inProgress" - The asynchronous operation is in progress.  - (not present)
+   * - Otherwise.
+   *
+   * @var string
+   */
+  public $asyncOperation;
+  /**
    * The attendee's response comment. Optional.
    *
    * @var string
@@ -112,6 +122,26 @@ class EventAttendee extends \Google\Model
   public function getAdditionalGuests()
   {
     return $this->additionalGuests;
+  }
+  /**
+   * If present, indicates the status of an asynchronous operation ongoing for
+   * this attendee (e.g. listing of members of large attendee groups). Read-
+   * only. The default is to not be present. Possible values are:   -
+   * "inProgress" - The asynchronous operation is in progress.  - (not present)
+   * - Otherwise.
+   *
+   * @param string $asyncOperation
+   */
+  public function setAsyncOperation($asyncOperation)
+  {
+    $this->asyncOperation = $asyncOperation;
+  }
+  /**
+   * @return string
+   */
+  public function getAsyncOperation()
+  {
+    return $this->asyncOperation;
   }
   /**
    * The attendee's response comment. Optional.

@@ -17,8 +17,11 @@
 
 namespace Google\Service\Dataproc;
 
-class DiskConfig extends \Google\Model
+class DiskConfig extends \Google\Collection
 {
+  protected $collection_key = 'attachedDiskConfigs';
+  protected $attachedDiskConfigsType = AttachedDiskConfig::class;
+  protected $attachedDiskConfigsDataType = 'array';
   /**
    * Optional. Indicates how many IOPS to provision for the disk. This sets the
    * number of I/O operations per second that the disk can handle. This field is
@@ -43,19 +46,18 @@ class DiskConfig extends \Google\Model
    */
   public $bootDiskSizeGb;
   /**
-   * Optional. Type of the boot disk (default is "pd-standard"). Valid values:
-   * "pd-balanced" (Persistent Disk Balanced Solid State Drive), "pd-ssd"
-   * (Persistent Disk Solid State Drive), or "pd-standard" (Persistent Disk Hard
-   * Disk Drive). See Disk types
-   * (https://cloud.google.com/compute/docs/disks#disk-types).
+   * Optional. Type of the boot disk (default is pd-standard). Valid values: pd-
+   * balanced (Persistent Disk Balanced Solid State Drive), pd-ssd (Persistent
+   * Disk Solid State Drive), or pd-standard (Persistent Disk Hard Disk Drive).
+   * See Disk types (https://cloud.google.com/compute/docs/disks#disk-types).
    *
    * @var string
    */
   public $bootDiskType;
   /**
-   * Optional. Interface type of local SSDs (default is "scsi"). Valid values:
-   * "scsi" (Small Computer System Interface), "nvme" (Non-Volatile Memory
-   * Express). See local SSD performance
+   * Optional. Interface type of local SSDs (default is scsi). Valid values:
+   * scsi (Small Computer System Interface), nvme (Non-Volatile Memory Express).
+   * See local SSD performance
    * (https://cloud.google.com/compute/docs/disks/local-ssd#performance).
    *
    * @var string
@@ -73,6 +75,22 @@ class DiskConfig extends \Google\Model
    */
   public $numLocalSsds;
 
+  /**
+   * Optional. A list of attached disk configs for a group of VM instances.
+   *
+   * @param AttachedDiskConfig[] $attachedDiskConfigs
+   */
+  public function setAttachedDiskConfigs($attachedDiskConfigs)
+  {
+    $this->attachedDiskConfigs = $attachedDiskConfigs;
+  }
+  /**
+   * @return AttachedDiskConfig[]
+   */
+  public function getAttachedDiskConfigs()
+  {
+    return $this->attachedDiskConfigs;
+  }
   /**
    * Optional. Indicates how many IOPS to provision for the disk. This sets the
    * number of I/O operations per second that the disk can handle. This field is
@@ -127,11 +145,10 @@ class DiskConfig extends \Google\Model
     return $this->bootDiskSizeGb;
   }
   /**
-   * Optional. Type of the boot disk (default is "pd-standard"). Valid values:
-   * "pd-balanced" (Persistent Disk Balanced Solid State Drive), "pd-ssd"
-   * (Persistent Disk Solid State Drive), or "pd-standard" (Persistent Disk Hard
-   * Disk Drive). See Disk types
-   * (https://cloud.google.com/compute/docs/disks#disk-types).
+   * Optional. Type of the boot disk (default is pd-standard). Valid values: pd-
+   * balanced (Persistent Disk Balanced Solid State Drive), pd-ssd (Persistent
+   * Disk Solid State Drive), or pd-standard (Persistent Disk Hard Disk Drive).
+   * See Disk types (https://cloud.google.com/compute/docs/disks#disk-types).
    *
    * @param string $bootDiskType
    */
@@ -147,9 +164,9 @@ class DiskConfig extends \Google\Model
     return $this->bootDiskType;
   }
   /**
-   * Optional. Interface type of local SSDs (default is "scsi"). Valid values:
-   * "scsi" (Small Computer System Interface), "nvme" (Non-Volatile Memory
-   * Express). See local SSD performance
+   * Optional. Interface type of local SSDs (default is scsi). Valid values:
+   * scsi (Small Computer System Interface), nvme (Non-Volatile Memory Express).
+   * See local SSD performance
    * (https://cloud.google.com/compute/docs/disks/local-ssd#performance).
    *
    * @param string $localSsdInterface

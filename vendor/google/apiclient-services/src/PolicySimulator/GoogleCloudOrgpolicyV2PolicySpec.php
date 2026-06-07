@@ -24,9 +24,10 @@ class GoogleCloudOrgpolicyV2PolicySpec extends \Google\Collection
    * An opaque tag indicating the current version of the policySpec, used for
    * concurrency control. This field is ignored if used in a `CreatePolicy`
    * request. When the policy is returned from either a `GetPolicy` or a
-   * `ListPolicies` request, this `etag` indicates the version of the current
-   * policySpec to use when executing a read-modify-write loop. When the policy
-   * is returned from a `GetEffectivePolicy` request, the `etag` will be unset.
+   * `ListPolicies` request, this entity tag (ETag) indicates the version of the
+   * current policySpec to use when executing a read-modify-write loop. When the
+   * policy is returned from a `GetEffectivePolicy` request, the ETag will be
+   * unset.
    *
    * @var string
    */
@@ -36,7 +37,7 @@ class GoogleCloudOrgpolicyV2PolicySpec extends \Google\Collection
    * `inherit_from_parent` is true, policy rules set higher up in the hierarchy
    * (up to the closest root) are inherited and present in the effective policy.
    * If it is false, then no rules are inherited, and this policy becomes the
-   * new root for evaluation. This field can be set only for policies which
+   * new root for evaluation. This field can be set only for policies that
    * configure list constraints.
    *
    * @var bool
@@ -67,9 +68,10 @@ class GoogleCloudOrgpolicyV2PolicySpec extends \Google\Collection
    * An opaque tag indicating the current version of the policySpec, used for
    * concurrency control. This field is ignored if used in a `CreatePolicy`
    * request. When the policy is returned from either a `GetPolicy` or a
-   * `ListPolicies` request, this `etag` indicates the version of the current
-   * policySpec to use when executing a read-modify-write loop. When the policy
-   * is returned from a `GetEffectivePolicy` request, the `etag` will be unset.
+   * `ListPolicies` request, this entity tag (ETag) indicates the version of the
+   * current policySpec to use when executing a read-modify-write loop. When the
+   * policy is returned from a `GetEffectivePolicy` request, the ETag will be
+   * unset.
    *
    * @param string $etag
    */
@@ -89,7 +91,7 @@ class GoogleCloudOrgpolicyV2PolicySpec extends \Google\Collection
    * `inherit_from_parent` is true, policy rules set higher up in the hierarchy
    * (up to the closest root) are inherited and present in the effective policy.
    * If it is false, then no rules are inherited, and this policy becomes the
-   * new root for evaluation. This field can be set only for policies which
+   * new root for evaluation. This field can be set only for policies that
    * configure list constraints.
    *
    * @param bool $inheritFromParent
@@ -127,10 +129,10 @@ class GoogleCloudOrgpolicyV2PolicySpec extends \Google\Collection
   }
   /**
    * In policies for boolean constraints, the following requirements apply: -
-   * There must be one and only one policy rule where condition is unset. -
-   * Boolean policy rules with conditions must set `enforced` to the opposite of
-   * the policy rule without a condition. - During policy evaluation, policy
-   * rules with conditions that are true for a target resource take precedence.
+   * There must be exactly one policy rule where a condition is unset. - Boolean
+   * policy rules with conditions must set `enforced` to the opposite of the
+   * policy rule without a condition. - During policy evaluation, policy rules
+   * with conditions that are true for a target resource take precedence.
    *
    * @param GoogleCloudOrgpolicyV2PolicySpecPolicyRule[] $rules
    */

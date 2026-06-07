@@ -115,9 +115,9 @@ class Chromeosdevices extends \Google\Service\Resource
    * query parameter is the `nextPageToken` from your previous response.
    * @opt_param string projection Determines whether the response contains the
    * full list of properties or only a subset.
-   * @opt_param string query Search string in the format given at
-   * https://developers.google.com/workspace/admin/directory/v1/list-query-
-   * operators
+   * @opt_param string query Search string in the format given at [List query
+   * operators](https://developers.google.com/workspace/admin/directory/v1/list-
+   * query-operators).
    * @opt_param string sortOrder Whether to return results in ascending or
    * descending order. Must be used with the `orderBy` parameter.
    * @return ChromeOsDevicesModel

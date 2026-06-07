@@ -41,7 +41,8 @@ class ProjectsLocationsRepositoriesReleaseConfigs extends \Google\Service\Resour
    *
    * @opt_param string releaseConfigId Required. The ID to use for the release
    * config, which will become the final component of the release config's
-   * resource name.
+   * resource name. LINT.ThenChange(//depot/google3/google/cloud/dataform/v2main/d
+   * ata_pipelines.proto:CreateReleaseConfigRequest)
    * @return ReleaseConfig
    * @throws \Google\Service\Exception
    */
@@ -54,7 +55,9 @@ class ProjectsLocationsRepositoriesReleaseConfigs extends \Google\Service\Resour
   /**
    * Deletes a single ReleaseConfig. (releaseConfigs.delete)
    *
-   * @param string $name Required. The release config's name.
+   * @param string $name Required. The release config's name. LINT.ThenChange(//de
+   * pot/google3/google/cloud/dataform/v2main/data_pipelines.proto:DeleteReleaseCo
+   * nfigRequest)
    * @param array $optParams Optional parameters.
    * @return DataformEmpty
    * @throws \Google\Service\Exception
@@ -68,7 +71,9 @@ class ProjectsLocationsRepositoriesReleaseConfigs extends \Google\Service\Resour
   /**
    * Fetches a single ReleaseConfig. (releaseConfigs.get)
    *
-   * @param string $name Required. The release config's name.
+   * @param string $name Required. The release config's name. LINT.ThenChange(//de
+   * pot/google3/google/cloud/dataform/v2main/data_pipelines.proto:GetReleaseConfi
+   * gRequest)
    * @param array $optParams Optional parameters.
    * @return ReleaseConfig
    * @throws \Google\Service\Exception
@@ -93,7 +98,9 @@ class ProjectsLocationsRepositoriesReleaseConfigs extends \Google\Service\Resour
    * @opt_param string pageToken Optional. Page token received from a previous
    * `ListReleaseConfigs` call. Provide this to retrieve the subsequent page. When
    * paginating, all other parameters provided to `ListReleaseConfigs`, with the
-   * exception of `page_size`, must match the call that provided the page token.
+   * exception of `page_size`, must match the call that provided the page token. L
+   * INT.ThenChange(//depot/google3/google/cloud/dataform/v2main/data_pipelines.pr
+   * oto:ListReleaseConfigsRequest)
    * @return ListReleaseConfigsResponse
    * @throws \Google\Service\Exception
    */

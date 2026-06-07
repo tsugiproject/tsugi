@@ -40,10 +40,17 @@ class GoogleCloudAiplatformV1FunctionCallingConfig extends \Google\Collection
    * not passing any function declarations.
    */
   public const MODE_NONE = 'NONE';
+  /**
+   * Model is constrained to predict either function calls or natural language
+   * response. If "allowed_function_names" are set, the predicted function calls
+   * will be limited to any one of "allowed_function_names", else the predicted
+   * function calls will be any one of the provided "function_declarations".
+   */
+  public const MODE_VALIDATED = 'VALIDATED';
   protected $collection_key = 'allowedFunctionNames';
   /**
    * Optional. Function names to call. Only set when the Mode is ANY. Function
-   * names should match [FunctionDeclaration.name]. With mode set to ANY, model
+   * names should match FunctionDeclaration.name. With mode set to ANY, model
    * will predict a function call from the set of function names provided.
    *
    * @var string[]
@@ -58,7 +65,7 @@ class GoogleCloudAiplatformV1FunctionCallingConfig extends \Google\Collection
   /**
    * Optional. When set to true, arguments of a single function call will be
    * streamed out in multiple parts/contents/responses. Partial parameter
-   * results will be returned in the [FunctionCall.partial_args] field.
+   * results will be returned in the `FunctionCall.partial_args` field.
    *
    * @var bool
    */
@@ -66,7 +73,7 @@ class GoogleCloudAiplatformV1FunctionCallingConfig extends \Google\Collection
 
   /**
    * Optional. Function names to call. Only set when the Mode is ANY. Function
-   * names should match [FunctionDeclaration.name]. With mode set to ANY, model
+   * names should match FunctionDeclaration.name. With mode set to ANY, model
    * will predict a function call from the set of function names provided.
    *
    * @param string[] $allowedFunctionNames
@@ -85,7 +92,7 @@ class GoogleCloudAiplatformV1FunctionCallingConfig extends \Google\Collection
   /**
    * Optional. Function calling mode.
    *
-   * Accepted values: MODE_UNSPECIFIED, AUTO, ANY, NONE
+   * Accepted values: MODE_UNSPECIFIED, AUTO, ANY, NONE, VALIDATED
    *
    * @param self::MODE_* $mode
    */
@@ -103,7 +110,7 @@ class GoogleCloudAiplatformV1FunctionCallingConfig extends \Google\Collection
   /**
    * Optional. When set to true, arguments of a single function call will be
    * streamed out in multiple parts/contents/responses. Partial parameter
-   * results will be returned in the [FunctionCall.partial_args] field.
+   * results will be returned in the `FunctionCall.partial_args` field.
    *
    * @param bool $streamFunctionCallArguments
    */

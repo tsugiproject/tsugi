@@ -20,30 +20,22 @@ namespace Google\Service\NetworkManagement;
 class GeoLocation extends \Google\Model
 {
   /**
-   * @var string
-   */
-  public $country;
-  /**
+   * Formatted address.
+   *
    * @var string
    */
   public $formattedAddress;
+  /**
+   * Unicode CLDR region code.
+   *
+   * @var string
+   */
+  public $regionCode;
 
   /**
-   * @param string
-   */
-  public function setCountry($country)
-  {
-    $this->country = $country;
-  }
-  /**
-   * @return string
-   */
-  public function getCountry()
-  {
-    return $this->country;
-  }
-  /**
-   * @param string
+   * Formatted address.
+   *
+   * @param string $formattedAddress
    */
   public function setFormattedAddress($formattedAddress)
   {
@@ -55,6 +47,22 @@ class GeoLocation extends \Google\Model
   public function getFormattedAddress()
   {
     return $this->formattedAddress;
+  }
+  /**
+   * Unicode CLDR region code.
+   *
+   * @param string $regionCode
+   */
+  public function setRegionCode($regionCode)
+  {
+    $this->regionCode = $regionCode;
+  }
+  /**
+   * @return string
+   */
+  public function getRegionCode()
+  {
+    return $this->regionCode;
   }
 }
 

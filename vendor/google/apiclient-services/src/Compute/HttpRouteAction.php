@@ -20,6 +20,8 @@ namespace Google\Service\Compute;
 class HttpRouteAction extends \Google\Collection
 {
   protected $collection_key = 'weightedBackendServices';
+  protected $cachePolicyType = CachePolicy::class;
+  protected $cachePolicyDataType = '';
   protected $corsPolicyType = CorsPolicy::class;
   protected $corsPolicyDataType = '';
   protected $faultInjectionPolicyType = HttpFaultInjection::class;
@@ -37,6 +39,25 @@ class HttpRouteAction extends \Google\Collection
   protected $weightedBackendServicesType = WeightedBackendService::class;
   protected $weightedBackendServicesDataType = 'array';
 
+  /**
+   * Specifies the cache policy configuration for matched traffic. Available
+   * only for Global `EXTERNAL_MANAGED` load balancer schemes. At least one
+   * property must be specified. This policy cannot be specified if any target
+   * backend has Identity-Aware Proxy enabled.
+   *
+   * @param CachePolicy $cachePolicy
+   */
+  public function setCachePolicy(CachePolicy $cachePolicy)
+  {
+    $this->cachePolicy = $cachePolicy;
+  }
+  /**
+   * @return CachePolicy
+   */
+  public function getCachePolicy()
+  {
+    return $this->cachePolicy;
+  }
   /**
    * The specification for allowing client-side cross-origin requests. For more
    * information about the W3C recommendation for cross-origin resource sharing

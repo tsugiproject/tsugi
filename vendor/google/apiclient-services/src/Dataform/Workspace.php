@@ -28,6 +28,13 @@ class Workspace extends \Google\Model
   protected $dataEncryptionStateType = DataEncryptionState::class;
   protected $dataEncryptionStateDataType = '';
   /**
+   * Optional. If set to true, workspaces will not be moved if its linked
+   * Repository is moved. Instead, it will be deleted.
+   *
+   * @var bool
+   */
+  public $disableMoves;
+  /**
    * Output only. All the metadata information that is used internally to serve
    * the resource. For example: timestamps, flags, status fields, etc. The
    * format of this field is a JSON string.
@@ -76,6 +83,23 @@ class Workspace extends \Google\Model
   public function getDataEncryptionState()
   {
     return $this->dataEncryptionState;
+  }
+  /**
+   * Optional. If set to true, workspaces will not be moved if its linked
+   * Repository is moved. Instead, it will be deleted.
+   *
+   * @param bool $disableMoves
+   */
+  public function setDisableMoves($disableMoves)
+  {
+    $this->disableMoves = $disableMoves;
+  }
+  /**
+   * @return bool
+   */
+  public function getDisableMoves()
+  {
+    return $this->disableMoves;
   }
   /**
    * Output only. All the metadata information that is used internally to serve

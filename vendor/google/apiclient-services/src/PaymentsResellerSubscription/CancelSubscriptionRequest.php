@@ -24,7 +24,7 @@ class CancelSubscriptionRequest extends \Google\Model
    */
   public const CANCELLATION_REASON_CANCELLATION_REASON_UNSPECIFIED = 'CANCELLATION_REASON_UNSPECIFIED';
   /**
-   * Fraudualant transaction.
+   * Fraudulent transaction.
    */
   public const CANCELLATION_REASON_CANCELLATION_REASON_FRAUD = 'CANCELLATION_REASON_FRAUD';
   /**
@@ -32,7 +32,7 @@ class CancelSubscriptionRequest extends \Google\Model
    */
   public const CANCELLATION_REASON_CANCELLATION_REASON_REMORSE = 'CANCELLATION_REASON_REMORSE';
   /**
-   * Accidential purchase.
+   * Accidental purchase.
    */
   public const CANCELLATION_REASON_CANCELLATION_REASON_ACCIDENTAL_PURCHASE = 'CANCELLATION_REASON_ACCIDENTAL_PURCHASE';
   /**
@@ -73,9 +73,9 @@ class CancelSubscriptionRequest extends \Google\Model
   /**
    * Optional. If true, Google will cancel the subscription immediately, and may
    * or may not (based on the contract) issue a prorated refund for the
-   * remainder of the billing cycle. Otherwise, Google defers the cancelation at
-   * renewal_time, and will not issue a refund. - YouTube subscriptions must use
-   * this option currently. However, the user will still have access to the
+   * remainder of the billing cycle. Otherwise, Google defers the cancellation
+   * at renewal_time, and will not issue a refund. - YouTube subscriptions must
+   * use this option currently. However, the user will still have access to the
    * subscription until the end of the billing cycle.
    *
    * @var bool
@@ -91,9 +91,9 @@ class CancelSubscriptionRequest extends \Google\Model
   /**
    * Optional. If true, Google will cancel the subscription immediately, and may
    * or may not (based on the contract) issue a prorated refund for the
-   * remainder of the billing cycle. Otherwise, Google defers the cancelation at
-   * renewal_time, and will not issue a refund. - YouTube subscriptions must use
-   * this option currently. However, the user will still have access to the
+   * remainder of the billing cycle. Otherwise, Google defers the cancellation
+   * at renewal_time, and will not issue a refund. - YouTube subscriptions must
+   * use this option currently. However, the user will still have access to the
    * subscription until the end of the billing cycle.
    *
    * @param bool $cancelImmediately

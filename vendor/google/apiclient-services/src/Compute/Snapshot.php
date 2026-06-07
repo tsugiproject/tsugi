@@ -201,6 +201,13 @@ class Snapshot extends \Google\Collection
   protected $paramsType = SnapshotParams::class;
   protected $paramsDataType = '';
   /**
+   * Output only. [Output Only] URL of the region where the snapshot resides.
+   * Only applicable for regional snapshots.
+   *
+   * @var string
+   */
+  public $region;
+  /**
    * Output only. Reserved for future use.
    *
    * @var bool
@@ -220,6 +227,20 @@ class Snapshot extends \Google\Collection
   public $selfLink;
   protected $snapshotEncryptionKeyType = CustomerEncryptionKey::class;
   protected $snapshotEncryptionKeyDataType = '';
+  /**
+   * Output only. [Output Only] The unique ID of the snapshot group that this
+   * snapshot belongs to. The usage of snapshot group feature is restricted.
+   *
+   * @var string
+   */
+  public $snapshotGroupId;
+  /**
+   * Output only. [Output only] The snapshot group that this snapshot belongs
+   * to. The usage of snapshot group feature is restricted.
+   *
+   * @var string
+   */
+  public $snapshotGroupName;
   /**
    * Indicates the type of the snapshot.
    *
@@ -678,6 +699,23 @@ class Snapshot extends \Google\Collection
     return $this->params;
   }
   /**
+   * Output only. [Output Only] URL of the region where the snapshot resides.
+   * Only applicable for regional snapshots.
+   *
+   * @param string $region
+   */
+  public function setRegion($region)
+  {
+    $this->region = $region;
+  }
+  /**
+   * @return string
+   */
+  public function getRegion()
+  {
+    return $this->region;
+  }
+  /**
    * Output only. Reserved for future use.
    *
    * @param bool $satisfiesPzi
@@ -752,6 +790,40 @@ class Snapshot extends \Google\Collection
   public function getSnapshotEncryptionKey()
   {
     return $this->snapshotEncryptionKey;
+  }
+  /**
+   * Output only. [Output Only] The unique ID of the snapshot group that this
+   * snapshot belongs to. The usage of snapshot group feature is restricted.
+   *
+   * @param string $snapshotGroupId
+   */
+  public function setSnapshotGroupId($snapshotGroupId)
+  {
+    $this->snapshotGroupId = $snapshotGroupId;
+  }
+  /**
+   * @return string
+   */
+  public function getSnapshotGroupId()
+  {
+    return $this->snapshotGroupId;
+  }
+  /**
+   * Output only. [Output only] The snapshot group that this snapshot belongs
+   * to. The usage of snapshot group feature is restricted.
+   *
+   * @param string $snapshotGroupName
+   */
+  public function setSnapshotGroupName($snapshotGroupName)
+  {
+    $this->snapshotGroupName = $snapshotGroupName;
+  }
+  /**
+   * @return string
+   */
+  public function getSnapshotGroupName()
+  {
+    return $this->snapshotGroupName;
   }
   /**
    * Indicates the type of the snapshot.

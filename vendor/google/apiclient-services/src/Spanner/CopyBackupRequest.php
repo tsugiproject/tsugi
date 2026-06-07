@@ -21,7 +21,8 @@ class CopyBackupRequest extends \Google\Model
 {
   /**
    * Required. The id of the backup copy. The `backup_id` appended to `parent`
-   * forms the full backup_uri of the form `projects//instances//backups/`.
+   * forms the full backup_uri of the form
+   * `projects/{project}/instances/{instance}/backups/{backup}`.
    *
    * @var string
    */
@@ -42,7 +43,8 @@ class CopyBackupRequest extends \Google\Model
    * Required. The source backup to be copied. The source backup needs to be in
    * READY state for it to be copied. Once CopyBackup is in progress, the source
    * backup cannot be deleted or cleaned up on expiration until CopyBackup is
-   * finished. Values are of the form: `projects//instances//backups/`.
+   * finished. Values are of the form:
+   * `projects/{project}/instances/{instance}/backups/{backup}`.
    *
    * @var string
    */
@@ -50,7 +52,8 @@ class CopyBackupRequest extends \Google\Model
 
   /**
    * Required. The id of the backup copy. The `backup_id` appended to `parent`
-   * forms the full backup_uri of the form `projects//instances//backups/`.
+   * forms the full backup_uri of the form
+   * `projects/{project}/instances/{instance}/backups/{backup}`.
    *
    * @param string $backupId
    */
@@ -108,7 +111,8 @@ class CopyBackupRequest extends \Google\Model
    * Required. The source backup to be copied. The source backup needs to be in
    * READY state for it to be copied. Once CopyBackup is in progress, the source
    * backup cannot be deleted or cleaned up on expiration until CopyBackup is
-   * finished. Values are of the form: `projects//instances//backups/`.
+   * finished. Values are of the form:
+   * `projects/{project}/instances/{instance}/backups/{backup}`.
    *
    * @param string $sourceBackup
    */

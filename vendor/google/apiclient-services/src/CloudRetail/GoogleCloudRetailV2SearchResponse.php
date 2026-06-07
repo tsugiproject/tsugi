@@ -38,9 +38,11 @@ class GoogleCloudRetailV2SearchResponse extends \Google\Collection
   protected $conversationalSearchResultType = GoogleCloudRetailV2SearchResponseConversationalSearchResult::class;
   protected $conversationalSearchResultDataType = '';
   /**
-   * Contains the spell corrected query, if found. If the spell correction type
-   * is AUTOMATIC, then the search results are based on corrected_query.
-   * Otherwise the original query is used for search.
+   * Contains the spell corrected query, if found. The search results are based
+   * on corrected_query by default. However, if
+   * SearchRequest.SpellCorrectionSpec.mode is set to
+   * SearchRequest.SpellCorrectionSpec.Mode.SUGGESTION_ONLY, the original query
+   * is used for search.
    *
    * @var string
    */
@@ -136,9 +138,11 @@ class GoogleCloudRetailV2SearchResponse extends \Google\Collection
     return $this->conversationalSearchResult;
   }
   /**
-   * Contains the spell corrected query, if found. If the spell correction type
-   * is AUTOMATIC, then the search results are based on corrected_query.
-   * Otherwise the original query is used for search.
+   * Contains the spell corrected query, if found. The search results are based
+   * on corrected_query by default. However, if
+   * SearchRequest.SpellCorrectionSpec.mode is set to
+   * SearchRequest.SpellCorrectionSpec.Mode.SUGGESTION_ONLY, the original query
+   * is used for search.
    *
    * @param string $correctedQuery
    */

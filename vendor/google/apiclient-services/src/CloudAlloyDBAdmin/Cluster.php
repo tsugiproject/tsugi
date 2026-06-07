@@ -59,6 +59,10 @@ class Cluster extends \Google\Model
    */
   public const DATABASE_VERSION_POSTGRES_17 = 'POSTGRES_17';
   /**
+   * The database version is Postgres 18.
+   */
+  public const DATABASE_VERSION_POSTGRES_18 = 'POSTGRES_18';
+  /**
    * The maintenance version selection policy is not specified.
    */
   public const MAINTENANCE_VERSION_SELECTION_POLICY_MAINTENANCE_VERSION_SELECTION_POLICY_UNSPECIFIED = 'MAINTENANCE_VERSION_SELECTION_POLICY_UNSPECIFIED';
@@ -115,6 +119,11 @@ class Cluster extends \Google\Model
    * The cluster is being promoted.
    */
   public const STATE_PROMOTING = 'PROMOTING';
+  /**
+   * The cluster has entered switchover state. All updates on cluster and its
+   * associated instances are restricted while the cluster is in this state.
+   */
+  public const STATE_SWITCHOVER = 'SWITCHOVER';
   /**
    * This is an unknown subscription type. By default, the subscription type is
    * STANDARD.
@@ -480,7 +489,7 @@ class Cluster extends \Google\Model
    * used.
    *
    * Accepted values: DATABASE_VERSION_UNSPECIFIED, POSTGRES_13, POSTGRES_14,
-   * POSTGRES_15, POSTGRES_16, POSTGRES_17
+   * POSTGRES_15, POSTGRES_16, POSTGRES_17, POSTGRES_18
    *
    * @param self::DATABASE_VERSION_* $databaseVersion
    */
@@ -862,7 +871,7 @@ class Cluster extends \Google\Model
    * Output only. The current serving state of the cluster.
    *
    * Accepted values: STATE_UNSPECIFIED, READY, STOPPED, EMPTY, CREATING,
-   * DELETING, FAILED, BOOTSTRAPPING, MAINTENANCE, PROMOTING
+   * DELETING, FAILED, BOOTSTRAPPING, MAINTENANCE, PROMOTING, SWITCHOVER
    *
    * @param self::STATE_* $state
    */

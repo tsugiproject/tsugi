@@ -20,22 +20,15 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3TypeSchemaSchemaReference extends \Google\Model
 {
   /**
-   * The name of the schema.
-   *
    * @var string
    */
   public $schema;
   /**
-   * The tool that contains this schema definition. Format:
-   * `projects//locations//agents//tools/`.
-   *
    * @var string
    */
   public $tool;
 
   /**
-   * The name of the schema.
-   *
    * @param string $schema
    */
   public function setSchema($schema)
@@ -50,9 +43,6 @@ class GoogleCloudDialogflowCxV3TypeSchemaSchemaReference extends \Google\Model
     return $this->schema;
   }
   /**
-   * The tool that contains this schema definition. Format:
-   * `projects//locations//agents//tools/`.
-   *
    * @param string $tool
    */
   public function setTool($tool)

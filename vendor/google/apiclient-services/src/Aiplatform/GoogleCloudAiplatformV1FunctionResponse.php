@@ -19,10 +19,29 @@ namespace Google\Service\Aiplatform;
 
 class GoogleCloudAiplatformV1FunctionResponse extends \Google\Collection
 {
+  /**
+   * This value is unused.
+   */
+  public const SCHEDULING_SCHEDULING_UNSPECIFIED = 'SCHEDULING_UNSPECIFIED';
+  /**
+   * Only add the result to the conversation context, do not interrupt or
+   * trigger generation.
+   */
+  public const SCHEDULING_SILENT = 'SILENT';
+  /**
+   * Add the result to the conversation context, and prompt to generate output
+   * without interrupting ongoing generation.
+   */
+  public const SCHEDULING_WHEN_IDLE = 'WHEN_IDLE';
+  /**
+   * Add the result to the conversation context, interrupt ongoing generation
+   * and prompt to generate output.
+   */
+  public const SCHEDULING_INTERRUPT = 'INTERRUPT';
   protected $collection_key = 'parts';
   /**
    * Required. The name of the function to call. Matches
-   * [FunctionDeclaration.name] and [FunctionCall.name].
+   * FunctionDeclaration.name and FunctionCall.name.
    *
    * @var string
    */
@@ -38,10 +57,18 @@ class GoogleCloudAiplatformV1FunctionResponse extends \Google\Collection
    * @var array[]
    */
   public $response;
+  /**
+   * Optional. Specifies how the response should be scheduled in the
+   * conversation. Only applicable to NON_BLOCKING function calls, is ignored
+   * otherwise. Defaults to WHEN_IDLE.
+   *
+   * @var string
+   */
+  public $scheduling;
 
   /**
    * Required. The name of the function to call. Matches
-   * [FunctionDeclaration.name] and [FunctionCall.name].
+   * FunctionDeclaration.name and FunctionCall.name.
    *
    * @param string $name
    */
@@ -91,6 +118,26 @@ class GoogleCloudAiplatformV1FunctionResponse extends \Google\Collection
   public function getResponse()
   {
     return $this->response;
+  }
+  /**
+   * Optional. Specifies how the response should be scheduled in the
+   * conversation. Only applicable to NON_BLOCKING function calls, is ignored
+   * otherwise. Defaults to WHEN_IDLE.
+   *
+   * Accepted values: SCHEDULING_UNSPECIFIED, SILENT, WHEN_IDLE, INTERRUPT
+   *
+   * @param self::SCHEDULING_* $scheduling
+   */
+  public function setScheduling($scheduling)
+  {
+    $this->scheduling = $scheduling;
+  }
+  /**
+   * @return self::SCHEDULING_*
+   */
+  public function getScheduling()
+  {
+    return $this->scheduling;
   }
 }
 

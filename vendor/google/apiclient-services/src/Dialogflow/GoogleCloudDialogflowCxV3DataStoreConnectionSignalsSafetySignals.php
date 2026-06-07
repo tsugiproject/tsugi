@@ -19,59 +19,27 @@ namespace Google\Service\Dialogflow;
 
 class GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSafetySignals extends \Google\Model
 {
-  /**
-   * No banned phrase check was executed.
-   */
   public const BANNED_PHRASE_MATCH_BANNED_PHRASE_MATCH_UNSPECIFIED = 'BANNED_PHRASE_MATCH_UNSPECIFIED';
-  /**
-   * All banned phrase checks led to no match.
-   */
   public const BANNED_PHRASE_MATCH_BANNED_PHRASE_MATCH_NONE = 'BANNED_PHRASE_MATCH_NONE';
-  /**
-   * A banned phrase matched the query.
-   */
   public const BANNED_PHRASE_MATCH_BANNED_PHRASE_MATCH_QUERY = 'BANNED_PHRASE_MATCH_QUERY';
-  /**
-   * A banned phrase matched the response.
-   */
   public const BANNED_PHRASE_MATCH_BANNED_PHRASE_MATCH_RESPONSE = 'BANNED_PHRASE_MATCH_RESPONSE';
-  /**
-   * Decision not specified.
-   */
   public const DECISION_SAFETY_DECISION_UNSPECIFIED = 'SAFETY_DECISION_UNSPECIFIED';
-  /**
-   * No manual or automatic safety check fired.
-   */
   public const DECISION_ACCEPTED_BY_SAFETY_CHECK = 'ACCEPTED_BY_SAFETY_CHECK';
-  /**
-   * One ore more safety checks fired.
-   */
   public const DECISION_REJECTED_BY_SAFETY_CHECK = 'REJECTED_BY_SAFETY_CHECK';
   /**
-   * Specifies banned phrase match subject.
-   *
    * @var string
    */
   public $bannedPhraseMatch;
   /**
-   * Safety decision.
-   *
    * @var string
    */
   public $decision;
   /**
-   * The matched banned phrase if there was a match.
-   *
    * @var string
    */
   public $matchedBannedPhrase;
 
   /**
-   * Specifies banned phrase match subject.
-   *
-   * Accepted values: BANNED_PHRASE_MATCH_UNSPECIFIED, BANNED_PHRASE_MATCH_NONE,
-   * BANNED_PHRASE_MATCH_QUERY, BANNED_PHRASE_MATCH_RESPONSE
-   *
    * @param self::BANNED_PHRASE_MATCH_* $bannedPhraseMatch
    */
   public function setBannedPhraseMatch($bannedPhraseMatch)
@@ -86,11 +54,6 @@ class GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSafetySignals extends \
     return $this->bannedPhraseMatch;
   }
   /**
-   * Safety decision.
-   *
-   * Accepted values: SAFETY_DECISION_UNSPECIFIED, ACCEPTED_BY_SAFETY_CHECK,
-   * REJECTED_BY_SAFETY_CHECK
-   *
    * @param self::DECISION_* $decision
    */
   public function setDecision($decision)
@@ -105,8 +68,6 @@ class GoogleCloudDialogflowCxV3DataStoreConnectionSignalsSafetySignals extends \
     return $this->decision;
   }
   /**
-   * The matched banned phrase if there was a match.
-   *
    * @param string $matchedBannedPhrase
    */
   public function setMatchedBannedPhrase($matchedBannedPhrase)

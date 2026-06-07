@@ -19,6 +19,8 @@ namespace Google\Service\DisplayVideo;
 
 class BiddingStrategy extends \Google\Model
 {
+  protected $demandGenBidType = DemandGenBiddingStrategy::class;
+  protected $demandGenBidDataType = '';
   protected $fixedBidType = FixedBidStrategy::class;
   protected $fixedBidDataType = '';
   protected $maximizeSpendAutoBidType = MaximizeSpendBidStrategy::class;
@@ -28,6 +30,23 @@ class BiddingStrategy extends \Google\Model
   protected $youtubeAndPartnersBidType = YoutubeAndPartnersBiddingStrategy::class;
   protected $youtubeAndPartnersBidDataType = '';
 
+  /**
+   * A bid strategy used by Demand Gen resources. It can only be used for a
+   * Demand Gen line item or ad group entity.
+   *
+   * @param DemandGenBiddingStrategy $demandGenBid
+   */
+  public function setDemandGenBid(DemandGenBiddingStrategy $demandGenBid)
+  {
+    $this->demandGenBid = $demandGenBid;
+  }
+  /**
+   * @return DemandGenBiddingStrategy
+   */
+  public function getDemandGenBid()
+  {
+    return $this->demandGenBid;
+  }
   /**
    * A strategy that uses a fixed bid price.
    *
@@ -45,7 +64,13 @@ class BiddingStrategy extends \Google\Model
     return $this->fixedBid;
   }
   /**
-   * * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA`,
+   * A strategy that automatically adjusts the bid to optimize to your
+   * performance goal while spending the full budget. At insertion order level,
+   * the markup_type of line items cannot be set to
+   * `PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM`. In addition, the
+   * performance_goal_type value assigned to an insertion order determines the
+   * possible line_item_type values available for line items under that
+   * insertion order: * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPA`,
    * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CPC`, and
    * `BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED` only allow for
    * `LINE_ITEM_TYPE_DISPLAY_DEFAULT` or `LINE_ITEM_TYPE_VIDEO_DEFAULT` line

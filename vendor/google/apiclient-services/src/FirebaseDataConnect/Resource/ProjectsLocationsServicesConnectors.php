@@ -159,10 +159,10 @@ class ProjectsLocationsServicesConnectors extends \Google\Service\Resource
     return $this->call('get', [$params], Connector::class);
   }
   /**
-   * Impersonate a mutation defined on a Firebase Data Connect connector. It
-   * grants the admin SDK access to mutations defined in the given connector. The
-   * caller can choose to impersonate a particular Firebase Auth user, or skip
-   * @auth completely. (connectors.impersonateMutation)
+   * Impersonate a mutation defined on a Firebase SQL Connect connector. It grants
+   * the admin SDK access to mutations defined in the given connector. The caller
+   * can choose to impersonate a particular Firebase Auth user, or skip @auth
+   * completely. (connectors.impersonateMutation)
    *
    * @param string $name Required. The resource name of the connector to find the
    * predefined query/mutation, in the format: ``` projects/{project}/locations/{l
@@ -179,7 +179,7 @@ class ProjectsLocationsServicesConnectors extends \Google\Service\Resource
     return $this->call('impersonateMutation', [$params], GraphqlResponse::class);
   }
   /**
-   * Impersonate a query defined on a Firebase Data Connect connector. It grants
+   * Impersonate a query defined on a Firebase SQL Connect connector. It grants
    * the admin SDK access to queries defined in the given connector. The caller
    * can choose to impersonate a particular Firebase Auth user, or skip @auth
    * completely. (connectors.impersonateQuery)

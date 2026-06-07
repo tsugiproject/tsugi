@@ -21,7 +21,7 @@ class Settings extends \Google\Model
 {
   /**
    * Optional. The location which should be used when any regional resources are
-   * provisioned by GCP.
+   * provisioned by Google Cloud.
    *
    * @var string
    */
@@ -54,7 +54,7 @@ class Settings extends \Google\Model
 
   /**
    * Optional. The location which should be used when any regional resources are
-   * provisioned by GCP.
+   * provisioned by Google Cloud.
    *
    * @param string $defaultStorageLocation
    */

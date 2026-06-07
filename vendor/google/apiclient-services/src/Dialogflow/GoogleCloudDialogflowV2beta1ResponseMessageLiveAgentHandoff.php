@@ -20,17 +20,11 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowV2beta1ResponseMessageLiveAgentHandoff extends \Google\Model
 {
   /**
-   * Custom metadata for your handoff procedure. Dialogflow doesn't impose any
-   * structure on this.
-   *
    * @var array[]
    */
   public $metadata;
 
   /**
-   * Custom metadata for your handoff procedure. Dialogflow doesn't impose any
-   * structure on this.
-   *
    * @param array[] $metadata
    */
   public function setMetadata($metadata)

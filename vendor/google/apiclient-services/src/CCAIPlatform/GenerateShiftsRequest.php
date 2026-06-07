@@ -83,7 +83,7 @@ class GenerateShiftsRequest extends \Google\Collection
     return $this->shiftTemplates;
   }
   /**
-   * Optional. Parameters for the solver.
+   * Required. Parameters for the solver.
    *
    * @param SolverConfig $solverConfig
    */

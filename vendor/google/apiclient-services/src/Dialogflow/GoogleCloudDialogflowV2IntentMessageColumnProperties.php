@@ -19,38 +19,20 @@ namespace Google\Service\Dialogflow;
 
 class GoogleCloudDialogflowV2IntentMessageColumnProperties extends \Google\Model
 {
-  /**
-   * Text is aligned to the leading edge of the column.
-   */
   public const HORIZONTAL_ALIGNMENT_HORIZONTAL_ALIGNMENT_UNSPECIFIED = 'HORIZONTAL_ALIGNMENT_UNSPECIFIED';
-  /**
-   * Text is aligned to the leading edge of the column.
-   */
   public const HORIZONTAL_ALIGNMENT_LEADING = 'LEADING';
-  /**
-   * Text is centered in the column.
-   */
   public const HORIZONTAL_ALIGNMENT_CENTER = 'CENTER';
-  /**
-   * Text is aligned to the trailing edge of the column.
-   */
   public const HORIZONTAL_ALIGNMENT_TRAILING = 'TRAILING';
   /**
-   * Required. Column heading.
-   *
    * @var string
    */
   public $header;
   /**
-   * Optional. Defines text alignment for all cells in this column.
-   *
    * @var string
    */
   public $horizontalAlignment;
 
   /**
-   * Required. Column heading.
-   *
    * @param string $header
    */
   public function setHeader($header)
@@ -65,11 +47,6 @@ class GoogleCloudDialogflowV2IntentMessageColumnProperties extends \Google\Model
     return $this->header;
   }
   /**
-   * Optional. Defines text alignment for all cells in this column.
-   *
-   * Accepted values: HORIZONTAL_ALIGNMENT_UNSPECIFIED, LEADING, CENTER,
-   * TRAILING
-   *
    * @param self::HORIZONTAL_ALIGNMENT_* $horizontalAlignment
    */
   public function setHorizontalAlignment($horizontalAlignment)

@@ -65,16 +65,17 @@ class StandardSchedule extends \Google\Collection
    */
   public $daysOfWeek;
   /**
-   * Optional. Specifies frequency for hourly backups. A hourly frequency of 2
-   * means jobs will run every 2 hours from start time till end time defined.
+   * Optional. Specifies frequency for hourly backups. A hourly frequency of 1
+   * means jobs will run every 1 hour from start time till end time defined.
    * This is required for `recurrence_type`, `HOURLY` and is not applicable
    * otherwise. A validation error will occur if a value is supplied and
-   * `recurrence_type` is not `HOURLY`. Value of hourly frequency should be
-   * between 4 and 23. Reason for limit : We found that there is bandwidth
-   * limitation of 3GB/S for GMI while taking a backup and 5GB/S while doing a
-   * restore. Given the amount of parallel backups and restore we are targeting,
-   * this will potentially take the backup time to mins and hours (in worst case
-   * scenario).
+   * `recurrence_type` is not `HOURLY`. The supported values for each resource
+   * type are as follows: * `compute.googleapis.com/Instance`: 4-23 *
+   * `compute.googleapis.com/Disk`: 1-23 * `sqladmin.googleapis.com/Instance`:
+   * 6-23 * `alloydb.googleapis.com/Cluster`: 1-23 *
+   * `file.googleapis.com/Instance`: 1-23 Refer to link
+   * https://cloud.google.com/backup-disaster-
+   * recovery/docs/concepts/cloud_best_practices for more details.
    *
    * @var int
    */
@@ -97,7 +98,7 @@ class StandardSchedule extends \Google\Collection
    * Required. The time zone to be used when interpreting the schedule. The
    * value of this field must be a time zone name from the IANA tz database. See
    * https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for the list
-   * of valid timezone names. For e.g., Europe/Paris.
+   * of valid timezone names. For example, Europe/Paris.
    *
    * @var string
    */
@@ -163,16 +164,17 @@ class StandardSchedule extends \Google\Collection
     return $this->daysOfWeek;
   }
   /**
-   * Optional. Specifies frequency for hourly backups. A hourly frequency of 2
-   * means jobs will run every 2 hours from start time till end time defined.
+   * Optional. Specifies frequency for hourly backups. A hourly frequency of 1
+   * means jobs will run every 1 hour from start time till end time defined.
    * This is required for `recurrence_type`, `HOURLY` and is not applicable
    * otherwise. A validation error will occur if a value is supplied and
-   * `recurrence_type` is not `HOURLY`. Value of hourly frequency should be
-   * between 4 and 23. Reason for limit : We found that there is bandwidth
-   * limitation of 3GB/S for GMI while taking a backup and 5GB/S while doing a
-   * restore. Given the amount of parallel backups and restore we are targeting,
-   * this will potentially take the backup time to mins and hours (in worst case
-   * scenario).
+   * `recurrence_type` is not `HOURLY`. The supported values for each resource
+   * type are as follows: * `compute.googleapis.com/Instance`: 4-23 *
+   * `compute.googleapis.com/Disk`: 1-23 * `sqladmin.googleapis.com/Instance`:
+   * 6-23 * `alloydb.googleapis.com/Cluster`: 1-23 *
+   * `file.googleapis.com/Instance`: 1-23 Refer to link
+   * https://cloud.google.com/backup-disaster-
+   * recovery/docs/concepts/cloud_best_practices for more details.
    *
    * @param int $hourlyFrequency
    */
@@ -228,7 +230,7 @@ class StandardSchedule extends \Google\Collection
    * Required. The time zone to be used when interpreting the schedule. The
    * value of this field must be a time zone name from the IANA tz database. See
    * https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for the list
-   * of valid timezone names. For e.g., Europe/Paris.
+   * of valid timezone names. For example, Europe/Paris.
    *
    * @param string $timeZone
    */

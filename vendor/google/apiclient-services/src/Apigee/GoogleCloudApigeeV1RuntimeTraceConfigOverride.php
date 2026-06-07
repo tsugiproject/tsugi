@@ -20,6 +20,18 @@ namespace Google\Service\Apigee;
 class GoogleCloudApigeeV1RuntimeTraceConfigOverride extends \Google\Model
 {
   /**
+   * Protocol unspecified. Defaults to OPEN_CENSUS.
+   */
+  public const TRACE_PROTOCOL_TRACE_PROTOCOL_UNSPECIFIED = 'TRACE_PROTOCOL_UNSPECIFIED';
+  /**
+   * Uses OpenCensus protocol.
+   */
+  public const TRACE_PROTOCOL_OPEN_CENSUS = 'OPEN_CENSUS';
+  /**
+   * Uses OpenTelemetry Protocol (OTLP).
+   */
+  public const TRACE_PROTOCOL_OTLP = 'OTLP';
+  /**
    * Name of the API proxy that will have its trace configuration overridden
    * following format: `organizations/{org}/apis/{api}`
    *
@@ -33,6 +45,19 @@ class GoogleCloudApigeeV1RuntimeTraceConfigOverride extends \Google\Model
    * @var string
    */
   public $name;
+  /**
+   * Optional. If `true`, the runtime uses OpenTelemetry Protocol (OTLP) to send
+   * trace data. Configuration Requirements (if
+   * `open_telemetry_protocol_enabled` is `true`): - Allowed `Exporter`s:
+   * `CLOUD_TRACE` or `OPEN_TELEMETRY_COLLECTOR`. - If `Exporter` is
+   * `OPEN_TELEMETRY_COLLECTOR`: - `endpoint` refers to a valid OTLP collector
+   * URL. - If `Exporter` is `CLOUD_TRACE`: - `endpoint` refers to a valid
+   * project ID Deprecated: Use trace_protocol instead.
+   *
+   * @deprecated
+   * @var bool
+   */
+  public $openTelemetryProtocolEnabled;
   /**
    * The timestamp that the revision was created or updated.
    *
@@ -48,6 +73,12 @@ class GoogleCloudApigeeV1RuntimeTraceConfigOverride extends \Google\Model
   public $revisionId;
   protected $samplingConfigType = GoogleCloudApigeeV1RuntimeTraceSamplingConfig::class;
   protected $samplingConfigDataType = '';
+  /**
+   * Optional. The trace protocol to use.
+   *
+   * @var string
+   */
+  public $traceProtocol;
   /**
    * Unique ID for the configuration override. The ID will only change if the
    * override is deleted and recreated. Corresponds to name's "override" field.
@@ -89,6 +120,30 @@ class GoogleCloudApigeeV1RuntimeTraceConfigOverride extends \Google\Model
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * Optional. If `true`, the runtime uses OpenTelemetry Protocol (OTLP) to send
+   * trace data. Configuration Requirements (if
+   * `open_telemetry_protocol_enabled` is `true`): - Allowed `Exporter`s:
+   * `CLOUD_TRACE` or `OPEN_TELEMETRY_COLLECTOR`. - If `Exporter` is
+   * `OPEN_TELEMETRY_COLLECTOR`: - `endpoint` refers to a valid OTLP collector
+   * URL. - If `Exporter` is `CLOUD_TRACE`: - `endpoint` refers to a valid
+   * project ID Deprecated: Use trace_protocol instead.
+   *
+   * @deprecated
+   * @param bool $openTelemetryProtocolEnabled
+   */
+  public function setOpenTelemetryProtocolEnabled($openTelemetryProtocolEnabled)
+  {
+    $this->openTelemetryProtocolEnabled = $openTelemetryProtocolEnabled;
+  }
+  /**
+   * @deprecated
+   * @return bool
+   */
+  public function getOpenTelemetryProtocolEnabled()
+  {
+    return $this->openTelemetryProtocolEnabled;
   }
   /**
    * The timestamp that the revision was created or updated.
@@ -138,6 +193,24 @@ class GoogleCloudApigeeV1RuntimeTraceConfigOverride extends \Google\Model
   public function getSamplingConfig()
   {
     return $this->samplingConfig;
+  }
+  /**
+   * Optional. The trace protocol to use.
+   *
+   * Accepted values: TRACE_PROTOCOL_UNSPECIFIED, OPEN_CENSUS, OTLP
+   *
+   * @param self::TRACE_PROTOCOL_* $traceProtocol
+   */
+  public function setTraceProtocol($traceProtocol)
+  {
+    $this->traceProtocol = $traceProtocol;
+  }
+  /**
+   * @return self::TRACE_PROTOCOL_*
+   */
+  public function getTraceProtocol()
+  {
+    return $this->traceProtocol;
   }
   /**
    * Unique ID for the configuration override. The ID will only change if the

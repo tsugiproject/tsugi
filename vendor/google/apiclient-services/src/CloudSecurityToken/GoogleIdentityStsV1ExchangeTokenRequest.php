@@ -82,32 +82,34 @@ class GoogleIdentityStsV1ExchangeTokenRequest extends \Google\Model
    * 4.2 of the [OIDC 1.0 Discovery
    * specification](https://openid.net/specs/openid-connect-
    * discovery-1_0.html#ProviderConfigurationResponse). - `iat`: The issue time,
-   * in seconds, since the Unix epoch. Must be in the past. - `exp`: The
-   * expiration time, in seconds, since the Unix epoch. Must be less than 48
-   * hours after `iat`. Shorter expiration times are more secure. If possible,
-   * we recommend setting an expiration time less than 6 hours. - `sub`: The
-   * identity asserted in the JWT. - `aud`: For workload identity pools, this
-   * must be a value specified in the allowed audiences for the workload
-   * identity pool provider, or one of the audiences allowed by default if no
-   * audiences were specified. See https://cloud.google.com/iam/docs/reference/r
-   * est/v1/projects.locations.workloadIdentityPools.providers#oidc. For
-   * workforce pools, this must match the client ID specified in the provider
-   * configuration. See https://cloud.google.com/iam/docs/reference/rest/v1/loca
-   * tions.workforcePools.providers#oidc. Example header: ``` { "alg": "RS256",
-   * "kid": "us-east-11" } ``` Example payload: ``` { "iss":
-   * "https://accounts.google.com", "iat": 1517963104, "exp": 1517966704, "aud":
-   * "//iam.googleapis.com/projects/1234567890123/locations/global/workloadIdent
-   * ityPools/my-pool/providers/my-provider", "sub": "113475438248934895348",
-   * "my_claims": { "additional_claim": "value" } } ``` If `subject_token` is
-   * for AWS, it must be a serialized `GetCallerIdentity` token. This token
-   * contains the same information as a request to the AWS [`GetCallerIdentity()
-   * `](https://docs.aws.amazon.com/STS/latest/APIReference/API_GetCallerIdentit
-   * y) method, as well as the AWS [signature](https://docs.aws.amazon.com/gener
-   * al/latest/gr/signing_aws_api_requests.html) for the request information.
-   * Use Signature Version 4. Format the request as URL-encoded JSON, and set
-   * the `subject_token_type` parameter to `urn:ietf:params:aws:token-
-   * type:aws4_request`. The following parameters are required: - `url`: The URL
-   * of the AWS STS endpoint for `GetCallerIdentity()`, such as
+   * in seconds, since the Unix epoch. This timestamp must be in the past and no
+   * more than 24 hours in the past, or the token will be rejected. Note that
+   * this implies the token is only acceptable within a time window of at most
+   * 24 hours. - `exp`: The expiration time, in seconds, since the Unix epoch.
+   * Shorter expiration times are more secure. If possible, we recommend setting
+   * an expiration time less than 6 hours. - `sub`: The identity asserted in the
+   * JWT. - `aud`: For workload identity pools, this must be a value specified
+   * in the allowed audiences for the workload identity pool provider, or one of
+   * the audiences allowed by default if no audiences were specified. See https:
+   * //cloud.google.com/iam/docs/reference/rest/v1/projects.locations.workloadId
+   * entityPools.providers#oidc. For workforce pools, this must match the client
+   * ID specified in the provider configuration. See https://cloud.google.com/ia
+   * m/docs/reference/rest/v1/locations.workforcePools.providers#oidc. Example
+   * header: ``` { "alg": "RS256", "kid": "us-east-11" } ``` Example payload:
+   * ``` { "iss": "https://accounts.google.com", "iat": 1517963104, "exp":
+   * 1517966704, "aud": "//iam.googleapis.com/projects/1234567890123/locations/g
+   * lobal/workloadIdentityPools/my-pool/providers/my-provider", "sub":
+   * "113475438248934895348", "my_claims": { "additional_claim": "value" } } ```
+   * If `subject_token` is for AWS, it must be a serialized `GetCallerIdentity`
+   * token. This token contains the same information as a request to the AWS [`G
+   * etCallerIdentity()`](https://docs.aws.amazon.com/STS/latest/APIReference/AP
+   * I_GetCallerIdentity) method, as well as the AWS [signature](https://docs.aw
+   * s.amazon.com/general/latest/gr/signing_aws_api_requests.html) for the
+   * request information. Use Signature Version 4. Format the request as URL-
+   * encoded JSON, and set the `subject_token_type` parameter to
+   * `urn:ietf:params:aws:token-type:aws4_request`. The following parameters are
+   * required: - `url`: The URL of the AWS STS endpoint for
+   * `GetCallerIdentity()`, such as
    * `https://sts.amazonaws.com?Action=GetCallerIdentity&Version=2011-06-15`.
    * Regional endpoints are also supported. - `method`: The HTTP request method:
    * `POST`. - `headers`: The HTTP request headers, which must include: -
@@ -282,32 +284,34 @@ class GoogleIdentityStsV1ExchangeTokenRequest extends \Google\Model
    * 4.2 of the [OIDC 1.0 Discovery
    * specification](https://openid.net/specs/openid-connect-
    * discovery-1_0.html#ProviderConfigurationResponse). - `iat`: The issue time,
-   * in seconds, since the Unix epoch. Must be in the past. - `exp`: The
-   * expiration time, in seconds, since the Unix epoch. Must be less than 48
-   * hours after `iat`. Shorter expiration times are more secure. If possible,
-   * we recommend setting an expiration time less than 6 hours. - `sub`: The
-   * identity asserted in the JWT. - `aud`: For workload identity pools, this
-   * must be a value specified in the allowed audiences for the workload
-   * identity pool provider, or one of the audiences allowed by default if no
-   * audiences were specified. See https://cloud.google.com/iam/docs/reference/r
-   * est/v1/projects.locations.workloadIdentityPools.providers#oidc. For
-   * workforce pools, this must match the client ID specified in the provider
-   * configuration. See https://cloud.google.com/iam/docs/reference/rest/v1/loca
-   * tions.workforcePools.providers#oidc. Example header: ``` { "alg": "RS256",
-   * "kid": "us-east-11" } ``` Example payload: ``` { "iss":
-   * "https://accounts.google.com", "iat": 1517963104, "exp": 1517966704, "aud":
-   * "//iam.googleapis.com/projects/1234567890123/locations/global/workloadIdent
-   * ityPools/my-pool/providers/my-provider", "sub": "113475438248934895348",
-   * "my_claims": { "additional_claim": "value" } } ``` If `subject_token` is
-   * for AWS, it must be a serialized `GetCallerIdentity` token. This token
-   * contains the same information as a request to the AWS [`GetCallerIdentity()
-   * `](https://docs.aws.amazon.com/STS/latest/APIReference/API_GetCallerIdentit
-   * y) method, as well as the AWS [signature](https://docs.aws.amazon.com/gener
-   * al/latest/gr/signing_aws_api_requests.html) for the request information.
-   * Use Signature Version 4. Format the request as URL-encoded JSON, and set
-   * the `subject_token_type` parameter to `urn:ietf:params:aws:token-
-   * type:aws4_request`. The following parameters are required: - `url`: The URL
-   * of the AWS STS endpoint for `GetCallerIdentity()`, such as
+   * in seconds, since the Unix epoch. This timestamp must be in the past and no
+   * more than 24 hours in the past, or the token will be rejected. Note that
+   * this implies the token is only acceptable within a time window of at most
+   * 24 hours. - `exp`: The expiration time, in seconds, since the Unix epoch.
+   * Shorter expiration times are more secure. If possible, we recommend setting
+   * an expiration time less than 6 hours. - `sub`: The identity asserted in the
+   * JWT. - `aud`: For workload identity pools, this must be a value specified
+   * in the allowed audiences for the workload identity pool provider, or one of
+   * the audiences allowed by default if no audiences were specified. See https:
+   * //cloud.google.com/iam/docs/reference/rest/v1/projects.locations.workloadId
+   * entityPools.providers#oidc. For workforce pools, this must match the client
+   * ID specified in the provider configuration. See https://cloud.google.com/ia
+   * m/docs/reference/rest/v1/locations.workforcePools.providers#oidc. Example
+   * header: ``` { "alg": "RS256", "kid": "us-east-11" } ``` Example payload:
+   * ``` { "iss": "https://accounts.google.com", "iat": 1517963104, "exp":
+   * 1517966704, "aud": "//iam.googleapis.com/projects/1234567890123/locations/g
+   * lobal/workloadIdentityPools/my-pool/providers/my-provider", "sub":
+   * "113475438248934895348", "my_claims": { "additional_claim": "value" } } ```
+   * If `subject_token` is for AWS, it must be a serialized `GetCallerIdentity`
+   * token. This token contains the same information as a request to the AWS [`G
+   * etCallerIdentity()`](https://docs.aws.amazon.com/STS/latest/APIReference/AP
+   * I_GetCallerIdentity) method, as well as the AWS [signature](https://docs.aw
+   * s.amazon.com/general/latest/gr/signing_aws_api_requests.html) for the
+   * request information. Use Signature Version 4. Format the request as URL-
+   * encoded JSON, and set the `subject_token_type` parameter to
+   * `urn:ietf:params:aws:token-type:aws4_request`. The following parameters are
+   * required: - `url`: The URL of the AWS STS endpoint for
+   * `GetCallerIdentity()`, such as
    * `https://sts.amazonaws.com?Action=GetCallerIdentity&Version=2011-06-15`.
    * Regional endpoints are also supported. - `method`: The HTTP request method:
    * `POST`. - `headers`: The HTTP request headers, which must include: -

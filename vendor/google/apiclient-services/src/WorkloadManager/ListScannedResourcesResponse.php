@@ -48,7 +48,7 @@ class ListScannedResourcesResponse extends \Google\Collection
     return $this->nextPageToken;
   }
   /**
-   * All scanned resources in response
+   * All scanned resources in response.
    *
    * @param ScannedResource[] $scannedResources
    */

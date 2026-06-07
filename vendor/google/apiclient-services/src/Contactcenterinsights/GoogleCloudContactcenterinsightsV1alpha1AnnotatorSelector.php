@@ -43,6 +43,14 @@ class GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelector extends \Google\
   protected $qaConfigType = GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorQaConfig::class;
   protected $qaConfigDataType = '';
   /**
+   * Optional. Whether to run the auto-labeling annotator. If true, the auto-
+   * labeling annotator will be run. This is a non-billable operation designed
+   * for fixing or backfilling custom labels.
+   *
+   * @var bool
+   */
+  public $runAutoLabelingAnnotator;
+  /**
    * Whether to run the entity annotator.
    *
    * @var bool
@@ -155,6 +163,24 @@ class GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelector extends \Google\
   public function getQaConfig()
   {
     return $this->qaConfig;
+  }
+  /**
+   * Optional. Whether to run the auto-labeling annotator. If true, the auto-
+   * labeling annotator will be run. This is a non-billable operation designed
+   * for fixing or backfilling custom labels.
+   *
+   * @param bool $runAutoLabelingAnnotator
+   */
+  public function setRunAutoLabelingAnnotator($runAutoLabelingAnnotator)
+  {
+    $this->runAutoLabelingAnnotator = $runAutoLabelingAnnotator;
+  }
+  /**
+   * @return bool
+   */
+  public function getRunAutoLabelingAnnotator()
+  {
+    return $this->runAutoLabelingAnnotator;
   }
   /**
    * Whether to run the entity annotator.

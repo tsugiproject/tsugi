@@ -31,6 +31,8 @@ class AccountConnector extends \Google\Model
    * @var string
    */
   public $createTime;
+  protected $customOauthConfigType = CustomOAuthConfig::class;
+  protected $customOauthConfigDataType = '';
   /**
    * Optional. This checksum is computed by the server based on the value of
    * other fields, and may be sent on update and delete requests to ensure the
@@ -61,6 +63,14 @@ class AccountConnector extends \Google\Model
   public $oauthStartUri;
   protected $providerOauthConfigType = ProviderOAuthConfig::class;
   protected $providerOauthConfigDataType = '';
+  protected $proxyConfigType = ProxyConfig::class;
+  protected $proxyConfigDataType = '';
+  /**
+   * Output only. A system-assigned unique identifier for the Account Connector.
+   *
+   * @var string
+   */
+  public $uid;
   /**
    * Output only. The timestamp when the accountConnector was updated.
    *
@@ -99,6 +109,22 @@ class AccountConnector extends \Google\Model
   public function getCreateTime()
   {
     return $this->createTime;
+  }
+  /**
+   * Custom OAuth config.
+   *
+   * @param CustomOAuthConfig $customOauthConfig
+   */
+  public function setCustomOauthConfig(CustomOAuthConfig $customOauthConfig)
+  {
+    $this->customOauthConfig = $customOauthConfig;
+  }
+  /**
+   * @return CustomOAuthConfig
+   */
+  public function getCustomOauthConfig()
+  {
+    return $this->customOauthConfig;
   }
   /**
    * Optional. This checksum is computed by the server based on the value of
@@ -169,7 +195,7 @@ class AccountConnector extends \Google\Model
     return $this->oauthStartUri;
   }
   /**
-   * Provider OAuth config.
+   * Optional. Provider OAuth config.
    *
    * @param ProviderOAuthConfig $providerOauthConfig
    */
@@ -183,6 +209,38 @@ class AccountConnector extends \Google\Model
   public function getProviderOauthConfig()
   {
     return $this->providerOauthConfig;
+  }
+  /**
+   * Optional. Configuration for the http and git proxy features.
+   *
+   * @param ProxyConfig $proxyConfig
+   */
+  public function setProxyConfig(ProxyConfig $proxyConfig)
+  {
+    $this->proxyConfig = $proxyConfig;
+  }
+  /**
+   * @return ProxyConfig
+   */
+  public function getProxyConfig()
+  {
+    return $this->proxyConfig;
+  }
+  /**
+   * Output only. A system-assigned unique identifier for the Account Connector.
+   *
+   * @param string $uid
+   */
+  public function setUid($uid)
+  {
+    $this->uid = $uid;
+  }
+  /**
+   * @return string
+   */
+  public function getUid()
+  {
+    return $this->uid;
   }
   /**
    * Output only. The timestamp when the accountConnector was updated.

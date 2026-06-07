@@ -22,6 +22,12 @@ class GoogleCloudConnectorsV1EventingConfig extends \Google\Collection
   protected $collection_key = 'privateConnectivityAllowlistedProjects';
   protected $additionalVariablesType = GoogleCloudConnectorsV1ConfigVariable::class;
   protected $additionalVariablesDataType = 'array';
+  /**
+   * Optional. List of allowed event types for the connection.
+   *
+   * @var string[]
+   */
+  public $allowedEventTypes;
   protected $authConfigType = GoogleCloudConnectorsV1AuthConfig::class;
   protected $authConfigDataType = '';
   protected $deadLetterConfigType = GoogleCloudConnectorsV1EventingConfigDeadLetterConfig::class;
@@ -35,7 +41,7 @@ class GoogleCloudConnectorsV1EventingConfig extends \Google\Collection
    */
   public $enrichmentEnabled;
   /**
-   * Optional. Ingress endpoint of the event listener. This is used only when
+   * Output only. Ingress endpoint of the event listener. This is used only when
    * private connectivity is enabled.
    *
    * @var string
@@ -78,6 +84,22 @@ class GoogleCloudConnectorsV1EventingConfig extends \Google\Collection
   public function getAdditionalVariables()
   {
     return $this->additionalVariables;
+  }
+  /**
+   * Optional. List of allowed event types for the connection.
+   *
+   * @param string[] $allowedEventTypes
+   */
+  public function setAllowedEventTypes($allowedEventTypes)
+  {
+    $this->allowedEventTypes = $allowedEventTypes;
+  }
+  /**
+   * @return string[]
+   */
+  public function getAllowedEventTypes()
+  {
+    return $this->allowedEventTypes;
   }
   /**
    * Optional. Auth details for the webhook adapter.
@@ -144,7 +166,7 @@ class GoogleCloudConnectorsV1EventingConfig extends \Google\Collection
     return $this->enrichmentEnabled;
   }
   /**
-   * Optional. Ingress endpoint of the event listener. This is used only when
+   * Output only. Ingress endpoint of the event listener. This is used only when
    * private connectivity is enabled.
    *
    * @param string $eventsListenerIngressEndpoint

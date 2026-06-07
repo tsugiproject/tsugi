@@ -36,12 +36,9 @@ use Google\Service\Dialogflow\GoogleProtobufEmpty;
 class ProjectsLocationsAgentsFlowsVersions extends \Google\Service\Resource
 {
   /**
-   * Compares the specified base version with target version.
    * (versions.compareVersions)
    *
-   * @param string $baseVersion Required. Name of the base flow version to compare
-   * with the target version. Use version ID `0` to indicate the draft version of
-   * the specified flow. Format: `projects//locations//agents//flows//versions/`.
+   * @param string $baseVersion
    * @param GoogleCloudDialogflowCxV3CompareVersionsRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3CompareVersionsResponse
@@ -54,14 +51,9 @@ class ProjectsLocationsAgentsFlowsVersions extends \Google\Service\Resource
     return $this->call('compareVersions', [$params], GoogleCloudDialogflowCxV3CompareVersionsResponse::class);
   }
   /**
-   * Creates a Version in the specified Flow. This method is a [long-running
-   * operation](https://cloud.google.com/dialogflow/cx/docs/how/long-running-
-   * operation). The returned `Operation` type has the following method-specific
-   * fields: - `metadata`: CreateVersionOperationMetadata - `response`: Version
    * (versions.create)
    *
-   * @param string $parent Required. The Flow to create an Version for. Format:
-   * `projects//locations//agents//flows/`.
+   * @param string $parent
    * @param GoogleCloudDialogflowCxV3Version $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleLongrunningOperation
@@ -74,10 +66,9 @@ class ProjectsLocationsAgentsFlowsVersions extends \Google\Service\Resource
     return $this->call('create', [$params], GoogleLongrunningOperation::class);
   }
   /**
-   * Deletes the specified Version. (versions.delete)
+   * (versions.delete)
    *
-   * @param string $name Required. The name of the Version to delete. Format:
-   * `projects//locations//agents//flows//versions/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    * @return GoogleProtobufEmpty
    * @throws \Google\Service\Exception
@@ -89,10 +80,9 @@ class ProjectsLocationsAgentsFlowsVersions extends \Google\Service\Resource
     return $this->call('delete', [$params], GoogleProtobufEmpty::class);
   }
   /**
-   * Retrieves the specified Version. (versions.get)
+   * (versions.get)
    *
-   * @param string $name Required. The name of the Version. Format:
-   * `projects//locations//agents//flows//versions/`.
+   * @param string $name
    * @param array $optParams Optional parameters.
    * @return GoogleCloudDialogflowCxV3Version
    * @throws \Google\Service\Exception
@@ -104,17 +94,13 @@ class ProjectsLocationsAgentsFlowsVersions extends \Google\Service\Resource
     return $this->call('get', [$params], GoogleCloudDialogflowCxV3Version::class);
   }
   /**
-   * Returns the list of all versions in the specified Flow.
    * (versions.listProjectsLocationsAgentsFlowsVersions)
    *
-   * @param string $parent Required. The Flow to list all versions for. Format:
-   * `projects//locations//agents//flows/`.
+   * @param string $parent
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize The maximum number of items to return in a single
-   * page. By default 20 and at most 100.
-   * @opt_param string pageToken The next_page_token value returned from a
-   * previous list request.
+   * @opt_param int pageSize
+   * @opt_param string pageToken
    * @return GoogleCloudDialogflowCxV3ListVersionsResponse
    * @throws \Google\Service\Exception
    */
@@ -125,18 +111,9 @@ class ProjectsLocationsAgentsFlowsVersions extends \Google\Service\Resource
     return $this->call('list', [$params], GoogleCloudDialogflowCxV3ListVersionsResponse::class);
   }
   /**
-   * Loads resources in the specified version to the draft flow. This method is a
-   * [long-running
-   * operation](https://cloud.google.com/dialogflow/cx/docs/how/long-running-
-   * operation). The returned `Operation` type has the following method-specific
-   * fields: - `metadata`: An empty [Struct
-   * message](https://developers.google.com/protocol-
-   * buffers/docs/reference/google.protobuf#struct) - `response`: An [Empty
-   * message](https://developers.google.com/protocol-
-   * buffers/docs/reference/google.protobuf#empty) (versions.load)
+   * (versions.load)
    *
-   * @param string $name Required. The Version to be loaded to draft flow. Format:
-   * `projects//locations//agents//flows//versions/`.
+   * @param string $name
    * @param GoogleCloudDialogflowCxV3LoadVersionRequest $postBody
    * @param array $optParams Optional parameters.
    * @return GoogleLongrunningOperation
@@ -149,16 +126,13 @@ class ProjectsLocationsAgentsFlowsVersions extends \Google\Service\Resource
     return $this->call('load', [$params], GoogleLongrunningOperation::class);
   }
   /**
-   * Updates the specified Version. (versions.patch)
+   * (versions.patch)
    *
-   * @param string $name Format: projects//locations//agents//flows//versions/.
-   * Version ID is a self-increasing number generated by Dialogflow upon version
-   * creation.
+   * @param string $name
    * @param GoogleCloudDialogflowCxV3Version $postBody
    * @param array $optParams Optional parameters.
    *
-   * @opt_param string updateMask Required. The mask to control which fields get
-   * updated. Currently only `description` and `display_name` can be updated.
+   * @opt_param string updateMask
    * @return GoogleCloudDialogflowCxV3Version
    * @throws \Google\Service\Exception
    */

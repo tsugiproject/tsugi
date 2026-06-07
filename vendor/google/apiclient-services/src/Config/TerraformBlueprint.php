@@ -19,6 +19,8 @@ namespace Google\Service\Config;
 
 class TerraformBlueprint extends \Google\Model
 {
+  protected $externalValuesType = ExternalValueSource::class;
+  protected $externalValuesDataType = 'map';
   /**
    * URI of an object in Google Cloud Storage. Format: `gs://{bucket}/{object}`
    * URI may also specify an object version for zipped objects. Format:
@@ -32,6 +34,23 @@ class TerraformBlueprint extends \Google\Model
   protected $inputValuesType = TerraformVariable::class;
   protected $inputValuesDataType = 'map';
 
+  /**
+   * Optional. Map of input variable names in this blueprint to configurations
+   * for importing values from external sources.
+   *
+   * @param ExternalValueSource[] $externalValues
+   */
+  public function setExternalValues($externalValues)
+  {
+    $this->externalValues = $externalValues;
+  }
+  /**
+   * @return ExternalValueSource[]
+   */
+  public function getExternalValues()
+  {
+    return $this->externalValues;
+  }
   /**
    * URI of an object in Google Cloud Storage. Format: `gs://{bucket}/{object}`
    * URI may also specify an object version for zipped objects. Format:

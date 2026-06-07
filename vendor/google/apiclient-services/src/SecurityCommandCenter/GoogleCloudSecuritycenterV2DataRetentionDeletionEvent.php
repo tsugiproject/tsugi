@@ -24,7 +24,11 @@ class GoogleCloudSecuritycenterV2DataRetentionDeletionEvent extends \Google\Mode
    */
   public const EVENT_TYPE_EVENT_TYPE_UNSPECIFIED = 'EVENT_TYPE_UNSPECIFIED';
   /**
-   * The maximum retention time has been exceeded.
+   * Deprecated: This field is pending removal. Use
+   * EVENT_TYPE_MAX_TTL_FROM_CREATION or
+   * EVENT_TYPE_MAX_TTL_FROM_LAST_MODIFICATION instead.
+   *
+   * @deprecated
    */
   public const EVENT_TYPE_EVENT_TYPE_MAX_TTL_EXCEEDED = 'EVENT_TYPE_MAX_TTL_EXCEEDED';
   /**
@@ -35,6 +39,10 @@ class GoogleCloudSecuritycenterV2DataRetentionDeletionEvent extends \Google\Mode
    * Max TTL from the asset's last modification time.
    */
   public const EVENT_TYPE_EVENT_TYPE_MAX_TTL_FROM_LAST_MODIFICATION = 'EVENT_TYPE_MAX_TTL_FROM_LAST_MODIFICATION';
+  /**
+   * Min TTL from the asset's creation time.
+   */
+  public const EVENT_TYPE_EVENT_TYPE_MIN_TTL_FROM_CREATION = 'EVENT_TYPE_MIN_TTL_FROM_CREATION';
   /**
    * Number of objects that violated the policy for this resource. If the number
    * is less than 1,000, then the value of this field is the exact number. If
@@ -67,6 +75,14 @@ class GoogleCloudSecuritycenterV2DataRetentionDeletionEvent extends \Google\Mode
    * @var string
    */
   public $maxRetentionAllowed;
+  /**
+   * Min duration of retention allowed from the DSPM retention control. This
+   * field is only populated when event type is set to
+   * EVENT_TYPE_MIN_TTL_FROM_CREATION.
+   *
+   * @var string
+   */
+  public $minRetentionAllowed;
 
   /**
    * Number of objects that violated the policy for this resource. If the number
@@ -107,7 +123,8 @@ class GoogleCloudSecuritycenterV2DataRetentionDeletionEvent extends \Google\Mode
    * Type of the DRD event.
    *
    * Accepted values: EVENT_TYPE_UNSPECIFIED, EVENT_TYPE_MAX_TTL_EXCEEDED,
-   * EVENT_TYPE_MAX_TTL_FROM_CREATION, EVENT_TYPE_MAX_TTL_FROM_LAST_MODIFICATION
+   * EVENT_TYPE_MAX_TTL_FROM_CREATION,
+   * EVENT_TYPE_MAX_TTL_FROM_LAST_MODIFICATION, EVENT_TYPE_MIN_TTL_FROM_CREATION
    *
    * @param self::EVENT_TYPE_* $eventType
    */
@@ -142,6 +159,24 @@ class GoogleCloudSecuritycenterV2DataRetentionDeletionEvent extends \Google\Mode
   public function getMaxRetentionAllowed()
   {
     return $this->maxRetentionAllowed;
+  }
+  /**
+   * Min duration of retention allowed from the DSPM retention control. This
+   * field is only populated when event type is set to
+   * EVENT_TYPE_MIN_TTL_FROM_CREATION.
+   *
+   * @param string $minRetentionAllowed
+   */
+  public function setMinRetentionAllowed($minRetentionAllowed)
+  {
+    $this->minRetentionAllowed = $minRetentionAllowed;
+  }
+  /**
+   * @return string
+   */
+  public function getMinRetentionAllowed()
+  {
+    return $this->minRetentionAllowed;
   }
 }
 

@@ -21,6 +21,10 @@ class GooglePrivacyDlpV2ContentItem extends \Google\Model
 {
   protected $byteItemType = GooglePrivacyDlpV2ByteContentItem::class;
   protected $byteItemDataType = '';
+  protected $contentMetadataType = GooglePrivacyDlpV2ContentMetadata::class;
+  protected $contentMetadataDataType = '';
+  protected $conversationType = GooglePrivacyDlpV2Conversation::class;
+  protected $conversationDataType = '';
   protected $tableType = GooglePrivacyDlpV2Table::class;
   protected $tableDataType = '';
   /**
@@ -45,6 +49,39 @@ class GooglePrivacyDlpV2ContentItem extends \Google\Model
   public function getByteItem()
   {
     return $this->byteItem;
+  }
+  /**
+   * User provided metadata for the content.
+   *
+   * @param GooglePrivacyDlpV2ContentMetadata $contentMetadata
+   */
+  public function setContentMetadata(GooglePrivacyDlpV2ContentMetadata $contentMetadata)
+  {
+    $this->contentMetadata = $contentMetadata;
+  }
+  /**
+   * @return GooglePrivacyDlpV2ContentMetadata
+   */
+  public function getContentMetadata()
+  {
+    return $this->contentMetadata;
+  }
+  /**
+   * Represents a conversation (either complete or a slice). It is assumed that
+   * all included messages are contiguous and ordered in chronological order.
+   *
+   * @param GooglePrivacyDlpV2Conversation $conversation
+   */
+  public function setConversation(GooglePrivacyDlpV2Conversation $conversation)
+  {
+    $this->conversation = $conversation;
+  }
+  /**
+   * @return GooglePrivacyDlpV2Conversation
+   */
+  public function getConversation()
+  {
+    return $this->conversation;
   }
   /**
    * Structured content for inspection. See https://cloud.google.com/sensitive-

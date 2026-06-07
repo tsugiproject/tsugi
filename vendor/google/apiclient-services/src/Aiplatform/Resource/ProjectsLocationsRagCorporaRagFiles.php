@@ -95,7 +95,8 @@ class ProjectsLocationsRagCorporaRagFiles extends \Google\Service\Resource
    * `projects/{project}/locations/{location}/ragCorpora/{rag_corpus}`
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize Optional. The standard list page size.
+   * @opt_param int pageSize Optional. The standard list page size. The maximum
+   * value is 100. If not specified, a default value of 100 will be used.
    * @opt_param string pageToken Optional. The standard list page token. Typically
    * obtained via ListRagFilesResponse.next_page_token of the previous
    * VertexRagDataService.ListRagFiles call.

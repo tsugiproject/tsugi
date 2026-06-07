@@ -34,6 +34,14 @@ class UpdateNodePoolRequest extends \Google\Collection
   public $clusterId;
   protected $confidentialNodesType = ConfidentialNodes::class;
   protected $confidentialNodesDataType = '';
+  /**
+   * Consolidation delay defines duration after which the Cluster Autoscaler can
+   * scale down underutilized nodes. If not set, nodes are scaled down by
+   * default behavior, i.e. according to the chosen autoscaling profile.
+   *
+   * @var string
+   */
+  public $consolidationDelay;
   protected $containerdConfigType = ContainerdConfig::class;
   protected $containerdConfigDataType = '';
   /**
@@ -72,6 +80,20 @@ class UpdateNodePoolRequest extends \Google\Collection
   protected $gcfsConfigDataType = '';
   protected $gvnicType = VirtualNIC::class;
   protected $gvnicDataType = '';
+  /**
+   * The desired name of the image name to use for this node. This is used to
+   * create clusters using a custom image.
+   *
+   * @var string
+   */
+  public $image;
+  /**
+   * The project containing the desired image to use for this node pool. This is
+   * used to create clusters using a custom image.
+   *
+   * @var string
+   */
+  public $imageProject;
   /**
    * Required. The desired image type for the node pool. Please see
    * https://cloud.google.com/kubernetes-engine/docs/concepts/node-images for
@@ -176,6 +198,8 @@ class UpdateNodePoolRequest extends \Google\Collection
   public $storagePools;
   protected $tagsType = NetworkTags::class;
   protected $tagsDataType = '';
+  protected $taintConfigType = TaintConfig::class;
+  protected $taintConfigDataType = '';
   protected $taintsType = NodeTaints::class;
   protected $taintsDataType = '';
   protected $upgradeSettingsType = UpgradeSettings::class;
@@ -266,6 +290,24 @@ class UpdateNodePoolRequest extends \Google\Collection
   public function getConfidentialNodes()
   {
     return $this->confidentialNodes;
+  }
+  /**
+   * Consolidation delay defines duration after which the Cluster Autoscaler can
+   * scale down underutilized nodes. If not set, nodes are scaled down by
+   * default behavior, i.e. according to the chosen autoscaling profile.
+   *
+   * @param string $consolidationDelay
+   */
+  public function setConsolidationDelay($consolidationDelay)
+  {
+    $this->consolidationDelay = $consolidationDelay;
+  }
+  /**
+   * @return string
+   */
+  public function getConsolidationDelay()
+  {
+    return $this->consolidationDelay;
   }
   /**
    * The desired containerd config for nodes in the node pool. Initiates an
@@ -401,6 +443,40 @@ class UpdateNodePoolRequest extends \Google\Collection
   public function getGvnic()
   {
     return $this->gvnic;
+  }
+  /**
+   * The desired name of the image name to use for this node. This is used to
+   * create clusters using a custom image.
+   *
+   * @param string $image
+   */
+  public function setImage($image)
+  {
+    $this->image = $image;
+  }
+  /**
+   * @return string
+   */
+  public function getImage()
+  {
+    return $this->image;
+  }
+  /**
+   * The project containing the desired image to use for this node pool. This is
+   * used to create clusters using a custom image.
+   *
+   * @param string $imageProject
+   */
+  public function setImageProject($imageProject)
+  {
+    $this->imageProject = $imageProject;
+  }
+  /**
+   * @return string
+   */
+  public function getImageProject()
+  {
+    return $this->imageProject;
   }
   /**
    * Required. The desired image type for the node pool. Please see
@@ -744,6 +820,22 @@ class UpdateNodePoolRequest extends \Google\Collection
   public function getTags()
   {
     return $this->tags;
+  }
+  /**
+   * The taint configuration for the node pool.
+   *
+   * @param TaintConfig $taintConfig
+   */
+  public function setTaintConfig(TaintConfig $taintConfig)
+  {
+    $this->taintConfig = $taintConfig;
+  }
+  /**
+   * @return TaintConfig
+   */
+  public function getTaintConfig()
+  {
+    return $this->taintConfig;
   }
   /**
    * The desired node taints to be applied to all nodes in the node pool. If

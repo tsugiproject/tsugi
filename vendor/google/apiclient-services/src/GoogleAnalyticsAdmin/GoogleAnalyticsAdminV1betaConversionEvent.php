@@ -74,7 +74,7 @@ class GoogleAnalyticsAdminV1betaConversionEvent extends \Google\Model
    */
   public $eventName;
   /**
-   * Output only. Resource name of this conversion event. Format:
+   * Identifier. Resource name of this conversion event. Format:
    * properties/{property}/conversionEvents/{conversion_event}
    *
    * @var string
@@ -190,7 +190,7 @@ class GoogleAnalyticsAdminV1betaConversionEvent extends \Google\Model
     return $this->eventName;
   }
   /**
-   * Output only. Resource name of this conversion event. Format:
+   * Identifier. Resource name of this conversion event. Format:
    * properties/{property}/conversionEvents/{conversion_event}
    *
    * @param string $name

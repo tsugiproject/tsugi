@@ -17,6 +17,8 @@
 
 namespace Google\Service\CloudDataplex\Resource;
 
+use Google\Service\CloudDataplex\GoogleCloudDataplexV1CancelDataScanJobRequest;
+use Google\Service\CloudDataplex\GoogleCloudDataplexV1CancelDataScanJobResponse;
 use Google\Service\CloudDataplex\GoogleCloudDataplexV1DataScanJob;
 use Google\Service\CloudDataplex\GoogleCloudDataplexV1GenerateDataQualityRulesRequest;
 use Google\Service\CloudDataplex\GoogleCloudDataplexV1GenerateDataQualityRulesResponse;
@@ -32,6 +34,24 @@ use Google\Service\CloudDataplex\GoogleCloudDataplexV1ListDataScanJobsResponse;
  */
 class ProjectsLocationsDataScansJobs extends \Google\Service\Resource
 {
+  /**
+   * Cancels a running/pending DataScan job. (jobs.cancel)
+   *
+   * @param string $name Required. The resource name of the DataScanJob: projects/
+   * {project_id_or_number}/locations/{location_id}/dataScans/{data_scan_id}/jobs/
+   * {data_scan_job_id} where project_id_or_number refers to a project_id or
+   * project_number and location_id refers to a Google Cloud region.
+   * @param GoogleCloudDataplexV1CancelDataScanJobRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GoogleCloudDataplexV1CancelDataScanJobResponse
+   * @throws \Google\Service\Exception
+   */
+  public function cancel($name, GoogleCloudDataplexV1CancelDataScanJobRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('cancel', [$params], GoogleCloudDataplexV1CancelDataScanJobResponse::class);
+  }
   /**
    * Generates recommended data quality rules based on the results of a data
    * profiling scan.Use the recommendations to build rules for a data quality

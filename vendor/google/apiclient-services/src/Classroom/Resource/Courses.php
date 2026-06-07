@@ -121,8 +121,7 @@ class Courses extends \Google\Service\Resource
    * @param array $optParams Optional parameters.
    *
    * @opt_param string courseStates Restricts returned courses to those in one of
-   * the specified states The default value is ACTIVE, ARCHIVED, PROVISIONED,
-   * DECLINED.
+   * the specified states. If unspecified, Courses in any state are returned.
    * @opt_param int pageSize Maximum number of items to return. Zero or
    * unspecified indicates that the server may assign a maximum. The server may
    * return fewer than the specified number of results.
@@ -133,11 +132,13 @@ class Courses extends \Google\Service\Resource
    * @opt_param string studentId Restricts returned courses to those having a
    * student with the specified identifier. The identifier can be one of the
    * following: * the numeric identifier for the user * the email address of the
-   * user * the string literal `"me"`, indicating the requesting user
+   * user * the string literal `"me"`, indicating the requesting user If
+   * specified, `teacher_id` must be empty.
    * @opt_param string teacherId Restricts returned courses to those having a
    * teacher with the specified identifier. The identifier can be one of the
    * following: * the numeric identifier for the user * the email address of the
-   * user * the string literal `"me"`, indicating the requesting user
+   * user * the string literal `"me"`, indicating the requesting user If
+   * specified, `student_id` must be empty.
    * @return ListCoursesResponse
    * @throws \Google\Service\Exception
    */
@@ -166,10 +167,10 @@ class Courses extends \Google\Service\Resource
    * to update. This field is required to do an update. The update will fail if
    * invalid fields are specified. The following fields are valid: * `courseState`
    * * `description` * `descriptionHeading` * `name` * `ownerId` * `room` *
-   * `section` * `subject` Note: patches to ownerId are treated as being effective
-   * immediately, but in practice it may take some time for the ownership transfer
-   * of all affected resources to complete. When set in a query parameter, this
-   * field should be specified as `updateMask=,,...`
+   * `section` * `subject` * `levels` Note: patches to ownerId are treated as
+   * being effective immediately, but in practice it may take some time for the
+   * ownership transfer of all affected resources to complete. When set in a query
+   * parameter, this field should be specified as `updateMask=,,...`
    * @return Course
    * @throws \Google\Service\Exception
    */
@@ -180,11 +181,15 @@ class Courses extends \Google\Service\Resource
     return $this->call('patch', [$params], Course::class);
   }
   /**
-   * Updates a course. This method returns the following error codes: *
-   * `PERMISSION_DENIED` if the requesting user is not permitted to modify the
-   * requested course or for access errors. * `NOT_FOUND` if no course exists with
-   * the requested ID. * `FAILED_PRECONDITION` for the following request errors: *
-   * CourseNotModifiable * CourseTitleCannotContainUrl (courses.update)
+   * Updates a course. Note: Unlike other fields, `levels` is not cleared if
+   * omitted from the request. The `UpdateCourse` method only modifies `levels` if
+   * it is explicitly provided; otherwise, the existing value is preserved. Use
+   * the `PatchCourse` method to clear the `levels` field. This method returns the
+   * following error codes: * `PERMISSION_DENIED` if the requesting user is not
+   * permitted to modify the requested course or for access errors. * `NOT_FOUND`
+   * if no course exists with the requested ID. * `FAILED_PRECONDITION` for the
+   * following request errors: * CourseNotModifiable * CourseTitleCannotContainUrl
+   * (courses.update)
    *
    * @param string $id Identifier of the course to update. This identifier can be
    * either the Classroom-assigned identifier or an alias.

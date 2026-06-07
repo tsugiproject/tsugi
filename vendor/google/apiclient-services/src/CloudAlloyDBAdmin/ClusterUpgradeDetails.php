@@ -59,6 +59,10 @@ class ClusterUpgradeDetails extends \Google\Collection
    */
   public const DATABASE_VERSION_POSTGRES_17 = 'POSTGRES_17';
   /**
+   * The database version is Postgres 18.
+   */
+  public const DATABASE_VERSION_POSTGRES_18 = 'POSTGRES_18';
+  /**
    * Unspecified status.
    */
   public const UPGRADE_STATUS_STATUS_UNSPECIFIED = 'STATUS_UNSPECIFIED';
@@ -146,7 +150,7 @@ class ClusterUpgradeDetails extends \Google\Collection
    * same as that before the upgrade operation.
    *
    * Accepted values: DATABASE_VERSION_UNSPECIFIED, POSTGRES_13, POSTGRES_14,
-   * POSTGRES_15, POSTGRES_16, POSTGRES_17
+   * POSTGRES_15, POSTGRES_16, POSTGRES_17, POSTGRES_18
    *
    * @param self::DATABASE_VERSION_* $databaseVersion
    */

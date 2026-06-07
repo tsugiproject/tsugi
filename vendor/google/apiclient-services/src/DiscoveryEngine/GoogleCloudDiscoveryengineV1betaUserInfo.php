@@ -19,6 +19,8 @@ namespace Google\Service\DiscoveryEngine;
 
 class GoogleCloudDiscoveryengineV1betaUserInfo extends \Google\Model
 {
+  protected $preciseLocationType = GoogleCloudDiscoveryengineV1betaUserInfoPreciseLocation::class;
+  protected $preciseLocationDataType = '';
   /**
    * Optional. IANA time zone, e.g. Europe/Budapest.
    *
@@ -43,12 +45,33 @@ class GoogleCloudDiscoveryengineV1betaUserInfo extends \Google\Model
    * different users. This mixes the event history of those users together,
    * which results in degraded model quality. The field must be a UTF-8 encoded
    * string with a length limit of 128 characters. Otherwise, an
-   * `INVALID_ARGUMENT` error is returned.
+   * `INVALID_ARGUMENT` error is returned. Represents an opaque ID to the Search
+   * API. The Search API doesn't interpret the value in any way. This field is
+   * used to associate events with a user across sessions if the events are
+   * being uploaded.
    *
    * @var string
    */
   public $userId;
 
+  /**
+   * Optional. Input only. Precise location of the user. It is used in Custom
+   * Ranking to calculate the distance between the user and the relevant
+   * documents.
+   *
+   * @param GoogleCloudDiscoveryengineV1betaUserInfoPreciseLocation $preciseLocation
+   */
+  public function setPreciseLocation(GoogleCloudDiscoveryengineV1betaUserInfoPreciseLocation $preciseLocation)
+  {
+    $this->preciseLocation = $preciseLocation;
+  }
+  /**
+   * @return GoogleCloudDiscoveryengineV1betaUserInfoPreciseLocation
+   */
+  public function getPreciseLocation()
+  {
+    return $this->preciseLocation;
+  }
   /**
    * Optional. IANA time zone, e.g. Europe/Budapest.
    *
@@ -93,7 +116,10 @@ class GoogleCloudDiscoveryengineV1betaUserInfo extends \Google\Model
    * different users. This mixes the event history of those users together,
    * which results in degraded model quality. The field must be a UTF-8 encoded
    * string with a length limit of 128 characters. Otherwise, an
-   * `INVALID_ARGUMENT` error is returned.
+   * `INVALID_ARGUMENT` error is returned. Represents an opaque ID to the Search
+   * API. The Search API doesn't interpret the value in any way. This field is
+   * used to associate events with a user across sessions if the events are
+   * being uploaded.
    *
    * @param string $userId
    */

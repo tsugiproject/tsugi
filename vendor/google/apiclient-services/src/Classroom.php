@@ -121,6 +121,8 @@ class Classroom extends \Google\Service
   public $courses_posts;
   public $courses_posts_addOnAttachments;
   public $courses_posts_addOnAttachments_studentSubmissions;
+  public $courses_studentGroups;
+  public $courses_studentGroups_studentGroupMembers;
   public $courses_students;
   public $courses_teachers;
   public $courses_topics;
@@ -1738,6 +1740,146 @@ class Classroom extends \Google\Service
                   'type' => 'string',
                 ],
                 'updateMask' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
+    $this->courses_studentGroups = new Classroom\Resource\CoursesStudentGroups(
+        $this,
+        $this->serviceName,
+        'studentGroups',
+        [
+          'methods' => [
+            'create' => [
+              'path' => 'v1/courses/{courseId}/studentGroups',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'courseId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'delete' => [
+              'path' => 'v1/courses/{courseId}/studentGroups/{id}',
+              'httpMethod' => 'DELETE',
+              'parameters' => [
+                'courseId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'id' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'list' => [
+              'path' => 'v1/courses/{courseId}/studentGroups',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'courseId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'pageSize' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+                'pageToken' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],'patch' => [
+              'path' => 'v1/courses/{courseId}/studentGroups/{id}',
+              'httpMethod' => 'PATCH',
+              'parameters' => [
+                'courseId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'id' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'updateMask' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+              ],
+            ],
+          ]
+        ]
+    );
+    $this->courses_studentGroups_studentGroupMembers = new Classroom\Resource\CoursesStudentGroupsStudentGroupMembers(
+        $this,
+        $this->serviceName,
+        'studentGroupMembers',
+        [
+          'methods' => [
+            'create' => [
+              'path' => 'v1/courses/{courseId}/studentGroups/{studentGroupId}/studentGroupMembers',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'courseId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'studentGroupId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'delete' => [
+              'path' => 'v1/courses/{courseId}/studentGroups/{studentGroupId}/studentGroupMembers/{userId}',
+              'httpMethod' => 'DELETE',
+              'parameters' => [
+                'courseId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'studentGroupId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'userId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
+            ],'list' => [
+              'path' => 'v1/courses/{courseId}/studentGroups/{studentGroupId}/studentGroupMembers',
+              'httpMethod' => 'GET',
+              'parameters' => [
+                'courseId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'studentGroupId' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+                'pageSize' => [
+                  'location' => 'query',
+                  'type' => 'integer',
+                ],
+                'pageToken' => [
                   'location' => 'query',
                   'type' => 'string',
                 ],

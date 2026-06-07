@@ -20,6 +20,8 @@ namespace Google\Service\CloudDataplex;
 class GoogleCloudDataplexV1EntryLink extends \Google\Collection
 {
   protected $collection_key = 'entryReferences';
+  protected $aspectsType = GoogleCloudDataplexV1Aspect::class;
+  protected $aspectsDataType = 'map';
   /**
    * Output only. The time when the Entry Link was created.
    *
@@ -55,6 +57,25 @@ class GoogleCloudDataplexV1EntryLink extends \Google\Collection
    */
   public $updateTime;
 
+  /**
+   * Optional. The aspects that are attached to the entry link. The format of
+   * the aspect key has to be the following:
+   * {project_id_or_number}.{location_id}.{aspect_type_id} Currently, only a
+   * single aspect of a Dataplex-owned Aspect Type is allowed.
+   *
+   * @param GoogleCloudDataplexV1Aspect[] $aspects
+   */
+  public function setAspects($aspects)
+  {
+    $this->aspects = $aspects;
+  }
+  /**
+   * @return GoogleCloudDataplexV1Aspect[]
+   */
+  public function getAspects()
+  {
+    return $this->aspects;
+  }
   /**
    * Output only. The time when the Entry Link was created.
    *
@@ -94,8 +115,8 @@ class GoogleCloudDataplexV1EntryLink extends \Google\Collection
     return $this->entryLinkType;
   }
   /**
-   * Required. Specifies the Entries referenced in the Entry Link. There should
-   * be exactly two entry references.
+   * Required. Immutable. Specifies the Entries referenced in the Entry Link.
+   * There should be exactly two entry references.
    *
    * @param GoogleCloudDataplexV1EntryLinkEntryReference[] $entryReferences
    */

@@ -85,10 +85,10 @@ class PropertiesCustomDimensions extends \Google\Service\Resource
    * @param string $parent Required. Example format: properties/1234
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize The maximum number of resources to return. If
-   * unspecified, at most 50 resources will be returned. The maximum value is 200
-   * (higher values will be coerced to the maximum).
-   * @opt_param string pageToken A page token, received from a previous
+   * @opt_param int pageSize Optional. The maximum number of resources to return.
+   * If unspecified, at most 50 resources will be returned. The maximum value is
+   * 200 (higher values will be coerced to the maximum).
+   * @opt_param string pageToken Optional. A page token, received from a previous
    * `ListCustomDimensions` call. Provide this to retrieve the subsequent page.
    * When paginating, all other parameters provided to `ListCustomDimensions` must
    * match the call that provided the page token.
@@ -104,7 +104,7 @@ class PropertiesCustomDimensions extends \Google\Service\Resource
   /**
    * Updates a CustomDimension on a property. (customDimensions.patch)
    *
-   * @param string $name Output only. Resource name for this CustomDimension
+   * @param string $name Identifier. Resource name for this CustomDimension
    * resource. Format: properties/{property}/customDimensions/{customDimension}
    * @param GoogleAnalyticsAdminV1betaCustomDimension $postBody
    * @param array $optParams Optional parameters.

@@ -19,9 +19,28 @@ namespace Google\Service\Compute;
 
 class SnapshotSettings extends \Google\Model
 {
+  protected $accessLocationType = SnapshotSettingsAccessLocation::class;
+  protected $accessLocationDataType = '';
   protected $storageLocationType = SnapshotSettingsStorageLocationSettings::class;
   protected $storageLocationDataType = '';
 
+  /**
+   * (Regional snapshots use only)Policy of which location is allowed to access
+   * snapshot.
+   *
+   * @param SnapshotSettingsAccessLocation $accessLocation
+   */
+  public function setAccessLocation(SnapshotSettingsAccessLocation $accessLocation)
+  {
+    $this->accessLocation = $accessLocation;
+  }
+  /**
+   * @return SnapshotSettingsAccessLocation
+   */
+  public function getAccessLocation()
+  {
+    return $this->accessLocation;
+  }
   /**
    * Policy of which storage location is going to be resolved, and additional
    * data that particularizes how the policy is going to be carried out.

@@ -52,6 +52,14 @@ class GoogleCloudDatacatalogLineageV1Origin extends \Google\Model
    */
   public const SOURCE_TYPE_VERTEX_AI = 'VERTEX_AI';
   /**
+   * Dataflow
+   */
+  public const SOURCE_TYPE_DATAFLOW = 'DATAFLOW';
+  /**
+   * Looker Core
+   */
+  public const SOURCE_TYPE_LOOKER_CORE = 'LOOKER_CORE';
+  /**
    * If the source_type isn't CUSTOM, the value of this field should be a Google
    * Cloud resource name of the system, which reports lineage. The project and
    * location parts of the resource name must match the project and location of
@@ -102,7 +110,7 @@ class GoogleCloudDatacatalogLineageV1Origin extends \Google\Model
    * source types other than `CUSTOM`.
    *
    * Accepted values: SOURCE_TYPE_UNSPECIFIED, CUSTOM, BIGQUERY, DATA_FUSION,
-   * COMPOSER, LOOKER_STUDIO, DATAPROC, VERTEX_AI
+   * COMPOSER, LOOKER_STUDIO, DATAPROC, VERTEX_AI, DATAFLOW, LOOKER_CORE
    *
    * @param self::SOURCE_TYPE_* $sourceType
    */

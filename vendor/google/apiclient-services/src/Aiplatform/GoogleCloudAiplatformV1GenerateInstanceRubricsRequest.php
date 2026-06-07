@@ -20,7 +20,7 @@ namespace Google\Service\Aiplatform;
 class GoogleCloudAiplatformV1GenerateInstanceRubricsRequest extends \Google\Collection
 {
   protected $collection_key = 'contents';
-  protected $agentConfigType = GoogleCloudAiplatformV1EvaluationInstanceAgentConfig::class;
+  protected $agentConfigType = GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentConfig::class;
   protected $agentConfigDataType = '';
   protected $contentsType = GoogleCloudAiplatformV1Content::class;
   protected $contentsDataType = 'array';
@@ -31,6 +31,16 @@ class GoogleCloudAiplatformV1GenerateInstanceRubricsRequest extends \Google\Coll
    * @var string
    */
   public $location;
+  /**
+   * Optional. The resource name of a registered metric. Rubric generation using
+   * predefined metric spec or LLMBasedMetricSpec is supported. If this field is
+   * set, the configuration provided in this field is used for rubric
+   * generation. The `predefined_rubric_generation_spec` and
+   * `rubric_generation_spec` fields will be ignored.
+   *
+   * @var string
+   */
+  public $metricResourceName;
   protected $predefinedRubricGenerationSpecType = GoogleCloudAiplatformV1PredefinedMetricSpec::class;
   protected $predefinedRubricGenerationSpecDataType = '';
   protected $rubricGenerationSpecType = GoogleCloudAiplatformV1RubricGenerationSpec::class;
@@ -39,14 +49,14 @@ class GoogleCloudAiplatformV1GenerateInstanceRubricsRequest extends \Google\Coll
   /**
    * Optional. Agent configuration, required for agent-based rubric generation.
    *
-   * @param GoogleCloudAiplatformV1EvaluationInstanceAgentConfig $agentConfig
+   * @param GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentConfig $agentConfig
    */
-  public function setAgentConfig(GoogleCloudAiplatformV1EvaluationInstanceAgentConfig $agentConfig)
+  public function setAgentConfig(GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentConfig $agentConfig)
   {
     $this->agentConfig = $agentConfig;
   }
   /**
-   * @return GoogleCloudAiplatformV1EvaluationInstanceAgentConfig
+   * @return GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentConfig
    */
   public function getAgentConfig()
   {
@@ -86,6 +96,26 @@ class GoogleCloudAiplatformV1GenerateInstanceRubricsRequest extends \Google\Coll
   public function getLocation()
   {
     return $this->location;
+  }
+  /**
+   * Optional. The resource name of a registered metric. Rubric generation using
+   * predefined metric spec or LLMBasedMetricSpec is supported. If this field is
+   * set, the configuration provided in this field is used for rubric
+   * generation. The `predefined_rubric_generation_spec` and
+   * `rubric_generation_spec` fields will be ignored.
+   *
+   * @param string $metricResourceName
+   */
+  public function setMetricResourceName($metricResourceName)
+  {
+    $this->metricResourceName = $metricResourceName;
+  }
+  /**
+   * @return string
+   */
+  public function getMetricResourceName()
+  {
+    return $this->metricResourceName;
   }
   /**
    * Optional. Specification for using the rubric generation configs of a pre-

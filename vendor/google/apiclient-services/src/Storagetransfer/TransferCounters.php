@@ -160,6 +160,20 @@ class TransferCounters extends \Google\Model
    * @var string
    */
   public $objectsFromSourceSkippedBySync;
+  /**
+   * Number of unrestored deep archive objects skipped.
+   *
+   * @var string
+   */
+  public $unrestoredDeepArchiveObjectsSkippedCount;
+  /**
+   * Number of glacier objects skipped, glacier objects are unsupported by
+   * default regardless of the restore status. Allowlist the project to copy
+   * glacier objects if needed.
+   *
+   * @var string
+   */
+  public $unsupportedS3GlacierObjectsSkippedCount;
 
   /**
    * Bytes that are copied to the data sink.
@@ -511,6 +525,40 @@ class TransferCounters extends \Google\Model
   public function getObjectsFromSourceSkippedBySync()
   {
     return $this->objectsFromSourceSkippedBySync;
+  }
+  /**
+   * Number of unrestored deep archive objects skipped.
+   *
+   * @param string $unrestoredDeepArchiveObjectsSkippedCount
+   */
+  public function setUnrestoredDeepArchiveObjectsSkippedCount($unrestoredDeepArchiveObjectsSkippedCount)
+  {
+    $this->unrestoredDeepArchiveObjectsSkippedCount = $unrestoredDeepArchiveObjectsSkippedCount;
+  }
+  /**
+   * @return string
+   */
+  public function getUnrestoredDeepArchiveObjectsSkippedCount()
+  {
+    return $this->unrestoredDeepArchiveObjectsSkippedCount;
+  }
+  /**
+   * Number of glacier objects skipped, glacier objects are unsupported by
+   * default regardless of the restore status. Allowlist the project to copy
+   * glacier objects if needed.
+   *
+   * @param string $unsupportedS3GlacierObjectsSkippedCount
+   */
+  public function setUnsupportedS3GlacierObjectsSkippedCount($unsupportedS3GlacierObjectsSkippedCount)
+  {
+    $this->unsupportedS3GlacierObjectsSkippedCount = $unsupportedS3GlacierObjectsSkippedCount;
+  }
+  /**
+   * @return string
+   */
+  public function getUnsupportedS3GlacierObjectsSkippedCount()
+  {
+    return $this->unsupportedS3GlacierObjectsSkippedCount;
   }
 }
 

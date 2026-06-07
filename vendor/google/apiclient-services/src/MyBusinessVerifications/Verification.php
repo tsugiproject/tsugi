@@ -49,10 +49,6 @@ class Verification extends \Google\Model
    */
   public const METHOD_AUTO = 'AUTO';
   /**
-   * This option may not be available for all locations.
-   */
-  public const METHOD_VETTED_PARTNER = 'VETTED_PARTNER';
-  /**
    * Verify the location via a trusted partner.
    */
   public const METHOD_TRUSTED_PARTNER = 'TRUSTED_PARTNER';
@@ -139,7 +135,7 @@ class Verification extends \Google\Model
    * The method of the verification.
    *
    * Accepted values: VERIFICATION_METHOD_UNSPECIFIED, ADDRESS, EMAIL,
-   * PHONE_CALL, SMS, AUTO, VETTED_PARTNER, TRUSTED_PARTNER
+   * PHONE_CALL, SMS, AUTO, TRUSTED_PARTNER
    *
    * @param self::METHOD_* $method
    */

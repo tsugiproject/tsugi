@@ -17,12 +17,15 @@
 
 namespace Google\Service\Meet;
 
-class Space extends \Google\Model
+class Space extends \Google\Collection
 {
+  protected $collection_key = 'phoneAccess';
   protected $activeConferenceType = ActiveConference::class;
   protected $activeConferenceDataType = '';
   protected $configType = SpaceConfig::class;
   protected $configDataType = '';
+  protected $gatewaySipAccessType = GatewaySipAccess::class;
+  protected $gatewaySipAccessDataType = 'array';
   /**
    * Output only. Type friendly unique string used to join the meeting. Format:
    * `[a-z]+-[a-z]+-[a-z]+`. For example, `abc-mnop-xyz`. The maximum length is
@@ -51,6 +54,8 @@ class Space extends \Google\Model
    * @var string
    */
   public $name;
+  protected $phoneAccessType = PhoneAccess::class;
+  protected $phoneAccessDataType = 'array';
 
   /**
    * Active conference, if it exists.
@@ -83,6 +88,23 @@ class Space extends \Google\Model
   public function getConfig()
   {
     return $this->config;
+  }
+  /**
+   * Output only. The SIP-based access methods that can be used to join the
+   * conference. Can be empty.
+   *
+   * @param GatewaySipAccess[] $gatewaySipAccess
+   */
+  public function setGatewaySipAccess($gatewaySipAccess)
+  {
+    $this->gatewaySipAccess = $gatewaySipAccess;
+  }
+  /**
+   * @return GatewaySipAccess[]
+   */
+  public function getGatewaySipAccess()
+  {
+    return $this->gatewaySipAccess;
   }
   /**
    * Output only. Type friendly unique string used to join the meeting. Format:
@@ -141,6 +163,23 @@ class Space extends \Google\Model
   public function getName()
   {
     return $this->name;
+  }
+  /**
+   * Output only. All regional phone access methods for this meeting space. Can
+   * be empty.
+   *
+   * @param PhoneAccess[] $phoneAccess
+   */
+  public function setPhoneAccess($phoneAccess)
+  {
+    $this->phoneAccess = $phoneAccess;
+  }
+  /**
+   * @return PhoneAccess[]
+   */
+  public function getPhoneAccess()
+  {
+    return $this->phoneAccess;
   }
 }
 

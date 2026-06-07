@@ -43,12 +43,44 @@ class GoogleFirestoreAdminV1TtlConfig extends \Google\Model
    */
   public const STATE_NEEDS_REPAIR = 'NEEDS_REPAIR';
   /**
+   * Optional. The offset, relative to the timestamp value from the TTL-enabled
+   * field, used to determine the document's expiration time.
+   * `expiration_offset.seconds` must be between 0 and 2,147,483,647 inclusive.
+   * Values more precise than seconds are rejected. If unset, defaults to 0, in
+   * which case the expiration time is the same as the timestamp value from the
+   * TTL-enabled field.
+   *
+   * @var string
+   */
+  public $expirationOffset;
+  /**
    * Output only. The state of the TTL configuration.
    *
    * @var string
    */
   public $state;
 
+  /**
+   * Optional. The offset, relative to the timestamp value from the TTL-enabled
+   * field, used to determine the document's expiration time.
+   * `expiration_offset.seconds` must be between 0 and 2,147,483,647 inclusive.
+   * Values more precise than seconds are rejected. If unset, defaults to 0, in
+   * which case the expiration time is the same as the timestamp value from the
+   * TTL-enabled field.
+   *
+   * @param string $expirationOffset
+   */
+  public function setExpirationOffset($expirationOffset)
+  {
+    $this->expirationOffset = $expirationOffset;
+  }
+  /**
+   * @return string
+   */
+  public function getExpirationOffset()
+  {
+    return $this->expirationOffset;
+  }
   /**
    * Output only. The state of the TTL configuration.
    *

@@ -18,6 +18,11 @@
 namespace Google\Service\Aiplatform\Resource;
 
 use Google\Service\Aiplatform\GoogleApiHttpBody;
+use Google\Service\Aiplatform\GoogleCloudAiplatformV1AsyncQueryReasoningEngineRequest;
+use Google\Service\Aiplatform\GoogleCloudAiplatformV1CancelAsyncQueryReasoningEngineRequest;
+use Google\Service\Aiplatform\GoogleCloudAiplatformV1CancelAsyncQueryReasoningEngineResponse;
+use Google\Service\Aiplatform\GoogleCloudAiplatformV1ExecuteCodeRequest;
+use Google\Service\Aiplatform\GoogleCloudAiplatformV1ExecuteCodeResponse;
 use Google\Service\Aiplatform\GoogleCloudAiplatformV1ListReasoningEnginesResponse;
 use Google\Service\Aiplatform\GoogleCloudAiplatformV1QueryReasoningEngineRequest;
 use Google\Service\Aiplatform\GoogleCloudAiplatformV1QueryReasoningEngineResponse;
@@ -35,6 +40,41 @@ use Google\Service\Aiplatform\GoogleLongrunningOperation;
  */
 class ReasoningEngines extends \Google\Service\Resource
 {
+  /**
+   * Async query using a reasoning engine. (reasoningEngines.asyncQuery)
+   *
+   * @param string $name Required. The name of the ReasoningEngine resource to
+   * use. Format:
+   * `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}`
+   * @param GoogleCloudAiplatformV1AsyncQueryReasoningEngineRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GoogleLongrunningOperation
+   * @throws \Google\Service\Exception
+   */
+  public function asyncQuery($name, GoogleCloudAiplatformV1AsyncQueryReasoningEngineRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('asyncQuery', [$params], GoogleLongrunningOperation::class);
+  }
+  /**
+   * Cancels an AsyncQueryReasoningEngine operation.
+   * (reasoningEngines.cancelAsyncQuery)
+   *
+   * @param string $name Required. The name of the ReasoningEngine resource to
+   * use. Format:
+   * `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}`
+   * @param GoogleCloudAiplatformV1CancelAsyncQueryReasoningEngineRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GoogleCloudAiplatformV1CancelAsyncQueryReasoningEngineResponse
+   * @throws \Google\Service\Exception
+   */
+  public function cancelAsyncQuery($name, GoogleCloudAiplatformV1CancelAsyncQueryReasoningEngineRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('cancelAsyncQuery', [$params], GoogleCloudAiplatformV1CancelAsyncQueryReasoningEngineResponse::class);
+  }
   /**
    * Creates a reasoning engine. (reasoningEngines.create)
    *
@@ -73,6 +113,23 @@ class ReasoningEngines extends \Google\Service\Resource
     $params = ['name' => $name];
     $params = array_merge($params, $optParams);
     return $this->call('delete', [$params], GoogleLongrunningOperation::class);
+  }
+  /**
+   * Executes code statelessly. (reasoningEngines.executeCode)
+   *
+   * @param string $name Required. The resource name of the sandbox environment to
+   * execute. Format:
+   * `projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine}`
+   * @param GoogleCloudAiplatformV1ExecuteCodeRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return GoogleCloudAiplatformV1ExecuteCodeResponse
+   * @throws \Google\Service\Exception
+   */
+  public function executeCode($name, GoogleCloudAiplatformV1ExecuteCodeRequest $postBody, $optParams = [])
+  {
+    $params = ['name' => $name, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('executeCode', [$params], GoogleCloudAiplatformV1ExecuteCodeResponse::class);
   }
   /**
    * Gets a reasoning engine. (reasoningEngines.get)

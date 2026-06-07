@@ -19,24 +19,11 @@ namespace Google\Service\Dialogflow;
 
 class GoogleCloudDialogflowCxV3WebhookResponseFulfillmentResponse extends \Google\Collection
 {
-  /**
-   * Not specified. `APPEND` will be used.
-   */
   public const MERGE_BEHAVIOR_MERGE_BEHAVIOR_UNSPECIFIED = 'MERGE_BEHAVIOR_UNSPECIFIED';
-  /**
-   * `messages` will be appended to the list of messages waiting to be sent to
-   * the user.
-   */
   public const MERGE_BEHAVIOR_APPEND = 'APPEND';
-  /**
-   * `messages` will replace the list of messages waiting to be sent to the
-   * user.
-   */
   public const MERGE_BEHAVIOR_REPLACE = 'REPLACE';
   protected $collection_key = 'messages';
   /**
-   * Merge behavior for `messages`.
-   *
    * @var string
    */
   public $mergeBehavior;
@@ -44,10 +31,6 @@ class GoogleCloudDialogflowCxV3WebhookResponseFulfillmentResponse extends \Googl
   protected $messagesDataType = 'array';
 
   /**
-   * Merge behavior for `messages`.
-   *
-   * Accepted values: MERGE_BEHAVIOR_UNSPECIFIED, APPEND, REPLACE
-   *
    * @param self::MERGE_BEHAVIOR_* $mergeBehavior
    */
   public function setMergeBehavior($mergeBehavior)
@@ -62,8 +45,6 @@ class GoogleCloudDialogflowCxV3WebhookResponseFulfillmentResponse extends \Googl
     return $this->mergeBehavior;
   }
   /**
-   * The list of rich message responses to present to the user.
-   *
    * @param GoogleCloudDialogflowCxV3ResponseMessage[] $messages
    */
   public function setMessages($messages)

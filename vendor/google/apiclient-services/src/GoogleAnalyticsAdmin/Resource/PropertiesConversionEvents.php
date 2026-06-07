@@ -91,10 +91,10 @@ class PropertiesConversionEvents extends \Google\Service\Resource
    * Example: 'properties/123'
    * @param array $optParams Optional parameters.
    *
-   * @opt_param int pageSize The maximum number of resources to return. If
-   * unspecified, at most 50 resources will be returned. The maximum value is 200;
-   * (higher values will be coerced to the maximum)
-   * @opt_param string pageToken A page token, received from a previous
+   * @opt_param int pageSize Optional. The maximum number of resources to return.
+   * If unspecified, at most 50 resources will be returned. The maximum value is
+   * 200; (higher values will be coerced to the maximum)
+   * @opt_param string pageToken Optional. A page token, received from a previous
    * `ListConversionEvents` call. Provide this to retrieve the subsequent page.
    * When paginating, all other parameters provided to `ListConversionEvents` must
    * match the call that provided the page token.
@@ -111,7 +111,7 @@ class PropertiesConversionEvents extends \Google\Service\Resource
    * Deprecated: Use `UpdateKeyEvent` instead. Updates a conversion event with the
    * specified attributes. (conversionEvents.patch)
    *
-   * @param string $name Output only. Resource name of this conversion event.
+   * @param string $name Identifier. Resource name of this conversion event.
    * Format: properties/{property}/conversionEvents/{conversion_event}
    * @param GoogleAnalyticsAdminV1betaConversionEvent $postBody
    * @param array $optParams Optional parameters.

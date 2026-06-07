@@ -71,6 +71,13 @@ class Instance extends \Google\Collection
    */
   public $authorizedNetwork;
   /**
+   * Output only. The available maintenance versions that can be applied to the
+   * instance.
+   *
+   * @var string[]
+   */
+  public $availableMaintenanceVersions;
+  /**
    * Output only. The time the instance was created.
    *
    * @var string
@@ -89,6 +96,12 @@ class Instance extends \Google\Collection
    * @var string
    */
   public $displayName;
+  /**
+   * Output only. The effective maintenance version of the instance.
+   *
+   * @var string
+   */
+  public $effectiveMaintenanceVersion;
   protected $instanceMessagesType = InstanceMessage::class;
   protected $instanceMessagesDataType = 'array';
   /**
@@ -103,6 +116,14 @@ class Instance extends \Google\Collection
   protected $maintenancePolicyDataType = '';
   protected $maintenanceScheduleType = MaintenanceSchedule::class;
   protected $maintenanceScheduleDataType = '';
+  /**
+   * Optional. Last self service update maintenance version triggered by the
+   * customer. If it is empty, it means that the maintenance version is not set
+   * by the user.
+   *
+   * @var string
+   */
+  public $maintenanceVersion;
   /**
    * Output only. The full version of memcached server running on this instance.
    * System automatically determines the full memcached version for an instance
@@ -206,6 +227,23 @@ class Instance extends \Google\Collection
     return $this->authorizedNetwork;
   }
   /**
+   * Output only. The available maintenance versions that can be applied to the
+   * instance.
+   *
+   * @param string[] $availableMaintenanceVersions
+   */
+  public function setAvailableMaintenanceVersions($availableMaintenanceVersions)
+  {
+    $this->availableMaintenanceVersions = $availableMaintenanceVersions;
+  }
+  /**
+   * @return string[]
+   */
+  public function getAvailableMaintenanceVersions()
+  {
+    return $this->availableMaintenanceVersions;
+  }
+  /**
    * Output only. The time the instance was created.
    *
    * @param string $createTime
@@ -253,6 +291,22 @@ class Instance extends \Google\Collection
   public function getDisplayName()
   {
     return $this->displayName;
+  }
+  /**
+   * Output only. The effective maintenance version of the instance.
+   *
+   * @param string $effectiveMaintenanceVersion
+   */
+  public function setEffectiveMaintenanceVersion($effectiveMaintenanceVersion)
+  {
+    $this->effectiveMaintenanceVersion = $effectiveMaintenanceVersion;
+  }
+  /**
+   * @return string
+   */
+  public function getEffectiveMaintenanceVersion()
+  {
+    return $this->effectiveMaintenanceVersion;
   }
   /**
    * List of messages that describe the current state of the Memcached instance.
@@ -320,6 +374,24 @@ class Instance extends \Google\Collection
   public function getMaintenanceSchedule()
   {
     return $this->maintenanceSchedule;
+  }
+  /**
+   * Optional. Last self service update maintenance version triggered by the
+   * customer. If it is empty, it means that the maintenance version is not set
+   * by the user.
+   *
+   * @param string $maintenanceVersion
+   */
+  public function setMaintenanceVersion($maintenanceVersion)
+  {
+    $this->maintenanceVersion = $maintenanceVersion;
+  }
+  /**
+   * @return string
+   */
+  public function getMaintenanceVersion()
+  {
+    return $this->maintenanceVersion;
   }
   /**
    * Output only. The full version of memcached server running on this instance.

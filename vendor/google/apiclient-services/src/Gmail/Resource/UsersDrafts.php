@@ -32,7 +32,10 @@ use Google\Service\Gmail\Message;
 class UsersDrafts extends \Google\Service\Resource
 {
   /**
-   * Creates a new draft with the `DRAFT` label. (drafts.create)
+   * Creates a draft with the `DRAFT` label. For more information, see [Create and
+   * send draft
+   * emails](https://developers.google.com/workspace/gmail/api/guides/drafts).
+   * (drafts.create)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -49,7 +52,9 @@ class UsersDrafts extends \Google\Service\Resource
   }
   /**
    * Immediately and permanently deletes the specified draft. Does not simply
-   * trash it. (drafts.delete)
+   * trash it. For more information, see [Create and send draft
+   * emails](https://developers.google.com/workspace/gmail/api/guides/drafts).
+   * (drafts.delete)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -64,7 +69,9 @@ class UsersDrafts extends \Google\Service\Resource
     return $this->call('delete', [$params]);
   }
   /**
-   * Gets the specified draft. (drafts.get)
+   * Gets the specified draft. For more information, see [Create and send draft
+   * emails](https://developers.google.com/workspace/gmail/api/guides/drafts).
+   * (drafts.get)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -82,7 +89,10 @@ class UsersDrafts extends \Google\Service\Resource
     return $this->call('get', [$params], Draft::class);
   }
   /**
-   * Lists the drafts in the user's mailbox. (drafts.listUsersDrafts)
+   * Lists the drafts in the user's mailbox. For more information, see [Create and
+   * send draft
+   * emails](https://developers.google.com/workspace/gmail/api/guides/drafts).
+   * (drafts.listUsersDrafts)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -108,7 +118,9 @@ class UsersDrafts extends \Google\Service\Resource
   }
   /**
    * Sends the specified, existing draft to the recipients in the `To`, `Cc`, and
-   * `Bcc` headers. (drafts.send)
+   * `Bcc` headers. For more information, see [Create and send draft
+   * emails](https://developers.google.com/workspace/gmail/api/guides/drafts).
+   * (drafts.send)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.
@@ -124,7 +136,9 @@ class UsersDrafts extends \Google\Service\Resource
     return $this->call('send', [$params], Message::class);
   }
   /**
-   * Replaces a draft's content. (drafts.update)
+   * Replaces a draft's content. For more information, see [Create and send draft
+   * emails](https://developers.google.com/workspace/gmail/api/guides/drafts).
+   * (drafts.update)
    *
    * @param string $userId The user's email address. The special value `me` can be
    * used to indicate the authenticated user.

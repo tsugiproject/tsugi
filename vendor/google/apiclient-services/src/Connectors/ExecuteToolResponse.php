@@ -19,6 +19,15 @@ namespace Google\Service\Connectors;
 
 class ExecuteToolResponse extends \Google\Model
 {
+  protected $internal_gapi_mappings = [
+        "meta" => "_meta",
+  ];
+  /**
+   * Metadata for the tool execution result.
+   *
+   * @var array[]
+   */
+  public $meta;
   /**
    * Metadata like service latency, etc.
    *
@@ -32,6 +41,22 @@ class ExecuteToolResponse extends \Google\Model
    */
   public $result;
 
+  /**
+   * Metadata for the tool execution result.
+   *
+   * @param array[] $meta
+   */
+  public function setMeta($meta)
+  {
+    $this->meta = $meta;
+  }
+  /**
+   * @return array[]
+   */
+  public function getMeta()
+  {
+    return $this->meta;
+  }
   /**
    * Metadata like service latency, etc.
    *

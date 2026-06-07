@@ -24,10 +24,6 @@ class GoogleCloudDialogflowCxV3EnvironmentWebhookConfig extends \Google\Collecti
   protected $webhookOverridesDataType = 'array';
 
   /**
-   * The list of webhooks to override for the agent environment. The webhook
-   * must exist in the agent. You can override fields in `generic_web_service`
-   * and `service_directory`.
-   *
    * @param GoogleCloudDialogflowCxV3Webhook[] $webhookOverrides
    */
   public function setWebhookOverrides($webhookOverrides)

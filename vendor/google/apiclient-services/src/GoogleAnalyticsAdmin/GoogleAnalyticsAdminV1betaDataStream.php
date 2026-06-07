@@ -53,7 +53,7 @@ class GoogleAnalyticsAdminV1betaDataStream extends \Google\Model
   protected $iosAppStreamDataType = GoogleAnalyticsAdminV1betaDataStreamIosAppStreamData::class;
   protected $iosAppStreamDataDataType = '';
   /**
-   * Output only. Resource name of this Data Stream. Format:
+   * Identifier. Resource name of this Data Stream. Format:
    * properties/{property_id}/dataStreams/{stream_id} Example:
    * "properties/1000/dataStreams/2000"
    *
@@ -143,7 +143,7 @@ class GoogleAnalyticsAdminV1betaDataStream extends \Google\Model
     return $this->iosAppStreamData;
   }
   /**
-   * Output only. Resource name of this Data Stream. Format:
+   * Identifier. Resource name of this Data Stream. Format:
    * properties/{property_id}/dataStreams/{stream_id} Example:
    * "properties/1000/dataStreams/2000"
    *

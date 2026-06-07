@@ -32,6 +32,7 @@ class NotificationChannelStrategy extends \Google\Collection
   public $notificationChannelNames;
   /**
    * The frequency at which to send reminder notifications for open incidents.
+   * The value must be between 30 minutes and 24 hours.
    *
    * @var string
    */
@@ -59,6 +60,7 @@ class NotificationChannelStrategy extends \Google\Collection
   }
   /**
    * The frequency at which to send reminder notifications for open incidents.
+   * The value must be between 30 minutes and 24 hours.
    *
    * @param string $renotifyInterval
    */

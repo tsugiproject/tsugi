@@ -40,6 +40,8 @@ class TasksPushNotificationConfigs extends \Google\Service\Resource
    * @param array $optParams Optional parameters.
    *
    * @opt_param string configId Required. The ID for the new config.
+   * @opt_param string tenant Optional tenant, provided as a path parameter.
+   * Experimental, might still change for 1.0 release.
    * @return TaskPushNotificationConfig
    * @throws \Google\Service\Exception
    */
@@ -56,6 +58,9 @@ class TasksPushNotificationConfigs extends \Google\Service\Resource
    * @param string $name The resource name of the config to delete. Format:
    * tasks/{task_id}/pushNotificationConfigs/{config_id}
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string tenant Optional tenant, provided as a path parameter.
+   * Experimental, might still change for 1.0 release.
    * @return WorkspaceeventsEmpty
    * @throws \Google\Service\Exception
    */
@@ -71,6 +76,9 @@ class TasksPushNotificationConfigs extends \Google\Service\Resource
    * @param string $name The resource name of the config to retrieve. Format:
    * tasks/{task_id}/pushNotificationConfigs/{config_id}
    * @param array $optParams Optional parameters.
+   *
+   * @opt_param string tenant Optional tenant, provided as a path parameter.
+   * Experimental, might still change for 1.0 release.
    * @return TaskPushNotificationConfig
    * @throws \Google\Service\Exception
    */
@@ -95,6 +103,8 @@ class TasksPushNotificationConfigs extends \Google\Service\Resource
    * subsequent page. When paginating, all other parameters provided to
    * `ListTaskPushNotificationConfigRequest` must match the call that provided the
    * page token.
+   * @opt_param string tenant Optional tenant, provided as a path parameter.
+   * Experimental, might still change for 1.0 release.
    * @return ListTaskPushNotificationConfigResponse
    * @throws \Google\Service\Exception
    */

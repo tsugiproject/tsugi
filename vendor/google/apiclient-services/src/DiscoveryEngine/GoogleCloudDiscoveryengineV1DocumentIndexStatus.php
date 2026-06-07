@@ -24,7 +24,9 @@ class GoogleCloudDiscoveryengineV1DocumentIndexStatus extends \Google\Collection
   protected $errorSamplesDataType = 'array';
   /**
    * The time when the document was indexed. If this field is populated, it
-   * means the document has been indexed.
+   * means the document has been indexed. While documents typically become
+   * searchable within seconds of indexing, it can sometimes take up to a few
+   * hours.
    *
    * @var string
    */
@@ -56,7 +58,9 @@ class GoogleCloudDiscoveryengineV1DocumentIndexStatus extends \Google\Collection
   }
   /**
    * The time when the document was indexed. If this field is populated, it
-   * means the document has been indexed.
+   * means the document has been indexed. While documents typically become
+   * searchable within seconds of indexing, it can sometimes take up to a few
+   * hours.
    *
    * @param string $indexTime
    */

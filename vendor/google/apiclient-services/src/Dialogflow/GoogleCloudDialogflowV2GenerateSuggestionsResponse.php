@@ -23,16 +23,11 @@ class GoogleCloudDialogflowV2GenerateSuggestionsResponse extends \Google\Collect
   protected $generatorSuggestionAnswersType = GoogleCloudDialogflowV2GenerateSuggestionsResponseGeneratorSuggestionAnswer::class;
   protected $generatorSuggestionAnswersDataType = 'array';
   /**
-   * The name of the latest conversation message used as context for compiling
-   * suggestion. Format: `projects//locations//conversations//messages/`.
-   *
    * @var string
    */
   public $latestMessage;
 
   /**
-   * The answers generated for the conversation based on context.
-   *
    * @param GoogleCloudDialogflowV2GenerateSuggestionsResponseGeneratorSuggestionAnswer[] $generatorSuggestionAnswers
    */
   public function setGeneratorSuggestionAnswers($generatorSuggestionAnswers)
@@ -47,9 +42,6 @@ class GoogleCloudDialogflowV2GenerateSuggestionsResponse extends \Google\Collect
     return $this->generatorSuggestionAnswers;
   }
   /**
-   * The name of the latest conversation message used as context for compiling
-   * suggestion. Format: `projects//locations//conversations//messages/`.
-   *
    * @param string $latestMessage
    */
   public function setLatestMessage($latestMessage)

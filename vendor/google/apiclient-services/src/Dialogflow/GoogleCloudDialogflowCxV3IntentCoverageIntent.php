@@ -20,21 +20,15 @@ namespace Google\Service\Dialogflow;
 class GoogleCloudDialogflowCxV3IntentCoverageIntent extends \Google\Model
 {
   /**
-   * Whether the intent is covered by at least one of the agent's test cases.
-   *
    * @var bool
    */
   public $covered;
   /**
-   * The intent full resource name
-   *
    * @var string
    */
   public $intent;
 
   /**
-   * Whether the intent is covered by at least one of the agent's test cases.
-   *
    * @param bool $covered
    */
   public function setCovered($covered)
@@ -49,8 +43,6 @@ class GoogleCloudDialogflowCxV3IntentCoverageIntent extends \Google\Model
     return $this->covered;
   }
   /**
-   * The intent full resource name
-   *
    * @param string $intent
    */
   public function setIntent($intent)

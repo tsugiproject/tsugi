@@ -19,6 +19,14 @@ namespace Google\Service\Bigquery;
 
 class DatasetListDatasets extends \Google\Model
 {
+  /**
+   * Output only. The origin of the dataset, one of: * (Unset) - Native BigQuery
+   * Dataset. * BIGLAKE - Dataset is backed by a namespace stored natively in
+   * Biglake.
+   *
+   * @var string
+   */
+  public $catalogSource;
   protected $datasetReferenceType = DatasetReference::class;
   protected $datasetReferenceDataType = '';
   protected $externalDatasetReferenceType = ExternalDatasetReference::class;
@@ -56,7 +64,36 @@ class DatasetListDatasets extends \Google\Model
    * @var string
    */
   public $location;
+  /**
+   * Output only. Same as `type` in `Dataset`. The type of the dataset, one of:
+   * * DEFAULT - only accessible by owner and authorized accounts, * PUBLIC -
+   * accessible by everyone, * LINKED - linked dataset, * EXTERNAL - dataset
+   * with definition in external metadata catalog, * BIGLAKE_ICEBERG - a Biglake
+   * dataset accessible through the Iceberg API, * BIGLAKE_HIVE - a Biglake
+   * dataset accessible through the Hive API.
+   *
+   * @var string
+   */
+  public $type;
 
+  /**
+   * Output only. The origin of the dataset, one of: * (Unset) - Native BigQuery
+   * Dataset. * BIGLAKE - Dataset is backed by a namespace stored natively in
+   * Biglake.
+   *
+   * @param string $catalogSource
+   */
+  public function setCatalogSource($catalogSource)
+  {
+    $this->catalogSource = $catalogSource;
+  }
+  /**
+   * @return string
+   */
+  public function getCatalogSource()
+  {
+    return $this->catalogSource;
+  }
   /**
    * The dataset reference. Use this property to access specific parts of the
    * dataset's ID, such as project ID or dataset ID.
@@ -173,6 +210,27 @@ class DatasetListDatasets extends \Google\Model
   public function getLocation()
   {
     return $this->location;
+  }
+  /**
+   * Output only. Same as `type` in `Dataset`. The type of the dataset, one of:
+   * * DEFAULT - only accessible by owner and authorized accounts, * PUBLIC -
+   * accessible by everyone, * LINKED - linked dataset, * EXTERNAL - dataset
+   * with definition in external metadata catalog, * BIGLAKE_ICEBERG - a Biglake
+   * dataset accessible through the Iceberg API, * BIGLAKE_HIVE - a Biglake
+   * dataset accessible through the Hive API.
+   *
+   * @param string $type
+   */
+  public function setType($type)
+  {
+    $this->type = $type;
+  }
+  /**
+   * @return string
+   */
+  public function getType()
+  {
+    return $this->type;
   }
 }
 

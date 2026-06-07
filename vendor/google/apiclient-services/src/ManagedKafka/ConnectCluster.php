@@ -42,9 +42,8 @@ class ConnectCluster extends \Google\Model
   protected $capacityConfigType = CapacityConfig::class;
   protected $capacityConfigDataType = '';
   /**
-   * Optional. Configurations for the worker that are overridden from the
-   * defaults. The key of the map is a Kafka Connect worker property name, for
-   * example: `exactly.once.source.support`.
+   * Optional. Reserved for future use. This field is meant for worker config
+   * overrides, but is unsupported for now.
    *
    * @var string[]
    */
@@ -121,9 +120,8 @@ class ConnectCluster extends \Google\Model
     return $this->capacityConfig;
   }
   /**
-   * Optional. Configurations for the worker that are overridden from the
-   * defaults. The key of the map is a Kafka Connect worker property name, for
-   * example: `exactly.once.source.support`.
+   * Optional. Reserved for future use. This field is meant for worker config
+   * overrides, but is unsupported for now.
    *
    * @param string[] $config
    */

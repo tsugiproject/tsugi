@@ -19,6 +19,13 @@ namespace Google\Service\CloudSearch;
 
 class RequestOptions extends \Google\Model
 {
+  /**
+   * The BCP-47 language code, such as "pt" or "en". It represents the user's
+   * preferred Display Language.
+   *
+   * @var string
+   */
+  public $clientDisplayLanguageCode;
   protected $debugOptionsType = DebugOptions::class;
   protected $debugOptionsDataType = '';
   /**
@@ -54,6 +61,23 @@ class RequestOptions extends \Google\Model
    */
   public $timeZone;
 
+  /**
+   * The BCP-47 language code, such as "pt" or "en". It represents the user's
+   * preferred Display Language.
+   *
+   * @param string $clientDisplayLanguageCode
+   */
+  public function setClientDisplayLanguageCode($clientDisplayLanguageCode)
+  {
+    $this->clientDisplayLanguageCode = $clientDisplayLanguageCode;
+  }
+  /**
+   * @return string
+   */
+  public function getClientDisplayLanguageCode()
+  {
+    return $this->clientDisplayLanguageCode;
+  }
   /**
    * Debug options of the request
    *

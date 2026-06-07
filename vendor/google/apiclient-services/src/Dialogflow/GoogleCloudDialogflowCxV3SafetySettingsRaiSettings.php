@@ -24,8 +24,6 @@ class GoogleCloudDialogflowCxV3SafetySettingsRaiSettings extends \Google\Collect
   protected $categoryFiltersDataType = 'array';
 
   /**
-   * Optional. RAI blocking configurations.
-   *
    * @param GoogleCloudDialogflowCxV3SafetySettingsRaiSettingsCategoryFilter[] $categoryFilters
    */
   public function setCategoryFilters($categoryFilters)

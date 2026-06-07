@@ -24,12 +24,12 @@ class GoogleCloudAssetV1Constraint extends \Google\Model
    */
   public const CONSTRAINT_DEFAULT_CONSTRAINT_DEFAULT_UNSPECIFIED = 'CONSTRAINT_DEFAULT_UNSPECIFIED';
   /**
-   * Indicate that all values are allowed for list constraints. Indicate that
+   * Indicates that all values are allowed for list constraints. Indicates that
    * enforcement is off for boolean constraints.
    */
   public const CONSTRAINT_DEFAULT_ALLOW = 'ALLOW';
   /**
-   * Indicate that all values are denied for list constraints. Indicate that
+   * Indicates that all values are denied for list constraints. Indicates that
    * enforcement is on for boolean constraints.
    */
   public const CONSTRAINT_DEFAULT_DENY = 'DENY';

@@ -120,15 +120,15 @@ class GoogleCloudRetailV2UserEvent extends \Google\Collection
    */
   public $orderBy;
   /**
-   * The categories associated with a category page. To represent full path of
-   * category, use '>' sign to separate different hierarchies. If '>' is part of
-   * the category name, replace it with other character(s). Category pages
-   * include special pages such as sales or promotions. For instance, a special
-   * sale page may have the category hierarchy: "pageCategories" : ["Sales >
-   * 2017 Black Friday Deals"]. Required for `category-page-view` events. At
-   * least one of search_query or page_categories is required for `search`
-   * events. Other event types should not set this field. Otherwise, an
-   * INVALID_ARGUMENT error is returned.
+   * Optional. The categories associated with a category page. To represent the
+   * full path of category, use the '>' sign, with one space on each side, to
+   * separate different hierarchies. If '>' is part of the category name,
+   * replace it with other character(s). Category pages include special pages
+   * such as sales or promotions. For instance, a special sale page may have the
+   * category hierarchy: "pageCategories" : ["Sales > 2017 Black Friday Deals"].
+   * Required for `category-page-view` events. At least one of search_query or
+   * page_categories is required for `search` events. Other event types should
+   * not set this field. Otherwise, an INVALID_ARGUMENT error is returned.
    *
    * @var string[]
    */
@@ -444,15 +444,15 @@ class GoogleCloudRetailV2UserEvent extends \Google\Collection
     return $this->orderBy;
   }
   /**
-   * The categories associated with a category page. To represent full path of
-   * category, use '>' sign to separate different hierarchies. If '>' is part of
-   * the category name, replace it with other character(s). Category pages
-   * include special pages such as sales or promotions. For instance, a special
-   * sale page may have the category hierarchy: "pageCategories" : ["Sales >
-   * 2017 Black Friday Deals"]. Required for `category-page-view` events. At
-   * least one of search_query or page_categories is required for `search`
-   * events. Other event types should not set this field. Otherwise, an
-   * INVALID_ARGUMENT error is returned.
+   * Optional. The categories associated with a category page. To represent the
+   * full path of category, use the '>' sign, with one space on each side, to
+   * separate different hierarchies. If '>' is part of the category name,
+   * replace it with other character(s). Category pages include special pages
+   * such as sales or promotions. For instance, a special sale page may have the
+   * category hierarchy: "pageCategories" : ["Sales > 2017 Black Friday Deals"].
+   * Required for `category-page-view` events. At least one of search_query or
+   * page_categories is required for `search` events. Other event types should
+   * not set this field. Otherwise, an INVALID_ARGUMENT error is returned.
    *
    * @param string[] $pageCategories
    */

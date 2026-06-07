@@ -30,7 +30,7 @@ class SubscriptionListing extends \Google\Collection
   public $benefits;
   /**
    * The description of this subscription in the language of this listing.
-   * Maximum length - 80 characters. Plain text.
+   * Maximum length - 200 characters. Plain text.
    *
    * @var string
    */
@@ -69,7 +69,7 @@ class SubscriptionListing extends \Google\Collection
   }
   /**
    * The description of this subscription in the language of this listing.
-   * Maximum length - 80 characters. Plain text.
+   * Maximum length - 200 characters. Plain text.
    *
    * @param string $description
    */

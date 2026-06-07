@@ -26,8 +26,6 @@ class GoogleCloudDialogflowCxV3ToolDataStoreTool extends \Google\Collection
   protected $fallbackPromptDataType = '';
 
   /**
-   * Required. List of data stores to search.
-   *
    * @param GoogleCloudDialogflowCxV3DataStoreConnection[] $dataStoreConnections
    */
   public function setDataStoreConnections($dataStoreConnections)
@@ -42,8 +40,6 @@ class GoogleCloudDialogflowCxV3ToolDataStoreTool extends \Google\Collection
     return $this->dataStoreConnections;
   }
   /**
-   * Required. Fallback prompt configurations to use.
-   *
    * @param GoogleCloudDialogflowCxV3ToolDataStoreToolFallbackPrompt $fallbackPrompt
    */
   public function setFallbackPrompt(GoogleCloudDialogflowCxV3ToolDataStoreToolFallbackPrompt $fallbackPrompt)

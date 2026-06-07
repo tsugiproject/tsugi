@@ -50,6 +50,11 @@ class Subscription extends \Google\Collection
    */
   public const SUSPENSION_REASON_USER_SCOPE_REVOKED = 'USER_SCOPE_REVOKED';
   /**
+   * The domain administrator has revoked the grant of one or more OAuth scopes
+   * for the app.
+   */
+  public const SUSPENSION_REASON_APP_SCOPE_REVOKED = 'APP_SCOPE_REVOKED';
+  /**
    * The target resource for the subscription no longer exists.
    */
   public const SUSPENSION_REASON_RESOURCE_DELETED = 'RESOURCE_DELETED';
@@ -58,6 +63,11 @@ class Subscription extends \Google\Collection
    * access to the subscription's target resource.
    */
   public const SUSPENSION_REASON_USER_AUTHORIZATION_FAILURE = 'USER_AUTHORIZATION_FAILURE';
+  /**
+   * The app that authorized the creation of the subscription no longer has
+   * access to the subscription's target resource.
+   */
+  public const SUSPENSION_REASON_APP_AUTHORIZATION_FAILURE = 'APP_AUTHORIZATION_FAILURE';
   /**
    * The Google Workspace application doesn't have access to deliver events to
    * your subscription's notification endpoint.
@@ -98,6 +108,8 @@ class Subscription extends \Google\Collection
    * @var string
    */
   public $createTime;
+  protected $driveOptionsType = DriveOptions::class;
+  protected $driveOptionsDataType = '';
   /**
    * Optional. This checksum is computed by the server based on the value of
    * other fields, and might be sent on update requests to ensure the client has
@@ -148,6 +160,15 @@ class Subscription extends \Google\Collection
    */
   public $reconciling;
   /**
+   * Output only. The service account that was used to authorize the creation of
+   * the subscription. This service account must be owned by the same Google
+   * Cloud project where you created this subscription. Format:
+   * `projects/{project_id}/serviceAccounts/{service_account_id}`
+   *
+   * @var string
+   */
+  public $serviceAccountAuthority;
+  /**
    * Output only. The state of the subscription. Determines whether the
    * subscription can receive events and deliver them to the notification
    * endpoint.
@@ -196,6 +217,16 @@ class Subscription extends \Google\Collection
    * @var string
    */
   public $updateTime;
+  /**
+   * Output only. The user who authorized the creation of the subscription. The
+   * user must be able to view the `target_resource`. For Google Workspace
+   * users, the `{user}` value is the [`user.id`](https://developers.google.com/
+   * workspace/admin/directory/reference/rest/v1/users#User.FIELDS.id) field
+   * from the Directory API. Format: `users/{user}`
+   *
+   * @var string
+   */
+  public $userAuthority;
 
   /**
    * Output only. The user who authorized the creation of the subscription. When
@@ -235,6 +266,23 @@ class Subscription extends \Google\Collection
   public function getCreateTime()
   {
     return $this->createTime;
+  }
+  /**
+   * Optional. Features that are supported only for subscriptions on Drive
+   * resources.
+   *
+   * @param DriveOptions $driveOptions
+   */
+  public function setDriveOptions(DriveOptions $driveOptions)
+  {
+    $this->driveOptions = $driveOptions;
+  }
+  /**
+   * @return DriveOptions
+   */
+  public function getDriveOptions()
+  {
+    return $this->driveOptions;
   }
   /**
    * Optional. This checksum is computed by the server based on the value of
@@ -366,6 +414,25 @@ class Subscription extends \Google\Collection
     return $this->reconciling;
   }
   /**
+   * Output only. The service account that was used to authorize the creation of
+   * the subscription. This service account must be owned by the same Google
+   * Cloud project where you created this subscription. Format:
+   * `projects/{project_id}/serviceAccounts/{service_account_id}`
+   *
+   * @param string $serviceAccountAuthority
+   */
+  public function setServiceAccountAuthority($serviceAccountAuthority)
+  {
+    $this->serviceAccountAuthority = $serviceAccountAuthority;
+  }
+  /**
+   * @return string
+   */
+  public function getServiceAccountAuthority()
+  {
+    return $this->serviceAccountAuthority;
+  }
+  /**
    * Output only. The state of the subscription. Determines whether the
    * subscription can receive events and deliver them to the notification
    * endpoint.
@@ -391,8 +458,9 @@ class Subscription extends \Google\Collection
    * method.
    *
    * Accepted values: ERROR_TYPE_UNSPECIFIED, USER_SCOPE_REVOKED,
-   * RESOURCE_DELETED, USER_AUTHORIZATION_FAILURE, ENDPOINT_PERMISSION_DENIED,
-   * ENDPOINT_NOT_FOUND, ENDPOINT_RESOURCE_EXHAUSTED, OTHER
+   * APP_SCOPE_REVOKED, RESOURCE_DELETED, USER_AUTHORIZATION_FAILURE,
+   * APP_AUTHORIZATION_FAILURE, ENDPOINT_PERMISSION_DENIED, ENDPOINT_NOT_FOUND,
+   * ENDPOINT_RESOURCE_EXHAUSTED, OTHER
    *
    * @param self::SUSPENSION_REASON_* $suspensionReason
    */
@@ -479,6 +547,26 @@ class Subscription extends \Google\Collection
   public function getUpdateTime()
   {
     return $this->updateTime;
+  }
+  /**
+   * Output only. The user who authorized the creation of the subscription. The
+   * user must be able to view the `target_resource`. For Google Workspace
+   * users, the `{user}` value is the [`user.id`](https://developers.google.com/
+   * workspace/admin/directory/reference/rest/v1/users#User.FIELDS.id) field
+   * from the Directory API. Format: `users/{user}`
+   *
+   * @param string $userAuthority
+   */
+  public function setUserAuthority($userAuthority)
+  {
+    $this->userAuthority = $userAuthority;
+  }
+  /**
+   * @return string
+   */
+  public function getUserAuthority()
+  {
+    return $this->userAuthority;
   }
 }
 

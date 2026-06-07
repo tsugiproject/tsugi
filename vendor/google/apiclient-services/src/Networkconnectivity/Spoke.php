@@ -40,6 +40,10 @@ class Spoke extends \Google\Collection
    */
   public const SPOKE_TYPE_VPC_NETWORK = 'VPC_NETWORK';
   /**
+   * Spokes that are NCC gateways.
+   */
+  public const SPOKE_TYPE_GATEWAY = 'GATEWAY';
+  /**
    * Spokes that are backed by a producer VPC network.
    */
   public const SPOKE_TYPE_PRODUCER_VPC_NETWORK = 'PRODUCER_VPC_NETWORK';
@@ -108,11 +112,13 @@ class Spoke extends \Google\Collection
    */
   public $etag;
   /**
-   * Optional. The list of fields waiting for hub administration's approval.
+   * Optional. The list of fields waiting for hub administrator's approval.
    *
    * @var string[]
    */
   public $fieldPathsPendingUpdate;
+  protected $gatewayType = Gateway::class;
+  protected $gatewayDataType = '';
   /**
    * Optional. The name of the group that this spoke is associated with.
    *
@@ -231,7 +237,7 @@ class Spoke extends \Google\Collection
     return $this->etag;
   }
   /**
-   * Optional. The list of fields waiting for hub administration's approval.
+   * Optional. The list of fields waiting for hub administrator's approval.
    *
    * @param string[] $fieldPathsPendingUpdate
    */
@@ -245,6 +251,23 @@ class Spoke extends \Google\Collection
   public function getFieldPathsPendingUpdate()
   {
     return $this->fieldPathsPendingUpdate;
+  }
+  /**
+   * Optional. This is a gateway that can apply specialized processing to
+   * traffic going through it.
+   *
+   * @param Gateway $gateway
+   */
+  public function setGateway(Gateway $gateway)
+  {
+    $this->gateway = $gateway;
+  }
+  /**
+   * @return Gateway
+   */
+  public function getGateway()
+  {
+    return $this->gateway;
   }
   /**
    * Optional. The name of the group that this spoke is associated with.
@@ -414,7 +437,7 @@ class Spoke extends \Google\Collection
    * Output only. The type of resource associated with the spoke.
    *
    * Accepted values: SPOKE_TYPE_UNSPECIFIED, VPN_TUNNEL,
-   * INTERCONNECT_ATTACHMENT, ROUTER_APPLIANCE, VPC_NETWORK,
+   * INTERCONNECT_ATTACHMENT, ROUTER_APPLIANCE, VPC_NETWORK, GATEWAY,
    * PRODUCER_VPC_NETWORK
    *
    * @param self::SPOKE_TYPE_* $spokeType

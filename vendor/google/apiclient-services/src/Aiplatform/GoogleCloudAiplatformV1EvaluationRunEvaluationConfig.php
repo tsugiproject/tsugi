@@ -22,6 +22,8 @@ class GoogleCloudAiplatformV1EvaluationRunEvaluationConfig extends \Google\Colle
   protected $collection_key = 'rubricConfigs';
   protected $autoraterConfigType = GoogleCloudAiplatformV1EvaluationRunEvaluationConfigAutoraterConfig::class;
   protected $autoraterConfigDataType = '';
+  protected $datasetCustomMetricsType = GoogleCloudAiplatformV1DatasetCustomMetric::class;
+  protected $datasetCustomMetricsDataType = 'array';
   protected $metricsType = GoogleCloudAiplatformV1EvaluationRunMetric::class;
   protected $metricsDataType = 'array';
   protected $outputConfigType = GoogleCloudAiplatformV1EvaluationRunEvaluationConfigOutputConfig::class;
@@ -48,7 +50,24 @@ class GoogleCloudAiplatformV1EvaluationRunEvaluationConfig extends \Google\Colle
     return $this->autoraterConfig;
   }
   /**
-   * Required. The metrics to be calculated in the evaluation run.
+   * Optional. Specifications for custom dataset-level aggregations.
+   *
+   * @param GoogleCloudAiplatformV1DatasetCustomMetric[] $datasetCustomMetrics
+   */
+  public function setDatasetCustomMetrics($datasetCustomMetrics)
+  {
+    $this->datasetCustomMetrics = $datasetCustomMetrics;
+  }
+  /**
+   * @return GoogleCloudAiplatformV1DatasetCustomMetric[]
+   */
+  public function getDatasetCustomMetrics()
+  {
+    return $this->datasetCustomMetrics;
+  }
+  /**
+   * Optional. The metrics to be calculated in the evaluation run. Required when
+   * analysis_configs is not set.
    *
    * @param GoogleCloudAiplatformV1EvaluationRunMetric[] $metrics
    */

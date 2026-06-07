@@ -32,6 +32,13 @@ class Node extends \Google\Model
    */
   public $ip;
   /**
+   * Output only. Indicates whether the node set up to be configured as a hot
+   * standby.
+   *
+   * @var bool
+   */
+  public $isHotStandby;
+  /**
    * Output only. Determined by state of the compute VM and postgres-service
    * health. Compute VM state can have values listed in
    * https://cloud.google.com/compute/docs/instances/instance-life-cycle and
@@ -78,6 +85,23 @@ class Node extends \Google\Model
   public function getIp()
   {
     return $this->ip;
+  }
+  /**
+   * Output only. Indicates whether the node set up to be configured as a hot
+   * standby.
+   *
+   * @param bool $isHotStandby
+   */
+  public function setIsHotStandby($isHotStandby)
+  {
+    $this->isHotStandby = $isHotStandby;
+  }
+  /**
+   * @return bool
+   */
+  public function getIsHotStandby()
+  {
+    return $this->isHotStandby;
   }
   /**
    * Output only. Determined by state of the compute VM and postgres-service

@@ -25,7 +25,7 @@ class GoogleCloudApihubV1ApiView extends \Google\Model
   protected $mcpToolViewDataType = '';
 
   /**
-   * Output only. MCP server view.
+   * MCP server view.
    *
    * @param GoogleCloudApihubV1FlattenedApiVersionDeploymentView $mcpServerView
    */
@@ -41,7 +41,7 @@ class GoogleCloudApihubV1ApiView extends \Google\Model
     return $this->mcpServerView;
   }
   /**
-   * Output only. MCP tools view.
+   * MCP tools view.
    *
    * @param GoogleCloudApihubV1FlattenedApiVersionOperationDeploymentView $mcpToolView
    */

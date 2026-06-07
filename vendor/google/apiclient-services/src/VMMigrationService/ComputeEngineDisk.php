@@ -39,6 +39,10 @@ class ComputeEngineDisk extends \Google\Collection
    * Hyperdisk balanced disk type.
    */
   public const DISK_TYPE_COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED = 'COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED';
+  /**
+   * Hyperdisk balanced high availability disk type.
+   */
+  public const DISK_TYPE_COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY = 'COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY';
   protected $collection_key = 'replicaZones';
   /**
    * Optional. Target Compute Engine Disk ID. This is the resource ID segment of
@@ -96,7 +100,8 @@ class ComputeEngineDisk extends \Google\Collection
    * Accepted values: COMPUTE_ENGINE_DISK_TYPE_UNSPECIFIED,
    * COMPUTE_ENGINE_DISK_TYPE_STANDARD, COMPUTE_ENGINE_DISK_TYPE_SSD,
    * COMPUTE_ENGINE_DISK_TYPE_BALANCED,
-   * COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED
+   * COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED,
+   * COMPUTE_ENGINE_DISK_TYPE_HYPERDISK_BALANCED_HIGH_AVAILABILITY
    *
    * @param self::DISK_TYPE_* $diskType
    */

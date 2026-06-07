@@ -340,6 +340,10 @@ class VMwareEngine extends \Google\Service
                   'location' => 'query',
                   'type' => 'string',
                 ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
               ],
             ],'delete' => [
               'path' => 'v1/{+name}',
@@ -408,6 +412,10 @@ class VMwareEngine extends \Google\Service
                   'location' => 'query',
                   'type' => 'string',
                 ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
               ],
             ],
           ]
@@ -467,6 +475,10 @@ class VMwareEngine extends \Google\Service
                 'requestId' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
               ],
             ],'delete' => [
@@ -554,6 +566,10 @@ class VMwareEngine extends \Google\Service
                   'location' => 'query',
                   'type' => 'string',
                 ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
               ],
             ],
           ]
@@ -581,6 +597,10 @@ class VMwareEngine extends \Google\Service
                 'requestId' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
               ],
             ],'delete' => [
@@ -649,6 +669,10 @@ class VMwareEngine extends \Google\Service
                 'updateMask' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
               ],
             ],
@@ -863,6 +887,16 @@ class VMwareEngine extends \Google\Service
                   'type' => 'string',
                 ],
               ],
+            ],'migrateManagementVms' => [
+              'path' => 'v1/{+name}:migrateManagementVms',
+              'httpMethod' => 'POST',
+              'parameters' => [
+                'name' => [
+                  'location' => 'path',
+                  'type' => 'string',
+                  'required' => true,
+                ],
+              ],
             ],'patch' => [
               'path' => 'v1/{+name}',
               'httpMethod' => 'PATCH',
@@ -879,6 +913,10 @@ class VMwareEngine extends \Google\Service
                 'updateMask' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
               ],
             ],'privateCloudDeletionNow' => [
@@ -1206,6 +1244,10 @@ class VMwareEngine extends \Google\Service
                   'location' => 'query',
                   'type' => 'string',
                 ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
               ],
             ],'delete' => [
               'path' => 'v1/{+name}',
@@ -1273,6 +1315,10 @@ class VMwareEngine extends \Google\Service
                 'updateMask' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
               ],
             ],
@@ -1710,6 +1756,10 @@ class VMwareEngine extends \Google\Service
                   'location' => 'query',
                   'type' => 'string',
                 ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
               ],
             ],'delete' => [
               'path' => 'v1/{+name}',
@@ -1778,6 +1828,10 @@ class VMwareEngine extends \Google\Service
                   'location' => 'query',
                   'type' => 'string',
                 ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
               ],
             ],
           ]
@@ -1829,6 +1883,10 @@ class VMwareEngine extends \Google\Service
                 'requestId' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
                 'vmwareEngineNetworkId' => [
                   'location' => 'query',
@@ -1905,6 +1963,10 @@ class VMwareEngine extends \Google\Service
                 'updateMask' => [
                   'location' => 'query',
                   'type' => 'string',
+                ],
+                'validateOnly' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
                 ],
               ],
             ],

@@ -34,7 +34,7 @@ class GoogleAnalyticsAdminV1betaAccountSummary extends \Google\Collection
    */
   public $displayName;
   /**
-   * Resource name for this account summary. Format:
+   * Identifier. Resource name for this account summary. Format:
    * accountSummaries/{account_id} Example: "accountSummaries/1000"
    *
    * @var string
@@ -77,7 +77,7 @@ class GoogleAnalyticsAdminV1betaAccountSummary extends \Google\Collection
     return $this->displayName;
   }
   /**
-   * Resource name for this account summary. Format:
+   * Identifier. Resource name for this account summary. Format:
    * accountSummaries/{account_id} Example: "accountSummaries/1000"
    *
    * @param string $name

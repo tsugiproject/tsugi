@@ -142,8 +142,9 @@ class ProjectsLocationsOsconfigGlobalPolicyOrchestrators extends \Google\Service
    * Updates an existing policy orchestrator, parented by a project.
    * (policyOrchestrators.patch)
    *
-   * @param string $name Immutable. Identifier. In form of * `organizations/{organ
-   * ization_id}/locations/global/policyOrchestrators/{orchestrator_id}` *
+   * @param string $name Immutable. Identifier. In the following format: * `organi
+   * zations/{organization_id}/locations/global/policyOrchestrators/{orchestrator_
+   * id}` *
    * `folders/{folder_id}/locations/global/policyOrchestrators/{orchestrator_id}`
    * * `projects/{project_id_or_number}/locations/global/policyOrchestrators/{orch
    * estrator_id}`

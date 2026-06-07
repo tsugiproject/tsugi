@@ -91,6 +91,10 @@ class Reports extends \Google\Service
                   'location' => 'query',
                   'type' => 'string',
                 ],
+                'applicationInfoFilter' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
                 'customerId' => [
                   'location' => 'query',
                   'type' => 'string',
@@ -111,9 +115,17 @@ class Reports extends \Google\Service
                   'location' => 'query',
                   'type' => 'string',
                 ],
+                'includeSensitiveData' => [
+                  'location' => 'query',
+                  'type' => 'boolean',
+                ],
                 'maxResults' => [
                   'location' => 'query',
                   'type' => 'integer',
+                ],
+                'networkInfoFilter' => [
+                  'location' => 'query',
+                  'type' => 'string',
                 ],
                 'orgUnitID' => [
                   'location' => 'query',
@@ -128,6 +140,10 @@ class Reports extends \Google\Service
                   'type' => 'string',
                 ],
                 'startTime' => [
+                  'location' => 'query',
+                  'type' => 'string',
+                ],
+                'statusFilter' => [
                   'location' => 'query',
                   'type' => 'string',
                 ],

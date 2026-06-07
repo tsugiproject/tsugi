@@ -90,8 +90,8 @@ class LogBucket extends \Google\Collection
    * Output only. The resource name of the bucket.For example:projects/my-
    * project/locations/global/buckets/my-bucketFor a list of supported
    * locations, see Supported Regions
-   * (https://cloud.google.com/logging/docs/region-support)For the location of
-   * global it is unspecified where log entries are actually stored.After a
+   * (https://docs.cloud.google.com/logging/docs/region-support)For the location
+   * of global it is unspecified where log entries are actually stored.After a
    * bucket has been created, the location cannot be changed.
    *
    * @var string
@@ -250,8 +250,8 @@ class LogBucket extends \Google\Collection
    * Output only. The resource name of the bucket.For example:projects/my-
    * project/locations/global/buckets/my-bucketFor a list of supported
    * locations, see Supported Regions
-   * (https://cloud.google.com/logging/docs/region-support)For the location of
-   * global it is unspecified where log entries are actually stored.After a
+   * (https://docs.cloud.google.com/logging/docs/region-support)For the location
+   * of global it is unspecified where log entries are actually stored.After a
    * bucket has been created, the location cannot be changed.
    *
    * @param string $name

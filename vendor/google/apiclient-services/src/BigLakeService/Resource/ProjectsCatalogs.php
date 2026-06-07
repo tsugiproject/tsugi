@@ -19,6 +19,8 @@ namespace Google\Service\BigLakeService\Resource;
 
 use Google\Service\BigLakeService\Policy;
 use Google\Service\BigLakeService\SetIamPolicyRequest;
+use Google\Service\BigLakeService\TestIamPermissionsRequest;
+use Google\Service\BigLakeService\TestIamPermissionsResponse;
 
 /**
  * The "catalogs" collection of methods.
@@ -77,6 +79,25 @@ class ProjectsCatalogs extends \Google\Service\Resource
     $params = ['resource' => $resource, 'postBody' => $postBody];
     $params = array_merge($params, $optParams);
     return $this->call('setIamPolicy', [$params], Policy::class);
+  }
+  /**
+   * Tests the IAM permissions for the specified catalog.
+   * (catalogs.testIamPermissions)
+   *
+   * @param string $resource REQUIRED: The resource for which the policy detail is
+   * being requested. See [Resource
+   * names](https://cloud.google.com/apis/design/resource_names) for the
+   * appropriate value for this field.
+   * @param TestIamPermissionsRequest $postBody
+   * @param array $optParams Optional parameters.
+   * @return TestIamPermissionsResponse
+   * @throws \Google\Service\Exception
+   */
+  public function testIamPermissions($resource, TestIamPermissionsRequest $postBody, $optParams = [])
+  {
+    $params = ['resource' => $resource, 'postBody' => $postBody];
+    $params = array_merge($params, $optParams);
+    return $this->call('testIamPermissions', [$params], TestIamPermissionsResponse::class);
   }
 }
 

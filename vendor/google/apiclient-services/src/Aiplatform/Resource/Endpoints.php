@@ -111,7 +111,7 @@ class Endpoints extends \Google\Service\Resource
     return $this->call('generateContent', [$params], GoogleCloudAiplatformV1GenerateContentResponse::class);
   }
   /**
-   * Perform an online prediction. (endpoints.predict)
+   * (endpoints.predict)
    *
    * @param string $endpoint Required. The name of the Endpoint requested to serve
    * the prediction. Format:

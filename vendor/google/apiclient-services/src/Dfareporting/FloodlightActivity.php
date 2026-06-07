@@ -46,10 +46,6 @@ class FloodlightActivity extends \Google\Collection
    */
   public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_DOWNLOAD = 'CONVERSION_CATEGORY_DOWNLOAD';
   /**
-   * Boom event (for user list creation). This is an internal-only category.
-   */
-  public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_BOOM_EVENT = 'CONVERSION_CATEGORY_BOOM_EVENT';
-  /**
    * . The addition of items to a shopping cart or bag on an advertiser site.
    */
   public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_ADD_TO_CART = 'CONVERSION_CATEGORY_ADD_TO_CART';
@@ -61,19 +57,6 @@ class FloodlightActivity extends \Google\Collection
    * The start of a paid subscription for a product or service.
    */
   public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_SUBSCRIBE_PAID = 'CONVERSION_CATEGORY_SUBSCRIBE_PAID';
-  /**
-   * The start of a free subscription for a product or service.
-   */
-  public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_SUBSCRIBE_FREE = 'CONVERSION_CATEGORY_SUBSCRIBE_FREE';
-  /**
-   * A call to indicate interesting in an advertiser's offering. Note: this is
-   * different from support calls.
-   */
-  public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_PHONE_CALL_LEAD = 'CONVERSION_CATEGORY_PHONE_CALL_LEAD';
-  /**
-   * A lead conversion imported from an external source into Google Ads.
-   */
-  public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_IMPORTED_LEAD = 'CONVERSION_CATEGORY_IMPORTED_LEAD';
   /**
    * A submission of a form on an advertiser site indicating business interest.
    */
@@ -99,22 +82,6 @@ class FloodlightActivity extends \Google\Collection
    */
   public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_CONTACT = 'CONVERSION_CATEGORY_CONTACT';
   /**
-   * Key page views (ex: product page, article).
-   */
-  public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_VIEW_KEY_PAGE = 'CONVERSION_CATEGORY_VIEW_KEY_PAGE';
-  /**
-   * A website engagement event
-   */
-  public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_ENGAGEMENT = 'CONVERSION_CATEGORY_ENGAGEMENT';
-  /**
-   * A visit to a physical store location.
-   */
-  public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_STORE_VISIT = 'CONVERSION_CATEGORY_STORE_VISIT';
-  /**
-   * A sale occurring in a physical store.
-   */
-  public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_STORE_SALE = 'CONVERSION_CATEGORY_STORE_SALE';
-  /**
    * A lead conversion imported from an external source into Google Ads, that
    * has been further qualified by the advertiser.
    */
@@ -130,10 +97,6 @@ class FloodlightActivity extends \Google\Collection
    * shown in-app to users.
    */
   public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_IN_APP_AD_REVENUE = 'CONVERSION_CATEGORY_IN_APP_AD_REVENUE';
-  /**
-   * Message exchanges which indicate an interest in an advertiser's offering.
-   */
-  public const CONVERSION_CATEGORY_CONVERSION_CATEGORY_MESSAGE_LEAD = 'CONVERSION_CATEGORY_MESSAGE_LEAD';
   /**
    * Count every conversion.
    */
@@ -455,17 +418,13 @@ class FloodlightActivity extends \Google\Collection
    *
    * Accepted values: CONVERSION_CATEGORY_DEFAULT, CONVERSION_CATEGORY_PURCHASE,
    * CONVERSION_CATEGORY_SIGNUP, CONVERSION_CATEGORY_PAGE_VIEW,
-   * CONVERSION_CATEGORY_DOWNLOAD, CONVERSION_CATEGORY_BOOM_EVENT,
-   * CONVERSION_CATEGORY_ADD_TO_CART, CONVERSION_CATEGORY_BEGIN_CHECKOUT,
-   * CONVERSION_CATEGORY_SUBSCRIBE_PAID, CONVERSION_CATEGORY_SUBSCRIBE_FREE,
-   * CONVERSION_CATEGORY_PHONE_CALL_LEAD, CONVERSION_CATEGORY_IMPORTED_LEAD,
+   * CONVERSION_CATEGORY_DOWNLOAD, CONVERSION_CATEGORY_ADD_TO_CART,
+   * CONVERSION_CATEGORY_BEGIN_CHECKOUT, CONVERSION_CATEGORY_SUBSCRIBE_PAID,
    * CONVERSION_CATEGORY_SUBMIT_LEAD_FORM, CONVERSION_CATEGORY_BOOK_APPOINTMENT,
    * CONVERSION_CATEGORY_REQUEST_QUOTE, CONVERSION_CATEGORY_GET_DIRECTIONS,
    * CONVERSION_CATEGORY_OUTBOUND_CLICK, CONVERSION_CATEGORY_CONTACT,
-   * CONVERSION_CATEGORY_VIEW_KEY_PAGE, CONVERSION_CATEGORY_ENGAGEMENT,
-   * CONVERSION_CATEGORY_STORE_VISIT, CONVERSION_CATEGORY_STORE_SALE,
    * CONVERSION_CATEGORY_QUALIFIED_LEAD, CONVERSION_CATEGORY_CONVERTED_LEAD,
-   * CONVERSION_CATEGORY_IN_APP_AD_REVENUE, CONVERSION_CATEGORY_MESSAGE_LEAD
+   * CONVERSION_CATEGORY_IN_APP_AD_REVENUE
    *
    * @param self::CONVERSION_CATEGORY_* $conversionCategory
    */

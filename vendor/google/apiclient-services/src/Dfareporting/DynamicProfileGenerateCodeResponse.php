@@ -20,14 +20,14 @@ namespace Google\Service\Dfareporting;
 class DynamicProfileGenerateCodeResponse extends \Google\Model
 {
   /**
-   * Generated code for the dynamic profile.
+   * Generated code for the dynamic profile. The code will need to be unescaped.
    *
    * @var string
    */
   public $code;
 
   /**
-   * Generated code for the dynamic profile.
+   * Generated code for the dynamic profile. The code will need to be unescaped.
    *
    * @param string $code
    */

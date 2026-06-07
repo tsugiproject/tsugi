@@ -48,6 +48,12 @@ class ConfluentCloud extends \Google\Model
    */
   public const STATE_TOPIC_NOT_FOUND = 'TOPIC_NOT_FOUND';
   /**
+   * Indicates an error state where the ingestion source cannot be processed
+   * because the selected ingestion region is not permitted by the Regional
+   * Access Boundary (RAB) restrictions on the project's service account.
+   */
+  public const STATE_CONFLICTING_REGION_CONSTRAINTS = 'CONFLICTING_REGION_CONSTRAINTS';
+  /**
    * Required. The address of the bootstrap server. The format is url:port.
    *
    * @var string
@@ -166,7 +172,8 @@ class ConfluentCloud extends \Google\Model
    *
    * Accepted values: STATE_UNSPECIFIED, ACTIVE,
    * CONFLUENT_CLOUD_PERMISSION_DENIED, PUBLISH_PERMISSION_DENIED,
-   * UNREACHABLE_BOOTSTRAP_SERVER, CLUSTER_NOT_FOUND, TOPIC_NOT_FOUND
+   * UNREACHABLE_BOOTSTRAP_SERVER, CLUSTER_NOT_FOUND, TOPIC_NOT_FOUND,
+   * CONFLICTING_REGION_CONSTRAINTS
    *
    * @param self::STATE_* $state
    */
