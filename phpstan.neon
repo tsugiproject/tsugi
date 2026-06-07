@@ -1,3 +1,6 @@
+# PHPStan config for local analysis (composer phpstan) and CodeRabbit PR reviews.
+# CodeRabbit requires parameters.paths; it rejects bootstrapFile/bootstrapFiles.
+# Run locally: vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=1G
 parameters:
     level: 3
     phpVersion: 80400
