@@ -11,7 +11,16 @@ To add a dependency - don't edit composer.json - do this
 
 To advance dependencies
 
-    composer update --ignore-platform-reqs --no-dev
+    composer update --ignore-platform-reqs -W --no-dev
+
+IMPORTANT: vendor/ is committed but require-dev packages (phpunit, phpstan,
+myclabs/deep-copy, panther, etc.) are in .gitignore. Always end with:
+
+    composer install --no-dev --ignore-platform-reqs
+
+so vendor/composer/autoload_*.php does not reference packages that are not in git.
+If production fatals on myclabs/deep-copy or phpunit autoload paths, re-run that
+command and commit the regenerated vendor/composer/ files.
 
 Make sure to allow it to work with any version of PHP
 

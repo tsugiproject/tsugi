@@ -8,9 +8,11 @@
 
 ## Dependency management (Composer)
 - **`vendor/` is committed to git** on purpose: production deploys do not run Composer, which avoids deploy-time network/hiccups and keeps releases reproducible. Any dependency bump must update **`composer.json`**, **`composer.lock`**, and the **`vendor/`** tree together in the same change.
+- **Dev packages are gitignored.** `.gitignore` excludes `vendor/phpunit/`, `vendor/phpstan/`, `vendor/myclabs/`, `vendor/symfony/panther/`, and other `require-dev` trees. Production checkouts only get what git tracks.
+- **Always finish a vendor commit with `composer install --no-dev --ignore-platform-reqs`.** If you run `composer update` without `--no-dev`, Composer installs dev tools and rewrites `vendor/composer/autoload_*.php` to `require()` those packages—but they are **not committed**, so production fatals (e.g. missing `myclabs/deep-copy`). The lock file may still list dev deps for local QA; the committed autoload must match the gitignored production vendor only.
 - See **`README_COMPOSER.md`** for day-to-day commands. Common patterns:
-  - `composer update <package> --ignore-platform-reqs -W --no-dev` — bump one direct dependency and its transitive updates without touching dev packages in the install.
-  - `composer update --ignore-platform-reqs --no-dev` — advance all production dependencies (use sparingly; review the diff).
+  - `composer update <package> --ignore-platform-reqs -W --no-dev` — bump one direct dependency and its transitive updates.
+  - `composer install --no-dev --ignore-platform-reqs` — **required last step** before committing `vendor/`; regenerates autoload without dev references.
   - `composer audit` — check for security advisories before/after updates.
 - **`platform-check` is false** and the PHP constraint is `>=8.4.0`; do not raise the PHP version unless explicitly asked. Use `--ignore-platform-reqs` locally if your CLI PHP is newer (e.g. 8.5) than a package’s declared support.
 - **Pinning strategy:** security-sensitive packages (`phpseclib`, `firebase/php-jwt`, `htmlpurifier`) and patched Symfony CVE fixes use **exact versions** in `composer.json` so `composer update` cannot accidentally jump Symfony **8.0 → 8.1** or similar. Other libraries use `>=` floors; the lockfile is the real pin.
