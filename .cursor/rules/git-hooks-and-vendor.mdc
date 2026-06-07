@@ -1,0 +1,46 @@
+---
+description: Mandatory git hooks and production vendor autoload after any Composer work
+alwaysApply: true
+---
+
+# Git hooks and vendored dependencies (MANDATORY for agents)
+
+Production commits `vendor/` but **gitignores dev packages**. Dev-mode autoload **breaks production** (e.g. missing `myclabs/deep-copy`).
+
+## Session start
+
+Verify the pre-commit hook is installed. If not, **run it before any other work**:
+
+```bash
+test -x .git/hooks/pre-commit && grep -q 'pre-commit-vendor-check' .git/hooks/pre-commit || bash qa/install-git-hooks.sh
+```
+
+## After ANY Composer command that changes dependencies
+
+You **MUST NOT** mark composer/vendor work complete until this passes:
+
+```bash
+composer run finalize-vendor
+```
+
+(`composer update` / `composer require` run this automatically via `post-update-cmd`; **still run it explicitly** after `composer require --no-update`, manual lock edits, or if unsure.)
+
+`finalize-vendor` runs `composer install --no-dev` when needed, then `qa/pre-commit-vendor-check.sh`.
+
+## Before committing vendor or composer files
+
+1. Hook installed (above).
+2. `composer run finalize-vendor` succeeded.
+3. Commit includes **`vendor/composer/`** with lockfile changes.
+4. **Inspect** `git diff vendor/composer/autoload_files.php` — must **not** contain `myclabs`, `phpunit`, `phpstan`, or `php-webdriver`.
+
+If the user asks you to commit vendor changes and the check fails, **fix it first** — do not commit.
+
+## Local dev tools (phpstan/phpunit)
+
+Re-install dev tools only for local QA (not for commits):
+
+```bash
+composer install --ignore-platform-reqs
+composer run finalize-vendor   # back to production autoload before commit
+```

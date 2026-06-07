@@ -19,4 +19,6 @@ EOF
 chmod +x "$HOOK"
 
 echo "✅ pre-commit hook installed"
+echo "   Runs qa/pre-commit-vendor-check.sh before each commit."
+echo "   Re-run this script after every fresh git clone or checkout without hooks."
 

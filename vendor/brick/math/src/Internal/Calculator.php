@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Brick\Math\Internal;
 
-use Brick\Math\Exception\RoundingNecessaryException;
 use Brick\Math\RoundingMode;
 
 use function chr;
+use function intdiv;
 use function ltrim;
 use function ord;
 use function str_repeat;
@@ -30,11 +30,6 @@ use function substr;
  */
 abstract readonly class Calculator
 {
-    /**
-     * The maximum exponent value allowed for the pow() method.
-     */
-    public const MAX_POWER = 1_000_000;
-
     /**
      * The alphabet for converting from and to base 2 to 36, lowercase.
      */
@@ -164,7 +159,7 @@ abstract readonly class Calculator
      * Exponentiates a number.
      *
      * @param string $a The base number.
-     * @param int    $e The exponent, validated as an integer between 0 and MAX_POWER.
+     * @param int    $e The exponent, validated as a non-negative integer.
      *
      * @return string The power.
      *
@@ -217,7 +212,7 @@ abstract readonly class Calculator
     /**
      * Raises a number into power with modulo.
      *
-     * @param string $base The base number; must be positive or zero.
+     * @param string $base The base number.
      * @param string $exp  The exponent; must be positive or zero.
      * @param string $mod  The modulus; must be strictly positive.
      *
@@ -249,6 +244,25 @@ abstract readonly class Calculator
     }
 
     /**
+     * Returns the least common multiple of the two numbers.
+     *
+     * This method can be overridden by the concrete implementation if the underlying library
+     * has built-in support for LCM calculations.
+     *
+     * @return string The LCM, always positive, or zero if at least one argument is zero.
+     *
+     * @pure
+     */
+    public function lcm(string $a, string $b): string
+    {
+        if ($a === '0' || $b === '0') {
+            return '0';
+        }
+
+        return $this->divQ($this->abs($this->mul($a, $b)), $this->gcd($a, $b));
+    }
+
+    /**
      * Returns the square root of the given number, rounded down.
      *
      * The result is the largest x such that x² ≤ n.
@@ -257,6 +271,64 @@ abstract readonly class Calculator
      * @pure
      */
     abstract public function sqrt(string $n): string;
+
+    /**
+     * Returns the integer nth root of the given number, truncated toward zero.
+     *
+     * If $n is non-negative, the result is the largest x such that x^$k ≤ $n (floor).
+     * If $n is negative, $k MUST be odd, and the result is the negation of the floor root of |$n|
+     * (i.e., truncation toward zero: the smallest x such that x^$k ≥ $n).
+     *
+     * The caller MUST guarantee that $k ≥ 1 and that $n is non-negative when $k is even.
+     *
+     * This method can be overridden by the concrete implementation if the underlying library
+     * has built-in support for nth root calculations.
+     *
+     * @param string $n The number. May be negative only when $k is odd.
+     * @param int    $k The root degree. Must be strictly positive.
+     *
+     * @pure
+     */
+    public function nthRoot(string $n, int $k): string
+    {
+        if ($n === '0') {
+            return '0';
+        }
+
+        $negative = ($n[0] === '-');
+        $m = $negative ? substr($n, 1) : $n;
+
+        if ($m === '1') {
+            return $negative ? '-1' : '1';
+        }
+
+        // Initial overshoot: 10^ceil(strlen(m)/k) is strictly greater than the true root.
+        // Newton-Raphson requires starting above the true root to converge monotonically down.
+        $x = '1' . str_repeat('0', intdiv(strlen($m) - 1, $k) + 1);
+
+        $kStr = (string) $k;
+        $kMinusOneStr = (string) ($k - 1);
+
+        // Newton-Raphson recurrence for integer nth root:
+        //   x_{i+1} = floor(((k-1) * x_i + floor(m / x_i^{k-1})) / k)
+        for (; ;) {
+            $nx = $this->divQ(
+                $this->add(
+                    $this->mul($kMinusOneStr, $x),
+                    $this->divQ($m, $this->pow($x, $k - 1)),
+                ),
+                $kStr,
+            );
+
+            if ($this->cmp($nx, $x) >= 0) {
+                break;
+            }
+
+            $x = $nx;
+        }
+
+        return $negative ? $this->neg($x) : $x;
+    }
 
     /**
      * Converts a number from an arbitrary base.
@@ -388,17 +460,16 @@ abstract readonly class Calculator
     /**
      * Performs a rounded division.
      *
-     * Rounding is performed when the remainder of the division is not zero.
+     * When the remainder of the division is not zero, rounding is performed according to the rounding mode provided,
+     * unless RoundingMode::Unnecessary is used, in which case the method returns null.
      *
      * @param string       $a            The dividend.
      * @param string       $b            The divisor, must not be zero.
      * @param RoundingMode $roundingMode The rounding mode.
      *
-     * @throws RoundingNecessaryException If RoundingMode::Unnecessary is provided but rounding is necessary.
-     *
      * @pure
      */
-    final public function divRound(string $a, string $b, RoundingMode $roundingMode): string
+    final public function divRound(string $a, string $b, RoundingMode $roundingMode): ?string
     {
         [$quotient, $remainder] = $this->divQR($a, $b);
 
@@ -417,7 +488,7 @@ abstract readonly class Calculator
         switch ($roundingMode) {
             case RoundingMode::Unnecessary:
                 if ($hasDiscardedFraction) {
-                    throw RoundingNecessaryException::roundingNecessary();
+                    return null;
                 }
 
                 break;

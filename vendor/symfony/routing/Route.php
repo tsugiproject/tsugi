@@ -17,7 +17,7 @@ namespace Symfony\Component\Routing;
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Tobias Schultze <http://tobion.de>
  */
-class Route implements \Serializable
+class Route
 {
     private string $path = '/';
     private string $host = '';
@@ -73,16 +73,15 @@ class Route implements \Serializable
         ];
     }
 
-    /**
-     * @internal
-     */
-    final public function serialize(): string
-    {
-        throw new \BadMethodCallException('Cannot serialize '.__CLASS__);
-    }
-
     public function __unserialize(array $data): void
     {
+        if (($data['path'] ?? null) instanceof \Stringable
+            || ($data['host'] ?? null) instanceof \Stringable
+            || ($data['condition'] ?? null) instanceof \Stringable
+        ) {
+            throw new \BadMethodCallException('Cannot unserialize '.self::class);
+        }
+
         $this->path = $data['path'];
         $this->host = $data['host'];
         $this->defaults = $data['defaults'];
@@ -97,14 +96,6 @@ class Route implements \Serializable
         if (isset($data['compiled'])) {
             $this->compiled = $data['compiled'];
         }
-    }
-
-    /**
-     * @internal
-     */
-    final public function unserialize(string $serialized): void
-    {
-        $this->__unserialize(unserialize($serialized));
     }
 
     public function getPath(): string
@@ -426,7 +417,7 @@ class Route implements \Serializable
                 $this->setRequirement($m[2], substr($m[6], 1, -1));
             }
             if (isset($m[4][0])) {
-                $mapping[$m[2]] = isset($m[5][0]) ? [$m[4], substr($m[5], 1)] : $mapping[$m[2]] = [$m[4], $m[2]];
+                $mapping[$m[2]] = isset($m[5][0]) ? [$m[4], substr($m[5], 1)] : $m[4];
             }
 
             return '{'.$m[1].$m[2].'}';

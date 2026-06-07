@@ -11,7 +11,17 @@ To add a dependency - don't edit composer.json - do this
 
 To advance dependencies
 
-    composer update --ignore-platform-reqs --no-dev
+    composer update --ignore-platform-reqs -W --no-dev
+
+IMPORTANT: vendor/ is committed but require-dev packages are gitignored. After any
+composer update/require, production autoload is enforced automatically:
+
+    composer run finalize-vendor
+
+(post-update-cmd runs this for you; agents must still run it before committing.)
+To install the git pre-commit guard:
+
+    bash qa/install-git-hooks.sh
 
 Make sure to allow it to work with any version of PHP
 
