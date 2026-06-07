@@ -1,0 +1,36 @@
+---
+description: Verify git pre-commit hook is installed; guard vendor/composer commits
+alwaysApply: true
+---
+
+# Git hooks and vendored dependencies
+
+## Fresh checkout — check the hook first
+
+At the **start of any session** (or when the user mentions composer, vendor, dependencies, or a fresh clone), verify the pre-commit hook is installed:
+
+```bash
+test -x .git/hooks/pre-commit && grep -q 'pre-commit-vendor-check' .git/hooks/pre-commit
+```
+
+If that fails, **tell the user** the hook is missing and run (or offer to run):
+
+```bash
+bash qa/install-git-hooks.sh
+```
+
+Fresh checkouts do not install hooks automatically; without this hook, broken dev-mode `vendor/composer` autoload can be committed and **break production** (missing `myclabs/deep-copy`, etc.).
+
+## Before committing vendor or composer changes
+
+When touching `composer.json`, `composer.lock`, or `vendor/`:
+
+1. Confirm the pre-commit hook is installed (command above).
+2. Finish dependency work with:
+   ```bash
+   composer install --no-dev --ignore-platform-reqs
+   bash qa/pre-commit-vendor-check.sh
+   ```
+3. Include `vendor/composer/` in the same commit as lockfile changes.
+
+Do not skip the `--no-dev` install before committing `vendor/`.

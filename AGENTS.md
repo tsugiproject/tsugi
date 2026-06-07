@@ -10,6 +10,7 @@
 - **`vendor/` is committed to git** on purpose: production deploys do not run Composer, which avoids deploy-time network/hiccups and keeps releases reproducible. Any dependency bump must update **`composer.json`**, **`composer.lock`**, and the **`vendor/`** tree together in the same change.
 - **Dev packages are gitignored.** `.gitignore` excludes `vendor/phpunit/`, `vendor/phpstan/`, `vendor/myclabs/`, `vendor/symfony/panther/`, and other `require-dev` trees. Production checkouts only get what git tracks.
 - **Always finish a vendor commit with `composer install --no-dev --ignore-platform-reqs`.** If you run `composer update` without `--no-dev`, Composer installs dev tools and rewrites `vendor/composer/autoload_*.php` to `require()` those packages—but they are **not committed**, so production fatals (e.g. missing `myclabs/deep-copy`). The lock file may still list dev deps for local QA; the committed autoload must match the gitignored production vendor only.
+- **Install git hooks after a fresh checkout:** run `bash qa/install-git-hooks.sh` so the pre-commit hook runs `qa/pre-commit-vendor-check.sh`. Agents should verify `.git/hooks/pre-commit` exists before composer/vendor commits (see `.cursor/rules/git-hooks-and-vendor.mdc`).
 - See **`README_COMPOSER.md`** for day-to-day commands. Common patterns:
   - `composer update <package> --ignore-platform-reqs -W --no-dev` — bump one direct dependency and its transitive updates.
   - `composer install --no-dev --ignore-platform-reqs` — **required last step** before committing `vendor/`; regenerates autoload without dev references.
@@ -22,6 +23,8 @@
 - **`lib/composer.json`** (tsugi/lib submodule) has its own pins; keep `phpseclib` and JWT versions aligned with the root when you touch crypto/LTI dependencies.
 
 ## Build, Test, and Development Commands
+- `bash qa/install-git-hooks.sh` — install the local **pre-commit** hook (not automatic on clone; Cursor agents should verify it exists at session start).
+- `bash qa/pre-commit-vendor-check.sh` — sanity-check that committed autoload does not reference gitignored dev packages.
 - `docker compose build` — build the local Docker image.
 - `docker compose up` — start the app and initialize the database; default URL is `http://localhost:8888/tsugi`.
 - `composer update tsugi/lib` — update the Tsugi PHP runtime without bumping all transitive dependencies (see `README_COMPOSER.md`).
