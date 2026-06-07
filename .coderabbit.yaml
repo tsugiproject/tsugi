@@ -1,0 +1,92 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+
+reviews:
+  profile: chill
+  high_level_summary: true
+  collapse_walkthrough: true
+  high_level_summary_in_walkthrough: false
+  poem: false
+  suggested_labels: false
+  auto_assign_reviewers: false
+
+  path_filters:
+    - "!**/vendor/**"
+    - "!**/composer.lock"
+    - "!**/lib/composer.lock"
+    - "!**/composer/composer-*.json"
+    - "!**/*.min.js"
+    - "!**/*.min.css"
+    - "!**/locale/**/*.mo"
+    - "!**/.docker_data/**"
+    - "!**/qa/screenshots/**"
+
+  path_instructions:
+    - path: "composer.json"
+      instructions: |
+        Tsugi commits vendor/ to git; production does not run Composer.
+        - Any dependency bump must update composer.json, composer.lock, and vendor/ together.
+        - Dev packages (phpunit, phpstan, myclabs, panther, etc.) are gitignored under vendor/.
+        - Always finish with: composer install --no-dev --ignore-platform-reqs
+          so vendor/composer/autoload_*.php does not reference gitignored dev packages.
+        - Do not raise the PHP constraint unless explicitly requested.
+        - Do not remove direct dependencies (e.g. symfony/browser-kit) — modules rely on them.
+        - Symfony is intentionally mixed 7.4 + 8.0; avoid accidental 8.1 jumps.
+
+    - path: "lti/**"
+      instructions: |
+        LTI launch and OAuth/JWT paths are security-critical.
+        - Validate signatures, nonces, state, and redirect URLs carefully.
+        - Do not weaken checks on JWT decode or key handling (phpseclib, firebase/php-jwt).
+        - Prefer existing Tsugi\Util\LTI13 and LTIX patterns over new ad-hoc crypto.
+
+    - path: "admin/**"
+      instructions: |
+        Admin console code must enforce authorization before mutating data.
+        - Match existing admin routing and session checks in nearby files.
+        - Use prepared statements / ORM patterns already used in Tsugi; avoid raw SQL with unescaped input.
+
+    - path: "api/**"
+      instructions: |
+        API endpoints should validate input, return appropriate HTTP status codes, and avoid leaking secrets or PII in error messages.
+
+    - path: "lib/**"
+      instructions: |
+        Core Tsugi library (Tsugi\ namespace). Follow AGENTS.md:
+        - isLoggedIn() means loggedInUserId() !== 0; it does NOT require currentContextId().
+        - Use currentContextId() only when a course/context is required.
+        - Match existing PHP style: 4-space indent, braces on same line, $CFG for config.
+
+    - path: "**/*.php"
+      instructions: |
+        PHP 8.4+ Tsugi application code (not third-party vendor).
+        - Follow conventions in the nearest files; keep diffs small and focused.
+        - Escape output appropriately; treat user/LMS-supplied data as untrusted.
+        - config.php is local-only — never commit secrets.
+
+  auto_review:
+    enabled: true
+    drafts: false
+
+  tools:
+    phpstan:
+      enabled: true
+      level: default
+    phpcs:
+      enabled: false
+    phpmd:
+      enabled: false
+
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: false
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - AGENTS.md
+      - CONTRIBUTING.md
+      - README_COMPOSER.md
