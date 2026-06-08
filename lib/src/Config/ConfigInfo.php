@@ -1258,5 +1258,371 @@ class ConfigInfo {
         // Final fallback to just servicename
         return $this->servicename;
     }
+
+    // -------------------------------------------------------------------------
+    // Hostname-based vhost helpers (embedded *4e sites). Configure via:
+    //   $CFG->setExtension('vhost', array(
+    //       'suffixes' => array('py4e.com'),
+    //       'site_root' => dirname($CFG->dirroot),
+    //       'vhosts' => array(
+    //           'www' => array('apphomes' => array('https://local.example.com', ...)),
+    //           'labs' => array('apphomes' => array(...), 'dir' => 'site-labs'),
+    //       ),
+    //   ));
+    // localhost / 127.0.0.1 (any port) keep config.php apphome/wwwroot — no rewriting.
+    // -------------------------------------------------------------------------
+
+    private $vhostNormalized = null;
+    private $vhostId = false;
+    private $vhostIdResolved = false;
+
+    public function vhostRequestHost() {
+        $host = strtolower($_SERVER['HTTP_HOST'] ?? '');
+        if ( strpos($host, ':') !== false ) {
+            $host = explode(':', $host, 2)[0];
+        }
+        return $host;
+    }
+
+    /**
+     * True when the request should use apphome/wwwroot from config.php (e.g. localhost:8888/py4e).
+     */
+    public function vhostUsesDefaultHost() {
+        $host = $this->vhostRequestHost();
+        return $host === 'localhost' || $host === '127.0.0.1';
+    }
+
+    public function vhostUsesVhostUrls() {
+        if ( $this->vhostUsesDefaultHost() ) {
+            return false;
+        }
+        $host = $this->vhostRequestHost();
+        $config = $this->getVhostConfig();
+        if ( array_key_exists($host, $config['host_map']) ) {
+            return true;
+        }
+        if ( $this->getVhostId() ) {
+            return true;
+        }
+        return $this->vhostIsLocalWwwSite() || $this->vhostIsProductionWwwSite();
+    }
+
+    public function applyVhostHostUrls() {
+        if ( ! $this->vhostUsesVhostUrls() ) {
+            return;
+        }
+        $apphome = $this->vhostApphomeFromList();
+        if ( $apphome !== false ) {
+            $this->apphome = $apphome;
+            $this->wwwroot = $this->apphome . '/tsugi';
+            return;
+        }
+        $this->apphome = $this->vhostRequestScheme() . '://' . $this->vhostRequestHost();
+        $this->wwwroot = $this->apphome . '/tsugi';
+    }
+
+    /**
+     * @return string|false
+     */
+    public function getVhostId() {
+        if ( $this->vhostIdResolved ) {
+            return $this->vhostId;
+        }
+        $this->vhostIdResolved = true;
+        $this->vhostId = false;
+
+        if ( $this->vhostUsesDefaultHost() ) {
+            return $this->vhostId;
+        }
+
+        $host = $this->vhostRequestHost();
+        $config = $this->getVhostConfig();
+        if ( array_key_exists($host, $config['host_map']) ) {
+            $this->vhostId = $config['host_map'][$host];
+            return $this->vhostId;
+        }
+
+        if ( preg_match('/^([a-z0-9-]+)\.localhost$/', $host, $m) && $m[1] !== 'www' ) {
+            $this->vhostId = $m[1];
+            return $this->vhostId;
+        }
+
+        foreach ( $config['suffixes'] as $suffix ) {
+            $quoted = preg_quote($suffix, '/');
+            if ( preg_match('/^([a-z0-9-]+)\.' . $quoted . '$/', $host, $m) && $m[1] !== 'www' ) {
+                $this->vhostId = $m[1];
+                return $this->vhostId;
+            }
+            if ( preg_match('/^([a-z0-9-]+)\.local\.' . $quoted . '$/', $host, $m) ) {
+                $this->vhostId = $m[1];
+                return $this->vhostId;
+            }
+        }
+
+        return $this->vhostId;
+    }
+
+    /**
+     * @param string|false|null $id
+     * @return string|false
+     */
+    public function getVhostVariantDir($id = null) {
+        if ( $id === null ) {
+            $id = $this->getVhostId();
+        }
+        if ( ! $id ) {
+            return false;
+        }
+        $map = $this->getVhostConfig()['variants'];
+        if ( isset($map[$id]) && is_string($map[$id]) && $map[$id] !== '' ) {
+            return $map[$id];
+        }
+        return $id;
+    }
+
+    public function getVhostSiteRoot() {
+        return $this->getVhostConfig()['site_root'];
+    }
+
+    public function getVhostSiteFile($filename) {
+        $dir = $this->getVhostVariantDir();
+        if ( $dir ) {
+            $variant_path = $this->getVhostSiteRoot() . '/' . $dir . '/' . $filename;
+            if ( file_exists($variant_path) ) {
+                return $variant_path;
+            }
+        }
+        return $this->getVhostSiteRoot() . '/' . $filename;
+    }
+
+    public function requireVhostVariant($filename) {
+        $dir = $this->getVhostVariantDir();
+        if ( ! $dir ) {
+            return false;
+        }
+        $path = $this->getVhostSiteRoot() . '/' . $dir . '/' . $filename;
+        if ( ! is_readable($path) ) {
+            return false;
+        }
+        require $path;
+        return true;
+    }
+
+    public function applyVhostVariantConfig() {
+        $id = $this->getVhostId();
+        if ( ! $id ) {
+            return;
+        }
+        $dir = $this->getVhostVariantDir($id);
+        if ( ! $dir ) {
+            return;
+        }
+        $config = $this->getVhostSiteRoot() . '/' . $dir . '/config.php';
+        if ( ! is_readable($config) ) {
+            return;
+        }
+        require_once $config;
+        $fn = $id . '_apply_vhost_config';
+        if ( function_exists($fn) ) {
+            $fn($this);
+        }
+    }
+
+    /**
+     * @return array{suffixes: string[], site_root: string, apphomes: string[], variants: array<string, string>, vhosts: array, host_map: array<string, string|false>}
+     */
+    private function getVhostConfig() {
+        if ( $this->vhostNormalized !== null ) {
+            return $this->vhostNormalized;
+        }
+        $raw = $this->getExtension('vhost', false);
+        $this->vhostNormalized = $this->normalizeVhostConfig(is_array($raw) ? $raw : array());
+        return $this->vhostNormalized;
+    }
+
+    private function normalizeVhostConfig(array $config) {
+        $site_root = $config['site_root'] ?? '';
+        if ( ! is_string($site_root) || $site_root === '' ) {
+            if ( ! empty($this->dirroot) ) {
+                $site_root = dirname($this->dirroot);
+            } else {
+                $site_root = dirname(__DIR__, 3);
+            }
+        }
+
+        if ( is_array($config['vhosts'] ?? null) && count($config['vhosts']) > 0 ) {
+            $parsed = $this->normalizeVhostEntries($config['vhosts']);
+            return array(
+                'suffixes' => is_array($config['suffixes'] ?? null) ? $config['suffixes'] : array(),
+                'site_root' => $site_root,
+                'vhosts' => $parsed['vhosts'],
+                'apphomes' => $parsed['apphomes'],
+                'variants' => $parsed['variants'],
+                'host_map' => $parsed['host_map'],
+            );
+        }
+
+        return array(
+            'suffixes' => is_array($config['suffixes'] ?? null) ? $config['suffixes'] : array(),
+            'site_root' => $site_root,
+            'vhosts' => array(),
+            'apphomes' => $this->normalizeApphomeUrls($config['apphomes'] ?? array()),
+            'variants' => $this->normalizeVariantDirs($config['variants'] ?? array()),
+            'host_map' => array(),
+        );
+    }
+
+    /**
+     * @return string[]
+     */
+    private function normalizeApphomeUrls($list) {
+        if ( ! is_array($list) ) {
+            return array();
+        }
+        $normalized = array();
+        foreach ( $list as $url ) {
+            if ( ! is_string($url) || strlen(trim($url)) < 1 ) {
+                continue;
+            }
+            $normalized[] = rtrim(trim($url), '/');
+        }
+        return $normalized;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function normalizeVariantDirs($variants) {
+        $map = array();
+        if ( ! is_array($variants) ) {
+            return $map;
+        }
+        foreach ( $variants as $id => $spec ) {
+            if ( is_string($spec) && $spec !== '' ) {
+                $map[$id] = $spec;
+            } else if ( is_array($spec) && ! empty($spec['dir']) && is_string($spec['dir']) ) {
+                $map[$id] = $spec['dir'];
+            }
+        }
+        return $map;
+    }
+
+    /**
+     * @return array{vhosts: array, apphomes: string[], variants: array<string, string>, host_map: array<string, string|false>}
+     */
+    private function normalizeVhostEntries($vhosts) {
+        $normalized_vhosts = array();
+        $apphomes = array();
+        $variants = array();
+        $host_map = array();
+
+        foreach ( $vhosts as $id => $spec ) {
+            if ( ! is_array($spec) ) {
+                continue;
+            }
+            $urls = $this->normalizeApphomeUrls($spec['apphomes'] ?? array());
+            $dir = $spec['dir'] ?? null;
+            if ( ! is_string($dir) || $dir === '' ) {
+                $dir = null;
+            }
+
+            $normalized_vhosts[$id] = array(
+                'apphomes' => $urls,
+                'dir' => $dir,
+            );
+
+            foreach ( $urls as $url ) {
+                $host = strtolower(parse_url($url, PHP_URL_HOST) ?? '');
+                if ( $host === '' ) {
+                    continue;
+                }
+                $host_map[$host] = ( $id === 'www' ) ? false : $id;
+                $apphomes[] = $url;
+            }
+
+            if ( $id !== 'www' && $dir !== null ) {
+                $variants[$id] = $dir;
+            }
+        }
+
+        return array(
+            'vhosts' => $normalized_vhosts,
+            'apphomes' => $apphomes,
+            'variants' => $variants,
+            'host_map' => $host_map,
+        );
+    }
+
+    private function vhostIsLocalWwwSite() {
+        $host = $this->vhostRequestHost();
+        foreach ( $this->getVhostConfig()['suffixes'] as $suffix ) {
+            if ( $host === 'local.' . $suffix ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function vhostIsProductionWwwSite() {
+        $host = $this->vhostRequestHost();
+        foreach ( $this->getVhostConfig()['suffixes'] as $suffix ) {
+            if ( $host === 'www.' . $suffix || $host === $suffix ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function vhostRequestScheme() {
+        if ( ! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ) {
+            return 'https';
+        }
+        if ( ! empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' ) {
+            return 'https';
+        }
+        return 'http';
+    }
+
+    private function vhostHostIsLocalDev($host) {
+        if ( strpos($host, '.local.') !== false ) {
+            return true;
+        }
+        foreach ( $this->getVhostConfig()['suffixes'] as $suffix ) {
+            if ( $host === 'local.' . $suffix ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return string|false
+     */
+    private function vhostApphomeFromList() {
+        $list = $this->getVhostConfig()['apphomes'];
+        if ( count($list) < 1 ) {
+            return false;
+        }
+        $host = $this->vhostRequestHost();
+        foreach ( $list as $apphome ) {
+            $entry_host = strtolower(parse_url($apphome, PHP_URL_HOST) ?? '');
+            if ( $entry_host !== '' && $entry_host === $host ) {
+                return $apphome;
+            }
+        }
+
+        $local_request = $this->vhostHostIsLocalDev($host);
+        foreach ( $list as $apphome ) {
+            $entry_host = strtolower(parse_url($apphome, PHP_URL_HOST) ?? '');
+            if ( $entry_host === '' ) {
+                continue;
+            }
+            if ( $this->vhostHostIsLocalDev($entry_host) === $local_request ) {
+                return $apphome;
+            }
+        }
+
+        return $list[0];
+    }
 }
 
