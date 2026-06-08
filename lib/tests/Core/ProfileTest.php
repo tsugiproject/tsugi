@@ -35,10 +35,19 @@ class ProfileTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(3, Profile::normalizePremiumLevel('3'));
     }
 
+    public function testPremiumJsonAccessors() {
+        $profile = new Profile();
+        $json = '{"stripe":{"customer_id":"cus_test"}}';
+        $profile->setPremiumJson($json);
+        $this->assertSame($json, $profile->getPremiumJson());
+        $debug = $profile->__debugInfo();
+        $this->assertArrayNotHasKey('premium_json', $debug);
+    }
+
     public function testPremiumProviderJson() {
         $profile = new Profile();
-        $profile->premium_json = '{"stripe":{"customer_id":"cus_test","subscription_id":"sub_test"},'
-            .'"paypal":{"payer_id":"pay_123"}}';
+        $profile->setPremiumJson('{"stripe":{"customer_id":"cus_test","subscription_id":"sub_test"},'
+            .'"paypal":{"payer_id":"pay_123"}}');
 
         $this->assertTrue($profile->hasPremiumProvider('stripe'));
         $this->assertTrue($profile->hasPremiumProvider('paypal'));

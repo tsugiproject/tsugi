@@ -12,15 +12,17 @@ use \Tsugi\Util\U;
  * is 0, and {@see isLinked()} is false — but {@see isPremium()} and provider helpers
  * are safe to call without null checks.
  *
- * Billing integrations store per-provider metadata in {@see $premium_json}.
- * Top-level keys are provider ids (e.g. "stripe"); each value is that provider's object:
+ * Billing integrations store per-provider metadata in the premium_json column
+ * ({@see getPremiumJson()}, {@see setPremiumJson()}). Top-level keys are provider ids
+ * (e.g. "stripe"); each value is that provider's object:
  *
  *   {"stripe":{"customer_id":"cus_...","subscription_id":"sub_..."},"paypal":{...}}
  *
  * {@see $premium} is a tier level: 0 = no premium, 1 = base tier, higher = richer tiers.
  *
- * User-facing preferences (theme, map, etc.) remain in the profile {@see json} column
- * via JsonTrait; premium_json is for subscription / payment metadata only.
+ * User-facing preferences (theme, map, etc.) use the profile json column via JsonTrait;
+ * premium_json is for subscription / payment metadata only. JSON columns are not public
+ * object attributes so they are not exposed by var_dump / debug logging.
  */
 class Profile extends Entity {
 
@@ -44,9 +46,11 @@ class Profile extends Entity {
     public $premium_at = null;
 
     /**
-     * Payment metadata keyed by provider id (e.g. "stripe" => {...}). Raw JSON string.
+     * Cached premium_json column value. false = not loaded yet.
+     *
+     * @var string|false|null
      */
-    public $premium_json = null;
+    private $premium_json = false;
 
     /**
      * Current premium tier (always >= 0).
@@ -105,16 +109,58 @@ class Profile extends Entity {
     }
 
     /**
+     * Read the raw premium_json column for this profile.
+     *
+     * @return string|false JSON string, or false when empty / not set
+     */
+    public function getPremiumJson() {
+        if ( $this->premium_json === false ) {
+            $this->loadPremiumJsonFromDatabase();
+        }
+        if ( ! is_string($this->premium_json) || U::strlen($this->premium_json) < 1 ) {
+            return false;
+        }
+        return $this->premium_json;
+    }
+
+    /**
+     * Write the premium_json column for this profile.
+     *
+     * @param string|false|null $json Raw JSON string (no validation)
+     */
+    public function setPremiumJson($json) {
+        global $CFG, $PDOX;
+
+        $this->setPremiumJsonMemory($json);
+
+        if ( ! $this->isLinked() || ! isset($PDOX) || ! $PDOX ) {
+            return;
+        }
+        if ( ! $PDOX->columnExists('premium_json', "{$CFG->dbprefix}profile") ) {
+            return;
+        }
+
+        $value = $this->premium_json;
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}profile
+                SET premium_json = :SET, updated_at=NOW()
+                WHERE profile_id = :PID",
+            array(':SET' => $value, ':PID' => $this->id)
+        );
+    }
+
+    /**
      * Decode premium_json to an associative array (provider id => provider data).
      *
      * @return array<string,mixed>
      */
     public function getPremiumJsonArray() {
-        if ( ! is_string($this->premium_json) || U::strlen($this->premium_json) < 1 ) {
+        $json = $this->getPremiumJson();
+        if ( $json === false ) {
             return array();
         }
         try {
-            $decoded = json_decode($this->premium_json, true);
+            $decoded = json_decode($json, true);
         } catch (\Exception $e) {
             return array();
         }
@@ -186,7 +232,7 @@ class Profile extends Entity {
             $profile->premium = self::normalizePremiumLevel(U::get($LTI, 'profile_premium', 0));
             $profile->premium_at = U::get($LTI, 'profile_premium_at');
             $premium_json = U::get($LTI, 'profile_premium_json');
-            $profile->premium_json = is_string($premium_json) ? $premium_json : null;
+            $profile->setPremiumJsonMemory(is_string($premium_json) ? $premium_json : null);
         } else {
             $profile->loadPremiumFromDatabase();
         }
@@ -221,6 +267,68 @@ class Profile extends Entity {
 
         $this->premium = self::normalizePremiumLevel($row['premium']);
         $this->premium_at = $row['premium_at'];
-        $this->premium_json = $row['premium_json'];
+        $this->setPremiumJsonMemory($row['premium_json']);
+    }
+
+    /**
+     * Load only premium_json from the profile table.
+     */
+    protected function loadPremiumJsonFromDatabase() {
+        global $CFG, $PDOX;
+
+        if ( ! $this->isLinked() ) {
+            $this->premium_json = null;
+            return;
+        }
+        if ( ! isset($PDOX) || ! $PDOX ) {
+            $this->premium_json = null;
+            return;
+        }
+        if ( ! $PDOX->columnExists('premium_json', "{$CFG->dbprefix}profile") ) {
+            $this->premium_json = null;
+            return;
+        }
+
+        $row = $PDOX->rowDie(
+            "SELECT premium_json FROM {$CFG->dbprefix}profile
+            WHERE profile_id = :PID AND (deleted IS NULL OR deleted = 0)",
+            array(':PID' => $this->id)
+        );
+        if ( $row === false ) {
+            $this->premium_json = null;
+            return;
+        }
+
+        $this->setPremiumJsonMemory($row['premium_json']);
+    }
+
+    /**
+     * Cache premium_json in memory without writing to the database.
+     *
+     * @param string|false|null $json
+     */
+    private function setPremiumJsonMemory($json) {
+        if ( $json === false || $json === null ) {
+            $this->premium_json = null;
+            return;
+        }
+        if ( is_string($json) && U::strlen($json) > 0 ) {
+            $this->premium_json = $json;
+            return;
+        }
+        $this->premium_json = null;
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    public function __debugInfo() : array {
+        return array(
+            'id' => $this->id,
+            'premium' => $this->premium,
+            'premium_at' => $this->premium_at,
+            'linked' => $this->isLinked(),
+            'premium_level' => $this->getPremiumLevel(),
+        );
     }
 }
