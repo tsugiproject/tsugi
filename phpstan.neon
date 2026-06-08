@@ -3,7 +3,9 @@
 # Run locally: vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=1G
 parameters:
     level: 3
-    phpVersion: 80400
+    phpVersion:
+        min: 80400   # PHP 8.4
+        max: 80500   # PHP 8.5
     stubFiles:
         - phpstan-stubs.php
     scanFiles:
