@@ -379,6 +379,7 @@ class GoogleLoginHandler {
 
         // Drop all Tsugi session caches (cache_*) so membership, due dates, lti_user, lti_link, etc. match this login
         Cache::clearAllSessionCaches();
+        \Tsugi\UI\Output::clearTopNavSession();
 
         // Check instructor status and set role
         $is_instructor = false;

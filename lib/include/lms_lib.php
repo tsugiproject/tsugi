@@ -37,9 +37,15 @@ function success_out($output) {
 }
 
 // Output also needs a trivial Launch to make the session calls work.
-$OUTPUT = new \Tsugi\UI\Output();
-$LAUNCH = new \Tsugi\Core\Launch();
-$OUTPUT->launch = $LAUNCH;
+if ( ! isset($OUTPUT) || ! is_object($OUTPUT) ) {
+    $OUTPUT = new \Tsugi\UI\Output();
+}
+if ( ! isset($LAUNCH) || ! is_object($LAUNCH) ) {
+    $LAUNCH = new \Tsugi\Core\Launch();
+}
+if ( ! isset($OUTPUT->launch) || ! is_object($OUTPUT->launch) ) {
+    $OUTPUT->launch = $LAUNCH;
+}
 
 // http://stackoverflow.com/questions/834303/startswith-and-endswith-functions-in-php
 if (!function_exists('startsWith')) {

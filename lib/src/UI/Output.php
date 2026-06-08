@@ -795,6 +795,20 @@ $('a').each(function (x) {
         }
     }
 
+    /**
+     * Drop cached top-nav exports (e.g. after login/logout).
+     */
+    public static function clearTopNavSession() {
+        if ( ! isset($_SESSION) || ! is_array($_SESSION) ) {
+            return;
+        }
+        foreach ( array_keys($_SESSION) as $key ) {
+            if ( strpos($key, 'tsugi_top_nav_') === 0 ) {
+                unset($_SESSION[$key]);
+            }
+        }
+    }
+
     function suppressSiteNav() {
         $_SESSION[self::SUPPRESS_SITE_NAV] = true;
     }
@@ -807,8 +821,10 @@ $('a').each(function (x) {
      * Emit the top navigation block and optionally the tool navigation
      *
      * Priority order:
-     * (1) Navigation in the session
-     * (2) If we are launched via LTI w/o a session
+     * (1) $CFG->defaultmenu when set (site buildMenu)
+     * (2) Fresh defaultMenuSet() on standalone cookie-session pages
+     * (3) Navigation cached in the session (LTI / tool continuity)
+     * (4) LTI launch-specific fallbacks
      */
     function topNav($tool_menu=false) {
         global $CFG, $TSUGI_LAUNCH;
@@ -832,9 +848,15 @@ $('a').each(function (x) {
         if ( $CFG->wwwroot && startsWith($launch_return_url, $CFG->wwwroot) ) $same_host = true;
 
         // Canvas bug: launch_target is iframe even in new window (2017-01-10)
+        $standalone_cookie_session = defined('COOKIE_SESSION')
+            && $user_id === false
+            && $oauth_nonce === false;
+
         $menu_set = false;
         if ( $menu_set === false && defined('COOKIE_SESSION') && $CFG->defaultmenu instanceof \Tsugi\UI\MenuSet) {
             $menu_set = $CFG->defaultmenu;
+        } else if ( $menu_set === false && $standalone_cookie_session ) {
+            $menu_set = self::defaultMenuSet();
         } else if ( $menu_set === false && ($_SESSION[$sess_key] ?? null) ) {
             $menu_set = \Tsugi\UI\MenuSet::import($_SESSION[$sess_key] ?? null);
         } else if ( $menu_set === true ) {
