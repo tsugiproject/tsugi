@@ -1417,7 +1417,12 @@ class ConfigInfo {
         if ( ! $dir ) {
             return;
         }
-        $config = $this->getVhostSiteRoot() . '/' . $dir . '/config.php';
+        $base = $this->getVhostSiteRoot() . '/' . $dir . '/';
+        $config = $base . 'vhost.php';
+        if ( ! is_readable($config) ) {
+            // Legacy name; often gitignored when named config.php
+            $config = $base . 'config.php';
+        }
         if ( ! is_readable($config) ) {
             return;
         }
