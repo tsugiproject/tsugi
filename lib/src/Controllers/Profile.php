@@ -391,14 +391,14 @@ Send me notification mail for important things like my assignment was graded.
     }
 
     /**
-     * Human-facing price from the supporter extension (e.g. "$4.20").
+     * Human-facing price from the premium extension (e.g. "$4.20").
      */
     protected static function supporterPriceLabel($CFG) {
-        $supporter = $CFG->getExtension('supporter');
-        if ( ! is_array($supporter) || ! isset($supporter['price']) ) {
+        $premium = $CFG->getExtension('premium');
+        if ( ! is_array($premium) || ! isset($premium['price']) ) {
             return '';
         }
-        $price = trim((string) $supporter['price']);
+        $price = trim((string) $premium['price']);
         if ( strlen($price) < 1 ) {
             return '';
         }
@@ -414,16 +414,16 @@ Send me notification mail for important things like my assignment was graded.
     }
 
     /**
-     * Optional checkout URL from the supporter extension (site-specific, not payment-provider specific).
+     * Optional checkout URL from the premium extension (site-specific, not payment-provider specific).
      *
      * @return string|false
      */
     protected static function supporterCheckoutUrl($CFG) {
-        $supporter = $CFG->getExtension('supporter');
-        if ( ! is_array($supporter) ) {
+        $premium = $CFG->getExtension('premium');
+        if ( ! is_array($premium) ) {
             return false;
         }
-        $url = isset($supporter['checkout_url']) ? trim((string) $supporter['checkout_url']) : '';
+        $url = isset($premium['checkout_url']) ? trim((string) $premium['checkout_url']) : '';
         if ( strlen($url) < 1 ) {
             return false;
         }

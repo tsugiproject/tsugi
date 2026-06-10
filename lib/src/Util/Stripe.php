@@ -7,7 +7,7 @@ use Tsugi\Core\LTIX;
 /**
  * Stripe Checkout and supporter fulfillment helpers.
  *
- * Configuration via $CFG->getExtension('stripe') and $CFG->getExtension('supporter').
+ * Configuration via $CFG->getExtension('stripe') and $CFG->getExtension('premium').
  */
 class Stripe {
 
@@ -208,7 +208,7 @@ class Stripe {
      */
     public static function supporterConfig($CFG): array
     {
-        $cfg = $CFG->getExtension('supporter');
+        $cfg = $CFG->getExtension('premium');
         return is_array($cfg) ? $cfg : array();
     }
 
