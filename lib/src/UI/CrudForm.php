@@ -56,7 +56,7 @@ class CrudForm {
      * @param $fields_defaults An array of fields>default values
      */
     public static function insertForm($fields, $from_location, $titles=false, $fields_defaults=false) {
-        echo('<form method="post">'."\n");
+        echo('<form method="post" autocomplete="off">'."\n");
 
         for($i=0; $i < count($fields); $i++ ) {
             $field = $fields[$i];
@@ -68,9 +68,8 @@ class CrudForm {
             echo('<div class="form-group">'."\n");
             echo('<label for="'.$field.'"><span id="'.$field.'_label">'.self::fieldToTitle($field, $titles)."</span><br/>\n");
 
-            if ( strpos($field, "secret") !== false ) {
-                echo('<input id="'.$field.'" type="password" autocomplete="off" size="80" name="'.$field.'"');
-                echo("onclick=\"if ( $(this).attr('type') == 'text' ) $(this).attr('type','password'); else $(this).attr('type','text'); return false;\">\n");
+            if ( self::isSensitiveField($field) ) {
+                self::echoSensitiveInput($field);
             } else {
                 echo('<input type="text" size="80" id="'.$field.'" name="'.$field.'"'.(!empty($fields_defaults)?' value="'.htmlent_utf8(self::valueToField($field, $fields_defaults)).'"':'').'>'."\n");
             }
@@ -192,7 +191,7 @@ class CrudForm {
         $key_value = $_REQUEST[$key] + 0;
         $do_edit = isset($_REQUEST['edit']) && $_REQUEST['edit'] == 'yes';
 
-        echo('<form method="post">'."\n");
+        echo('<form method="post" autocomplete="off">'."\n");
         if ( is_string($from_location) ) echo('<a href="'.$from_location.'" class="btn btn-default">'._m('Exit').'</a>'."\n");
         if ( $allow_edit ) {
             if ( $do_edit ) {
@@ -224,7 +223,7 @@ class CrudForm {
             $value = $row[$field];
             if ( ! $do_edit ) {
                 echo('<p><strong><span id="'.$field.'_label">'.self::fieldToTitle($field, $titles)."</span></strong></p>\n");
-                if ( strpos($field, "secret") !== false || strpos($field, "privkey") !== false ) {
+                if ( self::isSensitiveField($field) ) {
                     echo('<p id="'.$field.'">'."\n");
                     echo("<span style=\"display: none;\" id=\"text_{$i}\">".htmlent_utf8($value).'</span>');
                     echo("<button type=\"button\" id=\"show_{$i}\" class=\"btn btn-link\" style=\"padding:0;vertical-align:baseline;\" onclick=\"$('#text_{$i}').show();$('#show_{$i}').hide();$('#hide_{$i}').show();\">"._m('Click to show')."</button>\n");
@@ -250,10 +249,9 @@ class CrudForm {
                 $value = $_POST[$field];
             }
 
-            if ( strpos($field, "secret") !== false ) {
-                echo('<input id="'.$field.'" type="password" autocomplete="off" size="80" name="'.$field.'" value="'.
-                        htmlent_utf8($value).'"');
-                echo("onclick=\"if ( $(this).attr('type') == 'text' ) $(this).attr('type','password'); else $(this).attr('type','text'); return false;\">\n");
+            if ( self::isSensitiveField($field) ) {
+                $sensitive_value = (isset($_POST[$field]) && $_POST[$field] !== '') ? $_POST[$field] : '';
+                self::echoSensitiveInput($field, true, $sensitive_value);
             } else if ( U::strlen($value) > 60 ) {
                 echo('<textarea rows="10" cols="70" id="'.$field.'" name="'.$field.'">'.htmlent_utf8($value).'</textarea>'."\n");
             } else {
@@ -356,9 +354,8 @@ class CrudForm {
                 if ( $i == 0 && strpos($field, "_id") > 0 ) continue;
                 if ( $field != 'updated_at' && strpos($field, "_at") > 0 ) continue;
 
-                if ( U::strlen($set) > 0 ) $set .= ', ';
                 if ( $field == 'updated_at' ) {
-                    $set .= $field."= NOW()";
+                    self::appendSetClause($set, $field."= NOW()");
                     continue;
                 }
 
@@ -382,7 +379,7 @@ class CrudForm {
                     } else {
                         $value = lti_sha256($_POST[$key]);
                     }
-                    $set .= $field."= :".$i;
+                    self::appendSetClause($set, $field."= :".$i);
                     $parms[':'.$i] = $value;
                     continue;
                 }
@@ -392,8 +389,16 @@ class CrudForm {
                     U::flashError(_m("Missing POST field: ").$field);
                     return self::CRUD_FAIL;
                 }
-                $set .= $field."= :".$i;
+                // On update, empty sensitive fields keep their stored value (and stay empty in the form).
+                if ( self::isSensitiveField($field) && $_POST[$field] === '' ) {
+                    continue;
+                }
+                self::appendSetClause($set, $field."= :".$i);
                 $parms[':'.$i] = $_POST[$field];
+            }
+            if ( U::strlen($set) < 1 ) {
+                U::flashSuccess(_m("Record Updated"));
+                return self::CRUD_SUCCESS;
             }
             $sql = "UPDATE $tablename SET $set WHERE $where_clause";
             $stmt = $PDOX->queryDie($sql, $parms);
@@ -401,6 +406,42 @@ class CrudForm {
             return self::CRUD_SUCCESS;
         }
         return $row;
+    }
+
+    /**
+     * Append one clause to an UPDATE SET list, inserting a comma when needed.
+     */
+    private static function appendSetClause(&$set, $clause) {
+        if ( U::strlen($set) > 0 ) $set .= ', ';
+        $set .= $clause;
+    }
+
+    /**
+     * Whether a form field holds a secret / credential value.
+     */
+    private static function isSensitiveField($field) {
+        return strpos($field, "secret") !== false
+            || strpos($field, "password") !== false
+            || strpos($field, "privkey") !== false;
+    }
+
+    /**
+     * Render a masked credential input that resists browser password-manager autofill.
+     *
+     * Uses type="text" (not "password") so empty fields are not treated as login forms.
+     * CSS bullet masking hides characters in WebKit/Blink; Firefox shows plain text while typing.
+     *
+     * @param string $field The input name/id.
+     * @param bool $preserve_on_empty True on update forms (blank means keep existing value).
+     */
+    private static function echoSensitiveInput($field, $preserve_on_empty=false, $value='') {
+        echo('<input id="'.$field.'" type="text" autocomplete="off" spellcheck="false" size="80" name="'.$field.'"');
+        echo(' style="-webkit-text-security:disc;text-security:disc;"');
+        echo(' data-1p-ignore data-lpignore="true"');
+        if ( $preserve_on_empty ) {
+            echo(' value="'.htmlent_utf8($value).'" placeholder="'._m('Leave blank to keep current value').'"');
+        }
+        echo(">\n");
     }
 
     /**
