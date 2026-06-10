@@ -27,6 +27,7 @@ class ComposerStaticInit30db599d1b6d13de666837c7bc59ac94
         '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
         'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
         '972fda704d680a3a53c68e34e193cb22' => __DIR__ . '/..' . '/react/promise-timer/src/functions_include.php',
+        'd92f49fe138fde4e7a3ec6f988960524' => __DIR__ . '/..' . '/stripe/stripe-php/lib/version_check.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -64,6 +65,7 @@ class ComposerStaticInit30db599d1b6d13de666837c7bc59ac94
             'Symfony\\Component\\DomCrawler\\' => 29,
             'Symfony\\Component\\Clock\\' => 24,
             'Symfony\\Component\\BrowserKit\\' => 29,
+            'Stripe\\' => 7,
             'SpomkyLabs\\Pki\\' => 15,
         ),
         'R' =>
@@ -235,6 +237,10 @@ class ComposerStaticInit30db599d1b6d13de666837c7bc59ac94
         'Symfony\\Component\\BrowserKit\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/browser-kit',
+        ),
+        'Stripe\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/stripe/stripe-php/lib',
         ),
         'SpomkyLabs\\Pki\\' =>
         array (
