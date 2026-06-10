@@ -2,12 +2,13 @@
 
 namespace Tsugi\Util;
 
+use Tsugi\Controllers\Profile;
 use Tsugi\Core\LTIX;
 
 /**
- * Stripe Checkout and supporter fulfillment helpers.
+ * Stripe Checkout and payment fulfillment helpers.
  *
- * Configuration via $CFG->getExtension('stripe') and $CFG->getExtension('premium').
+ * Supporter display config lives in {@see Profile}; stripe secrets in $CFG->getExtension('stripe').
  */
 class Stripe {
 
@@ -99,6 +100,11 @@ class Stripe {
             );
         }
 
+        $site = isset($stripe_cfg['site']) ? trim((string) $stripe_cfg['site']) : '';
+        if ($site === '') {
+            self::fail('Missing stripe extension config key: site');
+        }
+
         $webhook_secrets = self::collectWebhookSecrets($stripe_cfg);
         if ($require_webhook_secret && count($webhook_secrets) < 1) {
             self::fail(
@@ -111,6 +117,7 @@ class Stripe {
         return array(
             'secret_key' => $secret_key,
             'supporter_price' => $supporter_price,
+            'site' => $site,
             'webhook_secrets' => $webhook_secrets,
         );
     }
@@ -181,51 +188,6 @@ class Stripe {
         LTIX::getConnection();
     }
 
-    public static function siteName($CFG): string
-    {
-        if (isset($CFG->servicename) && is_string($CFG->servicename)) {
-            $name = trim($CFG->servicename);
-            if ($name !== '') {
-                return $name;
-            }
-        }
-        return 'this site';
-    }
-
-    public static function siteLabel($CFG): string
-    {
-        if (isset($CFG->servicedesc) && is_string($CFG->servicedesc)) {
-            $desc = trim(strip_tags($CFG->servicedesc));
-            if ($desc !== '') {
-                return $desc;
-            }
-        }
-        return self::siteName($CFG);
-    }
-
-    /**
-     * @return array<string,mixed>
-     */
-    public static function supporterConfig($CFG): array
-    {
-        $cfg = $CFG->getExtension('premium');
-        return is_array($cfg) ? $cfg : array();
-    }
-
-    public static function supporterPriceLabel($CFG): string
-    {
-        return trim((string) U::get(self::supporterConfig($CFG), 'price', ''));
-    }
-
-    public static function supporterPricePhrase($CFG): string
-    {
-        $price = self::supporterPriceLabel($CFG);
-        if ($price === '') {
-            return '';
-        }
-        return 'about ' . $price . ' (local currency at checkout)';
-    }
-
     /**
      * Grant (or extend) supporter premium for a Tsugi user.
      *
@@ -248,9 +210,9 @@ class Stripe {
             return array('ok' => false, 'error' => 'missing checkout_session_id');
         }
 
-        $months = isset($payment['premium_months']) ? (int) $payment['premium_months'] : 12;
+        $months = isset($payment['premium_months']) ? (int) $payment['premium_months'] : Profile::premiumMonths($CFG);
         if ($months < 1) {
-            $months = 12;
+            $months = Profile::premiumMonths($CFG);
         }
 
         $user_row = $PDOX->rowDie(
@@ -315,7 +277,11 @@ class Stripe {
         $stripe_block['premium_until'] = $premium_until;
         $stripe_block['fulfilled_at'] = gmdate('c');
         $stripe_block['premium_months'] = $months;
-        $stripe_block['site'] = 'py4e';
+        $site = isset($payment['site']) ? trim((string) $payment['site']) : '';
+        if ($site === '') {
+            $site = self::config()['site'];
+        }
+        $stripe_block['site'] = $site;
 
         foreach (array('payment_intent_id', 'customer_id', 'amount_total', 'currency') as $key) {
             if (isset($payment[$key]) && $payment[$key] !== '' && $payment[$key] !== null) {
@@ -376,6 +342,8 @@ class Stripe {
      */
     public static function fulfillCheckoutSession(object $session, string $expected_price_id): array
     {
+        global $CFG;
+
         if (self::val($session, 'mode') !== 'payment') {
             return array('ok' => false, 'error' => 'checkout session mode is not payment');
         }
@@ -386,9 +354,13 @@ class Stripe {
         }
 
         $metadata = self::metadataArray(self::val($session, 'metadata', array()));
+        $expected_site = self::config()['site'];
 
-        if (U::get($metadata, 'site') !== 'py4e') {
-            return array('ok' => false, 'error' => 'checkout session metadata.site is not py4e');
+        if (U::get($metadata, 'site') !== $expected_site) {
+            return array(
+                'ok' => false,
+                'error' => 'checkout session metadata.site is not ' . $expected_site,
+            );
         }
 
         $user_id = (int) U::get($metadata, 'user_id', 0);
@@ -409,7 +381,8 @@ class Stripe {
             'customer_id' => (string) self::val($session, 'customer', ''),
             'amount_total' => self::val($session, 'amount_total', null),
             'currency' => (string) self::val($session, 'currency', ''),
-            'premium_months' => (int) U::get($metadata, 'premium_months', 12),
+            'premium_months' => (int) U::get($metadata, 'premium_months', Profile::premiumMonths($CFG)),
+            'site' => (string) U::get($metadata, 'site', $expected_site),
         );
 
         return self::grantSupporter($user_id, $payment);

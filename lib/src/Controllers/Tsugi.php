@@ -17,9 +17,10 @@ class Tsugi extends \Tsugi\Lumen\Application {
         \Tsugi\Controllers\ServiceWorkerController::routes($this);
 
         // Register all controllers in a single group since they're all in the same namespace
+        global $CFG;
         $this->router->group([
             'namespace' => 'Tsugi\Controllers',
-        ], function () {
+        ], function () use ($CFG) {
             // Register StaticFiles routes first to ensure they're matched before other routes
             \Tsugi\Controllers\StaticFiles::routes($this);
             \Tsugi\Controllers\Announcements::routes($this);
@@ -37,6 +38,9 @@ class Tsugi extends \Tsugi\Lumen\Application {
             \Tsugi\Controllers\Map::routes($this);
             \Tsugi\Controllers\Pages::routes($this);
             \Tsugi\Controllers\Profile::routes($this);
+            if ( is_array($CFG->getExtension('stripe')) ) {
+                \Tsugi\Controllers\Stripe::routes($this);
+            }
             \Tsugi\Controllers\Topics::routes($this);
             \Tsugi\Controllers\Notifications::routes($this);
         });
