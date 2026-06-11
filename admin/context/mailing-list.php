@@ -35,14 +35,17 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['days']) ) {
         return;
     }
     $include_opted_out = isset($_POST['include_opted_out']) ? 1 : 0;
+    $premium_only = isset($_POST['premium_only']) ? 1 : 0;
     // Redirect to GET to avoid resubmission
-    header('Location: mailing-list.php?context_id='.$context_id.'&days='.$days.'&include_opted_out='.$include_opted_out);
+    header('Location: mailing-list.php?context_id='.$context_id.'&days='.$days
+        .'&include_opted_out='.$include_opted_out.'&premium_only='.$premium_only);
     return;
 }
 
 // Handle GET parameters
 $days = null;
 $include_opted_out = false;
+$premium_only = false;
 if ( isset($_REQUEST['days']) && is_numeric($_REQUEST['days']) ) {
     $days = $_REQUEST['days'] + 0;
     if ( $days < 1 || $days > 365 ) {
@@ -52,6 +55,9 @@ if ( isset($_REQUEST['days']) && is_numeric($_REQUEST['days']) ) {
 }
 if ( isset($_REQUEST['include_opted_out']) && $_REQUEST['include_opted_out'] == '1' ) {
     $include_opted_out = true;
+}
+if ( isset($_REQUEST['premium_only']) && $_REQUEST['premium_only'] == '1' ) {
+    $premium_only = true;
 }
 
 // Check if user is site admin OR instructor/admin for this context
@@ -114,7 +120,7 @@ if ( $days !== null ) {
     // Note: We calculate the cutoff date in PHP since MySQL INTERVAL doesn't support parameters
     $cutoff_date = date('Y-m-d H:i:s', strtotime("-$days days"));
 
-    $sql = "SELECT DISTINCT U.email, U.displayname, U.login_at, U.user_id
+    $sql = "SELECT DISTINCT U.email, U.displayname, U.login_at, U.user_id, COALESCE(P.premium, 0) AS premium
             FROM {$CFG->dbprefix}lti_membership AS M
             JOIN {$CFG->dbprefix}lti_user AS U ON M.user_id = U.user_id
             LEFT JOIN {$CFG->dbprefix}profile AS P ON U.profile_id = P.profile_id
@@ -128,6 +134,10 @@ if ( $days !== null ) {
     if ( !$include_opted_out ) {
         $sql .= " AND (U.subscribe IS NULL OR U.subscribe != -1)
                   AND (P.subscribe IS NULL OR P.subscribe != -1)";
+    }
+
+    if ( $premium_only ) {
+        $sql .= " AND COALESCE(P.premium, 0) > 0";
     }
     
     $sql .= " ORDER BY SUBSTRING_INDEX(U.email, '@', -1), U.email";
@@ -165,13 +175,19 @@ $OUTPUT->flashMessages();
           Include all users including those that have opted out of all email
         </label>
       </div>
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>
+          <input type="checkbox" name="premium_only" value="1" <?= $premium_only ? 'checked' : '' ?>>
+          Supporters / premium users only
+        </label>
+      </div>
       <button type="submit" class="btn btn-primary">Generate Mailing List</button>
     </form>
   </div>
 </div>
 
 <?php if ( $days !== null ): ?>
-  <p>Users who logged in within the last <?= htmlentities($days) ?> days<?= $include_opted_out ? '' : ' (excluding users who opted out of email)' ?></p>
+  <p>Users who logged in within the last <?= htmlentities($days) ?> days<?= $include_opted_out ? '' : ' (excluding users who opted out of email)' ?><?= $premium_only ? ' — supporters / premium only' : '' ?></p>
   
   <?php if ( count($rows) == 0 ): ?>
   <div class="alert alert-info">
@@ -233,6 +249,7 @@ $OUTPUT->flashMessages();
           <tr>
             <th>Email</th>
             <th>Display Name</th>
+            <th>Premium</th>
             <th>Last Login</th>
             <th>Days Since Login</th>
           </tr>
@@ -255,6 +272,7 @@ $OUTPUT->flashMessages();
             <tr>
               <td><?= htmlentities($row['email']) ?></td>
               <td><?= htmlentities($row['displayname'] ? $row['displayname'] : 'N/A') ?></td>
+              <td><?= (int) U::get($row, 'premium', 0) > 0 ? 'yes' : 'no' ?></td>
               <td><?= htmlentities($row['login_at'] ? $row['login_at'] : 'Never') ?></td>
               <td><?= htmlentities($days_since_login) ?></td>
             </tr>
