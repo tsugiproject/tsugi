@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\User;
 
 class Map extends Controller {
 
@@ -56,7 +57,7 @@ class Map extends Controller {
         $PDOX = LTIX::getConnection();
         
         $p = $CFG->dbprefix;
-        $sql = "SELECT U.user_id, P.displayname, P.json 
+        $sql = "SELECT U.user_id, P.displayname, P.premium, P.json 
             FROM {$p}lti_user AS U JOIN {$p}profile AS P
             ON U.profile_id = P.profile_id
             WHERE P.json LIKE '%\"map\":3%' OR P.json LIKE '%\"map\":2%'";
@@ -83,7 +84,11 @@ class Map extends Controller {
             if ( ! isset($_SESSION["admin"]) ) {
                 if ( $map < 3 ) $name = '';
             }
-            $display = $name;
+            $display = '';
+            if ( is_string($name) && strlen($name) > 0 ) {
+                // Marker title is plain text; strip_tags keeps the supporter emoji from displayNameHtml.
+                $display = strip_tags(User::displayNameHtml($name, (int) U::get($row, 'premium', 0)));
+            }
             $points[] = array($lat, $lng, $display);
             if ( $current_user_id > 0 && $current_user_id == $row['user_id'] ) {
                 $center = array($lat,$lng);
