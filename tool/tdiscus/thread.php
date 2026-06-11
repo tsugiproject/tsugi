@@ -100,7 +100,7 @@ echo('</span>');
 echo("</h1>\n");
 ?>
 <p class="tdiscus-thread-info">
-<span class="tdiscus-user-name"><?= $thread['displayname'] ?></span>
+<span class="tdiscus-user-name"><?= Tdiscus::displayNameHtmlFromRow($thread) ?></span>
  -
 <time class="timeago" datetime="<?= $thread['modified_at'] ?>"><?= $thread['modified_at'] ?></time>
 <?php if ( $thread['edited'] == 1 ) {

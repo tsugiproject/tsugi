@@ -272,7 +272,7 @@ class Threads {
         $fields = "
             T.thread_id AS thread_id, body, title, pin, T.views AS views, staffcreate,
             staffread, staffanswer, T.comments AS comments, UT.comments AS user_comments,
-            displayname, edited, hidden, locked,
+            displayname, T.premium AS premium, edited, hidden, locked,
             CONCAT(CONVERT_TZ(T.created_at, @@session.time_zone, '+00:00'), 'Z') AS created_at,
             CONCAT(CONVERT_TZ(T.updated_at, @@session.time_zone, '+00:00'), 'Z') AS updated_at,
             CONCAT(CONVERT_TZ(COALESCE(T.updated_at, T.created_at), @@session.time_zone, '+00:00'), 'Z') AS modified_at,
@@ -520,7 +520,7 @@ class Threads {
         }
 
         $fields = "
-            comment_id, comment, displayname, C.edited AS edited, C.hidden AS hidden,
+            comment_id, comment, displayname, C.premium AS premium, C.edited AS edited, C.hidden AS hidden,
             C.locked AS locked, C.depth AS depth, C.children,
             CONCAT(CONVERT_TZ(C.created_at, @@session.time_zone, '+00:00'), 'Z') AS created_at,
             CONCAT(CONVERT_TZ(C.updated_at, @@session.time_zone, '+00:00'), 'Z') AS updated_at,

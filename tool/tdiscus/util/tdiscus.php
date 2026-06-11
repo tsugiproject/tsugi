@@ -3,6 +3,7 @@
 namespace Tdiscus;
 
 use \Tsugi\Util\U;
+use \Tsugi\Core\User;
 use \Tsugi\Core\Settings;
 
 use Symfony\Component\Translation\Translator;
@@ -17,6 +18,18 @@ class Tdiscus {
         global $TOOL_ROOT;
         if ( ! isset($TOOL_ROOT) ) $TOOL_ROOT = dirname($_SERVER['SCRIPT_NAME']);
         return $TOOL_ROOT;
+    }
+
+    /**
+     * HTML display name for a thread or comment row.
+     *
+     * @param array<string,mixed> $row
+     */
+    public static function displayNameHtmlFromRow($row) {
+        return User::displayNameHtml(
+            U::get($row, 'displayname', ''),
+            (int) U::get($row, 'premium', 0)
+        );
     }
 
     public static function header() {
@@ -107,7 +120,7 @@ foreach($sortby as $sort) {
             echo('<span '.($locked == 0 ? 'style="display:none;"' : '').' aria-hidden="true"><i class="fa fa-lock fa-rotate-270" style="color: orange;"></i></span>');
         }
 ?>
-  <span class="tdiscus-user-name"><?= htmlentities($comment['displayname'] ?? '') ?></span>
+  <span class="tdiscus-user-name"><?= self::displayNameHtmlFromRow($comment) ?></span>
   <time class="timeago" datetime="<?= $comment['modified_at'] ?>"><?= $comment['modified_at'] ?></time>
   <?php if ( $comment['owned'] || $LAUNCH->user->instructor ) { ?>
     <a href="<?= self::toolRoot() ?>/commentform/<?= $comment['comment_id'] ?>" aria-label="<?= htmlspecialchars(__("Edit comment")) ?>"><i class="fa fa-pencil" aria-hidden="true"></i></a>

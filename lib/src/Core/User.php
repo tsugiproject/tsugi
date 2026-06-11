@@ -115,6 +115,22 @@ class User {
     }
 
     /**
+     * HTML display name, with a supporter marker when premium tier was active at post time.
+     *
+     * @param string|null $displayname
+     * @param int $premium Premium tier at post time (0 = none)
+     */
+    public static function displayNameHtml($displayname, $premium = 0) {
+        $name = htmlspecialchars((string) $displayname, ENT_QUOTES, 'UTF-8');
+        if ( (int) $premium > 0 ) {
+            $title = htmlspecialchars(__('Supporter'), ENT_QUOTES, 'UTF-8');
+            $name .= ' <span class="tsugi-premium-heart" title="'.$title.'" aria-label="'.$title.'"'
+                . ' style="font-size:0.75em; color:#2e7d32;">💚</span>';
+        }
+        return $name;
+    }
+
+    /**
      * Get the user's first name, falling back to email
      *
      * @param string|null $displayname Optional display name to parse. If null, uses getNameAndEmail()
