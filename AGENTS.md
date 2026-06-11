@@ -11,7 +11,7 @@
 - **Dev packages are gitignored.** `.gitignore` excludes `vendor/phpunit/`, `vendor/phpstan/`, `vendor/myclabs/`, `vendor/symfony/panther/`, and other `require-dev` trees. Production checkouts only get what git tracks.
 - **Always finish a vendor commit with `composer run finalize-vendor`** (runs `composer install --no-dev` when needed, then `qa/pre-commit-vendor-check.sh`). This also runs automatically as `post-update-cmd` after `composer update` / `composer require`, but agents must run it explicitly when unsure.
 - **Install git hooks after a fresh checkout:** `bash qa/install-git-hooks.sh` (see `.cursor/rules/git-hooks-and-vendor.mdc`). Agents must verify the hook exists at session start.
-- See **`README_COMPOSER.md`** for day-to-day commands. Common patterns:
+- See **`docs/composer.md`** for day-to-day commands. Common patterns:
   - `composer update <package> --ignore-platform-reqs -W --no-dev` — bump one direct dependency and its transitive updates.
   - `composer install --no-dev --ignore-platform-reqs` — **required last step** before committing `vendor/`; regenerates autoload without dev references.
   - `composer audit` — check for security advisories before/after updates.
@@ -27,7 +27,7 @@
 - `bash qa/pre-commit-vendor-check.sh` — sanity-check that committed autoload does not reference gitignored dev packages.
 - `docker compose build` — build the local Docker image.
 - `docker compose up` — start the app and initialize the database; default URL is `http://localhost:8888/tsugi`.
-- `composer update tsugi/lib` — update the Tsugi PHP runtime without bumping all transitive dependencies (see `README_COMPOSER.md`).
+- `composer update tsugi/lib` — update the Tsugi PHP runtime without bumping all transitive dependencies (see `docs/composer.md`).
 - `composer update --ignore-platform-reqs` — advance dependencies when explicitly needed.
 
 ## Session and auth helpers (`lib/include/lms_lib.php`)

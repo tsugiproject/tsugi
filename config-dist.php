@@ -273,7 +273,7 @@ $CFG->google_translate = false;
 // 2. Or use Node.js: npm install -g web-push && web-push generate-vapid-keys
 // 3. Or use the PHP script: php scripts/generate-vapid-keys.php
 //
-// See tsugi/VAPID_SETUP.md for detailed instructions and alternatives.
+// See docs/vapid.md for detailed instructions and alternatives.
 //
 // The vapid_subject should be a mailto: URL with your email address.
 // This is used to identify your server to push notification services.

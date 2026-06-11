@@ -1,24 +1,27 @@
-# LinkedIn Integration Guide for Tsugi Badges
+# LinkedIn integration for Tsugi badges
 
-This document explains how Tsugi can be set up to add Python for Everybody (PY4E) badges to LinkedIn credentials without using third-party vendors (Credly, Badgr, etc.). Tsugi issues Open Badges 2.0 compliant credentials, and LinkedIn allows manual badge entry using standard fields.
+This document explains how Tsugi can be set up to add Python for Everybody (PY4E)
+badges to LinkedIn credentials without using third-party vendors (Credly, Badgr,
+etc.). Tsugi issues Open Badges 2.0 compliant credentials, and LinkedIn allows
+manual badge entry using standard fields.
 
 We use PY4E as an example throughout.
 
 ---
 
-## 🎯 Goal
+## Goal
 
 Enable students to easily add Tsugi completion badges to their LinkedIn profiles, using:
 
-- the new **PY4E LinkedIn Organization Page**
+- the **PY4E LinkedIn Organization Page**
 - the student's **unique badge assertion URL**
 - instructions + UI guidance inside Tsugi
 
 ---
 
-## 🧾 LinkedIn Issuer
+## LinkedIn issuer
 
-PY4E now has a dedicated LinkedIn page:
+PY4E has a dedicated LinkedIn page:
 
 **Python for Everybody (PY4E)**  
 https://www.linkedin.com/company/py4e/
@@ -28,30 +31,33 @@ This ensures the PY4E logo appears automatically.
 
 ---
 
-## ⚙️ Configuration Setup
+## Configuration setup
 
 To enable LinkedIn integration for badges, configure the following in your `config.php`:
 
-### Required Configuration
+### Required configuration
 
-1. **Badge Organization Name** (optional but recommended):
+1. **Badge organization name** (optional but recommended):
+
    ```php
    $CFG->badge_organization = "Python for Everybody (PY4E)";
    ```
-   
+
    If not set, the system will use `"$CFG->servicedesc ($CFG->servicename)"` format, or just `$CFG->servicename` if `servicedesc` is not set.
 
-2. **Service Name** (required):
+2. **Service name** (required):
+
    ```php
    $CFG->servicename = "PY4E";
    ```
 
-3. **Service Description** (optional, used in fallback):
+3. **Service description** (optional, used in fallback):
+
    ```php
    $CFG->servicedesc = "Python for Everybody";
    ```
 
-### Badge Configuration in lessons.json
+### Badge configuration in lessons.json
 
 For a badge to show the LinkedIn button, it must be marked with `completion: true` in your `lessons.json`:
 
@@ -69,13 +75,13 @@ For a badge to show the LinkedIn button, it must be marked with `completion: tru
 
 **Note:** Badges without `completion: true` are considered "milestone badges" and will show a message indicating they represent progress toward a final credential, rather than showing the LinkedIn button.
 
-### How It Works
+### How it works
 
 - The LinkedIn button only appears when:
   1. The badge has `completion: true` in lessons.json
   2. The viewer is logged in
   3. The logged-in user owns the badge being viewed
-  
+
 - The organization name sent to LinkedIn uses this priority:
   1. `$CFG->badge_organization` (if set)
   2. `"$CFG->servicedesc ($CFG->servicename)"` (if servicedesc is set)
@@ -83,7 +89,7 @@ For a badge to show the LinkedIn button, it must be marked with `completion: tru
 
 ---
 
-## 🟢 What Students Will Enter on LinkedIn
+## What students enter on LinkedIn
 
 When adding a credential on LinkedIn, students fill these fields:
 
@@ -95,9 +101,12 @@ When adding a credential on LinkedIn, students fill these fields:
 
 ---
 
-## 🔗 Credential URL Format
+## Credential URL format
 
 Each badge has a unique, public verification URL, for example:
 
+```text
+{apphome}/assertions/{encrypted-id}
+```
 
-
+See [badges-assertions.md](badges-assertions.md) for assertion URL patterns and configuration.
