@@ -49,6 +49,7 @@ array( "{$CFG->dbprefix}tdiscus_thread",
     rank_value  SMALLINT(2) NOT NULL DEFAULT 0,
     upvote      INTEGER NOT NULL DEFAULT 0,
     downvote    INTEGER NOT NULL DEFAULT 0,
+    premium     INTEGER NULL DEFAULT 0,
 
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP NULL,
@@ -114,6 +115,7 @@ array( "{$CFG->dbprefix}tdiscus_comment",
     edited      TINYINT(1) NOT NULL DEFAULT 0,
     hidden      TINYINT(1) NOT NULL DEFAULT 0,
     locked      TINYINT(1) NOT NULL DEFAULT 0,
+    premium     INTEGER NULL DEFAULT 0,
 
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP NULL,
@@ -258,6 +260,8 @@ $DATABASE_UPGRADE = function($oldversion) {
     $add_some_fields = array(
         array('tdiscus_thread', 'hidden_global', 'TINYINT(1) NOT NULL DEFAULT 0'),
         array('tdiscus_thread', 'thread_type', 'TINYINT(2) NOT NULL DEFAULT 0'),
+        array('tdiscus_thread', 'premium', 'INTEGER NULL DEFAULT 0'),
+        array('tdiscus_comment', 'premium', 'INTEGER NULL DEFAULT 0'),
 
         array('tdiscus_comment', 'cleaned', 'TINYINT(1) NOT NULL DEFAULT 0'),
         array('tdiscus_comment', 'children', 'TINYINT(1) NOT NULL DEFAULT 0'),
@@ -324,7 +328,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     ) ENGINE = InnoDB DEFAULT CHARSET=utf8");
 
 
-    return 202012101330;
+    return 202606100001;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

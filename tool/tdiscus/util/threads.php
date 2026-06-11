@@ -22,6 +22,17 @@ class Threads {
         return intval($maxdepth);
     }
 
+    /**
+     * Premium tier of the current user at post time (0 = none).
+     */
+    public static function creatorPremiumLevel() {
+        global $TSUGI_LAUNCH;
+        if ( ! isset($TSUGI_LAUNCH) || ! isset($TSUGI_LAUNCH->profile) ) {
+            return 0;
+        }
+        return $TSUGI_LAUNCH->profile->getPremiumLevel();
+    }
+
     public static function includeParticipatingInMainBadge() {
         return intval(Settings::linkGet('badge_include_participating', '0')) > 0;
     }
@@ -367,14 +378,15 @@ class Threads {
         $staffcreate = $TSUGI_LAUNCH->user->instructor ? 1 : 0;
         // TODO: Purify pre-insert?
         $stmt = $PDOX->queryDie("INSERT INTO {$CFG->dbprefix}tdiscus_thread
-            (link_id, user_id, staffcreate, title, body, updated_at) VALUES
-            (:LID, :UID, :STAFF, :TITLE, :BODY, NOW())",
+            (link_id, user_id, staffcreate, title, body, premium, updated_at) VALUES
+            (:LID, :UID, :STAFF, :TITLE, :BODY, :PREMIUM, NOW())",
             array(
                 ':LID' => $TSUGI_LAUNCH->link->id,
                 ':UID' => $TSUGI_LAUNCH->user->id,
                 ':STAFF' => $staffcreate,
                 ':TITLE' => $title,
-                ':BODY' => $body
+                ':BODY' => $body,
+                ':PREMIUM' => self::creatorPremiumLevel(),
             )
         );
 
@@ -587,14 +599,15 @@ class Threads {
         $depth = $parent_comment ? $parent_comment['depth']+1 : 0;
 
         $stmt = $PDOX->queryDie("INSERT INTO {$CFG->dbprefix}tdiscus_comment
-            (thread_id, user_id, comment, parent_id, children, depth) VALUES
-            (:TH, :UID, :COM, :PARENT, 0, :DEPTH)",
+            (thread_id, user_id, comment, parent_id, children, depth, premium) VALUES
+            (:TH, :UID, :COM, :PARENT, 0, :DEPTH, :PREMIUM)",
             array(
                 ':TH' => $thread_id,
                 ':UID' => $TSUGI_LAUNCH->user->id,
                 ':COM' => $comment,
                 ':PARENT' => $parent_id,
                 ':DEPTH' => $depth,
+                ':PREMIUM' => self::creatorPremiumLevel(),
             )
         );
 

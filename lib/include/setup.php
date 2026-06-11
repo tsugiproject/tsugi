@@ -10,7 +10,7 @@ require_once __DIR__ . '/tsugi_constants.php';
 // upgrade checking - don't change this unless you want to trigger
 // database upgrade messages it should be the max of all versions in
 // all database.php files.
-$CFG->dbversion = 202606070001;
+$CFG->dbversion = 202606100001;
 
 function die_with_error_log($msg, $extra=false, $prefix="DIE:") {
     error_log($prefix.' '.$msg.' '.$extra);
