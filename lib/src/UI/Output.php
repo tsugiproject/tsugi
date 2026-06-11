@@ -724,7 +724,9 @@ $('a').each(function (x) {
 
     function defaultMenuSet() {
         global $CFG;
-        if ( isset($CFG->defaultmenu) ) return $CFG->defaultmenu;
+        if ( $CFG->defaultmenu instanceof \Tsugi\UI\MenuSet ) {
+            return $CFG->defaultmenu;
+        }
 
         $R = $CFG->wwwroot . '/';
         $set = new \Tsugi\UI\MenuSet();
@@ -820,78 +822,77 @@ $('a').each(function (x) {
     /**
      * Emit the top navigation block and optionally the tool navigation
      *
-     * Priority order:
+     * Priority order on cookie-session pages (admin, login, site):
      * (1) $CFG->defaultmenu when set (site buildMenu)
-     * (2) Fresh defaultMenuSet() on standalone cookie-session pages
-     * (3) Navigation cached in the session (LTI / tool continuity)
-     * (4) LTI launch-specific fallbacks
+     * (2) defaultMenuSet()
+     *
+     * On LTI tool pages:
+     * (1) Navigation cached in the session (LTI / tool continuity)
+     * (2) LTI launch-specific fallbacks
      */
     function topNav($tool_menu=false) {
         global $CFG, $TSUGI_LAUNCH;
-        $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
-
-        // $launch_target = LTIX::ltiRawParameter('launch_presentation_document_target', false);
-        // $launch_return_url = LTIX::ltiRawParameter('launch_presentation_return_url', false);
-		$launch_target = null;
-		$launch_return_url = null;
-		if ( is_object($TSUGI_LAUNCH) ) {
-			$launch_target = $TSUGI_LAUNCH->documentTarget();
-			$launch_return_url = $TSUGI_LAUNCH->returnUrl();
-		}
-
-        // Ways to know if this was a launch or are we stand alone
-        $user_id = LTIX::ltiRawParameter('user_id', false);
-        $oauth_nonce = LTIX::ltiRawParameter('oauth_nonce', false);
-
-        $same_host = false;
-        if ( $CFG->apphome && startsWith($launch_return_url, $CFG->apphome) ) $same_host = true;
-        if ( $CFG->wwwroot && startsWith($launch_return_url, $CFG->wwwroot) ) $same_host = true;
-
-        // Canvas bug: launch_target is iframe even in new window (2017-01-10)
-        $standalone_cookie_session = defined('COOKIE_SESSION')
-            && $user_id === false
-            && $oauth_nonce === false;
 
         $menu_set = false;
-        if ( $menu_set === false && defined('COOKIE_SESSION') && $CFG->defaultmenu instanceof \Tsugi\UI\MenuSet) {
-            $menu_set = $CFG->defaultmenu;
-        } else if ( $menu_set === false && $standalone_cookie_session ) {
-            $menu_set = self::defaultMenuSet();
-        } else if ( $menu_set === false && ($_SESSION[$sess_key] ?? null) ) {
-            $menu_set = \Tsugi\UI\MenuSet::import($_SESSION[$sess_key] ?? null);
-        } else if ( $menu_set === true ) {
-            $menu_set = self::defaultMenuSet();
-        } else if ( $same_host && $launch_return_url ) {
-            // If we are in an iframe we will be hidden
-            $menu_set = self::returnMenuSet($launch_return_url);
-        } else if ( is_string($launch_target) && strtolower($launch_target) == 'window' ) {
-            $menu_set = self::closeMenuSet();
-        // Since Sakai sets returnUrl but really does nothing with it except tell the user
-		// to close the tab
-        } else if ( is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->isSakai() ) {
-            $menu_set = self::closeMenuSet();
-        // Since Coursera sets precious little
-        } else if ( is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->isCoursera() ) {
-            $menu_set = self::closeMenuSet();
-        // Since Canvas does not set launch_target properly
-        } else if ( is_string($launch_target) && is_object($TSUGI_LAUNCH) && ( $TSUGI_LAUNCH->isCanvas() || $TSUGI_LAUNCH->isCoursera() ) ) {
-            $menu_set = self::closeMenuSet();
-        } else if ( is_string($launch_return_url) && U::strlen($launch_return_url) > 0 ) {
-            $menu_set = self::returnMenuSet($launch_return_url);
-        // We are running stand alone (i.e. not from a real LTI Launch)
-        } else if ( $user_id === false ) {
-            $menu_set = self::defaultMenuSet();
+        if ( defined('COOKIE_SESSION') ) {
+            // Cookie-session pages are never an LTI tool launch for nav purposes.
+            // Stale lti_post, JWT, or cached tool nav must not produce "Done".
+            if ( $CFG->defaultmenu instanceof \Tsugi\UI\MenuSet ) {
+                $menu_set = $CFG->defaultmenu;
+            } else {
+                $menu_set = self::defaultMenuSet();
+            }
         } else {
-            $menu_set = self::closeMenuSet();
-        }
+            $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
 
-        // Always put something out if we are an outer page - in an iframe, it will be hidden
-        if ( $menu_set === false && defined('COOKIE_SESSION') ) {
-            $menu_set = self::defaultMenuSet();
-        }
+            // $launch_target = LTIX::ltiRawParameter('launch_presentation_document_target', false);
+            // $launch_return_url = LTIX::ltiRawParameter('launch_presentation_return_url', false);
+            $launch_target = null;
+            $launch_return_url = null;
+            if ( is_object($TSUGI_LAUNCH) ) {
+                $launch_target = $TSUGI_LAUNCH->documentTarget();
+                $launch_return_url = $TSUGI_LAUNCH->returnUrl();
+            }
 
-        if ( $menu_set === false ) {
-            $menu_set = self::closeMenuSet();
+            // Ways to know if this was a launch or are we stand alone
+            $user_id = LTIX::ltiRawParameter('user_id', false);
+            $oauth_nonce = LTIX::ltiRawParameter('oauth_nonce', false);
+
+            $same_host = false;
+            if ( $CFG->apphome && startsWith($launch_return_url, $CFG->apphome) ) $same_host = true;
+            if ( $CFG->wwwroot && startsWith($launch_return_url, $CFG->wwwroot) ) $same_host = true;
+
+            if ( $menu_set === false && ($_SESSION[$sess_key] ?? null) ) {
+                $menu_set = \Tsugi\UI\MenuSet::import($_SESSION[$sess_key] ?? null);
+            } else if ( $menu_set === true ) {
+                $menu_set = self::defaultMenuSet();
+            } else if ( $same_host && $launch_return_url ) {
+                // If we are in an iframe we will be hidden
+                $menu_set = self::returnMenuSet($launch_return_url);
+            } else if ( is_string($launch_target) && strtolower($launch_target) == 'window' ) {
+                $menu_set = self::closeMenuSet();
+            // Since Sakai sets returnUrl but really does nothing with it except tell the user
+            // to close the tab
+            } else if ( is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->isSakai() ) {
+                $menu_set = self::closeMenuSet();
+            // Since Coursera sets precious little
+            } else if ( is_object($TSUGI_LAUNCH) && $TSUGI_LAUNCH->isCoursera() ) {
+                $menu_set = self::closeMenuSet();
+            // Since Canvas does not set launch_target properly
+            } else if ( is_string($launch_target) && is_object($TSUGI_LAUNCH) && ( $TSUGI_LAUNCH->isCanvas() || $TSUGI_LAUNCH->isCoursera() ) ) {
+                $menu_set = self::closeMenuSet();
+            } else if ( is_string($launch_return_url) && U::strlen($launch_return_url) > 0 ) {
+                $menu_set = self::returnMenuSet($launch_return_url);
+            // We are running stand alone (i.e. not from a real LTI Launch)
+            } else if ( $user_id === false ) {
+                $menu_set = self::defaultMenuSet();
+            } else {
+                $menu_set = self::closeMenuSet();
+            }
+
+            if ( $menu_set === false ) {
+                $menu_set = self::closeMenuSet();
+            }
         }
 
         $suppressSiteNav = $_SESSION[self::SUPPRESS_SITE_NAV] ?? false;
