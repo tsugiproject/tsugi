@@ -2,13 +2,13 @@
 
 namespace Tsugi\Util;
 
-use Tsugi\Controllers\Profile;
 use Tsugi\Core\LTIX;
 
 /**
  * Stripe Checkout and payment fulfillment helpers.
  *
- * Supporter display config lives in {@see Profile}; stripe secrets in $CFG->getExtension('stripe').
+ * Supporter display config lives on {@see \Tsugi\Config\ConfigInfo}; stripe secrets in
+ * $CFG->getExtension('stripe').
  */
 class Stripe {
 
@@ -210,9 +210,9 @@ class Stripe {
             return array('ok' => false, 'error' => 'missing checkout_session_id');
         }
 
-        $months = isset($payment['premium_months']) ? (int) $payment['premium_months'] : Profile::premiumMonths($CFG);
+        $months = isset($payment['premium_months']) ? (int) $payment['premium_months'] : $CFG->premiumMonths();
         if ($months < 1) {
-            $months = Profile::premiumMonths($CFG);
+            $months = $CFG->premiumMonths();
         }
 
         $user_row = $PDOX->rowDie(
@@ -381,7 +381,7 @@ class Stripe {
             'customer_id' => (string) self::val($session, 'customer', ''),
             'amount_total' => self::val($session, 'amount_total', null),
             'currency' => (string) self::val($session, 'currency', ''),
-            'premium_months' => (int) U::get($metadata, 'premium_months', Profile::premiumMonths($CFG)),
+            'premium_months' => (int) U::get($metadata, 'premium_months', $CFG->premiumMonths()),
             'site' => (string) U::get($metadata, 'site', $expected_site),
         );
 

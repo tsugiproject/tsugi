@@ -302,10 +302,10 @@ Send me notification mail for important things like my assignment was graded.
             $launch
         );
 
-        $supporter_raw = self::supporterUrl($CFG);
-        $site_name = self::supporterSiteName($CFG);
-        $site_label = self::supporterSiteLabel($CFG);
-        $supporter_label = self::supporterLabel($CFG);
+        $supporter_raw = $CFG->supporterUrl();
+        $site_name = $CFG->supporterSiteName();
+        $site_label = $CFG->supporterSiteLabel();
+        $supporter_label = $CFG->supporterLabel();
         $premium_until = self::supporterPremiumUntil($userProfile);
 
         return array(
@@ -314,8 +314,8 @@ Send me notification mail for important things like my assignment was graded.
             'site_name' => $site_name,
             'site_label' => $site_label,
             'supporter_label' => $supporter_label,
-            'price_label' => self::supporterPriceLabel($CFG),
-            'price_phrase' => self::supporterPricePhrase($CFG),
+            'price_label' => $CFG->supporterPriceLabel(),
+            'price_phrase' => $CFG->supporterPricePhrase(),
             'premium_until' => $premium_until,
             'is_active' => self::isSupporterActive($userProfile, $premium_until),
         );
@@ -357,7 +357,7 @@ Send me notification mail for important things like my assignment was graded.
      */
     protected static function renderSupporterInvite($CFG) {
         $ctx = self::supporterContext($CFG);
-        if ( ! $ctx['supporter_url'] || $ctx['userProfile']->isPremium() ) {
+        if ( ! $CFG->isPremiumAvailable() || $ctx['userProfile']->isPremium() ) {
             return;
         }
 
@@ -375,7 +375,7 @@ Send me notification mail for important things like my assignment was graded.
      */
     protected static function renderSupporterRenew($CFG) {
         $ctx = self::supporterContext($CFG);
-        if ( ! $ctx['supporter_url'] || ! $ctx['userProfile']->isPremium() || $ctx['is_active'] ) {
+        if ( ! $CFG->isPremiumAvailable() || ! $ctx['userProfile']->isPremium() || $ctx['is_active'] ) {
             return;
         }
         if ( ! is_string($ctx['premium_until']) || strlen($ctx['premium_until']) < 1 ) {
@@ -388,95 +388,6 @@ Send me notification mail for important things like my assignment was graded.
             echo(' <span style="opacity: 0.75;">(' . htmlspecialchars($ctx['price_phrase']) . ')</span>');
         }
         echo("\n</p>\n");
-    }
-
-    /**
-     * @return array<string,mixed>
-     */
-    public static function premiumConfig($CFG) {
-        $cfg = $CFG->getExtension('premium');
-        return is_array($cfg) ? $cfg : array();
-    }
-
-    public static function supporterSiteName($CFG) {
-        if ( isset($CFG->servicename) && is_string($CFG->servicename) ) {
-            $name = trim($CFG->servicename);
-            if ( strlen($name) > 0 ) {
-                return $name;
-            }
-        }
-        return 'this site';
-    }
-
-    /**
-     * Human-facing site label for supporter copy (servicedesc, then servicename).
-     */
-    public static function supporterSiteLabel($CFG) {
-        if ( isset($CFG->servicedesc) && is_string($CFG->servicedesc) ) {
-            $desc = trim(strip_tags($CFG->servicedesc));
-            if ( strlen($desc) > 0 ) {
-                return $desc;
-            }
-        }
-        return self::supporterSiteName($CFG);
-    }
-
-    public static function supporterLabel($CFG) {
-        return '💚 ' . self::supporterSiteName($CFG) . ' Supporter';
-    }
-
-    /**
-     * Human-facing price from the premium extension (e.g. "$4.20").
-     */
-    public static function supporterPriceLabel($CFG) {
-        return trim((string) U::get(self::premiumConfig($CFG), 'price', ''));
-    }
-
-    public static function supporterPricePhrase($CFG) {
-        $price = self::supporterPriceLabel($CFG);
-        if ( $price === '' ) {
-            return '';
-        }
-        return 'about ' . $price . ' (local currency at checkout)';
-    }
-
-    public static function premiumMonths($CFG) {
-        $months = (int) U::get(self::premiumConfig($CFG), 'premium_months', 12);
-        if ( $months < 1 ) {
-            $months = 12;
-        }
-        return $months;
-    }
-
-    public static function premiumMonthsLabel($CFG) {
-        $months = self::premiumMonths($CFG);
-        if ( $months === 1 ) {
-            return 'one month';
-        }
-        if ( $months === 12 ) {
-            return 'one year';
-        }
-        return $months . ' months';
-    }
-
-    /**
-     * Optional refund policy text from the premium extension (plain text).
-     */
-    public static function refundPolicy($CFG) {
-        return trim((string) U::get(self::premiumConfig($CFG), 'refund_policy', ''));
-    }
-
-    /**
-     * Optional supporter landing URL from the premium extension (site-specific, not payment-provider specific).
-     *
-     * @return string|false
-     */
-    public static function supporterUrl($CFG) {
-        $url = trim((string) U::get(self::premiumConfig($CFG), 'supporter_url', ''));
-        if ( strlen($url) < 1 ) {
-            return false;
-        }
-        return $url;
     }
 
     /**

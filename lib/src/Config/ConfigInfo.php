@@ -2,6 +2,8 @@
 
 namespace Tsugi\Config;
 
+use Tsugi\Util\U;
+
 /**
  * A class that contains the configuration fields and defaults.
  *
@@ -1628,6 +1630,115 @@ class ConfigInfo {
         }
 
         return $list[0];
+    }
+
+    /**
+     * Premium extension config block.
+     *
+     * @return array<string,mixed>
+     */
+    public function premiumConfig()
+    {
+        $cfg = $this->getExtension('premium');
+        return is_array($cfg) ? $cfg : array();
+    }
+
+    /**
+     * Whether supporter/premium signup is configured on this site.
+     */
+    public function isPremiumAvailable(): bool
+    {
+        return $this->supporterUrl() !== false;
+    }
+
+    public function supporterSiteName()
+    {
+        if (isset($this->servicename) && is_string($this->servicename)) {
+            $name = trim($this->servicename);
+            if (strlen($name) > 0) {
+                return $name;
+            }
+        }
+        return 'this site';
+    }
+
+    /**
+     * Human-facing site label for supporter copy (servicedesc, then servicename).
+     */
+    public function supporterSiteLabel()
+    {
+        if (isset($this->servicedesc) && is_string($this->servicedesc)) {
+            $desc = trim(strip_tags($this->servicedesc));
+            if (strlen($desc) > 0) {
+                return $desc;
+            }
+        }
+        return $this->supporterSiteName();
+    }
+
+    public function supporterLabel()
+    {
+        return '💚 ' . $this->supporterSiteName() . ' Supporter';
+    }
+
+    /**
+     * Human-facing price from the premium extension (e.g. "$4.20").
+     */
+    public function supporterPriceLabel()
+    {
+        return trim((string) U::get($this->premiumConfig(), 'price', ''));
+    }
+
+    public function supporterPricePhrase()
+    {
+        $price = $this->supporterPriceLabel();
+        if ($price === '') {
+            return '';
+        }
+        return 'about ' . $price . ' (local currency at checkout)';
+    }
+
+    public function premiumMonths()
+    {
+        $months = (int) U::get($this->premiumConfig(), 'premium_months', 12);
+        if ($months < 1) {
+            $months = 12;
+        }
+        return $months;
+    }
+
+    public function premiumMonthsLabel()
+    {
+        $months = $this->premiumMonths();
+        if ($months === 1) {
+            return 'one month';
+        }
+        if ($months === 12) {
+            return 'one year';
+        }
+        return $months . ' months';
+    }
+
+    /**
+     * Optional refund policy text from the premium extension (plain text).
+     */
+    public function refundPolicy()
+    {
+        return trim((string) U::get($this->premiumConfig(), 'refund_policy', ''));
+    }
+
+    /**
+     * Optional supporter landing URL from the premium extension.
+     *
+     * @return string|false
+     */
+    public function supporterUrl()
+    {
+        $url = trim((string) U::get($this->premiumConfig(), 'supporter_url', ''));
+        if (strlen($url) < 1) {
+            return false;
+        }
+        return $url;
     }
 }
 

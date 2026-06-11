@@ -9,7 +9,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Tsugi\Util\U;
 use Tsugi\Util\Stripe as StripeUtil;
-use Tsugi\Controllers\Profile as SupporterProfile;
 
 /**
  * Stripe Checkout routes for premium / supporter payments.
@@ -69,12 +68,12 @@ class Stripe extends Controller {
             return new RedirectResponse(rtrim($home, '/') . '/login');
         }
 
-        $site_name = SupporterProfile::supporterSiteName($CFG);
-        $site_label = SupporterProfile::supporterSiteLabel($CFG);
-        $supporter_label = SupporterProfile::supporterLabel($CFG);
-        $price_phrase = SupporterProfile::supporterPricePhrase($CFG);
-        $premium_period = SupporterProfile::premiumMonthsLabel($CFG);
-        $refund_policy = SupporterProfile::refundPolicy($CFG);
+        $site_name = $CFG->supporterSiteName();
+        $site_label = $CFG->supporterSiteLabel();
+        $supporter_label = $CFG->supporterLabel();
+        $price_phrase = $CFG->supporterPricePhrase();
+        $premium_period = $CFG->premiumMonthsLabel();
+        $refund_policy = $CFG->refundPolicy();
         $profile_url = rtrim($home, '/') . '/profile';
         $home_url = rtrim($home, '/') . '/';
 
@@ -149,7 +148,7 @@ You will receive <?= htmlspecialchars($premium_period) ?> of <?= htmlspecialchar
             'metadata' => array(
                 'user_id' => (string) $user_id,
                 'site' => $cfg['site'],
-                'premium_months' => (string) SupporterProfile::premiumMonths($CFG),
+                'premium_months' => (string) $CFG->premiumMonths(),
             ),
         );
 
@@ -256,9 +255,9 @@ You will receive <?= htmlspecialchars($premium_period) ?> of <?= htmlspecialchar
 
         $home = Tool::configuredHomeUrl();
         $home_url = rtrim($home, '/') . '/';
-        $site_name = SupporterProfile::supporterSiteName($CFG);
-        $site_label = SupporterProfile::supporterSiteLabel($CFG);
-        $supporter_label = SupporterProfile::supporterLabel($CFG);
+        $site_name = $CFG->supporterSiteName();
+        $site_label = $CFG->supporterSiteLabel();
+        $supporter_label = $CFG->supporterLabel();
 
         $session_id = trim((string) $request->query->get('session_id', ''));
         $paid = false;

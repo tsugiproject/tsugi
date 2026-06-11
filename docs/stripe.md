@@ -10,7 +10,8 @@ supporter premium on a user's profile. Payment secrets and API wiring live in th
 |-------|------|
 | `stripe` extension (`config.php`) | API keys, Price ID, webhook secret, site id for metadata |
 | `premium` extension (`tsugi_settings.php`) | Supporter URL, display price, premium months, refund policy |
-| `Tsugi\Controllers\Profile` | Reads `premium` config; profile page invite/thank-you copy |
+| `Tsugi\Config\ConfigInfo` | Reads `premium` config (`$CFG->supporterUrl()`, etc.) |
+| `Tsugi\Controllers\Profile` | User-scoped supporter UI (invite, thank-you, renew) |
 | `Tsugi\Util\Stripe` | Stripe SDK, webhook verification, fulfillment into `profile.premium_json` |
 | `Tsugi\Controllers\Stripe` | HTTP routes: checkout, webhook, success, cancel |
 
@@ -73,8 +74,8 @@ if ( is_array($CFG->getExtension('stripe')) ) {
 | `premium_months` | Months of premium granted per payment |
 | `refund_policy` | Plain text; shown on support and checkout pages (omit or empty to hide) |
 
-Access these through `Profile::supporterUrl($CFG)`, `Profile::supporterPricePhrase($CFG)`,
-`Profile::premiumMonths($CFG)`, `Profile::refundPolicy($CFG)`, etc.
+Access these through `$CFG->isPremiumAvailable()`, `$CFG->supporterUrl()`,
+`$CFG->supporterPricePhrase()`, `$CFG->premiumMonths()`, `$CFG->refundPolicy()`, etc.
 
 ## URLs
 
@@ -164,7 +165,8 @@ phpunit -c phpunit.xml.dist tests/Controllers/StripeControllerTest.php
 
 - `lib/src/Controllers/Stripe.php` — routes and pages
 - `lib/src/Util/Stripe.php` — config validation, SDK, webhook, DB updates
-- `lib/src/Controllers/Profile.php` — premium extension accessors and profile UI
+- `lib/src/Config/ConfigInfo.php` — premium extension accessors
+- `lib/src/Controllers/Profile.php` — user-scoped supporter profile UI
 - `lib/tests/Controllers/StripeControllerTest.php` — basic route/auth tests
 
 ## Troubleshooting
