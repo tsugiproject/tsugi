@@ -1281,6 +1281,112 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Issue #226 phase 1: copy lti_issuer data into lti_key for all linked keys (idempotent)
+    // While issuer_id is set, LTIX uses lti_issuer columns and ignores lti_key.lms_* (see
+    // LTIX::loadAllData and lti/oidc_login.php). Migration clears issuer_id, lms_issuer, and
+    // lms_issuer_sha256 on lti_key; copies other lms_* from issuer (issuer precedence, key fallback).
+    $issuer_table = "{$CFG->dbprefix}lti_issuer";
+    if ( $PDOX->metadata($issuer_table) !== false
+        && $PDOX->columnExists('lms_issuer', "{$CFG->dbprefix}lti_key") ) {
+        $lti_migration_coalesce = function($issuer_val, $key_val) {
+            if ( $issuer_val !== null && $issuer_val !== '' && strlen(trim((string) $issuer_val)) > 0 ) {
+                return $issuer_val;
+            }
+            if ( $key_val !== null && $key_val !== '' && strlen(trim((string) $key_val)) > 0 ) {
+                return $key_val;
+            }
+            return null;
+        };
+        $sql = "SELECT I.*, K.key_id,
+                K.lms_client AS key_lms_client, K.lms_oidc_auth AS key_lms_oidc_auth,
+                K.lms_keyset_url AS key_lms_keyset_url, K.lms_token_url AS key_lms_token_url,
+                K.lms_token_audience AS key_lms_token_audience,
+                C.keys_per_issuer
+            FROM {$issuer_table} AS I
+            INNER JOIN {$CFG->dbprefix}lti_key AS K ON I.issuer_id = K.issuer_id
+                AND (K.deleted IS NULL OR K.deleted = 0)
+            INNER JOIN (
+                SELECT I2.issuer_id, COUNT(K2.key_id) AS keys_per_issuer
+                FROM {$issuer_table} AS I2
+                LEFT JOIN {$CFG->dbprefix}lti_key AS K2 ON I2.issuer_id = K2.issuer_id
+                    AND (K2.deleted IS NULL OR K2.deleted = 0)
+                WHERE (I2.deleted IS NULL OR I2.deleted = 0)
+                GROUP BY I2.issuer_id
+            ) AS C ON C.issuer_id = I.issuer_id
+            WHERE (I.deleted IS NULL OR I.deleted = 0)
+                AND K.issuer_id IS NOT NULL AND K.issuer_id > 0
+            ORDER BY I.issuer_id ASC, K.key_id ASC";
+        $stmt = $PDOX->queryReturnError($sql, false, false);
+        $moved = 0;
+        if ( ! $stmt || ! $stmt->success ) {
+            $err = ($stmt && isset($stmt->errorImplode)) ? $stmt->errorImplode : 'unknown error';
+            echo("lti_issuer migration SELECT failed: ".htmlentities($err)."<br/>\n");
+            error_log('lti_issuer migration SELECT failed: '.$err);
+        } else {
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $row_count = is_array($rows) ? count($rows) : 0;
+            if ( is_array($rows) && $row_count > 0 ) {
+                $multi_issuers = array();
+                foreach ( $rows as $row ) {
+                    $keys_per_issuer = (int) $row['keys_per_issuer'];
+                    if ( $keys_per_issuer > 1 ) {
+                        $multi_issuers[$row['issuer_id']] = $keys_per_issuer;
+                    }
+                }
+                echo("lti_issuer migration: {$row_count} lti_key row(s) still linked to lti_issuer<br/>\n");
+                error_log("lti_issuer migration: {$row_count} lti_key row(s) still linked to lti_issuer");
+                if ( count($multi_issuers) > 0 ) {
+                    foreach ( $multi_issuers as $mid => $mcount ) {
+                        echo("lti_issuer migration WARNING: lti_issuer issuer_id={$mid}"
+                            ." has {$mcount} lti_key rows pointing to it (multi-key issuer)<br/>\n");
+                        error_log("lti_issuer migration WARNING: lti_issuer issuer_id={$mid}"
+                            ." has {$mcount} lti_key rows pointing to it (multi-key issuer)");
+                    }
+                }
+                $update_sql = "UPDATE {$CFG->dbprefix}lti_key SET
+                        issuer_id = NULL,
+                        lms_issuer = NULL,
+                        lms_issuer_sha256 = NULL,
+                        lms_client = :lms_client,
+                        lms_oidc_auth = :lms_oidc_auth,
+                        lms_keyset_url = :lms_keyset_url,
+                        lms_token_url = :lms_token_url,
+                        lms_token_audience = :lms_token_audience,
+                        updated_at = NOW()
+                    WHERE key_id = :ID AND issuer_id = :old_issuer_id";
+                foreach ( $rows as $row ) {
+                    $key_id = $row['key_id'];
+                    $old_issuer_id = $row['issuer_id'];
+                    $values = array(
+                        ':ID' => $key_id,
+                        ':old_issuer_id' => $old_issuer_id,
+                        ':lms_client' => $lti_migration_coalesce($row['issuer_client'], $row['key_lms_client']),
+                        ':lms_oidc_auth' => $lti_migration_coalesce($row['lti13_oidc_auth'], $row['key_lms_oidc_auth']),
+                        ':lms_keyset_url' => $lti_migration_coalesce($row['lti13_keyset_url'], $row['key_lms_keyset_url']),
+                        ':lms_token_url' => $lti_migration_coalesce($row['lti13_token_url'], $row['key_lms_token_url']),
+                        ':lms_token_audience' => $lti_migration_coalesce($row['lti13_token_audience'], $row['key_lms_token_audience']),
+                    );
+                    $q = $PDOX->queryReturnError($update_sql, $values);
+                    if ( ! $q->success ) {
+                        echo("lti_issuer migration UPDATE failed for lti_key key_id={$key_id}"
+                            ." (issuer_id was {$old_issuer_id}): "
+                            .htmlentities($q->errorImplode)."<br/>\n");
+                        error_log("lti_issuer migration UPDATE failed for lti_key key_id={$key_id}"
+                            ." (issuer_id was {$old_issuer_id}): ".$q->errorImplode);
+                    } else if ( $q->rowCount() > 0 ) {
+                        $moved++;
+                    }
+                }
+            }
+        }
+        if ( $moved > 0 ) {
+            $summary = 'lti_issuer migration complete: broke FK on '.$moved.' lti_key row(s)'
+                .' (issuer_id nulled, LMS endpoints copied from lti_issuer)';
+            echo($summary."<br/>\n");
+            error_log($summary);
+        }
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
     return 202503100000;
