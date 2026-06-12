@@ -282,13 +282,12 @@ $CFG->google_translate = false;
 // $CFG->vapid_private_key = false; // 'xYz...long_base64_string...';
 // $CFG->vapid_subject = false; // 'mailto:admin@example.com';
 
-// You can specify a default menu for Tsugi to use across the site if there is no
-// defined menu given
-// $buildmenu = $CFG->dirroot."/../buildmenu.php";
-// if ( file_exists($buildmenu) ) {
-    // require_once $buildmenu;
-    // $CFG->defaultmenu = buildMenu();
-// }
+// Site navigation is owned by the enclosing application. Set a callback that
+// returns a MenuSet; topNav() calls it on cookie-session pages (admin, login, …):
+// $CFG->refresh_menu_callback = function() {
+//     require_once $CFG->dirroot.'/../buildmenu.php';
+//     return buildMenu();
+// };
 
 // If these are not set, the auto expiration scripts in admin/expire
 // do nothing.  You can still manually expire data in the admin UI without

@@ -77,4 +77,30 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('http://example.com', $set->home->href);
     }
 
+    public function testTopNavRefreshMenuCallback() {
+        if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
+        global $CFG;
+
+        $CFG = new \Tsugi\Config\ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
+        $CFG->servicename = 'Test Site';
+        $CFG->apphome = 'http://example.com';
+        $CFG->refresh_menu_callback = function() {
+            $set = new \Tsugi\UI\MenuSet();
+            $set->setHome('Callback Home', 'http://example.com/callback');
+            return $set;
+        };
+
+        @session_id('test-session-'.uniqid());
+        @session_start();
+        $_SESSION = [];
+
+        $OUTPUT = new Output();
+        $OUTPUT->launch = new \Tsugi\Core\Launch();
+        $OUTPUT->buffer = true;
+        $menu_txt = $OUTPUT->topNav();
+
+        $this->assertStringContainsString('Callback Home', $menu_txt);
+        $this->assertInstanceOf(\Tsugi\UI\MenuSet::class, $CFG->defaultmenu);
+    }
+
 }

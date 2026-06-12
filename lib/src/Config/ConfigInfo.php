@@ -603,6 +603,19 @@ class ConfigInfo {
      */
     public $defaultmenu = false;
 
+    /**
+     * Optional callable that returns a MenuSet for the enclosing site.
+     *
+     * Set this in the site's config (not in Tsugi core). On cookie-session pages,
+     * topNav() invokes it before using $CFG->defaultmenu.
+     *
+     * $CFG->refresh_menu_callback = function() {
+     *     require_once $CFG->dirroot.'/../buildmenu.php';
+     *     return buildMenu();
+     * };
+     */
+    public $refresh_menu_callback = false;
+
     /*
      * If we are running Embedded Tsugi we need to set the
      * "course title" for the course that represents
