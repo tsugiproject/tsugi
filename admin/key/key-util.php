@@ -32,30 +32,7 @@ function normalize_deploy_key_input($v) {
  *
  * @return array{issuer_sha256:string,issuer_client:string}|null
  */
-function resolve_lti13_issuer_client($issuer_id, $lms_issuer, $lms_client) {
-    global $PDOX, $CFG;
-
-    if ( ! empty($issuer_id) && (int) $issuer_id > 0 ) {
-        $row = $PDOX->rowDie(
-            "SELECT issuer_key, issuer_client, issuer_sha256 FROM {$CFG->dbprefix}lti_issuer
-                WHERE issuer_id = :issuer_id AND (deleted IS NULL OR deleted = 0)",
-            array(':issuer_id' => (int) $issuer_id)
-        );
-        if ( ! $row || ! U::isNotEmpty($row['issuer_client']) ) {
-            return null;
-        }
-        $issuer_sha256 = U::isNotEmpty($row['issuer_sha256'])
-            ? $row['issuer_sha256']
-            : U::lti_sha256($row['issuer_key']);
-        if ( ! $issuer_sha256 ) {
-            return null;
-        }
-        return array(
-            'issuer_sha256' => $issuer_sha256,
-            'issuer_client' => $row['issuer_client'],
-        );
-    }
-
+function resolve_lti13_issuer_client($lms_issuer, $lms_client) {
     if ( U::isNotEmpty($lms_issuer) && U::isNotEmpty($lms_client) ) {
         $issuer_sha256 = U::lti_sha256($lms_issuer);
         if ( ! $issuer_sha256 ) {
@@ -76,14 +53,14 @@ function resolve_lti13_issuer_client($issuer_id, $lms_issuer, $lms_client) {
  *
  * Keys with a specific deployment id may share the same issuer and client id.
  */
-function validate_issuer_client_unique($issuer_id, $lms_issuer, $lms_client, $deploy_key, $exclude_key_id=null) {
+function validate_issuer_client_unique($lms_issuer, $lms_client, $deploy_key, $exclude_key_id=null) {
     global $PDOX, $CFG;
 
     if ( U::isNotEmpty($deploy_key) ) {
         return true;
     }
 
-    $pair = resolve_lti13_issuer_client($issuer_id, $lms_issuer, $lms_client);
+    $pair = resolve_lti13_issuer_client($lms_issuer, $lms_client);
     if ( $pair === null ) {
         return true;
     }
@@ -100,21 +77,11 @@ function validate_issuer_client_unique($issuer_id, $lms_issuer, $lms_client, $de
 
     $row = $PDOX->rowDie(
         "SELECT k.key_id, k.key_title FROM {$CFG->dbprefix}lti_key AS k
-            LEFT JOIN {$CFG->dbprefix}lti_issuer AS i ON k.issuer_id = i.issuer_id
-                AND (i.deleted IS NULL OR i.deleted = 0)
             WHERE (k.deleted IS NULL OR k.deleted = 0)
                 AND (k.deploy_key IS NULL OR TRIM(k.deploy_key) = '')
                 $exclude_sql
-                AND (
-                    (i.issuer_client = :issuer_client AND (
-                        i.issuer_sha256 = :issuer_sha256
-                        OR (i.issuer_sha256 IS NULL AND SHA2(i.issuer_key, 256) = :issuer_sha256)
-                    ))
-                    OR (
-                        (k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
-                        AND k.lms_client = :issuer_client
-                    )
-                )
+                AND (k.lms_issuer_sha256 IS NULL OR k.lms_issuer_sha256 = :issuer_sha256)
+                AND k.lms_client = :issuer_client
             LIMIT 1",
         $parms
     );
@@ -128,7 +95,7 @@ function validate_issuer_client_unique($issuer_id, $lms_issuer, $lms_client, $de
     return true;
 }
 
-function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $old_key_key=null, $old_deploy_key=null, $old_issuer_id=null, $lms_client=null, $exclude_key_id=null) {
+function validate_key_details($key_key, $deploy_key, $lms_issuer, $old_key_key=null, $old_deploy_key=null, $lms_client=null, $exclude_key_id=null) {
     global $PDOX, $CFG;
 
     // Enforce in software because MySQL can't do it
@@ -137,30 +104,14 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
     //        (key_sha256 IS NOT NULL OR deploy_sha256 IS NOT NULL)
     //  )
     // deploy_key may be NULL/blank (accept any deployment id from the LMS; deploy_sha256 NULL); then we still need
-    // either an LTI 1.1 consumer key or enough LTI 1.3 identity (global issuer or platform issuer + client).
+    // either an LTI 1.1 consumer key or enough LTI 1.3 identity (platform issuer URL + client id).
     $have_oauth = U::isNotEmpty($key_key);
     $have_deploy = U::isNotEmpty($deploy_key);
-    $have_global_issuer = ! empty($issuer_id) && (int) $issuer_id > 0;
     $have_per_tenant_lti13 = U::isNotEmpty($lms_issuer) && U::isNotEmpty($lms_client);
-    if ( ! $have_oauth && ! $have_deploy && ! $have_global_issuer && ! $have_per_tenant_lti13 ) {
-        U::flashError('Either an LTI 1.1 consumer key, a specific LTI 1.3 deployment id, or LTI 1.3 issuer information (global issuer or platform issuer URL and client id) is required');
+    if ( ! $have_oauth && ! $have_deploy && ! $have_per_tenant_lti13 ) {
+        U::flashError('Either an LTI 1.1 consumer key, a specific LTI 1.3 deployment id, or LTI 1.3 platform issuer URL and client id is required');
         return false;
     }
-
-    // Enforce in software because MySQL can't do it
-    // CONSTRAINT `{$CFG->dbprefix}lti_key_both_not_null`
-    //  CHECK (
-    //     (deploy_key IS NOT NULL AND issuer_id IS NOT NULL)
-    //     OR (deploy_key NOT NULL AND issuer_id NOT NULL)
-    /*
-    $have_issuer = !empty($issuer_id) || !empty($lms_issuer);
-    if ( (!empty($deploy_key) && ! $have_issuer) ||
-         (empty($deploy_key) && $have_issuer) 
-    ) {
-        U::flashError("You must specify an issuer when you specify a deployment id");
-        return false;
-    }
-     */
 
     $key_sha256 = U::lti_sha256($key_key);
     $deploy_sha256 = U::lti_sha256($deploy_key);
@@ -192,21 +143,7 @@ function validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, $o
         }
     }
 
-    // CONSTRAINT `{$CFG->dbprefix}lti_key_const_2` UNIQUE(issuer_id, deploy_sha256),
-    if ( ($deploy_key != $old_deploy_key || $issuer_id != $old_issuer_id) &&
-	$issuer_id > 0 &&
-        !empty($issuer_id) && !empty($deploy_key) ) {
-        $row = $PDOX->rowDie( "SELECT deploy_sha256 FROM {$CFG->dbprefix}lti_key
-                WHERE issuer_id = :issuer_id AND deploy_sha256 = :deploy_sha256",
-            array(':issuer_id' => $issuer_id, ":deploy_sha256" => $deploy_sha256)
-        );
-        if ( $row ) {
-            U::flashError("The combination of Issuer and Deployment ID must be unique");
-            return false;
-        }
-    }
-
-    if ( ! validate_issuer_client_unique($issuer_id, $lms_issuer, $lms_client, $deploy_key, $exclude_key_id) ) {
+    if ( ! validate_issuer_client_unique($lms_issuer, $lms_client, $deploy_key, $exclude_key_id) ) {
         return false;
     }
 

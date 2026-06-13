@@ -143,10 +143,6 @@ foreach($tools as $tool ) {
     flush();
 }
 
-tsugi_echo_issuer_deprecation_asterisk_box(
-    tsugi_linked_issuer_deprecation_messages(tsugi_linked_issuer_deprecation_stats())
-);
-
 echo("\n<br/>Highest database version=$maxversion in $maxpath<br/>\n");
 
 if ( $maxversion > $CFG->dbversion ) {

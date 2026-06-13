@@ -161,15 +161,14 @@ $lti_storage_target = U::get($_SESSION, 'lti_storage_target', null);
 error_log("lti_storage_target = $lti_storage_target");
 
 $put_data_supported = U::get($_SESSION, 'put_data_supported');
-$issuer_id = U::get($_SESSION, 'issuer_id');
 $key_id = U::get($_SESSION, 'key_id');
 
 // Sakai postverify approach
 $postverify_url = isset($jwt->body->{$POSTVERIFY_CLAIM}) ? $jwt->body->{$POSTVERIFY_CLAIM} : null;
 $postverify_origin = isset($jwt->body->{$ORIGIN_CLAIM}) ? $jwt->body->{$ORIGIN_CLAIM} : null;
 if ( $postverify_enabled && ! $verified && $sub && $postverify_url && $postverify_origin && $key_id ) {
-    error_log("request_kid $request_kid iss $iss key_id $key_id issuer_id $isuer_id postverify_origin $postverify_origin postverify_url $postverify_url");
-    $platform_public_key = LTIX::getPlatformPublicKey($issuer_id, $key_id, $request_kid, $our_kid, $platform_public_key, $our_keyset_url, $our_keyset);
+    error_log("request_kid $request_kid iss $iss key_id $key_id postverify_origin $postverify_origin postverify_url $postverify_url");
+    $platform_public_key = LTIX::getPlatformPublicKey($key_id, $request_kid, $our_kid, $platform_public_key, $our_keyset_url, $our_keyset);
 
     $e = LTI13::verifyPublicKey($id_token, $platform_public_key, array($jwt->header->alg));
     if ( $e !== true ) {

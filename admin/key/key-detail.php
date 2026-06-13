@@ -29,7 +29,7 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array('key_id', 'key_title', 'key_key', 'secret', 'issuer_id', 'deploy_key',
+$fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key',
      'unlock_code',
      'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'xapi_url', 'xapi_user', 'xapi_password',
@@ -38,7 +38,6 @@ $fields = array('key_id', 'key_title', 'key_key', 'secret', 'issuer_id', 'deploy
 );
 
 $realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256',
-     'issuer_id',
      'unlock_code',
      'lms_issuer', 'lms_issuer_sha256', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'xapi_url', 'xapi_user', 'xapi_password',
@@ -50,11 +49,9 @@ $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
     'deploy_key' => 'LTI 1.3: Deployment ID (This is only a default, the tool will accept any value from the LMS)',
-    'issuer_id' => 'LTI 1.3: Issuer',
     'unlock_code' => 'LTI 1.3: Dynamic Registration Unlock Code (one time use)',
 );
 
-if ( isset($_POST['issuer_id']) && empty($_POST['issuer_id']) ) $_POST['issuer_id'] = null;
 if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
 if ( isset($_POST['user_id']) && empty($_POST['user_id']) ) $_POST['user_id'] = null;
 if ( isset($_POST['deploy_key']) ) {
@@ -65,7 +62,6 @@ if ( isset($_POST['deploy_key']) ) {
 $key_id = U::get($_POST,'key_id');
 $key_key = U::get($_POST,'key_key');
 $deploy_key = U::get($_POST,'deploy_key');
-$issuer_id = U::get($_POST,'issuer_id');
 
 // Check the complex validation
 if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
@@ -84,11 +80,10 @@ if ( count($_POST) > 0 && U::get($_POST,'doUpdate') && !empty($key_id) ) {
 
     $old_key_key = $row['key_key'];
     $old_deploy_key = $row['deploy_key'];
-    $old_issuer_id = $row['issuer_id'];
     $lms_issuer_val = array_key_exists('lms_issuer', $_POST) ? $_POST['lms_issuer'] : $row['lms_issuer'];
     $lms_client_val = array_key_exists('lms_client', $_POST) ? $_POST['lms_client'] : $row['lms_client'];
 
-    $retval = validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer_val, $old_key_key, $old_deploy_key, $old_issuer_id, $lms_client_val, $key_id);
+    $retval = validate_key_details($key_key, $deploy_key, $lms_issuer_val, $old_key_key, $old_deploy_key, $lms_client_val, $key_id);
 
     if ( ! $retval ) {
         header("Location: ".$redir);
@@ -111,31 +106,16 @@ if ( ! is_array($row) ) {
     return;
 }
 
-$key_issuer_id = U::get($row, 'issuer_id', 0);
-
-if ( ! $inedit && is_numeric($key_issuer_id) && (int) $key_issuer_id > 0 ) {
-    $issuer_row = $PDOX->rowDie("SELECT issuer_key, issuer_client FROM {$CFG->dbprefix}lti_issuer WHERE issuer_id = :issuer_id",
-        array(':issuer_id' => (int) $key_issuer_id)
-    );
-    if ( $issuer_row ) {
-        $row['issuer_id'] = $issuer_row['issuer_key'].' ('.$issuer_row['issuer_client'].')';
-    }
-}
-
 $key_type = '';
 if ( is_string($row['key_key']) && !empty($row['key_key']) && is_string($row['secret']) && !empty($row['secret']) ) {
     $key_type .= 'LTI 1.1';
 }
 $lti13_lms = is_string($row['lms_issuer']) && !empty($row['lms_issuer'])
     && is_string($row['lms_client']) && !empty($row['lms_client']);
-$lti13_global = is_numeric($key_issuer_id) && (int) $key_issuer_id > 0;
 if ( $lti13_lms ) {
     if ( !empty($key_type) ) $key_type .= ' / ';
     $key_type .= 'LTI 1.3';
-} else if ( $lti13_global ) {
-    if ( !empty($key_type) ) $key_type .= ' / ';
-    $key_type .= 'LTI 1.3';
-} else if ( isset($row['issuer_key']) && is_string($row['issuer_key']) && !empty($row['issuer_key']) && is_string($row['deploy_key']) && !empty($row['deploy_key'])) {
+} else if ( is_string($row['deploy_key']) && !empty($row['deploy_key']) ) {
     if ( !empty($key_type) ) $key_type .= ' / ';
     $key_type .= 'LTI 1.3';
 }
@@ -483,58 +463,4 @@ Each tool listing provides its direct launch endpoints.
 </div>
 <?php
 $OUTPUT->footerStart();
-
-$sql = "SELECT issuer_id, issuer_key, issuer_client
-    FROM {$CFG->dbprefix}lti_issuer";
-$issuer_rows = $PDOX->allRowsDie($sql);
-
-
-if ( $inedit && count($issuer_rows) > 0 ) {
-    $select_text = "<select id=\"issuer_id_select\"><option value=\"\">No Global Issuer Selected</option>";
-    foreach($issuer_rows as $issuer_row) {
-        $selected = $row['issuer_id'] == $issuer_row['issuer_id'] ? ' selected ' : '';
-        $select_text .= '<option value="'.$issuer_row['issuer_id'].'"'.$selected.'>'.htmlentities($issuer_row['issuer_key']. ' ('.$issuer_row['issuer_client'].')')."</option>";
-    }
-    $select_text .= "</select>";
-    // echo(htmlentities($select_text));
-
-?>
-<script>
-    function showHideLMSValues(issuer_id)
-    {
-        const array = ["lms_issuer", "lms_client", "lms_keyset_url", "lms_oidc_auth", "lms_token_url", "lms_token_audience"];
-        if ( issuer_id > 0 ) {
-            $("#lms_note").hide();
-            var ignored = '';
-            array.forEach(function (item, index) {
-                $('#'+item).closest('div').hide();
-                var val = $('#'+item).val();
-                if ( val.length > 0 ) {
-                    if ( ignored.length > 0 ) ignored = ignored + ' ';
-                    ignored = ignored + item;
-                }
-            });
-            if ( ignored.length > 0 ) {
-                alert("By choosing a Global Issuer the following tenant key fields will be ignored: "+ignored);
-            }
-        } else {
-            array.forEach(function (item, index) { $('#'+item).closest('div').show(); });
-            $("#lms_note").show();
-        }
-    }
-
-    $(document).ready(function(){
-        $('form').attr('autocomplete', 'off');
-    });
-    $('#lms_issuer').closest('div').before("<p  id=\"lms_note\">If you enter data into the the LTI 1.3 fields below, (a) set them all and (b) do not select a global issuer for this tenant. If you select a global issuer, the LTI 1.3 Platform fields below should not be set.</p>");
-    $('<?= $select_text ?>').insertBefore('#issuer_id');
-    $('#issuer_id').hide();
-    $('#issuer_id_select').on('change', function() {
-        $('input[name="issuer_id"]').val(this.value);
-        showHideLMSValues(this.value);
-    });
-</script>
-<?php
-}
-
 $OUTPUT->footerEnd();

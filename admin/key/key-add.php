@@ -20,11 +20,6 @@ if ( ! isAdmin() ) {
     die('Must be admin');
 }
 
-// Get the issuer count
-$sql = "SELECT issuer_id, issuer_key, issuer_guid
-        FROM {$CFG->dbprefix}lti_issuer";
-$rows = $PDOX->allRowsDie($sql);
-
 $from_location = LTIX::curPageUrlFolder();
 $tablename = "{$CFG->dbprefix}lti_key";
 $fields = array('key_title', 'key_key', 'key_sha256', 'secret',
@@ -38,10 +33,6 @@ $fields = array('key_title', 'key_key', 'key_sha256', 'secret',
     'user_id',
 );
 
-if ( count($rows) > 0 ) {
-    $fields[] = 'issuer_id';
-}
-
 $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
@@ -54,18 +45,14 @@ $titles = array(
 	'lms_keyset_url' => 'LTI 1.3 Platform KeySet URL',
 	'lms_token_url' => 'LTI 1.3 Platform Token URL',
 	'lms_token_audience' => 'LTI 1.3 Platform Audience (optional)',
-
-    'issuer_id' => 'LTI 1.3: Global Issuer (from this system)',
 );
 
-if ( isset($_POST['issuer_id']) && empty($_POST['issuer_id']) ) $_POST['issuer_id'] = null;
 if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
 if ( isset($_POST['user_id']) && empty($_POST['user_id']) && isLoggedIn() ) $_POST['user_id'] = loggedInUserId();
 
 // Check the complex interaction of constraints
 $key_key = U::get($_POST,'key_key');
 $deploy_key = U::get($_POST,'deploy_key');
-$issuer_id = U::get($_POST,'issuer_id');
 if ( count($_POST) > 0 ) {
     $key_title = U::get($_POST,'key_title');
     if ( !is_string($key_title) || empty($key_title) ) {
@@ -83,7 +70,7 @@ if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
     $deploy_key = U::get($_POST, 'deploy_key');
     $lms_issuer = U::get($_POST, 'lms_issuer');
     $lms_client = U::get($_POST, 'lms_client');
-    if ( ! validate_key_details($key_key, $deploy_key, $issuer_id, $lms_issuer, null, null, null, $lms_client) ) {
+    if ( ! validate_key_details($key_key, $deploy_key, $lms_issuer, null, null, $lms_client) ) {
         header("Location: key-add");
         return;
     }

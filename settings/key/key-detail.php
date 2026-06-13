@@ -32,16 +32,15 @@ if ( $inedit ) {
     $realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret',
         'deploy_key', 'deploy_sha256', 'updated_at');
 } else {
-    $fields = array('key_id', 'key_title', 'key_key', 'secret', 'issuer_id', 'deploy_key', 'updated_at');
+    $fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key', 'updated_at');
     $realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret',
-        'issuer_id', 'deploy_key', 'deploy_sha256', 'updated_at');
+        'deploy_key', 'deploy_sha256', 'updated_at');
 }
 
 $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
     'deploy_key' => 'LTI 1.3: Deployment ID (leave blank to accept any value from the LMS)',
-    'issuer_id' => 'LTI 1.3: Issuer',
 );
 
 $where_clause .= "user_id = :UID";
@@ -79,15 +78,6 @@ if ( ! is_array($row) ) {
     U::flashError('Unable to load key details');
     header("Location: ".$from_location);
     return;
-}
-
-if ( ! $inedit && U::get($row, 'issuer_id') > 0 ) {
-    $issuer_row = $PDOX->rowDie("SELECT issuer_key, issuer_client FROM {$CFG->dbprefix}lti_issuer WHERE issuer_id = :issuer_id",
-        array(':issuer_id' => U::get($row, 'issuer_id'))
-    );
-    if ( $issuer_row ) {
-        $row['issuer_id'] = $issuer_row['issuer_key'].' ('.$issuer_row['issuer_client'].')';
-    }
 }
 
 // Make settings work

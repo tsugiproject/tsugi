@@ -23,11 +23,9 @@ if ( ! isset($tsugi_key) || ! isset($unlock_code) || ! is_string($unlock_code) )
 // Retrieve key for super user
 if ( $user_id == 0 ) {
     $row = $PDOX->rowDie(
-        "SELECT key_title, K.issuer_id AS issuer_id, key_key, issuer_key, issuer_client,
-            lti13_oidc_auth, lti13_keyset_url, lti13_token_url, K.user_id AS user_id
-        FROM {$CFG->dbprefix}lti_key AS K
-            LEFT JOIN {$CFG->dbprefix}lti_issuer AS I ON
-                K.issuer_id = I.issuer_id
+        "SELECT key_title, key_key, unlock_code, user_id,
+            lms_client, lms_oidc_auth, lms_keyset_url, lms_token_url
+        FROM {$CFG->dbprefix}lti_key
             WHERE key_id = :KID AND unlock_code = :UNLOCK",
         array(":KID" => $tsugi_key, ":UNLOCK" => $unlock_code)
     );
@@ -36,13 +34,10 @@ if ( $user_id == 0 ) {
 // Lets retrieve our key entry if it belongs to us
 } else {
     $row = $PDOX->rowDie(
-        "SELECT key_title, K.issuer_id AS issuer_id, key_key, issuer_key, issuer_client,
-            unlock_code,
-            lti13_oidc_auth, lti13_keyset_url, lti13_token_url, K.user_id AS user_id
-        FROM {$CFG->dbprefix}lti_key AS K
-            LEFT JOIN {$CFG->dbprefix}lti_issuer AS I ON
-                K.issuer_id = I.issuer_id
-            WHERE key_id = :KID AND K.user_id = :UID AND unlock_code = :UNLOCK",
+        "SELECT key_title, key_key, unlock_code, user_id,
+            lms_client, lms_oidc_auth, lms_keyset_url, lms_token_url
+        FROM {$CFG->dbprefix}lti_key
+            WHERE key_id = :KID AND user_id = :UID AND unlock_code = :UNLOCK",
         array(":KID" => $tsugi_key, ":UID" => $user_id, ":UNLOCK" => $unlock_code)
     );
 }
@@ -274,156 +269,56 @@ if ( $tool_configuration ) {
 
 // One day will be obsolete...
 $issuer_sha256 = hash('sha256', trim($issuer));
-$guid = U::createGUID();
-
-// Retrieve the issuer
-$issuer_row = $PDOX->rowDie(
-    "SELECT * FROM {$CFG->dbprefix}lti_issuer
-        WHERE issuer_key = :ISS AND issuer_client = :CLI",
-    array(":ISS" => $issuer, ":CLI" => $client_id)
-);
-
 
 $success = false;
-// Simple case - no issuer - lets make one!
-if ( ! $issuer_row ) {
 
-    // Default (for now) is insert issuer data into the key
-    // TODO: Just remove this option
-    if ( isset($CFG->autoissuer) && $CFG->autoissuer ) {
-        $sql = "INSERT INTO {$CFG->dbprefix}lti_issuer
-            (issuer_title, issuer_sha256, issuer_guid, issuer_key, issuer_client, user_id, lti13_oidc_auth,
-                lti13_keyset_url, lti13_token_url, lti13_token_audience)
-            VALUES
-            (:title, :sha256, :guid, :key, :client, :user_id, :oidc_auth,
-                :keyset_url, :token_url, :token_audience)
-        ";
-        $values = array(
-            ":title" => $title,
-            ":sha256" => $issuer_sha256,
-            ":guid" => $guid,
-            ":key" => $issuer,
-            ":client" => $client_id,
-            ":user_id" => $user_id,
-            ":oidc_auth" => $authorization_endpoint,
-            ":keyset_url" => $jwks_uri,
-            ":token_url" => $token_endpoint,
-            ":token_audience" => $authorization_server,
-        );
+$sql = "UPDATE {$CFG->dbprefix}lti_key SET
+        issuer_id = NULL,
+        lms_issuer = :lms_issuer,
+        lms_issuer_sha256 = :lms_issuer_sha256,
+        lms_client = :lms_client,
+        lms_oidc_auth = :lms_oidc_auth,
+        lms_keyset_url = :lms_keyset_url,
+        lms_token_url = :lms_token_url,
+        lms_token_audience = :lms_token_audience
+    WHERE key_id = :ID AND (user_id = :UID OR :UID = 0 )
+";
 
-        $stmt = $PDOX->queryReturnError($sql, $values);
+$values = array(
+    ":ID" => $tsugi_key,
+    ":UID" => $user_id,
+    ":lms_issuer" => $issuer,
+    ":lms_issuer_sha256" => $issuer_sha256,
+    ":lms_client" => $client_id,
+    ":lms_oidc_auth" => $authorization_endpoint,
+    ":lms_keyset_url" => $jwks_uri,
+    ":lms_token_url" => $token_endpoint,
+    ":lms_token_audience" => $authorization_server,
+);
 
-        if ( ! $stmt->success ) {
-            echo("Unable to insert issuer\n");
-            return;
-        }
+$stmt = $PDOX->queryReturnError($sql, $values);
+if ( ! $stmt->success ) {
+    echo("Unable to store LMS platform configuration on the key\n");
+    return;
+}
 
-        $issuer_id = $PDOX->lastInsertId();
+error_log("Stored issuer $issuer / $client_id in lti_key table");
 
-        echo("<p>Created new issuer = $issuer_id</p>\n");
+if ( $deployment_id ) {
+    $deployment_sha256 = hash('sha256', trim($deployment_id));
+    $stmt = $PDOX->queryDie(
+        "UPDATE {$CFG->dbprefix}lti_key SET deploy_key = :DID, deploy_sha256 = :D256
+            WHERE key_id = :KID AND (user_id = :UID OR :UID = 0 )",
+        array(":DID" => $deployment_id, ":D256" => $deployment_sha256, ":KID" => $tsugi_key, ":UID" => $user_id)
+    );
 
-        $stmt = $PDOX->queryDie(
-            "UPDATE {$CFG->dbprefix}lti_key SET issuer_id = :IID
-                WHERE key_id = :KID AND user_id = :UID",
-            array(":IID" => $issuer_id, ":KID" => $tsugi_key, ":UID" => $user_id)
-        );
-
-        if ( ! $stmt->success ) {
-            echo("Unable to update key entry to connect to the issuer\n");
-            return;
-        }
-
-    // TODO: "this is the way" when you are ready for it
-    } else { // Store LMS data in the row
-
-        $sql = "UPDATE {$CFG->dbprefix}lti_key SET
-                issuer_id = NULL,
-                lms_issuer = :lms_issuer,
-                lms_issuer_sha256 = :lms_issuer_sha256,
-                lms_client = :lms_client,
-                lms_oidc_auth = :lms_oidc_auth,
-                lms_keyset_url = :lms_keyset_url,
-                lms_token_url = :lms_token_url,
-                lms_token_audience = :lms_token_audience
-            WHERE key_id = :ID
-        ";
-
-        $values = array(
-            ":ID" => $tsugi_key,
-            ":lms_issuer" => $issuer,
-            ":lms_issuer_sha256" => $issuer_sha256,
-            ":lms_client" => $client_id,
-            ":lms_oidc_auth" => $authorization_endpoint,
-            ":lms_keyset_url" => $jwks_uri,
-            ":lms_token_url" => $token_endpoint,
-            ":lms_token_audience" => $authorization_server,
-        );
-
-        $PDOX->queryDie($sql, $values);
-
-        error_log("Stored issuer $issuer / $client_id in lti_key table");
-
-    } // End Store LMS Data in the row
-
-    if ( $deployment_id ) {
-        $deployment_sha256 = hash('sha256', trim($deployment_id));
-        $stmt = $PDOX->queryDie(
-            "UPDATE {$CFG->dbprefix}lti_key SET deploy_key = :DID, deploy_sha256 = :D256
-                WHERE key_id = :KID AND (user_id = :UID OR :UID = 0 )",
-            array(":DID" => $deployment_id, ":D256" => $deployment_sha256, ":KID" => $tsugi_key, ":UID" => $user_id)
-        );
-
-        if ( ! $stmt->success ) {
-            echo("Unable to update key entry to set deployment_id\n");
-            return;
-        }
-    }
-
-    $success = true;
-
-} else {
-    $old_issuer_id = $issuer_row['issuer_id'];
-    $old_oidc_auth = $issuer_row['lti13_oidc_auth'];
-    $old_keyset_url = $issuer_row['lti13_keyset_url'];
-    $old_token_url = $issuer_row['lti13_token_url'];
-    $old_token_audience = $issuer_row['lti13_token_audience'];
-
-    $current_issuer_id = $row['issuer_id'];
-
-    // Existing issuer is good...
-    if ( $authorization_endpoint == $old_oidc_auth &&
-        $jwks_uri == $old_keyset_url &&
-        $token_endpoint == $old_token_url &&
-        $authorization_server == $old_token_audience ) {
-        if ( $current_issuer_id == $old_issuer_id ) {
-            $success = true;
-        } else {
-            echo("<p>Updated the key to point at an existing issuer/client_id</p>\n");
-            $stmt = $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}lti_key SET issuer_id = :IID
-                    WHERE key_id = :KID AND user_id = :UID",
-                array(":IID" => $old_issuer_id, ":KID" => $tsugi_key, ":UID" => $user_id)
-            );
-            if ( $deployment_id ) {
-                $deployment_sha256 = hash('sha256', trim($deployment_id));
-                $stmt = $PDOX->queryDie(
-                    "UPDATE {$CFG->dbprefix}lti_key SET deploy_key = :DID, deploy_sha256 = :D256
-                        WHERE key_id = :KID AND user_id = :UID",
-                    array(":DID" => $deployment_id, ":D256" => $deployment_sha256, ":KID" => $tsugi_key, ":UID" => $user_id)
-                );
-
-                if ( ! $stmt->success ) {
-                    echo("Unable to update key entry to set deployment_id\n");
-                    return;
-                }
-            }
-            $success = true;
-        }
-    } else {
-        echo("You are not allower to redefine the issuer=".htmlentities($issuer)." / client=".htmlentities($client_id). "\n");
-        $success = false;
+    if ( ! $stmt->success ) {
+        echo("Unable to update key entry to set deployment_id\n");
+        return;
     }
 }
+
+$success = true;
 
 ?>
 <button onclick="(window.opener || window.parent).postMessage({subject:'org.imsglobal.lti.close'}, '*')">Continue Registration in the LMS</button>
