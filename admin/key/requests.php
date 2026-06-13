@@ -60,7 +60,6 @@ $OUTPUT->flashMessages();
 <?php if ( $CFG->providekeys ) { ?>
   <a href="requests" class="btn btn-default active">Key Requests</a>
 <?php } ?>
-  <a href="issuers" class="btn btn-default">LTI 1.3 Issuers</a>
   <a href="<?= $CFG->wwwroot ?>/admin" class="btn btn-default">Admin</a>
 </p>
 <?php
