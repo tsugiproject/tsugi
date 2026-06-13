@@ -10,6 +10,7 @@ their code (for example `tool/`, `admin/`).
 | [stripe.md](stripe.md) | Stripe Checkout supporter payments |
 | [badges-assertions.md](badges-assertions.md) | Open Badges 2.0 / 3.0 assertion endpoints and config |
 | [badges-linkedin.md](badges-linkedin.md) | LinkedIn credential sharing (PY4E example) |
+| [issuer_migration.md](issuer_migration.md) | Deprecation of `lti_issuer`; phase 1 migration and planned removal |
 
 Related docs elsewhere in the tree:
 
