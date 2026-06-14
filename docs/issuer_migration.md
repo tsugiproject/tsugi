@@ -155,21 +155,42 @@ registration already does via `initiate_login_uri`).
 Deploy phase 2 only **after** phase 1 has migrated all linked keys on that installation.
 Sites with remaining `issuer_id` links will fail LTI 1.3 launch until upgraded.
 
-## Phase 3 and beyond (planned, not yet shipped)
+## Phase 3: Schema cleanup (shipped, date-gated)
 
-After production has baked on phase 2:
+Implemented in `admin/lti/database.php`. Fresh installs no longer create `lti_issuer`
+or `lti_key.issuer_id`. Existing installations drop the legacy schema during upgrade
+**on or after 1 October 2026 UTC**.
 
-### Schema
+### Fresh install (`$DATABASE_INSTALL`)
 
-- Drop `lti_issuer` table.
-- Remove `issuer_id` column and foreign key from `lti_key`.
-- Remove related unique constraints that reference `issuer_id`.
+- No `lti_issuer` table.
+- `lti_key` has no `issuer_id` column, no FK to `lti_issuer`, and no
+  `lti_key_const_2` unique index on `(issuer_id, deploy_sha256)`.
 
-### Documentation and cleanup
+### Upgrade (phase 3, date-gated)
 
-- Delete orphaned `lti_issuer` rows (or rely on table drop after confirming zero
-  `issuer_id` links everywhere).
-- Update this document when phase 3 ships.
+When `time() >= 2026-10-01 00:00:00 UTC`, `$DATABASE_UPGRADE`:
+
+1. Warns if any non-deleted `lti_key` rows still have `issuer_id` set (phase 1 should
+   have cleared these).
+2. Drops FK `lti_key_ibfk_1` if present.
+3. Drops unique index `lti_key_const_2` if present.
+4. Drops column `lti_key.issuer_id` if present.
+5. Drops table `lti_issuer` if present.
+
+Phase 1 (copy data off issuers) still runs on every upgrade while the table exists,
+including before the October 2026 cutoff.
+
+### Verification (after cutoff upgrade)
+
+```sql
+SHOW TABLES LIKE 'lti_issuer';
+SHOW COLUMNS FROM lti_key LIKE 'issuer_id';
+```
+
+Both should return empty.
+
+Database version bumped to `202610010000`.
 
 ## Operational notes
 
@@ -178,13 +199,15 @@ After production has baked on phase 2:
 - **Sites that never used issuers** — `SELECT COUNT(issuer_id) FROM lti_key WHERE
   issuer_id IS NOT NULL` returns zero; phase 1 upgrade is silent and unchanged.
 - **Orphan issuers after phase 1** — leftover `lti_issuer` rows are inert once keys are
-  migrated and phase 2 code is deployed; they can be dropped in phase 3.
+  migrated and phase 2 code is deployed; phase 3 drops the table after 2026-10-01 UTC.
+- **Before October 2026** — upgrades run phase 1 only; `lti_issuer` and `issuer_id`
+  remain in the database but are unused by runtime code.
 
 ## Related files
 
 | File | Role |
 |------|------|
-| `admin/lti/database.php` | Phase 1 migration in `$DATABASE_UPGRADE` |
+| `admin/lti/database.php` | Phase 1 data migration; phase 3 schema drop (date-gated) |
 | `lib/src/Core/LTIX.php` | Launch data load; key-only `lms_*` path |
 | `lti/oidc_login.php` | OIDC login; key-only by `key_id` |
 | `settings/key/auto_common.php` | Dynamic registration; writes `lti_key.lms_*` |
