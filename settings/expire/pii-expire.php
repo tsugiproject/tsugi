@@ -13,8 +13,7 @@ require_once("expire_util.php");
 session_start();
 
 if ( ! isLoggedIn() ) {
-    $login_return = U::reconstruct_query($CFG->wwwroot . '/settings/expire');
-    $_SESSION['login_return'] = $login_return;
+    \Tsugi\Controllers\Login::setReturnUrl(U::reconstruct_query($CFG->wwwroot . '/settings/expire'));
     Output::doRedirect(\Tsugi\Controllers\Login::loginUrl());
     return;
 }

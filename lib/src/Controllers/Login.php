@@ -41,6 +41,86 @@ class Login extends Tool {
         return rtrim($CFG->wwwroot, '/') . '/login.php';
     }
 
+    /**
+     * Remember where to send the user after login.
+     */
+    public static function setReturnUrl($url) {
+        $_SESSION['login_return'] = $url;
+    }
+
+    /**
+     * Saved post-login URL without consuming it.
+     */
+    public static function peekReturnUrl() {
+        $url = U::get($_SESSION, 'login_return');
+        return ( is_string($url) && $url !== '' ) ? $url : null;
+    }
+
+    /**
+     * Saved post-login URL, cleared from the session.
+     */
+    public static function takeReturnUrl() {
+        $url = self::peekReturnUrl();
+        if ( $url ) {
+            unset($_SESSION['login_return']);
+        }
+        return $url;
+    }
+
+    /**
+     * Default site home when no saved return URL exists.
+     */
+    public static function defaultHomeUrl() {
+        global $CFG;
+        if ( isset($CFG->apphome) && is_string($CFG->apphome) && $CFG->apphome ) {
+            return $CFG->apphome;
+        }
+        return $CFG->wwwroot;
+    }
+
+    /**
+     * Fixed post-login URL from $CFG->login_return_url when configured.
+     */
+    public static function configuredReturnUrl() {
+        global $CFG;
+        if ( isset($CFG->login_return_url) && is_string($CFG->login_return_url) && $CFG->login_return_url ) {
+            return $CFG->login_return_url;
+        }
+        return null;
+    }
+
+    /**
+     * Cancel target on the login form: saved return or site home.
+     */
+    public static function cancelUrl() {
+        return self::peekReturnUrl() ?? self::defaultHomeUrl();
+    }
+
+    /**
+     * Post-login redirect URL after Google authentication.
+     *
+     * @param object $result GoogleLoginHandler result (needs did_insert)
+     * @param string|null $newUserUrl first-time user destination
+     * @param bool $fallbackHome when false, return null instead of home for legacy callers
+     */
+    public static function returnAfterLogin($result, $newUserUrl = null, $fallbackHome = true) {
+        $url = self::takeReturnUrl();
+        if ( $url ) {
+            return $url;
+        }
+        if ( $result->did_insert ) {
+            if ( $newUserUrl ) {
+                return $newUserUrl;
+            }
+            $configured = self::configuredReturnUrl();
+            if ( $configured ) {
+                return $configured;
+            }
+            return $fallbackHome ? self::defaultHomeUrl() : null;
+        }
+        return $fallbackHome ? self::defaultHomeUrl() : null;
+    }
+
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Login@get');
         $app->router->get($prefix.'/', 'Login@get');
@@ -56,16 +136,7 @@ class Login extends Tool {
         // Capture parent path before closure so we can use it inside
         $parentPath = $this->toolParent(self::ROUTE);
         $result = GoogleLoginHandler::processLogin($come_back, function($result) use ($parentPath) {
-            global $CFG;
-            if ( isset($_SESSION['login_return']) ) {
-                $url = $_SESSION['login_return'];
-                unset($_SESSION['login_return']);
-                return $url;
-            } else if ( $result->did_insert ) {
-                return $parentPath . '/profile';
-            } else {
-                return isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
-            }
+            return self::returnAfterLogin($result, $parentPath . '/profile');
         });
 
         // Handle errors
@@ -85,9 +156,7 @@ class Login extends Tool {
         $loginUrl = $result->login_url ? $result->login_url : GoogleLoginHandler::getLoginUrl($come_back);
 
         $context = array();
-        $login_return = isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
-        if ( isset($_SESSION['login_return']) ) $login_return = $_SESSION['login_return'];
-        $context['login_return'] = $login_return;
+        $context['login_return'] = self::cancelUrl();
         $context['loginUrl'] = $loginUrl;
 
         return $this->viewLogin($context);

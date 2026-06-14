@@ -12,7 +12,7 @@ use \Tsugi\Core\LTIX;
 session_start();
 
 if ( ! isAdmin() ) {
-    $_SESSION['login_return'] = LTIX::curPageUrlFolder();
+    \Tsugi\Controllers\Login::setReturnUrl(LTIX::curPageUrlFolder());
     header('Location: '.\Tsugi\Controllers\Login::loginUrl());
     return;
 }

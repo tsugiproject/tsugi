@@ -24,7 +24,7 @@ try {
 }
 
 if ( $havedatabase && $CFG->google_client_id && ! isLoggedIn() ) {
-    $_SESSION['login_return'] = $rest_path->full;
+    \Tsugi\Controllers\Login::setReturnUrl($rest_path->full);
     Output::doRedirect(\Tsugi\Controllers\Login::loginUrl());
     return;
 }

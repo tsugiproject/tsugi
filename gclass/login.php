@@ -6,6 +6,7 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\UI\Lessons;
 use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\Google\GoogleClassroom;
+use \Tsugi\Controllers\Login;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once __DIR__ . '/../config.php';
@@ -13,18 +14,13 @@ require_once __DIR__ . '/../config.php';
 require_once "util.php";
 
 function login_redirect($path=false) {
-    global $CFG;
-    $login_return = U::get($_SESSION, 'login_return');
-    if ( $login_return ) {
-        unset($_SESSION['login_return']);
-        header('Location: '.$login_return);
+    $url = Login::takeReturnUrl();
+    if ( $url ) {
+        header('Location: '.$url);
         return;
     }
-    if ( isset($CFG->apphome) && $CFG->apphome ) {
-        header('Location: '.$CFG->apphome.'/'.$path);
-        return;
-    }
-    header('Location: '.$CFG->wwwroot.'/'.$path);
+    $home = Login::defaultHomeUrl();
+    header('Location: '.($path ? rtrim($home, '/').'/'.$path : $home));
 }
 
 $PDOX = LTIX::getConnection();

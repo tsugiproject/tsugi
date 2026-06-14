@@ -7,6 +7,7 @@ use \Tsugi\Util\Net;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\Core\Cache;
+use \Tsugi\Controllers\Login;
 
 /**
  * Handles Google OAuth login flow for Tsugi
@@ -424,14 +425,7 @@ class GoogleLoginHandler {
             $result->redirect_url = call_user_func($redirect_callback, $result);
         } else {
             // Default redirect logic
-            if ( isset($_SESSION['login_return']) ) {
-                $result->redirect_url = $_SESSION['login_return'];
-                unset($_SESSION['login_return']);
-            } else if ( $didinsert ) {
-                $result->redirect_url = isset($CFG->login_return_url) ? $CFG->login_return_url : null;
-            } else {
-                $result->redirect_url = null; // Let caller decide
-            }
+            $result->redirect_url = Login::returnAfterLogin($result, null, false);
         }
 
         return $result;

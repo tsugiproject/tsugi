@@ -43,7 +43,7 @@ $context_key = 'gclass:' . $context_url;
 $context_sha256 = lti_sha256($context_key);
 
 if ( ! isLoggedIn() ) {
-    $_SESSION['login_return'] = $path[0].'/'.$path[1].'/'.$path[2];
+    \Tsugi\Controllers\Login::setReturnUrl($path[0].'/'.$path[1].'/'.$path[2]);
     header('Location: '.\Tsugi\Controllers\Login::loginUrl());
     return;
 }

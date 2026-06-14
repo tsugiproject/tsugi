@@ -10,7 +10,7 @@ require_once("settings_util.php");
 session_start();
 
 if ( ! isLoggedIn() ) {
-    $_SESSION['login_return'] = $CFG->wwwroot . '/settings';
+    \Tsugi\Controllers\Login::setReturnUrl($CFG->wwwroot . '/settings');
     Output::doRedirect(\Tsugi\Controllers\Login::loginUrl());
     return;
 }

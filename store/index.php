@@ -10,7 +10,7 @@ require_once "../settings/settings_util.php";
 
 session_start();
 
-$_SESSION['login_return'] = $CFG->wwwroot . '/store';
+\Tsugi\Controllers\Login::setReturnUrl($CFG->wwwroot . '/store');
 
 LTIX::getConnection();
 

@@ -1,12 +1,14 @@
 <?php
 
 require_once "src/Controllers/Stripe.php";
+require_once "src/Controllers/Login.php";
 require_once "src/Controllers/Tool.php";
 require_once "src/Config/ConfigInfo.php";
 require_once "src/Lumen/Application.php";
 require_once "src/Lumen/Router.php";
 
 use Tsugi\Controllers\Stripe;
+use Tsugi\Controllers\Login;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -97,6 +99,6 @@ class StripeControllerTest extends \PHPUnit\Framework\TestCase
 
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertStringEndsWith('/login', $response->getTargetUrl());
-        $this->assertEquals(Stripe::checkoutUrl($CFG), $_SESSION['login_return']);
+        $this->assertEquals(Stripe::checkoutUrl($CFG), Login::peekReturnUrl());
     }
 }

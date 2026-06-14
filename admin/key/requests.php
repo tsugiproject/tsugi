@@ -16,7 +16,7 @@ require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 if ( ! ( isLoggedIn() || isAdmin() ) ) {
-    $_SESSION['login_return'] = LTIX::curPageUrlFolder();
+    \Tsugi\Controllers\Login::setReturnUrl(LTIX::curPageUrlFolder());
     header('Location: '.\Tsugi\Controllers\Login::loginUrl());
     return;
 }

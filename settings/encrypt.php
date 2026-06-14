@@ -10,7 +10,7 @@ use \Tsugi\UI\Output;
 use \Tsugi\Crypt\AesOpenSSL;
 
 if ( ! isLoggedIn() ) {
-    $_SESSION['login_return'] = $CFG->wwwroot . '/settings/encrypt';
+    \Tsugi\Controllers\Login::setReturnUrl($CFG->wwwroot . '/settings/encrypt');
     Output::doRedirect(\Tsugi\Controllers\Login::loginUrl());
     return;
 }

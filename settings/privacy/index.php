@@ -10,8 +10,7 @@ require_once("../settings_util.php");
 session_start();
 
 if ( ! isLoggedIn() ) {
-    $login_return = U::reconstruct_query($CFG->wwwroot . '/settings/privacy');
-    $_SESSION['login_return'] = $login_return;
+    \Tsugi\Controllers\Login::setReturnUrl(U::reconstruct_query($CFG->wwwroot . '/settings/privacy'));
     Output::doRedirect(\Tsugi\Controllers\Login::loginUrl());
     return;
 }

@@ -15,12 +15,10 @@ class LoginTest extends \PHPUnit\Framework\TestCase
         global $CFG;
         $this->originalCFG = $CFG;
         
-        // Set up test CFG
         $CFG = new \Tsugi\Config\ConfigInfo(basename(__FILE__), 'http://localhost');
         $CFG->wwwroot = 'http://localhost/tsugi';
         $CFG->apphome = 'http://localhost/app';
         
-        // Save original session state
         $this->originalSession = $_SESSION ?? [];
         $_SESSION = [];
     }
@@ -33,7 +31,6 @@ class LoginTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testLoginUrlUsesApphomeWhenSet() {
-        global $CFG;
         $this->assertEquals('http://localhost/app/login', Login::loginUrl());
     }
 
@@ -62,134 +59,70 @@ class LoginTest extends \PHPUnit\Framework\TestCase
         unset($CFG->google_login_new);
         $this->assertEquals('http://localhost/tsugi/login.php', Login::oauthRedirectUri());
     }
-    
-    /**
-     * Test redirect callback logic with login_return in session
-     */
-    public function testRedirectCallbackWithLoginReturn() {
+
+    public function testSetReturnUrlAndTakeReturnUrl() {
+        Login::setReturnUrl('http://example.com/return');
+        $this->assertEquals('http://example.com/return', Login::peekReturnUrl());
+        $this->assertEquals('http://example.com/return', Login::takeReturnUrl());
+        $this->assertNull(Login::peekReturnUrl());
+    }
+
+    public function testDefaultHomeUrlUsesApphome() {
+        $this->assertEquals('http://localhost/app', Login::defaultHomeUrl());
+    }
+
+    public function testDefaultHomeUrlUsesWwwrootWithoutApphome() {
         global $CFG;
-        
-        $_SESSION['login_return'] = 'http://example.com/return';
-        
-        // Simulate the redirect callback function from Login::get() lines 33-44
-        $redirect_callback = function($result) {
-            global $CFG;
-            if ( isset($_SESSION['login_return']) ) {
-                $url = $_SESSION['login_return'];
-                unset($_SESSION['login_return']);
-                return $url;
-            } else if ( $result->did_insert ) {
-                return $CFG->wwwroot . '/profile.php';
-            } else {
-                return isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
-            }
-        };
-        
+        unset($CFG->apphome);
+        $this->assertEquals('http://localhost/tsugi', Login::defaultHomeUrl());
+    }
+
+    public function testConfiguredReturnUrl() {
+        global $CFG;
+        $CFG->login_return_url = 'http://localhost/welcome';
+        $this->assertEquals('http://localhost/welcome', Login::configuredReturnUrl());
+    }
+
+    public function testCancelUrlUsesSavedReturn() {
+        Login::setReturnUrl('http://example.com/back');
+        $this->assertEquals('http://example.com/back', Login::cancelUrl());
+    }
+
+    public function testCancelUrlFallsBackToHome() {
+        $this->assertEquals('http://localhost/app', Login::cancelUrl());
+    }
+
+    public function testReturnAfterLoginUsesSessionReturn() {
+        Login::setReturnUrl('http://example.com/return');
         $result = new \stdClass();
         $result->did_insert = false;
-        
-        $redirect_url = $redirect_callback($result);
-        
-        $this->assertEquals('http://example.com/return', $redirect_url,
-            'Redirect URL should be login_return from session');
-        $this->assertFalse(isset($_SESSION['login_return']),
-            'login_return should be unset after use');
+        $this->assertEquals('http://example.com/return', Login::returnAfterLogin($result));
+        $this->assertNull(Login::peekReturnUrl());
     }
-    
-    /**
-     * Test redirect callback logic with did_insert = true
-     */
-    public function testRedirectCallbackWithDidInsert() {
-        global $CFG;
-        
-        unset($_SESSION['login_return']);
-        
-        $redirect_callback = function($result) {
-            global $CFG;
-            if ( isset($_SESSION['login_return']) ) {
-                $url = $_SESSION['login_return'];
-                unset($_SESSION['login_return']);
-                return $url;
-            } else if ( $result->did_insert ) {
-                return $CFG->wwwroot . '/profile.php';
-            } else {
-                return isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
-            }
-        };
-        
+
+    public function testReturnAfterLoginUsesNewUserUrl() {
         $result = new \stdClass();
         $result->did_insert = true;
-        
-        $redirect_url = $redirect_callback($result);
-        
-        $this->assertEquals($CFG->wwwroot . '/profile.php', $redirect_url,
-            'Redirect URL should be /profile.php when did_insert is true');
+        $this->assertEquals('http://localhost/app/profile', Login::returnAfterLogin($result, 'http://localhost/app/profile'));
     }
-    
-    /**
-     * Test redirect callback logic default case
-     */
-    public function testRedirectCallbackDefault() {
+
+    public function testReturnAfterLoginUsesConfiguredUrlForNewUser() {
         global $CFG;
-        
-        unset($_SESSION['login_return']);
-        
-        $redirect_callback = function($result) {
-            global $CFG;
-            if ( isset($_SESSION['login_return']) ) {
-                $url = $_SESSION['login_return'];
-                unset($_SESSION['login_return']);
-                return $url;
-            } else if ( $result->did_insert ) {
-                return $CFG->wwwroot . '/profile.php';
-            } else {
-                return isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
-            }
-        };
-        
+        $CFG->login_return_url = 'http://localhost/welcome';
+        $result = new \stdClass();
+        $result->did_insert = true;
+        $this->assertEquals('http://localhost/welcome', Login::returnAfterLogin($result));
+    }
+
+    public function testReturnAfterLoginDefaultHome() {
         $result = new \stdClass();
         $result->did_insert = false;
-        
-        $redirect_url = $redirect_callback($result);
-        
-        $this->assertEquals($CFG->apphome, $redirect_url,
-            'Redirect URL should be apphome when no login_return and did_insert is false');
+        $this->assertEquals('http://localhost/app', Login::returnAfterLogin($result));
     }
-    
-    /**
-     * Test redirect callback logic default case without apphome
-     */
-    public function testRedirectCallbackDefaultWithoutApphome() {
-        global $CFG;
-        
-        unset($_SESSION['login_return']);
-        $original_apphome = $CFG->apphome ?? null;
-        unset($CFG->apphome);
-        
-        $redirect_callback = function($result) {
-            global $CFG;
-            if ( isset($_SESSION['login_return']) ) {
-                $url = $_SESSION['login_return'];
-                unset($_SESSION['login_return']);
-                return $url;
-            } else if ( $result->did_insert ) {
-                return $CFG->wwwroot . '/profile.php';
-            } else {
-                return isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot;
-            }
-        };
-        
+
+    public function testReturnAfterLoginNoFallbackHome() {
         $result = new \stdClass();
         $result->did_insert = false;
-        
-        $redirect_url = $redirect_callback($result);
-        
-        $this->assertEquals($CFG->wwwroot, $redirect_url,
-            'Redirect URL should be wwwroot when apphome is not set');
-        
-        // Restore apphome
-        if ($original_apphome !== null) {
-            $CFG->apphome = $original_apphome;
-        }
+        $this->assertNull(Login::returnAfterLogin($result, null, false));
     }
 }

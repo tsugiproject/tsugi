@@ -7,18 +7,18 @@ if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "config.php";
 
 function login_redirect($path=false) {
-    global $CFG;
-    $login_return = U::get($_SESSION, 'login_return');
-    if ( $login_return ) {
-        unset($_SESSION['login_return']);
-        header('Location: '.$login_return);
-    } else if ( isset($CFG->login_return_url) && is_string($CFG->login_return_url) ) {
-        header('Location: '.$CFG->login_return_url);
-    } else if ( isset($CFG->apphome) && is_string($CFG->apphome) ) {
-        header('Location: '.$CFG->apphome.'/'.$path);
-    } else {
-        header('Location: '.$CFG->wwwroot.'/'.$path);
+    $url = Login::takeReturnUrl();
+    if ( $url ) {
+        header('Location: '.$url);
+        return;
     }
+    $configured = Login::configuredReturnUrl();
+    if ( $configured ) {
+        header('Location: '.$configured);
+        return;
+    }
+    $home = Login::defaultHomeUrl();
+    header('Location: '.($path ? rtrim($home, '/').'/'.$path : $home));
 }
 
 session_start();
@@ -38,15 +38,7 @@ if ( ! isset($CFG->google_client_id) || ! $CFG->google_client_id ) {
 
 // Process login with redirect callback
 $result = GoogleLoginHandler::processLogin($come_back, function($result) {
-    global $CFG;
-    if ( isset($_SESSION['login_return']) ) {
-        $url = $_SESSION['login_return'];
-        unset($_SESSION['login_return']);
-        return $url;
-    } else if ( $result->did_insert ) {
-        return isset($CFG->login_return_url) ? $CFG->login_return_url : null;
-    }
-    return null;
+    return Login::returnAfterLogin($result, null, false);
 });
 
 // Handle errors
@@ -77,8 +69,7 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
-$login_return = 'index';
-if ( isset($_SESSION['login_return']) ) $login_return = $_SESSION['login_return'];
+$login_return = Login::cancelUrl();
 ?>
 <div style="margin: 30px">
 <p>

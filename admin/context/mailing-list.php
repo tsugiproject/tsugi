@@ -97,7 +97,7 @@ if ( isAdmin() ) {
 
 if ( ! $is_context_admin ) {
     U::flashError("You must be an administrator or instructor for this context");
-    $_SESSION['login_return'] = LTIX::curPageUrlFolder();
+    \Tsugi\Controllers\Login::setReturnUrl(LTIX::curPageUrlFolder());
     header('Location: '.\Tsugi\Controllers\Login::loginUrl());
     return;
 }
