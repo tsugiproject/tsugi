@@ -64,6 +64,7 @@ create table {$plugins} (
 $path_migrations = array(
     'lms/announce/database.php' => 'lib/src/Controllers/database/Announcements/database.php',
     'lms/pages/database.php' => 'lib/src/Controllers/database/Pages/database.php',
+    'tool/tdiscus/database.php' => 'lib/src/Controllers/database/Discussions/database.php',
 );
 foreach ($path_migrations as $old_path => $new_path) {
     $sql = "UPDATE {$plugins} SET plugin_path = :new_path WHERE plugin_path = :old_path";
@@ -89,7 +90,7 @@ foreach($tools as $k => $tool ) {
 }
 
 echo("Checking LMS Features Tables...<br/>\n");
-// Scan lib/src/Controllers/database for database.php files (Announcements, Pages)
+// Scan lib/src/Controllers/database for database.php files (Announcements, Pages, Discussions)
 $libdb = searchTwoLevels("database.php", $CFG->dirroot.'/lib/src/Controllers/database');
 for($i=0; $i<count($libdb); $i++) {
     $libdb[$i] = U::remove_relative_path($libdb[$i]);
@@ -121,6 +122,19 @@ for($i=0; $i<count($moretools); $i++) {
 foreach($moretools as $tool) {
     if ( in_array($tool, $tools) ) continue;
     $tools[] = $tool;
+}
+
+// Prefer lib Discussions schema over legacy tool/tdiscus database.php stub
+$discussions_lib = 'lib/src/Controllers/database/Discussions/database.php';
+$legacy_discussions = array('tool/tdiscus/database.php');
+if ( in_array($discussions_lib, $tools) ) {
+    $filtered = array();
+    foreach ( $tools as $tool ) {
+        $relative = trimAsMuchAsYouCan($tool, $CFG->dirroot);
+        if ( in_array($relative, $legacy_discussions) ) continue;
+        $filtered[] = $tool;
+    }
+    $tools = $filtered;
 }
 
 if ( count($tools) < 1 ) {
