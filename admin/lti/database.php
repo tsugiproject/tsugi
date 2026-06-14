@@ -1203,9 +1203,6 @@ $DATABASE_UPGRADE = function($oldversion) {
     // Issue #226 phase 1: copy lti_issuer data into lti_key for all linked keys (idempotent).
     // Clears issuer_id, lms_issuer, and lms_issuer_sha256 on lti_key; copies other lms_*
     // from issuer (issuer precedence, key fallback). Safe to run until phase 3 drops the table.
-    if ( ! isset($issuer_table) ) {
-        $issuer_table = "{$CFG->dbprefix}lti_issuer";
-    }
     if ( $PDOX->metadata($issuer_table) !== false
         && $PDOX->columnExists('lms_issuer', "{$CFG->dbprefix}lti_key") ) {
         $lti_migration_coalesce = function($issuer_val, $key_val) {
@@ -1311,9 +1308,6 @@ $DATABASE_UPGRADE = function($oldversion) {
     $issuer_drop_after = gmmktime(0, 0, 0, 10, 1, 2026);
     if ( time() >= $issuer_drop_after ) {
         $key_table = "{$CFG->dbprefix}lti_key";
-        if ( ! isset($issuer_table) ) {
-            $issuer_table = "{$CFG->dbprefix}lti_issuer";
-        }
         $have_issuer_table = ($PDOX->metadata($issuer_table) !== false);
         $have_issuer_id = $PDOX->columnExists('issuer_id', $key_table);
 
