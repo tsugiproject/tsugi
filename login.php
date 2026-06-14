@@ -24,10 +24,14 @@ session_start();
 session_regenerate_id(true);
 error_log('Session in login '.session_id());
 
-// Determine callback URL
-$come_back = $CFG->wwwroot.'/login.php';
-if ( isset($CFG->google_login_new) && $CFG->google_login_new ) {
-    $come_back = $CFG->wwwroot.'/login';
+// Determine callback URL (same precedence as Controllers/Login.php)
+if ( isset($CFG->google_login_redirect) && $CFG->google_login_redirect ) {
+    $come_back = $CFG->google_login_redirect;
+} else {
+    $come_back = $CFG->wwwroot.'/login.php';
+    if ( isset($CFG->google_login_new) && $CFG->google_login_new ) {
+        $come_back = $CFG->wwwroot.'/login';
+    }
 }
 
 // Check for Google client ID
