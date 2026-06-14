@@ -609,12 +609,17 @@ class ConfigInfo {
      * Set this in the site's config (not in Tsugi core). On cookie-session pages,
      * topNav() invokes it before using $CFG->defaultmenu.
      *
-     * $CFG->refresh_menu_callback = function() {
-     *     require_once $CFG->dirroot.'/../buildmenu.php';
+     * $CFG->top_menu_callback = function() {
+     *     global $CFG;
+     *     $buildmenu = $CFG->dirroot.'/../buildmenu.php';
+     *     if ( ! file_exists($buildmenu) ) {
+     *         return false;
+     *     }
+     *     require_once $buildmenu;
      *     return buildMenu();
      * };
      */
-    public $refresh_menu_callback = false;
+    public $top_menu_callback = false;
 
     /*
      * If we are running Embedded Tsugi we need to set the

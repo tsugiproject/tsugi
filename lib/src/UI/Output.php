@@ -823,7 +823,7 @@ $('a').each(function (x) {
      * Emit the top navigation block and optionally the tool navigation
      *
      * Priority order on cookie-session pages (admin, login, site):
-     * (1) $CFG->refresh_menu_callback when set (site-owned menu builder)
+     * (1) $CFG->top_menu_callback when set (site-owned menu builder)
      * (2) $CFG->defaultmenu when set
      * (3) defaultMenuSet()
      *
@@ -838,8 +838,8 @@ $('a').each(function (x) {
         if ( defined('COOKIE_SESSION') ) {
             // Cookie-session pages are never an LTI tool launch for nav purposes.
             // Stale lti_post, JWT, or cached tool nav must not produce "Done".
-            if ( isset($CFG->refresh_menu_callback) && is_callable($CFG->refresh_menu_callback) ) {
-                $refreshed = call_user_func($CFG->refresh_menu_callback);
+            if ( isset($CFG->top_menu_callback) && is_callable($CFG->top_menu_callback) ) {
+                $refreshed = call_user_func($CFG->top_menu_callback);
                 if ( $refreshed instanceof \Tsugi\UI\MenuSet ) {
                     $CFG->defaultmenu = $refreshed;
                 }

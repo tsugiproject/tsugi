@@ -282,12 +282,35 @@ $CFG->google_translate = false;
 // $CFG->vapid_private_key = false; // 'xYz...long_base64_string...';
 // $CFG->vapid_subject = false; // 'mailto:admin@example.com';
 
-// Site navigation is owned by the enclosing application. Set a callback that
-// returns a MenuSet; topNav() calls it on cookie-session pages (admin, login, …):
-// $CFG->refresh_menu_callback = function() {
-//     require_once $CFG->dirroot.'/../buildmenu.php';
+// Site navigation (enclosing application, not Tsugi core)
+//
+// On cookie-session pages (admin, login, settings, and any page that defines
+// COOKIE_SESSION before loading config.php), Output::topNav() builds the top
+// menu in this order:
+//   (1) $CFG->top_menu_callback when set and callable
+//   (2) $CFG->defaultmenu when it is a MenuSet
+//   (3) Output::defaultMenuSet() (generic Tsugi menu)
+//
+// Set top_menu_callback in your site config (e.g. tsugi_settings.php included
+// from config.php) or in this file. The callback must return
+// a \Tsugi\UI\MenuSet. Tsugi does not load buildmenu.php or other site files
+// itself — only your callback does.
+//
+// Example (WA4E-style site with buildmenu.php next to the tsugi/ folder):
+// $CFG->top_menu_callback = function() {
+//     global $CFG;
+//     $buildmenu = $CFG->dirroot.'/../buildmenu.php';
+//     if ( ! file_exists($buildmenu) ) {
+//         return false;
+//     }
+//     require_once $buildmenu;
 //     return buildMenu();
 // };
+//
+// Controlling the navigation menu using $CFG->defaultmenu or $OUTPUT->topNavSession()
+// Are less reliable that top_menu_callback and sites should move towards
+// from these options and towards $CFG->top_menu_callback to insure the top
+// menu works across lti launches, login/logout etc.
 
 // If these are not set, the auto expiration scripts in admin/expire
 // do nothing.  You can still manually expire data in the admin UI without

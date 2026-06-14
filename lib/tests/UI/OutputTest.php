@@ -77,14 +77,14 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('http://example.com', $set->home->href);
     }
 
-    public function testTopNavRefreshMenuCallback() {
+    public function testTopNavTopMenuCallback() {
         if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
         global $CFG;
 
         $CFG = new \Tsugi\Config\ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
         $CFG->servicename = 'Test Site';
         $CFG->apphome = 'http://example.com';
-        $CFG->refresh_menu_callback = function() {
+        $CFG->top_menu_callback = function() {
             $set = new \Tsugi\UI\MenuSet();
             $set->setHome('Callback Home', 'http://example.com/callback');
             return $set;
