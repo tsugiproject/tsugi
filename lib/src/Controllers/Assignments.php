@@ -156,7 +156,7 @@ class Assignments extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         if ( ! U::isLoggedIn() ) {
-            $login_url = htmlspecialchars(U::addSession($CFG->apphome . '/login'));
+            $login_url = htmlspecialchars(U::addSession(Login::loginUrl()));
             echo('<p><a href="'.$login_url.'">'.__('Log in').'</a> ');
             echo(__('to see your scores on these assignments.').'</p>'."\n");
         }

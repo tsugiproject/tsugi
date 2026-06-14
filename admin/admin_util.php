@@ -10,7 +10,7 @@ function requireLogin() {
     global $CFG, $OUTPUT;
     if ( $CFG->google_glient_id && ! isset($_SESSION['user_id']) ) {
         U::flashError('Login required');
-        $OUTPUT->doRedirect($CFG->wwwroot.'/login.php') ;
+        $OUTPUT->doRedirect(\Tsugi\Controllers\Login::loginUrl()) ;
         exit();
     }
 }
@@ -23,7 +23,7 @@ function requireAdmin() {
     global $CFG, $OUTPUT;
     if ( $CFG->google_glient_id && $_SESSION['admin'] != 'yes' ) {
         U::flashError('Login required');
-        $OUTPUT->doRedirect($CFG->wwwroot.'/login.php') ;
+        $OUTPUT->doRedirect(\Tsugi\Controllers\Login::loginUrl()) ;
         exit();
     }
 }

@@ -1,6 +1,7 @@
 <?php
 use \Tsugi\Util\U;
 use \Tsugi\UI\GoogleLoginHandler;
+use \Tsugi\Controllers\Login;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "config.php";
@@ -24,15 +25,7 @@ session_start();
 session_regenerate_id(true);
 error_log('Session in login '.session_id());
 
-// Determine callback URL (same precedence as Controllers/Login.php)
-if ( isset($CFG->google_login_redirect) && $CFG->google_login_redirect ) {
-    $come_back = $CFG->google_login_redirect;
-} else {
-    $come_back = $CFG->wwwroot.'/login.php';
-    if ( isset($CFG->google_login_new) && $CFG->google_login_new ) {
-        $come_back = $CFG->wwwroot.'/login';
-    }
-}
+$come_back = Login::oauthRedirectUri();
 
 // Check for Google client ID
 if ( ! isset($CFG->google_client_id) || ! $CFG->google_client_id ) {

@@ -65,7 +65,7 @@ class Stripe extends Controller {
         $user_id = U::loggedInUserId();
         if ($user_id <= 0) {
             $_SESSION['login_return'] = $checkout_url;
-            return new RedirectResponse(rtrim($home, '/') . '/login');
+            return new RedirectResponse(Login::loginUrl());
         }
 
         $site_name = $CFG->supporterSiteName();
@@ -121,7 +121,7 @@ You will receive <?= htmlspecialchars($premium_period) ?> of <?= htmlspecialchar
         $user_id = U::loggedInUserId();
         if ($user_id <= 0) {
             $_SESSION['login_return'] = $checkout_url;
-            return new RedirectResponse(rtrim($home, '/') . '/login');
+            return new RedirectResponse(Login::loginUrl());
         }
 
         $cfg = StripeUtil::config();

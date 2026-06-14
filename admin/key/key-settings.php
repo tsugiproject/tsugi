@@ -16,7 +16,7 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
 if ( ! isAdmin() ) {
     $_SESSION['login_return'] = LTIX::curPageUrlFolder();
-    header('Location: '.$CFG->wwwroot.'/login.php');
+    header('Location: '.\Tsugi\Controllers\Login::loginUrl());
     return;
 }
 

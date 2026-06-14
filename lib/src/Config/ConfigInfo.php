@@ -1139,7 +1139,7 @@ class ConfigInfo {
     }
 
     function getLoginUrl() {
-        return $this->wwwroot.'/login';
+        return \Tsugi\Controllers\Login::loginUrl();
     }
 
     /**

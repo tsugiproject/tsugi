@@ -14,7 +14,7 @@ session_start();
 if ( ! isLoggedIn() ) {
     $login_return = U::reconstruct_query($CFG->wwwroot . '/settings/expire');
     $_SESSION['login_return'] = $login_return;
-    Output::doRedirect($CFG->wwwroot.'/login.php');
+    Output::doRedirect(\Tsugi\Controllers\Login::loginUrl());
     return;
 }
 

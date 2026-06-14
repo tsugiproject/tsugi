@@ -160,6 +160,13 @@ class ConfigInfoTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('http://localhost:8888/tsugi/login', $loginUrl);
     }
 
+    public function testGetLoginUrlUsesApphomeWhenSet() {
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
+        $CFG->apphome = 'https://local.py4e.com';
+        $loginUrl = $CFG->getLoginUrl();
+        $this->assertEquals('https://local.py4e.com/login', $loginUrl);
+    }
+
     public function testGetBadgeOrganizationWithBadgeOrganizationSet() {
         $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://localhost:8888/tsugi');
         $CFG->badge_organization = 'Custom Organization Name';

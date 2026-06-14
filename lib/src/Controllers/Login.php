@@ -14,6 +14,33 @@ class Login extends Tool {
 
     const ROUTE = '/login';
 
+    /**
+     * URL of the login page for redirects and links.
+     * Uses apphome/login when apphome is set, otherwise wwwroot/login.
+     */
+    public static function loginUrl() {
+        global $CFG;
+        $base = (isset($CFG->apphome) && is_string($CFG->apphome) && $CFG->apphome)
+            ? $CFG->apphome
+            : $CFG->wwwroot;
+        return rtrim($base, '/') . self::ROUTE;
+    }
+
+    /**
+     * Google OAuth redirect_uri after authentication.
+     * Honors google_login_redirect, then loginUrl() when google_login_new, else login.php.
+     */
+    public static function oauthRedirectUri() {
+        global $CFG;
+        if ( isset($CFG->google_login_redirect) && $CFG->google_login_redirect ) {
+            return $CFG->google_login_redirect;
+        }
+        if ( isset($CFG->google_login_new) && $CFG->google_login_new ) {
+            return self::loginUrl();
+        }
+        return rtrim($CFG->wwwroot, '/') . '/login.php';
+    }
+
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Login@get');
         $app->router->get($prefix.'/', 'Login@get');
@@ -23,16 +50,7 @@ class Login extends Tool {
     {
         global $CFG;
 
-        // Determine callback URL
-        // Check for explicit redirect URI first, then fall back to automatic construction
-        if ( isset($CFG->google_login_redirect) && $CFG->google_login_redirect ) {
-            $come_back = $CFG->google_login_redirect;
-        } else {
-            $come_back = $CFG->wwwroot.'/login.php';
-            if ( isset($CFG->google_login_new) && $CFG->google_login_new ) {
-                $come_back = $CFG->wwwroot.'/login';
-            }
-        }
+        $come_back = self::oauthRedirectUri();
 
         // Process login with redirect callback
         // Capture parent path before closure so we can use it inside

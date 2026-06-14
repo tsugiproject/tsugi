@@ -11,7 +11,7 @@ session_start();
 
 if ( ! isLoggedIn() ) {
     $_SESSION['login_return'] = $CFG->wwwroot . '/settings';
-    Output::doRedirect($CFG->wwwroot.'/login.php');
+    Output::doRedirect(\Tsugi\Controllers\Login::loginUrl());
     return;
 }
 

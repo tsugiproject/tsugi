@@ -17,7 +17,7 @@ class LoginTest extends \PHPUnit\Framework\TestCase
         
         // Set up test CFG
         $CFG = new \Tsugi\Config\ConfigInfo(basename(__FILE__), 'http://localhost');
-        $CFG->wwwroot = 'http://localhost';
+        $CFG->wwwroot = 'http://localhost/tsugi';
         $CFG->apphome = 'http://localhost/app';
         
         // Save original session state
@@ -31,44 +31,36 @@ class LoginTest extends \PHPUnit\Framework\TestCase
         $CFG = $this->originalCFG;
         $_SESSION = $this->originalSession;
     }
-    
-    /**
-     * Test callback URL determination with google_login_new enabled
-     */
-    public function testCallbackUrlWithGoogleLoginNew() {
+
+    public function testLoginUrlUsesApphomeWhenSet() {
         global $CFG;
-        $CFG->google_login_new = true;
-        
-        // The callback URL should be /login when google_login_new is set
-        $expected = $CFG->wwwroot . '/login';
-        
-        // This tests the logic in Login::get() lines 28-30
-        $come_back = $CFG->wwwroot . '/login.php';
-        if ( isset($CFG->google_login_new) && $CFG->google_login_new ) {
-            $come_back = $CFG->wwwroot . '/login';
-        }
-        
-        $this->assertEquals($expected, $come_back, 
-            'Callback URL should be /login when google_login_new is enabled');
+        $this->assertEquals('http://localhost/app/login', Login::loginUrl());
     }
-    
-    /**
-     * Test callback URL determination without google_login_new
-     */
-    public function testCallbackUrlWithoutGoogleLoginNew() {
+
+    public function testLoginUrlUsesWwwrootWithoutApphome() {
         global $CFG;
+        unset($CFG->apphome);
+        $this->assertEquals('http://localhost/tsugi/login', Login::loginUrl());
+    }
+
+    public function testOauthRedirectUriUsesExplicitRedirect() {
+        global $CFG;
+        $CFG->google_login_redirect = 'https://local.py4e.com/login';
+        $this->assertEquals('https://local.py4e.com/login', Login::oauthRedirectUri());
+    }
+
+    public function testOauthRedirectUriUsesLoginUrlWhenGoogleLoginNew() {
+        global $CFG;
+        unset($CFG->google_login_redirect);
+        $CFG->google_login_new = true;
+        $this->assertEquals('http://localhost/app/login', Login::oauthRedirectUri());
+    }
+
+    public function testOauthRedirectUriUsesLoginPhpWhenLegacy() {
+        global $CFG;
+        unset($CFG->google_login_redirect);
         unset($CFG->google_login_new);
-        
-        // The callback URL should be /login.php when google_login_new is not set
-        $expected = $CFG->wwwroot . '/login.php';
-        
-        $come_back = $CFG->wwwroot . '/login.php';
-        if ( isset($CFG->google_login_new) && $CFG->google_login_new ) {
-            $come_back = $CFG->wwwroot . '/login';
-        }
-        
-        $this->assertEquals($expected, $come_back, 
-            'Callback URL should be /login.php when google_login_new is not set');
+        $this->assertEquals('http://localhost/tsugi/login.php', Login::oauthRedirectUri());
     }
     
     /**
@@ -201,4 +193,3 @@ class LoginTest extends \PHPUnit\Framework\TestCase
         }
     }
 }
-

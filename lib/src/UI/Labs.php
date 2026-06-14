@@ -2,6 +2,7 @@
 
 namespace Tsugi\UI;
 
+use Tsugi\Controllers\Login;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Util\U;
 
@@ -126,7 +127,7 @@ class Labs {
 
         $home = $CFG->apphome . '/';
         $labs = $CFG->apphome . '/labs';
-        $login = $CFG->apphome . '/login';
+        $login = Login::loginUrl();
         $assignments = $CFG->apphome . '/assignments';
         $privacy = $CFG->apphome . '/privacy';
 
@@ -184,7 +185,7 @@ class Labs {
         echo('<h1>'.__('Interactive Labs').'</h1>'."\n");
         echo('<p>'.__('These are hands-on LTI activities marked for the labs view.').' ');
         if ( ! $can_launch ) {
-            echo('<a href="'.htmlspecialchars($CFG->apphome.'/login').'">'.__('Log in').'</a> ');
+            echo('<a href="'.htmlspecialchars(Login::loginUrl()).'">'.__('Log in').'</a> ');
             echo(__('to launch the tools.').' ');
         }
         echo('</p>'."\n");

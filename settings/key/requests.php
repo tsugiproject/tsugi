@@ -21,7 +21,7 @@ session_start();
 
 if ( ! isLoggedIn() ) {
     $_SESSION['login_return'] = LTIX::curPageUrlFolder();
-    header('Location: '.$CFG->wwwroot.'/login');
+    header('Location: '.\Tsugi\Controllers\Login::loginUrl());
     return;
 }
 
