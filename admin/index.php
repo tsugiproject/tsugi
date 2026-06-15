@@ -23,7 +23,25 @@ try {
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
-require_once("sanity-db.php");
+define('SANITY_DB_ALLOW_NO_TABLES', true);
+require_once("../sanity-db.php");
+
+$p = $CFG->dbprefix;
+$plugins = "{$p}lms_plugins";
+$stmt = $PDOX->queryReturnError("SELECT MAX(version) AS version FROM {$plugins}", false, false);
+if ( $stmt->success ) {
+    $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
+    $actualdbversion = $row['version'] ?? null;
+    if ( $actualdbversion === null || $actualdbversion < $CFG->dbversion ) {
+        echo('<div class="alert alert-danger" style="margin: 10px;">'."\n");
+        echo("<p>Warning: Database version=$actualdbversion should be
+        software version=$CFG->dbversion - please run\n");
+        echo("'Upgrade Database in the <a href=\"".$CFG->wwwroot.'/admin/">'."Administration console</a></p>\n");
+        echo("\n</div>\n");
+        error_log("Warning: DB current version=$actualdbversion expected version=$CFG->dbversion");
+    }
+}
 ?>
 <div id="iframe-dialog" title="Read Only Dialog" style="display: none;">
    <div id="iframe-spinner" role="status" aria-live="polite">

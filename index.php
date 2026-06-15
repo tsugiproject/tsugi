@@ -23,9 +23,10 @@ try {
 }
 
 header('Content-Type: text/html; charset=utf-8');
-session_start();
 
-require_once("admin/sanity-db.php");
+require_once("sanity-db.php");
+
+session_start();
 
 if ( $PDOX !== false ) LTIX::loginSecureCookie();
 

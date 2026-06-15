@@ -252,7 +252,12 @@ class Profile extends Entity {
         if ( ! isset($PDOX) || ! $PDOX ) {
             return;
         }
-        if ( ! $PDOX->columnExists('premium', "{$CFG->dbprefix}profile") ) {
+        $table = "{$CFG->dbprefix}profile";
+        $table_fields = $PDOX->metadata($table);
+        if ( $table_fields === false ) {
+            return;
+        }
+        if ( ! $PDOX->columnExists('premium', $table_fields) ) {
             return;
         }
 
@@ -284,7 +289,13 @@ class Profile extends Entity {
             $this->premium_json = null;
             return;
         }
-        if ( ! $PDOX->columnExists('premium_json', "{$CFG->dbprefix}profile") ) {
+        $table = "{$CFG->dbprefix}profile";
+        $table_fields = $PDOX->metadata($table);
+        if ( $table_fields === false ) {
+            $this->premium_json = null;
+            return;
+        }
+        if ( ! $PDOX->columnExists('premium_json', $table_fields) ) {
             $this->premium_json = null;
             return;
         }

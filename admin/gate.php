@@ -5,6 +5,9 @@ use \Tsugi\UI\Output;
 
 require_once $CFG->dirroot."/admin/admin_util.php";
 
+// Site menu callbacks (e.g. PY4E buildMenu) assume a full schema; use Tsugi default in admin.
+unset($CFG->top_menu_callback);
+
 $REDIRECTED = false;
 $rest_path = U::rest_path();
 

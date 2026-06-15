@@ -3,6 +3,9 @@
 define('COOKIE_SESSION', true);
 require_once('../config.php');
 
+// Site menu callbacks assume a full schema; use Tsugi default in admin.
+unset($CFG->top_menu_callback);
+
 // Make PHP paths pretty .../install => install.php
 $router = new Tsugi\Util\FileRouter();
 $file = $router->fileCheck();

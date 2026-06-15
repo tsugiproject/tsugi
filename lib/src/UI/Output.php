@@ -1377,19 +1377,26 @@ $( function() {
         }
 
         // Override the config AND launch values if the user's preference is set in the $_SESSION
-        if (is_object($PDOX) && isset($_SESSION) && isset($_SESSION['profile_id'])) {
-            $stmt = $PDOX->queryDie(
-                "SELECT json FROM {$CFG->dbprefix}profile WHERE profile_id = :PID",
-                array('PID' => $_SESSION['profile_id'])
-            );
-            $profile_row = $stmt->fetch(\PDO::FETCH_ASSOC);
-            if (!empty($profile_row) && !is_null($profile_row['json'])) {
-                $profile = json_decode($profile_row['json']);
-                if (isset($profile->theme_override)) {
-                    if ($profile->theme_override == 'dark') {
-                        $dark_mode = true;
-                    } else if ($profile->theme_override == 'light') {
-                        $dark_mode = null;
+        if ( is_object($PDOX) && isset($_SESSION) && isset($_SESSION['profile_id']) ) {
+            $profile_table = "{$CFG->dbprefix}profile";
+            if ( $PDOX->metadata($profile_table) !== false ) {
+                $stmt = $PDOX->queryReturnError(
+                    "SELECT json FROM {$profile_table} WHERE profile_id = :PID",
+                    array(':PID' => $_SESSION['profile_id']),
+                    false
+                );
+                if ( $stmt->success ) {
+                    $profile_row = $stmt->fetch(\PDO::FETCH_ASSOC);
+                    $stmt->closeCursor();
+                    if ( ! empty($profile_row) && ! is_null($profile_row['json']) ) {
+                        $profile = json_decode($profile_row['json']);
+                        if ( isset($profile->theme_override) ) {
+                            if ( $profile->theme_override == 'dark' ) {
+                                $dark_mode = true;
+                            } else if ( $profile->theme_override == 'light' ) {
+                                $dark_mode = null;
+                            }
+                        }
                     }
                 }
             }

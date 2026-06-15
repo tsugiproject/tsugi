@@ -28,7 +28,8 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
-require_once("../sanity-db.php");
+define('SANITY_DB_ALLOW_NO_TABLES', true);
+require_once("../../sanity-db.php");
 require_once("install_util.php");
 
 if ( ! isset($CFG->install_folder) ) {
