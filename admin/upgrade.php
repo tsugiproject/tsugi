@@ -67,6 +67,21 @@ $path_migrations = array(
     'tool/tdiscus/database.php' => 'lib/src/Controllers/database/Discussions/database.php',
 );
 foreach ($path_migrations as $old_path => $new_path) {
+    $sql = "SELECT plugin_id FROM {$plugins} WHERE plugin_path = :old_path";
+    $q = $PDOX->queryReturnError($sql, array(':old_path' => $old_path));
+    if ( ! $q->success || $q->rowCount() < 1 ) continue;
+
+    $sql = "SELECT plugin_id FROM {$plugins} WHERE plugin_path = :new_path";
+    $q = $PDOX->queryReturnError($sql, array(':new_path' => $new_path));
+    if ( $q->success && $q->rowCount() > 0 ) {
+        $sql = "DELETE FROM {$plugins} WHERE plugin_path = :old_path";
+        $q = $PDOX->queryReturnError($sql, array(':old_path' => $old_path));
+        if ( $q->success && $q->rowCount() > 0 ) {
+            echo("Removed duplicate plugin_path: $old_path (already have $new_path)<br/>\n");
+        }
+        continue;
+    }
+
     $sql = "UPDATE {$plugins} SET plugin_path = :new_path WHERE plugin_path = :old_path";
     $q = $PDOX->queryReturnError($sql, array(':new_path' => $new_path, ':old_path' => $old_path));
     if ($q->success && $q->rowCount() > 0) {
@@ -127,11 +142,26 @@ foreach($moretools as $tool) {
 // Prefer lib Discussions schema over legacy tool/tdiscus database.php stub
 $discussions_lib = 'lib/src/Controllers/database/Discussions/database.php';
 $legacy_discussions = array('tool/tdiscus/database.php');
-if ( in_array($discussions_lib, $tools) ) {
+$has_discussions_lib = false;
+foreach ( $tools as $tool ) {
+    $relative = U::remove_relative_path(trimAsMuchAsYouCan($tool, $CFG->dirroot));
+    if ( $relative === $discussions_lib ) {
+        $has_discussions_lib = true;
+        break;
+    }
+}
+if ( $has_discussions_lib ) {
     $filtered = array();
     foreach ( $tools as $tool ) {
-        $relative = trimAsMuchAsYouCan($tool, $CFG->dirroot);
-        if ( in_array($relative, $legacy_discussions) ) continue;
+        $relative = U::remove_relative_path(trimAsMuchAsYouCan($tool, $CFG->dirroot));
+        $is_legacy = false;
+        foreach ( $legacy_discussions as $legacy ) {
+            if ( $relative === $legacy || substr($relative, -strlen($legacy)) === $legacy ) {
+                $is_legacy = true;
+                break;
+            }
+        }
+        if ( $is_legacy ) continue;
         $filtered[] = $tool;
     }
     $tools = $filtered;
