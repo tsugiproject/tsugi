@@ -60,11 +60,15 @@ create table {$plugins} (
     echo("Created plugins table...<br/>\n");
 }
 
-// Migrate old lms plugin_path entries to new lib paths (one-time)
+// Migrate old plugin_path entries to current lib/Services paths (one-time)
 $path_migrations = array(
-    'lms/announce/database.php' => 'lib/src/Controllers/database/Announcements/database.php',
-    'lms/pages/database.php' => 'lib/src/Controllers/database/Pages/database.php',
-    'tool/tdiscus/database.php' => 'lib/src/Controllers/database/Discussions/database.php',
+    'lms/announce/database.php' => 'lib/src/Services/Announcements/database.php',
+    'lms/pages/database.php' => 'lib/src/Services/Pages/database.php',
+    'tool/tdiscus/database.php' => 'lib/src/Services/Discussions/database.php',
+    'lib/src/Controllers/database/Announcements/database.php' => 'lib/src/Services/Announcements/database.php',
+    'lib/src/Controllers/database/Pages/database.php' => 'lib/src/Services/Pages/database.php',
+    'lib/src/Controllers/database/Discussions/database.php' => 'lib/src/Services/Discussions/database.php',
+    'tool/peer-grade/database.php' => 'lib/src/Services/PeerGrade/database.php',
 );
 foreach ($path_migrations as $old_path => $new_path) {
     $sql = "SELECT plugin_id FROM {$plugins} WHERE plugin_path = :old_path";
@@ -104,20 +108,8 @@ foreach($tools as $k => $tool ) {
     }
 }
 
-echo("Checking LMS Features Tables...<br/>\n");
-// Scan lib/src/Controllers/database for database.php files (Announcements, Pages, Discussions)
-$libdb = searchTwoLevels("database.php", $CFG->dirroot.'/lib/src/Controllers/database');
-for($i=0; $i<count($libdb); $i++) {
-    $libdb[$i] = U::remove_relative_path($libdb[$i]);
-}
-// Add lib database.php files, not already in the list
-foreach($libdb as $tool) {
-    if ( in_array($tool, $tools) ) continue;
-    $tools[] = $tool;
-}
-
 echo("Checking Services Tables...<br/>\n");
-// Scan lib/src/Services for database.php files (e.g. Badges)
+// Scan lib/src/Services for database.php files (Announcements, Pages, Discussions, Badges, etc.)
 $svcdb = searchTwoLevels("database.php", $CFG->dirroot.'/lib/src/Services');
 for($i=0; $i<count($svcdb); $i++) {
     $svcdb[$i] = U::remove_relative_path($svcdb[$i]);
@@ -140,7 +132,7 @@ foreach($moretools as $tool) {
 }
 
 // Prefer lib Discussions schema over legacy tool/tdiscus database.php stub
-$discussions_lib = 'lib/src/Controllers/database/Discussions/database.php';
+$discussions_lib = 'lib/src/Services/Discussions/database.php';
 $legacy_discussions = array('tool/tdiscus/database.php');
 $has_discussions_lib = false;
 foreach ( $tools as $tool ) {
@@ -162,6 +154,19 @@ if ( $has_discussions_lib ) {
             }
         }
         if ( $is_legacy ) continue;
+        $filtered[] = $tool;
+    }
+    $tools = $filtered;
+}
+
+// Prefer lib PeerGrade schema over legacy tool/peer-grade/database.php stub
+$peer_grade_lib = 'lib/src/Services/PeerGrade/database.php';
+$legacy_peer_grade = array('tool/peer-grade/database.php');
+if ( in_array($peer_grade_lib, $tools) ) {
+    $filtered = array();
+    foreach ( $tools as $tool ) {
+        $relative = trimAsMuchAsYouCan($tool, $CFG->dirroot);
+        if ( in_array($relative, $legacy_peer_grade) ) continue;
         $filtered[] = $tool;
     }
     $tools = $filtered;

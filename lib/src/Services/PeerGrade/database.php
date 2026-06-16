@@ -1,12 +1,5 @@
 <?php
 
-// To allow this to be called directly or from admin/upgrade.php
-if ( !isset($PDOX) ) {
-    require_once "../config.php";
-    $CURRENT_FILE = __FILE__;
-    require $CFG->dirroot."/admin/migrate-setup.php";
-}
-
 if ( ! isset($CFG) ) exit;
 
 // Dropping tables
@@ -241,9 +234,3 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     return 201901202122;
 }; // Don't forget the semicolon on anonymous functions :)
-
-// Do the actual migration if we are not in admin/upgrade.php
-if ( isset($CURRENT_FILE) ) {
-    include $CFG->dirroot."/admin/migrate-run.php";
-}
-
