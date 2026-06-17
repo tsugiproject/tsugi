@@ -13,6 +13,9 @@ use \Tsugi\Services\Badges\BadgeService;
 use \Tsugi\UI\BadgeShare\BadgeShareRegistry;
 use \Tsugi\UI\BadgeShare\BadgeShareHead;
 
+// assertions/.htaccess routes here directly, bypassing tsugi.php
+LTIX::session_start();
+
 // Parse the URL to extract encrypted ID and resource type
 $url = $_SERVER['REQUEST_URI'];
 $path = trim(parse_url($url, PHP_URL_PATH), '/');
@@ -48,9 +51,6 @@ if ($first_part === 'publish') {
         echo("<h2>Bad Request</h2><p>Missing badge id.</p>\n");
         $OUTPUT->footer();
         return;
-    }
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
     }
     $current_user_id = loggedInUserId();
     if ($current_user_id === 0) {
@@ -393,12 +393,6 @@ switch ($resource) {
             // Compute signature: md5("42 " + output), then take first 5 hex digits
             $sig = md5("42 " . $output);
             $credential_id = substr($sig, 0, 5);
-        }
-        
-        // Check if user is logged in and owns this badge
-        // Start session if not already started (needed to check login status)
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
         }
         
         // Get current logged-in user ID (session or $USER; see lms_lib.php)
