@@ -1662,11 +1662,95 @@ class ConfigInfo {
     }
 
     /**
+     * Payment provider id from the premium extension (e.g. "stripe").
+     *
+     * @return string|false
+     */
+    public function premiumProvider()
+    {
+        $provider = trim((string) U::get($this->premiumConfig(), 'premium_provider', ''));
+        if ( strlen($provider) < 1 ) {
+            return false;
+        }
+        return $provider;
+    }
+
+    /**
+     * Config block for the configured premium payment provider.
+     *
+     * @return array<string,mixed>
+     */
+    public function premiumProviderConfig()
+    {
+        $provider = $this->premiumProvider();
+        if ( $provider === false ) {
+            return array();
+        }
+        $cfg = $this->getExtension($provider);
+        return is_array($cfg) ? $cfg : array();
+    }
+
+    /**
      * Whether supporter/premium signup is configured on this site.
      */
     public function isPremiumAvailable(): bool
     {
         return $this->supporterUrl() !== false;
+    }
+
+    /**
+     * Stripe extension config block.
+     *
+     * @return array<string,mixed>
+     */
+    public function stripeConfig()
+    {
+        $cfg = $this->getExtension('stripe');
+        return is_array($cfg) ? $cfg : array();
+    }
+
+    /**
+     * Whether Stripe checkout is configured (stripe extension with required keys).
+     */
+    public function isStripeConfigured(): bool
+    {
+        $stripe_cfg = $this->stripeConfig();
+        if ( count($stripe_cfg) < 1 ) {
+            return false;
+        }
+
+        $secret_key = trim((string) U::get($stripe_cfg, 'secret_key', ''));
+        $supporter_price = trim((string) U::get($stripe_cfg, 'supporter_price', ''));
+        $site = trim((string) U::get($stripe_cfg, 'site', ''));
+
+        return $secret_key !== '' && $supporter_price !== '' && $site !== '';
+    }
+
+    /**
+     * Whether the configured premium payment provider extension is present and usable.
+     */
+    public function isPremiumProviderConfigured(): bool
+    {
+        $provider = $this->premiumProvider();
+        if ( $provider === false ) {
+            return false;
+        }
+
+        if ( $provider === 'stripe' ) {
+            return $this->isStripeConfigured();
+        }
+
+        return count($this->premiumProviderConfig()) > 0;
+    }
+
+    /**
+     * Whether supporter UI (status, invite, renew) may be shown.
+     *
+     * Requires premium display config plus the provider named in premium_provider.
+     */
+    public function isSupporterUiAvailable(): bool
+    {
+        return $this->isPremiumAvailable() && $this->isPremiumProviderConfigured();
     }
 
     public function supporterSiteName()

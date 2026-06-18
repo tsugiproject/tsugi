@@ -11,6 +11,11 @@ use Tsugi\Util\U;
  */
 class Supporter {
 
+    protected static function isUiAvailable($CFG): bool
+    {
+        return $CFG->isSupporterUiAvailable();
+    }
+
     /**
      * @return array<string,mixed>
      */
@@ -44,6 +49,10 @@ class Supporter {
      * Thank-you / status for premium users.
      */
     public static function renderThankYou($CFG) {
+        if ( ! self::isUiAvailable($CFG) ) {
+            return;
+        }
+
         $ctx = self::context($CFG);
         if ( ! $ctx['userProfile']->isPremium() ) {
             return;
@@ -76,8 +85,12 @@ class Supporter {
      * Simple become-a-supporter line for non-premium users.
      */
     public static function renderInvite($CFG) {
+        if ( ! self::isUiAvailable($CFG) ) {
+            return;
+        }
+
         $ctx = self::context($CFG);
-        if ( ! $CFG->isPremiumAvailable() || $ctx['userProfile']->isPremium() ) {
+        if ( $ctx['userProfile']->isPremium() ) {
             return;
         }
 
@@ -94,8 +107,12 @@ class Supporter {
      * Simple renew link for expired supporters.
      */
     public static function renderRenew($CFG) {
+        if ( ! self::isUiAvailable($CFG) ) {
+            return;
+        }
+
         $ctx = self::context($CFG);
-        if ( ! $CFG->isPremiumAvailable() || ! $ctx['userProfile']->isPremium() || $ctx['is_active'] ) {
+        if ( ! $ctx['userProfile']->isPremium() || $ctx['is_active'] ) {
             return;
         }
         if ( ! is_string($ctx['premium_until']) || strlen($ctx['premium_until']) < 1 ) {
