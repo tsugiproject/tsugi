@@ -111,6 +111,42 @@ if ($first_part === 'publish') {
     return;
 }
 
+// Handle LinkedIn click tracking: /assertions/linkedin?id={guid}[&share=1]
+if ($first_part === 'linkedin') {
+    $guid = isset($_GET['id']) ? trim($_GET['id']) : '';
+    $share = isset($_GET['share']) && $_GET['share'] === '1';
+    if ( empty($guid) || ! BadgeService::isMintedGuid($guid) ) {
+        http_response_code(404);
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        echo("<h2>Not found</h2><p>Badge not found.</p>\n");
+        $OUTPUT->footer();
+        return;
+    }
+    if ( ! isset($CFG->lessons) ) {
+        die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+    }
+    $l = new Lessons($CFG->lessons);
+    $destination = BadgeService::linkedInDestinationUrl($guid, $share, $l);
+    if ( $destination === null ) {
+        http_response_code(404);
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        echo("<h2>Not found</h2><p>LinkedIn sharing is not available for this badge.</p>\n");
+        $OUTPUT->footer();
+        return;
+    }
+    $current_user_id = loggedInUserId();
+    $minted = BadgeService::getByGuid($guid);
+    if ( $current_user_id > 0 && $minted && (int) $minted['user_id'] === $current_user_id ) {
+        BadgeService::recordLinkedInClick($guid);
+    }
+    header('Location: ' . $destination, true, 302);
+    return;
+}
+
 // Handle fixed issuer route: /assertions/issuer.json
 if ($first_part === 'issuer.json') {
     if ( ! isset($CFG->lessons) ) {
@@ -529,7 +565,7 @@ switch ($resource) {
                                 <span class="glyphicon glyphicon-qrcode"></span> Show QR Code
                             </button>
                             <?php if ($completion_badge && $linkedin_url && $show_share_buttons): ?>
-                                <a href="<?= htmlspecialchars($linkedin_url) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary" title="Add Credential to LinkedIn">
+                                <a href="<?= htmlspecialchars(BadgeService::linkedInTrackingUrl($encrypted)) ?>" class="btn btn-primary" title="Add Credential to LinkedIn">
                                     Add Credential to LinkedIn
                                 </a>
                             <?php endif; ?>
@@ -545,7 +581,7 @@ switch ($resource) {
                     if ($show_share_buttons): ?>
                         <div style="margin-top: 15px;">
                             <p><strong>Share:</strong></p>
-                            <?= BadgeShareRegistry::renderShareLinks($landing_url, $badge->title, $title) ?>
+                            <?= BadgeShareRegistry::renderShareLinks($landing_url, $badge->title, $title, $encrypted) ?>
                         </div>
                     <?php endif; ?>
                 </div>

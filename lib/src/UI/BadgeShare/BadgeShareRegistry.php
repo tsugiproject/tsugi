@@ -2,6 +2,8 @@
 
 namespace Tsugi\UI\BadgeShare;
 
+use Tsugi\Services\Badges\BadgeService;
+
 /**
  * Registry of badge share platforms. Returns platform instances without a case statement.
  */
@@ -33,9 +35,10 @@ class BadgeShareRegistry {
      * @param string $assertUrl   Badge assertion URL
      * @param string $badgeTitle  Badge title for share text
      * @param string $courseTitle Optional course/service name
+     * @param string|null $badgeGuid Minted badge GUID for LinkedIn click tracking
      * @return string HTML fragment of share links
      */
-    public static function renderShareLinks(string $assertUrl, string $badgeTitle, string $courseTitle = ''): string {
+    public static function renderShareLinks(string $assertUrl, string $badgeTitle, string $courseTitle = '', ?string $badgeGuid = null): string {
         $text = sprintf(__('I earned the "%s" badge'), $badgeTitle);
         if ( $courseTitle !== '' ) {
             $text .= ' ' . sprintf(__('from %s'), $courseTitle);
@@ -44,7 +47,11 @@ class BadgeShareRegistry {
 
         $out = '<ul class="badge-share-links" role="list">';
         foreach ( self::getPlatforms() as $platform ) {
-            $shareUrl = $platform->getShareUrl($assertUrl, $text);
+            if ( $badgeGuid !== null && $platform instanceof LinkedInShare && BadgeService::isMintedGuid($badgeGuid) ) {
+                $shareUrl = BadgeService::linkedInTrackingUrl($badgeGuid, true);
+            } else {
+                $shareUrl = $platform->getShareUrl($assertUrl, $text);
+            }
             $name = $platform->getName();
             $label = sprintf(__('Post to %s'), $name);
             $out .= '<li><a href="' . htmlspecialchars($shareUrl) . '" target="_blank" rel="noopener noreferrer" ';

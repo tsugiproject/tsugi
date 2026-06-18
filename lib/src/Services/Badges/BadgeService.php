@@ -5,6 +5,8 @@ namespace Tsugi\Services\Badges;
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Badges;
+use \Tsugi\LinkedIn\LinkedIn;
+use \Tsugi\UI\BadgeShare\LinkedInShare;
 
 /**
  * Service for minted badge operations (OB2/OB3).
@@ -266,6 +268,123 @@ class BadgeService {
             array(':tname' => $tname)
         );
         return $q->success && $q->rowCount() > 0;
+    }
+
+    /**
+     * URL that records a LinkedIn click then redirects to LinkedIn.
+     */
+    public static function linkedInTrackingUrl(string $guid, bool $share = false): string {
+        global $CFG;
+        $url = rtrim($CFG->wwwroot, '/') . '/assertions/linkedin?id=' . rawurlencode($guid);
+        if ( $share ) {
+            $url .= '&share=1';
+        }
+        return $url;
+    }
+
+    /**
+     * Increment linkedin_clicks for a minted badge.
+     */
+    public static function recordLinkedInClick(string $guid): bool {
+        global $CFG, $PDOX;
+
+        if ( ! self::isMintedGuid($guid) || ! self::tableExists() ) {
+            return false;
+        }
+
+        $q = $PDOX->queryReturnError(
+            "UPDATE {$CFG->dbprefix}badges
+                SET linkedin_clicks = COALESCE(linkedin_clicks, 0) + 1
+                WHERE badge_guid = :GUID",
+            array(':GUID' => $guid)
+        );
+
+        return $q->success && $q->rowCount() > 0;
+    }
+
+    /**
+     * Build the external LinkedIn URL for a minted badge (credential add or share post).
+     *
+     * @return string|null LinkedIn URL or null if the badge cannot be shared this way
+     */
+    public static function linkedInDestinationUrl(string $guid, bool $share, $lessons): ?string {
+        global $CFG;
+
+        $data = self::getAssertionDataForGuid($guid, $lessons);
+        if ( ! $data ) {
+            return null;
+        }
+
+        $row = $data['row'];
+        $badge = $data['badge'];
+        $landing_url = rtrim($CFG->wwwroot, '/') . '/assertions/' . rawurlencode($guid);
+
+        if ( $share ) {
+            $text = sprintf('I earned the "%s" badge', $badge->title ?? '');
+            $course_title = U::get($row, 'title', '');
+            if ( is_string($course_title) && strlen($course_title) > 0 ) {
+                $text .= ' from ' . $course_title;
+            }
+            $text .= '!';
+            $platform = new LinkedInShare();
+            return $platform->getShareUrl($landing_url, $text);
+        }
+
+        $completion_badge = isset($badge->completion) ? $badge->completion : false;
+        if ( ! $completion_badge ) {
+            return null;
+        }
+
+        $issued_on = U::iso8601(U::get($row, 'issued_at'));
+        $issueYear = null;
+        $issueMonth = null;
+        if ( is_string($issued_on) && strlen($issued_on) > 0 ) {
+            try {
+                $date_obj = new \DateTime($issued_on);
+                $issueYear = (int) $date_obj->format('Y');
+                $issueMonth = (int) $date_obj->format('m');
+            } catch (\Exception $e) {
+                // LinkedIn accepts certification without dates
+            }
+        }
+
+        $credential_id = self::credentialIdFromRow($row);
+        $linkedin = LinkedIn::fromConfig($CFG);
+        return $linkedin->buildAddCertificationUrl(
+            $badge->title ?? '',
+            $landing_url,
+            $credential_id,
+            $issueYear,
+            $issueMonth
+        );
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     */
+    private static function credentialIdFromRow(array $row): ?string {
+        $displayname = U::get($row, 'displayname', '');
+        $email = U::get($row, 'email', '');
+        if ( ! is_string($displayname) && ! is_string($email) ) {
+            return null;
+        }
+
+        $output = '';
+        if ( is_string($displayname) && strlen($displayname) > 0 ) {
+            $output .= $displayname;
+        }
+        if ( is_string($displayname) && strlen($displayname) > 0
+            && is_string($email) && strlen($email) > 0 ) {
+            $output .= ' ';
+        }
+        if ( is_string($email) && strlen($email) > 0 ) {
+            $output .= $email;
+        }
+        if ( strlen($output) < 1 ) {
+            return null;
+        }
+
+        return substr(md5('42 ' . $output), 0, 5);
     }
 
 }

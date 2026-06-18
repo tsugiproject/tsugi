@@ -28,6 +28,7 @@ array( "{$CFG->dbprefix}badges",
     context_title      VARCHAR(512) NOT NULL,
     badge_title        VARCHAR(512) NOT NULL,
     issued_at          DATETIME NOT NULL,
+    linkedin_clicks    INTEGER NULL DEFAULT 0,
 
     PRIMARY KEY (badge_guid),
     UNIQUE KEY {$CFG->dbprefix}badges_unique_user_context_code (user_id, context_id, badge_code),
@@ -43,5 +44,13 @@ $DATABASE_UNINSTALL = array(
 
 $DATABASE_UPGRADE = function($oldversion) {
     global $CFG, $PDOX;
-    return 202512130002;
+
+    if ( $PDOX->columnExists('linkedin_clicks', "{$CFG->dbprefix}badges") === false ) {
+        $sql = "ALTER TABLE {$CFG->dbprefix}badges ADD linkedin_clicks INTEGER NULL DEFAULT 0";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryReturnError($sql);
+    }
+
+    return 202606170001;
 };

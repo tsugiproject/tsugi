@@ -33,9 +33,9 @@ if ( ! BadgeService::tableExists() ) {
 
 $query_parms = array();
 $searchfields = array("badge_guid", "user_displayname", "user_email", "badge_code", "badge_title", "context_title", "issued_at");
-$sql = "SELECT badge_guid, user_id, context_id, badge_code, badge_title, user_displayname, user_email, context_title, issued_at
+$sql = "SELECT badge_guid, user_id, context_id, badge_code, badge_title, user_displayname, user_email, context_title, issued_at, linkedin_clicks
         FROM {$CFG->dbprefix}badges";
-$orderfields = array("issued_at", "badge_guid", "user_displayname", "badge_title", "context_title", "user_email");
+$orderfields = array("issued_at", "badge_guid", "user_displayname", "badge_title", "context_title", "user_email", "linkedin_clicks");
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields, $orderfields);
 $rows = $PDOX->allRowsDie($newsql, $query_parms);
