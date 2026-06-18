@@ -2,9 +2,8 @@
 
 namespace Tsugi\Controllers;
 
-use Tsugi\Core\Launch;
 use Tsugi\Core\Profile as UserProfile;
-use Tsugi\Util\U;
+use Tsugi\UI\Supporter;
 use Tsugi\Lumen\Controller;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
@@ -122,8 +121,8 @@ google.maps.event.addListener(marker, 'dragend', function (event) {
 
 echo('<h1>');echo(htmlentities($_SESSION['displayname']));
 echo(' ('.htmlentities($_SESSION['email']).")</h1>\n");
-        self::renderSupporterThankYou($CFG);
-        self::renderSupporterInvite($CFG);
+        Supporter::renderThankYou($CFG);
+        Supporter::renderInvite($CFG);
         ?>
 
         <form method="POST">
@@ -208,7 +207,7 @@ Send me notification mail for important things like my assignment was graded.
             <a href="<?= htmlspecialchars($CFG->apphome) ?>/index.php" class="btn btn-warning" aria-label="<?= htmlspecialchars(__('Cancel and return')) ?>">Cancel</a>
         </div>
         </form>
-        <?php self::renderSupporterRenew($CFG); ?>
+        <?php Supporter::renderRenew($CFG); ?>
         </main>
         <?php
 
@@ -293,161 +292,10 @@ Send me notification mail for important things like my assignment was graded.
     }
 
     /**
-     * @return array<string,mixed>
-     */
-    protected static function supporterContext($CFG) {
-        $launch = new Launch();
-        $userProfile = UserProfile::fromLaunchRow(
-            array('profile_id' => $_SESSION['profile_id']),
-            $launch
-        );
-
-        $supporter_raw = $CFG->supporterUrl();
-        $site_name = $CFG->supporterSiteName();
-        $site_label = $CFG->supporterSiteLabel();
-        $supporter_label = $CFG->supporterLabel();
-        $premium_until = self::supporterPremiumUntil($userProfile);
-
-        return array(
-            'userProfile' => $userProfile,
-            'supporter_url' => $supporter_raw ? htmlspecialchars($supporter_raw) : '',
-            'site_name' => $site_name,
-            'site_label' => $site_label,
-            'supporter_label' => $supporter_label,
-            'price_label' => $CFG->supporterPriceLabel(),
-            'price_phrase' => $CFG->supporterPricePhrase(),
-            'premium_until' => $premium_until,
-            'is_active' => self::isSupporterActive($userProfile, $premium_until),
-        );
-    }
-
-    /**
-     * Thank-you / status for premium users (top of profile page).
-     */
-    protected static function renderSupporterThankYou($CFG) {
-        $ctx = self::supporterContext($CFG);
-        if ( ! $ctx['userProfile']->isPremium() ) {
-            return;
-        }
-
-        echo('<section class="well" style="margin: 1.5em 0; padding: 1em 1.25em;">' . "\n");
-        echo('<h2 style="margin-top: 0;">' . htmlspecialchars($ctx['supporter_label']) . '</h2>' . "\n");
-        echo('<p><strong>Thank you for supporting '
-            . htmlspecialchars($ctx['site_label']) . '!</strong></p>' . "\n");
-
-        $premium_until = $ctx['premium_until'];
-        if ( is_string($premium_until) && strlen($premium_until) > 0 ) {
-            $until_label = self::formatSupporterUntil($premium_until, $CFG);
-            if ( $ctx['is_active'] ) {
-                echo('<p>Your supporter status is active through <strong>'
-                    . htmlspecialchars($until_label) . '</strong>.</p>' . "\n");
-            } else {
-                echo('<p>Your supporter period ended on <strong>'
-                    . htmlspecialchars($until_label) . '</strong>.</p>' . "\n");
-            }
-        } else {
-            echo('<p>Your supporter status is active.</p>' . "\n");
-        }
-
-        echo('</section>' . "\n");
-    }
-
-    /**
-     * Simple become-a-supporter line for non-premium users (top of profile page).
-     */
-    protected static function renderSupporterInvite($CFG) {
-        $ctx = self::supporterContext($CFG);
-        if ( ! $CFG->isPremiumAvailable() || $ctx['userProfile']->isPremium() ) {
-            return;
-        }
-
-        echo('<p style="margin: 0.75em 0 1.25em;">' . "\n");
-        echo('<a href="' . $ctx['supporter_url'] . '">Become a supporter 💚</a>');
-        if ( $ctx['price_phrase'] !== '' ) {
-            echo(' <span style="opacity: 0.75;">— '
-                . htmlspecialchars($ctx['price_phrase']) . '.</span>' . "\n");
-        }
-        echo('</p>' . "\n");
-    }
-
-    /**
-     * Simple renew link for expired supporters (bottom of profile page).
-     */
-    protected static function renderSupporterRenew($CFG) {
-        $ctx = self::supporterContext($CFG);
-        if ( ! $CFG->isPremiumAvailable() || ! $ctx['userProfile']->isPremium() || $ctx['is_active'] ) {
-            return;
-        }
-        if ( ! is_string($ctx['premium_until']) || strlen($ctx['premium_until']) < 1 ) {
-            return;
-        }
-
-        echo('<p style="margin: 1.5em 0 0;">' . "\n");
-        echo('<a href="' . $ctx['supporter_url'] . '">Renew supporter status</a>');
-        if ( $ctx['price_phrase'] !== '' ) {
-            echo(' <span style="opacity: 0.75;">(' . htmlspecialchars($ctx['price_phrase']) . ')</span>');
-        }
-        echo("\n</p>\n");
-    }
-
-    /**
      * @return string|false
      */
     public static function supporterPremiumUntil(UserProfile $profile) {
-        $json = $profile->getPremiumJsonArray();
-        $top = U::get($json, 'premium_until', false);
-        if ( is_string($top) && strlen($top) > 0 ) {
-            return $top;
-        }
-
-        $best = false;
-        $best_dt = null;
-        foreach ( $json as $block ) {
-            if ( ! is_array($block) ) {
-                continue;
-            }
-            $candidate = U::get($block, 'premium_until', false);
-            if ( ! is_string($candidate) || strlen($candidate) < 1 ) {
-                continue;
-            }
-            try {
-                $dt = new \DateTimeImmutable($candidate);
-                if ( $best_dt === null || $dt > $best_dt ) {
-                    $best_dt = $dt;
-                    $best = $candidate;
-                }
-            } catch (\Exception $e) {
-                // ignore bad date values
-            }
-        }
-
-        return $best;
-    }
-
-    protected static function isSupporterActive(UserProfile $profile, $premium_until) {
-        if ( ! $profile->isPremium() ) {
-            return false;
-        }
-        if ( ! is_string($premium_until) || strlen($premium_until) < 1 ) {
-            return true;
-        }
-        try {
-            $until = new \DateTimeImmutable($premium_until);
-            $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
-            return $until > $now;
-        } catch (\Exception $e) {
-            return $profile->isPremium();
-        }
-    }
-
-    protected static function formatSupporterUntil($premium_until, $CFG) {
-        try {
-            $tz_name = (isset($CFG->timezone) && $CFG->timezone) ? $CFG->timezone : 'UTC';
-            $dt = new \DateTimeImmutable($premium_until);
-            return $dt->setTimezone(new \DateTimeZone($tz_name))->format('F j, Y');
-        } catch (\Exception $e) {
-            return (string) $premium_until;
-        }
+        return Supporter::premiumUntil($profile);
     }
 }
 

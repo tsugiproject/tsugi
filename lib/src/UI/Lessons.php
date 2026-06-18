@@ -2043,7 +2043,7 @@ class Lessons {
         return $resources;
     }
 
-    public function renderBadges($allgrades, $buffer=false)
+    public function renderBadges($allgrades, $buffer=false, $supporter_ui=false)
     {
         ob_start();
         global $CFG, $OUTPUT;
@@ -2063,6 +2063,10 @@ class Lessons {
         }
         if (U::strlen($display) > 0 ) {
             echo("<p>".__("Student:")." ".$display."</p>\n");
+        }
+        if ( $supporter_ui ) {
+            \Tsugi\UI\Supporter::renderThankYou($CFG);
+            \Tsugi\UI\Supporter::renderInvite($CFG);
         }
         $awarded = array();
 ?>
@@ -2231,6 +2235,9 @@ class Lessons {
 ?>
 </div>
 <?php
+        if ( $supporter_ui ) {
+            \Tsugi\UI\Supporter::renderRenew($CFG);
+        }
         $ob_output = ob_get_contents();
         ob_end_clean();
         if ( $buffer ) return $ob_output;

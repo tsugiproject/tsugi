@@ -4,6 +4,7 @@ namespace Tsugi\Controllers;
 
 use Tsugi\Lumen\Controller;
 use Tsugi\Lumen\Application;
+use Tsugi\UI\Supporter;
 use Tsugi\Util\U;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -112,9 +113,14 @@ class Map extends Controller {
 ?>
 <main class="container" id="main-content">
 <h1><?= __('Map') ?></h1>
+<?php
+        Supporter::renderThankYou($CFG);
+        Supporter::renderInvite($CFG);
+?>
 <div id="map-error" class="alert alert-danger" role="alert" style="display: none;"></div>
 <div id="map_canvas" style="width:100%; height:400px" role="img" aria-label="<?= htmlspecialchars(__('Map showing user locations')) ?>"></div>
 <p id="counter" style="text-align:center; padding-top:10px; display:none" aria-live="polite"></p>
+<?php Supporter::renderRenew($CFG); ?>
 </main>
 <?php
         $OUTPUT->footerStart();

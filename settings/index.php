@@ -38,6 +38,10 @@ $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 ?>
 <h1>My Settings</h1>
+<?php
+\Tsugi\UI\Supporter::renderThankYou($CFG);
+\Tsugi\UI\Supporter::renderInvite($CFG);
+?>
 <p>This page is for instructors to manage their courses and the use of these
 applications in their courses.
 </p>
@@ -106,6 +110,7 @@ can visit the administrator dashboard.
 <p>
 <strong>Note:</strong> The modal popups in this screen work best in the FireFox browser.
 <?php
+\Tsugi\UI\Supporter::renderRenew($CFG);
 
 $OUTPUT->footer();
 
