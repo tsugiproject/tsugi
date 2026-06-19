@@ -60,3 +60,50 @@ function get_quiz_files() {
     sort($files);
     return $files;
 }
+
+function gift_quizzes_locked() {
+    global $CFG;
+    if ( ! isset($CFG->giftquizzes) || ! is_file($CFG->giftquizzes.'/.lock') ) return false;
+    $lock = trim(file_get_contents($CFG->giftquizzes.'/.lock'));
+    return strlen($lock) > 0 ? $lock : false;
+}
+
+function requested_quiz_file() {
+    if ( isset($_GET['quiz']) && strlen($_GET['quiz']) > 0 ) return $_GET['quiz'];
+    if ( isset($_SESSION['default_quiz']) && strlen($_SESSION['default_quiz']) > 0 ) return $_SESSION['default_quiz'];
+    return false;
+}
+
+function gift_is_valid($gift) {
+    $questions = array();
+    $errors = array();
+    parse_gift($gift, $questions, $errors);
+    return count($questions) >= 1 && count($errors) == 0;
+}
+
+/**
+ * When a link has no saved quiz yet, load one from $CFG->giftquizzes if
+ * ?quiz=filename was passed (or remembered in session), the folder is not
+ * locked, and the file parses as valid GIFT.
+ *
+ * @return string|false Quiz filename on success, false if unchanged
+ */
+function try_configure_quiz_from_file(&$gift) {
+    global $CFG, $LINK;
+
+    if ( $gift !== false && strlen($gift) > 0 ) return false;
+    if ( gift_quizzes_locked() !== false ) return false;
+
+    $files = get_quiz_files();
+    if ( ! $files ) return false;
+
+    $name = requested_quiz_file();
+    if ( ! is_string($name) || ! in_array($name, $files, true) ) return false;
+
+    $candidate = file_get_contents($CFG->giftquizzes.'/'.$name);
+    if ( ! gift_is_valid($candidate) ) return false;
+
+    $LINK->setJson($candidate);
+    $gift = $candidate;
+    return $name;
+}

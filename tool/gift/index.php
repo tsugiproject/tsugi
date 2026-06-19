@@ -34,7 +34,7 @@ if ( SettingsForm::isSettingsPost() ) {
 }
 
 // Remember the default file name
-if ( isset($_GET['quiz']) && $USER->instructor ) {
+if ( isset($_GET['quiz']) ) {
     $_SESSION['default_quiz'] = $_GET['quiz'];
 }
 
@@ -64,6 +64,10 @@ $dueDate = SettingsForm::getDueDate();
 
 // Load the quiz
 $gift = $LINK->getJson();
+$configured = try_configure_quiz_from_file($gift);
+if ( $configured !== false ) {
+    $_SESSION['success'] = 'Loaded quiz '.$configured.' as default';
+}
 
 // parse the quiz questions
 $questions = false;
