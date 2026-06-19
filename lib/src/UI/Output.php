@@ -825,7 +825,8 @@ $('a').each(function (x) {
      * Priority order on cookie-session pages (admin, login, site):
      * (1) $CFG->top_menu_callback when set (site-owned menu builder)
      * (2) $CFG->defaultmenu when set
-     * (3) defaultMenuSet()
+     * (3) Navigation stored via $OUTPUT->topNavSession() (legacy site nav.php pattern)
+     * (4) defaultMenuSet()
      *
      * On LTI tool pages:
      * (1) Navigation cached in the session (LTI / tool continuity)
@@ -847,7 +848,12 @@ $('a').each(function (x) {
             if ( $CFG->defaultmenu instanceof \Tsugi\UI\MenuSet ) {
                 $menu_set = $CFG->defaultmenu;
             } else {
-                $menu_set = self::defaultMenuSet();
+                $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
+                if ( $_SESSION[$sess_key] ?? null ) {
+                    $menu_set = \Tsugi\UI\MenuSet::import($_SESSION[$sess_key]);
+                } else {
+                    $menu_set = self::defaultMenuSet();
+                }
             }
         } else {
             $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;

@@ -5,6 +5,7 @@ require_once('../config.php');
 
 // Site menu callbacks assume a full schema; use Tsugi default in admin.
 unset($CFG->top_menu_callback);
+\Tsugi\UI\Output::clearTopNavSession();
 
 // Make PHP paths pretty .../install => install.php
 $router = new Tsugi\Util\FileRouter();

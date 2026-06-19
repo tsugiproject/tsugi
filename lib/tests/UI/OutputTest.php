@@ -103,4 +103,28 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         $this->assertInstanceOf(\Tsugi\UI\MenuSet::class, $CFG->defaultmenu);
     }
 
+    public function testTopNavSessionOnCookieSessionPage() {
+        if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
+        global $CFG;
+
+        $CFG = new \Tsugi\Config\ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
+        $CFG->servicename = 'Test Site';
+        $CFG->apphome = 'http://example.com';
+
+        @session_id('test-session-'.uniqid());
+        @session_start();
+        $_SESSION = [];
+
+        $set = new \Tsugi\UI\MenuSet();
+        $set->setHome('Session Home', 'http://example.com/session');
+
+        $OUTPUT = new Output();
+        $OUTPUT->launch = new \Tsugi\Core\Launch();
+        $OUTPUT->buffer = true;
+        $OUTPUT->topNavSession($set);
+        $menu_txt = $OUTPUT->topNav();
+
+        $this->assertStringContainsString('Session Home', $menu_txt);
+    }
+
 }

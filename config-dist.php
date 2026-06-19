@@ -289,7 +289,8 @@ $CFG->google_translate = false;
 // menu in this order:
 //   (1) $CFG->top_menu_callback when set and callable
 //   (2) $CFG->defaultmenu when it is a MenuSet
-//   (3) Output::defaultMenuSet() (generic Tsugi menu)
+//   (3) Navigation stored via $OUTPUT->topNavSession() (legacy nav.php pattern)
+//   (4) Output::defaultMenuSet() (generic Tsugi menu)
 //
 // Set top_menu_callback in your site config (e.g. tsugi_settings.php included
 // from config.php) or in this file. The callback must return
