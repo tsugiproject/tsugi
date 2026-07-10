@@ -220,50 +220,5 @@ to see the various URLs you can use to install Tsugi in Blackboard.
 </div>
 <?php
 $OUTPUT->footerStart();
-?>
-<script>
-</script>
-
-<?php
-if ( count($rows) > 0 ) {
-$select_text = "<select id=\"issuer_id_select\"><option value=\"\">No Global Issuer Selected</option>";
-foreach($rows as $row) {
-    $select_text .= '<option value="'.$row['issuer_id'].'">'.htmlentities($row['issuer_key']. ' ('.$row['issuer_guid'].')')."</option>";
-}
-$select_text .= "</select>";
-
-?>
-<script>
-    function showHideLMSValues(issuer_id)
-    {
-        const array = ["lms_issuer", "lms_client", "lms_keyset_url", "lms_oidc_auth", "lms_token_url", "lms_token_audience"];
-        if ( issuer_id > 0 ) {
-            $("#lms_note").hide();
-            var ignored = '';
-            array.forEach(function (item, index) {
-                $('#'+item).closest('div').hide();
-                if ( ignored.length > 0 ) ignored = ignored + ' ';
-                ignored = ignored + item;
-            });
-            if ( ignored.length > 0 ) {
-                alert("By choosing a Global Issuer the following tenant key fields will be ignored: "+ignored);
-            }
-        } else {
-            array.forEach(function (item, index) { $('#'+item).closest('div').show(); });
-            $("#lms_note").show();
-        }
-    }
-$('#lms_issuer').closest('div').before("<p id=\"lms_note\">If you enter per-tenant LTI 1.3 Platform data in the fields below, (a) set them all and (b) do not select a Global Issuer for this tenant. If you select a Global Issuer from the drop-down below, most of the LTI 1.3 Platform fields below will be ignored and instead taken from the Issuer configuration.</p>");
-$('#issuer_id').hide();
-$('<?= $select_text ?>').insertBefore('#issuer_id');
-$('#issuer_id_select').on('change', function() {
-  $('input[name="issuer_id"]').val(this.value);
-  showHideLMSValues(this.value);
-});
-</script>
-
-<?php
-} /* count($rows) > 0 */
-
 $OUTPUT->footerEnd();
 
