@@ -762,12 +762,19 @@ class LTIX {
         error_log("getPlatformPublicKey key_id=$key_id request_kid=$request_kid stored_kid=$our_kid");
 
         // Make sure we have or update to the latest keyset if we have a keyset_url
-        // and the kid is new to us
+        // and the kid is new to us.  Use Net::doGet so Canvas (and similar) get a
+        // User-Agent — bare file_get_contents sends none and receives HTTP 403.
         if ( U::isNotEmpty($our_keyset_url) ) {
-            $our_keyset = @file_get_contents($our_keyset_url);
-            if ( $our_keyset === false ) {
-                $error = error_get_last();
-                self::abort_with_error_log("Failure loading keyset from ".$our_keyset_url." detail:".U::get($error, 'message'));
+            try {
+                $our_keyset = Net::doGet($our_keyset_url);
+            } catch (\Exception $e) {
+                self::abort_with_error_log("Failure loading keyset from ".$our_keyset_url.
+                    " detail:".$e->getMessage());
+            }
+            $http_code = Net::getLastHttpResponse();
+            if ( $our_keyset === false || ! Net::httpSuccess($http_code) ) {
+                self::abort_with_error_log("Failure loading keyset from ".$our_keyset_url.
+                    " detail:HTTP ".$http_code." ".substr((string)$our_keyset,0,200));
             }
 
             $decoded = json_decode($our_keyset);

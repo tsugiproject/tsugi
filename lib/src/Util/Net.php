@@ -137,6 +137,7 @@ class Net {
     }
 
     public static function getStream($url, $header=false) {
+        $header = self::ensureUserAgentHeader($header);
         $params = array('http' => array(
             'method' => 'GET',
             'header' => $header
@@ -156,34 +157,60 @@ class Net {
     }
 
     /**
-     * Set the User-Agent header on a cURL handle.
+     * Build the User-Agent string used for outbound HTTP requests.
      *
-     * Canvas and other LMS platforms increasingly require a User-Agent
-     * identifying the originating product.  Tsugi provides a default but
-     * allows override using the CFG extension mechanism in your config.php file:
+     * Canvas and other LMS platforms reject requests without a User-Agent
+     * (PHP file_get_contents sends none / empty and gets HTTP 403).
+     * Override via the CFG extension mechanism in your config.php file:
      *
      *     $CFG->setExtension('user_agent', 'MyTool/1.0 Tsugi/25.05');
      *
      * The default looks like this:
      *
-     *     Tsugi/2025.12 (https://www.py4e/tsugi) PHP/8.4.1
+     *     Tsugi/2025.12 (https://www.py4e.com/tsugi) PHP/8.4.1
+     *
+     * @return string
+     */
+    public static function getUserAgent() {
+        global $CFG;
+
+        $wwwroot = (isset($CFG) && is_object($CFG) && isset($CFG->wwwroot))
+            ? $CFG->wwwroot : 'https://www.tsugi.org';
+
+        $default_agent = 'Tsugi/' .
+            (defined('TSUGI_VERSION') ? TSUGI_VERSION : 'dev') .
+            ' (' . $wwwroot . ')' .
+            ' PHP/' . phpversion();
+
+        if ( isset($CFG) && is_object($CFG) && method_exists($CFG, 'getExtension') ) {
+            return $CFG->getExtension('user_agent', $default_agent);
+        }
+        return $default_agent;
+    }
+
+    /**
+     * Ensure a header string includes a User-Agent line.
+     *
+     * @param string|false $header Existing headers (newline-separated) or false
+     * @return string Headers including User-Agent
+     */
+    public static function ensureUserAgentHeader($header=false) {
+        $headers = is_string($header) ? trim($header) : '';
+        if ( stripos($headers, 'User-Agent:') !== false ) {
+            return $headers;
+        }
+        $ua = 'User-Agent: ' . self::getUserAgent();
+        return U::strlen($headers) > 0 ? $headers . "\r\n" . $ua : $ua;
+    }
+
+    /**
+     * Set the User-Agent header on a cURL handle.
      *
      * @param resource $ch A cURL handle
      * @return void
      */
     public static function setUserAgentCurl($ch) {
-        global $CFG;
-
-        // Construct a robust default User-Agent
-        $default_agent = 'Tsugi/' .
-            (defined('TSUGI_VERSION') ? TSUGI_VERSION : 'dev') .
-            ' (' . (isset($CFG->wwwroot) ? $CFG->wwwroot : 'https://www.tsugi.org') . ')' .
-            ' PHP/' . phpversion();
-
-        // Allow overrides via extension mechanism
-        $user_agent = $CFG->getExtension('user_agent', $default_agent);
-
-        curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
+        curl_setopt($ch, CURLOPT_USERAGENT, self::getUserAgent());
     }
 
 
@@ -359,6 +386,9 @@ class Net {
                     "Referer: ".$url['protocol'].$url['host'].$url['path'].$eol.
                     "Content-Length: ".strlen($data).$eol;
         if ( is_string($moreheaders) ) $headers .= $moreheaders;
+        if ( stripos($headers, 'User-Agent:') === false ) {
+            $headers .= "User-Agent: ".self::getUserAgent().$eol;
+        }
         $len = U::strlen($headers);
         if ( substr($headers,$len-2) != $eol ) {
             $headers .= $eol;
@@ -387,6 +417,7 @@ class Net {
     }
 
     public static function bodyStream($url, $method, $body, $header) {
+        $header = self::ensureUserAgentHeader($header);
         $params = array('http' => array(
             'method' => $method,
             'content' => $body,

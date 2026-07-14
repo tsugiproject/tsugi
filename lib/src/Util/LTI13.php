@@ -1488,17 +1488,6 @@ class LTI13 {
 
     public static function setUserAgentCurl($ch)
     {
-        global $CFG;
-
-        // Construct a robust default User-Agent
-        $default_agent = 'Tsugi/' .
-            (defined('TSUGI_VERSION') ? TSUGI_VERSION : 'dev') .
-            ' (' . (isset($CFG->wwwroot) ? $CFG->wwwroot : 'https://www.tsugi.org') . ')' .
-            ' PHP/' . phpversion();
-
-        // Allow overrides via extension mechanism
-        $user_agent = $CFG->getExtension('user_agent', $default_agent);
-
-        curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
+        Net::setUserAgentCurl($ch);
     }
 }

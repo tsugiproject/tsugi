@@ -60,4 +60,18 @@ class NetTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(Net::isRoutable('141.8.1.10'));
     }
 
+    public function testUserAgent() {
+        $ua = Net::getUserAgent();
+        $this->assertStringContainsString('Tsugi/', $ua);
+        $this->assertStringContainsString('PHP/', $ua);
+
+        $withUa = Net::ensureUserAgentHeader("Accept: application/json");
+        $this->assertStringContainsString('Accept: application/json', $withUa);
+        $this->assertStringContainsString('User-Agent: ', $withUa);
+
+        $existing = Net::ensureUserAgentHeader("User-Agent: Custom/1.0\r\nAccept: text/plain");
+        $this->assertStringContainsString('User-Agent: Custom/1.0', $existing);
+        $this->assertEquals(1, preg_match_all('/User-Agent:/i', $existing));
+    }
+
 }
