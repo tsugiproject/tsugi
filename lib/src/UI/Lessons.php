@@ -1163,7 +1163,14 @@ class Lessons {
                 foreach($videos as $video ) {
                     $media_file = $video->media ?? null;
                     echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-video">');
-                    if ( is_string($media_file) && is_string($media_base) && is_string($media_folder) &&
+                    $kaltura_url = $this->kalturaEmbedUrl($video);
+                    if ( $kaltura_url ) {
+                        if ( $nostyle ) {
+                            self::nostyleUrl($video->title, $kaltura_url);
+                        } else {
+                            $this->renderKalturaOverlay($video->title, $kaltura_url, false);
+                        }
+                    } else if ( is_string($media_file) && is_string($media_base) && is_string($media_folder) &&
                         file_exists($media_folder . '/' . $media_file) ) {
                         $media_path = $media_base . '/' . $media_file;
 ?>
@@ -2431,11 +2438,26 @@ document.addEventListener('DOMContentLoaded', function() {
 // http://bxslider.com/examples/video
 ?>
 <script>
+function tsugiOpenKalturaOverlay(id) {
+    var el = document.getElementById(id);
+    var iframe = document.getElementById(id + '-iframe');
+    if (iframe) {
+        var src = iframe.getAttribute('data-src');
+        if (src) iframe.src = src;
+    }
+    if (el) el.style.display = 'block';
+}
+function tsugiCloseKalturaOverlay(id) {
+    var el = document.getElementById(id);
+    var iframe = document.getElementById(id + '-iframe');
+    if (iframe) iframe.src = '';
+    if (el) el.style.display = 'none';
+}
 $(document).ready(function() {
     $('.w3schools-overlay').on('click', function(event) {
         if ( event.target.id == event.currentTarget.id ) {
             // Stop our embedded YouTube Players
-            labnolStopPlayers();
+            if (typeof labnolStopPlayers === 'function') labnolStopPlayers();
             // https://stackoverflow.com/questions/4071872/html5-video-force-abort-of-buffering
             // https://stackoverflow.com/a/34058996
             $('.w3schools-overlay audio, video').each(function (i,e) {
@@ -2446,6 +2468,10 @@ $(document).ready(function() {
                     this.src = tmp_src;
                     this.currentTime = playtime;
 
+            });
+            // Stop Kaltura (and any other) iframes in this overlay
+            $(event.currentTarget).find('iframe').each(function() {
+                this.src = '';
             });
             event.target.style.display = 'none';
         } else {
@@ -2718,6 +2744,51 @@ $(function(){
     }
 
     /**
+     * Build a Kaltura embed URL from lessons.json kaltura_id + kaltura_embed extension.
+     * The extension template must include a literal {id} placeholder.
+     *
+     * @return string|null Absolute embed URL, or null if unavailable
+     */
+    private function kalturaEmbedUrl($item) {
+        global $CFG;
+        $kaltura_id = isset($item->kaltura_id) ? $item->kaltura_id : null;
+        $template = $CFG->getExtension('kaltura_embed', null);
+        if ( !is_string($kaltura_id) || $kaltura_id === '' ) {
+            return null;
+        }
+        if ( !is_string($template) || $template === '' || strpos($template, '{id}') === false ) {
+            return null;
+        }
+        return str_replace('{id}', $kaltura_id, $template);
+    }
+
+    /**
+     * Canvas-style Kaltura modal: title bar link (open in new window) + iframe embed.
+     */
+    private function renderKalturaOverlay($title, $embed_url, $with_icon=true) {
+        static $kaltura_no = 0;
+        $kaltura_no = $kaltura_no + 1;
+        $navid = 'kaltura-'.md5($kaltura_no.$embed_url);
+        $safe_title = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
+        $safe_url = htmlspecialchars($embed_url, ENT_QUOTES, 'UTF-8');
+        $open_lbl = htmlspecialchars(__('Open in a new window'), ENT_QUOTES, 'UTF-8');
+?>
+<div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Video: <?= $safe_title ?>">
+  <div class="w3schools-overlay-content tsugi-kaltura-overlay-content">
+    <div class="tsugi-kaltura-titlebar">
+      <a href="<?= $safe_url ?>" target="_blank" rel="noopener noreferrer" class="tsugi-kaltura-title-link"><?= htmlentities($title) ?></a>
+      <a href="<?= $safe_url ?>" target="_blank" rel="noopener noreferrer" class="tsugi-kaltura-open-new" title="<?= $open_lbl ?>"><?= $open_lbl ?></a>
+      <button type="button" class="tsugi-overlay-close tsugi-kaltura-close" aria-label="Close" onclick="tsugiCloseKalturaOverlay('<?= $navid ?>');">×</button>
+    </div>
+    <iframe data-src="<?= $safe_url ?>" src="" id="<?= $navid ?>-iframe" title="<?= $safe_title ?>" class="tsugi-kaltura-iframe" allowfullscreen allow="autoplay *; fullscreen *; encrypted-media *; picture-in-picture *"></iframe>
+    <div class="clear" style="clear:both;"></div>
+  </div>
+</div>
+<button type="button" class="tsugi-video-play-btn" onclick="tsugiOpenKalturaOverlay('<?= $navid ?>');"><?php if ( $with_icon ) { self::renderItemIcon('video'); } ?><?= htmlentities($title) ?></button>
+<?php
+    }
+
+    /**
      * Render a single video item
      */
     private function renderItemVideo($item, $nostyle=false) {
@@ -2726,10 +2797,17 @@ $(function(){
         $media_folder = $CFG->getExtension('media_folder', null);
         $media_base = $CFG->getExtension('media_base', null);
         $media_file = isset($item->media) ? $item->media : null;
+        $kaltura_url = $this->kalturaEmbedUrl($item);
         
         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-video">');
         
-        if ( is_string($media_file) && is_string($media_base) && is_string($media_folder) &&
+        if ( $kaltura_url ) {
+            if ( $nostyle ) {
+                self::nostyleUrl($item->title, $kaltura_url);
+            } else {
+                $this->renderKalturaOverlay($item->title, $kaltura_url, true);
+            }
+        } else if ( is_string($media_file) && is_string($media_base) && is_string($media_folder) &&
             file_exists($media_folder . '/' . $media_file) ) {
             $media_path = $media_base . '/' . $media_file;
             echo('<a href="'.$media_path.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
