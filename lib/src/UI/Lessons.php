@@ -2443,21 +2443,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // http://bxslider.com/examples/video
 ?>
 <script>
-function tsugiOpenKalturaOverlay(id) {
-    var el = document.getElementById(id);
-    var iframe = document.getElementById(id + '-iframe');
-    if (iframe) {
-        var src = iframe.getAttribute('data-src');
-        if (src) iframe.src = src;
-    }
-    if (el) el.style.display = 'block';
-}
-function tsugiCloseKalturaOverlay(id) {
-    var el = document.getElementById(id);
-    var iframe = document.getElementById(id + '-iframe');
-    if (iframe) iframe.src = '';
-    if (el) el.style.display = 'none';
-}
 $(document).ready(function() {
     $('.w3schools-overlay').on('click', function(event) {
         if ( event.target.id == event.currentTarget.id ) {
@@ -2474,7 +2459,7 @@ $(document).ready(function() {
                     this.currentTime = playtime;
 
             });
-            // Stop Kaltura (and any other) iframes in this overlay
+            // Stop any iframes in this overlay
             $(event.currentTarget).find('iframe').each(function() {
                 this.src = '';
             });
@@ -2485,6 +2470,7 @@ $(document).ready(function() {
     })
 });
 </script>
+<script type="module" src="<?= htmlspecialchars(\Tsugi\Controllers\StaticFiles::url('Lessons', 'tsugi-kaltura-video.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
 <script src="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/plugins/jquery.fitvids.js">
 </script>
 <script src="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/jquery.bxslider.js">
@@ -2791,32 +2777,24 @@ $(function(){
     }
 
     /**
-     * Canvas-style Kaltura modal: title bar link (open in new window) + iframe embed.
+     * Emit the tsugi-kaltura-video web component (trigger + modal).
      */
     private function renderKalturaOverlay($title, $embed_url, $with_icon=true, $tab_url=null) {
-        static $kaltura_no = 0;
-        $kaltura_no = $kaltura_no + 1;
         if ( !is_string($tab_url) || $tab_url === '' ) {
             $tab_url = $embed_url;
         }
-        $navid = 'kaltura-'.md5($kaltura_no.$embed_url);
         $safe_title = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
         $safe_embed = htmlspecialchars($embed_url, ENT_QUOTES, 'UTF-8');
         $safe_tab = htmlspecialchars($tab_url, ENT_QUOTES, 'UTF-8');
         $open_lbl = htmlspecialchars(__('Open in a new window'), ENT_QUOTES, 'UTF-8');
+        $show_icon = $with_icon ? ' show-icon' : '';
 ?>
-<div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Video: <?= $safe_title ?>">
-  <div class="w3schools-overlay-content tsugi-kaltura-overlay-content">
-    <div class="tsugi-kaltura-titlebar">
-      <a href="<?= $safe_tab ?>" target="_blank" rel="noopener noreferrer" class="tsugi-kaltura-title-link"><?= htmlentities($title) ?></a>
-      <a href="<?= $safe_tab ?>" target="_blank" rel="noopener noreferrer" class="tsugi-kaltura-open-new" title="<?= $open_lbl ?>"><?= $open_lbl ?></a>
-      <button type="button" class="tsugi-overlay-close tsugi-kaltura-close" aria-label="Close" onclick="tsugiCloseKalturaOverlay('<?= $navid ?>');">×</button>
-    </div>
-    <iframe data-src="<?= $safe_embed ?>" src="" id="<?= $navid ?>-iframe" title="<?= $safe_title ?>" class="tsugi-kaltura-iframe" allowfullscreen allow="autoplay *; fullscreen *; encrypted-media *; picture-in-picture *"></iframe>
-    <div class="clear" style="clear:both;"></div>
-  </div>
-</div>
-<button type="button" class="tsugi-video-play-btn" onclick="tsugiOpenKalturaOverlay('<?= $navid ?>');"><?php if ( $with_icon ) { self::renderItemIcon('video'); } ?><?= htmlentities($title) ?></button>
+<tsugi-kaltura-video
+    title="<?= $safe_title ?>"
+    embed-url="<?= $safe_embed ?>"
+    tab-url="<?= $safe_tab ?>"
+    open-label="<?= $open_lbl ?>"<?= $show_icon ?>
+></tsugi-kaltura-video>
 <?php
     }
 
