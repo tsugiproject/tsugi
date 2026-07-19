@@ -1166,9 +1166,14 @@ class Lessons {
                     $kaltura_url = $this->kalturaEmbedUrl($video);
                     if ( $kaltura_url ) {
                         if ( $nostyle ) {
-                            self::nostyleUrl($video->title, $kaltura_url);
+                            self::nostyleUrl($video->title, $this->kalturaTabUrl($video));
                         } else {
-                            $this->renderKalturaOverlay($video->title, $kaltura_url, false);
+                            $this->renderKalturaOverlay(
+                                $video->title,
+                                $kaltura_url,
+                                false,
+                                $this->kalturaTabUrl($video)
+                            );
                         }
                     } else if ( is_string($media_file) && is_string($media_base) && is_string($media_folder) &&
                         file_exists($media_folder . '/' . $media_file) ) {
@@ -2744,15 +2749,15 @@ $(function(){
     }
 
     /**
-     * Build a Kaltura embed URL from lessons.json kaltura_id + kaltura_embed extension.
-     * The extension template must include a literal {id} placeholder.
+     * Expand a Kaltura URL template extension with lessons.json kaltura_id.
+     * The template must include a literal {id} placeholder.
      *
-     * @return string|null Absolute embed URL, or null if unavailable
+     * @return string|null Absolute URL, or null if unavailable
      */
-    private function kalturaEmbedUrl($item) {
+    private function kalturaUrlFromExtension($item, $extension_key) {
         global $CFG;
         $kaltura_id = isset($item->kaltura_id) ? $item->kaltura_id : null;
-        $template = $CFG->getExtension('kaltura_embed', null);
+        $template = $CFG->getExtension($extension_key, null);
         if ( !is_string($kaltura_id) || $kaltura_id === '' ) {
             return null;
         }
@@ -2763,24 +2768,51 @@ $(function(){
     }
 
     /**
+     * Build a Kaltura iframe embed URL (kaltura_embed extension).
+     *
+     * @return string|null Absolute embed URL, or null if unavailable
+     */
+    private function kalturaEmbedUrl($item) {
+        return $this->kalturaUrlFromExtension($item, 'kaltura_embed');
+    }
+
+    /**
+     * Build a Kaltura "open in new tab" URL (kaltura_tab playlist template).
+     * Falls back to the embed URL when kaltura_tab is not set.
+     *
+     * @return string|null Absolute tab URL, or null if unavailable
+     */
+    private function kalturaTabUrl($item) {
+        $tab = $this->kalturaUrlFromExtension($item, 'kaltura_tab');
+        if ( $tab !== null ) {
+            return $tab;
+        }
+        return $this->kalturaEmbedUrl($item);
+    }
+
+    /**
      * Canvas-style Kaltura modal: title bar link (open in new window) + iframe embed.
      */
-    private function renderKalturaOverlay($title, $embed_url, $with_icon=true) {
+    private function renderKalturaOverlay($title, $embed_url, $with_icon=true, $tab_url=null) {
         static $kaltura_no = 0;
         $kaltura_no = $kaltura_no + 1;
+        if ( !is_string($tab_url) || $tab_url === '' ) {
+            $tab_url = $embed_url;
+        }
         $navid = 'kaltura-'.md5($kaltura_no.$embed_url);
         $safe_title = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
-        $safe_url = htmlspecialchars($embed_url, ENT_QUOTES, 'UTF-8');
+        $safe_embed = htmlspecialchars($embed_url, ENT_QUOTES, 'UTF-8');
+        $safe_tab = htmlspecialchars($tab_url, ENT_QUOTES, 'UTF-8');
         $open_lbl = htmlspecialchars(__('Open in a new window'), ENT_QUOTES, 'UTF-8');
 ?>
 <div id="<?= $navid ?>" class="w3schools-overlay" role="dialog" aria-modal="true" aria-label="Video: <?= $safe_title ?>">
   <div class="w3schools-overlay-content tsugi-kaltura-overlay-content">
     <div class="tsugi-kaltura-titlebar">
-      <a href="<?= $safe_url ?>" target="_blank" rel="noopener noreferrer" class="tsugi-kaltura-title-link"><?= htmlentities($title) ?></a>
-      <a href="<?= $safe_url ?>" target="_blank" rel="noopener noreferrer" class="tsugi-kaltura-open-new" title="<?= $open_lbl ?>"><?= $open_lbl ?></a>
+      <a href="<?= $safe_tab ?>" target="_blank" rel="noopener noreferrer" class="tsugi-kaltura-title-link"><?= htmlentities($title) ?></a>
+      <a href="<?= $safe_tab ?>" target="_blank" rel="noopener noreferrer" class="tsugi-kaltura-open-new" title="<?= $open_lbl ?>"><?= $open_lbl ?></a>
       <button type="button" class="tsugi-overlay-close tsugi-kaltura-close" aria-label="Close" onclick="tsugiCloseKalturaOverlay('<?= $navid ?>');">×</button>
     </div>
-    <iframe data-src="<?= $safe_url ?>" src="" id="<?= $navid ?>-iframe" title="<?= $safe_title ?>" class="tsugi-kaltura-iframe" allowfullscreen allow="autoplay *; fullscreen *; encrypted-media *; picture-in-picture *"></iframe>
+    <iframe data-src="<?= $safe_embed ?>" src="" id="<?= $navid ?>-iframe" title="<?= $safe_title ?>" class="tsugi-kaltura-iframe" allowfullscreen allow="autoplay *; fullscreen *; encrypted-media *; picture-in-picture *"></iframe>
     <div class="clear" style="clear:both;"></div>
   </div>
 </div>
@@ -2803,9 +2835,14 @@ $(function(){
         
         if ( $kaltura_url ) {
             if ( $nostyle ) {
-                self::nostyleUrl($item->title, $kaltura_url);
+                self::nostyleUrl($item->title, $this->kalturaTabUrl($item));
             } else {
-                $this->renderKalturaOverlay($item->title, $kaltura_url, true);
+                $this->renderKalturaOverlay(
+                    $item->title,
+                    $kaltura_url,
+                    true,
+                    $this->kalturaTabUrl($item)
+                );
             }
         } else if ( is_string($media_file) && is_string($media_base) && is_string($media_folder) &&
             file_exists($media_folder . '/' . $media_file) ) {
