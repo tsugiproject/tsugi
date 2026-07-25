@@ -386,7 +386,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
      *
      * @return The name of a file to contain the web link XML in the ZIP.
      */
-    function zip_add_url_to_module($zip, $module, $title, $url, $parentPath=null) {
+    function zip_add_url_to_module($zip, $module, $title, $url, $parentPath=null, $new_tab=true) {
         $file = $this->add_web_link($module, $title, $url, $parentPath);
         $web_dom = new CC_WebLink();
         $web_dom->set_title($title);
@@ -394,12 +394,15 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $zip->addFromString($file,$web_dom->saveXML());
 
         // Add to the ever-growing canvas_module_meta
+        // new_tab=false => Canvas opens ExternalUrl inline (iframe), useful for embed players
         if ( $this->canvas_items ) {
             $w = $this->canvas_module_meta->child_tags(CanvasModuleMeta::content_type_ExternalUrl);
             $w[CanvasModuleMeta::title] = $title;
             $w[CanvasModuleMeta::url] = $url;
             $w[CanvasModuleMeta::identifierref] = $this->last_identifierref;
-            $w[CanvasModuleMeta::new_tab] = CanvasModuleMeta::new_tab_true;
+            $w[CanvasModuleMeta::new_tab] = $new_tab
+                ? CanvasModuleMeta::new_tab_true
+                : CanvasModuleMeta::new_tab_false;
             $item = $this->canvas_module_meta->add_item($this->canvas_items, $this->last_identifier, $w);
         }
     }

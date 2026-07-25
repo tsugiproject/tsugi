@@ -370,6 +370,20 @@ if ( isset($_GET['install']) ) {
 
     $custom = SakaiCustom::deepLinkCustom(true, true);
 
+    // Optional per-tool custom choices from register.php ($tool['custom']).
+    // Install modal posts custom_<key>=<value>; only allowlisted values are accepted.
+    $toolCustom = U::get($tool, 'custom');
+    if ( is_array($toolCustom) ) {
+        foreach ( $toolCustom as $customKey => $customValues ) {
+            if ( ! is_string($customKey) || $customKey === '' || ! is_array($customValues) ) continue;
+            $selected = U::get($_GET, 'custom_'.$customKey);
+            if ( $selected === null || $selected === false || $selected === '' ) continue;
+            $selected = (string) $selected;
+            if ( ! array_key_exists($selected, $customValues) ) continue;
+            $custom[$customKey] = $selected;
+        }
+    }
+
     $retval->addLtiLinkItem($path, $title, $text, $icon, $fa_icon, $custom, $scoreMaximum, $resourceId, $additionalParams);
 
     $iframeattr=false; $endform=false;

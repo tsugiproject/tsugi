@@ -46,10 +46,14 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtub
         return;
     }
     
-    // Handle video type
+    // Handle video type — prefer Kaltura embed (inline iframe in Canvas) when configured
     if ( $type == 'video' ) {
         $title = __('Video:').' '.$item_obj->title;
-        if ( $youtube && isset($CFG->youtube_url) ) {
+        $kaltura_url = Lessons::kalturaEmbedUrl($item_obj);
+        if ( $kaltura_url ) {
+            // new_tab=false => Canvas ExternalUrl launches inline in an iframe
+            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $kaltura_url, $parentPath, false);
+        } else if ( $youtube && isset($CFG->youtube_url) && !empty($item_obj->youtube) ) {
             $custom_arr = array();
             $endpoint = U::absolute_url($CFG->youtube_url);
             $endpoint = U::add_url_parm($endpoint, 'v', $item_obj->youtube);
@@ -60,7 +64,7 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtub
             } else {
                 $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parentPath);
             }
-        } else {
+        } else if ( !empty($item_obj->youtube) ) {
             $url = U::youtubeWatchUrl($item_obj->youtube);
             $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parentPath);
         }
@@ -333,7 +337,10 @@ foreach($l->lessons->modules as $module) {
     if ( isset($module->videos) ) {
         foreach($module->videos as $video ) {
             $title = __('Video:').' '.$video->title;
-            if ( $youtube && isset($CFG->youtube_url) ) {
+            $kaltura_url = Lessons::kalturaEmbedUrl($video);
+            if ( $kaltura_url ) {
+                $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $kaltura_url, $parent_path_legacy, false);
+            } else if ( $youtube && isset($CFG->youtube_url) && !empty($video->youtube) ) {
                 $custom_arr = array();
                 $endpoint = U::absolute_url($CFG->youtube_url);
                 $endpoint = U::add_url_parm($endpoint, 'v', $video->youtube);
@@ -344,7 +351,7 @@ foreach($l->lessons->modules as $module) {
                 } else {
                     $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parent_path_legacy);
                 }
-            } else {
+            } else if ( !empty($video->youtube) ) {
                 $url = U::youtubeWatchUrl($video->youtube);
                 $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parent_path_legacy);
             }

@@ -2,8 +2,47 @@
 // Shared install form fields used in store index/details modals.
 // Required inputs from including scope:
 // $id_suffix, $grade_launch, $accept_lineitem, $deeplink, $accept_available, $accept_submission
+// Optional: $tool — when $tool['custom'] is set, render a dropdown per custom key
 $id_attr = htmlspecialchars((string) $id_suffix);
 $id_js = json_encode((string) $id_suffix);
+
+// Optional custom key/value choices from register.php, e.g.:
+//   "custom" => array(
+//       "exercise" => array(
+//           "HeadingsAndParagraphs" => "HTML: Headings and Paragraphs",
+//           "HelloWorld" => "JavaScript: Hello World",
+//       ),
+//   ),
+$tool_custom = (isset($tool) && is_array($tool) && isset($tool['custom']) && is_array($tool['custom']))
+    ? $tool['custom'] : false;
+if ( $tool_custom ) {
+    foreach ( $tool_custom as $custom_key => $custom_values ) {
+        if ( ! is_string($custom_key) || $custom_key === '' || ! is_array($custom_values) || count($custom_values) < 1 ) {
+            continue;
+        }
+        // Skip non value=>label maps (e.g. nested metadata)
+        $options = array();
+        foreach ( $custom_values as $value => $label ) {
+            if ( ! is_scalar($value) || ! is_scalar($label) ) continue;
+            $options[(string) $value] = (string) $label;
+        }
+        if ( count($options) < 1 ) continue;
+        $field_id = 'custom_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $custom_key) . '_' . $id_attr;
+        $field_name = 'custom_' . $custom_key;
+        $field_label = ucwords(str_replace('_', ' ', $custom_key));
+?>
+<div class="form-group">
+    <label for="<?= htmlspecialchars($field_id) ?>"><?= htmlspecialchars($field_label) ?></label>
+    <select class="form-control" name="<?= htmlspecialchars($field_name) ?>" id="<?= htmlspecialchars($field_id) ?>">
+        <option value="">— Select <?= htmlspecialchars($field_label) ?> (optional) —</option>
+<?php foreach ( $options as $value => $label ) { ?>
+        <option value="<?= htmlspecialchars($value) ?>"><?= htmlspecialchars($label) ?></option>
+<?php } ?>
+    </select>
+</div>
+<?php
+    }
+}
 ?>
 <?php if ( $grade_launch && $accept_lineitem ) { ?>
 <div class="form-group">

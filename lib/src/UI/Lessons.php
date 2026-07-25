@@ -1163,16 +1163,16 @@ class Lessons {
                 foreach($videos as $video ) {
                     $media_file = $video->media ?? null;
                     echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-video">');
-                    $kaltura_url = $this->kalturaEmbedUrl($video);
+                    $kaltura_url = self::kalturaEmbedUrl($video);
                     if ( $kaltura_url ) {
                         if ( $nostyle ) {
-                            self::nostyleUrl($video->title, $this->kalturaTabUrl($video));
+                            self::nostyleUrl($video->title, self::kalturaTabUrl($video));
                         } else {
                             $this->renderKalturaOverlay(
                                 $video->title,
                                 $kaltura_url,
                                 false,
-                                $this->kalturaTabUrl($video)
+                                self::kalturaTabUrl($video)
                             );
                         }
                     } else if ( is_string($media_file) && is_string($media_base) && is_string($media_folder) &&
@@ -2004,10 +2004,12 @@ class Lessons {
         if ( isset($module->items) ) {
             foreach($module->items as $item) {
                 if ( !isset($item->type) ) continue;
-                if ( $item->type == 'video' && isset($item->youtube) ) {
-                    $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Video');
-                    $resources[] = self::makeUrlResource('video', $title,
-                        U::youtubeWatchUrl($item->youtube));
+                if ( $item->type == 'video' ) {
+                    $vurl = self::videoUrlForItem($item);
+                    if ( $vurl ) {
+                        $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Video');
+                        $resources[] = self::makeUrlResource('video', $title, $vurl);
+                    }
                 } else if ( $item->type == 'slide' && isset($item->href) ) {
                     $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : __('Slides').': '.$module->title);
                     $resources[] = self::makeUrlResource('slides', $title, $item->href);
@@ -2026,14 +2028,18 @@ class Lessons {
             // Process legacy arrays only if items is not present
             if ( isset($module->carousel) ) {
                 foreach($module->carousel as $carousel ) {
-                    $resources[] = self::makeUrlResource('video',$carousel->title,
-                        U::youtubeWatchUrl($carousel->youtube));
+                    $vurl = self::videoUrlForItem($carousel);
+                    if ( $vurl ) {
+                        $resources[] = self::makeUrlResource('video', $carousel->title, $vurl);
+                    }
                 }
             }
             if ( isset($module->videos) ) {
                 foreach($module->videos as $video ) {
-                    $resources[] = self::makeUrlResource('video',$video->title,
-                        U::youtubeWatchUrl($video->youtube));
+                    $vurl = self::videoUrlForItem($video);
+                    if ( $vurl ) {
+                        $resources[] = self::makeUrlResource('video', $video->title, $vurl);
+                    }
                 }
             }
             if ( isset($module->slides) ) {
@@ -2740,7 +2746,7 @@ $(function(){
      *
      * @return string|null Absolute URL, or null if unavailable
      */
-    private function kalturaUrlFromExtension($item, $extension_key) {
+    public static function kalturaUrlFromExtension($item, $extension_key) {
         global $CFG;
         $kaltura_id = isset($item->kaltura_id) ? $item->kaltura_id : null;
         $template = $CFG->getExtension($extension_key, null);
@@ -2758,8 +2764,8 @@ $(function(){
      *
      * @return string|null Absolute embed URL, or null if unavailable
      */
-    private function kalturaEmbedUrl($item) {
-        return $this->kalturaUrlFromExtension($item, 'kaltura_embed');
+    public static function kalturaEmbedUrl($item) {
+        return self::kalturaUrlFromExtension($item, 'kaltura_embed');
     }
 
     /**
@@ -2768,12 +2774,30 @@ $(function(){
      *
      * @return string|null Absolute tab URL, or null if unavailable
      */
-    private function kalturaTabUrl($item) {
-        $tab = $this->kalturaUrlFromExtension($item, 'kaltura_tab');
+    public static function kalturaTabUrl($item) {
+        $tab = self::kalturaUrlFromExtension($item, 'kaltura_tab');
         if ( $tab !== null ) {
             return $tab;
         }
-        return $this->kalturaEmbedUrl($item);
+        return self::kalturaEmbedUrl($item);
+    }
+
+    /**
+     * Preferred public URL for a lesson video item.
+     * Prefers Kaltura embed when kaltura_embed + kaltura_id are available.
+     *
+     * @return string|null
+     */
+    public static function videoUrlForItem($item) {
+        $kaltura = self::kalturaEmbedUrl($item);
+        if ( $kaltura ) {
+            return $kaltura;
+        }
+        $youtube = isset($item->youtube) ? $item->youtube : null;
+        if ( is_string($youtube) && $youtube !== '' ) {
+            return U::youtubeWatchUrl($youtube);
+        }
+        return null;
     }
 
     /**
@@ -2807,19 +2831,19 @@ $(function(){
         $media_folder = $CFG->getExtension('media_folder', null);
         $media_base = $CFG->getExtension('media_base', null);
         $media_file = isset($item->media) ? $item->media : null;
-        $kaltura_url = $this->kalturaEmbedUrl($item);
+        $kaltura_url = self::kalturaEmbedUrl($item);
         
         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-video">');
         
         if ( $kaltura_url ) {
             if ( $nostyle ) {
-                self::nostyleUrl($item->title, $this->kalturaTabUrl($item));
+                self::nostyleUrl($item->title, self::kalturaTabUrl($item));
             } else {
                 $this->renderKalturaOverlay(
                     $item->title,
                     $kaltura_url,
                     true,
-                    $this->kalturaTabUrl($item)
+                    self::kalturaTabUrl($item)
                 );
             }
         } else if ( is_string($media_file) && is_string($media_base) && is_string($media_folder) &&
