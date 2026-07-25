@@ -142,19 +142,31 @@ function updateToolStatus($tool_path, $detail) {
   */
 function addRepoInfo($detail, $repo) {
     // Gather the information for the repo folder
+    $errors = array();
     try {
         $update = $repo->run('remote update');
         $detail->writeable = true;
     } catch (Exception $e) {
         $detail->writeable = false;
         $update = 'Caught exception: '.$e->getMessage(). "\n";
+        $errors[] = 'remote update: '.$e->getMessage();
     }
     $detail->update_note = $update;
-    $status = $repo->run('status -uno');
+    try {
+        $status = $repo->run('status -uno');
+    } catch (Exception $e) {
+        $status = 'Caught exception: '.$e->getMessage(). "\n";
+        $errors[] = 'status: '.$e->getMessage();
+    }
     $detail->status_note = $status;
     $detail->updates = strpos($status, 'Your branch is behind') !== false;
-    // https://stackoverflow.com/questions/2231546/git-see-my-last-commit
-    $commit_log = $repo->run('log --name-status HEAD^..HEAD');
+    // Use -1 so single-commit / shallow repos work (HEAD^ fails there).
+    try {
+        $commit_log = $repo->run('log -1 --name-status');
+    } catch (Exception $e) {
+        $commit_log = 'Caught exception: '.$e->getMessage(). "\n";
+        $errors[] = 'log: '.$e->getMessage();
+    }
     $detail->commit_log = $commit_log;
     $lines = explode("\n",$commit_log);
     $detail->commit = '';
@@ -165,5 +177,8 @@ function addRepoInfo($detail, $repo) {
         if ( count($matches) >= 2 ) {
             $detail->commit = trim($matches[1]);
         }
+    }
+    if ( count($errors) > 0 ) {
+        $detail->error = implode("\n", $errors);
     }
 }

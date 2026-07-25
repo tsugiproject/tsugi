@@ -6,6 +6,11 @@
          <br/>{{description}}
        {{/if}} 
         <ul>
+       {{#if error}}
+        <li class="text-danger">
+        <pre>{{error}}</pre>
+        </li>
+       {{/if}}
        {{#if status_note}}
         <li>
         <div id="status_note_{{index}}" title="git status" style="display: none;">

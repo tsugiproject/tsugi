@@ -140,12 +140,20 @@ if(isset($CFG->lessons)) {
 $(document).ready(function(){
     $.getJSON('<?= addSession('repos_json.php') ?>', function(repos) {
         window.console && console.log(repos);
+        if ( repos && repos.error ) {
+            window.console && console.error(repos.error);
+            alert('Module list error:\n' + repos.error);
+        }
         tsugiHandlebarsToDiv('installed_ul', 'installed', repos);
 <?php if(isset($CFG->lessons)) { ?>
         tsugiHandlebarsToDiv('required_ul', 'required', repos);
 <?php } ?>
         tsugiHandlebarsToDiv('available_ul', 'available', repos);
-    }).fail( function() { alert('getJSON fail'); } );
+    }).fail( function(jqXHR) {
+        var detail = (jqXHR && jqXHR.responseText) ? jqXHR.responseText : 'unknown error';
+        window.console && console.error(detail);
+        alert('getJSON fail:\n' + detail);
+    });
 
 <?php if( $other_nodes > 0 ) { ?>
     $.getJSON('<?= addSession('cluster_json.php') ?>', function(data) {
