@@ -46,12 +46,11 @@ foreach($tools as $tool) {
     echo("Path: ".htmlentities($path)."\n");
     $remote = $tool['clone_url'];
     echo("URL: ".htmlentities($remote)."\n");
-    $gitversion = $tool['gitversion'];
-    if ( U::strlen($gitversion) < 1 ) $gitversion = 'master';
+    $configured_version = $tool['gitversion'];
     if ( isset($CFG->branch_override) && is_array($CFG->branch_override) && U::get($CFG->branch_override, $remote) ) {
-        $gitversion = U::get($CFG->branch_override, $remote);
+        $configured_version = U::get($CFG->branch_override, $remote);
     }
-    echo("Version: ".htmlentities($gitversion)."\n");
+    echo("Version: ".htmlentities(U::strlen($configured_version) ? $configured_version : '(default)')."\n");
     if ( $tool['deleted'] == 1 ) {
         echo(" Tool is deleted...\n");
         continue;
@@ -105,10 +104,33 @@ foreach($tools as $tool) {
         continue;
     }
     echo(htmlentities($pull_output));
+
+    // After pull, map stale "master" (or empty) to the repo's real default (often main).
+    $gitversion = resolveGitCheckout($repo, $configured_version);
+    if ( $gitversion !== $configured_version && U::strlen($configured_version) > 0 ) {
+        echo("Resolved: ".htmlentities($configured_version)." -> ".htmlentities($gitversion)."\n");
+    }
     $command = 'checkout '.$gitversion;
     echo("Checkout: git ".$command."\n");
-    $check_output = $repo->run($command);
-    echo(htmlentities($check_output));
+    try {
+        $check_output = $repo->run($command);
+        echo(htmlentities($check_output));
+    } catch (Exception $e) {
+        echo("Error: ".htmlentities($e->getMessage())."\n");
+        continue;
+    }
+
+    // Persist remapped branch so the next batch does not keep trying master.
+    if ( $gitversion !== $tool['gitversion'] ) {
+        $PDOX->queryReturnError(
+            "UPDATE {$CFG->dbprefix}lms_tools SET gitversion=:gitversion, updated_at=NOW()
+             WHERE toolpath=:toolpath",
+            array(
+                ":gitversion" => $gitversion,
+                ":toolpath" => $path
+            )
+        );
+    }
 
     $detail = new \stdClass();
     addRepoInfo($detail, $repo);

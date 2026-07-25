@@ -17,6 +17,64 @@ function getRepoOrigin($repo) {
     return false;
 }
 
+/** True if ref exists locally or as origin/<ref>. */
+function repoHasRef($repo, $ref) {
+    if ( ! is_string($ref) || ! preg_match('/^[A-Za-z0-9._\/+-]+$/', $ref) ) {
+        return false;
+    }
+    try {
+        $repo->run('rev-parse --verify --quiet '.$ref);
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+/** Best-effort default branch (origin/HEAD, current, then main/master). */
+function getRepoDefaultBranch($repo) {
+    try {
+        $out = trim($repo->run('symbolic-ref --short refs/remotes/origin/HEAD'));
+        if ( strpos($out, 'origin/') === 0 ) {
+            return substr($out, 7);
+        }
+        if ( U::strlen($out) > 0 ) return $out;
+    } catch (Exception $e) {
+        // fall through
+    }
+    try {
+        $out = trim($repo->run('rev-parse --abbrev-ref HEAD'));
+        if ( U::strlen($out) > 0 && $out !== 'HEAD' ) return $out;
+    } catch (Exception $e) {
+        // fall through
+    }
+    foreach ( array('main', 'master') as $candidate ) {
+        if ( repoHasRef($repo, $candidate) || repoHasRef($repo, 'origin/'.$candidate) ) {
+            return $candidate;
+        }
+    }
+    return 'master';
+}
+
+/**
+ * Resolve checkout target. Empty or stale "master" falls back to the repo default (often main).
+ */
+function resolveGitCheckout($repo, $gitversion) {
+    if ( U::strlen($gitversion) < 1 ) {
+        return getRepoDefaultBranch($repo);
+    }
+    if ( repoHasRef($repo, $gitversion) || repoHasRef($repo, 'origin/'.$gitversion) ) {
+        return $gitversion;
+    }
+    if ( $gitversion === 'master' ) {
+        $default = getRepoDefaultBranch($repo);
+        if ( $default !== 'master' ) return $default;
+        if ( repoHasRef($repo, 'main') || repoHasRef($repo, 'origin/main') ) {
+            return 'main';
+        }
+    }
+    return $gitversion;
+}
+
 // https://stackoverflow.com/questions/3433465/mysql-delete-all-rows-older-than-10-minutes
 function ghostBust() {
     global $PDOX, $CFG;
@@ -86,7 +144,7 @@ function doClone($remote, $folder) {
             ":name" => 'name',
             ":description" => 'description',
             ":clone_url" => $remote,
-            ":gitversion" => 'master'
+            ":gitversion" => getRepoDefaultBranch($repo)
         );
         $q = $PDOX->queryReturnError($sql, $values);
 
@@ -180,5 +238,10 @@ function addRepoInfo($detail, $repo) {
     }
     if ( count($errors) > 0 ) {
         $detail->error = implode("\n", $errors);
+    }
+    try {
+        $detail->gitversion = getRepoDefaultBranch($repo);
+    } catch (Exception $e) {
+        $detail->gitversion = 'main';
     }
 }

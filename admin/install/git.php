@@ -175,7 +175,7 @@ if ( $other_nodes >= 1 && isset($_POST['command']) && $command == "clone" ) {
         ":name" => 'name',
         ":description" => 'description',
         ":clone_url" => $remote,
-        ":gitversion" => 'master'
+        ":gitversion" => 'main'
     );
     $q = $PDOX->queryReturnError($sql, $values);
     $_SESSION['git_results'] = "Tool scheduled for cluster-wide installation";
@@ -220,7 +220,7 @@ if ( $other_nodes < 1 && isset($_POST['command']) && $command == "clone" ) {
                 ":name" => 'name',
                 ":description" => 'description',
                 ":clone_url" => $remote,
-                ":gitversion" => 'master'
+                ":gitversion" => getRepoDefaultBranch($repo)
             );
             $q = $PDOX->queryReturnError($sql, $values);
 

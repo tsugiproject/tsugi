@@ -230,7 +230,7 @@ try {
             ":name" => $tool->name,
             ":description" => $tool->description,
             ":clone_url" => $tool->clone_url,
-            ":gitversion" => 'master'
+            ":gitversion" => (isset($tool->gitversion) ? $tool->gitversion : 'main')
         );
         $q = $PDOX->queryReturnError($sql, $values);
 
