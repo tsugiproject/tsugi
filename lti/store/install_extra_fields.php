@@ -13,12 +13,24 @@ $id_js = json_encode((string) $id_suffix);
 //           "HelloWorld" => "JavaScript: Hello World",
 //       ),
 //   ),
+// Or with launch-URL fallback (LMS that ignore custom):
+//   "custom" => array(
+//       "exercise" => array(
+//           "add_to_get" => true,
+//           "options" => array(
+//               "HelloWorld" => "JavaScript: Hello World",
+//           ),
+//       ),
+//   ),
 $tool_custom = (isset($tool) && is_array($tool) && isset($tool['custom']) && is_array($tool['custom']))
     ? $tool['custom'] : false;
 if ( $tool_custom ) {
     foreach ( $tool_custom as $custom_key => $custom_values ) {
         if ( ! is_string($custom_key) || $custom_key === '' || ! is_array($custom_values) || count($custom_values) < 1 ) {
             continue;
+        }
+        if ( isset($custom_values['options']) && is_array($custom_values['options']) ) {
+            $custom_values = $custom_values['options'];
         }
         // Skip non value=>label maps (e.g. nested metadata)
         $options = array();

@@ -372,15 +372,27 @@ if ( isset($_GET['install']) ) {
 
     // Optional per-tool custom choices from register.php ($tool['custom']).
     // Install modal posts custom_<key>=<value>; only allowlisted values are accepted.
+    // Selected values always become LTI custom. When an entry sets add_to_get,
+    // key=value is also appended to the launch URL (some LMSs handle custom poorly).
+    // Flat: "exercise" => array("HelloWorld" => "Hello World")
+    // Or:   "exercise" => array("add_to_get" => true, "options" => array(...))
     $toolCustom = U::get($tool, 'custom');
     if ( is_array($toolCustom) ) {
         foreach ( $toolCustom as $customKey => $customValues ) {
             if ( ! is_string($customKey) || $customKey === '' || ! is_array($customValues) ) continue;
+            $addToGet = false;
+            if ( isset($customValues['options']) && is_array($customValues['options']) ) {
+                $addToGet = !empty($customValues['add_to_get']);
+                $customValues = $customValues['options'];
+            }
             $selected = U::get($_GET, 'custom_'.$customKey);
             if ( $selected === null || $selected === false || $selected === '' ) continue;
             $selected = (string) $selected;
             if ( ! array_key_exists($selected, $customValues) ) continue;
             $custom[$customKey] = $selected;
+            if ( $addToGet ) {
+                $path = U::add_url_parm($path, $customKey, $selected);
+            }
         }
     }
 
