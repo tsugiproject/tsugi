@@ -119,6 +119,109 @@ class Settings {
     }
 
     /**
+     * Default link configuration from launch sources into Settings.
+     *
+     * Opt-in helper for tools that want a placement setting defaulted on first
+     * launch from LTI custom or ?key=. Once defaulted, later launches use
+     * Settings and no longer depend on custom or GET.
+     *
+     * Precedence:
+     *   1. Link Settings (already configured) — when $LINK is present
+     *   2. LTI custom for $key (persisted when present) — when $LINK/$LAUNCH
+     *   3. $_GET[$key] (persisted when $LINK is present)
+     *
+     * When $LINK is not defined (non-LTI / standalone use), Settings and
+     * custom are skipped and a present GET value is returned without
+     * persistence so tools can still run outside an LTI launch.
+     *
+     * When $allowed is provided, empty, "0", false, or any value not in
+     * $allowed is treated as unset and does not block later sources. Invalid
+     * values are never persisted. When $allowed is omitted, no validity
+     * checking is done — any present value is accepted and persisted.
+     *
+     * @param string $key Setting / custom / GET parameter name
+     * @param array|null $allowed Optional list of valid values (values, not labels)
+     * @return string|null
+     */
+    public static function linkDefaultConfigurationFromLaunch($key, $allowed=null)
+    {
+        global $LINK, $LAUNCH;
+
+        // Standalone / non-LTI launches may leave these unset or null.
+        $link = (isset($LINK) && is_object($LINK)) ? $LINK : null;
+        $launch = (isset($LAUNCH) && is_object($LAUNCH)) ? $LAUNCH : null;
+
+        if ( ! is_string($key) || $key === '' ) {
+            return null;
+        }
+        if ( $allowed !== null && ! is_array($allowed) ) {
+            return null;
+        }
+
+        $checkAllowed = is_array($allowed);
+        $valid = array();
+        if ( $checkAllowed ) {
+            foreach ( $allowed as $v ) {
+                if ( is_string($v) || is_int($v) ) {
+                    $valid[(string) $v] = true;
+                }
+            }
+        }
+
+        $normalize = function ($value) use ($checkAllowed, $valid) {
+            if ( $value === null ) {
+                return null;
+            }
+            if ( $checkAllowed ) {
+                if ( $value === false || $value === ''
+                    || $value === 0 || $value === '0' ) {
+                    return null;
+                }
+                if ( ! is_string($value) && ! is_int($value) ) {
+                    return null;
+                }
+                $value = (string) $value;
+                return isset($valid[$value]) ? $value : null;
+            }
+            if ( is_string($value) || is_int($value) || is_float($value) ) {
+                return (string) $value;
+            }
+            if ( is_bool($value) ) {
+                return $value ? '1' : '0';
+            }
+            return null;
+        };
+
+        if ( $link && method_exists($link, 'settingsGet') ) {
+            $value = $normalize($link->settingsGet($key, null));
+            if ( $value !== null ) {
+                return $value;
+            }
+        }
+
+        if ( $link && $launch && method_exists($launch, 'ltiCustomGet')
+            && method_exists($link, 'settingsSet') ) {
+            $custom = $normalize($launch->ltiCustomGet($key, null));
+            if ( $custom !== null ) {
+                $link->settingsSet($key, $custom);
+                return $custom;
+            }
+        }
+
+        if ( isset($_GET[$key]) ) {
+            $fromGet = $normalize($_GET[$key]);
+            if ( $fromGet !== null ) {
+                if ( $link && method_exists($link, 'settingsSet') ) {
+                    $link->settingsSet($key, $fromGet);
+                }
+                return $fromGet;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Set or update a number of keys to new values in link settings.
      *
      * @params $keyvals An array of key value pairs that are to be placed in the
