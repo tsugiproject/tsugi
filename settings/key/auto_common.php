@@ -273,7 +273,6 @@ $issuer_sha256 = hash('sha256', trim($issuer));
 $success = false;
 
 $sql = "UPDATE {$CFG->dbprefix}lti_key SET
-        issuer_id = NULL,
         lms_issuer = :lms_issuer,
         lms_issuer_sha256 = :lms_issuer_sha256,
         lms_client = :lms_client,

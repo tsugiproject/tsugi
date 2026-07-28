@@ -460,56 +460,6 @@ class LTIX {
             $token_url = $row['lti13_token_url'];
 
             $public_key = self::getPlatformPublicKey($key_id, $request_kid, $our_kid, $public_key, $our_keyset_url, $our_keyset);
-/*
-            // Sanity check
-            if ( U::isEmpty($our_keyset_url) ) {
-                 self::abort_with_error_log("Could not find keyset and $issuer_key");
-            }
-
-            // Make sure we have or update to the latest keyset if we have a keyset_url
-            if ( U::isNotEmpty($our_keyset_url) &&
-                    (U::isEmpty($our_keyset) || $our_kid != $request_kid ) ) {
-                $our_keyset = file_get_contents($our_keyset_url);
-                $decoded = json_decode($our_keyset);
-                if ( $decoded && isset($decoded->keys) && is_array($decoded->keys) ) {
-                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
-                        SET lti13_keyset=:KS, updated_at=NOW() WHERE issuer_sha256 = :SHA",
-                    array(':SHA' => $issuer_sha256, ':KS' => $our_keyset) );
-                    error_log("Updated keyset $issuer_sha256 from $our_keyset_url\n");
-                } else {
-                    self::abort_with_error_log("Failure loading keyset from ".$our_keyset_url,
-                                substr($our_keyset,0,1000));
-                }
-            }
-
-            // If we have a keyset and a kid mismatch, lets grab that new key
-            if ( U::isNotEmpty($our_keyset) &&
-                ($our_kid != $request_kid || U::isEmpty($public_key)) ) {
-
-                $new_public_key = LTI13::extractKeyFromKeySet($our_keyset, $request_kid);
-
-                if ( $new_public_key ) {
-                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
-                        SET lti13_platform_pubkey=:PK, lti13_kid=:KID, updated_at=NOW() WHERE issuer_sha256 = :SHA",
-                        array(':SHA' => $issuer_sha256, ':PK' => $new_public_key,
-                            ':KID' => $request_kid )
-                    );
-                    error_log("New public key $issuer_sha256\n$new_public_key");
-                    $public_key = $new_public_key;
-                } else {
-                    $PDOX->queryDie("UPDATE {$CFG->dbprefix}lti_issuer
-                        SET lti13_platform_pubkey=NULL, updated_at=NOW() WHERE issuer_sha256 = :SHA",
-                    array(':SHA' => $issuer_sha256) );
-                    if ( U::isNotEmpty($public_key) ) {
-                        error_log("Cleared public key $issuer_sha256 invalid kid");
-                        self::abort_with_error_log("Invalid Key Id (header.kid), public key cleared");
-                    } else {
-                        error_log("Could not find public key $issuer_sha256 invalid kid");
-                        self::abort_with_error_log("Invalid Key Id (header.kid), could not find public key");
-                    }
-                }
-            }
- */
 
             $e = LTI13::verifyPublicKey($raw_jwt, $public_key, array($jwt->header->alg));
             if ( $e !== true ) {
