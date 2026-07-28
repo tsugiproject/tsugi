@@ -108,7 +108,8 @@ class Output {
         }
 
         echo '</div>'; // End flash messages container
-        echo '<main id="main-content">'."\n";
+        // tabindex=-1 so activating the skip link can move keyboard focus here
+        echo '<main id="main-content" tabindex="-1">'."\n";
 
         $ob_output = ob_get_contents();
         ob_end_clean();
