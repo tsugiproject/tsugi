@@ -80,14 +80,10 @@ if ( strlen($gift) > 0 ) {
 
 $when = 0;
 $tries = 0;
-if ( $tries == 0 && method_exists($RESULT, 'getAttempts') ) {
-    $attempts = $RESULT->getAttempts();
-    if ( is_object($attempts) ) {
-        $when_raw = $attempts->attempted_at ?? $when;
-        if ( is_numeric($when_raw) ) $when = $when_raw + 0;
-        $tries_raw = $attempts->attempts ?? $tries;
-        if ( is_numeric($tries_raw) ) $tries = $tries_raw + 0;
-    }
+$attempts = $RESULT->getAttempts();
+if ( is_object($attempts) ) {
+    $tries = (int) ($attempts->attempts ?? 0);
+    $when = (int) ($attempts->attempted_at ?? 0);
 }
 
 // Decide if it is OK to submit this quiz
@@ -96,9 +92,9 @@ $why = '';
 if ( $tries >= $max_tries ) {
     $ok = false;
     $why = 'This quiz can only be attempted ('.$max_tries.') time(s).';
-} else if ( $when > 0 && ($when + $delay) > time() ) {
+} else if ( $delay > 0 && $when > 0 && ($when + $delay) > time() ) {
     $ok = false;
-    $why = 'You cannot retry this quiz for '.SettingsForm::getDueDateDelta(($when + $delay) - time());
+    $why = 'You cannot retry this quiz for '.SettingsForm::getDueDateDelta(($when + $delay) - time()).'.';
 }
 
 $oldgrade = $RESULT->grade;
@@ -117,11 +113,7 @@ if ( count($_POST) > 0 ) {
         return;
     }
 
-    $result = array("when" => time(), "tries" => $tries+1, "submit" => $_POST);
-    $RESULT->setJson(json_encode($result));
-    
-    // TODO: Remove this test a while after 2024-09-17
-    if ( method_exists($RESULT, 'recordAttempt') ) $RESULT->recordAttempt();
+    $RESULT->recordAttempt();
 
     $_SESSION['gift_submit'] = $_POST;
     $quiz = make_quiz($_POST, $questions, $errors);
@@ -233,11 +225,19 @@ if ( $gift === false || strlen($gift) < 1 ) {
     return;
 }
 
+$showing_tries_on_grade = false;
 if ( $RESULT->grade > 0 ) {
-    echo('<p class="alert alert-info" style="clear:both;">Your current grade on this assignment is: '.percent($RESULT->grade).'</p>'."\n");
+    $grade_msg = 'Your current grade on this assignment is: '.percent($RESULT->grade);
+    // Include attempt count when a try limit is configured (or any attempts exist).
+    if ( (is_numeric($max_str) && ($max_str + 0) > 0) || $tries > 0 ) {
+        $showing_tries_on_grade = true;
+        $grade_msg .= ' Attempts: '.$tries.'/'.$max_tries;
+    }
+    echo('<p class="alert alert-info" style="clear:both;">'.$grade_msg.'</p>'."\n");
 }
 
-if ( ! $ok ) {
+// Skip the max-tries note when the grade line already shows (n/n).
+if ( ! $ok && ! ($showing_tries_on_grade && $tries >= $max_tries) ) {
     if ( $USER->instructor ) {
         echo('<p class="alert alert-info" style="clear:both;">'.$why.' (except for the fact that you are the instructor)</p>'."\n");
     } else {
@@ -287,7 +287,7 @@ if ( ! $do_print && ( $ok || $USER->instructor ) ) {
 /*
 $qj = json_encode($questions);
 echo("<pre>\n");
-var_dump($attempt);
+var_dump($attempts);
 var_dump($errors);
 echo(htmlentities(LTI::jsonIndent($qj)));
 echo("</pre>\n");

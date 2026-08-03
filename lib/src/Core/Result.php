@@ -393,12 +393,17 @@ class Result extends Entity {
         $status = self::gradeSendStatic($grade, $row, $debug_log, $extra);
         $this->lastSendTransport = $GradeSendTransport;
 
-        // Update the session view of the grade
+        // Update the session view of the grade for the current launch user.
+        // When $row is provided we are grading a different result and must not
+        // overwrite the launcher's session grade.
         if ( $status === true ) {
-            $ltidata = $_SESSION[TSUGI_SESSION_LTI] ?? null;
-            if ( $ltidata && $row !== false ) {
-                $ltidata['grade'] = $grade;
-                $_SESSION[TSUGI_SESSION_LTI] = $ltidata;
+            if ( $row === false ) {
+                $ltidata = $_SESSION[TSUGI_SESSION_LTI] ?? null;
+                if ( $ltidata ) {
+                    $ltidata['grade'] = $grade;
+                    $_SESSION[TSUGI_SESSION_LTI] = $ltidata;
+                }
+                $this->grade = $grade;
             }
             if ( is_string($GradeSendTransport) ) {
                 $msg = 'Grade sent '.$grade.' id='.$USER->id.' via '.$GradeSendTransport;
@@ -680,7 +685,7 @@ class Result extends Entity {
     /**
      * Retrieve the number of attempts and latest attempt
      *
-     * @return object with attempted_at and attempts
+     * @return object with attempted_at, attempts, and updated_at
      */
     public function getAttempts() {
         global $CFG;
@@ -689,14 +694,25 @@ class Result extends Entity {
         $retval = new \stdClass();
         $retval->attempts = 0;
         $retval->attempted_at = 0;
+        $retval->updated_at = 0;
 
         if ( ($this->id ?? null) == null ) return $retval;
         $p = $CFG->dbprefix;
-        $sql = "SELECT COALESCE(attempts, 0) AS attempts, COALESCE(attempted_at, 0) AS attempted_at FROM {$p}lti_result WHERE result_id = :RID";
+        // Return unix timestamps (not DATETIME strings) so PHP timezone does not
+        // skew comparisons against time().
+        $sql = "SELECT COALESCE(attempts, 0) AS attempts,
+                COALESCE(UNIX_TIMESTAMP(attempted_at), 0) AS attempted_at,
+                COALESCE(UNIX_TIMESTAMP(updated_at), 0) AS updated_at
+            FROM {$p}lti_result WHERE result_id = :RID";
         $stmt = $PDOX->queryReturnError($sql, array( ":RID" => $this->id));
         if ( $stmt->success ) {
             $row = $stmt->fetch(\PDO::FETCH_OBJ);
-            if ( is_object($row) ) return $row;
+            if ( is_object($row) ) {
+                $row->attempts = (int) $row->attempts;
+                $row->attempted_at = (int) $row->attempted_at;
+                $row->updated_at = (int) $row->updated_at;
+                return $row;
+            }
         }
         return $retval;
     }
