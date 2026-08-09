@@ -18,13 +18,15 @@ if ( ! isAdmin() ) {
     return;
 }
 
+require_once("nav.php");
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
+mail_admin_nav('sent');
 echo('<h1>Mail sent</h1>');
-echo('<p><a href="index">Mail</a> | <a href="'.$CFG->wwwroot.'/admin">Admin</a></p>');
 echo('<p>Legacy <code>mail_sent</code> rows (e.g. peer-grade reset notices). Most application mail is not logged here.</p>');
 
 $fields = $PDOX->metadata($CFG->dbprefix . 'mail_sent');

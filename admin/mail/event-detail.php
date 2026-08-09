@@ -36,6 +36,8 @@ if ( $row === false || $row === null ) {
     return;
 }
 
+require_once("nav.php");
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -51,11 +53,10 @@ if ( is_string($payload) && $payload !== '' ) {
 }
 
 ?>
+<?php mail_admin_nav('events'); ?>
 <h1>SES event #<?= (int) $event_id ?></h1>
 <p>
-<a href="ses-events">SES events</a> |
-<a href="index">Mail</a> |
-<a href="<?= htmlentities($CFG->wwwroot) ?>/admin">Admin</a>
+<a href="ses-events">Back to SES events</a>
 </p>
 <table class="table table-striped" style="max-width: 900px;">
 <tr><th>created_at</th><td><?= htmlentities((string) U::get($row, 'created_at', '')) ?></td></tr>

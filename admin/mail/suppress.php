@@ -19,13 +19,15 @@ if ( ! isAdmin() ) {
     return;
 }
 
+require_once("nav.php");
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
+mail_admin_nav('suppress');
 echo('<h1>Mail suppress</h1>');
-echo('<p><a href="index">Mail</a> | <a href="'.$CFG->wwwroot.'/admin">Admin</a></p>');
 
 if ( ! MailService::suppressTableExists() ) {
     echo('<p style="color:red">mail_suppress table missing — run Admin → Database Upgrade.</p>');

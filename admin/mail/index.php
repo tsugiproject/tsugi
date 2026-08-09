@@ -19,6 +19,8 @@ if ( ! isAdmin() ) {
     return;
 }
 
+require_once("nav.php");
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -36,12 +38,8 @@ $sent_meta = $PDOX->metadata($CFG->dbprefix . 'mail_sent');
 $sent_ok = $sent_meta !== false;
 
 ?>
+<?php mail_admin_nav('home'); ?>
 <h1>Mail</h1>
-<p>
-<a href="<?= htmlentities($CFG->wwwroot) ?>/admin">Admin</a>
-|
-<a href="<?= htmlentities($CFG->wwwroot) ?>/admin/testmail">Test E-Mail</a>
-</p>
 <p>
 Transport:
 <strong><?= htmlentities(MailService::transport()) ?></strong>
@@ -56,12 +54,6 @@ Transport:
 <li>mail_suppress table: <?= $suppress_ok ? 'ok' : '<span style="color:red">missing — run Database Upgrade</span>' ?></li>
 <li>mail_ses_events table: <?= $events_ok ? 'ok' : '<span style="color:red">missing — run Database Upgrade</span>' ?></li>
 <li>mail_sent table: <?= $sent_ok ? 'ok' : 'missing' ?></li>
-</ul>
-<ul>
-<li><a href="bulk">Bulk campaigns</a></li>
-<li><a href="suppress">Suppressed addresses</a></li>
-<li><a href="ses-events">SES events</a></li>
-<li><a href="sent">Sent log (mail_sent)</a></li>
 </ul>
 <p>
 To send: open a context under <a href="<?= htmlentities($CFG->wwwroot) ?>/admin/context/">Contexts</a>

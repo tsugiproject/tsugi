@@ -43,16 +43,18 @@ if ( U::get($_POST,'email') && U::get($_POST,'subject') && U::get($_POST,'body')
     return;
 }
 
+require_once("mail/nav.php");
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
-// No Nav - this is in a frame
-
+$OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
 $transport = MailService::transport();
 $ses_configured = MailService::isSesConfigured();
 
 ?>
+<?php mail_admin_nav('test'); ?>
 <h1>Test Mail Sending</h1>
 <p>
 Configured owneremail:

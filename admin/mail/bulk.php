@@ -18,14 +18,16 @@ if ( ! isAdmin() ) {
     return;
 }
 
+require_once("nav.php");
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
+mail_admin_nav('bulk');
 echo('<h1>Bulk mail campaigns</h1>');
-echo('<p><a href="index">Mail</a> | <a href="'.$CFG->wwwroot.'/admin">Admin</a> | <a href="'.$CFG->wwwroot.'/admin/context/">Contexts</a></p>');
-echo('<p>Campaigns created from <strong>Admin → Context → Bulk mail</strong>. Click a bulk_id for detail.</p>');
+echo('<p>Campaigns created from <strong>Admin → Context → Bulk mail</strong>. Click a bulk_id for detail. <a href="'.$CFG->wwwroot.'/admin/context/">Contexts</a></p>');
 
 $fields = $PDOX->metadata($CFG->dbprefix . 'mail_bulk');
 if ( $fields === false ) {

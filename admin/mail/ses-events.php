@@ -19,13 +19,15 @@ if ( ! isAdmin() ) {
     return;
 }
 
+require_once("nav.php");
+
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
 
+mail_admin_nav('events');
 echo('<h1>SES events</h1>');
-echo('<p><a href="index">Mail</a> | <a href="'.$CFG->wwwroot.'/admin">Admin</a></p>');
 echo('<p>Each row is an SES notification Tsugi processed, including the <code>action</code> taken (suppress, ignore_soft_bounce, ignore_delivery, ignore, error).</p>');
 
 if ( ! MailService::sesEventsTableExists() ) {
