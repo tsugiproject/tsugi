@@ -40,7 +40,7 @@ array( "{$CFG->dbprefix}mail_sent",
 "create table {$CFG->dbprefix}mail_sent (
     sent_id             INTEGER NOT NULL AUTO_INCREMENT,
 
-    context_id          INTEGER NOT NULL,
+    context_id          INTEGER NULL,
     link_id             INTEGER NULL,
     bulk_id             INTEGER NULL,
 
@@ -207,5 +207,15 @@ $DATABASE_UPGRADE = function($oldversion) {
         $PDOX->queryReturnError($sql);
     }
 
-    return 202608091800;
+    // Allow admin/test mail with no course context.
+    $sql = "ALTER TABLE {$CFG->dbprefix}mail_sent MODIFY context_id INTEGER NULL";
+    echo("Upgrading: ".$sql."<br/>\n");
+    error_log("Upgrading: ".$sql);
+    $q = $PDOX->queryReturnError($sql);
+    if ( ! $q->success ) {
+        echo("Non-fatal: mail_sent.context_id NULL: ".$q->errorImplode."<br/>\n");
+        error_log("Non-fatal: mail_sent.context_id NULL: ".$q->errorImplode);
+    }
+
+    return 202608092000;
 }; // Don't forget the semicolon on anonymous functions :)

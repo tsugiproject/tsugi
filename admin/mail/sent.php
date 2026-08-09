@@ -27,7 +27,7 @@ $OUTPUT->flashMessages();
 
 mail_admin_nav('sent');
 echo('<h1>Mail sent</h1>');
-echo('<p>Legacy <code>mail_sent</code> rows (e.g. peer-grade reset notices). Most application mail is not logged here.</p>');
+echo('<p><code>mail_sent</code> rows from admin Test E-Mail, context bulk mail, and some tools (e.g. peer-grade). Details such as email / MessageId are in <code>json</code>.</p>');
 
 $fields = $PDOX->metadata($CFG->dbprefix . 'mail_sent');
 if ( $fields === false ) {
@@ -37,14 +37,14 @@ if ( $fields === false ) {
 }
 
 $query_parms = array();
-$searchfields = array("sent_id", "context_id", "link_id", "user_to", "user_from", "subject", "created_at");
-$orderfields = array("created_at", "sent_id", "context_id", "user_to");
+$searchfields = array("sent_id", "context_id", "bulk_id", "user_to", "user_from", "subject", "json", "created_at");
+$orderfields = array("created_at", "sent_id", "context_id", "user_to", "bulk_id");
 $params = $_GET;
 if ( ! isset($params['order_by']) && !isset($params['desc']) ) {
     $params['order_by'] = 'created_at';
     $params['desc'] = '1';
 }
-$sql = "SELECT sent_id, context_id, link_id, user_to, user_from, subject, created_at
+$sql = "SELECT sent_id, context_id, bulk_id, user_to, user_from, subject, json, created_at
     FROM {$CFG->dbprefix}mail_sent";
 $view = false;
 $extra_buttons = array("Mail" => "index", "Admin" => $CFG->wwwroot."/admin");

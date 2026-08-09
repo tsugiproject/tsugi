@@ -12,9 +12,9 @@ use \Tsugi\Services\Mail\MailService;
 LTIX::getConnection();
 
 if ( U::get($_POST,'email') && U::get($_POST,'subject') && U::get($_POST,'body')) {
-    $to = U::get($_POST,'email');
-    $subject =  U::get($_POST,'subject');
-    $body = U::get($_POST,'body');
+    $to = trim((string) U::get($_POST,'email'));
+    $subject = (string) U::get($_POST,'subject');
+    $body = (string) U::get($_POST,'body');
     $mail_type = U::get($_POST, 'mail_type', MailService::TYPE_TRANSACTIONAL);
     if ( $mail_type === MailService::TYPE_BULK ) {
         $detail = MailService::sendDetailedBulk($to, $subject, $body);
@@ -23,11 +23,16 @@ if ( U::get($_POST,'email') && U::get($_POST,'subject') && U::get($_POST,'body')
     }
     $transport = U::get($detail, 'transport', 'php');
     $type = U::get($detail, 'type', MailService::TYPE_TRANSACTIONAL);
+
+    $status = 'failed';
     if ( U::get($detail, 'disabled') ) {
+        $status = 'disabled';
         U::flashError('Mail disabled: set $CFG->maildomain in config.php');
     } else if ( U::get($detail, 'suppressed') ) {
+        $status = 'suppressed';
         U::flashError('Address is suppressed (bounce, complaint, or unsubscribe); mail not sent');
     } else if ( U::get($detail, 'success') ) {
+        $status = 'sent';
         $msg = 'Mail sent via ' . $transport . ' (' . $type . ')';
         if ( $transport === 'ses' && U::get($detail, 'message_id') ) {
             $msg .= ' (MessageId: ' . U::get($detail, 'message_id') . ')';
@@ -39,6 +44,44 @@ if ( U::get($_POST,'email') && U::get($_POST,'subject') && U::get($_POST,'body')
         $err = U::get($detail, 'error', 'unknown error');
         U::flashError('Mail failed via ' . $transport . ' (' . $type . '): ' . $err);
     }
+
+    // Log admin test sends (no context_id).
+    $user_from = loggedInUserId();
+    if ( $user_from < 1 ) {
+        $user_from = null;
+    }
+    $user_to = null;
+    $urow = $PDOX->rowDie(
+        "SELECT user_id FROM {$CFG->dbprefix}lti_user WHERE email = :E ORDER BY user_id DESC LIMIT 1",
+        array(':E' => $to)
+    );
+    if ( is_array($urow) && isset($urow['user_id']) ) {
+        $user_to = (int) $urow['user_id'];
+        if ( $user_to < 1 ) {
+            $user_to = null;
+        }
+    }
+    $sent_json = json_encode(array(
+        'source' => 'testmail',
+        'email' => $to,
+        'status' => $status,
+        'mail_type' => $type,
+        'transport' => $transport,
+        'message_id' => U::get($detail, 'message_id'),
+        'error' => U::get($detail, 'error'),
+    ));
+    $PDOX->queryReturnError(
+        "INSERT INTO {$CFG->dbprefix}mail_sent
+            (context_id, bulk_id, user_to, user_from, subject, body, json, created_at)
+         VALUES (NULL, NULL, :UTO, :UFR, :SUB, NULL, :JSON, NOW())",
+        array(
+            ':UTO' => $user_to,
+            ':UFR' => $user_from,
+            ':SUB' => substr($subject, 0, 256),
+            ':JSON' => $sent_json,
+        )
+    );
+
     header("Location: testmail.php");
     return;
 }
