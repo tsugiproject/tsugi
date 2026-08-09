@@ -62,7 +62,7 @@ if ( isset($_POST['doReject']) && isset($_POST['request_id']) ) {
         $subject = "Key Request Denied from ".$row['displayname'].' ('.$row['email'].' )';
         $message = "Key Request Denied from ".$row['displayname'].' ('.$row['email'].' )\n'.
             "System Admin: ".$CFG->ownername." (".$CFG->owneremail.")\n";
-        $retval = Mail::send($to, $subject, $message, $user_id, $token);
+        $retval = Mail::sendTransactional($to, $subject, $message, $user_id, $token);
     }
 
     U::flashSuccess('Request denied');
@@ -111,7 +111,7 @@ if ( isset($_POST['doApprove']) && isset($_POST['request_id']) ) {
 
     if ( $subject ) {
         error_log("Email sent to $to, Subject: $subject");
-        $retval = Mail::send($to, $subject, $message, $user_id, $token);
+        $retval = Mail::sendTransactional($to, $subject, $message, $user_id, $token);
     }
 
     U::flashSuccess('Request approved');

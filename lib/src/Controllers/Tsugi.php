@@ -41,6 +41,9 @@ class Tsugi extends \Tsugi\Lumen\Application {
             if ( is_array($CFG->getExtension('stripe')) ) {
                 \Tsugi\Controllers\Stripe::routes($this);
             }
+            if ( \Tsugi\Services\Mail\MailService::isSesConfigured() ) {
+                \Tsugi\Controllers\Ses::routes($this);
+            }
             \Tsugi\Controllers\Topics::routes($this);
             \Tsugi\Controllers\Notifications::routes($this);
         });

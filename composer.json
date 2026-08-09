@@ -42,7 +42,8 @@
 
         "minishlink/web-push": "^9.0",
         "mmccook/php-json-canonicalization-scheme": "^1.0",
-        "stripe/stripe-php": "^20.2"
+        "stripe/stripe-php": "^20.2",
+        "async-aws/ses": "^1.16"
     },
     "autoload": {
       "psr-4": {

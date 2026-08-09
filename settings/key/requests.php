@@ -98,11 +98,11 @@ if ( $goodsession && isset($_POST['title']) &&
         if ( $subject ) {
             U::flashSuccess("Key Approved - Check your email ".$to);
             error_log("Email sent to $to, Subject: $subject");
-            $retval = Mail::send($to, $subject, $message, $user_id, $token);
+            $retval = Mail::sendTransactional($to, $subject, $message, $user_id, $token);
             if ( $CFG->owneremail ) {
                 $subject = '[admin] ' . $subject;
                 error_log("Email sent to $CFG->owneremail, Subject: $subject");
-                $retval = Mail::send($CFG->owneremail, $subject, $admin_message);
+                $retval = Mail::sendTransactional($CFG->owneremail, $subject, $admin_message);
             }
         }
         header("Location: ".LTIX::curPageUrlFolder());
@@ -118,7 +118,7 @@ if ( $goodsession && isset($_POST['title']) &&
             "\nNotes\n".$_POST['notes']."\n\n".
             "Link: ".$CFG->wwwroot."/admin/key\n";
 
-        $retval = Mail::send($to, $subject, $message, $user_id, $token);
+        $retval = Mail::sendTransactional($to, $subject, $message, $user_id, $token);
     }
     U::flashSuccess("Record inserted");
     header("Location: ".LTIX::curPageUrlFolder());

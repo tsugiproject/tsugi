@@ -346,11 +346,36 @@ class ConfigInfo {
      * If you leave maildomain false, mail will not be sent.  If you set
      * maildomain to a real domain, best practice is for it to be a
      * real address with a wildcard box that you check periodially.
+     *
+     * Optional Amazon SES (async-aws/ses): when ses_region is set, outbound
+     * mail uses SES; otherwise PHP mail() is used. See docs/ses.md.
      */
     public $maildomain = false;  // Don't send mail
     // public $maildomain = 'mail.example.com';
     public $mailsecret = 'warning:please-change-mailsecret-92ds29';
     public $maileol = "\n";  // Depends on your mailer - may need to be \r\n
+
+    /** @var string|false AWS region for SES, e.g. 'us-east-1' */
+    public $ses_region = false;
+    /** @var string|false Optional access key; omit for IAM role / default chain */
+    public $ses_key = false;
+    /** @var string|false Optional secret key paired with ses_key */
+    public $ses_secret = false;
+    /** @var string|false Verified From address; defaults to no-reply@$maildomain */
+    public $ses_from = false;
+    /**
+     * Optional SES Configuration Set for transactional mail (and bulk fallback).
+     * When set, SendEmail attaches it so bounce/complaint events can be published
+     * to SNS (see docs/ses.md).
+     * @var string|false
+     */
+    public $ses_configuration_set = false;
+    /**
+     * Optional SES Configuration Set for sendBulk() only. Falls back to
+     * ses_configuration_set when unset.
+     * @var string|false
+     */
+    public $ses_configuration_set_bulk = false;
 
     /**
      * Configure the security for constructing LTI Launch session IDs

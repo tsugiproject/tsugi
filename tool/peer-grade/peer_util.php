@@ -538,7 +538,7 @@ function mailDeleteSubmit($user_id, $assn_json, $note)
     );
 
     // echo $to, $subject, $message, $user_id, $token;
-    $retval = Mail::send($to, $subject, $message, $user_id, $token);
+    $retval = Mail::sendTransactional($to, $subject, $message, $user_id, $token);
     return $retval;
 }
 

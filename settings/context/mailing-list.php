@@ -6,6 +6,7 @@ use \Tsugi\Util\U;
 if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
 require_once("../settings_util.php");
+require_once("../../admin/context/mail_audience.php");
 
 use \Tsugi\Core\LTIX;
 
@@ -82,37 +83,7 @@ $context_title = $context_row ? $context_row['title'] : "Context #$context_id";
 // Query for users only if days is provided
 $rows = array();
 if ( $days !== null ) {
-    // Query for users who:
-    // 1. Are members of this context
-    // 2. Logged in within the specified number of days
-    // 3. Have not opted out (subscribe != -1 in either lti_user or profile)
-    // 4. Have an email address
-    // Note: We calculate the cutoff date in PHP since MySQL INTERVAL doesn't support parameters
-    $cutoff_date = date('Y-m-d H:i:s', strtotime("-$days days"));
-
-    $sql = "SELECT DISTINCT U.email, U.displayname, U.login_at, U.user_id, COALESCE(P.premium, 0) AS premium
-            FROM {$CFG->dbprefix}lti_membership AS M
-            JOIN {$CFG->dbprefix}lti_user AS U ON M.user_id = U.user_id
-            LEFT JOIN {$CFG->dbprefix}profile AS P ON U.profile_id = P.profile_id
-            WHERE M.context_id = :CID
-              AND U.email IS NOT NULL
-              AND U.email != ''
-              AND U.login_at IS NOT NULL
-              AND U.login_at >= :CUTOFF";
-    
-    // Only filter out opted-out users if checkbox is not checked
-    if ( !$include_opted_out ) {
-        $sql .= " AND (U.subscribe IS NULL OR U.subscribe != -1)
-                  AND (P.subscribe IS NULL OR P.subscribe != -1)";
-    }
-
-    if ( $premium_only ) {
-        $sql .= " AND COALESCE(P.premium, 0) > 0";
-    }
-    
-    $sql .= " ORDER BY SUBSTRING_INDEX(U.email, '@', -1), U.email";
-
-    $rows = $PDOX->allRowsDie($sql, array(':CID' => $context_id, ':CUTOFF' => $cutoff_date));
+    $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only);
 }
 
 $OUTPUT->header();

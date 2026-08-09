@@ -69,6 +69,7 @@ $path_migrations = array(
     'lib/src/Controllers/database/Pages/database.php' => 'lib/src/Services/Pages/database.php',
     'lib/src/Controllers/database/Discussions/database.php' => 'lib/src/Services/Discussions/database.php',
     'tool/peer-grade/database.php' => 'lib/src/Services/PeerGrade/database.php',
+    'admin/mail/database.php' => 'lib/src/Services/Mail/database.php',
 );
 foreach ($path_migrations as $old_path => $new_path) {
     $sql = "SELECT plugin_id FROM {$plugins} WHERE plugin_path = :old_path";

@@ -102,6 +102,9 @@ $OUTPUT->flashMessages();
   <a href="<?= LTIX::curPageUrlFolder() ?>" class="btn btn-default">View Contexts</a>
   <a href="context-settings?context_id=<?= htmlentities($context_id) ?>" class="btn btn-success">View/Edit Context Settings</a>
   <a href="mailing-list.php?context_id=<?= htmlentities($context_id) ?>" class="btn btn-primary">Generate Mailing List</a>
+<?php if ( isAdmin() ) { ?>
+  <a href="bulk-mail.php?context_id=<?= htmlentities($context_id) ?>" class="btn btn-default">Bulk mail</a>
+<?php } ?>
 </p>
 
 <?php

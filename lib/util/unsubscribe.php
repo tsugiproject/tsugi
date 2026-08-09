@@ -1,4 +1,5 @@
 <?php
+// Legacy copy — live unsubscribe is util/unsubscribe.php (via Output::getUtilUrl).
 require_once("config.php");
 
 use \Tsugi\Core\Mail;

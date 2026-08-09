@@ -2,52 +2,30 @@
 
 namespace Tsugi\Core;
 
-use \Tsugi\Util\U;
-use \Tsugi\UI\Output;
+use \Tsugi\Services\Mail\MailService;
 
-/** Mail utilities */
+/** Mail utilities — delegates to Tsugi\Services\Mail\MailService */
 
 class Mail {
 
     public static function computeCheck($identity) {
-        global $CFG;
-        return sha1($CFG->mailsecret . '::' . $identity);
+        return MailService::computeCheck($identity);
     }
 
+    /** One-to-one / system response mail. */
+    public static function sendTransactional($to, $subject, $message, $id=false, $token=false) {
+        return MailService::sendTransactional($to, $subject, $message, $id, $token);
+    }
+
+    /** Campaign / list-style mail. */
+    public static function sendBulk($to, $subject, $message, $id=false, $token=false) {
+        return MailService::sendBulk($to, $subject, $message, $id, $token);
+    }
+
+    /**
+     * @deprecated Prefer sendTransactional() or sendBulk(). Defaults to transactional.
+     */
     public static function send($to, $subject, $message, $id=false, $token=false) {
-        global $CFG;
-
-        if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) return;
-
-        if ( isset($CFG->maileol) && isset($CFG->wwwroot) && isset($CFG->maildomain) ) {
-            // All good
-        } else {
-            die_with_error_log("Incomplete mail configuration in mailSend");
-        }
-
-        if ( empty($to) || empty($subject) ) return false;
-
-        $EOL = $CFG->maileol;
-        $maildomain = $CFG->maildomain;
-        $manage = $CFG->wwwroot . "/profile";
-        $unsubscribe_url = $manage;
-        if ( U::strlen($id) > 0 && U::strlen($token) > 0 ) {
-            $unsubscribe_url = Output::getUtilUrl("/unsubscribe?id=$id&token=$token");
-        }
-        $msg = $message;
-        if ( substr($msg,-1) != "\n" ) $msg .= "\n";
-        // $msg .= "\nYou can manage your mail preferences at $manage \n";
-        // TODO: Make unsubscribe work
-
-        // echo $msg;
-
-        $headers = "From: no-reply@$maildomain" . $EOL .
-            "Return-Path: <bounced-$id-$token@$maildomain>" . $EOL .
-            "List-Unsubscribe: <$unsubscribe_url>" . $EOL .
-            'X-Mailer: PHP/' . phpversion();
-
-        error_log("Mail to: $to $subject");
-        // echo $headers;
-        return mail($to,$subject,$msg,$headers);
+        return MailService::sendTransactional($to, $subject, $message, $id, $token);
     }
 }

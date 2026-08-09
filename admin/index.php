@@ -143,11 +143,7 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
   </a>
 </li>
 <?php } ?>
-<li>
-  <a href="#" title="Test E-Mail"
-  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'testmail', _TSUGI.spinnerUrl); return false;" >
-  Test E-Mail
-  </a></li>
+<li><a href="mail/">Mail</a></li>
 <li>
   <a href="#" title="Event Status"
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'events', _TSUGI.spinnerUrl, true); return false;" >

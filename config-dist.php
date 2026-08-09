@@ -432,6 +432,17 @@ $CFG->maildomain = false; // 'mail.example.com';
 $CFG->mailsecret = 'warning:please-change-mailsecret-92ds29';
 $CFG->maileol = "\n";  // Depends on your mailer - may need to be \r\n
 
+// Optional Amazon SES (async-aws/ses). When ses_region is set, use SES; else PHP mail().
+// See docs/ses.md for setup. From address must be a verified SES identity.
+$CFG->ses_region = false; // 'us-east-1'
+$CFG->ses_key = false;    // optional; omit for IAM role / default credential chain
+$CFG->ses_secret = false;
+$CFG->ses_from = false;   // verified From; defaults to no-reply@$CFG->maildomain
+// Configuration Set name so bounce/complaint events reach SNS → {apphome}/ses/sns
+$CFG->ses_configuration_set = false; // 'tsugi-mail' (used for transactional; bulk falls back here)
+// Optional separate Configuration Set for sendBulk() traffic
+$CFG->ses_configuration_set_bulk = false; // 'tsugi-mail-bulk'
+
 // Set the nonce clearing factor and expiry time
 $CFG->noncecheck = 100;
 $CFG->noncetime = 1800;

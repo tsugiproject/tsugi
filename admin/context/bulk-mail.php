@@ -1,0 +1,397 @@
+<?php
+// In the top frame, we use cookies for session.
+if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
+require_once("../../config.php");
+require_once("../../admin/admin_util.php");
+require_once("mail_audience.php");
+
+use \Tsugi\Core\LTIX;
+use \Tsugi\Util\U;
+use \Tsugi\Services\Mail\MailService;
+
+LTIX::getConnection();
+header('Content-Type: text/html; charset=utf-8');
+session_start();
+
+require_once("../gate.php");
+if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
+
+if ( ! isAdmin() ) {
+    U::flashError("Bulk mail is limited to site administrators");
+    header('Location: '.LTIX::curPageUrlFolder());
+    return;
+}
+
+const MAIL_BULK_MAX_RECIPIENTS = 200;
+
+if ( ! isset($_REQUEST['context_id']) || ! is_numeric($_REQUEST['context_id']) ) {
+    U::flashError("No context_id provided");
+    header('Location: '.LTIX::curPageUrlFolder());
+    return;
+}
+$context_id = $_REQUEST['context_id'] + 0;
+
+$context_row = $PDOX->rowDie(
+    "SELECT title FROM {$CFG->dbprefix}lti_context WHERE context_id = :CID",
+    array(':CID' => $context_id)
+);
+if ( $context_row === false || $context_row === null ) {
+    U::flashError("Context not found");
+    header('Location: '.LTIX::curPageUrlFolder());
+    return;
+}
+$context_title = $context_row['title'] ? $context_row['title'] : "Context #$context_id";
+
+$from_user_id = loggedInUserId();
+$step = U::get($_REQUEST, 'step', 'compose');
+
+// ---------- Send (confirm POST) ----------
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' ) {
+    if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) {
+        U::flashError('Mail disabled: set $CFG->maildomain');
+        header('Location: bulk-mail.php?context_id='.$context_id);
+        return;
+    }
+    if ( $from_user_id <= 0 ) {
+        U::flashError('Bulk mail requires a logged-in user id (lti_user) for mail_bulk.user_id');
+        header('Location: bulk-mail.php?context_id='.$context_id);
+        return;
+    }
+    if ( ! U::get($_POST, 'confirm_send') ) {
+        U::flashError('You must confirm the send');
+        header('Location: bulk-mail.php?context_id='.$context_id);
+        return;
+    }
+
+    $subject = trim((string) U::get($_POST, 'subject', ''));
+    $body = (string) U::get($_POST, 'body', '');
+    $days = (int) U::get($_POST, 'days', 0);
+    $include_opted_out = U::get($_POST, 'include_opted_out') == '1';
+    $premium_only = U::get($_POST, 'premium_only') == '1';
+    $exclude_recent_bulk_days = (int) U::get($_POST, 'exclude_recent_bulk_days', 0);
+
+    if ( $subject === '' || trim($body) === '' ) {
+        U::flashError('Subject and body are required');
+        header('Location: bulk-mail.php?context_id='.$context_id);
+        return;
+    }
+    if ( $days < 1 || $days > 365 ) {
+        U::flashError('Days must be between 1 and 365');
+        header('Location: bulk-mail.php?context_id='.$context_id);
+        return;
+    }
+    if ( $exclude_recent_bulk_days < 0 || $exclude_recent_bulk_days > 365 ) {
+        U::flashError('Exclude recent bulk days must be between 0 and 365');
+        header('Location: bulk-mail.php?context_id='.$context_id);
+        return;
+    }
+
+    $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days);
+    $count = count($rows);
+    if ( $count < 1 ) {
+        U::flashError('No recipients match the filters');
+        header('Location: bulk-mail.php?context_id='.$context_id);
+        return;
+    }
+    if ( $count > MAIL_BULK_MAX_RECIPIENTS ) {
+        U::flashError('Audience is '.$count.' recipients; max per send is '.MAIL_BULK_MAX_RECIPIENTS.'. Tighten the days filter or other options.');
+        header('Location: bulk-mail.php?context_id='.$context_id.'&step=preview');
+        return;
+    }
+
+    $meta = array(
+        'days' => $days,
+        'include_opted_out' => $include_opted_out ? 1 : 0,
+        'premium_only' => $premium_only ? 1 : 0,
+        'exclude_recent_bulk_days' => $exclude_recent_bulk_days,
+        'audience_count' => $count,
+    );
+
+    $PDOX->queryDie(
+        "INSERT INTO {$CFG->dbprefix}mail_bulk
+            (user_id, context_id, subject, body, json, created_at)
+         VALUES (:UID, :CID, :SUB, :BOD, :JSON, NOW())",
+        array(
+            ':UID' => $from_user_id,
+            ':CID' => $context_id,
+            ':SUB' => substr($subject, 0, 256),
+            ':BOD' => $body,
+            ':JSON' => json_encode($meta),
+        )
+    );
+    $bulk_id = $PDOX->lastInsertId();
+
+    $sent = 0;
+    $skipped = 0;
+    $failed = 0;
+    $errors = array();
+
+    foreach ( $rows as $row ) {
+        $to = trim((string) U::get($row, 'email', ''));
+        $user_to = (int) U::get($row, 'user_id', 0);
+        if ( $to === '' || $user_to < 1 ) {
+            $skipped++;
+            continue;
+        }
+        $token = MailService::computeCheck($user_to);
+        $detail = MailService::sendDetailedBulk($to, $subject, $body, $user_to, $token);
+        $status = 'failed';
+        if ( U::get($detail, 'suppressed') ) {
+            $skipped++;
+            $status = 'suppressed';
+        } else if ( U::get($detail, 'success') ) {
+            $sent++;
+            $status = 'sent';
+        } else if ( U::get($detail, 'disabled') ) {
+            $failed++;
+            $status = 'disabled';
+            if ( count($errors) < 5 ) {
+                $errors[] = $to.': mail disabled';
+            }
+        } else {
+            $failed++;
+            $err = (string) U::get($detail, 'error', 'unknown');
+            if ( count($errors) < 5 ) {
+                $errors[] = $to.': '.$err;
+            }
+        }
+
+        $sent_json = json_encode(array(
+            'status' => $status,
+            'transport' => U::get($detail, 'transport'),
+            'message_id' => U::get($detail, 'message_id'),
+            'error' => U::get($detail, 'error'),
+        ));
+        $PDOX->queryReturnError(
+            "INSERT INTO {$CFG->dbprefix}mail_sent
+                (context_id, bulk_id, user_to, user_from, subject, body, json, created_at)
+             VALUES (:CID, :BID, :UTO, :UFR, :SUB, NULL, :JSON, NOW())",
+            array(
+                ':CID' => $context_id,
+                ':BID' => $bulk_id,
+                ':UTO' => $user_to,
+                ':UFR' => $from_user_id,
+                ':SUB' => substr($subject, 0, 256),
+                ':JSON' => $sent_json,
+            )
+        );
+    }
+
+    $meta['sent'] = $sent;
+    $meta['skipped'] = $skipped;
+    $meta['failed'] = $failed;
+    $meta['errors'] = $errors;
+    $PDOX->queryReturnError(
+        "UPDATE {$CFG->dbprefix}mail_bulk SET json = :JSON WHERE bulk_id = :BID",
+        array(':JSON' => json_encode($meta), ':BID' => $bulk_id)
+    );
+
+    U::flashSuccess("Bulk mail #$bulk_id: sent=$sent skipped=$skipped failed=$failed");
+    header('Location: bulk-detail.php?bulk_id='.$bulk_id);
+    return;
+}
+
+// ---------- Preview (compose POST → preview GET via PRG, or preview POST shows confirm) ----------
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'compose' ) {
+    $subject = trim((string) U::get($_POST, 'subject', ''));
+    $body = (string) U::get($_POST, 'body', '');
+    $days = (int) U::get($_POST, 'days', 30);
+    $include_opted_out = isset($_POST['include_opted_out']) ? 1 : 0;
+    $premium_only = isset($_POST['premium_only']) ? 1 : 0;
+    $exclude_recent_bulk_days = (int) U::get($_POST, 'exclude_recent_bulk_days', 30);
+    if ( $subject === '' || trim($body) === '' ) {
+        U::flashError('Subject and body are required');
+        header('Location: bulk-mail.php?context_id='.$context_id);
+        return;
+    }
+    if ( $days < 1 || $days > 365 ) {
+        U::flashError('Days must be between 1 and 365');
+        header('Location: bulk-mail.php?context_id='.$context_id);
+        return;
+    }
+    if ( $exclude_recent_bulk_days < 0 || $exclude_recent_bulk_days > 365 ) {
+        U::flashError('Exclude recent bulk days must be between 0 and 365 (0 = do not exclude)');
+        header('Location: bulk-mail.php?context_id='.$context_id);
+        return;
+    }
+    // Stash body in session (too large for URL)
+    $_SESSION['bulk_mail_draft'] = array(
+        'context_id' => $context_id,
+        'subject' => $subject,
+        'body' => $body,
+        'days' => $days,
+        'include_opted_out' => $include_opted_out,
+        'premium_only' => $premium_only,
+        'exclude_recent_bulk_days' => $exclude_recent_bulk_days,
+    );
+    header('Location: bulk-mail.php?context_id='.$context_id.'&step=preview');
+    return;
+}
+
+$draft = U::get($_SESSION, 'bulk_mail_draft', array());
+if ( !is_array($draft) || (int) U::get($draft, 'context_id', 0) !== $context_id ) {
+    $draft = array();
+}
+
+$subject = '';
+$body = '';
+$days = 30;
+$include_opted_out = false;
+$premium_only = false;
+$exclude_recent_bulk_days = 30;
+$rows = array();
+
+if ( $step === 'preview' && count($draft) > 0 ) {
+    $subject = (string) U::get($draft, 'subject', '');
+    $body = (string) U::get($draft, 'body', '');
+    $days = (int) U::get($draft, 'days', 30);
+    $include_opted_out = (int) U::get($draft, 'include_opted_out', 0) === 1;
+    $premium_only = (int) U::get($draft, 'premium_only', 0) === 1;
+    $exclude_recent_bulk_days = (int) U::get($draft, 'exclude_recent_bulk_days', 30);
+    $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days);
+} else {
+    $step = 'compose';
+}
+
+$OUTPUT->header();
+$OUTPUT->bodyStart();
+$OUTPUT->topNav();
+$OUTPUT->flashMessages();
+
+$mail_ok = isset($CFG->maildomain) && $CFG->maildomain !== false;
+?>
+<h2>Bulk mail: <?= htmlentities((string) $context_title) ?></h2>
+<p>
+  <a href="membership?context_id=<?= (int) $context_id ?>" class="btn btn-default">Membership</a>
+  <a href="mailing-list.php?context_id=<?= (int) $context_id ?>" class="btn btn-default">Mailing list</a>
+  <a href="<?= htmlentities($CFG->wwwroot) ?>/admin/mail/bulk">All bulk campaigns</a>
+</p>
+<p>
+Transport: <strong><?= htmlentities(MailService::transport()) ?></strong>
+<?= $mail_ok ? '' : ' — <span style="color:red">$CFG->maildomain not set; send disabled</span>' ?>
+ · Max recipients per send: <?= (int) MAIL_BULK_MAX_RECIPIENTS ?>
+</p>
+
+<?php if ( $step === 'compose' ) { ?>
+<div class="panel panel-default">
+  <div class="panel-heading"><h3 class="panel-title">Compose</h3></div>
+  <div class="panel-body">
+    <form method="post" action="bulk-mail.php">
+      <input type="hidden" name="context_id" value="<?= (int) $context_id ?>">
+      <input type="hidden" name="step" value="compose">
+      <div class="form-group">
+        <label for="subject">Subject</label>
+        <input class="form-control" type="text" name="subject" id="subject" required
+               value="<?= htmlentities((string) U::get($draft, 'subject', '')) ?>">
+      </div>
+      <div class="form-group">
+        <label for="body">Body (plain text)</label>
+        <textarea class="form-control" name="body" id="body" rows="12" required><?= htmlentities((string) U::get($draft, 'body', '')) ?></textarea>
+      </div>
+      <div class="form-group">
+        <label for="days">Users who logged in within the last</label>
+        <input type="number" class="form-control" id="days" name="days" min="1" max="365"
+               value="<?= (int) U::get($draft, 'days', 30) ?>" style="width:80px;display:inline-block;">
+        days
+      </div>
+      <div class="form-group">
+        <label for="exclude_recent_bulk_days">Exclude users who already got bulk mail in this context within the last</label>
+        <input type="number" class="form-control" id="exclude_recent_bulk_days" name="exclude_recent_bulk_days"
+               min="0" max="365"
+               value="<?= (int) U::get($draft, 'exclude_recent_bulk_days', 30) ?>" style="width:80px;display:inline-block;">
+        days
+        <p class="help-block">
+          Scoped to this context only. Use <strong>0</strong> to disable.
+          Example: mail users active in the last 15 days, then later mail users active in 30 days
+          with exclude=30 so prior recipients are skipped.
+        </p>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" name="include_opted_out" value="1"
+            <?= (int) U::get($draft, 'include_opted_out', 0) === 1 ? 'checked' : '' ?>>
+          Include opted-out users in the audience list
+        </label>
+        <p class="help-block">Even if checked, MailService still skips suppressed addresses and subscribe=-1 at send time.</p>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" name="premium_only" value="1"
+            <?= (int) U::get($draft, 'premium_only', 0) === 1 ? 'checked' : '' ?>>
+          Supporters / premium users only
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary">Preview recipients</button>
+    </form>
+  </div>
+</div>
+<?php } ?>
+
+<?php if ( $step === 'preview' ) {
+    $n = count($rows);
+    $over = $n > MAIL_BULK_MAX_RECIPIENTS;
+?>
+<div class="panel panel-default">
+  <div class="panel-heading"><h3 class="panel-title">Preview</h3></div>
+  <div class="panel-body">
+    <p><strong>Subject:</strong> <?= htmlentities($subject) ?></p>
+    <p><strong>Filters:</strong> logged in last <?= (int) $days ?> days
+      <?= $exclude_recent_bulk_days > 0
+            ? '; exclude if bulk mail already sent in this context within '.$exclude_recent_bulk_days.' days'
+            : '; not excluding prior bulk recipients' ?>
+      <?= $include_opted_out ? '; include opted-out in list' : '; exclude opted-out' ?>
+      <?= $premium_only ? '; premium only' : '' ?>
+    </p>
+    <p><strong>Recipients:</strong> <?= (int) $n ?>
+      <?= $over ? ' <span style="color:red">(over max '.MAIL_BULK_MAX_RECIPIENTS.' — tighten filters)</span>' : '' ?>
+    </p>
+    <pre style="white-space:pre-wrap;max-height:200px;overflow:auto;border:1px solid #ddd;padding:10px;"><?= htmlentities($body) ?></pre>
+    <?php if ( $n > 0 && $n <= 50 ) { ?>
+    <p>Sample emails:</p>
+    <ul>
+      <?php foreach ( $rows as $row ) { ?>
+        <li><?= htmlentities((string) $row['email']) ?></li>
+      <?php } ?>
+    </ul>
+    <?php } else if ( $n > 50 ) { ?>
+    <p>First 20 emails:</p>
+    <ul>
+      <?php
+      $i = 0;
+      foreach ( $rows as $row ) {
+          if ( $i++ >= 20 ) break;
+          echo '<li>'.htmlentities((string) $row['email']).'</li>';
+      }
+      ?>
+    </ul>
+    <?php } ?>
+
+    <p>
+      <a class="btn btn-default" href="bulk-mail.php?context_id=<?= (int) $context_id ?>">Back to compose</a>
+    </p>
+
+    <?php if ( $mail_ok && !$over && $n > 0 ) { ?>
+    <form method="post" action="bulk-mail.php" style="margin-top:15px;">
+      <input type="hidden" name="context_id" value="<?= (int) $context_id ?>">
+      <input type="hidden" name="step" value="send">
+      <input type="hidden" name="subject" value="<?= htmlentities($subject) ?>">
+      <input type="hidden" name="body" value="<?= htmlentities($body) ?>">
+      <input type="hidden" name="days" value="<?= (int) $days ?>">
+      <input type="hidden" name="exclude_recent_bulk_days" value="<?= (int) $exclude_recent_bulk_days ?>">
+      <input type="hidden" name="include_opted_out" value="<?= $include_opted_out ? '1' : '0' ?>">
+      <input type="hidden" name="premium_only" value="<?= $premium_only ? '1' : '0' ?>">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" name="confirm_send" value="1" required>
+          I confirm sending this bulk mail to <?= (int) $n ?> recipients via <?= htmlentities(MailService::transport()) ?>
+        </label>
+      </div>
+      <button type="submit" class="btn btn-danger">Send bulk mail</button>
+    </form>
+    <?php } ?>
+  </div>
+</div>
+<?php } ?>
+
+<?php
+$OUTPUT->footer();

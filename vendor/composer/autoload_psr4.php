@@ -67,4 +67,6 @@ return array(
     'Carbon\\' => array($vendorDir . '/nesbot/carbon/src/Carbon'),
     'Brick\\Math\\' => array($vendorDir . '/brick/math/src'),
     'Base64Url\\' => array($vendorDir . '/spomky-labs/base64url/src'),
+    'AsyncAws\\Ses\\' => array($vendorDir . '/async-aws/ses/src'),
+    'AsyncAws\\Core\\' => array($vendorDir . '/async-aws/core/src'),
 );

@@ -131,6 +131,11 @@ class ComposerStaticInit30db599d1b6d13de666837c7bc59ac94
             'Brick\\Math\\' => 11,
             'Base64Url\\' => 10,
         ),
+        'A' =>
+        array (
+            'AsyncAws\\Ses\\' => 13,
+            'AsyncAws\\Core\\' => 14,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
@@ -378,6 +383,14 @@ class ComposerStaticInit30db599d1b6d13de666837c7bc59ac94
         'Base64Url\\' =>
         array (
             0 => __DIR__ . '/..' . '/spomky-labs/base64url/src',
+        ),
+        'AsyncAws\\Ses\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/async-aws/ses/src',
+        ),
+        'AsyncAws\\Core\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/async-aws/core/src',
         ),
     );
 
