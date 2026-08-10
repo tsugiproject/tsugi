@@ -16,10 +16,27 @@ if ( U::get($_POST,'email') && U::get($_POST,'subject') && U::get($_POST,'body')
     $subject = (string) U::get($_POST,'subject');
     $body = (string) U::get($_POST,'body');
     $mail_type = U::get($_POST, 'mail_type', MailService::TYPE_TRANSACTIONAL);
+
+    // Resolve recipient user for signed unsubscribe (required for bulk List-Unsubscribe).
+    $user_to = null;
+    $urow = $PDOX->rowDie(
+        "SELECT user_id FROM {$CFG->dbprefix}lti_user WHERE LOWER(email) = :E ORDER BY user_id DESC LIMIT 1",
+        array(':E' => MailService::normalizeEmail($to))
+    );
+    if ( is_array($urow) && isset($urow['user_id']) && (int) $urow['user_id'] > 0 ) {
+        $user_to = (int) $urow['user_id'];
+    }
+    $token = $user_to ? MailService::computeCheck($user_to) : false;
+
     if ( $mail_type === MailService::TYPE_BULK ) {
-        $detail = MailService::sendDetailedBulk($to, $subject, $body);
+        if ( !$user_to ) {
+            U::flashError('Bulk test mail needs a matching lti_user email so unsubscribe headers can be signed. No user found for '.$to);
+            header("Location: testmail.php");
+            return;
+        }
+        $detail = MailService::sendDetailedBulk($to, $subject, $body, $user_to, $token);
     } else {
-        $detail = MailService::sendDetailedTransactional($to, $subject, $body);
+        $detail = MailService::sendDetailedTransactional($to, $subject, $body, $user_to ?: false, $token ?: false);
     }
     $transport = U::get($detail, 'transport', 'php');
     $type = U::get($detail, 'type', MailService::TYPE_TRANSACTIONAL);
@@ -39,6 +56,9 @@ if ( U::get($_POST,'email') && U::get($_POST,'subject') && U::get($_POST,'body')
         } else if ( $transport === 'php' ) {
             $msg .= ' (PHP mail() returned true)';
         }
+        if ( $type === MailService::TYPE_BULK && $user_to ) {
+            $msg .= ' — includes List-Unsubscribe for user_id='.$user_to;
+        }
         U::flashSuccess($msg);
     } else {
         $err = U::get($detail, 'error', 'unknown error');
@@ -49,17 +69,6 @@ if ( U::get($_POST,'email') && U::get($_POST,'subject') && U::get($_POST,'body')
     $user_from = loggedInUserId();
     if ( $user_from < 1 ) {
         $user_from = null;
-    }
-    $user_to = null;
-    $urow = $PDOX->rowDie(
-        "SELECT user_id FROM {$CFG->dbprefix}lti_user WHERE email = :E ORDER BY user_id DESC LIMIT 1",
-        array(':E' => $to)
-    );
-    if ( is_array($urow) && isset($urow['user_id']) ) {
-        $user_to = (int) $urow['user_id'];
-        if ( $user_to < 1 ) {
-            $user_to = null;
-        }
     }
     $message_id = U::get($detail, 'message_id');
     if ( !is_string($message_id) || $message_id === '' ) {
@@ -73,6 +82,7 @@ if ( U::get($_POST,'email') && U::get($_POST,'subject') && U::get($_POST,'body')
         'transport' => $transport,
         'message_id' => $message_id,
         'error' => U::get($detail, 'error'),
+        'unsubscribe' => ($type === MailService::TYPE_BULK && $user_to) ? 1 : 0,
     ));
     $PDOX->queryReturnError(
         "INSERT INTO {$CFG->dbprefix}mail_sent
@@ -141,6 +151,10 @@ Mail type:<br/>
 <label><input type="radio" name="mail_type" value="<?= htmlentities(MailService::TYPE_TRANSACTIONAL) ?>" checked> transactional</label>
 &nbsp;
 <label><input type="radio" name="mail_type" value="<?= htmlentities(MailService::TYPE_BULK) ?>"> bulk</label>
+</p>
+<p class="help-block">
+Bulk includes List-Unsubscribe headers and footer; the address must match an
+<code>lti_user.email</code> so the link can be signed.
 </p>
 <p>
 <input type="submit" onclick="$('#myspinner').show();return true;" name="delete" value="Send Mail"/>

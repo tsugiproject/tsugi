@@ -476,6 +476,7 @@ Create:
 ```text
 SNS topic: cc4e-ses-events
 ```
+Note: SNS is a different service than SES.  Make topics there.
 
 Keep the SNS topic in the same Region as this SES setup when possible:
 
@@ -547,6 +548,9 @@ It is not necessary for the initial CC4E setup.
 ---
 
 ## 18. Build the HTTPS webhook before subscribing it
+
+This does not need to have outbound fully configured - the URL must exist and accept a ping-like post
+to be confirmed.
 
 Webhook:
 
