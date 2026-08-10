@@ -24,6 +24,82 @@ if ( ! isAdmin() ) {
 
 const MAIL_BULK_MAX_RECIPIENTS = 200;
 
+/**
+ * Shell-escape a value for single-quoted CLI args.
+ */
+function bulk_mail_cli_shell_quote($value) {
+    return "'".str_replace("'", "'\\''", (string) $value)."'";
+}
+
+/**
+ * Build equivalent scripts/send-bulk-mail.php instructions for the current form values.
+ *
+ * @return string Multi-line text for a copyable textarea
+ */
+function bulk_mail_cli_instructions($context_id, $from_user_id, $subject, $body, $single_email,
+        $days, $exclude_recent_bulk_days, $limit, $include_opted_out, $premium_only) {
+    $lines = array();
+    $lines[] = '# Equivalent CLI (scripts/send-bulk-mail.php)';
+    $lines[] = '# Dry-run by default. Add --send to deliver.';
+    $lines[] = '# Run from the Tsugi root (directory that contains scripts/).';
+    $lines[] = '#';
+    $lines[] = '# 1) Save the body to a file, e.g. campaign.txt';
+    $lines[] = '# 2) Dry-run:';
+
+    $cmd = array('php scripts/send-bulk-mail.php');
+    $cmd[] = '--context-id='.(int) $context_id;
+    if ( trim((string) $subject) !== '' ) {
+        $cmd[] = '--subject='.bulk_mail_cli_shell_quote($subject);
+    } else {
+        $cmd[] = "--subject='YOUR SUBJECT'";
+    }
+    $cmd[] = '--body-file=./campaign.txt';
+
+    $single_email = strtolower(trim((string) $single_email));
+    if ( $single_email !== '' ) {
+        $cmd[] = '--email='.bulk_mail_cli_shell_quote($single_email);
+    } else {
+        $cmd[] = '--days='.(int) $days;
+        $cmd[] = '--exclude-recent-bulk-days='.(int) $exclude_recent_bulk_days;
+        $cmd[] = '--limit='.(int) $limit;
+        if ( $premium_only ) {
+            $cmd[] = '--premium-only';
+        }
+        if ( $include_opted_out ) {
+            $cmd[] = '--include-opted-out';
+        }
+    }
+
+    $lines[] = implode(" \\\n  ", $cmd);
+
+    $from_user_id = (int) $from_user_id;
+    $lines[] = '#';
+    $lines[] = '# 3) Send (requires --from-user-id):';
+    $send_cmd = $cmd;
+    if ( $from_user_id > 0 ) {
+        $send_cmd[] = '--from-user-id='.$from_user_id;
+    } else {
+        $send_cmd[] = '--from-user-id=USER_ID';
+    }
+    $send_cmd[] = '--send';
+    $lines[] = implode(" \\\n  ", $send_cmd);
+
+    $body = (string) $body;
+    if ( trim($body) !== '' ) {
+        $lines[] = '#';
+        $lines[] = '# --- campaign.txt body (copy into the file) ---';
+        $lines[] = $body;
+        if ( substr($body, -1) !== "\n" ) {
+            // keep body as-is; trailing note separate
+        }
+        $lines[] = '# --- end body ---';
+    }
+
+    $lines[] = '#';
+    $lines[] = '# See scripts/README-send-bulk-mail.md';
+    return implode("\n", $lines);
+}
+
 if ( ! isset($_REQUEST['context_id']) || ! is_numeric($_REQUEST['context_id']) ) {
     U::flashError("No context_id provided");
     header('Location: '.LTIX::curPageUrlFolder());
@@ -402,6 +478,90 @@ Transport: <strong><?= htmlentities(MailService::transport()) ?></strong>
       </div>
       <button type="submit" class="btn btn-primary">Preview recipients</button>
     </form>
+<?php
+$cli_compose = bulk_mail_cli_instructions(
+    $context_id,
+    $from_user_id,
+    (string) U::get($draft, 'subject', ''),
+    (string) U::get($draft, 'body', ''),
+    (string) U::get($draft, 'single_email', ''),
+    (int) U::get($draft, 'days', 30),
+    (int) U::get($draft, 'exclude_recent_bulk_days', 30),
+    (int) U::get($draft, 'limit', 0),
+    (int) U::get($draft, 'include_opted_out', 0) === 1,
+    (int) U::get($draft, 'premium_only', 0) === 1
+);
+?>
+    <details style="margin-top:20px;">
+      <summary style="cursor:pointer;color:#666;">CLI equivalent (send-bulk-mail.php)</summary>
+      <p class="help-block" style="margin-top:8px;">
+        Hidden helper for cron / larger batches. Updates as you edit the form.
+        See <code>scripts/README-send-bulk-mail.md</code>.
+      </p>
+      <textarea id="bulk-mail-cli" class="form-control" rows="16" readonly
+                style="font-family:Menlo,Monaco,Consolas,monospace;font-size:12px;"><?= htmlentities($cli_compose) ?></textarea>
+    </details>
+    <script>
+    (function () {
+      var form = document.querySelector('form[action="bulk-mail.php"]');
+      var out = document.getElementById('bulk-mail-cli');
+      if (!form || !out) return;
+      var contextId = <?= (int) $context_id ?>;
+      var fromUserId = <?= (int) $from_user_id ?>;
+      function q(s) {
+        return "'" + String(s).replace(/'/g, "'\\''") + "'";
+      }
+      function rebuild() {
+        var subject = (form.subject && form.subject.value) || '';
+        var body = (form.body && form.body.value) || '';
+        var email = ((form.single_email && form.single_email.value) || '').trim().toLowerCase();
+        var days = parseInt(form.days && form.days.value, 10) || 30;
+        var exclude = parseInt(form.exclude_recent_bulk_days && form.exclude_recent_bulk_days.value, 10);
+        if (isNaN(exclude)) exclude = 30;
+        var limit = parseInt(form.limit && form.limit.value, 10) || 0;
+        var opted = form.include_opted_out && form.include_opted_out.checked;
+        var premium = form.premium_only && form.premium_only.checked;
+        var lines = [];
+        lines.push('# Equivalent CLI (scripts/send-bulk-mail.php)');
+        lines.push('# Dry-run by default. Add --send to deliver.');
+        lines.push('# Run from the Tsugi root (directory that contains scripts/).');
+        lines.push('#');
+        lines.push('# 1) Save the body to a file, e.g. campaign.txt');
+        lines.push('# 2) Dry-run:');
+        var cmd = ['php scripts/send-bulk-mail.php',
+          '--context-id=' + contextId,
+          '--subject=' + (subject ? q(subject) : "'YOUR SUBJECT'"),
+          '--body-file=./campaign.txt'];
+        if (email) {
+          cmd.push('--email=' + q(email));
+        } else {
+          cmd.push('--days=' + days);
+          cmd.push('--exclude-recent-bulk-days=' + exclude);
+          cmd.push('--limit=' + limit);
+          if (premium) cmd.push('--premium-only');
+          if (opted) cmd.push('--include-opted-out');
+        }
+        lines.push(cmd.join(' \\\n  '));
+        lines.push('#');
+        lines.push('# 3) Send (requires --from-user-id):');
+        var send = cmd.slice();
+        send.push('--from-user-id=' + (fromUserId > 0 ? fromUserId : 'USER_ID'));
+        send.push('--send');
+        lines.push(send.join(' \\\n  '));
+        if (body.trim() !== '') {
+          lines.push('#');
+          lines.push('# --- campaign.txt body (copy into the file) ---');
+          lines.push(body);
+          lines.push('# --- end body ---');
+        }
+        lines.push('#');
+        lines.push('# See scripts/README-send-bulk-mail.md');
+        out.value = lines.join('\n');
+      }
+      form.addEventListener('input', rebuild);
+      form.addEventListener('change', rebuild);
+    })();
+    </script>
   </div>
 </div>
 <?php } ?>
@@ -454,6 +614,29 @@ Transport: <strong><?= htmlentities(MailService::transport()) ?></strong>
     <p>
       <a class="btn btn-default" href="bulk-mail.php?context_id=<?= (int) $context_id ?>">Back to compose</a>
     </p>
+
+<?php
+$cli_preview = bulk_mail_cli_instructions(
+    $context_id,
+    $from_user_id,
+    $subject,
+    $body,
+    $single_email,
+    $days,
+    $exclude_recent_bulk_days,
+    $limit,
+    $include_opted_out,
+    $premium_only
+);
+?>
+    <details style="margin-top:15px;">
+      <summary style="cursor:pointer;color:#666;">CLI equivalent (send-bulk-mail.php)</summary>
+      <p class="help-block" style="margin-top:8px;">
+        Same audience filters as this preview. Prefer CLI for large / batched sends.
+      </p>
+      <textarea class="form-control" rows="16" readonly
+                style="font-family:Menlo,Monaco,Consolas,monospace;font-size:12px;"><?= htmlentities($cli_preview) ?></textarea>
+    </details>
 
     <?php if ( $mail_ok && !$over && $n > 0 ) { ?>
     <form method="post" action="bulk-mail.php" style="margin-top:15px;">
