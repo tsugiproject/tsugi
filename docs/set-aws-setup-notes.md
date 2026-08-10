@@ -609,6 +609,14 @@ The endpoint must verify the SNS message and then confirm the supplied subscript
 
 SNS will not send ordinary notifications to the HTTP endpoint until the subscription is confirmed.
 
+### FAQ: SNS subscription stays Pending / webhook mysteriously fails behind Cloudflare?
+
+If the site is behind a **Cloudflare proxy** and SNS confirmation or event POSTs fail (subscription stuck **Pending**, 403s, or challenge HTML instead of the app’s plain-text response), check **Bot Fight Mode** (Cloudflare → Security → Bots).
+
+Bot Fight Mode can block Amazon SNS’s machine POSTs. Turn it off for the zone, or add a WAF/firewall exception so `/ses/sns` accepts SNS without a bot challenge.
+
+If SNS subscription/webhook mysteriously fails and the site is behind Cloudflare, check Bot Fight Mode. That check would have saved a substantial amount of swearing.
+
 ### FAQ: Did we need the webhook in production before finishing the SES event destination?
 
 **No.**

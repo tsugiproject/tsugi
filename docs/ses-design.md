@@ -157,6 +157,13 @@ Webhook notes:
   record `mail_ses_events` with `action=suppress`
 - Soft/transient bounces record `action=ignore_soft_bounce` (no suppress)
 - Delivery events record `action=ignore_delivery`
+- **Cloudflare:** If the site is behind a Cloudflare proxy and the SNS
+  subscription stays Pending or webhook POSTs mysteriously fail (403/challenge
+  HTML instead of Tsugi’s plain-text response), check **Bot Fight Mode**
+  (Security → Bots). Bot Fight Mode can block Amazon SNS’s confirmation and
+  event POSTs. Turn it off for the zone, or add a WAF/firewall exception so
+  `/ses/sns` accepts SNS without a challenge. That check would have saved a
+  substantial amount of swearing.
 
 ## Step 6: Admin Mail UI
 
