@@ -73,7 +73,9 @@ $CFG->ses_region = 'us-east-1';
 // $CFG->ses_key = 'AKIA...';
 // $CFG->ses_secret = '...';
 // Optional verified From (defaults to no-reply@$CFG->maildomain):
-// $CFG->ses_from = 'no-reply@mail.example.com';
+// $CFG->ses_from = 'Course Name <no-reply@mail.example.com>';
+// Optional Reply-To (inbox you monitor; can differ from From):
+// $CFG->ses_reply_to = 'you@example.com';
 // Required for bounce/complaint events (must match the SES Configuration Set name):
 $CFG->ses_configuration_set = 'tsugi-mail';
 // Optional separate set for MailService::sendBulk() (falls back to ses_configuration_set):

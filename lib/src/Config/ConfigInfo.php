@@ -363,6 +363,8 @@ class ConfigInfo {
     public $ses_secret = false;
     /** @var string|false Verified From address; defaults to no-reply@$maildomain */
     public $ses_from = false;
+    /** @var string|false Optional Reply-To (where human replies go); can differ from From */
+    public $ses_reply_to = false;
     /**
      * Optional SES Configuration Set for transactional mail (and bulk fallback).
      * When set, SendEmail attaches it so bounce/complaint events can be published

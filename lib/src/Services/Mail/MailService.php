@@ -530,6 +530,18 @@ class MailService {
         return 'no-reply@' . $CFG->maildomain;
     }
 
+    /**
+     * Optional Reply-To address (where human replies should go).
+     */
+    public static function replyToAddress(): ?string {
+        global $CFG;
+        if ( !isset($CFG->ses_reply_to) || $CFG->ses_reply_to === false ) {
+            return null;
+        }
+        $reply = trim((string) $CFG->ses_reply_to);
+        return $reply !== '' ? $reply : null;
+    }
+
     private static function unsubscribeUrl($id, $token): string {
         global $CFG;
         $manage = $CFG->wwwroot . "/profile";
@@ -568,6 +580,10 @@ class MailService {
         $headers = "From: $from" . $EOL .
             "Return-Path: <bounced-$id-$token@$maildomain>" . $EOL .
             'X-Mailer: PHP/' . phpversion();
+        $reply_to = self::replyToAddress();
+        if ( $reply_to !== null ) {
+            $headers .= $EOL . 'Reply-To: ' . $reply_to;
+        }
         foreach ( self::buildOutboundHeaders($type, $unsubscribe_url) as $h ) {
             $headers .= $EOL . $h['Name'] . ': ' . $h['Value'];
         }
@@ -616,6 +632,15 @@ class MailService {
                 new MessageTag(array('Name' => 'mail_type', 'Value' => $type)),
             ),
         );
+        $reply_to = self::replyToAddress();
+        if ( $reply_to !== null ) {
+            // Strip display-name if present; SES ReplyToAddresses wants an email.
+            $reply_addr = $reply_to;
+            if ( preg_match('/<([^>]+)>/', $reply_to, $m) ) {
+                $reply_addr = trim($m[1]);
+            }
+            $request['ReplyToAddresses'] = array($reply_addr);
+        }
 
         $cfgset = self::configurationSetForType($type);
         if ( $cfgset !== null ) {
