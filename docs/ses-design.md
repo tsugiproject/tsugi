@@ -200,6 +200,19 @@ Each run creates a `mail_bulk` row and per-recipient `mail_sent` rows
 Suppress / `subscribe=-1` still skip recipients at send time. Bulk mail is
 **site-admin only** (not instructors).
 
+### CLI (`scripts/send-bulk-mail.php`)
+
+For cron / larger batches without HTTP timeouts:
+
+```bash
+php scripts/send-bulk-mail.php --help
+php scripts/send-bulk-mail.php   # same: prints calling sequence
+```
+
+Dry-run by default; add `--send --from-user-id=N` to deliver. Same audience
+helpers and `mail_bulk` / `mail_sent` logging as the admin UI. See
+`scripts/README-send-bulk-mail.md`.
+
 ## Step 7: Test from admin
 
 1. Sign in as a Tsugi admin
