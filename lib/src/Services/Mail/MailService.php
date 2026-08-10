@@ -519,10 +519,13 @@ class MailService {
         return self::sendViaPhpMail($to, $subject, $msg, $from, $unsubscribe_url, $id, $token, $type, $result);
     }
 
+    /**
+     * From for all transports (SES and PHP mail()).
+     */
     private static function fromAddress(): string {
         global $CFG;
-        if ( isset($CFG->ses_from) && $CFG->ses_from !== false ) {
-            $from = trim((string) $CFG->ses_from);
+        if ( isset($CFG->mail_from) && $CFG->mail_from !== false ) {
+            $from = trim((string) $CFG->mail_from);
             if ( $from !== '' ) {
                 return $from;
             }
@@ -531,14 +534,14 @@ class MailService {
     }
 
     /**
-     * Optional Reply-To address (where human replies should go).
+     * Optional Reply-To for all transports (where human replies should go).
      */
     public static function replyToAddress(): ?string {
         global $CFG;
-        if ( !isset($CFG->ses_reply_to) || $CFG->ses_reply_to === false ) {
+        if ( !isset($CFG->mail_reply_to) || $CFG->mail_reply_to === false ) {
             return null;
         }
-        $reply = trim((string) $CFG->ses_reply_to);
+        $reply = trim((string) $CFG->mail_reply_to);
         return $reply !== '' ? $reply : null;
     }
 

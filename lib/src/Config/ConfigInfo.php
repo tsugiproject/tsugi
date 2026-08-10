@@ -361,10 +361,18 @@ class ConfigInfo {
     public $ses_key = false;
     /** @var string|false Optional secret key paired with ses_key */
     public $ses_secret = false;
-    /** @var string|false Verified From address; defaults to no-reply@$maildomain */
-    public $ses_from = false;
-    /** @var string|false Optional Reply-To (where human replies go); can differ from From */
-    public $ses_reply_to = false;
+    /**
+     * From address for all mail transports (SES and PHP mail()).
+     * Defaults to no-reply@$maildomain. May include a display name:
+     * 'Course Name <no-reply@example.com>'.
+     * @var string|false
+     */
+    public $mail_from = false;
+    /**
+     * Optional Reply-To for all transports (inbox humans should reply to).
+     * @var string|false
+     */
+    public $mail_reply_to = false;
     /**
      * Optional SES Configuration Set for transactional mail (and bulk fallback).
      * When set, SendEmail attaches it so bounce/complaint events can be published

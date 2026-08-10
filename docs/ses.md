@@ -72,10 +72,9 @@ $CFG->ses_region = 'us-east-1';
 // Optional when using IAM role / ~/.aws credentials / env vars:
 // $CFG->ses_key = 'AKIA...';
 // $CFG->ses_secret = '...';
-// Optional verified From (defaults to no-reply@$CFG->maildomain):
-// $CFG->ses_from = 'Course Name <no-reply@mail.example.com>';
-// Optional Reply-To (inbox you monitor; can differ from From):
-// $CFG->ses_reply_to = 'you@example.com';
+// From / Reply-To apply to SES and PHP mail() (defaults From: no-reply@$CFG->maildomain):
+// $CFG->mail_from = 'Course Name <no-reply@mail.example.com>';
+// $CFG->mail_reply_to = 'you@example.com';  // optional; inbox you monitor
 // Required for bounce/complaint events (must match the SES Configuration Set name):
 $CFG->ses_configuration_set = 'tsugi-mail';
 // Optional separate set for MailService::sendBulk() (falls back to ses_configuration_set):

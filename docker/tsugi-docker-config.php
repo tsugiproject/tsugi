@@ -337,8 +337,8 @@ $CFG->maileol = "\n";  // Depends on your mailer - may need to be \r\n
 $CFG->ses_region = false; // 'us-east-1'
 $CFG->ses_key = false;    // optional; omit for IAM role / default credential chain
 $CFG->ses_secret = false;
-$CFG->ses_from = false;   // verified From; defaults to no-reply@$CFG->maildomain
-$CFG->ses_reply_to = false; // optional Reply-To inbox you monitor
+$CFG->mail_from = false;      // From for SES and PHP mail(); defaults to no-reply@$CFG->maildomain
+$CFG->mail_reply_to = false;  // optional Reply-To inbox you monitor
 // Configuration Set name so bounce/complaint events reach SNS → {apphome}/ses/sns
 $CFG->ses_configuration_set = false; // 'tsugi-mail' (used for transactional; bulk falls back here)
 // Optional separate Configuration Set for sendBulk() traffic
