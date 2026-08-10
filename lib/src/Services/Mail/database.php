@@ -49,6 +49,7 @@ array( "{$CFG->dbprefix}mail_sent",
 
     subject             VARCHAR(256) NULL,
     body                TEXT NULL,
+    message_id          VARCHAR(255) NULL,
 
     json                TEXT NULL,
     created_at          DATETIME NOT NULL,
@@ -79,6 +80,7 @@ array( "{$CFG->dbprefix}mail_sent",
         ON DELETE SET NULL ON UPDATE CASCADE,
 
     INDEX `{$CFG->dbprefix}mail_sent_bulk` (bulk_id),
+    INDEX `{$CFG->dbprefix}mail_sent_message` (message_id),
     PRIMARY KEY (sent_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -217,5 +219,17 @@ $DATABASE_UPGRADE = function($oldversion) {
         error_log("Non-fatal: mail_sent.context_id NULL: ".$q->errorImplode);
     }
 
-    return 202608092000;
+    if ( $PDOX->columnExists('message_id', "{$CFG->dbprefix}mail_sent") === false ) {
+        $sql = "ALTER TABLE {$CFG->dbprefix}mail_sent ADD message_id VARCHAR(255) NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryReturnError($sql);
+
+        $sql = "ALTER TABLE {$CFG->dbprefix}mail_sent ADD INDEX `{$CFG->dbprefix}mail_sent_message` (message_id)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryReturnError($sql);
+    }
+
+    return 202608092030;
 }; // Don't forget the semicolon on anonymous functions :)

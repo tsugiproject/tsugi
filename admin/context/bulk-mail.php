@@ -156,22 +156,27 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
             }
         }
 
+        $message_id = U::get($detail, 'message_id');
+        if ( !is_string($message_id) || $message_id === '' ) {
+            $message_id = null;
+        }
         $sent_json = json_encode(array(
             'status' => $status,
             'transport' => U::get($detail, 'transport'),
-            'message_id' => U::get($detail, 'message_id'),
+            'message_id' => $message_id,
             'error' => U::get($detail, 'error'),
         ));
         $PDOX->queryReturnError(
             "INSERT INTO {$CFG->dbprefix}mail_sent
-                (context_id, bulk_id, user_to, user_from, subject, body, json, created_at)
-             VALUES (:CID, :BID, :UTO, :UFR, :SUB, NULL, :JSON, NOW())",
+                (context_id, bulk_id, user_to, user_from, subject, body, message_id, json, created_at)
+             VALUES (:CID, :BID, :UTO, :UFR, :SUB, NULL, :MID, :JSON, NOW())",
             array(
                 ':CID' => $context_id,
                 ':BID' => $bulk_id,
                 ':UTO' => $user_to,
                 ':UFR' => $from_user_id,
                 ':SUB' => substr($subject, 0, 256),
+                ':MID' => $message_id,
                 ':JSON' => $sent_json,
             )
         );
