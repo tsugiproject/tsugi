@@ -6,18 +6,24 @@
  * @param int $exclude_recent_bulk_days When > 0, exclude users who already have a
  *   successful bulk send (mail_sent with bulk_id, status sent) in this context
  *   within that many days. Scoped per context_id.
- * @return array{0: string, 1: array}|false SQL + params, or false if days invalid
+ * @param int $limit When > 0, return only the most recently logged-in N users
+ *   (ORDER BY login_at DESC LIMIT N). 0 = no limit (email-domain sort).
+ * @return array{0: string, 1: array}|false SQL + params, or false if args invalid
  */
-function mail_context_audience_sql($context_id, $days, $include_opted_out=false, $premium_only=false, $exclude_recent_bulk_days=0) {
+function mail_context_audience_sql($context_id, $days, $include_opted_out=false, $premium_only=false, $exclude_recent_bulk_days=0, $limit=0) {
     global $CFG;
 
     $context_id = (int) $context_id;
     $days = (int) $days;
     $exclude_recent_bulk_days = (int) $exclude_recent_bulk_days;
+    $limit = (int) $limit;
     if ( $context_id < 1 || $days < 1 || $days > 365 ) {
         return false;
     }
     if ( $exclude_recent_bulk_days < 0 || $exclude_recent_bulk_days > 365 ) {
+        return false;
+    }
+    if ( $limit < 0 || $limit > 200 ) {
         return false;
     }
 
@@ -57,7 +63,11 @@ function mail_context_audience_sql($context_id, $days, $include_opted_out=false,
         )";
     }
 
-    $sql .= " ORDER BY SUBSTRING_INDEX(U.email, '@', -1), U.email";
+    if ( $limit > 0 ) {
+        $sql .= " ORDER BY U.login_at DESC LIMIT ".$limit;
+    } else {
+        $sql .= " ORDER BY SUBSTRING_INDEX(U.email, '@', -1), U.email";
+    }
 
     return array($sql, $params);
 }
@@ -65,10 +75,10 @@ function mail_context_audience_sql($context_id, $days, $include_opted_out=false,
 /**
  * @return array List of audience rows
  */
-function mail_context_audience($context_id, $days, $include_opted_out=false, $premium_only=false, $exclude_recent_bulk_days=0) {
+function mail_context_audience($context_id, $days, $include_opted_out=false, $premium_only=false, $exclude_recent_bulk_days=0, $limit=0) {
     global $PDOX;
 
-    $built = mail_context_audience_sql($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days);
+    $built = mail_context_audience_sql($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days, $limit);
     if ( $built === false ) {
         return array();
     }

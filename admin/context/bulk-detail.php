@@ -75,6 +75,7 @@ $context_id = (int) U::get($row, 'context_id', 0);
 <tr><th>filters</th><td>
   days=<?= htmlentities((string) U::get($meta, 'days', '')) ?>
   ; exclude_recent_bulk_days=<?= htmlentities((string) U::get($meta, 'exclude_recent_bulk_days', '')) ?>
+  ; limit=<?= htmlentities((string) U::get($meta, 'limit', '')) ?>
   ; include_opted_out=<?= htmlentities((string) U::get($meta, 'include_opted_out', '')) ?>
   ; premium_only=<?= htmlentities((string) U::get($meta, 'premium_only', '')) ?>
   ; audience_count=<?= htmlentities((string) U::get($meta, 'audience_count', '')) ?>

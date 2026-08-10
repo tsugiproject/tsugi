@@ -69,6 +69,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
     $include_opted_out = U::get($_POST, 'include_opted_out') == '1';
     $premium_only = U::get($_POST, 'premium_only') == '1';
     $exclude_recent_bulk_days = (int) U::get($_POST, 'exclude_recent_bulk_days', 0);
+    $limit = (int) U::get($_POST, 'limit', 0);
 
     if ( $subject === '' || trim($body) === '' ) {
         U::flashError('Subject and body are required');
@@ -85,8 +86,13 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
         header('Location: bulk-mail.php?context_id='.$context_id);
         return;
     }
+    if ( $limit < 0 || $limit > MAIL_BULK_MAX_RECIPIENTS ) {
+        U::flashError('Limit must be between 0 and '.MAIL_BULK_MAX_RECIPIENTS.' (0 = no limit)');
+        header('Location: bulk-mail.php?context_id='.$context_id);
+        return;
+    }
 
-    $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days);
+    $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days, $limit);
     $count = count($rows);
     if ( $count < 1 ) {
         U::flashError('No recipients match the filters');
@@ -104,6 +110,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
         'include_opted_out' => $include_opted_out ? 1 : 0,
         'premium_only' => $premium_only ? 1 : 0,
         'exclude_recent_bulk_days' => $exclude_recent_bulk_days,
+        'limit' => $limit,
         'audience_count' => $count,
     );
 
@@ -204,6 +211,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'compos
     $include_opted_out = isset($_POST['include_opted_out']) ? 1 : 0;
     $premium_only = isset($_POST['premium_only']) ? 1 : 0;
     $exclude_recent_bulk_days = (int) U::get($_POST, 'exclude_recent_bulk_days', 30);
+    $limit = (int) U::get($_POST, 'limit', 0);
     if ( $subject === '' || trim($body) === '' ) {
         U::flashError('Subject and body are required');
         header('Location: bulk-mail.php?context_id='.$context_id);
@@ -219,6 +227,11 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'compos
         header('Location: bulk-mail.php?context_id='.$context_id);
         return;
     }
+    if ( $limit < 0 || $limit > MAIL_BULK_MAX_RECIPIENTS ) {
+        U::flashError('Limit must be between 0 and '.MAIL_BULK_MAX_RECIPIENTS.' (0 = no limit)');
+        header('Location: bulk-mail.php?context_id='.$context_id);
+        return;
+    }
     // Stash body in session (too large for URL)
     $_SESSION['bulk_mail_draft'] = array(
         'context_id' => $context_id,
@@ -228,6 +241,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'compos
         'include_opted_out' => $include_opted_out,
         'premium_only' => $premium_only,
         'exclude_recent_bulk_days' => $exclude_recent_bulk_days,
+        'limit' => $limit,
     );
     header('Location: bulk-mail.php?context_id='.$context_id.'&step=preview');
     return;
@@ -244,6 +258,7 @@ $days = 30;
 $include_opted_out = false;
 $premium_only = false;
 $exclude_recent_bulk_days = 30;
+$limit = 0;
 $rows = array();
 
 if ( $step === 'preview' && count($draft) > 0 ) {
@@ -253,7 +268,8 @@ if ( $step === 'preview' && count($draft) > 0 ) {
     $include_opted_out = (int) U::get($draft, 'include_opted_out', 0) === 1;
     $premium_only = (int) U::get($draft, 'premium_only', 0) === 1;
     $exclude_recent_bulk_days = (int) U::get($draft, 'exclude_recent_bulk_days', 30);
-    $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days);
+    $limit = (int) U::get($draft, 'limit', 0);
+    $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days, $limit);
 } else {
     $step = 'compose';
 }
@@ -312,6 +328,18 @@ Transport: <strong><?= htmlentities(MailService::transport()) ?></strong>
         </p>
       </div>
       <div class="form-group">
+        <label for="limit">Limit to most recently logged-in</label>
+        <input type="number" class="form-control" id="limit" name="limit"
+               min="0" max="<?= (int) MAIL_BULK_MAX_RECIPIENTS ?>"
+               value="<?= (int) U::get($draft, 'limit', 0) ?>" style="width:80px;display:inline-block;">
+        users
+        <p class="help-block">
+          Optional. Example: <strong>10</strong> = the 10 most recent logins who match the filters
+          (and have not already received bulk mail within the exclude window).
+          Use <strong>0</strong> for no limit (up to <?= (int) MAIL_BULK_MAX_RECIPIENTS ?>).
+        </p>
+      </div>
+      <div class="form-group">
         <label>
           <input type="checkbox" name="include_opted_out" value="1"
             <?= (int) U::get($draft, 'include_opted_out', 0) === 1 ? 'checked' : '' ?>>
@@ -344,6 +372,7 @@ Transport: <strong><?= htmlentities(MailService::transport()) ?></strong>
       <?= $exclude_recent_bulk_days > 0
             ? '; exclude if bulk mail already sent in this context within '.$exclude_recent_bulk_days.' days'
             : '; not excluding prior bulk recipients' ?>
+      <?= $limit > 0 ? '; most recent '.$limit.' by login' : '; no count limit' ?>
       <?= $include_opted_out ? '; include opted-out in list' : '; exclude opted-out' ?>
       <?= $premium_only ? '; premium only' : '' ?>
     </p>
@@ -383,6 +412,7 @@ Transport: <strong><?= htmlentities(MailService::transport()) ?></strong>
       <input type="hidden" name="body" value="<?= htmlentities($body) ?>">
       <input type="hidden" name="days" value="<?= (int) $days ?>">
       <input type="hidden" name="exclude_recent_bulk_days" value="<?= (int) $exclude_recent_bulk_days ?>">
+      <input type="hidden" name="limit" value="<?= (int) $limit ?>">
       <input type="hidden" name="include_opted_out" value="<?= $include_opted_out ? '1' : '0' ?>">
       <input type="hidden" name="premium_only" value="<?= $premium_only ? '1' : '0' ?>">
       <div class="checkbox">

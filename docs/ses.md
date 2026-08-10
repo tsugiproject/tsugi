@@ -176,6 +176,8 @@ Site admins can send bulk mail to a context audience:
    - **exclude if already got bulk mail in this context** within M days
      (default 30; set 0 to disable) — so you can mail “active 15 days”,
      then later “active 30 days” without re-mailing the first group
+   - optional **limit** to the N most recently logged-in matching users
+     (e.g. 10; 0 = no limit)
    - optional premium-only / include opted-out
 3. Preview recipient count (max **200** per send — tighten filters if larger)
 4. Confirm to send via `MailService::sendBulk()` (uses
