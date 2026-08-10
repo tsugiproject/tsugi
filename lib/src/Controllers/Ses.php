@@ -278,62 +278,107 @@ class Ses extends Controller {
     }
 
     /**
-     * Verify an SNS message signature.
+     * Verify an SNS message signature (matches aws-php-sns-message-validator).
      * @see https://docs.aws.amazon.com/sns/latest/dg/sns-verify-signature-of-message.html
+     * @see https://github.com/aws/aws-php-sns-message-validator
      */
     private static function verifySnsSignature(array $envelope): bool {
-        $cert_url = U::get($envelope, 'SigningCertURL', U::get($envelope, 'SigningCertUrl', ''));
+        // Lambda-style key casing → canonical SNS keys
+        if ( isset($envelope['SigningCertUrl']) && !isset($envelope['SigningCertURL']) ) {
+            $envelope['SigningCertURL'] = $envelope['SigningCertUrl'];
+        }
+        if ( isset($envelope['SubscribeUrl']) && !isset($envelope['SubscribeURL']) ) {
+            $envelope['SubscribeURL'] = $envelope['SubscribeUrl'];
+        }
+
+        $cert_url = U::get($envelope, 'SigningCertURL', '');
         $signature = U::get($envelope, 'Signature', '');
         $sig_version = (string) U::get($envelope, 'SignatureVersion', '1');
 
         if ( !is_string($cert_url) || !is_string($signature) || $cert_url === '' || $signature === '' ) {
+            error_log('SES SNS verify: missing SigningCertURL or Signature');
             return false;
         }
         if ( !self::isAllowedSigningCertUrl($cert_url) ) {
+            error_log('SES SNS verify: disallowed SigningCertURL host: ' . $cert_url);
+            return false;
+        }
+        if ( $sig_version !== '1' && $sig_version !== '2' ) {
+            error_log('SES SNS verify: unsupported SignatureVersion=' . $sig_version);
             return false;
         }
 
-        $type = (string) U::get($envelope, 'Type', '');
-        if ( $type === 'Notification' ) {
-            $fields = array('Message', 'MessageId', 'Subject', 'Timestamp', 'TopicArn', 'Type');
-        } else {
-            $fields = array('Message', 'MessageId', 'SubscribeURL', 'Timestamp', 'Token', 'TopicArn', 'Type');
-        }
-
+        // Alphabetical signable keys; include only those present (AWS validator style).
+        $signable_keys = array(
+            'Message',
+            'MessageId',
+            'Subject',
+            'SubscribeURL',
+            'Timestamp',
+            'Token',
+            'TopicArn',
+            'Type',
+        );
         $string_to_sign = '';
-        foreach ( $fields as $field ) {
-            if ( !array_key_exists($field, $envelope) ) {
-                // Subject is optional on Notification
-                if ( $field === 'Subject' ) {
-                    continue;
-                }
-                // SubscribeURL key casing
-                if ( $field === 'SubscribeURL' && array_key_exists('SubscribeUrl', $envelope) ) {
-                    $string_to_sign .= $field . "\n" . $envelope['SubscribeUrl'] . "\n";
-                    continue;
-                }
-                return false;
+        foreach ( $signable_keys as $key ) {
+            if ( isset($envelope[$key]) ) {
+                $string_to_sign .= $key . "\n" . $envelope[$key] . "\n";
             }
-            $string_to_sign .= $field . "\n" . $envelope[$field] . "\n";
         }
-
-        $cert_pem = @file_get_contents($cert_url);
-        if ( !is_string($cert_pem) || $cert_pem === '' ) {
+        if ( $string_to_sign === '' ) {
+            error_log('SES SNS verify: empty string-to-sign');
             return false;
         }
-        $pub_key = openssl_pkey_get_public($cert_pem);
+
+        $cert_pem = self::fetchSigningCert($cert_url);
+        if ( !is_string($cert_pem) || $cert_pem === '' ) {
+            error_log('SES SNS verify: failed to fetch SigningCertURL: ' . $cert_url);
+            return false;
+        }
+        $pub_key = openssl_get_publickey($cert_pem);
         if ( $pub_key === false ) {
+            error_log('SES SNS verify: openssl_get_publickey failed');
             return false;
         }
 
         $decoded = base64_decode($signature, true);
         if ( $decoded === false ) {
+            error_log('SES SNS verify: Signature base64 decode failed');
             return false;
         }
 
         $algo = ( $sig_version === '2' ) ? OPENSSL_ALGO_SHA256 : OPENSSL_ALGO_SHA1;
         $ok = openssl_verify($string_to_sign, $decoded, $pub_key, $algo);
-        return $ok === 1;
+        if ( $ok !== 1 ) {
+            error_log('SES SNS verify: openssl_verify failed (result=' . var_export($ok, true) . ')');
+            return false;
+        }
+        return true;
+    }
+
+    private static function fetchSigningCert(string $url): ?string {
+        $cert = @file_get_contents($url);
+        if ( is_string($cert) && $cert !== '' ) {
+            return $cert;
+        }
+        if ( function_exists('curl_init') ) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, array(
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
+                CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
+            ));
+            $cert = curl_exec($ch);
+            $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if ( is_string($cert) && $cert !== '' && $code >= 200 && $code < 300 ) {
+                return $cert;
+            }
+        }
+        return null;
     }
 
     private static function isAllowedSigningCertUrl(string $url): bool {
@@ -348,8 +393,12 @@ class Ses extends Controller {
         if ( $host === '' ) {
             return false;
         }
-        // sns.<region>.amazonaws.com
-        return (bool) preg_match('/^sns\.[a-z0-9-]+\.amazonaws\.com$/', $host);
+        // Must be an SNS cert URL ending in .pem (not arbitrary amazonaws hosts / S3).
+        if ( !preg_match('/\.pem$/i', $url) ) {
+            return false;
+        }
+        // sns.<region>.amazonaws.com or sns.<region>.amazonaws.com.cn
+        return (bool) preg_match('/^sns\.[a-z0-9-]{3,}\.amazonaws\.com(\.cn)?$/', $host);
     }
 
     private static function isAllowedSubscribeUrl(string $url): bool {
