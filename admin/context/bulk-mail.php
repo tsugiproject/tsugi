@@ -65,6 +65,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
 
     $subject = trim((string) U::get($_POST, 'subject', ''));
     $body = (string) U::get($_POST, 'body', '');
+    $single_email = strtolower(trim((string) U::get($_POST, 'single_email', '')));
     $days = (int) U::get($_POST, 'days', 0);
     $include_opted_out = U::get($_POST, 'include_opted_out') == '1';
     $premium_only = U::get($_POST, 'premium_only') == '1';
@@ -76,43 +77,62 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
         header('Location: bulk-mail.php?context_id='.$context_id);
         return;
     }
-    if ( $days < 1 || $days > 365 ) {
-        U::flashError('Days must be between 1 and 365');
-        header('Location: bulk-mail.php?context_id='.$context_id);
-        return;
-    }
-    if ( $exclude_recent_bulk_days < 0 || $exclude_recent_bulk_days > 365 ) {
-        U::flashError('Exclude recent bulk days must be between 0 and 365');
-        header('Location: bulk-mail.php?context_id='.$context_id);
-        return;
-    }
-    if ( $limit < 0 || $limit > MAIL_BULK_MAX_RECIPIENTS ) {
-        U::flashError('Limit must be between 0 and '.MAIL_BULK_MAX_RECIPIENTS.' (0 = no limit)');
-        header('Location: bulk-mail.php?context_id='.$context_id);
-        return;
-    }
 
-    $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days, $limit);
+    if ( $single_email !== '' ) {
+        if ( strpos($single_email, '@') === false ) {
+            U::flashError('Single email address looks invalid');
+            header('Location: bulk-mail.php?context_id='.$context_id);
+            return;
+        }
+        $rows = mail_context_audience_by_email($context_id, $single_email);
+        if ( count($rows) < 1 ) {
+            U::flashError('No context member with email '.$single_email);
+            header('Location: bulk-mail.php?context_id='.$context_id);
+            return;
+        }
+        $meta = array(
+            'single_email' => $single_email,
+            'audience_count' => 1,
+        );
+    } else {
+        if ( $days < 1 || $days > 365 ) {
+            U::flashError('Days must be between 1 and 365');
+            header('Location: bulk-mail.php?context_id='.$context_id);
+            return;
+        }
+        if ( $exclude_recent_bulk_days < 0 || $exclude_recent_bulk_days > 365 ) {
+            U::flashError('Exclude recent bulk days must be between 0 and 365');
+            header('Location: bulk-mail.php?context_id='.$context_id);
+            return;
+        }
+        if ( $limit < 0 || $limit > MAIL_BULK_MAX_RECIPIENTS ) {
+            U::flashError('Limit must be between 0 and '.MAIL_BULK_MAX_RECIPIENTS.' (0 = no limit)');
+            header('Location: bulk-mail.php?context_id='.$context_id);
+            return;
+        }
+
+        $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days, $limit);
+        $count = count($rows);
+        if ( $count < 1 ) {
+            U::flashError('No recipients match the filters');
+            header('Location: bulk-mail.php?context_id='.$context_id);
+            return;
+        }
+        if ( $count > MAIL_BULK_MAX_RECIPIENTS ) {
+            U::flashError('Audience is '.$count.' recipients; max per send is '.MAIL_BULK_MAX_RECIPIENTS.'. Tighten the days filter or other options.');
+            header('Location: bulk-mail.php?context_id='.$context_id.'&step=preview');
+            return;
+        }
+        $meta = array(
+            'days' => $days,
+            'include_opted_out' => $include_opted_out ? 1 : 0,
+            'premium_only' => $premium_only ? 1 : 0,
+            'exclude_recent_bulk_days' => $exclude_recent_bulk_days,
+            'limit' => $limit,
+            'audience_count' => $count,
+        );
+    }
     $count = count($rows);
-    if ( $count < 1 ) {
-        U::flashError('No recipients match the filters');
-        header('Location: bulk-mail.php?context_id='.$context_id);
-        return;
-    }
-    if ( $count > MAIL_BULK_MAX_RECIPIENTS ) {
-        U::flashError('Audience is '.$count.' recipients; max per send is '.MAIL_BULK_MAX_RECIPIENTS.'. Tighten the days filter or other options.');
-        header('Location: bulk-mail.php?context_id='.$context_id.'&step=preview');
-        return;
-    }
-
-    $meta = array(
-        'days' => $days,
-        'include_opted_out' => $include_opted_out ? 1 : 0,
-        'premium_only' => $premium_only ? 1 : 0,
-        'exclude_recent_bulk_days' => $exclude_recent_bulk_days,
-        'limit' => $limit,
-        'audience_count' => $count,
-    );
 
     $PDOX->queryDie(
         "INSERT INTO {$CFG->dbprefix}mail_bulk
@@ -207,6 +227,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'compose' ) {
     $subject = trim((string) U::get($_POST, 'subject', ''));
     $body = (string) U::get($_POST, 'body', '');
+    $single_email = strtolower(trim((string) U::get($_POST, 'single_email', '')));
     $days = (int) U::get($_POST, 'days', 30);
     $include_opted_out = isset($_POST['include_opted_out']) ? 1 : 0;
     $premium_only = isset($_POST['premium_only']) ? 1 : 0;
@@ -217,26 +238,35 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'compos
         header('Location: bulk-mail.php?context_id='.$context_id);
         return;
     }
-    if ( $days < 1 || $days > 365 ) {
-        U::flashError('Days must be between 1 and 365');
-        header('Location: bulk-mail.php?context_id='.$context_id);
-        return;
-    }
-    if ( $exclude_recent_bulk_days < 0 || $exclude_recent_bulk_days > 365 ) {
-        U::flashError('Exclude recent bulk days must be between 0 and 365 (0 = do not exclude)');
-        header('Location: bulk-mail.php?context_id='.$context_id);
-        return;
-    }
-    if ( $limit < 0 || $limit > MAIL_BULK_MAX_RECIPIENTS ) {
-        U::flashError('Limit must be between 0 and '.MAIL_BULK_MAX_RECIPIENTS.' (0 = no limit)');
-        header('Location: bulk-mail.php?context_id='.$context_id);
-        return;
+    if ( $single_email !== '' ) {
+        if ( strpos($single_email, '@') === false ) {
+            U::flashError('Single email address looks invalid');
+            header('Location: bulk-mail.php?context_id='.$context_id);
+            return;
+        }
+    } else {
+        if ( $days < 1 || $days > 365 ) {
+            U::flashError('Days must be between 1 and 365');
+            header('Location: bulk-mail.php?context_id='.$context_id);
+            return;
+        }
+        if ( $exclude_recent_bulk_days < 0 || $exclude_recent_bulk_days > 365 ) {
+            U::flashError('Exclude recent bulk days must be between 0 and 365 (0 = do not exclude)');
+            header('Location: bulk-mail.php?context_id='.$context_id);
+            return;
+        }
+        if ( $limit < 0 || $limit > MAIL_BULK_MAX_RECIPIENTS ) {
+            U::flashError('Limit must be between 0 and '.MAIL_BULK_MAX_RECIPIENTS.' (0 = no limit)');
+            header('Location: bulk-mail.php?context_id='.$context_id);
+            return;
+        }
     }
     // Stash body in session (too large for URL)
     $_SESSION['bulk_mail_draft'] = array(
         'context_id' => $context_id,
         'subject' => $subject,
         'body' => $body,
+        'single_email' => $single_email,
         'days' => $days,
         'include_opted_out' => $include_opted_out,
         'premium_only' => $premium_only,
@@ -254,6 +284,7 @@ if ( !is_array($draft) || (int) U::get($draft, 'context_id', 0) !== $context_id 
 
 $subject = '';
 $body = '';
+$single_email = '';
 $days = 30;
 $include_opted_out = false;
 $premium_only = false;
@@ -264,12 +295,17 @@ $rows = array();
 if ( $step === 'preview' && count($draft) > 0 ) {
     $subject = (string) U::get($draft, 'subject', '');
     $body = (string) U::get($draft, 'body', '');
+    $single_email = strtolower(trim((string) U::get($draft, 'single_email', '')));
     $days = (int) U::get($draft, 'days', 30);
     $include_opted_out = (int) U::get($draft, 'include_opted_out', 0) === 1;
     $premium_only = (int) U::get($draft, 'premium_only', 0) === 1;
     $exclude_recent_bulk_days = (int) U::get($draft, 'exclude_recent_bulk_days', 30);
     $limit = (int) U::get($draft, 'limit', 0);
-    $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days, $limit);
+    if ( $single_email !== '' ) {
+        $rows = mail_context_audience_by_email($context_id, $single_email);
+    } else {
+        $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days, $limit);
+    }
 } else {
     $step = 'compose';
 }
@@ -308,6 +344,16 @@ Transport: <strong><?= htmlentities(MailService::transport()) ?></strong>
       <div class="form-group">
         <label for="body">Body (plain text)</label>
         <textarea class="form-control" name="body" id="body" rows="12" required><?= htmlentities((string) U::get($draft, 'body', '')) ?></textarea>
+      </div>
+      <div class="form-group">
+        <label for="single_email">Send to one context member (optional)</label>
+        <input class="form-control" type="email" name="single_email" id="single_email"
+               value="<?= htmlentities((string) U::get($draft, 'single_email', '')) ?>"
+               placeholder="exact@email.example" style="max-width:360px;">
+        <p class="help-block">
+          If set, ignores the audience filters below and sends bulk mail to that
+          single member of this context (list of one). Useful for testing unsubscribe headers.
+        </p>
       </div>
       <div class="form-group">
         <label for="days">Users who logged in within the last</label>
@@ -368,13 +414,18 @@ Transport: <strong><?= htmlentities(MailService::transport()) ?></strong>
   <div class="panel-heading"><h3 class="panel-title">Preview</h3></div>
   <div class="panel-body">
     <p><strong>Subject:</strong> <?= htmlentities($subject) ?></p>
-    <p><strong>Filters:</strong> logged in last <?= (int) $days ?> days
-      <?= $exclude_recent_bulk_days > 0
-            ? '; exclude if bulk mail already sent in this context within '.$exclude_recent_bulk_days.' days'
-            : '; not excluding prior bulk recipients' ?>
-      <?= $limit > 0 ? '; most recent '.$limit.' by login' : '; no count limit' ?>
-      <?= $include_opted_out ? '; include opted-out in list' : '; exclude opted-out' ?>
-      <?= $premium_only ? '; premium only' : '' ?>
+    <p><strong>Filters:</strong>
+      <?php if ( $single_email !== '' ) { ?>
+        single email <?= htmlentities($single_email) ?>
+      <?php } else { ?>
+        logged in last <?= (int) $days ?> days
+        <?= $exclude_recent_bulk_days > 0
+              ? '; exclude if bulk mail already sent in this context within '.$exclude_recent_bulk_days.' days'
+              : '; not excluding prior bulk recipients' ?>
+        <?= $limit > 0 ? '; most recent '.$limit.' by login' : '; no count limit' ?>
+        <?= $include_opted_out ? '; include opted-out in list' : '; exclude opted-out' ?>
+        <?= $premium_only ? '; premium only' : '' ?>
+      <?php } ?>
     </p>
     <p><strong>Recipients:</strong> <?= (int) $n ?>
       <?= $over ? ' <span style="color:red">(over max '.MAIL_BULK_MAX_RECIPIENTS.' — tighten filters)</span>' : '' ?>
@@ -410,6 +461,7 @@ Transport: <strong><?= htmlentities(MailService::transport()) ?></strong>
       <input type="hidden" name="step" value="send">
       <input type="hidden" name="subject" value="<?= htmlentities($subject) ?>">
       <input type="hidden" name="body" value="<?= htmlentities($body) ?>">
+      <input type="hidden" name="single_email" value="<?= htmlentities($single_email) ?>">
       <input type="hidden" name="days" value="<?= (int) $days ?>">
       <input type="hidden" name="exclude_recent_bulk_days" value="<?= (int) $exclude_recent_bulk_days ?>">
       <input type="hidden" name="limit" value="<?= (int) $limit ?>">

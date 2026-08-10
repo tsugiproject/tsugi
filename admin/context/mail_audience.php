@@ -84,3 +84,34 @@ function mail_context_audience($context_id, $days, $include_opted_out=false, $pr
     }
     return $PDOX->allRowsDie($built[0], $built[1]);
 }
+
+/**
+ * Single-recipient audience: one context member matching email (case-insensitive).
+ *
+ * @return array Zero or one audience row (same shape as mail_context_audience)
+ */
+function mail_context_audience_by_email($context_id, $email) {
+    global $CFG, $PDOX;
+
+    $context_id = (int) $context_id;
+    $email = strtolower(trim((string) $email));
+    if ( $context_id < 1 || $email === '' || strpos($email, '@') === false ) {
+        return array();
+    }
+
+    $sql = "SELECT U.email, U.displayname, U.login_at, U.user_id, COALESCE(P.premium, 0) AS premium
+            FROM {$CFG->dbprefix}lti_membership AS M
+            JOIN {$CFG->dbprefix}lti_user AS U ON M.user_id = U.user_id
+            LEFT JOIN {$CFG->dbprefix}profile AS P ON U.profile_id = P.profile_id
+            WHERE M.context_id = :CID
+              AND U.email IS NOT NULL
+              AND U.email != ''
+              AND LOWER(U.email) = :E
+            ORDER BY U.user_id DESC
+            LIMIT 1";
+    $row = $PDOX->rowDie($sql, array(':CID' => $context_id, ':E' => $email));
+    if ( $row === false || $row === null ) {
+        return array();
+    }
+    return array($row);
+}

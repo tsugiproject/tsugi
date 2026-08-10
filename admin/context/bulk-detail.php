@@ -73,11 +73,15 @@ $context_id = (int) U::get($row, 'context_id', 0);
 <tr><th>skipped</th><td><?= htmlentities((string) U::get($meta, 'skipped', '')) ?></td></tr>
 <tr><th>failed</th><td><?= htmlentities((string) U::get($meta, 'failed', '')) ?></td></tr>
 <tr><th>filters</th><td>
+  <?php if ( U::get($meta, 'single_email', '') !== '' && U::get($meta, 'single_email', '') !== null ) { ?>
+  single_email=<?= htmlentities((string) U::get($meta, 'single_email', '')) ?>
+  <?php } else { ?>
   days=<?= htmlentities((string) U::get($meta, 'days', '')) ?>
   ; exclude_recent_bulk_days=<?= htmlentities((string) U::get($meta, 'exclude_recent_bulk_days', '')) ?>
   ; limit=<?= htmlentities((string) U::get($meta, 'limit', '')) ?>
   ; include_opted_out=<?= htmlentities((string) U::get($meta, 'include_opted_out', '')) ?>
   ; premium_only=<?= htmlentities((string) U::get($meta, 'premium_only', '')) ?>
+  <?php } ?>
   ; audience_count=<?= htmlentities((string) U::get($meta, 'audience_count', '')) ?>
 </td></tr>
 </table>
