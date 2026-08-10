@@ -75,19 +75,115 @@ class MailService {
     }
 
     public static function isSuppressed($email): bool {
+        return self::getSuppressReason($email) !== null;
+    }
+
+    /**
+     * Current suppress reason for an address, or null if not suppressed.
+     */
+    public static function getSuppressReason($email): ?string {
         global $CFG, $PDOX;
         $email = self::normalizeEmail($email);
         if ( $email === '' || strpos($email, '@') === false ) {
-            return false;
+            return null;
         }
         if ( !self::suppressTableExists() ) {
-            return false;
+            return null;
         }
         $row = $PDOX->rowDie(
-            "SELECT suppress_id FROM {$CFG->dbprefix}mail_suppress WHERE email = :E LIMIT 1",
+            "SELECT reason FROM {$CFG->dbprefix}mail_suppress WHERE email = :E LIMIT 1",
             array(':E' => $email)
         );
-        return $row !== false && $row !== null;
+        if ( $row === false || $row === null ) {
+            return null;
+        }
+        $reason = isset($row['reason']) ? trim((string) $row['reason']) : '';
+        return $reason !== '' ? $reason : 'unknown';
+    }
+
+    /**
+     * Whether this suppress reason blocks the given mail type.
+     * bounce/complaint → all mail; unsubscribe → bulk only.
+     */
+    public static function suppressReasonBlocksType(?string $reason, string $type): bool {
+        if ( $reason === null || $reason === '' ) {
+            return false;
+        }
+        if ( $type === self::TYPE_BULK ) {
+            return true;
+        }
+        // Transactional: allow through for marketing unsubscribes.
+        return $reason !== 'unsubscribe';
+    }
+
+    /**
+     * Pre-send gate: skip before calling SES/mail().
+     */
+    public static function shouldSkipSend($email, string $type, $user_id=false): bool {
+        if ( $type !== self::TYPE_BULK ) {
+            $type = self::TYPE_TRANSACTIONAL;
+        }
+        if ( self::suppressReasonBlocksType(self::getSuppressReason($email), $type) ) {
+            return true;
+        }
+        // Opt-out (subscribe=-1) blocks bulk/marketing only.
+        if ( $type === self::TYPE_BULK && U::strlen($user_id) > 0 && self::isUserOptedOut($user_id) ) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * RFC 8058 one-click body detection (no session required).
+     */
+    public static function isOneClickUnsubscribeRequest($post=null, $raw_body=null): bool {
+        if ( $post === null ) {
+            $post = $_POST;
+        }
+        if ( is_array($post) && U::get($post, 'List-Unsubscribe') === 'One-Click' ) {
+            return true;
+        }
+        if ( $raw_body === null && isset($_SERVER['REQUEST_METHOD'])
+            && strtoupper((string) $_SERVER['REQUEST_METHOD']) === 'POST' ) {
+            $raw_body = @file_get_contents('php://input');
+        }
+        if ( !is_string($raw_body) || $raw_body === '' ) {
+            return false;
+        }
+        return (bool) preg_match('/(?:^|&)List-Unsubscribe=One-Click(?:&|$)/', $raw_body);
+    }
+
+    /**
+     * Headers for outbound mail. List-Unsubscribe* only on signed bulk mail.
+     *
+     * @return array<int, array{Name: string, Value: string}>
+     */
+    public static function buildOutboundHeaders(string $type, $unsubscribe_url=null): array {
+        $headers = array(
+            array('Name' => 'X-Tsugi-Mail-Type', 'Value' => $type),
+        );
+        if ( $type === self::TYPE_BULK && is_string($unsubscribe_url) && $unsubscribe_url !== ''
+            && strpos($unsubscribe_url, '/unsubscribe') !== false ) {
+            $headers[] = array('Name' => 'List-Unsubscribe', 'Value' => '<' . $unsubscribe_url . '>');
+            $headers[] = array('Name' => 'List-Unsubscribe-Post', 'Value' => 'List-Unsubscribe=One-Click');
+        }
+        return $headers;
+    }
+
+    /**
+     * Append a visible unsubscribe footer for bulk mail with a signed URL.
+     */
+    public static function appendBulkUnsubscribeFooter(string $message, string $type, $unsubscribe_url=null): string {
+        if ( $type !== self::TYPE_BULK || !is_string($unsubscribe_url) || $unsubscribe_url === ''
+            || strpos($unsubscribe_url, '/unsubscribe') === false ) {
+            return $message;
+        }
+        $msg = $message;
+        if ( substr($msg, -1) !== "\n" ) {
+            $msg .= "\n";
+        }
+        $msg .= "\n--\nTo unsubscribe from these emails:\n" . $unsubscribe_url . "\n";
+        return $msg;
     }
 
     /**
@@ -398,26 +494,20 @@ class MailService {
             return $result;
         }
 
-        if ( self::isSuppressed($to) ) {
+        if ( self::shouldSkipSend($to, $type, $id) ) {
             $result['suppressed'] = true;
             $result['error'] = 'suppressed';
-            error_log("Mail suppressed (list): $to $subject");
+            error_log("Mail suppressed (gate type=$type): $to $subject");
             return $result;
         }
 
-        if ( U::strlen($id) > 0 && self::isUserOptedOut($id) ) {
-            $result['suppressed'] = true;
-            $result['error'] = 'suppressed';
-            error_log("Mail suppressed (subscribe=-1): user_id=$id $to $subject");
-            return $result;
-        }
-
-        $msg = $message;
+        $signed_unsub = U::strlen($id) > 0 && U::strlen($token) > 0;
+        $unsubscribe_url = $signed_unsub ? self::unsubscribeUrl($id, $token) : null;
+        $msg = self::appendBulkUnsubscribeFooter((string) $message, $type, $unsubscribe_url);
         if ( substr($msg, -1) !== "\n" ) {
             $msg .= "\n";
         }
 
-        $unsubscribe_url = self::unsubscribeUrl($id, $token);
         $from = self::fromAddress();
 
         error_log("Mail to: $to $subject via " . $result['transport'] . " type=$type");
@@ -477,9 +567,10 @@ class MailService {
         $maildomain = $CFG->maildomain;
         $headers = "From: $from" . $EOL .
             "Return-Path: <bounced-$id-$token@$maildomain>" . $EOL .
-            "List-Unsubscribe: <$unsubscribe_url>" . $EOL .
-            "X-Tsugi-Mail-Type: $type" . $EOL .
             'X-Mailer: PHP/' . phpversion();
+        foreach ( self::buildOutboundHeaders($type, $unsubscribe_url) as $h ) {
+            $headers .= $EOL . $h['Name'] . ': ' . $h['Value'];
+        }
 
         $ok = mail($to, $subject, $msg, $headers);
         $result['success'] = (bool) $ok;
@@ -502,11 +593,8 @@ class MailService {
         }
 
         // Do not set Return-Path here — SES treats it as a reserved header.
-        $headers = array(
-            array('Name' => 'List-Unsubscribe', 'Value' => '<' . $unsubscribe_url . '>'),
-            array('Name' => 'X-Tsugi-Mail-Type', 'Value' => $type),
-            array('Name' => 'X-Mailer', 'Value' => 'Tsugi/SES'),
-        );
+        $headers = self::buildOutboundHeaders($type, $unsubscribe_url);
+        $headers[] = array('Name' => 'X-Mailer', 'Value' => 'Tsugi/SES');
 
         $request = array(
             'FromEmailAddress' => $from,

@@ -9,8 +9,9 @@ All application mail goes through `Tsugi\Services\Mail\MailService`.
 
 For reputation, Tsugi can suppress addresses after permanent bounces,
 complaints, and user unsubscribes via an SNS webhook and the `mail_suppress`
-table. Suppression also sets matching `profile` / `lti_user` rows to
-`subscribe = -1` (opt out).
+table. Bounce/complaint suppressions also set matching `profile` /
+`lti_user` rows to `subscribe = -1`. Marketing unsubscribes use the same
+opt-out flags but only block **bulk** mail (transactional can still send).
 
 ## Prerequisites
 
@@ -208,24 +209,44 @@ SES events** for the recorded action.
 
 ## Suppression rules
 
+Tsugi owns unsubscribe / suppress state in `mail_suppress` (and `subscribe=-1`).
+SES transports mail and publishes delivery/bounce/complaint events via SNS;
+Tsugi does **not** use SES Contact Lists or SES subscription management.
+
 | Source | Action |
 |--------|--------|
-| SES permanent bounce (SNS) | Suppress email (`reason=bounce`) and set matching `profile` / `lti_user` `subscribe=-1` |
-| SES complaint (SNS) | Suppress email (`reason=complaint`) and set matching `profile` / `lti_user` `subscribe=-1` |
-| User List-Unsubscribe / `util/unsubscribe` | Set `lti_user` / `profile` `subscribe=-1` and suppress (`reason=unsubscribe`) |
+| SES permanent bounce (SNS) | Suppress email (`reason=bounce`) and set matching `profile` / `lti_user` `subscribe=-1` — blocks **all** mail |
+| SES complaint (SNS) | Suppress email (`reason=complaint`) and set matching `profile` / `lti_user` `subscribe=-1` — blocks **all** mail |
+| User unsubscribe (one-click or confirm) | Set `subscribe=-1` and suppress (`reason=unsubscribe`) — blocks **bulk/marketing** only |
 | Soft/transient bounce | Log only; do not suppress |
 
-Before every send, `Tsugi\Services\Mail\MailService` skips the address if it is suppressed
-or if the recipient user id has `subscribe = -1`.
+Before every send, `MailService::shouldSkipSend()` is authoritative:
+bulk is skipped for any suppress row or `subscribe=-1`; transactional is
+skipped for bounce/complaint (not for marketing unsubscribe).
 
 Users can raise their subscribe preference again from **Profile**; clearing
 `mail_suppress` currently requires a database update (no admin UI yet).
 
-## Unsubscribe links
+## Unsubscribe links (bulk only)
 
-When mail is sent with a user id + token, messages include a
-`List-Unsubscribe` header pointing at `{wwwroot}/util/unsubscribe?id=…&token=…`.
-Confirming unsubscribe updates subscribe preferences and the suppress list.
+Bulk/marketing sends that include a recipient user id + signed token get:
+
+- Headers: `List-Unsubscribe: <{wwwroot}/util/unsubscribe?id=…&token=…>` and
+  `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058)
+- A visible plain-text **Unsubscribe** URL in the message footer
+
+Transactional mail does **not** include these headers or footer.
+
+`util/unsubscribe` flows:
+
+| Request | Behavior |
+|---------|----------|
+| **GET** | Validate token → confirmation page → user confirms → suppress |
+| **POST** `List-Unsubscribe=One-Click` | Validate token → suppress immediately → HTTP 200 `OK` (no cookies/login/UI). Idempotent. |
+| **POST** confirmation form | Same suppress as GET confirm |
+
+Invalid tokens do not suppress. SES is only the transport for the headers;
+Tsugi handles the unsubscribe endpoint and stores the result.
 
 ## Credential sources (when keys are omitted)
 
