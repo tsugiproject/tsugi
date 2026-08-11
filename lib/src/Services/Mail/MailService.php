@@ -26,6 +26,13 @@ class MailService {
     public const TYPE_TRANSACTIONAL = 'transactional';
     public const TYPE_BULK = 'bulk';
 
+    /** Soft local pace for bulk sends (unlikely to hit on normal SES latency). */
+    public const BULK_MAX_PER_SECOND = 5;
+    public const BULK_PACE_WAIT_SECONDS = 5;
+
+    /** @var list<float> Timestamps of recent bulk send attempts (this request). */
+    private static $bulkSendTimestamps = array();
+
     /**
      * Whether SES is configured for outbound mail.
      */
@@ -469,6 +476,36 @@ class MailService {
     }
 
     /**
+     * Soft pace for bulk sends: if more than BULK_MAX_PER_SECOND attempts fall
+     * inside a one-second window, wait BULK_PACE_WAIT_SECONDS and continue.
+     * Logs (and prints on CLI). Does not stop the run.
+     */
+    public static function paceBulkSend(): void {
+        $now = microtime(true);
+        $kept = array();
+        foreach ( self::$bulkSendTimestamps as $t ) {
+            if ( ($now - $t) < 1.0 ) {
+                $kept[] = $t;
+            }
+        }
+        self::$bulkSendTimestamps = $kept;
+
+        if ( count(self::$bulkSendTimestamps) >= self::BULK_MAX_PER_SECOND ) {
+            $wait = self::BULK_PACE_WAIT_SECONDS;
+            $msg = 'Bulk mail pacing: exceeded '.self::BULK_MAX_PER_SECOND
+                .' messages/sec; waiting '.$wait.'s before continuing';
+            error_log($msg);
+            if ( php_sapi_name() === 'cli' ) {
+                fwrite(STDERR, $msg."\n");
+            }
+            sleep($wait);
+            self::$bulkSendTimestamps = array();
+        }
+
+        self::$bulkSendTimestamps[] = microtime(true);
+    }
+
+    /**
      * Detect SES throttle / rate-limit from exception type or message text.
      */
     public static function isRateLimitThrowable(\Throwable $e): bool {
@@ -538,6 +575,10 @@ class MailService {
         $from = self::fromAddress();
 
         error_log("Mail to: $to $subject via " . $result['transport'] . " type=$type");
+
+        if ( $type === self::TYPE_BULK ) {
+            self::paceBulkSend();
+        }
 
         if ( self::isSesConfigured() ) {
             return self::sendViaSes($to, $subject, $msg, $from, $unsubscribe_url, $type, $result);

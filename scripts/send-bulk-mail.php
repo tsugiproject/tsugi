@@ -367,22 +367,26 @@ foreach ( $rows as $row ) {
         continue;
     }
     $token = MailService::computeCheck($user_to);
+    $t0 = microtime(true);
     $detail = MailService::sendDetailedBulk($to, $subject, $body, $user_to, $token);
+    $elapsed_s = microtime(true) - $t0;
+    $elapsed_ms = (int) round($elapsed_s * 1000);
+    $elapsed_txt = sprintf('%.3fs', $elapsed_s);
     $status = 'failed';
     if ( U::get($detail, 'suppressed') ) {
         $skipped++;
         $status = 'suppressed';
-        echo "  skip suppressed $to\n";
+        echo "  skip suppressed $to ($elapsed_txt)\n";
     } else if ( U::get($detail, 'success') ) {
         $sent++;
         $status = 'sent';
         $mid = U::get($detail, 'message_id', '');
-        echo "  sent $to".($mid ? " message_id=$mid" : '')."\n";
+        echo "  sent $to".($mid ? " message_id=$mid" : '')." ($elapsed_txt)\n";
     } else if ( U::get($detail, 'disabled') ) {
         $failed++;
         $status = 'disabled';
         $errors[] = $to.': mail disabled';
-        echo "  FAIL disabled $to\n";
+        echo "  FAIL disabled $to ($elapsed_txt)\n";
     } else {
         $failed++;
         $err = (string) U::get($detail, 'error', 'unknown');
@@ -392,9 +396,9 @@ foreach ( $rows as $row ) {
         if ( MailService::isRateLimited($detail) ) {
             $status = 'rate_limited';
             $stopped_rate_limit = true;
-            echo "  RATE LIMITED $to: $err\n";
+            echo "  RATE LIMITED $to: $err ($elapsed_txt)\n";
         } else {
-            echo "  FAIL $to: $err\n";
+            echo "  FAIL $to: $err ($elapsed_txt)\n";
         }
     }
 
@@ -408,6 +412,7 @@ foreach ( $rows as $row ) {
         'message_id' => $message_id,
         'error' => U::get($detail, 'error'),
         'rate_limited' => MailService::isRateLimited($detail) ? 1 : 0,
+        'elapsed_ms' => $elapsed_ms,
         'source' => 'cli',
     ));
     $PDOX->queryReturnError(

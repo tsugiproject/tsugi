@@ -91,6 +91,7 @@ Repeat until a dry-run shows **no recipients**.
 - Dry-run unless `--send`  
 - Max **200** recipients per invocation  
 - Suppress / unsubscribe gates still enforced by `MailService`  
+- **Local pacing:** if more than **5** bulk sends occur within one second, wait **5s** (message on stderr / error_log) and continue. Unlikely with normal SES latency.  
 - **SES rate limit:** the throttled recipient is logged as `rate_limited`, then the run **stops**. Remaining addresses are not attempted (so they stay eligible under `--exclude-recent-bulk-days`). Exit code **3**.  
 - Does not use SES Contact Lists — Tsugi owns opt-out state  
 
