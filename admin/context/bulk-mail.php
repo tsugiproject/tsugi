@@ -228,12 +228,17 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
     $skipped = 0;
     $failed = 0;
     $errors = array();
+    $stopped_rate_limit = false;
+    $not_attempted = 0;
+    $audience_total = count($rows);
+    $attempted = 0;
 
     foreach ( $rows as $row ) {
         $to = trim((string) U::get($row, 'email', ''));
         $user_to = (int) U::get($row, 'user_id', 0);
         if ( $to === '' || $user_to < 1 ) {
             $skipped++;
+            $attempted++;
             continue;
         }
         $token = MailService::computeCheck($user_to);
@@ -257,6 +262,10 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
             if ( count($errors) < 5 ) {
                 $errors[] = $to.': '.$err;
             }
+            if ( MailService::isRateLimited($detail) ) {
+                $status = 'rate_limited';
+                $stopped_rate_limit = true;
+            }
         }
 
         $message_id = U::get($detail, 'message_id');
@@ -268,6 +277,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
             'transport' => U::get($detail, 'transport'),
             'message_id' => $message_id,
             'error' => U::get($detail, 'error'),
+            'rate_limited' => MailService::isRateLimited($detail) ? 1 : 0,
         ));
         $PDOX->queryReturnError(
             "INSERT INTO {$CFG->dbprefix}mail_sent
@@ -283,18 +293,31 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
                 ':JSON' => $sent_json,
             )
         );
+        $attempted++;
+        if ( $stopped_rate_limit ) {
+            $not_attempted = $audience_total - $attempted;
+            break;
+        }
     }
 
     $meta['sent'] = $sent;
     $meta['skipped'] = $skipped;
     $meta['failed'] = $failed;
     $meta['errors'] = $errors;
+    $meta['stopped_rate_limit'] = $stopped_rate_limit ? 1 : 0;
+    $meta['not_attempted'] = $not_attempted;
     $PDOX->queryReturnError(
         "UPDATE {$CFG->dbprefix}mail_bulk SET json = :JSON WHERE bulk_id = :BID",
         array(':JSON' => json_encode($meta), ':BID' => $bulk_id)
     );
 
-    U::flashSuccess("Bulk mail #$bulk_id: sent=$sent skipped=$skipped failed=$failed");
+    $summary = "Bulk mail #$bulk_id: sent=$sent skipped=$skipped failed=$failed";
+    if ( $stopped_rate_limit ) {
+        $summary .= "; stopped on SES rate limit ($not_attempted not attempted — re-run later)";
+        U::flashError($summary);
+    } else {
+        U::flashSuccess($summary);
+    }
     header('Location: bulk-detail.php?bulk_id='.$bulk_id);
     return;
 }

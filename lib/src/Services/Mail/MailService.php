@@ -5,6 +5,7 @@ namespace Tsugi\Services\Mail;
 use \Tsugi\Util\U;
 use \Tsugi\UI\Output;
 use AsyncAws\Ses\SesClient;
+use AsyncAws\Ses\Exception\TooManyRequestsException;
 use AsyncAws\Ses\Input\SendEmailRequest;
 use AsyncAws\Ses\ValueObject\Body;
 use AsyncAws\Ses\ValueObject\Content;
@@ -460,7 +461,32 @@ class MailService {
     }
 
     /**
-     * @return array{success: bool, transport: string, error: ?string, message_id: ?string, disabled: bool, suppressed: bool, type: string}
+     * Whether a sendDetailed* result indicates SES rate limiting / throttling.
+     * Bulk senders should stop the run after recording that recipient.
+     */
+    public static function isRateLimited(array $detail): bool {
+        return !empty($detail['rate_limited']);
+    }
+
+    /**
+     * Detect SES throttle / rate-limit from exception type or message text.
+     */
+    public static function isRateLimitThrowable(\Throwable $e): bool {
+        if ( $e instanceof TooManyRequestsException ) {
+            return true;
+        }
+        $msg = strtolower($e->getMessage());
+        if ( $msg === '' ) {
+            return false;
+        }
+        return strpos($msg, 'toomanyrequests') !== false
+            || strpos($msg, 'maximum sending rate') !== false
+            || strpos($msg, 'rate exceeded') !== false
+            || strpos($msg, 'throttl') !== false;
+    }
+
+    /**
+     * @return array{success: bool, transport: string, error: ?string, message_id: ?string, disabled: bool, suppressed: bool, rate_limited: bool, type: string}
      */
     private static function sendDetailedWithType(string $type, $to, $subject, $message, $id=false, $token=false): array {
         global $CFG;
@@ -476,6 +502,7 @@ class MailService {
             'message_id' => null,
             'disabled' => false,
             'suppressed' => false,
+            'rate_limited' => false,
             'type' => $type,
         );
 
@@ -660,6 +687,10 @@ class MailService {
         } catch ( \Throwable $e ) {
             error_log('SES mail failed: ' . $e->getMessage());
             $result['error'] = $e->getMessage();
+            if ( self::isRateLimitThrowable($e) ) {
+                $result['rate_limited'] = true;
+                error_log('SES mail rate limited; callers should stop bulk runs');
+            }
             return $result;
         }
     }

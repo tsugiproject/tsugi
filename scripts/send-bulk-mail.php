@@ -353,12 +353,17 @@ $sent = 0;
 $skipped = 0;
 $failed = 0;
 $errors = array();
+$stopped_rate_limit = false;
+$not_attempted = 0;
+$audience_total = count($rows);
+$attempted = 0;
 
 foreach ( $rows as $row ) {
     $to = trim((string) U::get($row, 'email', ''));
     $user_to = (int) U::get($row, 'user_id', 0);
     if ( $to === '' || $user_to < 1 ) {
         $skipped++;
+        $attempted++;
         continue;
     }
     $token = MailService::computeCheck($user_to);
@@ -384,7 +389,13 @@ foreach ( $rows as $row ) {
         if ( count($errors) < 10 ) {
             $errors[] = $to.': '.$err;
         }
-        echo "  FAIL $to: $err\n";
+        if ( MailService::isRateLimited($detail) ) {
+            $status = 'rate_limited';
+            $stopped_rate_limit = true;
+            echo "  RATE LIMITED $to: $err\n";
+        } else {
+            echo "  FAIL $to: $err\n";
+        }
     }
 
     $message_id = U::get($detail, 'message_id');
@@ -396,6 +407,7 @@ foreach ( $rows as $row ) {
         'transport' => U::get($detail, 'transport'),
         'message_id' => $message_id,
         'error' => U::get($detail, 'error'),
+        'rate_limited' => MailService::isRateLimited($detail) ? 1 : 0,
         'source' => 'cli',
     ));
     $PDOX->queryReturnError(
@@ -412,16 +424,31 @@ foreach ( $rows as $row ) {
             ':JSON' => $sent_json,
         )
     );
+    $attempted++;
+    if ( $stopped_rate_limit ) {
+        $not_attempted = $audience_total - $attempted;
+        echo "Stopping run: SES rate limit exceeded ($not_attempted not attempted).\n";
+        break;
+    }
 }
 
 $meta['sent'] = $sent;
 $meta['skipped'] = $skipped;
 $meta['failed'] = $failed;
 $meta['errors'] = $errors;
+$meta['stopped_rate_limit'] = $stopped_rate_limit ? 1 : 0;
+$meta['not_attempted'] = $not_attempted;
 $PDOX->queryReturnError(
     "UPDATE {$CFG->dbprefix}mail_bulk SET json = :JSON WHERE bulk_id = :BID",
     array(':JSON' => json_encode($meta), ':BID' => $bulk_id)
 );
 
-echo "Done bulk_id=$bulk_id sent=$sent skipped=$skipped failed=$failed\n";
+echo "Done bulk_id=$bulk_id sent=$sent skipped=$skipped failed=$failed";
+if ( $stopped_rate_limit ) {
+    echo " stopped_rate_limit=1 not_attempted=$not_attempted";
+}
+echo "\n";
+if ( $stopped_rate_limit ) {
+    exit(3);
+}
 exit( $failed > 0 && $sent < 1 ? 2 : 0 );
