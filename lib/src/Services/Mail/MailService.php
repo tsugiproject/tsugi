@@ -28,7 +28,6 @@ class MailService {
 
     /** Soft local pace for bulk sends (unlikely to hit on normal SES latency). */
     public const BULK_MAX_PER_SECOND = 5;
-    public const BULK_PACE_WAIT_SECONDS = 1;
 
     /** @var list<float> Timestamps of recent bulk send attempts (this request). */
     private static $bulkSendTimestamps = array();
@@ -476,31 +475,42 @@ class MailService {
     }
 
     /**
-     * Soft pace for bulk sends: if more than BULK_MAX_PER_SECOND attempts fall
-     * inside a one-second window, wait BULK_PACE_WAIT_SECONDS and continue.
+     * Soft pace for bulk sends toward ~BULK_MAX_PER_SECOND average.
+     * If that many attempts fall inside a one-second window, sleep only long
+     * enough to fill out the remainder of that second, then continue.
      * Logs (and prints on CLI). Does not stop the run.
      */
     public static function paceBulkSend(): void {
         $now = microtime(true);
+        $window = 1.0;
         $kept = array();
         foreach ( self::$bulkSendTimestamps as $t ) {
-            if ( ($now - $t) < 1.0 ) {
+            if ( ($now - $t) < $window ) {
                 $kept[] = $t;
             }
         }
         self::$bulkSendTimestamps = $kept;
 
         if ( count(self::$bulkSendTimestamps) >= self::BULK_MAX_PER_SECOND ) {
-            $wait = self::BULK_PACE_WAIT_SECONDS;
-            $msg = 'Bulk mail pacing: exceeded '.self::BULK_MAX_PER_SECOND
-                .' messages/sec; waiting '.$wait.'s before continuing';
-            // CLI: error_log already goes to stderr — do not also fwrite or it prints twice.
-            if ( php_sapi_name() === 'cli' ) {
-                fwrite(STDERR, $msg."\n");
-            } else {
-                error_log($msg);
+            $oldest = self::$bulkSendTimestamps[0];
+            $elapsed = $now - $oldest;
+            $wait = $window - $elapsed;
+            if ( $wait > 0.001 ) {
+                $msg = sprintf(
+                    'Bulk mail pacing: exceeded %d messages in %.3fs; waiting %.3fs to stay near %d/sec',
+                    self::BULK_MAX_PER_SECOND,
+                    $elapsed,
+                    $wait,
+                    self::BULK_MAX_PER_SECOND
+                );
+                // CLI: error_log already goes to stderr — do not also fwrite or it prints twice.
+                if ( php_sapi_name() === 'cli' ) {
+                    fwrite(STDERR, $msg."\n");
+                } else {
+                    error_log($msg);
+                }
+                usleep((int) round($wait * 1000000));
             }
-            sleep($wait);
             self::$bulkSendTimestamps = array();
         }
 
