@@ -28,7 +28,7 @@ class MailService {
 
     /** Soft local pace for bulk sends (unlikely to hit on normal SES latency). */
     public const BULK_MAX_PER_SECOND = 5;
-    public const BULK_PACE_WAIT_SECONDS = 5;
+    public const BULK_PACE_WAIT_SECONDS = 1;
 
     /** @var list<float> Timestamps of recent bulk send attempts (this request). */
     private static $bulkSendTimestamps = array();
@@ -494,9 +494,11 @@ class MailService {
             $wait = self::BULK_PACE_WAIT_SECONDS;
             $msg = 'Bulk mail pacing: exceeded '.self::BULK_MAX_PER_SECOND
                 .' messages/sec; waiting '.$wait.'s before continuing';
-            error_log($msg);
+            // CLI: error_log already goes to stderr — do not also fwrite or it prints twice.
             if ( php_sapi_name() === 'cli' ) {
                 fwrite(STDERR, $msg."\n");
+            } else {
+                error_log($msg);
             }
             sleep($wait);
             self::$bulkSendTimestamps = array();
