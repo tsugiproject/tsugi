@@ -22,6 +22,7 @@ if ( ! isAdmin() ) {
     return;
 }
 
+const MAIL_BULK_DEFAULT_LIMIT = 200;
 const MAIL_BULK_MAX_RECIPIENTS = 200;
 
 /**
@@ -33,6 +34,7 @@ function bulk_mail_cli_shell_quote($value) {
 
 /**
  * Build equivalent scripts/send-bulk-mail.php instructions for the current form values.
+ * Includes --rate=5 as a batch-mode tip (UI send does not pace).
  *
  * @return string Multi-line text for a copyable textarea
  */
@@ -42,6 +44,7 @@ function bulk_mail_cli_instructions($context_id, $from_user_id, $subject, $body,
     $lines[] = '# Equivalent CLI (scripts/send-bulk-mail.php)';
     $lines[] = '# Dry-run by default. Add --send to deliver.';
     $lines[] = '# Run from the Tsugi root (directory that contains scripts/).';
+    $lines[] = '# Batch pacing (--rate) is CLI-only; admin UI caps at '.MAIL_BULK_MAX_RECIPIENTS.' recipients.';
     $lines[] = '#';
     $lines[] = '# 1) Save the body to a file, e.g. campaign.txt';
     $lines[] = '# 2) Dry-run:';
@@ -54,6 +57,7 @@ function bulk_mail_cli_instructions($context_id, $from_user_id, $subject, $body,
         $cmd[] = "--subject='YOUR SUBJECT'";
     }
     $cmd[] = '--body-file=./campaign.txt';
+    $cmd[] = '--rate=5';
 
     $single_email = strtolower(trim((string) $single_email));
     if ( $single_email !== '' ) {
@@ -89,9 +93,6 @@ function bulk_mail_cli_instructions($context_id, $from_user_id, $subject, $body,
         $lines[] = '#';
         $lines[] = '# --- campaign.txt body (copy into the file) ---';
         $lines[] = $body;
-        if ( substr($body, -1) !== "\n" ) {
-            // keep body as-is; trailing note separate
-        }
         $lines[] = '# --- end body ---';
     }
 
@@ -146,7 +147,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
     $include_opted_out = U::get($_POST, 'include_opted_out') == '1';
     $premium_only = U::get($_POST, 'premium_only') == '1';
     $exclude_recent_bulk_days = (int) U::get($_POST, 'exclude_recent_bulk_days', 0);
-    $limit = (int) U::get($_POST, 'limit', 0);
+    $limit = (int) U::get($_POST, 'limit', MAIL_BULK_DEFAULT_LIMIT);
 
     if ( $subject === '' || trim($body) === '' ) {
         U::flashError('Subject and body are required');
@@ -182,7 +183,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
             return;
         }
         if ( $limit < 0 || $limit > MAIL_BULK_MAX_RECIPIENTS ) {
-            U::flashError('Limit must be between 0 and '.MAIL_BULK_MAX_RECIPIENTS.' (0 = no limit)');
+            U::flashError('Limit must be between 0 and '.MAIL_BULK_MAX_RECIPIENTS.' (0 = no limit, still capped at '.MAIL_BULK_MAX_RECIPIENTS.' for admin UI)');
             header('Location: bulk-mail.php?context_id='.$context_id);
             return;
         }
@@ -195,7 +196,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
             return;
         }
         if ( $count > MAIL_BULK_MAX_RECIPIENTS ) {
-            U::flashError('Audience is '.$count.' recipients; max per send is '.MAIL_BULK_MAX_RECIPIENTS.'. Tighten the days filter or other options.');
+            U::flashError('Audience is '.$count.' recipients; admin UI max is '.MAIL_BULK_MAX_RECIPIENTS.'. Use scripts/send-bulk-mail.php for larger batches.');
             header('Location: bulk-mail.php?context_id='.$context_id.'&step=preview');
             return;
         }
@@ -234,6 +235,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
     $attempted = 0;
     $send_calls = 0;
     $run_t0 = microtime(true);
+    // Admin UI: no local pacing (batch CLI owns --rate). Still stop on SES throttle.
+    MailService::setBulkPacePerSecond(0);
 
     foreach ( $rows as $row ) {
         $to = trim((string) U::get($row, 'email', ''));
@@ -347,7 +350,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'compos
     $include_opted_out = isset($_POST['include_opted_out']) ? 1 : 0;
     $premium_only = isset($_POST['premium_only']) ? 1 : 0;
     $exclude_recent_bulk_days = (int) U::get($_POST, 'exclude_recent_bulk_days', 30);
-    $limit = (int) U::get($_POST, 'limit', 0);
+    $limit = (int) U::get($_POST, 'limit', MAIL_BULK_DEFAULT_LIMIT);
     if ( $subject === '' || trim($body) === '' ) {
         U::flashError('Subject and body are required');
         header('Location: bulk-mail.php?context_id='.$context_id);
@@ -371,7 +374,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'compos
             return;
         }
         if ( $limit < 0 || $limit > MAIL_BULK_MAX_RECIPIENTS ) {
-            U::flashError('Limit must be between 0 and '.MAIL_BULK_MAX_RECIPIENTS.' (0 = no limit)');
+            U::flashError('Limit must be between 0 and '.MAIL_BULK_MAX_RECIPIENTS);
             header('Location: bulk-mail.php?context_id='.$context_id);
             return;
         }
@@ -404,7 +407,7 @@ $days = 30;
 $include_opted_out = false;
 $premium_only = false;
 $exclude_recent_bulk_days = 30;
-$limit = 0;
+$limit = MAIL_BULK_DEFAULT_LIMIT;
 $rows = array();
 
 if ( $step === 'preview' && count($draft) > 0 ) {
@@ -415,7 +418,7 @@ if ( $step === 'preview' && count($draft) > 0 ) {
     $include_opted_out = (int) U::get($draft, 'include_opted_out', 0) === 1;
     $premium_only = (int) U::get($draft, 'premium_only', 0) === 1;
     $exclude_recent_bulk_days = (int) U::get($draft, 'exclude_recent_bulk_days', 30);
-    $limit = (int) U::get($draft, 'limit', 0);
+    $limit = (int) U::get($draft, 'limit', MAIL_BULK_DEFAULT_LIMIT);
     if ( $single_email !== '' ) {
         $rows = mail_context_audience_by_email($context_id, $single_email);
     } else {
@@ -441,7 +444,7 @@ $mail_ok = isset($CFG->maildomain) && $CFG->maildomain !== false;
 <p>
 Transport: <strong><?= htmlentities(MailService::transport()) ?></strong>
 <?= $mail_ok ? '' : ' — <span style="color:red">$CFG->maildomain not set; send disabled</span>' ?>
- · Max recipients per send: <?= (int) MAIL_BULK_MAX_RECIPIENTS ?>
+ · Max recipients per send: <?= (int) MAIL_BULK_MAX_RECIPIENTS ?> (use CLI for larger / paced batches)
 </p>
 
 <?php if ( $step === 'compose' ) { ?>
@@ -492,12 +495,13 @@ Transport: <strong><?= htmlentities(MailService::transport()) ?></strong>
         <label for="limit">Limit to most recently logged-in</label>
         <input type="number" class="form-control" id="limit" name="limit"
                min="0" max="<?= (int) MAIL_BULK_MAX_RECIPIENTS ?>"
-               value="<?= (int) U::get($draft, 'limit', 0) ?>" style="width:80px;display:inline-block;">
+               value="<?= (int) U::get($draft, 'limit', MAIL_BULK_DEFAULT_LIMIT) ?>" style="width:80px;display:inline-block;">
         users
         <p class="help-block">
-          Optional. Example: <strong>10</strong> = the 10 most recent logins who match the filters
+          Defaults to <strong><?= (int) MAIL_BULK_DEFAULT_LIMIT ?></strong> most recent logins who match the filters
           (and have not already received bulk mail within the exclude window).
-          Use <strong>0</strong> for no limit (up to <?= (int) MAIL_BULK_MAX_RECIPIENTS ?>).
+          Admin UI max is <strong><?= (int) MAIL_BULK_MAX_RECIPIENTS ?></strong>; use
+          <code>scripts/send-bulk-mail.php</code> for larger paced batches.
         </p>
       </div>
       <div class="form-group">
@@ -526,7 +530,7 @@ $cli_compose = bulk_mail_cli_instructions(
     (string) U::get($draft, 'single_email', ''),
     (int) U::get($draft, 'days', 30),
     (int) U::get($draft, 'exclude_recent_bulk_days', 30),
-    (int) U::get($draft, 'limit', 0),
+    (int) U::get($draft, 'limit', MAIL_BULK_DEFAULT_LIMIT),
     (int) U::get($draft, 'include_opted_out', 0) === 1,
     (int) U::get($draft, 'premium_only', 0) === 1
 );
@@ -557,20 +561,23 @@ $cli_compose = bulk_mail_cli_instructions(
         var days = parseInt(form.days && form.days.value, 10) || 30;
         var exclude = parseInt(form.exclude_recent_bulk_days && form.exclude_recent_bulk_days.value, 10);
         if (isNaN(exclude)) exclude = 30;
-        var limit = parseInt(form.limit && form.limit.value, 10) || 0;
+        var limit = parseInt(form.limit && form.limit.value, 10);
+        if (isNaN(limit)) limit = <?= (int) MAIL_BULK_DEFAULT_LIMIT ?>;
         var opted = form.include_opted_out && form.include_opted_out.checked;
         var premium = form.premium_only && form.premium_only.checked;
         var lines = [];
         lines.push('# Equivalent CLI (scripts/send-bulk-mail.php)');
         lines.push('# Dry-run by default. Add --send to deliver.');
         lines.push('# Run from the Tsugi root (directory that contains scripts/).');
+        lines.push('# Batch pacing (--rate) is CLI-only; admin UI caps at <?= (int) MAIL_BULK_MAX_RECIPIENTS ?> recipients.');
         lines.push('#');
         lines.push('# 1) Save the body to a file, e.g. campaign.txt');
         lines.push('# 2) Dry-run:');
         var cmd = ['php scripts/send-bulk-mail.php',
           '--context-id=' + contextId,
           '--subject=' + (subject ? q(subject) : "'YOUR SUBJECT'"),
-          '--body-file=./campaign.txt'];
+          '--body-file=./campaign.txt',
+          '--rate=5'];
         if (email) {
           cmd.push('--email=' + q(email));
         } else {
@@ -627,7 +634,7 @@ $cli_compose = bulk_mail_cli_instructions(
       <?php } ?>
     </p>
     <p><strong>Recipients:</strong> <?= (int) $n ?>
-      <?= $over ? ' <span style="color:red">(over max '.MAIL_BULK_MAX_RECIPIENTS.' — tighten filters)</span>' : '' ?>
+      <?= $over ? ' <span style="color:red">(over max '.MAIL_BULK_MAX_RECIPIENTS.' — use CLI for larger batches)</span>' : '' ?>
     </p>
     <pre style="white-space:pre-wrap;max-height:200px;overflow:auto;border:1px solid #ddd;padding:10px;"><?= htmlentities($body) ?></pre>
     <?php if ( $n > 0 && $n <= 50 ) { ?>

@@ -23,7 +23,7 @@ function mail_context_audience_sql($context_id, $days, $include_opted_out=false,
     if ( $exclude_recent_bulk_days < 0 || $exclude_recent_bulk_days > 365 ) {
         return false;
     }
-    if ( $limit < 0 || $limit > 200 ) {
+    if ( $limit < 0 ) {
         return false;
     }
 

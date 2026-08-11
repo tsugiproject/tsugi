@@ -29,8 +29,27 @@ class MailService {
     /** Soft local pace for bulk sends (unlikely to hit on normal SES latency). */
     public const BULK_MAX_PER_SECOND = 5;
 
+    /** @var int Target bulk sends per second (0 = no pacing). Default off; CLI batch sets this. */
+    private static $bulkPacePerSecond = 0;
+
     /** @var list<float> Timestamps of recent bulk send attempts (this request). */
     private static $bulkSendTimestamps = array();
+
+    /**
+     * Set local bulk pacing target (messages/sec). 0 disables pacing.
+     */
+    public static function setBulkPacePerSecond($per_second): void {
+        $n = (int) $per_second;
+        if ( $n < 0 ) {
+            $n = 0;
+        }
+        self::$bulkPacePerSecond = $n;
+        self::$bulkSendTimestamps = array();
+    }
+
+    public static function getBulkPacePerSecond(): int {
+        return self::$bulkPacePerSecond;
+    }
 
     /**
      * Whether SES is configured for outbound mail.
@@ -475,12 +494,17 @@ class MailService {
     }
 
     /**
-     * Soft pace for bulk sends toward ~BULK_MAX_PER_SECOND average.
+     * Soft pace for bulk sends toward getBulkPacePerSecond() average.
      * If that many attempts fall inside a one-second window, sleep only long
      * enough to fill out the remainder of that second, then continue.
-     * Logs (and prints on CLI). Does not stop the run.
+     * Rate 0 disables pacing. Logs (and prints on CLI). Does not stop the run.
      */
     public static function paceBulkSend(): void {
+        $target = self::$bulkPacePerSecond;
+        if ( $target < 1 ) {
+            return;
+        }
+
         $now = microtime(true);
         $window = 1.0;
         $kept = array();
@@ -491,17 +515,17 @@ class MailService {
         }
         self::$bulkSendTimestamps = $kept;
 
-        if ( count(self::$bulkSendTimestamps) >= self::BULK_MAX_PER_SECOND ) {
+        if ( count(self::$bulkSendTimestamps) >= $target ) {
             $oldest = self::$bulkSendTimestamps[0];
             $elapsed = $now - $oldest;
             $wait = $window - $elapsed;
             if ( $wait > 0.001 ) {
                 $msg = sprintf(
                     'Bulk mail pacing: exceeded %d messages in %.3fs; waiting %.3fs to stay near %d/sec',
-                    self::BULK_MAX_PER_SECOND,
+                    $target,
                     $elapsed,
                     $wait,
-                    self::BULK_MAX_PER_SECOND
+                    $target
                 );
                 // CLI: error_log already goes to stderr — do not also fwrite or it prints twice.
                 if ( php_sapi_name() === 'cli' ) {

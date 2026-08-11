@@ -18,7 +18,8 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Util\U;
 use \Tsugi\Services\Mail\MailService;
 
-const MAIL_BULK_CLI_MAX = 200;
+const MAIL_BULK_DEFAULT_LIMIT = 200;
+const MAIL_BULK_DEFAULT_RATE = 5;
 
 /**
  * Print usage / calling sequence and exit.
@@ -41,7 +42,8 @@ DRY-RUN (default — lists audience, does not send)
     --body-file=/path/to/body.txt \\
     [--days=30] \\
     [--exclude-recent-bulk-days=30] \\
-    [--limit=5] \\
+    [--limit=200] \\
+    [--rate=5] \\
     [--email=member@example.com] \\
     [--premium-only] \\
     [--include-opted-out] \\
@@ -73,7 +75,8 @@ OPTIONS
   --days=N                       Logged in within last N days (1–365, default 30)
   --exclude-recent-bulk-days=N   Skip if successful bulk in this context within N days
                                  (0–365, default 30; 0 = do not exclude)
-  --limit=N                      Most recent N by login_at (0–200, default 0 = no limit)
+  --limit=N                      Most recent N by login_at (0 = no limit, default 200)
+  --rate=N                       Local pace target messages/sec (0 = off, default 5)
   --email=ADDR                   Single context member email (ignores days/limit filters)
   --premium-only                 Premium / supporters only
   --include-opted-out            Include subscribe=-1 in audience list
@@ -86,9 +89,9 @@ EXAMPLES
   php scripts/{$self} --context-id=42 --subject='Hi' --body-file=./msg.txt \\
     --days=30 --exclude-recent-bulk-days=30 --limit=5
 
-  # Walk the list in batches of 50 (cron-friendly)
+  # Walk the list in batches of 200 (default limit; cron-friendly)
   php scripts/{$self} --context-id=42 --subject='Hi' --body-file=./msg.txt \\
-    --days=30 --exclude-recent-bulk-days=30 --limit=50 --from-user-id=1 --send
+    --days=30 --exclude-recent-bulk-days=30 --from-user-id=1 --send
 
   # Test one member (unsubscribe headers included)
   php scripts/{$self} --context-id=42 --subject='Test' --body-file=./msg.txt \\
@@ -114,7 +117,8 @@ function bulk_mail_cli_parse_args(array $argv) {
         'body_file' => '',
         'days' => 30,
         'exclude_recent_bulk_days' => 30,
-        'limit' => 0,
+        'limit' => MAIL_BULK_DEFAULT_LIMIT,
+        'rate' => MAIL_BULK_DEFAULT_RATE,
         'email' => '',
         'premium_only' => false,
         'include_opted_out' => false,
@@ -131,6 +135,7 @@ function bulk_mail_cli_parse_args(array $argv) {
         'days:',
         'exclude-recent-bulk-days:',
         'limit:',
+        'rate:',
         'email:',
         'premium-only',
         'include-opted-out',
@@ -182,6 +187,9 @@ function bulk_mail_cli_parse_args(array $argv) {
     }
     if ( isset($long['limit']) ) {
         $opts['limit'] = (int) $long['limit'];
+    }
+    if ( isset($long['rate']) ) {
+        $opts['rate'] = (int) $long['rate'];
     }
     if ( isset($long['email']) ) {
         $opts['email'] = strtolower(trim((string) $long['email']));
@@ -236,6 +244,12 @@ if ( $context_row === false || $context_row === null ) {
 }
 $context_title = $context_row['title'] ? $context_row['title'] : "Context #$context_id";
 
+$rate = (int) $opts['rate'];
+if ( $rate < 0 || $rate > 100 ) {
+    fwrite(STDERR, "Error: --rate must be 0–100 (0 = no pacing).\n");
+    exit(1);
+}
+
 $single_email = $opts['email'];
 if ( $single_email !== '' ) {
     if ( strpos($single_email, '@') === false ) {
@@ -246,6 +260,7 @@ if ( $single_email !== '' ) {
     $meta = array(
         'source' => 'cli',
         'single_email' => $single_email,
+        'rate' => $rate,
         'audience_count' => count($rows),
     );
 } else {
@@ -260,8 +275,8 @@ if ( $single_email !== '' ) {
         fwrite(STDERR, "Error: --exclude-recent-bulk-days must be 0–365.\n");
         exit(1);
     }
-    if ( $limit < 0 || $limit > MAIL_BULK_CLI_MAX ) {
-        fwrite(STDERR, "Error: --limit must be 0–".MAIL_BULK_CLI_MAX.".\n");
+    if ( $limit < 0 ) {
+        fwrite(STDERR, "Error: --limit must be 0 or greater (0 = no limit).\n");
         exit(1);
     }
     $rows = mail_context_audience(
@@ -277,6 +292,7 @@ if ( $single_email !== '' ) {
         'days' => $days,
         'exclude_recent_bulk_days' => $exclude,
         'limit' => $limit,
+        'rate' => $rate,
         'include_opted_out' => $opts['include_opted_out'] ? 1 : 0,
         'premium_only' => $opts['premium_only'] ? 1 : 0,
         'audience_count' => count($rows),
@@ -288,15 +304,12 @@ if ( $count < 1 ) {
     fwrite(STDERR, "Error: no recipients match the filters.\n");
     exit(1);
 }
-if ( $count > MAIL_BULK_CLI_MAX ) {
-    fwrite(STDERR, "Error: audience is $count; max per run is ".MAIL_BULK_CLI_MAX.". Use --limit.\n");
-    exit(1);
-}
 
 $mail_ok = isset($CFG->maildomain) && $CFG->maildomain !== false;
 echo "Context: #$context_id ".trim((string) $context_title)."\n";
 echo "Transport: ".MailService::transport().($mail_ok ? '' : ' (MAIL DISABLED — set \$CFG->maildomain)')."\n";
 echo "Mode: ".($opts['send'] ? 'SEND' : 'DRY-RUN')."\n";
+echo "Rate: ".$rate."/sec".($rate < 1 ? ' (pacing off)' : '')."\n";
 echo "Subject: $subject\n";
 echo "Filters: ".json_encode($meta)."\n";
 echo "Recipients: $count\n";
@@ -359,6 +372,7 @@ $audience_total = count($rows);
 $attempted = 0;
 $send_calls = 0;
 $run_t0 = microtime(true);
+MailService::setBulkPacePerSecond($rate);
 
 foreach ( $rows as $row ) {
     $to = trim((string) U::get($row, 'email', ''));

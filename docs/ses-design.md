@@ -188,7 +188,8 @@ Site admins can send bulk mail to a context audience:
    - optional **limit** to the N most recently logged-in matching users
      (e.g. 10; 0 = no limit)
    - optional premium-only / include opted-out
-3. Preview recipient count (max **200** per send — tighten filters if larger)
+3. Preview recipient count (admin UI max **200** per send — use
+   `scripts/send-bulk-mail.php` for larger paced batches)
 4. Confirm to send via `MailService::sendBulk()` (uses
    `$CFG->ses_configuration_set_bulk` when set)
 

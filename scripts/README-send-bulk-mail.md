@@ -65,7 +65,8 @@ and this flow, then exits:
 | `--from-user-id=N` | Required with `--send` |
 | `--days=N` | Logged in within last N days (default 30) |
 | `--exclude-recent-bulk-days=N` | Skip successful bulk in this context within N days (default 30; `0` = off) |
-| `--limit=N` | Most recent N by `login_at` (`0` = no limit, max 200) |
+| `--limit=N` | Most recent N by `login_at` (default **200**; `0` = no limit) |
+| `--rate=N` | Local pace target messages/sec (default **5**; `0` = off) |
 | `--email=ADDR` | Single context member (ignores days/limit) |
 | `--premium-only` | Premium only |
 | `--include-opted-out` | Include opted-out in list (still skipped at send for bulk) |
@@ -89,9 +90,10 @@ Repeat until a dry-run shows **no recipients**.
 
 - CLI only (`php_sapi_name() === 'cli'`)  
 - Dry-run unless `--send`  
-- Max **200** recipients per invocation  
+- Default `--limit=200` (most recent); use `--limit=0` for no cap (CLI only — admin UI hard-caps at 200)  
+- Default `--rate=5` local pacing (**CLI / batch only**; admin UI does not pace)  
 - Suppress / unsubscribe gates still enforced by `MailService`  
-- **Local pacing:** if more than **5** bulk sends occur within one second, wait only the remainder of that second (adaptive) so the average stays near **5/sec**, then continue. Unlikely with normal SES latency.  
+- **Local pacing (CLI):** if more than `--rate` bulk sends occur within one second, wait only the remainder of that second (adaptive) so the average stays near the target, then continue. Unlikely with normal SES latency.  
 - **SES rate limit:** the throttled recipient is logged as `rate_limited`, then the run **stops**. Remaining addresses are not attempted (so they stay eligible under `--exclude-recent-bulk-days`). Exit code **3**.  
 - Does not use SES Contact Lists — Tsugi owns opt-out state  
 
