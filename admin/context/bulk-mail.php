@@ -232,6 +232,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
     $not_attempted = 0;
     $audience_total = count($rows);
     $attempted = 0;
+    $send_calls = 0;
+    $run_t0 = microtime(true);
 
     foreach ( $rows as $row ) {
         $to = trim((string) U::get($row, 'email', ''));
@@ -243,6 +245,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
         }
         $token = MailService::computeCheck($user_to);
         $detail = MailService::sendDetailedBulk($to, $subject, $body, $user_to, $token);
+        $send_calls++;
         $status = 'failed';
         if ( U::get($detail, 'suppressed') ) {
             $skipped++;
@@ -306,12 +309,25 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' 
     $meta['errors'] = $errors;
     $meta['stopped_rate_limit'] = $stopped_rate_limit ? 1 : 0;
     $meta['not_attempted'] = $not_attempted;
+    $run_elapsed_s = microtime(true) - $run_t0;
+    $calls_per_sec = ($run_elapsed_s > 0.0) ? ($send_calls / $run_elapsed_s) : 0.0;
+    $meta['elapsed_s'] = round($run_elapsed_s, 3);
+    $meta['send_calls'] = $send_calls;
+    $meta['calls_per_sec'] = round($calls_per_sec, 3);
     $PDOX->queryReturnError(
         "UPDATE {$CFG->dbprefix}mail_bulk SET json = :JSON WHERE bulk_id = :BID",
         array(':JSON' => json_encode($meta), ':BID' => $bulk_id)
     );
 
-    $summary = "Bulk mail #$bulk_id: sent=$sent skipped=$skipped failed=$failed";
+    $summary = sprintf(
+        'Bulk mail #%s: sent=%d skipped=%d failed=%d elapsed=%.3fs avg=%.2f calls/sec',
+        $bulk_id,
+        $sent,
+        $skipped,
+        $failed,
+        $run_elapsed_s,
+        $calls_per_sec
+    );
     if ( $stopped_rate_limit ) {
         $summary .= "; stopped on SES rate limit ($not_attempted not attempted — re-run later)";
         U::flashError($summary);

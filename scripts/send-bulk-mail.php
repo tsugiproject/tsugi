@@ -357,6 +357,8 @@ $stopped_rate_limit = false;
 $not_attempted = 0;
 $audience_total = count($rows);
 $attempted = 0;
+$send_calls = 0;
+$run_t0 = microtime(true);
 
 foreach ( $rows as $row ) {
     $to = trim((string) U::get($row, 'email', ''));
@@ -369,6 +371,7 @@ foreach ( $rows as $row ) {
     $token = MailService::computeCheck($user_to);
     $t0 = microtime(true);
     $detail = MailService::sendDetailedBulk($to, $subject, $body, $user_to, $token);
+    $send_calls++;
     $elapsed_s = microtime(true) - $t0;
     $elapsed_ms = (int) round($elapsed_s * 1000);
     $elapsed_txt = sprintf('%.3fs', $elapsed_s);
@@ -443,6 +446,11 @@ $meta['failed'] = $failed;
 $meta['errors'] = $errors;
 $meta['stopped_rate_limit'] = $stopped_rate_limit ? 1 : 0;
 $meta['not_attempted'] = $not_attempted;
+$run_elapsed_s = microtime(true) - $run_t0;
+$calls_per_sec = ($run_elapsed_s > 0.0) ? ($send_calls / $run_elapsed_s) : 0.0;
+$meta['elapsed_s'] = round($run_elapsed_s, 3);
+$meta['send_calls'] = $send_calls;
+$meta['calls_per_sec'] = round($calls_per_sec, 3);
 $PDOX->queryReturnError(
     "UPDATE {$CFG->dbprefix}mail_bulk SET json = :JSON WHERE bulk_id = :BID",
     array(':JSON' => json_encode($meta), ':BID' => $bulk_id)
@@ -452,7 +460,12 @@ echo "Done bulk_id=$bulk_id sent=$sent skipped=$skipped failed=$failed";
 if ( $stopped_rate_limit ) {
     echo " stopped_rate_limit=1 not_attempted=$not_attempted";
 }
-echo "\n";
+echo sprintf(
+    " elapsed=%.3fs send_calls=%d avg=%.2f calls/sec\n",
+    $run_elapsed_s,
+    $send_calls,
+    $calls_per_sec
+);
 if ( $stopped_rate_limit ) {
     exit(3);
 }
