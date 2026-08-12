@@ -409,6 +409,7 @@ $premium_only = false;
 $exclude_recent_bulk_days = 30;
 $limit = MAIL_BULK_DEFAULT_LIMIT;
 $rows = array();
+$audience_stats = false;
 
 if ( $step === 'preview' && count($draft) > 0 ) {
     $subject = (string) U::get($draft, 'subject', '');
@@ -421,7 +422,18 @@ if ( $step === 'preview' && count($draft) > 0 ) {
     $limit = (int) U::get($draft, 'limit', MAIL_BULK_DEFAULT_LIMIT);
     if ( $single_email !== '' ) {
         $rows = mail_context_audience_by_email($context_id, $single_email);
+        $n1 = count($rows);
+        $audience_stats = array(
+            'matched_login' => $n1,
+            'excluded_recent_bulk' => 0,
+            'eligible_no_limit' => $n1,
+            'limit' => 1,
+            'will_send' => $n1,
+            'exclude_recent_bulk_days' => 0,
+            'single_email' => $single_email,
+        );
     } else {
+        $audience_stats = mail_context_audience_stats($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days, $limit);
         $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days, $limit);
     }
 } else {
@@ -633,9 +645,33 @@ $cli_compose = bulk_mail_cli_instructions(
         <?= $premium_only ? '; premium only' : '' ?>
       <?php } ?>
     </p>
-    <p><strong>Recipients:</strong> <?= (int) $n ?>
+    <p><strong>Recipients (this send):</strong> <?= (int) $n ?>
       <?= $over ? ' <span style="color:red">(over max '.MAIL_BULK_MAX_RECIPIENTS.' — use CLI for larger batches)</span>' : '' ?>
     </p>
+    <?php if ( is_array($audience_stats) && empty($audience_stats['single_email']) ) { ?>
+    <div class="well well-sm" style="max-width:640px;">
+      <strong>Audience breakdown</strong>
+      <ul style="margin-bottom:0;">
+        <li>Logged in within last <?= (int) $days ?> days
+          <?= $include_opted_out ? '' : ' (excluding opted-out)' ?>
+          <?= $premium_only ? ', premium only' : '' ?>:
+          <strong><?= (int) $audience_stats['matched_login'] ?></strong></li>
+        <li>Excluded — already got successful bulk in this context within
+          <?= (int) $audience_stats['exclude_recent_bulk_days'] ?> days:
+          <strong><?= (int) $audience_stats['excluded_recent_bulk'] ?></strong>
+          <?= (int) $audience_stats['exclude_recent_bulk_days'] < 1 ? ' <span class="text-muted">(exclude disabled)</span>' : '' ?>
+        </li>
+        <li>Eligible with no limit:
+          <strong><?= (int) $audience_stats['eligible_no_limit'] ?></strong></li>
+        <li>After limit<?= $limit > 0 ? ' ('.$limit.')' : ' (none)' ?>:
+          <strong><?= (int) $audience_stats['will_send'] ?></strong>
+          <?= $limit > 0 && (int) $audience_stats['eligible_no_limit'] > $limit
+                ? ' <span class="text-muted">('.((int) $audience_stats['eligible_no_limit'] - $limit).' not included due to limit)</span>'
+                : '' ?>
+        </li>
+      </ul>
+    </div>
+    <?php } ?>
     <pre style="white-space:pre-wrap;max-height:200px;overflow:auto;border:1px solid #ddd;padding:10px;"><?= htmlentities($body) ?></pre>
     <?php if ( $n > 0 && $n <= 50 ) { ?>
     <p>Sample emails:</p>

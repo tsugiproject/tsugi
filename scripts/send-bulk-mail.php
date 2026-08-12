@@ -279,6 +279,18 @@ if ( $single_email !== '' ) {
         fwrite(STDERR, "Error: --limit must be 0 or greater (0 = no limit).\n");
         exit(1);
     }
+    $audience_stats = mail_context_audience_stats(
+        $context_id,
+        $days,
+        $opts['include_opted_out'],
+        $opts['premium_only'],
+        $exclude,
+        $limit
+    );
+    if ( $audience_stats === false ) {
+        fwrite(STDERR, "Error: invalid audience filters.\n");
+        exit(1);
+    }
     $rows = mail_context_audience(
         $context_id,
         $days,
@@ -296,12 +308,24 @@ if ( $single_email !== '' ) {
         'include_opted_out' => $opts['include_opted_out'] ? 1 : 0,
         'premium_only' => $opts['premium_only'] ? 1 : 0,
         'audience_count' => count($rows),
+        'matched_login' => $audience_stats['matched_login'],
+        'excluded_recent_bulk' => $audience_stats['excluded_recent_bulk'],
+        'eligible_no_limit' => $audience_stats['eligible_no_limit'],
+        'will_send' => $audience_stats['will_send'],
     );
 }
 
 $count = count($rows);
 if ( $count < 1 ) {
     fwrite(STDERR, "Error: no recipients match the filters.\n");
+    if ( isset($audience_stats) && is_array($audience_stats) ) {
+        fwrite(STDERR, sprintf(
+            "Breakdown: matched_login=%d excluded_recent_bulk=%d eligible_no_limit=%d\n",
+            $audience_stats['matched_login'],
+            $audience_stats['excluded_recent_bulk'],
+            $audience_stats['eligible_no_limit']
+        ));
+    }
     exit(1);
 }
 
@@ -312,7 +336,14 @@ echo "Mode: ".($opts['send'] ? 'SEND' : 'DRY-RUN')."\n";
 echo "Rate: ".$rate."/sec".($rate < 1 ? ' (pacing off)' : '')."\n";
 echo "Subject: $subject\n";
 echo "Filters: ".json_encode($meta)."\n";
-echo "Recipients: $count\n";
+if ( isset($audience_stats) && is_array($audience_stats) ) {
+    echo "Audience breakdown:\n";
+    echo "  matched login (days filter): ".$audience_stats['matched_login']."\n";
+    echo "  excluded (recent bulk ".$audience_stats['exclude_recent_bulk_days']."d): ".$audience_stats['excluded_recent_bulk']."\n";
+    echo "  eligible with no limit: ".$audience_stats['eligible_no_limit']."\n";
+    echo "  after limit".($limit > 0 ? " ($limit)" : " (none)").": ".$audience_stats['will_send']."\n";
+}
+echo "Recipients (this run): $count\n";
 $sample = 0;
 foreach ( $rows as $row ) {
     if ( $sample++ >= 20 ) {

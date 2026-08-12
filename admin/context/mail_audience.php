@@ -11,27 +11,50 @@
  * @return array{0: string, 1: array}|false SQL + params, or false if args invalid
  */
 function mail_context_audience_sql($context_id, $days, $include_opted_out=false, $premium_only=false, $exclude_recent_bulk_days=0, $limit=0) {
+    $built = mail_context_audience_from_where($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days);
+    if ( $built === false ) {
+        return false;
+    }
+    list($from_where, $params) = $built;
+    $limit = (int) $limit;
+    if ( $limit < 0 ) {
+        return false;
+    }
+
+    $sql = "SELECT DISTINCT U.email, U.displayname, U.login_at, U.user_id, COALESCE(P.premium, 0) AS premium
+            ".$from_where;
+
+    if ( $limit > 0 ) {
+        $sql .= " ORDER BY U.login_at DESC LIMIT ".$limit;
+    } else {
+        $sql .= " ORDER BY SUBSTRING_INDEX(U.email, '@', -1), U.email";
+    }
+
+    return array($sql, $params);
+}
+
+/**
+ * Build FROM/JOIN/WHERE for context audience (shared by select + counts).
+ *
+ * @return array{0: string, 1: array}|false
+ */
+function mail_context_audience_from_where($context_id, $days, $include_opted_out=false, $premium_only=false, $exclude_recent_bulk_days=0) {
     global $CFG;
 
     $context_id = (int) $context_id;
     $days = (int) $days;
     $exclude_recent_bulk_days = (int) $exclude_recent_bulk_days;
-    $limit = (int) $limit;
     if ( $context_id < 1 || $days < 1 || $days > 365 ) {
         return false;
     }
     if ( $exclude_recent_bulk_days < 0 || $exclude_recent_bulk_days > 365 ) {
         return false;
     }
-    if ( $limit < 0 ) {
-        return false;
-    }
 
     $cutoff_date = date('Y-m-d H:i:s', strtotime("-$days days"));
     $params = array(':CID' => $context_id, ':CUTOFF' => $cutoff_date);
 
-    $sql = "SELECT DISTINCT U.email, U.displayname, U.login_at, U.user_id, COALESCE(P.premium, 0) AS premium
-            FROM {$CFG->dbprefix}lti_membership AS M
+    $sql = "FROM {$CFG->dbprefix}lti_membership AS M
             JOIN {$CFG->dbprefix}lti_user AS U ON M.user_id = U.user_id
             LEFT JOIN {$CFG->dbprefix}profile AS P ON U.profile_id = P.profile_id
             WHERE M.context_id = :CID
@@ -63,13 +86,78 @@ function mail_context_audience_sql($context_id, $days, $include_opted_out=false,
         )";
     }
 
-    if ( $limit > 0 ) {
-        $sql .= " ORDER BY U.login_at DESC LIMIT ".$limit;
-    } else {
-        $sql .= " ORDER BY SUBSTRING_INDEX(U.email, '@', -1), U.email";
+    return array($sql, $params);
+}
+
+/**
+ * Count distinct users matching audience filters (no LIMIT).
+ *
+ * @return int|false
+ */
+function mail_context_audience_count($context_id, $days, $include_opted_out=false, $premium_only=false, $exclude_recent_bulk_days=0) {
+    global $PDOX;
+
+    $built = mail_context_audience_from_where($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days);
+    if ( $built === false ) {
+        return false;
+    }
+    list($from_where, $params) = $built;
+    $sql = "SELECT COUNT(DISTINCT U.user_id) AS c ".$from_where;
+    $row = $PDOX->rowDie($sql, $params);
+    if ( $row === false || $row === null ) {
+        return 0;
+    }
+    return (int) $row['c'];
+}
+
+/**
+ * Audience size breakdown for bulk preview / CLI dry-run.
+ *
+ * @return array{
+ *   matched_login: int,
+ *   excluded_recent_bulk: int,
+ *   eligible_no_limit: int,
+ *   limit: int,
+ *   will_send: int,
+ *   exclude_recent_bulk_days: int
+ * }|false
+ */
+function mail_context_audience_stats($context_id, $days, $include_opted_out=false, $premium_only=false, $exclude_recent_bulk_days=0, $limit=0) {
+    $limit = (int) $limit;
+    $exclude_recent_bulk_days = (int) $exclude_recent_bulk_days;
+    if ( $limit < 0 ) {
+        return false;
     }
 
-    return array($sql, $params);
+    $matched_login = mail_context_audience_count($context_id, $days, $include_opted_out, $premium_only, 0);
+    if ( $matched_login === false ) {
+        return false;
+    }
+
+    if ( $exclude_recent_bulk_days > 0 ) {
+        $eligible_no_limit = mail_context_audience_count($context_id, $days, $include_opted_out, $premium_only, $exclude_recent_bulk_days);
+        if ( $eligible_no_limit === false ) {
+            return false;
+        }
+        $excluded_recent_bulk = max(0, $matched_login - $eligible_no_limit);
+    } else {
+        $eligible_no_limit = $matched_login;
+        $excluded_recent_bulk = 0;
+    }
+
+    $will_send = $eligible_no_limit;
+    if ( $limit > 0 && $will_send > $limit ) {
+        $will_send = $limit;
+    }
+
+    return array(
+        'matched_login' => $matched_login,
+        'excluded_recent_bulk' => $excluded_recent_bulk,
+        'eligible_no_limit' => $eligible_no_limit,
+        'limit' => $limit,
+        'will_send' => $will_send,
+        'exclude_recent_bulk_days' => $exclude_recent_bulk_days,
+    );
 }
 
 /**
