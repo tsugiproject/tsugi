@@ -42,6 +42,27 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'purge_old') ) {
     return;
 }
 
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'delete_delivery_events') ) {
+    if ( ! U::get($_POST, 'confirm_delete_delivery') ) {
+        U::flashError('You must confirm deleting delivery events');
+        header('Location: ses-events');
+        return;
+    }
+    if ( ! MailService::sesEventsTableExists() ) {
+        U::flashError('mail_ses_events table missing');
+        header('Location: ses-events');
+        return;
+    }
+    $deleted = mail_admin_delete_delivery_events();
+    if ( $deleted < 0 ) {
+        U::flashError('Delete delivery events failed');
+    } else {
+        U::flashSuccess('Deleted '.$deleted.' delivery (ignored) SES event(s)');
+    }
+    header('Location: ses-events');
+    return;
+}
+
 require_once("nav.php");
 
 $OUTPUT->header();
@@ -60,6 +81,7 @@ if ( ! MailService::sesEventsTableExists() ) {
 }
 
 mail_admin_purge_form('ses-events', 'mail_ses_events', 'SES events');
+mail_admin_delete_delivery_events_form('ses-events');
 
 $query_parms = array();
 $searchfields = array("event_id", "email", "event_type", "event_subtype", "action", "mail_type", "ses_message_id", "sns_message_id", "detail", "created_at");

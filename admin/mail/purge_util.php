@@ -79,3 +79,57 @@ function mail_admin_purge_form($action_url, $table, $label) {
 </div>
     <?php
 }
+
+/**
+ * Count SES delivery events that were logged as ignore_delivery.
+ */
+function mail_admin_delivery_event_count() {
+    global $CFG, $PDOX;
+
+    $row = $PDOX->rowDie(
+        "SELECT COUNT(*) AS c FROM {$CFG->dbprefix}mail_ses_events
+         WHERE event_type = 'delivery' OR action = 'ignore_delivery'"
+    );
+    return is_array($row) ? (int) $row['c'] : 0;
+}
+
+/**
+ * Delete SES delivery / ignore_delivery audit rows.
+ *
+ * @return int Rows deleted, or -1 on failure
+ */
+function mail_admin_delete_delivery_events() {
+    global $CFG, $PDOX;
+
+    $q = $PDOX->queryReturnError(
+        "DELETE FROM {$CFG->dbprefix}mail_ses_events
+         WHERE event_type = 'delivery' OR action = 'ignore_delivery'"
+    );
+    if ( !$q->success ) {
+        return -1;
+    }
+    return (int) $q->rowCount();
+}
+
+/**
+ * Render button to delete all delivery (ignored) SES events.
+ *
+ * @param string $action_url Relative form action
+ */
+function mail_admin_delete_delivery_events_form($action_url) {
+    $n = mail_admin_delivery_event_count();
+    $confirm = 'Delete '.$n.' delivery (ignored) SES event row(s)? Bounce/complaint/suppress rows are kept.';
+    ?>
+<div style="margin:8px 0;">
+  Delivery (ignored) events: <strong><?= (int) $n ?></strong>
+  <?php if ( $n > 0 ) { ?>
+  <form method="post" action="<?= htmlentities($action_url) ?>" style="display:inline;margin-left:8px;"
+        onsubmit="return confirm(<?= htmlentities(json_encode($confirm), ENT_QUOTES) ?>);">
+    <input type="hidden" name="delete_delivery_events" value="1">
+    <input type="hidden" name="confirm_delete_delivery" value="1">
+    <button type="submit" class="btn btn-warning btn-xs">Delete delivery events</button>
+  </form>
+  <?php } ?>
+</div>
+    <?php
+}
