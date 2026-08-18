@@ -365,18 +365,13 @@ class LTI {
     public static function getAuthorizationHeader()
     {
         $request_headers = OAuthUtil::get_headers();
-        $auth = isset($request_headers['Authorization']) ? $request_headers['Authorization'] : null;
-        if ( ! $auth ) $auth = isset($request_headers['authorization']) ? $request_headers['authorization'] : null;
-        return $auth;
+        return U::getIgnoreCase($request_headers, 'Authorization', null);
     }
 
     public static function getContentTypeHeader()
     {
         $request_headers = OAuthUtil::get_headers();
-        $ctype = isset($request_headers['Content-Type']) ? $request_headers['Content-Type'] : null;
-        if ( ! $ctype ) $ctype = isset($request_headers['Content-type']) ? $request_headers['Content-type'] : null;
-        if ( ! $ctype ) $ctype = isset($request_headers['content-type']) ? $request_headers['content-type'] : null;
-        return $ctype;
+        return U::getIgnoreCase($request_headers, 'Content-Type', null);
     }
 
     public static function getOAuthKeyFromHeaders()
