@@ -91,7 +91,7 @@ class Net {
     /**
      * Extract a set of header lines into an array
      *
-     * Takes a newline separated header sting and returns a key/value array.
+     * Takes a newline separated header string and returns a key/value array.
      * Keys are kept as received (HTTP/2 and HTTP/3 send them lowercase).
      * Header names are case-insensitive (RFC 7230 / RFC 9110), so look
      * them up with U::getIgnoreCase() rather than U::get().
