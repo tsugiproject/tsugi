@@ -404,6 +404,8 @@ class UTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('missing', U::getIgnoreCase($headers, 'X-Not-There', 'missing'));
         $this->assertEquals('missing', U::getIgnoreCase(null, 'Link', 'missing'));
         $this->assertEquals('missing', U::getIgnoreCase($headers, null, 'missing'));
+        $this->assertEquals('missing', U::getIgnoreCase($headers, array('Link'), 'missing'));
+        $this->assertEquals('missing', U::getIgnoreCase($headers, new \stdClass(), 'missing'));
 
         $both = array('Link' => 'canonical', 'link' => 'lowercase');
         $this->assertEquals('canonical', U::getIgnoreCase($both, 'Link'));

@@ -95,6 +95,7 @@ class U {
     public static function getIgnoreCase($arr, $key, $default=null) {
         if ( !is_array($arr) ) return $default;
         if ( !isset($key) ) return $default;
+        if ( is_array($key) || is_object($key) ) return $default;
         if ( isset($arr[$key]) ) return $arr[$key];
         $keyLower = strtolower((string)$key);
         foreach ($arr as $k => $v) {
