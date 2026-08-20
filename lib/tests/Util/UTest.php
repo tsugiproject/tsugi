@@ -386,4 +386,30 @@ class UTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
+    public function testGetIgnoreCase() {
+        // HTTP header field names are case-insensitive (RFC 7230 / RFC 9110).
+        // HTTP/2 and HTTP/3 require names to be lowercase on the wire, so
+        // servers like Canvas often return 'link' rather than 'Link'.
+        // parseHeaders() keeps the keys as received; callers must look them
+        // up with getIgnoreCase(), not get().
+        $headers = array('link' => '</members?page=2>; rel="next"', 'Content-Type' => 'application/json');
+
+        $this->assertEquals('application/json', U::getIgnoreCase($headers, 'Content-Type'));
+        $this->assertEquals('application/json', U::getIgnoreCase($headers, 'content-type'));
+        $this->assertEquals('</members?page=2>; rel="next"', U::getIgnoreCase($headers, 'Link'));
+        $this->assertEquals('</members?page=2>; rel="next"', U::getIgnoreCase($headers, 'link'));
+        $this->assertEquals('</members?page=2>; rel="next"', U::getIgnoreCase($headers, 'LINK'));
+
+        $this->assertNull(U::get($headers, 'Link'));
+        $this->assertEquals('missing', U::getIgnoreCase($headers, 'X-Not-There', 'missing'));
+        $this->assertEquals('missing', U::getIgnoreCase(null, 'Link', 'missing'));
+        $this->assertEquals('missing', U::getIgnoreCase($headers, null, 'missing'));
+        $this->assertEquals('missing', U::getIgnoreCase($headers, array('Link'), 'missing'));
+        $this->assertEquals('missing', U::getIgnoreCase($headers, new \stdClass(), 'missing'));
+
+        $both = array('Link' => 'canonical', 'link' => 'lowercase');
+        $this->assertEquals('canonical', U::getIgnoreCase($both, 'Link'));
+        $this->assertEquals('lowercase', U::getIgnoreCase($both, 'link'));
+    }
+
 }

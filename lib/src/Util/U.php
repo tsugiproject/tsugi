@@ -85,6 +85,25 @@ class U {
         return $arr[$key];
     }
 
+    /**
+     * Like get(), but match array keys without regard to case.
+     *
+     * HTTP header names are case-insensitive (RFC 7230). HTTP/2 requires
+     * names to be lowercase, so LMS responses (e.g. Canvas) may use 'link'
+     * instead of 'Link'. Exact match is preferred when present.
+     */
+    public static function getIgnoreCase($arr, $key, $default=null) {
+        if ( !is_array($arr) ) return $default;
+        if ( !isset($key) ) return $default;
+        if ( is_array($key) || is_object($key) ) return $default;
+        if ( isset($arr[$key]) ) return $arr[$key];
+        $keyLower = strtolower((string)$key);
+        foreach ($arr as $k => $v) {
+            if ( strtolower((string)$k) === $keyLower ) return $v;
+        }
+        return $default;
+    }
+
     public static function htmlpre_utf8($string) {
         return str_replace("<","&lt;",$string);
     }
