@@ -78,23 +78,18 @@ if ( strlen($gift) > 0 ) {
     parse_gift($gift, $questions, $errors);
 }
 
-$when = 0;
-$tries = 0;
 $attempts = $RESULT->getAttempts();
-if ( is_object($attempts) ) {
-    $tries = (int) ($attempts->attempts ?? 0);
-    $when = (int) ($attempts->attempted_at ?? 0);
-}
+$tries = (int) ($attempts->attempts ?? 0);
 
 // Decide if it is OK to submit this quiz
 $ok = true;
 $why = '';
-if ( $tries >= $max_tries ) {
+if ( $RESULT->atAttemptLimit($max_tries, $attempts) ) {
     $ok = false;
     $why = 'This quiz can only be attempted ('.$max_tries.') time(s).';
-} else if ( $delay > 0 && $when > 0 && ($when + $delay) > time() ) {
+} else if ( ! $RESULT->canRetry($delay, 0, $attempts) ) {
     $ok = false;
-    $why = 'You cannot retry this quiz for '.SettingsForm::getDueDateDelta(($when + $delay) - time()).'.';
+    $why = 'You cannot retry this quiz for '.SettingsForm::getDueDateDelta($RESULT->secondsUntilRetry($delay, 0, $attempts)).'.';
 }
 
 $oldgrade = $RESULT->grade;

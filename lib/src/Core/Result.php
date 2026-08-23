@@ -685,7 +685,7 @@ class Result extends Entity {
     /**
      * Retrieve the number of attempts and latest attempt
      *
-     * @return object with attempted_at, attempts, and updated_at
+     * @return object with attempted_at, attempts, submitted_at, and updated_at
      */
     public function getAttempts() {
         global $CFG;
@@ -694,6 +694,7 @@ class Result extends Entity {
         $retval = new \stdClass();
         $retval->attempts = 0;
         $retval->attempted_at = 0;
+        $retval->submitted_at = 0;
         $retval->updated_at = 0;
 
         if ( ($this->id ?? null) == null ) return $retval;
@@ -702,6 +703,7 @@ class Result extends Entity {
         // skew comparisons against time().
         $sql = "SELECT COALESCE(attempts, 0) AS attempts,
                 COALESCE(UNIX_TIMESTAMP(attempted_at), 0) AS attempted_at,
+                COALESCE(UNIX_TIMESTAMP(submitted_at), 0) AS submitted_at,
                 COALESCE(UNIX_TIMESTAMP(updated_at), 0) AS updated_at
             FROM {$p}lti_result WHERE result_id = :RID";
         $stmt = $PDOX->queryReturnError($sql, array( ":RID" => $this->id));
@@ -710,6 +712,7 @@ class Result extends Entity {
             if ( is_object($row) ) {
                 $row->attempts = (int) $row->attempts;
                 $row->attempted_at = (int) $row->attempted_at;
+                $row->submitted_at = (int) $row->submitted_at;
                 $row->updated_at = (int) $row->updated_at;
                 return $row;
             }
@@ -719,6 +722,9 @@ class Result extends Entity {
 
     /**
      * Record an attempt on this result - different than submitting a grade
+     *
+     * Increments attempts, sets attempted_at, and stamps submitted_at
+     * on the first real attempt (leaves later submissions unchanged).
      */
     public function recordAttempt() {
         global $CFG;
@@ -726,7 +732,70 @@ class Result extends Entity {
 
         if ( ($this->id ?? null) == null ) return;
         $p = $CFG->dbprefix;
-        $sql = "UPDATE {$p}lti_result SET attempts = COALESCE(attempts, 0) + 1, attempted_at = NOW() WHERE result_id = :RID";
+        $sql = "UPDATE {$p}lti_result
+            SET attempts = COALESCE(attempts, 0) + 1,
+                attempted_at = NOW(),
+                submitted_at = COALESCE(submitted_at, NOW())
+            WHERE result_id = :RID";
         $stmt = $PDOX->queryReturnError($sql, array( ":RID" => $this->id));
+    }
+
+    /**
+     * Seconds remaining before another attempt is allowed.
+     *
+     * After $delay_tries free attempts, the student must wait $delay seconds
+     * from attempted_at. Blank, non-numeric, or non-positive delay means no wait.
+     *
+     * @param mixed $delay Seconds between retries
+     * @param mixed $delay_tries Attempts allowed before the delay applies
+     * @param object|null $info Optional getAttempts() result to avoid a second query
+     * @return int Seconds to wait (0 if a retry is allowed now)
+     */
+    public function secondsUntilRetry($delay = 0, $delay_tries = 0, $info = null) {
+        $delay = self::numericSetting($delay, 0);
+        $delay_tries = self::numericSetting($delay_tries, 0);
+        if ( $delay <= 0 ) return 0;
+        if ( ! is_object($info) ) $info = $this->getAttempts();
+        $when = (int) ($info->attempted_at ?? 0);
+        $tries = (int) ($info->attempts ?? 0);
+        if ( $when <= 0 ) return 0;
+        if ( $tries <= $delay_tries ) return 0;
+        $remain = ($when + (int) $delay) - time();
+        return $remain > 0 ? $remain : 0;
+    }
+
+    /**
+     * Whether a new attempt is allowed given delay settings.
+     *
+     * @param mixed $delay Seconds between retries
+     * @param mixed $delay_tries Attempts allowed before the delay applies
+     * @param object|null $info Optional getAttempts() result
+     */
+    public function canRetry($delay = 0, $delay_tries = 0, $info = null) {
+        return $this->secondsUntilRetry($delay, $delay_tries, $info) <= 0;
+    }
+
+    /**
+     * Whether a hard cap on attempts has been reached.
+     *
+     * Non-numeric or less-than-one $max_tries means no cap.
+     *
+     * @param mixed $max_tries Maximum allowed attempts
+     * @param object|null $info Optional getAttempts() result
+     */
+    public function atAttemptLimit($max_tries, $info = null) {
+        if ( ! is_numeric($max_tries) ) return false;
+        $max = $max_tries + 0;
+        if ( $max < 1 ) return false;
+        if ( ! is_object($info) ) $info = $this->getAttempts();
+        return (int) ($info->attempts ?? 0) >= $max;
+    }
+
+    /**
+     * Coerce a link-setting value to a number.
+     */
+    private static function numericSetting($value, $default = 0) {
+        if ( is_numeric($value) ) return $value + 0;
+        return $default;
     }
 }

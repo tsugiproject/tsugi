@@ -75,7 +75,8 @@ class GradeUtil {
         // Get basic grade data
         $stmt = $PDOX->queryDie(
             "SELECT R.result_id AS result_id, R.user_id AS user_id,
-                grade, note, R.json AS json, R.note as note, R.updated_at AS updated_at, R.created_at AS created_at, displayname, email
+                grade, note, R.json AS json, R.note as note, R.updated_at AS updated_at, R.created_at AS created_at,
+                R.attempts AS attempts, R.attempted_at AS attempted_at, displayname, email
             FROM {$p}lti_result AS R
             JOIN {$p}lti_user AS U ON R.user_id = U.user_id
             WHERE R.link_id = :LID AND R.user_id = :UID
@@ -97,6 +98,12 @@ class GradeUtil {
         echo("Started at: ".htmlent_utf8($row['created_at'])."<br/>\n");
         echo("Last Submission: ".htmlent_utf8($row['updated_at'])."<br/>\n");
         echo("Score: ".htmlent_utf8($row['grade'])."<br/>\n");
+        if ( isset($row['attempts']) && is_numeric($row['attempts']) && $row['attempts'] > 0 ) {
+            echo("Attempts: ".htmlent_utf8($row['attempts'])."<br/>\n");
+        }
+        if ( ! empty($row['attempted_at']) ) {
+            echo("Last attempt: ".htmlent_utf8($row['attempted_at'])."<br/>\n");
+        }
         echo("</p>\n");
     }
 
