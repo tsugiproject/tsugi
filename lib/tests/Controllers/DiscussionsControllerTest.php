@@ -121,4 +121,34 @@ class DiscussionsControllerTest extends \PHPUnit\Framework\TestCase
     {
         $this->assertEquals('/discussions', Discussions::ROUTE, 'ROUTE constant should be /discussions');
     }
+
+    /**
+     * Nested /courses/{id}/discussions must keep generating nested launch URLs.
+     */
+    public function testDetermineToolHomeFollowsRequestUri()
+    {
+        $originalUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null;
+
+        $_SERVER['REQUEST_URI'] = '/courses/2/discussions';
+        $home = \Tsugi\Controllers\Tool::determineToolHome(Discussions::ROUTE);
+        $this->assertEquals('/courses/2/discussions', $home);
+        $this->assertEquals('/courses/2/discussions_launch/discussion_features',
+            $home . '_launch/discussion_features');
+
+        $_SERVER['REQUEST_URI'] = '/discussions';
+        $home = \Tsugi\Controllers\Tool::determineToolHome(Discussions::ROUTE);
+        $this->assertEquals('/discussions', $home);
+        $this->assertEquals('/discussions_launch/discussion_features',
+            $home . '_launch/discussion_features');
+
+        $_SERVER['REQUEST_URI'] = '/courses/2/discussions_launch/discussion_features';
+        $home = \Tsugi\Controllers\Tool::determineToolHome(Discussions::ROUTE);
+        $this->assertEquals('/courses/2/discussions', $home);
+
+        if ( $originalUri === null ) {
+            unset($_SERVER['REQUEST_URI']);
+        } else {
+            $_SERVER['REQUEST_URI'] = $originalUri;
+        }
+    }
 }

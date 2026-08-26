@@ -160,36 +160,38 @@ abstract class Tool {
     }
 
     /**
-     * Get the base path for this tool (e.g., '/py4e/pages' or '/py4e/12345/pages')
-     * 
-     * This method determines where the tool is actually mounted by examining
-     * the current request URI and finding the tool's route within it.
-     * 
+     * Get the base path for this tool (e.g., '/py4e/pages' or '/courses/2/pages')
+     *
+     * Looks at the current request URI and finds the tool's route within it,
+     * so nested mounts keep generating nested URLs.
+     *
      * @param string $route The route constant for this tool (e.g., '/pages', '/announcements')
      * @return string The base path including the route (e.g., '/py4e/pages')
      */
     protected function toolHome($route) {
-        // Get the current request URI
+        return self::determineToolHome($route);
+    }
+
+    /**
+     * Static form of {@see toolHome()} for launch methods that have no instance.
+     *
+     * @param string $route The route constant (e.g., '/discussions')
+     * @return string The mounted tool path (e.g., '/courses/2/discussions')
+     */
+    public static function determineToolHome($route) {
         $requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
-        
-        // Remove query string if present
         $requestUri = strtok($requestUri, '?');
-        
-        // Find where the route appears in the URI
+
         $routePos = strpos($requestUri, $route);
-        
         if ($routePos !== false) {
-            // Return everything up to and including the route
             return substr($requestUri, 0, $routePos + strlen($route));
         }
-        
-        // Fallback: if route not found, try using rest_path
+
         $path = U::rest_path();
         if ($path && isset($path->parent)) {
             return $path->parent . $route;
         }
-        
-        // Last resort: use apphome (for backward compatibility)
+
         global $CFG;
         return isset($CFG->apphome) ? $CFG->apphome . $route : $route;
     }
@@ -301,7 +303,7 @@ abstract class Tool {
             }
         } else {
             // Try to detect by looking for common controller routes
-            $controllerRoutes = ['/announcements', '/pages', '/badges', '/grades', '/lessons', '/launch', '/assignments', '/map', '/login', '/logout'];
+            $controllerRoutes = ['/announcements', '/pages', '/badges', '/grades', '/lessons', '/discussions', '/topics', '/launch', '/assignments', '/map', '/login', '/logout'];
             foreach ($controllerRoutes as $testRoute) {
                 $routePos = strpos($requestUri, $testRoute);
                 if ($routePos !== false) {

@@ -274,6 +274,10 @@ class Pages extends Tool {
         $this->requireAuth();
 
         $apphome = isset($CFG->apphome) ? rtrim($CFG->apphome, '/') : '';
+        $parent = $this->toolParent(self::ROUTE);
+        $lessons_base = $apphome . $parent . '/lessons';
+        $lessons_launch = $apphome . $parent . '/lessons_launch/';
+        $launch_base = $apphome . $parent . '/launch/';
         $lessons_file = isset($CFG->lessons) ? $CFG->lessons : '';
         $items = array();
 
@@ -307,7 +311,7 @@ class Pages extends Tool {
                 $launches_out[] = array(
                     'type' => $type,
                     'title' => $title,
-                    'url' => $apphome . '/launch/' . rawurlencode($rlid),
+                    'url' => $launch_base . rawurlencode($rlid),
                     'resource_link_id' => $rlid,
                     'result' => U::get($launch, 'result', true),
                 );
@@ -321,7 +325,7 @@ class Pages extends Tool {
             if (!empty($module_title) && !empty($module_anchor)) {
                 $top_level_modules[] = array(
                     'title' => $module_title,
-                    'url' => $apphome . '/lessons/' . $module_anchor,
+                    'url' => $lessons_base . '/' . $module_anchor,
                     'anchor' => $module_anchor
                 );
             }
@@ -339,7 +343,7 @@ class Pages extends Tool {
                 if ($type === 'lti' || $type === 'not-lti' || $type === 'discussion') {
                     $resource_link_id = U::get($item, 'resource_link_id', '');
                     if (!empty($resource_link_id)) {
-                        $url = $apphome . '/lessons_launch/' . rawurlencode($resource_link_id);
+                        $url = $lessons_launch . rawurlencode($resource_link_id);
                     }
                 } elseif ($type === 'slide' || $type === 'reference') {
                     $href = U::get($item, 'href', '');

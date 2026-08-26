@@ -163,12 +163,14 @@ class Labs {
         echo('</main>'."\n");
     }
 
-    public static function renderCatalog($lessons_path) {
+    public static function renderCatalog($lessons_path, $launch_base=null) {
         global $CFG;
 
         $labs_items = self::collectLtiItems($lessons_path);
         $can_launch = self::canLaunch();
-        $launch_base = $CFG->apphome . '/lessons_launch/';
+        if ( $launch_base === null || $launch_base === '' ) {
+            $launch_base = $CFG->apphome . '/lessons_launch/';
+        }
 
         $allgrades = array();
         $duedates = array();

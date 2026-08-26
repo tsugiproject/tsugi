@@ -115,12 +115,18 @@ if (!function_exists('_tsugiIdentitySnapshot')) {
      * - Else if UID exists, choose global pair (UID, CID)
      * - Else none
      *
+     * @param bool $reset When true, drop the cached snapshot so the next call re-reads session/globals.
      * @return array<string,mixed>
      */
-    function _tsugiIdentitySnapshot() {
+    function _tsugiIdentitySnapshot($reset = false) {
         global $USER, $CONTEXT, $DETAIL_LOG;
         static $snapshot = null;
         static $logged = false;
+        if ($reset) {
+            $snapshot = null;
+            $logged = false;
+            return array();
+        }
         if (is_array($snapshot)) {
             return $snapshot;
         }
@@ -225,6 +231,15 @@ if (!function_exists('isLoggedIn')) {
      */
     function isLoggedIn() {
         return loggedInUserId() !== 0;
+    }
+}
+
+if (!function_exists('_tsugiResetIdentitySnapshot')) {
+    /**
+     * Drop the per-request identity snapshot after a mid-request context (or user) change.
+     */
+    function _tsugiResetIdentitySnapshot() {
+        _tsugiIdentitySnapshot(true);
     }
 }
 
