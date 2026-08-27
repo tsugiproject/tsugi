@@ -57,14 +57,16 @@ class CKEditor {
      *
      * @param array $options Optional overrides:
      *   - toolbar: array of toolbar item names (default: DEFAULT_TOOLBAR)
-     *   - linkDecorators: array to merge/add to link.decorators (default: openExternalInNewTab)
      */
     public static function renderConfigScript(array $options = [])
     {
         $toolbar = $options['toolbar'] ?? self::DEFAULT_TOOLBAR;
         $toolbarJson = json_encode($toolbar);
 
-        // Link decorator callback - expects pagesBase, filesBase, and appHome in scope
+        // Automatic decorator: external / slide / YouTube URLs get target=_blank.
+        // Same-site pages, files, and lessons stay in the current tab unless the
+        // author turns on the manual "Open in a new tab" switch in the link form.
+        // Expects pagesBase, filesBase, and appHome in scope.
         $linkCallback = 'function(url) {
             if (!url) return false;
             if (typeof pagesBase !== "undefined" && pagesBase && url.indexOf(pagesBase) === 0) return false;
@@ -86,6 +88,14 @@ class CKEditor {
                     openExternalInNewTab: {
                         mode: 'automatic',
                         callback: <?= $linkCallback ?>,
+                        attributes: {
+                            target: '_blank',
+                            rel: 'noopener noreferrer'
+                        }
+                    },
+                    openInNewTab: {
+                        mode: 'manual',
+                        label: 'Open in a new tab',
                         attributes: {
                             target: '_blank',
                             rel: 'noopener noreferrer'
@@ -156,6 +166,9 @@ class CKEditor {
         .page-link-expando .page-link-expando .page-link-expando-header { text-transform: none; font-size: 13px; }
         [data-page-link-button] { display: inline-flex !important; align-items: center !important; }
         [data-page-link-button] .ck-icon { width: 20px !important; height: 20px !important; }
+        #page-link-new-tab-row { margin: 0 0 12px 0; font-weight: normal; display: flex; align-items: center; }
+        #page-link-new-tab-row input { margin: 0 8px 0 0; }
+        .ck-link-form .ck-button.ck-switchbutton { margin-top: 8px; }
         <?php endif; ?>
         <?php
     }
@@ -177,6 +190,10 @@ class CKEditor {
                     <h3 id="page-link-modal-title" style="margin: 0;"><?= htmlspecialchars($modalTitle) ?></h3>
                     <button type="button" onclick="closePageLinkModal()" class="btn btn-default">Cancel</button>
                 </div>
+                <label id="page-link-new-tab-row" for="page-link-new-tab">
+                    <input type="checkbox" id="page-link-new-tab">
+                    Open in a new tab
+                </label>
                 <div id="page-link-list" role="list"></div>
             </div>
         </div>
@@ -419,7 +436,13 @@ class CKEditor {
             }
         }
 
-        function insertLinkedText(url, title) {
+        function shouldOpenLinkInNewTab(explicit) {
+            if (explicit) return true;
+            var cb = document.getElementById('page-link-new-tab');
+            return !!(cb && cb.checked);
+        }
+
+        function insertLinkedText(url, title, openInNewTab) {
             if (!editor) return;
             const model = editor.model;
             const selection = model.document.selection;
@@ -433,7 +456,11 @@ class CKEditor {
                 }
             });
 
-            editor.execute('link', url);
+            if (shouldOpenLinkInNewTab(openInNewTab)) {
+                editor.execute('link', url, { linkOpenInNewTab: true });
+            } else {
+                editor.execute('link', url);
+            }
         }
 
         function insertPageLink(page) {
@@ -441,7 +468,7 @@ class CKEditor {
         }
 
         function insertLessonLink(lessonItem) {
-            insertLinkedText(lessonItem.url, lessonItem.title);
+            insertLinkedText(lessonItem.url, lessonItem.title, !!lessonItem.target_blank);
         }
 
         function insertFileLink(fileItem) {
