@@ -1,7 +1,7 @@
 {
     "require": {
         "php": ">=8.4.0",
-        "phpseclib/phpseclib": "3.0.52",
+        "phpseclib/phpseclib": "3.0.54",
         "firebase/php-jwt" : "7.0.5",
         "nikic/fast-route": "^1.3",
         "ezyang/htmlpurifier": "v4.19.0",
@@ -43,7 +43,9 @@
         "minishlink/web-push": "^9.0",
         "mmccook/php-json-canonicalization-scheme": "^1.0",
         "stripe/stripe-php": "^20.2",
-        "async-aws/ses": "^1.16"
+        "async-aws/ses": "^1.16",
+        "guzzlehttp/guzzle": "7.15.2",
+        "guzzlehttp/psr7": "2.13.0"
     },
     "autoload": {
       "psr-4": {
