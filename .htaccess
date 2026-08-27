@@ -1,5 +1,7 @@
 <IfModule mod_rewrite.c>
     RewriteEngine on
+    # config.php has secrets; FileRouter would also map /config and /config-dist
+    RewriteRule ^config(-dist)?(\.php)?(/.*)?$ - [R=404,L,NS]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} !=/favicon.ico
