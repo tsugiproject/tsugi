@@ -128,27 +128,28 @@ class DiscussionsControllerTest extends \PHPUnit\Framework\TestCase
     public function testDetermineToolHomeFollowsRequestUri()
     {
         $originalUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : null;
+        try {
+            $_SERVER['REQUEST_URI'] = '/courses/2/discussions';
+            $home = \Tsugi\Controllers\Tool::determineToolHome(Discussions::ROUTE);
+            $this->assertEquals('/courses/2/discussions', $home);
+            $this->assertEquals('/courses/2/discussions_launch/discussion_features',
+                $home . '_launch/discussion_features');
 
-        $_SERVER['REQUEST_URI'] = '/courses/2/discussions';
-        $home = \Tsugi\Controllers\Tool::determineToolHome(Discussions::ROUTE);
-        $this->assertEquals('/courses/2/discussions', $home);
-        $this->assertEquals('/courses/2/discussions_launch/discussion_features',
-            $home . '_launch/discussion_features');
+            $_SERVER['REQUEST_URI'] = '/discussions';
+            $home = \Tsugi\Controllers\Tool::determineToolHome(Discussions::ROUTE);
+            $this->assertEquals('/discussions', $home);
+            $this->assertEquals('/discussions_launch/discussion_features',
+                $home . '_launch/discussion_features');
 
-        $_SERVER['REQUEST_URI'] = '/discussions';
-        $home = \Tsugi\Controllers\Tool::determineToolHome(Discussions::ROUTE);
-        $this->assertEquals('/discussions', $home);
-        $this->assertEquals('/discussions_launch/discussion_features',
-            $home . '_launch/discussion_features');
-
-        $_SERVER['REQUEST_URI'] = '/courses/2/discussions_launch/discussion_features';
-        $home = \Tsugi\Controllers\Tool::determineToolHome(Discussions::ROUTE);
-        $this->assertEquals('/courses/2/discussions', $home);
-
-        if ( $originalUri === null ) {
-            unset($_SERVER['REQUEST_URI']);
-        } else {
-            $_SERVER['REQUEST_URI'] = $originalUri;
+            $_SERVER['REQUEST_URI'] = '/courses/2/discussions_launch/discussion_features';
+            $home = \Tsugi\Controllers\Tool::determineToolHome(Discussions::ROUTE);
+            $this->assertEquals('/courses/2/discussions', $home);
+        } finally {
+            if ( $originalUri === null ) {
+                unset($_SERVER['REQUEST_URI']);
+            } else {
+                $_SERVER['REQUEST_URI'] = $originalUri;
+            }
         }
     }
 }

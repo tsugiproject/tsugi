@@ -164,7 +164,8 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 
 // Temporary menu-only flag: emit /courses/{id}/... from Courses::toolPathPrefix().
 // Controllers follow the request path and ignore this. Unset/false = off.
-// true = all logged-in users with a context; array = those emails only.
+// Prefix is Google-login only (LMS launches stay unprefixed).
+// true = Google-login users with a context; array = those emails only.
 // $CFG->setExtension('courses_in_urls', true);
 // $CFG->setExtension('courses_in_urls', array('you@example.com'));
 

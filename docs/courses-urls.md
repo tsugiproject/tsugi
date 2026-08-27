@@ -26,12 +26,16 @@ leaves the last nested request’s context in the session.
 
 ## Multiple tabs
 
-One PHP session, one `context_id`. PHP serializes requests on that
-session, so two submits do not run in true parallel.
+One PHP session, one stored `context_id`. File sessions lock, so requests
+for that session run one at a time. The supported memcached setup turns
+locking off (`memcached.sess_locking=0`), so two tabs **can** run at
+once. Last write wins, and that is fine.
 
-Each nested URL still switches to **its** `{id}` before doing work, so a
-post to `/courses/2/…` is course 2 and a post to `/courses/7/…` is
-course 7. After both finish, the session holds the last request’s id.
+Each nested URL still switches to **its** `{id}` in that request’s
+process, so a post to `/courses/2/…` is course 2 and a post to
+`/courses/7/…` is course 7. Concurrent writes do not mix those
+in-request globals. After both finish, leftover `context_id` is
+whichever session write landed last.
 
 That leftover only matters if the next click is **unprefixed**. Nested
 menus stay honest.
@@ -50,6 +54,8 @@ $CFG->setExtension('courses_in_urls', array('you@example.com'));
 ```
 
 Then: `rtrim($CFG->apphome, '/') . Courses::toolPathPrefix() . '/announcements'`.
+The prefix is Google-login only; LMS launches stay unprefixed even when
+the flag is on.
 
 Unset or false keeps menus unprefixed so the feature can ship
 unadvertised. Typed `/courses/{id}/…` URLs still work.

@@ -275,9 +275,9 @@ class Pages extends Tool {
 
         $apphome = isset($CFG->apphome) ? rtrim($CFG->apphome, '/') : '';
         $parent = $this->toolParent(self::ROUTE);
-        $lessons_base = $apphome . $parent . '/lessons';
-        $lessons_launch = $apphome . $parent . '/lessons_launch/';
-        $launch_base = $apphome . $parent . '/launch/';
+        $lessons_base = $parent . '/lessons';
+        $lessons_launch = $parent . '/lessons_launch/';
+        $launch_base = $parent . '/launch/';
         $lessons_file = isset($CFG->lessons) ? $CFG->lessons : '';
         $items = array();
 

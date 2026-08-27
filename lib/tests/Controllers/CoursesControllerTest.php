@@ -215,6 +215,19 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('/courses/42', Courses::toolPathPrefix());
     }
 
+    public function testToolPathPrefixEmptyForLtiLaunch()
+    {
+        global $CFG;
+        $_SESSION['id'] = 7;
+        $_SESSION['context_id'] = 42;
+        $_SESSION['oauth_consumer_key'] = 'canvas.example.edu';
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $CFG->setExtension('courses_in_urls', true);
+        $this->assertSame('', Courses::toolPathPrefix());
+    }
+
     public function testInnerRequestPathInfo()
     {
         $request = Request::create('/courses/42/announcements/manage', 'GET', array('x' => '1'));

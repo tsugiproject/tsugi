@@ -55,6 +55,7 @@ class Courses extends Tool {
      *
      * Temporary site flag: $CFG->setExtension('courses_in_urls', true)
      * or an email allowlist array. Unset/false keeps menus unprefixed.
+     * Prefix is Google-login only; LMS launches stay unprefixed.
      */
     public static function toolPathPrefix() {
         global $CFG;
@@ -74,6 +75,9 @@ class Courses extends Tool {
             if ( ! $allowed ) {
                 return '';
             }
+        }
+        if ( ! self::isGoogleLoginSession() ) {
+            return '';
         }
         $cid = U::currentContextId();
         if ( $cid < 1 ) {
