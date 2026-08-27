@@ -93,6 +93,13 @@ namespace {
     {
         return 0;
     }
+
+    /**
+     * @return void
+     */
+    function _tsugiResetIdentitySnapshot(): void
+    {
+    }
 }
 
 namespace Ratchet {

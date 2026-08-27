@@ -9,7 +9,7 @@ use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
-class Topics {
+class Topics extends Tool {
 
     const ROUTE = '/topics';
 
@@ -44,6 +44,7 @@ class Topics {
 
         // Load the Topic
         $t = new \Tsugi\UI\Topics($CFG->topics,$anchor);
+        $t->toolHome = $this->toolHome(self::ROUTE);
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -64,8 +65,8 @@ class Topics {
         global $CFG;
         $tsugi = $app['tsugi'];
 
-        $path = U::rest_path();
-        $redirect_path = U::addSession($path->parent);
+        $toolHome = self::determineToolHome(self::ROUTE);
+        $redirect_path = U::addSession(self::determineParentPath(self::ROUTE));
         if ( $redirect_path == '') $redirect_path = '/';
 
         if ( ! isset($CFG->topics) ) {
@@ -137,8 +138,7 @@ class Topics {
             }
         }
 
-        $return_url = $path->parent . '/' . str_replace('_launch', '', $path->controller) . '/' . $topic->anchor;
-        $parms['launch_presentation_return_url'] = $return_url;
+        $parms['launch_presentation_return_url'] = $toolHome . '/' . $topic->anchor;
 
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
         if ( isset($_SESSION[$sess_key]) ) {

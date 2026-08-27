@@ -50,6 +50,7 @@ class Lessons extends Tool {
         }
 
         $l = new \Tsugi\UI\Lessons($CFG->lessons, $anchor);
+        $l->toolHome = $this->toolHome(self::ROUTE);
 
         // If we have an anchor in the path but it doesn't exist, redirect to /lessons
         // (avoids rendering "all lessons" from /lessons/bob which breaks relative URLs)
@@ -181,8 +182,8 @@ class Lessons extends Tool {
     {
         global $CFG;
 
-        $path = U::rest_path();
-        $redirect_path = U::addSession($path->parent);
+        $toolHome = self::determineToolHome(self::ROUTE);
+        $redirect_path = U::addSession(self::determineParentPath(self::ROUTE));
         if ( $redirect_path == '') $redirect_path = '/';
 
         if ( ! isset($CFG->lessons) ) {
@@ -204,10 +205,9 @@ class Lessons extends Tool {
 
         $module = $l->getModuleByRlid($anchor);
 
-        $lessons_base = $path->parent . '/' . str_replace('_launch', '', $path->controller);
         $return_url = $module
-            ? $lessons_base . '/' . $module->anchor
-            : $lessons_base;
+            ? $toolHome . '/' . $module->anchor
+            : $toolHome;
 
         $fallback_title = ( $module && isset($module->title) ) ? $module->title : '';
 

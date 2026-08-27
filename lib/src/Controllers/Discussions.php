@@ -52,7 +52,7 @@ class Discussions extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         echo('<main class="container" id="main-content">');
-        $l->renderDiscussions(false);
+        $l->renderDiscussions(false, $this->toolHome(self::ROUTE));
         echo('</main>');
         $OUTPUT->footer();
 
@@ -64,8 +64,8 @@ class Discussions extends Tool {
         global $CFG;
         $tsugi = $app['tsugi'];
 
-        $path = U::rest_path();
-        $redirect_path = U::addSession($path->parent);
+        $toolHome = self::determineToolHome(self::ROUTE);
+        $redirect_path = U::addSession(self::determineParentPath(self::ROUTE));
         if ( $redirect_path == '') $redirect_path = '/';
 
         if ( ! isset($CFG->lessons) ) {
@@ -130,8 +130,7 @@ class Discussions extends Tool {
             }
         }
 
-        $return_url = $path->parent . '/' . str_replace('_launch', '', $path->controller) ;
-        $parms['launch_presentation_return_url'] = $return_url;
+        $parms['launch_presentation_return_url'] = $toolHome;
 
         $sess_key = 'tsugi_top_nav_'.$CFG->wwwroot;
         if ( isset($_SESSION[$sess_key]) ) {
@@ -236,7 +235,7 @@ class Discussions extends Tool {
     {
         global $CFG, $PDOX;
 
-        $discussions_url = (isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot) . self::ROUTE;
+        $discussions_url = $this->toolHome(self::ROUTE);
 
         if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
             U::flashError(__('You must be logged in with a course context to mark discussions as read.'));
@@ -283,7 +282,7 @@ class Discussions extends Tool {
     {
         global $CFG, $PDOX;
 
-        $expire_url = (isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot) . self::ROUTE . '/expire-threads';
+        $expire_url = $this->toolHome(self::ROUTE) . '/expire-threads';
         $redirect_url = U::addSession($expire_url);
 
         if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
@@ -418,11 +417,11 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
 
         if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
             U::flashError(__('You must be logged in with a course context to manage discussion expiration.'));
-            return new RedirectResponse(U::addSession(self::ROUTE));
+            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
         }
         if ( ! $this->isInstructor() ) {
             U::flashError(__('Only instructors can run discussion expiration.'));
-            return new RedirectResponse(U::addSession(self::ROUTE));
+            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
         }
 
         LTIX::getConnection();
@@ -445,7 +444,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         $oldest_post_at = U::get($oldest_post_row, 'oldest_post_at', null);
         $oldest_thread_at = U::get($oldest_thread_row, 'oldest_thread_at', null);
 
-        $dry_run_url = U::addSession(self::ROUTE.'/expire-threads-dry-run');
+        $dry_run_url = U::addSession($this->toolHome(self::ROUTE).'/expire-threads-dry-run');
         $expire_result = U::get($_SESSION, 'discussions_expire_dry_run_result', false);
         unset($_SESSION['discussions_expire_dry_run_result']);
 
@@ -454,7 +453,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         echo('<main class="container" id="main-content">');
-        echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/manage')).'" class="btn btn-default btn-sm">'.__('Back to Manage Discussions').'</a></p>');
+        echo('<p><a href="'.htmlspecialchars(U::addSession($this->toolHome(self::ROUTE).'/manage')).'" class="btn btn-default btn-sm">'.__('Back to Manage Discussions').'</a></p>');
         $this->renderExpireDryRunPanel($dry_run_url, $expire_result, $oldest_post_at, $oldest_thread_at);
         $this->emitExpireDeleteFormEnhancements();
         echo('</main>');
@@ -465,7 +464,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
     {
         global $CFG, $PDOX;
 
-        $expire_url = (isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot) . self::ROUTE . '/expire-comments';
+        $expire_url = $this->toolHome(self::ROUTE) . '/expire-comments';
         $redirect_url = U::addSession($expire_url);
 
         if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
@@ -580,11 +579,11 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
 
         if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
             U::flashError(__('You must be logged in with a course context to manage discussion expiration.'));
-            return new RedirectResponse(U::addSession(self::ROUTE));
+            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
         }
         if ( ! $this->isInstructor() ) {
             U::flashError(__('Only instructors can run discussion expiration.'));
-            return new RedirectResponse(U::addSession(self::ROUTE));
+            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
         }
 
         LTIX::getConnection();
@@ -599,7 +598,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         );
         $oldest_comment_at = U::get($oldest_comment_row, 'oldest_comment_at', null);
 
-        $dry_run_url = U::addSession(self::ROUTE.'/expire-comments-dry-run');
+        $dry_run_url = U::addSession($this->toolHome(self::ROUTE).'/expire-comments-dry-run');
         $expire_result = U::get($_SESSION, 'discussions_expire_comments_dry_run_result', false);
         unset($_SESSION['discussions_expire_comments_dry_run_result']);
         $tdiscus_threads_ok = $this->ensureTdiscusThreadsLoaded();
@@ -609,7 +608,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         echo('<main class="container" id="main-content">');
-        echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/manage')).'" class="btn btn-default btn-sm">'.__('Back to Manage Discussions').'</a></p>');
+        echo('<p><a href="'.htmlspecialchars(U::addSession($this->toolHome(self::ROUTE).'/manage')).'" class="btn btn-default btn-sm">'.__('Back to Manage Discussions').'</a></p>');
         $this->renderExpireCommentsDryRunPanel($dry_run_url, $expire_result, $oldest_comment_at, $tdiscus_threads_ok);
         $this->emitExpireDeleteFormEnhancements();
         echo('</main>');
@@ -622,11 +621,11 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
 
         if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
             U::flashError(__('You must be logged in with a course context to manage discussions.'));
-            return new RedirectResponse(U::addSession(self::ROUTE));
+            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
         }
         if ( ! $this->isInstructor() ) {
             U::flashError(__('Only instructors can manage discussions.'));
-            return new RedirectResponse(U::addSession(self::ROUTE));
+            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
         }
 
         $OUTPUT->header();
@@ -634,7 +633,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         echo('<main class="container" id="main-content">');
-        echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE)).'" class="btn btn-default btn-sm">'.__('Back to Discussions').'</a></p>');
+        echo('<p><a href="'.htmlspecialchars(U::addSession($this->toolHome(self::ROUTE))).'" class="btn btn-default btn-sm">'.__('Back to Discussions').'</a></p>');
         echo('<h1>'.__('Manage Discussions').'</h1>');
         echo('<p>'.__('Discussion maintenance tools for this course context.').'</p>');
         echo('<ul>');
@@ -643,13 +642,13 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         echo('<li>');
         echo('<a href="#" class="tsugi-discussions-reset-unread-tracking-link">'.__('Reset unread tracking for all users').'</a>');
         echo(' <span class="text-muted">('.__('clears read tracking for this course; subscription preferences are unchanged').')</span>');
-        echo('<form method="post" action="'.htmlspecialchars(U::addSession(self::ROUTE.'/reset-unread-tracking')).'" class="tsugi-discussions-reset-unread-tracking-form" style="display:none;"></form>');
+        echo('<form method="post" action="'.htmlspecialchars(U::addSession($this->toolHome(self::ROUTE).'/reset-unread-tracking')).'" class="tsugi-discussions-reset-unread-tracking-form" style="display:none;"></form>');
         echo('</li>');
         */
-        echo('<li><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/expire-comments')).'">'.__('Expire old comments').'</a></li>');
-        echo('<li><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/expire-threads')).'">'.__('Expire old threads').'</a></li>');
+        echo('<li><a href="'.htmlspecialchars(U::addSession($this->toolHome(self::ROUTE).'/expire-comments')).'">'.__('Expire old comments').'</a></li>');
+        echo('<li><a href="'.htmlspecialchars(U::addSession($this->toolHome(self::ROUTE).'/expire-threads')).'">'.__('Expire old threads').'</a></li>');
         echo('<li>');
-        echo('<a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/scan-fix-unread-tracking')).'">'.__('Scan unread tracking (dry run) and optionally fix').'</a>');
+        echo('<a href="'.htmlspecialchars(U::addSession($this->toolHome(self::ROUTE).'/scan-fix-unread-tracking')).'">'.__('Scan unread tracking (dry run) and optionally fix').'</a>');
         echo(' <span class="text-muted">('.__('pre-scan first, then run fix in a second step').')</span>');
         echo('</li>');
         echo('</ul>');
@@ -683,7 +682,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
     {
         global $CFG, $PDOX;
 
-        $manage_url = (isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot) . self::ROUTE . '/manage';
+        $manage_url = $this->toolHome(self::ROUTE) . '/manage';
         $redirect_url = U::addSession($manage_url);
 
         if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
@@ -742,15 +741,15 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
 
         if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
             U::flashError(__('You must be logged in with a course context to manage discussions.'));
-            return new RedirectResponse(U::addSession(self::ROUTE));
+            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
         }
         if ( ! $this->isInstructor() ) {
             U::flashError(__('Only instructors can manage discussions.'));
-            return new RedirectResponse(U::addSession(self::ROUTE));
+            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
         }
         if ( ! U::isNotEmpty($CFG->tdiscus) || ! $CFG->tdiscus ) {
             U::flashError(__('Discussions are not available on this site.'));
-            return new RedirectResponse(U::addSession(self::ROUTE.'/manage'));
+            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE).'/manage'));
         }
 
         LTIX::getConnection();
@@ -760,14 +759,14 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         $likely_causes = $this->unreadTrackingLikelyCauses($counts);
         $last_result = U::get($_SESSION, 'discussions_scan_fix_unread_result', false);
         unset($_SESSION['discussions_scan_fix_unread_result']);
-        $run_url = U::addSession(self::ROUTE.'/scan-fix-unread-tracking-run');
+        $run_url = U::addSession($this->toolHome(self::ROUTE).'/scan-fix-unread-tracking-run');
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         echo('<main class="container" id="main-content">');
-        echo('<p><a href="'.htmlspecialchars(U::addSession(self::ROUTE.'/manage')).'" class="btn btn-default btn-sm">'.__('Back to Manage Discussions').'</a></p>');
+        echo('<p><a href="'.htmlspecialchars(U::addSession($this->toolHome(self::ROUTE).'/manage')).'" class="btn btn-default btn-sm">'.__('Back to Manage Discussions').'</a></p>');
         echo('<div class="panel panel-info" style="margin-bottom: 1.5em;">');
         echo('<div class="panel-heading"><strong>'.__('Instructor: Unread tracking pre-scan (two phase)').'</strong></div>');
         echo('<div class="panel-body">');
@@ -865,7 +864,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
     {
         global $CFG, $PDOX;
 
-        $scan_url = (isset($CFG->apphome) ? $CFG->apphome : $CFG->wwwroot) . self::ROUTE . '/scan-fix-unread-tracking';
+        $scan_url = $this->toolHome(self::ROUTE) . '/scan-fix-unread-tracking';
         $redirect_url = U::addSession($scan_url);
 
         if ( ! U::isLoggedIn() || ! U::currentContextId() ) {

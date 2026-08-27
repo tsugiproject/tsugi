@@ -31,7 +31,7 @@ class Labs extends Tool {
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        LabsUI::renderCatalog($CFG->lessons);
+        LabsUI::renderCatalog($CFG->lessons, $this->toolParent(self::ROUTE) . '/lessons_launch/');
         $OUTPUT->footer();
     }
 }

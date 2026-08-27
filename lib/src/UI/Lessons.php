@@ -38,6 +38,12 @@ class Lessons {
      */
     public $resource_links;
 
+    /**
+     * Mounted lessons path (e.g. /lessons or /courses/2/lessons).
+     * Set by the Lessons controller; otherwise derived from REQUEST_URI.
+     */
+    public $toolHome = '';
+
     /** @var array Grades by resource_link_id for due badges on single-module view */
     private $lessonModuleGradesForBadges = array();
 
@@ -188,6 +194,23 @@ class Lessons {
         ob_end_clean();
         if ( $buffer ) return $ob_output;
         echo($ob_output);
+    }
+
+    /**
+     * Mounted lessons path: /lessons or /courses/{id}/lessons.
+     */
+    private function lessonsHome() {
+        if ( is_string($this->toolHome) && $this->toolHome !== '' ) {
+            return $this->toolHome;
+        }
+        return \Tsugi\Controllers\Tool::determineToolHome('/lessons');
+    }
+
+    /**
+     * LTI launch URL for a lessons resource_link_id (sibling _launch route).
+     */
+    private function lessonsLaunchPath($resource_link_id) {
+        return $this->lessonsHome() . '_launch/' . $resource_link_id;
     }
 
     /*
@@ -1385,8 +1408,7 @@ class Lessons {
                         continue;
                     }
 
-                    $rest_path = U::rest_path();
-                    $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $discussion->resource_link_id;
+                    $launch_path = $this->lessonsLaunchPath($discussion->resource_link_id);
                     $title = isset($discussion->title) ? $discussion->title : "Discussion";
                     echo('<li class="tsugi-lessons-module-discussion"><a href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
                     echo("\n</li>\n");
@@ -1435,8 +1457,7 @@ class Lessons {
                         continue;
                     }
 
-                    $rest_path = U::rest_path();
-                    $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $lti->resource_link_id;
+                    $launch_path = $this->lessonsLaunchPath($lti->resource_link_id);
                     $title = isset($lti->title) ? $lti->title : "Autograder";
                     $target = isset($lti->target) ? $lti->target : false;
 
@@ -2154,9 +2175,8 @@ class Lessons {
 
                 echo('<tr><td>');
 
-                $rest_path = U::rest_path();
                 $href= "Missing ". $resource_link_id;
-                if ($module != null )  $href = $rest_path->parent . '/lessons/' . urlencode($module->anchor);
+                if ($module != null )  $href = $this->lessonsHome() . '/' . urlencode($module->anchor);
 
                 $badge_title = "Missing ". $resource_link_id;
                 if ( $lti != null ) $badge_title = $lti->title;
@@ -2262,7 +2282,7 @@ class Lessons {
         echo($ob_output);
     }
 
-    public function renderDiscussions($buffer=false)
+    public function renderDiscussions($buffer=false, $toolHome=null)
     {
         ob_start();
         global $CFG, $OUTPUT, $PDOX;
@@ -2308,10 +2328,12 @@ class Lessons {
             return;
         }
 
-        $rest_path = U::rest_path();
-        $json_endpoint = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/json');
-        $mark_read_url = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/mark-read');
-        $manage_discussions_url = U::addSession($rest_path->parent . '/' . $rest_path->controller . '/manage');
+        if ( $toolHome === null || $toolHome === '' ) {
+            $toolHome = \Tsugi\Controllers\Tool::determineToolHome('/discussions');
+        }
+        $json_endpoint = U::addSession($toolHome . '/json');
+        $mark_read_url = U::addSession($toolHome . '/mark-read');
+        $manage_discussions_url = U::addSession($toolHome . '/manage');
 
         echo('<h1>'.__('Discussions:').' '.$this->lessons->title."</h1>\n");
 
@@ -2347,7 +2369,7 @@ class Lessons {
         echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
         foreach($discussions as $discussion ) {
             $resource_link_title = $discussion->title;
-            $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $discussion->resource_link_id;
+            $launch_path = $toolHome . '_launch/' . $discussion->resource_link_id;
             $info = "";
             $row = U::get($rows_dict, $discussion->resource_link_id);
             $subscribed_threads = intval(U::get($row, 'subscribed_threads', 0));
@@ -2979,8 +3001,7 @@ $(function(){
                 return;
             }
             
-            $rest_path = U::rest_path();
-            $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $resource_link_id;
+            $launch_path = $this->lessonsLaunchPath($resource_link_id);
             echo('<li class="tsugi-lessons-module-discussion">');
             echo('<a href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
             self::renderItemIcon('discussion');
@@ -3026,8 +3047,7 @@ $(function(){
                 return;
             }
             
-            $rest_path = U::rest_path();
-            $launch_path = $rest_path->parent . '/' . $rest_path->controller . '_launch/' . $resource_link_id;
+            $launch_path = $this->lessonsLaunchPath($resource_link_id);
             $title = isset($item->title) ? $item->title : "Autograder";
             
             $rl_dom_id = self::domIdForResourceLink($resource_link_id);

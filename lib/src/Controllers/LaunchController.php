@@ -44,8 +44,8 @@ class LaunchController extends Tool {
     public static function launchByResourceLinkId(Application $app, $resource_link_id) {
         global $CFG;
 
-        $path = U::rest_path();
-        $redirect_path = U::addSession($path->parent);
+        $toolHome = self::determineToolHome(self::ROUTE);
+        $redirect_path = U::addSession(self::determineParentPath(self::ROUTE));
         if ( $redirect_path === '' ) {
             $redirect_path = '/';
         }
@@ -64,7 +64,7 @@ class LaunchController extends Tool {
 
         $module = $l->getModuleByRlid($resource_link_id);
 
-        $return_url = $path->parent . self::ROUTE . '/' . self::RETURN_SEGMENT;
+        $return_url = $toolHome . '/' . self::RETURN_SEGMENT;
 
         $fallback_title = ( $module && isset($module->title) ) ? $module->title : '';
 
