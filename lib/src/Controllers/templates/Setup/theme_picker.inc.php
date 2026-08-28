@@ -2,7 +2,8 @@
 /**
  * Theme radio swatches.
  *
- * Expected: $theme_palettes (Manifest::palettes()), $theme_current (string key or '').
+ * Expected: $theme_palettes (Manifest::palettes()), $theme_current (string key or ''),
+ * $theme_site_primary (hex for the Site default swatch).
  */
 if ( ! isset($theme_palettes) || ! is_array($theme_palettes) ) {
     $theme_palettes = array();
@@ -11,6 +12,9 @@ if ( ! isset($theme_current) ) {
     $theme_current = '';
 }
 $theme_current = is_string($theme_current) ? $theme_current : '';
+if ( ! isset($theme_site_primary) || ! is_string($theme_site_primary) || $theme_site_primary === '' ) {
+    $theme_site_primary = '#0D47A1';
+}
 ?>
 <style>
 .theme-picker {
@@ -37,7 +41,6 @@ $theme_current = is_string($theme_current) ? $theme_current : '';
     opacity: 0;
     pointer-events: none;
 }
-.theme-swatch.is-selected,
 .theme-swatch:has(input:checked) {
     border-color: #333;
     box-shadow: 0 0 0 1px #333;
@@ -55,9 +58,9 @@ $theme_current = is_string($theme_current) ? $theme_current : '';
 </style>
 <fieldset class="theme-picker" id="theme-picker">
     <legend><?= __('Theme') ?></legend>
-    <label class="theme-swatch<?= $theme_current === '' ? ' is-selected' : '' ?>">
+    <label class="theme-swatch">
         <input type="radio" name="theme" value=""<?= $theme_current === '' ? ' checked' : '' ?> />
-        <span class="theme-swatch-bar" style="background: linear-gradient(90deg, #ccc, #eee);"></span>
+        <span class="theme-swatch-bar" style="background: <?= htmlspecialchars($theme_site_primary) ?>;"></span>
         <span class="theme-swatch-label"><?= __('Site default') ?></span>
     </label>
     <?php foreach ( $theme_palettes as $key => $palette ) {
@@ -65,7 +68,7 @@ $theme_current = is_string($theme_current) ? $theme_current : '';
         $primary = isset($palette['primary']) ? $palette['primary'] : '#999999';
         $selected = ($theme_current === $key);
         ?>
-        <label class="theme-swatch<?= $selected ? ' is-selected' : '' ?>">
+        <label class="theme-swatch">
             <input type="radio" name="theme" value="<?= htmlspecialchars($key) ?>"<?= $selected ? ' checked' : '' ?> />
             <span class="theme-swatch-bar" style="background: <?= htmlspecialchars($primary) ?>;"></span>
             <span class="theme-swatch-label"><?= htmlspecialchars($label) ?></span>

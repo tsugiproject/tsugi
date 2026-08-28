@@ -45,6 +45,7 @@ class Setup extends Tool {
 
         $theme_current = Manifest::currentThemeKey();
         $theme_palettes = Manifest::palettes();
+        $theme_site_primary = Manifest::siteDefaultPrimary();
         $save_url = $setup_url;
 
         $OUTPUT->header();
@@ -59,6 +60,7 @@ class Setup extends Tool {
                 <?php include __DIR__ . '/templates/Setup/theme_picker.inc.php'; ?>
                 <p>
                     <button type="submit" class="btn btn-primary"><?= __('Save theme') ?></button>
+                    <a href="<?= htmlspecialchars($save_url) ?>" class="btn btn-default"><?= __('Cancel') ?></a>
                 </p>
             </form>
         </main>

@@ -173,6 +173,15 @@ class Manifest {
                 'font-family' => 'sans-serif',
                 'font-size' => '14px',
             ),
+            'grey' => array(
+                'label' => 'Light Grey',
+                'primary' => '#D0D0D0',
+                'secondary' => '#111111',
+                'text' => '#111111',
+                'text-light' => '#5E5E5E',
+                'font-family' => 'sans-serif',
+                'font-size' => '14px',
+            ),
         );
     }
 
@@ -216,6 +225,26 @@ class Manifest {
             return false;
         }
         return $key;
+    }
+
+    /**
+     * Nav primary color for the site default (no named course theme).
+     *
+     * Matches Output::get_theme() when manifest.theme is NULL: theme_base,
+     * then $CFG->theme primary, then the Tsugi default.
+     */
+    public static function siteDefaultPrimary() {
+        global $CFG;
+        if ( is_object($CFG) && isset($CFG->theme_base) && is_string($CFG->theme_base)
+                && U::isValidCSSColor($CFG->theme_base) ) {
+            return $CFG->theme_base;
+        }
+        if ( is_object($CFG) && isset($CFG->theme) && is_array($CFG->theme)
+                && isset($CFG->theme['primary']) && is_string($CFG->theme['primary'])
+                && U::isValidCSSColor($CFG->theme['primary']) ) {
+            return $CFG->theme['primary'];
+        }
+        return '#0D47A1';
     }
 
     /**

@@ -351,11 +351,14 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertArrayHasKey('postgres', $palettes);
         $this->assertArrayHasKey('navy', $palettes);
         $this->assertArrayHasKey('electric', $palettes);
+        $this->assertArrayHasKey('grey', $palettes);
         $this->assertSame('#0D47A1', $palettes['tsugi']['primary']);
         $this->assertSame('#0a4b33', $palettes['django']['primary']);
         $this->assertSame('#336791', $palettes['postgres']['primary']);
         $this->assertSame('#000060', $palettes['navy']['primary']);
         $this->assertSame('#7c3aed', $palettes['electric']['primary']);
+        $this->assertSame('#D0D0D0', $palettes['grey']['primary']);
+        $this->assertSame('#111111', $palettes['grey']['secondary']);
         $this->assertSame('#0a4b33', Manifest::palette('django')['primary']);
         $this->assertArrayNotHasKey('label', Manifest::palette('django'));
     }
@@ -371,6 +374,17 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse(Manifest::normalizeThemeKey(array('django')));
         $this->assertNull(Manifest::palette(''));
         $this->assertNull(Manifest::palette('bogus'));
+    }
+
+    public function testSiteDefaultPrimaryFromCfgTheme()
+    {
+        global $CFG;
+        $CFG->theme = array('primary' => '#0a4b33');
+        $this->assertSame('#0a4b33', Manifest::siteDefaultPrimary());
+        $CFG->theme_base = '#7c3aed';
+        $this->assertSame('#7c3aed', Manifest::siteDefaultPrimary());
+        unset($CFG->theme_base, $CFG->theme);
+        $this->assertSame('#0D47A1', Manifest::siteDefaultPrimary());
     }
 
     public function testCurrentThemeKeyEmptyWithoutSession()
