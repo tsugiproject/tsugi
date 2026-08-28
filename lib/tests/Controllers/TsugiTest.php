@@ -193,5 +193,14 @@ class TsugiTest extends \PHPUnit\Framework\TestCase
             }
         }
         $this->assertTrue($hasLoginRoute, 'Login route should be registered');
+
+        $hasSetupRoute = false;
+        foreach ($uris as $uri) {
+            if ($uri === '/setup' || $uri === '/setup/' || strpos($uri, '/setup') === 0) {
+                $hasSetupRoute = true;
+                break;
+            }
+        }
+        $this->assertTrue($hasSetupRoute, 'Setup route should be registered');
     }
 }

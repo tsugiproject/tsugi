@@ -258,6 +258,7 @@ array( "{$CFG->dbprefix}manifest",
     context_id          INTEGER NOT NULL,
     version             INTEGER NOT NULL,
     title               TEXT NULL,
+    theme               VARCHAR(64) NULL,
     manifest            MEDIUMTEXT NOT NULL,
     comment             TEXT NULL,
     user_id             INTEGER NULL,
@@ -777,6 +778,9 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         // 2026-08-28 Active course manifest version (NULL = file-based $CFG->lessons)
         array('lti_context', 'manifest_id', 'INTEGER NULL'),
+
+        // 2026-08-28 Named course theme key (NULL = site $CFG->theme)
+        array('manifest', 'theme', 'VARCHAR(64) NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {

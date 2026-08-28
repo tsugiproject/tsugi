@@ -318,6 +318,42 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
             $after['data']['discussion_order']
         );
     }
+
+    public function testPalettesIncludePeerSiteColors()
+    {
+        $palettes = Manifest::palettes();
+        $this->assertArrayHasKey('tsugi', $palettes);
+        $this->assertArrayHasKey('django', $palettes);
+        $this->assertArrayHasKey('postgres', $palettes);
+        $this->assertArrayHasKey('navy', $palettes);
+        $this->assertArrayHasKey('electric', $palettes);
+        $this->assertSame('#0D47A1', $palettes['tsugi']['primary']);
+        $this->assertSame('#0a4b33', $palettes['django']['primary']);
+        $this->assertSame('#336791', $palettes['postgres']['primary']);
+        $this->assertSame('#000060', $palettes['navy']['primary']);
+        $this->assertSame('#7c3aed', $palettes['electric']['primary']);
+        $this->assertSame('#0a4b33', Manifest::palette('django')['primary']);
+        $this->assertArrayNotHasKey('label', Manifest::palette('django'));
+    }
+
+    public function testNormalizeThemeKey()
+    {
+        $this->assertNull(Manifest::normalizeThemeKey(''));
+        $this->assertNull(Manifest::normalizeThemeKey('default'));
+        $this->assertNull(Manifest::normalizeThemeKey('site'));
+        $this->assertNull(Manifest::normalizeThemeKey(null));
+        $this->assertSame('django', Manifest::normalizeThemeKey('Django'));
+        $this->assertFalse(Manifest::normalizeThemeKey('not-a-theme'));
+        $this->assertFalse(Manifest::normalizeThemeKey(array('django')));
+        $this->assertNull(Manifest::palette(''));
+        $this->assertNull(Manifest::palette('bogus'));
+    }
+
+    public function testCurrentThemeKeyEmptyWithoutSession()
+    {
+        $this->assertSame('', Manifest::currentThemeKey());
+        $this->assertNull(Manifest::currentThemeArray());
+    }
 }
 
 class ManifestTestMCache {

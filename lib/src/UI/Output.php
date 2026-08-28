@@ -6,6 +6,7 @@ namespace Tsugi\UI;
 use \Tsugi\Util\U;
 use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
+use Tsugi\Core\Manifest;
 use Tsugi\Core\WebSocket;
 use Tsugi\UI\HandleBars;
 use Tsugi\UI\Theme;
@@ -1414,6 +1415,16 @@ $( function() {
         Theme::$dark_mode = $dark_mode;
         Theme::$theme_base = $theme_base;
 
+        $courseTheme = null;
+        if ( Manifest::activeId() > 0 ) {
+            $courseTheme = Manifest::currentThemeArray();
+        }
+        if ( is_array($courseTheme) ) {
+            $theme = self::themeDefaultsPreservingFont($courseTheme);
+            if (is_object($TSUGI_LAUNCH)) $_SESSION['tsugi_theme'] = $theme;
+            return $theme;
+        }
+
         // Generate the theme
         if (isset($theme_base) && U::isValidCSSColor($theme_base)) {
             $theme = Theme::getLegacyTheme($theme_base, $dark_mode);
@@ -1434,7 +1445,7 @@ $( function() {
             $theme = $CFG->theme;
         }
 
-        $theme = Theme::defaults($theme);
+        $theme = self::themeDefaultsPreservingFont($theme);
 
         // Check for individual overides from link, context, key, or launch
         foreach($theme as $name => $value ) {
@@ -1556,6 +1567,21 @@ body {
         }
         $style .= '}</style>'."\n";
         return $style;
+    }
+
+    /**
+     * Theme::defaults() rebuilds the array and drops extras such as font-url.
+     *
+     * @param array<string, mixed> $theme
+     * @return array<string, mixed>
+     */
+    public static function themeDefaultsPreservingFont($theme) {
+        $fontUrl = is_array($theme) ? ($theme['font-url'] ?? null) : null;
+        $theme = Theme::defaults(is_array($theme) ? $theme : array());
+        if ( is_string($fontUrl) && $fontUrl !== '' ) {
+            $theme['font-url'] = $fontUrl;
+        }
+        return $theme;
     }
 
 }

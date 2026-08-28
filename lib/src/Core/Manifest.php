@@ -40,6 +40,9 @@ class Manifest {
     /** @var array<int, string> Request-local JSON strings keyed by manifest_id. */
     private static $requestJson = array();
 
+    /** @var array<int, array<string, mixed>> Request-local manifest rows keyed by manifest_id. */
+    private static $requestRows = array();
+
     /** @var MCache|object|null Injected or lazy MCache; false means "constructed empty". */
     private static $mcache = null;
 
@@ -48,6 +51,7 @@ class Manifest {
      */
     public static function resetRequestCache() {
         self::$requestJson = array();
+        self::$requestRows = array();
     }
 
     /**
@@ -101,6 +105,171 @@ class Manifest {
                 ),
             ),
         );
+    }
+
+    /**
+     * Named course palettes (legacy $CFG->theme shape).
+     *
+     * Keys are stored in manifest.theme. NULL / empty means the site $CFG->theme.
+     * Samples taken from peer tsugi_settings.php files (DJ4E, PG4E/CC4E, WS2),
+     * PY4E-AI ($CFG->theme_base / --ai-accent), plus the Tsugi default primary
+     * from Theme::defaults().
+     *
+     * @return array<string, array<string, string>>
+     */
+    public static function palettes() {
+        return array(
+            'tsugi' => array(
+                'label' => 'Tsugi Blue',
+                'primary' => '#0D47A1',
+                'secondary' => '#EEEEEE',
+                'text' => '#111111',
+                'text-light' => '#5E5E5E',
+                'font-family' => 'sans-serif',
+                'font-size' => '14px',
+            ),
+            'django' => array(
+                'label' => 'Django Green',
+                'primary' => '#0a4b33',
+                'secondary' => '#EEEEEE',
+                'text' => '#111111',
+                'text-light' => '#5E5E5E',
+                'font-url' => 'https://fonts.googleapis.com/css?family=Roboto:400',
+                'font-family' => "'Roboto', Corbel, Avenir, 'Lucida Grande', 'Lucida Sans', sans-serif",
+                'font-size' => '14px',
+            ),
+            'postgres' => array(
+                'label' => 'Postgres Blue',
+                'primary' => '#336791',
+                'secondary' => '#EEEEEE',
+                'text' => '#111111',
+                'text-light' => '#5E5E5E',
+                'font-url' => 'https://fonts.googleapis.com/css2?family=Open+Sans',
+                'font-family' => "'Open Sans', Corbel, Avenir, 'Lucida Grande', 'Lucida Sans', sans-serif",
+                'font-size' => '14px',
+            ),
+            'navy' => array(
+                'label' => 'Navy',
+                'primary' => '#000060',
+                'secondary' => '#EEEEEE',
+                'text' => '#111111',
+                'text-light' => '#5E5E5E',
+                'font-url' => 'https://fonts.googleapis.com/css?family=Roboto:400',
+                'font-family' => "'Roboto', Corbel, Avenir, 'Lucida Grande', 'Lucida Sans', sans-serif",
+                'font-size' => '14px',
+            ),
+            'electric' => array(
+                'label' => 'Electric',
+                'primary' => '#7c3aed',
+                'secondary' => '#EEEEEE',
+                'text' => '#1e1b4b',
+                'text-light' => '#4338ca',
+                'font-family' => 'sans-serif',
+                'font-size' => '14px',
+            ),
+        );
+    }
+
+    /**
+     * Palette array for a theme key, without the display label. Null if unknown or site default.
+     *
+     * @return array<string, string>|null
+     */
+    public static function palette($key) {
+        $norm = self::normalizeThemeKey($key);
+        if ( ! is_string($norm) ) {
+            return null;
+        }
+        $all = self::palettes();
+        if ( ! isset($all[$norm]) || ! is_array($all[$norm]) ) {
+            return null;
+        }
+        $p = $all[$norm];
+        unset($p['label']);
+        return $p;
+    }
+
+    /**
+     * Validate a posted theme key.
+     *
+     * @return string|null|false Named key, null for site default, false if unknown.
+     */
+    public static function normalizeThemeKey($key) {
+        if ( $key === null ) {
+            return null;
+        }
+        if ( ! is_string($key) ) {
+            return false;
+        }
+        $key = strtolower(trim($key));
+        if ( $key === '' || $key === 'default' || $key === 'site' ) {
+            return null;
+        }
+        $all = self::palettes();
+        if ( ! isset($all[$key]) ) {
+            return false;
+        }
+        return $key;
+    }
+
+    /**
+     * Theme key stored on the active manifest row (empty string = site default).
+     */
+    public static function currentThemeKey() {
+        $id = self::activeId();
+        if ( $id < 1 ) {
+            return '';
+        }
+        $row = self::loadRow($id);
+        if ( ! is_array($row) ) {
+            return '';
+        }
+        $key = $row['theme'] ?? '';
+        return is_string($key) ? $key : '';
+    }
+
+    /**
+     * Raw palette for the active named theme, or null to keep $CFG->theme.
+     *
+     * @return array<string, string>|null
+     */
+    public static function currentThemeArray() {
+        $key = self::currentThemeKey();
+        if ( $key === '' ) {
+            return null;
+        }
+        return self::palette($key);
+    }
+
+    /**
+     * Theme key currently pointed at by a context, or null.
+     *
+     * @return string|null
+     */
+    public static function themeKeyForContext($context_id) {
+        global $CFG;
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return null;
+        }
+        $PDOX = LTIX::getConnection();
+        $p = $CFG->dbprefix;
+        $row = $PDOX->rowDie(
+            "SELECT m.theme AS theme
+             FROM {$p}lti_context c
+             LEFT JOIN {$p}manifest m ON m.manifest_id = c.manifest_id
+             WHERE c.context_id = :CID",
+            array(':CID' => $cid)
+        );
+        if ( ! is_array($row) ) {
+            return null;
+        }
+        $key = $row['theme'] ?? null;
+        if ( ! is_string($key) || $key === '' ) {
+            return null;
+        }
+        $norm = self::normalizeThemeKey($key);
+        return is_string($norm) ? $norm : null;
     }
 
     /**
@@ -487,9 +656,11 @@ class Manifest {
      * Insert an immutable new version and point lti_context.manifest_id at it.
      *
      * @param array<string, mixed>|object|string $data Decoded document or JSON string
+     * @param string|null $theme Theme key. Null copies the previous version for this
+     *        context. Empty string stores NULL (site $CFG->theme).
      * @return int New manifest_id
      */
-    public static function saveNewVersion($context_id, $data, $user_id = null, $comment = null) {
+    public static function saveNewVersion($context_id, $data, $user_id = null, $comment = null, $theme = null) {
         global $CFG;
         $cid = (int) $context_id;
         if ( $cid < 1 ) {
@@ -528,6 +699,17 @@ class Manifest {
 
         $PDOX = LTIX::getConnection();
         $p = $CFG->dbprefix;
+
+        if ( $theme === null ) {
+            $themeToStore = self::themeKeyForContext($cid);
+        } else {
+            $norm = self::normalizeThemeKey($theme);
+            if ( $norm === false ) {
+                throw new \InvalidArgumentException('Unknown theme');
+            }
+            $themeToStore = $norm;
+        }
+
         $next = $PDOX->rowDie(
             "SELECT COALESCE(MAX(version), 0) + 1 AS next_version
              FROM {$p}manifest WHERE context_id = :CID",
@@ -540,13 +722,14 @@ class Manifest {
 
         $PDOX->queryDie(
             "INSERT INTO {$p}manifest
-                (context_id, version, title, manifest, comment, user_id, created_at)
+                (context_id, version, title, theme, manifest, comment, user_id, created_at)
              VALUES
-                (:context_id, :version, :title, :manifest, :comment, :user_id, NOW())",
+                (:context_id, :version, :title, :theme, :manifest, :comment, :user_id, NOW())",
             array(
                 ':context_id' => $cid,
                 ':version' => $version,
                 ':title' => $title,
+                ':theme' => $themeToStore,
                 ':manifest' => $json,
                 ':comment' => $comment,
                 ':user_id' => $uid,
@@ -669,14 +852,21 @@ class Manifest {
         if ( $id < 1 ) {
             return false;
         }
+        if ( isset(self::$requestRows[$id]) ) {
+            return self::$requestRows[$id];
+        }
         $PDOX = LTIX::getConnection();
         $p = $CFG->dbprefix;
         $row = $PDOX->rowDie(
-            "SELECT manifest_id, context_id, version, title, manifest, comment, user_id, created_at
+            "SELECT manifest_id, context_id, version, title, theme, manifest, comment, user_id, created_at
              FROM {$p}manifest WHERE manifest_id = :MID",
             array(':MID' => $id)
         );
-        return is_array($row) ? $row : false;
+        if ( ! is_array($row) ) {
+            return false;
+        }
+        self::$requestRows[$id] = $row;
+        return $row;
     }
 
     /**
