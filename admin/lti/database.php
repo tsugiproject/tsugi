@@ -258,6 +258,8 @@ array( "{$CFG->dbprefix}manifest",
     context_id          INTEGER NOT NULL,
     version             INTEGER NOT NULL,
     title               TEXT NULL,
+    -- Skinny Setup field (theme key). New course-setup features are sibling
+    -- columns, not keys inside the lessons JSON (`manifest` MEDIUMTEXT).
     theme               VARCHAR(64) NULL,
     manifest            MEDIUMTEXT NOT NULL,
     comment             TEXT NULL,

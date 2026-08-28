@@ -7,17 +7,23 @@ use \Tsugi\Util\U;
 use \Tsugi\UI\Lessons;
 
 /**
- * Versioned course-manifest JSON, keyed by immutable manifest_id.
+ * Versioned course manifest, keyed by immutable manifest_id.
  *
  * File-based $CFG->lessons sites are unchanged: a context with no
- * manifest_id keeps using the file. New courses store the same JSON
- * shape in the manifest table; each save inserts a new row and points
- * lti_context.manifest_id at it.
+ * manifest_id keeps using the file. New courses get a manifest row;
+ * each save inserts a new row and points lti_context.manifest_id at it.
  *
- * The PHP session holds only the integer manifest_id. The JSON is loaded
- * on demand via {@see self::loadJson()} and cached in Memcached (MCache)
- * under a key derived from manifest_id, not context_id. Tsugi\Core\Cache
- * is session-based and must not be used for this document.
+ * The lessons JSON (column `manifest`) is the legacy pre-manifest document:
+ * the same shape as lessons.json (modules, discussions, badges, …). Do not
+ * grow that blob with new course-setup features. New Setup fields are
+ * independent columns on this row (theme is the first: VARCHAR key, not
+ * palette JSON). Navigation and later Setup work follow that pattern.
+ *
+ * The PHP session holds only the integer manifest_id. The immutable row
+ * (lessons JSON plus sibling columns) is loaded on demand and cached in
+ * Memcached (MCache) under a key derived from manifest_id, not context_id.
+ * Tsugi\Core\Cache is session-based and must not be used for this document.
+ * Older cache entries that stored a JSON string only are still accepted.
  *
  * Tools that auto-populate from lessons.json (store import, CC export,
  * peer-grade inherit, Autograder, Google Classroom, admin install repos)
@@ -552,26 +558,33 @@ class Manifest {
         if ( isset(self::$requestJson[$id]) && is_string(self::$requestJson[$id]) ) {
             return self::$requestJson[$id];
         }
+        if ( isset(self::$requestRows[$id]) ) {
+            $json = self::$requestRows[$id]['manifest'] ?? '';
+            if ( is_string($json) && $json !== '' ) {
+                self::$requestJson[$id] = $json;
+                return $json;
+            }
+        }
 
         $cache = self::mcache();
-        if ( $cache && method_exists($cache, 'isEnabled') && $cache->isEnabled() ) {
+        if ( $cache && method_exists($cache, 'isEnabled') && $cache->isEnabled()
+                && method_exists($cache, 'get') ) {
             $cached = $cache->get(self::cacheKey($id));
+            $row = self::rowFromCacheValue($cached);
+            if ( is_array($row) ) {
+                if ( ! isset($row['manifest_id']) ) {
+                    $row['manifest_id'] = $id;
+                }
+                self::rememberRequest($id, $row);
+                return $row['manifest'];
+            }
             if ( is_string($cached) && strlen($cached) > 0 ) {
                 self::$requestJson[$id] = $cached;
                 return $cached;
             }
         }
 
-        $json = self::loadJsonFromDatabase($id);
-        if ( ! is_string($json) || strlen($json) < 1 ) {
-            return false;
-        }
-        self::$requestJson[$id] = $json;
-        if ( $cache && method_exists($cache, 'isEnabled') && $cache->isEnabled()
-                && method_exists($cache, 'set') ) {
-            $cache->set(self::cacheKey($id), $json, self::CACHE_TTL);
-        }
-        return $json;
+        return self::loadJsonFromDatabase($id);
     }
 
     /**
@@ -737,12 +750,16 @@ class Manifest {
         );
         $manifest_id = (int) $PDOX->lastInsertId();
         self::setActive($cid, $manifest_id);
-        self::$requestJson[$manifest_id] = $json;
-        $cache = self::mcache();
-        if ( $cache && method_exists($cache, 'isEnabled') && $cache->isEnabled()
-                && method_exists($cache, 'set') ) {
-            $cache->set(self::cacheKey($manifest_id), $json, self::CACHE_TTL);
-        }
+        self::rememberCachedRow(array(
+            'manifest_id' => $manifest_id,
+            'context_id' => $cid,
+            'version' => $version,
+            'title' => $title,
+            'theme' => $themeToStore,
+            'manifest' => $json,
+            'comment' => $comment,
+            'user_id' => $uid,
+        ));
         return $manifest_id;
     }
 
@@ -855,6 +872,21 @@ class Manifest {
         if ( isset(self::$requestRows[$id]) ) {
             return self::$requestRows[$id];
         }
+
+        $cache = self::mcache();
+        if ( $cache && method_exists($cache, 'isEnabled') && $cache->isEnabled()
+                && method_exists($cache, 'get') ) {
+            $cached = $cache->get(self::cacheKey($id));
+            $row = self::rowFromCacheValue($cached);
+            if ( is_array($row) ) {
+                if ( ! isset($row['manifest_id']) ) {
+                    $row['manifest_id'] = $id;
+                }
+                self::rememberRequest($id, $row);
+                return $row;
+            }
+        }
+
         $PDOX = LTIX::getConnection();
         $p = $CFG->dbprefix;
         $row = $PDOX->rowDie(
@@ -865,8 +897,54 @@ class Manifest {
         if ( ! is_array($row) ) {
             return false;
         }
-        self::$requestRows[$id] = $row;
+        self::rememberCachedRow($row);
         return $row;
+    }
+
+    /**
+     * Cached MCache payload is a row array; older entries were a JSON string.
+     *
+     * @param mixed $cached
+     * @return array<string, mixed>|false
+     */
+    private static function rowFromCacheValue($cached) {
+        if ( ! is_array($cached) ) {
+            return false;
+        }
+        $json = $cached['manifest'] ?? '';
+        if ( ! is_string($json) || $json === '' ) {
+            return false;
+        }
+        return $cached;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private static function rememberRequest($id, $row) {
+        self::$requestRows[$id] = $row;
+        $json = $row['manifest'] ?? '';
+        if ( is_string($json) && $json !== '' ) {
+            self::$requestJson[$id] = $json;
+        }
+    }
+
+    /**
+     * Request memo plus MCache. Payload is the immutable row (JSON + theme).
+     *
+     * @param array<string, mixed> $row
+     */
+    private static function rememberCachedRow($row) {
+        $id = (int) ($row['manifest_id'] ?? 0);
+        if ( $id < 1 ) {
+            return;
+        }
+        self::rememberRequest($id, $row);
+        $cache = self::mcache();
+        if ( $cache && method_exists($cache, 'isEnabled') && $cache->isEnabled()
+                && method_exists($cache, 'set') ) {
+            $cache->set(self::cacheKey($id), $row, self::CACHE_TTL);
+        }
     }
 
     /**

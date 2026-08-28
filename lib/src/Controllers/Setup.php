@@ -11,7 +11,9 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 /**
  * Course setup for manifest-backed courses.
  *
- * First field is the course theme. File-based $CFG->lessons sites keep using
+ * Setup fields are independent columns on the manifest row, not part of
+ * the legacy lessons JSON. Theme is the first; later fields (navigation,
+ * …) follow the same pattern. File-based $CFG->lessons sites keep using
  * the site $CFG->theme; this page is instructor + manifest only.
  *
  * Parent menus:

@@ -143,6 +143,30 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(1, $fake->gets);
     }
 
+    public function testCachedRowServesJsonAndThemeWithoutDatabase()
+    {
+        $json = Manifest::encode(Manifest::starter('Electric Course'));
+        $key = Manifest::cacheKey(77);
+        $fake = new ManifestTestMCache();
+        $fake->enabled = true;
+        $fake->store[$key] = array(
+            'manifest_id' => 77,
+            'theme' => 'electric',
+            'manifest' => $json,
+            'version' => 3,
+            'title' => 'Electric Course',
+        );
+        Manifest::setMCache($fake);
+        Manifest::rememberInSession(77);
+
+        $this->assertSame($json, Manifest::loadJson(77));
+        $this->assertSame('electric', Manifest::currentThemeKey());
+        $this->assertSame('#7c3aed', Manifest::currentThemeArray()['primary']);
+        Manifest::resetRequestCache();
+        $this->assertSame('electric', Manifest::currentThemeKey());
+        $this->assertSame($json, Manifest::loadJson(77));
+    }
+
     public function testLoadJsonDisabledCacheReturnsFalseWithoutDb()
     {
         $fake = new ManifestTestMCache();
