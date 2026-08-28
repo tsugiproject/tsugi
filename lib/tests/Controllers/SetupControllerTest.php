@@ -65,4 +65,13 @@ class SetupControllerTest extends \PHPUnit\Framework\TestCase
         }
         $this->assertContains('/setup', $uris);
     }
+
+    public function testShowInMenuFalseWithoutManifest()
+    {
+        $this->assertFalse(Setup::showInMenu());
+        $_SESSION['id'] = 1;
+        $_SESSION['context_id'] = 1;
+        $_SESSION['instructor'] = true;
+        $this->assertFalse(Setup::showInMenu());
+    }
 }

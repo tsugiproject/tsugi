@@ -4,6 +4,7 @@ namespace Tsugi\Controllers;
 
 use Tsugi\Util\U;
 use Tsugi\Core\Manifest;
+use Tsugi\Core\Membership;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -16,8 +17,10 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
  * …) follow the same pattern. File-based $CFG->lessons sites keep using
  * the site $CFG->theme; this page is instructor + manifest only.
  *
- * Parent menus:
- * rtrim($CFG->apphome, '/') . Courses::toolPathPrefix() . '/setup'
+ * Parent menus (instructors of a manifest course only):
+ * if ( \Tsugi\Controllers\Setup::showInMenu() ) {
+ *     $set->addLink('Setup', rtrim($CFG->apphome, '/') . Courses::toolPathPrefix() . '/setup');
+ * }
  */
 class Setup extends Tool {
 
@@ -31,6 +34,34 @@ class Setup extends Tool {
         $app->router->get('/'.self::REDIRECT, 'Setup@get');
         $app->router->post($prefix, 'Setup@post');
         $app->router->post($prefix.'/', 'Setup@post');
+    }
+
+    /**
+     * True when the current user may open Setup (instructor/admin of a manifest course).
+     *
+     * Use this in parent buildmenu.php so students never see the link.
+     */
+    public static function showInMenu() {
+        if ( Manifest::activeId() < 1 ) {
+            return false;
+        }
+        return self::currentUserIsInstructor();
+    }
+
+    /**
+     * Instructor or site admin for the current context (membership role, not $USER->instructor).
+     */
+    private static function currentUserIsInstructor() {
+        $context_id = U::currentContextId();
+        $user_id = U::loggedInUserId();
+        if ( ! $context_id || ! $user_id ) {
+            return false;
+        }
+        if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
+            return true;
+        }
+        $m = Membership::ensureInSession($context_id, $user_id);
+        return $m->isInstructor();
     }
 
     public function get(Request $request)
@@ -122,11 +153,11 @@ class Setup extends Tool {
      */
     private function setupGate() {
         $home = U::addSession(self::configuredHomeUrl());
+        $this->requireInstructor($home);
         if ( Manifest::activeId() < 1 ) {
             U::flashError(__('Setup is only available for courses with a manifest.'));
             return new RedirectResponse($home);
         }
-        $this->requireInstructor($home);
         return null;
     }
 }
