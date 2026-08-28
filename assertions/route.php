@@ -6,6 +6,7 @@ require_once('../config.php');
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Badges;
+use \Tsugi\Core\Manifest;
 use \Tsugi\UI\Lessons;
 use \Tsugi\LinkedIn\LinkedIn;
 use \Tsugi\Crypt\AesOpenSSL;
@@ -62,11 +63,11 @@ if ($first_part === 'publish') {
         $OUTPUT->footer();
         return;
     }
-    if ( ! isset($CFG->lessons) ) {
-        die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+    if ( ! Manifest::hasCurrent() ) {
+        die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
     }
     $PDOX = LTIX::getConnection();
-    $l = new Lessons($CFG->lessons);
+    $l = Manifest::requireCurrentLessons();
     $parsed = Badges::parseAssertionId($hex_id, $l);
     if ( is_string($parsed) ) {
         http_response_code(404);
@@ -124,10 +125,7 @@ if ($first_part === 'linkedin') {
         $OUTPUT->footer();
         return;
     }
-    if ( ! isset($CFG->lessons) ) {
-        die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
-    }
-    $l = new Lessons($CFG->lessons);
+    $l = Manifest::requireCurrentLessons();
     $destination = BadgeService::linkedInDestinationUrl($guid, $share, $l);
     if ( $destination === null ) {
         http_response_code(404);
@@ -149,8 +147,8 @@ if ($first_part === 'linkedin') {
 
 // Handle fixed issuer route: /assertions/issuer.json
 if ($first_part === 'issuer.json') {
-    if ( ! isset($CFG->lessons) ) {
-        die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+    if ( ! Manifest::hasCurrent() ) {
+        die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
     }
     $format = isset($_GET['format']) ? $_GET['format'] : 'ob2';
     if ($format === 'ob3') {
@@ -174,12 +172,12 @@ if ($first_part === 'badge' && count($path_parts) === 2) {
         $code = str_replace('?format=ob3', '', $code);
         $code = str_replace('&format=ob3', '', $code);
         
-        if ( ! isset($CFG->lessons) ) {
-            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+        if ( ! Manifest::hasCurrent() ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
         
         $PDOX = LTIX::getConnection();
-        $l = new Lessons($CFG->lessons);
+        $l = Manifest::requireCurrentLessons();
         
         // Find the badge by code
         $badge = null;
@@ -290,12 +288,8 @@ if (strpos($first_part, '.vc.json') !== false) {
 }
 
 // Load lesson and parse assertion
-if ( ! isset($CFG->lessons) ) {
-    die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
-}
-
 $PDOX = LTIX::getConnection();
-$l = new Lessons($CFG->lessons);
+$l = Manifest::requireCurrentLessons();
 
 $row = null;
 $pieces = null;

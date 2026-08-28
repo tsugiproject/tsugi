@@ -16,6 +16,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_link",
 "drop table if exists {$CFG->dbprefix}lti_link_activity",
 "drop table if exists {$CFG->dbprefix}lti_link_user_activity",
+"drop table if exists {$CFG->dbprefix}manifest",
 "drop table if exists {$CFG->dbprefix}lti_context",
 "drop table if exists {$CFG->dbprefix}lti_user",
 "drop table if exists {$CFG->dbprefix}lti_issuer",
@@ -230,6 +231,9 @@ array( "{$CFG->dbprefix}lti_context",
 
     viewDueDates        TINYINT(1) NOT NULL DEFAULT 1,
 
+    -- Active course manifest version (NULL = file-based $CFG->lessons)
+    manifest_id         INTEGER NULL,
+
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
@@ -246,6 +250,33 @@ array( "{$CFG->dbprefix}lti_context",
 
     CONSTRAINT `{$CFG->dbprefix}lti_context_const_1` UNIQUE(key_id, context_sha256),
     CONSTRAINT `{$CFG->dbprefix}lti_context_const_pk` PRIMARY KEY (context_id)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}manifest",
+"create table {$CFG->dbprefix}manifest (
+    manifest_id         INTEGER NOT NULL AUTO_INCREMENT,
+    context_id          INTEGER NOT NULL,
+    version             INTEGER NOT NULL,
+    title               TEXT NULL,
+    manifest            MEDIUMTEXT NOT NULL,
+    comment             TEXT NULL,
+    user_id             INTEGER NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}manifest_const_pk` PRIMARY KEY (manifest_id),
+    CONSTRAINT `{$CFG->dbprefix}manifest_const_1` UNIQUE (context_id, version),
+
+    CONSTRAINT `{$CFG->dbprefix}manifest_ibfk_1`
+        FOREIGN KEY (`context_id`)
+        REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}manifest_ibfk_2`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
+    INDEX `{$CFG->dbprefix}manifest_indx_1` (context_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_link",
@@ -743,6 +774,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         // 2026-03-29 Per-context and per-membership visibility for due dates (existing rows default to on)
         array('lti_context', 'viewDueDates', 'TINYINT(1) NOT NULL DEFAULT 1'),
         array('lti_membership', 'viewDueDates', 'TINYINT(1) NOT NULL DEFAULT 1'),
+
+        // 2026-08-28 Active course manifest version (NULL = file-based $CFG->lessons)
+        array('lti_context', 'manifest_id', 'INTEGER NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -1396,7 +1430,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610010000;
+    return 202610010001;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

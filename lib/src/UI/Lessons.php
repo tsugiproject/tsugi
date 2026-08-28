@@ -213,43 +213,110 @@ class Lessons {
         return $this->lessonsHome() . '_launch/' . $resource_link_id;
     }
 
+    /**
+     * When true, structural errors throw InvalidArgumentException instead of dying.
+     * Used by {@see tryFromJson()} so authoring can refuse a bad save.
+     */
+    private static $throwOnError = false;
+
+    /**
+     * Load JSON without killing the request.
+     *
+     * @return Lessons|string Lessons on success, error message on failure
+     */
+    public static function tryFromJson($json_str, $anchor=null, $index=null)
+    {
+        $prev = self::$throwOnError;
+        self::$throwOnError = true;
+        try {
+            return self::fromJson($json_str, $anchor, $index);
+        } catch (\Throwable $e) {
+            return $e->getMessage();
+        } finally {
+            self::$throwOnError = $prev;
+        }
+    }
+
+    /**
+     * Build a Lessons object from a JSON string (file or manifest document).
+     */
+    public static function fromJson($json_str, $anchor=null, $index=null)
+    {
+        $lessons = json_decode($json_str);
+        if ( $lessons === null ) {
+            $msg = 'Problem parsing lessons.json: ' . json_last_error_msg();
+            if ( self::$throwOnError ) {
+                throw new \InvalidArgumentException($msg);
+            }
+            echo("<pre>\n");
+            echo($msg);
+            echo("\n");
+            echo($json_str);
+            die();
+        }
+        return new self($lessons, $anchor, $index);
+    }
+
+    /**
+     * Fail a document load: throw when validating, otherwise die.
+     */
+    private static function fail($msg) {
+        if ( self::$throwOnError ) {
+            throw new \InvalidArgumentException($msg);
+        }
+        die_with_error_log($msg);
+    }
+
     /*
-     ** Load up the JSON from the file
+     ** Load up the JSON from a file path, or from an already-decoded object.
      **/
     public function __construct($name='lessons.json', $anchor=null, $index=null)
     {
         global $CFG;
 
-        $json_str = file_get_contents($name);
-        $lessons = json_decode($json_str);
+        if ( is_object($name) ) {
+            $lessons = $name;
+        } else {
+            $json_str = file_get_contents($name);
+            $lessons = json_decode($json_str);
+            $this->resource_links = array();
+
+            if ( $lessons === null ) {
+                echo("<pre>\n");
+                echo("Problem parsing lessons.json: ");
+                echo(json_last_error_msg());
+                echo("\n");
+                echo($json_str);
+                die();
+            }
+        }
+
         $this->resource_links = array();
 
-        if ( $lessons === null ) {
-            echo("<pre>\n");
-            echo("Problem parsing lessons.json: ");
-            echo(json_last_error_msg());
-            echo("\n");
-            echo($json_str);
-            die();
+        if ( ! is_object($lessons) ) {
+            self::fail('lessons.json must be a JSON object');
+        }
+        if ( ! isset($lessons->modules) || ! is_array($lessons->modules) ) {
+            self::fail('lessons.json must have a modules array');
         }
 
         // Demand that every module have required elments
         foreach($lessons->modules as $module) {
             if ( !isset($module->title) ) {
-                die_with_error_log('All modules in a lesson must have a title');
+                self::fail('All modules in a lesson must have a title');
             }
             if ( !isset($module->anchor) ) {
-                die_with_error_log('All modules must have an anchor: '.$module->title);
+                self::fail('All modules must have an anchor: '.$module->title);
             }
         }
 
         // Demand that every module have required elments
         if ( isset($lessons->badges) ) foreach($lessons->badges as $badge) {
             if ( !isset($badge->title) ) {
-                die_with_error_log('All badges in a lesson must have a title');
+                self::fail('All badges in a lesson must have a title');
             }
             if ( !isset($badge->assignments) ) {
-                die_with_error_log('All badges must have assignments: '.$badge->title);
+                self::fail('All badges must have assignments: '.$badge->title);
             }
         }
 
@@ -280,11 +347,11 @@ class Lessons {
 
             // Non arrays
             if ( isset($this->lessons->modules[$i]->assignment) ) {
-                if ( ! is_string($this->lessons->modules[$i]->assignment) ) die_with_error_log('Assignment must be a string: '.$module->title);
+                if ( ! is_string($this->lessons->modules[$i]->assignment) ) self::fail('Assignment must be a string: '.$this->lessons->modules[$i]->title);
                 self::absolute_url_ref($this->lessons->modules[$i]->assignment);
             }
             if ( isset($this->lessons->modules[$i]->solution) ) {
-                if ( ! is_string($this->lessons->modules[$i]->solution) ) die_with_error_log('Solution must be a string: '.$module->title);
+                if ( ! is_string($this->lessons->modules[$i]->solution) ) self::fail('Solution must be a string: '.$this->lessons->modules[$i]->title);
                 self::absolute_url_ref($this->lessons->modules[$i]->solution);
             }
 
@@ -313,7 +380,7 @@ class Lessons {
                     if ( !isset($item->type) ) continue;
                     if ( ($item->type == 'lti' || $item->type == 'discussion') && isset($item->resource_link_id) ) {
                         if (isset($this->resource_links[$item->resource_link_id]) ) {
-                            die_with_error_log('Duplicate resource link in Lessons '. $item->resource_link_id);
+                            self::fail('Duplicate resource link in Lessons '. $item->resource_link_id);
                         }
                         $this->resource_links[$item->resource_link_id] = $module->anchor;
                     }
@@ -325,13 +392,13 @@ class Lessons {
                     if ( ! is_array($ltis) ) $ltis = array($ltis);
                     foreach($ltis as $lti) {
                         if ( ! isset($lti->title) ) {
-                            die_with_error_log('Missing lti title in module:'. $module->title);
+                            self::fail('Missing lti title in module:'. $module->title);
                         }
                         if ( ! isset($lti->resource_link_id) ) {
-                            die_with_error_log('Missing resource link in Lessons '. $lti->title);
+                            self::fail('Missing resource link in Lessons '. $lti->title);
                         }
                         if (isset($this->resource_links[$lti->resource_link_id]) ) {
-                            die_with_error_log('Duplicate resource link in Lessons '. $lti->resource_link_id);
+                            self::fail('Duplicate resource link in Lessons '. $lti->resource_link_id);
                         }
                         $this->resource_links[$lti->resource_link_id] = $module->anchor;
                     }
@@ -342,13 +409,13 @@ class Lessons {
                     if ( ! is_array($discussions) ) $discussions = array($discussions);
                     foreach($discussions as $discussion) {
                         if ( ! isset($discussion->title) ) {
-                            die_with_error_log('Missing discussion title in module:'. $module->title);
+                            self::fail('Missing discussion title in module:'. $module->title);
                         }
                         if ( ! isset($discussion->resource_link_id) ) {
-                            die_with_error_log('Missing resource link in Lessons '. $discussion->title);
+                            self::fail('Missing resource link in Lessons '. $discussion->title);
                         }
                         if (isset($this->resource_links[$discussion->resource_link_id]) ) {
-                            die_with_error_log('Duplicate resource link in Lessons '. $discussion->resource_link_id);
+                            self::fail('Duplicate resource link in Lessons '. $discussion->resource_link_id);
                         }
                         $this->resource_links[$discussion->resource_link_id] = $module->anchor;
                     }
@@ -361,16 +428,16 @@ class Lessons {
             self::adjustArray($this->lessons->launches);
             foreach ( $this->lessons->launches as $launch ) {
                 if ( ! isset($launch->title) ) {
-                    die_with_error_log('All launches in lessons must have a title');
+                    self::fail('All launches in lessons must have a title');
                 }
                 if ( ! isset($launch->resource_link_id) ) {
-                    die_with_error_log('All launches must have resource_link_id: '.$launch->title);
+                    self::fail('All launches must have resource_link_id: '.$launch->title);
                 }
                 if ( ! isset($launch->launch) ) {
-                    die_with_error_log('All launches must have launch URL: '.$launch->title);
+                    self::fail('All launches must have launch URL: '.$launch->title);
                 }
                 if ( isset($this->resource_links[$launch->resource_link_id]) ) {
-                    die_with_error_log('Duplicate resource link in Lessons '. $launch->resource_link_id);
+                    self::fail('Duplicate resource link in Lessons '. $launch->resource_link_id);
                 }
                 $this->resource_links[$launch->resource_link_id] = '';
             }
@@ -2282,12 +2349,12 @@ class Lessons {
         echo($ob_output);
     }
 
-    public function renderDiscussions($buffer=false, $toolHome=null)
-    {
-        ob_start();
-        global $CFG, $OUTPUT, $PDOX;
-
-        // Flatten the discussions
+    /**
+     * Catalog discussions: top-level, then module items, then optional discussion_order.
+     *
+     * @return array<int, object>
+     */
+    public function flattenedDiscussions() {
         $discussions = array();
         if (isset($this->lessons->discussions) ) {
             foreach($this->lessons->discussions as $discussion) {
@@ -2297,12 +2364,10 @@ class Lessons {
 
         foreach($this->lessons->modules as $module) {
             if ( isset($module->hidden) && $module->hidden ) continue;
-            
-            // Check if module uses items array (new format)
+
             $has_items = isset($module->items) && is_array($module->items) && count($module->items) > 0;
-            
+
             if ( $has_items ) {
-                // New format: scan items array for discussion items
                 foreach($module->items as $item) {
                     $item_obj = is_array($item) ? (object)$item : $item;
                     if ( isset($item_obj->type) && $item_obj->type == 'discussion' ) {
@@ -2310,7 +2375,6 @@ class Lessons {
                     }
                 }
             } else {
-                // Legacy format: scan discussions array
                 if ( isset($module->discussions) && is_array($module->discussions) ) {
                     foreach($module->discussions as $discussion) {
                         $discussions [] = $discussion;
@@ -2319,7 +2383,66 @@ class Lessons {
             }
         }
 
-        if ( count($discussions) < 1 || ! isset($CFG->tdiscus) || empty($CFG->tdiscus) ) {
+        if ( isset($this->lessons->discussion_order) && is_array($this->lessons->discussion_order) ) {
+            $discussions = self::applyDiscussionOrder($discussions, $this->lessons->discussion_order);
+        }
+        return $discussions;
+    }
+
+    /**
+     * Sort flattened discussion objects by a resource_link_id order list.
+     *
+     * @param array<int, object> $discussions
+     * @param array<int, mixed> $order
+     * @return array<int, object>
+     */
+    public static function applyDiscussionOrder($discussions, $order) {
+        if ( ! is_array($discussions) || ! is_array($order) ) {
+            return is_array($discussions) ? $discussions : array();
+        }
+        $by = array();
+        $rest = array();
+        foreach ( $discussions as $d ) {
+            $rid = '';
+            if ( is_object($d) && isset($d->resource_link_id) ) {
+                $rid = (string) $d->resource_link_id;
+            }
+            if ( $rid !== '' && ! isset($by[$rid]) ) {
+                $by[$rid] = $d;
+            } else {
+                $rest[] = $d;
+            }
+        }
+        $out = array();
+        foreach ( $order as $rid ) {
+            $rid = is_string($rid) || is_int($rid) ? (string) $rid : '';
+            if ( $rid !== '' && isset($by[$rid]) ) {
+                $out[] = $by[$rid];
+                unset($by[$rid]);
+            }
+        }
+        foreach ( $by as $d ) {
+            $out[] = $d;
+        }
+        foreach ( $rest as $d ) {
+            $out[] = $d;
+        }
+        return $out;
+    }
+
+    public function renderDiscussions($buffer=false, $toolHome=null, $addUrl=null, $reorderUrl=null)
+    {
+        ob_start();
+        global $CFG, $OUTPUT, $PDOX;
+
+        $discussions = $this->flattenedDiscussions();
+
+        $can_add = is_string($addUrl) && strlen($addUrl) > 0;
+        $can_reorder = is_string($reorderUrl) && strlen($reorderUrl) > 0 && count($discussions) > 1;
+        $tdiscus_ok = isset($CFG->tdiscus) && ! empty($CFG->tdiscus);
+        $show_catalog = $tdiscus_ok && count($discussions) > 0;
+
+        if ( ! $show_catalog && ! $can_add ) {
             echo('<h1>'.__('Discussions not available')."</h1>\n");
             $ob_output = ob_get_contents();
             ob_end_clean();
@@ -2331,11 +2454,23 @@ class Lessons {
         if ( $toolHome === null || $toolHome === '' ) {
             $toolHome = \Tsugi\Controllers\Tool::determineToolHome('/discussions');
         }
+
+        echo('<h1>'.__('Discussions:').' '.$this->lessons->title."</h1>\n");
+        if ( ! $show_catalog ) {
+            echo('<p>'.__('No discussions yet.')."</p>\n");
+            if ( $can_add ) {
+                echo('<p><a href="'.htmlspecialchars($addUrl).'" class="btn btn-primary btn-sm">'.htmlentities(__('Add discussion')).'</a></p>'."\n");
+            }
+            $ob_output = ob_get_contents();
+            ob_end_clean();
+            if ( $buffer ) return $ob_output;
+            echo($ob_output);
+            return;
+        }
+
         $json_endpoint = U::addSession($toolHome . '/json');
         $mark_read_url = U::addSession($toolHome . '/mark-read');
         $manage_discussions_url = U::addSession($toolHome . '/manage');
-
-        echo('<h1>'.__('Discussions:').' '.$this->lessons->title."</h1>\n");
 
         // TODO: Perhaps the tdiscus service will get promoted to Tsugi
         // but for now we bypass the abstraction and go straight to the source...
@@ -2410,6 +2545,12 @@ class Lessons {
             echo('</form>'."\n");
             if ( $show_expire_button ) {
                 echo('<a href="'.htmlspecialchars($manage_discussions_url).'" class="btn btn-warning btn-sm">'.htmlentities(__('Manage Discussions')).'</a>');
+            }
+            if ( $can_add ) {
+                echo('<a href="'.htmlspecialchars($addUrl).'" class="btn btn-primary btn-sm">'.htmlentities(__('Add discussion')).'</a>');
+            }
+            if ( $can_reorder ) {
+                echo('<a href="'.htmlspecialchars($reorderUrl).'" class="btn btn-default btn-sm">'.htmlentities(__('Reorder discussions')).'</a>');
             }
             echo("</div>\n");
         }

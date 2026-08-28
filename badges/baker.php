@@ -2,19 +2,16 @@
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\Manifest;
 use \Tsugi\UI\Lessons;
 use \Tsugi\Image\Png;
 
 require_once "../config.php";
 require_once "badge-util.php";
 
-if ( ! isset($CFG->lessons) ) {
-    die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
-}
+$l = Manifest::requireCurrentLessons();
 
 $PDOX = LTIX::getConnection();
-// Load the Lesson
-$l = new Lessons($CFG->lessons);
 
 $url = $_SERVER['REQUEST_URI'];
 $pieces = explode('/',$url);

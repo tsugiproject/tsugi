@@ -4,6 +4,7 @@
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\Manifest;
 use \Tsugi\UI\Lessons;
 
 if ( !isset($_GET['id']) ) {
@@ -13,12 +14,7 @@ if ( !isset($_GET['id']) ) {
 require_once "../config.php";
 require_once "badge-util.php";
 
-if ( ! isset($CFG->lessons) ) {
-    die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
-}
-
-// Load the Lesson
-$l = new Lessons($CFG->lessons);
+$l = Manifest::requireCurrentLessons();
 
 $PDOX = LTIX::getConnection();
 

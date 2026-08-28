@@ -5,6 +5,7 @@ namespace Tsugi\Controllers;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Tsugi\Core\LTIX;
+use Tsugi\Core\Manifest;
 
 use \Tsugi\Grades\GradeUtil;
 
@@ -29,18 +30,13 @@ class Badges extends Tool {
         // Check if user is logged in
         $this->requireAuth();
 
-        if ( ! isset($CFG->lessons) ) {
-            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
-        }
-
         // Record learner analytics (synthetic lti_link in this context)
         $this->lmsRecordLaunchAnalytics(self::ROUTE, self::NAME);
 
         // Check if user is instructor/admin for analytics button
         $show_analytics = $this->isInstructor() || $this->isAdmin();
 
-        // Load the Lesson
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        $l = Manifest::requireCurrentLessons();
 
         // Load all the Grades so far
         $allgrades = array();

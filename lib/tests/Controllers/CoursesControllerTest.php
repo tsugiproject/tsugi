@@ -78,6 +78,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $uris = $this->routeUris();
 
         $this->assertContains('/courses/json', $uris);
+        $this->assertContains('/courses/create', $uris);
         $this->assertContains('/courses', $uris);
         $this->assertContains('/courses/{id:\d+}', $uris);
         $this->assertContains('/courses/{id:\d+}/{rest:.*}', $uris);

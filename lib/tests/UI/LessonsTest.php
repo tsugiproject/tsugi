@@ -5,6 +5,12 @@ require_once "include/setup_i18n.php";
 require_once "src/UI/Lessons.php";
 require_once "src/Config/ConfigInfo.php";
 
+if (!function_exists('isLoggedIn')) {
+    function isLoggedIn() {
+        return !empty($_SESSION['id']);
+    }
+}
+
 /**
  * Simple tests for Lessons utility class
  * 
@@ -1648,6 +1654,49 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $html = \Tsugi\UI\Lessons::resultLinkSignatureMarkup('pythonauto_01_hello', 12345);
         $this->assertStringContainsString('py345_61', $html);
         $this->assertStringContainsString('tsugi-assignments-rl-sig', $html);
+    }
+
+    public function testFromJsonMatchesFileConstructor() {
+        $path = __DIR__ . '/../fixtures/lessons/py4e-modern-lessons-items.json';
+        $fromFile = new \Tsugi\UI\Lessons($path);
+        $fromJson = \Tsugi\UI\Lessons::fromJson(file_get_contents($path));
+        $this->assertEquals($fromFile->lessons->title, $fromJson->lessons->title);
+        $this->assertEquals(count($fromFile->lessons->modules), count($fromJson->lessons->modules));
+        $this->assertEquals($fromFile->resource_links, $fromJson->resource_links);
+    }
+
+    public function testTryFromJsonReturnsLessonsOnSuccess() {
+        $json = json_encode(array(
+            'title' => 'Try Me',
+            'modules' => array(
+                array('title' => 'Week 1', 'anchor' => 'week-1', 'items' => array()),
+            ),
+        ));
+        $loaded = \Tsugi\UI\Lessons::tryFromJson($json);
+        $this->assertInstanceOf(\Tsugi\UI\Lessons::class, $loaded);
+        $this->assertSame('Try Me', $loaded->lessons->title);
+    }
+
+    public function testTryFromJsonReturnsMessageOnBadJson() {
+        $loaded = \Tsugi\UI\Lessons::tryFromJson('{');
+        $this->assertIsString($loaded);
+        $this->assertStringContainsString('parsing', $loaded);
+    }
+
+    public function testTryFromJsonReturnsMessageWhenModulesMissing() {
+        $loaded = \Tsugi\UI\Lessons::tryFromJson('{"title":"Nope"}');
+        $this->assertIsString($loaded);
+        $this->assertStringContainsString('modules', $loaded);
+    }
+
+    public function testApplyDiscussionOrder() {
+        $a = (object) array('title' => 'A', 'resource_link_id' => 'a');
+        $b = (object) array('title' => 'B', 'resource_link_id' => 'b');
+        $c = (object) array('title' => 'C', 'resource_link_id' => 'c');
+        $ordered = \Tsugi\UI\Lessons::applyDiscussionOrder(array($a, $b, $c), array('c', 'a'));
+        $this->assertSame(array('c', 'a', 'b'), array_map(function ($d) {
+            return $d->resource_link_id;
+        }, $ordered));
     }
 }
 

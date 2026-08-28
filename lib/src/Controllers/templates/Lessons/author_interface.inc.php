@@ -9,6 +9,8 @@
  * - $lessons_title: HTML-escaped lessons title
  * - $lessons_file_escaped: HTML-escaped lessons file path
  * - $lessons_json: JSON-encoded lessons data for JavaScript
+ * - $export_url: session-bearing URL to download the saved document
+ * - $import_url: session-bearing URL to POST an uploaded lessons.json
  */
 ?>
 <style>
@@ -33,6 +35,23 @@
 .lesson-author-header .info {
     color: #666;
     font-size: 14px;
+}
+
+.author-io {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.author-io form {
+    display: inline;
+    margin: 0;
+}
+
+.author-io input[type="file"] {
+    display: none;
 }
 
 .module-container {
@@ -554,6 +573,13 @@
         <div class="info">
             <?= $lessons_file_escaped ?>
         </div>
+        <div class="author-io">
+            <a class="btn" href="<?= htmlspecialchars($export_url) ?>"><?= __('Export lessons.json') ?></a>
+            <form id="lessons-import-form" onsubmit="return false;">
+                <input type="file" id="lessons-import-file" name="file" accept=".json,application/json" />
+                <button type="button" class="btn" onclick="document.getElementById('lessons-import-file').click()"><?= __('Import lessons.json') ?></button>
+            </form>
+        </div>
     </div>
 
     <div id="modules-container">
@@ -626,6 +652,58 @@ $(document).ready(function() {
     migrateFCPXToReference();
     renderModules();
     setupSortable();
+
+    var importFile = document.getElementById('lessons-import-file');
+    if (importFile) {
+        importFile.addEventListener('change', function() {
+            if (!this.files || !this.files.length) return;
+            var warn = hasChanges
+                ? 'You have unsaved changes. Loading this file will replace the editor contents. Continue?'
+                : 'Load this file into the editor? You will need to Save Changes to store it.';
+            if (!confirm(warn)) {
+                this.value = '';
+                return;
+            }
+            var file = this.files[0];
+            var input = this;
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                var parsed;
+                try {
+                    parsed = JSON.parse(ev.target.result);
+                } catch (err) {
+                    alert('Invalid JSON: ' + (err && err.message ? err.message : 'could not parse file'));
+                    input.value = '';
+                    return;
+                }
+                if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+                    alert('lessons.json must be a JSON object.');
+                    input.value = '';
+                    return;
+                }
+                if (!parsed.modules || !Array.isArray(parsed.modules)) {
+                    alert('lessons.json must have a modules array.');
+                    input.value = '';
+                    return;
+                }
+                lessonsData = parsed;
+                migrateFCPXToReference();
+                var titleEl = document.querySelector('.lesson-author-header h1');
+                if (titleEl) {
+                    titleEl.textContent = lessonsData.title || 'Untitled';
+                }
+                renderModules();
+                setupSortable();
+                markChanged();
+                input.value = '';
+            };
+            reader.onerror = function() {
+                alert('Could not read that file.');
+                input.value = '';
+            };
+            reader.readAsText(file);
+        });
+    }
     
     // Track changes
     $(document).on('input change', 'input, textarea, select', function() {

@@ -647,6 +647,8 @@ class LTIX {
         // Put the information into the row variable and put row into session
         $_SESSION[TSUGI_SESSION_LTI] = $row;
         $_SESSION[TSUGI_SESSION_LTI_POST] = $request_data;
+        // Always set/clear so a file-based launch cannot keep a leftover sandbox manifest_id.
+        \Tsugi\Core\Manifest::rememberInSession($row['manifest_id'] ?? 0);
 
         if ( isset($_SERVER['HTTP_USER_AGENT']) ) {
             $_SESSION['HTTP_USER_AGENT'] = $_SERVER['HTTP_USER_AGENT'];
@@ -1172,7 +1174,7 @@ class LTIX {
             c.lineitems_url AS lineitems_url, c.memberships_url AS memberships_url,
             c.lti13_lineitems AS lti13_lineitems, c.lti13_membership_url AS lti13_membership_url,
             c.lti13_context_groups_url AS lti13_context_groups_url,
-            c.settings AS context_settings,
+            c.settings AS context_settings, c.manifest_id AS manifest_id,
             l.link_id, l.path AS link_path, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
             l.lti13_lineitem AS lti13_lineitem, l.settings AS link_settings,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email, u.user_key AS user_key, u.image AS user_image,

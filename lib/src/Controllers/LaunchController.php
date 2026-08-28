@@ -3,6 +3,7 @@
 namespace Tsugi\Controllers;
 
 use Tsugi\Util\U;
+use Tsugi\Core\Manifest;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -50,12 +51,12 @@ class LaunchController extends Tool {
             $redirect_path = '/';
         }
 
-        if ( ! isset($CFG->lessons) ) {
-            $app->tsugiFlashError(__('Cannot find lessons.json ($CFG->lessons)'));
+        $l = Manifest::currentLessons();
+        if ( ! $l ) {
+            $app->tsugiFlashError(__('Cannot find lessons.json ($CFG->lessons) or an active course manifest'));
             return new RedirectResponse($redirect_path);
         }
 
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $lti = $l->getLtiByRlid($resource_link_id);
         if ( ! $lti ) {
             $app->tsugiFlashError(__('Cannot find lti resource link id'));

@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Core\LTIX;
+use Tsugi\Core\Manifest;
 use Tsugi\Core\Membership;
 use Tsugi\UI\Table;
 
@@ -95,11 +96,7 @@ class Assignments extends Tool {
     {
         global $CFG, $OUTPUT;
 
-        if ( ! isset($CFG->lessons) ) {
-            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
-        }
-
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        $l = Manifest::requireCurrentLessons();
 
         $allgrades = array();
         $alldates = array();
@@ -168,8 +165,8 @@ class Assignments extends Tool {
     {
         global $CFG, $OUTPUT, $PDOX;
 
-        if ( ! isset($CFG->lessons) ) {
-            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+        if ( ! Manifest::hasCurrent() ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
 
@@ -177,7 +174,7 @@ class Assignments extends Tool {
         $context_id = U::currentContextId();
         $p = $CFG->dbprefix;
 
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        $l = Manifest::requireCurrentLessons();
         $assignment_items = $l->enumerateLtiAssignmentItems(true);
         $assignment_rlids = array();
         foreach ( $assignment_items as $it ) {
@@ -316,8 +313,8 @@ class Assignments extends Tool {
     {
         global $CFG, $PDOX;
 
-        if ( ! isset($CFG->lessons) ) {
-            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+        if ( ! Manifest::hasCurrent() ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
         $this->requireAuth();
         $context_id = U::currentContextId();
@@ -369,13 +366,13 @@ class Assignments extends Tool {
     {
         global $CFG, $OUTPUT;
 
-        if ( ! isset($CFG->lessons) ) {
-            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+        if ( ! Manifest::hasCurrent() ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
 
         $context_id = U::currentContextId();
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        $l = Manifest::requireCurrentLessons();
         $items = $l->enumerateLtiAssignmentItems(true);
         $dueMap = $this->loadDueDatesByLinkKey($context_id);
 
@@ -493,13 +490,13 @@ class Assignments extends Tool {
     {
         global $CFG, $PDOX;
 
-        if ( ! isset($CFG->lessons) ) {
-            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+        if ( ! Manifest::hasCurrent() ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
 
         $context_id = U::currentContextId();
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        $l = Manifest::requireCurrentLessons();
         $allowed = array();
         foreach ( $l->enumerateLtiAssignmentItems(true) as $it ) {
             $allowed[$it['resource_link_id']] = true;
@@ -560,13 +557,13 @@ class Assignments extends Tool {
     {
         global $CFG, $PDOX;
 
-        if ( ! isset($CFG->lessons) ) {
-            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+        if ( ! Manifest::hasCurrent() ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
 
         $context_id = U::currentContextId();
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        $l = Manifest::requireCurrentLessons();
         $allowed = array();
         foreach ( $l->enumerateLtiAssignmentItems(true) as $it ) {
             $allowed[$it['resource_link_id']] = true;
@@ -603,8 +600,8 @@ class Assignments extends Tool {
     {
         global $CFG, $PDOX;
 
-        if ( ! isset($CFG->lessons) ) {
-            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+        if ( ! Manifest::hasCurrent() ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
 
@@ -622,7 +619,7 @@ class Assignments extends Tool {
             return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
         }
 
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        $l = Manifest::requireCurrentLessons();
         $items = $l->enumerateLtiAssignmentItems(true);
         $dueMap = $this->loadDueDatesByLinkKey($context_id);
 
@@ -677,13 +674,13 @@ class Assignments extends Tool {
     {
         global $CFG, $PDOX;
 
-        if ( ! isset($CFG->lessons) ) {
-            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
+        if ( ! Manifest::hasCurrent() ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
 
         $context_id = U::currentContextId();
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        $l = Manifest::requireCurrentLessons();
         $items = $l->enumerateLtiAssignmentItems(true);
         $dueMap = $this->loadDueDatesByLinkKey($context_id);
 

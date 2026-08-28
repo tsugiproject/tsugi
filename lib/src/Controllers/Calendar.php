@@ -5,6 +5,7 @@ namespace Tsugi\Controllers;
 
 use \Tsugi\Util\U;
 use Tsugi\Core\LTIX;
+use Tsugi\Core\Manifest;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -123,7 +124,8 @@ class Calendar extends Tool {
     {
         global $CFG;
 
-        if ( ! isset($CFG->lessons) ) {
+        $l = Manifest::currentLessons();
+        if ( ! $l ) {
             return new JsonResponse(
                 array('status' => 'error', 'detail' => 'Lessons not configured'),
                 500
@@ -138,7 +140,6 @@ class Calendar extends Tool {
 
         LTIX::getConnection();
 
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $items = $l->enumerateLtiAssignmentItems();
         $dueMap = GradeUtil::loadDueDatesForDisplay(U::currentContextId());
 
@@ -161,10 +162,7 @@ class Calendar extends Tool {
     {
         global $CFG, $OUTPUT;
 
-        if ( ! isset($CFG->lessons) ) {
-            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
-        }
-
+        $l = Manifest::requireCurrentLessons();
         $nowY = (int) date('Y');
         $nowM = (int) date('n');
         $nowD = (int) date('j');
@@ -187,7 +185,6 @@ class Calendar extends Tool {
         $daysInMonth = (int) date('t', $firstTs);
         $startDow = (int) date('w', $firstTs);
 
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
         $items = $l->enumerateLtiAssignmentItems();
         $dueMap = array();
         if ( U::currentContextId() !== 0 ) {
