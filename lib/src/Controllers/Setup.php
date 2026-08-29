@@ -88,6 +88,7 @@ class Setup extends Tool {
             <h1><?= __('Setup') ?></h1>
             <p><?= __('Theme is stored with each manifest version. New courses start with the site default until you pick one.') ?></p>
             <form method="post" action="<?= htmlspecialchars($save_url) ?>">
+                <?= self::csrfField() ?>
                 <?php include __DIR__ . '/templates/Setup/theme_picker.inc.php'; ?>
                 <p>
                     <button type="submit" class="btn btn-primary"><?= __('Save theme') ?></button>
@@ -106,6 +107,9 @@ class Setup extends Tool {
         $gate = $this->setupGate();
         if ( $gate ) {
             return $gate;
+        }
+        if ( ! self::checkCsrf() ) {
+            return new RedirectResponse($setup_url);
         }
 
         $posted = U::get($_POST, 'theme', '');

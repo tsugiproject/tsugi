@@ -167,13 +167,11 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertSame($json, Manifest::loadJson(77));
     }
 
-    public function testLoadJsonDisabledCacheReturnsFalseWithoutDb()
+    public function testManifestTestMCacheIsDisabled()
     {
         $fake = new ManifestTestMCache();
         $fake->enabled = false;
         Manifest::setMCache($fake);
-        // No database in this unit test: miss + no PDOX should not throw from MCache.
-        // loadJsonFromDatabase will fail without a connection; skip if we cannot isolate.
         $this->assertFalse($fake->isEnabled());
     }
 

@@ -347,6 +347,7 @@ class Courses extends Tool {
             <h1>Add course</h1>
             <p>Creates a new course with a starter outline. Lesson authoring for this course saves new manifest versions.</p>
             <form method="post" action="<?= htmlspecialchars($home . '/create') ?>">
+                <?= self::csrfField() ?>
                 <p>
                     <label for="course_title">Title</label><br/>
                     <input type="text" id="course_title" name="title" required maxlength="512" style="min-width: 20em;"/>
@@ -371,6 +372,9 @@ class Courses extends Tool {
         $gate = self::createGateResponse($home);
         if ( $gate ) {
             return $gate;
+        }
+        if ( ! self::checkCsrf() ) {
+            return new RedirectResponse(U::addSession($home . '/create'));
         }
 
         $title = trim((string) U::get($_POST, 'title', ''));

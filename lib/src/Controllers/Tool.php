@@ -55,6 +55,36 @@ abstract class Tool {
     }
 
     /**
+     * Hidden CSRF_TOKEN input for cookie-session HTML forms that POST to Tsugi.
+     *
+     * Mints a session token if the current session does not have one yet
+     * (Google site login historically did not set CSRF_TOKEN; LTI launch does).
+     * Do not use this on LTI launches or signed webhooks.
+     *
+     * @return string
+     */
+    public static function csrfField() {
+        $token = LTIX::ensureCsrfToken();
+        return '<input type="hidden" name="CSRF_TOKEN" value="'.htmlspecialchars($token).'">';
+    }
+
+    /**
+     * True when POST CSRF_TOKEN matches the session token (fail closed).
+     *
+     * @return bool
+     */
+    public static function checkCsrf() {
+        $token = $_SESSION['CSRF_TOKEN'] ?? '';
+        $posted = U::get($_POST, 'CSRF_TOKEN', '');
+        if ( ! is_string($token) || $token === '' || ! is_string($posted) || $posted === ''
+                || ! hash_equals($token, $posted) ) {
+            U::flashError('Missing or invalid CSRF token');
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Require LTI consumer session fields needed to sign an outbound LTI 1.1 launch.
      *
      * @return RedirectResponse|null Null if session is sufficient; redirect with flash otherwise.

@@ -670,7 +670,7 @@ class LTIX {
         $browser_mark = self::getBrowserMark();
         $_SESSION['BROWSER_MARK'] = $browser_mark;
 
-        $_SESSION['CSRF_TOKEN'] = uniqid();
+        self::ensureCsrfToken(true);
 
         // Save this to make sure the user does not wander unless we launched from the root
         $scp = $CFG->getScriptPath();
@@ -2577,6 +2577,21 @@ class LTIX {
     private static function checkReferer() {
         global $CFG;
         return isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'],$CFG->wwwroot) === 0 ;
+    }
+
+    /**
+     * Session CSRF token for same-origin HTML forms (not LTI launches or signed webhooks).
+     *
+     * @param bool $rotate When true, always mint a new token (login / LTI launch).
+     * @return string
+     */
+    public static function ensureCsrfToken($rotate = false) {
+        $token = $_SESSION['CSRF_TOKEN'] ?? '';
+        if ( $rotate || ! is_string($token) || $token === '' ) {
+            $token = bin2hex(random_bytes(16));
+            $_SESSION['CSRF_TOKEN'] = $token;
+        }
+        return $token;
     }
 
     // Returns true for a good CSRF and false if we could not verify it

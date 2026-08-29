@@ -410,6 +410,7 @@ class GoogleLoginHandler {
         }
 
         $_SESSION[TSUGI_SESSION_LTI] = $lti;
+        LTIX::ensureCsrfToken(true);
         LTIX::noteLoggedIn($lti);
         if ( ! empty($CFG->enable_secure_cookie_login) ) {
             SecureCookie::set($user_id, $userEmail, $context_id);

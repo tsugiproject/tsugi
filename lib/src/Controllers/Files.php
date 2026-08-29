@@ -869,29 +869,6 @@ class Files extends Tool {
         return $out;
     }
 
-    private function csrfField()
-    {
-        $token = $_SESSION['CSRF_TOKEN'] ?? '';
-        if ( $token === '' ) {
-            return '';
-        }
-        return '<input type="hidden" name="CSRF_TOKEN" value="'.htmlspecialchars($token).'">';
-    }
-
-    private function checkCsrf()
-    {
-        $token = $_SESSION['CSRF_TOKEN'] ?? '';
-        if ( $token === '' ) {
-            return true;
-        }
-        $posted = U::get($_POST, 'CSRF_TOKEN', '');
-        if ( $posted !== $token ) {
-            U::flashError('Missing or invalid CSRF token');
-            return false;
-        }
-        return true;
-    }
-
     private function formatStamp($stamp)
     {
         if ( empty($stamp) || $stamp === '1970-01-02 00:00:00' ) {

@@ -306,6 +306,10 @@ class Discussions extends Tool {
             document.addEventListener('click', function(ev) {
                 var a = ev.target && ev.target.closest ? ev.target.closest('a') : null;
                 if (!a || !hasChanges || allowLeave) return;
+                var href = a.getAttribute('href');
+                if (!href || href.charAt(0) === '#') return;
+                var target = (a.getAttribute('target') || '_self').toLowerCase();
+                if (target !== '_self') return;
                 ev.preventDefault();
                 if (window.confirm(leaveMsg + '\n\n' + <?= json_encode(__('Leave without saving?')) ?>)) {
                     allowLeave = true;
