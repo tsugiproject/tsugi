@@ -28,8 +28,6 @@ parameters:
         - store
         - util
         - index.php
-        - login.php
-        - logout.php
         - top.php
         - tsugi.php
         - about.php
