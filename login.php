@@ -21,8 +21,10 @@ function login_redirect($path=false) {
     header('Location: '.($path ? rtrim($home, '/').'/'.$path : $home));
 }
 
-session_start();
-session_regenerate_id(true);
+if ( session_status() !== PHP_SESSION_ACTIVE ) {
+    session_start();
+    session_regenerate_id(true);
+}
 error_log('Session in login '.session_id());
 
 $come_back = Login::oauthRedirectUri();

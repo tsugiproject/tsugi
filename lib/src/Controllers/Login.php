@@ -143,7 +143,7 @@ class Login extends Tool {
         if ( $result->error ) {
             error_log('Login.get() error: '.$result->error.' session_id='.session_id());
             U::flashError($result->error);
-            return new RedirectResponse($CFG->apphome.'/');
+            return new RedirectResponse(self::defaultHomeUrl());
         }
 
         // Handle successful login redirect
