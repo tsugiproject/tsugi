@@ -7,6 +7,7 @@ use \Tsugi\Util\Net;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\Core\Cache;
+use \Tsugi\Core\User;
 use \Tsugi\Controllers\Login;
 
 /**
@@ -349,6 +350,7 @@ class GoogleLoginHandler {
         $_SESSION["id"] = $user_id;
         $lti["user_id"] = $user_id;
         $_SESSION["user_id"] = $user_id;
+        User::rememberCreateCourses($user_id);
         $_SESSION["user_key"] = $user_key;
         $lti["user_key"] = $user_key;
         $_SESSION["email"] = $userEmail;

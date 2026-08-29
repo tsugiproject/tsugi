@@ -158,6 +158,9 @@ array( "{$CFG->dbprefix}lti_user",
     image               TEXT NULL,
     subscribe           SMALLINT NULL,
 
+    -- Site-level capability to mint courses (not an LTI membership role)
+    create_courses      TINYINT(1) NOT NULL DEFAULT 0,
+
     json                MEDIUMTEXT NULL,
     login_at            TIMESTAMP NULL,
     login_count         BIGINT DEFAULT 0,
@@ -783,6 +786,9 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         // 2026-08-28 Named course theme key (NULL = site $CFG->theme)
         array('manifest', 'theme', 'VARCHAR(64) NULL'),
+
+        // 2026-08-28 User-level capability to create site-login courses
+        array('lti_user', 'create_courses', 'TINYINT(1) NOT NULL DEFAULT 0'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -1436,7 +1442,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610010001;
+    return 202610010003;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

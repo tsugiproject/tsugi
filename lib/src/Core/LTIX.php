@@ -2682,6 +2682,7 @@ class LTIX {
         $_SESSION['profile_id'] = $row['profile_id'];
         $_SESSION['user_key'] = $row['user_key'];
         $_SESSION['avatar'] = $row['user_image'];
+        User::rememberCreateCourses($row['user_id']);
         if ( isset($row['key_key']) ) {
             $_SESSION['oauth_consumer_key'] = $row['key_key'];
         }

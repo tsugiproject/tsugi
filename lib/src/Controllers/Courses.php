@@ -11,6 +11,7 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\Context;
 use \Tsugi\Core\Manifest;
+use \Tsugi\Core\User;
 use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\UI\Output;
 use \Tsugi\Util\U;
@@ -178,6 +179,7 @@ class Courses extends Tool {
         $_SESSION['context_key'] = $context_key;
         $_SESSION['context_title'] = $title;
         $_SESSION['isinstructor'] = ($role >= LTIX::ROLE_INSTRUCTOR);
+        // Do not touch User::SESSION_CREATE_COURSES — that is a user capability, not a context role.
         if ( $membership_id !== null ) {
             $_SESSION['membership_id'] = $membership_id;
         } else {
@@ -287,7 +289,9 @@ class Courses extends Tool {
         ?>
         <main class="container" id="main-content">
             <h1>Courses</h1>
+            <?php if ( self::canCreate() ) { ?>
             <p><a href="<?= htmlspecialchars($home . '/create') ?>">Add course</a></p>
+            <?php } ?>
             <?php if ( count($rows) < 1 ) { ?>
                 <p>You are not a member of any courses.</p>
             <?php } else { ?>
@@ -327,13 +331,12 @@ class Courses extends Tool {
     public static function createForm(Application $app, Request $request) {
         global $OUTPUT;
 
-        $gate = self::gateResponse();
+        $tool = new self();
+        $home = $tool->toolHome(self::ROUTE);
+        $gate = self::createGateResponse($home);
         if ( $gate ) {
             return $gate;
         }
-
-        $tool = new self();
-        $home = $tool->toolHome(self::ROUTE);
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -363,13 +366,13 @@ class Courses extends Tool {
      * POST: insert context + starter manifest, enter the course.
      */
     public static function createPost(Application $app, Request $request) {
-        $gate = self::gateResponse();
+        $tool = new self();
+        $home = $tool->toolHome(self::ROUTE);
+        $gate = self::createGateResponse($home);
         if ( $gate ) {
             return $gate;
         }
 
-        $tool = new self();
-        $home = $tool->toolHome(self::ROUTE);
         $title = trim((string) U::get($_POST, 'title', ''));
         if ( $title === '' ) {
             U::flashError(__('Title is required.'));
@@ -506,6 +509,13 @@ class Courses extends Tool {
     }
 
     /**
+     * True when the current user may mint a new site-login course.
+     */
+    public static function canCreate() {
+        return User::canCreateCourses();
+    }
+
+    /**
      * @return Response|null
      */
     public static function gateResponse() {
@@ -517,6 +527,23 @@ class Courses extends Tool {
                 'This session is an LTI launch from an LMS. Course switching is not available.',
                 403
             );
+        }
+        return null;
+    }
+
+    /**
+     * Login + Google session + create_courses (or site admin).
+     *
+     * @return Response|null
+     */
+    public static function createGateResponse($home) {
+        $gate = self::gateResponse();
+        if ( $gate ) {
+            return $gate;
+        }
+        if ( ! self::canCreate() ) {
+            U::flashError('You are not allowed to create courses.');
+            return new RedirectResponse(U::addSession($home));
         }
         return null;
     }

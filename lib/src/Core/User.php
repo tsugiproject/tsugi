@@ -210,4 +210,57 @@ class User {
         Cache::set($cacheloc, $row['user_id'], $row);
         return $row;
     }
+
+    /**
+     * Session key for {@see rememberCreateCourses()} (user-level, not a context role).
+     */
+    public const SESSION_CREATE_COURSES = 'create_courses';
+
+    /**
+     * Load lti_user.create_courses into the session. Call at login, never on course switch.
+     *
+     * @return bool True when the flag is set
+     */
+    public static function rememberCreateCourses($user_id) {
+        global $CFG, $PDOX;
+
+        $uid = (int) $user_id;
+        unset($_SESSION[self::SESSION_CREATE_COURSES]);
+        if ( $uid < 1 ) {
+            return false;
+        }
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+        $stmt = $PDOX->queryReturnError(
+            "SELECT create_courses FROM {$CFG->dbprefix}lti_user WHERE user_id = :UID",
+            array(':UID' => $uid)
+        );
+        if ( ! $stmt->success ) {
+            return false;
+        }
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $flag = ($row && (int) ($row['create_courses'] ?? 0) === 1) ? 1 : 0;
+        $_SESSION[self::SESSION_CREATE_COURSES] = $flag;
+        return $flag === 1;
+    }
+
+    /**
+     * True when the current user may mint a new site-login course.
+     *
+     * Site admins always pass. Everyone else needs lti_user.create_courses.
+     * Independent of instructor role in the current (or last) context.
+     */
+    public static function canCreateCourses() {
+        if ( ! U::isLoggedIn() ) {
+            return false;
+        }
+        if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
+            return true;
+        }
+        if ( ! array_key_exists(self::SESSION_CREATE_COURSES, $_SESSION) ) {
+            self::rememberCreateCourses(U::loggedInUserId());
+        }
+        return (int) $_SESSION[self::SESSION_CREATE_COURSES] === 1;
+    }
 }
