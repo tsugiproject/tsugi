@@ -70,21 +70,62 @@ abstract class Tool {
     }
 
     /**
-     * True when POST CSRF_TOKEN (or X-CSRF-TOKEN) matches the session token.
+     * True when POST CSRF_TOKEN (or X-CSRF-TOKEN) matches the session token,
+     * or the browser marks this POST as same-origin.
+     *
+     * Cookie-session pages (admin unlock) can lose the GET session cookie on the
+     * following POST; Chrome still sends Sec-Fetch-Site/Origin, which is enough
+     * to reject cross-site CSRF. LTI launches must not use this helper.
      *
      * @return bool
      */
     public static function csrfOk() {
         $token = $_SESSION['CSRF_TOKEN'] ?? '';
-        if ( ! is_string($token) || $token === '' ) {
-            return false;
+        if ( is_string($token) && $token !== '' ) {
+            $posted = U::get($_POST, 'CSRF_TOKEN', '');
+            if ( is_string($posted) && $posted !== '' && hash_equals($token, $posted) ) {
+                return true;
+            }
+            $header = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_SERVER['HTTP_X_CSRFTOKEN'] ?? '';
+            if ( is_string($header) && $header !== '' && hash_equals($token, $header) ) {
+                return true;
+            }
         }
-        $posted = U::get($_POST, 'CSRF_TOKEN', '');
-        if ( is_string($posted) && $posted !== '' && hash_equals($token, $posted) ) {
+        return self::sameOriginPost();
+    }
+
+    /**
+     * True when this request is a same-origin navigation (not a cross-site CSRF POST).
+     *
+     * @return bool
+     */
+    public static function sameOriginPost() {
+        global $CFG;
+        $site = $_SERVER['HTTP_SEC_FETCH_SITE'] ?? '';
+        if ( is_string($site) && $site === 'same-origin' ) {
             return true;
         }
-        $header = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_SERVER['HTTP_X_CSRFTOKEN'] ?? '';
-        return is_string($header) && $header !== '' && hash_equals($token, $header);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        if ( ! is_string($origin) || $origin === '' ) {
+            return false;
+        }
+        foreach ( array($CFG->wwwroot ?? '', $CFG->apphome ?? '') as $base ) {
+            if ( ! is_string($base) || $base === '' ) {
+                continue;
+            }
+            $parts = parse_url($base);
+            if ( ! is_array($parts) || empty($parts['host']) ) {
+                continue;
+            }
+            $expected = ($parts['scheme'] ?? 'http').'://'.$parts['host'];
+            if ( ! empty($parts['port']) ) {
+                $expected .= ':'.$parts['port'];
+            }
+            if ( hash_equals($expected, $origin) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
