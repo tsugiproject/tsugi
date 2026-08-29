@@ -69,19 +69,47 @@ abstract class Tool {
     }
 
     /**
-     * True when POST CSRF_TOKEN matches the session token (fail closed).
+     * True when POST CSRF_TOKEN (or X-CSRF-TOKEN) matches the session token.
+     *
+     * @return bool
+     */
+    public static function csrfOk() {
+        $token = $_SESSION['CSRF_TOKEN'] ?? '';
+        if ( ! is_string($token) || $token === '' ) {
+            return false;
+        }
+        $posted = U::get($_POST, 'CSRF_TOKEN', '');
+        if ( is_string($posted) && $posted !== '' && hash_equals($token, $posted) ) {
+            return true;
+        }
+        $header = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_SERVER['HTTP_X_CSRFTOKEN'] ?? '';
+        return is_string($header) && $header !== '' && hash_equals($token, $header);
+    }
+
+    /**
+     * True when the CSRF token is valid (fail closed). Flashes on failure.
      *
      * @return bool
      */
     public static function checkCsrf() {
-        $token = $_SESSION['CSRF_TOKEN'] ?? '';
-        $posted = U::get($_POST, 'CSRF_TOKEN', '');
-        if ( ! is_string($token) || $token === '' || ! is_string($posted) || $posted === ''
-                || ! hash_equals($token, $posted) ) {
-            U::flashError('Missing or invalid CSRF token');
-            return false;
+        if ( self::csrfOk() ) {
+            return true;
         }
-        return true;
+        U::flashError('Missing or invalid CSRF token');
+        return false;
+    }
+
+    /**
+     * Redirect back to $redirect when the CSRF token is missing or invalid.
+     *
+     * @param string $redirect
+     * @return RedirectResponse|null Null when the token is valid.
+     */
+    public static function requireCsrf($redirect) {
+        if ( self::checkCsrf() ) {
+            return null;
+        }
+        return new RedirectResponse($redirect);
     }
 
     /**

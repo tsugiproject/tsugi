@@ -108,8 +108,9 @@ class Setup extends Tool {
         if ( $gate ) {
             return $gate;
         }
-        if ( ! self::checkCsrf() ) {
-            return new RedirectResponse($setup_url);
+        $csrf = self::requireCsrf($setup_url);
+        if ( $csrf ) {
+            return $csrf;
         }
 
         $posted = U::get($_POST, 'theme', '');

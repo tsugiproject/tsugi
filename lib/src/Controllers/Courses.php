@@ -373,8 +373,9 @@ class Courses extends Tool {
         if ( $gate ) {
             return $gate;
         }
-        if ( ! self::checkCsrf() ) {
-            return new RedirectResponse(U::addSession($home . '/create'));
+        $csrf = self::requireCsrf(U::addSession($home . '/create'));
+        if ( $csrf ) {
+            return $csrf;
         }
 
         $title = trim((string) U::get($_POST, 'title', ''));

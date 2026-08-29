@@ -355,8 +355,9 @@ class Files extends Tool {
             U::flashError('Invalid folder path');
             return new RedirectResponse($redirect);
         }
-        if ( ! $this->checkCsrf() ) {
-            return new RedirectResponse($redirect);
+        $csrf = $this->requireCsrf($redirect);
+        if ( $csrf ) {
+            return $csrf;
         }
 
         if ( BlobUtil::emptyPost() ) {
@@ -414,8 +415,9 @@ class Files extends Tool {
             U::flashError('Invalid folder path');
             return new RedirectResponse($redirect);
         }
-        if ( ! $this->checkCsrf() ) {
-            return new RedirectResponse($redirect);
+        $csrf = $this->requireCsrf($redirect);
+        if ( $csrf ) {
+            return $csrf;
         }
 
         $name = trim(U::get($_POST, 'name', ''));
@@ -459,8 +461,9 @@ class Files extends Tool {
 
         $folder = $this->postedFolder();
         $redirect = $this->folderUrl($folder === false ? '' : $folder);
-        if ( ! $this->checkCsrf() ) {
-            return new RedirectResponse($redirect);
+        $csrf = $this->requireCsrf($redirect);
+        if ( $csrf ) {
+            return $csrf;
         }
 
         $file_id = (int)$id;
