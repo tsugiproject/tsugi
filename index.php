@@ -69,10 +69,8 @@ Some Tsugi servers accept key applications from instructors, but
 this server is not configured to accept applications for keys.
 <?php } ?>
 </p>
-You can install your own copy of the Tsugi Administration, Developer, and Management console from 
-<a href="https://github.com/tsugiproject/tsugi" target="_blank">https://github.com/tsugiproject/tsugi</a>.  
-This makes use of the Tsugi PHP runtime library
-<a href="https://github.com/tsugiproject/tsugi-php" target="_blank">https://github.com/tsugiproject/tsugi-php</a>.  
+You can install your own copy of the Tsugi from 
+<a href="https://github.com/tsugiproject/tsugi" target="_blank">https://github.com/tsugiproject/tsugi</a>.   
 </p>
 <p>
 You can install any of the following PHP Tsugi tools / toolsets:
@@ -94,13 +92,6 @@ and
 <a href="https://lti-tools.dr-chuck.com/tsugi/dev" target="_blank">working solutions</a> (secret)
 </li>
 </ul>
-</p>
-<p>
-A Java version of Tsugi is being developed at
-<a href="https://github.com/tsugiproject/tsugi-java-servlet" target="_blank">https://github.com/tsugiproject/tsugi-java-servlet</a>
-and a Node version of Tsugi is being developed at
-<a href="https://github.com/tsugiproject/tsugi-node-sample" target="_blank">https://github.com/tsugiproject/tsugi-node-sample</a>.
-Currently all Tsugi languages use this software as their administration and management console.
 </p>
 <p>
 Learning Tools Interoperability™ (LTI™) is a
