@@ -874,16 +874,16 @@ class ConfigInfo {
      * If set to false our login comes back to "login.php".
      *
      * The login return is part of your OAuth 2.0 configuration
-     * in Google.  And some old integrations used login.php.
-     * New integrations should use "/login" and leave this true.
-     * This is here to for old integrations.
+     * in Google.  Some old integrations used login.php; that URL
+     * is still served by the Login controller. New integrations
+     * should use "/login" and leave this true.
      *
      * Note: This is ignored if $google_login_redirect is set.
      */
     public $google_login_new = true;
 
     /*
-     * This allows you to force login.php to always go to the same
+     * This allows you to force login to always go to the same
      * page after login success.  Tsugi looks at the session for a
      * "go back after login" URL, and will go to apphome or wwwroot.
      *

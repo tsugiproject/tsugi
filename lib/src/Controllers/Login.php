@@ -124,6 +124,8 @@ class Login extends Tool {
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Login@get');
         $app->router->get($prefix.'/', 'Login@get');
+        // Legacy Google / bookmark URLs still hit login.php after the script was removed.
+        $app->router->get($prefix.'.php', 'Login@get');
     }
 
     public function get(Request $request)

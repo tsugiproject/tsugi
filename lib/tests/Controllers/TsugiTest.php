@@ -184,15 +184,29 @@ class TsugiTest extends \PHPUnit\Framework\TestCase
         }
         $this->assertTrue($hasBadgesRoute, 'Badges route should be registered');
         
-        // Login controller should register /login route
+        // Login controller should register /login and legacy /login.php
         $hasLoginRoute = false;
+        $hasLoginPhpRoute = false;
+        $hasLogoutRoute = false;
+        $hasLogoutPhpRoute = false;
         foreach ($uris as $uri) {
-            if (strpos($uri, '/login') === 0) {
+            if ($uri === '/login' || $uri === '/login/') {
                 $hasLoginRoute = true;
-                break;
+            }
+            if ($uri === '/login.php') {
+                $hasLoginPhpRoute = true;
+            }
+            if ($uri === '/logout' || $uri === '/logout/') {
+                $hasLogoutRoute = true;
+            }
+            if ($uri === '/logout.php') {
+                $hasLogoutPhpRoute = true;
             }
         }
         $this->assertTrue($hasLoginRoute, 'Login route should be registered');
+        $this->assertTrue($hasLoginPhpRoute, 'Legacy login.php route should be registered');
+        $this->assertTrue($hasLogoutRoute, 'Logout route should be registered');
+        $this->assertTrue($hasLogoutPhpRoute, 'Legacy logout.php route should be registered');
 
         $hasSetupRoute = false;
         foreach ($uris as $uri) {

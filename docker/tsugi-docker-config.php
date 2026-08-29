@@ -152,7 +152,8 @@ $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 
 // This is a legacy backwards compatibility.   In the round-trip to Google it used to
 // come back login.php after login was successful - If this is true, we come back
-// to login (without the php) - set this to false to restore the old pattern
+// to /login. Set this to false if Google's Authorized redirect URI is still login.php.
+// Both URLs are served by the Login controller.
 // Note: This is ignored if $google_login_redirect is set above.
 $CFG->google_login_new = true;
 $CFG->login_return_url = false;

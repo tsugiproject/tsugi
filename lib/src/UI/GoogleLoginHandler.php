@@ -13,7 +13,7 @@ use \Tsugi\Controllers\Login;
  * Handles Google OAuth login flow for Tsugi
  * 
  * This class encapsulates the core login functionality shared across
- * multiple login entry points (login.php, lms/login/index.php, etc.)
+ * multiple login entry points (Login controller, lms/login/index.php, etc.)
  */
 class GoogleLoginHandler {
 

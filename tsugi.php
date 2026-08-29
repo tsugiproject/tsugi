@@ -10,8 +10,7 @@ $launch = LTIX::session_start();
 // Make PHP paths pretty .../install => install.php
 $router = new Tsugi\Util\FileRouter();
 $file = $router->fileCheck();
-// login/logout are Lumen routes (Login/Logout controllers), not legacy *.php scripts.
-if ( $file && $file !== 'login.php' && $file !== 'logout.php' ) {
+if ( $file ) {
     require_once($file);
     return;
 }
