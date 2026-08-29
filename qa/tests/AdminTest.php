@@ -18,7 +18,9 @@ final class AdminTest extends TsugiPantherTestCase
         $driver = $client->getWebDriver();
         $input = $driver->findElement(WebDriverBy::name('passphrase'));
         $input->sendKeys($passphrase);
-        $input->submit();
+        // Native form.submit() includes the CSRF hidden field; WebDriver element
+        // submit() on the password input can omit it and fail closed.
+        $driver->executeScript('document.querySelector("form[method=\'post\']").submit();');
 
         $deadline = microtime(true) + 5;
         while (microtime(true) < $deadline) {
