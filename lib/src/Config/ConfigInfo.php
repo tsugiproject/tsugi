@@ -325,20 +325,14 @@ class ConfigInfo {
     public $testblobs = false; // array('12345');
 
     /**
-     * Configure the long-term login cookie encryption values.
+     * Shared secret used to encrypt LTI secrets in the session, sign OIDC state
+     * JWTs, and related tokens. cookiepad is mixed into a few of those constructions.
      *
-     * These values configure the cookie used to record the overall
-     * login in a long-lived encrypted cookie.   Look at the library
-     * code SecureCookie::create() for more detail on how these operate.
-     *
-     * When enable_secure_cookie_login is false (the default), Tsugi does not
-     * set or process that auto-login cookie; set it true to restore the
-     * long-lived encrypted login behavior.
+     * These are not login cookies. The old TSUGIAUTO auto-login cookie is gone;
+     * see the legacy enable_secure_cookie_login / cookiename properties.
      */
     public $cookiesecret = 'warning:please-change-cookie-secret-a289b543';
-    public $cookiename = 'TSUGIAUTO';
     public $cookiepad = '390b246ea9';
-    public $enable_secure_cookie_login = false;
 
     /**
      * Configure mail sending.
@@ -980,6 +974,15 @@ class ConfigInfo {
     public $analytics_key = false;
     public $analytics_name = false;
     public $universal_analytics = false;
+
+    /**
+     * Deprecated: long-lived TSUGIAUTO auto-login (loginSecureCookie).
+     *
+     * Ignored. The cookie is no longer set or read. These properties remain so
+     * existing config.php assignments do not warn. Setting either has no effect.
+     */
+    public $enable_secure_cookie_login = false;
+    public $cookiename = 'TSUGIAUTO';
 
     /**
      * Badge generation settings - once you start issuing badges - don't change these

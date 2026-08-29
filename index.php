@@ -28,8 +28,6 @@ require_once("sanity-db.php");
 
 session_start();
 
-if ( $PDOX !== false ) LTIX::loginSecureCookie();
-
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 

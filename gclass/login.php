@@ -4,7 +4,6 @@ use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
 use \Tsugi\Core\LTIX;
 use \Tsugi\UI\Lessons;
-use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\Google\GoogleClassroom;
 use \Tsugi\Controllers\Login;
 

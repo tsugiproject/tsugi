@@ -5,7 +5,6 @@ namespace Tsugi\UI;
 use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
 use \Tsugi\Core\LTIX;
-use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\User;
 use \Tsugi\Controllers\Login;
@@ -412,9 +411,6 @@ class GoogleLoginHandler {
         $_SESSION[TSUGI_SESSION_LTI] = $lti;
         LTIX::ensureCsrfToken(true);
         LTIX::noteLoggedIn($lti);
-        if ( ! empty($CFG->enable_secure_cookie_login) ) {
-            SecureCookie::set($user_id, $userEmail, $context_id);
-        }
 
         // Set result properties
         $result->success = true;

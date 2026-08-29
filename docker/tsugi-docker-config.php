@@ -317,15 +317,10 @@ if ( $CFG->DEVELOPER && ! isset($CFG->dataroot) ) {
 }
 */
 
-// These values configure the cookie used to record the overall
-// login in a long-lived encrypted cookie.   Look at the library
-// code createSecureCookie() for more detail on how these operate.
+// Shared secret for encrypting LTI secrets in the session, signing OIDC state,
+// and related tokens. Not a login cookie.
 $CFG->cookiesecret = 'warning:please-change-cookie-secret-a289b543';
-$CFG->cookiename = 'TSUGIAUTO';
 $CFG->cookiepad = '390b246ea9';
-// Long-lived encrypted auto-login cookie (Google login + LTIX::loginSecureCookie).
-// Default false; set true to enable setting and reading the cookie.
-$CFG->enable_secure_cookie_login = false;
 
 // Where the bulk mail comes from - should be a real address with a wildcard box you check
 $CFG->maildomain = false; // 'mail.example.com';

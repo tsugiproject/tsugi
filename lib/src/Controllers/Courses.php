@@ -12,7 +12,6 @@ use \Tsugi\Core\Cache;
 use \Tsugi\Core\Context;
 use \Tsugi\Core\Manifest;
 use \Tsugi\Core\User;
-use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\UI\Output;
 use \Tsugi\Util\U;
 
@@ -220,10 +219,6 @@ class Courses extends Tool {
         $PROFILE = null;
         LTIX::buildLaunch($lti);
         self::wireLaunchConnection();
-
-        if ( ! empty($CFG->enable_secure_cookie_login) && isset($_SESSION['email']) ) {
-            SecureCookie::set($user_id, $_SESSION['email'], $cid);
-        }
 
         return true;
     }

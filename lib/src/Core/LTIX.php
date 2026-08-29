@@ -14,11 +14,9 @@ use \Tsugi\Util\DeepLinkRequest;
 use \Tsugi\Util\LTIConstants;
 use \Tsugi\UI\Output;
 use \Tsugi\Core\I18N;
-use \Tsugi\Core\Settings;
 use \Tsugi\Core\SQLDialect;
 use \Tsugi\Core\Keyset;
 use \Tsugi\OAuth\OAuthUtil;
-use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\Crypt\AesOpenSSL;
 
 use \Firebase\JWT\JWT;
@@ -677,9 +675,6 @@ class LTIX {
         if ( U::isNotEmpty($scp) ) {
             $_SESSION['script_path'] = $CFG->getScriptPath();
         }
-
-        // Check if we can auto-login the system user
-        if ( Settings::linkGet('dologin', false) && isset($PDOX) && $PDOX !== false ) self::loginSecureCookie();
 
         $breadcrumb = 'Launch,';
         $breadcrumb .= isset($row['key_id']) ? $row['key_id'] : '';
@@ -2604,123 +2599,6 @@ class LTIX {
         if ( isset($headers['x-csrf-token']) && $token == $headers['x-csrf-token'] ) return true;
         if ( isset($headers['x-csrftoken']) && $token == $headers['x-csrftoken'] ) return true;
         return false;
-    }
-
-    // Check the secure cookie and set login information appropriately
-    public static function loginSecureCookie() {
-        global $CFG, $PDOX;
-        if ( empty($CFG->enable_secure_cookie_login) ) {
-            return;
-        }
-        $pieces = false;
-        $id = false;
-
-        // Only do this if we are not already logged in...
-        if ( !empty($_SESSION['id']) || !isset($_COOKIE[$CFG->cookiename]) ||
-             !isset($CFG->cookiepad) || $CFG->cookiepad === false) {
-            return;
-        }
-
-        $ct = $_COOKIE[$CFG->cookiename];
-        // error_log("Cookie: $ct \n");
-        $pieces = SecureCookie::extract($ct);
-        if ( $pieces === false || count($pieces) != 3) {
-            error_log('Decrypt fail:'.$ct);
-            SecureCookie::delete();
-            return;
-        }
-
-        // print_r($pieces); die();
-
-        // Convert to an integer and check valid
-        $user_id = is_numeric($pieces[0])? $pieces[0] + 0 : 0;
-        $userEmail = $pieces[1];
-        $context_id = is_numeric($pieces[2]) ? $pieces[2] + 0 : 0;
-        if ( $user_id < 1 || $context_id < 1 ) {
-            $user_id = false;
-            error_log('Decrypt bad ID:'.$ct);
-            error_log(\Tsugi\UI\Output::safe_var_dump($pieces));
-            SecureCookie::delete();
-            return;
-        }
-
-        // The profile table might not even exist yet.
-        // See also login.php line 339 (ish)
-        $sql = "SELECT P.profile_id AS profile_id,
-                U.user_id AS user_id, U.user_key AS user_key,
-                U.displayname AS displayname, U.email AS email, U.image AS user_image,
-                P.displayname AS p_displayname, P.email AS p_email, P.image AS p_user_image,
-                M.membership_id AS membership_id, M.role AS role, C.context_key, C.context_id AS context_id,
-                C.title AS context_title, C.title AS resource_title,
-                K.key_id, K.key_key, K.secret, K.new_secret,
-                NULL AS nonce
-                FROM {$CFG->dbprefix}profile AS P
-                LEFT JOIN {$CFG->dbprefix}lti_user AS U
-                ON P.profile_id = U.profile_id AND user_sha256 = profile_sha256 AND
-                    P.key_id = U.key_id
-                LEFT JOIN {$CFG->dbprefix}lti_key AS K
-                    ON U.key_id = K.key_id
-                LEFT JOIN {$CFG->dbprefix}lti_context AS C
-                    ON U.key_id = C.key_id
-                LEFT JOIN {$CFG->dbprefix}lti_membership AS M
-                    ON U.user_id = M.user_id AND C.context_id = M.context_id
-                WHERE P.email = :EMAIL AND U.email = :EMAIL
-                    AND U.user_id = :UID AND C.context_id = :CID LIMIT 1";
-
-        $stmt = $PDOX->queryReturnError($sql,
-            array('EMAIL' => $userEmail, ":UID" => $user_id, ":CID" => $context_id)
-        );
-
-        // print_r($stmt); die();
-        if ( $stmt->success === false ) return;
-
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        // print_r($row); die();
-        if ( $row === false ) {
-            error_log("Unable to load user_id=$user_id EMAIL=$userEmail");
-            SecureCookie::delete();
-            return;
-        }
-
-        // Coalesce from profile to user where there is missing data
-        if ( U::isEmpty($row['user_image']) ) $row['user_image'] = $row['p_user_image'];
-        if ( U::isEmpty($row['email']) ) $row['email'] = $row['p_email'];
-        if ( U::isEmpty($row['displayname']) ) $row['displayname'] = $row['p_displayname'];
-        unset($row['p_user_image']);
-        unset($row['p_email']);
-        unset($row['p_displayname']);
-
-        $_SESSION['id'] = $row['user_id'];
-        $_SESSION['email'] = $row['email'];
-        $_SESSION['displayname'] = $row['displayname'];
-        $_SESSION['profile_id'] = $row['profile_id'];
-        $_SESSION['user_key'] = $row['user_key'];
-        $_SESSION['avatar'] = $row['user_image'];
-        User::rememberCreateCourses($row['user_id']);
-        if ( isset($row['key_key']) ) {
-            $_SESSION['oauth_consumer_key'] = $row['key_key'];
-        }
-        if ( $row['role'] !== null ) {
-            $_SESSION['context_key'] = $row['context_key'];
-            $_SESSION['context_id'] = $row['context_id'];
-        }
-
-        if ( isset($row['secret']) ) {
-            $row['secret'] = self::encrypt_secret($row['secret']);
-            $_SESSION['secret'] = $row['secret'];
-        }
-        if ( isset($row['new_secret']) ) {
-            $row['new_secret'] = self::encrypt_secret($row['new_secret']);
-        }
-
-        $_SESSION[TSUGI_SESSION_LTI] = $row;
-
-        self::noteLoggedIn($row);
-
-        error_log('Autologin:'.$row['user_id'].','.$row['displayname'].','.
-            $row['email'].','.$row['profile_id']);
-
     }
 
     /**

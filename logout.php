@@ -1,7 +1,6 @@
 <?php
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("config.php");
-use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\Core\Cache;
 if ( session_status() !== PHP_SESSION_ACTIVE ) {
     session_start();
@@ -10,7 +9,6 @@ if ( session_status() !== PHP_SESSION_ACTIVE ) {
 // Kept explicitly so the security intent is obvious: Tsugi session caches must not outlive logout.
 Cache::clearAllSessionCaches();
 session_unset();
-SecureCookie::delete();
 
 if ( isset($CFG->logout_return_url) && is_string($CFG->logout_return_url) ) {
     header('Location: '.$CFG->logout_return_url);

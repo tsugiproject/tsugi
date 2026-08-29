@@ -3,7 +3,6 @@
 use \Tsugi\Util\U;
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;
-use \Tsugi\Crypt\SecureCookie;
 
 // TODO: deal with headers sent...
 function requireLogin() {
