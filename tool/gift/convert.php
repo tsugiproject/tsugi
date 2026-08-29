@@ -122,6 +122,7 @@ The sample text below has some GIFT formats that this tool does not yet support 
 below will not be converted.  Feel free to send me a Pull request on gitHub :).
 </p>
 <form method="post" action="process.php" target="working" style="margin:20px;">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p style="float:right">
 <input type="submit" name="submit" class="btn btn-primary" value="Convert GIFT to QTI"
 onclick="$('#myModal').modal('show');"></p>

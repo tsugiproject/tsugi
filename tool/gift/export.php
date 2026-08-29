@@ -34,6 +34,7 @@ This is an experimental feature to convert your quiz to
 </p>
 </p>
 <form method="post" action="<?= addSession('process.php') ?>" target="working" style="margin:20px;">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p style="float:right">
 <p>Quiz Title: <input type="text" name="title" size="60" value="<?= $LAUNCH->link->title ?>"/></p>
 <p>Quiz File Name (no suffix): <input type="text" name="name" size="30" value="<?= $fname ?>"/> (optional)</p>

@@ -17,6 +17,9 @@ $p = $CFG->dbprefix;
 
 // If they pressed Submit on the quiz content
 if ( isset($_POST['gift']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession('old_configure.php')) ) {
+        return;
+    }
     $gift = $_POST['gift'];
     $_SESSION['gift'] = $gift;
 
@@ -54,6 +57,9 @@ $default = isset($_SESSION['default_quiz']) ? $_SESSION['default_quiz'] : false;
 
 // Load up the selected file
 if ( $files && isset($_POST['file']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession('old_configure.php')) ) {
+        return;
+    }
     $key = isset($_POST['lock']) ? $_POST['lock'] : false;
     if ( $lock && $lock != $key ) {
         $_SESSION['error'] = 'Incorrect password';
@@ -114,6 +120,7 @@ $OUTPUT->flashMessages();
 <?php 
 if ( $files !== false ) {
 echo("<form method=\"post\">\n");
+echo(\Tsugi\Controllers\Tool::csrfField());
 // echo('<select name="file" onchange="console.dir(this); if(this.value!=0) this.form.submit();">'."\n");
 echo('<select name="file">'."\n");
 echo('<option value="0">Select Quiz</option>'."\n");
@@ -138,6 +145,7 @@ The documentation for the GIFT format comes from
 <a href="https://docs.moodle.org/29/en/GIFT_format" target="_blank">Moodle Documentation</a>.
 </p>
 <form method="post" style="margin-left:5%;">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p>
 <input type="submit" class="btn btn-primary" value="Save">
 </p>

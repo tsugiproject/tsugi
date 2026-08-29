@@ -10,6 +10,10 @@ use \Tsugi\Util\U;
 use \Tsugi\UI\Output;
 use \Tsugi\Core\Keyset;
 
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(U::addSession('keyset.php')) ) return;
+}
+
 if (U::isKeyNotEmpty($_POST, "maintain") ) {
     Keyset::maintain();
 }
@@ -41,6 +45,7 @@ $kid = U::appCacheGet('keyset_kid', null);
 <a href="<?= $keyset_url ?>" target="_blank"><?= $keyset_url ?></a>
 </p>
 <form method="POST">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <input type="submit" name="maintain" value="Maintain / Check for Key Rotation">
 <input type="submit" name="getkey" value="Retrieve Signing Key">
 </form>

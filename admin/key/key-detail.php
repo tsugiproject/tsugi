@@ -52,6 +52,10 @@ $titles = array(
     'unlock_code' => 'LTI 1.3: Dynamic Registration Unlock Code (one time use)',
 );
 
+if ( isset($_POST['doUpdate']) || isset($_POST['doDelete']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect($from_location) ) return;
+}
+
 if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
 if ( isset($_POST['user_id']) && empty($_POST['user_id']) ) $_POST['user_id'] = null;
 if ( isset($_POST['deploy_key']) ) {

@@ -24,6 +24,12 @@ if ( isset($_GET['user_id']) ) {
     $url_stay = 'grade?user_id='.$user_id;
 }
 
+if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession($url_stay)) ) {
+        return;
+    }
+}
+
 // Model
 $row = loadAssignment();
 $assn_json = null;
@@ -217,6 +223,7 @@ showSubmission($assn_json, $submit_json, $assn_id, $user_id);
 echo('<p>'.htmlentities($assn_json->grading)."</p>\n");
 ?>
 <form method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
 <input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
 <?php if ( $assn_json->peerpoints > 0 ) { ?>
@@ -236,6 +243,7 @@ echo('<p>'.htmlentities($assn_json->grading)."</p>\n");
 </form>
 <?php   if ( $assn_json->flag ) { ?>
 <form method="post" id="flagform" style="display:none">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p>Please be considerate when flagging an item.  Only use
 flagging when instructor attention is needed.</p>
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">

@@ -88,6 +88,7 @@ class Discussions extends Tool {
             <h1><?= __('Add discussion') ?></h1>
             <p><?= __('Creates a new discussion in this course and saves it as a new manifest version.') ?></p>
             <form method="post" action="<?= htmlspecialchars(U::addSession($this->toolHome(self::ROUTE) . '/add')) ?>">
+                <?= self::csrfField() ?>
                 <p>
                     <label for="discussion_title"><?= __('Title') ?></label><br/>
                     <input type="text" id="discussion_title" name="title" required maxlength="512" style="min-width: 20em;"/>
@@ -113,6 +114,10 @@ class Discussions extends Tool {
         $gate = $this->addDiscussionGate($list_url);
         if ( $gate ) {
             return $gate;
+        }
+        $csrf = self::requireCsrf($form_url);
+        if ( $csrf ) {
+            return $csrf;
         }
 
         $title = trim((string) U::get($_POST, 'title', ''));
@@ -263,7 +268,12 @@ class Discussions extends Tool {
                 var barBtn = document.getElementById('tsugi-reorder-save-bar-btn');
                 if (btn) btn.disabled = true;
                 if (barBtn) barBtn.disabled = true;
-                jQuery.post(saveUrl, { order: collectOrder() })
+                jQuery.ajax({
+                    url: saveUrl,
+                    method: 'POST',
+                    data: { order: collectOrder() },
+                    headers: tsugiCsrfHeaders()
+                })
                     .done(function(data) {
                         allowLeave = true;
                         hasChanges = false;
@@ -333,6 +343,10 @@ class Discussions extends Tool {
         }
         if ( ! $this->isInstructor() ) {
             return new JsonResponse(array('success' => false, 'error' => 'Instructor required'), 403);
+        }
+        $csrf = self::requireCsrfJson();
+        if ( $csrf ) {
+            return $csrf;
         }
 
         $order = U::get($_POST, 'order', array());
@@ -562,6 +576,10 @@ class Discussions extends Tool {
             U::flashError(__('You must be logged in with a course context to mark discussions as read.'));
             return new RedirectResponse(U::addSession($discussions_url));
         }
+        $csrf = self::requireCsrf(U::addSession($discussions_url));
+        if ( $csrf ) {
+            return $csrf;
+        }
 
         if ( ! U::isNotEmpty($CFG->tdiscus) || ! $CFG->tdiscus ) {
             U::flashError(__('Discussions are not available on this site.'));
@@ -613,6 +631,10 @@ class Discussions extends Tool {
         if ( ! $this->isInstructor() ) {
             U::flashError(__('Only instructors can run discussion expiration.'));
             return new RedirectResponse($redirect_url);
+        }
+        $csrf = self::requireCsrf($redirect_url);
+        if ( $csrf ) {
+            return $csrf;
         }
 
         $months_raw = trim((string) U::get($_POST, 'months', ''));
@@ -796,6 +818,10 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
             U::flashError(__('Only instructors can run discussion expiration.'));
             return new RedirectResponse($redirect_url);
         }
+        $csrf = self::requireCsrf($redirect_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
 
         $months_raw = trim((string) U::get($_POST, 'months', ''));
         $months = intval($months_raw);
@@ -963,7 +989,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         echo('<li>');
         echo('<a href="#" class="tsugi-discussions-reset-unread-tracking-link">'.__('Reset unread tracking for all users').'</a>');
         echo(' <span class="text-muted">('.__('clears read tracking for this course; subscription preferences are unchanged').')</span>');
-        echo('<form method="post" action="'.htmlspecialchars(U::addSession($this->toolHome(self::ROUTE).'/reset-unread-tracking')).'" class="tsugi-discussions-reset-unread-tracking-form" style="display:none;"></form>');
+        echo('<form method="post" action="'.htmlspecialchars(U::addSession($this->toolHome(self::ROUTE).'/reset-unread-tracking')).'" class="tsugi-discussions-reset-unread-tracking-form" style="display:none;">'.self::csrfField().'</form>');
         echo('</li>');
         */
         echo('<li><a href="'.htmlspecialchars(U::addSession($this->toolHome(self::ROUTE).'/expire-comments')).'">'.__('Expire old comments').'</a></li>');
@@ -1013,6 +1039,10 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         if ( ! $this->isInstructor() ) {
             U::flashError(__('Only instructors can manage discussions.'));
             return new RedirectResponse($redirect_url);
+        }
+        $csrf = self::requireCsrf($redirect_url);
+        if ( $csrf ) {
+            return $csrf;
         }
         if ( ! U::isNotEmpty($CFG->tdiscus) || ! $CFG->tdiscus ) {
             U::flashError(__('Discussions are not available on this site.'));
@@ -1116,11 +1146,13 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         echo('<pre style="max-height: 24em; overflow:auto;">'.htmlspecialchars(json_encode($snapshot, JSON_PRETTY_PRINT)).'</pre>');
 
         echo('<form method="post" action="'.htmlspecialchars($run_url).'" class="form-inline" style="margin-bottom:0.75em;">');
+        echo(self::csrfField());
         echo('<input type="hidden" name="confirm" value="0">');
         echo('<button type="submit" class="btn btn-info">'.__('Run Pre-Scan Again (dry run)').'</button>');
         echo('</form>');
 
         echo('<form method="post" action="'.htmlspecialchars($run_url).'" class="form-inline tsugi-discussions-scan-fix-form">');
+        echo(self::csrfField());
         echo('<input type="hidden" name="confirm" value="1">');
         echo('<button type="submit" class="btn btn-danger" data-running-label="'.htmlspecialchars(__('Applying repairs…')).'">'.__('Apply Repair (phase 2)').'</button>');
         echo('</form>');
@@ -1195,6 +1227,10 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         if ( ! $this->isInstructor() ) {
             U::flashError(__('Only instructors can manage discussions.'));
             return new RedirectResponse($redirect_url);
+        }
+        $csrf = self::requireCsrf($redirect_url);
+        if ( $csrf ) {
+            return $csrf;
         }
         if ( ! U::isNotEmpty($CFG->tdiscus) || ! $CFG->tdiscus ) {
             U::flashError(__('Discussions are not available on this site.'));
@@ -1514,6 +1550,7 @@ WHERE L.context_id = :CID
                     This first version is dry run only. It never deletes data, and always shows the SQL that would run.
                 </p>
                 <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline" style="margin-bottom: 1em;">
+                    <?= self::csrfField() ?>
                     <div class="form-group">
                         <label for="expire-months">Months:</label>
                         <input id="expire-months" type="number" min="2" step="1" name="months"
@@ -1548,6 +1585,7 @@ Bound parameters
                     -->
                     <?php if ( intval(U::get($result, 'count', 0)) > 0 ) { ?>
                         <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline tsugi-expire-delete-form">
+                            <?= self::csrfField() ?>
                             <input type="hidden" name="months" value="<?= intval($result['months']) ?>">
                             <input type="hidden" name="confirm" value="1">
                             <button type="submit" class="btn btn-danger"
@@ -1591,6 +1629,7 @@ Bound parameters
                     Deleting one match removes that comment and its whole subtree. Dry run shows counts and SQL; confirming deletes up to <?= intval(self::EXPIRE_DELETE_BATCH_LIMIT) ?> subtree(s) per run.
                 </p>
                 <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline" style="margin-bottom: 1em;">
+                    <?= self::csrfField() ?>
                     <div class="form-group">
                         <label for="expire-comments-months">Months:</label>
                         <input id="expire-comments-months" type="number" min="2" step="1" name="months"
@@ -1626,6 +1665,7 @@ Bound parameters
                     -->
                     <?php if ( $tdiscus_threads_ok && intval(U::get($result, 'count', 0)) > 0 ) { ?>
                         <form method="post" action="<?= htmlspecialchars($action_url) ?>" class="form-inline tsugi-expire-delete-form">
+                            <?= self::csrfField() ?>
                             <input type="hidden" name="months" value="<?= intval($result['months']) ?>">
                             <input type="hidden" name="confirm" value="1">
                             <button type="submit" class="btn btn-danger"

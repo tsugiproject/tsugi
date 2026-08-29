@@ -16,6 +16,9 @@ $p = $CFG->dbprefix;
 
 //set json
 if ( isset($_POST['save_settings']) ) {
+  if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession('configure.php')) ) {
+      return;
+  }
   $partsArray = array();
   for ($i=0; $i < 20; $i++){
     $partList = array();
@@ -178,6 +181,7 @@ function input_radio($jsonObj, $field, $value, $onclick=false) {
 ?>
 
 <form method="post">
+    <?= \Tsugi\Controllers\Tool::csrfField() ?>
     <p>
       <span data-toggle="tooltip" title="
 Description of assignment shown to students.  This can be edited

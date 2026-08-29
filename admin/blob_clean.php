@@ -38,34 +38,38 @@ since it is a long running task.
 <?php } ?>
 <?php
 if ( U::get($_POST,'migrate') ) {
-    $start = time();
-    $files = $PDOX->allRowsDie("SELECT BB.blob_id, BB.blob_sha256
-        FROM {$CFG->dbprefix}blob_blob AS BB 
-        LEFT JOIN {$CFG->dbprefix}blob_file AS BF 
-            ON BB.blob_sha256 = BF.file_sha256 AND BB.blob_id = BF.blob_id
-        WHERE BF.blob_id IS NULL LIMIT 100");
+    if ( ! \Tsugi\Controllers\Tool::checkCsrf() ) {
+        echo("<p>Missing or invalid CSRF token</p>\n");
+    } else {
+        $start = time();
+        $files = $PDOX->allRowsDie("SELECT BB.blob_id, BB.blob_sha256
+            FROM {$CFG->dbprefix}blob_blob AS BB 
+            LEFT JOIN {$CFG->dbprefix}blob_file AS BF 
+                ON BB.blob_sha256 = BF.file_sha256 AND BB.blob_id = BF.blob_id
+            WHERE BF.blob_id IS NULL LIMIT 100");
 
-    echo("<pre>\n");
-    foreach ( $files as $row ) {
-        $blob_id = $row['blob_id'];
-        $blob_sha256 = $row['blob_sha256'];
-        if ( ! $blob_id ) continue;
+        echo("<pre>\n");
+        foreach ( $files as $row ) {
+            $blob_id = $row['blob_id'];
+            $blob_sha256 = $row['blob_sha256'];
+            if ( ! $blob_id ) continue;
 
-        $stmt = $PDOX->prepare("DELETE FROM {$CFG->dbprefix}blob_blob
-            WHERE blob_id = :ID");
-        $stmt->execute(array(':ID' => $blob_id));
+            $stmt = $PDOX->prepare("DELETE FROM {$CFG->dbprefix}blob_blob
+                WHERE blob_id = :ID");
+            $stmt->execute(array(':ID' => $blob_id));
 
-        $note = "Unreferenced blob removed blob_id=$blob_id sha=$blob_sha256";
-        error_log($note);
-        echo("$note\n");
+            $note = "Unreferenced blob removed blob_id=$blob_id sha=$blob_sha256";
+            error_log($note);
+            echo("$note\n");
 
-        $delta = time() - $start;
-        if ( $delta > 10 ) {
-            echo("Migration stopped at 10 seconds ellapsed time\n");
-            break;
+            $delta = time() - $start;
+            if ( $delta > 10 ) {
+                echo("Migration stopped at 10 seconds ellapsed time\n");
+                break;
+            }
         }
+        echo("</pre>\n");
     }
-    echo("</pre>\n");
 }
 
 $row = $PDOX->rowDie("SELECT count(BB.blob_id) AS count
@@ -81,6 +85,7 @@ $file_count = $row ? $row['count'] : 0;
 <?php if ( $file_count > 0 ) { ?>
 <p>
 <form method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <input type="submit" onclick="$('#myspinner').show();return true;" name="migrate" value="Delete Blobs"/>
 <input type="submit" onclick="$('#myspinner').show();return true;" name="reset" value="Clear Results"/>
 <img id="myspinner" src="<?= $OUTPUT->getSpinnerUrl() ?>" alt="" role="presentation" style="display:none">

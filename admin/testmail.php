@@ -12,6 +12,7 @@ use \Tsugi\Services\Mail\MailService;
 LTIX::getConnection();
 
 if ( U::get($_POST,'email') && U::get($_POST,'subject') && U::get($_POST,'body')) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(U::addSession('testmail.php')) ) return;
     $to = trim((string) U::get($_POST,'email'));
     $subject = (string) U::get($_POST,'subject');
     $body = (string) U::get($_POST,'body');
@@ -133,6 +134,7 @@ maildomain:
 </p>
 <p>
 <form method="POST">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p>
 Mail address:<br/>
 <input style="width: 90%" type="email" name="email">

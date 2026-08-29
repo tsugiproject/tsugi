@@ -160,6 +160,7 @@ foreach($sortby as $sort) {
 ?>
 <div id="tdiscus-add-comment-div" class="tdiscus-add-comment-container" title="<?= __("Reply") ?>" role="region" aria-label="<?= htmlspecialchars(__("Add reply")) ?>">
 <form id="tdiscus-add-comment-form" method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p>
 <label for="tdiscus-add-comment-text-<?= $thread_id ?>" class="tdiscus-visually-hidden"><?= __("Your reply") ?></label>
 <textarea id="tdiscus-add-comment-text-<?= $thread_id ?>" style="width:100%;" class="tdiscus-add-sub-comment-text form-control" name="comment" aria-label="<?= htmlspecialchars(__("Your reply")) ?>">
@@ -180,6 +181,7 @@ foreach($sortby as $sort) {
 <form method="post" 
     data-click-done="<?= $html_id ?>_toggle" 
     class="tdiscus-add-sub-comment-form">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p>
 <input type="hidden" name="comment_id" value="<?= $comment_id ?>">
 <input type="hidden" name="thread_id" value="<?= $thread_id ?>">
@@ -295,7 +297,11 @@ $(document).ready( function() {
         ev.preventDefault()
         if ( ! confirm($(this).attr('data-confirm')) ) return;
         var data_class = $(this).attr('data-class');
-        $.post(addSession('<?= self::toolRoot() ?>'+'/api/'+$(this).attr('data-endpoint')))
+        $.ajax({
+            url: addSession('<?= self::toolRoot() ?>'+'/api/'+$(this).attr('data-endpoint')),
+            method: 'POST',
+            headers: tsugiCsrfHeaders()
+        })
             .done( function(data) {
                 $('.'+data_class).toggle();
             })
@@ -337,7 +343,12 @@ $(document).ready( function() {
        // Hide during the processing
        if ( click_done ) $('#'+click_done).click();
        $(this).find('textarea[name="comment"]').val('');
-       $.post(addSession('<?= self::toolRoot() ?>/api/addsubcomment'), ser)
+       $.ajax({
+           url: addSession('<?= self::toolRoot() ?>/api/addsubcomment'),
+           method: 'POST',
+           data: ser,
+           headers: tsugiCsrfHeaders()
+       })
             .done( function(data) {
                 console.log('data', data);
                 // if ( comment.length > 0 ) txt3.innerHTML = htmlentities(comment);

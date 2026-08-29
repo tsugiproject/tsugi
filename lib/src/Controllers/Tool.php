@@ -10,6 +10,7 @@ use Tsugi\Core\Membership;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
  * Base class for LMS tool controllers
@@ -110,6 +111,42 @@ abstract class Tool {
             return null;
         }
         return new RedirectResponse($redirect);
+    }
+
+    /**
+     * For classic PHP tools that redirect with header('Location').
+     *
+     * @param string $url Already session-bearing Location target.
+     * @return bool True when the caller should return (token was bad).
+     */
+    public static function csrfRedirect($url) {
+        if ( self::csrfOk() ) {
+            return false;
+        }
+        U::flashError('Missing or invalid CSRF token');
+        header('Location: '.$url);
+        return true;
+    }
+
+    /**
+     * JSON 403 when the CSRF token is missing or invalid (no flash).
+     *
+     * @param array|null $payload
+     * @return JsonResponse|null Null when the token is valid.
+     */
+    public static function requireCsrfJson($payload = null) {
+        if ( self::csrfOk() ) {
+            return null;
+        }
+        if ( $payload === null ) {
+            $payload = array(
+                'success' => false,
+                'status' => 'error',
+                'error' => 'Missing or invalid CSRF token',
+                'detail' => 'Missing or invalid CSRF token',
+            );
+        }
+        return new JsonResponse($payload, 403);
     }
 
     /**

@@ -122,6 +122,10 @@ $context_title = $context_row['title'] ? $context_row['title'] : "Context #$cont
 $from_user_id = loggedInUserId();
 $step = U::get($_REQUEST, 'step', 'compose');
 
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect('bulk-mail.php?context_id='.$context_id) ) return;
+}
+
 // ---------- Send (confirm POST) ----------
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'step') === 'send' ) {
     if ( (!isset($CFG->maildomain)) || $CFG->maildomain === false ) {
@@ -464,6 +468,7 @@ Transport: <strong><?= htmlentities(MailService::transport()) ?></strong>
   <div class="panel-heading"><h3 class="panel-title">Compose</h3></div>
   <div class="panel-body">
     <form method="post" action="bulk-mail.php">
+      <?= \Tsugi\Controllers\Tool::csrfField() ?>
       <input type="hidden" name="context_id" value="<?= (int) $context_id ?>">
       <input type="hidden" name="step" value="compose">
       <div class="form-group">
@@ -722,6 +727,7 @@ $cli_preview = bulk_mail_cli_instructions(
 
     <?php if ( $mail_ok && !$over && $n > 0 ) { ?>
     <form method="post" action="bulk-mail.php" style="margin-top:15px;">
+      <?= \Tsugi\Controllers\Tool::csrfField() ?>
       <input type="hidden" name="context_id" value="<?= (int) $context_id ?>">
       <input type="hidden" name="step" value="send">
       <input type="hidden" name="subject" value="<?= htmlentities($subject) ?>">

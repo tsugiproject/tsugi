@@ -15,6 +15,11 @@ $LTI = LTIX::requireData();
 
 $THREADS = new Threads();
 
+if ( ! \Tsugi\Controllers\Tool::csrfOk() ) {
+    Net::send400('Missing or invalid CSRF token');
+    return;
+}
+
 $thread_id = U::get($_POST, 'thread_id');
 $comment_id = U::get($_POST, 'comment_id');
 $comment = U::get($_POST, 'comment');

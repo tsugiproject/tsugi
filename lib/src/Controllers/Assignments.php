@@ -135,6 +135,7 @@ class Assignments extends Tool {
                 $btnLabel = $hiding ? __('Show due dates') : __('Hide due dates');
                 $toggleAction = U::addSession($this->toolHome(self::ROUTE) . '/toggle-view-due-dates');
                 echo('<form method="post" action="'.htmlspecialchars($toggleAction).'" style="display:inline;margin:0;">');
+                echo(self::csrfField());
                 echo('<button type="submit" class="btn btn-default btn-sm">'.htmlspecialchars($btnLabel).'</button>');
                 echo('</form>');
             }
@@ -317,11 +318,16 @@ class Assignments extends Tool {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
         $this->requireAuth();
+        $home = U::addSession($this->toolHome(self::ROUTE));
+        $csrf = self::requireCsrf($home);
+        if ( $csrf ) {
+            return $csrf;
+        }
         $context_id = U::currentContextId();
         $user_id = U::loggedInUserId();
         if ( ! $context_id || ! $user_id ) {
             U::flashError(__('Context required.'));
-            return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
+            return new RedirectResponse($home);
         }
         $cid = (int) $context_id;
         $uid = (int) $user_id;
@@ -412,6 +418,7 @@ class Assignments extends Tool {
             echo(__('The resource link id in your lessons file must match the LMS resource link id when students launch, or launches will create a different row.'));
             echo('</p>');
             echo('<form method="post" action="'.htmlspecialchars($addLinksAction).'">');
+            echo(self::csrfField());
             echo('<button type="submit" class="btn btn-default">');
             echo('<i class="fa fa-plus-circle" aria-hidden="true"></i> '.__('Add missing link rows').' ('.$missingCount.')');
             echo('</button>');
@@ -424,6 +431,7 @@ class Assignments extends Tool {
         echo('<p><strong>'.__('Weekly due dates').'</strong></p>');
         echo('<p>'.__('Lesson modules are ordered as in your lessons file. Pick the due date for all assignments in the first module (week 1). Each later module adds one week; every due is 11:59 PM on that calendar day.').'</p>');
         echo('<form method="post" action="'.htmlspecialchars($weeklyAction).'" class="form-inline">');
+        echo(self::csrfField());
         echo('<div class="form-group" style="margin-right:1em;">');
         echo('<label for="week1_due" style="margin-right:0.5em;">'.__('First module due date').'</label> ');
         echo('<input type="date" class="form-control" id="week1_due" name="week1_due" required>');
@@ -439,6 +447,7 @@ class Assignments extends Tool {
         echo('<p>'.__('Sets due date to empty for every lesson assignment that has an LTI link row in this course.').'</p>');
         echo('<form method="post" action="'.htmlspecialchars($clearAllAction).'" onsubmit=\'return confirm('.
             json_encode(__('Remove all due dates for lesson assignments in this course?')).');\'>');
+        echo(self::csrfField());
         echo('<button type="submit" class="btn btn-warning">');
         echo('<i class="fa fa-eraser" aria-hidden="true"></i> '.__('Clear all due dates'));
         echo('</button>');
@@ -446,6 +455,7 @@ class Assignments extends Tool {
         echo('</div>');
 
         echo('<form method="post" action="'.htmlspecialchars($action).'" class="table-responsive">'."\n");
+        echo(self::csrfField());
         echo('<table class="table table-bordered table-striped">'."\n");
         echo('<thead><tr><th>'.__('Module').'</th><th>'.__('Assignment').'</th><th>'.__('Resource link').'</th><th>'.__('Due date').'</th></tr></thead>'."\n");
         echo("<tbody>\n");
@@ -494,6 +504,11 @@ class Assignments extends Tool {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
+        $dates_url = U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates');
+        $csrf = self::requireCsrf($dates_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
 
         $context_id = U::currentContextId();
         $l = Manifest::requireCurrentLessons();
@@ -561,6 +576,11 @@ class Assignments extends Tool {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
+        $dates_url = U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates');
+        $csrf = self::requireCsrf($dates_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
 
         $context_id = U::currentContextId();
         $l = Manifest::requireCurrentLessons();
@@ -604,6 +624,11 @@ class Assignments extends Tool {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
+        $dates_url = U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates');
+        $csrf = self::requireCsrf($dates_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
 
         $context_id = U::currentContextId();
         $raw = U::get($_POST, 'week1_due', '');
@@ -678,6 +703,11 @@ class Assignments extends Tool {
             die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
+        $dates_url = U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates');
+        $csrf = self::requireCsrf($dates_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
 
         $context_id = U::currentContextId();
         $l = Manifest::requireCurrentLessons();

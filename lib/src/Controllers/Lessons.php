@@ -157,6 +157,10 @@ class Lessons extends Tool {
             return new Response(json_encode(['success' => false, 'error' => 'Not allowed']), 403, ['Content-Type' => 'application/json']);
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
+        $csrf = self::requireCsrfJson();
+        if ( $csrf ) {
+            return $csrf;
+        }
 
         $action = U::get($_POST, 'action');
         if ( $action !== 'save' ) {
@@ -220,6 +224,10 @@ class Lessons extends Tool {
             return new Response('Lesson authoring is not enabled', 403);
         }
         $this->requireInstructor($author_url);
+        $csrf = self::requireCsrf($author_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
 
         if ( empty($_FILES['file']) || ! is_array($_FILES['file']) ) {
             U::flashError(__('No file uploaded.'));

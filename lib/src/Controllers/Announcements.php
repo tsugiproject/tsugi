@@ -355,6 +355,7 @@ class Announcements extends Tool {
                     
                     fetch(url, {
                         method: 'POST',
+                        headers: tsugiCsrfHeaders(),
                         body: formData
                     })
                     .then(response => response.json())
@@ -470,7 +471,8 @@ class Announcements extends Tool {
                     var url = this.getAttribute('data-url');
                     
                     fetch(url, {
-                        method: 'POST'
+                        method: 'POST',
+                        headers: tsugiCsrfHeaders()
                     })
                     .then(response => response.json())
                     .then(data => {
@@ -625,6 +627,10 @@ class Announcements extends Tool {
         if ($request->getMethod() !== 'POST') {
             return new JsonResponse(['status' => 'error', 'detail' => 'Method not allowed'], 405);
         }
+        $csrf = self::requireCsrfJson();
+        if ( $csrf ) {
+            return $csrf;
+        }
         
         // Get POST data - FormData from fetch() should populate $_POST
         // But Symfony Request might consume the body, so check both
@@ -729,6 +735,10 @@ class Announcements extends Tool {
         if ($request->getMethod() !== 'POST') {
             return new JsonResponse(['status' => 'error', 'detail' => 'Method not allowed'], 405);
         }
+        $csrf = self::requireCsrfJson();
+        if ( $csrf ) {
+            return $csrf;
+        }
         
         $user_id = U::loggedInUserId();
         $context_id = U::currentContextId();
@@ -813,6 +823,7 @@ class Announcements extends Tool {
                 </div>
                 <div class="panel-body">
                     <form method="POST" action="<?= $add_url ?>">
+                        <?= self::csrfField() ?>
                         <div class="form-group">
                             <label for="title">Title *</label>
                             <input type="text" class="form-control" id="title" name="title" 
@@ -868,6 +879,10 @@ class Announcements extends Tool {
         $tool_home = $this->toolHome(self::ROUTE);
         $add_url = $tool_home . '/add';
         $manage_url = $tool_home . '/manage';
+        $csrf = self::requireCsrf($add_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
         
         LTIX::getConnection();
         
@@ -972,6 +987,7 @@ class Announcements extends Tool {
                 </div>
                 <div class="panel-body">
                     <form method="POST" action="<?= $edit_url ?>">
+                        <?= self::csrfField() ?>
                         <div class="form-group">
                             <label for="title">Title *</label>
                             <input type="text" class="form-control" id="title" name="title" 
@@ -1032,6 +1048,10 @@ class Announcements extends Tool {
         
         $tool_home = $this->toolHome(self::ROUTE);
         $manage_url = $tool_home . '/manage';
+        $csrf = self::requireCsrf($manage_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
         
         LTIX::getConnection();
         
@@ -1183,6 +1203,7 @@ class Announcements extends Tool {
                                         <?php $manage_url = $tool_home . '/manage'; ?>
                                         <?php if ($pub === 0 || ($publish_at && strtotime($publish_at) > time())): ?>
                                         <form method="POST" action="<?= $manage_url ?>" style="display: inline-block;">
+                                            <?= self::csrfField() ?>
                                             <input type="hidden" name="action" value="publish">
                                             <input type="hidden" name="announcement_id" value="<?= htmlspecialchars($announcement['announcement_id']) ?>">
                                             <button type="submit" class="btn btn-sm btn-success">Publish</button>
@@ -1191,6 +1212,7 @@ class Announcements extends Tool {
                                         <form method="POST" action="<?= $manage_url ?>" 
                                               style="display: inline-block;" 
                                               onsubmit="return confirm('Are you sure you want to delete this announcement?');">
+                                            <?= self::csrfField() ?>
                                             <input type="hidden" name="action" value="delete">
                                             <input type="hidden" name="announcement_id" value="<?= htmlspecialchars($announcement['announcement_id']) ?>">
                                             <button type="submit" class="btn btn-sm btn-danger">Delete</button>
@@ -1215,6 +1237,10 @@ class Announcements extends Tool {
         
         $tool_home = $this->toolHome(self::ROUTE);
         $manage_url = $tool_home . '/manage';
+        $csrf = self::requireCsrf($manage_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
         
         LTIX::getConnection();
         

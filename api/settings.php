@@ -12,6 +12,12 @@ if ( Rest::preFlight() ) return;
 
 $LAUNCH = LTIX::requireData();
 
+if ( ! \Tsugi\Controllers\Tool::csrfOk() ) {
+    http_response_code(403);
+    echo json_encode(array('error' => 'Missing or invalid CSRF token'));
+    return;
+}
+
 // Takes raw data from the request
 $json = file_get_contents('php://input');
 $data = json_decode($json);

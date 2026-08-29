@@ -20,6 +20,12 @@ if ( SettingsForm::handleSettingsPost() ) {
     return;
 }
 
+if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession('index')) ) {
+        return;
+    }
+}
+
 // Grab the due date information
 $dueDate = SettingsForm::getDueDate();
 
@@ -387,6 +393,7 @@ if ( $submit_row == false ) {
     echo("<p><b>Please Upload Your Submission:</b></p>\n");
     echo('<form name="myform" enctype="multipart/form-data" method="post" action="'.
          addSession('index').'">');
+    echo(\Tsugi\Controllers\Tool::csrfField());
 
     $partno = 0;
     $content_items = array();
@@ -930,6 +937,7 @@ if ( $assn_json->maxassess < 1 ) {
 
 if ( isset($assn_json->resubmit) && $assn_json->resubmit == 'always' && $dueDate->dayspastdue <= 0 ) {
     echo('<p><form method = "post">
+        '.\Tsugi\Controllers\Tool::csrfField().'
         <input type="submit" name="deleteSubmit" value="Delete Your Submission" class="btn btn-danger"
             onclick="return confirm(\'Are you sure you want to delete your submission?\');">
         </form></p>
@@ -939,6 +947,7 @@ if ( isset($assn_json->resubmit) && $assn_json->resubmit == 'always' && $dueDate
 $OUTPUT->exitButton();
 ?>
 <form method="post" id="flagform" style="display:none">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p>&nbsp;</p>
 <p>Please be considerate when flagging an item.  It does not mean
 that something is inappropriate - it simply brings the item to the

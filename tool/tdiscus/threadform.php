@@ -34,6 +34,9 @@ if ( isset($rest_path->action) && is_numeric($rest_path->action) ) {
 }
 
 if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession($TOOL_ROOT . '/' . $come_back)) ) {
+        return;
+    }
     if ( $old_thread ) {
         $retval = $THREADS->threadUpdate($thread_id, $_POST);
         if ( is_string($retval) ) {
@@ -74,6 +77,7 @@ if ( $old_thread ) {
 ?>
 <div id="add-thread-div" title="<?= __("New Thread") ?>" role="region" aria-labelledby="add-thread-heading">
 <form id="add-thread-form" method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p>
 <label for="add-thread-title"><?= __("Title:") ?></label><br/>
 <input type="text" id="add-thread-title" name="title" class="form-control" aria-required="true"

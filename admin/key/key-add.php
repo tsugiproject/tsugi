@@ -47,6 +47,10 @@ $titles = array(
 	'lms_token_audience' => 'LTI 1.3 Platform Audience (optional)',
 );
 
+if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect('key-add') ) return;
+}
+
 if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
 if ( isset($_POST['user_id']) && empty($_POST['user_id']) && isLoggedIn() ) $_POST['user_id'] = loggedInUserId();
 

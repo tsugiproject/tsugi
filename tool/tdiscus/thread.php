@@ -42,6 +42,9 @@ $discussion_title = (strlen($LAUNCH->link->settingsGet('title')) > 0)
 $threads_index_url = U::addSession($TOOL_ROOT . '/');
 
 if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession($come_back)) ) {
+        return;
+    }
     $retval = $THREADS->commentInsertDao($thread, U::get($_POST, 'comment') );
     if ( is_string($retval) ) {
         $_SESSION['error'] = $retval;

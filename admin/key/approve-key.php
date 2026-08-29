@@ -52,6 +52,10 @@ $token = Mail::computeCheck($user_id);
 $to = $row['email'];
 
 // Handle post
+if ( isset($_POST['doReject']) || isset($_POST['doApprove']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect($from_location) ) return;
+}
+
 if ( isset($_POST['doReject']) && isset($_POST['request_id']) ) {
     $PDOX->queryDie(
         "UPDATE {$CFG->dbprefix}key_request SET state=2 WHERE request_id = :rid",
@@ -137,6 +141,7 @@ $OUTPUT->flashMessages();
 
 ?>
 <form method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <input type="submit" name="doApprove" class="btn btn-warning" value="<?= _m("Approve") ?>"
   onclick="return confirm('Are you sure you want to approve this request?');">
 <input type="submit" name="doReject" class="btn btn-danger" value="<?= _m("Reject") ?>"

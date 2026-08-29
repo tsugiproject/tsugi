@@ -71,6 +71,7 @@ function mail_admin_purge_form($action_url, $table, $label) {
   <?php if ( $old > 0 ) { ?>
   <form method="post" action="<?= htmlentities($action_url) ?>" style="display:inline;margin-left:8px;"
         onsubmit="return confirm(<?= htmlentities(json_encode($confirm), ENT_QUOTES) ?>);">
+    <?= \Tsugi\Controllers\Tool::csrfField() ?>
     <input type="hidden" name="purge_old" value="1">
     <input type="hidden" name="confirm_purge" value="1">
     <button type="submit" class="btn btn-danger btn-xs">Purge</button>
@@ -125,6 +126,7 @@ function mail_admin_delete_delivery_events_form($action_url) {
   <?php if ( $n > 0 ) { ?>
   <form method="post" action="<?= htmlentities($action_url) ?>" style="display:inline;margin-left:8px;"
         onsubmit="return confirm(<?= htmlentities(json_encode($confirm), ENT_QUOTES) ?>);">
+    <?= \Tsugi\Controllers\Tool::csrfField() ?>
     <input type="hidden" name="delete_delivery_events" value="1">
     <input type="hidden" name="confirm_delete_delivery" value="1">
     <button type="submit" class="btn btn-warning btn-xs">Delete delivery events</button>

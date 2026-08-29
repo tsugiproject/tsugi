@@ -21,6 +21,10 @@ if ( ! isAdmin() ) {
     return;
 }
 
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect('ses-events') ) return;
+}
+
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'purge_old') ) {
     if ( ! U::get($_POST, 'confirm_purge') ) {
         U::flashError('You must confirm the purge');

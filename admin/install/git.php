@@ -145,6 +145,10 @@ if ( $command == 'pull' ) {
 }
 
 // Handle the pull POST - do the actual work
+if ( isset($_POST['command']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession('git.php')) ) return;
+}
+
 if ( isset($_POST['command']) && $command == "pull" ) {
     $path = $paths[$_REQUEST['path']];
 
@@ -246,6 +250,7 @@ $OUTPUT->flashMessages();
 if ( $command == 'pull' ) {
 ?>
 <form method="POST">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p>
 Git Command: <?= htmlentities($command) ?>
 </p><p>
@@ -259,6 +264,7 @@ Git Repository: <?= htmlentities($origin) ?>
 } else if ( $command == 'clone' ) {
 ?>
 <form method="POST">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p>
 Git Command: <?= htmlentities($command) ?>
 </p><p>

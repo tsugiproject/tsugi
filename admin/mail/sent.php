@@ -22,6 +22,10 @@ if ( ! isAdmin() ) {
 
 $fields = $PDOX->metadata($CFG->dbprefix . 'mail_sent');
 
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect('sent') ) return;
+}
+
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'purge_old') ) {
     if ( ! U::get($_POST, 'confirm_purge') ) {
         U::flashError('You must confirm the purge');

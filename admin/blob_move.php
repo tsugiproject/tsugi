@@ -41,33 +41,37 @@ $where = "path IS NULL AND blob_id IS NULL"; // Leave disk blobs alone
 if ( $todisk ) $where = "path IS NULL";
 
 if ( U::get($_POST,'migrate') ) {
-    $start = time();
-    $files = $PDOX->allRowsDie("SELECT file_id, context_id FROM {$CFG->dbprefix}blob_file WHERE $where LIMIT 100");
-    echo("<pre>\n");
-    foreach ( $files as $row ) {
-        $id = $row['file_id'];
-        $context_id = $row['context_id'];
-        if ( ! $id ) continue;
-        $test_key = BlobUtil::isTestKey($context_id);
-        $retval = BlobUtil::migrate($id, $test_key);
-        if ( is_string($retval) ) {
-            echo("Could not Migrate file_id=$id ".htmlentities($retval)."\n");
-            break;
+    if ( ! \Tsugi\Controllers\Tool::checkCsrf() ) {
+        echo("<p>Missing or invalid CSRF token</p>\n");
+    } else {
+        $start = time();
+        $files = $PDOX->allRowsDie("SELECT file_id, context_id FROM {$CFG->dbprefix}blob_file WHERE $where LIMIT 100");
+        echo("<pre>\n");
+        foreach ( $files as $row ) {
+            $id = $row['file_id'];
+            $context_id = $row['context_id'];
+            if ( ! $id ) continue;
+            $test_key = BlobUtil::isTestKey($context_id);
+            $retval = BlobUtil::migrate($id, $test_key);
+            if ( is_string($retval) ) {
+                echo("Could not Migrate file_id=$id ".htmlentities($retval)."\n");
+                break;
+            }
+            if ( $retval == true ) {
+                echo("File migrated file_id=$id\n");
+                error_log("File migrated file_id=$id");
+            } else {
+                echo("File did not migrate file_id=$id\n");
+                error_log("File did not migrate file_id=$id");
+            }
+            $delta = time() - $start;
+            if ( $delta > 10 ) {
+                echo("Migration stopped at 10 seconds ellapsed time\n");
+                break;
+            }
         }
-        if ( $retval == true ) {
-            echo("File migrated file_id=$id\n");
-            error_log("File migrated file_id=$id");
-        } else {
-            echo("File did not migrate file_id=$id\n");
-            error_log("File did not migrate file_id=$id");
-        }
-        $delta = time() - $start;
-        if ( $delta > 10 ) {
-            echo("Migration stopped at 10 seconds ellapsed time\n");
-            break;
-        }
+        echo("</pre>\n");
     }
-    echo("</pre>\n");
 }
 
 $row = $PDOX->rowDie("SELECT count(file_id) AS count FROM {$CFG->dbprefix}blob_file WHERE $where");
@@ -79,6 +83,7 @@ $file_count = $row ? $row['count'] : 0;
 <?php if ( $file_count > 0 ) { ?>
 <p>
 <form method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <input type="submit" onclick="$('#myspinner').show();return true;" name="migrate" value="Migrate Blobs"/>
 <input type="submit" onclick="$('#myspinner').show();return true;" name="reset" value="Clear Results"/>
 <img id="myspinner" src="<?= $OUTPUT->getSpinnerUrl() ?>" alt="" role="presentation" style="display:none">

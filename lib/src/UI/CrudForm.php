@@ -57,6 +57,7 @@ class CrudForm {
      */
     public static function insertForm($fields, $from_location, $titles=false, $fields_defaults=false) {
         echo('<form method="post" autocomplete="off">'."\n");
+        echo(\Tsugi\Controllers\Tool::csrfField()."\n");
 
         for($i=0; $i < count($fields); $i++ ) {
             $field = $fields[$i];
@@ -97,6 +98,9 @@ class CrudForm {
     public static function handleInsert($tablename, $fields) {
         global $PDOX;
         if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
+            if ( ! \Tsugi\Controllers\Tool::checkCsrf() ) {
+                return self::CRUD_FAIL;
+            }
             $names = '';
             $values = '';
             $parms = array();
@@ -192,6 +196,7 @@ class CrudForm {
         $do_edit = isset($_REQUEST['edit']) && $_REQUEST['edit'] == 'yes';
 
         echo('<form method="post" autocomplete="off">'."\n");
+        echo(\Tsugi\Controllers\Tool::csrfField()."\n");
         if ( is_string($from_location) ) echo('<a href="'.$from_location.'" class="btn btn-default">'._m('Exit').'</a>'."\n");
         if ( $allow_edit ) {
             if ( $do_edit ) {
@@ -338,6 +343,13 @@ class CrudForm {
         }
 
         // We know we are OK because we already retrieved the row
+        if ( ( $allow_delete && isset($_POST['doDelete']) ) ||
+             ( $allow_edit && $do_edit && isset($_POST['doUpdate']) ) ) {
+            if ( ! \Tsugi\Controllers\Tool::checkCsrf() ) {
+                return self::CRUD_FAIL;
+            }
+        }
+
         if ( $allow_delete && isset($_POST['doDelete']) ) {
             $sql = "DELETE FROM $tablename WHERE $where_clause";
             $stmt = $PDOX->queryDie($sql, $query_parms);

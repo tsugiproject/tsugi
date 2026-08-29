@@ -50,9 +50,13 @@ class SettingsForm {
 
         if ( isset($_POST['settings_internal_post']) && $USER->instructor ) {
             $newsettings = array();
+            if ( ! \Tsugi\Controllers\Tool::checkCsrf() ) {
+                return true;
+            }
             foreach ( $_POST as $k => $v ) {
                 if ( $k == session_name() ) continue;
                 if ( $k == 'settings_internal_post' ) continue;
+                if ( $k == 'CSRF_TOKEN' ) continue;
                 if ( strpos('_ignore',$k) > 0 ) continue;
                 if ( strpos('.ignore',$k) > 0 ) continue;
                 $newsettings[$k] = $v;
@@ -147,6 +151,7 @@ class SettingsForm {
             <span id="tsugi_settings_save_fail" class="text-danger" style="display:none;"><?php _me('Unable to save settings'); ?></span>
             <?php if ( $USER->instructor ) { ?>
             <input type="hidden" name="settings_internal_post" value="1"/>
+            <?= \Tsugi\Controllers\Tool::csrfField() ?>
             <?php }
     }
 
@@ -169,6 +174,7 @@ class SettingsForm {
                 if (n.name.length < 1) return;
                 if (n.name.endsWith('.ignore') ) return;
                 if (n.name == 'settings_internal_post' ) return;
+                if (n.name == 'CSRF_TOKEN' ) return;
                 json[n.name] = $(n).val();
                 return;
             });
@@ -178,6 +184,7 @@ class SettingsForm {
                 url: '<?= U::addSession($CFG->wwwroot."/api/settings.php") ?>',
                 dataType: 'json',
                 contentType: 'application/json',
+                headers: tsugiCsrfHeaders(),
                 data: JSON.stringify(json),
                 success: function (data) {
                     $('#tsugi_settings_dialog').modal('hide');

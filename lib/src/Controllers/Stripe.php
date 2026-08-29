@@ -94,6 +94,7 @@ You will receive <?= htmlspecialchars($premium_period) ?> of <?= htmlspecialchar
 <p><em><?= htmlspecialchars($refund_policy) ?></em></p>
 <?php } ?>
 <form method="post" action="">
+<?= Tool::csrfField() ?>
 <p>
 <button type="submit" class="btn btn-success">Continue to payment</button>
 <a href="<?= htmlspecialchars($profile_url) ?>" class="btn btn-default">Cancel</a>
@@ -122,6 +123,10 @@ You will receive <?= htmlspecialchars($premium_period) ?> of <?= htmlspecialchar
         if ($user_id <= 0) {
             Login::setReturnUrl($checkout_url);
             return new RedirectResponse(Login::loginUrl());
+        }
+        $csrf = Tool::requireCsrf($checkout_url);
+        if ( $csrf ) {
+            return $csrf;
         }
 
         $cfg = StripeUtil::config();

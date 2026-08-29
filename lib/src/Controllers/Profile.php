@@ -126,6 +126,7 @@ echo(' ('.htmlentities($_SESSION['email']).")</h1>\n");
         ?>
 
         <form method="POST">
+            <?= \Tsugi\Controllers\Tool::csrfField() ?>
             <div style="display: flex; justify-content: space-between;">
                 <fieldset class="control-group">
                     <legend>Would you like to set a theme override?</legend>
@@ -249,6 +250,10 @@ Send me notification mail for important things like my assignment was graded.
 
         if ( ! isset($_SESSION['profile_id']) ) {
             return new RedirectResponse($home);
+        }
+        $csrf = Tool::requireCsrf($home);
+        if ( $csrf ) {
+            return $csrf;
         }
 
         $stmt = $PDOX->queryDie(

@@ -35,6 +35,9 @@ $come_back = $TOOL_ROOT . '/commentremove/' . $comment_id;
 $all_done = $TOOL_ROOT.'/thread/'.$thread_id;
 
 if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession($come_back)) ) {
+        return;
+    }
     $retval = $THREADS->commentDelete($comment_id, $thread_id);
     if ( is_string($retval) ) {
         $_SESSION['error'] = $retval;
@@ -59,6 +62,7 @@ echo("<h1 id=\"delete-comment-heading\">".__('Delete Comment')."</h1>\n");
 ?>
 <div id="delete-comment-div" title="<?= __("Delete comment") ?>" role="region" aria-labelledby="delete-comment-heading">
 <form id="delete-comment-form" method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p><?= __("Comment:") ?><br/>
 <?php
 echo('<b>'.htmlentities($old_comment['comment'] ?? '').'</b><br/>');

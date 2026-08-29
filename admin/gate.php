@@ -34,6 +34,14 @@ if ( $havedatabase && $CFG->google_client_id && ! isLoggedIn() ) {
 }
 
 if ( isset($_POST['passphrase']) ) {
+    if ( ! \Tsugi\Controllers\Tool::csrfOk() ) {
+        U::flashError('Missing or invalid CSRF token');
+        $rest_path = \Tsugi\Util\U::rest_path();
+        $redirect = U::addSession(U::reconstruct_query($rest_path->current));
+        Output::doRedirect($redirect);
+        $REDIRECTED = true;
+        return;
+    }
     unset($_SESSION["admin"]);
     $apw = $CFG->adminpw;
     $phrase = $_POST['passphrase'];
@@ -64,6 +72,7 @@ $OUTPUT->bodyStart();
 $OUTPUT->topNav();
 ?>
 <form method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <label for="passphrase">Admin Unlock:<br/>
 <input type="password" autocomplete="off" name="passphrase" size="80">
 </label>

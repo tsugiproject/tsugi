@@ -42,6 +42,12 @@ if ( $assn_id ) {
     }
 }
 
+if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession('access.php')) ) {
+        return;
+    }
+}
+
 if ( isset($_POST['screen_reader']) && $submit_json ) {
     $submit_json->peer_exempt = 'yes';
 
@@ -101,6 +107,7 @@ to this screen for further instructions.
 If you cannot grade images from other students because you use a screen reader or other assistive device,
 check the box below and we will exempt you from doing peer grading for this assignment.
 <form method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <input type="checkbox" name="screen_reader" value="yes">I use a screen reader and cannot grade my peer's images<br>
 <input type="submit" value="Submit">
 <input type=submit name=doCancel onclick="location='<?php echo(addSession('index.php'));?>'; return false;" value="Go back"></p>
