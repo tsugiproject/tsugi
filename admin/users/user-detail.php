@@ -35,8 +35,9 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array("user_id", "displayname", "email", "created_at", "updated_at", "login_at", "login_count");
+$fields = array("user_id", "displayname", "email", "create_courses", "created_at", "updated_at", "login_at", "login_count");
 $from_location = "index";
+$titles = array("create_courses" => "Create courses (0 or 1)");
 
 // Handle the post data
 $row =  CrudForm::handleUpdate($tablename, $fields, $where_clause,
@@ -59,8 +60,12 @@ echo("<h1>$title</h1>\n<p>\n");
 activity data is deleted.  This is <b>not</b> a "soft delete".  A delete  on this screen truly throws away all
 of the user's data.
 </p>
+<p><b>Create courses:</b> Set to 1 to let this user add new courses from the Courses page.
+This is a user capability, not an instructor role in a course. The user may need to log in again
+after you change it.
+</p>
 <?php
-$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete);
+$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete, false, $titles);
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 

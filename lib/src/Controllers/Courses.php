@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\Context;
+use \Tsugi\Core\Manifest;
+use \Tsugi\Core\User;
 use \Tsugi\Crypt\SecureCookie;
 use \Tsugi\UI\Output;
 use \Tsugi\Util\U;
@@ -27,6 +29,12 @@ class Courses extends Tool {
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix.'/json', function(Request $request) use ($app) {
             return Courses::getjson($app);
+        });
+        $app->router->get($prefix.'/create', function(Request $request) use ($app) {
+            return Courses::createForm($app, $request);
+        });
+        $app->router->post($prefix.'/create', function(Request $request) use ($app) {
+            return Courses::createPost($app, $request);
         });
         $app->router->get($prefix, function(Request $request) use ($app) {
             return Courses::index($app, $request);
@@ -132,7 +140,7 @@ class Courses extends Tool {
         $p = $CFG->dbprefix;
 
         $context_row = $PDOX->rowDie(
-            "SELECT context_id, context_key, title FROM {$p}lti_context WHERE context_id = :CID",
+            "SELECT context_id, context_key, title, manifest_id FROM {$p}lti_context WHERE context_id = :CID",
             array(':CID' => $cid)
         );
         if ( ! $context_row ) {
@@ -165,11 +173,13 @@ class Courses extends Tool {
 
         $title = isset($context_row['title']) ? $context_row['title'] : '';
         $context_key = isset($context_row['context_key']) ? $context_row['context_key'] : '';
+        $manifest_id = isset($context_row['manifest_id']) ? (int) $context_row['manifest_id'] : 0;
 
         $_SESSION['context_id'] = $cid;
         $_SESSION['context_key'] = $context_key;
         $_SESSION['context_title'] = $title;
         $_SESSION['isinstructor'] = ($role >= LTIX::ROLE_INSTRUCTOR);
+        // Do not touch User::SESSION_CREATE_COURSES — that is a user capability, not a context role.
         if ( $membership_id !== null ) {
             $_SESSION['membership_id'] = $membership_id;
         } else {
@@ -190,6 +200,7 @@ class Courses extends Tool {
         }
         unset($lti['context_settings']);
         $_SESSION[$ltiKey] = $lti;
+        Manifest::rememberInSession($manifest_id);
 
         Cache::clearAllSessionCaches();
         Output::clearTopNavSession();
@@ -278,6 +289,9 @@ class Courses extends Tool {
         ?>
         <main class="container" id="main-content">
             <h1>Courses</h1>
+            <?php if ( self::canCreate() ) { ?>
+            <p><a href="<?= htmlspecialchars($home . '/create') ?>">Add course</a></p>
+            <?php } ?>
             <?php if ( count($rows) < 1 ) { ?>
                 <p>You are not a member of any courses.</p>
             <?php } else { ?>
@@ -309,6 +323,106 @@ class Courses extends Tool {
         }
 
         return new RedirectResponse(self::configuredHomeUrl());
+    }
+
+    /**
+     * Form to create a new site-login course with a starter manifest.
+     */
+    public static function createForm(Application $app, Request $request) {
+        global $OUTPUT;
+
+        $tool = new self();
+        $home = $tool->toolHome(self::ROUTE);
+        $gate = self::createGateResponse($home);
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <h1>Add course</h1>
+            <p>Creates a new course with a starter outline. Lesson authoring for this course saves new manifest versions.</p>
+            <form method="post" action="<?= htmlspecialchars($home . '/create') ?>">
+                <?= self::csrfField() ?>
+                <p>
+                    <label for="course_title">Title</label><br/>
+                    <input type="text" id="course_title" name="title" required maxlength="512" style="min-width: 20em;"/>
+                </p>
+                <p>
+                    <button type="submit" class="btn btn-primary">Create course</button>
+                    <a href="<?= htmlspecialchars($home) ?>" class="btn btn-default">Cancel</a>
+                </p>
+            </form>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * POST: insert context + starter manifest, enter the course.
+     */
+    public static function createPost(Application $app, Request $request) {
+        $tool = new self();
+        $home = $tool->toolHome(self::ROUTE);
+        $gate = self::createGateResponse($home);
+        if ( $gate ) {
+            return $gate;
+        }
+        $csrf = self::requireCsrf(U::addSession($home . '/create'));
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        $title = trim((string) U::get($_POST, 'title', ''));
+        if ( $title === '' ) {
+            U::flashError(__('Title is required.'));
+            return new RedirectResponse(U::addSession($home . '/create'));
+        }
+
+        $user_id = U::loggedInUserId();
+        $key_id = self::googleKeyId();
+        $result = Manifest::createCourse($title, $user_id, $key_id);
+        if ( empty($result['ok']) ) {
+            $err = isset($result['error']) ? $result['error'] : 'Could not create course.';
+            U::flashError($err);
+            return new RedirectResponse(U::addSession($home . '/create'));
+        }
+
+        $switch = self::ensureActiveContext($result['context_id']);
+        if ( $switch !== true ) {
+            return self::switchFailedResponse($switch);
+        }
+
+        U::flashSuccess(__('Course created.'));
+        return new RedirectResponse(U::addSession($home . '/' . (int) $result['context_id']));
+    }
+
+    /**
+     * lti_key.key_id for the Google site-login consumer.
+     */
+    public static function googleKeyId() {
+        global $CFG, $PDOX;
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        if ( isset($_SESSION[$ltiKey]['key_id']) ) {
+            $kid = (int) $_SESSION[$ltiKey]['key_id'];
+            if ( $kid > 0 ) {
+                return $kid;
+            }
+        }
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+        $row = $PDOX->rowDie(
+            "SELECT key_id FROM {$CFG->dbprefix}lti_key
+             WHERE key_sha256 = :SHA LIMIT 1",
+            array(':SHA' => lti_sha256(self::GOOGLE_KEY))
+        );
+        return $row ? (int) $row['key_id'] : 0;
     }
 
     public static function nested(Application $app, Request $request, $id, $rest) {
@@ -400,6 +514,13 @@ class Courses extends Tool {
     }
 
     /**
+     * True when the current user may mint a new site-login course.
+     */
+    public static function canCreate() {
+        return User::canCreateCourses();
+    }
+
+    /**
      * @return Response|null
      */
     public static function gateResponse() {
@@ -411,6 +532,23 @@ class Courses extends Tool {
                 'This session is an LTI launch from an LMS. Course switching is not available.',
                 403
             );
+        }
+        return null;
+    }
+
+    /**
+     * Login + Google session + create_courses (or site admin).
+     *
+     * @return Response|null
+     */
+    public static function createGateResponse($home) {
+        $gate = self::gateResponse();
+        if ( $gate ) {
+            return $gate;
+        }
+        if ( ! self::canCreate() ) {
+            U::flashError('You are not allowed to create courses.');
+            return new RedirectResponse(U::addSession($home));
         }
         return null;
     }

@@ -6,6 +6,7 @@ namespace Tsugi\Controllers;
 use \Tsugi\Util\U;
 use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
+use Tsugi\Core\Manifest;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +21,10 @@ class Discussions extends Tool {
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Discussions@get');
         $app->router->get($prefix.'/', 'Discussions@get');
+        $app->router->get($prefix.'/add', 'Discussions@addForm');
+        $app->router->post($prefix.'/add', 'Discussions@addPost');
+        $app->router->get($prefix.'/reorder', 'Discussions@reorderForm');
+        $app->router->post($prefix.'/reorder', 'Discussions@reorderPost');
         $app->router->get($prefix.'/manage', 'Discussions@manage');
         $app->router->get($prefix.'/scan-fix-unread-tracking', 'Discussions@scanFixUnreadTracking');
         $app->router->get($prefix.'/expire-threads', 'Discussions@expireThreads');
@@ -39,12 +44,14 @@ class Discussions extends Tool {
     {
         global $CFG, $OUTPUT;
 
-        if ( ! isset($CFG->lessons) ) {
-            die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
-        }
+        $l = Manifest::requireCurrentLessons();
 
-        // Load the Lesson
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        $add_url = null;
+        $reorder_url = null;
+        if ( Manifest::activeId() > 0 && $this->isInstructor() ) {
+            $add_url = U::addSession($this->toolHome(self::ROUTE) . '/add');
+            $reorder_url = U::addSession($this->toolHome(self::ROUTE) . '/reorder');
+        }
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -52,11 +59,331 @@ class Discussions extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         echo('<main class="container" id="main-content">');
-        $l->renderDiscussions(false, $this->toolHome(self::ROUTE));
+        $l->renderDiscussions(false, $this->toolHome(self::ROUTE), $add_url, $reorder_url);
         echo('</main>');
         $OUTPUT->footer();
 
 
+    }
+
+    /**
+     * Instructor form to add a course-level discussion (manifest courses only).
+     */
+    public function addForm(Request $request)
+    {
+        global $OUTPUT;
+
+        $list_url = U::addSession($this->toolHome(self::ROUTE));
+        $gate = $this->addDiscussionGate($list_url);
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <h1><?= __('Add discussion') ?></h1>
+            <p><?= __('Creates a new discussion in this course and saves it as a new manifest version.') ?></p>
+            <form method="post" action="<?= htmlspecialchars(U::addSession($this->toolHome(self::ROUTE) . '/add')) ?>">
+                <p>
+                    <label for="discussion_title"><?= __('Title') ?></label><br/>
+                    <input type="text" id="discussion_title" name="title" required maxlength="512" style="min-width: 20em;"/>
+                </p>
+                <p>
+                    <button type="submit" class="btn btn-primary"><?= __('Add discussion') ?></button>
+                    <a href="<?= htmlspecialchars($list_url) ?>" class="btn btn-default"><?= __('Cancel') ?></a>
+                </p>
+            </form>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * POST: append a top-level discussion and save a new manifest version.
+     */
+    public function addPost(Request $request)
+    {
+        $list_url = U::addSession($this->toolHome(self::ROUTE));
+        $form_url = U::addSession($this->toolHome(self::ROUTE) . '/add');
+        $gate = $this->addDiscussionGate($list_url);
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $title = trim((string) U::get($_POST, 'title', ''));
+        if ( $title === '' ) {
+            U::flashError(__('Title is required.'));
+            return new RedirectResponse($form_url);
+        }
+
+        $doc = Manifest::currentDocument();
+        if ( ! $doc ) {
+            U::flashError(__('Cannot find course manifest.'));
+            return new RedirectResponse($list_url);
+        }
+        $data = json_decode($doc['json'], true);
+        if ( ! is_array($data) ) {
+            U::flashError(__('Cannot parse course manifest.'));
+            return new RedirectResponse($list_url);
+        }
+
+        try {
+            $added = Manifest::appendDiscussion($data, $title);
+            Manifest::saveNewVersion(
+                U::currentContextId(),
+                $added['data'],
+                U::loggedInUserId(),
+                'Add discussion'
+            );
+        } catch ( \InvalidArgumentException $e ) {
+            U::flashError($e->getMessage());
+            return new RedirectResponse($form_url);
+        } catch ( \Exception $e ) {
+            U::flashError(__('Failed to save discussion.'));
+            return new RedirectResponse($form_url);
+        }
+
+        U::flashSuccess(__('Discussion added.'));
+        return new RedirectResponse($list_url);
+    }
+
+    /**
+     * Instructor page to drag-reorder discussions (manifest courses only).
+     */
+    public function reorderForm(Request $request)
+    {
+        global $OUTPUT;
+
+        $list_url = U::addSession($this->toolHome(self::ROUTE));
+        $gate = $this->addDiscussionGate($list_url);
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $l = Manifest::requireCurrentLessons();
+        $discussions = $l->flattenedDiscussions();
+        if ( count($discussions) < 2 ) {
+            U::flashError(__('You need at least two discussions to reorder.'));
+            return new RedirectResponse($list_url);
+        }
+
+        $save_url = U::addSession($this->toolHome(self::ROUTE) . '/reorder');
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <style>
+.tsugi-discussions-sortable { list-style: none; padding-left: 0; max-width: 40em; }
+.tsugi-discussions-sortable > li {
+    display: flex; align-items: center; gap: 0.5em;
+    padding: 0.6em 0.75em; margin-bottom: 0.4em;
+    background: #fff; border: 1px solid #ddd; border-radius: 3px;
+}
+.tsugi-discussion-drag-handle { cursor: grab; color: #999; padding: 0.15em 0.45em; user-select: none; font-size: 1.2em; }
+.tsugi-discussion-drag-handle:hover { color: #333; }
+.tsugi-discussion-drag-handle:active { cursor: grabbing; }
+.tsugi-discussions-sortable .ui-sortable-placeholder {
+    height: 2.5em; border: 2px dashed #007bff; visibility: visible !important;
+    background: #f0f8ff;
+}
+.tsugi-reorder-save-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #333; color: #fff; padding: 15px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.2); z-index: 1000;
+}
+.tsugi-reorder-save-bar.hidden { display: none; }
+.tsugi-reorder-save-bar .actions { display: flex; gap: 10px; }
+        </style>
+        <main class="container" id="main-content" style="padding-bottom: 5em;">
+            <p><a href="<?= htmlspecialchars($list_url) ?>" class="btn btn-default btn-sm tsugi-reorder-leave"><?= __('Back to Discussions') ?></a></p>
+            <h1><?= __('Reorder discussions') ?></h1>
+            <p><?= __('Drag the handle to change the order, then save. Nothing is stored until you save.') ?></p>
+            <ul id="tsugi-reorder-list" class="tsugi-discussions-sortable">
+                <?php foreach ( $discussions as $discussion ) {
+                    $rid = isset($discussion->resource_link_id) ? (string) $discussion->resource_link_id : '';
+                    $title = isset($discussion->title) ? (string) $discussion->title : $rid;
+                    if ( $rid === '' ) {
+                        continue;
+                    }
+                ?>
+                <li data-resource-link-id="<?= htmlspecialchars($rid) ?>">
+                    <span class="tsugi-discussion-drag-handle" title="<?= htmlspecialchars(__('Drag to reorder')) ?>" aria-label="<?= htmlspecialchars(__('Drag to reorder')) ?>">&#8942;</span>
+                    <span><?= htmlspecialchars($title) ?></span>
+                </li>
+                <?php } ?>
+            </ul>
+            <p>
+                <button type="button" id="tsugi-reorder-save" class="btn btn-success" disabled><?= __('Save') ?></button>
+                <a href="<?= htmlspecialchars($list_url) ?>" class="btn btn-default tsugi-reorder-leave"><?= __('Discard') ?></a>
+            </p>
+        </main>
+        <div id="tsugi-reorder-save-bar" class="tsugi-reorder-save-bar hidden">
+            <div><?= __('You have unsaved order changes') ?></div>
+            <div class="actions">
+                <button type="button" id="tsugi-reorder-save-bar-btn" class="btn btn-success"><?= __('Save') ?></button>
+                <a href="<?= htmlspecialchars($list_url) ?>" class="btn btn-default tsugi-reorder-leave"><?= __('Discard') ?></a>
+            </div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var hasChanges = false;
+            var allowLeave = false;
+            var saveUrl = <?= json_encode($save_url) ?>;
+            var listUrl = <?= json_encode($list_url) ?>;
+            var leaveMsg = <?= json_encode(__('Please save before you navigate, or discard your changes.')) ?>;
+
+            function markChanged() {
+                hasChanges = true;
+                var save = document.getElementById('tsugi-reorder-save');
+                if (save) save.disabled = false;
+                var bar = document.getElementById('tsugi-reorder-save-bar');
+                if (bar) bar.classList.remove('hidden');
+            }
+
+            function collectOrder() {
+                var order = [];
+                document.querySelectorAll('#tsugi-reorder-list > li[data-resource-link-id]').forEach(function(li) {
+                    var id = li.getAttribute('data-resource-link-id');
+                    if (id) order.push(id);
+                });
+                return order;
+            }
+
+            function saveOrder() {
+                if (!hasChanges) return;
+                var btn = document.getElementById('tsugi-reorder-save');
+                var barBtn = document.getElementById('tsugi-reorder-save-bar-btn');
+                if (btn) btn.disabled = true;
+                if (barBtn) barBtn.disabled = true;
+                jQuery.post(saveUrl, { order: collectOrder() })
+                    .done(function(data) {
+                        allowLeave = true;
+                        hasChanges = false;
+                        window.location = (data && data.redirect) ? data.redirect : listUrl;
+                    })
+                    .fail(function(xhr) {
+                        if (btn) btn.disabled = false;
+                        if (barBtn) barBtn.disabled = false;
+                        var msg = 'Could not save discussion order.';
+                        try {
+                            var body = JSON.parse(xhr.responseText);
+                            if (body && body.error) msg = body.error;
+                        } catch (e) {}
+                        alert(msg);
+                    });
+            }
+
+            if (typeof jQuery !== 'undefined' && jQuery.fn.sortable) {
+                jQuery('#tsugi-reorder-list').sortable({
+                    handle: '.tsugi-discussion-drag-handle',
+                    items: '> li',
+                    placeholder: 'ui-sortable-placeholder',
+                    tolerance: 'pointer',
+                    update: function() { markChanged(); }
+                });
+            }
+
+            var save = document.getElementById('tsugi-reorder-save');
+            if (save) save.addEventListener('click', saveOrder);
+            var barBtn = document.getElementById('tsugi-reorder-save-bar-btn');
+            if (barBtn) barBtn.addEventListener('click', saveOrder);
+
+            window.addEventListener('beforeunload', function(ev) {
+                if (!hasChanges || allowLeave) return;
+                ev.preventDefault();
+                ev.returnValue = leaveMsg;
+                return leaveMsg;
+            });
+
+            document.addEventListener('click', function(ev) {
+                var a = ev.target && ev.target.closest ? ev.target.closest('a') : null;
+                if (!a || !hasChanges || allowLeave) return;
+                var href = a.getAttribute('href');
+                if (!href || href.charAt(0) === '#') return;
+                var target = (a.getAttribute('target') || '_self').toLowerCase();
+                if (target !== '_self') return;
+                ev.preventDefault();
+                if (window.confirm(leaveMsg + '\n\n' + <?= json_encode(__('Leave without saving?')) ?>)) {
+                    allowLeave = true;
+                    window.location = a.href;
+                }
+            }, true);
+        });
+        </script>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * POST: persist a new catalog order as a manifest version (AJAX).
+     */
+    public function reorderPost(Request $request)
+    {
+        if ( Manifest::activeId() < 1 ) {
+            return new JsonResponse(array('success' => false, 'error' => 'Manifest required'), 403);
+        }
+        if ( ! $this->isInstructor() ) {
+            return new JsonResponse(array('success' => false, 'error' => 'Instructor required'), 403);
+        }
+
+        $order = U::get($_POST, 'order', array());
+        if ( is_string($order) ) {
+            $decoded = json_decode($order, true);
+            $order = is_array($decoded) ? $decoded : array();
+        }
+        if ( ! is_array($order) ) {
+            return new JsonResponse(array('success' => false, 'error' => 'Order is required'), 400);
+        }
+
+        $doc = Manifest::currentDocument();
+        if ( ! $doc ) {
+            return new JsonResponse(array('success' => false, 'error' => 'Cannot find course manifest'), 500);
+        }
+        $data = json_decode($doc['json'], true);
+        if ( ! is_array($data) ) {
+            return new JsonResponse(array('success' => false, 'error' => 'Cannot parse course manifest'), 500);
+        }
+
+        try {
+            $data = Manifest::reorderDiscussions($data, $order);
+            Manifest::saveNewVersion(
+                U::currentContextId(),
+                $data,
+                U::loggedInUserId(),
+                'Reorder discussions'
+            );
+        } catch ( \InvalidArgumentException $e ) {
+            return new JsonResponse(array('success' => false, 'error' => $e->getMessage()), 400);
+        } catch ( \Exception $e ) {
+            return new JsonResponse(array('success' => false, 'error' => 'Failed to save order'), 500);
+        }
+
+        U::flashSuccess(__('Discussion order saved.'));
+        return new JsonResponse(array(
+            'success' => true,
+            'redirect' => U::addSession($this->toolHome(self::ROUTE)),
+        ));
+    }
+
+    /**
+     * @return RedirectResponse|null
+     */
+    private function addDiscussionGate($list_url) {
+        if ( Manifest::activeId() < 1 ) {
+            U::flashError(__('Adding discussions is only available for courses with a manifest.'));
+            return new RedirectResponse($list_url);
+        }
+        $this->requireInstructor($list_url);
+        return null;
     }
 
     public static function launch(Application $app, $anchor=null)
@@ -68,15 +395,9 @@ class Discussions extends Tool {
         $redirect_path = U::addSession(self::determineParentPath(self::ROUTE));
         if ( $redirect_path == '') $redirect_path = '/';
 
-        if ( ! isset($CFG->lessons) ) {
-            $app->tsugiFlashError(__('Cannot find lessons.json ($CFG->lessons)'));
-            return new RedirectResponse($redirect_path);
-        }
-
-        /// Load the Lesson
-        $l = new \Tsugi\UI\Lessons($CFG->lessons);
+        $l = Manifest::currentLessons();
         if ( ! $l ) {
-            $app->tsugiFlashError(__('Cannot load lessons.'));
+            $app->tsugiFlashError(__('Cannot find lessons.json ($CFG->lessons) or an active course manifest'));
             return new RedirectResponse($redirect_path);
         }
 

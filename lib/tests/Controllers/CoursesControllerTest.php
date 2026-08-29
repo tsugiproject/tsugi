@@ -78,6 +78,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $uris = $this->routeUris();
 
         $this->assertContains('/courses/json', $uris);
+        $this->assertContains('/courses/create', $uris);
         $this->assertContains('/courses', $uris);
         $this->assertContains('/courses/{id:\d+}', $uris);
         $this->assertContains('/courses/{id:\d+}/{rest:.*}', $uris);
@@ -249,5 +250,60 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
 
         _tsugiResetIdentitySnapshot();
         $this->assertSame(99, currentContextId());
+    }
+
+    public function testCanCreateFalseWhenNotLoggedIn()
+    {
+        $this->assertFalse(Courses::canCreate());
+    }
+
+    public function testCanCreateTrueForSiteAdmin()
+    {
+        $_SESSION['id'] = 7;
+        $_SESSION['admin'] = 'yes';
+        $_SESSION['create_courses'] = 0;
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $this->assertTrue(Courses::canCreate());
+    }
+
+    public function testCanCreateUsesUserFlagNotInstructorSession()
+    {
+        $_SESSION['id'] = 7;
+        $_SESSION['instructor'] = true;
+        $_SESSION['isinstructor'] = true;
+        $_SESSION['create_courses'] = 0;
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $this->assertFalse(Courses::canCreate());
+
+        $_SESSION['create_courses'] = 1;
+        $this->assertTrue(Courses::canCreate());
+    }
+
+    public function testCreateGateRefusesWithoutFlag()
+    {
+        $_SESSION['id'] = 7;
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        $_SESSION['create_courses'] = 0;
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $response = Courses::createGateResponse('/courses');
+        $this->assertNotNull($response);
+        $this->assertSame(302, $response->getStatusCode());
+    }
+
+    public function testCreateGateAllowsFlag()
+    {
+        $_SESSION['id'] = 7;
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        $_SESSION['create_courses'] = 1;
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $this->assertNull(Courses::createGateResponse('/courses'));
     }
 }

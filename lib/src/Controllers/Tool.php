@@ -55,6 +55,64 @@ abstract class Tool {
     }
 
     /**
+     * Hidden CSRF_TOKEN input for cookie-session HTML forms that POST to Tsugi.
+     *
+     * Mints a session token if the current session does not have one yet
+     * (Google site login historically did not set CSRF_TOKEN; LTI launch does).
+     * Do not use this on LTI launches or signed webhooks.
+     *
+     * @return string
+     */
+    public static function csrfField() {
+        $token = LTIX::ensureCsrfToken();
+        return '<input type="hidden" name="CSRF_TOKEN" value="'.htmlspecialchars($token).'">';
+    }
+
+    /**
+     * True when POST CSRF_TOKEN (or X-CSRF-TOKEN) matches the session token.
+     *
+     * @return bool
+     */
+    public static function csrfOk() {
+        $token = $_SESSION['CSRF_TOKEN'] ?? '';
+        if ( ! is_string($token) || $token === '' ) {
+            return false;
+        }
+        $posted = U::get($_POST, 'CSRF_TOKEN', '');
+        if ( is_string($posted) && $posted !== '' && hash_equals($token, $posted) ) {
+            return true;
+        }
+        $header = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_SERVER['HTTP_X_CSRFTOKEN'] ?? '';
+        return is_string($header) && $header !== '' && hash_equals($token, $header);
+    }
+
+    /**
+     * True when the CSRF token is valid (fail closed). Flashes on failure.
+     *
+     * @return bool
+     */
+    public static function checkCsrf() {
+        if ( self::csrfOk() ) {
+            return true;
+        }
+        U::flashError('Missing or invalid CSRF token');
+        return false;
+    }
+
+    /**
+     * Redirect back to $redirect when the CSRF token is missing or invalid.
+     *
+     * @param string $redirect
+     * @return RedirectResponse|null Null when the token is valid.
+     */
+    public static function requireCsrf($redirect) {
+        if ( self::checkCsrf() ) {
+            return null;
+        }
+        return new RedirectResponse($redirect);
+    }
+
+    /**
      * Require LTI consumer session fields needed to sign an outbound LTI 1.1 launch.
      *
      * @return RedirectResponse|null Null if session is sufficient; redirect with flash otherwise.
