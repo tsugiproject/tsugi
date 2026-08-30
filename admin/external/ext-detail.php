@@ -38,6 +38,10 @@ $titles = array(
 );
 
 // Handle the post data
+if ( isset($_POST['doUpdate']) || isset($_POST['doDelete']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(U::addsession($from_location)) ) return;
+}
+
 if ( U::get($_POST,'endpoint') ) {
     if ( strlen(U::get($_POST,'pubkey')) < 1 || strlen(U::get($_POST,'privkey'))) {
         /** @var true|string $success */

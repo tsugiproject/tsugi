@@ -34,6 +34,9 @@ if ( isset($rest_path->action) && is_numeric($rest_path->action) ) {
 }
 
 if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession($TOOL_ROOT . '/' . $come_back)) ) {
+        return;
+    }
     $retval = $THREADS->commentUpdateDao($old_comment, U::get($_POST, 'comment'));
     if ( is_string($retval) ) {
         $_SESSION['error'] = $retval;
@@ -60,6 +63,7 @@ if ( $old_comment ) {
 ?>
 <div id="edit-comment-div" title="<?= __("Comment") ?>" role="region" aria-labelledby="edit-comment-heading">
 <form id="edit-comment-form" method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p>
 <label for="edit-comment-input"><?= __("Comment:") ?></label><br/>
 <input type="text" id="edit-comment-input" name="comment" class="form-control" aria-required="true"

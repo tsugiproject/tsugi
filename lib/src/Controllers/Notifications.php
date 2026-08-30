@@ -333,6 +333,7 @@ class Notifications extends Tool {
                     
                     fetch(url, {
                         method: 'POST',
+                        headers: tsugiCsrfHeaders(),
                         body: formData
                     })
                     .then(response => response.json())
@@ -442,7 +443,8 @@ class Notifications extends Tool {
                     var url = this.getAttribute('data-url');
                     
                     fetch(url, {
-                        method: 'POST'
+                        method: 'POST',
+                        headers: tsugiCsrfHeaders()
                     })
                     .then(response => response.json())
                     .then(data => {
@@ -661,6 +663,10 @@ class Notifications extends Tool {
         global $PDOX, $CFG;
 
         $this->requireAuth();
+        $csrf = self::requireCsrfJson();
+        if ( $csrf ) {
+            return $csrf;
+        }
         
         LTIX::getConnection();
         
@@ -748,6 +754,10 @@ class Notifications extends Tool {
         global $PDOX, $CFG;
 
         $this->requireAuth();
+        $csrf = self::requireCsrfJson();
+        if ( $csrf ) {
+            return $csrf;
+        }
         
         LTIX::getConnection();
         
@@ -815,6 +825,10 @@ class Notifications extends Tool {
 
         try {
             $this->requireAuth();
+            $csrf = self::requireCsrfJson();
+            if ( $csrf ) {
+                return $csrf;
+            }
             
             LTIX::getConnection();
             
@@ -948,6 +962,7 @@ class Notifications extends Tool {
                     <p class="text-muted">This will send a notification to your account. Useful for testing or reminders.</p>
                     
                     <form method="POST" action="<?= htmlspecialchars($send_url) ?>">
+                        <?= self::csrfField() ?>
                         <div class="form-group">
                             <label for="title">Title *</label>
                             <input type="text" class="form-control" id="title" name="title" 
@@ -987,13 +1002,16 @@ class Notifications extends Tool {
         global $CFG;
 
         $this->requireAuth();
+        $tool_home = $this->toolHome(self::ROUTE);
+        $send_url = $tool_home . '/send';
+        $csrf = self::requireCsrf($send_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
         
         LTIX::getConnection();
         
         $user_id = U::loggedInUserId();
-        
-        $tool_home = $this->toolHome(self::ROUTE);
-        $send_url = $tool_home . '/send';
         $back_url = $tool_home;
         
         $title = trim(U::get($_POST, 'title'));
@@ -1092,6 +1110,7 @@ class Notifications extends Tool {
                         <p class="text-muted">Select a student and compose a notification to send to them.</p>
                         
                         <form method="POST" action="<?= htmlspecialchars($send_url) ?>">
+                            <?= self::csrfField() ?>
                             <div class="form-group">
                                 <label for="student_id">Student *</label>
                                 <select class="form-control" id="student_id" name="student_id" required>
@@ -1149,13 +1168,17 @@ class Notifications extends Tool {
 
         $this->requireInstructor('/notifications');
         
+        $tool_home = $this->toolHome(self::ROUTE);
+        $send_url = $tool_home . '/send-to-student';
+        $csrf = self::requireCsrf($send_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+        
         LTIX::getConnection();
         
         $user_id = U::loggedInUserId();
         $context_id = U::currentContextId();
-        
-        $tool_home = $this->toolHome(self::ROUTE);
-        $send_url = $tool_home . '/send-to-student';
         $back_url = $tool_home;
         
         $student_id = U::get($_POST, 'student_id');
@@ -1273,6 +1296,10 @@ class Notifications extends Tool {
      */
     public function markRead(Request $request) {
         $this->requireAuth();
+        $csrf = self::requireCsrfJson();
+        if ( $csrf ) {
+            return $csrf;
+        }
         
         LTIX::getConnection();
         
@@ -1297,6 +1324,10 @@ class Notifications extends Tool {
      */
     public function markAllRead(Request $request) {
         $this->requireAuth();
+        $csrf = self::requireCsrfJson();
+        if ( $csrf ) {
+            return $csrf;
+        }
         
         LTIX::getConnection();
         

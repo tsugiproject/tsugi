@@ -34,6 +34,9 @@ if ( ! $old_thread ) {
 }
 
 if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession($TOOL_ROOT . '/' . $come_back)) ) {
+        return;
+    }
     $retval = $THREADS->threadDelete($thread_id);
     if ( is_string($retval) ) {
         $_SESSION['error'] = $retval;
@@ -66,6 +69,7 @@ echo('<b>'.htmlentities($old_thread['title'] ?? '').'</b><br/>');
 <?= $purifier->purify($old_thread['body']) ?>
 </p>
 <form id="delete-thread-form" method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p>
 <input type="submit" id="delete-thread-submit" value="<?= __('Delete') ?>" >
 <button type="button" id="delete-thread-cancel" onclick='window.location.href="<?= addSession($TOOL_ROOT.'/') ?>";'><?= __('Cancel') ?></button>

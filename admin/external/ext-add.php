@@ -33,6 +33,10 @@ $titles = array(
     'json' => 'Additional settings for your tool registration (see below)'
 );
 
+if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(U::addsession($from_location)) ) return;
+}
+
 if ( U::get($_POST,'endpoint') ) {
     if ( strlen(U::get($_POST,'pubkey')) < 1 && strlen(U::get($_POST,'privkey')) < 1 ) {
         /** @var true|string $success */

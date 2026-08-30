@@ -26,6 +26,9 @@ $results_rows = $PDOX->allRowsDie("SELECT result_id, R.link_id AS link_id, R.use
             array(':LI'=>$LINK->id, ':CI'=>$CONTEXT->id));
 
 if (!empty($_POST)) {
+  if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession('configure.php')) ) {
+      return;
+  }
 
   $gift = parse_configure_post();
 
@@ -62,6 +65,7 @@ $OUTPUT->topNav($menu);
 $OUTPUT->flashMessages();
 ?>
 <form method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <?php
 // If we found results rows that weren't empty earlier, show a warning and disable the entire form
 if ($results_rows) {

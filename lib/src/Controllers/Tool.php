@@ -10,6 +10,7 @@ use Tsugi\Core\Membership;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
  * Base class for LMS tool controllers
@@ -69,21 +70,65 @@ abstract class Tool {
     }
 
     /**
-     * True when POST CSRF_TOKEN (or X-CSRF-TOKEN) matches the session token.
+     * True when POST CSRF_TOKEN (or X-CSRF-TOKEN) matches the session token,
+     * or the browser marks this POST as same-origin.
+     *
+     * Cookie-session pages (admin unlock) can lose the GET session cookie on the
+     * following POST; Chrome still sends Sec-Fetch-Site/Origin, which is enough
+     * to reject cross-site CSRF. LTI launches must not use this helper.
      *
      * @return bool
      */
     public static function csrfOk() {
         $token = $_SESSION['CSRF_TOKEN'] ?? '';
-        if ( ! is_string($token) || $token === '' ) {
-            return false;
+        if ( is_string($token) && $token !== '' ) {
+            $posted = U::get($_POST, 'CSRF_TOKEN', '');
+            if ( is_string($posted) && $posted !== '' && hash_equals($token, $posted) ) {
+                return true;
+            }
+            $header = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_SERVER['HTTP_X_CSRFTOKEN'] ?? '';
+            if ( is_string($header) && $header !== '' && hash_equals($token, $header) ) {
+                return true;
+            }
         }
-        $posted = U::get($_POST, 'CSRF_TOKEN', '');
-        if ( is_string($posted) && $posted !== '' && hash_equals($token, $posted) ) {
+        return self::sameOriginPost();
+    }
+
+    /**
+     * True when this request is a same-origin navigation (not a cross-site CSRF POST).
+     *
+     * @return bool
+     */
+    public static function sameOriginPost() {
+        global $CFG;
+        $site = $_SERVER['HTTP_SEC_FETCH_SITE'] ?? '';
+        if ( is_string($site) && $site === 'same-origin' ) {
             return true;
         }
-        $header = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_SERVER['HTTP_X_CSRFTOKEN'] ?? '';
-        return is_string($header) && $header !== '' && hash_equals($token, $header);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        if ( ! is_string($origin) || $origin === '' ) {
+            return false;
+        }
+        foreach ( array($CFG->wwwroot ?? '', $CFG->apphome ?? '') as $base ) {
+            if ( ! is_string($base) || $base === '' ) {
+                continue;
+            }
+            $parts = parse_url($base);
+            if ( ! is_array($parts) || empty($parts['host']) ) {
+                continue;
+            }
+            $scheme = $parts['scheme'] ?? 'http';
+            $expected = $scheme.'://'.$parts['host'];
+            $port = isset($parts['port']) ? (int) $parts['port'] : 0;
+            $default_port = ($scheme === 'https') ? 443 : 80;
+            if ( $port > 0 && $port !== $default_port ) {
+                $expected .= ':'.$port;
+            }
+            if ( hash_equals($expected, $origin) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -110,6 +155,42 @@ abstract class Tool {
             return null;
         }
         return new RedirectResponse($redirect);
+    }
+
+    /**
+     * For classic PHP tools that redirect with header('Location').
+     *
+     * @param string $url Already session-bearing Location target.
+     * @return bool True when the caller should return (token was bad).
+     */
+    public static function csrfRedirect($url) {
+        if ( self::csrfOk() ) {
+            return false;
+        }
+        U::flashError('Missing or invalid CSRF token');
+        header('Location: '.$url);
+        return true;
+    }
+
+    /**
+     * JSON 403 when the CSRF token is missing or invalid (no flash).
+     *
+     * @param array|null $payload
+     * @return JsonResponse|null Null when the token is valid.
+     */
+    public static function requireCsrfJson($payload = null) {
+        if ( self::csrfOk() ) {
+            return null;
+        }
+        if ( $payload === null ) {
+            $payload = array(
+                'success' => false,
+                'status' => 'error',
+                'error' => 'Missing or invalid CSRF token',
+                'detail' => 'Missing or invalid CSRF token',
+            );
+        }
+        return new JsonResponse($payload, 403);
     }
 
     /**

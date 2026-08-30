@@ -17,6 +17,9 @@ $LAUNCH = LTIX::requireData();
 $p = $CFG->dbprefix;
 
 if ( SettingsForm::isSettingsPost() ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession('index.php')) ) {
+        return;
+    }
     // Validate settings...
     if ( isset($_POST['tries']) && $_POST['tries'] != '' && ! is_numeric($_POST['tries']) ) {
         $_SESSION['error'] = __('Tries must be numeric');
@@ -43,6 +46,9 @@ $LAUNCH->link->settingsDefaultsFromCustom(array('tries', 'delay', 'title', 'inst
 
 $password = Settings::linkGet('password');
 if ( strlen(U::get($_POST, "password", '')) > 0  ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession('index.php')) ) {
+        return;
+    }
     $_SESSION['assignment_password'] = U::get($_POST, "password");
     header( 'Location: '.addSession('index.php') ) ;
     return;
@@ -94,6 +100,9 @@ if ( $RESULT->atAttemptLimit($max_tries, $attempts) ) {
 
 $oldgrade = $RESULT->grade;
 if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession('index.php')) ) {
+        return;
+    }
     if ( $questions == false ) {
         $_SESSION['error'] ='Internal error: No questions';
         header( 'Location: '.addSession('index.php') ) ;
@@ -204,6 +213,7 @@ unlock this assignment.
 </p>
 <p>
 <form method="post">
+    <?= \Tsugi\Controllers\Tool::csrfField() ?>
     <label for="quiz_password">Password:</label>
     <input type="password" name="password" id="quiz_password">
     <input type="submit" value="<?= htmlspecialchars(__('Submit')) ?>">
@@ -268,6 +278,7 @@ parse_gift($gift, $questions, $errors);
 
 ?>
 <form method="post" aria-label="Quiz questions">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <ol id="quiz" role="list">
 </ol>
 <?php

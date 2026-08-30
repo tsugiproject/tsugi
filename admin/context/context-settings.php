@@ -27,6 +27,7 @@ $context_id = $_REQUEST['context_id'];
 
 // Handle POST - save settings (must be done BEFORE any output)
 if ( isset($_POST['settings_json']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(U::addSession("context-settings.php?context_id=".$context_id)) ) return;
     $settings_json = trim($_POST['settings_json']);
     
     // Validate JSON if not empty
@@ -113,6 +114,7 @@ $OUTPUT->flashMessages();
 <h2><?= htmlentities($context_title) ?></h2>
 
 <form method="post">
+    <?= \Tsugi\Controllers\Tool::csrfField() ?>
     <div class="form-group">
         <label for="settings_json">Context Settings (JSON)</label>
         <textarea class="form-control" id="settings_json" name="settings_json" rows="20" 

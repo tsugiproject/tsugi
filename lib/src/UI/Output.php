@@ -137,11 +137,9 @@ class Output {
         echo(self::headerStart());
         echo($this->headerData());
         echo(self::headerCss());
-        if ( ($_SESSION['CSRF_TOKEN'] ?? null) ) {
-            echo('<script type="text/javascript">CSRF_TOKEN = "'.($_SESSION['CSRF_TOKEN'] ?? '').'";</script>'."\n");
-        } else {
-            echo('<script type="text/javascript">CSRF_TOKEN = "TODORemoveThis";</script>'."\n");
-        }
+        $csrf = LTIX::ensureCsrfToken();
+        echo('<script type="text/javascript">CSRF_TOKEN = "'.htmlspecialchars($csrf, ENT_QUOTES).'";'
+            .'function tsugiCsrfHeaders(h){h=h||{};if(CSRF_TOKEN){h["X-CSRF-TOKEN"]=CSRF_TOKEN;}return h;}</script>'."\n");
 
         // Set the containing frame id if we have one
         $element_id = LTIX::ltiRawParameter('ext_lti_element_id', false);

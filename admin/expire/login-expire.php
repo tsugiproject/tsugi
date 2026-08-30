@@ -68,6 +68,7 @@ $params = array_merge($where_data['params'], $where_params);
 $sql_display = \Tsugi\Util\PDOX::sqlDisplay($sql, $params);
 
 if ( isset($_POST['doDelete']) && isset($_POST['days']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(U::addSession($_SERVER['REQUEST_URI'])) ) return;
     echo("<pre>\n");
     $start = time();
 
@@ -92,6 +93,7 @@ since last login:
 <?= htmlspecialchars($sql_display) ?>
 </pre>
 <form method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <input type="hidden" name="days" value="<?= $days ?>">
 <input type="submit" name="doDelete" value="Delete <?= $count ?> <?= htmlentities(ucfirst($base)) ?>s and All Associated Data">
 </form>

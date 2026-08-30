@@ -7,6 +7,7 @@ require_once "../config.php";
 require_once "util.php";
 
 session_start();
+if ( ! \Tsugi\Controllers\Tool::csrfOk() ) die('Missing or invalid CSRF token');
 unset($_SESSION['quiz']);
 unset($_SESSION['title']);
 unset($_SESSION['name']);

@@ -92,9 +92,13 @@ class SettingsDialog {
 
         if ( isset($_POST['settings_internal_post']) && $this->instructor() ) {
             $newsettings = array();
+            if ( ! \Tsugi\Controllers\Tool::checkCsrf() ) {
+                return true;
+            }
             foreach ( $_POST as $k => $v ) {
                 if ( $k == session_name() ) continue;
                 if ( $k == 'settings_internal_post' ) continue;
+                if ( $k == 'CSRF_TOKEN' ) continue;
                 if ( strpos('_ignore',$k) > 0 ) continue;
                 $newsettings[$k] = $v;
             }
@@ -185,6 +189,7 @@ class SettingsDialog {
             <span id="save_fail" class="text-danger" style="display:none;"><?php _me('Unable to save settings'); ?></span>
             <?php if ( $this->instructor() ) { ?>
             <input type="hidden" name="settings_internal_post" value="1"/>
+            <?= \Tsugi\Controllers\Tool::csrfField() ?>
             <?php }
     }
 

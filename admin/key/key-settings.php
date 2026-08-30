@@ -30,6 +30,7 @@ $key_id = $_REQUEST['key_id'];
 
 // Handle POST - save settings (must be done BEFORE any output)
 if ( isset($_POST['settings_json']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(U::addSession("key-settings.php?key_id=".$key_id)) ) return;
     $settings_json = trim($_POST['settings_json']);
     
     // Validate JSON if not empty
@@ -116,6 +117,7 @@ $OUTPUT->flashMessages();
 <h2><?= htmlentities($key_title) ?></h2>
 
 <form method="post">
+    <?= \Tsugi\Controllers\Tool::csrfField() ?>
     <div class="form-group">
         <label for="settings_json">Key Settings (JSON)</label>
         <textarea class="form-control" id="settings_json" name="settings_json" rows="20" 

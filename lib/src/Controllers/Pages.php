@@ -397,6 +397,7 @@ class Pages extends Tool {
             <h1>Add New Page</h1>
             
             <form method="post" id="page_form">
+                <?= self::csrfField() ?>
                 <div class="form-group">
                     <label for="title">Title:</label>
                     <input type="text" class="form-control" id="title" name="title" 
@@ -480,6 +481,10 @@ class Pages extends Tool {
         $tool_home = $this->toolHome(self::ROUTE);
         $add_url = $tool_home . '/add';
         $manage_url = $tool_home . '/manage';
+        $csrf = self::requireCsrf($add_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
         
         LTIX::getConnection();
         
@@ -615,6 +620,7 @@ class Pages extends Tool {
             <h1>Edit Page</h1>
 
             <form method="post" id="page_form">
+                <?= self::csrfField() ?>
                 <div class="form-group">
                     <label for="title">Title:</label>
                     <input type="text" class="form-control" id="title" name="title" 
@@ -698,6 +704,10 @@ class Pages extends Tool {
         
         $tool_home = $this->toolHome(self::ROUTE);
         $manage_url = $tool_home . '/manage';
+        $csrf = self::requireCsrf($manage_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
         
         LTIX::getConnection();
         
@@ -910,6 +920,7 @@ class Pages extends Tool {
                                     <a href="<?= htmlspecialchars($history_url) ?>" class="btn btn-xs btn-info" aria-label="<?= htmlspecialchars(__('History')) ?> <?= htmlspecialchars($page['title']) ?>">History</a>
                                     <?php endif; ?>
                                     <form method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to toggle the published status?');">
+                                        <?= self::csrfField() ?>
                                         <input type="hidden" name="action" value="toggle_published">
                                         <input type="hidden" name="page_id" value="<?= $page['page_id'] ?>">
                                         <button type="submit" class="btn btn-xs btn-warning" aria-label="<?= $page['published'] ? 'Unpublish' : 'Publish' ?> <?= htmlspecialchars($page['title']) ?>">
@@ -917,6 +928,7 @@ class Pages extends Tool {
                                         </button>
                                     </form>
                                     <form method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this page?');">
+                                        <?= self::csrfField() ?>
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="page_id" value="<?= $page['page_id'] ?>">
                                         <button type="submit" class="btn btn-xs btn-danger" aria-label="Delete <?= htmlspecialchars($page['title']) ?>">Delete</button>
@@ -940,6 +952,10 @@ class Pages extends Tool {
         
         $tool_home = $this->toolHome(self::ROUTE);
         $manage_url = $tool_home . '/manage';
+        $csrf = self::requireCsrf($manage_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
         
         LTIX::getConnection();
         
@@ -1067,11 +1083,9 @@ class Pages extends Tool {
                                         data-body="<?= htmlspecialchars($h['body']) ?>">View / Diff</button>
                                 <form method="post" action="<?= $tool_home ?>/history/restore" style="display: inline;"
                                       onsubmit="return confirm('Restore this version? The current version will be saved to history.');">
+                                    <?= self::csrfField() ?>
                                     <input type="hidden" name="page_id" value="<?= $page_id ?>">
                                     <input type="hidden" name="history_id" value="<?= (int)$h['history_id'] ?>">
-                                    <?php if (!empty($_SESSION['CSRF_TOKEN'])): ?>
-                                    <input type="hidden" name="CSRF_TOKEN" value="<?= htmlspecialchars($_SESSION['CSRF_TOKEN']) ?>">
-                                    <?php endif; ?>
                                     <button type="submit" class="btn btn-xs btn-primary">Restore</button>
                                 </form>
                             </td>
@@ -1164,6 +1178,10 @@ class Pages extends Tool {
 
         $tool_home = $this->toolHome(self::ROUTE);
         $manage_url = $tool_home . '/manage';
+        $csrf = self::requireCsrf($manage_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
 
         LTIX::getConnection();
 

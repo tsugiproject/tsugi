@@ -18,19 +18,22 @@ final class AdminTest extends TsugiPantherTestCase
         $driver = $client->getWebDriver();
         $input = $driver->findElement(WebDriverBy::name('passphrase'));
         $input->sendKeys($passphrase);
-        $input->submit();
+        $driver->findElement(WebDriverBy::cssSelector('form[method="post"] input[type="submit"]'))->click();
 
-        $deadline = microtime(true) + 5;
+        $deadline = microtime(true) + 15;
+        $page = '';
         while (microtime(true) < $deadline) {
-            if (str_contains($client->getPageSource(), 'Administration Console')) {
+            $page = $client->getPageSource();
+            if (str_contains($page, 'Administration Console')) {
                 break;
             }
             usleep(200000);
         }
 
+        $this->assertStringNotContainsString('Missing or invalid CSRF token', $page);
         $this->assertStringContainsString(
             'Administration Console',
-            $client->getPageSource()
+            $page
         );
 
         $this->captureScreenshot($client, 'admin-console');

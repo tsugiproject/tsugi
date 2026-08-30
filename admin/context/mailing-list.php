@@ -29,6 +29,7 @@ $context_id = $_REQUEST['context_id'] + 0;
 
 // Handle form submission - POST-Redirect-GET pattern
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['days']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect('mailing-list.php?context_id='.$context_id) ) return;
     $days = $_POST['days'] + 0;
     if ( !is_numeric($_POST['days']) || $days < 1 || $days > 365 ) {
         U::flashError("Days must be between 1 and 365");
@@ -137,6 +138,7 @@ $OUTPUT->flashMessages();
   <div class="panel-body">
     <p>Generate a mailing list of users who have logged in within a specified number of days.</p>
     <form method="post" action="mailing-list.php">
+      <?= \Tsugi\Controllers\Tool::csrfField() ?>
       <input type="hidden" name="context_id" value="<?= htmlentities($context_id) ?>">
       <div class="form-group" style="margin-bottom: 15px;">
         <label for="days">Users who logged in within the last:</label>

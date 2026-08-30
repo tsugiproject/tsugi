@@ -14,6 +14,13 @@ use \Tsugi\Grades\GradeUtil;
 $LAUNCH = LTIX::requireData();
 $p = $CFG->dbprefix;
 
+if ( count($_POST) > 0 ) {
+    $back = isset($_REQUEST['user_id']) ? 'rate.php?user_id='.$_REQUEST['user_id'] : 'index';
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession($back)) ) {
+        return;
+    }
+}
+
 if ( !isset($_REQUEST['user_id']) ) {
     die('user_id required');
 }
@@ -184,6 +191,7 @@ showSubmission($assn_json, $submit_json, $assn_id, $user_id);
 echo('<p>'.htmlentities($assn_json->grading)."</p>\n");
 ?>
 <form method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
 <input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
 <?php if ( $assn_json->rating > 0 ) { ?>
@@ -202,6 +210,7 @@ value="<?= ($previous_rating > 0 ? $previous_rating : '') ?>" >
 </form>
 <?php   if ( $assn_json->flag ) { ?>
 <form method="post" id="flagform" style="display:none">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p>Please be considerate when flagging an item.  Only use
 flagging when instructor attention is needed.</p>
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">

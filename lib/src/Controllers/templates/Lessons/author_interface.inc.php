@@ -1674,6 +1674,7 @@ function saveChanges() {
     $.ajax({
         url: window.location.pathname,
         method: 'POST',
+        headers: tsugiCsrfHeaders(),
         data: {
             action: 'save',
             data: jsonData

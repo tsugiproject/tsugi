@@ -34,6 +34,14 @@ if ( $havedatabase && $CFG->google_client_id && ! isLoggedIn() ) {
 }
 
 if ( isset($_POST['passphrase']) ) {
+    if ( ! \Tsugi\Controllers\Tool::csrfOk() ) {
+        U::flashError('Missing or invalid CSRF token');
+        $rest_path = \Tsugi\Util\U::rest_path();
+        $redirect = U::addSession(U::reconstruct_query($rest_path->current));
+        Output::doRedirect($redirect);
+        $REDIRECTED = true;
+        return;
+    }
     unset($_SESSION["admin"]);
     $apw = $CFG->adminpw;
     $phrase = $_POST['passphrase'];
@@ -42,6 +50,7 @@ if ( isset($_POST['passphrase']) ) {
        (strpos($apw, 'sha256:') === 0 && $hash == $apw ) ) {
 
         $_SESSION["admin"] = "yes";
+        session_regenerate_id(true);
         error_log("Admin login IP=".$_SERVER["REMOTE_ADDR"].
             (isLoggedIn() ? " id=".loggedInUserId().' email='.U::get($_SESSION, 'email', '') : " developer mode"));
     } else {
@@ -62,8 +71,10 @@ if ( isset($_SESSION['admin']) ) return;
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
+$OUTPUT->flashMessages();
 ?>
-<form method="post">
+<form method="post" action="<?= htmlspecialchars($CFG->wwwroot) ?>/admin/">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <label for="passphrase">Admin Unlock:<br/>
 <input type="password" autocomplete="off" name="passphrase" size="80">
 </label>

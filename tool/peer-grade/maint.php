@@ -25,6 +25,12 @@ if ( $assn === false ) {
     $assn_id = $assn['assn_id'];
 }
 
+if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession('maint.php')) ) {
+        return;
+    }
+}
+
 if ( isset($_POST['restartReGrade']) ) {
     $lstmt = $PDOX->queryDie(
         "UPDATE {$p}peer_submit SET regrade=NULL
@@ -154,12 +160,15 @@ $iframeurl = addSession($CFG->getCurrentUrl().'?link_id=' . $link_id);
 
 <div>
 <form style="display: inline" method="post">
+  <?= \Tsugi\Controllers\Tool::csrfField() ?>
   <button name="catchupInstructor" class="btn btn-warning">Catch Up Instructor Points</button>
 </form>
 <form style="display: inline" method="post">
+  <?= \Tsugi\Controllers\Tool::csrfField() ?>
   <button name="restartReGrade" class="btn btn-warning">Restart Re-Grade</button>
 </form>
 <form style="display: inline" method="post" target="my_iframe" action="<?php echo($iframeurl); ?>">
+  <?= \Tsugi\Controllers\Tool::csrfField() ?>
   <button name="reGradePeer" onclick="showFrame();" class="btn btn-warning">Re-Compute Peer Grades</button>
 </form>
 <p>These are maintenance tools make sure you know how to use them.

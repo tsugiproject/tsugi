@@ -118,6 +118,8 @@ final class ToolHappyPathTest extends ToolLaunchHarness
             $driver->executeScript(
                 'var tokenEl = document.querySelector("input[name=\"_LTI_TSUGI\"]");
                  var token = tokenEl ? tokenEl.value : "";
+                 var csrfEl = document.querySelector("input[name=\"CSRF_TOKEN\"]");
+                 var csrf = csrfEl ? csrfEl.value : (window.CSRF_TOKEN || "");
                  var form = document.createElement("form");
                  form.method = "post";
                  form.action = window.location.pathname + window.location.search;
@@ -129,6 +131,7 @@ final class ToolHappyPathTest extends ToolLaunchHarness
                     form.appendChild(input);
                  }
                  add("_LTI_TSUGI", token);
+                 add("CSRF_TOKEN", csrf);
                  add("title", arguments[0]);
                  add("body", arguments[1]);
                  document.body.appendChild(form);

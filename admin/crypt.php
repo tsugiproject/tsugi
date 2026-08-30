@@ -15,6 +15,10 @@ $encrypted_result = null;
 $decrypted_result = null;
 $error_message = null;
 
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(U::addSession('crypt.php')) ) return;
+}
+
 // Handle encryption
 if (U::isKeyNotEmpty($_POST, "encrypt") && U::isKeyNotEmpty($_POST, "encrypt_value")) {
     $plaintext = U::get($_POST, "encrypt_value");
@@ -185,6 +189,7 @@ input[type="submit"]:hover {
 <div class="form-section">
 <h2>Encrypt String</h2>
 <form method="POST" autocomplete="off">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <label for="encrypt_value">Enter plaintext to encrypt:</label><br/>
 <textarea name="encrypt_value" id="encrypt_value" placeholder="Enter text to encrypt..."><?= htmlentities(U::get($_POST, "encrypt_value", "")) ?></textarea><br/>
 <label for="encrypt_secret">Secret (optional - if provided, uses AesOpenSSL::encrypt):</label><br/>
@@ -202,6 +207,7 @@ input[type="submit"]:hover {
 <div class="form-section">
 <h2>Decrypt String</h2>
 <form method="POST" autocomplete="off">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <label for="decrypt_value">Enter encrypted string to decrypt:</label><br/>
 <textarea name="decrypt_value" id="decrypt_value" placeholder="Enter encrypted text (e.g., AES::...)..."><?= htmlentities(U::get($_POST, "decrypt_value", "")) ?></textarea><br/>
 <label for="decrypt_secret">Secret (optional - if provided, uses AesCtr::decrypt):</label><br/>

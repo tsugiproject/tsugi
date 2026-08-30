@@ -15,6 +15,7 @@ $mc = $cache->getMemcached();
 
 $result_html = '';
 if ( $cache->isEnabled() && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(U::addSession('mcache.php')) ) return;
     $op = U::get($_POST, 'mcache_op', '');
     $key = trim((string) U::get($_POST, 'mcache_key', ''));
     if ( U::strlen($op) < 1 ) {
@@ -114,6 +115,7 @@ if ( ! $cache->isEnabled() ) {
 ?>
 <h2>Get / set / delete</h2>
 <form method="POST">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <fieldset>
 <legend>Key and value</legend>
 <label>Key<br/>

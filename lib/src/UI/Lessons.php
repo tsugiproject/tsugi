@@ -2541,6 +2541,7 @@ class Lessons {
             }
             echo('<div style="margin: 1em 0 0; display: flex; gap: 0.5em; flex-wrap: wrap;">');
             echo('<form method="post" action="'.htmlspecialchars($mark_read_url).'" class="tsugi-discussions-mark-read-form" style="margin: 0;">');
+            echo(\Tsugi\Controllers\Tool::csrfField());
             echo('<button type="submit" class="btn btn-default btn-sm">'.htmlentities(__('Mark all as read')).'</button>');
             echo('</form>'."\n");
             if ( $show_expire_button ) {

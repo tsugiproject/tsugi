@@ -8,6 +8,9 @@ use \Tsugi\Core\LTIX;
 $LAUNCH = LTIX::requireData();
 if ( ! $USER->instructor ) die("Instructor only");
 if ( isset($_POST['doClear']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession('debug.php')) ) {
+        return;
+    }
     session_unset();
     die('session unset');
 }
@@ -25,6 +28,7 @@ $OUTPUT->togglePre("Session data",$OUTPUT->safe_var_dump($_SESSION));
 
 ?>
 <form method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <input type="submit" name="doClear" value="Clear Session (will log out out)">
 </form>
 <?php

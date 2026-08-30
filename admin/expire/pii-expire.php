@@ -42,6 +42,7 @@ $params = $where['params'];
 $sql_display = \Tsugi\Util\PDOX::sqlDisplay($sql, $params);
 
 if ( isset($_POST['doDelete']) && isset($_POST['pii_days']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(U::addSession($_SERVER['REQUEST_URI'])) ) return;
     echo("<pre>\n");
     $start = time();
 
@@ -66,6 +67,7 @@ using the following SQL:
 <?= htmlspecialchars($sql_display) ?>
 </pre>
 <form method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <input type="hidden" name="pii_days" value="<?= $days ?>">
 <input type="submit" name="doDelete" value="Delete PII for <?= $pii_count ?> Users">
 </form>

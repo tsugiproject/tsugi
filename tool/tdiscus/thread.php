@@ -23,6 +23,17 @@ $thread_id = null;
 $thread = null;
 if ( isset($rest_path->action) && is_numeric($rest_path->action) ) {
     $thread_id = intval($rest_path->action);
+}
+
+$come_back = $TOOL_ROOT . '/thread/' . $thread_id;
+
+if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession($come_back)) ) {
+        return;
+    }
+}
+
+if ( $thread_id !== null ) {
     $thread = $THREADS->threadLoadMarkRead($thread_id);
 }
 
@@ -34,7 +45,6 @@ if ( ! $thread ) {
     return;
 }
 
-$come_back = $TOOL_ROOT . '/thread/' . $thread_id;
 $all_done = $TOOL_ROOT . '/';
 $discussion_title = (strlen($LAUNCH->link->settingsGet('title')) > 0)
     ? $LAUNCH->link->settingsGet('title')

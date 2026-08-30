@@ -27,6 +27,12 @@ $p = $CFG->dbprefix;
 if ( !isset($_REQUEST['user_id']) ) die("user_id parameter required");
 $user_id = $_REQUEST['user_id'];
 
+if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(addSession('student.php?user_id='.$user_id)) ) {
+        return;
+    }
+}
+
 // Load the assignment
 $row = loadAssignment();
 $assn_json = null;
@@ -370,6 +376,7 @@ if ( $submit_row === false ) {
 }
 
 echo('<form method="post">
+      '.\Tsugi\Controllers\Tool::csrfField().'
       <input type="hidden" name="user_id" value="'.$user_id.'">');
 
 if ( $next_user_id_ungraded !== false ) {
@@ -407,6 +414,7 @@ if ( $assn_json->rating > 0 ) {
 if ( isset($_GET['delete']) ) {
     $studenturl = Table::makeUrl('student.php', $getparms);
     echo('<form method="post">
+        '.\Tsugi\Controllers\Tool::csrfField().'
         <input type="hidden" name="user_id" value="'.$user_id.'">
         <label for="deleteNote">Enter an optional note to send to the student</label><br/>
         <textarea name="deleteNote" id="deleteNote" style="width:60%" rows="5">
@@ -429,6 +437,7 @@ if ( $assn_json->totalpoints == 0 ) {
     if ( isset($_GET['resend']) ) {
         $studenturl = Table::makeUrl('student.php', $getparms);
         echo('<form method="post">
+            '.\Tsugi\Controllers\Tool::csrfField().'
             <input type="hidden" name="user_id" value="'.$user_id.'">
             <input type="submit" name="resendSubmit" value="Resend the Grade" class="btn btn-warning">
             <input type="submit" name="doCancel" value="Cancel Resend" class="btn btn-normal"
@@ -454,7 +463,7 @@ if ( $our_flags !== false && count($our_flags) > 0 ) {
         echo("<td>".htmlentities($flag['email'] ?? '')."</td>\n");
         echo("<td>".htmlentities($flag['note'] ?? '')."</td>\n");
         echo("<td>".htmlentities($flag['updated_at'] ?? '')."</td>\n");
-        echo('<td> <form method="post"><input type="hidden"
+        echo('<td> <form method="post">'.\Tsugi\Controllers\Tool::csrfField().'<input type="hidden"
             name="flag_id" value="'.$flag['flag_id'].'">
         <input type="submit" name="deleteFlag" value="delete" class="btn btn-danger"></form></td>');
         echo("</tr>\n");
@@ -481,7 +490,7 @@ if ( $grades_received === false || count($grades_received) < 1 ) {
         if ( $assn_json->peerpoints > 0 ) echo("<td>".$grade['points']."</td>");
         if ( $assn_json->rating > 0 ) echo("<td>".$grade['rating']."</td>");
         echo("<td>".htmlentities($grade['note'] ?? '')."</td>".
-        '<td> <form method="post"><input type="hidden"
+        '<td> <form method="post">'.\Tsugi\Controllers\Tool::csrfField().'<input type="hidden"
             name="grade_id" value="'.$grade['grade_id'].'">
         <input type="hidden" name="user_id" value="'.$user_id.'">
         <input type="submit" name="deleteGrade" value="delete" class="btn btn-danger"></form></td>'.
@@ -513,7 +522,7 @@ if ( $grades_given === false || count($grades_given) < 1 ) {
         if ( $assn_json->peerpoints > 0 ) echo("<td>".$grade['points']."</td>");
         if ( $assn_json->rating > 0 ) echo("<td>".$grade['rating']."</td>");
         echo("<td>".htmlentities($grade['note'] ?? '')."</td>".
-        '<td> <form method="post"><input type="hidden"
+        '<td> <form method="post">'.\Tsugi\Controllers\Tool::csrfField().'<input type="hidden"
             name="grade_id" value="'.$grade['grade_id'].'">
         <input type="hidden" name="user_id" value="'.$user_id.'">
         <input type="submit" name="deleteGrade" value="delete" class="btn btn-danger"></form></td>'.

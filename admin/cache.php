@@ -9,6 +9,10 @@ if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 use \Tsugi\Util\U;
 use \Tsugi\UI\Output;
 
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(U::addSession('cache.php')) ) return;
+}
+
 if (U::isKeyNotEmpty($_POST, "set") && U::isKeyNotEmpty($_POST, "set_value")) {
     U::appCacheSet('tsugi_test', U::get($_POST, "set_value"));
 }
@@ -37,6 +41,7 @@ if ( U::apcuAvailable() ) {
     }
 ?>
 <form method="POST">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
 <input type="submit" name="set" value="Set tsugi_test cache entry"> = 
 <input type="text" name="set_value"><br/>
 <input type="submit" name="delete" value="Delete tsugi_test cache entry"><br/>
