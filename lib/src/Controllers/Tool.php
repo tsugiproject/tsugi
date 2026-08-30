@@ -117,9 +117,12 @@ abstract class Tool {
             if ( ! is_array($parts) || empty($parts['host']) ) {
                 continue;
             }
-            $expected = ($parts['scheme'] ?? 'http').'://'.$parts['host'];
-            if ( ! empty($parts['port']) ) {
-                $expected .= ':'.$parts['port'];
+            $scheme = $parts['scheme'] ?? 'http';
+            $expected = $scheme.'://'.$parts['host'];
+            $port = isset($parts['port']) ? (int) $parts['port'] : 0;
+            $default_port = ($scheme === 'https') ? 443 : 80;
+            if ( $port > 0 && $port !== $default_port ) {
+                $expected .= ':'.$port;
             }
             if ( hash_equals($expected, $origin) ) {
                 return true;
