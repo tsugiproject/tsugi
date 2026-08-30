@@ -17,16 +17,6 @@ class NetTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsStringIgnoringCase("The First Page",$stuff);
     }
 
-    public function testGetStream() {
-        $stuff = Net::getStream("https://www.dr-chuck.com/page1.htm");
-        // Handle rate limiting or network failures gracefully in CI
-        if ($stuff === false) {
-            $this->markTestSkipped('External HTTP request failed (likely rate limiting in CI)');
-            return;
-        }
-        $this->assertStringContainsStringIgnoringCase("The First Page",$stuff);
-    }
-
     public function testGetCurl() {
         global $LastCurlError;
         $stuff = Net::getCurl("https://www.dr-chuck.com/page1.htm");

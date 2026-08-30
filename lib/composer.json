@@ -22,6 +22,7 @@
     },
     "require": {
         "php": ">=8.4.0",
+        "ext-curl": "*",
         "phpseclib/phpseclib": "3.0.54",
         "firebase/php-jwt" : "7.0.5",
         "ezyang/htmlpurifier": "v4.19.0"
