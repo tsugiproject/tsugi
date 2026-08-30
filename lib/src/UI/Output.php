@@ -1382,7 +1382,8 @@ $( function() {
             }
         }
 
-        // Override the config AND launch values if the user's preference is set in the $_SESSION
+        // Profile high-contrast override wins over site, launch, and course theme.
+        $profile_theme_key = null;
         if ( is_object($PDOX) && isset($_SESSION) && isset($_SESSION['profile_id']) ) {
             $profile_table = "{$CFG->dbprefix}profile";
             if ( $PDOX->metadata($profile_table) !== false ) {
@@ -1397,21 +1398,32 @@ $( function() {
                     if ( ! empty($profile_row) && ! is_null($profile_row['json']) ) {
                         $profile = json_decode($profile_row['json']);
                         if ( isset($profile->theme_override) ) {
-                            if ( $profile->theme_override == 'dark' ) {
-                                $dark_mode = true;
-                            } else if ( $profile->theme_override == 'light' ) {
-                                $dark_mode = null;
-                            }
+                            $profile_theme_key = Manifest::profileThemeKey($profile->theme_override);
                         }
                     }
                 }
             }
         }
 
+        if ( $profile_theme_key === 'hc-wob' ) {
+            $dark_mode = true;
+        } else if ( $profile_theme_key === 'hc-bow' ) {
+            $dark_mode = null;
+        }
+
         // Set dark mode configuration on the theme so apps can check
         // Example: conditional rendering of a twitter embed attribute
         Theme::$dark_mode = $dark_mode;
         Theme::$theme_base = $theme_base;
+
+        if ( is_string($profile_theme_key) ) {
+            $forced = Manifest::palette($profile_theme_key);
+            if ( is_array($forced) ) {
+                $theme = self::themeDefaultsPreservingFont($forced);
+                if (is_object($TSUGI_LAUNCH)) $_SESSION['tsugi_theme'] = $theme;
+                return $theme;
+            }
+        }
 
         $courseTheme = null;
         if ( Manifest::activeId() > 0 ) {

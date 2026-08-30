@@ -66,11 +66,12 @@ if ( ! isset($theme_site_primary) || ! is_string($theme_site_primary) || $theme_
     <?php foreach ( $theme_palettes as $key => $palette ) {
         $label = isset($palette['label']) ? $palette['label'] : $key;
         $primary = isset($palette['primary']) ? $palette['primary'] : '#999999';
+        $bg = isset($palette['background-color']) ? $palette['background-color'] : $primary;
         $selected = ($theme_current === $key);
         ?>
         <label class="theme-swatch">
             <input type="radio" name="theme" value="<?= htmlspecialchars($key) ?>"<?= $selected ? ' checked' : '' ?> />
-            <span class="theme-swatch-bar" style="background: <?= htmlspecialchars($primary) ?>;"></span>
+            <span class="theme-swatch-bar" style="background: linear-gradient(to right, <?= htmlspecialchars($primary) ?> 50%, <?= htmlspecialchars($bg) ?> 50%);"></span>
             <span class="theme-swatch-label"><?= htmlspecialchars($label) ?></span>
         </label>
     <?php } ?>
