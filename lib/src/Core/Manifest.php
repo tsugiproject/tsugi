@@ -182,7 +182,61 @@ class Manifest {
                 'font-family' => 'sans-serif',
                 'font-size' => '14px',
             ),
+            'hc-bow' => array(
+                'label' => 'High contrast black on white',
+                'primary' => '#000000',
+                'primary-menu' => '#000000',
+                'primary-border' => '#000000',
+                'primary-darker' => '#000000',
+                'primary-darkest' => '#000000',
+                'background-color' => '#FFFFFF',
+                'background-focus' => '#FFFFFF',
+                'background-accent' => '#000000',
+                'secondary' => '#FFFFFF',
+                'secondary-menu' => '#FFFFFF',
+                'text' => '#000000',
+                'text-light' => '#000000',
+                'font-family' => 'sans-serif',
+                'font-size' => '14px',
+            ),
+            'hc-wob' => array(
+                'label' => 'High contrast white on black',
+                'primary' => '#FFFFFF',
+                'primary-menu' => '#FFFFFF',
+                'primary-border' => '#FFFFFF',
+                'primary-darker' => '#FFFFFF',
+                'primary-darkest' => '#FFFFFF',
+                'background-color' => '#000000',
+                'background-focus' => '#000000',
+                'background-accent' => '#FFFFFF',
+                'secondary' => '#000000',
+                'secondary-menu' => '#000000',
+                'text' => '#FFFFFF',
+                'text-light' => '#FFFFFF',
+                'font-family' => 'sans-serif',
+                'font-size' => '14px',
+            ),
         );
+    }
+
+    /**
+     * Palette key from a profile theme_override, or null to keep site/course theme.
+     *
+     * Maps legacy light/dark overrides to the high-contrast palettes.
+     *
+     * @return string|null
+     */
+    public static function profileThemeKey($override) {
+        if ( $override === 'light' ) {
+            $override = 'hc-bow';
+        } else if ( $override === 'dark' ) {
+            $override = 'hc-wob';
+        }
+        $norm = self::normalizeThemeKey($override);
+        if ( $norm === 'hc-bow' || $norm === 'hc-wob' ) {
+            return $norm;
+        }
+        return null;
     }
 
     /**
@@ -200,7 +254,7 @@ class Manifest {
             return null;
         }
         $p = $all[$norm];
-        unset($p['label']);
+        unset($p['label'], $p['swatch']);
         return $p;
     }
 

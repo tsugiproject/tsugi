@@ -350,6 +350,12 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertArrayHasKey('navy', $palettes);
         $this->assertArrayHasKey('electric', $palettes);
         $this->assertArrayHasKey('grey', $palettes);
+        $this->assertArrayHasKey('hc-bow', $palettes);
+        $this->assertArrayHasKey('hc-wob', $palettes);
+        $this->assertSame('#000000', $palettes['hc-bow']['text']);
+        $this->assertSame('#FFFFFF', $palettes['hc-bow']['background-color']);
+        $this->assertSame('#FFFFFF', $palettes['hc-wob']['text']);
+        $this->assertSame('#000000', $palettes['hc-wob']['background-color']);
         $this->assertSame('#0D47A1', $palettes['tsugi']['primary']);
         $this->assertSame('#0a4b33', $palettes['django']['primary']);
         $this->assertSame('#336791', $palettes['postgres']['primary']);
@@ -368,6 +374,11 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertNull(Manifest::normalizeThemeKey('site'));
         $this->assertNull(Manifest::normalizeThemeKey(null));
         $this->assertSame('django', Manifest::normalizeThemeKey('Django'));
+        $this->assertSame('hc-bow', Manifest::normalizeThemeKey('hc-bow'));
+        $this->assertSame('hc-wob', Manifest::profileThemeKey('hc-wob'));
+        $this->assertSame('hc-bow', Manifest::profileThemeKey('light'));
+        $this->assertSame('hc-wob', Manifest::profileThemeKey('dark'));
+        $this->assertNull(Manifest::profileThemeKey(null));
         $this->assertFalse(Manifest::normalizeThemeKey('not-a-theme'));
         $this->assertFalse(Manifest::normalizeThemeKey(array('django')));
         $this->assertNull(Manifest::palette(''));
