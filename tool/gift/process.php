@@ -7,12 +7,12 @@ require_once "../config.php";
 require_once "util.php";
 
 session_start();
+if ( ! \Tsugi\Controllers\Tool::csrfOk() ) die('Missing or invalid CSRF token');
 unset($_SESSION['quiz']);
 unset($_SESSION['title']);
 unset($_SESSION['name']);
 unset($_SESSION['novalidate']);
 unset($_SESSION['htmlhack']);
-if ( ! \Tsugi\Controllers\Tool::csrfOk() ) die('Missing or invalid CSRF token');
 if ( !isset($_POST['text']) ) die('Missing input data');
 $text =  $_POST['text'];
 if ( isset($_POST['title']) ) $_SESSION['title'] = $_POST['title'];
