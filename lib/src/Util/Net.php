@@ -5,23 +5,10 @@ namespace Tsugi\Util;
 use \Tsugi\Util\U;
 
 /**
- * This general purpose library for HTTP communications.
+ * Outbound HTTP using the PHP curl extension.
  *
- * This class attempts to solve the problem that lots of
- * PHP environments have different approaches to doing
- * GET and POST requests.  Some use CURL and others use
- * context streams.   This code tries one way or another
- * to figure out the best way to handle these and make
- * these calls work using whatever library code that
- * is available.
- *
- * The best way for things work is for CURL to be avaialable.
- * If CURL is available, it is used for everything and
- * forks well.
- *
- * @TODO We need to make this non-static and configure it
- * so it prefers or exclusively uses a particular transport.
- *
+ * GET and POST (and other body methods) require ext-curl. There is no
+ * stream or socket fallback.
  */
 class Net {
 
@@ -121,42 +108,13 @@ class Net {
         global $LastHeadersReceived;
 
         $LastGETURL = $url;
-        $LastGETImpl = false;
+        $LastGETImpl = "CURL";
         $LastHeadersSent = false;
         $last_http_response = false;
         $LastCurlError = false;
         $LastHeadersReceived = false;
-        $lastGETResponse = false;
 
-        $LastGETImpl = "CURL";
-        $lastGETResponse = Net::getCurl($url, $header);
-        if ( $lastGETResponse !== false ) return $lastGETResponse;
-        $LastGETImpl = "Stream";
-        $lastGETResponse = Net::getStream($url, $header);
-        if ( $lastGETResponse !== false ) return $lastGETResponse;
-        error_log("Unable to GET Url=$url");
-        error_log("Header: $header");
-        throw new \Exception("Unable to GET url=".$url);
-    }
-
-    public static function getStream($url, $header=false) {
-        $header = self::ensureUserAgentHeader($header);
-        $params = array('http' => array(
-            'method' => 'GET',
-            'header' => $header
-            ));
-
-        $ctx = stream_context_create($params);
-        try {
-            $response = @file_get_contents($url, false, $ctx);
-            // Handle rate limiting (429) and other HTTP errors
-            if ($response === false) {
-                return false;
-            }
-        } catch (Exception $e) {
-            return false;
-        }
-        return $response;
+        return Net::getCurl($url, $header);
     }
 
     /**
@@ -217,9 +175,15 @@ class Net {
     }
 
 
+    private static function requireCurl() : void {
+        if ( ! function_exists('curl_init') ) {
+            throw new \Exception('The PHP curl extension is required for outbound HTTP');
+        }
+    }
+
     // Note - handles port numbers in URL automatically
     public static function getCurl($url, $header=false) {
-      if ( ! function_exists('curl_init') ) return false;
+      self::requireCurl();
       global $last_http_response;
       global $LastCurlError;
       global $LastHeadersSent;
@@ -320,10 +284,6 @@ class Net {
         return $ret;
     }
 
-    // Sadly this tries several approaches depending on
-    // the PHP version and configuration.  You can use only one
-    // if you know what version of PHP is working and how it will be
-    // configured...
     public static function doBody($url, $method, $body, $header) {
         global $LastBODYURL;
         global $LastBODYMethod;
@@ -336,110 +296,20 @@ class Net {
 
         $LastBODYURL = $url;
         $LastBODYMethod = $method;
-        $LastBODYImpl = false;
+        $LastBODYImpl = "CURL";
         $LastHeadersSent = false;
         $last_http_response = false;
+        $LastCurlError = false;
         $LastHeadersReceived = false;
         $LastBODYContent = false;
 
-        // Prefer curl because it checks if it works before trying
-        $LastBODYContent = NET::bodyCurl($url, $method, $body, $header);
-        $LastBODYImpl = "CURL";
-        if ( $LastBODYContent !== false ) return $LastBODYContent;
-        $LastBODYContent = NET::bodySocket($url, $method, $body, $header);
-        $LastBODYImpl = "Socket";
-        if ( $LastBODYContent !== false ) return $LastBODYContent;
-        $LastBODYContent = NET::bodyStream($url, $method, $body, $header);
-        $LastBODYImpl = "Stream";
-        if ( $LastBODYContent !== false ) return $LastBODYContent;
-        $LastBODYImpl = "Error";
-        error_log("Unable to $method Url=$url");
-        error_log("Header: $header");
-        error_log("Body: $body");
-        throw new \Exception("Unable to $method $url");
-    }
-
-    // From: http://php.net/manual/en/function.file-get-contents.php
-    public static function bodySocket($endpoint, $method, $data, $moreheaders=false) {
-      if ( ! function_exists('fsockopen') ) return false;
-      if ( ! function_exists('stream_get_transports') ) return false;
-        $url = parse_url($endpoint);
-
-        if (!isset($url['port'])) {
-          if ($url['scheme'] == 'http') { $url['port']=80; }
-          elseif ($url['scheme'] == 'https') { $url['port']=443; }
-        }
-
-        $url['query']=isset($url['query'])?$url['query']:'';
-
-        $hostport = ':'.$url['port'];
-        if ($url['scheme'] == 'http' && $hostport == ':80' ) $hostport = '';
-        if ($url['scheme'] == 'https' && $hostport == ':443' ) $hostport = '';
-
-        $url['protocol']=$url['scheme'].'://';
-        $eol="\r\n";
-
-        $uri = "/";
-        if ( isset($url['path'])) $uri = $url['path'];
-        if ( U::strlen($url['query']) > 0 ) $uri .= '?'.$url['query'];
-        if ( U::strlen($url['fragment']) > 0 ) $uri .= '#'.$url['fragment'];
-
-        $headers =  $method." ".$uri." HTTP/1.0".$eol.
-                    "Host: ".$url['host'].$hostport.$eol.
-                    "Referer: ".$url['protocol'].$url['host'].$url['path'].$eol.
-                    "Content-Length: ".strlen($data).$eol;
-        if ( is_string($moreheaders) ) $headers .= $moreheaders;
-        if ( stripos($headers, 'User-Agent:') === false ) {
-            $headers .= "User-Agent: ".self::getUserAgent().$eol;
-        }
-        $len = U::strlen($headers);
-        if ( substr($headers,$len-2) != $eol ) {
-            $headers .= $eol;
-        }
-        $headers .= $eol.$data;
-        // echo("\n"); echo($headers); echo("\n");
-        // echo("PORT=".$url['port']);
-        $hostname = $url['host'];
-        if ( $url['port'] == 443 ) $hostname = "ssl://" . $hostname;
-        try {
-            $fp = fsockopen($hostname, $url['port'], $errno, $errstr, 30);
-            if($fp) {
-                fputs($fp, $headers);
-                $result = '';
-                while(!feof($fp)) { $result .= fgets($fp, 128); }
-                fclose($fp);
-                // removes HTTP response headers
-                $pattern="/^.*\r\n\r\n/s";
-                $result=preg_replace($pattern,'',$result);
-                return $result;
-            }
-        } catch(Exception $e) {
-            return false;
-        }
-        return false;
-    }
-
-    public static function bodyStream($url, $method, $body, $header) {
-        $header = self::ensureUserAgentHeader($header);
-        $params = array('http' => array(
-            'method' => $method,
-            'content' => $body,
-            'header' => $header
-            ));
-
-        $ctx = stream_context_create($params);
-        try {
-            $fp = @fopen($url, 'r', false, $ctx);
-            $response = @stream_get_contents($fp);
-        } catch (Exception $e) {
-            return false;
-        }
-        return $response;
+        $LastBODYContent = self::bodyCurl($url, $method, $body, $header);
+        return $LastBODYContent;
     }
 
     // Note - handles port numbers in URL automatically
     public static function bodyCurl($url, $method, $body, $header) {
-      if ( ! function_exists('curl_init') ) return false;
+      self::requireCurl();
       global $last_http_response;
       global $LastCurlError;
       global $LastHeadersSent;
