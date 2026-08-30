@@ -80,6 +80,9 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 // $CFG->adminpw = 'tsugi';
 // $CFG->adminpw = 'sha256:9c0ccb0d53dd71b896cde69c78cf977acbcb36546c96bedec1619406145b5e9e';
 
+// Optional: only these Google emails may unlock admin (default false = any email).
+// $CFG->adminemails = array('you@umich.edu');
+
 // Theme Tsugi to your institutions colors. If not set, default colors will be used.
 /*$CFG->theme = array(
     "primary" => "#0D47A1", //default color for nav background, splash background, buttons, text of tool menu

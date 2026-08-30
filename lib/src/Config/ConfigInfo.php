@@ -211,6 +211,18 @@ class ConfigInfo {
     public $adminpw = 'warning:please-change-adminpw-89b543!';
 
     /**
+     * Optional list of Google emails allowed to unlock the Administration console.
+     *
+     * false (default) keeps legacy behavior: any logged-in user who knows
+     * $adminpw can unlock admin. Set to an array of emails to restrict unlock
+     * to those accounts (comparison is case-insensitive). A single string is
+     * treated as a one-element list.
+     *
+     *     $CFG->adminemails = array('you@umich.edu', 'other@umich.edu');
+     */
+    public $adminemails = false;
+
+    /**
      * Prefix for tool registration codes.
      *
      * For LTI 2.0 registrations: This is a prefix applied to the tool registration

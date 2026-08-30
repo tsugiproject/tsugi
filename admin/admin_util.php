@@ -18,6 +18,66 @@ function isAdmin() {
     return isset( $_SESSION['admin']) && $_SESSION['admin'] == 'yes';
 }
 
+/**
+ * Whether the current session email may attempt admin unlock.
+ * Unset / empty $CFG->adminemails keeps legacy "any email" behavior.
+ */
+function adminEmailAllowed() {
+    global $CFG;
+    $allowed = $CFG->adminemails ?? false;
+    if ( is_string($allowed) && U::strlen(trim($allowed)) > 0 ) {
+        $allowed = array($allowed);
+    }
+    if ( ! is_array($allowed) || count($allowed) < 1 ) return true;
+    $email = strtolower(trim((string) U::get($_SESSION, 'email', '')));
+    if ( $email === '' ) return false;
+    foreach ( $allowed as $one ) {
+        if ( strtolower(trim((string) $one)) === $email ) return true;
+    }
+    return false;
+}
+
+// One small APCu int per wwwroot (any IP). Session is only used if APCu is off.
+function adminUnlockCacheKey() {
+    global $CFG;
+    return 'admin_unlock_'.md5((string) $CFG->wwwroot);
+}
+
+function adminUnlockCount() {
+    if ( U::apcuAvailable() ) {
+        return (int) U::appCacheGet(adminUnlockCacheKey(), 0);
+    }
+    $until = $_SESSION['_admin_unlock_exp'] ?? 0;
+    if ( ! is_int($until) || $until < time() ) {
+        unset($_SESSION['_admin_unlock'], $_SESSION['_admin_unlock_exp']);
+        return 0;
+    }
+    return (int) ($_SESSION['_admin_unlock'] ?? 0);
+}
+
+function adminUnlockBanned() {
+    return adminUnlockCount() >= 2;
+}
+
+function adminUnlockRecordFail() {
+    $n = adminUnlockCount() + 1;
+    $ttl = ($n >= 2) ? 300 : 600;
+    if ( U::apcuAvailable() ) {
+        U::appCacheSet(adminUnlockCacheKey(), $n, $ttl);
+    } else {
+        $_SESSION['_admin_unlock'] = $n;
+        $_SESSION['_admin_unlock_exp'] = time() + $ttl;
+    }
+    return $n >= 2;
+}
+
+function adminUnlockClearFails() {
+    if ( U::apcuAvailable() ) {
+        U::appCacheDelete(adminUnlockCacheKey());
+    }
+    unset($_SESSION['_admin_unlock'], $_SESSION['_admin_unlock_exp']);
+}
+
 function requireAdmin() {
     global $CFG, $OUTPUT;
     if ( $CFG->google_glient_id && $_SESSION['admin'] != 'yes' ) {
