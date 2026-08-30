@@ -299,6 +299,7 @@ class Net {
         $LastBODYImpl = "CURL";
         $LastHeadersSent = false;
         $last_http_response = false;
+        $LastCurlError = false;
         $LastHeadersReceived = false;
         $LastBODYContent = false;
 
