@@ -4,6 +4,7 @@ namespace Tsugi\Controllers;
 
 
 use \Tsugi\Util\U;
+use Tsugi\Util\CCFileBase;
 use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Membership;
@@ -388,6 +389,61 @@ abstract class Tool {
     protected function controllerUrl($controllerRoute, $currentRoute = null) {
         $parent = $this->toolParent($currentRoute);
         return $parent . $controllerRoute;
+    }
+
+    /**
+     * Current course base URL for Common Cartridge file-base rewriting.
+     *
+     * Example: https://host/py4e or https://host/courses/2
+     *
+     * @param string $route The route constant for this tool (e.g. '/pages')
+     * @return string Course base with no trailing slash
+     */
+    protected function courseFileBaseUrl($route) {
+        global $CFG;
+        $home = '';
+        if ( isset($CFG->apphome) && is_string($CFG->apphome) && trim($CFG->apphome) !== '' ) {
+            $home = $CFG->apphome;
+        } else if ( isset($CFG->wwwroot) && is_string($CFG->wwwroot) && trim($CFG->wwwroot) !== '' ) {
+            $home = $CFG->wwwroot;
+        }
+        return CCFileBase::courseBaseUrl($this->toolParent($route), $home);
+    }
+
+    /**
+     * First path segments under the course base that are course content.
+     *
+     * Passed into {@see CCFileBase} so that util does not know about controllers.
+     * Login, logout, admin, profile, and similar non-content routes are omitted.
+     *
+     * @return string[]
+     */
+    public static function courseLocalPrefixes() {
+        $routes = array(
+            Announcements::ROUTE,
+            Assignments::ROUTE,
+            Badges::ROUTE,
+            Calendar::ROUTE,
+            Discussions::ROUTE,
+            Files::ROUTE,
+            Grades::ROUTE,
+            Labs::ROUTE,
+            LaunchController::ROUTE,
+            Lessons::ROUTE,
+            Map::ROUTE,
+            Pages::ROUTE,
+            StaticFiles::ROUTE,
+            Topics::ROUTE,
+            '/lessons_launch',
+        );
+        $out = array();
+        foreach ( $routes as $route ) {
+            $seg = ltrim((string) $route, '/');
+            if ( $seg !== '' ) {
+                $out[] = $seg;
+            }
+        }
+        return $out;
     }
 
     /**

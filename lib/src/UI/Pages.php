@@ -3,6 +3,9 @@
 namespace Tsugi\UI;
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Controllers\Courses;
+use \Tsugi\Controllers\Tool;
+use \Tsugi\Util\CCFileBase;
 use \Tsugi\Util\U;
 
 /**
@@ -37,9 +40,36 @@ class Pages {
         );
         
         if ( $row && isset($row['body']) && U::strlen($row['body']) > 0 ) {
-            return $row['body'];
+            return self::expandFrontPageHtml($row['body']);
         }
         
         return null;
+    }
+
+    /**
+     * Expand FILEBASE tokens using the current request's course base URL.
+     *
+     * @param string $html
+     * @return string
+     */
+    private static function expandFrontPageHtml($html) {
+        global $CFG;
+        $pathPrefix = '';
+        if ( class_exists('\Tsugi\Controllers\Courses') ) {
+            $pathPrefix = Courses::toolPathPrefix();
+        }
+        if ( $pathPrefix === '' && class_exists('\Tsugi\Controllers\Tool') ) {
+            $detected = Tool::determineParentPath();
+            if ( is_string($detected) && $detected !== '' ) {
+                $pathPrefix = $detected;
+            }
+        }
+        $home = '';
+        if ( isset($CFG->apphome) && is_string($CFG->apphome) && trim($CFG->apphome) !== '' ) {
+            $home = $CFG->apphome;
+        } else if ( isset($CFG->wwwroot) && is_string($CFG->wwwroot) && trim($CFG->wwwroot) !== '' ) {
+            $home = $CFG->wwwroot;
+        }
+        return CCFileBase::expand($html, CCFileBase::courseBaseUrl($pathPrefix, $home), Tool::courseLocalPrefixes());
     }
 }

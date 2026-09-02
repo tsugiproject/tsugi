@@ -141,6 +141,22 @@ class PagesTest extends \PHPUnit\Framework\TestCase
         $result = \Tsugi\UI\Pages::getFrontPageText(456);
         $this->assertEquals($expectedBody, $result, 'Should return the body text when found');
     }
+
+    /**
+     * Front-page HTML is expanded so FILEBASE tokens become current course URLs.
+     */
+    public function testGetFrontPageTextExpandsFileBaseToken() {
+        global $PDOX, $CFG;
+
+        $CFG->apphome = 'https://lms.example.com/courses/12';
+        $PDOX->expects($this->once())
+            ->method('rowDie')
+            ->willReturn(array('body' => '<p><a href="$IMS-CC-FILEBASE$pages/foo">Foo</a></p>'));
+
+        $result = \Tsugi\UI\Pages::getFrontPageText(456);
+        $this->assertStringContainsString('https://lms.example.com/courses/12/pages/foo', $result);
+        $this->assertStringNotContainsString('$IMS-CC-FILEBASE$', $result);
+    }
     
     /**
      * Test getFrontPageText when PDOX is not initially set (tests connection initialization)

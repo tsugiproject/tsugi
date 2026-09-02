@@ -4,6 +4,7 @@ namespace Tsugi\Controllers;
 
 
 use \Tsugi\Util\U;
+use Tsugi\Util\CCFileBase;
 require_once __DIR__ . '/../UI/CKEditor.php';
 
 use Tsugi\Core\LTIX;
@@ -80,6 +81,26 @@ class Pages extends Tool {
         }
         
         return $key;
+    }
+
+    /**
+     * Expand canonical FILEBASE URLs for the editor or browser.
+     *
+     * @param string $html
+     * @return string
+     */
+    private function expandPageHtml($html) {
+        return CCFileBase::expand($html, $this->courseFileBaseUrl(self::ROUTE), self::courseLocalPrefixes());
+    }
+
+    /**
+     * Convert current-course URLs to $IMS-CC-FILEBASE$ before storing HTML.
+     *
+     * @param string $html
+     * @return string
+     */
+    private function canonicalizePageHtml($html) {
+        return CCFileBase::canonicalize($html, $this->courseFileBaseUrl(self::ROUTE), self::courseLocalPrefixes());
     }
 
     public function index(Request $request, $logical_key = null)
@@ -188,7 +209,7 @@ class Pages extends Tool {
                     </span>
                 </h1>
                 <div class="page-content">
-                    <?= $page['body'] ?>
+                    <?= $this->expandPageHtml($page['body']) ?>
                 </div>
             <?php else: ?>
                 <h1 style="display: flex; justify-content: space-between; align-items: center;">
@@ -492,7 +513,7 @@ class Pages extends Tool {
         $user_id = U::loggedInUserId();
         
         $title = trim(U::get($_POST, 'title'));
-        $body = U::get($_POST, 'body', '');
+        $body = $this->canonicalizePageHtml(U::get($_POST, 'body', ''));
         $published = U::get($_POST, 'published', 0) ? 1 : 0;
         $is_main = U::get($_POST, 'is_main', 0) ? 1 : 0;
         $is_front_page = U::get($_POST, 'is_front_page', 0) ? 1 : 0;
@@ -630,7 +651,7 @@ class Pages extends Tool {
                 <div class="form-group">
                     <label for="body">Body:</label>
                     <div class="ckeditor-container">
-                        <textarea name="body" id="editor_body"><?= htmlspecialchars(U::get($_POST, 'body', $page['body'])) ?></textarea>
+                        <textarea name="body" id="editor_body"><?= htmlspecialchars(U::get($_POST, 'body', $this->expandPageHtml($page['body']))) ?></textarea>
                     </div>
                 </div>
                 
@@ -715,7 +736,7 @@ class Pages extends Tool {
         $page_id = intval($id);
         
         $title = trim(U::get($_POST, 'title'));
-        $body = U::get($_POST, 'body', '');
+        $body = $this->canonicalizePageHtml(U::get($_POST, 'body', ''));
         $published = U::get($_POST, 'published', 0) ? 1 : 0;
         $is_main = U::get($_POST, 'is_main', 0) ? 1 : 0;
         $is_front_page = U::get($_POST, 'is_front_page', 0) ? 1 : 0;
@@ -1219,7 +1240,7 @@ class Pages extends Tool {
             );
             $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}pages SET title = :title, logical_key = :key, body = :body, updated_at = NOW() WHERE page_id = :PID AND context_id = :CID",
-                array(':title' => $hist['title'], ':key' => $logical_key, ':body' => $hist['body'], ':PID' => $page_id, ':CID' => $context_id)
+                array(':title' => $hist['title'], ':key' => $logical_key, ':body' => $this->canonicalizePageHtml($hist['body']), ':PID' => $page_id, ':CID' => $context_id)
             );
             $PDOX->queryDie(
                 "DELETE FROM {$CFG->dbprefix}page_history WHERE history_id = :HID",
