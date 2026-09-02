@@ -20,8 +20,16 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  * blob_blob / dataroot), tagged with the current context_id and a synthetic
  * lti_link for this tool. Folder membership lives in blob_file.json.
  *
- * A reserved top-level folder (OBSCURE_FOLDER) is visible only to instructors.
- * Students can still download a file in that folder if they have a direct link.
+ * Visibility:
+ *   Student files — students browsing the Files tool see only this folder's contents.
+ *   Public — not browseable for students; anyone with the link can open the file
+ *   without logging in.
+ *   Private — instructors only; even a direct link is denied.
+ *   Everything else is obscure — hidden from student browsing, but anyone
+ *   in the course with the download link can fetch the file.
+ *
+ * Download URLs are content-addressed (sha256 of the file bytes), not
+ * blob_file.file_id, so they cannot be enumerated from the primary key.
  */
 class Files extends Tool {
 
@@ -29,8 +37,14 @@ class Files extends Tool {
     const NAME = 'Files';
     const REDIRECT = 'tsugi_controllers_files';
 
-    /** Top-level folder hidden from student browsing. Change this constant to rename it. */
-    const OBSCURE_FOLDER = 'obscure';
+    /** Top-level folder whose contents students see when they open the Files tool. */
+    const STUDENT_FILES_FOLDER = 'Student files';
+
+    /** Top-level folder: anyone with the link can open the file with no login. */
+    const PUBLIC_FOLDER = 'Public';
+
+    /** Top-level folder that students cannot access, even with a link. */
+    const PRIVATE_FOLDER = 'Private';
 
     const KIND_FILE = 'file';
     const KIND_FOLDER = 'folder';
@@ -43,7 +57,7 @@ class Files extends Tool {
         $app->router->get('/'.self::REDIRECT, 'Files@index');
         $app->router->get($prefix.'/json', 'Files@json');
         $app->router->get($prefix.'/analytics', 'Files@analytics');
-        $app->router->get($prefix.'/download/{id}', 'Files@download');
+        $app->router->get($prefix.'/download/{sha256}', 'Files@download');
         $app->router->post($prefix.'/upload', 'Files@uploadPost');
         $app->router->post($prefix.'/mkdir', 'Files@mkdirPost');
         $app->router->post($prefix.'/delete/{id}', 'Files@deletePost');
@@ -64,19 +78,21 @@ class Files extends Tool {
             U::flashError('Invalid folder path');
             return new RedirectResponse($this->folderUrl(''));
         }
-        if ( ! $is_instructor && $this->isObscurePath($folder) ) {
-            return new RedirectResponse($this->folderUrl(''));
+        if ( ! $is_instructor ) {
+            if ( $folder === '' || strcasecmp($folder, self::STUDENT_FILES_FOLDER) === 0 ) {
+                $folder = self::STUDENT_FILES_FOLDER;
+            } else if ( ! $this->isStudentFilesPath($folder) ) {
+                return new RedirectResponse($this->folderUrl(''));
+            }
+        } else {
+            $this->ensureReservedFolders($link_id);
         }
 
-        if ( $is_instructor ) {
-            $this->ensureObscureFolder($link_id);
-        }
-
-        $items = $this->listFolder($link_id, $folder, $is_instructor);
+        $items = $this->listFolder($link_id, $folder);
         $tool_home = $this->toolHome(self::ROUTE);
         $max_upload = BlobUtil::maxUploadBytes();
-        $crumbs = $this->breadcrumbs($folder);
-        $parent = $this->parentFolder($folder);
+        $crumbs = $this->breadcrumbs($folder, $is_instructor);
+        $parent = $this->browseParent($folder, $is_instructor);
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -99,21 +115,23 @@ class Files extends Tool {
             <nav aria-label="Folder path">
                 <ol class="breadcrumb">
                     <?php foreach ( $crumbs as $i => $crumb ): ?>
+                        <?php $crumb_info = (isset($crumb['info']) && is_array($crumb['info'])) ? $crumb['info'] : null; ?>
                         <?php if ( $i === count($crumbs) - 1 ): ?>
-                            <li class="active"><?= htmlspecialchars($crumb['label']) ?></li>
+                            <li class="active">
+                                <?= htmlspecialchars($crumb['label']) ?>
+                                <?= $this->infoButton($crumb['label'], $crumb_info) ?>
+                                <?= ! empty($crumb['help']) ? $this->courseFilesHelpButton() : '' ?>
+                            </li>
                         <?php else: ?>
-                            <li><a href="<?= htmlspecialchars($crumb['url']) ?>"><?= htmlspecialchars($crumb['label']) ?></a></li>
+                            <li>
+                                <a href="<?= htmlspecialchars($crumb['url']) ?>"><?= htmlspecialchars($crumb['label']) ?></a>
+                                <?= $this->infoButton($crumb['label'], $crumb_info) ?>
+                                <?= ! empty($crumb['help']) ? $this->courseFilesHelpButton() : '' ?>
+                            </li>
                         <?php endif; ?>
                     <?php endforeach; ?>
                 </ol>
             </nav>
-
-            <?php if ( $is_instructor && $folder === self::OBSCURE_FOLDER ): ?>
-                <div class="alert alert-info" role="status">
-                    Files in <strong><?= htmlspecialchars(self::OBSCURE_FOLDER) ?></strong> are hidden when students browse Files.
-                    You can still copy a link and share it; anyone in this course with the link can download the file.
-                </div>
-            <?php endif; ?>
 
             <?php if ( $is_instructor ): ?>
                 <div class="panel panel-default">
@@ -177,9 +195,13 @@ class Files extends Tool {
                             <?php
                                 $is_folder = ($item['kind'] === self::KIND_FOLDER);
                                 $child_folder = $this->joinFolder($folder, $item['name']);
-                                $download_url = $tool_home . '/download/' . (int)$item['file_id'];
+                                $download_url = $this->downloadUrl($item);
                                 $copy_url = $this->absoluteUrl($download_url);
-                                $is_obscure_root = $is_folder && $folder === '' && strcasecmp($item['name'], self::OBSCURE_FOLDER) === 0;
+                                $is_reserved_root = $is_folder && $folder === '' && $this->isReservedName($item['name']);
+                                $info = null;
+                                if ( $is_instructor && $folder === '' ) {
+                                    $info = $this->accessInfoForPath($is_folder ? $item['name'] : '', $is_folder);
+                                }
                             ?>
                             <tr>
                                 <td>
@@ -188,15 +210,13 @@ class Files extends Tool {
                                             <span class="glyphicon glyphicon-folder-close" aria-hidden="true"></span>
                                             <?= htmlspecialchars($item['name']) ?>
                                         </a>
-                                        <?php if ( $is_obscure_root ): ?>
-                                            <span class="label label-warning">Hidden from students</span>
-                                        <?php endif; ?>
                                     <?php else: ?>
                                         <a href="<?= htmlspecialchars($download_url) ?>">
                                             <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
                                             <?= htmlspecialchars($item['name']) ?>
                                         </a>
                                     <?php endif; ?>
+                                    <?= $this->infoButton($item['name'], $info) ?>
                                 </td>
                                 <td>
                                     <?php if ( $is_folder ): ?>
@@ -212,7 +232,7 @@ class Files extends Tool {
                                                 data-url="<?= htmlspecialchars($copy_url) ?>"
                                                 aria-label="Copy link to <?= htmlspecialchars($item['name']) ?>">Copy link</button>
                                     <?php endif; ?>
-                                    <?php if ( $is_instructor && ! $is_obscure_root ): ?>
+                                    <?php if ( $is_instructor && ! $is_reserved_root ): ?>
                                         <form method="post" action="<?= htmlspecialchars($tool_home . '/delete/' . (int)$item['file_id']) ?>" style="display: inline;"
                                               onsubmit="return confirm(<?= htmlspecialchars(json_encode('Delete '.$item['name'].'?'), ENT_QUOTES) ?>);">
                                             <?= $csrf ?>
@@ -230,8 +250,103 @@ class Files extends Tool {
         <?php
         $OUTPUT->footerStart();
         ?>
+        <style>
+        button.files-info {
+            padding: 0 4px;
+            line-height: 1;
+            vertical-align: middle;
+        }
+        button.files-info.files-info-student,
+        button.files-info.files-info-student:hover,
+        button.files-info.files-info-student:focus {
+            color: #3c763d;
+        }
+        button.files-info.files-info-public,
+        button.files-info.files-info-public:hover,
+        button.files-info.files-info-public:focus {
+            color: #31b0d5;
+        }
+        button.files-info.files-info-private,
+        button.files-info.files-info-private:hover,
+        button.files-info.files-info-private:focus {
+            color: #a94442;
+        }
+        button.files-info.files-info-obscure,
+        button.files-info.files-info-obscure:hover,
+        button.files-info.files-info-obscure:focus {
+            color: #337ab7;
+        }
+        button.files-info.files-help,
+        button.files-info.files-help:hover,
+        button.files-info.files-help:focus {
+            color: #555;
+        }
+        .files-info-pop {
+            position: absolute;
+            z-index: 1060;
+            max-width: 280px;
+            padding: 8px 12px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 6px 12px rgba(0,0,0,.175);
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .files-info-pop.files-info-pop-wide {
+            max-width: 440px;
+        }
+        .files-info-pop p {
+            margin: 0 0 8px;
+        }
+        .files-info-pop p:last-child {
+            margin-bottom: 0;
+        }
+        </style>
         <script>
         (function() {
+            var openPop = null;
+            var openBtn = null;
+            function closeInfo() {
+                if (openPop) {
+                    openPop.remove();
+                    openPop = null;
+                }
+                if (openBtn) {
+                    openBtn.setAttribute('aria-expanded', 'false');
+                    openBtn = null;
+                }
+            }
+            document.querySelectorAll('.files-info').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (openBtn === btn) {
+                        closeInfo();
+                        return;
+                    }
+                    closeInfo();
+                    var pop = document.createElement('div');
+                    pop.className = 'files-info-pop';
+                    if (btn.classList.contains('files-help')) {
+                        pop.classList.add('files-info-pop-wide');
+                    }
+                    pop.setAttribute('role', 'status');
+                    pop.innerHTML = btn.getAttribute('data-info') || '';
+                    document.body.appendChild(pop);
+                    var r = btn.getBoundingClientRect();
+                    pop.style.left = (window.scrollX + r.right + 8) + 'px';
+                    pop.style.top = (window.scrollY + r.top - 4) + 'px';
+                    pop.addEventListener('click', function(ev) { ev.stopPropagation(); });
+                    openPop = pop;
+                    openBtn = btn;
+                    btn.setAttribute('aria-expanded', 'true');
+                });
+            });
+            document.addEventListener('click', closeInfo);
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeInfo();
+            });
             function copyText(text) {
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     return navigator.clipboard.writeText(text);
@@ -273,7 +388,6 @@ class Files extends Tool {
         $this->requireAuth();
         $link_id = $this->ensureFilesLaunch();
         $is_instructor = $this->isInstructor();
-        $tool_home = $this->toolHome(self::ROUTE);
 
         $rows = $this->allItems($link_id);
         $out = array();
@@ -283,13 +397,13 @@ class Files extends Tool {
                 continue;
             }
             $folder = $meta['folder'];
-            if ( ! $is_instructor && $this->isObscurePath($folder) ) {
+            if ( ! $is_instructor && ! $this->isStudentFilesPath($folder) ) {
                 continue;
             }
             $path = $this->joinFolder($folder, $row['file_name']);
-            $download = $tool_home . '/download/' . (int)$row['file_id'];
+            $download = $this->downloadUrl($row);
             $out[] = array(
-                'id' => (int)$row['file_id'],
+                'id' => $row['file_sha256'],
                 'title' => $row['file_name'],
                 'folder' => $folder,
                 'path' => $path,
@@ -307,23 +421,50 @@ class Files extends Tool {
         return $this->showAnalytics(self::ROUTE, self::NAME);
     }
 
-    public function download(Request $request, $id)
+    public function download(Request $request, $sha256)
     {
-        global $TSUGI_LAUNCH;
+        if ( ! $this->isValidSha256($sha256) ) {
+            die('File not found');
+        }
+
+        $public = $this->getPublicFileBySha256($sha256);
+        if ( $public ) {
+            $this->launchFromFileRow($public);
+            $this->emitFile($public);
+        }
 
         $this->requireAuth();
         $this->ensureFilesLaunch();
+        $is_instructor = $this->isInstructor();
 
-        $file_id = (int)$id;
-        $row = $this->getItem($file_id);
+        $candidates = $this->getFileRowsBySha256($sha256);
+        if ( count($candidates) === 0 ) {
+            die('File not found');
+        }
+
+        $row = null;
+        foreach ( $candidates as $candidate ) {
+            $meta = $this->decodeMeta($candidate);
+            if ( $is_instructor || ! $this->isPrivatePath($meta['folder']) ) {
+                $row = $candidate;
+                break;
+            }
+        }
         if ( ! $row ) {
             die('File not found');
         }
-        $meta = $this->decodeMeta($row);
-        if ( $meta['kind'] !== self::KIND_FILE ) {
-            die('Not a file');
-        }
 
+        $this->emitFile($row);
+    }
+
+    /**
+     * Serve file bytes. Caller must have attached Context/Link for Access.
+     */
+    private function emitFile($row)
+    {
+        global $TSUGI_LAUNCH;
+
+        $file_id = (int)$row['file_id'];
         $retval = Access::openContent($TSUGI_LAUNCH, $file_id);
         if ( ! is_array($retval) ) {
             die($retval);
@@ -348,6 +489,7 @@ class Files extends Tool {
     {
         $this->requireInstructor($this->toolHome(self::ROUTE));
         $link_id = $this->ensureFilesLaunch();
+        $this->ensureReservedFolders($link_id);
 
         $folder = $this->postedFolder();
         $redirect = $this->folderUrl($folder === false ? '' : $folder);
@@ -408,6 +550,7 @@ class Files extends Tool {
 
         $this->requireInstructor($this->toolHome(self::ROUTE));
         $link_id = $this->ensureFilesLaunch();
+        $this->ensureReservedFolders($link_id);
 
         $folder = $this->postedFolder();
         $redirect = $this->folderUrl($folder === false ? '' : $folder);
@@ -423,6 +566,10 @@ class Files extends Tool {
         $name = trim(U::get($_POST, 'name', ''));
         if ( ! $this->isValidName($name) ) {
             U::flashError('Folder names can use letters, numbers, spaces, dots, dashes, and underscores');
+            return new RedirectResponse($redirect);
+        }
+        if ( $folder === '' && $this->isReservedName($name) ) {
+            U::flashError(self::STUDENT_FILES_FOLDER.', '.self::PUBLIC_FOLDER.', and '.self::PRIVATE_FOLDER.' are reserved folder names');
             return new RedirectResponse($redirect);
         }
         if ( $this->nameExists($link_id, $folder, $name) ) {
@@ -476,8 +623,8 @@ class Files extends Tool {
         $meta = $this->decodeMeta($row);
         if ( $meta['kind'] === self::KIND_FOLDER ) {
             $child_path = $this->joinFolder($meta['folder'], $row['file_name']);
-            if ( strcasecmp($child_path, self::OBSCURE_FOLDER) === 0 ) {
-                U::flashError('The '.self::OBSCURE_FOLDER.' folder cannot be deleted');
+            if ( $this->isReservedRootFolder($child_path) ) {
+                U::flashError('The '.self::STUDENT_FILES_FOLDER.', '.self::PUBLIC_FOLDER.', and '.self::PRIVATE_FOLDER.' folders cannot be deleted');
                 return new RedirectResponse($redirect);
             }
             if ( $this->folderHasChildren($link_id, $child_path) ) {
@@ -554,13 +701,20 @@ class Files extends Tool {
         return $link_id + 0;
     }
 
-    private function ensureObscureFolder($link_id)
+    private function ensureReservedFolders($link_id)
     {
-        if ( $this->nameExists($link_id, '', self::OBSCURE_FOLDER) ) {
+        $this->ensureTopFolder($link_id, self::STUDENT_FILES_FOLDER);
+        $this->ensureTopFolder($link_id, self::PUBLIC_FOLDER);
+        $this->ensureTopFolder($link_id, self::PRIVATE_FOLDER);
+    }
+
+    private function ensureTopFolder($link_id, $name)
+    {
+        if ( $this->nameExists($link_id, '', $name) ) {
             return;
         }
         global $CFG, $PDOX, $CONTEXT;
-        $sha = hash('sha256', 'files-folder|'.$CONTEXT->id.'|'.$link_id.'|'.self::OBSCURE_FOLDER);
+        $sha = hash('sha256', 'files-folder|'.$CONTEXT->id.'|'.$link_id.'|'.$name);
         $json = json_encode(array('kind' => self::KIND_FOLDER, 'folder' => ''));
         $PDOX->queryDie(
             "INSERT INTO {$CFG->dbprefix}blob_file
@@ -571,7 +725,7 @@ class Files extends Tool {
                 ':CID' => $CONTEXT->id,
                 ':LID' => $link_id,
                 ':SHA' => $sha,
-                ':NAME' => self::OBSCURE_FOLDER,
+                ':NAME' => $name,
                 ':TYPE' => self::FOLDER_CONTENTTYPE,
                 ':BACKREF' => self::BACKREF,
                 ':JSON' => $json
@@ -583,7 +737,7 @@ class Files extends Tool {
     {
         global $CFG, $PDOX;
         return $PDOX->allRowsDie(
-            "SELECT file_id, file_name, contenttype, json, bytelen, created_at, backref
+            "SELECT file_id, file_name, file_sha256, contenttype, json, bytelen, created_at, backref
              FROM {$CFG->dbprefix}blob_file
              WHERE context_id = :CID AND link_id = :LID AND backref = :BR
                AND (deleted IS NULL OR deleted = 0)
@@ -600,7 +754,7 @@ class Files extends Tool {
     {
         global $CFG, $PDOX;
         return $PDOX->rowDie(
-            "SELECT file_id, file_name, contenttype, json, bytelen, created_at, backref, link_id
+            "SELECT file_id, file_name, file_sha256, contenttype, json, bytelen, created_at, backref, link_id
              FROM {$CFG->dbprefix}blob_file
              WHERE file_id = :ID AND context_id = :CID AND backref = :BR
                AND (deleted IS NULL OR deleted = 0)",
@@ -612,7 +766,86 @@ class Files extends Tool {
         );
     }
 
-    private function listFolder($link_id, $folder, $is_instructor)
+    private function getFileRowsBySha256($sha256)
+    {
+        global $CFG, $PDOX;
+        $rows = $PDOX->allRowsDie(
+            "SELECT file_id, file_name, file_sha256, contenttype, json, bytelen, created_at, backref, link_id, context_id
+             FROM {$CFG->dbprefix}blob_file
+             WHERE file_sha256 = :SHA AND context_id = :CID AND backref = :BR
+               AND (deleted IS NULL OR deleted = 0)",
+            array(
+                ':SHA' => $sha256,
+                ':CID' => U::currentContextId(),
+                ':BR' => self::BACKREF
+            )
+        );
+        $out = array();
+        foreach ( $rows as $row ) {
+            $meta = $this->decodeMeta($row);
+            if ( $meta['kind'] === self::KIND_FILE ) {
+                $out[] = $row;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * A Public file with this content hash, in any course. No login required.
+     */
+    private function getPublicFileBySha256($sha256)
+    {
+        global $CFG, $PDOX;
+
+        LTIX::getConnection();
+        $rows = $PDOX->allRowsDie(
+            "SELECT file_id, file_name, file_sha256, contenttype, json, bytelen, created_at, backref, link_id, context_id
+             FROM {$CFG->dbprefix}blob_file
+             WHERE file_sha256 = :SHA AND backref = :BR
+               AND (deleted IS NULL OR deleted = 0)",
+            array(
+                ':SHA' => $sha256,
+                ':BR' => self::BACKREF
+            )
+        );
+        foreach ( $rows as $row ) {
+            $meta = $this->decodeMeta($row);
+            if ( $meta['kind'] === self::KIND_FILE && $this->isPublicPath($meta['folder']) ) {
+                return $row;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Attach Context + Link from a blob_file row so Access can read the blob
+     * without a logged-in session (Public downloads).
+     */
+    private function launchFromFileRow($row)
+    {
+        global $CONTEXT, $LINK, $TSUGI_LAUNCH;
+
+        LTIX::getConnection();
+        if ( ! isset($TSUGI_LAUNCH) || ! is_object($TSUGI_LAUNCH) ) {
+            $TSUGI_LAUNCH = new \Tsugi\Core\Launch();
+        }
+
+        $CONTEXT = new Context();
+        $CONTEXT->id = $row['context_id'];
+        $CONTEXT->key = '';
+        $CONTEXT->launch = $TSUGI_LAUNCH;
+        $TSUGI_LAUNCH->context = $CONTEXT;
+
+        $LINK = new Link();
+        $LINK->id = $row['link_id'];
+        $LINK->title = self::NAME;
+        $LINK->launch = $TSUGI_LAUNCH;
+        $TSUGI_LAUNCH->link = $LINK;
+
+        Courses::wireLaunchConnection();
+    }
+
+    private function listFolder($link_id, $folder)
     {
         $rows = $this->allItems($link_id);
         $folders = array();
@@ -622,11 +855,9 @@ class Files extends Tool {
             if ( $meta['folder'] !== $folder ) {
                 continue;
             }
-            if ( ! $is_instructor && $folder === '' && strcasecmp($row['file_name'], self::OBSCURE_FOLDER) === 0 ) {
-                continue;
-            }
             $item = array(
                 'file_id' => $row['file_id'],
+                'file_sha256' => $row['file_sha256'],
                 'name' => $row['file_name'],
                 'kind' => $meta['kind'],
                 'bytelen' => $row['bytelen'],
@@ -638,7 +869,30 @@ class Files extends Tool {
                 $files[] = $item;
             }
         }
-        usort($folders, function($a, $b) { return strcasecmp($a['name'], $b['name']); });
+        if ( $folder === '' ) {
+            usort($folders, function($a, $b) {
+                $rank = function($name) {
+                    if ( strcasecmp($name, self::STUDENT_FILES_FOLDER) === 0 ) {
+                        return 0;
+                    }
+                    if ( strcasecmp($name, self::PUBLIC_FOLDER) === 0 ) {
+                        return 1;
+                    }
+                    if ( strcasecmp($name, self::PRIVATE_FOLDER) === 0 ) {
+                        return 2;
+                    }
+                    return 3;
+                };
+                $ra = $rank($a['name']);
+                $rb = $rank($b['name']);
+                if ( $ra !== $rb ) {
+                    return $ra - $rb;
+                }
+                return strcasecmp($a['name'], $b['name']);
+            });
+        } else {
+            usort($folders, function($a, $b) { return strcasecmp($a['name'], $b['name']); });
+        }
         usort($files, function($a, $b) { return strcasecmp($a['name'], $b['name']); });
         return array_merge($folders, $files);
     }
@@ -737,8 +991,18 @@ class Files extends Tool {
             }
             $clean[] = $part;
         }
+        if ( count($clean) === 0 ) {
+            return '';
+        }
         if ( count($clean) > 12 ) {
             return false;
+        }
+        if ( strcasecmp($clean[0], self::STUDENT_FILES_FOLDER) === 0 ) {
+            $clean[0] = self::STUDENT_FILES_FOLDER;
+        } else if ( strcasecmp($clean[0], self::PUBLIC_FOLDER) === 0 ) {
+            $clean[0] = self::PUBLIC_FOLDER;
+        } else if ( strcasecmp($clean[0], self::PRIVATE_FOLDER) === 0 ) {
+            $clean[0] = self::PRIVATE_FOLDER;
         }
         return implode('/', $clean);
     }
@@ -781,17 +1045,136 @@ class Files extends Tool {
         return substr($folder, 0, $pos);
     }
 
-    private function isObscurePath($folder)
+    private function browseParent($folder, $is_instructor)
     {
-        if ( $folder === '' ) {
-            return false;
+        if ( ! $is_instructor && strcasecmp($folder, self::STUDENT_FILES_FOLDER) === 0 ) {
+            return null;
         }
-        $first = $folder;
+        return $this->parentFolder($folder);
+    }
+
+    private function firstFolderSegment($folder)
+    {
+        if ( $folder === '' || $folder === null ) {
+            return '';
+        }
         $slash = strpos($folder, '/');
-        if ( $slash !== false ) {
-            $first = substr($folder, 0, $slash);
+        if ( $slash === false ) {
+            return $folder;
         }
-        return strcasecmp($first, self::OBSCURE_FOLDER) === 0;
+        return substr($folder, 0, $slash);
+    }
+
+    private function isStudentFilesPath($folder)
+    {
+        return strcasecmp($this->firstFolderSegment($folder), self::STUDENT_FILES_FOLDER) === 0;
+    }
+
+    private function isPublicPath($folder)
+    {
+        return strcasecmp($this->firstFolderSegment($folder), self::PUBLIC_FOLDER) === 0;
+    }
+
+    private function isPrivatePath($folder)
+    {
+        return strcasecmp($this->firstFolderSegment($folder), self::PRIVATE_FOLDER) === 0;
+    }
+
+    private function isReservedName($name)
+    {
+        return strcasecmp($name, self::STUDENT_FILES_FOLDER) === 0
+            || strcasecmp($name, self::PUBLIC_FOLDER) === 0
+            || strcasecmp($name, self::PRIVATE_FOLDER) === 0;
+    }
+
+    private function isReservedRootFolder($path)
+    {
+        return strcasecmp($path, self::STUDENT_FILES_FOLDER) === 0
+            || strcasecmp($path, self::PUBLIC_FOLDER) === 0
+            || strcasecmp($path, self::PRIVATE_FOLDER) === 0;
+    }
+
+    /**
+     * Access help for a path: Student files (green), Public (cyan), Private (red), or obscure (blue).
+     *
+     * @return array{text: string, class: string}
+     */
+    private function accessInfoForPath($path, $is_folder)
+    {
+        if ( $this->isStudentFilesPath($path) ) {
+            return array(
+                'text' => 'Students see these files when they open the Files tool.',
+                'class' => 'files-info-student'
+            );
+        }
+        if ( $this->isPublicPath($path) ) {
+            return array(
+                'text' => $is_folder
+                    ? 'Files in Public are not browseable in the Files tool. Anyone with a link to a file can open it, even if they are not logged in.'
+                    : 'Anyone with the link can open this file, even if they are not logged in. It is not browseable when students open the Files tool.',
+                'class' => 'files-info-public'
+            );
+        }
+        if ( $this->isPrivatePath($path) ) {
+            return array(
+                'text' => 'No one except the instructor can view these files, even if they have a link.',
+                'class' => 'files-info-private'
+            );
+        }
+        return array(
+            'text' => $is_folder
+                ? 'This folder is hidden when students browse Files. Any member of the course with a link to the file can access the file.'
+                : 'This file is not shown to students who browse Files. Any member of the course with a link to the file can access the file.',
+            'class' => 'files-info-obscure'
+        );
+    }
+
+    /**
+     * Circled-i button that shows access help on click.
+     *
+     * @param array{text: string, class: string}|null $info
+     */
+    private function infoButton($label, $info)
+    {
+        if ( ! is_array($info) || empty($info['text']) ) {
+            return '';
+        }
+        $extra = isset($info['class']) ? $info['class'] : '';
+        return '<button type="button" class="btn btn-link files-info '.htmlspecialchars($extra).'"'
+            .' aria-label="About '.htmlspecialchars($label).'"'
+            .' aria-expanded="false"'
+            .' data-info="'.htmlspecialchars($info['text']).'">'
+            .'<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>'
+            .'</button>';
+    }
+
+    /**
+     * Question-mark help next to Course files in the breadcrumb.
+     */
+    private function courseFilesHelpButton()
+    {
+        $html = '<p>This is where you store files for the course.</p>'
+            .'<p>Files in <strong>Private</strong> are instructor only. No one except the instructor can view these files, even if they have a link.</p>'
+            .'<p>Files in <strong>Public</strong> are not browseable in the Files tool. Anyone with the link can open them, even if they are not logged in. You can put a file in Public, copy the link, and send it in email.</p>'
+            .'<p>Files in the rest of Course files are accessible via a link to people in the course. Students cannot browse those files, or any subfolders outside the <strong>Student files</strong> folder.</p>'
+            .'<p>A Common Cartridge import places files at the top level or in subfolders—not in Student files, Public, or Private. Link to them from Pages or Lessons, or move them into Student files if you want students to see them when they open the Files tool.</p>';
+        return '<button type="button" class="btn btn-link files-info files-help"'
+            .' aria-label="Help about Course files"'
+            .' aria-expanded="false"'
+            .' data-info="'.htmlspecialchars($html).'">'
+            .'<span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>'
+            .'</button>';
+    }
+
+    private function isValidSha256($sha)
+    {
+        return is_string($sha) && (bool) preg_match('/^[a-fA-F0-9]{64}$/', $sha);
+    }
+
+    private function downloadUrl($row)
+    {
+        $sha = isset($row['file_sha256']) ? $row['file_sha256'] : '';
+        return $this->toolHome(self::ROUTE) . '/download/' . $sha;
     }
 
     private function folderUrl($folder)
@@ -800,21 +1183,35 @@ class Files extends Tool {
         if ( $folder === '' ) {
             return $home;
         }
+        if ( ! $this->isInstructor() && strcasecmp($folder, self::STUDENT_FILES_FOLDER) === 0 ) {
+            return $home;
+        }
         return $home . '?folder=' . rawurlencode($folder);
     }
 
-    private function breadcrumbs($folder)
+    private function breadcrumbs($folder, $is_instructor = true)
     {
         $crumbs = array(
             array('label' => 'Course files', 'url' => $this->folderUrl(''))
         );
+        if ( $is_instructor ) {
+            $crumbs[0]['help'] = true;
+        }
         if ( $folder === '' ) {
             return $crumbs;
         }
         $so_far = '';
-        foreach ( explode('/', $folder) as $part ) {
+        $parts = explode('/', $folder);
+        foreach ( $parts as $i => $part ) {
             $so_far = $this->joinFolder($so_far, $part);
-            $crumbs[] = array('label' => $part, 'url' => $this->folderUrl($so_far));
+            if ( ! $is_instructor && $i === 0 && strcasecmp($part, self::STUDENT_FILES_FOLDER) === 0 ) {
+                continue;
+            }
+            $crumb = array('label' => $part, 'url' => $this->folderUrl($so_far));
+            if ( $is_instructor && $i === 0 ) {
+                $crumb['info'] = $this->accessInfoForPath($part, true);
+            }
+            $crumbs[] = $crumb;
         }
         return $crumbs;
     }
