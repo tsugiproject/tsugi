@@ -201,6 +201,48 @@ class ToolControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('https://local.ca4e.com/announcements', $tool->exposeToolHome('/announcements'));
     }
 
+    public function testToolHomeCollapsesLeadingDoubleSlashOnCourses(): void
+    {
+        $_SERVER['REQUEST_URI'] = '//courses';
+        $_SERVER['SCRIPT_NAME'] = '/other/script.php';
+        $home = \Tsugi\Controllers\Tool::determineToolHome('/courses');
+        $this->assertSame('/courses', $home);
+        $this->assertSame('/courses/1234', \Tsugi\Controllers\Tool::joinToolHome($home, '1234'));
+        $this->assertFalse(str_starts_with(\Tsugi\Controllers\Tool::joinToolHome($home, '1234'), '//'));
+    }
+
+    public function testToolHomeCoursesIndexIsNotProtocolRelative(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/courses';
+        $_SERVER['SCRIPT_NAME'] = '/other/script.php';
+        $home = \Tsugi\Controllers\Tool::determineToolHome('/courses');
+        $this->assertSame('/courses/1234', \Tsugi\Controllers\Tool::joinToolHome($home, '1234'));
+    }
+
+    public function testJoinToolHomeCollapsesProtocolRelativeHome(): void
+    {
+        $this->assertSame('/courses/1234', \Tsugi\Controllers\Tool::joinToolHome('//courses', '1234'));
+        $this->assertSame('/courses/create', \Tsugi\Controllers\Tool::joinToolHome('//courses/', '/create'));
+    }
+
+    public function testToolHomeFallbackSkipsSlashApphome(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/other/path';
+        $_SERVER['SCRIPT_NAME'] = '/different/script.php';
+        global $CFG;
+        $CFG->apphome = '/';
+        $this->assertSame('/courses', \Tsugi\Controllers\Tool::determineToolHome('/courses'));
+    }
+
+    public function testToolHomeFallbackRtrimsApphome(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/other/path';
+        $_SERVER['SCRIPT_NAME'] = '/different/script.php';
+        global $CFG;
+        $CFG->apphome = 'https://local.ca4e.com/';
+        $this->assertSame('https://local.ca4e.com/courses', \Tsugi\Controllers\Tool::determineToolHome('/courses'));
+    }
+
     /**
      * Controllers can be mounted at different levels: /lessons/x (simple) or /course/1234/lessons/x (nested)
      */

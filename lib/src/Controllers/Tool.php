@@ -319,9 +319,7 @@ abstract class Tool {
      * @return string The mounted tool path (e.g., '/courses/2/discussions')
      */
     public static function determineToolHome($route) {
-        $requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
-        $requestUri = strtok($requestUri, '?');
-
+        $requestUri = self::requestPath();
         $routePos = strpos($requestUri, $route);
         if ($routePos !== false) {
             return substr($requestUri, 0, $routePos + strlen($route));
@@ -329,11 +327,70 @@ abstract class Tool {
 
         $path = U::rest_path();
         if ($path && isset($path->parent)) {
-            return $path->parent . $route;
+            $parent = rtrim((string) $path->parent, '/');
+            return $parent . $route;
         }
 
         global $CFG;
-        return isset($CFG->apphome) ? $CFG->apphome . $route : $route;
+        if ( isset($CFG->apphome) && is_string($CFG->apphome) ) {
+            $home = rtrim(trim($CFG->apphome), '/');
+            if ( $home !== '' ) {
+                return $home . $route;
+            }
+        }
+        return $route;
+    }
+
+    /**
+     * REQUEST_URI path with query stripped and a single leading slash.
+     *
+     * `//courses` is a protocol-relative URL (host "courses"). Apache/proxies
+     * sometimes leave a doubled slash in REQUEST_URI; collapse it so tool
+     * links stay `/courses/123` instead of `//courses/123`.
+     *
+     * @return string
+     */
+    public static function requestPath() {
+        $uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+        if ( ! is_string($uri) ) {
+            return '';
+        }
+        $q = strpos($uri, '?');
+        if ( $q !== false ) {
+            $uri = substr($uri, 0, $q);
+        }
+        if ( $uri === '' ) {
+            return '';
+        }
+        if ( preg_match('#^https?://#i', $uri) ) {
+            return $uri;
+        }
+        if ( str_starts_with($uri, '//') ) {
+            return '/' . ltrim($uri, '/');
+        }
+        return $uri;
+    }
+
+    /**
+     * Join a mounted tool home and a suffix without producing `//path`.
+     *
+     * @param string $home toolHome() result
+     * @param string $suffix id or extra path (leading slash optional)
+     * @return string
+     */
+    public static function joinToolHome($home, $suffix) {
+        $home = rtrim((string) $home, '/');
+        if ( $home !== '' && ! preg_match('#^https?://#i', $home) && str_starts_with($home, '//') ) {
+            $home = '/' . ltrim($home, '/');
+        }
+        $suffix = ltrim((string) $suffix, '/');
+        if ( $home === '' ) {
+            return '/' . $suffix;
+        }
+        if ( $suffix === '' ) {
+            return $home;
+        }
+        return $home . '/' . $suffix;
     }
 
     /**
@@ -484,8 +541,7 @@ abstract class Tool {
         global $CFG;
         
         // Get the current request URI
-        $requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
-        $requestUri = strtok($requestUri, '?');
+        $requestUri = self::requestPath();
         
         if ($route !== null) {
             // If route provided, find it in the URI and extract parent

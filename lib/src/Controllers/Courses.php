@@ -285,7 +285,7 @@ class Courses extends Tool {
         <main class="container" id="main-content">
             <h1>Courses</h1>
             <?php if ( self::canCreate() ) { ?>
-            <p><a href="<?= htmlspecialchars($home . '/create') ?>">Add course</a></p>
+            <p><a href="<?= htmlspecialchars(self::joinToolHome($home, 'create')) ?>">Add course</a></p>
             <?php } ?>
             <?php if ( count($rows) < 1 ) { ?>
                 <p>You are not a member of any courses.</p>
@@ -294,7 +294,7 @@ class Courses extends Tool {
                     <?php foreach ( $rows as $row ) {
                         $id = (int) $row['context_id'];
                         $title = isset($row['title']) && $row['title'] !== '' ? $row['title'] : ('Course '.$id);
-                        $href = htmlspecialchars($home . '/' . $id);
+                        $href = htmlspecialchars(self::joinToolHome($home, (string) $id));
                     ?>
                     <li><a href="<?= $href ?>"><?= htmlspecialchars($title) ?></a></li>
                     <?php } ?>
@@ -341,7 +341,7 @@ class Courses extends Tool {
         <main class="container" id="main-content">
             <h1>Add course</h1>
             <p>Creates a new course with a starter outline. Lesson authoring for this course saves new manifest versions.</p>
-            <form method="post" action="<?= htmlspecialchars($home . '/create') ?>">
+            <form method="post" action="<?= htmlspecialchars(self::joinToolHome($home, 'create')) ?>">
                 <?= self::csrfField() ?>
                 <p>
                     <label for="course_title">Title</label><br/>
@@ -368,7 +368,7 @@ class Courses extends Tool {
         if ( $gate ) {
             return $gate;
         }
-        $csrf = self::requireCsrf(U::addSession($home . '/create'));
+        $csrf = self::requireCsrf(U::addSession(self::joinToolHome($home, 'create')));
         if ( $csrf ) {
             return $csrf;
         }
@@ -376,7 +376,7 @@ class Courses extends Tool {
         $title = trim((string) U::get($_POST, 'title', ''));
         if ( $title === '' ) {
             U::flashError(__('Title is required.'));
-            return new RedirectResponse(U::addSession($home . '/create'));
+            return new RedirectResponse(U::addSession(self::joinToolHome($home, 'create')));
         }
 
         $user_id = U::loggedInUserId();
@@ -385,7 +385,7 @@ class Courses extends Tool {
         if ( empty($result['ok']) ) {
             $err = isset($result['error']) ? $result['error'] : 'Could not create course.';
             U::flashError($err);
-            return new RedirectResponse(U::addSession($home . '/create'));
+            return new RedirectResponse(U::addSession(self::joinToolHome($home, 'create')));
         }
 
         $switch = self::ensureActiveContext($result['context_id']);
@@ -394,7 +394,7 @@ class Courses extends Tool {
         }
 
         U::flashSuccess(__('Course created.'));
-        return new RedirectResponse(U::addSession($home . '/' . (int) $result['context_id']));
+        return new RedirectResponse(U::addSession(self::joinToolHome($home, (string) (int) $result['context_id'])));
     }
 
     /**
