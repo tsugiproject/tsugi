@@ -48,7 +48,7 @@ class FilesControllerTest extends \PHPUnit\Framework\TestCase
     public function testRouteConstant()
     {
         $this->assertEquals('/files', Files::ROUTE);
-        $this->assertEquals('Student files', Files::STUDENT_FILES_FOLDER);
+        $this->assertEquals('Student', Files::STUDENT_FILES_FOLDER);
         $this->assertEquals('Public', Files::PUBLIC_FOLDER);
         $this->assertEquals('Private', Files::PRIVATE_FOLDER);
     }

@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  * lti_link for this tool. Folder membership lives in blob_file.json.
  *
  * Visibility:
- *   Student files — students browsing the Files tool see only this folder's contents.
+ *   Student — students browsing the Files tool see only this folder's contents.
  *   Public — not browseable for students; anyone with the link can open the file
  *   without logging in.
  *   Private — instructors only; even a direct link is denied.
@@ -38,7 +38,7 @@ class Files extends Tool {
     const REDIRECT = 'tsugi_controllers_files';
 
     /** Top-level folder whose contents students see when they open the Files tool. */
-    const STUDENT_FILES_FOLDER = 'Student files';
+    const STUDENT_FILES_FOLDER = 'Student';
 
     /** Top-level folder: anyone with the link can open the file with no login. */
     const PUBLIC_FOLDER = 'Public';
@@ -1095,7 +1095,7 @@ class Files extends Tool {
     }
 
     /**
-     * Access help for a path: Student files (green), Public (cyan), Private (red), or obscure (blue).
+     * Access help for a path: Student (green), Public (cyan), Private (red), or obscure (blue).
      *
      * @return array{text: string, class: string}
      */
@@ -1117,7 +1117,7 @@ class Files extends Tool {
         }
         if ( $this->isPrivatePath($path) ) {
             return array(
-                'text' => 'No one except the instructor can view these files, even if they have a link.',
+                'text' => 'No one except the instructor can view these files, even if they have a link. Instructors might stage files under Private and then move or copy them into Student to share them with students.',
                 'class' => 'files-info-private'
             );
         }
@@ -1154,10 +1154,10 @@ class Files extends Tool {
     private function courseFilesHelpButton()
     {
         $html = '<p>This is where you store files for the course.</p>'
-            .'<p>Files in <strong>Private</strong> are instructor only. No one except the instructor can view these files, even if they have a link.</p>'
+            .'<p>Files in <strong>Private</strong> are instructor only. No one except the instructor can view these files, even if they have a link. Instructors might stage files under Private and then move or copy them into Student to share them with students.</p>'
             .'<p>Files in <strong>Public</strong> are not browseable in the Files tool. Anyone with the link can open them, even if they are not logged in. You can put a file in Public, copy the link, and send it in email.</p>'
-            .'<p>Files in the rest of Course files are accessible via a link to people in the course. Students cannot browse those files, or any subfolders outside the <strong>Student files</strong> folder.</p>'
-            .'<p>A Common Cartridge import places files at the top level or in subfolders—not in Student files, Public, or Private. Link to them from Pages or Lessons, or move them into Student files if you want students to see them when they open the Files tool.</p>';
+            .'<p>Files in the rest of Course files are accessible via a link to people in the course. Students cannot browse those files, or any subfolders outside the <strong>Student</strong> folder.</p>'
+            .'<p>A Common Cartridge import places files at the top level or in subfolders—not in Student, Public, or Private. Link to them from Pages or Lessons, or move them into Student if you want students to see them when they open the Files tool.</p>';
         return '<button type="button" class="btn btn-link files-info files-help"'
             .' aria-label="Help about Course files"'
             .' aria-expanded="false"'
