@@ -769,16 +769,23 @@ function allocateDiscussionRlid(title, used) {
 function itemEditorKind(item) {
     if (!item || !item.type) return 'heading';
     if (isHeadingItem(item)) return 'heading';
+    const type = item.type;
+    // Dropdown / legacy types win so a leftover subtype cannot keep the old form.
+    if (type === 'video') return 'video';
+    if (type === 'discussion') return 'discussion';
+    if (type === 'assignment') return 'assignment';
+    if (type === 'file') return 'file';
+    if (type === 'slide' || type === 'slides') return 'slide';
+    if (type === 'reference') return 'reference';
+    if (type === 'lti') return 'lti';
+    if (type === 'html_page') return 'assignment';
     const sub = item.subtype || '';
-    if (item.type === 'video' || sub === 'video') return 'video';
-    if (item.type === 'discussion' || sub === 'discussion') return 'discussion';
-    if (item.type === 'assignment' || sub === 'assignment') return 'assignment';
-    if (item.type === 'file') return 'file';
-    if (item.type === 'slide' || item.type === 'slides' || sub === 'slides') return 'slide';
-    if (item.type === 'reference' || sub === 'reference') return 'reference';
-    if (item.type === 'lti') return 'lti';
-    if (item.type === 'html_page') return 'assignment';
-    if (item.type === 'web_link') return 'reference';
+    if (sub === 'video') return 'video';
+    if (sub === 'discussion') return 'discussion';
+    if (sub === 'assignment') return 'assignment';
+    if (sub === 'slides') return 'slide';
+    if (sub === 'reference') return 'reference';
+    if (type === 'web_link') return 'reference';
     return 'reference';
 }
 
@@ -1500,6 +1507,17 @@ function updateItemForm() {
         : getDefaultItem();
     
     currentItem.type = type;
+    const subtypeFor = {
+        video: 'video',
+        reference: 'reference',
+        assignment: 'assignment',
+        slide: 'slides'
+    };
+    if (subtypeFor[type]) {
+        currentItem.subtype = subtypeFor[type];
+    } else {
+        delete currentItem.subtype;
+    }
     updateItemFormFields(currentItem);
 }
 
@@ -1977,8 +1995,10 @@ function saveItem() {
             delete item.custom;
         }
     } else if (type === 'assignment') {
-        item.type = 'web_link';
-        item.subtype = 'assignment';
+        if (item.type !== 'html_page') {
+            item.type = 'web_link';
+            item.subtype = 'assignment';
+        }
         item.title = $('#edit-title').val().trim();
         item.href = $('#edit-href').val().trim();
     } else if (type === 'slide') {

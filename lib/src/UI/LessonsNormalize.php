@@ -714,6 +714,17 @@ class LessonsNormalize {
                 $item['resource_link_id'] = self::allocateDiscussionRlid($title, $used);
             }
         };
+        $assignWalk = function (&$items) use (&$assign, &$assignWalk) {
+            if ( ! is_array($items) ) {
+                return;
+            }
+            foreach ( $items as $k => $unused ) {
+                $assign($items[$k]);
+                if ( isset($items[$k]['items']) && is_array($items[$k]['items']) ) {
+                    $assignWalk($items[$k]['items']);
+                }
+            }
+        };
 
         if ( isset($doc['discussions']) && is_array($doc['discussions']) ) {
             foreach ( $doc['discussions'] as $i => $discussion ) {
@@ -726,9 +737,7 @@ class LessonsNormalize {
                     continue;
                 }
                 if ( isset($mod['items']) && is_array($mod['items']) ) {
-                    foreach ( $mod['items'] as $j => $item ) {
-                        $assign($doc['modules'][$i]['items'][$j]);
-                    }
+                    $assignWalk($doc['modules'][$i]['items']);
                 }
                 if ( isset($mod['discussions']) && is_array($mod['discussions']) ) {
                     foreach ( $mod['discussions'] as $j => $discussion ) {
@@ -744,13 +753,18 @@ class LessonsNormalize {
      * @param array<string, true> $used
      */
     private static function collectAllResourceLinkIds(array $doc, array &$used) {
-        $take = function ($item) use (&$used) {
+        $take = function ($item) use (&$used, &$take) {
             if ( ! is_array($item) ) {
                 return;
             }
             if ( isset($item['resource_link_id']) && is_string($item['resource_link_id'])
                     && trim($item['resource_link_id']) !== '' ) {
                 $used[trim($item['resource_link_id'])] = true;
+            }
+            if ( isset($item['items']) && is_array($item['items']) ) {
+                foreach ( $item['items'] as $child ) {
+                    $take($child);
+                }
             }
         };
         if ( isset($doc['discussions']) && is_array($doc['discussions']) ) {

@@ -209,7 +209,10 @@ abstract class Tool {
     }
 
     /**
-     * Course title for an outbound LTI launch (session first, then $CFG->context_title).
+     * Course title for an outbound LTI launch.
+     *
+     * Precedence: $_SESSION['context_title'], then the LTI session
+     * context_title, then $CFG->context_title.
      *
      * Sending the site default here used to overwrite lti_context.title via adjustData.
      */

@@ -416,6 +416,10 @@ class Manifest {
         }
         $loaded = Lessons::tryFromJson($json);
         if ( $loaded instanceof Lessons ) {
+            $decoded = json_decode($json, true);
+            if ( is_array($decoded) && self::hasDuplicateResourceLinkIds($decoded) ) {
+                return 'Duplicate resource_link_id';
+            }
             return null;
         }
         if ( is_string($loaded) && strlen($loaded) > 0 ) {
@@ -592,17 +596,48 @@ class Manifest {
     }
 
     /**
+     * @param array<string, mixed> $data
+     * @return bool
+     */
+    private static function hasDuplicateResourceLinkIds(array $data) {
+        $ids = array();
+        $duplicate = false;
+        self::collectRlidsFromList(isset($data['discussions']) ? $data['discussions'] : null, $ids, $duplicate);
+        self::collectRlidsFromList(isset($data['launches']) ? $data['launches'] : null, $ids, $duplicate);
+        if ( isset($data['modules']) && is_array($data['modules']) ) {
+            foreach ( $data['modules'] as $mod ) {
+                if ( ! is_array($mod) ) {
+                    continue;
+                }
+                self::collectRlidsFromList(isset($mod['lti']) ? $mod['lti'] : null, $ids, $duplicate);
+                self::collectRlidsFromList(isset($mod['discussions']) ? $mod['discussions'] : null, $ids, $duplicate);
+                self::collectRlidsFromList(isset($mod['items']) ? $mod['items'] : null, $ids, $duplicate);
+            }
+        }
+        return $duplicate;
+    }
+
+    /**
      * @param mixed $list
      * @param array<string, true> $ids
      */
-    private static function collectRlidsFromList($list, &$ids) {
+    private static function collectRlidsFromList($list, &$ids, &$duplicate = false) {
         if ( ! is_array($list) ) {
             return;
         }
         foreach ( $list as $item ) {
-            if ( is_array($item) && isset($item['resource_link_id'])
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            if ( isset($item['resource_link_id'])
                     && is_string($item['resource_link_id']) && $item['resource_link_id'] !== '' ) {
+                if ( isset($ids[$item['resource_link_id']]) ) {
+                    $duplicate = true;
+                }
                 $ids[$item['resource_link_id']] = true;
+            }
+            if ( isset($item['items']) && is_array($item['items']) ) {
+                self::collectRlidsFromList($item['items'], $ids, $duplicate);
             }
         }
     }
@@ -900,6 +935,8 @@ class Manifest {
 
     /**
      * Copy a course title onto lti_context.title (/courses reads this column).
+     * When $context_id is the active context, also refresh session titles
+     * used by Tool::outboundContextTitle().
      *
      * PDOX rewrites INSERT into ON DUPLICATE KEY UPDATE and only refreshes
      * the primary key, so a colliding insert can leave the old title in place.
@@ -918,6 +955,13 @@ class Manifest {
              WHERE context_id = :CID",
             array(':title' => $title, ':CID' => $cid)
         );
+        if ( U::currentContextId() === $cid ) {
+            $_SESSION['context_title'] = $title;
+            $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+            if ( isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey]) ) {
+                $_SESSION[$ltiKey]['context_title'] = $title;
+            }
+        }
     }
 
     /**

@@ -227,7 +227,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('title', $err);
     }
 
-    public function testValidateJsonAllowsAuthorDuplicateResourceLink()
+    public function testValidateJsonRejectsDuplicateResourceLink()
     {
         $doc = Manifest::starter('Dup');
         $doc['modules'][0]['items'] = array(
@@ -244,7 +244,9 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
                 'launch' => 'http://example.com/two',
             ),
         );
-        $this->assertNull(Manifest::validateJson(Manifest::encode($doc)));
+        $err = Manifest::validateJson(Manifest::encode($doc));
+        $this->assertIsString($err);
+        $this->assertStringContainsString('resource_link_id', $err);
     }
 
     public function testExportFilename()
@@ -308,6 +310,24 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         );
         $result = Manifest::appendDiscussion($doc, 'Week talk');
         $this->assertSame('discussion_week_talk_2', $result['resource_link_id']);
+    }
+
+    public function testAppendDiscussionSkipsNestedItemRlids()
+    {
+        $doc = Manifest::starter('Sandbox');
+        $doc['modules'][0]['items'][] = array(
+            'type' => 'slides',
+            'title' => 'Group',
+            'items' => array(
+                array(
+                    'type' => 'discussion',
+                    'title' => 'Nested',
+                    'resource_link_id' => 'discussion_nested',
+                ),
+            ),
+        );
+        $result = Manifest::appendDiscussion($doc, 'Nested');
+        $this->assertSame('discussion_nested_2', $result['resource_link_id']);
     }
 
     public function testReorderDiscussionsPermutesTopLevel()

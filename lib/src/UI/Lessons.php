@@ -2830,7 +2830,7 @@ $(function(){
      */
     private static function renderItemIcon($type, $url_for_icon = null) {
         $css_type = $type;
-        if ( is_string($type) && strpos($type, 'fa-') === 0 ) {
+        if ( is_string($type) && preg_match('/^fa-[a-z0-9-]+$/', $type) ) {
             $icon = $type;
             $color = '#6c757d';
             $css_type = 'custom';
@@ -2845,8 +2845,9 @@ $(function(){
             && in_array($type, $pdf_types, true))
             ? ' tsugi-lessons-pdf-icon' : '';
         $css_type = preg_replace('/[^a-z0-9_-]/i', '', $css_type);
+        $icon_attr = htmlspecialchars($icon, ENT_QUOTES, 'UTF-8');
         echo('<span class="tsugi-item-type-icon tsugi-item-type-'.$css_type.$pdf_class.'" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 3px; font-size: 14px; background-color: '.$color.'; margin-right: 8px; vertical-align: middle;">');
-        echo('<i class="fa '.$icon.'" aria-hidden="true" style="color: '.$iconColor.';"></i>');
+        echo('<i class="fa '.$icon_attr.'" aria-hidden="true" style="color: '.$iconColor.';"></i>');
         echo('</span>');
     }
 
@@ -2964,12 +2965,32 @@ $(function(){
     }
 
     /**
+     * Allow local paths and http(s) only. Encode for an href attribute.
+     */
+    private static function safeWebHref($href) {
+        if ( ! is_string($href) ) {
+            return '';
+        }
+        $href = trim($href);
+        if ( $href === '' || str_starts_with($href, '//') ) {
+            return '';
+        }
+        if ( preg_match('/^([a-z][a-z0-9+.-]*):/i', $href, $m) ) {
+            $scheme = strtolower($m[1]);
+            if ( $scheme !== 'http' && $scheme !== 'https' ) {
+                return '';
+            }
+        }
+        return htmlspecialchars($href, ENT_QUOTES, 'UTF-8');
+    }
+
+    /**
      * Generic fallback for foundational file / web_link / html_page items.
      */
     private function renderItemGenericLink($item, $kind, $nostyle=false) {
         $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : (isset($item->filename) ? $item->filename : ''));
         $href = isset($item->href) ? $item->href : (isset($item->url) ? $item->url : '');
-        $href = self::expandLink($href);
+        $href = self::safeWebHref(self::expandLink($href));
         $css = $kind !== '' ? $kind : 'web_link';
         $icon_key = LessonsNormalize::iconKey($item);
 

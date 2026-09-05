@@ -1115,6 +1115,44 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('fa-file-powerpoint-o', $output, 'Should include slide icon class');
         $this->assertStringContainsString('tsugi-item-type-slide', $output, 'Should include slide type class');
     }
+
+    public function testRenderItemIconAcceptsSafeCustomFaClass() {
+        $lessons = new class extends \Tsugi\UI\Lessons {
+            public function __construct() {
+            }
+        };
+        $module = (object)['title' => 'Test Module'];
+        $item = (object)[
+            'type' => 'slide',
+            'title' => 'Star Deck',
+            'href' => 'http://example.com/deck.pptx',
+            'icon' => 'fa-star',
+        ];
+        ob_start();
+        $lessons->renderItem($item, $module);
+        $output = ob_get_clean();
+        $this->assertStringContainsString('fa-star', $output);
+        $this->assertStringContainsString('tsugi-item-type-custom', $output);
+    }
+
+    public function testRenderItemIconRejectsUnsafeCustomIcon() {
+        $lessons = new class extends \Tsugi\UI\Lessons {
+            public function __construct() {
+            }
+        };
+        $module = (object)['title' => 'Test Module'];
+        $item = (object)[
+            'type' => 'slide',
+            'title' => 'Bad Icon',
+            'href' => 'http://example.com/deck.pptx',
+            'icon' => 'fa-evil" onclick="alert(1)',
+        ];
+        ob_start();
+        $lessons->renderItem($item, $module);
+        $output = ob_get_clean();
+        $this->assertStringNotContainsString('onclick=', $output);
+        $this->assertStringContainsString('fa-circle', $output);
+    }
     
     /**
      * Test renderItem() method - reference item

@@ -38,7 +38,18 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
             'lessons_json_version' => 2,
             'title' => 'V2',
         )));
-        $this->assertFalse(\Tsugi\Core\Manifest::canAuthorCurrent());
+    }
+
+    public function testCanAuthorCurrentIsFalseWithoutManifestSession() {
+        $prev = isset($_SESSION) && is_array($_SESSION) ? $_SESSION : array();
+        $_SESSION = array();
+        \Tsugi\Core\Manifest::resetRequestCache();
+        try {
+            $this->assertFalse(\Tsugi\Core\Manifest::canAuthorCurrent());
+        } finally {
+            $_SESSION = $prev;
+            \Tsugi\Core\Manifest::resetRequestCache();
+        }
     }
 
     public function testHeaderToHeading() {
@@ -211,6 +222,31 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
         $again = LessonsNormalize::normalizeDocument($doc);
         $this->assertSame($doc['modules'][0]['items'][0]['resource_link_id'], $again['modules'][0]['items'][0]['resource_link_id']);
         $this->assertSame($doc['modules'][0]['items'][1]['resource_link_id'], $again['modules'][0]['items'][1]['resource_link_id']);
+    }
+
+    public function testDocumentAssignsDiscussionRlidsInNestedItems() {
+        $doc = LessonsNormalize::normalizeDocument(array(
+            'title' => 'T',
+            'modules' => array(
+                array(
+                    'title' => 'M',
+                    'anchor' => 'm',
+                    'items' => array(
+                        array(
+                            'type' => 'slides',
+                            'title' => 'Group',
+                            'items' => array(
+                                array('type' => 'discussion', 'title' => 'Nested Talk'),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ));
+        $this->assertSame(
+            'discussion_nested_talk',
+            $doc['modules'][0]['items'][0]['items'][0]['resource_link_id']
+        );
     }
 
     public function testAuthorDuplicateResourceLinkIdsAreKept() {
@@ -561,6 +597,24 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
         $page_html = ob_get_clean();
         $this->assertStringContainsString('Course Page', $page_html);
         $this->assertStringContainsString('fa-file-text-o', $page_html);
+        $this->assertStringContainsString('http://localhost/app/info.md', $page_html);
+    }
+
+    public function testGenericLinkRejectsNonHttpSchemes() {
+        $lessons = new class extends Lessons {
+            public function __construct() {
+            }
+        };
+        $module = (object) array('title' => 'Test Module');
+        ob_start();
+        $lessons->renderItem((object) array(
+            'type' => 'web_link',
+            'title' => 'Nope',
+            'href' => 'javascript:alert(1)',
+        ), $module);
+        $html = ob_get_clean();
+        $this->assertStringNotContainsString('javascript:', $html);
+        $this->assertStringContainsString('Nope', $html);
     }
 
     public function testConstructorDoesNotTreatSiblingDomainsAsCourseOwned() {
