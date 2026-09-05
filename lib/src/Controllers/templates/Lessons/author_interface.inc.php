@@ -501,7 +501,7 @@
     padding: 20px;
     border-radius: 4px;
     width: 90%;
-    max-width: 600px;
+    max-width: 680px;
     max-height: 80vh;
     overflow-y: auto;
 }
@@ -574,6 +574,74 @@
 .form-group-radios input[type="radio"] {
     width: auto;
     margin: 0;
+}
+
+.icon-picker-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.icon-picker-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 24px;
+    color: #333;
+    font-size: 14px;
+}
+
+.icon-picker-preview .fa {
+    width: 1.4em;
+    text-align: center;
+    font-size: 20px;
+    color: #555;
+}
+
+.icon-picker-none,
+.icon-picker-name {
+    color: #666;
+}
+
+.icon-picker-search {
+    margin-bottom: 8px;
+}
+
+.icon-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+    gap: 4px;
+    max-height: 196px;
+    overflow-y: auto;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background: #fafafa;
+}
+
+.icon-picker-choice {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid transparent;
+    background: white;
+    border-radius: 3px;
+    cursor: pointer;
+    color: #444;
+    font-size: 16px;
+}
+
+.icon-picker-choice:hover {
+    background: #e8f1ff;
+    border-color: #b6d4fe;
+}
+
+.icon-picker-choice.selected {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
 }
 
 .form-actions {
@@ -708,6 +776,131 @@ let editingAfterItemIndex = null;
 
 function emptyFilePickerState() {
     return { sha256: '', filename: '', href: '', content_type: '', path: '' };
+}
+
+const FA_ICON_SAFE = /^fa-[a-z0-9-]+$/;
+const LESSON_FA_ICONS = [
+    'fa-archive', 'fa-area-chart', 'fa-balance-scale', 'fa-bar-chart-o', 'fa-bell',
+    'fa-bicycle', 'fa-bolt', 'fa-book', 'fa-bookmark', 'fa-briefcase', 'fa-bug',
+    'fa-building', 'fa-calculator', 'fa-calendar', 'fa-camera', 'fa-check',
+    'fa-check-circle', 'fa-check-square-o', 'fa-child', 'fa-circle', 'fa-circle-o',
+    'fa-clock-o', 'fa-cloud', 'fa-code', 'fa-code-fork', 'fa-cog', 'fa-cogs',
+    'fa-comment', 'fa-comments', 'fa-compass', 'fa-credit-card', 'fa-css3',
+    'fa-cubes', 'fa-database', 'fa-desktop', 'fa-diamond', 'fa-dot-circle-o',
+    'fa-download', 'fa-envelope', 'fa-exclamation-triangle', 'fa-external-link',
+    'fa-female', 'fa-file-audio-o', 'fa-file-code-o', 'fa-file-excel-o',
+    'fa-file-image-o', 'fa-file-o', 'fa-file-pdf-o', 'fa-file-powerpoint-o',
+    'fa-file-text-o', 'fa-file-video-o', 'fa-file-word-o', 'fa-files-o', 'fa-film',
+    'fa-filter', 'fa-fire', 'fa-flag', 'fa-flask', 'fa-folder', 'fa-folder-open',
+    'fa-font', 'fa-gamepad', 'fa-gavel', 'fa-gears', 'fa-github', 'fa-globe',
+    'fa-graduation-cap', 'fa-hand-o-right', 'fa-handshake-o', 'fa-hdd-o',
+    'fa-header', 'fa-headphones', 'fa-heartbeat', 'fa-heart', 'fa-home',
+    'fa-html5', 'fa-inbox', 'fa-info-circle', 'fa-key', 'fa-keyboard-o',
+    'fa-language', 'fa-laptop', 'fa-leaf', 'fa-lightbulb-o', 'fa-line-chart',
+    'fa-link', 'fa-list', 'fa-list-ol', 'fa-list-ul', 'fa-lock', 'fa-magic',
+    'fa-male', 'fa-map', 'fa-map-marker', 'fa-medkit', 'fa-microphone',
+    'fa-mobile', 'fa-money', 'fa-moon-o', 'fa-music', 'fa-newspaper-o',
+    'fa-paint-brush', 'fa-paper-plane', 'fa-paperclip', 'fa-paw', 'fa-pencil',
+    'fa-pencil-square-o', 'fa-percent', 'fa-picture-o', 'fa-pie-chart',
+    'fa-play', 'fa-play-circle', 'fa-plug', 'fa-plus-circle', 'fa-puzzle-piece',
+    'fa-question-circle', 'fa-quote-left', 'fa-rocket', 'fa-rss', 'fa-search',
+    'fa-server', 'fa-share-alt', 'fa-shield', 'fa-signal', 'fa-sitemap',
+    'fa-smile-o', 'fa-square-o', 'fa-star', 'fa-sun-o', 'fa-table', 'fa-tablet',
+    'fa-tag', 'fa-tags', 'fa-terminal', 'fa-th', 'fa-th-list', 'fa-thumb-tack',
+    'fa-ticket', 'fa-times-circle', 'fa-tree', 'fa-trophy', 'fa-university',
+    'fa-unlock', 'fa-upload', 'fa-user', 'fa-user-circle', 'fa-users',
+    'fa-video-camera', 'fa-volume-up', 'fa-wifi', 'fa-wrench', 'fa-youtube-play'
+];
+
+function sanitizeFaIcon(value) {
+    const v = String(value || '').trim();
+    return FA_ICON_SAFE.test(v) ? v : '';
+}
+
+function applyPickedIcon(obj, inputSelector) {
+    const iconVal = sanitizeFaIcon($(inputSelector).val());
+    if (iconVal) {
+        obj.icon = iconVal;
+    } else {
+        delete obj.icon;
+    }
+}
+
+function iconPickerHtml(inputId, currentValue, noneLabel) {
+    const current = sanitizeFaIcon(currentValue);
+    const emptyLabel = noneLabel || 'None';
+    const icons = LESSON_FA_ICONS.slice();
+    if (current && icons.indexOf(current) === -1) {
+        icons.unshift(current);
+    }
+    const buttons = icons.map(function(name) {
+        const sel = name === current ? ' selected' : '';
+        return '<button type="button" class="icon-picker-choice' + sel + '" data-icon="' + name +
+            '" title="' + name + '" aria-label="' + name + '"><i class="fa ' + name +
+            '" aria-hidden="true"></i></button>';
+    }).join('');
+    const preview = current
+        ? '<i class="fa ' + escapeHtml(current) + '" aria-hidden="true"></i>'
+        : '<span class="icon-picker-none">—</span>';
+    return `
+        <div class="icon-picker" data-input="${inputId}" data-empty-label="${escapeHtml(emptyLabel)}">
+            <input type="hidden" id="${inputId}" value="${escapeHtml(current)}">
+            <div class="icon-picker-toolbar">
+                <span class="icon-picker-preview">
+                    ${preview}
+                    <span class="icon-picker-name">${current ? escapeHtml(current) : escapeHtml(emptyLabel)}</span>
+                </span>
+                <button type="button" class="btn icon-picker-clear">Clear</button>
+            </div>
+            <input type="search" class="icon-picker-search" placeholder="Search icons…" autocomplete="off">
+            <div class="icon-picker-grid" role="listbox">${buttons}</div>
+        </div>
+    `;
+}
+
+function bindIconPickers($scope) {
+    $scope.find('.icon-picker').each(function() {
+        bindIconPicker(this);
+    });
+}
+
+function bindIconPicker(root) {
+    const $root = $(root);
+    if ($root.data('icon-picker-bound')) {
+        return;
+    }
+    $root.data('icon-picker-bound', true);
+    const $input = $root.find('input[type="hidden"]');
+    const $preview = $root.find('.icon-picker-preview');
+    const emptyLabel = $root.attr('data-empty-label') || 'None';
+
+    function setIcon(name) {
+        const value = sanitizeFaIcon(name);
+        $input.val(value);
+        $root.find('.icon-picker-choice').removeClass('selected');
+        if (value) {
+            $root.find('.icon-picker-choice[data-icon="' + value + '"]').addClass('selected');
+            $preview.html('<i class="fa ' + escapeHtml(value) + '" aria-hidden="true"></i>' +
+                '<span class="icon-picker-name">' + escapeHtml(value) + '</span>');
+        } else {
+            $preview.html('<span class="icon-picker-none">—</span>' +
+                '<span class="icon-picker-name">' + escapeHtml(emptyLabel) + '</span>');
+        }
+    }
+
+    $root.on('click', '.icon-picker-choice', function() {
+        setIcon($(this).attr('data-icon'));
+    });
+    $root.on('click', '.icon-picker-clear', function() {
+        setIcon('');
+    });
+    $root.on('input', '.icon-picker-search', function() {
+        const q = String($(this).val() || '').toLowerCase().replace(/^fa-/, '');
+        $root.find('.icon-picker-choice').each(function() {
+            const name = ($(this).attr('data-icon') || '').toLowerCase();
+            $(this).toggle(name.indexOf(q) !== -1);
+        });
+    });
 }
 
 function isHeadingItem(item) {
@@ -1122,7 +1315,7 @@ function createModuleHtml(module, moduleIndex) {
                 </button>
                 <div style="flex: 1;">
                     <h3 class="module-title">
-                        ${module.icon ? `<i class="fa ${escapeHtml(module.icon)} module-icon" aria-hidden="true"></i>` : ''}
+                        ${sanitizeFaIcon(module.icon) ? `<i class="fa ${escapeHtml(sanitizeFaIcon(module.icon))} module-icon" aria-hidden="true"></i>` : ''}
                         <span>${escapeHtml(module.title || 'Untitled Module')}</span>
                     </h3>
                 </div>
@@ -1153,6 +1346,12 @@ function createModuleHtml(module, moduleIndex) {
 }
 
 function getItemTypeIcon(itemOrType) {
+    if (typeof itemOrType === 'object' && itemOrType !== null) {
+        const custom = sanitizeFaIcon(itemOrType.icon);
+        if (custom) {
+            return custom;
+        }
+    }
     const kind = (typeof itemOrType === 'object' && itemOrType !== null)
         ? itemEditorKind(itemOrType)
         : itemOrType;
@@ -1369,8 +1568,7 @@ function editModule(moduleIndex, focusField) {
         </div>
         <div class="form-group">
             <label>Icon:</label>
-            <input type="text" id="edit-module-icon" value="${escapeHtml(module.icon || '')}" 
-                   placeholder="e.g., fa-smile-o">
+            ${iconPickerHtml('edit-module-icon', module.icon || '', 'None')}
         </div>
         <div class="form-group">
             <label>Description:</label>
@@ -1384,6 +1582,7 @@ function editModule(moduleIndex, focusField) {
     
     $('#modal-title').text('Edit Module');
     $('#modal-body').html(formHtml);
+    bindIconPickers($('#modal-body'));
     $('#item-modal').show();
     if (focusField === 'description') {
         const desc = document.getElementById('edit-module-description');
@@ -1399,7 +1598,7 @@ function saveModule() {
     const desc = $('#edit-module-description').val().trim();
     lessonsData.modules[editingModuleIndex].title = $('#edit-module-title').val().trim();
     lessonsData.modules[editingModuleIndex].anchor = $('#edit-module-anchor').val().trim();
-    lessonsData.modules[editingModuleIndex].icon = $('#edit-module-icon').val().trim();
+    applyPickedIcon(lessonsData.modules[editingModuleIndex], '#edit-module-icon');
     if (desc) {
         lessonsData.modules[editingModuleIndex].description = desc;
     } else {
@@ -1705,8 +1904,18 @@ function updateItemFormFields(item) {
             </div>
         `;
     }
+
+    if (type !== 'heading' && type !== 'header') {
+        fieldsHtml += `
+            <div class="form-group">
+                <label>Icon:</label>
+                ${iconPickerHtml('edit-item-icon', item.icon || '', 'Default for this type')}
+            </div>
+        `;
+    }
     
     $('#item-form-fields').html(fieldsHtml);
+    bindIconPickers($('#item-form-fields'));
     if (type === 'file') {
         updateFilePickerSummary();
         populateFilePicker(item);
@@ -2029,6 +2238,10 @@ function saveItem() {
         } else {
             delete item.content_type;
         }
+    }
+
+    if ($('#edit-item-icon').length) {
+        applyPickedIcon(item, '#edit-item-icon');
     }
     
     if (editingItemIndex !== null) {
