@@ -852,6 +852,9 @@ class Manifest {
         );
         $manifest_id = (int) $PDOX->lastInsertId();
         self::setActive($cid, $manifest_id);
+        if ( is_string($title) && $title !== '' ) {
+            self::syncContextTitle($cid, $title);
+        }
         self::rememberCachedRow(array(
             'manifest_id' => $manifest_id,
             'context_id' => $cid,
@@ -896,6 +899,28 @@ class Manifest {
     }
 
     /**
+     * Copy a course title onto lti_context.title (/courses reads this column).
+     *
+     * PDOX rewrites INSERT into ON DUPLICATE KEY UPDATE and only refreshes
+     * the primary key, so a colliding insert can leave the old title in place.
+     */
+    public static function syncContextTitle($context_id, $title) {
+        global $CFG;
+        $cid = (int) $context_id;
+        $title = is_string($title) ? trim($title) : '';
+        if ( $cid < 1 || $title === '' ) {
+            return;
+        }
+        $PDOX = LTIX::getConnection();
+        $p = $CFG->dbprefix;
+        $PDOX->queryDie(
+            "UPDATE {$p}lti_context SET title = :title, updated_at = NOW()
+             WHERE context_id = :CID",
+            array(':title' => $title, ':CID' => $cid)
+        );
+    }
+
+    /**
      * Create an LTI context, instructor membership, and a v2 starter manifest.
      *
      * @return array{ok: bool, context_id?: int, manifest_id?: int, error?: string}
@@ -919,6 +944,7 @@ class Manifest {
         $p = $CFG->dbprefix;
         $context_key = 'course:' . bin2hex(random_bytes(16));
 
+        $context_sha = lti_sha256($context_key);
         $PDOX->queryDie(
             "INSERT INTO {$p}lti_context
                 (context_key, context_sha256, title, key_id, user_id, created_at, updated_at)
@@ -926,16 +952,22 @@ class Manifest {
                 (:context_key, :context_sha256, :title, :key_id, :user_id, NOW(), NOW())",
             array(
                 ':context_key' => $context_key,
-                ':context_sha256' => lti_sha256($context_key),
+                ':context_sha256' => $context_sha,
                 ':title' => $title,
                 ':key_id' => $key_id,
                 ':user_id' => $user_id,
             )
         );
-        $context_id = (int) $PDOX->lastInsertId();
+        $row = $PDOX->rowDie(
+            "SELECT context_id FROM {$p}lti_context
+             WHERE context_sha256 = :SHA AND key_id = :KID LIMIT 1",
+            array(':SHA' => $context_sha, ':KID' => $key_id)
+        );
+        $context_id = is_array($row) ? (int) $row['context_id'] : (int) $PDOX->lastInsertId();
         if ( $context_id < 1 ) {
             return array('ok' => false, 'error' => 'Could not create course.');
         }
+        self::syncContextTitle($context_id, $title);
 
         $PDOX->queryDie(
             "INSERT INTO {$p}lti_membership

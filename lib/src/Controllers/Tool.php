@@ -209,6 +209,27 @@ abstract class Tool {
     }
 
     /**
+     * Course title for an outbound LTI launch (session first, then $CFG->context_title).
+     *
+     * Sending the site default here used to overwrite lti_context.title via adjustData.
+     */
+    public static function outboundContextTitle() {
+        global $CFG;
+        $title = U::get($_SESSION, 'context_title');
+        if ( is_string($title) && trim($title) !== '' ) {
+            return $title;
+        }
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        if ( isset($_SESSION[$ltiKey]['context_title']) ) {
+            $title = $_SESSION[$ltiKey]['context_title'];
+            if ( is_string($title) && trim($title) !== '' ) {
+                return $title;
+            }
+        }
+        return isset($CFG->context_title) ? $CFG->context_title : '';
+    }
+
+    /**
      * Build and print the auto-submit HTML for an LTI 1.1 basic-lti-launch-request to a tool URL
      * described by a lessons.json / lessons-items item (same shape as {@see \Tsugi\UI\Lessons::getLtiByRlid()}).
      *
@@ -258,8 +279,8 @@ abstract class Tool {
             'tool_consumer_info_product_family_code' => 'tsugi',
             'tool_consumer_info_version' => '1.1',
             'context_id' => $_SESSION['context_key'],
-            'context_label' => $CFG->context_title,
-            'context_title' => $CFG->context_title,
+            'context_label' => self::outboundContextTitle(),
+            'context_title' => self::outboundContextTitle(),
             'user_id' => $_SESSION['user_key'],
             'lis_person_name_full' => $_SESSION['displayname'],
             'lis_person_contact_email_primary' => $_SESSION['email'],

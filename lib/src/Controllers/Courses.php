@@ -263,11 +263,13 @@ class Courses extends Tool {
         $user_id = U::loggedInUserId();
 
         $rows = $PDOX->allRowsDie(
-            "SELECT C.context_id, C.title, C.context_key
+            "SELECT C.context_id, C.context_key,
+                    COALESCE(NULLIF(MF.title, ''), C.title) AS title
              FROM {$p}lti_membership AS M
              JOIN {$p}lti_context AS C ON M.context_id = C.context_id
+             LEFT JOIN {$p}manifest AS MF ON C.manifest_id = MF.manifest_id
              WHERE M.user_id = :UID
-             ORDER BY C.title, C.context_id",
+             ORDER BY COALESCE(NULLIF(MF.title, ''), C.title), C.context_id",
             array(':UID' => $user_id)
         );
         if ( ! is_array($rows) ) {
@@ -475,11 +477,13 @@ class Courses extends Tool {
             return \response()->json(array("error" => "No profile_id"));
         }
 
-        $sql = "SELECT P.profile_id, U.user_id, U.email, C.context_id, C.title
+        $sql = "SELECT P.profile_id, U.user_id, U.email, C.context_id,
+                COALESCE(NULLIF(MF.title, ''), C.title) AS title
             FROM {$p}profile AS P
             JOIN {$p}lti_user AS U ON P.profile_id = U.profile_id
             JOIN {$p}lti_membership AS M ON U.user_id = M.user_id
             JOIN {$p}lti_context AS C ON M.context_id = C.context_id
+            LEFT JOIN {$p}manifest AS MF ON C.manifest_id = MF.manifest_id
             WHERE P.profile_id = :PID";
 
         $rows = $PDOX->allRowsDie($sql, array(':PID' => $row['profile_id']));

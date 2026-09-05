@@ -520,4 +520,21 @@ class ToolControllerTest extends \PHPUnit\Framework\TestCase
         $assetUrl = $tool->exposeAssetUrl('test.js');
         $this->assertSame($staticUrl, $assetUrl);
     }
+
+    public function testOutboundContextTitlePrefersSessionOverSiteDefault(): void
+    {
+        global $CFG;
+        $CFG->context_title = 'Jangle for Everybody';
+        $_SESSION['context_title'] = 'Sandbox Course';
+        $this->assertSame('Sandbox Course', \Tsugi\Controllers\Tool::outboundContextTitle());
+    }
+
+    public function testOutboundContextTitleFallsBackToSiteDefault(): void
+    {
+        global $CFG;
+        $CFG->context_title = 'Jangle for Everybody';
+        unset($_SESSION['context_title']);
+        unset($_SESSION['lti']);
+        $this->assertSame('Jangle for Everybody', \Tsugi\Controllers\Tool::outboundContextTitle());
+    }
 }
