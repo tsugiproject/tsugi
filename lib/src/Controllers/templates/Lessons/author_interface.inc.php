@@ -773,6 +773,7 @@ let hasChanges = false;
 let editingItemIndex = null;
 let editingModuleIndex = null;
 let editingAfterItemIndex = null;
+let draftItem = null;
 
 function emptyFilePickerState() {
     return { sha256: '', filename: '', href: '', content_type: '', path: '' };
@@ -982,6 +983,59 @@ function itemEditorKind(item) {
     return 'reference';
 }
 
+function itemFoundationalType(item) {
+    const kind = itemEditorKind(item);
+    if (kind === 'heading' || kind === 'header') {
+        return 'heading';
+    }
+    if (kind === 'discussion' || kind === 'lti' || kind === 'file') {
+        return kind;
+    }
+    return 'web_link';
+}
+
+function itemLinkSubtype(item) {
+    const kind = itemEditorKind(item);
+    if (kind === 'video') {
+        return 'video';
+    }
+    if (kind === 'assignment') {
+        return 'assignment';
+    }
+    if (kind === 'slide') {
+        return 'slides';
+    }
+    if (item && item.subtype === 'solution') {
+        return 'solution';
+    }
+    return 'reference';
+}
+
+function webLinkSubtypeSelectHtml(subtype) {
+    const options = [
+        ['reference', 'Reference'],
+        ['video', 'Video'],
+        ['slides', 'Slides'],
+        ['assignment', 'Assignment'],
+        ['solution', 'Solution']
+    ];
+    const known = options.some(function(opt) { return opt[0] === subtype; });
+    const extra = (!known && subtype)
+        ? `<option value="${escapeHtml(subtype)}" selected>${escapeHtml(subtype)}</option>`
+        : '';
+    return `
+            <div class="form-group">
+                <label>Subtype:</label>
+                <select id="edit-link-subtype" onchange="updateItemForm()">
+                    ${options.map(function(opt) {
+                        return `<option value="${opt[0]}" ${subtype === opt[0] ? 'selected' : ''}>${opt[1]}</option>`;
+                    }).join('')}
+                    ${extra}
+                </select>
+            </div>
+    `;
+}
+
 // Migrate FCPX to reference for video items
 function migrateFCPXToReference() {
     if (!lessonsData.modules || !Array.isArray(lessonsData.modules)) {
@@ -1176,8 +1230,7 @@ function rebuildLessonsDataFromDOM() {
             if (!item) {
                 item = {
                     type: 'heading',
-                    title: 'Untitled Item',
-                    level: 2
+                    title: 'Untitled Item'
                 };
             }
             
@@ -1621,14 +1674,16 @@ function deleteModule(moduleIndex) {
 function addItem(moduleIndex) {
     editingItemIndex = null;
     editingModuleIndex = moduleIndex;
-    showItemModal('Add Item', getDefaultItem());
+    draftItem = getDefaultItem();
+    showItemModal('Add Item', draftItem);
 }
 
 function addItemAfter(moduleIndex, afterItemIndex) {
     editingItemIndex = null;
     editingModuleIndex = moduleIndex;
     editingAfterItemIndex = afterItemIndex;
-    showItemModal('Add Item', getDefaultItem());
+    draftItem = getDefaultItem();
+    showItemModal('Add Item', draftItem);
 }
 
 function editItem(moduleIndex, itemIndex) {
@@ -1664,25 +1719,60 @@ function editItemFromButton(button) {
 function getDefaultItem() {
     return {
         type: 'heading',
-        title: '',
-        level: 2
+        title: ''
     };
 }
 
+function harvestItemFormDraft(item) {
+    const titleEl = document.getElementById('edit-title');
+    if (titleEl) {
+        item.title = titleEl.value;
+    }
+    const hrefEl = document.getElementById('edit-href');
+    if (hrefEl) {
+        item.href = hrefEl.value;
+    }
+    ['youtube', 'kaltura_id', 'media', 'reference', 'description', 'launch', 'resource_link_id'].forEach(function(key) {
+        const map = {
+            youtube: 'edit-youtube',
+            kaltura_id: 'edit-kaltura',
+            media: 'edit-media',
+            reference: 'edit-reference',
+            description: 'edit-description',
+            launch: 'edit-launch',
+            resource_link_id: 'edit-resource-link-id'
+        };
+        const el = document.getElementById(map[key]);
+        if (el) {
+            item[key] = el.value;
+        }
+    });
+}
+
+function currentEditorItem() {
+    if (editingItemIndex !== null &&
+        lessonsData.modules[editingModuleIndex] &&
+        lessonsData.modules[editingModuleIndex].items &&
+        lessonsData.modules[editingModuleIndex].items[editingItemIndex]) {
+        return lessonsData.modules[editingModuleIndex].items[editingItemIndex];
+    }
+    if (!draftItem) {
+        draftItem = getDefaultItem();
+    }
+    return draftItem;
+}
+
 function showItemModal(title, item) {
-    const type = itemEditorKind(item);
+    const type = itemFoundationalType(item);
     
     let formHtml = `
         <div class="form-group">
             <label>Type:</label>
             <select id="edit-item-type" onchange="updateItemForm()">
                 <option value="heading" ${type === 'heading' ? 'selected' : ''}>Heading</option>
-                <option value="video" ${type === 'video' ? 'selected' : ''}>Video</option>
-                <option value="reference" ${type === 'reference' ? 'selected' : ''}>Web link</option>
+                <option value="web_link" ${type === 'web_link' ? 'selected' : ''}>Web link</option>
                 <option value="discussion" ${type === 'discussion' ? 'selected' : ''}>Discussion</option>
                 <option value="lti" ${type === 'lti' ? 'selected' : ''}>LTI</option>
-                <option value="assignment" ${type === 'assignment' ? 'selected' : ''}>Assignment</option>
-                <option value="slide" ${type === 'slide' ? 'selected' : ''}>Slides</option>
                 <option value="file" ${type === 'file' ? 'selected' : ''}>File</option>
             </select>
         </div>
@@ -1701,20 +1791,23 @@ function showItemModal(title, item) {
 
 function updateItemForm() {
     const type = $('#edit-item-type').val();
-    const currentItem = editingItemIndex !== null 
-        ? lessonsData.modules[editingModuleIndex].items[editingItemIndex]
-        : getDefaultItem();
-    
-    currentItem.type = type;
-    const subtypeFor = {
-        video: 'video',
-        reference: 'reference',
-        assignment: 'assignment',
-        slide: 'slides'
-    };
-    if (subtypeFor[type]) {
-        currentItem.subtype = subtypeFor[type];
+    const currentItem = currentEditorItem();
+    harvestItemFormDraft(currentItem);
+
+    if (type === 'web_link') {
+        const subEl = document.getElementById('edit-link-subtype');
+        const sub = subEl ? subEl.value : itemLinkSubtype(currentItem);
+        if (currentItem.type !== 'html_page') {
+            currentItem.type = 'web_link';
+        }
+        currentItem.subtype = sub || 'reference';
+    } else if (type === 'file') {
+        currentItem.type = 'file';
+        if (currentItem.subtype !== 'slides') {
+            delete currentItem.subtype;
+        }
     } else {
+        currentItem.type = type;
         delete currentItem.subtype;
     }
     updateItemFormFields(currentItem);
@@ -1730,18 +1823,13 @@ function updateItemFormFields(item) {
                 <label>Title:</label>
                 <input type="text" id="edit-title" value="${escapeHtml(item.title || item.text || '')}">
             </div>
-            <div class="form-group">
-                <label>Level:</label>
-                <select id="edit-level">
-                    <option value="1" ${item.level == 1 ? 'selected' : ''}>Level 1</option>
-                    <option value="2" ${item.level == 2 ? 'selected' : ''}>Level 2</option>
-                    <option value="3" ${item.level == 3 ? 'selected' : ''}>Level 3</option>
-                </select>
-            </div>
         `;
-    } else if (type === 'video') {
-        const referenceValue = item.reference || item.FCPX || '';
-        fieldsHtml = `
+    } else if (type === 'video' || type === 'reference' || type === 'assignment' || type === 'slide') {
+        const subtype = itemLinkSubtype(item);
+        fieldsHtml = webLinkSubtypeSelectHtml(subtype);
+        if (subtype === 'video') {
+            const referenceValue = item.reference || item.FCPX || '';
+            fieldsHtml += `
             <div class="form-group">
                 <label>Title:</label>
                 <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}">
@@ -1766,11 +1854,11 @@ function updateItemFormFields(item) {
                 <label>Reference:</label>
                 <input type="text" id="edit-reference" value="${escapeHtml(referenceValue)}">
             </div>
-        `;
-    } else if (type === 'reference') {
-        const samePage = item.target === '_self';
-        const hrefVal = item.href || '';
-        fieldsHtml = `
+            `;
+        } else {
+            const samePage = item.target === '_self';
+            const hrefVal = item.href || '';
+            fieldsHtml += `
             <div class="form-group">
                 <label>Title:</label>
                 <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}">
@@ -1796,7 +1884,8 @@ function updateItemFormFields(item) {
                     <label><input type="radio" name="edit-target" value="_blank" ${samePage ? '' : 'checked'}> New page</label>
                 </div>
             </div>
-        `;
+            `;
+        }
     } else if (type === 'discussion') {
         fieldsHtml = `
             <div class="form-group">
@@ -1852,28 +1941,6 @@ function updateItemFormFields(item) {
                 <button type="button" class="btn btn-primary" onclick="addCustomField()">+ Add Custom Field</button>
             </div>
         `;
-    } else if (type === 'assignment') {
-        fieldsHtml = `
-            <div class="form-group">
-                <label>Title:</label>
-                <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}">
-            </div>
-            <div class="form-group">
-                <label>URL:</label>
-                <input type="text" id="edit-href" value="${escapeHtml(item.href || '')}">
-            </div>
-        `;
-    } else if (type === 'slide') {
-        fieldsHtml = `
-            <div class="form-group">
-                <label>Title:</label>
-                <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}">
-            </div>
-            <div class="form-group">
-                <label>URL:</label>
-                <input type="text" id="edit-href" value="${escapeHtml(item.href || '')}">
-            </div>
-        `;
     } else if (type === 'file') {
         const subtypeVal = item.subtype || '';
         filePickerState = {
@@ -1920,7 +1987,7 @@ function updateItemFormFields(item) {
         updateFilePickerSummary();
         populateFilePicker(item);
     }
-    if (type === 'reference') {
+    if (document.getElementsByName('edit-href-source').length) {
         updateWebLinkSourceRows();
     }
 }
@@ -2122,6 +2189,46 @@ function removeCustomField(index) {
     });
 }
 
+function saveWebLinkItem(item) {
+    const subtype = $('#edit-link-subtype').val() || 'reference';
+    item.title = $('#edit-title').val().trim();
+    const hrefVal = $('#edit-href').val().trim();
+    if (hrefVal) {
+        item.href = hrefVal;
+    } else {
+        delete item.href;
+    }
+    delete item.filename;
+    delete item.sha256;
+    if (subtype === 'video') {
+        item.type = 'web_link';
+        item.subtype = 'video';
+        const youtubeVal = $('#edit-youtube').val().trim();
+        const mediaVal = $('#edit-media').val().trim();
+        const referenceVal = $('#edit-reference').val().trim();
+        const kalturaVal = $('#edit-kaltura').val().trim();
+        if (youtubeVal) { item.youtube = youtubeVal; } else { delete item.youtube; }
+        if (mediaVal) { item.media = mediaVal; } else { delete item.media; }
+        if (referenceVal) { item.reference = referenceVal; } else { delete item.reference; }
+        if (kalturaVal) { item.kaltura_id = kalturaVal; } else { delete item.kaltura_id; }
+        delete item.FCPX;
+        return;
+    }
+    delete item.youtube;
+    delete item.kaltura_id;
+    delete item.media;
+    delete item.reference;
+    delete item.FCPX;
+    if (subtype === 'assignment' && item.type === 'html_page') {
+        item.subtype = 'assignment';
+    } else {
+        item.type = 'web_link';
+        item.subtype = subtype;
+    }
+    const targetVal = $('input[name="edit-target"]:checked').val();
+    item.target = targetVal === '_self' ? '_self' : '_blank';
+}
+
 function saveItem() {
     const type = $('#edit-item-type').val();
     let item = {};
@@ -2135,31 +2242,11 @@ function saveItem() {
     if (type === 'heading' || type === 'header') {
         item.type = 'heading';
         delete item.subtype;
+        delete item.level;
         item.title = $('#edit-title').val().trim();
-        item.level = parseInt($('#edit-level').val());
         delete item.text;
-    } else if (type === 'video') {
-        item.type = 'web_link';
-        item.subtype = 'video';
-        item.title = $('#edit-title').val().trim();
-        const hrefVal = $('#edit-href').val().trim();
-        const youtubeVal = $('#edit-youtube').val().trim();
-        const mediaVal = $('#edit-media').val().trim();
-        const referenceVal = $('#edit-reference').val().trim();
-        const kalturaVal = $('#edit-kaltura').val().trim();
-        if (hrefVal) { item.href = hrefVal; } else { delete item.href; }
-        if (youtubeVal) { item.youtube = youtubeVal; } else { delete item.youtube; }
-        if (mediaVal) { item.media = mediaVal; } else { delete item.media; }
-        if (referenceVal) { item.reference = referenceVal; } else { delete item.reference; }
-        if (kalturaVal) { item.kaltura_id = kalturaVal; } else { delete item.kaltura_id; }
-        delete item.FCPX;
-    } else if (type === 'reference') {
-        item.type = 'web_link';
-        item.subtype = 'reference';
-        item.title = $('#edit-title').val().trim();
-        item.href = $('#edit-href').val().trim();
-        const targetVal = $('input[name="edit-target"]:checked').val();
-        item.target = targetVal === '_self' ? '_self' : '_blank';
+    } else if (type === 'web_link') {
+        saveWebLinkItem(item);
     } else if (type === 'discussion') {
         item.type = 'discussion';
         delete item.subtype;
@@ -2203,20 +2290,6 @@ function saveItem() {
         } else {
             delete item.custom;
         }
-    } else if (type === 'assignment') {
-        if (item.type !== 'html_page') {
-            item.type = 'web_link';
-            item.subtype = 'assignment';
-        }
-        item.title = $('#edit-title').val().trim();
-        item.href = $('#edit-href').val().trim();
-    } else if (type === 'slide') {
-        item.type = 'web_link';
-        item.subtype = 'slides';
-        item.title = $('#edit-title').val().trim();
-        item.href = $('#edit-href').val().trim();
-        delete item.filename;
-        delete item.sha256;
     } else if (type === 'file') {
         if (!filePickerState.sha256 || !filePickerState.href) {
             alert('Pick a file from the course Files list.');
@@ -2362,9 +2435,21 @@ function closeModal() {
     editingItemIndex = null;
     editingModuleIndex = null;
     editingAfterItemIndex = null;
+    draftItem = null;
+}
+
+function stripHeadingLevels(data) {
+    (data.modules || []).forEach(function(mod) {
+        (mod.items || []).forEach(function(item) {
+            if (item && (item.type === 'heading' || item.type === 'header')) {
+                delete item.level;
+            }
+        });
+    });
 }
 
 function saveChanges() {
+    stripHeadingLevels(lessonsData);
     const jsonData = JSON.stringify(lessonsData, null, 4);
     
     $.ajax({

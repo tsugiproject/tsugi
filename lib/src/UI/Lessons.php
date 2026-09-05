@@ -1096,8 +1096,9 @@ class Lessons {
                     echo('<p property="oer:description" class="tsugi-lessons-module-description">'.$module->description."</p>\n");
                 }
                 
-                // Render items in order - headers and text align with title, grouped items are indented
-                $current_section = null;
+                // Render items in order. Headings (and text / non-list items) sit
+                // outside the list. One <ul> runs until the next heading — subtype
+                // does not start a new list.
                 $in_list = false;
                 foreach($items_array as $item) {
                     $item_obj = is_array($item) ? (object)$item : $item;
@@ -1105,92 +1106,31 @@ class Lessons {
                     if ( isset($item_obj->type) && $item_obj->type == 'ltis' && isset($item_obj->items) && !is_array($item_obj->items) ) {
                         continue;
                     }
-                    
+
                     $type = isset($item_obj->type) ? $item_obj->type : '';
-                    
-                    // Handle headers - render outside list structure (aligned with title)
-                    if (LessonsNormalize::isHeading($item_obj)) {
-                        if ($in_list && $current_section) {
+                    $is_heading = LessonsNormalize::isHeading($item_obj);
+                    $is_text = ($type == 'text');
+                    $in_content_list = ( ! $is_heading && ! $is_text
+                        && LessonsNormalize::sectionGroup($item_obj) );
+
+                    if ( ! $in_content_list ) {
+                        if ( $in_list ) {
                             echo("</ul>\n");
                             $in_list = false;
-                        }
-                        $current_section = null;
-                        $this->renderItem($item_obj, $module, $nostyle);
-                        continue;
-                    }
-                    
-                    // Handle text items - render outside list structure (aligned with title)
-                    if ($type == 'text') {
-                        if ($in_list && $current_section) {
-                            echo("</ul>\n");
-                            $in_list = false;
-                            $current_section = null;
                         }
                         $this->renderItem($item_obj, $module, $nostyle);
                         continue;
                     }
-                    
-                    // Determine section type for grouping (these will be indented)
-                    $section_type = LessonsNormalize::sectionGroup($item_obj);
-                    
-                    // Start new list section if needed (indented under header)
-                    if ($section_type && $section_type != $current_section) {
-                        if ($in_list && $current_section) {
-                            echo("</ul>\n");
-                        }
-                        $current_section = $section_type;
+
+                    if ( ! $in_list ) {
+                        echo('<ul class="tsugi-lessons-content-list">'."\n");
                         $in_list = true;
-                        $class_map = array(
-                            'videos' => 'tsugi-lessons-module-videos',
-                            'references' => 'tsugi-lessons-module-references',
-                            'discussions' => 'tsugi-lessons-module-discussions',
-                            'ltis' => 'tsugi-lessons-module-ltis',
-                            'slides' => 'tsugi-lessons-module-slides',
-                            'assignments' => 'tsugi-lessons-module-assignments',
-                            'solutions' => 'tsugi-lessons-module-solutions',
-                            'web_links' => 'tsugi-lessons-module-references',
-                            'files' => 'tsugi-lessons-module-slides',
-                            'html_pages' => 'tsugi-lessons-module-assignments'
-                        );
-                        $ul_class_map = array(
-                            'videos' => 'tsugi-lessons-module-videos-ul',
-                            'references' => 'tsugi-lessons-module-references-ul',
-                            'discussions' => 'tsugi-lessons-module-discussions-ul',
-                            'ltis' => 'tsugi-lessons-module-ltis-ul',
-                            'slides' => 'tsugi-lessons-module-slides-ul',
-                            'assignments' => 'tsugi-lessons-module-assignments-ul',
-                            'solutions' => 'tsugi-lessons-module-solutions-ul',
-                            'web_links' => 'tsugi-lessons-module-references-ul',
-                            'files' => 'tsugi-lessons-module-slides-ul',
-                            'html_pages' => 'tsugi-lessons-module-assignments-ul'
-                        );
-                        $typeof_map = array(
-                            'videos' => 'oer:SupportingMaterial',
-                            'references' => 'oer:SupportingMaterial',
-                            'discussions' => 'oer:discussion',
-                            'ltis' => 'oer:assessment',
-                            'slides' => 'oer:SupportingMaterial',
-                            'assignments' => 'oer:assessment',
-                            'solutions' => 'oer:assessment',
-                            'web_links' => 'oer:SupportingMaterial',
-                            'files' => 'oer:SupportingMaterial',
-                            'html_pages' => 'oer:assessment'
-                        );
-                        echo('<ul typeof="'.$typeof_map[$section_type].'" class="'.$class_map[$section_type].' '.$ul_class_map[$section_type].' tsugi-lessons-content-list">'."\n");
-                    } else if (!$section_type) {
-                        // Non-grouped item (like chapters) - close list if open, render outside
-                        if ($in_list && $current_section) {
-                            echo("</ul>\n");
-                            $in_list = false;
-                            $current_section = null;
-                        }
                     }
-                    
+
                     $this->renderItem($item_obj, $module, $nostyle);
                 }
-                
-                // Close any open list
-                if ($in_list && $current_section) {
+
+                if ( $in_list ) {
                     echo("</ul>\n");
                 }
                 
@@ -3029,10 +2969,9 @@ $(function(){
      * Render a header item
      */
     private function renderItemHeader($item) {
-        $level = isset($item->level) ? intval($item->level) : 2;
         $text = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : '');
         $class = isset($item->class) ? ' class="'.$item->class.'"' : '';
-        echo("<h{$level}{$class}>".htmlentities($text)."</h{$level}>\n");
+        echo("<h2{$class}>".htmlentities($text)."</h2>\n");
     }
 
     /**
