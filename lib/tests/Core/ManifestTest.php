@@ -54,6 +54,8 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
     {
         $doc = Manifest::starter('My Course');
         $this->assertSame('My Course', $doc['title']);
+        $this->assertSame(2, $doc['lessons_json_version']);
+        $this->assertTrue(Manifest::documentIsV2($doc));
         $this->assertTrue($doc['count']);
         $this->assertSame(array(), $doc['badges']);
         $this->assertSame(array(), $doc['discussions']);
@@ -244,7 +246,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         );
         $err = Manifest::validateJson(Manifest::encode($doc));
         $this->assertIsString($err);
-        $this->assertStringContainsString('Duplicate', $err);
+        $this->assertStringContainsString('resource_link_id', $err);
     }
 
     public function testExportFilename()
@@ -275,7 +277,8 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('discussion_office_hours', $result['resource_link_id']);
         $this->assertCount(1, $result['data']['discussions']);
         $this->assertSame('Office Hours', $result['data']['discussions'][0]['title']);
-        $this->assertSame('mod/tdiscus/', $result['data']['discussions'][0]['launch']);
+        $this->assertSame('discussion', $result['data']['discussions'][0]['type']);
+        $this->assertArrayNotHasKey('launch', $result['data']['discussions'][0]);
         $this->assertSame('discussion_office_hours', $result['data']['discussions'][0]['resource_link_id']);
         $this->assertNull(Manifest::validateJson(Manifest::encode($result['data'])));
     }
@@ -307,6 +310,24 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         );
         $result = Manifest::appendDiscussion($doc, 'Week talk');
         $this->assertSame('discussion_week_talk_2', $result['resource_link_id']);
+    }
+
+    public function testAppendDiscussionSkipsNestedItemRlids()
+    {
+        $doc = Manifest::starter('Sandbox');
+        $doc['modules'][0]['items'][] = array(
+            'type' => 'slides',
+            'title' => 'Group',
+            'items' => array(
+                array(
+                    'type' => 'discussion',
+                    'title' => 'Nested',
+                    'resource_link_id' => 'discussion_nested',
+                ),
+            ),
+        );
+        $result = Manifest::appendDiscussion($doc, 'Nested');
+        $this->assertSame('discussion_nested_2', $result['resource_link_id']);
     }
 
     public function testReorderDiscussionsPermutesTopLevel()

@@ -5,6 +5,7 @@ namespace Tsugi\Core;
 use \Tsugi\Util\MCache;
 use \Tsugi\Util\U;
 use \Tsugi\UI\Lessons;
+use \Tsugi\UI\LessonsNormalize;
 
 /**
  * Versioned course manifest, keyed by immutable manifest_id.
@@ -13,11 +14,11 @@ use \Tsugi\UI\Lessons;
  * manifest_id keeps using the file. New courses get a manifest row;
  * each save inserts a new row and points lti_context.manifest_id at it.
  *
- * The lessons JSON (column `manifest`) is the legacy pre-manifest document:
- * the same shape as lessons.json (modules, discussions, badges, …). Do not
- * grow that blob with new course-setup features. New Setup fields are
- * independent columns on this row (theme is the first: VARCHAR key, not
- * palette JSON). Navigation and later Setup work follow that pattern.
+ * The lessons JSON (column `manifest`) is the course outline. New courses
+ * start as Lessons JSON v2 (`lessons_json_version: 2`). File-backed
+ * $CFG->lessons sites stay classic and are not authored. Do not grow that
+ * blob with new course-setup features. New Setup fields are independent
+ * columns on this row (theme is the first: VARCHAR key, not palette JSON).
  *
  * The PHP session holds only the integer manifest_id. The immutable row
  * (lessons JSON plus sibling columns) is loaded on demand and cached in
@@ -86,7 +87,7 @@ class Manifest {
     }
 
     /**
-     * Minimal valid lessons.json-shaped document for a new course.
+     * Minimal Lessons JSON v2 document for a newly created course.
      *
      * @return array<string, mixed>
      */
@@ -96,6 +97,7 @@ class Manifest {
             $title = 'Untitled Course';
         }
         return array(
+            'lessons_json_version' => LessonsNormalize::FORMAT_VERSION,
             'title' => $title,
             'description' => '',
             'count' => true,
@@ -111,6 +113,39 @@ class Manifest {
                 ),
             ),
         );
+    }
+
+    /**
+     * True when the decoded document is Lessons JSON v2.
+     *
+     * @param mixed $decoded
+     * @return bool
+     */
+    public static function documentIsV2($decoded) {
+        return LessonsNormalize::isV2Document($decoded);
+    }
+
+    /**
+     * True when the active course manifest is Lessons JSON v2 in the database.
+     * File-backed $CFG->lessons and classic/v1 manifests are never authorable.
+     */
+    public static function currentIsV2() {
+        if ( self::activeId() < 1 ) {
+            return false;
+        }
+        $doc = self::currentDocument();
+        if ( ! $doc || ! isset($doc['json']) || ! is_string($doc['json']) ) {
+            return false;
+        }
+        $decoded = json_decode($doc['json'], true);
+        return self::documentIsV2($decoded);
+    }
+
+    /**
+     * Authoring is only for a database-backed v2 course created via Courses.
+     */
+    public static function canAuthorCurrent() {
+        return self::activeId() > 0 && self::currentIsV2();
     }
 
     /**
@@ -381,6 +416,10 @@ class Manifest {
         }
         $loaded = Lessons::tryFromJson($json);
         if ( $loaded instanceof Lessons ) {
+            $decoded = json_decode($json, true);
+            if ( is_array($decoded) && self::hasDuplicateResourceLinkIds($decoded) ) {
+                return 'Duplicate resource_link_id';
+            }
             return null;
         }
         if ( is_string($loaded) && strlen($loaded) > 0 ) {
@@ -427,7 +466,7 @@ class Manifest {
      * @param array<string, mixed> $data
      * @return array{data: array<string, mixed>, resource_link_id: string}
      */
-    public static function appendDiscussion($data, $title, $launch = 'mod/tdiscus/') {
+    public static function appendDiscussion($data, $title, $launch = null) {
         if ( ! is_array($data) ) {
             throw new \InvalidArgumentException('Document must be an array');
         }
@@ -435,27 +474,21 @@ class Manifest {
         if ( $title === '' ) {
             throw new \InvalidArgumentException('Title is required');
         }
-        $launch = is_string($launch) && trim($launch) !== '' ? trim($launch) : 'mod/tdiscus/';
         if ( ! isset($data['discussions']) || ! is_array($data['discussions']) ) {
             $data['discussions'] = array();
         }
         $used = self::collectResourceLinkIds($data);
-        $base = self::discussionRlidBase($title);
-        $rlid = $base;
-        $n = 2;
-        while ( isset($used[$rlid]) ) {
-            $rlid = $base . '_' . $n;
-            $n++;
-            if ( $n > 50 ) {
-                $rlid = $base . '_' . bin2hex(random_bytes(3));
-                break;
-            }
-        }
-        $data['discussions'][] = array(
+        $rlid = LessonsNormalize::allocateDiscussionRlid($title, $used);
+        $entry = array(
+            'type' => LessonsNormalize::TYPE_DISCUSSION,
             'title' => $title,
-            'launch' => $launch,
             'resource_link_id' => $rlid,
         );
+        if ( is_string($launch) && trim($launch) !== ''
+            && ! LessonsNormalize::isBuiltInDiscussionLaunch($launch) ) {
+            $entry['launch'] = trim($launch);
+        }
+        $data['discussions'][] = $entry;
         if ( isset($data['discussion_order']) && is_array($data['discussion_order']) ) {
             $data['discussion_order'][] = $rlid;
         }
@@ -563,33 +596,54 @@ class Manifest {
     }
 
     /**
+     * @param array<string, mixed> $data
+     * @return bool
+     */
+    private static function hasDuplicateResourceLinkIds(array $data) {
+        $ids = array();
+        $duplicate = false;
+        self::collectRlidsFromList(isset($data['discussions']) ? $data['discussions'] : null, $ids, $duplicate);
+        self::collectRlidsFromList(isset($data['launches']) ? $data['launches'] : null, $ids, $duplicate);
+        if ( isset($data['modules']) && is_array($data['modules']) ) {
+            foreach ( $data['modules'] as $mod ) {
+                if ( ! is_array($mod) ) {
+                    continue;
+                }
+                self::collectRlidsFromList(isset($mod['lti']) ? $mod['lti'] : null, $ids, $duplicate);
+                self::collectRlidsFromList(isset($mod['discussions']) ? $mod['discussions'] : null, $ids, $duplicate);
+                self::collectRlidsFromList(isset($mod['items']) ? $mod['items'] : null, $ids, $duplicate);
+            }
+        }
+        return $duplicate;
+    }
+
+    /**
      * @param mixed $list
      * @param array<string, true> $ids
      */
-    private static function collectRlidsFromList($list, &$ids) {
+    private static function collectRlidsFromList($list, &$ids, &$duplicate = false) {
         if ( ! is_array($list) ) {
             return;
         }
         foreach ( $list as $item ) {
-            if ( is_array($item) && isset($item['resource_link_id'])
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            if ( isset($item['resource_link_id'])
                     && is_string($item['resource_link_id']) && $item['resource_link_id'] !== '' ) {
+                if ( isset($ids[$item['resource_link_id']]) ) {
+                    $duplicate = true;
+                }
                 $ids[$item['resource_link_id']] = true;
+            }
+            if ( isset($item['items']) && is_array($item['items']) ) {
+                self::collectRlidsFromList($item['items'], $ids, $duplicate);
             }
         }
     }
 
     private static function discussionRlidBase($title) {
-        $slug = strtolower($title);
-        $slug = preg_replace('/[^a-z0-9]+/', '_', $slug);
-        $slug = trim($slug, '_');
-        if ( $slug === '' ) {
-            $slug = 'topic';
-        }
-        if ( strlen($slug) > 40 ) {
-            $slug = substr($slug, 0, 40);
-            $slug = rtrim($slug, '_');
-        }
-        return 'discussion_' . $slug;
+        return LessonsNormalize::discussionRlidBase($title);
     }
 
     /**
@@ -833,6 +887,9 @@ class Manifest {
         );
         $manifest_id = (int) $PDOX->lastInsertId();
         self::setActive($cid, $manifest_id);
+        if ( is_string($title) && $title !== '' ) {
+            self::syncContextTitle($cid, $title);
+        }
         self::rememberCachedRow(array(
             'manifest_id' => $manifest_id,
             'context_id' => $cid,
@@ -877,7 +934,38 @@ class Manifest {
     }
 
     /**
-     * Create an LTI context, instructor membership, and starter manifest version 1.
+     * Copy a course title onto lti_context.title (/courses reads this column).
+     * When $context_id is the active context, also refresh session titles
+     * used by Tool::outboundContextTitle().
+     *
+     * PDOX rewrites INSERT into ON DUPLICATE KEY UPDATE and only refreshes
+     * the primary key, so a colliding insert can leave the old title in place.
+     */
+    public static function syncContextTitle($context_id, $title) {
+        global $CFG;
+        $cid = (int) $context_id;
+        $title = is_string($title) ? trim($title) : '';
+        if ( $cid < 1 || $title === '' ) {
+            return;
+        }
+        $PDOX = LTIX::getConnection();
+        $p = $CFG->dbprefix;
+        $PDOX->queryDie(
+            "UPDATE {$p}lti_context SET title = :title, updated_at = NOW()
+             WHERE context_id = :CID",
+            array(':title' => $title, ':CID' => $cid)
+        );
+        if ( U::currentContextId() === $cid ) {
+            $_SESSION['context_title'] = $title;
+            $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+            if ( isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey]) ) {
+                $_SESSION[$ltiKey]['context_title'] = $title;
+            }
+        }
+    }
+
+    /**
+     * Create an LTI context, instructor membership, and a v2 starter manifest.
      *
      * @return array{ok: bool, context_id?: int, manifest_id?: int, error?: string}
      */
@@ -900,6 +988,7 @@ class Manifest {
         $p = $CFG->dbprefix;
         $context_key = 'course:' . bin2hex(random_bytes(16));
 
+        $context_sha = lti_sha256($context_key);
         $PDOX->queryDie(
             "INSERT INTO {$p}lti_context
                 (context_key, context_sha256, title, key_id, user_id, created_at, updated_at)
@@ -907,16 +996,22 @@ class Manifest {
                 (:context_key, :context_sha256, :title, :key_id, :user_id, NOW(), NOW())",
             array(
                 ':context_key' => $context_key,
-                ':context_sha256' => lti_sha256($context_key),
+                ':context_sha256' => $context_sha,
                 ':title' => $title,
                 ':key_id' => $key_id,
                 ':user_id' => $user_id,
             )
         );
-        $context_id = (int) $PDOX->lastInsertId();
+        $row = $PDOX->rowDie(
+            "SELECT context_id FROM {$p}lti_context
+             WHERE context_sha256 = :SHA AND key_id = :KID LIMIT 1",
+            array(':SHA' => $context_sha, ':KID' => $key_id)
+        );
+        $context_id = is_array($row) ? (int) $row['context_id'] : (int) $PDOX->lastInsertId();
         if ( $context_id < 1 ) {
             return array('ok' => false, 'error' => 'Could not create course.');
         }
+        self::syncContextTitle($context_id, $title);
 
         $PDOX->queryDie(
             "INSERT INTO {$p}lti_membership

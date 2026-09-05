@@ -10,7 +10,11 @@
  * - $lessons_file_escaped: HTML-escaped lessons file path
  * - $lessons_json: JSON-encoded lessons data for JavaScript
  * - $export_url: session-bearing URL to download the saved document
+ * - $export_v2_url: session-bearing URL to download Lessons JSON v2
  * - $import_url: session-bearing URL to POST an uploaded lessons.json
+ * - $files_json_url: session-bearing URL for course Files JSON (picker)
+ * - $files_home_url: session-bearing URL for the Files tool
+ * - $pages_json_url, $lessons_json_url, $pages_base, $app_home: link picker
  */
 ?>
 <style>
@@ -245,10 +249,30 @@
 
 .module-description {
     margin-bottom: 15px;
-    padding: 10px 0;
+    padding: 10px 12px;
     color: #666;
     font-size: 14px;
     line-height: 1.5;
+    border-radius: 3px;
+}
+
+.module-description-edit {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: #fafafa;
+    border: 1px dashed #ccc;
+    cursor: pointer;
+}
+
+.module-description-edit:hover {
+    border-color: #007bff;
+    background: #f0f7ff;
+}
+
+.module-description-edit.module-description-empty {
+    color: #999;
+    font-style: italic;
 }
 
 .items-list {
@@ -304,6 +328,22 @@
 .item-type.lti { background: #28a745; }
 .item-type.assignment { background: #fd7e14; }
 .item-type.slide { background: #6f42c1; }
+.item-type.file { background: #6c757d; }
+
+.file-picker-summary {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 13px;
+    color: #555;
+}
+
+.file-picker-empty {
+    color: #666;
+    font-size: 14px;
+}
 
 .item-title {
     font-weight: 600;
@@ -461,7 +501,7 @@
     padding: 20px;
     border-radius: 4px;
     width: 90%;
-    max-width: 600px;
+    max-width: 680px;
     max-height: 80vh;
     overflow-y: auto;
 }
@@ -517,6 +557,93 @@
     resize: vertical;
 }
 
+.form-group-radios {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.form-group-radios label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 400;
+    margin: 0;
+}
+
+.form-group-radios input[type="radio"] {
+    width: auto;
+    margin: 0;
+}
+
+.icon-picker-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.icon-picker-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 24px;
+    color: #333;
+    font-size: 14px;
+}
+
+.icon-picker-preview .fa {
+    width: 1.4em;
+    text-align: center;
+    font-size: 20px;
+    color: #555;
+}
+
+.icon-picker-none,
+.icon-picker-name {
+    color: #666;
+}
+
+.icon-picker-search {
+    margin-bottom: 8px;
+}
+
+.icon-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+    gap: 4px;
+    max-height: 196px;
+    overflow-y: auto;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background: #fafafa;
+}
+
+.icon-picker-choice {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid transparent;
+    background: white;
+    border-radius: 3px;
+    cursor: pointer;
+    color: #444;
+    font-size: 16px;
+}
+
+.icon-picker-choice:hover {
+    background: #e8f1ff;
+    border-color: #b6d4fe;
+}
+
+.icon-picker-choice.selected {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
 .form-actions {
     margin-top: 20px;
     display: flex;
@@ -565,6 +692,7 @@
         border-top-color: rgba(255, 255, 255, 0.6);
     }
 }
+<?php \Tsugi\UI\CKEditor::renderStyles(['includeLinkPicker' => true, 'includeLinkUnderline' => false]); ?>
 </style>
 
 <div class="lesson-author">
@@ -575,6 +703,7 @@
         </div>
         <div class="author-io">
             <a class="btn" href="<?= htmlspecialchars($export_url) ?>"><?= __('Export lessons.json') ?></a>
+            <a class="btn" href="<?= htmlspecialchars($export_v2_url) ?>"><?= __('Export lessons.json v2') ?></a>
             <form id="lessons-import-form" onsubmit="return false;">
                 <input type="file" id="lessons-import-file" name="file" accept=".json,application/json" />
                 <button type="button" class="btn" onclick="document.getElementById('lessons-import-file').click()"><?= __('Import lessons.json') ?></button>
@@ -614,6 +743,8 @@
     </div>
 </div>
 
+<?php \Tsugi\UI\CKEditor::renderLinkPickerModal('Choose a link'); ?>
+
 <!-- Loading overlay for drag-and-drop updates -->
 <div id="loading-overlay" class="loading-overlay" role="status" aria-live="polite" aria-busy="false">
     <div class="loading-spinner" aria-hidden="true"></div>
@@ -624,10 +755,286 @@
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <script>
 let lessonsData = <?= $lessons_json ?>;
+if (!lessonsData.lessons_json_version) {
+    lessonsData.lessons_json_version = 2;
+}
+var filesJsonUrl = <?= json_encode($files_json_url ?? '') ?>;
+var filesHomeUrl = <?= json_encode($files_home_url ?? '') ?>;
+var pagesJsonUrl = <?= json_encode($pages_json_url ?? '') ?>;
+var lessonsJsonUrl = <?= json_encode($lessons_json_url ?? '') ?>;
+var pagesBase = <?= json_encode($pages_base ?? '') ?>;
+var filesBase = filesHomeUrl;
+var appHome = <?= json_encode($app_home ?? '') ?>;
+var currentPageId = null;
+<?php \Tsugi\UI\CKEditor::renderLinkPickerScript(); ?>
+let courseFilesCache = null;
+let filePickerState = emptyFilePickerState();
 let hasChanges = false;
 let editingItemIndex = null;
 let editingModuleIndex = null;
 let editingAfterItemIndex = null;
+let draftItem = null;
+
+function emptyFilePickerState() {
+    return { sha256: '', filename: '', href: '', content_type: '', path: '' };
+}
+
+const FA_ICON_SAFE = /^fa-[a-z0-9-]+$/;
+const LESSON_FA_ICONS = [
+    'fa-archive', 'fa-area-chart', 'fa-balance-scale', 'fa-bar-chart-o', 'fa-bell',
+    'fa-bicycle', 'fa-bolt', 'fa-book', 'fa-bookmark', 'fa-briefcase', 'fa-bug',
+    'fa-building', 'fa-calculator', 'fa-calendar', 'fa-camera', 'fa-check',
+    'fa-check-circle', 'fa-check-square-o', 'fa-child', 'fa-circle', 'fa-circle-o',
+    'fa-clock-o', 'fa-cloud', 'fa-code', 'fa-code-fork', 'fa-cog', 'fa-cogs',
+    'fa-comment', 'fa-comments', 'fa-compass', 'fa-credit-card', 'fa-css3',
+    'fa-cubes', 'fa-database', 'fa-desktop', 'fa-diamond', 'fa-dot-circle-o',
+    'fa-download', 'fa-envelope', 'fa-exclamation-triangle', 'fa-external-link',
+    'fa-female', 'fa-file-audio-o', 'fa-file-code-o', 'fa-file-excel-o',
+    'fa-file-image-o', 'fa-file-o', 'fa-file-pdf-o', 'fa-file-powerpoint-o',
+    'fa-file-text-o', 'fa-file-video-o', 'fa-file-word-o', 'fa-files-o', 'fa-film',
+    'fa-filter', 'fa-fire', 'fa-flag', 'fa-flask', 'fa-folder', 'fa-folder-open',
+    'fa-font', 'fa-gamepad', 'fa-gavel', 'fa-gears', 'fa-github', 'fa-globe',
+    'fa-graduation-cap', 'fa-hand-o-right', 'fa-handshake-o', 'fa-hdd-o',
+    'fa-header', 'fa-headphones', 'fa-heartbeat', 'fa-heart', 'fa-home',
+    'fa-html5', 'fa-inbox', 'fa-info-circle', 'fa-key', 'fa-keyboard-o',
+    'fa-language', 'fa-laptop', 'fa-leaf', 'fa-lightbulb-o', 'fa-line-chart',
+    'fa-link', 'fa-list', 'fa-list-ol', 'fa-list-ul', 'fa-lock', 'fa-magic',
+    'fa-male', 'fa-map', 'fa-map-marker', 'fa-medkit', 'fa-microphone',
+    'fa-mobile', 'fa-money', 'fa-moon-o', 'fa-music', 'fa-newspaper-o',
+    'fa-paint-brush', 'fa-paper-plane', 'fa-paperclip', 'fa-paw', 'fa-pencil',
+    'fa-pencil-square-o', 'fa-percent', 'fa-picture-o', 'fa-pie-chart',
+    'fa-play', 'fa-play-circle', 'fa-plug', 'fa-plus-circle', 'fa-puzzle-piece',
+    'fa-question-circle', 'fa-quote-left', 'fa-rocket', 'fa-rss', 'fa-search',
+    'fa-server', 'fa-share-alt', 'fa-shield', 'fa-signal', 'fa-sitemap',
+    'fa-smile-o', 'fa-square-o', 'fa-star', 'fa-sun-o', 'fa-table', 'fa-tablet',
+    'fa-tag', 'fa-tags', 'fa-terminal', 'fa-th', 'fa-th-list', 'fa-thumb-tack',
+    'fa-ticket', 'fa-times-circle', 'fa-tree', 'fa-trophy', 'fa-university',
+    'fa-unlock', 'fa-upload', 'fa-user', 'fa-user-circle', 'fa-users',
+    'fa-video-camera', 'fa-volume-up', 'fa-wifi', 'fa-wrench', 'fa-youtube-play'
+];
+
+function sanitizeFaIcon(value) {
+    const v = String(value || '').trim();
+    return FA_ICON_SAFE.test(v) ? v : '';
+}
+
+function applyPickedIcon(obj, inputSelector) {
+    const iconVal = sanitizeFaIcon($(inputSelector).val());
+    if (iconVal) {
+        obj.icon = iconVal;
+    } else {
+        delete obj.icon;
+    }
+}
+
+function iconPickerHtml(inputId, currentValue, noneLabel) {
+    const current = sanitizeFaIcon(currentValue);
+    const emptyLabel = noneLabel || 'None';
+    const icons = LESSON_FA_ICONS.slice();
+    if (current && icons.indexOf(current) === -1) {
+        icons.unshift(current);
+    }
+    const buttons = icons.map(function(name) {
+        const sel = name === current ? ' selected' : '';
+        return '<button type="button" class="icon-picker-choice' + sel + '" data-icon="' + name +
+            '" title="' + name + '" aria-label="' + name + '"><i class="fa ' + name +
+            '" aria-hidden="true"></i></button>';
+    }).join('');
+    const preview = current
+        ? '<i class="fa ' + escapeHtml(current) + '" aria-hidden="true"></i>'
+        : '<span class="icon-picker-none">—</span>';
+    return `
+        <div class="icon-picker" data-input="${inputId}" data-empty-label="${escapeHtml(emptyLabel)}">
+            <input type="hidden" id="${inputId}" value="${escapeHtml(current)}">
+            <div class="icon-picker-toolbar">
+                <span class="icon-picker-preview">
+                    ${preview}
+                    <span class="icon-picker-name">${current ? escapeHtml(current) : escapeHtml(emptyLabel)}</span>
+                </span>
+                <button type="button" class="btn icon-picker-clear">Clear</button>
+            </div>
+            <input type="search" class="icon-picker-search" placeholder="Search icons…" autocomplete="off">
+            <div class="icon-picker-grid" role="listbox">${buttons}</div>
+        </div>
+    `;
+}
+
+function bindIconPickers($scope) {
+    $scope.find('.icon-picker').each(function() {
+        bindIconPicker(this);
+    });
+}
+
+function bindIconPicker(root) {
+    const $root = $(root);
+    if ($root.data('icon-picker-bound')) {
+        return;
+    }
+    $root.data('icon-picker-bound', true);
+    const $input = $root.find('input[type="hidden"]');
+    const $preview = $root.find('.icon-picker-preview');
+    const emptyLabel = $root.attr('data-empty-label') || 'None';
+
+    function setIcon(name) {
+        const value = sanitizeFaIcon(name);
+        $input.val(value);
+        $root.find('.icon-picker-choice').removeClass('selected');
+        if (value) {
+            $root.find('.icon-picker-choice[data-icon="' + value + '"]').addClass('selected');
+            $preview.html('<i class="fa ' + escapeHtml(value) + '" aria-hidden="true"></i>' +
+                '<span class="icon-picker-name">' + escapeHtml(value) + '</span>');
+        } else {
+            $preview.html('<span class="icon-picker-none">—</span>' +
+                '<span class="icon-picker-name">' + escapeHtml(emptyLabel) + '</span>');
+        }
+    }
+
+    $root.on('click', '.icon-picker-choice', function() {
+        setIcon($(this).attr('data-icon'));
+    });
+    $root.on('click', '.icon-picker-clear', function() {
+        setIcon('');
+    });
+    $root.on('input', '.icon-picker-search', function() {
+        const q = String($(this).val() || '').toLowerCase().replace(/^fa-/, '');
+        $root.find('.icon-picker-choice').each(function() {
+            const name = ($(this).attr('data-icon') || '').toLowerCase();
+            $(this).toggle(name.indexOf(q) !== -1);
+        });
+    });
+}
+
+function isHeadingItem(item) {
+    return !!(item && (item.type === 'heading' || item.type === 'header'));
+}
+
+function discussionRlidBase(title) {
+    let slug = String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    if (!slug) {
+        slug = 'topic';
+    }
+    if (slug.length > 40) {
+        slug = slug.substring(0, 40).replace(/_+$/g, '');
+    }
+    return 'discussion_' + slug;
+}
+
+function collectUsedResourceLinkIds(skipModuleIndex, skipItemIndex) {
+    const used = {};
+    function add(id) {
+        if (typeof id === 'string') {
+            id = id.trim();
+            if (id) {
+                used[id] = true;
+            }
+        }
+    }
+    (lessonsData.discussions || []).forEach(function(d) { add(d && d.resource_link_id); });
+    (lessonsData.launches || []).forEach(function(d) { add(d && d.resource_link_id); });
+    (lessonsData.modules || []).forEach(function(mod, mi) {
+        (mod.items || []).forEach(function(item, ii) {
+            if (mi === skipModuleIndex && ii === skipItemIndex) {
+                return;
+            }
+            add(item && item.resource_link_id);
+        });
+        (mod.discussions || []).forEach(function(d) { add(d && d.resource_link_id); });
+        (mod.lti || []).forEach(function(d) { add(d && d.resource_link_id); });
+    });
+    return used;
+}
+
+function allocateDiscussionRlid(title, used) {
+    const base = discussionRlidBase(title);
+    let rlid = base;
+    let n = 2;
+    while (used[rlid]) {
+        rlid = base + '_' + n;
+        n++;
+        if (n > 50) {
+            rlid = base + '_' + Math.random().toString(16).slice(2, 8);
+            break;
+        }
+    }
+    used[rlid] = true;
+    return rlid;
+}
+
+function itemEditorKind(item) {
+    if (!item || !item.type) return 'heading';
+    if (isHeadingItem(item)) return 'heading';
+    const type = item.type;
+    // Dropdown / legacy types win so a leftover subtype cannot keep the old form.
+    if (type === 'video') return 'video';
+    if (type === 'discussion') return 'discussion';
+    if (type === 'assignment') return 'assignment';
+    if (type === 'file') return 'file';
+    if (type === 'slide' || type === 'slides') return 'slide';
+    if (type === 'reference') return 'reference';
+    if (type === 'lti') return 'lti';
+    if (type === 'html_page') return 'assignment';
+    const sub = item.subtype || '';
+    if (sub === 'video') return 'video';
+    if (sub === 'discussion') return 'discussion';
+    if (sub === 'assignment') return 'assignment';
+    if (sub === 'slides') return 'slide';
+    if (sub === 'reference') return 'reference';
+    if (type === 'web_link') return 'reference';
+    return 'reference';
+}
+
+function itemFoundationalType(item) {
+    const kind = itemEditorKind(item);
+    if (kind === 'heading' || kind === 'header') {
+        return 'heading';
+    }
+    if (kind === 'discussion' || kind === 'lti' || kind === 'file') {
+        return kind;
+    }
+    return 'web_link';
+}
+
+function itemLinkSubtype(item) {
+    const kind = itemEditorKind(item);
+    if (kind === 'video') {
+        return 'video';
+    }
+    if (kind === 'assignment') {
+        return 'assignment';
+    }
+    if (kind === 'slide') {
+        return 'slides';
+    }
+    if (item && item.subtype === 'solution') {
+        return 'solution';
+    }
+    return 'reference';
+}
+
+function webLinkSubtypeSelectHtml(subtype) {
+    const options = [
+        ['reference', 'Reference'],
+        ['video', 'Video'],
+        ['slides', 'Slides'],
+        ['assignment', 'Assignment'],
+        ['solution', 'Solution']
+    ];
+    const known = options.some(function(opt) { return opt[0] === subtype; });
+    const extra = (!known && subtype)
+        ? `<option value="${escapeHtml(subtype)}" selected>${escapeHtml(subtype)}</option>`
+        : '';
+    return `
+            <div class="form-group">
+                <label>Subtype:</label>
+                <select id="edit-link-subtype" onchange="updateItemForm()">
+                    ${options.map(function(opt) {
+                        return `<option value="${opt[0]}" ${subtype === opt[0] ? 'selected' : ''}>${opt[1]}</option>`;
+                    }).join('')}
+                    ${extra}
+                </select>
+            </div>
+    `;
+}
 
 // Migrate FCPX to reference for video items
 function migrateFCPXToReference() {
@@ -638,7 +1045,7 @@ function migrateFCPXToReference() {
     lessonsData.modules.forEach(module => {
         if (module.items && Array.isArray(module.items)) {
             module.items.forEach(item => {
-                if (item.type === 'video' && item.FCPX && !item.reference) {
+                if ((item.type === 'video' || item.subtype === 'video') && item.FCPX && !item.reference) {
                     item.reference = item.FCPX;
                     delete item.FCPX;
                 }
@@ -717,6 +1124,16 @@ $(document).ready(function() {
     
     $(document).on('click', '.delete-item-btn', function() {
         deleteItemFromButton(this);
+    });
+
+    $(document).on('change', 'input[name="edit-href-source"]', function() {
+        updateWebLinkSourceRows();
+    });
+
+    $(document).on('click', '#edit-href-pick', function() {
+        if (typeof tsugiOpenLinkPicker === 'function') {
+            tsugiOpenLinkPicker(applyWebLinkPick);
+        }
     });
     
     // Warn before leaving with unsaved changes
@@ -812,9 +1229,8 @@ function rebuildLessonsDataFromDOM() {
             // If still no item, create a default one (shouldn't happen, but safety)
             if (!item) {
                 item = {
-                    type: 'header',
-                    text: 'Untitled Item',
-                    level: 2
+                    type: 'heading',
+                    title: 'Untitled Item'
                 };
             }
             
@@ -928,7 +1344,7 @@ function applyHeaderSectionStates(moduleIndex) {
                 const nextItemData = $nextItem.data('item-object');
                 
                 // Stop at next header
-                if (nextItemData && nextItemData.type === 'header') {
+                if (nextItemData && isHeadingItem(nextItemData)) {
                     break;
                 }
                 
@@ -952,7 +1368,7 @@ function createModuleHtml(module, moduleIndex) {
                 </button>
                 <div style="flex: 1;">
                     <h3 class="module-title">
-                        ${module.icon ? `<i class="fa ${escapeHtml(module.icon)} module-icon" aria-hidden="true"></i>` : ''}
+                        ${sanitizeFaIcon(module.icon) ? `<i class="fa ${escapeHtml(sanitizeFaIcon(module.icon))} module-icon" aria-hidden="true"></i>` : ''}
                         <span>${escapeHtml(module.title || 'Untitled Module')}</span>
                     </h3>
                 </div>
@@ -966,7 +1382,9 @@ function createModuleHtml(module, moduleIndex) {
                 </div>
             </div>
             <div class="module-body">
-                ${module.description ? `<div class="module-description">${escapeHtml(module.description)}</div>` : ''}
+                <button type="button" class="module-description module-description-edit${module.description ? '' : ' module-description-empty'}" onclick="editModule(${moduleIndex}, 'description')" title="Edit module description">
+                    ${module.description ? escapeHtml(module.description) : 'Add a description (shown on the Lessons cards)'}
+                </button>
                 <div class="items-list" data-module-index="${moduleIndex}">
                     ${itemsHtml}
                 </div>
@@ -980,22 +1398,36 @@ function createModuleHtml(module, moduleIndex) {
     `;
 }
 
-function getItemTypeIcon(type) {
+function getItemTypeIcon(itemOrType) {
+    if (typeof itemOrType === 'object' && itemOrType !== null) {
+        const custom = sanitizeFaIcon(itemOrType.icon);
+        if (custom) {
+            return custom;
+        }
+    }
+    const kind = (typeof itemOrType === 'object' && itemOrType !== null)
+        ? itemEditorKind(itemOrType)
+        : itemOrType;
     const icons = {
+        'heading': 'fa-header',
+        'header': 'fa-header',
         'video': 'fa-play-circle',
         'reference': 'fa-external-link',
         'discussion': 'fa-comments',
         'lti': 'fa-puzzle-piece',
         'assignment': 'fa-file-text',
-        'slide': 'fa-file-powerpoint-o'
+        'slide': 'fa-file-powerpoint-o',
+        'web_link': 'fa-external-link',
+        'html_page': 'fa-file-text-o',
+        'file': 'fa-file-o'
     };
-    return icons[type] || 'fa-circle';
+    return icons[kind] || 'fa-circle';
 }
 
 function createItemHtml(item, moduleIndex, itemIndex) {
-    const type = item.type || 'unknown';
+    const type = itemEditorKind(item);
     const title = getItemTitle(item);
-    const isHeader = type === 'header';
+    const isHeader = isHeadingItem(item);
     
     // Check if this header section is collapsed
     const stateKey = `header_${moduleIndex}_${itemIndex}_collapsed`;
@@ -1007,7 +1439,7 @@ function createItemHtml(item, moduleIndex, itemIndex) {
             <div class="item-content">
                 <div class="item-header">
                         ${isHeader ? `<button type="button" class="header-toggle ${isCollapsed ? 'collapsed' : ''}" onclick="toggleHeaderSection(${moduleIndex}, ${itemIndex}, event)" title="Expand/Collapse section" aria-label="Expand or collapse section"></button>` : ''}
-                    ${!isHeader ? `<span class="item-type ${type}" aria-label="${type}" title="${type}"><i class="fa ${getItemTypeIcon(type)}" aria-hidden="true"></i></span>` : ''}
+                    ${!isHeader ? `<span class="item-type ${type}" aria-label="${type}" title="${type}"><i class="fa ${getItemTypeIcon(item)}" aria-hidden="true"></i></span>` : ''}
                     <span class="item-title">${escapeHtml(title)}</span>
                     <div class="item-actions">
                         ${isHeader ? `<button type="button" class="btn btn-icon add-item-after-btn" onclick="addItemAfter(${moduleIndex}, ${itemIndex})" title="Add item after this header" aria-label="Add item after this header">
@@ -1028,10 +1460,9 @@ function createItemHtml(item, moduleIndex, itemIndex) {
 
 function getItemTitle(item) {
     if (item.title) return item.title;
-    if (item.type === 'header') return item.text || 'Header';
-    if (item.type === 'reference') return item.href || 'Reference';
-    if (item.type === 'assignment') return item.href || 'Assignment';
-    if (item.type === 'slide') return item.href || 'Slide';
+    if (isHeadingItem(item)) return item.text || 'Heading';
+    if (item.href) return item.href;
+    if (item.filename) return item.filename;
     return 'Untitled Item';
 }
 
@@ -1133,7 +1564,7 @@ function setupSortable() {
                 const $prevItem = $(allItems[i]);
                 const prevItemData = $prevItem.data('item-object');
                 
-                if (prevItemData && prevItemData.type === 'header') {
+                if (prevItemData && isHeadingItem(prevItemData)) {
                     const prevItemIndex = parseInt($prevItem.attr('data-item-index'));
                     const stateKey = `header_${moduleIndex}_${prevItemIndex}_collapsed`;
                     const isCollapsed = localStorage.getItem(stateKey) === 'true';
@@ -1175,27 +1606,26 @@ function addModule() {
     editModule(lessonsData.modules.length - 1);
 }
 
-function editModule(moduleIndex) {
+function editModule(moduleIndex, focusField) {
     editingModuleIndex = moduleIndex;
     const module = lessonsData.modules[moduleIndex];
     
     const formHtml = `
         <div class="form-group">
             <label>Title:</label>
-            <input type="text" id="edit-title" value="${escapeHtml(module.title || '')}">
+            <input type="text" id="edit-module-title" value="${escapeHtml(module.title || '')}">
         </div>
         <div class="form-group">
             <label>Anchor:</label>
-            <input type="text" id="edit-anchor" value="${escapeHtml(module.anchor || '')}">
+            <input type="text" id="edit-module-anchor" value="${escapeHtml(module.anchor || '')}">
         </div>
         <div class="form-group">
             <label>Icon:</label>
-            <input type="text" id="edit-icon" value="${escapeHtml(module.icon || '')}" 
-                   placeholder="e.g., fa-smile-o">
+            ${iconPickerHtml('edit-module-icon', module.icon || '', 'None')}
         </div>
         <div class="form-group">
             <label>Description:</label>
-            <textarea id="edit-description">${escapeHtml(module.description || '')}</textarea>
+            <textarea id="edit-module-description" rows="6" placeholder="Shown on the Lessons card view">${escapeHtml(module.description || '')}</textarea>
         </div>
         <div class="form-actions">
             <button type="button" class="btn btn-primary" onclick="saveModule()">Save</button>
@@ -1205,16 +1635,28 @@ function editModule(moduleIndex) {
     
     $('#modal-title').text('Edit Module');
     $('#modal-body').html(formHtml);
+    bindIconPickers($('#modal-body'));
     $('#item-modal').show();
+    if (focusField === 'description') {
+        const desc = document.getElementById('edit-module-description');
+        if (desc) {
+            desc.focus();
+        }
+    }
 }
 
 function saveModule() {
     if (editingModuleIndex === null) return;
     
-    lessonsData.modules[editingModuleIndex].title = $('#edit-title').val().trim();
-    lessonsData.modules[editingModuleIndex].anchor = $('#edit-anchor').val().trim();
-    lessonsData.modules[editingModuleIndex].icon = $('#edit-icon').val().trim();
-    lessonsData.modules[editingModuleIndex].description = $('#edit-description').val().trim();
+    const desc = $('#edit-module-description').val().trim();
+    lessonsData.modules[editingModuleIndex].title = $('#edit-module-title').val().trim();
+    lessonsData.modules[editingModuleIndex].anchor = $('#edit-module-anchor').val().trim();
+    applyPickedIcon(lessonsData.modules[editingModuleIndex], '#edit-module-icon');
+    if (desc) {
+        lessonsData.modules[editingModuleIndex].description = desc;
+    } else {
+        delete lessonsData.modules[editingModuleIndex].description;
+    }
     
     closeModal();
     renderModules();
@@ -1232,14 +1674,16 @@ function deleteModule(moduleIndex) {
 function addItem(moduleIndex) {
     editingItemIndex = null;
     editingModuleIndex = moduleIndex;
-    showItemModal('Add Item', getDefaultItem());
+    draftItem = getDefaultItem();
+    showItemModal('Add Item', draftItem);
 }
 
 function addItemAfter(moduleIndex, afterItemIndex) {
     editingItemIndex = null;
     editingModuleIndex = moduleIndex;
     editingAfterItemIndex = afterItemIndex;
-    showItemModal('Add Item', getDefaultItem());
+    draftItem = getDefaultItem();
+    showItemModal('Add Item', draftItem);
 }
 
 function editItem(moduleIndex, itemIndex) {
@@ -1263,7 +1707,7 @@ function editItemFromButton(button) {
         editingItemIndex = itemIndex;
         const item = lessonsData.modules[moduleIndex].items[itemIndex];
         // Migrate FCPX to reference if needed
-        if (item.type === 'video' && item.FCPX && !item.reference) {
+        if ((item.type === 'video' || item.subtype === 'video') && item.FCPX && !item.reference) {
             item.reference = item.FCPX;
             delete item.FCPX;
             markChanged();
@@ -1274,26 +1718,62 @@ function editItemFromButton(button) {
 
 function getDefaultItem() {
     return {
-        type: 'header',
-        text: '',
-        level: 2
+        type: 'heading',
+        title: ''
     };
 }
 
+function harvestItemFormDraft(item) {
+    const titleEl = document.getElementById('edit-title');
+    if (titleEl) {
+        item.title = titleEl.value;
+    }
+    const hrefEl = document.getElementById('edit-href');
+    if (hrefEl) {
+        item.href = hrefEl.value;
+    }
+    ['youtube', 'kaltura_id', 'media', 'reference', 'description', 'launch', 'resource_link_id'].forEach(function(key) {
+        const map = {
+            youtube: 'edit-youtube',
+            kaltura_id: 'edit-kaltura',
+            media: 'edit-media',
+            reference: 'edit-reference',
+            description: 'edit-description',
+            launch: 'edit-launch',
+            resource_link_id: 'edit-resource-link-id'
+        };
+        const el = document.getElementById(map[key]);
+        if (el) {
+            item[key] = el.value;
+        }
+    });
+}
+
+function currentEditorItem() {
+    if (editingItemIndex !== null &&
+        lessonsData.modules[editingModuleIndex] &&
+        lessonsData.modules[editingModuleIndex].items &&
+        lessonsData.modules[editingModuleIndex].items[editingItemIndex]) {
+        return lessonsData.modules[editingModuleIndex].items[editingItemIndex];
+    }
+    if (!draftItem) {
+        draftItem = getDefaultItem();
+    }
+    return draftItem;
+}
+
 function showItemModal(title, item) {
-    const type = item.type || 'header';
+    const type = itemFoundationalType(item);
     
     let formHtml = `
         <div class="form-group">
             <label>Type:</label>
             <select id="edit-item-type" onchange="updateItemForm()">
-                <option value="header" ${type === 'header' ? 'selected' : ''}>Header</option>
-                <option value="video" ${type === 'video' ? 'selected' : ''}>Video</option>
-                <option value="reference" ${type === 'reference' ? 'selected' : ''}>Reference</option>
+                <option value="heading" ${type === 'heading' ? 'selected' : ''}>Heading</option>
+                <option value="web_link" ${type === 'web_link' ? 'selected' : ''}>Web link</option>
                 <option value="discussion" ${type === 'discussion' ? 'selected' : ''}>Discussion</option>
                 <option value="lti" ${type === 'lti' ? 'selected' : ''}>LTI</option>
-                <option value="assignment" ${type === 'assignment' ? 'selected' : ''}>Assignment</option>
-                <option value="slide" ${type === 'slide' ? 'selected' : ''}>Slide</option>
+                <option value="file" ${type === 'file' ? 'selected' : ''}>File</option>
             </select>
         </div>
         <div id="item-form-fields"></div>
@@ -1311,44 +1791,60 @@ function showItemModal(title, item) {
 
 function updateItemForm() {
     const type = $('#edit-item-type').val();
-    const currentItem = editingItemIndex !== null 
-        ? lessonsData.modules[editingModuleIndex].items[editingItemIndex]
-        : getDefaultItem();
-    
-    currentItem.type = type;
+    const currentItem = currentEditorItem();
+    harvestItemFormDraft(currentItem);
+
+    if (type === 'web_link') {
+        const subEl = document.getElementById('edit-link-subtype');
+        const sub = subEl ? subEl.value : itemLinkSubtype(currentItem);
+        if (currentItem.type !== 'html_page') {
+            currentItem.type = 'web_link';
+        }
+        currentItem.subtype = sub || 'reference';
+    } else if (type === 'file') {
+        currentItem.type = 'file';
+        if (currentItem.subtype !== 'slides') {
+            delete currentItem.subtype;
+        }
+    } else {
+        currentItem.type = type;
+        delete currentItem.subtype;
+    }
     updateItemFormFields(currentItem);
 }
 
 function updateItemFormFields(item) {
-    const type = item.type || 'header';
+    const type = itemEditorKind(item);
     let fieldsHtml = '';
     
-    if (type === 'header') {
+    if (type === 'heading' || type === 'header') {
         fieldsHtml = `
             <div class="form-group">
-                <label>Text:</label>
-                <input type="text" id="edit-text" value="${escapeHtml(item.text || '')}">
-            </div>
-            <div class="form-group">
-                <label>Level:</label>
-                <select id="edit-level">
-                    <option value="1" ${item.level == 1 ? 'selected' : ''}>Level 1</option>
-                    <option value="2" ${item.level == 2 ? 'selected' : ''}>Level 2</option>
-                    <option value="3" ${item.level == 3 ? 'selected' : ''}>Level 3</option>
-                </select>
+                <label>Title:</label>
+                <input type="text" id="edit-title" value="${escapeHtml(item.title || item.text || '')}">
             </div>
         `;
-    } else if (type === 'video') {
-        // Handle FCPX migration for display
-        const referenceValue = item.reference || item.FCPX || '';
-        fieldsHtml = `
+    } else if (type === 'video' || type === 'reference' || type === 'assignment' || type === 'slide') {
+        const subtype = itemLinkSubtype(item);
+        fieldsHtml = webLinkSubtypeSelectHtml(subtype);
+        if (subtype === 'video') {
+            const referenceValue = item.reference || item.FCPX || '';
+            fieldsHtml += `
             <div class="form-group">
                 <label>Title:</label>
                 <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}">
             </div>
             <div class="form-group">
+                <label>URL:</label>
+                <input type="text" id="edit-href" value="${escapeHtml(item.href || '')}">
+            </div>
+            <div class="form-group">
                 <label>YouTube ID:</label>
                 <input type="text" id="edit-youtube" value="${escapeHtml(item.youtube || '')}">
+            </div>
+            <div class="form-group">
+                <label>Kaltura ID:</label>
+                <input type="text" id="edit-kaltura" value="${escapeHtml(item.kaltura_id || '')}">
             </div>
             <div class="form-group">
                 <label>Media:</label>
@@ -1358,18 +1854,38 @@ function updateItemFormFields(item) {
                 <label>Reference:</label>
                 <input type="text" id="edit-reference" value="${escapeHtml(referenceValue)}">
             </div>
-        `;
-    } else if (type === 'reference') {
-        fieldsHtml = `
+            `;
+        } else {
+            const samePage = item.target === '_self';
+            const hrefVal = item.href || '';
+            fieldsHtml += `
             <div class="form-group">
                 <label>Title:</label>
                 <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}">
             </div>
             <div class="form-group">
-                <label>URL:</label>
-                <input type="text" id="edit-href" value="${escapeHtml(item.href || '')}">
+                <label>Link:</label>
+                <div class="form-group-radios">
+                    <label><input type="radio" name="edit-href-source" value="url" checked> URL</label>
+                    <label><input type="radio" name="edit-href-source" value="course"> Course content</label>
+                </div>
             </div>
-        `;
+            <div class="form-group" id="edit-href-url-row">
+                <input type="text" id="edit-href" value="${escapeHtml(hrefVal)}" placeholder="https://">
+            </div>
+            <div class="form-group" id="edit-href-course-row" style="display: none;">
+                <button type="button" class="btn" id="edit-href-pick">Choose from course…</button>
+                <div id="edit-href-chosen" class="file-picker-summary">${hrefVal ? escapeHtml(hrefVal) : 'Pages, lessons, discussions, or files.'}</div>
+            </div>
+            <div class="form-group">
+                <label>Open:</label>
+                <div class="form-group-radios">
+                    <label><input type="radio" name="edit-target" value="_self" ${samePage ? 'checked' : ''}> Same page</label>
+                    <label><input type="radio" name="edit-target" value="_blank" ${samePage ? '' : 'checked'}> New page</label>
+                </div>
+            </div>
+            `;
+        }
     } else if (type === 'discussion') {
         fieldsHtml = `
             <div class="form-group">
@@ -1377,12 +1893,12 @@ function updateItemFormFields(item) {
                 <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}">
             </div>
             <div class="form-group">
-                <label>Launch:</label>
-                <input type="text" id="edit-launch" value="${escapeHtml(item.launch || '')}">
+                <label>Description:</label>
+                <textarea id="edit-description" rows="3">${escapeHtml(item.description || '')}</textarea>
             </div>
             <div class="form-group">
                 <label>Resource Link ID:</label>
-                <input type="text" id="edit-resource-link-id" value="${escapeHtml(item.resource_link_id || '')}">
+                <input type="text" id="edit-resource-link-id" value="${escapeHtml(item.resource_link_id || '')}" placeholder="Leave blank to generate from the title">
             </div>
         `;
     } else if (type === 'lti') {
@@ -1425,27 +1941,230 @@ function updateItemFormFields(item) {
                 <button type="button" class="btn btn-primary" onclick="addCustomField()">+ Add Custom Field</button>
             </div>
         `;
-    } else if (type === 'assignment') {
-        fieldsHtml = `
-            <div class="form-group">
-                <label>URL:</label>
-                <input type="text" id="edit-href" value="${escapeHtml(item.href || '')}">
-            </div>
-        `;
-    } else if (type === 'slide') {
+    } else if (type === 'file') {
+        const subtypeVal = item.subtype || '';
+        filePickerState = {
+            sha256: item.sha256 || '',
+            filename: item.filename || '',
+            href: item.href || '',
+            content_type: item.content_type || '',
+            path: item.filename || item.title || ''
+        };
         fieldsHtml = `
             <div class="form-group">
                 <label>Title:</label>
                 <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}">
             </div>
             <div class="form-group">
-                <label>URL:</label>
-                <input type="text" id="edit-href" value="${escapeHtml(item.href || '')}">
+                <label>File:</label>
+                <select id="edit-file-picker">
+                    <option value="">Loading files…</option>
+                </select>
+                <div id="file-picker-summary" class="file-picker-summary"></div>
+            </div>
+            <div class="form-group">
+                <label>Subtype:</label>
+                <select id="edit-subtype">
+                    <option value="" ${subtypeVal === '' ? 'selected' : ''}>None</option>
+                    <option value="slides" ${subtypeVal === 'slides' ? 'selected' : ''}>Slides</option>
+                </select>
+            </div>
+        `;
+    }
+
+    if (type !== 'heading' && type !== 'header') {
+        fieldsHtml += `
+            <div class="form-group">
+                <label>Icon:</label>
+                ${iconPickerHtml('edit-item-icon', item.icon || '', 'Default for this type')}
             </div>
         `;
     }
     
     $('#item-form-fields').html(fieldsHtml);
+    bindIconPickers($('#item-form-fields'));
+    if (type === 'file') {
+        updateFilePickerSummary();
+        populateFilePicker(item);
+    }
+    if (document.getElementsByName('edit-href-source').length) {
+        updateWebLinkSourceRows();
+    }
+}
+
+function loadCourseFiles() {
+    if (courseFilesCache) {
+        return Promise.resolve(courseFilesCache);
+    }
+    if (!filesJsonUrl) {
+        return Promise.resolve([]);
+    }
+    return fetch(filesJsonUrl, { credentials: 'same-origin' })
+        .then(function(resp) {
+            if (!resp.ok) {
+                throw new Error('Could not load course files');
+            }
+            return resp.json();
+        })
+        .then(function(data) {
+            courseFilesCache = Array.isArray(data) ? data : [];
+            return courseFilesCache;
+        });
+}
+
+function applyPickedFile(file) {
+    const prevFilename = filePickerState.filename || '';
+    const titleEl = document.getElementById('edit-title');
+    const currentTitle = titleEl ? titleEl.value.trim() : '';
+    filePickerState = {
+        sha256: file.sha256 || file.id || '',
+        filename: file.filename || file.title || '',
+        href: file.href || '',
+        content_type: file.content_type || '',
+        path: file.path || file.filename || file.title || ''
+    };
+    if (titleEl && (!currentTitle || currentTitle === prevFilename)) {
+        titleEl.value = filePickerState.filename;
+    }
+    updateFilePickerSummary();
+}
+
+function updateFilePickerSummary() {
+    const el = document.getElementById('file-picker-summary');
+    if (!el) {
+        return;
+    }
+    if (!filePickerState.sha256) {
+        el.textContent = 'Choose a file to fill filename, content type, and download link.';
+        return;
+    }
+    const bits = [];
+    if (filePickerState.path) {
+        bits.push(filePickerState.path);
+    } else if (filePickerState.filename) {
+        bits.push(filePickerState.filename);
+    }
+    if (filePickerState.content_type) {
+        bits.push(filePickerState.content_type);
+    }
+    el.textContent = bits.join(' · ');
+}
+
+function populateFilePicker(item) {
+    const select = document.getElementById('edit-file-picker');
+    if (!select) {
+        return;
+    }
+    loadCourseFiles().then(function(files) {
+        const selectedSha = (item && item.sha256) ? String(item.sha256).toLowerCase() : '';
+        select.innerHTML = '';
+        if (!files.length) {
+            const empty = document.createElement('option');
+            empty.value = '';
+            empty.textContent = 'No files in this course';
+            select.appendChild(empty);
+            const hint = document.getElementById('file-picker-summary');
+            if (hint) {
+                hint.innerHTML = filesHomeUrl
+                    ? 'Upload a file in <a href="' + escapeHtml(filesHomeUrl) + '" target="_blank" rel="noopener">Files</a> first.'
+                    : 'No files are available to pick.';
+            }
+            return;
+        }
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select a file…';
+        select.appendChild(placeholder);
+
+        const groups = {};
+        files.forEach(function(file) {
+            const folder = file.folder || '';
+            if (!groups[folder]) {
+                groups[folder] = [];
+            }
+            groups[folder].push(file);
+        });
+        Object.keys(groups).sort(function(a, b) {
+            return a.localeCompare(b);
+        }).forEach(function(folder) {
+            const og = document.createElement('optgroup');
+            og.label = folder === '' ? 'Course files' : folder;
+            groups[folder].forEach(function(file) {
+                const opt = document.createElement('option');
+                opt.value = file.sha256 || file.id || '';
+                opt.textContent = file.filename || file.title || opt.value;
+                if (opt.value && opt.value.toLowerCase() === selectedSha) {
+                    opt.selected = true;
+                    applyPickedFile(file);
+                }
+                og.appendChild(opt);
+            });
+            select.appendChild(og);
+        });
+
+        if (selectedSha && !select.value) {
+            const missing = document.createElement('option');
+            missing.value = selectedSha;
+            missing.textContent = (item.filename || 'Current file') + ' (not in Files)';
+            missing.selected = true;
+            select.insertBefore(missing, select.options[1] || null);
+        }
+
+        select.onchange = function() {
+            const sha = select.value;
+            const file = files.find(function(f) {
+                return (f.sha256 || f.id) === sha;
+            });
+            if (file) {
+                applyPickedFile(file);
+            }
+        };
+        updateFilePickerSummary();
+    }).catch(function() {
+        select.innerHTML = '';
+        const err = document.createElement('option');
+        err.value = '';
+        err.textContent = 'Could not load files';
+        select.appendChild(err);
+        const hint = document.getElementById('file-picker-summary');
+        if (hint) {
+            hint.textContent = 'Could not load the course Files list.';
+        }
+    });
+}
+
+function updateWebLinkSourceRows() {
+    const source = $('input[name="edit-href-source"]:checked').val();
+    if (source === 'course') {
+        $('#edit-href-url-row').hide();
+        $('#edit-href-course-row').show();
+    } else {
+        $('#edit-href-url-row').show();
+        $('#edit-href-course-row').hide();
+    }
+}
+
+function applyWebLinkPick(picked) {
+    if (!picked) {
+        return;
+    }
+    const url = picked.url || '';
+    $('#edit-href').val(url);
+    const titleEl = document.getElementById('edit-title');
+    if (titleEl && !titleEl.value.trim() && picked.title) {
+        titleEl.value = picked.title;
+    }
+    const chosen = document.getElementById('edit-href-chosen');
+    if (chosen) {
+        chosen.textContent = picked.title ? (picked.title + ' — ' + url) : url;
+    }
+    if (picked.targetBlank) {
+        $('input[name="edit-target"][value="_blank"]').prop('checked', true);
+    } else {
+        $('input[name="edit-target"][value="_self"]').prop('checked', true);
+    }
+    $('input[name="edit-href-source"][value="course"]').prop('checked', true);
+    updateWebLinkSourceRows();
 }
 
 function addCustomField() {
@@ -1470,46 +2189,80 @@ function removeCustomField(index) {
     });
 }
 
-function saveItem() {
-    const type = $('#edit-item-type').val();
-    let item = {};
-    
-    if (type === 'header') {
-        item = {
-            type: 'header',
-            text: $('#edit-text').val().trim(),
-            level: parseInt($('#edit-level').val())
-        };
-    } else if (type === 'video') {
+function saveWebLinkItem(item) {
+    const subtype = $('#edit-link-subtype').val() || 'reference';
+    item.title = $('#edit-title').val().trim();
+    const hrefVal = $('#edit-href').val().trim();
+    if (hrefVal) {
+        item.href = hrefVal;
+    } else {
+        delete item.href;
+    }
+    delete item.filename;
+    delete item.sha256;
+    if (subtype === 'video') {
+        item.type = 'web_link';
+        item.subtype = 'video';
         const youtubeVal = $('#edit-youtube').val().trim();
         const mediaVal = $('#edit-media').val().trim();
         const referenceVal = $('#edit-reference').val().trim();
-        item = {
-            type: 'video',
-            title: $('#edit-title').val().trim(),
-            youtube: youtubeVal || undefined,
-            media: mediaVal || undefined,
-            reference: referenceVal || undefined
-        };
-        // Remove undefined fields
-        Object.keys(item).forEach(key => item[key] === undefined && delete item[key]);
-        // Ensure FCPX is removed if it exists (migrated to reference)
-        if (item.FCPX) {
-            delete item.FCPX;
-        }
-    } else if (type === 'reference') {
-        item = {
-            type: 'reference',
-            title: $('#edit-title').val().trim(),
-            href: $('#edit-href').val().trim()
-        };
+        const kalturaVal = $('#edit-kaltura').val().trim();
+        if (youtubeVal) { item.youtube = youtubeVal; } else { delete item.youtube; }
+        if (mediaVal) { item.media = mediaVal; } else { delete item.media; }
+        if (referenceVal) { item.reference = referenceVal; } else { delete item.reference; }
+        if (kalturaVal) { item.kaltura_id = kalturaVal; } else { delete item.kaltura_id; }
+        delete item.FCPX;
+        return;
+    }
+    delete item.youtube;
+    delete item.kaltura_id;
+    delete item.media;
+    delete item.reference;
+    delete item.FCPX;
+    if (subtype === 'assignment' && item.type === 'html_page') {
+        item.subtype = 'assignment';
+    } else {
+        item.type = 'web_link';
+        item.subtype = subtype;
+    }
+    const targetVal = $('input[name="edit-target"]:checked').val();
+    item.target = targetVal === '_self' ? '_self' : '_blank';
+}
+
+function saveItem() {
+    const type = $('#edit-item-type').val();
+    let item = {};
+    if (editingItemIndex !== null &&
+        lessonsData.modules[editingModuleIndex] &&
+        lessonsData.modules[editingModuleIndex].items &&
+        lessonsData.modules[editingModuleIndex].items[editingItemIndex]) {
+        item = Object.assign({}, lessonsData.modules[editingModuleIndex].items[editingItemIndex]);
+    }
+    
+    if (type === 'heading' || type === 'header') {
+        item.type = 'heading';
+        delete item.subtype;
+        delete item.level;
+        item.title = $('#edit-title').val().trim();
+        delete item.text;
+    } else if (type === 'web_link') {
+        saveWebLinkItem(item);
     } else if (type === 'discussion') {
-        item = {
-            type: 'discussion',
-            title: $('#edit-title').val().trim(),
-            launch: $('#edit-launch').val().trim(),
-            resource_link_id: $('#edit-resource-link-id').val().trim()
-        };
+        item.type = 'discussion';
+        delete item.subtype;
+        delete item.launch;
+        item.title = $('#edit-title').val().trim();
+        const descriptionVal = $('#edit-description').val().trim();
+        if (descriptionVal) {
+            item.description = descriptionVal;
+        } else {
+            delete item.description;
+        }
+        let rlid = $('#edit-resource-link-id').val().trim();
+        if (!rlid) {
+            rlid = allocateDiscussionRlid(item.title, collectUsedResourceLinkIds(editingModuleIndex, editingItemIndex));
+        }
+        item.resource_link_id = rlid;
     } else if (type === 'lti') {
         const custom = [];
         $('#custom-fields-container .custom-field').each(function() {
@@ -1519,33 +2272,49 @@ function saveItem() {
                 custom.push({ key: key, value: value });
             }
         });
-        
-        item = {
-            type: 'lti',
-            title: $('#edit-title').val().trim(),
-            launch: $('#edit-launch').val().trim(),
-            resource_link_id: $('#edit-resource-link-id').val().trim()
-        };
-        
+        item.type = 'lti';
+        if (item.subtype === 'discussion') {
+            delete item.subtype;
+        }
+        item.title = $('#edit-title').val().trim();
+        item.launch = $('#edit-launch').val().trim();
+        item.resource_link_id = $('#edit-resource-link-id').val().trim();
         const targetVal = $('#edit-target').val().trim();
         if (targetVal) {
             item.target = targetVal;
+        } else {
+            delete item.target;
         }
-        
         if (custom.length > 0) {
             item.custom = custom;
+        } else {
+            delete item.custom;
         }
-    } else if (type === 'assignment') {
-        item = {
-            type: 'assignment',
-            href: $('#edit-href').val().trim()
-        };
-    } else if (type === 'slide') {
-        item = {
-            type: 'slide',
-            title: $('#edit-title').val().trim(),
-            href: $('#edit-href').val().trim()
-        };
+    } else if (type === 'file') {
+        if (!filePickerState.sha256 || !filePickerState.href) {
+            alert('Pick a file from the course Files list.');
+            return;
+        }
+        const subtypeVal = $('#edit-subtype').length ? $('#edit-subtype').val().trim() : '';
+        item.type = 'file';
+        if (subtypeVal) {
+            item.subtype = subtypeVal;
+        } else {
+            delete item.subtype;
+        }
+        item.title = $('#edit-title').val().trim() || filePickerState.filename;
+        item.href = filePickerState.href;
+        item.sha256 = filePickerState.sha256;
+        item.filename = filePickerState.filename;
+        if (filePickerState.content_type) {
+            item.content_type = filePickerState.content_type;
+        } else {
+            delete item.content_type;
+        }
+    }
+
+    if ($('#edit-item-icon').length) {
+        applyPickedIcon(item, '#edit-item-icon');
     }
     
     if (editingItemIndex !== null) {
@@ -1640,7 +2409,7 @@ function toggleHeaderSection(moduleIndex, itemIndex, event) {
         const nextItemData = $nextItem.data('item-object');
         
         // Stop at next header
-        if (nextItemData && nextItemData.type === 'header') {
+        if (nextItemData && isHeadingItem(nextItemData)) {
             break;
         }
         
@@ -1666,9 +2435,21 @@ function closeModal() {
     editingItemIndex = null;
     editingModuleIndex = null;
     editingAfterItemIndex = null;
+    draftItem = null;
+}
+
+function stripHeadingLevels(data) {
+    (data.modules || []).forEach(function(mod) {
+        (mod.items || []).forEach(function(item) {
+            if (item && (item.type === 'heading' || item.type === 'header')) {
+                delete item.level;
+            }
+        });
+    });
 }
 
 function saveChanges() {
+    stripHeadingLevels(lessonsData);
     const jsonData = JSON.stringify(lessonsData, null, 4);
     
     $.ajax({
@@ -1708,11 +2489,10 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Close modal when clicking outside
-window.onclick = function(event) {
+document.addEventListener('click', function(event) {
     const modal = document.getElementById('item-modal');
-    if (event.target === modal) {
+    if (modal && event.target === modal) {
         closeModal();
     }
-}
+});
 </script>

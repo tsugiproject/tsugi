@@ -209,11 +209,35 @@ abstract class Tool {
     }
 
     /**
+     * Course title for an outbound LTI launch.
+     *
+     * Precedence: $_SESSION['context_title'], then the LTI session
+     * context_title, then $CFG->context_title.
+     *
+     * Sending the site default here used to overwrite lti_context.title via adjustData.
+     */
+    public static function outboundContextTitle() {
+        global $CFG;
+        $title = U::get($_SESSION, 'context_title');
+        if ( is_string($title) && trim($title) !== '' ) {
+            return $title;
+        }
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        if ( isset($_SESSION[$ltiKey]['context_title']) ) {
+            $title = $_SESSION[$ltiKey]['context_title'];
+            if ( is_string($title) && trim($title) !== '' ) {
+                return $title;
+            }
+        }
+        return isset($CFG->context_title) ? $CFG->context_title : '';
+    }
+
+    /**
      * Build and print the auto-submit HTML for an LTI 1.1 basic-lti-launch-request to a tool URL
      * described by a lessons.json / lessons-items item (same shape as {@see \Tsugi\UI\Lessons::getLtiByRlid()}).
      *
      * @param Application $app
-     * @param object $lti Must have resource_link_id, launch; optional title, custom
+     * @param object $lti Must have resource_link_id; launch is required for LTI tools (discussions POST to {wwwroot}/tool/tdiscus)
      * @param string $launch_presentation_return_url Return URL after the external tool
      * @param string $redirect_path_on_error Session addSession path for flash+redirect on failure
      * @param string $fallback_resource_link_title Used when $lti->title is missing
@@ -258,8 +282,8 @@ abstract class Tool {
             'tool_consumer_info_product_family_code' => 'tsugi',
             'tool_consumer_info_version' => '1.1',
             'context_id' => $_SESSION['context_key'],
-            'context_label' => $CFG->context_title,
-            'context_title' => $CFG->context_title,
+            'context_label' => self::outboundContextTitle(),
+            'context_title' => self::outboundContextTitle(),
             'user_id' => $_SESSION['user_key'],
             'lis_person_name_full' => $_SESSION['displayname'],
             'lis_person_contact_email_primary' => $_SESSION['email'],
@@ -289,7 +313,11 @@ abstract class Tool {
         $form_id = 'tsugi_form_id_'.bin2hex(openssl_random_pseudo_bytes(4));
         $parms['ext_lti_form_id'] = $form_id;
 
-        $endpoint = \Tsugi\UI\Lessons::expandLink($lti->launch);
+        $endpoint = \Tsugi\UI\LessonsNormalize::launchUrlForItem($lti);
+        \Tsugi\UI\Lessons::absolute_url_ref($endpoint);
+        if ( isset($lti->resource_link_id) && $lti->resource_link_id !== '' && $lti->resource_link_id !== null ) {
+            $endpoint = U::add_url_parm($endpoint, 'inherit', $lti->resource_link_id);
+        }
         $parms = LTI::signParameters($parms, $endpoint, 'POST', $key, $secret,
             'Finish Launch', $CFG->wwwroot, $CFG->servicename);
 

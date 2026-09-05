@@ -361,12 +361,15 @@ class CKEditor {
                     lti: { label: 'LTI & Tools', items: [] },
                     'not-lti': { label: 'LTI & Tools', items: [] },
                     reference: { label: 'References', items: [] },
-                    slide: { label: 'Slides', items: [] }
+                    slide: { label: 'Slides', items: [] },
+                    assignment: { label: 'Assignments', items: [] },
+                    solution: { label: 'Solutions', items: [] }
                 };
 
                 lessonsList.forEach(function(lessonItem) {
                     var t = lessonItem.type || 'reference';
                     if (t === 'not-lti') t = 'lti';
+                    if (t === 'web_link' || t === 'html_page' || t === 'file') t = 'reference';
                     if (typeGroups[t]) typeGroups[t].items.push(lessonItem);
                 });
 
@@ -375,6 +378,8 @@ class CKEditor {
                     { label: 'Videos', items: typeGroups.video ? typeGroups.video.items : [] },
                     { label: 'Discussions', items: typeGroups.discussion ? typeGroups.discussion.items : [] },
                     { label: 'LTI & Tools', items: ltiItems },
+                    { label: 'Assignments', items: typeGroups.assignment ? typeGroups.assignment.items : [] },
+                    { label: 'Solutions', items: typeGroups.solution ? typeGroups.solution.items : [] },
                     { label: 'References', items: typeGroups.reference ? typeGroups.reference.items : [] },
                     { label: 'Slides', items: typeGroups.slide ? typeGroups.slide.items : [] }
                 ];
@@ -463,43 +468,62 @@ class CKEditor {
             }
         }
 
+        function completeLinkPick(url, title, targetBlank) {
+            var openNew = shouldOpenLinkInNewTab(!!targetBlank);
+            if (typeof window.tsugiLinkPickerCallback === 'function') {
+                var cb = window.tsugiLinkPickerCallback;
+                window.tsugiLinkPickerCallback = null;
+                cb({ url: url, title: title || '', targetBlank: openNew });
+                return;
+            }
+            insertLinkedText(url, title, openNew);
+        }
+
+        window.tsugiOpenLinkPicker = function(callback) {
+            window.tsugiLinkPickerCallback = callback;
+            showPageLinkModal();
+        };
+
         function insertPageLink(page) {
-            insertLinkedText(pagesBase + '/' + encodeURIComponent(page.logical_key), page.title);
+            completeLinkPick(pagesBase + '/' + encodeURIComponent(page.logical_key), page.title);
         }
 
         function insertLessonLink(lessonItem) {
-            insertLinkedText(lessonItem.url, lessonItem.title, !!lessonItem.target_blank);
+            completeLinkPick(lessonItem.url, lessonItem.title, !!lessonItem.target_blank);
         }
 
         function insertFileLink(fileItem) {
-            insertLinkedText(fileItem.url, fileItem.title);
+            var url = fileItem.url || fileItem.href || '';
+            completeLinkPick(url, fileItem.title || fileItem.filename || '');
         }
 
         $(document).ready( function () {
-            ClassicEditor
-                .create( document.querySelector( '#editor_body' ), ClassicEditor.defaultConfig )
-                .then(ed => {
-                    editor = ed;
-                    setTimeout(function() {
-                        addPageLinkButtonToToolbar();
-                    }, 500);
-                })
-                .catch( error => {
-                    console.error( error );
+            if (typeof ClassicEditor !== 'undefined' && document.querySelector('#editor_body')) {
+                ClassicEditor
+                    .create( document.querySelector( '#editor_body' ), ClassicEditor.defaultConfig )
+                    .then(ed => {
+                        editor = ed;
+                        setTimeout(function() {
+                            addPageLinkButtonToToolbar();
+                        }, 500);
+                    })
+                    .catch( error => {
+                        console.error( error );
+                    });
+
+                $('#page_form').on('submit', function(e) {
+                    if ( editor ) {
+                        $('#editor_body').val(editor.getData());
+                    }
                 });
+            }
 
-            $('#page_form').on('submit', function(e) {
-                if ( editor ) {
-                    $('#editor_body').val(editor.getData());
-                }
-            });
-
-            window.onclick = function(event) {
+            document.addEventListener('click', function(event) {
                 var modal = document.getElementById('page-link-modal');
-                if (event.target == modal) {
+                if (modal && event.target == modal) {
                     closePageLinkModal();
                 }
-            };
+            });
         });
 
         function addPageLinkButtonToToolbar() {
