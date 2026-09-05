@@ -312,6 +312,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         // Test finding discussion in items array
         $discussion = $lessons->getLtiByRlid('rlid456');
         $this->assertNotNull($discussion, 'getLtiByRlid should find discussion in items array');
+        $this->assertTrue(\Tsugi\UI\LessonsNormalize::isDiscussion($discussion));
         $this->assertEquals('discussion', $discussion->type);
         
         // Test not found
@@ -1138,6 +1139,29 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('tsugi-item-type-icon', $output, 'Should render item type icon');
         $this->assertStringContainsString('fa-external-link', $output, 'Should include reference icon class');
         $this->assertStringContainsString('tsugi-item-type-reference', $output, 'Should include reference type class');
+        $this->assertStringContainsString('target="_blank"', $output, 'Legacy web links open in a new page');
+    }
+
+    public function testRenderWebLinkSamePageTarget() {
+        $lessons = new class extends \Tsugi\UI\Lessons {
+            public function __construct() {
+            }
+        };
+        $module = (object)['title' => 'Test Module'];
+        $item = (object)[
+            'type' => 'web_link',
+            'subtype' => 'reference',
+            'title' => 'Same Page',
+            'href' => 'http://example.com/same',
+            'target' => '_self',
+        ];
+        ob_start();
+        $lessons->renderItem($item, $module);
+        $output = ob_get_clean();
+        $this->assertStringContainsString('http://example.com/same', $output);
+        $this->assertStringNotContainsString('target="_blank"', $output);
+        $this->assertSame('', \Tsugi\UI\Lessons::webLinkTargetAttrs($item));
+        $this->assertStringContainsString('target="_blank"', \Tsugi\UI\Lessons::webLinkTargetAttrs((object)['type' => 'web_link']));
     }
     
     /**

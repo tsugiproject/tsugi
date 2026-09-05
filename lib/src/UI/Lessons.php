@@ -11,6 +11,10 @@ use \Tsugi\Crypt\AesOpenSSL;
 use \Tsugi\Grades\GradeUtil;
 use \Tsugi\Services\Badges\BadgeService;
 
+if ( ! class_exists(__NAMESPACE__.'\\LessonsNormalize', false) ) {
+    require_once __DIR__ . '/LessonsNormalize.php';
+}
+
 class Lessons {
 
     /**
@@ -335,6 +339,25 @@ class Lessons {
         }
         $this->lessons = $lessons;
 
+        // In-memory canonical model (does not rewrite the source JSON file)
+        for($i=0;$i<count($this->lessons->modules);$i++) {
+            if ( isset($this->lessons->modules[$i]->items) && is_array($this->lessons->modules[$i]->items) ) {
+                foreach ( $this->lessons->modules[$i]->items as $j => $item ) {
+                    $this->lessons->modules[$i]->items[$j] = LessonsNormalize::normalizeItemObject($item);
+                }
+            }
+        }
+        if ( isset($this->lessons->launches) && is_array($this->lessons->launches) ) {
+            foreach ( $this->lessons->launches as $j => $launch ) {
+                $this->lessons->launches[$j] = LessonsNormalize::normalizeItemObject($launch);
+            }
+        }
+        if ( isset($this->lessons->discussions) && is_array($this->lessons->discussions) ) {
+            foreach ( $this->lessons->discussions as $j => $discussion ) {
+                $this->lessons->discussions[$j] = LessonsNormalize::normalizeItemObject($discussion);
+            }
+        }
+
         // Pretty up the data structure
         for($i=0;$i<count($this->lessons->modules);$i++) {
             if ( isset($this->lessons->modules[$i]->carousel) ) self::adjustArray($this->lessons->modules[$i]->carousel);
@@ -372,16 +395,13 @@ class Lessons {
             }
         }
 
-        // Make sure resource links are unique and remember them
+        // Remember resource links (author-supplied duplicates are allowed)
         foreach($this->lessons->modules as $module) {
             // Items array takes precedence - if present, skip legacy arrays
             if ( isset($module->items) ) {
                 foreach($module->items as $item) {
-                    if ( !isset($item->type) ) continue;
-                    if ( ($item->type == 'lti' || $item->type == 'discussion') && isset($item->resource_link_id) ) {
-                        if (isset($this->resource_links[$item->resource_link_id]) ) {
-                            self::fail('Duplicate resource link in Lessons '. $item->resource_link_id);
-                        }
+                    if ( ! LessonsNormalize::isLtiLaunch($item) || ! isset($item->resource_link_id) ) continue;
+                    if ( ! isset($this->resource_links[$item->resource_link_id]) ) {
                         $this->resource_links[$item->resource_link_id] = $module->anchor;
                     }
                 }
@@ -397,10 +417,9 @@ class Lessons {
                         if ( ! isset($lti->resource_link_id) ) {
                             self::fail('Missing resource link in Lessons '. $lti->title);
                         }
-                        if (isset($this->resource_links[$lti->resource_link_id]) ) {
-                            self::fail('Duplicate resource link in Lessons '. $lti->resource_link_id);
+                        if ( ! isset($this->resource_links[$lti->resource_link_id]) ) {
+                            $this->resource_links[$lti->resource_link_id] = $module->anchor;
                         }
-                        $this->resource_links[$lti->resource_link_id] = $module->anchor;
                     }
                 }
                 // Process legacy discussions array only if items is not present
@@ -414,10 +433,9 @@ class Lessons {
                         if ( ! isset($discussion->resource_link_id) ) {
                             self::fail('Missing resource link in Lessons '. $discussion->title);
                         }
-                        if (isset($this->resource_links[$discussion->resource_link_id]) ) {
-                            self::fail('Duplicate resource link in Lessons '. $discussion->resource_link_id);
+                        if ( ! isset($this->resource_links[$discussion->resource_link_id]) ) {
+                            $this->resource_links[$discussion->resource_link_id] = $module->anchor;
                         }
-                        $this->resource_links[$discussion->resource_link_id] = $module->anchor;
                     }
                 }
             }
@@ -436,10 +454,9 @@ class Lessons {
                 if ( ! isset($launch->launch) ) {
                     self::fail('All launches must have launch URL: '.$launch->title);
                 }
-                if ( isset($this->resource_links[$launch->resource_link_id]) ) {
-                    self::fail('Duplicate resource link in Lessons '. $launch->resource_link_id);
+                if ( ! isset($this->resource_links[$launch->resource_link_id]) ) {
+                    $this->resource_links[$launch->resource_link_id] = '';
                 }
-                $this->resource_links[$launch->resource_link_id] = '';
             }
         }
 
@@ -556,8 +573,7 @@ class Lessons {
 
         if ( isset($this->lessons->launches) ) {
             foreach ( $this->getLaunches() as $launch ) {
-                $type = isset($launch->type) ? $launch->type : 'lti';
-                if ( $type !== 'lti' ) {
+                if ( ! LessonsNormalize::isLtiLaunch($launch) ) {
                     continue;
                 }
                 if ( isset($launch->resource_link_id) && $launch->resource_link_id == $resource_link_id ) {
@@ -581,11 +597,9 @@ class Lessons {
             if ( isset($mod->items) && is_array($mod->items) ) {
                 foreach($mod->items as $item) {
                     $item_obj = is_array($item) ? (object)$item : $item;
-                    if ( isset($item_obj->type) && isset($item_obj->resource_link_id) ) {
-                        if ( ($item_obj->type == 'lti' || $item_obj->type == 'discussion') 
-                             && $item_obj->resource_link_id == $resource_link_id ) {
-                            return $item_obj;
-                        }
+                    if ( LessonsNormalize::isLtiLaunch($item_obj) && isset($item_obj->resource_link_id)
+                        && $item_obj->resource_link_id == $resource_link_id ) {
+                        return $item_obj;
                     }
                 }
             }
@@ -613,11 +627,9 @@ class Lessons {
             if ( isset($mod->items) && is_array($mod->items) ) {
                 foreach($mod->items as $item) {
                     $item_obj = is_array($item) ? (object)$item : $item;
-                    if ( isset($item_obj->type) && isset($item_obj->resource_link_id) ) {
-                        if ( ($item_obj->type == 'lti' || $item_obj->type == 'discussion') 
-                             && $item_obj->resource_link_id == $resource_link_id ) {
-                            return $mod;
-                        }
+                    if ( LessonsNormalize::isLtiLaunch($item_obj) && isset($item_obj->resource_link_id)
+                        && $item_obj->resource_link_id == $resource_link_id ) {
+                        return $mod;
                     }
                 }
             }
@@ -723,7 +735,7 @@ class Lessons {
         $require_scheduled = ($duedates_for_display !== array());
         if ( isset($module->items) ) {
             foreach ( $module->items as $item ) {
-                if ( ! isset($item->type) || $item->type != 'lti' || ! isset($item->resource_link_id) ) {
+                if ( ! LessonsNormalize::isAssignmentLti($item) ) {
                     continue;
                 }
                 if ( ! self::ltiLaunchIsGraded($item) ) {
@@ -1097,7 +1109,7 @@ class Lessons {
                     $type = isset($item_obj->type) ? $item_obj->type : '';
                     
                     // Handle headers - render outside list structure (aligned with title)
-                    if ($type == 'header') {
+                    if (LessonsNormalize::isHeading($item_obj)) {
                         if ($in_list && $current_section) {
                             echo("</ul>\n");
                             $in_list = false;
@@ -1119,22 +1131,7 @@ class Lessons {
                     }
                     
                     // Determine section type for grouping (these will be indented)
-                    $section_type = null;
-                    if (in_array($type, array('video'))) {
-                        $section_type = 'videos';
-                    } else if (in_array($type, array('reference'))) {
-                        $section_type = 'references';
-                    } else if (in_array($type, array('discussion'))) {
-                        $section_type = 'discussions';
-                    } else if (in_array($type, array('lti'))) {
-                        $section_type = 'ltis';
-                    } else if (in_array($type, array('slide'))) {
-                        $section_type = 'slides';
-                    } else if (in_array($type, array('assignment'))) {
-                        $section_type = 'assignments';
-                    } else if (in_array($type, array('solution'))) {
-                        $section_type = 'solutions';
-                    }
+                    $section_type = LessonsNormalize::sectionGroup($item_obj);
                     
                     // Start new list section if needed (indented under header)
                     if ($section_type && $section_type != $current_section) {
@@ -1150,7 +1147,10 @@ class Lessons {
                             'ltis' => 'tsugi-lessons-module-ltis',
                             'slides' => 'tsugi-lessons-module-slides',
                             'assignments' => 'tsugi-lessons-module-assignments',
-                            'solutions' => 'tsugi-lessons-module-solutions'
+                            'solutions' => 'tsugi-lessons-module-solutions',
+                            'web_links' => 'tsugi-lessons-module-references',
+                            'files' => 'tsugi-lessons-module-slides',
+                            'html_pages' => 'tsugi-lessons-module-assignments'
                         );
                         $ul_class_map = array(
                             'videos' => 'tsugi-lessons-module-videos-ul',
@@ -1159,7 +1159,10 @@ class Lessons {
                             'ltis' => 'tsugi-lessons-module-ltis-ul',
                             'slides' => 'tsugi-lessons-module-slides-ul',
                             'assignments' => 'tsugi-lessons-module-assignments-ul',
-                            'solutions' => 'tsugi-lessons-module-solutions-ul'
+                            'solutions' => 'tsugi-lessons-module-solutions-ul',
+                            'web_links' => 'tsugi-lessons-module-references-ul',
+                            'files' => 'tsugi-lessons-module-slides-ul',
+                            'html_pages' => 'tsugi-lessons-module-assignments-ul'
                         );
                         $typeof_map = array(
                             'videos' => 'oer:SupportingMaterial',
@@ -1168,7 +1171,10 @@ class Lessons {
                             'ltis' => 'oer:assessment',
                             'slides' => 'oer:SupportingMaterial',
                             'assignments' => 'oer:assessment',
-                            'solutions' => 'oer:assessment'
+                            'solutions' => 'oer:assessment',
+                            'web_links' => 'oer:SupportingMaterial',
+                            'files' => 'oer:SupportingMaterial',
+                            'html_pages' => 'oer:assessment'
                         );
                         echo('<ul typeof="'.$typeof_map[$section_type].'" class="'.$class_map[$section_type].' '.$ul_class_map[$section_type].' tsugi-lessons-content-list">'."\n");
                     } else if (!$section_type) {
@@ -1435,7 +1441,7 @@ class Lessons {
             }
 
             // DISCUSSIONs not logged in
-            if ( isset($CFG->tdiscus) && $CFG->tdiscus && isset($module->discussions) && ! isset($_SESSION['secret']) ) {
+            if ( isset($module->discussions) && ! isset($_SESSION['secret']) ) {
                 $discussions = $module->discussions;
                 echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussions">');
                 echo(__('Discussions:'));
@@ -1449,7 +1455,7 @@ class Lessons {
             }
 
             // DISCUSSIONs logged in
-            if ( isset($CFG->tdiscus) && $CFG->tdiscus && isset($module->discussions)
+            if ( isset($module->discussions)
                 && U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
                 && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
             {
@@ -1463,7 +1469,7 @@ class Lessons {
 
                     if ( $nostyle ) {
                         echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'.htmlentities($resource_link_title).' (Login Required) <br/>'."\n");
-                        $discussionurl = U::add_url_parm($discussion->launch, 'inherit', $discussion->resource_link_id);
+                        $discussionurl = U::add_url_parm(LessonsNormalize::launchUrlForItem($discussion), 'inherit', $discussion->resource_link_id);
                         echo('<span style="color:green">'.htmlentities($discussionurl)."</span>\n");
                         if ( isset($_SESSION['gc_count']) ) {
                             echo('<a href="'.$CFG->wwwroot.'/gclass/assign?rlid='.$discussion->resource_link_id);
@@ -1921,7 +1927,7 @@ class Lessons {
         foreach ( $this->lessons->modules as $modIndex => $module ) {
             if ( isset($module->items) ) {
                 foreach ( $module->items as $item ) {
-                    if ( ! isset($item->type) || $item->type != 'lti' || ! isset($item->resource_link_id) ) {
+                    if ( ! LessonsNormalize::isAssignmentLti($item) ) {
                         continue;
                     }
                     if ( $for_due_date_management && ! self::ltiLaunchIsGraded($item) ) {
@@ -1990,7 +1996,7 @@ class Lessons {
             $has_assignments = false;
             if ( isset($module->items) ) {
                 foreach($module->items as $item) {
-                    if ( isset($item->type) && $item->type == 'lti' && isset($item->resource_link_id)
+                    if ( LessonsNormalize::isAssignmentLti($item)
                         && self::ltiLaunchIsGraded($item) ) {
                         $has_assignments = true;
                         break;
@@ -2018,7 +2024,7 @@ class Lessons {
             // Process items array first (takes precedence)
             if ( isset($module->items) ) {
                 foreach($module->items as $item) {
-                    if ( !isset($item->type) || $item->type != 'lti' || !isset($item->resource_link_id) ) continue;
+                    if ( ! LessonsNormalize::isAssignmentLti($item) ) continue;
                     if ( ! self::ltiLaunchIsGraded($item) ) continue;
                     $this->renderAssignmentItem($item->resource_link_id, isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'), $allgrades, $alldates, $duedates, $item, isset($module->anchor) ? $module->anchor : '', $alllinkids, $is_instructor);
                 }
@@ -2091,25 +2097,26 @@ class Lessons {
         // Items array takes precedence - process items first
         if ( isset($module->items) ) {
             foreach($module->items as $item) {
-                if ( !isset($item->type) ) continue;
-                if ( $item->type == 'video' ) {
+                $kind = LessonsNormalize::presentationKind($item);
+                $href = isset($item->href) ? $item->href : (isset($item->url) ? $item->url : '');
+                if ( $kind == 'video' ) {
                     $vurl = self::videoUrlForItem($item);
                     if ( $vurl ) {
                         $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Video');
                         $resources[] = self::makeUrlResource('video', $title, $vurl);
                     }
-                } else if ( $item->type == 'slide' && isset($item->href) ) {
+                } else if ( $kind == 'slide' && $href !== '' ) {
                     $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : __('Slides').': '.$module->title);
-                    $resources[] = self::makeUrlResource('slides', $title, $item->href);
-                } else if ( $item->type == 'assignment' && isset($item->href) ) {
+                    $resources[] = self::makeUrlResource('slides', $title, $href);
+                } else if ( $kind == 'assignment' && $href !== '' ) {
                     $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment Specification');
-                    $resources[] = self::makeUrlResource('assignment', $title, $item->href);
-                } else if ( $item->type == 'solution' && isset($item->href) ) {
+                    $resources[] = self::makeUrlResource('assignment', $title, $href);
+                } else if ( $kind == 'solution' && $href !== '' ) {
                     $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment Solution');
-                    $resources[] = self::makeUrlResource('solution', $title, $item->href);
-                } else if ( $item->type == 'reference' && isset($item->href) ) {
+                    $resources[] = self::makeUrlResource('solution', $title, $href);
+                } else if ( $kind == 'reference' && $href !== '' ) {
                     $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Reference');
-                    $resources[] = self::makeUrlResource('reference', $title, $item->href);
+                    $resources[] = self::makeUrlResource('reference', $title, $href);
                 }
             }
         } else {
@@ -2370,7 +2377,7 @@ class Lessons {
             if ( $has_items ) {
                 foreach($module->items as $item) {
                     $item_obj = is_array($item) ? (object)$item : $item;
-                    if ( isset($item_obj->type) && $item_obj->type == 'discussion' ) {
+                    if ( LessonsNormalize::isDiscussion($item_obj) ) {
                         $discussions [] = $item_obj;
                     }
                 }
@@ -2439,8 +2446,7 @@ class Lessons {
 
         $can_add = is_string($addUrl) && strlen($addUrl) > 0;
         $can_reorder = is_string($reorderUrl) && strlen($reorderUrl) > 0 && count($discussions) > 1;
-        $tdiscus_ok = isset($CFG->tdiscus) && ! empty($CFG->tdiscus);
-        $show_catalog = $tdiscus_ok && count($discussions) > 0;
+        $show_catalog = count($discussions) > 0;
 
         if ( ! $show_catalog && ! $can_add ) {
             echo('<h1>'.__('Discussions not available')."</h1>\n");
@@ -2754,8 +2760,10 @@ $(function(){
      * Get icon class for an item type
      */
     private static function getItemTypeIcon($type, $url_for_icon = null) {
+        $pdf_types = array('slide', 'slides', 'reference', 'assignment', 'solution',
+            'web_link', 'file', 'html_page', 'pdf');
         if ( $url_for_icon !== null && self::urlLooksLikePdf($url_for_icon)
-            && in_array($type, array('slide', 'reference', 'assignment', 'solution'), true) ) {
+            && in_array($type, $pdf_types, true) ) {
             return 'fa-file-pdf-o';
         }
         $icons = array(
@@ -2763,11 +2771,20 @@ $(function(){
             'reference' => 'fa-external-link',
             'discussion' => 'fa-comments',
             'lti' => 'fa-puzzle-piece',
+            'quiz' => 'fa-puzzle-piece',
+            'autograder' => 'fa-puzzle-piece',
+            'peer_grade' => 'fa-puzzle-piece',
             'assignment' => 'fa-file-text',
             'slide' => 'fa-file-powerpoint-o',
+            'slides' => 'fa-file-powerpoint-o',
             'solution' => 'fa-unlock',
             'text' => 'fa-file-text-o',
-            'header' => 'fa-header'
+            'header' => 'fa-header',
+            'heading' => 'fa-header',
+            'web_link' => 'fa-external-link',
+            'html_page' => 'fa-file-text-o',
+            'file' => 'fa-file-o',
+            'pdf' => 'fa-file-pdf-o'
         );
         return isset($icons[$type]) ? $icons[$type] : 'fa-circle';
     }
@@ -2776,8 +2793,10 @@ $(function(){
      * Get background color for an item type icon
      */
     private static function getItemTypeColor($type, $url_for_icon = null) {
+        $pdf_types = array('slide', 'slides', 'reference', 'assignment', 'solution',
+            'web_link', 'file', 'html_page', 'pdf');
         if ( $url_for_icon !== null && self::urlLooksLikePdf($url_for_icon)
-            && in_array($type, array('slide', 'reference', 'assignment', 'solution'), true) ) {
+            && in_array($type, $pdf_types, true) ) {
             return '#b30b00';
         }
         $colors = array(
@@ -2785,11 +2804,20 @@ $(function(){
             'reference' => '#17a2b8',
             'discussion' => '#ffc107',
             'lti' => '#28a745',
+            'quiz' => '#28a745',
+            'autograder' => '#28a745',
+            'peer_grade' => '#28a745',
             'assignment' => '#fd7e14',
             'slide' => '#6f42c1',
+            'slides' => '#6f42c1',
             'solution' => '#6c757d',
             'text' => '#6c757d',
-            'header' => 'transparent'
+            'header' => 'transparent',
+            'heading' => 'transparent',
+            'web_link' => '#17a2b8',
+            'html_page' => '#fd7e14',
+            'file' => '#6c757d',
+            'pdf' => '#b30b00'
         );
         return isset($colors[$type]) ? $colors[$type] : '#6c757d';
     }
@@ -2801,13 +2829,23 @@ $(function(){
      * @param string|null $url_for_icon expanded href; used to pick PDF icon for link-like types
      */
     private static function renderItemIcon($type, $url_for_icon = null) {
-        $icon = self::getItemTypeIcon($type, $url_for_icon);
-        $color = self::getItemTypeColor($type, $url_for_icon);
+        $css_type = $type;
+        if ( is_string($type) && strpos($type, 'fa-') === 0 ) {
+            $icon = $type;
+            $color = '#6c757d';
+            $css_type = 'custom';
+        } else {
+            $icon = self::getItemTypeIcon($type, $url_for_icon);
+            $color = self::getItemTypeColor($type, $url_for_icon);
+        }
         $iconColor = ($type === 'discussion') ? '#333' : 'white';
+        $pdf_types = array('slide', 'slides', 'reference', 'assignment', 'solution',
+            'web_link', 'file', 'html_page', 'pdf');
         $pdf_class = ($url_for_icon !== null && self::urlLooksLikePdf($url_for_icon)
-            && in_array($type, array('slide', 'reference', 'assignment', 'solution'), true))
+            && in_array($type, $pdf_types, true))
             ? ' tsugi-lessons-pdf-icon' : '';
-        echo('<span class="tsugi-item-type-icon tsugi-item-type-'.$type.$pdf_class.'" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 3px; font-size: 14px; background-color: '.$color.'; margin-right: 8px; vertical-align: middle;">');
+        $css_type = preg_replace('/[^a-z0-9_-]/i', '', $css_type);
+        echo('<span class="tsugi-item-type-icon tsugi-item-type-'.$css_type.$pdf_class.'" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 3px; font-size: 14px; background-color: '.$color.'; margin-right: 8px; vertical-align: middle;">');
         echo('<i class="fa '.$icon.'" aria-hidden="true" style="color: '.$iconColor.';"></i>');
         echo('</span>');
     }
@@ -2818,18 +2856,35 @@ $(function(){
     public function renderItem($item, $module, $nostyle=false) {
         global $CFG, $OUTPUT;
         
-        if ( !isset($item->type) ) {
+        if ( is_array($item) ) {
+            $item = (object) $item;
+        }
+        if ( ! isset($item->type) ) {
             return; // Skip items without a type
         }
-        
+        $item = LessonsNormalize::normalizeItemObject($item);
         $type = $item->type;
+        $kind = LessonsNormalize::presentationKind($item);
         
         switch($type) {
+            case 'heading':
             case 'header':
                 $this->renderItemHeader($item);
                 break;
             case 'text':
                 $this->renderItemText($item);
+                break;
+            case 'web_link':
+            case 'html_page':
+            case 'file':
+                $this->renderCanonicalResource($item, $module, $kind, $nostyle);
+                break;
+            case 'lti':
+                if ( $kind === 'discussion' ) {
+                    $this->renderItemDiscussion($item, $module, $nostyle);
+                } else {
+                    $this->renderItemLti($item, $module, $nostyle);
+                }
                 break;
             case 'video':
                 $this->renderItemVideo($item, $nostyle);
@@ -2842,9 +2897,6 @@ $(function(){
                 break;
             case 'discussion':
                 $this->renderItemDiscussion($item, $module, $nostyle);
-                break;
-            case 'lti':
-                $this->renderItemLti($item, $module, $nostyle);
                 break;
             // Legacy plural types - convert to singular and re-render (backward compatibility)
             case 'videos':
@@ -2885,11 +2937,79 @@ $(function(){
     }
 
     /**
+     * Dispatch a normalized web_link / html_page / file to the matching presentation.
+     */
+    private function renderCanonicalResource($item, $module, $kind, $nostyle=false) {
+        if ( $kind === 'video' ) {
+            $this->renderItemVideo($item, $nostyle);
+            return;
+        }
+        if ( $kind === 'slide' ) {
+            $this->renderItemSlide($item, $nostyle);
+            return;
+        }
+        if ( $kind === 'reference' ) {
+            $this->renderItemReference($item, $nostyle);
+            return;
+        }
+        if ( $kind === 'assignment' ) {
+            $this->renderItemAssignment($item, $nostyle);
+            return;
+        }
+        if ( $kind === 'solution' ) {
+            $this->renderItemSolution($item, $nostyle);
+            return;
+        }
+        $this->renderItemGenericLink($item, $kind, $nostyle);
+    }
+
+    /**
+     * Generic fallback for foundational file / web_link / html_page items.
+     */
+    private function renderItemGenericLink($item, $kind, $nostyle=false) {
+        $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : (isset($item->filename) ? $item->filename : ''));
+        $href = isset($item->href) ? $item->href : (isset($item->url) ? $item->url : '');
+        $href = self::expandLink($href);
+        $css = $kind !== '' ? $kind : 'web_link';
+        $icon_key = LessonsNormalize::iconKey($item);
+
+        echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-'.$css.'">');
+        if ( $nostyle ) {
+            echo(htmlentities($title).':');
+            self::nostyleUrl($title, $href);
+        } else {
+            echo('<a href="'.$href.'"'.self::webLinkTargetAttrs($item).' class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon($icon_key, $href);
+            echo(htmlentities($title).'</a>');
+        }
+        echo("</li>\n");
+    }
+
+    /**
+     * Anchor target for a web link. Legacy items with no target stay new-tab.
+     *
+     * @param mixed $item
+     * @return string
+     */
+    public static function webLinkTargetAttrs($item) {
+        $target = '';
+        if ( is_object($item) && isset($item->target) && is_string($item->target) ) {
+            $target = $item->target;
+        } else if ( is_array($item) && isset($item['target']) && is_string($item['target']) ) {
+            $target = $item['target'];
+        }
+        if ( $target === '_self' ) {
+            return '';
+        }
+        return ' target="_blank" rel="noopener noreferrer"';
+    }
+
+    /**
      * Render a header item
      */
     private function renderItemHeader($item) {
         $level = isset($item->level) ? intval($item->level) : 2;
-        $text = isset($item->text) ? $item->text : (isset($item->title) ? $item->title : '');
+        $text = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : '');
         $class = isset($item->class) ? ' class="'.$item->class.'"' : '';
         echo("<h{$level}{$class}>".htmlentities($text)."</h{$level}>\n");
     }
@@ -3014,7 +3134,7 @@ $(function(){
             file_exists($media_folder . '/' . $media_file) ) {
             $media_path = $media_base . '/' . $media_file;
             echo('<a href="'.$media_path.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('video');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
             echo(htmlentities($item->title).'</a>');
         } else {
             $youtube = isset($item->youtube) ? $item->youtube : '';
@@ -3031,11 +3151,11 @@ $(function(){
   <div class="youtube-player" data-id="<?= $youtube ?>"></div>
   </div>
 </div>
-<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?php self::renderItemIcon('video'); ?><?= htmlentities($item->title) ?></button>
+<button type="button" class="tsugi-video-play-btn" onclick="document.getElementById('<?= $navid ?>').style.display = 'block';"><?php self::renderItemIcon(LessonsNormalize::iconKey($item)); ?><?= htmlentities($item->title) ?></button>
 <?php
                 } else {
                 echo('<a href="'.htmlspecialchars($yurl).'" target="_blank" style="display: inline-flex; align-items: center;">');
-                self::renderItemIcon('video');
+                self::renderItemIcon(LessonsNormalize::iconKey($item));
                 echo(htmlentities($item->title).'</a>');
                 }
             } else {
@@ -3083,7 +3203,7 @@ $(function(){
         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-slide">');
         echo('<span class="tsugi-lessons-module-slide-link">');
         echo('<a href="'.$slide_href.'" target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
-        self::renderItemIcon('slide', $slide_href);
+        self::renderItemIcon(LessonsNormalize::iconKey($item), $slide_href);
         echo(htmlentities($slide_title)."</a>\n");
         echo("</span>\n");
         echo('</li>'."\n");
@@ -3100,8 +3220,8 @@ $(function(){
         
         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-reference">');
         echo('<span class="tsugi-lessons-module-reference-link">');
-        echo('<a href="'.$href.'" target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
-        self::renderItemIcon('reference', $href);
+        echo('<a href="'.$href.'"'.self::webLinkTargetAttrs($item).' class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
+        self::renderItemIcon(LessonsNormalize::iconKey($item), $href);
         echo(htmlentities($title)."</a>\n");
         echo("</span>\n");
         echo('</li>'."\n");
@@ -3111,30 +3231,27 @@ $(function(){
      * Render a discussion item
      */
     private function renderItemDiscussion($item, $module, $nostyle=false) {
-        global $CFG;
-        
         $resource_link_title = isset($item->title) ? $item->title : $module->title;
-        $launch = isset($item->launch) ? $item->launch : '';
+        $launch = LessonsNormalize::launchUrlForItem($item);
         $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : '';
         
         // Not logged in
         if ( ! isset($_SESSION['secret']) ) {
             echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">');
-            self::renderItemIcon('discussion');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
             echo(htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
             echo("\n</li>\n");
             return;
         }
         
         // Logged in
-        if ( isset($CFG->tdiscus) && $CFG->tdiscus && 
-            U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
+        if ( U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
             && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email') )
         {
             if ( $nostyle ) {
                 echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">');
                 echo('<span style="display: inline-flex; align-items: center;">');
-                self::renderItemIcon('discussion');
+                self::renderItemIcon(LessonsNormalize::iconKey($item));
                 echo(htmlentities($resource_link_title).' (Login Required)');
                 echo('</span><br/>'."\n");
                 $discussionurl = U::add_url_parm($launch, 'inherit', $resource_link_id);
@@ -3146,7 +3263,7 @@ $(function(){
             $launch_path = $this->lessonsLaunchPath($resource_link_id);
             echo('<li class="tsugi-lessons-module-discussion">');
             echo('<a href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('discussion');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
             echo(htmlentities($resource_link_title).'</a></li>'."\n");
         }
     }
@@ -3166,7 +3283,7 @@ $(function(){
         if ( ! isset($_SESSION['secret']) ) {
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">');
             echo('<span style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('lti');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
             echo(htmlentities($resource_link_title).' ('.__('Login Required').')');
             echo('</span><br/>'."\n");
             echo("\n</li>\n");
@@ -3180,7 +3297,7 @@ $(function(){
             if ( $nostyle ) {
                 echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">');
                 echo('<span style="display: inline-flex; align-items: center;">');
-                self::renderItemIcon('lti');
+                self::renderItemIcon(LessonsNormalize::iconKey($item));
                 echo(htmlentities($resource_link_title).' (Login Required)');
                 echo('</span><br/>'."\n");
                 $ltiurl = U::add_url_parm($launch, 'inherit', $resource_link_id);
@@ -3197,7 +3314,7 @@ $(function(){
             echo('<a');
             if ( $target == "_blank" ) echo(' target="_blank" rel="noopener noreferrer" onclick="alert(\'Link will open in a new browser tab...\');" ');
             echo(' href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('lti');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
             echo(htmlentities($title).'</a>');
             self::echoLtiLinkProgressIndicators($resource_link_id, $item, $this->lessonModuleGradesForBadges, $this->lessonModuleDueDatesForBadges);
             echo('</li>'."\n");
@@ -3221,7 +3338,7 @@ $(function(){
         } else {
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-assignment">');
             echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('assignment', $url);
+            self::renderItemIcon(LessonsNormalize::iconKey($item), $url);
             echo(htmlentities($title).'</a></li>'."\n");
         }
     }
@@ -3242,7 +3359,7 @@ $(function(){
         } else {
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-solution">');
             echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon('solution', $url);
+            self::renderItemIcon(LessonsNormalize::iconKey($item), $url);
             echo(__('Assignment Solution').'</a></li>'."\n");
         }
     }

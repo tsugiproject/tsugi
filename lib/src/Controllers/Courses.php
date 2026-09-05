@@ -340,7 +340,7 @@ class Courses extends Tool {
         ?>
         <main class="container" id="main-content">
             <h1>Add course</h1>
-            <p>Creates a new course with a starter outline. Lesson authoring for this course saves new manifest versions.</p>
+            <p>Creates a new course with a Lessons JSON v2 starter outline in the database. Authoring is available for this course and saves new manifest versions. It does not write a lessons.json file.</p>
             <form method="post" action="<?= htmlspecialchars(self::joinToolHome($home, 'create')) ?>">
                 <?= self::csrfField() ?>
                 <p>

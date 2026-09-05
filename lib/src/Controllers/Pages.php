@@ -8,6 +8,8 @@ use Tsugi\Util\CCFileBase;
 require_once __DIR__ . '/../UI/CKEditor.php';
 
 use Tsugi\Core\LTIX;
+use Tsugi\Core\Manifest;
+use Tsugi\UI\LessonsNormalize;
 
 // Ensure CKEditor helper is loaded (fallback if autoload misses it)
 require_once __DIR__ . '/../UI/CKEditor.php';
@@ -296,37 +298,54 @@ class Pages extends Tool {
 
         $apphome = isset($CFG->apphome) ? rtrim($CFG->apphome, '/') : '';
         $parent = $this->toolParent(self::ROUTE);
-        $lessons_base = $parent . '/lessons';
-        $lessons_launch = $parent . '/lessons_launch/';
-        $launch_base = $parent . '/launch/';
-        $lessons_file = isset($CFG->lessons) ? $CFG->lessons : '';
+        $data = self::lessonsDocumentForPicker();
+        return new JsonResponse(self::lessonsLinkPickerPayload(
+            is_array($data) ? $data : array(),
+            $apphome,
+            $parent . '/lessons',
+            $parent . '/lessons_launch/',
+            $parent . '/launch/'
+        ));
+    }
+
+    /**
+     * Current lessons document for the link picker (manifest, then $CFG->lessons).
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function lessonsDocumentForPicker() {
+        $doc = Manifest::currentDocument();
+        if ( is_array($doc) && isset($doc['json']) && is_string($doc['json']) ) {
+            $data = json_decode($doc['json'], true);
+            if ( is_array($data) ) {
+                return $data;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Pages / Lessons / Files picker rows from a lessons document.
+     *
+     * @param array<string, mixed> $data
+     * @return array{items: list<array<string, mixed>>, modules: list<array<string, mixed>>, launches: list<array<string, mixed>>}
+     */
+    public static function lessonsLinkPickerPayload(array $data, $apphome, $lessons_base, $lessons_launch, $launch_base) {
         $items = array();
-
-        if (empty($apphome) || empty($lessons_file) || !is_readable($lessons_file)) {
-            return new JsonResponse(array('items' => $items, 'modules' => array(), 'launches' => array()));
-        }
-
-        $json = @file_get_contents($lessons_file);
-        if ($json === false) {
-            return new JsonResponse(array('items' => $items, 'modules' => array(), 'launches' => array()));
-        }
-
-        $data = @json_decode($json, true);
-        if (!is_array($data) || empty($data['modules'])) {
-            return new JsonResponse(array('items' => $items, 'modules' => array(), 'launches' => array()));
-        }
-
         $launches_out = array();
+        $top_level_modules = array();
+        $apphome = is_string($apphome) ? rtrim($apphome, '/') : '';
+
         $top_launches = U::get($data, 'launches', array());
-        if (is_array($top_launches)) {
-            foreach ($top_launches as $launch) {
-                if (!is_array($launch)) {
+        if ( is_array($top_launches) ) {
+            foreach ( $top_launches as $launch ) {
+                if ( ! is_array($launch) ) {
                     continue;
                 }
                 $type = U::get($launch, 'type', 'lti');
                 $title = U::get($launch, 'title', '');
                 $rlid = U::get($launch, 'resource_link_id', '');
-                if ($type !== 'lti' || $title === '' || $rlid === '') {
+                if ( $type !== 'lti' || $title === '' || $rlid === '' ) {
                     continue;
                 }
                 $launches_out[] = array(
@@ -339,11 +358,18 @@ class Pages extends Tool {
             }
         }
 
-        $top_level_modules = array();
-        foreach ($data['modules'] as $module) {
+        $modules = U::get($data, 'modules', array());
+        if ( ! is_array($modules) ) {
+            return array('items' => $items, 'modules' => $top_level_modules, 'launches' => $launches_out);
+        }
+
+        foreach ( $modules as $module ) {
+            if ( ! is_array($module) ) {
+                continue;
+            }
             $module_title = U::get($module, 'title', '');
             $module_anchor = U::get($module, 'anchor', '');
-            if (!empty($module_title) && !empty($module_anchor)) {
+            if ( $module_title !== '' && $module_anchor !== '' ) {
                 $top_level_modules[] = array(
                     'title' => $module_title,
                     'url' => $lessons_base . '/' . $module_anchor,
@@ -351,42 +377,55 @@ class Pages extends Tool {
                 );
             }
             $module_items = U::get($module, 'items', array());
+            if ( ! is_array($module_items) ) {
+                continue;
+            }
 
-            foreach ($module_items as $item) {
-                $type = U::get($item, 'type', '');
-                $title = U::get($item, 'title', '');
+            foreach ( $module_items as $item ) {
+                if ( ! is_array($item) ) {
+                    continue;
+                }
+                $norm = LessonsNormalize::normalizeItem($item);
+                $type = U::get($norm, 'type', '');
+                $kind = LessonsNormalize::presentationKind($norm);
+                $title = U::get($norm, 'title', '');
                 $url = null;
 
-                if ($type === 'header') {
+                if ( LessonsNormalize::isHeading($norm) || $type === 'header' ) {
                     continue;
                 }
 
-                if ($type === 'lti' || $type === 'not-lti' || $type === 'discussion') {
-                    $resource_link_id = U::get($item, 'resource_link_id', '');
-                    if (!empty($resource_link_id)) {
+                if ( LessonsNormalize::isLtiLaunch($norm) || $type === 'not-lti' ) {
+                    $resource_link_id = U::get($norm, 'resource_link_id', '');
+                    if ( $resource_link_id !== '' ) {
                         $url = $lessons_launch . rawurlencode($resource_link_id);
                     }
-                } elseif ($type === 'slide' || $type === 'reference') {
-                    $href = U::get($item, 'href', '');
-                    if (!empty($href)) {
+                } else if ( $kind === 'slide' || $kind === 'reference' || $kind === 'assignment'
+                    || $kind === 'solution' || $type === 'web_link' || $type === 'html_page'
+                    || $type === 'file' ) {
+                    $href = U::get($norm, 'href', '');
+                    if ( $href !== '' ) {
                         $url = str_replace('{apphome}', $apphome, $href);
                     }
-                } elseif ($type === 'video' && U::get($item, 'youtube', '')) {
-                    $youtube_id = trim(U::get($item, 'youtube', ''));
-                    if (!empty($youtube_id)) {
+                } else if ( $kind === 'video' ) {
+                    $href = U::get($norm, 'href', '');
+                    $youtube_id = trim(U::get($norm, 'youtube', ''));
+                    if ( $href !== '' ) {
+                        $url = str_replace('{apphome}', $apphome, $href);
+                    } else if ( $youtube_id !== '' ) {
                         $url = 'https://www.youtube.com/watch?v=' . $youtube_id;
                     }
                 }
 
-                if (!empty($url) && !empty($title)) {
+                if ( $url !== null && $url !== '' && $title !== '' ) {
                     $item_data = array(
                         'title' => $title,
                         'url' => $url,
                         'module' => $module_title,
                         'module_anchor' => $module_anchor,
-                        'type' => $type
+                        'type' => $kind !== '' ? $kind : $type
                     );
-                    if ($type === 'video') {
+                    if ( $kind === 'video' ) {
                         $item_data['target_blank'] = true;
                     }
                     $items[] = $item_data;
@@ -394,7 +433,7 @@ class Pages extends Tool {
             }
         }
 
-        return new JsonResponse(array('items' => $items, 'modules' => $top_level_modules, 'launches' => $launches_out));
+        return array('items' => $items, 'modules' => $top_level_modules, 'launches' => $launches_out);
     }
 
     public function add(Request $request)
