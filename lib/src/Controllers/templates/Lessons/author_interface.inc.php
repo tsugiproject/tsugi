@@ -1748,6 +1748,10 @@ function harvestItemFormDraft(item) {
             item[key] = el.value;
         }
     });
+    const targetEl = document.querySelector('input[name="edit-target"]:checked');
+    if (targetEl) {
+        item.target = targetEl.value;
+    }
 }
 
 function currentEditorItem() {
@@ -1852,7 +1856,7 @@ function updateItemFormFields(item) {
             </div>
             `;
         } else {
-            const samePage = item.target === '_self';
+            const openTarget = item.target === '_self' ? '_self' : (item.target === 'modal' ? 'modal' : '_blank');
             const hrefVal = item.href || '';
             fieldsHtml += `
             <div class="form-group">
@@ -1876,8 +1880,9 @@ function updateItemFormFields(item) {
             <div class="form-group">
                 <label>Open:</label>
                 <div class="form-group-radios">
-                    <label><input type="radio" name="edit-target" value="_self" ${samePage ? 'checked' : ''}> Same page</label>
-                    <label><input type="radio" name="edit-target" value="_blank" ${samePage ? '' : 'checked'}> New page</label>
+                    <label><input type="radio" name="edit-target" value="_self" ${openTarget === '_self' ? 'checked' : ''}> Same page</label>
+                    <label><input type="radio" name="edit-target" value="_blank" ${openTarget === '_blank' ? 'checked' : ''}> New page</label>
+                    <label><input type="radio" name="edit-target" value="modal" ${openTarget === 'modal' ? 'checked' : ''}> Modal</label>
                 </div>
             </div>
             `;
@@ -2222,7 +2227,11 @@ function saveWebLinkItem(item) {
         item.subtype = subtype;
     }
     const targetVal = $('input[name="edit-target"]:checked').val();
-    item.target = targetVal === '_self' ? '_self' : '_blank';
+    if (targetVal === '_self' || targetVal === 'modal') {
+        item.target = targetVal;
+    } else {
+        item.target = '_blank';
+    }
 }
 
 function saveItem() {

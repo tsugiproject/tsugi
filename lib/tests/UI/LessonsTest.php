@@ -1200,6 +1200,32 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertStringNotContainsString('target="_blank"', $output);
         $this->assertSame('', \Tsugi\UI\Lessons::webLinkTargetAttrs($item));
         $this->assertStringContainsString('target="_blank"', \Tsugi\UI\Lessons::webLinkTargetAttrs((object)['type' => 'web_link']));
+        $this->assertSame('self', \Tsugi\UI\Lessons::webLinkOpenMode($item));
+        $this->assertSame('blank', \Tsugi\UI\Lessons::webLinkOpenMode((object)['type' => 'web_link']));
+    }
+
+    public function testRenderWebLinkModalTarget() {
+        $lessons = new class extends \Tsugi\UI\Lessons {
+            public function __construct() {
+            }
+        };
+        $module = (object)['title' => 'Test Module'];
+        $item = (object)[
+            'type' => 'web_link',
+            'subtype' => 'reference',
+            'title' => 'Modal Link',
+            'href' => 'http://example.com/modal',
+            'target' => 'modal',
+        ];
+        ob_start();
+        $lessons->renderItem($item, $module);
+        $output = ob_get_clean();
+        $this->assertSame('modal', \Tsugi\UI\Lessons::webLinkOpenMode($item));
+        $this->assertSame('', \Tsugi\UI\Lessons::webLinkTargetAttrs($item));
+        $this->assertStringContainsString('tsugi-link-modal', $output);
+        $this->assertStringContainsString('data-src="http://example.com/modal"', $output);
+        $this->assertStringContainsString('tsugiOpenLinkModal', $output);
+        $this->assertStringNotContainsString('target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link"', $output);
     }
     
     /**

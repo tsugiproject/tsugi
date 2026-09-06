@@ -167,6 +167,53 @@ class Lessons {
     color: #343a40;
     font-weight: 500;
 }
+.tsugi-link-modal-content {
+    background-color: #fff;
+    width: 90%;
+    max-width: 1100px;
+    height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+.tsugi-link-modal-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+    padding: 0.5em 2.75em 0.5em 0.75em;
+    border-bottom: 1px solid #ddd;
+    background: #f5f5f5;
+    position: relative;
+}
+.tsugi-link-modal-title {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.tsugi-link-modal-open-new {
+    flex: 0 0 auto;
+    font-size: 0.85em;
+    white-space: nowrap;
+}
+.tsugi-link-modal-close {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    color: #333;
+}
+.tsugi-link-modal-close:hover {
+    background: rgba(0, 0, 0, 0.15);
+}
+.tsugi-link-modal-frame {
+    flex: 1 1 auto;
+    width: 100%;
+    border: 0;
+    background: #fff;
+}
 </style>'."\n");
     }
 
@@ -2585,6 +2632,27 @@ $(document).ready(function() {
         }
     })
 });
+function tsugiOpenLinkModal(id) {
+    var overlay = document.getElementById(id);
+    if (!overlay) {
+        return;
+    }
+    var iframe = overlay.querySelector('iframe.tsugi-link-modal-frame');
+    if (iframe && iframe.getAttribute('data-src')) {
+        iframe.src = iframe.getAttribute('data-src');
+    }
+    overlay.style.display = 'block';
+}
+function tsugiCloseLinkModal(id) {
+    var overlay = document.getElementById(id);
+    if (!overlay) {
+        return;
+    }
+    $(overlay).find('iframe').each(function() {
+        this.src = '';
+    });
+    overlay.style.display = 'none';
+}
 </script>
 <script type="module" src="<?= htmlspecialchars(\Tsugi\Controllers\StaticFiles::url('Lessons', 'tsugi-kaltura-video.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
 <script src="<?= $CFG->staticroot ?>/plugins/jquery.bxslider/plugins/jquery.fitvids.js">
@@ -2930,7 +2998,7 @@ $(function(){
     private function renderItemGenericLink($item, $kind, $nostyle=false) {
         $title = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : (isset($item->filename) ? $item->filename : ''));
         $href = isset($item->href) ? $item->href : (isset($item->url) ? $item->url : '');
-        $href = self::safeWebHref(self::expandLink($href));
+        $href = self::expandLink($href);
         $css = $kind !== '' ? $kind : 'web_link';
         $icon_key = LessonsNormalize::iconKey($item);
 
@@ -2939,11 +3007,31 @@ $(function(){
             echo(htmlentities($title).':');
             self::nostyleUrl($title, $href);
         } else {
-            echo('<a href="'.$href.'"'.self::webLinkTargetAttrs($item).' class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon($icon_key, $href);
-            echo(htmlentities($title).'</a>');
+            $this->renderWebLinkOpenControl($item, $href, $title, $icon_key);
         }
         echo("</li>\n");
+    }
+
+    /**
+     * How a web link should open. Legacy items with no target stay new-tab.
+     *
+     * @param mixed $item
+     * @return 'self'|'blank'|'modal'
+     */
+    public static function webLinkOpenMode($item) {
+        $target = '';
+        if ( is_object($item) && isset($item->target) && is_string($item->target) ) {
+            $target = $item->target;
+        } else if ( is_array($item) && isset($item['target']) && is_string($item['target']) ) {
+            $target = $item['target'];
+        }
+        if ( $target === '_self' ) {
+            return 'self';
+        }
+        if ( $target === 'modal' ) {
+            return 'modal';
+        }
+        return 'blank';
     }
 
     /**
@@ -2953,16 +3041,62 @@ $(function(){
      * @return string
      */
     public static function webLinkTargetAttrs($item) {
-        $target = '';
-        if ( is_object($item) && isset($item->target) && is_string($item->target) ) {
-            $target = $item->target;
-        } else if ( is_array($item) && isset($item['target']) && is_string($item['target']) ) {
-            $target = $item['target'];
+        if ( self::webLinkOpenMode($item) === 'self' ) {
+            return '';
         }
-        if ( $target === '_self' ) {
+        if ( self::webLinkOpenMode($item) === 'modal' ) {
             return '';
         }
         return ' target="_blank" rel="noopener noreferrer"';
+    }
+
+    /**
+     * Render a web link as same-page, new-tab, or in-page modal.
+     *
+     * @param string $href Expanded URL (not yet HTML-encoded)
+     */
+    private function renderWebLinkOpenControl($item, $href, $title, $icon_key, $css_class='tsugi-lessons-link') {
+        $safe_href = self::safeWebHref($href);
+        if ( self::webLinkOpenMode($item) === 'modal' && $safe_href !== '' ) {
+            $this->renderWebLinkModal($item, $safe_href, $title, $icon_key, $css_class);
+            return;
+        }
+        echo('<a href="'.$safe_href.'"'.self::webLinkTargetAttrs($item).' class="'.$css_class.'" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
+        if ( $icon_key !== null && $icon_key !== false ) {
+            self::renderItemIcon($icon_key, $href);
+        }
+        echo(htmlentities($title).'</a>');
+    }
+
+    /**
+     * In-page iframe overlay for target=modal web links.
+     *
+     * @param string $safe_href Already HTML-encoded href
+     */
+    private function renderWebLinkModal($item, $safe_href, $title, $icon_key, $css_class) {
+        static $n = 0;
+        $n++;
+        $id = 'tsugi-link-modal-'.md5($n.'|'.$safe_href);
+        $title_esc = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
+        $open_lbl = htmlspecialchars(__('Open in a new window'), ENT_QUOTES, 'UTF-8');
+?>
+<div id="<?= $id ?>" class="w3schools-overlay tsugi-link-modal" role="dialog" aria-modal="true" aria-label="<?= $title_esc ?>">
+  <div class="w3schools-overlay-content tsugi-link-modal-content">
+    <div class="tsugi-link-modal-titlebar">
+      <span class="tsugi-link-modal-title"><?= htmlentities($title) ?></span>
+      <a class="tsugi-link-modal-open-new" href="<?= $safe_href ?>" target="_blank" rel="noopener noreferrer"><?= $open_lbl ?></a>
+      <button type="button" class="tsugi-overlay-close tsugi-link-modal-close" aria-label="Close" onclick="tsugiCloseLinkModal('<?= $id ?>');">×</button>
+    </div>
+    <iframe class="tsugi-link-modal-frame" title="<?= $title_esc ?>" data-src="<?= $safe_href ?>" src="about:blank"></iframe>
+  </div>
+</div>
+<button type="button" class="<?= htmlspecialchars($css_class, ENT_QUOTES, 'UTF-8') ?> tsugi-video-play-btn" style="display: inline-flex; align-items: center;" onclick="tsugiOpenLinkModal('<?= $id ?>');">
+<?php
+        if ( $icon_key !== null && $icon_key !== false ) {
+            self::renderItemIcon($icon_key, $safe_href);
+        }
+        echo(htmlentities($title));
+        echo("</button>");
     }
 
     /**
@@ -3162,10 +3296,8 @@ $(function(){
         
         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-slide">');
         echo('<span class="tsugi-lessons-module-slide-link">');
-        echo('<a href="'.$slide_href.'" target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
-        self::renderItemIcon(LessonsNormalize::iconKey($item), $slide_href);
-        echo(htmlentities($slide_title)."</a>\n");
-        echo("</span>\n");
+        $this->renderWebLinkOpenControl($item, $slide_href, $slide_title, LessonsNormalize::iconKey($item));
+        echo("\n</span>\n");
         echo('</li>'."\n");
     }
 
@@ -3180,10 +3312,8 @@ $(function(){
         
         echo('<li typeof="oer:SupportingMaterial" class="tsugi-lessons-module-reference">');
         echo('<span class="tsugi-lessons-module-reference-link">');
-        echo('<a href="'.$href.'"'.self::webLinkTargetAttrs($item).' class="tsugi-lessons-link" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
-        self::renderItemIcon(LessonsNormalize::iconKey($item), $href);
-        echo(htmlentities($title)."</a>\n");
-        echo("</span>\n");
+        $this->renderWebLinkOpenControl($item, $href, $title, LessonsNormalize::iconKey($item));
+        echo("\n</span>\n");
         echo('</li>'."\n");
     }
 
@@ -3297,9 +3427,8 @@ $(function(){
             echo('</li>'."\n");
         } else {
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-assignment">');
-            echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon(LessonsNormalize::iconKey($item), $url);
-            echo(htmlentities($title).'</a></li>'."\n");
+            $this->renderWebLinkOpenControl($item, $url, $title, LessonsNormalize::iconKey($item));
+            echo('</li>'."\n");
         }
     }
 
@@ -3318,9 +3447,8 @@ $(function(){
             echo('</li>'."\n");
         } else {
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-solution">');
-            echo('<a href="'.$url.'" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon(LessonsNormalize::iconKey($item), $url);
-            echo(__('Assignment Solution').'</a></li>'."\n");
+            $this->renderWebLinkOpenControl($item, $url, __('Assignment Solution'), LessonsNormalize::iconKey($item));
+            echo('</li>'."\n");
         }
     }
 

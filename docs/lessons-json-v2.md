@@ -76,6 +76,18 @@ file base. Render expands `{apphome}` to `$CFG->apphome`. Sibling domains
 
 An explicit `subtype` is never replaced by inference.
 
+## Web link `target`
+
+`web_link` items (except video) may set `target`:
+
+| Value | Student open behavior |
+|-------|------------------------|
+| `_self` | Same browser window |
+| `_blank` | New tab (default when omitted) |
+| `modal` | In-page iframe overlay, with a new-window fallback |
+
+Video items keep their own overlay / new-tab behavior and do not use `target`.
+
 ## Unknown fields
 
 Recognized fields may be promoted (`header`/`text` → `heading`/`title`,
