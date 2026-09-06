@@ -53,27 +53,35 @@ class LessonsCartridge {
         $assignments = 0;
         $discussions = 0;
         foreach ( self::itemsForModule($module) as $item ) {
-            $kind = LessonsNormalize::presentationKind($item);
-            if ( $kind === 'header' || LessonsNormalize::isHeading($item) ) {
-                continue;
-            }
-            if ( LessonsNormalize::isDiscussion($item) ) {
-                $discussions++;
-                continue;
-            }
-            if ( self::isAssignmentLtiKind($kind) ) {
-                $assignments++;
-                continue;
-            }
-            if ( self::itemHasExportUrl($item, $kind) ) {
-                $resources++;
-            }
+            self::countItem($item, $resources, $assignments, $discussions);
         }
         return array(
             'resources' => $resources,
             'assignments' => $assignments,
             'discussions' => $discussions,
         );
+    }
+
+    /**
+     * Count one item and its nested items, matching writeZip()/processChildren().
+     */
+    private static function countItem($item, &$resources, &$assignments, &$discussions) {
+        $item = is_array($item) ? (object) $item : $item;
+        $kind = LessonsNormalize::presentationKind($item);
+        if ( $kind !== 'header' && ! LessonsNormalize::isHeading($item) ) {
+            if ( LessonsNormalize::isDiscussion($item) ) {
+                $discussions++;
+            } else if ( self::isAssignmentLtiKind($kind) ) {
+                $assignments++;
+            } else if ( self::itemHasExportUrl($item, $kind) ) {
+                $resources++;
+            }
+        }
+        if ( isset($item->items) && is_array($item->items) ) {
+            foreach ( $item->items as $child ) {
+                self::countItem($child, $resources, $assignments, $discussions);
+            }
+        }
     }
 
     /**

@@ -1020,8 +1020,9 @@ function webLinkSubtypeSelectHtml(subtype) {
         ['solution', 'Solution']
     ];
     const known = options.some(function(opt) { return opt[0] === subtype; });
-    const extra = (!known && subtype)
-        ? `<option value="${escapeHtml(subtype)}" selected>${escapeHtml(subtype)}</option>`
+    const extraEscaped = (!known && subtype) ? escapeHtml(subtype).replace(/"/g, '&quot;') : '';
+    const extra = extraEscaped
+        ? `<option value="${extraEscaped}" selected>${extraEscaped}</option>`
         : '';
     return `
             <div class="form-group">
@@ -1750,12 +1751,6 @@ function harvestItemFormDraft(item) {
 }
 
 function currentEditorItem() {
-    if (editingItemIndex !== null &&
-        lessonsData.modules[editingModuleIndex] &&
-        lessonsData.modules[editingModuleIndex].items &&
-        lessonsData.modules[editingModuleIndex].items[editingItemIndex]) {
-        return lessonsData.modules[editingModuleIndex].items[editingItemIndex];
-    }
     if (!draftItem) {
         draftItem = getDefaultItem();
     }
@@ -1763,7 +1758,8 @@ function currentEditorItem() {
 }
 
 function showItemModal(title, item) {
-    const type = itemFoundationalType(item);
+    draftItem = item ? JSON.parse(JSON.stringify(item)) : getDefaultItem();
+    const type = itemFoundationalType(draftItem);
     
     let formHtml = `
         <div class="form-group">
@@ -1785,7 +1781,7 @@ function showItemModal(title, item) {
     
     $('#modal-title').text(title);
     $('#modal-body').html(formHtml);
-    updateItemFormFields(item);
+    updateItemFormFields(draftItem);
     $('#item-modal').show();
 }
 
@@ -2231,13 +2227,7 @@ function saveWebLinkItem(item) {
 
 function saveItem() {
     const type = $('#edit-item-type').val();
-    let item = {};
-    if (editingItemIndex !== null &&
-        lessonsData.modules[editingModuleIndex] &&
-        lessonsData.modules[editingModuleIndex].items &&
-        lessonsData.modules[editingModuleIndex].items[editingItemIndex]) {
-        item = Object.assign({}, lessonsData.modules[editingModuleIndex].items[editingItemIndex]);
-    }
+    let item = draftItem ? JSON.parse(JSON.stringify(draftItem)) : {};
     
     if (type === 'heading' || type === 'header') {
         item.type = 'heading';
