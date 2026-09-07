@@ -64,6 +64,8 @@ class SetupControllerTest extends \PHPUnit\Framework\TestCase
             $uris[] = $route['uri'];
         }
         $this->assertContains('/setup', $uris);
+        $this->assertContains('/setup/export', $uris);
+        $this->assertContains('/setup/export/download', $uris);
     }
 
     public function testShowInMenuFalseWithoutManifest()

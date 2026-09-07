@@ -22,6 +22,7 @@ class Lessons extends Tool {
         $app->router->get('/'.self::REDIRECT, 'Lessons@get');
         // Author route must precede {anchor} so "_author" is not captured as anchor
         $app->router->get($prefix.'/_author/export', 'Lessons@authorExport');
+        $app->router->get($prefix.'/_author/export-v2', 'Lessons@authorExportV2');
         $app->router->post($prefix.'/_author/import', 'Lessons@authorImport');
         $app->router->get($prefix.'/_author', 'Lessons@author');
         $app->router->post($prefix.'/_author', 'Lessons@authorPost');
@@ -67,11 +68,15 @@ class Lessons extends Tool {
         $menu = false;
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        // Show Author link for instructors of a manifest course, or file authoring when enabled
-        if ( $this->canAuthorLessons() && $this->isInstructor() ) {
-            $author_url = U::addSession($this->toolHome(self::ROUTE) . '/_author');
+        if ( $this->isInstructor() ) {
             echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 4px 8px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">');
-            echo('<a href="'.htmlspecialchars($author_url).'" class="btn btn-default btn-sm"><i class="fa fa-pencil" aria-hidden="true"></i> '.__('Author').'</a>');
+            if ( $this->canAuthorLessons() ) {
+                $author_url = U::addSession($this->toolHome(self::ROUTE) . '/_author');
+                echo('<a href="'.htmlspecialchars($author_url).'" class="btn btn-default btn-sm"><i class="fa fa-pencil" aria-hidden="true"></i> '.__('Author').'</a>');
+            } else if ( $this->canExportLessonsV2() ) {
+                $export_v2_url = U::addSession($this->toolHome(self::ROUTE) . '/_author/export-v2');
+                echo('<a href="'.htmlspecialchars($export_v2_url).'" class="btn btn-default btn-sm"><i class="fa fa-download" aria-hidden="true"></i> '.__('Export lessons.json v2').'</a>');
+            }
             echo('</span>');
         }
         $l->header();
@@ -92,18 +97,23 @@ class Lessons extends Tool {
     }
 
     /**
-     * File authoring stays behind canAuthor(); manifest courses allow any instructor.
+     * Authoring is only for a database-backed Lessons JSON v2 course.
+     * File-backed $CFG->lessons and classic manifests are view-only.
      */
     private function canAuthorLessons() {
-        global $CFG;
-        if ( Manifest::activeId() > 0 ) {
-            return true;
-        }
-        return $CFG->canAuthor();
+        return Manifest::canAuthorCurrent();
     }
 
     /**
-     * Lesson authoring interface - instructor; file-backed also requires canAuthor()
+     * Instructors can download a normalized v2 export of the current document
+     * (classic file or manifest) without opening the author UI.
+     */
+    private function canExportLessonsV2() {
+        return Manifest::currentDocument() !== false;
+    }
+
+    /**
+     * Lesson authoring interface — database-backed Lessons JSON v2 only.
      */
     public function author(Request $request)
     {
@@ -129,8 +139,16 @@ class Lessons extends Tool {
         $lessons_file_escaped = htmlspecialchars($doc['label']);
         $lessons_json = json_encode($lessons_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $export_url = U::addSession($this->toolHome(self::ROUTE) . '/_author/export');
+        $export_v2_url = U::addSession($this->toolHome(self::ROUTE) . '/_author/export-v2');
         $import_url = U::addSession($this->toolHome(self::ROUTE) . '/_author/import');
 
+        $files_json_url = U::addSession($this->toolHome(Files::ROUTE) . '/json');
+        $files_home_url = U::addSession($this->toolHome(Files::ROUTE));
+        $pages_home = $this->toolHome(Pages::ROUTE);
+        $pages_json_url = U::addSession($pages_home . '/json');
+        $lessons_json_url = U::addSession($pages_home . '/lessons-json');
+        $pages_base = $pages_home;
+        $app_home = (isset($CFG->apphome) && is_string($CFG->apphome)) ? rtrim($CFG->apphome, '/') : '';
         $lessons_url = U::addSession($this->toolHome(self::ROUTE));
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -140,6 +158,7 @@ class Lessons extends Tool {
         echo('<a href="'.htmlspecialchars($lessons_url).'" class="btn btn-default btn-sm"><i class="fa fa-arrow-left" aria-hidden="true"></i> '.__('Back to Lessons').'</a>');
         echo('</span>');
 
+        require_once __DIR__ . '/../UI/CKEditor.php';
         $template = __DIR__ . '/templates/Lessons/author_interface.inc.php';
         include $template;
 
@@ -182,8 +201,7 @@ class Lessons extends Tool {
             return new Response(json_encode(['success' => false, 'error' => $err]), 400, ['Content-Type' => 'application/json']);
         }
 
-        $message = Manifest::activeId() > 0 ? 'Manifest saved' : 'File saved successfully';
-        return new Response(json_encode(['success' => true, 'message' => $message]), 200, ['Content-Type' => 'application/json']);
+        return new Response(json_encode(['success' => true, 'message' => 'Manifest saved']), 200, ['Content-Type' => 'application/json']);
     }
 
     /**
@@ -208,6 +226,41 @@ class Lessons extends Tool {
         $filename = str_replace(array('\\', '"'), '', $filename);
 
         return new Response($doc['json'], 200, array(
+            'Content-Type' => 'application/json; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Cache-Control' => 'no-store',
+        ));
+    }
+
+    /**
+     * Download Lessons JSON v2 (normalized foundational types + subtypes).
+     * Available to instructors for classic file-backed courses as well as v2 manifests.
+     */
+    public function authorExportV2(Request $request)
+    {
+        $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
+        if ( ! $this->canExportLessonsV2() ) {
+            return new Response('Cannot find lessons file or course manifest', 404);
+        }
+
+        $doc = Manifest::currentDocument();
+        if ( ! $doc ) {
+            return new Response('Cannot find lessons file or course manifest', 500);
+        }
+
+        $decoded = json_decode($doc['json'], true);
+        if ( ! is_array($decoded) ) {
+            return new Response('Invalid lessons JSON', 500);
+        }
+
+        $json = \Tsugi\UI\LessonsNormalize::serializeV2($decoded);
+        $title = isset($decoded['title']) ? $decoded['title'] : 'lessons';
+        $version = isset($doc['version']) ? (int) $doc['version'] : 0;
+        $filename = Manifest::exportFilename($title, $version);
+        $filename = preg_replace('/\.json$/', '-v2.json', $filename);
+        $filename = str_replace(array('\\', '"'), '', $filename);
+
+        return new Response($json, 200, array(
             'Content-Type' => 'application/json; charset=utf-8',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
             'Cache-Control' => 'no-store',
@@ -273,7 +326,16 @@ class Lessons extends Tool {
      * @return string|null
      */
     private function persistLessonsArray($lessons_data, $comment) {
-        global $CFG;
+        if ( Manifest::activeId() < 1 || ! Manifest::currentIsV2() ) {
+            return 'Lesson authoring only saves Lessons JSON v2 to the course manifest';
+        }
+        $context_id = U::currentContextId();
+        if ( $context_id < 1 ) {
+            return 'No course context';
+        }
+
+        $lessons_data = \Tsugi\UI\LessonsNormalize::normalizeDocument($lessons_data);
+        $lessons_data['lessons_json_version'] = \Tsugi\UI\LessonsNormalize::FORMAT_VERSION;
 
         $json = Manifest::encode($lessons_data);
         $err = Manifest::validateJson($json);
@@ -281,28 +343,12 @@ class Lessons extends Tool {
             return $err;
         }
 
-        $manifest_id = Manifest::activeId();
-        if ( $manifest_id > 0 ) {
-            $context_id = U::currentContextId();
-            if ( $context_id < 1 ) {
-                return 'No course context';
-            }
-            try {
-                Manifest::saveNewVersion($context_id, $lessons_data, U::loggedInUserId(), $comment);
-            } catch ( \InvalidArgumentException $e ) {
-                return $e->getMessage();
-            } catch ( \Exception $e ) {
-                return 'Failed to save manifest';
-            }
-            return null;
-        }
-
-        if ( ! isset($CFG->lessons) ) {
-            return 'Lessons not configured';
-        }
-        $result = @file_put_contents($CFG->lessons, $json);
-        if ( $result === false ) {
-            return 'Failed to write file';
+        try {
+            Manifest::saveNewVersion($context_id, $lessons_data, U::loggedInUserId(), $comment);
+        } catch ( \InvalidArgumentException $e ) {
+            return $e->getMessage();
+        } catch ( \Exception $e ) {
+            return 'Failed to save manifest';
         }
         return null;
     }

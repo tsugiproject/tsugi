@@ -82,6 +82,8 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
         
         // Should have redirect route
         $this->assertContains('/tsugi_controllers_lessons', $uris, 'Should register redirect route');
+        $this->assertContains('/lessons/_author/export', $uris, 'Should register legacy JSON export');
+        $this->assertContains('/lessons/_author/export-v2', $uris, 'Should register Lessons JSON v2 export');
     }
     
     /**

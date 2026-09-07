@@ -402,13 +402,10 @@ class Files extends Tool {
             }
             $path = $this->joinFolder($folder, $row['file_name']);
             $download = $this->downloadUrl($row);
-            $out[] = array(
-                'id' => $row['file_sha256'],
-                'title' => $row['file_name'],
-                'folder' => $folder,
-                'path' => $path,
-                'url' => $download
-            );
+            $item = self::lessonsFilePickerItem($row, $folder);
+            $item['path'] = $path;
+            $item['url'] = $download;
+            $out[] = $item;
         }
         usort($out, function($a, $b) {
             return strcasecmp($a['path'], $b['path']);
@@ -1166,9 +1163,82 @@ class Files extends Tool {
             .'</button>';
     }
 
-    private function isValidSha256($sha)
+    /**
+     * True when $sha is a 64-character hex SHA-256 identifier.
+     *
+     * @param mixed $sha
+     * @return bool
+     */
+    public static function isSha256($sha)
     {
         return is_string($sha) && (bool) preg_match('/^[a-fA-F0-9]{64}$/', $sha);
+    }
+
+    /**
+     * Extract a SHA-256 from a Tsugi Files download href, or null.
+     *
+     * @param mixed $href
+     * @return string|null Lowercase hex digest
+     */
+    public static function sha256FromDownloadHref($href)
+    {
+        if ( ! is_string($href) || $href === '' ) {
+            return null;
+        }
+        if ( preg_match('~/files/download/([a-fA-F0-9]{64})(?:[/?#]|$)~', $href, $m) ) {
+            return strtolower($m[1]);
+        }
+        return null;
+    }
+
+    /**
+     * Lessons author picker fields from a blob_file row.
+     * href is the stored /files/download/{sha256} form.
+     *
+     * @param array<string, mixed> $row
+     * @param string $folder
+     * @return array<string, mixed>
+     */
+    public static function lessonsFilePickerItem($row, $folder = '')
+    {
+        $sha = isset($row['file_sha256']) && is_string($row['file_sha256'])
+            ? strtolower($row['file_sha256']) : '';
+        $name = isset($row['file_name']) && is_string($row['file_name']) ? $row['file_name'] : '';
+        $ctype = isset($row['contenttype']) && is_string($row['contenttype']) ? $row['contenttype'] : '';
+        if ( $folder === '' || $folder === null ) {
+            $path = $name;
+        } else {
+            $path = $folder . '/' . $name;
+        }
+        return array(
+            'id' => $sha,
+            'sha256' => $sha,
+            'title' => $name,
+            'filename' => $name,
+            'folder' => is_string($folder) ? $folder : '',
+            'path' => $path,
+            'content_type' => $ctype,
+            'href' => self::downloadHrefForSha256($sha),
+        );
+    }
+
+    /**
+     * Path form of a content-addressed download URL (/files/download/{sha256}).
+     *
+     * @param mixed $sha256
+     * @return string|null
+     */
+    public static function downloadHrefForSha256($sha256)
+    {
+        if ( ! self::isSha256($sha256) ) {
+            return null;
+        }
+        return self::ROUTE . '/download/' . strtolower($sha256);
+    }
+
+    private function isValidSha256($sha)
+    {
+        return self::isSha256($sha);
     }
 
     private function downloadUrl($row)

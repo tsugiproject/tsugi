@@ -68,4 +68,22 @@ class FilesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('/files/mkdir', $uris);
         $this->assertNotContains('/files/download/{id}', $uris);
     }
+
+    public function testLessonsFilePickerItem()
+    {
+        $sha = '8c2f4d0123456789abcdef0123456789abcdef0123456789abcdef0123456789';
+        $item = Files::lessonsFilePickerItem(array(
+            'file_sha256' => $sha,
+            'file_name' => 'week-one.pdf',
+            'contenttype' => 'application/pdf',
+        ), 'Student');
+        $this->assertSame($sha, $item['sha256']);
+        $this->assertSame('week-one.pdf', $item['filename']);
+        $this->assertSame('week-one.pdf', $item['title']);
+        $this->assertSame('application/pdf', $item['content_type']);
+        $this->assertSame('Student', $item['folder']);
+        $this->assertSame('Student/week-one.pdf', $item['path']);
+        $this->assertSame('/files/download/'.$sha, $item['href']);
+        $this->assertSame($sha, Files::sha256FromDownloadHref($item['href']));
+    }
 }

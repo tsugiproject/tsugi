@@ -82,7 +82,7 @@ class LessonsJsonFixturesTest extends \PHPUnit\Framework\TestCase
             if (isset($mod->items) && is_array($mod->items)) {
                 foreach ($mod->items as $item) {
                     $o = is_array($item) ? (object) $item : $item;
-                    if (isset($o->type) && $o->type === 'lti') {
+                    if (\Tsugi\UI\LessonsNormalize::isAssignmentLti($o)) {
                         $n++;
                     }
                 }
@@ -107,7 +107,7 @@ class LessonsJsonFixturesTest extends \PHPUnit\Framework\TestCase
             if (isset($mod->items) && is_array($mod->items)) {
                 foreach ($mod->items as $item) {
                     $o = is_array($item) ? (object) $item : $item;
-                    if (isset($o->type) && $o->type === 'discussion') {
+                    if (\Tsugi\UI\LessonsNormalize::isDiscussion($o)) {
                         $n++;
                     }
                 }
@@ -214,7 +214,7 @@ class LessonsJsonFixturesTest extends \PHPUnit\Framework\TestCase
             if (isset($mod->items) && is_array($mod->items)) {
                 foreach ($mod->items as $item) {
                     $o = is_array($item) ? (object) $item : $item;
-                    if (isset($o->type) && $o->type === 'lti' && isset($o->resource_link_id, $o->launch)) {
+                    if (\Tsugi\UI\LessonsNormalize::isAssignmentLti($o) && isset($o->launch)) {
                         $map[$o->resource_link_id] = $o->launch;
                     }
                 }
