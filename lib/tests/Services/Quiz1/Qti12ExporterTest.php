@@ -26,6 +26,12 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
 
         $this->assertSame('cc.exam.v0p1', $this->meta($xp, $assessment, 'cc_profile'));
         $this->assertSame('Examination', $this->meta($xp, $assessment, 'qmd_assessmenttype'));
+        $this->assertSame('Percentage', $this->meta($xp, $assessment, 'qmd_scoretype'));
+        $this->assertSame(Qti12Exporter::SCHEMA, \Tsugi\Util\CC::QTI_SCHEMA_LOCATION);
+        $this->assertStringContainsString('ccv1p2', $xml);
+        $this->assertStringNotContainsString('ccv1p1', $xml);
+        $this->assertStringNotContainsString('question_type', $xml);
+        $this->assertStringNotContainsString('multiple_choice_question', $xml);
 
         $items = $xp->query('//q:item');
         $this->assertSame(6, $items->length);
@@ -126,7 +132,12 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(1, $xp->query('q:presentation/q:response_str', $item)->length);
         $fb = $xp->query('q:itemfeedback[@ident="solution"]', $item);
         $this->assertSame(1, $fb->length);
-        $this->assertStringContainsString('Representational State Transfer', $fb->item(0)->textContent);
+        $this->assertSame(1, $xp->query('q:itemfeedback[@ident="solution"]/q:solution/q:solutionmaterial/q:material/q:mattext', $item)->length);
+        $this->assertSame(0, $xp->query('q:itemfeedback[@ident="solution"]/q:material', $item)->length);
+        $mat = $xp->query('q:itemfeedback[@ident="solution"]//q:mattext', $item)->item(0);
+        $this->assertSame('text/html', $mat->getAttribute('texttype'));
+        $this->assertStringContainsString('Representational State Transfer', $mat->textContent);
+        $this->assertStringContainsString('<p>', $mat->textContent);
     }
 
     public function testFillBlankLiteralAnswersAreCaseInsensitive() {
@@ -142,7 +153,46 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
             $values[] = trim($ve->textContent);
         }
         $this->assertSame(array('80', 'eighty'), $values);
-        $this->assertSame(1, $xp->query('.//q:conditionvar/q:or', $item)->length);
+        $this->assertSame(1, $xp->query('q:resprocessing/q:respcondition/q:conditionvar/q:or', $item)->length);
+        $this->assertSame(1, $xp->query('q:resprocessing/q:respcondition[@continue="No"]', $item)->length);
+    }
+
+    public function testFillBlankSingleAnswerHasNoOr() {
+        $xml = Qti12Exporter::export(SampleQuiz::buildFillBlankSingle(1));
+        $xp = $this->xpath($this->load($xml));
+        $item = $this->item($xp, 'Q1_ITEM_105');
+        $this->assertSame(0, $xp->query('.//q:or', $item)->length);
+        $ve = $xp->query('.//q:varequal', $item);
+        $this->assertSame(1, $ve->length);
+        $this->assertSame('80', trim($ve->item(0)->textContent));
+        $this->assertSame('No', $ve->item(0)->getAttribute('case'));
+    }
+
+    public function testCanvasItemMetadataAndAssessmentIdent() {
+        $xml = Qti12Exporter::export(SampleQuiz::build(1), array(
+            'pattern_match_as_fib' => true,
+            'canvas_item_metadata' => true,
+            'assessment_ident' => 'Q1_deadbeef',
+        ));
+        $xp = $this->xpath($this->load($xml));
+        $this->assertSame('Q1_deadbeef', $xp->query('/q:questestinterop/q:assessment')->item(0)->getAttribute('ident'));
+        $mc = $this->item($xp, 'Q1_ITEM_101');
+        $this->assertSame('multiple_choice_question', $this->meta($xp, $mc, 'question_type'));
+        $this->assertSame('1', $this->meta($xp, $mc, 'points_possible'));
+        $this->assertSame('cc.multiple_choice.v0p1', $this->meta($xp, $mc, 'cc_profile'));
+    }
+
+    public function testCanvasExportMapsPatternMatchToFillBlank() {
+        $xml = Qti12Exporter::export(SampleQuiz::build(1), array('pattern_match_as_fib' => true));
+        $xp = $this->xpath($this->load($xml));
+        $this->assertSame(0, $xp->query('//q:fieldentry[text()="cc.pattern_match.v0p1"]')->length);
+        $this->assertSame(0, $xp->query('//q:varsubstring')->length);
+        $item = $this->item($xp, 'Q1_ITEM_106');
+        $this->assertSame('cc.fib.v0p1', $this->meta($xp, $item, 'cc_profile'));
+        $ve = $xp->query('.//q:varequal', $item);
+        $this->assertSame(1, $ve->length);
+        $this->assertSame('Script', trim($ve->item(0)->textContent));
+        $this->assertSame('No', $ve->item(0)->getAttribute('case'));
     }
 
     public function testPatternMatchUsesVarsubstring() {
@@ -243,6 +293,46 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('Q1_ANS_702', $labels->item(1)->getAttribute('ident'));
         $this->assertSame('Q1_ANS_703', $labels->item(2)->getAttribute('ident'));
         $this->assertSame('First', trim($xp->query('.//q:mattext', $labels->item(0))->item(0)->textContent));
+    }
+
+    public function testHtmlInQuestionAnswerAndEssaySolution() {
+        $quiz = new Quiz();
+        $quiz->id = 3;
+        $quiz->title = 'HTML';
+        $q = new Question();
+        $q->id = 31;
+        $q->sequence = 1;
+        $q->type = QuestionTypes::MULTIPLE_CHOICE;
+        $q->prompt = '<p>This is <strong>important</strong>.</p>';
+        $q->points = 1;
+        $q->answers = array(
+            Answer::make('<em>Yes</em>', true, 1, 311),
+            Answer::make('No', false, 2, 312),
+        );
+        $quiz->questions[] = $q;
+        $e = new Question();
+        $e->id = 32;
+        $e->sequence = 2;
+        $e->type = QuestionTypes::ESSAY;
+        $e->prompt = '<p>Explain <code>REST</code>.</p>';
+        $e->points = 1;
+        $e->sample_solution = '<p>This is <strong>important</strong>.</p>';
+        $quiz->questions[] = $e;
+
+        $xml = Qti12Exporter::export($quiz);
+        $this->assertStringNotContainsString('&lt;p&gt;', $xml);
+        $xp = $this->xpath($this->load($xml));
+        $mc = $this->item($xp, 'Q1_ITEM_31');
+        $prompt = $xp->query('q:presentation/q:material/q:mattext', $mc)->item(0);
+        $this->assertSame('text/html', $prompt->getAttribute('texttype'));
+        $this->assertStringContainsString('<strong>important</strong>', $prompt->textContent);
+        $ans = $xp->query('q:presentation//q:response_label[@ident="Q1_ANS_311"]//q:mattext', $mc)->item(0);
+        $this->assertSame('text/html', $ans->getAttribute('texttype'));
+        $this->assertStringContainsString('<em>Yes</em>', $ans->textContent);
+        $essay = $this->item($xp, 'Q1_ITEM_32');
+        $sol = $xp->query('q:itemfeedback[@ident="solution"]/q:solution/q:solutionmaterial/q:material/q:mattext', $essay)->item(0);
+        $this->assertNotNull($sol);
+        $this->assertStringContainsString('<strong>important</strong>', $sol->textContent);
     }
 
     private function load($xml) {

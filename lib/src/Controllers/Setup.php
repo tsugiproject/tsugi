@@ -254,9 +254,10 @@ function sendToCanvas() {
             return new RedirectResponse($export_url);
         }
 
+        $tsugi_lms = U::get($_GET, 'tsugi_lms', false);
         try {
             LessonsCartridge::writeZip($l, $zip, array(
-                'tsugi_lms' => U::get($_GET, 'tsugi_lms', false),
+                'tsugi_lms' => $tsugi_lms,
                 'topic' => U::get($_GET, 'topic', false),
                 'youtube' => U::get($_GET, 'youtube', false),
                 'anchors' => $anchors,
@@ -270,7 +271,7 @@ function sendToCanvas() {
         }
         $zip->close();
 
-        $download = LessonsCartridge::downloadName($l);
+        $download = LessonsCartridge::downloadName($l, $tsugi_lms);
         $download = str_replace(array('\\', '"'), '', $download);
         $response = new BinaryFileResponse($filename);
         $response->headers->set('Content-Type', 'application/x-zip');

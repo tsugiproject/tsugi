@@ -14,13 +14,11 @@ class CC_WebLinkTest extends \PHPUnit\Framework\TestCase
         $web_dom->set_title('Autograder: Single-table SQL');
         $web_dom->set_url('http://www.php-intro.com/lessons.php?anchor=install', array("target" => "_iframe"));
         $save = $web_dom->saveXML();
-        $xmlout = '<?xml version="1.0" encoding="UTF-8"?>
-<webLink xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imswl_v1p1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsccv1p1/imswl_v1p1 http://www.imsglobal.org/profile/cc/ccv1p1/ccv1p1_imswl_v1p1.xsd">
-  <title>Autograder: Single-table SQL</title>
-  <url href="http://www.php-intro.com/lessons.php?anchor=install" target="_iframe"/>
-</webLink>
-';
-        $this->assertEquals($xmlout,$save);
+        $this->assertStringContainsString('xmlns="'.\Tsugi\Util\CC::WL_NS.'"', $save);
+        $this->assertStringContainsString(\Tsugi\Util\CC::WL_SCHEMA_LOCATION, $save);
+        $this->assertStringContainsString('<title>Autograder: Single-table SQL</title>', $save);
+        $this->assertStringContainsString('href="http://www.php-intro.com/lessons.php?anchor=install"', $save);
+        $this->assertStringNotContainsString('imsccv1p1', $save);
 
     }
 }

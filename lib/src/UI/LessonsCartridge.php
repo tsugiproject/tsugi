@@ -119,6 +119,12 @@ class LessonsCartridge {
         }
 
         $cc_dom = new CC();
+        if ( ! self::wantsCanvasExtensions($tsugi_lms) ) {
+            $cc_dom->disable_canvas_extensions();
+        }
+        if ( $tsugi_lms === 'canvas' ) {
+            $cc_dom->canvas_quiz_wrapper = true;
+        }
         $cc_dom->set_title($title.' import');
         $top_module = false;
         if ( $tsugi_lms === 'sakai' ) {
@@ -139,14 +145,35 @@ class LessonsCartridge {
             }
         }
 
-        $cc_dom->zip_add_canvas_module_meta($zip);
+        if ( $cc_dom->canvas_extensions ) {
+            $cc_dom->zip_add_canvas_module_meta($zip);
+        }
         $zip->addFromString('imsmanifest.xml', $cc_dom->saveXML());
     }
 
     /**
-     * Download basename for the .imscc file.
+     * Canvas course_settings / assignment wrappers are LMS extras, not CC 1.2.
+     * Generic Setup export omits them. Legacy /cc/export is unchanged.
      */
-    public static function downloadName($l) {
+    public static function wantsCanvasExtensions($tsugi_lms) {
+        return $tsugi_lms === 'canvas' || $tsugi_lms === 'sakai';
+    }
+
+    /**
+     * Setup flavor used in the download filename: generic, canvas, or sakai.
+     */
+    public static function exportFlavor($tsugi_lms) {
+        $lms = is_string($tsugi_lms) ? strtolower(trim($tsugi_lms)) : '';
+        if ( $lms === 'canvas' || $lms === 'sakai' ) {
+            return $lms;
+        }
+        return 'generic';
+    }
+
+    /**
+     * Download basename for the .imscc file, including the export flavor.
+     */
+    public static function downloadName($l, $tsugi_lms = 'generic') {
         global $CFG;
         $title = isset($l->lessons->title) && is_string($l->lessons->title) ? $l->lessons->title : '';
         $slug = preg_replace('/[^A-Za-z0-9]+/', '-', $title);
@@ -159,7 +186,7 @@ class LessonsCartridge {
         if ( $slug === '' ) {
             $slug = 'course';
         }
-        return $slug.'_export.imscc';
+        return $slug.'_'.self::exportFlavor($tsugi_lms).'.imscc';
     }
 
     /**
@@ -275,8 +302,15 @@ class LessonsCartridge {
         if ( is_string($quiz->title) && $quiz->title !== '' && ( ! isset($item->title) || $item->title === '' ) ) {
             $title = $quiz->title;
         }
-        $xml = Qti12Exporter::export($quiz);
-        $cc_dom->zip_add_qti_assessment_to_module($zip, $sub_module, $title, $xml, $quiz_id);
+        $file = $cc_dom->add_qti_assessment($sub_module, $title, $quiz_id);
+        $export_opts = array();
+        if ( $cc_dom->canvas_quiz_wrapper ) {
+            $export_opts['pattern_match_as_fib'] = true;
+            $export_opts['canvas_item_metadata'] = true;
+            $export_opts['assessment_ident'] = $cc_dom->last_identifier;
+        }
+        $xml = Qti12Exporter::export($quiz, $export_opts);
+        $cc_dom->zip_finish_qti_assessment($zip, $file, $title, $xml, $quiz);
     }
 
     /**

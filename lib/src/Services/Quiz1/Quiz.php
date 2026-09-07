@@ -82,4 +82,15 @@ class Quiz {
         });
         return $list;
     }
+
+    /**
+     * Sum of question points (Canvas assessment_meta points_possible).
+     */
+    public function pointsPossible() {
+        $sum = 0;
+        foreach ( $this->orderedQuestions() as $question ) {
+            $sum += (int) $question->points;
+        }
+        return $sum;
+    }
 }

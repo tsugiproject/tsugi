@@ -80,6 +80,7 @@ $module_count = (int) $counts['modules'];
   <option value="sakai">Sakai</option>
 </select>
 </p>
+<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions.') ?></p>
 <?php if ( $discussion_count > 0 ) { ?>
 <p>
 <label for="topic_select_full"><?= __('How would you like to import discussions/topics?') ?></label>
@@ -122,6 +123,7 @@ $module_count = (int) $counts['modules'];
   <option value="sakai">Sakai</option>
 </select>
 </p>
+<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions.') ?></p>
 <?php if ( $youtube_enabled ) { ?>
 <p>
 <label for="youtube_select_partial"><?= __('Would you like YouTube Tracked URLs?') ?></label>

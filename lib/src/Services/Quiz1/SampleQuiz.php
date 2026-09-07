@@ -33,6 +33,52 @@ class SampleQuiz {
         return $quiz;
     }
 
+    public static function buildMinimal($quiz_id = 1) {
+        return self::wrap($quiz_id, 'Minimal MC', array(self::mc($quiz_id)));
+    }
+
+    public static function buildMultipleChoice($quiz_id = 1) {
+        return self::wrap($quiz_id, 'Multiple Choice', array(self::mc($quiz_id)));
+    }
+
+    public static function buildMultipleResponse($quiz_id = 1) {
+        return self::wrap($quiz_id, 'Multiple Response', array(self::mr($quiz_id)));
+    }
+
+    public static function buildTrueFalse($quiz_id = 1) {
+        return self::wrap($quiz_id, 'True False', array(self::tf($quiz_id)));
+    }
+
+    public static function buildEssay($quiz_id = 1) {
+        return self::wrap($quiz_id, 'Essay', array(self::essay($quiz_id)));
+    }
+
+    public static function buildFillBlankSingle($quiz_id = 1) {
+        $q = self::fib($quiz_id);
+        $q->answers = array($q->answers[0]);
+        $q->title = 'HTTP port (single)';
+        return self::wrap($quiz_id, 'FIB Single', array($q));
+    }
+
+    public static function buildFillBlankMultiple($quiz_id = 1) {
+        return self::wrap($quiz_id, 'FIB Multiple', array(self::fib($quiz_id)));
+    }
+
+    public static function buildPatternMatch($quiz_id = 1) {
+        return self::wrap($quiz_id, 'Pattern Match', array(self::pattern($quiz_id)));
+    }
+
+    /**
+     * @param Question[] $questions
+     */
+    private static function wrap($quiz_id, $title, array $questions) {
+        $quiz = new Quiz();
+        $quiz->id = (int) $quiz_id;
+        $quiz->title = $title;
+        $quiz->questions = $questions;
+        return $quiz;
+    }
+
     private static function mc($quiz_id) {
         $q = new Question();
         $q->id = $quiz_id * 100 + 1;

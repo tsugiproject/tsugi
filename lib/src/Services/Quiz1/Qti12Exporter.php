@@ -2,11 +2,14 @@
 
 namespace Tsugi\Services\Quiz1;
 
+use Tsugi\Util\CC;
+
 /**
  * Serialize a Quiz1 quiz as Common Cartridge QTI 1.2.1 assessment XML.
  *
- * Target: IMS CC 1.1/1.2/1.3 assessment profile of QTI 1.2.1 — not a
- * generic QTI 1.2 serializer and not Canvas-flavored QTI metadata.
+ * Target: IMS Common Cartridge 1.2 assessment profile of QTI 1.2.1 — not a
+ * generic QTI 1.2 serializer. Generic Setup export stays spec-only.
+ * Canvas Setup may add question_type / points_possible item metadata.
  *
  * Mappings (internal type → cc_profile):
  *   multiple_choice   → cc.multiple_choice.v0p1   response_lid Single
@@ -21,15 +24,19 @@ namespace Tsugi\Services\Quiz1;
  */
 class Qti12Exporter {
 
-    const NS = 'http://www.imsglobal.org/xsd/ims_qtiasiv1p2';
-    const SCHEMA = 'http://www.imsglobal.org/xsd/ims_qtiasiv1p2 http://www.imsglobal.org/profile/cc/ccv1p1/ccv1p1_qtiasiv1p2p1_v1p0.xsd';
+    const NS = CC::QTI_NS;
+    const SCHEMA = CC::QTI_SCHEMA_LOCATION;
     const RESPONSE_IDENT = 'response';
 
     /**
+     * @param array{pattern_match_as_fib?:bool,assessment_ident?:string,canvas_item_metadata?:bool} $options
      * @return string UTF-8 XML
      * @throws ExportException
      */
-    public static function export(Quiz $quiz) {
+    public static function export(Quiz $quiz, array $options = array()) {
+        if ( ! empty($options['pattern_match_as_fib']) ) {
+            $quiz = self::withPatternMatchAsFib($quiz);
+        }
         $errors = $quiz->validate();
         if ( count($errors) > 0 ) {
             throw new ExportException("Quiz is not valid for QTI export:\n" . implode("\n", $errors));
@@ -50,7 +57,10 @@ class Qti12Exporter {
         $dom->appendChild($root);
 
         $assessment = $dom->createElementNS(self::NS, 'assessment');
-        $assessment->setAttribute('ident', self::quizIdent($quiz));
+        $assessment_ident = isset($options['assessment_ident']) && is_string($options['assessment_ident']) && $options['assessment_ident'] !== ''
+            ? $options['assessment_ident']
+            : self::quizIdent($quiz);
+        $assessment->setAttribute('ident', $assessment_ident);
         $assessment->setAttribute('title', $quiz->title);
         $root->appendChild($assessment);
 
@@ -58,6 +68,7 @@ class Qti12Exporter {
         self::addMetaField($dom, $meta, 'cc_profile', 'cc.exam.v0p1');
         self::addMetaField($dom, $meta, 'qmd_assessmenttype', 'Examination');
         self::addMetaField($dom, $meta, 'cc_maxattempts', '1');
+        self::addMetaField($dom, $meta, 'qmd_scoretype', 'Percentage');
         $assessment->appendChild($meta);
 
         if ( ! Question::isBlankHtml($quiz->instructions) ) {
@@ -72,11 +83,43 @@ class Qti12Exporter {
         $section->setAttribute('ident', 'Q1_SEC_' . (int) $quiz->id);
         $assessment->appendChild($section);
 
+        $canvas_meta = ! empty($options['canvas_item_metadata']);
         foreach ( $quiz->orderedQuestions() as $question ) {
-            $section->appendChild(self::item($dom, $question));
+            $section->appendChild(self::item($dom, $question, $canvas_meta));
         }
 
         return $dom->saveXML();
+    }
+
+    /**
+     * Canvas does not implement cc.pattern_match.v0p1; it remaps those items
+     * to Fill in the Blank and warns. Emit FIB ourselves for Canvas exports.
+     * Generic/Sakai keep varsubstring pattern match.
+     */
+    public static function withPatternMatchAsFib(Quiz $quiz) {
+        $copy = clone $quiz;
+        $copy->questions = array();
+        foreach ( $quiz->questions as $question ) {
+            $q = clone $question;
+            if ( $q->type === QuestionTypes::PATTERN_MATCH ) {
+                $q->type = QuestionTypes::FILL_BLANK;
+                $q->case_sensitive = false;
+            }
+            $copy->questions[] = $q;
+        }
+        return $copy;
+    }
+
+    public static function canvasQuestionType($type) {
+        $map = array(
+            QuestionTypes::MULTIPLE_CHOICE => 'multiple_choice_question',
+            QuestionTypes::MULTIPLE_RESPONSE => 'multiple_answers_question',
+            QuestionTypes::TRUE_FALSE => 'true_false_question',
+            QuestionTypes::ESSAY => 'essay_question',
+            QuestionTypes::FILL_BLANK => 'short_answer_question',
+            QuestionTypes::PATTERN_MATCH => 'short_answer_question',
+        );
+        return $map[$type] ?? 'short_answer_question';
     }
 
     public static function quizIdent(Quiz $quiz) {
@@ -91,7 +134,7 @@ class Qti12Exporter {
         return 'Q1_ANS_' . (int) $answer->id;
     }
 
-    private static function item(\DOMDocument $dom, Question $question) {
+    private static function item(\DOMDocument $dom, Question $question, $canvas_meta = false) {
         if ( $question->id === null || (int) $question->id < 1 ) {
             throw new ExportException('Each question must have a stable internal id before export.');
         }
@@ -108,6 +151,10 @@ class Qti12Exporter {
         $qtimetadata = $dom->createElementNS(self::NS, 'qtimetadata');
         self::addMetaField($dom, $qtimetadata, 'cc_profile', QuestionTypes::ccProfile($question->type));
         self::addMetaField($dom, $qtimetadata, 'cc_weighting', (string) (int) $question->points);
+        if ( $canvas_meta ) {
+            self::addMetaField($dom, $qtimetadata, 'question_type', self::canvasQuestionType($question->type));
+            self::addMetaField($dom, $qtimetadata, 'points_possible', (string) (int) $question->points);
+        }
         self::addMetaField($dom, $qtimetadata, 'qmd_scoringpermitted', 'Yes');
         $computer = $question->type === QuestionTypes::ESSAY ? 'No' : 'Yes';
         self::addMetaField($dom, $qtimetadata, 'qmd_computerscored', $computer);
@@ -129,7 +176,7 @@ class Qti12Exporter {
         if ( $question->type !== QuestionTypes::ESSAY ) {
             $item->appendChild(self::resprocessing($dom, $question));
         } else if ( trim($question->sample_solution) !== '' ) {
-            $item->appendChild(self::itemFeedback($dom, 'solution', $question->sample_solution));
+            $item->appendChild(self::itemSolutionFeedback($dom, $question->sample_solution));
         }
 
         if ( ! Question::isBlankHtml($question->feedback) ) {
@@ -317,6 +364,22 @@ class Qti12Exporter {
         $material = $dom->createElementNS(self::NS, 'material');
         $material->appendChild(self::mattext($dom, $html));
         $fb->appendChild($material);
+        return $fb;
+    }
+
+    /**
+     * CC QTI essay sample solution: itemfeedback/solution/solutionmaterial/material/mattext
+     */
+    private static function itemSolutionFeedback(\DOMDocument $dom, $html) {
+        $fb = $dom->createElementNS(self::NS, 'itemfeedback');
+        $fb->setAttribute('ident', 'solution');
+        $solution = $dom->createElementNS(self::NS, 'solution');
+        $solutionmaterial = $dom->createElementNS(self::NS, 'solutionmaterial');
+        $material = $dom->createElementNS(self::NS, 'material');
+        $material->appendChild(self::mattext($dom, $html));
+        $solutionmaterial->appendChild($material);
+        $solution->appendChild($solutionmaterial);
+        $fb->appendChild($solution);
         return $fb;
     }
 
