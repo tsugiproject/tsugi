@@ -40,6 +40,7 @@ class Tsugi extends \Tsugi\Lumen\Application {
             \Tsugi\Controllers\Map::routes($this);
             \Tsugi\Controllers\Pages::routes($this);
             \Tsugi\Controllers\Profile::routes($this);
+            \Tsugi\Controllers\Quiz1::routes($this);
             if ( is_array($CFG->getExtension('stripe')) ) {
                 \Tsugi\Controllers\Stripe::routes($this);
             }

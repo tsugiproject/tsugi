@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<questestinterop xmlns="http://www.imsglobal.org/xsd/ims_qtiasiv1p2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/ims_qtiasiv1p2 http://www.imsglobal.org/profile/cc/ccv1p1/ccv1p1_qtiasiv1p2p1_v1p0.xsd">
+  <assessment ident="Q1_QUIZ_1" title="QTI Export Test">
+    <qtimetadata>
+      <qtimetadatafield>
+        <fieldlabel>cc_profile</fieldlabel>
+        <fieldentry>cc.exam.v0p1</fieldentry>
+      </qtimetadatafield>
+      <qtimetadatafield>
+        <fieldlabel>qmd_assessmenttype</fieldlabel>
+        <fieldentry>Examination</fieldentry>
+      </qtimetadatafield>
+      <qtimetadatafield>
+        <fieldlabel>cc_maxattempts</fieldlabel>
+        <fieldentry>1</fieldentry>
+      </qtimetadatafield>
+    </qtimetadata>
+    <rubric>
+      <material>
+        <mattext texttype="text/html"><![CDATA[<p>Sample quiz for Common Cartridge QTI 1.2.1 export. Characters: & < > " '</p>]]></mattext>
+      </material>
+    </rubric>
+    <section ident="Q1_SEC_1">
+      <item ident="Q1_ITEM_101" title="HTTP protocol">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>cc_profile</fieldlabel>
+              <fieldentry>cc.multiple_choice.v0p1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>cc_weighting</fieldlabel>
+              <fieldentry>1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>qmd_scoringpermitted</fieldlabel>
+              <fieldentry>Yes</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>qmd_computerscored</fieldlabel>
+              <fieldentry>Yes</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html"><![CDATA[<p>Which protocol is used for the web? Special chars: 2 < 3 & 4 > 1</p>]]></mattext>
+          </material>
+          <response_lid ident="response" rcardinality="Single">
+            <render_choice shuffle="No">
+              <response_label ident="Q1_ANS_1011">
+                <material>
+                  <mattext texttype="text/plain"><![CDATA[HTTP]]></mattext>
+                </material>
+              </response_label>
+              <response_label ident="Q1_ANS_1012">
+                <material>
+                  <mattext texttype="text/plain"><![CDATA[FTP]]></mattext>
+                </material>
+              </response_label>
+              <response_label ident="Q1_ANS_1013">
+                <material>
+                  <mattext texttype="text/plain"><![CDATA[SMTP]]></mattext>
+                </material>
+              </response_label>
+              <response_label ident="Q1_ANS_1014">
+                <material>
+                  <mattext texttype="text/plain"><![CDATA[SSH]]></mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response">Q1_ANS_1011</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="Q1_ITEM_102" title="HTTP methods">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>cc_profile</fieldlabel>
+              <fieldentry>cc.multiple_response.v0p1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>cc_weighting</fieldlabel>
+              <fieldentry>2</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>qmd_scoringpermitted</fieldlabel>
+              <fieldentry>Yes</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>qmd_computerscored</fieldlabel>
+              <fieldentry>Yes</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html"><![CDATA[<p>Select <strong>all</strong> HTTP methods.</p>]]></mattext>
+          </material>
+          <response_lid ident="response" rcardinality="Multiple">
+            <render_choice shuffle="No">
+              <response_label ident="Q1_ANS_1021">
+                <material>
+                  <mattext texttype="text/plain"><![CDATA[GET]]></mattext>
+                </material>
+              </response_label>
+              <response_label ident="Q1_ANS_1022">
+                <material>
+                  <mattext texttype="text/plain"><![CDATA[POST]]></mattext>
+                </material>
+              </response_label>
+              <response_label ident="Q1_ANS_1023">
+                <material>
+                  <mattext texttype="text/plain"><![CDATA[HTML]]></mattext>
+                </material>
+              </response_label>
+              <response_label ident="Q1_ANS_1024">
+                <material>
+                  <mattext texttype="text/plain"><![CDATA[FTP]]></mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <and>
+                <varequal respident="response">Q1_ANS_1021</varequal>
+                <varequal respident="response">Q1_ANS_1022</varequal>
+                <not>
+                  <varequal respident="response">Q1_ANS_1023</varequal>
+                </not>
+                <not>
+                  <varequal respident="response">Q1_ANS_1024</varequal>
+                </not>
+              </and>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="Q1_ITEM_103" title="HTML language">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>cc_profile</fieldlabel>
+              <fieldentry>cc.true_false.v0p1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>cc_weighting</fieldlabel>
+              <fieldentry>1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>qmd_scoringpermitted</fieldlabel>
+              <fieldentry>Yes</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>qmd_computerscored</fieldlabel>
+              <fieldentry>Yes</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html"><![CDATA[<p>HTML is a programming language.</p>]]></mattext>
+          </material>
+          <response_lid ident="response" rcardinality="Single">
+            <render_choice shuffle="No">
+              <response_label ident="Q1_ANS_1031">
+                <material>
+                  <mattext texttype="text/plain"><![CDATA[True]]></mattext>
+                </material>
+              </response_label>
+              <response_label ident="Q1_ANS_1032">
+                <material>
+                  <mattext texttype="text/plain"><![CDATA[False]]></mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response">Q1_ANS_1032</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="Q1_ITEM_104" title="REST">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>cc_profile</fieldlabel>
+              <fieldentry>cc.essay.v0p1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>cc_weighting</fieldlabel>
+              <fieldentry>5</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>qmd_scoringpermitted</fieldlabel>
+              <fieldentry>Yes</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>qmd_computerscored</fieldlabel>
+              <fieldentry>No</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html"><![CDATA[<p>Explain REST in your own words.</p>]]></mattext>
+          </material>
+          <response_str ident="response" rcardinality="Single">
+            <render_fib fibtype="String" rows="1">
+              <response_label ident="Q1_FIB_104"/>
+            </render_fib>
+          </response_str>
+        </presentation>
+        <itemfeedback ident="solution">
+          <material>
+            <mattext texttype="text/html"><![CDATA[<p>Representational State Transfer uses HTTP verbs on resources.</p>]]></mattext>
+          </material>
+        </itemfeedback>
+      </item>
+      <item ident="Q1_ITEM_105" title="HTTP port">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>cc_profile</fieldlabel>
+              <fieldentry>cc.fib.v0p1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>cc_weighting</fieldlabel>
+              <fieldentry>1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>qmd_scoringpermitted</fieldlabel>
+              <fieldentry>Yes</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>qmd_computerscored</fieldlabel>
+              <fieldentry>Yes</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html"><![CDATA[<p>The default HTTP port is ____.</p>]]></mattext>
+          </material>
+          <response_str ident="response" rcardinality="Single">
+            <render_fib fibtype="String" rows="1">
+              <response_label ident="Q1_FIB_105"/>
+            </render_fib>
+          </response_str>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <or>
+                <varequal respident="response" case="No">80</varequal>
+                <varequal respident="response" case="No">eighty</varequal>
+              </or>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="Q1_ITEM_106" title="Script languages">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>cc_profile</fieldlabel>
+              <fieldentry>cc.pattern_match.v0p1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>cc_weighting</fieldlabel>
+              <fieldentry>1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>qmd_scoringpermitted</fieldlabel>
+              <fieldentry>Yes</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>qmd_computerscored</fieldlabel>
+              <fieldentry>Yes</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html"><![CDATA[<p>Name a language whose name contains "Script".</p>]]></mattext>
+          </material>
+          <response_str ident="response" rcardinality="Single">
+            <render_fib fibtype="String" rows="1">
+              <response_label ident="Q1_FIB_106"/>
+            </render_fib>
+          </response_str>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varsubstring respident="response" case="No">Script</varsubstring>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+    </section>
+  </assessment>
+</questestinterop>

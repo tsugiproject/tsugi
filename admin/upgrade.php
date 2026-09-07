@@ -4,8 +4,8 @@ use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
-require_once("../config.php");
-require_once("admin_util.php");
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/admin_util.php';
 
 if ( ! U::isCli() ) {
     session_start();

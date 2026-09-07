@@ -33,6 +33,9 @@ class CC extends \Tsugi\Util\TsugiDOM {
     const LOM_NS =      'http://ltsc.ieee.org/xsd/imsccv1p1/LOM/resource';
     const LOMIMSCC_NS = 'http://ltsc.ieee.org/xsd/imsccv1p1/LOM/manifest';
 
+    /** IMS CC 1.1 QTI 1.2 assessment resource type. */
+    const QTI_ASSESSMENT_TYPE = 'imsqti_xmlv1p2/imscc_xmlv1p1/assessment';
+
     const metadata_xpath = '/*/*[1]';
     const item_xpath = '/*/*[2]/*/*';
     const resource_xpath = '/*/*[3]';
@@ -326,6 +329,62 @@ class CC extends \Tsugi\Util\TsugiDOM {
         
         $type = 'imsbasiclti_xmlv1p0';
         $this-> add_resource_item($module, $title, $type, $this->last_identifier, $file);
+        return $file;
+    }
+
+    /**
+     * Add a QTI 1.2.1 assessment resource item to the manifest.
+     *
+     * Place the assessment XML at the returned path in the ZIP.
+     * {@see zip_add_qti_assessment_to_module()} combines both steps.
+     *
+     * @param \DOMNode $module
+     * @param string|null $title
+     * @param int|string|null $quizId Stable Quiz1 id for deterministic identifiers
+     * @param string|null $parentPath
+     * @return string Path of the QTI XML file inside the ZIP
+     */
+    public function add_qti_assessment($module, $title=null, $quizId=null, $parentPath=null) {
+        if ($parentPath === null) {
+            $moduleHash = spl_object_hash($module);
+            $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
+        }
+
+        $additionalProps = array();
+        if ($quizId !== null) {
+            $additionalProps['quiz_id'] = (string) $quizId;
+        }
+        $this->last_identifier = $this->idGenerator->makeIdentifier('qti', $title ?: '', $parentPath, $additionalProps);
+
+        $fileHash = substr($this->last_identifier, strpos($this->last_identifier, '_') + 1);
+        $file = 'xml/Q1_'.$fileHash.'.xml';
+
+        $this->add_resource_item($module, $title, self::QTI_ASSESSMENT_TYPE, $this->last_identifier, $file);
+        return $file;
+    }
+
+    /**
+     * Add a QTI assessment to the module and write the XML into the ZIP.
+     *
+     * @param \ZipArchive $zip
+     * @param \DOMNode $module
+     * @param string $title
+     * @param string $qtiXml UTF-8 QTI 1.2.1 assessment document
+     * @param int|string|null $quizId
+     * @param string|null $parentPath
+     * @return string
+     */
+    public function zip_add_qti_assessment_to_module($zip, $module, $title, $qtiXml, $quizId=null, $parentPath=null) {
+        $file = $this->add_qti_assessment($module, $title, $quizId, $parentPath);
+        $zip->addFromString($file, $qtiXml);
+
+        if ( $this->canvas_items ) {
+            $w = $this->canvas_module_meta->child_tags(CanvasModuleMeta::content_type_QuizzesQuiz);
+            $w[CanvasModuleMeta::title] = $title;
+            $w[CanvasModuleMeta::identifierref] = $this->last_identifierref;
+            $w[CanvasModuleMeta::new_tab] = CanvasModuleMeta::new_tab_false;
+            $this->canvas_module_meta->add_item($this->canvas_items, $this->last_identifier, $w);
+        }
         return $file;
     }
 

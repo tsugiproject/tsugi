@@ -4,6 +4,9 @@ namespace Tsugi\UI;
 
 use Tsugi\Util\CC;
 use Tsugi\Util\U;
+use Tsugi\Services\Quiz1\ExportException;
+use Tsugi\Services\Quiz1\Qti12Exporter;
+use Tsugi\Services\Quiz1\QuizRepository;
 
 /**
  * Common Cartridge export from an in-memory Lessons document (v2 items).
@@ -15,19 +18,21 @@ class LessonsCartridge {
     /**
      * Counts for the export form.
      *
-     * @return array{modules:int,resources:int,assignments:int,discussions:int}
+     * @return array{modules:int,resources:int,assignments:int,discussions:int,quizzes:int}
      */
     public static function summarize($l) {
         $modules = 0;
         $resources = 0;
         $assignments = 0;
         $discussions = 0;
+        $quizzes = 0;
         if ( ! isset($l->lessons->modules) || ! is_array($l->lessons->modules) ) {
             return array(
                 'modules' => 0,
                 'resources' => 0,
                 'assignments' => 0,
                 'discussions' => 0,
+                'quizzes' => 0,
             );
         }
         foreach ( $l->lessons->modules as $module ) {
@@ -36,40 +41,46 @@ class LessonsCartridge {
             $resources += $c['resources'];
             $assignments += $c['assignments'];
             $discussions += $c['discussions'];
+            $quizzes += $c['quizzes'];
         }
         return array(
             'modules' => $modules,
             'resources' => $resources,
             'assignments' => $assignments,
             'discussions' => $discussions,
+            'quizzes' => $quizzes,
         );
     }
 
     /**
-     * @return array{resources:int,assignments:int,discussions:int}
+     * @return array{resources:int,assignments:int,discussions:int,quizzes:int}
      */
     public static function moduleCounts($module) {
         $resources = 0;
         $assignments = 0;
         $discussions = 0;
+        $quizzes = 0;
         foreach ( self::itemsForModule($module) as $item ) {
-            self::countItem($item, $resources, $assignments, $discussions);
+            self::countItem($item, $resources, $assignments, $discussions, $quizzes);
         }
         return array(
             'resources' => $resources,
             'assignments' => $assignments,
             'discussions' => $discussions,
+            'quizzes' => $quizzes,
         );
     }
 
     /**
      * Count one item and its nested items, matching writeZip()/processChildren().
      */
-    private static function countItem($item, &$resources, &$assignments, &$discussions) {
+    private static function countItem($item, &$resources, &$assignments, &$discussions, &$quizzes) {
         $item = is_array($item) ? (object) $item : $item;
         $kind = LessonsNormalize::presentationKind($item);
         if ( $kind !== 'header' && ! LessonsNormalize::isHeading($item) ) {
-            if ( LessonsNormalize::isDiscussion($item) ) {
+            if ( LessonsNormalize::isNativeQuiz($item) ) {
+                $quizzes++;
+            } else if ( LessonsNormalize::isDiscussion($item) ) {
                 $discussions++;
             } else if ( self::isAssignmentLtiKind($kind) ) {
                 $assignments++;
@@ -79,7 +90,7 @@ class LessonsCartridge {
         }
         if ( isset($item->items) && is_array($item->items) ) {
             foreach ( $item->items as $child ) {
-                self::countItem($child, $resources, $assignments, $discussions);
+                self::countItem($child, $resources, $assignments, $discussions, $quizzes);
             }
         }
     }
@@ -89,7 +100,7 @@ class LessonsCartridge {
      *
      * @param object $l Lessons
      * @param \ZipArchive $zip
-     * @param array{tsugi_lms?:string,topic?:string,youtube?:string|false,anchors?:array|false} $options
+     * @param array{tsugi_lms?:string,topic?:string,youtube?:string|false,anchors?:array|false,context_id?:int,load_quiz?:callable} $options
      */
     public static function writeZip($l, $zip, array $options = array()) {
         global $CFG;
@@ -124,7 +135,7 @@ class LessonsCartridge {
                 $sub_module = $cc_dom->add_module($module->title, '');
             }
             foreach ( self::itemsForModule($module) as $item ) {
-                self::processItem($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic);
+                self::processItem($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
             }
         }
 
@@ -177,7 +188,7 @@ class LessonsCartridge {
         return self::itemHref($item) !== '';
     }
 
-    private static function processItem($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic) {
+    private static function processItem($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, array $options) {
         global $CFG;
 
         $item = is_array($item) ? (object) $item : $item;
@@ -185,7 +196,7 @@ class LessonsCartridge {
         $kind = LessonsNormalize::presentationKind($item);
 
         if ( $type === 'text' ) {
-            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
             return;
         }
 
@@ -194,25 +205,31 @@ class LessonsCartridge {
             if ( is_string($header_text) && $header_text !== '' ) {
                 $cc_dom->add_header_item($sub_module, $header_text);
             }
-            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
             return;
         }
 
         if ( $kind === 'video' ) {
             self::processVideo($item, $sub_module, $zip, $cc_dom, $youtube);
-            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+            return;
+        }
+
+        if ( LessonsNormalize::isNativeQuiz($item) ) {
+            self::processNativeQuiz($item, $module, $sub_module, $zip, $cc_dom, $options);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
             return;
         }
 
         if ( LessonsNormalize::isDiscussion($item) ) {
             self::processDiscussion($item, $module, $sub_module, $zip, $cc_dom, $topic);
-            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
             return;
         }
 
         if ( self::isAssignmentLtiKind($kind) || $type === LessonsNormalize::TYPE_LTI ) {
             self::processLti($item, $module, $sub_module, $zip, $cc_dom);
-            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
             return;
         }
 
@@ -223,16 +240,58 @@ class LessonsCartridge {
             $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, null, $new_tab);
         }
 
-        self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic);
+        self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
     }
 
-    private static function processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic) {
+    private static function processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, array $options) {
         if ( ! isset($item->items) || ! is_array($item->items) ) {
             return;
         }
         foreach ( $item->items as $child ) {
-            self::processItem($child, $module, $sub_module, $zip, $cc_dom, $youtube, $topic);
+            self::processItem($child, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
         }
+    }
+
+    /**
+     * Export a native Quiz1 item as IMS CC QTI 1.2.1. Only quizzes referenced
+     * in lessons are included. Missing or invalid quizzes fail the export.
+     */
+    private static function processNativeQuiz($item, $module, $sub_module, $zip, $cc_dom, array $options) {
+        $quiz_id = LessonsNormalize::quizIdOf($item);
+        $title = isset($item->title) && is_string($item->title) && $item->title !== ''
+            ? $item->title
+            : (isset($module->title) ? $module->title : __('Quiz'));
+        if ( $quiz_id < 1 ) {
+            throw new ExportException(
+                'A lesson quiz is missing quiz_id (title: '.$title.'). Pick a Quiz1 quiz in Lessons authoring.'
+            );
+        }
+        $quiz = self::loadQuiz($quiz_id, $options);
+        if ( $quiz === null ) {
+            throw new ExportException(
+                'Lesson references quiz_id '.$quiz_id.' ('.$title.') which was not found in this course.'
+            );
+        }
+        if ( is_string($quiz->title) && $quiz->title !== '' && ( ! isset($item->title) || $item->title === '' ) ) {
+            $title = $quiz->title;
+        }
+        $xml = Qti12Exporter::export($quiz);
+        $cc_dom->zip_add_qti_assessment_to_module($zip, $sub_module, $title, $xml, $quiz_id);
+    }
+
+    /**
+     * @param array{context_id?:int,load_quiz?:callable} $options
+     * @return \Tsugi\Services\Quiz1\Quiz|null
+     */
+    private static function loadQuiz($quiz_id, array $options) {
+        if ( isset($options['load_quiz']) && is_callable($options['load_quiz']) ) {
+            return call_user_func($options['load_quiz'], $quiz_id);
+        }
+        $context_id = isset($options['context_id']) ? (int) $options['context_id'] : U::currentContextId();
+        if ( $context_id < 1 ) {
+            return null;
+        }
+        return QuizRepository::load($quiz_id, $context_id);
     }
 
     private static function processVideo($item, $sub_module, $zip, $cc_dom, $youtube) {

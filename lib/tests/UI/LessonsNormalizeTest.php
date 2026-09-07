@@ -680,4 +680,38 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
         ));
         $this->assertSame('autograder', $out['subtype']);
     }
+
+    public function testNativeQuizItemKeepsQuizId() {
+        $out = LessonsNormalize::normalizeItem(array(
+            'type' => 'quiz',
+            'title' => 'Week 1 Quiz',
+            'quiz_id' => '42',
+            'subtype' => 'quiz',
+            'launch' => 'mod/gift/',
+        ));
+        $this->assertSame('quiz', $out['type']);
+        $this->assertSame(42, $out['quiz_id']);
+        $this->assertArrayNotHasKey('subtype', $out);
+        $this->assertArrayNotHasKey('launch', $out);
+        $this->assertSame(LessonsNormalize::KIND_QUIZ1, LessonsNormalize::presentationKind($out));
+        $this->assertTrue(LessonsNormalize::isNativeQuiz($out));
+        $this->assertFalse(LessonsNormalize::isLtiLaunch($out));
+        $this->assertSame('quizzes', LessonsNormalize::sectionGroup($out));
+        $this->assertSame('quiz1', LessonsNormalize::iconKey($out));
+    }
+
+    public function testLtiQuizIsNotNativeQuiz() {
+        $out = LessonsNormalize::normalizeItem(array(
+            'type' => 'lti',
+            'title' => 'Gift',
+            'launch' => 'mod/gift/?quiz=x',
+            'resource_link_id' => 'q',
+        ));
+        $this->assertSame('lti', $out['type']);
+        $this->assertSame('quiz', $out['subtype']);
+        $this->assertSame('quiz', LessonsNormalize::presentationKind($out));
+        $this->assertFalse(LessonsNormalize::isNativeQuiz($out));
+        $this->assertTrue(LessonsNormalize::isLtiLaunch($out));
+        $this->assertSame('ltis', LessonsNormalize::sectionGroup($out));
+    }
 }

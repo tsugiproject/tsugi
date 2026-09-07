@@ -14,6 +14,7 @@
  * - $import_url: session-bearing URL to POST an uploaded lessons.json
  * - $files_json_url: session-bearing URL for course Files JSON (picker)
  * - $files_home_url: session-bearing URL for the Files tool
+ * - $quiz1_home_url, $quiz1_list: Quiz1 picker for native quiz items
  * - $pages_json_url, $lessons_json_url, $pages_base, $app_home: link picker
  */
 ?>
@@ -326,6 +327,7 @@
 .item-type.reference { background: #17a2b8; }
 .item-type.discussion { background: #ffc107; color: #333; }
 .item-type.lti { background: #28a745; }
+.item-type.quiz { background: #20c997; }
 .item-type.assignment { background: #fd7e14; }
 .item-type.slide { background: #6f42c1; }
 .item-type.file { background: #6c757d; }
@@ -765,6 +767,8 @@ var lessonsJsonUrl = <?= json_encode($lessons_json_url ?? '') ?>;
 var pagesBase = <?= json_encode($pages_base ?? '') ?>;
 var filesBase = filesHomeUrl;
 var appHome = <?= json_encode($app_home ?? '') ?>;
+var quiz1HomeUrl = <?= json_encode($quiz1_home_url ?? '') ?>;
+var quiz1Quizzes = <?= json_encode($quiz1_list ?? array()) ?>;
 var currentPageId = null;
 <?php \Tsugi\UI\CKEditor::renderLinkPickerScript(); ?>
 let courseFilesCache = null;
@@ -972,6 +976,7 @@ function itemEditorKind(item) {
     if (type === 'slide' || type === 'slides') return 'slide';
     if (type === 'reference') return 'reference';
     if (type === 'lti') return 'lti';
+    if (type === 'quiz') return 'quiz';
     if (type === 'html_page') return 'assignment';
     const sub = item.subtype || '';
     if (sub === 'video') return 'video';
@@ -988,7 +993,7 @@ function itemFoundationalType(item) {
     if (kind === 'heading' || kind === 'header') {
         return 'heading';
     }
-    if (kind === 'discussion' || kind === 'lti' || kind === 'file') {
+    if (kind === 'discussion' || kind === 'lti' || kind === 'file' || kind === 'quiz') {
         return kind;
     }
     return 'web_link';
@@ -1009,6 +1014,49 @@ function itemLinkSubtype(item) {
         return 'solution';
     }
     return 'reference';
+}
+
+function quizPickerFieldsHtml(item) {
+    const selected = parseInt(item.quiz_id, 10) || 0;
+    const manage = quiz1HomeUrl
+        ? `<div class="file-picker-summary"><a href="${escapeHtml(quiz1HomeUrl)}" target="_blank" rel="noopener noreferrer">Manage quizzes</a></div>`
+        : '';
+    let picker;
+    if (!quiz1Quizzes || !quiz1Quizzes.length) {
+        picker = `<p>No quizzes in this course yet. <a href="${escapeHtml(quiz1HomeUrl)}" target="_blank" rel="noopener noreferrer">Create a quiz</a>, then come back and add it here.</p>
+            <input type="hidden" id="edit-quiz-id" value="">`;
+    } else {
+        const options = quiz1Quizzes.map(function(q) {
+            const label = escapeHtml(q.title || ('Quiz ' + q.id)) + ' (' + (q.question_count || 0) + ' questions)';
+            return `<option value="${q.id}" ${q.id === selected ? 'selected' : ''}>${label}</option>`;
+        }).join('');
+        picker = `
+            <div class="form-group">
+                <label>Quiz:</label>
+                <select id="edit-quiz-id" onchange="onQuizPicked()">
+                    <option value="">Choose a quiz…</option>
+                    ${options}
+                </select>
+                ${manage}
+            </div>
+        `;
+    }
+    return `
+            <div class="form-group">
+                <label>Title:</label>
+                <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}" placeholder="Defaults to the quiz title">
+            </div>
+            ${picker}
+    `;
+}
+
+function onQuizPicked() {
+    const id = parseInt($('#edit-quiz-id').val(), 10);
+    const q = (quiz1Quizzes || []).find(function(x) { return x.id === id; });
+    const titleEl = document.getElementById('edit-title');
+    if (q && titleEl && !titleEl.value.trim()) {
+        titleEl.value = q.title;
+    }
 }
 
 function webLinkSubtypeSelectHtml(subtype) {
@@ -1416,6 +1464,7 @@ function getItemTypeIcon(itemOrType) {
         'reference': 'fa-external-link',
         'discussion': 'fa-comments',
         'lti': 'fa-puzzle-piece',
+        'quiz': 'fa-check-square-o',
         'assignment': 'fa-file-text',
         'slide': 'fa-file-powerpoint-o',
         'web_link': 'fa-external-link',
@@ -1748,6 +1797,10 @@ function harvestItemFormDraft(item) {
             item[key] = el.value;
         }
     });
+    const quizEl = document.getElementById('edit-quiz-id');
+    if (quizEl && quizEl.value) {
+        item.quiz_id = parseInt(quizEl.value, 10);
+    }
     const targetEl = document.querySelector('input[name="edit-target"]:checked');
     if (targetEl) {
         item.target = targetEl.value;
@@ -1772,6 +1825,7 @@ function showItemModal(title, item) {
                 <option value="heading" ${type === 'heading' ? 'selected' : ''}>Heading</option>
                 <option value="web_link" ${type === 'web_link' ? 'selected' : ''}>Web link</option>
                 <option value="discussion" ${type === 'discussion' ? 'selected' : ''}>Discussion</option>
+                <option value="quiz" ${type === 'quiz' ? 'selected' : ''}>Quiz</option>
                 <option value="lti" ${type === 'lti' ? 'selected' : ''}>LTI</option>
                 <option value="file" ${type === 'file' ? 'selected' : ''}>File</option>
             </select>
@@ -1902,6 +1956,8 @@ function updateItemFormFields(item) {
                 <input type="text" id="edit-resource-link-id" value="${escapeHtml(item.resource_link_id || '')}" placeholder="Leave blank to generate from the title">
             </div>
         `;
+    } else if (type === 'quiz') {
+        fieldsHtml = quizPickerFieldsHtml(item);
     } else if (type === 'lti') {
         const customFields = item.custom || [];
         const customFieldsHtml = customFields.map((field, index) => `
@@ -2262,6 +2318,27 @@ function saveItem() {
             rlid = allocateDiscussionRlid(item.title, collectUsedResourceLinkIds(editingModuleIndex, editingItemIndex));
         }
         item.resource_link_id = rlid;
+    } else if (type === 'quiz') {
+        const quizId = parseInt($('#edit-quiz-id').val(), 10);
+        if (!quizId) {
+            alert('Pick a quiz from this course. Create one under Quizzes if the list is empty.');
+            return;
+        }
+        const selected = (quiz1Quizzes || []).find(function(q) { return q.id === quizId; });
+        item.type = 'quiz';
+        delete item.subtype;
+        delete item.launch;
+        delete item.href;
+        delete item.url;
+        delete item.resource_link_id;
+        delete item.custom;
+        delete item.youtube;
+        delete item.kaltura_id;
+        delete item.media;
+        delete item.reference;
+        item.quiz_id = quizId;
+        const titleVal = $('#edit-title').val().trim();
+        item.title = titleVal || (selected ? selected.title : '');
     } else if (type === 'lti') {
         const custom = [];
         $('#custom-fields-container .custom-field').each(function() {
@@ -2310,6 +2387,10 @@ function saveItem() {
         } else {
             delete item.content_type;
         }
+    }
+
+    if (item.type !== 'quiz') {
+        delete item.quiz_id;
     }
 
     if ($('#edit-item-icon').length) {

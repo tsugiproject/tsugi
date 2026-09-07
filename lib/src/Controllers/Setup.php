@@ -254,12 +254,20 @@ function sendToCanvas() {
             return new RedirectResponse($export_url);
         }
 
-        LessonsCartridge::writeZip($l, $zip, array(
-            'tsugi_lms' => U::get($_GET, 'tsugi_lms', false),
-            'topic' => U::get($_GET, 'topic', false),
-            'youtube' => U::get($_GET, 'youtube', false),
-            'anchors' => $anchors,
-        ));
+        try {
+            LessonsCartridge::writeZip($l, $zip, array(
+                'tsugi_lms' => U::get($_GET, 'tsugi_lms', false),
+                'topic' => U::get($_GET, 'topic', false),
+                'youtube' => U::get($_GET, 'youtube', false),
+                'anchors' => $anchors,
+                'context_id' => U::currentContextId(),
+            ));
+        } catch ( \Exception $e ) {
+            $zip->close();
+            @unlink($filename);
+            U::flashError($e->getMessage());
+            return new RedirectResponse($export_url);
+        }
         $zip->close();
 
         $download = LessonsCartridge::downloadName($l);

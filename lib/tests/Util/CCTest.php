@@ -226,4 +226,20 @@ class CCTest extends \PHPUnit\Framework\TestCase
         }
 
     }
+
+    public function testQtiAssessmentResource() {
+        $cc_dom = new CC();
+        $cc_dom->set_title('Web Applications for Everybody');
+        $module = $cc_dom->add_module('Week 1');
+        $file = $cc_dom->add_qti_assessment($module, 'Week 1 Quiz', 7);
+        $qtiId = $cc_dom->last_identifier;
+        $qtiIdRef = $cc_dom->last_identifierref;
+        $this->assertStringStartsWith('Q1_', $qtiId);
+        $this->assertEquals($qtiId . '_R', $qtiIdRef);
+        $this->assertStringStartsWith('xml/Q1_', $file);
+        $save = $cc_dom->saveXML();
+        $this->assertStringContainsString('type="imsqti_xmlv1p2/imscc_xmlv1p1/assessment"', $save);
+        $this->assertStringContainsString('<title>Week 1 Quiz</title>', $save);
+        $this->assertStringContainsString('<file href="' . $file . '"/>', $save);
+    }
 }

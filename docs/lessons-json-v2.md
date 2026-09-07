@@ -15,6 +15,7 @@ read.
 | `file` | Stored or course-owned file |
 | `discussion` | Forum topic (title, `resource_link_id`, optional description) |
 | `lti` | LTI launch (quiz, autograder, peer-grade, and other tools) |
+| `quiz` | Native Quiz1 quiz (`quiz_id` of a `{prefix}quiz1_quiz` row) |
 
 `text`, `carousel`, and `chapters` stay as structural/legacy types and are
 not remapped.
@@ -50,6 +51,18 @@ Example:
   "resource_link_id": "discussion_welcome"
 }
 ```
+
+Native Quiz1 (not Gift Quizzes / LTI):
+
+```json
+{
+  "type": "quiz",
+  "title": "Week 1 Quiz",
+  "quiz_id": 42
+}
+```
+
+`quiz_id` is the Quiz1 database id in this course. LTI quizzes stay `{ "type": "lti", "subtype": "quiz", ... }`.
 
 ## Legacy mapping
 
@@ -128,8 +141,8 @@ Resolution order:
 4. Foundational type
 
 Video, slides, assignment, reference, discussion, and LTI keep their current
-icons. Quiz / autograder / peer-grade currently reuse the LTI icon so
-existing courses do not change appearance.
+icons. LTI quiz / autograder / peer-grade still reuse the LTI icon. Native
+Quiz1 items (`type: quiz`) use a distinct quiz icon.
 
 ## Authoring
 
@@ -150,7 +163,8 @@ The author editor creates foundational types plus subtypes (for example
 a video is `web_link` / `video`, slides are `web_link` / `slides`, an
 assignment is `web_link` / `assignment`, a file is picked from course Files,
 a discussion is `discussion` with a title, optional description, and
-`resource_link_id`). File items get `href`, `sha256`, `filename`, and
+`resource_link_id`, a quiz is `quiz` with a `quiz_id` picked from course
+Quiz1 quizzes). File items get `href`, `sha256`, `filename`, and
 `content_type` from the chosen Files row. Full HTML page WYSIWYG is still
 later work.
 
@@ -163,6 +177,13 @@ From the Lessons author screen (v2 courses only):
 
 Routes: `/lessons/_author/export` and `/lessons/_author/export-v2`.
 
+**Common Cartridge** is the Setup export (`/setup/export`), not the old
+`cc/export.php` path. Native `quiz` items in lessons are packaged as IMS CC
+QTI 1.2.1 assessments (`imsqti_xmlv1p2/imscc_xmlv1p1/assessment`) using
+`Qti12Exporter`. Quizzes that are not referenced in lessons are not
+included. Missing `quiz_id` or a quiz that cannot be loaded fails the
+export with an error instead of skipping the item.
+
 ## Compatibility
 
 * Reading a file never mutates it on disk.
@@ -172,8 +193,11 @@ Routes: `/lessons/_author/export` and `/lessons/_author/export-v2`.
 
 ## Deferred
 
-* IMS Common Cartridge import/export, XML namespaces, ZIP packaging, and
-  restoring human filenames in a cartridge.
+* IMS Common Cartridge **import**, XML namespaces, and restoring human
+  filenames in a cartridge. CC **export** of lesson-referenced Quiz1 quizzes
+  is implemented via Setup / `LessonsCartridge`.
+* Exporting quizzes that are not referenced in lessons (orphan resources in
+  the manifest).
 * HTML Page authoring and binding to Tsugi Pages (`page_id` vs `href` vs
   embedded `content` vs `logical_key`).
 * Uploading a new file from the Lessons author dialog (pick existing

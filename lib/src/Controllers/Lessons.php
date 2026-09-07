@@ -6,6 +6,7 @@ use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Lumen\Application;
+use Tsugi\Services\Quiz1\QuizRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -150,6 +151,22 @@ class Lessons extends Tool {
         $pages_base = $pages_home;
         $app_home = (isset($CFG->apphome) && is_string($CFG->apphome)) ? rtrim($CFG->apphome, '/') : '';
         $lessons_url = U::addSession($this->toolHome(self::ROUTE));
+        $quiz1_home_url = U::addSession($this->toolHome(Quiz1::ROUTE));
+        $quiz1_list = array();
+        try {
+            $context_id = U::currentContextId();
+            if ( $context_id ) {
+                foreach ( QuizRepository::listForContext($context_id) as $quiz ) {
+                    $quiz1_list[] = array(
+                        'id' => (int) $quiz->id,
+                        'title' => $quiz->title,
+                        'question_count' => (int) $quiz->question_count,
+                    );
+                }
+            }
+        } catch ( \Exception $e ) {
+            $quiz1_list = array();
+        }
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();

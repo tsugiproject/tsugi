@@ -2780,6 +2780,7 @@ $(function(){
             'discussion' => 'fa-comments',
             'lti' => 'fa-puzzle-piece',
             'quiz' => 'fa-puzzle-piece',
+            'quiz1' => 'fa-check-square-o',
             'autograder' => 'fa-puzzle-piece',
             'peer_grade' => 'fa-puzzle-piece',
             'assignment' => 'fa-file-text',
@@ -2813,6 +2814,7 @@ $(function(){
             'discussion' => '#ffc107',
             'lti' => '#28a745',
             'quiz' => '#28a745',
+            'quiz1' => '#20c997',
             'autograder' => '#28a745',
             'peer_grade' => '#28a745',
             'assignment' => '#fd7e14',
@@ -2906,6 +2908,9 @@ $(function(){
                 break;
             case 'discussion':
                 $this->renderItemDiscussion($item, $module, $nostyle);
+                break;
+            case 'quiz':
+                $this->renderItemQuiz1($item, $nostyle);
                 break;
             // Legacy plural types - convert to singular and re-render (backward compatibility)
             case 'videos':
@@ -3409,6 +3414,45 @@ $(function(){
             self::echoLtiLinkProgressIndicators($resource_link_id, $item, $this->lessonModuleGradesForBadges, $this->lessonModuleDueDatesForBadges);
             echo('</li>'."\n");
         }
+    }
+
+    /**
+     * Native Quiz1 lesson item. Logged-in users take the quiz; guests see login required.
+     */
+    private function renderItemQuiz1($item, $nostyle=false) {
+        $title = isset($item->title) && is_string($item->title) && $item->title !== ''
+            ? $item->title
+            : __('Quiz');
+        $quiz_id = LessonsNormalize::quizIdOf($item);
+        $href = '';
+        $logged_in = U::isLoggedIn();
+        if ( $quiz_id > 0 && $logged_in && class_exists('\\Tsugi\\Controllers\\Quiz1') ) {
+            $home = \Tsugi\Controllers\Tool::determineToolHome(\Tsugi\Controllers\Quiz1::ROUTE);
+            if ( is_string($home) && $home !== '' ) {
+                $href = U::addSession($home.'/'.$quiz_id);
+            }
+        }
+
+        echo('<li typeof="oer:assessment" class="tsugi-lessons-module-quiz1">');
+        if ( $nostyle ) {
+            echo(htmlentities($title));
+            if ( $href !== '' ) {
+                echo(': <a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'">'.htmlentities($title).'</a>');
+            }
+        } else if ( $href !== '' ) {
+            echo('<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'" style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
+            echo(htmlentities($title).'</a>');
+        } else {
+            echo('<span style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
+            echo(htmlentities($title));
+            if ( ! $logged_in ) {
+                echo(' ('.__('Login Required').')');
+            }
+            echo('</span>');
+        }
+        echo("</li>\n");
     }
 
     /**

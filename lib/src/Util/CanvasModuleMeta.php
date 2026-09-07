@@ -17,6 +17,7 @@ class CanvasModuleMeta extends \Tsugi\Util\TsugiDOM {
     const content_type_ContextModuleSubHeader = 'ContextModuleSubHeader';
     const content_type_Assignment = 'Assignment';
     const content_type_DiscussionTopic = 'DiscussionTopic';
+    const content_type_QuizzesQuiz = 'Quizzes::Quiz';
 
     const module = 'module';
     const item = 'item';
@@ -42,6 +43,7 @@ class CanvasModuleMeta extends \Tsugi\Util\TsugiDOM {
         'imswl_xmlv1p1' => self::content_type_ExternalUrl,
         'imsdt_v1p1' => self::content_type_DiscussionTopic,
         'imsbasiclti_xmlv1p0' => self::content_type_ContextExternalTool,
+        'imsqti_xmlv1p2/imscc_xmlv1p1/assessment' => self::content_type_QuizzesQuiz,
     );
 
     public $module_position = 0;
