@@ -8,8 +8,8 @@ class CC_WebLink extends \Tsugi\Util\TsugiDOM {
 
     function __construct() {
         parent::__construct('<?xml version="1.0" encoding="UTF-8"?>
-<webLink xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imswl_v1p1"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsccv1p1/imswl_v1p1 http://www.imsglobal.org/profile/cc/ccv1p1/ccv1p1_imswl_v1p1.xsd">
+<webLink xmlns="http://www.imsglobal.org/xsd/imsccv1p2/imswl_v1p2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="'.CC::WL_SCHEMA_LOCATION.'">
   <title>Wikipedia - Psychology</title>
   <url href="http://en.wikipedia.org/wiki/Psychology"/>
 </webLink>');

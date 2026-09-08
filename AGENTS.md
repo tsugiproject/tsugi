@@ -1,5 +1,9 @@
 # Repository Guidelines
 
+## This checkout only
+
+This folder is the Tsugi you are editing. A sibling clone often exists at `/Users/csev/htdocs/tsugi`. **Do not use that tree** unless it is the Cursor workspace. PHP admin scripts must `require` via `__DIR__` so `php admin/upgrade.php` cannot pick up `dj4e/config.php` and jump to `htdocs/tsugi`. See `.cursor/rules/this-checkout-only.mdc`.
+
 ## Project Structure & Module Organization
 - Root entry points live in `index.php` and `admin/` for the administration console UI. `/login` and `/logout` (and the legacy `login.php` / `logout.php` URLs) are Login/Logout controllers via `tsugi.php`.
 - Core feature areas are organized by domain: `api/` (HTTP endpoints), `lti/` (LTI launch and flow), `mod/` (optional modules), `tool/` (in-tree tools shipped with this repo), `store/` (tool store), `util/` (shared helpers), and `locale/` (translations).

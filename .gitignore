@@ -34,6 +34,7 @@ _files
 exercises
 samples
 cc.zip
+/lib/tests/fixtures/Quiz1/generated/*.imscc
 mod
 tsugi-php-samples
 vendor/ezyang/htmlpurifier/library/HTMLPurifier/DefinitionCache/Serializer/HTML/

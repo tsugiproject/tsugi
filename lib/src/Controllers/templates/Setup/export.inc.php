@@ -11,6 +11,7 @@ $modules = isset($l->lessons->modules) && is_array($l->lessons->modules) ? $l->l
 $resource_count = (int) $counts['resources'];
 $assignment_count = (int) $counts['assignments'];
 $discussion_count = (int) $counts['discussions'];
+$quiz_count = isset($counts['quizzes']) ? (int) $counts['quizzes'] : 0;
 $module_count = (int) $counts['modules'];
 ?>
 <?php if ( $localhost_warning ) { ?>
@@ -30,6 +31,7 @@ $module_count = (int) $counts['modules'];
 <p><?= __('Resources:') ?> <?= $resource_count ?></p>
 <p><?= __('Assignments:') ?> <?= $assignment_count ?></p>
 <p><?= __('Discussion topics:') ?> <?= $discussion_count ?></p>
+<p><?= __('Quizzes:') ?> <?= $quiz_count ?></p>
 <form action="<?= htmlspecialchars($download_url) ?>" method="get">
 <input type="hidden" name="tsugi_lms" value="canvas" />
 <?php if ( $discussion_count > 0 ) { ?>
@@ -68,6 +70,7 @@ $module_count = (int) $counts['modules'];
 <p><?= __('Resources:') ?> <?= $resource_count ?></p>
 <p><?= __('Assignments:') ?> <?= $assignment_count ?></p>
 <p><?= __('Discussion topics:') ?> <?= $discussion_count ?></p>
+<p><?= __('Quizzes:') ?> <?= $quiz_count ?></p>
 <form action="<?= htmlspecialchars($download_url) ?>" method="get">
 <p>
 <label for="tsugi_lms_select_full"><?= __('Choose the LMS that will use this cartridge:') ?></label>
@@ -77,6 +80,7 @@ $module_count = (int) $counts['modules'];
   <option value="sakai">Sakai</option>
 </select>
 </p>
+<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions.') ?></p>
 <?php if ( $discussion_count > 0 ) { ?>
 <p>
 <label for="topic_select_full"><?= __('How would you like to import discussions/topics?') ?></label>
@@ -119,6 +123,7 @@ $module_count = (int) $counts['modules'];
   <option value="sakai">Sakai</option>
 </select>
 </p>
+<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions.') ?></p>
 <?php if ( $youtube_enabled ) { ?>
 <p>
 <label for="youtube_select_partial"><?= __('Would you like YouTube Tracked URLs?') ?></label>
@@ -148,6 +153,7 @@ $module_count = (int) $counts['modules'];
     echo("<li>".__('Resources in this module:').' '.$mc['resources']."</li>\n");
     echo("<li>".__('Assignments in this module:').' '.$mc['assignments']."</li>\n");
     echo("<li>".__('Discussions in this module:').' '.$mc['discussions']."</li>\n");
+    echo("<li>".__('Quizzes in this module:').' '.$mc['quizzes']."</li>\n");
     echo("</ul>\n");
 } ?>
 <p>

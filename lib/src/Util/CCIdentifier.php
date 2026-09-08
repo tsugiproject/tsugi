@@ -38,7 +38,8 @@ class CCIdentifier {
         'weblink' => 'WL',
         'lti' => 'LT',
         'topic' => 'TO',
-        'header' => 'H'
+        'header' => 'H',
+        'qti' => 'Q1'
     );
 
     /**

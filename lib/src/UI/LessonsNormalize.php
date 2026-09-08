@@ -7,8 +7,9 @@ use \Tsugi\Controllers\Files;
 /**
  * Canonical Lessons item model and lossless legacy normalizer.
  *
- * Foundational types: heading, web_link, html_page, file, discussion, lti.
+ * Foundational types: heading, web_link, html_page, file, discussion, lti, quiz.
  * Lessons meaning stays on subtype (video, slides, assignment, quiz, ...).
+ * Native Quiz1 items are type quiz with quiz_id. LTI quizzes stay type lti + subtype quiz.
  * Legacy lessons.json maps to web_link (plus subtype), never file or html_page.
  *
  * Normalization is in-memory only. It does not rewrite stored lessons.json.
@@ -21,6 +22,10 @@ class LessonsNormalize {
     const TYPE_FILE = 'file';
     const TYPE_DISCUSSION = 'discussion';
     const TYPE_LTI = 'lti';
+    /** Native Quiz1 quiz referenced by quiz_id. Not an LTI launch. */
+    const TYPE_QUIZ = 'quiz';
+    /** presentationKind for TYPE_QUIZ (LTI subtype quiz stays 'quiz'). */
+    const KIND_QUIZ1 = 'quiz1';
 
     /** Built-in Tsugi discussion tool path (under $CFG->wwwroot). */
     const BUILTIN_DISCUSSION_LAUNCH = 'tsugi/tool/tdiscus';
@@ -60,6 +65,7 @@ class LessonsNormalize {
         self::TYPE_FILE,
         self::TYPE_DISCUSSION,
         self::TYPE_LTI,
+        self::TYPE_QUIZ,
     );
 
     /** @var array<string, string> */
@@ -97,7 +103,7 @@ class LessonsNormalize {
     /** @var list<string> */
     private static $itemKeyOrder = array(
         'type', 'subtype', 'title', 'description', 'text', 'level', 'class', 'tag',
-        'href', 'url', 'launch', 'resource_link_id', 'target', 'result', 'custom',
+        'href', 'url', 'launch', 'resource_link_id', 'quiz_id', 'target', 'result', 'custom',
         'sha256', 'filename', 'content_type', 'icon',
         'youtube', 'kaltura_id', 'media',
         'note', 'notes', 'TODO', 'todo', 'review', 'project', 'FCP', 'FCPX',
@@ -283,6 +289,95 @@ class LessonsNormalize {
     }
 
     /**
+     * Native Quiz1 lesson item (not an LTI Gift quiz).
+     *
+     * @param mixed $item
+     * @return bool
+     */
+    public static function isNativeQuiz($item) {
+        return self::typeOf($item) === self::TYPE_QUIZ;
+    }
+
+    /**
+     * Quiz1 quiz_id on a native quiz item.
+     *
+     * @param mixed $item
+     * @return int
+     */
+    public static function quizIdOf($item) {
+        $arr = self::asArray($item);
+        if ( ! isset($arr['quiz_id']) ) {
+            return 0;
+        }
+        $id = self::parseQuizId($arr['quiz_id']);
+        return $id !== null ? $id : 0;
+    }
+
+    /**
+     * Positive Quiz1 id: int >= 1, or a digit string with no sign, decimal, or trailing junk.
+     *
+     * @param mixed $value
+     * @return int|null
+     */
+    public static function parseQuizId($value) {
+        if ( is_int($value) ) {
+            return $value > 0 ? $value : null;
+        }
+        if ( is_string($value) && preg_match('/^[1-9][0-9]*$/', $value) ) {
+            return (int) $value;
+        }
+        return null;
+    }
+
+    /**
+     * Authoring-save error when a native quiz item has a quiz_id that is not a
+     * positive integer. Load/normalize drops invalid ids instead of failing.
+     * Missing quiz_id is allowed (unsatisfied FK).
+     *
+     * @param array<string, mixed> $doc
+     * @return string|null
+     */
+    public static function invalidQuizIdError(array $doc) {
+        if ( ! isset($doc['modules']) || ! is_array($doc['modules']) ) {
+            return null;
+        }
+        foreach ( $doc['modules'] as $mod ) {
+            if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
+                continue;
+            }
+            $err = self::invalidQuizIdErrorWalk($mod['items']);
+            if ( $err !== null ) {
+                return $err;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param array<int, mixed> $items
+     * @return string|null
+     */
+    private static function invalidQuizIdErrorWalk(array $items) {
+        foreach ( $items as $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            $type = isset($item['type']) ? $item['type'] : '';
+            if ( $type === self::TYPE_QUIZ && array_key_exists('quiz_id', $item)
+                && self::parseQuizId($item['quiz_id']) === null ) {
+                return 'Quiz items need a positive integer quiz_id';
+            }
+            if ( isset($item['items']) && is_array($item['items']) ) {
+                $err = self::invalidQuizIdErrorWalk($item['items']);
+                if ( $err !== null ) {
+                    return $err;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * True when launch is the built-in Tsugi discussion tool (tsugi/tool/tdiscus).
      * Other tdiscus paths (for example mod/tdiscus/) do not match.
      *
@@ -377,6 +472,9 @@ class LessonsNormalize {
         if ( $type === 'header' || $type === self::TYPE_HEADING ) {
             return 'header';
         }
+        if ( $type === self::TYPE_QUIZ ) {
+            return self::KIND_QUIZ1;
+        }
         if ( $type === 'discussion' || $subtype === self::SUBTYPE_DISCUSSION ) {
             return 'discussion';
         }
@@ -427,6 +525,7 @@ class LessonsNormalize {
             'discussion' => 'discussions',
             'lti' => 'ltis',
             'quiz' => 'ltis',
+            self::KIND_QUIZ1 => 'quizzes',
             'autograder' => 'ltis',
             'peer_grade' => 'ltis',
             'slide' => 'slides',
@@ -453,7 +552,7 @@ class LessonsNormalize {
         $kind = self::presentationKind($arr);
         $recognized = array(
             'video', 'slide', 'reference', 'assignment', 'solution',
-            'discussion', 'lti', 'header', 'text', 'quiz', 'autograder', 'peer_grade',
+            'discussion', 'lti', 'header', 'text', 'quiz', self::KIND_QUIZ1, 'autograder', 'peer_grade',
         );
         $linkish = array('slide', 'reference', 'assignment', 'solution', self::TYPE_WEB_LINK, self::TYPE_FILE, self::TYPE_HTML_PAGE);
         $href = self::hrefOf($arr);
@@ -587,6 +686,21 @@ class LessonsNormalize {
                 $item['title'] = $item['text'];
                 unset($item['text']);
             }
+            return $item;
+        }
+
+        if ( $type === self::TYPE_QUIZ ) {
+            if ( isset($item['quiz_id']) ) {
+                $quiz_id = self::parseQuizId($item['quiz_id']);
+                if ( $quiz_id !== null ) {
+                    $item['quiz_id'] = $quiz_id;
+                } else {
+                    error_log('LessonsNormalize: ignoring invalid quiz_id '.json_encode($item['quiz_id']));
+                    unset($item['quiz_id']);
+                }
+            }
+            unset($item['subtype']);
+            unset($item['launch']);
             return $item;
         }
 

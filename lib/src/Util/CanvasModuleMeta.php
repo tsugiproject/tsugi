@@ -17,6 +17,7 @@ class CanvasModuleMeta extends \Tsugi\Util\TsugiDOM {
     const content_type_ContextModuleSubHeader = 'ContextModuleSubHeader';
     const content_type_Assignment = 'Assignment';
     const content_type_DiscussionTopic = 'DiscussionTopic';
+    const content_type_QuizzesQuiz = 'Quizzes::Quiz';
 
     const module = 'module';
     const item = 'item';
@@ -39,9 +40,10 @@ class CanvasModuleMeta extends \Tsugi\Util\TsugiDOM {
     const locked = 'locked';
 
     const cc_to_canvas_map = array(
-        'imswl_xmlv1p1' => self::content_type_ExternalUrl,
-        'imsdt_v1p1' => self::content_type_DiscussionTopic,
-        'imsbasiclti_xmlv1p0' => self::content_type_ContextExternalTool,
+        CC::WEB_LINK_TYPE => self::content_type_ExternalUrl,
+        CC::TOPIC_TYPE => self::content_type_DiscussionTopic,
+        CC::LTI_TYPE => self::content_type_ContextExternalTool,
+        CC::QTI_ASSESSMENT_TYPE => self::content_type_QuizzesQuiz,
     );
 
     public $module_position = 0;
@@ -114,6 +116,9 @@ class CanvasModuleMeta extends \Tsugi\Util\TsugiDOM {
         $this->add_child_ns(CanvasModuleMeta::CANVAS_CC_1_0, $item, self::position, $this->item_position);
         if ( is_array($children) ) {
             foreach($children as $key => $value) {
+                if ( $key === self::position ) {
+                    continue;
+                }
                 $this->add_child_ns(CanvasModuleMeta::CANVAS_CC_1_0, $item, $key, $value);
             }
         }
@@ -127,7 +132,6 @@ class CanvasModuleMeta extends \Tsugi\Util\TsugiDOM {
         return array(
             self::content_type => $content_type,
             self::workflow_state => self::workflow_state_unpublished,
-            self::position => '1',
             self::new_tab => self::new_tab_true,
             self::indent => '0',
             self::link_settings_json => 'null'
@@ -149,7 +153,6 @@ class CanvasModuleMeta extends \Tsugi\Util\TsugiDOM {
                 // "identifierref" => 'g700b708061f61c7751d0b29228c7344c',
                 "content_type" => self::Content_Type_ExternalUrl,
                 "workflow_state" => 'active',
-                "position" => '1',
                 "new_tab" => 'true',
                 "indent" => '0',
                 "link_settings_json" => 'null'

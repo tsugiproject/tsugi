@@ -6,6 +6,7 @@ use Tsugi\Util\U;
 use Tsugi\Core\Manifest;
 use Tsugi\Core\Membership;
 use Tsugi\UI\LessonsCartridge;
+use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -254,15 +255,30 @@ function sendToCanvas() {
             return new RedirectResponse($export_url);
         }
 
-        LessonsCartridge::writeZip($l, $zip, array(
-            'tsugi_lms' => U::get($_GET, 'tsugi_lms', false),
-            'topic' => U::get($_GET, 'topic', false),
-            'youtube' => U::get($_GET, 'youtube', false),
-            'anchors' => $anchors,
-        ));
+        $tsugi_lms = LessonsCartridge::exportFlavor(U::get($_GET, 'tsugi_lms', false));
+        try {
+            LessonsCartridge::writeZip($l, $zip, array(
+                'tsugi_lms' => $tsugi_lms,
+                'topic' => U::get($_GET, 'topic', false),
+                'youtube' => U::get($_GET, 'youtube', false),
+                'anchors' => $anchors,
+                'context_id' => U::currentContextId(),
+            ));
+        } catch ( ExportException $e ) {
+            $zip->close();
+            @unlink($filename);
+            U::flashError($e->getMessage());
+            return new RedirectResponse($export_url);
+        } catch ( \Exception $e ) {
+            $zip->close();
+            @unlink($filename);
+            error_log('LessonsCartridge export failed: '.$e->getMessage());
+            U::flashError(__('Could not create the cartridge.'));
+            return new RedirectResponse($export_url);
+        }
         $zip->close();
 
-        $download = LessonsCartridge::downloadName($l);
+        $download = LessonsCartridge::downloadName($l, $tsugi_lms);
         $download = str_replace(array('\\', '"'), '', $download);
         $response = new BinaryFileResponse($filename);
         $response->headers->set('Content-Type', 'application/x-zip');

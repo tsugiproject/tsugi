@@ -6,6 +6,7 @@ use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Lumen\Application;
+use Tsugi\Services\Quiz1\QuizRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -142,14 +143,30 @@ class Lessons extends Tool {
         $export_v2_url = U::addSession($this->toolHome(self::ROUTE) . '/_author/export-v2');
         $import_url = U::addSession($this->toolHome(self::ROUTE) . '/_author/import');
 
-        $files_json_url = U::addSession($this->toolHome(Files::ROUTE) . '/json');
-        $files_home_url = U::addSession($this->toolHome(Files::ROUTE));
-        $pages_home = $this->toolHome(Pages::ROUTE);
+        $files_json_url = U::addSession($this->controllerUrl(Files::ROUTE) . '/json');
+        $files_home_url = U::addSession($this->controllerUrl(Files::ROUTE));
+        $pages_home = $this->controllerUrl(Pages::ROUTE);
         $pages_json_url = U::addSession($pages_home . '/json');
         $lessons_json_url = U::addSession($pages_home . '/lessons-json');
         $pages_base = $pages_home;
         $app_home = (isset($CFG->apphome) && is_string($CFG->apphome)) ? rtrim($CFG->apphome, '/') : '';
         $lessons_url = U::addSession($this->toolHome(self::ROUTE));
+        $quiz1_home_url = U::addSession($this->controllerUrl(Quiz1::ROUTE));
+        $quiz1_list = array();
+        try {
+            $context_id = U::currentContextId();
+            if ( $context_id ) {
+                foreach ( QuizRepository::listForContext($context_id) as $quiz ) {
+                    $quiz1_list[] = array(
+                        'id' => (int) $quiz->id,
+                        'title' => $quiz->title,
+                        'question_count' => (int) $quiz->question_count,
+                    );
+                }
+            }
+        } catch ( \Exception $e ) {
+            $quiz1_list = array();
+        }
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
@@ -332,6 +349,11 @@ class Lessons extends Tool {
         $context_id = U::currentContextId();
         if ( $context_id < 1 ) {
             return 'No course context';
+        }
+
+        $err = \Tsugi\UI\LessonsNormalize::invalidQuizIdError($lessons_data);
+        if ( $err !== null ) {
+            return $err;
         }
 
         $lessons_data = \Tsugi\UI\LessonsNormalize::normalizeDocument($lessons_data);

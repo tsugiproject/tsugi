@@ -517,6 +517,7 @@ abstract class Tool {
             Lessons::ROUTE,
             Map::ROUTE,
             Pages::ROUTE,
+            Quiz1::ROUTE,
             StaticFiles::ROUTE,
             Topics::ROUTE,
             '/lessons_launch',
@@ -582,7 +583,7 @@ abstract class Tool {
             }
         } else {
             // Try to detect by looking for common controller routes
-            $controllerRoutes = ['/announcements', '/pages', '/badges', '/grades', '/lessons', '/discussions', '/topics', '/launch', '/assignments', '/files', '/map', '/login', '/logout'];
+            $controllerRoutes = ['/announcements', '/pages', '/badges', '/grades', '/lessons', '/discussions', '/topics', '/launch', '/assignments', '/files', '/map', '/login', '/logout', '/quiz1'];
             foreach ($controllerRoutes as $testRoute) {
                 $routePos = strpos($requestUri, $testRoute);
                 if ($routePos !== false) {

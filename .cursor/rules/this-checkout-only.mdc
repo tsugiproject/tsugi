@@ -1,0 +1,24 @@
+---
+description: Stay inside this Tsugi checkout. Never use the sibling htdocs/tsugi tree unless that is the open workspace.
+alwaysApply: true
+---
+
+# This checkout only
+
+The workspace folder is the Tsugi you are editing. **Do not leave it.**
+
+On this machine there is often a second clone at `/Users/csev/htdocs/tsugi` (or `~/htdocs/tsugi`). That is a **different git repo**. It is out of bounds unless the Cursor workspace path **is** that folder.
+
+## Do not
+
+- Read, write, grep, migrate, or "sync" files under `htdocs/tsugi` when the workspace is `htdocs/dj4e/tsugi` (or any other nested checkout).
+- Treat `$CFG->dirroot`, `../config.php`, or "the real tsugi-php" as permission to switch trees.
+- Copy Quiz1 (or any other change) into the sibling clone to make upgrade/Apache pick it up.
+
+## Do
+
+- Edit, test, and run `php admin/upgrade.php` only inside the workspace root.
+- PHP includes for this repo must use `__DIR__` (e.g. `require_once __DIR__ . '/../config.php'`). A CWD-relative `../config.php` from `dj4e/tsugi` loads `dj4e/config.php`, which then loads **`htdocs/tsugi`** — that is how agents accidentally leave this tree.
+- If a command's `dirroot` is not the workspace path, **stop** and fix the invoke path. Do not follow that dirroot into another checkout.
+
+If the user opens `/Users/csev/htdocs/tsugi` as the workspace, that folder is in bounds and `dj4e/tsugi` is not.

@@ -10,6 +10,7 @@ use \Tsugi\Core\Membership;
 use \Tsugi\Crypt\AesOpenSSL;
 use \Tsugi\Grades\GradeUtil;
 use \Tsugi\Services\Badges\BadgeService;
+use \Tsugi\Services\Quiz1\QuizRepository;
 
 if ( ! class_exists(__NAMESPACE__.'\\LessonsNormalize', false) ) {
     require_once __DIR__ . '/LessonsNormalize.php';
@@ -53,6 +54,12 @@ class Lessons {
 
     /** @var array Due rows by link_key from GradeUtil::loadDueDatesForDisplay */
     private $lessonModuleDueDatesForBadges = array();
+
+    /** @var array<int,bool>|null Quiz1 ids in the current course; lazy. */
+    private $quiz1IdSet = null;
+
+    /** @var bool|null */
+    private $lessonsViewerIsInstructor = null;
 
     /**
      * get a setting for the lesson
@@ -386,7 +393,8 @@ class Lessons {
         }
         $this->lessons = $lessons;
 
-        // In-memory canonical model (does not rewrite the source JSON file)
+        // In-memory canonical model (does not rewrite the source JSON file).
+        // Item-level junk must be logged and dropped here; this load cannot abort.
         for($i=0;$i<count($this->lessons->modules);$i++) {
             if ( isset($this->lessons->modules[$i]->items) && is_array($this->lessons->modules[$i]->items) ) {
                 foreach ( $this->lessons->modules[$i]->items as $j => $item ) {
@@ -2780,6 +2788,7 @@ $(function(){
             'discussion' => 'fa-comments',
             'lti' => 'fa-puzzle-piece',
             'quiz' => 'fa-puzzle-piece',
+            'quiz1' => 'fa-check-square-o',
             'autograder' => 'fa-puzzle-piece',
             'peer_grade' => 'fa-puzzle-piece',
             'assignment' => 'fa-file-text',
@@ -2813,6 +2822,7 @@ $(function(){
             'discussion' => '#ffc107',
             'lti' => '#28a745',
             'quiz' => '#28a745',
+            'quiz1' => '#20c997',
             'autograder' => '#28a745',
             'peer_grade' => '#28a745',
             'assignment' => '#fd7e14',
@@ -2906,6 +2916,9 @@ $(function(){
                 break;
             case 'discussion':
                 $this->renderItemDiscussion($item, $module, $nostyle);
+                break;
+            case 'quiz':
+                $this->renderItemQuiz1($item, $nostyle);
                 break;
             // Legacy plural types - convert to singular and re-render (backward compatibility)
             case 'videos':
@@ -3409,6 +3422,109 @@ $(function(){
             self::echoLtiLinkProgressIndicators($resource_link_id, $item, $this->lessonModuleGradesForBadges, $this->lessonModuleDueDatesForBadges);
             echo('</li>'."\n");
         }
+    }
+
+    /**
+     * Native Quiz1 lesson item. Missing quizzes are hidden from students and
+     * shown as unsatisfied references to instructors (Sakai-style).
+     */
+    private function renderItemQuiz1($item, $nostyle=false) {
+        $title = isset($item->title) && is_string($item->title) && $item->title !== ''
+            ? $item->title
+            : __('Quiz');
+        $quiz_id = LessonsNormalize::quizIdOf($item);
+        $exists = $this->quiz1ExistsInCourse($quiz_id);
+        if ( ! $exists ) {
+            if ( ! $this->lessonsViewerIsInstructor() ) {
+                return;
+            }
+            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-quiz1 tsugi-lessons-quiz-missing">');
+            if ( $nostyle ) {
+                echo(htmlentities($title).' ('.__('Quiz not found').')');
+            } else {
+                echo('<span style="display: inline-flex; align-items: center;">');
+                self::renderItemIcon(LessonsNormalize::iconKey($item));
+                echo(htmlentities($title).' ('.__('Quiz not found').')');
+                echo('</span>');
+            }
+            echo("</li>\n");
+            return;
+        }
+
+        $href = '';
+        $logged_in = U::isLoggedIn();
+        if ( $quiz_id > 0 && $logged_in && class_exists('\\Tsugi\\Controllers\\Quiz1') ) {
+            $home = \Tsugi\Controllers\Tool::determineToolHome(\Tsugi\Controllers\Quiz1::ROUTE);
+            if ( is_string($home) && $home !== '' ) {
+                $href = U::addSession($home.'/'.$quiz_id);
+            }
+        }
+
+        echo('<li typeof="oer:assessment" class="tsugi-lessons-module-quiz1">');
+        if ( $nostyle ) {
+            echo(htmlentities($title));
+            if ( $href !== '' ) {
+                echo(': <a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'">'.htmlentities($title).'</a>');
+            }
+        } else if ( $href !== '' ) {
+            echo('<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'" style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
+            echo(htmlentities($title).'</a>');
+        } else {
+            echo('<span style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
+            echo(htmlentities($title));
+            if ( ! $logged_in ) {
+                echo(' ('.__('Login Required').')');
+            }
+            echo('</span>');
+        }
+        echo("</li>\n");
+    }
+
+    /**
+     * @return bool
+     */
+    private function quiz1ExistsInCourse($quiz_id) {
+        $quiz_id = (int) $quiz_id;
+        if ( $quiz_id < 1 ) {
+            return false;
+        }
+        if ( $this->quiz1IdSet === null ) {
+            $this->quiz1IdSet = array();
+            $context_id = U::currentContextId();
+            if ( $context_id > 0 ) {
+                try {
+                    foreach ( QuizRepository::listForContext($context_id) as $quiz ) {
+                        $this->quiz1IdSet[(int) $quiz->id] = true;
+                    }
+                } catch ( \Exception $e ) {
+                    $this->quiz1IdSet = array();
+                }
+            }
+        }
+        return isset($this->quiz1IdSet[$quiz_id]);
+    }
+
+    /**
+     * @return bool
+     */
+    private function lessonsViewerIsInstructor() {
+        if ( $this->lessonsViewerIsInstructor !== null ) {
+            return $this->lessonsViewerIsInstructor;
+        }
+        $this->lessonsViewerIsInstructor = false;
+        $context_id = U::currentContextId();
+        $user_id = U::loggedInUserId();
+        if ( $context_id && $user_id ) {
+            if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
+                $this->lessonsViewerIsInstructor = true;
+            } else {
+                $m = Membership::ensureInSession($context_id, $user_id);
+                $this->lessonsViewerIsInstructor = $m && $m->isInstructor();
+            }
+        }
+        return $this->lessonsViewerIsInstructor;
     }
 
     /**

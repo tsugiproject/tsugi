@@ -40,7 +40,6 @@ $xmlout = '<?xml version="1.0" encoding="UTF-8"?>
         <position>1</position>
         <content_type>ExternalUrl</content_type>
         <workflow_state>unpublished</workflow_state>
-        <position>1</position>
         <new_tab/>
         <indent>0</indent>
         <link_settings_json>null</link_settings_json>
@@ -58,5 +57,42 @@ $xmlout = '<?xml version="1.0" encoding="UTF-8"?>
         // echo($outXML);
         $this->assertEquals($xmlout,$pretty);
 
+    }
+
+    public function testEachItemHasExactlyOneSequentialPosition() {
+        $meta = new CanvasModuleMeta();
+        $module = $meta->add_module('Week 1', 'M_1');
+        $items = $meta->add_items($module);
+
+        $h = $meta->child_tags(CanvasModuleMeta::content_type_ContextModuleSubHeader);
+        $h[CanvasModuleMeta::title] = 'Heading';
+        unset($h[CanvasModuleMeta::identifierref]);
+        $meta->add_item($items, 'H_1', $h);
+
+        $w = $meta->child_tags(CanvasModuleMeta::content_type_ExternalUrl);
+        $w[CanvasModuleMeta::title] = 'Link';
+        $w[CanvasModuleMeta::url] = 'https://example.com/';
+        $w[CanvasModuleMeta::identifierref] = 'WL_1_R';
+        $w[CanvasModuleMeta::position] = '99';
+        $meta->add_item($items, 'WL_1', $w);
+
+        $q = $meta->child_tags(CanvasModuleMeta::content_type_QuizzesQuiz);
+        $q[CanvasModuleMeta::title] = 'Quiz';
+        $q[CanvasModuleMeta::identifierref] = 'Q1_1_R';
+        $meta->add_item($items, 'Q1_1', $q);
+
+        $dom = new \DOMDocument();
+        $this->assertTrue($dom->loadXML($meta->prettyXML()));
+        $xp = new \DOMXPath($dom);
+        $xp->registerNamespace('m', CanvasModuleMeta::CANVAS_CC_1_0);
+        $itemNodes = $xp->query('//m:item');
+        $this->assertSame(3, $itemNodes->length);
+        $i = 1;
+        foreach ( $itemNodes as $item ) {
+            $pos = $xp->query('m:position', $item);
+            $this->assertSame(1, $pos->length, $item->getAttribute('identifier').' should have one position');
+            $this->assertSame((string) $i, trim($pos->item(0)->textContent));
+            $i++;
+        }
     }
 }
