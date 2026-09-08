@@ -111,7 +111,7 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
             array('type' => 'quiz', 'title' => 'Week 1 Quiz', 'quiz_id' => 1),
         ));
         $path = $this->writeCartridge($l, array(
-            'tsugi_lms' => 'canvas',
+            'tsugi_lms' => 'Canvas',
             'load_quiz' => function ($id) {
                 return SampleQuiz::build($id);
             },
@@ -228,10 +228,13 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('Course_generic.imscc', LessonsCartridge::downloadName($l));
         $this->assertSame('Course_generic.imscc', LessonsCartridge::downloadName($l, 'generic'));
         $this->assertSame('Course_generic.imscc', LessonsCartridge::downloadName($l, false));
+        $this->assertSame('Course_generic.imscc', LessonsCartridge::downloadName($l, ' moodle '));
         $this->assertSame('Course_canvas.imscc', LessonsCartridge::downloadName($l, 'canvas'));
         $this->assertSame('Course_sakai.imscc', LessonsCartridge::downloadName($l, 'sakai'));
         $this->assertSame('generic', LessonsCartridge::exportFlavor(''));
+        $this->assertSame('generic', LessonsCartridge::exportFlavor('Moodle'));
         $this->assertSame('canvas', LessonsCartridge::exportFlavor('Canvas'));
+        $this->assertSame('sakai', LessonsCartridge::exportFlavor(' SAKAI '));
     }
 
     public function testWriteZipDoesNotCallLoadQuizForLtiQuiz() {

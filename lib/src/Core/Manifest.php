@@ -420,6 +420,12 @@ class Manifest {
             if ( is_array($decoded) && self::hasDuplicateResourceLinkIds($decoded) ) {
                 return 'Duplicate resource_link_id';
             }
+            if ( is_array($decoded) ) {
+                $quizErr = LessonsNormalize::invalidQuizIdError($decoded);
+                if ( $quizErr !== null ) {
+                    return $quizErr;
+                }
+            }
             return null;
         }
         if ( is_string($loaded) && strlen($loaded) > 0 ) {

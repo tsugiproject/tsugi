@@ -309,10 +309,72 @@ class LessonsNormalize {
         if ( ! isset($arr['quiz_id']) ) {
             return 0;
         }
-        if ( is_int($arr['quiz_id']) || is_float($arr['quiz_id']) || is_numeric($arr['quiz_id']) ) {
-            return (int) $arr['quiz_id'];
+        $id = self::parseQuizId($arr['quiz_id']);
+        return $id !== null ? $id : 0;
+    }
+
+    /**
+     * Positive Quiz1 id: int >= 1, or a digit string with no sign, decimal, or trailing junk.
+     *
+     * @param mixed $value
+     * @return int|null
+     */
+    public static function parseQuizId($value) {
+        if ( is_int($value) ) {
+            return $value > 0 ? $value : null;
         }
-        return 0;
+        if ( is_string($value) && preg_match('/^[1-9][0-9]*$/', $value) ) {
+            return (int) $value;
+        }
+        return null;
+    }
+
+    /**
+     * Authoring-save error when a native quiz item has a quiz_id that is not a
+     * positive integer. Load/normalize drops invalid ids instead of failing.
+     * Missing quiz_id is allowed (unsatisfied FK).
+     *
+     * @param array<string, mixed> $doc
+     * @return string|null
+     */
+    public static function invalidQuizIdError(array $doc) {
+        if ( ! isset($doc['modules']) || ! is_array($doc['modules']) ) {
+            return null;
+        }
+        foreach ( $doc['modules'] as $mod ) {
+            if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
+                continue;
+            }
+            $err = self::invalidQuizIdErrorWalk($mod['items']);
+            if ( $err !== null ) {
+                return $err;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param array<int, mixed> $items
+     * @return string|null
+     */
+    private static function invalidQuizIdErrorWalk(array $items) {
+        foreach ( $items as $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            $type = isset($item['type']) ? $item['type'] : '';
+            if ( $type === self::TYPE_QUIZ && array_key_exists('quiz_id', $item)
+                && self::parseQuizId($item['quiz_id']) === null ) {
+                return 'Quiz items need a positive integer quiz_id';
+            }
+            if ( isset($item['items']) && is_array($item['items']) ) {
+                $err = self::invalidQuizIdErrorWalk($item['items']);
+                if ( $err !== null ) {
+                    return $err;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -629,7 +691,13 @@ class LessonsNormalize {
 
         if ( $type === self::TYPE_QUIZ ) {
             if ( isset($item['quiz_id']) ) {
-                $item['quiz_id'] = (int) $item['quiz_id'];
+                $quiz_id = self::parseQuizId($item['quiz_id']);
+                if ( $quiz_id !== null ) {
+                    $item['quiz_id'] = $quiz_id;
+                } else {
+                    error_log('LessonsNormalize: ignoring invalid quiz_id '.json_encode($item['quiz_id']));
+                    unset($item['quiz_id']);
+                }
             }
             unset($item['subtype']);
             unset($item['launch']);

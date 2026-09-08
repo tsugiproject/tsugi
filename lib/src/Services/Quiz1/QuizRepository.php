@@ -104,7 +104,8 @@ class QuizRepository {
                     $arow['answer_text'],
                     (int) $arow['is_correct'] === 1,
                     (int) $arow['sequence'],
-                    (int) $arow['answer_id']
+                    (int) $arow['answer_id'],
+                    $arow['feedback'] ?? ''
                 );
             }
         }
@@ -143,7 +144,8 @@ class QuizRepository {
                 $arow['answer_text'],
                 (int) $arow['is_correct'] === 1,
                 (int) $arow['sequence'],
-                (int) $arow['answer_id']
+                (int) $arow['answer_id'],
+                $arow['feedback'] ?? ''
             );
         }
         return $q;

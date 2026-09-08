@@ -22,12 +22,13 @@ class Answer {
     /** @var string */
     public $feedback = '';
 
-    public static function make($text, $correct = false, $sequence = 1, $id = null) {
+    public static function make($text, $correct = false, $sequence = 1, $id = null, $feedback = '') {
         $a = new self();
         $a->id = $id;
         $a->text = (string) $text;
         $a->correct = (bool) $correct;
         $a->sequence = (int) $sequence;
+        $a->feedback = (string) $feedback;
         return $a;
     }
 }

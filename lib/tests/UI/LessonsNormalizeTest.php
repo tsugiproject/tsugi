@@ -700,6 +700,37 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('quiz1', LessonsNormalize::iconKey($out));
     }
 
+    public function testNativeQuizIdDropsJunkAndKeepsLoading() {
+        $junk = LessonsNormalize::normalizeItem(array(
+            'type' => 'quiz',
+            'title' => 'Bad',
+            'quiz_id' => '42abc',
+        ));
+        $this->assertArrayNotHasKey('quiz_id', $junk);
+        $this->assertSame(0, LessonsNormalize::quizIdOf($junk));
+
+        $hex = LessonsNormalize::normalizeItem(array(
+            'type' => 'quiz',
+            'title' => 'Hex',
+            'quiz_id' => '0xdead',
+        ));
+        $this->assertArrayNotHasKey('quiz_id', $hex);
+        $this->assertSame('quiz', $hex['type']);
+        $this->assertSame('Hex', $hex['title']);
+
+        $dec = LessonsNormalize::normalizeItem(array(
+            'type' => 'quiz',
+            'title' => 'Bad',
+            'quiz_id' => '1.5',
+        ));
+        $this->assertArrayNotHasKey('quiz_id', $dec);
+        $this->assertNull(LessonsNormalize::parseQuizId(1.5));
+        $this->assertNull(LessonsNormalize::parseQuizId(0));
+        $this->assertNull(LessonsNormalize::parseQuizId('0x10'));
+        $this->assertSame(42, LessonsNormalize::parseQuizId(42));
+        $this->assertSame(42, LessonsNormalize::parseQuizId('42'));
+    }
+
     public function testLtiQuizIsNotNativeQuiz() {
         $out = LessonsNormalize::normalizeItem(array(
             'type' => 'lti',

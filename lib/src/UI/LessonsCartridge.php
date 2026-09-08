@@ -105,7 +105,7 @@ class LessonsCartridge {
     public static function writeZip($l, $zip, array $options = array()) {
         global $CFG;
 
-        $tsugi_lms = isset($options['tsugi_lms']) ? $options['tsugi_lms'] : '';
+        $tsugi_lms = self::exportFlavor(isset($options['tsugi_lms']) ? $options['tsugi_lms'] : '');
         $topic = isset($options['topic']) ? $options['topic'] : false;
         $youtube = isset($options['youtube']) ? $options['youtube'] : false;
         if ( $youtube === 'no' ) {

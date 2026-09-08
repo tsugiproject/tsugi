@@ -24,6 +24,7 @@ class Quiz1 extends Tool {
     const ROUTE = '/quiz1';
     const NAME = 'Quizzes';
     const REDIRECT = 'tsugi_controllers_quiz1';
+    const FORM_SESSION = 'quiz1_form';
 
     /**
      * True when the current user may author quizzes (instructor/admin).
@@ -137,8 +138,11 @@ class Quiz1 extends Tool {
     public function add(Request $request) {
         $this->requireInstructor($this->toolHome(self::ROUTE));
         $quiz = new Quiz();
-        $quiz->title = U::get($_POST, 'title', '');
-        $quiz->instructions = U::get($_POST, 'instructions', '');
+        $saved = $this->takeForm('quiz_add');
+        if ( $saved ) {
+            $quiz->title = U::get($saved, 'title', '');
+            $quiz->instructions = U::get($saved, 'instructions', '');
+        }
         $this->renderQuizForm($quiz, $this->toolHome(self::ROUTE).'/add', __('New Quiz'), true);
     }
 
@@ -160,9 +164,15 @@ class Quiz1 extends Tool {
             foreach ( $errors as $err ) {
                 U::flashError($err);
             }
+            $this->stashForm(array(
+                'kind' => 'quiz_add',
+                'title' => $quiz->title,
+                'instructions' => $quiz->instructions,
+            ));
             return new RedirectResponse($home.'/add');
         }
         $id = QuizRepository::insertQuiz($quiz);
+        unset($_SESSION[self::FORM_SESSION]);
         U::flashSuccess(__('Quiz created.'));
         return new RedirectResponse($home.'/'.$id.'/edit');
     }
@@ -174,6 +184,11 @@ class Quiz1 extends Tool {
         if ( ! $quiz ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
+        }
+        $saved = $this->takeForm('quiz_edit', $quiz->id);
+        if ( $saved ) {
+            $quiz->title = U::get($saved, 'title', '');
+            $quiz->instructions = U::get($saved, 'instructions', '');
         }
         $this->renderQuizEdit($quiz);
     }
@@ -197,9 +212,16 @@ class Quiz1 extends Tool {
             foreach ( $errors as $err ) {
                 U::flashError($err);
             }
+            $this->stashForm(array(
+                'kind' => 'quiz_edit',
+                'quiz_id' => (int) $quiz->id,
+                'title' => $quiz->title,
+                'instructions' => $quiz->instructions,
+            ));
             return new RedirectResponse($home.'/'.$id.'/edit');
         }
         QuizRepository::updateQuizMeta($quiz);
+        unset($_SESSION[self::FORM_SESSION]);
         U::flashSuccess(__('Quiz updated.'));
         return new RedirectResponse($home.'/'.$id.'/edit');
     }
@@ -308,13 +330,19 @@ class Quiz1 extends Tool {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
         }
-        $question = new Question();
-        $question->quiz_id = $quiz->id;
-        $question->type = U::get($_GET, 'type', QuestionTypes::MULTIPLE_CHOICE);
-        if ( ! QuestionTypes::isValid($question->type) ) {
-            $question->type = QuestionTypes::MULTIPLE_CHOICE;
+        $saved = $this->takeForm('question_add', $quiz->id);
+        if ( $saved ) {
+            $question = $this->questionFromFormState($saved);
+            $question->quiz_id = $quiz->id;
+        } else {
+            $question = new Question();
+            $question->quiz_id = $quiz->id;
+            $question->type = U::get($_GET, 'type', QuestionTypes::MULTIPLE_CHOICE);
+            if ( ! QuestionTypes::isValid($question->type) ) {
+                $question->type = QuestionTypes::MULTIPLE_CHOICE;
+            }
+            $this->seedDefaultAnswers($question);
         }
-        $this->seedDefaultAnswers($question);
         $this->renderQuestionForm($quiz, $question, $home.'/'.$quiz->id.'/questions/add', true);
     }
 
@@ -337,9 +365,11 @@ class Quiz1 extends Tool {
             foreach ( $errors as $err ) {
                 U::flashError($err);
             }
+            $this->stashForm($this->questionFormState('question_add', $question, $quiz->id));
             return new RedirectResponse($home.'/'.$quiz->id.'/questions/add?type='.rawurlencode($question->type));
         }
         QuizRepository::insertQuestion($question);
+        unset($_SESSION[self::FORM_SESSION]);
         U::flashSuccess(__('Question added.'));
         return new RedirectResponse($home.'/'.$quiz->id.'/edit');
     }
@@ -352,6 +382,15 @@ class Quiz1 extends Tool {
         if ( ! $quiz || ! $question || (int) $question->quiz_id !== (int) $quiz->id ) {
             U::flashError(__('Question not found.'));
             return new RedirectResponse($home);
+        }
+        $saved = $this->takeForm('question_edit', $quiz->id, $question->id);
+        if ( $saved ) {
+            $restored = $this->questionFromFormState($saved);
+            $restored->id = $question->id;
+            $restored->quiz_id = $question->quiz_id;
+            $restored->sequence = $question->sequence;
+            $restored->type = $question->type;
+            $question = $restored;
         }
         $this->renderQuestionForm($quiz, $question, $home.'/'.$quiz->id.'/questions/'.$question->id.'/edit', false);
     }
@@ -379,9 +418,11 @@ class Quiz1 extends Tool {
             foreach ( $errors as $err ) {
                 U::flashError($err);
             }
+            $this->stashForm($this->questionFormState('question_edit', $question, $quiz->id));
             return new RedirectResponse($home.'/'.$quiz->id.'/questions/'.$qid.'/edit');
         }
         QuizRepository::updateQuestion($question);
+        unset($_SESSION[self::FORM_SESSION]);
         U::flashSuccess(__('Question updated.'));
         return new RedirectResponse($home.'/'.$quiz->id.'/edit');
     }
@@ -466,12 +507,114 @@ class Quiz1 extends Tool {
         return new RedirectResponse($home.'/'.$id.'/edit');
     }
 
+    /**
+     * One-slot flash of submitted fields after a validation redirect.
+     * Always overwrites; never accumulates. Stamped with course/quiz/question.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function stashForm(array $data) {
+        $data['context_id'] = U::currentContextId();
+        $data['quiz_id'] = (int) U::get($data, 'quiz_id', 0);
+        $data['question_id'] = (int) U::get($data, 'question_id', 0);
+        $_SESSION[self::FORM_SESSION] = $data;
+    }
+
+    /**
+     * Consume the form flash. Any Quiz1 form GET takes the slot: restore on
+     * full match (course, kind, quiz, question), otherwise discard. Refresh
+     * and other tabs/courses lose the draft rather than leaking it.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function takeForm($kind, $quiz_id = 0, $question_id = 0) {
+        $data = isset($_SESSION[self::FORM_SESSION]) && is_array($_SESSION[self::FORM_SESSION])
+            ? $_SESSION[self::FORM_SESSION]
+            : null;
+        unset($_SESSION[self::FORM_SESSION]);
+        if ( ! $data ) {
+            return null;
+        }
+        if ( (int) U::get($data, 'context_id', 0) !== U::currentContextId() ) {
+            return null;
+        }
+        if ( U::get($data, 'kind') !== $kind ) {
+            return null;
+        }
+        if ( (int) U::get($data, 'quiz_id', 0) !== (int) $quiz_id ) {
+            return null;
+        }
+        if ( (int) U::get($data, 'question_id', 0) !== (int) $question_id ) {
+            return null;
+        }
+        return $data;
+    }
+
+    /**
+     * @param int|string $quiz_id
+     * @return array<string, mixed>
+     */
+    private function questionFormState($kind, Question $question, $quiz_id) {
+        $answers = array();
+        foreach ( $question->answers as $ans ) {
+            $answers[] = array(
+                'text' => $ans->text,
+                'correct' => $ans->correct ? true : false,
+                'sequence' => (int) $ans->sequence,
+            );
+        }
+        return array(
+            'kind' => $kind,
+            'quiz_id' => (int) $quiz_id,
+            'question_id' => (int) $question->id,
+            'type' => $question->type,
+            'title' => $question->title,
+            'prompt' => $question->prompt,
+            'points' => (int) $question->points,
+            'feedback' => $question->feedback,
+            'sample_solution' => $question->sample_solution,
+            'case_sensitive' => $question->case_sensitive ? true : false,
+            'answers' => $answers,
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function questionFromFormState(array $data) {
+        $q = new Question();
+        $q->type = (string) U::get($data, 'type', '');
+        $q->title = (string) U::get($data, 'title', '');
+        $q->prompt = (string) U::get($data, 'prompt', '');
+        $q->points = (int) U::get($data, 'points', 1);
+        $q->feedback = (string) U::get($data, 'feedback', '');
+        $q->sample_solution = (string) U::get($data, 'sample_solution', '');
+        $q->case_sensitive = U::get($data, 'case_sensitive') ? true : false;
+        $rows = U::get($data, 'answers', array());
+        if ( ! is_array($rows) ) {
+            $rows = array();
+        }
+        $seq = 1;
+        foreach ( $rows as $row ) {
+            if ( ! is_array($row) ) {
+                continue;
+            }
+            $q->answers[] = Answer::make(
+                U::get($row, 'text', ''),
+                U::get($row, 'correct') ? true : false,
+                (int) U::get($row, 'sequence', $seq)
+            );
+            $seq++;
+        }
+        return $q;
+    }
+
     private function questionFromPost() {
         $q = new Question();
         $q->type = U::get($_POST, 'qtype', '');
         $q->title = trim(U::get($_POST, 'title', ''));
         $q->prompt = Html::purify(U::get($_POST, 'prompt', ''));
-        $q->points = (int) U::get($_POST, 'points', 1);
+        $q->points = U::get($_POST, 'points', 1);
         $q->feedback = Html::purify(U::get($_POST, 'feedback', ''));
         $q->sample_solution = Html::purify(U::get($_POST, 'sample_solution', ''));
         $q->case_sensitive = U::get($_POST, 'case_sensitive') ? true : false;

@@ -295,6 +295,26 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('First', trim($xp->query('.//q:mattext', $labels->item(0))->item(0)->textContent));
     }
 
+    public function testCdataTerminatorRoundTrips() {
+        $quiz = new Quiz();
+        $quiz->id = 12;
+        $quiz->title = 'CDATA';
+        $q = new Question();
+        $q->id = 120;
+        $q->sequence = 1;
+        $q->type = QuestionTypes::FILL_BLANK;
+        $q->prompt = 'alpha]]>beta';
+        $q->points = 1;
+        $q->answers = array(Answer::make('ok', true, 1, 1201));
+        $quiz->questions[] = $q;
+
+        $xml = Qti12Exporter::export($quiz);
+        $this->assertStringContainsString('<![CDATA[', $xml);
+        $xp = $this->xpath($this->load($xml));
+        $prompt = $xp->query('q:presentation/q:material/q:mattext', $this->item($xp, 'Q1_ITEM_120'))->item(0);
+        $this->assertSame('alpha]]>beta', $prompt->textContent);
+    }
+
     public function testHtmlInQuestionAnswerAndEssaySolution() {
         $quiz = new Quiz();
         $quiz->id = 3;

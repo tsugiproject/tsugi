@@ -54,8 +54,10 @@ class Question {
             $errors[] = 'Each question must have a prompt.';
         }
 
-        $points = (int) $this->points;
-        if ( $points < 1 || $points > 99 ) {
+        $points = filter_var($this->points, FILTER_VALIDATE_INT, array(
+            'options' => array('min_range' => 1, 'max_range' => 99),
+        ));
+        if ( $points === false ) {
             $errors[] = 'Question points must be an integer from 1 to 99.';
         }
 
@@ -115,12 +117,15 @@ class Question {
         $errors = array();
         $true = null;
         $false = null;
-        foreach ( $this->answers as $ans ) {
+        foreach ( $this->nonEmptyAnswers() as $ans ) {
             $label = strtolower(trim(strip_tags($ans->text)));
-            if ( $label === 'true' ) {
+            if ( $label === 'true' && $true === null ) {
                 $true = $ans;
-            } else if ( $label === 'false' ) {
+            } else if ( $label === 'false' && $false === null ) {
                 $false = $ans;
+            } else {
+                $errors[] = 'True/False questions need True and False choices.';
+                return $errors;
             }
         }
         if ( $true === null || $false === null ) {

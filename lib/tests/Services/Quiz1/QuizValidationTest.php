@@ -76,6 +76,20 @@ class QuizValidationTest extends \PHPUnit\Framework\TestCase
             Answer::make('False', true, 2),
         );
         $this->assertSame(array(), $q->validate());
+
+        $q->answers = array(
+            Answer::make('True', true, 1),
+            Answer::make('False', false, 2),
+            Answer::make('Maybe', false, 3),
+        );
+        $this->assertStringContainsString('True and False', implode(' ', $q->validate()));
+
+        $q->answers = array(
+            Answer::make('True', true, 1),
+            Answer::make('True', false, 2),
+            Answer::make('False', false, 3),
+        );
+        $this->assertStringContainsString('True and False', implode(' ', $q->validate()));
     }
 
     public function testEssayRejectsCorrectAnswer() {
@@ -107,6 +121,28 @@ class QuizValidationTest extends \PHPUnit\Framework\TestCase
         $q->prompt = '<p>Hello</p>';
         $q->type = 'matching';
         $this->assertStringContainsString('supported type', implode(' ', $q->validate()));
+    }
+
+    public function testPointsMustBeIntegerFrom1To99() {
+        $q = $this->baseQuestion(QuestionTypes::ESSAY);
+        $q->points = 1.5;
+        $this->assertStringContainsString('integer from 1 to 99', implode(' ', $q->validate()));
+
+        $q->points = '1.5';
+        $this->assertStringContainsString('integer from 1 to 99', implode(' ', $q->validate()));
+
+        $q->points = 0;
+        $this->assertStringContainsString('integer from 1 to 99', implode(' ', $q->validate()));
+
+        $q->points = 100;
+        $this->assertStringContainsString('integer from 1 to 99', implode(' ', $q->validate()));
+
+        $q->points = 1;
+        $this->assertSame(array(), $q->validate());
+        $q->points = 99;
+        $this->assertSame(array(), $q->validate());
+        $q->points = '42';
+        $this->assertSame(array(), $q->validate());
     }
 
     public function testDuplicateSequenceIsInvalid() {

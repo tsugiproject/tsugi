@@ -160,8 +160,9 @@ class Grader {
         if ( $got === '' ) {
             return false;
         }
+        $got = mb_strtolower($got, 'UTF-8');
         foreach ( $question->nonEmptyAnswers() as $ans ) {
-            if ( strcasecmp($got, self::plain($ans->text)) === 0 ) {
+            if ( $got === mb_strtolower(self::plain($ans->text), 'UTF-8') ) {
                 return true;
             }
         }

@@ -249,6 +249,50 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('resource_link_id', $err);
     }
 
+    public function testValidateJsonRejectsNonIntegerQuizId()
+    {
+        $doc = Manifest::starter('Quiz');
+        $doc['modules'][0]['items'] = array(
+            array(
+                'type' => 'quiz',
+                'title' => 'Week 1 Quiz',
+                'quiz_id' => '42abc',
+            ),
+        );
+        $err = Manifest::validateJson(Manifest::encode($doc));
+        $this->assertIsString($err);
+        $this->assertStringContainsString('quiz_id', $err);
+
+        $doc['modules'][0]['items'][0]['quiz_id'] = 1.5;
+        $err = Manifest::validateJson(Manifest::encode($doc));
+        $this->assertIsString($err);
+        $this->assertStringContainsString('quiz_id', $err);
+
+        $doc['modules'][0]['items'][0]['quiz_id'] = 42;
+        $this->assertNull(Manifest::validateJson(Manifest::encode($doc)));
+
+        unset($doc['modules'][0]['items'][0]['quiz_id']);
+        $this->assertNull(Manifest::validateJson(Manifest::encode($doc)));
+    }
+
+    public function testFromJsonSurvivesInvalidQuizId()
+    {
+        $doc = Manifest::starter('Load');
+        $doc['modules'][0]['items'] = array(
+            array(
+                'type' => 'quiz',
+                'title' => 'Weird',
+                'quiz_id' => '0xdead',
+            ),
+        );
+        $loaded = \Tsugi\UI\Lessons::tryFromJson(Manifest::encode($doc));
+        $this->assertInstanceOf(\Tsugi\UI\Lessons::class, $loaded);
+        $item = $loaded->lessons->modules[0]->items[0];
+        $this->assertSame('quiz', $item->type);
+        $this->assertSame(0, \Tsugi\UI\LessonsNormalize::quizIdOf($item));
+        $this->assertSame('Weird', $item->title);
+    }
+
     public function testExportFilename()
     {
         $this->assertSame(

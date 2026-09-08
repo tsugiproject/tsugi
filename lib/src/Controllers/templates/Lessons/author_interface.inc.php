@@ -1016,27 +1016,45 @@ function itemLinkSubtype(item) {
     return 'reference';
 }
 
+function quiz1ById(id) {
+    const qid = parseInt(id, 10) || 0;
+    if (!qid) {
+        return null;
+    }
+    return (quiz1Quizzes || []).find(function(q) { return q.id === qid; }) || null;
+}
+
 function quizPickerFieldsHtml(item) {
     const selected = parseInt(item.quiz_id, 10) || 0;
+    const found = quiz1ById(selected);
     const manage = quiz1HomeUrl
         ? `<div class="file-picker-summary"><a href="${escapeHtml(quiz1HomeUrl)}" target="_blank" rel="noopener noreferrer">Manage quizzes</a></div>`
         : '';
+    let missingNote = '';
+    let missingOption = '';
+    if (selected && !found) {
+        const missingLabel = escapeHtml((item.title || ('Quiz ' + selected))) + ' — missing from this course';
+        missingOption = `<option value="${selected}" selected>${missingLabel}</option>`;
+        missingNote = `<p class="help-block">This lesson still points at quiz ${selected}, which is not in this course. Students do not see it. Keep it, pick another quiz, or delete the item.</p>`;
+    }
     let picker;
-    if (!quiz1Quizzes || !quiz1Quizzes.length) {
+    if ((!quiz1Quizzes || !quiz1Quizzes.length) && !selected) {
         picker = `<p>No quizzes in this course yet. <a href="${escapeHtml(quiz1HomeUrl)}" target="_blank" rel="noopener noreferrer">Create a quiz</a>, then come back and add it here.</p>
             <input type="hidden" id="edit-quiz-id" value="">`;
     } else {
-        const options = quiz1Quizzes.map(function(q) {
+        const options = (quiz1Quizzes || []).map(function(q) {
             const label = escapeHtml(q.title || ('Quiz ' + q.id)) + ' (' + (q.question_count || 0) + ' questions)';
-            return `<option value="${q.id}" ${q.id === selected ? 'selected' : ''}>${label}</option>`;
+            return `<option value="${q.id}" ${q.id === selected && found ? 'selected' : ''}>${label}</option>`;
         }).join('');
         picker = `
             <div class="form-group">
                 <label>Quiz:</label>
                 <select id="edit-quiz-id" onchange="onQuizPicked()">
                     <option value="">Choose a quiz…</option>
+                    ${missingOption}
                     ${options}
                 </select>
+                ${missingNote}
                 ${manage}
             </div>
         `;
@@ -1509,6 +1527,15 @@ function createItemHtml(item, moduleIndex, itemIndex) {
 }
 
 function getItemTitle(item) {
+    if (itemEditorKind(item) === 'quiz') {
+        const qid = parseInt(item.quiz_id, 10) || 0;
+        const q = quiz1ById(qid);
+        let title = item.title || (q ? q.title : (qid ? ('Quiz ' + qid) : 'Untitled Item'));
+        if (qid && !q) {
+            title += ' (missing)';
+        }
+        return title;
+    }
     if (item.title) return item.title;
     if (isHeadingItem(item)) return item.text || 'Heading';
     if (item.href) return item.href;
@@ -2324,7 +2351,7 @@ function saveItem() {
             alert('Pick a quiz from this course. Create one under Quizzes if the list is empty.');
             return;
         }
-        const selected = (quiz1Quizzes || []).find(function(q) { return q.id === quizId; });
+        const selected = quiz1ById(quizId);
         item.type = 'quiz';
         delete item.subtype;
         delete item.launch;

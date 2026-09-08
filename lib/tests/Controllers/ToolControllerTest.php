@@ -364,6 +364,19 @@ class ToolControllerTest extends \PHPUnit\Framework\TestCase
 
         $this->assertSame('/course/1234/pages', $tool->exposeControllerUrl('/pages'));
         $this->assertSame('/course/1234/announcements', $tool->exposeControllerUrl('/announcements'));
+        $this->assertSame('/course/1234/quiz1', $tool->exposeControllerUrl('/quiz1'));
+    }
+
+    public function testControllerUrlFromLessonsAuthorKeepsCoursePrefix(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/33/lessons/_author';
+        $_SERVER['SCRIPT_NAME'] = '/other/script.php';
+        $tool = $this->createLessonsStub();
+
+        $this->assertSame('/courses/33/quiz1', $tool->exposeControllerUrl('/quiz1'));
+        $this->assertSame('/courses/33/files', $tool->exposeControllerUrl('/files'));
+        $this->assertSame('/courses/33/pages', $tool->exposeControllerUrl('/pages'));
+        $this->assertSame('/courses/33/lessons', $tool->exposeToolHome('/lessons'));
     }
 
     // --- determineParentPath tests (static) ---

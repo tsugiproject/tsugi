@@ -39,6 +39,17 @@ class GraderTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(Grader::CORRECT, $result['items'][105]['status']);
     }
 
+    public function testFillBlankUnicodeCaseInsensitive() {
+        $q = new Question();
+        $q->id = 1;
+        $q->type = QuestionTypes::FILL_BLANK;
+        $q->points = 1;
+        $q->prompt = 'x';
+        $q->answers = array(Answer::make('Café', true, 1, 11));
+        $this->assertSame(Grader::CORRECT, Grader::gradeQuestion($q, 'CAFÉ')['status']);
+        $this->assertSame(Grader::INCORRECT, Grader::gradeQuestion($q, 'Cafe')['status']);
+    }
+
     public function testPatternMatchContainsAndCaseInsensitive() {
         $quiz = SampleQuiz::build(1);
         $base = $this->blankPost();

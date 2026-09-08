@@ -6,6 +6,7 @@ use Tsugi\Util\U;
 use Tsugi\Core\Manifest;
 use Tsugi\Core\Membership;
 use Tsugi\UI\LessonsCartridge;
+use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -254,7 +255,7 @@ function sendToCanvas() {
             return new RedirectResponse($export_url);
         }
 
-        $tsugi_lms = U::get($_GET, 'tsugi_lms', false);
+        $tsugi_lms = LessonsCartridge::exportFlavor(U::get($_GET, 'tsugi_lms', false));
         try {
             LessonsCartridge::writeZip($l, $zip, array(
                 'tsugi_lms' => $tsugi_lms,
@@ -263,10 +264,16 @@ function sendToCanvas() {
                 'anchors' => $anchors,
                 'context_id' => U::currentContextId(),
             ));
-        } catch ( \Exception $e ) {
+        } catch ( ExportException $e ) {
             $zip->close();
             @unlink($filename);
             U::flashError($e->getMessage());
+            return new RedirectResponse($export_url);
+        } catch ( \Exception $e ) {
+            $zip->close();
+            @unlink($filename);
+            error_log('LessonsCartridge export failed: '.$e->getMessage());
+            U::flashError(__('Could not create the cartridge.'));
             return new RedirectResponse($export_url);
         }
         $zip->close();

@@ -10,6 +10,7 @@ use \Tsugi\Core\Membership;
 use \Tsugi\Crypt\AesOpenSSL;
 use \Tsugi\Grades\GradeUtil;
 use \Tsugi\Services\Badges\BadgeService;
+use \Tsugi\Services\Quiz1\QuizRepository;
 
 if ( ! class_exists(__NAMESPACE__.'\\LessonsNormalize', false) ) {
     require_once __DIR__ . '/LessonsNormalize.php';
@@ -53,6 +54,12 @@ class Lessons {
 
     /** @var array Due rows by link_key from GradeUtil::loadDueDatesForDisplay */
     private $lessonModuleDueDatesForBadges = array();
+
+    /** @var array<int,bool>|null Quiz1 ids in the current course; lazy. */
+    private $quiz1IdSet = null;
+
+    /** @var bool|null */
+    private $lessonsViewerIsInstructor = null;
 
     /**
      * get a setting for the lesson
@@ -386,7 +393,8 @@ class Lessons {
         }
         $this->lessons = $lessons;
 
-        // In-memory canonical model (does not rewrite the source JSON file)
+        // In-memory canonical model (does not rewrite the source JSON file).
+        // Item-level junk must be logged and dropped here; this load cannot abort.
         for($i=0;$i<count($this->lessons->modules);$i++) {
             if ( isset($this->lessons->modules[$i]->items) && is_array($this->lessons->modules[$i]->items) ) {
                 foreach ( $this->lessons->modules[$i]->items as $j => $item ) {
@@ -3417,13 +3425,32 @@ $(function(){
     }
 
     /**
-     * Native Quiz1 lesson item. Logged-in users take the quiz; guests see login required.
+     * Native Quiz1 lesson item. Missing quizzes are hidden from students and
+     * shown as unsatisfied references to instructors (Sakai-style).
      */
     private function renderItemQuiz1($item, $nostyle=false) {
         $title = isset($item->title) && is_string($item->title) && $item->title !== ''
             ? $item->title
             : __('Quiz');
         $quiz_id = LessonsNormalize::quizIdOf($item);
+        $exists = $this->quiz1ExistsInCourse($quiz_id);
+        if ( ! $exists ) {
+            if ( ! $this->lessonsViewerIsInstructor() ) {
+                return;
+            }
+            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-quiz1 tsugi-lessons-quiz-missing">');
+            if ( $nostyle ) {
+                echo(htmlentities($title).' ('.__('Quiz not found').')');
+            } else {
+                echo('<span style="display: inline-flex; align-items: center;">');
+                self::renderItemIcon(LessonsNormalize::iconKey($item));
+                echo(htmlentities($title).' ('.__('Quiz not found').')');
+                echo('</span>');
+            }
+            echo("</li>\n");
+            return;
+        }
+
         $href = '';
         $logged_in = U::isLoggedIn();
         if ( $quiz_id > 0 && $logged_in && class_exists('\\Tsugi\\Controllers\\Quiz1') ) {
@@ -3453,6 +3480,51 @@ $(function(){
             echo('</span>');
         }
         echo("</li>\n");
+    }
+
+    /**
+     * @return bool
+     */
+    private function quiz1ExistsInCourse($quiz_id) {
+        $quiz_id = (int) $quiz_id;
+        if ( $quiz_id < 1 ) {
+            return false;
+        }
+        if ( $this->quiz1IdSet === null ) {
+            $this->quiz1IdSet = array();
+            $context_id = U::currentContextId();
+            if ( $context_id > 0 ) {
+                try {
+                    foreach ( QuizRepository::listForContext($context_id) as $quiz ) {
+                        $this->quiz1IdSet[(int) $quiz->id] = true;
+                    }
+                } catch ( \Exception $e ) {
+                    $this->quiz1IdSet = array();
+                }
+            }
+        }
+        return isset($this->quiz1IdSet[$quiz_id]);
+    }
+
+    /**
+     * @return bool
+     */
+    private function lessonsViewerIsInstructor() {
+        if ( $this->lessonsViewerIsInstructor !== null ) {
+            return $this->lessonsViewerIsInstructor;
+        }
+        $this->lessonsViewerIsInstructor = false;
+        $context_id = U::currentContextId();
+        $user_id = U::loggedInUserId();
+        if ( $context_id && $user_id ) {
+            if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
+                $this->lessonsViewerIsInstructor = true;
+            } else {
+                $m = Membership::ensureInSession($context_id, $user_id);
+                $this->lessonsViewerIsInstructor = $m && $m->isInstructor();
+            }
+        }
+        return $this->lessonsViewerIsInstructor;
     }
 
     /**

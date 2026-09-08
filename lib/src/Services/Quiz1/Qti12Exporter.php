@@ -404,8 +404,8 @@ class Qti12Exporter {
         $looks_html = $content !== strip_tags($content);
         $el = $dom->createElementNS(self::NS, 'mattext');
         $el->setAttribute('texttype', $looks_html ? 'text/html' : 'text/plain');
-        $safe = str_replace(']]>', ']]]]><![CDATA[>', $content);
-        $el->appendChild($dom->createCDATASection($safe));
+        // libxml splits ]]> across adjacent CDATA nodes; do not pre-escape it.
+        $el->appendChild($dom->createCDATASection($content));
         return $el;
     }
 }
