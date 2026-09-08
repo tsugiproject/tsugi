@@ -6,48 +6,8 @@
 // HTMLentities - we need to do it here
 function xml_double_encode_string($str) {
     $from = array('&', '\'', '"', '<', '>');
-    $to = array('&amp;', '&apos;', '&quot;', '&amp;lt;', '&amp;gt;');
     $to = array('&amp;', '&apos;', '&quot;', '&lt;', '&gt;');
     return(str_replace($from, $to, $str));
-}
-
-// Since the pattern of 
-//    $mattext = $material->addChild("mattext");
-//    $material->mattext = $questext;
-// Will escape everything < > " " except for an & we pre-escape the 
-// ampersands
-function plain_to_html_in_xml($questext) {
-    return str_replace("&","&amp;",$questext);
-}
-
-/**
- * From http://stackoverflow.com/questions/3957360/generating-xml-document-in-php-escape-characters
- * @param string $arr1 the single string that shall be masked
- * @return string the resulting string with the masked characters
- */
-function html_in_xml_replace_char($arr1)
-{
-    if (strpos ($arr1,'&')!== FALSE) { //test if the character appears 
-        $arr1=preg_replace('/&/','&amp;', $arr1); // do this first
-    }
-
-    // just encode the 
-    if (strpos ($arr1,'>')!== FALSE) {
-        $arr1=preg_replace('/>/','&gt;', $arr1);
-    }
-    if (strpos ($arr1,'<')!== FALSE) {
-        $arr1=preg_replace('/</','&lt;', $arr1);
-    }
-
-    if (strpos ($arr1,'"')!== FALSE) {
-        $arr1=preg_replace('/"/','&quot;', $arr1);
-    }
-
-    if (strpos ($arr1,'\'')!== FALSE) {
-        $arr1=preg_replace('/\'/','&apos;', $arr1);
-    }
-
-    return $arr1;
 }
 
 // Sadly, some LMS's get confused with text/plain even thought it is the default

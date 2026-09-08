@@ -2,10 +2,7 @@
 require_once "../config.php";
 require_once "parse.php";
 require_once "configure_parse.php";
-require_once "util.php";
 
-use \Tsugi\Util\U;
-use \Tsugi\Core\Cache;
 use \Tsugi\Core\LTIX;
 
 // Sanity checks
@@ -49,10 +46,8 @@ if (!empty($_POST)) {
   return;
 }
 
-$files = get_quiz_files();
 $menu = new \Tsugi\UI\MenuSet();
 $menu->addLeft('Back', 'index.php');
-// if ( $files && count($files) > 1 ) $menu->addRight('Load Quiz', 'old_configure.php');
 $menu->addRight('Edit Raw GIFT', 'old_configure.php');
 
 // View
