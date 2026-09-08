@@ -16,8 +16,6 @@
             <exclude>
                 <directory>tests</directory>
                 <directory>vendor</directory>
-                <directory>old</directory>
-                <directory>export_old</directory>
             </exclude>
         </whitelist>
     </filter>
