@@ -18,7 +18,7 @@ if ( ! visiturl_valid_url($url) ) {
 
 visiturl_record_visit($url);
 
-if ( ! visiturl_timer_mode() && Settings::linkGet('grade', false) ) {
+if ( visiturl_grade_on_visit() ) {
     visiturl_send_grade();
 }
 

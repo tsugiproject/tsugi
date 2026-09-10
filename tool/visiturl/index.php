@@ -58,6 +58,7 @@ if ( isset($_POST['watched']) ) {
 }
 
 $LAUNCH->link->settingsDefaultsFromCustom(array('url', 'title', 'instructions', 'grade', 'minutes'));
+visiturl_ensure_grade_default();
 
 $url = Settings::linkGet('url', false);
 if ( $USER->instructor && ! $url && isset($_GET['url']) ) {
@@ -142,7 +143,7 @@ if ( $already ) {
     if ( $timer ) {
         echo('<p class="alert alert-success">'.__('You have marked this as watched.')."</p>\n");
     }
-    if ( $timer || Settings::linkGet('grade', false) ) {
+    if ( $timer || visiturl_grade_on_visit() ) {
         $pct = sprintf('%.1f', ((float) ($RESULT->grade ?? 0)) * 100.0);
         echo('<p class="alert alert-info">');
         echo(htmlentities(sprintf(__('Your current grade on this assignment is: %s%%'), $pct)));

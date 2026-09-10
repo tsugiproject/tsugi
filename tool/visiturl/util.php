@@ -38,6 +38,24 @@ function visiturl_timer_mode() {
 }
 
 /**
+ * True when opening the URL should send a grade.
+ * Watch mode (estimated minutes set) grades on "I watched this" instead.
+ * With no time, grade on visit even if the checkbox was never saved.
+ */
+function visiturl_grade_on_visit() {
+    return ! visiturl_timer_mode();
+}
+
+/**
+ * Persist grade-on-visit as on when the instructor has not saved that checkbox yet.
+ */
+function visiturl_ensure_grade_default() {
+    $all = \Tsugi\Core\Settings::linkGetAll();
+    if ( is_array($all) && array_key_exists('grade', $all) ) return;
+    \Tsugi\Core\Settings::linkSet('grade', '1');
+}
+
+/**
  * Seconds that must elapse after they visit the URL before "I watched this" is accepted.
  * Instructors always wait one minute so they can try the flow without the student delay.
  */
