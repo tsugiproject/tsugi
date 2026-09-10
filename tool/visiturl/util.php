@@ -38,7 +38,7 @@ function visiturl_timer_mode() {
 }
 
 /**
- * Seconds that must elapse after launch before "I watched this" is accepted.
+ * Seconds that must elapse after they visit the URL before "I watched this" is accepted.
  */
 function visiturl_unlock_seconds($minutes) {
     if ( $minutes <= 0 ) return 0;
@@ -57,16 +57,31 @@ function visiturl_duration_label($minutes) {
 
 /**
  * Record that the current user opened the configured URL.
+ * In watch mode, the first visit for this URL starts the wait clock.
  */
 function visiturl_record_visit($url) {
     global $RESULT;
     if ( ! $RESULT || ! $RESULT->id ) return;
+    $same_url = visiturl_norm($RESULT->getJsonKey('url')) === visiturl_norm($url);
+    $already_visited = $same_url && (bool) $RESULT->getJsonKey('visited_at');
     $keys = array(
         'visited_at' => gmdate('c'),
         'url' => $url,
     );
-    if ( visiturl_norm($RESULT->getJsonKey('url')) !== visiturl_norm($url) ) {
+    if ( ! $same_url ) {
         $keys['watched_at'] = '';
+    }
+    if ( visiturl_timer_mode() ) {
+        $watch_url = $RESULT->getJsonKey('watch_url');
+        $started = $RESULT->getJsonKey('watch_started_at');
+        $clock_for_url = visiturl_norm($watch_url) === visiturl_norm($url)
+            && is_numeric($started) && $started > 0;
+        // Keep the first visit's clock; do not restart if they open the URL again.
+        if ( ! ($clock_for_url && $already_visited) ) {
+            $keys['watch_url'] = $url;
+            $keys['watch_started_at'] = time();
+            $keys['watched_at'] = '';
+        }
     }
     $RESULT->setJsonKeys($keys);
 }
@@ -102,39 +117,38 @@ function visiturl_is_done($url) {
 }
 
 /**
- * Start the watch clock for this URL on first launch. Does not change grades.
+ * Unix time when the watch clock started for this URL, or 0 if they have not visited yet.
+ * Does not start the clock — that happens in visiturl_record_visit().
  */
-function visiturl_ensure_watch_started($url) {
+function visiturl_watch_started_at($url) {
     global $RESULT;
     if ( ! $RESULT || ! $RESULT->id ) return 0;
+    if ( ! visiturl_has_visit($url) ) return 0;
     $watch_url = $RESULT->getJsonKey('watch_url');
     $started = $RESULT->getJsonKey('watch_started_at');
     if ( visiturl_norm($watch_url) === visiturl_norm($url) && is_numeric($started) && $started > 0 ) {
         return (int) $started;
     }
-    $started = time();
-    $RESULT->setJsonKeys(array(
-        'watch_url' => $url,
-        'watch_started_at' => $started,
-        'watched_at' => '',
-    ));
-    return $started;
+    return 0;
 }
 
 /**
- * Unix time when the watched button may be accepted.
+ * Unix time when the watched button may be accepted, or 0 if the clock has not started.
  */
 function visiturl_unlock_at($url) {
     $minutes = visiturl_minutes();
-    $started = visiturl_ensure_watch_started($url);
+    $started = visiturl_watch_started_at($url);
+    if ( $minutes <= 0 || $started <= 0 ) return 0;
     return $started + visiturl_unlock_seconds($minutes);
 }
 
 /**
- * True when enough time has passed to accept "I watched this".
+ * True when they have visited and enough time has passed to accept "I watched this".
  */
 function visiturl_watch_unlocked($url) {
-    return time() >= visiturl_unlock_at($url);
+    $unlock = visiturl_unlock_at($url);
+    if ( $unlock <= 0 ) return false;
+    return time() >= $unlock;
 }
 
 /**

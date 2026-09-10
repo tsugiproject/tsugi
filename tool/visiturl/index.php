@@ -154,7 +154,17 @@ if ( $timer && ! $already ) {
 echo('<p>');
 echo('<a class="btn btn-primary" href="'.U::safe_href(addSession('go.php')).'"');
 echo(' target="_blank" rel="noopener noreferrer"');
-echo(' onclick="setTimeout(function(){ window.location.href='.htmlspecialchars(json_encode(addSession('index.php')), ENT_QUOTES).'; }, 1500);"');
+$reload_js = htmlspecialchars(json_encode(addSession('index.php')), ENT_QUOTES);
+$onclick = 'setTimeout(function(){ window.location.href='.$reload_js.'; }, 1500);';
+if ( $timer && ! $already ) {
+    $n = (int) round(visiturl_minutes());
+    if ( $n < 1 ) $n = 1;
+    $start_msg = $n === 1
+        ? 'Visit URL pressed; 1-minute timer started.'
+        : 'Visit URL pressed; '.$n.'-minute timer started.';
+    $onclick = 'console.log('.htmlspecialchars(json_encode($start_msg), ENT_QUOTES).');'.$onclick;
+}
+echo(' onclick="'.$onclick.'"');
 echo('>');
 echo(__('Visit URL'));
 echo("</a></p>\n");
@@ -171,6 +181,7 @@ if ( $timer && ! $already ) {
     }
     echo(' data-unlock-at="'.htmlentities((string) $unlock_at).'"');
     echo(' data-visited="'.($visited ? '1' : '0').'"');
+    echo(' data-minutes="'.htmlentities((string) ((int) round(visiturl_minutes()))).'"');
     echo('>');
     echo(__('I watched this'));
     echo("</button></form>\n");
@@ -191,12 +202,19 @@ if ( $timer && ! $already ) {
     if ( ! btn || btn.getAttribute('data-visited') !== '1' ) return;
     var unlock = parseInt(btn.getAttribute('data-unlock-at'), 10);
     if ( ! unlock ) return;
+    var minutes = parseInt(btn.getAttribute('data-minutes'), 10) || 0;
+    if ( minutes < 1 ) minutes = 1;
+    console.log('Visit URL pressed; ' + minutes + '-minute timer started.');
     var wait = (unlock * 1000) - Date.now();
     if ( wait <= 0 ) {
         btn.removeAttribute('disabled');
+        console.log('Watch timer expired; enabling I watched this.');
         return;
     }
-    window.setTimeout(function () { btn.removeAttribute('disabled'); }, wait);
+    window.setTimeout(function () {
+        btn.removeAttribute('disabled');
+        console.log('Watch timer expired; enabling I watched this.');
+    }, wait);
 })();
 </script>
 <?php
