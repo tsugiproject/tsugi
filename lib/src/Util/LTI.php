@@ -250,7 +250,7 @@ class LTI {
                 $frame_title = 'LTI tool content';
             }
             $frame_title_esc = htmlspecialchars($frame_title, ENT_QUOTES, 'UTF-8');
-            $r .= "<iframe class=\"lti_frameResize\" name=\"".$frame_id."\" id=\"".$frame_id."\" src=\"\" title=\"".$frame_title_esc."\"\n";
+            $r .= "<iframe class=\"lti_frameResize\" name=\"".$frame_id."\" id=\"".$frame_id."\" src=\"about:blank\" title=\"".$frame_title_esc."\"\n";
             $r .= $iframeattr . ">\n";
             $frames_msg = self::get_string("frames_required","basiclti");
             if ( $frames_msg === 'frames_required' ) {
@@ -258,35 +258,105 @@ class LTI {
             }
             $r .= "<p>".htmlspecialchars($frames_msg)."</p>\n</iframe>\n";
         }
-        // Remove session_name (i.e. PHPSESSID) if it was added.
+        $ext_submit = "ext_submit";
+        $ext_submit_text = $submit_text;
+        $do_autosubmit = ( ! $debug ) && $iframeattr != '_pause';
+        // Fresh GET (location-bar Enter) creates an empty iframe, then this
+        // script POSTs the LTI launch into it. Reload is different: the
+        // browser restores the iframe's previous POST document, that restore
+        // fails, and the frame stays about:blank. Wait until pageshow on
+        // reload, wipe the restored frame, then submit into a clean target.
         $r .= " <script type=\"text/javascript\"> \n" .
             "  //<![CDATA[ \n" .
-            "    var inputs = document.getElementById(\"".$form_id."\").childNodes;\n" .
-            "    for (var i = 0; i < inputs.length; i++)\n" .
-            "    {\n" .
-            "        var thisinput = inputs[i];\n" .
-            "        if ( thisinput.name != '".session_name()."' ) continue;\n" .
-            "        thisinput.parentNode.removeChild(thisinput);\n" .
+            "  (function() {\n" .
+            "    var fid = ".json_encode($form_id).";\n" .
+            "    var frameId = ".json_encode($frame_id).";\n" .
+            "    var sess = ".json_encode(session_name()).";\n" .
+            "    var autosubmit = ".($do_autosubmit ? 'true' : 'false').";\n" .
+            "    var extName = ".json_encode($ext_submit).";\n" .
+            "    var extVal = ".json_encode($ext_submit_text).";\n" .
+            "    var prepared = false;\n" .
+            "    function isReloadNav() {\n" .
+            "      try {\n" .
+            "        var n = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];\n" .
+            "        if ( n && n.type === 'reload' ) return true;\n" .
+            "      } catch (e) {}\n" .
+            "      try {\n" .
+            "        if ( performance.navigation && performance.navigation.type === 1 ) return true;\n" .
+            "      } catch (e) {}\n" .
+            "      return false;\n" .
             "    }\n" .
+            "    function iframeIsBlank() {\n" .
+            "      var ifr = document.getElementById(frameId);\n" .
+            "      if ( ! ifr ) return false;\n" .
+            "      try {\n" .
+            "        var href = ifr.contentWindow.location.href;\n" .
+            "        return ! href || href === 'about:blank';\n" .
+            "      } catch (e) {\n" .
+            "        return false;\n" .
+            "      }\n" .
+            "    }\n" .
+            "    function prepareForm(form) {\n" .
+            "      if ( prepared ) return;\n" .
+            "      prepared = true;\n" .
+            "      var inputs = form.childNodes;\n" .
+            "      for (var i = inputs.length - 1; i >= 0; i--) {\n" .
+            "        var thisinput = inputs[i];\n" .
+            "        if ( thisinput.name != sess ) continue;\n" .
+            "        thisinput.parentNode.removeChild(thisinput);\n" .
+            "      }\n" .
+            "      form.style.display = 'none';\n" .
+            "      var nei = document.createElement('input');\n" .
+            "      nei.setAttribute('type', 'hidden');\n" .
+            "      nei.setAttribute('name', extName);\n" .
+            "      nei.setAttribute('value', extVal);\n" .
+            "      form.appendChild(nei);\n" .
+            "    }\n" .
+            "    function tsugiLaunchForm() {\n" .
+            "      var form = document.getElementById(fid);\n" .
+            "      if ( ! form || form.getAttribute('data-tsugi-submitted') ) return;\n" .
+            "      prepareForm(form);\n" .
+            "      if ( ! autosubmit ) return;\n" .
+            "      form.setAttribute('data-tsugi-submitted', '1');\n" .
+            "      var ifr = document.getElementById(frameId);\n" .
+            "      var go = function() {\n" .
+            "        form.submit();\n" .
+            "        console.log('Autosubmitted ' + fid);\n" .
+            "      };\n" .
+            "      if ( ! ifr ) { go(); return; }\n" .
+            "      var fired = false;\n" .
+            "      var once = function() {\n" .
+            "        if ( fired ) return;\n" .
+            "        fired = true;\n" .
+            "        ifr.removeEventListener('load', once);\n" .
+            "        go();\n" .
+            "      };\n" .
+            "      ifr.addEventListener('load', once);\n" .
+            "      try { ifr.contentWindow.location.replace('about:blank'); }\n" .
+            "      catch (e) { ifr.src = 'about:blank'; }\n" .
+            "      setTimeout(once, 50);\n" .
+            "    }\n" .
+            "    if ( isReloadNav() ) {\n" .
+            "      window.addEventListener('pageshow', function() {\n" .
+            "        if ( ! iframeIsBlank() ) return;\n" .
+            "        var form = document.getElementById(fid);\n" .
+            "        if ( form ) form.removeAttribute('data-tsugi-submitted');\n" .
+            "        tsugiLaunchForm();\n" .
+            "      });\n" .
+            "    } else if ( document.readyState === 'loading' ) {\n" .
+            "      document.addEventListener('DOMContentLoaded', tsugiLaunchForm);\n" .
+            "    } else {\n" .
+            "      tsugiLaunchForm();\n" .
+            "    }\n" .
+            "    window.addEventListener('pageshow', function(ev) {\n" .
+            "      if ( ! autosubmit || ! ev.persisted ) return;\n" .
+            "      var form = document.getElementById(fid);\n" .
+            "      if ( form ) form.removeAttribute('data-tsugi-submitted');\n" .
+            "      tsugiLaunchForm();\n" .
+            "    });\n" .
+            "  })();\n" .
             "  //]]> \n" .
             " </script> \n";
-
-        if ( ( ! $debug ) && $iframeattr != '_pause' ) {
-            $ext_submit = "ext_submit";
-            $ext_submit_text = $submit_text;
-            $r .= " <script type=\"text/javascript\"> \n" .
-                "  //<![CDATA[ \n" .
-                "    document.getElementById(\"".$form_id."\").style.display = \"none\";\n" .
-                "    nei = document.createElement('input');\n" .
-                "    nei.setAttribute('type', 'hidden');\n" .
-                "    nei.setAttribute('name', '".$ext_submit."');\n" .
-                "    nei.setAttribute('value', '".$ext_submit_text."');\n" .
-                "    document.getElementById(\"".$form_id."\").appendChild(nei);\n" .
-                "    document.getElementById(\"".$form_id."\").submit(); \n" .
-                "    console.log('Autosubmitted ".$form_id."'); \n" .
-                "  //]]> \n" .
-                " </script> \n";
-        }
         return $r;
     }
 

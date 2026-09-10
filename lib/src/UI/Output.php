@@ -1242,8 +1242,12 @@ EOF;
 ?>
    </head>
 <body>
+<div class="container" style="padding: 2em;">
+  <h2><?= htmlentities($message) ?></h2>
+  <p><?= htmlentities($detail) ?></p>
+</div>
 <div id="dialog-confirm" style="display:none;" title="<?= htmlentities($message) ?>">
-<p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span><?= $detail ?></p>
+<p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span><?= htmlentities($detail) ?></p>
 </div>
 <?= self::footerScriptLinks() ?>
 <script>

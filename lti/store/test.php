@@ -14,6 +14,7 @@ $LAUNCH = LTIX::requireData(LTIX::USER);
 
 $p = $CFG->dbprefix;
 
+$OUTPUT->noCacheHeader();
 $OUTPUT->header();
 ?>
     <style>
