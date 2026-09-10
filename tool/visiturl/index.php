@@ -40,7 +40,7 @@ if ( isset($_POST['watched']) ) {
         header('Location: '.addSession('index.php'));
         return;
     }
-    if ( ! visiturl_has_visit($url) ) {
+    if ( ! visiturl_has_session_visit($url) ) {
         $_SESSION['error'] = __('Open the video first, then mark it as watched.');
         header('Location: '.addSession('index.php'));
         return;
@@ -74,7 +74,12 @@ $instructions = Settings::linkGet('instructions', '');
 $dueDate = SettingsForm::getDueDate();
 $timer = visiturl_timer_mode();
 $already = visiturl_valid_url($url) && visiturl_is_done($url);
-$visited = visiturl_valid_url($url) && visiturl_has_visit($url);
+if ( $timer && visiturl_valid_url($url) && ! $already ) {
+    visiturl_abandon_watch_unless_just_visited();
+}
+$visited = $timer
+    ? (visiturl_valid_url($url) && visiturl_has_session_visit($url))
+    : (visiturl_valid_url($url) && visiturl_has_visit($url));
 $unlock_at = 0;
 $watch_ready = false;
 if ( $timer && visiturl_valid_url($url) && ! $already ) {
@@ -136,8 +141,12 @@ if ( is_string($instructions) && strlen(trim($instructions)) > 0 ) {
 if ( $already ) {
     if ( $timer ) {
         echo('<p class="alert alert-success">'.__('You have marked this as watched.')."</p>\n");
-    } else {
-        echo('<p class="alert alert-success">'.__('You have already visited this URL.')."</p>\n");
+    }
+    if ( $timer || Settings::linkGet('grade', false) ) {
+        $pct = sprintf('%.1f', ((float) ($RESULT->grade ?? 0)) * 100.0);
+        echo('<p class="alert alert-info">');
+        echo(htmlentities(sprintf(__('Your current grade on this assignment is: %s%%'), $pct)));
+        echo("</p>\n");
     }
 }
 
@@ -156,7 +165,7 @@ echo('<a class="btn btn-primary" href="'.U::safe_href(addSession('go.php')).'"')
 echo(' target="_blank" rel="noopener noreferrer"');
 $reload_js = htmlspecialchars(json_encode(addSession('index.php')), ENT_QUOTES);
 $onclick = 'setTimeout(function(){ window.location.href='.$reload_js.'; }, 1500);';
-if ( $timer && ! $already ) {
+if ( $timer && ! $already && ! $visited ) {
     $n = $wait_minutes;
     if ( $n < 1 ) $n = 1;
     $start_msg = $n === 1
@@ -204,13 +213,13 @@ if ( $timer && ! $already ) {
     if ( ! unlock ) return;
     var minutes = parseInt(btn.getAttribute('data-minutes'), 10) || 0;
     if ( minutes < 1 ) minutes = 1;
-    console.log('Visit URL pressed; ' + minutes + '-minute timer started.');
     var wait = (unlock * 1000) - Date.now();
     if ( wait <= 0 ) {
         btn.removeAttribute('disabled');
-        console.log('Watch timer expired; enabling I watched this.');
+        console.log('Watch timer already expired; enabling I watched this.');
         return;
     }
+    console.log('Visit URL pressed; ' + minutes + '-minute timer started.');
     window.setTimeout(function () {
         btn.removeAttribute('disabled');
         console.log('Watch timer expired; enabling I watched this.');

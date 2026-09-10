@@ -39,9 +39,14 @@ function visiturl_timer_mode() {
 
 /**
  * Seconds that must elapse after they visit the URL before "I watched this" is accepted.
+ * Instructors always wait one minute so they can try the flow without the student delay.
  */
 function visiturl_unlock_seconds($minutes) {
+    global $USER;
     if ( $minutes <= 0 ) return 0;
+    if ( isset($USER) && $USER->instructor ) {
+        return 60;
+    }
     return (int) ceil($minutes * 60.0 / 3.0);
 }
 
@@ -57,13 +62,12 @@ function visiturl_duration_label($minutes) {
 
 /**
  * Record that the current user opened the configured URL.
- * In watch mode, the first visit for this URL starts the wait clock.
+ * In watch mode, every visit restarts the wait clock for this tool session.
  */
 function visiturl_record_visit($url) {
     global $RESULT;
     if ( ! $RESULT || ! $RESULT->id ) return;
     $same_url = visiturl_norm($RESULT->getJsonKey('url')) === visiturl_norm($url);
-    $already_visited = $same_url && (bool) $RESULT->getJsonKey('visited_at');
     $keys = array(
         'visited_at' => gmdate('c'),
         'url' => $url,
@@ -71,17 +75,13 @@ function visiturl_record_visit($url) {
     if ( ! $same_url ) {
         $keys['watched_at'] = '';
     }
-    if ( visiturl_timer_mode() ) {
-        $watch_url = $RESULT->getJsonKey('watch_url');
-        $started = $RESULT->getJsonKey('watch_started_at');
-        $clock_for_url = visiturl_norm($watch_url) === visiturl_norm($url)
-            && is_numeric($started) && $started > 0;
-        // Keep the first visit's clock; do not restart if they open the URL again.
-        if ( ! ($clock_for_url && $already_visited) ) {
-            $keys['watch_url'] = $url;
-            $keys['watch_started_at'] = time();
-            $keys['watched_at'] = '';
-        }
+    if ( visiturl_timer_mode() && ! visiturl_has_watched($url) ) {
+        $started = time();
+        $keys['watch_url'] = $url;
+        $keys['watch_started_at'] = $started;
+        $_SESSION['visiturl_watch_url'] = $url;
+        $_SESSION['visiturl_watch_started_at'] = $started;
+        $_SESSION['visiturl_just_visited'] = 1;
     }
     $RESULT->setJsonKeys($keys);
 }
@@ -117,19 +117,33 @@ function visiturl_is_done($url) {
 }
 
 /**
- * Unix time when the watch clock started for this URL, or 0 if they have not visited yet.
- * Does not start the clock — that happens in visiturl_record_visit().
+ * True when this tool session has an in-progress watch wait for $url.
+ */
+function visiturl_has_session_visit($url) {
+    return visiturl_watch_started_at($url) > 0;
+}
+
+/**
+ * On a normal page load, drop an in-progress wait so leaving and coming back
+ * requires Visit URL again. Keep the clock for the iframe reload right after go.php.
+ */
+function visiturl_abandon_watch_unless_just_visited() {
+    if ( ! empty($_SESSION['visiturl_just_visited']) ) {
+        unset($_SESSION['visiturl_just_visited']);
+        return;
+    }
+    unset($_SESSION['visiturl_watch_url'], $_SESSION['visiturl_watch_started_at']);
+}
+
+/**
+ * Unix time when this tool session's watch clock started, or 0 if they must visit again.
  */
 function visiturl_watch_started_at($url) {
-    global $RESULT;
-    if ( ! $RESULT || ! $RESULT->id ) return 0;
-    if ( ! visiturl_has_visit($url) ) return 0;
-    $watch_url = $RESULT->getJsonKey('watch_url');
-    $started = $RESULT->getJsonKey('watch_started_at');
-    if ( visiturl_norm($watch_url) === visiturl_norm($url) && is_numeric($started) && $started > 0 ) {
-        return (int) $started;
-    }
-    return 0;
+    $sess_url = $_SESSION['visiturl_watch_url'] ?? '';
+    $started = $_SESSION['visiturl_watch_started_at'] ?? 0;
+    if ( visiturl_norm($sess_url) !== visiturl_norm($url) ) return 0;
+    if ( ! is_numeric($started) || $started <= 0 ) return 0;
+    return (int) $started;
 }
 
 /**
