@@ -157,7 +157,7 @@ echo(' target="_blank" rel="noopener noreferrer"');
 $reload_js = htmlspecialchars(json_encode(addSession('index.php')), ENT_QUOTES);
 $onclick = 'setTimeout(function(){ window.location.href='.$reload_js.'; }, 1500);';
 if ( $timer && ! $already ) {
-    $n = (int) round(visiturl_minutes());
+    $n = $wait_minutes;
     if ( $n < 1 ) $n = 1;
     $start_msg = $n === 1
         ? 'Visit URL pressed; 1-minute timer started.'
@@ -181,7 +181,7 @@ if ( $timer && ! $already ) {
     }
     echo(' data-unlock-at="'.htmlentities((string) $unlock_at).'"');
     echo(' data-visited="'.($visited ? '1' : '0').'"');
-    echo(' data-minutes="'.htmlentities((string) ((int) round(visiturl_minutes()))).'"');
+    echo(' data-minutes="'.htmlentities((string) $wait_minutes).'"');
     echo('>');
     echo(__('I watched this'));
     echo("</button></form>\n");
