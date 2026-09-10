@@ -179,7 +179,7 @@ echo('>');
 echo(__('Visit URL'));
 echo("</a></p>\n");
 
-if ( $timer && ! $already ) {
+if ( $timer && ! $already && $visited ) {
     $egg = 'Wait '.$wait_minutes.' minutes in case the user watches at 2x speed.';
     echo('<!-- '.$egg.' -->'."\n");
     echo('<script>window.setTimeout(function(){ console.log('.json_encode($egg).'); }, 5000);</script>'."\n");
@@ -203,7 +203,7 @@ if ( $USER->instructor ) {
 
 echo("</div>\n");
 
-if ( $timer && ! $already ) {
+if ( $timer && ! $already && $visited ) {
     $OUTPUT->footerStart();
 ?>
 <script>
