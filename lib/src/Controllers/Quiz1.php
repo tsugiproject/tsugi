@@ -7,9 +7,13 @@ use Tsugi\Core\LTIX;
 use Tsugi\Lumen\Application;
 use Tsugi\Services\Quiz1\Answer;
 use Tsugi\Services\Quiz1\ExportException;
+use Tsugi\Services\Quiz1\GiftExporter;
+use Tsugi\Services\Quiz1\GiftImporter;
 use Tsugi\Services\Quiz1\Grader;
 use Tsugi\Services\Quiz1\Html;
+use Tsugi\Services\Quiz1\ImportException;
 use Tsugi\Services\Quiz1\Qti12Exporter;
+use Tsugi\Services\Quiz1\Qti12Importer;
 use Tsugi\Services\Quiz1\Question;
 use Tsugi\Services\Quiz1\QuestionTypes;
 use Tsugi\Services\Quiz1\Quiz;
@@ -52,6 +56,11 @@ class Quiz1 extends Tool {
         $app->router->post($prefix.'/add', 'Quiz1@addPost');
         $app->router->post($prefix.'/sample', 'Quiz1@samplePost');
         $app->router->get($prefix.'/{id}/export', 'Quiz1@export');
+        $app->router->get($prefix.'/{id}/export/gift', 'Quiz1@exportGift');
+        $app->router->get($prefix.'/{id}/import/gift', 'Quiz1@importGift');
+        $app->router->post($prefix.'/{id}/import/gift', 'Quiz1@importGiftPost');
+        $app->router->get($prefix.'/{id}/import/qti', 'Quiz1@importQti');
+        $app->router->post($prefix.'/{id}/import/qti', 'Quiz1@importQtiPost');
         $app->router->get($prefix.'/{id}/questions/add', 'Quiz1@questionAdd');
         $app->router->post($prefix.'/{id}/questions/add', 'Quiz1@questionAddPost');
         $app->router->get($prefix.'/{id}/questions/{qid}/edit', 'Quiz1@questionEdit');
@@ -91,7 +100,7 @@ class Quiz1 extends Tool {
                     <a href="<?= htmlspecialchars($home.'/add') ?>" class="btn btn-primary"><?= htmlspecialchars(__('New Quiz')) ?></a>
                 </span>
             </h1>
-            <p class="help-block"><?= htmlspecialchars(__('Create quizzes as course resources. Students take them from Lessons or from the Take link. Export as Common Cartridge QTI 1.2.1 from Setup or Export QTI.')) ?></p>
+            <p class="help-block"><?= htmlspecialchars(__('Create quizzes as course resources. Students take them from Lessons or from the Take link. Import or export GIFT and Common Cartridge QTI 1.2.1 on any quiz.')) ?></p>
             <?php if ( count($quizzes) < 1 ): ?>
                 <p><?= htmlspecialchars(__('No quizzes yet.')) ?></p>
                 <form method="post" action="<?= htmlspecialchars($home.'/sample') ?>">
@@ -115,7 +124,7 @@ class Quiz1 extends Tool {
                             <td class="text-right">
                                 <a class="btn btn-xs btn-primary" href="<?= htmlspecialchars($home.'/'.$quiz->id) ?>"><?= htmlspecialchars(__('Take')) ?></a>
                                 <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/edit') ?>"><?= htmlspecialchars(__('Edit')) ?></a>
-                                <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/export') ?>"><?= htmlspecialchars(__('Export QTI')) ?></a>
+                                <?= self::interchangeButtons($home, $quiz->id, true) ?>
                                 <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/delete') ?>" style="display:inline;" onsubmit="return confirm(<?= htmlspecialchars(json_encode(__('Delete this quiz and all of its questions?')), ENT_QUOTES) ?>);">
                                     <?= self::csrfField() ?>
                                     <button type="submit" class="btn btn-xs btn-danger"><?= htmlspecialchars(__('Delete')) ?></button>
@@ -484,6 +493,43 @@ class Quiz1 extends Tool {
         return $response;
     }
 
+    public function exportGift(Request $request, $id) {
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        $quiz = QuizRepository::load((int) $id, U::currentContextId());
+        if ( ! $quiz ) {
+            U::flashError(__('Quiz not found.'));
+            return new RedirectResponse($home);
+        }
+        try {
+            $gift = GiftExporter::export($quiz);
+        } catch ( ExportException $e ) {
+            U::flashError($e->getMessage());
+            return new RedirectResponse($home.'/'.$id.'/edit');
+        }
+        $response = new Response($gift, 200, array(
+            'Content-Type' => 'text/plain; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$this->quizSlug($quiz).'.gift"',
+        ));
+        return $response;
+    }
+
+    public function importGift(Request $request, $id) {
+        return $this->renderImportForm((int) $id, 'gift');
+    }
+
+    public function importGiftPost(Request $request, $id) {
+        return $this->handleImportPost((int) $id, 'gift');
+    }
+
+    public function importQti(Request $request, $id) {
+        return $this->renderImportForm((int) $id, 'qti');
+    }
+
+    public function importQtiPost(Request $request, $id) {
+        return $this->handleImportPost((int) $id, 'qti');
+    }
+
     public function samplePost(Request $request) {
         $home = $this->toolHome(self::ROUTE);
         $this->requireInstructor($home);
@@ -503,8 +549,145 @@ class Quiz1 extends Tool {
         $quiz->context_id = U::currentContextId();
         $quiz->user_id = U::loggedInUserId();
         $id = QuizRepository::insertQuiz($quiz);
-        U::flashSuccess(__('Sample quiz created. Export QTI and import into an LMS to test interoperability.'));
+        U::flashSuccess(__('Sample quiz created. Export QTI or GIFT, or import more questions from GIFT or QTI.'));
         return new RedirectResponse($home.'/'.$id.'/edit');
+    }
+
+    /**
+     * Import / export actions available on every quiz.
+     */
+    private static function interchangeButtons($home, $quiz_id, $small) {
+        $cls = $small ? 'btn btn-xs btn-default' : 'btn btn-default';
+        $id = (int) $quiz_id;
+        ob_start();
+        ?>
+        <a class="<?= $cls ?>" href="<?= htmlspecialchars($home.'/'.$id.'/export') ?>"><?= htmlspecialchars(__('Export QTI')) ?></a>
+        <a class="<?= $cls ?>" href="<?= htmlspecialchars($home.'/'.$id.'/export/gift') ?>"><?= htmlspecialchars(__('Export GIFT')) ?></a>
+        <a class="<?= $cls ?>" href="<?= htmlspecialchars($home.'/'.$id.'/import/gift') ?>"><?= htmlspecialchars(__('Import GIFT')) ?></a>
+        <a class="<?= $cls ?>" href="<?= htmlspecialchars($home.'/'.$id.'/import/qti') ?>"><?= htmlspecialchars(__('Import QTI')) ?></a>
+        <?php
+        return trim(ob_get_clean());
+    }
+
+    private function quizSlug(Quiz $quiz) {
+        $slug = preg_replace('/[^a-z0-9]+/i', '-', strtolower($quiz->title));
+        $slug = trim($slug, '-');
+        if ( $slug === '' ) {
+            $slug = 'quiz-'.$quiz->id;
+        }
+        return $slug;
+    }
+
+    /**
+     * @param 'gift'|'qti' $format
+     */
+    private function renderImportForm($id, $format) {
+        global $OUTPUT;
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        $quiz = QuizRepository::load((int) $id, U::currentContextId());
+        if ( ! $quiz ) {
+            U::flashError(__('Quiz not found.'));
+            return new RedirectResponse($home);
+        }
+
+        $is_gift = $format === 'gift';
+        $heading = $is_gift ? __('Import GIFT') : __('Import QTI');
+        $action = $home.'/'.$quiz->id.'/import/'.($is_gift ? 'gift' : 'qti');
+        $accept = $is_gift ? '.gift,.txt,text/plain' : '.xml,.zip,.imscc,application/xml,text/xml,application/zip';
+        $help = $is_gift
+            ? __('Paste Moodle GIFT or upload a .gift / .txt file. Questions are added to this quiz. Numerical and matching items are skipped.')
+            : __('Paste Common Cartridge QTI 1.2.1 XML or upload an .xml / .zip / .imscc file. Questions are added to this quiz.');
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" role="main" id="main-content">
+            <p><a href="<?= htmlspecialchars($home.'/'.$quiz->id.'/edit') ?>">&larr; <?= htmlspecialchars($quiz->title) ?></a></p>
+            <h1><?= htmlspecialchars($heading) ?></h1>
+            <p class="help-block"><?= htmlspecialchars($help) ?></p>
+            <form method="post" action="<?= htmlspecialchars($action) ?>" enctype="multipart/form-data">
+                <?= self::csrfField() ?>
+                <div class="form-group">
+                    <label for="file"><?= htmlspecialchars(__('File')) ?></label>
+                    <input type="file" id="file" name="file" accept="<?= htmlspecialchars($accept) ?>">
+                </div>
+                <div class="form-group">
+                    <label for="text"><?= htmlspecialchars($is_gift ? __('Or paste GIFT') : __('Or paste QTI XML')) ?></label>
+                    <textarea class="form-control" id="text" name="text" rows="16" style="font-family:monospace;"></textarea>
+                </div>
+                <p>
+                    <button type="submit" class="btn btn-primary"><?= htmlspecialchars(__('Import questions')) ?></button>
+                    <a class="btn btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/edit') ?>"><?= htmlspecialchars(__('Cancel')) ?></a>
+                </p>
+            </form>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * @param 'gift'|'qti' $format
+     */
+    private function handleImportPost($id, $format) {
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        $csrf = self::requireCsrf($home.'/'.$id.'/import/'.$format);
+        if ( $csrf ) {
+            return $csrf;
+        }
+        $quiz = QuizRepository::load((int) $id, U::currentContextId());
+        if ( ! $quiz ) {
+            U::flashError(__('Quiz not found.'));
+            return new RedirectResponse($home);
+        }
+
+        try {
+            $payload = $this->readImportInput();
+            if ( $format === 'gift' ) {
+                list($imported, $warnings) = GiftImporter::import($payload);
+            } else {
+                list($imported, $warnings) = Qti12Importer::import($payload);
+            }
+        } catch ( ImportException $e ) {
+            U::flashError($e->getMessage());
+            return new RedirectResponse($home.'/'.$id.'/import/'.$format);
+        }
+
+        $n = QuizRepository::appendQuestions($quiz->id, $imported->questions);
+        if ( $n < 1 ) {
+            U::flashError(__('No questions were imported.'));
+            return new RedirectResponse($home.'/'.$id.'/import/'.$format);
+        }
+        U::flashSuccess(sprintf(__('Imported %d question(s).'), $n));
+        foreach ( $warnings as $warn ) {
+            U::flashError($warn);
+        }
+        return new RedirectResponse($home.'/'.$id.'/edit');
+    }
+
+    private function readImportInput() {
+        if ( ! empty($_FILES['file']['tmp_name']) && is_uploaded_file($_FILES['file']['tmp_name']) ) {
+            if ( (int) $_FILES['file']['error'] !== UPLOAD_ERR_OK ) {
+                throw new ImportException(__('File upload failed.'));
+            }
+            if ( (int) $_FILES['file']['size'] > 2 * 1024 * 1024 ) {
+                throw new ImportException(__('File is too large (2 MB maximum).'));
+            }
+            $bytes = file_get_contents($_FILES['file']['tmp_name']);
+            if ( $bytes === false || $bytes === '' ) {
+                throw new ImportException(__('The uploaded file is empty.'));
+            }
+            return $bytes;
+        }
+        $text = trim((string) U::get($_POST, 'text', ''));
+        if ( $text === '' ) {
+            throw new ImportException(__('Paste quiz text or choose a file.'));
+        }
+        return $text;
     }
 
     /**
@@ -729,7 +912,7 @@ class Quiz1 extends Tool {
             <h1><?= htmlspecialchars(__('Edit Quiz')) ?>
                 <span class="pull-right">
                     <a class="btn btn-primary" href="<?= htmlspecialchars($home.'/'.$quiz->id) ?>"><?= htmlspecialchars(__('Take quiz')) ?></a>
-                    <a class="btn btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/export') ?>"><?= htmlspecialchars(__('Export QTI')) ?></a>
+                    <?= self::interchangeButtons($home, $quiz->id, false) ?>
                 </span>
             </h1>
             <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/edit') ?>" id="quiz_form">

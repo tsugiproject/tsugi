@@ -5,10 +5,11 @@ Native Tsugi quiz authoring (Phase 0). This is **not** an LTI tool and is not th
 Pipeline:
 
 ```
-Quiz editor  →  semantic Quiz1 model  →  Qti12Exporter  →  Common Cartridge QTI 1.2.1 XML
+GIFT / QTI import  →  semantic Quiz1 model  →  GIFT / QTI export
+Quiz editor        →  semantic Quiz1 model  →  Qti12Exporter / GiftExporter
 ```
 
-QTI XML is an interchange format only. It is never stored as the database representation.
+QTI XML and GIFT are interchange formats only. They are never stored as the database representation.
 
 ## Data model
 
@@ -46,6 +47,8 @@ Deleting a quiz cascades to questions and answers (InnoDB FKs).
 | Persistence | `lib/src/Services/Quiz1/QuizRepository.php` |
 | Take scoring | `lib/src/Services/Quiz1/Grader.php` |
 | QTI 1.2.1 CC exporter | `lib/src/Services/Quiz1/Qti12Exporter.php` |
+| QTI 1.2.1 importer | `lib/src/Services/Quiz1/Qti12Importer.php` |
+| GIFT exporter / importer | `lib/src/Services/Quiz1/GiftExporter.php`, `GiftImporter.php` |
 | Sample / interoperability quiz | `lib/src/Services/Quiz1/SampleQuiz.php` |
 
 The exporter uses `DOMDocument`. The model does not know about XML.
@@ -65,6 +68,9 @@ Instructor-only authoring (same `requireInstructor` / CSRF patterns as Pages). T
 - `/quiz1/{id}/questions/add` — add a question
 - `/quiz1/{id}/questions/{qid}/edit`
 - `/quiz1/{id}/export` — download QTI XML
+- `/quiz1/{id}/export/gift` — download GIFT
+- `/quiz1/{id}/import/gift` — add GIFT questions to this quiz
+- `/quiz1/{id}/import/qti` — add QTI questions to this quiz
 - `POST /quiz1/sample` — create the six-type sample quiz
 
 ## Manual LMS interoperability test
@@ -82,9 +88,15 @@ Setup **Canvas** export writes those questions as `cc.fib.v0p1` so the warning
 does not appear. Matching becomes exact (not substring). Generic and Sakai keep
 the pattern-match profile. The stored Quiz1 type is unchanged.
 
+## Import / export on every quiz
+
+Instructors can import GIFT or QTI and export GIFT or QTI from the quiz list and from Edit. Import **appends** questions to that quiz.
+
+GIFT supports the six Quiz1 types except pattern match (exported as short answer; import becomes fill in the blank). Numerical and matching GIFT items are skipped. QTI import reads Common Cartridge 1.2.1 (including Quiz1’s own export) and Canvas `question_type` metadata. Zip / `.imscc` packages are accepted when they contain `questestinterop` XML.
+
 ## Not in Phase 0
 
-QTI import, GIFT import/export, Gift Quizzes migration, LTI, question banks, persisted attempts / gradebook.
+Gift Quizzes migration, LTI, question banks, persisted attempts / gradebook.
 
 **Take:** Logged-in users open `/quiz1/{id}` (Lessons uses this URL). Computer-scored questions are graded on submit; essays are not auto-scored. Attempts are not stored yet. Instructors get an **Edit quiz** button on the take page.
 
@@ -108,8 +120,6 @@ Legacy `/cc/export` is unchanged and still writes Canvas course_settings.
 Later:
 
 ```
-QTI import  →  Quiz1 model  →  QTI export
-GIFT import →  Quiz1 model  →  QTI export  (and later GIFT export)
 Persist attempts and send scores to the gradebook
 Export quizzes that are not referenced in lessons
 ```

@@ -201,6 +201,30 @@ class QuizRepository {
         );
     }
 
+    /**
+     * Append questions to an existing quiz (sequence continues after the last item).
+     *
+     * @param Question[] $questions
+     * @return int Number of questions inserted
+     */
+    public static function appendQuestions($quiz_id, array $questions) {
+        $n = 0;
+        foreach ( $questions as $question ) {
+            if ( ! $question instanceof Question ) {
+                continue;
+            }
+            $question->id = null;
+            $question->quiz_id = (int) $quiz_id;
+            $question->sequence = 0;
+            foreach ( $question->answers as $ans ) {
+                $ans->id = null;
+            }
+            self::insertQuestion($question);
+            $n++;
+        }
+        return $n;
+    }
+
     public static function insertQuestion(Question $question) {
         global $CFG, $PDOX;
         LTIX::getConnection();
