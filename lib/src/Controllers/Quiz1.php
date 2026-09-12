@@ -612,7 +612,7 @@ class Quiz1 extends Tool {
         $accept = $is_gift ? '.gift,.txt,text/plain' : '.xml,.zip,.imscc,application/xml,text/xml,application/zip';
         $help = $is_gift
             ? __('Paste Moodle GIFT or upload a .gift / .txt file. Questions are added to this quiz. Numerical and matching items are skipped.')
-            : __('Paste Common Cartridge QTI 1.2.1 XML or upload an .xml / .zip / .imscc file. Questions are added to this quiz.');
+            : __('Paste Common Cartridge QTI 1.2.1 XML or upload a quiz .xml / .zip / .imscc. This adds questions to this quiz; it does not import a course.');
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();

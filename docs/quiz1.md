@@ -92,7 +92,7 @@ the pattern-match profile. The stored Quiz1 type is unchanged.
 
 Instructors can import GIFT or QTI and export GIFT or QTI from the quiz list and from Edit. Import **appends** questions to that quiz. Bad or unsupported items are skipped with a warning; the rest still import. A partial quiz is the intended outcome.
 
-GIFT supports the six Quiz1 types except pattern match (exported as short answer; import becomes fill in the blank). Numerical and matching GIFT items are skipped. QTI import reads Common Cartridge 1.2.1 (including Quiz1’s own export) and Canvas `question_type` metadata. Zip / `.imscc` packages are accepted when they contain `questestinterop` XML.
+GIFT supports the six Quiz1 types except pattern match (exported as short answer; import becomes fill in the blank). Numerical and matching GIFT items are skipped. QTI import reads Common Cartridge 1.2.1 (including Quiz1’s own export) and Canvas `question_type` metadata. A zip of **quiz** files (sometimes named `.imscc`) is accepted when it contains `questestinterop` XML — this is not a course cartridge import. A zip is rejected (before any extract) if it lists more than 128 files or more than 8 MiB of declared uncompressed data; individual members over 5 MiB are skipped.
 
 ## Not in Phase 0
 

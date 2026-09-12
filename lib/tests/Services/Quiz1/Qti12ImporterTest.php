@@ -140,6 +140,23 @@ XML;
         $this->assertSame(QuestionTypes::MULTIPLE_CHOICE, $quiz->questions[0]->type);
     }
 
+    public function testZipWithTooManyEntriesIsRejected() {
+        $tmp = tempnam(sys_get_temp_dir(), 'q1z');
+        $zip = new ZipArchive();
+        $this->assertTrue($zip->open($tmp, ZipArchive::CREATE | ZipArchive::OVERWRITE));
+        $limit = Qti12Importer::MAX_ZIP_ENTRIES;
+        for ( $i = 0; $i <= $limit; $i++ ) {
+            $zip->addFromString('pad/file'.$i.'.txt', 'xxxxxxxxxxxxxxxxxxxx');
+        }
+        $zip->close();
+        $bytes = file_get_contents($tmp);
+        @unlink($tmp);
+
+        $this->expectException(ImportException::class);
+        $this->expectExceptionMessage('too many files');
+        Qti12Importer::import($bytes);
+    }
+
     public function testZeroScoreSetvarIsNotCorrect() {
         $xml = <<<XML
 <?xml version="1.0" encoding="UTF-8"?>

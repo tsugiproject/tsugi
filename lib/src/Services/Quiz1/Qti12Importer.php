@@ -6,9 +6,19 @@ namespace Tsugi\Services\Quiz1;
  * Parse Common Cartridge QTI 1.2.1 (and close cousins) into a Quiz1 quiz.
  *
  * Prefers cc_profile, then Canvas question_type, then presentation shape.
- * Zip / IMSCC payloads are accepted when they contain questestinterop XML.
+ * A zip of quiz files (sometimes named .imscc) is accepted when it
+ * contains questestinterop XML. This is not a course cartridge import.
  */
 class Qti12Importer {
+
+    /** Refuse a zip that lists more files than this (stat only; no extract). */
+    const MAX_ZIP_ENTRIES = 128;
+
+    /** Refuse a zip whose declared uncompressed file sizes sum past this. */
+    const MAX_ZIP_UNCOMPRESSED = 8 * 1024 * 1024;
+
+    /** Skip one zip member larger than this (also the extract cap). */
+    const MAX_ZIP_ENTRY = 5 * 1024 * 1024;
 
     /**
      * @param string $payload XML or zip bytes
@@ -80,7 +90,7 @@ class Qti12Importer {
         if ( $trim !== '' && $trim[0] === '<' ) {
             return $payload;
         }
-        throw new ImportException('Import must be QTI XML or a zip/IMSCC file that contains QTI.');
+        throw new ImportException('Import must be QTI XML or a zip of quiz files that contains QTI.');
     }
 
     /**
@@ -96,8 +106,28 @@ class Qti12Importer {
         $opened = $zip->open($tmp);
         if ( $opened !== true ) {
             @unlink($tmp);
-            throw new ImportException('The zip/IMSCC file could not be opened.');
+            throw new ImportException('The quiz zip file could not be opened.');
         }
+        $fileCount = 0;
+        $declared = 0;
+        for ( $i = 0; $i < $zip->numFiles; $i++ ) {
+            $name = $zip->getNameIndex($i);
+            if ( ! is_string($name) || str_ends_with($name, '/') ) {
+                continue;
+            }
+            $stat = $zip->statIndex($i);
+            if ( ! is_array($stat) ) {
+                continue;
+            }
+            $fileCount++;
+            $declared += isset($stat['size']) ? (int) $stat['size'] : 0;
+            if ( $fileCount > self::MAX_ZIP_ENTRIES || $declared > self::MAX_ZIP_UNCOMPRESSED ) {
+                $zip->close();
+                @unlink($tmp);
+                throw new ImportException('The zip file is too large to import (too many files or too much uncompressed data).');
+            }
+        }
+
         $found = null;
         for ( $i = 0; $i < $zip->numFiles; $i++ ) {
             $name = $zip->getNameIndex($i);
@@ -109,11 +139,11 @@ class Qti12Importer {
                 continue;
             }
             $size = isset($stat['size']) ? (int) $stat['size'] : 0;
-            if ( $size < 20 || $size > 5 * 1024 * 1024 ) {
+            if ( $size < 20 || $size > self::MAX_ZIP_ENTRY ) {
                 continue;
             }
             $content = $zip->getFromIndex($i);
-            if ( ! is_string($content) || strlen($content) < 20 || strlen($content) > 5 * 1024 * 1024 ) {
+            if ( ! is_string($content) || strlen($content) < 20 || strlen($content) > self::MAX_ZIP_ENTRY ) {
                 continue;
             }
             if ( stripos($content, 'questestinterop') !== false ) {
