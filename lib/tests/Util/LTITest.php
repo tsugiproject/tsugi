@@ -720,7 +720,8 @@ class LTITest extends \PHPUnit\Framework\TestCase
         $auto = \Tsugi\Util\LTI::postLaunchHTML($signed, $this->endpoint, false, 'width="100%"');
         $this->assertStringContainsString('var autosubmit = true;', $auto);
         $this->assertStringContainsString('if ( ! autosubmit || ! ev.persisted || reloadLaunched ) return;', $auto);
-        $this->assertMatchesRegularExpression('/reloadLaunched = false;.*?reloadLaunched = true;.*?tsugiLaunchForm\(\);/s', $auto);
+        $this->assertStringContainsString('if ( ! iframeIsBlank() ) return;', $auto);
+        $this->assertMatchesRegularExpression('/reloadLaunched = false;.*?if \( ! iframeIsBlank\(\) \) return;.*?reloadLaunched = true;.*?tsugiLaunchForm\(\);/s', $auto);
     }
 
     public function testPostLaunchHTMLWithEndform() {
