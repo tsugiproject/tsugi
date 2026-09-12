@@ -276,6 +276,7 @@ class LTI {
             "    var extName = ".json_encode($ext_submit).";\n" .
             "    var extVal = ".json_encode($ext_submit_text).";\n" .
             "    var prepared = false;\n" .
+            "    var reloadLaunched = false;\n" .
             "    function isReloadNav() {\n" .
             "      try {\n" .
             "        var n = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];\n" .
@@ -296,15 +297,18 @@ class LTI {
             "        return false;\n" .
             "      }\n" .
             "    }\n" .
-            "    function prepareForm(form) {\n" .
-            "      if ( prepared ) return;\n" .
-            "      prepared = true;\n" .
+            "    function stripSessionInput(form) {\n" .
             "      var inputs = form.childNodes;\n" .
             "      for (var i = inputs.length - 1; i >= 0; i--) {\n" .
             "        var thisinput = inputs[i];\n" .
             "        if ( thisinput.name != sess ) continue;\n" .
             "        thisinput.parentNode.removeChild(thisinput);\n" .
             "      }\n" .
+            "    }\n" .
+            "    function prepareForm(form) {\n" .
+            "      if ( prepared ) return;\n" .
+            "      prepared = true;\n" .
+            "      stripSessionInput(form);\n" .
             "      form.style.display = 'none';\n" .
             "      var nei = document.createElement('input');\n" .
             "      nei.setAttribute('type', 'hidden');\n" .
@@ -315,8 +319,11 @@ class LTI {
             "    function tsugiLaunchForm() {\n" .
             "      var form = document.getElementById(fid);\n" .
             "      if ( ! form || form.getAttribute('data-tsugi-submitted') ) return;\n" .
+            "      if ( ! autosubmit ) {\n" .
+            "        stripSessionInput(form);\n" .
+            "        return;\n" .
+            "      }\n" .
             "      prepareForm(form);\n" .
-            "      if ( ! autosubmit ) return;\n" .
             "      form.setAttribute('data-tsugi-submitted', '1');\n" .
             "      var ifr = document.getElementById(frameId);\n" .
             "      var go = function() {\n" .
@@ -338,9 +345,11 @@ class LTI {
             "    }\n" .
             "    if ( isReloadNav() ) {\n" .
             "      window.addEventListener('pageshow', function() {\n" .
+            "        reloadLaunched = false;\n" .
             "        if ( ! iframeIsBlank() ) return;\n" .
             "        var form = document.getElementById(fid);\n" .
             "        if ( form ) form.removeAttribute('data-tsugi-submitted');\n" .
+            "        reloadLaunched = true;\n" .
             "        tsugiLaunchForm();\n" .
             "      });\n" .
             "    } else if ( document.readyState === 'loading' ) {\n" .
@@ -349,7 +358,7 @@ class LTI {
             "      tsugiLaunchForm();\n" .
             "    }\n" .
             "    window.addEventListener('pageshow', function(ev) {\n" .
-            "      if ( ! autosubmit || ! ev.persisted ) return;\n" .
+            "      if ( ! autosubmit || ! ev.persisted || reloadLaunched ) return;\n" .
             "      var form = document.getElementById(fid);\n" .
             "      if ( form ) form.removeAttribute('data-tsugi-submitted');\n" .
             "      tsugiLaunchForm();\n" .

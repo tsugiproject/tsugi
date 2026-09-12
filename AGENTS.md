@@ -48,6 +48,7 @@ This folder is the Tsugi you are editing. A sibling clone often exists at `/User
 ## Testing Guidelines
 - This repository does not include a formal automated test suite; `test/old_test.php` is legacy.
 - Validate changes manually by running the app, visiting key admin screens, and re-running the database upgrade flow if schema changes are involved.
+- **App Store test harness (no login):** anything under `mod/` and anything under `tool/` can be launched from the store without signing in. Start at `$CFG->wwwroot/tool` (redirects to the store) or go directly to `$CFG->wwwroot/store/test/{name}` (for example `/tsugi/store/test/trophy`). Use **Try It**, pick an identity (Jane Instructor or a student), and exercise the tool in the iframe. Some instructor views (Trophy is one) show a launch var dump — that is expected, not a broken page. Do not assume a site login is required for this path.
 
 ## Commit & Pull Request Guidelines
 - Recent commits are short, sentence-style summaries (e.g., “Add item to headers.”). Keep messages concise and action-oriented.
