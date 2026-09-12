@@ -201,6 +201,46 @@ class QuizRepository {
         );
     }
 
+    /**
+     * Append questions to an existing quiz (sequence continues after the last item).
+     *
+     * Best-effort: a failure on one question is recorded and the rest still
+     * save. A partial quiz is the intended outcome, not a rollback.
+     *
+     * @param Question[] $questions
+     * @return array{0: int, 1: string[]} Inserted count and per-question errors
+     */
+    public static function appendQuestions($quiz_id, array $questions) {
+        $n = 0;
+        $errors = array();
+        // Do not wrap this loop in a transaction. Import is liberal: keep
+        // every question that saves, record the ones that do not, and leave
+        // a partial quiz. Rolling back the whole file because one item failed
+        // would discard work the instructor can already use and edit.
+        foreach ( $questions as $i => $question ) {
+            if ( ! $question instanceof Question ) {
+                continue;
+            }
+            $question->id = null;
+            $question->quiz_id = (int) $quiz_id;
+            $question->sequence = 0;
+            foreach ( $question->answers as $ans ) {
+                $ans->id = null;
+            }
+            try {
+                self::insertQuestion($question);
+                $n++;
+            } catch ( \Exception $e ) {
+                $label = $question->title !== '' ? $question->title : Html::excerpt($question->prompt, 40);
+                if ( $label === '' ) {
+                    $label = 'Question ' . ((int) $i + 1);
+                }
+                $errors[] = $label . ': ' . $e->getMessage();
+            }
+        }
+        return array($n, $errors);
+    }
+
     public static function insertQuestion(Question $question) {
         global $CFG, $PDOX;
         LTIX::getConnection();
