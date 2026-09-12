@@ -104,6 +104,14 @@ class Qti12Importer {
             if ( ! is_string($name) || str_ends_with($name, '/') ) {
                 continue;
             }
+            $stat = $zip->statIndex($i);
+            if ( ! is_array($stat) ) {
+                continue;
+            }
+            $size = isset($stat['size']) ? (int) $stat['size'] : 0;
+            if ( $size < 20 || $size > 5 * 1024 * 1024 ) {
+                continue;
+            }
             $content = $zip->getFromIndex($i);
             if ( ! is_string($content) || strlen($content) < 20 || strlen($content) > 5 * 1024 * 1024 ) {
                 continue;
@@ -399,11 +407,38 @@ class Qti12Importer {
         }
         $scoring = array();
         foreach ( $all as $cond ) {
-            if ( $cond->getAttribute('continue') === 'No' || $cond->getElementsByTagName('setvar')->length > 0 ) {
+            $setvars = $cond->getElementsByTagName('setvar');
+            if ( $setvars->length > 0 ) {
+                if ( self::isPositiveScoring($cond) ) {
+                    $scoring[] = $cond;
+                }
+                continue;
+            }
+            if ( $cond->getAttribute('continue') === 'No' ) {
                 $scoring[] = $cond;
             }
         }
-        return count($scoring) ? $scoring : $all;
+        return $scoring;
+    }
+
+    /**
+     * True when a respcondition awards a positive SCORE (Set/Add above zero).
+     */
+    private static function isPositiveScoring(\DOMElement $cond) {
+        foreach ( $cond->getElementsByTagName('setvar') as $sv ) {
+            if ( ! $sv instanceof \DOMElement ) {
+                continue;
+            }
+            $action = strtolower($sv->getAttribute('action'));
+            $n = (float) trim($sv->textContent);
+            if ( $n <= 0 ) {
+                continue;
+            }
+            if ( $action === 'set' || $action === 'add' || $action === '' ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

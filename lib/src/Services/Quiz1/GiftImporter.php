@@ -179,7 +179,8 @@ class GiftImporter {
                 $wrong_fb = self::promptFromGift($parts[0]);
                 $right_fb = self::promptFromGift($parts[1]);
             } else {
-                $right_fb = self::promptFromGift($fb);
+                // Moodle: a single # string is feedback for the incorrect choice.
+                $wrong_fb = self::promptFromGift($fb);
             }
         }
         $question->answers = array(

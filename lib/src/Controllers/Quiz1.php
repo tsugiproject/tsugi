@@ -668,18 +668,27 @@ class Quiz1 extends Tool {
                 list($imported, $warnings) = Qti12Importer::import($payload);
             }
         } catch ( ImportException $e ) {
-            U::flashError($e->getMessage());
+            U::flashError(htmlspecialchars($e->getMessage(), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
             return new RedirectResponse($home.'/'.$id.'/import/'.$format);
         }
 
-        $n = QuizRepository::appendQuestions($quiz->id, $imported->questions);
+        list($n, $save_errors) = QuizRepository::appendQuestions($quiz->id, $imported->questions);
+        $warnings = array_merge($warnings, $save_errors);
         if ( $n < 1 ) {
-            U::flashError(__('No questions were imported.'));
+            $msg = __('No questions were imported.');
+            if ( count($warnings) ) {
+                $msg .= ' ' . implode(' ', $warnings);
+            }
+            U::flashError(htmlspecialchars($msg, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
             return new RedirectResponse($home.'/'.$id.'/import/'.$format);
         }
         U::flashSuccess(sprintf(__('Imported %d question(s).'), $n));
-        foreach ( $warnings as $warn ) {
-            U::flashError($warn);
+        if ( count($warnings) ) {
+            $safe = array();
+            foreach ( $warnings as $warn ) {
+                $safe[] = htmlspecialchars($warn, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            }
+            U::flashError(implode('<br>', $safe));
         }
         return new RedirectResponse($home.'/'.$id.'/edit');
     }

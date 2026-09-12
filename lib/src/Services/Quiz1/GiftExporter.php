@@ -73,30 +73,22 @@ class GiftExporter {
             return '{}';
         }
         if ( $question->type === QuestionTypes::TRUE_FALSE ) {
-            $true = true;
-            foreach ( $question->nonEmptyAnswers() as $ans ) {
-                $label = strtolower(trim(strip_tags($ans->text)));
-                if ( $label === 'true' ) {
-                    $true = $ans->correct ? true : false;
-                    break;
-                }
-            }
-            return $true ? '{T}' : '{F}';
+            return self::trueFalseBlock($question);
         }
 
         $rows = array();
-        foreach ( $question->nonEmptyAnswers() as $ans ) {
+        $mr_weights = $question->type === QuestionTypes::MULTIPLE_RESPONSE
+            ? self::multipleResponseWeights($question)
+            : array();
+        foreach ( $question->nonEmptyAnswers() as $i => $ans ) {
             $text = self::escape(self::plainOrHtml($ans->text));
             $fb = '';
             if ( ! Question::isBlankHtml($ans->feedback) ) {
                 $fb = '#' . self::escape(self::plainOrHtml($ans->feedback));
             }
             if ( $question->type === QuestionTypes::MULTIPLE_RESPONSE ) {
-                if ( $ans->correct ) {
-                    $rows[] = '~%100%' . $text . $fb;
-                } else {
-                    $rows[] = '~' . $text . $fb;
-                }
+                $w = $mr_weights[$i] ?? 0;
+                $rows[] = '~%' . self::formatGiftWeight($w) . '%' . $text . $fb;
             } else if ( QuestionTypes::usesAcceptedStrings($question->type) ) {
                 $rows[] = '=' . $text . $fb;
             } else {
@@ -104,6 +96,79 @@ class GiftExporter {
             }
         }
         return "{\n" . implode("\n", $rows) . "\n}";
+    }
+
+    /**
+     * Moodle GIFT: {T#incorrect#correct} or {F#incorrect#correct}.
+     */
+    private static function trueFalseBlock(Question $question) {
+        $true = true;
+        $wrong_fb = '';
+        $right_fb = '';
+        foreach ( $question->nonEmptyAnswers() as $ans ) {
+            $label = strtolower(trim(strip_tags($ans->text)));
+            if ( $label === 'true' ) {
+                $true = $ans->correct ? true : false;
+            }
+            if ( $ans->correct ) {
+                $right_fb = $ans->feedback;
+            } else {
+                $wrong_fb = $ans->feedback;
+            }
+        }
+        $token = $true ? 'T' : 'F';
+        if ( Question::isBlankHtml($wrong_fb) && Question::isBlankHtml($right_fb) ) {
+            return '{'.$token.'}';
+        }
+        $out = '{'.$token.'#';
+        if ( ! Question::isBlankHtml($wrong_fb) ) {
+            $out .= self::escape(self::plainOrHtml($wrong_fb));
+        }
+        if ( ! Question::isBlankHtml($right_fb) ) {
+            $out .= '#' . self::escape(self::plainOrHtml($right_fb));
+        }
+        return $out.'}';
+    }
+
+    /**
+     * Positive weights on correct answers sum to 100. Each incorrect is -100
+     * so a wrong selection zeros the Moodle score (Quiz1 is all-or-nothing).
+     *
+     * @return array<int,float> index in nonEmptyAnswers() => weight
+     */
+    private static function multipleResponseWeights(Question $question) {
+        $answers = $question->nonEmptyAnswers();
+        $correct_n = 0;
+        foreach ( $answers as $ans ) {
+            if ( $ans->correct ) {
+                $correct_n++;
+            }
+        }
+        $weights = array();
+        $left = 100.0;
+        $seen_correct = 0;
+        foreach ( $answers as $i => $ans ) {
+            if ( ! $ans->correct ) {
+                $weights[$i] = -100.0;
+                continue;
+            }
+            $seen_correct++;
+            if ( $seen_correct === $correct_n ) {
+                $weights[$i] = $left;
+            } else {
+                $w = round(100.0 / $correct_n, 5);
+                $weights[$i] = $w;
+                $left -= $w;
+            }
+        }
+        return $weights;
+    }
+
+    private static function formatGiftWeight($weight) {
+        if ( abs($weight - round($weight)) < 0.00001 ) {
+            return (string) (int) round($weight);
+        }
+        return rtrim(rtrim(sprintf('%.5F', $weight), '0'), '.');
     }
 
     private static function plainOrHtml($html) {

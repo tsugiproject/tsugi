@@ -140,6 +140,51 @@ XML;
         $this->assertSame(QuestionTypes::MULTIPLE_CHOICE, $quiz->questions[0]->type);
     }
 
+    public function testZeroScoreSetvarIsNotCorrect() {
+        $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<questestinterop>
+  <assessment ident="a1" title="Zero">
+    <section ident="s1">
+      <item ident="i1" title="Pick">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>cc_profile</fieldlabel>
+              <fieldentry>cc.multiple_choice.v0p1</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material><mattext>Choose</mattext></material>
+          <response_lid ident="response" rcardinality="Single">
+            <render_choice>
+              <response_label ident="A"><material><mattext>Yes</mattext></material></response_label>
+              <response_label ident="B"><material><mattext>No</mattext></material></response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <respcondition>
+            <conditionvar><varequal respident="response">B</varequal></conditionvar>
+            <setvar action="Set" varname="SCORE">0</setvar>
+          </respcondition>
+          <respcondition>
+            <conditionvar><varequal respident="response">A</varequal></conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+    </section>
+  </assessment>
+</questestinterop>
+XML;
+        list($quiz, $warnings) = Qti12Importer::import($xml);
+        $this->assertSame(array(), $warnings);
+        $this->assertTrue($quiz->questions[0]->answers[0]->correct);
+        $this->assertFalse($quiz->questions[0]->answers[1]->correct);
+    }
+
     public function testEmptyXmlThrows() {
         $this->expectException(ImportException::class);
         Qti12Importer::import('<questestinterop></questestinterop>');

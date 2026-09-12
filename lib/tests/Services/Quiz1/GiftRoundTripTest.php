@@ -14,7 +14,9 @@ class GiftRoundTripTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('HTTP protocol', $gift);
         $this->assertStringContainsString('=HTTP', $gift);
         $this->assertStringContainsString('~FTP', $gift);
-        $this->assertStringContainsString('~%100%GET', $gift);
+        $this->assertStringContainsString('~%50%GET', $gift);
+        $this->assertStringContainsString('~%50%POST', $gift);
+        $this->assertStringContainsString('~%-100%HTML', $gift);
         $this->assertStringContainsString('{F}', $gift);
         $this->assertStringContainsString('Explain REST', $gift);
         $this->assertStringContainsString('{}', $gift);
@@ -120,5 +122,45 @@ class GiftRoundTripTest extends \PHPUnit\Framework\TestCase
         list($quiz,) = GiftImporter::import($gift);
         $this->assertStringContainsString('<strong>all</strong>', $quiz->questions[1]->prompt);
         $this->assertStringContainsString('2 &lt; 3', $quiz->questions[0]->prompt);
+    }
+
+    public function testTrueFalseFeedbackRoundTrip() {
+        $quiz = new \Tsugi\Services\Quiz1\Quiz();
+        $quiz->title = 'TF feedback';
+        $q = new \Tsugi\Services\Quiz1\Question();
+        $q->sequence = 1;
+        $q->type = QuestionTypes::TRUE_FALSE;
+        $q->prompt = 'HTML is a programming language.';
+        $q->points = 1;
+        $q->answers = array(
+            \Tsugi\Services\Quiz1\Answer::make('True', false, 1, null, 'No, it is markup.'),
+            \Tsugi\Services\Quiz1\Answer::make('False', true, 2, null, 'Correct.'),
+        );
+        $quiz->questions[] = $q;
+
+        $gift = GiftExporter::export($quiz);
+        $this->assertStringContainsString('{F#No, it is markup.#Correct.}', $gift);
+
+        list($imported, $warnings) = GiftImporter::import($gift);
+        $this->assertSame(array(), $warnings);
+        $tf = $imported->questions[0];
+        $this->assertFalse($tf->answers[0]->correct);
+        $this->assertStringContainsString('No, it is markup.', $tf->answers[0]->feedback);
+        $this->assertTrue($tf->answers[1]->correct);
+        $this->assertStringContainsString('Correct.', $tf->answers[1]->feedback);
+    }
+
+    public function testMultipleResponseWeightsSumTo100() {
+        $quiz = SampleQuiz::buildMultipleResponse(1);
+        $gift = GiftExporter::export($quiz);
+        preg_match_all('/%(-?[\d.]+)%/', $gift, $m);
+        $positive = 0.0;
+        foreach ( $m[1] as $w ) {
+            $n = (float) $w;
+            if ( $n > 0 ) {
+                $positive += $n;
+            }
+        }
+        $this->assertEqualsWithDelta(100.0, $positive, 0.0001);
     }
 }
