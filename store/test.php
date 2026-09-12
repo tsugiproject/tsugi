@@ -15,6 +15,7 @@ session_start();
 $p = $CFG->dbprefix;
 LTIX::getConnection();
 
+$OUTPUT->noCacheHeader();
 $OUTPUT->header();
 ?>
 <style>

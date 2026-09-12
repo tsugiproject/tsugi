@@ -705,6 +705,25 @@ class LTITest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('basiclti_base_string', $html);
     }
 
+    public function testPostLaunchHTMLManualLaunchDoesNotPrepareForm() {
+        $signed = \Tsugi\Util\LTI::signParameters($this->parms, $this->endpoint, 'POST', '12345', 'secret', 'Launch', false, false, 'width="100%"');
+        $debug = \Tsugi\Util\LTI::postLaunchHTML($signed, $this->endpoint, true, 'width="100%"');
+        $this->assertStringContainsString('var autosubmit = false;', $debug);
+        $this->assertStringContainsString('<input type="submit" name="ext_submit"', $debug);
+        $this->assertMatchesRegularExpression('/function tsugiLaunchForm\(\) \{.*?if \( ! autosubmit \).*?prepareForm\(form\);/s', $debug);
+
+        $pause = \Tsugi\Util\LTI::postLaunchHTML($signed, $this->endpoint, false, '_pause');
+        $this->assertStringContainsString('var autosubmit = false;', $pause);
+        $this->assertStringContainsString('<input type="hidden" name="ext_submit"', $pause);
+        $this->assertStringNotContainsString('<input type="submit" name="ext_submit"', $pause);
+
+        $auto = \Tsugi\Util\LTI::postLaunchHTML($signed, $this->endpoint, false, 'width="100%"');
+        $this->assertStringContainsString('var autosubmit = true;', $auto);
+        $this->assertStringContainsString('if ( ! autosubmit || ! ev.persisted || reloadLaunched ) return;', $auto);
+        $this->assertStringContainsString('if ( ! iframeIsBlank() ) return;', $auto);
+        $this->assertMatchesRegularExpression('/reloadLaunched = false;.*?if \( ! iframeIsBlank\(\) \) return;.*?reloadLaunched = true;.*?tsugiLaunchForm\(\);/s', $auto);
+    }
+
     public function testPostLaunchHTMLWithEndform() {
         $signed = \Tsugi\Util\LTI::signParameters($this->parms, $this->endpoint, 'POST', '12345', 'secret', 'Launch', false, false, '_pause');
         $html = \Tsugi\Util\LTI::postLaunchHTML($signed, $this->endpoint, false, '_pause', '<div class="extra">extra content</div>');
