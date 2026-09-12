@@ -111,7 +111,7 @@ SettingsForm::text('url', __('URL students should visit (http:// or https://)'))
 SettingsForm::text('title', __('Optional title to show on this page'));
 SettingsForm::textarea('instructions', __('Optional instructions for students'));
 SettingsForm::checkbox('grade', __('Give the student a 100% grade when they visit the URL'));
-SettingsForm::number('minutes', __('Estimated length in minutes. If you set this, students keep this window open and mark the video as watched after they finish. The grade is sent then, not when they open the URL.'));
+SettingsForm::number('minutes', __('Estimated length in minutes. If you set this, students keep this window open while watching the video and mark it as watched after they finish. The grade is sent then, not when they open the URL.'));
 SettingsForm::dueDate();
 SettingsForm::end();
 
@@ -157,7 +157,7 @@ if ( $timer && ! $already ) {
     $wait_minutes = (int) round(visiturl_unlock_seconds($minutes) / 60.0);
     if ( $wait_minutes < 1 ) $wait_minutes = 1;
     echo('<p>');
-    echo(htmlentities(sprintf(__('This is a %s video. Keep this window open. Open the video in a new tab, watch it, then come back here and press I watched this.'), visiturl_duration_label($minutes))));
+    echo(htmlentities(sprintf(__('This is a %s video. Keep this window open while watching the video. Open the video in a new tab, then come back here and press I watched this.'), visiturl_duration_label($minutes))));
     echo("</p>\n");
 }
 
