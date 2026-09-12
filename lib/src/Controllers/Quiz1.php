@@ -554,17 +554,32 @@ class Quiz1 extends Tool {
     }
 
     /**
-     * Import / export actions available on every quiz.
+     * Import / export menus available on every quiz.
      */
     private static function interchangeButtons($home, $quiz_id, $small) {
-        $cls = $small ? 'btn btn-xs btn-default' : 'btn btn-default';
+        $cls = $small ? 'btn btn-xs btn-default dropdown-toggle' : 'btn btn-default dropdown-toggle';
         $id = (int) $quiz_id;
+        $base = $home.'/'.$id;
         ob_start();
         ?>
-        <a class="<?= $cls ?>" href="<?= htmlspecialchars($home.'/'.$id.'/export') ?>"><?= htmlspecialchars(__('Export QTI')) ?></a>
-        <a class="<?= $cls ?>" href="<?= htmlspecialchars($home.'/'.$id.'/export/gift') ?>"><?= htmlspecialchars(__('Export GIFT')) ?></a>
-        <a class="<?= $cls ?>" href="<?= htmlspecialchars($home.'/'.$id.'/import/gift') ?>"><?= htmlspecialchars(__('Import GIFT')) ?></a>
-        <a class="<?= $cls ?>" href="<?= htmlspecialchars($home.'/'.$id.'/import/qti') ?>"><?= htmlspecialchars(__('Import QTI')) ?></a>
+        <div class="btn-group" style="display:inline-block;">
+            <button type="button" class="<?= $cls ?>" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <?= htmlspecialchars(__('Export')) ?> <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right">
+                <li><a href="<?= htmlspecialchars($base.'/export') ?>"><?= htmlspecialchars(__('QTI')) ?></a></li>
+                <li><a href="<?= htmlspecialchars($base.'/export/gift') ?>"><?= htmlspecialchars(__('GIFT')) ?></a></li>
+            </ul>
+        </div>
+        <div class="btn-group" style="display:inline-block;">
+            <button type="button" class="<?= $cls ?>" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <?= htmlspecialchars(__('Import')) ?> <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right">
+                <li><a href="<?= htmlspecialchars($base.'/import/gift') ?>"><?= htmlspecialchars(__('GIFT')) ?></a></li>
+                <li><a href="<?= htmlspecialchars($base.'/import/qti') ?>"><?= htmlspecialchars(__('QTI')) ?></a></li>
+            </ul>
+        </div>
         <?php
         return trim(ob_get_clean());
     }
