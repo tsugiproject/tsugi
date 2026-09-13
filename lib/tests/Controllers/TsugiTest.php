@@ -208,13 +208,17 @@ class TsugiTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($hasLogoutRoute, 'Logout route should be registered');
         $this->assertTrue($hasLogoutPhpRoute, 'Legacy logout.php route should be registered');
 
-        $hasSetupRoute = false;
+        $hasSettingsRoute = false;
+        $hasSettingsExportRoute = false;
         foreach ($uris as $uri) {
-            if ($uri === '/setup' || $uri === '/setup/' || strpos($uri, '/setup') === 0) {
-                $hasSetupRoute = true;
-                break;
+            if ($uri === '/settings' || $uri === '/settings/') {
+                $hasSettingsRoute = true;
+            }
+            if ($uri === '/settings/export' || $uri === '/settings/export/') {
+                $hasSettingsExportRoute = true;
             }
         }
-        $this->assertTrue($hasSetupRoute, 'Setup route should be registered');
+        $this->assertTrue($hasSettingsRoute, 'Settings route should be registered');
+        $this->assertTrue($hasSettingsExportRoute, 'Course Settings export route should be registered');
     }
 }

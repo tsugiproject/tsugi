@@ -4,23 +4,38 @@ namespace Tsugi\Controllers;
 
 use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
+use Tsugi\Core\Manifest;
 use Tsugi\Crypt\AesOpenSSL;
 use Tsugi\UI\Table;
 use Tsugi\UI\CrudForm;
 use Tsugi\UI\SettingsDialog;
 use Tsugi\UI\Supporter;
+use Tsugi\UI\LessonsCartridge;
 use Tsugi\Core\Mail;
 use Tsugi\Lumen\Application;
 use Tsugi\Services\Settings\Expire;
 use Tsugi\Services\Settings\DynamicRegistration;
+use Tsugi\Services\Quiz1\ExportException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 /**
- * Site-wide instructor settings (keys, contexts, PII expiry).
+ * Instructor settings: site-wide at /settings, course-mounted at /courses/{id}/settings.
  *
- * This is wwwroot/settings, not a course-scoped LMS tool. Login is required
- * for most pages; a course context is not. Do not call requireAuth() here.
+ * Site-wide (wwwroot/settings): keys, contexts, PII expiry. Login is required;
+ * a course context is not. Do not call requireAuth() on those pages.
+ *
+ * Course-mounted (/courses/{id}/settings): theme and Common Cartridge export
+ * for the active manifest. Instructor + manifest only. Nested dispatch from
+ * Courses keeps REQUEST_URI prefixed, so isCourseRoute() can tell the two
+ * families apart. File-based $CFG->lessons sites keep using the site $CFG->theme.
+ *
+ * Parent menus (instructors of a manifest course only):
+ * if ( \Tsugi\Controllers\Settings::showInMenu() ) {
+ *     $set->addLink('Settings', rtrim($CFG->apphome, '/') . Courses::toolPathPrefix() . '/settings');
+ * }
  */
 class Settings extends Tool {
 
@@ -29,9 +44,12 @@ class Settings extends Tool {
     const REDIRECT = 'tsugi_controllers_settings';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
-        self::mapPage($app, $prefix, 'index', false);
-        self::mapPage($app, $prefix.'/index', 'index', false);
+        self::mapPage($app, $prefix, 'index', true);
+        self::mapPage($app, $prefix.'/index', 'index', true);
         $app->router->get('/'.self::REDIRECT, 'Settings@index');
+
+        self::mapPage($app, $prefix.'/export/download', 'exportDownload', false);
+        self::mapPage($app, $prefix.'/export', 'export', true);
 
         self::mapPage($app, $prefix.'/encrypt', 'encrypt', true);
         self::mapPage($app, $prefix.'/gclass_login', 'gclassLogin', false);
@@ -93,11 +111,35 @@ class Settings extends Tool {
     }
 
     /**
+     * Site-wide Settings pages always live at wwwroot/settings.
+     *
+     * @return RedirectResponse|null
+     */
+    protected function requireSiteRoute($suffix = '') {
+        return $this->requireGlobalRoute($this->pageUrl($suffix));
+    }
+
+    /**
+     * True when the current user may open course Settings (instructor of a manifest course).
+     */
+    public static function showInMenu() {
+        if ( Manifest::activeId() < 1 ) {
+            return false;
+        }
+        $tool = new self();
+        return $tool->isInstructor();
+    }
+
+    /**
      * Login required, course context not required.
      *
      * @return RedirectResponse|null
      */
     protected function requireLogin($suffix = '') {
+        $bounce = $this->requireSiteRoute($suffix);
+        if ( $bounce ) {
+            return $bounce;
+        }
         if ( U::isLoggedIn() ) {
             LTIX::getConnection();
             return null;
@@ -209,6 +251,13 @@ class Settings extends Tool {
 
     public function index(Request $request)
     {
+        if ( self::isCourseRoute() ) {
+            if ( $request->isMethod('POST') ) {
+                return $this->coursePost($request);
+            }
+            return $this->courseGet($request);
+        }
+
         global $CFG, $PDOX, $OUTPUT;
 
         $gate = $this->requireLogin();
@@ -1505,6 +1554,11 @@ connect to Google Classroom and install tools.
     {
         global $CFG, $OUTPUT;
 
+        $bounce = $this->requireSiteRoute('key/using');
+        if ( $bounce ) {
+            return $bounce;
+        }
+
         $keys = $this->requireKeysEnabled(true);
         if ( $keys ) {
             return $keys;
@@ -1580,5 +1634,297 @@ re-check your login status.
   <a href="<?= htmlspecialchars($this->pageUrl(), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default" aria-label="My Settings">My Settings</a>
 </p>
 <?php
+    }
+
+    /**
+     * Course-mounted Settings: theme picker for the current manifest.
+     */
+    private function courseGet(Request $request)
+    {
+        global $OUTPUT;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $theme_current = Manifest::currentThemeKey();
+        $theme_palettes = Manifest::palettes();
+        $theme_site_primary = Manifest::siteDefaultPrimary();
+        $save_url = $setup_url;
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $setup_tab = 'theme';
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <h1><?= __('Settings') ?></h1>
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <p><?= __('Theme is stored with each manifest version. New courses start with the site default until you pick one.') ?></p>
+            <form method="post" action="<?= htmlspecialchars($save_url) ?>">
+                <?= self::csrfField() ?>
+                <?php include __DIR__ . '/templates/Settings/theme_picker.inc.php'; ?>
+                <p>
+                    <button type="submit" class="btn btn-primary"><?= __('Save theme') ?></button>
+                    <a href="<?= htmlspecialchars($save_url) ?>" class="btn btn-default"><?= __('Cancel') ?></a>
+                </p>
+            </form>
+            </div>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * Common Cartridge export form for the current manifest course.
+     */
+    public function export(Request $request)
+    {
+        global $CFG, $OUTPUT;
+
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $download_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export/download'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $l = Manifest::currentLessons();
+        if ( ! $l ) {
+            U::flashError(__('Cannot load course lessons.'));
+            return new RedirectResponse($setup_url);
+        }
+
+        $counts = LessonsCartridge::summarize($l);
+        $youtube_enabled = isset($CFG->youtube_url);
+        $localhost_warning = strpos($CFG->wwwroot, '//localhost') !== false;
+        $canvas_return_url = U::get($_POST, 'ext_content_return_url', false);
+        if ( ! is_string($canvas_return_url) || $canvas_return_url === '' ) {
+            $canvas_return_url = false;
+        }
+        $setup_tab = 'export';
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <h1><?= __('Settings') ?></h1>
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php include __DIR__ . '/templates/Settings/export.inc.php'; ?>
+            </div>
+        </main>
+        <?php
+        $OUTPUT->footerStart();
+        ?>
+<script>
+function myfunc(){
+    $("#res").val('');
+    $('#void input[type="checkbox"]').each(function(){
+         if ( ! $(this).is(':checked') ) return;
+         var b = $("#res").val();
+         if(b.length > 0){
+            $("#res").val( b + ',' + $(this).val() );
+        } else {
+            $("#res").val( $(this).val() );
+        }
+    });
+
+    $("#tsugi_lms_real").val($("#tsugi_lms_select_partial").val());
+    var stuff = $("#res").val();
+    $("#youtube_real").val($("#youtube_select_partial").val() || '');
+    $("#topic_real").val($("#topic_select_partial").val() || '');
+
+    if ( stuff.length < 1 ) {
+        alert(<?= json_encode(__('Please select at least one module')) ?>);
+    } else {
+        $("#real").submit();
+    }
+}
+function sendToCanvas() {
+    var youtube = $("#youtube_select_full").val() || 'no';
+    var topic = $("#topic_select_full").val() || 'none';
+    var return_url = <?= json_encode($canvas_return_url ? $canvas_return_url : '') ?>;
+    var export_url = <?= json_encode($download_url) ?>;
+    export_url = export_url + (export_url.indexOf('?') >= 0 ? '&' : '?') + 'tsugi_lms=canvas';
+    export_url = export_url + '&youtube=' + encodeURIComponent(youtube);
+    export_url = export_url + '&topic=' + encodeURIComponent(topic);
+    return_url = return_url + (return_url.indexOf('?') >= 0 ? '&' : '?');
+    return_url = return_url + 'return_type=file&text=' + encodeURIComponent(<?= json_encode(isset($CFG->servicename) ? $CFG->servicename : 'Tsugi') ?>);
+    return_url = return_url + '&url=' + encodeURIComponent(export_url);
+    window.location.href = return_url;
+}
+</script>
+        <?php
+        $OUTPUT->footerEnd();
+        return '';
+    }
+
+    /**
+     * Download a Common Cartridge built from the current course manifest.
+     */
+    public function exportDownload(Request $request)
+    {
+        global $CFG;
+
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $l = Manifest::currentLessons();
+        if ( ! $l ) {
+            U::flashError(__('Cannot load course lessons.'));
+            return new RedirectResponse($export_url);
+        }
+
+        $anchor_str = U::get($_GET, 'anchors', false);
+        $anchors = false;
+        if ( $anchor_str ) {
+            $anchors = explode(',', $anchor_str);
+        }
+        if ( ! is_array($anchors) || count($anchors) < 1 ) {
+            $anchors = false;
+        }
+        if ( $anchors ) {
+            $anchor_count = 0;
+            foreach ( $l->lessons->modules as $module ) {
+                if ( in_array($module->anchor, $anchors) ) {
+                    $anchor_count++;
+                }
+            }
+            if ( $anchor_count < 1 ) {
+                $anchors = false;
+            }
+        }
+
+        $filename = tempnam(sys_get_temp_dir(), isset($CFG->servicename) ? $CFG->servicename : 'cc');
+        if ( $filename === false ) {
+            U::flashError(__('Could not create a temporary file for the cartridge.'));
+            return new RedirectResponse($export_url);
+        }
+        unlink($filename);
+        $zip = new \ZipArchive();
+        if ( $zip->open($filename, \ZipArchive::CREATE) !== true ) {
+            U::flashError(__('Cannot open the cartridge zip file.'));
+            return new RedirectResponse($export_url);
+        }
+
+        $tsugi_lms = LessonsCartridge::exportFlavor(U::get($_GET, 'tsugi_lms', false));
+        try {
+            LessonsCartridge::writeZip($l, $zip, array(
+                'tsugi_lms' => $tsugi_lms,
+                'topic' => U::get($_GET, 'topic', false),
+                'youtube' => U::get($_GET, 'youtube', false),
+                'anchors' => $anchors,
+                'context_id' => U::currentContextId(),
+            ));
+        } catch ( ExportException $e ) {
+            $zip->close();
+            @unlink($filename);
+            U::flashError($e->getMessage());
+            return new RedirectResponse($export_url);
+        } catch ( \Exception $e ) {
+            $zip->close();
+            @unlink($filename);
+            error_log('LessonsCartridge export failed: '.$e->getMessage());
+            U::flashError(__('Could not create the cartridge.'));
+            return new RedirectResponse($export_url);
+        }
+        $zip->close();
+
+        $download = LessonsCartridge::downloadName($l, $tsugi_lms);
+        $download = str_replace(array('\\', '"'), '', $download);
+        $response = new BinaryFileResponse($filename);
+        $response->headers->set('Content-Type', 'application/x-zip');
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $download);
+        $response->deleteFileAfterSend(true);
+        return $response;
+    }
+
+    /**
+     * Save the course theme onto a new manifest version.
+     */
+    private function coursePost(Request $request)
+    {
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+        $csrf = self::requireCsrf($setup_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        $posted = U::get($_POST, 'theme', '');
+        $norm = Manifest::normalizeThemeKey($posted);
+        if ( $norm === false ) {
+            U::flashError(__('Unknown theme.'));
+            return new RedirectResponse($setup_url);
+        }
+
+        $doc = Manifest::currentDocument();
+        if ( ! $doc ) {
+            U::flashError(__('Cannot load course manifest.'));
+            return new RedirectResponse($setup_url);
+        }
+        $decoded = json_decode($doc['json'], true);
+        if ( ! is_array($decoded) ) {
+            U::flashError(__('Invalid manifest JSON.'));
+            return new RedirectResponse($setup_url);
+        }
+
+        $context_id = U::currentContextId();
+        $store = $norm === null ? '' : $norm;
+        try {
+            Manifest::saveNewVersion(
+                $context_id,
+                $decoded,
+                U::loggedInUserId(),
+                'Set theme',
+                $store
+            );
+        } catch ( \InvalidArgumentException $e ) {
+            U::flashError($e->getMessage());
+            return new RedirectResponse($setup_url);
+        } catch ( \Exception $e ) {
+            U::flashError(__('Failed to save theme.'));
+            return new RedirectResponse($setup_url);
+        }
+
+        U::flashSuccess(__('Theme saved.'));
+        return new RedirectResponse($setup_url);
+    }
+
+    /**
+     * @return RedirectResponse|null
+     */
+    private function courseGate() {
+        $home = U::addSession(self::configuredHomeUrl());
+        $this->requireInstructor($home);
+        if ( Manifest::activeId() < 1 ) {
+            U::flashError(__('Course settings are only available for courses with a manifest.'));
+            return new RedirectResponse($home);
+        }
+        return null;
     }
 }

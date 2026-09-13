@@ -400,6 +400,48 @@ abstract class Tool {
     }
 
     /**
+     * True when this request is /courses/{id}{route}... (not the unprefixed tool URL).
+     *
+     * Nested course dispatch rewrites pathInfo to $route but leaves
+     * REQUEST_URI unchanged, so this is the reliable split between a
+     * global tool URL and a course-mounted one. Do not use
+     * currentContextId() here — a global visit can still have a course
+     * in session.
+     *
+     * Uses static::ROUTE unless $route is passed. Controllers without
+     * ROUTE return false unless $route is given.
+     *
+     * @param string|null $route Tool path including leading slash (e.g. '/settings')
+     */
+    public static function isCourseRoute($route = null) {
+        if ( $route === null ) {
+            if ( ! defined(static::class.'::ROUTE') ) {
+                return false;
+            }
+            $route = static::ROUTE;
+        }
+        $route = (string) $route;
+        if ( $route === '' ) {
+            return false;
+        }
+        $path = self::requestPath();
+        return (bool) preg_match('#/courses/\d+'.preg_quote($route, '#').'(?:/|$)#', $path);
+    }
+
+    /**
+     * Bounce a course-mounted URL to a global (unprefixed) URL.
+     *
+     * @param string $globalUrl Already session-bearing when the caller wants a session cookie
+     * @return RedirectResponse|null
+     */
+    protected function requireGlobalRoute($globalUrl) {
+        if ( ! static::isCourseRoute() ) {
+            return null;
+        }
+        return new RedirectResponse($globalUrl);
+    }
+
+    /**
      * Join a mounted tool home and a suffix without producing `//path`.
      *
      * @param string $home toolHome() result

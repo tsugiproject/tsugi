@@ -11,7 +11,7 @@ use Tsugi\Services\Quiz1\QuizRepository;
 /**
  * Common Cartridge export from an in-memory Lessons document (v2 items).
  *
- * Used by Setup export. Does not rewrite stored lessons JSON.
+ * Used by course Settings export. Does not rewrite stored lessons JSON.
  */
 class LessonsCartridge {
 

@@ -17,7 +17,7 @@ use \Tsugi\UI\LessonsNormalize;
  * The lessons JSON (column `manifest`) is the course outline. New courses
  * start as Lessons JSON v2 (`lessons_json_version: 2`). File-backed
  * $CFG->lessons sites stay classic and are not authored. Do not grow that
- * blob with new course-setup features. New Setup fields are independent
+ * blob with new course-setup features. New course-settings fields are independent
  * columns on this row (theme is the first: VARCHAR key, not palette JSON).
  *
  * The PHP session holds only the integer manifest_id. The immutable row

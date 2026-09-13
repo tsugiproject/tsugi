@@ -1,6 +1,6 @@
 <?php
 /**
- * Setup tabs: Theme and Export.
+ * Course Settings tabs: Theme and Export.
  *
  * Expected: $setup_url, $export_url, $setup_tab ('theme'|'export')
  */
