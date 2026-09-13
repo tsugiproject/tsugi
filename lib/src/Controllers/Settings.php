@@ -116,7 +116,7 @@ class Settings extends Tool {
      * @return RedirectResponse|null
      */
     protected function requireSiteRoute($suffix = '') {
-        return $this->requireGlobalRoute($this->pageUrl($suffix));
+        return $this->requireGlobalRoute(Let);
     }
 
     /**
@@ -1804,7 +1804,7 @@ function sendToCanvas() {
         if ( ! is_array($anchors) || count($anchors) < 1 ) {
             $anchors = false;
         }
-        if ( $anchors ) {
+        if ( $anchors && isset($l->lessons->modules) && is_array($l->lessons->modules) ) {
             $anchor_count = 0;
             foreach ( $l->lessons->modules as $module ) {
                 if ( in_array($module->anchor, $anchors) ) {
