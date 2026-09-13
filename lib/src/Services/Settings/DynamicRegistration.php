@@ -231,7 +231,7 @@ class DynamicRegistration {
 
         $response_code = Net::getLastHttpResponse();
 
-        if ( $response_code != 200 ) {
+        if ( $response_code != 200 && $response_code != 201 ) {
             echo("<pre>\n");
             echo("\nHttp response code: $response_code\n");
             if ( is_string($body) ) {
@@ -254,7 +254,7 @@ class DynamicRegistration {
 
         if ( !isset($resp->client_id) ) {
             echo("Did not find client_id in response\n");
-            print_r($resp);
+            echo htmlentities(print_r($resp, true), ENT_QUOTES, 'UTF-8');
             echo("</pre>\n");
             return '';
         }

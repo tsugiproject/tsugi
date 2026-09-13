@@ -119,7 +119,7 @@ class Settings extends Tool {
         if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
             $msg = $instructorOnly
                 ? _m("This service does not accept instructor requests for keys")
-                : _("This service does not accept requests for keys");
+                : _m("This service does not accept requests for keys");
             U::flashError($msg);
             return new RedirectResponse($CFG->wwwroot);
         }
@@ -479,11 +479,7 @@ can visit the administrator dashboard.
 <p>
   <a href="<?= htmlspecialchars($this->pageUrl(), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default">My Settings</a>
 </p>
-<pre>
-<?php
-        var_dump($_GET);
-        ?>
-</pre>
+<p>Privacy management is not yet implemented.</p>
 <?php
         $OUTPUT->footer();
         return '';
@@ -734,15 +730,18 @@ can visit the administrator dashboard.
             die('No membership_id');
         }
 
+        $uid = U::loggedInUserId();
         $row = $PDOX->rowDie("SELECT M.context_id
             FROM {$CFG->dbprefix}lti_membership AS M
             JOIN {$CFG->dbprefix}lti_context AS C ON M.context_id = C.context_id
-            WHERE membership_id = :MID AND
+            WHERE membership_id = :MID AND (
                 C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
-                OR C.user_id = :UID",
+                OR C.user_id = :UID2
+            )",
             array(
                 ':MID' => $_REQUEST['membership_id'],
-                ':UID' => U::loggedInUserId())
+                ':UID' => $uid,
+                ':UID2' => $uid)
         );
 
         if ( $row === false || ! isset($row['context_id']) ) {
@@ -754,8 +753,14 @@ can visit the administrator dashboard.
         $from_location = $this->pageUrl('context/membership').'?context_id='.$row['context_id'];
         $allow_delete = true;
         $allow_edit = true;
-        $where_clause = '';
-        $query_fields = array();
+        $where_clause = "context_id IN (
+            SELECT context_id FROM {$CFG->dbprefix}lti_context
+            WHERE (
+                key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID)
+                OR user_id = :UID2
+            )
+        )";
+        $query_fields = array(':UID' => $uid, ':UID2' => $uid);
         $fields = array("membership_id", "context_id", "user_id", "role_override", "created_at", "updated_at");
 
         $row = CrudForm::handleUpdate($tablename, $fields, $where_clause,
@@ -1142,8 +1147,12 @@ you will need to request a key and have it approved.
         $where_clause .= "user_id = :UID";
         $query_fields[":UID"] = U::loggedInUserId();
 
-        $sql = CrudForm::selectSql($tablename, $fields, $where_clause);
-        $oldrow = $PDOX->rowDie($sql, $query_fields);
+        if ( ! isset($_REQUEST['key_id']) || ! is_numeric($_REQUEST['key_id']) ) {
+            U::flashError("Required key_id parameter");
+            return new RedirectResponse($from_location);
+        }
+        $sql = CrudForm::selectSql($tablename, $fields, $where_clause . " AND key_id = :KID");
+        $oldrow = $PDOX->rowDie($sql, $query_fields + array(':KID' => $_REQUEST['key_id'] + 0));
         if ( $oldrow === false ) {
             U::flashError("Unable to retrieve row");
             return new RedirectResponse($from_location);
