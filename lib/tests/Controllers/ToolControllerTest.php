@@ -48,6 +48,9 @@ class ToolControllerTest extends \PHPUnit\Framework\TestCase
             public function exposeAssetUrl(string $filename, ?string $controllerName = null): string {
                 return $this->assetUrl($filename, $controllerName);
             }
+            public function exposeRequireGlobalRoute(string $url) {
+                return $this->requireGlobalRoute($url);
+            }
         };
     }
 
@@ -549,5 +552,50 @@ class ToolControllerTest extends \PHPUnit\Framework\TestCase
         unset($_SESSION['context_title']);
         unset($_SESSION['lti']);
         $this->assertSame('Jangle for Everybody', \Tsugi\Controllers\Tool::outboundContextTitle());
+    }
+
+    public function testIsCourseRouteUsesRequestUriAndClassRoute(): void
+    {
+        $tool = $this->createAnnouncementsStub();
+        $_SESSION['context_id'] = 42;
+
+        $_SERVER['REQUEST_URI'] = '/announcements';
+        $this->assertFalse($tool::isCourseRoute());
+
+        $_SERVER['REQUEST_URI'] = '/courses/42/announcements';
+        $this->assertTrue($tool::isCourseRoute());
+
+        $_SERVER['REQUEST_URI'] = '/courses/42/announcements/edit';
+        $this->assertTrue($tool::isCourseRoute());
+
+        $_SERVER['REQUEST_URI'] = '/courses/42/settings';
+        $this->assertFalse($tool::isCourseRoute());
+        $this->assertTrue($tool::isCourseRoute('/settings'));
+    }
+
+    public function testIsCourseRouteFalseWithoutRouteConstant(): void
+    {
+        $tool = $this->createToolStub();
+        $_SERVER['REQUEST_URI'] = '/courses/42/announcements';
+        $this->assertFalse($tool::isCourseRoute());
+    }
+
+    public function testRequireGlobalRouteNoopWhenNotCourseMounted(): void
+    {
+        $tool = $this->createAnnouncementsStub();
+        $_SERVER['REQUEST_URI'] = '/announcements';
+        $this->assertNull($tool->exposeRequireGlobalRoute('http://localhost/announcements'));
+    }
+
+    public function testRequireGlobalRouteBouncesOnlyWhenCourseMounted(): void
+    {
+        if ( ! class_exists(\Symfony\Component\HttpFoundation\RedirectResponse::class) ) {
+            $this->markTestSkipped('symfony/http-foundation is not on the lib test autoload');
+        }
+        $tool = $this->createAnnouncementsStub();
+        $_SERVER['REQUEST_URI'] = '/courses/42/announcements';
+        $resp = $tool->exposeRequireGlobalRoute('http://localhost/announcements');
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\RedirectResponse::class, $resp);
+        $this->assertSame('http://localhost/announcements', $resp->getTargetUrl());
     }
 }
