@@ -6,7 +6,6 @@ use \Tsugi\Core\LTIX;
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
 require_once "../admin/admin_util.php";
-require_once "../settings/settings_util.php";
 
 session_start();
 
@@ -223,7 +222,7 @@ if ( isset($CFG->storehide) && U::strlen($CFG->storehide) > 0 && ! isAdmin() ) {
 }
 if ( count($registrations) < 1 ) $registrations = false;
 
-$key_count = settings_key_count();
+$key_count = \Tsugi\Controllers\Settings::keyCount();
 
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
@@ -243,7 +242,7 @@ if ( ! ( $registrations ) ) {
 }
 
 // Tell them what is going on...
-echo(settings_status($key_count));
+echo(\Tsugi\Controllers\Settings::statusHtml($key_count));
 
 // Render the tools in the site
 $count = 0;

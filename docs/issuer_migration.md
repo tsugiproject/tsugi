@@ -146,7 +146,7 @@ registration already does via `initiate_login_uri`).
 - Removed issuer admin UI (`issuers.php`, `issuer-detail.php`, `issuer-add.php`,
   `issuer-maint.php`, and related helpers).
 - Removed issuer dropdown from admin key add/edit forms.
-- Removed `$CFG->autoissuer` legacy path in `settings/key/auto_common.php`.
+- Removed `$CFG->autoissuer` legacy path in `Tsugi\Services\Settings\DynamicRegistration`.
 - Removed deprecation messaging from `admin/admin_util.php`, `admin/index.php`, and
   `admin/upgrade.php`.
 
@@ -210,4 +210,4 @@ Database version bumped to `202610010000`.
 | `admin/lti/database.php` | Phase 1 data migration; phase 3 schema drop (date-gated) |
 | `lib/src/Core/LTIX.php` | Launch data load; key-only `lms_*` path |
 | `lti/oidc_login.php` | OIDC login; key-only by `key_id` |
-| `settings/key/auto_common.php` | Dynamic registration; writes `lti_key.lms_*` |
+| `lib/src/Services/Settings/DynamicRegistration.php` | Dynamic registration; writes `lti_key.lms_*` |

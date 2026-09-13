@@ -1,37 +1,17 @@
 <?php
-// In the top frame, we use cookies for session.
-if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
-require_once("../../config.php");
-require_once("../../admin/admin_util.php");
-
-use \Tsugi\Util\U;
-use \Tsugi\UI\Table;
-use \Tsugi\Core\Mail;
-use \Tsugi\Core\LTIX;
-
-\Tsugi\Core\LTIX::getConnection();
-
-if ( $CFG->providekeys === false || $CFG->owneremail === false ) {
-    U::flashError(_m("This service does not accept instructor requests for keys"));
-    header('Location: '.$CFG->wwwroot);
-    return;
-}
-
-// Note - this does not require login.
-header('Content-Type: text/html; charset=utf-8');
-session_start();
-
-$OUTPUT->header();
-$OUTPUT->bodyStart();
-$OUTPUT->topNav();
-$OUTPUT->flashMessages();
+/**
+ * LMS how-to tabs for Settings / key / using.
+ *
+ * Expected: $CFG
+ */
+$tools = findAllRegistrations();
 ?>
 <h1>Using Your Key</h1>
 <p>
-  <a href="index" class="btn btn-default" aria-label="LTI Keys">LTI Keys</a>
-  <a href="<?= htmlspecialchars(LTIX::curPageUrlFolder(), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default active" aria-label="Using Your Key (current page)">Using Your Key</a>
-  <a href="requests" class="btn btn-default" aria-label="Key Requests">Key Requests</a>
-  <a href="<?= htmlspecialchars($CFG->wwwroot . '/settings/', ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default" aria-label="My Settings">My Settings</a>
+  <a href="<?= htmlspecialchars(\Tsugi\Controllers\Settings::settingsUrl('key'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default" aria-label="LTI Keys">LTI Keys</a>
+  <a href="<?= htmlspecialchars(\Tsugi\Controllers\Settings::settingsUrl('key/using'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default active" aria-label="Using Your Key (current page)">Using Your Key</a>
+  <a href="<?= htmlspecialchars(\Tsugi\Controllers\Settings::settingsUrl('key/requests'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default" aria-label="Key Requests">Key Requests</a>
+  <a href="<?= htmlspecialchars(\Tsugi\Controllers\Settings::settingsUrl(), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default" aria-label="My Settings">My Settings</a>
 </p>
 <p>
 <ul class="nav nav-tabs" role="tablist">
@@ -48,7 +28,6 @@ $OUTPUT->flashMessages();
   <div class="tab-pane fade active in" id="lti" role="tabpanel" aria-labelledby="lti-tab">
 <ul>
 <?php
-$tools=findAllRegistrations();
 foreach($tools as $tool) {
     $short_name = htmlspecialchars($tool['short_name'] ?? '', ENT_QUOTES, 'UTF-8');
     $url = htmlspecialchars($tool['url'] ?? '', ENT_QUOTES, 'UTF-8');
@@ -148,7 +127,3 @@ a one-time access code.
 </div>
 </div>
 </div>
-
-<?php
-$OUTPUT->footer();
-

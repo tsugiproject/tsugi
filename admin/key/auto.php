@@ -17,5 +17,5 @@ $OUTPUT->bodyStart();
 // Superuser
 $user_id = 0;
 
-require_once("../../settings/key/auto_common.php");
+\Tsugi\Services\Settings\DynamicRegistration::run($user_id, $tsugi_key, $unlock_code, $openid_configuration, $registration_token);
 

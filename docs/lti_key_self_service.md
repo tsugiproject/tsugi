@@ -73,7 +73,7 @@ and most accidental uniqueness collisions.
 2. User opens the dynamic registration URL from the key detail page (includes
    `tsugi_key={key_id}`; first-time may also require a one-time `unlock_code`).
 3. User completes registration in the LMS while logged into Tsugi.
-4. `settings/key/auto_common.php` POSTs the tool configuration to the LMS registration
+4. `Tsugi\Services\Settings\DynamicRegistration` POSTs the tool configuration to the LMS registration
    endpoint and receives `client_id`, issuer, OIDC/JWKS/token URLs, and usually
    `deployment_id`.
 5. Tsugi **UPDATE**s the same `lti_key` row with `lms_*` (and `deploy_key` when
@@ -175,7 +175,7 @@ dynamic registration”).
 
 ## Request and approve flow (planned extension)
 
-Today's `key_request` flow (`settings/key/requests.php`, `admin/key/approve-key.php`)
+Today's `key_request` flow (`Settings::keyRequests()`, `admin/key/approve-key.php`)
 creates **LTI 1.1 keys only** (`lti = 1` hard-coded). Planned extension:
 
 - Let the request form specify **1.1**, **1.3**, or **both** (extend `lti` column or
@@ -191,9 +191,9 @@ creates **LTI 1.1 keys only** (`lti = 1` hard-coded). Planned extension:
 
 | Gap | Notes |
 |-----|--------|
-| `auto_common.php` | No `validate_issuer_client_unique()` before UPDATE |
-| `settings/key/auto.php` | Does not pass `unlock_code`; `auto_common.php` requires it |
-| `settings/key/key-detail.php` | Registration URL omits `unlock_code` |
+| `DynamicRegistration` | No `validate_issuer_client_unique()` before UPDATE |
+| `Settings::keyAuto()` | Does not pass `unlock_code`; `DynamicRegistration` requires it |
+| `Settings::keyDetail()` | Registration URL omits `unlock_code` |
 | Re-registration | Blocked after first reg clears `unlock_code` |
 | Request flow | No 1.3 / both option |
 
@@ -201,8 +201,8 @@ creates **LTI 1.1 keys only** (`lti = 1` hard-coded). Planned extension:
 
 | Area | Path |
 |------|------|
-| Dynamic registration | `settings/key/auto.php`, `settings/key/auto_common.php` |
-| Self-service keys | `settings/key/index.php`, `settings/key/key-detail.php`, `settings/key/requests.php` |
+| Dynamic registration | `lib/src/Controllers/Settings.php` (`keyAuto`), `lib/src/Services/Settings/DynamicRegistration.php` |
+| Self-service keys | `lib/src/Controllers/Settings.php` (`keyIndex`, `keyDetail`, `keyRequests`) |
 | Admin keys | `admin/key/key-add.php`, `admin/key/key-detail.php`, `admin/key/key-util.php` |
 | Launch matching | `lib/src/Core/LTIX.php` |
 | OIDC login (per `key_id`) | `lti/oidc_login.php` |

@@ -24,7 +24,6 @@ parameters:
         - lti
         - mod
         - tool
-        - settings
         - store
         - util
         - index.php

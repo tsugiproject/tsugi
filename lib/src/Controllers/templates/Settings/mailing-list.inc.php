@@ -1,100 +1,16 @@
 <?php
-
-use \Tsugi\Util\U;
-
-// In the top frame, we use cookies for session.
-if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
-require_once("../../config.php");
-require_once("../settings_util.php");
-require_once("../../admin/context/mail_audience.php");
-
-use \Tsugi\Core\LTIX;
-
-header('Content-Type: text/html; charset=utf-8');
-LTIX::session_start();
-
-if ( ! isLoggedIn() ) {
-    die('Must be logged in');
-}
-
-if ( ! isset($_REQUEST['context_id']) ) {
-    U::flashError("No context_id provided");
-    header('Location: '.LTIX::curPageUrlFolder());
-    return;
-}
-
-if ( ! is_numeric($_REQUEST['context_id']) ) {
-    U::flashError("Invalid context_id");
-    header('Location: '.LTIX::curPageUrlFolder());
-    return;
-}
-
-$context_id = $_REQUEST['context_id'] + 0;
-
-// Verify user has access to this context (owns it or owns the key)
-$context_check = settings_context_administrable($context_id);
-if ( $context_check === false ) {
-    U::flashError("You do not have access to this context");
-    header('Location: '.LTIX::curPageUrlFolder());
-    return;
-}
-
-// Handle form submission - POST-Redirect-GET pattern
-if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['days']) ) {
-    $days = $_POST['days'] + 0;
-    if ( !is_numeric($_POST['days']) || $days < 1 || $days > 365 ) {
-        U::flashError("Days must be between 1 and 365");
-        header('Location: mailing-list.php?context_id='.$context_id);
-        return;
-    }
-    $include_opted_out = isset($_POST['include_opted_out']) ? 1 : 0;
-    $premium_only = isset($_POST['premium_only']) ? 1 : 0;
-    // Redirect to GET to avoid resubmission
-    header('Location: mailing-list.php?context_id='.$context_id.'&days='.$days
-        .'&include_opted_out='.$include_opted_out.'&premium_only='.$premium_only);
-    return;
-}
-
-// Handle GET parameters
-$days = null;
-$include_opted_out = false;
-$premium_only = false;
-if ( isset($_REQUEST['days']) && is_numeric($_REQUEST['days']) ) {
-    $days = $_REQUEST['days'] + 0;
-    if ( $days < 1 || $days > 365 ) {
-        U::flashError("Days must be between 1 and 365");
-        $days = null;
-    }
-}
-if ( isset($_REQUEST['include_opted_out']) && $_REQUEST['include_opted_out'] == '1' ) {
-    $include_opted_out = true;
-}
-if ( isset($_REQUEST['premium_only']) && $_REQUEST['premium_only'] == '1' ) {
-    $premium_only = true;
-}
-
-// Get context title
-$context_row = $PDOX->rowDie(
-    "SELECT title FROM {$CFG->dbprefix}lti_context WHERE context_id = :CID",
-    array(':CID' => $context_id)
-);
-$context_title = $context_row ? $context_row['title'] : "Context #$context_id";
-
-// Query for users only if days is provided
-$rows = array();
-if ( $days !== null ) {
-    $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only);
-}
-
-$OUTPUT->header();
-$OUTPUT->bodyStart();
-$OUTPUT->topNav();
-$OUTPUT->flashMessages();
+/**
+ * Context mailing-list UI.
+ *
+ * Expected: $context_id, $context_title, $days, $include_opted_out, $premium_only,
+ * $rows, $membership_url, $form_url
+ */
+use Tsugi\Util\U;
+use Tsugi\Controllers\Tool;
 ?>
-
 <h2>Mailing List for: <?= htmlentities($context_title) ?></h2>
 <p>
-  <a href="membership?context_id=<?= htmlentities($context_id) ?>" class="btn btn-default">Back to Membership</a>
+  <a href="<?= htmlspecialchars($membership_url, ENT_QUOTES, 'UTF-8') ?>" class="btn btn-default">Back to Membership</a>
 </p>
 
 <div class="panel panel-default">
@@ -103,7 +19,8 @@ $OUTPUT->flashMessages();
   </div>
   <div class="panel-body">
     <p>Generate a mailing list of users who have logged in within a specified number of days.</p>
-    <form method="post" action="mailing-list.php">
+    <form method="post" action="<?= htmlspecialchars($form_url, ENT_QUOTES, 'UTF-8') ?>">
+      <?= Tool::csrfField() ?>
       <input type="hidden" name="context_id" value="<?= htmlentities($context_id) ?>">
       <div class="form-group" style="margin-bottom: 15px;">
         <label for="days">Users who logged in within the last:</label>
@@ -129,13 +46,12 @@ $OUTPUT->flashMessages();
 
 <?php if ( $days !== null ): ?>
   <p>Users who logged in within the last <?= htmlentities($days) ?> days<?= $include_opted_out ? '' : ' (excluding users who opted out of email)' ?><?= $premium_only ? ' — supporters / premium only' : '' ?></p>
-  
+
   <?php if ( count($rows) == 0 ): ?>
   <div class="alert alert-info">
     <p>No users found matching the criteria.</p>
   </div>
-<?php else: 
-  // Build emails array once
+<?php else:
   $emails = array();
   foreach ( $rows as $row ) {
       if ( !empty($row['email']) ) {
@@ -154,7 +70,7 @@ $OUTPUT->flashMessages();
       ?></textarea>
     </div>
   </div>
-  
+
   <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title" style="display: inline-block;">Semicolon-separated list (<?= count($rows) ?> total)</h3>
@@ -166,7 +82,7 @@ $OUTPUT->flashMessages();
       ?></textarea>
     </div>
   </div>
-  
+
   <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title" style="display: inline-block;">One per line (<?= count($rows) ?> total)</h3>
@@ -178,7 +94,7 @@ $OUTPUT->flashMessages();
       ?></textarea>
     </div>
   </div>
-  
+
   <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title" style="display: inline-block;">Detailed List</h3>
@@ -196,9 +112,9 @@ $OUTPUT->flashMessages();
           </tr>
         </thead>
         <tbody>
-          <?php 
+          <?php
           $now = new DateTime();
-          foreach ( $rows as $row ): 
+          foreach ( $rows as $row ):
             $days_since_login = 'N/A';
             if ( $row['login_at'] ) {
               try {
@@ -215,7 +131,7 @@ $OUTPUT->flashMessages();
               <td><?= htmlentities($row['displayname'] ? $row['displayname'] : 'N/A') ?></td>
               <td><?= (int) U::get($row, 'premium', 0) > 0 ? 'yes' : 'no' ?></td>
               <td><?= htmlentities($row['login_at'] ? $row['login_at'] : 'Never') ?></td>
-              <td><?= htmlentities($days_since_login) ?></td>
+              <td><?= htmlentities((string)$days_since_login) ?></td>
             </tr>
           <?php endforeach; ?>
         </tbody>
@@ -237,7 +153,3 @@ function toggleSection(sectionId, button) {
     }
 }
 </script>
-
-<?php
-$OUTPUT->footer();
-?>
