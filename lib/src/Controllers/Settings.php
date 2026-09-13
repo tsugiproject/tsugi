@@ -116,7 +116,7 @@ class Settings extends Tool {
      * @return RedirectResponse|null
      */
     protected function requireSiteRoute($suffix = '') {
-        return $this->requireGlobalRoute(Let);
+        return $this->requireGlobalRoute($this->pageUrl($suffix));
     }
 
     /**
