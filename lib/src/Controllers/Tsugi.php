@@ -31,6 +31,7 @@ class Tsugi extends \Tsugi\Lumen\Application {
             \Tsugi\Controllers\Discussions::routes($this);
             \Tsugi\Controllers\Files::routes($this);
             \Tsugi\Controllers\Grades::routes($this);
+            \Tsugi\Controllers\Home::routes($this);
             \Tsugi\Controllers\Lessons::routes($this);
             \Tsugi\Controllers\Settings::routes($this);
             \Tsugi\Controllers\Labs::routes($this);
