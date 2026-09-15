@@ -72,6 +72,10 @@
         <a href="<?= htmlspecialchars($save_url) ?>" class="btn btn-default"><?= __('Cancel') ?></a>
     </p>
 </form>
+<?php
+// TODO: Keyboard reorder (Move up/down) for every drag-reorder UI, not just this
+// table: Settings → Navigation, Lessons authoring, Discussions reorder.
+?>
 <script>
 (function () {
     var tbody = document.querySelector('#tsugi-nav-editor tbody');

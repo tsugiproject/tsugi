@@ -1423,6 +1423,8 @@ function applyHeaderSectionStates(moduleIndex) {
 }
 
 function createModuleHtml(module, moduleIndex) {
+    // TODO: Keyboard reorder (Move up/down) for every drag-reorder UI, not just this
+    // authoring surface: Settings → Navigation, Lessons authoring, Discussions reorder.
     const itemsHtml = (module.items || []).map((item, itemIndex) => 
         createItemHtml(item, moduleIndex, itemIndex)
     ).join('');

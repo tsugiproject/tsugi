@@ -36,6 +36,9 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $CFG = new \Tsugi\Config\ConfigInfo(basename(__FILE__), 'http://localhost/tsugi');
         $CFG->apphome = 'http://localhost/app';
         $CFG->wwwroot = 'http://localhost/tsugi';
+        if ( function_exists('_tsugiResetIdentitySnapshot') ) {
+            _tsugiResetIdentitySnapshot();
+        }
     }
 
     protected function tearDown(): void
@@ -44,6 +47,9 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $CFG = $this->originalCFG;
         $_SESSION = $this->originalSession;
         $_SERVER = $this->originalServer;
+        if ( function_exists('_tsugiResetIdentitySnapshot') ) {
+            _tsugiResetIdentitySnapshot();
+        }
     }
 
     public function testDefaultHasExitCourseThenLogout()

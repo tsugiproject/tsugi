@@ -211,6 +211,10 @@ class Discussions extends Tool {
             <p><a href="<?= htmlspecialchars($list_url) ?>" class="btn btn-default btn-sm tsugi-reorder-leave"><?= __('Back to Discussions') ?></a></p>
             <h1><?= __('Reorder discussions') ?></h1>
             <p><?= __('Drag the handle to change the order, then save. Nothing is stored until you save.') ?></p>
+            <?php
+            // TODO: Keyboard reorder (Move up/down) for every drag-reorder UI, not just this
+            // list: Settings → Navigation, Lessons authoring, Discussions reorder.
+            ?>
             <ul id="tsugi-reorder-list" class="tsugi-discussions-sortable">
                 <?php foreach ( $discussions as $discussion ) {
                     $rid = isset($discussion->resource_link_id) ? (string) $discussion->resource_link_id : '';

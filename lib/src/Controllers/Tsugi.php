@@ -23,6 +23,7 @@ class Tsugi extends \Tsugi\Lumen\Application {
         ], function () use ($CFG) {
             // Register StaticFiles routes first to ensure they're matched before other routes
             \Tsugi\Controllers\StaticFiles::routes($this);
+            \Tsugi\Controllers\Analytics::routes($this);
             \Tsugi\Controllers\Announcements::routes($this);
             \Tsugi\Controllers\Assignments::routes($this);
             \Tsugi\Controllers\Badges::routes($this);
