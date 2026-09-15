@@ -33,9 +33,9 @@ class Quiz1 extends Tool {
     /**
      * True when the current user may author quizzes (instructor/admin).
      *
-     * Parent menus:
+     * Parent menus (site URLs only):
      * if ( \Tsugi\Controllers\Quiz1::showInMenu() ) {
-     *     $set->addLeft('Quizzes', rtrim($CFG->apphome, '/') . \Tsugi\Controllers\Courses::toolPathPrefix() . '/quiz1');
+     *     $set->addLeft('Quizzes', rtrim($CFG->apphome, '/') . '/quiz1');
      * }
      */
     public static function showInMenu() {

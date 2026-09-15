@@ -434,6 +434,7 @@ function googleTranslateElementInit() {
         echo('<script type="module" src="' . htmlspecialchars($CFG->wwwroot . '/lib/src/Controllers/static/Notifications/tsugi-notifications.js') . '"></script>' . "\n");
         echo('<script type="module" src="' . htmlspecialchars($CFG->wwwroot . '/lib/src/Controllers/static/Calendar/tsugi-calendar-due.js') . '"></script>' . "\n");
         echo('<script type="module" src="' . htmlspecialchars($CFG->wwwroot . '/lib/src/Controllers/static/Discussions/tsugi-discussions.js') . '"></script>' . "\n");
+        echo('<script type="module" src="' . htmlspecialchars($CFG->wwwroot . '/lib/src/Controllers/static/Courses/tsugi-courses.js') . '"></script>' . "\n");
 
         // Register service worker for push notifications and offline support (if enabled)
         $service_worker_enabled = isset($CFG->service_worker) && $CFG->service_worker;
@@ -822,6 +823,9 @@ $('a').each(function (x) {
     /**
      * Emit the top navigation block and optionally the tool navigation
      *
+     * On /courses/{id}/… the menu is the course manifest navigation, never
+     * $CFG->top_menu_callback / buildmenu.php.
+     *
      * Priority order on cookie-session pages (admin, login, site):
      * (1) $CFG->top_menu_callback when set (site-owned menu builder)
      * (2) $CFG->defaultmenu when set
@@ -836,7 +840,13 @@ $('a').each(function (x) {
         global $CFG, $TSUGI_LAUNCH;
 
         $menu_set = false;
-        if ( defined('COOKIE_SESSION') ) {
+        if ( \Tsugi\Controllers\Courses::isCourseMountedRequest() ) {
+            $cid = \Tsugi\Controllers\Courses::courseIdFromRequest();
+            $doc = \Tsugi\Core\Manifest::navigationDocumentForContext($cid);
+            $menu_set = \Tsugi\Services\CourseNav\CourseNav::compile($doc, $cid);
+        } else {
+            \Tsugi\Controllers\Courses::restoreSiteLoginContext();
+            if ( defined('COOKIE_SESSION') ) {
             // Cookie-session pages are never an LTI tool launch for nav purposes.
             // Stale lti_post, JWT, or cached tool nav must not produce "Done".
             if ( isset($CFG->top_menu_callback) && is_callable($CFG->top_menu_callback) ) {
@@ -905,6 +915,7 @@ $('a').each(function (x) {
 
             if ( $menu_set === false ) {
                 $menu_set = self::closeMenuSet();
+            }
             }
         }
 

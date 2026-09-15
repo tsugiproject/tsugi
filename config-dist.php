@@ -165,12 +165,9 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 // the "local" students that log in through Google.
 // $CFG->context_title = "Web Applications for Everybody";
 
-// Temporary menu-only flag: emit /courses/{id}/... from Courses::toolPathPrefix().
-// Controllers follow the request path and ignore this. Unset/false = off.
-// Prefix is Google-login only (LMS launches stay unprefixed).
-// true = Google-login users with a context; array = those emails only.
-// $CFG->setExtension('courses_in_urls', true);
-// $CFG->setExtension('courses_in_urls', array('you@example.com'));
+// Site-menu waffle (tsugi-courses). Unset in production until there is
+// more than one course to switch between. Course-nav editing is separate.
+// $CFG->setExtension('show_courses_widget', true);
 
 // If we are going to use the lessons tool and/or badges, we need to
 // create and point to a lessons.json file
