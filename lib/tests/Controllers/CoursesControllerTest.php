@@ -8,6 +8,7 @@ require_once "src/Lumen/Router.php";
 require_once "src/Util/U.php";
 
 use \Tsugi\Controllers\Courses;
+use \Tsugi\Core\Manifest;
 use \Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -173,60 +174,26 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         [$TSUGI_LAUNCH, $LAUNCH, $OUTPUT, $CONTEXT, $PDOX] = $save;
     }
 
-    public function testToolPathPrefixOffByDefault()
+    public function testToolPathPrefixFollowsRequestNotConfig()
     {
-        global $CFG;
         $_SESSION['id'] = 7;
         $_SESSION['context_id'] = 42;
         $_SESSION['oauth_consumer_key'] = 'google.com';
         if (function_exists('_tsugiResetIdentitySnapshot')) {
             _tsugiResetIdentitySnapshot();
         }
+        $_SERVER['REQUEST_URI'] = '/announcements';
         $this->assertSame('', Courses::toolPathPrefix());
-    }
-
-    public function testToolPathPrefixWhenEnabled()
-    {
-        global $CFG;
-        $_SESSION['id'] = 7;
-        $_SESSION['context_id'] = 42;
-        $_SESSION['email'] = 'you@example.com';
-        $_SESSION['oauth_consumer_key'] = 'google.com';
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
-        $CFG->setExtension('courses_in_urls', true);
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
         $this->assertSame('/courses/42', Courses::toolPathPrefix());
     }
 
-    public function testToolPathPrefixEmailAllowlist()
+    public function testShowCoursesWidgetOffByDefault()
     {
+        $this->assertFalse(Courses::showCoursesWidget());
         global $CFG;
-        $_SESSION['id'] = 7;
-        $_SESSION['context_id'] = 42;
-        $_SESSION['email'] = 'you@example.com';
-        $_SESSION['oauth_consumer_key'] = 'google.com';
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
-        $CFG->setExtension('courses_in_urls', array('other@example.com'));
-        $this->assertSame('', Courses::toolPathPrefix());
-
-        $CFG->setExtension('courses_in_urls', array('you@example.com'));
-        $this->assertSame('/courses/42', Courses::toolPathPrefix());
-    }
-
-    public function testToolPathPrefixEmptyForLtiLaunch()
-    {
-        global $CFG;
-        $_SESSION['id'] = 7;
-        $_SESSION['context_id'] = 42;
-        $_SESSION['oauth_consumer_key'] = 'canvas.example.edu';
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
-        $CFG->setExtension('courses_in_urls', true);
-        $this->assertSame('', Courses::toolPathPrefix());
+        $CFG->setExtension('show_courses_widget', true);
+        $this->assertTrue(Courses::showCoursesWidget());
     }
 
     public function testInnerRequestPathInfo()
@@ -305,5 +272,53 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
             _tsugiResetIdentitySnapshot();
         }
         $this->assertNull(Courses::createGateResponse('/courses'));
+    }
+
+    public function testRestoreSiteLoginContextSkipsCourseMounted()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 7;
+        $_SESSION['context_id'] = 42;
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        $_SESSION['manifest_id'] = 99;
+        $_SESSION['lti'] = array('context_id' => 42, 'manifest_id' => 99);
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $this->assertFalse(Courses::restoreSiteLoginContext());
+        $this->assertSame(99, Manifest::activeId());
+    }
+
+    public function testRestoreSiteLoginContextClearsManifestOnSiteUrl()
+    {
+        $_SERVER['REQUEST_URI'] = '/announcements';
+        $_SESSION['id'] = 7;
+        $_SESSION['context_id'] = 36;
+        $_SESSION[Courses::SESSION_SITE_CONTEXT_ID] = 36;
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        $_SESSION['manifest_id'] = 99;
+        $_SESSION['lti'] = array('context_id' => 36, 'manifest_id' => 99);
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $this->assertTrue(Courses::restoreSiteLoginContext());
+        $this->assertSame(0, Manifest::activeId());
+        $this->assertSame(36, currentContextId());
+    }
+
+    public function testRestoreSiteLoginContextSkipsLtiLaunch()
+    {
+        $_SERVER['REQUEST_URI'] = '/announcements';
+        $_SESSION['id'] = 7;
+        $_SESSION['context_id'] = 42;
+        $_SESSION['oauth_consumer_key'] = 'canvas.example.edu';
+        $_SESSION['lti_post'] = array('user_id' => 'x');
+        $_SESSION['manifest_id'] = 99;
+        $_SESSION['lti'] = array('context_id' => 42, 'manifest_id' => 99);
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $this->assertFalse(Courses::restoreSiteLoginContext());
+        $this->assertSame(99, Manifest::activeId());
     }
 }

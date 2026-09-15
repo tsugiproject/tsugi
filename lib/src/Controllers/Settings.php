@@ -16,6 +16,7 @@ use Tsugi\Lumen\Application;
 use Tsugi\Services\Settings\Expire;
 use Tsugi\Services\Settings\DynamicRegistration;
 use Tsugi\Services\Quiz1\ExportException;
+use Tsugi\Services\CourseNav\CourseNav;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -32,9 +33,9 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
  * Courses keeps REQUEST_URI prefixed, so isCourseRoute() can tell the two
  * families apart. File-based $CFG->lessons sites keep using the site $CFG->theme.
  *
- * Parent menus (instructors of a manifest course only):
+ * Parent menus (site URLs only; instructors of a manifest course):
  * if ( \Tsugi\Controllers\Settings::showInMenu() ) {
- *     $set->addLink('Settings', rtrim($CFG->apphome, '/') . Courses::toolPathPrefix() . '/settings');
+ *     $set->addLink('Settings', rtrim($CFG->apphome, '/') . '/settings');
  * }
  */
 class Settings extends Tool {
@@ -50,6 +51,7 @@ class Settings extends Tool {
 
         self::mapPage($app, $prefix.'/export/download', 'exportDownload', false);
         self::mapPage($app, $prefix.'/export', 'export', true);
+        self::mapPage($app, $prefix.'/navigation', 'navigation', true);
 
         self::mapPage($app, $prefix.'/encrypt', 'encrypt', true);
         self::mapPage($app, $prefix.'/gclass_login', 'gclassLogin', false);
@@ -1654,6 +1656,7 @@ re-check your login status.
         $theme_site_primary = Manifest::siteDefaultPrimary();
         $save_url = $setup_url;
         $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $setup_tab = 'theme';
 
         $OUTPUT->header();
@@ -1682,6 +1685,100 @@ re-check your login status.
     }
 
     /**
+     * Course-mounted Settings: teacher-edited top navigation.
+     */
+    public function navigation(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+        if ( $request->isMethod('POST') ) {
+            return $this->navigationPost($request);
+        }
+
+        global $OUTPUT;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $doc = Manifest::navigationDocumentForContext(U::currentContextId());
+        $nav_rows = CourseNav::editorRows($doc);
+        $save_url = $navigation_url;
+        $setup_tab = 'navigation';
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <h1><?= __('Settings') ?></h1>
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php include __DIR__ . '/templates/Settings/navigation.inc.php'; ?>
+            </div>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * Save course navigation onto a new manifest version.
+     */
+    private function navigationPost(Request $request)
+    {
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+        $csrf = self::requireCsrf($navigation_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        $doc = Manifest::currentDocument();
+        if ( ! $doc ) {
+            U::flashError(__('Cannot load course manifest.'));
+            return new RedirectResponse($navigation_url);
+        }
+        $decoded = json_decode($doc['json'], true);
+        if ( ! is_array($decoded) ) {
+            U::flashError(__('Invalid manifest JSON.'));
+            return new RedirectResponse($navigation_url);
+        }
+
+        $nav = CourseNav::fromPost($_POST);
+        $context_id = U::currentContextId();
+        try {
+            Manifest::saveNewVersion(
+                $context_id,
+                $decoded,
+                U::loggedInUserId(),
+                'Set navigation',
+                null,
+                $nav
+            );
+        } catch ( \InvalidArgumentException $e ) {
+            U::flashError($e->getMessage());
+            return new RedirectResponse($navigation_url);
+        } catch ( \Exception $e ) {
+            U::flashError(__('Failed to save navigation.'));
+            return new RedirectResponse($navigation_url);
+        }
+
+        U::flashSuccess(__('Navigation saved.'));
+        return new RedirectResponse($navigation_url);
+    }
+
+    /**
      * Common Cartridge export form for the current manifest course.
      */
     public function export(Request $request)
@@ -1694,6 +1791,7 @@ re-check your login status.
 
         $setup_url = U::addSession($this->toolHome(self::ROUTE));
         $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $download_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export/download'));
         $gate = $this->courseGate();
         if ( $gate ) {

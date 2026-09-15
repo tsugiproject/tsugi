@@ -264,6 +264,8 @@ array( "{$CFG->dbprefix}manifest",
     -- Skinny Setup field (theme key). New course-setup features are sibling
     -- columns, not keys inside the lessons JSON (`manifest` MEDIUMTEXT).
     theme               VARCHAR(64) NULL,
+    -- Teacher-edited course top nav (JSON). NULL = CourseNav default.
+    navigation          MEDIUMTEXT NULL,
     manifest            MEDIUMTEXT NOT NULL,
     comment             TEXT NULL,
     user_id             INTEGER NULL,
@@ -786,6 +788,9 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         // 2026-08-28 Named course theme key (NULL = site $CFG->theme)
         array('manifest', 'theme', 'VARCHAR(64) NULL'),
+
+        // 2026-09-15 Teacher-edited course top nav JSON (NULL = default)
+        array('manifest', 'navigation', 'MEDIUMTEXT NULL'),
 
         // 2026-08-28 User-level capability to create site-login courses
         array('lti_user', 'create_courses', 'TINYINT(1) NOT NULL DEFAULT 0'),

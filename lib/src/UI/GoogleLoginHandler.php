@@ -373,6 +373,9 @@ class GoogleLoginHandler {
         if ( isset($context_id) ) {
             $_SESSION["context_id"] = $context_id;
             $lti["context_id"] = $context_id;
+            if ( $context_id ) {
+                $_SESSION['site_context_id'] = (int) $context_id;
+            }
         }
         if ( isset($context_key) ) {
             $_SESSION["context_key"] = $context_key;

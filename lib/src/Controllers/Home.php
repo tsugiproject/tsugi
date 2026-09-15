@@ -14,9 +14,9 @@ use Symfony\Component\HttpFoundation\Request;
  * logic in Tsugi\Services\Home as this grows. Nested dispatch from Courses
  * keeps REQUEST_URI prefixed, so isCourseRoute() and toolHome() work.
  *
- * Parent menus:
+ * Parent menus (site URLs only):
  * if ( \Tsugi\Controllers\Home::showInMenu() ) {
- *     $set->addLeft('Home', rtrim($CFG->apphome, '/') . Courses::toolPathPrefix() . '/home');
+ *     $set->addLeft('Home', rtrim($CFG->apphome, '/') . '/home');
  * }
  */
 class Home extends Tool {

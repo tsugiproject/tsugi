@@ -131,6 +131,15 @@ class TsugiTest extends \PHPUnit\Framework\TestCase
             $uris[] = $route['uri'];
         }
         
+        $hasAnalyticsRoute = false;
+        foreach ($uris as $uri) {
+            if ($uri === '/analytics' || $uri === '/analytics/') {
+                $hasAnalyticsRoute = true;
+                break;
+            }
+        }
+        $this->assertTrue($hasAnalyticsRoute, 'Analytics route should be registered');
+
         // Lessons controller should register /lessons route
         $hasLessonsRoute = false;
         foreach ($uris as $uri) {

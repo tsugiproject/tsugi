@@ -55,42 +55,186 @@ class Courses extends Tool {
     }
 
     /**
-     * Menu-only path prefix: '' or '/courses/{id}' (no trailing slash).
+     * Path prefix for this request: '' or '/courses/{id}' (no trailing slash).
      *
-     * Controllers do not call this. Parent menus:
-     * rtrim($CFG->apphome, '/') . Courses::toolPathPrefix() . '/announcements'
-     *
-     * Temporary site flag: $CFG->setExtension('courses_in_urls', true)
-     * or an email allowlist array. Unset/false keeps menus unprefixed.
-     * Prefix is Google-login only; LMS launches stay unprefixed.
+     * Follows REQUEST_URI. Parent site menus should not call this.
      */
     public static function toolPathPrefix() {
-        global $CFG;
-        $flag = $CFG->getExtension('courses_in_urls', false);
-        if ( empty($flag) ) {
-            return '';
-        }
-        if ( is_array($flag) ) {
-            $email = isset($_SESSION['email']) ? (string) $_SESSION['email'] : '';
-            $allowed = false;
-            foreach ($flag as $candidate) {
-                if ( strcasecmp(trim((string) $candidate), trim($email)) === 0 ) {
-                    $allowed = true;
-                    break;
-                }
-            }
-            if ( ! $allowed ) {
-                return '';
-            }
-        }
-        if ( ! self::isGoogleLoginSession() ) {
-            return '';
-        }
-        $cid = U::currentContextId();
+        $cid = self::courseIdFromRequest();
         if ( $cid < 1 ) {
             return '';
         }
         return self::ROUTE . '/' . $cid;
+    }
+
+    /**
+     * Site top-menu waffle. Off unless config sets show_courses_widget.
+     */
+    public static function showCoursesWidget() {
+        global $CFG;
+        if ( ! isset($CFG) || ! is_object($CFG) ) {
+            return false;
+        }
+        return ! empty($CFG->getExtension('show_courses_widget', false));
+    }
+
+    /**
+     * Session key for the Google site-login course (never overwritten by /courses/{id}).
+     */
+    const SESSION_SITE_CONTEXT_ID = 'site_context_id';
+
+    /**
+     * True when REQUEST_URI is /courses/{id} or /courses/{id}/…
+     *
+     * This is the course vs site menu split. Do not use currentContextId().
+     */
+    public static function isCourseMountedRequest() {
+        return (bool) preg_match('#/courses/\d+(?:/|$)#', self::requestPath());
+    }
+
+    /**
+     * On site URLs (buildmenu world), drop a leftover /courses/{id} sandbox
+     * and put the Google-login course back in the session.
+     *
+     * Course-mounted URLs and LMS LTI launches are left alone. Idempotent.
+     */
+    public static function restoreSiteLoginContext() {
+        if ( self::isCourseMountedRequest() ) {
+            return false;
+        }
+        if ( ! U::isLoggedIn() ) {
+            return false;
+        }
+        if ( ! self::isGoogleLoginSession() ) {
+            return false;
+        }
+        $home = self::siteLoginContextId();
+        $current = U::currentContextId();
+        $hadManifest = Manifest::activeId() > 0;
+        if ( $home > 0 && $current !== $home ) {
+            $result = self::ensureActiveContext($home);
+            if ( $result !== true ) {
+                Manifest::rememberInSession(0);
+                return false;
+            }
+            Manifest::rememberInSession(0);
+            return true;
+        }
+        if ( $hadManifest ) {
+            Manifest::rememberInSession(0);
+            Cache::clearAllSessionCaches();
+            Output::clearTopNavSession();
+            if ( function_exists('_tsugiResetIdentitySnapshot') ) {
+                _tsugiResetIdentitySnapshot();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Google site-login context id, or 0.
+     */
+    public static function siteLoginContextId() {
+        global $CFG, $PDOX;
+        if ( isset($_SESSION[self::SESSION_SITE_CONTEXT_ID]) ) {
+            $id = (int) $_SESSION[self::SESSION_SITE_CONTEXT_ID];
+            if ( $id > 0 ) {
+                return $id;
+            }
+        }
+        if ( ! isset($CFG->context_title) || ! is_string($CFG->context_title) || $CFG->context_title === '' ) {
+            return 0;
+        }
+        if ( $PDOX === null || $PDOX === false ) {
+            try {
+                $PDOX = LTIX::getConnection();
+            } catch ( \Throwable $e ) {
+                return 0;
+            }
+        }
+        $keyId = self::googleKeyId();
+        if ( $keyId < 1 ) {
+            return 0;
+        }
+        $context_key = 'course:'.md5($CFG->context_title);
+        $row = $PDOX->rowDie(
+            "SELECT context_id FROM {$CFG->dbprefix}lti_context
+                WHERE context_sha256 = :SHA AND key_id = :KID LIMIT 1",
+            array(':SHA' => lti_sha256($context_key), ':KID' => $keyId)
+        );
+        if ( ! $row || ! isset($row['context_id']) ) {
+            return 0;
+        }
+        $id = (int) $row['context_id'];
+        if ( $id > 0 ) {
+            $_SESSION[self::SESSION_SITE_CONTEXT_ID] = $id;
+        }
+        return $id;
+    }
+
+    /**
+     * Context id from a course-mounted REQUEST_URI, or 0.
+     */
+    public static function courseIdFromRequest() {
+        if ( preg_match('#/courses/(\d+)(?:/|$)#', self::requestPath(), $m) ) {
+            return (int) $m[1];
+        }
+        return 0;
+    }
+
+    /**
+     * Absolute or path prefix for /courses/{id} with no trailing slash.
+     */
+    public static function courseUrlPrefix($context_id) {
+        global $CFG;
+        $id = (int) $context_id;
+        $path = self::requestPath();
+        if ( $id > 0 && preg_match('#^(.*?/courses/'.$id.')(?:/|$)#', $path, $m) ) {
+            $found = $m[1];
+            if ( preg_match('#^https?://#i', $found) ) {
+                return $found;
+            }
+            $home = ( isset($CFG->apphome) && is_string($CFG->apphome) && $CFG->apphome )
+                ? rtrim($CFG->apphome, '/')
+                : rtrim((string) $CFG->wwwroot, '/');
+            if ( $home !== '' && str_starts_with($found, '/') ) {
+                $parts = parse_url($home);
+                $origin = '';
+                if ( is_array($parts) && isset($parts['scheme'], $parts['host']) ) {
+                    $origin = $parts['scheme'].'://'.$parts['host'];
+                    if ( isset($parts['port']) ) {
+                        $origin .= ':'.$parts['port'];
+                    }
+                }
+                return $origin.$found;
+            }
+            return $found;
+        }
+        $home = ( isset($CFG->apphome) && is_string($CFG->apphome) && $CFG->apphome )
+            ? rtrim($CFG->apphome, '/')
+            : rtrim((string) $CFG->wwwroot, '/');
+        if ( $id < 1 ) {
+            return $home;
+        }
+        return $home.self::ROUTE.'/'.$id;
+    }
+
+    /**
+     * Course Home URL after switching into /courses/{id}.
+     *
+     * GET /courses/{id} used to bounce to the site apphome (bare `/`). That
+     * leaves the course URL space and shows buildmenu.php. Send people to
+     * /courses/{id}/home so the course nav owns the next page.
+     */
+    public static function courseHomeUrl($context_id) {
+        $tool = new self();
+        $home = $tool->toolHome(self::ROUTE);
+        $id = (int) $context_id;
+        if ( $id < 1 ) {
+            return U::addSession($home);
+        }
+        return U::addSession(self::joinToolHome($home, $id.'/home'));
     }
 
     /**
@@ -319,7 +463,7 @@ class Courses extends Tool {
             return self::switchFailedResponse($result);
         }
 
-        return new RedirectResponse(self::configuredHomeUrl());
+        return new RedirectResponse(self::courseHomeUrl($id));
     }
 
     /**
@@ -396,7 +540,7 @@ class Courses extends Tool {
         }
 
         U::flashSuccess(__('Course created.'));
-        return new RedirectResponse(U::addSession(self::joinToolHome($home, (string) (int) $result['context_id'])));
+        return new RedirectResponse(self::courseHomeUrl($result['context_id']));
     }
 
     /**
@@ -487,7 +631,14 @@ class Courses extends Tool {
             WHERE P.profile_id = :PID";
 
         $rows = $PDOX->allRowsDie($sql, array(':PID' => $row['profile_id']));
-        return response()->json($rows);
+        if ( ! is_array($rows) ) {
+            $rows = array();
+        }
+        return response()->json(array(
+            'status' => 'success',
+            'courses' => $rows,
+            'current_context_id' => U::currentContextId(),
+        ));
     }
 
     /**

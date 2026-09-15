@@ -18,7 +18,7 @@ use \Tsugi\UI\LessonsNormalize;
  * start as Lessons JSON v2 (`lessons_json_version: 2`). File-backed
  * $CFG->lessons sites stay classic and are not authored. Do not grow that
  * blob with new course-setup features. New course-settings fields are independent
- * columns on this row (theme is the first: VARCHAR key, not palette JSON).
+ * columns on this row (theme is a VARCHAR key; navigation is JSON).
  *
  * The PHP session holds only the integer manifest_id. The immutable row
  * (lessons JSON plus sibling columns) is loaded on demand and cached in
@@ -394,6 +394,52 @@ class Manifest {
         }
         $norm = self::normalizeThemeKey($key);
         return is_string($norm) ? $norm : null;
+    }
+
+    /**
+     * Raw navigation JSON for a context's active manifest, or null if missing.
+     *
+     * Empty string and whitespace are treated as missing. A stored
+     * `{"items":[]}` is returned as-is (teacher turned optional items off).
+     *
+     * @return string|null
+     */
+    public static function navigationJsonForContext($context_id) {
+        global $CFG, $PDOX;
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return null;
+        }
+        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
+            return null;
+        }
+        $p = $CFG->dbprefix;
+        $row = $PDOX->rowDie(
+            "SELECT m.navigation AS navigation
+             FROM {$p}lti_context c
+             LEFT JOIN {$p}manifest m ON m.manifest_id = c.manifest_id
+             WHERE c.context_id = :CID",
+            array(':CID' => $cid)
+        );
+        if ( ! is_array($row) ) {
+            return null;
+        }
+        $raw = $row['navigation'] ?? null;
+        if ( ! is_string($raw) || trim($raw) === '' ) {
+            return null;
+        }
+        return $raw;
+    }
+
+    /**
+     * Decoded navigation document for a context (CourseNav default if missing).
+     *
+     * @return array<string, mixed>
+     */
+    public static function navigationDocumentForContext($context_id) {
+        return \Tsugi\Services\CourseNav\CourseNav::documentFromJson(
+            self::navigationJsonForContext($context_id)
+        );
     }
 
     /**
@@ -814,9 +860,11 @@ class Manifest {
      * @param array<string, mixed>|object|string $data Decoded document or JSON string
      * @param string|null $theme Theme key. Null copies the previous version for this
      *        context. Empty string stores NULL (site $CFG->theme).
+     * @param mixed $navigation Navigation document or JSON. Null copies the previous
+     *        version (or the CourseNav default when the previous value is empty).
      * @return int New manifest_id
      */
-    public static function saveNewVersion($context_id, $data, $user_id = null, $comment = null, $theme = null) {
+    public static function saveNewVersion($context_id, $data, $user_id = null, $comment = null, $theme = null, $navigation = null) {
         global $CFG;
         $cid = (int) $context_id;
         if ( $cid < 1 ) {
@@ -866,6 +914,19 @@ class Manifest {
             $themeToStore = $norm;
         }
 
+        if ( $navigation === null ) {
+            $navigationToStore = self::navigationJsonForContext($cid);
+            if ( $navigationToStore === null ) {
+                $navigationToStore = \Tsugi\Services\CourseNav\CourseNav::encode(
+                    \Tsugi\Services\CourseNav\CourseNav::defaultDocument()
+                );
+            }
+        } else {
+            $navigationToStore = \Tsugi\Services\CourseNav\CourseNav::encode(
+                \Tsugi\Services\CourseNav\CourseNav::normalize($navigation)
+            );
+        }
+
         $next = $PDOX->rowDie(
             "SELECT COALESCE(MAX(version), 0) + 1 AS next_version
              FROM {$p}manifest WHERE context_id = :CID",
@@ -878,14 +939,15 @@ class Manifest {
 
         $PDOX->queryDie(
             "INSERT INTO {$p}manifest
-                (context_id, version, title, theme, manifest, comment, user_id, created_at)
+                (context_id, version, title, theme, navigation, manifest, comment, user_id, created_at)
              VALUES
-                (:context_id, :version, :title, :theme, :manifest, :comment, :user_id, NOW())",
+                (:context_id, :version, :title, :theme, :navigation, :manifest, :comment, :user_id, NOW())",
             array(
                 ':context_id' => $cid,
                 ':version' => $version,
                 ':title' => $title,
                 ':theme' => $themeToStore,
+                ':navigation' => $navigationToStore,
                 ':manifest' => $json,
                 ':comment' => $comment,
                 ':user_id' => $uid,
@@ -902,6 +964,7 @@ class Manifest {
             'version' => $version,
             'title' => $title,
             'theme' => $themeToStore,
+            'navigation' => $navigationToStore,
             'manifest' => $json,
             'comment' => $comment,
             'user_id' => $uid,
@@ -1035,7 +1098,9 @@ class Manifest {
             $context_id,
             self::starter($title),
             $user_id,
-            'Created course'
+            'Created course',
+            null,
+            \Tsugi\Services\CourseNav\CourseNav::defaultDocument()
         );
         return array(
             'ok' => true,
@@ -1074,7 +1139,7 @@ class Manifest {
         $PDOX = LTIX::getConnection();
         $p = $CFG->dbprefix;
         $row = $PDOX->rowDie(
-            "SELECT manifest_id, context_id, version, title, theme, manifest, comment, user_id, created_at
+            "SELECT manifest_id, context_id, version, title, theme, navigation, manifest, comment, user_id, created_at
              FROM {$p}manifest WHERE manifest_id = :MID",
             array(':MID' => $id)
         );

@@ -1994,6 +1994,11 @@ class LTIX {
 
         $_SESSION['HEARTBEAT_COUNT'] = 0;
 
+        // Site URLs (buildmenu): leave leftover /courses/{id} sandbox, use Google-login course.
+        if ( class_exists('\Tsugi\Controllers\Courses') ) {
+            \Tsugi\Controllers\Courses::restoreSiteLoginContext();
+        }
+
         $LTI = $_SESSION[TSUGI_SESSION_LTI] ?? null;
         if ( count($needed) == 0 && $LTI === null ) {
             return $TSUGI_LAUNCH;

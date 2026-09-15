@@ -103,6 +103,42 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         $this->assertInstanceOf(\Tsugi\UI\MenuSet::class, $CFG->defaultmenu);
     }
 
+    public function testTopNavCourseMountedSkipsSiteCallback() {
+        if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
+        global $CFG;
+
+        $CFG = new \Tsugi\Config\ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
+        $CFG->servicename = 'Test Site';
+        $CFG->apphome = 'http://example.com';
+        $CFG->wwwroot = 'http://example.com/tsugi';
+        $CFG->top_menu_callback = function() {
+            $set = new \Tsugi\UI\MenuSet();
+            $set->setHome('Callback Home', 'http://example.com/callback');
+            return $set;
+        };
+
+        $prevUri = $_SERVER['REQUEST_URI'] ?? null;
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        @session_id('test-session-'.uniqid());
+        @session_start();
+        $_SESSION = [];
+
+        $OUTPUT = new Output();
+        $OUTPUT->launch = new \Tsugi\Core\Launch();
+        $OUTPUT->buffer = true;
+        $menu_txt = $OUTPUT->topNav();
+
+        if ( $prevUri === null ) {
+            unset($_SERVER['REQUEST_URI']);
+        } else {
+            $_SERVER['REQUEST_URI'] = $prevUri;
+        }
+
+        $this->assertStringContainsString('Home', $menu_txt);
+        $this->assertStringNotContainsString('Callback Home', $menu_txt);
+        $this->assertStringContainsString('/courses/42/home', $menu_txt);
+    }
+
     public function testTopNavSessionOnCookieSessionPage() {
         if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
         global $CFG;
