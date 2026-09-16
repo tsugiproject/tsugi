@@ -16,6 +16,12 @@ use Tsugi\Services\Quiz1\QuizRepository;
  * Common Cartridge export from an in-memory Lessons document (v2 items).
  *
  * Used by course Settings export. Does not rewrite stored lessons JSON.
+ *
+ * Canvas's cartridge (wiki_content, canvas_export.txt, module_meta, FILEBASE,
+ * $WIKI_REFERENCE$) is the interchange format. The Canvas and Tsugi flavors
+ * emit that same zip so Canvas import works today and Tsugi import can later
+ * consume a cartridge Canvas itself exported. Do not add Tsugi-only zip
+ * shapes to those flavors. Generic stays spec CC 1.2.
  */
 class LessonsCartridge {
 
@@ -147,6 +153,7 @@ class LessonsCartridge {
         global $CFG;
 
         $tsugi_lms = self::exportFlavor(isset($options['tsugi_lms']) ? $options['tsugi_lms'] : '');
+        $options['tsugi_lms'] = $tsugi_lms;
         $topic = isset($options['topic']) ? $options['topic'] : false;
         $youtube = isset($options['youtube']) ? $options['youtube'] : false;
         if ( $youtube === 'no' ) {
@@ -160,15 +167,12 @@ class LessonsCartridge {
         }
 
         $cc_dom = new CC();
-        $summary = self::summarize($l);
-        // wiki_content is a Canvas convention. Without canvas_export.txt Canvas
-        // treats those HTML files as Files/wiki_content instead of Pages.
-        $keep_canvas = self::wantsCanvasExtensions($tsugi_lms)
-            || (isset($summary['pages']) && (int) $summary['pages'] > 0);
-        if ( ! $keep_canvas ) {
+        // Generic is spec CC 1.2. Canvas/Tsugi emit Canvas's interchange format.
+        // Sakai still gets module_meta. Pages must not flip Generic onto wiki.
+        if ( ! self::wantsCanvasExtensions($tsugi_lms) ) {
             $cc_dom->disable_canvas_extensions();
         }
-        if ( $tsugi_lms === 'canvas' ) {
+        if ( self::usesCanvasCartridge($tsugi_lms) ) {
             $cc_dom->canvas_quiz_wrapper = true;
         }
         $cc_dom->set_title($title.' import');
@@ -210,15 +214,26 @@ class LessonsCartridge {
      * Generic Setup export omits them. Legacy /cc/export is unchanged.
      */
     public static function wantsCanvasExtensions($tsugi_lms) {
-        return $tsugi_lms === 'canvas' || $tsugi_lms === 'sakai';
+        return self::usesCanvasCartridge($tsugi_lms) || $tsugi_lms === 'sakai';
     }
 
     /**
-     * Setup flavor used in the download filename: generic, canvas, or sakai.
+     * Canvas and Tsugi write Canvas's interchange cartridge (same zip contents).
+     * Future Tsugi import should accept this format from Tsugi or from Canvas.
+     *
+     * @param string $tsugi_lms
+     * @return bool
+     */
+    public static function usesCanvasCartridge($tsugi_lms) {
+        return $tsugi_lms === 'canvas' || $tsugi_lms === 'tsugi';
+    }
+
+    /**
+     * Setup flavor used in the download filename: generic, canvas, tsugi, or sakai.
      */
     public static function exportFlavor($tsugi_lms) {
         $lms = is_string($tsugi_lms) ? strtolower(trim($tsugi_lms)) : '';
-        if ( $lms === 'canvas' || $lms === 'sakai' ) {
+        if ( $lms === 'canvas' || $lms === 'sakai' || $lms === 'tsugi' ) {
             return $lms;
         }
         return 'generic';
@@ -388,7 +403,8 @@ class LessonsCartridge {
     }
 
     /**
-     * Package a Lessons html_page as Canvas wiki_content HTML (IMS CC webcontent).
+     * Package a Lessons html_page as IMS CC webcontent.
+     * Canvas/Sakai: wiki_content. Generic: web_resources/pages/*.html.
      * Legacy html_page items with only an href (no page identity) stay web links.
      */
     private static function processHtmlPage($item, $module, $sub_module, $zip, $cc_dom, array $options) {
@@ -455,11 +471,37 @@ class LessonsCartridge {
     }
 
     /**
+     * Canvas and Sakai (for now) package pages as wiki_content.
+     * Generic packages them as ordinary web_resources files.
+     *
+     * @param array<string, mixed> $options
+     * @return bool
+     */
+    private static function usesCanvasWikiPages(array $options) {
+        $lms = self::exportFlavor(isset($options['tsugi_lms']) ? $options['tsugi_lms'] : '');
+        return self::wantsCanvasExtensions($lms);
+    }
+
+    /**
      * @param \ZipArchive $zip
      * @param CC $cc_dom
      * @param array<string, mixed> $options
      */
     private static function flushPendingWikiPages($zip, $cc_dom, array $options) {
+        if ( self::usesCanvasWikiPages($options) ) {
+            self::flushCanvasWikiPages($zip, $cc_dom, $options);
+        } else {
+            self::flushGenericPages($zip, $cc_dom, $options);
+        }
+        self::$pendingWikiPages = array();
+    }
+
+    /**
+     * @param \ZipArchive $zip
+     * @param CC $cc_dom
+     * @param array<string, mixed> $options
+     */
+    private static function flushCanvasWikiPages($zip, $cc_dom, array $options) {
         $seen = array();
         $wikiRefs = array();
         foreach ( self::$pendingWikiPages as $pending ) {
@@ -475,7 +517,7 @@ class LessonsCartridge {
                 );
                 continue;
             }
-            $html = self::rewriteCartridgeFileLinks($pending['html'], $options);
+            $html = self::rewriteCartridgeFileLinks($pending['html'], $options, true);
             $cc_dom->zip_add_wiki_page_to_module(
                 $zip,
                 $pending['sub_module'],
@@ -488,28 +530,85 @@ class LessonsCartridge {
                 $wikiRefs[$key] = $cc_dom->last_identifierref;
             }
         }
-        self::$pendingWikiPages = array();
     }
 
     /**
-     * Point page HTML file links at Canvas $IMS-CC-FILEBASE$/{path} instead of files/download/{sha}.
+     * Generic CC: pages are HTML files under web_resources/pages/.
+     *
+     * @param \ZipArchive $zip
+     * @param CC $cc_dom
+     * @param array<string, mixed> $options
+     */
+    private static function flushGenericPages($zip, $cc_dom, array $options) {
+        $pageZipPaths = array();
+        foreach ( self::$pendingWikiPages as $pending ) {
+            $key = self::pendingPageKey($pending);
+            if ( ! isset($pageZipPaths[$key]) ) {
+                $pageZipPaths[$key] = $cc_dom->reserveWebResourcePath('pages/'.$key.'.html');
+            }
+        }
+        $seen = array();
+        $pageRefs = array();
+        foreach ( self::$pendingWikiPages as $pending ) {
+            $key = self::pendingPageKey($pending);
+            if ( isset($pageRefs[$key]) ) {
+                $seen[$key] = isset($seen[$key]) ? $seen[$key] + 1 : 2;
+                $cc_dom->zip_add_file_listing_to_module(
+                    $pending['sub_module'],
+                    $pending['title'],
+                    $key,
+                    $seen[$key],
+                    $pageRefs[$key]
+                );
+                continue;
+            }
+            $html = self::rewriteCartridgeFileLinks($pending['html'], $options, false, $pageZipPaths);
+            $cc_dom->zip_add_file_at_path_to_module(
+                $zip,
+                $pending['sub_module'],
+                $pending['title'],
+                $pageZipPaths[$key],
+                $html,
+                $key
+            );
+            $seen[$key] = 1;
+            $pageRefs[$key] = $cc_dom->last_identifierref;
+        }
+    }
+
+    /**
+     * @param array{logical_key?:string} $pending
+     * @return string
+     */
+    private static function pendingPageKey(array $pending) {
+        $key = isset($pending['logical_key']) && is_string($pending['logical_key'])
+            ? trim($pending['logical_key']) : '';
+        return $key !== '' ? $key : 'page';
+    }
+
+    /**
+     * Point page HTML links at $IMS-CC-FILEBASE$ (and Canvas $WIKI_REFERENCE$ when needed).
      *
      * @param string $html
      * @param array<string, mixed> $options
+     * @param bool $canvasWiki
+     * @param array<string, string> $pageZipPaths logical_key => zip path
      * @return string
      */
-    private static function rewriteCartridgeFileLinks($html, array $options) {
+    private static function rewriteCartridgeFileLinks($html, array $options, $canvasWiki, array $pageZipPaths = array()) {
         if ( ! is_string($html) || $html === '' ) {
             return $html;
         }
         $context_id = isset($options['context_id']) ? (int) $options['context_id'] : 0;
         return (string) preg_replace_callback(
             '/\b(href|src)\s*=\s*(["\'])([^"\']+)\2/i',
-            function ($m) use ($context_id) {
+            function ($m) use ($context_id, $canvasWiki, $pageZipPaths) {
                 $url = html_entity_decode($m[3], ENT_QUOTES, 'UTF-8');
-                $next = self::cartridgeWikiHref($url);
+                $next = $canvasWiki
+                    ? self::cartridgeWikiHref($url)
+                    : self::genericPageHref($url, $pageZipPaths);
                 if ( $next === $url ) {
-                    $next = self::cartridgeFileHref($url, $context_id);
+                    $next = self::cartridgeFileHref($url, $context_id, $canvasWiki);
                 }
                 if ( $next === $url ) {
                     return $m[0];
@@ -539,6 +638,21 @@ class LessonsCartridge {
             return $url;
         }
         return '$WIKI_REFERENCE$/pages/'.CCIdentifier::wikiMigrationId($key);
+    }
+
+    /**
+     * Generic CC has no Pages tool: page links are FILEBASE to web_resources/pages/{key}.html.
+     *
+     * @param string $url
+     * @param array<string, string> $pageZipPaths
+     * @return string
+     */
+    private static function genericPageHref($url, array $pageZipPaths) {
+        $key = self::coursePageKeyFromHref($url);
+        if ( $key === null || ! isset($pageZipPaths[$key]) ) {
+            return $url;
+        }
+        return self::fileBaseHref($pageZipPaths[$key], false);
     }
 
     /**
@@ -585,12 +699,13 @@ class LessonsCartridge {
     /**
      * @param string $url
      * @param int $context_id
+     * @param bool $canvasWiki Canvas FILEBASE strips web_resources/; generic keeps it
      * @return string
      */
-    private static function cartridgeFileHref($url, $context_id) {
+    private static function cartridgeFileHref($url, $context_id, $canvasWiki=true) {
         $sha = Files::sha256FromDownloadHref($url);
         if ( $sha && isset(self::$exportFileZipPaths[$sha]) ) {
-            return self::canvasFileBaseHref(self::$exportFileZipPaths[$sha]);
+            return self::fileBaseHref(self::$exportFileZipPaths[$sha], $canvasWiki);
         }
         $path = $sha ? Files::pathForSha256($sha, $context_id) : self::courseFilePathFromHref($url);
         if ( ! is_string($path) || $path === '' ) {
@@ -598,9 +713,9 @@ class LessonsCartridge {
         }
         $zipPath = self::lookupExportZipPath($path);
         if ( $zipPath !== null ) {
-            return self::canvasFileBaseHref($zipPath);
+            return self::fileBaseHref($zipPath, $canvasWiki);
         }
-        return self::canvasFileBaseHref('web_resources/'.$path);
+        return self::fileBaseHref('web_resources/'.$path, $canvasWiki);
     }
 
     /**
@@ -667,11 +782,12 @@ class LessonsCartridge {
      * Percent-encoding that path makes Canvas report missing wiki links.
      *
      * @param string $zipPath
+     * @param bool $stripWebResources Canvas maps FILEBASE onto files imported from web_resources/
      * @return string
      */
-    private static function canvasFileBaseHref($zipPath) {
+    private static function fileBaseHref($zipPath, $stripWebResources) {
         $rel = ltrim(str_replace('\\', '/', (string) $zipPath), '/');
-        if ( str_starts_with($rel, 'web_resources/') ) {
+        if ( $stripWebResources && str_starts_with($rel, 'web_resources/') ) {
             $rel = substr($rel, strlen('web_resources/'));
         }
         $rel = ltrim($rel, '/');

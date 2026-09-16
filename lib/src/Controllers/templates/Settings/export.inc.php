@@ -83,10 +83,11 @@ $module_count = (int) $counts['modules'];
 <select name="tsugi_lms" id="tsugi_lms_select_full">
   <option value="generic"><?= __('Generic') ?></option>
   <option value="canvas">Canvas</option>
+  <option value="tsugi">Tsugi</option>
   <option value="sakai">Sakai</option>
 </select>
 </p>
-<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions.') ?></p>
+<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions. Tsugi and Canvas share Canvas\'s cartridge format so a Canvas export can import into Tsugi later.') ?></p>
 <?php if ( $discussion_count > 0 ) { ?>
 <p>
 <label for="topic_select_full"><?= __('How would you like to import discussions/topics?') ?></label>
@@ -126,10 +127,11 @@ $module_count = (int) $counts['modules'];
 <select name="tsugi_lms" id="tsugi_lms_select_partial">
   <option value="generic"><?= __('Generic') ?></option>
   <option value="canvas">Canvas</option>
+  <option value="tsugi">Tsugi</option>
   <option value="sakai">Sakai</option>
 </select>
 </p>
-<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions.') ?></p>
+<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions. Tsugi and Canvas share Canvas\'s cartridge format so a Canvas export can import into Tsugi later.') ?></p>
 <?php if ( $youtube_enabled ) { ?>
 <p>
 <label for="youtube_select_partial"><?= __('Would you like YouTube Tracked URLs?') ?></label>

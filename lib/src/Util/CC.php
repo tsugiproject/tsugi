@@ -624,10 +624,42 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @return string Path of the file inside the ZIP
      */
     function zip_add_file_to_module($zip, $module, $title, $filename, $bytes, $parentPath=null, $stableKey=null) {
-        $zipPath = $this->uniqueWebResourcePath($filename);
+        return $this->zip_add_file_at_path_to_module(
+            $zip,
+            $module,
+            $title,
+            $this->uniqueWebResourcePath($filename),
+            $bytes,
+            $stableKey
+        );
+    }
+
+    /**
+     * Reserve a unique web_resources/ path before writing bytes (page-to-page FILEBASE).
+     *
+     * @param string $filename
+     * @return string
+     */
+    public function reserveWebResourcePath($filename) {
+        return $this->uniqueWebResourcePath($filename);
+    }
+
+    /**
+     * Add webcontent at an already-reserved zip path.
+     *
+     * @param \ZipArchive $zip
+     * @param \DOMNode $module
+     * @param string $title
+     * @param string $zipPath
+     * @param string $bytes
+     * @param string|null $stableKey
+     * @return string
+     */
+    function zip_add_file_at_path_to_module($zip, $module, $title, $zipPath, $bytes, $stableKey=null) {
+        $this->webResourceNames[$zipPath] = true;
         $identity = is_string($stableKey) && $stableKey !== ''
             ? strtolower($stableKey)
-            : (string) $filename;
+            : (string) $zipPath;
         $additionalProps = array();
         if ( is_string($stableKey) && $stableKey !== '' ) {
             $additionalProps['sha256'] = strtolower($stableKey);
