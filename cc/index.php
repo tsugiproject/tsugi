@@ -67,6 +67,7 @@ combination of the modules.</p>
 <select name="tsugi_lms" id="tsugi_lms_select_full">
   <option value="generic">Generic</option>
   <option value="canvas">Canvas</option>
+  <option value="tsugi">Tsugi</option>
   <option value="sakai">Sakai</option>
 </select>
 </p>
@@ -120,6 +121,7 @@ echo('<form id="void">'."\n");
 <select name="tsugi_lms" id="tsugi_lms_select_partial">
   <option value="generic">Generic</option>
   <option value="canvas">Canvas</option>
+  <option value="tsugi">Tsugi</option>
   <option value="sakai">Sakai</option>
 </select>
 </p>

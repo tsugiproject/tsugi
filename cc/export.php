@@ -1,12 +1,13 @@
 <?php
 
 use \Tsugi\UI\Lessons;
+use \Tsugi\UI\LessonsCartridge;
 use \Tsugi\Util\U;
 use \Tsugi\Util\CC;
 use \Tsugi\Util\CC_LTI;
 use \Tsugi\Util\CC_WebLink;
 
-require_once "../config.php";
+require_once __DIR__ . '/../config.php';
 
 if ( ! isset($CFG->lessons) ) {
     die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
@@ -282,7 +283,7 @@ if ( $anchors ) {
 }
 
 // here we go...
-$service = strtolower($CFG->servicename);
+$tsugi_lms = LessonsCartridge::exportFlavor(U::get($_GET,'tsugi_lms', false));
 // https://stackoverflow.com/questions/64698935/using-ziparchive-with-php-8-and-temporary-files:wq
 $filename = tempnam(sys_get_temp_dir(), $CFG->servicename);
 unlink($filename);
@@ -293,19 +294,26 @@ if ($zip->open($filename, ZipArchive::CREATE)!==TRUE) {
 }
 
 if ( ! isCli() ) {
+    $download = LessonsCartridge::downloadName($l, $tsugi_lms);
+    $download = str_replace(array('\\', '"'), '', $download);
     header( "Content-Type: application/x-zip" );
-    header( "Content-Disposition: attachment; filename=\"".$service."_export.imscc\"" );
+    header( "Content-Disposition: attachment; filename=\"".$download."\"" );
 }
 
-$tsugi_lms = U::get($_GET,'tsugi_lms', false);
 $topic = U::get($_GET,'topic', false);
 $youtube = U::get($_GET,'youtube', false);
 if ( $youtube == 'no' ) $youtube = false;
 
 $cc_dom = new CC();
+if ( ! LessonsCartridge::wantsCanvasExtensions($tsugi_lms) ) {
+    $cc_dom->disable_canvas_extensions();
+}
+if ( LessonsCartridge::usesCanvasCartridge($tsugi_lms) ) {
+    $cc_dom->canvas_quiz_wrapper = true;
+}
 $cc_dom->set_title($CFG->context_title.' import');
 $top_module = false;
-if ( $tsugi_lms == 'sakai' ) {
+if ( $tsugi_lms === 'sakai' ) {
     $top_module = $cc_dom->add_module('Modules (import)', '');
 }
 
