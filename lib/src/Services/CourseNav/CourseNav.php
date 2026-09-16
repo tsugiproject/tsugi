@@ -128,23 +128,22 @@ class CourseNav {
             array('id' => 'announcements', 'kind' => 'link', 'label' => 'Announcements', 'route' => '/announcements', 'site' => false),
             array('id' => 'files', 'kind' => 'link', 'label' => 'Files', 'route' => '/files', 'site' => false),
             array('id' => 'pages', 'kind' => 'link', 'label' => 'Pages', 'route' => '/pages', 'site' => false),
+            array('id' => 'discussions_widget', 'kind' => 'widget', 'label' => 'Discussions widget', 'route' => '/discussions', 'site' => false),
             array('id' => 'discussions', 'kind' => 'link', 'label' => 'Discussions', 'route' => '/discussions', 'site' => false),
             array('id' => 'grades', 'kind' => 'link', 'label' => 'Grades', 'route' => '/grades', 'site' => false),
             array('id' => 'quiz1', 'kind' => 'link', 'label' => 'Quizzes', 'route' => '/quiz1', 'site' => false),
+            array('id' => 'calendar_widget', 'kind' => 'widget', 'label' => 'Calendar widget', 'route' => '/calendar', 'site' => false),
             array('id' => 'calendar', 'kind' => 'link', 'label' => 'Calendar', 'route' => '/calendar', 'site' => false),
-            array('id' => 'topics', 'kind' => 'link', 'label' => 'Topics', 'route' => '/topics', 'site' => false),
-            array('id' => 'analytics', 'kind' => 'link', 'label' => 'Analytics', 'route' => '/analytics', 'site' => false),
-            array('id' => 'badges', 'kind' => 'link', 'label' => 'Badges', 'route' => '/badges', 'site' => false),
             array('id' => 'map', 'kind' => 'link', 'label' => 'Map', 'route' => '/map', 'site' => false),
             array('id' => 'notifications', 'kind' => 'link', 'label' => 'Notifications', 'route' => '/notifications', 'site' => false),
-            array('id' => 'profile', 'kind' => 'link', 'label' => 'Profile', 'route' => '/profile', 'site' => true),
-            array('id' => 'login', 'kind' => 'link', 'label' => 'Login', 'route' => '/login', 'site' => true),
             array('id' => 'notifications_widget', 'kind' => 'widget', 'label' => 'Notifications widget', 'route' => '/notifications', 'site' => false),
-            array('id' => 'discussions_widget', 'kind' => 'widget', 'label' => 'Discussions widget', 'route' => '/discussions', 'site' => false),
-            array('id' => 'calendar_widget', 'kind' => 'widget', 'label' => 'Calendar widget', 'route' => '/calendar', 'site' => false),
+            array('id' => 'profile', 'kind' => 'link', 'label' => 'Profile', 'route' => '/profile', 'site' => true),
+            array('id' => 'analytics', 'kind' => 'link', 'label' => 'Analytics', 'route' => '/analytics', 'site' => false),
+            array('id' => 'badges', 'kind' => 'link', 'label' => 'Badges', 'route' => '/badges', 'site' => false),
             array('id' => 'courses_widget', 'kind' => 'widget', 'label' => 'Sites widget', 'route' => '/courses', 'site' => true),
-            array('id' => 'exit_course', 'kind' => 'link', 'label' => 'Exit course', 'route' => '', 'site' => true, 'pin' => 'last', 'hint' => 'Leaves the course and returns to the site home.', 'needs_apphome' => true),
-            array('id' => 'logout', 'kind' => 'link', 'label' => 'Logout', 'route' => '/logout', 'site' => true, 'hint' => 'Keep Logout on unless you have another way out of the course.', 'pin' => 'last'),
+            array('id' => 'exit_course', 'kind' => 'link', 'label' => 'Exit course', 'route' => '', 'site' => true, 'pin' => 'catalog', 'hint' => 'Leaves the course and returns to the site home.', 'needs_apphome' => true),
+            array('id' => 'login', 'kind' => 'link', 'label' => 'Login', 'route' => '/login', 'site' => true, 'pin' => 'last', 'hint' => 'Only shown when the user is not logged in.'),
+            array('id' => 'logout', 'kind' => 'link', 'label' => 'Logout', 'route' => '/logout', 'site' => true, 'hint' => 'Only shown when the user is logged in. Keep Logout on unless you have another way out of the course.', 'pin' => 'last'),
         );
         if ( self::hasAppHome() ) {
             return $rows;
@@ -216,7 +215,7 @@ class CourseNav {
             if ( $id === '' || ! isset($known[$id]) || isset($placed[$id]) ) {
                 continue;
             }
-            if ( self::isPinnedLast($known[$id] ?? array()) ) {
+            if ( self::isPinnedLast($known[$id] ?? array()) || self::isPinnedToCatalog($known[$id] ?? array()) ) {
                 continue;
             }
             $placed[$id] = true;
@@ -233,11 +232,12 @@ class CourseNav {
             $empty = array('left' => false, 'right' => false, 'dropdown' => false, 'instructor' => false);
             $rows[] = self::editorRow($entry, $flagsById[$entry['id']] ?? $empty);
         }
+        $injectedSettings = false;
         foreach ( self::catalog() as $entry ) {
             if ( ! self::isPinnedLast($entry) ) {
                 continue;
             }
-            if ( ($entry['id'] ?? '') === 'logout' ) {
+            if ( ! $injectedSettings ) {
                 $rows[] = array(
                     'id' => 'settings',
                     'kind' => 'chrome',
@@ -245,6 +245,7 @@ class CourseNav {
                     'pin' => 'last',
                     'hint' => 'Always in the avatar menu before Logout. Instructors only.',
                 );
+                $injectedSettings = true;
             }
             $empty = array('left' => false, 'right' => false, 'dropdown' => false, 'instructor' => false);
             $rows[] = self::editorRow($entry, $flagsById[$entry['id']] ?? $empty);
@@ -435,6 +436,10 @@ class CourseNav {
 
     private static function isPinnedLast(array $entry) {
         return ! empty($entry['pin']) && $entry['pin'] === 'last';
+    }
+
+    private static function isPinnedToCatalog(array $entry) {
+        return ! empty($entry['pin']) && $entry['pin'] === 'catalog';
     }
 
     private static function hasAppHome() {

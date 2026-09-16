@@ -178,14 +178,59 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
     {
         $rows = CourseNav::editorRows(CourseNav::defaultDocument());
         $this->assertSame('logout', $rows[count($rows)-1]['id']);
-        $this->assertSame('settings', $rows[count($rows)-2]['id']);
-        $this->assertSame('chrome', $rows[count($rows)-2]['kind']);
-        $this->assertSame('exit_course', $rows[count($rows)-3]['id']);
-        $this->assertTrue($rows[count($rows)-3]['dropdown']);
+        $this->assertSame('login', $rows[count($rows)-2]['id']);
+        $this->assertSame('settings', $rows[count($rows)-3]['id']);
+        $this->assertSame('chrome', $rows[count($rows)-3]['kind']);
         $this->assertTrue($rows[count($rows)-1]['dropdown']);
+        $this->assertStringContainsString('not logged in', $rows[count($rows)-2]['hint']);
+        $this->assertStringContainsString('logged in', $rows[count($rows)-1]['hint']);
         $this->assertSame('home', $rows[0]['id']);
         $this->assertSame('chrome', $rows[0]['kind']);
         $this->assertSame('lessons', $rows[1]['id']);
+        $ids = array();
+        foreach ( $rows as $row ) {
+            $ids[] = $row['id'];
+        }
+        $sites = array_search('courses_widget', $ids, true);
+        $exit = array_search('exit_course', $ids, true);
+        $this->assertNotFalse($sites);
+        $this->assertSame($sites + 1, $exit);
+        $this->assertTrue($rows[$exit]['dropdown']);
+    }
+
+    public function testCatalogOrder()
+    {
+        $ids = array();
+        foreach ( CourseNav::catalog() as $row ) {
+            $ids[] = $row['id'];
+        }
+        $this->assertSame(
+            array(
+                'lessons',
+                'assignments',
+                'announcements',
+                'files',
+                'pages',
+                'discussions_widget',
+                'discussions',
+                'grades',
+                'quiz1',
+                'calendar_widget',
+                'calendar',
+                'map',
+                'notifications',
+                'notifications_widget',
+                'profile',
+                'analytics',
+                'badges',
+                'courses_widget',
+                'exit_course',
+                'login',
+                'logout',
+            ),
+            $ids
+        );
+        $this->assertNotContains('topics', $ids);
     }
 
     public function testEmptyItemsIsNotCoercedToDefault()
@@ -270,6 +315,52 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         }
         $this->assertContains('Files', $left);
         $this->assertContains('Lessons', $left);
+    }
+
+    public function testCompileShowsLoginOnlyWhenLoggedOut()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $doc = array(
+            'items' => array(
+                array('id' => 'login', 'left' => true),
+                array('id' => 'logout', 'dropdown' => true),
+            ),
+        );
+
+        $set = CourseNav::compile($doc, 42);
+        $left = array();
+        foreach ( $set->left->menu as $entry ) {
+            $left[] = $entry->link;
+        }
+        $this->assertContains('Login', $left);
+        $dropdown = $set->right->menu[count($set->right->menu)-1]->href;
+        $labels = array();
+        if ( is_array($dropdown) ) {
+            foreach ( $dropdown as $entry ) {
+                $labels[] = $entry->link;
+            }
+        }
+        $this->assertNotContains('Logout', $labels);
+
+        $_SESSION['id'] = 1;
+        $_SESSION['displayname'] = 'Pat';
+        if ( function_exists('_tsugiResetIdentitySnapshot') ) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $set = CourseNav::compile($doc, 42);
+        $left = array();
+        if ( $set->left ) {
+            foreach ( $set->left->menu as $entry ) {
+                $left[] = $entry->link;
+            }
+        }
+        $this->assertNotContains('Login', $left);
+        $dropdown = $set->right->menu[count($set->right->menu)-1]->href;
+        $labels = array();
+        foreach ( $dropdown as $entry ) {
+            $labels[] = $entry->link;
+        }
+        $this->assertContains('Logout', $labels);
     }
 
     public function testIsCourseMountedRequest()
