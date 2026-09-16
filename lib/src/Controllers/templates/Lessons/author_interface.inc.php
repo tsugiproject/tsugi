@@ -2102,7 +2102,7 @@ function updateItemFormFields(item) {
             filename: item.filename || '',
             href: item.href || '',
             content_type: item.content_type || '',
-            path: item.filename || item.title || ''
+            path: item.path || item.filename || item.title || ''
         };
         fieldsHtml = `
             <div class="form-group">
@@ -2176,9 +2176,9 @@ function applyPickedFile(file) {
     filePickerState = {
         sha256: file.sha256 || file.id || '',
         filename: file.filename || file.title || '',
-        href: file.href || '',
-        content_type: file.content_type || '',
-        path: file.path || file.filename || file.title || ''
+            href: file.href || file.url || '',
+            content_type: file.content_type || '',
+            path: file.path || file.filename || file.title || ''
     };
     if (titleEl && (!currentTitle || currentTitle === prevFilename)) {
         titleEl.value = filePickerState.filename;
@@ -2560,6 +2560,11 @@ function saveItem() {
         item.href = filePickerState.href;
         item.sha256 = filePickerState.sha256;
         item.filename = filePickerState.filename;
+        if (filePickerState.path) {
+            item.path = filePickerState.path;
+        } else {
+            delete item.path;
+        }
         if (filePickerState.content_type) {
             item.content_type = filePickerState.content_type;
         } else {

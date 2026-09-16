@@ -83,7 +83,6 @@ class FilesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('application/pdf', $item['content_type']);
         $this->assertSame('Student', $item['folder']);
         $this->assertSame('Student/week-one.pdf', $item['path']);
-        $this->assertSame('/files/download/'.$sha, $item['href']);
-        $this->assertSame($sha, Files::sha256FromDownloadHref($item['href']));
+        $this->assertSame('/files/Student/week-one.pdf', $item['href']);
     }
 }

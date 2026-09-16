@@ -511,6 +511,54 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testWriteZipTwoListingsOfSameFileShareOneResource()
+    {
+        $sha = str_repeat('c', 64);
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'file',
+                'title' => 'Reading',
+                'sha256' => $sha,
+                'filename' => 'week-one.pdf',
+                'path' => 'Student/week-one.pdf',
+            ),
+            array(
+                'type' => 'file',
+                'title' => 'Same PDF later',
+                'sha256' => $sha,
+                'filename' => 'week-one.pdf',
+                'path' => 'Student/week-one.pdf',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array(
+            'load_file' => function ($item) {
+                return array(
+                    'bytes' => 'PDF',
+                    'filename' => 'week-one.pdf',
+                    'path' => 'Student/week-one.pdf',
+                );
+            },
+        ));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $this->assertSame('PDF', $zip->getFromName('web_resources/Student/week-one.pdf'));
+            $manifest = $zip->getFromName('imsmanifest.xml');
+            $this->assertNotFalse($manifest);
+            $this->assertSame(2, substr_count($manifest, 'href="web_resources/Student/week-one.pdf"'));
+            $this->assertStringContainsString('<title>Reading</title>', $manifest);
+            $this->assertStringContainsString('<title>Same PDF later</title>', $manifest);
+            preg_match_all('/<item identifier="(F_[^"]+)" identifierref="(F_[^"]+_R)"/', $manifest, $items);
+            $this->assertCount(2, $items[1]);
+            $this->assertNotSame($items[1][0], $items[1][1]);
+            $this->assertSame($items[2][0], $items[2][1]);
+            $this->assertSame(1, substr_count($manifest, 'identifier="'.$items[2][0].'" type="'.CC::WEBCONTENT_TYPE.'"'));
+            $zip->close();
+        } finally {
+            @unlink($path);
+        }
+    }
+
     public function testWriteZipFailsWhenPageMissing()
     {
         $this->expectException(ExportException::class);
@@ -570,6 +618,106 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
             $this->assertStringContainsString('$IMS-CC-FILEBASE$/Student/week-one.pdf', $pageHtml);
             $this->assertStringNotContainsString('files/download/', $pageHtml);
             $this->assertStringNotContainsString('$IMS-CC-FILEBASE$web_resources/', $pageHtml);
+            $zip->close();
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipPageFileLinksKeepSpacesAndCommasForCanvas()
+    {
+        $sha = str_repeat('f', 64);
+        $name = 'ChatGPT Image Sep 15, 2026, 11_59_21 AM.png';
+        $pathName = 'Student/'.$name;
+        $encoded = '$IMS-CC-FILEBASE$files/'.rawurlencode('Student').'/'.rawurlencode($name);
+        $html = '<html><head><title>About</title></head><body>'
+            .'<p><img src="'.$encoded.'">'
+            .'<a href="https://local.dj4e.com/courses/12/files/'.rawurlencode('Student').'/'.rawurlencode($name).'">pic</a></p>'
+            .'</body></html>';
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'file',
+                'title' => 'Pic',
+                'sha256' => $sha,
+                'filename' => $name,
+                'path' => $pathName,
+            ),
+            array(
+                'type' => 'html_page',
+                'title' => 'About',
+                'page_id' => 7,
+                'logical_key' => 'about',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array(
+            'load_file' => function ($item) use ($name, $pathName) {
+                return array(
+                    'bytes' => 'PNG',
+                    'filename' => $name,
+                    'path' => $pathName,
+                );
+            },
+            'load_page' => function ($item) use ($html) {
+                return array('title' => 'About', 'logical_key' => 'about', 'html' => $html);
+            },
+        ));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $this->assertSame('PNG', $zip->getFromName('web_resources/'.$pathName));
+            $pageHtml = $zip->getFromName('wiki_content/about.html');
+            $this->assertNotFalse($pageHtml);
+            $this->assertStringContainsString('$IMS-CC-FILEBASE$/'.$pathName, $pageHtml);
+            $this->assertStringNotContainsString('%20', $pageHtml);
+            $this->assertStringNotContainsString('%2C', $pageHtml);
+            $this->assertStringNotContainsString('$IMS-CC-FILEBASE$files/', $pageHtml);
+            $zip->close();
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipPageToPageLinksUseWikiReference()
+    {
+        $about = '<html><head><title>About</title></head><body>'
+            .'<p><a href="$IMS-CC-FILEBASE$pages/one">One</a>'
+            .'<a href="https://local.dj4e.com/courses/12/pages/one">One again</a></p>'
+            .'</body></html>';
+        $one = '<html><head><title>One</title></head><body><p>Hi</p></body></html>';
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'html_page',
+                'title' => 'About',
+                'page_id' => 7,
+                'logical_key' => 'about',
+            ),
+            array(
+                'type' => 'html_page',
+                'title' => 'One',
+                'page_id' => 8,
+                'logical_key' => 'one',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array(
+            'load_page' => function ($item) use ($about, $one) {
+                $key = isset($item->logical_key) ? $item->logical_key : '';
+                if ( $key === 'one' ) {
+                    return array('title' => 'One', 'logical_key' => 'one', 'html' => $one);
+                }
+                return array('title' => 'About', 'logical_key' => 'about', 'html' => $about);
+            },
+        ));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $ref = \Tsugi\Util\CCIdentifier::wikiMigrationId('one');
+            $aboutHtml = $zip->getFromName('wiki_content/about.html');
+            $oneHtml = $zip->getFromName('wiki_content/one.html');
+            $this->assertNotFalse($aboutHtml);
+            $this->assertNotFalse($oneHtml);
+            $this->assertStringContainsString('$WIKI_REFERENCE$/pages/'.$ref, $aboutHtml);
+            $this->assertStringNotContainsString('$IMS-CC-FILEBASE$pages/', $aboutHtml);
+            $this->assertStringContainsString('<meta name="identifier" content="'.$ref.'"/>', $oneHtml);
             $zip->close();
         } finally {
             @unlink($path);

@@ -533,6 +533,34 @@ class CC extends \Tsugi\Util\TsugiDOM {
     }
 
     /**
+     * Extra module item that points at an existing resource (same identifierref).
+     * Used when Lessons lists the same file or page more than once.
+     *
+     * @param \DOMNode $module
+     * @param string $title
+     * @param string $itemIdentifier Unique item identifier (not the resource id)
+     * @param string $identifierref Existing resource identifier
+     * @param string|null $canvasContentType CanvasModuleMeta content_type_* or null
+     * @return \DOMNode
+     */
+    public function add_identifierref_item($module, $title, $itemIdentifier, $identifierref, $canvasContentType=null) {
+        $this->last_identifier = $itemIdentifier;
+        $this->last_identifierref = $identifierref;
+        $new_item = $this->add_child_ns(CC::CC_NS, $module, 'item', null,
+            array('identifier' => $itemIdentifier, 'identifierref' => $identifierref));
+        if ( $title != null ) {
+            $this->add_child_ns(CC::CC_NS, $new_item, 'title', $title);
+        }
+        if ( $this->canvas_items && is_string($canvasContentType) && $canvasContentType !== '' ) {
+            $w = $this->canvas_module_meta->child_tags($canvasContentType);
+            $w[CanvasModuleMeta::title] = $title;
+            $w[CanvasModuleMeta::identifierref] = $identifierref;
+            $this->canvas_module_meta->add_item($this->canvas_items, $itemIdentifier, $w);
+        }
+        return $new_item;
+    }
+
+    /**
      * Add a resource to the manifest without creating a module item.
      * Used for creating LTI resources that will be referenced by Canvas assignments.
      *
@@ -596,16 +624,15 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @return string Path of the file inside the ZIP
      */
     function zip_add_file_to_module($zip, $module, $title, $filename, $bytes, $parentPath=null, $stableKey=null) {
-        if ($parentPath === null) {
-            $moduleHash = spl_object_hash($module);
-            $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
-        }
         $zipPath = $this->uniqueWebResourcePath($filename);
-        $additionalProps = array('filename' => $filename);
+        $identity = is_string($stableKey) && $stableKey !== ''
+            ? strtolower($stableKey)
+            : (string) $filename;
+        $additionalProps = array();
         if ( is_string($stableKey) && $stableKey !== '' ) {
-            $additionalProps['sha256'] = $stableKey;
+            $additionalProps['sha256'] = strtolower($stableKey);
         }
-        $this->last_identifier = $this->idGenerator->makeIdentifier('file', $title ?: $filename, $parentPath, $additionalProps);
+        $this->last_identifier = $this->idGenerator->makeIdentifier('file', $identity, '', $additionalProps);
         $this->add_resource_item($module, $title, self::WEBCONTENT_TYPE, $this->last_identifier, $zipPath, $zipPath);
         $zip->addFromString($zipPath, $bytes);
 
@@ -616,6 +643,33 @@ class CC extends \Tsugi\Util\TsugiDOM {
             $this->canvas_module_meta->add_item($this->canvas_items, $this->last_identifier, $w);
         }
         return $zipPath;
+    }
+
+    /**
+     * Another Lessons listing of a file already in the cartridge.
+     * New module item, same resource identifierref — Canvas Files stays one blob.
+     *
+     * @param \DOMNode $module
+     * @param string $title
+     * @param string $stableKey SHA-256
+     * @param int $listingIndex 2 for the second listing, 3 for the third, ...
+     * @param string $identifierref Resource identifier from the first listing
+     * @return \DOMNode
+     */
+    function zip_add_file_listing_to_module($module, $title, $stableKey, $listingIndex, $identifierref) {
+        $identity = is_string($stableKey) && $stableKey !== ''
+            ? strtolower($stableKey)
+            : (string) $title;
+        $itemId = $this->idGenerator->makeIdentifier('file', $identity, '', array(
+            'listing' => (string) ((int) $listingIndex),
+        ));
+        return $this->add_identifierref_item(
+            $module,
+            $title,
+            $itemId,
+            $identifierref,
+            CanvasModuleMeta::content_type_Attachment
+        );
     }
 
     /**
@@ -631,16 +685,11 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @return string Path of the file inside the ZIP
      */
     function zip_add_wiki_page_to_module($zip, $module, $title, $logicalKey, $html, $parentPath=null) {
-        if ($parentPath === null) {
-            $moduleHash = spl_object_hash($module);
-            $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
-        }
-        $filename = is_string($logicalKey) && trim($logicalKey) !== ''
-            ? trim($logicalKey).'.html'
-            : 'page.html';
+        $key = is_string($logicalKey) ? trim($logicalKey) : '';
+        $filename = $key !== '' ? $key.'.html' : 'page.html';
         $zipPath = $this->uniqueWikiContentPath($filename);
-        $additionalProps = array('logical_key' => is_string($logicalKey) ? $logicalKey : '');
-        $this->last_identifier = $this->idGenerator->makeIdentifier('wiki', $title ?: $filename, $parentPath, $additionalProps);
+        $identity = $key !== '' ? $key : 'page';
+        $this->last_identifier = CCIdentifier::wikiIdentifier($identity);
         $this->add_resource_item($module, $title, self::WEBCONTENT_TYPE, $this->last_identifier, $zipPath, $zipPath);
         $html = self::injectCanvasWikiMetas($html, $this->last_identifierref);
         $zip->addFromString($zipPath, $html);
@@ -652,6 +701,30 @@ class CC extends \Tsugi\Util\TsugiDOM {
             $this->canvas_module_meta->add_item($this->canvas_items, $this->last_identifier, $w);
         }
         return $zipPath;
+    }
+
+    /**
+     * Another Lessons listing of a wiki page already in the cartridge.
+     *
+     * @param \DOMNode $module
+     * @param string $title
+     * @param string $logicalKey
+     * @param int $listingIndex
+     * @param string $identifierref
+     * @return \DOMNode
+     */
+    function zip_add_wiki_listing_to_module($module, $title, $logicalKey, $listingIndex, $identifierref) {
+        $identity = is_string($logicalKey) && trim($logicalKey) !== '' ? trim($logicalKey) : 'page';
+        $itemId = $this->idGenerator->makeIdentifier('wiki', $identity, '', array(
+            'listing' => (string) ((int) $listingIndex),
+        ));
+        return $this->add_identifierref_item(
+            $module,
+            $title,
+            $itemId,
+            $identifierref,
+            CanvasModuleMeta::content_type_WikiPage
+        );
     }
 
     /**

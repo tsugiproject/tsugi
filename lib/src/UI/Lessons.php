@@ -4,7 +4,10 @@
 namespace Tsugi\UI;
 
 use \Tsugi\Util\U;
+use \Tsugi\Util\CCFileBase;
 use \Tsugi\Util\LTI;
+use \Tsugi\Controllers\Courses;
+use \Tsugi\Controllers\Tool;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Membership;
 use \Tsugi\Crypt\AesOpenSSL;
@@ -706,7 +709,36 @@ class Lessons {
     public static function absolute_url_ref(&$url) {
         $url = trim($url);
         $url = self::expandLink($url);
+        $base = self::lessonsCourseBaseUrl();
+        $rewritten = CCFileBase::rewriteUrl($url, $base, 'expand', Tool::courseLocalPrefixes());
+        if ( $rewritten !== $url ) {
+            $url = $rewritten;
+            return;
+        }
         $url = U::absolute_url($url);
+    }
+
+    /**
+     * Course mount for expanding /files and /pages hrefs (not site apphome alone).
+     *
+     * A site-root /files/download/{sha} link leaves /courses/{id} and
+     * restoreSiteLoginContext() looks up the blob in the wrong course.
+     *
+     * @return string
+     */
+    private static function lessonsCourseBaseUrl() {
+        global $CFG;
+        $home = '';
+        if ( isset($CFG->apphome) && is_string($CFG->apphome) && trim($CFG->apphome) !== '' ) {
+            $home = $CFG->apphome;
+        } else if ( isset($CFG->wwwroot) && is_string($CFG->wwwroot) && trim($CFG->wwwroot) !== '' ) {
+            $home = $CFG->wwwroot;
+        }
+        $parent = Courses::toolPathPrefix();
+        if ( $parent === '' ) {
+            $parent = Tool::determineParentPath('/lessons');
+        }
+        return CCFileBase::courseBaseUrl($parent, $home);
     }
 
     /*

@@ -104,7 +104,7 @@ class LessonsNormalize {
     private static $itemKeyOrder = array(
         'type', 'subtype', 'title', 'description', 'text', 'level', 'class', 'tag',
         'href', 'url', 'launch', 'resource_link_id', 'quiz_id', 'page_id', 'logical_key', 'target', 'result', 'custom',
-        'sha256', 'filename', 'content_type', 'icon',
+        'sha256', 'filename', 'path', 'content_type', 'icon',
         'youtube', 'kaltura_id', 'media',
         'note', 'notes', 'TODO', 'todo', 'review', 'project', 'FCP', 'FCPX',
         'learning_objectives', 'items',
@@ -972,6 +972,20 @@ class LessonsNormalize {
                 $download = Files::downloadHrefForSha256($sha);
                 if ( $download !== null ) {
                     $item['href'] = $download;
+                }
+            }
+        }
+        $path = null;
+        if ( isset($item['path']) ) {
+            $path = Files::normalizeFilePath($item['path']);
+        }
+        if ( $path ) {
+            $item['path'] = $path;
+            $pathHref = Files::hrefForPath($path);
+            if ( $pathHref !== null ) {
+                $href = self::hrefOf($item);
+                if ( $href === '' || Files::sha256FromDownloadHref($href) ) {
+                    $item['href'] = $pathHref;
                 }
             }
         }

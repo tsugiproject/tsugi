@@ -98,6 +98,21 @@ class CCFileBaseTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(self::BASE.'/pages/foo', $this->attr($twice));
     }
 
+    public function testRelativeFilesDownloadExpandsUnderCourseMount() {
+        $html = $this->href('/files/download/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+        $out = CCFileBase::expand($html, self::BASE, array('files', 'pages'));
+        $this->assertEquals(
+            self::BASE.'/files/download/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            $this->attr($out)
+        );
+        $site = $this->href('https://lms.example.com/files/download/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+        $moved = CCFileBase::expand($site, self::BASE, array('files', 'pages'));
+        $this->assertEquals(
+            self::BASE.'/files/download/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            $this->attr($moved)
+        );
+    }
+
     public function testPathAbsoluteCanonicalizes() {
         $html = $this->href('/courses/12/pages/foo');
         $out = CCFileBase::canonicalize($html, self::BASE);

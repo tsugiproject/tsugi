@@ -352,6 +352,21 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('Week One Reading', $out['title']);
     }
 
+    public function testAuthoredFilePathReplacesDownloadHref() {
+        $out = LessonsNormalize::normalizeItem(array(
+            'type' => 'file',
+            'title' => 'Pic',
+            'href' => '/files/download/'.self::SHA,
+            'sha256' => self::SHA,
+            'filename' => 'pic.png',
+            'path' => 'Student/pic.png',
+        ));
+        $this->assertSame('file', $out['type']);
+        $this->assertSame(self::SHA, $out['sha256']);
+        $this->assertSame('Student/pic.png', $out['path']);
+        $this->assertSame('/files/Student/pic.png', $out['href']);
+    }
+
     public function testAuthoredFileAndHtmlPageStayCanonical() {
         $file = LessonsNormalize::normalizeItem(array(
             'type' => 'file',

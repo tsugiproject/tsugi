@@ -312,5 +312,63 @@ class CCIdentifierIntegrationTest extends \PHPUnit\Framework\TestCase
         
         $zip->close();
     }
+
+    public function testFileIdentifierIsStableForSameShaAcrossModulesAndTitles() {
+        $sha = str_repeat('a', 64);
+        $filename = tempnam(sys_get_temp_dir(), 'ccfile');
+        unlink($filename);
+        $zip = new ZipArchive();
+        $this->assertTrue($zip->open($filename, ZipArchive::CREATE) === true);
+        try {
+            $cc1 = new CC();
+            $cc1->set_title('Course');
+            $m1 = $cc1->add_module('Week 1');
+            $cc1->zip_add_file_to_module($zip, $m1, 'Pic', 'Student/a.png', 'PNG', null, $sha);
+            $id1 = $cc1->last_identifier;
+
+            $cc2 = new CC();
+            $cc2->set_title('Course');
+            $m2 = $cc2->add_module('Week 9');
+            $cc2->zip_add_file_to_module($zip, $m2, 'Other title', 'Public/a.png', 'PNG', null, $sha);
+            $id2 = $cc2->last_identifier;
+
+            $this->assertSame($id1, $id2);
+            $this->assertStringStartsWith('F_', $id1);
+        } finally {
+            $zip->close();
+            @unlink($filename);
+        }
+    }
+
+    public function testWikiIdentifierIsStableForSameLogicalKeyAcrossModulesAndTitles() {
+        $filename = tempnam(sys_get_temp_dir(), 'ccwiki');
+        unlink($filename);
+        $zip = new ZipArchive();
+        $this->assertTrue($zip->open($filename, ZipArchive::CREATE) === true);
+        $html = '<html><head><title>About</title></head><body><p>Hi</p></body></html>';
+        try {
+            $cc1 = new CC();
+            $cc1->set_title('Course');
+            $m1 = $cc1->add_module('Week 1');
+            $cc1->zip_add_wiki_page_to_module($zip, $m1, 'About', 'about', $html);
+            $id1 = $cc1->last_identifier;
+            $ref1 = $cc1->last_identifierref;
+
+            $cc2 = new CC();
+            $cc2->set_title('Course');
+            $m2 = $cc2->add_module('Week 9');
+            $cc2->zip_add_wiki_page_to_module($zip, $m2, 'About the course', 'about', $html);
+            $id2 = $cc2->last_identifier;
+            $ref2 = $cc2->last_identifierref;
+
+            $this->assertSame($id1, $id2);
+            $this->assertSame($ref1, $ref2);
+            $this->assertStringStartsWith('WP_', $id1);
+            $this->assertSame($id1.'_R', $ref1);
+        } finally {
+            $zip->close();
+            @unlink($filename);
+        }
+    }
 }
 

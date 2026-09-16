@@ -4,6 +4,7 @@ namespace Tsugi\UI;
 
 use Tsugi\Util\CC;
 use Tsugi\Util\CCFileBase;
+use Tsugi\Util\CCIdentifier;
 use Tsugi\Util\U;
 use Tsugi\Controllers\Files;
 use Tsugi\Controllers\Pages;
@@ -24,6 +25,13 @@ class LessonsCartridge {
      * @var array<string, string>
      */
     private static $exportFileZipPaths = array();
+
+    /**
+     * sha256 => array{zipPath:string,identifierref:string,listings:int}
+     *
+     * @var array<string, array{zipPath:string,identifierref:string,listings:int}>
+     */
+    private static $exportFileResources = array();
 
     /**
      * Wiki pages deferred until files are in the zip so FILEBASE links can use paths.
@@ -165,6 +173,7 @@ class LessonsCartridge {
         }
         $cc_dom->set_title($title.' import');
         self::$exportFileZipPaths = array();
+        self::$exportFileResources = array();
         self::$pendingWikiPages = array();
         $top_module = false;
         if ( $tsugi_lms === 'sakai' ) {
@@ -187,6 +196,7 @@ class LessonsCartridge {
 
         self::flushPendingWikiPages($zip, $cc_dom, $options);
         self::$exportFileZipPaths = array();
+        self::$exportFileResources = array();
         self::$pendingWikiPages = array();
 
         if ( $cc_dom->canvas_extensions ) {
@@ -352,8 +362,29 @@ class LessonsCartridge {
             $path = $item->path;
         }
         $sha = self::fileSha256($item);
+        if ( $sha !== null && isset(self::$exportFileResources[$sha]) ) {
+            $info = self::$exportFileResources[$sha];
+            $info['listings']++;
+            self::$exportFileResources[$sha] = $info;
+            $cc_dom->zip_add_file_listing_to_module(
+                $sub_module,
+                $title,
+                $sha,
+                $info['listings'],
+                $info['identifierref']
+            );
+            self::rememberExportFilePath($sha, $path, $info['zipPath']);
+            return;
+        }
         $zipPath = $cc_dom->zip_add_file_to_module($zip, $sub_module, $title, $path, $payload['bytes'], null, $sha);
         self::rememberExportFilePath($sha, $path, $zipPath);
+        if ( $sha !== null ) {
+            self::$exportFileResources[$sha] = array(
+                'zipPath' => $zipPath,
+                'identifierref' => $cc_dom->last_identifierref,
+                'listings' => 1,
+            );
+        }
     }
 
     /**
@@ -415,6 +446,10 @@ class LessonsCartridge {
             }
             if ( is_string($path) && $path !== '' ) {
                 self::$exportFileZipPaths['path:'.$path] = $zipPath;
+                $decoded = rawurldecode(str_replace('+', ' ', $path));
+                if ( $decoded !== '' && $decoded !== $path ) {
+                    self::$exportFileZipPaths['path:'.$decoded] = $zipPath;
+                }
             }
         }
     }
@@ -425,7 +460,21 @@ class LessonsCartridge {
      * @param array<string, mixed> $options
      */
     private static function flushPendingWikiPages($zip, $cc_dom, array $options) {
+        $seen = array();
+        $wikiRefs = array();
         foreach ( self::$pendingWikiPages as $pending ) {
+            $key = is_string($pending['logical_key']) ? trim($pending['logical_key']) : '';
+            if ( $key !== '' && isset($wikiRefs[$key]) ) {
+                $seen[$key] = isset($seen[$key]) ? $seen[$key] + 1 : 2;
+                $cc_dom->zip_add_wiki_listing_to_module(
+                    $pending['sub_module'],
+                    $pending['title'],
+                    $key,
+                    $seen[$key],
+                    $wikiRefs[$key]
+                );
+                continue;
+            }
             $html = self::rewriteCartridgeFileLinks($pending['html'], $options);
             $cc_dom->zip_add_wiki_page_to_module(
                 $zip,
@@ -434,6 +483,10 @@ class LessonsCartridge {
                 $pending['logical_key'],
                 $html
             );
+            if ( $key !== '' ) {
+                $seen[$key] = 1;
+                $wikiRefs[$key] = $cc_dom->last_identifierref;
+            }
         }
         self::$pendingWikiPages = array();
     }
@@ -454,7 +507,10 @@ class LessonsCartridge {
             '/\b(href|src)\s*=\s*(["\'])([^"\']+)\2/i',
             function ($m) use ($context_id) {
                 $url = html_entity_decode($m[3], ENT_QUOTES, 'UTF-8');
-                $next = self::cartridgeFileHref($url, $context_id);
+                $next = self::cartridgeWikiHref($url);
+                if ( $next === $url ) {
+                    $next = self::cartridgeFileHref($url, $context_id);
+                }
                 if ( $next === $url ) {
                     return $m[0];
                 }
@@ -465,47 +521,150 @@ class LessonsCartridge {
     }
 
     /**
+     * Canvas wiki import resolves $WIKI_REFERENCE$/pages/{migration_id}.
+     * Tsugi stores page links as $IMS-CC-FILEBASE$pages/{logical_key}; leaving
+     * that in wiki HTML makes Canvas treat it as a missing course file.
+     *
+     * @param string $url
+     * @return string
+     */
+    private static function cartridgeWikiHref($url) {
+        if ( str_starts_with($url, '$WIKI_REFERENCE$')
+            || str_starts_with($url, '$CANVAS_OBJECT_REFERENCE$')
+            || str_starts_with($url, '$CANVAS_COURSE_REFERENCE$') ) {
+            return $url;
+        }
+        $key = self::coursePageKeyFromHref($url);
+        if ( $key === null ) {
+            return $url;
+        }
+        return '$WIKI_REFERENCE$/pages/'.CCIdentifier::wikiMigrationId($key);
+    }
+
+    /**
+     * Page logical_key from a stored href (FILEBASE, /pages/…, or a live course URL).
+     *
+     * @param string $url
+     * @return string|null
+     */
+    private static function coursePageKeyFromHref($url) {
+        $remainder = $url;
+        foreach ( CCFileBase::TOKEN_ALIASES as $token ) {
+            if ( str_starts_with($remainder, $token) ) {
+                $remainder = substr($remainder, strlen($token));
+                break;
+            }
+        }
+        if ( preg_match('#^https?://#i', $remainder) ) {
+            $parts = parse_url($remainder);
+            $remainder = isset($parts['path']) && is_string($parts['path']) ? $parts['path'] : '';
+        }
+        $remainder = ltrim($remainder, '/');
+        if ( preg_match('#^courses/\d+/(.*)$#', $remainder, $m) ) {
+            $remainder = $m[1];
+        }
+        $q = strpos($remainder, '?');
+        if ( $q !== false ) {
+            $remainder = substr($remainder, 0, $q);
+        }
+        if ( ! str_starts_with($remainder, 'pages/') ) {
+            return null;
+        }
+        $key = rawurldecode(str_replace('+', ' ', substr($remainder, strlen('pages/'))));
+        $key = trim($key, '/');
+        if ( $key === '' ) {
+            return null;
+        }
+        $slash = strpos($key, '/');
+        if ( $slash !== false ) {
+            $key = substr($key, 0, $slash);
+        }
+        return $key !== '' ? $key : null;
+    }
+
+    /**
      * @param string $url
      * @param int $context_id
      * @return string
      */
     private static function cartridgeFileHref($url, $context_id) {
         $sha = Files::sha256FromDownloadHref($url);
-        $path = null;
-        if ( $sha ) {
-            if ( isset(self::$exportFileZipPaths[$sha]) ) {
-                return self::canvasFileBaseHref(self::$exportFileZipPaths[$sha]);
-            }
-            $path = Files::pathForSha256($sha, $context_id);
-        } else {
-            $remainder = $url;
-            foreach ( CCFileBase::TOKEN_ALIASES as $token ) {
-                if ( str_starts_with($remainder, $token) ) {
-                    $remainder = substr($remainder, strlen($token));
-                    break;
-                }
-            }
-            $remainder = ltrim($remainder, '/');
-            if ( str_starts_with($remainder, 'web_resources/') ) {
-                $path = substr($remainder, strlen('web_resources/'));
-            } else if ( str_starts_with($remainder, 'files/') && ! str_starts_with($remainder, 'files/download/') ) {
-                $path = substr($remainder, strlen('files/'));
-            }
+        if ( $sha && isset(self::$exportFileZipPaths[$sha]) ) {
+            return self::canvasFileBaseHref(self::$exportFileZipPaths[$sha]);
         }
+        $path = $sha ? Files::pathForSha256($sha, $context_id) : self::courseFilePathFromHref($url);
         if ( ! is_string($path) || $path === '' ) {
             return $url;
         }
-        if ( isset(self::$exportFileZipPaths['path:'.$path]) ) {
-            return self::canvasFileBaseHref(self::$exportFileZipPaths['path:'.$path]);
+        $zipPath = self::lookupExportZipPath($path);
+        if ( $zipPath !== null ) {
+            return self::canvasFileBaseHref($zipPath);
         }
         return self::canvasFileBaseHref('web_resources/'.$path);
     }
 
     /**
+     * Course folder/name from a stored page href (FILEBASE, /files/…, or a live course URL).
+     *
+     * @param string $url
+     * @return string|null
+     */
+    private static function courseFilePathFromHref($url) {
+        $remainder = $url;
+        foreach ( CCFileBase::TOKEN_ALIASES as $token ) {
+            if ( str_starts_with($remainder, $token) ) {
+                $remainder = substr($remainder, strlen($token));
+                break;
+            }
+        }
+        if ( preg_match('#^https?://#i', $remainder) ) {
+            $parts = parse_url($remainder);
+            $remainder = isset($parts['path']) && is_string($parts['path']) ? $parts['path'] : '';
+        }
+        $remainder = ltrim($remainder, '/');
+        if ( preg_match('#^courses/\d+/(.*)$#', $remainder, $m) ) {
+            $remainder = $m[1];
+        }
+        $q = strpos($remainder, '?');
+        if ( $q !== false ) {
+            $remainder = substr($remainder, 0, $q);
+        }
+        if ( str_starts_with($remainder, 'web_resources/') ) {
+            $remainder = substr($remainder, strlen('web_resources/'));
+        } else if ( str_starts_with($remainder, 'files/') && ! str_starts_with($remainder, 'files/download/') ) {
+            $remainder = substr($remainder, strlen('files/'));
+        } else {
+            return null;
+        }
+        $remainder = rawurldecode(str_replace('+', ' ', $remainder));
+        $path = Files::normalizeFilePath($remainder);
+        return $path;
+    }
+
+    /**
+     * @param string $path
+     * @return string|null
+     */
+    private static function lookupExportZipPath($path) {
+        $candidates = array($path, rawurldecode($path));
+        $slash = strrpos($path, '/');
+        if ( $slash !== false ) {
+            $candidates[] = substr($path, $slash + 1);
+        }
+        foreach ( $candidates as $candidate ) {
+            $candidate = Files::normalizeFilePath($candidate);
+            if ( $candidate && isset(self::$exportFileZipPaths['path:'.$candidate]) ) {
+                return self::$exportFileZipPaths['path:'.$candidate];
+            }
+        }
+        return null;
+    }
+
+    /**
      * Canvas rewrites $IMS-CC-FILEBASE$/{path} against files imported from
-     * web_resources/. The token must be followed by a slash, and the path is
-     * the zip path with web_resources/ stripped. Including web_resources/ in
-     * the href leaves the token in the page as a relative /pages/ URL.
+     * web_resources/. The token must be followed by a slash, and the path must
+     * match the zip path with web_resources/ stripped (spaces/commas intact).
+     * Percent-encoding that path makes Canvas report missing wiki links.
      *
      * @param string $zipPath
      * @return string
@@ -519,9 +678,7 @@ class LessonsCartridge {
         if ( $rel === '' ) {
             return CCFileBase::TOKEN.'/';
         }
-        $parts = explode('/', $rel);
-        $parts = array_map('rawurlencode', $parts);
-        return CCFileBase::TOKEN.'/'.implode('/', $parts);
+        return CCFileBase::TOKEN.'/'.$rel;
     }
 
     /**

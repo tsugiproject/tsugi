@@ -424,6 +424,7 @@ class Files extends Tool {
 
     public function download(Request $request, $sha256)
     {
+        $sha256 = is_string($sha256) ? strtolower($sha256) : '';
         if ( ! $this->isValidSha256($sha256) ) {
             die('File not found');
         }
@@ -464,6 +465,11 @@ class Files extends Tool {
      */
     public function servePath(Request $request, $path)
     {
+        $raw = is_string($path) ? trim(str_replace('\\', '/', $path), '/') : '';
+        if ( preg_match('#^download/([a-fA-F0-9]{64})$#', $raw, $m) ) {
+            $this->download($request, $m[1]);
+            return;
+        }
         $path = self::normalizeFilePath($path);
         if ( $path === null ) {
             die('File not found');
@@ -1364,7 +1370,7 @@ class Files extends Tool {
 
     /**
      * Lessons author picker fields from a blob_file row.
-     * href is the stored /files/download/{sha256} form.
+     * href is the stored /files/{folder}/{name} form.
      *
      * @param array<string, mixed> $row
      * @param string $folder
@@ -1389,7 +1395,7 @@ class Files extends Tool {
             'folder' => is_string($folder) ? $folder : '',
             'path' => $path,
             'content_type' => $ctype,
-            'href' => self::downloadHrefForSha256($sha),
+            'href' => self::hrefForPath($path) ?: self::downloadHrefForSha256($sha),
         );
     }
 

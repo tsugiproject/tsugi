@@ -125,6 +125,31 @@ class CCIdentifier {
     }
 
     /**
+     * Stable wiki item identifier from the page logical_key (not title or module).
+     *
+     * @param mixed $logicalKey
+     * @return string
+     */
+    public static function wikiIdentifier($logicalKey) {
+        $key = is_string($logicalKey) ? trim($logicalKey) : '';
+        if ( $key === '' ) {
+            $key = 'page';
+        }
+        $gen = new self();
+        return $gen->makeIdentifier('wiki', $key, '', array());
+    }
+
+    /**
+     * Manifest resource identifier / Canvas wiki migration id (identifier + _R).
+     *
+     * @param mixed $logicalKey
+     * @return string
+     */
+    public static function wikiMigrationId($logicalKey) {
+        return self::wikiIdentifier($logicalKey).'_R';
+    }
+
+    /**
      * Reset the collision tracking (useful for testing or if starting a new export)
      */
     public function reset() {
