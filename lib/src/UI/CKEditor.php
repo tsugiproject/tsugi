@@ -493,7 +493,13 @@ class CKEditor {
         }
 
         function insertFileLink(fileItem) {
-            var url = fileItem.url || fileItem.href || '';
+            var path = fileItem.path || '';
+            var url = '';
+            if (path && typeof filesBase !== 'undefined' && filesBase) {
+                url = filesBase.replace(/\/$/, '') + '/' + path.split('/').map(encodeURIComponent).join('/');
+            } else {
+                url = fileItem.url || fileItem.href || '';
+            }
             completeLinkPick(url, fileItem.title || fileItem.filename || '');
         }
 

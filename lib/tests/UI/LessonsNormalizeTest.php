@@ -375,6 +375,20 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('html_page', $page['type']);
         $this->assertSame('reference', $page['subtype']);
         $this->assertSame('{apphome}/syllabus.md', $page['href']);
+
+        $authored = LessonsNormalize::normalizeItem(array(
+            'type' => 'html_page',
+            'title' => 'About',
+            'page_id' => 42,
+            'logical_key' => 'about',
+            'href' => '/pages/about',
+        ));
+        $this->assertSame('html_page', $authored['type']);
+        $this->assertSame(42, $authored['page_id']);
+        $this->assertSame('about', $authored['logical_key']);
+        $this->assertSame('/pages/about', $authored['href']);
+        $keys = array_keys($authored);
+        $this->assertLessThan(array_search('logical_key', $keys, true), array_search('page_id', $keys, true));
     }
 
     public function testUnknownAttributesSurviveNormalizeAndV2() {

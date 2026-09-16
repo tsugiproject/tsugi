@@ -24,6 +24,102 @@ class Pages extends Tool {
     const NAME = 'Pages';
     const REDIRECT = 'tsugi_controllers_pages';
 
+    /**
+     * Path form of a course page URL (/pages/{logical_key}).
+     *
+     * @param mixed $logical_key
+     * @return string|null
+     */
+    public static function hrefForLogicalKey($logical_key)
+    {
+        if ( ! is_string($logical_key) || trim($logical_key) === '' ) {
+            return null;
+        }
+        return self::ROUTE . '/' . rawurlencode($logical_key);
+    }
+
+    /**
+     * HTML document for Common Cartridge wiki_content. Canvas reads the page
+     * name from the <title> tag.
+     *
+     * @param mixed $title
+     * @param mixed $body HTML fragment or full document
+     * @return string
+     */
+    public static function cartridgeDocument($title, $body)
+    {
+        $title_esc = htmlspecialchars(is_string($title) ? $title : '', ENT_QUOTES, 'UTF-8');
+        $inner = is_string($body) ? $body : '';
+        if ( preg_match('/<html[\s>]/i', $inner) ) {
+            if ( preg_match('/<title\b[^>]*>.*?<\/title>/is', $inner) ) {
+                return (string) preg_replace('/<title\b[^>]*>.*?<\/title>/is', '<title>'.$title_esc.'</title>', $inner, 1);
+            }
+            if ( preg_match('/<head\b[^>]*>/i', $inner) ) {
+                return (string) preg_replace('/<head\b[^>]*>/i', '$0<title>'.$title_esc.'</title>', $inner, 1);
+            }
+            return $inner;
+        }
+        return '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>'
+            .'<title>'.$title_esc.'</title></head><body>'.$inner.'</body></html>';
+    }
+
+    /**
+     * Course page for Common Cartridge export, or null if it cannot be loaded.
+     *
+     * @param mixed $page_id
+     * @param mixed $logical_key
+     * @param int $context_id
+     * @return array{title:string,logical_key:string,body:string,html:string}|null
+     */
+    public static function readExportPayload($page_id, $logical_key, $context_id)
+    {
+        global $CFG, $PDOX;
+        $cid = (int) $context_id;
+        $pid = is_numeric($page_id) ? (int) $page_id : 0;
+        $key = is_string($logical_key) ? trim($logical_key) : '';
+        if ( $pid < 1 && $key === '' ) {
+            return null;
+        }
+        try {
+            LTIX::getConnection();
+        } catch ( \Throwable $e ) {
+            return null;
+        }
+        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
+            return null;
+        }
+        $p = $CFG->dbprefix;
+        $row = null;
+        if ( $pid > 0 && $cid > 0 ) {
+            $row = $PDOX->rowDie(
+                "SELECT page_id, title, logical_key, body
+                 FROM {$p}pages
+                 WHERE page_id = :PID AND context_id = :CID",
+                array(':PID' => $pid, ':CID' => $cid)
+            );
+        }
+        if ( ! is_array($row) && $key !== '' && $cid > 0 ) {
+            $row = $PDOX->rowDie(
+                "SELECT page_id, title, logical_key, body
+                 FROM {$p}pages
+                 WHERE logical_key = :KEY AND context_id = :CID",
+                array(':KEY' => $key, ':CID' => $cid)
+            );
+        }
+        if ( ! is_array($row) ) {
+            return null;
+        }
+        $title = isset($row['title']) && is_string($row['title']) ? $row['title'] : '';
+        $lk = isset($row['logical_key']) && is_string($row['logical_key']) ? $row['logical_key'] : $key;
+        $body = isset($row['body']) && is_string($row['body']) ? $row['body'] : '';
+        return array(
+            'title' => $title,
+            'logical_key' => $lk,
+            'body' => $body,
+            'html' => self::cartridgeDocument($title, $body),
+        );
+    }
+
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Pages@index');
         $app->router->get($prefix.'/', 'Pages@index');
@@ -102,7 +198,10 @@ class Pages extends Tool {
      * @return string
      */
     private function canonicalizePageHtml($html) {
-        return CCFileBase::canonicalize($html, $this->courseFileBaseUrl(self::ROUTE), self::courseLocalPrefixes());
+        return Files::rewriteDownloadHrefsToPaths(
+            CCFileBase::canonicalize($html, $this->courseFileBaseUrl(self::ROUTE), self::courseLocalPrefixes()),
+            U::currentContextId()
+        );
     }
 
     public function index(Request $request, $logical_key = null)

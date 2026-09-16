@@ -15,7 +15,8 @@
  * - $files_json_url: session-bearing URL for course Files JSON (picker)
  * - $files_home_url: session-bearing URL for the Files tool
  * - $quiz1_home_url, $quiz1_list: Quiz1 picker for native quiz items
- * - $pages_json_url, $lessons_json_url, $pages_base, $app_home: link picker
+ * - $pages_json_url, $pages_home_url, $pages_add_url: Pages picker
+ * - $lessons_json_url, $pages_base, $app_home: link picker
  */
 ?>
 <style>
@@ -331,6 +332,7 @@
 .item-type.assignment { background: #fd7e14; }
 .item-type.slide { background: #6f42c1; }
 .item-type.file { background: #6c757d; }
+.item-type.page { background: #0d6efd; }
 
 .file-picker-summary {
     margin-top: 8px;
@@ -763,6 +765,8 @@ if (!lessonsData.lessons_json_version) {
 var filesJsonUrl = <?= json_encode($files_json_url ?? '') ?>;
 var filesHomeUrl = <?= json_encode($files_home_url ?? '') ?>;
 var pagesJsonUrl = <?= json_encode($pages_json_url ?? '') ?>;
+var pagesHomeUrl = <?= json_encode($pages_home_url ?? '') ?>;
+var pagesAddUrl = <?= json_encode($pages_add_url ?? '') ?>;
 var lessonsJsonUrl = <?= json_encode($lessons_json_url ?? '') ?>;
 var pagesBase = <?= json_encode($pages_base ?? '') ?>;
 var filesBase = filesHomeUrl;
@@ -772,6 +776,7 @@ var quiz1Quizzes = <?= json_encode($quiz1_list ?? array()) ?>;
 var currentPageId = null;
 <?php \Tsugi\UI\CKEditor::renderLinkPickerScript(); ?>
 let courseFilesCache = null;
+let coursePagesCache = null;
 let filePickerState = emptyFilePickerState();
 let hasChanges = false;
 let editingItemIndex = null;
@@ -973,11 +978,11 @@ function itemEditorKind(item) {
     if (type === 'discussion') return 'discussion';
     if (type === 'assignment') return 'assignment';
     if (type === 'file') return 'file';
+    if (type === 'html_page') return 'page';
     if (type === 'slide' || type === 'slides') return 'slide';
     if (type === 'reference') return 'reference';
     if (type === 'lti') return 'lti';
     if (type === 'quiz') return 'quiz';
-    if (type === 'html_page') return 'assignment';
     const sub = item.subtype || '';
     if (sub === 'video') return 'video';
     if (sub === 'discussion') return 'discussion';
@@ -993,8 +998,8 @@ function itemFoundationalType(item) {
     if (kind === 'heading' || kind === 'header') {
         return 'heading';
     }
-    if (kind === 'discussion' || kind === 'lti' || kind === 'file' || kind === 'quiz') {
-        return kind;
+    if (kind === 'discussion' || kind === 'lti' || kind === 'file' || kind === 'quiz' || kind === 'page') {
+        return kind === 'page' ? 'html_page' : kind;
     }
     return 'web_link';
 }
@@ -1022,6 +1027,21 @@ function quiz1ById(id) {
         return null;
     }
     return (quiz1Quizzes || []).find(function(q) { return q.id === qid; }) || null;
+}
+
+function pageById(id) {
+    const pid = parseInt(id, 10) || 0;
+    if (!pid) {
+        return null;
+    }
+    return (coursePagesCache || []).find(function(p) { return parseInt(p.id, 10) === pid; }) || null;
+}
+
+function pageItemHref(logicalKey) {
+    if (!logicalKey) {
+        return '';
+    }
+    return <?= json_encode(\Tsugi\Controllers\Pages::ROUTE) ?> + '/' + encodeURIComponent(logicalKey);
 }
 
 function quizPickerFieldsHtml(item) {
@@ -1077,6 +1097,35 @@ function onQuizPicked() {
     }
 }
 
+function pagePickerFieldsHtml(item) {
+    const selected = parseInt(item.page_id, 10) || 0;
+    const manage = pagesHomeUrl
+        ? `<div class="file-picker-summary"><a href="${escapeHtml(pagesHomeUrl)}" target="_blank" rel="noopener noreferrer">Manage pages</a></div>`
+        : '';
+    return `
+            <div class="form-group">
+                <label>Title:</label>
+                <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}" placeholder="Defaults to the page title">
+            </div>
+            <div class="form-group">
+                <label>Page:</label>
+                <select id="edit-page-id">
+                    <option value="">Loading pages…</option>
+                </select>
+                <div id="page-picker-summary" class="file-picker-summary">${manage}</div>
+            </div>
+    `;
+}
+
+function onPagePicked() {
+    const id = parseInt($('#edit-page-id').val(), 10);
+    const p = pageById(id);
+    const titleEl = document.getElementById('edit-title');
+    if (p && titleEl && !titleEl.value.trim()) {
+        titleEl.value = p.title;
+    }
+}
+
 function webLinkSubtypeSelectHtml(subtype) {
     const options = [
         ['reference', 'Reference'],
@@ -1124,6 +1173,7 @@ function migrateFCPXToReference() {
 // Initialize
 $(document).ready(function() {
     migrateFCPXToReference();
+    loadCoursePages().catch(function() {});
     renderModules();
     setupSortable();
 
@@ -1489,6 +1539,7 @@ function getItemTypeIcon(itemOrType) {
         'slide': 'fa-file-powerpoint-o',
         'web_link': 'fa-external-link',
         'html_page': 'fa-file-text-o',
+        'page': 'fa-file-text-o',
         'file': 'fa-file-o'
     };
     return icons[kind] || 'fa-circle';
@@ -1534,6 +1585,15 @@ function getItemTitle(item) {
         const q = quiz1ById(qid);
         let title = item.title || (q ? q.title : (qid ? ('Quiz ' + qid) : 'Untitled Item'));
         if (qid && !q) {
+            title += ' (missing)';
+        }
+        return title;
+    }
+    if (itemEditorKind(item) === 'page') {
+        const pid = parseInt(item.page_id, 10) || 0;
+        const p = pageById(pid);
+        let title = item.title || (p ? p.title : (item.logical_key || 'Untitled page'));
+        if (pid && coursePagesCache && !p) {
             title += ' (missing)';
         }
         return title;
@@ -1830,6 +1890,10 @@ function harvestItemFormDraft(item) {
     if (quizEl && quizEl.value) {
         item.quiz_id = parseInt(quizEl.value, 10);
     }
+    const pageEl = document.getElementById('edit-page-id');
+    if (pageEl && pageEl.value) {
+        item.page_id = parseInt(pageEl.value, 10);
+    }
     const targetEl = document.querySelector('input[name="edit-target"]:checked');
     if (targetEl) {
         item.target = targetEl.value;
@@ -1857,6 +1921,7 @@ function showItemModal(title, item) {
                 <option value="quiz" ${type === 'quiz' ? 'selected' : ''}>Quiz</option>
                 <option value="lti" ${type === 'lti' ? 'selected' : ''}>LTI</option>
                 <option value="file" ${type === 'file' ? 'selected' : ''}>File</option>
+                <option value="html_page" ${type === 'html_page' ? 'selected' : ''}>Page</option>
             </select>
         </div>
         <div id="item-form-fields"></div>
@@ -1880,15 +1945,16 @@ function updateItemForm() {
     if (type === 'web_link') {
         const subEl = document.getElementById('edit-link-subtype');
         const sub = subEl ? subEl.value : itemLinkSubtype(currentItem);
-        if (currentItem.type !== 'html_page') {
-            currentItem.type = 'web_link';
-        }
+        currentItem.type = 'web_link';
         currentItem.subtype = sub || 'reference';
     } else if (type === 'file') {
         currentItem.type = 'file';
         if (currentItem.subtype !== 'slides') {
             delete currentItem.subtype;
         }
+    } else if (type === 'html_page') {
+        currentItem.type = 'html_page';
+        delete currentItem.subtype;
     } else {
         currentItem.type = type;
         delete currentItem.subtype;
@@ -1987,6 +2053,8 @@ function updateItemFormFields(item) {
         `;
     } else if (type === 'quiz') {
         fieldsHtml = quizPickerFieldsHtml(item);
+    } else if (type === 'page') {
+        fieldsHtml = pagePickerFieldsHtml(item);
     } else if (type === 'lti') {
         const customFields = item.custom || [];
         const customFieldsHtml = customFields.map((field, index) => `
@@ -2072,6 +2140,9 @@ function updateItemFormFields(item) {
     if (type === 'file') {
         updateFilePickerSummary();
         populateFilePicker(item);
+    }
+    if (type === 'page') {
+        populatePagePicker(item);
     }
     if (document.getElementsByName('edit-href-source').length) {
         updateWebLinkSourceRows();
@@ -2219,6 +2290,88 @@ function populateFilePicker(item) {
     });
 }
 
+function loadCoursePages() {
+    if (coursePagesCache) {
+        return Promise.resolve(coursePagesCache);
+    }
+    if (!pagesJsonUrl) {
+        return Promise.resolve([]);
+    }
+    return fetch(pagesJsonUrl, { credentials: 'same-origin' })
+        .then(function(resp) {
+            if (!resp.ok) {
+                throw new Error('Could not load course pages');
+            }
+            return resp.json();
+        })
+        .then(function(data) {
+            coursePagesCache = Array.isArray(data) ? data : [];
+            return coursePagesCache;
+        });
+}
+
+function populatePagePicker(item) {
+    const select = document.getElementById('edit-page-id');
+    if (!select) {
+        return;
+    }
+    const selected = parseInt(item && item.page_id, 10) || 0;
+    loadCoursePages().then(function(pages) {
+        select.innerHTML = '';
+        const createHint = pagesAddUrl
+            ? `<a href="${escapeHtml(pagesAddUrl)}" target="_blank" rel="noopener noreferrer">Create a page</a>, then come back and add it here.`
+            : 'Create a page in Pages, then come back.';
+        if (!pages.length && !selected) {
+            const empty = document.createElement('option');
+            empty.value = '';
+            empty.textContent = 'No pages in this course';
+            select.appendChild(empty);
+            const hint = document.getElementById('page-picker-summary');
+            if (hint) {
+                hint.innerHTML = 'No pages in this course yet. ' + createHint;
+            }
+            return;
+        }
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Choose a page…';
+        select.appendChild(placeholder);
+        let found = false;
+        pages.forEach(function(p) {
+            const opt = document.createElement('option');
+            opt.value = String(p.id);
+            opt.textContent = p.title || p.logical_key || ('Page ' + p.id);
+            if (parseInt(p.id, 10) === selected) {
+                opt.selected = true;
+                found = true;
+            }
+            select.appendChild(opt);
+        });
+        if (selected && !found) {
+            const missing = document.createElement('option');
+            missing.value = String(selected);
+            missing.textContent = (item.title || item.logical_key || ('Page ' + selected)) + ' — missing from this course';
+            missing.selected = true;
+            select.insertBefore(missing, select.options[1] || null);
+            const hint = document.getElementById('page-picker-summary');
+            if (hint) {
+                hint.textContent = 'This lesson still points at a page that is not in this course. Keep it, pick another page, or delete the item.';
+            }
+        }
+        select.onchange = onPagePicked;
+    }).catch(function() {
+        select.innerHTML = '';
+        const err = document.createElement('option');
+        err.value = '';
+        err.textContent = 'Could not load pages';
+        select.appendChild(err);
+        const hint = document.getElementById('page-picker-summary');
+        if (hint) {
+            hint.textContent = 'Could not load the course Pages list.';
+        }
+    });
+}
+
 function updateWebLinkSourceRows() {
     const source = $('input[name="edit-href-source"]:checked').val();
     if (source === 'course') {
@@ -2305,12 +2458,8 @@ function saveWebLinkItem(item) {
     delete item.media;
     delete item.reference;
     delete item.FCPX;
-    if (subtype === 'assignment' && item.type === 'html_page') {
-        item.subtype = 'assignment';
-    } else {
-        item.type = 'web_link';
-        item.subtype = subtype;
-    }
+    item.type = 'web_link';
+    item.subtype = subtype;
     const targetVal = $('input[name="edit-target"]:checked').val();
     if (targetVal === '_self' || targetVal === 'modal') {
         item.target = targetVal;
@@ -2416,10 +2565,45 @@ function saveItem() {
         } else {
             delete item.content_type;
         }
+    } else if (type === 'html_page') {
+        const pageId = parseInt($('#edit-page-id').val(), 10);
+        if (!pageId) {
+            alert('Pick a page from this course. Create one under Pages if the list is empty.');
+            return;
+        }
+        const selected = pageById(pageId);
+        const logicalKey = selected ? selected.logical_key : (item.logical_key || '');
+        if (!logicalKey) {
+            alert('Pick a page from this course. Create one under Pages if the list is empty.');
+            return;
+        }
+        item.type = 'html_page';
+        delete item.subtype;
+        delete item.launch;
+        delete item.url;
+        delete item.resource_link_id;
+        delete item.custom;
+        delete item.youtube;
+        delete item.kaltura_id;
+        delete item.media;
+        delete item.reference;
+        delete item.filename;
+        delete item.sha256;
+        delete item.content_type;
+        delete item.quiz_id;
+        item.page_id = pageId;
+        item.logical_key = logicalKey;
+        item.href = pageItemHref(logicalKey);
+        const titleVal = $('#edit-title').val().trim();
+        item.title = titleVal || (selected ? selected.title : logicalKey);
     }
 
     if (item.type !== 'quiz') {
         delete item.quiz_id;
+    }
+    if (item.type !== 'html_page') {
+        delete item.page_id;
+        delete item.logical_key;
     }
 
     if ($('#edit-item-icon').length) {

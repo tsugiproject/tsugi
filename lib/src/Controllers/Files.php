@@ -61,6 +61,8 @@ class Files extends Tool {
         $app->router->post($prefix.'/upload', 'Files@uploadPost');
         $app->router->post($prefix.'/mkdir', 'Files@mkdirPost');
         $app->router->post($prefix.'/delete/{id}', 'Files@deletePost');
+        // Last: /files/{folder}/{name} so page HTML can link by path, not sha.
+        $app->router->get($prefix.'/{path:.+}', 'Files@servePath');
     }
 
     public function index(Request $request)
@@ -401,10 +403,12 @@ class Files extends Tool {
                 continue;
             }
             $path = $this->joinFolder($folder, $row['file_name']);
-            $download = $this->downloadUrl($row);
             $item = self::lessonsFilePickerItem($row, $folder);
             $item['path'] = $path;
-            $item['url'] = $download;
+            $href = self::hrefForPath($path);
+            $item['url'] = $href
+                ? rtrim($this->toolHome(self::ROUTE), '/').substr($href, strlen(self::ROUTE))
+                : $this->downloadUrl($row);
             $out[] = $item;
         }
         usort($out, function($a, $b) {
@@ -451,6 +455,38 @@ class Files extends Tool {
             die('File not found');
         }
 
+        $this->emitFile($row);
+    }
+
+    /**
+     * Serve a file by course folder path (/files/Student/notes.pdf).
+     * Used by page HTML so links stay path-based instead of sha download URLs.
+     */
+    public function servePath(Request $request, $path)
+    {
+        $path = self::normalizeFilePath($path);
+        if ( $path === null ) {
+            die('File not found');
+        }
+
+        $public = $this->getPublicFileByPath($path);
+        if ( $public ) {
+            $this->launchFromFileRow($public);
+            $this->emitFile($public);
+        }
+
+        $this->requireAuth();
+        $this->ensureFilesLaunch();
+        $is_instructor = $this->isInstructor();
+
+        $row = $this->getFileRowByPath($path);
+        if ( ! $row ) {
+            die('File not found');
+        }
+        $meta = $this->decodeMeta($row);
+        if ( ! $is_instructor && $this->isPrivatePath($meta['folder']) ) {
+            die('File not found');
+        }
         $this->emitFile($row);
     }
 
@@ -808,6 +844,57 @@ class Files extends Tool {
         foreach ( $rows as $row ) {
             $meta = $this->decodeMeta($row);
             if ( $meta['kind'] === self::KIND_FILE && $this->isPublicPath($meta['folder']) ) {
+                return $row;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * A Public file at this folder path, in any course. No login required.
+     */
+    private function getPublicFileByPath($path)
+    {
+        global $CFG, $PDOX;
+
+        LTIX::getConnection();
+        $slash = strrpos($path, '/');
+        $name = $slash === false ? $path : substr($path, $slash + 1);
+        $rows = $PDOX->allRowsDie(
+            "SELECT file_id, file_name, file_sha256, contenttype, json, bytelen, created_at, backref, link_id, context_id
+             FROM {$CFG->dbprefix}blob_file
+             WHERE file_name = :NAME AND backref = :BR
+               AND (deleted IS NULL OR deleted = 0)",
+            array(
+                ':NAME' => $name,
+                ':BR' => self::BACKREF
+            )
+        );
+        foreach ( $rows as $row ) {
+            $meta = $this->decodeMeta($row);
+            if ( $meta['kind'] === self::KIND_FILE && $this->isPublicPath($meta['folder'])
+                && self::pathFromFileRow($row) === $path ) {
+                return $row;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * File row for a folder/name path in the current course.
+     */
+    private function getFileRowByPath($path)
+    {
+        $link_id = $this->ensureFilesLaunch();
+        $slash = strrpos($path, '/');
+        $folder = $slash === false ? '' : substr($path, 0, $slash);
+        $name = $slash === false ? $path : substr($path, $slash + 1);
+        foreach ( $this->allItems($link_id) as $row ) {
+            $meta = $this->decodeMeta($row);
+            if ( $meta['kind'] !== self::KIND_FILE ) {
+                continue;
+            }
+            if ( $meta['folder'] === $folder && $row['file_name'] === $name ) {
                 return $row;
             }
         }
@@ -1185,10 +1272,94 @@ class Files extends Tool {
         if ( ! is_string($href) || $href === '' ) {
             return null;
         }
-        if ( preg_match('~/files/download/([a-fA-F0-9]{64})(?:[/?#]|$)~', $href, $m) ) {
+        if ( preg_match('~files/download/([a-fA-F0-9]{64})(?:[/?#]|$)~', $href, $m) ) {
             return strtolower($m[1]);
         }
         return null;
+    }
+
+    /**
+     * Path form of a course file URL (/files/{folder}/{name}).
+     *
+     * @param mixed $path
+     * @return string|null
+     */
+    public static function hrefForPath($path)
+    {
+        $path = self::normalizeFilePath($path);
+        if ( $path === null ) {
+            return null;
+        }
+        $parts = explode('/', $path);
+        $parts = array_map('rawurlencode', $parts);
+        return self::ROUTE . '/' . implode('/', $parts);
+    }
+
+    /**
+     * Folder/name for a sha256 in this context, or null.
+     *
+     * @param mixed $sha256
+     * @param int $context_id
+     * @return string|null
+     */
+    public static function pathForSha256($sha256, $context_id)
+    {
+        $row = self::exportRowForSha256($sha256, $context_id);
+        if ( ! is_array($row) ) {
+            return null;
+        }
+        return self::pathFromFileRow($row);
+    }
+
+    /**
+     * Replace files/download/{sha} in stored HTML with files/{path}.
+     *
+     * @param mixed $html
+     * @param int $context_id
+     * @return string
+     */
+    public static function rewriteDownloadHrefsToPaths($html, $context_id)
+    {
+        if ( ! is_string($html) || $html === '' ) {
+            return is_string($html) ? $html : '';
+        }
+        return (string) preg_replace_callback(
+            '#files/download/([a-fA-F0-9]{64})#',
+            function ($m) use ($context_id) {
+                $path = self::pathForSha256($m[1], $context_id);
+                if ( $path === null || $path === '' ) {
+                    return $m[0];
+                }
+                return 'files/'.$path;
+            },
+            $html
+        );
+    }
+
+    /**
+     * @param mixed $path
+     * @return string|null
+     */
+    public static function normalizeFilePath($path)
+    {
+        if ( ! is_string($path) || $path === '' ) {
+            return null;
+        }
+        $path = str_replace('\\', '/', $path);
+        $path = trim($path, '/');
+        if ( $path === '' ) {
+            return null;
+        }
+        $parts = array();
+        foreach ( explode('/', $path) as $seg ) {
+            $seg = rawurldecode($seg);
+            $seg = trim($seg);
+            if ( $seg === '' || $seg === '.' || $seg === '..' ) {
+                return null;
+            }
+            $parts[] = $seg;
+        }
+        return $parts ? implode('/', $parts) : null;
     }
 
     /**
@@ -1241,9 +1412,44 @@ class Files extends Tool {
      *
      * @param mixed $sha256
      * @param int $context_id
-     * @return array{bytes:string,filename:string,content_type:string}|null
+     * @return array{bytes:string,filename:string,content_type:string,path?:string}|null
      */
     public static function readExportPayload($sha256, $context_id)
+    {
+        $row = self::exportRowForSha256($sha256, $context_id);
+        if ( ! is_array($row) ) {
+            return null;
+        }
+        $sha = strtolower((string) $sha256);
+        $filename = isset($row['file_name']) && is_string($row['file_name']) && $row['file_name'] !== ''
+            ? $row['file_name']
+            : $sha;
+        $ctype = isset($row['contenttype']) && is_string($row['contenttype'])
+            ? $row['contenttype']
+            : '';
+        $storedPath = isset($row['path']) && is_string($row['path']) ? $row['path'] : '';
+        $bytes = self::readBlobBytesBySha256($sha, $storedPath);
+        if ( ! is_string($bytes) ) {
+            return null;
+        }
+        $coursePath = self::pathFromFileRow($row);
+        $out = array(
+            'bytes' => $bytes,
+            'filename' => $filename,
+            'content_type' => $ctype,
+        );
+        if ( $coursePath ) {
+            $out['path'] = $coursePath;
+        }
+        return $out;
+    }
+
+    /**
+     * @param mixed $sha256
+     * @param int $context_id
+     * @return array<string, mixed>|null
+     */
+    private static function exportRowForSha256($sha256, $context_id)
     {
         global $CFG, $PDOX;
         if ( ! self::isSha256($sha256) ) {
@@ -1263,7 +1469,7 @@ class Files extends Tool {
         $row = null;
         if ( $cid > 0 ) {
             $row = $PDOX->rowDie(
-                "SELECT file_name, contenttype, path
+                "SELECT file_name, contenttype, path, json
                  FROM {$p}blob_file
                  WHERE file_sha256 = :SHA AND context_id = :CID AND backref = :BR
                    AND (deleted IS NULL OR deleted = 0)
@@ -1273,7 +1479,7 @@ class Files extends Tool {
         }
         if ( ! is_array($row) ) {
             $row = $PDOX->rowDie(
-                "SELECT file_name, contenttype, path
+                "SELECT file_name, contenttype, path, json
                  FROM {$p}blob_file
                  WHERE file_sha256 = :SHA AND backref = :BR
                    AND (deleted IS NULL OR deleted = 0)
@@ -1281,22 +1487,27 @@ class Files extends Tool {
                 array(':SHA' => $sha, ':BR' => self::BACKREF)
             );
         }
-        $filename = is_array($row) && isset($row['file_name']) && is_string($row['file_name']) && $row['file_name'] !== ''
-            ? $row['file_name']
-            : $sha;
-        $ctype = is_array($row) && isset($row['contenttype']) && is_string($row['contenttype'])
-            ? $row['contenttype']
-            : '';
-        $storedPath = is_array($row) && isset($row['path']) && is_string($row['path']) ? $row['path'] : '';
-        $bytes = self::readBlobBytesBySha256($sha, $storedPath);
-        if ( ! is_string($bytes) ) {
+        return is_array($row) ? $row : null;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     * @return string|null
+     */
+    public static function pathFromFileRow($row)
+    {
+        $name = isset($row['file_name']) && is_string($row['file_name']) ? $row['file_name'] : '';
+        if ( $name === '' ) {
             return null;
         }
-        return array(
-            'bytes' => $bytes,
-            'filename' => $filename,
-            'content_type' => $ctype,
-        );
+        $folder = '';
+        if ( ! empty($row['json']) && is_string($row['json']) ) {
+            $data = json_decode($row['json'], true);
+            if ( is_array($data) && isset($data['folder']) && is_string($data['folder']) ) {
+                $folder = $data['folder'];
+            }
+        }
+        return $folder === '' ? $name : $folder.'/'.$name;
     }
 
     /**

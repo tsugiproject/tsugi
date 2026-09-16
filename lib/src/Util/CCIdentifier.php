@@ -41,6 +41,7 @@ class CCIdentifier {
         'header' => 'H',
         'qti' => 'Q1',
         'file' => 'F',
+        'wiki' => 'WP',
     );
 
     /**

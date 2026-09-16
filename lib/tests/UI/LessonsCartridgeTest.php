@@ -51,6 +51,7 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(1, $counts['resources']);
         $this->assertSame(0, $counts['discussions']);
         $this->assertSame(0, $counts['files']);
+        $this->assertSame(0, $counts['pages']);
     }
 
     public function testSummarizeCountsFilesSeparatelyFromResources()
@@ -72,6 +73,29 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(1, $counts['modules']);
         $this->assertSame(1, $counts['resources']);
         $this->assertSame(1, $counts['files']);
+        $this->assertSame(0, $counts['assignments']);
+        $this->assertSame(0, $counts['discussions']);
+        $this->assertSame(0, $counts['quizzes']);
+        $this->assertSame(0, $counts['pages']);
+    }
+
+    public function testSummarizeCountsPagesSeparatelyFromResources()
+    {
+        $l = $this->lessonsDoc(array(
+            array('type' => 'web_link', 'subtype' => 'reference', 'title' => 'Doc', 'href' => 'https://example.com/'),
+            array(
+                'type' => 'html_page',
+                'title' => 'About',
+                'page_id' => 7,
+                'logical_key' => 'about',
+                'href' => '/pages/about',
+            ),
+        ));
+        $counts = LessonsCartridge::summarize($l);
+        $this->assertSame(1, $counts['modules']);
+        $this->assertSame(1, $counts['resources']);
+        $this->assertSame(1, $counts['pages']);
+        $this->assertSame(0, $counts['files']);
         $this->assertSame(0, $counts['assignments']);
         $this->assertSame(0, $counts['discussions']);
         $this->assertSame(0, $counts['quizzes']);
@@ -398,6 +422,158 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
                 return null;
             },
         ));
+    }
+
+    public function testWriteZipEmbedsPageAsWikiContent()
+    {
+        $html = '<html><head><title>About</title></head><body><p>Hello</p></body></html>';
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'html_page',
+                'title' => 'About',
+                'page_id' => 7,
+                'logical_key' => 'about',
+                'href' => '/pages/about',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array(
+            'load_page' => function ($item) use ($html) {
+                $this->assertSame(7, (int) $item->page_id);
+                return array(
+                    'title' => 'About',
+                    'logical_key' => 'about',
+                    'html' => $html,
+                );
+            },
+        ));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $manifest = $zip->getFromName('imsmanifest.xml');
+            $this->assertNotFalse($manifest);
+            $this->assertStringContainsString('type="'.CC::WEBCONTENT_TYPE.'"', $manifest);
+            $this->assertStringContainsString('href="wiki_content/about.html"', $manifest);
+            $this->assertStringContainsString('<title>About</title>', $manifest);
+            $this->assertMatchesRegularExpression('/identifier="(WP_[^"]+_R)" type="'.preg_quote(CC::WEBCONTENT_TYPE, '/').'" href="wiki_content\/about.html"/', $manifest);
+            preg_match('/identifier="(WP_[^"]+_R)" type="'.preg_quote(CC::WEBCONTENT_TYPE, '/').'" href="wiki_content\/about.html"/', $manifest, $m);
+            $pageHtml = $zip->getFromName('wiki_content/about.html');
+            $this->assertNotFalse($pageHtml);
+            $this->assertStringContainsString('<title>About</title>', $pageHtml);
+            $this->assertStringContainsString('<p>Hello</p>', $pageHtml);
+            $this->assertStringContainsString('<meta name="identifier" content="'.$m[1].'"/>', $pageHtml);
+            $this->assertStringContainsString('<meta name="editing_roles" content="teachers"/>', $pageHtml);
+            $this->assertStringContainsString('<meta name="workflow_state" content="active"/>', $pageHtml);
+            $this->assertNotFalse($zip->getFromName('course_settings/canvas_export.txt'));
+            $moduleMeta = $zip->getFromName('course_settings/module_meta.xml');
+            $this->assertNotFalse($moduleMeta);
+            $this->assertStringContainsString('<content_type>WikiPage</content_type>', $moduleMeta);
+            $this->assertStringContainsString('<identifierref>'.$m[1].'</identifierref>', $moduleMeta);
+            $this->assertStringNotContainsString('imswl_xmlv1p2', $manifest);
+            $this->assertStringNotContainsString('/pages/about', $manifest);
+            $zip->close();
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipCanvasMarksPageAsWikiPage()
+    {
+        $html = '<html><head><title>About</title></head><body><p>Hi</p></body></html>';
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'html_page',
+                'title' => 'About',
+                'page_id' => 7,
+                'logical_key' => 'about',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array(
+            'tsugi_lms' => 'canvas',
+            'load_page' => function ($item) use ($html) {
+                return array('title' => 'About', 'logical_key' => 'about', 'html' => $html);
+            },
+        ));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $meta = $zip->getFromName('course_settings/module_meta.xml');
+            $this->assertNotFalse($meta);
+            $this->assertStringContainsString('<content_type>WikiPage</content_type>', $meta);
+            $this->assertStringContainsString('<title>About</title>', $meta);
+            $pageHtml = $zip->getFromName('wiki_content/about.html');
+            $this->assertNotFalse($pageHtml);
+            $this->assertStringContainsString('<title>About</title>', $pageHtml);
+            $this->assertStringContainsString('<p>Hi</p>', $pageHtml);
+            $this->assertStringContainsString('<meta name="identifier" content="', $pageHtml);
+            $zip->close();
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipFailsWhenPageMissing()
+    {
+        $this->expectException(ExportException::class);
+        $this->expectExceptionMessage('could not be loaded');
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'html_page',
+                'title' => 'Missing',
+                'page_id' => 99,
+                'logical_key' => 'missing',
+            ),
+        ));
+        $this->writeCartridge($l, array(
+            'load_page' => function ($item) {
+                return null;
+            },
+        ));
+    }
+
+    public function testWriteZipPageFileLinksUseWebResourcesPath()
+    {
+        $sha = str_repeat('e', 64);
+        $html = '<html><head><title>About</title></head><body><p><a href="$IMS-CC-FILEBASE$files/download/'.$sha.'">img</a></p></body></html>';
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'file',
+                'title' => 'Pic',
+                'sha256' => $sha,
+                'filename' => 'week-one.pdf',
+                'path' => 'Student/week-one.pdf',
+            ),
+            array(
+                'type' => 'html_page',
+                'title' => 'About',
+                'page_id' => 7,
+                'logical_key' => 'about',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array(
+            'load_file' => function ($item) {
+                return array(
+                    'bytes' => 'PDF',
+                    'filename' => 'week-one.pdf',
+                    'path' => 'Student/week-one.pdf',
+                );
+            },
+            'load_page' => function ($item) use ($html) {
+                return array('title' => 'About', 'logical_key' => 'about', 'html' => $html);
+            },
+        ));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $this->assertSame('PDF', $zip->getFromName('web_resources/Student/week-one.pdf'));
+            $pageHtml = $zip->getFromName('wiki_content/about.html');
+            $this->assertNotFalse($pageHtml);
+            $this->assertStringContainsString('$IMS-CC-FILEBASE$/Student/week-one.pdf', $pageHtml);
+            $this->assertStringNotContainsString('files/download/', $pageHtml);
+            $this->assertStringNotContainsString('$IMS-CC-FILEBASE$web_resources/', $pageHtml);
+            $zip->close();
+        } finally {
+            @unlink($path);
+        }
     }
 
     /**

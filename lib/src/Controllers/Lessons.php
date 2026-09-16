@@ -147,6 +147,8 @@ class Lessons extends Tool {
         $files_home_url = U::addSession($this->controllerUrl(Files::ROUTE));
         $pages_home = $this->controllerUrl(Pages::ROUTE);
         $pages_json_url = U::addSession($pages_home . '/json');
+        $pages_home_url = U::addSession($pages_home);
+        $pages_add_url = U::addSession($pages_home . '/add');
         $lessons_json_url = U::addSession($pages_home . '/lessons-json');
         $pages_base = $pages_home;
         $app_home = (isset($CFG->apphome) && is_string($CFG->apphome)) ? rtrim($CFG->apphome, '/') : '';

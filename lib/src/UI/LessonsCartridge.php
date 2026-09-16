@@ -3,8 +3,10 @@
 namespace Tsugi\UI;
 
 use Tsugi\Util\CC;
+use Tsugi\Util\CCFileBase;
 use Tsugi\Util\U;
 use Tsugi\Controllers\Files;
+use Tsugi\Controllers\Pages;
 use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Quiz1\Qti12Exporter;
 use Tsugi\Services\Quiz1\QuizRepository;
@@ -17,9 +19,23 @@ use Tsugi\Services\Quiz1\QuizRepository;
 class LessonsCartridge {
 
     /**
+     * sha256 / "path:{course path}" => zip path (web_resources/...).
+     *
+     * @var array<string, string>
+     */
+    private static $exportFileZipPaths = array();
+
+    /**
+     * Wiki pages deferred until files are in the zip so FILEBASE links can use paths.
+     *
+     * @var list<array{html:string,title:string,logical_key:string,sub_module:mixed}>
+     */
+    private static $pendingWikiPages = array();
+
+    /**
      * Counts for the export form.
      *
-     * @return array{modules:int,resources:int,assignments:int,discussions:int,quizzes:int,files:int}
+     * @return array{modules:int,resources:int,assignments:int,discussions:int,quizzes:int,files:int,pages:int}
      */
     public static function summarize($l) {
         $modules = 0;
@@ -28,6 +44,7 @@ class LessonsCartridge {
         $discussions = 0;
         $quizzes = 0;
         $files = 0;
+        $pages = 0;
         if ( ! isset($l->lessons->modules) || ! is_array($l->lessons->modules) ) {
             return array(
                 'modules' => 0,
@@ -36,6 +53,7 @@ class LessonsCartridge {
                 'discussions' => 0,
                 'quizzes' => 0,
                 'files' => 0,
+                'pages' => 0,
             );
         }
         foreach ( $l->lessons->modules as $module ) {
@@ -46,6 +64,7 @@ class LessonsCartridge {
             $discussions += $c['discussions'];
             $quizzes += $c['quizzes'];
             $files += $c['files'];
+            $pages += $c['pages'];
         }
         return array(
             'modules' => $modules,
@@ -54,11 +73,12 @@ class LessonsCartridge {
             'discussions' => $discussions,
             'quizzes' => $quizzes,
             'files' => $files,
+            'pages' => $pages,
         );
     }
 
     /**
-     * @return array{resources:int,assignments:int,discussions:int,quizzes:int,files:int}
+     * @return array{resources:int,assignments:int,discussions:int,quizzes:int,files:int,pages:int}
      */
     public static function moduleCounts($module) {
         $resources = 0;
@@ -66,8 +86,9 @@ class LessonsCartridge {
         $discussions = 0;
         $quizzes = 0;
         $files = 0;
+        $pages = 0;
         foreach ( self::itemsForModule($module) as $item ) {
-            self::countItem($item, $resources, $assignments, $discussions, $quizzes, $files);
+            self::countItem($item, $resources, $assignments, $discussions, $quizzes, $files, $pages);
         }
         return array(
             'resources' => $resources,
@@ -75,13 +96,14 @@ class LessonsCartridge {
             'discussions' => $discussions,
             'quizzes' => $quizzes,
             'files' => $files,
+            'pages' => $pages,
         );
     }
 
     /**
      * Count one item and its nested items, matching writeZip()/processChildren().
      */
-    private static function countItem($item, &$resources, &$assignments, &$discussions, &$quizzes, &$files) {
+    private static function countItem($item, &$resources, &$assignments, &$discussions, &$quizzes, &$files, &$pages) {
         $item = is_array($item) ? (object) $item : $item;
         $kind = LessonsNormalize::presentationKind($item);
         if ( $kind !== 'header' && ! LessonsNormalize::isHeading($item) ) {
@@ -93,13 +115,15 @@ class LessonsCartridge {
                 $assignments++;
             } else if ( LessonsNormalize::typeOf($item) === LessonsNormalize::TYPE_FILE ) {
                 $files++;
+            } else if ( LessonsNormalize::typeOf($item) === LessonsNormalize::TYPE_HTML_PAGE ) {
+                $pages++;
             } else if ( self::itemHasExportUrl($item, $kind) ) {
                 $resources++;
             }
         }
         if ( isset($item->items) && is_array($item->items) ) {
             foreach ( $item->items as $child ) {
-                self::countItem($child, $resources, $assignments, $discussions, $quizzes, $files);
+                self::countItem($child, $resources, $assignments, $discussions, $quizzes, $files, $pages);
             }
         }
     }
@@ -109,7 +133,7 @@ class LessonsCartridge {
      *
      * @param object $l Lessons
      * @param \ZipArchive $zip
-     * @param array{tsugi_lms?:string,topic?:string,youtube?:string|false,anchors?:array|false,context_id?:int,load_quiz?:callable,load_file?:callable} $options
+     * @param array{tsugi_lms?:string,topic?:string,youtube?:string|false,anchors?:array|false,context_id?:int,load_quiz?:callable,load_file?:callable,load_page?:callable} $options
      */
     public static function writeZip($l, $zip, array $options = array()) {
         global $CFG;
@@ -128,13 +152,20 @@ class LessonsCartridge {
         }
 
         $cc_dom = new CC();
-        if ( ! self::wantsCanvasExtensions($tsugi_lms) ) {
+        $summary = self::summarize($l);
+        // wiki_content is a Canvas convention. Without canvas_export.txt Canvas
+        // treats those HTML files as Files/wiki_content instead of Pages.
+        $keep_canvas = self::wantsCanvasExtensions($tsugi_lms)
+            || (isset($summary['pages']) && (int) $summary['pages'] > 0);
+        if ( ! $keep_canvas ) {
             $cc_dom->disable_canvas_extensions();
         }
         if ( $tsugi_lms === 'canvas' ) {
             $cc_dom->canvas_quiz_wrapper = true;
         }
         $cc_dom->set_title($title.' import');
+        self::$exportFileZipPaths = array();
+        self::$pendingWikiPages = array();
         $top_module = false;
         if ( $tsugi_lms === 'sakai' ) {
             $top_module = $cc_dom->add_module('Modules (import)', '');
@@ -153,6 +184,10 @@ class LessonsCartridge {
                 self::processItem($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
             }
         }
+
+        self::flushPendingWikiPages($zip, $cc_dom, $options);
+        self::$exportFileZipPaths = array();
+        self::$pendingWikiPages = array();
 
         if ( $cc_dom->canvas_extensions ) {
             $cc_dom->zip_add_canvas_module_meta($zip);
@@ -275,6 +310,12 @@ class LessonsCartridge {
             return;
         }
 
+        if ( $type === LessonsNormalize::TYPE_HTML_PAGE ) {
+            self::processHtmlPage($item, $module, $sub_module, $zip, $cc_dom, $options);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+            return;
+        }
+
         $url = self::itemHref($item);
         if ( $url !== '' ) {
             $title = self::urlItemTitle($item, $module, $kind);
@@ -304,8 +345,198 @@ class LessonsCartridge {
         if ( isset($payload['filename']) && is_string($payload['filename']) && $payload['filename'] !== '' ) {
             $filename = $payload['filename'];
         }
+        $path = $filename;
+        if ( isset($payload['path']) && is_string($payload['path']) && $payload['path'] !== '' ) {
+            $path = $payload['path'];
+        } else if ( isset($item->path) && is_string($item->path) && $item->path !== '' ) {
+            $path = $item->path;
+        }
         $sha = self::fileSha256($item);
-        $cc_dom->zip_add_file_to_module($zip, $sub_module, $title, $filename, $payload['bytes'], null, $sha);
+        $zipPath = $cc_dom->zip_add_file_to_module($zip, $sub_module, $title, $path, $payload['bytes'], null, $sha);
+        self::rememberExportFilePath($sha, $path, $zipPath);
+    }
+
+    /**
+     * Package a Lessons html_page as Canvas wiki_content HTML (IMS CC webcontent).
+     * Legacy html_page items with only an href (no page identity) stay web links.
+     */
+    private static function processHtmlPage($item, $module, $sub_module, $zip, $cc_dom, array $options) {
+        $pageId = isset($item->page_id) ? $item->page_id : 0;
+        $logicalKey = isset($item->logical_key) && is_string($item->logical_key) ? trim($item->logical_key) : '';
+        $title = isset($item->title) && is_string($item->title) && $item->title !== ''
+            ? $item->title
+            : ($logicalKey !== '' ? $logicalKey : 'Page');
+        $hasIdentity = (is_numeric($pageId) && (int) $pageId > 0) || $logicalKey !== '';
+        if ( ! $hasIdentity ) {
+            $url = self::itemHref($item);
+            if ( $url !== '' ) {
+                $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, null, false);
+            }
+            return;
+        }
+        $payload = self::loadPagePayload($item, $options);
+        if ( $payload === null ) {
+            throw new ExportException(
+                'Lesson page could not be loaded for the cartridge (title: '.$title.').'
+            );
+        }
+        if ( isset($payload['title']) && is_string($payload['title']) && $payload['title'] !== '' ) {
+            $title = $payload['title'];
+        }
+        if ( isset($payload['logical_key']) && is_string($payload['logical_key']) && $payload['logical_key'] !== '' ) {
+            $logicalKey = $payload['logical_key'];
+        }
+        if ( isset($payload['html']) && is_string($payload['html']) && $payload['html'] !== '' ) {
+            $html = $payload['html'];
+        } else {
+            $body = isset($payload['body']) && is_string($payload['body']) ? $payload['body'] : '';
+            $html = Pages::cartridgeDocument($title, $body);
+        }
+        if ( $logicalKey === '' ) {
+            $logicalKey = 'page';
+        }
+        self::$pendingWikiPages[] = array(
+            'html' => $html,
+            'title' => $title,
+            'logical_key' => $logicalKey,
+            'sub_module' => $sub_module,
+        );
+    }
+
+    /**
+     * @param string|null $sha
+     * @param string $path
+     * @param string $zipPath
+     */
+    private static function rememberExportFilePath($sha, $path, $zipPath) {
+        if ( is_string($zipPath) && $zipPath !== '' ) {
+            if ( is_string($sha) && $sha !== '' ) {
+                self::$exportFileZipPaths[strtolower($sha)] = $zipPath;
+            }
+            if ( is_string($path) && $path !== '' ) {
+                self::$exportFileZipPaths['path:'.$path] = $zipPath;
+            }
+        }
+    }
+
+    /**
+     * @param \ZipArchive $zip
+     * @param CC $cc_dom
+     * @param array<string, mixed> $options
+     */
+    private static function flushPendingWikiPages($zip, $cc_dom, array $options) {
+        foreach ( self::$pendingWikiPages as $pending ) {
+            $html = self::rewriteCartridgeFileLinks($pending['html'], $options);
+            $cc_dom->zip_add_wiki_page_to_module(
+                $zip,
+                $pending['sub_module'],
+                $pending['title'],
+                $pending['logical_key'],
+                $html
+            );
+        }
+        self::$pendingWikiPages = array();
+    }
+
+    /**
+     * Point page HTML file links at Canvas $IMS-CC-FILEBASE$/{path} instead of files/download/{sha}.
+     *
+     * @param string $html
+     * @param array<string, mixed> $options
+     * @return string
+     */
+    private static function rewriteCartridgeFileLinks($html, array $options) {
+        if ( ! is_string($html) || $html === '' ) {
+            return $html;
+        }
+        $context_id = isset($options['context_id']) ? (int) $options['context_id'] : 0;
+        return (string) preg_replace_callback(
+            '/\b(href|src)\s*=\s*(["\'])([^"\']+)\2/i',
+            function ($m) use ($context_id) {
+                $url = html_entity_decode($m[3], ENT_QUOTES, 'UTF-8');
+                $next = self::cartridgeFileHref($url, $context_id);
+                if ( $next === $url ) {
+                    return $m[0];
+                }
+                return $m[1].'='.$m[2].htmlspecialchars($next, ENT_QUOTES, 'UTF-8').$m[2];
+            },
+            $html
+        );
+    }
+
+    /**
+     * @param string $url
+     * @param int $context_id
+     * @return string
+     */
+    private static function cartridgeFileHref($url, $context_id) {
+        $sha = Files::sha256FromDownloadHref($url);
+        $path = null;
+        if ( $sha ) {
+            if ( isset(self::$exportFileZipPaths[$sha]) ) {
+                return self::canvasFileBaseHref(self::$exportFileZipPaths[$sha]);
+            }
+            $path = Files::pathForSha256($sha, $context_id);
+        } else {
+            $remainder = $url;
+            foreach ( CCFileBase::TOKEN_ALIASES as $token ) {
+                if ( str_starts_with($remainder, $token) ) {
+                    $remainder = substr($remainder, strlen($token));
+                    break;
+                }
+            }
+            $remainder = ltrim($remainder, '/');
+            if ( str_starts_with($remainder, 'web_resources/') ) {
+                $path = substr($remainder, strlen('web_resources/'));
+            } else if ( str_starts_with($remainder, 'files/') && ! str_starts_with($remainder, 'files/download/') ) {
+                $path = substr($remainder, strlen('files/'));
+            }
+        }
+        if ( ! is_string($path) || $path === '' ) {
+            return $url;
+        }
+        if ( isset(self::$exportFileZipPaths['path:'.$path]) ) {
+            return self::canvasFileBaseHref(self::$exportFileZipPaths['path:'.$path]);
+        }
+        return self::canvasFileBaseHref('web_resources/'.$path);
+    }
+
+    /**
+     * Canvas rewrites $IMS-CC-FILEBASE$/{path} against files imported from
+     * web_resources/. The token must be followed by a slash, and the path is
+     * the zip path with web_resources/ stripped. Including web_resources/ in
+     * the href leaves the token in the page as a relative /pages/ URL.
+     *
+     * @param string $zipPath
+     * @return string
+     */
+    private static function canvasFileBaseHref($zipPath) {
+        $rel = ltrim(str_replace('\\', '/', (string) $zipPath), '/');
+        if ( str_starts_with($rel, 'web_resources/') ) {
+            $rel = substr($rel, strlen('web_resources/'));
+        }
+        $rel = ltrim($rel, '/');
+        if ( $rel === '' ) {
+            return CCFileBase::TOKEN.'/';
+        }
+        $parts = explode('/', $rel);
+        $parts = array_map('rawurlencode', $parts);
+        return CCFileBase::TOKEN.'/'.implode('/', $parts);
+    }
+
+    /**
+     * @param array{context_id?:int,load_page?:callable} $options
+     * @return array{title?:string,logical_key?:string,body?:string,html?:string}|null
+     */
+    private static function loadPagePayload($item, array $options) {
+        if ( isset($options['load_page']) && is_callable($options['load_page']) ) {
+            $loaded = call_user_func($options['load_page'], $item);
+            return is_array($loaded) ? $loaded : null;
+        }
+        $pageId = isset($item->page_id) ? $item->page_id : 0;
+        $logicalKey = isset($item->logical_key) && is_string($item->logical_key) ? $item->logical_key : '';
+        $context_id = isset($options['context_id']) ? (int) $options['context_id'] : U::currentContextId();
+        return Pages::readExportPayload($pageId, $logicalKey, $context_id);
     }
 
     /**

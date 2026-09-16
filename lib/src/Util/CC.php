@@ -619,28 +619,125 @@ class CC extends \Tsugi\Util\TsugiDOM {
     }
 
     /**
+     * Add a Canvas-style wiki page (wiki_content/*.html) as IMS CC webcontent.
+     * Canvas reads the page name from the HTML <title>.
+     *
+     * @param \ZipArchive $zip
+     * @param \DOMNode $module
+     * @param string $title
+     * @param string $logicalKey Zip basename without .html
+     * @param string $html Full HTML document
+     * @param string|null $parentPath
+     * @return string Path of the file inside the ZIP
+     */
+    function zip_add_wiki_page_to_module($zip, $module, $title, $logicalKey, $html, $parentPath=null) {
+        if ($parentPath === null) {
+            $moduleHash = spl_object_hash($module);
+            $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
+        }
+        $filename = is_string($logicalKey) && trim($logicalKey) !== ''
+            ? trim($logicalKey).'.html'
+            : 'page.html';
+        $zipPath = $this->uniqueWikiContentPath($filename);
+        $additionalProps = array('logical_key' => is_string($logicalKey) ? $logicalKey : '');
+        $this->last_identifier = $this->idGenerator->makeIdentifier('wiki', $title ?: $filename, $parentPath, $additionalProps);
+        $this->add_resource_item($module, $title, self::WEBCONTENT_TYPE, $this->last_identifier, $zipPath, $zipPath);
+        $html = self::injectCanvasWikiMetas($html, $this->last_identifierref);
+        $zip->addFromString($zipPath, $html);
+
+        if ( $this->canvas_items ) {
+            $w = $this->canvas_module_meta->child_tags(CanvasModuleMeta::content_type_WikiPage);
+            $w[CanvasModuleMeta::title] = $title;
+            $w[CanvasModuleMeta::identifierref] = $this->last_identifierref;
+            $this->canvas_module_meta->add_item($this->canvas_items, $this->last_identifier, $w);
+        }
+        return $zipPath;
+    }
+
+    /**
+     * Canvas binds a wiki page to its manifest resource through
+     * <meta name="identifier">, which must equal the resource identifier.
+     *
+     * @param string $html
+     * @param string $identifier Resource identifier (identifierref)
+     * @return string
+     */
+    public static function injectCanvasWikiMetas($html, $identifier) {
+        if ( ! is_string($html) || $html === '' || ! is_string($identifier) || $identifier === '' ) {
+            return is_string($html) ? $html : '';
+        }
+        $html = preg_replace('/<meta\s+name=["\']identifier["\'][^>]*>\s*/i', '', $html);
+        $html = preg_replace('/<meta\s+name=["\']editing_roles["\'][^>]*>\s*/i', '', $html);
+        $html = preg_replace('/<meta\s+name=["\']workflow_state["\'][^>]*>\s*/i', '', $html);
+        $id = htmlspecialchars($identifier, ENT_QUOTES, 'UTF-8');
+        $metas = '<meta name="identifier" content="'.$id.'"/>'
+            .'<meta name="editing_roles" content="teachers"/>'
+            .'<meta name="workflow_state" content="active"/>';
+        if ( preg_match('/<\/title>/i', $html) ) {
+            return (string) preg_replace('/<\/title>/i', '</title>'.$metas, $html, 1);
+        }
+        if ( preg_match('/<head\b[^>]*>/i', $html) ) {
+            return (string) preg_replace('/<head\b[^>]*>/i', '$0'.$metas, $html, 1);
+        }
+        return $html;
+    }
+
+    /**
      * Safe unique path under web_resources/ for an in-cartridge file.
      *
      * @param string $filename
      */
     private function uniqueWebResourcePath($filename) {
-        $base = basename(str_replace('\\', '/', (string) $filename));
-        $base = preg_replace('/[^\w.\-]+/', '_', $base);
-        $base = trim($base, '._');
-        if ( $base === '' || $base === '.' || $base === '..' ) {
-            $base = 'file.bin';
+        return $this->uniqueNamedPath('web_resources/', $filename, 'file.bin');
+    }
+
+    /**
+     * Safe unique path under wiki_content/ for a Canvas wiki page.
+     *
+     * @param string $filename
+     */
+    private function uniqueWikiContentPath($filename) {
+        return $this->uniqueNamedPath('wiki_content/', $filename, 'page.html');
+    }
+
+    /**
+     * @param string $dir
+     * @param string $filename
+     * @param string $fallback
+     */
+    private function uniqueNamedPath($dir, $filename, $fallback) {
+        $rel = str_replace('\\', '/', (string) $filename);
+        $rel = ltrim($rel, '/');
+        $parts = array();
+        foreach ( explode('/', $rel) as $seg ) {
+            $seg = trim($seg);
+            if ( $seg === '' || $seg === '.' || $seg === '..' ) {
+                continue;
+            }
+            $seg = preg_replace('/[<>:"|?*\x00-\x1F]+/', '_', $seg);
+            $seg = trim($seg, ' .');
+            if ( $seg === '' ) {
+                continue;
+            }
+            $parts[] = $seg;
         }
-        $dir = 'web_resources/';
+        if ( ! $parts ) {
+            $parts = array($fallback);
+        }
+        $base = implode('/', $parts);
+        $dir = rtrim((string) $dir, '/').'/';
         $name = $base;
         $n = 1;
         while ( isset($this->webResourceNames[$dir.$name]) ) {
             $n++;
-            $dot = strrpos($base, '.');
+            $leaf = $parts[count($parts) - 1];
+            $dot = strrpos($leaf, '.');
             if ( $dot === false || $dot === 0 ) {
-                $name = $base.'_'.$n;
+                $parts[count($parts) - 1] = $leaf.'_'.$n;
             } else {
-                $name = substr($base, 0, $dot).'_'.$n.substr($base, $dot);
+                $parts[count($parts) - 1] = substr($leaf, 0, $dot).'_'.$n.substr($leaf, $dot);
             }
+            $name = implode('/', $parts);
         }
         $path = $dir.$name;
         $this->webResourceNames[$path] = true;

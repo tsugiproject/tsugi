@@ -13,6 +13,7 @@ $assignment_count = (int) $counts['assignments'];
 $discussion_count = (int) $counts['discussions'];
 $quiz_count = isset($counts['quizzes']) ? (int) $counts['quizzes'] : 0;
 $file_count = isset($counts['files']) ? (int) $counts['files'] : 0;
+$page_count = isset($counts['pages']) ? (int) $counts['pages'] : 0;
 $module_count = (int) $counts['modules'];
 ?>
 <?php if ( $localhost_warning ) { ?>
@@ -31,6 +32,7 @@ $module_count = (int) $counts['modules'];
 <p><?= __('Modules:') ?> <?= $module_count ?></p>
 <p><?= __('Resources:') ?> <?= $resource_count ?></p>
 <p><?= __('Files:') ?> <?= $file_count ?></p>
+<p><?= __('Pages:') ?> <?= $page_count ?></p>
 <p><?= __('Assignments:') ?> <?= $assignment_count ?></p>
 <p><?= __('Discussion topics:') ?> <?= $discussion_count ?></p>
 <p><?= __('Quizzes:') ?> <?= $quiz_count ?></p>
@@ -71,6 +73,7 @@ $module_count = (int) $counts['modules'];
 <p><?= __('Modules:') ?> <?= $module_count ?></p>
 <p><?= __('Resources:') ?> <?= $resource_count ?></p>
 <p><?= __('Files:') ?> <?= $file_count ?></p>
+<p><?= __('Pages:') ?> <?= $page_count ?></p>
 <p><?= __('Assignments:') ?> <?= $assignment_count ?></p>
 <p><?= __('Discussion topics:') ?> <?= $discussion_count ?></p>
 <p><?= __('Quizzes:') ?> <?= $quiz_count ?></p>
@@ -155,6 +158,7 @@ $module_count = (int) $counts['modules'];
     echo("<ul>\n");
     echo("<li>".__('Resources in this module:').' '.$mc['resources']."</li>\n");
     echo("<li>".__('Files in this module:').' '.$mc['files']."</li>\n");
+    echo("<li>".__('Pages in this module:').' '.$mc['pages']."</li>\n");
     echo("<li>".__('Assignments in this module:').' '.$mc['assignments']."</li>\n");
     echo("<li>".__('Discussions in this module:').' '.$mc['discussions']."</li>\n");
     echo("<li>".__('Quizzes in this module:').' '.$mc['quizzes']."</li>\n");
