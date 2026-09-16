@@ -638,6 +638,7 @@ class Courses extends Tool {
             'status' => 'success',
             'courses' => $rows,
             'current_context_id' => U::currentContextId(),
+            'can_create' => self::canCreate(),
         ));
     }
 
