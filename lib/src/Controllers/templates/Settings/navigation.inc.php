@@ -8,8 +8,16 @@
 <p><?= __('Home is always in the upper left. The avatar menu is always on the right. Settings is always in the avatar menu before Logout and is instructors only.') ?></p>
 <p><?= __('Check where each tool should appear. Instructor only hides that item from students. Widgets can only sit in the top left or top right, not under the avatar.') ?></p>
 <style>
-.tsugi-nav-editor { width: 100%; max-width: 56em; }
+.tsugi-nav-editor { width: 100%; max-width: 56em; border-collapse: separate; border-spacing: 0; }
 .tsugi-nav-editor th, .tsugi-nav-editor td { padding: 0.4em 0.6em; vertical-align: middle; }
+.tsugi-nav-editor thead th {
+    position: sticky;
+    top: var(--tsugi-nav-sticky-top, 50px);
+    z-index: 4;
+    background: var(--background-color, #fff);
+    background-clip: padding-box;
+    box-shadow: 0 1px 0 var(--primary-border, #ddd);
+}
 .tsugi-nav-editor .tsugi-nav-handle { cursor: move; color: #777; }
 .tsugi-nav-editor tr.tsugi-nav-dragging { opacity: 0.5; }
 .tsugi-nav-editor tr.tsugi-nav-pinned .tsugi-nav-handle { visibility: hidden; cursor: default; }
@@ -78,8 +86,21 @@
 ?>
 <script>
 (function () {
-    var tbody = document.querySelector('#tsugi-nav-editor tbody');
+    var table = document.querySelector('#tsugi-nav-editor');
+    var tbody = table && table.querySelector('tbody');
     if (!tbody) return;
+
+    function stickUnderNavbar() {
+        var nav = document.getElementById('tsugi_main_nav_bar');
+        var top = 50;
+        if (nav && nav.offsetHeight > 0) {
+            top = nav.offsetHeight;
+        }
+        table.style.setProperty('--tsugi-nav-sticky-top', top + 'px');
+    }
+    stickUnderNavbar();
+    window.addEventListener('resize', stickUnderNavbar);
+
     var dragging = null;
     tbody.addEventListener('dragstart', function (e) {
         var tr = e.target.closest('tr');

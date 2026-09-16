@@ -1544,6 +1544,7 @@ $( function() {
         }
         $ret .= self::getThemeCss($theme);
         $ret .= '<link href="'.$s.'/css/tsugi2.css" rel="stylesheet">'."\n";
+        $ret .= self::navbarAlignCss();
         if ( isset($CFG->extra_css) ) {
             $ret .= '<style>'."\n".$CFG->extra_css."\n</style>\n";
         }
@@ -1565,6 +1566,82 @@ body {
 ';
         }
         return $ret;
+    }
+
+    /**
+     * Desktop vertical centering for the main nav.
+     *
+     * tsugi2.css already flex-centers the right cluster (avatar + widgets).
+     * Course nav also puts widgets in navbar-main, and often has only Home
+     * plus the avatar. Those two layouts were top-aligned against a taller
+     * right cluster. Do not apply this under 768px — the hamburger row
+     * already lines up.
+     */
+    public static function navbarAlignCss() {
+        return '<style>
+@media (min-width: 768px) {
+  #tsugi_main_nav_bar > .container-fluid {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+  #tsugi_main_nav_bar .navbar-header {
+    float: none;
+    padding-top: 0;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+  }
+  #tsugi_main_nav_bar .navbar-brand {
+    float: none;
+    display: inline-flex;
+    align-items: center;
+    height: 50px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  #tsugi_main_nav_bar .navbar-collapse.collapse {
+    display: flex !important;
+    align-items: center;
+    flex: 1 1 auto;
+    width: auto;
+  }
+  #tsugi_main_nav_bar .navbar-nav.navbar-main,
+  #tsugi_main_nav_bar .navbar-nav.navbar-right {
+    display: flex;
+    align-items: center;
+    float: none;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  #tsugi_main_nav_bar .navbar-nav.navbar-right {
+    margin-left: auto;
+  }
+  #tsugi_main_nav_bar .navbar-nav > li.navbar-text,
+  #tsugi_main_nav_bar .navbar-nav > li.tsugi-wc-nav-item {
+    display: inline-flex !important;
+    align-items: center !important;
+    float: none;
+    min-height: 50px;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    line-height: 1;
+  }
+  #tsugi_main_nav_bar .navbar-nav > li.tsugi-wc-nav-item > tsugi-notifications,
+  #tsugi_main_nav_bar .navbar-nav > li.tsugi-wc-nav-item > tsugi-calendar-due,
+  #tsugi_main_nav_bar .navbar-nav > li.tsugi-wc-nav-item > tsugi-discussions,
+  #tsugi_main_nav_bar .navbar-nav > li.tsugi-wc-nav-item > tsugi-courses {
+    display: inline-flex;
+    align-items: center;
+    transform: translateY(2px);
+  }
+  #tsugi_main_nav_bar .navbar-nav > li.dropdown > a.dropdown-img {
+    display: inline-flex;
+    align-items: center;
+    min-height: 50px;
+  }
+}
+</style>'."\n";
     }
 
     /**

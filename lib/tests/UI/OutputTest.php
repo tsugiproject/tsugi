@@ -163,4 +163,13 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Session Home', $menu_txt);
     }
 
+    public function testNavbarAlignCssIsDesktopOnlyAndCoversLeftWidgets() {
+        $css = Output::navbarAlignCss();
+        $this->assertStringContainsString('@media (min-width: 768px)', $css);
+        $this->assertStringContainsString('#tsugi_main_nav_bar', $css);
+        $this->assertStringContainsString('navbar-main', $css);
+        $this->assertStringContainsString('tsugi-wc-nav-item', $css);
+        $this->assertStringNotContainsString('@media (max-width: 767px)', $css);
+    }
+
 }
