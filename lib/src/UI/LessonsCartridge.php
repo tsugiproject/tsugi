@@ -4,6 +4,7 @@ namespace Tsugi\UI;
 
 use Tsugi\Util\CC;
 use Tsugi\Util\U;
+use Tsugi\Controllers\Files;
 use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Quiz1\Qti12Exporter;
 use Tsugi\Services\Quiz1\QuizRepository;
@@ -18,7 +19,7 @@ class LessonsCartridge {
     /**
      * Counts for the export form.
      *
-     * @return array{modules:int,resources:int,assignments:int,discussions:int,quizzes:int}
+     * @return array{modules:int,resources:int,assignments:int,discussions:int,quizzes:int,files:int}
      */
     public static function summarize($l) {
         $modules = 0;
@@ -26,6 +27,7 @@ class LessonsCartridge {
         $assignments = 0;
         $discussions = 0;
         $quizzes = 0;
+        $files = 0;
         if ( ! isset($l->lessons->modules) || ! is_array($l->lessons->modules) ) {
             return array(
                 'modules' => 0,
@@ -33,6 +35,7 @@ class LessonsCartridge {
                 'assignments' => 0,
                 'discussions' => 0,
                 'quizzes' => 0,
+                'files' => 0,
             );
         }
         foreach ( $l->lessons->modules as $module ) {
@@ -42,6 +45,7 @@ class LessonsCartridge {
             $assignments += $c['assignments'];
             $discussions += $c['discussions'];
             $quizzes += $c['quizzes'];
+            $files += $c['files'];
         }
         return array(
             'modules' => $modules,
@@ -49,32 +53,35 @@ class LessonsCartridge {
             'assignments' => $assignments,
             'discussions' => $discussions,
             'quizzes' => $quizzes,
+            'files' => $files,
         );
     }
 
     /**
-     * @return array{resources:int,assignments:int,discussions:int,quizzes:int}
+     * @return array{resources:int,assignments:int,discussions:int,quizzes:int,files:int}
      */
     public static function moduleCounts($module) {
         $resources = 0;
         $assignments = 0;
         $discussions = 0;
         $quizzes = 0;
+        $files = 0;
         foreach ( self::itemsForModule($module) as $item ) {
-            self::countItem($item, $resources, $assignments, $discussions, $quizzes);
+            self::countItem($item, $resources, $assignments, $discussions, $quizzes, $files);
         }
         return array(
             'resources' => $resources,
             'assignments' => $assignments,
             'discussions' => $discussions,
             'quizzes' => $quizzes,
+            'files' => $files,
         );
     }
 
     /**
      * Count one item and its nested items, matching writeZip()/processChildren().
      */
-    private static function countItem($item, &$resources, &$assignments, &$discussions, &$quizzes) {
+    private static function countItem($item, &$resources, &$assignments, &$discussions, &$quizzes, &$files) {
         $item = is_array($item) ? (object) $item : $item;
         $kind = LessonsNormalize::presentationKind($item);
         if ( $kind !== 'header' && ! LessonsNormalize::isHeading($item) ) {
@@ -84,13 +91,15 @@ class LessonsCartridge {
                 $discussions++;
             } else if ( self::isAssignmentLtiKind($kind) ) {
                 $assignments++;
+            } else if ( LessonsNormalize::typeOf($item) === LessonsNormalize::TYPE_FILE ) {
+                $files++;
             } else if ( self::itemHasExportUrl($item, $kind) ) {
                 $resources++;
             }
         }
         if ( isset($item->items) && is_array($item->items) ) {
             foreach ( $item->items as $child ) {
-                self::countItem($child, $resources, $assignments, $discussions, $quizzes);
+                self::countItem($child, $resources, $assignments, $discussions, $quizzes, $files);
             }
         }
     }
@@ -100,7 +109,7 @@ class LessonsCartridge {
      *
      * @param object $l Lessons
      * @param \ZipArchive $zip
-     * @param array{tsugi_lms?:string,topic?:string,youtube?:string|false,anchors?:array|false,context_id?:int,load_quiz?:callable} $options
+     * @param array{tsugi_lms?:string,topic?:string,youtube?:string|false,anchors?:array|false,context_id?:int,load_quiz?:callable,load_file?:callable} $options
      */
     public static function writeZip($l, $zip, array $options = array()) {
         global $CFG;
@@ -260,6 +269,12 @@ class LessonsCartridge {
             return;
         }
 
+        if ( $type === LessonsNormalize::TYPE_FILE ) {
+            self::processFile($item, $module, $sub_module, $zip, $cc_dom, $options);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+            return;
+        }
+
         $url = self::itemHref($item);
         if ( $url !== '' ) {
             $title = self::urlItemTitle($item, $module, $kind);
@@ -268,6 +283,57 @@ class LessonsCartridge {
         }
 
         self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+    }
+
+    /**
+     * Package a Lessons file item as IMS CC webcontent (bytes in the zip).
+     */
+    private static function processFile($item, $module, $sub_module, $zip, $cc_dom, array $options) {
+        $filename = isset($item->filename) && is_string($item->filename) && $item->filename !== ''
+            ? $item->filename
+            : 'file.bin';
+        $title = isset($item->title) && is_string($item->title) && $item->title !== ''
+            ? $item->title
+            : $filename;
+        $payload = self::loadFilePayload($item, $options);
+        if ( $payload === null || ! isset($payload['bytes']) || ! is_string($payload['bytes']) ) {
+            throw new ExportException(
+                'Lesson file could not be loaded for the cartridge (title: '.$title.').'
+            );
+        }
+        if ( isset($payload['filename']) && is_string($payload['filename']) && $payload['filename'] !== '' ) {
+            $filename = $payload['filename'];
+        }
+        $sha = self::fileSha256($item);
+        $cc_dom->zip_add_file_to_module($zip, $sub_module, $title, $filename, $payload['bytes'], null, $sha);
+    }
+
+    /**
+     * @param array{context_id?:int,load_file?:callable} $options
+     * @return array{bytes:string,filename?:string,content_type?:string}|null
+     */
+    private static function loadFilePayload($item, array $options) {
+        if ( isset($options['load_file']) && is_callable($options['load_file']) ) {
+            $loaded = call_user_func($options['load_file'], $item);
+            return is_array($loaded) ? $loaded : null;
+        }
+        $sha = self::fileSha256($item);
+        if ( $sha === null ) {
+            return null;
+        }
+        $context_id = isset($options['context_id']) ? (int) $options['context_id'] : U::currentContextId();
+        return Files::readExportPayload($sha, $context_id);
+    }
+
+    /**
+     * @return string|null
+     */
+    private static function fileSha256($item) {
+        if ( isset($item->sha256) && is_string($item->sha256) && Files::isSha256($item->sha256) ) {
+            return strtolower($item->sha256);
+        }
+        $href = isset($item->href) && is_string($item->href) ? $item->href : '';
+        return Files::sha256FromDownloadHref($href);
     }
 
     private static function processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, array $options) {

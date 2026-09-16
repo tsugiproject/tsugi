@@ -1236,6 +1236,113 @@ class Files extends Tool {
         return self::ROUTE . '/download/' . strtolower($sha256);
     }
 
+    /**
+     * File bytes for Common Cartridge export, or null if the blob cannot be read.
+     *
+     * @param mixed $sha256
+     * @param int $context_id
+     * @return array{bytes:string,filename:string,content_type:string}|null
+     */
+    public static function readExportPayload($sha256, $context_id)
+    {
+        global $CFG, $PDOX;
+        if ( ! self::isSha256($sha256) ) {
+            return null;
+        }
+        $sha = strtolower($sha256);
+        $cid = (int) $context_id;
+        try {
+            LTIX::getConnection();
+        } catch ( \Throwable $e ) {
+            return null;
+        }
+        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
+            return null;
+        }
+        $p = $CFG->dbprefix;
+        $row = null;
+        if ( $cid > 0 ) {
+            $row = $PDOX->rowDie(
+                "SELECT file_name, contenttype, path
+                 FROM {$p}blob_file
+                 WHERE file_sha256 = :SHA AND context_id = :CID AND backref = :BR
+                   AND (deleted IS NULL OR deleted = 0)
+                 ORDER BY file_id DESC LIMIT 1",
+                array(':SHA' => $sha, ':CID' => $cid, ':BR' => self::BACKREF)
+            );
+        }
+        if ( ! is_array($row) ) {
+            $row = $PDOX->rowDie(
+                "SELECT file_name, contenttype, path
+                 FROM {$p}blob_file
+                 WHERE file_sha256 = :SHA AND backref = :BR
+                   AND (deleted IS NULL OR deleted = 0)
+                 ORDER BY file_id DESC LIMIT 1",
+                array(':SHA' => $sha, ':BR' => self::BACKREF)
+            );
+        }
+        $filename = is_array($row) && isset($row['file_name']) && is_string($row['file_name']) && $row['file_name'] !== ''
+            ? $row['file_name']
+            : $sha;
+        $ctype = is_array($row) && isset($row['contenttype']) && is_string($row['contenttype'])
+            ? $row['contenttype']
+            : '';
+        $storedPath = is_array($row) && isset($row['path']) && is_string($row['path']) ? $row['path'] : '';
+        $bytes = self::readBlobBytesBySha256($sha, $storedPath);
+        if ( ! is_string($bytes) ) {
+            return null;
+        }
+        return array(
+            'bytes' => $bytes,
+            'filename' => $filename,
+            'content_type' => $ctype,
+        );
+    }
+
+    /**
+     * @param string $sha
+     * @param string $storedPath
+     * @return string|null
+     */
+    private static function readBlobBytesBySha256($sha, $storedPath)
+    {
+        global $CFG, $PDOX;
+        if ( is_string($storedPath) && $storedPath !== '' ) {
+            $disk = BlobUtil::resolveDiskBlobPath($storedPath);
+            if ( $disk !== false ) {
+                $bytes = @file_get_contents($disk);
+                if ( is_string($bytes) ) {
+                    return $bytes;
+                }
+            }
+        }
+        $folder = BlobUtil::getBlobFolder($sha);
+        if ( is_string($folder) && $folder !== '' ) {
+            $disk = $folder . '/' . $sha;
+            if ( is_file($disk) ) {
+                $bytes = @file_get_contents($disk);
+                if ( is_string($bytes) ) {
+                    return $bytes;
+                }
+            }
+        }
+        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
+            return null;
+        }
+        $p = $CFG->dbprefix;
+        $stmt = $PDOX->prepare("SELECT content FROM {$p}blob_blob WHERE blob_sha256 = :SHA LIMIT 1");
+        $stmt->execute(array(':SHA' => $sha));
+        $stmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
+        if ( ! $stmt->fetch(\PDO::FETCH_BOUND) ) {
+            return null;
+        }
+        if ( is_resource($lob) ) {
+            $bytes = stream_get_contents($lob);
+            return is_string($bytes) ? $bytes : null;
+        }
+        return is_string($lob) ? $lob : null;
+    }
+
     private function isValidSha256($sha)
     {
         return self::isSha256($sha);

@@ -50,6 +50,31 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(1, $counts['assignments']);
         $this->assertSame(1, $counts['resources']);
         $this->assertSame(0, $counts['discussions']);
+        $this->assertSame(0, $counts['files']);
+    }
+
+    public function testSummarizeCountsFilesSeparatelyFromResources()
+    {
+        $sha = str_repeat('a', 64);
+        $l = $this->lessonsDoc(array(
+            array('type' => 'web_link', 'subtype' => 'reference', 'title' => 'Doc', 'href' => 'https://example.com/'),
+            array(
+                'type' => 'file',
+                'subtype' => 'slides',
+                'title' => 'Week One Reading',
+                'href' => '/files/download/'.$sha,
+                'sha256' => $sha,
+                'filename' => 'week-one.pdf',
+                'content_type' => 'application/pdf',
+            ),
+        ));
+        $counts = LessonsCartridge::summarize($l);
+        $this->assertSame(1, $counts['modules']);
+        $this->assertSame(1, $counts['resources']);
+        $this->assertSame(1, $counts['files']);
+        $this->assertSame(0, $counts['assignments']);
+        $this->assertSame(0, $counts['discussions']);
+        $this->assertSame(0, $counts['quizzes']);
     }
 
     public function testWriteZipIncludesQtiForLessonQuiz() {
@@ -279,6 +304,97 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         ));
         $this->writeCartridge($l, array(
             'load_quiz' => function ($id) {
+                return null;
+            },
+        ));
+    }
+
+    public function testWriteZipEmbedsFileAsWebcontent()
+    {
+        $sha = str_repeat('b', 64);
+        $bytes = "%PDF-1.4 dummy";
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'file',
+                'title' => 'Week One Reading',
+                'sha256' => $sha,
+                'filename' => 'week-one.pdf',
+                'href' => '/files/download/'.$sha,
+            ),
+        ));
+        $path = $this->writeCartridge($l, array(
+            'load_file' => function ($item) use ($bytes) {
+                $this->assertSame('Week One Reading', $item->title);
+                return array(
+                    'bytes' => $bytes,
+                    'filename' => 'week-one.pdf',
+                    'content_type' => 'application/pdf',
+                );
+            },
+        ));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $manifest = $zip->getFromName('imsmanifest.xml');
+            $this->assertNotFalse($manifest);
+            $this->assertStringContainsString('type="'.CC::WEBCONTENT_TYPE.'"', $manifest);
+            $this->assertStringContainsString('href="web_resources/week-one.pdf"', $manifest);
+            $this->assertStringContainsString('<title>Week One Reading</title>', $manifest);
+            $this->assertSame($bytes, $zip->getFromName('web_resources/week-one.pdf'));
+            $this->assertStringNotContainsString('imswl_xmlv1p2', $manifest);
+            $this->assertStringNotContainsString('/files/download/', $manifest);
+            $zip->close();
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipCanvasMarksFileAsAttachment()
+    {
+        $sha = str_repeat('c', 64);
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'file',
+                'title' => 'Notes',
+                'sha256' => $sha,
+                'filename' => 'notes.txt',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array(
+            'tsugi_lms' => 'canvas',
+            'load_file' => function ($item) {
+                return array('bytes' => 'hello', 'filename' => 'notes.txt');
+            },
+        ));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $meta = $zip->getFromName('course_settings/module_meta.xml');
+            $this->assertNotFalse($meta);
+            $this->assertStringContainsString('<content_type>Attachment</content_type>', $meta);
+            $this->assertStringContainsString('<title>Notes</title>', $meta);
+            $this->assertSame('hello', $zip->getFromName('web_resources/notes.txt'));
+            $zip->close();
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipFailsWhenFileMissing()
+    {
+        $this->expectException(ExportException::class);
+        $this->expectExceptionMessage('could not be loaded');
+        $sha = str_repeat('d', 64);
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'file',
+                'title' => 'Missing PDF',
+                'sha256' => $sha,
+                'filename' => 'missing.pdf',
+            ),
+        ));
+        $this->writeCartridge($l, array(
+            'load_file' => function ($item) {
                 return null;
             },
         ));

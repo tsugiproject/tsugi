@@ -43,6 +43,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
     const LOMIMSCC_NS = 'http://ltsc.ieee.org/xsd/imsccv1p2/LOM/manifest';
 
     const WEB_LINK_TYPE = 'imswl_xmlv1p2';
+    const WEBCONTENT_TYPE = 'webcontent';
     const TOPIC_TYPE = 'imsdt_xmlv1p2';
     const LTI_TYPE = 'imsbasiclti_xmlv1p0';
     const ASSOCIATED_CONTENT_TYPE = 'associatedcontent/imscc_xmlv1p2/learning-application-resource';
@@ -65,6 +66,13 @@ class CC extends \Tsugi\Util\TsugiDOM {
     public $last_file = false;
     public $last_identifier = false;
     public $last_identifierref = false;
+
+    /**
+     * Zip paths already used under web_resources/ in this cartridge.
+     *
+     * @var array<string, true>
+     */
+    private $webResourceNames = array();
 
     public $canvas_module_meta = null;
     public $canvas_modules = null;
@@ -496,9 +504,10 @@ class CC extends \Tsugi\Util\TsugiDOM {
     /**
      * Add a resource to the manifest.
      * 
+     * @param string|null $resourceHref Optional href on the resource element (webcontent).
      * @return \DOMNode The created item node
      */
-    public function add_resource_item($module, $title, $type, $identifier, $file) {
+    public function add_resource_item($module, $title, $type, $identifier, $file, $resourceHref=null) {
         $this->last_file = $file;
         $this->last_type = $type;
         $this->last_identifier = $identifier;
@@ -513,8 +522,11 @@ class CC extends \Tsugi\Util\TsugiDOM {
         }
 
         $resources = $xpath->query(CC::resource_xpath)->item(0);
-        $new_resource = $this->add_child_ns(CC::CC_NS, $resources, 'resource', null,
-            array('identifier' => $this->last_identifierref, "type" => $type));
+        $res_attrs = array('identifier' => $this->last_identifierref, "type" => $type);
+        if ( is_string($resourceHref) && $resourceHref !== '' ) {
+            $res_attrs['href'] = $resourceHref;
+        }
+        $new_resource = $this->add_child_ns(CC::CC_NS, $resources, 'resource', null, $res_attrs);
         $new_file = $this->add_child_ns(CC::CC_NS, $new_resource, 'file', null, array("href" => $file));
 
         return $new_item;
@@ -569,6 +581,70 @@ class CC extends \Tsugi\Util\TsugiDOM {
                 : CanvasModuleMeta::new_tab_false;
             $item = $this->canvas_module_meta->add_item($this->canvas_items, $this->last_identifier, $w);
         }
+    }
+
+    /**
+     * Add a webcontent file to the module and store the bytes in the ZIP.
+     *
+     * @param \ZipArchive $zip
+     * @param \DOMNode $module
+     * @param string $title
+     * @param string $filename Display / zip basename
+     * @param string $bytes File contents
+     * @param string|null $parentPath
+     * @param string|null $stableKey SHA-256 or other stable identity
+     * @return string Path of the file inside the ZIP
+     */
+    function zip_add_file_to_module($zip, $module, $title, $filename, $bytes, $parentPath=null, $stableKey=null) {
+        if ($parentPath === null) {
+            $moduleHash = spl_object_hash($module);
+            $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
+        }
+        $zipPath = $this->uniqueWebResourcePath($filename);
+        $additionalProps = array('filename' => $filename);
+        if ( is_string($stableKey) && $stableKey !== '' ) {
+            $additionalProps['sha256'] = $stableKey;
+        }
+        $this->last_identifier = $this->idGenerator->makeIdentifier('file', $title ?: $filename, $parentPath, $additionalProps);
+        $this->add_resource_item($module, $title, self::WEBCONTENT_TYPE, $this->last_identifier, $zipPath, $zipPath);
+        $zip->addFromString($zipPath, $bytes);
+
+        if ( $this->canvas_items ) {
+            $w = $this->canvas_module_meta->child_tags(CanvasModuleMeta::content_type_Attachment);
+            $w[CanvasModuleMeta::title] = $title;
+            $w[CanvasModuleMeta::identifierref] = $this->last_identifierref;
+            $this->canvas_module_meta->add_item($this->canvas_items, $this->last_identifier, $w);
+        }
+        return $zipPath;
+    }
+
+    /**
+     * Safe unique path under web_resources/ for an in-cartridge file.
+     *
+     * @param string $filename
+     */
+    private function uniqueWebResourcePath($filename) {
+        $base = basename(str_replace('\\', '/', (string) $filename));
+        $base = preg_replace('/[^\w.\-]+/', '_', $base);
+        $base = trim($base, '._');
+        if ( $base === '' || $base === '.' || $base === '..' ) {
+            $base = 'file.bin';
+        }
+        $dir = 'web_resources/';
+        $name = $base;
+        $n = 1;
+        while ( isset($this->webResourceNames[$dir.$name]) ) {
+            $n++;
+            $dot = strrpos($base, '.');
+            if ( $dot === false || $dot === 0 ) {
+                $name = $base.'_'.$n;
+            } else {
+                $name = substr($base, 0, $dot).'_'.$n.substr($base, $dot);
+            }
+        }
+        $path = $dir.$name;
+        $this->webResourceNames[$path] = true;
+        return $path;
     }
 
     /*

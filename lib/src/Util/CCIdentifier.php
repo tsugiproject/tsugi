@@ -39,7 +39,8 @@ class CCIdentifier {
         'lti' => 'LT',
         'topic' => 'TO',
         'header' => 'H',
-        'qti' => 'Q1'
+        'qti' => 'Q1',
+        'file' => 'F',
     );
 
     /**
