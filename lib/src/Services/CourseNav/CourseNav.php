@@ -12,12 +12,14 @@ use Tsugi\Util\U;
 /**
  * Teacher-edited course top nav: catalog, normalize, compile to MenuSet.
  *
- * Locked chrome (Home, Avatar, Settings) is not stored in JSON. Optional
- * items have left / right / dropdown flags (widgets: left / right only).
+ * Locked chrome (Home slot, Avatar, Settings) is not stored as items.
+ * An optional `home` string renames the Home label. Optional items have
+ * left / right / dropdown flags (widgets: left / right only).
  */
 class CourseNav {
 
     const WIDGET_LI_CLASS = 'hidden-xs tsugi-wc-nav-item';
+    const HOME_LABEL_MAX = 40;
 
     /**
      * @return array<string, mixed>
@@ -105,7 +107,12 @@ class CourseNav {
             }
             $items[] = $item;
         }
-        return array('items' => $items);
+        $out = array('items' => $items);
+        $home = self::sanitizeHomeLabel($doc['home'] ?? null);
+        if ( $home !== null ) {
+            $out['home'] = $home;
+        }
+        return $out;
     }
 
     /**
@@ -198,13 +205,16 @@ class CourseNav {
                 'instructor' => ! empty($item['instructor']),
             );
         }
+        $homeCustom = self::sanitizeHomeLabel($doc['home'] ?? null);
         $rows = array(
             array(
                 'id' => 'home',
                 'kind' => 'chrome',
-                'label' => 'Home',
+                'label' => $homeCustom !== null ? $homeCustom : 'Home',
+                'rename' => true,
+                'custom' => $homeCustom !== null,
                 'pin' => 'first',
-                'hint' => 'Always in the upper left.',
+                'hint' => 'Always in the upper left. You can rename this label.',
             ),
         );
         foreach ( $items as $item ) {
@@ -295,7 +305,10 @@ class CourseNav {
                 'instructor' => ! empty($flags['instructor']),
             );
         }
-        return self::normalize(array('items' => $items));
+        return self::normalize(array(
+            'home' => $post['home'] ?? '',
+            'items' => $items,
+        ));
     }
 
     /**
@@ -308,7 +321,10 @@ class CourseNav {
         $known = self::catalogById();
         $prefix = Courses::courseUrlPrefix($cid);
         $set = new MenuSet();
-        $set->setHome(__('Home'), $prefix.'/home');
+        $set->setHome(
+            htmlspecialchars(self::homeLabel($doc), ENT_QUOTES, 'UTF-8'),
+            $prefix.'/home'
+        );
 
         foreach ( $doc['items'] as $item ) {
             if ( empty($item['left']) ) {
@@ -432,6 +448,42 @@ class CourseNav {
             $href = $prefix.$route;
         }
         return array('label' => __($entry['label']), 'href' => $href);
+    }
+
+    /**
+     * Label shown for the locked Home slot.
+     *
+     * @param array<string, mixed> $doc
+     */
+    public static function homeLabel(array $doc) {
+        $custom = self::sanitizeHomeLabel($doc['home'] ?? null);
+        return $custom !== null ? $custom : __('Home');
+    }
+
+    /**
+     * @param mixed $value
+     * @return string|null
+     */
+    private static function sanitizeHomeLabel($value) {
+        if ( ! is_string($value) ) {
+            return null;
+        }
+        $value = strip_tags($value);
+        $value = preg_replace('/[\x00-\x1F\x7F]+/', '', $value);
+        if ( ! is_string($value) ) {
+            return null;
+        }
+        $value = trim(preg_replace('/\s+/', ' ', $value));
+        if ( $value === '' || $value === 'Home' ) {
+            return null;
+        }
+        $max = self::HOME_LABEL_MAX;
+        if ( function_exists('mb_strlen') && mb_strlen($value) > $max ) {
+            $value = mb_substr($value, 0, $max);
+        } elseif ( strlen($value) > $max ) {
+            $value = substr($value, 0, $max);
+        }
+        return $value;
     }
 
     private static function isPinnedLast(array $entry) {

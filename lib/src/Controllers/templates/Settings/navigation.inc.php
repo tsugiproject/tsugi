@@ -5,7 +5,7 @@
  * Expected: $nav_rows (CourseNav::editorRows), $save_url
  */
 ?>
-<p><?= __('Home is always in the upper left. The avatar menu is always on the right. Settings is always in the avatar menu before Logout and is instructors only.') ?></p>
+<p><?= __('Home is always in the upper left. You can rename the Home label. The avatar menu is always on the right. Settings is always in the avatar menu before Logout and is instructors only.') ?></p>
 <p><?= __('Check where each tool should appear. Instructor only hides that item from students. Widgets can only sit in the top left or top right, not under the avatar.') ?></p>
 <style>
 .tsugi-nav-editor { width: 100%; max-width: 56em; border-collapse: separate; border-spacing: 0; }
@@ -21,7 +21,8 @@
 .tsugi-nav-editor .tsugi-nav-handle { cursor: move; color: #777; }
 .tsugi-nav-editor tr.tsugi-nav-dragging { opacity: 0.5; }
 .tsugi-nav-editor tr.tsugi-nav-pinned .tsugi-nav-handle { visibility: hidden; cursor: default; }
-.tsugi-nav-hint { color: #666; font-size: 0.9em; margin: 0; }
+.tsugi-nav-hint { color: #666; font-size: 0.9em; margin: 0.2em 0 0; }
+.tsugi-nav-home-label { display: inline-block; width: 14em; max-width: 100%; }
 </style>
 <form method="post" action="<?= htmlspecialchars($save_url) ?>">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>
@@ -49,7 +50,13 @@
                     <?php if ( ! $chrome ) { ?>
                     <input type="hidden" name="nav_order[]" value="<?= $id ?>">
                     <?php } ?>
+                    <?php if ( ! empty($row['rename']) ) {
+                        $homeValue = ! empty($row['custom']) ? (string) $row['label'] : '';
+                        ?>
+                    <input type="text" name="home" value="<?= htmlspecialchars($homeValue, ENT_QUOTES, 'UTF-8') ?>" maxlength="40" placeholder="<?= htmlspecialchars(__('Home'), ENT_QUOTES, 'UTF-8') ?>" class="form-control input-sm tsugi-nav-home-label" aria-label="<?= htmlspecialchars(__('Home label'), ENT_QUOTES, 'UTF-8') ?>">
+                    <?php } else { ?>
                     <?= htmlspecialchars(__($row['label'])) ?>
+                    <?php } ?>
                     <?php if ( ! empty($row['hint']) && is_string($row['hint']) ) { ?>
                         <p class="tsugi-nav-hint"><?= htmlspecialchars(__($row['hint'])) ?></p>
                     <?php } ?>

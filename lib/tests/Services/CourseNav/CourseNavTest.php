@@ -100,6 +100,46 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($doc['items'][0]['instructor']);
     }
 
+    public function testNormalizeKeepsCustomHomeLabel()
+    {
+        $doc = CourseNav::normalize(array(
+            'home' => '  Course  ',
+            'items' => array(
+                array('id' => 'logout', 'dropdown' => true),
+            ),
+        ));
+        $this->assertSame('Course', $doc['home']);
+        $this->assertSame('logout', $doc['items'][0]['id']);
+    }
+
+    public function testNormalizeDropsDefaultAndUnsafeHomeLabel()
+    {
+        $plain = CourseNav::normalize(array(
+            'home' => 'Home',
+            'items' => array(),
+        ));
+        $this->assertArrayNotHasKey('home', $plain);
+
+        $empty = CourseNav::normalize(array(
+            'home' => "  \n  ",
+            'items' => array(),
+        ));
+        $this->assertArrayNotHasKey('home', $empty);
+
+        $stripped = CourseNav::normalize(array(
+            'home' => '<b>Start</b>',
+            'items' => array(),
+        ));
+        $this->assertSame('Start', $stripped['home']);
+
+        $long = str_repeat('A', 50);
+        $trimmed = CourseNav::normalize(array(
+            'home' => $long,
+            'items' => array(),
+        ));
+        $this->assertSame(str_repeat('A', 40), $trimmed['home']);
+    }
+
     public function testCoursesWidgetIsCataloguedAsWidgetOnly()
     {
         $entry = CourseNav::catalogById()['courses_widget'];
@@ -186,6 +226,8 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('logged in', $rows[count($rows)-1]['hint']);
         $this->assertSame('home', $rows[0]['id']);
         $this->assertSame('chrome', $rows[0]['kind']);
+        $this->assertTrue($rows[0]['rename']);
+        $this->assertFalse($rows[0]['custom']);
         $this->assertSame('lessons', $rows[1]['id']);
         $ids = array();
         foreach ( $rows as $row ) {
@@ -259,6 +301,24 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($doc['items'][0]['instructor']);
         $this->assertSame('logout', $doc['items'][1]['id']);
         $this->assertCount(2, $doc['items']);
+        $this->assertArrayNotHasKey('home', $doc);
+    }
+
+    public function testFromPostStoresCustomHomeLabel()
+    {
+        $doc = CourseNav::fromPost(array(
+            'home' => 'Dashboard',
+            'nav_order' => array('logout'),
+            'nav' => array(
+                'logout' => array('dropdown' => '1'),
+            ),
+        ));
+        $this->assertSame('Dashboard', $doc['home']);
+        $this->assertSame('logout', $doc['items'][0]['id']);
+
+        $rows = CourseNav::editorRows($doc);
+        $this->assertSame('Dashboard', $rows[0]['label']);
+        $this->assertTrue($rows[0]['custom']);
     }
 
     public function testCompileInjectsHomeAndAvatar()
@@ -285,6 +345,18 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         );
         $this->assertSame('http://localhost/app', $this->dropdownHref($set, 'Exit course'));
         $this->assertNotContains('Settings', $labels);
+    }
+
+    public function testCompileUsesCustomHomeLabel()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 1;
+        $_SESSION['displayname'] = 'Jane';
+        $doc = CourseNav::defaultDocument();
+        $doc['home'] = 'Start here';
+        $set = CourseNav::compile($doc, 42);
+        $this->assertSame('Start here', $set->home->link);
+        $this->assertStringContainsString('/courses/42/home', $set->home->href);
     }
 
     public function testCompileHidesInstructorOnlyFromStudents()
