@@ -60,7 +60,7 @@ if ( $result && isset($result['grade']) ) {
 
 // Send the grade
 $debug_log = array();
-$status = LTIX::gradeSend($grade, $result, $debug_log); // This is the slow bit
+$status = gradeSendReleaseSession($grade, $result, $debug_log);
 
 if ( $status === true ) {
     // Send notification to the student whose grade was changed (only if grade actually changed)

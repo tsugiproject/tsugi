@@ -452,6 +452,19 @@ function loadResultUpdatedAt($user_id)
     return $updated_at;
 }
 
+// Close the PHP session during LMS passback so a slow gradeSend cannot hold the lock.
+function gradeSendReleaseSession($grade, $result = false, &$debug_log = false)
+{
+    if ( session_status() === PHP_SESSION_ACTIVE ) {
+        session_write_close();
+    }
+    $status = \Tsugi\Core\LTIX::gradeSend($grade, $result, $debug_log);
+    if ( session_status() !== PHP_SESSION_ACTIVE ) {
+        session_start();
+    }
+    return $status;
+}
+
 // Load the count of grades for this user for an assignment
 function loadMyGradeCount($assn_id) {
     global $CFG, $PDOX, $USER;

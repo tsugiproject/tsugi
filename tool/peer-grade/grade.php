@@ -150,7 +150,7 @@ if ( isset($_POST['submit_id']) && isset($_POST['user_id']) ) {
         if ( $result && isset($result['grade']) ) {
             $old_grade = floatval($result['grade']);
         }
-        $status = LTIX::gradeSend($grade, $result); // This is the slow bit
+        $status = gradeSendReleaseSession($grade, $result);
 
         if ( $status === true ) {
             $_SESSION['success'] = 'Grade submitted to server';
@@ -222,7 +222,7 @@ echo('</div>');
 showSubmission($assn_json, $submit_json, $assn_id, $user_id);
 echo('<p>'.htmlentities($assn_json->grading)."</p>\n");
 ?>
-<form method="post">
+<form method="post" class="js-once-submit">
 <?= \Tsugi\Controllers\Tool::csrfField() ?>
 <input type="hidden" value="<?php echo($submit_id); ?>" name="submit_id">
 <input type="hidden" value="<?php echo($user_id); ?>" name="user_id">
@@ -242,7 +242,7 @@ echo('<p>'.htmlentities($assn_json->grading)."</p>\n");
 <button type="button" onclick="location='<?php echo(addSession($url_goback));?>'; return false;" class="btn btn-default">Cancel</button>
 </form>
 <?php   if ( $assn_json->flag ) { ?>
-<form method="post" id="flagform" style="display:none">
+<form method="post" id="flagform" class="js-once-submit" style="display:none">
 <?= \Tsugi\Controllers\Tool::csrfField() ?>
 <p>Please be considerate when flagging an item.  Only use
 flagging when instructor attention is needed.</p>
@@ -264,6 +264,38 @@ $_SESSION['peer_submit_id'] = $submit_id;  // Our CSRF touch
 $OUTPUT->footerStart();
 ?>
 <script src="<?= U::get_rest_parent() ?>/static/prism.js" type="text/javascript"></script>
+<script>
+document.querySelectorAll('form.js-once-submit').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+        if ( form.getAttribute('data-submitting') === '1' ) {
+            e.preventDefault();
+            return;
+        }
+        form.setAttribute('data-submitting', '1');
+        var submitter = e.submitter;
+        if ( submitter && submitter.name ) {
+            var hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = submitter.name;
+            hidden.value = submitter.value;
+            form.appendChild(hidden);
+        }
+        form.querySelectorAll('input[type=submit]').forEach(function(btn) {
+            if ( submitter && btn === submitter ) {
+                btn.value = form.id === 'flagform' ? 'Submitting...' : 'Sending grade...';
+            }
+            btn.disabled = true;
+        });
+        var status = document.createElement('p');
+        status.setAttribute('role', 'status');
+        status.style.marginTop = '8px';
+        status.textContent = form.id === 'flagform'
+            ? 'Submitting flag — please wait.'
+            : 'Sending grade to the LMS — please wait.';
+        form.appendChild(status);
+    });
+});
+</script>
 <?php
 load_htmls();
 $OUTPUT->footerEnd();

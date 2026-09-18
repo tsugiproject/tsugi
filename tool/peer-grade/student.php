@@ -145,7 +145,7 @@ if ( isset($_POST['instSubmit']) || isset($_POST['instSubmitAdvance']) ) {
     }
     $result['grade'] = -1; // Force resend
     $debug_log = array();
-    $status = LTIX::gradeSend($computed_grade, $result, $debug_log); // This is the slow bit
+    $status = gradeSendReleaseSession($computed_grade, $result, $debug_log);
     if ( $status === true ) {
         $_SESSION['success'] = 'Grade submitted to server';
         // Send notification to the student whose grade was changed (only if grade actually changed)
@@ -185,7 +185,7 @@ if ( isset($_POST['resendSubmit']) ) {
     $_SESSION['lti']['grade'] = -1;  // Force a resend
     $result['grade'] = -1;
     $debug_log = array();
-    $status = LTIX::gradeSend($computed_grade, $result, $debug_log); // This is the slow bit
+    $status = gradeSendReleaseSession($computed_grade, $result, $debug_log);
     if ( $status === true ) {
         $_SESSION['success'] = 'Grade submitted to server';
     } else {
@@ -376,7 +376,7 @@ if ( $submit_row === false ) {
 
 }
 
-echo('<form method="post">
+echo('<form method="post" class="js-once-submit">
       '.\Tsugi\Controllers\Tool::csrfField().'
       <input type="hidden" name="user_id" value="'.$user_id.'">');
 
@@ -440,7 +440,7 @@ if ( $assn_json->totalpoints == 0 ) {
 
     if ( isset($_GET['resend']) ) {
         $studenturl = Table::makeUrl('student.php', $getparms);
-        echo('<form method="post">
+        echo('<form method="post" class="js-once-submit">
             '.\Tsugi\Controllers\Tool::csrfField().'
             <input type="hidden" name="user_id" value="'.$user_id.'">
             <input type="submit" name="resendSubmit" value="Resend the Grade" class="btn btn-warning">
@@ -547,6 +547,36 @@ if ( isset($_SESSION['debug_log']) ) {
 $OUTPUT->footerStart();
 ?>
 <script src="<?= U::get_rest_parent() ?>/static/prism.js" type="text/javascript"></script>
+<script>
+document.querySelectorAll('form.js-once-submit').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+        if ( form.getAttribute('data-submitting') === '1' ) {
+            e.preventDefault();
+            return;
+        }
+        form.setAttribute('data-submitting', '1');
+        var submitter = e.submitter;
+        if ( submitter && submitter.name ) {
+            var hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = submitter.name;
+            hidden.value = submitter.value;
+            form.appendChild(hidden);
+        }
+        form.querySelectorAll('input[type=submit]').forEach(function(btn) {
+            if ( submitter && btn === submitter ) {
+                btn.value = 'Sending grade...';
+            }
+            btn.disabled = true;
+        });
+        var status = document.createElement('p');
+        status.setAttribute('role', 'status');
+        status.style.marginTop = '8px';
+        status.textContent = 'Sending grade to the LMS — please wait.';
+        form.appendChild(status);
+    });
+});
+</script>
 <?php
 load_htmls();
 $OUTPUT->footerEnd();
