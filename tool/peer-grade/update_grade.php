@@ -29,10 +29,15 @@ if ( $assn_id == false ) {
     return;
 }
 
-// Compute the user's grade
+// Compute the user's grade (0.0-1.0, or -1 if there is no submission)
 $grade = computeGrade($assn_id, $assn_json, $user_id);
-if ( $grade <= 0 ) {
+if ( $grade < 0 ) {
     $OUTPUT->jsonError('Nothing to grade for this user', $row);
+    return;
+}
+// 0 is a real score (submitted, nothing earned yet). Show it; do not pass 0% back to the LMS.
+if ( $grade == 0 ) {
+    $OUTPUT->jsonOutput(array("status" => true, "grade" => 0));
     return;
 }
 

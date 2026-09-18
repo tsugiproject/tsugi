@@ -971,12 +971,14 @@ function gradeLoad() {
     window.console && console.log('Loading and updating your grade...');
     $.getJSON('<?php echo(addSession('update_grade.php')); ?>', function(data) {
         window.console && console.log(data);
-        if ( data.grade ) {
+        if ( typeof data.grade === 'number' ) {
             $("#gradeinfo").html('Your current grade is '+data.grade*100.0+'%');
         } else {
             $("#gradeinfo").html('You do not have a grade.');
             window.console && console.log('Take a screen shot of the console output and send to support...');
         }
+    }).fail(function() {
+        $("#gradeinfo").html('You do not have a grade.');
     });
 }
 </script>
