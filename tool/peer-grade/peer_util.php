@@ -148,6 +148,34 @@ function loadUngraded($assn_id)
     return $stmt->fetchAll();
 }
 
+// Other students who have submitted this assignment
+function countOtherSubmissions($assn_id, $user_id)
+{
+    global $CFG, $PDOX;
+    $row = $PDOX->rowDie(
+        "SELECT COUNT(*) AS c FROM {$CFG->dbprefix}peer_submit
+            WHERE assn_id = :AID AND user_id != :UID",
+        array(":AID" => $assn_id, ":UID" => $user_id)
+    );
+    return is_array($row) ? ($row['c'] + 0) : 0;
+}
+
+// True if this user still has someone else's submission they have not graded
+function hasSubmissionsToGrade($assn_id, $user_id)
+{
+    global $CFG, $PDOX;
+    $row = $PDOX->rowDie(
+        "SELECT S.submit_id
+            FROM {$CFG->dbprefix}peer_submit AS S
+            WHERE S.assn_id = :AID AND S.user_id != :UID AND
+            S.submit_id NOT IN
+                ( SELECT DISTINCT submit_id FROM {$CFG->dbprefix}peer_grade WHERE user_id = :UID)
+            LIMIT 1",
+        array(":AID" => $assn_id, ":UID" => $user_id)
+    );
+    return is_array($row);
+}
+
 function showSubmission($assn_json, $submit_json, $assn_id, $user_id)
 {
     global $CFG, $PDOX, $USER, $LINK, $CONTEXT, $OUTPUT;
@@ -371,14 +399,16 @@ function computeGrade($assn_id, $assn_json, $user_id)
     // Compute the overall points
     $inst_points = $row['inst_points'] + 0;
     $assnpoints = $row['max_points']+0;
+    $other_submits = countOtherSubmissions($assn_id, $user_id);
 
-    // Handle when the student has waited "long enough" for a peer-grade
+    // Full peer points immediately if no one else has submitted. Timed autopeer still
+    // requires autopeer > 0 when classmates exist.
     $created_at = strtotime($row['created_at']." UTC");
     $diff = time() - $created_at;
-    if ( isset($assn_json->autopeer) && $assn_json->autopeer > 0 &&
-        $diff > $assn_json->autopeer && $assnpoints < $assn_json->peerpoints) {
-	// TODO: Turn this into an event
-        error_log('Auto-peer '.time().' '.$diff.' '.$row['displayname']);
+    if ( $assnpoints < $assn_json->peerpoints && $assn_json->peerpoints > 0 &&
+        ( $other_submits == 0 ||
+            ( isset($assn_json->autopeer) && $assn_json->autopeer > 0 && $diff > $assn_json->autopeer ) ) ) {
+        error_log('Auto-peer '.time().' '.$diff.' others='.$other_submits.' '.$displayname);
         $assnpoints = $assn_json->peerpoints;
     }
 
@@ -409,6 +439,12 @@ function computeGrade($assn_id, $assn_json, $user_id)
     if ( $submit_json && isset($submit_json->peer_exempt) ) {
         $gradepoints = $assn_json->minassess * $assn_json->assesspoints;
         error_log('Accessible override '.time().' '.$displayname.' points='.$gradepoints);
+    } else if ( $assn_json->minassess > 0 && $assn_json->assesspoints > 0 &&
+        ! hasSubmissionsToGrade($assn_id, $user_id) ) {
+        // No one left to review: grant the peer-grading slice. If peers appear later, this
+        // recomputes from real grades and they can still review.
+        $gradepoints = $assn_json->minassess * $assn_json->assesspoints;
+        error_log('Empty-pool assess '.time().' '.$displayname.' points='.$gradepoints);
     }
 
     $retval = ($inst_points + $assnpoints + $gradepoints) / $assn_json->totalpoints;
