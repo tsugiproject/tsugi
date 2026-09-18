@@ -177,6 +177,7 @@ if ( isset($_POST['instSubmit']) || isset($_POST['instSubmitAdvance']) ) {
 
 // Compute grade
 $computed_grade = computeGrade($assn_id, $assn_json, $user_id); // Does not cache
+$grade_updated_at = loadResultUpdatedAt($user_id);
 if ( isset($_POST['resendSubmit']) ) {
      $result = Result::lookupResultBypass($user_id); // Does not cache
 
@@ -433,6 +434,9 @@ if ( $assn_json->totalpoints == 0 ) {
     echo("<p>This is an ungraded assignment</p>\n");
 } else {
     echo("<p>Computed grade: ".$computed_grade."<br/>\n");
+    if ( U::isNotEmpty($grade_updated_at) ) {
+        echo("Last grade update: ".htmlentities($grade_updated_at)."<br/>\n");
+    }
 
     if ( isset($_GET['resend']) ) {
         $studenturl = Table::makeUrl('student.php', $getparms);

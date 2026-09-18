@@ -37,7 +37,10 @@ if ( $grade < 0 ) {
 }
 // 0 is a real score (submitted, nothing earned yet). Show it; do not pass 0% back to the LMS.
 if ( $grade == 0 ) {
-    $OUTPUT->jsonOutput(array("status" => true, "grade" => 0));
+    $payload = array("status" => true, "grade" => 0);
+    $updated_at = loadResultUpdatedAt($user_id);
+    if ( $updated_at ) $payload['updated_at'] = $updated_at;
+    $OUTPUT->jsonOutput($payload);
     return;
 }
 
@@ -70,12 +73,12 @@ if ( $status === true ) {
         $notification_url = addSession('index');
     }
     notifyGradeChange($user_id, $grade, $old_grade, $assn_json->title ?? null, $notification_url);
-    
-    if ( $user_id != $USER->id ) {
-        $OUTPUT->jsonOutput(array("status" => $status, "debug" => $debug_log));
-    } else {
-        $OUTPUT->jsonOutput(array("status" => $status, "grade" => $grade, "debug" => $debug_log));
-    }
+
+    $payload = array("status" => $status, "debug" => $debug_log);
+    if ( $user_id == $USER->id ) $payload['grade'] = $grade;
+    $updated_at = loadResultUpdatedAt($user_id);
+    if ( $updated_at ) $payload['updated_at'] = $updated_at;
+    $OUTPUT->jsonOutput($payload);
 } else {
     $OUTPUT->jsonError($status, $debug_log);
 }

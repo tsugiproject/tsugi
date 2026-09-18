@@ -963,8 +963,15 @@ attention of the instructor.</p>
 <input type="submit" name="doCancel" onclick="$('#flagform').toggle(); return false;" value="Cancel Flag" class="btn btn-default">
 </form>
 <p>
-<?php if ( $assn_json->totalpoints > 0 ) { ?>
+<?php if ( $assn_json->totalpoints > 0 ) {
+    $grade_updated_at = loadResultUpdatedAt($USER->id);
+?>
 <div id="gradeinfo">Calculating grade....</div>
+<div id="gradeupdated"><?php
+    if ( U::isNotEmpty($grade_updated_at) ) {
+        echo('Last grade update: '.htmlentities($grade_updated_at));
+    }
+?></div>
 </p>
 <script type="text/javascript">
 function gradeLoad() {
@@ -973,6 +980,9 @@ function gradeLoad() {
         window.console && console.log(data);
         if ( typeof data.grade === 'number' ) {
             $("#gradeinfo").html('Your current grade is '+data.grade*100.0+'%');
+            if ( data.updated_at ) {
+                $("#gradeupdated").text('Last grade update: '+data.updated_at);
+            }
         } else {
             $("#gradeinfo").html('You do not have a grade.');
             window.console && console.log('Take a screen shot of the console output and send to support...');

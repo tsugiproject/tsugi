@@ -416,6 +416,22 @@ function computeGrade($assn_id, $assn_json, $user_id)
     return $retval;
 }
 
+// When the local lti_result row was last written (grade send, launch insert, etc.)
+function loadResultUpdatedAt($user_id)
+{
+    global $CFG, $PDOX, $LINK;
+    if ( ! $LINK || ! $user_id ) return false;
+    $row = $PDOX->rowDie(
+        "SELECT updated_at FROM {$CFG->dbprefix}lti_result
+            WHERE link_id = :LID AND user_id = :UID",
+        array(":LID" => $LINK->id, ":UID" => $user_id)
+    );
+    if ( ! is_array($row) ) return false;
+    $updated_at = $row['updated_at'] ?? null;
+    if ( U::isEmpty($updated_at) ) return false;
+    return $updated_at;
+}
+
 // Load the count of grades for this user for an assignment
 function loadMyGradeCount($assn_id) {
     global $CFG, $PDOX, $USER;
