@@ -160,22 +160,6 @@ function countOtherSubmissions($assn_id, $user_id)
     return is_array($row) ? ($row['c'] + 0) : 0;
 }
 
-// True if this user still has someone else's submission they have not graded
-function hasSubmissionsToGrade($assn_id, $user_id)
-{
-    global $CFG, $PDOX;
-    $row = $PDOX->rowDie(
-        "SELECT S.submit_id
-            FROM {$CFG->dbprefix}peer_submit AS S
-            WHERE S.assn_id = :AID AND S.user_id != :UID AND
-            S.submit_id NOT IN
-                ( SELECT DISTINCT submit_id FROM {$CFG->dbprefix}peer_grade WHERE user_id = :UID)
-            LIMIT 1",
-        array(":AID" => $assn_id, ":UID" => $user_id)
-    );
-    return is_array($row);
-}
-
 function showSubmission($assn_json, $submit_json, $assn_id, $user_id)
 {
     global $CFG, $PDOX, $USER, $LINK, $CONTEXT, $OUTPUT;
@@ -440,11 +424,11 @@ function computeGrade($assn_id, $assn_json, $user_id)
         $gradepoints = $assn_json->minassess * $assn_json->assesspoints;
         error_log('Accessible override '.time().' '.$displayname.' points='.$gradepoints);
     } else if ( $assn_json->minassess > 0 && $assn_json->assesspoints > 0 &&
-        ! hasSubmissionsToGrade($assn_id, $user_id) ) {
-        // No one left to review: grant the peer-grading slice. If peers appear later, this
-        // recomputes from real grades and they can still review.
+        $other_submits < $assn_json->minassess ) {
+        // Not enough other submissions to complete minassess reviews — grant the full
+        // review slice. If more peers submit later, this recomputes from real grades.
         $gradepoints = $assn_json->minassess * $assn_json->assesspoints;
-        error_log('Empty-pool assess '.time().' '.$displayname.' points='.$gradepoints);
+        error_log('Empty-pool assess '.time().' others='.$other_submits.' '.$displayname.' points='.$gradepoints);
     }
 
     $retval = ($inst_points + $assnpoints + $gradepoints) / $assn_json->totalpoints;

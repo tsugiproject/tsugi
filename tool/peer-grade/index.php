@@ -869,17 +869,30 @@ if ( $assn_json->maxassess > 0 ) {
         }
 
         // Add a done button if needed
-        echo("<p> You have reviewed ".$grade_count." other student submissions.
-            You must review at least ".$assn_json->minassess." submissions for
+        $other_submits = countOtherSubmissions($assn_id, $USER->id);
+        echo("<p> You have reviewed ".$grade_count." other student submissions.\n");
+        if ( $other_submits < $assn_json->minassess ) {
+            echo("There are not enough other submissions to complete ".$assn_json->minassess.
+                " reviews, so you have full credit for the review portion. You can still review if more students submit.\n");
+        } else {
+            echo("You must review at least ".$assn_json->minassess." submissions for
             full credit on this assignment.\n");
-        if ( $assn_json->maxassess < 100 ) {
-            echo("You <i>can</i> review up to ".$assn_json->maxassess." submissions if you like.\n");
+            if ( $assn_json->maxassess < 100 ) {
+                echo("You <i>can</i> review up to ".$assn_json->maxassess." submissions if you like.\n");
+            }
         }
         echo("</p>\n");
     } else if ( count($to_grade) > 0 ) {
         echo('<p>You have reviewed the maximum number of submissions. Congratulations!<p>');
     } else {
         echo('<p>There are no submisions ready to be reviewed. Please check back later.</p>');
+        if ( $assn_json->minassess > 0 ) {
+            $other_submits = countOtherSubmissions($assn_id, $USER->id);
+            if ( $other_submits < $assn_json->minassess ) {
+                echo("<p>There are not enough other submissions to complete ".$assn_json->minassess.
+                    " reviews, so you have full credit for the review portion.</p>\n");
+            }
+        }
     }
 }
 
