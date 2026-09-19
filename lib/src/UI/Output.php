@@ -731,11 +731,7 @@ $('a').each(function (x) {
 
         $R = $CFG->wwwroot . '/';
         $set = new \Tsugi\UI\MenuSet();
-        if ( is_string($CFG->apphome) ) {
-            $set->setHome($CFG->servicename, $CFG->apphome);
-        } else {
-            $set->setHome($CFG->servicename, $R);
-        }
+        $set->setHome($CFG->servicename, $CFG->getHomeUrl());
         if ( $CFG->hasSiteLessons() ) {
             $lessonsHome = is_string($CFG->apphome) && strlen($CFG->apphome) > 0
                 ? rtrim($CFG->apphome, '/')

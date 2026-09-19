@@ -72,6 +72,16 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertArrayNotHasKey('exit_course', CourseNav::catalogById());
     }
 
+    public function testDefaultKeepsExitCourseWhenHomePathSetWithoutAppHome()
+    {
+        global $CFG;
+        $CFG->apphome = false;
+        $CFG->setExtension('home_path', $CFG->wwwroot);
+        $doc = CourseNav::defaultDocument();
+        $this->assertSame('exit_course', $doc['items'][0]['id']);
+        $this->assertArrayHasKey('exit_course', CourseNav::catalogById());
+    }
+
     public function testNormalizeDropsUnknownAndLockedIds()
     {
         $doc = CourseNav::normalize(array(
@@ -147,6 +157,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $entry = CourseNav::catalogById()['courses_widget'];
         $this->assertSame('widget', $entry['kind']);
         $this->assertSame('Sites widget', $entry['label']);
+        $this->assertSame('catalog', $entry['pin']);
         $doc = CourseNav::normalize(array(
             'items' => array(
                 array('id' => 'courses_widget', 'dropdown' => true, 'right' => true, 'instructor' => true),
@@ -177,6 +188,30 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $set = CourseNav::compile($doc, 42);
         $this->assertTrue($this->rightMenuContains($set, 'tsugi-courses'));
         $this->assertTrue($this->rightMenuContains($set, 'courses/json'));
+    }
+
+    public function testCompileCoursesWidgetCanSitOnTheLeft()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 1;
+        $_SESSION['displayname'] = 'Pat';
+        $doc = array(
+            'items' => array(
+                array('id' => 'courses_widget', 'left' => true),
+                array('id' => 'logout', 'dropdown' => true),
+            ),
+        );
+        $set = CourseNav::compile($doc, 42);
+        $this->assertNotFalse($set->left);
+        $found = false;
+        foreach ( $set->left->menu as $entry ) {
+            if ( is_string($entry->link) && strpos($entry->link, 'tsugi-courses') !== false ) {
+                $found = true;
+                break;
+            }
+        }
+        $this->assertTrue($found);
+        $this->assertFalse($this->rightMenuContains($set, 'tsugi-courses'));
     }
 
     /**
@@ -239,7 +274,31 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $exit = array_search('exit_course', $ids, true);
         $this->assertNotFalse($sites);
         $this->assertSame($sites + 1, $exit);
+        $this->assertSame('catalog', $rows[$sites]['pin']);
+        $this->assertSame('widget', $rows[$sites]['kind']);
         $this->assertTrue($rows[$exit]['dropdown']);
+    }
+
+    public function testEditorRowsKeepsSitesWidgetBesideExitEvenWhenEnabled()
+    {
+        $doc = array(
+            'items' => array(
+                array('id' => 'files', 'left' => true),
+                array('id' => 'courses_widget', 'right' => true),
+                array('id' => 'exit_course', 'dropdown' => true),
+                array('id' => 'logout', 'dropdown' => true),
+            ),
+        );
+        $rows = CourseNav::editorRows($doc);
+        $ids = array();
+        foreach ( $rows as $row ) {
+            $ids[] = $row['id'];
+        }
+        $this->assertSame('files', $ids[1]);
+        $sites = array_search('courses_widget', $ids, true);
+        $exit = array_search('exit_course', $ids, true);
+        $this->assertSame($sites + 1, $exit);
+        $this->assertTrue($rows[$sites]['right']);
     }
 
     public function testCatalogOrder()
@@ -352,6 +411,17 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         );
         $this->assertSame('http://localhost/app', $this->dropdownHref($set, 'Exit course'));
         $this->assertNotContains('Settings', $labels);
+    }
+
+    public function testCompileExitCourseUsesHomePath()
+    {
+        global $CFG;
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 1;
+        $_SESSION['displayname'] = 'Jane';
+        $CFG->setExtension('home_path', 'https://example.org/portal/');
+        $set = CourseNav::compile(CourseNav::defaultDocument(), 42);
+        $this->assertSame('https://example.org/portal', $this->dropdownHref($set, 'Exit course'));
     }
 
     public function testCompileUsesCustomHomeLabel()

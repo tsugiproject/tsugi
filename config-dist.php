@@ -169,6 +169,11 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 // more than one course to switch between. Course-nav editing is separate.
 // $CFG->setExtension('show_courses_widget', true);
 
+// Where the Home brand (and Exit course) go. Any URL. Unset = apphome, then wwwroot.
+// $CFG->setExtension('home_path', $CFG->apphome);
+// $CFG->setExtension('home_path', $CFG->wwwroot);
+// $CFG->setExtension('home_path', 'https://example.com/');
+
 // If we are going to use the lessons tool and/or badges, we need to
 // create and point to a lessons.json file
 // $CFG->lessons = $CFG->dirroot.'/../lessons.json';
