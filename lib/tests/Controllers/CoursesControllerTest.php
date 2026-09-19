@@ -11,6 +11,7 @@ require_once "src/Util/U.php";
 use \Tsugi\Controllers\Courses;
 use \Tsugi\Core\Manifest;
 use \Tsugi\Lumen\Application;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 
 class CoursesControllerTest extends \PHPUnit\Framework\TestCase
@@ -206,6 +207,49 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('/announcements/manage', $inner->getPathInfo());
         $this->assertSame('GET', $inner->getMethod());
         $this->assertSame('1', $inner->query->get('x'));
+    }
+
+    public function testInnerRequestDropsEmptyFileFields()
+    {
+        $empty = array(
+            'name' => '',
+            'type' => '',
+            'tmp_name' => '',
+            'error' => UPLOAD_ERR_NO_FILE,
+            'size' => 0,
+        );
+        $request = Request::create(
+            '/courses/42/settings/images',
+            'POST',
+            array('image_action' => 'save_hero'),
+            array(),
+            array('uploaded_file' => $empty)
+        );
+        $this->assertNull($request->files->get('uploaded_file'));
+        $inner = Courses::innerRequest($request, 'settings/images');
+        $this->assertSame('/settings/images', $inner->getPathInfo());
+        $this->assertSame('POST', $inner->getMethod());
+        $this->assertSame('save_hero', $inner->request->get('image_action'));
+        $this->assertNull($inner->files->get('uploaded_file'));
+    }
+
+    public function testInnerRequestKeepsUploadedFile()
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'up');
+        file_put_contents($tmp, 'jpeg-bytes');
+        $file = new UploadedFile($tmp, 'photo.jpg', 'image/jpeg', UPLOAD_ERR_OK, true);
+        $request = Request::create(
+            '/courses/42/settings/images',
+            'POST',
+            array('image_action' => 'save_icon'),
+            array(),
+            array('uploaded_file' => $file)
+        );
+        $inner = Courses::innerRequest($request, 'settings/images');
+        $this->assertSame('/settings/images', $inner->getPathInfo());
+        $kept = $inner->files->get('uploaded_file');
+        $this->assertInstanceOf(UploadedFile::class, $kept);
+        $this->assertSame('photo.jpg', $kept->getClientOriginalName());
     }
 
     public function testIdentitySnapshotResetAfterContextChange()
