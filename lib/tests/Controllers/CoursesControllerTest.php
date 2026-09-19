@@ -88,6 +88,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
     public function testRouteConstant()
     {
         $this->assertEquals('/courses', Courses::ROUTE, 'ROUTE constant should be /courses');
+        $this->assertSame(5, Courses::FLYOUT_LIMIT);
     }
 
     public function testIsGoogleLoginSessionTrue()
@@ -272,6 +273,17 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
             _tsugiResetIdentitySnapshot();
         }
         $this->assertNull(Courses::createGateResponse('/courses'));
+    }
+
+    public function testTouchVisitedNoOpWhenNotLoggedIn()
+    {
+        $_SESSION = array();
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $this->expectNotToPerformAssertions();
+        Courses::touchVisited(42);
+        Courses::touchVisited(0);
     }
 
     public function testRestoreSiteLoginContextSkipsCourseMounted()

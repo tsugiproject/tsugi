@@ -19,6 +19,9 @@ class Courses extends Tool {
 
     const ROUTE = '/courses';
 
+    /** Courses shown in the site-menu flyout (fits on screen; no scrollbar). */
+    const FLYOUT_LIMIT = 5;
+
     /** Consumer key used by Google site login. */
     const GOOGLE_KEY = 'google.com';
 
@@ -97,6 +100,8 @@ class Courses extends Tool {
      * and put the Google-login course back in the session.
      *
      * Course-mounted URLs and LMS LTI launches are left alone. Idempotent.
+     * Does not call touchVisited() — bouncing back to the Google home
+     * course on site URLs must not steal the flyout's recency list.
      */
     public static function restoreSiteLoginContext() {
         if ( self::isCourseMountedRequest() ) {
@@ -368,6 +373,32 @@ class Courses extends Tool {
     }
 
     /**
+     * Record that this user entered a course (flyout recency).
+     *
+     * Call only from explicit /courses/{id} entry (enter, nested switch,
+     * create). Do not call from restoreSiteLoginContext().
+     */
+    public static function touchVisited($context_id) {
+        global $CFG, $PDOX;
+
+        $cid = (int) $context_id;
+        $user_id = U::loggedInUserId();
+        if ( $cid < 1 || $user_id < 1 ) {
+            return;
+        }
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+        $p = $CFG->dbprefix;
+        $PDOX->queryDie(
+            "UPDATE {$p}lti_membership
+             SET visited_at = NOW()
+             WHERE context_id = :CID AND user_id = :UID",
+            array(':CID' => $cid, ':UID' => $user_id)
+        );
+    }
+
+    /**
      * Point Context/Output at $TSUGI_LAUNCH and ensure it has a PDOX connection.
      * lms_lib.php may have created a dummy $LAUNCH without pdox.
      */
@@ -462,6 +493,7 @@ class Courses extends Tool {
         if ( $result !== true ) {
             return self::switchFailedResponse($result);
         }
+        self::touchVisited($id);
 
         return new RedirectResponse(self::courseHomeUrl($id));
     }
@@ -538,6 +570,7 @@ class Courses extends Tool {
         if ( $switch !== true ) {
             return self::switchFailedResponse($switch);
         }
+        self::touchVisited($result['context_id']);
 
         U::flashSuccess(__('Course created.'));
         return new RedirectResponse(self::courseHomeUrl($result['context_id']));
@@ -577,9 +610,13 @@ class Courses extends Tool {
             return self::enter($app, $request, $id);
         }
 
+        $before = U::currentContextId();
         $result = self::ensureActiveContext($id);
         if ( $result !== true ) {
             return self::switchFailedResponse($result);
+        }
+        if ( $before !== (int) $id ) {
+            self::touchVisited($id);
         }
 
         if ( self::$dispatchingNested ) {
@@ -621,18 +658,29 @@ class Courses extends Tool {
             return \response()->json(array("error" => "No profile_id"));
         }
 
-        $sql = "SELECT P.profile_id, U.user_id, U.email, C.context_id,
-                COALESCE(NULLIF(MF.title, ''), C.title) AS title
-            FROM {$p}profile AS P
-            JOIN {$p}lti_user AS U ON P.profile_id = U.profile_id
-            JOIN {$p}lti_membership AS M ON U.user_id = M.user_id
-            JOIN {$p}lti_context AS C ON M.context_id = C.context_id
-            LEFT JOIN {$p}manifest AS MF ON C.manifest_id = MF.manifest_id
-            WHERE P.profile_id = :PID";
+        $limit = (int) self::FLYOUT_LIMIT;
+        $home = self::siteLoginContextId();
+        $params = array(':PID' => $row['profile_id']);
+        $excludeHome = '';
+        if ( $home > 0 ) {
+            $excludeHome = ' AND C.context_id != :HOME';
+            $params[':HOME'] = $home;
+        }
 
-        $rows = $PDOX->allRowsDie($sql, array(':PID' => $row['profile_id']));
+        $sql = self::flyoutMembershipSql($p, $excludeHome)." LIMIT {$limit}";
+        $rows = $PDOX->allRowsDie($sql, $params);
         if ( ! is_array($rows) ) {
             $rows = array();
+        }
+        // Google home course stays out of the waffle unless it is the only site.
+        if ( count($rows) < 1 && $home > 0 ) {
+            $rows = $PDOX->allRowsDie(
+                self::flyoutMembershipSql($p, ' AND C.context_id = :HOME').' LIMIT 1',
+                array(':PID' => $row['profile_id'], ':HOME' => $home)
+            );
+            if ( ! is_array($rows) ) {
+                $rows = array();
+            }
         }
         return response()->json(array(
             'status' => 'success',
@@ -640,6 +688,22 @@ class Courses extends Tool {
             'current_context_id' => U::currentContextId(),
             'can_create' => self::canCreate(),
         ));
+    }
+
+    /**
+     * Flyout memberships: never-visited rows use created_at so new
+     * enrollments still surface. Caller adds WHERE extras and LIMIT.
+     */
+    private static function flyoutMembershipSql($p, $extraWhere='') {
+        return "SELECT P.profile_id, U.user_id, U.email, C.context_id,
+                COALESCE(NULLIF(MF.title, ''), C.title) AS title
+            FROM {$p}profile AS P
+            JOIN {$p}lti_user AS U ON P.profile_id = U.profile_id
+            JOIN {$p}lti_membership AS M ON U.user_id = M.user_id
+            JOIN {$p}lti_context AS C ON M.context_id = C.context_id
+            LEFT JOIN {$p}manifest AS MF ON C.manifest_id = MF.manifest_id
+            WHERE P.profile_id = :PID{$extraWhere}
+            ORDER BY COALESCE(M.visited_at, M.created_at) DESC";
     }
 
     /**

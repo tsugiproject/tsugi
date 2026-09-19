@@ -365,6 +365,7 @@ array( "{$CFG->dbprefix}lti_membership",
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
+    visited_at          TIMESTAMP NULL,
     deleted_at          TIMESTAMP NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_membership_ibfk_1`
@@ -794,6 +795,9 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         // 2026-08-28 User-level capability to create site-login courses
         array('lti_user', 'create_courses', 'TINYINT(1) NOT NULL DEFAULT 0'),
+
+        // 2026-09-18 Last time this user entered this course (site-login flyout recency)
+        array('lti_membership', 'visited_at', 'TIMESTAMP NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
