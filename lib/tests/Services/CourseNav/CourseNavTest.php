@@ -167,7 +167,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
     {
         $entry = CourseNav::catalogById()['courses_widget'];
         $this->assertSame('widget', $entry['kind']);
-        $this->assertSame('Sites widget', $entry['label']);
+        $this->assertSame('Courses widget', $entry['label']);
         $this->assertSame('catalog', $entry['pin']);
         $doc = CourseNav::normalize(array(
             'items' => array(
