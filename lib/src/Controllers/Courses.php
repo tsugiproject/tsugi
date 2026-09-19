@@ -152,7 +152,7 @@ class Courses extends Tool {
                 return $id;
             }
         }
-        if ( ! isset($CFG->context_title) || ! is_string($CFG->context_title) || $CFG->context_title === '' ) {
+        if ( ! isset($CFG) || ! is_object($CFG) || ! $CFG->hasSiteContextTitle() ) {
             return 0;
         }
         if ( $PDOX === null || $PDOX === false ) {

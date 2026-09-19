@@ -668,6 +668,9 @@ class ConfigInfo {
      * the "local" students that log in through Google.
      *
      * $CFG->context_title = "Web Applications for Everybody";
+     *
+     * This property defaults to false, so isset($CFG->context_title) is always true.
+     * Use hasSiteContextTitle() when deciding whether a Google-wide home course exists.
      */
     public $context_title = false;
 
@@ -740,6 +743,10 @@ class ConfigInfo {
      * create and point to a lessons.json file
      *
      * $CFG->lessons = $CFG->dirroot.'/../lessons.json';
+     *
+     * This property defaults to false, so isset($CFG->lessons) is always true.
+     * Use hasSiteLessons() when deciding whether to show site Lessons navigation.
+     * Site Lessons also require hasSiteContextTitle() — no Google-wide course, no top-level Lessons.
      */
     public $lessons = false;
 
@@ -1282,6 +1289,26 @@ class ConfigInfo {
         if ( strpos($this->wwwroot,'://localhost') !== false ) return true;
         if ( strpos($this->wwwroot,'://127.0.0.1') !== false ) return true;
         return false;
+    }
+
+    /**
+     * Is a Google-wide site course configured?
+     *
+     * $CFG->context_title defaults to false, so isset($CFG->context_title) is always true.
+     */
+    public function hasSiteContextTitle() {
+        return is_string($this->context_title) && strlen(trim($this->context_title)) > 0;
+    }
+
+    /**
+     * Is a site-level lessons.json configured for the Google-wide course?
+     *
+     * Requires both a lessons path and hasSiteContextTitle(). Course manifests can
+     * still provide Lessons under /courses/{id}/ even when this returns false.
+     */
+    public function hasSiteLessons() {
+        return $this->hasSiteContextTitle()
+            && is_string($this->lessons) && strlen(trim($this->lessons)) > 0;
     }
 
     /**

@@ -332,7 +332,12 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('Home', $set->home->link);
         $this->assertStringContainsString('/courses/42/home', $set->home->href);
         $this->assertNotFalse($set->right);
-        $this->assertSame('Jane', $set->right->menu[count($set->right->menu)-1]->link);
+        $this->assertStringContainsString('<img', $set->right->menu[count($set->right->menu)-1]->link);
+        $this->assertStringContainsString('gravatar.com/avatar', $set->right->menu[count($set->right->menu)-1]->link);
+        $_SESSION['avatar'] = 'https://example.com/jane.jpg';
+        $set = CourseNav::compile(CourseNav::defaultDocument(), 42);
+        $this->assertStringContainsString('https://example.com/jane.jpg', $set->right->menu[count($set->right->menu)-1]->link);
+        unset($_SESSION['avatar']);
         $dropdown = $set->right->menu[count($set->right->menu)-1]->href;
         $this->assertIsArray($dropdown);
         $labels = array();

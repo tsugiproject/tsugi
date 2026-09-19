@@ -736,6 +736,12 @@ $('a').each(function (x) {
         } else {
             $set->setHome($CFG->servicename, $R);
         }
+        if ( $CFG->hasSiteLessons() ) {
+            $lessonsHome = is_string($CFG->apphome) && strlen($CFG->apphome) > 0
+                ? rtrim($CFG->apphome, '/')
+                : rtrim($CFG->wwwroot, '/');
+            $set->addLeft(_m('Lessons'), $lessonsHome.'/lessons');
+        }
         $set->addLeft(_m('Tools'), $R.'store');
         if ( U::isLoggedIn() ) {
                 $set->addLeft(_m('Settings'), $R . 'settings');
@@ -743,19 +749,39 @@ $('a').each(function (x) {
 
         if ( U::isLoggedIn() ) {
             $submenu = new \Tsugi\UI\Menu();
-            $submenu->addLink(_m('Profile'), $R.'profile');
-            if ( $CFG->DEVELOPER || U::get($_COOKIE, 'adminmenu') ) {
-                $submenu->addLink(_m('Admin'), $R.'admin');
+            if ( $CFG->google_client_id ) {
+                $accountHome = is_string($CFG->apphome) && strlen($CFG->apphome) > 0
+                    ? rtrim($CFG->apphome, '/')
+                    : rtrim($CFG->wwwroot, '/');
+                $submenu->addLink(_m('Profile'), $accountHome.'/profile');
+                $submenu->addLink(_m('Map'), $accountHome.'/map');
+                if ( isset($_COOKIE['adminmenu']) && $_COOKIE['adminmenu'] == 'true' ) {
+                    $submenu->addLink(_m('Admin'), $R.'admin/');
+                }
+                $submenu->addLink(_m('Logout'), $accountHome.'/logout');
+                $set->addRight(self::avatarMenuTrigger(), $submenu);
+            } else {
+                $submenu->addLink(_m('Profile'), $R.'profile');
+                if ( $CFG->DEVELOPER || U::get($_COOKIE, 'adminmenu') ) {
+                    $submenu->addLink(_m('Admin'), $R.'admin');
+                }
+                $submenu->addLink(_m('Logout'), $R.'logout');
+                $set->addRight(htmlentities($_SESSION['displayname'] ?? ''), $submenu);
             }
-
-            $submenu->addLink(_m('Logout'), $R.'logout');
-            $set->addRight(htmlentities($_SESSION['displayname'] ?? ''), $submenu);
+            if ( \Tsugi\Controllers\Courses::showCoursesWidget() ) {
+                $set->addRight(
+                    '<tsugi-courses api-url="'. htmlspecialchars($R . 'courses/json') . '" all-url="'. htmlspecialchars($R . 'courses') . '" enter-url="'. htmlspecialchars($R . 'courses') . '"></tsugi-courses>',
+                    false,
+                    true,
+                    'hidden-xs tsugi-wc-nav-item'
+                );
+            }
         } else {
             if ( $CFG->DEVELOPER || U::get($_COOKIE, 'adminmenu') ) {
                 $set->addLeft(_m('Admin'), $R.'admin');
             }
             if ( $CFG->google_client_id ) {
-                $set->addRight(_m('Login'), $R.'login');
+                $set->addRight(_m('Login'), $CFG->getLoginUrl());
             }
         }
 
@@ -766,6 +792,23 @@ $('a').each(function (x) {
         if ( $CFG->DEVELOPER) $set->addRight(_m('Links'), $submenu);
 
         return $set;
+    }
+
+    /**
+     * Avatar (or fallback image) used as the logged-in account dropdown trigger.
+     *
+     * Matches the dj4e/buildmenu.php img trigger, with equal width/height so
+     * border-radius: 50% is a circle. referrerpolicy is required for Google
+     * user-content photos, which otherwise often 403 and render as a blank oval.
+     */
+    public static function avatarMenuTrigger() {
+        $alt = htmlentities(__('User Profile Menu - Includes logout'));
+        $style = 'height: 2em; width: 2em; object-fit: cover; border-radius: 50%;';
+        if ( isset($_SESSION['avatar']) && is_string($_SESSION['avatar']) && $_SESSION['avatar'] !== '' ) {
+            $src = htmlspecialchars($_SESSION['avatar'], ENT_QUOTES, 'UTF-8');
+            return '<img src="'.$src.'" alt="'.$alt.'" referrerpolicy="no-referrer" style="'.$style.'"/>';
+        }
+        return '<img src="https://www.gravatar.com/avatar/?d=mp&amp;s=64" alt="'.$alt.'" style="'.$style.'"/>';
     }
 
     /**
@@ -919,6 +962,11 @@ $('a').each(function (x) {
             }
         }
 
+        if ( $menu_set instanceof \Tsugi\UI\MenuSet
+            && ! \Tsugi\Controllers\Courses::isCourseMountedRequest() ) {
+            $menu_set = $this->dropSiteLessonsFromMenuSet($menu_set);
+        }
+
         $suppressSiteNav = $_SESSION[self::SUPPRESS_SITE_NAV] ?? false;
         if (  $suppressSiteNav ) {
           $menu_txt = "";
@@ -945,6 +993,72 @@ $('a').each(function (x) {
         // Send it back
         if ( $this->buffer ) return $menu_txt;
         echo($menu_txt);
+    }
+
+    /**
+     * Site chrome shows Lessons only when hasSiteLessons() is true
+     * (lessons path plus a Google-wide context_title).
+     *
+     * Course-mounted /courses/{id}/ navigation is left unchanged.
+     */
+    private function dropSiteLessonsFromMenuSet($menu_set) {
+        global $CFG;
+        if ( ! $menu_set instanceof \Tsugi\UI\MenuSet ) {
+            return $menu_set;
+        }
+        if ( $CFG->hasSiteLessons() ) {
+            return $menu_set;
+        }
+        if ( $menu_set->left instanceof \Tsugi\UI\Menu ) {
+            $menu_set->left->menu = $this->dropSiteLessonsEntries($menu_set->left->menu);
+            if ( count($menu_set->left->menu) === 0 ) {
+                $menu_set->left = false;
+            }
+        }
+        return $menu_set;
+    }
+
+    /**
+     * @param mixed $entries
+     * @return array
+     */
+    private function dropSiteLessonsEntries($entries) {
+        if ( ! is_array($entries) ) {
+            return array();
+        }
+        $out = array();
+        foreach ( $entries as $entry ) {
+            if ( $this->isSiteLessonsNavEntry($entry) ) {
+                continue;
+            }
+            $out[] = $entry;
+        }
+        return $out;
+    }
+
+    /**
+     * @param mixed $entry
+     */
+    private function isSiteLessonsNavEntry($entry) {
+        if ( ! is_object($entry) ) {
+            return false;
+        }
+        $link = $entry->link ?? '';
+        if ( $link === 'Lessons' || $link === _m('Lessons') ) {
+            return true;
+        }
+        $href = $entry->href ?? false;
+        if ( ! is_string($href) ) {
+            return false;
+        }
+        $path = parse_url($href, PHP_URL_PATH);
+        if ( ! is_string($path) ) {
+            $path = $href;
+        }
+        if ( ! preg_match('#/lessons/?$#', $path) ) {
+            return false;
+        }
+        return ! preg_match('#/courses/\d+/lessons/?$#', $path);
     }
 
     /**
@@ -1017,7 +1131,7 @@ $('a').each(function (x) {
         }
         $retval .= $pad.'<li class="dropdown">'."\n";
         $dropdown_link_class = 'dropdown-toggle';
-        if (strpos($entry->link, '<img') !== false) {
+        if ( strpos($entry->link, '<img') !== false ) {
             // Drop down link contains an image so add class to style
             $dropdown_link_class .= ' dropdown-img';
         }
@@ -1586,6 +1700,15 @@ body {
   object-fit: cover;
   margin-right: 0.4em;
   flex: 0 0 32px;
+}
+#tsugi_main_nav_bar .navbar-nav > li.dropdown > a.dropdown-img img {
+  width: 2em;
+  height: 2em;
+  max-width: 2em;
+  max-height: 2em;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 @media (min-width: 768px) {
   #tsugi_main_nav_bar > .container-fluid {
