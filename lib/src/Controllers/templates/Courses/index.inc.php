@@ -11,6 +11,16 @@ $can_create = ! empty($can_create);
 $create_url = isset($create_url) ? (string) $create_url : '';
 ?>
 <style>
+.tsugi-course-page-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1em;
+    margin: 0 0 0.75em;
+}
+.tsugi-course-page-head h1 {
+    margin: 0;
+}
 .tsugi-course-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -94,10 +104,12 @@ $create_url = isset($create_url) ? (string) $create_url : '';
 }
 </style>
 <main class="container" id="main-content">
-    <h1><?= __('Courses') ?></h1>
-    <?php if ( $can_create && $create_url !== '' ) { ?>
-    <p><a href="<?= htmlspecialchars($create_url) ?>"><?= __('Add course') ?></a></p>
-    <?php } ?>
+    <div class="tsugi-course-page-head">
+        <h1><?= __('Courses') ?></h1>
+        <?php if ( $can_create && $create_url !== '' ) { ?>
+        <a class="btn btn-primary" href="<?= htmlspecialchars($create_url) ?>"><?= __('Add course') ?></a>
+        <?php } ?>
+    </div>
     <?php if ( count($rows) < 1 ) { ?>
         <p><?= __('You are not a member of any courses.') ?></p>
     <?php } else { ?>
