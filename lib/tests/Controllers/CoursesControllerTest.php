@@ -3,6 +3,7 @@
 require_once "src/Controllers/Courses.php";
 require_once "src/Controllers/Tool.php";
 require_once "src/Config/ConfigInfo.php";
+require_once "src/Core/ContextImages.php";
 require_once "src/Lumen/Application.php";
 require_once "src/Lumen/Router.php";
 require_once "src/Util/U.php";
@@ -82,6 +83,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('/courses/create', $uris);
         $this->assertContains('/courses', $uris);
         $this->assertContains('/courses/{id:\d+}', $uris);
+        $this->assertContains('/courses/{id:\d+}/image/{kind}', $uris);
         $this->assertContains('/courses/{id:\d+}/{rest:.*}', $uris);
     }
 
@@ -332,5 +334,32 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         }
         $this->assertFalse(Courses::restoreSiteLoginContext());
         $this->assertSame(99, Manifest::activeId());
+    }
+
+    public function testWithImageUrlsUsesMetadataNotBlobs()
+    {
+        $rows = Courses::withImageUrls(array(
+            array(
+                'context_id' => 7,
+                'title' => 'Django',
+                'hero_bytes' => 1200,
+                'hero_updated_at' => '2026-09-18 01:02:03',
+                'icon_bytes' => 0,
+                'icon_updated_at' => null,
+            ),
+            array(
+                'context_id' => 8,
+                'title' => 'No images',
+            ),
+        ));
+        $this->assertCount(2, $rows);
+        $this->assertArrayNotHasKey('hero_bytes', $rows[0]);
+        $this->assertArrayNotHasKey('icon_bytes', $rows[0]);
+        $this->assertStringContainsString('/courses/7/image/hero', $rows[0]['hero_url']);
+        $this->assertStringContainsString('v=', $rows[0]['hero_url']);
+        $this->assertSame('', $rows[0]['icon_url']);
+        $this->assertSame('', $rows[1]['hero_url']);
+        $this->assertSame('', $rows[1]['icon_url']);
+        $this->assertSame('Django', $rows[0]['title']);
     }
 }

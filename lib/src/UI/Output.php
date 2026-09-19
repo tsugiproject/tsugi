@@ -1579,6 +1579,14 @@ body {
      */
     public static function navbarAlignCss() {
         return '<style>
+#tsugi_main_nav_bar .navbar-brand .tsugi-course-nav-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+  margin-right: 0.4em;
+  flex: 0 0 32px;
+}
 @media (min-width: 768px) {
   #tsugi_main_nav_bar > .container-fluid {
     display: flex;

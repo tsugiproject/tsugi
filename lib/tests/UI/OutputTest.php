@@ -169,6 +169,7 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('#tsugi_main_nav_bar', $css);
         $this->assertStringContainsString('navbar-main', $css);
         $this->assertStringContainsString('tsugi-wc-nav-item', $css);
+        $this->assertStringContainsString('tsugi-course-nav-icon', $css);
         $this->assertStringNotContainsString('@media (max-width: 767px)', $css);
     }
 
