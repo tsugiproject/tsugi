@@ -161,6 +161,9 @@ class ConfigInfoTest extends \PHPUnit\Framework\TestCase
         $CFG->context_title = 'Web Applications for Everybody';
         $this->assertTrue($CFG->hasSiteContextTitle());
         $this->assertTrue($CFG->hasSiteLessons());
+        $CFG->lessons = '   ';
+        $this->assertFalse($CFG->hasSiteLessons());
+        $CFG->lessons = '/path/to/lessons.json';
         $CFG->context_title = '   ';
         $this->assertFalse($CFG->hasSiteContextTitle());
         $this->assertFalse($CFG->hasSiteLessons());

@@ -1308,7 +1308,7 @@ class ConfigInfo {
      */
     public function hasSiteLessons() {
         return $this->hasSiteContextTitle()
-            && is_string($this->lessons) && strlen($this->lessons) > 0;
+            && is_string($this->lessons) && strlen(trim($this->lessons)) > 0;
     }
 
     /**
