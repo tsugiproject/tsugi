@@ -54,13 +54,19 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public function testDefaultHasExitCourseThenLogout()
+    public function testDefaultHasCoursesWidgetOnRightThenLogout()
     {
         $doc = CourseNav::defaultDocument();
-        $this->assertSame('exit_course', $doc['items'][0]['id']);
-        $this->assertTrue($doc['items'][0]['dropdown']);
+        $this->assertSame('courses_widget', $doc['items'][0]['id']);
+        $this->assertTrue($doc['items'][0]['right']);
+        $this->assertArrayNotHasKey('dropdown', $doc['items'][0]);
         $this->assertSame('logout', $doc['items'][1]['id']);
         $this->assertTrue($doc['items'][1]['dropdown']);
+        $ids = array();
+        foreach ( $doc['items'] as $item ) {
+            $ids[] = $item['id'];
+        }
+        $this->assertNotContains('exit_course', $ids);
     }
 
     public function testDefaultOmitsExitCourseWithoutAppHome()
@@ -68,17 +74,22 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         global $CFG;
         $CFG->apphome = false;
         $doc = CourseNav::defaultDocument();
-        $this->assertSame('logout', $doc['items'][0]['id']);
+        $this->assertSame('courses_widget', $doc['items'][0]['id']);
+        $this->assertSame('logout', $doc['items'][1]['id']);
         $this->assertArrayNotHasKey('exit_course', CourseNav::catalogById());
     }
 
-    public function testDefaultKeepsExitCourseWhenHomePathSetWithoutAppHome()
+    public function testCatalogKeepsExitCourseWhenHomePathSetWithoutAppHome()
     {
         global $CFG;
         $CFG->apphome = false;
         $CFG->setExtension('home_path', $CFG->wwwroot);
         $doc = CourseNav::defaultDocument();
-        $this->assertSame('exit_course', $doc['items'][0]['id']);
+        $ids = array();
+        foreach ( $doc['items'] as $item ) {
+            $ids[] = $item['id'];
+        }
+        $this->assertNotContains('exit_course', $ids);
         $this->assertArrayHasKey('exit_course', CourseNav::catalogById());
     }
 
@@ -276,7 +287,8 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertSame($sites + 1, $exit);
         $this->assertSame('catalog', $rows[$sites]['pin']);
         $this->assertSame('widget', $rows[$sites]['kind']);
-        $this->assertTrue($rows[$exit]['dropdown']);
+        $this->assertTrue($rows[$sites]['right']);
+        $this->assertFalse($rows[$exit]['dropdown']);
     }
 
     public function testEditorRowsKeepsSitesWidgetBesideExitEvenWhenEnabled()
@@ -345,7 +357,8 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
     public function testMissingJsonUsesDefault()
     {
         $doc = CourseNav::documentFromJson(null);
-        $this->assertSame('exit_course', $doc['items'][0]['id']);
+        $this->assertSame('courses_widget', $doc['items'][0]['id']);
+        $this->assertTrue($doc['items'][0]['right']);
         $this->assertSame('logout', $doc['items'][1]['id']);
     }
 
@@ -403,13 +416,9 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         foreach ( $dropdown as $entry ) {
             $labels[] = $entry->link;
         }
-        $this->assertContains('Exit course', $labels);
+        $this->assertNotContains('Exit course', $labels);
         $this->assertContains('Logout', $labels);
-        $this->assertLessThan(
-            array_search('Logout', $labels, true),
-            array_search('Exit course', $labels, true)
-        );
-        $this->assertSame('http://localhost/app', $this->dropdownHref($set, 'Exit course'));
+        $this->assertTrue($this->rightMenuContains($set, 'tsugi-courses'));
         $this->assertNotContains('Settings', $labels);
     }
 
@@ -420,7 +429,13 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 1;
         $_SESSION['displayname'] = 'Jane';
         $CFG->setExtension('home_path', 'https://example.org/portal/');
-        $set = CourseNav::compile(CourseNav::defaultDocument(), 42);
+        $doc = array(
+            'items' => array(
+                array('id' => 'exit_course', 'dropdown' => true),
+                array('id' => 'logout', 'dropdown' => true),
+            ),
+        );
+        $set = CourseNav::compile($doc, 42);
         $this->assertSame('https://example.org/portal', $this->dropdownHref($set, 'Exit course'));
     }
 

@@ -26,12 +26,12 @@ class CourseNav {
      * @return array<string, mixed>
      */
     public static function defaultDocument() {
-        $items = array();
-        if ( self::hasAppHome() ) {
-            $items[] = array('id' => 'exit_course', 'dropdown' => true);
-        }
-        $items[] = array('id' => 'logout', 'dropdown' => true);
-        return array('items' => $items);
+        return array(
+            'items' => array(
+                array('id' => 'courses_widget', 'right' => true),
+                array('id' => 'logout', 'dropdown' => true),
+            ),
+        );
     }
 
     /**
