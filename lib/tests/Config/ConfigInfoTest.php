@@ -148,6 +148,24 @@ class ConfigInfoTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($CFG->canAuthor());
     }
 
+    public function testHasSiteLessons() {
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
+        $this->assertFalse($CFG->lessons);
+        $this->assertTrue(isset($CFG->lessons));
+        $this->assertFalse($CFG->hasSiteContextTitle());
+        $this->assertFalse($CFG->hasSiteLessons());
+        $CFG->lessons = '';
+        $this->assertFalse($CFG->hasSiteLessons());
+        $CFG->lessons = '/path/to/lessons.json';
+        $this->assertFalse($CFG->hasSiteLessons());
+        $CFG->context_title = 'Web Applications for Everybody';
+        $this->assertTrue($CFG->hasSiteContextTitle());
+        $this->assertTrue($CFG->hasSiteLessons());
+        $CFG->context_title = '   ';
+        $this->assertFalse($CFG->hasSiteContextTitle());
+        $this->assertFalse($CFG->hasSiteLessons());
+    }
+
     public function testGetLoginUrl() {
         $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
         $loginUrl = $CFG->getLoginUrl();

@@ -552,16 +552,7 @@ class CourseNav {
     }
 
     private static function avatarTrigger() {
-        if ( isset($_SESSION['avatar']) && is_string($_SESSION['avatar']) && $_SESSION['avatar'] !== '' ) {
-            $alt = htmlspecialchars(__('User Profile Menu'), ENT_QUOTES, 'UTF-8');
-            $src = htmlspecialchars($_SESSION['avatar'], ENT_QUOTES, 'UTF-8');
-            return '<img src="'.$src.'" alt="'.$alt.'" style="height: 2em;"/>';
-        }
-        $name = $_SESSION['displayname'] ?? '';
-        if ( ! is_string($name) || trim($name) === '' ) {
-            $name = __('Account');
-        }
-        return htmlentities($name);
+        return \Tsugi\UI\Output::avatarMenuTrigger();
     }
 
     private static function widgetHtml($id, $prefix) {

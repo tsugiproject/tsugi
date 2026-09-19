@@ -48,6 +48,7 @@ and create a profile and as you use tools from various courses you can
 associate those tools and courses with your profile.
 -->
 </p>
+<?php if ( $CFG->google_client_id ) { ?>
 <p>
 Other than logging in and setting up your profile, there is nothing much you can
 do at this screen.  
@@ -67,6 +68,8 @@ Some Tsugi servers accept key applications from instructors, but
 this server is not configured to accept applications for keys.
 <?php } ?>
 </p>
+<?php } ?>
+<p>
 You can install your own copy of the Tsugi from 
 <a href="https://github.com/tsugiproject/tsugi" target="_blank">https://github.com/tsugiproject/tsugi</a>.   
 </p>
