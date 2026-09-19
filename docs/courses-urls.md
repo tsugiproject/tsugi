@@ -7,9 +7,17 @@ always use the **Google site-login course**, not a leftover sandbox from
 
 ## Who can use `/courses`
 
-Google site login only (`google.com` key). An LMS LTI launch is refused:
-that session already has a course from the LMS, and course switching is
-not available. Bare tool URLs still work after an LMS launch.
+Google site login only (`google.com` key). `Courses::gateResponse()`
+enforces that on **every** route in this family: the list, create, the
+sites JSON, nested `/courses/{id}/…` tools, and `/courses/{id}/image/{kind}`.
+An LMS LTI launch is refused: that session already has a course from the
+LMS, and course switching is not available. Bare tool URLs still work
+after an LMS launch.
+
+Course-mounted chrome (nav, Settings Images, those image URLs) only
+exists on `/courses/{id}/…`. LTI members never land there, so they never
+request `/courses/{id}/image/{kind}`. Keep the Google gate on those
+handlers; membership checks are extra, not a substitute.
 
 ## Course switch
 

@@ -10,8 +10,10 @@ require_once "src/UI/MenuEntry.php";
 require_once "src/Services/CourseNav/CourseNav.php";
 require_once "src/Controllers/Tool.php";
 require_once "src/Controllers/Courses.php";
+require_once "src/Core/ContextImages.php";
 
 use Tsugi\Controllers\Courses;
+use Tsugi\Core\ContextImages;
 use Tsugi\Services\CourseNav\CourseNav;
 
 if ( ! function_exists('isLoggedIn') ) {
@@ -357,6 +359,13 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $set = CourseNav::compile($doc, 42);
         $this->assertSame('Start here', $set->home->link);
         $this->assertStringContainsString('/courses/42/home', $set->home->href);
+    }
+
+    public function testHomeBrandHtmlEscapesAndOmitsIconWithoutMetadata()
+    {
+        $this->assertSame('Home', CourseNav::homeBrandHtml(0, 'Home'));
+        $this->assertSame('Home', CourseNav::homeBrandHtml(42, 'Home'));
+        $this->assertSame('&lt;b&gt;X&lt;/b&gt;', CourseNav::homeBrandHtml(0, '<b>X</b>'));
     }
 
     public function testCompileHidesInstructorOnlyFromStudents()

@@ -17,6 +17,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_link_activity",
 "drop table if exists {$CFG->dbprefix}lti_link_user_activity",
 "drop table if exists {$CFG->dbprefix}manifest",
+"drop table if exists {$CFG->dbprefix}context_images",
 "drop table if exists {$CFG->dbprefix}lti_context",
 "drop table if exists {$CFG->dbprefix}lti_user",
 "drop table if exists {$CFG->dbprefix}lti_issuer",
@@ -253,6 +254,31 @@ array( "{$CFG->dbprefix}lti_context",
 
     CONSTRAINT `{$CFG->dbprefix}lti_context_const_1` UNIQUE(key_id, context_sha256),
     CONSTRAINT `{$CFG->dbprefix}lti_context_const_pk` PRIMARY KEY (context_id)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}context_images",
+"create table {$CFG->dbprefix}context_images (
+    context_id          INTEGER NOT NULL,
+
+    hero                MEDIUMBLOB NULL,
+    hero_mime           VARCHAR(64) NULL,
+    hero_bytes          INTEGER NULL,
+    hero_updated_at     TIMESTAMP NULL,
+
+    icon                MEDIUMBLOB NULL,
+    icon_mime           VARCHAR(64) NULL,
+    icon_bytes          INTEGER NULL,
+    icon_updated_at     TIMESTAMP NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}context_images_const_pk` PRIMARY KEY (context_id),
+
+    CONSTRAINT `{$CFG->dbprefix}context_images_ibfk_1`
+        FOREIGN KEY (`context_id`)
+        REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}manifest",
@@ -1451,7 +1477,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610010003;
+    return 202610010005;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

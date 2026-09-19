@@ -5,6 +5,7 @@ namespace Tsugi\Controllers;
 use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
+use Tsugi\Core\ContextImages;
 use Tsugi\Crypt\AesOpenSSL;
 use Tsugi\UI\Table;
 use Tsugi\UI\CrudForm;
@@ -28,8 +29,8 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
  * Site-wide (wwwroot/settings): keys, contexts, PII expiry. Login is required;
  * a course context is not. Do not call requireAuth() on those pages.
  *
- * Course-mounted (/courses/{id}/settings): theme and Common Cartridge export
- * for the active manifest. Instructor + manifest only. Nested dispatch from
+ * Course-mounted (/courses/{id}/settings): theme, navigation, images, and
+ * Common Cartridge export for the active manifest. Instructor + manifest only. Nested dispatch from
  * Courses keeps REQUEST_URI prefixed, so isCourseRoute() can tell the two
  * families apart. File-based $CFG->lessons sites keep using the site $CFG->theme.
  *
@@ -52,6 +53,7 @@ class Settings extends Tool {
         self::mapPage($app, $prefix.'/export/download', 'exportDownload', false);
         self::mapPage($app, $prefix.'/export', 'export', true);
         self::mapPage($app, $prefix.'/navigation', 'navigation', true);
+        self::mapPage($app, $prefix.'/images', 'images', true);
 
         self::mapPage($app, $prefix.'/encrypt', 'encrypt', true);
         self::mapPage($app, $prefix.'/gclass_login', 'gclassLogin', false);
@@ -1657,6 +1659,7 @@ re-check your login status.
         $save_url = $setup_url;
         $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
         $setup_tab = 'theme';
 
         $OUTPUT->header();
@@ -1701,6 +1704,7 @@ re-check your login status.
         $setup_url = U::addSession($this->toolHome(self::ROUTE));
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;
@@ -1779,6 +1783,148 @@ re-check your login status.
     }
 
     /**
+     * Course 16×9 hero and square icon (stored on context_images).
+     */
+    public function images(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+        if ( $request->isMethod('POST') ) {
+            return $this->imagesPost($request);
+        }
+
+        global $OUTPUT, $PDOX;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+
+        $context_id = U::currentContextId();
+        $meta = ContextImages::metadata($context_id);
+        $hero_spec = ContextImages::spec(ContextImages::KIND_HERO);
+        $icon_spec = ContextImages::spec(ContextImages::KIND_ICON);
+        $hero_url = '';
+        $icon_url = '';
+        if ( ! empty($meta['has_hero']) ) {
+            $hero_url = U::addSession(ContextImages::url($context_id, ContextImages::KIND_HERO, $meta['hero_updated_at']));
+        }
+        if ( ! empty($meta['has_icon']) ) {
+            $icon_url = U::addSession(ContextImages::url($context_id, ContextImages::KIND_ICON, $meta['icon_updated_at']));
+        }
+        $save_url = $images_url;
+        $setup_tab = 'images';
+        $js_url = $this->staticUrl('tsugi-image-upload.js');
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <h1><?= __('Settings') ?></h1>
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php include __DIR__ . '/templates/Settings/images.inc.php'; ?>
+            </div>
+        </main>
+        <?php
+        $OUTPUT->footerStart();
+        echo '<script src="'.htmlspecialchars($js_url).'"></script>'."\n";
+        $OUTPUT->footerEnd();
+        return '';
+    }
+
+    /**
+     * Save or clear one course image after server-side JPEG reconstruction.
+     */
+    private function imagesPost(Request $request)
+    {
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+        $csrf = self::requireCsrf($images_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        global $PDOX;
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+
+        $action = U::get($_POST, 'image_action', '');
+        $kind = null;
+        $clear = false;
+        if ( $action === 'save_hero' ) {
+            $kind = ContextImages::KIND_HERO;
+        } elseif ( $action === 'save_icon' ) {
+            $kind = ContextImages::KIND_ICON;
+        } elseif ( $action === 'clear_hero' ) {
+            $kind = ContextImages::KIND_HERO;
+            $clear = true;
+        } elseif ( $action === 'clear_icon' ) {
+            $kind = ContextImages::KIND_ICON;
+            $clear = true;
+        } else {
+            U::flashError(__('Unknown image action.'));
+            return new RedirectResponse($images_url);
+        }
+
+        $context_id = U::currentContextId();
+        if ( $clear ) {
+            $err = ContextImages::clear($context_id, $kind);
+            if ( $err ) {
+                U::flashError($err);
+            } else {
+                U::flashSuccess($kind === ContextImages::KIND_HERO
+                    ? __('16×9 image removed.')
+                    : __('Course icon removed.'));
+            }
+            return new RedirectResponse($images_url);
+        }
+
+        $fdes = isset($_FILES['uploaded_file']) && is_array($_FILES['uploaded_file'])
+            ? $_FILES['uploaded_file'] : null;
+        if ( $fdes === null || ! isset($fdes['tmp_name']) || ! is_uploaded_file($fdes['tmp_name']) ) {
+            U::flashError(__('Please choose an image to upload.'));
+            return new RedirectResponse($images_url);
+        }
+        if ( isset($fdes['error']) && (int) $fdes['error'] !== UPLOAD_ERR_OK ) {
+            U::flashError(__('Upload failed.'));
+            return new RedirectResponse($images_url);
+        }
+
+        $constructed = ContextImages::constructJpeg($fdes['tmp_name'], $kind);
+        if ( is_string($constructed) ) {
+            U::flashError($constructed);
+            return new RedirectResponse($images_url);
+        }
+
+        $err = ContextImages::save($context_id, $kind, $constructed['bytes']);
+        if ( $err ) {
+            U::flashError($err);
+            return new RedirectResponse($images_url);
+        }
+
+        U::flashSuccess($kind === ContextImages::KIND_HERO
+            ? __('16×9 image saved.')
+            : __('Course icon saved.'));
+        return new RedirectResponse($images_url);
+    }
+
+    /**
      * Common Cartridge export form for the current manifest course.
      */
     public function export(Request $request)
@@ -1792,6 +1938,7 @@ re-check your login status.
         $setup_url = U::addSession($this->toolHome(self::ROUTE));
         $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
         $download_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export/download'));
         $gate = $this->courseGate();
         if ( $gate ) {

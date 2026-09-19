@@ -5,6 +5,7 @@ namespace Tsugi\Services\CourseNav;
 use Tsugi\Controllers\Courses;
 use Tsugi\Controllers\Login;
 use Tsugi\Controllers\Settings;
+use Tsugi\Core\ContextImages;
 use Tsugi\UI\Menu;
 use Tsugi\UI\MenuSet;
 use Tsugi\Util\U;
@@ -322,7 +323,7 @@ class CourseNav {
         $prefix = Courses::courseUrlPrefix($cid);
         $set = new MenuSet();
         $set->setHome(
-            htmlspecialchars(self::homeLabel($doc), ENT_QUOTES, 'UTF-8'),
+            self::homeBrandHtml($cid, self::homeLabel($doc)),
             $prefix.'/home'
         );
 
@@ -458,6 +459,31 @@ class CourseNav {
     public static function homeLabel(array $doc) {
         $custom = self::sanitizeHomeLabel($doc['home'] ?? null);
         return $custom !== null ? $custom : __('Home');
+    }
+
+    /**
+     * Home slot inner HTML: optional course icon plus escaped label.
+     */
+    public static function homeBrandHtml($context_id, $label) {
+        $html = htmlspecialchars((string) $label, ENT_QUOTES, 'UTF-8');
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return $html;
+        }
+        $meta = ContextImages::metadata($cid);
+        if ( empty($meta['has_icon']) ) {
+            return $html;
+        }
+        $url = ContextImages::servedUrl(
+            $cid,
+            ContextImages::KIND_ICON,
+            $meta['icon_bytes'] ?? 0,
+            $meta['icon_updated_at'] ?? null
+        );
+        if ( $url === '' ) {
+            return $html;
+        }
+        return '<img class="tsugi-course-nav-icon" src="'.htmlspecialchars($url, ENT_QUOTES, 'UTF-8').'" alt="" width="32" height="32">'.$html;
     }
 
     /**

@@ -83,6 +83,7 @@ class LTIX {
         $PDOX->addPDOXMeta("{$p}lms_plugins", array("pk" => "plugin_id", "lk" => array("plugin_path")));
         $PDOX->addPDOXMeta("{$p}lti_key", array("pk" => "key_id", "lk" => array("key_sha256")));
         $PDOX->addPDOXMeta("{$p}lti_context", array("pk" => "context_id", "lk" => array("context_sha256", "key_id")));
+        $PDOX->addPDOXMeta("{$p}context_images", array("pk" => "context_id"));
         $PDOX->addPDOXMeta("{$p}lti_link", array("pk" => "link_id", "lk" => array("link_sha256", "context_id")));
         $PDOX->addPDOXMeta("{$p}lti_user", array("pk" => "user_id", "lk" => array("user_sha256", "subject_sha256", "key_id")));
         $PDOX->addPDOXMeta("{$p}lti_membership", array("pk" => "membership_id", "lk" => array("user_id", "context_id")));

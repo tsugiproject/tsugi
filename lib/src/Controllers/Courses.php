@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\Context;
+use \Tsugi\Core\ContextImages;
 use \Tsugi\Core\Manifest;
 use \Tsugi\Core\User;
 use \Tsugi\UI\Output;
@@ -49,6 +50,9 @@ class Courses extends Tool {
         });
         $app->router->get($prefix.'/{id:\d+}/', function(Request $request, $id) use ($app) {
             return Courses::enter($app, $request, $id);
+        });
+        $app->router->get($prefix.'/{id:\d+}/image/{kind}', function(Request $request, $id, $kind) use ($app) {
+            return Courses::image($app, $request, $id, $kind);
         });
         $nested = function(Request $request, $id, $rest) use ($app) {
             return Courses::nested($app, $request, $id, $rest);
@@ -439,10 +443,12 @@ class Courses extends Tool {
 
         $rows = $PDOX->allRowsDie(
             "SELECT C.context_id, C.context_key,
-                    COALESCE(NULLIF(MF.title, ''), C.title) AS title
+                    COALESCE(NULLIF(MF.title, ''), C.title) AS title,
+                    CI.hero_bytes, CI.hero_updated_at, CI.icon_bytes, CI.icon_updated_at
              FROM {$p}lti_membership AS M
              JOIN {$p}lti_context AS C ON M.context_id = C.context_id
              LEFT JOIN {$p}manifest AS MF ON C.manifest_id = MF.manifest_id
+             LEFT JOIN {$p}context_images AS CI ON CI.context_id = C.context_id
              WHERE M.user_id = :UID
              ORDER BY COALESCE(NULLIF(MF.title, ''), C.title), C.context_id",
             array(':UID' => $user_id)
@@ -450,35 +456,25 @@ class Courses extends Tool {
         if ( ! is_array($rows) ) {
             $rows = array();
         }
+        $rows = self::withImageUrls($rows);
 
         $tool = new self();
         $home = $tool->toolHome(self::ROUTE);
+        $can_create = self::canCreate();
+        $create_url = self::joinToolHome($home, 'create');
+        foreach ( $rows as $i => $row ) {
+            $id = (int) $row['context_id'];
+            $rows[$i]['href'] = self::joinToolHome($home, (string) $id);
+            if ( ! isset($row['title']) || $row['title'] === '' ) {
+                $rows[$i]['title'] = 'Course '.$id;
+            }
+        }
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        ?>
-        <main class="container" id="main-content">
-            <h1>Courses</h1>
-            <?php if ( self::canCreate() ) { ?>
-            <p><a href="<?= htmlspecialchars(self::joinToolHome($home, 'create')) ?>">Add course</a></p>
-            <?php } ?>
-            <?php if ( count($rows) < 1 ) { ?>
-                <p>You are not a member of any courses.</p>
-            <?php } else { ?>
-                <ul>
-                    <?php foreach ( $rows as $row ) {
-                        $id = (int) $row['context_id'];
-                        $title = isset($row['title']) && $row['title'] !== '' ? $row['title'] : ('Course '.$id);
-                        $href = htmlspecialchars(self::joinToolHome($home, (string) $id));
-                    ?>
-                    <li><a href="<?= $href ?>"><?= htmlspecialchars($title) ?></a></li>
-                    <?php } ?>
-                </ul>
-            <?php } ?>
-        </main>
-        <?php
+        include __DIR__ . '/templates/Courses/index.inc.php';
         $OUTPUT->footer();
         return '';
     }
@@ -496,6 +492,97 @@ class Courses extends Tool {
         self::touchVisited($id);
 
         return new RedirectResponse(self::courseHomeUrl($id));
+    }
+
+    /**
+     * Serve a course hero or icon.
+     *
+     * Same Google gate as the rest of /courses (gateResponse). Membership
+     * is also required. Does not switch context. LMS LTI sessions do not
+     * use this URL; course nav and Settings Images are course-mounted.
+     */
+    public static function image(Application $app, Request $request, $id, $kind) {
+        global $PDOX;
+
+        $gate = self::gateResponse();
+        if ( $gate ) {
+            return $gate;
+        }
+        $cid = (int) $id;
+        if ( $cid < 1 || ! ContextImages::isKind($kind) ) {
+            return new Response('', 404);
+        }
+        $member = self::memberCheck($cid);
+        if ( $member !== true ) {
+            return new Response($member, 403);
+        }
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+        $row = ContextImages::blob($cid, $kind);
+        return self::imageResponse($row, $kind, $cid);
+    }
+
+    /**
+     * JPEG bytes with a versioned ETag, or 404.
+     *
+     * @param array{bytes:string,mime:string,updated_at:?string}|null $row
+     */
+    private static function imageResponse($row, $kind, $context_id) {
+        if ( ! is_array($row) || ! isset($row['bytes']) || ! is_string($row['bytes']) || $row['bytes'] === '' ) {
+            $response = new Response('', 404);
+            $response->headers->set('Cache-Control', 'private, max-age=60');
+            return $response;
+        }
+        $etag = '"'.sha1($context_id.'|'.$kind.'|'.strlen($row['bytes']).'|'.(string) ($row['updated_at'] ?? '')).'"';
+        $inm = $_SERVER['HTTP_IF_NONE_MATCH'] ?? '';
+        if ( is_string($inm) && $inm !== '' && hash_equals($etag, $inm) ) {
+            $response = new Response('', 304);
+            $response->setEtag(trim($etag, '"'));
+            $response->headers->set('Cache-Control', 'private, max-age=86400');
+            return $response;
+        }
+        $response = new Response($row['bytes'], 200);
+        $response->headers->set('Content-Type', isset($row['mime']) ? $row['mime'] : ContextImages::MIME);
+        $response->headers->set('Content-Length', (string) strlen($row['bytes']));
+        $response->headers->set('Cache-Control', 'private, max-age=86400');
+        $response->setEtag(trim($etag, '"'));
+        return $response;
+    }
+
+    /**
+     * Login + membership (or site admin) for $context_id without switching session.
+     *
+     * @return true|string
+     */
+    private static function memberCheck($context_id) {
+        global $CFG, $PDOX;
+
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return 'Invalid course.';
+        }
+        $user_id = U::loggedInUserId();
+        if ( $user_id < 1 ) {
+            return 'Must be logged in.';
+        }
+        $is_admin = isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes';
+        if ( $is_admin ) {
+            return true;
+        }
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+        $p = $CFG->dbprefix;
+        $member = $PDOX->rowDie(
+            "SELECT membership_id FROM {$p}lti_membership
+             WHERE context_id = :CID AND user_id = :UID",
+            array(':CID' => $cid, ':UID' => $user_id)
+        );
+        if ( ! $member ) {
+            return 'You are not a member of that course.';
+        }
+        return true;
     }
 
     /**
@@ -684,7 +771,7 @@ class Courses extends Tool {
         }
         return response()->json(array(
             'status' => 'success',
-            'courses' => $rows,
+            'courses' => self::withImageUrls($rows),
             'current_context_id' => U::currentContextId(),
             'can_create' => self::canCreate(),
         ));
@@ -696,14 +783,47 @@ class Courses extends Tool {
      */
     private static function flyoutMembershipSql($p, $extraWhere='') {
         return "SELECT P.profile_id, U.user_id, U.email, C.context_id,
-                COALESCE(NULLIF(MF.title, ''), C.title) AS title
+                COALESCE(NULLIF(MF.title, ''), C.title) AS title,
+                CI.hero_bytes, CI.hero_updated_at, CI.icon_bytes, CI.icon_updated_at
             FROM {$p}profile AS P
             JOIN {$p}lti_user AS U ON P.profile_id = U.profile_id
             JOIN {$p}lti_membership AS M ON U.user_id = M.user_id
             JOIN {$p}lti_context AS C ON M.context_id = C.context_id
             LEFT JOIN {$p}manifest AS MF ON C.manifest_id = MF.manifest_id
+            LEFT JOIN {$p}context_images AS CI ON CI.context_id = C.context_id
             WHERE P.profile_id = :PID{$extraWhere}
             ORDER BY COALESCE(M.visited_at, M.created_at) DESC";
+    }
+
+    /**
+     * Replace image byte metadata with versioned URLs. Does not touch BLOBs.
+     *
+     * @param array<int, mixed> $rows
+     * @return array<int, array<string, mixed>>
+     */
+    public static function withImageUrls(array $rows) {
+        $out = array();
+        foreach ( $rows as $row ) {
+            if ( ! is_array($row) ) {
+                continue;
+            }
+            $id = (int) ($row['context_id'] ?? 0);
+            $row['hero_url'] = ContextImages::servedUrl(
+                $id,
+                ContextImages::KIND_HERO,
+                $row['hero_bytes'] ?? 0,
+                $row['hero_updated_at'] ?? null
+            );
+            $row['icon_url'] = ContextImages::servedUrl(
+                $id,
+                ContextImages::KIND_ICON,
+                $row['icon_bytes'] ?? 0,
+                $row['icon_updated_at'] ?? null
+            );
+            unset($row['hero_bytes'], $row['hero_updated_at'], $row['icon_bytes'], $row['icon_updated_at']);
+            $out[] = $row;
+        }
+        return $out;
     }
 
     /**
@@ -736,6 +856,10 @@ class Courses extends Tool {
     }
 
     /**
+     * Google site-login only. Every /courses route uses this, including
+     * nested tools and /courses/{id}/image/{kind}. LMS LTI launches already
+     * have a course from the LMS and do not use this URL family.
+     *
      * @return Response|null
      */
     public static function gateResponse() {
