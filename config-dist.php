@@ -548,9 +548,15 @@ $CFG->eventtime = 7*24*60*60;  // Length in seconds of the event buffer
 $CFG->eventpushcount = 50;     // Set to zero to suspend event push
 $CFG->eventpushtime = 2;       // Maximum length in seconds to push events
 
-// See if our apphome folder has any opinions about settings
+// See if our apphome folder has any opinions about settings and fall back to this
+// folder's version
 if ( isset($CFG->apphome) && $CFG->apphome ) {
     $tsugi_settings = $CFG->dirroot."/../tsugi_settings.php";
+    if ( file_exists($tsugi_settings) ) {
+        require_once $tsugi_settings;
+    }
+} else { 
+    $tsugi_settings = $CFG->dirroot."/tsugi_settings.php";
     if ( file_exists($tsugi_settings) ) {
         require_once $tsugi_settings;
     }
