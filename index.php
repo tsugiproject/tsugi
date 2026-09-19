@@ -1,6 +1,7 @@
 <?php
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Services\Site\Site;
 
 // In the top frame, we use cookies for session.
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
@@ -33,6 +34,15 @@ $OUTPUT->bodyStart();
 
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
+
+$site_body = Site::body();
+if ( is_string($site_body) ) {
+    echo('<div class="page-content">'."\n");
+    echo($site_body);
+    echo("\n</div>\n");
+    $OUTPUT->footer();
+    return;
+}
 ?>
 <p>
 Hello and welcome to <b><?php echo($CFG->servicename); ?></b>.
