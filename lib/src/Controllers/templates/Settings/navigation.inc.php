@@ -31,9 +31,9 @@
             <tr>
                 <th></th>
                 <th><?= __('Tool') ?></th>
-                <th><?= __('Upper left') ?></th>
-                <th><?= __('Upper right') ?></th>
-                <th><?= __('Avatar dropdown') ?></th>
+                <th><?= __('Toolbar left') ?></th>
+                <th><?= __('Toolbar right') ?></th>
+                <th><?= __('Right dropdown') ?></th>
                 <th><?= __('Instructor only') ?></th>
             </tr>
         </thead>
