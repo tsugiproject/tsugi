@@ -6,6 +6,7 @@ use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Cache;
@@ -842,10 +843,40 @@ class Courses extends Tool {
             $request->getMethod(),
             $params,
             $request->cookies->all(),
-            $request->files->all(),
+            self::filesForCreate($request),
             $request->server->all(),
             $request->getContent()
         );
+    }
+
+    /**
+     * FileBag turns empty inputs into null; Request::create() rejects null.
+     *
+     * @return array<string, mixed>
+     */
+    private static function filesForCreate(Request $request) {
+        return self::sanitizeFilesForCreate($request->files->all());
+    }
+
+    /**
+     * @param array<string|int, mixed> $files
+     * @return array<string|int, mixed>
+     */
+    private static function sanitizeFilesForCreate(array $files) {
+        $out = array();
+        foreach ( $files as $key => $file ) {
+            if ( $file instanceof UploadedFile ) {
+                $out[$key] = $file;
+                continue;
+            }
+            if ( is_array($file) ) {
+                $nested = self::sanitizeFilesForCreate($file);
+                if ( $nested !== array() ) {
+                    $out[$key] = $nested;
+                }
+            }
+        }
+        return $out;
     }
 
     /**

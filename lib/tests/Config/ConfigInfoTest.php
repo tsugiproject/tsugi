@@ -169,6 +169,40 @@ class ConfigInfoTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($CFG->hasSiteLessons());
     }
 
+    public function testGetHomeUrlFallsBackToApphomeThenWwwroot() {
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
+        $this->assertFalse($CFG->hasHomeUrl());
+        $this->assertEquals('http://example.com/tsugi', $CFG->getHomeUrl());
+
+        $CFG->apphome = 'http://example.com/app';
+        $this->assertTrue($CFG->hasHomeUrl());
+        $this->assertEquals('http://example.com/app', $CFG->getHomeUrl());
+
+        $CFG->apphome = '  ';
+        $this->assertFalse($CFG->hasHomeUrl());
+        $this->assertEquals('http://example.com/tsugi', $CFG->getHomeUrl());
+    }
+
+    public function testGetHomeUrlUsesHomePathExtension() {
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
+        $CFG->apphome = 'http://example.com/app';
+        $CFG->setExtension('home_path', $CFG->wwwroot);
+        $this->assertTrue($CFG->hasHomeUrl());
+        $this->assertEquals('http://example.com/tsugi', $CFG->getHomeUrl());
+
+        $CFG->setExtension('home_path', 'https://example.org/wherever/');
+        $this->assertEquals('https://example.org/wherever', $CFG->getHomeUrl());
+
+        $CFG->apphome = false;
+        $CFG->setExtension('home_path', '/');
+        $this->assertTrue($CFG->hasHomeUrl());
+        $this->assertEquals('/', $CFG->getHomeUrl());
+
+        $CFG->setExtension('home_path', '   ');
+        $this->assertFalse($CFG->hasHomeUrl());
+        $this->assertEquals('http://example.com/tsugi', $CFG->getHomeUrl());
+    }
+
     public function testGetLoginUrl() {
         $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
         $loginUrl = $CFG->getLoginUrl();

@@ -1200,6 +1200,61 @@ class ConfigInfo {
     }
 
     /**
+     * URL for the site Home brand and Exit course.
+     *
+     * Set with $CFG->setExtension('home_path', ...). Any URL:
+     *   $CFG->setExtension('home_path', $CFG->apphome);
+     *   $CFG->setExtension('home_path', $CFG->wwwroot);
+     *   $CFG->setExtension('home_path', 'https://example.com/');
+     *
+     * When home_path is unset, Home is apphome if that is a non-empty string,
+     * otherwise wwwroot.
+     */
+    public function getHomeUrl() {
+        $path = $this->getExtension('home_path', false);
+        if ( is_string($path) ) {
+            $normalized = self::normalizeHomeUrl($path);
+            if ( $normalized !== '' ) {
+                return $normalized;
+            }
+        }
+        if ( is_string($this->apphome) ) {
+            $normalized = self::normalizeHomeUrl($this->apphome);
+            if ( $normalized !== '' ) {
+                return $normalized;
+            }
+        }
+        return self::normalizeHomeUrl((string) $this->wwwroot);
+    }
+
+    /**
+     * True when Home/Exit have an enclosing-site URL (home_path or apphome).
+     *
+     * Standalone Tsugi (wwwroot only) returns false so Exit course stays hidden.
+     */
+    public function hasHomeUrl() {
+        $path = $this->getExtension('home_path', false);
+        if ( is_string($path) && self::normalizeHomeUrl($path) !== '' ) {
+            return true;
+        }
+        return is_string($this->apphome) && self::normalizeHomeUrl($this->apphome) !== '';
+    }
+
+    /**
+     * @param mixed $url
+     */
+    private static function normalizeHomeUrl($url) {
+        $url = trim((string) $url);
+        if ( $url === '' ) {
+            return '';
+        }
+        if ( $url === '/' ) {
+            return '/';
+        }
+        return rtrim($url, '/');
+    }
+
+    /**
      * Get the current working directory of a file
      */
     function getPwd($file) {

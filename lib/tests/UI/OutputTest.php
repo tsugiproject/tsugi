@@ -101,6 +101,23 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         unset($_SESSION['id']);
     }
 
+    public function testDefaultMenuSetUsesHomePathExtension() {
+        global $CFG;
+
+        $CFG = new \Tsugi\Config\ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
+        $CFG->servicename = 'Test Site';
+        $CFG->apphome = 'http://example.com';
+        $CFG->setExtension('home_path', $CFG->wwwroot);
+
+        $OUTPUT = new Output();
+        $set = $OUTPUT->defaultMenuSet();
+        $this->assertEquals('http://example.com/tsugi', $set->home->href);
+
+        $CFG->setExtension('home_path', 'https://other.example/home/');
+        $set = $OUTPUT->defaultMenuSet();
+        $this->assertEquals('https://other.example/home', $set->home->href);
+    }
+
     public function testDefaultMenuSetIncludesLessonsWhenConfigured() {
         global $CFG;
 
