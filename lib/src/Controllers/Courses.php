@@ -495,7 +495,11 @@ class Courses extends Tool {
     }
 
     /**
-     * Serve a course hero or icon. Membership required; does not switch context.
+     * Serve a course hero or icon.
+     *
+     * Same Google gate as the rest of /courses (gateResponse). Membership
+     * is also required. Does not switch context. LMS LTI sessions do not
+     * use this URL; course nav and Settings Images are course-mounted.
      */
     public static function image(Application $app, Request $request, $id, $kind) {
         global $PDOX;
@@ -852,6 +856,10 @@ class Courses extends Tool {
     }
 
     /**
+     * Google site-login only. Every /courses route uses this, including
+     * nested tools and /courses/{id}/image/{kind}. LMS LTI launches already
+     * have a course from the LMS and do not use this URL family.
+     *
      * @return Response|null
      */
     public static function gateResponse() {
