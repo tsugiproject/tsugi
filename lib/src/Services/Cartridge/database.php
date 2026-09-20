@@ -120,12 +120,6 @@ $DATABASE_UNINSTALL = array(
 );
 
 $DATABASE_UPGRADE = function($oldversion) {
-    global $CFG, $PDOX;
-    // Web-link URLs as local_key can exceed the original 128.
-    $PDOX->queryReturnError(
-        "ALTER TABLE {$CFG->dbprefix}cc_object MODIFY local_key VARCHAR(512) NULL",
-        false,
-        false
-    );
+    // No ALTERs yet. Keep the version assigned on table create ($CFG->dbversion).
     return $oldversion;
 };

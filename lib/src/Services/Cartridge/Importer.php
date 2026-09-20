@@ -92,6 +92,16 @@ class Importer {
                     }
                 } else if ( $d->isDuplicate() && is_array($d->object) ) {
                     $lesson = self::lessonFromObject($d->object, (string) ($res['title'] ?? ''));
+                    if ( (string) ($d->object['local_kind'] ?? '') === 'file' ) {
+                        $sha = (string) ($d->object['local_key'] ?? '');
+                        $dupHref = Files::downloadHrefForSha256($sha);
+                        if ( is_string($dupHref) && $dupHref !== '' ) {
+                            $fileHrefToLocal[$href] = array(
+                                'sha256' => $sha,
+                                'href' => $dupHref,
+                            );
+                        }
+                    }
                 }
                 $session->record($d, $kind, $localId, $localKey);
                 $actions[$id] = $d->action;
