@@ -133,14 +133,12 @@ $create_url = isset($create_url) ? (string) $create_url : '';
                         <span class="tsugi-course-card-placeholder-title"><?= htmlspecialchars($title) ?></span>
                     </div>
                     <?php } ?>
-                    <?php if ( $hero_url !== '' || $icon_url !== '' ) { ?>
                     <div class="tsugi-course-card-body">
                         <?php if ( $icon_url !== '' ) { ?>
                         <img class="tsugi-course-card-icon" src="<?= htmlspecialchars($icon_url) ?>" alt="" width="36" height="36">
                         <?php } ?>
                         <span class="tsugi-course-card-title"><?= htmlspecialchars($title) ?></span>
                     </div>
-                    <?php } ?>
                 </a>
             </li>
             <?php } ?>
