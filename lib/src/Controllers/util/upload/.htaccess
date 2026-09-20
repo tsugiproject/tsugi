@@ -11,5 +11,6 @@ Options -Indexes
     php_value post_max_size 128M
 </IfModule>
 
-# 128 MiB; site-wide Tsugi .htaccess is 8 MiB
+# 128 MiB. Parent Tsugi .htaccess is 8 MiB so large POSTs die at Apache
+# except this executed script.
 LimitRequestBody 134217728
