@@ -10,6 +10,7 @@ require_once "src/UI/MenuEntry.php";
 require_once "src/Services/CourseNav/CourseNav.php";
 require_once "src/Controllers/Tool.php";
 require_once "src/Controllers/Courses.php";
+require_once "src/Controllers/Catalog.php";
 require_once "src/Core/ContextImages.php";
 
 use Tsugi\Controllers\Courses;

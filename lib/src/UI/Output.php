@@ -766,7 +766,7 @@ $('a').each(function (x) {
             }
             if ( \Tsugi\Controllers\Courses::showCoursesWidget() ) {
                 $set->addRight(
-                    '<tsugi-courses api-url="'. htmlspecialchars($R . 'courses/json') . '" all-url="'. htmlspecialchars($R . 'courses') . '" enter-url="'. htmlspecialchars($R . 'courses') . '"></tsugi-courses>',
+                    \Tsugi\Controllers\Catalog::coursesWidgetTag(),
                     false,
                     true,
                     'hidden-xs tsugi-wc-nav-item'

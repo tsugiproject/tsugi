@@ -2,8 +2,9 @@
 
 namespace Tsugi\Services\CourseNav;
 
-use Tsugi\Controllers\Courses;
-use Tsugi\Controllers\Login;
+use \Tsugi\Controllers\Courses;
+use \Tsugi\Controllers\Catalog;
+use \Tsugi\Controllers\Login;
 use Tsugi\Controllers\Settings;
 use Tsugi\Core\ContextImages;
 use Tsugi\UI\Menu;
@@ -578,9 +579,7 @@ class CourseNav {
                 .' calendar-url="'.$p.'/calendar"></tsugi-calendar-due>';
         }
         if ( $id === 'courses_widget' ) {
-            return '<tsugi-courses api-url="'.$a.'/courses/json"'
-                .' all-url="'.$a.'/courses"'
-                .' enter-url="'.$a.'/courses"></tsugi-courses>';
+            return Catalog::coursesWidgetTag();
         }
         return '';
     }

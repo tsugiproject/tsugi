@@ -775,6 +775,8 @@ class Courses extends Tool {
             'courses' => self::withImageUrls($rows),
             'current_context_id' => U::currentContextId(),
             'can_create' => self::canCreate(),
+            'show_catalog' => Catalog::showCourseCatalog(),
+            'catalog_url' => Catalog::showCourseCatalog() ? Catalog::catalogUrl() : '',
         ));
     }
 

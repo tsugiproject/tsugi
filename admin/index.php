@@ -79,6 +79,7 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
 </p>
 <ul>
 <li><a href="site">Edit Site Config</a></li>
+<li><a href="catalog">Course Catalog</a></li>
 <li><a href="key">Manage Access Keys</a></li>
 <li><a href="expire">Manage Data Expiry</a></li>
 <li><a href="context/">View Contexts</a></li>
