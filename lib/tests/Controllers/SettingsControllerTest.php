@@ -69,6 +69,7 @@ class SettingsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('/settings', $uris);
         $this->assertContains('/settings/key', $uris);
         $this->assertContains('/settings/export', $uris);
+        $this->assertContains('/settings/import', $uris);
         $this->assertContains('/settings/navigation', $uris);
         $this->assertContains('/settings/images', $uris);
         $this->assertContains('/settings/export/download', $uris);
@@ -90,6 +91,9 @@ class SettingsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(Settings::isCourseRoute());
 
         $_SERVER['REQUEST_URI'] = '/courses/42/settings/export';
+        $this->assertTrue(Settings::isCourseRoute());
+
+        $_SERVER['REQUEST_URI'] = '/courses/42/settings/import';
         $this->assertTrue(Settings::isCourseRoute());
 
         $_SERVER['REQUEST_URI'] = '/courses/42/settings/images';

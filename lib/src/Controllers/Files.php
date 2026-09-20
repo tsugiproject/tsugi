@@ -1674,4 +1674,123 @@ class Files extends Tool {
         }
         return date('Y-m-d H:i', $ts);
     }
+
+    /**
+     * Store cartridge file bytes in this course's Files tool.
+     *
+     * @return array{file_id:int,sha256:string,filename:string,href:string}
+     */
+    public static function importBytes($bytes, $filename, $folder = 'Imported', $contentType = 'application/octet-stream') {
+        global $CFG, $PDOX, $CONTEXT;
+
+        $bytes = (string) $bytes;
+        $filename = basename(str_replace('\\', '/', (string) $filename));
+        if ( $filename === '' ) {
+            $filename = 'file.bin';
+        }
+        $folder = is_string($folder) ? trim($folder, '/') : 'Imported';
+        if ( $folder === '' ) {
+            $folder = 'Imported';
+        }
+        $contentType = is_string($contentType) && $contentType !== ''
+            ? $contentType
+            : 'application/octet-stream';
+
+        $tool = new self();
+        $link_id = $tool->ensureFilesLaunch();
+        $tool->ensureReservedFolders($link_id);
+        if ( ! $tool->nameExists($link_id, '', $folder) ) {
+            $tool->ensureTopFolder($link_id, $folder);
+        }
+        $base = pathinfo($filename, PATHINFO_FILENAME);
+        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        $try = $filename;
+        $n = 2;
+        while ( $tool->nameExists($link_id, $folder, $try) ) {
+            $try = $base.'-'.$n.($ext !== '' ? '.'.$ext : '');
+            $n++;
+        }
+        $filename = $try;
+
+        $sha = hash('sha256', $bytes);
+        $existing = $tool->getFileRowsBySha256($sha);
+        if ( count($existing) > 0 ) {
+            $row = $existing[0];
+            $href = self::downloadHrefForSha256($sha);
+            return array(
+                'file_id' => (int) $row['file_id'],
+                'sha256' => $sha,
+                'filename' => (string) $row['file_name'],
+                'href' => is_string($href) ? $href : '',
+            );
+        }
+
+        $stmt = $PDOX->queryDie(
+            "SELECT blob_id FROM {$CFG->dbprefix}blob_blob WHERE blob_sha256 = :SHA",
+            array(':SHA' => $sha)
+        );
+        $blobRow = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        $blob_id = ($blobRow !== false) ? (int) $blobRow['blob_id'] : null;
+        $blob_name = null;
+        if ( ! $blob_id ) {
+            $tmp = tempnam(sys_get_temp_dir(), 'ccf');
+            file_put_contents($tmp, $bytes);
+            if ( isset($CFG->dataroot) && $CFG->dataroot ) {
+                $blob_folder = BlobUtil::mkdirSha256($sha);
+                if ( $blob_folder ) {
+                    $blob_name = $blob_folder.'/'.$sha;
+                    if ( ! file_exists($blob_name) ) {
+                        if ( ! @rename($tmp, $blob_name) ) {
+                            $blob_name = null;
+                        }
+                    } else {
+                        @unlink($tmp);
+                    }
+                }
+            }
+            if ( ! $blob_id && ! $blob_name ) {
+                $fp = fopen($tmp, 'rb');
+                $ins = $PDOX->prepare(
+                    "INSERT INTO {$CFG->dbprefix}blob_blob (blob_sha256, content, created_at) VALUES (?, ?, NOW())"
+                );
+                $ins->bindParam(1, $sha);
+                $ins->bindParam(2, $fp, \PDO::PARAM_LOB);
+                $PDOX->beginTransaction();
+                $ins->execute();
+                $blob_id = (int) $PDOX->lastInsertId();
+                $PDOX->commit();
+                @fclose($fp);
+                @unlink($tmp);
+            } else if ( file_exists($tmp) ) {
+                @unlink($tmp);
+            }
+        }
+
+        $PDOX->queryDie(
+            "INSERT INTO {$CFG->dbprefix}blob_file
+                (context_id, link_id, file_sha256, file_name, contenttype, path, backref, blob_id, created_at)
+             VALUES
+                (:CID, :LID, :SHA, :NAME, :TYPE, :PATH, :BACKREF, :BID, NOW())",
+            array(
+                ':CID' => $CONTEXT->id,
+                ':LID' => $link_id,
+                ':SHA' => $sha,
+                ':NAME' => $filename,
+                ':TYPE' => $contentType,
+                ':PATH' => $blob_name,
+                ':BACKREF' => self::BACKREF,
+                ':BID' => $blob_id,
+            )
+        );
+        $file_id = (int) $PDOX->lastInsertId();
+        $tool->tagFileRow($file_id, $folder, strlen($bytes));
+        $href = self::downloadHrefForSha256($sha);
+        return array(
+            'file_id' => $file_id,
+            'sha256' => $sha,
+            'filename' => $filename,
+            'href' => is_string($href) ? $href : '',
+        );
+    }
 }

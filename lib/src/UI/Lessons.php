@@ -3488,7 +3488,7 @@ $(function(){
         if ( $quiz_id > 0 && $logged_in && class_exists('\\Tsugi\\Controllers\\Quiz1') ) {
             $home = \Tsugi\Controllers\Tool::determineToolHome(\Tsugi\Controllers\Quiz1::ROUTE);
             if ( is_string($home) && $home !== '' ) {
-                $href = U::addSession($home.'/'.$quiz_id);
+                $href = U::addSession(\Tsugi\Controllers\Tool::joinToolHome($home, (string) $quiz_id));
             }
         }
 
