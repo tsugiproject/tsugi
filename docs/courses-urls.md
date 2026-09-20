@@ -61,5 +61,6 @@ Controllers follow the request path (`toolHome()`). Site menus stay on
 global URLs. Typed `/courses/{id}/…` URLs still work.
 
 The site-menu waffle is off unless local config sets
-`$CFG->setExtension('show_courses_widget', true)`. Do not enable that in
+`$CFG->show_courses_widget = true`. Do not enable that in
 production until there is more than one course to switch between.
+(`$CFG->setExtension('show_courses_widget', true)` still works.)

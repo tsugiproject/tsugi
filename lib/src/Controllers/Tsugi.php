@@ -28,6 +28,7 @@ class Tsugi extends \Tsugi\Lumen\Application {
             \Tsugi\Controllers\Assignments::routes($this);
             \Tsugi\Controllers\Badges::routes($this);
             \Tsugi\Controllers\Calendar::routes($this);
+            \Tsugi\Controllers\Catalog::routes($this);
             \Tsugi\Controllers\Courses::routes($this);
             \Tsugi\Controllers\Discussions::routes($this);
             \Tsugi\Controllers\Files::routes($this);

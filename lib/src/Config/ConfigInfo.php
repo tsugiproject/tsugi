@@ -675,6 +675,40 @@ class ConfigInfo {
     public $context_title = false;
 
     /**
+     * Site-menu courses waffle (tsugi-courses). Off by default.
+     *
+     * Leave false in production until there is more than one course to
+     * switch between. Course-nav editing is separate.
+     *
+     * Legacy configs may still call setExtension('show_courses_widget', true);
+     * that writes this property as well so sites can migrate slowly.
+     */
+    public $show_courses_widget = false;
+
+    /**
+     * Course catalog link in the courses waffle footer. Off by default.
+     *
+     * The /catalog page itself is public. Legacy configs may still call
+     * setExtension('show_course_catalog', true); that writes this property too.
+     */
+    public $show_course_catalog = false;
+
+    /**
+     * URL for the site Home brand and Exit course. Any URL.
+     *
+     * When false/empty, Home is apphome if that is a non-empty string,
+     * otherwise wwwroot.
+     *
+     *     $CFG->home_path = $CFG->apphome;
+     *     $CFG->home_path = $CFG->wwwroot;
+     *     $CFG->home_path = 'https://example.com/';
+     *
+     * Legacy configs may still call setExtension('home_path', ...); that
+     * writes this property too.
+     */
+    public $home_path = false;
+
+    /**
      * Path (on disk) to the gift quiz content.
      *
      * You can maintain a set of gift quizes
@@ -1158,14 +1192,42 @@ class ConfigInfo {
     }
 
     function getExtension($key, $default=null) {
-	    return $this->extensions[$key] ?? $default;
+        $prop = self::promotedExtensionProperty($key);
+        if ( $prop !== null ) {
+            return $this->{$prop};
+        }
+        return $this->extensions[$key] ?? $default;
     }
 
     /**
      * Set an extension value
+     *
+     * For show_courses_widget, show_course_catalog, and home_path, also
+     * writes the matching ConfigInfo property so old setExtension() configs
+     * keep working.
      */
     function setExtension($key, $value) {
-	    $this->extensions[$key] = $value;
+        $this->extensions[$key] = $value;
+        $prop = self::promotedExtensionProperty($key);
+        if ( $prop !== null ) {
+            $this->{$prop} = $value;
+        }
+    }
+
+    /**
+     * Extension keys that are now first-class ConfigInfo properties.
+     *
+     * TODO: Delete this compatibility shim (and the promoted branches in
+     * getExtension / setExtension) once sites have migrated to the ConfigInfo
+     * properties. Revisit 1 November 2026.
+     *
+     * @return string|null
+     */
+    private static function promotedExtensionProperty($key) {
+        if ( $key === 'show_courses_widget' || $key === 'show_course_catalog' || $key === 'home_path' ) {
+            return $key;
+        }
+        return null;
     }
 
     function getCurrentFile($file) {
@@ -1202,16 +1264,13 @@ class ConfigInfo {
     /**
      * URL for the site Home brand and Exit course.
      *
-     * Set with $CFG->setExtension('home_path', ...). Any URL:
-     *   $CFG->setExtension('home_path', $CFG->apphome);
-     *   $CFG->setExtension('home_path', $CFG->wwwroot);
-     *   $CFG->setExtension('home_path', 'https://example.com/');
+     * Set $CFG->home_path to any URL. When it is empty, Home is apphome if
+     * that is a non-empty string, otherwise wwwroot.
      *
-     * When home_path is unset, Home is apphome if that is a non-empty string,
-     * otherwise wwwroot.
+     * Legacy configs may still call setExtension('home_path', ...).
      */
     public function getHomeUrl() {
-        $path = $this->getExtension('home_path', false);
+        $path = $this->home_path;
         if ( is_string($path) ) {
             $normalized = self::normalizeHomeUrl($path);
             if ( $normalized !== '' ) {
@@ -1233,7 +1292,7 @@ class ConfigInfo {
      * Standalone Tsugi (wwwroot only) returns false so Exit course stays hidden.
      */
     public function hasHomeUrl() {
-        $path = $this->getExtension('home_path', false);
+        $path = $this->home_path;
         if ( is_string($path) && self::normalizeHomeUrl($path) !== '' ) {
             return true;
         }

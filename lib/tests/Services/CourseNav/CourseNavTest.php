@@ -10,6 +10,7 @@ require_once "src/UI/MenuEntry.php";
 require_once "src/Services/CourseNav/CourseNav.php";
 require_once "src/Controllers/Tool.php";
 require_once "src/Controllers/Courses.php";
+require_once "src/Controllers/Catalog.php";
 require_once "src/Core/ContextImages.php";
 
 use Tsugi\Controllers\Courses;
@@ -83,7 +84,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
     {
         global $CFG;
         $CFG->apphome = false;
-        $CFG->setExtension('home_path', $CFG->wwwroot);
+        $CFG->home_path = $CFG->wwwroot;
         $doc = CourseNav::defaultDocument();
         $ids = array();
         foreach ( $doc['items'] as $item ) {
@@ -428,7 +429,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $_SERVER['REQUEST_URI'] = '/courses/42/home';
         $_SESSION['id'] = 1;
         $_SESSION['displayname'] = 'Jane';
-        $CFG->setExtension('home_path', 'https://example.org/portal/');
+        $CFG->home_path = 'https://example.org/portal/';
         $doc = array(
             'items' => array(
                 array('id' => 'exit_course', 'dropdown' => true),

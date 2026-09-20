@@ -76,14 +76,14 @@ class Courses extends Tool {
     }
 
     /**
-     * Site top-menu waffle. Off unless config sets show_courses_widget.
+     * Site top-menu waffle. Off unless $CFG->show_courses_widget is set.
      */
     public static function showCoursesWidget() {
         global $CFG;
         if ( ! isset($CFG) || ! is_object($CFG) ) {
             return false;
         }
-        return ! empty($CFG->getExtension('show_courses_widget', false));
+        return ! empty($CFG->show_courses_widget);
     }
 
     /**
@@ -775,6 +775,8 @@ class Courses extends Tool {
             'courses' => self::withImageUrls($rows),
             'current_context_id' => U::currentContextId(),
             'can_create' => self::canCreate(),
+            'show_catalog' => Catalog::showCourseCatalog(),
+            'catalog_url' => Catalog::showCourseCatalog() ? Catalog::catalogUrl() : '',
         ));
     }
 
