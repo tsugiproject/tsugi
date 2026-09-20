@@ -47,6 +47,20 @@ class CatalogRepositoryTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('Hello', (string) $data['description']);
     }
 
+    public function testPurifyKeepsTargetBlankOnLinks()
+    {
+        $html = CatalogRepository::purify(
+            '<p><a href="https://example.com/docs" target="_blank" rel="noopener noreferrer">Docs</a></p>'
+        );
+        $this->assertStringContainsString('href="https://example.com/docs"', $html);
+        $this->assertStringContainsString('target="_blank"', $html);
+        $this->assertStringContainsString('noopener', $html);
+        $this->assertStringContainsString('noreferrer', $html);
+        $this->assertStringNotContainsString('javascript:', CatalogRepository::purify(
+            '<a href="javascript:alert(1)" target="_blank">x</a>'
+        ));
+    }
+
     public function testNormalizeLinkDefaultNewWindowOffWhenUnchecked()
     {
         $out = CatalogRepository::normalizeInput(array(

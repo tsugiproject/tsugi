@@ -629,6 +629,9 @@ class CatalogRepository {
         if ( self::$purifier === null ) {
             $config = \HTMLPurifier_Config::createDefault();
             $config->set('Cache.DefinitionImpl', null);
+            // CKEditor can set target=_blank; HTMLPurifier drops it unless listed.
+            $config->set('Attr.AllowedFrameTargets', array('_blank'));
+            $config->set('Attr.AllowedRel', array('noopener', 'noreferrer'));
             self::$purifier = new \HTMLPurifier($config);
         }
         return self::$purifier;
