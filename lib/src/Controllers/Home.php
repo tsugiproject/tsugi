@@ -10,9 +10,9 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Course home: site-wide at /home, course-mounted at /courses/{id}/home.
  *
- * Placeholder with no behavior yet. Keep HTTP and chrome here; put domain
- * logic in Tsugi\Services\Home as this grows. Nested dispatch from Courses
- * keeps REQUEST_URI prefixed, so isCourseRoute() and toolHome() work.
+ * Under-construction copy until widgets land. Keep HTTP and chrome here;
+ * put domain logic in Tsugi\Services\Home as this grows. Nested dispatch
+ * from Courses keeps REQUEST_URI prefixed, so isCourseRoute() and toolHome() work.
  *
  * Parent menus (site URLs only):
  * if ( \Tsugi\Controllers\Home::showInMenu() ) {
@@ -42,7 +42,36 @@ class Home extends Tool {
     {
         $this->requireAuth();
         LTIX::getConnection();
-        $this->render('index.inc.php');
+        $this->render('index.inc.php', array(
+            'course_title' => $this->courseTitle(),
+        ));
+    }
+
+    /**
+     * Current course name for the Home heading.
+     *
+     * Session first (set on course switch / LTI), then lti_context.title.
+     * Do not fall back to $CFG->context_title — that is the site-home course.
+     */
+    protected function courseTitle() {
+        global $CFG, $PDOX;
+
+        $title = U::get($_SESSION, 'context_title');
+        if ( is_string($title) && trim($title) !== '' ) {
+            return trim($title);
+        }
+        $context_id = U::currentContextId();
+        if ( $context_id < 1 ) {
+            return '';
+        }
+        $row = $PDOX->rowDie(
+            "SELECT title FROM {$CFG->dbprefix}lti_context WHERE context_id = :CID",
+            array(':CID' => $context_id)
+        );
+        if ( ! is_array($row) || ! isset($row['title']) ) {
+            return '';
+        }
+        return trim((string) $row['title']);
     }
 
     /**
