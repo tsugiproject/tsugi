@@ -18,21 +18,6 @@ class CatalogRepository {
     /** @var \HTMLPurifier|null */
     private static $purifier = null;
 
-    public static function tableExists() {
-        global $CFG, $PDOX;
-
-        if ( ! isset($PDOX) || $PDOX === false ) {
-            return false;
-        }
-        try {
-            LTIX::getConnection();
-        } catch ( \Throwable $e ) {
-            return false;
-        }
-        $meta = $PDOX->metadata("{$CFG->dbprefix}course_catalog");
-        return $meta !== false;
-    }
-
     /**
      * @param array<string, mixed> $post
      * @return array{ok:true,data:array<string,mixed>}|array{ok:false,error:string}

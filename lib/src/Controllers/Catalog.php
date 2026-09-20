@@ -8,7 +8,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 use Tsugi\Core\ContextImages;
-use Tsugi\Core\LTIX;
 use Tsugi\Services\Catalog\CatalogRepository;
 use Tsugi\Util\U;
 
@@ -122,14 +121,7 @@ class Catalog extends Tool {
     }
 
     public static function index(Application $app, Request $request) {
-        global $OUTPUT, $PDOX;
-
-        if ( $PDOX === null || $PDOX === false ) {
-            $PDOX = LTIX::getConnection();
-        }
-        if ( ! CatalogRepository::tableExists() ) {
-            return new Response('Course catalog is not installed. Run Upgrade Database.', 503);
-        }
+        global $OUTPUT;
 
         $user_id = U::loggedInUserId();
         $rows = Catalog::markHomeEnrolled(CatalogRepository::listPublished($user_id));
@@ -158,14 +150,7 @@ class Catalog extends Tool {
     }
 
     public static function detail(Application $app, Request $request, $id) {
-        global $OUTPUT, $PDOX;
-
-        if ( $PDOX === null || $PDOX === false ) {
-            $PDOX = LTIX::getConnection();
-        }
-        if ( ! CatalogRepository::tableExists() ) {
-            return new Response('Course catalog is not installed. Run Upgrade Database.', 503);
-        }
+        global $OUTPUT;
 
         $user_id = U::loggedInUserId();
         $row = CatalogRepository::load($id, true, $user_id);
@@ -199,16 +184,8 @@ class Catalog extends Tool {
      * Public catalog hero or course icon. Unpublished rows require site admin.
      */
     public static function image(Application $app, Request $request, $id, $kind) {
-        global $PDOX;
-
-        if ( $PDOX === null || $PDOX === false ) {
-            $PDOX = LTIX::getConnection();
-        }
         $cid = (int) $id;
         if ( $cid < 1 || ($kind !== ContextImages::KIND_HERO && $kind !== ContextImages::KIND_ICON) ) {
-            return new Response('', 404);
-        }
-        if ( ! CatalogRepository::tableExists() ) {
             return new Response('', 404);
         }
         $meta = CatalogRepository::load($cid, false, 0);
@@ -267,14 +244,6 @@ class Catalog extends Tool {
     }
 
     public static function getjson(Application $app) {
-        global $PDOX;
-
-        if ( $PDOX === null || $PDOX === false ) {
-            $PDOX = LTIX::getConnection();
-        }
-        if ( ! CatalogRepository::tableExists() ) {
-            return \response()->json(array('status' => 'success', 'entries' => array()));
-        }
         $rows = Catalog::markHomeEnrolled(CatalogRepository::listPublished(U::loggedInUserId()));
         $entries = array();
         foreach ( $rows as $row ) {

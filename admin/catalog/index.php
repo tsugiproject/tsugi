@@ -26,19 +26,14 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     if ( Tool::csrfRedirect($list_url) ) return;
     $action = (string) U::get($_POST, 'action', '');
     if ( $action === 'delete' ) {
-        if ( ! CatalogRepository::tableExists() ) {
-            U::flashError(__('Course catalog table is missing. Run Upgrade Database.'));
-        } else {
-            CatalogRepository::delete((int) U::get($_POST, 'catalog_id', 0));
-            U::flashSuccess(__('Catalog entry deleted.'));
-        }
+        CatalogRepository::delete((int) U::get($_POST, 'catalog_id', 0));
+        U::flashSuccess(__('Catalog entry deleted.'));
     }
     header('Location: '.$list_url);
     return;
 }
 
-$table_ok = CatalogRepository::tableExists();
-$rows = $table_ok ? CatalogRepository::listAdmin() : array();
+$rows = CatalogRepository::listAdmin();
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();
@@ -47,13 +42,6 @@ $OUTPUT->flashMessages();
 ?>
 <h1><?= htmlspecialchars(__('Course catalog')) ?></h1>
 <p><a href="<?= htmlspecialchars($CFG->wwwroot.'/admin/') ?>"><?= __('Administration console') ?></a></p>
-<?php if ( ! $table_ok ) { ?>
-<p><?= __('The course_catalog table is missing. Run Upgrade Database in the Administration console, then return here.') ?></p>
-<?php
-    $OUTPUT->footer();
-    return;
-}
-?>
 <p>
     <a class="btn btn-primary" href="<?= htmlspecialchars(U::addSession('edit.php')) ?>"><?= __('Add listing') ?></a>
     <a class="btn btn-default" href="<?= htmlspecialchars($CFG->wwwroot.'/catalog') ?>" target="_blank"><?= __('View catalog') ?></a>

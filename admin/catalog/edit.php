@@ -27,12 +27,6 @@ $catalog_id = (int) U::get($_GET, 'id', U::get($_POST, 'catalog_id', 0));
 $self = U::addSession('edit.php'.($catalog_id > 0 ? '?id='.$catalog_id : ''));
 $list_url = U::addSession('index.php');
 
-if ( ! CatalogRepository::tableExists() ) {
-    U::flashError(__('Course catalog table is missing. Run Upgrade Database.'));
-    header('Location: '.$list_url);
-    return;
-}
-
 $home_id = CatalogRepository::homeContextId();
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
