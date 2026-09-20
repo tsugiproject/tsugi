@@ -57,11 +57,17 @@ class CKEditor {
      *
      * @param array $options Optional overrides:
      *   - toolbar: array of toolbar item names (default: DEFAULT_TOOLBAR)
+     *   - automaticExternalBlank: bool, auto target=_blank on external URLs (default: true).
+     *     Set false when the author must be able to clear target=_blank; the automatic
+     *     decorator puts it back on getData() even if the manual switch is off.
      */
     public static function renderConfigScript(array $options = [])
     {
         $toolbar = $options['toolbar'] ?? self::DEFAULT_TOOLBAR;
         $toolbarJson = json_encode($toolbar);
+        $automatic = array_key_exists('automaticExternalBlank', $options)
+            ? ! empty($options['automaticExternalBlank'])
+            : true;
 
         // Automatic decorator: external / slide / YouTube URLs get target=_blank.
         // Same-site pages, files, and lessons stay in the current tab unless the
@@ -85,6 +91,7 @@ class CKEditor {
             },
             link: {
                 decorators: {
+                    <?php if ( $automatic ) { ?>
                     openExternalInNewTab: {
                         mode: 'automatic',
                         callback: <?= $linkCallback ?>,
@@ -93,6 +100,7 @@ class CKEditor {
                             rel: 'noopener noreferrer'
                         }
                     },
+                    <?php } ?>
                     openInNewTab: {
                         mode: 'manual',
                         label: 'Open in a new tab',

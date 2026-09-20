@@ -260,7 +260,7 @@ $apphome = isset($CFG->apphome) ? rtrim((string) $CFG->apphome, '/') : '';
 var appHome = <?= json_encode($apphome) ?>;
 var pagesBase = appHome;
 var filesBase = appHome;
-<?php CKEditor::renderConfigScript(); ?>
+<?php CKEditor::renderConfigScript(array('automaticExternalBlank' => false)); ?>
 function tsugiCatalogKind() {
     var course = document.getElementById('kind_course');
     var link = document.getElementById('kind_link');
