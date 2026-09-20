@@ -17,6 +17,8 @@ use Tsugi\Lumen\Application;
 use Tsugi\Services\Settings\Expire;
 use Tsugi\Services\Settings\DynamicRegistration;
 use Tsugi\Services\Quiz1\ExportException;
+use Tsugi\Services\Cartridge\Importer;
+use Tsugi\Services\Cartridge\ImportException;
 use Tsugi\Services\CourseNav\CourseNav;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -30,7 +32,7 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
  * a course context is not. Do not call requireAuth() on those pages.
  *
  * Course-mounted (/courses/{id}/settings): theme, navigation, images, and
- * Common Cartridge export for the active manifest. Instructor + manifest only. Nested dispatch from
+ * Common Cartridge import/export for the active manifest. Instructor + manifest only. Nested dispatch from
  * Courses keeps REQUEST_URI prefixed, so isCourseRoute() can tell the two
  * families apart. File-based $CFG->lessons sites keep using the site $CFG->theme.
  *
@@ -52,6 +54,7 @@ class Settings extends Tool {
 
         self::mapPage($app, $prefix.'/export/download', 'exportDownload', false);
         self::mapPage($app, $prefix.'/export', 'export', true);
+        self::mapPage($app, $prefix.'/import', 'import', true);
         self::mapPage($app, $prefix.'/navigation', 'navigation', true);
         self::mapPage($app, $prefix.'/images', 'images', true);
 
@@ -1658,6 +1661,7 @@ re-check your login status.
         $theme_site_primary = Manifest::siteDefaultPrimary();
         $save_url = $setup_url;
         $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
         $setup_tab = 'theme';
@@ -1704,6 +1708,7 @@ re-check your login status.
         $setup_url = U::addSession($this->toolHome(self::ROUTE));
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
         $gate = $this->courseGate();
         if ( $gate ) {
@@ -1799,6 +1804,7 @@ re-check your login status.
         $setup_url = U::addSession($this->toolHome(self::ROUTE));
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
         $gate = $this->courseGate();
         if ( $gate ) {
@@ -1937,6 +1943,7 @@ re-check your login status.
 
         $setup_url = U::addSession($this->toolHome(self::ROUTE));
         $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
         $download_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export/download'));
@@ -2016,6 +2023,134 @@ function sendToCanvas() {
         <?php
         $OUTPUT->footerEnd();
         return '';
+    }
+
+    /**
+     * Common Cartridge import form and upload for the current manifest course.
+     */
+    public function import(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+        if ( $request->isMethod('POST') ) {
+            return $this->importPost($request);
+        }
+
+        global $OUTPUT;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $setup_tab = 'import';
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <h1><?= __('Settings') ?></h1>
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php include __DIR__ . '/templates/Settings/import.inc.php'; ?>
+            </div>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * Persist an uploaded Common Cartridge into this course.
+     */
+    private function importPost(Request $request)
+    {
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+        $csrf = self::requireCsrf($import_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        $fdes = isset($_FILES['cartridge']) && is_array($_FILES['cartridge'])
+            ? $_FILES['cartridge'] : null;
+        if ( $fdes === null || ! isset($fdes['tmp_name']) || ! is_uploaded_file($fdes['tmp_name']) ) {
+            $err = isset($fdes['error']) ? (int) $fdes['error'] : UPLOAD_ERR_NO_FILE;
+            if ( $err === UPLOAD_ERR_INI_SIZE || $err === UPLOAD_ERR_FORM_SIZE ) {
+                U::flashError(__('The cartridge is larger than this server allows. Raise upload_max_filesize and try again.'));
+            } else {
+                U::flashError(__('Please choose an .imscc or .zip cartridge to import.'));
+            }
+            return new RedirectResponse($import_url);
+        }
+        if ( isset($fdes['error']) && (int) $fdes['error'] !== UPLOAD_ERR_OK ) {
+            U::flashError(__('Upload failed.'));
+            return new RedirectResponse($import_url);
+        }
+
+        $name = isset($fdes['name']) && is_string($fdes['name']) ? $fdes['name'] : '';
+        $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        if ( $ext !== 'imscc' && $ext !== 'zip' ) {
+            U::flashError(__('Please upload an .imscc or .zip file.'));
+            return new RedirectResponse($import_url);
+        }
+
+        $dest = tempnam(sys_get_temp_dir(), 'ccimp');
+        if ( $dest === false ) {
+            U::flashError(__('Could not create a temporary file for the cartridge.'));
+            return new RedirectResponse($import_url);
+        }
+        if ( ! move_uploaded_file($fdes['tmp_name'], $dest) ) {
+            @unlink($dest);
+            U::flashError(__('Could not store the uploaded cartridge.'));
+            return new RedirectResponse($import_url);
+        }
+
+        @set_time_limit(120);
+        try {
+            $row = Importer::run($dest, U::currentContextId(), U::loggedInUserId());
+        } catch ( ImportException $e ) {
+            @unlink($dest);
+            U::flashError($e->getMessage());
+            return new RedirectResponse($import_url);
+        } catch ( \Throwable $e ) {
+            @unlink($dest);
+            U::flashError(__('Import failed: ').$e->getMessage());
+            return new RedirectResponse($import_url);
+        }
+        @unlink($dest);
+
+        $created = (int) ($row['created_count'] ?? 0);
+        $dup = (int) ($row['duplicate_count'] ?? 0);
+        $copy = (int) ($row['copy_count'] ?? 0);
+        $errn = (int) ($row['error_count'] ?? 0);
+        $iid = (int) ($row['import_id'] ?? 0);
+        $msg = sprintf(
+            __('Imported %1$s: %2$d created, %3$d duplicates, %4$d copies, %5$d errors (import #%6$d).'),
+            $name !== '' ? $name : 'cartridge',
+            $created,
+            $dup,
+            $copy,
+            $errn,
+            $iid
+        );
+        if ( $errn > 0 ) {
+            U::flashError($msg);
+        } else {
+            U::flashSuccess($msg);
+        }
+        return new RedirectResponse($import_url);
     }
 
     /**

@@ -343,6 +343,9 @@ abstract class Tool {
     /**
      * Static form of {@see toolHome()} for launch methods that have no instance.
      *
+     * On a course-mounted page, a sibling tool keeps `/courses/{id}` even when
+     * `$route` is not in this REQUEST_URI (Lessons → Quiz1).
+     *
      * @param string $route The route constant (e.g., '/discussions')
      * @return string The mounted tool path (e.g., '/courses/2/discussions')
      */
@@ -351,6 +354,10 @@ abstract class Tool {
         $routePos = strpos($requestUri, $route);
         if ($routePos !== false) {
             return substr($requestUri, 0, $routePos + strlen($route));
+        }
+
+        if ( preg_match('#^(.*?/courses/\d+)(?:/|$)#', $requestUri, $m) ) {
+            return $m[1] . $route;
         }
 
         $path = U::rest_path();

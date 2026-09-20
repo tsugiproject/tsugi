@@ -276,6 +276,21 @@ class ToolControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('/course/5678/pages', $tool->exposeToolHome('/pages'));
     }
 
+    public function testToolHomeSiblingKeepsCourseMount(): void
+    {
+        $_SERVER['REQUEST_URI'] = '/tsugi/courses/47/lessons/week-1';
+        $_SERVER['SCRIPT_NAME'] = '/other/script.php';
+        $this->assertSame('/tsugi/courses/47/quiz1', \Tsugi\Controllers\Tool::determineToolHome('/quiz1'));
+        $this->assertSame(
+            '/tsugi/courses/47/quiz1/7',
+            \Tsugi\Controllers\Tool::joinToolHome('/tsugi/courses/47/quiz1', '7')
+        );
+
+        $_SERVER['REQUEST_URI'] = '/courses/47/lessons/week-1';
+        $this->assertSame('/courses/47/quiz1', \Tsugi\Controllers\Tool::determineToolHome('/quiz1'));
+        $this->assertSame('/courses/47/discussions', \Tsugi\Controllers\Tool::determineToolHome('/discussions'));
+    }
+
     // --- toolParent tests ---
 
     public function testToolParentFromRequestUri(): void

@@ -1,9 +1,9 @@
 <?php
 /**
- * Course Settings tabs: Theme, Navigation, Images, Export.
+ * Course Settings tabs: Theme, Navigation, Images, Import, Export.
  *
- * Expected: $setup_url, $navigation_url, $images_url, $export_url,
- * $setup_tab ('theme'|'navigation'|'images'|'export')
+ * Expected: $setup_url, $navigation_url, $images_url, $import_url, $export_url,
+ * $setup_tab ('theme'|'navigation'|'images'|'import'|'export')
  */
 if ( ! isset($setup_tab) ) {
     $setup_tab = 'theme';
@@ -13,6 +13,12 @@ if ( ! isset($navigation_url) ) {
 }
 if ( ! isset($images_url) ) {
     $images_url = $setup_url;
+}
+if ( ! isset($import_url) ) {
+    $import_url = $setup_url;
+}
+if ( ! isset($export_url) ) {
+    $export_url = $setup_url;
 }
 ?>
 <ul class="nav nav-tabs">
@@ -24,6 +30,9 @@ if ( ! isset($images_url) ) {
   </li>
   <li class="<?= $setup_tab === 'images' ? 'active' : '' ?>">
     <a href="<?= htmlspecialchars($images_url) ?>"><?= __('Images') ?></a>
+  </li>
+  <li class="<?= $setup_tab === 'import' ? 'active' : '' ?>">
+    <a href="<?= htmlspecialchars($import_url) ?>"><?= __('Import') ?></a>
   </li>
   <li class="<?= $setup_tab === 'export' ? 'active' : '' ?>">
     <a href="<?= htmlspecialchars($export_url) ?>"><?= __('Export') ?></a>

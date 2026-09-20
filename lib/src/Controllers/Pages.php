@@ -1408,4 +1408,64 @@ class Pages extends Tool {
     {
         return $this->showAnalytics(self::ROUTE, self::NAME);
     }
+
+    /**
+     * Insert a wiki/HTML page from a cartridge. Returns page_id and logical_key.
+     *
+     * @return array{page_id:int,logical_key:string,title:string}
+     */
+    public static function importHtml($title, $body, $logical_key, $context_id, $user_id) {
+        global $CFG, $PDOX;
+
+        LTIX::getConnection();
+        $context_id = (int) $context_id;
+        $user_id = (int) $user_id;
+        $title = is_string($title) && trim($title) !== '' ? trim($title) : 'Page';
+        $body = is_string($body) ? $body : '';
+        $logical_key = is_string($logical_key) ? trim($logical_key) : '';
+        if ( $logical_key === '' ) {
+            $logical_key = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $title) ?? 'page');
+            $logical_key = trim($logical_key, '-');
+        }
+        if ( $logical_key === '' ) {
+            $logical_key = 'page';
+        }
+        if ( strlen($logical_key) > 99 ) {
+            $logical_key = substr($logical_key, 0, 99);
+        }
+        $original = $logical_key;
+        $counter = 2;
+        while ( true ) {
+            $existing = $PDOX->rowDie(
+                "SELECT page_id FROM {$CFG->dbprefix}pages
+                 WHERE context_id = :CID AND logical_key = :KEY",
+                array(':CID' => $context_id, ':KEY' => $logical_key)
+            );
+            if ( ! $existing ) {
+                break;
+            }
+            $suffix = '-'.$counter;
+            $logical_key = substr($original, 0, 99 - strlen($suffix)).$suffix;
+            $counter++;
+        }
+
+        $PDOX->queryDie(
+            "INSERT INTO {$CFG->dbprefix}pages
+                (context_id, title, logical_key, body, published, is_main, is_front_page, user_id, created_at, updated_at)
+             VALUES
+                (:CID, :title, :key, :body, 1, 0, 0, :UID, NOW(), NOW())",
+            array(
+                ':CID' => $context_id,
+                ':title' => $title,
+                ':key' => $logical_key,
+                ':body' => $body,
+                ':UID' => $user_id > 0 ? $user_id : 0,
+            )
+        );
+        return array(
+            'page_id' => (int) $PDOX->lastInsertId(),
+            'logical_key' => $logical_key,
+            'title' => $title,
+        );
+    }
 }
