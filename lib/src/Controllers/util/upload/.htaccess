@@ -1,0 +1,17 @@
+DirectoryIndex index.php
+Options -Indexes
+
+# Advertise 128M files; post_max_size and LimitRequestBody are higher for
+# multipart overhead so a 128M .imscc is not discarded or Apache-413'd.
+# Keep in sync with .user.ini and Settings::CARTRIDGE_UPLOAD_MAX
+<IfModule mod_php.c>
+    php_value upload_max_filesize 128M
+    php_value post_max_size 136M
+</IfModule>
+<IfModule php_module>
+    php_value upload_max_filesize 128M
+    php_value post_max_size 136M
+</IfModule>
+
+# 136 MiB (post_max_size). Parent Tsugi .htaccess is 8 MiB.
+LimitRequestBody 142606336

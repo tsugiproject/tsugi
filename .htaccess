@@ -12,3 +12,8 @@
 <IfModule !mod_rewrite.c>
     FallbackResource tsugi.php
 </IfModule>
+
+# Default POST body cap (DDoS): reject oversized bodies before PHP.
+# Needs AllowOverride Limit (or All). Dedicated folders raise this
+# (lib/src/Controllers/util/upload/.htaccess is 128M for thick cartridges).
+LimitRequestBody 8388608

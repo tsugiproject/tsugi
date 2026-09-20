@@ -27,6 +27,93 @@ class BlobUtil {
     }
 
     /**
+     * True when PHP discarded the POST because it exceeded post_max_size.
+     *
+     * In that case $_POST and $_FILES are empty, so callers must not treat
+     * it as “no file was chosen”.
+     *
+     * @return bool
+     */
+    public static function requestLargerThanPhpPostLimit()
+    {
+        if ( ($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' ) {
+            return false;
+        }
+        $postMax = self::return_bytes(ini_get('post_max_size'));
+        if ( $postMax < 1 ) {
+            return false;
+        }
+        $len = isset($_SERVER['CONTENT_LENGTH']) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
+        return $len > $postMax;
+    }
+
+    /**
+     * Smaller of upload_max_filesize and post_max_size (bytes).
+     *
+     * @return int
+     */
+    public static function phpUploadLimitBytes()
+    {
+        $upload = self::return_bytes(ini_get('upload_max_filesize'));
+        $post = self::return_bytes(ini_get('post_max_size'));
+        $vals = array();
+        if ( $upload > 0 ) {
+            $vals[] = $upload;
+        }
+        if ( $post > 0 ) {
+            $vals[] = $post;
+        }
+        return $vals ? min($vals) : 0;
+    }
+
+    /**
+     * Human-readable PHP upload cap, e.g. "8 MB".
+     *
+     * @return string
+     */
+    public static function phpUploadLimitLabel()
+    {
+        $bytes = self::phpUploadLimitBytes();
+        if ( $bytes >= 1024 * 1024 ) {
+            $mb = $bytes / (1024 * 1024);
+            $label = (abs($mb - round($mb)) < 0.05) ? (string) round($mb) : (string) round($mb, 1);
+            return $label.' MB';
+        }
+        if ( $bytes >= 1024 ) {
+            return (string) round($bytes / 1024).' KB';
+        }
+        if ( $bytes > 0 ) {
+            return (string) $bytes.' bytes';
+        }
+        $ini = ini_get('upload_max_filesize');
+        return is_string($ini) && $ini !== '' ? $ini : 'unknown';
+    }
+
+    /**
+     * Flash-ready explanation when PHP rejected an upload for size.
+     *
+     * @param int|null $sentBytes CONTENT_LENGTH or uploaded file size
+     * @return string
+     */
+    public static function phpUploadTooLargeMessage($sentBytes = null)
+    {
+        if ( $sentBytes === null && isset($_SERVER['CONTENT_LENGTH']) ) {
+            $sentBytes = (int) $_SERVER['CONTENT_LENGTH'];
+        }
+        $sent = '';
+        if ( is_int($sentBytes) && $sentBytes > 0 ) {
+            $sentMb = round($sentBytes / (1024 * 1024), 1);
+            $sent = ' '.sprintf(__('This request was about %s MB.'), (string) $sentMb);
+        }
+        return sprintf(
+            __('The file is larger than this server allows (%1$s). PHP limits: upload_max_filesize=%2$s, post_max_size=%3$s.'),
+            self::phpUploadLimitLabel(),
+            (string) ini_get('upload_max_filesize'),
+            (string) ini_get('post_max_size')
+        ).$sent.' '.__('Raise both values in php.ini, .user.ini, or the Apache php_value settings (post_max_size must be at least as large as the file) and retry.');
+    }
+
+    /**
      *
      */
     public static function uploadTooLarge($filename)

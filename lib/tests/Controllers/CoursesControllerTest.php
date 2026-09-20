@@ -347,6 +347,21 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(99, Manifest::activeId());
     }
 
+    public function testRestoreSiteLoginContextSkipsCartridgeUpload()
+    {
+        $_SERVER['REQUEST_URI'] = '/tsugi/lib/src/Controllers/util/upload/?context=42';
+        $_SESSION['id'] = 7;
+        $_SESSION['context_id'] = 42;
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        $_SESSION['manifest_id'] = 99;
+        $_SESSION['lti'] = array('context_id' => 42, 'manifest_id' => 99);
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $this->assertFalse(Courses::restoreSiteLoginContext());
+        $this->assertSame(99, Manifest::activeId());
+    }
+
     public function testRestoreSiteLoginContextClearsManifestOnSiteUrl()
     {
         $_SERVER['REQUEST_URI'] = '/announcements';
