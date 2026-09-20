@@ -1,12 +1,13 @@
 <?php
 
 use \Tsugi\UI\Lessons;
+use \Tsugi\UI\LessonsLegacyFiles;
 use \Tsugi\Util\U;
 use \Tsugi\Util\CC;
 use \Tsugi\Util\CC_LTI;
 use \Tsugi\Util\CC_WebLink;
 
-require_once "../config.php";
+require_once __DIR__ . '/../config.php';
 
 if ( ! isset($CFG->lessons) ) {
     die_with_error_log('Cannot find lessons.json ($CFG->lessons)');
@@ -43,6 +44,7 @@ $OUTPUT->bodystart(false);
             $discussion_count = $discussion_count + count($module->discussions);
         }
     }
+    $file_scan = LessonsLegacyFiles::summarize($l);
 
 ?>
 <ul class="nav nav-tabs">
@@ -59,6 +61,7 @@ combination of the modules.</p>
     echo("<p>Resources: $resource_count </p>\n");
     echo("<p>Assignments: $assignment_count </p>\n");
     echo("<p>Discussion topics: $discussion_count </p>\n");
+    LessonsLegacyFiles::echoPreview($file_scan);
 ?>
 <p>
 <form action="export">
@@ -71,6 +74,7 @@ combination of the modules.</p>
   <option value="sakai">Sakai</option>
 </select>
 </p>
+<?php LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_full'); ?>
 <?php if ( $discussion_count > 0 ) {
     if (isset($CFG->tdiscus) ) { ?>
 <p>
@@ -125,6 +129,7 @@ echo('<form id="void">'."\n");
   <option value="sakai">Sakai</option>
 </select>
 </p>
+<?php LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_partial'); ?>
 <?php if ( isset($CFG->youtube_url) ) { ?>
 <p>
 <label for="youtube_select_partial">Would you like YouTube Tracked URLs?</label>
@@ -164,6 +169,13 @@ foreach($l->lessons->modules as $module) {
     if ( isset($module->discussions) ) {
         echo("<li>Discussions in this module: ".count($module->discussions)."</li>\n");
     }
+    $mod_files = 0;
+    if ( isset($module->anchor) && isset($file_scan['by_module'][$module->anchor]) ) {
+        $mod_files = (int) $file_scan['by_module'][$module->anchor]['files'];
+    }
+    if ( $mod_files > 0 ) {
+        echo("<li>Files available for a thick cartridge: ".$mod_files."</li>\n");
+    }
     echo("</ul>\n");
 }
 ?>
@@ -175,6 +187,7 @@ foreach($l->lessons->modules as $module) {
 <input id="youtube_real" type="hidden" name="youtube"/>
 <input id="tsugi_lms_real" type="hidden" name="tsugi_lms" />
 <input id="topic_real" type="hidden" name="topic" />
+<input id="cartridge_real" type="hidden" name="cartridge" />
 <input id="res" type="hidden" name="anchors" value=""/>
 </form>
 </div>
@@ -206,6 +219,8 @@ function myfunc(youtube){
     $("#youtube_real").val(youtube);
     var topic = $("#topic_select_partial").val();
     $("#topic_real").val(topic);
+    var cartridge = $("#cartridge_select_partial").val();
+    $("#cartridge_real").val(cartridge);
 
     if ( stuff.length < 1 ) {
         alert('<?= _m("Please select at least one module") ?>');

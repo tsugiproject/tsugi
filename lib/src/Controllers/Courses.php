@@ -104,12 +104,16 @@ class Courses extends Tool {
      * On site URLs (buildmenu world), drop a leftover /courses/{id} sandbox
      * and put the Google-login course back in the session.
      *
-     * Course-mounted URLs and LMS LTI launches are left alone. Idempotent.
+     * Course-mounted URLs, the Settings cartridge uploader, and LMS LTI
+     * launches are left alone. Idempotent.
      * Does not call touchVisited() — bouncing back to the Google home
      * course on site URLs must not steal the flyout's recency list.
      */
     public static function restoreSiteLoginContext() {
         if ( self::isCourseMountedRequest() ) {
+            return false;
+        }
+        if ( Settings::isCartridgeUploadRequest() ) {
             return false;
         }
         if ( ! U::isLoggedIn() ) {

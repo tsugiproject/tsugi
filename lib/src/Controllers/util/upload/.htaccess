@@ -1,0 +1,15 @@
+DirectoryIndex index.php
+Options -Indexes
+
+# Keep in sync with .user.ini and Settings::CARTRIDGE_UPLOAD_MAX
+<IfModule mod_php.c>
+    php_value upload_max_filesize 128M
+    php_value post_max_size 128M
+</IfModule>
+<IfModule php_module>
+    php_value upload_max_filesize 128M
+    php_value post_max_size 128M
+</IfModule>
+
+# 128 MiB; site-wide Tsugi .htaccess is 8 MiB
+LimitRequestBody 134217728

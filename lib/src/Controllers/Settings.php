@@ -12,6 +12,7 @@ use Tsugi\UI\CrudForm;
 use Tsugi\UI\SettingsDialog;
 use Tsugi\UI\Supporter;
 use Tsugi\UI\LessonsCartridge;
+use Tsugi\Blob\BlobUtil;
 use Tsugi\Core\Mail;
 use Tsugi\Lumen\Application;
 use Tsugi\Services\Settings\Expire;
@@ -46,6 +47,10 @@ class Settings extends Tool {
     const ROUTE = '/settings';
     const NAME = 'Settings';
     const REDIRECT = 'tsugi_controllers_settings';
+
+    /** Keep in sync with Controllers/util/upload/.user.ini and .htaccess */
+    const CARTRIDGE_UPLOAD_MAX = '128M';
+    const CARTRIDGE_UPLOAD_PATH = '/lib/src/Controllers/util/upload/';
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
         self::mapPage($app, $prefix, 'index', true);
@@ -2050,6 +2055,8 @@ function sendToCanvas() {
         }
 
         $setup_tab = 'import';
+        $upload_url = U::addSession(self::cartridgeUploadUrl());
+        $upload_limit_label = self::CARTRIDGE_UPLOAD_MAX;
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -2069,14 +2076,173 @@ function sendToCanvas() {
     }
 
     /**
+     * True when this request is the dedicated Settings cartridge uploader.
+     *
+     * That script is a site URL, so restoreSiteLoginContext() would otherwise
+     * drop the sandbox course/manifest before import runs.
+     */
+    public static function isCartridgeUploadRequest()
+    {
+        $path = self::requestPath();
+        return (bool) preg_match('#/Controllers/util/upload(?:/index\.php)?/?$#', $path);
+    }
+
+    /**
+     * URL of the dedicated cartridge uploader (own PHP upload limits).
+     *
+     * @param int $contextId Course to import into (query string survives a discarded POST)
+     */
+    public static function cartridgeUploadUrl($contextId = 0)
+    {
+        global $CFG;
+        $url = rtrim((string) $CFG->wwwroot, '/').self::CARTRIDGE_UPLOAD_PATH;
+        $cid = (int) $contextId;
+        if ( $cid < 1 ) {
+            $cid = U::currentContextId();
+        }
+        if ( $cid > 0 ) {
+            $url .= '?context='.$cid;
+        }
+        return $url;
+    }
+
+    /**
+     * Course-mounted Settings import page (not derived from the uploader REQUEST_URI).
+     *
+     * @param int $contextId
+     * @return string
+     */
+    public static function cartridgeImportPageUrl($contextId)
+    {
+        global $CFG;
+        $cid = (int) $contextId;
+        return rtrim((string) $CFG->wwwroot, '/').'/courses/'.$cid.self::ROUTE.'/import';
+    }
+
+    /**
+     * Target course id from the uploader query, POST, or return URL.
+     *
+     * @return int
+     */
+    public static function cartridgeUploadContextIdFromRequest()
+    {
+        $fromGet = (int) U::get($_GET, 'context', 0);
+        if ( $fromGet > 0 ) {
+            return $fromGet;
+        }
+        $fromPost = (int) U::get($_POST, 'context', 0);
+        if ( $fromPost > 0 ) {
+            return $fromPost;
+        }
+        $return = U::get($_POST, 'return', '');
+        if ( is_string($return) && preg_match('#/courses/(\d+)/settings/import#', $return, $m) ) {
+            return (int) $m[1];
+        }
+        return 0;
+    }
+
+    /**
+     * Settings import page to return to after upload (session course if possible).
+     */
+    public function cartridgeImportReturnUrl()
+    {
+        $posted = U::get($_POST, 'return', '');
+        if ( is_string($posted) && self::isSafeImportReturn($posted) ) {
+            return $posted;
+        }
+        $cid = self::cartridgeUploadContextIdFromRequest();
+        if ( $cid < 1 ) {
+            $cid = U::currentContextId();
+        }
+        if ( $cid > 0 ) {
+            return U::addSession(self::cartridgeImportPageUrl($cid));
+        }
+        return U::addSession(self::settingsUrl('import'));
+    }
+
+    /**
+     * Same-site Settings import URL only (hidden form return field).
+     *
+     * @param mixed $url
+     * @return bool
+     */
+    public static function isSafeImportReturn($url)
+    {
+        global $CFG;
+        if ( ! is_string($url) || $url === '' || strpbrk($url, "\r\n") !== false ) {
+            return false;
+        }
+        if ( ! preg_match('#/settings/import(?:/?$|\?)#', $url) ) {
+            return false;
+        }
+        if ( str_starts_with($url, '/') && ! str_starts_with($url, '//') ) {
+            return true;
+        }
+        $parts = parse_url($url);
+        if ( ! is_array($parts) || empty($parts['host']) ) {
+            return false;
+        }
+        foreach ( array($CFG->wwwroot ?? '', $CFG->apphome ?? '') as $home ) {
+            if ( ! is_string($home) || $home === '' ) {
+                continue;
+            }
+            $hp = parse_url($home);
+            if ( ! is_array($hp) || empty($hp['host']) ) {
+                continue;
+            }
+            if ( strcasecmp((string) $hp['host'], (string) $parts['host']) === 0 ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * POST handler for Controllers/util/upload/index.php (large cartridge body).
+     *
+     * Re-binds the sandbox course because this URL is not /courses/{id}/...
+     *
+     * @return RedirectResponse
+     */
+    public function handleCartridgeUploadPost()
+    {
+        $cid = self::cartridgeUploadContextIdFromRequest();
+        if ( $cid < 1 ) {
+            $cid = U::currentContextId();
+        }
+        if ( $cid > 0 ) {
+            $result = Courses::ensureActiveContext($cid);
+            if ( $result !== true ) {
+                U::flashError(is_string($result) ? $result : __('Could not open that course.'));
+                $to = $this->cartridgeImportReturnUrl();
+                return new RedirectResponse($to);
+            }
+        }
+        return $this->importPost(\Symfony\Component\HttpFoundation\Request::createFromGlobals());
+    }
+
+    /**
      * Persist an uploaded Common Cartridge into this course.
      */
     private function importPost(Request $request)
     {
-        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
+        $import_url = $this->cartridgeImportReturnUrl();
+        if ( ! self::isSafeImportReturn($import_url) ) {
+            $cid = self::cartridgeUploadContextIdFromRequest();
+            if ( $cid < 1 ) {
+                $cid = U::currentContextId();
+            }
+            $import_url = $cid > 0
+                ? U::addSession(self::cartridgeImportPageUrl($cid))
+                : U::addSession(self::settingsUrl('import'));
+        }
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;
+        }
+        if ( BlobUtil::requestLargerThanPhpPostLimit() ) {
+            U::flashError(BlobUtil::phpUploadTooLargeMessage());
+            return new RedirectResponse($import_url);
         }
         $csrf = self::requireCsrf($import_url);
         if ( $csrf ) {
@@ -2087,8 +2253,10 @@ function sendToCanvas() {
             ? $_FILES['cartridge'] : null;
         if ( $fdes === null || ! isset($fdes['tmp_name']) || ! is_uploaded_file($fdes['tmp_name']) ) {
             $err = isset($fdes['error']) ? (int) $fdes['error'] : UPLOAD_ERR_NO_FILE;
-            if ( $err === UPLOAD_ERR_INI_SIZE || $err === UPLOAD_ERR_FORM_SIZE ) {
-                U::flashError(__('The cartridge is larger than this server allows. Raise upload_max_filesize and try again.'));
+            if ( $err === UPLOAD_ERR_INI_SIZE || $err === UPLOAD_ERR_FORM_SIZE
+                || BlobUtil::uploadTooLarge('cartridge') ) {
+                $sent = isset($fdes['size']) ? (int) $fdes['size'] : null;
+                U::flashError(BlobUtil::phpUploadTooLargeMessage($sent > 0 ? $sent : null));
             } else {
                 U::flashError(__('Please choose an .imscc or .zip cartridge to import.'));
             }
