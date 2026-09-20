@@ -2,6 +2,7 @@
 
 use \Tsugi\UI\Lessons;
 use \Tsugi\UI\LessonsLegacyFiles;
+use \Tsugi\UI\LessonsLegacyGift;
 use \Tsugi\Util\U;
 use \Tsugi\Util\CC;
 use \Tsugi\Util\CC_LTI;
@@ -45,6 +46,7 @@ $OUTPUT->bodystart(false);
         }
     }
     $file_scan = LessonsLegacyFiles::summarize($l);
+    $gift_scan = LessonsLegacyGift::summarize($l);
 
 ?>
 <ul class="nav nav-tabs">
@@ -62,6 +64,7 @@ combination of the modules.</p>
     echo("<p>Assignments: $assignment_count </p>\n");
     echo("<p>Discussion topics: $discussion_count </p>\n");
     LessonsLegacyFiles::echoPreview($file_scan);
+    LessonsLegacyGift::echoPreview($gift_scan);
 ?>
 <p>
 <form action="export">
@@ -75,6 +78,7 @@ combination of the modules.</p>
 </select>
 </p>
 <?php LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_full'); ?>
+<?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_full'); ?>
 <?php if ( $discussion_count > 0 ) {
     if (isset($CFG->tdiscus) ) { ?>
 <p>
@@ -130,6 +134,7 @@ echo('<form id="void">'."\n");
 </select>
 </p>
 <?php LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_partial'); ?>
+<?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_partial'); ?>
 <?php if ( isset($CFG->youtube_url) ) { ?>
 <p>
 <label for="youtube_select_partial">Would you like YouTube Tracked URLs?</label>
@@ -176,6 +181,13 @@ foreach($l->lessons->modules as $module) {
     if ( $mod_files > 0 ) {
         echo("<li>Files available for a thick cartridge: ".$mod_files."</li>\n");
     }
+    $mod_gift = 0;
+    if ( isset($module->anchor) && isset($gift_scan['by_module'][$module->anchor]) ) {
+        $mod_gift = (int) $gift_scan['by_module'][$module->anchor]['found'];
+    }
+    if ( $mod_gift > 0 ) {
+        echo("<li>GIFT quizzes available to convert to QTI: ".$mod_gift."</li>\n");
+    }
     echo("</ul>\n");
 }
 ?>
@@ -188,6 +200,7 @@ foreach($l->lessons->modules as $module) {
 <input id="tsugi_lms_real" type="hidden" name="tsugi_lms" />
 <input id="topic_real" type="hidden" name="topic" />
 <input id="cartridge_real" type="hidden" name="cartridge" />
+<input id="gift_qti_real" type="hidden" name="gift_qti" />
 <input id="res" type="hidden" name="anchors" value=""/>
 </form>
 </div>
@@ -221,6 +234,8 @@ function myfunc(youtube){
     $("#topic_real").val(topic);
     var cartridge = $("#cartridge_select_partial").val();
     $("#cartridge_real").val(cartridge);
+    var gift_qti = $("#gift_qti_select_partial").val();
+    $("#gift_qti_real").val(gift_qti);
 
     if ( stuff.length < 1 ) {
         alert('<?= _m("Please select at least one module") ?>');
