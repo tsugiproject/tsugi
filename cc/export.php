@@ -3,6 +3,7 @@
 use \Tsugi\UI\Lessons;
 use \Tsugi\UI\LessonsCartridge;
 use \Tsugi\UI\LessonsLegacyFiles;
+use \Tsugi\UI\LessonsLegacyGift;
 use \Tsugi\UI\LessonsNormalize;
 use \Tsugi\Util\U;
 use \Tsugi\Util\CC;
@@ -40,8 +41,9 @@ function get_module_path($module_node, $cc_dom) {
  * @param string|false $youtube
  * @param string|false $topic
  * @param LessonsLegacyFiles $local_files
+ * @param LessonsLegacyGift $gift_qti
  */
-function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, LessonsLegacyFiles $local_files) {
+function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, LessonsLegacyFiles $local_files, LessonsLegacyGift $gift_qti) {
     global $CFG;
     $type = isset($item_obj->type) ? $item_obj->type : '';
     $kind = LessonsNormalize::presentationKind($item_obj);
@@ -127,26 +129,9 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtub
         return;
     }
     
-    // Handle lti type
+    // Handle lti type — GIFT quizzes become QTI by default
     if ( $type == 'lti' ) {
-        $title = isset($item_obj->title) ? $item_obj->title : $module->title;
-        if (strpos($title, ':') === false ) $title = 'Tool: '.$title;
-        $custom_arr = array();
-        if ( isset($item_obj->custom) ) {
-            foreach($item_obj->custom as $custom) {
-                if ( isset($custom->value) ) {
-                    $custom_arr[$custom->key] = $custom->value;
-                }
-                if ( isset($custom->json) ) {
-                    $custom_arr[$custom->key] = json_encode($custom->json);
-                }
-            }
-        }
-        $endpoint = U::absolute_url(Lessons::expandLink($item_obj->launch));
-        $endpoint = U::add_url_parm($endpoint, 'inherit', $item_obj->resource_link_id);
-        $extensions = array('apphome' => $CFG->apphome);
-        $resource_link_id = isset($item_obj->resource_link_id) ? $item_obj->resource_link_id : null;
-        $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parentPath);
+        $gift_qti->addToModule($zip, $cc_dom, $sub_module, $item_obj, $module, $parentPath);
         return;
     }
     
@@ -234,11 +219,14 @@ if ( isset($_POST['ext_content_return_url']) ) {
     echo("<p>Discussion topics: $discussion_count </p>\n");
     $file_scan = LessonsLegacyFiles::summarize($l);
     LessonsLegacyFiles::echoPreview($file_scan);
+    $gift_scan = LessonsLegacyGift::summarize($l);
+    LessonsLegacyGift::echoPreview($gift_scan);
 ?>
 <p>
 <form action="export">
 <input type="hidden" name="tsugi_lms" value="canvas" />
 <?php LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_full'); ?>
+<?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_full'); ?>
 <?php if ( $discussion_count > 0 ) {
     if (isset($CFG->tdiscus) ) { ?>
 <p>
@@ -272,13 +260,15 @@ function sendToCanvas() {
     let youtube = $("#youtube_select_full").val();
     let topic = $("#topic_select_full").val();
     let cartridge = $("#cartridge_select_full").val();
+    let gift_qti = $("#gift_qti_select_full").val();
 	let return_url = "<?= $return_url ?>";
 	let export_url = "<?= $CFG->wwwroot.'/cc/export?tsugi_lms=canvas' ?>";
 	export_url = export_url + '&youtube=' + youtube;
 	export_url = export_url + '&topic=' + topic;
 	export_url = export_url + '&cartridge=' + encodeURIComponent(cartridge);
+	export_url = export_url + '&gift_qti=' + encodeURIComponent(gift_qti);
     return_url = return_url + "&url=" + encodeURIComponent(export_url);
-    console.log(youtube, topic, cartridge, export_url);
+    console.log(youtube, topic, cartridge, gift_qti, export_url);
     window.location.href = return_url;
 }
 </script>
@@ -306,19 +296,35 @@ $topic = U::get($_GET,'topic', false);
 $youtube = U::get($_GET,'youtube', false);
 if ( $youtube == 'no' ) $youtube = false;
 $cartridge = U::get($_GET, 'cartridge', 'thin');
+$gift_qti_raw = U::get($_GET, 'gift_qti', 'qti');
 if ( isCli() ) {
     global $argv;
     if ( isset($argv) && is_array($argv) && in_array('thick', $argv, true) ) {
         $cartridge = 'thick';
     }
+    if ( isset($argv) && is_array($argv) && in_array('lti', $argv, true) ) {
+        $gift_qti_raw = 'lti';
+    }
+    if ( isset($argv) && is_array($argv) && in_array('qti', $argv, true) ) {
+        $gift_qti_raw = 'qti';
+    }
 }
 $thick = LessonsLegacyFiles::wantsThickCartridge($cartridge);
+$convert_qti = LessonsLegacyGift::wantsGiftQti($gift_qti_raw);
 
 if ( isCli() ) {
     $file_scan = LessonsLegacyFiles::summarize($l, $anchors);
     echo('cartridge='.($thick ? 'thick' : 'thin').' files='.$file_scan['files'].' links='.$file_scan['links'].' scanned='.$file_scan['scanned']."\n");
     foreach ( $file_scan['paths'] as $path ) {
         echo('  '.$path."\n");
+    }
+    $gift_scan = LessonsLegacyGift::summarize($l, $anchors);
+    echo('gift_qti='.($convert_qti ? 'qti' : 'lti').' gift='.$gift_scan['gift'].' found='.$gift_scan['found'].' lti='.$gift_scan['lti'].' scanned='.$gift_scan['scanned']."\n");
+    foreach ( $gift_scan['paths'] as $path ) {
+        echo('  '.$path."\n");
+    }
+    foreach ( $gift_scan['warnings'] as $w ) {
+        echo('  warning: '.$w."\n");
     }
 }
 
@@ -328,6 +334,7 @@ $tsugi_lms = LessonsCartridge::exportFlavor(U::get($_GET,'tsugi_lms', false));
 $filename = tempnam(sys_get_temp_dir(), $CFG->servicename);
 unlink($filename);
 $kind = $thick ? 'thick' : 'thin';
+if ( $convert_qti ) $kind .= '_qti';
 if ( isCli() ) $filename = 'cc_'.$kind.'.zip';
 $zip = new ZipArchive();
 if ($zip->open($filename, ZipArchive::CREATE)!==TRUE) {
@@ -355,6 +362,7 @@ if ( LessonsCartridge::usesCanvasCartridge($tsugi_lms) ) {
 }
 $cc_dom->set_title($CFG->context_title.' import');
 $local_files = new LessonsLegacyFiles($thick);
+$gift_qti = new LessonsLegacyGift($convert_qti);
 $top_module = false;
 if ( $tsugi_lms === 'sakai' ) {
     $top_module = $cc_dom->add_module('Modules (import)', '');
@@ -375,7 +383,7 @@ foreach($l->lessons->modules as $module) {
         // New format: process items array - each item is a flat object with a type field
         foreach($module->items as $item) {
             $item_obj = is_array($item) ? (object)$item : $item;
-            process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $local_files);
+            process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $local_files, $gift_qti);
         }
         // Skip legacy format if items array was processed
         continue;
@@ -459,25 +467,7 @@ foreach($l->lessons->modules as $module) {
 
     if ( isset($module->lti) ) {
         foreach($module->lti as $lti ) {
-            $title = isset($lti->title) ? $lti->title : $module->title;
-            if (strpos($title, ':') === false ) $title = 'Tool: '.$title;
-            $custom_arr = array();
-            if ( isset($lti->custom) ) {
-                foreach($lti->custom as $custom) {
-                    if ( isset($custom->value) ) {
-                        $custom_arr[$custom->key] = $custom->value;
-                    }
-                    if ( isset($custom->json) ) {
-                        $custom_arr[$custom->key] = json_encode($custom->json);
-                    }
-                }
-            }
-            $endpoint = U::absolute_url(Lessons::expandLink($lti->launch));
-            // Sigh - some LMSs don't handle custom - sigh
-            $endpoint = U::add_url_parm($endpoint, 'inherit', $lti->resource_link_id);
-            $extensions = array('apphome' => $CFG->apphome);
-            $resource_link_id = isset($lti->resource_link_id) ? $lti->resource_link_id : null;
-            $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parent_path_legacy);
+            $gift_qti->addToModule($zip, $cc_dom, $sub_module, $lti, $module, $parent_path_legacy);
         }
     }
 
@@ -527,6 +517,9 @@ $zip->addFromString('imsmanifest.xml',$cc_dom->saveXML());
 $zip->close();
 
 if ( isCli() ) {
+    foreach ( $gift_qti->warnings() as $w ) {
+        echo('  warning: '.$w."\n");
+    }
     echo("\nCLI run: Left zip file on $filename\n\n");
     return;
 }

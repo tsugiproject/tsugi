@@ -1,0 +1,26 @@
+---
+description: Deferred Lessons service extract. Do not grow non-UI helpers on Tsugi\UI\Lessons*.
+globs: lib/src/UI/Lessons.php,lib/src/UI/LessonsNormalize.php,lib/src/UI/LessonsCartridge.php,lib/src/UI/LessonsLegacyFiles.php,lib/src/UI/LessonsLegacyGift.php,lib/src/Services/Lessons/**,cc/export.php,cc/index.php
+alwaysApply: false
+---
+
+# Lessons service (deferred)
+
+Do **not** extract this in Common Cartridge import, legacy `/cc` GIFT→QTI, or thick/thin file packing unless the user asks for this refactor. Keep new helpers next to the current `Tsugi\UI\Lessons*` classes (same as `LessonsLegacyFiles` / `LessonsLegacyGift`).
+
+`Tsugi\Services\Cartridge` is Settings **import** (package, store, matcher). Do not park lessons.json export or GIFT-file lookup there.
+
+## Follow-up
+
+Move non-UI lessons document and export invariants out of `Tsugi\UI` into `Tsugi\Services\Lessons`, matching Quiz1 (importers/exporters/normalize — not a `*Service` class name):
+
+| Keep (HTTP / HTML) | Move (document, disk, cartridge emit) |
+|---|---|
+| `cc/index.php`, `cc/export.php` forms | `LessonsNormalize` |
+| `Tsugi\UI\Lessons` lesson pages / menus | `LessonsLegacyFiles` URL→file mapping |
+| `echoPreview` / `echoCartridgeSelect` / `echoGiftQtiSelect` | `LessonsLegacyGift` launch detect, `$CFG->giftquizzes` resolve, GIFT→QTI vs LTI |
+| Settings export screen chrome | `LessonsCartridge` zip write (not `Services\Cartridge` import) |
+
+Leave `GiftImporter` / `Qti12Exporter` / `QuizRepository` in `Tsugi\Services\Quiz1`. The Lessons piece only decides which LTI items convert and where GIFT bytes come from.
+
+Tests move with the classes (`lib/tests/UI/Lessons*Test.php` → `lib/tests/Services/Lessons/`). No schema change; file-based `$CFG->lessons` stays classic.
