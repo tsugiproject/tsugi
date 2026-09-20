@@ -48,12 +48,60 @@ class Catalog extends Tool {
         if ( ! isset($CFG) || ! is_object($CFG) ) {
             return false;
         }
-        return ! empty($CFG->getExtension('show_course_catalog', false));
+        return ! empty($CFG->show_course_catalog);
     }
 
     public static function catalogUrl() {
         global $CFG;
         return rtrim((string) $CFG->wwwroot, '/').self::ROUTE;
+    }
+
+    /**
+     * True when $url is the site Home URL (home_path, else apphome, else wwwroot).
+     *
+     * That is the Google site-home catalog card: a link, not an enrollable course.
+     */
+    public static function isSiteHomeLink($url) {
+        global $CFG;
+        if ( ! is_string($url) || trim($url) === '' ) {
+            return false;
+        }
+        if ( ! isset($CFG) || ! is_object($CFG) || ! method_exists($CFG, 'getHomeUrl') ) {
+            return false;
+        }
+        $left = self::normalizeHomeLink($url);
+        $right = self::normalizeHomeLink($CFG->getHomeUrl());
+        return $left !== '' && $right !== '' && strcasecmp($left, $right) === 0;
+    }
+
+    /**
+     * Google site-login users are already on the site home; star that one link.
+     *
+     * @param array<int, array<string, mixed>> $rows
+     * @return array<int, array<string, mixed>>
+     */
+    public static function markHomeEnrolled(array $rows) {
+        if ( U::loggedInUserId() < 1 || ! Courses::isGoogleLoginSession() ) {
+            return $rows;
+        }
+        foreach ( $rows as $i => $row ) {
+            if ( ! empty($row['enrolled']) ) {
+                continue;
+            }
+            $url = isset($row['external_url']) ? (string) $row['external_url'] : '';
+            if ( $url !== '' && self::isSiteHomeLink($url) ) {
+                $rows[$i]['enrolled'] = true;
+            }
+        }
+        return $rows;
+    }
+
+    public static function normalizeHomeLink($url) {
+        $url = trim((string) $url);
+        if ( $url === '' || $url === '/' ) {
+            return $url;
+        }
+        return rtrim($url, '/');
     }
 
     /**
@@ -84,13 +132,20 @@ class Catalog extends Tool {
         }
 
         $user_id = U::loggedInUserId();
-        $rows = CatalogRepository::listPublished($user_id);
+        $rows = Catalog::markHomeEnrolled(CatalogRepository::listPublished($user_id));
         $logged_in = $user_id > 0;
         $tool = new self();
         $home = $tool->toolHome(self::ROUTE);
         foreach ( $rows as $i => $row ) {
             $id = (int) ($row['catalog_id'] ?? 0);
-            $rows[$i]['href'] = self::joinToolHome($home, (string) $id);
+            $link = trim((string) ($row['external_url'] ?? ''));
+            if ( $link !== '' && empty($row['has_detail']) ) {
+                $rows[$i]['href'] = $link;
+                $rows[$i]['href_new_window'] = ! empty($row['new_window']);
+            } else {
+                $rows[$i]['href'] = self::joinToolHome($home, (string) $id);
+                $rows[$i]['href_new_window'] = false;
+            }
         }
 
         $OUTPUT->header();
@@ -117,6 +172,8 @@ class Catalog extends Tool {
         if ( $row === null ) {
             return new Response('Catalog entry not found.', 404);
         }
+        $marked = Catalog::markHomeEnrolled(array($row));
+        $row = $marked[0];
 
         $logged_in = $user_id > 0;
         $can_enrol = $logged_in && Courses::isGoogleLoginSession();
@@ -166,7 +223,7 @@ class Catalog extends Tool {
         $row = $kind === ContextImages::KIND_HERO
             ? CatalogRepository::heroBlob($cid)
             : CatalogRepository::iconBlob($cid);
-        return self::imageResponse($row, $kind, $cid);
+        return self::imageResponse($row, $kind, $cid, $published);
     }
 
     public static function enrol(Application $app, Request $request, $id) {
@@ -210,10 +267,15 @@ class Catalog extends Tool {
     }
 
     public static function getjson(Application $app) {
+        global $PDOX;
+
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
         if ( ! CatalogRepository::tableExists() ) {
             return \response()->json(array('status' => 'success', 'entries' => array()));
         }
-        $rows = CatalogRepository::listPublished(U::loggedInUserId());
+        $rows = Catalog::markHomeEnrolled(CatalogRepository::listPublished(U::loggedInUserId()));
         $entries = array();
         foreach ( $rows as $row ) {
             $entries[] = array(
@@ -233,10 +295,12 @@ class Catalog extends Tool {
     /**
      * @param array{bytes:string,mime:string,updated_at:?string}|null $row
      */
-    private static function imageResponse($row, $kind, $catalog_id) {
+    private static function imageResponse($row, $kind, $catalog_id, $published = true) {
+        $cache = $published ? 'public, max-age=86400' : 'private, no-store';
+        $cache404 = $published ? 'public, max-age=60' : 'private, no-store';
         if ( ! is_array($row) || ! isset($row['bytes']) || ! is_string($row['bytes']) || $row['bytes'] === '' ) {
             $response = new Response('', 404);
-            $response->headers->set('Cache-Control', 'public, max-age=60');
+            $response->headers->set('Cache-Control', $cache404);
             return $response;
         }
         $etag = '"'.sha1($catalog_id.'|'.$kind.'|'.strlen($row['bytes']).'|'.(string) ($row['updated_at'] ?? '')).'"';
@@ -244,13 +308,13 @@ class Catalog extends Tool {
         if ( is_string($inm) && $inm !== '' && hash_equals($etag, $inm) ) {
             $response = new Response('', 304);
             $response->setEtag(trim($etag, '"'));
-            $response->headers->set('Cache-Control', 'public, max-age=86400');
+            $response->headers->set('Cache-Control', $cache);
             return $response;
         }
         $response = new Response($row['bytes'], 200);
         $response->headers->set('Content-Type', isset($row['mime']) ? $row['mime'] : ContextImages::MIME);
         $response->headers->set('Content-Length', (string) strlen($row['bytes']));
-        $response->headers->set('Cache-Control', 'public, max-age=86400');
+        $response->headers->set('Cache-Control', $cache);
         $response->setEtag(trim($etag, '"'));
         return $response;
     }

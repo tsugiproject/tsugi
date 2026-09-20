@@ -100,4 +100,31 @@ class CatalogRepositoryTest extends \PHPUnit\Framework\TestCase
     {
         $this->assertSame('Hello there', CatalogRepository::plainText("Hello\n<b>there</b>", 512));
     }
+
+    public function testPlainTextTruncatesUtf8ByCharacter()
+    {
+        $this->assertSame('ééé', CatalogRepository::plainText(str_repeat('é', 8), 3));
+    }
+
+    public function testNormalizeTruncatesUtf8TitleByCharacter()
+    {
+        $title = str_repeat('é', CatalogRepository::TITLE_MAX + 8);
+        $out = CatalogRepository::normalizeInput(array(
+            'title' => $title,
+            'kind' => 'link',
+            'external_url' => 'https://example.com',
+        ));
+        $this->assertTrue($out['ok']);
+        $this->assertSame(CatalogRepository::TITLE_MAX, mb_strlen($out['data']['title'], 'UTF-8'));
+        $this->assertSame(str_repeat('é', CatalogRepository::TITLE_MAX), $out['data']['title']);
+    }
+
+    public function testHasRichDescription()
+    {
+        $this->assertFalse(CatalogRepository::hasRichDescription(null));
+        $this->assertFalse(CatalogRepository::hasRichDescription(''));
+        $this->assertFalse(CatalogRepository::hasRichDescription('<p>&nbsp;</p>'));
+        $this->assertTrue(CatalogRepository::hasRichDescription('<p>Hello</p>'));
+        $this->assertTrue(CatalogRepository::hasRichDescription('<img src="x.jpg" alt="">'));
+    }
 }

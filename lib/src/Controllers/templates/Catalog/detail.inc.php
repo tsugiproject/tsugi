@@ -66,6 +66,31 @@ $new_window = ! empty($row['new_window']);
 .tsugi-catalog-detail-body { margin: 1em 0 1.5em; }
 .tsugi-catalog-detail-actions { margin: 1.5em 0; }
 .tsugi-catalog-detail-actions form { display: inline; }
+.tsugi-catalog-detail-title {
+    display: flex;
+    align-items: center;
+    gap: 0.45em;
+    flex-wrap: wrap;
+}
+.tsugi-catalog-detail-title h1 { margin: 0; }
+.tsugi-catalog-detail-enrolled {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    color: #856404;
+    background: #fff3cd;
+    border: 1px solid #ffecb5;
+    border-radius: 999px;
+    padding: 0.15em 0.65em 0.15em 0.4em;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+.tsugi-catalog-detail-enrolled svg {
+    width: 1.05em;
+    height: 1.05em;
+    display: block;
+}
 </style>
 <main class="container" id="main-content">
     <p><a href="<?= htmlspecialchars($home) ?>"><?= __('Course catalog') ?></a></p>
@@ -79,7 +104,18 @@ $new_window = ! empty($row['new_window']);
         <span class="tsugi-catalog-card-placeholder-title"><?= htmlspecialchars($title) ?></span>
     </div>
     <?php } ?>
-    <h1><?= htmlspecialchars($title) ?></h1>
+    <div class="tsugi-catalog-detail-title">
+        <h1><?= htmlspecialchars($title) ?></h1>
+        <?php if ( $enrolled ) { ?>
+        <span class="tsugi-catalog-detail-enrolled">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path fill="#ffc107" stroke="#e0a800" stroke-width="1.2" stroke-linejoin="round"
+                    d="M12 2.7l2.85 6.05 6.6.7-4.95 4.5 1.4 6.5L12 17.2l-5.9 3.25 1.4-6.5-4.95-4.5 6.6-.7z"/>
+            </svg>
+            <?= htmlspecialchars(__('Enrolled')) ?>
+        </span>
+        <?php } ?>
+    </div>
     <?php if ( $short !== '' ) { ?>
     <p class="tsugi-catalog-detail-short"><?= htmlspecialchars($short) ?></p>
     <?php } ?>

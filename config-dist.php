@@ -165,17 +165,20 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 // the "local" students that log in through Google.
 // $CFG->context_title = "Web Applications for Everybody";
 
-// Site-menu waffle (tsugi-courses). Unset in production until there is
+// Site-menu waffle (tsugi-courses). Leave false in production until there is
 // more than one course to switch between. Course-nav editing is separate.
-// $CFG->setExtension('show_courses_widget', true);
+// $CFG->show_courses_widget = true;
+// Legacy: $CFG->setExtension('show_courses_widget', true);
 
 // Course catalog link in the courses waffle footer. Catalog itself is public.
-// $CFG->setExtension('show_course_catalog', true);
+// $CFG->show_course_catalog = true;
+// Legacy: $CFG->setExtension('show_course_catalog', true);
 
 // Where the Home brand (and Exit course) go. Any URL. Unset = apphome, then wwwroot.
-// $CFG->setExtension('home_path', $CFG->apphome);
-// $CFG->setExtension('home_path', $CFG->wwwroot);
-// $CFG->setExtension('home_path', 'https://example.com/');
+// $CFG->home_path = $CFG->apphome;
+// $CFG->home_path = $CFG->wwwroot;
+// $CFG->home_path = 'https://example.com/';
+// Legacy: $CFG->setExtension('home_path', $CFG->apphome);
 
 // If we are going to use the lessons tool and/or badges, we need to
 // create and point to a lessons.json file

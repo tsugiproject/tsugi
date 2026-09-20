@@ -196,7 +196,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
     {
         $this->assertFalse(Courses::showCoursesWidget());
         global $CFG;
-        $CFG->setExtension('show_courses_widget', true);
+        $CFG->show_courses_widget = true;
         $this->assertTrue(Courses::showCoursesWidget());
     }
 

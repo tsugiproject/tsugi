@@ -86,7 +86,7 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         $CFG->servicename = 'Test Site';
         $CFG->apphome = 'http://example.com';
         $CFG->wwwroot = 'http://example.com/tsugi';
-        $CFG->setExtension('show_courses_widget', true);
+        $CFG->show_courses_widget = true;
         $_SESSION['id'] = 1;
 
         $OUTPUT = new Output();
@@ -94,26 +94,26 @@ class OutputTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($this->menuSetHasCoursesWidget($set));
 
         unset($_SESSION['id']);
-        $CFG->setExtension('show_courses_widget', false);
+        $CFG->show_courses_widget = false;
         $_SESSION['id'] = 1;
         $set = $OUTPUT->defaultMenuSet();
         $this->assertFalse($this->menuSetHasCoursesWidget($set));
         unset($_SESSION['id']);
     }
 
-    public function testDefaultMenuSetUsesHomePathExtension() {
+    public function testDefaultMenuSetUsesHomePath() {
         global $CFG;
 
         $CFG = new \Tsugi\Config\ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
         $CFG->servicename = 'Test Site';
         $CFG->apphome = 'http://example.com';
-        $CFG->setExtension('home_path', $CFG->wwwroot);
+        $CFG->home_path = $CFG->wwwroot;
 
         $OUTPUT = new Output();
         $set = $OUTPUT->defaultMenuSet();
         $this->assertEquals('http://example.com/tsugi', $set->home->href);
 
-        $CFG->setExtension('home_path', 'https://other.example/home/');
+        $CFG->home_path = 'https://other.example/home/';
         $set = $OUTPUT->defaultMenuSet();
         $this->assertEquals('https://other.example/home', $set->home->href);
     }

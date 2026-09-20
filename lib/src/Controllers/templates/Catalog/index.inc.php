@@ -2,7 +2,7 @@
 /**
  * Public course catalog cards.
  *
- * Expected: $rows (title, href, hero_url, icon_url, short_description), $logged_in
+ * Expected: $rows (title, href, hero_url, icon_url, short_description, enrolled)
  */
 if ( ! isset($rows) || ! is_array($rows) ) {
     $rows = array();
@@ -108,6 +108,36 @@ $logged_in = ! empty($logged_in);
     font-size: 0.9em;
     line-height: 1.35;
 }
+.tsugi-catalog-card-enrolled {
+    position: absolute;
+    top: 0.55em;
+    right: 0.55em;
+    z-index: 2;
+    width: 2.1em;
+    height: 2.1em;
+    border-radius: 50%;
+    background: rgba(20, 24, 32, 0.55);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.tsugi-catalog-card-enrolled svg {
+    display: block;
+    width: 1.15em;
+    height: 1.15em;
+}
+.tsugi-catalog-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
 </style>
 <main class="container" id="main-content">
     <div class="tsugi-catalog-page-head">
@@ -124,16 +154,26 @@ $logged_in = ! empty($logged_in);
                 $icon_url = isset($row['icon_url']) ? (string) $row['icon_url'] : '';
                 $short = isset($row['short_description']) ? (string) $row['short_description'] : '';
                 $cid = isset($row['catalog_id']) ? (int) $row['catalog_id'] : 0;
+                $enrolled = ! empty($row['enrolled']);
+                $new_window = ! empty($row['href_new_window']);
+                $target = $new_window ? ' target="_blank" rel="noopener noreferrer"' : '';
+                $star = '<span class="tsugi-catalog-card-enrolled" title="'.htmlspecialchars(__('Enrolled'), ENT_QUOTES, 'UTF-8').'">'
+                    .'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+                    .'<path fill="#ffc107" stroke="#e0a800" stroke-width="1.2" stroke-linejoin="round" '
+                    .'d="M12 2.7l2.85 6.05 6.6.7-4.95 4.5 1.4 6.5L12 17.2l-5.9 3.25 1.4-6.5-4.95-4.5 6.6-.7z"/>'
+                    .'</svg><span class="tsugi-catalog-sr">'.htmlspecialchars(__('Enrolled')).'</span></span>';
             ?>
             <li>
-                <a class="tsugi-catalog-card" href="<?= htmlspecialchars($href) ?>">
+                <a class="tsugi-catalog-card" href="<?= htmlspecialchars($href) ?>"<?= $target ?>>
                     <?php if ( $hero_url !== '' ) { ?>
                     <div class="tsugi-catalog-card-hero">
                         <img src="<?= htmlspecialchars($hero_url) ?>" alt="">
+                        <?= $enrolled ? $star : '' ?>
                     </div>
                     <?php } else { ?>
                     <div class="tsugi-catalog-card-hero tsugi-catalog-card-placeholder">
                         <?= \Tsugi\Core\ContextImages::heroPlaceholderSvg($cid) ?>
+                        <?= $enrolled ? $star : '' ?>
                         <span class="tsugi-catalog-card-placeholder-title"><?= htmlspecialchars($title) ?></span>
                     </div>
                     <?php } ?>

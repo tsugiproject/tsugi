@@ -79,6 +79,36 @@ class ConfigInfoTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('value2', $CFG->getExtension('key'));
     }
 
+    public function testPromotedExtensionsWriteCoreProperties() {
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://localhost:8888/tsugi');
+        $this->assertFalse($CFG->show_courses_widget);
+        $this->assertFalse($CFG->show_course_catalog);
+        $this->assertFalse($CFG->home_path);
+
+        $CFG->setExtension('show_courses_widget', true);
+        $CFG->setExtension('show_course_catalog', true);
+        $CFG->setExtension('home_path', 'https://example.com/home');
+        $this->assertTrue($CFG->show_courses_widget);
+        $this->assertTrue($CFG->show_course_catalog);
+        $this->assertSame('https://example.com/home', $CFG->home_path);
+        $this->assertTrue($CFG->getExtension('show_courses_widget'));
+        $this->assertTrue($CFG->getExtension('show_course_catalog'));
+        $this->assertSame('https://example.com/home', $CFG->getExtension('home_path'));
+        $this->assertTrue($CFG->extensions['show_courses_widget']);
+        $this->assertTrue($CFG->extensions['show_course_catalog']);
+        $this->assertSame('https://example.com/home', $CFG->extensions['home_path']);
+    }
+
+    public function testPromotedPropertiesReadableViaGetExtension() {
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://localhost:8888/tsugi');
+        $CFG->show_courses_widget = true;
+        $CFG->show_course_catalog = true;
+        $CFG->home_path = 'https://example.com/home';
+        $this->assertTrue($CFG->getExtension('show_courses_widget'));
+        $this->assertTrue($CFG->getExtension('show_course_catalog'));
+        $this->assertSame('https://example.com/home', $CFG->getExtension('home_path'));
+    }
+
     public function testServerPrefixWithWwwroot() {
         $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
         $CFG->apphome = null;
@@ -183,22 +213,22 @@ class ConfigInfoTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('http://example.com/tsugi', $CFG->getHomeUrl());
     }
 
-    public function testGetHomeUrlUsesHomePathExtension() {
+    public function testGetHomeUrlUsesHomePath() {
         $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://example.com/tsugi');
         $CFG->apphome = 'http://example.com/app';
-        $CFG->setExtension('home_path', $CFG->wwwroot);
+        $CFG->home_path = $CFG->wwwroot;
         $this->assertTrue($CFG->hasHomeUrl());
         $this->assertEquals('http://example.com/tsugi', $CFG->getHomeUrl());
 
-        $CFG->setExtension('home_path', 'https://example.org/wherever/');
+        $CFG->home_path = 'https://example.org/wherever/';
         $this->assertEquals('https://example.org/wherever', $CFG->getHomeUrl());
 
         $CFG->apphome = false;
-        $CFG->setExtension('home_path', '/');
+        $CFG->home_path = '/';
         $this->assertTrue($CFG->hasHomeUrl());
         $this->assertEquals('/', $CFG->getHomeUrl());
 
-        $CFG->setExtension('home_path', '   ');
+        $CFG->home_path = '   ';
         $this->assertFalse($CFG->hasHomeUrl());
         $this->assertEquals('http://example.com/tsugi', $CFG->getHomeUrl());
     }

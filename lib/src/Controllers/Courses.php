@@ -76,14 +76,14 @@ class Courses extends Tool {
     }
 
     /**
-     * Site top-menu waffle. Off unless config sets show_courses_widget.
+     * Site top-menu waffle. Off unless $CFG->show_courses_widget is set.
      */
     public static function showCoursesWidget() {
         global $CFG;
         if ( ! isset($CFG) || ! is_object($CFG) ) {
             return false;
         }
-        return ! empty($CFG->getExtension('show_courses_widget', false));
+        return ! empty($CFG->show_courses_widget);
     }
 
     /**

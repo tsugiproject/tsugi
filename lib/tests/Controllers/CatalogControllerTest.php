@@ -38,6 +38,13 @@ class CatalogControllerTest extends \PHPUnit\Framework\TestCase
             }
         }
 
+        if (!function_exists('isLoggedIn')) {
+            require_once dirname(__DIR__, 2) . '/include/lms_lib.php';
+        }
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+
         $this->mockApp = new Application((object) array('output' => (object) array('buffer' => true)));
     }
 
@@ -46,6 +53,9 @@ class CatalogControllerTest extends \PHPUnit\Framework\TestCase
         global $CFG;
         $CFG = $this->originalCFG;
         $_SESSION = $this->originalSession;
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
     }
 
     public function testRouteConstant()
@@ -70,7 +80,7 @@ class CatalogControllerTest extends \PHPUnit\Framework\TestCase
     {
         $this->assertFalse(Catalog::showCourseCatalog());
         global $CFG;
-        $CFG->setExtension('show_course_catalog', true);
+        $CFG->show_course_catalog = true;
         $this->assertTrue(Catalog::showCourseCatalog());
     }
 
@@ -89,8 +99,70 @@ class CatalogControllerTest extends \PHPUnit\Framework\TestCase
     public function testCoursesWidgetTagIncludesCatalogWhenOn()
     {
         global $CFG;
-        $CFG->setExtension('show_course_catalog', true);
+        $CFG->show_course_catalog = true;
         $html = Catalog::coursesWidgetTag();
         $this->assertStringContainsString('catalog-url="http://localhost/tsugi/catalog"', $html);
+    }
+
+    public function testIsSiteHomeLinkMatchesGetHomeUrl()
+    {
+        global $CFG;
+        $CFG->apphome = 'http://localhost/app';
+        $this->assertTrue(Catalog::isSiteHomeLink('http://localhost/app'));
+        $this->assertTrue(Catalog::isSiteHomeLink('http://localhost/app/'));
+        $this->assertFalse(Catalog::isSiteHomeLink('http://localhost/tsugi'));
+        $this->assertFalse(Catalog::isSiteHomeLink('https://other.example.com'));
+    }
+
+    public function testIsSiteHomeLinkHonorsHomePath()
+    {
+        global $CFG;
+        $CFG->apphome = 'http://localhost/app';
+        $CFG->home_path = 'https://example.com/home';
+        $this->assertTrue(Catalog::isSiteHomeLink('https://example.com/home/'));
+        $this->assertFalse(Catalog::isSiteHomeLink('http://localhost/app'));
+    }
+
+    public function testMarkHomeEnrolledOnlyForGoogleSession()
+    {
+        $rows = array(
+            array('catalog_id' => 1, 'external_url' => 'http://localhost/app', 'enrolled' => false),
+            array('catalog_id' => 2, 'external_url' => 'https://other.example.com', 'enrolled' => false),
+            array('catalog_id' => 3, 'context_id' => 9, 'enrolled' => true),
+        );
+        $out = Catalog::markHomeEnrolled($rows);
+        $this->assertFalse($out[0]['enrolled']);
+
+        $_SESSION['id'] = 1;
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $out = Catalog::markHomeEnrolled($rows);
+        $this->assertTrue($out[0]['enrolled']);
+        $this->assertFalse($out[1]['enrolled']);
+        $this->assertTrue($out[2]['enrolled']);
+    }
+
+    public function testImageResponseCachesPublishedPubliclyAndUnpublishedPrivately()
+    {
+        $method = new \ReflectionMethod(Catalog::class, 'imageResponse');
+        $method->setAccessible(true);
+        $row = array('bytes' => 'jpeg-bytes', 'mime' => 'image/jpeg', 'updated_at' => '2026-01-01 00:00:00');
+
+        $published = $method->invoke(null, $row, 'hero', 7, true);
+        $this->assertSame(200, $published->getStatusCode());
+        $this->assertStringContainsString('public', $published->headers->get('Cache-Control'));
+        $this->assertStringContainsString('max-age=86400', $published->headers->get('Cache-Control'));
+
+        $draft = $method->invoke(null, $row, 'hero', 7, false);
+        $this->assertSame(200, $draft->getStatusCode());
+        $this->assertStringContainsString('private', $draft->headers->get('Cache-Control'));
+        $this->assertStringContainsString('no-store', $draft->headers->get('Cache-Control'));
+
+        $missing = $method->invoke(null, null, 'hero', 7, false);
+        $this->assertSame(404, $missing->getStatusCode());
+        $this->assertStringContainsString('private', $missing->headers->get('Cache-Control'));
+        $this->assertStringContainsString('no-store', $missing->headers->get('Cache-Control'));
     }
 }

@@ -42,8 +42,8 @@ class CatalogRepository {
         if ( $title === '' ) {
             return array('ok' => false, 'error' => 'Title is required.');
         }
-        if ( strlen($title) > self::TITLE_MAX ) {
-            $title = substr($title, 0, self::TITLE_MAX);
+        if ( mb_strlen($title, 'UTF-8') > self::TITLE_MAX ) {
+            $title = mb_substr($title, 0, self::TITLE_MAX, 'UTF-8');
         }
 
         $kind = (string) U::get($post, 'kind', '');
@@ -118,7 +118,8 @@ class CatalogRepository {
     }
 
     /**
-     * Published listings for the public catalog. No description, no BLOBs.
+     * Published listings for the public catalog. No BLOBs. Description is
+     * used only to set has_detail, then dropped.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -139,7 +140,7 @@ class CatalogRepository {
         }
         $rows = $PDOX->allRowsDie(
             "SELECT CAT.catalog_id, CAT.context_id, CAT.external_url, CAT.title,
-                    CAT.short_description, CAT.published, CAT.sort_order, CAT.new_window,
+                    CAT.short_description, CAT.description, CAT.published, CAT.sort_order, CAT.new_window,
                     CAT.hero_bytes, CAT.hero_updated_at,
                     CI.hero_bytes AS context_hero_bytes, CI.hero_updated_at AS context_hero_updated_at,
                     CI.icon_bytes, CI.icon_updated_at,
@@ -154,7 +155,11 @@ class CatalogRepository {
         if ( ! is_array($rows) ) {
             return array();
         }
-        return self::withDisplayUrls($rows);
+        $out = self::withDisplayUrls($rows);
+        foreach ( $out as $i => $row ) {
+            unset($out[$i]['description']);
+        }
+        return $out;
     }
 
     /**
@@ -579,6 +584,9 @@ class CatalogRepository {
                 ? self::iconUrl($id, is_string($iconAt) ? $iconAt : null)
                 : '';
             $row['enrolled'] = ! empty($row['membership_id']);
+            if ( array_key_exists('description', $row) ) {
+                $row['has_detail'] = self::hasRichDescription($row['description']);
+            }
             unset(
                 $row['hero_bytes'],
                 $row['hero_updated_at'],
@@ -608,10 +616,17 @@ class CatalogRepository {
         $text = preg_replace('/\s+/u', ' ', $text) ?? '';
         $text = trim($text);
         $max = (int) $max;
-        if ( $max > 0 && strlen($text) > $max ) {
-            $text = substr($text, 0, $max);
+        if ( $max > 0 && mb_strlen($text, 'UTF-8') > $max ) {
+            $text = mb_substr($text, 0, $max, 'UTF-8');
         }
         return $text;
+    }
+
+    /**
+     * True when the catalog long body has real content (not CKEditor blank).
+     */
+    public static function hasRichDescription($html) {
+        return ! \Tsugi\Services\Site\Site::isEmptyHtml($html);
     }
 
     public static function purify($html) {
