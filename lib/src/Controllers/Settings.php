@@ -2176,10 +2176,15 @@ function sendToCanvas() {
             return false;
         }
         if ( str_starts_with($url, '/') && ! str_starts_with($url, '//') ) {
-            return true;
+            $path = parse_url($url, PHP_URL_PATH);
+            return is_string($path) && (bool) preg_match('#/settings/import/?$#', $path);
         }
         $parts = parse_url($url);
         if ( ! is_array($parts) || empty($parts['host']) ) {
+            return false;
+        }
+        $path = isset($parts['path']) ? (string) $parts['path'] : '';
+        if ( ! preg_match('#/settings/import/?$#', $path) ) {
             return false;
         }
         foreach ( array($CFG->wwwroot ?? '', $CFG->apphome ?? '') as $home ) {
@@ -2190,11 +2195,35 @@ function sendToCanvas() {
             if ( ! is_array($hp) || empty($hp['host']) ) {
                 continue;
             }
-            if ( strcasecmp((string) $hp['host'], (string) $parts['host']) === 0 ) {
+            if ( self::sameOriginParts($parts, $hp) ) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Scheme, host, and effective port (not host alone).
+     *
+     * @param array<string, mixed> $a
+     * @param array<string, mixed> $b
+     * @return bool
+     */
+    private static function sameOriginParts(array $a, array $b)
+    {
+        $hostA = strtolower((string) ($a['host'] ?? ''));
+        $hostB = strtolower((string) ($b['host'] ?? ''));
+        if ( $hostA === '' || $hostA !== $hostB ) {
+            return false;
+        }
+        $schemeA = strtolower((string) ($a['scheme'] ?? ''));
+        $schemeB = strtolower((string) ($b['scheme'] ?? ''));
+        if ( $schemeA === '' || $schemeA !== $schemeB ) {
+            return false;
+        }
+        $portA = isset($a['port']) ? (int) $a['port'] : ($schemeA === 'https' ? 443 : 80);
+        $portB = isset($b['port']) ? (int) $b['port'] : ($schemeB === 'https' ? 443 : 80);
+        return $portA === $portB;
     }
 
     /**
@@ -2206,6 +2235,15 @@ function sendToCanvas() {
      */
     public function handleCartridgeUploadPost()
     {
+        $to = $this->cartridgeImportReturnUrl();
+        if ( BlobUtil::requestLargerThanPhpPostLimit() ) {
+            U::flashError(BlobUtil::phpUploadTooLargeMessage());
+            return new RedirectResponse($to);
+        }
+        $csrf = self::requireCsrf($to);
+        if ( $csrf ) {
+            return $csrf;
+        }
         $cid = self::cartridgeUploadContextIdFromRequest();
         if ( $cid < 1 ) {
             $cid = U::currentContextId();
@@ -2214,7 +2252,6 @@ function sendToCanvas() {
             $result = Courses::ensureActiveContext($cid);
             if ( $result !== true ) {
                 U::flashError(is_string($result) ? $result : __('Could not open that course.'));
-                $to = $this->cartridgeImportReturnUrl();
                 return new RedirectResponse($to);
             }
         }

@@ -145,7 +145,7 @@ class LessonsLegacyFiles {
      * @param array{scanned:int,files:int,listings:int,links:int,paths:list<string>} $summary
      */
     public static function echoPreview(array $summary) {
-        echo('<p>Slide, reference, and assignment links scanned: '.(int) $summary['scanned']."</p>\n");
+        echo('<p>Slide, reference, assignment, and solution links scanned: '.(int) $summary['scanned']."</p>\n");
         echo('<p>Available for a thick cartridge: '.(int) $summary['files']." file(s)</p>\n");
         if ( isset($summary['listings']) && (int) $summary['listings'] > 0 ) {
             echo('<p>Additional listings of those same files: '.(int) $summary['listings']."</p>\n");
@@ -478,6 +478,9 @@ class LessonsLegacyFiles {
         $bpath = isset($b['path']) ? rtrim((string) $b['path'], '/') : '';
         $upath = isset($u['path']) ? (string) $u['path'] : '';
         $upath = rawurldecode($upath);
+        if ( str_contains($upath, "\0") ) {
+            return null;
+        }
         if ( $bpath === '' ) {
             $rel = ltrim($upath, '/');
         } else if ( $upath === $bpath ) {

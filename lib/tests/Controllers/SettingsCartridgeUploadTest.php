@@ -128,6 +128,8 @@ class SettingsCartridgeUploadTest extends \PHPUnit\Framework\TestCase
         ));
         $this->assertFalse(Settings::isSafeImportReturn('https://www.example.com/tsugi/settings'));
         $this->assertFalse(Settings::isSafeImportReturn('https://www.example.com/tsugi/courses/2/settings/export'));
+        $this->assertFalse(Settings::isSafeImportReturn('http://www.example.com/tsugi/courses/2/settings/import'));
+        $this->assertFalse(Settings::isSafeImportReturn('https://www.example.com/phishing?next=/settings/import'));
         $this->assertFalse(Settings::isSafeImportReturn(''));
         $this->assertFalse(Settings::isSafeImportReturn(null));
     }

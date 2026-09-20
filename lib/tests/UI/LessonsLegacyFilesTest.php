@@ -87,6 +87,9 @@ class LessonsLegacyFilesTest extends \PHPUnit\Framework\TestCase
         $this->assertNull(LessonsLegacyFiles::payloadForUrl(
             'https://www.example.com/lectures3/../../etc/passwd.pdf'
         ));
+        $this->assertNull(LessonsLegacyFiles::payloadForUrl(
+            'https://www.example.com/lectures3/deck%00.pdf'
+        ));
     }
 
     public function testAddToModuleEmbedsBytesAndDedupes() {
