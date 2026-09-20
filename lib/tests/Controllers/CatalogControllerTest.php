@@ -4,12 +4,19 @@ require_once "src/Controllers/Catalog.php";
 require_once "src/Controllers/Courses.php";
 require_once "src/Controllers/Tool.php";
 require_once "src/Config/ConfigInfo.php";
+require_once "src/Core/ContextImages.php";
 require_once "src/Lumen/Application.php";
 require_once "src/Lumen/Router.php";
 require_once "src/Util/U.php";
 
 use \Tsugi\Controllers\Catalog;
 use \Tsugi\Lumen\Application;
+
+if ( ! function_exists('__') ) {
+    function __($message) {
+        return $message;
+    }
+}
 
 class CatalogControllerTest extends \PHPUnit\Framework\TestCase
 {
@@ -142,6 +149,69 @@ class CatalogControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($out[0]['enrolled']);
         $this->assertFalse($out[1]['enrolled']);
         $this->assertTrue($out[2]['enrolled']);
+    }
+
+    public function testPartitionRowsSplitsEnrolledAndOther()
+    {
+        $rows = array(
+            array('catalog_id' => 1, 'title' => 'Mine', 'enrolled' => true),
+            array('catalog_id' => 2, 'title' => 'Other', 'enrolled' => false),
+            array('catalog_id' => 3, 'title' => 'Also mine', 'enrolled' => 1),
+            array('catalog_id' => 4, 'title' => 'No flag'),
+        );
+        list($enrolled, $other) = Catalog::partitionRows($rows);
+        $this->assertSame(array(1, 3), array_column($enrolled, 'catalog_id'));
+        $this->assertSame(array(2, 4), array_column($other, 'catalog_id'));
+    }
+
+    public function testPartitionRowsAllEnrolledOrAllOther()
+    {
+        list($enrolled, $other) = Catalog::partitionRows(array(
+            array('catalog_id' => 1, 'enrolled' => true),
+        ));
+        $this->assertCount(1, $enrolled);
+        $this->assertCount(0, $other);
+
+        list($enrolled, $other) = Catalog::partitionRows(array(
+            array('catalog_id' => 2),
+        ));
+        $this->assertCount(0, $enrolled);
+        $this->assertCount(1, $other);
+    }
+
+    public function testListingTemplateTabsOnlyWhenBothListsHaveCourses()
+    {
+        $render = function(array $rows) {
+            list($enrolled_rows, $other_rows) = Catalog::partitionRows($rows);
+            ob_start();
+            include dirname(__DIR__, 2) . '/src/Controllers/templates/Catalog/index.inc.php';
+            return (string) ob_get_clean();
+        };
+        $enrolled = array(
+            'catalog_id' => 1, 'title' => 'Mine', 'href' => '/catalog/1',
+            'hero_url' => '', 'icon_url' => '', 'short_description' => '', 'enrolled' => true,
+        );
+        $other = array(
+            'catalog_id' => 2, 'title' => 'Other', 'href' => '/catalog/2',
+            'hero_url' => '', 'icon_url' => '', 'short_description' => '', 'enrolled' => false,
+        );
+
+        $both = $render(array($enrolled, $other));
+        $this->assertStringContainsString('nav-tabs', $both);
+        $this->assertStringContainsString('catalog-enrolled', $both);
+        $this->assertStringContainsString('catalog-other', $both);
+        $this->assertStringContainsString('Courses you are enrolled in', $both);
+        $this->assertStringContainsString('Other courses', $both);
+
+        $onlyMine = $render(array($enrolled));
+        $this->assertStringNotContainsString('nav-tabs', $onlyMine);
+        $this->assertStringContainsString('Courses you are enrolled in', $onlyMine);
+        $this->assertStringNotContainsString('Other courses', $onlyMine);
+
+        $onlyOther = $render(array($other));
+        $this->assertStringNotContainsString('nav-tabs', $onlyOther);
+        $this->assertStringNotContainsString('Courses you are enrolled in', $onlyOther);
+        $this->assertStringContainsString('Other', $onlyOther);
     }
 
     public function testImageResponseCachesPublishedPubliclyAndUnpublishedPrivately()

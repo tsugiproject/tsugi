@@ -120,14 +120,15 @@ class Catalog extends Tool {
             .$extra.'></tsugi-courses>';
     }
 
-    public static function index(Application $app, Request $request) {
-        global $OUTPUT;
-
+    /**
+     * Published catalog rows with hrefs for the listing cards.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function listingRows() {
         $user_id = U::loggedInUserId();
         $rows = Catalog::markHomeEnrolled(CatalogRepository::listPublished($user_id));
-        $logged_in = $user_id > 0;
-        $tool = new self();
-        $home = $tool->toolHome(self::ROUTE);
+        $home = self::catalogUrl();
         foreach ( $rows as $i => $row ) {
             $id = (int) ($row['catalog_id'] ?? 0);
             $link = trim((string) ($row['external_url'] ?? ''));
@@ -139,12 +140,45 @@ class Catalog extends Tool {
                 $rows[$i]['href_new_window'] = false;
             }
         }
+        return $rows;
+    }
+
+    /**
+     * Split listing rows into enrolled vs everything else.
+     *
+     * @param array<int, array<string, mixed>> $rows
+     * @return array{0: array<int, array<string, mixed>>, 1: array<int, array<string, mixed>>}
+     */
+    public static function partitionRows(array $rows) {
+        $enrolled = array();
+        $other = array();
+        foreach ( $rows as $row ) {
+            if ( ! empty($row['enrolled']) ) {
+                $enrolled[] = $row;
+            } else {
+                $other[] = $row;
+            }
+        }
+        return array($enrolled, $other);
+    }
+
+    /**
+     * Card listing markup only (no chrome). Used by /catalog and index.php.
+     */
+    public static function renderListing() {
+        $rows = self::listingRows();
+        list($enrolled_rows, $other_rows) = self::partitionRows($rows);
+        include __DIR__ . '/templates/Catalog/index.inc.php';
+    }
+
+    public static function index(Application $app, Request $request) {
+        global $OUTPUT;
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        include __DIR__ . '/templates/Catalog/index.inc.php';
+        self::renderListing();
         $OUTPUT->footer();
         return '';
     }

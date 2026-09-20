@@ -1,6 +1,7 @@
 <?php
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Controllers\Catalog;
 use \Tsugi\Services\Site\Site;
 
 // In the top frame, we use cookies for session.
@@ -34,6 +35,12 @@ $OUTPUT->bodyStart();
 
 $OUTPUT->topNav();
 $OUTPUT->flashMessages();
+
+if ( Site::useCatalog() ) {
+    Catalog::renderListing();
+    $OUTPUT->footer();
+    return;
+}
 
 $site_body = Site::body();
 if ( is_string($site_body) ) {

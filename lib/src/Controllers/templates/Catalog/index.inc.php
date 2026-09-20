@@ -1,13 +1,16 @@
 <?php
 /**
- * Public course catalog cards.
+ * Public course catalog listing. Tabs only when both enrolled and other rows exist.
  *
- * Expected: $rows (title, href, hero_url, icon_url, short_description, enrolled)
+ * Expected: $rows, optional $enrolled_rows / $other_rows
  */
 if ( ! isset($rows) || ! is_array($rows) ) {
     $rows = array();
 }
-$logged_in = ! empty($logged_in);
+if ( ! isset($enrolled_rows) || ! is_array($enrolled_rows) || ! isset($other_rows) || ! is_array($other_rows) ) {
+    list($enrolled_rows, $other_rows) = \Tsugi\Controllers\Catalog::partitionRows($rows);
+}
+$show_tabs = count($enrolled_rows) > 0 && count($other_rows) > 0;
 ?>
 <style>
 .tsugi-catalog-page-head {
@@ -138,6 +141,17 @@ $logged_in = ! empty($logged_in);
     white-space: nowrap;
     border: 0;
 }
+.tsugi-catalog-tabs {
+    margin: 0.35em 0 0;
+}
+.tsugi-catalog-tab-content {
+    margin-top: 1em;
+}
+.tsugi-catalog-section-head {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin: 0.35em 0 0.75em;
+}
 </style>
 <main class="container" id="main-content">
     <div class="tsugi-catalog-page-head">
@@ -145,52 +159,27 @@ $logged_in = ! empty($logged_in);
     </div>
     <?php if ( count($rows) < 1 ) { ?>
         <p><?= __('No courses are listed yet.') ?></p>
-    <?php } else { ?>
-        <ul class="tsugi-catalog-cards">
-            <?php foreach ( $rows as $row ) {
-                $title = isset($row['title']) ? (string) $row['title'] : '';
-                $href = isset($row['href']) ? (string) $row['href'] : '';
-                $hero_url = isset($row['hero_url']) ? (string) $row['hero_url'] : '';
-                $icon_url = isset($row['icon_url']) ? (string) $row['icon_url'] : '';
-                $short = isset($row['short_description']) ? (string) $row['short_description'] : '';
-                $cid = isset($row['catalog_id']) ? (int) $row['catalog_id'] : 0;
-                $enrolled = ! empty($row['enrolled']);
-                $new_window = ! empty($row['href_new_window']);
-                $target = $new_window ? ' target="_blank" rel="noopener noreferrer"' : '';
-                $star = '<span class="tsugi-catalog-card-enrolled" title="'.htmlspecialchars(__('Enrolled'), ENT_QUOTES, 'UTF-8').'">'
-                    .'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
-                    .'<path fill="#ffc107" stroke="#e0a800" stroke-width="1.2" stroke-linejoin="round" '
-                    .'d="M12 2.7l2.85 6.05 6.6.7-4.95 4.5 1.4 6.5L12 17.2l-5.9 3.25 1.4-6.5-4.95-4.5 6.6-.7z"/>'
-                    .'</svg><span class="tsugi-catalog-sr">'.htmlspecialchars(__('Enrolled')).'</span></span>';
-            ?>
-            <li>
-                <a class="tsugi-catalog-card" href="<?= htmlspecialchars($href) ?>"<?= $target ?>>
-                    <?php if ( $hero_url !== '' ) { ?>
-                    <div class="tsugi-catalog-card-hero">
-                        <img src="<?= htmlspecialchars($hero_url) ?>" alt="">
-                        <?= $enrolled ? $star : '' ?>
-                    </div>
-                    <?php } else { ?>
-                    <div class="tsugi-catalog-card-hero tsugi-catalog-card-placeholder">
-                        <?= \Tsugi\Core\ContextImages::heroPlaceholderSvg($cid) ?>
-                        <?= $enrolled ? $star : '' ?>
-                        <span class="tsugi-catalog-card-placeholder-title"><?= htmlspecialchars($title) ?></span>
-                    </div>
-                    <?php } ?>
-                    <div class="tsugi-catalog-card-body">
-                        <?php if ( $icon_url !== '' ) { ?>
-                        <img class="tsugi-catalog-card-icon" src="<?= htmlspecialchars($icon_url) ?>" alt="" width="36" height="36">
-                        <?php } ?>
-                        <span class="tsugi-catalog-card-text">
-                            <span class="tsugi-catalog-card-title"><?= htmlspecialchars($title) ?></span>
-                            <?php if ( $short !== '' ) { ?>
-                            <span class="tsugi-catalog-card-short"><?= htmlspecialchars($short) ?></span>
-                            <?php } ?>
-                        </span>
-                    </div>
-                </a>
+    <?php } elseif ( $show_tabs ) { ?>
+        <ul class="nav nav-tabs tsugi-catalog-tabs" role="tablist">
+            <li class="active" role="presentation">
+                <a href="#catalog-enrolled" id="catalog-enrolled-tab" data-toggle="tab" role="tab" aria-controls="catalog-enrolled" aria-selected="true"><?= htmlspecialchars(__('Courses you are enrolled in')) ?></a>
             </li>
-            <?php } ?>
+            <li role="presentation">
+                <a href="#catalog-other" id="catalog-other-tab" data-toggle="tab" role="tab" aria-controls="catalog-other" aria-selected="false"><?= htmlspecialchars(__('Other courses')) ?></a>
+            </li>
         </ul>
+        <div class="tab-content tsugi-catalog-tab-content">
+            <div class="tab-pane fade active in" id="catalog-enrolled" role="tabpanel" aria-labelledby="catalog-enrolled-tab">
+                <?php $rows = $enrolled_rows; include __DIR__ . '/cards.inc.php'; ?>
+            </div>
+            <div class="tab-pane fade" id="catalog-other" role="tabpanel" aria-labelledby="catalog-other-tab">
+                <?php $rows = $other_rows; include __DIR__ . '/cards.inc.php'; ?>
+            </div>
+        </div>
+    <?php } elseif ( count($enrolled_rows) > 0 ) { ?>
+        <h2 class="tsugi-catalog-section-head"><?= htmlspecialchars(__('Courses you are enrolled in')) ?></h2>
+        <?php $rows = $enrolled_rows; include __DIR__ . '/cards.inc.php'; ?>
+    <?php } else { ?>
+        <?php $rows = $other_rows; include __DIR__ . '/cards.inc.php'; ?>
     <?php } ?>
 </main>

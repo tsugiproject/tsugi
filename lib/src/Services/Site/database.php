@@ -4,6 +4,7 @@ if ( ! isset($CFG) ) exit;
 
 // Singleton row (site_id = 1): installation-wide config. body is the public
 // landing page HTML; empty/NULL means index.php shows its built-in copy.
+// json.use_catalog replaces that HTML with the course catalog listing.
 
 $DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}site",

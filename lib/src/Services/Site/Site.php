@@ -8,7 +8,8 @@ use \Tsugi\Core\LTIX;
  * Installation-wide site config. One row (site_id = 1).
  *
  * body is the public landing HTML. Empty / NULL means index.php uses its
- * built-in welcome text.
+ * built-in welcome text unless json.use_catalog is true, in which case
+ * the public landing page is the course catalog.
  */
 class Site {
 
@@ -18,7 +19,9 @@ class Site {
     private static $purifier = null;
 
     /**
-     * Stored landing HTML, or null to use the built-in index.php copy.
+     * Stored landing HTML, or null when there is no custom copy.
+     *
+     * Catalog-as-landing does not count as a custom body.
      *
      * @return string|null
      */
@@ -35,33 +38,66 @@ class Site {
     }
 
     /**
-     * Save landing HTML. Empty / whitespace / CKEditor blank deletes the row.
+     * True when index.php should render the course catalog instead of HTML.
+     */
+    public static function useCatalog() {
+        $row = self::row();
+        if ( $row === null ) {
+            return false;
+        }
+        return self::jsonFlag($row['json'] ?? null, 'use_catalog');
+    }
+
+    /**
+     * True when $json is an object with a non-empty $key.
+     *
+     * @param mixed $json
+     * @param string $key
+     */
+    public static function jsonFlag($json, $key) {
+        if ( ! is_string($json) || trim($json) === '' ) {
+            return false;
+        }
+        $data = json_decode($json, true);
+        return is_array($data) && ! empty($data[$key]);
+    }
+
+    /**
+     * Save landing HTML and/or catalog-as-landing.
+     *
+     * Empty HTML with catalog off deletes the row (built-in welcome text).
+     * Catalog on keeps a row even when body is empty so the flag persists.
      *
      * @param mixed $html
-     * @return bool True when a custom body is stored, false when the default is used.
+     * @param bool $use_catalog
+     * @return bool True when a site row is stored, false when the default is used.
      */
-    public static function save($html) {
+    public static function save($html, $use_catalog = false) {
         global $CFG, $PDOX;
 
         LTIX::getConnection();
+        $use_catalog = (bool) $use_catalog;
         $clean = self::purify(is_string($html) ? $html : '');
-        if ( self::isEmptyHtml($clean) ) {
+        $empty = self::isEmptyHtml($clean);
+        if ( $empty && ! $use_catalog ) {
             self::clear();
             return false;
         }
 
+        $body = $empty ? null : $clean;
+        $json = $use_catalog ? json_encode(array('use_catalog' => true)) : null;
         $existing = self::row();
         if ( $existing === null ) {
             $PDOX->queryDie(
                 "INSERT INTO {$CFG->dbprefix}site (site_id, body, json, created_at, updated_at)
-                 VALUES (:id, :body, NULL, NOW(), NOW())",
-                array(':id' => self::SITE_ID, ':body' => $clean)
+                 VALUES (:id, :body, :json, NOW(), NOW())",
+                array(':id' => self::SITE_ID, ':body' => $body, ':json' => $json)
             );
         } else {
             $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}site SET body = :body, updated_at = NOW()
+                "UPDATE {$CFG->dbprefix}site SET body = :body, json = :json, updated_at = NOW()
                  WHERE site_id = :id",
-                array(':id' => self::SITE_ID, ':body' => $clean)
+                array(':id' => self::SITE_ID, ':body' => $body, ':json' => $json)
             );
         }
         return true;
