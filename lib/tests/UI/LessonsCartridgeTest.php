@@ -101,6 +101,121 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(0, $counts['quizzes']);
     }
 
+    public function testWriteZipCanvasIncludesHeadings()
+    {
+        $l = $this->lessonsDoc(array(
+            array('type' => 'heading', 'title' => 'Start here'),
+            array('type' => 'header', 'text' => 'Videos'),
+            array('type' => 'web_link', 'subtype' => 'reference', 'title' => 'Docs', 'href' => 'https://example.com/'),
+        ));
+        $path = $this->writeCartridge($l, array('tsugi_lms' => 'canvas'));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $manifest = $zip->getFromName('imsmanifest.xml');
+            $this->assertNotFalse($manifest);
+            $this->assertMatchesRegularExpression(
+                '/<item identifier="H_[^"]+">\s*<title>Start here<\/title>\s*<\/item>/',
+                $manifest
+            );
+            $this->assertMatchesRegularExpression(
+                '/<item identifier="H_[^"]+">\s*<title>Videos<\/title>\s*<\/item>/',
+                $manifest
+            );
+            $meta = $zip->getFromName('course_settings/module_meta.xml');
+            $this->assertNotFalse($meta);
+            $this->assertSame(2, substr_count($meta, '<content_type>ContextModuleSubHeader</content_type>'));
+            $this->assertStringContainsString('<title>Start here</title>', $meta);
+            $this->assertStringContainsString('<title>Videos</title>', $meta);
+            $zip->close();
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testAddHeadingItemIgnoresNonHeadings() {
+        $cc_dom = new CC();
+        $cc_dom->set_title('Course');
+        $module = $cc_dom->add_module('Week 1');
+        $this->assertFalse(LessonsCartridge::addHeadingItem(
+            $cc_dom,
+            $module,
+            (object) array('type' => 'web_link', 'title' => 'Docs', 'href' => 'https://example.com/')
+        ));
+        $this->assertTrue(LessonsCartridge::addHeadingItem(
+            $cc_dom,
+            $module,
+            (object) array('type' => 'heading', 'title' => 'Start here')
+        ));
+        $this->assertTrue(LessonsCartridge::addHeadingItem(
+            $cc_dom,
+            $module,
+            (object) array('type' => 'header', 'text' => 'Videos')
+        ));
+        $save = $cc_dom->saveXML();
+        $this->assertStringContainsString('<title>Start here</title>', $save);
+        $this->assertStringContainsString('<title>Videos</title>', $save);
+    }
+
+    public function testWriteZipPrefersKalturaOverYoutubeHref() {
+        global $CFG;
+        $CFG->setExtension(
+            'kaltura_embed',
+            'https://cdnapisec.kaltura.com/p/1038472/embedPlaykitJs/uiconf_id/58045402?iframeembed=true&entry_id={id}'
+        );
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'web_link',
+                'subtype' => 'video',
+                'title' => 'DJ 01.01 Welcome',
+                'youtube' => 'oxJQB4f2MMs',
+                'kaltura_id' => '1_rivimz4s',
+                'href' => 'https://www.youtube.com/watch?v=oxJQB4f2MMs',
+            ),
+            array(
+                'type' => 'video',
+                'title' => 'DJ 01.02 AI',
+                'youtube' => '1u-gQ-d5Lv8',
+                'kaltura_id' => '1_xf35oqja',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array('tsugi_lms' => 'canvas'));
+        try {
+            $map = $this->zipEntryMap($path);
+            $blob = implode("\n", $map);
+            $this->assertStringContainsString('entry_id=1_rivimz4s', $blob);
+            $this->assertStringContainsString('entry_id=1_xf35oqja', $blob);
+            $this->assertStringNotContainsString('youtube.com/watch', $blob);
+            $this->assertStringNotContainsString('oxJQB4f2MMs', $blob);
+            $this->assertArrayHasKey('course_settings/module_meta.xml', $map);
+            $this->assertStringContainsString('<new_tab>false</new_tab>', $map['course_settings/module_meta.xml']);
+            $this->assertStringContainsString('cdnapisec.kaltura.com', $map['course_settings/module_meta.xml']);
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipVideoFallsBackToYoutubeWithoutKalturaConfig() {
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'video',
+                'title' => 'Welcome',
+                'youtube' => 'oxJQB4f2MMs',
+                'kaltura_id' => '1_rivimz4s',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array());
+        try {
+            $map = $this->zipEntryMap($path);
+            $blob = implode("\n", $map);
+            $this->assertStringContainsString('youtube.com/watch?v=oxJQB4f2MMs', $blob);
+            $this->assertStringNotContainsString('kaltura.com', $blob);
+            $this->assertStringNotContainsString('1_rivimz4s', $blob);
+        } finally {
+            @unlink($path);
+        }
+    }
+
     public function testWriteZipIncludesQtiForLessonQuiz() {
         $l = $this->lessonsDoc(array(
             array('type' => 'quiz', 'title' => 'Week 1 Quiz', 'quiz_id' => 1),

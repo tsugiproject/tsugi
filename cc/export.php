@@ -54,37 +54,13 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtub
     // Skip text type for now
     if ( $type == 'text' ) return;
     
-    // Handle header type - add as Canvas sub-header (no resource needed)
-    if ( $type == 'header' ) {
-        $header_text = isset($item_obj->text) ? $item_obj->text : (isset($item_obj->title) ? $item_obj->title : '');
-        if ( $header_text ) {
-            $cc_dom->add_header_item($sub_module, $header_text, $parentPath);
-        }
+    // Heading / legacy header: Canvas sub-header (no resource)
+    if ( LessonsCartridge::addHeadingItem($cc_dom, $sub_module, $item_obj, $parentPath) ) {
         return;
     }
     
-    // Handle video type — prefer Kaltura embed (inline iframe in Canvas) when configured
-    if ( $type == 'video' ) {
-        $title = __('Video:').' '.$item_obj->title;
-        $kaltura_url = Lessons::kalturaEmbedUrl($item_obj);
-        if ( $kaltura_url ) {
-            // new_tab=false => Canvas ExternalUrl launches inline in an iframe
-            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $kaltura_url, $parentPath, false);
-        } else if ( $youtube && isset($CFG->youtube_url) && !empty($item_obj->youtube) ) {
-            $custom_arr = array();
-            $endpoint = U::absolute_url($CFG->youtube_url);
-            $endpoint = U::add_url_parm($endpoint, 'v', $item_obj->youtube);
-            $extensions = array('apphome' => $CFG->apphome);
-            $resource_link_id = isset($item_obj->resource_link_id) ? $item_obj->resource_link_id : null;
-            if ( $youtube == 'track_grade' ) {
-                $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parentPath);
-            } else {
-                $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parentPath);
-            }
-        } else if ( !empty($item_obj->youtube) ) {
-            $url = U::youtubeWatchUrl($item_obj->youtube);
-            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parentPath);
-        }
+    // Video (legacy type=video or normalized web_link/video)
+    if ( LessonsCartridge::addVideoItem($zip, $cc_dom, $sub_module, $item_obj, $youtube, $parentPath) ) {
         return;
     }
     
@@ -395,25 +371,11 @@ foreach($l->lessons->modules as $module) {
     // Legacy format: process old arrays (videos, lti, etc.)
     if ( isset($module->videos) ) {
         foreach($module->videos as $video ) {
-            $title = __('Video:').' '.$video->title;
-            $kaltura_url = Lessons::kalturaEmbedUrl($video);
-            if ( $kaltura_url ) {
-                $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $kaltura_url, $parent_path_legacy, false);
-            } else if ( $youtube && isset($CFG->youtube_url) && !empty($video->youtube) ) {
-                $custom_arr = array();
-                $endpoint = U::absolute_url($CFG->youtube_url);
-                $endpoint = U::add_url_parm($endpoint, 'v', $video->youtube);
-                $extensions = array('apphome' => $CFG->apphome);
-                $resource_link_id = isset($video->resource_link_id) ? $video->resource_link_id : null;
-                if ( $youtube == 'track_grade' ) {
-                    $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parent_path_legacy);
-                } else {
-                    $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parent_path_legacy);
-                }
-            } else if ( !empty($video->youtube) ) {
-                $url = U::youtubeWatchUrl($video->youtube);
-                $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parent_path_legacy);
+            $v = is_object($video) ? clone $video : (object) $video;
+            if ( ! isset($v->type) ) {
+                $v->type = 'video';
             }
+            LessonsCartridge::addVideoItem($zip, $cc_dom, $sub_module, $v, $youtube, $parent_path_legacy);
         }
     }
 

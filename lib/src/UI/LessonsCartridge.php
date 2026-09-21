@@ -259,6 +259,76 @@ class LessonsCartridge {
     }
 
     /**
+     * Emit a heading (or legacy header) as a CC item with no resource.
+     *
+     * Used by Settings export and legacy /cc/export. Canvas stores these as
+     * ContextModuleSubHeader in module_meta.
+     *
+     * @param CC $cc_dom
+     * @param mixed $sub_module
+     * @param mixed $item
+     * @param string|null $parentPath
+     * @return bool true when the item is a heading (even if an empty title skips emit)
+     */
+    public static function addHeadingItem($cc_dom, $sub_module, $item, $parentPath = null) {
+        $item = is_array($item) ? (object) $item : $item;
+        if ( ! LessonsNormalize::isHeading($item) ) {
+            return false;
+        }
+        $header_text = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : '');
+        if ( is_string($header_text) && $header_text !== '' ) {
+            $cc_dom->add_header_item($sub_module, $header_text, $parentPath);
+        }
+        return true;
+    }
+
+    /**
+     * Emit a video as a CC web link, preferring Kaltura when configured.
+     *
+     * Same preference as Lessons rendering: kaltura_embed + kaltura_id, else
+     * optional YouTube LTI tracking, else a YouTube watch URL.
+     *
+     * @param \ZipArchive $zip
+     * @param CC $cc_dom
+     * @param mixed $sub_module
+     * @param mixed $item
+     * @param string|false $youtube
+     * @param string|null $parentPath
+     * @return bool true when the item is a video
+     */
+    public static function addVideoItem($zip, $cc_dom, $sub_module, $item, $youtube = false, $parentPath = null) {
+        global $CFG;
+        $item = is_array($item) ? (object) $item : $item;
+        if ( LessonsNormalize::presentationKind($item) !== 'video' ) {
+            return false;
+        }
+        $title = __('Video:').' '.(isset($item->title) ? $item->title : '');
+        $kaltura_url = Lessons::kalturaEmbedUrl($item);
+        if ( $kaltura_url ) {
+            // new_tab=false => Canvas ExternalUrl launches inline in an iframe
+            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $kaltura_url, $parentPath, false);
+            return true;
+        }
+        if ( $youtube && isset($CFG->youtube_url) && ! empty($item->youtube) ) {
+            $endpoint = U::absolute_url($CFG->youtube_url);
+            $endpoint = U::add_url_parm($endpoint, 'v', $item->youtube);
+            $extensions = array('apphome' => $CFG->apphome);
+            $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : null;
+            if ( $youtube === 'track_grade' ) {
+                $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, array(), $extensions, $resource_link_id, $parentPath);
+            } else {
+                $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, array(), $extensions, $resource_link_id, $parentPath);
+            }
+            return true;
+        }
+        if ( ! empty($item->youtube) ) {
+            $url = U::youtubeWatchUrl($item->youtube);
+            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parentPath);
+        }
+        return true;
+    }
+
+    /**
      * @return list<object>
      */
     private static function itemsForModule($module) {
@@ -296,17 +366,12 @@ class LessonsCartridge {
             return;
         }
 
-        if ( LessonsNormalize::isHeading($item) ) {
-            $header_text = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : '');
-            if ( is_string($header_text) && $header_text !== '' ) {
-                $cc_dom->add_header_item($sub_module, $header_text);
-            }
+        if ( self::addHeadingItem($cc_dom, $sub_module, $item) ) {
             self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
             return;
         }
 
-        if ( $kind === 'video' ) {
-            self::processVideo($item, $sub_module, $zip, $cc_dom, $youtube);
+        if ( self::addVideoItem($zip, $cc_dom, $sub_module, $item, $youtube) ) {
             self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
             return;
         }
@@ -896,32 +961,6 @@ class LessonsCartridge {
             return null;
         }
         return QuizRepository::load($quiz_id, $context_id);
-    }
-
-    private static function processVideo($item, $sub_module, $zip, $cc_dom, $youtube) {
-        global $CFG;
-        $title = __('Video:').' '.(isset($item->title) ? $item->title : '');
-        $kaltura_url = Lessons::kalturaEmbedUrl($item);
-        if ( $kaltura_url ) {
-            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $kaltura_url, null, false);
-            return;
-        }
-        if ( $youtube && isset($CFG->youtube_url) && ! empty($item->youtube) ) {
-            $endpoint = U::absolute_url($CFG->youtube_url);
-            $endpoint = U::add_url_parm($endpoint, 'v', $item->youtube);
-            $extensions = array('apphome' => $CFG->apphome);
-            $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : null;
-            if ( $youtube === 'track_grade' ) {
-                $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, array(), $extensions, $resource_link_id);
-            } else {
-                $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, array(), $extensions, $resource_link_id);
-            }
-            return;
-        }
-        if ( ! empty($item->youtube) ) {
-            $url = U::youtubeWatchUrl($item->youtube);
-            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url);
-        }
     }
 
     private static function processDiscussion($item, $module, $sub_module, $zip, $cc_dom, $topic) {

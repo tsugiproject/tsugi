@@ -247,6 +247,21 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('<file href="' . $file . '"/>', $save);
     }
 
+    public function testHeaderItemHasNoIdentifierref() {
+        $cc_dom = new CC();
+        $cc_dom->set_title('Web Applications for Everybody');
+        $module = $cc_dom->add_module('Week 1');
+        $cc_dom->add_header_item($module, 'Start here');
+        $headerId = $cc_dom->last_identifier;
+        $this->assertStringStartsWith('H_', $headerId);
+        $save = $cc_dom->saveXML();
+        $this->assertMatchesRegularExpression(
+            '/<item identifier="'.$headerId.'">\s*<title>Start here<\/title>\s*<\/item>/',
+            $save
+        );
+        $this->assertStringNotContainsString('identifierref="'.$headerId, $save);
+    }
+
     public function testCanvasQuizWrapperPathsAndDependency() {
         $cc_dom = new CC();
         $cc_dom->canvas_quiz_wrapper = true;
