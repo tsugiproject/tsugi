@@ -303,6 +303,7 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($cc_dom->isCc11());
         $this->assertSame(CC::VERSION_11, $cc_dom->schemaVersion());
         $this->assertSame(CC::PROFILE_11, CC::profileForFlavor('moodle'));
+        $this->assertSame(CC::PROFILE_11, CC::profileForFlavor('generic11'));
         $this->assertSame(CC::PROFILE_12, CC::profileForFlavor('canvas'));
         $this->assertStringContainsString('<schemaversion>1.1.0</schemaversion>', $save);
         $this->assertStringContainsString(CC::CC_11_NS, $save);

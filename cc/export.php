@@ -38,12 +38,11 @@ function get_module_path($module_node, $cc_dom) {
  * @param \DOMNode $sub_module
  * @param \ZipArchive $zip
  * @param CC $cc_dom
- * @param string|false $youtube
  * @param string|false $topic
  * @param LessonsLegacyFiles $local_files
  * @param LessonsLegacyGift $gift_qti
  */
-function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, LessonsLegacyFiles $local_files, LessonsLegacyGift $gift_qti) {
+function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $topic, LessonsLegacyFiles $local_files, LessonsLegacyGift $gift_qti) {
     global $CFG;
     $type = isset($item_obj->type) ? $item_obj->type : '';
     $kind = LessonsNormalize::presentationKind($item_obj);
@@ -60,7 +59,7 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtub
     }
     
     // Video (legacy type=video or normalized web_link/video)
-    if ( LessonsCartridge::addVideoItem($zip, $cc_dom, $sub_module, $item_obj, $youtube, $parentPath) ) {
+    if ( LessonsCartridge::addVideoItem($zip, $cc_dom, $sub_module, $item_obj, $parentPath) ) {
         return;
     }
     
@@ -156,10 +155,8 @@ if ( isset($_POST['ext_content_return_url']) ) {
     $return_url = U::add_url_parm($return_url, 'text', $CFG->servicename);
 
     $export_url = $CFG->wwwroot . '/cc/export?tsugi_lms=canvas';
-    $export_url_youtube = U::add_url_parm($export_url, 'youtube', 'yes');
 
     $return_url_normal = U::add_url_parm($return_url, 'url', $export_url);
-    $return_url_youtube = U::add_url_parm($return_url, 'url', $export_url_youtube);
 
     $OUTPUT->header();
     $OUTPUT->bodystart(false);
@@ -214,33 +211,22 @@ if ( isset($_POST['ext_content_return_url']) ) {
 </select>
 </p>
 <?php } ?>
-<?php if ( isset($CFG->youtube_url) ) { ?>
 <p>
-<label for="youtube_select_full">Would you like YouTube Tracked URLs?</label>
-<select name="youtube" id="youtube_select_full">
-  <option value="no">No - Launch directly to YouTube</option>
-  <!-- <option value="track">Use LTI launch to track access</option> -->
-  <option value="track_grade">Use LTI launch to track access and send grades</option>
-</select>
-</p>
 <input type="submit" onclick= "sendToCanvas(); return false;" class="btn btn-primary" value="Import modules" />
 </p>
 </form>
-<?php } ?>
 <script>
 function sendToCanvas() {
-    let youtube = $("#youtube_select_full").val();
     let topic = $("#topic_select_full").val() || 'lms';
     let cartridge = $("#cartridge_select_full").val();
     let gift_qti = $("#gift_qti_select_full").val();
 	let return_url = "<?= $return_url ?>";
 	let export_url = "<?= $CFG->wwwroot.'/cc/export?tsugi_lms=canvas' ?>";
-	export_url = export_url + '&youtube=' + youtube;
 	export_url = export_url + '&topic=' + topic;
 	export_url = export_url + '&cartridge=' + encodeURIComponent(cartridge);
 	export_url = export_url + '&gift_qti=' + encodeURIComponent(gift_qti);
     return_url = return_url + "&url=" + encodeURIComponent(export_url);
-    console.log(youtube, topic, cartridge, gift_qti, export_url);
+    console.log(topic, cartridge, gift_qti, export_url);
     window.location.href = return_url;
 }
 </script>
@@ -265,8 +251,6 @@ if ( $anchors ) {
 }
 
 $topic = LessonsCartridge::exportTopicMode(U::get($_GET,'topic', false));
-$youtube = U::get($_GET,'youtube', false);
-if ( $youtube == 'no' ) $youtube = false;
 $cartridge = U::get($_GET, 'cartridge', 'thin');
 $gift_qti_raw = U::get($_GET, 'gift_qti', 'qti');
 if ( isCli() ) {
@@ -355,7 +339,7 @@ foreach($l->lessons->modules as $module) {
         // New format: process items array - each item is a flat object with a type field
         foreach($module->items as $item) {
             $item_obj = is_array($item) ? (object)$item : $item;
-            process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $local_files, $gift_qti);
+            process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $topic, $local_files, $gift_qti);
         }
         // Skip legacy format if items array was processed
         continue;
@@ -371,7 +355,7 @@ foreach($l->lessons->modules as $module) {
             if ( ! isset($v->type) ) {
                 $v->type = 'video';
             }
-            LessonsCartridge::addVideoItem($zip, $cc_dom, $sub_module, $v, $youtube, $parent_path_legacy);
+            LessonsCartridge::addVideoItem($zip, $cc_dom, $sub_module, $v, $parent_path_legacy);
         }
     }
 

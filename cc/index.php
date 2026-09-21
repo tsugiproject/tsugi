@@ -73,11 +73,11 @@ combination of the modules.</p>
 <label for="tsugi_lms_select_full">Choose the LMS that will use this cartridge:</label>
 <select name="tsugi_lms" id="tsugi_lms_select_full">
 <?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
-  <option value="<?= htmlspecialchars($value) ?>"><?= htmlentities($label) ?></option>
+  <option value="<?= htmlspecialchars($value) ?>"<?= $value === 'generic' ? ' selected' : '' ?>><?= htmlentities($label) ?></option>
 <?php } ?>
 </select>
 </p>
-<p>Generic is a standards-only Common Cartridge 1.2 with no LMS extensions. Moodle is the same Generic content as Common Cartridge 1.1. Tsugi and Canvas share Canvas's cartridge format so a Canvas export can import into Tsugi later.</p>
+<p>Generic (CC 1.2) is a standards-only Common Cartridge with no LMS extensions. Generic (CC 1.1) and Moodle are the same Generic content as Common Cartridge 1.1 only. Tsugi and Canvas share Canvas's cartridge format so a Canvas export can import into Tsugi later. Sakai's cartridge format has significant overlap with Canvas's. When exporting to an LMS that is not on this list, use one of the Generic formats to be safe.</p>
 <?php LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_full'); ?>
 <?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_full'); ?>
 <?php if ( $discussion_count > 0 ) { ?>
@@ -91,28 +91,10 @@ combination of the modules.</p>
 </select>
 </p>
 <?php } ?>
-<?php if ( isset($CFG->youtube_url) ) { ?>
-<p>
-<label for="youtube_select_full">Would you like YouTube Tracked URLs?</label>
-<select name="youtube" id="youtube_select_full">
-  <option value="no">No - Launch directly to YouTube</option>
-  <option value="track">Use LTI launch to track access</option>
-  <option value="track_grade">Use LTI launch to track access and send grades</option>
-</select>
-</p>
-<?php } ?>
 <p>
 <input type="submit" class="btn btn-primary" value="Download modules" />
 </p>
 </form>
-<?php     if ( isset($CFG->youtube_url) ) { ?>
-<p>
-If you select YouTube tracked URLs, each YouTube URL will be launched via LTI
-to a YouTube tracking tool on this server so you can get analytics on who
-watches your YouTube videos through the LMS.  Some LMS's do not do well with
-tracked URLs because they treat every LTI link as a gradable link.
-</p>
-<?php } ?>
 </div>
 <div class="tab-pane fade" id="select">
 <p>Select the modules to include, and download below.  You must select at least one module.</p>
@@ -125,23 +107,13 @@ echo('<form id="void">'."\n");
 <label for="tsugi_lms_select_partial">Choose the LMS that will use this cartridge:</label>
 <select name="tsugi_lms" id="tsugi_lms_select_partial">
 <?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
-  <option value="<?= htmlspecialchars($value) ?>"><?= htmlentities($label) ?></option>
+  <option value="<?= htmlspecialchars($value) ?>"<?= $value === 'generic' ? ' selected' : '' ?>><?= htmlentities($label) ?></option>
 <?php } ?>
 </select>
 </p>
-<p>Generic is a standards-only Common Cartridge 1.2 with no LMS extensions. Moodle is the same Generic content as Common Cartridge 1.1. Tsugi and Canvas share Canvas's cartridge format so a Canvas export can import into Tsugi later.</p>
+<p>Generic (CC 1.2) is a standards-only Common Cartridge with no LMS extensions. Generic (CC 1.1) and Moodle are the same Generic content as Common Cartridge 1.1 only. Tsugi and Canvas share Canvas's cartridge format so a Canvas export can import into Tsugi later. Sakai's cartridge format has significant overlap with Canvas's. When exporting to an LMS that is not on this list, use one of the Generic formats to be safe.</p>
 <?php LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_partial'); ?>
 <?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_partial'); ?>
-<?php if ( isset($CFG->youtube_url) ) { ?>
-<p>
-<label for="youtube_select_partial">Would you like YouTube Tracked URLs?</label>
-<select name="youtube" id="youtube_select_partial">
-  <option value="no">No - Launch directly to YouTube</option>
-  <option value="track">Use LTI launch to track access</option>
-  <option value="track_grade">Use LTI launch to track access and send grades</option>
-</select>
-</p>
-<?php } ?>
 <?php if ( $discussion_count > 0 ) { ?>
 <p>
 <label for="topic_select_partial">How would you like to import discussions/topics?</label>
@@ -190,11 +162,10 @@ foreach($l->lessons->modules as $module) {
 }
 ?>
 <p>
-<input type="submit" value="Download selected modules" class="btn btn-primary" onclick=";myfunc(''); return false;"/>
+<input type="submit" value="Download selected modules" class="btn btn-primary" onclick=";myfunc(); return false;"/>
 </p>
 </form>
 <form id="real" action="export">
-<input id="youtube_real" type="hidden" name="youtube"/>
 <input id="tsugi_lms_real" type="hidden" name="tsugi_lms" />
 <input id="topic_real" type="hidden" name="topic" />
 <input id="cartridge_real" type="hidden" name="cartridge" />
@@ -209,7 +180,7 @@ $OUTPUT->footerStart();
 ?>
 <script>
 // https://stackoverflow.com/questions/13830276/how-to-append-multiple-values-to-a-single-parameter-in-html-form
-function myfunc(youtube){
+function myfunc(){
     var b = '';
     $('#void input[type="checkbox"]').each(function(id,elem){
          console.log(this);
@@ -226,8 +197,6 @@ function myfunc(youtube){
     var tsugi_lms = $("#tsugi_lms_select_partial").val();
     $("#tsugi_lms_real").val(tsugi_lms);
     var stuff = $("#res").val();
-    var youtube = $("#youtube_select_partial").val();
-    $("#youtube_real").val(youtube);
     var topic = $("#topic_select_partial").val() || 'lms';
     $("#topic_real").val(topic);
     var cartridge = $("#cartridge_select_partial").val();

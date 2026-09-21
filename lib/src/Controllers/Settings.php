@@ -1966,7 +1966,6 @@ re-check your login status.
         }
 
         $counts = LessonsCartridge::summarize($l);
-        $youtube_enabled = isset($CFG->youtube_url);
         $localhost_warning = strpos($CFG->wwwroot, '//localhost') !== false;
         $canvas_return_url = U::get($_POST, 'ext_content_return_url', false);
         if ( ! is_string($canvas_return_url) || $canvas_return_url === '' ) {
@@ -2005,8 +2004,6 @@ function myfunc(){
     var stuff = collectExportAnchors();
     $("#res").val(stuff);
     $("#tsugi_lms_real").val($("#tsugi_lms_select_partial").val() || 'generic');
-    $("#youtube_real").val($("#youtube_select_partial").val() || '');
-    $("#topic_real").val($("#topic_select_partial").val() || 'lms');
 
     if ( stuff.length < 1 ) {
         alert(<?= json_encode(__('Please select at least one module')) ?>);
@@ -2015,7 +2012,7 @@ function myfunc(){
     }
 }
 function sendToCanvas() {
-    goToCanvas('', $("#youtube_select_full").val() || 'no', $("#topic_select_full").val() || 'lms');
+    goToCanvas('');
 }
 function sendToCanvasSelected() {
     var stuff = collectExportAnchors();
@@ -2023,14 +2020,12 @@ function sendToCanvasSelected() {
         alert(<?= json_encode(__('Please select at least one module')) ?>);
         return;
     }
-    goToCanvas(stuff, $("#youtube_select_partial").val() || 'no', $("#topic_select_partial").val() || 'lms');
+    goToCanvas(stuff);
 }
-function goToCanvas(anchors, youtube, topic) {
+function goToCanvas(anchors) {
     var return_url = <?= json_encode($canvas_return_url ? $canvas_return_url : '') ?>;
     var export_url = <?= json_encode($download_url) ?>;
     export_url = export_url + (export_url.indexOf('?') >= 0 ? '&' : '?') + 'tsugi_lms=canvas';
-    export_url = export_url + '&youtube=' + encodeURIComponent(youtube);
-    export_url = export_url + '&topic=' + encodeURIComponent(topic);
     if ( anchors ) {
         export_url = export_url + '&anchors=' + encodeURIComponent(anchors);
     }
@@ -2600,8 +2595,7 @@ function importSelectedModules(){
         try {
             LessonsCartridge::writeZip($l, $zip, array(
                 'tsugi_lms' => $tsugi_lms,
-                'topic' => LessonsCartridge::exportTopicMode(U::get($_GET, 'topic', false)),
-                'youtube' => U::get($_GET, 'youtube', false),
+                'topic' => 'lms',
                 'anchors' => $anchors,
                 'context_id' => U::currentContextId(),
             ));

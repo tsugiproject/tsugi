@@ -2,7 +2,7 @@
 /**
  * Common Cartridge export form (same options as /tsugi/cc).
  *
- * Expected: $l, $counts, $download_url, $youtube_enabled, $localhost_warning,
+ * Expected: $l, $counts, $download_url, $localhost_warning,
  * $canvas_return_url (string|false)
  */
 $title = isset($l->lessons->title) ? $l->lessons->title : '';
@@ -36,14 +36,6 @@ $is_canvas_return = is_string($canvas_return_url) && $canvas_return_url !== '';
 
 <div id="exportTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="export-allcontent">
-<p><?= __('You can download all the modules in a single cartridge, or you can download any combination of the modules.') ?></p>
-<p><?= __('Modules:') ?> <?= $module_count ?></p>
-<p><?= __('Resources:') ?> <?= $resource_count ?></p>
-<p><?= __('Files:') ?> <?= $file_count ?></p>
-<p><?= __('Pages:') ?> <?= $page_count ?></p>
-<p><?= __('Assignments:') ?> <?= $assignment_count ?></p>
-<p><?= __('Discussion topics:') ?> <?= $discussion_count ?></p>
-<p><?= __('Quizzes:') ?> <?= $quiz_count ?></p>
 <form action="<?= htmlspecialchars($download_url) ?>" method="get">
 <?php if ( $is_canvas_return ) { ?>
 <input type="hidden" name="tsugi_lms" value="canvas" />
@@ -52,37 +44,20 @@ $is_canvas_return = is_string($canvas_return_url) && $canvas_return_url !== '';
 <label for="tsugi_lms_select_full"><?= __('Choose the LMS that will use this cartridge:') ?></label>
 <select name="tsugi_lms" id="tsugi_lms_select_full">
 <?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
-  <option value="<?= htmlspecialchars($value) ?>"><?= htmlentities(__($label)) ?></option>
+  <option value="<?= htmlspecialchars($value) ?>"<?= $value === 'generic' ? ' selected' : '' ?>><?= htmlentities(__($label)) ?></option>
 <?php } ?>
 </select>
 </p>
-<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions. Moodle is the same Generic content as Common Cartridge 1.1. Tsugi and Canvas share Canvas\'s cartridge format so a Canvas export can import into Tsugi later.') ?></p>
+<p><?= __('Generic (CC 1.2) is a standards-only Common Cartridge with no LMS extensions. Generic (CC 1.1) and Moodle are the same Generic content as Common Cartridge 1.1 only. Tsugi and Canvas share Canvas\'s cartridge format so a Canvas export can import into Tsugi later. Sakai\'s cartridge format has significant overlap with Canvas\'s. When exporting to an LMS that is not on this list, use one of the Generic formats to be safe.') ?></p>
 <?php } ?>
-<?php if ( $discussion_count > 0 ) { ?>
-<p>
-<label for="topic_select_full"><?= __('How would you like to import discussions/topics?') ?></label>
-<select name="topic" id="topic_select_full">
-  <option value="none"><?= __('Do not import discussion topics') ?></option>
-<?php if ( ! $is_canvas_return ) { ?>
-  <option value="lti"><?= __('Use discussion tool on this server (LTI)') ?></option>
-<?php } ?>
-  <option value="lms" selected><?= $is_canvas_return ? __('Use the Canvas discussion tool') : __('Use the LMS Discussion Tool') ?></option>
-  <option value="lti_grade"><?= __('Use discussion tool on this server (LTI) with grade passback') ?></option>
-</select>
-</p>
-<?php } ?>
-<?php if ( $youtube_enabled ) { ?>
-<p>
-<label for="youtube_select_full"><?= __('Would you like YouTube Tracked URLs?') ?></label>
-<select name="youtube" id="youtube_select_full">
-  <option value="no"><?= __('No - Launch directly to YouTube') ?></option>
-<?php if ( ! $is_canvas_return ) { ?>
-  <option value="track"><?= __('Use LTI launch to track access') ?></option>
-<?php } ?>
-  <option value="track_grade"><?= __('Use LTI launch to track access and send grades') ?></option>
-</select>
-</p>
-<?php } ?>
+<p><?= __('You can download all the modules in a single cartridge, or you can download any combination of the modules.') ?></p>
+<p><?= __('Modules:') ?> <?= $module_count ?></p>
+<p><?= __('Resources:') ?> <?= $resource_count ?></p>
+<p><?= __('Files:') ?> <?= $file_count ?></p>
+<p><?= __('Pages:') ?> <?= $page_count ?></p>
+<p><?= __('Assignments:') ?> <?= $assignment_count ?></p>
+<p><?= __('Discussion topics:') ?> <?= $discussion_count ?></p>
+<p><?= __('Quizzes:') ?> <?= $quiz_count ?></p>
 <p>
 <?php if ( $is_canvas_return ) { ?>
 <input type="submit" onclick="sendToCanvas(); return false;" class="btn btn-primary" value="<?= htmlspecialchars(__('Import modules')) ?>" />
@@ -91,53 +66,21 @@ $is_canvas_return = is_string($canvas_return_url) && $canvas_return_url !== '';
 <?php } ?>
 </p>
 </form>
-<?php if ( $youtube_enabled && ! $is_canvas_return ) { ?>
-<p>
-<?= __('If you select YouTube tracked URLs, each YouTube URL will be launched via LTI to a YouTube tracking tool on this server so you can get analytics on who watches your YouTube videos through the LMS. Some LMS\'s do not do well with tracked URLs because they treat every LTI link as a gradable link.') ?>
-</p>
-<?php } ?>
 </div>
 <div class="tab-pane fade" id="export-selectcontent">
-<p><?= __('Select the modules to include, and download below. You must select at least one module.') ?></p>
-<form id="void">
-<?php if ( $is_canvas_return ) { ?>
-<input type="hidden" name="tsugi_lms" id="tsugi_lms_select_partial" value="canvas" />
-<?php } else { ?>
+<?php if ( ! $is_canvas_return ) { ?>
 <p>
 <label for="tsugi_lms_select_partial"><?= __('Choose the LMS that will use this cartridge:') ?></label>
 <select name="tsugi_lms" id="tsugi_lms_select_partial">
 <?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
-  <option value="<?= htmlspecialchars($value) ?>"><?= htmlentities(__($label)) ?></option>
+  <option value="<?= htmlspecialchars($value) ?>"<?= $value === 'generic' ? ' selected' : '' ?>><?= htmlentities(__($label)) ?></option>
 <?php } ?>
 </select>
 </p>
-<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions. Moodle is the same Generic content as Common Cartridge 1.1. Tsugi and Canvas share Canvas\'s cartridge format so a Canvas export can import into Tsugi later.') ?></p>
+<p><?= __('Generic (CC 1.2) is a standards-only Common Cartridge with no LMS extensions. Generic (CC 1.1) and Moodle are the same Generic content as Common Cartridge 1.1 only. Tsugi and Canvas share Canvas\'s cartridge format so a Canvas export can import into Tsugi later. Sakai\'s cartridge format has significant overlap with Canvas\'s. When exporting to an LMS that is not on this list, use one of the Generic formats to be safe.') ?></p>
 <?php } ?>
-<?php if ( $youtube_enabled ) { ?>
-<p>
-<label for="youtube_select_partial"><?= __('Would you like YouTube Tracked URLs?') ?></label>
-<select name="youtube" id="youtube_select_partial">
-  <option value="no"><?= __('No - Launch directly to YouTube') ?></option>
-<?php if ( ! $is_canvas_return ) { ?>
-  <option value="track"><?= __('Use LTI launch to track access') ?></option>
-<?php } ?>
-  <option value="track_grade"><?= __('Use LTI launch to track access and send grades') ?></option>
-</select>
-</p>
-<?php } ?>
-<?php if ( $discussion_count > 0 ) { ?>
-<p>
-<label for="topic_select_partial"><?= __('How would you like to import discussions/topics?') ?></label>
-<select name="topic" id="topic_select_partial">
-  <option value="none"><?= __('Do not import discussion topics') ?></option>
-<?php if ( ! $is_canvas_return ) { ?>
-  <option value="lti"><?= __('Use discussion tool on this server (LTI)') ?></option>
-<?php } ?>
-  <option value="lms" selected><?= $is_canvas_return ? __('Use the Canvas discussion tool') : __('Use the LMS Discussion Tool') ?></option>
-  <option value="lti_grade"><?= __('Use discussion tool on this server (LTI) with grade passback') ?></option>
-</select>
-</p>
-<?php } ?>
+<p><?= __('Select the modules to include, and download below. You must select at least one module.') ?></p>
+<form id="void">
 <?php foreach ( $modules as $module ) {
     $anchor = isset($module->anchor) ? (string) $module->anchor : '';
     $mod_title = isset($module->title) ? (string) $module->title : '';
@@ -186,9 +129,7 @@ $is_canvas_return = is_string($canvas_return_url) && $canvas_return_url !== '';
 </p>
 </form>
 <form id="real" action="<?= htmlspecialchars($download_url) ?>" method="get">
-<input id="youtube_real" type="hidden" name="youtube"/>
 <input id="tsugi_lms_real" type="hidden" name="tsugi_lms" />
-<input id="topic_real" type="hidden" name="topic" />
 <input id="res" type="hidden" name="anchors" value=""/>
 </form>
 </div>

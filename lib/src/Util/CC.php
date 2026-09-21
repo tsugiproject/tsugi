@@ -145,14 +145,14 @@ class CC extends \Tsugi\Util\TsugiDOM {
     }
 
     /**
-     * CC 1.1 for Moodle export; everyone else is CC 1.2.
+     * CC 1.1 for Moodle and Generic 1.1 export; everyone else is CC 1.2.
      *
      * @param mixed $tsugi_lms
      * @return string
      */
     public static function profileForFlavor($tsugi_lms) {
         $lms = is_string($tsugi_lms) ? strtolower(trim($tsugi_lms)) : '';
-        return $lms === 'moodle' ? self::PROFILE_11 : self::PROFILE_12;
+        return ($lms === 'moodle' || $lms === 'generic11') ? self::PROFILE_11 : self::PROFILE_12;
     }
 
     public function isCc11() {

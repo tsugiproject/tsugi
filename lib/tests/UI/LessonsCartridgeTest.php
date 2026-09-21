@@ -471,6 +471,29 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testWriteZipGeneric11MatchesMoodle() {
+        $l = $this->lessonsDoc(array(
+            array('type' => 'quiz', 'title' => 'Week 1 Quiz', 'quiz_id' => 1),
+            array('type' => 'web_link', 'subtype' => 'reference', 'title' => 'Doc', 'href' => 'https://example.com/'),
+        ));
+        $options = array(
+            'load_quiz' => function ($id) {
+                return SampleQuiz::build($id);
+            },
+        );
+        $moodlePath = $this->writeCartridge($l, $options + array('tsugi_lms' => 'moodle'));
+        $generic11Path = $this->writeCartridge($l, $options + array('tsugi_lms' => 'generic11'));
+        try {
+            $this->assertSame(
+                $this->zipEntryMap($moodlePath),
+                $this->zipEntryMap($generic11Path)
+            );
+        } finally {
+            @unlink($moodlePath);
+            @unlink($generic11Path);
+        }
+    }
+
     public function testWriteZipCanvasKeepsModuleMeta() {
         $l = $this->lessonsDoc(array(
             array('type' => 'quiz', 'title' => 'Week 1 Quiz', 'quiz_id' => 1),
@@ -627,14 +650,17 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('Course_generic.imscc', LessonsCartridge::downloadName($l, 'generic'));
         $this->assertSame('Course_generic.imscc', LessonsCartridge::downloadName($l, false));
         $this->assertSame('Course_moodle.imscc', LessonsCartridge::downloadName($l, ' moodle '));
+        $this->assertSame('Course_generic11.imscc', LessonsCartridge::downloadName($l, 'generic11'));
         $this->assertSame('Course_canvas.imscc', LessonsCartridge::downloadName($l, 'canvas'));
         $this->assertSame('Course_tsugi.imscc', LessonsCartridge::downloadName($l, 'tsugi'));
         $this->assertSame('Course_sakai.imscc', LessonsCartridge::downloadName($l, 'sakai'));
         $this->assertSame('generic', LessonsCartridge::exportFlavor(''));
+        $this->assertSame('generic11', LessonsCartridge::exportFlavor('Generic11'));
         $this->assertSame('moodle', LessonsCartridge::exportFlavor('Moodle'));
         $this->assertSame('canvas', LessonsCartridge::exportFlavor('Canvas'));
         $this->assertSame('tsugi', LessonsCartridge::exportFlavor(' Tsugi '));
         $this->assertSame('sakai', LessonsCartridge::exportFlavor(' SAKAI '));
+        $this->assertSame('Generic (CC 1.1)', LessonsCartridge::exportFlavorLabels()['generic11']);
         $this->assertSame('Moodle (CC 1.1)', LessonsCartridge::exportFlavorLabels()['moodle']);
         $this->assertSame('Canvas (CC 1.2)', LessonsCartridge::exportFlavorLabels()['canvas']);
         $this->assertTrue(LessonsCartridge::usesCanvasCartridge('canvas'));
@@ -642,8 +668,10 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse(LessonsCartridge::usesCanvasCartridge('generic'));
         $this->assertFalse(LessonsCartridge::usesCanvasCartridge('sakai'));
         $this->assertFalse(LessonsCartridge::usesCanvasCartridge('moodle'));
+        $this->assertFalse(LessonsCartridge::usesCanvasCartridge('generic11'));
         $this->assertFalse(LessonsCartridge::wantsCanvasExtensions('moodle'));
         $this->assertFalse(LessonsCartridge::wantsCanvasExtensions('generic'));
+        $this->assertFalse(LessonsCartridge::wantsCanvasExtensions('generic11'));
         $this->assertSame('lms', LessonsCartridge::exportTopicMode(false));
         $this->assertSame('lms', LessonsCartridge::exportTopicMode(''));
         $this->assertSame('lms', LessonsCartridge::exportTopicMode(' LMS '));

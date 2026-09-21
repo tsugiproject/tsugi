@@ -21,8 +21,8 @@ use Tsugi\Services\Quiz1\QuizRepository;
  * $WIKI_REFERENCE$) is the interchange format. The Canvas and Tsugi flavors
  * emit that same zip so Canvas import works today and Tsugi import can later
  * consume a cartridge Canvas itself exported. Do not add Tsugi-only zip
- * shapes to those flavors. Generic stays spec CC 1.2. Moodle is Generic
- * content as Common Cartridge 1.1.
+ * shapes to those flavors. Generic (CC 1.2) stays spec CC 1.2. Generic
+ * (CC 1.1) and Moodle are the same Generic content as Common Cartridge 1.1.
  */
 class LessonsCartridge {
 
@@ -148,7 +148,7 @@ class LessonsCartridge {
      *
      * @param object $l Lessons
      * @param \ZipArchive $zip
-     * @param array{tsugi_lms?:string,topic?:string,youtube?:string|false,anchors?:array|false,context_id?:int,load_quiz?:callable,load_file?:callable,load_page?:callable} $options
+     * @param array{tsugi_lms?:string,topic?:string,anchors?:array|false,context_id?:int,load_quiz?:callable,load_file?:callable,load_page?:callable} $options
      */
     public static function writeZip($l, $zip, array $options = array()) {
         global $CFG;
@@ -157,10 +157,6 @@ class LessonsCartridge {
         $options['tsugi_lms'] = $tsugi_lms;
         $topic = self::exportTopicMode(isset($options['topic']) ? $options['topic'] : false);
         $options['topic'] = $topic;
-        $youtube = isset($options['youtube']) ? $options['youtube'] : false;
-        if ( $youtube === 'no' ) {
-            $youtube = false;
-        }
         $anchors = isset($options['anchors']) ? $options['anchors'] : false;
 
         $title = isset($l->lessons->title) ? $l->lessons->title : '';
@@ -169,7 +165,7 @@ class LessonsCartridge {
         }
 
         $cc_dom = new CC(CC::profileForFlavor($tsugi_lms));
-        // Generic and Moodle are spec CC. Canvas/Tsugi emit Canvas's interchange format.
+        // Generic 1.2 / Generic 1.1 / Moodle are spec CC. Canvas/Tsugi emit Canvas's interchange format.
         // Sakai still gets module_meta. Pages must not flip Generic onto wiki.
         if ( ! self::wantsCanvasExtensions($tsugi_lms) ) {
             $cc_dom->disable_canvas_extensions();
@@ -199,7 +195,7 @@ class LessonsCartridge {
                 $sub_module = $cc_dom->add_module($module->title, '');
             }
             foreach ( self::itemsForModule($module) as $item ) {
-                self::processItem($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+                self::processItem($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             }
         }
 
@@ -253,11 +249,11 @@ class LessonsCartridge {
     }
 
     /**
-     * Setup flavor used in the download filename: generic, moodle, canvas, tsugi, or sakai.
+     * Setup flavor used in the download filename: generic, generic11, moodle, canvas, tsugi, or sakai.
      */
     public static function exportFlavor($tsugi_lms) {
         $lms = is_string($tsugi_lms) ? strtolower(trim($tsugi_lms)) : '';
-        if ( $lms === 'canvas' || $lms === 'sakai' || $lms === 'tsugi' || $lms === 'moodle' ) {
+        if ( $lms === 'canvas' || $lms === 'sakai' || $lms === 'tsugi' || $lms === 'moodle' || $lms === 'generic11' ) {
             return $lms;
         }
         return 'generic';
@@ -271,10 +267,11 @@ class LessonsCartridge {
     public static function exportFlavorLabels() {
         return array(
             'generic' => 'Generic (CC 1.2)',
-            'moodle' => 'Moodle (CC 1.1)',
             'canvas' => 'Canvas (CC 1.2)',
-            'tsugi' => 'Tsugi (CC 1.2)',
             'sakai' => 'Sakai (CC 1.2)',
+            'tsugi' => 'Tsugi (CC 1.2)',
+            'generic11' => 'Generic (CC 1.1)',
+            'moodle' => 'Moodle (CC 1.1)',
         );
     }
 
@@ -325,18 +322,16 @@ class LessonsCartridge {
      * Emit a video as a CC web link, preferring Kaltura when configured.
      *
      * Same preference as Lessons rendering: kaltura_embed + kaltura_id, else
-     * optional YouTube LTI tracking, else a YouTube watch URL.
+     * a YouTube watch URL.
      *
      * @param \ZipArchive $zip
      * @param CC $cc_dom
      * @param mixed $sub_module
      * @param mixed $item
-     * @param string|false $youtube
      * @param string|null $parentPath
      * @return bool true when the item is a video
      */
-    public static function addVideoItem($zip, $cc_dom, $sub_module, $item, $youtube = false, $parentPath = null) {
-        global $CFG;
+    public static function addVideoItem($zip, $cc_dom, $sub_module, $item, $parentPath = null) {
         $item = is_array($item) ? (object) $item : $item;
         if ( LessonsNormalize::presentationKind($item) !== 'video' ) {
             return false;
@@ -346,18 +341,6 @@ class LessonsCartridge {
         if ( $kaltura_url ) {
             // new_tab=false => Canvas ExternalUrl launches inline in an iframe
             $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $kaltura_url, $parentPath, false);
-            return true;
-        }
-        if ( $youtube && isset($CFG->youtube_url) && ! empty($item->youtube) ) {
-            $endpoint = U::absolute_url($CFG->youtube_url);
-            $endpoint = U::add_url_parm($endpoint, 'v', $item->youtube);
-            $extensions = array('apphome' => $CFG->apphome);
-            $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : null;
-            if ( $youtube === 'track_grade' ) {
-                $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, array(), $extensions, $resource_link_id, $parentPath);
-            } else {
-                $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, array(), $extensions, $resource_link_id, $parentPath);
-            }
             return true;
         }
         if ( ! empty($item->youtube) ) {
@@ -393,7 +376,7 @@ class LessonsCartridge {
         return self::itemHref($item) !== '';
     }
 
-    private static function processItem($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, array $options) {
+    private static function processItem($item, $module, $sub_module, $zip, $cc_dom, $topic, array $options) {
         global $CFG;
 
         $item = is_array($item) ? (object) $item : $item;
@@ -401,47 +384,47 @@ class LessonsCartridge {
         $kind = LessonsNormalize::presentationKind($item);
 
         if ( $type === 'text' ) {
-            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             return;
         }
 
         if ( self::addHeadingItem($cc_dom, $sub_module, $item) ) {
-            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             return;
         }
 
-        if ( self::addVideoItem($zip, $cc_dom, $sub_module, $item, $youtube) ) {
-            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+        if ( self::addVideoItem($zip, $cc_dom, $sub_module, $item) ) {
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             return;
         }
 
         if ( LessonsNormalize::isNativeQuiz($item) ) {
             self::processNativeQuiz($item, $module, $sub_module, $zip, $cc_dom, $options);
-            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             return;
         }
 
         if ( LessonsNormalize::isDiscussion($item) ) {
             self::processDiscussion($item, $module, $sub_module, $zip, $cc_dom, $topic);
-            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             return;
         }
 
         if ( self::isAssignmentLtiKind($kind) || $type === LessonsNormalize::TYPE_LTI ) {
             self::processLti($item, $module, $sub_module, $zip, $cc_dom);
-            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             return;
         }
 
         if ( $type === LessonsNormalize::TYPE_FILE ) {
             self::processFile($item, $module, $sub_module, $zip, $cc_dom, $options);
-            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             return;
         }
 
         if ( $type === LessonsNormalize::TYPE_HTML_PAGE ) {
             self::processHtmlPage($item, $module, $sub_module, $zip, $cc_dom, $options);
-            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+            self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             return;
         }
 
@@ -452,7 +435,7 @@ class LessonsCartridge {
             $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, null, $new_tab);
         }
 
-        self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+        self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
     }
 
     /**
@@ -944,12 +927,12 @@ class LessonsCartridge {
         return Files::sha256FromDownloadHref($href);
     }
 
-    private static function processChildren($item, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, array $options) {
+    private static function processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, array $options) {
         if ( ! isset($item->items) || ! is_array($item->items) ) {
             return;
         }
         foreach ( $item->items as $child ) {
-            self::processItem($child, $module, $sub_module, $zip, $cc_dom, $youtube, $topic, $options);
+            self::processItem($child, $module, $sub_module, $zip, $cc_dom, $topic, $options);
         }
     }
 
