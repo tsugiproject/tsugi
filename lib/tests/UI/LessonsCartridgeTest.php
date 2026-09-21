@@ -101,6 +101,58 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(0, $counts['quizzes']);
     }
 
+    public function testWriteZipHonorsAnchors()
+    {
+        $l = (object) array(
+            'lessons' => (object) array(
+                'title' => 'Course',
+                'modules' => array(
+                    (object) array(
+                        'title' => 'Week 1',
+                        'anchor' => 'w1',
+                        'items' => array(
+                            (object) array(
+                                'type' => 'web_link',
+                                'subtype' => 'reference',
+                                'title' => 'One',
+                                'href' => 'https://example.com/one',
+                            ),
+                        ),
+                    ),
+                    (object) array(
+                        'title' => 'Week 2',
+                        'anchor' => 'w2',
+                        'items' => array(
+                            (object) array(
+                                'type' => 'web_link',
+                                'subtype' => 'reference',
+                                'title' => 'Two',
+                                'href' => 'https://example.com/two',
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+        $path = $this->writeCartridge($l, array(
+            'tsugi_lms' => 'canvas',
+            'anchors' => array('w1'),
+        ));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $manifest = $zip->getFromName('imsmanifest.xml');
+            $this->assertNotFalse($manifest);
+            $this->assertStringContainsString('<title>Week 1</title>', $manifest);
+            $this->assertStringContainsString('<title>One</title>', $manifest);
+            $this->assertStringNotContainsString('<title>Week 2</title>', $manifest);
+            $this->assertStringNotContainsString('<title>Two</title>', $manifest);
+            $zip->close();
+        } finally {
+            @unlink($path);
+        }
+    }
+
     public function testWriteZipCanvasIncludesHeadings()
     {
         $l = $this->lessonsDoc(array(

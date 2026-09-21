@@ -20,6 +20,8 @@ use Tsugi\Services\Settings\DynamicRegistration;
 use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Cartridge\Importer;
 use Tsugi\Services\Cartridge\ImportException;
+use Tsugi\Services\Cartridge\Package;
+use Tsugi\Services\Cartridge\Pending;
 use Tsugi\Services\CourseNav\CourseNav;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -1988,20 +1990,21 @@ re-check your login status.
         $OUTPUT->footerStart();
         ?>
 <script>
-function myfunc(){
-    $("#res").val('');
-    $('#void input[type="checkbox"]').each(function(){
+function collectExportAnchors() {
+    var anchors = [];
+    $('#void input.export-module-anchor[type="checkbox"]').each(function(){
          if ( ! $(this).is(':checked') ) return;
-         var b = $("#res").val();
-         if(b.length > 0){
-            $("#res").val( b + ',' + $(this).val() );
-        } else {
-            $("#res").val( $(this).val() );
-        }
+         var v = $(this).val();
+         if ( v ) {
+            anchors.push(v);
+         }
     });
-
-    $("#tsugi_lms_real").val($("#tsugi_lms_select_partial").val());
-    var stuff = $("#res").val();
+    return anchors.join(',');
+}
+function myfunc(){
+    var stuff = collectExportAnchors();
+    $("#res").val(stuff);
+    $("#tsugi_lms_real").val($("#tsugi_lms_select_partial").val() || 'generic');
     $("#youtube_real").val($("#youtube_select_partial").val() || '');
     $("#topic_real").val($("#topic_select_partial").val() || '');
 
@@ -2012,13 +2015,25 @@ function myfunc(){
     }
 }
 function sendToCanvas() {
-    var youtube = $("#youtube_select_full").val() || 'no';
-    var topic = $("#topic_select_full").val() || 'none';
+    goToCanvas('', $("#youtube_select_full").val() || 'no', $("#topic_select_full").val() || 'none');
+}
+function sendToCanvasSelected() {
+    var stuff = collectExportAnchors();
+    if ( stuff.length < 1 ) {
+        alert(<?= json_encode(__('Please select at least one module')) ?>);
+        return;
+    }
+    goToCanvas(stuff, $("#youtube_select_partial").val() || 'no', $("#topic_select_partial").val() || 'none');
+}
+function goToCanvas(anchors, youtube, topic) {
     var return_url = <?= json_encode($canvas_return_url ? $canvas_return_url : '') ?>;
     var export_url = <?= json_encode($download_url) ?>;
     export_url = export_url + (export_url.indexOf('?') >= 0 ? '&' : '?') + 'tsugi_lms=canvas';
     export_url = export_url + '&youtube=' + encodeURIComponent(youtube);
     export_url = export_url + '&topic=' + encodeURIComponent(topic);
+    if ( anchors ) {
+        export_url = export_url + '&anchors=' + encodeURIComponent(anchors);
+    }
     return_url = return_url + (return_url.indexOf('?') >= 0 ? '&' : '?');
     return_url = return_url + 'return_type=file&text=' + encodeURIComponent(<?= json_encode(isset($CFG->servicename) ? $CFG->servicename : 'Tsugi') ?>);
     return_url = return_url + '&url=' + encodeURIComponent(export_url);
@@ -2057,6 +2072,27 @@ function sendToCanvas() {
         $setup_tab = 'import';
         $upload_url = U::addSession(self::cartridgeUploadUrl());
         $upload_limit_label = self::CARTRIDGE_UPLOAD_MAX;
+        $pending_token = '';
+        $pending_name = '';
+        $pending_title = '';
+        $pending_modules = array();
+        $pending = Pending::load(U::currentContextId(), U::loggedInUserId());
+        if ( $pending ) {
+            try {
+                $pkg = Package::open($pending['path']);
+                try {
+                    $pending_modules = $pkg->describeModules();
+                    $pending_title = $pkg->title;
+                } finally {
+                    $pkg->close();
+                }
+                $pending_token = $pending['token'];
+                $pending_name = $pending['name'];
+            } catch ( ImportException $e ) {
+                Pending::clear();
+                U::flashError($e->getMessage());
+            }
+        }
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -2071,7 +2107,33 @@ function sendToCanvas() {
             </div>
         </main>
         <?php
-        $OUTPUT->footer();
+        if ( $pending_token !== '' ) {
+            $OUTPUT->footerStart();
+            ?>
+<script>
+function importSelectedModules(){
+    var keys = [];
+    $('#void input.import-module-key[type="checkbox"]').each(function(){
+         if ( ! $(this).is(':checked') ) return;
+         var v = $(this).val();
+         if ( v ) {
+            keys.push(v);
+         }
+    });
+    $("#import_modules_real").val(keys.join(','));
+    if ( keys.length < 1 ) {
+        alert(<?= json_encode(__('Please select at least one module')) ?>);
+        return false;
+    }
+    $("#import-selected-real").submit();
+    return false;
+}
+</script>
+            <?php
+            $OUTPUT->footerEnd();
+        } else {
+            $OUTPUT->footer();
+        }
         return '';
     }
 
@@ -2286,6 +2348,11 @@ function sendToCanvas() {
             return $csrf;
         }
 
+        $action = U::get($_POST, 'cc_import_action', '');
+        if ( is_string($action) && $action !== '' ) {
+            return $this->importPendingPost($import_url, $action);
+        }
+
         $fdes = isset($_FILES['cartridge']) && is_array($_FILES['cartridge'])
             ? $_FILES['cartridge'] : null;
         if ( $fdes === null || ! isset($fdes['tmp_name']) || ! is_uploaded_file($fdes['tmp_name']) ) {
@@ -2311,7 +2378,7 @@ function sendToCanvas() {
             return new RedirectResponse($import_url);
         }
 
-        $dest = tempnam(sys_get_temp_dir(), 'ccimp');
+        $dest = tempnam(sys_get_temp_dir(), Pending::FILE_PREFIX);
         if ( $dest === false ) {
             U::flashError(__('Could not create a temporary file for the cartridge.'));
             return new RedirectResponse($import_url);
@@ -2322,9 +2389,10 @@ function sendToCanvas() {
             return new RedirectResponse($import_url);
         }
 
-        @set_time_limit(120);
         try {
-            $row = Importer::run($dest, U::currentContextId(), U::loggedInUserId());
+            $pkg = Package::open($dest);
+            $pkg->close();
+            Pending::stash($dest, $name, U::currentContextId(), U::loggedInUserId());
         } catch ( ImportException $e ) {
             @unlink($dest);
             U::flashError($e->getMessage());
@@ -2334,7 +2402,73 @@ function sendToCanvas() {
             U::flashError(__('Import failed: ').$e->getMessage());
             return new RedirectResponse($import_url);
         }
-        @unlink($dest);
+
+        return new RedirectResponse($import_url);
+    }
+
+    /**
+     * Confirm, subset, or cancel a stashed cartridge (second request after upload).
+     *
+     * @return RedirectResponse
+     */
+    private function importPendingPost($import_url, $action)
+    {
+        $token = U::get($_POST, 'cc_pending', '');
+        $cid = U::currentContextId();
+        $uid = U::loggedInUserId();
+        if ( ! Pending::matches($cid, $uid, $token) ) {
+            U::flashError(__('The uploaded cartridge expired. Please upload it again.'));
+            return new RedirectResponse($import_url);
+        }
+        $pending = Pending::load($cid, $uid);
+        if ( $pending === null ) {
+            U::flashError(__('The uploaded cartridge expired. Please upload it again.'));
+            return new RedirectResponse($import_url);
+        }
+
+        if ( $action === 'cancel' ) {
+            Pending::clear();
+            U::flashSuccess(__('Upload cancelled.'));
+            return new RedirectResponse($import_url);
+        }
+
+        $options = array();
+        if ( $action === 'selected' ) {
+            try {
+                $pkg = Package::open($pending['path']);
+                try {
+                    $described = $pkg->describeModules();
+                } finally {
+                    $pkg->close();
+                }
+            } catch ( ImportException $e ) {
+                Pending::clear();
+                U::flashError($e->getMessage());
+                return new RedirectResponse($import_url);
+            }
+            $keys = self::selectedImportModules($described, U::get($_POST, 'modules', ''));
+            if ( $keys === false ) {
+                U::flashError(__('Please select at least one module'));
+                return new RedirectResponse($import_url);
+            }
+            $options['modules'] = $keys;
+        } else if ( $action !== 'all' ) {
+            U::flashError(__('Unknown import action.'));
+            return new RedirectResponse($import_url);
+        }
+
+        @set_time_limit(120);
+        try {
+            $row = Importer::run($pending['path'], $cid, $uid, $options);
+        } catch ( ImportException $e ) {
+            U::flashError($e->getMessage());
+            return new RedirectResponse($import_url);
+        } catch ( \Throwable $e ) {
+            U::flashError(__('Import failed: ').$e->getMessage());
+            return new RedirectResponse($import_url);
+        }
+        $name = $pending['name'];
+        Pending::clear();
 
         $created = (int) ($row['created_count'] ?? 0);
         $dup = (int) ($row['duplicate_count'] ?? 0);
@@ -2356,6 +2490,73 @@ function sendToCanvas() {
             U::flashSuccess($msg);
         }
         return new RedirectResponse($import_url);
+    }
+
+    /**
+     * Organization keys from the import Select Content form, or false if none match.
+     *
+     * @param list<array{key:string}> $described
+     * @param mixed $module_str
+     * @return list<string>|false
+     */
+    public static function selectedImportModules(array $described, $module_str) {
+        if ( ! is_string($module_str) || $module_str === '' ) {
+            return false;
+        }
+        $wanted = array();
+        foreach ( explode(',', $module_str) as $a ) {
+            $a = trim($a);
+            if ( $a !== '' ) {
+                $wanted[$a] = true;
+            }
+        }
+        if ( count($wanted) < 1 ) {
+            return false;
+        }
+        $matched = array();
+        foreach ( $described as $row ) {
+            $key = isset($row['key']) ? (string) $row['key'] : '';
+            if ( $key !== '' && isset($wanted[$key]) ) {
+                $matched[] = $key;
+            }
+        }
+        return count($matched) > 0 ? $matched : false;
+    }
+
+    /**
+     * Module anchors selected on the export form, or false to include every module.
+     *
+     * Same rule as /cc/export: a missing, empty, or unmatched list is a full export.
+     *
+     * @param object $l Lessons
+     * @param mixed $anchor_str Comma-separated anchors from ?anchors=
+     * @return list<string>|false
+     */
+    public static function selectedExportAnchors($l, $anchor_str) {
+        if ( ! is_string($anchor_str) || $anchor_str === '' ) {
+            return false;
+        }
+        $wanted = array();
+        foreach ( explode(',', $anchor_str) as $a ) {
+            $a = trim($a);
+            if ( $a !== '' ) {
+                $wanted[] = $a;
+            }
+        }
+        if ( count($wanted) < 1 ) {
+            return false;
+        }
+        if ( ! isset($l->lessons->modules) || ! is_array($l->lessons->modules) ) {
+            return false;
+        }
+        $matched = array();
+        foreach ( $l->lessons->modules as $module ) {
+            $anchor = isset($module->anchor) ? (string) $module->anchor : '';
+            if ( $anchor !== '' && in_array($anchor, $wanted, true) ) {
+                $matched[] = $anchor;
+            }
+        }
+        return count($matched) > 0 ? $matched : false;
     }
 
     /**
@@ -2381,25 +2582,7 @@ function sendToCanvas() {
             return new RedirectResponse($export_url);
         }
 
-        $anchor_str = U::get($_GET, 'anchors', false);
-        $anchors = false;
-        if ( $anchor_str ) {
-            $anchors = explode(',', $anchor_str);
-        }
-        if ( ! is_array($anchors) || count($anchors) < 1 ) {
-            $anchors = false;
-        }
-        if ( $anchors && isset($l->lessons->modules) && is_array($l->lessons->modules) ) {
-            $anchor_count = 0;
-            foreach ( $l->lessons->modules as $module ) {
-                if ( in_array($module->anchor, $anchors) ) {
-                    $anchor_count++;
-                }
-            }
-            if ( $anchor_count < 1 ) {
-                $anchors = false;
-            }
-        }
+        $anchors = self::selectedExportAnchors($l, U::get($_GET, 'anchors', false));
 
         $filename = tempnam(sys_get_temp_dir(), isset($CFG->servicename) ? $CFG->servicename : 'cc');
         if ( $filename === false ) {

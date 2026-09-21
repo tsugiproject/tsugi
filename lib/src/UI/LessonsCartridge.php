@@ -185,8 +185,11 @@ class LessonsCartridge {
         }
 
         foreach ( $l->lessons->modules as $module ) {
-            if ( is_array($anchors) && count($anchors) > 0 && ! in_array($module->anchor, $anchors) ) {
-                continue;
+            if ( is_array($anchors) && count($anchors) > 0 ) {
+                $anchor = isset($module->anchor) ? (string) $module->anchor : '';
+                if ( $anchor === '' || ! in_array($anchor, $anchors, true) ) {
+                    continue;
+                }
             }
             if ( $top_module ) {
                 $sub_module = $cc_dom->add_sub_module($top_module, $module->title, 'Modules (import)');

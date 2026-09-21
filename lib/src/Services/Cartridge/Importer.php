@@ -16,9 +16,10 @@ use Tsugi\UI\LessonsNormalize;
 class Importer {
 
     /**
+     * @param array{modules?:list<string>} $options modules = organization keys from Package::describeModules()
      * @return array<string, mixed> Persisted cc_import row
      */
-    public static function run($path, $context_id, $user_id) {
+    public static function run($path, $context_id, $user_id, array $options = array()) {
         $context_id = (int) $context_id;
         $user_id = (int) $user_id;
         if ( $context_id < 1 ) {
@@ -26,6 +27,9 @@ class Importer {
         }
         $pkg = Package::open($path);
         try {
+            if ( isset($options['modules']) && is_array($options['modules']) && count($options['modules']) > 0 ) {
+                $pkg->restrictToModules($options['modules']);
+            }
             return self::runPackage($pkg, $context_id, $user_id);
         } finally {
             $pkg->close();

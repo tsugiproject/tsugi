@@ -48,6 +48,13 @@ class Package {
     public $modules = array();
 
     /**
+     * When set, importableResources() only returns these resource identifiers.
+     *
+     * @var array<string, true>|null
+     */
+    public $onlyResourceIds = null;
+
+    /**
      * @param string $path
      * @return self
      */
@@ -110,7 +117,129 @@ class Package {
             if ( ! empty($row['skipped']) ) {
                 continue;
             }
+            $id = (string) ($row['identifier'] ?? '');
+            if ( is_array($this->onlyResourceIds) && ! isset($this->onlyResourceIds[$id]) ) {
+                continue;
+            }
             $out[] = $row;
+        }
+        return $out;
+    }
+
+    /**
+     * Stable checkbox value for one organization module.
+     *
+     * @param array<string, mixed> $mod
+     * @param int $index
+     * @return string
+     */
+    public static function moduleSelectKey(array $mod, $index) {
+        $id = trim((string) ($mod['identifier'] ?? ''));
+        if ( $id !== '' ) {
+            return $id;
+        }
+        return 'idx-'.(int) $index;
+    }
+
+    /**
+     * Drop organization modules that were not selected and limit importable resources
+     * to identifierrefs those modules still point at.
+     *
+     * @param list<string> $keys
+     */
+    public function restrictToModules(array $keys) {
+        $wanted = array();
+        foreach ( $keys as $key ) {
+            $key = trim((string) $key);
+            if ( $key !== '' ) {
+                $wanted[$key] = true;
+            }
+        }
+        if ( count($wanted) < 1 ) {
+            return;
+        }
+        $kept = array();
+        $refs = array();
+        foreach ( $this->modules as $i => $mod ) {
+            if ( ! is_array($mod) ) {
+                continue;
+            }
+            $key = self::moduleSelectKey($mod, $i);
+            if ( ! isset($wanted[$key]) ) {
+                continue;
+            }
+            $kept[] = $mod;
+            $items = isset($mod['items']) && is_array($mod['items']) ? $mod['items'] : array();
+            foreach ( $items as $item ) {
+                $ref = is_array($item) ? (string) ($item['identifierref'] ?? '') : '';
+                if ( $ref !== '' ) {
+                    $refs[$ref] = true;
+                }
+            }
+        }
+        $this->modules = $kept;
+        $this->onlyResourceIds = $refs;
+    }
+
+    /**
+     * Module list for the Settings import Select Content tab.
+     *
+     * @return list<array{key:string,title:string,counts:array{resources:int,files:int,pages:int,assignments:int,discussions:int,quizzes:int}}>
+     */
+    public function describeModules() {
+        $byId = array();
+        foreach ( $this->resources as $res ) {
+            $id = (string) ($res['identifier'] ?? '');
+            if ( $id !== '' ) {
+                $byId[$id] = $res;
+            }
+        }
+        $out = array();
+        foreach ( $this->modules as $i => $mod ) {
+            if ( ! is_array($mod) ) {
+                continue;
+            }
+            $counts = array(
+                'resources' => 0,
+                'files' => 0,
+                'pages' => 0,
+                'assignments' => 0,
+                'discussions' => 0,
+                'quizzes' => 0,
+            );
+            $items = isset($mod['items']) && is_array($mod['items']) ? $mod['items'] : array();
+            foreach ( $items as $item ) {
+                if ( ! is_array($item) || ! empty($item['heading']) ) {
+                    continue;
+                }
+                $ref = (string) ($item['identifierref'] ?? '');
+                if ( $ref === '' || ! isset($byId[$ref]) ) {
+                    continue;
+                }
+                $res = $byId[$ref];
+                $kind = Fingerprint::localKind(
+                    (string) ($res['type'] ?? ''),
+                    (string) ($res['href'] ?? '')
+                );
+                if ( $kind === 'file' ) {
+                    $counts['files']++;
+                } else if ( $kind === 'page' ) {
+                    $counts['pages']++;
+                } else if ( $kind === 'quiz' ) {
+                    $counts['quizzes']++;
+                } else if ( $kind === 'lti_link' ) {
+                    $counts['assignments']++;
+                } else if ( $kind === 'discussion' ) {
+                    $counts['discussions']++;
+                } else {
+                    $counts['resources']++;
+                }
+            }
+            $out[] = array(
+                'key' => self::moduleSelectKey($mod, $i),
+                'title' => (string) ($mod['title'] ?? ''),
+                'counts' => $counts,
+            );
         }
         return $out;
     }

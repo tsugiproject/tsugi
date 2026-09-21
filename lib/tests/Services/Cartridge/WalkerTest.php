@@ -232,6 +232,28 @@ class CartridgeWalkerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(0, $again['copy_count']);
     }
 
+    public function testDescribeAndRestrictToOneModule() {
+        $path = Fixtures::writeTwoModules($this->dir);
+        $pkg = Package::open($path);
+        $described = $pkg->describeModules();
+        $this->assertCount(2, $described);
+        $this->assertSame('Week 1', $described[0]['title']);
+        $this->assertSame('Week 2', $described[1]['title']);
+        $this->assertSame(1, $described[0]['counts']['resources']);
+        $this->assertSame(1, $described[1]['counts']['resources']);
+        $this->assertCount(2, $pkg->importableResources());
+
+        $firstKey = $described[0]['key'];
+        $this->assertNotSame('', $firstKey);
+        $pkg->restrictToModules(array($firstKey));
+        $this->assertCount(1, $pkg->modules);
+        $this->assertSame('Week 1', $pkg->modules[0]['title']);
+        $kept = $pkg->importableResources();
+        $this->assertCount(1, $kept);
+        $this->assertSame($pkg->modules[0]['items'][0]['identifierref'], $kept[0]['identifier']);
+        $pkg->close();
+    }
+
     /**
      * @param string $src
      * @param string $dest

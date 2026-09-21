@@ -55,6 +55,63 @@ class Fixtures {
     }
 
     /**
+     * Two web-link modules for import Select Content tests.
+     *
+     * @param string $dir
+     * @return string
+     */
+    public static function writeTwoModules($dir) {
+        if ( ! is_dir($dir) && ! mkdir($dir, 0775, true) && ! is_dir($dir) ) {
+            throw new ImportException('Cannot create fixture directory: '.$dir);
+        }
+        $path = rtrim($dir, '/').'/two-modules.imscc';
+        if ( file_exists($path) ) {
+            unlink($path);
+        }
+        $zip = new \ZipArchive();
+        if ( $zip->open($path, \ZipArchive::CREATE) !== true ) {
+            throw new ImportException('Cannot create '.$path);
+        }
+        $l = (object) array(
+            'lessons' => (object) array(
+                'title' => 'Two weeks',
+                'modules' => array(
+                    (object) array(
+                        'title' => 'Week 1',
+                        'anchor' => 'w1',
+                        'items' => array(
+                            (object) array(
+                                'type' => 'web_link',
+                                'subtype' => 'reference',
+                                'title' => 'One',
+                                'href' => 'https://example.com/one',
+                            ),
+                        ),
+                    ),
+                    (object) array(
+                        'title' => 'Week 2',
+                        'anchor' => 'w2',
+                        'items' => array(
+                            (object) array(
+                                'type' => 'web_link',
+                                'subtype' => 'reference',
+                                'title' => 'Two',
+                                'href' => 'https://example.com/two',
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+        LessonsCartridge::writeZip($l, $zip, array(
+            'tsugi_lms' => 'generic',
+            'topic' => 'lms',
+        ));
+        $zip->close();
+        return $path;
+    }
+
+    /**
      * @param \Tsugi\Services\Quiz1\Quiz $quiz
      * @return object
      */

@@ -103,6 +103,36 @@ class SettingsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(Settings::isCourseRoute());
     }
 
+    public function testSelectedExportAnchorsMatchesCurrentModules()
+    {
+        $l = (object) array(
+            'lessons' => (object) array(
+                'modules' => array(
+                    (object) array('title' => 'Week 1', 'anchor' => 'w1'),
+                    (object) array('title' => 'Week 2', 'anchor' => 'w2'),
+                ),
+            ),
+        );
+        $this->assertFalse(Settings::selectedExportAnchors($l, false));
+        $this->assertFalse(Settings::selectedExportAnchors($l, ''));
+        $this->assertFalse(Settings::selectedExportAnchors($l, 'missing'));
+        $this->assertSame(array('w1'), Settings::selectedExportAnchors($l, 'w1'));
+        $this->assertSame(array('w1', 'w2'), Settings::selectedExportAnchors($l, ' w2, missing, w1 '));
+    }
+
+    public function testSelectedImportModulesRequiresAMatch()
+    {
+        $described = array(
+            array('key' => 'M_one', 'title' => 'Week 1'),
+            array('key' => 'M_two', 'title' => 'Week 2'),
+        );
+        $this->assertFalse(Settings::selectedImportModules($described, false));
+        $this->assertFalse(Settings::selectedImportModules($described, ''));
+        $this->assertFalse(Settings::selectedImportModules($described, 'missing'));
+        $this->assertSame(array('M_one'), Settings::selectedImportModules($described, 'M_one'));
+        $this->assertSame(array('M_one', 'M_two'), Settings::selectedImportModules($described, 'M_two, M_one'));
+    }
+
     public function testShowInMenuFalseWithoutManifest()
     {
         $this->assertFalse(Settings::showInMenu());
