@@ -210,6 +210,13 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertNull(Manifest::validateJson($json));
     }
 
+    public function testValidateJsonAcceptsEmptyModules()
+    {
+        $doc = Manifest::starter('Empty Outline');
+        $doc['modules'] = array();
+        $this->assertNull(Manifest::validateJson(Manifest::encode($doc)));
+    }
+
     public function testValidateJsonRejectsEmpty()
     {
         $this->assertNotNull(Manifest::validateJson(''));

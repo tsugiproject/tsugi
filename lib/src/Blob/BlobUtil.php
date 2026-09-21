@@ -620,12 +620,13 @@ class BlobUtil {
         if ( $count <= 1 ) {
             error_log("Deleting file=$file_id sha=$sha256 last reference to blob_id=$blob_id path=$path\n");
             if ( U::strlen($path) > 0 ) {
-                if ( ! file_exists($path) ) {
+                $disk = self::resolveDiskBlobPath($path);
+                if ( $disk === false ) {
                     error_log("File was already gone: $path");
                 } else {
-                    $retval = unlink($path);
+                    $retval = unlink($disk);
                     if ( ! $retval ) {
-                        error_log("Unlink failed: $path");
+                        error_log("Unlink failed: $disk");
                     }
                 }
             }

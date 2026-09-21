@@ -92,6 +92,21 @@ class Store {
     }
 
     /**
+     * Drop matcher rows for this course so the next import is treated as new.
+     *
+     * @param int $context_id
+     * @return void
+     */
+    public static function deleteObjectsForContext($context_id) {
+        global $CFG, $PDOX;
+        LTIX::getConnection();
+        $PDOX->queryDie(
+            "DELETE FROM {$CFG->dbprefix}cc_object WHERE context_id = :cid",
+            array(':cid' => (int) $context_id)
+        );
+    }
+
+    /**
      * @param array<string, mixed> $row
      * @return array<string, mixed>
      */

@@ -2106,6 +2106,28 @@ function goToCanvas(anchors) {
             $OUTPUT->footerStart();
             ?>
 <script>
+function importReplaceMode(){
+    var v = $('input[name="cc_replace_choice"]:checked').val();
+    return v === 'replace' ? 'replace' : 'add';
+}
+function syncImportReplace(){
+    var replace = importReplaceMode() === 'replace';
+    $('input[name="cc_replace"]').val(replace ? 'replace' : 'add');
+    if ( replace ) {
+        $('#import-replace-warning').show();
+        $('.import-submit').removeClass('btn-primary').addClass('btn-danger');
+    } else {
+        $('#import-replace-warning').hide();
+        $('.import-submit').removeClass('btn-danger').addClass('btn-primary');
+    }
+}
+function confirmImportReplace(){
+    syncImportReplace();
+    if ( importReplaceMode() !== 'replace' ) {
+        return true;
+    }
+    return confirm(<?= json_encode(__('WARNING: This permanently deletes this course\'s pages, files, quizzes, resource links, and ALL GRADEBOOK RESULTS, then imports. Student scores cannot be recovered. Continue?')) ?>);
+}
 function importSelectedModules(){
     var keys = [];
     $('#void input.import-module-key[type="checkbox"]').each(function(){
@@ -2120,9 +2142,16 @@ function importSelectedModules(){
         alert(<?= json_encode(__('Please select at least one module')) ?>);
         return false;
     }
+    if ( ! confirmImportReplace() ) {
+        return false;
+    }
     $("#import-selected-real").submit();
     return false;
 }
+$(function(){
+    $('input[name="cc_replace_choice"]').on('change', syncImportReplace);
+    syncImportReplace();
+});
 </script>
             <?php
             $OUTPUT->footerEnd();
@@ -2428,6 +2457,9 @@ function importSelectedModules(){
         }
 
         $options = array();
+        if ( self::importReplaceContent(U::get($_POST, 'cc_replace', '')) ) {
+            $options['replace'] = true;
+        }
         if ( $action === 'selected' ) {
             try {
                 $pkg = Package::open($pending['path']);
@@ -2485,6 +2517,16 @@ function importSelectedModules(){
             U::flashSuccess($msg);
         }
         return new RedirectResponse($import_url);
+    }
+
+    /**
+     * True when the instructor chose to wipe this course before import.
+     *
+     * @param mixed $posted Value of cc_replace from the pending-import form
+     * @return bool
+     */
+    public static function importReplaceContent($posted) {
+        return is_string($posted) && $posted === 'replace';
     }
 
     /**

@@ -16,7 +16,9 @@ use Tsugi\UI\LessonsNormalize;
 class Importer {
 
     /**
-     * @param array{modules?:list<string>} $options modules = organization keys from Package::describeModules()
+     * @param array{modules?:list<string>, replace?:bool} $options
+     *        modules = organization keys from Package::describeModules();
+     *        replace = wipe pages, files, quizzes, resource links, results, and lessons first
      * @return array<string, mixed> Persisted cc_import row
      */
     public static function run($path, $context_id, $user_id, array $options = array()) {
@@ -29,6 +31,9 @@ class Importer {
         try {
             if ( isset($options['modules']) && is_array($options['modules']) && count($options['modules']) > 0 ) {
                 $pkg->restrictToModules($options['modules']);
+            }
+            if ( ! empty($options['replace']) ) {
+                Wipe::beforeImport($context_id, $user_id);
             }
             return self::runPackage($pkg, $context_id, $user_id);
         } finally {
@@ -388,6 +393,9 @@ class Importer {
      * @param list<mixed> $modules
      */
     private static function isEmptyStarter(array $modules) {
+        if ( count($modules) < 1 ) {
+            return true;
+        }
         if ( count($modules) !== 1 ) {
             return false;
         }
@@ -454,7 +462,14 @@ class Importer {
         return null;
     }
 
-    private static function filesFolderFromHref($href) {
+    /**
+     * Files-tool folder for a cartridge href. Root (obscure) unless the zip path
+     * is under Public, Student, or Private.
+     *
+     * @param mixed $href
+     * @return string
+     */
+    public static function filesFolderFromHref($href) {
         $href = str_replace('\\', '/', (string) $href);
         if ( preg_match('#web_resources/([^/]+)/#', $href, $m) ) {
             $top = $m[1];
@@ -462,7 +477,7 @@ class Importer {
                 return $top;
             }
         }
-        return 'Imported';
+        return '';
     }
 
     private static function mimeForName($filename) {

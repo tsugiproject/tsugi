@@ -133,6 +133,15 @@ class SettingsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(array('M_one', 'M_two'), Settings::selectedImportModules($described, 'M_two, M_one'));
     }
 
+    public function testImportReplaceContentDefaultsToAdd()
+    {
+        $this->assertFalse(Settings::importReplaceContent(''));
+        $this->assertFalse(Settings::importReplaceContent('add'));
+        $this->assertFalse(Settings::importReplaceContent('delete'));
+        $this->assertFalse(Settings::importReplaceContent(null));
+        $this->assertTrue(Settings::importReplaceContent('replace'));
+    }
+
     public function testShowInMenuFalseWithoutManifest()
     {
         $this->assertFalse(Settings::showInMenu());

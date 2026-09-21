@@ -1678,9 +1678,12 @@ class Files extends Tool {
     /**
      * Store cartridge file bytes in this course's Files tool.
      *
+     * Empty $folder is the course root (obscure). Public, Student, and Private
+     * stay in those reserved folders when the cartridge path says so.
+     *
      * @return array{file_id:int,sha256:string,filename:string,href:string}
      */
-    public static function importBytes($bytes, $filename, $folder = 'Imported', $contentType = 'application/octet-stream') {
+    public static function importBytes($bytes, $filename, $folder = '', $contentType = 'application/octet-stream') {
         global $CFG, $PDOX, $CONTEXT;
 
         $bytes = (string) $bytes;
@@ -1688,10 +1691,7 @@ class Files extends Tool {
         if ( $filename === '' ) {
             $filename = 'file.bin';
         }
-        $folder = is_string($folder) ? trim($folder, '/') : 'Imported';
-        if ( $folder === '' ) {
-            $folder = 'Imported';
-        }
+        $folder = is_string($folder) ? trim($folder, '/') : '';
         $contentType = is_string($contentType) && $contentType !== ''
             ? $contentType
             : 'application/octet-stream';
@@ -1699,7 +1699,7 @@ class Files extends Tool {
         $tool = new self();
         $link_id = $tool->ensureFilesLaunch();
         $tool->ensureReservedFolders($link_id);
-        if ( ! $tool->nameExists($link_id, '', $folder) ) {
+        if ( $folder !== '' && ! $tool->nameExists($link_id, '', $folder) ) {
             $tool->ensureTopFolder($link_id, $folder);
         }
         $base = pathinfo($filename, PATHINFO_FILENAME);

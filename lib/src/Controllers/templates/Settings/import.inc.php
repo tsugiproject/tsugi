@@ -28,6 +28,29 @@ if ( $pending_token !== '' ) {
 <p><?= __('The file is held until you import or cancel (up to one hour).') ?></p>
 <p><?= __('Modules:') ?> <?= (int) $module_count ?></p>
 
+<fieldset style="margin:1em 0;border:0;padding:0;">
+  <legend style="font-size:inherit;border:0;margin-bottom:0.5em;"><?= __('When importing:') ?></legend>
+  <label style="display:block;font-weight:normal;">
+    <input type="radio" name="cc_replace_choice" value="add" checked>
+    <?= __('Add this import to the course\'s content') ?>
+  </label>
+  <label style="display:block;font-weight:normal;">
+    <input type="radio" name="cc_replace_choice" value="replace">
+    <?= __('Delete this course\'s content before importing') ?>
+  </label>
+  <div id="import-replace-warning" class="alert alert-danger" role="alert" style="display:none;margin-top:16px;padding:18px 20px;border-width:3px;">
+    <p style="font-size:1.75em;font-weight:bold;margin:0 0 12px 0;line-height:1.2;"><?= __('Warning: this cannot be undone') ?></p>
+    <p style="font-size:1.15em;margin-bottom:10px;"><?= __('If you import with this option selected, this course will be emptied first:') ?></p>
+    <ul style="font-size:1.1em;margin-bottom:12px;">
+      <li><?= __('All pages, files, and quizzes') ?></li>
+      <li><?= __('All resource links (assignments and LTI items)') ?></li>
+      <li><?= __('All gradebook results — student scores in this course will be deleted') ?></li>
+      <li><?= __('The Lessons outline, which is reset to empty and then filled from the cartridge') ?></li>
+    </ul>
+    <p style="font-size:1.15em;font-weight:bold;margin-bottom:0;"><?= __('File content still used by another course is kept. Everything else listed above is permanently removed.') ?></p>
+  </div>
+</fieldset>
+
 <ul class="nav nav-tabs">
   <li class="active"><a href="#import-allcontent" data-toggle="tab" aria-expanded="true"><?= __('All Content') ?></a></li>
   <li><a href="#import-selectcontent" data-toggle="tab" aria-expanded="false"><?= __('Select Content') ?></a></li>
@@ -36,12 +59,13 @@ if ( $pending_token !== '' ) {
 <div id="importTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="import-allcontent">
 <p><?= __('You can import all the modules, or you can import any combination of the modules.') ?></p>
-<form method="post" action="<?= htmlspecialchars($import_url) ?>">
+<form method="post" action="<?= htmlspecialchars($import_url) ?>" onsubmit="return confirmImportReplace();">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>
     <input type="hidden" name="cc_pending" value="<?= htmlspecialchars($pending_token) ?>">
     <input type="hidden" name="cc_import_action" value="all">
+    <input type="hidden" name="cc_replace" value="add">
     <p>
-        <button type="submit" class="btn btn-primary"><?= __('Import all modules') ?></button>
+        <button type="submit" class="btn btn-primary import-submit"><?= __('Import all modules') ?></button>
     </p>
 </form>
   </div>
@@ -83,13 +107,14 @@ if ( $pending_token !== '' ) {
     }
 } ?>
 <p>
-<input type="submit" value="<?= htmlspecialchars(__('Import selected modules')) ?>" class="btn btn-primary" onclick="return importSelectedModules();"/>
+<input type="submit" value="<?= htmlspecialchars(__('Import selected modules')) ?>" class="btn btn-primary import-submit" onclick="return importSelectedModules();"/>
 </p>
 </form>
 <form id="import-selected-real" method="post" action="<?= htmlspecialchars($import_url) ?>">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>
     <input type="hidden" name="cc_pending" value="<?= htmlspecialchars($pending_token) ?>">
     <input type="hidden" name="cc_import_action" value="selected">
+    <input type="hidden" name="cc_replace" value="add">
     <input id="import_modules_real" type="hidden" name="modules" value="">
 </form>
   </div>
