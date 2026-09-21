@@ -29,7 +29,7 @@ class Qti12Exporter {
     const RESPONSE_IDENT = 'response';
 
     /**
-     * @param array{pattern_match_as_fib?:bool,assessment_ident?:string,canvas_item_metadata?:bool} $options
+     * @param array{pattern_match_as_fib?:bool,assessment_ident?:string,canvas_item_metadata?:bool,schema_location?:string} $options
      * @return string UTF-8 XML
      * @throws ExportException
      */
@@ -51,9 +51,12 @@ class Qti12Exporter {
         $dom = new \DOMDocument('1.0', 'UTF-8');
         $dom->formatOutput = true;
 
+        $schema = isset($options['schema_location']) && is_string($options['schema_location']) && $options['schema_location'] !== ''
+            ? $options['schema_location']
+            : self::SCHEMA;
         $root = $dom->createElementNS(self::NS, 'questestinterop');
         $root->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
-        $root->setAttributeNS('http://www.w3.org/2001/XMLSchema-instance', 'xsi:schemaLocation', self::SCHEMA);
+        $root->setAttributeNS('http://www.w3.org/2001/XMLSchema-instance', 'xsi:schemaLocation', $schema);
         $dom->appendChild($root);
 
         $assessment = $dom->createElementNS(self::NS, 'assessment');

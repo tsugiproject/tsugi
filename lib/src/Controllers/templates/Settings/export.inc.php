@@ -51,13 +51,12 @@ $is_canvas_return = is_string($canvas_return_url) && $canvas_return_url !== '';
 <p>
 <label for="tsugi_lms_select_full"><?= __('Choose the LMS that will use this cartridge:') ?></label>
 <select name="tsugi_lms" id="tsugi_lms_select_full">
-  <option value="generic"><?= __('Generic') ?></option>
-  <option value="canvas">Canvas</option>
-  <option value="tsugi">Tsugi</option>
-  <option value="sakai">Sakai</option>
+<?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
+  <option value="<?= htmlspecialchars($value) ?>"><?= htmlentities(__($label)) ?></option>
+<?php } ?>
 </select>
 </p>
-<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions. Tsugi and Canvas share Canvas\'s cartridge format so a Canvas export can import into Tsugi later.') ?></p>
+<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions. Moodle is the same Generic content as Common Cartridge 1.1. Tsugi and Canvas share Canvas\'s cartridge format so a Canvas export can import into Tsugi later.') ?></p>
 <?php } ?>
 <?php if ( $discussion_count > 0 ) { ?>
 <p>
@@ -67,7 +66,7 @@ $is_canvas_return = is_string($canvas_return_url) && $canvas_return_url !== '';
 <?php if ( ! $is_canvas_return ) { ?>
   <option value="lti"><?= __('Use discussion tool on this server (LTI)') ?></option>
 <?php } ?>
-  <option value="lms"><?= $is_canvas_return ? __('Use the Canvas discussion tool') : __('Use the LMS Discussion Tool') ?></option>
+  <option value="lms" selected><?= $is_canvas_return ? __('Use the Canvas discussion tool') : __('Use the LMS Discussion Tool') ?></option>
   <option value="lti_grade"><?= __('Use discussion tool on this server (LTI) with grade passback') ?></option>
 </select>
 </p>
@@ -107,13 +106,12 @@ $is_canvas_return = is_string($canvas_return_url) && $canvas_return_url !== '';
 <p>
 <label for="tsugi_lms_select_partial"><?= __('Choose the LMS that will use this cartridge:') ?></label>
 <select name="tsugi_lms" id="tsugi_lms_select_partial">
-  <option value="generic"><?= __('Generic') ?></option>
-  <option value="canvas">Canvas</option>
-  <option value="tsugi">Tsugi</option>
-  <option value="sakai">Sakai</option>
+<?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
+  <option value="<?= htmlspecialchars($value) ?>"><?= htmlentities(__($label)) ?></option>
+<?php } ?>
 </select>
 </p>
-<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions. Tsugi and Canvas share Canvas\'s cartridge format so a Canvas export can import into Tsugi later.') ?></p>
+<p><?= __('Generic is a standards-only Common Cartridge 1.2 with no LMS extensions. Moodle is the same Generic content as Common Cartridge 1.1. Tsugi and Canvas share Canvas\'s cartridge format so a Canvas export can import into Tsugi later.') ?></p>
 <?php } ?>
 <?php if ( $youtube_enabled ) { ?>
 <p>
@@ -135,7 +133,7 @@ $is_canvas_return = is_string($canvas_return_url) && $canvas_return_url !== '';
 <?php if ( ! $is_canvas_return ) { ?>
   <option value="lti"><?= __('Use discussion tool on this server (LTI)') ?></option>
 <?php } ?>
-  <option value="lms"><?= $is_canvas_return ? __('Use the Canvas discussion tool') : __('Use the LMS Discussion Tool') ?></option>
+  <option value="lms" selected><?= $is_canvas_return ? __('Use the Canvas discussion tool') : __('Use the LMS Discussion Tool') ?></option>
   <option value="lti_grade"><?= __('Use discussion tool on this server (LTI) with grade passback') ?></option>
 </select>
 </p>

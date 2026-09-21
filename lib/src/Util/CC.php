@@ -3,11 +3,11 @@
 namespace Tsugi\Util;
 
 /**
- * This class allows us to produce an IMS Common Cartridge Version 1.2
+ * This class allows us to produce an IMS Common Cartridge (1.2 by default, 1.1 for Moodle).
  *
  * Version strings, namespaces, and resource types are centralized here so a
- * cartridge cannot advertise CC 1.2 in the manifest while emitting CC 1.1
- * QTI or web-link identifiers.
+ * cartridge cannot advertise one CC version in the manifest while emitting
+ * another version's QTI or web-link identifiers. Pass PROFILE_11 for Moodle.
  *
  * Usage to Create a ZIP file:
  *
@@ -29,31 +29,46 @@ namespace Tsugi\Util;
 class CC extends \Tsugi\Util\TsugiDOM {
 
     const VERSION = '1.2.0';
+    const VERSION_11 = '1.1.0';
     const SCHEMA_NAME = 'IMS Common Cartridge';
+    const PROFILE_11 = '1.1';
+    const PROFILE_12 = '1.2';
 
     const CC_NS =       'http://www.imsglobal.org/xsd/imsccv1p2/imscp_v1p1';
+    const CC_11_NS =    'http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1';
     /** @deprecated Use CC_NS. Same URI; name kept for older callers. */
     const CC_1_1_CP =   self::CC_NS;
     const WL_NS =       'http://www.imsglobal.org/xsd/imsccv1p2/imswl_v1p2';
+    const WL_11_NS =    'http://www.imsglobal.org/xsd/imsccv1p1/imswl_v1p1';
     const BLTI_NS =     'http://www.imsglobal.org/xsd/imsbasiclti_v1p0';
     const TOPIC_NS =    'http://www.imsglobal.org/xsd/imsccv1p2/imsdt_v1p2';
+    const TOPIC_11_NS = 'http://www.imsglobal.org/xsd/imsccv1p1/imsdt_v1p1';
     const LTICM_NS =    'http://www.imsglobal.org/xsd/imslticm_v1p0';
     const LTICP_NS =    'http://www.imsglobal.org/xsd/imslticp_v1p0';
     const LOM_NS =      'http://ltsc.ieee.org/xsd/imsccv1p2/LOM/resource';
+    const LOM_11_NS =   'http://ltsc.ieee.org/xsd/imsccv1p1/LOM/resource';
     const LOMIMSCC_NS = 'http://ltsc.ieee.org/xsd/imsccv1p2/LOM/manifest';
+    const LOMIMSCC_11_NS = 'http://ltsc.ieee.org/xsd/imsccv1p1/LOM/manifest';
 
     const WEB_LINK_TYPE = 'imswl_xmlv1p2';
+    const WEB_LINK_TYPE_11 = 'imswl_xmlv1p1';
     const WEBCONTENT_TYPE = 'webcontent';
     const TOPIC_TYPE = 'imsdt_xmlv1p2';
+    const TOPIC_TYPE_11 = 'imsdt_xmlv1p1';
     const LTI_TYPE = 'imsbasiclti_xmlv1p0';
     const ASSOCIATED_CONTENT_TYPE = 'associatedcontent/imscc_xmlv1p2/learning-application-resource';
+    const ASSOCIATED_CONTENT_TYPE_11 = 'associatedcontent/imscc_xmlv1p1/learning-application-resource';
 
     /** IMS CC 1.2 QTI 1.2.1 assessment resource type. */
     const QTI_ASSESSMENT_TYPE = 'imsqti_xmlv1p2/imscc_xmlv1p2/assessment';
+    const QTI_ASSESSMENT_TYPE_11 = 'imsqti_xmlv1p2/imscc_xmlv1p1/assessment';
     const QTI_NS = 'http://www.imsglobal.org/xsd/ims_qtiasiv1p2';
     const QTI_SCHEMA_LOCATION = 'http://www.imsglobal.org/xsd/ims_qtiasiv1p2 http://www.imsglobal.org/profile/cc/ccv1p2/ccv1p2_qtiasiv1p2p1_v1p0.xsd';
+    const QTI_SCHEMA_LOCATION_11 = 'http://www.imsglobal.org/xsd/ims_qtiasiv1p2 http://www.imsglobal.org/profile/cc/ccv1p1/ccv1p1_qtiasiv1p2p1_v1p0.xsd';
     const WL_SCHEMA_LOCATION = 'http://www.imsglobal.org/xsd/imsccv1p2/imswl_v1p2 http://www.imsglobal.org/profile/cc/ccv1p2/ccv1p2_imswl_v1p2.xsd';
+    const WL_SCHEMA_LOCATION_11 = 'http://www.imsglobal.org/xsd/imsccv1p1/imswl_v1p1 http://www.imsglobal.org/profile/cc/ccv1p1/ccv1p1_imswl_v1p1.xsd';
     const TOPIC_SCHEMA_LOCATION = 'http://www.imsglobal.org/xsd/imsccv1p2/imsdt_v1p2 http://www.imsglobal.org/profile/cc/ccv1p2/ccv1p2_imsdt_v1p2.xsd';
+    const TOPIC_SCHEMA_LOCATION_11 = 'http://www.imsglobal.org/xsd/imsccv1p1/imsdt_v1p1 http://www.imsglobal.org/profile/cc/ccv1p1/ccv1p1_imsdt_v1p1.xsd';
 
     const metadata_xpath = '/*/*[1]';
     const item_xpath = '/*/*[2]/*/*';
@@ -102,12 +117,123 @@ class CC extends \Tsugi\Util\TsugiDOM {
      */
     private $modulePaths = array();
 
-    function __construct() {
-        parent::__construct('<?xml version="1.0" encoding="UTF-8"?>
-<manifest identifier="cctd0015" xmlns="http://www.imsglobal.org/xsd/imsccv1p2/imscp_v1p1" xmlns:lom="http://ltsc.ieee.org/xsd/imsccv1p2/LOM/resource" xmlns:lomimscc="http://ltsc.ieee.org/xsd/imsccv1p2/LOM/manifest" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsccv1p2/imscp_v1p1 http://www.imsglobal.org/profile/cc/ccv1p2/ccv1p2_imscp_v1p2_v1p0.xsd http://ltsc.ieee.org/xsd/imsccv1p2/LOM/manifest http://www.imsglobal.org/profile/cc/ccv1p2/LOM/ccv1p2_lommanifest_v1p0.xsd http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0p1.xsd">
+    /**
+     * CC profile for this document: PROFILE_11 or PROFILE_12.
+     *
+     * @var string
+     */
+    public $cc_profile = self::PROFILE_12;
+
+    function __construct($profile = self::PROFILE_12) {
+        $this->cc_profile = ($profile === self::PROFILE_11) ? self::PROFILE_11 : self::PROFILE_12;
+        parent::__construct($this->manifestSkeleton());
+        $xpath = new \DOMXpath($this);
+        $res = $xpath->query(self::resource_xpath)->item(0);
+        $this->delete_children_ns($this->ccNs(), $res);
+        $items = $xpath->query(self::item_xpath)->item(0);
+        $this->delete_children_ns($this->ccNs(), $items);
+        $lom = $xpath->query(self::lom_general_xpath)->item(0);
+        $this->delete_children_ns($this->lomImsccNs(), $lom);
+
+        // Optionally create a DOM that can be used for the
+        // course_settings/module_meta.xml
+        // Canvas extension to CC. Setup "generic" / Moodle turns this off.
+        $this->canvas_module_meta = new CanvasModuleMeta();
+
+        // Initialize identifier generator for deterministic IDs
+        $this->idGenerator = new CCIdentifier();
+    }
+
+    /**
+     * CC 1.1 for Moodle export; everyone else is CC 1.2.
+     *
+     * @param mixed $tsugi_lms
+     * @return string
+     */
+    public static function profileForFlavor($tsugi_lms) {
+        $lms = is_string($tsugi_lms) ? strtolower(trim($tsugi_lms)) : '';
+        return $lms === 'moodle' ? self::PROFILE_11 : self::PROFILE_12;
+    }
+
+    public function isCc11() {
+        return $this->cc_profile === self::PROFILE_11;
+    }
+
+    public function schemaVersion() {
+        return $this->isCc11() ? self::VERSION_11 : self::VERSION;
+    }
+
+    public function ccNs() {
+        return $this->isCc11() ? self::CC_11_NS : self::CC_NS;
+    }
+
+    public function lomImsccNs() {
+        return $this->isCc11() ? self::LOMIMSCC_11_NS : self::LOMIMSCC_NS;
+    }
+
+    public function webLinkType() {
+        return $this->isCc11() ? self::WEB_LINK_TYPE_11 : self::WEB_LINK_TYPE;
+    }
+
+    public function topicType() {
+        return $this->isCc11() ? self::TOPIC_TYPE_11 : self::TOPIC_TYPE;
+    }
+
+    public function qtiAssessmentType() {
+        return $this->isCc11() ? self::QTI_ASSESSMENT_TYPE_11 : self::QTI_ASSESSMENT_TYPE;
+    }
+
+    public function associatedContentType() {
+        return $this->isCc11() ? self::ASSOCIATED_CONTENT_TYPE_11 : self::ASSOCIATED_CONTENT_TYPE;
+    }
+
+    public function webLinkNs() {
+        return $this->isCc11() ? self::WL_11_NS : self::WL_NS;
+    }
+
+    public function webLinkSchemaLocation() {
+        return $this->isCc11() ? self::WL_SCHEMA_LOCATION_11 : self::WL_SCHEMA_LOCATION;
+    }
+
+    public function topicNs() {
+        return $this->isCc11() ? self::TOPIC_11_NS : self::TOPIC_NS;
+    }
+
+    public function topicSchemaLocation() {
+        return $this->isCc11() ? self::TOPIC_SCHEMA_LOCATION_11 : self::TOPIC_SCHEMA_LOCATION;
+    }
+
+    public function qtiSchemaLocation() {
+        return $this->isCc11() ? self::QTI_SCHEMA_LOCATION_11 : self::QTI_SCHEMA_LOCATION;
+    }
+
+    /**
+     * Empty-ish manifest matching this profile (sample items are stripped in the constructor).
+     *
+     * @return string
+     */
+    private function manifestSkeleton() {
+        $ccNs = $this->ccNs();
+        $lomNs = $this->isCc11() ? self::LOM_11_NS : self::LOM_NS;
+        $lomImsccNs = $this->lomImsccNs();
+        $schemaVersion = $this->schemaVersion();
+        $cpXsd = $this->isCc11()
+            ? 'http://www.imsglobal.org/profile/cc/ccv1p1/ccv1p1_imscp_v1p2_v1p0.xsd'
+            : 'http://www.imsglobal.org/profile/cc/ccv1p2/ccv1p2_imscp_v1p2_v1p0.xsd';
+        $lomXsd = $this->isCc11()
+            ? 'http://www.imsglobal.org/profile/cc/ccv1p1/LOM/ccv1p1_lommanifest_v1p0.xsd'
+            : 'http://www.imsglobal.org/profile/cc/ccv1p2/LOM/ccv1p2_lommanifest_v1p0.xsd';
+        $wlType = $this->webLinkType();
+        $schemaLocation = $ccNs.' '.$cpXsd.' '.$lomImsccNs.' '.$lomXsd
+            .' http://www.imsglobal.org/xsd/imslticc_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticc_v1p0.xsd'
+            .' http://www.imsglobal.org/xsd/imslticp_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticp_v1p0.xsd'
+            .' http://www.imsglobal.org/xsd/imslticm_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imslticm_v1p0.xsd'
+            .' http://www.imsglobal.org/xsd/imsbasiclti_v1p0 http://www.imsglobal.org/xsd/lti/ltiv1p0/imsbasiclti_v1p0p1.xsd';
+        return '<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="cctd0015" xmlns="'.$ccNs.'" xmlns:lom="'.$lomNs.'" xmlns:lomimscc="'.$lomImsccNs.'" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="'.$schemaLocation.'">
   <metadata>
     <schema>IMS Common Cartridge</schema>
-    <schemaversion>1.2.0</schemaversion>
+    <schemaversion>'.$schemaVersion.'</schemaversion>
     <lomimscc:lom>
       <lomimscc:general>
         <lomimscc:title>
@@ -136,33 +262,17 @@ class CC extends \Tsugi\Util\TsugiDOM {
       <file href="LTI.xml"/>
       <dependency identifierref="BLTI001_Icon"/>
     </resource>
-    <resource identifier="T_00005_R" type="imswl_xmlv1p2">
+    <resource identifier="T_00005_R" type="'.$wlType.'">
       <file href="WebLink.xml"/>
     </resource>
   </resources>
-</manifest>');
-
-        $xpath = new \DOMXpath($this);
-        $res = $xpath->query(self::resource_xpath)->item(0);
-        $this->delete_children_ns(self::CC_NS, $res);
-        $items = $xpath->query(self::item_xpath)->item(0);
-        $this->delete_children_ns(self::CC_NS, $items);
-        $lom = $xpath->query(self::lom_general_xpath)->item(0);
-        $this->delete_children_ns(self::LOMIMSCC_NS, $lom);
-
-        // Optionally create a DOM that can be used for the
-        // course_settings/module_meta.xml
-        // Canvas extension to CC. Setup "generic" turns this off.
-        $this->canvas_module_meta = new CanvasModuleMeta();
-
-        // Initialize identifier generator for deterministic IDs
-        $this->idGenerator = new CCIdentifier();
+</manifest>';
     }
 
     /**
      * Drop Canvas-only extensions so the cartridge is spec CC only.
      *
-     * Used by Setup Generic export. Do not call from legacy cc/export.php.
+     * Used by Setup Generic and Moodle export. Do not call from legacy cc/export.php.
      */
     public function disable_canvas_extensions() {
         $this->canvas_extensions = false;
@@ -183,8 +293,8 @@ class CC extends \Tsugi\Util\TsugiDOM {
     public function set_title($title) {
         $xpath = new \DOMXpath($this);
         $general = $xpath->query(CC::lom_general_xpath)->item(0);
-        $new_title = $this->add_child_ns(CC::LOMIMSCC_NS, $general, 'title');
-        $new_string = $this->add_child_ns(CC::LOMIMSCC_NS, $new_title, 'string', $title, array("language" => "en-US"));
+        $new_title = $this->add_child_ns($this->lomImsccNs(), $general, 'title');
+        $new_string = $this->add_child_ns($this->lomImsccNs(), $new_title, 'string', $title, array("language" => "en-US"));
     }
 
     /*
@@ -198,8 +308,8 @@ class CC extends \Tsugi\Util\TsugiDOM {
     public function set_description($desc) {
         $xpath = new \DOMXpath($this);
         $general = $xpath->query(CC::lom_general_xpath)->item(0);
-        $new_description = $this->add_child_ns(CC::LOMIMSCC_NS, $general, 'description');
-        $new_string = $this->add_child_ns(CC::LOMIMSCC_NS, $new_description, 'string', $desc, array("language" => "en-US"));
+        $new_description = $this->add_child_ns($this->lomImsccNs(), $general, 'description');
+        $new_string = $this->add_child_ns($this->lomImsccNs(), $new_description, 'string', $desc, array("language" => "en-US"));
     }
 
     /**
@@ -220,8 +330,8 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $xpath = new \DOMXpath($this);
 
         $items = $xpath->query(CC::item_xpath)->item(0);
-        $module = $this->add_child_ns(CC::CC_NS, $items, 'item', null, array('identifier' => $this->last_identifier));
-        $new_title = $this->add_child_ns(CC::CC_NS, $module, 'title', $title);
+        $module = $this->add_child_ns($this->ccNs(), $items, 'item', null, array('identifier' => $this->last_identifier));
+        $new_title = $this->add_child_ns($this->ccNs(), $module, 'title', $title);
         
         // Store path for this module node
         $this->modulePaths[spl_object_hash($module)] = $modulePath;
@@ -259,8 +369,8 @@ class CC extends \Tsugi\Util\TsugiDOM {
         
         // Store module path for later lookups
         $modulePath = $parentPath ? $parentPath . '|' . $title : $title;
-        $sub_module = $this->add_child_ns(CC::CC_NS, $module, 'item', null, array('identifier' => $this->last_identifier));
-        $new_title = $this->add_child_ns(CC::CC_NS, $sub_module, 'title',$title);
+        $sub_module = $this->add_child_ns($this->ccNs(), $module, 'item', null, array('identifier' => $this->last_identifier));
+        $new_title = $this->add_child_ns($this->ccNs(), $sub_module, 'title',$title);
         
         // Store path for this submodule node
         $this->modulePaths[spl_object_hash($sub_module)] = $modulePath;
@@ -300,7 +410,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $fileHash = substr($this->last_identifier, strpos($this->last_identifier, '_') + 1);
         $file = 'xml/WL_'.$fileHash.'.xml';
         
-        $type = self::WEB_LINK_TYPE;
+        $type = $this->webLinkType();
         $this-> add_resource_item($module, $title, $type, $this->last_identifier, $file);
         return $file;
     }
@@ -337,7 +447,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $fileHash = substr($this->last_identifier, strpos($this->last_identifier, '_') + 1);
         $file = 'xml/TO_'.$fileHash.'.xml';
         
-        $type = self::TOPIC_TYPE;
+        $type = $this->topicType();
         $this-> add_resource_item($module, $title, $type, $this->last_identifier, $file);
         return $file;
     }
@@ -412,7 +522,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
             ? $this->last_identifier.'/assessment_qti.xml'
             : 'xml/Q1_'.$fileHash.'.xml';
 
-        $this->add_resource_item($module, $title, self::QTI_ASSESSMENT_TYPE, $this->last_identifier, $file);
+        $this->add_resource_item($module, $title, $this->qtiAssessmentType(), $this->last_identifier, $file);
         return $file;
     }
 
@@ -478,18 +588,18 @@ class CC extends \Tsugi\Util\TsugiDOM {
 
         $resource = $this->resource_by_identifier($idref);
         if ( $resource ) {
-            $this->add_child_ns(self::CC_NS, $resource, 'dependency', null, array('identifierref' => $meta_id));
+            $this->add_child_ns($this->ccNs(), $resource, 'dependency', null, array('identifierref' => $meta_id));
         }
 
         $xpath = new \DOMXpath($this);
         $resources = $xpath->query(self::resource_xpath)->item(0);
-        $lor = $this->add_child_ns(self::CC_NS, $resources, 'resource', null, array(
+        $lor = $this->add_child_ns($this->ccNs(), $resources, 'resource', null, array(
             'identifier' => $meta_id,
-            'type' => self::ASSOCIATED_CONTENT_TYPE,
+            'type' => $this->associatedContentType(),
             'href' => $meta_path,
         ));
-        $this->add_child_ns(self::CC_NS, $lor, 'file', null, array('href' => $id.'/assessment_qti.xml'));
-        $this->add_child_ns(self::CC_NS, $lor, 'file', null, array('href' => $meta_path));
+        $this->add_child_ns($this->ccNs(), $lor, 'file', null, array('href' => $id.'/assessment_qti.xml'));
+        $this->add_child_ns($this->ccNs(), $lor, 'file', null, array('href' => $meta_path));
     }
 
     /**
@@ -515,10 +625,10 @@ class CC extends \Tsugi\Util\TsugiDOM {
 
         $xpath = new \DOMXpath($this);
 
-        $new_item = $this->add_child_ns(CC::CC_NS, $module, 'item', null,
+        $new_item = $this->add_child_ns($this->ccNs(), $module, 'item', null,
             array('identifier' => $this->last_identifier, "identifierref" => $this->last_identifierref));
         if ( $title != null ) {
-            $new_title = $this->add_child_ns(CC::CC_NS, $new_item, 'title', $title);
+            $new_title = $this->add_child_ns($this->ccNs(), $new_item, 'title', $title);
         }
 
         $resources = $xpath->query(CC::resource_xpath)->item(0);
@@ -526,8 +636,8 @@ class CC extends \Tsugi\Util\TsugiDOM {
         if ( is_string($resourceHref) && $resourceHref !== '' ) {
             $res_attrs['href'] = $resourceHref;
         }
-        $new_resource = $this->add_child_ns(CC::CC_NS, $resources, 'resource', null, $res_attrs);
-        $new_file = $this->add_child_ns(CC::CC_NS, $new_resource, 'file', null, array("href" => $file));
+        $new_resource = $this->add_child_ns($this->ccNs(), $resources, 'resource', null, $res_attrs);
+        $new_file = $this->add_child_ns($this->ccNs(), $new_resource, 'file', null, array("href" => $file));
 
         return $new_item;
     }
@@ -546,10 +656,10 @@ class CC extends \Tsugi\Util\TsugiDOM {
     public function add_identifierref_item($module, $title, $itemIdentifier, $identifierref, $canvasContentType=null) {
         $this->last_identifier = $itemIdentifier;
         $this->last_identifierref = $identifierref;
-        $new_item = $this->add_child_ns(CC::CC_NS, $module, 'item', null,
+        $new_item = $this->add_child_ns($this->ccNs(), $module, 'item', null,
             array('identifier' => $itemIdentifier, 'identifierref' => $identifierref));
         if ( $title != null ) {
-            $this->add_child_ns(CC::CC_NS, $new_item, 'title', $title);
+            $this->add_child_ns($this->ccNs(), $new_item, 'title', $title);
         }
         if ( $this->canvas_items && is_string($canvasContentType) && $canvasContentType !== '' ) {
             $w = $this->canvas_module_meta->child_tags($canvasContentType);
@@ -573,9 +683,9 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $identifierref = $identifier."_R";
         $xpath = new \DOMXpath($this);
         $resources = $xpath->query(CC::resource_xpath)->item(0);
-        $new_resource = $this->add_child_ns(CC::CC_NS, $resources, 'resource', null,
+        $new_resource = $this->add_child_ns($this->ccNs(), $resources, 'resource', null,
             array('identifier' => $identifierref, "type" => $type));
-        $new_file = $this->add_child_ns(CC::CC_NS, $new_resource, 'file', null, array("href" => $file));
+        $new_file = $this->add_child_ns($this->ccNs(), $new_resource, 'file', null, array("href" => $file));
         return $identifierref;
     }
 
@@ -592,7 +702,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
      */
     function zip_add_url_to_module($zip, $module, $title, $url, $parentPath=null, $new_tab=true) {
         $file = $this->add_web_link($module, $title, $url, $parentPath);
-        $web_dom = new CC_WebLink();
+        $web_dom = new CC_WebLink($this);
         $web_dom->set_title($title);
         $web_dom->set_url($url);
         $zip->addFromString($file,$web_dom->saveXML());
@@ -979,15 +1089,15 @@ class CC extends \Tsugi\Util\TsugiDOM {
             $assignment_file = 'assignments/ASSIGNMENT_'.$assignment_fileHash.'.xml';
             
             // Create assignment resource and module item
-            $assignment_item = $this->add_resource_item($module, $title, self::ASSOCIATED_CONTENT_TYPE, $assignment_identifier, $assignment_file);
+            $assignment_item = $this->add_resource_item($module, $title, $this->associatedContentType(), $assignment_identifier, $assignment_file);
             $assignment_resource_id = $assignment_identifier . "_R";
             
             // Canvas requires LTI resources to be referenced in the organizations tree or they get discarded
             // Add a nested item under the assignment item that references the LTI resource
             // This ensures Canvas keeps the LTI resource when importing
-            $lti_item = $this->add_child_ns(CC::CC_NS, $assignment_item, 'item', null,
+            $lti_item = $this->add_child_ns($this->ccNs(), $assignment_item, 'item', null,
                 array('identifier' => $lti_identifier, "identifierref" => $lti_resource_id));
-            $hidden_title = $this->add_child_ns(CC::CC_NS, $lti_item, 'title', '(hidden)');
+            $hidden_title = $this->add_child_ns($this->ccNs(), $lti_item, 'title', '(hidden)');
             
             // Generate and save Canvas assignment XML (references the LTI resource identifier)
             // Canvas expects resource_link_id to match the LTI resource identifier in the manifest
@@ -1007,9 +1117,9 @@ class CC extends \Tsugi\Util\TsugiDOM {
         } else {
             // DEFAULT MODE: Just create LTI resource with module item (no assignment wrapper)
             // Create module item pointing directly to the LTI resource
-            $lti_item = $this->add_child_ns(CC::CC_NS, $module, 'item', null,
+            $lti_item = $this->add_child_ns($this->ccNs(), $module, 'item', null,
                 array('identifier' => $lti_identifier, "identifierref" => $lti_resource_id));
-            $lti_title = $this->add_child_ns(CC::CC_NS, $lti_item, 'title', $title);
+            $lti_title = $this->add_child_ns($this->ccNs(), $lti_item, 'title', $title);
             
             // Add to canvas_module_meta as LTI tool (not assignment)
             if ( $this->canvas_items ) {
@@ -1043,8 +1153,8 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $this->last_identifier = $this->idGenerator->makeIdentifier('header', $title, $parentPath);
 
         // Add item to manifest without identifierref (Canvas sub-header)
-        $header_item = $this->add_child_ns(CC::CC_NS, $module, 'item', null, array('identifier' => $this->last_identifier));
-        $new_title = $this->add_child_ns(CC::CC_NS, $header_item, 'title', $title);
+        $header_item = $this->add_child_ns($this->ccNs(), $module, 'item', null, array('identifier' => $this->last_identifier));
+        $new_title = $this->add_child_ns($this->ccNs(), $header_item, 'title', $title);
 
         // Add to Canvas module metadata as ContextModuleSubHeader
         if ( $this->canvas_items ) {
@@ -1071,7 +1181,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
      */
     function zip_add_topic_to_module($zip, $module, $title, $text, $parentPath=null) {
         $file = $this->add_topic($module, $title, $text, $parentPath);
-        $web_dom = new CC_Topic();
+        $web_dom = new CC_Topic($this);
         $web_dom->set_title($title);
         $web_dom->set_text($text);
         $zip->addFromString($file,$web_dom->saveXML());
@@ -1102,16 +1212,16 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $xpath = new \DOMXpath($this);
 
         $resources = $xpath->query(CC::resource_xpath)->item(0);
-        $new_resource = $this->add_child_ns(CC::CC_NS, $resources, 'resource', null,
+        $new_resource = $this->add_child_ns($this->ccNs(), $resources, 'resource', null,
             array(
                 'identifier' => "g5d51089383699fa7bcf3f5c9b81c857d",
-                "type" => self::ASSOCIATED_CONTENT_TYPE,
+                "type" => $this->associatedContentType(),
                 "href" => "course_settings/canvas_export.txt"
             )
         );
 
-        $new_file = $this->add_child_ns(CC::CC_NS, $new_resource, 'file', null, array("href" => "course_settings/canvas_export.txt"));
-        $new_file = $this->add_child_ns(CC::CC_NS, $new_resource, 'file', null, array("href" => "course_settings/module_meta.xml"));
+        $new_file = $this->add_child_ns($this->ccNs(), $new_resource, 'file', null, array("href" => "course_settings/canvas_export.txt"));
+        $new_file = $this->add_child_ns($this->ccNs(), $new_resource, 'file', null, array("href" => "course_settings/module_meta.xml"));
 
         $meta = $this->canvas_module_meta->prettyXML();
         $file = 'course_settings/module_meta.xml';

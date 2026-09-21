@@ -54,6 +54,100 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(0, $counts['pages']);
     }
 
+    public function testSummarizeCountsDiscussionItems() {
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'discussion',
+                'title' => 'Welcome',
+                'resource_link_id' => 'd1',
+            ),
+        ));
+        $counts = LessonsCartridge::summarize($l);
+        $this->assertSame(1, $counts['discussions']);
+        $this->assertSame(0, $counts['resources']);
+        $this->assertSame(0, $counts['assignments']);
+    }
+
+    public function testWriteZipDiscussionDefaultsToLmsTopic() {
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'discussion',
+                'title' => 'Welcome',
+                'resource_link_id' => 'd1',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array());
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $manifest = $zip->getFromName('imsmanifest.xml');
+            $this->assertNotFalse($manifest);
+            $this->assertStringContainsString('type="'.CC::TOPIC_TYPE.'"', $manifest);
+            $this->assertStringContainsString('<title>Welcome</title>', $manifest);
+            $this->assertStringNotContainsString('type="'.CC::LTI_TYPE.'"', $manifest);
+            $this->assertStringNotContainsString('Discussion:', $manifest);
+            $topicFile = null;
+            for ( $i = 0; $i < $zip->numFiles; $i++ ) {
+                $name = $zip->getNameIndex($i);
+                if ( is_string($name) && str_starts_with($name, 'xml/TO_') && str_ends_with($name, '.xml') ) {
+                    $topicFile = $name;
+                    break;
+                }
+            }
+            $this->assertNotNull($topicFile);
+            $xml = $zip->getFromName($topicFile);
+            $this->assertNotFalse($xml);
+            $this->assertStringContainsString(CC::TOPIC_NS, $xml);
+            $this->assertStringContainsString('<title>Welcome</title>', $xml);
+            $zip->close();
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipDiscussionNoneOmitsTopics() {
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'discussion',
+                'title' => 'Welcome',
+                'resource_link_id' => 'd1',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array('topic' => 'none'));
+        try {
+            $map = $this->zipEntryMap($path);
+            $blob = implode("\n", $map);
+            $this->assertStringNotContainsString('imsdt_xml', $blob);
+            $this->assertStringNotContainsString('<title>Welcome</title>', $blob);
+            $this->assertStringNotContainsString('type="'.CC::LTI_TYPE.'"', $blob);
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipDiscussionLtiIsLaunch() {
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'discussion',
+                'title' => 'Welcome',
+                'resource_link_id' => 'd1',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array('topic' => 'lti'));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $manifest = $zip->getFromName('imsmanifest.xml');
+            $this->assertNotFalse($manifest);
+            $this->assertStringContainsString('type="'.CC::LTI_TYPE.'"', $manifest);
+            $this->assertStringContainsString('<title>Discussion: Welcome</title>', $manifest);
+            $this->assertStringNotContainsString('type="'.CC::TOPIC_TYPE.'"', $manifest);
+            $zip->close();
+        } finally {
+            @unlink($path);
+        }
+    }
+
     public function testSummarizeCountsFilesSeparatelyFromResources()
     {
         $sha = str_repeat('a', 64);
@@ -322,6 +416,61 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testWriteZipMoodleIsGenericCc11() {
+        $l = $this->lessonsDoc(array(
+            array('type' => 'quiz', 'title' => 'Week 1 Quiz', 'quiz_id' => 1),
+            array('type' => 'web_link', 'subtype' => 'reference', 'title' => 'Doc', 'href' => 'https://example.com/'),
+        ));
+        $path = $this->writeCartridge($l, array(
+            'tsugi_lms' => 'moodle',
+            'load_quiz' => function ($id) {
+                return SampleQuiz::build($id);
+            },
+        ));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $manifest = $zip->getFromName('imsmanifest.xml');
+            $this->assertNotFalse($manifest);
+            $this->assertStringContainsString('<schemaversion>1.1.0</schemaversion>', $manifest);
+            $this->assertStringContainsString(CC::CC_11_NS, $manifest);
+            $this->assertStringContainsString('type="'.CC::QTI_ASSESSMENT_TYPE_11.'"', $manifest);
+            $this->assertStringContainsString('type="'.CC::WEB_LINK_TYPE_11.'"', $manifest);
+            $this->assertStringNotContainsString('imsccv1p2', $manifest);
+            $this->assertFalse($zip->getFromName('course_settings/module_meta.xml'));
+            $this->assertFalse($zip->getFromName('course_settings/canvas_export.txt'));
+            $this->assertStringNotContainsString('canvas.instructure.com', $manifest);
+
+            $qtiFile = null;
+            $wlFile = null;
+            for ( $i = 0; $i < $zip->numFiles; $i++ ) {
+                $name = $zip->getNameIndex($i);
+                if ( ! is_string($name) ) {
+                    continue;
+                }
+                if ( str_starts_with($name, 'xml/Q1_') && str_ends_with($name, '.xml') ) {
+                    $qtiFile = $name;
+                }
+                if ( str_starts_with($name, 'xml/WL_') && str_ends_with($name, '.xml') ) {
+                    $wlFile = $name;
+                }
+            }
+            $this->assertNotNull($qtiFile, 'Moodle cartridge should contain a Q1_ QTI XML file');
+            $xml = $zip->getFromName($qtiFile);
+            $this->assertNotFalse($xml);
+            $this->assertStringContainsString(CC::QTI_SCHEMA_LOCATION_11, $xml);
+            $this->assertStringNotContainsString(CC::QTI_SCHEMA_LOCATION, $xml);
+            $this->assertNotNull($wlFile, 'Moodle cartridge should contain a web link XML file');
+            $wl = $zip->getFromName($wlFile);
+            $this->assertNotFalse($wl);
+            $this->assertStringContainsString(CC::WL_11_NS, $wl);
+            $this->assertStringNotContainsString('imsccv1p2', $wl);
+            $zip->close();
+        } finally {
+            @unlink($path);
+        }
+    }
+
     public function testWriteZipCanvasKeepsModuleMeta() {
         $l = $this->lessonsDoc(array(
             array('type' => 'quiz', 'title' => 'Week 1 Quiz', 'quiz_id' => 1),
@@ -477,19 +626,30 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('Course_generic.imscc', LessonsCartridge::downloadName($l));
         $this->assertSame('Course_generic.imscc', LessonsCartridge::downloadName($l, 'generic'));
         $this->assertSame('Course_generic.imscc', LessonsCartridge::downloadName($l, false));
-        $this->assertSame('Course_generic.imscc', LessonsCartridge::downloadName($l, ' moodle '));
+        $this->assertSame('Course_moodle.imscc', LessonsCartridge::downloadName($l, ' moodle '));
         $this->assertSame('Course_canvas.imscc', LessonsCartridge::downloadName($l, 'canvas'));
         $this->assertSame('Course_tsugi.imscc', LessonsCartridge::downloadName($l, 'tsugi'));
         $this->assertSame('Course_sakai.imscc', LessonsCartridge::downloadName($l, 'sakai'));
         $this->assertSame('generic', LessonsCartridge::exportFlavor(''));
-        $this->assertSame('generic', LessonsCartridge::exportFlavor('Moodle'));
+        $this->assertSame('moodle', LessonsCartridge::exportFlavor('Moodle'));
         $this->assertSame('canvas', LessonsCartridge::exportFlavor('Canvas'));
         $this->assertSame('tsugi', LessonsCartridge::exportFlavor(' Tsugi '));
         $this->assertSame('sakai', LessonsCartridge::exportFlavor(' SAKAI '));
+        $this->assertSame('Moodle (CC 1.1)', LessonsCartridge::exportFlavorLabels()['moodle']);
+        $this->assertSame('Canvas (CC 1.2)', LessonsCartridge::exportFlavorLabels()['canvas']);
         $this->assertTrue(LessonsCartridge::usesCanvasCartridge('canvas'));
         $this->assertTrue(LessonsCartridge::usesCanvasCartridge('tsugi'));
         $this->assertFalse(LessonsCartridge::usesCanvasCartridge('generic'));
         $this->assertFalse(LessonsCartridge::usesCanvasCartridge('sakai'));
+        $this->assertFalse(LessonsCartridge::usesCanvasCartridge('moodle'));
+        $this->assertFalse(LessonsCartridge::wantsCanvasExtensions('moodle'));
+        $this->assertFalse(LessonsCartridge::wantsCanvasExtensions('generic'));
+        $this->assertSame('lms', LessonsCartridge::exportTopicMode(false));
+        $this->assertSame('lms', LessonsCartridge::exportTopicMode(''));
+        $this->assertSame('lms', LessonsCartridge::exportTopicMode(' LMS '));
+        $this->assertSame('none', LessonsCartridge::exportTopicMode('none'));
+        $this->assertSame('lti', LessonsCartridge::exportTopicMode('lti'));
+        $this->assertSame('lti_grade', LessonsCartridge::exportTopicMode('lti_grade'));
     }
 
     public function testWriteZipDoesNotCallLoadQuizForLtiQuiz() {

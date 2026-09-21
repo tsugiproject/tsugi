@@ -535,7 +535,9 @@ class LessonsLegacyGift {
     private function writeQti($zip, $cc_dom, $module_node, $title, array $payload, $parentPath) {
         $quiz = $payload['quiz'];
         $file = $cc_dom->add_qti_assessment($module_node, $title, $quiz->id, $parentPath);
-        $export_opts = array();
+        $export_opts = array(
+            'schema_location' => $cc_dom->qtiSchemaLocation(),
+        );
         if ( $cc_dom->canvas_quiz_wrapper ) {
             $export_opts['pattern_match_as_fib'] = true;
             $export_opts['canvas_item_metadata'] = true;

@@ -21,7 +21,8 @@ use Tsugi\Services\Quiz1\QuizRepository;
  * $WIKI_REFERENCE$) is the interchange format. The Canvas and Tsugi flavors
  * emit that same zip so Canvas import works today and Tsugi import can later
  * consume a cartridge Canvas itself exported. Do not add Tsugi-only zip
- * shapes to those flavors. Generic stays spec CC 1.2.
+ * shapes to those flavors. Generic stays spec CC 1.2. Moodle is Generic
+ * content as Common Cartridge 1.1.
  */
 class LessonsCartridge {
 
@@ -154,7 +155,8 @@ class LessonsCartridge {
 
         $tsugi_lms = self::exportFlavor(isset($options['tsugi_lms']) ? $options['tsugi_lms'] : '');
         $options['tsugi_lms'] = $tsugi_lms;
-        $topic = isset($options['topic']) ? $options['topic'] : false;
+        $topic = self::exportTopicMode(isset($options['topic']) ? $options['topic'] : false);
+        $options['topic'] = $topic;
         $youtube = isset($options['youtube']) ? $options['youtube'] : false;
         if ( $youtube === 'no' ) {
             $youtube = false;
@@ -166,8 +168,8 @@ class LessonsCartridge {
             $title = isset($CFG->context_title) ? $CFG->context_title : 'Course';
         }
 
-        $cc_dom = new CC();
-        // Generic is spec CC 1.2. Canvas/Tsugi emit Canvas's interchange format.
+        $cc_dom = new CC(CC::profileForFlavor($tsugi_lms));
+        // Generic and Moodle are spec CC. Canvas/Tsugi emit Canvas's interchange format.
         // Sakai still gets module_meta. Pages must not flip Generic onto wiki.
         if ( ! self::wantsCanvasExtensions($tsugi_lms) ) {
             $cc_dom->disable_canvas_extensions();
@@ -232,14 +234,48 @@ class LessonsCartridge {
     }
 
     /**
-     * Setup flavor used in the download filename: generic, canvas, tsugi, or sakai.
+     * How discussions are written into the cartridge.
+     *
+     * Default is native CC discussion (LMS topic), not an LTI link.
+     *
+     * @param mixed $raw
+     * @return string none|lti|lms|lti_grade
+     */
+    public static function exportTopicMode($raw) {
+        if ( ! is_string($raw) ) {
+            return 'lms';
+        }
+        $raw = strtolower(trim($raw));
+        if ( $raw === 'none' || $raw === 'lti' || $raw === 'lti_grade' || $raw === 'lms' ) {
+            return $raw;
+        }
+        return 'lms';
+    }
+
+    /**
+     * Setup flavor used in the download filename: generic, moodle, canvas, tsugi, or sakai.
      */
     public static function exportFlavor($tsugi_lms) {
         $lms = is_string($tsugi_lms) ? strtolower(trim($tsugi_lms)) : '';
-        if ( $lms === 'canvas' || $lms === 'sakai' || $lms === 'tsugi' ) {
+        if ( $lms === 'canvas' || $lms === 'sakai' || $lms === 'tsugi' || $lms === 'moodle' ) {
             return $lms;
         }
         return 'generic';
+    }
+
+    /**
+     * LMS flavor labels for export dropdowns, including the CC version each flavor writes.
+     *
+     * @return array<string, string> flavor => label
+     */
+    public static function exportFlavorLabels() {
+        return array(
+            'generic' => 'Generic (CC 1.2)',
+            'moodle' => 'Moodle (CC 1.1)',
+            'canvas' => 'Canvas (CC 1.2)',
+            'tsugi' => 'Tsugi (CC 1.2)',
+            'sakai' => 'Sakai (CC 1.2)',
+        );
     }
 
     /**
@@ -941,7 +977,9 @@ class LessonsCartridge {
             $title = $quiz->title;
         }
         $file = $cc_dom->add_qti_assessment($sub_module, $title, $quiz_id);
-        $export_opts = array();
+        $export_opts = array(
+            'schema_location' => $cc_dom->qtiSchemaLocation(),
+        );
         if ( $cc_dom->canvas_quiz_wrapper ) {
             $export_opts['pattern_match_as_fib'] = true;
             $export_opts['canvas_item_metadata'] = true;
@@ -968,6 +1006,7 @@ class LessonsCartridge {
 
     private static function processDiscussion($item, $module, $sub_module, $zip, $cc_dom, $topic) {
         global $CFG;
+        $topic = self::exportTopicMode($topic);
         if ( $topic === 'none' ) {
             return;
         }

@@ -2006,7 +2006,7 @@ function myfunc(){
     $("#res").val(stuff);
     $("#tsugi_lms_real").val($("#tsugi_lms_select_partial").val() || 'generic');
     $("#youtube_real").val($("#youtube_select_partial").val() || '');
-    $("#topic_real").val($("#topic_select_partial").val() || '');
+    $("#topic_real").val($("#topic_select_partial").val() || 'lms');
 
     if ( stuff.length < 1 ) {
         alert(<?= json_encode(__('Please select at least one module')) ?>);
@@ -2015,7 +2015,7 @@ function myfunc(){
     }
 }
 function sendToCanvas() {
-    goToCanvas('', $("#youtube_select_full").val() || 'no', $("#topic_select_full").val() || 'none');
+    goToCanvas('', $("#youtube_select_full").val() || 'no', $("#topic_select_full").val() || 'lms');
 }
 function sendToCanvasSelected() {
     var stuff = collectExportAnchors();
@@ -2023,7 +2023,7 @@ function sendToCanvasSelected() {
         alert(<?= json_encode(__('Please select at least one module')) ?>);
         return;
     }
-    goToCanvas(stuff, $("#youtube_select_partial").val() || 'no', $("#topic_select_partial").val() || 'none');
+    goToCanvas(stuff, $("#youtube_select_partial").val() || 'no', $("#topic_select_partial").val() || 'lms');
 }
 function goToCanvas(anchors, youtube, topic) {
     var return_url = <?= json_encode($canvas_return_url ? $canvas_return_url : '') ?>;
@@ -2600,7 +2600,7 @@ function importSelectedModules(){
         try {
             LessonsCartridge::writeZip($l, $zip, array(
                 'tsugi_lms' => $tsugi_lms,
-                'topic' => U::get($_GET, 'topic', false),
+                'topic' => LessonsCartridge::exportTopicMode(U::get($_GET, 'topic', false)),
                 'youtube' => U::get($_GET, 'youtube', false),
                 'anchors' => $anchors,
                 'context_id' => U::currentContextId(),

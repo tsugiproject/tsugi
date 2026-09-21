@@ -1,6 +1,7 @@
 <?php
 
 use \Tsugi\UI\Lessons;
+use \Tsugi\UI\LessonsCartridge;
 use \Tsugi\UI\LessonsLegacyFiles;
 use \Tsugi\UI\LessonsLegacyGift;
 use \Tsugi\Util\U;
@@ -33,7 +34,7 @@ $OUTPUT->bodystart(false);
     echo("<p>".htmlentities($l->lessons->description)."</p>\n");
     $resource_count = 0;
     $assignment_count = 0;
-    $discussion_count = 0;
+    $discussion_count = (int) LessonsCartridge::summarize($l)['discussions'];
     foreach($l->lessons->modules as $module) {
         $resources = Lessons::getUrlResources($module);
         if ( ! $resources ) continue;
@@ -71,28 +72,24 @@ combination of the modules.</p>
 <p>
 <label for="tsugi_lms_select_full">Choose the LMS that will use this cartridge:</label>
 <select name="tsugi_lms" id="tsugi_lms_select_full">
-  <option value="generic">Generic</option>
-  <option value="canvas">Canvas</option>
-  <option value="tsugi">Tsugi</option>
-  <option value="sakai">Sakai</option>
+<?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
+  <option value="<?= htmlspecialchars($value) ?>"><?= htmlentities($label) ?></option>
+<?php } ?>
 </select>
 </p>
+<p>Generic is a standards-only Common Cartridge 1.2 with no LMS extensions. Moodle is the same Generic content as Common Cartridge 1.1. Tsugi and Canvas share Canvas's cartridge format so a Canvas export can import into Tsugi later.</p>
 <?php LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_full'); ?>
 <?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_full'); ?>
-<?php if ( $discussion_count > 0 ) {
-    if (isset($CFG->tdiscus) ) { ?>
+<?php if ( $discussion_count > 0 ) { ?>
 <p>
 <label for="topic_select_full">How would you like to import discussions/topics?</label>
 <select name="topic" id="topic_select_full">
   <option value="none">Do not import discussion topics</option>
   <option value="lti">Use discussion tool on this server (LTI)</option>
-  <option value="lms">Use the LMS Discussion Tool</option>
+  <option value="lms" selected>Use the LMS Discussion Tool</option>
   <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
 </select>
 </p>
-<?php } else { ?>
-<input type="hidden" name="topic" value="lms" />
-<?php } ?>
 <?php } ?>
 <?php if ( isset($CFG->youtube_url) ) { ?>
 <p>
@@ -127,12 +124,12 @@ echo('<form id="void">'."\n");
 <p>
 <label for="tsugi_lms_select_partial">Choose the LMS that will use this cartridge:</label>
 <select name="tsugi_lms" id="tsugi_lms_select_partial">
-  <option value="generic">Generic</option>
-  <option value="canvas">Canvas</option>
-  <option value="tsugi">Tsugi</option>
-  <option value="sakai">Sakai</option>
+<?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
+  <option value="<?= htmlspecialchars($value) ?>"><?= htmlentities($label) ?></option>
+<?php } ?>
 </select>
 </p>
+<p>Generic is a standards-only Common Cartridge 1.2 with no LMS extensions. Moodle is the same Generic content as Common Cartridge 1.1. Tsugi and Canvas share Canvas's cartridge format so a Canvas export can import into Tsugi later.</p>
 <?php LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_partial'); ?>
 <?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_partial'); ?>
 <?php if ( isset($CFG->youtube_url) ) { ?>
@@ -145,22 +142,18 @@ echo('<form id="void">'."\n");
 </select>
 </p>
 <?php } ?>
-<?php if ( $discussion_count > 0 ) {
-    if ( isset($CFG->tdiscus) ) { ?>
+<?php if ( $discussion_count > 0 ) { ?>
 <p>
-<label for="topic_select_full">How would you like to import discussions/topics?</label>
+<label for="topic_select_partial">How would you like to import discussions/topics?</label>
 <select name="topic" id="topic_select_partial">
   <option value="none">Do not import discussion topics</option>
   <option value="lti">Use discussion tool on this server (LTI)</option>
-  <option value="lms">Use the LMS Discussion Tool</option>
+  <option value="lms" selected>Use the LMS Discussion Tool</option>
   <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
 </select>
 </p>
-<?php } else { ?>
-<input type="hidden" name="topic" value="lms" id="topic_select_partial"/>
-<?php }
-}
-
+<?php } ?>
+<?php
 foreach($l->lessons->modules as $module) {
     echo('<input type="checkbox" name="'.$module->anchor.'" value="'.$module->anchor.'">'."\n");
     echo(htmlentities($module->title));
@@ -171,8 +164,13 @@ foreach($l->lessons->modules as $module) {
     if ( isset($module->lti) ) {
         echo("<li>Assignments in this module: ".count($module->lti)."</li>\n");
     }
-    if ( isset($module->discussions) ) {
-        echo("<li>Discussions in this module: ".count($module->discussions)."</li>\n");
+    $mc = LessonsCartridge::moduleCounts($module);
+    $mod_disc = (int) $mc['discussions'];
+    if ( isset($module->discussions) && is_array($module->discussions) ) {
+        $mod_disc += count($module->discussions);
+    }
+    if ( $mod_disc > 0 ) {
+        echo("<li>Discussions in this module: ".$mod_disc."</li>\n");
     }
     $mod_files = 0;
     if ( isset($module->anchor) && isset($file_scan['by_module'][$module->anchor]) ) {
@@ -230,7 +228,7 @@ function myfunc(youtube){
     var stuff = $("#res").val();
     var youtube = $("#youtube_select_partial").val();
     $("#youtube_real").val(youtube);
-    var topic = $("#topic_select_partial").val();
+    var topic = $("#topic_select_partial").val() || 'lms';
     $("#topic_real").val(topic);
     var cartridge = $("#cartridge_select_partial").val();
     $("#cartridge_real").val(cartridge);

@@ -178,7 +178,7 @@ if ( isset($_POST['ext_content_return_url']) ) {
     echo("<p>Modules: ".count($l->lessons->modules)."</p>\n");
     $resource_count = 0;
     $assignment_count = 0;
-    $discussion_count = 0;
+    $discussion_count = (int) LessonsCartridge::summarize($l)['discussions'];
     foreach($l->lessons->modules as $module) {
         $resources = Lessons::getUrlResources($module);
         if ( ! $resources ) continue;
@@ -203,20 +203,16 @@ if ( isset($_POST['ext_content_return_url']) ) {
 <input type="hidden" name="tsugi_lms" value="canvas" />
 <?php LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_full'); ?>
 <?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_full'); ?>
-<?php if ( $discussion_count > 0 ) {
-    if (isset($CFG->tdiscus) ) { ?>
+<?php if ( $discussion_count > 0 ) { ?>
 <p>
 <label for="topic_select_full">How would you like to import discussions/topics?</label>
 <select name="topic" id="topic_select_full">
   <option value="none">Do not import discussion topics</option>
   <!-- <option value="lti">Use discussion tool on this server (LTI)</option> -->
   <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
-  <option value="lms">Use the Canvas discussion tool</option>
+  <option value="lms" selected>Use the Canvas discussion tool</option>
 </select>
 </p>
-<?php } else { ?>
-<input type="hidden" name="topic" value="lms" />
-<?php } ?>
 <?php } ?>
 <?php if ( isset($CFG->youtube_url) ) { ?>
 <p>
@@ -234,7 +230,7 @@ if ( isset($_POST['ext_content_return_url']) ) {
 <script>
 function sendToCanvas() {
     let youtube = $("#youtube_select_full").val();
-    let topic = $("#topic_select_full").val();
+    let topic = $("#topic_select_full").val() || 'lms';
     let cartridge = $("#cartridge_select_full").val();
     let gift_qti = $("#gift_qti_select_full").val();
 	let return_url = "<?= $return_url ?>";
@@ -268,7 +264,7 @@ if ( $anchors ) {
     if ( $anchor_count < 1 ) $anchors = false;
 }
 
-$topic = U::get($_GET,'topic', false);
+$topic = LessonsCartridge::exportTopicMode(U::get($_GET,'topic', false));
 $youtube = U::get($_GET,'youtube', false);
 if ( $youtube == 'no' ) $youtube = false;
 $cartridge = U::get($_GET, 'cartridge', 'thin');
@@ -329,7 +325,7 @@ if ( ! isCli() ) {
     header( "Content-Disposition: attachment; filename=\"".$download."\"" );
 }
 
-$cc_dom = new CC();
+$cc_dom = new CC(CC::profileForFlavor($tsugi_lms));
 if ( ! LessonsCartridge::wantsCanvasExtensions($tsugi_lms) ) {
     $cc_dom->disable_canvas_extensions();
 }

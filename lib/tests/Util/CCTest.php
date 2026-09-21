@@ -291,4 +291,25 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString($id.'/assessment_meta.xml', $save);
         $this->assertStringContainsString('type="'.CC::ASSOCIATED_CONTENT_TYPE.'"', $save);
     }
+
+    public function testCc11ManifestUses11Namespaces() {
+        $cc_dom = new CC(CC::PROFILE_11);
+        $cc_dom->set_title('Moodle Course');
+        $cc_dom->set_description('CC 1.1 cartridge');
+        $module = $cc_dom->add_module('Week 1');
+        $file = $cc_dom->add_web_link($module, 'Example', 'https://example.com/');
+        $save = $cc_dom->saveXML();
+
+        $this->assertTrue($cc_dom->isCc11());
+        $this->assertSame(CC::VERSION_11, $cc_dom->schemaVersion());
+        $this->assertSame(CC::PROFILE_11, CC::profileForFlavor('moodle'));
+        $this->assertSame(CC::PROFILE_12, CC::profileForFlavor('canvas'));
+        $this->assertStringContainsString('<schemaversion>1.1.0</schemaversion>', $save);
+        $this->assertStringContainsString(CC::CC_11_NS, $save);
+        $this->assertStringContainsString('type="'.CC::WEB_LINK_TYPE_11.'"', $save);
+        $this->assertStringNotContainsString('imsccv1p2', $save);
+        $this->assertStringNotContainsString('type="'.CC::WEB_LINK_TYPE.'"', $save);
+        $this->assertStringContainsString('<file href="'.$file.'"/>', $save);
+        $this->assertStringContainsString('Moodle Course', $save);
+    }
 }

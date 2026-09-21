@@ -20,4 +20,15 @@ class CC_TopicTest extends \PHPUnit\Framework\TestCase
         $this->assertStringNotContainsString('imsccv1p1', $save);
 
     }
+
+    public function testCc11Namespace() {
+        $cc = new \Tsugi\Util\CC(\Tsugi\Util\CC::PROFILE_11);
+        $topic_dom = new CC_Topic($cc);
+        $topic_dom->set_title('Why program?');
+        $topic_dom->set_text('We learn why one might want to learn to program.');
+        $save = $topic_dom->saveXML();
+        $this->assertStringContainsString('xmlns="'.\Tsugi\Util\CC::TOPIC_11_NS.'"', $save);
+        $this->assertStringContainsString(\Tsugi\Util\CC::TOPIC_SCHEMA_LOCATION_11, $save);
+        $this->assertStringNotContainsString('imsccv1p2', $save);
+    }
 }

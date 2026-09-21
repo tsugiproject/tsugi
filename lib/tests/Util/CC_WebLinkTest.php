@@ -21,4 +21,15 @@ class CC_WebLinkTest extends \PHPUnit\Framework\TestCase
         $this->assertStringNotContainsString('imsccv1p1', $save);
 
     }
+
+    public function testCc11Namespace() {
+        $cc = new \Tsugi\Util\CC(\Tsugi\Util\CC::PROFILE_11);
+        $web_dom = new CC_WebLink($cc);
+        $web_dom->set_title('Autograder: Single-table SQL');
+        $web_dom->set_url('http://www.php-intro.com/lessons.php?anchor=install');
+        $save = $web_dom->saveXML();
+        $this->assertStringContainsString('xmlns="'.\Tsugi\Util\CC::WL_11_NS.'"', $save);
+        $this->assertStringContainsString(\Tsugi\Util\CC::WL_SCHEMA_LOCATION_11, $save);
+        $this->assertStringNotContainsString('imsccv1p2', $save);
+    }
 }
