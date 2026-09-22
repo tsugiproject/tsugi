@@ -5,13 +5,13 @@ use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Quiz1\Qti12Exporter;
 use Tsugi\Services\Quiz1\Question;
 use Tsugi\Services\Quiz1\QuestionTypes;
-use Tsugi\Services\Quiz1\Quiz;
-use Tsugi\Services\Quiz1\SampleQuiz;
+use Tsugi\Services\Quiz1\Quiz1;
+use Tsugi\Services\Quiz1\SampleQuiz1;
 
 class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
 {
     public function testSampleExportIsWellFormedAndComplete() {
-        $quiz = SampleQuiz::build(1);
+        $quiz = SampleQuiz1::build(1);
         $xml = Qti12Exporter::export($quiz);
         $dom = $this->load($xml);
         $xp = $this->xpath($dom);
@@ -60,7 +60,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testMultipleChoiceStructureAndCorrectResponse() {
-        $xml = Qti12Exporter::export(SampleQuiz::build(1));
+        $xml = Qti12Exporter::export(SampleQuiz1::build(1));
         $xp = $this->xpath($this->load($xml));
         $item = $this->item($xp, 'Q1_ITEM_101');
 
@@ -86,7 +86,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testMultipleResponseAllOrNothing() {
-        $xml = Qti12Exporter::export(SampleQuiz::build(1));
+        $xml = Qti12Exporter::export(SampleQuiz1::build(1));
         $xp = $this->xpath($this->load($xml));
         $item = $this->item($xp, 'Q1_ITEM_102');
 
@@ -110,7 +110,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testTrueFalseCorrectIsFalse() {
-        $xml = Qti12Exporter::export(SampleQuiz::build(1));
+        $xml = Qti12Exporter::export(SampleQuiz1::build(1));
         $xp = $this->xpath($this->load($xml));
         $item = $this->item($xp, 'Q1_ITEM_103');
         $lid = $xp->query('q:presentation/q:response_lid', $item)->item(0);
@@ -123,7 +123,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testEssayIsNotComputerScored() {
-        $xml = Qti12Exporter::export(SampleQuiz::build(1));
+        $xml = Qti12Exporter::export(SampleQuiz1::build(1));
         $xp = $this->xpath($this->load($xml));
         $item = $this->item($xp, 'Q1_ITEM_104');
         $this->assertSame('No', $this->meta($xp, $item, 'qmd_computerscored'));
@@ -141,7 +141,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testFillBlankLiteralAnswersAreCaseInsensitive() {
-        $xml = Qti12Exporter::export(SampleQuiz::build(1));
+        $xml = Qti12Exporter::export(SampleQuiz1::build(1));
         $xp = $this->xpath($this->load($xml));
         $item = $this->item($xp, 'Q1_ITEM_105');
         $str = $xp->query('q:presentation/q:response_str', $item)->item(0);
@@ -158,7 +158,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testFillBlankSingleAnswerHasNoOr() {
-        $xml = Qti12Exporter::export(SampleQuiz::buildFillBlankSingle(1));
+        $xml = Qti12Exporter::export(SampleQuiz1::buildFillBlankSingle(1));
         $xp = $this->xpath($this->load($xml));
         $item = $this->item($xp, 'Q1_ITEM_105');
         $this->assertSame(0, $xp->query('.//q:or', $item)->length);
@@ -169,7 +169,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testCanvasItemMetadataAndAssessmentIdent() {
-        $xml = Qti12Exporter::export(SampleQuiz::build(1), array(
+        $xml = Qti12Exporter::export(SampleQuiz1::build(1), array(
             'pattern_match_as_fib' => true,
             'canvas_item_metadata' => true,
             'assessment_ident' => 'Q1_deadbeef',
@@ -183,7 +183,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testCanvasExportMapsPatternMatchToFillBlank() {
-        $xml = Qti12Exporter::export(SampleQuiz::build(1), array('pattern_match_as_fib' => true));
+        $xml = Qti12Exporter::export(SampleQuiz1::build(1), array('pattern_match_as_fib' => true));
         $xp = $this->xpath($this->load($xml));
         $this->assertSame(0, $xp->query('//q:fieldentry[text()="cc.pattern_match.v0p1"]')->length);
         $this->assertSame(0, $xp->query('//q:varsubstring')->length);
@@ -196,7 +196,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testPatternMatchUsesVarsubstring() {
-        $xml = Qti12Exporter::export(SampleQuiz::build(1));
+        $xml = Qti12Exporter::export(SampleQuiz1::build(1));
         $xp = $this->xpath($this->load($xml));
         $item = $this->item($xp, 'Q1_ITEM_106');
         $vs = $xp->query('.//q:varsubstring', $item);
@@ -207,7 +207,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testSpecialCharactersAreEscapedAndHtmlSurvives() {
-        $xml = Qti12Exporter::export(SampleQuiz::build(1));
+        $xml = Qti12Exporter::export(SampleQuiz1::build(1));
         $this->assertStringContainsString('<![CDATA[', $xml);
 
         $xp = $this->xpath($this->load($xml));
@@ -221,7 +221,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
         $html = $xp->query('q:presentation/q:material/q:mattext', $item2)->item(0)->textContent;
         $this->assertStringContainsString('<strong>all</strong>', $html);
 
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $quiz->id = 8;
         $quiz->title = 'Quote " & <test>';
         $q = new Question();
@@ -241,7 +241,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testGoldenSampleRegression() {
-        $xml = Qti12Exporter::export(SampleQuiz::build(1));
+        $xml = Qti12Exporter::export(SampleQuiz1::build(1));
         $golden = __DIR__ . '/../../fixtures/Quiz1/sample-qti.xml';
         $this->assertFileExists($golden);
         $expected = file_get_contents($golden);
@@ -249,7 +249,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testInvalidQuizRefusesExport() {
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $quiz->id = 9;
         $quiz->title = 'Bad';
         $q = new Question();
@@ -263,7 +263,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testEmptyQuizRefusesExport() {
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $quiz->id = 9;
         $quiz->title = 'Empty';
         $this->expectException(ExportException::class);
@@ -272,7 +272,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testAnswerOrderPreserved() {
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $quiz->id = 7;
         $quiz->title = 'Order';
         $q = new Question();
@@ -296,7 +296,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testCdataTerminatorRoundTrips() {
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $quiz->id = 12;
         $quiz->title = 'CDATA';
         $q = new Question();
@@ -316,7 +316,7 @@ class Qti12ExporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testHtmlInQuestionAnswerAndEssaySolution() {
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $quiz->id = 3;
         $quiz->title = 'HTML';
         $q = new Question();

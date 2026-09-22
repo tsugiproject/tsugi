@@ -7,10 +7,10 @@ use Tsugi\Core\LTIX;
 /**
  * Load and persist Quiz1 semantic records. Does not know about QTI XML.
  */
-class QuizRepository {
+class Quiz1Repository {
 
     /**
-     * @return Quiz[]
+     * @return Quiz1[]
      */
     public static function listForContext($context_id) {
         global $CFG, $PDOX;
@@ -27,7 +27,7 @@ class QuizRepository {
 
         $quizzes = array();
         foreach ( $rows as $row ) {
-            $quiz = new Quiz();
+            $quiz = new Quiz1();
             $quiz->id = (int) $row['quiz_id'];
             $quiz->title = $row['title'];
             $quiz->instructions = $row['instructions'] ?? '';
@@ -38,7 +38,7 @@ class QuizRepository {
     }
 
     /**
-     * @return Quiz|null
+     * @return Quiz1|null
      */
     public static function load($quiz_id, $context_id) {
         global $CFG, $PDOX;
@@ -54,7 +54,7 @@ class QuizRepository {
             return null;
         }
 
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $quiz->id = (int) $row['quiz_id'];
         $quiz->context_id = (int) $row['context_id'];
         $quiz->user_id = (int) $row['user_id'];
@@ -151,7 +151,7 @@ class QuizRepository {
         return $q;
     }
 
-    public static function insertQuiz(Quiz $quiz) {
+    public static function insertQuiz(Quiz1 $quiz) {
         global $CFG, $PDOX;
         LTIX::getConnection();
 
@@ -174,7 +174,7 @@ class QuizRepository {
         return $quiz->id;
     }
 
-    public static function updateQuizMeta(Quiz $quiz) {
+    public static function updateQuizMeta(Quiz1 $quiz) {
         global $CFG, $PDOX;
         LTIX::getConnection();
 

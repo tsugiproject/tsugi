@@ -33,7 +33,7 @@ class Qti12Exporter {
      * @return string UTF-8 XML
      * @throws ExportException
      */
-    public static function export(Quiz $quiz, array $options = array()) {
+    public static function export(Quiz1 $quiz, array $options = array()) {
         if ( ! empty($options['pattern_match_as_fib']) ) {
             $quiz = self::withPatternMatchAsFib($quiz);
         }
@@ -99,7 +99,7 @@ class Qti12Exporter {
      * to Fill in the Blank and warns. Emit FIB ourselves for Canvas exports.
      * Generic/Sakai keep varsubstring pattern match.
      */
-    public static function withPatternMatchAsFib(Quiz $quiz) {
+    public static function withPatternMatchAsFib(Quiz1 $quiz) {
         $copy = clone $quiz;
         $copy->questions = array();
         foreach ( $quiz->questions as $question ) {
@@ -125,7 +125,7 @@ class Qti12Exporter {
         return $map[$type] ?? 'short_answer_question';
     }
 
-    public static function quizIdent(Quiz $quiz) {
+    public static function quizIdent(Quiz1 $quiz) {
         return 'Q1_QUIZ_' . (int) $quiz->id;
     }
 

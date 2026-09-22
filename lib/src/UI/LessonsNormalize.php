@@ -2,7 +2,7 @@
 
 namespace Tsugi\UI;
 
-use \Tsugi\Controllers\Files;
+use Tsugi\Services\Files\FileRepository;
 
 /**
  * Canonical Lessons item model and lossless legacy normalizer.
@@ -969,7 +969,7 @@ class LessonsNormalize {
         if ( $sha !== null ) {
             $item['sha256'] = $sha;
             if ( ! self::nonEmptyString($item, 'href') ) {
-                $download = Files::downloadHrefForSha256($sha);
+                $download = FileRepository::downloadHrefForSha256($sha);
                 if ( $download !== null ) {
                     $item['href'] = $download;
                 }
@@ -977,14 +977,14 @@ class LessonsNormalize {
         }
         $path = null;
         if ( isset($item['path']) ) {
-            $path = Files::normalizeFilePath($item['path']);
+            $path = FileRepository::normalizeFilePath($item['path']);
         }
         if ( $path ) {
             $item['path'] = $path;
-            $pathHref = Files::hrefForPath($path);
+            $pathHref = FileRepository::hrefForPath($path);
             if ( $pathHref !== null ) {
                 $href = self::hrefOf($item);
-                if ( $href === '' || Files::sha256FromDownloadHref($href) ) {
+                if ( $href === '' || FileRepository::sha256FromDownloadHref($href) ) {
                     $item['href'] = $pathHref;
                 }
             }
@@ -1048,10 +1048,10 @@ class LessonsNormalize {
      * @return string|null
      */
     private static function sha256Of(array $item, $href) {
-        if ( isset($item['sha256']) && Files::isSha256($item['sha256']) ) {
+        if ( isset($item['sha256']) && FileRepository::isSha256($item['sha256']) ) {
             return strtolower($item['sha256']);
         }
-        $from_href = Files::sha256FromDownloadHref($href);
+        $from_href = FileRepository::sha256FromDownloadHref($href);
         return $from_href;
     }
 
@@ -1092,7 +1092,7 @@ class LessonsNormalize {
         if ( ! is_string($href) || $href === '' ) {
             return null;
         }
-        if ( Files::sha256FromDownloadHref($href) !== null ) {
+        if ( FileRepository::sha256FromDownloadHref($href) !== null ) {
             return null;
         }
         $path = $href;

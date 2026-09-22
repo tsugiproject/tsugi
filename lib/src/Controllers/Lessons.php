@@ -6,7 +6,7 @@ use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Lumen\Application;
-use Tsugi\Services\Quiz1\QuizRepository;
+use Tsugi\Services\Quiz1\Quiz1Repository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -158,7 +158,7 @@ class Lessons extends Tool {
         try {
             $context_id = U::currentContextId();
             if ( $context_id ) {
-                foreach ( QuizRepository::listForContext($context_id) as $quiz ) {
+                foreach ( Quiz1Repository::listForContext($context_id) as $quiz ) {
                     $quiz1_list[] = array(
                         'id' => (int) $quiz->id,
                         'title' => $quiz->title,

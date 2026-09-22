@@ -163,6 +163,18 @@ class LessonsLegacyFilesTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(LessonsLegacyFiles::wantsThickCartridge('THICK'));
     }
 
+    public function testEchoCartridgeSelectDefaultsToThick() {
+        ob_start();
+        LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_test');
+        $html = ob_get_clean();
+        $this->assertStringContainsString('option value="thick" selected', $html);
+        $this->assertStringNotContainsString('option value="thin" selected', $html);
+        $this->assertLessThan(
+            strpos($html, 'value="thin"'),
+            strpos($html, 'value="thick"')
+        );
+    }
+
     public function testSummarizeCountsUniqueFilesAndRemainingLinks() {
         require_once "src/UI/LessonsNormalize.php";
         require_once "src/UI/Lessons.php";

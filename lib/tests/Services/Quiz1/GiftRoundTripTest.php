@@ -5,12 +5,12 @@ use Tsugi\Services\Quiz1\GiftExporter;
 use Tsugi\Services\Quiz1\GiftImporter;
 use Tsugi\Services\Quiz1\ImportException;
 use Tsugi\Services\Quiz1\QuestionTypes;
-use Tsugi\Services\Quiz1\SampleQuiz;
+use Tsugi\Services\Quiz1\SampleQuiz1;
 
 class GiftRoundTripTest extends \PHPUnit\Framework\TestCase
 {
     public function testSampleExportContainsAllTypes() {
-        $gift = GiftExporter::export(SampleQuiz::build(1));
+        $gift = GiftExporter::export(SampleQuiz1::build(1));
         $this->assertStringContainsString('HTTP protocol', $gift);
         $this->assertStringContainsString('=HTTP', $gift);
         $this->assertStringContainsString('~FTP', $gift);
@@ -27,7 +27,7 @@ class GiftRoundTripTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testSampleRoundTripMapsPatternMatchToFillBlank() {
-        $gift = GiftExporter::export(SampleQuiz::build(1));
+        $gift = GiftExporter::export(SampleQuiz1::build(1));
         list($quiz, $warnings) = GiftImporter::import($gift);
         $this->assertSame(array(), $warnings);
         $this->assertCount(6, $quiz->questions);
@@ -111,21 +111,21 @@ class GiftRoundTripTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testEmptyQuizRefusesExport() {
-        $quiz = new \Tsugi\Services\Quiz1\Quiz();
+        $quiz = new \Tsugi\Services\Quiz1\Quiz1();
         $quiz->title = 'Empty';
         $this->expectException(ExportException::class);
         GiftExporter::export($quiz);
     }
 
     public function testHtmlAndSpecialCharactersRoundTrip() {
-        $gift = GiftExporter::export(SampleQuiz::build(1));
+        $gift = GiftExporter::export(SampleQuiz1::build(1));
         list($quiz,) = GiftImporter::import($gift);
         $this->assertStringContainsString('<strong>all</strong>', $quiz->questions[1]->prompt);
         $this->assertStringContainsString('2 &lt; 3', $quiz->questions[0]->prompt);
     }
 
     public function testTrueFalseFeedbackRoundTrip() {
-        $quiz = new \Tsugi\Services\Quiz1\Quiz();
+        $quiz = new \Tsugi\Services\Quiz1\Quiz1();
         $quiz->title = 'TF feedback';
         $q = new \Tsugi\Services\Quiz1\Question();
         $q->sequence = 1;
@@ -151,7 +151,7 @@ class GiftRoundTripTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testMultipleResponseWeightsSumTo100() {
-        $quiz = SampleQuiz::buildMultipleResponse(1);
+        $quiz = SampleQuiz1::buildMultipleResponse(1);
         $gift = GiftExporter::export($quiz);
         preg_match_all('/%(-?[\d.]+)%/', $gift, $m);
         $positive = 0.0;

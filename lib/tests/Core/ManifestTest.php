@@ -59,10 +59,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($doc['count']);
         $this->assertSame(array(), $doc['badges']);
         $this->assertSame(array(), $doc['discussions']);
-        $this->assertCount(1, $doc['modules']);
-        $this->assertSame('Week 1', $doc['modules'][0]['title']);
-        $this->assertSame('week-1', $doc['modules'][0]['anchor']);
-        $this->assertSame(array(), $doc['modules'][0]['items']);
+        $this->assertSame(array(), $doc['modules']);
     }
 
     public function testStarterBlankTitle()
@@ -76,8 +73,8 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $json = Manifest::encode(Manifest::starter('Parse Me'));
         $lessons = \Tsugi\UI\Lessons::fromJson($json);
         $this->assertSame('Parse Me', $lessons->lessons->title);
-        $this->assertCount(1, $lessons->lessons->modules);
-        $this->assertSame('week-1', $lessons->lessons->modules[0]->anchor);
+        $this->assertTrue($lessons->isEmpty());
+        $this->assertSame(array(), $lessons->lessons->modules);
     }
 
     public function testCacheKeyUsesServerPrefixAndId()
@@ -213,7 +210,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
     public function testValidateJsonAcceptsEmptyModules()
     {
         $doc = Manifest::starter('Empty Outline');
-        $doc['modules'] = array();
+        $this->assertSame(array(), $doc['modules']);
         $this->assertNull(Manifest::validateJson(Manifest::encode($doc)));
     }
 
@@ -227,7 +224,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
 
     public function testValidateJsonRejectsMissingModuleTitle()
     {
-        $doc = Manifest::starter('Broken');
+        $doc = $this->starterWithWeek1('Broken');
         unset($doc['modules'][0]['title']);
         $err = Manifest::validateJson(Manifest::encode($doc));
         $this->assertIsString($err);
@@ -236,7 +233,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
 
     public function testValidateJsonRejectsDuplicateResourceLink()
     {
-        $doc = Manifest::starter('Dup');
+        $doc = $this->starterWithWeek1('Dup');
         $doc['modules'][0]['items'] = array(
             array(
                 'type' => 'lti',
@@ -258,7 +255,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
 
     public function testValidateJsonRejectsNonIntegerQuizId()
     {
-        $doc = Manifest::starter('Quiz');
+        $doc = $this->starterWithWeek1('Quiz');
         $doc['modules'][0]['items'] = array(
             array(
                 'type' => 'quiz',
@@ -284,7 +281,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
 
     public function testFromJsonSurvivesInvalidQuizId()
     {
-        $doc = Manifest::starter('Load');
+        $doc = $this->starterWithWeek1('Load');
         $doc['modules'][0]['items'] = array(
             array(
                 'type' => 'quiz',
@@ -352,7 +349,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
 
     public function testAppendDiscussionSkipsModuleItemRlids()
     {
-        $doc = Manifest::starter('Sandbox');
+        $doc = $this->starterWithWeek1('Sandbox');
         $doc['modules'][0]['items'][] = array(
             'type' => 'discussion',
             'title' => 'Week talk',
@@ -365,7 +362,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
 
     public function testAppendDiscussionSkipsNestedItemRlids()
     {
-        $doc = Manifest::starter('Sandbox');
+        $doc = $this->starterWithWeek1('Sandbox');
         $doc['modules'][0]['items'][] = array(
             'type' => 'slides',
             'title' => 'Group',
@@ -472,6 +469,24 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
     {
         $this->assertSame('', Manifest::currentThemeKey());
         $this->assertNull(Manifest::currentThemeArray());
+    }
+
+    /**
+     * @param list<array<string, mixed>> $items
+     * @return array<string, mixed>
+     */
+    private function starterWithWeek1($title, $items = array())
+    {
+        $doc = Manifest::starter($title);
+        $doc['modules'] = array(
+            array(
+                'title' => 'Week 1',
+                'anchor' => 'week-1',
+                'description' => '',
+                'items' => $items,
+            ),
+        );
+        return $doc;
     }
 }
 

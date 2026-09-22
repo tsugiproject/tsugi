@@ -13,7 +13,7 @@ use \Tsugi\Core\Membership;
 use \Tsugi\Crypt\AesOpenSSL;
 use \Tsugi\Grades\GradeUtil;
 use \Tsugi\Services\Badges\BadgeService;
-use \Tsugi\Services\Quiz1\QuizRepository;
+use \Tsugi\Services\Quiz1\Quiz1Repository;
 
 if ( ! class_exists(__NAMESPACE__.'\\LessonsNormalize', false) ) {
     require_once __DIR__ . '/LessonsNormalize.php';
@@ -361,7 +361,7 @@ class Lessons {
             self::fail('lessons.json must have a modules array');
         }
 
-        // Demand that every module have required elments
+        // Empty modules is a valid new-course outline.
         foreach($lessons->modules as $module) {
             if ( !isset($module->title) ) {
                 self::fail('All modules in a lesson must have a title');
@@ -595,6 +595,25 @@ class Lessons {
     }
 
     /**
+     * True when there is no visible Lessons outline (new course, or all modules hidden).
+     */
+    public function isEmpty() {
+        if ( ! isset($this->lessons->modules) || ! is_array($this->lessons->modules) ) {
+            return true;
+        }
+        foreach ( $this->lessons->modules as $module ) {
+            if ( isset($module->hidden) && $module->hidden ) {
+                continue;
+            }
+            if ( isset($module->login) && $module->login && ! U::isLoggedIn() ) {
+                continue;
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Get a module associated with an anchor
      */
     public function getModuleByAnchor($anchor)
@@ -699,6 +718,20 @@ class Lessons {
      ** render
      */
     public function render($buffer=false) {
+        if ( ! $this->isSingle() && $this->isEmpty() ) {
+            $title = isset($this->lessons->title) ? (string) $this->lessons->title : '';
+            $html = '<div typeof="Course">'."\n";
+            if ( $title !== '' ) {
+                $html .= '<h1>'.htmlspecialchars($title, ENT_QUOTES, 'UTF-8')."</h1>\n";
+            }
+            $html .= '<p>'.htmlspecialchars(__('There is no Lessons content.'), ENT_QUOTES, 'UTF-8')."</p>\n";
+            $html .= '</div>'."\n";
+            if ( $buffer ) {
+                return $html;
+            }
+            echo($html);
+            return;
+        }
         if ( $this->isSingle() ) {
             return $this->renderSingle($buffer);
         } else {
@@ -3527,7 +3560,7 @@ $(function(){
             $context_id = U::currentContextId();
             if ( $context_id > 0 ) {
                 try {
-                    foreach ( QuizRepository::listForContext($context_id) as $quiz ) {
+                    foreach ( Quiz1Repository::listForContext($context_id) as $quiz ) {
                         $this->quiz1IdSet[(int) $quiz->id] = true;
                     }
                 } catch ( \Exception $e ) {

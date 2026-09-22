@@ -8,7 +8,6 @@ require_once "src/Config/ConfigInfo.php";
 
 use Tsugi\UI\Lessons;
 use Tsugi\UI\LessonsNormalize;
-use Tsugi\Controllers\Files;
 
 class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
 {

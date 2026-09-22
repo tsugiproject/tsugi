@@ -14,7 +14,7 @@ class GiftExporter {
      * @return string UTF-8 GIFT
      * @throws ExportException
      */
-    public static function export(Quiz $quiz) {
+    public static function export(Quiz1 $quiz) {
         $errors = $quiz->validate();
         if ( count($errors) > 0 ) {
             throw new ExportException("Quiz is not valid for GIFT export:\n" . implode("\n", $errors));

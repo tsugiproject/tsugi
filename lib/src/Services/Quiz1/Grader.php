@@ -22,7 +22,7 @@ class Grader {
      * @param array<string, mixed> $post Request POST (q{id} / q{id}[])
      * @return array{earned:int,possible:int,essay_possible:int,items:array<int,array<string,mixed>>}
      */
-    public static function grade(Quiz $quiz, array $post) {
+    public static function grade(Quiz1 $quiz, array $post) {
         $earned = 0;
         $possible = 0;
         $essay_possible = 0;

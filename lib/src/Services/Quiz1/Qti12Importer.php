@@ -22,7 +22,7 @@ class Qti12Importer {
 
     /**
      * @param string $payload XML or zip bytes
-     * @return array{0: Quiz, 1: string[]}
+     * @return array{0: Quiz1, 1: string[]}
      * @throws ImportException
      */
     public static function import($payload) {
@@ -42,7 +42,7 @@ class Qti12Importer {
             throw new ImportException($msg);
         }
 
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $assessment = self::firstDescendant($dom->documentElement, 'assessment');
         if ( $assessment ) {
             $quiz->title = trim($assessment->getAttribute('title'));

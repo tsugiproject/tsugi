@@ -2,12 +2,12 @@
 
 namespace Tsugi\Services\Cartridge;
 
-use Tsugi\Controllers\Files;
-use Tsugi\Controllers\Pages;
+use Tsugi\Services\Files\FileRepository;
+use Tsugi\Services\Pages\PageRepository;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Services\Quiz1\Qti12Importer;
-use Tsugi\Services\Quiz1\QuizRepository;
+use Tsugi\Services\Quiz1\Quiz1Repository;
 use Tsugi\UI\LessonsNormalize;
 use Tsugi\Util\CC;
 
@@ -104,7 +104,7 @@ class Importer {
                     $lesson = self::lessonFromObject($d->object, (string) ($res['title'] ?? ''));
                     if ( (string) ($d->object['local_kind'] ?? '') === 'file' ) {
                         $sha = (string) ($d->object['local_key'] ?? '');
-                        $dupHref = Files::downloadHrefForSha256($sha);
+                        $dupHref = FileRepository::downloadHrefForSha256($sha);
                         if ( is_string($dupHref) && $dupHref !== '' ) {
                             $fileHrefToLocal[$href] = array(
                                 'sha256' => $sha,
@@ -162,7 +162,7 @@ class Importer {
             $bytes = $pkg->readHref($href);
             $filename = basename(str_replace('\\', '/', $href));
             $folder = self::filesFolderFromHref($href);
-            $stored = Files::importBytes($bytes, $filename, $folder, self::mimeForName($filename));
+            $stored = FileRepository::importBytes($bytes, $filename, $folder, self::mimeForName($filename));
             $lesson = array(
                 'type' => LessonsNormalize::TYPE_FILE,
                 'title' => $title,
@@ -185,7 +185,7 @@ class Importer {
             $html = self::rewriteFileBase($html, $fileHrefToLocal);
             $body = self::htmlBody($html);
             $key = pathinfo(basename(str_replace('\\', '/', $href)), PATHINFO_FILENAME);
-            $page = Pages::importHtml($title, $body, $key, $context_id, $user_id);
+            $page = PageRepository::importHtml($title, $body, $key, $context_id, $user_id);
             $lesson = array(
                 'type' => LessonsNormalize::TYPE_HTML_PAGE,
                 'title' => $page['title'],
@@ -209,7 +209,7 @@ class Importer {
             }
             $quiz->context_id = $context_id;
             $quiz->user_id = $user_id;
-            QuizRepository::insertQuiz($quiz);
+            Quiz1Repository::insertQuiz($quiz);
             $lesson = array(
                 'type' => LessonsNormalize::TYPE_QUIZ,
                 'title' => $quiz->title,
@@ -463,7 +463,7 @@ class Importer {
         $title = $title !== '' ? $title : 'Item';
         if ( $kind === 'file' ) {
             $sha = (string) ($object['local_key'] ?? '');
-            $href = Files::downloadHrefForSha256($sha);
+            $href = FileRepository::downloadHrefForSha256($sha);
             return array(
                 'type' => LessonsNormalize::TYPE_FILE,
                 'title' => $title,
@@ -510,21 +510,36 @@ class Importer {
     }
 
     /**
-     * Files-tool folder for a cartridge href. Root (obscure) unless the zip path
-     * is under Public, Student, or Private.
+     * Files-tool folder for a cartridge href. Keep the zip path under
+     * web_resources (or the zip-relative path), minus the filename.
+     * No extra Imported wrapper.
      *
      * @param mixed $href
      * @return string
      */
     public static function filesFolderFromHref($href) {
         $href = str_replace('\\', '/', (string) $href);
-        if ( preg_match('#web_resources/([^/]+)/#', $href, $m) ) {
-            $top = $m[1];
-            if ( in_array($top, array(Files::PUBLIC_FOLDER, Files::STUDENT_FILES_FOLDER, Files::PRIVATE_FOLDER), true) ) {
-                return $top;
-            }
+        $href = preg_replace('/[?#].*$/', '', $href);
+        $href = trim((string) $href);
+        if ( $href === '' ) {
+            return '';
         }
-        return '';
+        if ( preg_match('#(?:^|/)web_resources/(.+)$#', $href, $m) ) {
+            $rel = $m[1];
+        } else {
+            $rel = ltrim($href, '/');
+        }
+        $rel = trim($rel, '/');
+        if ( $rel === '' ) {
+            return '';
+        }
+        $slash = strrpos($rel, '/');
+        if ( $slash === false ) {
+            return '';
+        }
+        $folder = substr($rel, 0, $slash);
+        $norm = FileRepository::normalizeFolder($folder);
+        return ($norm === false) ? '' : $norm;
     }
 
     private static function mimeForName($filename) {

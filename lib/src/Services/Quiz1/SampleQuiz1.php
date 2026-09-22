@@ -8,7 +8,7 @@ namespace Tsugi\Services\Quiz1;
  * Used by automated export tests and by the instructor "Create sample quiz"
  * action for manual Canvas/Sakai import experiments.
  */
-class SampleQuiz {
+class SampleQuiz1 {
 
     public static function title() {
         return 'QTI Export Test';
@@ -18,7 +18,7 @@ class SampleQuiz {
      * In-memory quiz with stable fake ids so export is deterministic.
      */
     public static function build($quiz_id = 1) {
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $quiz->id = (int) $quiz_id;
         $quiz->title = self::title();
         $quiz->instructions = '<p>Sample quiz for Common Cartridge QTI 1.2.1 export. Characters: & < > " \'</p>';
@@ -72,7 +72,7 @@ class SampleQuiz {
      * @param Question[] $questions
      */
     private static function wrap($quiz_id, $title, array $questions) {
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $quiz->id = (int) $quiz_id;
         $quiz->title = $title;
         $quiz->questions = $questions;

@@ -21,6 +21,7 @@ if ( ! isset($export_url) ) {
     $export_url = $setup_url;
 }
 ?>
+<h1><?= htmlspecialchars(\Tsugi\Controllers\Settings::courseHeadingTitle()) ?></h1>
 <ul class="nav nav-tabs">
   <li class="<?= $setup_tab === 'theme' ? 'active' : '' ?>">
     <a href="<?= htmlspecialchars($setup_url) ?>"><?= __('Theme') ?></a>

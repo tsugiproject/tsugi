@@ -104,14 +104,7 @@ class Manifest {
             'required_modules' => array(),
             'discussions' => array(),
             'badges' => array(),
-            'modules' => array(
-                array(
-                    'title' => 'Week 1',
-                    'anchor' => 'week-1',
-                    'description' => '',
-                    'items' => array(),
-                ),
-            ),
+            'modules' => array(),
         );
     }
 

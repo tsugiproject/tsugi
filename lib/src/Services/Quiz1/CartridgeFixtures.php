@@ -17,15 +17,15 @@ class CartridgeFixtures {
      */
     public static function builders() {
         return array(
-            '00-minimal-qti' => array(SampleQuiz::class, 'buildMinimal'),
-            '01-multiple-choice' => array(SampleQuiz::class, 'buildMultipleChoice'),
-            '02-multiple-response' => array(SampleQuiz::class, 'buildMultipleResponse'),
-            '03-true-false' => array(SampleQuiz::class, 'buildTrueFalse'),
-            '04-essay' => array(SampleQuiz::class, 'buildEssay'),
-            '05-fib-single-answer' => array(SampleQuiz::class, 'buildFillBlankSingle'),
-            '06-fib-multiple-answer' => array(SampleQuiz::class, 'buildFillBlankMultiple'),
-            '07-pattern-match' => array(SampleQuiz::class, 'buildPatternMatch'),
-            '08-all-question-types' => array(SampleQuiz::class, 'build'),
+            '00-minimal-qti' => array(SampleQuiz1::class, 'buildMinimal'),
+            '01-multiple-choice' => array(SampleQuiz1::class, 'buildMultipleChoice'),
+            '02-multiple-response' => array(SampleQuiz1::class, 'buildMultipleResponse'),
+            '03-true-false' => array(SampleQuiz1::class, 'buildTrueFalse'),
+            '04-essay' => array(SampleQuiz1::class, 'buildEssay'),
+            '05-fib-single-answer' => array(SampleQuiz1::class, 'buildFillBlankSingle'),
+            '06-fib-multiple-answer' => array(SampleQuiz1::class, 'buildFillBlankMultiple'),
+            '07-pattern-match' => array(SampleQuiz1::class, 'buildPatternMatch'),
+            '08-all-question-types' => array(SampleQuiz1::class, 'build'),
         );
     }
 
@@ -48,7 +48,7 @@ class CartridgeFixtures {
     /**
      * @return string Absolute path of the .imscc file
      */
-    public static function writeOne($dir, $stem, Quiz $quiz, array $options = array()) {
+    public static function writeOne($dir, $stem, Quiz1 $quiz, array $options = array()) {
         if ( ! is_dir($dir) && ! mkdir($dir, 0775, true) && ! is_dir($dir) ) {
             throw new ExportException('Cannot create fixture directory: '.$dir);
         }
@@ -73,7 +73,7 @@ class CartridgeFixtures {
     /**
      * @return object
      */
-    public static function lessonsDoc(Quiz $quiz) {
+    public static function lessonsDoc(Quiz1 $quiz) {
         return (object) array(
             'lessons' => (object) array(
                 'title' => $quiz->title,
@@ -99,7 +99,7 @@ class CartridgeFixtures {
      *
      * @return object
      */
-    public static function mixedLessonsDoc(Quiz $quiz) {
+    public static function mixedLessonsDoc(Quiz1 $quiz) {
         return (object) array(
             'lessons' => (object) array(
                 'title' => 'Mixed positions',
@@ -130,7 +130,7 @@ class CartridgeFixtures {
         );
     }
 
-    public static function writeMixed($dir, Quiz $quiz) {
+    public static function writeMixed($dir, Quiz1 $quiz) {
         $path = rtrim($dir, '/').'/09-mixed-module.imscc';
         if ( file_exists($path) ) {
             unlink($path);

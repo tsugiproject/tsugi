@@ -4,7 +4,7 @@ use Tsugi\Services\Quiz1\ImportException;
 use Tsugi\Services\Quiz1\Qti12Exporter;
 use Tsugi\Services\Quiz1\Qti12Importer;
 use Tsugi\Services\Quiz1\QuestionTypes;
-use Tsugi\Services\Quiz1\SampleQuiz;
+use Tsugi\Services\Quiz1\SampleQuiz1;
 
 class Qti12ImporterTest extends \PHPUnit\Framework\TestCase
 {
@@ -70,7 +70,7 @@ class Qti12ImporterTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testExporterImporterRoundTrip() {
-        $xml = Qti12Exporter::export(SampleQuiz::build(1));
+        $xml = Qti12Exporter::export(SampleQuiz1::build(1));
         list($quiz, $warnings) = Qti12Importer::import($xml);
         $this->assertSame(array(), $warnings);
         $this->assertCount(6, $quiz->questions);
@@ -125,7 +125,7 @@ XML;
     }
 
     public function testZipContainingQti() {
-        $xml = Qti12Exporter::export(SampleQuiz::buildMinimal(1));
+        $xml = Qti12Exporter::export(SampleQuiz1::buildMinimal(1));
         $tmp = tempnam(sys_get_temp_dir(), 'q1z');
         $zip = new ZipArchive();
         $this->assertTrue($zip->open($tmp, ZipArchive::CREATE | ZipArchive::OVERWRITE));

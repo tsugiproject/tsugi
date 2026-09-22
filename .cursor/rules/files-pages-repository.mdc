@@ -1,0 +1,22 @@
+---
+description: Files and Pages persistence lives in repositories, not controllers.
+globs: lib/src/Controllers/Files.php,lib/src/Controllers/Pages.php,lib/src/Services/Files/**,lib/src/Services/Pages/**
+alwaysApply: false
+---
+
+# Files and Pages repositories
+
+Do **not** add persistence, blob/folder writes, SQL, or href/path helpers to `Tsugi\Controllers\Files` or `Tsugi\Controllers\Pages`. Put those on the repositories.
+
+| HTTP / HTML | Rows, blobs, invariants |
+|---|---|
+| `Tsugi\Controllers\Files` | `Tsugi\Services\Files\FileRepository` |
+| `Tsugi\Controllers\Pages` | `Tsugi\Services\Pages\PageRepository` |
+
+`Quiz1Repository` is the naming model (static methods, no DI, not `*Service`).
+
+- Controllers keep `routes`, HTTP actions, CSRF/flash/HTML, and `ROUTE` / `NAME` / `REDIRECT`. Files may alias repository folder constants for templates.
+- `FileRepository` owns course Files rules (folders, Public/Student/Private, `backref=files`, sha256 hrefs, `importBytes`). Leave `BlobUtil` / `Access` as the generic blob store.
+- `PageRepository` owns `{prefix}pages` / `page_history` SQL, `importHtml`, cartridge HTML, logical keys, canonicalize/expand.
+- Pages picker helpers (`lessonsDocumentForPicker`, `lessonsLinkPickerPayload`) stay on the Pages controller until a Lessons extract.
+- Schema for Pages stays `lib/src/Services/Pages/database.php`. Files uses existing `blob_file` / `blob_blob`.

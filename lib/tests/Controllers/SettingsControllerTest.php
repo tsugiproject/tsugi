@@ -7,6 +7,27 @@ require_once "src/Lumen/Application.php";
 require_once "src/Lumen/Router.php";
 require_once "src/Util/U.php";
 
+if (!function_exists('currentContextId')) {
+    function currentContextId() {
+        return 0;
+    }
+}
+if (!function_exists('loggedInUserId')) {
+    function loggedInUserId() {
+        return 0;
+    }
+}
+if (!function_exists('isLoggedIn')) {
+    function isLoggedIn() {
+        return !empty($_SESSION['id']);
+    }
+}
+if (!function_exists('__')) {
+    function __($s) {
+        return $s;
+    }
+}
+
 use \Tsugi\Controllers\Settings;
 use \Tsugi\Lumen\Application;
 
@@ -133,6 +154,16 @@ class SettingsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(array('M_one', 'M_two'), Settings::selectedImportModules($described, 'M_two, M_one'));
     }
 
+    public function testCourseHeadingTitleUsesSessionThenFallback()
+    {
+        $this->assertSame('Settings', Settings::courseHeadingTitle());
+        $_SESSION['context_title'] = '  Django for Everybody  ';
+        $this->assertSame('Django for Everybody', Settings::courseHeadingTitle());
+        unset($_SESSION['context_title']);
+        $_SESSION['lti'] = array('context_title' => 'From LTI');
+        $this->assertSame('From LTI', Settings::courseHeadingTitle());
+    }
+
     public function testImportReplaceContentDefaultsToAdd()
     {
         $this->assertFalse(Settings::importReplaceContent(''));
@@ -140,6 +171,55 @@ class SettingsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse(Settings::importReplaceContent('delete'));
         $this->assertFalse(Settings::importReplaceContent(null));
         $this->assertTrue(Settings::importReplaceContent('replace'));
+    }
+
+    public function testImportSiteDomainFromApphome()
+    {
+        global $CFG;
+        $CFG->apphome = 'https://local.dj4e.com';
+        $CFG->wwwroot = 'https://local.dj4e.com/tsugi';
+        $this->assertSame('local.dj4e.com', Settings::importSiteDomain());
+        $CFG->apphome = 'https://www.dj4e.com/';
+        $this->assertSame('www.dj4e.com', Settings::importSiteDomain());
+    }
+
+    public function testImportReplaceDomainConfirmed()
+    {
+        global $CFG;
+        $CFG->apphome = 'https://local.dj4e.com';
+        $this->assertTrue(Settings::importReplaceDomainConfirmed('local.dj4e.com'));
+        $this->assertTrue(Settings::importReplaceDomainConfirmed('LOCAL.DJ4E.COM'));
+        $this->assertTrue(Settings::importReplaceDomainConfirmed('https://local.dj4e.com/'));
+        $this->assertFalse(Settings::importReplaceDomainConfirmed(''));
+        $this->assertFalse(Settings::importReplaceDomainConfirmed('dj4e.com'));
+        $this->assertFalse(Settings::importReplaceDomainConfirmed('www.dj4e.com'));
+        $this->assertFalse(Settings::importReplaceDomainConfirmed(null));
+    }
+
+    public function testImportReplaceTitleConfirmed()
+    {
+        $this->assertFalse(Settings::importReplaceTitleConfirmed('Settings'));
+        $this->assertFalse(Settings::importReplaceTitleConfirmed(''));
+        $_SESSION['context_title'] = 'Django for Everybody';
+        $this->assertSame('Django for Everybody', Settings::importReplaceCourseTitle());
+        $this->assertTrue(Settings::importReplaceTitleConfirmed('Django for Everybody'));
+        $this->assertTrue(Settings::importReplaceTitleConfirmed('  django   for   everybody  '));
+        $this->assertFalse(Settings::importReplaceTitleConfirmed('Python for Everybody'));
+        $this->assertFalse(Settings::importReplaceTitleConfirmed(null));
+    }
+
+    public function testImportReplaceMembersMatch()
+    {
+        $this->assertNull(Settings::importReplaceMemberCount());
+        $this->assertFalse(Settings::importReplaceMembersConfirmed('40'));
+        $this->assertTrue(Settings::importReplaceMembersMatch('40', 40));
+        $this->assertTrue(Settings::importReplaceMembersMatch(' 40 ', 40));
+        $this->assertTrue(Settings::importReplaceMembersMatch('1,234', 1234));
+        $this->assertTrue(Settings::importReplaceMembersMatch('0', 0));
+        $this->assertFalse(Settings::importReplaceMembersMatch('', 0));
+        $this->assertFalse(Settings::importReplaceMembersMatch('40', 41));
+        $this->assertFalse(Settings::importReplaceMembersMatch('forty', 40));
+        $this->assertFalse(Settings::importReplaceMembersMatch(null, 40));
     }
 
     public function testShowInMenuFalseWithoutManifest()

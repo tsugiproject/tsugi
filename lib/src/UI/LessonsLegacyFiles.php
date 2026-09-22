@@ -161,7 +161,7 @@ class LessonsLegacyFiles {
     }
 
     /**
-     * Thin / thick dropdown. Default is thin (files as links).
+     * Thin / thick dropdown. Default is thick (include file contents).
      *
      * @param string $id
      */
@@ -170,8 +170,8 @@ class LessonsLegacyFiles {
         echo('<p>'."\n");
         echo('<label for="'.htmlentities($id).'">Cartridge style:</label>'."\n");
         echo('<select name="cartridge" id="'.htmlentities($id).'">'."\n");
+        echo('  <option value="thick" selected>Thick cartridge (include file contents)</option>'."\n");
         echo('  <option value="thin">Thin cartridge (files as web links)</option>'."\n");
-        echo('  <option value="thick">Thick cartridge (include file contents)</option>'."\n");
         echo('</select>'."\n");
         echo('</p>'."\n");
     }

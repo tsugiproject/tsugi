@@ -29,6 +29,10 @@ class CourseNav {
     public static function defaultDocument() {
         return array(
             'items' => array(
+                array('id' => 'lessons', 'left' => true),
+                array('id' => 'files', 'left' => true),
+                array('id' => 'pages', 'left' => true),
+                array('id' => 'quiz1', 'left' => true),
                 array('id' => 'courses_widget', 'right' => true),
                 array('id' => 'logout', 'dropdown' => true),
             ),

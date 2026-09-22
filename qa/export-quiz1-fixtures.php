@@ -32,7 +32,7 @@ $out = $argv[1] ?? ($root.'/lib/tests/fixtures/Quiz1/generated');
 $written = Tsugi\Services\Quiz1\CartridgeFixtures::writeAll($out);
 $written['09-mixed-module'] = Tsugi\Services\Quiz1\CartridgeFixtures::writeMixed(
     $out,
-    Tsugi\Services\Quiz1\SampleQuiz::buildMinimal(1)
+    Tsugi\Services\Quiz1\SampleQuiz1::buildMinimal(1)
 );
 
 $failed = 0;

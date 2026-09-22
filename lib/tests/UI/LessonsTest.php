@@ -1744,6 +1744,32 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('tsugi-assignments-rl-sig', $html);
     }
 
+    public function testEmptyLessonsRendersNoContentMessage() {
+        $json = json_encode(array(
+            'title' => 'Empty Course',
+            'modules' => array(),
+        ));
+        $lessons = \Tsugi\UI\Lessons::fromJson($json);
+        $this->assertTrue($lessons->isEmpty());
+        $html = $lessons->render(true);
+        $this->assertStringContainsString('There is no Lessons content.', $html);
+        $this->assertStringContainsString('Empty Course', $html);
+        $this->assertStringNotContainsString('class="card"', $html);
+    }
+
+    public function testHiddenOnlyModulesAreEmpty() {
+        $json = json_encode(array(
+            'title' => 'Hidden',
+            'modules' => array(
+                array('title' => 'Secret', 'anchor' => 'secret', 'hidden' => true, 'items' => array()),
+            ),
+        ));
+        $lessons = \Tsugi\UI\Lessons::fromJson($json);
+        $this->assertTrue($lessons->isEmpty());
+        $html = $lessons->render(true);
+        $this->assertStringContainsString('There is no Lessons content.', $html);
+    }
+
     public function testFromJsonMatchesFileConstructor() {
         $path = __DIR__ . '/../fixtures/lessons/py4e-modern-lessons-items.json';
         $fromFile = new \Tsugi\UI\Lessons($path);

@@ -4,11 +4,12 @@ namespace Tsugi\Controllers;
 
 
 use \Tsugi\Util\U;
-use Tsugi\Util\CCFileBase;
 require_once __DIR__ . '/../UI/CKEditor.php';
 
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
+require_once __DIR__ . '/../Services/Pages/PageRepository.php';
+use Tsugi\Services\Pages\PageRepository;
 use Tsugi\UI\LessonsNormalize;
 
 // Ensure CKEditor helper is loaded (fallback if autoload misses it)
@@ -20,105 +21,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class Pages extends Tool {
 
-    const ROUTE = '/pages';
+    const ROUTE = PageRepository::HREF_PREFIX;
     const NAME = 'Pages';
     const REDIRECT = 'tsugi_controllers_pages';
-
-    /**
-     * Path form of a course page URL (/pages/{logical_key}).
-     *
-     * @param mixed $logical_key
-     * @return string|null
-     */
-    public static function hrefForLogicalKey($logical_key)
-    {
-        if ( ! is_string($logical_key) || trim($logical_key) === '' ) {
-            return null;
-        }
-        return self::ROUTE . '/' . rawurlencode($logical_key);
-    }
-
-    /**
-     * HTML document for Common Cartridge wiki_content. Canvas reads the page
-     * name from the <title> tag.
-     *
-     * @param mixed $title
-     * @param mixed $body HTML fragment or full document
-     * @return string
-     */
-    public static function cartridgeDocument($title, $body)
-    {
-        $title_esc = htmlspecialchars(is_string($title) ? $title : '', ENT_QUOTES, 'UTF-8');
-        $inner = is_string($body) ? $body : '';
-        if ( preg_match('/<html[\s>]/i', $inner) ) {
-            if ( preg_match('/<title\b[^>]*>.*?<\/title>/is', $inner) ) {
-                return (string) preg_replace('/<title\b[^>]*>.*?<\/title>/is', '<title>'.$title_esc.'</title>', $inner, 1);
-            }
-            if ( preg_match('/<head\b[^>]*>/i', $inner) ) {
-                return (string) preg_replace('/<head\b[^>]*>/i', '$0<title>'.$title_esc.'</title>', $inner, 1);
-            }
-            return $inner;
-        }
-        return '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>'
-            .'<title>'.$title_esc.'</title></head><body>'.$inner.'</body></html>';
-    }
-
-    /**
-     * Course page for Common Cartridge export, or null if it cannot be loaded.
-     *
-     * @param mixed $page_id
-     * @param mixed $logical_key
-     * @param int $context_id
-     * @return array{title:string,logical_key:string,body:string,html:string}|null
-     */
-    public static function readExportPayload($page_id, $logical_key, $context_id)
-    {
-        global $CFG, $PDOX;
-        $cid = (int) $context_id;
-        $pid = is_numeric($page_id) ? (int) $page_id : 0;
-        $key = is_string($logical_key) ? trim($logical_key) : '';
-        if ( $pid < 1 && $key === '' ) {
-            return null;
-        }
-        try {
-            LTIX::getConnection();
-        } catch ( \Throwable $e ) {
-            return null;
-        }
-        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
-            return null;
-        }
-        $p = $CFG->dbprefix;
-        $row = null;
-        if ( $pid > 0 && $cid > 0 ) {
-            $row = $PDOX->rowDie(
-                "SELECT page_id, title, logical_key, body
-                 FROM {$p}pages
-                 WHERE page_id = :PID AND context_id = :CID",
-                array(':PID' => $pid, ':CID' => $cid)
-            );
-        }
-        if ( ! is_array($row) && $key !== '' && $cid > 0 ) {
-            $row = $PDOX->rowDie(
-                "SELECT page_id, title, logical_key, body
-                 FROM {$p}pages
-                 WHERE logical_key = :KEY AND context_id = :CID",
-                array(':KEY' => $key, ':CID' => $cid)
-            );
-        }
-        if ( ! is_array($row) ) {
-            return null;
-        }
-        $title = isset($row['title']) && is_string($row['title']) ? $row['title'] : '';
-        $lk = isset($row['logical_key']) && is_string($row['logical_key']) ? $row['logical_key'] : $key;
-        $body = isset($row['body']) && is_string($row['body']) ? $row['body'] : '';
-        return array(
-            'title' => $title,
-            'logical_key' => $lk,
-            'body' => $body,
-            'html' => self::cartridgeDocument($title, $body),
-        );
-    }
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Pages@index');
@@ -141,54 +46,13 @@ class Pages extends Tool {
     }
 
     /**
-     * Generate a logical key from a title
-     * 
-     * Converts title to lowercase, removes punctuation, 
-     * replaces sequences of spaces with single dash,
-     * and limits to 99 characters
-     * 
-     * @param string $title The page title
-     * @return string The logical key
-     */
-    private function generateLogicalKey($title) {
-        // Convert to lowercase
-        $key = strtolower($title);
-        
-        // Remove all punctuation (keep alphanumeric and spaces)
-        $key = preg_replace('/[^a-z0-9\s]/', '', $key);
-        
-        // Reduce sequences of whitespace to a single space
-        $key = preg_replace('/\s+/', ' ', $key);
-        
-        // Convert spaces to dashes
-        $key = str_replace(' ', '-', $key);
-        
-        // Remove leading/trailing dashes
-        $key = trim($key, '-');
-        
-        // Limit to 99 characters
-        if ( strlen($key) > 99 ) {
-            $key = substr($key, 0, 99);
-            // Remove trailing dash if we cut in the middle
-            $key = rtrim($key, '-');
-        }
-        
-        // Ensure we have something
-        if ( empty($key) ) {
-            $key = 'page-' . time();
-        }
-        
-        return $key;
-    }
-
-    /**
      * Expand canonical FILEBASE URLs for the editor or browser.
      *
      * @param string $html
      * @return string
      */
     private function expandPageHtml($html) {
-        return CCFileBase::expand($html, $this->courseFileBaseUrl(self::ROUTE), self::courseLocalPrefixes());
+        return PageRepository::expandHtml($html, $this->courseFileBaseUrl(self::ROUTE), self::courseLocalPrefixes());
     }
 
     /**
@@ -198,74 +62,38 @@ class Pages extends Tool {
      * @return string
      */
     private function canonicalizePageHtml($html) {
-        return Files::rewriteDownloadHrefsToPaths(
-            CCFileBase::canonicalize($html, $this->courseFileBaseUrl(self::ROUTE), self::courseLocalPrefixes()),
+        return PageRepository::canonicalizeHtml(
+            $html,
+            $this->courseFileBaseUrl(self::ROUTE),
+            self::courseLocalPrefixes(),
             U::currentContextId()
         );
     }
 
     public function index(Request $request, $logical_key = null)
     {
-        global $CFG, $OUTPUT, $PDOX;
-        
+        global $CFG, $OUTPUT;
+
         $this->requireAuth();
-        
+
         LTIX::getConnection();
-        
+
         $context_id = U::currentContextId();
-        $user_id = U::loggedInUserId();
-        
-        // Check if user is instructor/admin for this context
+
         $is_instructor = $this->isInstructor();
-        
-        // Get logical_key from URL parameter or route parameter
+
         if (!$logical_key && isset($_GET['logical_key']) && U::strlen($_GET['logical_key']) > 0) {
             $logical_key = $_GET['logical_key'];
         }
-        
-        // Determine which page to show
+
         $page = null;
+        $published_only = !$is_instructor;
         if ($logical_key) {
-            // Show specific page by logical_key
-            $sql = "SELECT page_id, title, body, published, is_main 
-                    FROM {$CFG->dbprefix}pages 
-                    WHERE context_id = :CID AND logical_key = :KEY";
-            $params = array(':CID' => $context_id, ':KEY' => $logical_key);
-            
-            // Non-instructors can only see published pages
-            if (!$is_instructor) {
-                $sql .= " AND published = 1";
-            }
-            
-            $page = $PDOX->rowDie($sql, $params);
+            $page = PageRepository::loadByLogicalKey($context_id, $logical_key, $published_only);
         } else {
-            // No logical_key - show main page
-            // First, check if there's a page marked as main
-            $sql = "SELECT page_id, title, body, published, is_main 
-                    FROM {$CFG->dbprefix}pages 
-                    WHERE context_id = :CID AND is_main = 1";
-            $params = array(':CID' => $context_id);
-            
-            // Non-instructors can only see published pages
-            if (!$is_instructor) {
-                $sql .= " AND published = 1";
-            }
-            
-            $page = $PDOX->rowDie($sql, $params);
-            
-            // If no main page, check if there's only one page (auto-main)
+            $page = PageRepository::loadMain($context_id, $published_only);
             if (!$page) {
-                $sql = "SELECT page_id, title, body, published, is_main 
-                        FROM {$CFG->dbprefix}pages 
-                        WHERE context_id = :CID";
-                $params = array(':CID' => $context_id);
-                
-                // Non-instructors can only see published pages
-                if (!$is_instructor) {
-                    $sql .= " AND published = 1";
-                }
-                
-                $all_pages = $PDOX->allRowsDie($sql, $params);
+                $all_pages = PageRepository::listForView($context_id, $published_only);
                 if (count($all_pages) == 1) {
                     $page = $all_pages[0];
                 }
@@ -345,28 +173,13 @@ class Pages extends Tool {
 
     public function json(Request $request)
     {
-        global $CFG, $PDOX;
-        
         $this->requireAuth();
-        
+
         LTIX::getConnection();
-        
+
         $context_id = U::currentContextId();
-        
-        // Get all pages for this context (instructors see all, students see only published)
         $is_instructor = $this->isInstructor();
-        $sql = "SELECT page_id, title, logical_key 
-                FROM {$CFG->dbprefix}pages 
-                WHERE context_id = :CID";
-        $params = array(':CID' => $context_id);
-        
-        if (!$is_instructor) {
-            $sql .= " AND published = 1";
-        }
-        
-        $sql .= " ORDER BY title ASC";
-        
-        $pages = $PDOX->allRowsDie($sql, $params);
+        $pages = PageRepository::listForPicker($context_id, !$is_instructor);
         
         // Get base path for REST-style URLs
         $pages_base = $this->toolHome(self::ROUTE);
@@ -633,8 +446,6 @@ class Pages extends Tool {
 
     public function addPost(Request $request)
     {
-        global $CFG, $PDOX;
-        
         $this->requireInstructor('/pages');
         
         $tool_home = $this->toolHome(self::ROUTE);
@@ -646,89 +457,38 @@ class Pages extends Tool {
         }
         
         LTIX::getConnection();
-        
+
         $context_id = U::currentContextId();
         $user_id = U::loggedInUserId();
-        
+
         $title = trim(U::get($_POST, 'title'));
         $body = $this->canonicalizePageHtml(U::get($_POST, 'body', ''));
         $published = U::get($_POST, 'published', 0) ? 1 : 0;
         $is_main = U::get($_POST, 'is_main', 0) ? 1 : 0;
         $is_front_page = U::get($_POST, 'is_front_page', 0) ? 1 : 0;
-        
+
         if (empty($title)) {
             U::flashError('Title is required');
             return new RedirectResponse($add_url);
         }
-        
-        // Generate logical key from title
-        $logical_key = $this->generateLogicalKey($title);
-        
-        // Check if logical_key already exists for this context
-        $existing = $PDOX->rowDie(
-            "SELECT page_id FROM {$CFG->dbprefix}pages 
-             WHERE context_id = :CID AND logical_key = :KEY",
-            array(':CID' => $context_id, ':KEY' => $logical_key)
+
+        $logical_key = PageRepository::uniqueLogicalKey(
+            $context_id,
+            PageRepository::generateLogicalKey($title)
         );
-        
-        if ($existing) {
-            // Append number to make it unique
-            $counter = 1;
-            $original_key = $logical_key;
-            while ($existing) {
-                $logical_key = $original_key . '-' . $counter;
-                if (strlen($logical_key) > 99) {
-                    $logical_key = substr($original_key, 0, 99 - strlen('-' . $counter)) . '-' . $counter;
-                }
-                $existing = $PDOX->rowDie(
-                    "SELECT page_id FROM {$CFG->dbprefix}pages 
-                     WHERE context_id = :CID AND logical_key = :KEY",
-                    array(':CID' => $context_id, ':KEY' => $logical_key)
-                );
-                $counter++;
-            }
-        }
-        
-        // Check if there are any other pages
-        $page_count = $PDOX->rowDie(
-            "SELECT COUNT(*) as cnt FROM {$CFG->dbprefix}pages WHERE context_id = :CID",
-            array(':CID' => $context_id)
-        );
-        
-        // If there are no other pages, this must be the main page
-        if ($page_count['cnt'] == 0) {
+
+        $page_count = PageRepository::countForContext($context_id);
+        if ($page_count == 0) {
             $is_main = 1;
         } else if ($is_main) {
-            // If this is marked as main and there are other pages, unset all other main pages first
-            $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}pages SET is_main = 0 WHERE context_id = :CID",
-                array(':CID' => $context_id)
-            );
+            PageRepository::clearMain($context_id);
         }
-        
-        // If this is marked as front page, unset all other front pages first
+
         if ($is_front_page) {
-            $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}pages SET is_front_page = 0 WHERE context_id = :CID",
-                array(':CID' => $context_id)
-            );
+            PageRepository::clearFront($context_id);
         }
-        
-        $sql = "INSERT INTO {$CFG->dbprefix}pages 
-                (context_id, title, logical_key, body, published, is_main, is_front_page, user_id, created_at, updated_at) 
-                VALUES (:CID, :title, :key, :body, :published, :main, :front_page, :UID, NOW(), NOW())";
-        $values = array(
-            ':CID' => $context_id,
-            ':title' => $title,
-            ':key' => $logical_key,
-            ':body' => $body,
-            ':published' => $published,
-            ':main' => $is_main,
-            ':front_page' => $is_front_page,
-            ':UID' => $user_id
-        );
-        $q = $PDOX->queryReturnError($sql, $values);
-        if ($q->success) {
+
+        if (PageRepository::insert($context_id, $user_id, $title, $logical_key, $body, $published, $is_main, $is_front_page)) {
             U::flashSuccess('Page created successfully');
             return new RedirectResponse($manage_url);
         } else {
@@ -739,7 +499,7 @@ class Pages extends Tool {
 
     public function edit(Request $request, $id)
     {
-        global $CFG, $OUTPUT, $PDOX;
+        global $CFG, $OUTPUT;
         
         $this->requireInstructor('/pages');
         
@@ -758,12 +518,7 @@ class Pages extends Tool {
             return new RedirectResponse($manage_url);
         }
         
-        // Get page for editing
-        $page = $PDOX->rowDie(
-            "SELECT * FROM {$CFG->dbprefix}pages 
-             WHERE page_id = :PID AND context_id = :CID",
-            array(':PID' => $page_id, ':CID' => $context_id)
-        );
+        $page = PageRepository::load($page_id, $context_id);
         
         if (!$page) {
             U::flashError('Page not found');
@@ -857,8 +612,6 @@ class Pages extends Tool {
 
     public function editPost(Request $request, $id)
     {
-        global $CFG, $PDOX;
-        
         $this->requireInstructor('/pages');
         
         $tool_home = $this->toolHome(self::ROUTE);
@@ -884,92 +637,22 @@ class Pages extends Tool {
             $edit_url = $tool_home . '/edit/' . $page_id;
             return new RedirectResponse($edit_url);
         }
-        
-        // Generate logical key from title
-        $logical_key = $this->generateLogicalKey($title);
-        
-        // Check if logical_key already exists for this context (excluding current page)
-        $existing = $PDOX->rowDie(
-            "SELECT page_id FROM {$CFG->dbprefix}pages 
-             WHERE context_id = :CID AND logical_key = :KEY AND page_id != :PID",
-            array(':CID' => $context_id, ':KEY' => $logical_key, ':PID' => $page_id)
+
+        $logical_key = PageRepository::uniqueLogicalKey(
+            $context_id,
+            PageRepository::generateLogicalKey($title),
+            $page_id
         );
-        
-        if ($existing) {
-            // Append number to make it unique
-            $counter = 1;
-            $original_key = $logical_key;
-            while ($existing) {
-                $logical_key = $original_key . '-' . $counter;
-                if (strlen($logical_key) > 99) {
-                    $logical_key = substr($original_key, 0, 99 - strlen('-' . $counter)) . '-' . $counter;
-                }
-                $existing = $PDOX->rowDie(
-                    "SELECT page_id FROM {$CFG->dbprefix}pages 
-                     WHERE context_id = :CID AND logical_key = :KEY AND page_id != :PID",
-                    array(':CID' => $context_id, ':KEY' => $logical_key, ':PID' => $page_id)
-                );
-                $counter++;
-            }
-        }
-        
-        // If this is marked as main, unset all other main pages first
+
         if ($is_main) {
-            $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}pages SET is_main = 0 WHERE context_id = :CID",
-                array(':CID' => $context_id)
-            );
-        }
-        
-        // If this is marked as front page, unset all other front pages first
-        if ($is_front_page) {
-            $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}pages SET is_front_page = 0 WHERE context_id = :CID",
-                array(':CID' => $context_id)
-            );
+            PageRepository::clearMain($context_id);
         }
 
-        // Fetch current page to check if content changed (for history)
-        $current = $PDOX->rowDie(
-            "SELECT title, body FROM {$CFG->dbprefix}pages WHERE page_id = :PID AND context_id = :CID",
-            array(':PID' => $page_id, ':CID' => $context_id)
-        );
-        $content_changed = ($current && ($current['title'] !== $title || $current['body'] !== $body));
-        
-        $sql = "UPDATE {$CFG->dbprefix}pages 
-                SET title = :title, logical_key = :key, body = :body, 
-                    published = :published, is_main = :main, is_front_page = :front_page, updated_at = NOW()
-                WHERE page_id = :PID AND context_id = :CID";
-        $values = array(
-            ':title' => $title,
-            ':key' => $logical_key,
-            ':body' => $body,
-            ':published' => $published,
-            ':main' => $is_main,
-            ':front_page' => $is_front_page,
-            ':PID' => $page_id,
-            ':CID' => $context_id
-        );
-        $q = $PDOX->queryReturnError($sql, $values);
-        if ($q->success) {
-            // Save previous version to history only when content (title or body) actually changed
-            if ($content_changed && $current) {
-                $PDOX->queryDie(
-                    "INSERT INTO {$CFG->dbprefix}page_history (page_id, title, body) VALUES (:PID, :title, :body)",
-                    array(':PID' => $page_id, ':title' => $current['title'], ':body' => $current['body'])
-                );
-                // Trim to last 5 per page (delete oldest)
-                $ids = $PDOX->allRowsDie(
-                    "SELECT history_id FROM {$CFG->dbprefix}page_history WHERE page_id = :PID ORDER BY saved_at DESC",
-                    array(':PID' => $page_id)
-                );
-                if (count($ids) > 5) {
-                    $to_delete = array_slice($ids, 5);
-                    foreach ($to_delete as $row) {
-                        $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}page_history WHERE history_id = :HID", array(':HID' => $row['history_id']));
-                    }
-                }
-            }
+        if ($is_front_page) {
+            PageRepository::clearFront($context_id);
+        }
+
+        if (PageRepository::update($page_id, $context_id, $title, $logical_key, $body, $published, $is_main, $is_front_page)) {
             U::flashSuccess('Page updated successfully');
             return new RedirectResponse($manage_url);
         } else {
@@ -981,8 +664,8 @@ class Pages extends Tool {
 
     public function manage(Request $request)
     {
-        global $CFG, $OUTPUT, $PDOX;
-        
+        global $CFG, $OUTPUT;
+
         $this->requireInstructor('/pages');
         
         $tool_home = $this->toolHome(self::ROUTE);
@@ -993,25 +676,9 @@ class Pages extends Tool {
         LTIX::getConnection();
         
         $context_id = U::currentContextId();
-        
-        // Get page_ids that have history (for showing History button)
-        // Join via pages to scope to this context — context_id was removed from page_history (redundant via FK)
-        $pages_with_history = $PDOX->allRowsDie(
-            "SELECT DISTINCT ph.page_id FROM {$CFG->dbprefix}page_history ph
-             JOIN {$CFG->dbprefix}pages p ON ph.page_id = p.page_id
-             WHERE p.context_id = :CID",
-            array(':CID' => $context_id)
-        );
-        $page_ids_with_history = array_column($pages_with_history, 'page_id');
-        
-        // Get all pages for this context
-        $pages = $PDOX->allRowsDie(
-            "SELECT page_id, title, logical_key, published, is_main, is_front_page, created_at, updated_at 
-             FROM {$CFG->dbprefix}pages 
-             WHERE context_id = :CID 
-             ORDER BY is_main DESC, is_front_page DESC, title ASC",
-            array(':CID' => $context_id)
-        );
+
+        $page_ids_with_history = PageRepository::pageIdsWithHistory($context_id);
+        $pages = PageRepository::listForManage($context_id);
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -1105,8 +772,6 @@ class Pages extends Tool {
 
     public function managePost(Request $request)
     {
-        global $CFG, $PDOX;
-        
         $this->requireInstructor('/pages');
         
         $tool_home = $this->toolHome(self::ROUTE);
@@ -1125,35 +790,18 @@ class Pages extends Tool {
         $page_id = U::get($_POST, 'page_id');
         
         if ($action === 'delete' && $page_id) {
-            // Verify ownership/context
-            $check = $PDOX->rowDie(
-                "SELECT page_id FROM {$CFG->dbprefix}pages 
-                 WHERE page_id = :PID AND context_id = :CID",
-                array(':PID' => $page_id, ':CID' => $context_id)
-            );
-            if ($check) {
-                $sql = "DELETE FROM {$CFG->dbprefix}pages 
-                        WHERE page_id = :PID AND context_id = :CID";
-                $q = $PDOX->queryReturnError($sql, array(':PID' => $page_id, ':CID' => $context_id));
-                if ($q->success) {
-                    U::flashSuccess('Page deleted successfully');
-                } else {
-                    U::flashError('Error deleting page');
-                }
+            $deleted = PageRepository::delete($page_id, $context_id);
+            if ($deleted === true) {
+                U::flashSuccess('Page deleted successfully');
+            } else if ($deleted === false) {
+                U::flashError('Error deleting page');
             } else {
                 U::flashError('Page not found');
             }
         }
-        
-        // Handle toggle published action
+
         if ($action === 'toggle_published' && $page_id) {
-            $q = $PDOX->queryReturnError(
-                "UPDATE {$CFG->dbprefix}pages 
-                 SET published = NOT published 
-                 WHERE page_id = :PID AND context_id = :CID",
-                array(':PID' => $page_id, ':CID' => $context_id)
-            );
-            if ($q->success) {
+            if (PageRepository::togglePublished($page_id, $context_id)) {
                 U::flashSuccess('Page status updated successfully');
             } else {
                 U::flashError('Error updating page status');
@@ -1165,7 +813,7 @@ class Pages extends Tool {
 
     public function history(Request $request, $id)
     {
-        global $CFG, $OUTPUT, $PDOX;
+        global $OUTPUT;
 
         $this->requireInstructor('/pages');
 
@@ -1177,21 +825,13 @@ class Pages extends Tool {
         $context_id = U::currentContextId();
         $page_id = intval($id);
 
-        $page = $PDOX->rowDie(
-            "SELECT page_id, title, body, logical_key, updated_at FROM {$CFG->dbprefix}pages 
-             WHERE page_id = :PID AND context_id = :CID",
-            array(':PID' => $page_id, ':CID' => $context_id)
-        );
+        $page = PageRepository::loadForHistory($page_id, $context_id);
         if (!$page) {
             U::flashError('Page not found');
             return new RedirectResponse($manage_url);
         }
 
-        $histories = $PDOX->allRowsDie(
-            "SELECT history_id, title, body, saved_at FROM {$CFG->dbprefix}page_history 
-             WHERE page_id = :PID ORDER BY saved_at DESC",
-            array(':PID' => $page_id)
-        );
+        $histories = PageRepository::listHistory($page_id);
 
         if (count($histories) == 0) {
             U::flashError('No history for this page');
@@ -1331,8 +971,6 @@ class Pages extends Tool {
 
     public function historyRestore(Request $request)
     {
-        global $CFG, $PDOX;
-
         $this->requireInstructor('/pages');
 
         $tool_home = $this->toolHome(self::ROUTE);
@@ -1353,50 +991,15 @@ class Pages extends Tool {
             return new RedirectResponse($manage_url);
         }
 
-        $page = $PDOX->rowDie(
-            "SELECT page_id, title, body, logical_key FROM {$CFG->dbprefix}pages 
-             WHERE page_id = :PID AND context_id = :CID",
-            array(':PID' => $page_id, ':CID' => $context_id)
+        $err = PageRepository::restoreHistory(
+            $page_id,
+            $history_id,
+            $context_id,
+            $this->courseFileBaseUrl(self::ROUTE),
+            self::courseLocalPrefixes()
         );
-        $hist = $PDOX->rowDie(
-            "SELECT history_id, title, body FROM {$CFG->dbprefix}page_history 
-             WHERE history_id = :HID AND page_id = :PID",
-            array(':HID' => $history_id, ':PID' => $page_id)
-        );
-        if (!$page || !$hist) {
-            U::flashError('Page or history entry not found');
-            return new RedirectResponse($manage_url);
-        }
-
-        $logical_key = $this->generateLogicalKey($hist['title']);
-
-        $PDOX->beginTransaction();
-        try {
-            $PDOX->queryDie(
-                "INSERT INTO {$CFG->dbprefix}page_history (page_id, title, body) VALUES (:PID, :title, :body)",
-                array(':PID' => $page_id, ':title' => $page['title'], ':body' => $page['body'])
-            );
-            $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}pages SET title = :title, logical_key = :key, body = :body, updated_at = NOW() WHERE page_id = :PID AND context_id = :CID",
-                array(':title' => $hist['title'], ':key' => $logical_key, ':body' => $this->canonicalizePageHtml($hist['body']), ':PID' => $page_id, ':CID' => $context_id)
-            );
-            $PDOX->queryDie(
-                "DELETE FROM {$CFG->dbprefix}page_history WHERE history_id = :HID",
-                array(':HID' => $history_id)
-            );
-            $ids = $PDOX->allRowsDie(
-                "SELECT history_id FROM {$CFG->dbprefix}page_history WHERE page_id = :PID ORDER BY saved_at DESC",
-                array(':PID' => $page_id)
-            );
-            if (count($ids) > 5) {
-                foreach (array_slice($ids, 5) as $row) {
-                    $PDOX->queryDie("DELETE FROM {$CFG->dbprefix}page_history WHERE history_id = :HID", array(':HID' => $row['history_id']));
-                }
-            }
-            $PDOX->commit();
-        } catch (\Exception $e) {
-            $PDOX->rollBack();
-            U::flashError('Error restoring: ' . $e->getMessage());
+        if ( $err !== null ) {
+            U::flashError($err);
             return new RedirectResponse($manage_url);
         }
 
@@ -1407,65 +1010,5 @@ class Pages extends Tool {
     public function analytics(Request $request)
     {
         return $this->showAnalytics(self::ROUTE, self::NAME);
-    }
-
-    /**
-     * Insert a wiki/HTML page from a cartridge. Returns page_id and logical_key.
-     *
-     * @return array{page_id:int,logical_key:string,title:string}
-     */
-    public static function importHtml($title, $body, $logical_key, $context_id, $user_id) {
-        global $CFG, $PDOX;
-
-        LTIX::getConnection();
-        $context_id = (int) $context_id;
-        $user_id = (int) $user_id;
-        $title = is_string($title) && trim($title) !== '' ? trim($title) : 'Page';
-        $body = is_string($body) ? $body : '';
-        $logical_key = is_string($logical_key) ? trim($logical_key) : '';
-        if ( $logical_key === '' ) {
-            $logical_key = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $title) ?? 'page');
-            $logical_key = trim($logical_key, '-');
-        }
-        if ( $logical_key === '' ) {
-            $logical_key = 'page';
-        }
-        if ( strlen($logical_key) > 99 ) {
-            $logical_key = substr($logical_key, 0, 99);
-        }
-        $original = $logical_key;
-        $counter = 2;
-        while ( true ) {
-            $existing = $PDOX->rowDie(
-                "SELECT page_id FROM {$CFG->dbprefix}pages
-                 WHERE context_id = :CID AND logical_key = :KEY",
-                array(':CID' => $context_id, ':KEY' => $logical_key)
-            );
-            if ( ! $existing ) {
-                break;
-            }
-            $suffix = '-'.$counter;
-            $logical_key = substr($original, 0, 99 - strlen($suffix)).$suffix;
-            $counter++;
-        }
-
-        $PDOX->queryDie(
-            "INSERT INTO {$CFG->dbprefix}pages
-                (context_id, title, logical_key, body, published, is_main, is_front_page, user_id, created_at, updated_at)
-             VALUES
-                (:CID, :title, :key, :body, 1, 0, 0, :UID, NOW(), NOW())",
-            array(
-                ':CID' => $context_id,
-                ':title' => $title,
-                ':key' => $logical_key,
-                ':body' => $body,
-                ':UID' => $user_id > 0 ? $user_id : 0,
-            )
-        );
-        return array(
-            'page_id' => (int) $PDOX->lastInsertId(),
-            'logical_key' => $logical_key,
-            'title' => $title,
-        );
     }
 }
