@@ -237,6 +237,12 @@ $CFG->autoapprovekeys = false; // A regex like - '/.+@gmail\\.com/'
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 
+// Simulated Google site login for local testing (Cursor, no Google account).
+// /login/simulate is always HTTP 403 unless demo_login is true AND demo_secret
+// is a non-empty string. Never enable in production.
+$CFG->demo_login = false;
+$CFG->demo_secret = false; // 'a-long-random-string' or 'sha256:...';
+
 // Google OAuth redirect URI configuration
 // If you want explicit control over the redirect URI, set this to match exactly
 // what you configure in Google's OAuth console (Authorized redirect URIs).
