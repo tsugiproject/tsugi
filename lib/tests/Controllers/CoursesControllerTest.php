@@ -161,6 +161,29 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(Courses::ensureActiveContext(42));
     }
 
+    public function testEnsureActiveContextHydratesManifestWhenSameContext()
+    {
+        global $PDOX, $TSUGI_LAUNCH;
+        $savePdox = $PDOX ?? null;
+        $saveLaunch = $TSUGI_LAUNCH ?? null;
+        $TSUGI_LAUNCH = new \Tsugi\Core\Launch();
+        $PDOX = new class {
+            public function rowDie($sql, $params = array()) {
+                return array('manifest_id' => 77);
+            }
+        };
+        $_SESSION['id'] = 7;
+        $_SESSION['context_id'] = 42;
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $this->assertTrue(Courses::ensureActiveContext(42));
+        $this->assertSame(77, Manifest::activeId());
+        $PDOX = $savePdox;
+        $TSUGI_LAUNCH = $saveLaunch;
+    }
+
     public function testWireLaunchConnectionSetsPdoxOnTsugiLaunch()
     {
         global $TSUGI_LAUNCH, $LAUNCH, $OUTPUT, $CONTEXT, $PDOX;

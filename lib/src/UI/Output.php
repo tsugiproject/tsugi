@@ -1551,7 +1551,7 @@ $( function() {
         }
 
         $courseTheme = null;
-        if ( Manifest::activeId() > 0 ) {
+        if ( Manifest::resolvedId() > 0 ) {
             $courseTheme = Manifest::currentThemeArray();
         }
         if ( is_array($courseTheme) ) {

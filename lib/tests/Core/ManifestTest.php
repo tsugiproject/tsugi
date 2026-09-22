@@ -20,6 +20,18 @@ if (!function_exists('isLoggedIn')) {
     }
 }
 
+if (!function_exists('currentContextId')) {
+    function currentContextId() {
+        if (isset($_SESSION['context_id'])) {
+            return (int) $_SESSION['context_id'];
+        }
+        if (isset($_SESSION['lti']) && is_array($_SESSION['lti']) && isset($_SESSION['lti']['context_id'])) {
+            return (int) $_SESSION['lti']['context_id'];
+        }
+        return 0;
+    }
+}
+
 class ManifestTest extends \PHPUnit\Framework\TestCase
 {
     private $originalCFG;
@@ -108,6 +120,19 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         Manifest::rememberInSession(0);
         $this->assertArrayNotHasKey('manifest_id', $_SESSION);
         $this->assertSame(0, Manifest::activeId());
+    }
+
+    public function testIdForContextZeroWithoutContext()
+    {
+        $this->assertSame(0, Manifest::idForContext(0));
+        $this->assertSame(0, Manifest::idForContext(-3));
+    }
+
+    public function testResolvedIdUsesSession()
+    {
+        $this->assertSame(0, Manifest::resolvedId());
+        Manifest::rememberInSession(12);
+        $this->assertSame(12, Manifest::resolvedId());
     }
 
     public function testLoadJsonUsesMCacheWithoutDatabase()
