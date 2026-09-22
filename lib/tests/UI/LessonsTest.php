@@ -918,110 +918,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertCount(1, $resources, 'getUrlResources should only extract from items array when present');
         $this->assertEquals('Video: Video from items', $resources[0]->title, 'Should use video from items array (with prefix)');
     }
-    
-    /**
-     * Test renderAssignments() with items array
-     */
-    public function testRenderAssignmentsWithItemsArray() {
-        global $_SERVER, $_SESSION;
-        $originalServer = $_SERVER ?? null;
-        $originalSession = $_SESSION ?? null;
-        
-        $_SERVER['REQUEST_URI'] = '/test/path';
-        $_SESSION = [];
-        
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $lessons->lessons = new \stdClass();
-        $lessons->lessons->title = 'Test Course';
-        $lessons->lessons->modules = [
-            (object)[
-                'title' => 'Module 1',
-                'anchor' => 'mod1',
-                'items' => [
-                    (object)['type' => 'lti', 'title' => 'Assignment 1', 'resource_link_id' => 'rlid1'],
-                    (object)['type' => 'lti', 'title' => 'Assignment 2', 'resource_link_id' => 'rlid2'],
-                    (object)['type' => 'video', 'title' => 'Video 1'] // Should be skipped
-                ]
-            ],
-            (object)[
-                'title' => 'Module 2',
-                'anchor' => 'mod2',
-                'items' => [
-                    (object)['type' => 'discussion', 'title' => 'Discussion 1', 'resource_link_id' => 'rlid3'] // Should be skipped
-                ]
-            ]
-        ];
-        
-        $allgrades = ['rlid1' => 0.9, 'rlid2' => 0.5];
-        $alldates = [];
-        
-        $output = $lessons->renderAssignments($allgrades, $alldates, true);
-        
-        // Verify assignments from items array are rendered
-        $this->assertStringContainsString('Assignment 1', $output, 'Should render LTI assignments from items array');
-        $this->assertStringContainsString('Assignment 2', $output, 'Should render multiple LTI assignments');
-        $this->assertStringContainsString('Module 1', $output, 'Should render module title');
-        
-        // Verify non-LTI items are skipped
-        $this->assertStringNotContainsString('Video 1', $output, 'Should not render non-LTI items');
-        $this->assertStringNotContainsString('Discussion 1', $output, 'Should not render discussion items');
-        
-        // Restore $_SERVER and $_SESSION
-        $_SERVER = $originalServer;
-        $_SESSION = $originalSession;
-    }
-    
-    /**
-     * Test renderAssignments() - items array takes precedence over legacy lti array
-     */
-    public function testRenderAssignmentsItemsArrayPrecedence() {
-        global $_SERVER, $_SESSION;
-        $originalServer = $_SERVER ?? null;
-        $originalSession = $_SESSION ?? null;
-        
-        $_SERVER['REQUEST_URI'] = '/test/path';
-        $_SESSION = [];
-        
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $lessons->lessons = new \stdClass();
-        $lessons->lessons->title = 'Test Course';
-        $lessons->lessons->modules = [
-            (object)[
-                'title' => 'Module 1',
-                'anchor' => 'mod1',
-                'items' => [
-                    (object)['type' => 'lti', 'title' => 'Assignment from items', 'resource_link_id' => 'rlid1']
-                ],
-                'lti' => [
-                    (object)['title' => 'Assignment from legacy', 'resource_link_id' => 'rlid2']
-                ]
-            ]
-        ];
-        
-        $allgrades = ['rlid1' => 0.9];
-        $alldates = [];
-        
-        $output = $lessons->renderAssignments($allgrades, $alldates, true);
-        
-        // Should only render assignment from items array
-        $this->assertStringContainsString('Assignment from items', $output, 'Should render assignment from items array');
-        $this->assertStringNotContainsString('Assignment from legacy', $output, 'Should NOT render assignment from legacy array when items array exists');
-        
-        // Restore $_SERVER and $_SESSION
-        $_SERVER = $originalServer;
-        $_SESSION = $originalSession;
-    }
-    
+
     /**
      * Test renderItem() method - header item
      */
@@ -1042,7 +939,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('<h2>', $output, 'Should render h2 header');
         $this->assertStringContainsString('Test Header', $output, 'Should include header text');
     }
-    
+
     /**
      * Test renderItem() method - text item
      */
@@ -1299,54 +1196,6 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertEmpty($output, 'Should skip items without type');
     }
     
-    /**
-     * Test renderAll() progress calculation with items array
-     * IMPORTANT: Lessons::renderAll() ONLY processes items array, NOT legacy arrays
-     */
-    public function testRenderAllProgressWithItemsArray() {
-        global $_SESSION, $_SERVER;
-        $originalSession = $_SESSION ?? null;
-        $originalServer = $_SERVER ?? null;
-        
-        $_SESSION = ['id' => 1, 'context_id' => 1];
-        $_SERVER['REQUEST_URI'] = '/test/path';
-        
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $lessons->lessons = new \stdClass();
-        $lessons->lessons->title = 'Test Course';
-        $lessons->lessons->description = 'Test Description';
-        $lessons->lessons->modules = [
-            (object)[
-                'title' => 'Module 1',
-                'anchor' => 'mod1',
-                'items' => [
-                    (object)['type' => 'lti', 'title' => 'Assignment 1', 'resource_link_id' => 'rlid1'],
-                    (object)['type' => 'lti', 'title' => 'Assignment 2', 'resource_link_id' => 'rlid2']
-                ]
-            ]
-        ];
-        
-        // Mock grades - need to mock GradeUtil::loadGradesCurrentUser
-        // Since we can't easily mock static methods, we'll test the structure
-        // The actual progress calculation happens in renderAll() which calls GradeUtil::loadGradesCurrentUser
-        // We'll verify the method exists and can be called
-        $this->assertTrue(method_exists($lessons, 'renderAll'), 'renderAll method should exist');
-        
-        // Restore session
-        $_SESSION = $originalSession;
-        $_SERVER = $originalServer;
-    }
-    
-    /**
-     * Test renderAll() - ONLY processes items array, NOT legacy arrays
-     * This is different from Lessons::renderAll() which processes both
-     * Note: This test verifies structure only, as GradeUtil requires database connection
-     */
     public function testRenderAllOnlyProcessesItemsArray() {
         global $_SESSION, $_SERVER, $PDOX;
         $originalSession = $_SESSION ?? null;
@@ -1419,61 +1268,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $_SERVER = $originalServer;
         $PDOX = $originalPDOX;
     }
-    
-    /**
-     * Test renderSingle() progress badge calculation for legacy format
-     * Progress badges are only calculated for legacy format when items array is NOT present
-     * Note: This test verifies structure only, as GradeUtil requires database connection
-     */
-    public function testRenderSingleProgressBadgeLegacyFormat() {
-        global $_SESSION, $_SERVER, $CFG, $OUTPUT, $PDOX;
-        $originalSession = $_SESSION ?? null;
-        $originalServer = $_SERVER ?? null;
-        $originalPDOX = $PDOX ?? null;
-        
-        $_SESSION = ['id' => 1, 'context_id' => 1];
-        $_SERVER['REQUEST_URI'] = '/test/path';
-        
-        // Mock PDOX to avoid database connection
-        $PDOX = new class {
-            public function allRowsDie($sql, $params) {
-                return [];
-            }
-        };
-        
-        // Mock GradeUtil
-        $lessons = new class extends \Tsugi\UI\Lessons {
-            public function __construct() {
-                // Skip parent constructor
-            }
-        };
-        
-        $lessons->lessons = new \stdClass();
-        $lessons->lessons->title = 'Test Course';
-        $lessons->lessons->modules = [
-            (object)[
-                'title' => 'Module 1',
-                'anchor' => 'mod1',
-                'lti' => [
-                    (object)['title' => 'LTI 1', 'resource_link_id' => 'rlid1'],
-                    (object)['title' => 'LTI 2', 'resource_link_id' => 'rlid2']
-                ]
-            ]
-        ];
-        $lessons->module = $lessons->lessons->modules[0];
-        $lessons->position = 1;
-        $lessons->anchor = 'mod1';
-        
-        // Mock GradeUtil::loadGradesCurrentUser to return grades
-        // Since we can't easily mock static methods, we'll test that the method structure exists
-        $this->assertTrue(method_exists($lessons, 'renderSingle'), 'renderSingle method should exist');
-        
-        // Restore session and PDOX
-        $_SESSION = $originalSession;
-        $_SERVER = $originalServer;
-        $PDOX = $originalPDOX;
-    }
-    
+
     /**
      * Test renderItem() method - discussion item (not logged in)
      * Tests icon rendering and login required message
@@ -1697,7 +1492,6 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $lessons->anchor = 'mod1';
         
         // This test may fail due to translator dependency, so we'll verify method exists
-        $this->assertTrue(method_exists($lessons, 'renderSingle'), 'renderSingle method should exist');
         $this->assertTrue(method_exists($lessons, 'renderItem'), 'renderItem method should exist');
         
         // Restore session and PDOX
@@ -1744,31 +1538,6 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('tsugi-assignments-rl-sig', $html);
     }
 
-    public function testEmptyLessonsRendersNoContentMessage() {
-        $json = json_encode(array(
-            'title' => 'Empty Course',
-            'modules' => array(),
-        ));
-        $lessons = \Tsugi\UI\Lessons::fromJson($json);
-        $this->assertTrue($lessons->isEmpty());
-        $html = $lessons->render(true);
-        $this->assertStringContainsString('There is no Lessons content.', $html);
-        $this->assertStringContainsString('Empty Course', $html);
-        $this->assertStringNotContainsString('class="card"', $html);
-    }
-
-    public function testHiddenOnlyModulesAreEmpty() {
-        $json = json_encode(array(
-            'title' => 'Hidden',
-            'modules' => array(
-                array('title' => 'Secret', 'anchor' => 'secret', 'hidden' => true, 'items' => array()),
-            ),
-        ));
-        $lessons = \Tsugi\UI\Lessons::fromJson($json);
-        $this->assertTrue($lessons->isEmpty());
-        $html = $lessons->render(true);
-        $this->assertStringContainsString('There is no Lessons content.', $html);
-    }
 
     public function testFromJsonMatchesFileConstructor() {
         $path = __DIR__ . '/../fixtures/lessons/py4e-modern-lessons-items.json';

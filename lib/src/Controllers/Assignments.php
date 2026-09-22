@@ -11,6 +11,8 @@ use Tsugi\Grades\GradeUtil;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Core\Membership;
+use Tsugi\UI\Lessons;
+use Tsugi\UI\LessonsNormalize;
 use Tsugi\UI\Table;
 
 class Assignments extends Tool {
@@ -158,7 +160,7 @@ class Assignments extends Tool {
             echo('<p><a href="'.$login_url.'">'.__('Log in').'</a> ');
             echo(__('to see your scores on these assignments.').'</p>'."\n");
         }
-        $l->renderAssignments($allgrades, $alldates, false, $duedates, $toolbar_html, $alllinkids, $this->isInstructor());
+        self::renderAssignments($l, $allgrades, $alldates, false, $duedates, $toolbar_html, $alllinkids, $this->isInstructor());
         $OUTPUT->footer();
     }
 
@@ -760,4 +762,130 @@ class Assignments extends Tool {
         }
         return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE) . '/manage-due-dates'));
     }
+
+    private static function renderAssignmentItem($resource_link_id, $title, $allgrades, $alldates, $duedates = array(), $lti_item = null, $module_anchor = '', $alllinkids = array(), $is_instructor = false) {
+        $graded = Lessons::ltiLaunchIsGraded($lti_item);
+        echo('<li class="tsugi-assignments-item">');
+        echo('<span class="tsugi-assignments-status">');
+        if ( ! $graded ) {
+            echo('<i class="fa fa-square-o text-muted" aria-hidden="true"></i>');
+        } else if ( isset($allgrades[$resource_link_id]) ) {
+            if ( $allgrades[$resource_link_id] > 0.8 ) {
+                echo('<i class="fa fa-check-square-o text-success" aria-hidden="true"></i>');
+            } else {
+                echo('<i class="fa fa-square-o text-warning" aria-hidden="true"></i>');
+            }
+        } else {
+            echo('<i class="fa fa-square-o text-danger" aria-hidden="true"></i>');
+        }
+        echo('</span>');
+        echo('<span class="tsugi-assignments-title-row">');
+        $title_esc = htmlspecialchars($title);
+        if ( is_string($module_anchor) && $module_anchor !== '' && is_string($resource_link_id) && $resource_link_id !== '' ) {
+            $mod_href = U::get_rest_parent() . '/lessons/' . rawurlencode($module_anchor);
+            $mod_href = htmlspecialchars($mod_href . '#' . Lessons::domIdForResourceLink($resource_link_id));
+            $jump_lbl = htmlspecialchars(__('Open in module'), ENT_QUOTES, 'UTF-8');
+            echo('<a class="tsugi-assignments-title tsugi-assignments-title-link" href="'.$mod_href.'" title="'.$jump_lbl.'">'.$title_esc.'</a>');
+        } else {
+            echo('<span class="tsugi-assignments-title">'.$title_esc.'</span>');
+        }
+        if ( Lessons::shouldShowAssignmentResultSignature($resource_link_id, $allgrades, $alllinkids, $is_instructor) ) {
+            $link_id = isset($alllinkids[$resource_link_id]) ? (int) $alllinkids[$resource_link_id] : 0;
+            echo(Lessons::resultLinkSignatureMarkup($resource_link_id, $link_id));
+        }
+        Lessons::echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates, $graded);
+        echo('</span>');
+        if ( $graded && isset($allgrades[$resource_link_id]) ) {
+            $datestring = U::get($alldates, $resource_link_id, "");
+            if ( strlen($datestring) > 0 ) {
+                $datestring = " (".substr($datestring,0,10).")";
+            }
+            echo('<span class="tsugi-assignments-score">Score: '.(100*$allgrades[$resource_link_id]).$datestring.'</span>');
+        } else {
+            echo('<span class="tsugi-assignments-score">&nbsp;</span>');
+        }
+        echo('</li>');
+    }
+
+    public static function renderAssignments(\Tsugi\UI\Lessons $lessons, $allgrades, $alldates, $buffer=false, $duedates=array(), $toolbar_html=null, $alllinkids=array(), $is_instructor=false)
+    {
+        ob_start();
+        Lessons::printLtiProgressStyles();
+        echo('<h1>'.$lessons->lessons->title."</h1>\n");
+        if ( is_string($toolbar_html) && $toolbar_html !== '' ) {
+            echo('<div class="clearfix tsugi-assignments-actions" style="margin-bottom:0.75em;">' . "\n");
+            echo('<div class="pull-right">' . $toolbar_html . '</div>' . "\n");
+            echo("</div>\n");
+        }
+        $displayname = U::get($_SESSION, 'displayname');
+        $email = U::get($_SESSION, 'email');
+        if ( is_string($displayname) || is_string($email) ) {
+            $output = "";
+            if ( is_string($displayname) ) $output .= $displayname;
+            if ( is_string($displayname) && is_string($email) ) $output .= ' ';
+            if ( is_string($email) ) $output .= $email;
+            echo("<p>Grades for: ");
+            echo(htmlentities($output));
+            $sig = md5("42 ".$output);
+            echo(" | ".substr($sig,0,5)."</p>\n");
+        }
+        echo('<ul class="tsugi-assignments-progress-list" role="list">'."\n");
+        foreach($lessons->lessons->modules as $module) {
+            // Items array takes precedence - check items first
+            $has_assignments = false;
+            if ( isset($module->items) ) {
+                foreach($module->items as $item) {
+                    if ( LessonsNormalize::isAssignmentLti($item)
+                        && Lessons::ltiLaunchIsGraded($item) ) {
+                        $has_assignments = true;
+                        break;
+                    }
+                }
+            } else if ( isset($module->lti) ) {
+                $ltis_check = $module->lti;
+                if ( ! is_array($ltis_check) ) {
+                    $ltis_check = array($ltis_check);
+                }
+                foreach ( $ltis_check as $lti_check ) {
+                    if ( isset($lti_check->resource_link_id) && Lessons::ltiLaunchIsGraded($lti_check) ) {
+                        $has_assignments = true;
+                        break;
+                    }
+                }
+            }
+            if ( !$has_assignments ) continue;
+            
+            $href = U::get_rest_parent() . '/lessons/' . urlencode($module->anchor);
+            echo('<li class="tsugi-assignments-module">');
+            echo('<a href="'.$href.'" class="tsugi-assignments-module-link">'.htmlspecialchars($module->title).'</a>');
+            echo('<ul class="tsugi-assignments-items" role="list">');
+            
+            // Process items array first (takes precedence)
+            if ( isset($module->items) ) {
+                foreach($module->items as $item) {
+                    if ( ! LessonsNormalize::isAssignmentLti($item) ) continue;
+                    if ( ! Lessons::ltiLaunchIsGraded($item) ) continue;
+                    self::renderAssignmentItem($item->resource_link_id, isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'), $allgrades, $alldates, $duedates, $item, isset($module->anchor) ? $module->anchor : '', $alllinkids, $is_instructor);
+                }
+            } else {
+                // Process legacy lti array only if items is not present
+                if ( isset($module->lti) ) {
+                    $ltis = $module->lti;
+                    if ( ! is_array($ltis) ) $ltis = array($ltis);
+                    foreach($ltis as $lti) {
+                        if ( !isset($lti->resource_link_id) ) continue;
+                        if ( ! Lessons::ltiLaunchIsGraded($lti) ) continue;
+                        self::renderAssignmentItem($lti->resource_link_id, $lti->title, $allgrades, $alldates, $duedates, $lti, isset($module->anchor) ? $module->anchor : '', $alllinkids, $is_instructor);
+                    }
+                }
+            }
+            echo('</ul></li>');
+        }
+        echo('</ul>'."\n");
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $buffer ) return $ob_output;
+        echo($ob_output);
+    }
+
 }

@@ -17,7 +17,7 @@ Move non-UI lessons document and export invariants out of `Tsugi\UI` into `Tsugi
 | Keep (HTTP / HTML) | Move (document, disk, cartridge emit) |
 |---|---|
 | `cc/index.php`, `cc/export.php` forms | `LessonsNormalize` |
-| `Tsugi\UI\Lessons` lesson pages / menus | `LessonsLegacyFiles` URL→file mapping |
+| Lesson page HTML in `Controllers\Lessons` (`render`, `renderSingle`, `renderAll`, `header`, `footer`), assignments, badges, and `Controllers\Discussions::renderDiscussions` | `LessonsLegacyFiles` URL→file mapping |
 | `echoPreview` / `echoCartridgeSelect` / `echoGiftQtiSelect` | `LessonsLegacyGift` launch detect, `$CFG->giftquizzes` resolve, GIFT→QTI vs LTI |
 | Settings export screen chrome | `LessonsCartridge` zip write (not `Services\Cartridge` import) |
 

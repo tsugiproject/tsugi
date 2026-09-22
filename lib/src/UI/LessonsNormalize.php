@@ -512,7 +512,7 @@ class LessonsNormalize {
     }
 
     /**
-     * Group key used by renderSingle list wrapping.
+     * Group key used by the lessons controller when it wraps items in a list.
      *
      * @param mixed $item
      * @return string|null
