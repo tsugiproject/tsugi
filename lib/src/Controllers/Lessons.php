@@ -345,7 +345,7 @@ class Lessons extends Tool {
      * @return string|null
      */
     private function persistLessonsArray($lessons_data, $comment) {
-        if ( Manifest::activeId() < 1 || ! Manifest::currentIsV2() ) {
+        if ( ! Manifest::currentIsV2() ) {
             return 'Lesson authoring only saves Lessons JSON v2 to the course manifest';
         }
         $context_id = U::currentContextId();

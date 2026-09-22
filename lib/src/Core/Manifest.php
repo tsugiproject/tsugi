@@ -123,7 +123,7 @@ class Manifest {
      * File-backed $CFG->lessons and classic/v1 manifests are never authorable.
      */
     public static function currentIsV2() {
-        if ( self::activeId() < 1 ) {
+        if ( self::resolvedId() < 1 ) {
             return false;
         }
         $doc = self::currentDocument();
@@ -138,7 +138,7 @@ class Manifest {
      * Authoring is only for a database-backed v2 course created via Courses.
      */
     public static function canAuthorCurrent() {
-        return self::activeId() > 0 && self::currentIsV2();
+        return self::currentIsV2();
     }
 
     /**
@@ -333,7 +333,7 @@ class Manifest {
      * Theme key stored on the active manifest row (empty string = site default).
      */
     public static function currentThemeKey() {
-        $id = self::activeId();
+        $id = self::resolvedId();
         if ( $id < 1 ) {
             return '';
         }
@@ -693,6 +693,9 @@ class Manifest {
 
     /**
      * Active manifest_id for this request (session only; 0 if file-backed or none).
+     *
+     * Use {@see resolvedId()} for the course document. This stays session-only
+     * so restoreSiteLoginContext() can tell a leftover sandbox from none.
      */
     public static function activeId() {
         $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
@@ -703,6 +706,51 @@ class Manifest {
             }
         }
         return self::positiveId($_SESSION['manifest_id'] ?? 0);
+    }
+
+    /**
+     * lti_context.manifest_id for a course, or 0.
+     *
+     * Does not open a database connection. Callers that already have $PDOX
+     * (nested /courses/{id}, LTIX setup) get a lookup; unit tests do not.
+     */
+    public static function idForContext($context_id) {
+        global $CFG, $PDOX;
+        $cid = (int) $context_id;
+        if ( $cid < 1 ) {
+            return 0;
+        }
+        if ( ! isset($PDOX) || ! is_object($PDOX) || ! method_exists($PDOX, 'rowDie') ) {
+            return 0;
+        }
+        $p = $CFG->dbprefix;
+        $row = $PDOX->rowDie(
+            "SELECT manifest_id FROM {$p}lti_context WHERE context_id = :CID LIMIT 1",
+            array(':CID' => $cid)
+        );
+        if ( ! is_array($row) ) {
+            return 0;
+        }
+        return self::positiveId($row['manifest_id'] ?? 0);
+    }
+
+    /**
+     * Manifest id for the current course: session, else lti_context.manifest_id.
+     *
+     * Hydrates the session so later activeId() calls match. Nested /courses/{id}
+     * can already have the right context_id (Pages/Files work) while the
+     * session still has no manifest_id from Google login.
+     */
+    public static function resolvedId() {
+        $id = self::activeId();
+        if ( $id > 0 ) {
+            return $id;
+        }
+        $id = self::idForContext(U::currentContextId());
+        if ( $id > 0 ) {
+            self::rememberInSession($id);
+        }
+        return $id;
     }
 
     /**
@@ -773,7 +821,7 @@ class Manifest {
      * True if this request has a course document (active manifest or readable $CFG->lessons).
      */
     public static function hasCurrent() {
-        if ( self::activeId() > 0 ) {
+        if ( self::resolvedId() > 0 ) {
             return true;
         }
         global $CFG;
@@ -800,7 +848,7 @@ class Manifest {
      * @return Lessons|false
      */
     public static function currentLessons($anchor = null) {
-        $id = self::activeId();
+        $id = self::resolvedId();
         if ( $id > 0 ) {
             $json = self::loadJson($id);
             if ( is_string($json) ) {
@@ -822,7 +870,7 @@ class Manifest {
      * @return array{json: string, label: string, manifest_id: int, version: int}|false
      */
     public static function currentDocument() {
-        $id = self::activeId();
+        $id = self::resolvedId();
         if ( $id > 0 ) {
             $json = self::loadJson($id);
             if ( ! is_string($json) ) {

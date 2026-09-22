@@ -283,6 +283,12 @@ class Courses extends Tool {
         $current = U::currentContextId();
         if ( $current === $cid ) {
             self::wireLaunchConnection();
+            // Pages/Files only need context_id. Lessons reads the session
+            // manifest_id, which Google login never set for this course.
+            $mid = Manifest::idForContext($cid);
+            if ( $mid > 0 ) {
+                Manifest::rememberInSession($mid);
+            }
             return true;
         }
 
