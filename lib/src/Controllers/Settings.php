@@ -2798,7 +2798,7 @@ $(function(){
             return '';
         }
         $raw = preg_replace('/\s+/', ' ', $raw);
-        return strtolower($raw);
+        return mb_strtolower($raw, 'UTF-8');
     }
 
     /**

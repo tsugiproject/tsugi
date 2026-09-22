@@ -206,6 +206,9 @@ class SettingsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue(Settings::importReplaceTitleConfirmed('  django   for   everybody  '));
         $this->assertFalse(Settings::importReplaceTitleConfirmed('Python for Everybody'));
         $this->assertFalse(Settings::importReplaceTitleConfirmed(null));
+        $_SESSION['context_title'] = 'Économie';
+        $this->assertTrue(Settings::importReplaceTitleConfirmed('économie'));
+        $this->assertTrue(Settings::importReplaceTitleConfirmed('ÉCONOMIE'));
     }
 
     public function testImportReplaceMembersMatch()
