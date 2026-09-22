@@ -1,11 +1,9 @@
 <?php
 
 require_once "src/Config/ConfigInfo.php";
-require_once "src/Core/LTIX.php";
 require_once "src/UI/DemoLogin.php";
 require_once "src/Util/U.php";
 
-use \Tsugi\Core\LTIX;
 use \Tsugi\UI\DemoLogin;
 
 class DemoLoginTest extends \PHPUnit\Framework\TestCase
@@ -102,14 +100,14 @@ class DemoLoginTest extends \PHPUnit\Framework\TestCase
     public function testSessionOptionsInstructor() {
         $opts = DemoLogin::sessionOptions(DemoLogin::persona('instructor-01'));
         $this->assertSame(1, $opts['create_courses']);
-        $this->assertSame(LTIX::ROLE_INSTRUCTOR, $opts['membership_role']);
+        $this->assertArrayNotHasKey('membership_role', $opts);
         $this->assertTrue($opts['force_membership_role']);
     }
 
     public function testSessionOptionsStudent() {
         $opts = DemoLogin::sessionOptions(DemoLogin::persona('student-01'));
         $this->assertSame(0, $opts['create_courses']);
-        $this->assertSame(LTIX::ROLE_LEARNER, $opts['membership_role']);
+        $this->assertArrayNotHasKey('membership_role', $opts);
         $this->assertTrue($opts['force_membership_role']);
     }
 

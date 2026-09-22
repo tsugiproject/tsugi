@@ -3,7 +3,6 @@
 namespace Tsugi\UI;
 
 use \Tsugi\Util\U;
-use \Tsugi\Core\LTIX;
 use \Tsugi\Controllers\Login;
 
 /**
@@ -110,6 +109,9 @@ class DemoLogin {
     /**
      * Options for GoogleLoginHandler::establishGoogleSiteSession().
      *
+     * Instructors get create_courses only. Site-course membership is always
+     * learner (same as a normal Google login).
+     *
      * @param array $persona
      * @return array
      */
@@ -117,7 +119,6 @@ class DemoLogin {
         $instructor = ! empty($persona['instructor']);
         return array(
             'create_courses' => $instructor ? 1 : 0,
-            'membership_role' => $instructor ? LTIX::ROLE_INSTRUCTOR : LTIX::ROLE_LEARNER,
             'force_membership_role' => true,
         );
     }

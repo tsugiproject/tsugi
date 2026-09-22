@@ -164,7 +164,7 @@ class GoogleLoginHandler {
      * @param string $displayName
      * @param string|false $userAvatar
      * @param callable|null $redirect_callback
-     * @param array $options create_courses (0/1 or omit), membership_role, force_membership_role
+     * @param array $options create_courses (0/1 or omit), force_membership_role (upsert learner)
      * @return GoogleLoginHandler
      */
     public static function establishGoogleSiteSession($user_key, $userEmail, $displayName, $userAvatar = false,
@@ -199,8 +199,9 @@ class GoogleLoginHandler {
 
         $context_key = false;
         $context_id = false;
-        if ( isset($CFG->context_title) && is_string($CFG->context_title) && $CFG->context_title !== '' ) {
-            $context_key = 'course:'.md5($CFG->context_title);
+        if ( $CFG->hasSiteContextTitle() ) {
+            $context_title = trim($CFG->context_title);
+            $context_key = 'course:'.md5($context_title);
             $row = $PDOX->rowDie(
                 "SELECT context_id FROM {$CFG->dbprefix}lti_context
                     WHERE context_sha256 = :SHA AND key_id = :KID LIMIT 1",
@@ -215,7 +216,7 @@ class GoogleLoginHandler {
                 $PDOX->queryDie($sql, array(
                         ':context_key' => $context_key,
                         ':context_sha256' => lti_sha256($context_key),
-                        ':title' => $CFG->context_title,
+                        ':title' => $context_title,
                         ':key_id' => $google_key_id));
                 $context_id = $PDOX->lastInsertId();
             }
@@ -367,36 +368,22 @@ class GoogleLoginHandler {
             );
         }
 
-        $membership_role = array_key_exists('membership_role', $options)
-            ? (int) $options['membership_role']
-            : LTIX::ROLE_LEARNER;
         $force_membership_role = ! empty($options['force_membership_role']);
 
         if ( $context_id !== false ) {
             if ( $force_membership_role ) {
-                $mrow = $PDOX->rowDie(
-                    "SELECT membership_id FROM {$CFG->dbprefix}lti_membership
-                     WHERE context_id = :CID AND user_id = :UID LIMIT 1",
-                    array(':CID' => $context_id, ':UID' => $user_id)
+                $PDOX->queryDie(
+                    "INSERT INTO {$CFG->dbprefix}lti_membership
+                    ( context_id, user_id, role, created_at, updated_at ) VALUES
+                    ( :context_id, :user_id, :role, NOW(), NOW() )
+                    ON DUPLICATE KEY UPDATE
+                        role = VALUES(role),
+                        updated_at = NOW()",
+                    array(
+                        ':context_id' => $context_id,
+                        ':user_id' => $user_id,
+                        ':role' => LTIX::ROLE_LEARNER)
                 );
-                if ( is_array($mrow) && isset($mrow['membership_id']) ) {
-                    $PDOX->queryDie(
-                        "UPDATE {$CFG->dbprefix}lti_membership
-                         SET role = :ROLE, updated_at = NOW()
-                         WHERE membership_id = :MID",
-                        array(':ROLE' => $membership_role, ':MID' => $mrow['membership_id'] + 0)
-                    );
-                } else {
-                    $PDOX->queryDie(
-                        "INSERT INTO {$CFG->dbprefix}lti_membership
-                        ( context_id, user_id, role, created_at, updated_at ) VALUES
-                        ( :context_id, :user_id, :role, NOW(), NOW() )",
-                        array(
-                            ':context_id' => $context_id,
-                            ':user_id' => $user_id,
-                            ':role' => $membership_role)
-                    );
-                }
             } else {
                 $sql = "INSERT IGNORE INTO {$CFG->dbprefix}lti_membership
                     ( context_id, user_id, role, created_at, updated_at ) VALUES
@@ -444,10 +431,11 @@ class GoogleLoginHandler {
             $lti["image"] = $userAvatar;
         }
 
-        if ( isset($CFG->context_title) ) {
-            $_SESSION['context_title'] = $CFG->context_title;
-            $lti['context_title'] = $CFG->context_title;
-            $lti['resource_title'] = $CFG->context_title;
+        if ( $CFG->hasSiteContextTitle() ) {
+            $session_context_title = trim($CFG->context_title);
+            $_SESSION['context_title'] = $session_context_title;
+            $lti['context_title'] = $session_context_title;
+            $lti['resource_title'] = $session_context_title;
         }
         if ( isset($context_id) ) {
             $_SESSION["context_id"] = $context_id;
