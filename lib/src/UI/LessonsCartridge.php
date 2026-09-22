@@ -190,9 +190,14 @@ class LessonsCartridge {
                 }
             }
             if ( $top_module ) {
-                $sub_module = $cc_dom->add_sub_module($top_module, $module->title, 'Modules (import)');
+                $sub_module = $cc_dom->add_sub_module(
+                    $top_module,
+                    $module->title,
+                    'Modules (import)',
+                    $module
+                );
             } else {
-                $sub_module = $cc_dom->add_module($module->title, '');
+                $sub_module = $cc_dom->add_module($module->title, '', $module);
             }
             foreach ( self::itemsForModule($module) as $item ) {
                 self::processItem($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
@@ -313,7 +318,7 @@ class LessonsCartridge {
         }
         $header_text = isset($item->title) ? $item->title : (isset($item->text) ? $item->text : '');
         if ( is_string($header_text) && $header_text !== '' ) {
-            $cc_dom->add_header_item($sub_module, $header_text, $parentPath);
+            $cc_dom->add_header_item($sub_module, $header_text, $parentPath, $item);
         }
         return true;
     }
@@ -340,12 +345,12 @@ class LessonsCartridge {
         $kaltura_url = Lessons::kalturaEmbedUrl($item);
         if ( $kaltura_url ) {
             // new_tab=false => Canvas ExternalUrl launches inline in an iframe
-            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $kaltura_url, $parentPath, false);
+            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $kaltura_url, $parentPath, false, $item);
             return true;
         }
         if ( ! empty($item->youtube) ) {
             $url = U::youtubeWatchUrl($item->youtube);
-            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parentPath);
+            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, $parentPath, true, $item);
         }
         return true;
     }
@@ -432,7 +437,7 @@ class LessonsCartridge {
         if ( $url !== '' ) {
             $title = self::urlItemTitle($item, $module, $kind);
             $new_tab = true;
-            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, null, $new_tab);
+            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, null, $new_tab, $item);
         }
 
         self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
@@ -475,10 +480,12 @@ class LessonsCartridge {
                 $info['listings'],
                 $info['identifierref']
             );
+            $cc_dom->add_last_item_lom($item);
             self::rememberExportFilePath($sha, $path, $info['zipPath']);
             return;
         }
         $zipPath = $cc_dom->zip_add_file_to_module($zip, $sub_module, $title, $path, $payload['bytes'], null, $sha);
+        $cc_dom->add_last_item_lom($item);
         self::rememberExportFilePath($sha, $path, $zipPath);
         if ( $sha !== null ) {
             self::$exportFileResources[$sha] = array(
@@ -504,7 +511,7 @@ class LessonsCartridge {
         if ( ! $hasIdentity ) {
             $url = self::itemHref($item);
             if ( $url !== '' ) {
-                $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, null, false);
+                $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $url, null, false, $item);
             }
             return;
         }
@@ -534,6 +541,7 @@ class LessonsCartridge {
             'title' => $title,
             'logical_key' => $logicalKey,
             'sub_module' => $sub_module,
+            'lesson' => $item,
         );
     }
 
@@ -602,6 +610,7 @@ class LessonsCartridge {
                     $seen[$key],
                     $wikiRefs[$key]
                 );
+                $cc_dom->add_last_item_lom($pending['lesson'] ?? null);
                 continue;
             }
             $html = self::rewriteCartridgeFileLinks($pending['html'], $options, true);
@@ -612,6 +621,7 @@ class LessonsCartridge {
                 $pending['logical_key'],
                 $html
             );
+            $cc_dom->add_last_item_lom($pending['lesson'] ?? null);
             if ( $key !== '' ) {
                 $seen[$key] = 1;
                 $wikiRefs[$key] = $cc_dom->last_identifierref;
@@ -647,6 +657,7 @@ class LessonsCartridge {
                     $seen[$key],
                     $pageRefs[$key]
                 );
+                $cc_dom->add_last_item_lom($pending['lesson'] ?? null);
                 continue;
             }
             $html = self::rewriteCartridgeFileLinks($pending['html'], $options, false, $pageZipPaths);
@@ -658,6 +669,7 @@ class LessonsCartridge {
                 $html,
                 $key
             );
+            $cc_dom->add_last_item_lom($pending['lesson'] ?? null);
             $seen[$key] = 1;
             $pageRefs[$key] = $cc_dom->last_identifierref;
         }
@@ -970,6 +982,7 @@ class LessonsCartridge {
         }
         $xml = Qti12Exporter::export($quiz, $export_opts);
         $cc_dom->zip_finish_qti_assessment($zip, $file, $title, $xml, $quiz);
+        $cc_dom->add_last_item_lom($item);
     }
 
     /**
@@ -998,6 +1011,7 @@ class LessonsCartridge {
 
         if ( $topic === 'lms' ) {
             $cc_dom->zip_add_topic_to_module($zip, $sub_module, $title, $text);
+            $cc_dom->add_last_item_lom($item);
             return;
         }
 
@@ -1014,6 +1028,7 @@ class LessonsCartridge {
         } else {
             $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id);
         }
+        $cc_dom->add_last_item_lom($item);
     }
 
     private static function processLti($item, $module, $sub_module, $zip, $cc_dom) {
@@ -1030,6 +1045,7 @@ class LessonsCartridge {
         $extensions = array('apphome' => $CFG->apphome);
         $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : null;
         $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, self::customArray($item), $extensions, $resource_link_id);
+        $cc_dom->add_last_item_lom($item);
     }
 
     private static function urlItemTitle($item, $module, $kind) {

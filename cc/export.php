@@ -70,7 +70,7 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $topic,
         $slide_href = Lessons::expandLink($slide_href);
         $url = U::absolute_url($slide_href);
         $title = 'Slides: '.$slide_title;
-        $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parentPath);
+        $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parentPath, $item_obj);
         return;
     }
     
@@ -80,7 +80,7 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $topic,
         $href = isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : '');
         $href = Lessons::expandLink($href);
         $url = U::absolute_url($href);
-        $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parentPath);
+        $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parentPath, $item_obj);
         return;
     }
     
@@ -90,7 +90,7 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $topic,
         $href = Lessons::expandLink($href);
         $url = U::absolute_url($href);
         $title = 'Assignment: '.$module->title;
-        $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parentPath);
+        $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parentPath, $item_obj);
         return;
     }
     
@@ -100,7 +100,7 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $topic,
         $href = Lessons::expandLink($href);
         $url = U::absolute_url($href);
         $title = 'Solution: '.$module->title;
-        $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parentPath);
+        $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parentPath, $item_obj);
         return;
     }
     
@@ -329,9 +329,14 @@ foreach($l->lessons->modules as $module) {
     if ( $anchors && ! in_array($module->anchor, $anchors) ) continue;
     if ( $top_module ) {
         $parent_path = 'Modules (import)';
-        $sub_module = $cc_dom->add_sub_module($top_module, $module->title, $parent_path);
+        $sub_module = $cc_dom->add_sub_module(
+            $top_module,
+            $module->title,
+            $parent_path,
+            $module
+        );
     } else {
-        $sub_module = $cc_dom->add_module($module->title, '');
+        $sub_module = $cc_dom->add_module($module->title, '', $module);
     }
 
     // Check if module uses items array (new format)

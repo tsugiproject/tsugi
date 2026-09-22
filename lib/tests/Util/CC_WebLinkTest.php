@@ -20,6 +20,12 @@ class CC_WebLinkTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('href="http://www.php-intro.com/lessons.php?anchor=install"', $save);
         $this->assertStringNotContainsString('imsccv1p1', $save);
 
+        $blank = new CC_WebLink();
+        $blank->set_title('PythonAnywhere');
+        $blank->set_url('https://www.pythonanywhere.com/', array('windowTarget' => '_blank'));
+        $blankXml = $blank->saveXML();
+        $this->assertStringContainsString('href="https://www.pythonanywhere.com/"', $blankXml);
+        $this->assertStringContainsString('windowTarget="_blank"', $blankXml);
     }
 
     public function testCc11Namespace() {

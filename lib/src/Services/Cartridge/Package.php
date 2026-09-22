@@ -2,6 +2,8 @@
 
 namespace Tsugi\Services\Cartridge;
 
+use Tsugi\Util\CC;
+
 /**
  * Open a Common Cartridge zip and index imsmanifest.xml (CC 1.1 or 1.2).
  *
@@ -43,7 +45,7 @@ class Package {
     /**
      * Organization modules (title + items) for Lessons.
      *
-     * @var list<array{identifier:string,title:string,items:list<array<string,mixed>>}>
+     * @var list<array{identifier:string,title:string,description:?string,items:list<array<string,mixed>>}>
      */
     public $modules = array();
 
@@ -416,7 +418,7 @@ class Package {
     }
 
     /**
-     * @return list<array{identifier:string,title:string,items:list<array<string,mixed>>}>
+     * @return list<array{identifier:string,title:string,description:?string,items:list<array<string,mixed>>}>
      */
     private function parseOrganization(\DOMDocument $dom) {
         $org = null;
@@ -451,9 +453,12 @@ class Package {
             foreach ( $kids as $kid ) {
                 $items[] = self::orgItem($kid);
             }
+            $ids = CC::lomIdentifiersFromItem($el);
             $modules[] = array(
                 'identifier' => trim($el->getAttribute('identifier')),
                 'title' => $title,
+                'description' => CC::lomDescriptionFromItem($el),
+                'icon' => $ids[CC::LOM_CATALOG_ICON] ?? null,
                 'items' => $items,
             );
         }
@@ -461,6 +466,7 @@ class Package {
             $modules[] = array(
                 'identifier' => '',
                 'title' => 'Imported',
+                'description' => null,
                 'items' => $loose,
             );
         }
@@ -468,16 +474,21 @@ class Package {
     }
 
     /**
-     * @return array{identifier:string,identifierref:string,title:string,heading:bool}
+     * @return array{identifier:string,identifierref:string,title:string,heading:bool,description:?string,icon:?string,href_source:?string,target:?string}
      */
     private static function orgItem(\DOMElement $el) {
         $ref = trim($el->getAttribute('identifierref'));
         $title = self::childTitle($el);
+        $ids = CC::lomIdentifiersFromItem($el);
         return array(
             'identifier' => trim($el->getAttribute('identifier')),
             'identifierref' => $ref,
             'title' => $title,
             'heading' => ($ref === ''),
+            'description' => CC::lomDescriptionFromItem($el),
+            'icon' => $ids[CC::LOM_CATALOG_ICON] ?? null,
+            'href_source' => $ids[CC::LOM_CATALOG_HREF_SOURCE] ?? null,
+            'target' => CC::lessonTargetFromDocumentTarget($ids[CC::LOM_CATALOG_DOCUMENT_TARGET] ?? null),
         );
     }
 

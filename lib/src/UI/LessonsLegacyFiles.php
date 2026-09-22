@@ -186,16 +186,17 @@ class LessonsLegacyFiles {
      * @param string $title
      * @param string $url Absolute URL after expandLink / absolute_url
      * @param string|null $parentPath
+     * @param mixed $lesson Optional lesson/item for windowTarget and LOM description
      * @return string 'file', 'listing', or 'url'
      */
-    public function addToModule($zip, $cc_dom, $module, $title, $url, $parentPath=null) {
+    public function addToModule($zip, $cc_dom, $module, $title, $url, $parentPath=null, $lesson=null) {
         if ( ! $this->embedFiles ) {
-            $cc_dom->zip_add_url_to_module($zip, $module, $title, $url, $parentPath);
+            $cc_dom->zip_add_url_to_module($zip, $module, $title, $url, $parentPath, true, $lesson);
             return 'url';
         }
         $payload = self::payloadForUrl($url);
         if ( $payload === null ) {
-            $cc_dom->zip_add_url_to_module($zip, $module, $title, $url, $parentPath);
+            $cc_dom->zip_add_url_to_module($zip, $module, $title, $url, $parentPath, true, $lesson);
             return 'url';
         }
         $key = $payload['realpath'];

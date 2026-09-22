@@ -103,7 +103,7 @@ class LessonsNormalize {
     /** @var list<string> */
     private static $itemKeyOrder = array(
         'type', 'subtype', 'title', 'description', 'text', 'level', 'class', 'tag',
-        'href', 'url', 'launch', 'resource_link_id', 'quiz_id', 'page_id', 'logical_key', 'target', 'result', 'custom',
+        'href', 'url', 'href_source', 'launch', 'resource_link_id', 'quiz_id', 'page_id', 'logical_key', 'target', 'result', 'custom',
         'sha256', 'filename', 'path', 'content_type', 'icon',
         'youtube', 'kaltura_id', 'media',
         'note', 'notes', 'TODO', 'todo', 'review', 'project', 'FCP', 'FCPX',

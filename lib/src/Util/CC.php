@@ -75,6 +75,13 @@ class CC extends \Tsugi\Util\TsugiDOM {
     const resource_xpath = '/*/*[3]';
     const lom_general_xpath = '/*/*[1]/lomimscc:lom/lomimscc:general';
 
+    /** LOM general.identifier catalog for an explicit Font Awesome icon class. */
+    const LOM_CATALOG_ICON = 'tsugi.icon';
+    /** LOM general.identifier catalog for web-link URL vs course-content. */
+    const LOM_CATALOG_HREF_SOURCE = 'tsugi.href_source';
+    /** LOM general.identifier catalog; LTI launch_presentation_document_target values. */
+    const LOM_CATALOG_DOCUMENT_TARGET = 'tsugi.launch_presentation_document_target';
+
     public $resource_count = 0;
 
     public $last_type = false;
@@ -313,14 +320,359 @@ class CC extends \Tsugi\Util\TsugiDOM {
     }
 
     /**
+     * Non-empty lesson/module description for organization-item LOM metadata.
+     *
+     * Accepts a string, or a lesson/module object/array with a description
+     * property. Empty string and non-strings become null (skip metadata).
+     *
+     * @param mixed $source
+     * @return string|null
+     */
+    public static function organizationDescription($source) {
+        if ( is_object($source) && isset($source->description) ) {
+            $source = $source->description;
+        } else if ( is_array($source) && isset($source['description']) ) {
+            $source = $source['description'];
+        }
+        if ( ! is_string($source) || $source === '' ) {
+            return null;
+        }
+        return $source;
+    }
+
+    /**
+     * Explicit Font Awesome icon class from a lesson/module, or null.
+     *
+     * @param mixed $source
+     * @return string|null
+     */
+    public static function organizationIcon($source) {
+        if ( is_object($source) && isset($source->icon) ) {
+            $source = $source->icon;
+        } else if ( is_array($source) && isset($source['icon']) ) {
+            $source = $source['icon'];
+        }
+        if ( ! is_string($source) || $source === '' ) {
+            return null;
+        }
+        if ( ! preg_match('/^fa-[a-z0-9-]+$/', $source) ) {
+            return null;
+        }
+        return $source;
+    }
+
+    /**
+     * Web-link href source: url or course, or null if unset/invalid.
+     *
+     * @param mixed $source
+     * @return string|null
+     */
+    public static function organizationHrefSource($source) {
+        if ( is_object($source) && isset($source->href_source) ) {
+            $source = $source->href_source;
+        } else if ( is_array($source) && isset($source['href_source']) ) {
+            $source = $source['href_source'];
+        }
+        if ( $source === 'url' || $source === 'course' ) {
+            return $source;
+        }
+        return null;
+    }
+
+    /**
+     * Extra LOM identifier catalog/entry pairs from a lesson/module.
+     *
+     * @param mixed $source
+     * @return array<string, string>
+     */
+    public static function lomIdentifiersFromLesson($source) {
+        $pairs = array();
+        $icon = self::organizationIcon($source);
+        if ( $icon !== null ) {
+            $pairs[self::LOM_CATALOG_ICON] = $icon;
+        }
+        $hrefSource = self::organizationHrefSource($source);
+        if ( $hrefSource !== null ) {
+            $pairs[self::LOM_CATALOG_HREF_SOURCE] = $hrefSource;
+        }
+        $documentTarget = self::documentTargetFromLesson($source);
+        if ( $documentTarget !== null ) {
+            $pairs[self::LOM_CATALOG_DOCUMENT_TARGET] = $documentTarget;
+        }
+        return $pairs;
+    }
+
+    /**
+     * catalog => entry from this organization item's own LOM identifiers.
+     *
+     * @return array<string, string>
+     */
+    public static function lomIdentifiersFromItem(\DOMElement $item) {
+        $metadata = null;
+        foreach ( $item->childNodes as $child ) {
+            if ( $child instanceof \DOMElement && $child->localName === 'metadata' ) {
+                $metadata = $child;
+                break;
+            }
+        }
+        if ( ! $metadata instanceof \DOMElement ) {
+            return array();
+        }
+        $pairs = array();
+        foreach ( $metadata->getElementsByTagName('*') as $el ) {
+            if ( ! $el instanceof \DOMElement || $el->localName !== 'identifier' ) {
+                continue;
+            }
+            $catalog = '';
+            $entry = '';
+            foreach ( $el->childNodes as $child ) {
+                if ( ! $child instanceof \DOMElement ) {
+                    continue;
+                }
+                if ( $child->localName === 'catalog' ) {
+                    $catalog = trim($child->textContent);
+                } else if ( $child->localName === 'entry' ) {
+                    $entry = trim($child->textContent);
+                }
+            }
+            if ( $catalog !== '' && $entry !== '' ) {
+                $pairs[$catalog] = $entry;
+            }
+        }
+        return $pairs;
+    }
+
+    /**
+     * IMS webLink url/@windowTarget from a lesson/item target, or null to omit.
+     *
+     * Maps Tsugi/LTI values onto the CC 1.2 attribute: _blank, _self, modal.
+     *
+     * @param mixed $source lesson object/array, or a target string
+     * @return string|null
+     */
+    public static function windowTargetFromLesson($source) {
+        $target = self::lessonTargetValue($source);
+        if ( $target === null ) {
+            return null;
+        }
+        $t = strtolower($target);
+        if ( $t === '_blank' || $t === 'window' || $t === 'blank' ) {
+            return '_blank';
+        }
+        if ( $t === '_self' || $t === 'iframe' || $t === 'frame' || $t === 'self' ) {
+            return '_self';
+        }
+        if ( $t === 'modal' ) {
+            return 'modal';
+        }
+        if ( $t === '_parent' || $t === '_top' ) {
+            return $t;
+        }
+        return null;
+    }
+
+    /**
+     * LTI launch_presentation_document_target from a lesson/item, or null to omit.
+     *
+     * window / iframe / frame / modal (Tsugi).
+     *
+     * @param mixed $source lesson object/array, or a target string
+     * @return string|null
+     */
+    public static function documentTargetFromLesson($source) {
+        $target = self::lessonTargetValue($source);
+        if ( $target === null ) {
+            return null;
+        }
+        $t = strtolower($target);
+        if ( $t === '_blank' || $t === 'window' || $t === 'blank' ) {
+            return 'window';
+        }
+        if ( $t === '_self' || $t === 'iframe' || $t === 'self' ) {
+            return 'iframe';
+        }
+        if ( $t === 'frame' ) {
+            return 'frame';
+        }
+        if ( $t === 'modal' ) {
+            return 'modal';
+        }
+        return null;
+    }
+
+    /**
+     * Tsugi lesson target from an LTI document_target or IMS windowTarget, or null.
+     *
+     * @param mixed $documentTarget
+     * @return string|null
+     */
+    public static function lessonTargetFromDocumentTarget($documentTarget) {
+        return self::windowTargetFromLesson($documentTarget);
+    }
+
+    /**
+     * Tsugi lesson target from an IMS webLink windowTarget, or null.
+     *
+     * @param mixed $windowTarget
+     * @return string|null
+     */
+    public static function lessonTargetFromWindowTarget($windowTarget) {
+        return self::windowTargetFromLesson($windowTarget);
+    }
+
+    /**
+     * Canvas module_meta new_tab from windowTarget, else $default.
+     *
+     * @param string|null $windowTarget
+     * @param bool $default
+     * @return bool
+     */
+    public static function canvasNewTabForWindowTarget($windowTarget, $default = true) {
+        if ( $windowTarget === '_blank' ) {
+            return true;
+        }
+        if ( $windowTarget === '_self' || $windowTarget === 'modal' ) {
+            return false;
+        }
+        return (bool) $default;
+    }
+
+    /**
+     * @param mixed $source
+     * @return string|null
+     */
+    private static function lessonTargetValue($source) {
+        if ( is_object($source) && isset($source->target) ) {
+            $source = $source->target;
+        } else if ( is_array($source) && isset($source['target']) ) {
+            $source = $source['target'];
+        }
+        if ( ! is_string($source) || $source === '' ) {
+            return null;
+        }
+        return $source;
+    }
+
+    /**
+     * LOM general.description text from an organization item, or null.
+     *
+     * Reads only this item's own metadata (not nested items). Does not trim
+     * or rewrite the recovered string, so HTML descriptions round-trip.
+     *
+     * @return string|null
+     */
+    public static function lomDescriptionFromItem(\DOMElement $item) {
+        $metadata = null;
+        foreach ( $item->childNodes as $child ) {
+            if ( $child instanceof \DOMElement && $child->localName === 'metadata' ) {
+                $metadata = $child;
+                break;
+            }
+        }
+        if ( ! $metadata instanceof \DOMElement ) {
+            return null;
+        }
+        foreach ( $metadata->getElementsByTagName('*') as $el ) {
+            if ( ! $el instanceof \DOMElement || $el->localName !== 'description' ) {
+                continue;
+            }
+            foreach ( $el->childNodes as $child ) {
+                if ( $child instanceof \DOMElement && $child->localName === 'string' ) {
+                    return $child->textContent;
+                }
+            }
+            return $el->textContent;
+        }
+        return null;
+    }
+
+    /**
+     * Attach CC 1.2 LOM to an organization item (description plus Tsugi identifiers).
+     *
+     * Identifiers use standard lomimscc catalog/entry (repeatable). No-op for
+     * CC 1.1, a missing item, or when there is nothing to emit. Inserts
+     * metadata after title and before nested items.
+     *
+     * @param \DOMElement|null $item
+     * @param mixed $description string, or lesson/module object/array
+     * @return bool true when metadata was emitted
+     */
+    public function add_item_lom_description($item, $description) {
+        if ( $this->isCc11() ) {
+            return false;
+        }
+        if ( ! $item instanceof \DOMElement ) {
+            return false;
+        }
+        $text = self::organizationDescription($description);
+        $pairs = self::lomIdentifiersFromLesson($description);
+        if ( $text === null && count($pairs) < 1 ) {
+            return false;
+        }
+
+        $lomNs = $this->lomImsccNs();
+        $metadata = $this->createElementNS($this->ccNs(), 'metadata');
+        $lom = $this->createElementNS($lomNs, 'lomimscc:lom');
+        $metadata->appendChild($lom);
+        $general = $this->createElementNS($lomNs, 'lomimscc:general');
+        $lom->appendChild($general);
+        foreach ( $pairs as $catalog => $entry ) {
+            $idEl = $this->createElementNS($lomNs, 'lomimscc:identifier');
+            $general->appendChild($idEl);
+            $catEl = $this->createElementNS($lomNs, 'lomimscc:catalog');
+            $catEl->appendChild($this->createTextNode($catalog));
+            $idEl->appendChild($catEl);
+            $entryEl = $this->createElementNS($lomNs, 'lomimscc:entry');
+            $entryEl->appendChild($this->createTextNode($entry));
+            $idEl->appendChild($entryEl);
+        }
+        if ( $text !== null ) {
+            $descEl = $this->createElementNS($lomNs, 'lomimscc:description');
+            $general->appendChild($descEl);
+            $string = $this->createElementNS($lomNs, 'lomimscc:string');
+            $string->setAttribute('language', 'en-US');
+            $string->appendChild($this->createTextNode($text));
+            $descEl->appendChild($string);
+        }
+
+        $afterTitle = null;
+        foreach ( $item->childNodes as $child ) {
+            if ( $child instanceof \DOMElement && $child->localName === 'title' ) {
+                $afterTitle = $child->nextSibling;
+                break;
+            }
+        }
+        if ( $afterTitle ) {
+            $item->insertBefore($metadata, $afterTitle);
+        } else {
+            $item->appendChild($metadata);
+        }
+        return true;
+    }
+
+    /**
+     * Attach LOM to the most recently added organization item.
+     *
+     * @param mixed $source
+     * @return bool
+     */
+    public function add_last_item_lom($source) {
+        return $this->add_item_lom_description(
+            $this->organizationItemByIdentifier($this->last_identifier),
+            $source
+        );
+    }
+
+    /**
      * Adds a module to the manifest
      *
      * @param $title The title of the module
      * @param $parentPath Optional parent path for deterministic ID generation (e.g., "")
+     * @param mixed $description Optional lesson description (CC 1.2 LOM on the item)
      *
      * @return the DOMNode of the newly added module
      */
-    public function add_module($title, $parentPath = '') {
+    public function add_module($title, $parentPath = '', $description = null) {
         // Generate deterministic identifier
         $this->last_identifier = $this->idGenerator->makeIdentifier('module', $title, $parentPath);
         
@@ -332,6 +684,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $items = $xpath->query(CC::item_xpath)->item(0);
         $module = $this->add_child_ns($this->ccNs(), $items, 'item', null, array('identifier' => $this->last_identifier));
         $new_title = $this->add_child_ns($this->ccNs(), $module, 'title', $title);
+        $this->add_item_lom_description($module, $description);
         
         // Store path for this module node
         $this->modulePaths[spl_object_hash($module)] = $modulePath;
@@ -354,10 +707,11 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param $module DOMNode The module where we are adding the submodule
      * @param $title The title of the sub module
      * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
+     * @param mixed $description Optional lesson description (CC 1.2 LOM on the item)
      *
      * @return the DOMNode of the newly added sub module
      */
-    public function add_sub_module($module, $title, $parentPath = null) {
+    public function add_sub_module($module, $title, $parentPath = null, $description = null) {
         // Get parent path if not provided
         if ($parentPath === null) {
             $moduleHash = spl_object_hash($module);
@@ -371,6 +725,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $modulePath = $parentPath ? $parentPath . '|' . $title : $title;
         $sub_module = $this->add_child_ns($this->ccNs(), $module, 'item', null, array('identifier' => $this->last_identifier));
         $new_title = $this->add_child_ns($this->ccNs(), $sub_module, 'title',$title);
+        $this->add_item_lom_description($sub_module, $description);
         
         // Store path for this submodule node
         $this->modulePaths[spl_object_hash($sub_module)] = $modulePath;
@@ -697,15 +1052,26 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param $title The title of the link
      * @param $url The url for the link
      * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
+     * @param bool $new_tab Canvas ExternalUrl new_tab when lesson has no target
+     * @param mixed $lesson Optional lesson/item: windowTarget plus LOM description
      *
      * @return The name of a file to contain the web link XML in the ZIP.
      */
-    function zip_add_url_to_module($zip, $module, $title, $url, $parentPath=null, $new_tab=true) {
+    function zip_add_url_to_module($zip, $module, $title, $url, $parentPath=null, $new_tab=true, $lesson=null) {
         $file = $this->add_web_link($module, $title, $url, $parentPath);
         $web_dom = new CC_WebLink($this);
         $web_dom->set_title($title);
-        $web_dom->set_url($url);
+        $windowTarget = self::windowTargetFromLesson($lesson);
+        $attrs = array();
+        if ( $windowTarget !== null ) {
+            $attrs['windowTarget'] = $windowTarget;
+            $new_tab = self::canvasNewTabForWindowTarget($windowTarget, $new_tab);
+        }
+        $web_dom->set_url($url, $attrs);
         $zip->addFromString($file,$web_dom->saveXML());
+
+        $itemEl = $this->organizationItemByIdentifier($this->last_identifier);
+        $this->add_item_lom_description($itemEl, $lesson);
 
         // Add to the ever-growing canvas_module_meta
         // new_tab=false => Canvas opens ExternalUrl inline (iframe), useful for embed players
@@ -719,6 +1085,25 @@ class CC extends \Tsugi\Util\TsugiDOM {
                 : CanvasModuleMeta::new_tab_false;
             $item = $this->canvas_module_meta->add_item($this->canvas_items, $this->last_identifier, $w);
         }
+    }
+
+    /**
+     * Organization item with this identifier, or null.
+     *
+     * @param string|false $identifier
+     * @return \DOMElement|null
+     */
+    private function organizationItemByIdentifier($identifier) {
+        if ( ! is_string($identifier) || $identifier === '' ) {
+            return null;
+        }
+        foreach ( $this->getElementsByTagName('*') as $el ) {
+            if ( $el instanceof \DOMElement && $el->localName === 'item'
+                && $el->getAttribute('identifier') === $identifier ) {
+                return $el;
+            }
+        }
+        return null;
     }
 
     /**
@@ -1139,10 +1524,11 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param $module DOMNode The module or sub module where we are adding the header
      * @param $title The title/text of the header
      * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
+     * @param mixed $description Optional heading description (CC 1.2 LOM)
      *
      * @return The DOMNode of the newly added header item
      */
-    public function add_header_item($module, $title, $parentPath=null) {
+    public function add_header_item($module, $title, $parentPath=null, $description=null) {
         // Get parent path if not provided
         if ($parentPath === null) {
             $moduleHash = spl_object_hash($module);
@@ -1155,6 +1541,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
         // Add item to manifest without identifierref (Canvas sub-header)
         $header_item = $this->add_child_ns($this->ccNs(), $module, 'item', null, array('identifier' => $this->last_identifier));
         $new_title = $this->add_child_ns($this->ccNs(), $header_item, 'title', $title);
+        $this->add_item_lom_description($header_item, $description);
 
         // Add to Canvas module metadata as ContextModuleSubHeader
         if ( $this->canvas_items ) {

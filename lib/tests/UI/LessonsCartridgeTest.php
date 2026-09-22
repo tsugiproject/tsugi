@@ -279,6 +279,251 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testWriteZipPreservesModuleDescriptionAsItemLom() {
+        $l = $this->lessonsDoc(
+            array(
+                array('type' => 'web_link', 'subtype' => 'reference', 'title' => 'Docs', 'href' => 'https://example.com/'),
+                array('type' => 'heading', 'title' => 'Videos'),
+            ),
+            'Django Models',
+            'This lesson introduces the Django ORM.'
+        );
+        $path = $this->writeCartridge($l, array('tsugi_lms' => 'generic'));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $manifest = $zip->getFromName('imsmanifest.xml');
+            $zip->close();
+            $this->assertNotFalse($manifest);
+            $dom = new \DOMDocument();
+            $this->assertTrue($dom->loadXML($manifest));
+            $moduleItem = $this->moduleItemByTitle($dom, 'Django Models');
+            $this->assertSame('', $moduleItem->getAttribute('identifierref'));
+            $this->assertSame('This lesson introduces the Django ORM.', CC::lomDescriptionFromItem($moduleItem));
+            $names = array();
+            foreach ( $moduleItem->childNodes as $child ) {
+                if ( $child instanceof \DOMElement ) {
+                    $names[] = $child->localName;
+                }
+            }
+            $this->assertSame('title', $names[0]);
+            $this->assertSame('metadata', $names[1]);
+            $kids = array();
+            foreach ( $moduleItem->childNodes as $child ) {
+                if ( $child instanceof \DOMElement && $child->localName === 'item' ) {
+                    $kids[] = $child;
+                }
+            }
+            $this->assertCount(2, $kids);
+            $this->assertSame('Docs', $this->itemTitle($kids[0]));
+            $this->assertSame('Videos', $this->itemTitle($kids[1]));
+            $this->assertStringNotContainsString('tsugi.org/xsd', $manifest);
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipOmitsItemMetadataWithoutDescription() {
+        $l = $this->lessonsDoc(array(
+            array('type' => 'web_link', 'subtype' => 'reference', 'title' => 'Docs', 'href' => 'https://example.com/'),
+        ));
+        $path = $this->writeCartridge($l, array('tsugi_lms' => 'generic'));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $manifest = $zip->getFromName('imsmanifest.xml');
+            $zip->close();
+            $this->assertNotFalse($manifest);
+            $dom = new \DOMDocument();
+            $this->assertTrue($dom->loadXML($manifest));
+            $moduleItem = $this->moduleItemByTitle($dom, 'Week 1');
+            $this->assertNull(CC::lomDescriptionFromItem($moduleItem));
+            foreach ( $moduleItem->childNodes as $child ) {
+                if ( $child instanceof \DOMElement ) {
+                    $this->assertNotSame('metadata', $child->localName);
+                }
+            }
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipWebLinkWindowTarget() {
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'web_link',
+                'subtype' => 'reference',
+                'title' => 'New tab',
+                'href' => 'https://example.com/a',
+                'target' => '_blank',
+            ),
+            array(
+                'type' => 'web_link',
+                'subtype' => 'reference',
+                'title' => 'Same page',
+                'href' => 'https://example.com/b',
+                'target' => '_self',
+            ),
+            array(
+                'type' => 'web_link',
+                'subtype' => 'reference',
+                'title' => 'Modal',
+                'href' => 'https://example.com/c',
+                'target' => 'modal',
+            ),
+            array(
+                'type' => 'web_link',
+                'subtype' => 'reference',
+                'title' => 'Ordinary',
+                'href' => 'https://example.com/d',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array('tsugi_lms' => 'generic'));
+        try {
+            $map = $this->zipEntryMap($path);
+            $this->assertStringContainsString('windowTarget="_blank"', $this->webLinkXmlByTitle($map, 'New tab'));
+            $this->assertStringContainsString('windowTarget="_self"', $this->webLinkXmlByTitle($map, 'Same page'));
+            $this->assertStringContainsString('windowTarget="modal"', $this->webLinkXmlByTitle($map, 'Modal'));
+            $ordinary = $this->webLinkXmlByTitle($map, 'Ordinary');
+            $this->assertStringContainsString('href="https://example.com/d"', $ordinary);
+            $this->assertStringNotContainsString('windowTarget', $ordinary);
+            $dom = new \DOMDocument();
+            $this->assertTrue($dom->loadXML($map['imsmanifest.xml']));
+            $this->assertSame(
+                'window',
+                CC::lomIdentifiersFromItem($this->itemByTitle($dom, 'New tab'))[CC::LOM_CATALOG_DOCUMENT_TARGET]
+            );
+            $this->assertSame(
+                'iframe',
+                CC::lomIdentifiersFromItem($this->itemByTitle($dom, 'Same page'))[CC::LOM_CATALOG_DOCUMENT_TARGET]
+            );
+            $this->assertSame(
+                'modal',
+                CC::lomIdentifiersFromItem($this->itemByTitle($dom, 'Modal'))[CC::LOM_CATALOG_DOCUMENT_TARGET]
+            );
+            $this->assertArrayNotHasKey(
+                CC::LOM_CATALOG_DOCUMENT_TARGET,
+                CC::lomIdentifiersFromItem($this->itemByTitle($dom, 'Ordinary'))
+            );
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipCanvasNewTabFollowsWindowTarget() {
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'web_link',
+                'subtype' => 'reference',
+                'title' => 'PythonAnywhere',
+                'href' => 'https://www.pythonanywhere.com/',
+                'target' => '_blank',
+            ),
+            array(
+                'type' => 'web_link',
+                'subtype' => 'reference',
+                'title' => 'Inline docs',
+                'href' => 'https://example.com/docs',
+                'target' => '_self',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array('tsugi_lms' => 'canvas'));
+        try {
+            $map = $this->zipEntryMap($path);
+            $meta = $map['course_settings/module_meta.xml'];
+            $this->assertMatchesRegularExpression(
+                '/<item identifier="WL_[^"]+">[\s\S]*?<new_tab>true<\/new_tab>[\s\S]*?<title>PythonAnywhere<\/title>[\s\S]*?<\/item>/',
+                $meta
+            );
+            $this->assertMatchesRegularExpression(
+                '/<item identifier="WL_[^"]+">[\s\S]*?<new_tab>false<\/new_tab>[\s\S]*?<title>Inline docs<\/title>[\s\S]*?<\/item>/',
+                $meta
+            );
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipItemDescriptionAsLomOnWebLink() {
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'web_link',
+                'subtype' => 'reference',
+                'title' => 'PythonAnywhere',
+                'href' => 'https://www.pythonanywhere.com/',
+                'description' => 'Host for the Django tutorial.',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array('tsugi_lms' => 'generic'));
+        try {
+            $map = $this->zipEntryMap($path);
+            $dom = new \DOMDocument();
+            $this->assertTrue($dom->loadXML($map['imsmanifest.xml']));
+            $item = $this->itemByTitle($dom, 'PythonAnywhere');
+            $this->assertSame('Host for the Django tutorial.', CC::lomDescriptionFromItem($item));
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipPreservesIconAndHrefSourceAsLomIdentifiers() {
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'web_link',
+                'subtype' => 'reference',
+                'title' => 'PythonAnywhere',
+                'href' => 'https://www.pythonanywhere.com/',
+                'href_source' => 'course',
+                'icon' => 'fa-globe',
+            ),
+        ), 'Installing Django on PythonAnywhere');
+        $l->lessons->modules[0]->icon = 'fa-rocket';
+        $path = $this->writeCartridge($l, array('tsugi_lms' => 'generic'));
+        try {
+            $map = $this->zipEntryMap($path);
+            $dom = new \DOMDocument();
+            $this->assertTrue($dom->loadXML($map['imsmanifest.xml']));
+            $moduleItem = $this->moduleItemByTitle($dom, 'Installing Django on PythonAnywhere');
+            $this->assertSame('fa-rocket', CC::lomIdentifiersFromItem($moduleItem)[CC::LOM_CATALOG_ICON]);
+            $link = $this->itemByTitle($dom, 'PythonAnywhere');
+            $ids = CC::lomIdentifiersFromItem($link);
+            $this->assertSame('fa-globe', $ids[CC::LOM_CATALOG_ICON]);
+            $this->assertSame('course', $ids[CC::LOM_CATALOG_HREF_SOURCE]);
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function testWriteZipGeneric11DoesNotEmitItemLomDescription() {
+        $l = $this->lessonsDoc(
+            array(
+                array('type' => 'web_link', 'subtype' => 'reference', 'title' => 'Docs', 'href' => 'https://example.com/'),
+            ),
+            'Django Models',
+            'This lesson introduces the Django ORM.'
+        );
+        $path = $this->writeCartridge($l, array('tsugi_lms' => 'generic11'));
+        try {
+            $zip = new \ZipArchive();
+            $this->assertTrue($zip->open($path) === true);
+            $manifest = $zip->getFromName('imsmanifest.xml');
+            $zip->close();
+            $this->assertNotFalse($manifest);
+            $this->assertStringContainsString('<schemaversion>1.1.0</schemaversion>', $manifest);
+            $dom = new \DOMDocument();
+            $this->assertTrue($dom->loadXML($manifest));
+            $moduleItem = $this->moduleItemByTitle($dom, 'Django Models');
+            $this->assertNull(CC::lomDescriptionFromItem($moduleItem));
+            foreach ( $moduleItem->childNodes as $child ) {
+                if ( $child instanceof \DOMElement ) {
+                    $this->assertNotSame('metadata', $child->localName);
+                }
+            }
+        } finally {
+            @unlink($path);
+        }
+    }
+
     public function testAddHeadingItemIgnoresNonHeadings() {
         $cc_dom = new CC();
         $cc_dom->set_title('Course');
@@ -1233,21 +1478,104 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param list<array<string, mixed>> $items
+     * @param string $title
+     * @param string|null $description
      * @return object
      */
-    private function lessonsDoc(array $items) {
+    private function lessonsDoc(array $items, $title = 'Week 1', $description = null) {
+        $module = array(
+            'title' => $title,
+            'anchor' => 'w1',
+            'items' => $items,
+        );
+        if ( $description !== null ) {
+            $module['description'] = $description;
+        }
         return (object) array(
             'lessons' => (object) array(
                 'title' => 'Course',
                 'modules' => array(
-                    (object) array(
-                        'title' => 'Week 1',
-                        'anchor' => 'w1',
-                        'items' => $items,
-                    ),
+                    (object) $module,
                 ),
             ),
         );
+    }
+
+    /**
+     * @return \DOMElement
+     */
+    private function moduleItemByTitle(\DOMDocument $dom, $title) {
+        foreach ( $dom->getElementsByTagName('*') as $el ) {
+            if ( ! $el instanceof \DOMElement || $el->localName !== 'item' ) {
+                continue;
+            }
+            if ( $el->getAttribute('identifierref') !== '' ) {
+                continue;
+            }
+            if ( $this->itemTitle($el) === $title ) {
+                return $el;
+            }
+        }
+        $this->fail('Missing organization item titled '.$title);
+    }
+
+    /**
+     * @return \DOMElement
+     */
+    private function itemByTitle(\DOMDocument $dom, $title) {
+        foreach ( $dom->getElementsByTagName('*') as $el ) {
+            if ( ! $el instanceof \DOMElement || $el->localName !== 'item' ) {
+                continue;
+            }
+            if ( $this->itemTitle($el) === $title ) {
+                return $el;
+            }
+        }
+        $this->fail('Missing organization item titled '.$title);
+    }
+
+    /**
+     * @param array<string, string> $map
+     * @param string $title
+     * @return string
+     */
+    private function webLinkXmlByTitle(array $map, $title) {
+        $this->assertArrayHasKey('imsmanifest.xml', $map);
+        $dom = new \DOMDocument();
+        $this->assertTrue($dom->loadXML($map['imsmanifest.xml']));
+        $item = $this->itemByTitle($dom, $title);
+        $ref = $item->getAttribute('identifierref');
+        $this->assertNotSame('', $ref);
+        $href = '';
+        foreach ( $dom->getElementsByTagName('*') as $el ) {
+            if ( ! $el instanceof \DOMElement || $el->localName !== 'resource' ) {
+                continue;
+            }
+            if ( $el->getAttribute('identifier') !== $ref ) {
+                continue;
+            }
+            foreach ( $el->childNodes as $child ) {
+                if ( $child instanceof \DOMElement && $child->localName === 'file' ) {
+                    $href = $child->getAttribute('href');
+                    break 2;
+                }
+            }
+        }
+        $this->assertNotSame('', $href);
+        $this->assertArrayHasKey($href, $map);
+        return $map[$href];
+    }
+
+    /**
+     * @return string
+     */
+    private function itemTitle(\DOMElement $item) {
+        foreach ( $item->childNodes as $child ) {
+            if ( $child instanceof \DOMElement && $child->localName === 'title' ) {
+                return $child->textContent;
+            }
+        }
+        return '';
     }
 
     /**

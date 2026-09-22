@@ -96,10 +96,23 @@ class Fingerprint {
      * @return string
      */
     public static function webLinkKey($xml) {
-        $dom = self::xmlDom($xml, 'web link');
-        $href = self::firstAttr($dom, 'url', 'href');
-        $target = self::firstAttr($dom, 'url', 'windowTarget');
-        return 'url|'.$href.'|target|'.$target;
+        return 'url|'.self::webLinkHref($xml).'|target|'.self::webLinkWindowTarget($xml);
+    }
+
+    /**
+     * @param string $xml
+     * @return string
+     */
+    public static function webLinkHref($xml) {
+        return self::firstAttr(self::xmlDom($xml, 'web link'), 'url', 'href');
+    }
+
+    /**
+     * @param string $xml
+     * @return string
+     */
+    public static function webLinkWindowTarget($xml) {
+        return self::firstAttr(self::xmlDom($xml, 'web link'), 'url', 'windowTarget');
     }
 
     /**

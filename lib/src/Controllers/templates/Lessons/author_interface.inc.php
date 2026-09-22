@@ -1898,6 +1898,14 @@ function harvestItemFormDraft(item) {
     if (targetEl) {
         item.target = targetEl.value;
     }
+    const hrefSourceEl = document.querySelector('input[name="edit-href-source"]:checked');
+    if (hrefSourceEl) {
+        if (hrefSourceEl.value === 'course') {
+            item.href_source = 'course';
+        } else {
+            delete item.href_source;
+        }
+    }
 }
 
 function currentEditorItem() {
@@ -2007,6 +2015,7 @@ function updateItemFormFields(item) {
         } else {
             const openTarget = item.target === '_self' ? '_self' : (item.target === 'modal' ? 'modal' : '_blank');
             const hrefVal = item.href || '';
+            const hrefSource = item.href_source === 'course' ? 'course' : 'url';
             fieldsHtml += `
             <div class="form-group">
                 <label>Title:</label>
@@ -2015,8 +2024,8 @@ function updateItemFormFields(item) {
             <div class="form-group">
                 <label>Link:</label>
                 <div class="form-group-radios">
-                    <label><input type="radio" name="edit-href-source" value="url" checked> URL</label>
-                    <label><input type="radio" name="edit-href-source" value="course"> Course content</label>
+                    <label><input type="radio" name="edit-href-source" value="url" ${hrefSource === 'url' ? 'checked' : ''}> URL</label>
+                    <label><input type="radio" name="edit-href-source" value="course" ${hrefSource === 'course' ? 'checked' : ''}> Course content</label>
                 </div>
             </div>
             <div class="form-group" id="edit-href-url-row">
@@ -2437,6 +2446,12 @@ function saveWebLinkItem(item) {
     } else {
         delete item.href;
     }
+    const hrefSource = $('input[name="edit-href-source"]:checked').val();
+    if (hrefSource === 'course') {
+        item.href_source = 'course';
+    } else {
+        delete item.href_source;
+    }
     delete item.filename;
     delete item.sha256;
     if (subtype === 'video') {
@@ -2451,6 +2466,7 @@ function saveWebLinkItem(item) {
         if (referenceVal) { item.reference = referenceVal; } else { delete item.reference; }
         if (kalturaVal) { item.kaltura_id = kalturaVal; } else { delete item.kaltura_id; }
         delete item.FCPX;
+        delete item.href_source;
         return;
     }
     delete item.youtube;

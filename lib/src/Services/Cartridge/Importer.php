@@ -9,6 +9,7 @@ use Tsugi\Core\Manifest;
 use Tsugi\Services\Quiz1\Qti12Importer;
 use Tsugi\Services\Quiz1\QuizRepository;
 use Tsugi\UI\LessonsNormalize;
+use Tsugi\Util\CC;
 
 /**
  * Import a Common Cartridge into a course: Files, Pages, Quiz1, LTI links, Lessons.
@@ -224,12 +225,16 @@ class Importer {
 
         if ( $kind === 'web_link' ) {
             $xml = $pkg->readHref($href);
-            $url = self::webLinkHref($xml);
+            $url = Fingerprint::webLinkHref($xml);
             $lesson = array(
                 'type' => LessonsNormalize::TYPE_WEB_LINK,
                 'title' => $title,
                 'href' => $url,
             );
+            $target = CC::lessonTargetFromWindowTarget(Fingerprint::webLinkWindowTarget($xml));
+            if ( $target !== null ) {
+                $lesson['target'] = $target;
+            }
             return array(
                 'local_kind' => 'web_link',
                 'local_id' => null,
@@ -306,10 +311,12 @@ class Importer {
                     if ( $d->isDuplicate() ) {
                         continue;
                     }
-                    $items[] = array(
+                    $heading = array(
                         'type' => LessonsNormalize::TYPE_HEADING,
                         'title' => $title,
                     );
+                    self::applyOrgItemExtras($heading, $item);
+                    $items[] = $heading;
                     continue;
                 }
                 $ref = (string) ($item['identifierref'] ?? '');
@@ -324,20 +331,60 @@ class Importer {
                 if ( isset($item['title']) && is_string($item['title']) && $item['title'] !== '' ) {
                     $lesson['title'] = $item['title'];
                 }
+                self::applyOrgItemExtras($lesson, $item);
                 $items[] = $lesson;
             }
             if ( count($items) < 1 ) {
                 continue;
             }
             $title = (string) ($mod['title'] ?? 'Imported');
-            $out[] = array(
+            $row = array(
                 'title' => $title,
                 'anchor' => self::anchor($title, (string) ($mod['identifier'] ?? '')),
                 'description' => '',
                 'items' => $items,
             );
+            self::applyOrgItemExtras($row, $mod);
+            if ( ! isset($row['description']) || ! is_string($row['description']) ) {
+                $row['description'] = '';
+            }
+            $out[] = $row;
         }
         return $out;
+    }
+
+    /**
+     * Copy LOM extras from a parsed organization row onto a lesson/module array.
+     *
+     * @param array<string, mixed> $dest
+     * @param array<string, mixed> $row
+     */
+    private static function applyOrgItemExtras(array &$dest, array $row) {
+        $desc = self::orgItemDescription($row);
+        if ( $desc !== null ) {
+            $dest['description'] = $desc;
+        }
+        $icon = CC::organizationIcon($row);
+        if ( $icon !== null ) {
+            $dest['icon'] = $icon;
+        }
+        $hrefSource = CC::organizationHrefSource($row);
+        if ( $hrefSource !== null ) {
+            $dest['href_source'] = $hrefSource;
+        }
+        if ( isset($row['target']) && is_string($row['target']) && $row['target'] !== '' ) {
+            $dest['target'] = $row['target'];
+        }
+    }
+
+    /**
+     * LOM description from a parsed organization module or item, if present.
+     *
+     * @param array<string, mixed> $row
+     * @return string|null
+     */
+    private static function orgItemDescription(array $row) {
+        return CC::organizationDescription($row);
     }
 
     /**
@@ -524,14 +571,6 @@ class Importer {
             $html = str_replace('$IMS-CC-FILEBASE$/'.$zipHref, $local, $html);
         }
         return $html;
-    }
-
-    private static function webLinkHref($xml) {
-        $key = Fingerprint::webLinkKey($xml);
-        if ( preg_match('/^url\|(.*)\|target\|/', $key, $m) ) {
-            return $m[1];
-        }
-        return '';
     }
 
     private static function ltiLaunch($xml) {
