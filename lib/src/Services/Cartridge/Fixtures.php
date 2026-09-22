@@ -2,7 +2,7 @@
 
 namespace Tsugi\Services\Cartridge;
 
-use Tsugi\Services\Quiz1\SampleQuiz;
+use Tsugi\Services\Quiz1\SampleQuiz1;
 use Tsugi\UI\LessonsCartridge;
 
 /**
@@ -28,7 +28,7 @@ class Fixtures {
         if ( $zip->open($path, \ZipArchive::CREATE) !== true ) {
             throw new ImportException('Cannot create '.$path);
         }
-        $quiz = SampleQuiz::buildMinimal(1);
+        $quiz = SampleQuiz1::buildMinimal(1);
         $fileBytes = "tiny-file-bytes\n";
         LessonsCartridge::writeZip(self::mixedLessons($quiz), $zip, array(
             'tsugi_lms' => $flavor === 'canvas' ? 'canvas' : 'generic',
@@ -112,7 +112,7 @@ class Fixtures {
     }
 
     /**
-     * @param \Tsugi\Services\Quiz1\Quiz $quiz
+     * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
      * @return object
      */
     public static function mixedLessons($quiz) {

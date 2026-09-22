@@ -9,7 +9,7 @@ require_once "src/Config/ConfigInfo.php";
 
 use Tsugi\Services\Quiz1\CartridgeFixtures;
 use Tsugi\Services\Quiz1\CartridgeValidator;
-use Tsugi\Services\Quiz1\SampleQuiz;
+use Tsugi\Services\Quiz1\SampleQuiz1;
 use Tsugi\Util\CC;
 
 class CartridgeFixturesTest extends \PHPUnit\Framework\TestCase
@@ -60,7 +60,7 @@ class CartridgeFixturesTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testMixedModulePositionsAreSequentialAndUnique() {
-        $path = CartridgeFixtures::writeMixed($this->dir, SampleQuiz::buildMinimal(1));
+        $path = CartridgeFixtures::writeMixed($this->dir, SampleQuiz1::buildMinimal(1));
         $result = CartridgeValidator::validate($path);
         $this->assertTrue($result['ok'], CartridgeValidator::format($result));
 

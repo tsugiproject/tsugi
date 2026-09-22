@@ -13,7 +13,7 @@ class GiftImporter {
 
     /**
      * @param string $text
-     * @return array{0: Quiz, 1: string[]}
+     * @return array{0: Quiz1, 1: string[]}
      * @throws ImportException
      */
     public static function import($text) {
@@ -23,7 +23,7 @@ class GiftImporter {
             throw new ImportException('GIFT text is empty.');
         }
 
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $seq = 1;
         foreach ( self::blocks($text) as $raw ) {
             if ( preg_match('/^\$CATEGORY:/', trim($raw) ) ) {

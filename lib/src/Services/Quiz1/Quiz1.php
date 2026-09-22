@@ -8,7 +8,7 @@ namespace Tsugi\Services\Quiz1;
  * QTI and GIFT are interchange formats only. This object is what Tsugi
  * edits, validates, and later imports into.
  */
-class Quiz {
+class Quiz1 {
 
     /** @var int|null */
     public $id;

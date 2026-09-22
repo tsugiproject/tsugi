@@ -8,6 +8,8 @@ use Tsugi\Core\Context;
 use Tsugi\Core\Link;
 use Tsugi\Blob\BlobUtil;
 use Tsugi\Blob\Access;
+require_once __DIR__ . '/../Services/Files/FileRepository.php';
+use Tsugi\Services\Files\FileRepository;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -33,23 +35,17 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class Files extends Tool {
 
-    const ROUTE = '/files';
+    const ROUTE = FileRepository::HREF_PREFIX;
     const NAME = 'Files';
     const REDIRECT = 'tsugi_controllers_files';
 
-    /** Top-level folder whose contents students see when they open the Files tool. */
-    const STUDENT_FILES_FOLDER = 'Student';
-
-    /** Top-level folder: anyone with the link can open the file with no login. */
-    const PUBLIC_FOLDER = 'Public';
-
-    /** Top-level folder that students cannot access, even with a link. */
-    const PRIVATE_FOLDER = 'Private';
-
-    const KIND_FILE = 'file';
-    const KIND_FOLDER = 'folder';
-    const BACKREF = 'files';
-    const FOLDER_CONTENTTYPE = 'inode/directory';
+    const STUDENT_FILES_FOLDER = FileRepository::STUDENT_FILES_FOLDER;
+    const PUBLIC_FOLDER = FileRepository::PUBLIC_FOLDER;
+    const PRIVATE_FOLDER = FileRepository::PRIVATE_FOLDER;
+    const KIND_FILE = FileRepository::KIND_FILE;
+    const KIND_FOLDER = FileRepository::KIND_FOLDER;
+    const BACKREF = FileRepository::BACKREF;
+    const FOLDER_CONTENTTYPE = FileRepository::FOLDER_CONTENTTYPE;
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Files@index');
@@ -83,14 +79,14 @@ class Files extends Tool {
         if ( ! $is_instructor ) {
             if ( $folder === '' || strcasecmp($folder, self::STUDENT_FILES_FOLDER) === 0 ) {
                 $folder = self::STUDENT_FILES_FOLDER;
-            } else if ( ! $this->isStudentFilesPath($folder) ) {
+            } else if ( ! FileRepository::isStudentFilesPath($folder) ) {
                 return new RedirectResponse($this->folderUrl(''));
             }
         } else {
-            $this->ensureReservedFolders($link_id);
+            FileRepository::ensureReservedFolders($link_id, U::currentContextId());
         }
 
-        $items = $this->listFolder($link_id, $folder);
+        $items = FileRepository::listFolder($link_id, $folder, U::currentContextId());
         $tool_home = $this->toolHome(self::ROUTE);
         $max_upload = BlobUtil::maxUploadBytes();
         $crumbs = $this->breadcrumbs($folder, $is_instructor);
@@ -195,11 +191,11 @@ class Files extends Tool {
                         <?php endif; ?>
                         <?php foreach ( $items as $item ): ?>
                             <?php
-                                $is_folder = ($item['kind'] === self::KIND_FOLDER);
-                                $child_folder = $this->joinFolder($folder, $item['name']);
+                                $is_folder = ($item['kind'] === FileRepository::KIND_FOLDER);
+                                $child_folder = FileRepository::joinFolder($folder, $item['name']);
                                 $download_url = $this->downloadUrl($item);
                                 $copy_url = $this->absoluteUrl($download_url);
-                                $is_reserved_root = $is_folder && $folder === '' && $this->isReservedName($item['name']);
+                                $is_reserved_root = $is_folder && $folder === '' && FileRepository::isReservedName($item['name']);
                                 $info = null;
                                 if ( $is_instructor && $folder === '' ) {
                                     $info = $this->accessInfoForPath($is_folder ? $item['name'] : '', $is_folder);
@@ -391,21 +387,21 @@ class Files extends Tool {
         $link_id = $this->ensureFilesLaunch();
         $is_instructor = $this->isInstructor();
 
-        $rows = $this->allItems($link_id);
+        $rows = FileRepository::allItems($link_id, U::currentContextId());
         $out = array();
         foreach ( $rows as $row ) {
-            $meta = $this->decodeMeta($row);
-            if ( $meta['kind'] !== self::KIND_FILE ) {
+            $meta = FileRepository::decodeMeta($row);
+            if ( $meta['kind'] !== FileRepository::KIND_FILE ) {
                 continue;
             }
             $folder = $meta['folder'];
-            if ( ! $is_instructor && ! $this->isStudentFilesPath($folder) ) {
+            if ( ! $is_instructor && ! FileRepository::isStudentFilesPath($folder) ) {
                 continue;
             }
-            $path = $this->joinFolder($folder, $row['file_name']);
-            $item = self::lessonsFilePickerItem($row, $folder);
+            $path = FileRepository::joinFolder($folder, $row['file_name']);
+            $item = FileRepository::lessonsFilePickerItem($row, $folder);
             $item['path'] = $path;
-            $href = self::hrefForPath($path);
+            $href = FileRepository::hrefForPath($path);
             $item['url'] = $href
                 ? rtrim($this->toolHome(self::ROUTE), '/').substr($href, strlen(self::ROUTE))
                 : $this->downloadUrl($row);
@@ -425,11 +421,11 @@ class Files extends Tool {
     public function download(Request $request, $sha256)
     {
         $sha256 = is_string($sha256) ? strtolower($sha256) : '';
-        if ( ! $this->isValidSha256($sha256) ) {
+        if ( ! FileRepository::isSha256($sha256) ) {
             die('File not found');
         }
 
-        $public = $this->getPublicFileBySha256($sha256);
+        $public = FileRepository::getPublicFileBySha256($sha256);
         if ( $public ) {
             $this->launchFromFileRow($public);
             $this->emitFile($public);
@@ -439,15 +435,15 @@ class Files extends Tool {
         $this->ensureFilesLaunch();
         $is_instructor = $this->isInstructor();
 
-        $candidates = $this->getFileRowsBySha256($sha256);
+        $candidates = FileRepository::getFileRowsBySha256($sha256, U::currentContextId());
         if ( count($candidates) === 0 ) {
             die('File not found');
         }
 
         $row = null;
         foreach ( $candidates as $candidate ) {
-            $meta = $this->decodeMeta($candidate);
-            if ( $is_instructor || ! $this->isPrivatePath($meta['folder']) ) {
+            $meta = FileRepository::decodeMeta($candidate);
+            if ( $is_instructor || ! FileRepository::isPrivatePath($meta['folder']) ) {
                 $row = $candidate;
                 break;
             }
@@ -470,27 +466,27 @@ class Files extends Tool {
             $this->download($request, $m[1]);
             return;
         }
-        $path = self::normalizeFilePath($path);
+        $path = FileRepository::normalizeFilePath($path);
         if ( $path === null ) {
             die('File not found');
         }
 
-        $public = $this->getPublicFileByPath($path);
+        $public = FileRepository::getPublicFileByPath($path);
         if ( $public ) {
             $this->launchFromFileRow($public);
             $this->emitFile($public);
         }
 
         $this->requireAuth();
-        $this->ensureFilesLaunch();
+        $link_id = $this->ensureFilesLaunch();
         $is_instructor = $this->isInstructor();
 
-        $row = $this->getFileRowByPath($path);
+        $row = FileRepository::getFileRowByPath($path, $link_id, U::currentContextId());
         if ( ! $row ) {
             die('File not found');
         }
-        $meta = $this->decodeMeta($row);
-        if ( ! $is_instructor && $this->isPrivatePath($meta['folder']) ) {
+        $meta = FileRepository::decodeMeta($row);
+        if ( ! $is_instructor && FileRepository::isPrivatePath($meta['folder']) ) {
             die('File not found');
         }
         $this->emitFile($row);
@@ -528,7 +524,8 @@ class Files extends Tool {
     {
         $this->requireInstructor($this->toolHome(self::ROUTE));
         $link_id = $this->ensureFilesLaunch();
-        $this->ensureReservedFolders($link_id);
+        $context_id = U::currentContextId();
+        FileRepository::ensureReservedFolders($link_id, $context_id);
 
         $folder = $this->postedFolder();
         $redirect = $this->folderUrl($folder === false ? '' : $folder);
@@ -556,7 +553,7 @@ class Files extends Tool {
         $errors = array();
         foreach ( $descriptors as $fdes ) {
             $name = isset($fdes['name']) ? basename($fdes['name']) : 'file';
-            if ( $this->nameExists($link_id, $folder, $name) ) {
+            if ( FileRepository::nameExists($link_id, $folder, $name, $context_id) ) {
                 $errors[] = $name.' already exists in this folder';
                 continue;
             }
@@ -565,12 +562,12 @@ class Files extends Tool {
                 $errors[] = $name.': '.$valid;
                 continue;
             }
-            $file_id = BlobUtil::uploadToBlob($fdes, true, self::BACKREF);
+            $file_id = BlobUtil::uploadToBlob($fdes, true, FileRepository::BACKREF);
             if ( ! $file_id ) {
                 $errors[] = $name.': could not store file';
                 continue;
             }
-            $this->tagFileRow($file_id, $folder, isset($fdes['size']) ? (int)$fdes['size'] : null);
+            FileRepository::tagFileRow($file_id, $folder, isset($fdes['size']) ? (int)$fdes['size'] : null, $context_id);
             $ok++;
         }
 
@@ -585,11 +582,10 @@ class Files extends Tool {
 
     public function mkdirPost(Request $request)
     {
-        global $CFG, $PDOX, $CONTEXT, $LINK;
-
         $this->requireInstructor($this->toolHome(self::ROUTE));
         $link_id = $this->ensureFilesLaunch();
-        $this->ensureReservedFolders($link_id);
+        $context_id = U::currentContextId();
+        FileRepository::ensureReservedFolders($link_id, $context_id);
 
         $folder = $this->postedFolder();
         $redirect = $this->folderUrl($folder === false ? '' : $folder);
@@ -603,47 +599,29 @@ class Files extends Tool {
         }
 
         $name = trim(U::get($_POST, 'name', ''));
-        if ( ! $this->isValidName($name) ) {
+        if ( ! FileRepository::isValidName($name) ) {
             U::flashError('Folder names can use letters, numbers, spaces, dots, dashes, and underscores');
             return new RedirectResponse($redirect);
         }
-        if ( $folder === '' && $this->isReservedName($name) ) {
-            U::flashError(self::STUDENT_FILES_FOLDER.', '.self::PUBLIC_FOLDER.', and '.self::PRIVATE_FOLDER.' are reserved folder names');
+        if ( $folder === '' && FileRepository::isReservedName($name) ) {
+            U::flashError(FileRepository::STUDENT_FILES_FOLDER.', '.FileRepository::PUBLIC_FOLDER.', and '.FileRepository::PRIVATE_FOLDER.' are reserved folder names');
             return new RedirectResponse($redirect);
         }
-        if ( $this->nameExists($link_id, $folder, $name) ) {
+        if ( FileRepository::nameExists($link_id, $folder, $name, $context_id) ) {
             U::flashError('A file or folder with that name already exists');
             return new RedirectResponse($redirect);
         }
 
-        $full = $this->joinFolder($folder, $name);
-        $sha = hash('sha256', 'files-folder|'.$CONTEXT->id.'|'.$LINK->id.'|'.$full);
-        $json = json_encode(array('kind' => self::KIND_FOLDER, 'folder' => $folder));
-        $PDOX->queryDie(
-            "INSERT INTO {$CFG->dbprefix}blob_file
-                (context_id, link_id, file_sha256, file_name, contenttype, backref, json, created_at)
-             VALUES
-                (:CID, :LID, :SHA, :NAME, :TYPE, :BACKREF, :JSON, NOW())",
-            array(
-                ':CID' => $CONTEXT->id,
-                ':LID' => $link_id,
-                ':SHA' => $sha,
-                ':NAME' => $name,
-                ':TYPE' => self::FOLDER_CONTENTTYPE,
-                ':BACKREF' => self::BACKREF,
-                ':JSON' => $json
-            )
-        );
+        FileRepository::createFolder($link_id, $folder, $name, $context_id);
         U::flashSuccess('Folder created');
         return new RedirectResponse($redirect);
     }
 
     public function deletePost(Request $request, $id)
     {
-        global $CFG, $PDOX;
-
         $this->requireInstructor($this->toolHome(self::ROUTE));
         $link_id = $this->ensureFilesLaunch();
+        $context_id = U::currentContextId();
 
         $folder = $this->postedFolder();
         $redirect = $this->folderUrl($folder === false ? '' : $folder);
@@ -653,27 +631,24 @@ class Files extends Tool {
         }
 
         $file_id = (int)$id;
-        $row = $this->getItem($file_id);
+        $row = FileRepository::getItem($file_id, $context_id);
         if ( ! $row ) {
             U::flashError('File not found');
             return new RedirectResponse($redirect);
         }
 
-        $meta = $this->decodeMeta($row);
-        if ( $meta['kind'] === self::KIND_FOLDER ) {
-            $child_path = $this->joinFolder($meta['folder'], $row['file_name']);
-            if ( $this->isReservedRootFolder($child_path) ) {
-                U::flashError('The '.self::STUDENT_FILES_FOLDER.', '.self::PUBLIC_FOLDER.', and '.self::PRIVATE_FOLDER.' folders cannot be deleted');
+        $meta = FileRepository::decodeMeta($row);
+        if ( $meta['kind'] === FileRepository::KIND_FOLDER ) {
+            $child_path = FileRepository::joinFolder($meta['folder'], $row['file_name']);
+            if ( FileRepository::isReservedRootFolder($child_path) ) {
+                U::flashError('The '.FileRepository::STUDENT_FILES_FOLDER.', '.FileRepository::PUBLIC_FOLDER.', and '.FileRepository::PRIVATE_FOLDER.' folders cannot be deleted');
                 return new RedirectResponse($redirect);
             }
-            if ( $this->folderHasChildren($link_id, $child_path) ) {
+            if ( FileRepository::folderHasChildren($link_id, $child_path, $context_id) ) {
                 U::flashError('Folder is not empty');
                 return new RedirectResponse($redirect);
             }
-            $PDOX->queryDie(
-                "DELETE FROM {$CFG->dbprefix}blob_file WHERE file_id = :ID AND context_id = :CID AND backref = :BR",
-                array(':ID' => $file_id, ':CID' => U::currentContextId(), ':BR' => self::BACKREF)
-            );
+            FileRepository::deleteFolderRow($file_id, $context_id);
             U::flashSuccess('Folder deleted');
         } else {
             BlobUtil::deleteBlob($file_id);
@@ -698,12 +673,7 @@ class Files extends Tool {
             die('Context required');
         }
 
-        $link_id = $this->lmsEnsureAnalyticsLink(
-            $context_id,
-            $this->lmsAnalyticsKey(self::ROUTE),
-            self::NAME,
-            self::ROUTE
-        );
+        $link_id = FileRepository::ensureLink($context_id);
         if ( ! $link_id ) {
             die('Unable to create Files link');
         }
@@ -740,173 +710,6 @@ class Files extends Tool {
         return $link_id + 0;
     }
 
-    private function ensureReservedFolders($link_id)
-    {
-        $this->ensureTopFolder($link_id, self::STUDENT_FILES_FOLDER);
-        $this->ensureTopFolder($link_id, self::PUBLIC_FOLDER);
-        $this->ensureTopFolder($link_id, self::PRIVATE_FOLDER);
-    }
-
-    private function ensureTopFolder($link_id, $name)
-    {
-        if ( $this->nameExists($link_id, '', $name) ) {
-            return;
-        }
-        global $CFG, $PDOX, $CONTEXT;
-        $sha = hash('sha256', 'files-folder|'.$CONTEXT->id.'|'.$link_id.'|'.$name);
-        $json = json_encode(array('kind' => self::KIND_FOLDER, 'folder' => ''));
-        $PDOX->queryDie(
-            "INSERT INTO {$CFG->dbprefix}blob_file
-                (context_id, link_id, file_sha256, file_name, contenttype, backref, json, created_at)
-             VALUES
-                (:CID, :LID, :SHA, :NAME, :TYPE, :BACKREF, :JSON, NOW())",
-            array(
-                ':CID' => $CONTEXT->id,
-                ':LID' => $link_id,
-                ':SHA' => $sha,
-                ':NAME' => $name,
-                ':TYPE' => self::FOLDER_CONTENTTYPE,
-                ':BACKREF' => self::BACKREF,
-                ':JSON' => $json
-            )
-        );
-    }
-
-    private function allItems($link_id)
-    {
-        global $CFG, $PDOX;
-        return $PDOX->allRowsDie(
-            "SELECT file_id, file_name, file_sha256, contenttype, json, bytelen, created_at, backref
-             FROM {$CFG->dbprefix}blob_file
-             WHERE context_id = :CID AND link_id = :LID AND backref = :BR
-               AND (deleted IS NULL OR deleted = 0)
-             ORDER BY file_name ASC",
-            array(
-                ':CID' => U::currentContextId(),
-                ':LID' => $link_id,
-                ':BR' => self::BACKREF
-            )
-        );
-    }
-
-    private function getItem($file_id)
-    {
-        global $CFG, $PDOX;
-        return $PDOX->rowDie(
-            "SELECT file_id, file_name, file_sha256, contenttype, json, bytelen, created_at, backref, link_id
-             FROM {$CFG->dbprefix}blob_file
-             WHERE file_id = :ID AND context_id = :CID AND backref = :BR
-               AND (deleted IS NULL OR deleted = 0)",
-            array(
-                ':ID' => $file_id,
-                ':CID' => U::currentContextId(),
-                ':BR' => self::BACKREF
-            )
-        );
-    }
-
-    private function getFileRowsBySha256($sha256)
-    {
-        global $CFG, $PDOX;
-        $rows = $PDOX->allRowsDie(
-            "SELECT file_id, file_name, file_sha256, contenttype, json, bytelen, created_at, backref, link_id, context_id
-             FROM {$CFG->dbprefix}blob_file
-             WHERE file_sha256 = :SHA AND context_id = :CID AND backref = :BR
-               AND (deleted IS NULL OR deleted = 0)",
-            array(
-                ':SHA' => $sha256,
-                ':CID' => U::currentContextId(),
-                ':BR' => self::BACKREF
-            )
-        );
-        $out = array();
-        foreach ( $rows as $row ) {
-            $meta = $this->decodeMeta($row);
-            if ( $meta['kind'] === self::KIND_FILE ) {
-                $out[] = $row;
-            }
-        }
-        return $out;
-    }
-
-    /**
-     * A Public file with this content hash, in any course. No login required.
-     */
-    private function getPublicFileBySha256($sha256)
-    {
-        global $CFG, $PDOX;
-
-        LTIX::getConnection();
-        $rows = $PDOX->allRowsDie(
-            "SELECT file_id, file_name, file_sha256, contenttype, json, bytelen, created_at, backref, link_id, context_id
-             FROM {$CFG->dbprefix}blob_file
-             WHERE file_sha256 = :SHA AND backref = :BR
-               AND (deleted IS NULL OR deleted = 0)",
-            array(
-                ':SHA' => $sha256,
-                ':BR' => self::BACKREF
-            )
-        );
-        foreach ( $rows as $row ) {
-            $meta = $this->decodeMeta($row);
-            if ( $meta['kind'] === self::KIND_FILE && $this->isPublicPath($meta['folder']) ) {
-                return $row;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * A Public file at this folder path, in any course. No login required.
-     */
-    private function getPublicFileByPath($path)
-    {
-        global $CFG, $PDOX;
-
-        LTIX::getConnection();
-        $slash = strrpos($path, '/');
-        $name = $slash === false ? $path : substr($path, $slash + 1);
-        $rows = $PDOX->allRowsDie(
-            "SELECT file_id, file_name, file_sha256, contenttype, json, bytelen, created_at, backref, link_id, context_id
-             FROM {$CFG->dbprefix}blob_file
-             WHERE file_name = :NAME AND backref = :BR
-               AND (deleted IS NULL OR deleted = 0)",
-            array(
-                ':NAME' => $name,
-                ':BR' => self::BACKREF
-            )
-        );
-        foreach ( $rows as $row ) {
-            $meta = $this->decodeMeta($row);
-            if ( $meta['kind'] === self::KIND_FILE && $this->isPublicPath($meta['folder'])
-                && self::pathFromFileRow($row) === $path ) {
-                return $row;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * File row for a folder/name path in the current course.
-     */
-    private function getFileRowByPath($path)
-    {
-        $link_id = $this->ensureFilesLaunch();
-        $slash = strrpos($path, '/');
-        $folder = $slash === false ? '' : substr($path, 0, $slash);
-        $name = $slash === false ? $path : substr($path, $slash + 1);
-        foreach ( $this->allItems($link_id) as $row ) {
-            $meta = $this->decodeMeta($row);
-            if ( $meta['kind'] !== self::KIND_FILE ) {
-                continue;
-            }
-            if ( $meta['folder'] === $folder && $row['file_name'] === $name ) {
-                return $row;
-            }
-        }
-        return null;
-    }
-
     /**
      * Attach Context + Link from a blob_file row so Access can read the blob
      * without a logged-in session (Public downloads).
@@ -935,253 +738,22 @@ class Files extends Tool {
         Courses::wireLaunchConnection();
     }
 
-    private function listFolder($link_id, $folder)
-    {
-        $rows = $this->allItems($link_id);
-        $folders = array();
-        $files = array();
-        foreach ( $rows as $row ) {
-            $meta = $this->decodeMeta($row);
-            if ( $meta['folder'] !== $folder ) {
-                continue;
-            }
-            $item = array(
-                'file_id' => $row['file_id'],
-                'file_sha256' => $row['file_sha256'],
-                'name' => $row['file_name'],
-                'kind' => $meta['kind'],
-                'bytelen' => $row['bytelen'],
-                'created_at' => $row['created_at']
-            );
-            if ( $meta['kind'] === self::KIND_FOLDER ) {
-                $folders[] = $item;
-            } else {
-                $files[] = $item;
-            }
-        }
-        if ( $folder === '' ) {
-            usort($folders, function($a, $b) {
-                $rank = function($name) {
-                    if ( strcasecmp($name, self::STUDENT_FILES_FOLDER) === 0 ) {
-                        return 0;
-                    }
-                    if ( strcasecmp($name, self::PUBLIC_FOLDER) === 0 ) {
-                        return 1;
-                    }
-                    if ( strcasecmp($name, self::PRIVATE_FOLDER) === 0 ) {
-                        return 2;
-                    }
-                    return 3;
-                };
-                $ra = $rank($a['name']);
-                $rb = $rank($b['name']);
-                if ( $ra !== $rb ) {
-                    return $ra - $rb;
-                }
-                return strcasecmp($a['name'], $b['name']);
-            });
-        } else {
-            usort($folders, function($a, $b) { return strcasecmp($a['name'], $b['name']); });
-        }
-        usort($files, function($a, $b) { return strcasecmp($a['name'], $b['name']); });
-        return array_merge($folders, $files);
-    }
-
-    private function nameExists($link_id, $folder, $name)
-    {
-        $rows = $this->allItems($link_id);
-        foreach ( $rows as $row ) {
-            $meta = $this->decodeMeta($row);
-            if ( $meta['folder'] === $folder && strcasecmp($row['file_name'], $name) === 0 ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private function folderHasChildren($link_id, $folder)
-    {
-        $rows = $this->allItems($link_id);
-        foreach ( $rows as $row ) {
-            $meta = $this->decodeMeta($row);
-            if ( $meta['folder'] === $folder ) {
-                return true;
-            }
-            if ( strpos($meta['folder'], $folder.'/') === 0 ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private function tagFileRow($file_id, $folder, $bytelen)
-    {
-        global $CFG, $PDOX;
-        $json = json_encode(array('kind' => self::KIND_FILE, 'folder' => $folder));
-        $PDOX->queryDie(
-            "UPDATE {$CFG->dbprefix}blob_file
-             SET json = :JSON, backref = :BR, bytelen = :LEN
-             WHERE file_id = :ID AND context_id = :CID",
-            array(
-                ':JSON' => $json,
-                ':BR' => self::BACKREF,
-                ':LEN' => $bytelen,
-                ':ID' => $file_id,
-                ':CID' => U::currentContextId()
-            )
-        );
-    }
-
-    private function decodeMeta($row)
-    {
-        $kind = self::KIND_FILE;
-        $folder = '';
-        if ( ! empty($row['json']) ) {
-            $data = json_decode($row['json'], true);
-            if ( is_array($data) ) {
-                if ( isset($data['kind']) && $data['kind'] === self::KIND_FOLDER ) {
-                    $kind = self::KIND_FOLDER;
-                }
-                if ( isset($data['folder']) && is_string($data['folder']) ) {
-                    $folder = $data['folder'];
-                }
-            }
-        } else if ( isset($row['contenttype']) && $row['contenttype'] === self::FOLDER_CONTENTTYPE ) {
-            $kind = self::KIND_FOLDER;
-        }
-        return array('kind' => $kind, 'folder' => $folder);
-    }
-
     private function requestedFolder()
     {
-        return $this->normalizeFolder(U::get($_GET, 'folder', ''));
+        return FileRepository::normalizeFolder(U::get($_GET, 'folder', ''));
     }
 
     private function postedFolder()
     {
-        return $this->normalizeFolder(U::get($_POST, 'folder', ''));
-    }
-
-    private function normalizeFolder($raw)
-    {
-        $raw = str_replace('\\', '/', (string)$raw);
-        $raw = trim($raw, '/');
-        if ( $raw === '' ) {
-            return '';
-        }
-        $parts = explode('/', $raw);
-        $clean = array();
-        foreach ( $parts as $part ) {
-            $part = trim($part);
-            if ( $part === '' ) {
-                continue;
-            }
-            if ( ! $this->isValidName($part) ) {
-                return false;
-            }
-            $clean[] = $part;
-        }
-        if ( count($clean) === 0 ) {
-            return '';
-        }
-        if ( count($clean) > 12 ) {
-            return false;
-        }
-        if ( strcasecmp($clean[0], self::STUDENT_FILES_FOLDER) === 0 ) {
-            $clean[0] = self::STUDENT_FILES_FOLDER;
-        } else if ( strcasecmp($clean[0], self::PUBLIC_FOLDER) === 0 ) {
-            $clean[0] = self::PUBLIC_FOLDER;
-        } else if ( strcasecmp($clean[0], self::PRIVATE_FOLDER) === 0 ) {
-            $clean[0] = self::PRIVATE_FOLDER;
-        }
-        return implode('/', $clean);
-    }
-
-    private function isValidName($name)
-    {
-        if ( ! is_string($name) ) {
-            return false;
-        }
-        $name = trim($name);
-        if ( $name === '' || $name === '.' || $name === '..' ) {
-            return false;
-        }
-        if ( strlen($name) > 128 ) {
-            return false;
-        }
-        if ( strpos($name, '/') !== false || strpos($name, '\\') !== false ) {
-            return false;
-        }
-        return (bool) preg_match('/^[A-Za-z0-9._\\- ]+$/', $name);
-    }
-
-    private function joinFolder($parent, $name)
-    {
-        if ( $parent === '' || $parent === null ) {
-            return $name;
-        }
-        return $parent . '/' . $name;
-    }
-
-    private function parentFolder($folder)
-    {
-        if ( $folder === '' ) {
-            return null;
-        }
-        $pos = strrpos($folder, '/');
-        if ( $pos === false ) {
-            return '';
-        }
-        return substr($folder, 0, $pos);
+        return FileRepository::normalizeFolder(U::get($_POST, 'folder', ''));
     }
 
     private function browseParent($folder, $is_instructor)
     {
-        if ( ! $is_instructor && strcasecmp($folder, self::STUDENT_FILES_FOLDER) === 0 ) {
+        if ( ! $is_instructor && strcasecmp($folder, FileRepository::STUDENT_FILES_FOLDER) === 0 ) {
             return null;
         }
-        return $this->parentFolder($folder);
-    }
-
-    private function firstFolderSegment($folder)
-    {
-        if ( $folder === '' || $folder === null ) {
-            return '';
-        }
-        $slash = strpos($folder, '/');
-        if ( $slash === false ) {
-            return $folder;
-        }
-        return substr($folder, 0, $slash);
-    }
-
-    private function isStudentFilesPath($folder)
-    {
-        return strcasecmp($this->firstFolderSegment($folder), self::STUDENT_FILES_FOLDER) === 0;
-    }
-
-    private function isPublicPath($folder)
-    {
-        return strcasecmp($this->firstFolderSegment($folder), self::PUBLIC_FOLDER) === 0;
-    }
-
-    private function isPrivatePath($folder)
-    {
-        return strcasecmp($this->firstFolderSegment($folder), self::PRIVATE_FOLDER) === 0;
-    }
-
-    private function isReservedName($name)
-    {
-        return strcasecmp($name, self::STUDENT_FILES_FOLDER) === 0
-            || strcasecmp($name, self::PUBLIC_FOLDER) === 0
-            || strcasecmp($name, self::PRIVATE_FOLDER) === 0;
-    }
-
-    private function isReservedRootFolder($path)
-    {
-        return strcasecmp($path, self::STUDENT_FILES_FOLDER) === 0
-            || strcasecmp($path, self::PUBLIC_FOLDER) === 0
-            || strcasecmp($path, self::PRIVATE_FOLDER) === 0;
+        return FileRepository::parentFolder($folder);
     }
 
     /**
@@ -1191,13 +763,13 @@ class Files extends Tool {
      */
     private function accessInfoForPath($path, $is_folder)
     {
-        if ( $this->isStudentFilesPath($path) ) {
+        if ( FileRepository::isStudentFilesPath($path) ) {
             return array(
                 'text' => 'Students see these files when they open the Files tool.',
                 'class' => 'files-info-student'
             );
         }
-        if ( $this->isPublicPath($path) ) {
+        if ( FileRepository::isPublicPath($path) ) {
             return array(
                 'text' => $is_folder
                     ? 'Files in Public are not browseable in the Files tool. Anyone with a link to a file can open it, even if they are not logged in.'
@@ -1205,7 +777,7 @@ class Files extends Tool {
                 'class' => 'files-info-public'
             );
         }
-        if ( $this->isPrivatePath($path) ) {
+        if ( FileRepository::isPrivatePath($path) ) {
             return array(
                 'text' => 'No one except the instructor can view these files, even if they have a link. Instructors might stage files under Private and then move or copy them into Student to share them with students.',
                 'class' => 'files-info-private'
@@ -1256,315 +828,6 @@ class Files extends Tool {
             .'</button>';
     }
 
-    /**
-     * True when $sha is a 64-character hex SHA-256 identifier.
-     *
-     * @param mixed $sha
-     * @return bool
-     */
-    public static function isSha256($sha)
-    {
-        return is_string($sha) && (bool) preg_match('/^[a-fA-F0-9]{64}$/', $sha);
-    }
-
-    /**
-     * Extract a SHA-256 from a Tsugi Files download href, or null.
-     *
-     * @param mixed $href
-     * @return string|null Lowercase hex digest
-     */
-    public static function sha256FromDownloadHref($href)
-    {
-        if ( ! is_string($href) || $href === '' ) {
-            return null;
-        }
-        if ( preg_match('~files/download/([a-fA-F0-9]{64})(?:[/?#]|$)~', $href, $m) ) {
-            return strtolower($m[1]);
-        }
-        return null;
-    }
-
-    /**
-     * Path form of a course file URL (/files/{folder}/{name}).
-     *
-     * @param mixed $path
-     * @return string|null
-     */
-    public static function hrefForPath($path)
-    {
-        $path = self::normalizeFilePath($path);
-        if ( $path === null ) {
-            return null;
-        }
-        $parts = explode('/', $path);
-        $parts = array_map('rawurlencode', $parts);
-        return self::ROUTE . '/' . implode('/', $parts);
-    }
-
-    /**
-     * Folder/name for a sha256 in this context, or null.
-     *
-     * @param mixed $sha256
-     * @param int $context_id
-     * @return string|null
-     */
-    public static function pathForSha256($sha256, $context_id)
-    {
-        $row = self::exportRowForSha256($sha256, $context_id);
-        if ( ! is_array($row) ) {
-            return null;
-        }
-        return self::pathFromFileRow($row);
-    }
-
-    /**
-     * Replace files/download/{sha} in stored HTML with files/{path}.
-     *
-     * @param mixed $html
-     * @param int $context_id
-     * @return string
-     */
-    public static function rewriteDownloadHrefsToPaths($html, $context_id)
-    {
-        if ( ! is_string($html) || $html === '' ) {
-            return is_string($html) ? $html : '';
-        }
-        return (string) preg_replace_callback(
-            '#files/download/([a-fA-F0-9]{64})#',
-            function ($m) use ($context_id) {
-                $path = self::pathForSha256($m[1], $context_id);
-                if ( $path === null || $path === '' ) {
-                    return $m[0];
-                }
-                return 'files/'.$path;
-            },
-            $html
-        );
-    }
-
-    /**
-     * @param mixed $path
-     * @return string|null
-     */
-    public static function normalizeFilePath($path)
-    {
-        if ( ! is_string($path) || $path === '' ) {
-            return null;
-        }
-        $path = str_replace('\\', '/', $path);
-        $path = trim($path, '/');
-        if ( $path === '' ) {
-            return null;
-        }
-        $parts = array();
-        foreach ( explode('/', $path) as $seg ) {
-            $seg = rawurldecode($seg);
-            $seg = trim($seg);
-            if ( $seg === '' || $seg === '.' || $seg === '..' ) {
-                return null;
-            }
-            $parts[] = $seg;
-        }
-        return $parts ? implode('/', $parts) : null;
-    }
-
-    /**
-     * Lessons author picker fields from a blob_file row.
-     * href is the stored /files/{folder}/{name} form.
-     *
-     * @param array<string, mixed> $row
-     * @param string $folder
-     * @return array<string, mixed>
-     */
-    public static function lessonsFilePickerItem($row, $folder = '')
-    {
-        $sha = isset($row['file_sha256']) && is_string($row['file_sha256'])
-            ? strtolower($row['file_sha256']) : '';
-        $name = isset($row['file_name']) && is_string($row['file_name']) ? $row['file_name'] : '';
-        $ctype = isset($row['contenttype']) && is_string($row['contenttype']) ? $row['contenttype'] : '';
-        if ( $folder === '' || $folder === null ) {
-            $path = $name;
-        } else {
-            $path = $folder . '/' . $name;
-        }
-        return array(
-            'id' => $sha,
-            'sha256' => $sha,
-            'title' => $name,
-            'filename' => $name,
-            'folder' => is_string($folder) ? $folder : '',
-            'path' => $path,
-            'content_type' => $ctype,
-            'href' => self::hrefForPath($path) ?: self::downloadHrefForSha256($sha),
-        );
-    }
-
-    /**
-     * Path form of a content-addressed download URL (/files/download/{sha256}).
-     *
-     * @param mixed $sha256
-     * @return string|null
-     */
-    public static function downloadHrefForSha256($sha256)
-    {
-        if ( ! self::isSha256($sha256) ) {
-            return null;
-        }
-        return self::ROUTE . '/download/' . strtolower($sha256);
-    }
-
-    /**
-     * File bytes for Common Cartridge export, or null if the blob cannot be read.
-     *
-     * @param mixed $sha256
-     * @param int $context_id
-     * @return array{bytes:string,filename:string,content_type:string,path?:string}|null
-     */
-    public static function readExportPayload($sha256, $context_id)
-    {
-        $row = self::exportRowForSha256($sha256, $context_id);
-        if ( ! is_array($row) ) {
-            return null;
-        }
-        $sha = strtolower((string) $sha256);
-        $filename = isset($row['file_name']) && is_string($row['file_name']) && $row['file_name'] !== ''
-            ? $row['file_name']
-            : $sha;
-        $ctype = isset($row['contenttype']) && is_string($row['contenttype'])
-            ? $row['contenttype']
-            : '';
-        $storedPath = isset($row['path']) && is_string($row['path']) ? $row['path'] : '';
-        $bytes = self::readBlobBytesBySha256($sha, $storedPath);
-        if ( ! is_string($bytes) ) {
-            return null;
-        }
-        $coursePath = self::pathFromFileRow($row);
-        $out = array(
-            'bytes' => $bytes,
-            'filename' => $filename,
-            'content_type' => $ctype,
-        );
-        if ( $coursePath ) {
-            $out['path'] = $coursePath;
-        }
-        return $out;
-    }
-
-    /**
-     * @param mixed $sha256
-     * @param int $context_id
-     * @return array<string, mixed>|null
-     */
-    private static function exportRowForSha256($sha256, $context_id)
-    {
-        global $CFG, $PDOX;
-        if ( ! self::isSha256($sha256) ) {
-            return null;
-        }
-        $sha = strtolower($sha256);
-        $cid = (int) $context_id;
-        try {
-            LTIX::getConnection();
-        } catch ( \Throwable $e ) {
-            return null;
-        }
-        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
-            return null;
-        }
-        $p = $CFG->dbprefix;
-        $row = null;
-        if ( $cid > 0 ) {
-            $row = $PDOX->rowDie(
-                "SELECT file_name, contenttype, path, json
-                 FROM {$p}blob_file
-                 WHERE file_sha256 = :SHA AND context_id = :CID AND backref = :BR
-                   AND (deleted IS NULL OR deleted = 0)
-                 ORDER BY file_id DESC LIMIT 1",
-                array(':SHA' => $sha, ':CID' => $cid, ':BR' => self::BACKREF)
-            );
-        }
-        if ( ! is_array($row) ) {
-            $row = $PDOX->rowDie(
-                "SELECT file_name, contenttype, path, json
-                 FROM {$p}blob_file
-                 WHERE file_sha256 = :SHA AND backref = :BR
-                   AND (deleted IS NULL OR deleted = 0)
-                 ORDER BY file_id DESC LIMIT 1",
-                array(':SHA' => $sha, ':BR' => self::BACKREF)
-            );
-        }
-        return is_array($row) ? $row : null;
-    }
-
-    /**
-     * @param array<string, mixed> $row
-     * @return string|null
-     */
-    public static function pathFromFileRow($row)
-    {
-        $name = isset($row['file_name']) && is_string($row['file_name']) ? $row['file_name'] : '';
-        if ( $name === '' ) {
-            return null;
-        }
-        $folder = '';
-        if ( ! empty($row['json']) && is_string($row['json']) ) {
-            $data = json_decode($row['json'], true);
-            if ( is_array($data) && isset($data['folder']) && is_string($data['folder']) ) {
-                $folder = $data['folder'];
-            }
-        }
-        return $folder === '' ? $name : $folder.'/'.$name;
-    }
-
-    /**
-     * @param string $sha
-     * @param string $storedPath
-     * @return string|null
-     */
-    private static function readBlobBytesBySha256($sha, $storedPath)
-    {
-        global $CFG, $PDOX;
-        if ( is_string($storedPath) && $storedPath !== '' ) {
-            $disk = BlobUtil::resolveDiskBlobPath($storedPath);
-            if ( $disk !== false ) {
-                $bytes = @file_get_contents($disk);
-                if ( is_string($bytes) ) {
-                    return $bytes;
-                }
-            }
-        }
-        $folder = BlobUtil::getBlobFolder($sha);
-        if ( is_string($folder) && $folder !== '' ) {
-            $disk = $folder . '/' . $sha;
-            if ( is_file($disk) ) {
-                $bytes = @file_get_contents($disk);
-                if ( is_string($bytes) ) {
-                    return $bytes;
-                }
-            }
-        }
-        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
-            return null;
-        }
-        $p = $CFG->dbprefix;
-        $stmt = $PDOX->prepare("SELECT content FROM {$p}blob_blob WHERE blob_sha256 = :SHA LIMIT 1");
-        $stmt->execute(array(':SHA' => $sha));
-        $stmt->bindColumn(1, $lob, \PDO::PARAM_LOB);
-        if ( ! $stmt->fetch(\PDO::FETCH_BOUND) ) {
-            return null;
-        }
-        if ( is_resource($lob) ) {
-            $bytes = stream_get_contents($lob);
-            return is_string($bytes) ? $bytes : null;
-        }
-        return is_string($lob) ? $lob : null;
-    }
-
-    private function isValidSha256($sha)
-    {
-        return self::isSha256($sha);
-    }
-
     private function downloadUrl($row)
     {
         $sha = isset($row['file_sha256']) ? $row['file_sha256'] : '';
@@ -1577,7 +840,7 @@ class Files extends Tool {
         if ( $folder === '' ) {
             return $home;
         }
-        if ( ! $this->isInstructor() && strcasecmp($folder, self::STUDENT_FILES_FOLDER) === 0 ) {
+        if ( ! $this->isInstructor() && strcasecmp($folder, FileRepository::STUDENT_FILES_FOLDER) === 0 ) {
             return $home;
         }
         return $home . '?folder=' . rawurlencode($folder);
@@ -1597,8 +860,8 @@ class Files extends Tool {
         $so_far = '';
         $parts = explode('/', $folder);
         foreach ( $parts as $i => $part ) {
-            $so_far = $this->joinFolder($so_far, $part);
-            if ( ! $is_instructor && $i === 0 && strcasecmp($part, self::STUDENT_FILES_FOLDER) === 0 ) {
+            $so_far = FileRepository::joinFolder($so_far, $part);
+            if ( ! $is_instructor && $i === 0 && strcasecmp($part, FileRepository::STUDENT_FILES_FOLDER) === 0 ) {
                 continue;
             }
             $crumb = array('label' => $part, 'url' => $this->folderUrl($so_far));
@@ -1673,124 +936,5 @@ class Files extends Tool {
             return $stamp;
         }
         return date('Y-m-d H:i', $ts);
-    }
-
-    /**
-     * Store cartridge file bytes in this course's Files tool.
-     *
-     * Empty $folder is the course root (obscure). Public, Student, and Private
-     * stay in those reserved folders when the cartridge path says so.
-     *
-     * @return array{file_id:int,sha256:string,filename:string,href:string}
-     */
-    public static function importBytes($bytes, $filename, $folder = '', $contentType = 'application/octet-stream') {
-        global $CFG, $PDOX, $CONTEXT;
-
-        $bytes = (string) $bytes;
-        $filename = basename(str_replace('\\', '/', (string) $filename));
-        if ( $filename === '' ) {
-            $filename = 'file.bin';
-        }
-        $folder = is_string($folder) ? trim($folder, '/') : '';
-        $contentType = is_string($contentType) && $contentType !== ''
-            ? $contentType
-            : 'application/octet-stream';
-
-        $tool = new self();
-        $link_id = $tool->ensureFilesLaunch();
-        $tool->ensureReservedFolders($link_id);
-        if ( $folder !== '' && ! $tool->nameExists($link_id, '', $folder) ) {
-            $tool->ensureTopFolder($link_id, $folder);
-        }
-        $base = pathinfo($filename, PATHINFO_FILENAME);
-        $ext = pathinfo($filename, PATHINFO_EXTENSION);
-        $try = $filename;
-        $n = 2;
-        while ( $tool->nameExists($link_id, $folder, $try) ) {
-            $try = $base.'-'.$n.($ext !== '' ? '.'.$ext : '');
-            $n++;
-        }
-        $filename = $try;
-
-        $sha = hash('sha256', $bytes);
-        $existing = $tool->getFileRowsBySha256($sha);
-        if ( count($existing) > 0 ) {
-            $row = $existing[0];
-            $href = self::downloadHrefForSha256($sha);
-            return array(
-                'file_id' => (int) $row['file_id'],
-                'sha256' => $sha,
-                'filename' => (string) $row['file_name'],
-                'href' => is_string($href) ? $href : '',
-            );
-        }
-
-        $stmt = $PDOX->queryDie(
-            "SELECT blob_id FROM {$CFG->dbprefix}blob_blob WHERE blob_sha256 = :SHA",
-            array(':SHA' => $sha)
-        );
-        $blobRow = $stmt->fetch(\PDO::FETCH_ASSOC);
-        $stmt->closeCursor();
-        $blob_id = ($blobRow !== false) ? (int) $blobRow['blob_id'] : null;
-        $blob_name = null;
-        if ( ! $blob_id ) {
-            $tmp = tempnam(sys_get_temp_dir(), 'ccf');
-            file_put_contents($tmp, $bytes);
-            if ( isset($CFG->dataroot) && $CFG->dataroot ) {
-                $blob_folder = BlobUtil::mkdirSha256($sha);
-                if ( $blob_folder ) {
-                    $blob_name = $blob_folder.'/'.$sha;
-                    if ( ! file_exists($blob_name) ) {
-                        if ( ! @rename($tmp, $blob_name) ) {
-                            $blob_name = null;
-                        }
-                    } else {
-                        @unlink($tmp);
-                    }
-                }
-            }
-            if ( ! $blob_id && ! $blob_name ) {
-                $fp = fopen($tmp, 'rb');
-                $ins = $PDOX->prepare(
-                    "INSERT INTO {$CFG->dbprefix}blob_blob (blob_sha256, content, created_at) VALUES (?, ?, NOW())"
-                );
-                $ins->bindParam(1, $sha);
-                $ins->bindParam(2, $fp, \PDO::PARAM_LOB);
-                $PDOX->beginTransaction();
-                $ins->execute();
-                $blob_id = (int) $PDOX->lastInsertId();
-                $PDOX->commit();
-                @fclose($fp);
-                @unlink($tmp);
-            } else if ( file_exists($tmp) ) {
-                @unlink($tmp);
-            }
-        }
-
-        $PDOX->queryDie(
-            "INSERT INTO {$CFG->dbprefix}blob_file
-                (context_id, link_id, file_sha256, file_name, contenttype, path, backref, blob_id, created_at)
-             VALUES
-                (:CID, :LID, :SHA, :NAME, :TYPE, :PATH, :BACKREF, :BID, NOW())",
-            array(
-                ':CID' => $CONTEXT->id,
-                ':LID' => $link_id,
-                ':SHA' => $sha,
-                ':NAME' => $filename,
-                ':TYPE' => $contentType,
-                ':PATH' => $blob_name,
-                ':BACKREF' => self::BACKREF,
-                ':BID' => $blob_id,
-            )
-        );
-        $file_id = (int) $PDOX->lastInsertId();
-        $tool->tagFileRow($file_id, $folder, strlen($bytes));
-        $href = self::downloadHrefForSha256($sha);
-        return array(
-            'file_id' => $file_id,
-            'sha256' => $sha,
-            'filename' => $filename,
-            'href' => is_string($href) ? $href : '',
-        );
     }
 }

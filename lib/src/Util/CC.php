@@ -890,7 +890,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param string $qtiXml UTF-8 QTI 1.2.1 assessment document
      * @param int|string|null $quizId
      * @param string|null $parentPath
-     * @param \Tsugi\Services\Quiz1\Quiz|null $quiz For Canvas assessment_meta points/description
+     * @param \Tsugi\Services\Quiz1\Quiz1|null $quiz For Canvas assessment_meta points/description
      * @return string
      */
     public function zip_add_qti_assessment_to_module($zip, $module, $title, $qtiXml, $quizId=null, $parentPath=null, $quiz=null) {
@@ -935,7 +935,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $zip->addFromString($non_cc, $qtiXml);
         $points = 0;
         $description = '';
-        if ( $quiz instanceof \Tsugi\Services\Quiz1\Quiz ) {
+        if ( $quiz instanceof \Tsugi\Services\Quiz1\Quiz1 ) {
             $points = $quiz->pointsPossible();
             $description = (string) $quiz->instructions;
         }

@@ -47,7 +47,42 @@ if ( $pending_token !== '' ) {
       <li><?= __('All gradebook results — student scores in this course will be deleted') ?></li>
       <li><?= __('The Lessons outline, which is reset to empty and then filled from the cartridge') ?></li>
     </ul>
-    <p style="font-size:1.15em;font-weight:bold;margin-bottom:0;"><?= __('File content still used by another course is kept. Everything else listed above is permanently removed.') ?></p>
+    <p style="font-size:1.15em;font-weight:bold;margin-bottom:12px;"><?= __('File content still used by another course is kept. Everything else listed above is permanently removed.') ?></p>
+    <?php
+    $import_site_domain = \Tsugi\Controllers\Settings::importSiteDomain();
+    $import_course_title = \Tsugi\Controllers\Settings::importReplaceCourseTitle();
+    $import_member_count = \Tsugi\Controllers\Settings::importReplaceMemberCount();
+    $import_member_label = $import_member_count === null
+        ? __('this course')
+        : (string) $import_member_count;
+    if ( $import_member_count === null ) {
+        $import_member_sentence = __('This course has an unknown number of members.');
+    } else if ( $import_member_count === 1 ) {
+        $import_member_sentence = __('This course has 1 member.');
+    } else {
+        $import_member_sentence = sprintf(__('This course has %s members.'), number_format($import_member_count));
+    }
+    ?>
+    <p style="font-size:1.15em;font-weight:bold;margin-bottom:12px;"><?= htmlspecialchars($import_member_sentence) ?></p>
+    <p style="font-size:1.1em;margin-bottom:8px;">
+      <label for="cc_replace_domain_input"><?= sprintf(__('Type the domain name of this site (%s).'), htmlspecialchars($import_site_domain !== '' ? $import_site_domain : __('this site'))) ?></label>
+    </p>
+    <p style="margin-bottom:12px;">
+      <input type="text" id="cc_replace_domain_input" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </p>
+    <p style="font-size:1.1em;margin-bottom:8px;">
+      <label for="cc_replace_title_input"><?= sprintf(__('Type the title of this course (%s).'), htmlspecialchars($import_course_title !== '' ? $import_course_title : __('this course'))) ?></label>
+    </p>
+    <p style="margin-bottom:12px;">
+      <input type="text" id="cc_replace_title_input" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </p>
+    <p style="font-size:1.1em;margin-bottom:8px;">
+      <label for="cc_replace_members_input"><?= sprintf(__('Type the number of members in this course (%s).'), htmlspecialchars($import_member_label)) ?></label>
+    </p>
+    <p style="margin-bottom:0;">
+      <input type="text" id="cc_replace_members_input" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric" aria-describedby="cc_replace_confirm_help">
+    </p>
+    <p id="cc_replace_confirm_help" class="help-block" style="margin-top:8px;margin-bottom:0;"><?= __('Import stays disabled until the domain, course title, and member count all match exactly.') ?></p>
   </div>
 </fieldset>
 
@@ -59,11 +94,14 @@ if ( $pending_token !== '' ) {
 <div id="importTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="import-allcontent">
 <p><?= __('You can import all the modules, or you can import any combination of the modules.') ?></p>
-<form method="post" action="<?= htmlspecialchars($import_url) ?>" onsubmit="return confirmImportReplace();">
+<form method="post" action="<?= htmlspecialchars($import_url) ?>" onsubmit="return confirmImportReplace(this.querySelector('.import-submit'));">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>
     <input type="hidden" name="cc_pending" value="<?= htmlspecialchars($pending_token) ?>">
     <input type="hidden" name="cc_import_action" value="all">
     <input type="hidden" name="cc_replace" value="add">
+    <input type="hidden" name="cc_replace_domain" value="">
+    <input type="hidden" name="cc_replace_title" value="">
+    <input type="hidden" name="cc_replace_members" value="">
     <p>
         <button type="submit" class="btn btn-primary import-submit"><?= __('Import all modules') ?></button>
     </p>
@@ -107,7 +145,7 @@ if ( $pending_token !== '' ) {
     }
 } ?>
 <p>
-<input type="submit" value="<?= htmlspecialchars(__('Import selected modules')) ?>" class="btn btn-primary import-submit" onclick="return importSelectedModules();"/>
+<button type="submit" class="btn btn-primary import-submit" onclick="return importSelectedModules(this);"><?= __('Import selected modules') ?></button>
 </p>
 </form>
 <form id="import-selected-real" method="post" action="<?= htmlspecialchars($import_url) ?>">
@@ -115,6 +153,9 @@ if ( $pending_token !== '' ) {
     <input type="hidden" name="cc_pending" value="<?= htmlspecialchars($pending_token) ?>">
     <input type="hidden" name="cc_import_action" value="selected">
     <input type="hidden" name="cc_replace" value="add">
+    <input type="hidden" name="cc_replace_domain" value="">
+    <input type="hidden" name="cc_replace_title" value="">
+    <input type="hidden" name="cc_replace_members" value="">
     <input id="import_modules_real" type="hidden" name="modules" value="">
 </form>
   </div>

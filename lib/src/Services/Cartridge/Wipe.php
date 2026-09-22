@@ -3,10 +3,10 @@
 namespace Tsugi\Services\Cartridge;
 
 use Tsugi\Blob\BlobUtil;
-use Tsugi\Controllers\Files;
 use Tsugi\Core\LTIX;
+use Tsugi\Services\Files\FileRepository;
 use Tsugi\Core\Manifest;
-use Tsugi\Services\Quiz1\QuizRepository;
+use Tsugi\Services\Quiz1\Quiz1Repository;
 
 /**
  * Clear a course's importable content so a cartridge can load onto a blank outline.
@@ -50,14 +50,14 @@ class Wipe {
      * @return bool
      */
     public static function isFolderRow(array $row) {
-        if ( isset($row['contenttype']) && $row['contenttype'] === Files::FOLDER_CONTENTTYPE ) {
+        if ( isset($row['contenttype']) && $row['contenttype'] === FileRepository::FOLDER_CONTENTTYPE ) {
             return true;
         }
         if ( empty($row['json']) || ! is_string($row['json']) ) {
             return false;
         }
         $data = json_decode($row['json'], true);
-        return is_array($data) && isset($data['kind']) && $data['kind'] === Files::KIND_FOLDER;
+        return is_array($data) && isset($data['kind']) && $data['kind'] === FileRepository::KIND_FOLDER;
     }
 
     /**
@@ -81,9 +81,9 @@ class Wipe {
             return false;
         }
         $name = isset($row['file_name']) ? (string) $row['file_name'] : '';
-        return strcasecmp($name, Files::STUDENT_FILES_FOLDER) === 0
-            || strcasecmp($name, Files::PUBLIC_FOLDER) === 0
-            || strcasecmp($name, Files::PRIVATE_FOLDER) === 0;
+        return strcasecmp($name, FileRepository::STUDENT_FILES_FOLDER) === 0
+            || strcasecmp($name, FileRepository::PUBLIC_FOLDER) === 0
+            || strcasecmp($name, FileRepository::PRIVATE_FOLDER) === 0;
     }
 
     /**
@@ -123,7 +123,7 @@ class Wipe {
              WHERE context_id = :CID AND backref = :BR",
             array(
                 ':CID' => (int) $context_id,
-                ':BR' => Files::BACKREF,
+                ':BR' => FileRepository::BACKREF,
             )
         );
         foreach ( $rows as $row ) {
@@ -141,7 +141,7 @@ class Wipe {
                     array(
                         ':ID' => $file_id,
                         ':CID' => (int) $context_id,
-                        ':BR' => Files::BACKREF,
+                        ':BR' => FileRepository::BACKREF,
                     )
                 );
                 continue;
@@ -167,10 +167,10 @@ class Wipe {
      * @return void
      */
     private static function quizzes($context_id) {
-        foreach ( QuizRepository::listForContext($context_id) as $quiz ) {
+        foreach ( Quiz1Repository::listForContext($context_id) as $quiz ) {
             $id = isset($quiz->id) ? (int) $quiz->id : 0;
             if ( $id > 0 ) {
-                QuizRepository::deleteQuiz($id, $context_id);
+                Quiz1Repository::deleteQuiz($id, $context_id);
             }
         }
     }

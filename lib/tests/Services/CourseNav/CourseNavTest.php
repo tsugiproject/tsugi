@@ -58,15 +58,18 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
     public function testDefaultHasCoursesWidgetOnRightThenLogout()
     {
         $doc = CourseNav::defaultDocument();
-        $this->assertSame('courses_widget', $doc['items'][0]['id']);
-        $this->assertTrue($doc['items'][0]['right']);
-        $this->assertArrayNotHasKey('dropdown', $doc['items'][0]);
-        $this->assertSame('logout', $doc['items'][1]['id']);
-        $this->assertTrue($doc['items'][1]['dropdown']);
         $ids = array();
         foreach ( $doc['items'] as $item ) {
             $ids[] = $item['id'];
         }
+        $this->assertSame(array('lessons', 'files', 'pages', 'quiz1', 'courses_widget', 'logout'), $ids);
+        $this->assertTrue($doc['items'][0]['left']);
+        $this->assertTrue($doc['items'][1]['left']);
+        $this->assertTrue($doc['items'][2]['left']);
+        $this->assertTrue($doc['items'][3]['left']);
+        $this->assertTrue($doc['items'][4]['right']);
+        $this->assertArrayNotHasKey('dropdown', $doc['items'][4]);
+        $this->assertTrue($doc['items'][5]['dropdown']);
         $this->assertNotContains('exit_course', $ids);
     }
 
@@ -75,8 +78,12 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         global $CFG;
         $CFG->apphome = false;
         $doc = CourseNav::defaultDocument();
-        $this->assertSame('courses_widget', $doc['items'][0]['id']);
-        $this->assertSame('logout', $doc['items'][1]['id']);
+        $ids = array();
+        foreach ( $doc['items'] as $item ) {
+            $ids[] = $item['id'];
+        }
+        $this->assertSame('courses_widget', $ids[count($ids)-2]);
+        $this->assertSame('logout', $ids[count($ids)-1]);
         $this->assertArrayNotHasKey('exit_course', CourseNav::catalogById());
     }
 
@@ -358,9 +365,14 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
     public function testMissingJsonUsesDefault()
     {
         $doc = CourseNav::documentFromJson(null);
-        $this->assertSame('courses_widget', $doc['items'][0]['id']);
-        $this->assertTrue($doc['items'][0]['right']);
-        $this->assertSame('logout', $doc['items'][1]['id']);
+        $ids = array();
+        foreach ( $doc['items'] as $item ) {
+            $ids[] = $item['id'];
+        }
+        $this->assertSame(array('lessons', 'files', 'pages', 'quiz1', 'courses_widget', 'logout'), $ids);
+        $this->assertTrue($doc['items'][0]['left']);
+        $this->assertTrue($doc['items'][4]['right']);
+        $this->assertTrue($doc['items'][5]['dropdown']);
     }
 
     public function testFromPostHonorsOrderAndFlags()
@@ -404,6 +416,11 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $set = CourseNav::compile(CourseNav::defaultDocument(), 42);
         $this->assertSame('Home', $set->home->link);
         $this->assertStringContainsString('/courses/42/home', $set->home->href);
+        $left = array();
+        foreach ( $set->left->menu as $entry ) {
+            $left[] = $entry->link;
+        }
+        $this->assertSame(array('Lessons', 'Files', 'Pages', 'Quizzes'), $left);
         $this->assertNotFalse($set->right);
         $this->assertStringContainsString('<img', $set->right->menu[count($set->right->menu)-1]->link);
         $this->assertStringContainsString('gravatar.com/avatar', $set->right->menu[count($set->right->menu)-1]->link);

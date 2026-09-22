@@ -1679,7 +1679,6 @@ re-check your login status.
         $OUTPUT->flashMessages();
         ?>
         <main class="container" id="main-content">
-            <h1><?= __('Settings') ?></h1>
             <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
             <div style="margin-top:10px;">
             <p><?= __('Theme is stored with each manifest version. New courses start with the site default until you pick one.') ?></p>
@@ -1733,7 +1732,6 @@ re-check your login status.
         $OUTPUT->flashMessages();
         ?>
         <main class="container" id="main-content">
-            <h1><?= __('Settings') ?></h1>
             <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
             <div style="margin-top:10px;">
             <?php include __DIR__ . '/templates/Settings/navigation.inc.php'; ?>
@@ -1844,7 +1842,6 @@ re-check your login status.
         $OUTPUT->flashMessages();
         ?>
         <main class="container" id="main-content">
-            <h1><?= __('Settings') ?></h1>
             <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
             <div style="margin-top:10px;">
             <?php include __DIR__ . '/templates/Settings/images.inc.php'; ?>
@@ -1979,7 +1976,6 @@ re-check your login status.
         $OUTPUT->flashMessages();
         ?>
         <main class="container" id="main-content">
-            <h1><?= __('Settings') ?></h1>
             <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
             <div style="margin-top:10px;">
             <?php include __DIR__ . '/templates/Settings/export.inc.php'; ?>
@@ -2095,7 +2091,6 @@ function goToCanvas(anchors) {
         $OUTPUT->flashMessages();
         ?>
         <main class="container" id="main-content">
-            <h1><?= __('Settings') ?></h1>
             <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
             <div style="margin-top:10px;">
             <?php include __DIR__ . '/templates/Settings/import.inc.php'; ?>
@@ -2104,15 +2099,66 @@ function goToCanvas(anchors) {
         <?php
         if ( $pending_token !== '' ) {
             $OUTPUT->footerStart();
+            $import_site_domain = self::importSiteDomain();
+            $import_course_title = self::importReplaceCourseTitle();
+            $import_member_count = self::importReplaceMemberCount();
+            $import_replace_confirm = sprintf(
+                __('WARNING: This permanently deletes this course\'s pages, files, quizzes, resource links, and ALL GRADEBOOK RESULTS on %s in course "%s" (%s members), then imports. Student scores cannot be recovered. Continue?'),
+                $import_site_domain !== '' ? $import_site_domain : __('this site'),
+                $import_course_title !== '' ? $import_course_title : __('this course'),
+                $import_member_count === null ? __('unknown') : number_format($import_member_count)
+            );
             ?>
 <script>
 function importReplaceMode(){
     var v = $('input[name="cc_replace_choice"]:checked').val();
     return v === 'replace' ? 'replace' : 'add';
 }
+function typedImportDomain(){
+    var raw = $.trim($('#cc_replace_domain_input').val() || '');
+    raw = raw.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '');
+    raw = raw.split('/')[0];
+    raw = raw.split(':')[0];
+    return raw.toLowerCase();
+}
+function typedImportTitle(){
+    var raw = $.trim($('#cc_replace_title_input').val() || '');
+    raw = raw.replace(/\s+/g, ' ');
+    return raw.toLowerCase();
+}
+function typedImportMembers(){
+    var raw = $.trim($('#cc_replace_members_input').val() || '');
+    raw = raw.replace(/[,\s]/g, '');
+    if ( ! /^\d+$/.test(raw) ) {
+        return null;
+    }
+    return parseInt(raw, 10);
+}
+function importDomainMatches(){
+    var expected = <?= json_encode($import_site_domain) ?>;
+    return expected !== '' && typedImportDomain() === expected;
+}
+function importTitleMatches(){
+    var expected = <?= json_encode(self::normalizeImportTitle($import_course_title)) ?>;
+    return expected !== '' && typedImportTitle() === expected;
+}
+function importMembersMatch(){
+    var expected = <?= json_encode($import_member_count) ?>;
+    if ( expected === null || typeof expected !== 'number' ) {
+        return false;
+    }
+    return typedImportMembers() === expected;
+}
+function importConfirmMatches(){
+    return importDomainMatches() && importTitleMatches() && importMembersMatch();
+}
 function syncImportReplace(){
     var replace = importReplaceMode() === 'replace';
-    $('input[name="cc_replace"]').val(replace ? 'replace' : 'add');
+    var match = importConfirmMatches();
+    $('input[name="cc_replace"]').val(replace && match ? 'replace' : 'add');
+    $('input[name="cc_replace_domain"]').val($('#cc_replace_domain_input').val() || '');
+    $('input[name="cc_replace_title"]').val($('#cc_replace_title_input').val() || '');
+    $('input[name="cc_replace_members"]').val($('#cc_replace_members_input').val() || '');
     if ( replace ) {
         $('#import-replace-warning').show();
         $('.import-submit').removeClass('btn-primary').addClass('btn-danger');
@@ -2120,15 +2166,42 @@ function syncImportReplace(){
         $('#import-replace-warning').hide();
         $('.import-submit').removeClass('btn-danger').addClass('btn-primary');
     }
-}
-function confirmImportReplace(){
-    syncImportReplace();
-    if ( importReplaceMode() !== 'replace' ) {
-        return true;
+    if ( importAlreadyBusy() ) {
+        return;
     }
-    return confirm(<?= json_encode(__('WARNING: This permanently deletes this course\'s pages, files, quizzes, resource links, and ALL GRADEBOOK RESULTS, then imports. Student scores cannot be recovered. Continue?')) ?>);
+    $('.import-submit').prop('disabled', replace && ! match);
 }
-function importSelectedModules(){
+function importAlreadyBusy(){
+    return $('.import-submit[aria-busy="true"]').length > 0;
+}
+function startImportBusy(btn){
+    var label = <?= json_encode(__('Importing...')) ?>;
+    $('.import-submit').prop('disabled', true).attr('aria-busy', 'true');
+    if ( ! btn ) {
+        btn = $('.import-submit').get(0);
+    }
+    if ( btn ) {
+        $(btn).html('<i class="fa fa-spinner fa-spin" aria-hidden="true"></i> '+label);
+    }
+}
+function confirmImportReplace(btn){
+    if ( importAlreadyBusy() ) {
+        return false;
+    }
+    syncImportReplace();
+    if ( importReplaceMode() === 'replace' ) {
+        if ( ! importDomainMatches() || ! importTitleMatches() || ! importMembersMatch() ) {
+            alert(<?= json_encode(__('Type this site\'s domain, this course\'s title, and the number of members to confirm deleting this course\'s content.')) ?>);
+            return false;
+        }
+        if ( ! confirm(<?= json_encode($import_replace_confirm) ?>) ) {
+            return false;
+        }
+    }
+    startImportBusy(btn);
+    return true;
+}
+function importSelectedModules(btn){
     var keys = [];
     $('#void input.import-module-key[type="checkbox"]').each(function(){
          if ( ! $(this).is(':checked') ) return;
@@ -2142,7 +2215,7 @@ function importSelectedModules(){
         alert(<?= json_encode(__('Please select at least one module')) ?>);
         return false;
     }
-    if ( ! confirmImportReplace() ) {
+    if ( ! confirmImportReplace(btn) ) {
         return false;
     }
     $("#import-selected-real").submit();
@@ -2150,6 +2223,9 @@ function importSelectedModules(){
 }
 $(function(){
     $('input[name="cc_replace_choice"]').on('change', syncImportReplace);
+    $('#cc_replace_domain_input').on('input', syncImportReplace);
+    $('#cc_replace_title_input').on('input', syncImportReplace);
+    $('#cc_replace_members_input').on('input', syncImportReplace);
     syncImportReplace();
 });
 </script>
@@ -2458,6 +2534,18 @@ $(function(){
 
         $options = array();
         if ( self::importReplaceContent(U::get($_POST, 'cc_replace', '')) ) {
+            if ( ! self::importReplaceDomainConfirmed(U::get($_POST, 'cc_replace_domain', '')) ) {
+                U::flashError(__('Type the domain name of this site to confirm deleting this course\'s content.'));
+                return new RedirectResponse($import_url);
+            }
+            if ( ! self::importReplaceTitleConfirmed(U::get($_POST, 'cc_replace_title', '')) ) {
+                U::flashError(__('Type this course\'s title to confirm deleting this course\'s content.'));
+                return new RedirectResponse($import_url);
+            }
+            if ( ! self::importReplaceMembersConfirmed(U::get($_POST, 'cc_replace_members', '')) ) {
+                U::flashError(__('Type the number of members in this course to confirm deleting this course\'s content.'));
+                return new RedirectResponse($import_url);
+            }
             $options['replace'] = true;
         }
         if ( $action === 'selected' ) {
@@ -2520,6 +2608,47 @@ $(function(){
     }
 
     /**
+     * H1 for course-mounted Settings pages: current course title, else Settings.
+     *
+     * Session first, then lti_context.title. Does not use $CFG->context_title.
+     *
+     * @return string
+     */
+    public static function courseHeadingTitle() {
+        global $CFG, $PDOX;
+
+        $title = U::get($_SESSION, 'context_title');
+        if ( is_string($title) && trim($title) !== '' ) {
+            return trim($title);
+        }
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        if ( isset($_SESSION[$ltiKey]['context_title']) ) {
+            $fromLti = $_SESSION[$ltiKey]['context_title'];
+            if ( is_string($fromLti) && trim($fromLti) !== '' ) {
+                return trim($fromLti);
+            }
+        }
+        $context_id = U::currentContextId();
+        if ( $context_id > 0 ) {
+            try {
+                LTIX::getConnection();
+            } catch ( \Throwable $e ) {
+                $context_id = 0;
+            }
+            if ( $context_id > 0 && isset($PDOX) && is_object($PDOX) ) {
+                $row = $PDOX->rowDie(
+                    "SELECT title FROM {$CFG->dbprefix}lti_context WHERE context_id = :CID",
+                    array(':CID' => $context_id)
+                );
+                if ( is_array($row) && isset($row['title']) && trim((string) $row['title']) !== '' ) {
+                    return trim((string) $row['title']);
+                }
+            }
+        }
+        return __('Settings');
+    }
+
+    /**
      * True when the instructor chose to wipe this course before import.
      *
      * @param mixed $posted Value of cc_replace from the pending-import form
@@ -2527,6 +2656,182 @@ $(function(){
      */
     public static function importReplaceContent($posted) {
         return is_string($posted) && $posted === 'replace';
+    }
+
+    /**
+     * Host of this site (apphome, else wwwroot), lowercase, no port.
+     *
+     * @return string
+     */
+    public static function importSiteDomain() {
+        global $CFG;
+        $url = '';
+        if ( isset($CFG->apphome) && is_string($CFG->apphome) && trim($CFG->apphome) !== '' ) {
+            $url = trim($CFG->apphome);
+        } else if ( isset($CFG->wwwroot) && is_string($CFG->wwwroot) && trim($CFG->wwwroot) !== '' ) {
+            $url = trim($CFG->wwwroot);
+        }
+        return self::normalizeImportDomain($url);
+    }
+
+    /**
+     * Course title that must be typed to confirm a wipe-before-import.
+     *
+     * Empty when the heading is missing or the Settings fallback.
+     *
+     * @return string
+     */
+    public static function importReplaceCourseTitle() {
+        $title = self::courseHeadingTitle();
+        if ( $title === '' || $title === __('Settings') ) {
+            return '';
+        }
+        return $title;
+    }
+
+    /**
+     * True when $typed is this course's title (trim, case, extra spaces ignored).
+     *
+     * @param mixed $typed
+     * @return bool
+     */
+    public static function importReplaceTitleConfirmed($typed) {
+        $expected = self::importReplaceCourseTitle();
+        if ( $expected === '' ) {
+            return false;
+        }
+        return self::normalizeImportTitle($typed) === self::normalizeImportTitle($expected);
+    }
+
+    /**
+     * lti_membership rows for the current course, or null when unknown.
+     *
+     * Zero is a real empty roster. Null means no course or the count could not be loaded.
+     *
+     * @return int|null
+     */
+    public static function importReplaceMemberCount() {
+        global $CFG, $PDOX;
+
+        $context_id = U::currentContextId();
+        if ( $context_id < 1 ) {
+            return null;
+        }
+        try {
+            LTIX::getConnection();
+        } catch ( \Throwable $e ) {
+            return null;
+        }
+        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
+            return null;
+        }
+        $row = $PDOX->rowDie(
+            "SELECT COUNT(*) AS members FROM {$CFG->dbprefix}lti_membership WHERE context_id = :CID",
+            array(':CID' => $context_id)
+        );
+        if ( ! is_array($row) || ! isset($row['members']) ) {
+            return null;
+        }
+        return (int) $row['members'];
+    }
+
+    /**
+     * True when $typed is this course's membership count.
+     *
+     * @param mixed $typed
+     * @return bool
+     */
+    public static function importReplaceMembersConfirmed($typed) {
+        $expected = self::importReplaceMemberCount();
+        if ( $expected === null ) {
+            return false;
+        }
+        return self::importReplaceMembersMatch($typed, $expected);
+    }
+
+    /**
+     * True when $typed is $count (commas and spaces ignored).
+     *
+     * Empty input never matches, including when $count is 0 — they must type 0.
+     *
+     * @param mixed $typed
+     * @param int $count
+     * @return bool
+     */
+    public static function importReplaceMembersMatch($typed, $count) {
+        if ( ! is_int($count) || $count < 0 ) {
+            return false;
+        }
+        $n = self::normalizeImportMembers($typed);
+        return $n !== null && $n === $count;
+    }
+
+    /**
+     * @param mixed $raw
+     * @return int|null
+     */
+    public static function normalizeImportMembers($raw) {
+        if ( ! is_string($raw) ) {
+            return null;
+        }
+        $raw = trim($raw);
+        if ( $raw === '' ) {
+            return null;
+        }
+        $raw = str_replace(array(',', ' '), '', $raw);
+        if ( ! preg_match('/^\d+$/', $raw) ) {
+            return null;
+        }
+        return (int) $raw;
+    }
+
+    /**
+     * @param mixed $raw
+     * @return string
+     */
+    public static function normalizeImportTitle($raw) {
+        if ( ! is_string($raw) ) {
+            return '';
+        }
+        $raw = trim($raw);
+        if ( $raw === '' ) {
+            return '';
+        }
+        $raw = preg_replace('/\s+/', ' ', $raw);
+        return mb_strtolower($raw, 'UTF-8');
+    }
+
+    /**
+     * True when $typed is this site's domain (scheme/path optional).
+     *
+     * @param mixed $typed
+     * @return bool
+     */
+    public static function importReplaceDomainConfirmed($typed) {
+        $expected = self::importSiteDomain();
+        if ( $expected === '' ) {
+            return false;
+        }
+        return self::normalizeImportDomain($typed) === $expected;
+    }
+
+    /**
+     * @param mixed $raw
+     * @return string
+     */
+    public static function normalizeImportDomain($raw) {
+        if ( ! is_string($raw) ) {
+            return '';
+        }
+        $raw = trim($raw);
+        if ( $raw === '' ) {
+            return '';
+        }
+        if ( ! preg_match('#^[a-z][a-z0-9+.-]*://#i', $raw) ) {
+            $raw = 'https://'.$raw;
+        }
+        $host = parse_url($raw, PHP_URL_HOST);
+        return is_string($host) ? strtolower($host) : '';
     }
 
     /**

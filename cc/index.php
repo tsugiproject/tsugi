@@ -59,15 +59,6 @@ $OUTPUT->bodystart(false);
   <div class="tab-pane fade active in" id="allcontent">
 <p>You can download all the modules in a single cartridge, or you can download any
 combination of the modules.</p>
-<?php
-    echo("<p>Modules: ".count($l->lessons->modules)."</p>\n");
-    echo("<p>Resources: $resource_count </p>\n");
-    echo("<p>Assignments: $assignment_count </p>\n");
-    echo("<p>Discussion topics: $discussion_count </p>\n");
-    LessonsLegacyFiles::echoPreview($file_scan);
-    LessonsLegacyGift::echoPreview($gift_scan);
-?>
-<p>
 <form action="export">
 <p>
 <label for="tsugi_lms_select_full">Choose the LMS that will use this cartridge:</label>
@@ -82,15 +73,23 @@ combination of the modules.</p>
 <?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_full'); ?>
 <?php if ( $discussion_count > 0 ) { ?>
 <p>
-<label for="topic_select_full">How would you like to import discussions/topics?</label>
+<label for="topic_select_full">How would you like to export discussions/topics?</label>
 <select name="topic" id="topic_select_full">
-  <option value="none">Do not import discussion topics</option>
-  <option value="lti">Use discussion tool on this server (LTI)</option>
   <option value="lms" selected>Use the LMS Discussion Tool</option>
+  <option value="none">Do not export discussion topics</option>
+  <option value="lti">Use discussion tool on this server (LTI)</option>
   <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
 </select>
 </p>
 <?php } ?>
+<?php
+    echo("<p>Modules: ".count($l->lessons->modules)."</p>\n");
+    echo("<p>Resources: $resource_count </p>\n");
+    echo("<p>Assignments: $assignment_count </p>\n");
+    echo("<p>Discussion topics: $discussion_count </p>\n");
+    LessonsLegacyFiles::echoPreview($file_scan);
+    LessonsLegacyGift::echoPreview($gift_scan);
+?>
 <p>
 <input type="submit" class="btn btn-primary" value="Download modules" />
 </p>
@@ -116,11 +115,11 @@ echo('<form id="void">'."\n");
 <?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_partial'); ?>
 <?php if ( $discussion_count > 0 ) { ?>
 <p>
-<label for="topic_select_partial">How would you like to import discussions/topics?</label>
+<label for="topic_select_partial">How would you like to export discussions/topics?</label>
 <select name="topic" id="topic_select_partial">
-  <option value="none">Do not import discussion topics</option>
-  <option value="lti">Use discussion tool on this server (LTI)</option>
   <option value="lms" selected>Use the LMS Discussion Tool</option>
+  <option value="none">Do not export discussion topics</option>
+  <option value="lti">Use discussion tool on this server (LTI)</option>
   <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
 </select>
 </p>

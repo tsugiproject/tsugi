@@ -21,6 +21,6 @@ Move non-UI lessons document and export invariants out of `Tsugi\UI` into `Tsugi
 | `echoPreview` / `echoCartridgeSelect` / `echoGiftQtiSelect` | `LessonsLegacyGift` launch detect, `$CFG->giftquizzes` resolve, GIFT→QTI vs LTI |
 | Settings export screen chrome | `LessonsCartridge` zip write (not `Services\Cartridge` import) |
 
-Leave `GiftImporter` / `Qti12Exporter` / `QuizRepository` in `Tsugi\Services\Quiz1`. The Lessons piece only decides which LTI items convert and where GIFT bytes come from.
+Leave `GiftImporter` / `Qti12Exporter` / `Quiz1Repository` in `Tsugi\Services\Quiz1`. The Lessons piece only decides which LTI items convert and where GIFT bytes come from.
 
 Tests move with the classes (`lib/tests/UI/Lessons*Test.php` → `lib/tests/Services/Lessons/`). No schema change; file-based `$CFG->lessons` stays classic.

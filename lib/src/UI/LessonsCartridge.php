@@ -6,11 +6,11 @@ use Tsugi\Util\CC;
 use Tsugi\Util\CCFileBase;
 use Tsugi\Util\CCIdentifier;
 use Tsugi\Util\U;
-use Tsugi\Controllers\Files;
-use Tsugi\Controllers\Pages;
+use Tsugi\Services\Files\FileRepository;
+use Tsugi\Services\Pages\PageRepository;
 use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Quiz1\Qti12Exporter;
-use Tsugi\Services\Quiz1\QuizRepository;
+use Tsugi\Services\Quiz1\Quiz1Repository;
 
 /**
  * Common Cartridge export from an in-memory Lessons document (v2 items).
@@ -327,7 +327,7 @@ class LessonsCartridge {
      * Emit a video as a CC web link, preferring Kaltura when configured.
      *
      * Same preference as Lessons rendering: kaltura_embed + kaltura_id, else
-     * a YouTube watch URL.
+     * a YouTube watch URL. Kaltura links use presentation target modal.
      *
      * @param \ZipArchive $zip
      * @param CC $cc_dom
@@ -344,8 +344,9 @@ class LessonsCartridge {
         $title = __('Video:').' '.(isset($item->title) ? $item->title : '');
         $kaltura_url = Lessons::kalturaEmbedUrl($item);
         if ( $kaltura_url ) {
-            // new_tab=false => Canvas ExternalUrl launches inline in an iframe
-            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $kaltura_url, $parentPath, false, $item);
+            $export = clone $item;
+            $export->target = 'modal';
+            $cc_dom->zip_add_url_to_module($zip, $sub_module, $title, $kaltura_url, $parentPath, false, $export);
             return true;
         }
         if ( ! empty($item->youtube) ) {
@@ -531,7 +532,7 @@ class LessonsCartridge {
             $html = $payload['html'];
         } else {
             $body = isset($payload['body']) && is_string($payload['body']) ? $payload['body'] : '';
-            $html = Pages::cartridgeDocument($title, $body);
+            $html = PageRepository::cartridgeDocument($title, $body);
         }
         if ( $logicalKey === '' ) {
             $logicalKey = 'page';
@@ -802,11 +803,11 @@ class LessonsCartridge {
      * @return string
      */
     private static function cartridgeFileHref($url, $context_id, $canvasWiki=true) {
-        $sha = Files::sha256FromDownloadHref($url);
+        $sha = FileRepository::sha256FromDownloadHref($url);
         if ( $sha && isset(self::$exportFileZipPaths[$sha]) ) {
             return self::fileBaseHref(self::$exportFileZipPaths[$sha], $canvasWiki);
         }
-        $path = $sha ? Files::pathForSha256($sha, $context_id) : self::courseFilePathFromHref($url);
+        $path = $sha ? FileRepository::pathForSha256($sha, $context_id) : self::courseFilePathFromHref($url);
         if ( ! is_string($path) || $path === '' ) {
             return $url;
         }
@@ -851,7 +852,7 @@ class LessonsCartridge {
             return null;
         }
         $remainder = rawurldecode(str_replace('+', ' ', $remainder));
-        $path = Files::normalizeFilePath($remainder);
+        $path = FileRepository::normalizeFilePath($remainder);
         return $path;
     }
 
@@ -866,7 +867,7 @@ class LessonsCartridge {
             $candidates[] = substr($path, $slash + 1);
         }
         foreach ( $candidates as $candidate ) {
-            $candidate = Files::normalizeFilePath($candidate);
+            $candidate = FileRepository::normalizeFilePath($candidate);
             if ( $candidate && isset(self::$exportFileZipPaths['path:'.$candidate]) ) {
                 return self::$exportFileZipPaths['path:'.$candidate];
             }
@@ -908,7 +909,7 @@ class LessonsCartridge {
         $pageId = isset($item->page_id) ? $item->page_id : 0;
         $logicalKey = isset($item->logical_key) && is_string($item->logical_key) ? $item->logical_key : '';
         $context_id = isset($options['context_id']) ? (int) $options['context_id'] : U::currentContextId();
-        return Pages::readExportPayload($pageId, $logicalKey, $context_id);
+        return PageRepository::readExportPayload($pageId, $logicalKey, $context_id);
     }
 
     /**
@@ -925,18 +926,18 @@ class LessonsCartridge {
             return null;
         }
         $context_id = isset($options['context_id']) ? (int) $options['context_id'] : U::currentContextId();
-        return Files::readExportPayload($sha, $context_id);
+        return FileRepository::readExportPayload($sha, $context_id);
     }
 
     /**
      * @return string|null
      */
     private static function fileSha256($item) {
-        if ( isset($item->sha256) && is_string($item->sha256) && Files::isSha256($item->sha256) ) {
+        if ( isset($item->sha256) && is_string($item->sha256) && FileRepository::isSha256($item->sha256) ) {
             return strtolower($item->sha256);
         }
         $href = isset($item->href) && is_string($item->href) ? $item->href : '';
-        return Files::sha256FromDownloadHref($href);
+        return FileRepository::sha256FromDownloadHref($href);
     }
 
     private static function processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, array $options) {
@@ -987,7 +988,7 @@ class LessonsCartridge {
 
     /**
      * @param array{context_id?:int,load_quiz?:callable} $options
-     * @return \Tsugi\Services\Quiz1\Quiz|null
+     * @return \Tsugi\Services\Quiz1\Quiz1|null
      */
     private static function loadQuiz($quiz_id, array $options) {
         if ( isset($options['load_quiz']) && is_callable($options['load_quiz']) ) {
@@ -997,7 +998,7 @@ class LessonsCartridge {
         if ( $context_id < 1 ) {
             return null;
         }
-        return QuizRepository::load($quiz_id, $context_id);
+        return Quiz1Repository::load($quiz_id, $context_id);
     }
 
     private static function processDiscussion($item, $module, $sub_module, $zip, $cc_dom, $topic) {

@@ -3,19 +3,19 @@
 use Tsugi\Services\Quiz1\Answer;
 use Tsugi\Services\Quiz1\Question;
 use Tsugi\Services\Quiz1\QuestionTypes;
-use Tsugi\Services\Quiz1\Quiz;
+use Tsugi\Services\Quiz1\Quiz1;
 
 class QuizValidationTest extends \PHPUnit\Framework\TestCase
 {
-    public function testValidSampleQuiz() {
-        $quiz = \Tsugi\Services\Quiz1\SampleQuiz::build(1);
+    public function testValidSampleQuiz1() {
+        $quiz = \Tsugi\Services\Quiz1\SampleQuiz1::build(1);
         $this->assertSame(array(), $quiz->validate());
         $this->assertTrue($quiz->isValid());
         $this->assertCount(6, $quiz->orderedQuestions());
     }
 
     public function testTitleRequired() {
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $quiz->title = '   ';
         $errors = $quiz->validate();
         $this->assertNotEmpty($errors);
@@ -146,7 +146,7 @@ class QuizValidationTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testDuplicateSequenceIsInvalid() {
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $quiz->title = 'Dup';
         $a = $this->baseQuestion(QuestionTypes::ESSAY);
         $a->sequence = 1;
@@ -157,7 +157,7 @@ class QuizValidationTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testOrderingIsDeterministic() {
-        $quiz = new Quiz();
+        $quiz = new Quiz1();
         $quiz->title = 'Order';
         $second = $this->baseQuestion(QuestionTypes::ESSAY);
         $second->id = 2;

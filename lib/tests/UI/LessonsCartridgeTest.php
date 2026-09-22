@@ -9,7 +9,7 @@ require_once "src/Config/ConfigInfo.php";
 
 use Tsugi\UI\LessonsCartridge;
 use Tsugi\Services\Quiz1\ExportException;
-use Tsugi\Services\Quiz1\SampleQuiz;
+use Tsugi\Services\Quiz1\SampleQuiz1;
 use Tsugi\Util\CC;
 
 class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
@@ -581,6 +581,16 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
             $this->assertArrayHasKey('course_settings/module_meta.xml', $map);
             $this->assertStringContainsString('<new_tab>false</new_tab>', $map['course_settings/module_meta.xml']);
             $this->assertStringContainsString('cdnapisec.kaltura.com', $map['course_settings/module_meta.xml']);
+            $welcome = $this->webLinkXmlByTitle($map, 'Video: DJ 01.01 Welcome');
+            $this->assertStringContainsString('windowTarget="modal"', $welcome);
+            $ai = $this->webLinkXmlByTitle($map, 'Video: DJ 01.02 AI');
+            $this->assertStringContainsString('windowTarget="modal"', $ai);
+            $dom = new \DOMDocument();
+            $this->assertTrue($dom->loadXML($map['imsmanifest.xml']));
+            $this->assertSame(
+                'modal',
+                CC::lomIdentifiersFromItem($this->itemByTitle($dom, 'Video: DJ 01.01 Welcome'))[CC::LOM_CATALOG_DOCUMENT_TARGET]
+            );
         } finally {
             @unlink($path);
         }
@@ -614,7 +624,7 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $path = $this->writeCartridge($l, array(
             'load_quiz' => function ($id) {
                 $this->assertSame(1, $id);
-                return SampleQuiz::build($id);
+                return SampleQuiz1::build($id);
             },
         ));
         try {
@@ -669,7 +679,7 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $path = $this->writeCartridge($l, array(
             'tsugi_lms' => 'moodle',
             'load_quiz' => function ($id) {
-                return SampleQuiz::build($id);
+                return SampleQuiz1::build($id);
             },
         ));
         try {
@@ -723,7 +733,7 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         ));
         $options = array(
             'load_quiz' => function ($id) {
-                return SampleQuiz::build($id);
+                return SampleQuiz1::build($id);
             },
         );
         $moodlePath = $this->writeCartridge($l, $options + array('tsugi_lms' => 'moodle'));
@@ -746,7 +756,7 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $path = $this->writeCartridge($l, array(
             'tsugi_lms' => 'Canvas',
             'load_quiz' => function ($id) {
-                return SampleQuiz::build($id);
+                return SampleQuiz1::build($id);
             },
         ));
         try {
@@ -825,7 +835,7 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         ));
         $options = array(
             'load_quiz' => function ($id) {
-                return SampleQuiz::build($id);
+                return SampleQuiz1::build($id);
             },
             'load_page' => function ($item) use ($html) {
                 return array('title' => 'About', 'logical_key' => 'about', 'html' => $html);
@@ -851,7 +861,7 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $path = $this->writeCartridge($l, array(
             'tsugi_lms' => 'sakai',
             'load_quiz' => function ($id) {
-                return SampleQuiz::build($id);
+                return SampleQuiz1::build($id);
             },
         ));
         try {
@@ -939,7 +949,7 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $path = $this->writeCartridge($l, array(
             'load_quiz' => function ($id) use (&$called) {
                 $called = true;
-                return SampleQuiz::build($id);
+                return SampleQuiz1::build($id);
             },
         ));
         @unlink($path);
@@ -954,7 +964,7 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         ));
         $this->writeCartridge($l, array(
             'load_quiz' => function ($id) {
-                return SampleQuiz::build($id);
+                return SampleQuiz1::build($id);
             },
         ));
     }

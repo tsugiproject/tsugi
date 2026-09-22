@@ -43,13 +43,13 @@ Deleting a quiz cascades to questions and answers (InnoDB FKs).
 | Piece | Location |
 |-------|----------|
 | Controller / CRUD UI | `lib/src/Controllers/Quiz1.php` (`/quiz1`) |
-| Validation + model | `lib/src/Services/Quiz1/Quiz.php`, `Question.php`, `Answer.php` |
-| Persistence | `lib/src/Services/Quiz1/QuizRepository.php` |
+| Validation + model | `lib/src/Services/Quiz1/Quiz1.php`, `Question.php`, `Answer.php` |
+| Persistence | `lib/src/Services/Quiz1/Quiz1Repository.php` |
 | Take scoring | `lib/src/Services/Quiz1/Grader.php` |
 | QTI 1.2.1 CC exporter | `lib/src/Services/Quiz1/Qti12Exporter.php` |
 | QTI 1.2.1 importer | `lib/src/Services/Quiz1/Qti12Importer.php` |
 | GIFT exporter / importer | `lib/src/Services/Quiz1/GiftExporter.php`, `GiftImporter.php` |
-| Sample / interoperability quiz | `lib/src/Services/Quiz1/SampleQuiz.php` |
+| Sample / interoperability quiz | `lib/src/Services/Quiz1/SampleQuiz1.php` |
 
 The exporter uses `DOMDocument`. The model does not know about XML.
 

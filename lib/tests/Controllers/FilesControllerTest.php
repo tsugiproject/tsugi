@@ -5,8 +5,9 @@ require_once "src/Config/ConfigInfo.php";
 require_once "src/Lumen/Application.php";
 require_once "src/Lumen/Router.php";
 
-use \Tsugi\Controllers\Files;
-use \Tsugi\Lumen\Application;
+use Tsugi\Controllers\Files;
+use Tsugi\Lumen\Application;
+use Tsugi\Services\Files\FileRepository;
 
 class FilesControllerTest extends \PHPUnit\Framework\TestCase
 {
@@ -48,9 +49,10 @@ class FilesControllerTest extends \PHPUnit\Framework\TestCase
     public function testRouteConstant()
     {
         $this->assertEquals('/files', Files::ROUTE);
-        $this->assertEquals('Student', Files::STUDENT_FILES_FOLDER);
-        $this->assertEquals('Public', Files::PUBLIC_FOLDER);
-        $this->assertEquals('Private', Files::PRIVATE_FOLDER);
+        $this->assertEquals(FileRepository::HREF_PREFIX, Files::ROUTE);
+        $this->assertEquals('Student', FileRepository::STUDENT_FILES_FOLDER);
+        $this->assertEquals('Public', FileRepository::PUBLIC_FOLDER);
+        $this->assertEquals('Private', FileRepository::PRIVATE_FOLDER);
     }
 
     public function testRoutesRegistersSha256Download()
@@ -69,10 +71,17 @@ class FilesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertNotContains('/files/download/{id}', $uris);
     }
 
+    public function testEnsureLinkRejectsInvalidContextWithoutLmsUtilGlobals()
+    {
+        $this->assertFalse(function_exists('lmsEnsureAnalyticsLink'));
+        $this->assertFalse(FileRepository::ensureLink(0));
+        $this->assertFalse(FileRepository::ensureLink(-3));
+    }
+
     public function testLessonsFilePickerItem()
     {
         $sha = '8c2f4d0123456789abcdef0123456789abcdef0123456789abcdef0123456789';
-        $item = Files::lessonsFilePickerItem(array(
+        $item = FileRepository::lessonsFilePickerItem(array(
             'file_sha256' => $sha,
             'file_name' => 'week-one.pdf',
             'contenttype' => 'application/pdf',

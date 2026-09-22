@@ -6,7 +6,7 @@ use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Quiz1\GiftImporter;
 use Tsugi\Services\Quiz1\ImportException;
 use Tsugi\Services\Quiz1\Qti12Exporter;
-use Tsugi\Services\Quiz1\Quiz;
+use Tsugi\Services\Quiz1\Quiz1;
 use Tsugi\Util\CC;
 use Tsugi\Util\U;
 
@@ -550,7 +550,7 @@ class LessonsLegacyGift {
     /**
      * Qti12Exporter requires positive integer ids. File-based GIFT has none.
      */
-    private static function assignExportIds(Quiz $quiz, $stableKey) {
+    private static function assignExportIds(Quiz1 $quiz, $stableKey) {
         $crc = (int) sprintf('%u', crc32((string) $stableKey));
         $quiz_id = ($crc % 900000) + 100000;
         if ( $quiz_id < 1 ) {

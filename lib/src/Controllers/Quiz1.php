@@ -16,9 +16,8 @@ use Tsugi\Services\Quiz1\Qti12Exporter;
 use Tsugi\Services\Quiz1\Qti12Importer;
 use Tsugi\Services\Quiz1\Question;
 use Tsugi\Services\Quiz1\QuestionTypes;
-use Tsugi\Services\Quiz1\Quiz;
-use Tsugi\Services\Quiz1\QuizRepository;
-use Tsugi\Services\Quiz1\SampleQuiz;
+use Tsugi\Services\Quiz1\Quiz1Repository;
+use Tsugi\Services\Quiz1\SampleQuiz1;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -81,7 +80,7 @@ class Quiz1 extends Tool {
         LTIX::getConnection();
 
         $context_id = U::currentContextId();
-        $quizzes = QuizRepository::listForContext($context_id);
+        $quizzes = Quiz1Repository::listForContext($context_id);
         $home = $this->toolHome(self::ROUTE);
 
         if ( ! $this->isInstructor() ) {
@@ -146,7 +145,7 @@ class Quiz1 extends Tool {
 
     public function add(Request $request) {
         $this->requireInstructor($this->toolHome(self::ROUTE));
-        $quiz = new Quiz();
+        $quiz = new \Tsugi\Services\Quiz1\Quiz1();
         $saved = $this->takeForm('quiz_add');
         if ( $saved ) {
             $quiz->title = U::get($saved, 'title', '');
@@ -163,7 +162,7 @@ class Quiz1 extends Tool {
             return $csrf;
         }
 
-        $quiz = new Quiz();
+        $quiz = new \Tsugi\Services\Quiz1\Quiz1();
         $quiz->context_id = U::currentContextId();
         $quiz->user_id = U::loggedInUserId();
         $quiz->title = trim(U::get($_POST, 'title', ''));
@@ -180,7 +179,7 @@ class Quiz1 extends Tool {
             ));
             return new RedirectResponse($home.'/add');
         }
-        $id = QuizRepository::insertQuiz($quiz);
+        $id = Quiz1Repository::insertQuiz($quiz);
         unset($_SESSION[self::FORM_SESSION]);
         U::flashSuccess(__('Quiz created.'));
         return new RedirectResponse($home.'/'.$id.'/edit');
@@ -189,7 +188,7 @@ class Quiz1 extends Tool {
     public function edit(Request $request, $id) {
         $home = $this->toolHome(self::ROUTE);
         $this->requireInstructor($home);
-        $quiz = QuizRepository::load((int) $id, U::currentContextId());
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         if ( ! $quiz ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
@@ -209,7 +208,7 @@ class Quiz1 extends Tool {
         if ( $csrf ) {
             return $csrf;
         }
-        $quiz = QuizRepository::load((int) $id, U::currentContextId());
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         if ( ! $quiz ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
@@ -229,7 +228,7 @@ class Quiz1 extends Tool {
             ));
             return new RedirectResponse($home.'/'.$id.'/edit');
         }
-        QuizRepository::updateQuizMeta($quiz);
+        Quiz1Repository::updateQuizMeta($quiz);
         unset($_SESSION[self::FORM_SESSION]);
         U::flashSuccess(__('Quiz updated.'));
         return new RedirectResponse($home.'/'.$id.'/edit');
@@ -242,12 +241,12 @@ class Quiz1 extends Tool {
         if ( $csrf ) {
             return $csrf;
         }
-        $quiz = QuizRepository::load((int) $id, U::currentContextId());
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         if ( ! $quiz ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
         }
-        QuizRepository::deleteQuiz((int) $id, U::currentContextId());
+        Quiz1Repository::deleteQuiz((int) $id, U::currentContextId());
         U::flashSuccess(__('Quiz deleted.'));
         return new RedirectResponse($home);
     }
@@ -264,7 +263,7 @@ class Quiz1 extends Tool {
             return $csrf;
         }
         LTIX::getConnection();
-        $quiz = QuizRepository::load((int) $id, U::currentContextId());
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         if ( ! $quiz ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
@@ -283,7 +282,7 @@ class Quiz1 extends Tool {
         $this->requireAuth();
         LTIX::getConnection();
         if ( $quiz === null ) {
-            $quiz = QuizRepository::load((int) $id, U::currentContextId());
+            $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         }
         if ( ! $quiz ) {
             U::flashError(__('Quiz not found.'));
@@ -303,7 +302,7 @@ class Quiz1 extends Tool {
     }
 
     /**
-     * @param \Tsugi\Services\Quiz1\Quiz[] $quizzes
+     * @param \Tsugi\Services\Quiz1\Quiz1[] $quizzes
      */
     private function renderStudentIndex(array $quizzes, $home) {
         global $OUTPUT;
@@ -334,7 +333,7 @@ class Quiz1 extends Tool {
     public function questionAdd(Request $request, $id) {
         $home = $this->toolHome(self::ROUTE);
         $this->requireInstructor($home);
-        $quiz = QuizRepository::load((int) $id, U::currentContextId());
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         if ( ! $quiz ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
@@ -362,7 +361,7 @@ class Quiz1 extends Tool {
         if ( $csrf ) {
             return $csrf;
         }
-        $quiz = QuizRepository::load((int) $id, U::currentContextId());
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         if ( ! $quiz ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
@@ -377,7 +376,7 @@ class Quiz1 extends Tool {
             $this->stashForm($this->questionFormState('question_add', $question, $quiz->id));
             return new RedirectResponse($home.'/'.$quiz->id.'/questions/add?type='.rawurlencode($question->type));
         }
-        QuizRepository::insertQuestion($question);
+        Quiz1Repository::insertQuestion($question);
         unset($_SESSION[self::FORM_SESSION]);
         U::flashSuccess(__('Question added.'));
         return new RedirectResponse($home.'/'.$quiz->id.'/edit');
@@ -386,8 +385,8 @@ class Quiz1 extends Tool {
     public function questionEdit(Request $request, $id, $qid) {
         $home = $this->toolHome(self::ROUTE);
         $this->requireInstructor($home);
-        $quiz = QuizRepository::load((int) $id, U::currentContextId());
-        $question = QuizRepository::loadQuestion((int) $qid, U::currentContextId());
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
+        $question = Quiz1Repository::loadQuestion((int) $qid, U::currentContextId());
         if ( ! $quiz || ! $question || (int) $question->quiz_id !== (int) $quiz->id ) {
             U::flashError(__('Question not found.'));
             return new RedirectResponse($home);
@@ -411,8 +410,8 @@ class Quiz1 extends Tool {
         if ( $csrf ) {
             return $csrf;
         }
-        $quiz = QuizRepository::load((int) $id, U::currentContextId());
-        $existing = QuizRepository::loadQuestion((int) $qid, U::currentContextId());
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
+        $existing = Quiz1Repository::loadQuestion((int) $qid, U::currentContextId());
         if ( ! $quiz || ! $existing || (int) $existing->quiz_id !== (int) $quiz->id ) {
             U::flashError(__('Question not found.'));
             return new RedirectResponse($home);
@@ -430,7 +429,7 @@ class Quiz1 extends Tool {
             $this->stashForm($this->questionFormState('question_edit', $question, $quiz->id));
             return new RedirectResponse($home.'/'.$quiz->id.'/questions/'.$qid.'/edit');
         }
-        QuizRepository::updateQuestion($question);
+        Quiz1Repository::updateQuestion($question);
         unset($_SESSION[self::FORM_SESSION]);
         U::flashSuccess(__('Question updated.'));
         return new RedirectResponse($home.'/'.$quiz->id.'/edit');
@@ -443,7 +442,7 @@ class Quiz1 extends Tool {
         if ( $csrf ) {
             return $csrf;
         }
-        if ( ! QuizRepository::deleteQuestion((int) $qid, U::currentContextId()) ) {
+        if ( ! Quiz1Repository::deleteQuestion((int) $qid, U::currentContextId()) ) {
             U::flashError(__('Question not found.'));
         } else {
             U::flashSuccess(__('Question deleted.'));
@@ -463,14 +462,14 @@ class Quiz1 extends Tool {
             U::flashError(__('Invalid move direction.'));
             return new RedirectResponse($home.'/'.$id.'/edit');
         }
-        QuizRepository::moveQuestion((int) $qid, U::currentContextId(), $dir);
+        Quiz1Repository::moveQuestion((int) $qid, U::currentContextId(), $dir);
         return new RedirectResponse($home.'/'.$id.'/edit');
     }
 
     public function export(Request $request, $id) {
         $home = $this->toolHome(self::ROUTE);
         $this->requireInstructor($home);
-        $quiz = QuizRepository::load((int) $id, U::currentContextId());
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         if ( ! $quiz ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
@@ -496,7 +495,7 @@ class Quiz1 extends Tool {
     public function exportGift(Request $request, $id) {
         $home = $this->toolHome(self::ROUTE);
         $this->requireInstructor($home);
-        $quiz = QuizRepository::load((int) $id, U::currentContextId());
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         if ( ! $quiz ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
@@ -537,7 +536,7 @@ class Quiz1 extends Tool {
         if ( $csrf ) {
             return $csrf;
         }
-        $quiz = SampleQuiz::build(0);
+        $quiz = SampleQuiz1::build(0);
         $quiz->id = null;
         foreach ( $quiz->questions as $q ) {
             $q->id = null;
@@ -548,7 +547,7 @@ class Quiz1 extends Tool {
         }
         $quiz->context_id = U::currentContextId();
         $quiz->user_id = U::loggedInUserId();
-        $id = QuizRepository::insertQuiz($quiz);
+        $id = Quiz1Repository::insertQuiz($quiz);
         U::flashSuccess(__('Sample quiz created. Export QTI or GIFT, or import more questions from GIFT or QTI.'));
         return new RedirectResponse($home.'/'.$id.'/edit');
     }
@@ -584,7 +583,7 @@ class Quiz1 extends Tool {
         return trim(ob_get_clean());
     }
 
-    private function quizSlug(Quiz $quiz) {
+    private function quizSlug(\Tsugi\Services\Quiz1\Quiz1 $quiz) {
         $slug = preg_replace('/[^a-z0-9]+/i', '-', strtolower($quiz->title));
         $slug = trim($slug, '-');
         if ( $slug === '' ) {
@@ -600,7 +599,7 @@ class Quiz1 extends Tool {
         global $OUTPUT;
         $home = $this->toolHome(self::ROUTE);
         $this->requireInstructor($home);
-        $quiz = QuizRepository::load((int) $id, U::currentContextId());
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         if ( ! $quiz ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
@@ -654,7 +653,7 @@ class Quiz1 extends Tool {
         if ( $csrf ) {
             return $csrf;
         }
-        $quiz = QuizRepository::load((int) $id, U::currentContextId());
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         if ( ! $quiz ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
@@ -672,7 +671,7 @@ class Quiz1 extends Tool {
             return new RedirectResponse($home.'/'.$id.'/import/'.$format);
         }
 
-        list($n, $save_errors) = QuizRepository::appendQuestions($quiz->id, $imported->questions);
+        list($n, $save_errors) = Quiz1Repository::appendQuestions($quiz->id, $imported->questions);
         $warnings = array_merge($warnings, $save_errors);
         if ( $n < 1 ) {
             $msg = __('No questions were imported.');
@@ -889,7 +888,7 @@ class Quiz1 extends Tool {
         }
     }
 
-    private function renderQuizForm(Quiz $quiz, $action, $heading, $is_new) {
+    private function renderQuizForm(\Tsugi\Services\Quiz1\Quiz1 $quiz, $action, $heading, $is_new) {
         global $OUTPUT;
         $home = $this->toolHome(self::ROUTE);
         $OUTPUT->header();
@@ -922,7 +921,7 @@ class Quiz1 extends Tool {
         $this->renderEditorFooter(array('editor_instructions'));
     }
 
-    private function renderQuizEdit(Quiz $quiz) {
+    private function renderQuizEdit(\Tsugi\Services\Quiz1\Quiz1 $quiz) {
         global $OUTPUT;
         $home = $this->toolHome(self::ROUTE);
         $questions = $quiz->orderedQuestions();
@@ -1010,7 +1009,7 @@ class Quiz1 extends Tool {
         $this->renderEditorFooter(array('editor_instructions'));
     }
 
-    private function renderQuestionForm(Quiz $quiz, Question $question, $action, $is_new) {
+    private function renderQuestionForm(\Tsugi\Services\Quiz1\Quiz1 $quiz, Question $question, $action, $is_new) {
         global $OUTPUT;
         $home = $this->toolHome(self::ROUTE);
         $type = $question->type;

@@ -202,12 +202,12 @@ if ( isset($_POST['ext_content_return_url']) ) {
 <?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_full'); ?>
 <?php if ( $discussion_count > 0 ) { ?>
 <p>
-<label for="topic_select_full">How would you like to import discussions/topics?</label>
+<label for="topic_select_full">How would you like to export discussions/topics?</label>
 <select name="topic" id="topic_select_full">
-  <option value="none">Do not import discussion topics</option>
+  <option value="lms" selected>Use the Canvas discussion tool</option>
+  <option value="none">Do not export discussion topics</option>
   <!-- <option value="lti">Use discussion tool on this server (LTI)</option> -->
   <option value="lti_grade">Use discussion tool on this server (LTI) with grade passback</option>
-  <option value="lms" selected>Use the Canvas discussion tool</option>
 </select>
 </p>
 <?php } ?>
@@ -251,10 +251,13 @@ if ( $anchors ) {
 }
 
 $topic = LessonsCartridge::exportTopicMode(U::get($_GET,'topic', false));
-$cartridge = U::get($_GET, 'cartridge', 'thin');
+$cartridge = U::get($_GET, 'cartridge', 'thick');
 $gift_qti_raw = U::get($_GET, 'gift_qti', 'qti');
 if ( isCli() ) {
     global $argv;
+    if ( isset($argv) && is_array($argv) && in_array('thin', $argv, true) ) {
+        $cartridge = 'thin';
+    }
     if ( isset($argv) && is_array($argv) && in_array('thick', $argv, true) ) {
         $cartridge = 'thick';
     }
