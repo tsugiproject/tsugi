@@ -10,6 +10,7 @@ use \Tsugi\Util\CC;
 use \Tsugi\Util\CC_LTI;
 use \Tsugi\Util\CC_WebLink;
 
+require_once __DIR__ . '/legacy_form.php';
 require_once __DIR__ . '/../config.php';
 
 if ( ! isset($CFG->lessons) ) {
@@ -191,15 +192,15 @@ if ( isset($_POST['ext_content_return_url']) ) {
     echo("<p>Assignments: $assignment_count </p>\n");
     echo("<p>Discussion topics: $discussion_count </p>\n");
     $file_scan = LessonsLegacyFiles::summarize($l);
-    LessonsLegacyFiles::echoPreview($file_scan);
+    CcExportForm::echoFilesPreview($file_scan);
     $gift_scan = LessonsLegacyGift::summarize($l);
-    LessonsLegacyGift::echoPreview($gift_scan);
+    CcExportForm::echoGiftPreview($gift_scan);
 ?>
 <p>
 <form action="export">
 <input type="hidden" name="tsugi_lms" value="canvas" />
-<?php LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_full'); ?>
-<?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_full'); ?>
+<?php CcExportForm::echoCartridgeSelect('cartridge_select_full'); ?>
+<?php CcExportForm::echoGiftQtiSelect('gift_qti_select_full'); ?>
 <?php if ( $discussion_count > 0 ) { ?>
 <p>
 <label for="topic_select_full">How would you like to export discussions/topics?</label>

@@ -63,8 +63,12 @@ class Analytics extends Controller {
     public static function button($right = false)
     {
         global $LINK;
+        $title = json_encode(
+            __('Analytics').' '.$LINK->title,
+            JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE
+        );
         if ( $right ) echo('<span style="position: fixed; right: 10px; top: 5px;">');
-        echo('<button onclick="showModal(\''.__('Analytics').' '.htmlentities($LINK->title).'\',\'analytics_div\'); return false;" type="button" class="btn btn-default" aria-label="'.htmlspecialchars(__('Analytics').' '.$LINK->title).'">');
+        echo('<button onclick="showModal('.htmlspecialchars($title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').', \'analytics_div\'); return false;" type="button" class="btn btn-default" aria-label="'.htmlspecialchars(__('Analytics').' '.$LINK->title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8').'">');
         echo('<span class="glyphicon glyphicon-signal" aria-hidden="true"></span></button>'."\n");
         if ( $right ) echo('</span>');
     }

@@ -279,41 +279,6 @@ class LessonsLegacyGift {
     }
 
     /**
-     * Print the pre-export GIFT scan on the legacy cartridge form.
-     *
-     * @param array{scanned:int,gift:int,found:int,lti:int,paths:list<string>} $summary
-     */
-    public static function echoPreview(array $summary) {
-        echo('<p>LTI items scanned: '.(int) $summary['scanned']."</p>\n");
-        echo('<p>Look like GIFT quizzes: '.(int) $summary['gift']."</p>\n");
-        echo('<p>Readable GIFT on disk (available to convert to QTI): '.(int) $summary['found']."</p>\n");
-        echo('<p>Will remain as LTI: '.(int) $summary['lti']."</p>\n");
-        if ( isset($summary['paths']) && is_array($summary['paths']) && count($summary['paths']) > 0 ) {
-            echo("<p>GIFT files a QTI conversion would include:</p>\n<ul>\n");
-            foreach ( $summary['paths'] as $path ) {
-                echo('<li>'.htmlentities((string) $path)."</li>\n");
-            }
-            echo("</ul>\n");
-        }
-    }
-
-    /**
-     * Convert-to-QTI / keep-LTI dropdown. Default is convert found GIFT to QTI.
-     *
-     * @param string $id
-     */
-    public static function echoGiftQtiSelect($id) {
-        $id = (string) $id;
-        echo('<p>'."\n");
-        echo('<label for="'.htmlentities($id).'">GIFT quizzes:</label>'."\n");
-        echo('<select name="gift_qti" id="'.htmlentities($id).'">'."\n");
-        echo('  <option value="qti">Convert found GIFT quizzes to QTI</option>'."\n");
-        echo('  <option value="lti">Keep GIFT quizzes as LTI launches</option>'."\n");
-        echo('</select>'."\n");
-        echo('</p>'."\n");
-    }
-
-    /**
      * @return list<string>
      */
     public function warnings() {

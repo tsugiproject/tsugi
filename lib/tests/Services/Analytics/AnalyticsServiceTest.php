@@ -29,12 +29,14 @@ class AnalyticsServiceTest extends \PHPUnit\Framework\TestCase
     {
         global $LINK;
         $LINK = new \stdClass();
-        $LINK->title = 'Quiz';
+        $LINK->title = "Instructor's Quiz";
         ob_start();
         AnalyticsUi::button(true);
         $html = ob_get_clean();
         $this->assertStringContainsString('analytics_div', $html);
         $this->assertStringContainsString('Quiz', $html);
+        $this->assertStringContainsString('\u0027', $html);
+        $this->assertStringNotContainsString("Instructor's Quiz", $html);
     }
 
     public function testViewModelForLinkReadsActivity()

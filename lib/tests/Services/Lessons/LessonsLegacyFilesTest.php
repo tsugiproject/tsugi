@@ -5,6 +5,7 @@ require_once "src/Util/CC.php";
 require_once "src/Util/CanvasModuleMeta.php";
 require_once "src/Util/CanvasAssessmentMeta.php";
 require_once "src/Services/Lessons/LessonsLegacyFiles.php";
+require_once "../cc/legacy_form.php";
 require_once "src/Config/ConfigInfo.php";
 
 use Tsugi\Services\Lessons\LessonsLegacyFiles;
@@ -165,7 +166,7 @@ class LessonsLegacyFilesTest extends \PHPUnit\Framework\TestCase
 
     public function testEchoCartridgeSelectDefaultsToThick() {
         ob_start();
-        LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_test');
+        CcExportForm::echoCartridgeSelect('cartridge_select_test');
         $html = ob_get_clean();
         $this->assertStringContainsString('option value="thick" selected', $html);
         $this->assertStringNotContainsString('option value="thin" selected', $html);
