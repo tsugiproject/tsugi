@@ -3,7 +3,7 @@
 namespace Tsugi\Services\Cartridge;
 
 use Tsugi\Services\Quiz1\SampleQuiz1;
-use Tsugi\UI\LessonsCartridge;
+use Tsugi\Services\Lessons\LessonsCartridge;
 
 /**
  * Tiny mixed Common Cartridge for walker tests (not a Canvas dump).

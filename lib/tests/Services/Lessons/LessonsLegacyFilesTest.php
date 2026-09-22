@@ -4,10 +4,10 @@ require_once "src/Util/TsugiDOM.php";
 require_once "src/Util/CC.php";
 require_once "src/Util/CanvasModuleMeta.php";
 require_once "src/Util/CanvasAssessmentMeta.php";
-require_once "src/UI/LessonsLegacyFiles.php";
+require_once "src/Services/Lessons/LessonsLegacyFiles.php";
 require_once "src/Config/ConfigInfo.php";
 
-use Tsugi\UI\LessonsLegacyFiles;
+use Tsugi\Services\Lessons\LessonsLegacyFiles;
 use Tsugi\Util\CC;
 
 class LessonsLegacyFilesTest extends \PHPUnit\Framework\TestCase
@@ -176,8 +176,8 @@ class LessonsLegacyFilesTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testSummarizeCountsUniqueFilesAndRemainingLinks() {
-        require_once "src/UI/LessonsNormalize.php";
-        require_once "src/UI/Lessons.php";
+        require_once "src/Services/Lessons/LessonsNormalize.php";
+        require_once "src/Services/Lessons/LessonsService.php";
         require_once "src/Util/U.php";
         $l = (object) array(
             'lessons' => (object) array(

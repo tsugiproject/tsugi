@@ -1,26 +1,22 @@
 ---
-description: Deferred Lessons service extract. Do not grow non-UI helpers on Tsugi\UI\Lessons*.
-globs: lib/src/UI/Lessons.php,lib/src/UI/LessonsNormalize.php,lib/src/UI/LessonsCartridge.php,lib/src/UI/LessonsLegacyFiles.php,lib/src/UI/LessonsLegacyGift.php,lib/src/Services/Lessons/**,cc/export.php,cc/index.php
+description: Lessons document and export live in Tsugi\Services\Lessons. UI is widgets. Controllers own page HTML.
+globs: lib/src/Services/Lessons/**,lib/src/Controllers/Lessons.php,cc/export.php,cc/index.php
 alwaysApply: false
 ---
 
-# Lessons service (deferred)
+# Lessons service
 
-Do **not** extract this in Common Cartridge import, legacy `/cc` GIFT→QTI, or thick/thin file packing unless the user asks for this refactor. Keep new helpers next to the current `Tsugi\UI\Lessons*` classes (same as `LessonsLegacyFiles` / `LessonsLegacyGift`).
+The lessons document and export helpers are `Tsugi\Services\Lessons`, one class per file:
 
-`Tsugi\Services\Cartridge` is Settings **import** (package, store, matcher). Do not park lessons.json export or GIFT-file lookup there.
+- `LessonsService` — loaded document (lookup, progress math, URL expansion)
+- `LessonsNormalize` — item shape
+- `LessonsCartridge` — Settings cartridge zip (not `Services\Cartridge` import)
+- `LessonsLegacyFiles` / `LessonsLegacyGift` — file-based `/cc` export only
 
-## Follow-up
+Do not merge those classes. Do not move them back under `Tsugi\UI`. Do not put page HTML in this namespace.
 
-Move non-UI lessons document and export invariants out of `Tsugi\UI` into `Tsugi\Services\Lessons`, matching Quiz1 (importers/exporters/normalize — not a `*Service` class name):
+`Tsugi\UI\Lessons` is an empty subclass of `LessonsService` so tools outside this repo can keep `new \Tsugi\UI\Lessons($CFG->lessons)`. Leave that file in place.
 
-| Keep (HTTP / HTML) | Move (document, disk, cartridge emit) |
-|---|---|
-| `cc/index.php`, `cc/export.php` forms | `LessonsNormalize` |
-| Lesson page HTML in `Controllers\Lessons` (`render`, `renderSingle`, `renderAll`, `header`, `footer`), assignments, badges, and `Controllers\Discussions::renderDiscussions` | `LessonsLegacyFiles` URL→file mapping |
-| `echoPreview` / `echoCartridgeSelect` / `echoGiftQtiSelect` | `LessonsLegacyGift` launch detect, `$CFG->giftquizzes` resolve, GIFT→QTI vs LTI |
-| Settings export screen chrome | `LessonsCartridge` zip write (not `Services\Cartridge` import) |
+Page HTML stays in the controllers: `Controllers\Lessons` (shell, `renderItem`, progress badges), assignments, badges, labs, and `Controllers\Discussions::renderDiscussions`. `cc/index.php` and `cc/export.php` keep their forms.
 
-Leave `GiftImporter` / `Qti12Exporter` / `Quiz1Repository` in `Tsugi\Services\Quiz1`. The Lessons piece only decides which LTI items convert and where GIFT bytes come from.
-
-Tests move with the classes (`lib/tests/UI/Lessons*Test.php` → `lib/tests/Services/Lessons/`). No schema change; file-based `$CFG->lessons` stays classic.
+`Tsugi\Services\Cartridge` is Settings import. `GiftImporter` / `Qti12Exporter` / `Quiz1Repository` stay in `Tsugi\Services\Quiz1`. File-based `$CFG->lessons` stays classic.

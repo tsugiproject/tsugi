@@ -1,9 +1,9 @@
 <?php
 
 use \Tsugi\UI\Lessons;
-use \Tsugi\UI\LessonsCartridge;
-use \Tsugi\UI\LessonsLegacyFiles;
-use \Tsugi\UI\LessonsLegacyGift;
+use \Tsugi\Services\Lessons\LessonsCartridge;
+use \Tsugi\Services\Lessons\LessonsLegacyFiles;
+use \Tsugi\Services\Lessons\LessonsLegacyGift;
 use \Tsugi\Util\U;
 use \Tsugi\Util\CC;
 use \Tsugi\Util\CC_LTI;
@@ -63,7 +63,7 @@ combination of the modules.</p>
 <p>
 <label for="tsugi_lms_select_full">Choose the LMS that will use this cartridge:</label>
 <select name="tsugi_lms" id="tsugi_lms_select_full">
-<?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
+<?php foreach ( \Tsugi\Services\Lessons\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
   <option value="<?= htmlspecialchars($value) ?>"<?= $value === 'generic' ? ' selected' : '' ?>><?= htmlentities($label) ?></option>
 <?php } ?>
 </select>
@@ -105,7 +105,7 @@ echo('<form id="void">'."\n");
 <p>
 <label for="tsugi_lms_select_partial">Choose the LMS that will use this cartridge:</label>
 <select name="tsugi_lms" id="tsugi_lms_select_partial">
-<?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
+<?php foreach ( \Tsugi\Services\Lessons\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
   <option value="<?= htmlspecialchars($value) ?>"<?= $value === 'generic' ? ' selected' : '' ?>><?= htmlentities($label) ?></option>
 <?php } ?>
 </select>

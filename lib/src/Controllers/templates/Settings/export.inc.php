@@ -43,7 +43,7 @@ $is_canvas_return = is_string($canvas_return_url) && $canvas_return_url !== '';
 <p>
 <label for="tsugi_lms_select_full"><?= __('Choose the LMS that will use this cartridge:') ?></label>
 <select name="tsugi_lms" id="tsugi_lms_select_full">
-<?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
+<?php foreach ( \Tsugi\Services\Lessons\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
   <option value="<?= htmlspecialchars($value) ?>"<?= $value === 'generic' ? ' selected' : '' ?>><?= htmlentities(__($label)) ?></option>
 <?php } ?>
 </select>
@@ -72,7 +72,7 @@ $is_canvas_return = is_string($canvas_return_url) && $canvas_return_url !== '';
 <p>
 <label for="tsugi_lms_select_partial"><?= __('Choose the LMS that will use this cartridge:') ?></label>
 <select name="tsugi_lms" id="tsugi_lms_select_partial">
-<?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
+<?php foreach ( \Tsugi\Services\Lessons\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
   <option value="<?= htmlspecialchars($value) ?>"<?= $value === 'generic' ? ' selected' : '' ?>><?= htmlentities(__($label)) ?></option>
 <?php } ?>
 </select>
@@ -87,7 +87,7 @@ $is_canvas_return = is_string($canvas_return_url) && $canvas_return_url !== '';
     if ( $anchor === '' ) {
         continue;
     }
-    $mc = \Tsugi\UI\LessonsCartridge::moduleCounts($module);
+    $mc = \Tsugi\Services\Lessons\LessonsCartridge::moduleCounts($module);
     echo('<label style="display:block;font-weight:normal;">'."\n");
     echo('<input type="checkbox" class="export-module-anchor" name="'
         .htmlspecialchars($anchor).'" value="'.htmlspecialchars($anchor).'"> ');

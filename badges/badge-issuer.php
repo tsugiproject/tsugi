@@ -5,7 +5,7 @@
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Manifest;
-use \Tsugi\UI\Lessons;
+use \Tsugi\Services\Lessons\LessonsService;
 
 require_once "../config.php";
 require_once "badge-util.php";

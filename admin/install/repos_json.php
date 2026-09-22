@@ -6,7 +6,7 @@ use \Tsugi\Util\Net;
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Cache;
-use \Tsugi\UI\Lessons;
+use \Tsugi\Services\Lessons\LessonsService;
 
 if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
@@ -34,7 +34,7 @@ try {
     // Load the Lesson
     $l = false;
     if ( isset($CFG->lessons) && $CFG->lessons && file_exists($CFG->lessons) ) {
-        $l = new Lessons($CFG->lessons);
+        $l = new LessonsService($CFG->lessons);
     }
 
     $available = array();

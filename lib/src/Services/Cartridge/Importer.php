@@ -8,7 +8,7 @@ use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Services\Quiz1\Qti12Importer;
 use Tsugi\Services\Quiz1\Quiz1Repository;
-use Tsugi\UI\LessonsNormalize;
+use Tsugi\Services\Lessons\LessonsNormalize;
 use Tsugi\Util\CC;
 
 /**

@@ -8,7 +8,7 @@ use Tsugi\Core\LTIX;
 use Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Tsugi\UI\Table;
-use Tsugi\UI\Lessons;
+use Tsugi\Services\Lessons\LessonsService;
 
 class Grades extends Tool {
 
@@ -224,10 +224,10 @@ class Grades extends Tool {
             unset($row['_html_title']);
             $rlid = U::get($row, 'resource_link_id', U::get($row, 'link_key', ''));
             $link_id = (int) U::get($row, 'link_id', 0);
-            if ( ! Lessons::shouldShowGradesResultSignature($rlid, U::get($row, 'grade'), $is_instructor) ) {
+            if ( ! LessonsService::shouldShowGradesResultSignature($rlid, U::get($row, 'grade'), $is_instructor) ) {
                 continue;
             }
-            $row['_html_code'] = Lessons::resultLinkSignatureMarkup($rlid, $link_id, false);
+            $row['_html_code'] = \Tsugi\Controllers\Lessons::resultLinkSignatureMarkup($rlid, $link_id, false);
         }
         unset($row);
     }
@@ -241,7 +241,7 @@ class Grades extends Tool {
         }
         $rlid = U::get($link_info, 'link_key', '');
         $link_id = (int) U::get($link_info, 'link_id', 0);
-        $html = Lessons::resultLinkSignatureMarkup($rlid, $link_id, false);
+        $html = \Tsugi\Controllers\Lessons::resultLinkSignatureMarkup($rlid, $link_id, false);
         foreach ( $rows as &$row ) {
             $row['code'] = '';
             $row['_html_code'] = $html;
@@ -326,7 +326,7 @@ class Grades extends Tool {
         $OUTPUT->bodyStart();
         $OUTPUT->topNav($menu);
         $OUTPUT->flashMessages();
-        Lessons::printLtiProgressStyles();
+        \Tsugi\Controllers\Lessons::printLtiProgressStyles();
         ?>
         <main class="container" id="main-content">
         <h1><?= __('Grade Book') ?></h1>
@@ -462,7 +462,7 @@ class Grades extends Tool {
         $OUTPUT->bodyStart();
         $OUTPUT->topNav($menu);
         $OUTPUT->flashMessages();
-        Lessons::printLtiProgressStyles();
+        \Tsugi\Controllers\Lessons::printLtiProgressStyles();
         ?>
         <main class="container" id="main-content">
         <h1><?= __('Grade Book') ?></h1>

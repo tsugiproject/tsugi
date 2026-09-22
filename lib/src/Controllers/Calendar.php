@@ -75,7 +75,7 @@ class Calendar extends Tool {
                 $byDate[$dateKey] = array();
             }
             $participates = ! isset($it['participates_in_grades']) || $it['participates_in_grades'];
-            $dueMod = \Tsugi\UI\Lessons::assignmentsDueBadgeModifier($lk, $end, self::gradesMapForDueModifier($allgrades, $lk, $participates));
+            $dueMod = \Tsugi\Services\Lessons\LessonsService::assignmentsDueBadgeModifier($lk, $end, self::gradesMapForDueModifier($allgrades, $lk, $participates));
             $byDate[$dateKey][] = array(
                 'title' => $it['item_title'],
                 'href' => $href,
@@ -107,7 +107,7 @@ class Calendar extends Tool {
                 continue;
             }
             $participates = ! isset($it['participates_in_grades']) || $it['participates_in_grades'];
-            $mod = \Tsugi\UI\Lessons::assignmentsDueBadgeModifier($lk, $end, self::gradesMapForDueModifier($allgrades, $lk, $participates));
+            $mod = \Tsugi\Services\Lessons\LessonsService::assignmentsDueBadgeModifier($lk, $end, self::gradesMapForDueModifier($allgrades, $lk, $participates));
             if ( $mod === 'tsugi-assignments-due-soon' ) {
                 $dueSoon++;
             } elseif ( $mod === 'tsugi-assignments-due-past' ) {
@@ -272,7 +272,7 @@ class Calendar extends Tool {
                         $full = $ev['title'];
                         $moduleTitle = $ev['module_title'];
                         $dueMod = $ev['due_mod'];
-                        $stateText = \Tsugi\UI\Lessons::assignmentsDueStateVisibleLabel($dueMod);
+                        $stateText = \Tsugi\Controllers\Lessons::assignmentsDueStateVisibleLabel($dueMod);
                         $aria = $full . ' — ' . $moduleTitle . ' (' . $stateText . ')';
                         $classes = 'tsugi-cal-event-link ' . $dueMod;
                         echo('<li><a class="'.htmlspecialchars($classes).'" href="'.htmlspecialchars(U::addSession($ev['href'])).'" aria-label="'.htmlspecialchars($aria).'">'.htmlspecialchars($full).'</a></li>' . "\n");

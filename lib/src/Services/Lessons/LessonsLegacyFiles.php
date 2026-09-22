@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi\UI;
+namespace Tsugi\Services\Lessons;
 
 use Tsugi\Util\CC;
 use Tsugi\Util\U;
@@ -316,12 +316,12 @@ class LessonsLegacyFiles {
                 if ( ! is_string($href) || $href === '' ) {
                     continue;
                 }
-                $urls[] = U::absolute_url(Lessons::expandLink($href));
+                $urls[] = U::absolute_url(LessonsService::expandLink($href));
             }
             return $urls;
         }
         if ( isset($module->slides) && is_string($module->slides) && $module->slides !== '' ) {
-            $urls[] = U::absolute_url(Lessons::expandLink($module->slides));
+            $urls[] = U::absolute_url(LessonsService::expandLink($module->slides));
         }
         if ( isset($module->slides) && is_array($module->slides) ) {
             foreach ( $module->slides as $slide ) {
@@ -335,21 +335,21 @@ class LessonsLegacyFiles {
                 if ( ! is_string($href) || $href === '' ) {
                     continue;
                 }
-                $urls[] = U::absolute_url(Lessons::expandLink($href));
+                $urls[] = U::absolute_url(LessonsService::expandLink($href));
             }
         }
         if ( isset($module->assignment) && is_string($module->assignment) && $module->assignment !== '' ) {
-            $urls[] = U::absolute_url(Lessons::expandLink($module->assignment));
+            $urls[] = U::absolute_url(LessonsService::expandLink($module->assignment));
         }
         if ( isset($module->solution) && is_string($module->solution) && $module->solution !== '' ) {
-            $urls[] = U::absolute_url(Lessons::expandLink($module->solution));
+            $urls[] = U::absolute_url(LessonsService::expandLink($module->solution));
         }
         if ( isset($module->references) && is_array($module->references) ) {
             foreach ( $module->references as $reference ) {
                 if ( ! is_object($reference) || ! isset($reference->href) || ! is_string($reference->href) ) {
                     continue;
                 }
-                $urls[] = U::absolute_url(Lessons::expandLink($reference->href));
+                $urls[] = U::absolute_url(LessonsService::expandLink($reference->href));
             }
         }
         return $urls;

@@ -1,10 +1,10 @@
 <?php
 
-use \Tsugi\UI\Lessons;
-use \Tsugi\UI\LessonsCartridge;
-use \Tsugi\UI\LessonsLegacyFiles;
-use \Tsugi\UI\LessonsLegacyGift;
-use \Tsugi\UI\LessonsNormalize;
+use \Tsugi\Services\Lessons\LessonsService;
+use \Tsugi\Services\Lessons\LessonsCartridge;
+use \Tsugi\Services\Lessons\LessonsLegacyFiles;
+use \Tsugi\Services\Lessons\LessonsLegacyGift;
+use \Tsugi\Services\Lessons\LessonsNormalize;
 use \Tsugi\Util\U;
 use \Tsugi\Util\CC;
 use \Tsugi\Util\CC_LTI;
@@ -17,7 +17,7 @@ if ( ! isset($CFG->lessons) ) {
 }
 
 // Load the Lesson
-$l = new Lessons($CFG->lessons);
+$l = new LessonsService($CFG->lessons);
 
 // Helper function to get module path from DOMNode
 function get_module_path($module_node, $cc_dom) {
@@ -67,7 +67,7 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $topic,
     if ( $type == 'slide' || $kind == 'slide' ) {
         $slide_title = isset($item_obj->title) ? $item_obj->title : basename(isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : ''));
         $slide_href = isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : '');
-        $slide_href = Lessons::expandLink($slide_href);
+        $slide_href = LessonsService::expandLink($slide_href);
         $url = U::absolute_url($slide_href);
         $title = 'Slides: '.$slide_title;
         $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parentPath, $item_obj);
@@ -78,7 +78,7 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $topic,
     if ( $type == 'reference' || $kind == 'reference' ) {
         $title = isset($item_obj->title) ? $item_obj->title : $module->title;
         $href = isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : '');
-        $href = Lessons::expandLink($href);
+        $href = LessonsService::expandLink($href);
         $url = U::absolute_url($href);
         $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parentPath, $item_obj);
         return;
@@ -87,7 +87,7 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $topic,
     // Handle assignment type (legacy type=assignment or normalized web_link/assignment)
     if ( $type == 'assignment' || $kind == 'assignment' ) {
         $href = isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : '');
-        $href = Lessons::expandLink($href);
+        $href = LessonsService::expandLink($href);
         $url = U::absolute_url($href);
         $title = 'Assignment: '.$module->title;
         $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parentPath, $item_obj);
@@ -97,7 +97,7 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $topic,
     // Handle solution type (legacy type=solution or normalized web_link/solution)
     if ( $type == 'solution' || $kind == 'solution' ) {
         $href = isset($item_obj->href) ? $item_obj->href : (isset($item_obj->url) ? $item_obj->url : '');
-        $href = Lessons::expandLink($href);
+        $href = LessonsService::expandLink($href);
         $url = U::absolute_url($href);
         $title = 'Solution: '.$module->title;
         $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parentPath, $item_obj);
@@ -177,7 +177,7 @@ if ( isset($_POST['ext_content_return_url']) ) {
     $assignment_count = 0;
     $discussion_count = (int) LessonsCartridge::summarize($l)['discussions'];
     foreach($l->lessons->modules as $module) {
-        $resources = Lessons::getUrlResources($module);
+        $resources = LessonsService::getUrlResources($module);
         if ( ! $resources ) continue;
         $resource_count = $resource_count + count($resources);
         if ( isset($module->lti) ) {
@@ -369,7 +369,7 @@ foreach($l->lessons->modules as $module) {
 
     // Old way
     if ( isset($module->slides) && is_string($module->slides) ) {
-        $slide_href = Lessons::expandLink($module->slides);
+        $slide_href = LessonsService::expandLink($module->slides);
         $url = U::absolute_url($slide_href);
         $title = 'Slides: '.$module->title;
         $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parent_path_legacy);
@@ -385,7 +385,7 @@ foreach($l->lessons->modules as $module) {
                 $slide_title = $slide->title ;
                 $slide_href = $slide->href ;
             }
-            $slide_href = Lessons::expandLink($slide_href);
+            $slide_href = LessonsService::expandLink($slide_href);
             $url = U::absolute_url($slide_href);
             $title = 'Slides: '.$slide_title;
             $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parent_path_legacy);
@@ -393,14 +393,14 @@ foreach($l->lessons->modules as $module) {
     }
 
     if ( isset($module->assignment) ) {
-        $href = Lessons::expandLink($module->assignment);
+        $href = LessonsService::expandLink($module->assignment);
         $url = U::absolute_url($href);
         $title = 'Assignment: '.$module->title;
         $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parent_path_legacy);
     }
 
     if ( isset($module->solution) ) {
-        $href = Lessons::expandLink($module->solution);
+        $href = LessonsService::expandLink($module->solution);
         $url = U::absolute_url($href);
         $title = 'Solution: '.$module->title;
         $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parent_path_legacy);
@@ -409,7 +409,7 @@ foreach($l->lessons->modules as $module) {
     if ( isset($module->references) ) {
         foreach($module->references as $reference ) {
             $title = 'Reference: '.$reference->title;
-            $href = Lessons::expandLink($reference->href);
+            $href = LessonsService::expandLink($reference->href);
             $url = U::absolute_url($href);
             $local_files->addToModule($zip, $cc_dom, $sub_module, $title, $url, $parent_path_legacy);
         }

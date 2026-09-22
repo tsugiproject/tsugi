@@ -2,7 +2,7 @@
 
 require_once "src/Core/Manifest.php";
 require_once "src/Config/ConfigInfo.php";
-require_once "src/UI/Lessons.php";
+require_once "src/Services/Lessons/LessonsService.php";
 require_once "src/Core/I18N.php";
 require_once "include/setup_i18n.php";
 
@@ -83,7 +83,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
     public function testStarterParsesAsLessons()
     {
         $json = Manifest::encode(Manifest::starter('Parse Me'));
-        $lessons = \Tsugi\UI\Lessons::fromJson($json);
+        $lessons = \Tsugi\Services\Lessons\LessonsService::fromJson($json);
         $this->assertSame('Parse Me', $lessons->lessons->title);
         $this->assertTrue($lessons->isEmpty());
         $this->assertSame(array(), $lessons->lessons->modules);
@@ -211,7 +211,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         Manifest::rememberInSession(99);
 
         $l = Manifest::currentLessons();
-        $this->assertInstanceOf(\Tsugi\UI\Lessons::class, $l);
+        $this->assertInstanceOf(\Tsugi\Services\Lessons\LessonsService::class, $l);
         $this->assertSame('Sandbox Course', $l->lessons->title);
         $this->assertNotSame('Python for Everybody (PY4E)', $l->lessons->title);
     }
@@ -222,7 +222,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $CFG->lessons = __DIR__ . '/../fixtures/lessons/py4e-modern-lessons-items.json';
         $this->assertSame(0, Manifest::activeId());
         $l = Manifest::currentLessons();
-        $this->assertInstanceOf(\Tsugi\UI\Lessons::class, $l);
+        $this->assertInstanceOf(\Tsugi\Services\Lessons\LessonsService::class, $l);
         $this->assertSame('Python for Everybody (PY4E)', $l->lessons->title);
     }
 
@@ -314,11 +314,11 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
                 'quiz_id' => '0xdead',
             ),
         );
-        $loaded = \Tsugi\UI\Lessons::tryFromJson(Manifest::encode($doc));
-        $this->assertInstanceOf(\Tsugi\UI\Lessons::class, $loaded);
+        $loaded = \Tsugi\Services\Lessons\LessonsService::tryFromJson(Manifest::encode($doc));
+        $this->assertInstanceOf(\Tsugi\Services\Lessons\LessonsService::class, $loaded);
         $item = $loaded->lessons->modules[0]->items[0];
         $this->assertSame('quiz', $item->type);
-        $this->assertSame(0, \Tsugi\UI\LessonsNormalize::quizIdOf($item));
+        $this->assertSame(0, \Tsugi\Services\Lessons\LessonsNormalize::quizIdOf($item));
         $this->assertSame('Weird', $item->title);
     }
 

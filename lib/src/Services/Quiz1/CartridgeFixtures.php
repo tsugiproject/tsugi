@@ -2,7 +2,7 @@
 
 namespace Tsugi\Services\Quiz1;
 
-use Tsugi\UI\LessonsCartridge;
+use Tsugi\Services\Lessons\LessonsCartridge;
 
 /**
  * Isolated Common Cartridge 1.2 fixtures for LMS interoperability testing.

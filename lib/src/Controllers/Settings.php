@@ -11,7 +11,7 @@ use Tsugi\UI\Table;
 use Tsugi\UI\CrudForm;
 use Tsugi\UI\SettingsDialog;
 use Tsugi\UI\Supporter;
-use Tsugi\UI\LessonsCartridge;
+use Tsugi\Services\Lessons\LessonsCartridge;
 use Tsugi\Blob\BlobUtil;
 use Tsugi\Core\Mail;
 use Tsugi\Lumen\Application;

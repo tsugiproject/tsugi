@@ -127,7 +127,7 @@ Export quizzes that are not referenced in lessons
 ## Tests
 
 ```
-cd lib && composer test -- tests/Services/Quiz1 tests/UI/LessonsCartridgeTest.php tests/UI/LessonsNormalizeTest.php tests/Util/CCTest.php
+cd lib && composer test -- tests/Services/Quiz1 tests/Services/Lessons/LessonsCartridgeTest.php tests/Services/Lessons/LessonsNormalizeTest.php tests/Util/CCTest.php
 ```
 
 (or `qa/test-lib.sh tests/Services/Quiz1` from the repo root)

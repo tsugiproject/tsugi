@@ -2,7 +2,7 @@
 
 require_once "src/Core/I18N.php";
 require_once "include/setup_i18n.php";
-require_once "src/UI/Lessons.php";
+require_once "src/Services/Lessons/LessonsService.php";
 require_once "src/Config/ConfigInfo.php";
 
 /**
@@ -59,7 +59,7 @@ class LessonsJsonFixturesTest extends \PHPUnit\Framework\TestCase
 
     private static function fixturesDir(): string
     {
-        return __DIR__ . '/../fixtures/lessons/';
+        return __DIR__ . '/../../fixtures/lessons/';
     }
 
     public static function py4eFixtureProvider(): array
@@ -82,7 +82,7 @@ class LessonsJsonFixturesTest extends \PHPUnit\Framework\TestCase
             if (isset($mod->items) && is_array($mod->items)) {
                 foreach ($mod->items as $item) {
                     $o = is_array($item) ? (object) $item : $item;
-                    if (\Tsugi\UI\LessonsNormalize::isAssignmentLti($o)) {
+                    if (\Tsugi\Services\Lessons\LessonsNormalize::isAssignmentLti($o)) {
                         $n++;
                     }
                 }
@@ -107,7 +107,7 @@ class LessonsJsonFixturesTest extends \PHPUnit\Framework\TestCase
             if (isset($mod->items) && is_array($mod->items)) {
                 foreach ($mod->items as $item) {
                     $o = is_array($item) ? (object) $item : $item;
-                    if (\Tsugi\UI\LessonsNormalize::isDiscussion($o)) {
+                    if (\Tsugi\Services\Lessons\LessonsNormalize::isDiscussion($o)) {
                         $n++;
                     }
                 }
@@ -201,7 +201,7 @@ class LessonsJsonFixturesTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * LTI launch URLs after {@see \Tsugi\UI\Lessons} construction (legacy adjustArray vs items adjustItemsEntryUrls).
+     * LTI launch URLs after {@see \Tsugi\Services\Lessons\LessonsService} construction (legacy adjustArray vs items adjustItemsEntryUrls).
      *
      * @param object $lessons same shape as json_decode root (modules with lti[] or items[])
      *
@@ -214,7 +214,7 @@ class LessonsJsonFixturesTest extends \PHPUnit\Framework\TestCase
             if (isset($mod->items) && is_array($mod->items)) {
                 foreach ($mod->items as $item) {
                     $o = is_array($item) ? (object) $item : $item;
-                    if (\Tsugi\UI\LessonsNormalize::isAssignmentLti($o) && isset($o->launch)) {
+                    if (\Tsugi\Services\Lessons\LessonsNormalize::isAssignmentLti($o) && isset($o->launch)) {
                         $map[$o->resource_link_id] = $o->launch;
                     }
                 }
@@ -351,7 +351,7 @@ class LessonsJsonFixturesTest extends \PHPUnit\Framework\TestCase
         $maps = [];
         foreach ($paths as $label => $path) {
             $this->assertFileExists($path);
-            $L = new \Tsugi\UI\Lessons($path);
+            $L = new \Tsugi\Services\Lessons\LessonsService($path);
             $maps[$label] = self::collectLtiLaunchUrlsFromLoadedLessons($L->lessons);
         }
 
@@ -367,7 +367,7 @@ class LessonsJsonFixturesTest extends \PHPUnit\Framework\TestCase
     {
         $this->assertFileExists($path);
 
-        $lessons = new \Tsugi\UI\Lessons($path);
+        $lessons = new \Tsugi\Services\Lessons\LessonsService($path);
 
         $this->assertNotNull($lessons->lessons);
         $this->assertObjectHasProperty('title', $lessons->lessons);

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi\UI;
+namespace Tsugi\Services\Lessons;
 
 use Tsugi\Services\Files\FileRepository;
 

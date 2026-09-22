@@ -3,7 +3,7 @@
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Manifest;
-use \Tsugi\UI\Lessons;
+use \Tsugi\Services\Lessons\LessonsService;
 use \Tsugi\Image\Png;
 
 require_once "../config.php";

@@ -11,8 +11,8 @@ use Tsugi\Grades\GradeUtil;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Core\Membership;
-use Tsugi\UI\Lessons;
-use Tsugi\UI\LessonsNormalize;
+use Tsugi\Services\Lessons\LessonsService;
+use Tsugi\Services\Lessons\LessonsNormalize;
 use Tsugi\UI\Table;
 
 class Assignments extends Tool {
@@ -764,7 +764,7 @@ class Assignments extends Tool {
     }
 
     private static function renderAssignmentItem($resource_link_id, $title, $allgrades, $alldates, $duedates = array(), $lti_item = null, $module_anchor = '', $alllinkids = array(), $is_instructor = false) {
-        $graded = Lessons::ltiLaunchIsGraded($lti_item);
+        $graded = LessonsService::ltiLaunchIsGraded($lti_item);
         echo('<li class="tsugi-assignments-item">');
         echo('<span class="tsugi-assignments-status">');
         if ( ! $graded ) {
@@ -783,17 +783,17 @@ class Assignments extends Tool {
         $title_esc = htmlspecialchars($title);
         if ( is_string($module_anchor) && $module_anchor !== '' && is_string($resource_link_id) && $resource_link_id !== '' ) {
             $mod_href = U::get_rest_parent() . '/lessons/' . rawurlencode($module_anchor);
-            $mod_href = htmlspecialchars($mod_href . '#' . Lessons::domIdForResourceLink($resource_link_id));
+            $mod_href = htmlspecialchars($mod_href . '#' . LessonsService::domIdForResourceLink($resource_link_id));
             $jump_lbl = htmlspecialchars(__('Open in module'), ENT_QUOTES, 'UTF-8');
             echo('<a class="tsugi-assignments-title tsugi-assignments-title-link" href="'.$mod_href.'" title="'.$jump_lbl.'">'.$title_esc.'</a>');
         } else {
             echo('<span class="tsugi-assignments-title">'.$title_esc.'</span>');
         }
-        if ( Lessons::shouldShowAssignmentResultSignature($resource_link_id, $allgrades, $alllinkids, $is_instructor) ) {
+        if ( LessonsService::shouldShowAssignmentResultSignature($resource_link_id, $allgrades, $alllinkids, $is_instructor) ) {
             $link_id = isset($alllinkids[$resource_link_id]) ? (int) $alllinkids[$resource_link_id] : 0;
-            echo(Lessons::resultLinkSignatureMarkup($resource_link_id, $link_id));
+            echo(\Tsugi\Controllers\Lessons::resultLinkSignatureMarkup($resource_link_id, $link_id));
         }
-        Lessons::echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates, $graded);
+        \Tsugi\Controllers\Lessons::echoDueDateBadgeForResourceLink($resource_link_id, $allgrades, $duedates, $graded);
         echo('</span>');
         if ( $graded && isset($allgrades[$resource_link_id]) ) {
             $datestring = U::get($alldates, $resource_link_id, "");
@@ -807,10 +807,10 @@ class Assignments extends Tool {
         echo('</li>');
     }
 
-    public static function renderAssignments(\Tsugi\UI\Lessons $lessons, $allgrades, $alldates, $buffer=false, $duedates=array(), $toolbar_html=null, $alllinkids=array(), $is_instructor=false)
+    public static function renderAssignments(\Tsugi\Services\Lessons\LessonsService $lessons, $allgrades, $alldates, $buffer=false, $duedates=array(), $toolbar_html=null, $alllinkids=array(), $is_instructor=false)
     {
         ob_start();
-        Lessons::printLtiProgressStyles();
+        \Tsugi\Controllers\Lessons::printLtiProgressStyles();
         echo('<h1>'.$lessons->lessons->title."</h1>\n");
         if ( is_string($toolbar_html) && $toolbar_html !== '' ) {
             echo('<div class="clearfix tsugi-assignments-actions" style="margin-bottom:0.75em;">' . "\n");
@@ -836,7 +836,7 @@ class Assignments extends Tool {
             if ( isset($module->items) ) {
                 foreach($module->items as $item) {
                     if ( LessonsNormalize::isAssignmentLti($item)
-                        && Lessons::ltiLaunchIsGraded($item) ) {
+                        && LessonsService::ltiLaunchIsGraded($item) ) {
                         $has_assignments = true;
                         break;
                     }
@@ -847,7 +847,7 @@ class Assignments extends Tool {
                     $ltis_check = array($ltis_check);
                 }
                 foreach ( $ltis_check as $lti_check ) {
-                    if ( isset($lti_check->resource_link_id) && Lessons::ltiLaunchIsGraded($lti_check) ) {
+                    if ( isset($lti_check->resource_link_id) && LessonsService::ltiLaunchIsGraded($lti_check) ) {
                         $has_assignments = true;
                         break;
                     }
@@ -864,7 +864,7 @@ class Assignments extends Tool {
             if ( isset($module->items) ) {
                 foreach($module->items as $item) {
                     if ( ! LessonsNormalize::isAssignmentLti($item) ) continue;
-                    if ( ! Lessons::ltiLaunchIsGraded($item) ) continue;
+                    if ( ! LessonsService::ltiLaunchIsGraded($item) ) continue;
                     self::renderAssignmentItem($item->resource_link_id, isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'), $allgrades, $alldates, $duedates, $item, isset($module->anchor) ? $module->anchor : '', $alllinkids, $is_instructor);
                 }
             } else {
@@ -874,7 +874,7 @@ class Assignments extends Tool {
                     if ( ! is_array($ltis) ) $ltis = array($ltis);
                     foreach($ltis as $lti) {
                         if ( !isset($lti->resource_link_id) ) continue;
-                        if ( ! Lessons::ltiLaunchIsGraded($lti) ) continue;
+                        if ( ! LessonsService::ltiLaunchIsGraded($lti) ) continue;
                         self::renderAssignmentItem($lti->resource_link_id, $lti->title, $allgrades, $alldates, $duedates, $lti, isset($module->anchor) ? $module->anchor : '', $alllinkids, $is_instructor);
                     }
                 }

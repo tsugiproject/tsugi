@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi\UI;
+namespace Tsugi\Services\Lessons;
 
 use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Quiz1\GiftImporter;
@@ -345,7 +345,7 @@ class LessonsLegacyGift {
         }
         $custom_arr = self::customMap($item);
         $launch = isset($item->launch) ? $item->launch : '';
-        $endpoint = U::absolute_url(Lessons::expandLink($launch));
+        $endpoint = U::absolute_url(LessonsService::expandLink($launch));
         $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : null;
         if ( $resource_link_id ) {
             $endpoint = U::add_url_parm($endpoint, 'inherit', $resource_link_id);

@@ -9,7 +9,7 @@ use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Core\Membership;
 use Tsugi\Lumen\Application;
-use Tsugi\UI\Lessons;
+use Tsugi\Services\Lessons\LessonsService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -1756,7 +1756,7 @@ Bound parameters
         return is_array($row);
     }
 
-    public static function renderDiscussions(\Tsugi\UI\Lessons $lessons, $buffer=false, $toolHome=null, $addUrl=null, $reorderUrl=null)
+    public static function renderDiscussions(\Tsugi\Services\Lessons\LessonsService $lessons, $buffer=false, $toolHome=null, $addUrl=null, $reorderUrl=null)
     {
         ob_start();
         global $CFG, $OUTPUT, $PDOX;

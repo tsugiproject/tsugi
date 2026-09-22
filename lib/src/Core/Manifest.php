@@ -4,8 +4,8 @@ namespace Tsugi\Core;
 
 use \Tsugi\Util\MCache;
 use \Tsugi\Util\U;
-use \Tsugi\UI\Lessons;
-use \Tsugi\UI\LessonsNormalize;
+use \Tsugi\Services\Lessons\LessonsService;
+use \Tsugi\Services\Lessons\LessonsNormalize;
 
 /**
  * Versioned course manifest, keyed by immutable manifest_id.
@@ -31,7 +31,7 @@ use \Tsugi\UI\LessonsNormalize;
  * stay on $CFG->lessons for now. Manifest-course authoring should use LTI
  * custom / resource-link settings instead; that wiring is deferred.
  *
- * Every new version is test-loaded with Lessons::tryFromJson() before insert.
+ * Every new version is test-loaded with LessonsService::tryFromJson() before insert.
  * Authoring can export/import a lessons.json file; import is the same save path.
  *
  * Outbound LTI launches from the lessons/discussions catalog (file vs manifest
@@ -453,8 +453,8 @@ class Manifest {
         if ( ! is_string($json) || trim($json) === '' ) {
             return 'Document is empty';
         }
-        $loaded = Lessons::tryFromJson($json);
-        if ( $loaded instanceof Lessons ) {
+        $loaded = LessonsService::tryFromJson($json);
+        if ( $loaded instanceof LessonsService ) {
             $decoded = json_decode($json, true);
             if ( is_array($decoded) && self::hasDuplicateResourceLinkIds($decoded) ) {
                 return 'Duplicate resource_link_id';
@@ -832,7 +832,7 @@ class Manifest {
     /**
      * Like {@see currentLessons()} but dies if neither a manifest nor a file is available.
      *
-     * @return Lessons
+     * @return LessonsService
      */
     public static function requireCurrentLessons($anchor = null) {
         $l = self::currentLessons($anchor);
@@ -845,21 +845,21 @@ class Manifest {
     /**
      * Lessons for the current context: manifest JSON if active, else $CFG->lessons file.
      *
-     * @return Lessons|false
+     * @return LessonsService|false
      */
     public static function currentLessons($anchor = null) {
         $id = self::resolvedId();
         if ( $id > 0 ) {
             $json = self::loadJson($id);
             if ( is_string($json) ) {
-                return Lessons::fromJson($json, $anchor);
+                return LessonsService::fromJson($json, $anchor);
             }
             return false;
         }
         global $CFG;
         if ( isset($CFG->lessons) && is_string($CFG->lessons) && strlen($CFG->lessons) > 0
                 && is_readable($CFG->lessons) ) {
-            return new Lessons($CFG->lessons, $anchor);
+            return new LessonsService($CFG->lessons, $anchor);
         }
         return false;
     }

@@ -4,13 +4,13 @@ require_once "src/Util/TsugiDOM.php";
 require_once "src/Util/CC.php";
 require_once "src/Util/CanvasModuleMeta.php";
 require_once "src/Util/CanvasAssessmentMeta.php";
-require_once "src/UI/LessonsLegacyGift.php";
+require_once "src/Services/Lessons/LessonsLegacyGift.php";
 require_once "src/Config/ConfigInfo.php";
-require_once "src/UI/LessonsNormalize.php";
-require_once "src/UI/Lessons.php";
+require_once "src/Services/Lessons/LessonsNormalize.php";
+require_once "src/Services/Lessons/LessonsService.php";
 require_once "src/Util/U.php";
 
-use Tsugi\UI\LessonsLegacyGift;
+use Tsugi\Services\Lessons\LessonsLegacyGift;
 use Tsugi\Util\CC;
 
 class LessonsLegacyGiftTest extends \PHPUnit\Framework\TestCase

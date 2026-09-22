@@ -2,11 +2,17 @@
 
 require_once "src/Core/I18N.php";
 require_once "include/setup_i18n.php";
-require_once "src/UI/Lessons.php";
+require_once "src/Services/Lessons/LessonsService.php";
 require_once "src/Controllers/Lessons.php";
 require_once "src/Config/ConfigInfo.php";
 require_once "src/Lumen/Application.php";
 require_once "src/Lumen/Router.php";
+
+if (!function_exists('isLoggedIn')) {
+    function isLoggedIn() {
+        return !empty($_SESSION['id']);
+    }
+}
 
 use \Tsugi\Controllers\Lessons;
 use \Tsugi\Lumen\Application;
@@ -118,7 +124,7 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION = ['id' => 1, 'context_id' => 1];
         $_SERVER['REQUEST_URI'] = '/test/path';
         
-        $lessons = new class extends \Tsugi\UI\Lessons {
+        $lessons = new class extends \Tsugi\Services\Lessons\LessonsService {
             public function __construct() {
                 // Skip parent constructor
             }
@@ -177,7 +183,7 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
         };
         
         // Mock GradeUtil
-        $lessons = new class extends \Tsugi\UI\Lessons {
+        $lessons = new class extends \Tsugi\Services\Lessons\LessonsService {
             public function __construct() {
                 // Skip parent constructor
             }
@@ -214,7 +220,7 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
             'title' => 'Empty Course',
             'modules' => array(),
         ));
-        $lessons = \Tsugi\UI\Lessons::fromJson($json);
+        $lessons = \Tsugi\Services\Lessons\LessonsService::fromJson($json);
         $this->assertTrue($lessons->isEmpty());
         $html = \Tsugi\Controllers\Lessons::render($lessons, true);
         $this->assertStringContainsString('There is no Lessons content.', $html);
@@ -229,7 +235,7 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
                 array('title' => 'Secret', 'anchor' => 'secret', 'hidden' => true, 'items' => array()),
             ),
         ));
-        $lessons = \Tsugi\UI\Lessons::fromJson($json);
+        $lessons = \Tsugi\Services\Lessons\LessonsService::fromJson($json);
         $this->assertTrue($lessons->isEmpty());
         $html = \Tsugi\Controllers\Lessons::render($lessons, true);
         $this->assertStringContainsString('There is no Lessons content.', $html);

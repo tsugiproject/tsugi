@@ -234,7 +234,7 @@ abstract class Tool {
 
     /**
      * Build and print the auto-submit HTML for an LTI 1.1 basic-lti-launch-request to a tool URL
-     * described by a lessons.json / lessons-items item (same shape as {@see \Tsugi\UI\Lessons::getLtiByRlid()}).
+     * described by a lessons.json / lessons-items item (same shape as {@see \Tsugi\Services\Lessons\LessonsService::getLtiByRlid()}).
      *
      * @param Application $app
      * @param object $lti Must have resource_link_id; launch is required for LTI tools (discussions POST to {wwwroot}/tool/tdiscus)
@@ -313,8 +313,8 @@ abstract class Tool {
         $form_id = 'tsugi_form_id_'.bin2hex(openssl_random_pseudo_bytes(4));
         $parms['ext_lti_form_id'] = $form_id;
 
-        $endpoint = \Tsugi\UI\LessonsNormalize::launchUrlForItem($lti);
-        \Tsugi\UI\Lessons::absolute_url_ref($endpoint);
+        $endpoint = \Tsugi\Services\Lessons\LessonsNormalize::launchUrlForItem($lti);
+        \Tsugi\Services\Lessons\LessonsService::absolute_url_ref($endpoint);
         if ( isset($lti->resource_link_id) && $lti->resource_link_id !== '' && $lti->resource_link_id !== null ) {
             $endpoint = U::add_url_parm($endpoint, 'inherit', $lti->resource_link_id);
         }
@@ -1022,11 +1022,11 @@ abstract class Tool {
                 <a href="<?= U::addSession($back_url) ?>" class="btn btn-default">Back</a>
             </p>
             <h1>Analytics: <?= htmlspecialchars($title) ?></h1>
-            <?= \Tsugi\UI\Analytics::graphBody() ?>
+            <?= Analytics::graphBody() ?>
         </div>
         <?php
         $OUTPUT->footerStart();
-        echo(\Tsugi\UI\Analytics::graphScript($analytics_url));
+        echo(Analytics::graphScript($analytics_url));
         $OUTPUT->footerEnd();
         
         return "";

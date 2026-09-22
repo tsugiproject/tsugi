@@ -9,7 +9,7 @@ use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Services\Badges\BadgeService;
-use Tsugi\UI\Lessons;
+use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Util\U;
 
 class Badges extends Tool {
@@ -72,7 +72,7 @@ class Badges extends Tool {
         return $this->showAnalytics(self::ROUTE, self::NAME);
     }
 
-    public static function renderBadges(\Tsugi\UI\Lessons $lessons, $allgrades, $buffer=false, $supporter_ui=false)
+    public static function renderBadges(\Tsugi\Services\Lessons\LessonsService $lessons, $allgrades, $buffer=false, $supporter_ui=false)
     {
         ob_start();
         global $CFG, $OUTPUT;
@@ -91,7 +91,7 @@ class Badges extends Tool {
             }
         }
         if (U::strlen($display) > 0 ) {
-            echo("<p>".__("Student:")." ".$display."</p>\n");
+            echo("<p>".__("Student:")." ".htmlspecialchars($display)."</p>\n");
         }
         if ( $supporter_ui ) {
             \Tsugi\UI\Supporter::renderThankYou($CFG);
@@ -114,7 +114,7 @@ class Badges extends Tool {
             $scores = array();
             foreach($badge->assignments as $resource_link_id) {
                 $lti = $lessons->getLtiByRlid($resource_link_id);
-                $graded = Lessons::ltiLaunchIsGraded($lti);
+                $graded = LessonsService::ltiLaunchIsGraded($lti);
                 $score = 0;
                 if ( $graded && isset($allgrades[$resource_link_id]) ) {
                     $score = 100*$allgrades[$resource_link_id];
@@ -142,7 +142,7 @@ class Badges extends Tool {
                 $image = $CFG->badge_url . '/' . $badge->image;
                 echo('<img src="'.htmlspecialchars($image).'" alt="'.htmlspecialchars($badge->title).'" style="width: 4rem;"/> ');
             }
-            echo($badge->title);
+            echo(htmlspecialchars($badge->title));
             echo('</td><td class="info" style="width: 30%; min-width: 200px;">');
             echo('<div class="progress" role="progressbar" aria-valuenow="'.$progress.'" aria-valuemin="0" aria-valuemax="100" aria-label="'.htmlspecialchars($badge->title).': '.$progress.' percent">');
             echo('<div class="progress-bar progress-bar-'.$kind.'" style="width: '.$progress.'%"></div>');
@@ -150,7 +150,7 @@ class Badges extends Tool {
             echo("</td></tr>\n");
             foreach($badge->assignments as $resource_link_id) {
                 $lti = $lessons->getLtiByRlid($resource_link_id);
-                $graded = Lessons::ltiLaunchIsGraded($lti);
+                $graded = LessonsService::ltiLaunchIsGraded($lti);
                 $score = 0;
                 if ( $graded && isset($allgrades[$resource_link_id]) ) {
                     $score = 100*$allgrades[$resource_link_id];
@@ -250,7 +250,7 @@ class Badges extends Tool {
                     : $CFG->wwwroot . '/assertions/' . $encrypted . '.html';
                 echo('<a href="'.htmlspecialchars($assert_url).'" target="_blank" rel="noopener noreferrer" aria-label="'.__('View badge assertion, opens in new window').'">');
                 echo('<img src="'.htmlspecialchars($CFG->wwwroot.'/badges/images/'.$encrypted.'.png').'" width="90" alt="'.htmlspecialchars($badge->title).'"></a>');
-                echo($badge->title);
+                echo(htmlspecialchars($badge->title));
                 echo("</p></li>\n");
             }
             echo("</ul>\n");

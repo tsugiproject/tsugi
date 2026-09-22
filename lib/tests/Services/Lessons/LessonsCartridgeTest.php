@@ -2,12 +2,12 @@
 
 require_once "src/Core/I18N.php";
 require_once "include/setup_i18n.php";
-require_once "src/UI/Lessons.php";
-require_once "src/UI/LessonsNormalize.php";
-require_once "src/UI/LessonsCartridge.php";
+require_once "src/Services/Lessons/LessonsService.php";
+require_once "src/Services/Lessons/LessonsNormalize.php";
+require_once "src/Services/Lessons/LessonsCartridge.php";
 require_once "src/Config/ConfigInfo.php";
 
-use Tsugi\UI\LessonsCartridge;
+use Tsugi\Services\Lessons\LessonsCartridge;
 use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Quiz1\SampleQuiz1;
 use Tsugi\Util\CC;

@@ -6,7 +6,7 @@ use \Tsugi\Util\Net;
 use \Tsugi\Util\LTI;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Cache;
-use \Tsugi\UI\Lessons;
+use \Tsugi\Services\Lessons\LessonsService;
 
 if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
