@@ -53,51 +53,17 @@ class GoogleLoginHandler {
             $PDOX = LTIX::getConnection();
         }
         
-        // Get or create google.com key
-        $oauth_consumer_key = 'google.com';
+        // Fail fast if the google.com LTI key is missing (before showing the login form)
         $stmt = $PDOX->queryDie(
-            "SELECT key_id, secret FROM {$CFG->dbprefix}lti_key
+            "SELECT key_id FROM {$CFG->dbprefix}lti_key
                 WHERE key_sha256 = :SHA LIMIT 1",
-            array('SHA' => lti_sha256($oauth_consumer_key))
+            array('SHA' => lti_sha256('google.com'))
         );
         $key_row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        if ( $key_row === false ) {
+        if ( $key_row === false || ($key_row['key_id']+0) < 1 ) {
             $result->error = 'Error: No key defined for accounts from google.com';
             return $result;
         }
-        $google_key_id = $key_row['key_id']+0;
-        $google_secret = $key_row['secret'];
-        if ( $google_key_id < 1 ) {
-            $result->error = 'Error: No key for accounts from google.com';
-            return $result;
-        }
-
-        // Get or create context
-        $context_key = false;
-        $context_id = false;
-        if ( isset($CFG->context_title) ) {
-            $context_key = 'course:'.md5($CFG->context_title);
-            $row = $PDOX->rowDie(
-                "SELECT context_id FROM {$CFG->dbprefix}lti_context
-                    WHERE context_sha256 = :SHA AND key_id = :KID LIMIT 1",
-                array(':SHA' => lti_sha256($context_key), ':KID' => $google_key_id)
-            );
-            if ( $row != false ) {
-                $context_id = $row['context_id'];
-            } else {
-                $sql = "INSERT INTO {$CFG->dbprefix}lti_context
-                        ( context_key, context_sha256, title, key_id, created_at, updated_at ) VALUES
-                        ( :context_key, :context_sha256, :title, :key_id, NOW(), NOW() )";
-                $PDOX->queryDie($sql, array(
-                        ':context_key' => $context_key,
-                        ':context_sha256' => lti_sha256($context_key),
-                        ':title' => $CFG->context_title,
-                        ':key_id' => $google_key_id));
-                $context_id = $PDOX->lastInsertId();
-            }
-        }
-        $result->context_id = $context_id;
-        $result->context_key = $context_key;
 
         // Create Google Login Object
         $glog = new \Tsugi\Google\GoogleLogin(
@@ -180,9 +146,85 @@ class GoogleLoginHandler {
             return $result;
         }
 
-        // Process user login
-        $userSHA = lti_sha256($user_key);
         $displayName = $firstName . ' ' . $lastName;
+        return self::establishGoogleSiteSession(
+            $user_key,
+            $userEmail,
+            $displayName,
+            $userAvatar,
+            $redirect_callback
+        );
+    }
+
+    /**
+     * Upsert profile/user under the google.com key and fill the site-login session.
+     *
+     * @param string $user_key
+     * @param string $userEmail
+     * @param string $displayName
+     * @param string|false $userAvatar
+     * @param callable|null $redirect_callback
+     * @param array $options create_courses (0/1 or omit), force_membership_role (upsert learner)
+     * @return GoogleLoginHandler
+     */
+    public static function establishGoogleSiteSession($user_key, $userEmail, $displayName, $userAvatar = false,
+        $redirect_callback = null, $options = array()) {
+        global $CFG, $PDOX;
+
+        $result = new self();
+        if ( session_id() == "" ) {
+            session_start();
+        }
+        if ( ! isset($PDOX) ) {
+            $PDOX = LTIX::getConnection();
+        }
+
+        $oauth_consumer_key = 'google.com';
+        $stmt = $PDOX->queryDie(
+            "SELECT key_id, secret FROM {$CFG->dbprefix}lti_key
+                WHERE key_sha256 = :SHA LIMIT 1",
+            array('SHA' => lti_sha256($oauth_consumer_key))
+        );
+        $key_row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if ( $key_row === false ) {
+            $result->error = 'Error: No key defined for accounts from google.com';
+            return $result;
+        }
+        $google_key_id = $key_row['key_id']+0;
+        $google_secret = $key_row['secret'];
+        if ( $google_key_id < 1 ) {
+            $result->error = 'Error: No key for accounts from google.com';
+            return $result;
+        }
+
+        $context_key = false;
+        $context_id = false;
+        if ( $CFG->hasSiteContextTitle() ) {
+            $context_title = trim($CFG->context_title);
+            $context_key = 'course:'.md5($context_title);
+            $row = $PDOX->rowDie(
+                "SELECT context_id FROM {$CFG->dbprefix}lti_context
+                    WHERE context_sha256 = :SHA AND key_id = :KID LIMIT 1",
+                array(':SHA' => lti_sha256($context_key), ':KID' => $google_key_id)
+            );
+            if ( $row != false ) {
+                $context_id = $row['context_id'];
+            } else {
+                $sql = "INSERT INTO {$CFG->dbprefix}lti_context
+                        ( context_key, context_sha256, title, key_id, created_at, updated_at ) VALUES
+                        ( :context_key, :context_sha256, :title, :key_id, NOW(), NOW() )";
+                $PDOX->queryDie($sql, array(
+                        ':context_key' => $context_key,
+                        ':context_sha256' => lti_sha256($context_key),
+                        ':title' => $context_title,
+                        ':key_id' => $google_key_id));
+                $context_id = $PDOX->lastInsertId();
+            }
+        }
+        $result->context_id = $context_id;
+        $result->context_key = $context_key;
+
+        $userSHA = lti_sha256($user_key);
 
         // Update old user records if needed
         $stmt = $PDOX->queryDie(
@@ -318,15 +360,39 @@ class GoogleLoginHandler {
             return $result;
         }
 
-        // Create membership record
+        if ( array_key_exists('create_courses', $options) && $options['create_courses'] !== null ) {
+            $cc = ((int) $options['create_courses'] === 1) ? 1 : 0;
+            $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}lti_user SET create_courses = :CC WHERE user_id = :ID",
+                array(':CC' => $cc, ':ID' => $user_id)
+            );
+        }
+
+        $force_membership_role = ! empty($options['force_membership_role']);
+
         if ( $context_id !== false ) {
-            $sql = "INSERT IGNORE INTO {$CFG->dbprefix}lti_membership
-                ( context_id, user_id, role, created_at, updated_at ) VALUES
-                ( :context_id, :user_id, :role, NOW(), NOW() )";
-            $PDOX->queryDie($sql, array(
-                ':context_id' => $context_id,
-                ':user_id' => $user_id,
-                ':role' => 0));
+            if ( $force_membership_role ) {
+                $PDOX->queryDie(
+                    "INSERT INTO {$CFG->dbprefix}lti_membership
+                    ( context_id, user_id, role, created_at, updated_at ) VALUES
+                    ( :context_id, :user_id, :role, NOW(), NOW() )
+                    ON DUPLICATE KEY UPDATE
+                        role = VALUES(role),
+                        updated_at = NOW()",
+                    array(
+                        ':context_id' => $context_id,
+                        ':user_id' => $user_id,
+                        ':role' => LTIX::ROLE_LEARNER)
+                );
+            } else {
+                $sql = "INSERT IGNORE INTO {$CFG->dbprefix}lti_membership
+                    ( context_id, user_id, role, created_at, updated_at ) VALUES
+                    ( :context_id, :user_id, :role, NOW(), NOW() )";
+                $PDOX->queryDie($sql, array(
+                    ':context_id' => $context_id,
+                    ':user_id' => $user_id,
+                    ':role' => LTIX::ROLE_LEARNER));
+            }
         }
 
         // Set up session and fake LTI launch
@@ -365,10 +431,11 @@ class GoogleLoginHandler {
             $lti["image"] = $userAvatar;
         }
 
-        if ( isset($CFG->context_title) ) {
-            $_SESSION['context_title'] = $CFG->context_title;
-            $lti['context_title'] = $CFG->context_title;
-            $lti['resource_title'] = $CFG->context_title;
+        if ( $CFG->hasSiteContextTitle() ) {
+            $session_context_title = trim($CFG->context_title);
+            $_SESSION['context_title'] = $session_context_title;
+            $lti['context_title'] = $session_context_title;
+            $lti['resource_title'] = $session_context_title;
         }
         if ( isset($context_id) ) {
             $_SESSION["context_id"] = $context_id;

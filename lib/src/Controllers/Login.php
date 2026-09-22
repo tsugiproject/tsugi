@@ -5,8 +5,10 @@ namespace Tsugi\Controllers;
 use Tsugi\Lumen\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 use \Tsugi\Util\U;
+use \Tsugi\UI\DemoLogin;
 use \Tsugi\UI\GoogleLoginHandler;
 use Tsugi\Lumen\Application;
 
@@ -122,6 +124,10 @@ class Login extends Tool {
     }
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
+        $app->router->get($prefix.'/simulate', 'Login@simulate');
+        $app->router->post($prefix.'/simulate', 'Login@simulate');
+        $app->router->get($prefix.'/simulate/', 'Login@simulate');
+        $app->router->post($prefix.'/simulate/', 'Login@simulate');
         $app->router->get($prefix, 'Login@get');
         $app->router->get($prefix.'/', 'Login@get');
         // Legacy Google / bookmark URLs still hit login.php after the script was removed.
@@ -186,6 +192,11 @@ detecting robot-login storms, and other issues so we let Google do that hard wor
     <button type="button" class="btn btn-warning" onclick="location.href=<?= htmlspecialchars(json_encode($context['login_return'])) ?>; return false;" aria-label="<?= htmlspecialchars(__('Cancel login')) ?>" style="height: 2.5em;">Cancel</button>
     <a href="<?= htmlspecialchars($context['loginUrl']) ?>" aria-label="<?= htmlspecialchars(__('Sign in with Google')) ?>"><img src="<?= htmlspecialchars($CFG->staticroot) ?>/img/google_signin_buttons/2x/btn_google_signin_dark_normal_web@2x.png" alt="<?= htmlspecialchars(__('Sign in with Google')) ?>" title="<?= htmlspecialchars(__('Sign in with Google')) ?>" style="height: 3em;"></a>
 </form>
+<?php if ( DemoLogin::isEnabled() ) { ?>
+<p style="margin-top: 1.5em;">
+<a href="<?= htmlspecialchars(DemoLogin::simulateUrl()) ?>"><?= htmlspecialchars(__('Demo login')) ?></a>
+</p>
+<?php } ?>
 <p>
 So you must have a Google account and we will require your
 name and email address to login.  We do not need and do not receive your password - only Google
@@ -200,5 +211,120 @@ information with <?= htmlspecialchars($CFG->servicename) ?>.
         $OUTPUT->footerEnd();
     }
 
+    /**
+     * Config-gated simulated Google login. Always 403 unless demo_login + demo_secret.
+     */
+    public function simulate()
+    {
+        if ( ! DemoLogin::isEnabled() ) {
+            return new Response('Forbidden', 403);
+        }
+
+        $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+        if ( $method === 'POST' ) {
+            return $this->simulatePost();
+        }
+
+        return $this->viewSimulate(array(
+            'personas' => DemoLogin::personas(),
+            'selected' => '',
+        ));
+    }
+
+    /**
+     * @return Response|RedirectResponse
+     */
+    private function simulatePost()
+    {
+        $personas = DemoLogin::personas();
+        $persona_id = U::get($_POST, 'persona', '');
+        $selected = is_string($persona_id) ? $persona_id : '';
+
+        if ( ! self::csrfOk() ) {
+            U::flashError(__('Missing or invalid CSRF token'));
+            return $this->viewSimulate(array('personas' => $personas, 'selected' => $selected));
+        }
+
+        $secret = U::get($_POST, 'secret', '');
+        $persona = DemoLogin::persona($selected);
+        if ( ! DemoLogin::secretMatches(is_string($secret) ? $secret : '') || $persona === null ) {
+            U::flashError(__('Could not log you in.'));
+            return $this->viewSimulate(array('personas' => $personas, 'selected' => $selected));
+        }
+
+        $displayName = $persona['firstName'].' '.$persona['lastName'];
+        $parentPath = $this->toolParent(self::ROUTE);
+        $result = GoogleLoginHandler::establishGoogleSiteSession(
+            $persona['user_key'],
+            $persona['email'],
+            $displayName,
+            false,
+            function($result) use ($parentPath) {
+                return self::returnAfterLogin($result, $parentPath . '/profile');
+            },
+            DemoLogin::sessionOptions($persona)
+        );
+
+        if ( $result->error ) {
+            error_log('Login.simulate() error: '.$result->error);
+            U::flashError($result->error);
+            return $this->viewSimulate(array('personas' => $personas, 'selected' => $selected));
+        }
+
+        if ( $result->success ) {
+            session_regenerate_id(true);
+            $url = $result->redirect_url ? $result->redirect_url : self::defaultHomeUrl();
+            error_log('Login.simulate() '.$persona['id'].' user_id='.$result->user_id);
+            return new RedirectResponse($url);
+        }
+
+        U::flashError(__('Could not log you in.'));
+        return $this->viewSimulate(array('personas' => $personas, 'selected' => $selected));
+    }
+
+    public function viewSimulate($context)
+    {
+        global $OUTPUT;
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $menu = false;
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        $selected = $context['selected'] ?? '';
+?>
+<main class="container" id="main-content">
+<h1><?= __('Demo login') ?></h1>
+<div style="margin: 30px">
+<p>
+<?= htmlspecialchars(__('This page simulates a Google site login for local testing. It does not contact Google.')) ?>
+</p>
+<form method="post" action="<?= htmlspecialchars(DemoLogin::simulateUrl()) ?>">
+<?= self::csrfField() ?>
+<p>
+<label for="persona"><?= htmlspecialchars(__('Persona')) ?></label><br>
+<select id="persona" name="persona" required>
+<?php foreach ( $context['personas'] as $persona ) {
+    $sel = ($persona['id'] === $selected) ? ' selected' : '';
+?>
+    <option value="<?= htmlspecialchars($persona['id']) ?>"<?= $sel ?>><?= htmlspecialchars($persona['label']) ?></option>
+<?php } ?>
+</select>
+</p>
+<p>
+<label for="secret"><?= htmlspecialchars(__('Secret')) ?></label><br>
+<input type="password" id="secret" name="secret" required autocomplete="off">
+</p>
+<p>
+<button type="submit" class="btn btn-primary"><?= htmlspecialchars(__('Log in')) ?></button>
+<a class="btn btn-warning" href="<?= htmlspecialchars(self::loginUrl()) ?>"><?= htmlspecialchars(__('Cancel')) ?></a>
+</p>
+</form>
+</div>
+</main>
+<?php
+        $OUTPUT->footerStart();
+        $OUTPUT->footerEnd();
+    }
 
 }

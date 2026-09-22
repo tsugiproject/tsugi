@@ -840,6 +840,22 @@ class ConfigInfo {
     public $google_map_api_key = false;
 
     /**
+     * Simulated Google site login at /login/simulate for local testing.
+     *
+     * Never enable in production. Any request to /login/simulate is HTTP 403
+     * unless this is boolean true and $demo_secret is a non-empty string.
+     */
+    public $demo_login = false;
+
+    /**
+     * Secret typed into the /login/simulate form.
+     *
+     * Plaintext or sha256:... (same pattern as $adminpw). Required when
+     * $demo_login is true; an empty/false value keeps the route at 403.
+     */
+    public $demo_secret = false;
+
+    /**
      * Enable service worker for push notifications and offline support
      *
      * When set to true, enables the service worker registration script
