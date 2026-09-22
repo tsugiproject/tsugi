@@ -210,13 +210,15 @@ $DATABASE_UPGRADE = function($oldversion) {
     }
 
     // Allow admin/test mail with no course context.
-    $sql = "ALTER TABLE {$CFG->dbprefix}mail_sent MODIFY context_id INTEGER NULL";
-    echo("Upgrading: ".$sql."<br/>\n");
-    error_log("Upgrading: ".$sql);
-    $q = $PDOX->queryReturnError($sql);
-    if ( ! $q->success ) {
-        echo("Non-fatal: mail_sent.context_id NULL: ".$q->errorImplode."<br/>\n");
-        error_log("Non-fatal: mail_sent.context_id NULL: ".$q->errorImplode);
+    if ( $PDOX->columnIsNull('context_id', "{$CFG->dbprefix}mail_sent") === false ) {
+        $sql = "ALTER TABLE {$CFG->dbprefix}mail_sent MODIFY context_id INTEGER NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            echo("Non-fatal: mail_sent.context_id NULL: ".$q->errorImplode."<br/>\n");
+            error_log("Non-fatal: mail_sent.context_id NULL: ".$q->errorImplode);
+        }
     }
 
     if ( $PDOX->columnExists('message_id', "{$CFG->dbprefix}mail_sent") === false ) {
