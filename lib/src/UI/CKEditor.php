@@ -69,14 +69,17 @@ class CKEditor {
             ? ! empty($options['automaticExternalBlank'])
             : true;
 
-        // Automatic decorator: external / slide / YouTube URLs get target=_blank.
-        // Same-site pages, files, and lessons stay in the current tab unless the
-        // author turns on the manual "Open in a new tab" switch in the link form.
+        // Automatic decorator: external / slide / YouTube URLs, and uploaded
+        // course files, get target=_blank. Same-site pages and lessons stay
+        // in the current tab unless the author turns on the manual switch.
         // Expects pagesBase, filesBase, and appHome in scope.
         $linkCallback = 'function(url) {
             if (!url) return false;
             if (typeof pagesBase !== "undefined" && pagesBase && url.indexOf(pagesBase) === 0) return false;
-            if (typeof filesBase !== "undefined" && filesBase && url.indexOf(filesBase) === 0) return false;
+            if (typeof filesBase !== "undefined" && filesBase) {
+                var filesRoot = String(filesBase).replace(/\\/$/, "");
+                if (url.indexOf(filesRoot + "/") === 0) return true;
+            }
             if (typeof appHome !== "undefined" && appHome && url.indexOf(appHome + "/lessons") === 0) return false;
             var slideExt = /\.(pptx?|pptm|pdf|key|odp)(\?|$)/i;
             if (slideExt.test(url)) return true;
@@ -508,7 +511,7 @@ class CKEditor {
             } else {
                 url = fileItem.url || fileItem.href || '';
             }
-            completeLinkPick(url, fileItem.title || fileItem.filename || '');
+            completeLinkPick(url, fileItem.title || fileItem.filename || '', true);
         }
 
         $(document).ready( function () {

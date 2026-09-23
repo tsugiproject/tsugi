@@ -800,6 +800,86 @@ class FileRepository {
     }
 
     /**
+     * True when $href points at an uploaded course file.
+     * The Files tool itself (analytics, replace, the folder list) is not a file.
+     *
+     * @param mixed $href
+     * @return bool
+     */
+    public static function isUploadedFileHref($href) {
+        if ( ! is_string($href) ) {
+            return false;
+        }
+        $href = trim(html_entity_decode($href, ENT_QUOTES, 'UTF-8'));
+        if ( $href === '' ) {
+            return false;
+        }
+        $path = parse_url($href, PHP_URL_PATH);
+        if ( ! is_string($path) || $path === '' ) {
+            $path = $href;
+        }
+        $hash = strpos($path, '#');
+        if ( $hash !== false ) {
+            $path = substr($path, 0, $hash);
+        }
+        $query = strpos($path, '?');
+        if ( $query !== false ) {
+            $path = substr($path, 0, $query);
+        }
+        if ( ! preg_match('#(?:^|/)files/(.+)$#', $path, $m) ) {
+            return false;
+        }
+        $rest = trim($m[1], '/');
+        if ( $rest === '' ) {
+            return false;
+        }
+        $first = strtolower(strtok($rest, '/'));
+        $tool = array('json', 'analytics', 'upload', 'mkdir', 'replace', 'delete');
+        return ! in_array($first, $tool, true);
+    }
+
+    /**
+     * Uploaded-file anchors open in a new tab. Other links are left alone.
+     *
+     * @param mixed $html
+     * @return string
+     */
+    public static function forceFileAnchorsNewTab($html) {
+        if ( ! is_string($html) || $html === '' || stripos($html, '<a') === false ) {
+            return is_string($html) ? $html : '';
+        }
+        $out = preg_replace_callback(
+            '/<a\b([^>]*?)>/i',
+            function ($m) {
+                $attrs = $m[1];
+                if ( ! preg_match('/\bhref\s*=\s*(?:(["\'])([^"\']*)\1|([^\s"\'=<>`]+))/i', $attrs, $hrefMatch) ) {
+                    return $m[0];
+                }
+                $href = ($hrefMatch[1] ?? '') !== '' ? $hrefMatch[2] : ($hrefMatch[3] ?? '');
+                if ( ! self::isUploadedFileHref($href) ) {
+                    return $m[0];
+                }
+                if ( preg_match('/\btarget\s*=/i', $attrs) ) {
+                    $attrs = preg_replace(
+                        '/\btarget\s*=\s*(?:(["\']).*?\1|[^\s"\'=<>`]+)/i',
+                        'target="_blank"',
+                        $attrs,
+                        1
+                    );
+                } else {
+                    $attrs .= ' target="_blank"';
+                }
+                if ( ! preg_match('/\brel\s*=/i', $attrs) ) {
+                    $attrs .= ' rel="noopener noreferrer"';
+                }
+                return '<a'.$attrs.'>';
+            },
+            $html
+        );
+        return is_string($out) ? $out : $html;
+    }
+
+    /**
      * Folder/name for a sha256 in this context, or null.
      *
      * @param mixed $sha256

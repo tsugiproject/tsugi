@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!--
+evil-v2.html -- defensive browser isolation torture test
+SAVE/UPLOAD AS TEXT unless you intentionally rename it to .html in a controlled test environment.
+
+Purpose:
+  Exercise browser isolation around untrusted LMS-uploaded HTML without exfiltrating
+  data or modifying real application state.
+
+Safety properties:
+  - No external network destinations.
+  - No credential theft.
+  - No destructive application actions.
+  - Application-origin probes should target a deliberately harmless test endpoint.
+
+Optional configuration:
+  Set APPLICATION_ORIGIN below to your real LMS origin ONLY in a controlled test system.
+  The recommended probe endpoint is:
+      /security/browser-sandbox-probe
+  It should be side-effect free for GET and POST.
+
+Interpretation:
+  PASS = isolation blocked a privilege or persistence path.
+  FAIL = evidence of sandbox escape, application-origin privilege, or persistent control.
+  EXPECTED = JavaScript executed inside the sandbox as designed.
+  INFO = observation, not necessarily a vulnerability.
+-->
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>evil-v2 SUGI browser isolation torture test</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 1.5rem; line-height: 1.4; }
+  h1 { margin-bottom: .25rem; }
+  .summary { padding: .75rem; background: #f3f3f3; border-radius: .35rem; }
+  table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+  th, td { border: 1px solid #ccc; padding: .45rem; vertical-align: top; text-align: left; }
+  code { white-space: pre-wrap; word-break: break-word; }
+  .PASS { font-weight: 700; }
+  .FAIL { font-weight: 700; }
+  .EXPECTED { font-weight: 700; }
+  .INFO { font-weight: 700; }
+  iframe { width: 100%; height: 6rem; border: 1px solid #ccc; margin-top: .5rem; }
+</style>
+</head>
+<body>
+
+<h1>evil-v2</h1>
+<p>
+Defensive SUGI browser-isolation torture test for untrusted LMS-uploaded HTML.
+JavaScript execution is expected. The important question is whether the page can escape
+its sandbox, recover application-origin privilege, access authenticated browser state,
+or persist control outside the sandbox.
+</p>
+
+<div class="summary" id="summary">Running tests...</div>
+
+<table>
+<thead>
+<tr><th>Status</th><th>Probe</th><th>Result</th></tr>
+</thead>
+<tbody id="results"></tbody>
+</table>
+
+<div id="scratch" hidden></div>
+
+<script>
+(async () => {
+  "use strict";
+
+  // ============================================================
+  // CONFIGURATION
+  // ============================================================
+
+  const APPLICATION_ORIGIN = ""; // e.g. "https://nightly.tsugi.org"
+  const SAFE_PROBE_PATH = "/security/browser-sandbox-probe";
+
+  // ============================================================
+  // HARNESS
+  // ============================================================
+
+  const rows = [];
+  const tbody = document.getElementById("results");
+  const summary = document.getElementById("summary");
+
+  function stringify(v) {
+    try {
+      if (typeof v === "string") return v;
+      return JSON.stringify(v);
+    } catch {
+      return String(v);
+    }
+  }
+
+  function row(status, probe, result) {
+    rows.push({status, probe, result: stringify(result)});
+    const tr = document.createElement("tr");
+    for (const value of [status, probe, stringify(result)]) {
+      const td = document.createElement("td");
+      if (value === status) td.className = status;
+      const code = document.createElement("code");
+      code.textContent = value;
+      td.appendChild(code);
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+    updateSummary();
+  }
+
+  function pass(name, result) { row("PASS", name, result); }
+  function fail(name, result) { row("FAIL", name, result); }
+  function expected(name, result) { row("EXPECTED", name, result); }
+  function info(name, result) { row("INFO", name, result); }
+
+  function updateSummary() {
+    const counts = {PASS: 0, FAIL: 0, EXPECTED: 0, INFO: 0};
+    rows.forEach(r => counts[r.status]++);
+    summary.textContent =
+      `PASS ${counts.PASS} | FAIL ${counts.FAIL} | EXPECTED ${counts.EXPECTED} | INFO ${counts.INFO} | TOTAL ${rows.length}`;
+  }
+
+  async function attempt(name, fn, judge) {
+    try {
+      const value = await fn();
+      const verdict = judge ? judge(value) : "INFO";
+      if (verdict === "PASS") pass(name, value);
+      else if (verdict === "FAIL") fail(name, value);
+      else if (verdict === "EXPECTED") expected(name, value);
+      else info(name, value);
+    } catch (e) {
+      const value = `${e && e.name ? e.name : "Error"}: ${e && e.message ? e.message : e}`;
+      const verdict = judge ? judge({threw: true, error: value}) : "INFO";
+      if (verdict === "PASS") pass(name, value);
+      else if (verdict === "FAIL") fail(name, value);
+      else if (verdict === "EXPECTED") expected(name, value);
+      else info(name, value);
+    }
+  }
+
+  const blockedIsPass = value =>
+    value && value.threw ? "PASS" : "FAIL";
+
+  // ============================================================
+  // BASIC ORIGIN / CONTEXT OBSERVATIONS
+  // ============================================================
+
+  info("location.href", location.href);
+  info("location.origin", location.origin);
+  info("window.origin", String(window.origin));
+  info("document.referrer", document.referrer || "(empty)");
+  info("window.name", window.name || "(empty)");
+  info("crossOriginIsolated", String(self.crossOriginIsolated));
+  info("secureContext", String(self.isSecureContext));
+  info("originAgentCluster", String(document.originAgentCluster));
+
+  // ============================================================
+  // COOKIE / STORAGE
+  // ============================================================
+
+  await attempt(
+    "document.cookie access",
+    () => document.cookie,
+    v => {
+      if (v && v.threw) return "PASS";
+      if (typeof v === "string" && v.length === 0) return "INFO";
+      return "FAIL";
+    }
+  );
+
+  await attempt(
+    "localStorage access",
+    () => {
+      localStorage.setItem("evil-v2", "1");
+      const v = localStorage.getItem("evil-v2");
+      localStorage.removeItem("evil-v2");
+      return v;
+    },
+    v => (v && v.threw) ? "PASS" : "INFO"
+  );
+
+  await attempt(
+    "sessionStorage access",
+    () => {
+      sessionStorage.setItem("evil-v2", "1");
+      const v = sessionStorage.getItem("evil-v2");
+      sessionStorage.removeItem("evil-v2");
+      return v;
+    },
+    v => (v && v.threw) ? "PASS" : "INFO"
+  );
+
+  await attempt(
+    "IndexedDB access",
+    () => new Promise((resolve, reject) => {
+      const req = indexedDB.open("evil-v2-probe", 1);
+      req.onerror = () => reject(req.error || new Error("indexedDB open failed"));
+      req.onsuccess = () => {
+        req.result.close();
+        indexedDB.deleteDatabase("evil-v2-probe");
+        resolve("opened");
+      };
+    }),
+    v => (v && v.threw) ? "PASS" : "INFO"
+  );
+
+  await attempt(
+    "Cache Storage access",
+    async () => {
+      const cache = await caches.open("evil-v2-probe");
+      await caches.delete("evil-v2-probe");
+      return "opened";
+    },
+    v => (v && v.threw) ? "PASS" : "INFO"
+  );
+
+  // ============================================================
+  // SAME-ORIGIN / DOM ESCAPE TESTS
+  // ============================================================
+
+  await attempt(
+    "read parent.document",
+    () => parent.document.title,
+    v => (window.parent === window) ? "INFO" : "FAIL"
+  );
+
+  await attempt(
+    "read top.document",
+    () => top.document.title,
+    v => (window.top === window) ? "INFO" : "FAIL"
+  );
+
+  await attempt(
+    "read opener.document",
+    () => {
+      if (!window.opener) return "opener absent";
+      return window.opener.document.title;
+    },
+    v => v === "opener absent" ? "PASS" : "FAIL"
+  );
+
+  await attempt(
+    "read parent.location.href",
+    () => parent.location.href,
+    v => (window.parent === window) ? "INFO" : "FAIL"
+  );
+
+  await attempt(
+    "read opener.location.href",
+    () => {
+      if (!window.opener) return "opener absent";
+      return window.opener.location.href;
+    },
+    v => v === "opener absent" ? "PASS" : "FAIL"
+  );
+
+  await attempt(
+    "document.domain relaxation",
+    () => {
+      const before = document.domain;
+      const parts = before.split(".");
+      if (parts.length < 2) return "not applicable";
+      const candidate = parts.slice(-2).join(".");
+      document.domain = candidate;
+      return {before, after: document.domain};
+    },
+    v => v === "not applicable" ? "INFO" : "FAIL"
+  );
+
+  // ============================================================
+  // SCRIPT EXECUTION / CSP PROBES
+  // ============================================================
+
+  await attempt(
+    "eval()",
+    () => eval("21+21"),
+    v => v === 42 ? "EXPECTED" : "INFO"
+  );
+
+  await attempt(
+    "new Function()",
+    () => (new Function("return 42"))(),
+    v => v === 42 ? "EXPECTED" : "INFO"
+  );
+
+  await attempt(
+    "inline onclick handler",
+    () => new Promise(resolve => {
+      const b = document.createElement("button");
+      b.setAttribute("onclick", "this.dataset.ran='yes'");
+      document.body.appendChild(b);
+      b.click();
+      const ran = b.dataset.ran === "yes";
+      b.remove();
+      resolve(ran ? "executed" : "blocked");
+    }),
+    v => v === "executed" ? "EXPECTED" : "INFO"
+  );
+
+  await attempt(
+    "javascript: URL",
+    () => new Promise(resolve => {
+      const f = document.createElement("iframe");
+      f.src = "javascript:document.body.textContent='evil-v2-jsurl'";
+      f.onload = () => {
+        let result = "loaded";
+        try { result = f.contentDocument?.body?.textContent || "empty"; } catch {}
+        f.remove();
+        resolve(result);
+      };
+      f.onerror = () => {
+        f.remove();
+        resolve("blocked");
+      };
+      document.body.appendChild(f);
+      setTimeout(() => {
+        if (f.isConnected) {
+          f.remove();
+          resolve("timeout/blocked");
+        }
+      }, 800);
+    }),
+    v => String(v).includes("evil-v2-jsurl") ? "EXPECTED" : "INFO"
+  );
+
+  // ============================================================
+  // DATA / BLOB / SRCDOC EXECUTION
+  // ============================================================
+
+  await attempt(
+    "iframe srcdoc script execution",
+    () => new Promise(resolve => {
+      const f = document.createElement("iframe");
+      f.srcdoc = "<script>parent.postMessage('evil-v2-srcdoc','*')<\/script>";
+      const listener = ev => {
+        if (ev.data === "evil-v2-srcdoc") {
+          window.removeEventListener("message", listener);
+          f.remove();
+          resolve("executed");
+        }
+      };
+      window.addEventListener("message", listener);
+      document.body.appendChild(f);
+      setTimeout(() => {
+        window.removeEventListener("message", listener);
+        if (f.isConnected) f.remove();
+        resolve("blocked");
+      }, 700);
+    }),
+    v => v === "executed" ? "EXPECTED" : "INFO"
+  );
+
+  await attempt(
+    "blob URL script execution",
+    () => new Promise(resolve => {
+      const blob = new Blob(
+        ["<script>parent.postMessage('evil-v2-blob','*')<\/script>"],
+        {type: "text/html"}
+      );
+      const url = URL.createObjectURL(blob);
+      const f = document.createElement("iframe");
+      f.src = url;
+      const listener = ev => {
+        if (ev.data === "evil-v2-blob") {
+          cleanup("executed");
+        }
+      };
+      function cleanup(result) {
+        window.removeEventListener("message", listener);
+        URL.revokeObjectURL(url);
+        if (f.isConnected) f.remove();
+        resolve(result);
+      }
+      window.addEventListener("message", listener);
+      document.body.appendChild(f);
+      setTimeout(() => cleanup("blocked"), 700);
+    }),
+    v => v === "executed" ? "EXPECTED" : "INFO"
+  );
+
+  await attempt(
+    "data URL iframe",
+    () => new Promise(resolve => {
+      const f = document.createElement("iframe");
+      f.src = "data:text/html,<script>parent.postMessage('evil-v2-data','*')<\/script>";
+      const listener = ev => {
+        if (ev.data === "evil-v2-data") cleanup("executed");
+      };
+      function cleanup(result) {
+        window.removeEventListener("message", listener);
+        if (f.isConnected) f.remove();
+        resolve(result);
+      }
+      window.addEventListener("message", listener);
+      document.body.appendChild(f);
+      setTimeout(() => cleanup("blocked"), 700);
+    }),
+    v => v === "executed" ? "EXPECTED" : "INFO"
+  );
+
+  // ============================================================
+  // SVG / OBJECT / EMBED
+  // ============================================================
+
+  await attempt(
+    "SVG inline event handler",
+    () => new Promise(resolve => {
+      const wrap = document.createElement("div");
+      wrap.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg"><image href="x" onerror="this.dataset.ran=\'yes\'"></image></svg>';
+      document.body.appendChild(wrap);
+      setTimeout(() => {
+        const node = wrap.querySelector("image");
+        const result = node && node.dataset.ran === "yes" ? "executed" : "blocked";
+        wrap.remove();
+        resolve(result);
+      }, 500);
+    }),
+    v => v === "executed" ? "EXPECTED" : "INFO"
+  );
+
+  await attempt(
+    "object data:text/html",
+    () => {
+      const o = document.createElement("object");
+      o.data = "data:text/html,<h1>evil-v2-object</h1>";
+      document.body.appendChild(o);
+      const result = "object inserted";
+      o.remove();
+      return result;
+    },
+    () => "INFO"
+  );
+
+  await attempt(
+    "embed data:text/html",
+    () => {
+      const e = document.createElement("embed");
+      e.src = "data:text/html,<h1>evil-v2-embed</h1>";
+      document.body.appendChild(e);
+      const result = "embed inserted";
+      e.remove();
+      return result;
+    },
+    () => "INFO"
+  );
+
+  // ============================================================
+  // WORKERS / SERVICE WORKERS
+  // ============================================================
+
+  await attempt(
+    "Dedicated Worker creation",
+    () => new Promise((resolve, reject) => {
+      const blob = new Blob(["postMessage('worker-ok')"], {type: "text/javascript"});
+      const url = URL.createObjectURL(blob);
+      const w = new Worker(url);
+      w.onmessage = ev => {
+        w.terminate();
+        URL.revokeObjectURL(url);
+        resolve(ev.data);
+      };
+      w.onerror = e => {
+        w.terminate();
+        URL.revokeObjectURL(url);
+        reject(e.error || new Error("worker failed"));
+      };
+    }),
+    () => "EXPECTED"
+  );
+
+  await attempt(
+    "SharedWorker creation",
+    () => {
+      const blob = new Blob(
+        ["onconnect=e=>e.ports[0].postMessage('shared-worker-ok')"],
+        {type: "text/javascript"}
+      );
+      const url = URL.createObjectURL(blob);
+      const sw = new SharedWorker(url);
+      URL.revokeObjectURL(url);
+      return "created";
+    },
+    v => (v && v.threw) ? "PASS" : "EXPECTED"
+  );
+
+  await attempt(
+    "ServiceWorker registration API",
+    async () => {
+      if (!("serviceWorker" in navigator)) return "API unavailable";
+      // Intentionally use a guaranteed-bad local script URL.
+      // We only care whether registration is permitted in this context.
+      await navigator.serviceWorker.register("/__evil_v2_nonexistent_sw__.js");
+      return "registration unexpectedly accepted";
+    },
+    v => {
+      if (v && v.threw) return "PASS";
+      if (v === "API unavailable") return "PASS";
+      return "FAIL";
+    }
+  );
+
+  // ============================================================
+  // WINDOW / POPUP / OPENER
+  // ============================================================
+
+  await attempt(
+    "popup creation",
+    () => {
+      const w = window.open("about:blank", "_blank");
+      if (!w) return "blocked";
+      let openerPresent = false;
+      try { openerPresent = !!w.opener; } catch {}
+      try { w.close(); } catch {}
+      return openerPresent ? "opened with opener" : "opened without opener";
+    },
+    v => v === "opened with opener" ? "FAIL" : "PASS"
+  );
+
+  // ============================================================
+  // PERMISSION-GATED APIs
+  // ============================================================
+
+  await attempt(
+    "Notification permission state",
+    () => ("Notification" in window ? Notification.permission : "API unavailable"),
+    () => "INFO"
+  );
+
+  await attempt(
+    "Geolocation API surface",
+    () => ("geolocation" in navigator ? "present" : "absent"),
+    () => "INFO"
+  );
+
+  await attempt(
+    "Camera/microphone API surface",
+    () => (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? "present" : "absent"),
+    () => "INFO"
+  );
+
+  await attempt(
+    "Clipboard API surface",
+    () => (navigator.clipboard ? "present" : "absent"),
+    () => "INFO"
+  );
+
+  await attempt(
+    "Fullscreen API surface",
+    () => (document.documentElement.requestFullscreen ? "present" : "absent"),
+    () => "INFO"
+  );
+
+  // ============================================================
+  // POSTMESSAGE SURFACE
+  // ============================================================
+
+  await attempt(
+    "postMessage to parent",
+    () => {
+      if (window.parent === window) return "no parent";
+      window.parent.postMessage(
+        {type: "evil-v2-probe", note: "defensive test only"},
+        "*"
+      );
+      return "sent";
+    },
+    () => "INFO"
+  );
+
+  await attempt(
+    "postMessage to opener",
+    () => {
+      if (!window.opener) return "no opener";
+      window.opener.postMessage(
+        {type: "evil-v2-probe", note: "defensive test only"},
+        "*"
+      );
+      return "sent";
+    },
+    v => v === "no opener" ? "PASS" : "INFO"
+  );
+
+  // ============================================================
+  // SELF-ORIGIN FETCH PROBES
+  // ============================================================
+
+  const selfOrigin = location.origin;
+
+  await attempt(
+    "same-origin GET / with credentials",
+    async () => {
+      const r = await fetch(selfOrigin + "/", {credentials: "include"});
+      const text = await r.text();
+      return {
+        status: r.status,
+        bodyPrefix: text.slice(0, 160).replace(/\s+/g, " ")
+      };
+    },
+    v => (v && v.threw) ? "PASS" : "INFO"
+  );
+
+  await attempt(
+    "same-origin POST harmless probe",
+    async () => {
+      const r = await fetch(selfOrigin + "/evil-v2-probe", {
+        method: "POST",
+        credentials: "include",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: "probe=1"
+      });
+      return {status: r.status};
+    },
+    v => (v && v.threw) ? "PASS" : "INFO"
+  );
+
+  // ============================================================
+  // APPLICATION ORIGIN PROBES
+  // ============================================================
+
+  if (APPLICATION_ORIGIN) {
+    const appProbe = APPLICATION_ORIGIN.replace(/\/+$/, "") + SAFE_PROBE_PATH;
+
+    await attempt(
+      "APPLICATION cross-origin credentialed GET",
+      async () => {
+        const r = await fetch(appProbe, {
+          method: "GET",
+          credentials: "include"
+        });
+        const text = await r.text();
+        return {
+          status: r.status,
+          readable: true,
+          bodyPrefix: text.slice(0, 120).replace(/\s+/g, " ")
+        };
+      },
+      () => "FAIL"
+    );
+
+    await attempt(
+      "APPLICATION cross-origin credentialed POST",
+      async () => {
+        const r = await fetch(appProbe, {
+          method: "POST",
+          credentials: "include",
+          headers: {"Content-Type": "application/x-www-form-urlencoded"},
+          body: "probe=1"
+        });
+        return {status: r.status, readable: true};
+      },
+      () => "FAIL"
+    );
+
+    await attempt(
+      "APPLICATION form POST submission",
+      () => new Promise(resolve => {
+        const frameName = "evil-v2-form-frame-" + Math.random().toString(36).slice(2);
+        const frame = document.createElement("iframe");
+        frame.name = frameName;
+        frame.style.display = "none";
+        document.body.appendChild(frame);
+
+        const form = document.createElement("form");
+        form.method = "post";
+        form.action = appProbe;
+        form.target = frameName;
+
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "probe";
+        input.value = "1";
+        form.appendChild(input);
+
+        document.body.appendChild(form);
+        form.submit();
+
+        setTimeout(() => {
+          form.remove();
+          frame.remove();
+          resolve("submitted; verify server saw no authenticated unsafe action");
+        }, 500);
+      }),
+      () => "INFO"
+    );
+  } else {
+    info(
+      "APPLICATION origin probes",
+      "Skipped. Set APPLICATION_ORIGIN in the source to enable harmless LMS-origin tests."
+    );
+  }
+
+  // ============================================================
+  // BASE URI / FORM TARGET OBSERVATIONS
+  // ============================================================
+
+  await attempt(
+    "base element insertion",
+    () => {
+      const b = document.createElement("base");
+      b.href = "https://example.invalid/";
+      document.head.appendChild(b);
+      const result = document.baseURI;
+      b.remove();
+      return result;
+    },
+    () => "INFO"
+  );
+
+  // ============================================================
+  // FINAL NOTE
+  // ============================================================
+
+  const escapeFailures = rows.filter(r => r.status === "FAIL").length;
+  if (escapeFailures === 0) {
+    pass(
+      "SANDBOX ESCAPES FOUND",
+      "0 — no privilege escape was detected by this test suite"
+    );
+  } else {
+    fail(
+      "SANDBOX ESCAPES FOUND",
+      String(escapeFailures) + " potential escape(s); review every FAIL above"
+    );
+  }
+
+  info(
+    "test complete",
+    "EXPECTED means JavaScript capability inside the sandbox. FAIL is reserved for evidence of privilege escape or persistence."
+  );
+})();
+</script>
+
+<noscript>
+JavaScript did not execute. For an untrusted HTML preview surface, that may be exactly what you want.
+</noscript>
+
+</body>
+</html>

@@ -1123,6 +1123,23 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('', \Tsugi\Controllers\Lessons::webLinkTargetAttrs($item));
     }
 
+    public function testUploadedFileLinkOpensInANewTab() {
+        $item = (object)[
+            'type' => 'html_page',
+            'title' => 'Handout',
+            'href' => '/files/Student/handout.html',
+            'target' => '_self',
+        ];
+        $this->assertSame('blank', \Tsugi\Controllers\Lessons::webLinkOpenMode($item));
+        $this->assertStringContainsString('target="_blank"', \Tsugi\Controllers\Lessons::webLinkTargetAttrs($item));
+        $zip = array(
+            'type' => 'file',
+            'href' => 'https://lms.example.com/app/files/packs/week.zip',
+            'target' => 'modal',
+        );
+        $this->assertSame('blank', \Tsugi\Controllers\Lessons::webLinkOpenMode($zip));
+    }
+
     public function testRenderWebLinkModalTarget() {
         $lessons = new class extends \Tsugi\Services\Lessons\LessonsService {
             public function __construct() {

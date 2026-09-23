@@ -185,7 +185,9 @@ class PageRepository {
      * @return string
      */
     public static function expandHtml($html, $fileBaseUrl, array $localPrefixes) {
-        return CCFileBase::expand($html, $fileBaseUrl, $localPrefixes);
+        return FileRepository::forceFileAnchorsNewTab(
+            CCFileBase::expand($html, $fileBaseUrl, $localPrefixes)
+        );
     }
 
     /**

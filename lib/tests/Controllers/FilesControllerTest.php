@@ -95,4 +95,55 @@ class FilesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('Student/week-one.pdf', $item['path']);
         $this->assertSame('/files/Student/week-one.pdf', $item['href']);
     }
+
+    public function testCautionPhraseIsExact()
+    {
+        $this->assertTrue(Files::cautionPhraseAccepted('I am sure'));
+        $this->assertTrue(Files::cautionPhraseAccepted('  I am sure  '));
+        $this->assertFalse(Files::cautionPhraseAccepted('i am sure'));
+        $this->assertFalse(Files::cautionPhraseAccepted('yes'));
+    }
+
+    public function testCautionPageNamesTheKindAndRequiresThePhrase()
+    {
+        $html = Files::cautionPageHtml(
+            'week.zip',
+            'ZIP',
+            '/files/Student/week.zip',
+            '<input type="hidden" name="CSRF_TOKEN" value="tok">',
+            ''
+        );
+        $this->assertStringContainsString('This ZIP file (week.zip) can contain dangerous information.', $html);
+        $this->assertStringContainsString('Are you sure that you want to open or download this file?', $html);
+        $this->assertStringContainsString('You can paste this text into an AI or a search engine to get a more detailed explanation.', $html);
+        $this->assertStringContainsString('Type I am sure to continue.', $html);
+        $this->assertStringContainsString('name="confirm_phrase"', $html);
+        $this->assertStringContainsString('Open or download', $html);
+    }
+
+    public function testUploadedFileHrefsOpenInANewTab()
+    {
+        $this->assertTrue(FileRepository::isUploadedFileHref('/files/Student/notes.html'));
+        $this->assertTrue(FileRepository::isUploadedFileHref('https://lms.example.com/courses/12/files/download/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'));
+        $this->assertTrue(FileRepository::isUploadedFileHref('/files/lesson.zip'));
+        $this->assertFalse(FileRepository::isUploadedFileHref('/files'));
+        $this->assertFalse(FileRepository::isUploadedFileHref('/files/analytics'));
+        $this->assertFalse(FileRepository::isUploadedFileHref('/files/replace/4'));
+        $this->assertFalse(FileRepository::isUploadedFileHref('/pages/notes'));
+
+        $html = '<p><a href="/files/Student/notes.html">Notes</a> <a href="/pages/home">Home</a></p>';
+        $out = FileRepository::forceFileAnchorsNewTab($html);
+        $this->assertStringContainsString('href="/files/Student/notes.html" target="_blank" rel="noopener noreferrer"', $out);
+        $this->assertStringContainsString('<a href="/pages/home">Home</a>', $out);
+
+        $bare = FileRepository::forceFileAnchorsNewTab('<a href=/files/Student/notes.html>Notes</a>');
+        $this->assertStringContainsString('href=/files/Student/notes.html target="_blank" rel="noopener noreferrer"', $bare);
+
+        $self = FileRepository::forceFileAnchorsNewTab('<a href=/files/lesson.zip target=_self>Zip</a>');
+        $this->assertStringContainsString('href=/files/lesson.zip target="_blank"', $self);
+        $this->assertStringNotContainsString('target=_self', $self);
+
+        $other = FileRepository::forceFileAnchorsNewTab('<a href=/pages/home>Home</a>');
+        $this->assertSame('<a href=/pages/home>Home</a>', $other);
+    }
 }

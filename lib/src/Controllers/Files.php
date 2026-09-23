@@ -54,6 +54,7 @@ class Files extends Tool {
         $app->router->get($prefix.'/json', 'Files@json');
         $app->router->get($prefix.'/analytics', 'Files@analytics');
         $app->router->get($prefix.'/download/{sha256}', 'Files@download');
+        $app->router->post($prefix.'/download/{sha256}', 'Files@download');
         $app->router->post($prefix.'/upload', 'Files@uploadPost');
         $app->router->post($prefix.'/mkdir', 'Files@mkdirPost');
         $app->router->post($prefix.'/delete/{id}', 'Files@deletePost');
@@ -61,6 +62,7 @@ class Files extends Tool {
         $app->router->post($prefix.'/replace/{id}', 'Files@replacePost');
         // Last: /files/{folder}/{name} so page HTML can link by path, not sha.
         $app->router->get($prefix.'/{path:.+}', 'Files@servePath');
+        $app->router->post($prefix.'/{path:.+}', 'Files@servePath');
     }
 
     public function index(Request $request)
@@ -219,7 +221,7 @@ class Files extends Tool {
                                             <?= htmlspecialchars($item['name']) ?>
                                         </a>
                                     <?php else: ?>
-                                        <a href="<?= htmlspecialchars($file_url) ?>" target="_blank" rel="noopener">
+                                        <a href="<?= htmlspecialchars($file_url) ?>" target="_blank" rel="noopener noreferrer">
                                             <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
                                             <?= htmlspecialchars($item['name']) ?>
                                         </a>
@@ -507,6 +509,106 @@ class Files extends Tool {
     }
 
     /**
+     * Phrase the reader must type before an HTML, zip, or other caution file opens.
+     */
+    const CAUTION_PHRASE = 'I am sure';
+
+    /**
+     * @param mixed $typed
+     * @return bool
+     */
+    public static function cautionPhraseAccepted($typed)
+    {
+        return is_string($typed) && trim($typed) === self::CAUTION_PHRASE;
+    }
+
+    /**
+     * Confirmation page for a file that can carry script or an archive.
+     *
+     * @param string $fileName
+     * @param string $kind
+     * @param string $action
+     * @param string $csrfField
+     * @param string $error
+     * @return string
+     */
+    public static function cautionPageHtml($fileName, $kind, $action, $csrfField, $error = '')
+    {
+        $safeName = htmlspecialchars($fileName, ENT_QUOTES, 'UTF-8');
+        $safeKind = htmlspecialchars($kind, ENT_QUOTES, 'UTF-8');
+        $safeAction = htmlspecialchars($action, ENT_QUOTES, 'UTF-8');
+        $safeError = htmlspecialchars($error, ENT_QUOTES, 'UTF-8');
+        $phrase = htmlspecialchars(self::CAUTION_PHRASE, ENT_QUOTES, 'UTF-8');
+        $errorHtml = $safeError === '' ? '' : '<p class="error">'.$safeError.'</p>';
+        return '<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confirm file</title>
+<style>
+body { font-family: sans-serif; background: #f4f4f4; margin: 0; color: #222; }
+.box { max-width: 34rem; margin: 4rem auto; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 1.5rem 1.75rem; }
+h1 { font-size: 1.25rem; margin: 0 0 1rem; }
+.error { color: #a94442; }
+label { display: block; margin: 1rem 0 0.35rem; }
+input[type="text"] { width: 100%; box-sizing: border-box; padding: 0.45rem; font: inherit; }
+button { margin-top: 1rem; font: inherit; padding: 0.4rem 0.8rem; }
+</style>
+</head>
+<body>
+<main class="box" role="dialog" aria-labelledby="confirm-file-title">
+<h1 id="confirm-file-title">Confirm file</h1>
+<p>This '.$safeKind.' file ('.$safeName.') can contain dangerous information. Are you sure that you want to open or download this file? You can paste this text into an AI or a search engine to get a more detailed explanation.</p>
+'.$errorHtml.'
+<form method="post" action="'.$safeAction.'">
+'.$csrfField.'
+<label for="confirm_phrase">Type '.$phrase.' to continue.</label>
+<input id="confirm_phrase" name="confirm_phrase" type="text" autocomplete="off" required>
+<button type="submit">Open or download</button>
+</form>
+</main>
+</body>
+</html>';
+    }
+
+    /**
+     * True when this POST typed the confirmation phrase. Otherwise an error
+     * string, or '' when the request has not been submitted yet.
+     *
+     * @return true|string
+     */
+    private function cautionStatus()
+    {
+        if ( ($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' ) {
+            return '';
+        }
+        if ( ! self::csrfOk() ) {
+            return 'That confirmation did not go through. Try again.';
+        }
+        if ( ! self::cautionPhraseAccepted(U::get($_POST, 'confirm_phrase', '')) ) {
+            return 'Type '.self::CAUTION_PHRASE.' to continue.';
+        }
+        return true;
+    }
+
+    /**
+     * @param string $fileName
+     * @param string $kind
+     * @param string $error
+     */
+    private function emitCautionPage($fileName, $kind, $error)
+    {
+        $action = (isset($_SERVER['REQUEST_URI']) && is_string($_SERVER['REQUEST_URI']))
+            ? $_SERVER['REQUEST_URI']
+            : '';
+        header('Content-Type: text/html; charset=utf-8');
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: no-store');
+        echo self::cautionPageHtml($fileName, $kind, $action, self::csrfField(), $error);
+    }
+
+    /**
      * Serve file bytes. Caller must have attached Context/Link for Access.
      */
     private function emitFile($row)
@@ -514,18 +616,36 @@ class Files extends Tool {
         global $TSUGI_LAUNCH;
 
         $file_id = (int)$row['file_id'];
-        $retval = Access::openContent($TSUGI_LAUNCH, $file_id);
+        $filename = isset($row['file_name']) && is_string($row['file_name']) ? $row['file_name'] : '';
+        $kind = BlobUtil::cautionFileKind($filename);
+        if ( $kind !== null ) {
+            $status = $this->cautionStatus();
+            if ( $status !== true ) {
+                $this->emitCautionPage($filename, $kind, is_string($status) ? $status : '');
+                exit;
+            }
+        }
+
+        $retval = Access::openContent($TSUGI_LAUNCH, $file_id, $kind !== null);
         if ( ! is_array($retval) ) {
             die($retval);
         }
 
         $lob = $retval[0];
-        $type = $retval[1];
-        $filename = str_replace(array("\r", "\n", '"'), '', $row['file_name']);
+        $type = BlobUtil::downloadContentType($filename, $retval[1]);
+        $downloadName = str_replace(array("\r", "\n", '"'), '', $filename);
         if ( U::strlen($type) > 0 ) {
             header('Content-Type: '.$type);
         }
-        header('Content-Disposition: inline; filename="'.$filename.'"');
+        header('X-Content-Type-Options: nosniff');
+        if ( $kind !== null && BlobUtil::cautionFileOpensInline($kind) ) {
+            header('Content-Security-Policy: sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox');
+            header('Content-Disposition: inline; filename="'.$downloadName.'"');
+        } else if ( $kind !== null ) {
+            header('Content-Disposition: attachment; filename="'.$downloadName.'"');
+        } else {
+            header('Content-Disposition: inline; filename="'.$downloadName.'"');
+        }
         if ( is_string($lob) ) {
             echo($lob);
         } else if ( $lob ) {

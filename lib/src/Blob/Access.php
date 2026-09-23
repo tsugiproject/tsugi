@@ -36,8 +36,10 @@ class Access {
         }
     }
 
-    // Return a string or a resource
-    public static function openContent($LAUNCH, $id) {
+    // Return a string or a resource.
+    // $allowUnsafeSuffix is only for a course-file open that already
+    // collected the typed confirmation.
+    public static function openContent($LAUNCH, $id, $allowUnsafeSuffix = false) {
         global $CFG, $PDOX;
 
         if ( empty($id) ) {
@@ -75,7 +77,7 @@ class Access {
         $lob = null;
         $source = 'file';
 
-        if ( ! BlobUtil::safeFileSuffix($file_name) )  {
+        if ( ! $allowUnsafeSuffix && ! BlobUtil::safeFileSuffix($file_name) )  {
             error_log('Unsafe file suffix: '.$file_name);
             return('Unsafe file suffix');
         }

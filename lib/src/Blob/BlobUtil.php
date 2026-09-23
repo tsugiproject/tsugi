@@ -147,12 +147,154 @@ class BlobUtil {
     }
 
     // http://stackoverflow.com/questions/3592834/bad-file-extensions-that-should-be-avoided-on-a-file-upload-site
-    const BAD_FILE_SUFFIXES = "/(\.|\/)(bat|exe|cmd|sh|php|pl|cgi|386|dll|com|torrent|js|app|jar|pif|vb|vbscript|wsf|asp|cer|csr|jsp|drv|sys|ade|adp|bas|chm|cpl|crt|csh|fxp|hlp|hta|inf|ins|isp|jse|htaccess|htpasswd|ksh|lnk|mdb|mde|mdt|mdw|msc|msi|msp|mst|ops|pcd|prg|reg|scr|sct|shb|shs|url|vbe|vbs|wsc|wsf|wsh|zip|tar|gz|gzip|rar|ar|cpio|shar|iso|bz2|lz|rz|7z|dmg|z|tbz2|sit|sitx|sea|xar|zipx|py)$/i";
+    const BAD_FILE_SUFFIXES = "/(\.|\/)(bat|exe|cmd|sh|php|pl|cgi|386|dll|com|torrent|js|app|jar|pif|vb|vbscript|wsf|asp|cer|csr|jsp|drv|sys|ade|adp|bas|chm|cpl|crt|csh|fxp|hlp|hta|inf|ins|isp|jse|htaccess|htpasswd|ksh|lnk|mdb|mde|mdt|mdw|msc|msi|msp|mst|ops|pcd|prg|reg|scr|sct|shb|shs|url|vbe|vbs|wsc|wsf|wsh|gz|gzip|rar|ar|cpio|shar|iso|bz2|lz|rz|7z|dmg|z|sit|sitx|sea|xar|zipx|py)$/i";
 
     public static function safeFileSuffix($filename)
     {
+        if ( self::zipOrTarKind($filename) !== null ) return true;
         if ( preg_match(self::BAD_FILE_SUFFIXES, $filename) ) return false;
         return  true;
+    }
+
+    /**
+     * ZIP or TAR when this name is one of those archives. A compressed tar
+     * (tar.gz, tgz, tar.bz2) counts. A plain .gz does not.
+     *
+     * @param mixed $filename
+     * @return 'ZIP'|'TAR'|null
+     */
+    public static function zipOrTarKind($filename)
+    {
+        if ( ! is_string($filename) || $filename === '' ) {
+            return null;
+        }
+        $base = strtolower(basename(str_replace('\\', '/', $filename)));
+        if ( preg_match('/\.tar\.(gz|bz2|xz)$/', $base) ) {
+            return 'TAR';
+        }
+        $ext = pathinfo($base, PATHINFO_EXTENSION);
+        if ( $ext === 'zip' ) {
+            return 'ZIP';
+        }
+        if ( $ext === 'tar' || $ext === 'tgz' || $ext === 'tbz' || $ext === 'tbz2' ) {
+            return 'TAR';
+        }
+        return null;
+    }
+
+    /**
+     * Type to send for a course-file download.
+     *
+     * Zip and tar are generic bytes so a browser does not unpack them on
+     * the way down. The filename stays jquery.zip.
+     *
+     * HTML and SVG follow the filename. A browser can label an upload as
+     * JavaScript when the file starts with an HTML comment, and nosniff
+     * would then refuse to show it as a page.
+     *
+     * The other direction is the same rule. A notes.txt whose stored type
+     * is HTML, SVG, or JavaScript is sent as plain text, so a crafted
+     * upload type cannot run as the course.
+     *
+     * @param mixed $filename
+     * @param mixed $storedType
+     * @return string
+     */
+    public static function downloadContentType($filename, $storedType)
+    {
+        if ( self::zipOrTarKind($filename) !== null ) {
+            return 'application/octet-stream';
+        }
+        $ext = '';
+        if ( is_string($filename) && $filename !== '' ) {
+            $base = strtolower(basename(str_replace('\\', '/', $filename)));
+            $ext = pathinfo($base, PATHINFO_EXTENSION);
+        }
+        if ( $ext === 'html' || $ext === 'htm' || $ext === 'xhtml' || $ext === 'shtml' ) {
+            return 'text/html';
+        }
+        if ( $ext === 'svg' || $ext === 'svgz' ) {
+            return 'image/svg+xml';
+        }
+        if ( ! is_string($storedType) || $storedType === '' ) {
+            return '';
+        }
+        if ( self::storedTypeCanRunAsPage($storedType) ) {
+            return 'text/plain';
+        }
+        return $storedType;
+    }
+
+    /**
+     * True when a stored upload type would execute or render as a page.
+     *
+     * @param string $storedType
+     * @return bool
+     */
+    private static function storedTypeCanRunAsPage($storedType)
+    {
+        $type = strtolower(trim($storedType));
+        $semi = strpos($type, ';');
+        if ( $semi !== false ) {
+            $type = trim(substr($type, 0, $semi));
+        }
+        if ( $type === 'text/html' || $type === 'application/xhtml+xml' || $type === 'image/svg+xml' ) {
+            return true;
+        }
+        return $type === 'text/javascript'
+            || $type === 'application/javascript'
+            || $type === 'application/x-javascript'
+            || $type === 'text/ecmascript'
+            || $type === 'application/ecmascript';
+    }
+
+    /**
+     * Label when a course-file open should ask for confirmation. Null for
+     * ordinary files such as PDF and images.
+     *
+     * HTML is included because a page served from this site can run script.
+     * Zip and tar are legal to upload and still ask on download.
+     * The upload block list is included because cartridge import can still
+     * store those other files.
+     *
+     * @param mixed $filename
+     * @return string|null
+     */
+    public static function cautionFileKind($filename)
+    {
+        if ( ! is_string($filename) || $filename === '' ) {
+            return null;
+        }
+        $base = basename(str_replace('\\', '/', $filename));
+        $ext = strtolower(pathinfo($base, PATHINFO_EXTENSION));
+        if ( $ext === '' ) {
+            return null;
+        }
+        if ( $ext === 'html' || $ext === 'htm' || $ext === 'xhtml' || $ext === 'shtml' ) {
+            return 'HTML';
+        }
+        if ( $ext === 'svg' || $ext === 'svgz' ) {
+            return 'SVG';
+        }
+        $archive = self::zipOrTarKind($base);
+        if ( $archive !== null ) {
+            return $archive;
+        }
+        if ( ! self::safeFileSuffix($base) ) {
+            return strtoupper($ext);
+        }
+        return null;
+    }
+
+    /**
+     * HTML and SVG can be shown after confirmation. Other caution kinds download.
+     *
+     * @param string|null $kind
+     * @return bool
+     */
+    public static function cautionFileOpensInline($kind)
+    {
+        return $kind === 'HTML' || $kind === 'SVG';
     }
 
     /**
@@ -172,7 +314,7 @@ class BlobUtil {
         } else if ( $FILE_DESCRIPTOR['size'] < 1 ) {
             $retval = _m("File is empty: ").$filename;
         } else if ( $FILE_DESCRIPTOR['error'] == 0 ) {
-            if ( $SAFETY_CHECK && preg_match(self::BAD_FILE_SUFFIXES, $filename) ) $retval = _m("File suffix not allowed");
+            if ( $SAFETY_CHECK && ! self::safeFileSuffix($filename) ) $retval = _m("File suffix not allowed");
         } else {
             $retval = _m("Upload failure=").$FILE_DESCRIPTOR['error'];
         }
