@@ -441,8 +441,8 @@ class Package {
                 break;
             }
         }
-        if ( ! $org instanceof \DOMElement ) {
-            return array();
+        if ( ! $org instanceof \DOMElement || ! self::organizationHasItems($org) ) {
+            throw new ImportException('This cartridge has an empty organization and cannot be imported.');
         }
         $top = self::childItems($org);
         if ( count($top) === 1 && count(self::childItems($top[0])) > 0 ) {
@@ -503,6 +503,21 @@ class Package {
             'href_source' => $ids[CC::LOM_CATALOG_HREF_SOURCE] ?? null,
             'target' => CC::lessonTargetFromDocumentTarget($ids[CC::LOM_CATALOG_DOCUMENT_TARGET] ?? null),
         );
+    }
+
+    /**
+     * True when some item in the organization points at a resource.
+     * A placeholder such as Canvas LearningModules, with no identifierref, does not count.
+     */
+    private static function organizationHasItems(\DOMElement $org) {
+        foreach ( $org->getElementsByTagName('*') as $el ) {
+            if ( $el instanceof \DOMElement
+                && $el->localName === 'item'
+                && trim($el->getAttribute('identifierref')) !== '' ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -597,8 +612,8 @@ class Package {
     }
 
     /**
-     * Canvas course export often lists resources with an empty organization.
-     * Put those on an Imported module so Select Content and Lessons see them.
+     * Resources left out of a real organization still need a module so Select
+     * Content can show them. An organization with no items is rejected earlier.
      */
     private function attachUnreferencedResources() {
         $refs = array();
