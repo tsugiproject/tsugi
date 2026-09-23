@@ -923,7 +923,9 @@ class CC extends \Tsugi\Util\TsugiDOM {
     }
 
     /**
-     * Canvas-only: non_cc_assessments + assessment_meta.xml + manifest dependency.
+     * Canvas-only: assessment_meta.xml, a same-bytes non_cc_assessments copy,
+     * and the manifest dependency. Canvas selective import discovers the quiz
+     * from the non_cc file on the metadata resource.
      */
     public function zip_add_canvas_quiz_wrapper($zip, $title, $qtiXml, $quiz=null) {
         $id = $this->last_identifier;
@@ -931,7 +933,6 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $meta_id = $id.'_meta';
         $meta_path = $id.'/assessment_meta.xml';
         $non_cc = 'non_cc_assessments/'.$id.'.xml.qti';
-
         $zip->addFromString($non_cc, $qtiXml);
         $points = 0;
         $description = '';
@@ -955,6 +956,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
         ));
         $this->add_child_ns($this->ccNs(), $lor, 'file', null, array('href' => $id.'/assessment_qti.xml'));
         $this->add_child_ns($this->ccNs(), $lor, 'file', null, array('href' => $meta_path));
+        $this->add_child_ns($this->ccNs(), $lor, 'file', null, array('href' => $non_cc));
     }
 
     /**

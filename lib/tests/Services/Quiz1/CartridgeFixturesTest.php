@@ -89,6 +89,7 @@ class CartridgeFixturesTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($has_qti);
         $this->assertTrue($has_assessment_meta);
         $this->assertTrue($has_non_cc);
+        $this->assertStringContainsString('non_cc_assessments/', $manifest);
         $zip->close();
 
         $this->assertNotFalse($meta);

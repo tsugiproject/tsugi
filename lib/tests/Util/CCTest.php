@@ -282,13 +282,14 @@ class CCTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($zip->open($filename) === true);
         $this->assertNotFalse($zip->getFromName($file));
         $this->assertNotFalse($zip->getFromName($id.'/assessment_meta.xml'));
-        $this->assertNotFalse($zip->getFromName('non_cc_assessments/'.$id.'.xml.qti'));
+        $this->assertSame($zip->getFromName($file), $zip->getFromName('non_cc_assessments/'.$id.'.xml.qti'));
         $zip->close();
         @unlink($filename);
 
         $save = $cc_dom->saveXML();
         $this->assertStringContainsString('<dependency identifierref="'.$id.'_meta"/>', $save);
         $this->assertStringContainsString($id.'/assessment_meta.xml', $save);
+        $this->assertStringContainsString('non_cc_assessments/'.$id.'.xml.qti', $save);
         $this->assertStringContainsString('type="'.CC::ASSOCIATED_CONTENT_TYPE.'"', $save);
     }
 

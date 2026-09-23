@@ -793,6 +793,8 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
             $this->assertNotFalse($metaXml);
             $this->assertNotFalse($nonCc);
             $this->assertSame($qti, $nonCc);
+            $this->assertStringContainsString('non_cc_assessments/', $manifest);
+            $this->assertStringContainsString('.xml.qti', $manifest);
             $this->assertStringNotContainsString('cc.pattern_match.v0p1', $qti);
             $this->assertStringNotContainsString('varsubstring', $qti);
             $this->assertStringContainsString('cc.fib.v0p1', $qti);

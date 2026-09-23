@@ -111,9 +111,9 @@ open in a new tab. Quizzes stay `xml/Q1_*.xml` (no Canvas quiz wrapper).
 
 Setup **Canvas** uses the Canvas course-export quiz layout:
 `{id}/assessment_qti.xml`, `{id}/assessment_meta.xml`,
-`non_cc_assessments/{id}.xml.qti`, a manifest `<dependency>` on the
-meta LOR, and Canvas `question_type` item metadata. Pattern match is
-written as fill-in-the-blank.
+`non_cc_assessments/{id}.xml.qti` (the same QTI bytes, listed as a `<file>`
+on the meta resource), a manifest `<dependency>` on the meta LOR, and Canvas
+`question_type` item metadata. Pattern match is written as fill-in-the-blank.
 
 Legacy `/cc/export` is unchanged and still writes Canvas course_settings.
 
