@@ -418,6 +418,27 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(99, Manifest::activeId());
     }
 
+    public function testMembershipHrefSendsSiteCourseToAppHome()
+    {
+        $this->assertSame(
+            'http://localhost/app',
+            Courses::membershipHref(28, 'http://localhost/tsugi/courses', 28, 'http://localhost/app')
+        );
+        $this->assertSame(
+            'http://localhost/tsugi/courses/12',
+            Courses::membershipHref(12, 'http://localhost/tsugi/courses', 28, 'http://localhost/app')
+        );
+    }
+
+    public function testSiteLoginRedirectTargetsAppHome()
+    {
+        $_SESSION['site_context_id'] = 28;
+        $response = Courses::siteLoginRedirect(28);
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\RedirectResponse::class, $response);
+        $this->assertSame('http://localhost/app', $response->getTargetUrl());
+        $this->assertNull(Courses::siteLoginRedirect(12));
+    }
+
     public function testWithImageUrlsUsesMetadataNotBlobs()
     {
         $rows = Courses::withImageUrls(array(

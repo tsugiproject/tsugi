@@ -22,7 +22,7 @@ class CatalogRepository {
      * @param array<string, mixed> $post
      * @return array{ok:true,data:array<string,mixed>}|array{ok:false,error:string}
      */
-    public static function normalizeInput(array $post, $homeContextId = 0) {
+    public static function normalizeInput(array $post) {
         $title = trim((string) U::get($post, 'title', ''));
         if ( $title === '' ) {
             return array('ok' => false, 'error' => 'Title is required.');
@@ -54,10 +54,6 @@ class CatalogRepository {
             $context_id = (int) U::get($post, 'context_id', 0);
             if ( $context_id < 1 ) {
                 return array('ok' => false, 'error' => 'Select a course, or switch to a link listing.');
-            }
-            $home = (int) $homeContextId;
-            if ( $home > 0 && $context_id === $home ) {
-                return array('ok' => false, 'error' => 'The site home course cannot be an enrollable catalog entry. List it as a link to the site home instead.');
             }
         }
 
@@ -462,23 +458,21 @@ class CatalogRepository {
     }
 
     /**
-     * Courses an admin can attach, excluding the Google home context and
-     * courses already listed (except $keepCatalogId's current context).
+     * Courses an admin can attach, excluding courses already listed
+     * (except $keepCatalogId's current context).
+     *
+     * The Google site-login course is included. The public catalog sends
+     * that course to the app home instead of /courses/{id}.
      *
      * @return array<int, array{context_id:int,title:string}>
      */
-    public static function contextChoices($homeContextId = 0, $keepCatalogId = 0) {
+    public static function contextChoices($keepCatalogId = 0) {
         global $CFG, $PDOX;
 
         LTIX::getConnection();
         $p = $CFG->dbprefix;
         $params = array();
         $extra = '';
-        $home = (int) $homeContextId;
-        if ( $home > 0 ) {
-            $extra .= ' AND C.context_id != :HOME';
-            $params[':HOME'] = $home;
-        }
         $keep = (int) $keepCatalogId;
         if ( $keep > 0 ) {
             $extra .= ' AND (CAT.catalog_id IS NULL OR CAT.catalog_id = :KEEP)';

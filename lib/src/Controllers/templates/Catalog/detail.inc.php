@@ -2,7 +2,7 @@
 /**
  * Public catalog detail.
  *
- * Expected: $row, $logged_in, $enrol_url, $enter_url, $home
+ * Expected: $row, $logged_in, $enrol_url, $enter_url, $home, $site_home
  */
 $row = is_array($row ?? null) ? $row : array();
 $logged_in = ! empty($logged_in);
@@ -18,6 +18,7 @@ $context_id = (int) ($row['context_id'] ?? 0);
 $catalog_id = (int) ($row['catalog_id'] ?? 0);
 $enrolled = ! empty($row['enrolled']);
 $new_window = ! empty($row['new_window']);
+$site_home = ! empty($site_home);
 ?>
 <style>
 .tsugi-catalog-detail-hero {
@@ -127,6 +128,8 @@ $new_window = ! empty($row['new_window']);
             $target = $new_window ? ' target="_blank" rel="noopener noreferrer"' : '';
         ?>
         <a class="btn btn-primary" href="<?= htmlspecialchars($external_url) ?>"<?= $target ?>><?= __('Visit site') ?></a>
+        <?php } elseif ( $site_home && $enter_url !== '' ) { ?>
+        <a class="btn btn-primary" href="<?= htmlspecialchars($enter_url) ?>"><?= __('Enter course') ?></a>
         <?php } elseif ( ! empty($can_enrol) && $context_id > 0 ) {
             if ( $enrolled && $enter_url !== '' ) { ?>
         <a class="btn btn-primary" href="<?= htmlspecialchars($enter_url) ?>"><?= __('Enter course') ?></a>

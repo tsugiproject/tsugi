@@ -27,8 +27,6 @@ $catalog_id = (int) U::get($_GET, 'id', U::get($_POST, 'catalog_id', 0));
 $self = U::addSession('edit.php'.($catalog_id > 0 ? '?id='.$catalog_id : ''));
 $list_url = U::addSession('index.php');
 
-$home_id = CatalogRepository::homeContextId();
-
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     if ( Tool::csrfRedirect($self) ) return;
     $image_action = (string) U::get($_POST, 'image_action', '');
@@ -81,7 +79,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         return;
     }
 
-    $norm = CatalogRepository::normalizeInput($_POST, $home_id);
+    $norm = CatalogRepository::normalizeInput($_POST);
     if ( empty($norm['ok']) ) {
         U::flashError($norm['error'] ?? __('Could not save catalog entry.'));
         header('Location: '.$self);
@@ -106,7 +104,7 @@ if ( $catalog_id > 0 && $row === null ) {
     return;
 }
 
-$choices = CatalogRepository::contextChoices($home_id, $catalog_id);
+$choices = CatalogRepository::contextChoices($catalog_id);
 $kind = ($row && trim((string) ($row['external_url'] ?? '')) !== '') ? 'link' : 'course';
 if ( $row === null ) {
     $kind = 'course';
@@ -159,7 +157,7 @@ $OUTPUT->flashMessages();
             <option value="<?= $cid ?>"<?= $sel ?>><?= htmlspecialchars($choice['title']) ?></option>
             <?php } ?>
         </select>
-        <p class="help-block"><?= __('The site home course is not listed here. Add it as a link to the site home instead.') ?></p>
+        <p class="help-block"><?= __('The site-wide Google login course opens the app home.') ?></p>
     </div>
     <div class="form-group" id="kind_link">
         <label for="external_url"><?= htmlspecialchars(__('URL')) ?></label>

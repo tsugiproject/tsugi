@@ -151,6 +151,60 @@ class CatalogControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($out[2]['enrolled']);
     }
 
+    public function testMarkHomeEnrolledStarsSiteLoginCourse()
+    {
+        $_SESSION['id'] = 1;
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        $_SESSION['site_context_id'] = 9;
+        if (function_exists('_tsugiResetIdentitySnapshot')) {
+            _tsugiResetIdentitySnapshot();
+        }
+        $rows = array(
+            array('catalog_id' => 1, 'context_id' => 9, 'enrolled' => false),
+            array('catalog_id' => 2, 'context_id' => 12, 'enrolled' => false),
+        );
+        $out = Catalog::markHomeEnrolled($rows);
+        $this->assertTrue($out[0]['enrolled']);
+        $this->assertFalse($out[1]['enrolled']);
+    }
+
+    public function testPublicHrefSendsSiteHomeCourseToAppHome()
+    {
+        $row = array(
+            'catalog_id' => 4,
+            'context_id' => 9,
+            'has_detail' => false,
+            'new_window' => 1,
+        );
+        list($href, $blank) = Catalog::publicHref($row, 'http://localhost/tsugi/catalog', 'http://localhost/app', 9);
+        $this->assertSame('http://localhost/app', $href);
+        $this->assertFalse($blank);
+    }
+
+    public function testPublicHrefKeepsOtherCoursesOnCatalog()
+    {
+        $row = array('catalog_id' => 4, 'context_id' => 12, 'has_detail' => false);
+        list($href, $blank) = Catalog::publicHref($row, 'http://localhost/tsugi/catalog', 'http://localhost/app', 9);
+        $this->assertSame('http://localhost/tsugi/catalog/4', $href);
+        $this->assertFalse($blank);
+    }
+
+    public function testPublicHrefSiteHomeWithDetailStaysOnCatalog()
+    {
+        $row = array('catalog_id' => 4, 'context_id' => 9, 'has_detail' => true);
+        list($href, $blank) = Catalog::publicHref($row, 'http://localhost/tsugi/catalog', 'http://localhost/app', 9);
+        $this->assertSame('http://localhost/tsugi/catalog/4', $href);
+        $this->assertFalse($blank);
+    }
+
+    public function testEnterUrlSiteHomeIsAppHome()
+    {
+        $this->assertSame('http://localhost/app', Catalog::enterUrl(9, 'http://localhost/app', 9));
+        $this->assertSame('', Catalog::enterUrl(0, 'http://localhost/app', 9));
+        $other = Catalog::enterUrl(12, 'http://localhost/app', 9);
+        $this->assertStringContainsString('/courses/12/home', $other);
+    }
+
     public function testPartitionRowsSplitsEnrolledAndOther()
     {
         $rows = array(

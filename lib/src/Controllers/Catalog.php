@@ -83,6 +83,7 @@ class Catalog extends Tool {
         if ( U::loggedInUserId() < 1 || ! Courses::isGoogleLoginSession() ) {
             return $rows;
         }
+        $homeId = CatalogRepository::homeContextId();
         foreach ( $rows as $i => $row ) {
             if ( ! empty($row['enrolled']) ) {
                 continue;
@@ -90,9 +91,60 @@ class Catalog extends Tool {
             $url = isset($row['external_url']) ? (string) $row['external_url'] : '';
             if ( $url !== '' && self::isSiteHomeLink($url) ) {
                 $rows[$i]['enrolled'] = true;
+                continue;
+            }
+            $cid = (int) ($row['context_id'] ?? 0);
+            if ( $homeId > 0 && $cid === $homeId ) {
+                $rows[$i]['enrolled'] = true;
             }
         }
         return $rows;
+    }
+
+    /**
+     * App home (home_path, else apphome, else wwwroot).
+     */
+    public static function siteHomeUrl() {
+        return Courses::appHomeUrl();
+    }
+
+    /**
+     * Public card href. The Google site-login course opens the app home
+     * unless the listing has a long description (that stays on /catalog/{id}).
+     *
+     * @param array<string, mixed> $row
+     * @return array{0:string,1:bool} href and whether to open a new window
+     */
+    public static function publicHref(array $row, $catalogHome, $siteHomeUrl, $homeContextId) {
+        $cid = (int) ($row['context_id'] ?? 0);
+        $homeId = (int) $homeContextId;
+        $site = trim((string) $siteHomeUrl);
+        $hasDetail = ! empty($row['has_detail']);
+        if ( $cid > 0 && $homeId > 0 && $cid === $homeId && $site !== '' && ! $hasDetail ) {
+            return array($site, false);
+        }
+        $link = trim((string) ($row['external_url'] ?? ''));
+        if ( $link !== '' && ! $hasDetail ) {
+            return array($link, ! empty($row['new_window']));
+        }
+        $id = (int) ($row['catalog_id'] ?? 0);
+        return array(self::joinToolHome($catalogHome, (string) $id), false);
+    }
+
+    /**
+     * Where Enter course goes. The Google site-login course opens the app home.
+     */
+    public static function enterUrl($context_id, $siteHomeUrl, $homeContextId) {
+        $cid = (int) $context_id;
+        $homeId = (int) $homeContextId;
+        $site = trim((string) $siteHomeUrl);
+        if ( $cid > 0 && $homeId > 0 && $cid === $homeId && $site !== '' ) {
+            return $site;
+        }
+        if ( $cid > 0 ) {
+            return Courses::courseHomeUrl($cid);
+        }
+        return '';
     }
 
     public static function normalizeHomeLink($url) {
@@ -129,16 +181,12 @@ class Catalog extends Tool {
         $user_id = U::loggedInUserId();
         $rows = Catalog::markHomeEnrolled(CatalogRepository::listPublished($user_id));
         $home = self::catalogUrl();
+        $site = self::siteHomeUrl();
+        $homeId = CatalogRepository::homeContextId();
         foreach ( $rows as $i => $row ) {
-            $id = (int) ($row['catalog_id'] ?? 0);
-            $link = trim((string) ($row['external_url'] ?? ''));
-            if ( $link !== '' && empty($row['has_detail']) ) {
-                $rows[$i]['href'] = $link;
-                $rows[$i]['href_new_window'] = ! empty($row['new_window']);
-            } else {
-                $rows[$i]['href'] = self::joinToolHome($home, (string) $id);
-                $rows[$i]['href_new_window'] = false;
-            }
+            list($href, $newWindow) = self::publicHref($row, $home, $site, $homeId);
+            $rows[$i]['href'] = $href;
+            $rows[$i]['href_new_window'] = $newWindow;
         }
         return $rows;
     }
@@ -199,11 +247,10 @@ class Catalog extends Tool {
         $tool = new self();
         $home = $tool->toolHome(self::ROUTE);
         $enrol_url = self::joinToolHome($home, ((int) $id).'/enrol');
-        $enter_url = '';
         $cid = (int) ($row['context_id'] ?? 0);
-        if ( $cid > 0 ) {
-            $enter_url = Courses::courseHomeUrl($cid);
-        }
+        $homeId = CatalogRepository::homeContextId();
+        $site_home = $homeId > 0 && $cid === $homeId;
+        $enter_url = self::enterUrl($cid, self::siteHomeUrl(), $homeId);
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -261,13 +308,16 @@ class Catalog extends Tool {
             return new RedirectResponse($detail);
         }
         $homeId = CatalogRepository::homeContextId();
-        if ( $homeId > 0 && $cid === $homeId ) {
-            U::flashError(__('The site home course is not joined from the catalog.'));
-            return new RedirectResponse($detail);
-        }
         if ( ! CatalogRepository::enrollLearner($cid, $user_id) ) {
             U::flashError(__('Could not join that course.'));
             return new RedirectResponse($detail);
+        }
+        if ( $homeId > 0 && $cid === $homeId ) {
+            $dest = self::siteHomeUrl();
+            if ( $dest === '' ) {
+                $dest = $detail;
+            }
+            return new RedirectResponse($dest);
         }
         $result = Courses::ensureActiveContext($cid);
         if ( $result !== true ) {

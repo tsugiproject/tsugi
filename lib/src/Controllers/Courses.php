@@ -235,6 +235,53 @@ class Courses extends Tool {
     }
 
     /**
+     * App home (home_path, else apphome, else wwwroot).
+     */
+    public static function appHomeUrl() {
+        global $CFG;
+        if ( ! isset($CFG) || ! is_object($CFG) || ! method_exists($CFG, 'getHomeUrl') ) {
+            return '';
+        }
+        $url = $CFG->getHomeUrl();
+        return is_string($url) ? $url : '';
+    }
+
+    /**
+     * Where a membership card opens. The Google site-login course opens
+     * the app home, not /courses/{id}.
+     */
+    public static function membershipHref($context_id, $listHome, $siteContextId, $siteHomeUrl) {
+        $id = (int) $context_id;
+        $siteId = (int) $siteContextId;
+        $site = trim((string) $siteHomeUrl);
+        if ( $id > 0 && $siteId > 0 && $id === $siteId && $site !== '' ) {
+            return $site;
+        }
+        if ( $id < 1 ) {
+            return (string) $listHome;
+        }
+        return self::joinToolHome($listHome, (string) $id);
+    }
+
+    /**
+     * Redirect the Google site-login course to the app home.
+     *
+     * @return RedirectResponse|null
+     */
+    public static function siteLoginRedirect($context_id) {
+        $id = (int) $context_id;
+        $siteId = self::siteLoginContextId();
+        if ( $id < 1 || $siteId < 1 || $id !== $siteId ) {
+            return null;
+        }
+        $dest = self::appHomeUrl();
+        if ( $dest === '' ) {
+            return null;
+        }
+        return new RedirectResponse($dest);
+    }
+
+    /**
      * Course Home URL after switching into /courses/{id}.
      *
      * GET /courses/{id} used to bounce to the site apphome (bare `/`). That
@@ -473,9 +520,11 @@ class Courses extends Tool {
         $home = $tool->toolHome(self::ROUTE);
         $can_create = self::canCreate();
         $create_url = self::joinToolHome($home, 'create');
+        $siteId = self::siteLoginContextId();
+        $siteUrl = self::appHomeUrl();
         foreach ( $rows as $i => $row ) {
             $id = (int) $row['context_id'];
-            $rows[$i]['href'] = self::joinToolHome($home, (string) $id);
+            $rows[$i]['href'] = self::membershipHref($id, $home, $siteId, $siteUrl);
             if ( ! isset($row['title']) || $row['title'] === '' ) {
                 $rows[$i]['title'] = 'Course '.$id;
             }
@@ -494,6 +543,11 @@ class Courses extends Tool {
         $gate = self::gateResponse();
         if ( $gate ) {
             return $gate;
+        }
+
+        $siteHome = self::siteLoginRedirect($id);
+        if ( $siteHome !== null ) {
+            return $siteHome;
         }
 
         $result = self::ensureActiveContext($id);
@@ -707,6 +761,12 @@ class Courses extends Tool {
         if ( $rest === '' || $rest === 'courses' || str_starts_with($rest, 'courses/') ) {
             return self::enter($app, $request, $id);
         }
+        if ( $rest === 'home' ) {
+            $siteHome = self::siteLoginRedirect($id);
+            if ( $siteHome !== null ) {
+                return $siteHome;
+            }
+        }
 
         $before = U::currentContextId();
         $result = self::ensureActiveContext($id);
@@ -780,9 +840,20 @@ class Courses extends Tool {
                 $rows = array();
             }
         }
+        $rows = self::withImageUrls($rows);
+        $list = rtrim((string) $CFG->wwwroot, '/').self::ROUTE;
+        $siteUrl = self::appHomeUrl();
+        foreach ( $rows as $i => $row ) {
+            $rows[$i]['href'] = self::membershipHref(
+                (int) ($row['context_id'] ?? 0),
+                $list,
+                $home,
+                $siteUrl
+            );
+        }
         return response()->json(array(
             'status' => 'success',
-            'courses' => self::withImageUrls($rows),
+            'courses' => $rows,
             'current_context_id' => U::currentContextId(),
             'can_create' => self::canCreate(),
             'show_catalog' => Catalog::showCourseCatalog(),

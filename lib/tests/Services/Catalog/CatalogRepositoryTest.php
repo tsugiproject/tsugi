@@ -78,15 +78,16 @@ class CatalogRepositoryTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($out['ok']);
     }
 
-    public function testNormalizeRejectsHomeContext()
+    public function testNormalizeAcceptsHomeContext()
     {
         $out = CatalogRepository::normalizeInput(array(
             'title' => 'Home course',
             'kind' => 'course',
             'context_id' => '9',
-        ), 9);
-        $this->assertFalse($out['ok']);
-        $this->assertStringContainsString('site home', $out['error']);
+        ));
+        $this->assertTrue($out['ok']);
+        $this->assertSame(9, $out['data']['context_id']);
+        $this->assertNull($out['data']['external_url']);
     }
 
     public function testNormalizeCourseOk()
@@ -96,7 +97,7 @@ class CatalogRepositoryTest extends \PHPUnit\Framework\TestCase
             'kind' => 'course',
             'context_id' => '12',
             'new_window' => '1',
-        ), 9);
+        ));
         $this->assertTrue($out['ok']);
         $this->assertSame(12, $out['data']['context_id']);
         $this->assertNull($out['data']['external_url']);
