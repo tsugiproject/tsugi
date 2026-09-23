@@ -5,7 +5,7 @@
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Manifest;
-use \Tsugi\UI\Lessons;
+use \Tsugi\Services\Lessons\LessonsService;
 
 if ( !isset($_GET['id']) ) {
     die_with_error_log('Missing id parameter');

@@ -8,7 +8,7 @@ use Tsugi\Services\Cartridge\Importer;
 use Tsugi\Services\Cartridge\Matcher;
 use Tsugi\Services\Cartridge\Package;
 use Tsugi\Services\Cartridge\Session;
-use Tsugi\UI\LessonsCartridge;
+use Tsugi\Services\Lessons\LessonsCartridge;
 
 class CartridgeLomDescriptionImportTest extends \PHPUnit\Framework\TestCase
 {

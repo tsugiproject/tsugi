@@ -10,7 +10,7 @@ use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 require_once __DIR__ . '/../Services/Pages/PageRepository.php';
 use Tsugi\Services\Pages\PageRepository;
-use Tsugi\UI\LessonsNormalize;
+use Tsugi\Services\Lessons\LessonsNormalize;
 
 // Ensure CKEditor helper is loaded (fallback if autoload misses it)
 require_once __DIR__ . '/../UI/CKEditor.php';

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi\UI;
+namespace Tsugi\Services\Lessons;
 
 use Tsugi\Util\CC;
 use Tsugi\Util\CCFileBase;
@@ -342,7 +342,7 @@ class LessonsCartridge {
             return false;
         }
         $title = __('Video:').' '.(isset($item->title) ? $item->title : '');
-        $kaltura_url = Lessons::kalturaEmbedUrl($item);
+        $kaltura_url = LessonsService::kalturaEmbedUrl($item);
         if ( $kaltura_url ) {
             $export = clone $item;
             $export->target = 'modal';
@@ -376,7 +376,7 @@ class LessonsCartridge {
 
     private static function itemHasExportUrl($item, $kind) {
         if ( $kind === 'video' ) {
-            return Lessons::videoUrlForItem($item) !== null
+            return LessonsService::videoUrlForItem($item) !== null
                 || ( isset($item->youtube) && is_string($item->youtube) && $item->youtube !== '' );
         }
         return self::itemHref($item) !== '';
@@ -1039,7 +1039,7 @@ class LessonsCartridge {
             $title = 'Tool: '.$title;
         }
         $endpoint = LessonsNormalize::launchUrlForItem($item);
-        $endpoint = U::absolute_url(Lessons::expandLink($endpoint));
+        $endpoint = U::absolute_url(LessonsService::expandLink($endpoint));
         if ( isset($item->resource_link_id) && $item->resource_link_id !== '' && $item->resource_link_id !== null ) {
             $endpoint = U::add_url_parm($endpoint, 'inherit', $item->resource_link_id);
         }
@@ -1070,7 +1070,7 @@ class LessonsCartridge {
         if ( ! is_string($href) || $href === '' ) {
             return '';
         }
-        return U::absolute_url(Lessons::expandLink($href));
+        return U::absolute_url(LessonsService::expandLink($href));
     }
 
     /**

@@ -254,6 +254,128 @@ class CartridgeWalkerTest extends \PHPUnit\Framework\TestCase
         $pkg->close();
     }
 
+    public function testEmptyOrganizationIsRejected() {
+        $manifest = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="m1" xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1">
+  <metadata>
+    <schema>IMS Common Cartridge</schema>
+    <schemaversion>1.1.0</schemaversion>
+    <lomimscc:lom xmlns:lomimscc="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/manifest">
+      <lomimscc:general><lomimscc:title><lomimscc:string>Practice</lomimscc:string></lomimscc:title></lomimscc:general>
+    </lomimscc:lom>
+  </metadata>
+  <organizations>
+    <organization identifier="org_1" structure="rooted-hierarchy">
+      <item identifier="LearningModules"></item>
+    </organization>
+  </organizations>
+  <resources>
+    <resource identifier="page1" type="webcontent" href="wiki_content/home.html">
+      <file href="wiki_content/home.html"/>
+    </resource>
+  </resources>
+</manifest>
+XML;
+        $path = $this->dir.'/empty-org.imscc';
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($path, \ZipArchive::CREATE) === true);
+        $zip->addFromString('imsmanifest.xml', $manifest);
+        $zip->addFromString('wiki_content/home.html', '<html><body>Hi</body></html>');
+        $zip->close();
+
+        $this->expectException(ImportException::class);
+        $this->expectExceptionMessage('empty organization');
+        Package::open($path);
+    }
+
+    /**
+     * Canvas course export whose organization is an empty LearningModules item.
+     * The fixture is that export's imsmanifest.xml. Lecture files are omitted
+     * because the cartridge is rejected before they are read.
+     */
+    public function testCanvasNoModulesExportIsRejected() {
+        $path = __DIR__.'/../../fixtures/Cartridge/canvas-no-modules.imscc';
+        $this->expectException(ImportException::class);
+        $this->expectExceptionMessage('empty organization');
+        Package::open($path);
+    }
+
+    public function testCanvasItemBanksAreIgnored() {
+        $dir = __DIR__.'/../../fixtures/Quiz1/canvas-new-quizzes/';
+        $bank = file_get_contents($dir.'objectbank-unfiled.xml.qti');
+        $quiz = file_get_contents($dir.'quiz-sql.xml.qti');
+        $this->assertNotFalse($bank);
+        $this->assertNotFalse($quiz);
+        $bankType = 'associatedcontent/imscc_xmlv1p1/learning-application-resource';
+        $this->assertTrue(Package::shouldSkip($bankType, 'non_cc_assessments/unfiled.xml.qti'));
+        $this->assertFalse(Package::shouldSkip('imsqti_xmlv1p2/imscc_xmlv1p1/assessment', 'quiz1/assessment_qti.xml'));
+
+        $manifest = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="m1" xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1">
+  <organizations>
+    <organization identifier="org_1" structure="rooted-hierarchy">
+      <item identifier="mod1">
+        <title>Week 1</title>
+        <item identifier="qitem" identifierref="quiz1"><title>Quiz: SQL</title></item>
+      </item>
+    </organization>
+  </organizations>
+  <resources>
+    <resource identifier="unfiled" type="associatedcontent/imscc_xmlv1p1/learning-application-resource" href="non_cc_assessments/unfiled.xml.qti">
+      <file href="non_cc_assessments/unfiled.xml.qti"/>
+    </resource>
+    <resource identifier="exporttest" type="associatedcontent/imscc_xmlv1p1/learning-application-resource" href="non_cc_assessments/exporttest.xml.qti">
+      <file href="non_cc_assessments/exporttest.xml.qti"/>
+    </resource>
+    <resource identifier="quiz1" type="imsqti_xmlv1p2/imscc_xmlv1p1/assessment">
+      <file href="quiz1/assessment_qti.xml"/>
+      <dependency identifierref="quiz1meta"/>
+    </resource>
+    <resource identifier="quiz1meta" type="associatedcontent/imscc_xmlv1p1/learning-application-resource" href="quiz1/assessment_meta.xml">
+      <file href="quiz1/assessment_meta.xml"/>
+      <file href="non_cc_assessments/quiz1.xml.qti"/>
+    </resource>
+  </resources>
+</manifest>
+XML;
+        $empty = '<?xml version="1.0"?><questestinterop><assessment ident="shell" title="Quiz: SQL"><section ident="root_section"/></assessment></questestinterop>';
+        $path = $this->dir.'/banks-ignored.imscc';
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($path, \ZipArchive::CREATE) === true);
+        $zip->addFromString('imsmanifest.xml', $manifest);
+        $zip->addFromString('non_cc_assessments/unfiled.xml.qti', $bank);
+        $zip->addFromString('non_cc_assessments/exporttest.xml.qti', $bank);
+        $zip->addFromString('non_cc_assessments/quiz1.xml.qti', $quiz);
+        $zip->addFromString('quiz1/assessment_qti.xml', $empty);
+        $zip->addFromString('quiz1/assessment_meta.xml', '<quiz/>');
+        $zip->close();
+
+        $pkg = Package::open($path);
+        $unfiled = $pkg->resourceById('unfiled');
+        $this->assertNotNull($unfiled);
+        $this->assertTrue($unfiled['skipped']);
+        $exportTest = $pkg->resourceById('exporttest');
+        $this->assertNotNull($exportTest);
+        $this->assertTrue($exportTest['skipped']);
+
+        $ids = array();
+        foreach ( $pkg->importableResources() as $res ) {
+            $ids[] = $res['identifier'];
+        }
+        $this->assertSame(array('quiz1'), $ids);
+        $kept = $pkg->resourceById('quiz1');
+        $this->assertSame('non_cc_assessments/quiz1.xml.qti', $kept['href']);
+        $described = $pkg->describeModules();
+        $this->assertSame(1, $described[0]['counts']['quizzes']);
+        $pkg->close();
+
+        $row = Walker::scan($path, new Session(31));
+        $this->assertSame(0, $row['error_count']);
+        $this->assertSame(1, $row['created_count']);
+    }
+
     /**
      * @param string $src
      * @param string $dest

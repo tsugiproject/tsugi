@@ -8,8 +8,8 @@ if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
 
 use \Tsugi\Core\LTIX;
-use \Tsugi\Event\Entry;
 use \Tsugi\Core\Rest;
+use \Tsugi\Services\Analytics\AnalyticsService;
 use \Tsugi\Util\U;
 
 if ( Rest::preFlight() ) return;
@@ -64,17 +64,7 @@ if ( ! $is_admin ) {
     }
 }
 
-$sql = "SELECT link_count, activity FROM {$CFG->dbprefix}lti_link_activity
-    WHERE link_id = :link_id AND event = 0";
-$values = array(':link_id' => $link_id);
-$row = $PDOX->rowDie($sql, $values);
-
-$ent = new Entry();
-if ( is_array($row) ) {
-    $ent->deSerialize($row['activity']);
-    $ent->total = $row['link_count']+0;
-}
-$retval = $ent->viewModel();
+$retval = AnalyticsService::viewModelForLink($link_id);
 
 echo(json_encode($retval,JSON_PRETTY_PRINT));
 

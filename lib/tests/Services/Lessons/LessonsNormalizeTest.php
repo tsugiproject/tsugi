@@ -2,12 +2,12 @@
 
 require_once "src/Core/I18N.php";
 require_once "include/setup_i18n.php";
-require_once "src/UI/Lessons.php";
-require_once "src/UI/LessonsNormalize.php";
+require_once "src/Services/Lessons/LessonsService.php";
+require_once "src/Services/Lessons/LessonsNormalize.php";
 require_once "src/Config/ConfigInfo.php";
 
-use Tsugi\UI\Lessons;
-use Tsugi\UI\LessonsNormalize;
+use Tsugi\Services\Lessons\LessonsService;
+use Tsugi\Services\Lessons\LessonsNormalize;
 
 class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
 {
@@ -401,6 +401,13 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(42, $authored['page_id']);
         $this->assertSame('about', $authored['logical_key']);
         $this->assertSame('/pages/about', $authored['href']);
+        $imported = LessonsNormalize::normalizeItem(array(
+            'type' => 'html_page',
+            'title' => 'AA_Instructor_Notes',
+            'logical_key' => 'aa-instructor-notes',
+            'page_id' => 14,
+        ));
+        $this->assertSame('/pages/aa-instructor-notes', $imported['href']);
         $keys = array_keys($authored);
         $this->assertLessThan(array_search('logical_key', $keys, true), array_search('page_id', $keys, true));
     }
@@ -491,16 +498,16 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testLegacyJsonExportFileIsNotRewrittenByRead() {
-        $path = __DIR__ . '/../fixtures/lessons/py4e-modern-lessons-items.json';
+        $path = __DIR__ . '/../../fixtures/lessons/py4e-modern-lessons-items.json';
         $before = file_get_contents($path);
         $this->assertNotFalse($before);
-        new Lessons($path);
+        new LessonsService($path);
         $after = file_get_contents($path);
         $this->assertSame($before, $after);
     }
 
     public function testSerializeV2IsDeterministic() {
-        $doc = json_decode(file_get_contents(__DIR__ . '/../fixtures/lessons/py4e-modern-lessons-items.json'), true);
+        $doc = json_decode(file_get_contents(__DIR__ . '/../../fixtures/lessons/py4e-modern-lessons-items.json'), true);
         $a = LessonsNormalize::serializeV2($doc);
         $b = LessonsNormalize::serializeV2($doc);
         $this->assertSame($a, $b);
@@ -510,7 +517,7 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testPy4eFixtureFieldsSurviveNormalizeAndV2() {
-        $path = __DIR__ . '/../fixtures/lessons/py4e-modern-lessons-items.json';
+        $path = __DIR__ . '/../../fixtures/lessons/py4e-modern-lessons-items.json';
         $doc = json_decode(file_get_contents($path), true);
         $fields = LessonsNormalize::collectItemFields($doc);
         $this->assertNotEmpty($fields);
@@ -548,7 +555,7 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testRenderLegacyAndNormalizedItemsMatch() {
-        $lessons = new class extends Lessons {
+        $lessons = new class extends LessonsService {
             public function __construct() {
             }
         };
@@ -578,24 +585,24 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
 
         foreach ( $pairs as $pair ) {
             ob_start();
-            $lessons->renderItem($pair[0], $module);
+            \Tsugi\Controllers\Lessons::renderItem($lessons, $pair[0], $module);
             $legacy = ob_get_clean();
             ob_start();
-            $lessons->renderItem($pair[1], $module);
+            \Tsugi\Controllers\Lessons::renderItem($lessons, $pair[1], $module);
             $v2 = ob_get_clean();
             $this->assertSame($legacy, $v2, 'Render mismatch for '.$pair[0]->type);
         }
     }
 
     public function testGenericFoundationalFallbacksRender() {
-        $lessons = new class extends Lessons {
+        $lessons = new class extends LessonsService {
             public function __construct() {
             }
         };
         $module = (object) array('title' => 'Test Module');
 
         ob_start();
-        $lessons->renderItem((object) array(
+        \Tsugi\Controllers\Lessons::renderItem($lessons, (object) array(
             'type' => 'file',
             'title' => 'Handout',
             'href' => '/files/download/'.self::SHA,
@@ -607,7 +614,7 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('/files/download/'.self::SHA, $file_html);
 
         ob_start();
-        $lessons->renderItem((object) array(
+        \Tsugi\Controllers\Lessons::renderItem($lessons, (object) array(
             'type' => 'web_link',
             'title' => 'Somewhere',
             'href' => 'https://example.org/',
@@ -617,7 +624,7 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('fa-external-link', $link_html);
 
         ob_start();
-        $lessons->renderItem((object) array(
+        \Tsugi\Controllers\Lessons::renderItem($lessons, (object) array(
             'type' => 'html_page',
             'title' => 'Course Page',
             'href' => '{apphome}/info.md',
@@ -629,13 +636,13 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
     }
 
     public function testGenericLinkRejectsNonHttpSchemes() {
-        $lessons = new class extends Lessons {
+        $lessons = new class extends LessonsService {
             public function __construct() {
             }
         };
         $module = (object) array('title' => 'Test Module');
         ob_start();
-        $lessons->renderItem((object) array(
+        \Tsugi\Controllers\Lessons::renderItem($lessons, (object) array(
             'type' => 'web_link',
             'title' => 'Nope',
             'href' => 'javascript:alert(1)',
@@ -675,7 +682,7 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
             ),
         )));
         try {
-            $L = new Lessons($tmp);
+            $L = new LessonsService($tmp);
             $item = $L->lessons->modules[0]->items[0];
             $this->assertSame('discussion', $item->type);
             $this->assertFalse(isset($item->launch));

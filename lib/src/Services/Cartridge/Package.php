@@ -400,21 +400,34 @@ class Package {
                     $files[] = $fh;
                 }
             }
+            $deps = array();
+            foreach ( $el->childNodes as $child ) {
+                if ( ! $child instanceof \DOMElement || $child->localName !== 'dependency' ) {
+                    continue;
+                }
+                $dep = trim($child->getAttribute('identifierref'));
+                if ( $dep !== '' ) {
+                    $deps[] = $dep;
+                }
+            }
             $primary = count($files) ? $files[0] : '';
             $byId[$id] = array(
                 'identifier' => $id,
                 'type' => $type,
                 'href' => $primary,
                 'files' => $files,
+                'dependencies' => $deps,
                 'title' => '',
                 'item_identifier' => '',
                 'skipped' => self::shouldSkip($type, $primary),
             );
         }
 
+        $byId = $this->preferNonCcQuizFiles($byId);
         $this->attachItems($dom, $byId);
         $this->resources = array_values($byId);
         $this->modules = $this->parseOrganization($dom);
+        $this->attachUnreferencedResources();
     }
 
     /**
@@ -428,8 +441,8 @@ class Package {
                 break;
             }
         }
-        if ( ! $org instanceof \DOMElement ) {
-            return array();
+        if ( ! $org instanceof \DOMElement || ! self::organizationHasItems($org) ) {
+            throw new ImportException('This cartridge has an empty organization and cannot be imported.');
         }
         $top = self::childItems($org);
         if ( count($top) === 1 && count(self::childItems($top[0])) > 0 ) {
@@ -493,6 +506,21 @@ class Package {
     }
 
     /**
+     * True when some item in the organization points at a resource.
+     * A placeholder such as Canvas LearningModules, with no identifierref, does not count.
+     */
+    private static function organizationHasItems(\DOMElement $org) {
+        foreach ( $org->getElementsByTagName('*') as $el ) {
+            if ( $el instanceof \DOMElement
+                && $el->localName === 'item'
+                && trim($el->getAttribute('identifierref')) !== '' ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * @return list<\DOMElement>
      */
     private static function childItems(\DOMElement $el) {
@@ -536,13 +564,104 @@ class Package {
     public static function shouldSkip($type, $href) {
         $type = strtolower((string) $type);
         $href = str_replace('\\', '/', strtolower((string) $href));
-        if ( str_starts_with($type, 'associatedcontent') ) {
-            return true;
-        }
         if ( str_starts_with($href, 'course_settings/') ) {
             return true;
         }
+        // Item banks are associatedcontent resources whose href is a QTI file.
+        // The quiz itself is the imsqti assessment; its questions may live in
+        // a dependency's non_cc file (see preferNonCcQuizFiles).
+        if ( str_starts_with($type, 'associatedcontent') ) {
+            return true;
+        }
         return false;
+    }
+
+    /**
+     * Canvas New Quizzes leaves assessment_qti.xml empty and puts the items in
+     * a dependency's non_cc_assessments file. Read that file instead.
+     *
+     * @param array<string, array<string, mixed>> $byId
+     * @return array<string, array<string, mixed>>
+     */
+    private function preferNonCcQuizFiles(array $byId) {
+        foreach ( $byId as $id => $row ) {
+            if ( ! Fingerprint::isQti($row['type'] ?? '') ) {
+                continue;
+            }
+            $deps = isset($row['dependencies']) && is_array($row['dependencies']) ? $row['dependencies'] : array();
+            foreach ( $deps as $dep ) {
+                if ( ! isset($byId[$dep]) ) {
+                    continue;
+                }
+                $files = isset($byId[$dep]['files']) && is_array($byId[$dep]['files']) ? $byId[$dep]['files'] : array();
+                foreach ( $files as $file ) {
+                    if ( ! is_string($file) || ! Fingerprint::hrefIsQti($file) ) {
+                        continue;
+                    }
+                    $byId[$id]['href'] = $file;
+                    $own = isset($row['files']) && is_array($row['files']) ? $row['files'] : array();
+                    if ( ! in_array($file, $own, true) ) {
+                        $own[] = $file;
+                    }
+                    $byId[$id]['files'] = $own;
+                    continue 3;
+                }
+            }
+        }
+        return $byId;
+    }
+
+    /**
+     * Resources left out of a real organization still need a module so Select
+     * Content can show them. An organization with no items is rejected earlier.
+     */
+    private function attachUnreferencedResources() {
+        $refs = array();
+        foreach ( $this->modules as $mod ) {
+            $items = isset($mod['items']) && is_array($mod['items']) ? $mod['items'] : array();
+            foreach ( $items as $item ) {
+                $ref = is_array($item) ? (string) ($item['identifierref'] ?? '') : '';
+                if ( $ref !== '' ) {
+                    $refs[$ref] = true;
+                }
+            }
+        }
+        $orphans = array();
+        foreach ( $this->resources as $res ) {
+            if ( ! empty($res['skipped']) ) {
+                continue;
+            }
+            $id = (string) ($res['identifier'] ?? '');
+            if ( $id === '' || isset($refs[$id]) ) {
+                continue;
+            }
+            $orphans[] = array(
+                'identifier' => $id,
+                'identifierref' => $id,
+                'title' => '',
+                'heading' => false,
+                'description' => null,
+                'icon' => null,
+                'href_source' => null,
+                'target' => null,
+            );
+        }
+        if ( count($orphans) < 1 ) {
+            return;
+        }
+        foreach ( $this->modules as $i => $mod ) {
+            if ( (string) ($mod['identifier'] ?? '') === '' && (string) ($mod['title'] ?? '') === 'Imported' ) {
+                $items = isset($mod['items']) && is_array($mod['items']) ? $mod['items'] : array();
+                $this->modules[$i]['items'] = array_merge($items, $orphans);
+                return;
+            }
+        }
+        $this->modules[] = array(
+            'identifier' => '',
+            'title' => 'Imported',
+            'description' => null,
+            'items' => $orphans,
+        );
     }
 
     /**

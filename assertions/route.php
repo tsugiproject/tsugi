@@ -7,7 +7,7 @@ use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Badges;
 use \Tsugi\Core\Manifest;
-use \Tsugi\UI\Lessons;
+use \Tsugi\Services\Lessons\LessonsService;
 use \Tsugi\LinkedIn\LinkedIn;
 use \Tsugi\Crypt\AesOpenSSL;
 use \Tsugi\Services\Badges\BadgeService;

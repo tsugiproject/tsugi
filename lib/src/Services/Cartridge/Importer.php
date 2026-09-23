@@ -8,7 +8,7 @@ use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Services\Quiz1\Qti12Importer;
 use Tsugi\Services\Quiz1\Quiz1Repository;
-use Tsugi\UI\LessonsNormalize;
+use Tsugi\Services\Lessons\LessonsNormalize;
 use Tsugi\Util\CC;
 
 /**
@@ -192,6 +192,10 @@ class Importer {
                 'logical_key' => $page['logical_key'],
                 'page_id' => $page['page_id'],
             );
+            $pageHref = PageRepository::hrefForLogicalKey($page['logical_key']);
+            if ( is_string($pageHref) && $pageHref !== '' ) {
+                $lesson['href'] = $pageHref;
+            }
             return array(
                 'local_kind' => 'page',
                 'local_id' => $page['page_id'],
@@ -245,6 +249,10 @@ class Importer {
 
         if ( $kind === 'lti_link' ) {
             $xml = $pkg->readHref($href);
+            $xmlTitle = self::firstElementText($xml, 'title');
+            if ( $xmlTitle !== '' && ($title === '' || $title === basename(str_replace('\\', '/', $href))) ) {
+                $title = $xmlTitle;
+            }
             $launch = self::ltiLaunch($xml);
             $linkKey = (string) $res['identifier'];
             if ( $isCopy ) {
@@ -472,12 +480,18 @@ class Importer {
             );
         }
         if ( $kind === 'page' ) {
-            return array(
+            $logical_key = (string) ($object['local_key'] ?? '');
+            $lesson = array(
                 'type' => LessonsNormalize::TYPE_HTML_PAGE,
                 'title' => $title,
-                'logical_key' => (string) ($object['local_key'] ?? ''),
+                'logical_key' => $logical_key,
                 'page_id' => isset($object['local_id']) ? (int) $object['local_id'] : 0,
             );
+            $pageHref = PageRepository::hrefForLogicalKey($logical_key);
+            if ( is_string($pageHref) && $pageHref !== '' ) {
+                $lesson['href'] = $pageHref;
+            }
+            return $lesson;
         }
         if ( $kind === 'quiz' ) {
             return array(
@@ -586,6 +600,23 @@ class Importer {
             $html = str_replace('$IMS-CC-FILEBASE$/'.$zipHref, $local, $html);
         }
         return $html;
+    }
+
+    private static function firstElementText($xml, $localName) {
+        $prev = libxml_use_internal_errors(true);
+        $dom = new \DOMDocument();
+        $ok = $dom->loadXML((string) $xml);
+        libxml_clear_errors();
+        libxml_use_internal_errors($prev);
+        if ( ! $ok || ! $dom->documentElement ) {
+            return '';
+        }
+        foreach ( $dom->getElementsByTagName('*') as $el ) {
+            if ( $el instanceof \DOMElement && $el->localName === $localName ) {
+                return trim($el->textContent);
+            }
+        }
+        return '';
     }
 
     private static function ltiLaunch($xml) {

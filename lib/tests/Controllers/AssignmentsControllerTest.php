@@ -1,5 +1,8 @@
 <?php
 
+require_once "src/Core/I18N.php";
+require_once "include/setup_i18n.php";
+require_once "src/Services/Lessons/LessonsService.php";
 require_once "src/Controllers/Assignments.php";
 require_once "src/Config/ConfigInfo.php";
 require_once "src/Lumen/Application.php";
@@ -103,4 +106,112 @@ class AssignmentsControllerTest extends \PHPUnit\Framework\TestCase
     {
         $this->assertEquals('/assignments', Assignments::ROUTE, 'ROUTE constant should be /assignments');
     }
+
+    /**
+     * Test renderAssignments() with items array
+     */
+    public function testRenderAssignmentsWithItemsArray() {
+        global $_SERVER, $_SESSION;
+        $originalServer = $_SERVER ?? null;
+        $originalSession = $_SESSION ?? null;
+        
+        $_SERVER['REQUEST_URI'] = '/test/path';
+        $_SESSION = [];
+        
+        $lessons = new class extends \Tsugi\Services\Lessons\LessonsService {
+            public function __construct() {
+                // Skip parent constructor
+            }
+        };
+        
+        $lessons->lessons = new \stdClass();
+        $lessons->lessons->title = 'Test Course';
+        $lessons->lessons->modules = [
+            (object)[
+                'title' => 'Module 1',
+                'anchor' => 'mod1',
+                'items' => [
+                    (object)['type' => 'lti', 'title' => 'Assignment 1', 'resource_link_id' => 'rlid1'],
+                    (object)['type' => 'lti', 'title' => 'Assignment 2', 'resource_link_id' => 'rlid2'],
+                    (object)['type' => 'video', 'title' => 'Video 1'] // Should be skipped
+                ]
+            ],
+            (object)[
+                'title' => 'Module 2',
+                'anchor' => 'mod2',
+                'items' => [
+                    (object)['type' => 'discussion', 'title' => 'Discussion 1', 'resource_link_id' => 'rlid3'] // Should be skipped
+                ]
+            ]
+        ];
+        
+        $allgrades = ['rlid1' => 0.9, 'rlid2' => 0.5];
+        $alldates = [];
+        
+        $output = \Tsugi\Controllers\Assignments::renderAssignments($lessons, $allgrades, $alldates, true);
+        
+        // Verify assignments from items array are rendered
+        $this->assertStringContainsString('Assignment 1', $output, 'Should render LTI assignments from items array');
+        $this->assertStringContainsString('Assignment 2', $output, 'Should render multiple LTI assignments');
+        $this->assertStringContainsString('Module 1', $output, 'Should render module title');
+        
+        // Verify non-LTI items are skipped
+        $this->assertStringNotContainsString('Video 1', $output, 'Should not render non-LTI items');
+        $this->assertStringNotContainsString('Discussion 1', $output, 'Should not render discussion items');
+        
+        // Restore $_SERVER and $_SESSION
+        $_SERVER = $originalServer;
+        $_SESSION = $originalSession;
+    }
+    
+    /**
+     * Test renderAssignments() - items array takes precedence over legacy lti array
+     */
+
+    /**
+     * Test renderAssignments() - items array takes precedence over legacy lti array
+     */
+    public function testRenderAssignmentsItemsArrayPrecedence() {
+        global $_SERVER, $_SESSION;
+        $originalServer = $_SERVER ?? null;
+        $originalSession = $_SESSION ?? null;
+        
+        $_SERVER['REQUEST_URI'] = '/test/path';
+        $_SESSION = [];
+        
+        $lessons = new class extends \Tsugi\Services\Lessons\LessonsService {
+            public function __construct() {
+                // Skip parent constructor
+            }
+        };
+        
+        $lessons->lessons = new \stdClass();
+        $lessons->lessons->title = 'Test Course';
+        $lessons->lessons->modules = [
+            (object)[
+                'title' => 'Module 1',
+                'anchor' => 'mod1',
+                'items' => [
+                    (object)['type' => 'lti', 'title' => 'Assignment from items', 'resource_link_id' => 'rlid1']
+                ],
+                'lti' => [
+                    (object)['title' => 'Assignment from legacy', 'resource_link_id' => 'rlid2']
+                ]
+            ]
+        ];
+        
+        $allgrades = ['rlid1' => 0.9];
+        $alldates = [];
+        
+        $output = \Tsugi\Controllers\Assignments::renderAssignments($lessons, $allgrades, $alldates, true);
+        
+        // Should only render assignment from items array
+        $this->assertStringContainsString('Assignment from items', $output, 'Should render assignment from items array');
+        $this->assertStringNotContainsString('Assignment from legacy', $output, 'Should NOT render assignment from legacy array when items array exists');
+        
+        // Restore $_SERVER and $_SESSION
+        $_SERVER = $originalServer;
+        $_SESSION = $originalSession;
+    }
+
 }

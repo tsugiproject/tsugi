@@ -1,14 +1,15 @@
 <?php
 
 use \Tsugi\UI\Lessons;
-use \Tsugi\UI\LessonsCartridge;
-use \Tsugi\UI\LessonsLegacyFiles;
-use \Tsugi\UI\LessonsLegacyGift;
+use \Tsugi\Services\Lessons\LessonsCartridge;
+use \Tsugi\Services\Lessons\LessonsLegacyFiles;
+use \Tsugi\Services\Lessons\LessonsLegacyGift;
 use \Tsugi\Util\U;
 use \Tsugi\Util\CC;
 use \Tsugi\Util\CC_LTI;
 use \Tsugi\Util\CC_WebLink;
 
+require_once __DIR__ . '/legacy_form.php';
 require_once __DIR__ . '/../config.php';
 
 if ( ! isset($CFG->lessons) ) {
@@ -63,14 +64,14 @@ combination of the modules.</p>
 <p>
 <label for="tsugi_lms_select_full">Choose the LMS that will use this cartridge:</label>
 <select name="tsugi_lms" id="tsugi_lms_select_full">
-<?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
+<?php foreach ( \Tsugi\Services\Lessons\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
   <option value="<?= htmlspecialchars($value) ?>"<?= $value === 'generic' ? ' selected' : '' ?>><?= htmlentities($label) ?></option>
 <?php } ?>
 </select>
 </p>
 <p>Generic (CC 1.2) is a standards-only Common Cartridge with no LMS extensions. Generic (CC 1.1) and Moodle are the same Generic content as Common Cartridge 1.1 only. Tsugi and Canvas share Canvas's cartridge format so a Canvas export can import into Tsugi later. Sakai's cartridge format has significant overlap with Canvas's. When exporting to an LMS that is not on this list, use one of the Generic formats to be safe.</p>
-<?php LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_full'); ?>
-<?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_full'); ?>
+<?php CcExportForm::echoCartridgeSelect('cartridge_select_full'); ?>
+<?php CcExportForm::echoGiftQtiSelect('gift_qti_select_full'); ?>
 <?php if ( $discussion_count > 0 ) { ?>
 <p>
 <label for="topic_select_full">How would you like to export discussions/topics?</label>
@@ -87,8 +88,8 @@ combination of the modules.</p>
     echo("<p>Resources: $resource_count </p>\n");
     echo("<p>Assignments: $assignment_count </p>\n");
     echo("<p>Discussion topics: $discussion_count </p>\n");
-    LessonsLegacyFiles::echoPreview($file_scan);
-    LessonsLegacyGift::echoPreview($gift_scan);
+    CcExportForm::echoFilesPreview($file_scan);
+    CcExportForm::echoGiftPreview($gift_scan);
 ?>
 <p>
 <input type="submit" class="btn btn-primary" value="Download modules" />
@@ -105,14 +106,14 @@ echo('<form id="void">'."\n");
 <p>
 <label for="tsugi_lms_select_partial">Choose the LMS that will use this cartridge:</label>
 <select name="tsugi_lms" id="tsugi_lms_select_partial">
-<?php foreach ( \Tsugi\UI\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
+<?php foreach ( \Tsugi\Services\Lessons\LessonsCartridge::exportFlavorLabels() as $value => $label ) { ?>
   <option value="<?= htmlspecialchars($value) ?>"<?= $value === 'generic' ? ' selected' : '' ?>><?= htmlentities($label) ?></option>
 <?php } ?>
 </select>
 </p>
 <p>Generic (CC 1.2) is a standards-only Common Cartridge with no LMS extensions. Generic (CC 1.1) and Moodle are the same Generic content as Common Cartridge 1.1 only. Tsugi and Canvas share Canvas's cartridge format so a Canvas export can import into Tsugi later. Sakai's cartridge format has significant overlap with Canvas's. When exporting to an LMS that is not on this list, use one of the Generic formats to be safe.</p>
-<?php LessonsLegacyFiles::echoCartridgeSelect('cartridge_select_partial'); ?>
-<?php LessonsLegacyGift::echoGiftQtiSelect('gift_qti_select_partial'); ?>
+<?php CcExportForm::echoCartridgeSelect('cartridge_select_partial'); ?>
+<?php CcExportForm::echoGiftQtiSelect('gift_qti_select_partial'); ?>
 <?php if ( $discussion_count > 0 ) { ?>
 <p>
 <label for="topic_select_partial">How would you like to export discussions/topics?</label>

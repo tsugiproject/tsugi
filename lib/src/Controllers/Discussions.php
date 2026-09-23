@@ -7,7 +7,9 @@ use \Tsugi\Util\U;
 use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
+use Tsugi\Core\Membership;
 use Tsugi\Lumen\Application;
+use Tsugi\Services\Lessons\LessonsService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -59,7 +61,7 @@ class Discussions extends Tool {
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         echo('<main class="container" id="main-content">');
-        $l->renderDiscussions(false, $this->toolHome(self::ROUTE), $add_url, $reorder_url);
+        self::renderDiscussions($l, false, $this->toolHome(self::ROUTE), $add_url, $reorder_url);
         echo('</main>');
         $OUTPUT->footer();
 
@@ -1752,6 +1754,181 @@ Bound parameters
             array(':CID' => $context_id, ':UID' => $user_id)
         );
         return is_array($row);
+    }
+
+    public static function renderDiscussions(\Tsugi\Services\Lessons\LessonsService $lessons, $buffer=false, $toolHome=null, $addUrl=null, $reorderUrl=null)
+    {
+        ob_start();
+        global $CFG, $OUTPUT, $PDOX;
+
+        $discussions = $lessons->flattenedDiscussions();
+
+        $can_add = is_string($addUrl) && strlen($addUrl) > 0;
+        $can_reorder = is_string($reorderUrl) && strlen($reorderUrl) > 0 && count($discussions) > 1;
+        $show_catalog = count($discussions) > 0;
+
+        if ( ! $show_catalog && ! $can_add ) {
+            echo('<h1>'.__('Discussions not available')."</h1>\n");
+            $ob_output = ob_get_contents();
+            ob_end_clean();
+            if ( $buffer ) return $ob_output;
+            echo($ob_output);
+            return;
+        }
+
+        if ( $toolHome === null || $toolHome === '' ) {
+            $toolHome = \Tsugi\Controllers\Tool::determineToolHome('/discussions');
+        }
+
+        echo('<h1>'.__('Discussions:').' '.$lessons->lessons->title."</h1>\n");
+        if ( ! $show_catalog ) {
+            echo('<p>'.__('No discussions yet.')."</p>\n");
+            if ( $can_add ) {
+                echo('<p><a href="'.htmlspecialchars($addUrl).'" class="btn btn-primary btn-sm">'.htmlentities(__('Add discussion')).'</a></p>'."\n");
+            }
+            $ob_output = ob_get_contents();
+            ob_end_clean();
+            if ( $buffer ) return $ob_output;
+            echo($ob_output);
+            return;
+        }
+
+        $json_endpoint = U::addSession($toolHome . '/json');
+        $mark_read_url = U::addSession($toolHome . '/mark-read');
+        $manage_discussions_url = U::addSession($toolHome . '/manage');
+
+        // TODO: Perhaps the tdiscus service will get promoted to Tsugi
+        // but for now we bypass the abstraction and go straight to the source...
+        $rows_dict = array();
+        if ( U::get($_SESSION,'context_id') > 0 ) {
+            $current_user_id = U::loggedInUserId();
+            $rows = $PDOX->allRowsDie("SELECT L.link_key, L.link_sha256,
+                COUNT(T.thread_id) AS thread_count,
+                SUM(CASE WHEN COALESCE(UT.subscribe, 0) = 1 THEN 1 ELSE 0 END) AS subscribed_threads,
+                CONCAT(CONVERT_TZ(MAX(COALESCE(T.updated_at, T.created_at)), @@session.time_zone, '+00:00'), 'Z')
+                AS modified_at
+                FROM {$CFG->dbprefix}lti_link AS L
+                JOIN {$CFG->dbprefix}tdiscus_thread AS T ON T.link_id = L.link_id
+                LEFT JOIN {$CFG->dbprefix}tdiscus_user_thread AS UT
+                    ON UT.thread_id = T.thread_id AND UT.user_id = :UID
+                WHERE L.context_id = :CID
+                GROUP BY L.link_id, L.link_key, L.link_sha256
+                ORDER BY L.link_sha256",
+                array(':CID' => U::get($_SESSION,'context_id'), ':UID' => $current_user_id)
+            );
+            $rows_dict = array();
+            foreach($rows as $row) {
+                $rows_dict[$row['link_key']] = $row;
+            }
+            // echo("<pre>\n");var_dump($rows_dict);echo("</pre>\n");
+        }
+
+        $launchable = U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
+                && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email');
+
+        echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
+        foreach($discussions as $discussion ) {
+            $resource_link_title = $discussion->title;
+            $launch_path = $toolHome . '_launch/' . $discussion->resource_link_id;
+            $info = "";
+            $row = U::get($rows_dict, $discussion->resource_link_id);
+            $subscribed_threads = intval(U::get($row, 'subscribed_threads', 0));
+            $bell_html = '';
+            if ( $subscribed_threads > 0 ) {
+                $bell_label = htmlentities(__('Subscribed threads').': '.$subscribed_threads);
+                $bell_html = ' <span style="color: #f0ad4e; font-size: 0.75em; vertical-align: middle;" title="'.$bell_label.'" aria-label="'.$bell_label.'">&#128276;</span>';
+            }
+            if ( $row ) {
+                $info = $row['thread_count'].' '.__('threads'). ' - '.__('last post').
+                    ' <time class="timeago" datetime="'.$row['modified_at'].'">'.$row['modified_at'].'</time>';
+            }
+
+            echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion" data-resource-link-id="'.htmlspecialchars($discussion->resource_link_id).'">'."\n");
+            if ( $launchable ) {
+                echo('<a href="'.$launch_path.'">'.htmlentities($discussion->title).$bell_html.'</a>');
+            } else {
+                echo(htmlentities($resource_link_title).$bell_html.' ('.__('Login Required').')');
+            }
+            echo('<span class="tsugi-discussion-rollup-badges" aria-live="polite"></span>');
+            if ( strlen($info) > 0 ) {
+                echo('<div class="tsugi-discussion-meta">'.$info.'</div>'."\n");
+            }
+            echo("</li>\n");
+        }
+        echo("</ul><!-- end of discussions -->\n");
+
+        if ( U::isLoggedIn() && U::currentContextId() !== 0 ) {
+            $show_expire_button = false;
+            LTIX::getConnection();
+            $membership = Membership::ensureInSession(U::currentContextId(), U::loggedInUserId());
+            if ( $membership && $membership->isInstructor() ) {
+                $show_expire_button = true;
+            }
+            echo('<div style="margin: 1em 0 0; display: flex; gap: 0.5em; flex-wrap: wrap;">');
+            echo('<form method="post" action="'.htmlspecialchars($mark_read_url).'" class="tsugi-discussions-mark-read-form" style="margin: 0;">');
+            echo(\Tsugi\Controllers\Tool::csrfField());
+            echo('<button type="submit" class="btn btn-default btn-sm">'.htmlentities(__('Mark all as read')).'</button>');
+            echo('</form>'."\n");
+            if ( $show_expire_button ) {
+                echo('<a href="'.htmlspecialchars($manage_discussions_url).'" class="btn btn-warning btn-sm">'.htmlentities(__('Manage Discussions')).'</a>');
+            }
+            if ( $can_add ) {
+                echo('<a href="'.htmlspecialchars($addUrl).'" class="btn btn-primary btn-sm">'.htmlentities(__('Add discussion')).'</a>');
+            }
+            if ( $can_reorder ) {
+                echo('<a href="'.htmlspecialchars($reorderUrl).'" class="btn btn-default btn-sm">'.htmlentities(__('Reorder discussions')).'</a>');
+            }
+            echo("</div>\n");
+        }
+?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('<?= htmlentities($json_endpoint) ?>')
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (!data || data.status !== 'success' || !Array.isArray(data.discussions)) return;
+
+            var byKey = {};
+            data.discussions.forEach(function(disc) {
+                if (disc && disc.resource_link_id) byKey[disc.resource_link_id] = disc;
+            });
+
+            document.querySelectorAll('.tsugi-lessons-module-discussion[data-resource-link-id]').forEach(function(node) {
+                var key = node.getAttribute('data-resource-link-id');
+                var disc = byKey[key];
+                if (!disc || !disc.badge) return;
+
+                var personal = parseInt(disc.badge.personal || 0, 10);
+                var participating = parseInt(disc.badge.participating || 0, 10);
+                var global = parseInt(disc.badge.global || 0, 10);
+
+                var chip = '';
+                if (personal > 0) {
+                    chip = '<span class="badge tsugi-discussion-badge tsugi-discussion-badge-personal" title="Personal unread: ' + personal + '" aria-label="Personal unread: ' + personal + '">' + personal + '</span>';
+                } else if (participating > 0) {
+                    chip = '<span class="badge tsugi-discussion-badge tsugi-discussion-badge-participating" title="Participating unread: ' + participating + '" aria-label="Participating unread: ' + participating + '">' + participating + '</span>';
+                } else if (global > 0) {
+                    chip = '<span class="badge tsugi-discussion-badge tsugi-discussion-badge-global" title="Global activity unread: ' + global + '" aria-label="Global activity unread: ' + global + '">' + global + '</span>';
+                }
+                if (!chip) return;
+
+                var holder = node.querySelector('.tsugi-discussion-rollup-badges');
+                if (!holder) return;
+                holder.innerHTML = chip;
+            });
+        })
+        .catch(function() {
+            // Keep discussions page usable even if badge rollups are unavailable.
+        });
+});
+</script>
+<?php
+
+
+        $ob_output = ob_get_contents();
+        ob_end_clean();
+        if ( $buffer ) return $ob_output;
+        echo($ob_output);
     }
 
 }

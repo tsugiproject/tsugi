@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi\UI;
+namespace Tsugi\Services\Lessons;
 
 use Tsugi\Util\CC;
 use Tsugi\Util\U;
@@ -137,43 +137,6 @@ class LessonsLegacyFiles {
             'paths' => $paths,
             'by_module' => $by_module,
         );
-    }
-
-    /**
-     * Print the pre-export file scan on the legacy cartridge form.
-     *
-     * @param array{scanned:int,files:int,listings:int,links:int,paths:list<string>} $summary
-     */
-    public static function echoPreview(array $summary) {
-        echo('<p>Slide, reference, assignment, and solution links scanned: '.(int) $summary['scanned']."</p>\n");
-        echo('<p>Available for a thick cartridge: '.(int) $summary['files']." file(s)</p>\n");
-        if ( isset($summary['listings']) && (int) $summary['listings'] > 0 ) {
-            echo('<p>Additional listings of those same files: '.(int) $summary['listings']."</p>\n");
-        }
-        echo('<p>Will remain as web links even in a thick cartridge: '.(int) $summary['links']."</p>\n");
-        if ( isset($summary['paths']) && is_array($summary['paths']) && count($summary['paths']) > 0 ) {
-            echo("<p>Files a thick cartridge would include:</p>\n<ul>\n");
-            foreach ( $summary['paths'] as $path ) {
-                echo('<li>'.htmlentities((string) $path)."</li>\n");
-            }
-            echo("</ul>\n");
-        }
-    }
-
-    /**
-     * Thin / thick dropdown. Default is thick (include file contents).
-     *
-     * @param string $id
-     */
-    public static function echoCartridgeSelect($id) {
-        $id = (string) $id;
-        echo('<p>'."\n");
-        echo('<label for="'.htmlentities($id).'">Cartridge style:</label>'."\n");
-        echo('<select name="cartridge" id="'.htmlentities($id).'">'."\n");
-        echo('  <option value="thick" selected>Thick cartridge (include file contents)</option>'."\n");
-        echo('  <option value="thin">Thin cartridge (files as web links)</option>'."\n");
-        echo('</select>'."\n");
-        echo('</p>'."\n");
     }
 
     /**
@@ -316,12 +279,12 @@ class LessonsLegacyFiles {
                 if ( ! is_string($href) || $href === '' ) {
                     continue;
                 }
-                $urls[] = U::absolute_url(Lessons::expandLink($href));
+                $urls[] = U::absolute_url(LessonsService::expandLink($href));
             }
             return $urls;
         }
         if ( isset($module->slides) && is_string($module->slides) && $module->slides !== '' ) {
-            $urls[] = U::absolute_url(Lessons::expandLink($module->slides));
+            $urls[] = U::absolute_url(LessonsService::expandLink($module->slides));
         }
         if ( isset($module->slides) && is_array($module->slides) ) {
             foreach ( $module->slides as $slide ) {
@@ -335,21 +298,21 @@ class LessonsLegacyFiles {
                 if ( ! is_string($href) || $href === '' ) {
                     continue;
                 }
-                $urls[] = U::absolute_url(Lessons::expandLink($href));
+                $urls[] = U::absolute_url(LessonsService::expandLink($href));
             }
         }
         if ( isset($module->assignment) && is_string($module->assignment) && $module->assignment !== '' ) {
-            $urls[] = U::absolute_url(Lessons::expandLink($module->assignment));
+            $urls[] = U::absolute_url(LessonsService::expandLink($module->assignment));
         }
         if ( isset($module->solution) && is_string($module->solution) && $module->solution !== '' ) {
-            $urls[] = U::absolute_url(Lessons::expandLink($module->solution));
+            $urls[] = U::absolute_url(LessonsService::expandLink($module->solution));
         }
         if ( isset($module->references) && is_array($module->references) ) {
             foreach ( $module->references as $reference ) {
                 if ( ! is_object($reference) || ! isset($reference->href) || ! is_string($reference->href) ) {
                     continue;
                 }
-                $urls[] = U::absolute_url(Lessons::expandLink($reference->href));
+                $urls[] = U::absolute_url(LessonsService::expandLink($reference->href));
             }
         }
         return $urls;

@@ -1,7 +1,7 @@
 <?php
 
 require_once "src/Controllers/Pages.php";
-require_once "src/UI/LessonsNormalize.php";
+require_once "src/Services/Lessons/LessonsNormalize.php";
 require_once "src/Config/ConfigInfo.php";
 
 use Tsugi\Controllers\Pages;
