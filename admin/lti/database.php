@@ -347,9 +347,9 @@ array( "{$CFG->dbprefix}lti_link",
     -- Tsugi due. Not an AGS field, and not submission end.
     due_datetime        TIMESTAMP NULL,
 
-    -- AGS line item resourceId and tag. resourceId is not a quiz id.
-    resource_id         VARCHAR(256) NULL,
-    tag                 VARCHAR(256) NULL,
+    -- Opaque AGS tool strings (resourceId, tag). Not a quiz id or a Tsugi id.
+    ags_resource_id     VARCHAR(256) NULL,
+    ags_tag             VARCHAR(256) NULL,
 
     json                MEDIUMTEXT NULL,
     settings            MEDIUMTEXT NULL,
@@ -863,8 +863,8 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_link', 'submission_start_datetime', 'TIMESTAMP NULL'),
         array('lti_link', 'submission_end_datetime', 'TIMESTAMP NULL'),
         array('lti_link', 'due_datetime', 'TIMESTAMP NULL'),
-        array('lti_link', 'resource_id', 'VARCHAR(256) NULL'),
-        array('lti_link', 'tag', 'VARCHAR(256) NULL'),
+        array('lti_link', 'ags_resource_id', 'VARCHAR(256) NULL'),
+        array('lti_link', 'ags_tag', 'VARCHAR(256) NULL'),
 
         // 2026-09-23 Numerator and AGS submission.startedAt on the result.
         array('lti_result', 'score_given', 'DOUBLE NULL'),
