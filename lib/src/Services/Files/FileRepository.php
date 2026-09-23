@@ -403,6 +403,227 @@ class FileRepository {
     }
 
     /**
+     * Office Open XML and ODF packages are ZIP files on disk. finfo reports
+     * application/zip for them. A replacement with the same extension may
+     * keep that stored type.
+     */
+    private const ZIP_CONTAINER_MIMES = array(
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.oasis.opendocument.presentation',
+        'application/vnd.oasis.opendocument.text',
+        'application/vnd.oasis.opendocument.spreadsheet',
+    );
+
+    /**
+     * Replace the bytes of one course file. file_id, folder, and file_name stay.
+     * The new file's type must match the stored type.
+     *
+     * @param int $file_id
+     * @param int $context_id
+     * @param array<string, mixed> $file PHP upload descriptor
+     * @return true|string
+     */
+    public static function replaceFile($file_id, $context_id, array $file)
+    {
+        $row = self::getItem($file_id, $context_id);
+        if ( ! is_array($row) ) {
+            return 'File not found';
+        }
+        $meta = self::decodeMeta($row);
+        if ( $meta['kind'] === self::KIND_FOLDER ) {
+            return 'Folders cannot be replaced';
+        }
+        $tmp = isset($file['tmp_name']) && is_string($file['tmp_name']) ? $file['tmp_name'] : '';
+        $client = isset($file['type']) && is_string($file['type']) ? $file['type'] : '';
+        $uploadName = isset($file['name']) && is_string($file['name']) ? $file['name'] : '';
+        $storedName = isset($row['file_name']) && is_string($row['file_name']) ? $row['file_name'] : '';
+        $storedType = isset($row['contenttype']) && is_string($row['contenttype']) ? $row['contenttype'] : '';
+        $typeError = self::replacementTypeError($storedType, $storedName, $tmp, $client, $uploadName);
+        if ( $typeError !== null ) {
+            return $typeError;
+        }
+        return BlobUtil::replaceStoredFile((int) $row['file_id'], $tmp);
+    }
+
+    /**
+     * Null when the upload may replace the stored file. Otherwise an error
+     * message naming both types.
+     *
+     * @param string $storedType
+     * @param string $storedName
+     * @param string $uploadPath
+     * @param string $clientType Browser-supplied MIME
+     * @param string $uploadName
+     * @return string|null
+     */
+    public static function replacementTypeError($storedType, $storedName, $uploadPath, $clientType, $uploadName)
+    {
+        $stored = self::canonicalMime($storedType);
+        if ( $stored === '' || $stored === self::FOLDER_CONTENTTYPE ) {
+            return 'This file has no type on record, so it cannot be replaced.';
+        }
+        $suffixError = self::suffixMismatchMessage($storedName, $uploadName);
+        if ( $suffixError !== null ) {
+            return $suffixError;
+        }
+        $sniffed = self::sniffMime($uploadPath);
+        $client = self::canonicalMime($clientType);
+        $newMime = $sniffed;
+        if ( $newMime === '' || $newMime === 'application/octet-stream' ) {
+            $newMime = $client;
+        }
+        if ( $newMime === $stored ) {
+            return null;
+        }
+        if ( self::zipContainerReplacement($stored, $sniffed, $client, $storedName, $uploadName) ) {
+            return null;
+        }
+        $shown = ($newMime !== '') ? $newMime : 'unknown';
+        return 'The current file is '.$stored.'. The new file is '.$shown.'. The types have to match.';
+    }
+
+    /**
+     * @param string $stored
+     * @param string $sniffed
+     * @param string $client
+     * @param string $storedName
+     * @param string $uploadName
+     * @return bool
+     */
+    private static function zipContainerReplacement($stored, $sniffed, $client, $storedName, $uploadName)
+    {
+        if ( ! in_array($stored, self::ZIP_CONTAINER_MIMES, true) ) {
+            return false;
+        }
+        if ( ! in_array($sniffed, array('application/zip', 'application/x-zip', 'application/x-zip-compressed'), true) ) {
+            return false;
+        }
+        $storedExt = self::suffixKey($storedName);
+        $uploadExt = self::suffixKey($uploadName);
+        if ( $storedExt === '' || $storedExt !== $uploadExt ) {
+            return false;
+        }
+        if ( $client === '' || $client === 'application/octet-stream' || $client === $stored ) {
+            return true;
+        }
+        return in_array($client, array('application/zip', 'application/x-zip', 'application/x-zip-compressed'), true);
+    }
+
+    /**
+     * @param mixed $type
+     * @return string
+     */
+    private static function canonicalMime($type)
+    {
+        if ( ! is_string($type) ) {
+            return '';
+        }
+        $type = strtolower(trim($type));
+        $semi = strpos($type, ';');
+        if ( $semi !== false ) {
+            $type = trim(substr($type, 0, $semi));
+        }
+        if ( $type === 'image/jpg' || $type === 'image/pjpeg' || $type === 'image/x-jpeg' ) {
+            return 'image/jpeg';
+        }
+        if ( $type === 'image/x-png' ) {
+            return 'image/png';
+        }
+        return $type;
+    }
+
+    /**
+     * How the replace page should describe the required ending.
+     *
+     * @param string $name
+     * @return string
+     */
+    public static function replacementEndingLabel($name)
+    {
+        $ext = self::fileSuffix($name);
+        if ( $ext === '' ) {
+            return 'no suffix';
+        }
+        if ( $ext === 'jpg' || $ext === 'jpeg' ) {
+            return '.jpg or .jpeg';
+        }
+        if ( $ext === 'htm' || $ext === 'html' ) {
+            return '.htm or .html';
+        }
+        return '.'.$ext;
+    }
+
+    /**
+     * Null when the upload ending may replace the stored name.
+     * jpg/jpeg and htm/html are the same ending. Comparison ignores case.
+     *
+     * @param string $storedName
+     * @param string $uploadName
+     * @return string|null
+     */
+    private static function suffixMismatchMessage($storedName, $uploadName)
+    {
+        if ( self::suffixKey($storedName) === self::suffixKey($uploadName) ) {
+            return null;
+        }
+        $stored = self::fileSuffix($storedName);
+        $upload = self::fileSuffix($uploadName);
+        if ( $stored === '' ) {
+            return 'The current file has no suffix. The new file ends in .'.$upload.'. The ending has to stay the same.';
+        }
+        if ( $upload === '' ) {
+            return 'The current file ends in .'.$stored.'. The new file has no suffix. The ending has to stay the same.';
+        }
+        return 'The current file ends in .'.$stored.'. The new file ends in .'.$upload.'. The ending has to stay the same.';
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    private static function fileSuffix($name)
+    {
+        $base = basename(str_replace('\\', '/', (string) $name));
+        return strtolower(pathinfo($base, PATHINFO_EXTENSION));
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    private static function suffixKey($name)
+    {
+        $ext = self::fileSuffix($name);
+        if ( $ext === 'jpeg' ) {
+            return 'jpg';
+        }
+        if ( $ext === 'html' ) {
+            return 'htm';
+        }
+        return $ext;
+    }
+
+    /**
+     * @param string $path
+     * @return string
+     */
+    private static function sniffMime($path)
+    {
+        if ( ! is_string($path) || ! is_file($path) ) {
+            return '';
+        }
+        try {
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mime = $finfo->file($path);
+        } catch (\Throwable $e) {
+            return '';
+        }
+        return self::canonicalMime(is_string($mime) ? $mime : '');
+    }
+
+    /**
      * @param array<string, mixed> $row
      * @return array{kind: string, folder: string}
      */

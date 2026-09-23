@@ -68,6 +68,7 @@ class FilesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('/files/download/{sha256}', $uris);
         $this->assertContains('/files/upload', $uris);
         $this->assertContains('/files/mkdir', $uris);
+        $this->assertContains('/files/replace/{id}', $uris);
         $this->assertNotContains('/files/download/{id}', $uris);
     }
 

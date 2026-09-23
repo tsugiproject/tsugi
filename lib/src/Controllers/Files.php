@@ -30,8 +30,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  *   Everything else is obscure — hidden from student browsing, but anyone
  *   in the course with the download link can fetch the file.
  *
- * Download URLs are content-addressed (sha256 of the file bytes), not
- * blob_file.file_id, so they cannot be enumerated from the primary key.
+ * Links copied from this tool are the course path (/files/{folder}/{name}).
+ * /files/download/{sha256} remains for older content-addressed links.
  */
 class Files extends Tool {
 
@@ -57,6 +57,8 @@ class Files extends Tool {
         $app->router->post($prefix.'/upload', 'Files@uploadPost');
         $app->router->post($prefix.'/mkdir', 'Files@mkdirPost');
         $app->router->post($prefix.'/delete/{id}', 'Files@deletePost');
+        $app->router->get($prefix.'/replace/{id}', 'Files@replace');
+        $app->router->post($prefix.'/replace/{id}', 'Files@replacePost');
         // Last: /files/{folder}/{name} so page HTML can link by path, not sha.
         $app->router->get($prefix.'/{path:.+}', 'Files@servePath');
     }
@@ -193,8 +195,16 @@ class Files extends Tool {
                             <?php
                                 $is_folder = ($item['kind'] === FileRepository::KIND_FOLDER);
                                 $child_folder = FileRepository::joinFolder($folder, $item['name']);
-                                $download_url = $this->downloadUrl($item);
-                                $copy_url = $this->absoluteUrl($download_url);
+                                $file_url = '';
+                                $copy_url = '';
+                                if ( ! $is_folder ) {
+                                    $file_url = $this->filePathUrl(
+                                        $folder,
+                                        $item['name'],
+                                        isset($item['file_sha256']) ? $item['file_sha256'] : ''
+                                    );
+                                    $copy_url = $this->absoluteUrl($file_url);
+                                }
                                 $is_reserved_root = $is_folder && $folder === '' && FileRepository::isReservedName($item['name']);
                                 $info = null;
                                 if ( $is_instructor && $folder === '' ) {
@@ -209,7 +219,7 @@ class Files extends Tool {
                                             <?= htmlspecialchars($item['name']) ?>
                                         </a>
                                     <?php else: ?>
-                                        <a href="<?= htmlspecialchars($download_url) ?>">
+                                        <a href="<?= htmlspecialchars($file_url) ?>" target="_blank" rel="noopener">
                                             <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
                                             <?= htmlspecialchars($item['name']) ?>
                                         </a>
@@ -229,6 +239,9 @@ class Files extends Tool {
                                         <button type="button" class="btn btn-xs btn-default btn-copy-link"
                                                 data-url="<?= htmlspecialchars($copy_url) ?>"
                                                 aria-label="Copy link to <?= htmlspecialchars($item['name']) ?>">Copy link</button>
+                                    <?php endif; ?>
+                                    <?php if ( $is_instructor && ! $is_folder ): ?>
+                                        <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($tool_home . '/replace/' . (int)$item['file_id'] . '?folder=' . rawurlencode($folder)) ?>">Replace</a>
                                     <?php endif; ?>
                                     <?php if ( $is_instructor && ! $is_reserved_root ): ?>
                                         <form method="post" action="<?= htmlspecialchars($tool_home . '/delete/' . (int)$item['file_id']) ?>" style="display: inline;"
@@ -401,10 +414,11 @@ class Files extends Tool {
             $path = FileRepository::joinFolder($folder, $row['file_name']);
             $item = FileRepository::lessonsFilePickerItem($row, $folder);
             $item['path'] = $path;
-            $href = FileRepository::hrefForPath($path);
-            $item['url'] = $href
-                ? rtrim($this->toolHome(self::ROUTE), '/').substr($href, strlen(self::ROUTE))
-                : $this->downloadUrl($row);
+            $item['url'] = $this->filePathUrl(
+                $folder,
+                $row['file_name'],
+                isset($row['file_sha256']) ? $row['file_sha256'] : ''
+            );
             $out[] = $item;
         }
         usort($out, function($a, $b) {
@@ -657,6 +671,120 @@ class Files extends Tool {
         return new RedirectResponse($redirect);
     }
 
+    public function replace(Request $request, $id)
+    {
+        global $OUTPUT;
+
+        $this->requireInstructor($this->toolHome(self::ROUTE));
+        $this->ensureFilesLaunch();
+        $context_id = U::currentContextId();
+
+        $folder = $this->requestedFolder();
+        $back = $this->folderUrl($folder === false ? '' : $folder);
+        $file_id = (int) $id;
+        $row = FileRepository::getItem($file_id, $context_id);
+        if ( ! is_array($row) ) {
+            U::flashError('File not found');
+            return new RedirectResponse($back);
+        }
+        $meta = FileRepository::decodeMeta($row);
+        if ( $meta['kind'] === FileRepository::KIND_FOLDER ) {
+            U::flashError('Folders cannot be replaced');
+            return new RedirectResponse($back);
+        }
+
+        $name = isset($row['file_name']) ? (string) $row['file_name'] : 'file';
+        $type = isset($row['contenttype']) && is_string($row['contenttype']) ? $row['contenttype'] : '';
+        $ending = FileRepository::replacementEndingLabel($name);
+        $tool_home = $this->toolHome(self::ROUTE);
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        $csrf = $this->csrfField();
+        ?>
+        <main class="container" role="main" id="main-content">
+            <h1>Replacing <?= htmlspecialchars($name) ?></h1>
+            <?php if ( $type === '' ): ?>
+                <p>This file has no type on record, so it cannot be replaced.</p>
+            <?php else: ?>
+                <p>
+                    The current file is <code><?= htmlspecialchars($type) ?></code>
+                    <?php if ( $ending === 'no suffix' ): ?>
+                        and has no suffix.
+                    <?php else: ?>
+                        and ends in <?= htmlspecialchars($ending) ?>.
+                    <?php endif; ?>
+                    The new file has to match both.
+                    The name and the link stay the same.
+                </p>
+                <form method="post" action="<?= htmlspecialchars($tool_home . '/replace/' . $file_id) ?>" enctype="multipart/form-data">
+                    <?= $csrf ?>
+                    <input type="hidden" name="folder" value="<?= htmlspecialchars($folder === false ? '' : $folder) ?>">
+                    <div class="form-group">
+                        <label for="replacement">New file</label>
+                        <input type="file" id="replacement" name="replacement" required>
+                        <p class="help-block">Max <?= htmlspecialchars(U::displaySize(BlobUtil::maxUploadBytes())) ?></p>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Replace</button>
+                    <a class="btn btn-default" href="<?= htmlspecialchars($back) ?>">Cancel</a>
+                </form>
+            <?php endif; ?>
+        </main>
+        <?php
+        $OUTPUT->footer();
+    }
+
+    public function replacePost(Request $request, $id)
+    {
+        $this->requireInstructor($this->toolHome(self::ROUTE));
+        $this->ensureFilesLaunch();
+        $context_id = U::currentContextId();
+
+        $file_id = (int) $id;
+        $folder = $this->postedFolder();
+        $back = $this->folderUrl($folder === false ? '' : $folder);
+        $again = $this->toolHome(self::ROUTE).'/replace/'.$file_id;
+        if ( is_string($folder) && $folder !== '' && $folder !== false ) {
+            $again .= '?folder='.rawurlencode($folder);
+        }
+
+        $csrf = $this->requireCsrf($again);
+        if ( $csrf ) {
+            return $csrf;
+        }
+        if ( BlobUtil::emptyPost() || BlobUtil::requestLargerThanPhpPostLimit() ) {
+            U::flashError(BlobUtil::phpUploadTooLargeMessage());
+            return new RedirectResponse($again);
+        }
+        if ( ! isset($_FILES['replacement']) || ! is_array($_FILES['replacement']) ) {
+            U::flashError('Choose a file to upload');
+            return new RedirectResponse($again);
+        }
+
+        $fdes = $_FILES['replacement'];
+        $valid = BlobUtil::validateUpload($fdes, true);
+        if ( is_string($valid) ) {
+            U::flashError($valid);
+            return new RedirectResponse($again);
+        }
+
+        $result = FileRepository::replaceFile($file_id, $context_id, $fdes);
+        if ( $result !== true ) {
+            U::flashError(is_string($result) ? $result : 'Could not store the replacement file');
+            return new RedirectResponse($again);
+        }
+
+        $name = isset($fdes['name']) ? basename((string) $fdes['name']) : 'File';
+        $row = FileRepository::getItem($file_id, $context_id);
+        if ( is_array($row) && isset($row['file_name']) && is_string($row['file_name']) && $row['file_name'] !== '' ) {
+            $name = $row['file_name'];
+        }
+        U::flashSuccess('Replaced '.$name);
+        return new RedirectResponse($back);
+    }
+
     /**
      * Attach Context + the Files synthetic Link so BlobUtil/Access use context_id and link_id.
      * Does not persist link_id into the session (other LMS tools keep their own link).
@@ -828,10 +956,27 @@ class Files extends Tool {
             .'</button>';
     }
 
-    private function downloadUrl($row)
+    /**
+     * Course-path URL for a file (/files/Student/notes.pdf).
+     * Stable when the bytes are replaced. Falls back to the sha download
+     * URL only when the path cannot be formed.
+     *
+     * @param string $folder
+     * @param string $name
+     * @param string $sha
+     * @return string
+     */
+    private function filePathUrl($folder, $name, $sha = '')
     {
-        $sha = isset($row['file_sha256']) ? $row['file_sha256'] : '';
-        return $this->toolHome(self::ROUTE) . '/download/' . $sha;
+        $path = FileRepository::joinFolder($folder, $name);
+        $href = FileRepository::hrefForPath($path);
+        if ( is_string($href) && $href !== '' && strpos($href, self::ROUTE) === 0 ) {
+            return rtrim($this->toolHome(self::ROUTE), '/') . substr($href, strlen(self::ROUTE));
+        }
+        if ( is_string($sha) && FileRepository::isSha256($sha) ) {
+            return $this->toolHome(self::ROUTE) . '/download/' . strtolower($sha);
+        }
+        return rtrim($this->toolHome(self::ROUTE), '/');
     }
 
     private function folderUrl($folder)

@@ -576,6 +576,336 @@ class BlobUtil {
     }
 
     /**
+     * Point one blob_file row at new bytes.
+     *
+     * The row keeps file_id, file_name, and contenttype. The new bytes are
+     * stored under their own SHA-256. A blob_blob row or dataroot file is
+     * removed only when no blob_file row still names the previous digest.
+     *
+     * @param int $file_id
+     * @param string $sourcePath Readable path to the new bytes (upload tmp file)
+     * @return true|string True, or an error message
+     */
+    public static function replaceStoredFile($file_id, $sourcePath)
+    {
+        global $CFG, $CONTEXT, $PDOX;
+
+        if ( ! is_string($sourcePath) || ! is_file($sourcePath) ) {
+            return 'Replacement file is missing';
+        }
+        $file_id = (int) $file_id;
+        $context_id = (isset($CONTEXT) && isset($CONTEXT->id)) ? (int) $CONTEXT->id : 0;
+        if ( $file_id < 1 || $context_id < 1 ) {
+            return 'File not found';
+        }
+
+        $sha256 = hash_file('sha256', $sourcePath);
+        if ( ! is_string($sha256) || strlen($sha256) !== 64 ) {
+            return 'Could not read the replacement file';
+        }
+        $bytelen = filesize($sourcePath);
+        if ( $bytelen === false || $bytelen < 1 ) {
+            return 'File is empty';
+        }
+
+        $driver = '';
+        try {
+            $driver = (string) $PDOX->getAttribute(\PDO::ATTR_DRIVER_NAME);
+        } catch (\Throwable $e) {
+            $driver = '';
+        }
+
+        $PDOX->beginTransaction();
+        try {
+            $lock = ($driver === 'mysql') ? ' FOR UPDATE' : '';
+            $file_row = $PDOX->rowDie(
+                "SELECT * FROM {$CFG->dbprefix}blob_file
+                 WHERE file_id = :FID AND context_id = :CID".$lock,
+                array(':FID' => $file_id, ':CID' => $context_id)
+            );
+            if ( ! is_array($file_row) ) {
+                $PDOX->rollBack();
+                return 'File not found';
+            }
+            if ( isset($file_row['contenttype']) && $file_row['contenttype'] === 'inode/directory' ) {
+                $PDOX->rollBack();
+                return 'Folders cannot be replaced';
+            }
+
+            $oldSha = isset($file_row['file_sha256']) ? (string) $file_row['file_sha256'] : '';
+            $oldBlobId = isset($file_row['blob_id']) ? (int) $file_row['blob_id'] : 0;
+            $oldPath = isset($file_row['path']) ? (string) $file_row['path'] : '';
+
+            if ( $oldSha !== '' && hash_equals($oldSha, $sha256) ) {
+                $PDOX->queryDie(
+                    "UPDATE {$CFG->dbprefix}blob_file
+                     SET bytelen = :LEN
+                     WHERE file_id = :FID AND context_id = :CID",
+                    array(':LEN' => $bytelen, ':FID' => $file_id, ':CID' => $context_id)
+                );
+                $PDOX->commit();
+                return true;
+            }
+
+            $placed = self::placeContent($sourcePath, $sha256);
+            if ( ! is_array($placed) ) {
+                $PDOX->rollBack();
+                return 'Could not store the replacement file';
+            }
+
+            $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}blob_file
+                 SET file_sha256 = :SHA, blob_id = :BID, path = :PATH, bytelen = :LEN
+                 WHERE file_id = :FID AND context_id = :CID",
+                array(
+                    ':SHA' => $sha256,
+                    ':BID' => $placed['blob_id'],
+                    ':PATH' => $placed['path'],
+                    ':LEN' => $bytelen,
+                    ':FID' => $file_id,
+                    ':CID' => $context_id,
+                )
+            );
+
+            $dropDisk = false;
+            if ( $oldSha !== '' ) {
+                $count_row = $PDOX->rowDie(
+                    "SELECT COUNT(*) AS count FROM {$CFG->dbprefix}blob_file
+                     WHERE file_sha256 = :SHA",
+                    array(':SHA' => $oldSha)
+                );
+                $count = is_array($count_row) ? (int) $count_row['count'] : 0;
+                if ( $count < 1 ) {
+                    if ( $oldBlobId > 0 ) {
+                        $PDOX->queryDie(
+                            "DELETE FROM {$CFG->dbprefix}blob_blob
+                             WHERE blob_id = :BID AND blob_sha256 = :SHA",
+                            array(':BID' => $oldBlobId, ':SHA' => $oldSha)
+                        );
+                    }
+                    $dropDisk = ($oldPath !== '');
+                }
+            }
+            $PDOX->commit();
+        } catch (\Throwable $e) {
+            if ( $PDOX->inTransaction() ) {
+                $PDOX->rollBack();
+            }
+            error_log('replaceStoredFile '.$e->getMessage());
+            return 'Could not store the replacement file';
+        }
+
+        if ( $dropDisk ) {
+            self::unlinkUnreferencedDisk($oldPath, $oldSha);
+        }
+        return true;
+    }
+
+    /**
+     * Store bytes under $sha256 without changing any existing blob.
+     *
+     * Caller holds the transaction. Returns blob_id or path, the other null.
+     *
+     * @param string $sourcePath
+     * @param string $sha256
+     * @return array{blob_id: ?int, path: ?string}|false
+     */
+    private static function placeContent($sourcePath, $sha256)
+    {
+        global $CFG, $CONTEXT, $PDOX;
+
+        $test_key = (isset($CONTEXT) && isset($CONTEXT->key)) ? self::isTestKey($CONTEXT->key) : true;
+        $blob_id = null;
+        $blob_name = null;
+
+        $stmt = $PDOX->queryDie(
+            "SELECT blob_id FROM {$CFG->dbprefix}blob_blob WHERE blob_sha256 = :SHA",
+            array(':SHA' => $sha256)
+        );
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        if ( is_array($row) && isset($row['blob_id']) ) {
+            $blob_id = (int) $row['blob_id'];
+        }
+
+        if ( ! $test_key && ! $blob_id && isset($CFG->dataroot) && $CFG->dataroot ) {
+            $blob_name = self::copyToContentPath($sourcePath, $sha256);
+            if ( $blob_name === false ) {
+                return false;
+            }
+        }
+
+        if ( ! $blob_id && ! $blob_name ) {
+            $blob_id = self::insertBlobRow($sourcePath, $sha256);
+            if ( ! $blob_id ) {
+                return false;
+            }
+        }
+
+        if ( $blob_id ) {
+            return array('blob_id' => $blob_id, 'path' => null);
+        }
+        if ( is_string($blob_name) && $blob_name !== '' ) {
+            return array('blob_id' => null, 'path' => $blob_name);
+        }
+        return false;
+    }
+
+    /**
+     * Copy bytes to dataroot/aa/bb/$sha256. Never overwrites a different file.
+     *
+     * @param string $sourcePath
+     * @param string $sha256
+     * @return string|false|null Absolute path, null when disk storage is unavailable, false on conflict
+     */
+    private static function copyToContentPath($sourcePath, $sha256)
+    {
+        $blob_folder = self::mkdirSha256($sha256);
+        if ( ! $blob_folder ) {
+            return null;
+        }
+        $dest = $blob_folder.'/'.$sha256;
+        if ( is_file($dest) ) {
+            $existing = hash_file('sha256', $dest);
+            if ( $existing === $sha256 ) {
+                return $dest;
+            }
+            error_log("Refusing to overwrite blob path $dest");
+            return false;
+        }
+
+        $out = @fopen($dest, 'xb');
+        if ( $out === false ) {
+            if ( is_file($dest) ) {
+                $existing = hash_file('sha256', $dest);
+                return ($existing === $sha256) ? $dest : false;
+            }
+            return null;
+        }
+        $in = fopen($sourcePath, 'rb');
+        if ( $in === false ) {
+            fclose($out);
+            @unlink($dest);
+            return null;
+        }
+        $copied = stream_copy_to_stream($in, $out);
+        fclose($in);
+        fclose($out);
+        $size = filesize($sourcePath);
+        if ( $copied === false || $size === false || $copied !== $size ) {
+            @unlink($dest);
+            return null;
+        }
+        $written = hash_file('sha256', $dest);
+        if ( $written !== $sha256 ) {
+            @unlink($dest);
+            return false;
+        }
+        return $dest;
+    }
+
+    /**
+     * @param string $sourcePath
+     * @param string $sha256
+     * @return int|null
+     */
+    private static function insertBlobRow($sourcePath, $sha256)
+    {
+        global $CFG, $PDOX;
+
+        $existing = $PDOX->rowDie(
+            "SELECT blob_id FROM {$CFG->dbprefix}blob_blob WHERE blob_sha256 = :SHA",
+            array(':SHA' => $sha256)
+        );
+        if ( is_array($existing) && isset($existing['blob_id']) ) {
+            return (int) $existing['blob_id'];
+        }
+
+        $fp = fopen($sourcePath, 'rb');
+        if ( $fp === false ) {
+            return null;
+        }
+        $now = self::sqlNow();
+        $sql = "INSERT INTO {$CFG->dbprefix}blob_blob
+            (blob_sha256, content, created_at)
+            VALUES (?, ?, $now)";
+        try {
+            $stmt = $PDOX->prepare($sql);
+            $stmt->bindParam(1, $sha256);
+            $stmt->bindParam(2, $fp, \PDO::PARAM_LOB);
+            $stmt->execute();
+            $blob_id = (int) $PDOX->lastInsertId();
+        } catch (\Throwable $e) {
+            $blob_id = 0;
+            error_log('blob insert '.$e->getMessage());
+        }
+        if ( is_resource($fp) ) {
+            fclose($fp);
+        }
+
+        if ( $blob_id > 0 ) {
+            return $blob_id;
+        }
+        $again = $PDOX->rowDie(
+            "SELECT blob_id FROM {$CFG->dbprefix}blob_blob WHERE blob_sha256 = :SHA",
+            array(':SHA' => $sha256)
+        );
+        if ( is_array($again) && isset($again['blob_id']) ) {
+            return (int) $again['blob_id'];
+        }
+        return null;
+    }
+
+    /**
+     * @param string $storedPath
+     * @param string $sha256
+     */
+    private static function unlinkUnreferencedDisk($storedPath, $sha256)
+    {
+        global $CFG, $PDOX;
+
+        $count_row = $PDOX->rowDie(
+            "SELECT COUNT(*) AS count FROM {$CFG->dbprefix}blob_file
+             WHERE file_sha256 = :SHA",
+            array(':SHA' => $sha256)
+        );
+        if ( ! is_array($count_row) || (int) $count_row['count'] > 0 ) {
+            return;
+        }
+        $disk = self::resolveDiskBlobPath($storedPath);
+        if ( $disk === false ) {
+            return;
+        }
+        $hash = @hash_file('sha256', $disk);
+        if ( ! is_string($hash) || ! hash_equals($sha256, $hash) ) {
+            error_log("Refusing to unlink $disk");
+            return;
+        }
+        if ( ! @unlink($disk) ) {
+            error_log("Unlink failed: $disk");
+        }
+    }
+
+    /**
+     * SQL clock expression. SQLite is only for unit tests.
+     *
+     * @return string
+     */
+    private static function sqlNow()
+    {
+        global $PDOX;
+        try {
+            if ( isset($PDOX) && is_object($PDOX)
+                && $PDOX->getAttribute(\PDO::ATTR_DRIVER_NAME) === 'sqlite' ) {
+                return "datetime('now')";
+            }
+        } catch (\Throwable $e) {
+            // Fall through to MySQL.
+        }
+        return 'NOW()';
+    }
+
+    /**
      * Delete a blob based on its id
      *
      * This cleans up files from the file table and if there
