@@ -192,6 +192,10 @@ class BlobUtil {
      * JavaScript when the file starts with an HTML comment, and nosniff
      * would then refuse to show it as a page.
      *
+     * The other direction is the same rule. A notes.txt whose stored type
+     * is HTML, SVG, or JavaScript is sent as plain text, so a crafted
+     * upload type cannot run as the course.
+     *
      * @param mixed $filename
      * @param mixed $storedType
      * @return string
@@ -212,7 +216,36 @@ class BlobUtil {
         if ( $ext === 'svg' || $ext === 'svgz' ) {
             return 'image/svg+xml';
         }
-        return is_string($storedType) ? $storedType : '';
+        if ( ! is_string($storedType) || $storedType === '' ) {
+            return '';
+        }
+        if ( self::storedTypeCanRunAsPage($storedType) ) {
+            return 'text/plain';
+        }
+        return $storedType;
+    }
+
+    /**
+     * True when a stored upload type would execute or render as a page.
+     *
+     * @param string $storedType
+     * @return bool
+     */
+    private static function storedTypeCanRunAsPage($storedType)
+    {
+        $type = strtolower(trim($storedType));
+        $semi = strpos($type, ';');
+        if ( $semi !== false ) {
+            $type = trim(substr($type, 0, $semi));
+        }
+        if ( $type === 'text/html' || $type === 'application/xhtml+xml' || $type === 'image/svg+xml' ) {
+            return true;
+        }
+        return $type === 'text/javascript'
+            || $type === 'application/javascript'
+            || $type === 'application/x-javascript'
+            || $type === 'text/ecmascript'
+            || $type === 'application/ecmascript';
     }
 
     /**

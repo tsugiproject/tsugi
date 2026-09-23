@@ -852,14 +852,20 @@ class FileRepository {
             '/<a\b([^>]*?)>/i',
             function ($m) {
                 $attrs = $m[1];
-                if ( ! preg_match('/\bhref\s*=\s*(["\'])([^"\']*)\1/i', $attrs, $hrefMatch) ) {
+                if ( ! preg_match('/\bhref\s*=\s*(?:(["\'])([^"\']*)\1|([^\s"\'=<>`]+))/i', $attrs, $hrefMatch) ) {
                     return $m[0];
                 }
-                if ( ! self::isUploadedFileHref($hrefMatch[2]) ) {
+                $href = ($hrefMatch[1] ?? '') !== '' ? $hrefMatch[2] : ($hrefMatch[3] ?? '');
+                if ( ! self::isUploadedFileHref($href) ) {
                     return $m[0];
                 }
                 if ( preg_match('/\btarget\s*=/i', $attrs) ) {
-                    $attrs = preg_replace('/\btarget\s*=\s*(["\'])(.*?)\1/i', 'target="_blank"', $attrs, 1);
+                    $attrs = preg_replace(
+                        '/\btarget\s*=\s*(?:(["\']).*?\1|[^\s"\'=<>`]+)/i',
+                        'target="_blank"',
+                        $attrs,
+                        1
+                    );
                 } else {
                     $attrs .= ' target="_blank"';
                 }

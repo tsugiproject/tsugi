@@ -135,5 +135,15 @@ class FilesControllerTest extends \PHPUnit\Framework\TestCase
         $out = FileRepository::forceFileAnchorsNewTab($html);
         $this->assertStringContainsString('href="/files/Student/notes.html" target="_blank" rel="noopener noreferrer"', $out);
         $this->assertStringContainsString('<a href="/pages/home">Home</a>', $out);
+
+        $bare = FileRepository::forceFileAnchorsNewTab('<a href=/files/Student/notes.html>Notes</a>');
+        $this->assertStringContainsString('href=/files/Student/notes.html target="_blank" rel="noopener noreferrer"', $bare);
+
+        $self = FileRepository::forceFileAnchorsNewTab('<a href=/files/lesson.zip target=_self>Zip</a>');
+        $this->assertStringContainsString('href=/files/lesson.zip target="_blank"', $self);
+        $this->assertStringNotContainsString('target=_self', $self);
+
+        $other = FileRepository::forceFileAnchorsNewTab('<a href=/pages/home>Home</a>');
+        $this->assertSame('<a href=/pages/home>Home</a>', $other);
     }
 }

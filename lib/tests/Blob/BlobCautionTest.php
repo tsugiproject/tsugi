@@ -52,5 +52,13 @@ class BlobCautionTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('text/html', BlobUtil::downloadContentType('evil.html', 'text/javascript'));
         $this->assertSame('text/html', BlobUtil::downloadContentType('page.HTM', 'application/octet-stream'));
         $this->assertSame('image/svg+xml', BlobUtil::downloadContentType('icon.svg', 'text/plain'));
+        $this->assertSame('text/plain', BlobUtil::downloadContentType('notes.txt', 'text/html'));
+        $this->assertSame('text/plain', BlobUtil::downloadContentType('notes.txt', 'text/html; charset=UTF-8'));
+        $this->assertSame('text/plain', BlobUtil::downloadContentType('notes.txt', 'image/svg+xml'));
+        $this->assertSame('text/plain', BlobUtil::downloadContentType('notes.txt', 'text/javascript'));
+        $this->assertSame('text/plain', BlobUtil::downloadContentType('notes.txt', 'application/xhtml+xml'));
+        $this->assertSame('text/plain', BlobUtil::downloadContentType('readme.txt', 'text/plain'));
+        $this->assertSame('text/plain', BlobUtil::downloadContentType('notes.pdf', 'text/html'));
+        $this->assertSame('text/plain', BlobUtil::downloadContentType('app.js', 'application/javascript'));
     }
 }
