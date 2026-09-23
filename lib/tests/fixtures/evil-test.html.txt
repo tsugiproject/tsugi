@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+  Sandbox probe for a course file. This is text on purpose.
+  Copy it, rename the copy to evil-test.html, upload that copy
+  through Files, and open it after typing "I am sure".
+
+  FAIL means this tab could read or call the course as the logged-in user.
+  PASS means that attempt was blocked.
+  INFO means the tab did something it is allowed to do, such as run script.
+
+  The address bar host is used on purpose. Inside the sandbox,
+  location.origin is the string "null", which would miss the course.
+  The session cookie is HttpOnly, so an empty document.cookie is not proof.
+
+  Nothing here is sent to another server. The POST path does not exist.
+-->
+<meta charset="utf-8">
+<title>evil-test</title>
+<style>
+body { font-family: sans-serif; margin: 1.5rem; line-height: 1.4; }
+table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+th, td { border: 1px solid #ccc; padding: 0.4rem; vertical-align: top; text-align: left; }
+code { white-space: pre-wrap; word-break: break-word; }
+.PASS, .FAIL { font-weight: 700; }
+iframe { width: 100%; height: 6rem; border: 1px solid #ccc; margin-top: 0.5rem; }
+</style>
+</head>
+<body>
+<h1>evil-test</h1>
+<p>This page tries to use the course login from an uploaded file. FAIL means it could act as you.</p>
+<p id="summary">running</p>
+<table>
+<thead><tr><th>Status</th><th>Probe</th><th>Result</th></tr></thead>
+<tbody id="results"></tbody>
+</table>
+<h2>Form POST</h2>
+<iframe name="probe-frame" title="form probe"></iframe>
+<script>
+(function () {
+    var rows = [];
+    var tbody = document.getElementById('results');
+    var summary = document.getElementById('summary');
+    var site = location.protocol + '//' + location.host;
+    var counts = { PASS: 0, FAIL: 0, INFO: 0 };
+
+    function textOf(value) {
+        if (typeof value === 'string') return value;
+        try { return JSON.stringify(value); } catch (e) { return String(value); }
+    }
+
+    function report(status, probe, result) {
+        counts[status] += 1;
+        rows.push(status);
+        var tr = document.createElement('tr');
+        [status, probe, textOf(result)].forEach(function (value, index) {
+            var td = document.createElement('td');
+            if (index === 0) td.className = status;
+            var code = document.createElement('code');
+            code.textContent = value;
+            td.appendChild(code);
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+        summary.textContent = 'PASS ' + counts.PASS + ' | FAIL ' + counts.FAIL + ' | INFO ' + counts.INFO;
+    }
+
+    function attempt(probe, fn, judge) {
+        var settled = false;
+        function finish(value, threw) {
+            if (settled) return;
+            settled = true;
+            var verdict = 'INFO';
+            try { verdict = judge(value, threw); } catch (e) { verdict = 'INFO'; }
+            if (verdict !== 'PASS' && verdict !== 'FAIL') verdict = 'INFO';
+            report(verdict, probe, threw ? value : value);
+        }
+        try {
+            var out = fn();
+            if (out && typeof out.then === 'function') {
+                out.then(function (value) { finish(value, false); }, function (err) {
+                    finish(String(err && err.message ? err.message : err), true);
+                });
+            } else {
+                finish(out, false);
+            }
+        } catch (err) {
+            finish(String(err && err.message ? err.message : err), true);
+        }
+    }
+
+    report('INFO', 'address bar', location.href);
+    report('INFO', 'window.origin', String(window.origin));
+    report('INFO', 'host used for probes', site);
+
+    try {
+        var cookie = document.cookie;
+        if (cookie) {
+            report('FAIL', 'document.cookie', cookie);
+        } else {
+            report('INFO', 'document.cookie', '(empty) The session cookie is HttpOnly, so this can be empty even when the sandbox is off.');
+        }
+    } catch (e) {
+        report('PASS', 'document.cookie', String(e.message || e));
+    }
+
+    try {
+        localStorage.setItem('evil-test', '1');
+        localStorage.removeItem('evil-test');
+        report('INFO', 'localStorage', 'This tab can use storage. A sandboxed tab gets its own empty jar, not the course jar.');
+    } catch (e) {
+        report('INFO', 'localStorage', String(e.message || e));
+    }
+
+    try {
+        var before = document.domain;
+        var parts = before.split('.');
+        if (parts.length >= 2 && before) {
+            document.domain = parts.slice(-2).join('.');
+            report('FAIL', 'document.domain', 'relaxed to ' + document.domain);
+        } else if (!before) {
+            report('PASS', 'document.domain', 'no site domain to join');
+        } else {
+            report('INFO', 'document.domain', before + ' has no parent domain to join');
+        }
+    } catch (e) {
+        report('PASS', 'document.domain', String(e.message || e));
+    }
+
+    try {
+        report('INFO', 'eval', String(eval('21+21')) === '42' ? 'Script ran. This download allows script in its own tab.' : 'eval returned something else');
+    } catch (e) {
+        report('INFO', 'eval', String(e.message || e));
+    }
+
+    attempt('credentialed GET of this site', function () {
+        return fetch(site + '/', { method: 'GET', credentials: 'include' }).then(function (response) {
+            return response.text().then(function (body) {
+                return { status: response.status, body: body.slice(0, 180).replace(/\s+/g, ' ') };
+            });
+        });
+    }, function (value, threw) {
+        return threw ? 'PASS' : 'FAIL';
+    });
+
+    attempt('credentialed POST /evil-test-probe', function () {
+        return fetch(site + '/evil-test-probe', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'probe=1'
+        }).then(function (response) {
+            return { status: response.status };
+        });
+    }, function (value, threw) {
+        return threw ? 'PASS' : 'FAIL';
+    });
+
+    attempt('XHR with credentials', function () {
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', site + '/', true);
+            xhr.withCredentials = true;
+            xhr.onload = function () { resolve({ status: xhr.status, body: (xhr.responseText || '').slice(0, 120) }); };
+            xhr.onerror = function () { reject(new Error('XHR failed')); };
+            xhr.send();
+        });
+    }, function (value, threw) {
+        return threw ? 'PASS' : 'FAIL';
+    });
+
+    attempt('service worker on this site', function () {
+        if (!navigator.serviceWorker) return Promise.reject(new Error('no service worker API'));
+        return navigator.serviceWorker.register(site + '/evil-test-sw.js');
+    }, function (value, threw) {
+        return threw ? 'PASS' : 'FAIL';
+    });
+
+    try {
+        var popup = window.open('about:blank', '_blank');
+        if (!popup) {
+            report('INFO', 'popup', 'The browser blocked the popup. This download is allowed to open one.');
+        } else {
+            report('INFO', 'popup', 'A blank popup opened. It is not the course session.');
+            try { popup.close(); } catch (e) { /* leave it */ }
+        }
+    } catch (e) {
+        report('INFO', 'popup', String(e.message || e));
+    }
+
+    var form = document.createElement('form');
+    form.method = 'post';
+    form.action = site + '/evil-test-probe';
+    form.target = 'probe-frame';
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'probe';
+    input.value = '1';
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+    report('INFO', 'form POST', 'Submitted to ' + site + '/evil-test-probe. That path does not exist. Check the request in the network panel for a session cookie.');
+})();
+</script>
+</body>
+</html>

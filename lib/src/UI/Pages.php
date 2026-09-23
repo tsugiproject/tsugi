@@ -5,6 +5,7 @@ namespace Tsugi\UI;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Controllers\Courses;
 use \Tsugi\Controllers\Tool;
+use \Tsugi\Services\Files\FileRepository;
 use \Tsugi\Util\CCFileBase;
 use \Tsugi\Util\U;
 
@@ -70,6 +71,8 @@ class Pages {
         } else if ( isset($CFG->wwwroot) && is_string($CFG->wwwroot) && trim($CFG->wwwroot) !== '' ) {
             $home = $CFG->wwwroot;
         }
-        return CCFileBase::expand($html, CCFileBase::courseBaseUrl($pathPrefix, $home), Tool::courseLocalPrefixes());
+        return FileRepository::forceFileAnchorsNewTab(
+            CCFileBase::expand($html, CCFileBase::courseBaseUrl($pathPrefix, $home), Tool::courseLocalPrefixes())
+        );
     }
 }

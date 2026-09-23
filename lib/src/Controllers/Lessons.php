@@ -10,6 +10,7 @@ use Tsugi\Lumen\Application;
 use Tsugi\Services\Quiz1\Quiz1Repository;
 use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Lessons\LessonsNormalize;
+use Tsugi\Services\Files\FileRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -1855,7 +1856,7 @@ $(function(){
     /**
      * How a web link should open. Legacy items with no target stay new-tab.
      * Course pages carry the site navigation, so an html_page with no target
-     * stays in this window.
+     * stays in this window. An uploaded course file always opens in a new tab.
      *
      * @param mixed $item
      * @return 'self'|'blank'|'modal'
@@ -1863,12 +1864,18 @@ $(function(){
     public static function webLinkOpenMode($item) {
         $target = '';
         $type = '';
+        $href = '';
         if ( is_object($item) ) {
             if ( isset($item->target) && is_string($item->target) ) {
                 $target = $item->target;
             }
             if ( isset($item->type) && is_string($item->type) ) {
                 $type = $item->type;
+            }
+            if ( isset($item->href) && is_string($item->href) ) {
+                $href = $item->href;
+            } else if ( isset($item->url) && is_string($item->url) ) {
+                $href = $item->url;
             }
         } else if ( is_array($item) ) {
             if ( isset($item['target']) && is_string($item['target']) ) {
@@ -1877,6 +1884,14 @@ $(function(){
             if ( isset($item['type']) && is_string($item['type']) ) {
                 $type = $item['type'];
             }
+            if ( isset($item['href']) && is_string($item['href']) ) {
+                $href = $item['href'];
+            } else if ( isset($item['url']) && is_string($item['url']) ) {
+                $href = $item['url'];
+            }
+        }
+        if ( FileRepository::isUploadedFileHref($href) ) {
+            return 'blank';
         }
         if ( $target === '_self' ) {
             return 'self';

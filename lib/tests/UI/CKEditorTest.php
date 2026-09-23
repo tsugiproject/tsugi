@@ -13,6 +13,7 @@ class CKEditorTest extends \PHPUnit\Framework\TestCase
         $js = ob_get_clean();
         $this->assertStringContainsString('openExternalInNewTab', $js);
         $this->assertStringContainsString('openInNewTab', $js);
+        $this->assertStringContainsString('filesRoot + "/"', $js);
     }
 
     public function testRenderConfigScriptCanDisableAutomaticExternalBlank()
