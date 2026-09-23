@@ -347,7 +347,8 @@ array( "{$CFG->dbprefix}lti_link",
     -- Tsugi due. Not an AGS field, and not submission end.
     due_datetime        TIMESTAMP NULL,
 
-    -- Opaque AGS tool strings (resourceId, tag). Not a quiz id or a Tsugi id.
+    -- Opaque AGS resourceId and tag for the tool that owns this column.
+    -- That tool may be external, or internal (quiz, discussions). Not the quiz primary key.
     ags_resource_id     VARCHAR(256) NULL,
     ags_tag             VARCHAR(256) NULL,
 
