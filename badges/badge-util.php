@@ -77,15 +77,27 @@ function parse_badge_id($encrypted, $lesson) {
         return 'File pattern fail';
     }
 
-    // Make sure this is a legit badge
-    $legit = false;
-    foreach($lesson->lessons->badges as $badge) {
-        if ( $badge->image == $pieces[1].'.png') {
-            $legit = true;
-            break;
+    $badge = null;
+    if ( is_object($lesson) && isset($lesson->lessons->badges) && is_iterable($lesson->lessons->badges) ) {
+        foreach ( $lesson->lessons->badges as $candidate ) {
+            if ( isset($candidate->image) && $candidate->image == $pieces[1].'.png' ) {
+                $badge = $candidate;
+                break;
+            }
         }
     }
-    if ( ! $legit ) {
+    $minted = \Tsugi\Services\Badges\BadgeService::mintedDisplayRow(
+        (int) $pieces[0],
+        (string) $pieces[1],
+        (int) $pieces[2]
+    );
+    if ( $badge === null && $minted !== null ) {
+        $badge = \Tsugi\Services\Badges\BadgeService::syntheticBadge(
+            (string) $pieces[1],
+            $minted['badge_title']
+        );
+    }
+    if ( $badge === null ) {
         return 'Bad badge image';
     }
 
@@ -103,7 +115,12 @@ function parse_badge_id($encrypted, $lesson) {
             WHERE U.user_id = :UID AND M.context_id = :CID",
             array(":UID" => $pieces[0], ":CID" => $pieces[2])
     );
-    if ( $row === false ) return 'Metadata failed';
+    if ( $row === false ) {
+        if ( $minted === null ) {
+            return 'Metadata failed';
+        }
+        $row = $minted;
+    }
 
     return array($row, $png, $pieces, $badge);
 }

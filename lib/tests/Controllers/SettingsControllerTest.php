@@ -28,6 +28,7 @@ if (!function_exists('__')) {
     }
 }
 
+use \Tsugi\Controllers\Courses;
 use \Tsugi\Controllers\Settings;
 use \Tsugi\Lumen\Application;
 
@@ -223,6 +224,28 @@ class SettingsControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse(Settings::importReplaceMembersMatch('40', 41));
         $this->assertFalse(Settings::importReplaceMembersMatch('forty', 40));
         $this->assertFalse(Settings::importReplaceMembersMatch(null, 40));
+    }
+
+    public function testDeleteCourseInputErrorUsesImportChecks()
+    {
+        global $CFG;
+        $CFG->apphome = 'https://local.dj4e.com';
+        $this->assertNotNull(Settings::deleteCourseInputError('', 'Django', '1'));
+        $_SESSION['context_title'] = 'Django for Everybody';
+        $titleError = Settings::deleteCourseInputError('local.dj4e.com', 'nope', '1');
+        $this->assertIsString($titleError);
+        $this->assertStringContainsString('title', $titleError);
+        $memberError = Settings::deleteCourseInputError('local.dj4e.com', 'Django for Everybody', '1');
+        $this->assertIsString($memberError);
+        $this->assertStringContainsString('members', $memberError);
+    }
+
+    public function testSiteHomeCourseDeleteBlocked()
+    {
+        $this->assertFalse(Settings::siteHomeCourseDeleteBlocked(4));
+        $_SESSION[Courses::SESSION_SITE_CONTEXT_ID] = 9;
+        $this->assertTrue(Settings::siteHomeCourseDeleteBlocked(9));
+        $this->assertFalse(Settings::siteHomeCourseDeleteBlocked(4));
     }
 
     public function testShowInMenuFalseWithoutManifest()

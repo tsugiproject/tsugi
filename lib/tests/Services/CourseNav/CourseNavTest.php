@@ -345,7 +345,6 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
                 'notifications_widget',
                 'profile',
                 'analytics',
-                'badges',
                 'courses_widget',
                 'exit_course',
                 'login',
@@ -354,6 +353,23 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
             $ids
         );
         $this->assertNotContains('topics', $ids);
+        $this->assertNotContains('badges', $ids);
+    }
+
+    public function testStoredBadgesLinkIsDropped()
+    {
+        $doc = CourseNav::normalize(array(
+            'items' => array(
+                array('id' => 'badges', 'left' => true),
+                array('id' => 'lessons', 'left' => true),
+            ),
+        ));
+        $ids = array();
+        foreach ( $doc['items'] as $item ) {
+            $ids[] = $item['id'];
+        }
+        $this->assertNotContains('badges', $ids);
+        $this->assertContains('lessons', $ids);
     }
 
     public function testEmptyItemsIsNotCoercedToDefault()

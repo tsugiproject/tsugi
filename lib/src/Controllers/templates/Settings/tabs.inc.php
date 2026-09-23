@@ -1,9 +1,9 @@
 <?php
 /**
- * Course Settings tabs: Theme, Navigation, Images, Import, Export.
+ * Course Settings tabs: Theme, Navigation, Images, Import, Export, Delete.
  *
  * Expected: $setup_url, $navigation_url, $images_url, $import_url, $export_url,
- * $setup_tab ('theme'|'navigation'|'images'|'import'|'export')
+ * $delete_url, $setup_tab ('theme'|'navigation'|'images'|'import'|'export'|'delete')
  */
 if ( ! isset($setup_tab) ) {
     $setup_tab = 'theme';
@@ -19,6 +19,9 @@ if ( ! isset($import_url) ) {
 }
 if ( ! isset($export_url) ) {
     $export_url = $setup_url;
+}
+if ( ! isset($delete_url) ) {
+    $delete_url = $setup_url;
 }
 ?>
 <h1><?= htmlspecialchars(\Tsugi\Controllers\Settings::courseHeadingTitle()) ?></h1>
@@ -37,5 +40,8 @@ if ( ! isset($export_url) ) {
   </li>
   <li class="<?= $setup_tab === 'export' ? 'active' : '' ?>">
     <a href="<?= htmlspecialchars($export_url) ?>"><?= __('Export') ?></a>
+  </li>
+  <li class="<?= $setup_tab === 'delete' ? 'active' : '' ?>">
+    <a href="<?= htmlspecialchars($delete_url) ?>"><?= __('Delete') ?></a>
   </li>
 </ul>

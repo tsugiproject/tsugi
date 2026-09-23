@@ -435,6 +435,77 @@ class Courses extends Tool {
     }
 
     /**
+     * Drop a deleted course from the session and return to the site-login course when one remains.
+     *
+     * @param int $deleted_id
+     * @return void
+     */
+    public static function releaseContextAfterDelete($deleted_id) {
+        $deleted_id = (int) $deleted_id;
+        if ( isset($_SESSION[self::SESSION_SITE_CONTEXT_ID])
+            && (int) $_SESSION[self::SESSION_SITE_CONTEXT_ID] === $deleted_id ) {
+            unset($_SESSION[self::SESSION_SITE_CONTEXT_ID]);
+        }
+
+        $home = 0;
+        try {
+            $home = self::siteLoginContextId();
+        } catch ( \Throwable $e ) {
+            $home = 0;
+        }
+        if ( $home > 0 && $home !== $deleted_id ) {
+            $switched = self::ensureActiveContext($home);
+            if ( $switched === true ) {
+                Manifest::rememberInSession(0);
+                return;
+            }
+        }
+        self::clearActiveContext();
+    }
+
+    /**
+     * Forget the current course in this session.
+     *
+     * @return void
+     */
+    private static function clearActiveContext() {
+        unset(
+            $_SESSION['context_id'],
+            $_SESSION['context_key'],
+            $_SESSION['context_title'],
+            $_SESSION['membership_id'],
+            $_SESSION['isinstructor']
+        );
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        if ( isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey]) ) {
+            unset(
+                $_SESSION[$ltiKey]['context_id'],
+                $_SESSION[$ltiKey]['context_key'],
+                $_SESSION[$ltiKey]['context_title'],
+                $_SESSION[$ltiKey]['resource_title'],
+                $_SESSION[$ltiKey]['membership_id'],
+                $_SESSION[$ltiKey]['context_settings']
+            );
+        }
+        Manifest::rememberInSession(0);
+        Cache::clearAllSessionCaches();
+        Output::clearTopNavSession();
+        if ( function_exists('_tsugiResetIdentitySnapshot') ) {
+            _tsugiResetIdentitySnapshot();
+        }
+
+        global $CONTEXT, $USER, $LINK, $RESULT, $LAUNCH, $TSUGI_LAUNCH, $TSUGI_KEY, $PROFILE;
+        $CONTEXT = null;
+        $USER = null;
+        $LINK = null;
+        $RESULT = null;
+        $LAUNCH = null;
+        $TSUGI_LAUNCH = null;
+        $TSUGI_KEY = null;
+        $PROFILE = null;
+    }
+
+    /**
      * Record that this user entered a course (flyout recency).
      *
      * Call only from explicit /courses/{id} entry (enter, nested switch,

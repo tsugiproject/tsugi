@@ -392,7 +392,11 @@ switch ($resource) {
         $achievement_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json?format=ob3";
         // OB1 legacy endpoints expect the long hex string; when viewing minted (GUID), generate it from pieces
         $legacy_hex = $encrypted;
-        if ( BadgeService::isMintedGuid($encrypted) && isset($CFG->badge_encrypt_password) && $CFG->badge_encrypt_password ) {
+        $legacy_context_id = isset($pieces[2]) ? $pieces[2] : null;
+        if ( BadgeService::isMintedGuid($encrypted)
+            && is_numeric($legacy_context_id)
+            && (int) $legacy_context_id > 0
+            && isset($CFG->badge_encrypt_password) && $CFG->badge_encrypt_password ) {
             $decrypted = $pieces[0] . ':' . $pieces[1] . ':' . $pieces[2];
             $legacy_hex = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
         }

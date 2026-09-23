@@ -465,4 +465,26 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('', $rows[1]['icon_url']);
         $this->assertSame('Django', $rows[0]['title']);
     }
+
+    public function testReleaseContextAfterDeleteClearsDeletedSiteCourse()
+    {
+        $_SESSION['id'] = 7;
+        $_SESSION[Courses::SESSION_SITE_CONTEXT_ID] = 9;
+        $_SESSION['context_id'] = 9;
+        $_SESSION['context_title'] = 'Gone';
+        $_SESSION['context_key'] = 'course:abc';
+        $_SESSION['manifest_id'] = 99;
+        $_SESSION['lti'] = array(
+            'context_id' => 9,
+            'context_title' => 'Gone',
+            'manifest_id' => 99,
+        );
+        Courses::releaseContextAfterDelete(9);
+        $this->assertArrayNotHasKey('context_id', $_SESSION);
+        $this->assertArrayNotHasKey(Courses::SESSION_SITE_CONTEXT_ID, $_SESSION);
+        $this->assertArrayNotHasKey('manifest_id', $_SESSION);
+        $this->assertArrayNotHasKey('context_title', $_SESSION);
+        $this->assertArrayNotHasKey('context_id', $_SESSION['lti']);
+        $this->assertArrayNotHasKey('manifest_id', $_SESSION['lti']);
+    }
 }

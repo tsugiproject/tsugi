@@ -152,7 +152,6 @@ class CourseNav {
             array('id' => 'notifications_widget', 'kind' => 'widget', 'label' => 'Notifications widget', 'route' => '/notifications', 'site' => false),
             array('id' => 'profile', 'kind' => 'link', 'label' => 'Profile', 'route' => '/profile', 'site' => true),
             array('id' => 'analytics', 'kind' => 'link', 'label' => 'Analytics', 'route' => '/analytics', 'site' => false),
-            array('id' => 'badges', 'kind' => 'link', 'label' => 'Badges', 'route' => '/badges', 'site' => false),
             array('id' => 'courses_widget', 'kind' => 'widget', 'label' => 'Courses widget', 'route' => '/courses', 'site' => true, 'pin' => 'catalog', 'hint' => 'Switcher for other courses. Place in the upper left or upper right, like other widgets.'),
             array('id' => 'exit_course', 'kind' => 'link', 'label' => 'Exit course', 'route' => '', 'site' => true, 'pin' => 'catalog', 'hint' => 'Leaves the course and returns to the site home.', 'needs_apphome' => true),
             array('id' => 'login', 'kind' => 'link', 'label' => 'Login', 'route' => '/login', 'site' => true, 'pin' => 'last', 'hint' => 'Only shown when the user is not logged in.'),
