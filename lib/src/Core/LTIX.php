@@ -2001,6 +2001,7 @@ class LTIX {
         }
 
         $LTI = $_SESSION[TSUGI_SESSION_LTI] ?? null;
+        self::rejectDeletedContext($PDOX, $LTI);
         if ( count($needed) == 0 && $LTI === null ) {
             return $TSUGI_LAUNCH;
         }
@@ -2013,6 +2014,40 @@ class LTIX {
         }
 
         return self::buildLaunch($LTI);
+    }
+
+    /**
+     * A session launch for a soft-deleted course must not be rebuilt.
+     *
+     * Login, CSRF, and the stored LTI return URL stay. Only the course is dropped.
+     *
+     * @param object $PDOX
+     * @param mixed $LTI
+     * @return void
+     */
+    private static function rejectDeletedContext($PDOX, $LTI) {
+        global $CFG;
+
+        if ( ! is_array($LTI) ) {
+            return;
+        }
+        $context_id = (int) ($LTI['context_id'] ?? 0);
+        if ( $context_id < 1 || ! is_object($PDOX) ) {
+            return;
+        }
+        $row = $PDOX->rowDie(
+            "SELECT context_id FROM {$CFG->dbprefix}lti_context
+             WHERE context_id = :CID AND (deleted IS NULL OR deleted = 0)",
+            array(':CID' => $context_id)
+        );
+        if ( is_array($row) ) {
+            return;
+        }
+        if ( class_exists('\Tsugi\Controllers\Courses') ) {
+            \Tsugi\Controllers\Courses::dropActiveContext($context_id);
+        }
+        self::send403();
+        self::abort_with_error_log('Course has been deleted');
     }
 
     public static function buildLaunch($LTI) {

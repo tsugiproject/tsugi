@@ -174,7 +174,10 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         global $PDOX;
         $savePdox = $PDOX ?? null;
         $PDOX = new class {
+            public $lastSql;
+
             public function rowDie($sql, $params = array()) {
+                $this->lastSql = $sql;
                 return false;
             }
         };
@@ -182,6 +185,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['context_id'] = 42;
         $_SESSION['oauth_consumer_key'] = 'google.com';
         $this->assertSame('Course not found.', Courses::ensureActiveContext(42));
+        $this->assertStringContainsString('(deleted IS NULL OR deleted = 0)', $PDOX->lastSql);
         $PDOX = $savePdox;
     }
 

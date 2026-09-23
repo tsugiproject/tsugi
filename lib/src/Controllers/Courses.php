@@ -438,6 +438,31 @@ class Courses extends Tool {
     }
 
     /**
+     * Forget $context_id when it is the course in this session.
+     *
+     * Leaves login, CSRF, and the stored LTI return URL in place.
+     *
+     * @param int $context_id
+     * @return void
+     */
+    public static function dropActiveContext($context_id) {
+        $context_id = (int) $context_id;
+        if ( $context_id < 1 ) {
+            return;
+        }
+        $current = (int) ($_SESSION['context_id'] ?? 0);
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        $ltiId = 0;
+        if ( isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey]) ) {
+            $ltiId = (int) ($_SESSION[$ltiKey]['context_id'] ?? 0);
+        }
+        if ( $current !== $context_id && $ltiId !== $context_id ) {
+            return;
+        }
+        self::clearActiveContext();
+    }
+
+    /**
      * Drop a deleted course from the session and return to the site-login course when one remains.
      *
      * @param int $deleted_id
