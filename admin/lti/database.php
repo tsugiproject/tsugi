@@ -328,8 +328,28 @@ array( "{$CFG->dbprefix}lti_link",
 
     title               TEXT NULL,
     score_maximum       DOUBLE NULL,
+    -- Legacy due window still read by Assignments, Lessons, and Calendar.
+    -- New workflow dates are the columns below. Do not overload these two.
     start_datetime      TIMESTAMP NULL,
     end_datetime        TIMESTAMP NULL,
+
+    -- Soft publish. Existing links default to published. Unpublish deletes nothing.
+    published           TINYINT(1) NOT NULL DEFAULT 1,
+    -- AGS gradesReleased. NULL means the tool has not said.
+    grades_released     TINYINT(1) NULL,
+
+    -- Deep Linking available window. Lessons reads these. It does not store its own.
+    available_start_datetime TIMESTAMP NULL,
+    available_end_datetime   TIMESTAMP NULL,
+    -- Deep Linking submission window, and the AGS line item startDateTime/endDateTime.
+    submission_start_datetime TIMESTAMP NULL,
+    submission_end_datetime   TIMESTAMP NULL,
+    -- Tsugi due. Not an AGS field, and not submission end.
+    due_datetime        TIMESTAMP NULL,
+
+    -- AGS line item resourceId and tag. resourceId is not a quiz id.
+    resource_id         VARCHAR(256) NULL,
+    tag                 VARCHAR(256) NULL,
 
     json                MEDIUMTEXT NULL,
     settings            MEDIUMTEXT NULL,
@@ -486,9 +506,14 @@ array( "{$CFG->dbprefix}lti_result",
     grading_progress   VARCHAR(30) NOT NULL DEFAULT 'NotReady',
     activity_progress  VARCHAR(30) NOT NULL DEFAULT 'Initialized',
     result_maximum     DOUBLE NULL,
+    -- AGS scoreGiven. The link score_maximum is the column denominator.
+    -- grade remains the derived 0-1 fraction.
+    score_given        DOUBLE NULL,
     lti13_result_id    TEXT NULL,
     scoring_user_id    INTEGER NULL,
     score_timestamp   TIMESTAMP NULL,
+    -- AGS submission.startedAt. submitted_at is submission.submittedAt.
+    started_at         TIMESTAMP NULL,
     submitted_at       TIMESTAMP NULL,
 
     json               MEDIUMTEXT NULL,
@@ -828,6 +853,22 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         // 2026-09-18 Last time this user entered this course (site-login flyout recency)
         array('lti_membership', 'visited_at', 'TIMESTAMP NULL'),
+
+        // 2026-09-23 Gradebook workflow on the link. Existing rows stay published.
+        // start_datetime / end_datetime are left alone; they are still the live due UI.
+        array('lti_link', 'published', 'TINYINT(1) NOT NULL DEFAULT 1'),
+        array('lti_link', 'grades_released', 'TINYINT(1) NULL'),
+        array('lti_link', 'available_start_datetime', 'TIMESTAMP NULL'),
+        array('lti_link', 'available_end_datetime', 'TIMESTAMP NULL'),
+        array('lti_link', 'submission_start_datetime', 'TIMESTAMP NULL'),
+        array('lti_link', 'submission_end_datetime', 'TIMESTAMP NULL'),
+        array('lti_link', 'due_datetime', 'TIMESTAMP NULL'),
+        array('lti_link', 'resource_id', 'VARCHAR(256) NULL'),
+        array('lti_link', 'tag', 'VARCHAR(256) NULL'),
+
+        // 2026-09-23 Numerator and AGS submission.startedAt on the result.
+        array('lti_result', 'score_given', 'DOUBLE NULL'),
+        array('lti_result', 'started_at', 'TIMESTAMP NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -1481,7 +1522,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610010005;
+    return 202610010006;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
