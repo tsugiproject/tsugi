@@ -211,4 +211,58 @@ XML;
         $this->expectException(ImportException::class);
         Qti12Importer::import('not xml at all');
     }
+
+    /**
+     * Canvas New Quizzes course export. The CC assessment_qti.xml shell has
+     * no items; the questions are in non_cc_assessments/*.xml.qti. Item banks
+     * are objectbank documents with no assessment element.
+     */
+    public function testCanvasNewQuizzesExport() {
+        $dir = __DIR__ . '/../../fixtures/Quiz1/canvas-new-quizzes/';
+
+        list($sql, $sqlWarnings) = Qti12Importer::import(file_get_contents($dir . 'quiz-sql.xml.qti'));
+        $this->assertSame(array(), $sqlWarnings);
+        $this->assertSame('Quiz: SQL', $sql->title);
+        $this->assertCount(18, $sql->questions);
+        $first = $sql->questions[0];
+        $this->assertSame(QuestionTypes::MULTIPLE_CHOICE, $first->type);
+        $this->assertSame('SQL_Q1', $first->title);
+        $this->assertSame(1, $first->points);
+        $this->assertStringContainsString('DBA most commonly stands for:', $first->prompt);
+        $this->assertTrue($first->answers[0]->correct);
+        $this->assertSame('Database Administrator', strip_tags($first->answers[0]->text));
+        $this->assertFalse($first->answers[1]->correct);
+
+        list($bank, $bankWarnings) = Qti12Importer::import(file_get_contents($dir . 'objectbank-unfiled.xml.qti'));
+        $this->assertSame(array(), $bankWarnings);
+        $this->assertSame('Unfiled Questions', $bank->title);
+        $this->assertCount(6, $bank->questions);
+        $types = array();
+        foreach ( $bank->orderedQuestions() as $q ) {
+            $types[] = $q->type;
+        }
+        $this->assertSame(
+            array(
+                QuestionTypes::TRUE_FALSE,
+                QuestionTypes::MULTIPLE_RESPONSE,
+                QuestionTypes::FILL_BLANK,
+                QuestionTypes::MULTIPLE_CHOICE,
+                QuestionTypes::ESSAY,
+                QuestionTypes::FILL_BLANK,
+            ),
+            $types
+        );
+        $this->assertFalse($bank->questions[0]->answers[0]->correct);
+        $this->assertTrue($bank->questions[0]->answers[1]->correct);
+        $this->assertSame(array('GET', 'POST'), array(
+            strip_tags($bank->questions[1]->answers[0]->text),
+            strip_tags($bank->questions[1]->answers[1]->text),
+        ));
+        $this->assertSame(array('80', 'eighty'), array(
+            $bank->questions[2]->answers[0]->text,
+            $bank->questions[2]->answers[1]->text,
+        ));
+        $this->assertSame(5, $bank->questions[4]->points);
+        $this->assertSame('Script', $bank->questions[5]->answers[0]->text);
+    }
 }

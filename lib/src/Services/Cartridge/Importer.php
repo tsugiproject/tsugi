@@ -249,6 +249,10 @@ class Importer {
 
         if ( $kind === 'lti_link' ) {
             $xml = $pkg->readHref($href);
+            $xmlTitle = self::firstElementText($xml, 'title');
+            if ( $xmlTitle !== '' && ($title === '' || $title === basename(str_replace('\\', '/', $href))) ) {
+                $title = $xmlTitle;
+            }
             $launch = self::ltiLaunch($xml);
             $linkKey = (string) $res['identifier'];
             if ( $isCopy ) {
@@ -596,6 +600,23 @@ class Importer {
             $html = str_replace('$IMS-CC-FILEBASE$/'.$zipHref, $local, $html);
         }
         return $html;
+    }
+
+    private static function firstElementText($xml, $localName) {
+        $prev = libxml_use_internal_errors(true);
+        $dom = new \DOMDocument();
+        $ok = $dom->loadXML((string) $xml);
+        libxml_clear_errors();
+        libxml_use_internal_errors($prev);
+        if ( ! $ok || ! $dom->documentElement ) {
+            return '';
+        }
+        foreach ( $dom->getElementsByTagName('*') as $el ) {
+            if ( $el instanceof \DOMElement && $el->localName === $localName ) {
+                return trim($el->textContent);
+            }
+        }
+        return '';
     }
 
     private static function ltiLaunch($xml) {

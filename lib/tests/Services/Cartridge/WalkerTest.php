@@ -254,6 +254,84 @@ class CartridgeWalkerTest extends \PHPUnit\Framework\TestCase
         $pkg->close();
     }
 
+    public function testCanvasNewQuizzesWithEmptyOrganizationAreVisible() {
+        $fixture = __DIR__.'/../../fixtures/Quiz1/canvas-new-quizzes/objectbank-unfiled.xml.qti';
+        $qti = file_get_contents($fixture);
+        $this->assertNotFalse($qti);
+        $empty = '<?xml version="1.0"?><questestinterop xmlns="http://www.imsglobal.org/xsd/ims_qtiasiv1p2"><assessment ident="shell" title="Quiz: SQL"><section ident="root_section"/></assessment></questestinterop>';
+        $manifest = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="m1" xmlns="http://www.imsglobal.org/xsd/imsccv1p1/imscp_v1p1">
+  <metadata>
+    <schema>IMS Common Cartridge</schema>
+    <schemaversion>1.1.0</schemaversion>
+    <lomimscc:lom xmlns:lomimscc="http://ltsc.ieee.org/xsd/imsccv1p1/LOM/manifest">
+      <lomimscc:general><lomimscc:title><lomimscc:string>Practice</lomimscc:string></lomimscc:title></lomimscc:general>
+    </lomimscc:lom>
+  </metadata>
+  <organizations>
+    <organization identifier="org_1" structure="rooted-hierarchy">
+      <item identifier="LearningModules"></item>
+    </organization>
+  </organizations>
+  <resources>
+    <resource identifier="settings" type="associatedcontent/imscc_xmlv1p1/learning-application-resource" href="course_settings/canvas_export.txt">
+      <file href="course_settings/canvas_export.txt"/>
+    </resource>
+    <resource identifier="bank1" type="associatedcontent/imscc_xmlv1p1/learning-application-resource" href="non_cc_assessments/bank1.xml.qti">
+      <file href="non_cc_assessments/bank1.xml.qti"/>
+    </resource>
+    <resource identifier="quiz1" type="imsqti_xmlv1p2/imscc_xmlv1p1/assessment">
+      <file href="quiz1/assessment_qti.xml"/>
+      <dependency identifierref="quiz1meta"/>
+    </resource>
+    <resource identifier="quiz1meta" type="associatedcontent/imscc_xmlv1p1/learning-application-resource" href="quiz1/assessment_meta.xml">
+      <file href="quiz1/assessment_meta.xml"/>
+      <file href="non_cc_assessments/quiz1.xml.qti"/>
+    </resource>
+    <resource identifier="page1" type="webcontent" href="wiki_content/home.html">
+      <file href="wiki_content/home.html"/>
+    </resource>
+  </resources>
+</manifest>
+XML;
+        $path = $this->dir.'/canvas-nq.imscc';
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($path, \ZipArchive::CREATE) === true);
+        $zip->addFromString('imsmanifest.xml', $manifest);
+        $zip->addFromString('course_settings/canvas_export.txt', 'canvas');
+        $zip->addFromString('non_cc_assessments/bank1.xml.qti', $qti);
+        $zip->addFromString('non_cc_assessments/quiz1.xml.qti', $qti);
+        $zip->addFromString('quiz1/assessment_qti.xml', $empty);
+        $zip->addFromString('quiz1/assessment_meta.xml', '<quiz/>');
+        $zip->addFromString('wiki_content/home.html', '<html><body>Hi</body></html>');
+        $zip->close();
+
+        $pkg = Package::open($path);
+        $described = $pkg->describeModules();
+        $this->assertCount(1, $described);
+        $this->assertSame('Imported', $described[0]['title']);
+        $this->assertSame(1, $described[0]['counts']['quizzes']);
+        $this->assertSame(1, $described[0]['counts']['pages']);
+        $this->assertSame(0, $described[0]['counts']['files']);
+        $quiz = null;
+        foreach ( $pkg->importableResources() as $res ) {
+            if ( ($res['identifier'] ?? '') === 'quiz1' ) {
+                $quiz = $res;
+            }
+            $this->assertNotSame('settings', $res['identifier'] ?? '');
+            $this->assertNotSame('bank1', $res['identifier'] ?? '');
+        }
+        $this->assertNotNull($quiz);
+        $this->assertSame('non_cc_assessments/quiz1.xml.qti', $quiz['href']);
+        $pkg->close();
+
+        $session = new Session(31);
+        $row = Walker::scan($path, $session);
+        $this->assertSame(0, $row['error_count']);
+        $this->assertSame(2, $row['created_count']);
+    }
+
     /**
      * @param string $src
      * @param string $dest

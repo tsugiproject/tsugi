@@ -48,6 +48,9 @@ class Qti12Importer {
             $quiz->title = trim($assessment->getAttribute('title'));
             $quiz->instructions = Html::purify(self::rubricText($assessment));
         }
+        if ( trim($quiz->title) === '' ) {
+            $quiz->title = self::objectBankTitle($dom);
+        }
 
         $seq = 1;
         foreach ( $dom->getElementsByTagName('item') as $item ) {
@@ -514,6 +517,32 @@ class Qti12Importer {
             if ( $fb instanceof \DOMElement && $fb->getAttribute('ident') === $ident ) {
                 $mat = self::firstDescendant($fb, 'mattext');
                 return $mat ? $mat->textContent : '';
+            }
+        }
+        return '';
+    }
+
+    /**
+     * Canvas New Quizzes item banks are objectbank documents. The quiz name
+     * is bank_title, not an assessment title.
+     */
+    private static function objectBankTitle(\DOMDocument $dom) {
+        $bank = self::firstDescendant($dom->documentElement, 'objectbank');
+        if ( ! $bank ) {
+            return '';
+        }
+        $meta = self::firstChild($bank, 'qtimetadata');
+        if ( ! $meta ) {
+            return '';
+        }
+        foreach ( $meta->childNodes as $field ) {
+            if ( ! $field instanceof \DOMElement || $field->localName !== 'qtimetadatafield' ) {
+                continue;
+            }
+            $label = self::firstChild($field, 'fieldlabel');
+            $entry = self::firstChild($field, 'fieldentry');
+            if ( $label && trim($label->textContent) === 'bank_title' && $entry ) {
+                return trim($entry->textContent);
             }
         }
         return '';

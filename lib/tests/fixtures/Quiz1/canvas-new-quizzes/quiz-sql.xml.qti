@@ -1,0 +1,1201 @@
+<?xml version="1.0"?>
+<questestinterop xmlns="http://www.imsglobal.org/xsd/ims_qtiasiv1p2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/ims_qtiasiv1p2 http://www.imsglobal.org/xsd/ims_qtiasiv1p2p1.xsd">
+  <assessment ident="gc91d2160633da3e5a4378fed6c2e8096" title="Quiz: SQL" external_assignment_id="17700000003313322">
+    <qtimetadata>
+      <qtimetadatafield>
+        <fieldlabel>cc_maxattempts</fieldlabel>
+        <fieldentry>1</fieldentry>
+      </qtimetadatafield>
+    </qtimetadata>
+    <section ident="root_section">
+      <item ident="0c2f83f09156836074fa19e609d036b5" title="SQL_Q1">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>df0d6b08-508b-4e49-ab2c-f80090e6b491,342d9a4b-c09b-4004-b1a8-13303e2c2e58,f6eb72cf-5d88-4435-97bf-2c75e9d23454,707bf869-d596-462e-a2ae-230ee3a9d4cb</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>dc19eddb0da3abd98bd0d136aa3b1f75</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;DBA most commonly stands for:&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="df0d6b08-508b-4e49-ab2c-f80090e6b491">
+                <material>
+                  <mattext texttype="text/html">Database Administrator</mattext>
+                </material>
+              </response_label>
+              <response_label ident="342d9a4b-c09b-4004-b1a8-13303e2c2e58">
+                <material>
+                  <mattext texttype="text/html">Database Administer</mattext>
+                </material>
+              </response_label>
+              <response_label ident="f6eb72cf-5d88-4435-97bf-2c75e9d23454">
+                <material>
+                  <mattext texttype="text/html">Data Base Architect</mattext>
+                </material>
+              </response_label>
+              <response_label ident="707bf869-d596-462e-a2ae-230ee3a9d4cb">
+                <material>
+                  <mattext texttype="text/html">Debugging Boss Authority</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">df0d6b08-508b-4e49-ab2c-f80090e6b491</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="2276e9508fadd3d3925df0ae2f517e1e" title="SQL_Q2">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>bf69c15f-7356-43d3-91f2-bc244646c016,713cbd71-d9b8-4459-8cca-43a3bd68833b,ce2e1dbb-4b71-4020-8c7c-fce357484639,10b77ad1-78c9-4431-8d99-099084ff5580</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>149f499a0ec415e62105f2ef9d385233</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Structured Query Language (SQL) is used to:&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="bf69c15f-7356-43d3-91f2-bc244646c016">
+                <material>
+                  <mattext texttype="text/html">Create, read, update, and delete data in a database</mattext>
+                </material>
+              </response_label>
+              <response_label ident="713cbd71-d9b8-4459-8cca-43a3bd68833b">
+                <material>
+                  <mattext texttype="text/html">Write Python programs</mattext>
+                </material>
+              </response_label>
+              <response_label ident="ce2e1dbb-4b71-4020-8c7c-fce357484639">
+                <material>
+                  <mattext texttype="text/html">Design web pages</mattext>
+                </material>
+              </response_label>
+              <response_label ident="10b77ad1-78c9-4431-8d99-099084ff5580">
+                <material>
+                  <mattext texttype="text/html">Manage network sockets</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">bf69c15f-7356-43d3-91f2-bc244646c016</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="d439234c39add2c1daf73c9192d2bc1c" title="SQL_Q3">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>3d7544e1-7e9f-429f-8b19-d07543e1b1be,3ef72a0b-dbac-4f90-94b6-a5da1d39dc92,324dc374-4055-466d-ad01-f3b446dec7d7,0780e128-c543-4414-9b1a-cc54b4ad6bf1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>b465d2a2ad14cb794da1701e35d39c67</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Which SQL command is used to create a new table?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="3d7544e1-7e9f-429f-8b19-d07543e1b1be">
+                <material>
+                  <mattext texttype="text/html">CREATE TABLE</mattext>
+                </material>
+              </response_label>
+              <response_label ident="3ef72a0b-dbac-4f90-94b6-a5da1d39dc92">
+                <material>
+                  <mattext texttype="text/html">MAKE TABLE</mattext>
+                </material>
+              </response_label>
+              <response_label ident="324dc374-4055-466d-ad01-f3b446dec7d7">
+                <material>
+                  <mattext texttype="text/html">NEW TABLE</mattext>
+                </material>
+              </response_label>
+              <response_label ident="0780e128-c543-4414-9b1a-cc54b4ad6bf1">
+                <material>
+                  <mattext texttype="text/html">BUILD TABLE</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">3d7544e1-7e9f-429f-8b19-d07543e1b1be</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="94d2da1dc053998fde124ce00eab102a" title="SQL_Q4">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>29c2b460-8dee-41f1-8154-8c174ebb5b3a,a7b0f3eb-7b55-4b4c-9a1c-7728a28f1a2b,89854b87-40ea-4bda-8f27-458404d39a9f,b319e062-26ac-4701-ba42-e481ae6a2bf1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>ab520f8cec6b9b4556f43fe9115c9341</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Which SQL statement inserts a new row into a table?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="29c2b460-8dee-41f1-8154-8c174ebb5b3a">
+                <material>
+                  <mattext texttype="text/html">INSERT INTO</mattext>
+                </material>
+              </response_label>
+              <response_label ident="a7b0f3eb-7b55-4b4c-9a1c-7728a28f1a2b">
+                <material>
+                  <mattext texttype="text/html">ADD ROW</mattext>
+                </material>
+              </response_label>
+              <response_label ident="89854b87-40ea-4bda-8f27-458404d39a9f">
+                <material>
+                  <mattext texttype="text/html">PUT DATA</mattext>
+                </material>
+              </response_label>
+              <response_label ident="b319e062-26ac-4701-ba42-e481ae6a2bf1">
+                <material>
+                  <mattext texttype="text/html">APPEND</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">29c2b460-8dee-41f1-8154-8c174ebb5b3a</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="79e3bc37ec9565cb45c9a3db9d36e1e9" title="SQL_Q5">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>3f50b290-462d-4867-a553-6b4fa867a3e4,fb794098-342e-4acb-9f22-fa0eaaca6a36,b8aa6295-4ab0-4b6c-b97d-394765735b9e,7059d586-c1e4-412f-86fb-9475082c873d</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>d1c2fbb72bd00866d09478953c69b1d1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Which keyword is used to add conditions to a SQL query?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="3f50b290-462d-4867-a553-6b4fa867a3e4">
+                <material>
+                  <mattext texttype="text/html">WHERE</mattext>
+                </material>
+              </response_label>
+              <response_label ident="fb794098-342e-4acb-9f22-fa0eaaca6a36">
+                <material>
+                  <mattext texttype="text/html">IF</mattext>
+                </material>
+              </response_label>
+              <response_label ident="b8aa6295-4ab0-4b6c-b97d-394765735b9e">
+                <material>
+                  <mattext texttype="text/html">ONLYIF</mattext>
+                </material>
+              </response_label>
+              <response_label ident="7059d586-c1e4-412f-86fb-9475082c873d">
+                <material>
+                  <mattext texttype="text/html">FILTER</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">3f50b290-462d-4867-a553-6b4fa867a3e4</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="d1eaae146910fd7b872fb4691533694c" title="SQL_Q6">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>8878389a-dd82-4269-8564-671798cb3674,02ded087-b325-4204-8988-7e3df3f7c2d5,73a351de-28b8-4639-9ed9-f14f1f1d0f88,428384bc-404c-4cd3-8851-9ac8793e31a1</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>8799e211fa29e460bb5d64c5b66eeeb6</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Which SQL statement retrieves all rows from a table named Users?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="8878389a-dd82-4269-8564-671798cb3674">
+                <material>
+                  <mattext texttype="text/html">SELECT * FROM Users</mattext>
+                </material>
+              </response_label>
+              <response_label ident="02ded087-b325-4204-8988-7e3df3f7c2d5">
+                <material>
+                  <mattext texttype="text/html">RETRIEVE * FROM Users</mattext>
+                </material>
+              </response_label>
+              <response_label ident="73a351de-28b8-4639-9ed9-f14f1f1d0f88">
+                <material>
+                  <mattext texttype="text/html">SELECT all FROM Users</mattext>
+                </material>
+              </response_label>
+              <response_label ident="428384bc-404c-4cd3-8851-9ac8793e31a1">
+                <material>
+                  <mattext texttype="text/html">FETCH Users</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">8878389a-dd82-4269-8564-671798cb3674</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="0207bd260752f461c49de2a03d9cc492" title="SQL_Q7">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>58c3de8a-f417-42a2-a8e5-091303b21fc1,6543821a-04d1-4e8b-84f6-ffc0f3224619,a2148ddb-0f06-4ee6-9557-eda12b8da888,727b8413-d078-493c-a27d-a206bea36960</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>d04e22b3bbd98ff38248a1fb2681e917</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Which keyword causes query results to be returned in sorted order?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="58c3de8a-f417-42a2-a8e5-091303b21fc1">
+                <material>
+                  <mattext texttype="text/html">ORDER BY</mattext>
+                </material>
+              </response_label>
+              <response_label ident="6543821a-04d1-4e8b-84f6-ffc0f3224619">
+                <material>
+                  <mattext texttype="text/html">SORT</mattext>
+                </material>
+              </response_label>
+              <response_label ident="a2148ddb-0f06-4ee6-9557-eda12b8da888">
+                <material>
+                  <mattext texttype="text/html">GROUP BY</mattext>
+                </material>
+              </response_label>
+              <response_label ident="727b8413-d078-493c-a27d-a206bea36960">
+                <material>
+                  <mattext texttype="text/html">ARRANGE</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">58c3de8a-f417-42a2-a8e5-091303b21fc1</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="8280276882b41edb727e38d3de0cd08f" title="SQL_Q8">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>23006d2a-87b3-40ec-9452-da0a81f69225,7f9e2238-08fb-4877-ba67-ecb44d4c0700,303ba692-564a-4345-8813-d938ccb59cd2,d3c9599d-d2eb-4bf7-9e02-8d721606dcdd</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>c7a8d73f705ebb93b91e9b9136bac706</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;What does the LIMIT clause do?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="23006d2a-87b3-40ec-9452-da0a81f69225">
+                <material>
+                  <mattext texttype="text/html">Restricts the number of rows returned</mattext>
+                </material>
+              </response_label>
+              <response_label ident="7f9e2238-08fb-4877-ba67-ecb44d4c0700">
+                <material>
+                  <mattext texttype="text/html">Limits the number of columns</mattext>
+                </material>
+              </response_label>
+              <response_label ident="303ba692-564a-4345-8813-d938ccb59cd2">
+                <material>
+                  <mattext texttype="text/html">Prevents table growth</mattext>
+                </material>
+              </response_label>
+              <response_label ident="d3c9599d-d2eb-4bf7-9e02-8d721606dcdd">
+                <material>
+                  <mattext texttype="text/html">Improves query security</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">23006d2a-87b3-40ec-9452-da0a81f69225</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="e5dceb3183ad964db5cf6ed06b8ebad2" title="SQL_Q9">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>1f0a303b-3502-453c-9c43-4f8f2da08a8b,2c4b750b-5476-4d20-bbb9-4a368a820833,4da16e48-9ddd-4a75-9d4b-eb56e519b5f7,7ed17524-86a0-4fa5-b48c-b883a6388bd5</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>a74efb9f3079e375a55cfff4da6bc9f7</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Which statement about primary keys is true?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="1f0a303b-3502-453c-9c43-4f8f2da08a8b">
+                <material>
+                  <mattext texttype="text/html">They uniquely identify each row in a table</mattext>
+                </material>
+              </response_label>
+              <response_label ident="2c4b750b-5476-4d20-bbb9-4a368a820833">
+                <material>
+                  <mattext texttype="text/html">They can safely be NULL</mattext>
+                </material>
+              </response_label>
+              <response_label ident="4da16e48-9ddd-4a75-9d4b-eb56e519b5f7">
+                <material>
+                  <mattext texttype="text/html">They store duplicate values</mattext>
+                </material>
+              </response_label>
+              <response_label ident="7ed17524-86a0-4fa5-b48c-b883a6388bd5">
+                <material>
+                  <mattext texttype="text/html">They must contain text</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">1f0a303b-3502-453c-9c43-4f8f2da08a8b</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="2ed27aceba69183486e5a2726386c5b4" title="SQL_Q11">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>d03469c8-d9a0-487b-b0f2-72698043315a,b0c8eaae-357d-41c1-b602-8a70ff3e3660,f68f66ab-75b6-4692-af66-1e98855ceb90,3d7fc892-8e0e-4c48-bd0c-cc9efe03a627</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>01acd6512f08b70ff93b235b9477457b</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Which SQL statement modifies existing rows in a table?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="d03469c8-d9a0-487b-b0f2-72698043315a">
+                <material>
+                  <mattext texttype="text/html">UPDATE</mattext>
+                </material>
+              </response_label>
+              <response_label ident="b0c8eaae-357d-41c1-b602-8a70ff3e3660">
+                <material>
+                  <mattext texttype="text/html">MODIFY</mattext>
+                </material>
+              </response_label>
+              <response_label ident="f68f66ab-75b6-4692-af66-1e98855ceb90">
+                <material>
+                  <mattext texttype="text/html">CHANGE</mattext>
+                </material>
+              </response_label>
+              <response_label ident="3d7fc892-8e0e-4c48-bd0c-cc9efe03a627">
+                <material>
+                  <mattext texttype="text/html">ALTER ROW</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">d03469c8-d9a0-487b-b0f2-72698043315a</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="fce21fc4107cfefb17947cf5d41ae5ed" title="SQL_Q12">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>93e36590-47dc-4844-8f1a-098f36d9d5b7,91198144-58d0-468c-b5f3-482a051c8473,e3a7c248-bcf4-4775-9d4d-37cf81e86523,16648ed2-93cb-4e5a-9e18-7930c6946041</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>d28d18cddf08d8fffdcf325307bcaaac</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Which SQL statement removes rows from a table?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="93e36590-47dc-4844-8f1a-098f36d9d5b7">
+                <material>
+                  <mattext texttype="text/html">DELETE</mattext>
+                </material>
+              </response_label>
+              <response_label ident="91198144-58d0-468c-b5f3-482a051c8473">
+                <material>
+                  <mattext texttype="text/html">DROP</mattext>
+                </material>
+              </response_label>
+              <response_label ident="e3a7c248-bcf4-4775-9d4d-37cf81e86523">
+                <material>
+                  <mattext texttype="text/html">REMOVE</mattext>
+                </material>
+              </response_label>
+              <response_label ident="16648ed2-93cb-4e5a-9e18-7930c6946041">
+                <material>
+                  <mattext texttype="text/html">CLEAR</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">93e36590-47dc-4844-8f1a-098f36d9d5b7</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="e01c4d971c9a38452f4f975f32d36888" title="SQL_Q13">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>4deef20f-342b-463d-9129-8beae05835e3,617fdb6b-0888-4bb2-a29b-ae562123c0da,61a23e48-e40e-4c04-bcfe-61ecb2a49d04,3ed468e2-d04a-44f6-82f2-0822c057d06b</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>b59f9c1576d23f0e7077a7e0a09b921f</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Which clause determines which rows are affected by UPDATE or DELETE?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="4deef20f-342b-463d-9129-8beae05835e3">
+                <material>
+                  <mattext texttype="text/html">WHERE</mattext>
+                </material>
+              </response_label>
+              <response_label ident="617fdb6b-0888-4bb2-a29b-ae562123c0da">
+                <material>
+                  <mattext texttype="text/html">ORDER BY</mattext>
+                </material>
+              </response_label>
+              <response_label ident="61a23e48-e40e-4c04-bcfe-61ecb2a49d04">
+                <material>
+                  <mattext texttype="text/html">LIMIT</mattext>
+                </material>
+              </response_label>
+              <response_label ident="3ed468e2-d04a-44f6-82f2-0822c057d06b">
+                <material>
+                  <mattext texttype="text/html">FROM</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">4deef20f-342b-463d-9129-8beae05835e3</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="7f1492e70515b672fc41e03076c068dd" title="SQL_Q14">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>3f03325f-f7d5-4422-86a1-c2417301b4e1,a4df9481-70a1-4505-9033-22fcb203410a,734a6c33-848b-4a14-bd00-4730c04314da,5eed7a9a-6bf9-4a1a-9d9a-3e02747079ab</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>45d634bf465b18acd13158a9675779f7</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;What does AUTOINCREMENT do in a table definition?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="3f03325f-f7d5-4422-86a1-c2417301b4e1">
+                <material>
+                  <mattext texttype="text/html">Automatically generates unique numeric values</mattext>
+                </material>
+              </response_label>
+              <response_label ident="a4df9481-70a1-4505-9033-22fcb203410a">
+                <material>
+                  <mattext texttype="text/html">Reuses deleted values</mattext>
+                </material>
+              </response_label>
+              <response_label ident="734a6c33-848b-4a14-bd00-4730c04314da">
+                <material>
+                  <mattext texttype="text/html">Sorts rows automatically</mattext>
+                </material>
+              </response_label>
+              <response_label ident="5eed7a9a-6bf9-4a1a-9d9a-3e02747079ab">
+                <material>
+                  <mattext texttype="text/html">Speeds up SELECT queries</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">3f03325f-f7d5-4422-86a1-c2417301b4e1</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="35b5bbd0c05875b63801c92c27f89825" title="SQL_Q15">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>016437e0-4b81-4cef-bded-144aa419be0f,6d41cf63-199e-485c-aa68-1b1ea50860c6,afadf034-7f1e-442c-be4c-b088e60c484e,d12a50b7-fd39-4c5e-8537-f2b982e3bbd3</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>11ba878e57135cbddd39a7e49212133e</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Which SQLite command lists all tables in the database?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="016437e0-4b81-4cef-bded-144aa419be0f">
+                <material>
+                  <mattext texttype="text/html">.tables</mattext>
+                </material>
+              </response_label>
+              <response_label ident="6d41cf63-199e-485c-aa68-1b1ea50860c6">
+                <material>
+                  <mattext texttype="text/html">SHOW TABLES</mattext>
+                </material>
+              </response_label>
+              <response_label ident="afadf034-7f1e-442c-be4c-b088e60c484e">
+                <material>
+                  <mattext texttype="text/html">LIST TABLES</mattext>
+                </material>
+              </response_label>
+              <response_label ident="d12a50b7-fd39-4c5e-8537-f2b982e3bbd3">
+                <material>
+                  <mattext texttype="text/html">DESCRIBE</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">016437e0-4b81-4cef-bded-144aa419be0f</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="18d9b648ddd8a7df3d53ef0e7b184314" title="SQL_Q16">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>d617600d-c82b-42b9-9a9b-73a247d4839c,fe0b73c4-d329-4b4d-9c81-80f813b2f120,a6950e53-c268-40cc-b37e-9de685343a73,4cc70b2f-3770-4724-92e8-e3cc392eb247</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>5706c42718ad38e72c34793e7cdfe18c</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Which SQLite command shows the schema for a table?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="d617600d-c82b-42b9-9a9b-73a247d4839c">
+                <material>
+                  <mattext texttype="text/html">.schema</mattext>
+                </material>
+              </response_label>
+              <response_label ident="fe0b73c4-d329-4b4d-9c81-80f813b2f120">
+                <material>
+                  <mattext texttype="text/html">.tables</mattext>
+                </material>
+              </response_label>
+              <response_label ident="a6950e53-c268-40cc-b37e-9de685343a73">
+                <material>
+                  <mattext texttype="text/html">.info</mattext>
+                </material>
+              </response_label>
+              <response_label ident="4cc70b2f-3770-4724-92e8-e3cc392eb247">
+                <material>
+                  <mattext texttype="text/html">.layout</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">d617600d-c82b-42b9-9a9b-73a247d4839c</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="4433d62624c38b1f3029d97a7384ff3a" title="SQL_Q17">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>3056f792-7002-4a1a-9dc2-36656acf0f13,8dac4cdc-0457-4fe4-8b0a-2699b59335b0,eee7f0fe-cd82-4ed5-a06c-941816ceebdb,2a74be2a-7f58-424b-a456-996a114095cd</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>be00f13ffb3a44426f935902b7c7454f</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Which data type is commonly used to store text in SQLite?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="3056f792-7002-4a1a-9dc2-36656acf0f13">
+                <material>
+                  <mattext texttype="text/html">TEXT</mattext>
+                </material>
+              </response_label>
+              <response_label ident="8dac4cdc-0457-4fe4-8b0a-2699b59335b0">
+                <material>
+                  <mattext texttype="text/html">STRING</mattext>
+                </material>
+              </response_label>
+              <response_label ident="eee7f0fe-cd82-4ed5-a06c-941816ceebdb">
+                <material>
+                  <mattext texttype="text/html">CHARACTER</mattext>
+                </material>
+              </response_label>
+              <response_label ident="2a74be2a-7f58-424b-a456-996a114095cd">
+                <material>
+                  <mattext texttype="text/html">WORD</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">3056f792-7002-4a1a-9dc2-36656acf0f13</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="8d92ec885fb66086ce503806eddf484b" title="SQL_Q19">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>17dd3e7e-6c03-45ef-9d56-6bc07505cf4f,4cb98fe0-8efd-477e-8abc-e8560fd64cb5,e62f567b-ae18-4d32-ad69-87ef300f74dd,53862aac-3e6c-4ddf-a073-116a5fb0b057</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>5f9776858a7cfe972c4a6b9b94a4a30d</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Why might sorting data on disk not always be efficient?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="17dd3e7e-6c03-45ef-9d56-6bc07505cf4f">
+                <material>
+                  <mattext texttype="text/html">Random access allows faster retrieval without sorting</mattext>
+                </material>
+              </response_label>
+              <response_label ident="4cb98fe0-8efd-477e-8abc-e8560fd64cb5">
+                <material>
+                  <mattext texttype="text/html">Sorting increases storage size</mattext>
+                </material>
+              </response_label>
+              <response_label ident="e62f567b-ae18-4d32-ad69-87ef300f74dd">
+                <material>
+                  <mattext texttype="text/html">Sorting requires indexes</mattext>
+                </material>
+              </response_label>
+              <response_label ident="53862aac-3e6c-4ddf-a073-116a5fb0b057">
+                <material>
+                  <mattext texttype="text/html">Sorting corrupts data</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">17dd3e7e-6c03-45ef-9d56-6bc07505cf4f</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="bc531fdc8d5c2bee33044f13dad66625" title="SQL_Q20">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>3df9095d-7066-4d74-9aa4-d392f8e41ccc,568143cd-68d4-4cab-8510-f2f3f14cfc0a,7b6512fd-776d-4ced-8535-e52bb7c9c4bb,bf5220db-f777-48d2-ab41-24bbe6b64199</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>a1eb7e78d60a9f52c9b50d6d7b13511c</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>calculator_type</fieldlabel>
+              <fieldentry>none</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;Which statement best reflects SQL best practice?&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="3df9095d-7066-4d74-9aa4-d392f8e41ccc">
+                <material>
+                  <mattext texttype="text/html">Use SQL to ask precise questions of your data</mattext>
+                </material>
+              </response_label>
+              <response_label ident="568143cd-68d4-4cab-8510-f2f3f14cfc0a">
+                <material>
+                  <mattext texttype="text/html">Retrieve all data and filter in Python</mattext>
+                </material>
+              </response_label>
+              <response_label ident="7b6512fd-776d-4ced-8535-e52bb7c9c4bb">
+                <material>
+                  <mattext texttype="text/html">Avoid WHERE clauses</mattext>
+                </material>
+              </response_label>
+              <response_label ident="bf5220db-f777-48d2-ab41-24bbe6b64199">
+                <material>
+                  <mattext texttype="text/html">Store logic inside the database only</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">3df9095d-7066-4d74-9aa4-d392f8e41ccc</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+    </section>
+  </assessment>
+</questestinterop>

@@ -59,6 +59,17 @@ class Fingerprint {
         return str_contains(strtolower((string) $type), 'imsqti');
     }
 
+    /**
+     * Question file attached to a quiz, including Canvas non_cc_assessments.
+     * A standalone file of this shape is an item bank, not a quiz.
+     */
+    public static function hrefIsQti($href) {
+        $href = str_replace('\\', '/', strtolower((string) $href));
+        return str_contains($href, 'non_cc_assessments/')
+            || str_ends_with($href, '.xml.qti')
+            || str_ends_with($href, '.qti');
+    }
+
     public static function isWebContent($type) {
         return strtolower((string) $type) === 'webcontent';
     }
