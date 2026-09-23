@@ -757,6 +757,12 @@ class Courses extends Tool {
                     <input type="text" id="course_title" name="title" required maxlength="512" style="min-width: 20em;"/>
                 </p>
                 <p>
+                    <label for="course_short_title">Short title</label><br/>
+                    <input type="text" id="course_short_title" name="short_title" maxlength="<?= (int) Manifest::SHORT_TITLE_MAX ?>" style="min-width: 20em;"/>
+                    <br/>
+                    <span class="help-block">Optional. The first six characters become the upper-left home label. For example, title “Django for everybody” and short title “DJ Free”.</span>
+                </p>
+                <p>
                     <button type="submit" class="btn btn-primary">Create course</button>
                     <a href="<?= htmlspecialchars($home) ?>" class="btn btn-default">Cancel</a>
                 </p>
@@ -787,10 +793,11 @@ class Courses extends Tool {
             U::flashError(__('Title is required.'));
             return new RedirectResponse(U::addSession(self::joinToolHome($home, 'create')));
         }
+        $short_title = (string) U::get($_POST, 'short_title', '');
 
         $user_id = U::loggedInUserId();
         $key_id = self::googleKeyId();
-        $result = Manifest::createCourse($title, $user_id, $key_id);
+        $result = Manifest::createCourse($title, $user_id, $key_id, $short_title);
         if ( empty($result['ok']) ) {
             $err = isset($result['error']) ? $result['error'] : 'Could not create course.';
             U::flashError($err);

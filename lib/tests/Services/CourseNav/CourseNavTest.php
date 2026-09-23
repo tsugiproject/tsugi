@@ -588,4 +588,15 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('/courses/36/home', $url);
         $this->assertStringNotContainsString('://example.com/home', $url);
     }
+
+    public function testHomeLabelFromShortTitleUsesFirstSixCharacters()
+    {
+        $this->assertSame('DJ Fre', CourseNav::homeLabelFromShortTitle('DJ Free'));
+        $this->assertSame('DJ4E', CourseNav::homeLabelFromShortTitle('  DJ4E  '));
+        $this->assertSame('日本語コース', CourseNav::homeLabelFromShortTitle('日本語コース名'));
+        $this->assertNull(CourseNav::homeLabelFromShortTitle(''));
+        $this->assertNull(CourseNav::homeLabelFromShortTitle('   '));
+        $this->assertNull(CourseNav::homeLabelFromShortTitle(null));
+        $this->assertNull(CourseNav::homeLabelFromShortTitle('Home'));
+    }
 }

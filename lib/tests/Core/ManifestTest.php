@@ -513,6 +513,15 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         );
         return $doc;
     }
+
+    public function testNormalizeShortTitle()
+    {
+        $this->assertNull(Manifest::normalizeShortTitle(null));
+        $this->assertNull(Manifest::normalizeShortTitle('   '));
+        $this->assertSame('DJ Free', Manifest::normalizeShortTitle('  DJ   Free  '));
+        $this->assertSame(str_repeat('A', 64), Manifest::normalizeShortTitle(str_repeat('A', 64)));
+        $this->assertFalse(Manifest::normalizeShortTitle(str_repeat('A', 65)));
+    }
 }
 
 class ManifestTestMCache {

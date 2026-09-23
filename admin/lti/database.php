@@ -214,6 +214,7 @@ array( "{$CFG->dbprefix}lti_context",
     path                TEXT NULL,
 
     title               TEXT NULL,
+    short_title         VARCHAR(64) NULL,
 
     lessons             MEDIUMTEXT NULL,
 
@@ -812,6 +813,9 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         // 2026-08-28 Active course manifest version (NULL = file-based $CFG->lessons)
         array('lti_context', 'manifest_id', 'INTEGER NULL'),
+
+        // 2026-09-23 Short course title (first six characters seed the home label)
+        array('lti_context', 'short_title', 'VARCHAR(64) NULL'),
 
         // 2026-08-28 Named course theme key (NULL = site $CFG->theme)
         array('manifest', 'theme', 'VARCHAR(64) NULL'),
