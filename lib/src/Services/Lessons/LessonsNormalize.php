@@ -3,6 +3,7 @@
 namespace Tsugi\Services\Lessons;
 
 use Tsugi\Services\Files\FileRepository;
+use Tsugi\Services\Pages\PageRepository;
 
 /**
  * Canonical Lessons item model and lossless legacy normalizer.
@@ -728,6 +729,9 @@ class LessonsNormalize {
             if ( $type === self::TYPE_WEB_LINK ) {
                 self::ensureVideoHref($item);
             }
+            if ( $type === self::TYPE_HTML_PAGE ) {
+                self::ensurePageHref($item);
+            }
             if ( ! self::nonEmptyString($item, 'content_type') ) {
                 $inferred = self::inferContentType($item);
                 if ( $inferred !== null ) {
@@ -944,8 +948,22 @@ class LessonsNormalize {
     }
 
     /**
+     * Cartridge imports store page_id and logical_key without href.
+     * The editor stores /pages/{logical_key}; Lessons expands that to the course.
+     *
      * @param array<string, mixed> $item
      */
+    private static function ensurePageHref(array &$item) {
+        if ( self::hrefOf($item) !== '' ) {
+            return;
+        }
+        $key = isset($item['logical_key']) && is_string($item['logical_key']) ? trim($item['logical_key']) : '';
+        $href = PageRepository::hrefForLogicalKey($key);
+        if ( $href !== null ) {
+            $item['href'] = $href;
+        }
+    }
+
     private static function ensureVideoHref(array &$item) {
         if ( self::hrefOf($item) !== '' ) {
             return;

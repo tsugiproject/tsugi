@@ -1854,22 +1854,38 @@ $(function(){
 
     /**
      * How a web link should open. Legacy items with no target stay new-tab.
+     * Course pages carry the site navigation, so an html_page with no target
+     * stays in this window.
      *
      * @param mixed $item
      * @return 'self'|'blank'|'modal'
      */
     public static function webLinkOpenMode($item) {
         $target = '';
-        if ( is_object($item) && isset($item->target) && is_string($item->target) ) {
-            $target = $item->target;
-        } else if ( is_array($item) && isset($item['target']) && is_string($item['target']) ) {
-            $target = $item['target'];
+        $type = '';
+        if ( is_object($item) ) {
+            if ( isset($item->target) && is_string($item->target) ) {
+                $target = $item->target;
+            }
+            if ( isset($item->type) && is_string($item->type) ) {
+                $type = $item->type;
+            }
+        } else if ( is_array($item) ) {
+            if ( isset($item['target']) && is_string($item['target']) ) {
+                $target = $item['target'];
+            }
+            if ( isset($item['type']) && is_string($item['type']) ) {
+                $type = $item['type'];
+            }
         }
         if ( $target === '_self' ) {
             return 'self';
         }
         if ( $target === 'modal' ) {
             return 'modal';
+        }
+        if ( $target === '' && $type === 'html_page' ) {
+            return 'self';
         }
         return 'blank';
     }

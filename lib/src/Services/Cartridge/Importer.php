@@ -192,6 +192,10 @@ class Importer {
                 'logical_key' => $page['logical_key'],
                 'page_id' => $page['page_id'],
             );
+            $pageHref = PageRepository::hrefForLogicalKey($page['logical_key']);
+            if ( is_string($pageHref) && $pageHref !== '' ) {
+                $lesson['href'] = $pageHref;
+            }
             return array(
                 'local_kind' => 'page',
                 'local_id' => $page['page_id'],
@@ -472,12 +476,18 @@ class Importer {
             );
         }
         if ( $kind === 'page' ) {
-            return array(
+            $logical_key = (string) ($object['local_key'] ?? '');
+            $lesson = array(
                 'type' => LessonsNormalize::TYPE_HTML_PAGE,
                 'title' => $title,
-                'logical_key' => (string) ($object['local_key'] ?? ''),
+                'logical_key' => $logical_key,
                 'page_id' => isset($object['local_id']) ? (int) $object['local_id'] : 0,
             );
+            $pageHref = PageRepository::hrefForLogicalKey($logical_key);
+            if ( is_string($pageHref) && $pageHref !== '' ) {
+                $lesson['href'] = $pageHref;
+            }
+            return $lesson;
         }
         if ( $kind === 'quiz' ) {
             return array(

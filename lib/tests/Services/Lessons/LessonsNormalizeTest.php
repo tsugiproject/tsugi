@@ -401,6 +401,13 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(42, $authored['page_id']);
         $this->assertSame('about', $authored['logical_key']);
         $this->assertSame('/pages/about', $authored['href']);
+        $imported = LessonsNormalize::normalizeItem(array(
+            'type' => 'html_page',
+            'title' => 'AA_Instructor_Notes',
+            'logical_key' => 'aa-instructor-notes',
+            'page_id' => 14,
+        ));
+        $this->assertSame('/pages/aa-instructor-notes', $imported['href']);
         $keys = array_keys($authored);
         $this->assertLessThan(array_search('logical_key', $keys, true), array_search('page_id', $keys, true));
     }

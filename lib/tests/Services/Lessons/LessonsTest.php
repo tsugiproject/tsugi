@@ -1101,6 +1101,28 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('blank', \Tsugi\Controllers\Lessons::webLinkOpenMode((object)['type' => 'web_link']));
     }
 
+    public function testRenderHtmlPageStaysInThisWindow() {
+        $lessons = new class extends \Tsugi\Services\Lessons\LessonsService {
+            public function __construct() {
+            }
+        };
+        $module = (object)['title' => 'Test Module'];
+        $item = (object)[
+            'type' => 'html_page',
+            'title' => 'Instructor Notes',
+            'href' => '/pages/aa-instructor-notes',
+            'logical_key' => 'aa-instructor-notes',
+            'page_id' => 14,
+        ];
+        ob_start();
+        \Tsugi\Controllers\Lessons::renderItem($lessons, $item, $module);
+        $output = ob_get_clean();
+        $this->assertStringContainsString('/pages/aa-instructor-notes', $output);
+        $this->assertStringNotContainsString('target="_blank"', $output);
+        $this->assertSame('self', \Tsugi\Controllers\Lessons::webLinkOpenMode($item));
+        $this->assertSame('', \Tsugi\Controllers\Lessons::webLinkTargetAttrs($item));
+    }
+
     public function testRenderWebLinkModalTarget() {
         $lessons = new class extends \Tsugi\Services\Lessons\LessonsService {
             public function __construct() {
