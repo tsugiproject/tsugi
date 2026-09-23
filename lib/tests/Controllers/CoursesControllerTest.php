@@ -152,6 +152,13 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
 
     public function testEnsureActiveContextNoOpWhenSame()
     {
+        global $PDOX;
+        $savePdox = $PDOX ?? null;
+        $PDOX = new class {
+            public function rowDie($sql, $params = array()) {
+                return array('context_id' => 42, 'deleted' => 0, 'manifest_id' => 0);
+            }
+        };
         $_SESSION['id'] = 7;
         $_SESSION['context_id'] = 42;
         $_SESSION['oauth_consumer_key'] = 'google.com';
@@ -159,6 +166,23 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
             _tsugiResetIdentitySnapshot();
         }
         $this->assertTrue(Courses::ensureActiveContext(42));
+        $PDOX = $savePdox;
+    }
+
+    public function testEnsureActiveContextRejectsDeletedCourse()
+    {
+        global $PDOX;
+        $savePdox = $PDOX ?? null;
+        $PDOX = new class {
+            public function rowDie($sql, $params = array()) {
+                return false;
+            }
+        };
+        $_SESSION['id'] = 7;
+        $_SESSION['context_id'] = 42;
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        $this->assertSame('Course not found.', Courses::ensureActiveContext(42));
+        $PDOX = $savePdox;
     }
 
     public function testEnsureActiveContextHydratesManifestWhenSameContext()

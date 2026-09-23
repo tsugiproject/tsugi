@@ -252,7 +252,7 @@ class Settings extends Tool {
             WHERE context_id = :CID AND (
                 key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
                 OR user_id = :UID
-            )",
+            ) AND (deleted IS NULL OR deleted = 0)",
             array(
                 ':CID' => $context_id,
                 ':UID' => $uid
@@ -287,8 +287,9 @@ class Settings extends Tool {
         $sql = "SELECT count(C.context_id) AS count
                 FROM {$CFG->dbprefix}lti_context AS C
                 LEFT JOIN {$CFG->dbprefix}lti_membership AS M ON C.context_id = M.context_id
-                WHERE C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
-                 OR C.user_id = :UID";
+                WHERE ( C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
+                 OR C.user_id = :UID )
+                  AND (C.deleted IS NULL OR C.deleted = 0)";
 
         $course_count = 0;
         $uid = U::loggedInUserId();
@@ -568,8 +569,9 @@ can visit the administrator dashboard.
                     C.login_at, C.login_count, C.created_at, C.updated_at
                 FROM {$CFG->dbprefix}lti_context AS C
                 LEFT JOIN {$CFG->dbprefix}lti_membership AS M ON C.context_id = M.context_id
-                WHERE C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
-                 OR C.user_id = :UID
+                WHERE ( C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
+                 OR C.user_id = :UID )
+                  AND (C.deleted IS NULL OR C.deleted = 0)
                 GROUP BY C.context_id";
         $orderfields = array("C.context_id", "key_value", "title", "C.created_at", "C.updated_at", "C.login_at", "C.login_count");
 
@@ -803,7 +805,7 @@ can visit the administrator dashboard.
             WHERE membership_id = :MID AND (
                 C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
                 OR C.user_id = :UID2
-            )",
+            ) AND (C.deleted IS NULL OR C.deleted = 0)",
             array(
                 ':MID' => $_REQUEST['membership_id'],
                 ':UID' => $uid,
@@ -824,7 +826,7 @@ can visit the administrator dashboard.
             WHERE (
                 key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID)
                 OR user_id = :UID2
-            )
+            ) AND (deleted IS NULL OR deleted = 0)
         )";
         $query_fields = array(':UID' => $uid, ':UID2' => $uid);
         $fields = array("membership_id", "context_id", "user_id", "role_override", "created_at", "updated_at");
@@ -2295,7 +2297,7 @@ $(function(){
         $delete_course_title = self::importReplaceCourseTitle();
         $delete_member_count = self::importReplaceMemberCount();
         $delete_confirm = sprintf(
-            __('WARNING: This permanently deletes course "%s" on %s (%s members), including pages, files, quizzes, resource links, membership, and ALL GRADEBOOK RESULTS. This cannot be undone. Continue?'),
+            __('WARNING: This removes course "%s" on %s (%s members) from the site. Pages, files, quizzes, grades, and membership stay until an administrator clears deleted courses. Continue?'),
             $delete_course_title !== '' ? $delete_course_title : __('this course'),
             $delete_site_domain !== '' ? $delete_site_domain : __('this site'),
             $delete_member_count === null ? __('unknown') : number_format($delete_member_count)

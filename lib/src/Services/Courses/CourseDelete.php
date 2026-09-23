@@ -7,21 +7,81 @@ use Tsugi\Core\LTIX;
 use Tsugi\Services\Cartridge\Wipe;
 
 /**
- * Remove a course and the rows that do not cascade from lti_context.
+ * Soft-delete a course, or permanently remove one.
  *
- * Child tables with ON DELETE CASCADE (membership, manifest, links, results,
- * pages, quizzes, catalog, mail, announcements, cartridge rows) go away with
- * the context row. blob_file is ON DELETE SET NULL, so file bytes are removed
- * first. Minted badges have no foreign key and outlive the course: context_id
- * is set to NULL and the denormalized row stays. lti_message has no foreign key on link_id.
+ * delete() only sets lti_context.deleted and deleted_at. It does not remove
+ * blob_file rows, lti_message rows, or badge rows.
+ *
+ * purge() is the later admin hard delete. Keep it. Child tables with
+ * ON DELETE CASCADE go away with the context row. blob_file is ON DELETE
+ * SET NULL, so file bytes are removed first. lti_message has no foreign key
+ * on link_id, so those rows are deleted first. Minted badges have no foreign
+ * key: context_id is set to NULL and the denormalized row stays. Until that
+ * purge, badge reads join lti_context and do not filter deleted.
  */
 class CourseDelete {
 
     /**
+     * Hide a course. Sets deleted and deleted_at together.
+     *
+     * Does not delete files, lti_message rows, or badges.
+     *
      * @param int $context_id
      * @return void
      */
     public static function delete($context_id) {
+        global $CFG, $PDOX;
+
+        $context_id = (int) $context_id;
+        if ( $context_id < 1 ) {
+            throw new \InvalidArgumentException('A course is required.');
+        }
+        LTIX::getConnection();
+        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
+            throw new \RuntimeException('Database is not available.');
+        }
+
+        $row = $PDOX->rowDie(
+            "SELECT context_id, deleted FROM {$CFG->dbprefix}lti_context WHERE context_id = :CID",
+            array(':CID' => $context_id)
+        );
+        if ( ! is_array($row) ) {
+            throw new \InvalidArgumentException('Course not found.');
+        }
+        if ( (int) ($row['deleted'] ?? 0) === 1 ) {
+            return;
+        }
+
+        $stmt = $PDOX->queryReturnError(
+            "UPDATE {$CFG->dbprefix}lti_context
+             SET deleted = 1, deleted_at = NOW(), updated_at = NOW()
+             WHERE context_id = :CID AND (deleted IS NULL OR deleted = 0)",
+            array(':CID' => $context_id)
+        );
+        if ( ! $stmt->success ) {
+            $detail = isset($stmt->errorImplode) ? (string) $stmt->errorImplode : 'delete failed';
+            throw new \RuntimeException('Could not delete course: '.$detail);
+        }
+        $stmt->closeCursor();
+
+        $left = $PDOX->rowDie(
+            "SELECT deleted, deleted_at FROM {$CFG->dbprefix}lti_context WHERE context_id = :CID",
+            array(':CID' => $context_id)
+        );
+        if ( ! is_array($left) || (int) ($left['deleted'] ?? 0) !== 1 || empty($left['deleted_at']) ) {
+            throw new \RuntimeException('Course was not marked deleted.');
+        }
+    }
+
+    /**
+     * Permanently remove a course, including files and lti_message rows.
+     *
+     * Settings delete does not call this. A later admin screen will.
+     *
+     * @param int $context_id
+     * @return void
+     */
+    public static function purge($context_id) {
         global $CFG, $PDOX;
 
         $context_id = (int) $context_id;

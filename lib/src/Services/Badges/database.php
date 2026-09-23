@@ -17,7 +17,8 @@ array( "{$CFG->dbprefix}badge_assignments",
 
 // Minted badges table - denormalized data for durable badge assertions
 // Once minted, badge validity does not depend on lti_user, lti_context, or lti_result.
-// context_id is cleared when the course is deleted; the row stays so the public URL works.
+// A soft-deleted course stays joinable: badge reads do not filter lti_context.deleted.
+// The later hard purge clears context_id; the row stays so the public URL works.
 array( "{$CFG->dbprefix}badges",
 "create table {$CFG->dbprefix}badges (
     badge_guid         VARCHAR(40) NOT NULL,

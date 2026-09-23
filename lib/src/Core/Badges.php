@@ -72,6 +72,7 @@ class Badges {
         $png = file_get_contents($file);
         if ( $png === false ) return 'File contents fail';
 
+        // Join the course even when it is soft-deleted. Published badges stay valid.
         $row = $PDOX->rowDie(
                 "SELECT displayname, email, user_key, U.login_at, title FROM {$CFG->dbprefix}lti_user AS U
                 JOIN {$CFG->dbprefix}lti_membership AS M
