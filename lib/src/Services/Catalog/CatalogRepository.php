@@ -127,9 +127,11 @@ class CatalogRepository {
                     CI.icon_bytes, CI.icon_updated_at,
                     {$memberSelect}
              FROM {$p}course_catalog AS CAT
+             LEFT JOIN {$p}lti_context AS C ON C.context_id = CAT.context_id
              LEFT JOIN {$p}context_images AS CI ON CI.context_id = CAT.context_id
              {$memberJoin}
              WHERE CAT.published = 1
+               AND (CAT.context_id IS NULL OR C.deleted IS NULL OR C.deleted = 0)
              ORDER BY CAT.sort_order ASC, CAT.title ASC, CAT.catalog_id ASC",
             $params
         );
@@ -167,7 +169,9 @@ class CatalogRepository {
                 ON M.context_id = CAT.context_id AND M.user_id = :UID";
             $params[':UID'] = $uid;
         }
-        $pub = $publishedOnly ? ' AND CAT.published = 1' : '';
+        $pub = $publishedOnly
+            ? ' AND CAT.published = 1 AND (CAT.context_id IS NULL OR C.deleted IS NULL OR C.deleted = 0)'
+            : '';
         $row = $PDOX->rowDie(
             "SELECT CAT.catalog_id, CAT.context_id, CAT.external_url, CAT.title,
                     CAT.short_description, CAT.description, CAT.published, CAT.sort_order,
@@ -177,6 +181,7 @@ class CatalogRepository {
                     CI.icon_bytes, CI.icon_updated_at,
                     {$memberSelect}
              FROM {$p}course_catalog AS CAT
+             LEFT JOIN {$p}lti_context AS C ON C.context_id = CAT.context_id
              LEFT JOIN {$p}context_images AS CI ON CI.context_id = CAT.context_id
              {$memberJoin}
              WHERE CAT.catalog_id = :ID{$pub}",
@@ -421,10 +426,18 @@ class CatalogRepository {
         if ( $cid < 1 || $uid < 1 ) {
             return false;
         }
+        LTIX::getConnection();
+        $alive = $PDOX->rowDie(
+            "SELECT context_id FROM {$CFG->dbprefix}lti_context
+             WHERE context_id = :CID AND (deleted IS NULL OR deleted = 0)",
+            array(':CID' => $cid)
+        );
+        if ( ! is_array($alive) ) {
+            return false;
+        }
         if ( self::isMember($cid, $uid) ) {
             return true;
         }
-        LTIX::getConnection();
         $stmt = $PDOX->queryReturnError(
             "INSERT INTO {$CFG->dbprefix}lti_membership
                 (context_id, user_id, role, created_at, updated_at)
@@ -486,7 +499,7 @@ class CatalogRepository {
              FROM {$p}lti_context AS C
              LEFT JOIN {$p}manifest AS MF ON C.manifest_id = MF.manifest_id
              LEFT JOIN {$p}course_catalog AS CAT ON CAT.context_id = C.context_id
-             WHERE 1=1{$extra}
+             WHERE (C.deleted IS NULL OR C.deleted = 0){$extra}
              ORDER BY COALESCE(NULLIF(MF.title, ''), C.title), C.context_id",
             $params
         );

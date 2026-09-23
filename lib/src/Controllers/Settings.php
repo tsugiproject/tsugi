@@ -22,6 +22,7 @@ use Tsugi\Services\Cartridge\Importer;
 use Tsugi\Services\Cartridge\ImportException;
 use Tsugi\Services\Cartridge\Package;
 use Tsugi\Services\Cartridge\Pending;
+use Tsugi\Services\Courses\CourseDelete;
 use Tsugi\Services\CourseNav\CourseNav;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -34,8 +35,9 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
  * Site-wide (wwwroot/settings): keys, contexts, PII expiry. Login is required;
  * a course context is not. Do not call requireAuth() on those pages.
  *
- * Course-mounted (/courses/{id}/settings): theme, navigation, images, and
- * Common Cartridge import/export for the active manifest. Instructor + manifest only. Nested dispatch from
+ * Course-mounted (/courses/{id}/settings): theme, navigation, images,
+ * Common Cartridge import/export, and delete course for the active manifest.
+ * Instructor + manifest only. Nested dispatch from
  * Courses keeps REQUEST_URI prefixed, so isCourseRoute() can tell the two
  * families apart. File-based $CFG->lessons sites keep using the site $CFG->theme.
  *
@@ -62,6 +64,7 @@ class Settings extends Tool {
         self::mapPage($app, $prefix.'/export/download', 'exportDownload', false);
         self::mapPage($app, $prefix.'/export', 'export', true);
         self::mapPage($app, $prefix.'/import', 'import', true);
+        self::mapPage($app, $prefix.'/delete', 'deleteCourse', true);
         self::mapPage($app, $prefix.'/navigation', 'navigation', true);
         self::mapPage($app, $prefix.'/images', 'images', true);
 
@@ -249,7 +252,7 @@ class Settings extends Tool {
             WHERE context_id = :CID AND (
                 key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
                 OR user_id = :UID
-            )",
+            ) AND (deleted IS NULL OR deleted = 0)",
             array(
                 ':CID' => $context_id,
                 ':UID' => $uid
@@ -284,8 +287,9 @@ class Settings extends Tool {
         $sql = "SELECT count(C.context_id) AS count
                 FROM {$CFG->dbprefix}lti_context AS C
                 LEFT JOIN {$CFG->dbprefix}lti_membership AS M ON C.context_id = M.context_id
-                WHERE C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
-                 OR C.user_id = :UID";
+                WHERE ( C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
+                 OR C.user_id = :UID )
+                  AND (C.deleted IS NULL OR C.deleted = 0)";
 
         $course_count = 0;
         $uid = U::loggedInUserId();
@@ -565,8 +569,9 @@ can visit the administrator dashboard.
                     C.login_at, C.login_count, C.created_at, C.updated_at
                 FROM {$CFG->dbprefix}lti_context AS C
                 LEFT JOIN {$CFG->dbprefix}lti_membership AS M ON C.context_id = M.context_id
-                WHERE C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
-                 OR C.user_id = :UID
+                WHERE ( C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
+                 OR C.user_id = :UID )
+                  AND (C.deleted IS NULL OR C.deleted = 0)
                 GROUP BY C.context_id";
         $orderfields = array("C.context_id", "key_value", "title", "C.created_at", "C.updated_at", "C.login_at", "C.login_count");
 
@@ -800,7 +805,7 @@ can visit the administrator dashboard.
             WHERE membership_id = :MID AND (
                 C.key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID )
                 OR C.user_id = :UID2
-            )",
+            ) AND (C.deleted IS NULL OR C.deleted = 0)",
             array(
                 ':MID' => $_REQUEST['membership_id'],
                 ':UID' => $uid,
@@ -821,7 +826,7 @@ can visit the administrator dashboard.
             WHERE (
                 key_id IN (select key_id from {$CFG->dbprefix}lti_key where user_id = :UID)
                 OR user_id = :UID2
-            )
+            ) AND (deleted IS NULL OR deleted = 0)
         )";
         $query_fields = array(':UID' => $uid, ':UID2' => $uid);
         $fields = array("membership_id", "context_id", "user_id", "role_override", "created_at", "updated_at");
@@ -1671,6 +1676,7 @@ re-check your login status.
         $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
         $setup_tab = 'theme';
 
         $OUTPUT->header();
@@ -1716,6 +1722,7 @@ re-check your login status.
         $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
         $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;
@@ -1811,6 +1818,7 @@ re-check your login status.
         $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
         $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;
@@ -1950,6 +1958,7 @@ re-check your login status.
         $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
         $download_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export/download'));
         $gate = $this->courseGate();
         if ( $gate ) {
@@ -2055,6 +2064,7 @@ function goToCanvas(anchors) {
         $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;
@@ -2235,6 +2245,207 @@ $(function(){
             $OUTPUT->footer();
         }
         return '';
+    }
+
+    /**
+     * Delete this course after the same domain, title, and member-count check as import wipe.
+     */
+    public function deleteCourse(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+        if ( $request->isMethod('POST') ) {
+            return $this->deleteCoursePost($request);
+        }
+
+        global $OUTPUT;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $setup_tab = 'delete';
+        $delete_blocked = self::siteHomeCourseDeleteBlocked(U::currentContextId());
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php include __DIR__ . '/templates/Settings/delete.inc.php'; ?>
+            </div>
+        </main>
+        <?php
+        if ( $delete_blocked ) {
+            $OUTPUT->footer();
+            return '';
+        }
+
+        $OUTPUT->footerStart();
+        $delete_site_domain = self::importSiteDomain();
+        $delete_course_title = self::importReplaceCourseTitle();
+        $delete_member_count = self::importReplaceMemberCount();
+        $delete_confirm = sprintf(
+            __('WARNING: This removes course "%s" on %s (%s members) from the site. Pages, files, quizzes, grades, and membership stay until an administrator clears deleted courses. Continue?'),
+            $delete_course_title !== '' ? $delete_course_title : __('this course'),
+            $delete_site_domain !== '' ? $delete_site_domain : __('this site'),
+            $delete_member_count === null ? __('unknown') : number_format($delete_member_count)
+        );
+        ?>
+<script>
+function typedDeleteDomain(){
+    var raw = $.trim($('#delete_domain_input').val() || '');
+    raw = raw.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '');
+    raw = raw.split('/')[0];
+    raw = raw.split(':')[0];
+    return raw.toLowerCase();
+}
+function typedDeleteTitle(){
+    var raw = $.trim($('#delete_title_input').val() || '');
+    raw = raw.replace(/\s+/g, ' ');
+    return raw.toLowerCase();
+}
+function typedDeleteMembers(){
+    var raw = $.trim($('#delete_members_input').val() || '');
+    raw = raw.replace(/[,\s]/g, '');
+    if ( ! /^\d+$/.test(raw) ) {
+        return null;
+    }
+    return parseInt(raw, 10);
+}
+function deleteDomainMatches(){
+    var expected = <?= json_encode($delete_site_domain) ?>;
+    return expected !== '' && typedDeleteDomain() === expected;
+}
+function deleteTitleMatches(){
+    var expected = <?= json_encode(self::normalizeImportTitle($delete_course_title)) ?>;
+    return expected !== '' && typedDeleteTitle() === expected;
+}
+function deleteMembersMatch(){
+    var expected = <?= json_encode($delete_member_count) ?>;
+    if ( expected === null || typeof expected !== 'number' ) {
+        return false;
+    }
+    return typedDeleteMembers() === expected;
+}
+function deleteConfirmMatches(){
+    return deleteDomainMatches() && deleteTitleMatches() && deleteMembersMatch();
+}
+function deleteAlreadyBusy(){
+    return $('.delete-submit[aria-busy="true"]').length > 0;
+}
+function syncDeleteCourse(){
+    var match = deleteConfirmMatches();
+    $('input[name="delete_domain"]').val($('#delete_domain_input').val() || '');
+    $('input[name="delete_title"]').val($('#delete_title_input').val() || '');
+    $('input[name="delete_members"]').val($('#delete_members_input').val() || '');
+    if ( deleteAlreadyBusy() ) {
+        return;
+    }
+    $('.delete-submit').prop('disabled', ! match);
+}
+function startDeleteBusy(btn){
+    var label = <?= json_encode(__('Deleting...')) ?>;
+    $('.delete-submit').prop('disabled', true).attr('aria-busy', 'true');
+    if ( ! btn ) {
+        btn = $('.delete-submit').get(0);
+    }
+    if ( btn ) {
+        $(btn).html('<i class="fa fa-spinner fa-spin" aria-hidden="true"></i> '+label);
+    }
+}
+function confirmDeleteCourse(btn){
+    if ( deleteAlreadyBusy() ) {
+        return false;
+    }
+    syncDeleteCourse();
+    if ( ! deleteDomainMatches() || ! deleteTitleMatches() || ! deleteMembersMatch() ) {
+        alert(<?= json_encode(__('Type this site\'s domain, this course\'s title, and the number of members to confirm deleting this course.')) ?>);
+        return false;
+    }
+    if ( ! confirm(<?= json_encode($delete_confirm) ?>) ) {
+        return false;
+    }
+    startDeleteBusy(btn);
+    return true;
+}
+$(function(){
+    $('#delete_domain_input').on('input', syncDeleteCourse);
+    $('#delete_title_input').on('input', syncDeleteCourse);
+    $('#delete_members_input').on('input', syncDeleteCourse);
+    syncDeleteCourse();
+});
+</script>
+        <?php
+        $OUTPUT->footerEnd();
+        return '';
+    }
+
+    /**
+     * POST: re-check the typed confirmation, delete the course, go to app home.
+     *
+     * @return RedirectResponse
+     */
+    private function deleteCoursePost(Request $request)
+    {
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+        $csrf = self::requireCsrf($delete_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        $context_id = U::currentContextId();
+        if ( self::siteHomeCourseDeleteBlocked($context_id) ) {
+            U::flashError(__('The site home course cannot be deleted.'));
+            return new RedirectResponse($delete_url);
+        }
+
+        $error = self::deleteCourseInputError(
+            U::get($_POST, 'delete_domain', ''),
+            U::get($_POST, 'delete_title', ''),
+            U::get($_POST, 'delete_members', '')
+        );
+        if ( $error !== null ) {
+            U::flashError($error);
+            return new RedirectResponse($delete_url);
+        }
+
+        $user_id = U::loggedInUserId();
+        try {
+            CourseDelete::delete($context_id);
+        } catch ( \Throwable $e ) {
+            error_log('Course delete failed for context '.$context_id.': '.$e->getMessage());
+            U::flashError(__('Could not delete this course.'));
+            return new RedirectResponse($delete_url);
+        }
+
+        $pending = Pending::load($context_id, $user_id);
+        if ( $pending !== null ) {
+            Pending::clear();
+        }
+        Courses::releaseContextAfterDelete($context_id);
+
+        U::flashSuccess(__('Course deleted.'));
+        $home = Courses::appHomeUrl();
+        if ( $home === '' ) {
+            $home = self::configuredHomeUrl();
+        }
+        return new RedirectResponse(U::addSession($home));
     }
 
     /**
@@ -2813,6 +3024,40 @@ $(function(){
             return false;
         }
         return self::normalizeImportDomain($typed) === $expected;
+    }
+
+    /**
+     * Error when the typed domain, title, or member count does not match, else null.
+     *
+     * Same checks as wipe-before-import. Empty input never matches.
+     *
+     * @param mixed $domain
+     * @param mixed $title
+     * @param mixed $members
+     * @return string|null
+     */
+    public static function deleteCourseInputError($domain, $title, $members) {
+        if ( ! self::importReplaceDomainConfirmed($domain) ) {
+            return __('Type the domain name of this site to confirm deleting this course.');
+        }
+        if ( ! self::importReplaceTitleConfirmed($title) ) {
+            return __('Type this course\'s title to confirm deleting this course.');
+        }
+        if ( ! self::importReplaceMembersConfirmed($members) ) {
+            return __('Type the number of members in this course to confirm deleting this course.');
+        }
+        return null;
+    }
+
+    /**
+     * The Google site-login course is the app's home context. Do not delete it.
+     *
+     * @param int $context_id
+     * @return bool
+     */
+    public static function siteHomeCourseDeleteBlocked($context_id) {
+        $site = Courses::siteLoginContextId();
+        return $site > 0 && (int) $context_id === $site;
     }
 
     /**

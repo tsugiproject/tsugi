@@ -152,6 +152,13 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
 
     public function testEnsureActiveContextNoOpWhenSame()
     {
+        global $PDOX;
+        $savePdox = $PDOX ?? null;
+        $PDOX = new class {
+            public function rowDie($sql, $params = array()) {
+                return array('context_id' => 42, 'deleted' => 0, 'manifest_id' => 0);
+            }
+        };
         $_SESSION['id'] = 7;
         $_SESSION['context_id'] = 42;
         $_SESSION['oauth_consumer_key'] = 'google.com';
@@ -159,6 +166,27 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
             _tsugiResetIdentitySnapshot();
         }
         $this->assertTrue(Courses::ensureActiveContext(42));
+        $PDOX = $savePdox;
+    }
+
+    public function testEnsureActiveContextRejectsDeletedCourse()
+    {
+        global $PDOX;
+        $savePdox = $PDOX ?? null;
+        $PDOX = new class {
+            public $lastSql;
+
+            public function rowDie($sql, $params = array()) {
+                $this->lastSql = $sql;
+                return false;
+            }
+        };
+        $_SESSION['id'] = 7;
+        $_SESSION['context_id'] = 42;
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        $this->assertSame('Course not found.', Courses::ensureActiveContext(42));
+        $this->assertStringContainsString('(deleted IS NULL OR deleted = 0)', $PDOX->lastSql);
+        $PDOX = $savePdox;
     }
 
     public function testEnsureActiveContextHydratesManifestWhenSameContext()
@@ -464,5 +492,27 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('', $rows[1]['hero_url']);
         $this->assertSame('', $rows[1]['icon_url']);
         $this->assertSame('Django', $rows[0]['title']);
+    }
+
+    public function testReleaseContextAfterDeleteClearsDeletedSiteCourse()
+    {
+        $_SESSION['id'] = 7;
+        $_SESSION[Courses::SESSION_SITE_CONTEXT_ID] = 9;
+        $_SESSION['context_id'] = 9;
+        $_SESSION['context_title'] = 'Gone';
+        $_SESSION['context_key'] = 'course:abc';
+        $_SESSION['manifest_id'] = 99;
+        $_SESSION['lti'] = array(
+            'context_id' => 9,
+            'context_title' => 'Gone',
+            'manifest_id' => 99,
+        );
+        Courses::releaseContextAfterDelete(9);
+        $this->assertArrayNotHasKey('context_id', $_SESSION);
+        $this->assertArrayNotHasKey(Courses::SESSION_SITE_CONTEXT_ID, $_SESSION);
+        $this->assertArrayNotHasKey('manifest_id', $_SESSION);
+        $this->assertArrayNotHasKey('context_title', $_SESSION);
+        $this->assertArrayNotHasKey('context_id', $_SESSION['lti']);
+        $this->assertArrayNotHasKey('manifest_id', $_SESSION['lti']);
     }
 }

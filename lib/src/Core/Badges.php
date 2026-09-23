@@ -51,15 +51,19 @@ class Badges {
             return 'File pattern fail';
         }
 
-        // Make sure this is a legit badge
-        $legit = false;
-        foreach($lesson->lessons->badges as $badge) {
-            if ( $badge->image == $pieces[1].'.png') {
-                $legit = true;
-                break;
-            }
+        $badge = self::badgeFromLessons($lesson, $pieces[1]);
+        $minted = \Tsugi\Services\Badges\BadgeService::mintedDisplayRow(
+            (int) $pieces[0],
+            (string) $pieces[1],
+            (int) $pieces[2]
+        );
+        if ( $badge === null && $minted !== null ) {
+            $badge = \Tsugi\Services\Badges\BadgeService::syntheticBadge(
+                (string) $pieces[1],
+                $minted['badge_title']
+            );
         }
-        if ( ! $legit ) {
+        if ( $badge === null ) {
             return 'Bad badge image';
         }
 
@@ -68,6 +72,7 @@ class Badges {
         $png = file_get_contents($file);
         if ( $png === false ) return 'File contents fail';
 
+        // Join the course even when it is soft-deleted. Published badges stay valid.
         $row = $PDOX->rowDie(
                 "SELECT displayname, email, user_key, U.login_at, title FROM {$CFG->dbprefix}lti_user AS U
                 JOIN {$CFG->dbprefix}lti_membership AS M
@@ -77,9 +82,33 @@ class Badges {
                 WHERE U.user_id = :UID AND M.context_id = :CID",
                 array(":UID" => $pieces[0], ":CID" => $pieces[2])
         );
-        if ( $row === false ) return 'Metadata failed';
+        if ( $row === false ) {
+            if ( $minted === null ) {
+                return 'Metadata failed';
+            }
+            $row = $minted;
+        }
 
         return array($row, $png, $pieces, $badge);
+    }
+
+    /**
+     * Badge definition from the current lessons list, or null.
+     *
+     * @param object $lesson
+     * @param string $code
+     * @return object|null
+     */
+    private static function badgeFromLessons($lesson, $code) {
+        if ( ! is_object($lesson) || ! isset($lesson->lessons->badges) || ! is_iterable($lesson->lessons->badges) ) {
+            return null;
+        }
+        foreach ( $lesson->lessons->badges as $badge ) {
+            if ( isset($badge->image) && $badge->image == $code.'.png' ) {
+                return $badge;
+            }
+        }
+        return null;
     }
     
     /**

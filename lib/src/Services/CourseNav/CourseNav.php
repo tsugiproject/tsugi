@@ -22,6 +22,7 @@ class CourseNav {
 
     const WIDGET_LI_CLASS = 'hidden-xs tsugi-wc-nav-item';
     const HOME_LABEL_MAX = 40;
+    const INITIAL_HOME_CHARS = 6;
 
     /**
      * @return array<string, mixed>
@@ -152,7 +153,6 @@ class CourseNav {
             array('id' => 'notifications_widget', 'kind' => 'widget', 'label' => 'Notifications widget', 'route' => '/notifications', 'site' => false),
             array('id' => 'profile', 'kind' => 'link', 'label' => 'Profile', 'route' => '/profile', 'site' => true),
             array('id' => 'analytics', 'kind' => 'link', 'label' => 'Analytics', 'route' => '/analytics', 'site' => false),
-            array('id' => 'badges', 'kind' => 'link', 'label' => 'Badges', 'route' => '/badges', 'site' => false),
             array('id' => 'courses_widget', 'kind' => 'widget', 'label' => 'Courses widget', 'route' => '/courses', 'site' => true, 'pin' => 'catalog', 'hint' => 'Switcher for other courses. Place in the upper left or upper right, like other widgets.'),
             array('id' => 'exit_course', 'kind' => 'link', 'label' => 'Exit course', 'route' => '', 'site' => true, 'pin' => 'catalog', 'hint' => 'Leaves the course and returns to the site home.', 'needs_apphome' => true),
             array('id' => 'login', 'kind' => 'link', 'label' => 'Login', 'route' => '/login', 'site' => true, 'pin' => 'last', 'hint' => 'Only shown when the user is not logged in.'),
@@ -454,6 +454,32 @@ class CourseNav {
             $href = $prefix.$route;
         }
         return array('label' => __($entry['label']), 'href' => $href);
+    }
+
+    /**
+     * Home label seeded from a course short title: the first six characters.
+     *
+     * Empty, missing, or a slice that normalizes away (blank or the word Home)
+     * returns null so the course keeps the default Home label.
+     *
+     * @param mixed $shortTitle
+     * @return string|null
+     */
+    public static function homeLabelFromShortTitle($shortTitle) {
+        if ( ! is_string($shortTitle) ) {
+            return null;
+        }
+        $shortTitle = trim($shortTitle);
+        if ( $shortTitle === '' ) {
+            return null;
+        }
+        $n = self::INITIAL_HOME_CHARS;
+        if ( function_exists('mb_substr') ) {
+            $slice = mb_substr($shortTitle, 0, $n);
+        } else {
+            $slice = substr($shortTitle, 0, $n);
+        }
+        return self::sanitizeHomeLabel($slice);
     }
 
     /**

@@ -126,6 +126,66 @@ class BadgeService {
     }
 
     /**
+     * Display row for a baked or legacy assertion after the course membership is gone.
+     *
+     * Prefers a row that still has this context_id, then a row detached by course delete
+     * (context_id NULL). Name, email, course title, and issue time come from the badge row.
+     *
+     * @return array{displayname:string,email:string,user_key:string,login_at:string,title:string,badge_title:string}|null
+     */
+    public static function mintedDisplayRow(int $user_id, string $badge_code, int $context_id): ?array {
+        global $CFG, $PDOX;
+
+        if ( $user_id < 1 || $badge_code === '' || ! self::tableExists() ) {
+            return null;
+        }
+
+        $q = $PDOX->queryReturnError(
+            "SELECT user_displayname, user_email, issued_at, context_title, badge_title
+             FROM {$CFG->dbprefix}badges
+             WHERE user_id = :UID AND badge_code = :CODE
+               AND (context_id = :CID OR context_id IS NULL)
+             ORDER BY context_id IS NULL, issued_at DESC
+             LIMIT 1",
+            array(
+                ':UID' => $user_id,
+                ':CODE' => $badge_code,
+                ':CID' => $context_id,
+            )
+        );
+        if ( ! $q->success ) {
+            return null;
+        }
+        $row = $q->fetch(\PDO::FETCH_ASSOC);
+        $q->closeCursor();
+        if ( ! is_array($row) ) {
+            return null;
+        }
+
+        return array(
+            'displayname' => (string) ($row['user_displayname'] ?? ''),
+            'email' => (string) ($row['user_email'] ?? ''),
+            'user_key' => '',
+            'login_at' => (string) ($row['issued_at'] ?? ''),
+            'title' => (string) ($row['context_title'] ?? ''),
+            'badge_title' => (string) ($row['badge_title'] ?? ''),
+        );
+    }
+
+    /**
+     * Badge object from stored title when the course lessons no longer list this image.
+     *
+     * @return object
+     */
+    public static function syntheticBadge(string $badge_code, string $badge_title) {
+        return (object) array(
+            'title' => $badge_title !== '' ? $badge_title : $badge_code,
+            'image' => $badge_code.'.png',
+            'completion' => false,
+        );
+    }
+
+    /**
      * Load minted badge by GUID.
      *
      * @return array|null Row data or null if not found

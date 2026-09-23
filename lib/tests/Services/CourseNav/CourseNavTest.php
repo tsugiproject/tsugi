@@ -345,7 +345,6 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
                 'notifications_widget',
                 'profile',
                 'analytics',
-                'badges',
                 'courses_widget',
                 'exit_course',
                 'login',
@@ -354,6 +353,23 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
             $ids
         );
         $this->assertNotContains('topics', $ids);
+        $this->assertNotContains('badges', $ids);
+    }
+
+    public function testStoredBadgesLinkIsDropped()
+    {
+        $doc = CourseNav::normalize(array(
+            'items' => array(
+                array('id' => 'badges', 'left' => true),
+                array('id' => 'lessons', 'left' => true),
+            ),
+        ));
+        $ids = array();
+        foreach ( $doc['items'] as $item ) {
+            $ids[] = $item['id'];
+        }
+        $this->assertNotContains('badges', $ids);
+        $this->assertContains('lessons', $ids);
     }
 
     public function testEmptyItemsIsNotCoercedToDefault()
@@ -571,5 +587,16 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $url = Courses::courseHomeUrl(36);
         $this->assertStringContainsString('/courses/36/home', $url);
         $this->assertStringNotContainsString('://example.com/home', $url);
+    }
+
+    public function testHomeLabelFromShortTitleUsesFirstSixCharacters()
+    {
+        $this->assertSame('DJ Fre', CourseNav::homeLabelFromShortTitle('DJ Free'));
+        $this->assertSame('DJ4E', CourseNav::homeLabelFromShortTitle('  DJ4E  '));
+        $this->assertSame('日本語コース', CourseNav::homeLabelFromShortTitle('日本語コース名'));
+        $this->assertNull(CourseNav::homeLabelFromShortTitle(''));
+        $this->assertNull(CourseNav::homeLabelFromShortTitle('   '));
+        $this->assertNull(CourseNav::homeLabelFromShortTitle(null));
+        $this->assertNull(CourseNav::homeLabelFromShortTitle('Home'));
     }
 }

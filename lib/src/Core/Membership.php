@@ -111,7 +111,7 @@ class Membership {
                  WHERE context_id = :CID AND (
                      key_id IN (SELECT key_id FROM {$CFG->dbprefix}lti_key WHERE user_id = :UID)
                      OR user_id = :UID
-                 )",
+                 ) AND (deleted IS NULL OR deleted = 0)",
                 array(':CID' => $cid, ':UID' => $user_id)
             );
             if ( $context_check ) {

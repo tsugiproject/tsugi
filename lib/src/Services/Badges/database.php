@@ -16,12 +16,14 @@ array( "{$CFG->dbprefix}badge_assignments",
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;"),
 
 // Minted badges table - denormalized data for durable badge assertions
-// Once minted, badge validity does not depend on lti_user, lti_context, or lti_result
+// Once minted, badge validity does not depend on lti_user, lti_context, or lti_result.
+// A soft-deleted course stays joinable: badge reads do not filter lti_context.deleted.
+// The later hard purge clears context_id; the row stays so the public URL works.
 array( "{$CFG->dbprefix}badges",
 "create table {$CFG->dbprefix}badges (
     badge_guid         VARCHAR(40) NOT NULL,
     user_id            INTEGER NOT NULL,
-    context_id         INTEGER NOT NULL,
+    context_id         INTEGER NULL,
     badge_code         VARCHAR(128) NOT NULL,
     user_displayname   VARCHAR(512) NOT NULL,
     user_email         VARCHAR(512) NOT NULL,
@@ -52,5 +54,13 @@ $DATABASE_UPGRADE = function($oldversion) {
         $PDOX->queryReturnError($sql);
     }
 
-    return 202606170001;
+    if ( $PDOX->columnExists('context_id', "{$CFG->dbprefix}badges")
+        && $PDOX->columnIsNull('context_id', "{$CFG->dbprefix}badges") === false ) {
+        $sql = "ALTER TABLE {$CFG->dbprefix}badges MODIFY context_id INTEGER NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryReturnError($sql);
+    }
+
+    return 202609220001;
 };

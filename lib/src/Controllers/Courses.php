@@ -174,7 +174,9 @@ class Courses extends Tool {
         $context_key = 'course:'.md5($CFG->context_title);
         $row = $PDOX->rowDie(
             "SELECT context_id FROM {$CFG->dbprefix}lti_context
-                WHERE context_sha256 = :SHA AND key_id = :KID LIMIT 1",
+                WHERE context_sha256 = :SHA AND key_id = :KID
+                  AND (deleted IS NULL OR deleted = 0)
+                LIMIT 1",
             array(':SHA' => lti_sha256($context_key), ':KID' => $keyId)
         );
         if ( ! $row || ! isset($row['context_id']) ) {
@@ -327,6 +329,20 @@ class Courses extends Tool {
             return 'Invalid course.';
         }
 
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+        $p = $CFG->dbprefix;
+
+        $context_row = $PDOX->rowDie(
+            "SELECT context_id, context_key, title, manifest_id FROM {$p}lti_context
+             WHERE context_id = :CID AND (deleted IS NULL OR deleted = 0)",
+            array(':CID' => $cid)
+        );
+        if ( ! $context_row ) {
+            return 'Course not found.';
+        }
+
         $current = U::currentContextId();
         if ( $current === $cid ) {
             self::wireLaunchConnection();
@@ -342,19 +358,6 @@ class Courses extends Tool {
         $user_id = U::loggedInUserId();
         if ( $user_id < 1 ) {
             return 'Must be logged in.';
-        }
-
-        if ( $PDOX === null || $PDOX === false ) {
-            $PDOX = LTIX::getConnection();
-        }
-        $p = $CFG->dbprefix;
-
-        $context_row = $PDOX->rowDie(
-            "SELECT context_id, context_key, title, manifest_id FROM {$p}lti_context WHERE context_id = :CID",
-            array(':CID' => $cid)
-        );
-        if ( ! $context_row ) {
-            return 'Course not found.';
         }
 
         $is_admin = isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes';
@@ -435,6 +438,102 @@ class Courses extends Tool {
     }
 
     /**
+     * Forget $context_id when it is the course in this session.
+     *
+     * Leaves login, CSRF, and the stored LTI return URL in place.
+     *
+     * @param int $context_id
+     * @return void
+     */
+    public static function dropActiveContext($context_id) {
+        $context_id = (int) $context_id;
+        if ( $context_id < 1 ) {
+            return;
+        }
+        $current = (int) ($_SESSION['context_id'] ?? 0);
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        $ltiId = 0;
+        if ( isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey]) ) {
+            $ltiId = (int) ($_SESSION[$ltiKey]['context_id'] ?? 0);
+        }
+        if ( $current !== $context_id && $ltiId !== $context_id ) {
+            return;
+        }
+        self::clearActiveContext();
+    }
+
+    /**
+     * Drop a deleted course from the session and return to the site-login course when one remains.
+     *
+     * @param int $deleted_id
+     * @return void
+     */
+    public static function releaseContextAfterDelete($deleted_id) {
+        $deleted_id = (int) $deleted_id;
+        if ( isset($_SESSION[self::SESSION_SITE_CONTEXT_ID])
+            && (int) $_SESSION[self::SESSION_SITE_CONTEXT_ID] === $deleted_id ) {
+            unset($_SESSION[self::SESSION_SITE_CONTEXT_ID]);
+        }
+
+        $home = 0;
+        try {
+            $home = self::siteLoginContextId();
+        } catch ( \Throwable $e ) {
+            $home = 0;
+        }
+        if ( $home > 0 && $home !== $deleted_id ) {
+            $switched = self::ensureActiveContext($home);
+            if ( $switched === true ) {
+                Manifest::rememberInSession(0);
+                return;
+            }
+        }
+        self::clearActiveContext();
+    }
+
+    /**
+     * Forget the current course in this session.
+     *
+     * @return void
+     */
+    private static function clearActiveContext() {
+        unset(
+            $_SESSION['context_id'],
+            $_SESSION['context_key'],
+            $_SESSION['context_title'],
+            $_SESSION['membership_id'],
+            $_SESSION['isinstructor']
+        );
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        if ( isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey]) ) {
+            unset(
+                $_SESSION[$ltiKey]['context_id'],
+                $_SESSION[$ltiKey]['context_key'],
+                $_SESSION[$ltiKey]['context_title'],
+                $_SESSION[$ltiKey]['resource_title'],
+                $_SESSION[$ltiKey]['membership_id'],
+                $_SESSION[$ltiKey]['context_settings']
+            );
+        }
+        Manifest::rememberInSession(0);
+        Cache::clearAllSessionCaches();
+        Output::clearTopNavSession();
+        if ( function_exists('_tsugiResetIdentitySnapshot') ) {
+            _tsugiResetIdentitySnapshot();
+        }
+
+        global $CONTEXT, $USER, $LINK, $RESULT, $LAUNCH, $TSUGI_LAUNCH, $TSUGI_KEY, $PROFILE;
+        $CONTEXT = null;
+        $USER = null;
+        $LINK = null;
+        $RESULT = null;
+        $LAUNCH = null;
+        $TSUGI_LAUNCH = null;
+        $TSUGI_KEY = null;
+        $PROFILE = null;
+    }
+
+    /**
      * Record that this user entered a course (flyout recency).
      *
      * Call only from explicit /courses/{id} entry (enter, nested switch,
@@ -498,6 +597,7 @@ class Courses extends Tool {
         }
         $p = $CFG->dbprefix;
         $user_id = U::loggedInUserId();
+        $siteId = self::siteLoginContextId();
 
         $rows = $PDOX->allRowsDie(
             "SELECT C.context_id, C.context_key,
@@ -508,8 +608,10 @@ class Courses extends Tool {
              LEFT JOIN {$p}manifest AS MF ON C.manifest_id = MF.manifest_id
              LEFT JOIN {$p}context_images AS CI ON CI.context_id = C.context_id
              WHERE M.user_id = :UID
+               AND (C.deleted IS NULL OR C.deleted = 0)
+               ".self::listedCourseSql()."
              ORDER BY COALESCE(NULLIF(MF.title, ''), C.title), C.context_id",
-            array(':UID' => $user_id)
+            array(':UID' => $user_id, ':SITE' => $siteId)
         );
         if ( ! is_array($rows) ) {
             $rows = array();
@@ -520,7 +622,6 @@ class Courses extends Tool {
         $home = $tool->toolHome(self::ROUTE);
         $can_create = self::canCreate();
         $create_url = self::joinToolHome($home, 'create');
-        $siteId = self::siteLoginContextId();
         $siteUrl = self::appHomeUrl();
         foreach ( $rows as $i => $row ) {
             $id = (int) $row['context_id'];
@@ -640,8 +741,11 @@ class Courses extends Tool {
         }
         $p = $CFG->dbprefix;
         $member = $PDOX->rowDie(
-            "SELECT membership_id FROM {$p}lti_membership
-             WHERE context_id = :CID AND user_id = :UID",
+            "SELECT M.membership_id
+             FROM {$p}lti_membership AS M
+             JOIN {$p}lti_context AS C ON C.context_id = M.context_id
+             WHERE M.context_id = :CID AND M.user_id = :UID
+               AND (C.deleted IS NULL OR C.deleted = 0)",
             array(':CID' => $cid, ':UID' => $user_id)
         );
         if ( ! $member ) {
@@ -678,6 +782,12 @@ class Courses extends Tool {
                     <input type="text" id="course_title" name="title" required maxlength="512" style="min-width: 20em;"/>
                 </p>
                 <p>
+                    <label for="course_short_title">Short title</label><br/>
+                    <input type="text" id="course_short_title" name="short_title" maxlength="<?= (int) Manifest::SHORT_TITLE_MAX ?>" style="min-width: 20em;"/>
+                    <br/>
+                    <span class="help-block">Optional. The first six characters become the upper-left home label. For example, title “Django for everybody” and short title “DJ Free”.</span>
+                </p>
+                <p>
                     <button type="submit" class="btn btn-primary">Create course</button>
                     <a href="<?= htmlspecialchars($home) ?>" class="btn btn-default">Cancel</a>
                 </p>
@@ -708,10 +818,11 @@ class Courses extends Tool {
             U::flashError(__('Title is required.'));
             return new RedirectResponse(U::addSession(self::joinToolHome($home, 'create')));
         }
+        $short_title = (string) U::get($_POST, 'short_title', '');
 
         $user_id = U::loggedInUserId();
         $key_id = self::googleKeyId();
-        $result = Manifest::createCourse($title, $user_id, $key_id);
+        $result = Manifest::createCourse($title, $user_id, $key_id, $short_title);
         if ( empty($result['ok']) ) {
             $err = isset($result['error']) ? $result['error'] : 'Could not create course.';
             U::flashError($err);
@@ -818,7 +929,7 @@ class Courses extends Tool {
 
         $limit = (int) self::FLYOUT_LIMIT;
         $home = self::siteLoginContextId();
-        $params = array(':PID' => $row['profile_id']);
+        $params = array(':PID' => $row['profile_id'], ':SITE' => $home);
         $excludeHome = '';
         if ( $home > 0 ) {
             $excludeHome = ' AND C.context_id != :HOME';
@@ -834,7 +945,7 @@ class Courses extends Tool {
         if ( count($rows) < 1 && $home > 0 ) {
             $rows = $PDOX->allRowsDie(
                 self::flyoutMembershipSql($p, ' AND C.context_id = :HOME').' LIMIT 1',
-                array(':PID' => $row['profile_id'], ':HOME' => $home)
+                array(':PID' => $row['profile_id'], ':HOME' => $home, ':SITE' => $home)
             );
             if ( ! is_array($rows) ) {
                 $rows = array();
@@ -864,6 +975,8 @@ class Courses extends Tool {
     /**
      * Flyout memberships: never-visited rows use created_at so new
      * enrollments still surface. Caller adds WHERE extras and LIMIT.
+     *
+     * Requires :SITE, the site-login course id (0 if there is none).
      */
     private static function flyoutMembershipSql($p, $extraWhere='') {
         return "SELECT P.profile_id, U.user_id, U.email, C.context_id,
@@ -875,8 +988,19 @@ class Courses extends Tool {
             JOIN {$p}lti_context AS C ON M.context_id = C.context_id
             LEFT JOIN {$p}manifest AS MF ON C.manifest_id = MF.manifest_id
             LEFT JOIN {$p}context_images AS CI ON CI.context_id = C.context_id
-            WHERE P.profile_id = :PID{$extraWhere}
+            WHERE P.profile_id = :PID
+              AND (C.deleted IS NULL OR C.deleted = 0)
+              ".self::listedCourseSql()."{$extraWhere}
             ORDER BY COALESCE(M.visited_at, M.created_at) DESC";
+    }
+
+    /**
+     * Courses with no manifest stay off Courses and the flyout.
+     *
+     * The site-wide course for $CFG->context_title is the exception (:SITE).
+     */
+    private static function listedCourseSql() {
+        return 'AND (C.manifest_id IS NOT NULL OR C.context_id = :SITE)';
     }
 
     /**

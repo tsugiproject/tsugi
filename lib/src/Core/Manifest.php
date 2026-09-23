@@ -1074,16 +1074,52 @@ class Manifest {
         }
     }
 
+    /** Stored length of lti_context.short_title. */
+    const SHORT_TITLE_MAX = 64;
+
+    /**
+     * Trim a short title. Null when absent. False when longer than SHORT_TITLE_MAX.
+     *
+     * @param mixed $short_title
+     * @return string|null|false
+     */
+    public static function normalizeShortTitle($short_title) {
+        if ( ! is_string($short_title) ) {
+            return null;
+        }
+        $collapsed = preg_replace('/\s+/', ' ', $short_title);
+        if ( ! is_string($collapsed) ) {
+            return null;
+        }
+        $short_title = trim($collapsed);
+        if ( $short_title === '' ) {
+            return null;
+        }
+        $len = function_exists('mb_strlen') ? mb_strlen($short_title) : strlen($short_title);
+        if ( $len > self::SHORT_TITLE_MAX ) {
+            return false;
+        }
+        return $short_title;
+    }
+
     /**
      * Create an LTI context, instructor membership, and a v2 starter manifest.
      *
+     * When $short_title is set, the first six characters become the course
+     * navigation home label.
+     *
+     * @param mixed $short_title
      * @return array{ok: bool, context_id?: int, manifest_id?: int, error?: string}
      */
-    public static function createCourse($title, $user_id, $key_id) {
+    public static function createCourse($title, $user_id, $key_id, $short_title = null) {
         global $CFG;
         $title = is_string($title) ? trim($title) : '';
         if ( $title === '' ) {
             return array('ok' => false, 'error' => 'Title is required.');
+        }
+        $short = self::normalizeShortTitle($short_title);
+        if ( $short === false ) {
+            return array('ok' => false, 'error' => 'Short title must be '.self::SHORT_TITLE_MAX.' characters or fewer.');
         }
         $user_id = (int) $user_id;
         $key_id = (int) $key_id;
@@ -1101,13 +1137,14 @@ class Manifest {
         $context_sha = lti_sha256($context_key);
         $PDOX->queryDie(
             "INSERT INTO {$p}lti_context
-                (context_key, context_sha256, title, key_id, user_id, created_at, updated_at)
+                (context_key, context_sha256, title, short_title, key_id, user_id, created_at, updated_at)
              VALUES
-                (:context_key, :context_sha256, :title, :key_id, :user_id, NOW(), NOW())",
+                (:context_key, :context_sha256, :title, :short_title, :key_id, :user_id, NOW(), NOW())",
             array(
                 ':context_key' => $context_key,
                 ':context_sha256' => $context_sha,
                 ':title' => $title,
+                ':short_title' => $short,
                 ':key_id' => $key_id,
                 ':user_id' => $user_id,
             )
@@ -1122,6 +1159,11 @@ class Manifest {
             return array('ok' => false, 'error' => 'Could not create course.');
         }
         self::syncContextTitle($context_id, $title);
+        $PDOX->queryDie(
+            "UPDATE {$p}lti_context SET short_title = :short, updated_at = NOW()
+             WHERE context_id = :CID",
+            array(':short' => $short, ':CID' => $context_id)
+        );
 
         $PDOX->queryDie(
             "INSERT INTO {$p}lti_membership
@@ -1135,13 +1177,18 @@ class Manifest {
             )
         );
 
+        $navigation = \Tsugi\Services\CourseNav\CourseNav::defaultDocument();
+        $home = \Tsugi\Services\CourseNav\CourseNav::homeLabelFromShortTitle($short);
+        if ( $home !== null ) {
+            $navigation['home'] = $home;
+        }
         $manifest_id = self::saveNewVersion(
             $context_id,
             self::starter($title),
             $user_id,
             'Created course',
             null,
-            \Tsugi\Services\CourseNav\CourseNav::defaultDocument()
+            $navigation
         );
         return array(
             'ok' => true,
