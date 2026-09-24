@@ -77,6 +77,12 @@ $CFG->dbprefix  = '';
 // or a sha256 hash of the admin password.  Please don't use either
 // the 'tsugi' or the sha256 of 'tsugi' example values below.
 $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
+
+// Simulated Google login for the Panther QA stack. Off unless both are set.
+$demoLogin = getenv('TSUGI_DEMO_LOGIN');
+$CFG->demo_login = ($demoLogin === '1' || strcasecmp((string) $demoLogin, 'true') === 0);
+$demoSecret = getenv('TSUGI_DEMO_SECRET');
+$CFG->demo_secret = (is_string($demoSecret) && $demoSecret !== '') ? $demoSecret : false;
 // $CFG->adminpw = 'tsugi';
 // $CFG->adminpw = 'sha256:9c0ccb0d53dd71b896cde69c78cf977acbcb36546c96bedec1619406145b5e9e';
 
@@ -96,10 +102,8 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 // $CFG->theme_base = "#0d47a1"; // Tsugi Blue
 // $CFG->theme_dark_mode = false;
 
-// If we are running Embedded Tsugi we need to set the
-// "course title" for the course that represents
-// the "local" students that log in through Google.
-// $CFG->context_title = "Web Applications for Everybody";
+// Site-menu course flyout. The Panther course-create test needs this on.
+$CFG->show_courses_widget = true;
 
 // If we are going to use the lessons tool and/or badges, we need to
 // create and point to a lessons.json file

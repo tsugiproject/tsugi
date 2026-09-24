@@ -15,7 +15,9 @@ jobs:
       TSUGI_DB_USER: ltiuser
       TSUGI_DB_PASS: ltipassword
       TSUGI_WWWROOT: http://localhost:8888/tsugi
-      TSUGI_APPHOME: http://localhost:8888
+      TSUGI_APPHOME: http://localhost:8888/tsugi
+      TSUGI_DEMO_LOGIN: "1"
+      TSUGI_DEMO_SECRET: tsugi-demo
 
     steps:
       - name: Checkout
