@@ -41,6 +41,7 @@ abstract class TsugiPantherTestCase extends PantherTestCase
 
     protected function pantherClient(): \Symfony\Component\Panther\Client
     {
+        self::preferProjectChromeDriver();
         $base = self::baseUri();
 
         return self::createPantherClient([
@@ -48,5 +49,29 @@ abstract class TsugiPantherTestCase extends PantherTestCase
             'external_base_uri' => $base,
             'browser' => self::CHROME,
         ]);
+    }
+
+    /**
+     * Panther searches PATH before ./drivers. A stale system chromedriver
+     * (Homebrew) would otherwise win over the copy bdi installed for this Chrome.
+     */
+    private static function preferProjectChromeDriver(): void
+    {
+        $drivers = dirname(__DIR__, 3) . '/drivers';
+        $binary = $drivers . '/chromedriver';
+        if (!is_executable($binary)) {
+            return;
+        }
+
+        $path = getenv('PATH');
+        if ($path === false) {
+            $path = '';
+        }
+        $first = explode(PATH_SEPARATOR, $path, 2)[0];
+        if ($first === $drivers) {
+            return;
+        }
+
+        putenv('PATH=' . $drivers . PATH_SEPARATOR . $path);
     }
 }

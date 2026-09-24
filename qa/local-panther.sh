@@ -30,7 +30,9 @@ Environment (optional overrides):
   TSUGI_DB_USER       Default: ltiuser
   TSUGI_DB_PASS       Default: ltipassword
   TSUGI_WWWROOT       Default: http://localhost:<TSUGI_HOST_PORT>/tsugi
-  TSUGI_APPHOME       Default: http://localhost:<TSUGI_HOST_PORT>
+  TSUGI_APPHOME       Default: http://localhost:<TSUGI_HOST_PORT>/tsugi
+  TSUGI_DEMO_LOGIN    Default: 1 (enables /login/simulate in the Docker stack)
+  TSUGI_DEMO_SECRET   Default: tsugi-demo
 
 Requires: Docker, Chrome/Chromium, repo root. The web container loads config via
 docker/tsugi-docker-config.php (see docker-compose.yml), not your host config.php.
@@ -74,8 +76,11 @@ TSUGI_PDO="${TSUGI_PDO:-mysql:host=tsugi_db;dbname=tsugi}"
 TSUGI_DB_USER="${TSUGI_DB_USER:-ltiuser}"
 TSUGI_DB_PASS="${TSUGI_DB_PASS:-ltipassword}"
 TSUGI_WWWROOT="${TSUGI_WWWROOT:-http://localhost:${TSUGI_HOST_PORT}/tsugi}"
-TSUGI_APPHOME="${TSUGI_APPHOME:-http://localhost:${TSUGI_HOST_PORT}}"
+TSUGI_APPHOME="${TSUGI_APPHOME:-http://localhost:${TSUGI_HOST_PORT}/tsugi}"
+TSUGI_DEMO_LOGIN="${TSUGI_DEMO_LOGIN:-1}"
+TSUGI_DEMO_SECRET="${TSUGI_DEMO_SECRET:-tsugi-demo}"
 export TSUGI_BASE_URL TSUGI_ADMIN_PW TSUGI_PDO TSUGI_DB_USER TSUGI_DB_PASS TSUGI_WWWROOT TSUGI_APPHOME
+export TSUGI_DEMO_LOGIN TSUGI_DEMO_SECRET
 export PANTHER_NO_SANDBOX="${PANTHER_NO_SANDBOX:-1}"
 export PANTHER_CHROME_ARGUMENTS="${PANTHER_CHROME_ARGUMENTS:---headless=new --no-sandbox --disable-dev-shm-usage}"
 export PANTHER_EXTERNAL_BASE_URI="${PANTHER_EXTERNAL_BASE_URI:-$TSUGI_BASE_URL}"
@@ -96,6 +101,10 @@ PHPUNIT="vendor/bin/phpunit"
 
 echo "🌐 Installing browser drivers..."
 "$BDI" detect drivers
+
+# bdi installs a Chrome-matched driver into ./drivers. Panther searches PATH
+# first, so a stale Homebrew chromedriver would be chosen instead.
+export PATH="${ROOT}/drivers:${PATH}"
 
 # If something (often MAMP on 8888) already listens on this host port and it is not our stack, docker bind will fail.
 if command -v lsof >/dev/null 2>&1; then

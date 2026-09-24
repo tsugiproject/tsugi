@@ -25,6 +25,8 @@ services:
       TSUGI_DB_PASS: ${TSUGI_DB_PASS:-}
       TSUGI_WWWROOT: ${TSUGI_WWWROOT:-}
       TSUGI_APPHOME: ${TSUGI_APPHOME:-}
+      TSUGI_DEMO_LOGIN: ${TSUGI_DEMO_LOGIN:-}
+      TSUGI_DEMO_SECRET: ${TSUGI_DEMO_SECRET:-}
     volumes:
       # Bind-mount the tree for dev; overlay config.php with a stub that requires
       # config-dist.php (avoids host secrets/MAMP settings). File bind mounts work
