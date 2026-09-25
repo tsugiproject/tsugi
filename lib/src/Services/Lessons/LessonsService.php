@@ -55,7 +55,11 @@ class LessonsService {
     /** @var array Due rows by link_key from GradeUtil::loadDueDatesForDisplay */
     private $lessonModuleDueDatesForBadges = array();
 
-    /** @var array<int,bool>|null Quiz1 ids in the current course; lazy. */
+    /**
+     * Quiz1 id => published. Null until loaded. Missing id means the quiz is not in this course.
+     *
+     * @var array<int,bool>|null
+     */
     private $quiz1IdSet = null;
 
     /** @var bool|null */
@@ -1244,20 +1248,40 @@ class LessonsService {
         if ( $quiz_id < 1 ) {
             return false;
         }
-        if ( $this->quiz1IdSet === null ) {
-            $this->quiz1IdSet = array();
-            $context_id = U::currentContextId();
-            if ( $context_id > 0 ) {
-                try {
-                    foreach ( Quiz1Repository::listForContext($context_id) as $quiz ) {
-                        $this->quiz1IdSet[(int) $quiz->id] = true;
-                    }
-                } catch ( \Exception $e ) {
-                    $this->quiz1IdSet = array();
-                }
-            }
-        }
+        $this->loadQuiz1Publication();
         return isset($this->quiz1IdSet[$quiz_id]);
+    }
+
+    /**
+     * True when the quiz has a published launch link. Never-published and unpublished are false.
+     *
+     * @return bool
+     */
+    public function quiz1IsPublished($quiz_id) {
+        $quiz_id = (int) $quiz_id;
+        if ( $quiz_id < 1 ) {
+            return false;
+        }
+        $this->loadQuiz1Publication();
+        return ! empty($this->quiz1IdSet[$quiz_id]);
+    }
+
+    private function loadQuiz1Publication() {
+        if ( $this->quiz1IdSet !== null ) {
+            return;
+        }
+        $this->quiz1IdSet = array();
+        $context_id = U::currentContextId();
+        if ( $context_id < 1 ) {
+            return;
+        }
+        try {
+            foreach ( Quiz1Repository::listForContext($context_id) as $quiz ) {
+                $this->quiz1IdSet[(int) $quiz->id] = ((int) $quiz->published) === 1;
+            }
+        } catch ( \Exception $e ) {
+            $this->quiz1IdSet = array();
+        }
     }
 
     /**

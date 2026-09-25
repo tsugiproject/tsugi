@@ -3,6 +3,7 @@
 namespace Tsugi\Services\Quiz1;
 
 use Tsugi\Core\LTIX;
+use Tsugi\Util\U;
 
 /**
  * Load and persist Quiz1 semantic records. Does not know about QTI XML.
@@ -17,9 +18,11 @@ class Quiz1Repository {
         LTIX::getConnection();
 
         $rows = $PDOX->allRowsDie(
-            "SELECT Q.quiz_id, Q.title, Q.instructions, Q.created_at, Q.updated_at,
+            "SELECT Q.quiz_id, Q.title, Q.instructions, Q.created_at, Q.updated_at, Q.link_id,
+                    L.published AS published,
                     (SELECT COUNT(*) FROM {$CFG->dbprefix}quiz1_question QQ WHERE QQ.quiz_id = Q.quiz_id) AS question_count
              FROM {$CFG->dbprefix}quiz1_quiz Q
+             LEFT JOIN {$CFG->dbprefix}lti_link L ON L.link_id = Q.link_id
              WHERE Q.context_id = :CID
              ORDER BY Q.updated_at DESC, Q.quiz_id DESC",
             array(':CID' => $context_id)
@@ -32,6 +35,8 @@ class Quiz1Repository {
             $quiz->title = $row['title'];
             $quiz->instructions = $row['instructions'] ?? '';
             $quiz->question_count = (int) $row['question_count'];
+            $quiz->link_id = isset($row['link_id']) ? (int) $row['link_id'] : null;
+            $quiz->published = $quiz->link_id ? (int) $row['published'] : null;
             $quizzes[] = $quiz;
         }
         return $quizzes;
@@ -45,9 +50,11 @@ class Quiz1Repository {
         LTIX::getConnection();
 
         $row = $PDOX->rowDie(
-            "SELECT quiz_id, context_id, user_id, title, instructions
-             FROM {$CFG->dbprefix}quiz1_quiz
-             WHERE quiz_id = :QID AND context_id = :CID",
+            "SELECT Q.quiz_id, Q.context_id, Q.user_id, Q.title, Q.instructions, Q.link_id,
+                    L.published AS published
+             FROM {$CFG->dbprefix}quiz1_quiz Q
+             LEFT JOIN {$CFG->dbprefix}lti_link L ON L.link_id = Q.link_id
+             WHERE Q.quiz_id = :QID AND Q.context_id = :CID",
             array(':QID' => $quiz_id, ':CID' => $context_id)
         );
         if ( ! $row ) {
@@ -60,6 +67,8 @@ class Quiz1Repository {
         $quiz->user_id = (int) $row['user_id'];
         $quiz->title = $row['title'];
         $quiz->instructions = $row['instructions'] ?? '';
+        $quiz->link_id = isset($row['link_id']) ? (int) $row['link_id'] : null;
+        $quiz->published = $quiz->link_id ? (int) $row['published'] : null;
         $quiz->questions = self::loadQuestions((int) $row['quiz_id']);
         return $quiz;
     }
@@ -422,6 +431,103 @@ class Quiz1Repository {
             );
             $n++;
         }
+    }
+
+    /**
+     * Stable lti_link.link_key for a quiz. Unique per context via link_sha256.
+     */
+    public static function linkKey($quiz_id) {
+        return 'quiz1:' . (int) $quiz_id;
+    }
+
+    /**
+     * Create the quiz's one lti_link, or mark that same link published again.
+     *
+     * @return int|null link_id, or null when the quiz is not in this context
+     */
+    public static function publish($quiz_id, $context_id) {
+        global $CFG, $PDOX;
+        LTIX::getConnection();
+
+        $quiz_id = (int) $quiz_id;
+        $context_id = (int) $context_id;
+        $row = $PDOX->rowDie(
+            "SELECT quiz_id, title, link_id
+             FROM {$CFG->dbprefix}quiz1_quiz
+             WHERE quiz_id = :QID AND context_id = :CID",
+            array(':QID' => $quiz_id, ':CID' => $context_id)
+        );
+        if ( ! $row ) {
+            return null;
+        }
+
+        $link_id = isset($row['link_id']) ? (int) $row['link_id'] : 0;
+        if ( $link_id > 0 ) {
+            $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}lti_link
+                 SET published = 1, title = :title, updated_at = NOW()
+                 WHERE link_id = :LID AND context_id = :CID",
+                array(
+                    ':title' => $row['title'],
+                    ':LID' => $link_id,
+                    ':CID' => $context_id,
+                )
+            );
+            return $link_id;
+        }
+
+        $link_key = self::linkKey($quiz_id);
+        $PDOX->queryDie(
+            "INSERT INTO {$CFG->dbprefix}lti_link
+                (link_key, link_sha256, title, context_id, path, published, created_at, updated_at)
+             VALUES
+                (:link_key, :link_sha256, :title, :context_id, :path, 1, NOW(), NOW())",
+            array(
+                ':link_key' => $link_key,
+                ':link_sha256' => U::lti_sha256($link_key),
+                ':title' => $row['title'],
+                ':context_id' => $context_id,
+                ':path' => 'quiz1/' . $quiz_id,
+            )
+        );
+        $link_id = (int) $PDOX->lastInsertId();
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}quiz1_quiz
+             SET link_id = :LID, updated_at = NOW()
+             WHERE quiz_id = :QID AND context_id = :CID",
+            array(':LID' => $link_id, ':QID' => $quiz_id, ':CID' => $context_id)
+        );
+        return $link_id;
+    }
+
+    /**
+     * Soft-unpublish. The link row and quiz1_quiz.link_id stay.
+     *
+     * @return bool False when the quiz has never been published or is not in this context.
+     */
+    public static function unpublish($quiz_id, $context_id) {
+        global $CFG, $PDOX;
+        LTIX::getConnection();
+
+        $quiz_id = (int) $quiz_id;
+        $context_id = (int) $context_id;
+        $row = $PDOX->rowDie(
+            "SELECT link_id
+             FROM {$CFG->dbprefix}quiz1_quiz
+             WHERE quiz_id = :QID AND context_id = :CID",
+            array(':QID' => $quiz_id, ':CID' => $context_id)
+        );
+        if ( ! $row || ! isset($row['link_id']) ) {
+            return false;
+        }
+
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_link
+             SET published = 0, updated_at = NOW()
+             WHERE link_id = :LID AND context_id = :CID",
+            array(':LID' => (int) $row['link_id'], ':CID' => $context_id)
+        );
+        return true;
     }
 
     private static function touchQuiz($quiz_id) {
