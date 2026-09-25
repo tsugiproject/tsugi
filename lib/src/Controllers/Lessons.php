@@ -1746,7 +1746,7 @@ $(function(){
                 self::renderItemDiscussion($lessons, $item, $module, $nostyle);
                 break;
             case 'quiz':
-                self::renderItemQuiz1($lessons, $item, $nostyle);
+                self::renderItemQuiz1($lessons, $item, $module, $nostyle);
                 break;
             // Legacy plural types - convert to singular and re-render (backward compatibility)
             case 'videos':
@@ -2225,10 +2225,11 @@ $(function(){
     /**
      * Native Quiz1 lesson item. Missing quizzes are hidden from students and
      * shown as unsatisfied references to instructors (Sakai-style).
-     * Unpublished quizzes are hidden from students. Instructors see the title
-     * with "(unpublished)" and no launch link.
+     * Unpublished quizzes are hidden from students. Instructors get a view link
+     * so they can try the quiz before it is published. A published quiz is a
+     * take link for students and instructors.
      */
-    private static function renderItemQuiz1($lessons, $item, $nostyle=false) {
+    private static function renderItemQuiz1($lessons, $item, $module, $nostyle=false) {
         $title = isset($item->title) && is_string($item->title) && $item->title !== ''
             ? $item->title
             : __('Quiz');
@@ -2259,10 +2260,16 @@ $(function(){
 
         $href = '';
         $logged_in = U::isLoggedIn();
-        if ( $published && $quiz_id > 0 && $logged_in && class_exists('\\Tsugi\\Controllers\\Quiz1') ) {
+        $open = $published || $instructor;
+        if ( $open && $quiz_id > 0 && $logged_in && class_exists('\\Tsugi\\Controllers\\Quiz1') ) {
             $home = \Tsugi\Controllers\Tool::determineToolHome(\Tsugi\Controllers\Quiz1::ROUTE);
             if ( is_string($home) && $home !== '' ) {
-                $href = U::addSession(\Tsugi\Controllers\Tool::joinToolHome($home, (string) $quiz_id));
+                $path = $published ? (string) $quiz_id : ((string) $quiz_id).'/view';
+                $href = U::addSession(\Tsugi\Controllers\Tool::joinToolHome($home, $path));
+                $anchor = (is_object($module) && isset($module->anchor)) ? (string) $module->anchor : '';
+                if ( preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$/', $anchor) ) {
+                    $href .= (str_contains($href, '?') ? '&' : '?').'from='.rawurlencode($anchor);
+                }
             }
         }
 
@@ -2282,7 +2289,7 @@ $(function(){
         } else if ( $href !== '' ) {
             echo('<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'" style="display: inline-flex; align-items: center;">');
             self::renderItemIcon(LessonsNormalize::iconKey($item));
-            echo(htmlentities($title).'</a>');
+            echo(htmlentities($title).htmlentities($suffix).'</a>');
         } else {
             echo('<span style="display: inline-flex; align-items: center;">');
             self::renderItemIcon(LessonsNormalize::iconKey($item));

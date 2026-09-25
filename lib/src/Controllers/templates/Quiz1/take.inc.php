@@ -6,11 +6,15 @@
  * on the caller's namespace.
  *
  * Expected: $quiz, $home, $lessons_url, $can_edit, $result (null or grade array),
- * $requestContextLines (label => text)
+ * $requestContextLines (label => text), $viewing (instructor preview)
  */
 $questions = $quiz->orderedQuestions();
 $submitted = $result !== null;
-$action = $home.'/'.$quiz->id;
+$viewing = ! empty($viewing);
+$action = $home.'/'.$quiz->id.($viewing ? '/view' : '');
+if ( isset($from_module) && is_string($from_module) && $from_module !== '' ) {
+    $action .= (str_contains($action, '?') ? '&' : '?').'from='.rawurlencode($from_module);
+}
 ?>
 <style>
 .quiz1-take .quiz1-q { margin: 1.5em 0; padding: 1em; border: 1px solid #ddd; border-radius: 4px; }
@@ -26,8 +30,8 @@ $action = $home.'/'.$quiz->id;
     <p>
         <?php if ( $lessons_url ) { ?>
             <a href="<?= htmlspecialchars($lessons_url) ?>">&larr; <?= htmlspecialchars(__('Back to Lessons')) ?></a>
-        <?php } else if ( $can_edit ) { ?>
-            <a href="<?= htmlspecialchars($home) ?>">&larr; <?= htmlspecialchars(__('All quizzes')) ?></a>
+        <?php } else { ?>
+            <a href="<?= htmlspecialchars($home) ?>">&larr; <?= htmlspecialchars(__('Back to Quizzes')) ?></a>
         <?php } ?>
         <?php if ( $can_edit ) { ?>
             <span class="pull-right">
@@ -36,6 +40,9 @@ $action = $home.'/'.$quiz->id;
         <?php } ?>
     </p>
     <h1><?= htmlspecialchars($quiz->title) ?></h1>
+    <?php if ( $viewing ) { ?>
+        <p class="alert alert-warning"><?= htmlspecialchars(__('View mode. This preview does not record a grade.')) ?></p>
+    <?php } ?>
     <?php if ( ! \Tsugi\Services\Quiz1\Question::isBlankHtml($quiz->instructions) ) { ?>
         <div class="quiz1-instructions"><?= \Tsugi\Services\Quiz1\Html::purify($quiz->instructions) ?></div>
     <?php } ?>

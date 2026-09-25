@@ -73,6 +73,8 @@ class Quiz1 extends Tool {
         $app->router->post($prefix.'/{id}/delete', 'Quiz1@deletePost');
         $app->router->post($prefix.'/{id}/publish', 'Quiz1@publishPost');
         $app->router->post($prefix.'/{id}/unpublish', 'Quiz1@unpublishPost');
+        $app->router->get($prefix.'/{id}/view', 'Quiz1@view');
+        $app->router->post($prefix.'/{id}/view', 'Quiz1@viewPost');
         $app->router->get($prefix.'/{id}', 'Quiz1@take');
         $app->router->post($prefix.'/{id}', 'Quiz1@takePost');
     }
@@ -103,7 +105,7 @@ class Quiz1 extends Tool {
                     <a href="<?= htmlspecialchars($home.'/add') ?>" class="btn btn-primary"><?= htmlspecialchars(__('New Quiz')) ?></a>
                 </span>
             </h1>
-            <p class="help-block"><?= htmlspecialchars(__('Create quizzes as course resources. Students take them from Lessons or from the Take link. Import or export GIFT and Common Cartridge QTI 1.2.1 on any quiz.')) ?></p>
+            <p class="help-block"><?= htmlspecialchars(__('Create quizzes as course resources. View a quiz before it is published. After publish, students take it from Lessons or from the Take link. Import or export GIFT and Common Cartridge QTI 1.2.1 on any quiz.')) ?></p>
             <?php if ( count($quizzes) < 1 ): ?>
                 <p><?= htmlspecialchars(__('No quizzes yet.')) ?></p>
                 <form method="post" action="<?= htmlspecialchars($home.'/sample') ?>">
@@ -125,7 +127,12 @@ class Quiz1 extends Tool {
                             <td><?= htmlspecialchars($quiz->title) ?></td>
                             <td><?= (int) $quiz->question_count ?></td>
                             <td class="text-right">
-                                <a class="btn btn-xs btn-primary" href="<?= htmlspecialchars($home.'/'.$quiz->id) ?>"><?= htmlspecialchars(__('Take')) ?></a>
+                                <?php if ( (int) $quiz->published === 1 ): ?>
+                                    <a class="btn btn-xs btn-primary" href="<?= htmlspecialchars($home.'/'.$quiz->id) ?>"><?= htmlspecialchars(__('Take')) ?></a>
+                                    <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/view') ?>"><?= htmlspecialchars(__('View')) ?></a>
+                                <?php else: ?>
+                                    <a class="btn btn-xs btn-primary" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/view') ?>"><?= htmlspecialchars(__('View')) ?></a>
+                                <?php endif; ?>
                                 <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/edit') ?>"><?= htmlspecialchars(__('Edit')) ?></a>
                                 <?php if ( $quiz->link_id && (int) $quiz->published === 1 ): ?>
                                     <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/unpublish') ?>" style="display:inline;">
@@ -300,7 +307,39 @@ class Quiz1 extends Tool {
     }
 
     public function take(Request $request, $id) {
-        return $this->renderTake((int) $id, null);
+        return $this->renderTake((int) $id, null, null, false);
+    }
+
+    public function view(Request $request, $id) {
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        LTIX::getConnection();
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
+        if ( ! $quiz ) {
+            U::flashError(__('Quiz not found.'));
+            return new RedirectResponse($home);
+        }
+        return $this->renderTake((int) $id, null, $quiz, true);
+    }
+
+    /**
+     * Instructor preview. Grades the answers on the page and does not write the gradebook.
+     */
+    public function viewPost(Request $request, $id) {
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        $csrf = self::requireCsrf($home.'/'.$id.'/view');
+        if ( $csrf ) {
+            return $csrf;
+        }
+        LTIX::getConnection();
+        $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
+        if ( ! $quiz ) {
+            U::flashError(__('Quiz not found.'));
+            return new RedirectResponse($home);
+        }
+        $result = Grader::grade($quiz, $_POST);
+        return $this->renderTake((int) $id, $result, $quiz, true);
     }
 
     public function takePost(Request $request, $id) {
@@ -313,18 +352,23 @@ class Quiz1 extends Tool {
         LTIX::getConnection();
         $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         if ( ! $quiz || ! $this->studentMayTake($quiz) ) {
-            U::flashError(__('Quiz not found.'));
+            if ( $quiz && $this->isInstructor() ) {
+                U::flashError(__('This quiz is not published.'));
+            } else {
+                U::flashError(__('Quiz not found.'));
+            }
             return new RedirectResponse($home);
         }
         $result = Grader::grade($quiz, $_POST);
         $this->recordTakeGrade($quiz, $result);
-        return $this->renderTake((int) $id, $result, $quiz);
+        return $this->renderTake((int) $id, $result, $quiz, false);
     }
 
     /**
      * @param array{earned:int,possible:int,essay_possible:int,items:array}|null $result
+     * @param bool $viewing Instructor preview. Does not require publication and does not record a grade.
      */
-    private function renderTake($id, $result, $quiz = null) {
+    private function renderTake($id, $result, $quiz = null, $viewing = false) {
         global $OUTPUT;
 
         $home = $this->toolHome(self::ROUTE);
@@ -333,12 +377,24 @@ class Quiz1 extends Tool {
         if ( $quiz === null ) {
             $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         }
-        if ( ! $quiz || ! $this->studentMayTake($quiz) ) {
+        if ( ! $quiz || ( ! $viewing && ! $this->studentMayTake($quiz) ) ) {
+            if ( $quiz && $this->isInstructor() ) {
+                U::flashError(__('This quiz is not published.'));
+            } else {
+                U::flashError(__('Quiz not found.'));
+            }
+            return new RedirectResponse($home);
+        }
+        if ( $viewing && ! $this->isInstructor() ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
         }
 
-        $lessons_url = U::addSession($this->toolHome(\Tsugi\Controllers\Lessons::ROUTE));
+        $lessons_home = $this->toolHome(\Tsugi\Controllers\Lessons::ROUTE);
+        $from_module = self::moduleAnchorFromRequest();
+        $lessons_url = $from_module
+            ? U::addSession($lessons_home.'/'.rawurlencode($from_module))
+            : '';
         $can_edit = $this->isInstructor();
         $requestContextLines = $this->requestContextLinesForQuiz($quiz);
 
@@ -418,14 +474,22 @@ class Quiz1 extends Tool {
     }
 
     /**
-     * Students reach a quiz only after it is published. Instructors can still open a draft.
+     * Module anchor passed by Lessons so Back to Lessons returns to that module.
+     */
+    private static function moduleAnchorFromRequest() {
+        $from = isset($_GET['from']) ? trim((string) $_GET['from']) : '';
+        if ( $from === '' || ! preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$/', $from) ) {
+            return null;
+        }
+        return $from;
+    }
+
+    /**
+     * Take is the published path for students and instructors. Drafts open in view mode.
      *
      * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
      */
     private function studentMayTake($quiz) {
-        if ( $this->isInstructor() ) {
-            return true;
-        }
         return (int) $quiz->published === 1;
     }
 
