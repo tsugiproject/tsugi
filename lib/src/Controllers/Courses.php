@@ -9,6 +9,8 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\RequestContext;
+use \Tsugi\Core\RequestContextException;
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\Context;
 use \Tsugi\Core\ContextImages;
@@ -352,6 +354,8 @@ class Courses extends Tool {
             if ( $mid > 0 ) {
                 Manifest::rememberInSession($mid);
             }
+            RequestContext::noteContext($cid);
+            self::establishRequestContext($cid);
             return true;
         }
 
@@ -433,8 +437,28 @@ class Courses extends Tool {
         $PROFILE = null;
         LTIX::buildLaunch($lti);
         self::wireLaunchConnection();
+        RequestContext::noteContext($cid);
+        self::establishRequestContext($cid);
 
         return true;
+    }
+
+    /**
+     * User, course, and role for this request. The session course write stays.
+     * A failure here does not undo the session switch.
+     *
+     * @param int $context_id
+     */
+    private static function establishRequestContext($context_id) {
+        $user_id = U::loggedInUserId();
+        if ( $user_id < 1 ) {
+            return;
+        }
+        try {
+            RequestContext::establish($user_id, $context_id);
+        } catch ( RequestContextException $ex ) {
+            error_log('RequestContext establish failed: '.$ex->getMessage());
+        }
     }
 
     /**

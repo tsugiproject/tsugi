@@ -110,6 +110,54 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
         $this->assertNull($CONTEXT);
     }
 
+    public function testNoteContextIgnoresALaterDifferentId() {
+        RequestContext::noteContext(9);
+        RequestContext::noteContext(4);
+        $user = new User();
+        $user->id = 1;
+        $context = new Context();
+        $context->id = 9;
+        RequestContext::hydrate($user, $context);
+        $this->assertSame(9, RequestContext::current()->context->id);
+    }
+
+    public function testNoteContextLeavesAnExistingCourse() {
+        $user = new User();
+        $user->id = 1;
+        $context = new Context();
+        $context->id = 9;
+        RequestContext::hydrate($user, $context);
+        RequestContext::noteContext(4);
+        $this->assertSame(9, RequestContext::current()->context->id);
+    }
+
+    public function testReturnUrlIsAttachedOnHydrate() {
+        RequestContext::setReturnUrl('https://example.test/lessons/intro');
+        $user = new User();
+        $user->id = 1;
+        $context = new Context();
+        $context->id = 3;
+        $rc = RequestContext::hydrate($user, $context);
+        $this->assertSame('https://example.test/lessons/intro', $rc->launchPresentation->return_url);
+    }
+
+    public function testNotedContextWinsOverALaterId() {
+        $pdo = $this->beginFixtureTransaction();
+        if ( $pdo === null ) {
+            $this->markTestSkipped('Database not available for RequestContext fixtures.');
+        }
+        try {
+            $ids = $this->insertCourseFixture($pdo, LTIX::ROLE_LEARNER);
+            RequestContext::noteContext($ids['context_id']);
+            RequestContext::setReturnUrl('https://example.test/lessons/week1');
+            $rc = RequestContext::fromInternalActivity($ids['user_id'], 999999, null);
+            $this->assertSame($ids['context_id'], $rc->context->id);
+            $this->assertSame('https://example.test/lessons/week1', $rc->launchPresentation->return_url);
+        } finally {
+            $pdo->rollBack();
+        }
+    }
+
     public function testLinkKeyIsStable() {
         $this->assertSame('quiz1:42', Quiz1Repository::linkKey(42));
         $this->assertSame('quiz1:42', Quiz1Repository::linkKey('42'));
@@ -250,6 +298,76 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
                 $this->assertSame(403, $ex->httpStatus);
                 throw $ex;
             }
+        } finally {
+            $pdo->rollBack();
+        }
+    }
+
+    public function testSetLinkKeepsTheEstablishedUser() {
+        $pdo = $this->beginFixtureTransaction();
+        if ( $pdo === null ) {
+            $this->markTestSkipped('Database not available for RequestContext fixtures.');
+        }
+        try {
+            $ids = $this->insertCourseFixture($pdo, LTIX::ROLE_LEARNER);
+            $rc = RequestContext::establish($ids['user_id'], $ids['context_id']);
+            global $USER, $LINK;
+            $this->assertNotSame($rc->user, $USER);
+            $this->assertNull($rc->link);
+            $_SESSION['id'] = $ids['user_id'];
+            $_SESSION['context_id'] = $ids['context_id'];
+            if ( function_exists('_tsugiResetIdentitySnapshot') ) {
+                _tsugiResetIdentitySnapshot();
+            }
+            RequestContext::logSessionDrift($ids['context_id']);
+            RequestContext::logSessionDrift(999999);
+            $this->assertSame($ids['context_id'], RequestContext::current()->context->id);
+            $this->assertSame($ids['user_id'], RequestContext::current()->user->id);
+
+            $quiz = new Quiz1();
+            $quiz->context_id = $ids['context_id'];
+            $quiz->user_id = $ids['user_id'];
+            $quiz->title = 'Linked later';
+            $quiz_id = Quiz1Repository::insertQuiz($quiz);
+            $link_id = Quiz1Repository::publish($quiz_id, $ids['context_id']);
+
+            $linked = RequestContext::setLink($link_id);
+            $this->assertSame($ids['user_id'], $linked->user->id);
+            $this->assertSame($link_id, $linked->link->id);
+            $this->assertNotNull($linked->result);
+            $this->assertNotSame($linked->link, $LINK);
+
+            $again = RequestContext::establish($ids['user_id'], 999999);
+            $this->assertSame($ids['context_id'], $again->context->id);
+            $this->assertSame($link_id, $again->link->id);
+        } finally {
+            $pdo->rollBack();
+        }
+    }
+
+    public function testSiteAdminAndCourseOwnerAreInstructors() {
+        $pdo = $this->beginFixtureTransaction();
+        if ( $pdo === null ) {
+            $this->markTestSkipped('Database not available for RequestContext fixtures.');
+        }
+        try {
+            $ids = $this->insertCourseFixture($pdo, LTIX::ROLE_LEARNER);
+            $learner = RequestContext::fromInternalActivity($ids['user_id'], $ids['context_id'], null);
+            $this->assertFalse($learner->user->instructor);
+
+            $_SESSION['admin'] = 'yes';
+            $admin = RequestContext::fromInternalActivity($ids['user_id'], $ids['context_id'], null);
+            $this->assertTrue($admin->user->instructor);
+            $this->assertTrue($admin->user->admin);
+            unset($_SESSION['admin']);
+
+            $pdo->queryDie(
+                "UPDATE {$this->prefix()}lti_context SET user_id = :UID WHERE context_id = :CID",
+                array(':UID' => $ids['user_id'], ':CID' => $ids['context_id'])
+            );
+            $owner = RequestContext::fromInternalActivity($ids['user_id'], $ids['context_id'], null);
+            $this->assertTrue($owner->user->instructor);
+            $this->assertFalse($owner->user->admin);
         } finally {
             $pdo->rollBack();
         }
