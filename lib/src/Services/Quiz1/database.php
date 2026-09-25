@@ -11,6 +11,8 @@ array( "{$CFG->dbprefix}quiz1_quiz",
     quiz_id                INTEGER NOT NULL AUTO_INCREMENT,
     context_id             INTEGER NOT NULL,
     user_id                INTEGER NOT NULL,
+    -- The one launch link. NULL means this quiz has never been published.
+    link_id                INTEGER NULL,
     title                  VARCHAR(512) NOT NULL,
     instructions           TEXT NULL,
     created_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -27,6 +29,13 @@ array( "{$CFG->dbprefix}quiz1_quiz",
         FOREIGN KEY (`user_id`)
         REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}quiz1_quiz_ibfk_3`
+        FOREIGN KEY (`link_id`)
+        REFERENCES `{$CFG->dbprefix}lti_link` (`link_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}quiz1_quiz_const_1` UNIQUE (link_id),
 
     INDEX `{$CFG->dbprefix}quiz1_quiz_indx_1` ( context_id )
 
@@ -86,5 +95,43 @@ $DATABASE_UNINSTALL = array(
 $DATABASE_UPGRADE = function($oldversion) {
     global $CFG, $PDOX;
 
-    return 202610010004;
+    $table = "{$CFG->dbprefix}quiz1_quiz";
+    if ( ! $PDOX->columnExists('link_id', $table) ) {
+        $sql = "ALTER TABLE {$table} ADD link_id INTEGER NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryReturnError($sql);
+    }
+
+    $indexes = $PDOX->indexes($table);
+    $unique = "{$CFG->dbprefix}quiz1_quiz_const_1";
+    if ( ! in_array($unique, $indexes) ) {
+        $sql = "ALTER TABLE {$table} ADD CONSTRAINT `{$unique}` UNIQUE (link_id)";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal adding quiz1 link unique: ".$q->errorImplode;
+            error_log($message);
+            echo($message."<br/>\n");
+        }
+    }
+
+    $fk = "{$CFG->dbprefix}quiz1_quiz_ibfk_3";
+    if ( ! in_array($fk, $indexes) ) {
+        $sql = "ALTER TABLE {$table} ADD CONSTRAINT `{$fk}`
+            FOREIGN KEY (`link_id`)
+            REFERENCES `{$CFG->dbprefix}lti_link` (`link_id`)
+            ON DELETE SET NULL ON UPDATE CASCADE";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) {
+            $message = "Non-Fatal adding quiz1 link FK: ".$q->errorImplode;
+            error_log($message);
+            echo($message."<br/>\n");
+        }
+    }
+
+    return 202610010006;
 };

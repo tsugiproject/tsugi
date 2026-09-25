@@ -1755,7 +1755,7 @@ function editModule(moduleIndex, focusField) {
             <input type="text" id="edit-module-title" value="${escapeHtml(module.title || '')}">
         </div>
         <div class="form-group">
-            <label>Anchor:</label>
+            <label>Anchor (required):</label>
             <input type="text" id="edit-module-anchor" value="${escapeHtml(module.anchor || '')}">
         </div>
         <div class="form-group">
@@ -1786,10 +1786,20 @@ function editModule(moduleIndex, focusField) {
 
 function saveModule() {
     if (editingModuleIndex === null) return;
-    
+
+    const anchor = $('#edit-module-anchor').val().trim();
+    if (!anchor) {
+        alert('Anchor is required.');
+        const input = document.getElementById('edit-module-anchor');
+        if (input) {
+            input.focus();
+        }
+        return;
+    }
+
     const desc = $('#edit-module-description').val().trim();
     lessonsData.modules[editingModuleIndex].title = $('#edit-module-title').val().trim();
-    lessonsData.modules[editingModuleIndex].anchor = $('#edit-module-anchor').val().trim();
+    lessonsData.modules[editingModuleIndex].anchor = anchor;
     applyPickedIcon(lessonsData.modules[editingModuleIndex], '#edit-module-icon');
     if (desc) {
         lessonsData.modules[editingModuleIndex].description = desc;
@@ -2763,6 +2773,16 @@ function stripHeadingLevels(data) {
 }
 
 function saveChanges() {
+    const modules = lessonsData.modules || [];
+    for (let i = 0; i < modules.length; i++) {
+        const anchor = String(modules[i].anchor || '').trim();
+        if (!anchor) {
+            const title = String(modules[i].title || '').trim() || ('Module ' + (i + 1));
+            alert('Anchor is required. Missing on: ' + title);
+            return;
+        }
+        modules[i].anchor = anchor;
+    }
     stripHeadingLevels(lessonsData);
     const jsonData = JSON.stringify(lessonsData, null, 4);
     

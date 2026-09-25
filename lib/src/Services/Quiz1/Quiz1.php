@@ -31,6 +31,16 @@ class Quiz1 {
     /** @var int|null Set on list views without loading questions. */
     public $question_count;
 
+    /** @var int|null lti_link.link_id once this quiz has been published. */
+    public $link_id;
+
+    /**
+     * Null when never published. Otherwise lti_link.published (0 or 1).
+     *
+     * @var int|null
+     */
+    public $published;
+
     /**
      * @return string[] Validation error messages (empty = valid).
      */

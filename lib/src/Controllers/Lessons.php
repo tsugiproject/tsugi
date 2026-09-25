@@ -2225,6 +2225,8 @@ $(function(){
     /**
      * Native Quiz1 lesson item. Missing quizzes are hidden from students and
      * shown as unsatisfied references to instructors (Sakai-style).
+     * Unpublished quizzes are hidden from students. Instructors see the title
+     * with "(unpublished)" and no launch link.
      */
     private static function renderItemQuiz1($lessons, $item, $nostyle=false) {
         $title = isset($item->title) && is_string($item->title) && $item->title !== ''
@@ -2232,8 +2234,9 @@ $(function(){
             : __('Quiz');
         $quiz_id = LessonsNormalize::quizIdOf($item);
         $exists = $lessons->quiz1ExistsInCourse($quiz_id);
+        $instructor = $lessons->lessonsViewerIsInstructor();
         if ( ! $exists ) {
-            if ( ! $lessons->lessonsViewerIsInstructor() ) {
+            if ( ! $instructor ) {
                 return;
             }
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-quiz1 tsugi-lessons-quiz-missing">');
@@ -2249,18 +2252,30 @@ $(function(){
             return;
         }
 
+        $published = $lessons->quiz1IsPublished($quiz_id);
+        if ( ! $published && ! $instructor ) {
+            return;
+        }
+
         $href = '';
         $logged_in = U::isLoggedIn();
-        if ( $quiz_id > 0 && $logged_in && class_exists('\\Tsugi\\Controllers\\Quiz1') ) {
+        if ( $published && $quiz_id > 0 && $logged_in && class_exists('\\Tsugi\\Controllers\\Quiz1') ) {
             $home = \Tsugi\Controllers\Tool::determineToolHome(\Tsugi\Controllers\Quiz1::ROUTE);
             if ( is_string($home) && $home !== '' ) {
                 $href = U::addSession(\Tsugi\Controllers\Tool::joinToolHome($home, (string) $quiz_id));
             }
         }
 
+        $suffix = '';
+        if ( ! $published ) {
+            $suffix = ' ('.__('unpublished').')';
+        } else if ( $href === '' && ! $logged_in ) {
+            $suffix = ' ('.__('Login Required').')';
+        }
+
         echo('<li typeof="oer:assessment" class="tsugi-lessons-module-quiz1">');
         if ( $nostyle ) {
-            echo(htmlentities($title));
+            echo(htmlentities($title).htmlentities($suffix));
             if ( $href !== '' ) {
                 echo(': <a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'">'.htmlentities($title).'</a>');
             }
@@ -2271,10 +2286,7 @@ $(function(){
         } else {
             echo('<span style="display: inline-flex; align-items: center;">');
             self::renderItemIcon(LessonsNormalize::iconKey($item));
-            echo(htmlentities($title));
-            if ( ! $logged_in ) {
-                echo(' ('.__('Login Required').')');
-            }
+            echo(htmlentities($title).htmlentities($suffix));
             echo('</span>');
         }
         echo("</li>\n");

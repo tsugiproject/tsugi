@@ -4,11 +4,14 @@ namespace Tsugi\Controllers;
 
 use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
+use Tsugi\Core\RequestContext;
+use Tsugi\Core\RequestContextException;
 use Tsugi\Lumen\Application;
 use Tsugi\Services\Quiz1\Answer;
 use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Quiz1\GiftExporter;
 use Tsugi\Services\Quiz1\GiftImporter;
+use Tsugi\Services\Grades\Gradebook;
 use Tsugi\Services\Quiz1\Grader;
 use Tsugi\Services\Quiz1\Html;
 use Tsugi\Services\Quiz1\ImportException;
@@ -20,7 +23,6 @@ use Tsugi\Services\Quiz1\Quiz1Repository;
 use Tsugi\Services\Quiz1\SampleQuiz1;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Response;
 
 class Quiz1 extends Tool {
 
@@ -69,6 +71,8 @@ class Quiz1 extends Tool {
         $app->router->get($prefix.'/{id}/edit', 'Quiz1@edit');
         $app->router->post($prefix.'/{id}/edit', 'Quiz1@editPost');
         $app->router->post($prefix.'/{id}/delete', 'Quiz1@deletePost');
+        $app->router->post($prefix.'/{id}/publish', 'Quiz1@publishPost');
+        $app->router->post($prefix.'/{id}/unpublish', 'Quiz1@unpublishPost');
         $app->router->get($prefix.'/{id}', 'Quiz1@take');
         $app->router->post($prefix.'/{id}', 'Quiz1@takePost');
     }
@@ -123,6 +127,17 @@ class Quiz1 extends Tool {
                             <td class="text-right">
                                 <a class="btn btn-xs btn-primary" href="<?= htmlspecialchars($home.'/'.$quiz->id) ?>"><?= htmlspecialchars(__('Take')) ?></a>
                                 <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/edit') ?>"><?= htmlspecialchars(__('Edit')) ?></a>
+                                <?php if ( $quiz->link_id && (int) $quiz->published === 1 ): ?>
+                                    <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/unpublish') ?>" style="display:inline;">
+                                        <?= self::csrfField() ?>
+                                        <button type="submit" class="btn btn-xs btn-default"><?= htmlspecialchars(__('Unpublish')) ?></button>
+                                    </form>
+                                <?php else: ?>
+                                    <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/publish') ?>" style="display:inline;">
+                                        <?= self::csrfField() ?>
+                                        <button type="submit" class="btn btn-xs btn-default"><?= htmlspecialchars($quiz->link_id ? __('Publish again') : __('Publish')) ?></button>
+                                    </form>
+                                <?php endif; ?>
                                 <?= self::interchangeButtons($home, $quiz->id, true) ?>
                                 <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/delete') ?>" style="display:inline;" onsubmit="return confirm(<?= htmlspecialchars(json_encode(__('Delete this quiz and all of its questions?')), ENT_QUOTES) ?>);">
                                     <?= self::csrfField() ?>
@@ -251,6 +266,39 @@ class Quiz1 extends Tool {
         return new RedirectResponse($home);
     }
 
+    public function publishPost(Request $request, $id) {
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        $csrf = self::requireCsrf($home);
+        if ( $csrf ) {
+            return $csrf;
+        }
+        $context_id = U::currentContextId();
+        $link_id = Quiz1Repository::publish((int) $id, $context_id);
+        if ( ! $link_id ) {
+            U::flashError(__('Quiz not found.'));
+            return new RedirectResponse($home);
+        }
+        U::flashSuccess(__('Quiz published.'));
+        return new RedirectResponse($home);
+    }
+
+    public function unpublishPost(Request $request, $id) {
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        $csrf = self::requireCsrf($home);
+        if ( $csrf ) {
+            return $csrf;
+        }
+        $ok = Quiz1Repository::unpublish((int) $id, U::currentContextId());
+        if ( ! $ok ) {
+            U::flashError(__('Quiz has never been published.'));
+            return new RedirectResponse($home);
+        }
+        U::flashSuccess(__('Quiz unpublished. The link is still there.'));
+        return new RedirectResponse($home);
+    }
+
     public function take(Request $request, $id) {
         return $this->renderTake((int) $id, null);
     }
@@ -264,11 +312,12 @@ class Quiz1 extends Tool {
         }
         LTIX::getConnection();
         $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
-        if ( ! $quiz ) {
+        if ( ! $quiz || ! $this->studentMayTake($quiz) ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
         }
         $result = Grader::grade($quiz, $_POST);
+        $this->recordTakeGrade($quiz, $result);
         return $this->renderTake((int) $id, $result, $quiz);
     }
 
@@ -284,13 +333,14 @@ class Quiz1 extends Tool {
         if ( $quiz === null ) {
             $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         }
-        if ( ! $quiz ) {
+        if ( ! $quiz || ! $this->studentMayTake($quiz) ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
         }
 
         $lessons_url = U::addSession($this->toolHome(\Tsugi\Controllers\Lessons::ROUTE));
         $can_edit = $this->isInstructor();
+        $requestContextLines = $this->requestContextLinesForQuiz($quiz);
 
         $OUTPUT->header();
         $OUTPUT->bodyStart($result === null);
@@ -299,6 +349,84 @@ class Quiz1 extends Tool {
         include __DIR__ . '/templates/Quiz1/take.inc.php';
         $OUTPUT->footer();
         return '';
+    }
+
+    /**
+     * Hydrate RequestContext for this take. Grading is unchanged.
+     * A failure is shown in the dump and does not block the quiz.
+     *
+     * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
+     * @return array<string,string>
+     */
+    private function requestContextLinesForQuiz($quiz) {
+        try {
+            $rc = RequestContext::fromInternalActivity(
+                U::loggedInUserId(),
+                (int) $quiz->context_id,
+                $quiz->link_id
+            );
+        } catch ( RequestContextException $ex ) {
+            return array('request context' => $ex->getMessage());
+        }
+        return self::requestContextLines($rc, $quiz);
+    }
+
+    /**
+     * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
+     * @return array<string,string>
+     */
+    private static function requestContextLines(RequestContext $rc, $quiz) {
+        return array(
+            'authenticated user' => $rc->user->id . ' ' . (string) $rc->user->displayname
+                . ' instructor=' . ($rc->user->instructor ? '1' : '0')
+                . ' admin=' . ($rc->user->admin ? '1' : '0'),
+            'course/context' => $rc->context->id . ' ' . (string) $rc->context->title,
+            'quiz' => $quiz->id . ' ' . $quiz->title,
+            'link' => $rc->link ? ($rc->link->id . ' ' . (string) $rc->link->title) : 'null',
+            'result' => $rc->result ? (string) $rc->result->id : 'null',
+            'grade' => ($rc->result && $rc->result->grade !== null && $rc->result->grade !== false)
+                ? (string) $rc->result->grade
+                : 'null',
+            'publication state' => $rc->published === null ? 'never published' : ((int) $rc->published === 1 ? 'published' : 'unpublished'),
+        );
+    }
+
+    /**
+     * Store the auto-score on the RequestContext result. The quiz page still renders either way.
+     *
+     * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
+     * @param array{earned:int,possible:int,essay_possible:int,items:array} $graded
+     */
+    private function recordTakeGrade($quiz, array $graded) {
+        try {
+            $rc = RequestContext::fromInternalActivity(
+                U::loggedInUserId(),
+                (int) $quiz->context_id,
+                $quiz->link_id
+            );
+        } catch ( RequestContextException $ex ) {
+            return;
+        }
+        $possible = (int) ($graded['possible'] ?? 0);
+        if ( $possible < 1 ) {
+            return;
+        }
+        $stored = Gradebook::record($rc, ((int) ($graded['earned'] ?? 0)) / $possible);
+        if ( is_string($stored) ) {
+            U::flashError($stored);
+        }
+    }
+
+    /**
+     * Students reach a quiz only after it is published. Instructors can still open a draft.
+     *
+     * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
+     */
+    private function studentMayTake($quiz) {
+        if ( $this->isInstructor() ) {
+            return true;
+        }
+        return (int) $quiz->published === 1;
     }
 
     /**
@@ -315,15 +443,26 @@ class Quiz1 extends Tool {
             <h1><?= htmlspecialchars(__('Quizzes')) ?></h1>
             <?php if ( count($quizzes) < 1 ): ?>
                 <p><?= htmlspecialchars(__('No quizzes in this course yet.')) ?></p>
-            <?php else: ?>
+            <?php else:
+                $visible = array();
+                foreach ( $quizzes as $quiz ) {
+                    if ( (int) $quiz->published === 1 ) {
+                        $visible[] = $quiz;
+                    }
+                }
+            ?>
+                <?php if ( count($visible) < 1 ): ?>
+                    <p><?= htmlspecialchars(__('No quizzes in this course yet.')) ?></p>
+                <?php else: ?>
                 <ul class="list-unstyled">
-                <?php foreach ( $quizzes as $quiz ): ?>
+                <?php foreach ( $visible as $quiz ): ?>
                     <li style="margin: 0.5em 0;">
                         <a href="<?= htmlspecialchars($home.'/'.$quiz->id) ?>"><?= htmlspecialchars($quiz->title) ?></a>
                         (<?= (int) $quiz->question_count ?> <?= htmlspecialchars(__('questions')) ?>)
                     </li>
                 <?php endforeach; ?>
                 </ul>
+                <?php endif; ?>
             <?php endif; ?>
         </main>
         <?php

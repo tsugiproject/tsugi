@@ -5,7 +5,8 @@
  * Included from Quiz1. Fully-qualified names so this file does not depend
  * on the caller's namespace.
  *
- * Expected: $quiz, $home, $lessons_url, $can_edit, $result (null or grade array)
+ * Expected: $quiz, $home, $lessons_url, $can_edit, $result (null or grade array),
+ * $requestContextLines (label => text)
  */
 $questions = $quiz->orderedQuestions();
 $submitted = $result !== null;
@@ -129,5 +130,13 @@ $action = $home.'/'.$quiz->id;
                 <?php } ?>
             </p>
         </form>
+    <?php } ?>
+    <?php if ( isset($requestContextLines) && is_array($requestContextLines) ) { ?>
+        <!--
+<?php foreach ( $requestContextLines as $label => $value ) {
+            $line = str_replace('--', '-', $label . ': ' . $value);
+            echo htmlspecialchars($line) . "\n";
+        } ?>
+        -->
     <?php } ?>
 </main>
