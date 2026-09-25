@@ -92,7 +92,7 @@ if ( isset($from_module) && is_string($from_module) && $from_module !== '' ) {
                 ?>
                     <a class="btn btn-default btn-sm" href="<?= htmlspecialchars($print_href) ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars(__('Print')) ?></a>
                 <?php } ?>
-                <a class="btn btn-default btn-sm" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/edit') ?>"><?= htmlspecialchars(__('Edit quiz')) ?></a>
+                <a class="btn btn-default btn-sm" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/edit') ?>"<?= \Tsugi\Controllers\Quiz1::publishedEditConfirm($quiz->published) ?>><?= htmlspecialchars(__('Edit quiz')) ?></a>
             </span>
         <?php } ?>
     </p>

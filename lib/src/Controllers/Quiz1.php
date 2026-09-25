@@ -173,7 +173,7 @@ class Quiz1 extends Tool {
                                         <li><a href="<?= htmlspecialchars($home.'/'.$quiz->id.'/view?print=yes') ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars(__('Print')) ?></a></li>
                                     </ul>
                                 </div>
-                                <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/edit') ?>"><?= htmlspecialchars(__('Edit')) ?></a>
+                                <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/edit') ?>"<?= self::publishedEditConfirm($quiz->published) ?>><?= htmlspecialchars(__('Edit')) ?></a>
                                 <?php if ( $quiz->link_id && (int) $quiz->published === 1 ): ?>
                                     <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/unpublish') ?>" style="display:inline;">
                                         <?= self::csrfField() ?>
@@ -327,7 +327,7 @@ class Quiz1 extends Tool {
             return new RedirectResponse($home);
         }
         U::flashSuccess(__('Quiz published.'));
-        return new RedirectResponse($home);
+        return new RedirectResponse($this->afterPublishUrl($home, (int) $id));
     }
 
     public function unpublishPost(Request $request, $id) {
@@ -343,7 +343,17 @@ class Quiz1 extends Tool {
             return new RedirectResponse($home);
         }
         U::flashSuccess(__('Quiz unpublished. The link is still there.'));
-        return new RedirectResponse($home);
+        return new RedirectResponse($this->afterPublishUrl($home, (int) $id));
+    }
+
+    /**
+     * The quiz list, or the edit screen when the button was pressed there.
+     */
+    private function afterPublishUrl($home, $id) {
+        if ( U::get($_POST, 'next', '') === 'edit' ) {
+            return $home.'/'.(int) $id.'/edit';
+        }
+        return $home;
     }
 
     public function take(Request $request, $id) {
@@ -831,6 +841,20 @@ class Quiz1 extends Tool {
     }
 
     /**
+     * Confirm before opening an editor when the quiz is already published.
+     *
+     * @param mixed $published
+     * @return string
+     */
+    public static function publishedEditConfirm($published) {
+        if ( (int) $published !== 1 ) {
+            return '';
+        }
+        $message = __('Are you sure you want to change this? This quiz has already been published.');
+        return ' onclick="return confirm('.htmlspecialchars(json_encode($message), ENT_QUOTES).');"';
+    }
+
+    /**
      * Import / export menus available on every quiz.
      */
     private static function interchangeButtons($home, $quiz_id, $small) {
@@ -1216,6 +1240,19 @@ class Quiz1 extends Tool {
                     <a class="btn btn-primary" href="<?= htmlspecialchars($home.'/link/'.$quiz->link_id) ?>"><?= htmlspecialchars(__('Take quiz')) ?></a>
                     <?php endif; ?>
                     <a class="btn btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/view') ?>"><?= htmlspecialchars(__('View quiz')) ?></a>
+                    <?php if ( $quiz->link_id && (int) $quiz->published === 1 ): ?>
+                    <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/unpublish') ?>" style="display:inline;">
+                        <?= self::csrfField() ?>
+                        <input type="hidden" name="next" value="edit">
+                        <button type="submit" class="btn btn-default"><?= htmlspecialchars(__('Unpublish')) ?></button>
+                    </form>
+                    <?php else: ?>
+                    <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/publish') ?>" style="display:inline;">
+                        <?= self::csrfField() ?>
+                        <input type="hidden" name="next" value="edit">
+                        <button type="submit" class="btn btn-default"><?= htmlspecialchars($quiz->link_id ? __('Publish again') : __('Publish')) ?></button>
+                    </form>
+                    <?php endif; ?>
                     <?= self::interchangeButtons($home, $quiz->id, false) ?>
                 </span>
             </h1>
@@ -1274,7 +1311,7 @@ class Quiz1 extends Tool {
                                     <input type="hidden" name="direction" value="down">
                                     <button type="submit" class="btn btn-xs btn-default" title="<?= htmlspecialchars(__('Move down')) ?>">&darr;</button>
                                 </form>
-                                <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/questions/'.$q->id.'/edit') ?>"><?= htmlspecialchars(__('Edit')) ?></a>
+                                <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/questions/'.$q->id.'/edit') ?>"<?= self::publishedEditConfirm($quiz->published) ?>><?= htmlspecialchars(__('Edit')) ?></a>
                                 <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/questions/'.$q->id.'/delete') ?>" style="display:inline;" onsubmit="return confirm(<?= htmlspecialchars(json_encode(__('Delete this question?')), ENT_QUOTES) ?>);">
                                     <?= self::csrfField() ?>
                                     <button type="submit" class="btn btn-xs btn-danger"><?= htmlspecialchars(__('Delete')) ?></button>
