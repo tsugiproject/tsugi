@@ -130,7 +130,7 @@ class RequestContext {
                 $user->lastname = $pieces[count($pieces) - 1];
             }
         }
-        $user->instructor = $effective !== 0;
+        $user->instructor = $effective >= LTIX::ROLE_INSTRUCTOR;
         $user->admin = $effective >= LTIX::ROLE_ADMINISTRATOR;
 
         $context = new Context();

@@ -312,7 +312,7 @@ class Quiz1 extends Tool {
         }
         LTIX::getConnection();
         $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
-        if ( ! $quiz ) {
+        if ( ! $quiz || ! $this->studentMayTake($quiz) ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
         }
@@ -333,7 +333,7 @@ class Quiz1 extends Tool {
         if ( $quiz === null ) {
             $quiz = Quiz1Repository::load((int) $id, U::currentContextId());
         }
-        if ( ! $quiz ) {
+        if ( ! $quiz || ! $this->studentMayTake($quiz) ) {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
         }
@@ -418,6 +418,18 @@ class Quiz1 extends Tool {
     }
 
     /**
+     * Students reach a quiz only after it is published. Instructors can still open a draft.
+     *
+     * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
+     */
+    private function studentMayTake($quiz) {
+        if ( $this->isInstructor() ) {
+            return true;
+        }
+        return (int) $quiz->published === 1;
+    }
+
+    /**
      * @param \Tsugi\Services\Quiz1\Quiz1[] $quizzes
      */
     private function renderStudentIndex(array $quizzes, $home) {
@@ -431,15 +443,26 @@ class Quiz1 extends Tool {
             <h1><?= htmlspecialchars(__('Quizzes')) ?></h1>
             <?php if ( count($quizzes) < 1 ): ?>
                 <p><?= htmlspecialchars(__('No quizzes in this course yet.')) ?></p>
-            <?php else: ?>
+            <?php else:
+                $visible = array();
+                foreach ( $quizzes as $quiz ) {
+                    if ( (int) $quiz->published === 1 ) {
+                        $visible[] = $quiz;
+                    }
+                }
+            ?>
+                <?php if ( count($visible) < 1 ): ?>
+                    <p><?= htmlspecialchars(__('No quizzes in this course yet.')) ?></p>
+                <?php else: ?>
                 <ul class="list-unstyled">
-                <?php foreach ( $quizzes as $quiz ): ?>
+                <?php foreach ( $visible as $quiz ): ?>
                     <li style="margin: 0.5em 0;">
                         <a href="<?= htmlspecialchars($home.'/'.$quiz->id) ?>"><?= htmlspecialchars($quiz->title) ?></a>
                         (<?= (int) $quiz->question_count ?> <?= htmlspecialchars(__('questions')) ?>)
                     </li>
                 <?php endforeach; ?>
                 </ul>
+                <?php endif; ?>
             <?php endif; ?>
         </main>
         <?php

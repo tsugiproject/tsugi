@@ -2781,6 +2781,7 @@ function saveChanges() {
             alert('Anchor is required. Missing on: ' + title);
             return;
         }
+        modules[i].anchor = anchor;
     }
     stripHeadingLevels(lessonsData);
     const jsonData = JSON.stringify(lessonsData, null, 4);
