@@ -127,12 +127,18 @@ class Quiz1 extends Tool {
                             <td><?= htmlspecialchars($quiz->title) ?></td>
                             <td><?= (int) $quiz->question_count ?></td>
                             <td class="text-right">
-                                <?php if ( (int) $quiz->published === 1 ): ?>
-                                    <a class="btn btn-xs btn-primary" href="<?= htmlspecialchars($home.'/'.$quiz->id) ?>"><?= htmlspecialchars(__('Take')) ?></a>
-                                    <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/view') ?>"><?= htmlspecialchars(__('View')) ?></a>
-                                <?php else: ?>
-                                    <a class="btn btn-xs btn-primary" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/view') ?>"><?= htmlspecialchars(__('View')) ?></a>
-                                <?php endif; ?>
+                                <div class="btn-group" style="display:inline-block;">
+                                    <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <?= htmlspecialchars(__('Open')) ?> <span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-right">
+                                        <?php if ( (int) $quiz->published === 1 ): ?>
+                                            <li><a href="<?= htmlspecialchars($home.'/'.$quiz->id) ?>"><?= htmlspecialchars(__('Take')) ?></a></li>
+                                        <?php endif; ?>
+                                        <li><a href="<?= htmlspecialchars($home.'/'.$quiz->id.'/view') ?>"><?= htmlspecialchars(__('View')) ?></a></li>
+                                        <li><a href="<?= htmlspecialchars($home.'/'.$quiz->id.'/view?print=yes') ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars(__('Print')) ?></a></li>
+                                    </ul>
+                                </div>
                                 <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/edit') ?>"><?= htmlspecialchars(__('Edit')) ?></a>
                                 <?php if ( $quiz->link_id && (int) $quiz->published === 1 ): ?>
                                     <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/unpublish') ?>" style="display:inline;">
@@ -319,7 +325,8 @@ class Quiz1 extends Tool {
             U::flashError(__('Quiz not found.'));
             return new RedirectResponse($home);
         }
-        return $this->renderTake((int) $id, null, $quiz, true);
+        $printing = U::get($_GET, 'print', '') === 'yes';
+        return $this->renderTake((int) $id, null, $quiz, true, $printing);
     }
 
     /**
@@ -367,8 +374,9 @@ class Quiz1 extends Tool {
     /**
      * @param array{earned:int,possible:int,essay_possible:int,items:array}|null $result
      * @param bool $viewing Instructor preview. Does not require publication and does not record a grade.
+     * @param bool $printing Clean paper layout for an instructor, opened from view.
      */
-    private function renderTake($id, $result, $quiz = null, $viewing = false) {
+    private function renderTake($id, $result, $quiz = null, $viewing = false, $printing = false) {
         global $OUTPUT;
 
         $home = $this->toolHome(self::ROUTE);
@@ -400,10 +408,17 @@ class Quiz1 extends Tool {
 
         $OUTPUT->header();
         $OUTPUT->bodyStart($result === null);
-        $OUTPUT->topNav();
-        $OUTPUT->flashMessages();
+        if ( ! $printing ) {
+            $OUTPUT->topNav();
+            $OUTPUT->flashMessages();
+        }
         include __DIR__ . '/templates/Quiz1/take.inc.php';
+        $savedFooter = $_SESSION['APP_FOOTER'] ?? null;
+        unset($_SESSION['APP_FOOTER']);
         $OUTPUT->footer();
+        if ( $savedFooter !== null ) {
+            $_SESSION['APP_FOOTER'] = $savedFooter;
+        }
         return '';
     }
 
@@ -1138,6 +1153,7 @@ class Quiz1 extends Tool {
             <h1><?= htmlspecialchars(__('Edit Quiz')) ?>
                 <span class="pull-right">
                     <a class="btn btn-primary" href="<?= htmlspecialchars($home.'/'.$quiz->id) ?>"><?= htmlspecialchars(__('Take quiz')) ?></a>
+                    <a class="btn btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/view') ?>"><?= htmlspecialchars(__('View quiz')) ?></a>
                     <?= self::interchangeButtons($home, $quiz->id, false) ?>
                 </span>
             </h1>
@@ -1371,7 +1387,17 @@ class Quiz1 extends Tool {
         $OUTPUT->footerStart();
         ?>
         <style>
-        <?php \Tsugi\UI\CKEditor::renderStyles(['includeLinkPicker' => false, 'extraStyles' => '.ckeditor-container { min-height: 8em; }']); ?>
+        <?php
+        $editorStyles = $with_answers
+            ? '#question_form .ckeditor-container { min-height: 0; }'
+                .' #question_form .ck-editor__editable { min-height: 2.5em; }'
+                .' #question_form .form-group { margin-bottom: 0.4em; }'
+                .' #question_form h3 { margin: 0.4em 0 0.2em; }'
+                .' #question_form .help-block { margin-bottom: 0.4em; }'
+                .' #question_form .answer-row { margin-bottom: 0.25em; }'
+            : '.ckeditor-container { min-height: 8em; }';
+        \Tsugi\UI\CKEditor::renderStyles(['includeLinkPicker' => false, 'extraStyles' => $editorStyles]);
+        ?>
         </style>
         <?php \Tsugi\UI\CKEditor::renderScriptTag(); ?>
         <script type="text/javascript">

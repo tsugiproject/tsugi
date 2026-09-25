@@ -6,11 +6,13 @@
  * on the caller's namespace.
  *
  * Expected: $quiz, $home, $lessons_url, $can_edit, $result (null or grade array),
- * $requestContextLines (label => text), $viewing (instructor preview)
+ * $requestContextLines (label => text), $viewing (instructor preview),
+ * $printing (clean paper layout)
  */
 $questions = $quiz->orderedQuestions();
 $submitted = $result !== null;
 $viewing = ! empty($viewing);
+$printing = ! empty($printing);
 $action = $home.'/'.$quiz->id.($viewing ? '/view' : '');
 if ( isset($from_module) && is_string($from_module) && $from_module !== '' ) {
     $action .= (str_contains($action, '?') ? '&' : '?').'from='.rawurlencode($from_module);
@@ -21,13 +23,63 @@ if ( isset($from_module) && is_string($from_module) && $from_module !== '' ) {
 .quiz1-take .quiz1-q.quiz1-correct { border-color: #28a745; background: #f4fff6; }
 .quiz1-take .quiz1-q.quiz1-incorrect { border-color: #dc3545; background: #fff6f6; }
 .quiz1-take .quiz1-q.quiz1-unscored { border-color: #ffc107; background: #fffdf2; }
+.quiz1-take.quiz1-printing .quiz1-q {
+    margin: 1em 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+.quiz1-take.quiz1-printing .quiz1-choices { margin: 0.35em 0 0.5em; }
+.quiz1-take.quiz1-printing .quiz1-choices > p,
+.quiz1-take.quiz1-printing .quiz1-choices .quiz1-prompt,
+.quiz1-take.quiz1-printing .quiz1-choices .quiz1-prompt p,
+.quiz1-take.quiz1-printing .quiz1-choices .quiz1-choice,
+.quiz1-take.quiz1-printing .quiz1-choices .quiz1-choice p {
+    margin: 0;
+}
+.quiz1-take.quiz1-printing .quiz1-choices .quiz1-prompt { margin-bottom: 0.1em; }
+.quiz1-take.quiz1-printing .quiz1-choices .quiz1-choice { line-height: 1.2; }
 .quiz1-take .quiz1-prompt { margin-bottom: 0.75em; }
 .quiz1-take .quiz1-choice { display: block; margin: 0.35em 0; font-weight: normal; }
 .quiz1-take .quiz1-score { font-size: 1.1em; margin: 1em 0; }
 .quiz1-take .quiz1-fb { margin-top: 0.75em; color: #555; }
+.quiz1-take .quiz1-print-name { margin: 1.5em 0 2em; }
+@media print {
+    nav, .quiz1-chrome { display: none !important; }
+    body { padding-top: 0; }
+    .quiz1-take .quiz1-q {
+        margin: 1em 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    .quiz1-take .quiz1-choices { margin: 0.35em 0 0.5em; }
+    .quiz1-take .quiz1-choices > p,
+    .quiz1-take .quiz1-choices .quiz1-prompt,
+    .quiz1-take .quiz1-choices .quiz1-prompt p,
+    .quiz1-take .quiz1-choices .quiz1-choice,
+    .quiz1-take .quiz1-choices .quiz1-choice p {
+        margin: 0;
+    }
+    .quiz1-take .quiz1-choices .quiz1-prompt { margin-bottom: 0.1em; }
+    .quiz1-take .quiz1-choices .quiz1-choice { line-height: 1.2; }
+    .quiz1-take input[type="text"],
+    .quiz1-take textarea {
+        border: 0;
+        border-bottom: 1px solid #000;
+        background: transparent;
+        box-shadow: none;
+    }
+    .quiz1-take textarea { height: 140px; }
+}
 </style>
-<main class="container quiz1-take" role="main" id="main-content">
-    <p>
+<main class="container quiz1-take<?= $printing ? ' quiz1-printing' : '' ?>" role="main" id="main-content">
+    <?php if ( ! $printing ) { ?>
+    <p class="quiz1-chrome">
         <?php if ( $lessons_url ) { ?>
             <a href="<?= htmlspecialchars($lessons_url) ?>">&larr; <?= htmlspecialchars(__('Back to Lessons')) ?></a>
         <?php } else { ?>
@@ -35,12 +87,21 @@ if ( isset($from_module) && is_string($from_module) && $from_module !== '' ) {
         <?php } ?>
         <?php if ( $can_edit ) { ?>
             <span class="pull-right">
+                <?php if ( $viewing ) {
+                    $print_href = $action.(str_contains($action, '?') ? '&' : '?').'print=yes';
+                ?>
+                    <a class="btn btn-default btn-sm" href="<?= htmlspecialchars($print_href) ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars(__('Print')) ?></a>
+                <?php } ?>
                 <a class="btn btn-default btn-sm" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/edit') ?>"><?= htmlspecialchars(__('Edit quiz')) ?></a>
             </span>
         <?php } ?>
     </p>
+    <?php } ?>
     <h1><?= htmlspecialchars($quiz->title) ?></h1>
-    <?php if ( $viewing ) { ?>
+    <?php if ( $printing ) { ?>
+        <p class="quiz1-print-name"><?= htmlspecialchars(__('Name:')) ?> ___________________________________________________________</p>
+    <?php } ?>
+    <?php if ( $viewing && ! $printing ) { ?>
         <p class="alert alert-warning"><?= htmlspecialchars(__('View mode. This preview does not record a grade.')) ?></p>
     <?php } ?>
     <?php if ( ! \Tsugi\Services\Quiz1\Question::isBlankHtml($quiz->instructions) ) { ?>
@@ -71,7 +132,7 @@ if ( isset($from_module) && is_string($from_module) && $from_module !== '' ) {
                 $klass = $status !== '' ? ' quiz1-'.$status : '';
                 $got = is_array($item) ? $item['submitted'] : '';
                 ?>
-                <div class="quiz1-q<?= $klass ?>">
+                <div class="quiz1-q<?= $klass ?><?= \Tsugi\Services\Quiz1\QuestionTypes::usesChoiceAnswers($q->type) ? ' quiz1-choices' : '' ?>">
                     <p><strong><?= (int) $q->sequence ?>.</strong>
                         <?= htmlspecialchars(\Tsugi\Services\Quiz1\QuestionTypes::label($q->type)) ?>
                         (<?= (int) $q->points ?> <?= htmlspecialchars(__('points')) ?>)
@@ -129,13 +190,15 @@ if ( isset($from_module) && is_string($from_module) && $from_module !== '' ) {
                 </div>
             <?php } ?>
 
-            <p>
+            <?php if ( ! $printing ) { ?>
+            <p class="quiz1-chrome">
                 <?php if ( ! $submitted ) { ?>
                     <button type="submit" class="btn btn-primary"><?= htmlspecialchars(__('Submit quiz')) ?></button>
                 <?php } else { ?>
                     <a class="btn btn-default" href="<?= htmlspecialchars($action) ?>"><?= htmlspecialchars(__('Try again')) ?></a>
                 <?php } ?>
             </p>
+            <?php } ?>
         </form>
     <?php } ?>
     <?php if ( isset($requestContextLines) && is_array($requestContextLines) ) { ?>
