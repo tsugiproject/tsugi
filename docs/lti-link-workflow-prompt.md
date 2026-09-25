@@ -396,6 +396,8 @@ A quiz, and later a discussion, has one launch link. That is the old LTI 1.1 sha
 
 That one-to-one does not stop the tool from creating more columns. More columns are what AGS is for. A quiz tool, a discussion tool, or an external tool can POST another line item, and Tsugi creates another link row for it. Those rows belong to the tool that created them. Lessons does not point at them. They are not a second launch link for the quiz, and they do not make the quiz one-to-many in the outline.
 
+There is no parent-child between a tool-created line item and the launch link it happened to be created near. Several resource links can launch to the same place. A Submission Review of a tool-created column sends the line item URL and omits the `resource_link` claim. Do not fill that claim with the main launch link, even when Tsugi could guess one.
+
 When a grade on the row changes, and `lti13_lineitem` is set, that grade percolates up to the upstream LMS.
 
 ## Opening a quiz
