@@ -1263,7 +1263,26 @@ class LessonsService {
             return false;
         }
         $this->loadQuiz1Publication();
-        return ! empty($this->quiz1IdSet[$quiz_id]);
+        $row = $this->quiz1IdSet[$quiz_id] ?? null;
+        return is_array($row) && ! empty($row['published']);
+    }
+
+    /**
+     * Resource link id for a published quiz, or 0.
+     *
+     * @return int
+     */
+    public function quiz1LinkId($quiz_id) {
+        $quiz_id = (int) $quiz_id;
+        if ( $quiz_id < 1 ) {
+            return 0;
+        }
+        $this->loadQuiz1Publication();
+        $row = $this->quiz1IdSet[$quiz_id] ?? null;
+        if ( ! is_array($row) || empty($row['published']) ) {
+            return 0;
+        }
+        return (int) ($row['link_id'] ?? 0);
     }
 
     private function loadQuiz1Publication() {
@@ -1277,7 +1296,10 @@ class LessonsService {
         }
         try {
             foreach ( Quiz1Repository::listForContext($context_id) as $quiz ) {
-                $this->quiz1IdSet[(int) $quiz->id] = ((int) $quiz->published) === 1;
+                $this->quiz1IdSet[(int) $quiz->id] = array(
+                    'published' => ((int) $quiz->published) === 1,
+                    'link_id' => (int) $quiz->link_id,
+                );
             }
         } catch ( \Exception $e ) {
             $this->quiz1IdSet = array();

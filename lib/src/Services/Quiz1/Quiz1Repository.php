@@ -74,6 +74,27 @@ class Quiz1Repository {
     }
 
     /**
+     * The quiz whose launch link is $link_id in this course.
+     *
+     * @return Quiz1|null
+     */
+    public static function loadByLink($link_id, $context_id) {
+        global $CFG, $PDOX;
+        LTIX::getConnection();
+
+        $row = $PDOX->rowDie(
+            "SELECT Q.quiz_id
+             FROM {$CFG->dbprefix}quiz1_quiz Q
+             WHERE Q.link_id = :LID AND Q.context_id = :CID",
+            array(':LID' => (int) $link_id, ':CID' => (int) $context_id)
+        );
+        if ( ! $row ) {
+            return null;
+        }
+        return self::load((int) $row['quiz_id'], (int) $context_id);
+    }
+
+    /**
      * @return Question[]
      */
     public static function loadQuestions($quiz_id) {

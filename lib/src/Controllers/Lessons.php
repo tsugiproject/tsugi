@@ -2264,11 +2264,14 @@ $(function(){
         if ( $open && $quiz_id > 0 && $logged_in && class_exists('\\Tsugi\\Controllers\\Quiz1') ) {
             $home = \Tsugi\Controllers\Tool::determineToolHome(\Tsugi\Controllers\Quiz1::ROUTE);
             if ( is_string($home) && $home !== '' ) {
-                $path = $published ? (string) $quiz_id : ((string) $quiz_id).'/view';
-                $href = U::addSession(\Tsugi\Controllers\Tool::joinToolHome($home, $path));
-                $anchor = (is_object($module) && isset($module->anchor)) ? (string) $module->anchor : '';
-                if ( preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$/', $anchor) ) {
-                    $href .= (str_contains($href, '?') ? '&' : '?').'from='.rawurlencode($anchor);
+                $link_id = $published ? (int) $lessons->quiz1LinkId($quiz_id) : 0;
+                if ( ! ($published && $link_id < 1) ) {
+                    $path = $published ? 'link/'.(string) $link_id : ((string) $quiz_id).'/view';
+                    $href = U::addSession(\Tsugi\Controllers\Tool::joinToolHome($home, $path));
+                    $anchor = (is_object($module) && isset($module->anchor)) ? (string) $module->anchor : '';
+                    if ( preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$/', $anchor) ) {
+                        $href .= (str_contains($href, '?') ? '&' : '?').'from='.rawurlencode($anchor);
+                    }
                 }
             }
         }

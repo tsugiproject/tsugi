@@ -13,7 +13,7 @@ $questions = $quiz->orderedQuestions();
 $submitted = $result !== null;
 $viewing = ! empty($viewing);
 $printing = ! empty($printing);
-$action = $home.'/'.$quiz->id.($viewing ? '/view' : '');
+$action = $viewing ? $home.'/'.$quiz->id.'/view' : $home.'/link/'.$quiz->link_id;
 if ( isset($from_module) && is_string($from_module) && $from_module !== '' ) {
     $action .= (str_contains($action, '?') ? '&' : '?').'from='.rawurlencode($from_module);
 }
