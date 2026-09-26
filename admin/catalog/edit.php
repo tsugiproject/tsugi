@@ -15,7 +15,7 @@ require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../admin_util.php';
 
 LTIX::getConnection();
-session_start();
+\Tsugi\Core\Admin::session_start();
 require_once __DIR__ . '/../gate.php';
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 

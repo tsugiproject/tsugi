@@ -9,7 +9,7 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Util\U;
 
 LTIX::getConnection();
-session_start();
+\Tsugi\Core\Admin::session_start();
 
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;

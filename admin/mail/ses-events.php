@@ -10,7 +10,7 @@ use \Tsugi\Util\U;
 use \Tsugi\Services\Mail\MailService;
 
 LTIX::getConnection();
-session_start();
+\Tsugi\Core\Admin::session_start();
 
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;

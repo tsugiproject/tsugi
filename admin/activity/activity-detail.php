@@ -10,7 +10,7 @@ require_once("../../admin/admin_util.php");
 \Tsugi\Core\LTIX::getConnection();
 
 header('Content-Type: text/html; charset=utf-8');
-session_start();
+\Tsugi\Core\Admin::session_start();
 
 if ( ! isAdmin() ) {
     die('Must be admin');

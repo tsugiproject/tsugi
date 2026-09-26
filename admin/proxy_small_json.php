@@ -72,7 +72,7 @@ function proxySmallJsonValidateUrl($proxyUrl) {
     return true;
 }
 
-session_start();
+\Tsugi\Core\Admin::session_start();
 if ( ! isset($_SESSION["admin"]) ) {
     die('Must be admin');
 }

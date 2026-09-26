@@ -9,7 +9,7 @@ use \Tsugi\Util\U;
 
 LTIX::getConnection();
 header('Content-Type: text/html; charset=utf-8');
-session_start();
+\Tsugi\Core\Admin::session_start();
 
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;

@@ -9,7 +9,7 @@ use \Tsugi\Core\Cache;
 
 if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
-session_start();
+\Tsugi\Core\Admin::session_start();
 if ( ! isset($_SESSION["admin"]) ) {
     die_with_error_log('Must be admin to run git commands');
 }

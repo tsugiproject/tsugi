@@ -1,7 +1,7 @@
 <?php
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../config.php");
-session_start();
+\Tsugi\Core\Admin::session_start();
 require_once("gate.php");
 require_once("admin_util.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
