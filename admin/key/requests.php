@@ -16,7 +16,7 @@ session_start();
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-if ( ! ( ReqScope::isLoggedIn() || isAdmin() ) ) {
+if ( ! ( ReqScope::isLoggedInLegacy() || isAdmin() ) ) {
     \Tsugi\Controllers\Login::setReturnUrl(LTIX::curPageUrlFolder());
     header('Location: '.\Tsugi\Controllers\Login::loginUrl());
     return;
@@ -30,7 +30,7 @@ $sql = "SELECT request_id, title, notes, state, admin, R.created_at, R.updated_a
 
 if ( !isAdmin() ) {
     $sql .= "\nWHERE R.user_id = :UID";
-    $query_parms = array(":UID" => ReqScope::loggedInUserId());
+    $query_parms = array(":UID" => ReqScope::loggedInUserIdLegacy());
 }
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields);

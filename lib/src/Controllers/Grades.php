@@ -263,8 +263,8 @@ class Grades extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = ReqScope::currentContextId();
-        $user_id = ReqScope::loggedInUserId();
+        $context_id = ReqScope::currentContextIdLegacy();
+        $user_id = ReqScope::loggedInUserIdLegacy();
         $is_instructor = $this->isInstructor();
         
         $p = $CFG->dbprefix;
@@ -380,7 +380,7 @@ class Grades extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $p = $CFG->dbprefix;
         
         $link_id = 0;

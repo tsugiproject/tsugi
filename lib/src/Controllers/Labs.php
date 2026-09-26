@@ -205,8 +205,8 @@ class Labs extends Tool {
             foreach ( GradeUtil::loadGradesCurrentUser() as $row ) {
                 $allgrades[$row['resource_link_id']] = $row['grade'];
             }
-            if ( ReqScope::currentContextId() !== 0 ) {
-                $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
+            if ( ReqScope::currentContextIdLegacy() !== 0 ) {
+                $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextIdLegacy());
             }
         }
 

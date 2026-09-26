@@ -75,4 +75,4 @@ The flag has to be set before `config.php`. Setting the flag afterward is too la
 
 A new launch POST still validates inside `launchCheck()`, stores `$_SESSION['lti']`, redirects, and calls `exit()`. `ReqScope` for that launch is filled on the redirect, when `requireData()` reads the stored row.
 
-`ReqScope::loggedInUserId()`, `ReqScope::currentContextId()`, and `ReqScope::isLoggedIn()` are a separate cached pair. On a site login the pair matches `ReqScope`. On a cookieless LTI tool the pair can stay at user 0. LTI tools do not use those readers. `ReqScope` on that request still holds the launch user and course.
+`ReqScope::loggedInUserIdLegacy()`, `ReqScope::currentContextIdLegacy()`, and `ReqScope::isLoggedInLegacy()` are a separate cached pair. On a site login the pair matches `ReqScope`. On a cookieless LTI tool the pair can stay at user 0. LTI tools do not use those readers. `ReqScope` on that request still holds the launch user and course.

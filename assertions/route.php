@@ -54,7 +54,7 @@ if ($first_part === 'publish') {
         $OUTPUT->footer();
         return;
     }
-    $current_user_id = ReqScope::loggedInUserId();
+    $current_user_id = ReqScope::loggedInUserIdLegacy();
     if ($current_user_id === 0) {
         http_response_code(403);
         $OUTPUT->header();
@@ -137,7 +137,7 @@ if ($first_part === 'linkedin') {
         $OUTPUT->footer();
         return;
     }
-    $current_user_id = ReqScope::loggedInUserId();
+    $current_user_id = ReqScope::loggedInUserIdLegacy();
     $minted = BadgeService::getByGuid($guid);
     if ( $current_user_id > 0 && $minted && (int) $minted['user_id'] === $current_user_id ) {
         BadgeService::recordLinkedInClick($guid);
@@ -431,7 +431,7 @@ switch ($resource) {
         }
         
         // Get current logged-in user ID (session or $USER; see lms_lib.php)
-        $current_user_id = ReqScope::loggedInUserId();
+        $current_user_id = ReqScope::loggedInUserIdLegacy();
         $logged_in = $current_user_id !== 0;
         
         // Get badge owner user ID from the encrypted assertion ID

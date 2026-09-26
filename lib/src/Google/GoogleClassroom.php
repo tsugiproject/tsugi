@@ -16,7 +16,7 @@ class GoogleClassroom {
     public static function getClient($accessTokenStr, $user_id=false) {
         global $CFG, $PDOX;
 
-        if ( ! $user_id ) $user_id = ReqScope::loggedInUserId();
+        if ( ! $user_id ) $user_id = ReqScope::loggedInUserIdLegacy();
 
         $options = array(
             'client_id' => $CFG->google_client_id,
@@ -87,9 +87,9 @@ class GoogleClassroom {
             $sql = "UPDATE {$CFG->dbprefix}lti_user
                 SET gc_token = NULL WHERE user_id = :UID";
             $PDOX->queryDie($sql,
-                array(':UID' => ReqScope::loggedInUserId())
+                array(':UID' => ReqScope::loggedInUserIdLegacy())
             );
-            error_log('Clearing bad access token id='.ReqScope::loggedInUserId());
+            error_log('Clearing bad access token id='.ReqScope::loggedInUserIdLegacy());
             error_log($accessTokenStr);
             $newAccessTokenStr = false;
         }
@@ -110,7 +110,7 @@ class GoogleClassroom {
     public static function retrieve_instructor_token($user_id=false) {
         global $PDOX, $CFG;
 
-        if ( ! $user_id ) $user_id = ReqScope::loggedInUserId();
+        if ( ! $user_id ) $user_id = ReqScope::loggedInUserIdLegacy();
         // Try access token from session when LTIX adds it.
         $accessTokenStr = LTIX::decrypt_secret(LTIX::ltiParameter('gc_token', false));
         if ( ! $accessTokenStr ) {
@@ -130,7 +130,7 @@ class GoogleClassroom {
             $accessToken = json_decode($accessTokenStr, true);
             if ( $accessToken && ! U::get($accessToken, 'refresh_token') ) {
                 destroy_access_token();
-                error_log('Clearing bad access token id='.ReqScope::loggedInUserId());
+                error_log('Clearing bad access token id='.ReqScope::loggedInUserIdLegacy());
                 error_log($accessTokenStr);
                 $accessTokenStr = false;
             }
@@ -144,7 +144,7 @@ class GoogleClassroom {
         $sql = "UPDATE {$CFG->dbprefix}lti_user
             SET gc_token = NULL WHERE user_id = :UID";
         $PDOX->queryDie($sql,
-            array(':UID' => ReqScope::loggedInUserId())
+            array(':UID' => ReqScope::loggedInUserIdLegacy())
         );
     }
 

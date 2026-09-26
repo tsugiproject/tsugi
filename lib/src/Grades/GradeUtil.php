@@ -162,15 +162,15 @@ class GradeUtil {
     }
 
     /**
-     * Grades for the logged-in user in the current course (uses ReqScope::loggedInUserId() and ReqScope::currentContextId()).
+     * Grades for the logged-in user in the current course (uses ReqScope::loggedInUserIdLegacy() and ReqScope::currentContextIdLegacy()).
      * Cached per context via {@see Cache::setContext} for {@see self::GRADES_CURRENT_USER_CACHE_TTL} seconds;
      * on miss loads via {@see loadGradesForCourse}.
      *
      * @return array<int,array<string,mixed>>
      */
     public static function loadGradesCurrentUser() {
-        $uid = ReqScope::loggedInUserId();
-        $cid = ReqScope::currentContextId();
+        $uid = ReqScope::loggedInUserIdLegacy();
+        $cid = ReqScope::currentContextIdLegacy();
         if ( $uid < 1 || $cid < 1 ) {
             return array();
         }
@@ -331,7 +331,7 @@ class GradeUtil {
         if ( ! self::dueMapHasScheduledEnd($map) ) {
             return array();
         }
-        $user_id = ReqScope::loggedInUserId();
+        $user_id = ReqScope::loggedInUserIdLegacy();
         if ( $user_id < 1 ) {
             return array();
         }

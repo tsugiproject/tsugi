@@ -53,7 +53,7 @@ if ( count($_POST) > 0 ) {
 }
 
 if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
-if ( isset($_POST['user_id']) && empty($_POST['user_id']) && ReqScope::isLoggedIn() ) $_POST['user_id'] = ReqScope::loggedInUserId();
+if ( isset($_POST['user_id']) && empty($_POST['user_id']) && ReqScope::isLoggedInLegacy() ) $_POST['user_id'] = ReqScope::loggedInUserIdLegacy();
 
 // Check the complex interaction of constraints
 $key_key = U::get($_POST,'key_key');

@@ -153,34 +153,34 @@ class ReqScope {
      *
      * @return int
      */
-    public static function loggedInUserId() {
+    public static function loggedInUserIdLegacy() {
         $identity = self::identity();
         return (int) $identity['user_id'];
     }
 
     /**
-     * Current course id, or 0, from the same source as loggedInUserId().
+     * Current course id, or 0, from the same source as loggedInUserIdLegacy().
      *
      * @return int
      */
-    public static function currentContextId() {
+    public static function currentContextIdLegacy() {
         $identity = self::identity();
         return (int) $identity['context_id'];
     }
 
     /**
-     * True when loggedInUserId() is non-zero.
+     * True when loggedInUserIdLegacy() is non-zero.
      *
      * A logged-in user does not need a course.
      *
      * @return bool
      */
-    public static function isLoggedIn() {
-        return self::loggedInUserId() !== 0;
+    public static function isLoggedInLegacy() {
+        return self::loggedInUserIdLegacy() !== 0;
     }
 
     /**
-     * Temporary. Compare loggedInUserId(), currentContextId(), and isLoggedIn()
+     * Temporary. Compare loggedInUserIdLegacy(), currentContextIdLegacy(), and isLoggedInLegacy()
      * with the user and course on this object. Remove with ReqScopeDebug
      * around December 2026. LTI tools do not use these readers.
      *
@@ -191,18 +191,18 @@ class ReqScope {
         $notes = array();
         $userId = self::walkerScopeId($scope, 'user');
         $contextId = self::walkerScopeId($scope, 'context');
-        $readerUser = self::loggedInUserId();
-        $readerContext = self::currentContextId();
-        $readerIn = self::isLoggedIn();
+        $readerUser = self::loggedInUserIdLegacy();
+        $readerContext = self::currentContextIdLegacy();
+        $readerIn = self::isLoggedInLegacy();
         if ( $readerUser !== $userId ) {
-            $notes[] = 'loggedInUserId(): reader '.$readerUser.' / ReqScope user.id '.$userId;
+            $notes[] = 'loggedInUserIdLegacy(): reader '.$readerUser.' / ReqScope user.id '.$userId;
         }
         if ( $readerContext !== $contextId ) {
-            $notes[] = 'currentContextId(): reader '.$readerContext.' / ReqScope context.id '.$contextId;
+            $notes[] = 'currentContextIdLegacy(): reader '.$readerContext.' / ReqScope context.id '.$contextId;
         }
         $scopeIn = $userId !== 0;
         if ( $readerIn !== $scopeIn ) {
-            $notes[] = 'isLoggedIn(): reader '.($readerIn ? 'true' : 'false')
+            $notes[] = 'isLoggedInLegacy(): reader '.($readerIn ? 'true' : 'false')
                 .' / ReqScope '.($scopeIn ? 'true' : 'false');
         }
         return $notes;
@@ -532,7 +532,7 @@ class ReqScope {
             $user_id = (int) self::$current->user->id;
         }
         if ( $user_id < 1 ) {
-            $user_id = (int) self::loggedInUserId();
+            $user_id = (int) self::loggedInUserIdLegacy();
         }
         if ( $user_id < 1 ) {
             return self::$current;
@@ -627,8 +627,8 @@ class ReqScope {
      */
     public static function logSessionDrift($context_id) {
         $rc = self::current();
-        $sessionUser = (int) self::loggedInUserId();
-        $sessionContext = (int) self::currentContextId();
+        $sessionUser = (int) self::loggedInUserIdLegacy();
+        $sessionContext = (int) self::currentContextIdLegacy();
         $passed = (int) $context_id;
         if ( ! $rc || ! $rc->user || ! $rc->context ) {
             error_log('ReqScope drift: not established; session user='.$sessionUser.' context='.$sessionContext.' passed='.$passed);
@@ -874,7 +874,7 @@ class ReqScope {
         if ( $passed > 0 ) {
             return $passed;
         }
-        return (int) self::currentContextId();
+        return (int) self::currentContextIdLegacy();
     }
 
     /**

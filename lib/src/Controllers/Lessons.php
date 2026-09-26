@@ -162,7 +162,7 @@ class Lessons extends Tool {
         $quiz1_home_url = U::addSession($this->controllerUrl(Quiz1::ROUTE));
         $quiz1_list = array();
         try {
-            $context_id = ReqScope::currentContextId();
+            $context_id = ReqScope::currentContextIdLegacy();
             if ( $context_id ) {
                 foreach ( Quiz1Repository::listForContext($context_id) as $quiz ) {
                     $quiz1_list[] = array(
@@ -354,7 +354,7 @@ class Lessons extends Tool {
         if ( ! Manifest::currentIsV2() ) {
             return 'Lesson authoring only saves Lessons JSON v2 to the course manifest';
         }
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         if ( $context_id < 1 ) {
             return 'No course context';
         }
@@ -374,7 +374,7 @@ class Lessons extends Tool {
         }
 
         try {
-            Manifest::saveNewVersion($context_id, $lessons_data, ReqScope::loggedInUserId(), $comment);
+            Manifest::saveNewVersion($context_id, $lessons_data, ReqScope::loggedInUserIdLegacy(), $comment);
         } catch ( \InvalidArgumentException $e ) {
             return $e->getMessage();
         } catch ( \Exception $e ) {
@@ -729,8 +729,8 @@ $(function(){
             $allgrades[$row['resource_link_id']] = $row['grade'];
         }
         $moduleDueDates = array();
-        if ( ReqScope::currentContextId() !== 0 ) {
-            $moduleDueDates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
+        if ( ReqScope::currentContextIdLegacy() !== 0 ) {
+            $moduleDueDates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextIdLegacy());
         }
         $lessons->setModuleProgressContext($allgrades, $moduleDueDates);
 
@@ -1221,8 +1221,8 @@ $(function(){
          }
 
         $duedates = array();
-        if ( ReqScope::currentContextId() !== 0 ) {
-            $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
+        if ( ReqScope::currentContextIdLegacy() !== 0 ) {
+            $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextIdLegacy());
         }
 
         echo('<div typeof="Course">'."\n");
@@ -1233,7 +1233,7 @@ $(function(){
 
         foreach($lessons->lessons->modules as $module) {
         if ( isset($module->hidden) && $module->hidden ) continue;
-	    if ( isset($module->login) && $module->login && ! ReqScope::isLoggedIn() ) continue;
+	    if ( isset($module->login) && $module->login && ! ReqScope::isLoggedInLegacy() ) continue;
 
             $modProgress = $lessons->moduleLtiProgressPoints($module, $allgrades, $duedates);
             $possible_points = $modProgress[0];
@@ -2261,7 +2261,7 @@ $(function(){
         }
 
         $href = '';
-        $logged_in = ReqScope::isLoggedIn();
+        $logged_in = ReqScope::isLoggedInLegacy();
         $open = $published || $instructor;
         if ( $open && $quiz_id > 0 && $logged_in && class_exists('\\Tsugi\\Controllers\\Quiz1') ) {
             $home = \Tsugi\Controllers\Tool::determineToolHome(\Tsugi\Controllers\Quiz1::ROUTE);

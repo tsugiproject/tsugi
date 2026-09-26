@@ -26,7 +26,7 @@ stores the sandbox `manifest_id`, resets the per-request identity
 snapshot, rebuilds the Launch, and drops session caches.
 `ReqScope::replaceCourse()` reloads membership when that id differs from
 the course `LTIX::session_start()` already stored. The same course is
-left as it is. Then `ReqScope::currentContextId()` is that course for
+left as it is. Then `ReqScope::currentContextIdLegacy()` is that course for
 the rest of the request.
 
 On a **site** URL (`/`, `/announcements`, buildmenu chrome), Tsugi puts

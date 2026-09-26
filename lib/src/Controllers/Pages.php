@@ -68,7 +68,7 @@ class Pages extends Tool {
             $html,
             $this->courseFileBaseUrl(self::ROUTE),
             self::courseLocalPrefixes(),
-            ReqScope::currentContextId()
+            ReqScope::currentContextIdLegacy()
         );
     }
 
@@ -80,7 +80,7 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
 
         $is_instructor = $this->isInstructor();
 
@@ -179,7 +179,7 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $is_instructor = $this->isInstructor();
         $pages = PageRepository::listForPicker($context_id, !$is_instructor);
         
@@ -460,8 +460,8 @@ class Pages extends Tool {
         
         LTIX::getConnection();
 
-        $context_id = ReqScope::currentContextId();
-        $user_id = ReqScope::loggedInUserId();
+        $context_id = ReqScope::currentContextIdLegacy();
+        $user_id = ReqScope::loggedInUserIdLegacy();
 
         $title = trim(U::get($_POST, 'title'));
         $body = $this->canonicalizePageHtml(U::get($_POST, 'body', ''));
@@ -512,7 +512,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $page_id = intval($id);
         
         if (!$page_id) {
@@ -625,7 +625,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $page_id = intval($id);
         
         $title = trim(U::get($_POST, 'title'));
@@ -677,7 +677,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
 
         $page_ids_with_history = PageRepository::pageIdsWithHistory($context_id);
         $pages = PageRepository::listForManage($context_id);
@@ -785,7 +785,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         
         // Handle delete action
         $action = U::get($_POST, 'action');
@@ -824,7 +824,7 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $page_id = intval($id);
 
         $page = PageRepository::loadForHistory($page_id, $context_id);
@@ -984,7 +984,7 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $page_id = (int) U::get($_POST, 'page_id');
         $history_id = (int) U::get($_POST, 'history_id');
 

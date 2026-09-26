@@ -67,7 +67,7 @@ class Map extends Controller {
         $rows = $PDOX->allRowsDie($sql);
         $center = false;
         $points = array();
-        $current_user_id = ReqScope::loggedInUserId();
+        $current_user_id = ReqScope::loggedInUserIdLegacy();
         foreach($rows as $row ) {
             if ( !isset($row['json']) ) continue;
             if ( !isset($row['user_id']) ) continue;

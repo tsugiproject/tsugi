@@ -144,9 +144,9 @@ class Discussions extends Tool {
         try {
             $added = Manifest::appendDiscussion($data, $title);
             Manifest::saveNewVersion(
-                ReqScope::currentContextId(),
+                ReqScope::currentContextIdLegacy(),
                 $added['data'],
-                ReqScope::loggedInUserId(),
+                ReqScope::loggedInUserIdLegacy(),
                 'Add discussion'
             );
         } catch ( \InvalidArgumentException $e ) {
@@ -378,9 +378,9 @@ class Discussions extends Tool {
         try {
             $data = Manifest::reorderDiscussions($data, $order);
             Manifest::saveNewVersion(
-                ReqScope::currentContextId(),
+                ReqScope::currentContextIdLegacy(),
                 $data,
-                ReqScope::loggedInUserId(),
+                ReqScope::loggedInUserIdLegacy(),
                 'Reorder discussions'
             );
         } catch ( \InvalidArgumentException $e ) {
@@ -438,14 +438,14 @@ class Discussions extends Tool {
     {
         global $CFG, $PDOX;
 
-        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
+        if ( ! ReqScope::isLoggedInLegacy() || ! ReqScope::currentContextIdLegacy() ) {
             return new JsonResponse(array('status' => 'error', 'detail' => 'Must be logged in with context'), 401);
         }
 
         LTIX::getConnection();
 
-        $context_id = ReqScope::currentContextId();
-        $user_id = ReqScope::loggedInUserId();
+        $context_id = ReqScope::currentContextIdLegacy();
+        $user_id = ReqScope::loggedInUserIdLegacy();
 
         $has_mentions = $this->tableExists($CFG->dbprefix.'tdiscus_mention');
 
@@ -516,7 +516,7 @@ class Discussions extends Tool {
 
         $discussions_url = $this->toolHome(self::ROUTE);
 
-        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
+        if ( ! ReqScope::isLoggedInLegacy() || ! ReqScope::currentContextIdLegacy() ) {
             U::flashError(__('You must be logged in with a course context to mark discussions as read.'));
             return new RedirectResponse(U::addSession($discussions_url));
         }
@@ -532,8 +532,8 @@ class Discussions extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = ReqScope::currentContextId();
-        $user_id = ReqScope::loggedInUserId();
+        $context_id = ReqScope::currentContextIdLegacy();
+        $user_id = ReqScope::loggedInUserIdLegacy();
 
         $PDOX->queryDie(
             "UPDATE {$CFG->dbprefix}tdiscus_user_thread UT
@@ -568,7 +568,7 @@ class Discussions extends Tool {
         $expire_url = $this->toolHome(self::ROUTE) . '/expire-threads';
         $redirect_url = U::addSession($expire_url);
 
-        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
+        if ( ! ReqScope::isLoggedInLegacy() || ! ReqScope::currentContextIdLegacy() ) {
             U::flashError(__('You must be logged in with a course context to manage discussion expiration.'));
             return new RedirectResponse($redirect_url);
         }
@@ -589,7 +589,7 @@ class Discussions extends Tool {
         }
 
         LTIX::getConnection();
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $confirm_raw = trim((string) U::get($_POST, 'confirm', ''));
         $confirm = ($confirm_raw === '1');
 
@@ -702,7 +702,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
     {
         global $CFG, $OUTPUT, $PDOX;
 
-        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
+        if ( ! ReqScope::isLoggedInLegacy() || ! ReqScope::currentContextIdLegacy() ) {
             U::flashError(__('You must be logged in with a course context to manage discussion expiration.'));
             return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
         }
@@ -712,7 +712,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         }
 
         LTIX::getConnection();
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $oldest_post_row = $PDOX->rowDie(
             "SELECT MIN(C.created_at) AS oldest_post_at
                 FROM {$CFG->dbprefix}tdiscus_comment C
@@ -754,7 +754,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         $expire_url = $this->toolHome(self::ROUTE) . '/expire-comments';
         $redirect_url = U::addSession($expire_url);
 
-        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
+        if ( ! ReqScope::isLoggedInLegacy() || ! ReqScope::currentContextIdLegacy() ) {
             U::flashError(__('You must be logged in with a course context to manage discussion expiration.'));
             return new RedirectResponse($redirect_url);
         }
@@ -775,7 +775,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         }
 
         LTIX::getConnection();
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $confirm_raw = trim((string) U::get($_POST, 'confirm', ''));
         $confirm = ($confirm_raw === '1');
 
@@ -868,7 +868,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
     {
         global $CFG, $OUTPUT, $PDOX;
 
-        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
+        if ( ! ReqScope::isLoggedInLegacy() || ! ReqScope::currentContextIdLegacy() ) {
             U::flashError(__('You must be logged in with a course context to manage discussion expiration.'));
             return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
         }
@@ -878,7 +878,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         }
 
         LTIX::getConnection();
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $oldest_comment_row = $PDOX->rowDie(
             "SELECT MIN(C.created_at) AS oldest_comment_at
                 FROM {$CFG->dbprefix}tdiscus_comment C
@@ -910,7 +910,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
     {
         global $OUTPUT;
 
-        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
+        if ( ! ReqScope::isLoggedInLegacy() || ! ReqScope::currentContextIdLegacy() ) {
             U::flashError(__('You must be logged in with a course context to manage discussions.'));
             return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
         }
@@ -976,7 +976,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         $manage_url = $this->toolHome(self::ROUTE) . '/manage';
         $redirect_url = U::addSession($manage_url);
 
-        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
+        if ( ! ReqScope::isLoggedInLegacy() || ! ReqScope::currentContextIdLegacy() ) {
             U::flashError(__('You must be logged in with a course context to manage discussions.'));
             return new RedirectResponse($redirect_url);
         }
@@ -994,7 +994,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         }
 
         LTIX::getConnection();
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
 
         $PDOX->queryDie(
             "DELETE UTP FROM {$CFG->dbprefix}tdiscus_user_thread_participation UTP
@@ -1034,7 +1034,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
     {
         global $CFG, $OUTPUT;
 
-        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
+        if ( ! ReqScope::isLoggedInLegacy() || ! ReqScope::currentContextIdLegacy() ) {
             U::flashError(__('You must be logged in with a course context to manage discussions.'));
             return new RedirectResponse(U::addSession($this->toolHome(self::ROUTE)));
         }
@@ -1048,7 +1048,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         }
 
         LTIX::getConnection();
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $counts = $this->unreadTrackingAuditCounts($context_id);
         $details = $this->unreadTrackingAuditDetails($context_id, 15);
         $likely_causes = $this->unreadTrackingLikelyCauses($counts);
@@ -1164,7 +1164,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         $scan_url = $this->toolHome(self::ROUTE) . '/scan-fix-unread-tracking';
         $redirect_url = U::addSession($scan_url);
 
-        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
+        if ( ! ReqScope::isLoggedInLegacy() || ! ReqScope::currentContextIdLegacy() ) {
             U::flashError(__('You must be logged in with a course context to manage discussions.'));
             return new RedirectResponse($redirect_url);
         }
@@ -1182,7 +1182,7 @@ WHERE thread_id IN (:THREAD_ID_1, :THREAD_ID_2, ... up to ".self::EXPIRE_DELETE_
         }
 
         LTIX::getConnection();
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $confirm_raw = trim((string) U::get($_POST, 'confirm', '0'));
         $confirm = ($confirm_raw === '1');
         $before = $this->unreadTrackingAuditCounts($context_id);
@@ -1803,7 +1803,7 @@ Bound parameters
         // but for now we bypass the abstraction and go straight to the source...
         $rows_dict = array();
         if ( U::get($_SESSION,'context_id') > 0 ) {
-            $current_user_id = ReqScope::loggedInUserId();
+            $current_user_id = ReqScope::loggedInUserIdLegacy();
             $rows = $PDOX->allRowsDie("SELECT L.link_key, L.link_sha256,
                 COUNT(T.thread_id) AS thread_count,
                 SUM(CASE WHEN COALESCE(UT.subscribe, 0) = 1 THEN 1 ELSE 0 END) AS subscribed_threads,
@@ -1859,10 +1859,10 @@ Bound parameters
         }
         echo("</ul><!-- end of discussions -->\n");
 
-        if ( ReqScope::isLoggedIn() && ReqScope::currentContextId() !== 0 ) {
+        if ( ReqScope::isLoggedInLegacy() && ReqScope::currentContextIdLegacy() !== 0 ) {
             $show_expire_button = false;
             LTIX::getConnection();
-            $membership = Membership::ensureInSession(ReqScope::currentContextId(), ReqScope::loggedInUserId());
+            $membership = Membership::ensureInSession(ReqScope::currentContextIdLegacy(), ReqScope::loggedInUserIdLegacy());
             if ( $membership && $membership->isInstructor() ) {
                 $show_expire_button = true;
             }

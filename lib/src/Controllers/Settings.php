@@ -159,7 +159,7 @@ class Settings extends Tool {
         if ( $bounce ) {
             return $bounce;
         }
-        if ( ReqScope::isLoggedIn() ) {
+        if ( ReqScope::isLoggedInLegacy() ) {
             LTIX::getConnection();
             return null;
         }
@@ -197,7 +197,7 @@ class Settings extends Tool {
             FROM {$CFG->dbprefix}lti_key
             WHERE user_id = :UID";
         $key_count = 0;
-        $uid = ReqScope::loggedInUserId();
+        $uid = ReqScope::loggedInUserIdLegacy();
         if ( $uid ) {
             $row = $PDOX->rowDie($sql, array(':UID' => $uid));
             $key_count = U::get($row, 'count', 0);
@@ -212,7 +212,7 @@ class Settings extends Tool {
      */
     public static function statusHtml($key_count) {
         global $CFG;
-        if ( ! ReqScope::isLoggedIn() ) {
+        if ( ! ReqScope::isLoggedInLegacy() ) {
             if ( $CFG->google_client_id ) {
                 return "<p><b>You must log in to use these tools in your learning management system.  You can explore these tools and test them from this page without logging in.</b></p>";
             }
@@ -245,7 +245,7 @@ class Settings extends Tool {
     public static function contextAdministrable($context_id) {
         global $CFG, $PDOX;
 
-        $uid = ReqScope::loggedInUserId();
+        $uid = ReqScope::loggedInUserIdLegacy();
         if ( ! $uid ) {
             return false;
         }
@@ -294,7 +294,7 @@ class Settings extends Tool {
                   AND (C.deleted IS NULL OR C.deleted = 0)";
 
         $course_count = 0;
-        $uid = ReqScope::loggedInUserId();
+        $uid = ReqScope::loggedInUserIdLegacy();
         if ( $uid ) {
             $row = $PDOX->rowDie($sql, array(':UID' => $uid));
             $course_count = U::get($row, 'count', 0);
@@ -565,7 +565,7 @@ can visit the administrator dashboard.
 
         header('Content-Type: text/html; charset=utf-8');
 
-        $query_parms = array(":UID" => ReqScope::loggedInUserId());
+        $query_parms = array(":UID" => ReqScope::loggedInUserIdLegacy());
         $searchfields = array("C.context_id", "title", "C.created_at", "C.updated_at", "C.login_at", "C.login_count");
         $sql = "SELECT C.context_id AS context_id, title, count(M.user_id) AS members, C.key_id AS key_value,
                     C.login_at, C.login_count, C.created_at, C.updated_at
@@ -800,7 +800,7 @@ can visit the administrator dashboard.
             die('No membership_id');
         }
 
-        $uid = ReqScope::loggedInUserId();
+        $uid = ReqScope::loggedInUserIdLegacy();
         $row = $PDOX->rowDie("SELECT M.context_id
             FROM {$CFG->dbprefix}lti_membership AS M
             JOIN {$CFG->dbprefix}lti_context AS C ON M.context_id = C.context_id
@@ -1149,7 +1149,7 @@ of this type of data.
             return $gate;
         }
 
-        $query_parms = array(":UID" => ReqScope::loggedInUserId());
+        $query_parms = array(":UID" => ReqScope::loggedInUserIdLegacy());
         $searchfields = array("key_id", "key_key", "created_at", "updated_at", "user_id");
         $sql = "SELECT key_id, key_key, secret, login_at, created_at, updated_at, user_id
                 FROM {$CFG->dbprefix}lti_key
@@ -1215,7 +1215,7 @@ you will need to request a key and have it approved.
         );
 
         $where_clause .= "user_id = :UID";
-        $query_fields[":UID"] = ReqScope::loggedInUserId();
+        $query_fields[":UID"] = ReqScope::loggedInUserIdLegacy();
 
         if ( ! isset($_REQUEST['key_id']) || ! is_numeric($_REQUEST['key_id']) ) {
             U::flashError("Required key_id parameter");
@@ -1335,7 +1335,7 @@ $(document).ready( function() {
             return $gate;
         }
 
-        $goodsession = ReqScope::isLoggedIn() && isset($_SESSION['email']) && isset($_SESSION['displayname']) &&
+        $goodsession = ReqScope::isLoggedInLegacy() && isset($_SESSION['email']) && isset($_SESSION['displayname']) &&
             U::strlen($_SESSION['email']) > 0 && U::strlen($_SESSION['displayname']) > 0 ;
 
         if ( $goodsession && isset($_POST['title']) && isset($_POST['notes']) ) {
@@ -1355,14 +1355,14 @@ $(document).ready( function() {
                 "INSERT INTO {$CFG->dbprefix}key_request
                 (user_id, title, notes, state, lti, created_at, updated_at)
                 VALUES ( :UID, :TITLE, :NOTES, 0, :LTI, NOW(), NOW() )",
-                array(":UID" => ReqScope::loggedInUserId(), ":TITLE" => $_POST['title'],
+                array(":UID" => ReqScope::loggedInUserIdLegacy(), ":TITLE" => $_POST['title'],
                     ":NOTES" => $_POST['notes'], ":LTI" => 1)
             );
 
             $request_id = $PDOX->lastInsertId();
             if ( isset($CFG->autoapprovekeys) && U::strlen($CFG->autoapprovekeys) > 0 &&
                 preg_match($CFG->autoapprovekeys, $_SESSION['email']) == 1) {
-                $user_id = ReqScope::loggedInUserId();
+                $user_id = ReqScope::loggedInUserIdLegacy();
                 $token = Mail::computeCheck($user_id);
                 $to = $_SESSION['email'];
 
@@ -1416,7 +1416,7 @@ $(document).ready( function() {
             }
 
             if ( $CFG->owneremail && $CFG->OFFLINE === false) {
-                $user_id = ReqScope::loggedInUserId();
+                $user_id = ReqScope::loggedInUserIdLegacy();
                 $token = Mail::computeCheck($user_id);
                 $to = $CFG->owneremail;
                 $subject = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )';
@@ -1430,7 +1430,7 @@ $(document).ready( function() {
             return new RedirectResponse($this->pageUrl('key'));
         }
 
-        $query_parms = array(":UID" => ReqScope::loggedInUserId());
+        $query_parms = array(":UID" => ReqScope::loggedInUserIdLegacy());
         $searchfields = array("request_id", "title", "notes", "state", "admin", "email", "displayname", "R.created_at", "R.updated_at");
         $sql = "SELECT request_id, title, notes, state, admin,
                 R.created_at, R.updated_at, email, displayname
@@ -1547,7 +1547,7 @@ connect to Google Classroom and install tools.
         $fields = array("request_id", "title", "notes", "admin", "state", "lti", "created_at", "updated_at");
         $where_clause = "user_id = :UID";
         $query_fields = array();
-        $query_fields[":UID"] = ReqScope::loggedInUserId();
+        $query_fields[":UID"] = ReqScope::loggedInUserIdLegacy();
 
         $row = CrudForm::handleUpdate($tablename, $fields, $where_clause,
             $query_fields, $allow_edit, $allow_delete);
@@ -1730,7 +1730,7 @@ re-check your login status.
             return $gate;
         }
 
-        $doc = Manifest::navigationDocumentForContext(ReqScope::currentContextId());
+        $doc = Manifest::navigationDocumentForContext(ReqScope::currentContextIdLegacy());
         $nav_rows = CourseNav::editorRows($doc);
         $save_url = $navigation_url;
         $setup_tab = 'navigation';
@@ -1779,12 +1779,12 @@ re-check your login status.
         }
 
         $nav = CourseNav::fromPost($_POST);
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         try {
             Manifest::saveNewVersion(
                 $context_id,
                 $decoded,
-                ReqScope::loggedInUserId(),
+                ReqScope::loggedInUserIdLegacy(),
                 'Set navigation',
                 null,
                 $nav
@@ -1830,7 +1830,7 @@ re-check your login status.
             $PDOX = LTIX::getConnection();
         }
 
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $meta = ContextImages::metadata($context_id);
         $hero_spec = ContextImages::spec(ContextImages::KIND_HERO);
         $icon_spec = ContextImages::spec(ContextImages::KIND_ICON);
@@ -1902,7 +1902,7 @@ re-check your login status.
             return new RedirectResponse($images_url);
         }
 
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         if ( $clear ) {
             $err = ContextImages::clear($context_id, $kind);
             if ( $err ) {
@@ -2079,7 +2079,7 @@ function goToCanvas(anchors) {
         $pending_name = '';
         $pending_title = '';
         $pending_modules = array();
-        $pending = Pending::load(ReqScope::currentContextId(), ReqScope::loggedInUserId());
+        $pending = Pending::load(ReqScope::currentContextIdLegacy(), ReqScope::loggedInUserIdLegacy());
         if ( $pending ) {
             try {
                 $pkg = Package::open($pending['path']);
@@ -2275,7 +2275,7 @@ $(function(){
         }
 
         $setup_tab = 'delete';
-        $delete_blocked = self::siteHomeCourseDeleteBlocked(ReqScope::currentContextId());
+        $delete_blocked = self::siteHomeCourseDeleteBlocked(ReqScope::currentContextIdLegacy());
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -2411,7 +2411,7 @@ $(function(){
             return $csrf;
         }
 
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         if ( self::siteHomeCourseDeleteBlocked($context_id) ) {
             U::flashError(__('The site home course cannot be deleted.'));
             return new RedirectResponse($delete_url);
@@ -2427,7 +2427,7 @@ $(function(){
             return new RedirectResponse($delete_url);
         }
 
-        $user_id = ReqScope::loggedInUserId();
+        $user_id = ReqScope::loggedInUserIdLegacy();
         try {
             CourseDelete::delete($context_id);
         } catch ( \Throwable $e ) {
@@ -2473,7 +2473,7 @@ $(function(){
         $url = rtrim((string) $CFG->wwwroot, '/').self::CARTRIDGE_UPLOAD_PATH;
         $cid = (int) $contextId;
         if ( $cid < 1 ) {
-            $cid = ReqScope::currentContextId();
+            $cid = ReqScope::currentContextIdLegacy();
         }
         if ( $cid > 0 ) {
             $url .= '?context='.$cid;
@@ -2527,7 +2527,7 @@ $(function(){
         }
         $cid = self::cartridgeUploadContextIdFromRequest();
         if ( $cid < 1 ) {
-            $cid = ReqScope::currentContextId();
+            $cid = ReqScope::currentContextIdLegacy();
         }
         if ( $cid > 0 ) {
             return U::addSession(self::cartridgeImportPageUrl($cid));
@@ -2621,7 +2621,7 @@ $(function(){
         }
         $cid = self::cartridgeUploadContextIdFromRequest();
         if ( $cid < 1 ) {
-            $cid = ReqScope::currentContextId();
+            $cid = ReqScope::currentContextIdLegacy();
         }
         if ( $cid > 0 ) {
             $result = Courses::ensureActiveContext($cid);
@@ -2642,7 +2642,7 @@ $(function(){
         if ( ! self::isSafeImportReturn($import_url) ) {
             $cid = self::cartridgeUploadContextIdFromRequest();
             if ( $cid < 1 ) {
-                $cid = ReqScope::currentContextId();
+                $cid = ReqScope::currentContextIdLegacy();
             }
             $import_url = $cid > 0
                 ? U::addSession(self::cartridgeImportPageUrl($cid))
@@ -2705,7 +2705,7 @@ $(function(){
         try {
             $pkg = Package::open($dest);
             $pkg->close();
-            Pending::stash($dest, $name, ReqScope::currentContextId(), ReqScope::loggedInUserId());
+            Pending::stash($dest, $name, ReqScope::currentContextIdLegacy(), ReqScope::loggedInUserIdLegacy());
         } catch ( ImportException $e ) {
             @unlink($dest);
             U::flashError($e->getMessage());
@@ -2727,8 +2727,8 @@ $(function(){
     private function importPendingPost($import_url, $action)
     {
         $token = U::get($_POST, 'cc_pending', '');
-        $cid = ReqScope::currentContextId();
-        $uid = ReqScope::loggedInUserId();
+        $cid = ReqScope::currentContextIdLegacy();
+        $uid = ReqScope::loggedInUserIdLegacy();
         if ( ! Pending::matches($cid, $uid, $token) ) {
             U::flashError(__('The uploaded cartridge expired. Please upload it again.'));
             return new RedirectResponse($import_url);
@@ -2841,7 +2841,7 @@ $(function(){
                 return trim($fromLti);
             }
         }
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         if ( $context_id > 0 ) {
             try {
                 LTIX::getConnection();
@@ -2926,7 +2926,7 @@ $(function(){
     public static function importReplaceMemberCount() {
         global $CFG, $PDOX;
 
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         if ( $context_id < 1 ) {
             return null;
         }
@@ -3191,7 +3191,7 @@ $(function(){
                 'tsugi_lms' => $tsugi_lms,
                 'topic' => 'lms',
                 'anchors' => $anchors,
-                'context_id' => ReqScope::currentContextId(),
+                'context_id' => ReqScope::currentContextIdLegacy(),
             ));
         } catch ( ExportException $e ) {
             $zip->close();
@@ -3249,13 +3249,13 @@ $(function(){
             return new RedirectResponse($setup_url);
         }
 
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         $store = $norm === null ? '' : $norm;
         try {
             Manifest::saveNewVersion(
                 $context_id,
                 $decoded,
-                ReqScope::loggedInUserId(),
+                ReqScope::loggedInUserIdLegacy(),
                 'Set theme',
                 $store
             );

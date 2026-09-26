@@ -63,7 +63,7 @@ A missing user is stored as null. A missing course is stored as null. A user wit
 
 `/courses/{id}/…` can run after `LTIX::session_start()` returns. That URL writes `$_SESSION['context_id']`, rebuilds the Launch from the updated row, and calls `ReqScope::replaceCourse()`. The same course is left as `LTIX::session_start()` filled it. A different course reloads membership, role, and instructor for the user already on `ReqScope`. The next request already has that course id in the session, so `LTIX::session_start()` fills that course and `replaceCourse()` does not load the membership again.
 
-`ReqScope::loggedInUserId()`, `ReqScope::currentContextId()`, and `ReqScope::isLoggedIn()` read a cached pair. The pair is `$_SESSION['id']` and `$_SESSION['context_id']` when the session user id is set, and `$USER` and `$CONTEXT` otherwise. On a site login that pair matches `ReqScope`. On a cookieless LTI tool the pair can stay at user 0, because `Courses::restoreSiteLoginContext()` calls `ReqScope::isLoggedIn()` before `buildLaunch()`. LTI tools do not use those readers. `ReqScope` on that same request still holds the launch user and course.
+`ReqScope::loggedInUserIdLegacy()`, `ReqScope::currentContextIdLegacy()`, and `ReqScope::isLoggedInLegacy()` read a cached pair. The pair is `$_SESSION['id']` and `$_SESSION['context_id']` when the session user id is set, and `$USER` and `$CONTEXT` otherwise. On a site login that pair matches `ReqScope`. On a cookieless LTI tool the pair can stay at user 0, because `Courses::restoreSiteLoginContext()` calls `ReqScope::isLoggedInLegacy()` before `buildLaunch()`. LTI tools do not use those readers. `ReqScope` on that same request still holds the launch user and course.
 
 ## When the session contains a stored launch
 

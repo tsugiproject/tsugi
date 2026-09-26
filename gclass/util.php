@@ -7,7 +7,7 @@ use \Tsugi\Core\ReqScope;
 function sanity_check() {
     global $CFG;
 
-    if ( ! ReqScope::isLoggedIn() ) {
+    if ( ! ReqScope::isLoggedInLegacy() ) {
         die_with_error_log('Error: Must be logged in to use Google Classroom');
     }
 
