@@ -7,6 +7,8 @@ use Tsugi\Lumen\Application;
 use Tsugi\Util\U;
 use Symfony\Component\HttpFoundation\Request;
 
+use Tsugi\Core\ReqScope;
+
 /**
  * Labs catalog route (/labs). Site mode (www vs labs) is configured by the host app (e.g. py4e).
  */
@@ -203,8 +205,8 @@ class Labs extends Tool {
             foreach ( GradeUtil::loadGradesCurrentUser() as $row ) {
                 $allgrades[$row['resource_link_id']] = $row['grade'];
             }
-            if ( U::currentContextId() !== 0 ) {
-                $duedates = GradeUtil::loadDueDatesForDisplay(U::currentContextId());
+            if ( ReqScope::currentContextId() !== 0 ) {
+                $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
             }
         }
 

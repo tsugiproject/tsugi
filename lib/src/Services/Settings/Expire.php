@@ -4,6 +4,8 @@ namespace Tsugi\Services\Settings;
 
 use Tsugi\Util\U;
 
+use Tsugi\Core\ReqScope;
+
 /**
  * PII / record-expiry helpers for the Settings controller.
  *
@@ -63,10 +65,10 @@ class Expire {
     }
 
     public static function sanityCheck() {
-        if ( ! U::isLoggedIn() ) {
+        if ( ! ReqScope::isLoggedIn() ) {
             die('Must be logged in');
         }
-        if ( U::loggedInUserId() == 0 ) {
+        if ( ReqScope::loggedInUserId() == 0 ) {
             die('Cannot be super user');
         }
     }
@@ -79,7 +81,7 @@ class Expire {
         self::sanityCheck();
         return array(
             'sql' => " key_id IN (SELECT key_id from {$CFG->dbprefix}lti_key WHERE user_id = :UID) ",
-            'params' => array(':UID' => U::loggedInUserId())
+            'params' => array(':UID' => ReqScope::loggedInUserId())
         );
     }
 

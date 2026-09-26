@@ -17,12 +17,6 @@ use Tsugi\Controllers\Courses;
 use Tsugi\Core\ContextImages;
 use Tsugi\Services\CourseNav\CourseNav;
 
-if ( ! function_exists('isLoggedIn') ) {
-    function isLoggedIn() {
-        return ! empty($_SESSION['id']);
-    }
-}
-
 class CourseNavTest extends \PHPUnit\Framework\TestCase
 {
     private $originalCFG;
@@ -39,9 +33,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $CFG = new \Tsugi\Config\ConfigInfo(basename(__FILE__), 'http://localhost/tsugi');
         $CFG->apphome = 'http://localhost/app';
         $CFG->wwwroot = 'http://localhost/tsugi';
-        if ( function_exists('_tsugiResetIdentitySnapshot') ) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
     }
 
     protected function tearDown(): void
@@ -50,9 +42,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $CFG = $this->originalCFG;
         $_SESSION = $this->originalSession;
         $_SERVER = $this->originalServer;
-        if ( function_exists('_tsugiResetIdentitySnapshot') ) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
     }
 
     public function testDefaultHasCoursesWidgetOnRightThenLogout()
@@ -549,9 +539,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
 
         $_SESSION['id'] = 1;
         $_SESSION['displayname'] = 'Pat';
-        if ( function_exists('_tsugiResetIdentitySnapshot') ) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $set = CourseNav::compile($doc, 42);
         $left = array();
         if ( $set->left ) {

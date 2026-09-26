@@ -8,6 +8,7 @@ require_once("key-util.php");
 use \Tsugi\Util\U;
 use \Tsugi\UI\CrudForm;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\ReqScope;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -52,7 +53,7 @@ if ( count($_POST) > 0 ) {
 }
 
 if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
-if ( isset($_POST['user_id']) && empty($_POST['user_id']) && isLoggedIn() ) $_POST['user_id'] = loggedInUserId();
+if ( isset($_POST['user_id']) && empty($_POST['user_id']) && ReqScope::isLoggedIn() ) $_POST['user_id'] = ReqScope::loggedInUserId();
 
 // Check the complex interaction of constraints
 $key_key = U::get($_POST,'key_key');

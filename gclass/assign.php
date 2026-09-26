@@ -2,6 +2,7 @@
 use \Tsugi\Util\U;
 use \Tsugi\UI\Lessons;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\ReqScope;
 use \Tsugi\Google\GoogleClassroom;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
@@ -42,7 +43,7 @@ if ( ! $endpoint ) {
     $endpoint_title = $lti->title;
 }
 
-$user_id = loggedInUserId();
+$user_id = ReqScope::loggedInUserId();
 $key_id = $_SESSION[TSUGI_SESSION_LTI]['key_id'];
 
 // Try access token from session when LTIX adds it.
@@ -84,7 +85,7 @@ if ( $gc_course ) {
     // We use the global Google Classsoom secret because we need to 
     // be able to re-lookup an existing course
     // secret:$gc_course:$user_id:secret
-    $plain = $CFG->google_classroom_secret.$gc_course.loggedInUserId().$CFG->google_classroom_secret;
+    $plain = $CFG->google_classroom_secret.$gc_course.ReqScope::loggedInUserId().$CFG->google_classroom_secret;
     $user_mini_sig = lti_sha256($plain);
     $user_mini_sig = substr($user_mini_sig,0,6);
     $context_url = $gc_course . ':' . $user_mini_sig;
@@ -100,7 +101,7 @@ if ( $gc_course ) {
     $context_id = false;
     $gc_secret = false;
     if ( $row != false ) {
-        if ( $row['user_id'] != loggedInUserId() ) {
+        if ( $row['user_id'] != ReqScope::loggedInUserId() ) {
             die_with_error_log('Error: Incorrect course ownership');
         }
         $context_id = $row['context_id'];

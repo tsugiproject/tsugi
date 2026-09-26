@@ -8,6 +8,7 @@ require_once("expire_util.php");
 use \Tsugi\UI\Table;
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\ReqScope;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -16,7 +17,7 @@ session_start();
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-if ( ! ( isLoggedIn() || isAdmin() ) ) {
+if ( ! ( ReqScope::isLoggedIn() || isAdmin() ) ) {
     \Tsugi\Controllers\Login::setReturnUrl(LTIX::curPageUrlFolder());
     header('Location: '.\Tsugi\Controllers\Login::loginUrl());
     return;

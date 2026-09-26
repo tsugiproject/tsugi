@@ -4,6 +4,7 @@ if ( ! isset($CFG) ) return; // Only from within tsugi.php
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\ReqScope;
 use \Tsugi\Google\GoogleClassroom;
 
 require_once("util.php");
@@ -42,13 +43,13 @@ $context_url = $gc_course . ':' . $user_mini_sig;
 $context_key = 'gclass:' . $context_url;
 $context_sha256 = lti_sha256($context_key);
 
-if ( ! isLoggedIn() ) {
+if ( ! ReqScope::isLoggedIn() ) {
     \Tsugi\Controllers\Login::setReturnUrl($path[0].'/'.$path[1].'/'.$path[2]);
     header('Location: '.\Tsugi\Controllers\Login::loginUrl());
     return;
 }
 
-$user_id = loggedInUserId();
+$user_id = ReqScope::loggedInUserId();
 $user_email = $_SESSION['email'];
 $user_displayname = $_SESSION['displayname'];
 $user_key = $_SESSION['user_key'];

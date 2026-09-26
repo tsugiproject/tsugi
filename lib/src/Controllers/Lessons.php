@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
+use Tsugi\Core\ReqScope;
+
 class Lessons extends Tool {
 
     const ROUTE = '/lessons';
@@ -160,7 +162,7 @@ class Lessons extends Tool {
         $quiz1_home_url = U::addSession($this->controllerUrl(Quiz1::ROUTE));
         $quiz1_list = array();
         try {
-            $context_id = U::currentContextId();
+            $context_id = ReqScope::currentContextId();
             if ( $context_id ) {
                 foreach ( Quiz1Repository::listForContext($context_id) as $quiz ) {
                     $quiz1_list[] = array(
@@ -352,7 +354,7 @@ class Lessons extends Tool {
         if ( ! Manifest::currentIsV2() ) {
             return 'Lesson authoring only saves Lessons JSON v2 to the course manifest';
         }
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         if ( $context_id < 1 ) {
             return 'No course context';
         }
@@ -372,7 +374,7 @@ class Lessons extends Tool {
         }
 
         try {
-            Manifest::saveNewVersion($context_id, $lessons_data, U::loggedInUserId(), $comment);
+            Manifest::saveNewVersion($context_id, $lessons_data, ReqScope::loggedInUserId(), $comment);
         } catch ( \InvalidArgumentException $e ) {
             return $e->getMessage();
         } catch ( \Exception $e ) {
@@ -727,8 +729,8 @@ $(function(){
             $allgrades[$row['resource_link_id']] = $row['grade'];
         }
         $moduleDueDates = array();
-        if ( U::currentContextId() !== 0 ) {
-            $moduleDueDates = GradeUtil::loadDueDatesForDisplay(U::currentContextId());
+        if ( ReqScope::currentContextId() !== 0 ) {
+            $moduleDueDates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
         }
         $lessons->setModuleProgressContext($allgrades, $moduleDueDates);
 
@@ -1219,8 +1221,8 @@ $(function(){
          }
 
         $duedates = array();
-        if ( U::currentContextId() !== 0 ) {
-            $duedates = GradeUtil::loadDueDatesForDisplay(U::currentContextId());
+        if ( ReqScope::currentContextId() !== 0 ) {
+            $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
         }
 
         echo('<div typeof="Course">'."\n");
@@ -1231,7 +1233,7 @@ $(function(){
 
         foreach($lessons->lessons->modules as $module) {
         if ( isset($module->hidden) && $module->hidden ) continue;
-	    if ( isset($module->login) && $module->login && ! U::isLoggedIn() ) continue;
+	    if ( isset($module->login) && $module->login && ! ReqScope::isLoggedIn() ) continue;
 
             $modProgress = $lessons->moduleLtiProgressPoints($module, $allgrades, $duedates);
             $possible_points = $modProgress[0];
@@ -2259,7 +2261,7 @@ $(function(){
         }
 
         $href = '';
-        $logged_in = U::isLoggedIn();
+        $logged_in = ReqScope::isLoggedIn();
         $open = $published || $instructor;
         if ( $open && $quiz_id > 0 && $logged_in && class_exists('\\Tsugi\\Controllers\\Quiz1') ) {
             $home = \Tsugi\Controllers\Tool::determineToolHome(\Tsugi\Controllers\Quiz1::ROUTE);

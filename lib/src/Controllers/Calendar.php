@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Tsugi\Grades\GradeUtil;
 
+use Tsugi\Core\ReqScope;
+
 class Calendar extends Tool {
 
     const ROUTE = '/calendar';
@@ -131,7 +133,7 @@ class Calendar extends Tool {
                 500
             );
         }
-        if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
+        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
             return new JsonResponse(
                 array('status' => 'error', 'detail' => 'Authentication and course context required'),
                 401
@@ -141,7 +143,7 @@ class Calendar extends Tool {
         LTIX::getConnection();
 
         $items = $l->enumerateLtiAssignmentItems();
-        $dueMap = GradeUtil::loadDueDatesForDisplay(U::currentContextId());
+        $dueMap = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
 
         $allgrades = array();
         $rows = GradeUtil::loadGradesCurrentUser();
@@ -187,8 +189,8 @@ class Calendar extends Tool {
 
         $items = $l->enumerateLtiAssignmentItems();
         $dueMap = array();
-        if ( U::currentContextId() !== 0 ) {
-            $dueMap = GradeUtil::loadDueDatesForDisplay(U::currentContextId());
+        if ( ReqScope::currentContextId() !== 0 ) {
+            $dueMap = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
         }
         $allgrades = array();
         $rows = GradeUtil::loadGradesCurrentUser();

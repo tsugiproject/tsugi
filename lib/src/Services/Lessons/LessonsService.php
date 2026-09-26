@@ -12,6 +12,8 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Membership;
 use \Tsugi\Services\Quiz1\Quiz1Repository;
 
+use \Tsugi\Core\ReqScope;
+
 if ( ! class_exists(__NAMESPACE__.'\\LessonsNormalize', false) ) {
     require_once __DIR__ . '/LessonsNormalize.php';
 }
@@ -222,7 +224,7 @@ class LessonsService {
         }
 
         // Filter modules based on login
-        if ( ! U::isLoggedIn() ) {
+        if ( ! ReqScope::isLoggedIn() ) {
             $filtered_modules = array();
             $filtered = false;
             foreach($lessons->modules as $module) {
@@ -445,7 +447,7 @@ class LessonsService {
             if ( isset($module->hidden) && $module->hidden ) {
                 continue;
             }
-            if ( isset($module->login) && $module->login && ! U::isLoggedIn() ) {
+            if ( isset($module->login) && $module->login && ! ReqScope::isLoggedIn() ) {
                 continue;
             }
             return false;
@@ -1290,7 +1292,7 @@ class LessonsService {
             return;
         }
         $this->quiz1IdSet = array();
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         if ( $context_id < 1 ) {
             return;
         }
@@ -1314,8 +1316,8 @@ class LessonsService {
             return $this->lessonsViewerIsInstructor;
         }
         $this->lessonsViewerIsInstructor = false;
-        $context_id = U::currentContextId();
-        $user_id = U::loggedInUserId();
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
         if ( $context_id && $user_id ) {
             if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
                 $this->lessonsViewerIsInstructor = true;

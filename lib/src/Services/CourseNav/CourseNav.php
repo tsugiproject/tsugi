@@ -11,6 +11,8 @@ use Tsugi\UI\Menu;
 use Tsugi\UI\MenuSet;
 use Tsugi\Util\U;
 
+use Tsugi\Core\ReqScope;
+
 /**
  * Teacher-edited course top nav: catalog, normalize, compile to MenuSet.
  *
@@ -428,10 +430,10 @@ class CourseNav {
         if ( ! is_array($entry) || $entry['kind'] !== 'link' ) {
             return null;
         }
-        if ( $id === 'login' && U::isLoggedIn() ) {
+        if ( $id === 'login' && ReqScope::isLoggedIn() ) {
             return null;
         }
-        if ( ( $id === 'logout' || $id === 'profile' ) && ! U::isLoggedIn() ) {
+        if ( ( $id === 'logout' || $id === 'profile' ) && ! ReqScope::isLoggedIn() ) {
             return null;
         }
         if ( $id === 'exit_course' && ! self::hasAppHome() ) {

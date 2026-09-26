@@ -52,6 +52,7 @@ class Tsugi extends \Tsugi\Lumen\Application {
             }
             \Tsugi\Controllers\Topics::routes($this);
             \Tsugi\Controllers\Notifications::routes($this);
+            \Tsugi\Controllers\ReqScopeDebug::routes($this);
         });
     }
 }

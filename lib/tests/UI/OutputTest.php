@@ -10,14 +10,13 @@ require_once "src/Core/Launch.php";
 
 use \Tsugi\UI\Output;
 
-if ( ! function_exists('isLoggedIn') ) {
-    function isLoggedIn() {
-        return ! empty($_SESSION['id']);
-    }
-}
-
 class OutputTest extends \PHPUnit\Framework\TestCase
 {
+    protected function setUp(): void
+    {
+        \Tsugi\Core\ReqScope::resetIdentity();
+    }
+
     public function testConstruct() {
         $OUTPUT = new Output();
         $this->assertTrue(is_object($OUTPUT));

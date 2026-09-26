@@ -2003,6 +2003,7 @@ class LTIX {
         $LTI = $_SESSION[TSUGI_SESSION_LTI] ?? null;
         self::rejectDeletedContext($PDOX, $LTI);
         if ( count($needed) == 0 && $LTI === null ) {
+            self::provisionReqScope(null);
             return $TSUGI_LAUNCH;
         }
 
@@ -2013,7 +2014,64 @@ class LTIX {
             }
         }
 
-        return self::buildLaunch($LTI);
+        $launch = self::buildLaunch($LTI);
+        self::provisionReqScope($LTI);
+        return $launch;
+    }
+
+    /**
+     * Fill ReqScope from the open session without changing launch globals.
+     *
+     * A cookieless tool session is read from the stored launch row, including
+     * the link when that row has one. A cookie site session is read from
+     * $_SESSION['id'] and $_SESSION['context_id']. The link is copied only when
+     * the stored launch names that same course. A missing user or course is
+     * stored as null.
+     *
+     * @param mixed $LTI
+     * @return void
+     */
+    private static function provisionReqScope($LTI) {
+        $origin = defined('COOKIE_SESSION') ? ReqScope::ORIGIN_SITE : ReqScope::ORIGIN_LTI;
+        $user_id = 0;
+        $context_id = 0;
+        $link_id = null;
+        $lti_user = 0;
+        $lti_context = 0;
+        $lti_link = 0;
+        if ( is_array($LTI) ) {
+            $lti_user = (int) ($LTI['user_id'] ?? 0);
+            $lti_context = (int) ($LTI['context_id'] ?? 0);
+            $lti_link = (int) ($LTI['link_id'] ?? 0);
+        }
+        if ( $origin === ReqScope::ORIGIN_LTI ) {
+            $user_id = $lti_user;
+            $context_id = $lti_context;
+            if ( $lti_link > 0 ) {
+                $link_id = $lti_link;
+            }
+        } else {
+            if ( isset($_SESSION['id']) ) {
+                $user_id = (int) $_SESSION['id'];
+            }
+            if ( isset($_SESSION['context_id']) ) {
+                $context_id = (int) $_SESSION['context_id'];
+            }
+            if ( $user_id < 1 && $lti_user > 0 ) {
+                $user_id = $lti_user;
+                $context_id = $lti_context;
+                if ( $lti_link > 0 ) {
+                    $link_id = $lti_link;
+                }
+            } else if ( $lti_link > 0 && $lti_context > 0 && $lti_context === $context_id ) {
+                $link_id = $lti_link;
+            }
+        }
+        try {
+            ReqScope::provision($user_id, $context_id, $link_id, $origin);
+        } catch ( \Throwable $ex ) {
+            error_log('ReqScope provision failed: '.$ex->getMessage());
+        }
     }
 
     /**
@@ -2070,15 +2128,19 @@ class LTIX {
             $USER->launch = $TSUGI_LAUNCH;
             $USER->id = $LTI['user_id'];
             $USER->key = $LTI['user_key'];
-            if (isset($LTI['user_email']) ) $USER->email = $LTI['user_email'];
-            if (isset($LTI['user_displayname']) ) {
-                $USER->displayname = $LTI['user_displayname'];
+            $email = $LTI['user_email'] ?? ($LTI['email'] ?? null);
+            if ( $email !== null ) $USER->email = $email;
+            $display = $LTI['user_displayname'] ?? ($LTI['displayname'] ?? null);
+            if ( $display !== null ) {
+                $USER->displayname = $display;
                 $pieces = explode(' ',$USER->displayname);
                 if ( count($pieces) > 0 ) $USER->firstname = $pieces[0];
                 if ( count($pieces) > 1 ) $USER->lastname = $pieces[count($pieces)-1];
             }
-            if (isset($LTI['user_image']) ) $USER->image = $LTI['user_image'];
-            if (isset($LTI['user_locale']) ) $USER->locale = $LTI['user_locale'];
+            $image = $LTI['user_image'] ?? ($LTI['image'] ?? null);
+            if ( $image !== null ) $USER->image = $image;
+            $locale = $LTI['user_locale'] ?? ($LTI['locale'] ?? null);
+            if ( $locale ) $USER->locale = $locale;
             if ( $USER->locale ) {
                 I18N::setLocale($USER->locale);
             }
@@ -2148,6 +2210,10 @@ class LTIX {
             if (isset($LTI['link_title']) ) $LINK->title = $LTI['link_title'];
             if (isset($LTI['link_count']) ) $LINK->activity = $LTI['link_count']+0;
             if (isset($LTI['link_user_count']) ) $LINK->user_activity = $LTI['link_user_count']+0;
+            if (isset($LTI['result_id']) ) $LINK->result_id = $LTI['result_id'];
+            if ( isset($LTI['grade']) && $LTI['grade'] !== null && $LTI['grade'] !== false && $LTI['grade'] !== '' ) {
+                $LINK->grade = $LTI['grade'];
+            }
 
             // Check to see if we are supposed to use SHA256 for this link
             $settings_method = $LINK->settingsGet('oauth_signature_method');

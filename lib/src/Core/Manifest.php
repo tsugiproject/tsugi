@@ -746,7 +746,7 @@ class Manifest {
         if ( $id > 0 ) {
             return $id;
         }
-        $id = self::idForContext(U::currentContextId());
+        $id = self::idForContext(ReqScope::currentContextId());
         if ( $id > 0 ) {
             self::rememberInSession($id);
         }
@@ -1038,7 +1038,7 @@ class Manifest {
              WHERE context_id = :CID",
             array(':MID' => $mid, ':CID' => $cid)
         );
-        if ( U::currentContextId() === $cid ) {
+        if ( ReqScope::currentContextId() === $cid ) {
             self::rememberInSession($mid);
         }
     }
@@ -1065,7 +1065,7 @@ class Manifest {
              WHERE context_id = :CID",
             array(':title' => $title, ':CID' => $cid)
         );
-        if ( U::currentContextId() === $cid ) {
+        if ( ReqScope::currentContextId() === $cid ) {
             $_SESSION['context_title'] = $title;
             $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
             if ( isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey]) ) {
@@ -1300,9 +1300,6 @@ class Manifest {
      * @return int
      */
     private static function positiveId($value) {
-        if ( function_exists('_tsugiNormalizePositiveId') ) {
-            return _tsugiNormalizePositiveId($value);
-        }
         if ( $value === null || $value === false || $value === '' || is_bool($value) ) {
             return 0;
         }

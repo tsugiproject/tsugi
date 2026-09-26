@@ -1,6 +1,7 @@
 <?php
 use \Tsugi\Util\U;
 use \Tsugi\Blob\Access;
+use \Tsugi\Core\ReqScope;
 
 if ( ! isset($_REQUEST['days']) ) die('days required');
 if ( ! isset($_GET['base']) ) die('Base required');
@@ -22,12 +23,12 @@ if ( $base == 'user' ) {
     $limit = 100; // Takes about 10 seconds
     $where = '';
     if ( !isset($CFG->DEVELOPER) || !$CFG->DEVELOPER ) {
-        if ( ! isLoggedIn() ) {
+        if ( ! ReqScope::isLoggedIn() ) {
             die('Must be logged in to expire user data');
         }
     }
     $where_clause = " AND user_id <> :UID ";
-    $where_params = array(':UID' => loggedInUserId());
+    $where_params = array(':UID' => ReqScope::loggedInUserId());
 } else if ( $base == 'context' ) {
     $table = 'lti_context';
     $limit = 10;

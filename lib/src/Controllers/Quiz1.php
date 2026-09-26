@@ -4,8 +4,8 @@ namespace Tsugi\Controllers;
 
 use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
-use Tsugi\Core\RequestContext;
-use Tsugi\Core\RequestContextException;
+use Tsugi\Core\ReqScope;
+use Tsugi\Core\ReqScopeException;
 use Tsugi\Lumen\Application;
 use Tsugi\Services\Quiz1\Answer;
 use Tsugi\Services\Quiz1\ExportException;
@@ -40,19 +40,19 @@ class Quiz1 extends Tool {
      * }
      */
     public static function showInMenu() {
-        $rc = RequestContext::current();
+        $rc = ReqScope::current();
         return $rc && $rc->user && $rc->user->instructor && $rc->context && (int) $rc->context->id > 0;
     }
 
     /**
      * User, course, and role loaded by the course peel.
      *
-     * @return RequestContext
+     * @return ReqScope
      */
     private function requireRc() {
-        $rc = RequestContext::current();
+        $rc = ReqScope::current();
         if ( ! $rc || ! $rc->user || (int) $rc->user->id < 1 || ! $rc->context || (int) $rc->context->id < 1 ) {
-            die('Request context is not established.');
+            die('Request scope is not established.');
         }
         return $rc;
     }
@@ -71,7 +71,7 @@ class Quiz1 extends Tool {
 
     /**
      * @param string $redirectUrl
-     * @return RequestContext
+     * @return ReqScope
      */
     private function requireRcInstructor($redirectUrl) {
         $rc = $this->requireRc();
@@ -445,11 +445,11 @@ class Quiz1 extends Tool {
         $lessons_home = $this->toolHome(\Tsugi\Controllers\Lessons::ROUTE);
         $from_module = self::moduleAnchorFromRequest();
         if ( $from_module ) {
-            RequestContext::setReturnUrl($lessons_home.'/'.rawurlencode($from_module));
+            ReqScope::setReturnUrl($lessons_home.'/'.rawurlencode($from_module));
         }
         $requestContextLines = $this->requestContextLinesForQuiz($quiz, ! $viewing);
         $return_url = null;
-        $rc = RequestContext::current();
+        $rc = ReqScope::current();
         if ( $rc && $rc->launchPresentation && is_string($rc->launchPresentation->return_url) ) {
             $return_url = $rc->launchPresentation->return_url;
         }
@@ -478,27 +478,27 @@ class Quiz1 extends Tool {
      *
      * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
      * @param bool $attachLink
-     * @return RequestContext
-     * @throws RequestContextException
+     * @return ReqScope
+     * @throws ReqScopeException
      */
     private static function requestContextForQuiz($quiz, $attachLink) {
-        RequestContext::logSessionDrift((int) $quiz->context_id);
-        $rc = RequestContext::current();
+        ReqScope::logSessionDrift((int) $quiz->context_id);
+        $rc = ReqScope::current();
         if ( ! $rc || ! $rc->user || ! $rc->context ) {
-            throw new RequestContextException('Request context is not established.', 500);
+            throw new ReqScopeException('Request scope is not established.', 500);
         }
         if ( ! $attachLink ) {
             return $rc;
         }
         $link_id = (int) $quiz->link_id;
         if ( $link_id < 1 ) {
-            throw new RequestContextException('Quiz has no link.', 404);
+            throw new ReqScopeException('Quiz has no link.', 404);
         }
-        return RequestContext::setLink($link_id);
+        return ReqScope::setLink($link_id);
     }
 
     /**
-     * Hydrate RequestContext for this take. Grading is unchanged.
+     * Hydrate ReqScope for this take. Grading is unchanged.
      * A failure is shown in the dump and does not block the quiz.
      *
      * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
@@ -507,7 +507,7 @@ class Quiz1 extends Tool {
     private function requestContextLinesForQuiz($quiz, $attachLink) {
         try {
             $rc = self::requestContextForQuiz($quiz, $attachLink);
-        } catch ( RequestContextException $ex ) {
+        } catch ( ReqScopeException $ex ) {
             return array('request context' => $ex->getMessage());
         }
         return self::requestContextLines($rc, $quiz);
@@ -517,7 +517,7 @@ class Quiz1 extends Tool {
      * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
      * @return array<string,string>
      */
-    private static function requestContextLines(RequestContext $rc, $quiz) {
+    private static function requestContextLines(ReqScope $rc, $quiz) {
         return array(
             'authenticated user' => $rc->user->id . ' ' . (string) $rc->user->displayname
                 . ' instructor=' . ($rc->user->instructor ? '1' : '0')
@@ -537,7 +537,7 @@ class Quiz1 extends Tool {
     }
 
     /**
-     * Store the auto-score on the RequestContext result. The quiz page still renders either way.
+     * Store the auto-score on the ReqScope result. The quiz page still renders either way.
      *
      * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
      * @param array{earned:int,possible:int,essay_possible:int,items:array} $graded
@@ -545,7 +545,7 @@ class Quiz1 extends Tool {
     private function recordTakeGrade($quiz, array $graded) {
         try {
             $rc = self::requestContextForQuiz($quiz, true);
-        } catch ( RequestContextException $ex ) {
+        } catch ( ReqScopeException $ex ) {
             return;
         }
         $possible = (int) ($graded['possible'] ?? 0);

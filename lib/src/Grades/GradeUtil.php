@@ -8,6 +8,8 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\Membership;
 
+use \Tsugi\Core\ReqScope;
+
 class GradeUtil {
 
     /** @internal Session cache location for {@see Cache::setContext} */
@@ -160,15 +162,15 @@ class GradeUtil {
     }
 
     /**
-     * Grades for the logged-in user in the current course (uses U::loggedInUserId() and U::currentContextId()).
+     * Grades for the logged-in user in the current course (uses ReqScope::loggedInUserId() and ReqScope::currentContextId()).
      * Cached per context via {@see Cache::setContext} for {@see self::GRADES_CURRENT_USER_CACHE_TTL} seconds;
      * on miss loads via {@see loadGradesForCourse}.
      *
      * @return array<int,array<string,mixed>>
      */
     public static function loadGradesCurrentUser() {
-        $uid = U::loggedInUserId();
-        $cid = U::currentContextId();
+        $uid = ReqScope::loggedInUserId();
+        $cid = ReqScope::currentContextId();
         if ( $uid < 1 || $cid < 1 ) {
             return array();
         }
@@ -329,7 +331,7 @@ class GradeUtil {
         if ( ! self::dueMapHasScheduledEnd($map) ) {
             return array();
         }
-        $user_id = U::loggedInUserId();
+        $user_id = ReqScope::loggedInUserId();
         if ( $user_id < 1 ) {
             return array();
         }

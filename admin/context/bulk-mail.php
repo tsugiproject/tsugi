@@ -6,6 +6,7 @@ require_once("../../admin/admin_util.php");
 require_once("mail_audience.php");
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\ReqScope;
 use \Tsugi\Util\U;
 use \Tsugi\Services\Mail\MailService;
 
@@ -119,7 +120,7 @@ if ( $context_row === false || $context_row === null ) {
 }
 $context_title = $context_row['title'] ? $context_row['title'] : "Context #$context_id";
 
-$from_user_id = loggedInUserId();
+$from_user_id = ReqScope::loggedInUserId();
 $step = U::get($_REQUEST, 'step', 'compose');
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {

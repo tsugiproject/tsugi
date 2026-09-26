@@ -7,6 +7,7 @@ require_once("../../admin/admin_util.php");
 use \Tsugi\UI\Table;
 use \Tsugi\Core\Mail;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\ReqScope;
 
 \Tsugi\Core\LTIX::getConnection();
 
@@ -15,7 +16,7 @@ session_start();
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-if ( ! ( isLoggedIn() || isAdmin() ) ) {
+if ( ! ( ReqScope::isLoggedIn() || isAdmin() ) ) {
     \Tsugi\Controllers\Login::setReturnUrl(LTIX::curPageUrlFolder());
     header('Location: '.\Tsugi\Controllers\Login::loginUrl());
     return;
@@ -29,7 +30,7 @@ $sql = "SELECT request_id, title, notes, state, admin, R.created_at, R.updated_a
 
 if ( !isAdmin() ) {
     $sql .= "\nWHERE R.user_id = :UID";
-    $query_parms = array(":UID" => loggedInUserId());
+    $query_parms = array(":UID" => ReqScope::loggedInUserId());
 }
 
 $newsql = Table::pagedQuery($sql, $query_parms, $searchfields);

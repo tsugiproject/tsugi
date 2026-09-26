@@ -2,6 +2,7 @@
 
 use \Tsugi\Util\U;
 use \Tsugi\UI\Output;
+use \Tsugi\Core\ReqScope;
 
 require_once $CFG->dirroot."/admin/admin_util.php";
 
@@ -27,7 +28,7 @@ try {
     $havedatabase = false;
 }
 
-if ( $havedatabase && $CFG->google_client_id && ! isLoggedIn() ) {
+if ( $havedatabase && $CFG->google_client_id && ! ReqScope::isLoggedIn() ) {
     \Tsugi\Controllers\Login::setReturnUrl($rest_path->full);
     Output::doRedirect(\Tsugi\Controllers\Login::loginUrl());
     return;
@@ -73,11 +74,11 @@ if ( isset($_POST['passphrase']) ) {
         $_SESSION["admin"] = "yes";
         session_regenerate_id(true);
         error_log("Admin login IP=".$_SERVER["REMOTE_ADDR"].
-            (isLoggedIn() ? " id=".loggedInUserId().' email='.U::get($_SESSION, 'email', '') : " developer mode"));
+            (ReqScope::isLoggedIn() ? " id=".ReqScope::loggedInUserId().' email='.U::get($_SESSION, 'email', '') : " developer mode"));
     } else {
         $locked = adminUnlockRecordFail();
         error_log("Admin bad pw IP=".$_SERVER["REMOTE_ADDR"].
-            (isLoggedIn() ? " id=".loggedInUserId().' email='.U::get($_SESSION, 'email', '') : " developer mode").
+            (ReqScope::isLoggedIn() ? " id=".ReqScope::loggedInUserId().' email='.U::get($_SESSION, 'email', '') : " developer mode").
             ($locked ? " locked=5m" : ""));
         if ( $locked ) {
             U::flashError('Too many failed admin unlock attempts. Try again in 5 minutes.');

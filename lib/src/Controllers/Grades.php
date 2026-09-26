@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Tsugi\UI\Table;
 use Tsugi\Services\Lessons\LessonsService;
 
+use Tsugi\Core\ReqScope;
+
 class Grades extends Tool {
 
     const ROUTE = '/grades';
@@ -261,8 +263,8 @@ class Grades extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = U::currentContextId();
-        $user_id = U::loggedInUserId();
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
         $is_instructor = $this->isInstructor();
         
         $p = $CFG->dbprefix;
@@ -378,7 +380,7 @@ class Grades extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         $p = $CFG->dbprefix;
         
         $link_id = 0;
