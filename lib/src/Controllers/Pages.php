@@ -8,6 +8,7 @@ require_once __DIR__ . '/../UI/CKEditor.php';
 
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
+use Tsugi\Core\RequestContext;
 require_once __DIR__ . '/../Services/Pages/PageRepository.php';
 use Tsugi\Services\Pages\PageRepository;
 use Tsugi\Services\Lessons\LessonsNormalize;
@@ -66,7 +67,7 @@ class Pages extends Tool {
             $html,
             $this->courseFileBaseUrl(self::ROUTE),
             self::courseLocalPrefixes(),
-            U::currentContextId()
+            RequestContext::current()->context->id
         );
     }
 
@@ -78,9 +79,9 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = U::currentContextId();
+        $context_id = RequestContext::current()->context->id;
 
-        $is_instructor = $this->isInstructor();
+        $is_instructor = RequestContext::current()->user->instructor;
 
         if (!$logical_key && isset($_GET['logical_key']) && U::strlen($_GET['logical_key']) > 0) {
             $logical_key = $_GET['logical_key'];
@@ -177,8 +178,8 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = U::currentContextId();
-        $is_instructor = $this->isInstructor();
+        $context_id = RequestContext::current()->context->id;
+        $is_instructor = RequestContext::current()->user->instructor;
         $pages = PageRepository::listForPicker($context_id, !$is_instructor);
         
         // Get base path for REST-style URLs
@@ -458,8 +459,8 @@ class Pages extends Tool {
         
         LTIX::getConnection();
 
-        $context_id = U::currentContextId();
-        $user_id = U::loggedInUserId();
+        $context_id = RequestContext::current()->context->id;
+        $user_id = RequestContext::current()->user->id;
 
         $title = trim(U::get($_POST, 'title'));
         $body = $this->canonicalizePageHtml(U::get($_POST, 'body', ''));
@@ -510,7 +511,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = U::currentContextId();
+        $context_id = RequestContext::current()->context->id;
         $page_id = intval($id);
         
         if (!$page_id) {
@@ -623,7 +624,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = U::currentContextId();
+        $context_id = RequestContext::current()->context->id;
         $page_id = intval($id);
         
         $title = trim(U::get($_POST, 'title'));
@@ -675,7 +676,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = U::currentContextId();
+        $context_id = RequestContext::current()->context->id;
 
         $page_ids_with_history = PageRepository::pageIdsWithHistory($context_id);
         $pages = PageRepository::listForManage($context_id);
@@ -783,7 +784,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = U::currentContextId();
+        $context_id = RequestContext::current()->context->id;
         
         // Handle delete action
         $action = U::get($_POST, 'action');
@@ -822,7 +823,7 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = U::currentContextId();
+        $context_id = RequestContext::current()->context->id;
         $page_id = intval($id);
 
         $page = PageRepository::loadForHistory($page_id, $context_id);
@@ -982,7 +983,7 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = U::currentContextId();
+        $context_id = RequestContext::current()->context->id;
         $page_id = (int) U::get($_POST, 'page_id');
         $history_id = (int) U::get($_POST, 'history_id');
 
