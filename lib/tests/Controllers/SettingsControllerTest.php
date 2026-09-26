@@ -7,21 +7,6 @@ require_once "src/Lumen/Application.php";
 require_once "src/Lumen/Router.php";
 require_once "src/Util/U.php";
 
-if (!function_exists('currentContextId')) {
-    function currentContextId() {
-        return 0;
-    }
-}
-if (!function_exists('loggedInUserId')) {
-    function loggedInUserId() {
-        return 0;
-    }
-}
-if (!function_exists('isLoggedIn')) {
-    function isLoggedIn() {
-        return !empty($_SESSION['id']);
-    }
-}
 if (!function_exists('__')) {
     function __($s) {
         return $s;
@@ -51,6 +36,8 @@ class SettingsControllerTest extends \PHPUnit\Framework\TestCase
         $CFG->wwwroot = 'http://localhost';
         $CFG->apphome = 'http://localhost/app';
         $CFG->dirroot = dirname(__DIR__, 3);
+
+        \Tsugi\Core\ReqScope::resetIdentity();
 
         if (!isset($CFG->loader)) {
             $autoloaderPath = __DIR__ . '/../../vendor/autoload.php';

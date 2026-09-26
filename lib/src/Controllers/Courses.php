@@ -9,8 +9,8 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 use \Tsugi\Core\LTIX;
-use \Tsugi\Core\RequestContext;
-use \Tsugi\Core\RequestContextException;
+use \Tsugi\Core\ReqScope;
+use \Tsugi\Core\ReqScopeException;
 use \Tsugi\Core\Cache;
 use \Tsugi\Core\Context;
 use \Tsugi\Core\ContextImages;
@@ -96,7 +96,7 @@ class Courses extends Tool {
     /**
      * True when REQUEST_URI is /courses/{id} or /courses/{id}/…
      *
-     * This is the course vs site menu split. Do not use currentContextId().
+     * This is the course vs site menu split. Do not use ReqScope::currentContextId().
      */
     public static function isCourseMountedRequest() {
         return (bool) preg_match('#/courses/\d+(?:/|$)#', self::requestPath());
@@ -118,14 +118,14 @@ class Courses extends Tool {
         if ( Settings::isCartridgeUploadRequest() ) {
             return false;
         }
-        if ( ! U::isLoggedIn() ) {
+        if ( ! ReqScope::isLoggedIn() ) {
             return false;
         }
         if ( ! self::isGoogleLoginSession() ) {
             return false;
         }
         $home = self::siteLoginContextId();
-        $current = U::currentContextId();
+        $current = ReqScope::currentContextId();
         $hadManifest = Manifest::activeId() > 0;
         if ( $home > 0 && $current !== $home ) {
             $result = self::ensureActiveContext($home);
@@ -140,9 +140,7 @@ class Courses extends Tool {
             Manifest::rememberInSession(0);
             Cache::clearAllSessionCaches();
             Output::clearTopNavSession();
-            if ( function_exists('_tsugiResetIdentitySnapshot') ) {
-                _tsugiResetIdentitySnapshot();
-            }
+            ReqScope::resetIdentity();
             return true;
         }
         return false;
@@ -345,7 +343,7 @@ class Courses extends Tool {
             return 'Course not found.';
         }
 
-        $current = U::currentContextId();
+        $current = ReqScope::currentContextId();
         if ( $current === $cid ) {
             self::wireLaunchConnection();
             // Pages/Files only need context_id. Lessons reads the session
@@ -354,12 +352,11 @@ class Courses extends Tool {
             if ( $mid > 0 ) {
                 Manifest::rememberInSession($mid);
             }
-            RequestContext::noteContext($cid);
-            self::establishRequestContext($cid);
+            self::establishReqScope($cid);
             return true;
         }
 
-        $user_id = U::loggedInUserId();
+        $user_id = ReqScope::loggedInUserId();
         if ( $user_id < 1 ) {
             return 'Must be logged in.';
         }
@@ -422,9 +419,7 @@ class Courses extends Tool {
         Cache::clearAllSessionCaches();
         Output::clearTopNavSession();
 
-        if ( function_exists('_tsugiResetIdentitySnapshot') ) {
-            _tsugiResetIdentitySnapshot();
-        }
+        ReqScope::resetIdentity();
 
         // Do not attach Context to the dummy $LAUNCH from lms_lib.php (no pdox).
         // Null launch objects so buildLaunch() recreates them on $TSUGI_LAUNCH.
@@ -437,8 +432,7 @@ class Courses extends Tool {
         $PROFILE = null;
         LTIX::buildLaunch($lti);
         self::wireLaunchConnection();
-        RequestContext::noteContext($cid);
-        self::establishRequestContext($cid);
+        self::establishReqScope($cid);
 
         return true;
     }
@@ -449,15 +443,13 @@ class Courses extends Tool {
      *
      * @param int $context_id
      */
-    private static function establishRequestContext($context_id) {
-        $user_id = U::loggedInUserId();
-        if ( $user_id < 1 ) {
-            return;
-        }
+    private static function establishReqScope($context_id) {
         try {
-            RequestContext::establish($user_id, $context_id);
-        } catch ( RequestContextException $ex ) {
-            error_log('RequestContext establish failed: '.$ex->getMessage());
+            ReqScope::replaceCourse((int) $context_id);
+        } catch ( ReqScopeException $ex ) {
+            error_log('ReqScope replaceCourse failed: '.$ex->getMessage());
+        } catch ( \Throwable $ex ) {
+            error_log('ReqScope replaceCourse failed: '.$ex->getMessage());
         }
     }
 
@@ -542,9 +534,7 @@ class Courses extends Tool {
         Manifest::rememberInSession(0);
         Cache::clearAllSessionCaches();
         Output::clearTopNavSession();
-        if ( function_exists('_tsugiResetIdentitySnapshot') ) {
-            _tsugiResetIdentitySnapshot();
-        }
+        ReqScope::resetIdentity();
 
         global $CONTEXT, $USER, $LINK, $RESULT, $LAUNCH, $TSUGI_LAUNCH, $TSUGI_KEY, $PROFILE;
         $CONTEXT = null;
@@ -567,7 +557,7 @@ class Courses extends Tool {
         global $CFG, $PDOX;
 
         $cid = (int) $context_id;
-        $user_id = U::loggedInUserId();
+        $user_id = ReqScope::loggedInUserId();
         if ( $cid < 1 || $user_id < 1 ) {
             return;
         }
@@ -620,7 +610,7 @@ class Courses extends Tool {
             $PDOX = LTIX::getConnection();
         }
         $p = $CFG->dbprefix;
-        $user_id = U::loggedInUserId();
+        $user_id = ReqScope::loggedInUserId();
         $siteId = self::siteLoginContextId();
 
         $rows = $PDOX->allRowsDie(
@@ -752,7 +742,7 @@ class Courses extends Tool {
         if ( $cid < 1 ) {
             return 'Invalid course.';
         }
-        $user_id = U::loggedInUserId();
+        $user_id = ReqScope::loggedInUserId();
         if ( $user_id < 1 ) {
             return 'Must be logged in.';
         }
@@ -844,7 +834,7 @@ class Courses extends Tool {
         }
         $short_title = (string) U::get($_POST, 'short_title', '');
 
-        $user_id = U::loggedInUserId();
+        $user_id = ReqScope::loggedInUserId();
         $key_id = self::googleKeyId();
         $result = Manifest::createCourse($title, $user_id, $key_id, $short_title);
         if ( empty($result['ok']) ) {
@@ -903,7 +893,7 @@ class Courses extends Tool {
             }
         }
 
-        $before = U::currentContextId();
+        $before = ReqScope::currentContextId();
         $result = self::ensureActiveContext($id);
         if ( $result !== true ) {
             return self::switchFailedResponse($result);
@@ -989,7 +979,7 @@ class Courses extends Tool {
         return response()->json(array(
             'status' => 'success',
             'courses' => $rows,
-            'current_context_id' => U::currentContextId(),
+            'current_context_id' => ReqScope::currentContextId(),
             'can_create' => self::canCreate(),
             'show_catalog' => Catalog::showCourseCatalog(),
             'catalog_url' => Catalog::showCourseCatalog() ? Catalog::catalogUrl() : '',
@@ -1125,7 +1115,7 @@ class Courses extends Tool {
      * @return Response|null
      */
     public static function gateResponse() {
-        if ( ! U::isLoggedIn() ) {
+        if ( ! ReqScope::isLoggedIn() ) {
             return new Response('Must be logged in', 403);
         }
         if ( ! self::isGoogleLoginSession() ) {

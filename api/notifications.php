@@ -8,6 +8,7 @@ if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\ReqScope;
 use \Tsugi\Util\U;
 use \Tsugi\Util\NotificationsService;
 
@@ -24,16 +25,16 @@ header('Content-Type: application/json; charset=utf-8');
 LTIX::getConnection();
 session_start();
 
-// Must be logged in via cookie session (config.php loads lms_lib.php → isLoggedIn / loggedInUserId)
-if ( ! isLoggedIn() ) {
+// Must be logged in via cookie session (session_start above, then ReqScope)
+if ( ! ReqScope::isLoggedIn() ) {
     http_response_code(403);
     echo(json_encode(array('status' => 'error', 'detail' => 'Not logged in'), JSON_PRETTY_PRINT));
     return;
 }
-$user_id = loggedInUserId();
+$user_id = ReqScope::loggedInUserId();
 
 // Get context_id from session (may not be set for all users)
-$context_id = currentContextId();
+$context_id = ReqScope::currentContextId();
 
 $result = array(
     'status' => 'success',

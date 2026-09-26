@@ -10,6 +10,7 @@ require_once "src/Util/U.php";
 
 use \Tsugi\Controllers\Courses;
 use \Tsugi\Core\Manifest;
+use \Tsugi\Core\ReqScope;
 use \Tsugi\Lumen\Application;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
@@ -42,12 +43,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
             }
         }
 
-        if (!function_exists('isLoggedIn')) {
-            require_once dirname(__DIR__, 2) . '/include/lms_lib.php';
-        }
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
 
         $this->mockLaunch = new \stdClass();
         $this->mockLaunch->output = new \stdClass();
@@ -61,9 +57,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         global $CFG;
         $CFG = $this->originalCFG;
         $_SESSION = $this->originalSession;
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
     }
 
     private function routeUris(): array
@@ -131,9 +125,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
     {
         $_SESSION['id'] = 7;
         $_SESSION['oauth_consumer_key'] = 'canvas.example.edu';
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $response = Courses::gateResponse();
         $this->assertNotNull($response);
         $this->assertSame(403, $response->getStatusCode());
@@ -144,9 +136,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
     {
         $_SESSION['id'] = 7;
         $_SESSION['oauth_consumer_key'] = 'google.com';
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $this->assertNull(Courses::gateResponse());
     }
 
@@ -162,9 +152,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         $_SESSION['context_id'] = 42;
         $_SESSION['oauth_consumer_key'] = 'google.com';
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $this->assertTrue(Courses::ensureActiveContext(42));
         $PDOX = $savePdox;
     }
@@ -203,9 +191,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         $_SESSION['context_id'] = 42;
         $_SESSION['oauth_consumer_key'] = 'google.com';
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $this->assertTrue(Courses::ensureActiveContext(42));
         $this->assertSame(77, Manifest::activeId());
         $PDOX = $savePdox;
@@ -234,9 +220,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         $_SESSION['context_id'] = 42;
         $_SESSION['oauth_consumer_key'] = 'google.com';
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $_SERVER['REQUEST_URI'] = '/announcements';
         $this->assertSame('', Courses::toolPathPrefix());
         $_SERVER['REQUEST_URI'] = '/courses/42/home';
@@ -307,14 +291,14 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
     {
         $_SESSION['id'] = 7;
         $_SESSION['context_id'] = 1;
-        _tsugiResetIdentitySnapshot();
-        $this->assertSame(1, currentContextId());
+        \Tsugi\Core\ReqScope::resetIdentity();
+        $this->assertSame(1, ReqScope::currentContextId());
 
         $_SESSION['context_id'] = 99;
-        $this->assertSame(1, currentContextId(), 'snapshot must stick until reset');
+        $this->assertSame(1, ReqScope::currentContextId(), 'snapshot must stick until reset');
 
-        _tsugiResetIdentitySnapshot();
-        $this->assertSame(99, currentContextId());
+        \Tsugi\Core\ReqScope::resetIdentity();
+        $this->assertSame(99, ReqScope::currentContextId());
     }
 
     public function testCanCreateFalseWhenNotLoggedIn()
@@ -327,9 +311,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         $_SESSION['admin'] = 'yes';
         $_SESSION['create_courses'] = 0;
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $this->assertTrue(Courses::canCreate());
     }
 
@@ -339,9 +321,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['instructor'] = true;
         $_SESSION['isinstructor'] = true;
         $_SESSION['create_courses'] = 0;
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $this->assertFalse(Courses::canCreate());
 
         $_SESSION['create_courses'] = 1;
@@ -353,9 +333,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         $_SESSION['oauth_consumer_key'] = 'google.com';
         $_SESSION['create_courses'] = 0;
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $response = Courses::createGateResponse('/courses');
         $this->assertNotNull($response);
         $this->assertSame(302, $response->getStatusCode());
@@ -366,18 +344,14 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         $_SESSION['oauth_consumer_key'] = 'google.com';
         $_SESSION['create_courses'] = 1;
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $this->assertNull(Courses::createGateResponse('/courses'));
     }
 
     public function testTouchVisitedNoOpWhenNotLoggedIn()
     {
         $_SESSION = array();
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $this->expectNotToPerformAssertions();
         Courses::touchVisited(42);
         Courses::touchVisited(0);
@@ -391,9 +365,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['oauth_consumer_key'] = 'google.com';
         $_SESSION['manifest_id'] = 99;
         $_SESSION['lti'] = array('context_id' => 42, 'manifest_id' => 99);
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $this->assertFalse(Courses::restoreSiteLoginContext());
         $this->assertSame(99, Manifest::activeId());
     }
@@ -406,9 +378,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['oauth_consumer_key'] = 'google.com';
         $_SESSION['manifest_id'] = 99;
         $_SESSION['lti'] = array('context_id' => 42, 'manifest_id' => 99);
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $this->assertFalse(Courses::restoreSiteLoginContext());
         $this->assertSame(99, Manifest::activeId());
     }
@@ -422,12 +392,10 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['oauth_consumer_key'] = 'google.com';
         $_SESSION['manifest_id'] = 99;
         $_SESSION['lti'] = array('context_id' => 36, 'manifest_id' => 99);
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $this->assertTrue(Courses::restoreSiteLoginContext());
         $this->assertSame(0, Manifest::activeId());
-        $this->assertSame(36, currentContextId());
+        $this->assertSame(36, ReqScope::currentContextId());
     }
 
     public function testRestoreSiteLoginContextSkipsLtiLaunch()
@@ -439,9 +407,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['lti_post'] = array('user_id' => 'x');
         $_SESSION['manifest_id'] = 99;
         $_SESSION['lti'] = array('context_id' => 42, 'manifest_id' => 99);
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $this->assertFalse(Courses::restoreSiteLoginContext());
         $this->assertSame(99, Manifest::activeId());
     }

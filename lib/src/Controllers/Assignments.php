@@ -15,6 +15,8 @@ use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Lessons\LessonsNormalize;
 use Tsugi\UI\Table;
 
+use Tsugi\Core\ReqScope;
+
 class Assignments extends Tool {
 
     const ROUTE = '/assignments';
@@ -46,7 +48,7 @@ class Assignments extends Tool {
     }
 
     private function invalidateDueDatesSessionCache() {
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         if ( $context_id ) {
             GradeUtil::invalidateDueDatesCache((int) $context_id);
         }
@@ -56,7 +58,7 @@ class Assignments extends Tool {
      * After lti_membership or due-date visibility changes for this context.
      */
     private function invalidateMembershipAndDueDatesCache() {
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         if ( ! $context_id ) {
             return;
         }
@@ -112,19 +114,19 @@ class Assignments extends Tool {
             }
         }
 
-        if ( $this->isInstructor() && U::currentContextId() !== 0 ) {
-            foreach ( GradeUtil::loadLinkIdsForContext(U::currentContextId()) as $rlid => $link_id ) {
+        if ( $this->isInstructor() && ReqScope::currentContextId() !== 0 ) {
+            foreach ( GradeUtil::loadLinkIdsForContext(ReqScope::currentContextId()) as $rlid => $link_id ) {
                 $alllinkids[$rlid] = (int) $link_id;
             }
         }
 
         $duedates = array();
-        if ( U::currentContextId() !== 0 ) {
-            $duedates = GradeUtil::loadDueDatesForDisplay(U::currentContextId());
+        if ( ReqScope::currentContextId() !== 0 ) {
+            $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
         }
 
-        $showDueDateToggle = U::isLoggedIn() && U::currentContextId() !== 0
-            && GradeUtil::contextHasAnyDueDate(U::currentContextId());
+        $showDueDateToggle = ReqScope::isLoggedIn() && ReqScope::currentContextId() !== 0
+            && GradeUtil::contextHasAnyDueDate(ReqScope::currentContextId());
 
         $toolbar_html = null;
         if ( $this->isInstructor() || $showDueDateToggle ) {
@@ -132,7 +134,7 @@ class Assignments extends Tool {
             echo('<div style="display:flex;flex-wrap:wrap;gap:0.35em;justify-content:flex-end;align-items:center;">');
             if ( $showDueDateToggle ) {
                 LTIX::getConnection();
-                $mm = Membership::ensureInSession(U::currentContextId(), U::loggedInUserId());
+                $mm = Membership::ensureInSession(ReqScope::currentContextId(), ReqScope::loggedInUserId());
                 $hiding = empty($mm->viewDueDates);
                 $btnLabel = $hiding ? __('Show due dates') : __('Hide due dates');
                 $toggleAction = U::addSession($this->toolHome(self::ROUTE) . '/toggle-view-due-dates');
@@ -155,7 +157,7 @@ class Assignments extends Tool {
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
-        if ( ! U::isLoggedIn() ) {
+        if ( ! ReqScope::isLoggedIn() ) {
             $login_url = htmlspecialchars(U::addSession(Login::loginUrl()));
             echo('<p><a href="'.$login_url.'">'.__('Log in').'</a> ');
             echo(__('to see your scores on these assignments.').'</p>'."\n");
@@ -174,7 +176,7 @@ class Assignments extends Tool {
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
 
         LTIX::getConnection();
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         $p = $CFG->dbprefix;
 
         $l = Manifest::requireCurrentLessons();
@@ -325,8 +327,8 @@ class Assignments extends Tool {
         if ( $csrf ) {
             return $csrf;
         }
-        $context_id = U::currentContextId();
-        $user_id = U::loggedInUserId();
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
         if ( ! $context_id || ! $user_id ) {
             U::flashError(__('Context required.'));
             return new RedirectResponse($home);
@@ -379,7 +381,7 @@ class Assignments extends Tool {
         }
         $this->requireInstructor(U::addSession($this->toolHome(self::ROUTE)));
 
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         $l = Manifest::requireCurrentLessons();
         $items = $l->enumerateLtiAssignmentItems(true);
         $dueMap = $this->loadDueDatesByLinkKey($context_id);
@@ -512,7 +514,7 @@ class Assignments extends Tool {
             return $csrf;
         }
 
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         $l = Manifest::requireCurrentLessons();
         $allowed = array();
         foreach ( $l->enumerateLtiAssignmentItems(true) as $it ) {
@@ -584,7 +586,7 @@ class Assignments extends Tool {
             return $csrf;
         }
 
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         $l = Manifest::requireCurrentLessons();
         $allowed = array();
         foreach ( $l->enumerateLtiAssignmentItems(true) as $it ) {
@@ -632,7 +634,7 @@ class Assignments extends Tool {
             return $csrf;
         }
 
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         $raw = U::get($_POST, 'week1_due', '');
         $baseSql = self::parseDueDateEndOfDay($raw);
         if ( $baseSql === null ) {
@@ -711,7 +713,7 @@ class Assignments extends Tool {
             return $csrf;
         }
 
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         $l = Manifest::requireCurrentLessons();
         $items = $l->enumerateLtiAssignmentItems(true);
         $dueMap = $this->loadDueDatesByLinkKey($context_id);

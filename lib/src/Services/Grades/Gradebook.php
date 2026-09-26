@@ -2,10 +2,10 @@
 
 namespace Tsugi\Services\Grades;
 
-use Tsugi\Core\RequestContext;
+use Tsugi\Core\ReqScope;
 
 /**
- * Store a grade on the lti_result row already loaded in RequestContext.
+ * Store a grade on the lti_result row already loaded in ReqScope.
  *
  * The gradebook reads lti_result.grade. This is the write side of that row
  * for an internal activity that has no LTI launch. Callers pass a 0–1
@@ -18,7 +18,7 @@ class Gradebook {
      * @param float $grade Fraction from 0 through 1.
      * @return float|string|null The stored fraction, an error string, or null when this request has no result.
      */
-    public static function record(RequestContext $rc, $grade) {
+    public static function record(ReqScope $rc, $grade) {
         if ( ! $rc->result || ! $rc->link ) {
             return null;
         }

@@ -180,6 +180,9 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 // $CFG->home_path = 'https://example.com/';
 // Legacy: $CFG->setExtension('home_path', $CFG->apphome);
 
+// Temporary ReqScope dump at /reqscope and tool/reqscope. Remove around December 2026.
+// $CFG->setExtension('reqscope_debug', true);
+
 // If we are going to use the lessons tool and/or badges, we need to
 // create and point to a lessons.json file
 // $CFG->lessons = $CFG->dirroot.'/../lessons.json';

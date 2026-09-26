@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Tsugi\Util\U;
 use Tsugi\Util\Stripe as StripeUtil;
 
+use Tsugi\Core\ReqScope;
+
 /**
  * Stripe Checkout routes for premium / supporter payments.
  */
@@ -62,7 +64,7 @@ class Stripe extends Controller {
         $home = Tool::configuredHomeUrl();
         $checkout_url = self::checkoutUrl($CFG);
 
-        $user_id = U::loggedInUserId();
+        $user_id = ReqScope::loggedInUserId();
         if ($user_id <= 0) {
             Login::setReturnUrl($checkout_url);
             return new RedirectResponse(Login::loginUrl());
@@ -119,7 +121,7 @@ You will receive <?= htmlspecialchars($premium_period) ?> of <?= htmlspecialchar
         $home = Tool::configuredHomeUrl();
         $checkout_url = self::checkoutUrl($CFG);
 
-        $user_id = U::loggedInUserId();
+        $user_id = ReqScope::loggedInUserId();
         if ($user_id <= 0) {
             Login::setReturnUrl($checkout_url);
             return new RedirectResponse(Login::loginUrl());
@@ -286,7 +288,7 @@ You will receive <?= htmlspecialchars($premium_period) ?> of <?= htmlspecialchar
                 }
 
                 $session_user_id = (int) StripeUtil::val($session, 'client_reference_id', 0);
-                $logged_in_user_id = U::loggedInUserId();
+                $logged_in_user_id = ReqScope::loggedInUserId();
                 if ($logged_in_user_id > 0 && $session_user_id > 0 && $logged_in_user_id !== $session_user_id) {
                     $status_message .= ' (This payment belongs to a different account.)';
                 }

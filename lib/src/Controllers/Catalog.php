@@ -11,6 +11,8 @@ use Tsugi\Core\ContextImages;
 use Tsugi\Services\Catalog\CatalogRepository;
 use Tsugi\Util\U;
 
+use Tsugi\Core\ReqScope;
+
 class Catalog extends Tool {
 
     const ROUTE = '/catalog';
@@ -80,7 +82,7 @@ class Catalog extends Tool {
      * @return array<int, array<string, mixed>>
      */
     public static function markHomeEnrolled(array $rows) {
-        if ( U::loggedInUserId() < 1 || ! Courses::isGoogleLoginSession() ) {
+        if ( ReqScope::loggedInUserId() < 1 || ! Courses::isGoogleLoginSession() ) {
             return $rows;
         }
         $homeId = CatalogRepository::homeContextId();
@@ -178,7 +180,7 @@ class Catalog extends Tool {
      * @return array<int, array<string, mixed>>
      */
     public static function listingRows() {
-        $user_id = U::loggedInUserId();
+        $user_id = ReqScope::loggedInUserId();
         $rows = Catalog::markHomeEnrolled(CatalogRepository::listPublished($user_id));
         $home = self::catalogUrl();
         $site = self::siteHomeUrl();
@@ -234,7 +236,7 @@ class Catalog extends Tool {
     public static function detail(Application $app, Request $request, $id) {
         global $OUTPUT;
 
-        $user_id = U::loggedInUserId();
+        $user_id = ReqScope::loggedInUserId();
         $row = CatalogRepository::load($id, true, $user_id);
         if ( $row === null ) {
             return new Response('Catalog entry not found.', 404);
@@ -297,7 +299,7 @@ class Catalog extends Tool {
             return $csrf;
         }
 
-        $user_id = U::loggedInUserId();
+        $user_id = ReqScope::loggedInUserId();
         $row = CatalogRepository::load($id, true, $user_id);
         if ( $row === null ) {
             return new Response('Catalog entry not found.', 404);
@@ -328,7 +330,7 @@ class Catalog extends Tool {
     }
 
     public static function getjson(Application $app) {
-        $rows = Catalog::markHomeEnrolled(CatalogRepository::listPublished(U::loggedInUserId()));
+        $rows = Catalog::markHomeEnrolled(CatalogRepository::listPublished(ReqScope::loggedInUserId()));
         $entries = array();
         foreach ( $rows as $row ) {
             $entries[] = array(

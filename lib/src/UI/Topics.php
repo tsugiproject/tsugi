@@ -8,6 +8,8 @@ use Tsugi\Core\LTIX;
 use Tsugi\Crypt\AesOpenSSL;
 
 
+use Tsugi\Core\ReqScope;
+
 class Topics {
 
     /**
@@ -83,7 +85,7 @@ class Topics {
         }
 
         // Filter topics based on login
-        if ( ! U::isLoggedIn() ) {
+        if ( ! ReqScope::isLoggedIn() ) {
             $filtered_topics = array();
             $filtered = false;
             foreach($course->topics as $topic) {

@@ -3,9 +3,9 @@
 namespace Tsugi\Core;
 
 /**
- * RequestContext could not be hydrated from the given ids.
+ * ReqScope could not be hydrated from the given ids.
  */
-class RequestContextException extends \RuntimeException {
+class ReqScopeException extends \RuntimeException {
 
     /** @var int */
     public $httpStatus;

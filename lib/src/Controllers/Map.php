@@ -12,6 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\User;
 
+use \Tsugi\Core\ReqScope;
+
 class Map extends Controller {
 
     const ROUTE = '/map';
@@ -65,7 +67,7 @@ class Map extends Controller {
         $rows = $PDOX->allRowsDie($sql);
         $center = false;
         $points = array();
-        $current_user_id = U::loggedInUserId();
+        $current_user_id = ReqScope::loggedInUserId();
         foreach($rows as $row ) {
             if ( !isset($row['json']) ) continue;
             if ( !isset($row['user_id']) ) continue;

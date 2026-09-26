@@ -19,6 +19,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+use Tsugi\Core\ReqScope;
+
 class Pages extends Tool {
 
     const ROUTE = PageRepository::HREF_PREFIX;
@@ -66,7 +68,7 @@ class Pages extends Tool {
             $html,
             $this->courseFileBaseUrl(self::ROUTE),
             self::courseLocalPrefixes(),
-            U::currentContextId()
+            ReqScope::currentContextId()
         );
     }
 
@@ -78,7 +80,7 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
 
         $is_instructor = $this->isInstructor();
 
@@ -177,7 +179,7 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         $is_instructor = $this->isInstructor();
         $pages = PageRepository::listForPicker($context_id, !$is_instructor);
         
@@ -458,8 +460,8 @@ class Pages extends Tool {
         
         LTIX::getConnection();
 
-        $context_id = U::currentContextId();
-        $user_id = U::loggedInUserId();
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
 
         $title = trim(U::get($_POST, 'title'));
         $body = $this->canonicalizePageHtml(U::get($_POST, 'body', ''));
@@ -510,7 +512,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         $page_id = intval($id);
         
         if (!$page_id) {
@@ -623,7 +625,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         $page_id = intval($id);
         
         $title = trim(U::get($_POST, 'title'));
@@ -675,7 +677,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
 
         $page_ids_with_history = PageRepository::pageIdsWithHistory($context_id);
         $pages = PageRepository::listForManage($context_id);
@@ -783,7 +785,7 @@ class Pages extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         
         // Handle delete action
         $action = U::get($_POST, 'action');
@@ -822,7 +824,7 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         $page_id = intval($id);
 
         $page = PageRepository::loadForHistory($page_id, $context_id);
@@ -982,7 +984,7 @@ class Pages extends Tool {
 
         LTIX::getConnection();
 
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         $page_id = (int) U::get($_POST, 'page_id');
         $history_id = (int) U::get($_POST, 'history_id');
 

@@ -1,4 +1,6 @@
 <?php
+use Tsugi\Core\ReqScope;
+
 /**
  * Common Cartridge import form, or Select Content after a zip is stashed.
  *
@@ -186,7 +188,7 @@ if ( ! isset($upload_limit_label) || ! is_string($upload_limit_label) || $upload
 <form method="post" action="<?= htmlspecialchars($upload_url) ?>" enctype="multipart/form-data">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>
     <input type="hidden" name="return" value="<?= htmlspecialchars($import_url) ?>">
-    <input type="hidden" name="context" value="<?= (int) \Tsugi\Util\U::currentContextId() ?>">
+    <input type="hidden" name="context" value="<?= (int) \Tsugi\Core\ReqScope::currentContextId() ?>">
     <p>
         <label for="cartridge_file"><?= __('Cartridge file') ?></label><br>
         <input type="file" name="cartridge" id="cartridge_file" accept=".imscc,.zip,application/zip">

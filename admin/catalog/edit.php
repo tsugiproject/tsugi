@@ -8,6 +8,8 @@ use \Tsugi\Controllers\Tool;
 use \Tsugi\Services\Catalog\CatalogRepository;
 use \Tsugi\UI\CKEditor;
 
+use \Tsugi\Core\ReqScope;
+
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../admin_util.php';
@@ -85,7 +87,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         header('Location: '.$self);
         return;
     }
-    $result = CatalogRepository::save($catalog_id, $norm['data'], U::loggedInUserId());
+    $result = CatalogRepository::save($catalog_id, $norm['data'], ReqScope::loggedInUserId());
     if ( empty($result['ok']) ) {
         U::flashError($result['error'] ?? __('Could not save catalog entry.'));
         header('Location: '.$self);

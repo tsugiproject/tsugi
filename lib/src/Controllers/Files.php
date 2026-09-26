@@ -15,6 +15,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+use Tsugi\Core\ReqScope;
+
 /**
  * Course files tool (Canvas Files / Sakai Resources style).
  *
@@ -87,10 +89,10 @@ class Files extends Tool {
                 return new RedirectResponse($this->folderUrl(''));
             }
         } else {
-            FileRepository::ensureReservedFolders($link_id, U::currentContextId());
+            FileRepository::ensureReservedFolders($link_id, ReqScope::currentContextId());
         }
 
-        $items = FileRepository::listFolder($link_id, $folder, U::currentContextId());
+        $items = FileRepository::listFolder($link_id, $folder, ReqScope::currentContextId());
         $tool_home = $this->toolHome(self::ROUTE);
         $max_upload = BlobUtil::maxUploadBytes();
         $crumbs = $this->breadcrumbs($folder, $is_instructor);
@@ -402,7 +404,7 @@ class Files extends Tool {
         $link_id = $this->ensureFilesLaunch();
         $is_instructor = $this->isInstructor();
 
-        $rows = FileRepository::allItems($link_id, U::currentContextId());
+        $rows = FileRepository::allItems($link_id, ReqScope::currentContextId());
         $out = array();
         foreach ( $rows as $row ) {
             $meta = FileRepository::decodeMeta($row);
@@ -451,7 +453,7 @@ class Files extends Tool {
         $this->ensureFilesLaunch();
         $is_instructor = $this->isInstructor();
 
-        $candidates = FileRepository::getFileRowsBySha256($sha256, U::currentContextId());
+        $candidates = FileRepository::getFileRowsBySha256($sha256, ReqScope::currentContextId());
         if ( count($candidates) === 0 ) {
             die('File not found');
         }
@@ -497,7 +499,7 @@ class Files extends Tool {
         $link_id = $this->ensureFilesLaunch();
         $is_instructor = $this->isInstructor();
 
-        $row = FileRepository::getFileRowByPath($path, $link_id, U::currentContextId());
+        $row = FileRepository::getFileRowByPath($path, $link_id, ReqScope::currentContextId());
         if ( ! $row ) {
             die('File not found');
         }
@@ -658,7 +660,7 @@ button { margin-top: 1rem; font: inherit; padding: 0.4rem 0.8rem; }
     {
         $this->requireInstructor($this->toolHome(self::ROUTE));
         $link_id = $this->ensureFilesLaunch();
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         FileRepository::ensureReservedFolders($link_id, $context_id);
 
         $folder = $this->postedFolder();
@@ -718,7 +720,7 @@ button { margin-top: 1rem; font: inherit; padding: 0.4rem 0.8rem; }
     {
         $this->requireInstructor($this->toolHome(self::ROUTE));
         $link_id = $this->ensureFilesLaunch();
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         FileRepository::ensureReservedFolders($link_id, $context_id);
 
         $folder = $this->postedFolder();
@@ -755,7 +757,7 @@ button { margin-top: 1rem; font: inherit; padding: 0.4rem 0.8rem; }
     {
         $this->requireInstructor($this->toolHome(self::ROUTE));
         $link_id = $this->ensureFilesLaunch();
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
 
         $folder = $this->postedFolder();
         $redirect = $this->folderUrl($folder === false ? '' : $folder);
@@ -797,7 +799,7 @@ button { margin-top: 1rem; font: inherit; padding: 0.4rem 0.8rem; }
 
         $this->requireInstructor($this->toolHome(self::ROUTE));
         $this->ensureFilesLaunch();
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
 
         $folder = $this->requestedFolder();
         $back = $this->folderUrl($folder === false ? '' : $folder);
@@ -860,7 +862,7 @@ button { margin-top: 1rem; font: inherit; padding: 0.4rem 0.8rem; }
     {
         $this->requireInstructor($this->toolHome(self::ROUTE));
         $this->ensureFilesLaunch();
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
 
         $file_id = (int) $id;
         $folder = $this->postedFolder();
@@ -916,7 +918,7 @@ button { margin-top: 1rem; font: inherit; padding: 0.4rem 0.8rem; }
         global $CONTEXT, $LINK, $TSUGI_LAUNCH;
 
         LTIX::getConnection();
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         if ( ! $context_id ) {
             die('Context required');
         }

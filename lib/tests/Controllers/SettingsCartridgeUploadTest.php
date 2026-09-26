@@ -31,12 +31,7 @@ class SettingsCartridgeUploadTest extends \PHPUnit\Framework\TestCase
         $CFG = new ConfigInfo(dirname(__DIR__, 3), 'https://www.example.com/tsugi');
         $CFG->apphome = 'https://www.example.com';
         $CFG->dirroot = dirname(__DIR__, 3);
-        if (!function_exists('currentContextId')) {
-            require_once dirname(__DIR__, 2) . '/include/lms_lib.php';
-        }
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
     }
 
     protected function tearDown(): void
@@ -51,9 +46,7 @@ class SettingsCartridgeUploadTest extends \PHPUnit\Framework\TestCase
         } else {
             $_SERVER['REQUEST_URI'] = $this->originalUri;
         }
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
     }
 
     public function testCartridgeUploadUrlUsesWwwroot() {

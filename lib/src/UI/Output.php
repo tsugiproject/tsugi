@@ -54,6 +54,8 @@ use Tsugi\UI\Theme;
 
 use \Tsugi\Core\Settings;
 
+use \Tsugi\Core\ReqScope;
+
 class Output {
 
     /**
@@ -739,11 +741,11 @@ $('a').each(function (x) {
             $set->addLeft(_m('Lessons'), $lessonsHome.'/lessons');
         }
         $set->addLeft(_m('Tools'), $R.'store');
-        if ( U::isLoggedIn() ) {
+        if ( ReqScope::isLoggedIn() ) {
                 $set->addLeft(_m('Settings'), $R . 'settings');
         }
 
-        if ( U::isLoggedIn() ) {
+        if ( ReqScope::isLoggedIn() ) {
             $submenu = new \Tsugi\UI\Menu();
             if ( $CFG->google_client_id ) {
                 $accountHome = is_string($CFG->apphome) && strlen($CFG->apphome) > 0

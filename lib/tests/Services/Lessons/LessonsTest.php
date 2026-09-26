@@ -5,12 +5,6 @@ require_once "include/setup_i18n.php";
 require_once "src/Services/Lessons/LessonsService.php";
 require_once "src/Config/ConfigInfo.php";
 
-if (!function_exists('isLoggedIn')) {
-    function isLoggedIn() {
-        return !empty($_SESSION['id']);
-    }
-}
-
 /**
  * Simple tests for Lessons utility class
  * 
@@ -30,6 +24,7 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $CFG->apphome = 'http://localhost/app';
         $CFG->wwwroot = 'http://localhost';
         $CFG->fontawesome = 'http://localhost/fontawesome';
+        \Tsugi\Core\ReqScope::resetIdentity();
     }
     
     protected function tearDown(): void

@@ -4,8 +4,8 @@ use Tsugi\Core\Context;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Link;
 use Tsugi\Core\Membership;
-use Tsugi\Core\RequestContext;
-use Tsugi\Core\RequestContextException;
+use Tsugi\Core\ReqScope;
+use Tsugi\Core\ReqScopeException;
 use Tsugi\Core\Result;
 use Tsugi\Core\User;
 use Tsugi\Services\Grades\Gradebook;
@@ -13,24 +13,54 @@ use Tsugi\Services\Quiz1\Quiz1;
 use Tsugi\Services\Quiz1\Quiz1Repository;
 use Tsugi\Util\U;
 
-class RequestContextTest extends \PHPUnit\Framework\TestCase
+class ReqScopeTest extends \PHPUnit\Framework\TestCase
 {
     private $sessionBefore;
 
     protected function setUp(): void
     {
         $this->sessionBefore = isset($_SESSION) && is_array($_SESSION) ? $_SESSION : array();
-        RequestContext::reset();
+        ReqScope::reset();
     }
 
     protected function tearDown(): void
     {
-        RequestContext::reset();
+        ReqScope::reset();
         $_SESSION = $this->sessionBefore;
     }
 
     public function testCurrentIsNullUntilHydrated() {
-        $this->assertNull(RequestContext::current());
+        $this->assertNull(ReqScope::current());
+    }
+
+    public function testProvisionRecordsAMissingUserAndCourse() {
+        $rc = ReqScope::provision(0, 0, null, ReqScope::ORIGIN_SITE);
+        $this->assertSame($rc, ReqScope::current());
+        $this->assertNull($rc->user);
+        $this->assertNull($rc->context);
+        $this->assertNull($rc->link);
+        $this->assertSame(ReqScope::ORIGIN_SITE, $rc->origin);
+    }
+
+    public function testReplaceCourseKeepsTheCourseSessionStartAlreadySet() {
+        $user = new User();
+        $user->id = 7;
+        $user->instructor = true;
+        $context = new Context();
+        $context->id = 9;
+        $link = new Link();
+        $link->id = 4;
+        ReqScope::provision(0, 0, null, ReqScope::ORIGIN_LTI);
+        ReqScope::hydrate($user, $context, $link, null, null, null, false);
+        ReqScope::current()->origin = ReqScope::ORIGIN_LTI;
+
+        $rc = ReqScope::replaceCourse(9);
+
+        $this->assertSame(7, $rc->user->id);
+        $this->assertSame(9, $rc->context->id);
+        $this->assertSame(4, $rc->link->id);
+        $this->assertTrue($rc->user->instructor);
+        $this->assertSame(ReqScope::ORIGIN_LTI, $rc->origin);
     }
 
     public function testHydrateInstallsTheSameObjectsOnGlobals() {
@@ -50,9 +80,9 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
         $membership->id = 4;
         $membership->role = LTIX::ROLE_LEARNER;
 
-        $rc = RequestContext::hydrate($user, $context, $link, $result, $membership, 1);
+        $rc = ReqScope::hydrate($user, $context, $link, $result, $membership, 1);
 
-        $this->assertSame($rc, RequestContext::current());
+        $this->assertSame($rc, ReqScope::current());
         global $USER, $CONTEXT, $LINK, $RESULT;
         $this->assertSame($user, $rc->user);
         $this->assertSame($user, $USER);
@@ -69,7 +99,7 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
         $context = new Context();
         $context->id = 2;
 
-        $rc = RequestContext::hydrate($user, $context, null, null, null, null);
+        $rc = ReqScope::hydrate($user, $context, null, null, null, null);
 
         global $LINK, $RESULT;
         $this->assertNull($rc->link);
@@ -87,13 +117,13 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
         $context = new Context();
         $context->id = 9;
 
-        RequestContext::hydrate($firstUser, $context);
-        $rc = RequestContext::hydrate($secondUser, $context);
+        ReqScope::hydrate($firstUser, $context);
+        $rc = ReqScope::hydrate($secondUser, $context);
 
         global $USER;
-        $this->assertSame(2, RequestContext::current()->user->id);
+        $this->assertSame(2, ReqScope::current()->user->id);
         $this->assertSame($secondUser, $USER);
-        $this->assertSame($rc, RequestContext::current());
+        $this->assertSame($rc, ReqScope::current());
     }
 
     public function testResetClearsCurrentAndGlobals() {
@@ -101,24 +131,24 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
         $user->id = 1;
         $context = new Context();
         $context->id = 1;
-        RequestContext::hydrate($user, $context);
-        RequestContext::reset();
+        ReqScope::hydrate($user, $context);
+        ReqScope::reset();
 
         global $USER, $CONTEXT;
-        $this->assertNull(RequestContext::current());
+        $this->assertNull(ReqScope::current());
         $this->assertNull($USER);
         $this->assertNull($CONTEXT);
     }
 
     public function testNoteContextIgnoresALaterDifferentId() {
-        RequestContext::noteContext(9);
-        RequestContext::noteContext(4);
+        ReqScope::noteContext(9);
+        ReqScope::noteContext(4);
         $user = new User();
         $user->id = 1;
         $context = new Context();
         $context->id = 9;
-        RequestContext::hydrate($user, $context);
-        $this->assertSame(9, RequestContext::current()->context->id);
+        ReqScope::hydrate($user, $context);
+        $this->assertSame(9, ReqScope::current()->context->id);
     }
 
     public function testNoteContextLeavesAnExistingCourse() {
@@ -126,31 +156,31 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
         $user->id = 1;
         $context = new Context();
         $context->id = 9;
-        RequestContext::hydrate($user, $context);
-        RequestContext::noteContext(4);
-        $this->assertSame(9, RequestContext::current()->context->id);
+        ReqScope::hydrate($user, $context);
+        ReqScope::noteContext(4);
+        $this->assertSame(9, ReqScope::current()->context->id);
     }
 
     public function testReturnUrlIsAttachedOnHydrate() {
-        RequestContext::setReturnUrl('https://example.test/lessons/intro');
+        ReqScope::setReturnUrl('https://example.test/lessons/intro');
         $user = new User();
         $user->id = 1;
         $context = new Context();
         $context->id = 3;
-        $rc = RequestContext::hydrate($user, $context);
+        $rc = ReqScope::hydrate($user, $context);
         $this->assertSame('https://example.test/lessons/intro', $rc->launchPresentation->return_url);
     }
 
     public function testNotedContextWinsOverALaterId() {
         $pdo = $this->beginFixtureTransaction();
         if ( $pdo === null ) {
-            $this->markTestSkipped('Database not available for RequestContext fixtures.');
+            $this->markTestSkipped('Database not available for ReqScope fixtures.');
         }
         try {
             $ids = $this->insertCourseFixture($pdo, LTIX::ROLE_LEARNER);
-            RequestContext::noteContext($ids['context_id']);
-            RequestContext::setReturnUrl('https://example.test/lessons/week1');
-            $rc = RequestContext::fromInternalActivity($ids['user_id'], 999999, null);
+            ReqScope::noteContext($ids['context_id']);
+            ReqScope::setReturnUrl('https://example.test/lessons/week1');
+            $rc = ReqScope::fromInternalActivity($ids['user_id'], 999999, null);
             $this->assertSame($ids['context_id'], $rc->context->id);
             $this->assertSame('https://example.test/lessons/week1', $rc->launchPresentation->return_url);
         } finally {
@@ -166,7 +196,7 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
     public function testFromInternalActivityLoadsMemberAndReusesLinkAndResult() {
         $pdo = $this->beginFixtureTransaction();
         if ( $pdo === null ) {
-            $this->markTestSkipped('Database not available for RequestContext fixtures.');
+            $this->markTestSkipped('Database not available for ReqScope fixtures.');
         }
 
         try {
@@ -178,7 +208,7 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
             $quiz_id = Quiz1Repository::insertQuiz($quiz);
 
             $session = $_SESSION;
-            $rc = RequestContext::fromInternalActivity($ids['user_id'], $ids['context_id'], null);
+            $rc = ReqScope::fromInternalActivity($ids['user_id'], $ids['context_id'], null);
             $this->assertNull($rc->link);
             $this->assertNull($rc->result);
             $this->assertNull($rc->published);
@@ -194,7 +224,7 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
             $this->assertSame($link_id, $loaded->link_id);
             $this->assertSame(1, $loaded->published);
 
-            $rc = RequestContext::fromInternalActivity($ids['user_id'], $ids['context_id'], $link_id);
+            $rc = ReqScope::fromInternalActivity($ids['user_id'], $ids['context_id'], $link_id);
             $this->assertSame($link_id, $rc->link->id);
             $this->assertNotNull($rc->result);
             $this->assertSame(1, $rc->published);
@@ -204,7 +234,7 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
             $this->assertSame($rc->link, $LINK);
             $this->assertSame($rc->result, $RESULT);
 
-            $rc2 = RequestContext::fromInternalActivity($ids['user_id'], $ids['context_id'], $link_id);
+            $rc2 = ReqScope::fromInternalActivity($ids['user_id'], $ids['context_id'], $link_id);
             $this->assertSame($result_id, $rc2->result->id);
 
             $this->assertTrue(Quiz1Repository::unpublish($quiz_id, $ids['context_id']));
@@ -212,7 +242,7 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
             $this->assertSame($link_id, $loaded->link_id);
             $this->assertSame(0, $loaded->published);
 
-            $rc = RequestContext::fromInternalActivity($ids['user_id'], $ids['context_id'], $loaded->link_id);
+            $rc = ReqScope::fromInternalActivity($ids['user_id'], $ids['context_id'], $loaded->link_id);
             $this->assertSame(0, $rc->published);
             $this->assertSame($link_id, $rc->link->id);
             $this->assertSame($result_id, $rc->result->id);
@@ -231,10 +261,10 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public function testGradebookStoresFractionOnTheRequestContextResult() {
+    public function testGradebookStoresFractionOnTheReqScopeResult() {
         $pdo = $this->beginFixtureTransaction();
         if ( $pdo === null ) {
-            $this->markTestSkipped('Database not available for RequestContext fixtures.');
+            $this->markTestSkipped('Database not available for ReqScope fixtures.');
         }
         try {
             $ids = $this->insertCourseFixture($pdo, LTIX::ROLE_LEARNER);
@@ -244,7 +274,7 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
             $quiz->title = 'Graded quiz';
             $quiz_id = Quiz1Repository::insertQuiz($quiz);
             $link_id = Quiz1Repository::publish($quiz_id, $ids['context_id']);
-            $rc = RequestContext::fromInternalActivity($ids['user_id'], $ids['context_id'], $link_id);
+            $rc = ReqScope::fromInternalActivity($ids['user_id'], $ids['context_id'], $link_id);
 
             $stored = Gradebook::record($rc, 0.5);
             $this->assertEqualsWithDelta(0.5, $stored, 0.0001);
@@ -255,7 +285,7 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
             );
             $this->assertEqualsWithDelta(0.5, (float) $row['grade'], 0.0001);
 
-            $again = RequestContext::fromInternalActivity($ids['user_id'], $ids['context_id'], $link_id);
+            $again = ReqScope::fromInternalActivity($ids['user_id'], $ids['context_id'], $link_id);
             $this->assertEqualsWithDelta(0.5, (float) $again->result->grade, 0.0001);
         } finally {
             $pdo->rollBack();
@@ -265,17 +295,17 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
     public function testInstructorAndAdminFlagsComeFromMembership() {
         $pdo = $this->beginFixtureTransaction();
         if ( $pdo === null ) {
-            $this->markTestSkipped('Database not available for RequestContext fixtures.');
+            $this->markTestSkipped('Database not available for ReqScope fixtures.');
         }
         try {
             $instructor = $this->insertCourseFixture($pdo, LTIX::ROLE_INSTRUCTOR);
-            $rc = RequestContext::fromInternalActivity($instructor['user_id'], $instructor['context_id'], null);
+            $rc = ReqScope::fromInternalActivity($instructor['user_id'], $instructor['context_id'], null);
             $this->assertTrue($rc->user->instructor);
             $this->assertFalse($rc->user->admin);
             $this->assertSame(LTIX::ROLE_INSTRUCTOR, $rc->membership->role);
 
             $admin = $this->insertCourseFixture($pdo, LTIX::ROLE_ADMINISTRATOR);
-            $rc = RequestContext::fromInternalActivity($admin['user_id'], $admin['context_id'], null);
+            $rc = ReqScope::fromInternalActivity($admin['user_id'], $admin['context_id'], null);
             $this->assertTrue($rc->user->instructor);
             $this->assertTrue($rc->user->admin);
         } finally {
@@ -286,15 +316,15 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
     public function testNonMemberIsRejected() {
         $pdo = $this->beginFixtureTransaction();
         if ( $pdo === null ) {
-            $this->markTestSkipped('Database not available for RequestContext fixtures.');
+            $this->markTestSkipped('Database not available for ReqScope fixtures.');
         }
         try {
             $ids = $this->insertCourseFixture($pdo, LTIX::ROLE_LEARNER);
             $outsider = $this->insertUser($pdo, $ids['key_id'], 'outsider');
-            $this->expectException(RequestContextException::class);
+            $this->expectException(ReqScopeException::class);
             try {
-                RequestContext::fromInternalActivity($outsider, $ids['context_id'], null);
-            } catch ( RequestContextException $ex ) {
+                ReqScope::fromInternalActivity($outsider, $ids['context_id'], null);
+            } catch ( ReqScopeException $ex ) {
                 $this->assertSame(403, $ex->httpStatus);
                 throw $ex;
             }
@@ -306,23 +336,21 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
     public function testSetLinkKeepsTheEstablishedUser() {
         $pdo = $this->beginFixtureTransaction();
         if ( $pdo === null ) {
-            $this->markTestSkipped('Database not available for RequestContext fixtures.');
+            $this->markTestSkipped('Database not available for ReqScope fixtures.');
         }
         try {
             $ids = $this->insertCourseFixture($pdo, LTIX::ROLE_LEARNER);
-            $rc = RequestContext::establish($ids['user_id'], $ids['context_id']);
+            $rc = ReqScope::establish($ids['user_id'], $ids['context_id']);
             global $USER, $LINK;
             $this->assertNotSame($rc->user, $USER);
             $this->assertNull($rc->link);
             $_SESSION['id'] = $ids['user_id'];
             $_SESSION['context_id'] = $ids['context_id'];
-            if ( function_exists('_tsugiResetIdentitySnapshot') ) {
-                _tsugiResetIdentitySnapshot();
-            }
-            RequestContext::logSessionDrift($ids['context_id']);
-            RequestContext::logSessionDrift(999999);
-            $this->assertSame($ids['context_id'], RequestContext::current()->context->id);
-            $this->assertSame($ids['user_id'], RequestContext::current()->user->id);
+            \Tsugi\Core\ReqScope::resetIdentity();
+            ReqScope::logSessionDrift($ids['context_id']);
+            ReqScope::logSessionDrift(999999);
+            $this->assertSame($ids['context_id'], ReqScope::current()->context->id);
+            $this->assertSame($ids['user_id'], ReqScope::current()->user->id);
 
             $quiz = new Quiz1();
             $quiz->context_id = $ids['context_id'];
@@ -331,13 +359,13 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
             $quiz_id = Quiz1Repository::insertQuiz($quiz);
             $link_id = Quiz1Repository::publish($quiz_id, $ids['context_id']);
 
-            $linked = RequestContext::setLink($link_id);
+            $linked = ReqScope::setLink($link_id);
             $this->assertSame($ids['user_id'], $linked->user->id);
             $this->assertSame($link_id, $linked->link->id);
             $this->assertNotNull($linked->result);
             $this->assertNotSame($linked->link, $LINK);
 
-            $again = RequestContext::establish($ids['user_id'], 999999);
+            $again = ReqScope::establish($ids['user_id'], 999999);
             $this->assertSame($ids['context_id'], $again->context->id);
             $this->assertSame($link_id, $again->link->id);
         } finally {
@@ -348,15 +376,15 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
     public function testSiteAdminAndCourseOwnerAreInstructors() {
         $pdo = $this->beginFixtureTransaction();
         if ( $pdo === null ) {
-            $this->markTestSkipped('Database not available for RequestContext fixtures.');
+            $this->markTestSkipped('Database not available for ReqScope fixtures.');
         }
         try {
             $ids = $this->insertCourseFixture($pdo, LTIX::ROLE_LEARNER);
-            $learner = RequestContext::fromInternalActivity($ids['user_id'], $ids['context_id'], null);
+            $learner = ReqScope::fromInternalActivity($ids['user_id'], $ids['context_id'], null);
             $this->assertFalse($learner->user->instructor);
 
             $_SESSION['admin'] = 'yes';
-            $admin = RequestContext::fromInternalActivity($ids['user_id'], $ids['context_id'], null);
+            $admin = ReqScope::fromInternalActivity($ids['user_id'], $ids['context_id'], null);
             $this->assertTrue($admin->user->instructor);
             $this->assertTrue($admin->user->admin);
             unset($_SESSION['admin']);
@@ -365,7 +393,7 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
                 "UPDATE {$this->prefix()}lti_context SET user_id = :UID WHERE context_id = :CID",
                 array(':UID' => $ids['user_id'], ':CID' => $ids['context_id'])
             );
-            $owner = RequestContext::fromInternalActivity($ids['user_id'], $ids['context_id'], null);
+            $owner = ReqScope::fromInternalActivity($ids['user_id'], $ids['context_id'], null);
             $this->assertTrue($owner->user->instructor);
             $this->assertFalse($owner->user->admin);
         } finally {
@@ -376,7 +404,7 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
     public function testLinkFromAnotherContextIsRejected() {
         $pdo = $this->beginFixtureTransaction();
         if ( $pdo === null ) {
-            $this->markTestSkipped('Database not available for RequestContext fixtures.');
+            $this->markTestSkipped('Database not available for ReqScope fixtures.');
         }
         try {
             $a = $this->insertCourseFixture($pdo, LTIX::ROLE_LEARNER);
@@ -388,10 +416,10 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
             $quiz_id = Quiz1Repository::insertQuiz($quiz);
             $link_id = Quiz1Repository::publish($quiz_id, $b['context_id']);
 
-            $this->expectException(RequestContextException::class);
+            $this->expectException(ReqScopeException::class);
             try {
-                RequestContext::fromInternalActivity($a['user_id'], $a['context_id'], $link_id);
-            } catch ( RequestContextException $ex ) {
+                ReqScope::fromInternalActivity($a['user_id'], $a['context_id'], $link_id);
+            } catch ( ReqScopeException $ex ) {
                 $this->assertSame(404, $ex->httpStatus);
                 throw $ex;
             }
@@ -403,7 +431,7 @@ class RequestContextTest extends \PHPUnit\Framework\TestCase
     public function testUnpublishWithoutALinkReturnsFalse() {
         $pdo = $this->beginFixtureTransaction();
         if ( $pdo === null ) {
-            $this->markTestSkipped('Database not available for RequestContext fixtures.');
+            $this->markTestSkipped('Database not available for ReqScope fixtures.');
         }
         try {
             $ids = $this->insertCourseFixture($pdo, LTIX::ROLE_INSTRUCTOR);

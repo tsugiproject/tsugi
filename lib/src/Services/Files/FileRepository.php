@@ -6,6 +6,8 @@ use Tsugi\Blob\BlobUtil;
 use Tsugi\Core\LTIX;
 use Tsugi\Util\U;
 
+use Tsugi\Core\ReqScope;
+
 /**
  * Course Files tool rows, folders, and hrefs. Does not emit HTTP.
  *
@@ -1185,7 +1187,7 @@ class FileRepository {
             ? $contentType
             : 'application/octet-stream';
 
-        $context_id = U::currentContextId();
+        $context_id = ReqScope::currentContextId();
         if ( ! $context_id ) {
             die('Context required');
         }

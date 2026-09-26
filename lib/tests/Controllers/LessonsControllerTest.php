@@ -8,12 +8,6 @@ require_once "src/Config/ConfigInfo.php";
 require_once "src/Lumen/Application.php";
 require_once "src/Lumen/Router.php";
 
-if (!function_exists('isLoggedIn')) {
-    function isLoggedIn() {
-        return !empty($_SESSION['id']);
-    }
-}
-
 use \Tsugi\Controllers\Lessons;
 use \Tsugi\Lumen\Application;
 
@@ -32,7 +26,8 @@ class LessonsControllerTest extends \PHPUnit\Framework\TestCase
         $CFG = new \Tsugi\Config\ConfigInfo(basename(__FILE__), 'http://localhost');
         $CFG->wwwroot = 'http://localhost';
         $CFG->apphome = 'http://localhost/app';
-        
+        \Tsugi\Core\ReqScope::resetIdentity();
+
         // Set up loader if not already set
         if (!isset($CFG->loader)) {
             $autoloaderPath = __DIR__ . '/../../vendor/autoload.php';

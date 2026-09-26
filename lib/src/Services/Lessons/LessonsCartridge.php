@@ -12,6 +12,8 @@ use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Quiz1\Qti12Exporter;
 use Tsugi\Services\Quiz1\Quiz1Repository;
 
+use Tsugi\Core\ReqScope;
+
 /**
  * Common Cartridge export from an in-memory Lessons document (v2 items).
  *
@@ -908,7 +910,7 @@ class LessonsCartridge {
         }
         $pageId = isset($item->page_id) ? $item->page_id : 0;
         $logicalKey = isset($item->logical_key) && is_string($item->logical_key) ? $item->logical_key : '';
-        $context_id = isset($options['context_id']) ? (int) $options['context_id'] : U::currentContextId();
+        $context_id = isset($options['context_id']) ? (int) $options['context_id'] : ReqScope::currentContextId();
         return PageRepository::readExportPayload($pageId, $logicalKey, $context_id);
     }
 
@@ -925,7 +927,7 @@ class LessonsCartridge {
         if ( $sha === null ) {
             return null;
         }
-        $context_id = isset($options['context_id']) ? (int) $options['context_id'] : U::currentContextId();
+        $context_id = isset($options['context_id']) ? (int) $options['context_id'] : ReqScope::currentContextId();
         return FileRepository::readExportPayload($sha, $context_id);
     }
 
@@ -994,7 +996,7 @@ class LessonsCartridge {
         if ( isset($options['load_quiz']) && is_callable($options['load_quiz']) ) {
             return call_user_func($options['load_quiz'], $quiz_id);
         }
-        $context_id = isset($options['context_id']) ? (int) $options['context_id'] : U::currentContextId();
+        $context_id = isset($options['context_id']) ? (int) $options['context_id'] : ReqScope::currentContextId();
         if ( $context_id < 1 ) {
             return null;
         }

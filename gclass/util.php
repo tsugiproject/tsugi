@@ -2,11 +2,12 @@
 
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\ReqScope;
 
 function sanity_check() {
     global $CFG;
 
-    if ( ! isLoggedIn() ) {
+    if ( ! ReqScope::isLoggedIn() ) {
         die_with_error_log('Error: Must be logged in to use Google Classroom');
     }
 

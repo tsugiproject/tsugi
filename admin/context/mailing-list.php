@@ -6,6 +6,7 @@ require_once("../../admin/admin_util.php");
 require_once("mail_audience.php");
 
 use \Tsugi\Core\LTIX;
+use \Tsugi\Core\ReqScope;
 use \Tsugi\Util\U;
 
 \Tsugi\Core\LTIX::getConnection();
@@ -66,8 +67,8 @@ if ( isset($_REQUEST['premium_only']) && $_REQUEST['premium_only'] == '1' ) {
 $is_context_admin = false;
 if ( isAdmin() ) {
     $is_context_admin = true;
-} else if ( isLoggedIn() ) {
-    $effective_uid = loggedInUserId();
+} else if ( ReqScope::isLoggedIn() ) {
+    $effective_uid = ReqScope::loggedInUserId();
     // Check if user is instructor/admin for this context
     $membership = $PDOX->rowDie(
         "SELECT role FROM {$CFG->dbprefix}lti_membership 

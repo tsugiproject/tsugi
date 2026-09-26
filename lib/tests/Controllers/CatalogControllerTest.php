@@ -45,12 +45,7 @@ class CatalogControllerTest extends \PHPUnit\Framework\TestCase
             }
         }
 
-        if (!function_exists('isLoggedIn')) {
-            require_once dirname(__DIR__, 2) . '/include/lms_lib.php';
-        }
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
 
         $this->mockApp = new Application((object) array('output' => (object) array('buffer' => true)));
     }
@@ -60,9 +55,7 @@ class CatalogControllerTest extends \PHPUnit\Framework\TestCase
         global $CFG;
         $CFG = $this->originalCFG;
         $_SESSION = $this->originalSession;
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
     }
 
     public function testRouteConstant()
@@ -142,9 +135,7 @@ class CatalogControllerTest extends \PHPUnit\Framework\TestCase
 
         $_SESSION['id'] = 1;
         $_SESSION['oauth_consumer_key'] = 'google.com';
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $out = Catalog::markHomeEnrolled($rows);
         $this->assertTrue($out[0]['enrolled']);
         $this->assertFalse($out[1]['enrolled']);
@@ -156,9 +147,7 @@ class CatalogControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 1;
         $_SESSION['oauth_consumer_key'] = 'google.com';
         $_SESSION['site_context_id'] = 9;
-        if (function_exists('_tsugiResetIdentitySnapshot')) {
-            _tsugiResetIdentitySnapshot();
-        }
+        \Tsugi\Core\ReqScope::resetIdentity();
         $rows = array(
             array('catalog_id' => 1, 'context_id' => 9, 'enrolled' => false),
             array('catalog_id' => 2, 'context_id' => 12, 'enrolled' => false),

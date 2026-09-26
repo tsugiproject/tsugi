@@ -23,7 +23,7 @@ handlers; membership checks are extra, not a substitute.
 
 On `/courses/{id}/…`, Tsugi writes `$_SESSION['context_id']` to that id,
 stores the sandbox `manifest_id`, resets the per-request identity
-snapshot, and drops session caches. Then `currentContextId()` is that
+snapshot, and drops session caches. Then `ReqScope::currentContextId()` is that
 course for the rest of the request.
 
 On a **site** URL (`/`, `/announcements`, buildmenu chrome), Tsugi puts

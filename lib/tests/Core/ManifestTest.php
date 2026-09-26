@@ -14,24 +14,6 @@ if (!function_exists('die_with_error_log')) {
     }
 }
 
-if (!function_exists('isLoggedIn')) {
-    function isLoggedIn() {
-        return !empty($_SESSION['id']);
-    }
-}
-
-if (!function_exists('currentContextId')) {
-    function currentContextId() {
-        if (isset($_SESSION['context_id'])) {
-            return (int) $_SESSION['context_id'];
-        }
-        if (isset($_SESSION['lti']) && is_array($_SESSION['lti']) && isset($_SESSION['lti']['context_id'])) {
-            return (int) $_SESSION['lti']['context_id'];
-        }
-        return 0;
-    }
-}
-
 class ManifestTest extends \PHPUnit\Framework\TestCase
 {
     private $originalCFG;
@@ -48,6 +30,7 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $CFG->apphome = 'http://localhost/app';
         $CFG->wwwroot = 'http://localhost';
         $CFG->fontawesome = 'http://localhost/fontawesome';
+        \Tsugi\Core\ReqScope::resetIdentity();
 
         Manifest::resetRequestCache();
         Manifest::setMCache(null);

@@ -12,6 +12,8 @@ use Tsugi\Services\Badges\BadgeService;
 use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Util\U;
 
+use Tsugi\Core\ReqScope;
+
 class Badges extends Tool {
 
     const ROUTE = '/badges';
@@ -192,7 +194,7 @@ class Badges extends Tool {
 <?php
     if ( count($awarded) < 1 ) {
         echo("<p>No badges have been awarded yet.</p>");
-    } else if ( ! U::isLoggedIn() || ! U::currentContextId() ) {
+    } else if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
         echo("<p>You must be logged in to see your badges.</p>\n");
     } else {
         // Check badge configuration before attempting to encrypt
@@ -238,11 +240,11 @@ class Badges extends Tool {
             foreach($awarded as $badge) {
                 echo("<li><p>");
                 $code = basename($badge->image,'.png');
-                $decrypted = U::loggedInUserId().':'.$code.':'.U::currentContextId();
+                $decrypted = ReqScope::loggedInUserId().':'.$code.':'.ReqScope::currentContextId();
                 $encrypted = bin2hex(AesOpenSSL::encrypt($decrypted, $CFG->badge_encrypt_password));
                 $published_guid = BadgeService::getMintedGuidIfExists(
-                    U::loggedInUserId(),
-                    U::currentContextId(),
+                    ReqScope::loggedInUserId(),
+                    ReqScope::currentContextId(),
                     $code
                 );
                 $assert_url = $published_guid !== null
