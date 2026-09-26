@@ -746,7 +746,7 @@ class Manifest {
         if ( $id > 0 ) {
             return $id;
         }
-        $id = self::idForContext(ReqScope::currentContextId());
+        $id = self::idForContext(ReqScope::currentContextIdLegacy());
         if ( $id > 0 ) {
             self::rememberInSession($id);
         }
@@ -1038,7 +1038,7 @@ class Manifest {
              WHERE context_id = :CID",
             array(':MID' => $mid, ':CID' => $cid)
         );
-        if ( ReqScope::currentContextId() === $cid ) {
+        if ( ReqScope::currentContextIdLegacy() === $cid ) {
             self::rememberInSession($mid);
         }
     }
@@ -1065,7 +1065,7 @@ class Manifest {
              WHERE context_id = :CID",
             array(':title' => $title, ':CID' => $cid)
         );
-        if ( ReqScope::currentContextId() === $cid ) {
+        if ( ReqScope::currentContextIdLegacy() === $cid ) {
             $_SESSION['context_title'] = $title;
             $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
             if ( isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey]) ) {

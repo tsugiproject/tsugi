@@ -67,8 +67,8 @@ if ( isset($_REQUEST['premium_only']) && $_REQUEST['premium_only'] == '1' ) {
 $is_context_admin = false;
 if ( isAdmin() ) {
     $is_context_admin = true;
-} else if ( ReqScope::isLoggedIn() ) {
-    $effective_uid = ReqScope::loggedInUserId();
+} else if ( ReqScope::isLoggedInLegacy() ) {
+    $effective_uid = ReqScope::loggedInUserIdLegacy();
     // Check if user is instructor/admin for this context
     $membership = $PDOX->rowDie(
         "SELECT role FROM {$CFG->dbprefix}lti_membership 

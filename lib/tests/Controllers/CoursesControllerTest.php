@@ -292,13 +292,13 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['id'] = 7;
         $_SESSION['context_id'] = 1;
         \Tsugi\Core\ReqScope::resetIdentity();
-        $this->assertSame(1, ReqScope::currentContextId());
+        $this->assertSame(1, ReqScope::currentContextIdLegacy());
 
         $_SESSION['context_id'] = 99;
-        $this->assertSame(1, ReqScope::currentContextId(), 'snapshot must stick until reset');
+        $this->assertSame(1, ReqScope::currentContextIdLegacy(), 'snapshot must stick until reset');
 
         \Tsugi\Core\ReqScope::resetIdentity();
-        $this->assertSame(99, ReqScope::currentContextId());
+        $this->assertSame(99, ReqScope::currentContextIdLegacy());
     }
 
     public function testCanCreateFalseWhenNotLoggedIn()
@@ -395,7 +395,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         \Tsugi\Core\ReqScope::resetIdentity();
         $this->assertTrue(Courses::restoreSiteLoginContext());
         $this->assertSame(0, Manifest::activeId());
-        $this->assertSame(36, ReqScope::currentContextId());
+        $this->assertSame(36, ReqScope::currentContextIdLegacy());
     }
 
     public function testRestoreSiteLoginContextSkipsLtiLaunch()

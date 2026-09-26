@@ -1187,7 +1187,7 @@ class FileRepository {
             ? $contentType
             : 'application/octet-stream';
 
-        $context_id = ReqScope::currentContextId();
+        $context_id = ReqScope::currentContextIdLegacy();
         if ( ! $context_id ) {
             die('Context required');
         }

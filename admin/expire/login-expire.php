@@ -23,12 +23,12 @@ if ( $base == 'user' ) {
     $limit = 100; // Takes about 10 seconds
     $where = '';
     if ( !isset($CFG->DEVELOPER) || !$CFG->DEVELOPER ) {
-        if ( ! ReqScope::isLoggedIn() ) {
+        if ( ! ReqScope::isLoggedInLegacy() ) {
             die('Must be logged in to expire user data');
         }
     }
     $where_clause = " AND user_id <> :UID ";
-    $where_params = array(':UID' => ReqScope::loggedInUserId());
+    $where_params = array(':UID' => ReqScope::loggedInUserIdLegacy());
 } else if ( $base == 'context' ) {
     $table = 'lti_context';
     $limit = 10;

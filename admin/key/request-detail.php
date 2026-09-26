@@ -29,7 +29,7 @@ if ( isAdmin() ) {
 } else {
     $fields = array("request_id", "title", "notes", "admin", "state", "lti", "created_at", "updated_at");
     $where_clause .= "user_id = :UID";
-    $query_fields[":UID"] = ReqScope::loggedInUserId();
+    $query_fields[":UID"] = ReqScope::loggedInUserIdLegacy();
 }
 
 // Handle the post data

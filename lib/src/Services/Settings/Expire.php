@@ -65,10 +65,10 @@ class Expire {
     }
 
     public static function sanityCheck() {
-        if ( ! ReqScope::isLoggedIn() ) {
+        if ( ! ReqScope::isLoggedInLegacy() ) {
             die('Must be logged in');
         }
-        if ( ReqScope::loggedInUserId() == 0 ) {
+        if ( ReqScope::loggedInUserIdLegacy() == 0 ) {
             die('Cannot be super user');
         }
     }
@@ -81,7 +81,7 @@ class Expire {
         self::sanityCheck();
         return array(
             'sql' => " key_id IN (SELECT key_id from {$CFG->dbprefix}lti_key WHERE user_id = :UID) ",
-            'params' => array(':UID' => ReqScope::loggedInUserId())
+            'params' => array(':UID' => ReqScope::loggedInUserIdLegacy())
         );
     }
 

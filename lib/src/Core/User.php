@@ -252,14 +252,14 @@ class User {
      * Independent of instructor role in the current (or last) context.
      */
     public static function canCreateCourses() {
-        if ( ! ReqScope::isLoggedIn() ) {
+        if ( ! ReqScope::isLoggedInLegacy() ) {
             return false;
         }
         if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
             return true;
         }
         if ( ! array_key_exists(self::SESSION_CREATE_COURSES, $_SESSION) ) {
-            self::rememberCreateCourses(ReqScope::loggedInUserId());
+            self::rememberCreateCourses(ReqScope::loggedInUserIdLegacy());
         }
         return (int) $_SESSION[self::SESSION_CREATE_COURSES] === 1;
     }

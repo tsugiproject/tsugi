@@ -33,6 +33,31 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
         $this->assertNull(ReqScope::current());
     }
 
+    public function testReadersUseOnlyTheStoredRequest() {
+        $_SESSION['id'] = 3;
+        $_SESSION['context_id'] = 4;
+        $this->assertSame(0, ReqScope::loggedInUserId());
+        $this->assertSame(0, ReqScope::currentContextId());
+        $this->assertFalse(ReqScope::isLoggedIn());
+        $this->assertSame(3, ReqScope::loggedInUserIdLegacy());
+        $this->assertSame(4, ReqScope::currentContextIdLegacy());
+
+        $user = new User();
+        $user->id = 7;
+        ReqScope::provision(0, 0, null, ReqScope::ORIGIN_SITE);
+        ReqScope::current()->user = $user;
+        $this->assertSame(7, ReqScope::loggedInUserId());
+        $this->assertSame(0, ReqScope::currentContextId());
+        $this->assertTrue(ReqScope::isLoggedIn());
+
+        $context = new Context();
+        $context->id = 9;
+        ReqScope::current()->context = $context;
+        $this->assertSame(9, ReqScope::currentContextId());
+        $this->assertSame(3, ReqScope::loggedInUserIdLegacy());
+        $this->assertSame(4, ReqScope::currentContextIdLegacy());
+    }
+
     public function testValuesLastForTheRequest() {
         ReqScope::set('color', 'blue');
         ReqScope::set('empty', null);

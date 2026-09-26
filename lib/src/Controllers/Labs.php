@@ -166,7 +166,7 @@ class Labs extends Tool {
         }
         echo('</div>'."\n");
 
-        if ( isset($_SESSION['id']) ) {
+        if ( ReqScope::isLoggedIn() ) {
             echo('<p>'.__('Welcome. This site focuses on interactive, autograded activities.').' ');
             echo(__('Use the').' <a href="'.htmlspecialchars($labs).'">'.__('Labs').'</a> ');
             echo(__('page to jump directly to LTI tools.').'</p>'."\n");
