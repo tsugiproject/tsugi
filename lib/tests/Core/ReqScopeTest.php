@@ -33,6 +33,28 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
         $this->assertNull(ReqScope::current());
     }
 
+    public function testValuesLastForTheRequest() {
+        ReqScope::set('color', 'blue');
+        ReqScope::set('empty', null);
+        $this->assertSame('blue', ReqScope::get('color'));
+        $this->assertNull(ReqScope::get('empty', 'default'));
+        $this->assertSame('default', ReqScope::get('missing', 'default'));
+
+        $user = new User();
+        $user->id = 7;
+        $context = new Context();
+        $context->id = 9;
+        ReqScope::hydrate($user, $context, null, null, null, null, false);
+
+        $this->assertSame('blue', ReqScope::get('color'));
+        $this->assertSame('blue', ReqScope::current()->values['color']);
+        ReqScope::set('color', 'red');
+        $this->assertSame('red', ReqScope::current()->values['color']);
+
+        ReqScope::reset();
+        $this->assertSame('default', ReqScope::get('color', 'default'));
+    }
+
     public function testProvisionRecordsAMissingUserAndCourse() {
         $rc = ReqScope::provision(0, 0, null, ReqScope::ORIGIN_SITE);
         $this->assertSame($rc, ReqScope::current());

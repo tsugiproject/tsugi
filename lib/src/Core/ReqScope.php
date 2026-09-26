@@ -56,6 +56,13 @@ class ReqScope {
     private static $returnUrl = null;
 
     /**
+     * Key/value pairs for this PHP request. Survives a later hydrate.
+     *
+     * @var array<string,mixed>
+     */
+    private static $storedValues = array();
+
+    /**
      * How this request was identified. ORIGIN_SITE or ORIGIN_LTI.
      *
      * @var string|null
@@ -92,12 +99,51 @@ class ReqScope {
     public $launchPresentation;
 
     /**
+     * Key/value pairs stored with set() for this PHP request.
+     *
+     * @var array<string,mixed>
+     */
+    public $values = array();
+
+    /**
      * The ReqScope hydrated earlier in this request, or null.
      *
      * @return self|null
      */
     public static function current() {
         return self::$current;
+    }
+
+    /**
+     * Store a value for the rest of this PHP request.
+     *
+     * A later provision() or replaceCourse() keeps the pair. reset() drops it.
+     *
+     * @param string $key
+     * @param mixed $value
+     */
+    public static function set($key, $value) {
+        if ( ! is_string($key) || $key === '' ) {
+            return;
+        }
+        self::$storedValues[$key] = $value;
+        if ( self::$current ) {
+            self::attachValues(self::$current);
+        }
+    }
+
+    /**
+     * The value stored for $key, or $default when $key was never set.
+     *
+     * @param string $key
+     * @param mixed $default
+     * @return mixed
+     */
+    public static function get($key, $default = null) {
+        if ( ! is_string($key) || $key === '' || ! array_key_exists($key, self::$storedValues) ) {
+            return $default;
+        }
+        return self::$storedValues[$key];
     }
 
     /**
@@ -319,6 +365,7 @@ class ReqScope {
         self::$notedContextId = 0;
         self::$returnUrl = null;
         self::$storedOrigin = null;
+        self::$storedValues = array();
         self::assignGlobals(null);
     }
 
@@ -800,6 +847,7 @@ class ReqScope {
         $rc->result = $result;
         $rc->published = $published === null ? null : (int) $published;
         self::attachReturnUrl($rc);
+        self::attachValues($rc);
         self::$current = $rc;
         self::$notedContextId = (int) $context->id;
         $rc->origin = self::$storedOrigin;
@@ -918,6 +966,7 @@ class ReqScope {
         $rc->published = $published === null ? null : (int) $published;
         $rc->origin = self::$storedOrigin;
         self::attachReturnUrl($rc);
+        self::attachValues($rc);
         self::$current = $rc;
         self::$notedContextId = ($context && (int) $context->id > 0) ? (int) $context->id : 0;
         return $rc;
@@ -1028,6 +1077,13 @@ class ReqScope {
             $rc->launchPresentation = new LaunchPresentation();
         }
         $rc->launchPresentation->return_url = self::$returnUrl;
+    }
+
+    /**
+     * @param self $rc
+     */
+    private static function attachValues(self $rc) {
+        $rc->values = self::$storedValues;
     }
 
     /**
