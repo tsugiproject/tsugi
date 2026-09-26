@@ -166,7 +166,7 @@ class Labs extends Tool {
         }
         echo('</div>'."\n");
 
-        if ( isset($_SESSION['id']) ) {
+        if ( ReqScope::isLoggedIn() ) {
             echo('<p>'.__('Welcome. This site focuses on interactive, autograded activities.').' ');
             echo(__('Use the').' <a href="'.htmlspecialchars($labs).'">'.__('Labs').'</a> ');
             echo(__('page to jump directly to LTI tools.').'</p>'."\n");
@@ -205,8 +205,8 @@ class Labs extends Tool {
             foreach ( GradeUtil::loadGradesCurrentUser() as $row ) {
                 $allgrades[$row['resource_link_id']] = $row['grade'];
             }
-            if ( ReqScope::currentContextIdLegacy() !== 0 ) {
-                $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextIdLegacy());
+            if ( ReqScope::currentContextId() !== 0 ) {
+                $duedates = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
             }
         }
 

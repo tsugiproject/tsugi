@@ -414,7 +414,7 @@ abstract class Tool {
      * Nested course dispatch rewrites pathInfo to $route but leaves
      * REQUEST_URI unchanged, so this is the reliable split between a
      * global tool URL and a course-mounted one. Do not use
-     * ReqScope::currentContextIdLegacy() here — a global visit can still have a course
+     * ReqScope::currentContextId() here — a global visit can still have a course
      * in session.
      *
      * Uses static::ROUTE unless $route is passed. Controllers without
@@ -669,7 +669,7 @@ abstract class Tool {
      * 2. If user has instructor role or role_override in lti_membership table
      * 3. If user owns the context or its key
      * 
-     * Reads context via ReqScope::currentContextIdLegacy(); user id via ReqScope::loggedInUserIdLegacy() (session or globals).
+     * Reads context via ReqScope::currentContextId(); user id via ReqScope::loggedInUserId() (session or globals).
      * Delegates to Membership::ensureInSession(), which caches a Membership instance in
      * context-scoped session cache via Membership::ensureInSession() (single lti_membership SELECT when missing;
      * ownership query only when role must be resolved).
@@ -678,8 +678,8 @@ abstract class Tool {
      */
     protected function isInstructor() {
         // Context from session or $CONTEXT; user id from session or $USER (see lms_lib.php)
-        $context_id = ReqScope::currentContextIdLegacy();
-        $user_id = ReqScope::loggedInUserIdLegacy();
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
 
         // If context_id or user_id missing, user is not an instructor
         if ( ! $context_id || ! $user_id ) {
@@ -704,8 +704,8 @@ abstract class Tool {
      * @return bool
      */
     protected function viewDueDates() {
-        $context_id = ReqScope::currentContextIdLegacy();
-        $user_id = ReqScope::loggedInUserIdLegacy();
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
         if ( ! $context_id || ! $user_id ) {
             return false;
         }
@@ -731,10 +731,10 @@ abstract class Tool {
      * @throws \Exception If user is not logged in or context is missing
      */
     protected function requireAuth() {
-        if ( ! ReqScope::isLoggedInLegacy() ) {
+        if ( ! ReqScope::isLoggedIn() ) {
             die('Must be logged in');
         }
-        if ( ! ReqScope::currentContextIdLegacy() ) {
+        if ( ! ReqScope::currentContextId() ) {
             die('Context required');
         }
     }
@@ -888,7 +888,7 @@ abstract class Tool {
         global $CFG, $PDOX;
 
         if ( ! isset($CFG->launchactivity) || ! $CFG->launchactivity ) return false;
-        if ( ! ReqScope::isLoggedInLegacy() || ! ReqScope::currentContextIdLegacy() ) return false;
+        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) return false;
         if ( $this->isInstructor() ) return false; // mirror LTIX: only learner launches are logged
 
         // Ensure DB connection
@@ -896,8 +896,8 @@ abstract class Tool {
             LTIX::getConnection();
         }
 
-        $context_id = ReqScope::currentContextIdLegacy();
-        $user_id = ReqScope::loggedInUserIdLegacy();
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
 
         $link_key = $this->lmsAnalyticsKey($analytics_path);
 
@@ -1002,7 +1002,7 @@ abstract class Tool {
         // Derive tool_name from route (remove leading slash)
         $tool_name = ltrim($route, '/');
         
-        $context_id = ReqScope::currentContextIdLegacy();
+        $context_id = ReqScope::currentContextId();
         
         // Compute analytics link
         $link_key = $this->lmsAnalyticsKey($stable_path);

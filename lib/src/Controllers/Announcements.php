@@ -106,8 +106,8 @@ class Announcements extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = ReqScope::currentContextIdLegacy();
-        $user_id = ReqScope::loggedInUserIdLegacy();
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
         
         // Record learner analytics
         $this->lmsRecordLaunchAnalytics(self::ROUTE, self::NAME);
@@ -590,8 +590,8 @@ class Announcements extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = ReqScope::currentContextIdLegacy();
-        $user_id = ReqScope::loggedInUserIdLegacy();
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
         
         $announcement_data = $this->getAnnouncementsForUser($context_id, $user_id);
         $announcements = $announcement_data['announcements'];
@@ -667,8 +667,8 @@ class Announcements extends Tool {
         
         $dismiss = ($dismiss_raw == 1 || $dismiss_raw === '1' || $dismiss_raw === true || $dismiss_raw === 'true') ? 1 : 0;
         
-        $user_id = ReqScope::loggedInUserIdLegacy();
-        $context_id = ReqScope::currentContextIdLegacy();
+        $user_id = ReqScope::loggedInUserId();
+        $context_id = ReqScope::currentContextId();
         $announcement_id = intval($announcement_id);
         
         // Verify the announcement exists and belongs to this context
@@ -742,8 +742,8 @@ class Announcements extends Tool {
             return $csrf;
         }
         
-        $user_id = ReqScope::loggedInUserIdLegacy();
-        $context_id = ReqScope::currentContextIdLegacy();
+        $user_id = ReqScope::loggedInUserId();
+        $context_id = ReqScope::currentContextId();
         
         // Get all undismissed, visible announcements for this user in this context
         $undismissed = $PDOX->allRowsDie(
@@ -888,8 +888,8 @@ class Announcements extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = ReqScope::currentContextIdLegacy();
-        $user_id = ReqScope::loggedInUserIdLegacy();
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
         
         $title = trim(U::get($_POST, 'title'));
         $text = trim(U::get($_POST, 'text'));
@@ -948,7 +948,7 @@ class Announcements extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = ReqScope::currentContextIdLegacy();
+        $context_id = ReqScope::currentContextId();
         $announcement_id = intval($id);
         
         if (!$announcement_id) {
@@ -1057,7 +1057,7 @@ class Announcements extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = ReqScope::currentContextIdLegacy();
+        $context_id = ReqScope::currentContextId();
         $announcement_id = intval($id);
         
         $title = trim(U::get($_POST, 'title'));
@@ -1119,7 +1119,7 @@ class Announcements extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = ReqScope::currentContextIdLegacy();
+        $context_id = ReqScope::currentContextId();
         
         // Get all announcements for this context with read counts (includes drafts and scheduled)
         $announcements = $PDOX->allRowsDie(
@@ -1246,7 +1246,7 @@ class Announcements extends Tool {
         
         LTIX::getConnection();
         
-        $context_id = ReqScope::currentContextIdLegacy();
+        $context_id = ReqScope::currentContextId();
         
         // Handle delete action
         $action = U::get($_POST, 'action');

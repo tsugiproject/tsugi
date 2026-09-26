@@ -70,9 +70,9 @@ class ReqScopeDebug extends Tool {
             }
             echo("<h2>Readers</h2>\n");
             echo(self::pre(self::export(array(
-                'isLoggedIn' => ReqScope::isLoggedInLegacy(),
-                'loggedInUserId' => ReqScope::loggedInUserIdLegacy(),
-                'currentContextId' => ReqScope::currentContextIdLegacy(),
+                'isLoggedIn' => ReqScope::isLoggedIn(),
+                'loggedInUserId' => ReqScope::loggedInUserId(),
+                'currentContextId' => ReqScope::currentContextId(),
                 'origin' => $origin,
             ))));
         }

@@ -147,6 +147,40 @@ class ReqScope {
     }
 
     /**
+     * User id already stored on this request, or 0.
+     *
+     * Reads the user on ReqScope::current(). A missing user is 0.
+     *
+     * @return int
+     */
+    public static function loggedInUserId() {
+        return self::walkerScopeId(self::current(), 'user');
+    }
+
+    /**
+     * Course id already stored on this request, or 0.
+     *
+     * Reads the course on ReqScope::current(). A missing course is 0.
+     * A logged-in user does not need a course.
+     *
+     * @return int
+     */
+    public static function currentContextId() {
+        return self::walkerScopeId(self::current(), 'context');
+    }
+
+    /**
+     * True when the user already stored on this request has a non-zero id.
+     *
+     * A logged-in user does not need a course.
+     *
+     * @return bool
+     */
+    public static function isLoggedIn() {
+        return self::loggedInUserId() !== 0;
+    }
+
+    /**
      * Current Tsugi user id, or 0.
      *
      * The session pair wins when $_SESSION['id'] is set. Otherwise $USER and $CONTEXT.

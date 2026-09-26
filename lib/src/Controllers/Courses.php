@@ -96,7 +96,7 @@ class Courses extends Tool {
     /**
      * True when REQUEST_URI is /courses/{id} or /courses/{id}/…
      *
-     * This is the course vs site menu split. Do not use ReqScope::currentContextIdLegacy().
+     * This is the course vs site menu split. Do not use ReqScope::currentContextId().
      */
     public static function isCourseMountedRequest() {
         return (bool) preg_match('#/courses/\d+(?:/|$)#', self::requestPath());
@@ -118,6 +118,7 @@ class Courses extends Tool {
         if ( Settings::isCartridgeUploadRequest() ) {
             return false;
         }
+        // Session pair. LTIX::session_start() calls this before provision fills ReqScope.
         if ( ! ReqScope::isLoggedInLegacy() ) {
             return false;
         }
@@ -343,6 +344,7 @@ class Courses extends Tool {
             return 'Course not found.';
         }
 
+        // Session pair. restoreSiteLoginContext() calls this before ReqScope is filled.
         $current = ReqScope::currentContextIdLegacy();
         if ( $current === $cid ) {
             self::wireLaunchConnection();
@@ -557,7 +559,7 @@ class Courses extends Tool {
         global $CFG, $PDOX;
 
         $cid = (int) $context_id;
-        $user_id = ReqScope::loggedInUserIdLegacy();
+        $user_id = ReqScope::loggedInUserId();
         if ( $cid < 1 || $user_id < 1 ) {
             return;
         }
@@ -610,7 +612,7 @@ class Courses extends Tool {
             $PDOX = LTIX::getConnection();
         }
         $p = $CFG->dbprefix;
-        $user_id = ReqScope::loggedInUserIdLegacy();
+        $user_id = ReqScope::loggedInUserId();
         $siteId = self::siteLoginContextId();
 
         $rows = $PDOX->allRowsDie(
@@ -742,7 +744,7 @@ class Courses extends Tool {
         if ( $cid < 1 ) {
             return 'Invalid course.';
         }
-        $user_id = ReqScope::loggedInUserIdLegacy();
+        $user_id = ReqScope::loggedInUserId();
         if ( $user_id < 1 ) {
             return 'Must be logged in.';
         }
@@ -834,7 +836,7 @@ class Courses extends Tool {
         }
         $short_title = (string) U::get($_POST, 'short_title', '');
 
-        $user_id = ReqScope::loggedInUserIdLegacy();
+        $user_id = ReqScope::loggedInUserId();
         $key_id = self::googleKeyId();
         $result = Manifest::createCourse($title, $user_id, $key_id, $short_title);
         if ( empty($result['ok']) ) {
@@ -893,7 +895,7 @@ class Courses extends Tool {
             }
         }
 
-        $before = ReqScope::currentContextIdLegacy();
+        $before = ReqScope::currentContextId();
         $result = self::ensureActiveContext($id);
         if ( $result !== true ) {
             return self::switchFailedResponse($result);
@@ -979,7 +981,7 @@ class Courses extends Tool {
         return response()->json(array(
             'status' => 'success',
             'courses' => $rows,
-            'current_context_id' => ReqScope::currentContextIdLegacy(),
+            'current_context_id' => ReqScope::currentContextId(),
             'can_create' => self::canCreate(),
             'show_catalog' => Catalog::showCourseCatalog(),
             'catalog_url' => Catalog::showCourseCatalog() ? Catalog::catalogUrl() : '',
@@ -1115,7 +1117,7 @@ class Courses extends Tool {
      * @return Response|null
      */
     public static function gateResponse() {
-        if ( ! ReqScope::isLoggedInLegacy() ) {
+        if ( ! ReqScope::isLoggedIn() ) {
             return new Response('Must be logged in', 403);
         }
         if ( ! self::isGoogleLoginSession() ) {

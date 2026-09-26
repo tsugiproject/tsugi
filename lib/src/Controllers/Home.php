@@ -31,7 +31,7 @@ class Home extends Tool {
      * True when the current user may open course Home (logged in with a context).
      */
     public static function showInMenu() {
-        return ReqScope::isLoggedInLegacy() && ReqScope::currentContextIdLegacy() !== 0;
+        return ReqScope::isLoggedIn() && ReqScope::currentContextId() !== 0;
     }
 
     public static function routes(Application $app, $prefix=self::ROUTE) {
@@ -62,7 +62,7 @@ class Home extends Tool {
         if ( is_string($title) && trim($title) !== '' ) {
             return trim($title);
         }
-        $context_id = ReqScope::currentContextIdLegacy();
+        $context_id = ReqScope::currentContextId();
         if ( $context_id < 1 ) {
             return '';
         }

@@ -133,7 +133,7 @@ class Calendar extends Tool {
                 500
             );
         }
-        if ( ! ReqScope::isLoggedInLegacy() || ! ReqScope::currentContextIdLegacy() ) {
+        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
             return new JsonResponse(
                 array('status' => 'error', 'detail' => 'Authentication and course context required'),
                 401
@@ -143,7 +143,7 @@ class Calendar extends Tool {
         LTIX::getConnection();
 
         $items = $l->enumerateLtiAssignmentItems();
-        $dueMap = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextIdLegacy());
+        $dueMap = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
 
         $allgrades = array();
         $rows = GradeUtil::loadGradesCurrentUser();
@@ -189,8 +189,8 @@ class Calendar extends Tool {
 
         $items = $l->enumerateLtiAssignmentItems();
         $dueMap = array();
-        if ( ReqScope::currentContextIdLegacy() !== 0 ) {
-            $dueMap = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextIdLegacy());
+        if ( ReqScope::currentContextId() !== 0 ) {
+            $dueMap = GradeUtil::loadDueDatesForDisplay(ReqScope::currentContextId());
         }
         $allgrades = array();
         $rows = GradeUtil::loadGradesCurrentUser();
