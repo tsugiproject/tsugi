@@ -30,7 +30,7 @@ The flag has to be set before `config.php`. Setting the flag afterward is too la
 
 | Transport | Arrival | Who starts the PHP session | Example |
 | --- | --- | --- | --- |
-| Cookie | Direct file | The file calls PHP `session_start()` | `/` → `index.php` |
+| Cookie | Direct file | `LTIX::session_start()` in `index.php` | `/` → `index.php` |
 | Cookie | Direct file, then a child file | The child, if it needs one | `/lti/store` → `lti/index.php` → `lti/store/index.php` |
 | Cookie | `tsugi.php`, then a `.php` file | `LTIX::session_start()` in `tsugi.php` | `/about` → `tsugi.php` → `about.php` |
 | Cookie | `tsugi.php`, then a controller | `LTIX::session_start()` in `tsugi.php` | `/quiz1` and `/courses/123/quiz1` |
@@ -41,7 +41,7 @@ The flag has to be set before `config.php`. Setting the flag afterward is too la
 
 ### Cookie, direct file
 
-`index.php` defines `COOKIE_SESSION`, includes `config.php`, then calls PHP's `session_start()` itself. It does not call `LTIX::session_start()`. The page is the site home. There is no LTI row required.
+`index.php` defines `COOKIE_SESSION`, includes `config.php`, runs the database sanity check, then calls `LTIX::session_start()`. That call fills `ReqScope` and runs the course restore. The returned Launch is not used. The page is the site home. There is no LTI row required.
 
 ### Cookie, direct file, then another file
 
@@ -65,9 +65,9 @@ The flag has to be set before `config.php`. Setting the flag afterward is too la
 
 ## Where ReqScope is filled
 
-`config.php` chooses the transport and does not start the PHP session. The PHP session starts later, in one of three ways: PHP's `session_start()` (`index.php`), `LTIX::session_start()` (`tsugi.php`), or `LTIX::requireData()` (a tool).
+`config.php` chooses the transport and does not start the PHP session. The PHP session starts later, in one of three ways: PHP's `session_start()` (admin pages), `LTIX::session_start()` (`tsugi.php` and `index.php`), or `LTIX::requireData()` (a tool).
 
-`index.php` does not fill `ReqScope`. `LTIX::session_start()` and `LTIX::requireData()` both return through `requireDataPrivate()`. `requireDataPrivate()` fills `ReqScope` on that return, from the open session. A missing user is null. A missing course is null. A user with no course is a valid `ReqScope`.
+`LTIX::session_start()` and `LTIX::requireData()` both return through `requireDataPrivate()`. `requireDataPrivate()` fills `ReqScope` on that return, from the open session. A missing user is null. A missing course is null. A user with no course is a valid `ReqScope`. `index.php` fills `ReqScope` because it calls `LTIX::session_start()`.
 
 `ReqScope` origin is `site` when `COOKIE_SESSION` is defined, and `lti` when `COOKIE_SESSION` is not defined. A cookieless tool copies the user, the course, and the link from `$_SESSION['lti']`. A cookie session copies `$_SESSION['id']` and `$_SESSION['context_id']`, and includes the link when `$_SESSION['lti']` names that same course. `buildLaunch()` sets the Launch globals. `ReqScope` keeps the same user, context, membership, link, and result. `docs/ltix-session-start.md` lists those rules.
 
