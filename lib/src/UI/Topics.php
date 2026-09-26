@@ -85,7 +85,7 @@ class Topics {
         }
 
         // Filter topics based on login
-        if ( ! ReqScope::isLoggedIn() ) {
+        if ( ! ReqScope::isLoggedInLegacy() ) {
             $filtered_topics = array();
             $filtered = false;
             foreach($course->topics as $topic) {

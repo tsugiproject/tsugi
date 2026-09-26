@@ -741,11 +741,11 @@ $('a').each(function (x) {
             $set->addLeft(_m('Lessons'), $lessonsHome.'/lessons');
         }
         $set->addLeft(_m('Tools'), $R.'store');
-        if ( ReqScope::isLoggedIn() ) {
+        if ( ReqScope::isLoggedInLegacy() ) {
                 $set->addLeft(_m('Settings'), $R . 'settings');
         }
 
-        if ( ReqScope::isLoggedIn() ) {
+        if ( ReqScope::isLoggedInLegacy() ) {
             $submenu = new \Tsugi\UI\Menu();
             if ( $CFG->google_client_id ) {
                 $accountHome = is_string($CFG->apphome) && strlen($CFG->apphome) > 0

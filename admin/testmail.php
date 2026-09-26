@@ -68,7 +68,7 @@ if ( U::get($_POST,'email') && U::get($_POST,'subject') && U::get($_POST,'body')
     }
 
     // Log admin test sends (no context_id).
-    $user_from = ReqScope::loggedInUserId();
+    $user_from = ReqScope::loggedInUserIdLegacy();
     if ( $user_from < 1 ) {
         $user_from = null;
     }

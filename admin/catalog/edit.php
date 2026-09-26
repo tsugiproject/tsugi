@@ -87,7 +87,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         header('Location: '.$self);
         return;
     }
-    $result = CatalogRepository::save($catalog_id, $norm['data'], ReqScope::loggedInUserId());
+    $result = CatalogRepository::save($catalog_id, $norm['data'], ReqScope::loggedInUserIdLegacy());
     if ( empty($result['ok']) ) {
         U::flashError($result['error'] ?? __('Could not save catalog entry.'));
         header('Location: '.$self);

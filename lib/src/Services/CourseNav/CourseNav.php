@@ -430,10 +430,10 @@ class CourseNav {
         if ( ! is_array($entry) || $entry['kind'] !== 'link' ) {
             return null;
         }
-        if ( $id === 'login' && ReqScope::isLoggedIn() ) {
+        if ( $id === 'login' && ReqScope::isLoggedInLegacy() ) {
             return null;
         }
-        if ( ( $id === 'logout' || $id === 'profile' ) && ! ReqScope::isLoggedIn() ) {
+        if ( ( $id === 'logout' || $id === 'profile' ) && ! ReqScope::isLoggedInLegacy() ) {
             return null;
         }
         if ( $id === 'exit_course' && ! self::hasAppHome() ) {

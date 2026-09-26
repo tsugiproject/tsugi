@@ -8,7 +8,7 @@ if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
 require_once "../admin/admin_util.php";
 
-session_start();
+LTIX::session_start();
 
 $p = $CFG->dbprefix;
 

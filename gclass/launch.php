@@ -43,13 +43,13 @@ $context_url = $gc_course . ':' . $user_mini_sig;
 $context_key = 'gclass:' . $context_url;
 $context_sha256 = lti_sha256($context_key);
 
-if ( ! ReqScope::isLoggedIn() ) {
+if ( ! ReqScope::isLoggedInLegacy() ) {
     \Tsugi\Controllers\Login::setReturnUrl($path[0].'/'.$path[1].'/'.$path[2]);
     header('Location: '.\Tsugi\Controllers\Login::loginUrl());
     return;
 }
 
-$user_id = ReqScope::loggedInUserId();
+$user_id = ReqScope::loggedInUserIdLegacy();
 $user_email = $_SESSION['email'];
 $user_displayname = $_SESSION['displayname'];
 $user_key = $_SESSION['user_key'];

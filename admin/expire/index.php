@@ -17,7 +17,7 @@ use \Tsugi\Core\ReqScope;
 require_once("../gate.php");
 if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
 
-if ( ! ( ReqScope::isLoggedIn() || isAdmin() ) ) {
+if ( ! ( ReqScope::isLoggedInLegacy() || isAdmin() ) ) {
     \Tsugi\Controllers\Login::setReturnUrl(LTIX::curPageUrlFolder());
     header('Location: '.\Tsugi\Controllers\Login::loginUrl());
     return;

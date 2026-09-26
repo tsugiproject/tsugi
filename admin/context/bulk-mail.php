@@ -120,7 +120,7 @@ if ( $context_row === false || $context_row === null ) {
 }
 $context_title = $context_row['title'] ? $context_row['title'] : "Context #$context_id";
 
-$from_user_id = ReqScope::loggedInUserId();
+$from_user_id = ReqScope::loggedInUserIdLegacy();
 $step = U::get($_REQUEST, 'step', 'compose');
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {

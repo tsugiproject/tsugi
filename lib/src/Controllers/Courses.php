@@ -118,14 +118,15 @@ class Courses extends Tool {
         if ( Settings::isCartridgeUploadRequest() ) {
             return false;
         }
-        if ( ! ReqScope::isLoggedIn() ) {
+        // Session pair. LTIX::session_start() calls this before provision fills ReqScope.
+        if ( ! ReqScope::isLoggedInLegacy() ) {
             return false;
         }
         if ( ! self::isGoogleLoginSession() ) {
             return false;
         }
         $home = self::siteLoginContextId();
-        $current = ReqScope::currentContextId();
+        $current = ReqScope::currentContextIdLegacy();
         $hadManifest = Manifest::activeId() > 0;
         if ( $home > 0 && $current !== $home ) {
             $result = self::ensureActiveContext($home);
@@ -343,7 +344,8 @@ class Courses extends Tool {
             return 'Course not found.';
         }
 
-        $current = ReqScope::currentContextId();
+        // Session pair. restoreSiteLoginContext() calls this before ReqScope is filled.
+        $current = ReqScope::currentContextIdLegacy();
         if ( $current === $cid ) {
             self::wireLaunchConnection();
             // Pages/Files only need context_id. Lessons reads the session
@@ -356,7 +358,7 @@ class Courses extends Tool {
             return true;
         }
 
-        $user_id = ReqScope::loggedInUserId();
+        $user_id = ReqScope::loggedInUserIdLegacy();
         if ( $user_id < 1 ) {
             return 'Must be logged in.';
         }
