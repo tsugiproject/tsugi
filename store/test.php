@@ -10,7 +10,7 @@ require_once "../config.php";
 require_once "../admin/admin_util.php";
 require_once("dev-data.php");
 
-session_start();
+LTIX::session_start();
 
 $p = $CFG->dbprefix;
 LTIX::getConnection();

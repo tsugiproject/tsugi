@@ -22,10 +22,9 @@ if ( isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTION
 
 header('Content-Type: application/json; charset=utf-8');
 
-LTIX::getConnection();
-session_start();
+LTIX::session_start();
 
-// Must be logged in via cookie session (session_start above, then ReqScope)
+// Must be logged in via cookie session. session_start fills ReqScope.
 if ( ! ReqScope::isLoggedInLegacy() ) {
     http_response_code(403);
     echo(json_encode(array('status' => 'error', 'detail' => 'Not logged in'), JSON_PRETTY_PRINT));

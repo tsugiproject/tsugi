@@ -24,7 +24,7 @@ function login_redirect($path=false) {
 
 $PDOX = LTIX::getConnection();
 
-session_start();
+LTIX::session_start();
 
 unset($_SESSION['gc_count']);
 

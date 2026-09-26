@@ -12,7 +12,7 @@ require_once "util.php";
 
 $PDOX = LTIX::getConnection();
 
-session_start();
+LTIX::session_start();
 
 if ( ! sanity_check() ) return;
 
