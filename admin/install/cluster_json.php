@@ -10,7 +10,7 @@ use \Tsugi\Services\Lessons\LessonsService;
 
 if (!defined('COOKIE_SESSION')) define('COOKIE_SESSION', true);
 require_once("../../config.php");
-session_start();
+\Tsugi\Core\Admin::session_start();
 if ( ! isset($_SESSION["admin"]) ) {
     Net::send403();
     die_with_error_log('Must be admin to list repositories');

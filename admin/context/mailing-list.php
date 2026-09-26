@@ -12,7 +12,7 @@ use \Tsugi\Util\U;
 \Tsugi\Core\LTIX::getConnection();
 
 header('Content-Type: text/html; charset=utf-8');
-session_start();
+\Tsugi\Core\Admin::session_start();
 
 if ( ! isset($_REQUEST['context_id']) ) {
     U::flashError("No context_id provided");

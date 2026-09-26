@@ -9,7 +9,7 @@ use \Tsugi\Core\LTIX;
 
 \Tsugi\Core\LTIX::getConnection();
 
-session_start();
+\Tsugi\Core\Admin::session_start();
 
 if ( ! isAdmin() ) {
     \Tsugi\Controllers\Login::setReturnUrl(LTIX::curPageUrlFolder());

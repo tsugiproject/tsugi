@@ -82,4 +82,6 @@ The `COOKIE_SESSION` define only selects `PHPSESSID`. The `COOKIE_SESSION` defin
 
 `index.php` does not need the Launch. `index.php` calls PHP's `session_start()` and never enters `LTIX::session_start()`.
 
+Admin pages call `Admin::session_start()`. That method calls PHP's `session_start()` and does not call `LTIX::session_start()`. The admin gate must open a session when the database is down. `admin/recent.php` and the install page after the gate still call `LTIX::session_start()`.
+
 A tool that must have a launch calls `requireData()`, not `LTIX::session_start()`.

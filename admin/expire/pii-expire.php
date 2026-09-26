@@ -6,7 +6,7 @@ if ( ! isset($_REQUEST['pii_days']) ) die('pii_days required');
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once("../../config.php");
-session_start();
+\Tsugi\Core\Admin::session_start();
 require_once("../gate.php");
 require_once("../admin_util.php");
 require_once("expire_util.php");
