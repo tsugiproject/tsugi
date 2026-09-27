@@ -151,6 +151,44 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
         unset($GLOBALS['TSUGI_LAUNCH'], $GLOBALS['USER']);
     }
 
+    public function testSiteHydrateCopiesMembershipRoleOntoTheLaunch() {
+        $launchMembership = new Membership();
+        $launchMembership->id = 282;
+        $launchMembership->role = 0;
+        $launch = new Launch();
+        $launch->membership = $launchMembership;
+        $GLOBALS['TSUGI_LAUNCH'] = $launch;
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        $_SESSION[$ltiKey] = array('membership_id' => 282, 'role' => 0);
+
+        ReqScope::provision(0, 0, null, ReqScope::ORIGIN_SITE);
+        $user = new User();
+        $user->id = 1;
+        $context = new Context();
+        $context->id = 35;
+        $membership = new Membership();
+        $membership->id = 282;
+        $membership->role = LTIX::ROLE_INSTRUCTOR;
+        ReqScope::hydrate($user, $context, null, null, $membership, null, false);
+
+        $this->assertSame(LTIX::ROLE_INSTRUCTOR, $launchMembership->role);
+        $this->assertSame(LTIX::ROLE_INSTRUCTOR, $_SESSION[$ltiKey]['role']);
+
+        ReqScope::reset();
+        $launchMembership->role = 0;
+        $_SESSION[$ltiKey]['role'] = 0;
+        ReqScope::provision(0, 0, null, ReqScope::ORIGIN_LTI);
+        $ltiMembership = new Membership();
+        $ltiMembership->id = 282;
+        $ltiMembership->role = LTIX::ROLE_INSTRUCTOR;
+        ReqScope::hydrate($user, $context, null, null, $ltiMembership, null, false);
+
+        $this->assertSame(0, $launchMembership->role);
+        $this->assertSame(0, $_SESSION[$ltiKey]['role']);
+
+        unset($GLOBALS['TSUGI_LAUNCH']);
+    }
+
     public function testHydrateCopiesLaunchLinkActivity() {
         $launchLink = new Link();
         $launchLink->id = 1154;

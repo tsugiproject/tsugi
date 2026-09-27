@@ -890,6 +890,7 @@ class ReqScope {
             self::assignGlobals($rc);
         }
         self::alignSiteLaunchUser($rc);
+        self::alignSiteLaunchMembership($rc);
         self::alignLaunchLinkActivity($rc->link);
         return $rc;
     }
@@ -944,6 +945,36 @@ class ReqScope {
         }
         if ( isset($_SESSION) && is_array($_SESSION) ) {
             $_SESSION['isinstructor'] = $instructor;
+        }
+    }
+
+    /**
+     * A site session's launch membership keeps the role stored at login.
+     * Copy the membership role loaded for this request when they are the same row.
+     *
+     * @param self $rc
+     */
+    private static function alignSiteLaunchMembership(self $rc) {
+        if ( self::$storedOrigin !== self::ORIGIN_SITE || ! $rc->membership ) {
+            return;
+        }
+        $role = (int) $rc->membership->role;
+        $id = (int) $rc->membership->id;
+        if ( $id < 1 ) {
+            return;
+        }
+        global $TSUGI_LAUNCH;
+        if ( isset($TSUGI_LAUNCH) && is_object($TSUGI_LAUNCH)
+            && isset($TSUGI_LAUNCH->membership) && is_object($TSUGI_LAUNCH->membership)
+            && (int) $TSUGI_LAUNCH->membership->id === $id ) {
+            $TSUGI_LAUNCH->membership->role = $role;
+        }
+        if ( isset($_SESSION) && is_array($_SESSION) ) {
+            $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+            if ( isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey])
+                && (int) ($_SESSION[$ltiKey]['membership_id'] ?? 0) === $id ) {
+                $_SESSION[$ltiKey]['role'] = $role;
+            }
         }
     }
 
