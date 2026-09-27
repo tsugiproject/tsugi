@@ -107,7 +107,7 @@ class DemoLogin {
     }
 
     /**
-     * Options for GoogleLoginHandler::establishGoogleSiteSession().
+     * Options for GoogleLoginService::establishSiteSession().
      *
      * Instructors get create_courses only. Site-course membership is always
      * learner (same as a normal Google login).

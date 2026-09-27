@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi\UI;
+namespace Tsugi\Services\Login;
 
 use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
@@ -10,49 +10,30 @@ use \Tsugi\Core\User;
 use \Tsugi\Controllers\Login;
 
 /**
- * Handles Google OAuth login flow for Tsugi
- * 
- * This class encapsulates the core login functionality shared across
- * multiple login entry points (Login controller, lms/login/index.php, etc.)
+ * Google site login: OAuth callback, then the google.com user, site course, and session.
  */
-class GoogleLoginHandler {
+class GoogleLoginService {
 
     /**
-     * Result object returned from processLogin
-     */
-    public $success = false;
-    public $error = null;
-    public $redirect_url = null;
-    public $login_url = null;
-    public $user_id = null;
-    public $user_email = null;
-    public $display_name = null;
-    public $did_insert = false;
-    public $context_id = null;
-    public $context_key = null;
-
-    /**
-     * Process Google OAuth login
-     * 
+     * Handle a visit to the login page: either the Google button URL, or a completed OAuth callback.
+     *
      * @param string $callback_url The URL Google should redirect back to
      * @param callable|null $redirect_callback Optional callback for custom redirect logic
-     * @return GoogleLoginHandler Result object with success status and redirect info
+     * @return GoogleLoginResult
      */
-    public static function processLogin($callback_url, $redirect_callback = null) {
+    public static function processCallback($callback_url, $redirect_callback = null) {
         global $CFG, $PDOX;
-        
-        $result = new self();
-        
-        // Ensure session is started
+
+        $result = new GoogleLoginResult();
+
         if ( session_id() == "" ) {
             session_start();
         }
-        
-        // Ensure database connection is available
+
         if ( ! isset($PDOX) ) {
             $PDOX = LTIX::getConnection();
         }
-        
+
         // Fail fast if the google.com LTI key is missing (before showing the login form)
         $stmt = $PDOX->queryDie(
             "SELECT key_id FROM {$CFG->dbprefix}lti_key
@@ -65,7 +46,6 @@ class GoogleLoginHandler {
             return $result;
         }
 
-        // Create Google Login Object
         $glog = new \Tsugi\Google\GoogleLogin(
             $CFG->google_client_id,
             $CFG->google_client_secret,
@@ -73,7 +53,6 @@ class GoogleLoginHandler {
             $CFG->wwwroot
         );
 
-        // Handle offline/developer mode
         $doLogin = false;
         $user_key = false;
         $firstName = false;
@@ -88,9 +67,7 @@ class GoogleLoginHandler {
             $userEmail = 'fake_person@notgoogle.com';
             $doLogin = true;
         } else {
-            // Check for Google OAuth callback
             if ( isset($_GET['code']) ) {
-                // Validate state
                 if ( isset($_SESSION['GOOGLE_STATE']) && isset($_GET['state']) ) {
                     if ( $_SESSION['GOOGLE_STATE'] != $_GET['state'] ) {
                         $result->error = "Missing important session data - could not log you in.  Sorry.";
@@ -105,17 +82,15 @@ class GoogleLoginHandler {
                     return $result;
                 }
 
-                // Get user info from Google
                 $google_code = $_GET['code'];
-                $authObj = $glog->getAccessToken($google_code);
+                $glog->getAccessToken($google_code);
                 $user = $glog->getUserInfo();
 
                 $firstName = isset($user->given_name) ? $user->given_name : false;
                 $lastName = isset($user->family_name) ? $user->family_name : false;
                 $userEmail = isset($user->email) ? $user->email : false;
                 $userAvatar = isset($user->picture) ? $user->picture : false;
-                
-                // Try to get gravatar if no avatar
+
                 if ( $userAvatar === false && $userEmail !== false ) {
                     $gravatarurl = 'http://www.gravatar.com/avatar/';
                     $gravatarurl .= md5( strtolower( trim( $userEmail ) ) );
@@ -126,20 +101,17 @@ class GoogleLoginHandler {
                     }
                 }
 
-                // Create user_key from email
                 $user_key = 'googlemail:'.$userEmail;
                 $doLogin = true;
             }
         }
 
-        // If not logging in, return login URL
         if ( ! $doLogin ) {
             $_SESSION['GOOGLE_STATE'] = md5(uniqid(rand(), TRUE));
             $result->login_url = $glog->getLoginUrl($_SESSION['GOOGLE_STATE']);
             return $result;
         }
 
-        // Validate required fields
         if ( $firstName === false || $lastName === false || $userEmail === false ) {
             error_log('Google-Missing:'.$user_key.','.$firstName.','.$lastName.','.$userEmail);
             $result->error = "You do not have a first name, last name, and email in Google or you did not share it with us.";
@@ -147,7 +119,7 @@ class GoogleLoginHandler {
         }
 
         $displayName = $firstName . ' ' . $lastName;
-        return self::establishGoogleSiteSession(
+        return self::establishSiteSession(
             $user_key,
             $userEmail,
             $displayName,
@@ -165,13 +137,13 @@ class GoogleLoginHandler {
      * @param string|false $userAvatar
      * @param callable|null $redirect_callback
      * @param array $options create_courses (0/1 or omit), force_membership_role (upsert learner)
-     * @return GoogleLoginHandler
+     * @return GoogleLoginResult
      */
-    public static function establishGoogleSiteSession($user_key, $userEmail, $displayName, $userAvatar = false,
+    public static function establishSiteSession($user_key, $userEmail, $displayName, $userAvatar = false,
         $redirect_callback = null, $options = array()) {
         global $CFG, $PDOX;
 
-        $result = new self();
+        $result = new GoogleLoginResult();
         if ( session_id() == "" ) {
             session_start();
         }
@@ -275,7 +247,6 @@ class GoogleLoginHandler {
         $user_id = 0;
 
         if ( $profile_row === false ) {
-            // Create new profile
             $stmt = $PDOX->queryDie(
                 "INSERT INTO {$CFG->dbprefix}profile
                 (profile_sha256, profile_key, key_id, email, displayname, image, created_at, updated_at, login_at) ".
@@ -305,7 +276,6 @@ class GoogleLoginHandler {
             return $result;
         }
 
-        // Load or create user
         if ( $user_id < 1 ) {
             $stmt = $PDOX->queryDie(
                 "SELECT user_id FROM {$CFG->dbprefix}lti_user
@@ -327,7 +297,6 @@ class GoogleLoginHandler {
             );
             error_log('User-Update:'.$user_key.','.$displayName.','.$userEmail);
         } else if ( $user_row === false ) {
-            // Insert new user
             $stmt = $PDOX->queryReturnError(
                 "INSERT INTO {$CFG->dbprefix}lti_user
                 (user_sha256, user_key, key_id, profile_id,
@@ -395,7 +364,6 @@ class GoogleLoginHandler {
             }
         }
 
-        // Set up session and fake LTI launch
         $welcome = "Welcome ";
         if ( ! $didinsert ) $welcome .= "back ";
         U::flashSuccess($welcome.$displayName." (".$userEmail.")");
@@ -453,7 +421,6 @@ class GoogleLoginHandler {
         Cache::clearAllSessionCaches();
         \Tsugi\UI\Output::clearTopNavSession();
 
-        // Check instructor status and set role
         $is_instructor = false;
         if ( isset($context_id) && $context_id ) {
             if ( isset($CFG->dirroot) ) {
@@ -482,18 +449,15 @@ class GoogleLoginHandler {
         LTIX::ensureCsrfToken(true);
         LTIX::noteLoggedIn($lti);
 
-        // Set result properties
         $result->success = true;
         $result->user_id = $user_id;
         $result->user_email = $userEmail;
         $result->display_name = $displayName;
         $result->did_insert = $didinsert;
 
-        // Determine redirect URL
         if ( $redirect_callback && is_callable($redirect_callback) ) {
             $result->redirect_url = call_user_func($redirect_callback, $result);
         } else {
-            // Default redirect logic
             $result->redirect_url = Login::returnAfterLogin($result, null, false);
         }
 
@@ -501,27 +465,26 @@ class GoogleLoginHandler {
     }
 
     /**
-     * Get login URL for Google OAuth
-     * 
+     * Google OAuth authorize URL for the sign-in button.
+     *
      * @param string $callback_url The URL Google should redirect back to
-     * @return string Google OAuth login URL
+     * @return string
      */
-    public static function getLoginUrl($callback_url) {
+    public static function authorizeUrl($callback_url) {
         global $CFG;
-        
+
         if ( session_id() == "" ) {
             session_start();
         }
-        
+
         $glog = new \Tsugi\Google\GoogleLogin(
             $CFG->google_client_id,
             $CFG->google_client_secret,
             $callback_url,
             $CFG->wwwroot
         );
-        
+
         $_SESSION['GOOGLE_STATE'] = md5(uniqid(rand(), TRUE));
         return $glog->getLoginUrl($_SESSION['GOOGLE_STATE']);
     }
 }
-

@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 use \Tsugi\Util\U;
 use \Tsugi\UI\DemoLogin;
-use \Tsugi\UI\GoogleLoginHandler;
+use \Tsugi\Services\Login\GoogleLoginService;
 use Tsugi\Lumen\Application;
 
 class Login extends Tool {
@@ -101,7 +101,7 @@ class Login extends Tool {
     /**
      * Post-login redirect URL after Google authentication.
      *
-     * @param object $result GoogleLoginHandler result (needs did_insert)
+     * @param object $result GoogleLoginResult (needs did_insert)
      * @param string|null $newUserUrl first-time user destination
      * @param bool $fallbackHome when false, return null instead of home for legacy callers
      */
@@ -143,7 +143,7 @@ class Login extends Tool {
         // Process login with redirect callback
         // Capture parent path before closure so we can use it inside
         $parentPath = $this->toolParent(self::ROUTE);
-        $result = GoogleLoginHandler::processLogin($come_back, function($result) use ($parentPath) {
+        $result = GoogleLoginService::processCallback($come_back, function($result) use ($parentPath) {
             return self::returnAfterLogin($result, $parentPath . '/profile');
         });
 
@@ -161,7 +161,7 @@ class Login extends Tool {
         }
 
         // Display login form
-        $loginUrl = $result->login_url ? $result->login_url : GoogleLoginHandler::getLoginUrl($come_back);
+        $loginUrl = $result->login_url ? $result->login_url : GoogleLoginService::authorizeUrl($come_back);
 
         $context = array();
         $context['login_return'] = self::cancelUrl();
@@ -254,7 +254,7 @@ information with <?= htmlspecialchars($CFG->servicename) ?>.
 
         $displayName = $persona['firstName'].' '.$persona['lastName'];
         $parentPath = $this->toolParent(self::ROUTE);
-        $result = GoogleLoginHandler::establishGoogleSiteSession(
+        $result = GoogleLoginService::establishSiteSession(
             $persona['user_key'],
             $persona['email'],
             $displayName,
