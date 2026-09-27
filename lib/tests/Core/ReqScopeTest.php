@@ -2,6 +2,7 @@
 
 use Tsugi\Core\Context;
 use Tsugi\Core\LTIX;
+use Tsugi\Core\Launch;
 use Tsugi\Core\Link;
 use Tsugi\Core\Membership;
 use Tsugi\Core\ReqScope;
@@ -108,6 +109,46 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(4, $rc->link->id);
         $this->assertTrue($rc->user->instructor);
         $this->assertSame(ReqScope::ORIGIN_LTI, $rc->origin);
+    }
+
+    public function testSiteHydrateCopiesInstructorOntoTheLaunchUser() {
+        $launchUser = new User();
+        $launchUser->id = 7;
+        $launchUser->instructor = false;
+        $launchUser->admin = false;
+        $launch = new Launch();
+        $launch->user = $launchUser;
+        $GLOBALS['TSUGI_LAUNCH'] = $launch;
+        $GLOBALS['USER'] = $launchUser;
+        $_SESSION['isinstructor'] = false;
+
+        ReqScope::provision(0, 0, null, ReqScope::ORIGIN_SITE);
+        $user = new User();
+        $user->id = 7;
+        $user->instructor = true;
+        $user->admin = false;
+        $context = new Context();
+        $context->id = 35;
+        ReqScope::hydrate($user, $context, null, null, null, null, false);
+
+        $this->assertTrue($launchUser->instructor);
+        $this->assertFalse($launchUser->admin);
+        $this->assertTrue($_SESSION['isinstructor']);
+        $this->assertTrue($user->instructor);
+
+        ReqScope::reset();
+        $launchUser->instructor = false;
+        $_SESSION['isinstructor'] = false;
+        ReqScope::provision(0, 0, null, ReqScope::ORIGIN_LTI);
+        $ltiUser = new User();
+        $ltiUser->id = 7;
+        $ltiUser->instructor = true;
+        ReqScope::hydrate($ltiUser, $context, null, null, null, null, false);
+
+        $this->assertFalse($launchUser->instructor);
+        $this->assertFalse($_SESSION['isinstructor']);
+
+        unset($GLOBALS['TSUGI_LAUNCH'], $GLOBALS['USER']);
     }
 
     public function testHydrateInstallsTheSameObjectsOnGlobals() {

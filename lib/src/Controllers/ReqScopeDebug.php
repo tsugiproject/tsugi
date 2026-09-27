@@ -68,14 +68,16 @@ class ReqScopeDebug extends Tool {
             } else {
                 echo(self::pre($legacyNotes));
             }
-            echo("<h2>Readers</h2>\n");
-            echo(self::pre(self::export(array(
-                'isLoggedIn' => ReqScope::isLoggedIn(),
-                'loggedInUserId' => ReqScope::loggedInUserId(),
-                'currentContextId' => ReqScope::currentContextId(),
-                'origin' => $origin,
-            ))));
         }
+        echo("<h2>Readers</h2>\n");
+        echo(self::pre(self::export(array(
+            'isLoggedIn' => ReqScope::isLoggedIn(),
+            'loggedInUserId' => ReqScope::loggedInUserId(),
+            'currentContextId' => ReqScope::currentContextId(),
+            'isLoggedInLegacy' => ReqScope::isLoggedInLegacy(),
+            'loggedInUserIdLegacy' => ReqScope::loggedInUserIdLegacy(),
+            'currentContextIdLegacy' => ReqScope::currentContextIdLegacy(),
+        ))));
         echo("<h2>ReqScope</h2>\n");
         echo(self::pre(self::export($scope)));
         echo("<h2>Launch</h2>\n");

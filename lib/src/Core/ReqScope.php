@@ -888,7 +888,38 @@ class ReqScope {
         if ( $installGlobals ) {
             self::assignGlobals($rc);
         }
+        self::alignSiteLaunchUser($rc);
         return $rc;
+    }
+
+    /**
+     * A site session's launch user is built from the stored LTI role.
+     * Course ownership and site admin live on this request's user, so copy
+     * instructor and admin onto the launch user with the same id.
+     *
+     * @param self $rc
+     */
+    private static function alignSiteLaunchUser(self $rc) {
+        if ( self::$storedOrigin !== self::ORIGIN_SITE || ! $rc->user ) {
+            return;
+        }
+        $instructor = (bool) $rc->user->instructor;
+        $admin = (bool) $rc->user->admin;
+        $userId = (int) $rc->user->id;
+        global $TSUGI_LAUNCH, $USER;
+        if ( isset($TSUGI_LAUNCH) && is_object($TSUGI_LAUNCH)
+            && isset($TSUGI_LAUNCH->user) && is_object($TSUGI_LAUNCH->user)
+            && (int) $TSUGI_LAUNCH->user->id === $userId ) {
+            $TSUGI_LAUNCH->user->instructor = $instructor;
+            $TSUGI_LAUNCH->user->admin = $admin;
+        }
+        if ( isset($USER) && is_object($USER) && $USER !== $rc->user && (int) $USER->id === $userId ) {
+            $USER->instructor = $instructor;
+            $USER->admin = $admin;
+        }
+        if ( isset($_SESSION) && is_array($_SESSION) ) {
+            $_SESSION['isinstructor'] = $instructor;
+        }
     }
 
     /**
