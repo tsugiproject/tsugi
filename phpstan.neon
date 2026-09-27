@@ -20,7 +20,6 @@ parameters:
         - cron
         - dev
         - ext
-        - gclass
         - lti
         - mod
         - tool

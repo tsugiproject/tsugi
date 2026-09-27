@@ -10,11 +10,29 @@ use \Tsugi\Core\ReqScope;
 class GoogleClassroom {
 
     /**
+     * Where the Classroom controller should send the browser when getClient cannot
+     * return a client. Empty when there is nothing to redirect.
+     */
+    public static $redirectUrl = null;
+
+    /**
+     * Flash message for that redirect. Empty when the redirect has no message.
+     */
+    public static $redirectError = null;
+
+    /**
      * Returns an authorized Clasroom API client.
-     * @return \Google_Client the authorized client object
+     *
+     * On failure, returns false and sets $redirectUrl (and sometimes $redirectError).
+     * The caller sends the browser there. This method does not send a response.
+     *
+     * @return \Google_Client|false
      */
     public static function getClient($accessTokenStr, $user_id=false) {
         global $CFG, $PDOX;
+
+        self::$redirectUrl = null;
+        self::$redirectError = null;
 
         if ( ! $user_id ) $user_id = ReqScope::loggedInUserIdLegacy();
 
@@ -50,22 +68,20 @@ class GoogleClassroom {
         if ( $accessToken && ! U::get($accessToken, 'refresh_token') ) {
             error_log("Bad accessToken");
             error_log(json_encode($accessToken));
-            U::flashError('Did not get a proper Google Classroom token, '.
+            self::$redirectError = 'Did not get a proper Google Classroom token, '.
                 'either you have no access to Classroom, '.
                 'or you may need to revoke the permission for this app '.
                 '(' . $CFG->servicedesc . ') ' .
                 'at https://myaccount.google.com/u/0/security?pli=1 ' .
-                'and re-establish your connection to Classroom.');
-            header('Location: '.$CFG->apphome);
-    	return false;
+                'and re-establish your connection to Classroom.';
+            self::$redirectUrl = $CFG->apphome;
+            return false;
         }
 
         if ( $accessToken ) {
             $client->setAccessToken($accessToken);
         } else {
-            // Request authorization from the user.
-            $authUrl = $client->createAuthUrl();
-            header('Location: '.$authUrl);
+            self::$redirectUrl = $client->createAuthUrl();
             return false;
         }
 

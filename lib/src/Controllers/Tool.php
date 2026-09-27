@@ -635,7 +635,7 @@ abstract class Tool {
             }
         } else {
             // Try to detect by looking for common controller routes
-            $controllerRoutes = ['/announcements', '/pages', '/badges', '/grades', '/home', '/lessons', '/discussions', '/topics', '/launch', '/assignments', '/files', '/map', '/login', '/logout', '/quiz1'];
+            $controllerRoutes = ['/gclass', '/announcements', '/pages', '/badges', '/grades', '/home', '/lessons', '/discussions', '/topics', '/launch', '/assignments', '/files', '/map', '/login', '/logout', '/quiz1'];
             foreach ($controllerRoutes as $testRoute) {
                 $routePos = strpos($requestUri, $testRoute);
                 if ($routePos !== false) {
