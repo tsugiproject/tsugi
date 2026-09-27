@@ -151,6 +151,35 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
         unset($GLOBALS['TSUGI_LAUNCH'], $GLOBALS['USER']);
     }
 
+    public function testHydrateCopiesLaunchLinkActivity() {
+        $launchLink = new Link();
+        $launchLink->id = 1154;
+        $launchLink->activity = 2;
+        $launchLink->user_activity = 1;
+        $launch = new Launch();
+        $launch->link = $launchLink;
+        $GLOBALS['TSUGI_LAUNCH'] = $launch;
+
+        $user = new User();
+        $user->id = 26;
+        $context = new Context();
+        $context->id = 39;
+        $link = new Link();
+        $link->id = 1154;
+        ReqScope::hydrate($user, $context, $link, null, null, 1, false);
+
+        $this->assertSame(2, $link->activity);
+        $this->assertSame(1, $link->user_activity);
+
+        $other = new Link();
+        $other->id = 9;
+        ReqScope::hydrate($user, $context, $other, null, null, 1, false);
+        $this->assertSame(0, $other->activity);
+        $this->assertSame(0, $other->user_activity);
+
+        unset($GLOBALS['TSUGI_LAUNCH']);
+    }
+
     public function testHydrateInstallsTheSameObjectsOnGlobals() {
         $user = new User();
         $user->id = 7;

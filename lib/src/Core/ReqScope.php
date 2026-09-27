@@ -747,6 +747,7 @@ class ReqScope {
         $rc->link = $link;
         $rc->result = $result;
         $rc->published = (int) $linkRow['published'];
+        self::alignLaunchLinkActivity($rc->link);
         return $rc;
     }
 
@@ -889,7 +890,31 @@ class ReqScope {
             self::assignGlobals($rc);
         }
         self::alignSiteLaunchUser($rc);
+        self::alignLaunchLinkActivity($rc->link);
         return $rc;
+    }
+
+    /**
+     * Launch stores link activity from the session row at launch time.
+     * Copy that snapshot onto this request's link when they are the same link.
+     *
+     * @param Link|null $link
+     */
+    private static function alignLaunchLinkActivity($link) {
+        if ( ! $link ) {
+            return;
+        }
+        global $TSUGI_LAUNCH;
+        if ( ! isset($TSUGI_LAUNCH) || ! is_object($TSUGI_LAUNCH)
+            || ! isset($TSUGI_LAUNCH->link) || ! is_object($TSUGI_LAUNCH->link) ) {
+            return;
+        }
+        $launchLink = $TSUGI_LAUNCH->link;
+        if ( (int) $launchLink->id < 1 || (int) $launchLink->id !== (int) $link->id ) {
+            return;
+        }
+        $link->activity = (int) $launchLink->activity;
+        $link->user_activity = (int) $launchLink->user_activity;
     }
 
     /**
