@@ -72,7 +72,9 @@ class GoogleClassroom extends Tool {
             return new Response('', 200);
         }
 
-        if ( ! isset($CFG->lessons) || !isset($CFG->apphome) || ! $CFG->apphome ) {
+        // $CFG->lessons defaults to false, so isset() is always true.
+        $lessonsPath = (is_string($CFG->lessons) && trim($CFG->lessons) !== '') ? $CFG->lessons : false;
+        if ( ! $lessonsPath || ! isset($CFG->apphome) || ! $CFG->apphome ) {
             $courses = $results->getCourses();
             if (count($courses) == 0) {
                 U::flashError('No Google Classroom Courses found');
@@ -84,7 +86,7 @@ class GoogleClassroom extends Tool {
             }
         }
 
-        $l = new Lessons($CFG->lessons);
+        $l = new Lessons($lessonsPath);
         $firstmodule = false;
         if (isset($l->lessons->modules[0]->anchor) ) {
             $firstmodule = $l->lessons->modules[0]->anchor;

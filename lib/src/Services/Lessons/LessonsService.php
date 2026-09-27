@@ -180,6 +180,9 @@ class LessonsService {
         if ( is_object($name) ) {
             $lessons = $name;
         } else {
+            if ( ! is_string($name) || trim($name) === '' ) {
+                self::fail('lessons.json path is not configured');
+            }
             $json_str = file_get_contents($name);
             $lessons = json_decode($json_str);
             $this->resource_links = array();
