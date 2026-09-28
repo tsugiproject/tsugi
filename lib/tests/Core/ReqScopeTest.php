@@ -265,6 +265,34 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
         $this->assertNull($RESULT);
     }
 
+    public function testNoteLtiLaunchMarks11Or13OrNeither() {
+        $user = new User();
+        $user->id = 1;
+        $context = new Context();
+        $context->id = 2;
+
+        ReqScope::noteLtiLaunch(
+            array('key_key' => '12345'),
+            array('lti_message_type' => 'basic-lti-launch-request', 'lti_version' => 'LTI-1p0')
+        );
+        $rc = ReqScope::hydrate($user, $context);
+        $this->assertTrue($rc->lti11);
+        $this->assertFalse($rc->lti13);
+
+        ReqScope::noteLtiLaunch(
+            array('issuer_client' => 'client-1', 'key_key' => '12345'),
+            array('lti_message_type' => 'basic-lti-launch-request')
+        );
+        $this->assertFalse(ReqScope::current()->lti11);
+        $this->assertTrue(ReqScope::current()->lti13);
+
+        ReqScope::reset();
+        ReqScope::noteLtiLaunch(array('key_key' => 'google'), null);
+        $rc = ReqScope::hydrate($user, $context);
+        $this->assertFalse($rc->lti11);
+        $this->assertFalse($rc->lti13);
+    }
+
     public function testSecondHydrateReplacesCurrent() {
         $firstUser = new User();
         $firstUser->id = 1;

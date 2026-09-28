@@ -85,7 +85,7 @@ class Grades extends Tool {
             unset($newrow['sourcedid']);
             unset($newrow['service']);
             unset($newrow['result_url']);
-            $newrow['note'] = '';
+            $newrow['server_status'] = '';
             
             if ( $row['grade'] <= 0.0 ) {
                 $newrows[] = $newrow;
@@ -118,11 +118,11 @@ class Grades extends Tool {
                     error_log("Problem Retrieving Grade: ".session_id()."\n".$msg."\n".
                       "service=".U::get($row,'service')." sourcedid=".U::get($row,'sourcedid'));
                     
-                    $newrow['note'] = "Problem Retrieving Server Grade: ".$server_grade;
+                    $newrow['server_status'] = "Problem Retrieving Server Grade: ".$server_grade;
                     $newrows[] = $newrow;
                     continue;
                 } else {
-                    $newrow['note'] .= ' Server grade retrieved: '.$server_grade;
+                    $newrow['server_status'] .= ' Server grade retrieved: '.$server_grade;
                 }
                 $row['server_grade'] = $server_grade;
                 $newrow['server_grade'] = $server_grade;
@@ -148,9 +148,9 @@ class Grades extends Tool {
                     $newrow['server_grade'] = $server_grade;
                     $row['server_grade'] = $server_grade;
                     if ( $server_grade != $row['grade'] ){
-                        $newrow['note'] .= " Grade re-send mismatch.";
+                        $newrow['server_status'] .= " Grade re-send mismatch.";
                     } else {
-                        $newrow['note'] .= " Grade re-sent and checked.";
+                        $newrow['server_status'] .= " Grade re-sent and checked.";
                     }
                 } else {
                     $msg = "result_id=".$row['result_id']."\n".
@@ -161,7 +161,7 @@ class Grades extends Tool {
                     error_log("Problem Updating Grade: ".session_id()."\n".$msg."\n".
                       "service=".U::get($row,'service')." sourcedid=".U::get($row,'sourcedid'));
                     
-                    $newrow['note'] .= " Problem Updating Server Grade";
+                    $newrow['server_status'] .= " Problem Updating Server Grade";
                 }
             }
 

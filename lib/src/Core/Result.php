@@ -130,6 +130,30 @@ class Result extends Entity {
     }
 
     /**
+     * A progress value from $extra. Absent or empty uses $default.
+     * Any other value must be a recognized string, or this returns false.
+     *
+     * @param mixed $extra
+     * @param string $key
+     * @param string[] $allowed
+     * @param string $default
+     * @return string|false
+     */
+    private static function suppliedProgress($extra, $key, array $allowed, $default) {
+        if ( ! is_array($extra) || ! array_key_exists($key, $extra) ) {
+            return $default;
+        }
+        $value = $extra[$key];
+        if ( $value === null || $value === false || $value === '' ) {
+            return $default;
+        }
+        if ( is_string($value) && in_array($value, $allowed, true) ) {
+            return $value;
+        }
+        return false;
+    }
+
+    /**
      * Send a grade and update our local copy
      *
      * Call the right LTI service to send a new grade up to the server.
@@ -159,14 +183,26 @@ class Result extends Entity {
 
         $PDOX = LTIX::getConnection();
 
+        // A comment on this send is stored in lti_result.note. Callers that
+        // omit it leave whatever note is already there.
+        $receivedComment = null;
+        if ( is_array($extra) && array_key_exists(LTI13::LINEITEM_COMMENT, $extra)
+            && is_string($extra[LTI13::LINEITEM_COMMENT]) ) {
+            $receivedComment = $extra[LTI13::LINEITEM_COMMENT];
+        }
+
         // Secret and key from session to avoid crossing tenant boundaries
         $key_key = false;
         $subject_key = false;
         $secret = false;
         $lti13_subject_key = false;
         if ( $row !== false ) {
-            // Using the note from the local db for the comment.
+            // Using the note from the local db for the comment, unless this
+            // send brought a new one.
             $comment = isset($row['note']) ? $row['note'] : false;
+            if ( $receivedComment !== null ) {
+                $comment = $receivedComment;
+            }
             $result_url = isset($row['result_url']) ? $row['result_url'] : false;
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
@@ -193,7 +229,7 @@ class Result extends Entity {
             $lti13_subject_key = LTIX::ltiParameter('subject_key');
             $title = LTIX::ltiParameter('link_title');
             $link_id = LTIX::ltiParameter('link_id');
-            $comment = is_array($extra) && isset($extra[LTI13::LINEITEM_COMMENT]) ? $extra[LTI13::LINEITEM_COMMENT] : false;
+            $comment = $receivedComment !== null ? $receivedComment : false;
         }
 
         // Check if we are to use SHA256 as the signature
@@ -211,29 +247,62 @@ class Result extends Entity {
         // Get the IP Address
         $ipaddr = Net::getIP();
 
-        // Resolve activity_progress and grading_progress from $extra or use LTI13 defaults
-        $activity_progress = is_array($extra) && isset($extra[LTI13::ACTIVITY_PROGRESS])
-            ? $extra[LTI13::ACTIVITY_PROGRESS]
-            : LTI13::ACTIVITY_PROGRESS_COMPLETED;
-        $grading_progress = is_array($extra) && isset($extra[LTI13::GRADING_PROGRESS])
-            ? $extra[LTI13::GRADING_PROGRESS]
-            : LTI13::GRADING_PROGRESS_FULLYGRADED;
+        // Resolve activity_progress and grading_progress from $extra or use LTI13 defaults.
+        // A supplied value must be one of the recognized strings. Absent or empty keeps the default.
+        $activity_progress = self::suppliedProgress(
+            $extra,
+            LTI13::ACTIVITY_PROGRESS,
+            array(
+                LTI13::ACTIVITY_PROGRESS_INITIALIZED,
+                LTI13::ACTIVITY_PROGRESS_STARTED,
+                LTI13::ACTIVITY_PROGRESS_INPROGRESS,
+                LTI13::ACTIVITY_PROGRESS_SUBMITTED,
+                LTI13::ACTIVITY_PROGRESS_COMPLETED,
+            ),
+            LTI13::ACTIVITY_PROGRESS_COMPLETED
+        );
+        $grading_progress = self::suppliedProgress(
+            $extra,
+            LTI13::GRADING_PROGRESS,
+            array(
+                LTI13::GRADING_PROGRESS_FULLYGRADED,
+                LTI13::GRADING_PROGRESS_PENDING,
+                LTI13::GRADING_PROGRESS_PENDINGMANUAL,
+                LTI13::GRADING_PROGRESS_FAILED,
+                LTI13::GRADING_PROGRESS_NOTREADY,
+            ),
+            LTI13::GRADING_PROGRESS_FULLYGRADED
+        );
+        if ( $activity_progress === false ) {
+            return 'Activity progress is not a recognized value.';
+        }
+        if ( $grading_progress === false ) {
+            return 'Grading progress is not a recognized value.';
+        }
 
         // Update the local copy of the grade in the lti_result table
         if ( $PDOX !== false && ! empty($result_id) ) {
+            $noteSql = '';
+            $parms = array(
+                ':grade' => $grade,
+                ':IP' => $ipaddr,
+                ':activity_progress' => $activity_progress,
+                ':grading_progress' => $grading_progress,
+                ':RID' => $result_id,
+            );
+            if ( $receivedComment !== null ) {
+                $noteSql = 'note = :note,';
+                $parms[':note'] = $receivedComment;
+            }
             $stmt = $PDOX->queryReturnError(
                 "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
                     ipaddr = :IP,
+                    {$noteSql}
                     activity_progress = :activity_progress,
                     grading_progress = :grading_progress,
                     score_timestamp = NOW(),
                     updated_at = NOW() WHERE result_id = :RID",
-                array(
-                    ':grade' => $grade,
-                    ':IP' => $ipaddr,
-                    ':activity_progress' => $activity_progress,
-                    ':grading_progress' => $grading_progress,
-                    ':RID' => $result_id)
+                $parms
             );
 
             if ( $stmt->success ) {
