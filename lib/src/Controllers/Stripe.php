@@ -78,18 +78,31 @@ class Stripe extends Controller {
         $refund_policy = $CFG->refundPolicy();
         $profile_url = rtrim($home, '/') . '/profile';
         $home_url = rtrim($home, '/') . '/';
+        $support = \Tsugi\UI\Supporter::currentSupport($CFG);
+        $extending = is_array($support) && !empty($support['is_active']);
+        $until_label = $extending ? (string) ($support['premium_until_label'] ?? '') : '';
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         ?>
 <main id="container">
-<h1><?= htmlspecialchars($supporter_label) ?></h1>
+<h1><?= $extending ? 'Extend supporter status' : htmlspecialchars($supporter_label) ?></h1>
+<?php if ($extending) { ?>
+<p>
+You already have <?= htmlspecialchars($supporter_label) ?> status<?php if ($until_label !== '') { ?>
+ through <strong><?= htmlspecialchars($until_label) ?></strong><?php } ?>.
+This one-time payment<?php if ($price_phrase !== '') { ?>
+ of <?= htmlspecialchars($price_phrase) ?><?php } ?>
+ adds <?= htmlspecialchars($premium_period) ?><?php if ($until_label !== '') { ?>, starting from that date<?php } ?>.
+</p>
+<?php } else { ?>
 <p>
 Support <?= htmlspecialchars($site_label) ?> with a one-time payment<?php if ($price_phrase !== '') { ?>
  of <?= htmlspecialchars($price_phrase) ?><?php } ?>.
 You will receive <?= htmlspecialchars($premium_period) ?> of <?= htmlspecialchars($supporter_label) ?> status.
 </p>
+<?php } ?>
 <p>The exact amount in your currency is shown on the next screen.</p>
 <p>You will be redirected to our payment provider to complete checkout securely.</p>
 <?php if ($refund_policy !== '') { ?>

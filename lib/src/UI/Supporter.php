@@ -32,6 +32,11 @@ class Supporter {
         $supporter_label = $CFG->supporterLabel();
         $premium_until = self::premiumUntil($userProfile);
 
+        $until_label = '';
+        if ( is_string($premium_until) && strlen($premium_until) > 0 ) {
+            $until_label = self::formatUntil($premium_until, $CFG);
+        }
+
         return array(
             'userProfile' => $userProfile,
             'supporter_url' => $supporter_raw ? htmlspecialchars($supporter_raw) : '',
@@ -41,8 +46,36 @@ class Supporter {
             'price_label' => $CFG->supporterPriceLabel(),
             'price_phrase' => $CFG->supporterPricePhrase(),
             'premium_until' => $premium_until,
+            'premium_until_label' => $until_label,
             'is_active' => self::isActive($userProfile, $premium_until),
         );
+    }
+
+    /**
+     * Logged-in profile support status, or null when no profile is in the session.
+     *
+     * @return array<string,mixed>|null
+     */
+    public static function currentSupport($CFG) {
+        if ( ! isset($_SESSION['profile_id']) || ! is_numeric($_SESSION['profile_id']) || (int) $_SESSION['profile_id'] < 1 ) {
+            return null;
+        }
+
+        return self::context($CFG);
+    }
+
+    /**
+     * Link text for buying another supporter period while one is still active.
+     */
+    public static function extendLinkLabel($CFG): string {
+        $months = $CFG->premiumMonths();
+        if ( $months === 12 ) {
+            return 'Extend for another year';
+        }
+        if ( $months === 1 ) {
+            return 'Extend for another month';
+        }
+        return 'Extend for another ' . $months . ' months';
     }
 
     /**
@@ -79,6 +112,18 @@ class Supporter {
         }
 
         echo("\n</p>\n");
+
+        if ( $ctx['is_active'] && $ctx['supporter_url'] !== '' ) {
+            $extend_label = htmlspecialchars(self::extendLinkLabel($CFG));
+            echo('<p style="margin: 0 0 1.25em;">' . "\n");
+            echo('Want to show a little more support? ');
+            echo('<a href="' . $ctx['supporter_url'] . '">' . $extend_label . '</a>');
+            if ( $ctx['price_phrase'] !== '' ) {
+                echo(' <span style="opacity: 0.75;">— '
+                    . htmlspecialchars($ctx['price_phrase']) . '.</span>');
+            }
+            echo("\n</p>\n");
+        }
     }
 
     /**
