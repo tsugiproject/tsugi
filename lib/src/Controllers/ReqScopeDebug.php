@@ -56,8 +56,9 @@ class ReqScopeDebug extends Tool {
     /**
      * @param object|null $launch Tools pass $LAUNCH. The site route passes $TSUGI_LAUNCH.
      * @param bool $withGrade True when ReqScope has a result that can send a grade.
+     * @param string|null $formAction Where the grade form posts. The site route posts to /reqscope.
      */
-    public static function render($launch, $withGrade = false) {
+    public static function render($launch, $withGrade = false, $formAction = null) {
         global $OUTPUT;
 
         $OUTPUT->header();
@@ -73,7 +74,7 @@ class ReqScopeDebug extends Tool {
         }
 
         if ( $withGrade ) {
-            self::gradePanel();
+            self::gradePanel($formAction);
         }
 
         $scope = ReqScope::current();
@@ -124,8 +125,27 @@ class ReqScopeDebug extends Tool {
         return $scope->result;
     }
 
-    private static function gradePanel() {
+    /**
+     * True when this request has a result that can send a grade.
+     */
+    public static function hasGradeResult() {
+        return self::gradeResult() !== null;
+    }
+
+    /**
+     * Store a posted grade when the debug page is on.
+     */
+    public static function acceptGrade() {
+        if ( self::enabled() ) {
+            self::sendGrade();
+        }
+    }
+
+    private static function gradePanel($formAction = null) {
         global $CFG;
+        if ( $formAction === null ) {
+            $formAction = $CFG->wwwroot.'/reqscope';
+        }
 
         if ( ! self::gradeResult() ) {
             return;
@@ -144,7 +164,7 @@ class ReqScopeDebug extends Tool {
         $status = U::get($_SESSION, 'reqscope_status');
         $gradingProgress = U::get($_SESSION, 'reqscope_grading_progress');
         $activityProgress = U::get($_SESSION, 'reqscope_activity_progress');
-        $action = htmlspecialchars(addSession($CFG->wwwroot.'/reqscope'));
+        $action = htmlspecialchars(addSession($formAction));
 
         echo("<form method=\"post\" action=\"".$action."\">\n");
         echo(self::csrfField()."\n");
