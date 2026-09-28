@@ -502,6 +502,7 @@ array( "{$CFG->dbprefix}lti_result",
 
     grade              FLOAT NULL,
     note               MEDIUMTEXT NULL,
+    comment            MEDIUMTEXT NULL,
     attempts           INTEGER NULL,
     server_grade       FLOAT NULL,
     grading_progress   VARCHAR(30) NOT NULL DEFAULT 'NotReady',
@@ -1309,6 +1310,25 @@ $DATABASE_UPGRADE = function($oldversion) {
             error_log("Upgrading: ".$sql);
             $PDOX->queryReturnError($sql);
         }
+    }
+
+    // The score comment lives in lti_result.comment. note stays, emptied, until a later drop.
+    $result_table = "{$CFG->dbprefix}lti_result";
+    if ( $PDOX->columnExists('note', $result_table) && ! $PDOX->columnExists('comment', $result_table) ) {
+        $sql = "ALTER TABLE {$result_table} ADD comment MEDIUMTEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryReturnError($sql);
+
+        $sql = "UPDATE {$result_table} SET comment = note WHERE note IS NOT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryReturnError($sql);
+
+        $sql = "UPDATE {$result_table} SET note = NULL WHERE note IS NOT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryReturnError($sql);
     }
 
     // Add FK for scoring_user_id if column exists and FK does not
