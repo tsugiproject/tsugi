@@ -3,6 +3,7 @@
 require_once __DIR__ . '/Support/TsugiPantherTestCase.php';
 require_once __DIR__ . '/Support/DemoCourseSteps.php';
 
+use Facebook\WebDriver\Exception\NoSuchAlertException;
 use Facebook\WebDriver\WebDriverBy;
 
 /**
@@ -30,6 +31,18 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->confirmDeleteStaysDisabledUntilTyped($client, $home, $title);
         $this->createPublishAndViewSampleQuiz($client, $home);
         $this->captureScreenshot($client, 'course-controllers');
+    }
+
+    public function testInstructorLinksPublishedQuizFromLessons(): void
+    {
+        $client = $this->pantherClient();
+        $course = $this->startInstructorCourse($client);
+        $home = $course['home'];
+
+        $this->createAndPublishSampleQuiz($client, $home);
+        $this->authorLessonQuizLink($client, $home);
+        $this->takeQuizFromLessons($client, $home);
+        $this->captureScreenshot($client, 'quiz-from-lessons');
     }
 
     private function uploadFileAndSeeFolderCount(\Symfony\Component\Panther\Client $client, string $courseHome): void
@@ -197,6 +210,81 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->assertTrue($printed, 'Quiz view did not include a Print link.');
         $this->waitForPageText($client, 'quiz1-printing');
         $this->waitForPageText($client, 'Name:');
+    }
+
+    private function createAndPublishSampleQuiz(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/quiz1');
+        $this->waitForPageText($client, 'Create sample quiz (all question types)');
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Create sample quiz')]"))->click();
+        $this->waitForPageText($client, 'QTI Export Test', 30);
+        $this->waitForPageText($client, 'Sample quiz created.');
+        $driver->findElement(WebDriverBy::xpath("//button[normalize-space()='Publish']"))->click();
+        $this->waitForPageText($client, 'Quiz published.');
+    }
+
+    private function authorLessonQuizLink(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/lessons/_author');
+        $this->waitForPageText($client, 'Add module');
+
+        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Add module"]'))->click();
+        $this->waitForPageText($client, 'Edit Module');
+        $title = $driver->findElement(WebDriverBy::id('edit-module-title'));
+        $title->clear();
+        $title->sendKeys('Panther Quiz Module');
+        $driver->findElement(WebDriverBy::id('edit-module-anchor'))->sendKeys('panther-quiz-module');
+        $driver->findElement(WebDriverBy::xpath("//div[@id='item-modal']//button[contains(., 'Save')]"))->click();
+
+        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Add item"]'))->click();
+        $this->waitForPageText($client, 'Add Item');
+        $driver->executeScript(
+            "document.getElementById('edit-item-type').value = 'quiz'; updateItemForm();"
+        );
+        $this->waitForPageText($client, 'QTI Export Test');
+        $driver->executeScript(
+            "var sel = document.getElementById('edit-quiz-id');
+             var opt = Array.from(sel.options).find(function (o) { return o.text.indexOf('QTI Export Test') !== -1; });
+             if (!opt) { throw new Error('sample quiz option missing'); }
+             sel.value = opt.value;
+             if (typeof onQuizPicked === 'function') { onQuizPicked(); }"
+        );
+        $driver->findElement(WebDriverBy::xpath("//div[@id='item-modal']//button[contains(., 'Save')]"))->click();
+
+        $driver->executeScript('saveChanges()');
+        $this->acceptAlertContaining($driver, 'saved');
+    }
+
+    private function takeQuizFromLessons(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/lessons');
+        $this->waitForPageText($client, 'Panther Quiz Module');
+        $driver->findElement(WebDriverBy::partialLinkText('Panther Quiz Module'))->click();
+        $this->waitForPageText($client, 'QTI Export Test');
+        $driver->findElement(WebDriverBy::linkText('QTI Export Test'))->click();
+        $this->waitForPageText($client, 'Submit quiz');
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Submit quiz')]"))->click();
+        $this->waitForPageText($client, 'pending manual grading');
+    }
+
+    private function acceptAlertContaining(\Facebook\WebDriver\Remote\RemoteWebDriver $driver, string $needle): void
+    {
+        $deadline = microtime(true) + 15;
+        while (microtime(true) < $deadline) {
+            try {
+                $alert = $driver->switchTo()->alert();
+                $text = $alert->getText();
+                $alert->accept();
+                $this->assertStringContainsString($needle, strtolower($text));
+                return;
+            } catch (NoSuchAlertException $exception) {
+                usleep(200000);
+            }
+        }
+        $this->fail('Timed out waiting for an alert containing '.$needle);
     }
 
     private function labeledValue(string $page, string $prefix): string

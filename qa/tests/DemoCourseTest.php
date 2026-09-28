@@ -16,8 +16,6 @@ final class DemoCourseTest extends TsugiPantherTestCase
         $course = $this->startInstructorCourse($client);
         $courseHome = $course['home'];
         $this->saveCourseNavigation($client, $courseHome);
-        // Lesson authoring and take stay paused here. CourseControllersTest covers
-        // sample create, publish, view, and print.
         $this->createAndPublishPage($client, $courseHome);
         $this->placePageInLesson($client, $courseHome);
         $this->launchPageFromLessons($client, $courseHome);
@@ -44,62 +42,6 @@ final class DemoCourseTest extends TsugiPantherTestCase
         $this->assertTrue(
             $driver->findElement(WebDriverBy::cssSelector('input[name="nav[discussions][left]"]'))->isSelected()
         );
-    }
-
-    private function createSampleQuiz(\Symfony\Component\Panther\Client $client, string $courseHome): void
-    {
-        $driver = $client->getWebDriver();
-        $driver->get($courseHome.'/quiz1');
-        $this->waitForPageText($client, 'Create sample quiz (all question types)');
-        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Create sample quiz')]"))->click();
-        $this->waitForPageText($client, 'QTI Export Test');
-        $this->waitForPageText($client, 'Sample quiz created.');
-    }
-
-    private function authorLessonQuizLink(\Symfony\Component\Panther\Client $client, string $courseHome): void
-    {
-        $driver = $client->getWebDriver();
-        $driver->get($courseHome.'/lessons/_author');
-        $this->waitForPageText($client, 'Add module');
-
-        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Add module"]'))->click();
-        $this->waitForPageText($client, 'Edit Module');
-        $title = $driver->findElement(WebDriverBy::id('edit-module-title'));
-        $title->clear();
-        $title->sendKeys('Panther Module');
-        $driver->findElement(WebDriverBy::id('edit-module-anchor'))->sendKeys('panther-module');
-        $driver->findElement(WebDriverBy::xpath("//div[@id='item-modal']//button[contains(., 'Save')]"))->click();
-
-        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Add item"]'))->click();
-        $this->waitForPageText($client, 'Add Item');
-        $driver->executeScript(
-            "document.getElementById('edit-item-type').value = 'quiz'; updateItemForm();"
-        );
-        $this->waitForPageText($client, 'QTI Export Test');
-        $driver->executeScript(
-            "var sel = document.getElementById('edit-quiz-id');
-             var opt = Array.from(sel.options).find(function (o) { return o.text.indexOf('QTI Export Test') !== -1; });
-             if (!opt) { throw new Error('sample quiz option missing'); }
-             sel.value = opt.value;
-             if (typeof onQuizPicked === 'function') { onQuizPicked(); }"
-        );
-        $driver->findElement(WebDriverBy::xpath("//div[@id='item-modal']//button[contains(., 'Save')]"))->click();
-
-        $driver->executeScript('saveChanges()');
-        $this->acceptAlertContaining($driver, 'saved');
-    }
-
-    private function takeQuizFromLessons(\Symfony\Component\Panther\Client $client, string $courseHome): void
-    {
-        $driver = $client->getWebDriver();
-        $driver->get($courseHome.'/lessons');
-        $this->waitForPageText($client, 'Panther Module');
-        $driver->findElement(WebDriverBy::partialLinkText('Panther Module'))->click();
-        $this->waitForPageText($client, 'QTI Export Test');
-        $driver->findElement(WebDriverBy::linkText('QTI Export Test'))->click();
-        $this->waitForPageText($client, 'Submit quiz');
-        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Submit quiz')]"))->click();
-        $this->waitForPageText($client, 'Auto-scored:');
     }
 
     private function createAndPublishPage(\Symfony\Component\Panther\Client $client, string $courseHome): void
