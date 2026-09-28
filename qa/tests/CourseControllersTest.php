@@ -14,6 +14,7 @@ use Facebook\WebDriver\WebDriverBy;
  * student progress, export, and course images, then saves a due date.
  * Another opens home, the catalog, tool analytics, import, and the map guard,
  * then marks an announcement read.
+ * Another confirms an HTML file before opening it, then scores the sample quiz.
  */
 final class CourseControllersTest extends TsugiPantherTestCase
 {
@@ -73,6 +74,17 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->openHomeCatalogAnalyticsImportAndMap($client, $home, $title);
         $this->markAnnouncementRead($client, $home);
         $this->captureScreenshot($client, 'home-catalog-announcement');
+    }
+
+    public function testInstructorConfirmsHtmlFileAndScoresQuiz(): void
+    {
+        $client = $this->pantherClient();
+        $course = $this->startInstructorCourse($client);
+        $home = $course['home'];
+
+        $this->confirmBeforeOpeningHtml($client, $home);
+        $this->scoreSampleQuiz($client, $home);
+        $this->captureScreenshot($client, 'html-confirm-and-quiz-score');
     }
 
     private function uploadFileAndSeeFolderCount(\Symfony\Component\Panther\Client $client, string $courseHome): void
@@ -439,6 +451,110 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $client->getWebDriver()->get($courseHome.'/calendar?year='.$year.'&month='.$month);
         $this->waitForPageText($client, 'Assignment due dates');
         $this->waitForPageText($client, $due['title']);
+    }
+
+    private function confirmBeforeOpeningHtml(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/files');
+        $this->waitForPageText($client, 'Upload');
+
+        $path = sys_get_temp_dir().'/panther-caution-'.getmypid().'.html';
+        $marker = 'Panther html body';
+        file_put_contents($path, '<!DOCTYPE html><html><body><p>'.$marker.'</p></body></html>');
+        try {
+            $driver->findElement(WebDriverBy::id('uploads'))->sendKeys($path);
+            $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Upload')]"))->click();
+            $this->waitForPageText($client, 'File uploaded');
+            $name = basename($path);
+            $this->waitForPageText($client, $name);
+
+            $opened = (bool) $driver->executeScript(
+                'var name = arguments[0];
+                 var a = Array.from(document.querySelectorAll("a")).find(function (el) {
+                     return (el.textContent || "").indexOf(name) !== -1;
+                 });
+                 if (!a) { return false; }
+                 window.location.href = a.href;
+                 return true;',
+                [$name]
+            );
+            $this->assertTrue($opened, 'Uploaded HTML file had no link.');
+            $this->waitForPageText($client, 'Confirm file');
+            $this->waitForPageText($client, 'Type I am sure to continue.');
+
+            $phrase = $driver->findElement(WebDriverBy::id('confirm_phrase'));
+            $phrase->sendKeys('not sure');
+            $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Open or download')]"))->click();
+            $this->waitForPageText($client, 'class="error"');
+
+            $phrase = $driver->findElement(WebDriverBy::id('confirm_phrase'));
+            $phrase->clear();
+            $phrase->sendKeys('I am sure');
+            $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Open or download')]"))->click();
+            $this->waitForPageText($client, $marker);
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    private function scoreSampleQuiz(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $this->createAndPublishSampleQuiz($client, $courseHome);
+
+        $opened = (bool) $driver->executeScript(
+            'var a = Array.from(document.querySelectorAll("a")).find(function (el) {
+                return /\\/link\\/\\d+$/.test(el.getAttribute("href") || "");
+            });
+            if (!a) { return false; }
+            window.location.href = a.href;
+            return true;'
+        );
+        $this->assertTrue($opened, 'Published quiz did not offer a Take link.');
+        $this->waitForPageText($client, 'Submit quiz');
+        $this->assertStringNotContainsString('This preview does not record a grade.', $client->getPageSource());
+
+        $driver->executeScript(
+            'function block(needle) {
+                return Array.from(document.querySelectorAll(".quiz1-q")).find(function (b) {
+                    return (b.innerText || "").indexOf(needle) !== -1;
+                });
+            }
+            function choose(needle, answers) {
+                var b = block(needle);
+                if (!b) { throw new Error("missing question " + needle); }
+                answers.forEach(function (answer) {
+                    var label = Array.from(b.querySelectorAll("label.quiz1-choice")).find(function (l) {
+                        var text = (l.innerText || "").replace(/\\s+/g, " ").trim();
+                        return text === answer || text.indexOf(answer + " ") === 0;
+                    });
+                    if (!label || !label.querySelector("input")) { throw new Error("missing answer " + answer); }
+                    label.querySelector("input").click();
+                });
+            }
+            function fill(needle, value, selector) {
+                var b = block(needle);
+                if (!b) { throw new Error("missing question " + needle); }
+                var el = b.querySelector(selector);
+                if (!el) { throw new Error("missing field " + needle); }
+                el.value = value;
+            }
+            choose("Which protocol is used for the web", ["HTTP"]);
+            choose("Select all HTTP methods", ["GET", "POST"]);
+            choose("HTML is a programming language", ["False"]);
+            fill("Explain REST", "Representational State Transfer uses HTTP.", "textarea");
+            fill("The default HTTP port", "80", "input[type=text]");
+            fill("whose name contains", "JavaScript", "input[type=text]");'
+        );
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Submit quiz')]"))->click();
+        $this->waitForPageText($client, '<strong>6</strong>');
+        $this->waitForPageText($client, 'pending manual grading');
+        $this->waitForPageText($client, '>Correct<');
+
+        $driver->get($courseHome.'/grades');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $this->waitForPageText($client, '54.5');
     }
 
     private function openHomeCatalogAnalyticsImportAndMap(\Symfony\Component\Panther\Client $client, string $courseHome, string $courseTitle): void
