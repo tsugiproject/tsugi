@@ -4,6 +4,9 @@ namespace Tsugi\Controllers;
 
 use Tsugi\Core\ReqScope;
 use Tsugi\Lumos\Application;
+use Tsugi\Util\LTI13;
+use Tsugi\Util\U;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -21,6 +24,8 @@ class ReqScopeDebug extends Tool {
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'ReqScopeDebug@index');
         $app->router->get($prefix.'/', 'ReqScopeDebug@index');
+        $app->router->post($prefix, 'ReqScopeDebug@post');
+        $app->router->post($prefix.'/', 'ReqScopeDebug@post');
     }
 
     public static function enabled() {
@@ -30,13 +35,26 @@ class ReqScopeDebug extends Tool {
 
     public function index(Request $request) {
         global $TSUGI_LAUNCH;
-        self::render(isset($TSUGI_LAUNCH) ? $TSUGI_LAUNCH : null);
+        self::render(isset($TSUGI_LAUNCH) ? $TSUGI_LAUNCH : null, self::gradeResult() !== null);
+    }
+
+    /**
+     * Trophy-style grade post. The cookieless id stays on the URL, then we
+     * come back to the debug page in the same session.
+     */
+    public function post(Request $request) {
+        global $CFG;
+        if ( self::enabled() ) {
+            self::sendGrade();
+        }
+        return new RedirectResponse(addSession($CFG->wwwroot.'/reqscope'));
     }
 
     /**
      * @param object|null $launch Tools pass $LAUNCH. The site route passes $TSUGI_LAUNCH.
+     * @param bool $withGrade True when ReqScope has a result that can send a grade.
      */
-    public static function render($launch) {
+    public static function render($launch, $withGrade = false) {
         global $OUTPUT;
 
         $OUTPUT->header();
@@ -48,6 +66,10 @@ class ReqScopeDebug extends Tool {
             echo("<p>Add <code>\$CFG-&gt;setExtension('reqscope_debug', true);</code> to config.php.</p>\n");
             $OUTPUT->footer();
             return;
+        }
+
+        if ( $withGrade ) {
+            self::gradePanel();
         }
 
         $scope = ReqScope::current();
@@ -83,6 +105,125 @@ class ReqScopeDebug extends Tool {
         echo("<h2>Launch</h2>\n");
         echo(self::pre(self::export($launch)));
         $OUTPUT->footer();
+    }
+
+    /**
+     * The result on this request, when it has an id and can send a grade.
+     *
+     * @return \Tsugi\Core\Result|null
+     */
+    private static function gradeResult() {
+        $scope = ReqScope::current();
+        if ( ! $scope || ! $scope->result || (int) $scope->result->id < 1 ) {
+            return null;
+        }
+        return $scope->result;
+    }
+
+    private static function gradePanel() {
+        global $CFG;
+
+        if ( ! self::gradeResult() ) {
+            return;
+        }
+        $scope = ReqScope::current();
+        if ( $scope && $scope->user && $scope->user->instructor ) {
+            echo("<p>Instructors can't send grades with LTI.</p>\n");
+            return;
+        }
+
+        $sent = U::get($_SESSION, 'reqscope_sent');
+        $grade = U::get($_SESSION, 'reqscope_grade', 0.95);
+        $comment = U::get($_SESSION, 'reqscope_comment', '');
+        $transport = U::get($_SESSION, 'reqscope_transport');
+        $debug_log = U::get($_SESSION, 'reqscope_debug_log');
+        $status = U::get($_SESSION, 'reqscope_status');
+        $gradingProgress = U::get($_SESSION, 'reqscope_grading_progress');
+        $activityProgress = U::get($_SESSION, 'reqscope_activity_progress');
+        $action = htmlspecialchars(addSession($CFG->wwwroot.'/reqscope'));
+
+        echo("<form method=\"post\" action=\"".$action."\">\n");
+        echo("<input type=\"text\" name=\"grade\" value=\"".htmlspecialchars((string) $grade)."\"/> Grade<br/>\n");
+        echo("<input type=\"text\" name=\"comment\" value=\"".htmlspecialchars((string) $comment)."\"/> Comment<br/>\n");
+        echo("<select name=\"".LTI13::GRADING_PROGRESS."\">\n");
+        echo("<option value=\"\">-- select ".LTI13::GRADING_PROGRESS." (optional) ---</option>\n");
+        self::doOption(LTI13::GRADING_PROGRESS_FULLYGRADED, $gradingProgress);
+        self::doOption(LTI13::GRADING_PROGRESS_PENDING, $gradingProgress);
+        self::doOption(LTI13::GRADING_PROGRESS_PENDINGMANUAL, $gradingProgress);
+        self::doOption(LTI13::GRADING_PROGRESS_FAILED, $gradingProgress);
+        self::doOption(LTI13::GRADING_PROGRESS_NOTREADY, $gradingProgress);
+        echo("</select><br/>\n");
+        echo("<select name=\"".LTI13::ACTIVITY_PROGRESS."\">\n");
+        echo("<option value=\"\">-- select ".LTI13::ACTIVITY_PROGRESS." (optional) ---</option>\n");
+        self::doOption(LTI13::ACTIVITY_PROGRESS_INITIALIZED, $activityProgress);
+        self::doOption(LTI13::ACTIVITY_PROGRESS_STARTED, $activityProgress);
+        self::doOption(LTI13::ACTIVITY_PROGRESS_INPROGRESS, $activityProgress);
+        self::doOption(LTI13::ACTIVITY_PROGRESS_SUBMITTED, $activityProgress);
+        self::doOption(LTI13::ACTIVITY_PROGRESS_COMPLETED, $activityProgress);
+        echo("</select><br/>\n");
+        echo("<input type=\"submit\">\n");
+        echo("</form>\n");
+
+        if ( $sent ) {
+            echo("<p><i class=\"fa fa-trophy\" aria-hidden=\"true\"></i> Grade send finished.");
+            if ( $transport ) {
+                echo(" Sent using ".htmlspecialchars((string) $transport).".");
+            } else {
+                echo(" Stored locally.");
+            }
+            if ( is_string($status) && $status !== '' && $status !== '1' ) {
+                echo(" ".htmlspecialchars($status));
+            }
+            echo("</p>\n");
+            if ( $debug_log ) {
+                echo(self::pre($debug_log));
+            }
+        }
+    }
+
+    /**
+     * Send the posted grade through the result on ReqScope.
+     */
+    private static function sendGrade() {
+        $grade = U::get($_POST, 'grade');
+        $comment = U::get($_POST, 'comment');
+        $gradingProgress = U::get($_POST, LTI13::GRADING_PROGRESS);
+        $activityProgress = U::get($_POST, LTI13::ACTIVITY_PROGRESS);
+        if ( count($_POST) < 1 || ! is_string($grade) ) {
+            return;
+        }
+
+        $result = self::gradeResult();
+        if ( ! $result ) {
+            return;
+        }
+        $scope = ReqScope::current();
+        $debug_log = array();
+        $transport = null;
+        if ( $scope && $scope->user && $scope->user->instructor ) {
+            $status = "Instructors can't send grades with LTI.";
+        } else {
+            $extra = array(LTI13::LINEITEM_COMMENT => $comment);
+            if ( $activityProgress ) $extra[LTI13::ACTIVITY_PROGRESS] = $activityProgress;
+            if ( $gradingProgress ) $extra[LTI13::GRADING_PROGRESS] = $gradingProgress;
+            $status = $result->gradeSend($grade, false, $debug_log, $extra);
+            $transport = $result->lastSendTransport;
+        }
+
+        $_SESSION['reqscope_sent'] = true;
+        $_SESSION['reqscope_grade'] = $grade;
+        $_SESSION['reqscope_comment'] = $comment;
+        $_SESSION['reqscope_grading_progress'] = $gradingProgress;
+        $_SESSION['reqscope_activity_progress'] = $activityProgress;
+        $_SESSION['reqscope_transport'] = $transport;
+        $_SESSION['reqscope_debug_log'] = $debug_log;
+        $_SESSION['reqscope_status'] = $status;
+    }
+
+    private static function doOption($option, $current) {
+        echo('<option value="'.htmlspecialchars($option).'"');
+        if ( $option == $current ) echo(' selected');
+        echo('>'.htmlspecialchars($option)."</option>\n");
     }
 
     private static function pre($value) {

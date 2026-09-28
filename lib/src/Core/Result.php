@@ -159,14 +159,26 @@ class Result extends Entity {
 
         $PDOX = LTIX::getConnection();
 
+        // A comment on this send is stored in lti_result.note. Callers that
+        // omit it leave whatever note is already there.
+        $receivedComment = null;
+        if ( is_array($extra) && array_key_exists(LTI13::LINEITEM_COMMENT, $extra)
+            && is_string($extra[LTI13::LINEITEM_COMMENT]) ) {
+            $receivedComment = $extra[LTI13::LINEITEM_COMMENT];
+        }
+
         // Secret and key from session to avoid crossing tenant boundaries
         $key_key = false;
         $subject_key = false;
         $secret = false;
         $lti13_subject_key = false;
         if ( $row !== false ) {
-            // Using the note from the local db for the comment.
+            // Using the note from the local db for the comment, unless this
+            // send brought a new one.
             $comment = isset($row['note']) ? $row['note'] : false;
+            if ( $receivedComment !== null ) {
+                $comment = $receivedComment;
+            }
             $result_url = isset($row['result_url']) ? $row['result_url'] : false;
             $sourcedid = isset($row['sourcedid']) ? $row['sourcedid'] : false;
             $service = isset($row['service']) ? $row['service'] : false;
@@ -193,7 +205,7 @@ class Result extends Entity {
             $lti13_subject_key = LTIX::ltiParameter('subject_key');
             $title = LTIX::ltiParameter('link_title');
             $link_id = LTIX::ltiParameter('link_id');
-            $comment = is_array($extra) && isset($extra[LTI13::LINEITEM_COMMENT]) ? $extra[LTI13::LINEITEM_COMMENT] : false;
+            $comment = $receivedComment !== null ? $receivedComment : false;
         }
 
         // Check if we are to use SHA256 as the signature
@@ -221,19 +233,27 @@ class Result extends Entity {
 
         // Update the local copy of the grade in the lti_result table
         if ( $PDOX !== false && ! empty($result_id) ) {
+            $noteSql = '';
+            $parms = array(
+                ':grade' => $grade,
+                ':IP' => $ipaddr,
+                ':activity_progress' => $activity_progress,
+                ':grading_progress' => $grading_progress,
+                ':RID' => $result_id,
+            );
+            if ( $receivedComment !== null ) {
+                $noteSql = 'note = :note,';
+                $parms[':note'] = $receivedComment;
+            }
             $stmt = $PDOX->queryReturnError(
                 "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
                     ipaddr = :IP,
+                    {$noteSql}
                     activity_progress = :activity_progress,
                     grading_progress = :grading_progress,
                     score_timestamp = NOW(),
                     updated_at = NOW() WHERE result_id = :RID",
-                array(
-                    ':grade' => $grade,
-                    ':IP' => $ipaddr,
-                    ':activity_progress' => $activity_progress,
-                    ':grading_progress' => $grading_progress,
-                    ':RID' => $result_id)
+                $parms
             );
 
             if ( $stmt->success ) {

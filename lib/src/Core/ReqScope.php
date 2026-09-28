@@ -42,6 +42,20 @@ class ReqScope {
     private static $storedOrigin = null;
 
     /**
+     * Whether the stored launch for this request is LTI 1.1. Survives hydrate.
+     *
+     * @var bool
+     */
+    private static $storedLti11 = false;
+
+    /**
+     * Whether the stored launch for this request is LTI 1.3. Survives hydrate.
+     *
+     * @var bool
+     */
+    private static $storedLti13 = false;
+
+    /**
      * Course id noted before a full hydrate, usually by the /courses/{id} peel.
      *
      * @var int
@@ -68,6 +82,20 @@ class ReqScope {
      * @var string|null
      */
     public $origin;
+
+    /**
+     * This request's stored launch is an LTI 1.1 launch. False when it is 1.3 or not an LTI launch.
+     *
+     * @var bool
+     */
+    public $lti11 = false;
+
+    /**
+     * This request's stored launch is an LTI 1.3 launch. False when it is 1.1 or not an LTI launch.
+     *
+     * @var bool
+     */
+    public $lti13 = false;
 
     /** @var User|null */
     public $user;
@@ -399,6 +427,8 @@ class ReqScope {
         self::$notedContextId = 0;
         self::$returnUrl = null;
         self::$storedOrigin = null;
+        self::$storedLti11 = false;
+        self::$storedLti13 = false;
         self::$storedValues = array();
         self::assignGlobals(null);
     }
@@ -603,6 +633,40 @@ class ReqScope {
             return;
         }
         self::$notedContextId = $context_id;
+    }
+
+    /**
+     * Remember whether the stored launch row is LTI 1.1, LTI 1.3, or neither.
+     *
+     * A 1.3 row has issuer_client, the same check Launch::isLTI13() uses.
+     * A 1.1 row is the basic launch message and is not 1.3. Anything else,
+     * including a site login row, is neither. Applied to the current object
+     * and to the next hydrate in this request.
+     *
+     * @param array<string,mixed>|null $row Session launch row, or null.
+     * @param array<string,mixed>|null $post Original launch post, or null.
+     */
+    public static function noteLtiLaunch($row, $post = null) {
+        $lti13 = false;
+        $lti11 = false;
+        if ( is_array($row) ) {
+            $issuer = $row['issuer_client'] ?? null;
+            if ( is_string($issuer) && $issuer !== '' ) {
+                $lti13 = true;
+            }
+        }
+        if ( ! $lti13 && is_array($post) ) {
+            $message = $post['lti_message_type'] ?? '';
+            $version = $post['lti_version'] ?? '';
+            if ( $message === 'basic-lti-launch-request' || $version === 'LTI-1p0' ) {
+                $lti11 = true;
+            }
+        }
+        self::$storedLti11 = $lti11;
+        self::$storedLti13 = $lti13;
+        if ( self::$current ) {
+            self::attachLtiVersion(self::$current);
+        }
     }
 
     /**
@@ -883,6 +947,7 @@ class ReqScope {
         $rc->published = $published === null ? null : (int) $published;
         self::attachReturnUrl($rc);
         self::attachValues($rc);
+        self::attachLtiVersion($rc);
         self::$current = $rc;
         self::$notedContextId = (int) $context->id;
         $rc->origin = self::$storedOrigin;
@@ -1088,6 +1153,7 @@ class ReqScope {
         $rc->origin = self::$storedOrigin;
         self::attachReturnUrl($rc);
         self::attachValues($rc);
+        self::attachLtiVersion($rc);
         self::$current = $rc;
         self::$notedContextId = ($context && (int) $context->id > 0) ? (int) $context->id : 0;
         return $rc;
@@ -1185,6 +1251,14 @@ class ReqScope {
             return;
         }
         error_log('ReqScope refused to change context_id from '.$existing.' to '.$passed);
+    }
+
+    /**
+     * @param self $rc
+     */
+    private static function attachLtiVersion(self $rc) {
+        $rc->lti13 = self::$storedLti13;
+        $rc->lti11 = self::$storedLti13 ? false : self::$storedLti11;
     }
 
     /**

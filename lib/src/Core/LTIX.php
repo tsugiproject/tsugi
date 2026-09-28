@@ -2067,6 +2067,8 @@ class LTIX {
                 $link_id = $lti_link;
             }
         }
+        $post = $_SESSION[TSUGI_SESSION_LTI_POST] ?? null;
+        ReqScope::noteLtiLaunch(is_array($LTI) ? $LTI : null, is_array($post) ? $post : null);
         try {
             ReqScope::provision($user_id, $context_id, $link_id, $origin);
         } catch ( \Throwable $ex ) {
