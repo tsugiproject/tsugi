@@ -20,7 +20,7 @@ The flag has to be set before `config.php`. Setting the flag afterward is too la
 `.htaccess` sends a URL to `tsugi.php` only when the URL is not already a real file or directory. A real `.php` file runs on its own.
 
 - Direct file. Apache runs that file. Its first action is `config.php` (after it has chosen `COOKIE_SESSION` or left it undefined).
-- Front controller. Apache runs `tsugi.php`. That file defines `COOKIE_SESSION`, loads `config.php`, calls `LTIX::session_start()`, then either includes a sibling `.php` or routes to a controller.
+- Front controller. Apache runs `tsugi.php`. That file defines `COOKIE_SESSION` unless the query string already has `PHPSESSID` or `_LTI_TSUGI`, loads `config.php`, calls `LTIX::session_start()`, then either includes a sibling `.php` or routes to a controller.
 
 `LTIX::session_start()` is `requireDataPrivate(NONE)`. `LTIX::session_start()` does call PHP's `session_start()`. `LTIX::session_start()` builds `$TSUGI_LAUNCH` and fills `ReqScope`. When `$_SESSION['lti']` is already stored, `buildLaunch()` rebuilds `$USER`, `$CONTEXT`, `$LINK`, and `$RESULT` from that row, and `ReqScope` carries the same user, course, link, and result. `requireData()` with no arguments is the same function with user, context, and link required. A missing LTI row on that call dies.
 
@@ -35,9 +35,10 @@ The flag has to be set before `config.php`. Setting the flag afterward is too la
 | Cookie | `tsugi.php`, then a `.php` file | `LTIX::session_start()` in `tsugi.php` | `/about` → `tsugi.php` → `about.php` |
 | Cookie | `tsugi.php`, then a controller | `LTIX::session_start()` in `tsugi.php` | `/quiz1` and `/courses/123/quiz1` |
 | Cookieless | Direct file | `LTIX::requireData()` inside the tool | `/tool/gift/` → `tool/gift/index.php` |
+| Cookieless | Direct file, then `tsugi.php` | `requireData()` on the launch, then `LTIX::session_start()` | `/reqscope/launch` → `tool/reqscope/launch.php` → `/reqscope?_LTI_TSUGI=...` |
 | Cookieless or cookie | Direct file that looks at the query string first | Whatever the included file does | `/util/something` → `util/tsugi.php` |
 
-`tsugi.php` always defines `COOKIE_SESSION` before `config.php`, so every path through that front controller is a cookie session. Cookieless is a direct file that does not define the flag.
+A request through `tsugi.php` with no session id in the query string defines `COOKIE_SESSION`, so it is a cookie session. A request that already carries `?_LTI_TSUGI=` (or `?PHPSESSID=`) leaves the flag undefined, and that same front controller resumes the cookieless session. `/reqscope/launch` is rewritten to `tool/reqscope/launch.php` before that choice. That file does not define `COOKIE_SESSION`. It calls `requireData()`, which stores the launch and redirects back with `_LTI_TSUGI`. When `requireData()` returns, the script drops `script_path` and redirects to `/reqscope` with the same id. The controller then runs on that cookieless session, and `ReqScope` origin is `lti`.
 
 ### Cookie, direct file
 

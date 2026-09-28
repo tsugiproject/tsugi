@@ -2,8 +2,14 @@
 
 use Tsugi\Core\LTIX;
 
-define('COOKIE_SESSION', true);
-require_once('config.php');
+require_once __DIR__ . '/lib/include/tsugi_constants.php';
+
+// Cookie site session, unless this request already carries a cookieless id.
+// Same choice as util/tsugi.php. tool/reqscope/launch.php hands off with ?_LTI_TSUGI=.
+if ( ! isset($_GET[session_name()]) && ! isset($_GET[TSUGI_COOKIELESS_SESSION_NAME]) ) {
+    define('COOKIE_SESSION', true);
+}
+require_once __DIR__ . '/config.php';
 
 $launch = LTIX::session_start();
 
