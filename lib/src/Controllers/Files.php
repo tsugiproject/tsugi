@@ -232,7 +232,11 @@ class Files extends Tool {
                                 </td>
                                 <td>
                                     <?php if ( $is_folder ): ?>
-                                        —
+                                        <?php
+                                            $file_count = isset($item['file_count']) ? (int) $item['file_count'] : 0;
+                                            $file_label = ($file_count === 1) ? '1 file' : ($file_count.' files');
+                                        ?>
+                                        <?= htmlspecialchars($file_label) ?>
                                     <?php else: ?>
                                         <?= htmlspecialchars(U::displaySize((int)$item['bytelen'])) ?>
                                     <?php endif; ?>

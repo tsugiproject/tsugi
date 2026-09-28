@@ -329,6 +329,10 @@ class FileRepository {
                 'created_at' => $row['created_at']
             );
             if ( $meta['kind'] === self::KIND_FOLDER ) {
+                $item['file_count'] = self::countFilesUnder(
+                    $rows,
+                    self::joinFolder($folder, $row['file_name'])
+                );
                 $folders[] = $item;
             } else {
                 $files[] = $item;
@@ -371,6 +375,35 @@ class FileRepository {
             }
         }
         return false;
+    }
+
+    /**
+     * Files in this folder and every folder under it. Folder rows are not counted.
+     *
+     * An empty $folder counts every file in $rows (the course root).
+     *
+     * @param array<int, array<string, mixed>> $rows blob_file rows
+     * @param string $folder
+     * @return int
+     */
+    public static function countFilesUnder(array $rows, $folder) {
+        $count = 0;
+        $prefix = ($folder === '' || $folder === null) ? '' : $folder.'/';
+        foreach ( $rows as $row ) {
+            $meta = self::decodeMeta($row);
+            if ( $meta['kind'] !== self::KIND_FILE ) {
+                continue;
+            }
+            if ( $prefix === '' ) {
+                $count++;
+                continue;
+            }
+            $parent = $meta['folder'];
+            if ( $parent === $folder || strpos($parent, $prefix) === 0 ) {
+                $count++;
+            }
+        }
+        return $count;
     }
 
     public static function folderHasChildren($link_id, $folder, $context_id) {
