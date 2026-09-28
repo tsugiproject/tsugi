@@ -15,6 +15,7 @@ use Facebook\WebDriver\WebDriverBy;
  * Another opens home, the catalog, tool analytics, import, and the map guard,
  * then marks an announcement read.
  * Another confirms an HTML file before opening it, then scores the sample quiz.
+ * Another creates a folder, deletes a file, edits an announcement, and restores a page.
  */
 final class CourseControllersTest extends TsugiPantherTestCase
 {
@@ -85,6 +86,18 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->confirmBeforeOpeningHtml($client, $home);
         $this->scoreSampleQuiz($client, $home);
         $this->captureScreenshot($client, 'html-confirm-and-quiz-score');
+    }
+
+    public function testInstructorManagesFolderAnnouncementAndPageHistory(): void
+    {
+        $client = $this->pantherClient();
+        $course = $this->startInstructorCourse($client);
+        $home = $course['home'];
+
+        $this->createFolderAndDeleteFile($client, $home);
+        $this->editAnnouncementTitle($client, $home);
+        $this->restoreAnEarlierPage($client, $home);
+        $this->captureScreenshot($client, 'folder-announcement-page-history');
     }
 
     private function uploadFileAndSeeFolderCount(\Symfony\Component\Panther\Client $client, string $courseHome): void
@@ -611,6 +624,136 @@ final class CourseControllersTest extends TsugiPantherTestCase
             'var e = document.getElementById("announcements-error"); return e ? e.textContent : "";'
         );
         $this->fail('Mark as Read did not show previously seen announcements. '.$error);
+    }
+
+    private function createFolderAndDeleteFile(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/files');
+        $this->waitForPageText($client, 'Create folder');
+
+        $folder = 'Panther Notes';
+        $driver->findElement(WebDriverBy::id('folder_name'))->sendKeys($folder);
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Create folder')]"))->click();
+        $this->waitForPageText($client, 'Folder created');
+        $driver->findElement(WebDriverBy::linkText($folder))->click();
+        $this->waitForPageText($client, 'This folder is empty');
+
+        $path = sys_get_temp_dir().'/panther-delete-'.getmypid().'.txt';
+        file_put_contents($path, "delete me\n");
+        try {
+            $driver->findElement(WebDriverBy::id('uploads'))->sendKeys($path);
+            $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Upload')]"))->click();
+            $name = basename($path);
+            $this->waitForPageText($client, 'File uploaded');
+            $this->waitForPageText($client, $name);
+            $driver->findElement(WebDriverBy::xpath("//a[contains(., 'Parent folder')]"))->click();
+            $this->waitForPageText($client, '1 file');
+
+            $driver->findElement(WebDriverBy::linkText($folder))->click();
+            $this->waitForPageText($client, $name);
+            $driver->executeScript(
+                'window.confirm = function () { return true; };
+                 document.querySelector(arguments[0]).click();',
+                ['button[aria-label="Delete '.$name.'"]']
+            );
+            $this->waitForPageText($client, 'File deleted');
+            $this->assertStringNotContainsString($name, $client->getPageSource());
+        } finally {
+            @unlink($path);
+        }
+
+        $driver->findElement(WebDriverBy::linkText('Course files'))->click();
+        $this->waitForPageText($client, '0 files');
+        $driver->executeScript(
+            'window.confirm = function () { return true; };
+             document.querySelector(arguments[0]).click();',
+            ['button[aria-label="Delete '.$folder.'"]']
+        );
+        $this->waitForPageText($client, 'Folder deleted');
+        $this->assertStringNotContainsString($folder, $client->getPageSource());
+    }
+
+    private function editAnnouncementTitle(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $stamp = date('His');
+        $title = 'Panther Before '.$stamp;
+        $revised = 'Panther After '.$stamp;
+        $driver->get($courseHome.'/announcements/add');
+        $this->waitForPageText($client, 'Add New Announcement');
+        $driver->findElement(WebDriverBy::id('title'))->sendKeys($title);
+        $driver->findElement(WebDriverBy::id('text'))->sendKeys('Posted before the edit.');
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Create Announcement')]"))->click();
+        $this->waitForPageText($client, 'Announcement created successfully');
+
+        $driver->get($courseHome.'/announcements/manage');
+        $this->waitForPageText($client, $title);
+        $driver->findElement(WebDriverBy::linkText('Edit'))->click();
+        $this->waitForPageText($client, 'Edit Announcement');
+        $driver->executeScript('document.getElementById("title").value = arguments[0];', [$revised]);
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Update Announcement')]"))->click();
+        $this->waitForPageText($client, 'Announcement updated successfully');
+        $this->waitForPageText($client, $revised);
+        $this->assertStringNotContainsString($title, $client->getPageSource());
+    }
+
+    private function restoreAnEarlierPage(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $firstTitle = 'Panther History Page';
+        $secondTitle = 'Panther Revised Page';
+        $firstBody = 'First Panther sentence.';
+        $secondBody = 'Second Panther sentence.';
+
+        $driver->get($courseHome.'/pages/add');
+        $this->waitForPageText($client, 'Add New Page');
+        $driver->findElement(WebDriverBy::id('title'))->sendKeys($firstTitle);
+        $this->waitForEditor($driver);
+        $driver->executeScript('editor.setData(arguments[0]);', ['<p>'.$firstBody.'</p>']);
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Create Page')]"))->click();
+        $this->waitForPageText($client, 'Page created successfully');
+
+        $driver->findElement(WebDriverBy::cssSelector('a[aria-label="Edit '.$firstTitle.'"]'))->click();
+        $this->waitForPageText($client, 'Edit Page');
+        $this->waitForEditor($driver);
+        $driver->executeScript(
+            'document.getElementById("title").value = arguments[0]; editor.setData(arguments[1]);',
+            [$secondTitle, '<p>'.$secondBody.'</p>']
+        );
+        $driver->findElement(WebDriverBy::xpath("//button[normalize-space()='Update Page']"))->click();
+        $this->waitForPageText($client, 'Page updated successfully');
+        $this->waitForPageText($client, $secondTitle);
+
+        $driver->findElement(WebDriverBy::cssSelector('a[aria-label="History '.$secondTitle.'"]'))->click();
+        $this->waitForPageText($client, 'Page History: '.$secondTitle);
+        $this->waitForPageText($client, $firstTitle);
+        $driver->executeScript(
+            'window.confirm = function () { return true; };
+             var button = Array.from(document.querySelectorAll("button")).find(function (el) {
+                 return (el.textContent || "").trim() === "Restore";
+             });
+             if (!button) { throw new Error("Restore button missing"); }
+             button.click();'
+        );
+        $this->waitForPageText($client, 'Page restored successfully');
+        $this->waitForPageText($client, $firstTitle);
+
+        $driver->findElement(WebDriverBy::linkText($firstTitle))->click();
+        $this->waitForPageText($client, $firstBody);
+        $this->assertStringNotContainsString($secondBody, $client->getPageSource());
+    }
+
+    private function waitForEditor(\Facebook\WebDriver\Remote\RemoteWebDriver $driver): void
+    {
+        $deadline = microtime(true) + 15;
+        while (microtime(true) < $deadline) {
+            if ($driver->executeScript('return !!(window.editor && window.editor.setData);')) {
+                return;
+            }
+            usleep(200000);
+        }
+        $this->fail('Page editor did not load.');
     }
 
     private function labeledValue(string $page, string $prefix): string
