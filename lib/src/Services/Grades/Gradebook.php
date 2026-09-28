@@ -16,9 +16,12 @@ class Gradebook {
 
     /**
      * @param float $grade Fraction from 0 through 1.
+     * @param array<string,mixed>|false $extra AGS fields stored with the score.
+     *        Key with LTI13::ACTIVITY_PROGRESS and LTI13::GRADING_PROGRESS.
+     *        Omitted values are stored as Completed and FullyGraded.
      * @return float|string|null The stored fraction, an error string, or null when this request has no result.
      */
-    public static function record(ReqScope $rc, $grade) {
+    public static function record(ReqScope $rc, $grade, $extra = false) {
         if ( ! $rc->result || ! $rc->link ) {
             return null;
         }
@@ -42,7 +45,7 @@ class Gradebook {
         }
         $debug = array();
         try {
-            $status = $rc->result->gradeSend($grade, $row, $debug);
+            $status = $rc->result->gradeSend($grade, $row, $debug, $extra);
         } finally {
             $LINK = $savedLink;
         }

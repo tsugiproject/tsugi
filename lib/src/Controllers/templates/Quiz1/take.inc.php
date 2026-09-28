@@ -108,17 +108,27 @@ if ( isset($from_module) && is_string($from_module) && $from_module !== '' ) {
         <div class="quiz1-instructions"><?= \Tsugi\Services\Quiz1\Html::purify($quiz->instructions) ?></div>
     <?php } ?>
 
-    <?php if ( $submitted ) { ?>
+    <?php if ( $submitted ) {
+        $book = \Tsugi\Services\Quiz1\Grader::gradebookScore($result);
+        if ( is_array($book) ) {
+            $percent = $book['grade'] * 100.0;
+            $percentText = abs($percent - round($percent)) < 0.0000001
+                ? (string) (int) round($percent)
+                : sprintf('%1.1f', $percent);
+    ?>
         <p class="quiz1-score alert alert-info">
-            <?= htmlspecialchars(__('Auto-scored:')) ?>
-            <strong><?= (int) $result['earned'] ?></strong>
+            <?= htmlspecialchars(__('Score:')) ?>
+            <strong><?= (int) $book['earned'] ?></strong>
             /
-            <?= (int) $result['possible'] ?>
-            <?php if ( (int) $result['essay_possible'] > 0 ) { ?>
-                <?= htmlspecialchars(sprintf(__('(%s points of essay not auto-scored)'), (int) $result['essay_possible'])) ?>
+            <?= (int) $book['total'] ?>
+            <?php if ( $book['pending_manual'] ) { ?>
+                (<?= htmlspecialchars($percentText) ?>%, <?= htmlspecialchars(__('pending manual grading')) ?>)
+            <?php } else { ?>
+                (<?= htmlspecialchars($percentText) ?>%)
             <?php } ?>
         </p>
-    <?php } ?>
+    <?php }
+    } ?>
 
     <?php if ( count($questions) < 1 ) { ?>
         <p><?= htmlspecialchars(__('This quiz has no questions yet.')) ?></p>

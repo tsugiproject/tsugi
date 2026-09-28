@@ -29,6 +29,52 @@ class GraderTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(0, $result['items'][104]['earned']);
         $this->assertSame(Grader::CORRECT, $result['items'][105]['status']);
         $this->assertSame(Grader::CORRECT, $result['items'][106]['status']);
+        $score = Grader::gradebookScore($result);
+        $this->assertEqualsWithDelta(6 / 11, $score['grade'], 0.0001);
+        $this->assertTrue($score['pending_manual']);
+        $this->assertSame(6, $score['earned']);
+        $this->assertSame(11, $score['total']);
+    }
+
+    public function testAutoOnlyGradebookScoreIsComplete() {
+        $score = Grader::gradebookScore(array(
+            'earned' => 3,
+            'possible' => 4,
+            'essay_possible' => 0,
+        ));
+        $this->assertEqualsWithDelta(0.75, $score['grade'], 0.0001);
+        $this->assertFalse($score['pending_manual']);
+        $this->assertSame(4, $score['total']);
+    }
+
+    public function testUngradedEssayStaysInTheDenominator() {
+        $score = Grader::gradebookScore(array(
+            'earned' => 4,
+            'possible' => 4,
+            'essay_possible' => 1,
+        ));
+        $this->assertEqualsWithDelta(0.8, $score['grade'], 0.0001);
+        $this->assertTrue($score['pending_manual']);
+        $this->assertSame(5, $score['total']);
+    }
+
+    public function testEssayOnlyGradebookScoreIsZeroUntilGraded() {
+        $score = Grader::gradebookScore(array(
+            'earned' => 0,
+            'possible' => 0,
+            'essay_possible' => 5,
+        ));
+        $this->assertEqualsWithDelta(0.0, $score['grade'], 0.0001);
+        $this->assertTrue($score['pending_manual']);
+        $this->assertSame(5, $score['total']);
+    }
+
+    public function testQuizWithNoPointsHasNoGradebookScore() {
+        $this->assertNull(Grader::gradebookScore(array(
+            'earned' => 0,
+            'possible' => 0,
+            'essay_possible' => 0,
+        )));
     }
 
     public function testFillBlankIsCaseInsensitiveAndAcceptsEither() {

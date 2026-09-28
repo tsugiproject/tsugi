@@ -50,6 +50,32 @@ class Grader {
     }
 
     /**
+     * Fraction to store on the result after a finished take.
+     *
+     * Auto-only quizzes can earn every point by machine, so the fraction is
+     * earned over those points. Essay points stay in the denominator and are
+     * not yet earned, so four auto points and one ungraded essay is 0.8.
+     *
+     * @param array{earned?:int,possible?:int,essay_possible?:int} $graded
+     * @return array{grade:float,earned:int,total:int,pending_manual:bool}|null
+     */
+    public static function gradebookScore(array $graded) {
+        $earned = (int) ($graded['earned'] ?? 0);
+        $auto = (int) ($graded['possible'] ?? 0);
+        $essay = (int) ($graded['essay_possible'] ?? 0);
+        $total = $auto + $essay;
+        if ( $total < 1 ) {
+            return null;
+        }
+        return array(
+            'grade' => $earned / $total,
+            'earned' => $earned,
+            'total' => $total,
+            'pending_manual' => $essay > 0,
+        );
+    }
+
+    /**
      * @param mixed $submitted
      * @return array{status:string,earned:int,possible:int,submitted:mixed}
      */

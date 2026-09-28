@@ -21,6 +21,7 @@ use Tsugi\Services\Quiz1\Question;
 use Tsugi\Services\Quiz1\QuestionTypes;
 use Tsugi\Services\Quiz1\Quiz1Repository;
 use Tsugi\Services\Quiz1\SampleQuiz1;
+use Tsugi\Util\LTI13;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -537,7 +538,8 @@ class Quiz1 extends Tool {
     }
 
     /**
-     * Store the auto-score on the ReqScope result. The quiz page still renders either way.
+     * Store the take on the ReqScope result. Essays still open count in the
+     * denominator and are marked Completed / PendingManual. The page still renders either way.
      *
      * @param \Tsugi\Services\Quiz1\Quiz1 $quiz
      * @param array{earned:int,possible:int,essay_possible:int,items:array} $graded
@@ -548,11 +550,17 @@ class Quiz1 extends Tool {
         } catch ( ReqScopeException $ex ) {
             return;
         }
-        $possible = (int) ($graded['possible'] ?? 0);
-        if ( $possible < 1 ) {
+        $score = Grader::gradebookScore($graded);
+        if ( $score === null ) {
             return;
         }
-        $stored = Gradebook::record($rc, ((int) ($graded['earned'] ?? 0)) / $possible);
+        $extra = array(
+            LTI13::ACTIVITY_PROGRESS => LTI13::ACTIVITY_PROGRESS_COMPLETED,
+            LTI13::GRADING_PROGRESS => $score['pending_manual']
+                ? LTI13::GRADING_PROGRESS_PENDINGMANUAL
+                : LTI13::GRADING_PROGRESS_FULLYGRADED,
+        );
+        $stored = Gradebook::record($rc, $score['grade'], $extra);
         if ( is_string($stored) ) {
             U::flashError($stored);
         }

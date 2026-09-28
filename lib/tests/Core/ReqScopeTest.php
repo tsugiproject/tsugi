@@ -10,6 +10,7 @@ use Tsugi\Core\ReqScopeException;
 use Tsugi\Core\Result;
 use Tsugi\Core\User;
 use Tsugi\Services\Grades\Gradebook;
+use Tsugi\Util\LTI13;
 use Tsugi\Services\Quiz1\Quiz1;
 use Tsugi\Services\Quiz1\Quiz1Repository;
 use Tsugi\Util\U;
@@ -435,13 +436,51 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
             $this->assertEqualsWithDelta(0.5, $stored, 0.0001);
 
             $row = $pdo->rowDie(
-                "SELECT grade FROM {$this->prefix()}lti_result WHERE result_id = :RID",
+                "SELECT grade, activity_progress, grading_progress
+                FROM {$this->prefix()}lti_result WHERE result_id = :RID",
                 array(':RID' => $rc->result->id)
             );
             $this->assertEqualsWithDelta(0.5, (float) $row['grade'], 0.0001);
+            $this->assertSame(LTI13::ACTIVITY_PROGRESS_COMPLETED, $row['activity_progress']);
+            $this->assertSame(LTI13::GRADING_PROGRESS_FULLYGRADED, $row['grading_progress']);
 
             $again = ReqScope::fromInternalActivity($ids['user_id'], $ids['context_id'], $link_id);
             $this->assertEqualsWithDelta(0.5, (float) $again->result->grade, 0.0001);
+        } finally {
+            $pdo->rollBack();
+        }
+    }
+
+    public function testGradebookStoresCompletedPendingManual() {
+        $pdo = $this->beginFixtureTransaction();
+        if ( $pdo === null ) {
+            $this->markTestSkipped('Database not available for ReqScope fixtures.');
+        }
+        try {
+            $ids = $this->insertCourseFixture($pdo, LTIX::ROLE_LEARNER);
+            $quiz = new Quiz1();
+            $quiz->context_id = $ids['context_id'];
+            $quiz->user_id = $ids['user_id'];
+            $quiz->title = 'Essay quiz';
+            $quiz_id = Quiz1Repository::insertQuiz($quiz);
+            $link_id = Quiz1Repository::publish($quiz_id, $ids['context_id']);
+            $rc = ReqScope::fromInternalActivity($ids['user_id'], $ids['context_id'], $link_id);
+
+            $extra = array(
+                LTI13::ACTIVITY_PROGRESS => LTI13::ACTIVITY_PROGRESS_COMPLETED,
+                LTI13::GRADING_PROGRESS => LTI13::GRADING_PROGRESS_PENDINGMANUAL,
+            );
+            $stored = Gradebook::record($rc, 0.8, $extra);
+            $this->assertEqualsWithDelta(0.8, $stored, 0.0001);
+
+            $row = $pdo->rowDie(
+                "SELECT grade, activity_progress, grading_progress
+                FROM {$this->prefix()}lti_result WHERE result_id = :RID",
+                array(':RID' => $rc->result->id)
+            );
+            $this->assertEqualsWithDelta(0.8, (float) $row['grade'], 0.0001);
+            $this->assertSame(LTI13::ACTIVITY_PROGRESS_COMPLETED, $row['activity_progress']);
+            $this->assertSame(LTI13::GRADING_PROGRESS_PENDINGMANUAL, $row['grading_progress']);
         } finally {
             $pdo->rollBack();
         }
