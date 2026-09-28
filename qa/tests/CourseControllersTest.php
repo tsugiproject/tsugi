@@ -12,6 +12,8 @@ use Facebook\WebDriver\WebDriverBy;
  * Calendar, the Settings delete confirmation, and Quiz1 sample/publish/view.
  * A later test replaces a file, opens badges, notifications, class grades,
  * student progress, export, and course images, then saves a due date.
+ * Another opens home, the catalog, tool analytics, import, and the map guard,
+ * then marks an announcement read.
  */
 final class CourseControllersTest extends TsugiPantherTestCase
 {
@@ -59,6 +61,18 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $due = $this->addGradedLtiAndSaveDueDate($client, $home);
         $this->seeDueOnCalendar($client, $home, $due);
         $this->captureScreenshot($client, 'due-date-and-tools');
+    }
+
+    public function testInstructorOpensHomeCatalogAnalyticsAndMarksAnnouncementRead(): void
+    {
+        $client = $this->pantherClient();
+        $course = $this->startInstructorCourse($client);
+        $home = $course['home'];
+        $title = $course['title'];
+
+        $this->openHomeCatalogAnalyticsImportAndMap($client, $home, $title);
+        $this->markAnnouncementRead($client, $home);
+        $this->captureScreenshot($client, 'home-catalog-announcement');
     }
 
     private function uploadFileAndSeeFolderCount(\Symfony\Component\Panther\Client $client, string $courseHome): void
@@ -425,6 +439,62 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $client->getWebDriver()->get($courseHome.'/calendar?year='.$year.'&month='.$month);
         $this->waitForPageText($client, 'Assignment due dates');
         $this->waitForPageText($client, $due['title']);
+    }
+
+    private function openHomeCatalogAnalyticsImportAndMap(\Symfony\Component\Panther\Client $client, string $courseHome, string $courseTitle): void
+    {
+        $driver = $client->getWebDriver();
+
+        $driver->get($courseHome.'/home');
+        $this->waitForPageText($client, $courseTitle);
+        $this->waitForPageText($client, 'This home page feature is under construction.');
+
+        $driver->get($courseHome.'/catalog');
+        $this->waitForPageText($client, 'Course catalog');
+
+        $driver->get($courseHome.'/files/analytics');
+        $this->waitForPageText($client, 'Analytics: Files');
+
+        $driver->get($courseHome.'/grades/analytics');
+        $this->waitForPageText($client, 'Analytics: Grade Book');
+
+        $driver->get($courseHome.'/announcements/analytics');
+        $this->waitForPageText($client, 'Analytics: Announcements');
+
+        $driver->get($courseHome.'/settings/import');
+        $this->waitForPageText($client, 'Upload an IMS Common Cartridge');
+        $this->waitForPageText($client, 'Cartridge file');
+
+        $driver->get($courseHome.'/map');
+        $this->waitForPageText($client, 'Map showing user locations');
+    }
+
+    private function markAnnouncementRead(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $title = 'Panther Read '.date('His');
+        $driver->get($courseHome.'/announcements/add');
+        $this->waitForPageText($client, 'Add New Announcement');
+        $driver->findElement(WebDriverBy::id('title'))->sendKeys($title);
+        $driver->findElement(WebDriverBy::id('text'))->sendKeys('Dismiss me from the announcements controller.');
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Create Announcement')]"))->click();
+        $this->waitForPageText($client, 'Announcement created successfully');
+
+        $driver->get($courseHome.'/announcements');
+        $this->waitForPageText($client, $title);
+        $driver->executeScript('document.querySelector("button.mark-read-btn").click();');
+        $deadline = microtime(true) + 10;
+        while (microtime(true) < $deadline) {
+            $seen = $driver->findElements(WebDriverBy::id('show-dismissed-btn'));
+            if (count($seen) > 0 && str_contains($seen[0]->getText(), '(1)')) {
+                return;
+            }
+            usleep(200000);
+        }
+        $error = (string) $driver->executeScript(
+            'var e = document.getElementById("announcements-error"); return e ? e.textContent : "";'
+        );
+        $this->fail('Mark as Read did not show previously seen announcements. '.$error);
     }
 
     private function labeledValue(string $page, string $prefix): string
