@@ -625,8 +625,6 @@ if ( isset($CFG->sessions_in_db) && $CFG->sessions_in_db ) {
     );
 }
 
-$CFG->lumen_storage = $CFG->dirroot."/storage/";
-
 // Leave these here
 require_once $CFG->dirroot."/lib/include/setup.php";
 require_once $CFG->dirroot."/lib/include/lms_lib.php";

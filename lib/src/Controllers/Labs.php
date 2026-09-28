@@ -3,7 +3,7 @@
 namespace Tsugi\Controllers;
 
 use Tsugi\Grades\GradeUtil;
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 use Tsugi\Util\U;
 use Symfony\Component\HttpFoundation\Request;
 

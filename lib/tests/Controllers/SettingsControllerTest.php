@@ -3,8 +3,8 @@
 require_once "src/Controllers/Settings.php";
 require_once "src/Controllers/Tool.php";
 require_once "src/Config/ConfigInfo.php";
-require_once "src/Lumen/Application.php";
-require_once "src/Lumen/Router.php";
+require_once "src/Lumos/Application.php";
+require_once "src/Lumos/Router.php";
 require_once "src/Util/U.php";
 
 if (!function_exists('__')) {
@@ -15,7 +15,7 @@ if (!function_exists('__')) {
 
 use \Tsugi\Controllers\Courses;
 use \Tsugi\Controllers\Settings;
-use \Tsugi\Lumen\Application;
+use \Tsugi\Lumos\Application;
 
 class SettingsControllerTest extends \PHPUnit\Framework\TestCase
 {

@@ -16,7 +16,6 @@ class ConfigInfoTest extends \PHPUnit\Framework\TestCase
         $this->assertIsArray($CFG->extensions);
         $this->assertEmpty($CFG->extensions);
         $this->assertEquals('https://static.tsugi.org', $CFG->staticroot);
-        $this->assertEquals($dirroot . '/storage/', $CFG->lumen_storage);
     }
 
     public function testConstructorWithDataroot() {

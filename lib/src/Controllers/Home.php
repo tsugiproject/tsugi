@@ -4,7 +4,7 @@ namespace Tsugi\Controllers;
 
 use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\Request;
 
 use Tsugi\Core\ReqScope;

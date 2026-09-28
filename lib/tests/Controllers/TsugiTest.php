@@ -2,11 +2,11 @@
 
 require_once "src/Controllers/Tsugi.php";
 require_once "src/Config/ConfigInfo.php";
-require_once "src/Lumen/Application.php";
-require_once "src/Lumen/Router.php";
+require_once "src/Lumos/Application.php";
+require_once "src/Lumos/Router.php";
 
 use \Tsugi\Controllers\Tsugi;
-use \Tsugi\Lumen\Application;
+use \Tsugi\Lumos\Application;
 
 class TsugiTest extends \PHPUnit\Framework\TestCase
 {
@@ -103,7 +103,7 @@ class TsugiTest extends \PHPUnit\Framework\TestCase
         
         // Verify router exists and is configured
         $this->assertNotNull($app->router);
-        $this->assertInstanceOf(\Tsugi\Lumen\Router::class, $app->router);
+        $this->assertInstanceOf(\Tsugi\Lumos\Router::class, $app->router);
     }
     
     /**

@@ -2,11 +2,11 @@
 
 require_once "src/Controllers/GoogleClassroom.php";
 require_once "src/Controllers/Tool.php";
-require_once "src/Lumen/Application.php";
-require_once "src/Lumen/Router.php";
+require_once "src/Lumos/Application.php";
+require_once "src/Lumos/Router.php";
 
 use \Tsugi\Controllers\GoogleClassroom;
-use \Tsugi\Lumen\Application;
+use \Tsugi\Lumos\Application;
 
 class GoogleClassroomControllerTest extends \PHPUnit\Framework\TestCase
 {

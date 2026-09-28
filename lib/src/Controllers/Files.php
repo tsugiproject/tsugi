@@ -10,7 +10,7 @@ use Tsugi\Blob\BlobUtil;
 use Tsugi\Blob\Access;
 require_once __DIR__ . '/../Services/Files/FileRepository.php';
 use Tsugi\Services\Files\FileRepository;
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;

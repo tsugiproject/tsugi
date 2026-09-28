@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi\Lumen;
+namespace Tsugi\Lumos;
 
 use Tsugi\Util\U;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
@@ -12,12 +12,12 @@ use FastRoute\RouteCollector;
 use function FastRoute\simpleDispatcher;
 
 /**
- * Minimal Application implementation to replace Lumen
+ * Lumos application for a Tsugi web request.
  *
  *     <?php
  *     require_once "../config.php";
  *     $launch = \Tsugi\Core\LTIX::requireData();
- *     $app = new \Tsugi\Lumen\Application($launch);
+ *     $app = new \Tsugi\Lumos\Application($launch);
  *     $app->router->get('/', 'AppBundle\\Attend@get');
  *     $app->router->post('/', 'AppBundle\\Attend@post');
  *     $app->run();
@@ -57,7 +57,7 @@ class Application implements \ArrayAccess
      * Requires a Tsugi Launch object for initializing.
      *
      *     $launch = \Tsugi\Core\LTIX::requireData();
-     *     $app = new \Tsugi\Lumen\Application($launch);
+     *     $app = new \Tsugi\Lumos\Application($launch);
      *
      * The launch object is added to the $app variable and can be accessed
      * as follows:

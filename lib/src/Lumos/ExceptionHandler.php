@@ -1,6 +1,6 @@
 <?php
 
-namespace Tsugi\Lumen;
+namespace Tsugi\Lumos;
 
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;

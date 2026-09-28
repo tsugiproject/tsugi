@@ -2,11 +2,11 @@
 
 require_once "src/Controllers/Analytics.php";
 require_once "src/Config/ConfigInfo.php";
-require_once "src/Lumen/Application.php";
-require_once "src/Lumen/Router.php";
+require_once "src/Lumos/Application.php";
+require_once "src/Lumos/Router.php";
 
 use \Tsugi\Controllers\Analytics;
-use \Tsugi\Lumen\Application;
+use \Tsugi\Lumos\Application;
 
 class AnalyticsControllerTest extends \PHPUnit\Framework\TestCase
 {

@@ -2,7 +2,7 @@
 
 namespace Tsugi\Controllers;
 
-class Tsugi extends \Tsugi\Lumen\Application {
+class Tsugi extends \Tsugi\Lumos\Application {
 
     public function __construct($launch, $baseDir = null)
     {

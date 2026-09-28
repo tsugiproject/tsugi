@@ -2,8 +2,8 @@
 
 namespace Tsugi\Controllers;
 
-use Tsugi\Lumen\Controller;
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Controller;
+use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Tsugi\Core\LTIX;

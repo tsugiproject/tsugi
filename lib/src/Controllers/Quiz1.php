@@ -6,7 +6,7 @@ use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\ReqScope;
 use Tsugi\Core\ReqScopeException;
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 use Tsugi\Services\Quiz1\Answer;
 use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Quiz1\GiftExporter;

@@ -1,9 +1,9 @@
 <?php
 
-namespace Tsugi\Lumen;
+namespace Tsugi\Lumos;
 
 /**
- * Minimal Controller base class to replace Lumen's Controller
+ * Base class for Lumos controllers.
  */
 class Controller
 {

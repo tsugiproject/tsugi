@@ -2,7 +2,7 @@
 
 namespace Tsugi\Controllers;
 
-use Tsugi\Lumen\Controller;
+use Tsugi\Lumos\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use \Tsugi\Util\U;
 use \Tsugi\UI\DemoLogin;
 use \Tsugi\Services\Login\GoogleLoginService;
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 
 class Login extends Tool {
 

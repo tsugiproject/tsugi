@@ -11,6 +11,10 @@ useless without Tsugi BTW) was pretty pointless.
 So in Early 2026, the decision was made to merge koseu-php and tsugi-php into the main tsugi repo.
 Most of the controllers that lived in the Koseu namespace were moved into the Tsugi name space.
 
+The little bit of Lumen this repo still needed was copied in and owned here, under the namespace
+Tsugi\Lumen.  In September 2026 that in-tree code was renamed to Tsugi\Lumos (lib/src/Lumos).
+Application, Router, Controller, and ExceptionHandler are the same classes under the new name.
+
 The only thing left in this folder is a legacy class to wake up all the controllers.  All the work
 is really done in \Tsugi\Controllers\Tsugi and this class just is a legacy for some routing code
 in koseu.php or tsugi.php across the Tsugi universe.

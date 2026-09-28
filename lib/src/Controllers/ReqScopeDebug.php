@@ -3,7 +3,7 @@
 namespace Tsugi\Controllers;
 
 use Tsugi\Core\ReqScope;
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\Request;
 
 /**

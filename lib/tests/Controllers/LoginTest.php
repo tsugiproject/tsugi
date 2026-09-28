@@ -3,8 +3,8 @@
 require_once "src/Controllers/Login.php";
 require_once "src/Controllers/Tool.php";
 require_once "src/Config/ConfigInfo.php";
-require_once "src/Lumen/Application.php";
-require_once "src/Lumen/Router.php";
+require_once "src/Lumos/Application.php";
+require_once "src/Lumos/Router.php";
 require_once "src/UI/DemoLogin.php";
 
 $rootAutoload = dirname(__DIR__, 3) . '/vendor/autoload.php';
@@ -13,7 +13,7 @@ if ( file_exists($rootAutoload) ) {
 }
 
 use \Tsugi\Controllers\Login;
-use \Tsugi\Lumen\Application;
+use \Tsugi\Lumos\Application;
 use \Tsugi\UI\DemoLogin;
 use Symfony\Component\HttpFoundation\Response;
 

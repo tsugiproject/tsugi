@@ -1,11 +1,11 @@
 <?php
 
 namespace Tsugi\Controllers;
-use Tsugi\Lumen\Controller;
+use Tsugi\Lumos\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 
 use \Tsugi\Core\Cache;
 

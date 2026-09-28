@@ -2,11 +2,11 @@
 
 require_once "src/Controllers/Profile.php";
 require_once "src/Config/ConfigInfo.php";
-require_once "src/Lumen/Application.php";
-require_once "src/Lumen/Router.php";
+require_once "src/Lumos/Application.php";
+require_once "src/Lumos/Router.php";
 
 use \Tsugi\Controllers\Profile;
-use \Tsugi\Lumen\Application;
+use \Tsugi\Lumos\Application;
 
 class ProfileControllerTest extends \PHPUnit\Framework\TestCase
 {

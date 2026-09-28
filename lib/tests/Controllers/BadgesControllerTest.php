@@ -2,11 +2,11 @@
 
 require_once "src/Controllers/Badges.php";
 require_once "src/Config/ConfigInfo.php";
-require_once "src/Lumen/Application.php";
-require_once "src/Lumen/Router.php";
+require_once "src/Lumos/Application.php";
+require_once "src/Lumos/Router.php";
 
 use \Tsugi\Controllers\Badges;
-use \Tsugi\Lumen\Application;
+use \Tsugi\Lumos\Application;
 
 class BadgesControllerTest extends \PHPUnit\Framework\TestCase
 {

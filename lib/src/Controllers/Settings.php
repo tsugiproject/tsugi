@@ -14,7 +14,7 @@ use Tsugi\UI\Supporter;
 use Tsugi\Services\Lessons\LessonsCartridge;
 use Tsugi\Blob\BlobUtil;
 use Tsugi\Core\Mail;
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 use Tsugi\Services\Settings\Expire;
 use Tsugi\Services\Settings\DynamicRegistration;
 use Tsugi\Services\Quiz1\ExportException;

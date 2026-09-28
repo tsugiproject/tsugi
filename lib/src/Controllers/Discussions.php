@@ -8,7 +8,7 @@ use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Core\Membership;
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 use Tsugi\Services\Lessons\LessonsService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

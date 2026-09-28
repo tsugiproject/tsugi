@@ -6,7 +6,7 @@ namespace Tsugi\Controllers;
 use \Tsugi\Util\U;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Tsugi\Grades\GradeUtil;

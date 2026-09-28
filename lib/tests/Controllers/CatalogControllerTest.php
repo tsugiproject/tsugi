@@ -5,12 +5,12 @@ require_once "src/Controllers/Courses.php";
 require_once "src/Controllers/Tool.php";
 require_once "src/Config/ConfigInfo.php";
 require_once "src/Core/ContextImages.php";
-require_once "src/Lumen/Application.php";
-require_once "src/Lumen/Router.php";
+require_once "src/Lumos/Application.php";
+require_once "src/Lumos/Router.php";
 require_once "src/Util/U.php";
 
 use \Tsugi\Controllers\Catalog;
-use \Tsugi\Lumen\Application;
+use \Tsugi\Lumos\Application;
 
 if ( ! function_exists('__') ) {
     function __($message) {

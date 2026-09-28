@@ -5,11 +5,11 @@ require_once "include/setup_i18n.php";
 require_once "src/Services/Lessons/LessonsService.php";
 require_once "src/Controllers/Assignments.php";
 require_once "src/Config/ConfigInfo.php";
-require_once "src/Lumen/Application.php";
-require_once "src/Lumen/Router.php";
+require_once "src/Lumos/Application.php";
+require_once "src/Lumos/Router.php";
 
 use \Tsugi\Controllers\Assignments;
-use \Tsugi\Lumen\Application;
+use \Tsugi\Lumos\Application;
 
 class AssignmentsControllerTest extends \PHPUnit\Framework\TestCase
 {

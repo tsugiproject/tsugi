@@ -792,15 +792,6 @@ class ConfigInfo {
      */
     public $topics = false;
 
-    /**
-     * Storage location for Lumen Application.
-     *
-     * Needed for log files, by default dirroot."/storage/". This needs
-     * to be a location on your server that has write access.
-     *
-     */
-    public $lumen_storage;
-
     /*
      * Whether or not to track launch activity
      */
@@ -1204,7 +1195,6 @@ class ConfigInfo {
         $this->wwwroot = $wwwroot;
         $this->extensions = array();
         $this->staticroot = 'https://static.tsugi.org';
-        $this->lumen_storage = sprintf("%s/storage/", $dirroot);
     }
 
     function getExtension($key, $default=null) {

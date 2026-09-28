@@ -6,7 +6,7 @@ use Tsugi\Util\U;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Grades\GradeUtil;
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 use Tsugi\Services\Quiz1\Quiz1Repository;
 use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Lessons\LessonsNormalize;

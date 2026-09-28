@@ -2,7 +2,7 @@
 
 namespace Tsugi\Controllers;
 
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;

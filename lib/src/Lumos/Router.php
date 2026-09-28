@@ -1,9 +1,9 @@
 <?php
 
-namespace Tsugi\Lumen;
+namespace Tsugi\Lumos;
 
 /**
- * Minimal Router implementation to replace Lumen's router
+ * Router for a Lumos application.
  */
 class Router
 {

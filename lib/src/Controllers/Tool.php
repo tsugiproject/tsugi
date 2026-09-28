@@ -9,7 +9,7 @@ use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Membership;
 use Tsugi\Grades\GradeUtil;
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 

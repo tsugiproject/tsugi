@@ -14,7 +14,7 @@ use Tsugi\Services\Lessons\LessonsNormalize;
 
 // Ensure CKEditor helper is loaded (fallback if autoload misses it)
 require_once __DIR__ . '/../UI/CKEditor.php';
-use Tsugi\Lumen\Application;
+use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
