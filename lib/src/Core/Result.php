@@ -130,6 +130,30 @@ class Result extends Entity {
     }
 
     /**
+     * A progress value from $extra. Absent or empty uses $default.
+     * Any other value must be a recognized string, or this returns false.
+     *
+     * @param mixed $extra
+     * @param string $key
+     * @param string[] $allowed
+     * @param string $default
+     * @return string|false
+     */
+    private static function suppliedProgress($extra, $key, array $allowed, $default) {
+        if ( ! is_array($extra) || ! array_key_exists($key, $extra) ) {
+            return $default;
+        }
+        $value = $extra[$key];
+        if ( $value === null || $value === false || $value === '' ) {
+            return $default;
+        }
+        if ( is_string($value) && in_array($value, $allowed, true) ) {
+            return $value;
+        }
+        return false;
+    }
+
+    /**
      * Send a grade and update our local copy
      *
      * Call the right LTI service to send a new grade up to the server.
@@ -223,13 +247,38 @@ class Result extends Entity {
         // Get the IP Address
         $ipaddr = Net::getIP();
 
-        // Resolve activity_progress and grading_progress from $extra or use LTI13 defaults
-        $activity_progress = is_array($extra) && isset($extra[LTI13::ACTIVITY_PROGRESS])
-            ? $extra[LTI13::ACTIVITY_PROGRESS]
-            : LTI13::ACTIVITY_PROGRESS_COMPLETED;
-        $grading_progress = is_array($extra) && isset($extra[LTI13::GRADING_PROGRESS])
-            ? $extra[LTI13::GRADING_PROGRESS]
-            : LTI13::GRADING_PROGRESS_FULLYGRADED;
+        // Resolve activity_progress and grading_progress from $extra or use LTI13 defaults.
+        // A supplied value must be one of the recognized strings. Absent or empty keeps the default.
+        $activity_progress = self::suppliedProgress(
+            $extra,
+            LTI13::ACTIVITY_PROGRESS,
+            array(
+                LTI13::ACTIVITY_PROGRESS_INITIALIZED,
+                LTI13::ACTIVITY_PROGRESS_STARTED,
+                LTI13::ACTIVITY_PROGRESS_INPROGRESS,
+                LTI13::ACTIVITY_PROGRESS_SUBMITTED,
+                LTI13::ACTIVITY_PROGRESS_COMPLETED,
+            ),
+            LTI13::ACTIVITY_PROGRESS_COMPLETED
+        );
+        $grading_progress = self::suppliedProgress(
+            $extra,
+            LTI13::GRADING_PROGRESS,
+            array(
+                LTI13::GRADING_PROGRESS_FULLYGRADED,
+                LTI13::GRADING_PROGRESS_PENDING,
+                LTI13::GRADING_PROGRESS_PENDINGMANUAL,
+                LTI13::GRADING_PROGRESS_FAILED,
+                LTI13::GRADING_PROGRESS_NOTREADY,
+            ),
+            LTI13::GRADING_PROGRESS_FULLYGRADED
+        );
+        if ( $activity_progress === false ) {
+            return 'Activity progress is not a recognized value.';
+        }
+        if ( $grading_progress === false ) {
+            return 'Grading progress is not a recognized value.';
+        }
 
         // Update the local copy of the grade in the lti_result table
         if ( $PDOX !== false && ! empty($result_id) ) {

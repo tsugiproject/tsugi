@@ -277,13 +277,26 @@ class ReqScopeDebug extends Tool {
             LTI13::ACTIVITY_PROGRESS_SUBMITTED,
             LTI13::ACTIVITY_PROGRESS_COMPLETED,
         );
-        if ( is_string($gradingProgress) && $gradingProgress !== '' && ! in_array($gradingProgress, $grading, true) ) {
+        if ( ! self::optionalProgressOk($gradingProgress, $grading) ) {
             return 'Grading progress is not a recognized value.';
         }
-        if ( is_string($activityProgress) && $activityProgress !== '' && ! in_array($activityProgress, $activity, true) ) {
+        if ( ! self::optionalProgressOk($activityProgress, $activity) ) {
             return 'Activity progress is not a recognized value.';
         }
         return null;
+    }
+
+    /**
+     * An optional progress value may be absent or empty. Any other value must be a recognized string.
+     *
+     * @param mixed $value
+     * @param string[] $allowed
+     */
+    private static function optionalProgressOk($value, array $allowed) {
+        if ( $value === null || $value === false || $value === '' ) {
+            return true;
+        }
+        return is_string($value) && in_array($value, $allowed, true);
     }
 
     private static function doOption($option, $current) {
