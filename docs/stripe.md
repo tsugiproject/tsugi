@@ -101,7 +101,7 @@ The webhook URL for Stripe is:
 ## User flow
 
 1. User sees “Become a supporter” on **Profile** → `premium.supporter_url`.
-   An active supporter instead sees “Extend for another year” (or the configured period).
+   An active supporter also sees a small “extend” link on that same line.
    Paying again adds `premium_months` onto the current end date; it does not restart from today.
 2. Support/marketing page → **Continue to payment** → `/stripe`
 3. User confirms → POST creates a Stripe Checkout Session

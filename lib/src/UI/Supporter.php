@@ -111,19 +111,13 @@ class Supporter {
             echo('Thank you for supporting ' . $site . '!');
         }
 
-        echo("\n</p>\n");
-
         if ( $ctx['is_active'] && $ctx['supporter_url'] !== '' ) {
-            $extend_label = htmlspecialchars(self::extendLinkLabel($CFG));
-            echo('<p style="margin: 0 0 1.25em;">' . "\n");
-            echo('Want to show a little more support? ');
-            echo('<a href="' . $ctx['supporter_url'] . '">' . $extend_label . '</a>');
-            if ( $ctx['price_phrase'] !== '' ) {
-                echo(' <span style="opacity: 0.75;">— '
-                    . htmlspecialchars($ctx['price_phrase']) . '.</span>');
-            }
-            echo("\n</p>\n");
+            echo(' (<a href="' . $ctx['supporter_url'] . '"'
+                . ' title="' . htmlspecialchars(self::extendLinkLabel($CFG)) . '"'
+                . ' style="color: inherit;">extend</a>)');
         }
+
+        echo("\n</p>\n");
     }
 
     /**
