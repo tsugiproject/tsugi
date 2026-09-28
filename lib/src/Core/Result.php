@@ -762,6 +762,7 @@ class Result extends Entity {
             http_response_code(403);
             die();
         }
+        GradeUtil::invalidateGradesCurrentUser();
     }
 
     /**
