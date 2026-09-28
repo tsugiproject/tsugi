@@ -50,7 +50,7 @@ class Result extends Entity {
         $stmt = $PDOX->queryDie(
             "SELECT result_id, R.link_id AS link_id, R.user_id AS user_id,
                 L.lti13_lineitem AS lti13_lineitem, U.subject_key AS lti13_subject_key,
-                sourcedid, service_id, grade, note, R.json AS json, R.note AS note
+                sourcedid, service_id, grade, comment, R.json AS json, R.comment AS comment
             FROM {$CFG->dbprefix}lti_result AS R
             JOIN {$CFG->dbprefix}lti_link AS L
                 ON L.link_id = R.link_id AND R.link_id = :LID
@@ -183,8 +183,8 @@ class Result extends Entity {
 
         $PDOX = LTIX::getConnection();
 
-        // A comment on this send is stored in lti_result.note. Callers that
-        // omit it leave whatever note is already there.
+        // A comment on this send is stored in lti_result.comment. Callers that
+        // omit it leave whatever comment is already there.
         $receivedComment = null;
         if ( is_array($extra) && array_key_exists(LTI13::LINEITEM_COMMENT, $extra)
             && is_string($extra[LTI13::LINEITEM_COMMENT]) ) {
@@ -197,9 +197,15 @@ class Result extends Entity {
         $secret = false;
         $lti13_subject_key = false;
         if ( $row !== false ) {
-            // Using the note from the local db for the comment, unless this
-            // send brought a new one.
-            $comment = isset($row['note']) ? $row['note'] : false;
+            // Using the stored comment, unless this send brought a new one.
+            // A row that still carries the text under note is accepted until callers move.
+            if ( isset($row['comment']) ) {
+                $comment = $row['comment'];
+            } else if ( isset($row['note']) ) {
+                $comment = $row['note'];
+            } else {
+                $comment = false;
+            }
             if ( $receivedComment !== null ) {
                 $comment = $receivedComment;
             }
@@ -282,7 +288,7 @@ class Result extends Entity {
 
         // Update the local copy of the grade in the lti_result table
         if ( $PDOX !== false && ! empty($result_id) ) {
-            $noteSql = '';
+            $commentSql = '';
             $parms = array(
                 ':grade' => $grade,
                 ':IP' => $ipaddr,
@@ -291,13 +297,13 @@ class Result extends Entity {
                 ':RID' => $result_id,
             );
             if ( $receivedComment !== null ) {
-                $noteSql = 'note = :note,';
-                $parms[':note'] = $receivedComment;
+                $commentSql = 'comment = :comment,';
+                $parms[':comment'] = $receivedComment;
             }
             $stmt = $PDOX->queryReturnError(
                 "UPDATE {$CFG->dbprefix}lti_result SET grade = :grade,
                     ipaddr = :IP,
-                    {$noteSql}
+                    {$commentSql}
                     activity_progress = :activity_progress,
                     grading_progress = :grading_progress,
                     score_timestamp = NOW(),
@@ -676,29 +682,28 @@ class Result extends Entity {
     }
 
     /**
-     * Get a Note
+     * Get the comment stored for this result.
      *
      * @param $user_id The primary key of the user (instructor only)
      *
-     * @return The annotation array
+     * @return string|false
      */
-    public function getNote($user_id=false) {
+    public function getComment($user_id=false) {
         global $CFG;
 
         $PDOX = $this->launch->pdox;
         if ( ! $this->launch->user->instructor || ! $user_id || $user_id == $this->launch->user->id ){
             $stmt = $PDOX->queryDie(
-                "SELECT note FROM {$CFG->dbprefix}lti_result
+                "SELECT comment FROM {$CFG->dbprefix}lti_result
                     WHERE result_id = :RID",
                 array(':RID' => $this->id)
             );
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-            $note_str = is_array($row) ? $row['note'] : "";
-            return $note_str;
+            return is_array($row) ? $row['comment'] : "";
         } else if ( $this->launch->user->instructor ) {
             $p = $CFG->dbprefix;
             $row = $PDOX->rowDie(
-                "SELECT note
+                "SELECT comment
                 FROM {$p}lti_result AS R
                 WHERE R.link_id = :LID and R.user_id = :UID",
                 array(
@@ -706,8 +711,7 @@ class Result extends Entity {
                     ":LID" => $this->launch->link->id
                 )
             );
-            $note_str = is_array($row) ? $row['note'] : "";
-            return $note_str;
+            return is_array($row) ? $row['comment'] : "";
         } else {
             return false;
             http_response_code(403);
@@ -716,31 +720,40 @@ class Result extends Entity {
     }
 
     /**
-     * Set the Note for this result
+     * The comment for this result. Reads lti_result.comment.
      *
-     * @param $note_str The Note String
      * @param $user_id The primary key of the user (instructor only)
      *
-     * @return The annotation array
+     * @return string|false
      */
-    public function setNote($note_str, $user_id=false) {
+    public function getNote($user_id=false) {
+        return $this->getComment($user_id);
+    }
+
+    /**
+     * Set the comment stored for this result.
+     *
+     * @param $comment_str The comment
+     * @param $user_id The primary key of the user (instructor only)
+     */
+    public function setComment($comment_str, $user_id=false) {
         global $CFG;
         $PDOX = $this->launch->pdox;
         if ( ! $this->launch->user->instructor || ! $user_id || $user_id == $this->launch->user->id ){
-            $stmt = $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}lti_result SET note = :note, updated_at = NOW()
+            $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}lti_result SET comment = :comment, updated_at = NOW()
                     WHERE result_id = :RID",
                 array(
-                    ':note' => $note_str,
+                    ':comment' => $comment_str,
                     ':RID' => $this->id)
             );
         } else if ( $this->launch->user->instructor ) {
             $p = $CFG->dbprefix;
-            $stmt = $PDOX->queryDie(
-                "UPDATE {$p}lti_result SET note = :NOTE, updated_at = NOW()
+            $PDOX->queryDie(
+                "UPDATE {$p}lti_result SET comment = :comment, updated_at = NOW()
                 WHERE link_id = :LID and user_id = :UID",
                 array(
-                    ":NOTE" => $note_str,
+                    ":comment" => $comment_str,
                     ":UID" => $user_id,
                     ":LID" => $this->launch->link->id
                 )
@@ -749,6 +762,17 @@ class Result extends Entity {
             http_response_code(403);
             die();
         }
+        GradeUtil::invalidateGradesCurrentUser();
+    }
+
+    /**
+     * The comment for this result. Writes lti_result.comment.
+     *
+     * @param $note_str The comment
+     * @param $user_id The primary key of the user (instructor only)
+     */
+    public function setNote($note_str, $user_id=false) {
+        $this->setComment($note_str, $user_id);
     }
 
     /**

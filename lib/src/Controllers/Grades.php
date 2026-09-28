@@ -281,10 +281,10 @@ class Grades extends Tool {
         
         // Query for user's grades
         $query_parms = array(":UID" => $view_user_id, ":CID" => $context_id);
-        $searchfields = array("L.title", "R.grade", "R.note", "R.updated_at", "retrieved_at");
+        $searchfields = array("L.title", "R.grade", "R.comment", "R.updated_at", "retrieved_at");
         $user_sql =
             "SELECT R.result_id AS result_id, L.title as title, L.link_key AS resource_link_id,
-                L.link_id AS link_id, R.grade AS grade, R.note AS note,
+                L.link_id AS link_id, R.grade AS grade, R.comment AS comment,
                 R.updated_at as updated_at, server_grade, retrieved_at, sourcedid, result_url, service_key as service,
                 TIMESTAMPDIFF(SECOND,retrieved_at,NOW()) as diff_in_seconds, NOW() AS time_now
             FROM {$p}lti_result AS R
