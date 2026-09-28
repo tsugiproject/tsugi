@@ -44,6 +44,9 @@ class ReqScopeDebug extends Tool {
      */
     public function post(Request $request) {
         global $CFG;
+        if ( ! self::checkCsrf() ) {
+            return new RedirectResponse(addSession($CFG->wwwroot.'/reqscope'));
+        }
         if ( self::enabled() ) {
             self::sendGrade();
         }
@@ -60,6 +63,7 @@ class ReqScopeDebug extends Tool {
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
         echo("<h1>ReqScope</h1>\n");
         if ( ! self::enabled() ) {
             echo("<p>reqscope_debug is off.</p>\n");
@@ -143,6 +147,7 @@ class ReqScopeDebug extends Tool {
         $action = htmlspecialchars(addSession($CFG->wwwroot.'/reqscope'));
 
         echo("<form method=\"post\" action=\"".$action."\">\n");
+        echo(self::csrfField()."\n");
         echo("<input type=\"text\" name=\"grade\" value=\"".htmlspecialchars((string) $grade)."\"/> Grade<br/>\n");
         echo("<input type=\"text\" name=\"comment\" value=\"".htmlspecialchars((string) $comment)."\"/> Comment<br/>\n");
         echo("<select name=\"".LTI13::GRADING_PROGRESS."\">\n");
@@ -164,20 +169,23 @@ class ReqScopeDebug extends Tool {
         echo("<input type=\"submit\">\n");
         echo("</form>\n");
 
-        if ( $sent ) {
+        if ( $sent && $status === true ) {
             echo("<p><i class=\"fa fa-trophy\" aria-hidden=\"true\"></i> Grade send finished.");
             if ( $transport ) {
                 echo(" Sent using ".htmlspecialchars((string) $transport).".");
             } else {
                 echo(" Stored locally.");
             }
-            if ( is_string($status) && $status !== '' && $status !== '1' ) {
+            echo("</p>\n");
+        } else if ( $sent ) {
+            echo("<p>Grade send failed.");
+            if ( is_string($status) && $status !== '' ) {
                 echo(" ".htmlspecialchars($status));
             }
             echo("</p>\n");
-            if ( $debug_log ) {
-                echo(self::pre($debug_log));
-            }
+        }
+        if ( $sent && $debug_log ) {
+            echo(self::pre($debug_log));
         }
     }
 
@@ -200,10 +208,15 @@ class ReqScopeDebug extends Tool {
         $scope = ReqScope::current();
         $debug_log = array();
         $transport = null;
-        if ( $scope && $scope->user && $scope->user->instructor ) {
+        $status = self::gradeInputError($grade, $gradingProgress, $activityProgress);
+        if ( $status === null && $scope && $scope->user && $scope->user->instructor ) {
             $status = "Instructors can't send grades with LTI.";
-        } else {
-            $extra = array(LTI13::LINEITEM_COMMENT => $comment);
+        }
+        if ( $status === null ) {
+            $extra = array();
+            if ( is_string($comment) ) {
+                $extra[LTI13::LINEITEM_COMMENT] = $comment;
+            }
             if ( $activityProgress ) $extra[LTI13::ACTIVITY_PROGRESS] = $activityProgress;
             if ( $gradingProgress ) $extra[LTI13::GRADING_PROGRESS] = $gradingProgress;
             $status = $result->gradeSend($grade, false, $debug_log, $extra);
@@ -218,6 +231,39 @@ class ReqScopeDebug extends Tool {
         $_SESSION['reqscope_transport'] = $transport;
         $_SESSION['reqscope_debug_log'] = $debug_log;
         $_SESSION['reqscope_status'] = $status;
+    }
+
+    /**
+     * @param mixed $grade
+     * @param mixed $gradingProgress
+     * @param mixed $activityProgress
+     * @return string|null An error message, or null when the posted values can be sent.
+     */
+    private static function gradeInputError($grade, $gradingProgress, $activityProgress) {
+        if ( ! is_numeric($grade) || (float) $grade < 0.0 || (float) $grade > 1.0 ) {
+            return 'Grade must be between 0.0 and 1.0.';
+        }
+        $grading = array(
+            LTI13::GRADING_PROGRESS_FULLYGRADED,
+            LTI13::GRADING_PROGRESS_PENDING,
+            LTI13::GRADING_PROGRESS_PENDINGMANUAL,
+            LTI13::GRADING_PROGRESS_FAILED,
+            LTI13::GRADING_PROGRESS_NOTREADY,
+        );
+        $activity = array(
+            LTI13::ACTIVITY_PROGRESS_INITIALIZED,
+            LTI13::ACTIVITY_PROGRESS_STARTED,
+            LTI13::ACTIVITY_PROGRESS_INPROGRESS,
+            LTI13::ACTIVITY_PROGRESS_SUBMITTED,
+            LTI13::ACTIVITY_PROGRESS_COMPLETED,
+        );
+        if ( is_string($gradingProgress) && $gradingProgress !== '' && ! in_array($gradingProgress, $grading, true) ) {
+            return 'Grading progress is not a recognized value.';
+        }
+        if ( is_string($activityProgress) && $activityProgress !== '' && ! in_array($activityProgress, $activity, true) ) {
+            return 'Activity progress is not a recognized value.';
+        }
+        return null;
     }
 
     private static function doOption($option, $current) {
