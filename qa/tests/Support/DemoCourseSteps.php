@@ -57,14 +57,33 @@ trait DemoCourseSteps
             'document.querySelector("form[method=\'post\']").setAttribute("action", arguments[0]);',
             [$simulate]
         );
+        $this->submitDemoPersona($client, $secret, 'instructor-01', 'Instructor 01');
+    }
+
+    protected function loginStudent(\Symfony\Component\Panther\Client $client, string $secret): void
+    {
+        $driver = $client->getWebDriver();
+        $simulate = $this->uri('login/simulate');
+        $driver->get($simulate);
+        $this->waitForPageText($client, 'Demo login');
+        $driver->executeScript(
+            'document.querySelector("form[method=\'post\']").setAttribute("action", arguments[0]);',
+            [$simulate]
+        );
+        $this->submitDemoPersona($client, $secret, 'student-01', 'Student 01');
+    }
+
+    private function submitDemoPersona(\Symfony\Component\Panther\Client $client, string $secret, string $personaId, string $displayName): void
+    {
+        $driver = $client->getWebDriver();
         $persona = new WebDriverSelect($driver->findElement(WebDriverBy::id('persona')));
-        $persona->selectByValue('instructor-01');
+        $persona->selectByValue($personaId);
         $driver->findElement(WebDriverBy::id('secret'))->sendKeys($secret);
         $driver->findElement(WebDriverBy::cssSelector('form[method="post"] button[type="submit"]'))->click();
         $deadline = microtime(true) + 15;
         while (microtime(true) < $deadline) {
             $page = $client->getPageSource();
-            if (!str_contains($page, 'name="persona"') && str_contains($page, 'Instructor 01')) {
+            if (!str_contains($page, 'name="persona"') && str_contains($page, $displayName)) {
                 return;
             }
             usleep(200000);

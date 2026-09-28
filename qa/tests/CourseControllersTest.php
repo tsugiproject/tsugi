@@ -16,6 +16,7 @@ use Facebook\WebDriver\WebDriverBy;
  * then marks an announcement read.
  * Another confirms an HTML file before opening it, then scores the sample quiz.
  * Another creates a folder, deletes a file, edits an announcement, and restores a page.
+ * Another lists the course in the catalog so a student can join and see learner screens.
  */
 final class CourseControllersTest extends TsugiPantherTestCase
 {
@@ -98,6 +99,69 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->editAnnouncementTitle($client, $home);
         $this->restoreAnEarlierPage($client, $home);
         $this->captureScreenshot($client, 'folder-announcement-page-history');
+    }
+
+    public function testStudentJoinsCatalogCourseAndSeesSharedFiles(): void
+    {
+        $client = $this->pantherClient();
+        $course = $this->startInstructorCourse($client);
+        $home = $course['home'];
+        $title = $course['title'];
+        $stamp = (string) getmypid();
+        $shared = 'panther-student-'.$stamp.'.txt';
+        $public = 'panther-public-'.$stamp.'.txt';
+        $private = 'panther-private-'.$stamp.'.txt';
+        $obscure = 'panther-obscure-'.$stamp.'.txt';
+        $announcement = 'Panther Student Notice '.$stamp;
+
+        $this->uploadNamedFile($client, $home, 'Student', $shared, "Students can read this.\n");
+        $this->uploadNamedFile($client, $home, 'Public', $public, "public only by link\n");
+        $this->uploadNamedFile($client, $home, 'Private', $private, "instructors only\n");
+        $this->uploadNamedFile($client, $home, '', $obscure, "hidden from student browsing\n");
+        $this->publishAnnouncement($client, $home, $announcement);
+        $this->publishCourseInCatalog($client, $title);
+
+        $secret = getenv('TSUGI_DEMO_SECRET');
+        $driver = $client->getWebDriver();
+        $driver->get($this->uri('logout'));
+        $this->loginStudent($client, is_string($secret) ? $secret : '');
+        $this->saveProfileIfShown($client);
+
+        $driver->get($this->uri('catalog'));
+        $this->waitForPageText($client, 'Course catalog');
+        $opened = (bool) $driver->executeScript(
+            'var title = arguments[0];
+             var link = Array.from(document.querySelectorAll("a")).find(function (el) {
+                 return (el.textContent || "").indexOf(title) !== -1;
+             });
+             if (!link) { return false; }
+             window.location.href = link.href;
+             return true;',
+            [$title]
+        );
+        $this->assertTrue($opened, 'Catalog did not list the new course.');
+        $this->waitForPageText($client, 'Join course');
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Join course')]"))->click();
+        $this->waitForPageText($client, $title);
+        $this->assertSame($home, $this->courseHomeFromUrl($driver->getCurrentURL()));
+
+        $this->studentSeesOnlySharedFiles($client, $home, $shared, [$public, $private, $obscure]);
+        $driver->get($home.'/files/Private/'.rawurlencode($private));
+        $this->waitForPageText($client, 'File not found');
+        $this->assertStringNotContainsString('instructors only', $client->getPageSource());
+
+        $driver->get($home.'/announcements');
+        $this->waitForPageText($client, $announcement);
+        $this->assertStringNotContainsString('Manage Announcements', $client->getPageSource());
+
+        $driver->get($home.'/grades');
+        $this->waitForPageText($client, 'Grade Book');
+        $this->waitForPageText($client, 'student01@notgoogle.com');
+        $this->assertStringNotContainsString('View Class Grades', $client->getPageSource());
+
+        $driver->get($home.'/settings');
+        $this->waitForPageText($client, 'You must be an administrator or instructor for this context');
+        $this->captureScreenshot($client, 'student-catalog-files');
     }
 
     private function uploadFileAndSeeFolderCount(\Symfony\Component\Panther\Client $client, string $courseHome): void
@@ -754,6 +818,104 @@ final class CourseControllersTest extends TsugiPantherTestCase
             usleep(200000);
         }
         $this->fail('Page editor did not load.');
+    }
+
+    private function uploadNamedFile(\Symfony\Component\Panther\Client $client, string $courseHome, string $folder, string $basename, string $body): void
+    {
+        $driver = $client->getWebDriver();
+        $url = $courseHome.'/files';
+        if ($folder !== '') {
+            $url .= '?folder='.rawurlencode($folder);
+        }
+        $driver->get($url);
+        $this->waitForPageText($client, 'Upload');
+
+        $path = sys_get_temp_dir().'/'.$basename;
+        file_put_contents($path, $body);
+        try {
+            $driver->findElement(WebDriverBy::id('uploads'))->sendKeys($path);
+            $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Upload')]"))->click();
+            $this->waitForPageText($client, 'File uploaded');
+            $this->waitForPageText($client, $basename);
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    private function publishAnnouncement(\Symfony\Component\Panther\Client $client, string $courseHome, string $title): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/announcements/add');
+        $this->waitForPageText($client, 'Add New Announcement');
+        $driver->findElement(WebDriverBy::id('title'))->sendKeys($title);
+        $driver->findElement(WebDriverBy::id('text'))->sendKeys('Visible to learners.');
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Create Announcement')]"))->click();
+        $this->waitForPageText($client, 'Announcement created successfully');
+    }
+
+    private function publishCourseInCatalog(\Symfony\Component\Panther\Client $client, string $courseTitle): void
+    {
+        $driver = $client->getWebDriver();
+        $adminPw = getenv('TSUGI_ADMIN_PW');
+        $this->assertIsString($adminPw);
+        $driver->get($this->uri('admin/'));
+        $this->waitForPageText($client, 'Admin Unlock');
+        $driver->findElement(WebDriverBy::name('passphrase'))->sendKeys($adminPw);
+        $driver->findElement(WebDriverBy::cssSelector('form[method="post"] input[type="submit"]'))->click();
+        $this->waitForPageText($client, 'Administration Console');
+
+        $driver->get($this->uri('admin/catalog/edit.php'));
+        $this->waitForPageText($client, 'Add catalog listing');
+        $selected = (bool) $driver->executeScript(
+            'var title = arguments[0];
+             var sel = document.getElementById("context_id");
+             if (!sel) { return false; }
+             var opt = Array.from(sel.options).find(function (o) { return (o.textContent || "").trim() === title; });
+             if (!opt) { return false; }
+             sel.value = opt.value;
+             return true;',
+            [$courseTitle]
+        );
+        $this->assertTrue($selected, 'New course was not in the catalog course list.');
+        $driver->findElement(WebDriverBy::id('title'))->sendKeys($courseTitle);
+        $published = $driver->findElement(WebDriverBy::cssSelector('input[name="published"]'));
+        if (!$published->isSelected()) {
+            $published->click();
+        }
+        $driver->executeScript('document.getElementById("catalog_form").submit();');
+        $this->waitForPageText($client, 'Catalog entry saved.');
+    }
+
+    /**
+     * @param string[] $hiddenNames
+     */
+    private function studentSeesOnlySharedFiles(\Symfony\Component\Panther\Client $client, string $courseHome, string $sharedName, array $hiddenNames): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/files');
+        $this->waitForPageText($client, $sharedName);
+        $this->assertStringNotContainsString('Create folder', $client->getPageSource());
+        $this->assertStringNotContainsString('id="uploads"', $client->getPageSource());
+        foreach ($hiddenNames as $name) {
+            $this->assertStringNotContainsString($name, $client->getPageSource());
+        }
+
+        $opened = (bool) $driver->executeScript(
+            'var name = arguments[0];
+             var link = Array.from(document.querySelectorAll("a")).find(function (el) {
+                 return (el.textContent || "").indexOf(name) !== -1;
+             });
+             if (!link) { return false; }
+             window.location.href = link.href;
+             return true;',
+            [$sharedName]
+        );
+        $this->assertTrue($opened, 'Student file had no link.');
+        $this->waitForPageText($client, 'Students can read this.');
+
+        $driver->get($courseHome.'/files?folder=Public');
+        $this->waitForPageText($client, $sharedName);
+        $this->assertStringNotContainsString($hiddenNames[0], $client->getPageSource());
     }
 
     private function labeledValue(string $page, string $prefix): string
