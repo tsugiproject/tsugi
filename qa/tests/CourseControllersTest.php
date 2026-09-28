@@ -10,6 +10,8 @@ use Facebook\WebDriver\WebDriverBy;
  * Instructor walk through course controllers that DemoCourseTest does not open:
  * Files (folder file counts), Announcements, Discussions, Grades, Assignments,
  * Calendar, the Settings delete confirmation, and Quiz1 sample/publish/view.
+ * A later test replaces a file, opens badges, notifications, class grades,
+ * student progress, export, and course images, then saves a due date.
  */
 final class CourseControllersTest extends TsugiPantherTestCase
 {
@@ -43,6 +45,20 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->authorLessonQuizLink($client, $home);
         $this->takeQuizFromLessons($client, $home);
         $this->captureScreenshot($client, 'quiz-from-lessons');
+    }
+
+    public function testInstructorSetsDueDateAndOpensMoreTools(): void
+    {
+        $client = $this->pantherClient();
+        $course = $this->startInstructorCourse($client);
+        $home = $course['home'];
+        $title = $course['title'];
+
+        $this->replaceAnUploadedFile($client, $home);
+        $this->openBadgesNotificationsGradesAndSettings($client, $home, $title);
+        $due = $this->addGradedLtiAndSaveDueDate($client, $home);
+        $this->seeDueOnCalendar($client, $home, $due);
+        $this->captureScreenshot($client, 'due-date-and-tools');
     }
 
     private function uploadFileAndSeeFolderCount(\Symfony\Component\Panther\Client $client, string $courseHome): void
@@ -285,6 +301,130 @@ final class CourseControllersTest extends TsugiPantherTestCase
             }
         }
         $this->fail('Timed out waiting for an alert containing '.$needle);
+    }
+
+    private function replaceAnUploadedFile(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/files');
+        $this->waitForPageText($client, 'Upload');
+
+        $dir = sys_get_temp_dir();
+        $original = $dir.'/panther-replace-'.getmypid().'.txt';
+        $replacement = $dir.'/panther-replaced-'.getmypid().'.txt';
+        file_put_contents($original, "first file\n");
+        file_put_contents($replacement, "replaced file\n");
+        try {
+            $driver->findElement(WebDriverBy::id('uploads'))->sendKeys($original);
+            $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Upload')]"))->click();
+            $this->waitForPageText($client, 'File uploaded');
+            $name = basename($original);
+            $this->waitForPageText($client, $name);
+
+            $driver->findElement(WebDriverBy::linkText('Replace'))->click();
+            $this->waitForPageText($client, 'Replacing '.$name);
+            $driver->findElement(WebDriverBy::id('replacement'))->sendKeys($replacement);
+            $driver->findElement(WebDriverBy::xpath("//button[normalize-space()='Replace']"))->click();
+            $this->waitForPageText($client, 'Replaced '.$name);
+        } finally {
+            @unlink($original);
+            @unlink($replacement);
+        }
+    }
+
+    private function openBadgesNotificationsGradesAndSettings(\Symfony\Component\Panther\Client $client, string $courseHome, string $courseTitle): void
+    {
+        $driver = $client->getWebDriver();
+
+        $driver->get($courseHome.'/badges');
+        $this->waitForPageText($client, $courseTitle);
+        $this->waitForPageText($client, 'Badges Awarded');
+
+        $driver->get($courseHome.'/notifications');
+        $this->waitForPageText($client, 'Test Notification');
+
+        $driver->get($courseHome.'/grades/class');
+        $this->waitForPageText($client, 'Grade Book');
+        $this->waitForPageText($client, 'Class: '.$courseTitle);
+        $this->waitForPageText($client, 'View My Grades');
+
+        $driver->get($courseHome.'/assignments/student-progress');
+        $this->waitForPageText($client, 'Student Progress');
+
+        $driver->get($courseHome.'/settings/export');
+        $this->waitForPageText($client, 'Choose the LMS that will use this cartridge:');
+        $this->waitForPageText($client, $courseTitle);
+
+        $driver->get($courseHome.'/settings/images');
+        $this->waitForPageText($client, '16×9 course image');
+        $this->waitForPageText($client, 'Square course icon');
+    }
+
+    /**
+     * @return array{title: string, date: string}
+     */
+    private function addGradedLtiAndSaveDueDate(\Symfony\Component\Panther\Client $client, string $courseHome): array
+    {
+        $driver = $client->getWebDriver();
+        $itemTitle = 'Panther Due Item';
+        $driver->get($courseHome.'/lessons/_author');
+        $this->waitForPageText($client, 'Add module');
+
+        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Add module"]'))->click();
+        $this->waitForPageText($client, 'Edit Module');
+        $module = $driver->findElement(WebDriverBy::id('edit-module-title'));
+        $module->clear();
+        $module->sendKeys('Panther Due Module');
+        $driver->findElement(WebDriverBy::id('edit-module-anchor'))->sendKeys('panther-due-module');
+        $driver->findElement(WebDriverBy::xpath("//div[@id='item-modal']//button[contains(., 'Save')]"))->click();
+        $this->waitForPageText($client, 'Panther Due Module');
+
+        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Add item"]'))->click();
+        $this->waitForPageText($client, 'Add Item');
+        $driver->executeScript(
+            "document.getElementById('edit-item-type').value = 'lti'; updateItemForm();"
+        );
+        $this->waitForPageText($client, 'Resource Link ID');
+        $driver->executeScript(
+            "document.getElementById('edit-title').value = arguments[0];
+             document.getElementById('edit-launch').value = 'https://example.com/launch';
+             document.getElementById('edit-resource-link-id').value = 'panther-due-1';",
+            [$itemTitle]
+        );
+        $driver->findElement(WebDriverBy::xpath("//div[@id='item-modal']//button[contains(., 'Save')]"))->click();
+        $driver->executeScript('saveChanges()');
+        $this->acceptAlertContaining($driver, 'saved');
+
+        $driver->get($courseHome.'/assignments/manage-due-dates');
+        $this->waitForPageText($client, 'Manage due dates');
+        $this->waitForPageText($client, $itemTitle);
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Add missing link rows')]"))->click();
+        $this->waitForPageText($client, 'Added link rows.');
+
+        $dueDate = date('Y-m-d');
+        $driver->executeScript(
+            'var input = document.querySelector("input[name=\\"end[]\\"]");
+             if (!input) { return false; }
+             input.value = arguments[0];
+             return true;',
+            [$dueDate]
+        );
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Save due dates')]"))->click();
+        $this->waitForPageText($client, 'Saved due dates.');
+
+        return ['title' => $itemTitle, 'date' => $dueDate];
+    }
+
+    /**
+     * @param array{title: string, date: string} $due
+     */
+    private function seeDueOnCalendar(\Symfony\Component\Panther\Client $client, string $courseHome, array $due): void
+    {
+        $year = substr($due['date'], 0, 4);
+        $month = (string) (int) substr($due['date'], 5, 2);
+        $client->getWebDriver()->get($courseHome.'/calendar?year='.$year.'&month='.$month);
+        $this->waitForPageText($client, 'Assignment due dates');
+        $this->waitForPageText($client, $due['title']);
     }
 
     private function labeledValue(string $page, string $prefix): string
