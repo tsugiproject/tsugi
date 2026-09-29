@@ -124,12 +124,13 @@ class GoogleClassroom extends Tool {
                 die_with_error_log('Error: rlid parameter is required');
             }
 
-            $l = new Lessons($CFG->lessons);
-            $lti = $l->getLtiByRlid($_GET['rlid']);
+            $l = \Tsugi\Core\Manifest::currentLessons();
+            $lti = $l ? $l->getLtiByRlid($_GET['rlid']) : null;
             if ( ! $lti ) {
                 die_with_error_log('Invalid resource link id');
             }
-            $endpoint = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
+            $launch = \Tsugi\Services\Lessons\LessonsNormalize::launchUrlForItem($lti);
+            $endpoint = U::add_url_parm($launch, 'inherit', $lti->resource_link_id);
             $endpoint_title = $lti->title;
         }
 

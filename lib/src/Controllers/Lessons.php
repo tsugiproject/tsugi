@@ -2131,6 +2131,23 @@ $(function(){
     }
 
     /**
+     * Discussion in this course, under /courses/{id} when the lessons page is.
+     *
+     * @param mixed $resource_link_id
+     * @return string
+     */
+    private static function discussionControllerPath($resource_link_id) {
+        if ( ! is_string($resource_link_id) || $resource_link_id === '' ) {
+            return '';
+        }
+        $home = Tool::determineToolHome(Discussions::ROUTE);
+        if ( ! is_string($home) || $home === '' ) {
+            return '';
+        }
+        return U::addSession($home.'/'.rawurlencode($resource_link_id));
+    }
+
+    /**
      * Render a discussion item
      */
     private static function renderItemDiscussion($lessons, $item, $module, $nostyle=false) {
@@ -2162,10 +2179,18 @@ $(function(){
                 echo("\n</li>\n");
                 return;
             }
-            
-            $launch_path = $lessons->lessonsLaunchPath($resource_link_id);
+
+            $launch_path = self::discussionControllerPath($resource_link_id);
+            if ( $launch_path === '' ) {
+                echo('<li class="tsugi-lessons-module-discussion">');
+                echo('<span style="display: inline-flex; align-items: center;">');
+                self::renderItemIcon(LessonsNormalize::iconKey($item));
+                echo(htmlentities($resource_link_title));
+                echo('</span></li>'."\n");
+                return;
+            }
             echo('<li class="tsugi-lessons-module-discussion">');
-            echo('<a href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
+            echo('<a href="'.htmlspecialchars($launch_path).'" style="display: inline-flex; align-items: center;">');
             self::renderItemIcon(LessonsNormalize::iconKey($item));
             echo(htmlentities($resource_link_title).'</a></li>'."\n");
         }

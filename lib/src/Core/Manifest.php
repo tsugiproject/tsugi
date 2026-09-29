@@ -26,10 +26,11 @@ use \Tsugi\Services\Lessons\LessonsNormalize;
  * Tsugi\Core\Cache is session-based and must not be used for this document.
  * Older cache entries that stored a JSON string only are still accepted.
  *
- * Tools that auto-populate from lessons.json (store import, CC export,
- * peer-grade inherit, Autograder, Google Classroom, admin install repos)
- * stay on $CFG->lessons for now. Manifest-course authoring should use LTI
- * custom / resource-link settings instead; that wiring is deferred.
+ * A resource-link read (store install, peer-grade inherit, Autograder,
+ * Google Classroom rlid) uses {@see currentLessons()}: the course manifest
+ * when this context has one, otherwise $CFG->lessons. CC export and admin
+ * install repos stay on the site file. Discussion items in the lessons
+ * page open the discussions controller for that resource_link_id.
  *
  * Every new version is test-loaded with LessonsService::tryFromJson() before insert.
  * Authoring can export/import a lessons.json file; import is the same save path.

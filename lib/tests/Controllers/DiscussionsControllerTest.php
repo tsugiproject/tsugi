@@ -76,15 +76,14 @@ class DiscussionsControllerTest extends \PHPUnit\Framework\TestCase
         }
         $this->assertTrue($hasDiscussionsRoute, 'Should register /discussions route');
         
-        // Should have /discussions_launch route
-        $hasLaunchRoute = false;
+        $hasDiscussionRoute = false;
         foreach ($uris as $uri) {
-            if (strpos($uri, '/discussions_launch') === 0) {
-                $hasLaunchRoute = true;
+            if ($uri === '/discussions/{rlid}') {
+                $hasDiscussionRoute = true;
                 break;
             }
         }
-        $this->assertTrue($hasLaunchRoute, 'Should register /discussions_launch route');
+        $this->assertTrue($hasDiscussionRoute, 'Should register /discussions/{rlid}');
 
         $hasMarkReadRoute = false;
         foreach ($uris as $uri) {
@@ -132,16 +131,16 @@ class DiscussionsControllerTest extends \PHPUnit\Framework\TestCase
             $_SERVER['REQUEST_URI'] = '/courses/2/discussions';
             $home = \Tsugi\Controllers\Tool::determineToolHome(Discussions::ROUTE);
             $this->assertEquals('/courses/2/discussions', $home);
-            $this->assertEquals('/courses/2/discussions_launch/discussion_features',
-                $home . '_launch/discussion_features');
+            $this->assertEquals('/courses/2/discussions/discussion_features',
+                $home . '/discussion_features');
 
             $_SERVER['REQUEST_URI'] = '/discussions';
             $home = \Tsugi\Controllers\Tool::determineToolHome(Discussions::ROUTE);
             $this->assertEquals('/discussions', $home);
-            $this->assertEquals('/discussions_launch/discussion_features',
-                $home . '_launch/discussion_features');
+            $this->assertEquals('/discussions/discussion_features',
+                $home . '/discussion_features');
 
-            $_SERVER['REQUEST_URI'] = '/courses/2/discussions_launch/discussion_features';
+            $_SERVER['REQUEST_URI'] = '/courses/2/discussions/discussion_features';
             $home = \Tsugi\Controllers\Tool::determineToolHome(Discussions::ROUTE);
             $this->assertEquals('/courses/2/discussions', $home);
         } finally {
