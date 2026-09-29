@@ -16,7 +16,7 @@ Instructor course tests log in as the demo persona Instructor 01, grant course c
 
 **`AdminTest::testAdminConsoleAccessibleWithPassphrase`** opens `/admin/`, submits the admin passphrase, and expects the Administration Console. It also checks that the unlock did not fail the CSRF check.
 
-**`AdminTest::testAdminScreensHaveNoTracebacks`** unlocks the console, then opens the main admin screens one by one: site config, catalog, keys, expiry, contexts, activity, badges, users, profiles, recent logins, installed modules, keyset, caches, encrypt/decrypt, nonces, database size, mail, events, blob status, blob migration, blob cleanup, remote tools, and PHP info. It does not run upgrade, send mail, or delete data. The installed-modules screen may alert that git refuses the container checkout; that ownership alert is dismissed. Any other browser alert fails the test.
+**`AdminTest::testAdminScreensHaveNoTracebacks`** unlocks the console, then opens the main admin screens one by one: site config, catalog, keys, expiry, contexts, activity, badges, users, profiles, recent logins, keyset, caches, encrypt/decrypt, nonces, database size, mail, events, blob status, blob migration, blob cleanup, remote tools, and PHP info. It does not open installed modules, run upgrade, send mail, or delete data.
 
 ## Course setup
 
