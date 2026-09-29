@@ -1113,7 +1113,11 @@ $(function(){
 
                     if ( $nostyle ) {
                         echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion">'.htmlentities($resource_link_title).' (Login Required) <br/>'."\n");
-                        $discussionurl = U::add_url_parm(LessonsNormalize::launchUrlForItem($discussion), 'inherit', $discussion->resource_link_id);
+                        if ( self::discussionUsesLtiLaunch() ) {
+                            $discussionurl = U::add_url_parm(LessonsNormalize::launchUrlForItem($discussion), 'inherit', $discussion->resource_link_id);
+                        } else {
+                            $discussionurl = self::discussionControllerPath($discussion->resource_link_id ?? '');
+                        }
                         echo('<span style="color:green">'.htmlentities($discussionurl)."</span>\n");
                         if ( isset($_SESSION['gc_count']) ) {
                             echo('<a href="'.$CFG->wwwroot.'/gclass/assign?rlid='.$discussion->resource_link_id);
@@ -1125,7 +1129,7 @@ $(function(){
                         continue;
                     }
 
-                    $launch_path = $lessons->lessonsLaunchPath($discussion->resource_link_id);
+                    $launch_path = self::discussionHref($lessons, $discussion->resource_link_id ?? '');
                     $title = isset($discussion->title) ? $discussion->title : "Discussion";
                     echo('<li class="tsugi-lessons-module-discussion"><a href="'.$launch_path.'">'.htmlentities($title).'</a></li>'."\n");
                     echo("\n</li>\n");
@@ -2131,6 +2135,15 @@ $(function(){
     }
 
     /**
+     * True when lessons discussion links should LTI-launch tool/tdiscus.
+     * Unset means the discussions controller. Dev turns this on to exercise both paths.
+     */
+    private static function discussionUsesLtiLaunch() {
+        global $CFG;
+        return (bool) $CFG->getExtension('discussion_lti_launch', false);
+    }
+
+    /**
      * Discussion in this course, under /courses/{id} when the lessons page is.
      *
      * @param mixed $resource_link_id
@@ -2145,6 +2158,23 @@ $(function(){
             return '';
         }
         return U::addSession($home.'/'.rawurlencode($resource_link_id));
+    }
+
+    /**
+     * Href for a lessons discussion: controller URL, or the lessons LTI launch when the extension is on.
+     *
+     * @param \Tsugi\Services\Lessons\LessonsService $lessons
+     * @param mixed $resource_link_id
+     * @return string
+     */
+    private static function discussionHref($lessons, $resource_link_id) {
+        if ( ! is_string($resource_link_id) || $resource_link_id === '' ) {
+            return '';
+        }
+        if ( self::discussionUsesLtiLaunch() ) {
+            return $lessons->lessonsLaunchPath($resource_link_id);
+        }
+        return self::discussionControllerPath($resource_link_id);
     }
 
     /**
@@ -2174,13 +2204,17 @@ $(function(){
                 self::renderItemIcon(LessonsNormalize::iconKey($item));
                 echo(htmlentities($resource_link_title).' (Login Required)');
                 echo('</span><br/>'."\n");
-                $discussionurl = U::add_url_parm($launch, 'inherit', $resource_link_id);
+                if ( self::discussionUsesLtiLaunch() ) {
+                    $discussionurl = U::add_url_parm($launch, 'inherit', $resource_link_id);
+                } else {
+                    $discussionurl = self::discussionControllerPath($resource_link_id);
+                }
                 echo('<span style="color:green">'.htmlentities($discussionurl)."</span>\n");
                 echo("\n</li>\n");
                 return;
             }
 
-            $launch_path = self::discussionControllerPath($resource_link_id);
+            $launch_path = self::discussionHref($lessons, $resource_link_id);
             if ( $launch_path === '' ) {
                 echo('<li class="tsugi-lessons-module-discussion">');
                 echo('<span style="display: inline-flex; align-items: center;">');
