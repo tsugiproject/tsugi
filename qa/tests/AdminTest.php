@@ -77,7 +77,10 @@ final class AdminTest extends TsugiPantherTestCase
     /**
      * GET-only admin screens. Skips actions that delete, send mail, or migrate.
      *
-     * @return array<string, string>
+     * List screens print a column name only after the first row exists.
+     * A fresh database shows "Nothing to display." instead.
+     *
+     * @return array<string, string|list<string>>
      */
     private function adminSmokePages(): array
     {
@@ -88,12 +91,12 @@ final class AdminTest extends TsugiPantherTestCase
             'admin/catalog/edit.php' => 'Add catalog listing',
             'admin/key/' => 'LTI Tenants',
             'admin/expire/' => 'Manage Data Expiry',
-            'admin/context/' => 'members',
-            'admin/activity/' => 'link_title',
+            'admin/context/' => ['members', 'Nothing to display.'],
+            'admin/activity/' => ['link_title', 'Nothing to display.'],
             'admin/badges/' => 'Badges Awarded',
-            'admin/users/' => 'displayname',
-            'admin/profile/' => 'premium',
-            'admin/recent' => 'Ipaddr',
+            'admin/users/' => ['displayname', 'Nothing to display.'],
+            'admin/profile/' => ['premium', 'Nothing to display.'],
+            'admin/recent' => ['Ipaddr', 'Nothing to display.'],
             'admin/install/' => 'git',
             'admin/keyset' => 'Keyset Detail',
             'admin/cache' => 'Cache Detail',
@@ -111,21 +114,28 @@ final class AdminTest extends TsugiPantherTestCase
         ];
     }
 
-    private function waitForAdminText(\Symfony\Component\Panther\Client $client, string $marker, string $path = 'admin/'): string
+    /**
+     * @param string|list<string> $marker
+     */
+    private function waitForAdminText(\Symfony\Component\Panther\Client $client, string|array $marker, string $path = 'admin/'): string
     {
+        $markers = is_array($marker) ? $marker : [$marker];
         $deadline = microtime(true) + 20;
         $page = '';
         while (microtime(true) < $deadline) {
             $page = $this->pageSource($client, $path);
-            if (str_contains($page, $marker)) {
-                return $page;
+            foreach ($markers as $needle) {
+                if (str_contains($page, $needle)) {
+                    return $page;
+                }
             }
             usleep(200000);
         }
 
         $this->captureScreenshot($client, 'debug-admin-smoke');
         $excerpt = substr(preg_replace('/\s+/u', ' ', $page) ?? $page, 0, 300);
-        $this->fail($path.' did not show "'.$marker.'". '.$excerpt);
+        $shown = implode('" or "', $markers);
+        $this->fail($path.' did not show "'.$shown.'". '.$excerpt);
     }
 
     /**
