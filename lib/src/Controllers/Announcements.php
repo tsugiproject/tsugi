@@ -391,7 +391,9 @@ class Announcements extends Tool {
                                     newBtn.setAttribute('aria-expanded', 'false');
                                     newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
                                     p.appendChild(newBtn);
-                                    var container = document.querySelector('.container');
+                                    var container = announcementsList && announcementsList.parentElement
+                                        ? announcementsList.parentElement
+                                        : document.getElementById('main-content');
                                     var announcementsList = document.getElementById('announcements-list');
                                     if (announcementsList) {
                                         container.insertBefore(p, announcementsList);
@@ -423,6 +425,48 @@ class Announcements extends Tool {
                                         }
                                     });
                                 }
+                            } else {
+                                var announcementsList = document.getElementById('announcements-list');
+                                var container = announcementsList && announcementsList.parentElement
+                                    ? announcementsList.parentElement
+                                    : document.getElementById('main-content');
+                                var dismissedDiv = document.createElement('div');
+                                dismissedDiv.id = 'dismissed-announcements-list';
+                                dismissedDiv.style.display = 'none';
+                                container.appendChild(dismissedDiv);
+                                dismissedDiv.appendChild(item);
+                                var seenP = document.createElement('p');
+                                seenP.className = 'text-muted';
+                                var seenBtn = document.createElement('button');
+                                seenBtn.id = 'show-dismissed-btn';
+                                seenBtn.type = 'button';
+                                seenBtn.className = 'btn btn-sm btn-link';
+                                seenBtn.style.padding = '0';
+                                seenBtn.setAttribute('data-dismissed-count', '0');
+                                seenBtn.setAttribute('aria-controls', 'dismissed-announcements-list');
+                                seenBtn.setAttribute('aria-expanded', 'false');
+                                seenBtn.textContent = 'Show previously seen announcements (0)';
+                                seenP.appendChild(seenBtn);
+                                if (announcementsList) {
+                                    container.insertBefore(seenP, announcementsList);
+                                } else {
+                                    container.appendChild(seenP);
+                                }
+                                var seenHidden = true;
+                                seenBtn.addEventListener('click', function() {
+                                    var seenCount = dismissedDiv.querySelectorAll('.announcement-item').length;
+                                    if (seenHidden) {
+                                        dismissedDiv.style.display = '';
+                                        seenBtn.textContent = 'Hide previously seen announcements (' + seenCount + ')';
+                                        seenBtn.setAttribute('aria-expanded', 'true');
+                                        seenHidden = false;
+                                    } else {
+                                        dismissedDiv.style.display = 'none';
+                                        seenBtn.textContent = 'Show previously seen announcements (' + seenCount + ')';
+                                        seenBtn.setAttribute('aria-expanded', 'false');
+                                        seenHidden = true;
+                                    }
+                                });
                             }
                             
                             updateDismissedCount(1);
@@ -488,7 +532,10 @@ class Announcements extends Tool {
                                 var dismissedDiv = document.createElement('div');
                                 dismissedDiv.id = 'dismissed-announcements-list';
                                 dismissedDiv.style.display = 'none';
-                                var container = document.querySelector('.container');
+                                var listForContainer = document.getElementById('announcements-list');
+                                var container = listForContainer && listForContainer.parentElement
+                                    ? listForContainer.parentElement
+                                    : document.getElementById('main-content');
                                 container.appendChild(dismissedDiv);
                                 dismissedAnnouncementsList = dismissedDiv;
                             }
@@ -543,7 +590,10 @@ class Announcements extends Tool {
                                 newBtn.setAttribute('aria-expanded', 'false');
                                 newBtn.textContent = 'Show previously seen announcements (' + currentDismissedCount + ')';
                                 dismissedP.appendChild(newBtn);
-                                var container = document.querySelector('.container');
+                                var listForContainer = document.getElementById('announcements-list');
+                                var container = listForContainer && listForContainer.parentElement
+                                    ? listForContainer.parentElement
+                                    : document.getElementById('main-content');
                                 var announcementsList = document.getElementById('announcements-list');
                                 if (announcementsList) {
                                     container.insertBefore(dismissedP, announcementsList);
