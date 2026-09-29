@@ -270,14 +270,18 @@ Send me notification mail for important things like my assignment was graded.
         $profile = json_decode($json_string);
         if ( ! is_object($profile) ) $profile = new \stdClass();
 
-        $profile->subscribe = $_POST['subscribe']+0 ;
+        if ( isset($_POST['subscribe']) ) {
+            $profile->subscribe = $_POST['subscribe']+0 ;
+        }
 
-        if ($_POST['theme'] == 1) {
-            $profile->theme_override = 'hc-bow';
-        } else if ($_POST['theme'] == 2) {
-            $profile->theme_override = 'hc-wob';
-        } else {
-            $profile->theme_override = null;
+        if ( isset($_POST['theme']) ) {
+            if ($_POST['theme'] == 1) {
+                $profile->theme_override = 'hc-bow';
+            } else if ($_POST['theme'] == 2) {
+                $profile->theme_override = 'hc-wob';
+            } else {
+                $profile->theme_override = null;
+            }
         }
 
         if ( isset($_POST['map']) ) {
