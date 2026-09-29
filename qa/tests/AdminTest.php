@@ -50,14 +50,25 @@ final class AdminTest extends TsugiPantherTestCase
         $client = $this->pantherClient();
         $driver = $client->getWebDriver();
         $driver->get($this->uri('admin/'));
-        $driver->findElement(WebDriverBy::name('passphrase'))->sendKeys($passphrase);
-        $driver->findElement(WebDriverBy::cssSelector('form[method="post"] input[type="submit"]'))->click();
-        $this->waitForAdminText($client, 'Administration Console');
+        $deadline = microtime(true) + 15;
+        $page = '';
+        while (microtime(true) < $deadline) {
+            $page = $client->getPageSource();
+            if (str_contains($page, 'Administration Console') || str_contains($page, 'name="passphrase"')) {
+                break;
+            }
+            usleep(200000);
+        }
+        if (!str_contains($page, 'Administration Console')) {
+            $driver->findElement(WebDriverBy::name('passphrase'))->sendKeys($passphrase);
+            $driver->findElement(WebDriverBy::cssSelector('form[method="post"] input[type="submit"]'))->click();
+            $this->waitForAdminText($client, 'Administration Console');
+        }
 
         foreach ($this->adminSmokePages() as $path => $marker) {
             $driver->get($this->uri($path));
             $page = $this->waitForAdminText($client, $marker, $path);
-            $this->assertNoAdminTraceback($page, $path);
+            $this->assertPageHasNoPhpError($page, $path);
         }
 
         $this->captureScreenshot($client, 'admin-smoke');
@@ -141,24 +152,6 @@ final class AdminTest extends TsugiPantherTestCase
             }
 
             return $client->getPageSource();
-        }
-    }
-
-    private function assertNoAdminTraceback(string $page, string $path): void
-    {
-        $needles = [
-            'Fatal error',
-            'Uncaught ',
-            'Stack trace:',
-            'SQLSTATE[',
-            'Parse error',
-            'Warning:',
-            'Notice:',
-            'Deprecated:',
-            'Failure connecting to the database',
-        ];
-        foreach ($needles as $needle) {
-            $this->assertStringNotContainsString($needle, $page, $path.' contained '.$needle);
         }
     }
 }

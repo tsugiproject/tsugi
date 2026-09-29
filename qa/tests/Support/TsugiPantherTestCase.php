@@ -1,6 +1,9 @@
 <?php
 
+use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Symfony\Component\Panther\PantherTestCase;
+
+require_once __DIR__ . '/ScanningWebDriver.php';
 
 abstract class TsugiPantherTestCase extends PantherTestCase
 {
@@ -44,11 +47,51 @@ abstract class TsugiPantherTestCase extends PantherTestCase
         self::preferProjectChromeDriver();
         $base = self::baseUri();
 
-        return self::createPantherClient([
+        $client = self::createPantherClient([
             'base_uri' => $base,
             'external_base_uri' => $base,
             'browser' => self::CHROME,
         ]);
+        $client->start();
+        $this->installPageScan($client);
+
+        return $client;
+    }
+
+    /**
+     * PHP display_errors output, not the word "Warning:" in course settings.
+     */
+    public function assertPageHasNoPhpError(string $html, string $where = ''): void
+    {
+        $patterns = [
+            '/<b>(?:Warning|Notice|Deprecated|Fatal error|Parse error)<\/b>:/i',
+            '/(?:Fatal error|Parse error|Warning|Notice|Deprecated):[^\n]{0,400}\bon line \d+/i',
+            '/Uncaught (?:[\w\\\\]+)*(?:Exception|Error)\b/',
+            '/Stack trace:/',
+            '/SQLSTATE\[/',
+            '/Failure connecting to the database/',
+        ];
+        foreach ($patterns as $pattern) {
+            if (!preg_match($pattern, $html, $match, PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+            $hit = $match[0][0];
+            $at = (int) $match[0][1];
+            $excerpt = substr($html, max(0, $at - 60), 220);
+            $excerpt = preg_replace('/\s+/u', ' ', $excerpt ?? '');
+            $place = $where !== '' ? $where : 'the returned page';
+            $this->fail('PHP error on '.$place.': '.$hit.' … '.$excerpt);
+        }
+    }
+
+    private function installPageScan(\Symfony\Component\Panther\Client $client): void
+    {
+        $property = new \ReflectionProperty($client, 'webDriver');
+        $inner = $property->getValue($client);
+        if (!$inner instanceof RemoteWebDriver) {
+            return;
+        }
+        $property->setValue($client, new ScanningWebDriver($inner, $this));
     }
 
     /**

@@ -118,7 +118,7 @@ final class DemoCourseTest extends TsugiPantherTestCase
         $this->waitForPageText($client, 'Hello from the Panther page.');
     }
 
-    private function acceptAlertContaining(\Facebook\WebDriver\Remote\RemoteWebDriver $driver, string $needle): void
+    private function acceptAlertContaining(\Facebook\WebDriver\WebDriver $driver, string $needle): void
     {
         $deadline = microtime(true) + 15;
         while (microtime(true) < $deadline) {

@@ -389,7 +389,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->waitForPageText($client, 'pending manual grading');
     }
 
-    private function acceptAlertContaining(\Facebook\WebDriver\Remote\RemoteWebDriver $driver, string $needle): void
+    private function acceptAlertContaining(\Facebook\WebDriver\WebDriver $driver, string $needle): void
     {
         $deadline = microtime(true) + 15;
         while (microtime(true) < $deadline) {
