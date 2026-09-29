@@ -117,8 +117,19 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // InnoDB satisfies this foreign key with the UNIQUE index on link_id,
+    // so SHOW INDEX never lists quiz1_quiz_ibfk_3 after it has been added.
     $fk = "{$CFG->dbprefix}quiz1_quiz_ibfk_3";
-    if ( ! in_array($fk, $indexes) ) {
+    $existing = $PDOX->rowDie(
+        "SELECT CONSTRAINT_NAME AS constraint_name
+            FROM information_schema.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = :table_name
+              AND CONSTRAINT_NAME = :constraint_name
+              AND CONSTRAINT_TYPE = 'FOREIGN KEY'",
+        array(':table_name' => $table, ':constraint_name' => $fk)
+    );
+    if ( ! is_array($existing) ) {
         $sql = "ALTER TABLE {$table} ADD CONSTRAINT `{$fk}`
             FOREIGN KEY (`link_id`)
             REFERENCES `{$CFG->dbprefix}lti_link` (`link_id`)

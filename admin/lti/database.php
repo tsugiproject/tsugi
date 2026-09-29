@@ -1312,25 +1312,19 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    // The score comment lives in lti_result.comment. note stays. Copy while any note is set,
-    // and clear note only after that copy succeeds, so a failed step can be retried.
+    // The score comment lives in lti_result.comment. Copy note into comment once,
+    // in the upgrade that creates the column, then leave both columns alone.
     $result_table = "{$CFG->dbprefix}lti_result";
-    if ( $PDOX->columnExists('note', $result_table) ) {
-        $comment_exists = $PDOX->columnExists('comment', $result_table);
-        if ( ! $comment_exists ) {
-            $sql = "ALTER TABLE {$result_table} ADD comment MEDIUMTEXT NULL";
-            echo("Upgrading: ".$sql."<br/>\n");
-            error_log("Upgrading: ".$sql);
-            $q = $PDOX->queryReturnError($sql);
-            $comment_exists = $q->success;
-        }
-
-        if ( $comment_exists ) {
+    if ( $PDOX->columnExists('note', $result_table) && ! $PDOX->columnExists('comment', $result_table) ) {
+        $sql = "ALTER TABLE {$result_table} ADD comment MEDIUMTEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( $q->success ) {
             $sql = "UPDATE {$result_table} SET comment = note WHERE note IS NOT NULL";
             echo("Upgrading: ".$sql."<br/>\n");
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryReturnError($sql);
-
             if ( $q->success ) {
                 $sql = "UPDATE {$result_table} SET note = NULL WHERE note IS NOT NULL";
                 echo("Upgrading: ".$sql."<br/>\n");
