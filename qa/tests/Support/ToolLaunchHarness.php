@@ -4,7 +4,7 @@ require_once __DIR__ . '/TsugiPantherTestCase.php';
 
 use Facebook\WebDriver\Exception\NoSuchElementException;
 use Facebook\WebDriver\Exception\StaleElementReferenceException;
-use Facebook\WebDriver\Remote\RemoteWebDriver;
+use Facebook\WebDriver\WebDriver;
 use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverElement;
 
@@ -156,7 +156,7 @@ abstract class ToolLaunchHarness extends TsugiPantherTestCase
         $this->fail('Timed out while trying to interact with tool iframe.');
     }
 
-    protected function clickFirst(RemoteWebDriver $driver, array $locators): void
+    protected function clickFirst(WebDriver $driver, array $locators): void
     {
         foreach ($locators as $locator) {
             try {
@@ -169,7 +169,7 @@ abstract class ToolLaunchHarness extends TsugiPantherTestCase
         $this->fail('Could not find clickable target for provided locators.');
     }
 
-    protected function findFirst(RemoteWebDriver $driver, array $locators): WebDriverElement
+    protected function findFirst(WebDriver $driver, array $locators): WebDriverElement
     {
         foreach ($locators as $locator) {
             try {

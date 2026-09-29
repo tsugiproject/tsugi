@@ -808,7 +808,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->assertStringNotContainsString($secondBody, $client->getPageSource());
     }
 
-    private function waitForEditor(\Facebook\WebDriver\Remote\RemoteWebDriver $driver): void
+    private function waitForEditor(\Facebook\WebDriver\WebDriver $driver): void
     {
         $deadline = microtime(true) + 15;
         while (microtime(true) < $deadline) {
