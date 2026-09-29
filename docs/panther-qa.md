@@ -28,6 +28,8 @@ Instructor course tests log in as the demo persona Instructor 01, grant course c
 
 **`CourseControllersTest::testInstructorLinksPublishedQuizFromLessons`** publishes the sample quiz, adds it to a lesson, and submits the quiz from Lessons with no answers. The result shows a score that is still pending manual grading.
 
+**`DiscussionEquivalenceTest::testThreadsMatchBetweenLessonsLaunchAndController`** adds a discussion to a lesson. Docker sets `discussion_lti_launch`, so the lessons click LTI-launches `tool/tdiscus`. A thread created there shows up in the discussions controller, a thread created in the controller shows up on the next lessons launch, and both titles are on both pages.
+
 **`CourseControllersTest::testInstructorSetsDueDateAndOpensMoreTools`** uploads a file and replaces it, then opens badges, notifications, class grades, student progress, export, and course images. It adds an LTI lesson item, saves a due date, and checks that the item appears on the calendar for that day.
 
 **`CourseControllersTest::testInstructorOpensHomeCatalogAnalyticsAndMarksAnnouncementRead`** opens the course home, the catalog, analytics for files, the grade book, and announcements, plus the import form and the map. It posts an announcement and marks it read, then checks that the previously seen count is 1.

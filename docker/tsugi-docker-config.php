@@ -109,6 +109,11 @@ $CFG->show_courses_widget = true;
 // create and point to a lessons.json file
 // $CFG->lessons = $CFG->dirroot.'/../lessons.json';
 
+// Lessons discussion links. Unset (production) opens the discussions controller.
+// Panther keeps this on so a lessons click LTI-launches tool/tdiscus and the
+// equivalence test can exercise both paths.
+$CFG->setExtension('discussion_lti_launch', true);
+
 // If we are going to use the Topics section, we need to create and
 // point to the topics.json file
 // $CFG->topics = $CFG->dirroot.'/../topics.json';
