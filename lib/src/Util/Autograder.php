@@ -3,7 +3,6 @@
 namespace Tsugi\Util;
 
 use \Tsugi\Core\LTIX;
-use \Tsugi\UI\Lessons;
 use \Tsugi\Util\U;
 
 /**
@@ -19,8 +18,8 @@ class Autograder {
      *
      * Precedence:
      *   1. LTI custom parameter "config" (JSON string)
-     *   2. lessons.json entry for ?inherit=<rlid>, else ?exercise=<rlid>,
-     *      reading a custom entry with key "config"
+     *   2. The course manifest, or $CFG->lessons when the course has none,
+     *      for ?inherit=<rlid> or ?exercise=<rlid>, reading custom key "config"
      *
      * The tool supplies $isValid to decide whether a decoded array is a
      * usable assignment for that tool's schema.
@@ -49,11 +48,11 @@ class Autograder {
             $rlid = $_GET['exercise'];
         }
 
-        if ( ! $rlid || ! isset($CFG->lessons) ) {
+        if ( ! $rlid ) {
             return null;
         }
 
-        $lessons = new Lessons($CFG->lessons);
+        $lessons = \Tsugi\Core\Manifest::currentLessons();
         if ( ! $lessons ) {
             return null;
         }

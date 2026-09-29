@@ -16,7 +16,7 @@ Instructor course tests log in as the demo persona Instructor 01, grant course c
 
 **`AdminTest::testAdminConsoleAccessibleWithPassphrase`** opens `/admin/`, submits the admin passphrase, and expects the Administration Console. It also checks that the unlock did not fail the CSRF check.
 
-**`AdminTest::testAdminScreensHaveNoTracebacks`** unlocks the console, then opens the main admin screens one by one: site config, catalog, keys, expiry, contexts, activity, badges, users, profiles, recent logins, installed modules, keyset, caches, encrypt/decrypt, nonces, database size, mail, events, blob status, blob migration, blob cleanup, remote tools, and PHP info. It does not run upgrade, send mail, or delete data. The installed-modules screen may alert that git refuses the container checkout; that ownership alert is dismissed. Any other browser alert fails the test.
+**`AdminTest::testAdminScreensHaveNoTracebacks`** unlocks the console, then opens the main admin screens one by one: site config, catalog, keys, expiry, contexts, activity, badges, users, profiles, recent logins, keyset, caches, encrypt/decrypt, nonces, database size, mail, events, blob status, blob migration, blob cleanup, remote tools, and PHP info. It does not open installed modules, run upgrade, send mail, or delete data.
 
 ## Course setup
 
@@ -27,6 +27,8 @@ Instructor course tests log in as the demo persona Instructor 01, grant course c
 **`CourseControllersTest::testInstructorUsesCourseControllers`** uploads a file and checks the folder count, posts an announcement, adds a discussion, and opens the grade book, assignments, and calendar. On course delete it types the confirmation fields but does not submit. It also creates the sample quiz, publishes it, and opens view and print.
 
 **`CourseControllersTest::testInstructorLinksPublishedQuizFromLessons`** publishes the sample quiz, adds it to a lesson, and submits the quiz from Lessons with no answers. The result shows a score that is still pending manual grading.
+
+**`DiscussionEquivalenceTest::testThreadsMatchBetweenLessonsLaunchAndController`** adds a discussion to a lesson. Docker sets `discussion_lti_launch`, so the lessons click LTI-launches `tool/tdiscus`. A thread created there shows up in the discussions controller, a thread created in the controller shows up on the next lessons launch, and both titles are on both pages.
 
 **`CourseControllersTest::testInstructorSetsDueDateAndOpensMoreTools`** uploads a file and replaces it, then opens badges, notifications, class grades, student progress, export, and course images. It adds an LTI lesson item, saves a due date, and checks that the item appears on the calendar for that day.
 

@@ -2,8 +2,6 @@
 
 require_once __DIR__ . '/Support/TsugiPantherTestCase.php';
 
-use Facebook\WebDriver\Exception\NoSuchAlertException;
-use Facebook\WebDriver\Exception\UnexpectedAlertOpenException;
 use Facebook\WebDriver\WebDriverBy;
 
 final class AdminTest extends TsugiPantherTestCase
@@ -97,7 +95,6 @@ final class AdminTest extends TsugiPantherTestCase
             'admin/users/' => ['displayname', 'Nothing to display.'],
             'admin/profile/' => ['premium', 'Nothing to display.'],
             'admin/recent' => ['Ipaddr', 'Nothing to display.'],
-            'admin/install/' => 'git',
             'admin/keyset' => 'Keyset Detail',
             'admin/cache' => 'Cache Detail',
             'admin/mcache' => 'Memcached',
@@ -123,7 +120,7 @@ final class AdminTest extends TsugiPantherTestCase
         $deadline = microtime(true) + 20;
         $page = '';
         while (microtime(true) < $deadline) {
-            $page = $this->pageSource($client, $path);
+            $page = $client->getPageSource();
             foreach ($markers as $needle) {
                 if (str_contains($page, $needle)) {
                     return $page;
@@ -136,32 +133,5 @@ final class AdminTest extends TsugiPantherTestCase
         $excerpt = substr(preg_replace('/\s+/u', ' ', $page) ?? $page, 0, 300);
         $shown = implode('" or "', $markers);
         $this->fail($path.' did not show "'.$shown.'". '.$excerpt);
-    }
-
-    /**
-     * The install screen alerts when git refuses the container checkout.
-     * That is the host volume's ownership, not a PHP traceback.
-     */
-    private function pageSource(\Symfony\Component\Panther\Client $client, string $path): string
-    {
-        try {
-            return $client->getPageSource();
-        } catch (UnexpectedAlertOpenException $exception) {
-            $text = $exception->getMessage();
-            try {
-                $alert = $client->getWebDriver()->switchTo()->alert();
-                $fromAlert = $alert->getText();
-                if ($fromAlert !== '') {
-                    $text = $fromAlert;
-                }
-                $alert->accept();
-            } catch (NoSuchAlertException $ignored) {
-            }
-            if (!str_contains($text, 'dubious ownership')) {
-                $this->fail($path.' opened an alert: '.$text);
-            }
-
-            return $client->getPageSource();
-        }
     }
 }

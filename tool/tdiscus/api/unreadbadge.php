@@ -1,27 +1,26 @@
 <?php
 
-use \Tsugi\Core\LTIX;
-use \Tdiscus\Threads;
+require_once __DIR__ . '/../../config.php';
 
-require_once "../util/threads.php";
+use Tsugi\Controllers\DiscussionsUi;
+use Tsugi\Core\LTIX;
+use Tsugi\Services\Discussions\DiscussionsService;
 
-$LTI = LTIX::requireData();
-$THREADS = new Threads();
+$LAUNCH = LTIX::requireData();
 
-$counts = $THREADS->unreadBadgeCounts();
+$counts = DiscussionsService::unreadBadgeCounts();
 $response = array(
     "badge" => array(
         "personal" => intval($counts['personal']),
         "participating" => intval($counts['participating']),
         "global" => intval($counts['global']),
     ),
-    "main_badge" => $THREADS->mainBadgeCount($counts),
+    "main_badge" => DiscussionsService::mainBadgeCount($counts),
     "config" => array(
-        "include_participating_in_main_badge" => Threads::includeParticipatingInMainBadge() ? 1 : 0,
-        "include_participation_as_personal" => Threads::includeParticipationAsPersonal() ? 1 : 0,
+        "include_participating_in_main_badge" => DiscussionsService::includeParticipatingInMainBadge() ? 1 : 0,
+        "include_participation_as_personal" => DiscussionsService::includeParticipationAsPersonal() ? 1 : 0,
     ),
 );
 
 header('Content-Type: application/json; charset=utf-8');
 echo(json_encode($response));
-

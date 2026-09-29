@@ -187,6 +187,10 @@ $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 // create and point to a lessons.json file
 // $CFG->lessons = $CFG->dirroot.'/../lessons.json';
 
+// Lessons discussion links open the discussions controller.
+// Set true in dev to send those links through an LTI launch of tool/tdiscus instead.
+// $CFG->setExtension('discussion_lti_launch', true);
+
 // If we are going to use the Topics section, we need to create and
 // point to the topics.json file
 // $CFG->topics = $CFG->dirroot.'/../topics.json';

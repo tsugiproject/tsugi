@@ -40,14 +40,18 @@ $user_id = $user_id + 0;
 $is_admin = U::get($_SESSION,'admin') ? true : false;
 
 if ( ! $is_admin ) {
-    // Instructor check for the link's context (role or role_override >= ROLE_INSTRUCTOR)
+    // Same instructor rule as ReqScope: membership role, course owner, or key owner.
     $row = $PDOX->rowDie(
-        "SELECT L.context_id, M.role, M.role_override
+        "SELECT L.context_id, C.user_id AS owner_id, M.role, M.role_override,
+                (SELECT K.user_id FROM {$CFG->dbprefix}lti_key AS K
+                  WHERE K.key_id = C.key_id AND K.user_id = :UID2 LIMIT 1) AS key_owner
          FROM {$CFG->dbprefix}lti_link AS L
+         JOIN {$CFG->dbprefix}lti_context AS C ON C.context_id = L.context_id
          LEFT JOIN {$CFG->dbprefix}lti_membership AS M
             ON M.context_id = L.context_id AND M.user_id = :UID
-         WHERE L.link_id = :LID",
-        array(':UID' => $user_id, ':LID' => $link_id)
+         WHERE L.link_id = :LID
+           AND (C.deleted IS NULL OR C.deleted = 0)",
+        array(':UID' => $user_id, ':UID2' => $user_id, ':LID' => $link_id)
     );
     if ( ! $row ) {
         http_response_code(403);
@@ -57,7 +61,9 @@ if ( ! $is_admin ) {
     $role = isset($row['role']) ? ($row['role'] + 0) : 0;
     $role_override = isset($row['role_override']) ? ($row['role_override'] + 0) : 0;
     $max_role = max($role, $role_override);
-    if ( $max_role < LTIX::ROLE_INSTRUCTOR ) {
+    $owns = ((int) ($row['owner_id'] ?? 0) === $user_id)
+        || ((int) ($row['key_owner'] ?? 0) === $user_id);
+    if ( $max_role < LTIX::ROLE_INSTRUCTOR && ! $owns ) {
         http_response_code(403);
         echo(json_encode(array('error' => 'Not authorized'), JSON_PRETTY_PRINT));
         return;

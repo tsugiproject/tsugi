@@ -10,6 +10,7 @@ use \Tsugi\Util\SakaiCustom;
 use \Tsugi\Util\U;
 use \Tsugi\Util\LTI;
 use \Tsugi\Util\LTI13;
+use \Tsugi\Core\Manifest;
 use \Tsugi\UI\Lessons;
 use \Tsugi\Util\LTIConstants;
 
@@ -254,13 +255,15 @@ $l = false;
 $assignments = false;
 $links = false;
 $import = false;
-if ( ($allow_lti || $allow_link || $allow_import) && isset($CFG->lessons) && file_exists($CFG->lessons) ) {
-    $l = new Lessons($CFG->lessons);
-    if ( $allow_link ) $links = true;
-    if ( $allow_import ) $import = true;
-    foreach($l->lessons->modules as $module) {
-        if ( isset($module->lti) ) {
-            if ( $allow_lti ) $assignments = true;
+if ( $allow_lti || $allow_link || $allow_import ) {
+    $l = Manifest::currentLessons();
+    if ( $l ) {
+        if ( $allow_link ) $links = true;
+        if ( $allow_import ) $import = true;
+        foreach($l->lessons->modules as $module) {
+            if ( isset($module->lti) || isset($module->items) ) {
+                if ( $allow_lti ) $assignments = true;
+            }
         }
     }
 }

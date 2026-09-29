@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 use Tsugi\Core\ReqScope;
+use Tsugi\Services\Discussions\DiscussionsService;
 
 class Discussions extends Tool {
 
@@ -39,9 +40,25 @@ class Discussions extends Tool {
         $app->router->post($prefix.'/scan-fix-unread-tracking-run', 'Discussions@scanFixUnreadTrackingRun');
         $app->router->post($prefix.'/expire-threads-dry-run', 'Discussions@expireThreadsDryRun');
         $app->router->post($prefix.'/expire-comments-dry-run', 'Discussions@expireCommentsDryRun');
-        $app->router->get($prefix.'_launch/{anchor}', function(Request $request, $anchor = null) use ($app) {
-            return Discussions::launch($app, $anchor);
-        });
+        $app->router->get($prefix.'/{rlid}/analytics', 'Discussions@discussionAnalytics');
+        $app->router->get($prefix.'/{rlid}/thread/new', 'Discussions@discussionThreadForm');
+        $app->router->post($prefix.'/{rlid}/thread/new', 'Discussions@discussionThreadForm');
+        $app->router->get($prefix.'/{rlid}/thread/{threadId}/edit', 'Discussions@discussionThreadEdit');
+        $app->router->post($prefix.'/{rlid}/thread/{threadId}/edit', 'Discussions@discussionThreadEdit');
+        $app->router->get($prefix.'/{rlid}/thread/{threadId}/remove', 'Discussions@discussionThreadRemove');
+        $app->router->post($prefix.'/{rlid}/thread/{threadId}/remove', 'Discussions@discussionThreadRemove');
+        $app->router->get($prefix.'/{rlid}/thread/{threadId}', 'Discussions@discussionThread');
+        $app->router->post($prefix.'/{rlid}/thread/{threadId}', 'Discussions@discussionThread');
+        $app->router->get($prefix.'/{rlid}/comment/{commentId}/edit', 'Discussions@discussionCommentForm');
+        $app->router->post($prefix.'/{rlid}/comment/{commentId}/edit', 'Discussions@discussionCommentForm');
+        $app->router->get($prefix.'/{rlid}/comment/{commentId}/remove', 'Discussions@discussionCommentRemove');
+        $app->router->post($prefix.'/{rlid}/comment/{commentId}/remove', 'Discussions@discussionCommentRemove');
+        $app->router->post($prefix.'/{rlid}/api/threadsetboolean/{threadId}/{column}/{value}', 'Discussions@discussionApiThreadBoolean');
+        $app->router->post($prefix.'/{rlid}/api/threadusersetboolean/{threadId}/{column}/{value}', 'Discussions@discussionApiThreadUserBoolean');
+        $app->router->post($prefix.'/{rlid}/api/commentsetboolean/{commentId}/{column}/{value}', 'Discussions@discussionApiCommentBoolean');
+        $app->router->post($prefix.'/{rlid}/api/addsubcomment', 'Discussions@discussionApiAddSubComment');
+        $app->router->get($prefix.'/{rlid}', 'Discussions@discussion');
+        $app->router->post($prefix.'/{rlid}', 'Discussions@discussion');
     }
 
     public function get(Request $request)
@@ -408,30 +425,185 @@ class Discussions extends Tool {
         return null;
     }
 
-    public static function launch(Application $app, $anchor=null)
+    public function discussion(Request $request, $rlid)
     {
-        $toolHome = self::determineToolHome(self::ROUTE);
-        $redirect_path = U::addSession(self::determineParentPath(self::ROUTE));
-        if ( $redirect_path == '') $redirect_path = '/';
-
-        $l = Manifest::currentLessons();
-        if ( ! $l ) {
-            $app->tsugiFlashError(__('Cannot find lessons.json ($CFG->lessons) or an active course manifest'));
-            return new RedirectResponse($redirect_path);
+        $gate = $this->openDiscussion($rlid);
+        if ( $gate ) {
+            return $gate;
         }
+        DiscussionsUi::bind($this->discussionUrls($rlid));
+        return $this->finishDiscussion(DiscussionsUi::threadListPage());
+    }
 
-        $lti = $l->getLtiByRlid($anchor);
-        if ( ! $lti ) {
-            $app->tsugiFlashError(__('Cannot find lti resource link id'));
-            return new RedirectResponse($redirect_path);
+    public function discussionAnalytics(Request $request, $rlid)
+    {
+        $gate = $this->openDiscussion($rlid);
+        if ( $gate ) {
+            return $gate;
         }
+        DiscussionsUi::bind($this->discussionUrls($rlid));
+        return $this->finishDiscussion(DiscussionsUi::analyticsPage());
+    }
 
-        return Tool::sendLti11LaunchFromLessonsItem(
-            $app,
-            $lti,
-            $toolHome,
-            $redirect_path
-        );
+    public function discussionThread(Request $request, $rlid, $threadId)
+    {
+        $gate = $this->openDiscussion($rlid);
+        if ( $gate ) {
+            return $gate;
+        }
+        DiscussionsUi::bind($this->discussionUrls($rlid));
+        return $this->finishDiscussion(DiscussionsUi::threadPage($threadId, null));
+    }
+
+    public function discussionThreadForm(Request $request, $rlid)
+    {
+        $gate = $this->openDiscussion($rlid);
+        if ( $gate ) {
+            return $gate;
+        }
+        DiscussionsUi::bind($this->discussionUrls($rlid));
+        return $this->finishDiscussion(DiscussionsUi::threadFormPage(null));
+    }
+
+    public function discussionThreadEdit(Request $request, $rlid, $threadId)
+    {
+        $gate = $this->openDiscussion($rlid);
+        if ( $gate ) {
+            return $gate;
+        }
+        DiscussionsUi::bind($this->discussionUrls($rlid));
+        return $this->finishDiscussion(DiscussionsUi::threadFormPage($threadId));
+    }
+
+    public function discussionThreadRemove(Request $request, $rlid, $threadId)
+    {
+        $gate = $this->openDiscussion($rlid);
+        if ( $gate ) {
+            return $gate;
+        }
+        DiscussionsUi::bind($this->discussionUrls($rlid));
+        return $this->finishDiscussion(DiscussionsUi::threadRemovePage($threadId));
+    }
+
+    public function discussionCommentForm(Request $request, $rlid, $commentId)
+    {
+        $gate = $this->openDiscussion($rlid);
+        if ( $gate ) {
+            return $gate;
+        }
+        DiscussionsUi::bind($this->discussionUrls($rlid));
+        return $this->finishDiscussion(DiscussionsUi::commentFormPage($commentId));
+    }
+
+    public function discussionCommentRemove(Request $request, $rlid, $commentId)
+    {
+        $gate = $this->openDiscussion($rlid);
+        if ( $gate ) {
+            return $gate;
+        }
+        DiscussionsUi::bind($this->discussionUrls($rlid));
+        return $this->finishDiscussion(DiscussionsUi::commentRemovePage($commentId));
+    }
+
+    public function discussionApiThreadBoolean(Request $request, $rlid, $threadId, $column, $value)
+    {
+        return $this->discussionApiBoolean($rlid, 'thread', $threadId, $column, $value);
+    }
+
+    public function discussionApiThreadUserBoolean(Request $request, $rlid, $threadId, $column, $value)
+    {
+        return $this->discussionApiBoolean($rlid, 'threaduser', $threadId, $column, $value);
+    }
+
+    public function discussionApiCommentBoolean(Request $request, $rlid, $commentId, $column, $value)
+    {
+        return $this->discussionApiBoolean($rlid, 'comment', $commentId, $column, $value);
+    }
+
+    public function discussionApiAddSubComment(Request $request, $rlid)
+    {
+        $gate = $this->openDiscussion($rlid);
+        if ( $gate ) {
+            return $gate;
+        }
+        DiscussionsUi::bind($this->discussionUrls($rlid));
+        $err = DiscussionsUi::apiAddSubComment(null);
+        if ( is_string($err) ) {
+            return new Response($err, 400);
+        }
+        return '';
+    }
+
+    private function discussionApiBoolean($rlid, $kind, $id, $column, $value)
+    {
+        $gate = $this->openDiscussion($rlid);
+        if ( $gate ) {
+            return $gate;
+        }
+        DiscussionsUi::bind($this->discussionUrls($rlid));
+        $err = DiscussionsUi::apiSetBoolean($kind, $id, $column, $value);
+        if ( is_string($err) ) {
+            return new Response($err, 400);
+        }
+        return new Response('', 200);
+    }
+
+    /**
+     * @return RedirectResponse|null
+     */
+    private function openDiscussion($rlid)
+    {
+        $list_url = U::addSession($this->toolHome(self::ROUTE));
+        if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
+            U::flashError(__('You must be logged in with a course to view this discussion.'));
+            return new RedirectResponse($list_url);
+        }
+        LTIX::getConnection();
+        $linkId = DiscussionsService::ensureLessonLink((string) $rlid);
+        if ( $linkId < 1 ) {
+            U::flashError(__('Cannot find that discussion in this course.'));
+            return new RedirectResponse($list_url);
+        }
+        $origin = ReqScope::ORIGIN_SITE;
+        $current = ReqScope::current();
+        if ( $current && is_string($current->origin) && $current->origin !== '' ) {
+            $origin = $current->origin;
+        }
+        try {
+            ReqScope::provision(
+                ReqScope::loggedInUserId(),
+                ReqScope::currentContextId(),
+                $linkId,
+                $origin
+            );
+        } catch ( \Throwable $ex ) {
+            U::flashError(__('Cannot open this discussion.'));
+            return new RedirectResponse($list_url);
+        }
+        $opened = ReqScope::current();
+        if ( ! $opened || ! $opened->link || (int) $opened->link->id !== $linkId ) {
+            U::flashError(__('Cannot open this discussion.'));
+            return new RedirectResponse($list_url);
+        }
+        return null;
+    }
+
+    private function discussionUrls($rlid)
+    {
+        $home = $this->toolHome(self::ROUTE).'/'.rawurlencode((string) $rlid);
+        return DiscussionUrls::forController($home);
+    }
+
+    /**
+     * @param string|null $to
+     * @return RedirectResponse|string
+     */
+    private function finishDiscussion($to)
+    {
+        if ( is_string($to) ) {
+            return new RedirectResponse(U::addSession($to));
+        }
+        return '';
     }
 
     public function json(Request $request)
@@ -1825,13 +1997,12 @@ Bound parameters
             // echo("<pre>\n");var_dump($rows_dict);echo("</pre>\n");
         }
 
-        $launchable = U::get($_SESSION,'secret') && U::get($_SESSION,'context_key')
-                && U::get($_SESSION,'user_key') && U::get($_SESSION,'displayname') && U::get($_SESSION,'email');
+        $can_open = ReqScope::isLoggedIn() && ReqScope::currentContextId() !== 0;
 
         echo('<ul class="tsugi-lessons-module-discussions-ul"> <!-- start of discussions -->'."\n");
         foreach($discussions as $discussion ) {
             $resource_link_title = $discussion->title;
-            $launch_path = $toolHome . '_launch/' . $discussion->resource_link_id;
+            $launch_path = U::addSession($toolHome . '/' . rawurlencode((string) $discussion->resource_link_id));
             $info = "";
             $row = U::get($rows_dict, $discussion->resource_link_id);
             $subscribed_threads = intval(U::get($row, 'subscribed_threads', 0));
@@ -1846,8 +2017,8 @@ Bound parameters
             }
 
             echo('<li typeof="oer:discussion" class="tsugi-lessons-module-discussion" data-resource-link-id="'.htmlspecialchars($discussion->resource_link_id).'">'."\n");
-            if ( $launchable ) {
-                echo('<a href="'.$launch_path.'">'.htmlentities($discussion->title).$bell_html.'</a>');
+            if ( $can_open ) {
+                echo('<a href="'.htmlspecialchars($launch_path).'">'.htmlentities($discussion->title).$bell_html.'</a>');
             } else {
                 echo(htmlentities($resource_link_title).$bell_html.' ('.__('Login Required').')');
             }

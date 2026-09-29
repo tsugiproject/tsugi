@@ -35,8 +35,8 @@ function loadAssignment()
         }
     }
 
-    if ( ( ! $custom || U::isEmpty($custom) ) && isset($_GET["inherit"]) && isset($CFG->lessons) ) {
-        $l = new Lessons($CFG->lessons);
+    if ( ( ! $custom || U::isEmpty($custom) ) && isset($_GET["inherit"]) ) {
+        $l = \Tsugi\Core\Manifest::currentLessons();
         if ( $l ) {
             $lti = $l->getLtiByRlid($_GET['inherit']);
             if ( isset($lti->custom) ) foreach($lti->custom as $c ) {

@@ -218,7 +218,8 @@ class Pages extends Tool {
             $apphome,
             $parent . '/lessons',
             $parent . '/lessons_launch/',
-            $parent . '/launch/'
+            $parent . '/launch/',
+            $parent . '/discussions'
         ));
     }
 
@@ -232,7 +233,7 @@ class Pages extends Tool {
         if ( is_array($doc) && isset($doc['json']) && is_string($doc['json']) ) {
             $data = json_decode($doc['json'], true);
             if ( is_array($data) ) {
-                return $data;
+                return LessonsNormalize::normalizeDocument($data);
             }
         }
         return null;
@@ -244,7 +245,8 @@ class Pages extends Tool {
      * @param array<string, mixed> $data
      * @return array{items: list<array<string, mixed>>, modules: list<array<string, mixed>>, launches: list<array<string, mixed>>}
      */
-    public static function lessonsLinkPickerPayload(array $data, $apphome, $lessons_base, $lessons_launch, $launch_base) {
+    public static function lessonsLinkPickerPayload(array $data, $apphome, $lessons_base, $lessons_launch, $launch_base, $discussions_base = null) {
+        $data = LessonsNormalize::normalizeDocument($data);
         $items = array();
         $launches_out = array();
         $top_level_modules = array();
@@ -309,7 +311,12 @@ class Pages extends Tool {
                     continue;
                 }
 
-                if ( LessonsNormalize::isLtiLaunch($norm) || $type === 'not-lti' ) {
+                if ( LessonsNormalize::isDiscussion($norm) ) {
+                    $resource_link_id = U::get($norm, 'resource_link_id', '');
+                    if ( $resource_link_id !== '' ) {
+                        $url = self::discussionPickerUrl($resource_link_id, $discussions_base, $lessons_launch);
+                    }
+                } else if ( LessonsNormalize::isLtiLaunch($norm) || $type === 'not-lti' ) {
                     $resource_link_id = U::get($norm, 'resource_link_id', '');
                     if ( $resource_link_id !== '' ) {
                         $url = $lessons_launch . rawurlencode($resource_link_id);
@@ -347,7 +354,48 @@ class Pages extends Tool {
             }
         }
 
+        $top_discussions = U::get($data, 'discussions', array());
+        if ( is_array($top_discussions) ) {
+            foreach ( $top_discussions as $discussion ) {
+                if ( ! is_array($discussion) ) {
+                    continue;
+                }
+                $norm = LessonsNormalize::normalizeItem($discussion);
+                if ( ! LessonsNormalize::isDiscussion($norm) ) {
+                    continue;
+                }
+                $title = U::get($norm, 'title', '');
+                $resource_link_id = U::get($norm, 'resource_link_id', '');
+                if ( $title === '' || $resource_link_id === '' ) {
+                    continue;
+                }
+                $items[] = array(
+                    'title' => $title,
+                    'url' => self::discussionPickerUrl($resource_link_id, $discussions_base, $lessons_launch),
+                    'module' => '',
+                    'module_anchor' => '',
+                    'type' => 'discussion',
+                );
+            }
+        }
+
         return array('items' => $items, 'modules' => $top_level_modules, 'launches' => $launches_out);
+    }
+
+    /**
+     * Picker URL for a discussion resource_link_id.
+     *
+     * @param mixed $resource_link_id
+     * @param mixed $discussions_base
+     * @param string $lessons_launch
+     * @return string
+     */
+    private static function discussionPickerUrl($resource_link_id, $discussions_base, $lessons_launch) {
+        $id = rawurlencode((string) $resource_link_id);
+        if ( is_string($discussions_base) && $discussions_base !== '' ) {
+            return rtrim($discussions_base, '/').'/'.$id;
+        }
+        return $lessons_launch.$id;
     }
 
     public function add(Request $request)

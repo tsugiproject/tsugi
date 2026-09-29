@@ -1,36 +1,23 @@
 <?php
 
-use \Tsugi\Util\U;
-use \Tsugi\Util\Net;
-use \Tsugi\Core\LTIX;
-use \Tdiscus\Threads;
+require_once __DIR__ . '/../../config.php';
 
-require_once "../util/threads.php";
+use Tsugi\Controllers\DiscussionsUi;
+use Tsugi\Core\LTIX;
+use Tsugi\Util\Net;
+use Tsugi\Util\U;
 
-// No parameter means we require CONTEXT, USER, and LINK
-$LTI = LTIX::requireData();
-
-$THREADS = new Threads();
-
-if ( ! \Tsugi\Controllers\Tool::csrfOk() ) {
-    Net::send400('Missing or invalid CSRF token');
-    return;
-}
+$LAUNCH = LTIX::requireData();
 
 $rest_path = U::rest_path();
-$thread_id = $rest_path->action;
-if ( count($rest_path->parameters) != 2 ) {
+$thread_id = $rest_path->action ?? null;
+if ( ! isset($rest_path->parameters) || count($rest_path->parameters) != 2 ) {
     Net::send400(__('Missing required parameters'));
     return;
 }
 
-$column = $rest_path->parameters[0];
-$value = $rest_path->parameters[1];
-
-// error_log("threadSetBoolean $thread_id $column $value");
-
-$retval = $THREADS->threadSetBoolean($thread_id, $column, $value);
-if ( is_string($retval) ) {
-    Net::send400($retval);
-    return;
+DiscussionsUi::bind(DiscussionsUi::toolUrls());
+$err = DiscussionsUi::apiSetBoolean('thread', $thread_id, $rest_path->parameters[0], $rest_path->parameters[1]);
+if ( is_string($err) ) {
+    Net::send400($err);
 }

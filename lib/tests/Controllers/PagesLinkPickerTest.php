@@ -42,7 +42,8 @@ class PagesLinkPickerTest extends \PHPUnit\Framework\TestCase
             'http://localhost/app',
             '/lessons',
             '/lessons_launch/',
-            '/launch/'
+            '/launch/',
+            '/discussions'
         );
         $this->assertCount(1, $out['modules']);
         $this->assertSame('/lessons/week-1', $out['modules'][0]['url']);
@@ -52,7 +53,7 @@ class PagesLinkPickerTest extends \PHPUnit\Framework\TestCase
             $urls[$item['title']] = $item['url'];
             $types[$item['title']] = $item['type'];
         }
-        $this->assertSame('/lessons_launch/discussion_welcome', $urls['Welcome']);
+        $this->assertSame('/discussions/discussion_welcome', $urls['Welcome']);
         $this->assertSame('discussion', $types['Welcome']);
         $this->assertSame('http://localhost/app/lectures/a.pptx', $urls['Deck']);
         $this->assertSame('slide', $types['Deck']);
