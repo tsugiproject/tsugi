@@ -297,12 +297,15 @@ class DiscussionsService {
             return __('Title and body are required');
         }
 
+        if ( ! is_array(self::threadLoadForUpdate($thread_id)) ) {
+            return __('Could not load thread for update');
+        }
+
         $PDOX->queryDie("UPDATE {$CFG->dbprefix}tdiscus_thread SET
             body = :BODY , title= :TITLE, updated_at = NOW(), edited=1
-            WHERE link_id = :LID AND thread_id = :TID AND user_id = :UID",
+            WHERE link_id = :LID AND thread_id = :TID",
             array(
                 ':LID' => self::lid(),
-                ':UID' => self::uid(),
                 ':TID' => $thread_id,
                 ':TITLE' => $title,
                 ':BODY' => $body,
@@ -342,6 +345,9 @@ class DiscussionsService {
 
         if ( ! in_array($column, $valid_columns) ) {
             return __("Column $column not allowed");
+        }
+        if ( ! self::instructor() ) {
+            return __('You must be an instructor to change this setting');
         }
         if ( $value != 1 && $value != 0 ) {
             return __("Column $column requires boolean (0 or 1)");
@@ -397,11 +403,11 @@ class DiscussionsService {
         $search = U::get($info, "search", "");
         $whereclause = "";
         if ( strlen(trim($search)) > 0 ) {
-            $whereclause = " AND (LOWER(title) LIKE LOWER(:SEARCH) OR LOWER(body) LIKE LOWER(:SEARCH)) ";
+            $whereclause .= " AND (LOWER(title) LIKE LOWER(:SEARCH) OR LOWER(body) LIKE LOWER(:SEARCH)) ";
             $subst[':SEARCH'] = '%'.strtolower($search).'%';
         }
         if ( ! self::instructor() ) {
-            $whereclause = " AND (COALESCE(hidden, 0) = 0 ) ";
+            $whereclause .= " AND (COALESCE(T.hidden, 0) = 0 ) ";
         }
 
         $fields = "
@@ -578,6 +584,9 @@ class DiscussionsService {
         if ( ! in_array($column, $valid_columns) ) {
             return __("Column $column not allowed");
         }
+        if ( ! self::instructor() ) {
+            return __('You must be an instructor to change this setting');
+        }
         if ( $value != 1 && $value != 0 ) {
             return __("Column $column requires boolean (0 or 1)");
         }
@@ -631,10 +640,10 @@ class DiscussionsService {
         $search = U::get($info, "search", "");
         $whereclause = "";
         if ( ! self::instructor() ) {
-            $whereclause = " AND (COALESCE(C.hidden, 0) = 0 ) ";
+            $whereclause .= " AND (COALESCE(C.hidden, 0) = 0 ) ";
         }
         if ( strlen(trim($search)) > 0 ) {
-            $whereclause = " AND (LOWER(comment) LIKE LOWER(:SEARCH)) ";
+            $whereclause .= " AND (LOWER(comment) LIKE LOWER(:SEARCH)) ";
             $subst[':SEARCH'] = '%'.strtolower($search).'%';
         }
 
@@ -687,6 +696,12 @@ class DiscussionsService {
         }
         if ( ! is_array($thread) ) {
             return __('Could not load thread').' '.$thread_id;
+        }
+        if ( intval($parent['thread_id']) !== $thread_id ) {
+            return __('Comment is not in this thread');
+        }
+        if ( intval($thread['locked']) && ! self::instructor() ) {
+            return __('This thread is locked');
         }
 
         $parentDepth = $parent['depth'];
