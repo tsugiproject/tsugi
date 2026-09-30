@@ -10,6 +10,8 @@ if ( !isset($PDOX) ) {
 if ( ! isset($CFG) ) exit;
 
 $DATABASE_UNINSTALL = array(
+"drop table if exists {$CFG->dbprefix}lti_tool_deployment",
+"drop table if exists {$CFG->dbprefix}lti_tool_registration",
 "drop table if exists {$CFG->dbprefix}lti_result",
 "drop table if exists {$CFG->dbprefix}lti_service",
 "drop table if exists {$CFG->dbprefix}lti_membership",
@@ -19,6 +21,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}manifest",
 "drop table if exists {$CFG->dbprefix}context_images",
 "drop table if exists {$CFG->dbprefix}lti_context",
+"drop table if exists {$CFG->dbprefix}lti_org",
 "drop table if exists {$CFG->dbprefix}lti_user",
 "drop table if exists {$CFG->dbprefix}lti_issuer",
 "drop table if exists {$CFG->dbprefix}lti_keyset",
@@ -195,6 +198,46 @@ array( "{$CFG->dbprefix}lti_user",
     )
  */
 
+// Organization hierarchy inside one tenant key. The tenant is lti_key.
+// A null parent_org_id is a top-level org. The tenant itself is not an org row.
+array( "{$CFG->dbprefix}lti_org",
+"create table {$CFG->dbprefix}lti_org (
+    org_id              INTEGER NOT NULL AUTO_INCREMENT,
+    key_id              INTEGER NOT NULL,
+    parent_org_id       INTEGER NULL,
+
+    title               VARCHAR(512) NOT NULL,
+    -- Label only. Parent links define the hierarchy, not this value.
+    org_type            VARCHAR(64) NULL,
+
+    entity_version      INTEGER NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_org_const_pk` PRIMARY KEY (org_id),
+
+    -- Referenced by child orgs, registrations, and deployments so those rows
+    -- stay on the same tenant key as this org.
+    CONSTRAINT `{$CFG->dbprefix}lti_org_const_1` UNIQUE (org_id, key_id),
+
+    INDEX `{$CFG->dbprefix}lti_org_indx_1` (key_id),
+    INDEX `{$CFG->dbprefix}lti_org_indx_2` (parent_org_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_org_ibfk_1`
+        FOREIGN KEY (`key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_key` (`key_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    -- Same key_id as the parent, so a child cannot attach to another tenant.
+    -- Cycles are rejected in OrgService::moveOrg. MySQL cannot CHECK org_id
+    -- because that column is AUTO_INCREMENT.
+    CONSTRAINT `{$CFG->dbprefix}lti_org_ibfk_2`
+        FOREIGN KEY (`parent_org_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_org` (`org_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
 array( "{$CFG->dbprefix}lti_context",
 "create table {$CFG->dbprefix}lti_context (
     context_id          INTEGER NOT NULL AUTO_INCREMENT,
@@ -206,6 +249,9 @@ array( "{$CFG->dbprefix}lti_context",
     gc_secret           VARCHAR(128) NULL,
 
     key_id              INTEGER NOT NULL,
+
+    -- Optional org inside this tenant key. NULL leaves an existing course unplaced.
+    org_id              INTEGER NULL,
 
     -- If this course was created by a user within a key
     -- For example Google Glassroom - or an ad-hoc group
@@ -253,8 +299,17 @@ array( "{$CFG->dbprefix}lti_context",
         REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
+    CONSTRAINT `{$CFG->dbprefix}lti_context_ibfk_3`
+        FOREIGN KEY (`org_id`)
+        REFERENCES `{$CFG->dbprefix}lti_org` (`org_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
     CONSTRAINT `{$CFG->dbprefix}lti_context_const_1` UNIQUE(key_id, context_sha256),
-    CONSTRAINT `{$CFG->dbprefix}lti_context_const_pk` PRIMARY KEY (context_id)
+    -- Deployment rows reference (context_id, key_id) to stay on this tenant key.
+    CONSTRAINT `{$CFG->dbprefix}lti_context_const_2` UNIQUE(context_id, key_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_context_const_pk` PRIMARY KEY (context_id),
+
+    INDEX `{$CFG->dbprefix}lti_context_indx_1` (org_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}context_images",
@@ -726,6 +781,112 @@ array( "{$CFG->dbprefix}cal_context",
     CONSTRAINT `{$CFG->dbprefix}cal_context_const_pk` PRIMARY KEY (context_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
+// Outbound LTI tool registration owned by one tenant key.
+// org_id NULL means it may be deployed anywhere in that key.
+// A non-null org_id is the top of the subtree it may be deployed into.
+//
+// TODO: Come back and revisit tool placement options in the UI. Placements
+// are where a tool can appear, such as Lessons, the rich text editor, or
+// site nav. That is separate from tool deployment. Sakai stores these as
+// columns on the tool registration, the same way it stores permission
+// columns, so each placement is one-to-one with the registration. Dynamic
+// registration is a better fit for a many-to-many. In IMS dynamic
+// registration these placement options are LTI messages. Do not model that yet.
+array( "{$CFG->dbprefix}lti_tool_registration",
+"create table {$CFG->dbprefix}lti_tool_registration (
+    registration_id     INTEGER NOT NULL AUTO_INCREMENT,
+    key_id              INTEGER NOT NULL,
+    org_id              INTEGER NULL,
+    created_by_user_id  INTEGER NULL,
+
+    title               VARCHAR(512) NOT NULL,
+
+    -- One registration is LTI 1.1 or LTI 1.3, never both.
+    lti_version         VARCHAR(8) NOT NULL DEFAULT '1.3',
+    lti11_key           VARCHAR(255) NULL,
+    lti11_secret        TEXT NULL,
+    lti11_url           TEXT NULL,
+
+    client_id           VARCHAR(255) NULL,
+    oidc_login_url      TEXT NULL,
+    jwks_url            TEXT NULL,
+    launch_url          TEXT NULL,
+    redirect_uri        TEXT NULL,
+    json                MEDIUMTEXT NULL,
+
+    entity_version      INTEGER NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_const_pk` PRIMARY KEY (registration_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_const_1` UNIQUE (registration_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_chk_1` CHECK (
+        (lti_version = '1.1'
+            AND lti11_key IS NOT NULL AND lti11_key <> ''
+            AND lti11_secret IS NOT NULL AND lti11_secret <> ''
+            AND lti11_url IS NOT NULL AND lti11_url <> '')
+        OR
+        (lti_version = '1.3'
+            AND lti11_key IS NULL
+            AND lti11_secret IS NULL
+            AND lti11_url IS NULL)
+    ),
+
+    INDEX `{$CFG->dbprefix}lti_tool_registration_indx_1` (key_id),
+    INDEX `{$CFG->dbprefix}lti_tool_registration_indx_2` (org_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_ibfk_1`
+        FOREIGN KEY (`key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_key` (`key_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_ibfk_2`
+        FOREIGN KEY (`org_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_org` (`org_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_ibfk_3`
+        FOREIGN KEY (`created_by_user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// One registration deployed to exactly one org or exactly one course.
+// key_id is copied from the registration so the target foreign keys stay on that tenant key.
+// Foreign keys are added in DATABASE_UPGRADE, after existing lti_context rows gain (context_id, key_id).
+array( "{$CFG->dbprefix}lti_tool_deployment",
+"create table {$CFG->dbprefix}lti_tool_deployment (
+    tool_deployment_id  INTEGER NOT NULL AUTO_INCREMENT,
+    registration_id     INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+    org_id              INTEGER NULL,
+    context_id          INTEGER NULL,
+
+    deployment_id       VARCHAR(255) NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_pk` PRIMARY KEY (tool_deployment_id),
+
+    -- MySQL unique indexes allow many NULLs, so context deployments (org_id NULL)
+    -- and org deployments (context_id NULL) do not collide with each other.
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_1` UNIQUE (registration_id, org_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_2` UNIQUE (registration_id, context_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_chk_1` CHECK (
+        (org_id IS NOT NULL AND context_id IS NULL)
+        OR (org_id IS NULL AND context_id IS NOT NULL)
+    ),
+
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_indx_1` (registration_id, key_id),
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_indx_2` (org_id, key_id),
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_indx_3` (context_id, key_id)
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
 );
 
 // Called after a table has been created...
@@ -871,6 +1032,15 @@ $DATABASE_UPGRADE = function($oldversion) {
         // 2026-09-23 Numerator and AGS submission.startedAt on the result.
         array('lti_result', 'score_given', 'DOUBLE NULL'),
         array('lti_result', 'started_at', 'TIMESTAMP NULL'),
+
+        // 2026-09-30 Optional organization placement. Existing courses stay unplaced.
+        array('lti_context', 'org_id', 'INTEGER NULL'),
+
+        // 2026-09-30 A registration is LTI 1.3 unless it carries LTI 1.1 credentials.
+        array('lti_tool_registration', 'lti_version', "VARCHAR(8) NOT NULL DEFAULT '1.3'"),
+        array('lti_tool_registration', 'lti11_key', 'VARCHAR(255) NULL'),
+        array('lti_tool_registration', 'lti11_secret', 'TEXT NULL'),
+        array('lti_tool_registration', 'lti11_url', 'TEXT NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -1544,9 +1714,103 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // 2026-09-30 Organization placement and outbound deployment foreign keys.
+    // New lti_org / lti_tool_* tables come from $DATABASE_INSTALL. This block
+    // finishes indexes and foreign keys that existing lti_context rows need first.
+    $p = $CFG->dbprefix;
+    $context_table = "{$p}lti_context";
+    $org_table = "{$p}lti_org";
+    $deployment_table = "{$p}lti_tool_deployment";
+
+    $constraint_exists = function($table, $name) use ($PDOX) {
+        $sql = "SELECT CONSTRAINT_NAME AS constraint_name
+            FROM information_schema.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = :table_name
+              AND CONSTRAINT_NAME = :constraint_name";
+        $row = $PDOX->rowDie($sql, array(
+            ':table_name' => $table,
+            ':constraint_name' => $name,
+        ));
+        return is_array($row);
+    };
+
+    if ( $PDOX->metadata($org_table) !== false && $PDOX->columnExists('org_id', $context_table) ) {
+        $org_index = "{$p}lti_context_indx_1";
+        if ( ! $PDOX->indexExists($org_index, $context_table) ) {
+            $sql = "ALTER TABLE {$context_table} ADD INDEX `{$org_index}` (`org_id`)";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to index lti_context.org_id: ".$q->errorImplode."<br/>\n");
+        }
+
+        $context_key = "{$p}lti_context_const_2";
+        if ( ! $PDOX->indexExists($context_key, $context_table) ) {
+            $sql = "ALTER TABLE {$context_table} ADD CONSTRAINT `{$context_key}` UNIQUE (`context_id`, `key_id`)";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add lti_context (context_id, key_id) key: ".$q->errorImplode."<br/>\n");
+        }
+
+        $context_fk = "{$p}lti_context_ibfk_3";
+        if ( ! $constraint_exists($context_table, $context_fk) ) {
+            $sql = "ALTER TABLE {$context_table} ADD CONSTRAINT `{$context_fk}`
+                FOREIGN KEY (`org_id`) REFERENCES `{$org_table}` (`org_id`)
+                ON DELETE SET NULL ON UPDATE CASCADE";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add lti_context.org_id foreign key: ".$q->errorImplode."<br/>\n");
+        }
+    }
+
+    $registration_table = "{$p}lti_tool_registration";
+    if ( $PDOX->metadata($registration_table) !== false
+        && $PDOX->columnExists('lti_version', $registration_table)
+        && $PDOX->columnExists('lti11_url', $registration_table) ) {
+        $registration_check = "{$p}lti_tool_registration_chk_1";
+        if ( ! $constraint_exists($registration_table, $registration_check) ) {
+            $sql = "ALTER TABLE {$registration_table} ADD CONSTRAINT `{$registration_check}` CHECK (
+                (lti_version = '1.1'
+                    AND lti11_key IS NOT NULL AND lti11_key <> ''
+                    AND lti11_secret IS NOT NULL AND lti11_secret <> ''
+                    AND lti11_url IS NOT NULL AND lti11_url <> '')
+                OR
+                (lti_version = '1.3'
+                    AND lti11_key IS NULL
+                    AND lti11_secret IS NULL
+                    AND lti11_url IS NULL)
+            )";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add {$registration_check}: ".$q->errorImplode."<br/>\n");
+        }
+    }
+
+    if ( $PDOX->metadata($deployment_table) !== false ) {
+        // ON UPDATE RESTRICT: MySQL error 3823 rejects ON UPDATE CASCADE on a
+        // column named by lti_tool_deployment_chk_1. ON DELETE CASCADE is allowed.
+        $deployment_fks = array(
+            "{$p}lti_tool_deployment_ibfk_1" => "FOREIGN KEY (`registration_id`, `key_id`) REFERENCES `{$p}lti_tool_registration` (`registration_id`, `key_id`) ON DELETE CASCADE ON UPDATE CASCADE",
+            "{$p}lti_tool_deployment_ibfk_2" => "FOREIGN KEY (`org_id`, `key_id`) REFERENCES `{$org_table}` (`org_id`, `key_id`) ON DELETE CASCADE ON UPDATE RESTRICT",
+            "{$p}lti_tool_deployment_ibfk_3" => "FOREIGN KEY (`context_id`, `key_id`) REFERENCES `{$context_table}` (`context_id`, `key_id`) ON DELETE CASCADE ON UPDATE RESTRICT",
+        );
+        foreach ( $deployment_fks as $fk_name => $fk_sql ) {
+            if ( $constraint_exists($deployment_table, $fk_name) ) continue;
+            $sql = "ALTER TABLE {$deployment_table} ADD CONSTRAINT `{$fk_name}` {$fk_sql}";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add {$fk_name}: ".$q->errorImplode."<br/>\n");
+        }
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610010006;
+    return 202610010008;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
