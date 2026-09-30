@@ -188,4 +188,68 @@ class OrgHierarchyTest extends PlatformSchemaCase
         );
         $this->assertSame($this->id['lsaA'], (int) $kept['org_id']);
     }
+
+    public function testScopeComposesIntoOneStatement(): void
+    {
+        global $PDOX;
+        $p = $this->p();
+        $up = OrgService::ancestorScope($this->id['keyA'], $this->id['csA'], 'org_ancestors');
+        $down = OrgService::descendantScope($this->id['keyA'], $this->id['engineeringA'], 'org_descendants');
+
+        $this->assertNotSame(array_keys($up->params()), array_keys($down->params()));
+        $this->assertSame($this->id['keyA'], $up->params()[':org_ancestors_key_id']);
+        $this->assertSame($this->id['csA'], $up->params()[':org_ancestors_org_id']);
+        $this->assertStringContainsString('key_id = :org_ancestors_key_id', $up->cte());
+        $this->assertStringContainsString('o.org_id = step.parent_org_id', $up->cte());
+        $this->assertStringContainsString('o.parent_org_id = step.org_id', $down->cte());
+        $this->assertStringContainsString('o.key_id = step.key_id', $up->cte());
+        $this->assertSame(
+            'd.org_id IN (SELECT org_id FROM org_ancestors)',
+            $up->in('d.org_id')
+        );
+        $this->assertSame(
+            'INNER JOIN org_descendants ON org_descendants.org_id = o.org_id',
+            $down->join('o.org_id')
+        );
+
+        $sql = "WITH RECURSIVE ".$up->cte().",
+            ".$down->cte()."
+            SELECT o.title
+            FROM {$p}lti_org o
+            ".$up->join('o.org_id')."
+            WHERE ".$down->in('o.org_id')."
+            ORDER BY o.title ASC";
+        $rows = $PDOX->allRowsDie($sql, array_merge($up->params(), $down->params()));
+        $this->assertSame(array('Computer Science', 'Engineering'), $this->titles($rows));
+        $this->assertStringContainsString('WITH RECURSIVE', $PDOX->PDOX_LastSqlQuery);
+        $this->assertStringNotContainsString(':org_0', $PDOX->PDOX_LastSqlQuery);
+
+        $otherTenant = OrgService::ancestorScope($this->id['keyB'], $this->id['csA']);
+        $foreign = $PDOX->allRowsDie(
+            "WITH RECURSIVE ".$otherTenant->cte()." SELECT org_id FROM ".$otherTenant->name(),
+            $otherTenant->params()
+        );
+        $this->assertSame(array(), $foreign);
+
+        $course = OrgService::contextAncestorScope($this->id['eecs280']);
+        $courseRows = $PDOX->allRowsDie(
+            "WITH RECURSIVE ".$course->cte()."
+             SELECT o.title
+             FROM ".$course->name()." walk
+             INNER JOIN {$p}lti_org o ON o.org_id = walk.org_id
+             ORDER BY walk.depth ASC",
+            $course->params()
+        );
+        $this->assertSame(
+            array('Computer Science', 'Engineering', 'University A'),
+            $this->titles($courseRows)
+        );
+
+        $unplaced = OrgService::contextAncestorScope($this->id['free101']);
+        $unplacedRows = $PDOX->allRowsDie(
+            "WITH RECURSIVE ".$unplaced->cte()." SELECT org_id FROM ".$unplaced->name(),
+            $unplaced->params()
+        );
+        $this->assertSame(array(), $unplacedRows);
+    }
 }

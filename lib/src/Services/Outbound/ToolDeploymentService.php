@@ -10,6 +10,8 @@ use Tsugi\Services\Org\OrgService;
  *
  * A course sees the union of its direct deployments and deployments on its
  * org and that org's ancestors. A course with no org sees only direct deployments.
+ * That lookup is one statement: the ancestor walk is a recursive CTE inside
+ * the same query, not a list of ids loaded first.
  */
 class ToolDeploymentService {
 
@@ -82,8 +84,7 @@ class ToolDeploymentService {
      * @return array<int, array<string, mixed>>
      */
     public static function getDeploymentsForContext($contextId) {
-        $context = self::requireContext((int) $contextId);
-        return self::rowsForContext($context, false);
+        return self::rowsForContext((int) $contextId, false);
     }
 
     /**
@@ -94,54 +95,68 @@ class ToolDeploymentService {
      * @return array<int, array<string, mixed>>
      */
     public static function getRegistrationsForContext($contextId) {
-        $context = self::requireContext((int) $contextId);
-        return self::rowsForContext($context, true);
+        return self::rowsForContext((int) $contextId, true);
     }
 
     /**
-     * @param array<string, mixed> $context
+     * Direct course deployments, plus org deployments on the course org and
+     * its ancestors. The ancestor walk is a recursive CTE in this statement.
+     * A course with no org makes that set empty, so only direct rows match.
+     *
+     * @param int $contextId
      * @param bool $registrations
      * @return array<int, array<string, mixed>>
      */
-    private static function rowsForContext(array $context, $registrations) {
-        $PDOX = self::db();
-        $p = self::prefix();
-        $params = array(
-            ':context_id' => (int) $context['context_id'],
-            ':key_id' => (int) $context['key_id'],
-        );
-        $orgClause = '';
-        $orgIds = self::ancestorOrgIds($context);
-        if ( count($orgIds) > 0 ) {
-            $holders = array();
-            foreach ( $orgIds as $i => $orgId ) {
-                $name = ':org_'.$i;
-                $holders[] = $name;
-                $params[$name] = (int) $orgId;
-            }
-            $orgClause = ' OR d.org_id IN ('.implode(', ', $holders).')';
+    private static function rowsForContext($contextId, $registrations) {
+        if ( (int) $contextId < 1 ) {
+            throw new \InvalidArgumentException('Course is required.');
         }
+        $contextId = (int) $contextId;
+        $scope = OrgService::contextAncestorScope($contextId);
+        $p = self::prefix();
+        $params = $scope->params();
+        $params[':context_id'] = $contextId;
+        $visible = 'd.key_id = c.key_id AND (d.context_id = c.context_id OR '.$scope->in('d.org_id').')';
 
         if ( $registrations ) {
-            $sql = "SELECT DISTINCT r.registration_id, r.key_id, r.org_id, r.title
-                FROM {$p}lti_tool_registration r
-                INNER JOIN {$p}lti_tool_deployment d ON d.registration_id = r.registration_id
-                WHERE r.key_id = :key_id
-                  AND (d.context_id = :context_id{$orgClause})
+            $sql = "WITH RECURSIVE ".$scope->cte()."
+                SELECT DISTINCT c.context_id AS scope_context_id,
+                       r.registration_id, r.key_id, r.org_id, r.title
+                FROM {$p}lti_context c
+                LEFT JOIN {$p}lti_tool_deployment d
+                    ON {$visible}
+                LEFT JOIN {$p}lti_tool_registration r
+                    ON r.registration_id = d.registration_id
+                   AND r.key_id = c.key_id
+                WHERE c.context_id = :context_id
                 ORDER BY r.title ASC, r.registration_id ASC";
         } else {
-            $sql = "SELECT d.tool_deployment_id, d.registration_id, d.key_id, d.org_id, d.context_id, d.deployment_id
-                FROM {$p}lti_tool_deployment d
-                INNER JOIN {$p}lti_tool_registration r ON r.registration_id = d.registration_id
-                WHERE r.key_id = :key_id
-                  AND (d.context_id = :context_id{$orgClause})
+            $sql = "WITH RECURSIVE ".$scope->cte()."
+                SELECT c.context_id AS scope_context_id,
+                       d.tool_deployment_id, d.registration_id, d.key_id,
+                       d.org_id, d.context_id, d.deployment_id,
+                       r.registration_id AS matched_registration_id
+                FROM {$p}lti_context c
+                LEFT JOIN {$p}lti_tool_deployment d
+                    ON {$visible}
+                LEFT JOIN {$p}lti_tool_registration r
+                    ON r.registration_id = d.registration_id
+                   AND r.key_id = c.key_id
+                WHERE c.context_id = :context_id
                 ORDER BY d.tool_deployment_id ASC";
         }
 
-        $rows = $PDOX->allRowsDie($sql, $params);
+        $rows = self::db()->allRowsDie($sql, $params);
+        if ( ! is_array($rows) || count($rows) < 1 ) {
+            throw new \InvalidArgumentException('Course was not found.');
+        }
+
         $out = array();
         foreach ( $rows as $row ) {
             if ( $registrations ) {
+                if ( $row['registration_id'] === null ) {
+                    continue;
+                }
                 $out[] = array(
                     'registration_id' => (int) $row['registration_id'],
                     'key_id' => (int) $row['key_id'],
@@ -149,6 +164,9 @@ class ToolDeploymentService {
                     'title' => (string) $row['title'],
                 );
             } else {
+                if ( $row['tool_deployment_id'] === null || $row['matched_registration_id'] === null ) {
+                    continue;
+                }
                 $out[] = array(
                     'tool_deployment_id' => (int) $row['tool_deployment_id'],
                     'registration_id' => (int) $row['registration_id'],
@@ -160,24 +178,6 @@ class ToolDeploymentService {
             }
         }
         return $out;
-    }
-
-    /**
-     * @param array<string, mixed> $context
-     * @return array<int, int>
-     */
-    private static function ancestorOrgIds(array $context) {
-        if ( $context['org_id'] === null ) {
-            return array();
-        }
-        $ids = array();
-        foreach ( OrgService::getAncestors((int) $context['org_id']) as $org ) {
-            if ( (int) $org['key_id'] !== (int) $context['key_id'] ) {
-                continue;
-            }
-            $ids[] = (int) $org['org_id'];
-        }
-        return $ids;
     }
 
     /**
@@ -199,29 +199,6 @@ class ToolDeploymentService {
         }
         $row = self::db()->rowDie($sql, $params);
         return is_array($row) ? $row : null;
-    }
-
-    /**
-     * @param int $contextId
-     * @return array<string, mixed>
-     */
-    private static function requireContext($contextId) {
-        if ( (int) $contextId < 1 ) {
-            throw new \InvalidArgumentException('Course is required.');
-        }
-        $p = self::prefix();
-        $row = self::db()->rowDie(
-            "SELECT context_id, key_id, org_id FROM {$p}lti_context WHERE context_id = :context_id",
-            array(':context_id' => (int) $contextId)
-        );
-        if ( ! is_array($row) ) {
-            throw new \InvalidArgumentException('Course was not found.');
-        }
-        return array(
-            'context_id' => (int) $row['context_id'],
-            'key_id' => (int) $row['key_id'],
-            'org_id' => $row['org_id'] === null ? null : (int) $row['org_id'],
-        );
     }
 
     /**

@@ -12,7 +12,9 @@ use Tsugi\Core\LTIX;
  *
  * getAncestors() and getDescendants() include the starting org. Ancestors are
  * ordered from the org itself up to the root. Descendants are ordered from
- * the org itself downward.
+ * the org itself downward. Those methods return rows. ancestorScope() and
+ * descendantScope() return the same walk as a SQL relation, so another
+ * statement can filter or join it without first loading the ids into PHP.
  *
  * moveOrg() rejects a cycle, including an org parented to itself. The parent
  * foreign key already rejects a parent from another tenant. MySQL cannot add
@@ -109,29 +111,7 @@ class OrgService {
      * @return array<int, array<string, mixed>>
      */
     public static function getAncestors($orgId) {
-        self::db();
-        $p = self::prefix();
-        $orgId = self::requireId($orgId, 'Organization');
-        $limit = self::MAX_DEPTH;
-
-        $sql = "WITH RECURSIVE ancestors AS (
-            SELECT org_id, key_id, parent_org_id, title, org_type, 0 AS depth
-            FROM {$p}lti_org
-            WHERE org_id = :org_id
-            UNION ALL
-            SELECT parent.org_id, parent.key_id, parent.parent_org_id, parent.title, parent.org_type,
-                   child.depth + 1 AS depth
-            FROM {$p}lti_org parent
-            INNER JOIN ancestors child
-                ON parent.org_id = child.parent_org_id
-               AND parent.key_id = child.key_id
-               AND child.depth < {$limit}
-        )
-        SELECT org_id, key_id, parent_org_id, title, org_type, depth
-        FROM ancestors
-        ORDER BY depth ASC, org_id ASC";
-
-        return self::finishWalk(self::rows($sql, array(':org_id' => $orgId)));
+        return self::walkRows($orgId, true);
     }
 
     /**
@@ -141,29 +121,66 @@ class OrgService {
      * @return array<int, array<string, mixed>>
      */
     public static function getDescendants($orgId) {
-        self::db();
+        return self::walkRows($orgId, false);
+    }
+
+    /**
+     * Ancestors of one org, including itself, as a composable SQL set.
+     *
+     * The tenant is an lti_key. Both the anchor and the recursive step require
+     * that key_id, so the walk stays inside the tenant.
+     *
+     * @param int $keyId tenant key
+     * @param int $orgId starting organization
+     * @param string $name CTE name, unique within the statement
+     * @return OrgScope
+     */
+    public static function ancestorScope($keyId, $orgId, $name = 'org_ancestors') {
+        return self::orgScope($keyId, $orgId, $name, true);
+    }
+
+    /**
+     * Descendants of one org, including itself, as a composable SQL set.
+     *
+     * @param int $keyId tenant key
+     * @param int $orgId starting organization
+     * @param string $name CTE name, unique within the statement
+     * @return OrgScope
+     */
+    public static function descendantScope($keyId, $orgId, $name = 'org_descendants') {
+        return self::orgScope($keyId, $orgId, $name, false);
+    }
+
+    /**
+     * Ancestors of a course's organization, including that organization.
+     *
+     * A course with no organization produces an empty set. A caller can still
+     * put the scope in one statement and match direct course rows beside it.
+     *
+     * @param int $contextId
+     * @param string $name CTE name, unique within the statement
+     * @return OrgScope
+     */
+    public static function contextAncestorScope($contextId, $name = 'org_ancestors') {
+        $contextId = self::requireId($contextId, 'Course');
+        $name = OrgScope::checkName($name);
         $p = self::prefix();
-        $orgId = self::requireId($orgId, 'Organization');
-        $limit = self::MAX_DEPTH;
+        $param = ':'.$name.'_context_id';
+        $anchor = "SELECT o.org_id, o.parent_org_id, o.key_id, 0 AS depth
+    FROM {$p}lti_context c
+    INNER JOIN {$p}lti_org o
+        ON o.org_id = c.org_id
+       AND o.key_id = c.key_id
+    WHERE c.context_id = {$param}";
 
-        $sql = "WITH RECURSIVE descendants AS (
-            SELECT org_id, key_id, parent_org_id, title, org_type, 0 AS depth
-            FROM {$p}lti_org
-            WHERE org_id = :org_id
-            UNION ALL
-            SELECT child.org_id, child.key_id, child.parent_org_id, child.title, child.org_type,
-                   parent.depth + 1 AS depth
-            FROM {$p}lti_org child
-            INNER JOIN descendants parent
-                ON child.parent_org_id = parent.org_id
-               AND child.key_id = parent.key_id
-               AND parent.depth < {$limit}
-        )
-        SELECT org_id, key_id, parent_org_id, title, org_type, depth
-        FROM descendants
-        ORDER BY depth ASC, org_id ASC";
-
-        return self::finishWalk(self::rows($sql, array(':org_id' => $orgId)));
+        return new OrgScope(
+            $name,
+            $anchor,
+            true,
+            $p.'lti_org',
+            self::MAX_DEPTH,
+            array($param => $contextId)
+        );
     }
 
     /**
@@ -183,21 +200,86 @@ class OrgService {
         if ( $orgId < 1 || $ancestorOrgId < 1 ) {
             return false;
         }
-        self::db();
         $org = self::findOrg($orgId);
-        $ancestor = self::findOrg($ancestorOrgId);
-        if ( $org === null || $ancestor === null ) {
+        if ( $org === null ) {
             return false;
         }
-        if ( (int) $org['key_id'] !== (int) $ancestor['key_id'] ) {
+        $scope = self::ancestorScope((int) $org['key_id'], $orgId);
+        $params = $scope->params();
+        $params[':ancestor_org_id'] = $ancestorOrgId;
+        $row = self::db()->rowDie(
+            "WITH RECURSIVE ".$scope->cte()."
+             SELECT MAX(depth) AS max_depth,
+                    MAX(CASE WHEN org_id = :ancestor_org_id THEN 1 ELSE 0 END) AS found
+             FROM ".$scope->name(),
+            $params
+        );
+        if ( ! is_array($row) || $row['max_depth'] === null ) {
             return false;
         }
-        foreach ( self::getAncestors($orgId) as $row ) {
-            if ( (int) $row['org_id'] === $ancestorOrgId ) {
-                return true;
-            }
+        if ( (int) $row['max_depth'] >= self::MAX_DEPTH ) {
+            throw new \RuntimeException('Organization hierarchy is too deep or cyclic.');
         }
-        return false;
+        return (int) $row['found'] === 1;
+    }
+
+    /**
+     * @param int $orgId
+     * @param bool $upward
+     * @return array<int, array<string, mixed>>
+     */
+    private static function walkRows($orgId, $upward) {
+        $orgId = self::requireId($orgId, 'Organization');
+        $org = self::findOrg($orgId);
+        if ( $org === null ) {
+            return array();
+        }
+        $scope = $upward
+            ? self::ancestorScope((int) $org['key_id'], $orgId)
+            : self::descendantScope((int) $org['key_id'], $orgId);
+        $p = self::prefix();
+        $name = $scope->name();
+        $sql = "WITH RECURSIVE ".$scope->cte()."
+            SELECT o.org_id, o.key_id, o.parent_org_id, o.title, o.org_type, {$name}.depth
+            FROM {$name}
+            INNER JOIN {$p}lti_org o
+                ON o.org_id = {$name}.org_id
+               AND o.key_id = {$name}.key_id
+            ORDER BY {$name}.depth ASC, o.org_id ASC";
+
+        return self::finishWalk(self::rows($sql, $scope->params()));
+    }
+
+    /**
+     * @param int $keyId
+     * @param int $orgId
+     * @param string $name
+     * @param bool $upward
+     * @return OrgScope
+     */
+    private static function orgScope($keyId, $orgId, $name, $upward) {
+        $keyId = self::requireId($keyId, 'Tenant key');
+        $orgId = self::requireId($orgId, 'Organization');
+        $name = OrgScope::checkName($name);
+        $p = self::prefix();
+        $keyParam = ':'.$name.'_key_id';
+        $orgParam = ':'.$name.'_org_id';
+        $anchor = "SELECT org_id, parent_org_id, key_id, 0 AS depth
+    FROM {$p}lti_org
+    WHERE key_id = {$keyParam}
+      AND org_id = {$orgParam}";
+
+        return new OrgScope(
+            $name,
+            $anchor,
+            $upward,
+            $p.'lti_org',
+            self::MAX_DEPTH,
+            array(
+                $keyParam => $keyId,
+                $orgParam => $orgId,
+            )
+        );
     }
 
     /**

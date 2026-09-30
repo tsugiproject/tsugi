@@ -210,10 +210,15 @@ class ToolDeploymentTest extends PlatformSchemaCase
         ToolDeploymentService::createDeployment($toolC, $this->id['engineeringA'], null);
         ToolDeploymentService::createDeployment($toolD, null, $this->id['free101']);
 
-        $this->assertSame(
-            array('Tool A', 'Tool B', 'Tool C'),
-            $this->titles(ToolDeploymentService::getRegistrationsForContext($this->id['eecs280']))
-        );
+        $visible = ToolDeploymentService::getRegistrationsForContext($this->id['eecs280']);
+        $this->assertSame(array('Tool A', 'Tool B', 'Tool C'), $this->titles($visible));
+        global $PDOX;
+        $sql = (string) $PDOX->PDOX_LastSqlQuery;
+        $this->assertStringContainsString('WITH RECURSIVE', $sql);
+        $this->assertStringContainsString('org_ancestors', $sql);
+        $this->assertStringContainsString('key_id', $sql);
+        $this->assertStringContainsString('IN (SELECT org_id FROM org_ancestors)', $sql);
+        $this->assertStringNotContainsString(':org_0', $sql);
         $this->assertCount(3, ToolDeploymentService::getDeploymentsForContext($this->id['eecs280']));
         $this->assertSame(
             array('Tool A', 'Tool C'),
@@ -231,14 +236,30 @@ class ToolDeploymentTest extends PlatformSchemaCase
             array(),
             ToolDeploymentService::getRegistrationsForContext($this->id['hist101'])
         );
-        $this->assertSame(
-            array('Tool D'),
-            $this->titles(ToolDeploymentService::getRegistrationsForContext($this->id['free101']))
-        );
+        $free = ToolDeploymentService::getRegistrationsForContext($this->id['free101']);
+        $this->assertSame(array('Tool D'), $this->titles($free));
+        $this->assertStringContainsString('WITH RECURSIVE', (string) $PDOX->PDOX_LastSqlQuery);
         $this->assertSame(
             array(),
             ToolDeploymentService::getRegistrationsForContext($this->id['eecs183'])
         );
+    }
+
+    public function testDirectAndAncestorDeploymentCollapseToOneRegistration(): void
+    {
+        $tool = $this->registration(null, 'Both');
+        ToolDeploymentService::createDeployment($tool, $this->id['engineeringA'], null);
+        ToolDeploymentService::createDeployment($tool, null, $this->id['eecs280']);
+
+        $regs = ToolDeploymentService::getRegistrationsForContext($this->id['eecs280']);
+        $this->assertSame(array('Both'), $this->titles($regs));
+        $this->assertCount(2, ToolDeploymentService::getDeploymentsForContext($this->id['eecs280']));
+    }
+
+    public function testMissingCourseIsRejected(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        ToolDeploymentService::getRegistrationsForContext(2147483646);
     }
 
     public function testRegistrationIsEitherLti11OrLti13(): void
