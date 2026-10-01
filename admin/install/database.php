@@ -54,11 +54,19 @@ array( "{$CFG->dbprefix}lms_tools_status",
 $DATABASE_UPGRADE = function($oldversion) {
     global $CFG, $PDOX;
 
-    // Thu Feb 11 12:05:44 EST 2021
-    $sql= "ALTER TABLE {$CFG->dbprefix}lms_tools_status MODIFY commit_log MEDIUMTEXT NULL";
-    echo("Upgrading: ".$sql."<br/>\n");
-    error_log("Upgrading: ".$sql);
-    $q = $PDOX->queryDie($sql);
+    // Thu Feb 11 12:05:44 EST 2021. Widen commit_log once; a later upgrade is quiet.
+    $status_table = "{$CFG->dbprefix}lms_tools_status";
+    if ( $PDOX->columnExists('commit_log', $status_table) ) {
+        $col = $PDOX->describeColumn('commit_log', $status_table);
+        $type = $col ? strtolower(\Tsugi\Util\U::get($col, 'Type', '')) : '';
+        $nullable = $col ? strtoupper(\Tsugi\Util\U::get($col, 'Null', '')) : '';
+        if ( $type !== 'mediumtext' || $nullable !== 'YES' ) {
+            $sql = "ALTER TABLE {$status_table} MODIFY commit_log MEDIUMTEXT NULL";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $PDOX->queryDie($sql);
+        }
+    }
 
     return 202002111206;
 
