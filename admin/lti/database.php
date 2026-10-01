@@ -872,20 +872,21 @@ array( "{$CFG->dbprefix}lti_tool_deployment",
 
     deployment_id       VARCHAR(255) NULL,
 
+    -- One key-level row per registration. NULL on org and course rows, so
+    -- those do not collide. Stored column rather than UNIQUE ((expression)):
+    -- MariaDB 10.5 rejects that syntax. A unique index allows many NULLs.
+    key_registration_id INTEGER AS (
+        CASE WHEN org_id IS NULL AND context_id IS NULL THEN registration_id ELSE NULL END
+    ) STORED,
+
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_pk` PRIMARY KEY (tool_deployment_id),
 
-    -- MySQL unique indexes allow many NULLs, so context deployments (org_id NULL)
-    -- and org deployments (context_id NULL) do not collide with each other.
-    -- const_3 is one key-level row per registration: both targets null, key_id set.
-    -- Other rows make that expression NULL, and a unique index allows many NULLs.
     CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_1` UNIQUE (registration_id, org_id),
     CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_2` UNIQUE (registration_id, context_id),
-    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_3` UNIQUE (
-        (CASE WHEN org_id IS NULL AND context_id IS NULL THEN registration_id END)
-    ),
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_3` UNIQUE (key_registration_id),
 
     -- One target, the other target, or neither. Neither is a deployment of the
     -- whole key. key_id stays required. Both targets set is rejected.
@@ -1960,9 +1961,16 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         $key_deployment = "{$p}lti_tool_deployment_const_3";
         if ( ! $PDOX->indexExists($key_deployment, $deployment_table) ) {
-            $sql = "ALTER TABLE {$deployment_table} ADD CONSTRAINT `{$key_deployment}` UNIQUE (
-                (CASE WHEN org_id IS NULL AND context_id IS NULL THEN registration_id END)
-            )";
+            if ( ! $PDOX->columnExists('key_registration_id', $deployment_table) ) {
+                $sql = "ALTER TABLE {$deployment_table} ADD COLUMN key_registration_id INTEGER AS (
+                    CASE WHEN org_id IS NULL AND context_id IS NULL THEN registration_id ELSE NULL END
+                ) STORED";
+                echo("Upgrading: ".$sql."<br/>\n");
+                error_log("Upgrading: ".$sql);
+                $q = $PDOX->queryReturnError($sql);
+                if ( ! $q->success ) die("Unable to add key_registration_id: ".$q->errorImplode."<br/>\n");
+            }
+            $sql = "ALTER TABLE {$deployment_table} ADD CONSTRAINT `{$key_deployment}` UNIQUE (key_registration_id)";
             echo("Upgrading: ".$sql."<br/>\n");
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryReturnError($sql);
@@ -1972,7 +1980,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610010011;
+    return 202610010012;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
