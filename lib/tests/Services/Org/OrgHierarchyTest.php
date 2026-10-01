@@ -54,7 +54,11 @@ class OrgHierarchyTest extends PlatformSchemaCase
 
     public function testMovesASubtreeThenPromotesItToTheRoot(): void
     {
+        global $PDOX;
+        $this->assertTrue($PDOX->inTransaction());
+
         OrgService::moveOrg($this->id['engineeringA'], $this->id['lsaA']);
+        $this->assertTrue($PDOX->inTransaction());
 
         $this->assertSame(
             array('Computer Science', 'Engineering', 'LSA', 'University A'),

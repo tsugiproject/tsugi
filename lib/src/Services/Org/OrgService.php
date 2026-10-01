@@ -68,40 +68,48 @@ class OrgService {
     /**
      * Move an org under another org in the same tenant, or to the tenant root.
      *
+     * The cycle check and the parent update belong in one transaction. A
+     * failure between them must not leave the caller holding a transaction
+     * this method opened. This method opens a transaction only when the
+     * caller has none, and it commits or rolls back only that transaction.
+     * It does not lock the rows the cycle check read. Two simultaneous moves
+     * can still each pass that check.
+     *
      * @param int $orgId
      * @param int|null $parentOrgId null places the org at the tenant root
      * @return void
      */
     public static function moveOrg($orgId, $parentOrgId) {
-        $PDOX = self::db();
-        $p = self::prefix();
         $orgId = self::requireId($orgId, 'Organization');
-        $org = self::requireOrg($orgId);
         $parentOrgId = self::optionalId($parentOrgId);
 
-        if ( $parentOrgId !== null ) {
-            $parent = self::requireOrg($parentOrgId);
-            if ( (int) $parent['key_id'] !== (int) $org['key_id'] ) {
-                throw new \InvalidArgumentException('Parent organization belongs to a different tenant.');
-            }
-            if ( self::isDescendantOrSelf($parentOrgId, $orgId) ) {
-                throw new \InvalidArgumentException('An organization cannot be moved under itself or one of its descendants.');
-            }
-        }
+        self::runInTransaction(function () use ($orgId, $parentOrgId) {
+            $org = self::requireOrg($orgId);
 
-        $stmt = $PDOX->queryReturnError(
-            "UPDATE {$p}lti_org
-             SET parent_org_id = :parent_org_id, updated_at = NOW()
-             WHERE org_id = :org_id AND key_id = :key_id",
-            array(
-                ':parent_org_id' => $parentOrgId,
-                ':org_id' => $orgId,
-                ':key_id' => (int) $org['key_id'],
-            )
-        );
-        if ( ! $stmt->success ) {
-            self::fail($stmt, 'Could not move organization.');
-        }
+            if ( $parentOrgId !== null ) {
+                $parent = self::requireOrg($parentOrgId);
+                if ( (int) $parent['key_id'] !== (int) $org['key_id'] ) {
+                    throw new \InvalidArgumentException('Parent organization belongs to a different tenant.');
+                }
+                if ( self::isDescendantOrSelf($parentOrgId, $orgId) ) {
+                    throw new \InvalidArgumentException('An organization cannot be moved under itself or one of its descendants.');
+                }
+            }
+
+            $stmt = self::db()->queryReturnError(
+                "UPDATE ".self::prefix()."lti_org
+                 SET parent_org_id = :parent_org_id, updated_at = NOW()
+                 WHERE org_id = :org_id AND key_id = :key_id",
+                array(
+                    ':parent_org_id' => $parentOrgId,
+                    ':org_id' => $orgId,
+                    ':key_id' => (int) $org['key_id'],
+                )
+            );
+            if ( ! $stmt->success ) {
+                self::fail($stmt, 'Could not move organization.');
+            }
+        });
     }
 
     /**
@@ -635,7 +643,7 @@ class OrgService {
                     $PDOX->rollBack();
                 } catch ( \Throwable $rollback ) {
                     throw new \RuntimeException(
-                        'Organization delete failed, and the transaction could not be rolled back. '.$ex->getMessage(),
+                        'The organization change failed, and the transaction could not be rolled back. '.$ex->getMessage(),
                         0,
                         $rollback
                     );

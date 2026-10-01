@@ -183,7 +183,10 @@ class ToolRegistrationDocument {
     /**
      * Log rows for one registration, in the order they were appended.
      * Null returns rows that were written before a registration existed,
-     * or whose registration has since been deleted.
+     * or whose registration has since been deleted. Those rows share a null
+     * registration_id, and each registration numbers sequence from zero, so
+     * this combined result is ordered by log_id. Ordering it by sequence
+     * would interleave unrelated exchanges.
      *
      * @param int|null $registrationId
      * @return array<int, array<string, mixed>>
@@ -194,7 +197,7 @@ class ToolRegistrationDocument {
             $sql = "SELECT log_id, registration_id, sequence, direction, phase, content_type, http_status, payload_text
                 FROM {$p}lti_tool_registration_log
                 WHERE registration_id IS NULL
-                ORDER BY sequence ASC, log_id ASC";
+                ORDER BY log_id ASC";
             $params = array();
         } else {
             $registrationId = (int) $registrationId;

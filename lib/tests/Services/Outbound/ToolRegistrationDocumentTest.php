@@ -203,6 +203,35 @@ class ToolRegistrationDocumentTest extends PlatformSchemaCase
         $this->assertSame($raw, $log['payload_text']);
     }
 
+    public function testOrphanedLogsStayInAppendOrder(): void
+    {
+        global $PDOX;
+        $p = $this->p();
+        $first = $this->registration();
+        $second = $this->registration();
+        $a0 = ToolRegistrationDocument::appendLog($first, 'inbound', 'registration', 'A0');
+        $a1 = ToolRegistrationDocument::appendLog($first, 'inbound', 'registration', 'A1');
+        $b0 = ToolRegistrationDocument::appendLog($second, 'inbound', 'registration', 'B0');
+
+        foreach ( array($first, $second) as $registrationId ) {
+            $stmt = $PDOX->queryReturnError(
+                "DELETE FROM {$p}lti_tool_registration WHERE registration_id = :registration_id",
+                array(':registration_id' => $registrationId)
+            );
+            $this->assertTrue((bool) $stmt->success, (string) $stmt->errorImplode);
+        }
+
+        $wanted = array($a0 => 'A0', $a1 => 'A1', $b0 => 'B0');
+        $seen = array();
+        foreach ( ToolRegistrationDocument::logsForRegistration(null) as $log ) {
+            if ( isset($wanted[$log['log_id']]) ) {
+                $seen[] = $wanted[$log['log_id']];
+                $this->assertNull($log['registration_id']);
+            }
+        }
+        $this->assertSame(array('A0', 'A1', 'B0'), $seen);
+    }
+
     public function testLogCanBeWrittenBeforeARegistrationExists(): void
     {
         $raw = 'not-json-yet';
