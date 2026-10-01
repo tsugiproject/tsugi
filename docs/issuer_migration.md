@@ -181,7 +181,9 @@ When `time() >= 2026-10-01 00:00:00 UTC`, `$DATABASE_UPGRADE`:
 5. Drops table `lti_issuer` if present.
 
 Phase 1 (copy data off issuers) still runs on every upgrade while the table exists,
-including before the October 2026 cutoff.
+including before the October 2026 cutoff. Later upgrades see whether `lti_issuer`
+exists in `information_schema`, so a dropped table does not produce a
+`SHOW COLUMNS` error.
 
 ### Verification (after cutoff upgrade)
 
