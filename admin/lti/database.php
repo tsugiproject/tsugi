@@ -1387,9 +1387,18 @@ $DATABASE_UPGRADE = function($oldversion) {
         $q = $PDOX->queryReturnError($sql);
     }
 
-    // Legacy lti_issuer column renames and issuer_guid (only while table still exists)
+    // Legacy lti_issuer column renames and issuer_guid (only while table still exists).
+    // information_schema avoids SHOW COLUMNS, which logs SQLSTATE 42S02 after phase 3.
     $issuer_table = "{$CFG->dbprefix}lti_issuer";
-    if ( $PDOX->metadata($issuer_table) !== false ) {
+    $issuer_table_row = $PDOX->rowDie(
+        "SELECT TABLE_NAME AS table_name
+            FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = :table_name",
+        array(':table_name' => $issuer_table)
+    );
+    $have_issuer_table = is_array($issuer_table_row);
+    if ( $have_issuer_table ) {
 
     // Note still have to edit the entry to get the sha256 properly set
     if ( $PDOX->columnExists('issuer_issuer', $issuer_table) &&
@@ -1595,7 +1604,7 @@ $DATABASE_UPGRADE = function($oldversion) {
     // Issue #226 phase 1: copy lti_issuer data into lti_key for all linked keys (idempotent).
     // Clears issuer_id, lms_issuer, and lms_issuer_sha256 on lti_key; copies other lms_*
     // from issuer (issuer precedence, key fallback). Safe to run until phase 3 drops the table.
-    if ( $PDOX->metadata($issuer_table) !== false
+    if ( $have_issuer_table
         && $PDOX->columnExists('lms_issuer', "{$CFG->dbprefix}lti_key") ) {
         $lti_migration_coalesce = function($issuer_val, $key_val) {
             if ( $issuer_val !== null && $issuer_val !== '' && strlen(trim((string) $issuer_val)) > 0 ) {
@@ -1700,7 +1709,6 @@ $DATABASE_UPGRADE = function($oldversion) {
     $issuer_drop_after = gmmktime(0, 0, 0, 10, 1, 2026);
     if ( time() >= $issuer_drop_after ) {
         $key_table = "{$CFG->dbprefix}lti_key";
-        $have_issuer_table = ($PDOX->metadata($issuer_table) !== false);
         $have_issuer_id = $PDOX->columnExists('issuer_id', $key_table);
 
         if ( $have_issuer_table || $have_issuer_id ) {
