@@ -173,7 +173,9 @@ When `time() >= 2026-10-01 00:00:00 UTC`, `$DATABASE_UPGRADE`:
 
 1. Warns if any non-deleted `lti_key` rows still have `issuer_id` set (phase 1 should
    have cleared these).
-2. Drops FK `lti_key_ibfk_1` if present.
+2. Drops every foreign key on `lti_key` that references `lti_issuer` (normally
+   `lti_key_ibfk_1`). InnoDB reuses unique index `lti_key_const_2` as that
+   key’s supporting index, so the constraint name does not appear in `SHOW INDEX`.
 3. Drops unique index `lti_key_const_2` if present.
 4. Drops column `lti_key.issuer_id` if present.
 5. Drops table `lti_issuer` if present.
