@@ -232,6 +232,135 @@ class ToolRegistrationDocumentTest extends PlatformSchemaCase
         $this->assertSame(array('A0', 'A1', 'B0'), $seen);
     }
 
+    public function testSpecRegistrationReadsNestedMessages(): void
+    {
+        $registrationId = $this->registration();
+        ToolRegistrationDocument::storeDocument($registrationId, array(
+            'messages' => array(
+                array('type' => 'LtiResourceLinkRequest', 'label' => 'Old'),
+            ),
+        ));
+
+        $raw = json_encode(array(
+            'client_name' => 'Widget',
+            'https://purl.imsglobal.org/spec/lti-tool-configuration' => array(
+                'domain' => 'tool.example',
+                'claims' => array('iss', 'sub'),
+                'messages' => array(
+                    array(
+                        'type' => 'LtiResourceLinkRequest',
+                        'label' => 'Library',
+                        'target_link_uri' => 'https://tool.example/link',
+                    ),
+                    array(
+                        'type' => 'LtiDeepLinkingRequest',
+                        'label' => 'Deep',
+                    ),
+                ),
+            ),
+        ), JSON_UNESCAPED_SLASHES);
+        ToolRegistrationDocument::acceptPayload($registrationId, 'inbound', 'registration', $raw);
+
+        $messages = ToolRegistrationDocument::messagesForRegistration($registrationId);
+        $this->assertSame(array(0, 1), array_column($messages, 'sequence'));
+        $this->assertSame(
+            array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest'),
+            array_column($messages, 'message_type')
+        );
+        $this->assertSame(array('Library', 'Deep'), array_column($messages, 'label'));
+        $this->assertSame('https://tool.example/link', $messages[0]['target_link_uri']);
+
+        $stored = ToolRegistrationDocument::registrationDocument($registrationId);
+        $config = $stored['https://purl.imsglobal.org/spec/lti-tool-configuration'];
+        $this->assertSame('tool.example', $config['domain']);
+        $this->assertSame(array('iss', 'sub'), $config['claims']);
+        $this->assertSame('Library', $config['messages'][0]['label']);
+    }
+
+    public function testSpecOpenIdConfigurationExample(): void
+    {
+        $registrationId = $this->registration();
+        $raw = $this->spec('2.1.3-openid-configuration.json');
+        ToolRegistrationDocument::acceptPayload($registrationId, 'inbound', 'openid_configuration', $raw);
+
+        $stored = ToolRegistrationDocument::registrationDocument($registrationId);
+        $this->assertSame('https://server.example.com', $stored['issuer']);
+        $platform = $stored['https://purl.imsglobal.org/spec/lti-platform-configuration'];
+        $this->assertSame('ExampleLMS', $platform['product_family_code']);
+        $this->assertSame(
+            array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest'),
+            array_column($platform['messages_supported'], 'type')
+        );
+        $this->assertSame(array(), ToolRegistrationDocument::messagesForRegistration($registrationId));
+        $this->assertSame($raw, ToolRegistrationDocument::logsForRegistration($registrationId)[0]['payload_text']);
+    }
+
+    public function testSpecToolConfigurationFromThePlatform(): void
+    {
+        $registrationId = $this->registration();
+        $raw = $this->spec('2.3-tool-configuration-from-platform.json');
+        ToolRegistrationDocument::acceptPayload($registrationId, 'inbound', 'registration_response', $raw);
+
+        $stored = ToolRegistrationDocument::registrationDocument($registrationId);
+        $this->assertSame('Virtual Garden', $stored['client_name']);
+        $this->assertSame(array('implict', 'client_credentials'), $stored['grant_types']);
+        $config = $stored['https://purl.imsglobal.org/spec/lti-tool-configuration'];
+        $this->assertSame('client.example.org', $config['domain']);
+        $this->assertSame('$Context.id.history', $config['custom_parameters']['context_history']);
+        $this->assertSame(
+            array('iss', 'sub', 'name', 'given_name', 'family_name'),
+            $config['claims']
+        );
+
+        $messages = ToolRegistrationDocument::messagesForRegistration($registrationId);
+        $this->assertCount(1, $messages);
+        $this->assertSame(0, $messages[0]['sequence']);
+        $this->assertSame('LtiDeepLinkingRequest', $messages[0]['message_type']);
+        $this->assertSame('Add a virtual garden', $messages[0]['label']);
+        $this->assertSame('https://client.example.org/lti/dl', $messages[0]['target_link_uri']);
+        $this->assertSame($raw, ToolRegistrationDocument::logsForRegistration($registrationId)[0]['payload_text']);
+    }
+
+    public function testSpecSuccessfulRegistrationResponse(): void
+    {
+        $registrationId = $this->registration();
+        $raw = $this->spec('3.6.1-successful-registration.json');
+        ToolRegistrationDocument::acceptPayload($registrationId, 'inbound', 'registration_response', $raw);
+
+        $stored = ToolRegistrationDocument::registrationDocument($registrationId);
+        $this->assertSame('709sdfnjkds12', $stored['client_id']);
+        $this->assertSame('iDPzMyKHMX_4CkTpwLDCK', $stored['registration_access_token']);
+        $config = $stored['https://purl.imsglobal.org/spec/lti-tool-configuration'];
+        $this->assertSame(array('iss', 'sub'), $config['claims']);
+        $messages = ToolRegistrationDocument::messagesForRegistration($registrationId);
+        $this->assertSame(array('LtiDeepLinkingRequest'), array_column($messages, 'message_type'));
+        $this->assertSame('Add a virtual garden', $messages[0]['label']);
+    }
+
+    /**
+     * These two samples are copied unchanged from the published spec, and both
+     * are illegal JSON. Section 2.2.5 omits the comma before supported_types.
+     * Section 3.5.2 has a trailing comma after label#ja. Neither sample uses
+     * an ellipsis or a placeholder. The text is complete and IMS published it
+     * this way. The log keeps that text. No message rows are stored.
+     */
+    public function testSpecExamplesThatAreNotValidJsonStayInTheLog(): void
+    {
+        foreach ( array('2.2.5-tool-configuration.json', '3.5.2-client-registration-request.json') as $name ) {
+            $registrationId = $this->registration();
+            $raw = $this->spec($name);
+            try {
+                ToolRegistrationDocument::acceptPayload($registrationId, 'inbound', 'registration', $raw);
+                $this->fail($name.' is published as invalid JSON and must be rejected.');
+            } catch ( \InvalidArgumentException $ex ) {
+                $this->assertStringContainsString('not valid JSON', $ex->getMessage());
+            }
+            $this->assertNull(ToolRegistrationDocument::registrationDocument($registrationId));
+            $this->assertSame(array(), ToolRegistrationDocument::messagesForRegistration($registrationId));
+            $this->assertSame($raw, ToolRegistrationDocument::logsForRegistration($registrationId)[0]['payload_text']);
+        }
+    }
+
     public function testLogCanBeWrittenBeforeARegistrationExists(): void
     {
         $raw = 'not-json-yet';
@@ -252,5 +381,31 @@ class ToolRegistrationDocumentTest extends PlatformSchemaCase
     private function registration(): int
     {
         return ToolRegistrationService::createRegistration($this->id['keyA'], 'Widget');
+    }
+
+    /**
+     * Exact JSON from the published Dynamic Registration 1.0 page.
+     * Files in spec/ are the example text, not a cleaned-up copy.
+     *
+     * 2.1.3-openid-configuration.json
+     *     https://www.imsglobal.org/spec/lti-dr/v1p0#non-normative-example
+     * 2.2.5-tool-configuration.json
+     *     https://www.imsglobal.org/spec/lti-dr/v1p0#non-normative-example-0
+     * 2.3-tool-configuration-from-platform.json
+     *     https://www.imsglobal.org/spec/lti-dr/v1p0#tool-configuration-from-the-platform
+     * 3.5.2-client-registration-request.json
+     *     https://www.imsglobal.org/spec/lti-dr/v1p0#client-registration-request
+     * 3.6.1-successful-registration.json
+     *     https://www.imsglobal.org/spec/lti-dr/v1p0#successful-registration
+     *
+     * 2.2.5 and 3.5.2 do not parse. See testSpecExamplesThatAreNotValidJsonStayInTheLog().
+     * Section 3.7 is a JavaScript postMessage, so it is not in spec/.
+     */
+    private function spec(string $name): string
+    {
+        $path = __DIR__.'/spec/'.$name;
+        $raw = file_get_contents($path);
+        $this->assertIsString($raw, $name);
+        return $raw;
     }
 }

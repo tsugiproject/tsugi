@@ -15,6 +15,8 @@ use Tsugi\Core\LTIX;
  */
 class ToolRegistrationDocument {
 
+    const TOOL_CONFIGURATION = 'https://purl.imsglobal.org/spec/lti-tool-configuration';
+
     /**
      * Write the raw payload, then parse it. A parse failure leaves the log
      * row in place and does not change the registration or its messages.
@@ -281,14 +283,20 @@ class ToolRegistrationDocument {
     }
 
     /**
+     * Messages from a spec registration live inside the LTI tool configuration
+     * object. A document that has that object uses its messages array, including
+     * when the array is absent or empty. A document without that object may
+     * carry messages at the root. registration_json still stores the whole
+     * document either way.
+     *
      * @param array<string, mixed> $document
      * @return array<int, array<string, mixed>>
      */
     private static function messageList(array $document) {
-        if ( ! array_key_exists('messages', $document) || $document['messages'] === null ) {
+        $messages = self::messagesValue($document);
+        if ( $messages === null ) {
             return array();
         }
-        $messages = $document['messages'];
         if ( ! is_array($messages) || ! array_is_list($messages) ) {
             throw new \InvalidArgumentException('Registration messages must be a JSON array.');
         }
@@ -300,6 +308,27 @@ class ToolRegistrationDocument {
             $out[] = $message;
         }
         return $out;
+    }
+
+    /**
+     * @param array<string, mixed> $document
+     * @return mixed null when this document declares no messages
+     */
+    private static function messagesValue(array $document) {
+        if ( array_key_exists(self::TOOL_CONFIGURATION, $document) && $document[self::TOOL_CONFIGURATION] !== null ) {
+            $config = $document[self::TOOL_CONFIGURATION];
+            if ( ! is_array($config) || array_is_list($config) ) {
+                throw new \InvalidArgumentException('LTI tool configuration must be a JSON object.');
+            }
+            if ( ! array_key_exists('messages', $config) || $config['messages'] === null ) {
+                return null;
+            }
+            return $config['messages'];
+        }
+        if ( ! array_key_exists('messages', $document) || $document['messages'] === null ) {
+            return null;
+        }
+        return $document['messages'];
     }
 
     /**
@@ -340,6 +369,17 @@ class ToolRegistrationDocument {
     }
 
     /**
+     * Decode a JSON object into an associative array.
+     *
+     * The true argument stays. false would return stdClass, and the is_array
+     * checks in this service would reject a valid document. An empty object
+     * and an empty array are the same PHP array, so encode writes []. In
+     * this spec that is an empty custom_parameters. A lookup by name or by
+     * position finds nothing either way. A non-empty object or array keeps
+     * the type the spec names. The raw log still has the original text.
+     * Leave this flag alone unless outbound JSON is rebuilt from
+     * registration_json or message_json.
+     *
      * @param string $payloadText
      * @return array<string, mixed>
      */
@@ -352,6 +392,8 @@ class ToolRegistrationDocument {
     }
 
     /**
+     * Same array decode as decodeObject().
+     *
      * @param mixed $value
      * @return array<string, mixed>
      */
