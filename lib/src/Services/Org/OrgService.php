@@ -105,6 +105,108 @@ class OrgService {
     }
 
     /**
+     * Remove an organization without deleting the courses, tools, or child
+     * orgs that pointed at it.
+     *
+     * The database cannot express "move this up to the parent, or else to the
+     * key." Foreign keys can only cascade, restrict, or null a column. A
+     * composite ON DELETE SET NULL would also null key_id, and key_id is the
+     * tenant. Those foreign keys are therefore ON DELETE RESTRICT. This method
+     * walks the rows off the org, then deletes the org. A raw DELETE of an org
+     * that still has children, registrations, or deployments fails.
+     *
+     * The transaction is required because the steps are only safe together.
+     * Stopping after any one of them leaves tools, scope, or the tree in the
+     * wrong place, or it deletes rows the later step was supposed to keep.
+     * Do not reorder these steps and do not delete the org from anywhere else.
+     *
+     * 1. Reparent child orgs onto this org's parent, or make them roots when
+     *    this org is a root. This has to happen first. The parent foreign key
+     *    would otherwise refuse the delete, and the old CASCADE behavior
+     *    deleted the whole subtree.
+     * 2. Clear registration.org_id for registrations scoped to this org. They
+     *    become key-wide and keep key_id. This has to happen before the org
+     *    row goes away. Deleting the registration would cascade into every
+     *    deployment of that registration, including deployments this method
+     *    is about to keep.
+     * 3. Retarget deployments that point at this org. If the parent org
+     *    already has that registration, drop this deployment. Otherwise point
+     *    it at the parent. A root has no parent, so the deployment becomes a
+     *    key deployment: org_id and context_id null, key_id unchanged. Drop
+     *    it instead when that registration already has a key deployment.
+     *    This has to happen before the org delete. The deployment foreign key
+     *    would otherwise refuse the delete, and CASCADE would remove the row.
+     * 4. Delete the org. Courses placed directly in it are left in place by
+     *    the database: lti_context.org_id is a single-column foreign key with
+     *    ON DELETE SET NULL, so the course keeps key_id and loses only the
+     *    org. Courses placed in a child stay on that child, because the child
+     *    was reparented in step 1.
+     *
+     * If this method opened the transaction, a failure rolls it back and
+     * closes it. A caller that already has a transaction keeps that
+     * transaction; this method does not commit or roll back someone else's
+     * work.
+     *
+     * @param int $orgId
+     * @return void
+     */
+    public static function deleteOrg($orgId) {
+        $orgId = self::requireId($orgId, 'Organization');
+        $org = self::requireOrg($orgId);
+        $keyId = (int) $org['key_id'];
+        $parentOrgId = $org['parent_org_id'];
+
+        self::runInTransaction(function () use ($orgId, $keyId, $parentOrgId) {
+            self::reparentChildren($orgId, $keyId, $parentOrgId);
+            self::releaseRegistrations($orgId, $keyId);
+            self::bubbleDeployments($orgId, $keyId, $parentOrgId);
+            self::removeOrgRow($orgId, $keyId);
+        });
+    }
+
+    /**
+     * Rows sitting directly on this org.
+     *
+     * A later delete screen uses this to say how many courses, deployments,
+     * child orgs, and registrations are still here, and to list them so a
+     * person can move each one. These are direct rows only. A course placed
+     * in a child belongs to that child. A deployment on a course, on an
+     * ancestor, or on the key is not a holding of this org.
+     *
+     * empty is true only when all four lists are empty. That is when a screen
+     * may call deleteOrg() without it choosing destinations. deleteOrg()
+     * still repairs a non-empty org. That path is for unattended removal.
+     *
+     * @param int $orgId
+     * @return array{courses: array<int, array<string, mixed>>, deployments: array<int, array<string, mixed>>, children: array<int, array<string, mixed>>, registrations: array<int, array<string, mixed>>, counts: array<string, int>, empty: bool}
+     */
+    public static function directHoldings($orgId) {
+        $orgId = self::requireId($orgId, 'Organization');
+        $org = self::requireOrg($orgId);
+        $keyId = (int) $org['key_id'];
+
+        $courses = self::coursesOnOrg($orgId, $keyId);
+        $deployments = self::deploymentsOnOrg($orgId, $keyId);
+        $children = self::childOrgs($orgId, $keyId);
+        $registrations = self::registrationsOnOrg($orgId, $keyId);
+        $counts = array(
+            'courses' => count($courses),
+            'deployments' => count($deployments),
+            'children' => count($children),
+            'registrations' => count($registrations),
+        );
+
+        return array(
+            'courses' => $courses,
+            'deployments' => $deployments,
+            'children' => $children,
+            'registrations' => $registrations,
+            'counts' => $counts,
+            'empty' => array_sum($counts) === 0,
+        );
+    }
+
+    /**
      * Starting org, then its parent, then that parent, up to the root.
      *
      * @param int $orgId
@@ -500,6 +602,279 @@ class OrgService {
             throw new \RuntimeException('Could not create organization.');
         }
         return $id;
+    }
+
+    /**
+     * Run $work in a transaction this method owns.
+     *
+     * A caller that already opened a transaction keeps it. Beginning another
+     * one fails on MySQL, and committing or rolling back that outer
+     * transaction would discard the caller's other work. When this method
+     * opens the transaction, it closes it: commit after $work, or roll back
+     * when $work throws. A rollback failure is reported with the original
+     * error so the connection is not left inside an open transaction without
+     * a trace.
+     *
+     * @param callable $work
+     * @return void
+     */
+    private static function runInTransaction($work) {
+        $PDOX = self::db();
+        $owns = ! $PDOX->inTransaction();
+        if ( $owns ) {
+            $PDOX->beginTransaction();
+        }
+        try {
+            $work();
+            if ( $owns ) {
+                $PDOX->commit();
+            }
+        } catch ( \Throwable $ex ) {
+            if ( $owns && $PDOX->inTransaction() ) {
+                try {
+                    $PDOX->rollBack();
+                } catch ( \Throwable $rollback ) {
+                    throw new \RuntimeException(
+                        'Organization delete failed, and the transaction could not be rolled back. '.$ex->getMessage(),
+                        0,
+                        $rollback
+                    );
+                }
+            }
+            throw $ex;
+        }
+    }
+
+    /**
+     * @param int $orgId
+     * @param int $keyId
+     * @param int|null $parentOrgId
+     * @return void
+     */
+    private static function reparentChildren($orgId, $keyId, $parentOrgId) {
+        $stmt = self::db()->queryReturnError(
+            "UPDATE ".self::prefix()."lti_org
+             SET parent_org_id = :parent_org_id, updated_at = NOW()
+             WHERE parent_org_id = :org_id AND key_id = :key_id",
+            array(
+                ':parent_org_id' => $parentOrgId,
+                ':org_id' => $orgId,
+                ':key_id' => $keyId,
+            )
+        );
+        if ( ! $stmt->success ) {
+            self::fail($stmt, 'Could not reparent child organizations.');
+        }
+    }
+
+    /**
+     * @param int $orgId
+     * @param int $keyId
+     * @return void
+     */
+    private static function releaseRegistrations($orgId, $keyId) {
+        $stmt = self::db()->queryReturnError(
+            "UPDATE ".self::prefix()."lti_tool_registration
+             SET org_id = NULL, updated_at = NOW()
+             WHERE org_id = :org_id AND key_id = :key_id",
+            array(
+                ':org_id' => $orgId,
+                ':key_id' => $keyId,
+            )
+        );
+        if ( ! $stmt->success ) {
+            self::fail($stmt, 'Could not release tool registrations from the organization.');
+        }
+    }
+
+    /**
+     * @param int $orgId
+     * @param int $keyId
+     * @param int|null $parentOrgId
+     * @return void
+     */
+    private static function bubbleDeployments($orgId, $keyId, $parentOrgId) {
+        $p = self::prefix();
+        $PDOX = self::db();
+        if ( $parentOrgId !== null ) {
+            $drop = $PDOX->queryReturnError(
+                "DELETE d FROM {$p}lti_tool_deployment d
+                 INNER JOIN {$p}lti_tool_deployment kept
+                    ON kept.registration_id = d.registration_id
+                   AND kept.org_id = :parent_org_id
+                   AND kept.tool_deployment_id <> d.tool_deployment_id
+                 WHERE d.org_id = :org_id AND d.key_id = :key_id",
+                array(
+                    ':parent_org_id' => $parentOrgId,
+                    ':org_id' => $orgId,
+                    ':key_id' => $keyId,
+                )
+            );
+            if ( ! $drop->success ) {
+                self::fail($drop, 'Could not drop deployments already covered by the parent organization.');
+            }
+            $move = $PDOX->queryReturnError(
+                "UPDATE {$p}lti_tool_deployment
+                 SET org_id = :parent_org_id, updated_at = NOW()
+                 WHERE org_id = :org_id AND key_id = :key_id",
+                array(
+                    ':parent_org_id' => $parentOrgId,
+                    ':org_id' => $orgId,
+                    ':key_id' => $keyId,
+                )
+            );
+            if ( ! $move->success ) {
+                self::fail($move, 'Could not move deployments to the parent organization.');
+            }
+            return;
+        }
+
+        $drop = $PDOX->queryReturnError(
+            "DELETE d FROM {$p}lti_tool_deployment d
+             INNER JOIN {$p}lti_tool_deployment kept
+                ON kept.registration_id = d.registration_id
+               AND kept.key_id = d.key_id
+               AND kept.org_id IS NULL
+               AND kept.context_id IS NULL
+               AND kept.tool_deployment_id <> d.tool_deployment_id
+             WHERE d.org_id = :org_id AND d.key_id = :key_id",
+            array(
+                ':org_id' => $orgId,
+                ':key_id' => $keyId,
+            )
+        );
+        if ( ! $drop->success ) {
+            self::fail($drop, 'Could not drop deployments already covered by the key.');
+        }
+        $move = $PDOX->queryReturnError(
+            "UPDATE {$p}lti_tool_deployment
+             SET org_id = NULL, updated_at = NOW()
+             WHERE org_id = :org_id AND key_id = :key_id",
+            array(
+                ':org_id' => $orgId,
+                ':key_id' => $keyId,
+            )
+        );
+        if ( ! $move->success ) {
+            self::fail($move, 'Could not move deployments to the key.');
+        }
+    }
+
+    /**
+     * @param int $orgId
+     * @param int $keyId
+     * @return array<int, array<string, mixed>>
+     */
+    private static function coursesOnOrg($orgId, $keyId) {
+        $rows = self::rows(
+            "SELECT context_id, key_id, title
+             FROM ".self::prefix()."lti_context
+             WHERE org_id = :org_id AND key_id = :key_id
+             ORDER BY title ASC, context_id ASC",
+            array(':org_id' => $orgId, ':key_id' => $keyId)
+        );
+        $out = array();
+        foreach ( $rows as $row ) {
+            $out[] = array(
+                'context_id' => (int) $row['context_id'],
+                'key_id' => (int) $row['key_id'],
+                'title' => $row['title'] === null ? null : (string) $row['title'],
+            );
+        }
+        return $out;
+    }
+
+    /**
+     * @param int $orgId
+     * @param int $keyId
+     * @return array<int, array<string, mixed>>
+     */
+    private static function deploymentsOnOrg($orgId, $keyId) {
+        $p = self::prefix();
+        $rows = self::rows(
+            "SELECT d.tool_deployment_id, d.registration_id, d.key_id, d.deployment_id, r.title
+             FROM {$p}lti_tool_deployment d
+             INNER JOIN {$p}lti_tool_registration r
+                ON r.registration_id = d.registration_id AND r.key_id = d.key_id
+             WHERE d.org_id = :org_id AND d.key_id = :key_id
+             ORDER BY r.title ASC, d.tool_deployment_id ASC",
+            array(':org_id' => $orgId, ':key_id' => $keyId)
+        );
+        $out = array();
+        foreach ( $rows as $row ) {
+            $out[] = array(
+                'tool_deployment_id' => (int) $row['tool_deployment_id'],
+                'registration_id' => (int) $row['registration_id'],
+                'key_id' => (int) $row['key_id'],
+                'deployment_id' => $row['deployment_id'] === null ? null : (string) $row['deployment_id'],
+                'title' => (string) $row['title'],
+            );
+        }
+        return $out;
+    }
+
+    /**
+     * @param int $orgId
+     * @param int $keyId
+     * @return array<int, array<string, mixed>>
+     */
+    private static function childOrgs($orgId, $keyId) {
+        $rows = self::rows(
+            "SELECT org_id, key_id, parent_org_id, title, org_type
+             FROM ".self::prefix()."lti_org
+             WHERE parent_org_id = :org_id AND key_id = :key_id
+             ORDER BY title ASC, org_id ASC",
+            array(':org_id' => $orgId, ':key_id' => $keyId)
+        );
+        $out = array();
+        foreach ( $rows as $row ) {
+            $out[] = self::orgRow($row);
+        }
+        return $out;
+    }
+
+    /**
+     * @param int $orgId
+     * @param int $keyId
+     * @return array<int, array<string, mixed>>
+     */
+    private static function registrationsOnOrg($orgId, $keyId) {
+        $rows = self::rows(
+            "SELECT registration_id, key_id, org_id, title
+             FROM ".self::prefix()."lti_tool_registration
+             WHERE org_id = :org_id AND key_id = :key_id
+             ORDER BY title ASC, registration_id ASC",
+            array(':org_id' => $orgId, ':key_id' => $keyId)
+        );
+        $out = array();
+        foreach ( $rows as $row ) {
+            $out[] = array(
+                'registration_id' => (int) $row['registration_id'],
+                'key_id' => (int) $row['key_id'],
+                'org_id' => (int) $row['org_id'],
+                'title' => (string) $row['title'],
+            );
+        }
+        return $out;
+    }
+
+    /**
+     * @param int $orgId
+     * @param int $keyId
+     * @return void
+     */
+    private static function removeOrgRow($orgId, $keyId) {
+        $stmt = self::db()->queryReturnError(
+            "DELETE FROM ".self::prefix()."lti_org
+             WHERE org_id = :org_id AND key_id = :key_id",
+            array(
+                ':org_id' => $orgId,
+                ':key_id' => $keyId,
+            )
+        );
+        if ( ! $stmt->success ) {
+            self::fail($stmt, 'Could not delete organization.');
+        }
     }
 
     /**

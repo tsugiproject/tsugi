@@ -6,10 +6,12 @@ use Tsugi\Core\LTIX;
 use Tsugi\Services\Org\OrgService;
 
 /**
- * Deploys one outbound registration to exactly one org or exactly one course.
+ * Deploys one outbound registration to an org, a course, or the whole key.
  *
- * A course sees the union of its direct deployments and deployments on its
- * org and that org's ancestors. A course with no org sees only direct deployments.
+ * Both org and course empty means the tool is deployed to the key. key_id
+ * stays set. A course sees that key deployment, a direct course deployment,
+ * and deployments on its org and that org's ancestors. A course with no org
+ * still sees the key deployment and its direct deployments.
  * That lookup is one statement: the ancestor walk is a recursive CTE inside
  * the same query, not a list of ids loaded first.
  */
@@ -17,7 +19,7 @@ class ToolDeploymentService {
 
     /**
      * @param int $registrationId
-     * @param int|null $orgId set this or $contextId, never both
+     * @param int|null $orgId org, course, or neither for the whole key
      * @param int|null $contextId
      * @param string|null $deploymentId future LTI deployment identifier
      * @return int tool_deployment_id
@@ -28,8 +30,8 @@ class ToolDeploymentService {
         $registrationId = (int) $registrationId;
         $orgId = self::optionalId($orgId);
         $contextId = self::optionalId($contextId);
-        if ( ($orgId === null) === ($contextId === null) ) {
-            throw new \InvalidArgumentException('A deployment targets an organization or a course.');
+        if ( $orgId !== null && $contextId !== null ) {
+            throw new \InvalidArgumentException('A deployment targets an organization, a course, or the key.');
         }
 
         $registration = ToolRegistrationService::findRegistration($registrationId);
@@ -37,6 +39,9 @@ class ToolDeploymentService {
             throw new \InvalidArgumentException('Tool registration was not found.');
         }
 
+        if ( $orgId === null && $contextId === null && $registration['org_id'] !== null ) {
+            throw new \InvalidArgumentException('An organization-scoped registration cannot be deployed to the whole key.');
+        }
         if ( $orgId !== null && ! ToolRegistrationService::canDeployToOrg($registrationId, $orgId) ) {
             throw new \InvalidArgumentException('This registration cannot be deployed to that organization.');
         }
@@ -99,9 +104,9 @@ class ToolDeploymentService {
     }
 
     /**
-     * Direct course deployments, plus org deployments on the course org and
-     * its ancestors. The ancestor walk is a recursive CTE in this statement.
-     * A course with no org makes that set empty, so only direct rows match.
+     * Direct course deployments, key deployments, and org deployments on the
+     * course org and its ancestors. The ancestor walk is a recursive CTE in
+     * this statement. A course with no org still matches a key deployment.
      *
      * @param int $contextId
      * @param bool $registrations
@@ -116,7 +121,7 @@ class ToolDeploymentService {
         $p = self::prefix();
         $params = $scope->params();
         $params[':context_id'] = $contextId;
-        $visible = 'd.key_id = c.key_id AND (d.context_id = c.context_id OR '.$scope->in('d.org_id').')';
+        $visible = 'd.key_id = c.key_id AND (d.context_id = c.context_id OR '.$scope->in('d.org_id').' OR (d.org_id IS NULL AND d.context_id IS NULL))';
 
         if ( $registrations ) {
             $sql = "WITH RECURSIVE ".$scope->cte()."
@@ -192,10 +197,15 @@ class ToolDeploymentService {
             $sql = "SELECT tool_deployment_id FROM {$p}lti_tool_deployment
                 WHERE registration_id = :registration_id AND org_id = :org_id";
             $params = array(':registration_id' => $registrationId, ':org_id' => $orgId);
-        } else {
+        } else if ( $contextId !== null ) {
             $sql = "SELECT tool_deployment_id FROM {$p}lti_tool_deployment
                 WHERE registration_id = :registration_id AND context_id = :context_id";
             $params = array(':registration_id' => $registrationId, ':context_id' => $contextId);
+        } else {
+            $sql = "SELECT tool_deployment_id FROM {$p}lti_tool_deployment
+                WHERE registration_id = :registration_id
+                  AND org_id IS NULL AND context_id IS NULL";
+            $params = array(':registration_id' => $registrationId);
         }
         $row = self::db()->rowDie($sql, $params);
         return is_array($row) ? $row : null;

@@ -1,5 +1,6 @@
 <?php
 
+use Tsugi\Services\Org\OrgService;
 use Tsugi\Services\Outbound\ToolDeploymentService;
 use Tsugi\Services\Outbound\ToolRegistrationService;
 
@@ -71,12 +72,19 @@ class ToolDeploymentTest extends PlatformSchemaCase
         $reg = $this->registration(null, 'XOR tool');
         $key = $this->id['keyA'];
 
+        $keyRow = $PDOX->queryReturnError(
+            "INSERT INTO {$p}lti_tool_deployment
+                (registration_id, key_id, org_id, context_id, created_at)
+             VALUES (:registration_id, :key_id, NULL, NULL, NOW())",
+            array(':registration_id' => $reg, ':key_id' => $key)
+        );
+        $this->assertTrue((bool) $keyRow->success, (string) $keyRow->errorImplode);
         $this->assertSqlRejected(
             "INSERT INTO {$p}lti_tool_deployment
                 (registration_id, key_id, org_id, context_id, created_at)
              VALUES (:registration_id, :key_id, NULL, NULL, NOW())",
             array(':registration_id' => $reg, ':key_id' => $key),
-            'lti_tool_deployment_chk_1'
+            'lti_tool_deployment_const_3'
         );
         $this->assertSqlRejected(
             "INSERT INTO {$p}lti_tool_deployment
@@ -129,14 +137,18 @@ class ToolDeploymentTest extends PlatformSchemaCase
         $direct = ToolDeploymentService::createDeployment($other, null, $this->id['eecs280']);
         $scopedDeployment = ToolDeploymentService::createDeployment($scoped, $this->id['aiA'], null);
 
-        $stmt = $PDOX->queryReturnError(
-            "DELETE FROM {$p}lti_org WHERE org_id = :org_id",
-            array(':org_id' => $this->id['aiA'])
-        );
-        $this->assertTrue((bool) $stmt->success, (string) $stmt->errorImplode);
+        OrgService::deleteOrg($this->id['aiA']);
         $this->assertFalse($this->deploymentExists($ai));
-        $this->assertFalse($this->deploymentExists($scopedDeployment));
-        $this->assertNull(ToolRegistrationService::findRegistration($scoped));
+        $scopedRow = $PDOX->rowDie(
+            "SELECT org_id, context_id, key_id FROM {$p}lti_tool_deployment WHERE tool_deployment_id = :tool_deployment_id",
+            array(':tool_deployment_id' => $scopedDeployment)
+        );
+        $this->assertSame($this->id['csA'], (int) $scopedRow['org_id']);
+        $this->assertNull($scopedRow['context_id']);
+        $this->assertSame($this->id['keyA'], (int) $scopedRow['key_id']);
+        $released = ToolRegistrationService::findRegistration($scoped);
+        $this->assertNotNull($released);
+        $this->assertNull($released['org_id']);
         $this->assertTrue($this->deploymentExists($cs));
         $this->assertTrue($this->deploymentExists($direct));
         $this->assertNotNull(ToolRegistrationService::findRegistration($wide));
@@ -243,6 +255,63 @@ class ToolDeploymentTest extends PlatformSchemaCase
             array(),
             ToolDeploymentService::getRegistrationsForContext($this->id['eecs183'])
         );
+    }
+
+    public function testDeletingAnOrgBubblesItsDeploymentToTheParentThenTheKey(): void
+    {
+        global $PDOX;
+        $p = $this->p();
+        $tool = $this->registration(null, 'Bubble');
+        $deployment = ToolDeploymentService::createDeployment($tool, $this->id['aiA'], null);
+
+        OrgService::deleteOrg($this->id['aiA']);
+        $this->assertSame($this->id['csA'], $this->deploymentOrg($deployment));
+
+        OrgService::deleteOrg($this->id['csA']);
+        $this->assertSame($this->id['engineeringA'], $this->deploymentOrg($deployment));
+
+        OrgService::deleteOrg($this->id['engineeringA']);
+        $this->assertSame($this->id['universityA'], $this->deploymentOrg($deployment));
+
+        OrgService::deleteOrg($this->id['universityA']);
+        $row = $PDOX->rowDie(
+            "SELECT org_id, context_id, key_id FROM {$p}lti_tool_deployment WHERE tool_deployment_id = :tool_deployment_id",
+            array(':tool_deployment_id' => $deployment)
+        );
+        $this->assertNull($row['org_id']);
+        $this->assertNull($row['context_id']);
+        $this->assertSame($this->id['keyA'], (int) $row['key_id']);
+        $this->assertSame(
+            array('Bubble'),
+            $this->titles(ToolDeploymentService::getRegistrationsForContext($this->id['free101']))
+        );
+        $this->assertSame(
+            array(),
+            ToolDeploymentService::getRegistrationsForContext($this->id['eecs183'])
+        );
+    }
+
+    public function testKeyDeploymentIsVisibleAcrossTheKey(): void
+    {
+        $tool = $this->registration(null, 'Key tool');
+        ToolDeploymentService::createDeployment($tool, null, null);
+
+        $this->assertSame(
+            array('Key tool'),
+            $this->titles(ToolDeploymentService::getRegistrationsForContext($this->id['eecs280']))
+        );
+        $this->assertSame(
+            array('Key tool'),
+            $this->titles(ToolDeploymentService::getRegistrationsForContext($this->id['free101']))
+        );
+        $this->assertSame(
+            array(),
+            ToolDeploymentService::getRegistrationsForContext($this->id['eecs183'])
+        );
+
+        $scoped = $this->registration($this->id['engineeringA'], 'Engineering only');
+        $this->expectException(\InvalidArgumentException::class);
+        ToolDeploymentService::createDeployment($scoped, null, null);
     }
 
     public function testDirectAndAncestorDeploymentCollapseToOneRegistration(): void
@@ -359,9 +428,79 @@ class ToolDeploymentTest extends PlatformSchemaCase
         );
     }
 
+    public function testDirectHoldingsCountOnlyRowsOnThatOrg(): void
+    {
+        $csTool = $this->registration($this->id['csA'], 'CS tool');
+        $wide = $this->registration(null, 'Campus tool');
+        $engineeringTool = $this->registration($this->id['engineeringA'], 'Engineering tool');
+        ToolDeploymentService::createDeployment($csTool, $this->id['csA'], null, 'deploy-cs');
+        ToolDeploymentService::createDeployment($wide, $this->id['aiA'], null);
+        ToolDeploymentService::createDeployment($wide, null, $this->id['eecs280'], 'deploy-280');
+        ToolDeploymentService::createDeployment($wide, null, null, 'deploy-key');
+
+        $cs = OrgService::directHoldings($this->id['csA']);
+        $this->assertSame(
+            array('courses' => 2, 'deployments' => 1, 'children' => 1, 'registrations' => 1),
+            $cs['counts']
+        );
+        $this->assertFalse($cs['empty']);
+        $this->assertSame(array('EECS 280', 'EECS 281'), $this->titles($cs['courses']));
+        $this->assertSame(array('CS tool'), $this->titles($cs['deployments']));
+        $this->assertSame('deploy-cs', $cs['deployments'][0]['deployment_id']);
+        $this->assertSame(array('AI Lab'), $this->titles($cs['children']));
+        $this->assertSame(array('CS tool'), $this->titles($cs['registrations']));
+        $this->assertSame($this->id['keyA'], $cs['courses'][0]['key_id']);
+
+        $engineering = OrgService::directHoldings($this->id['engineeringA']);
+        $this->assertSame(0, $engineering['counts']['courses']);
+        $this->assertSame(0, $engineering['counts']['deployments']);
+        $this->assertSame(array('Computer Science', 'Mechanical Engineering'), $this->titles($engineering['children']));
+        $this->assertSame(array('Engineering tool'), $this->titles($engineering['registrations']));
+        $this->assertFalse($engineering['empty']);
+
+        $ai = OrgService::directHoldings($this->id['aiA']);
+        $this->assertSame(1, $ai['counts']['deployments']);
+        $this->assertSame(array('Campus tool'), $this->titles($ai['deployments']));
+        $this->assertSame(0, $ai['counts']['courses']);
+        $this->assertSame(0, $ai['counts']['children']);
+        $this->assertSame(0, $ai['counts']['registrations']);
+
+        OrgService::placeContext($this->id['eecs280'], $this->id['engineeringA']);
+        OrgService::placeContext($this->id['eecs281'], null);
+        $after = OrgService::directHoldings($this->id['csA']);
+        $this->assertSame(0, $after['counts']['courses']);
+        $moved = OrgService::directHoldings($this->id['engineeringA']);
+        $this->assertSame(array('EECS 280'), $this->titles($moved['courses']));
+
+        $fresh = OrgService::createOrg($this->id['keyA'], 'Empty office', $this->id['lsaA']);
+        $empty = OrgService::directHoldings($fresh);
+        $this->assertSame(
+            array('courses' => 0, 'deployments' => 0, 'children' => 0, 'registrations' => 0),
+            $empty['counts']
+        );
+        $this->assertTrue($empty['empty']);
+
+        try {
+            OrgService::directHoldings(0);
+            $this->fail('Expected a missing organization to be rejected.');
+        } catch ( \InvalidArgumentException $ex ) {
+            $this->assertStringContainsString('Organization', $ex->getMessage());
+        }
+    }
+
     private function registration(?int $orgId, string $title): int
     {
         return ToolRegistrationService::createRegistration($this->id['keyA'], $title, $orgId);
+    }
+
+    private function deploymentOrg(int $toolDeploymentId): int
+    {
+        global $PDOX;
+        $row = $PDOX->rowDie(
+            "SELECT org_id FROM {$this->p()}lti_tool_deployment WHERE tool_deployment_id = :tool_deployment_id",
+            array(':tool_deployment_id' => $toolDeploymentId)
+        );
+        return (int) $row['org_id'];
     }
 
     private function deploymentExists(int $toolDeploymentId): bool

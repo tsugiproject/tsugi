@@ -159,34 +159,48 @@ class OrgHierarchyTest extends PlatformSchemaCase
         );
     }
 
-    public function testDeletingAParentRemovesTheSubtree(): void
+    public function testDeletingAnOrgReparentsChildrenAndUnplacesOnlyItsOwnCourses(): void
     {
         global $PDOX;
         $p = $this->p();
-        $stmt = $PDOX->queryReturnError(
+        $this->assertSqlRejected(
             "DELETE FROM {$p}lti_org WHERE org_id = :org_id",
-            array(':org_id' => $this->id['engineeringA'])
+            array(':org_id' => $this->id['engineeringA']),
+            'lti_org_ibfk_2'
         );
-        $this->assertTrue((bool) $stmt->success, (string) $stmt->errorImplode);
 
-        $this->assertSame(array(), OrgService::getDescendants($this->id['csA']));
-        $this->assertSame(array(), OrgService::getDescendants($this->id['aiA']));
-        $this->assertSame(array(), OrgService::getDescendants($this->id['meA']));
+        OrgService::placeContext($this->id['free101'], $this->id['engineeringA']);
+        OrgService::deleteOrg($this->id['engineeringA']);
+
+        $this->assertSame(array(), OrgService::getDescendants($this->id['engineeringA']));
         $this->assertSame(
-            array('University A', 'LSA'),
-            $this->titles(OrgService::getDescendants($this->id['universityA']))
+            array('Computer Science', 'University A'),
+            $this->titles(OrgService::getAncestors($this->id['csA']))
         );
+        $this->assertSame(
+            array('AI Lab', 'Computer Science', 'University A'),
+            $this->titles(OrgService::getAncestors($this->id['aiA']))
+        );
+        $this->assertContains('Mechanical Engineering', $this->titles(OrgService::getDescendants($this->id['universityA'])));
+        $this->assertContains('LSA', $this->titles(OrgService::getDescendants($this->id['universityA'])));
 
         $course = $PDOX->rowDie(
-            "SELECT org_id FROM {$p}lti_context WHERE context_id = :context_id",
+            "SELECT org_id, key_id FROM {$p}lti_context WHERE context_id = :context_id",
             array(':context_id' => $this->id['eecs280'])
         );
-        $this->assertNull($course['org_id']);
+        $this->assertSame($this->id['csA'], (int) $course['org_id']);
+        $this->assertSame($this->id['keyA'], (int) $course['key_id']);
         $kept = $PDOX->rowDie(
             "SELECT org_id FROM {$p}lti_context WHERE context_id = :context_id",
             array(':context_id' => $this->id['hist101'])
         );
         $this->assertSame($this->id['lsaA'], (int) $kept['org_id']);
+        $unplaced = $PDOX->rowDie(
+            "SELECT org_id, key_id FROM {$p}lti_context WHERE context_id = :context_id",
+            array(':context_id' => $this->id['free101'])
+        );
+        $this->assertNull($unplaced['org_id']);
+        $this->assertSame($this->id['keyA'], (int) $unplaced['key_id']);
     }
 
     public function testScopeComposesIntoOneStatement(): void
