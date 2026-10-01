@@ -6,6 +6,35 @@ require_once __DIR__.'/PlatformSchemaCase.php';
 
 class OrgHierarchyTest extends PlatformSchemaCase
 {
+    public function testListsOneTenantInTreeOrder(): void
+    {
+        $rows = OrgService::orgsForKey($this->id['keyA']);
+        $this->assertSame(
+            array('University A', 'Engineering', 'Computer Science', 'AI Lab', 'Mechanical Engineering', 'LSA'),
+            $this->titles($rows)
+        );
+        $this->assertSame(0, $rows[0]['depth']);
+        $this->assertSame(2, $rows[2]['depth']);
+        $this->assertSame($this->id['keyA'], $rows[2]['key_id']);
+
+        $other = OrgService::orgsForKey($this->id['keyB']);
+        $this->assertSame(
+            array('University B', 'Engineering', 'Computer Science'),
+            $this->titles($other)
+        );
+    }
+
+    public function testRenamesAnOrgWithoutMovingIt(): void
+    {
+        OrgService::updateOrg($this->id['csA'], 'EECS', 'department');
+        $org = OrgService::getAncestors($this->id['csA'])[0];
+
+        $this->assertSame('EECS', $org['title']);
+        $this->assertSame('department', $org['org_type']);
+        $this->assertSame($this->id['engineeringA'], $org['parent_org_id']);
+        $this->assertSame($this->id['keyA'], $org['key_id']);
+    }
+
     public function testCreatesRootsAndChildren(): void
     {
         $library = OrgService::createOrg($this->id['keyA'], 'Library');

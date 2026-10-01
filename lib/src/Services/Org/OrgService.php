@@ -113,6 +113,102 @@ class OrgService {
     }
 
     /**
+     * Rename an organization. The tenant and the parent stay as they are.
+     *
+     * @param int $orgId
+     * @param string $title
+     * @param string|null $orgType label only; the tree does not use it
+     * @return void
+     */
+    public static function updateOrg($orgId, $title, $orgType = null) {
+        $orgId = self::requireId($orgId, 'Organization');
+        $org = self::requireOrg($orgId);
+        $title = self::requireTitle($title, 'Organization title');
+        $orgType = self::optionalLabel($orgType, 64, 'Organization type');
+
+        $stmt = self::db()->queryReturnError(
+            "UPDATE ".self::prefix()."lti_org
+             SET title = :title, org_type = :org_type, updated_at = NOW()
+             WHERE org_id = :org_id AND key_id = :key_id",
+            array(
+                ':title' => $title,
+                ':org_type' => $orgType,
+                ':org_id' => $orgId,
+                ':key_id' => (int) $org['key_id'],
+            )
+        );
+        if ( ! $stmt->success ) {
+            self::fail($stmt, 'Could not update organization.');
+        }
+    }
+
+    /**
+     * Every organization in one tenant, parents before their children.
+     *
+     * Siblings are ordered by title. depth is 0 for a root. An org whose
+     * parent is missing or in another tenant is listed as a root.
+     *
+     * @param int $keyId
+     * @return array<int, array<string, mixed>>
+     */
+    public static function orgsForKey($keyId) {
+        $keyId = self::requireId($keyId, 'Tenant key');
+        self::requireKey($keyId);
+        $p = self::prefix();
+        $rows = self::rows(
+            "SELECT org_id, key_id, parent_org_id, title, org_type
+             FROM {$p}lti_org
+             WHERE key_id = :key_id
+             ORDER BY title ASC, org_id ASC",
+            array(':key_id' => $keyId)
+        );
+
+        $known = array();
+        foreach ( $rows as $row ) {
+            $org = self::orgRow($row);
+            $known[$org['org_id']] = $org;
+        }
+
+        $childrenOf = array();
+        foreach ( $known as $org ) {
+            $parent = $org['parent_org_id'];
+            if ( $parent === null || ! isset($known[$parent]) ) {
+                $parent = 0;
+            }
+            $childrenOf[$parent][] = $org;
+        }
+
+        $ordered = array();
+        $seen = array();
+        self::appendOrgTree($childrenOf, 0, 0, $seen, $ordered);
+        return $ordered;
+    }
+
+    /**
+     * @param array<int, array<int, array<string, mixed>>> $childrenOf
+     * @param int $parentId
+     * @param int $depth
+     * @param array<int, bool> $seen
+     * @param array<int, array<string, mixed>> $ordered
+     * @return void
+     */
+    private static function appendOrgTree(array $childrenOf, $parentId, $depth, array &$seen, array &$ordered) {
+        if ( $depth > self::MAX_DEPTH || ! isset($childrenOf[$parentId]) ) {
+            return;
+        }
+        foreach ( $childrenOf[$parentId] as $org ) {
+            $id = $org['org_id'];
+            if ( isset($seen[$id]) ) {
+                continue;
+            }
+            $seen[$id] = true;
+            $org['depth'] = $depth;
+            $ordered[] = $org;
+            self::appendOrgTree($childrenOf, $id, $depth + 1, $seen, $ordered);
+        }
+    }
+
+    /**
      * Remove an organization without deleting the courses, tools, or child
      * orgs that pointed at it.
      *
