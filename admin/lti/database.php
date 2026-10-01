@@ -1485,9 +1485,24 @@ $DATABASE_UPGRADE = function($oldversion) {
                 }
             }
 
-            $key_indexes = $PDOX->indexes($key_table);
-            $fk_name = "{$CFG->dbprefix}lti_key_ibfk_1";
-            if ( in_array($fk_name, $key_indexes) ) {
+            // InnoDB often has no index named lti_key_ibfk_1. The foreign key
+            // reuses unique index lti_key_const_2 (issuer_id, deploy_sha256),
+            // so SHOW INDEX never lists the constraint. Look it up by the
+            // referenced table, then drop it before the index and column.
+            $issuer_fks = $PDOX->allRowsDie(
+                "SELECT DISTINCT CONSTRAINT_NAME AS constraint_name
+                    FROM information_schema.KEY_COLUMN_USAGE
+                    WHERE TABLE_SCHEMA = DATABASE()
+                      AND TABLE_NAME = :table_name
+                      AND REFERENCED_TABLE_NAME = :ref_table",
+                array(
+                    ':table_name' => $key_table,
+                    ':ref_table' => $issuer_table,
+                )
+            );
+            foreach ( $issuer_fks as $fk_row ) {
+                $fk_name = \Tsugi\Util\U::get($fk_row, 'constraint_name');
+                if ( ! is_string($fk_name) || $fk_name === '' ) continue;
                 $sql = "ALTER TABLE {$key_table} DROP FOREIGN KEY `{$fk_name}`";
                 echo("Upgrading: ".htmlentities($sql)."<br/>\n");
                 error_log("Upgrading: ".$sql);
@@ -1497,8 +1512,9 @@ $DATABASE_UPGRADE = function($oldversion) {
                     error_log($message);
                     echo(htmlentities($message)."<br/>\n");
                 }
-                $key_indexes = $PDOX->indexes($key_table);
             }
+
+            $key_indexes = $PDOX->indexes($key_table);
 
             $const2_name = "{$CFG->dbprefix}lti_key_const_2";
             if ( in_array($const2_name, $key_indexes) ) {
