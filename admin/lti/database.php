@@ -302,6 +302,8 @@ array( "{$CFG->dbprefix}lti_context",
         REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
+    -- A composite (org_id, key_id) foreign key with ON DELETE SET NULL would
+    -- also null key_id. OrgService::placeContext() keeps the course and the org on the same key.
     CONSTRAINT `{$CFG->dbprefix}lti_context_ibfk_3`
         FOREIGN KEY (`org_id`)
         REFERENCES `{$CFG->dbprefix}lti_org` (`org_id`)
