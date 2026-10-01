@@ -74,15 +74,15 @@ class ToolDeploymentTest extends PlatformSchemaCase
 
         $keyRow = $PDOX->queryReturnError(
             "INSERT INTO {$p}lti_tool_deployment
-                (registration_id, key_id, org_id, context_id, created_at)
-             VALUES (:registration_id, :key_id, NULL, NULL, NOW())",
+                (registration_id, key_id, org_id, context_id, key_level, created_at)
+             VALUES (:registration_id, :key_id, NULL, NULL, 1, NOW())",
             array(':registration_id' => $reg, ':key_id' => $key)
         );
         $this->assertTrue((bool) $keyRow->success, (string) $keyRow->errorImplode);
         $this->assertSqlRejected(
             "INSERT INTO {$p}lti_tool_deployment
-                (registration_id, key_id, org_id, context_id, created_at)
-             VALUES (:registration_id, :key_id, NULL, NULL, NOW())",
+                (registration_id, key_id, org_id, context_id, key_level, created_at)
+             VALUES (:registration_id, :key_id, NULL, NULL, 1, NOW())",
             array(':registration_id' => $reg, ':key_id' => $key),
             'lti_tool_deployment_const_3'
         );

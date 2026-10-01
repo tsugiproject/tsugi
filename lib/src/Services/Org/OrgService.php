@@ -756,7 +756,7 @@ class OrgService {
         }
         $move = $PDOX->queryReturnError(
             "UPDATE {$p}lti_tool_deployment
-             SET org_id = NULL, updated_at = NOW()
+             SET org_id = NULL, key_level = 1, updated_at = NOW()
              WHERE org_id = :org_id AND key_id = :key_id",
             array(
                 ':org_id' => $orgId,

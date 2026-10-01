@@ -872,12 +872,11 @@ array( "{$CFG->dbprefix}lti_tool_deployment",
 
     deployment_id       VARCHAR(255) NULL,
 
-    -- One key-level row per registration. NULL on org and course rows, so
-    -- those do not collide. Stored column rather than UNIQUE ((expression)):
-    -- MariaDB 10.5 rejects that syntax. A unique index allows many NULLs.
-    key_registration_id INTEGER AS (
-        CASE WHEN org_id IS NULL AND context_id IS NULL THEN registration_id ELSE NULL END
-    ) STORED,
+    -- 1 only when this row deploys the registration to the whole key. NULL for
+    -- an org or course row. const_3 then allows many of those NULLs and one
+    -- key row. A generated column cannot read registration_id: that column is
+    -- in a foreign key, and both MariaDB 10.5 and MySQL 8 reject the key.
+    key_level           TINYINT NULL,
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
@@ -886,12 +885,14 @@ array( "{$CFG->dbprefix}lti_tool_deployment",
 
     CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_1` UNIQUE (registration_id, org_id),
     CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_2` UNIQUE (registration_id, context_id),
-    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_3` UNIQUE (key_registration_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_3` UNIQUE (registration_id, key_level),
 
-    -- One target, the other target, or neither. Neither is a deployment of the
-    -- whole key. key_id stays required. Both targets set is rejected.
+    -- One target, the other target, or neither. Neither is a key deployment
+    -- and key_level is 1. key_id stays required. Both targets set is rejected.
     CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_chk_1` CHECK (
-        org_id IS NULL OR context_id IS NULL
+        (org_id IS NULL AND context_id IS NULL AND key_level = 1)
+        OR (org_id IS NOT NULL AND context_id IS NULL AND key_level IS NULL)
+        OR (org_id IS NULL AND context_id IS NOT NULL AND key_level IS NULL)
     ),
 
     INDEX `{$CFG->dbprefix}lti_tool_deployment_indx_1` (registration_id, key_id),
@@ -1933,6 +1934,47 @@ $DATABASE_UPGRADE = function($oldversion) {
             }
         }
 
+        $key_deployment = "{$p}lti_tool_deployment_const_3";
+        if ( $PDOX->columnExists('key_registration_id', $deployment_table) ) {
+            if ( $PDOX->indexExists($key_deployment, $deployment_table) ) {
+                $sql = "ALTER TABLE {$deployment_table} DROP INDEX `{$key_deployment}`";
+                echo("Upgrading: ".$sql."<br/>\n");
+                error_log("Upgrading: ".$sql);
+                $q = $PDOX->queryReturnError($sql);
+                if ( ! $q->success ) die("Unable to drop {$key_deployment}: ".$q->errorImplode."<br/>\n");
+            }
+            $sql = "ALTER TABLE {$deployment_table} DROP COLUMN key_registration_id";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to drop key_registration_id: ".$q->errorImplode."<br/>\n");
+        }
+        if ( ! $PDOX->columnExists('key_level', $deployment_table) ) {
+            $sql = "ALTER TABLE {$deployment_table} ADD COLUMN key_level TINYINT NULL";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add key_level: ".$q->errorImplode."<br/>\n");
+            $sql = "UPDATE {$deployment_table} SET key_level = 1
+                WHERE org_id IS NULL AND context_id IS NULL";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to mark key deployments: ".$q->errorImplode."<br/>\n");
+            if ( $PDOX->indexExists($key_deployment, $deployment_table) ) {
+                $sql = "ALTER TABLE {$deployment_table} DROP INDEX `{$key_deployment}`";
+                echo("Upgrading: ".$sql."<br/>\n");
+                error_log("Upgrading: ".$sql);
+                $q = $PDOX->queryReturnError($sql);
+                if ( ! $q->success ) die("Unable to drop {$key_deployment}: ".$q->errorImplode."<br/>\n");
+            }
+            $sql = "ALTER TABLE {$deployment_table} ADD CONSTRAINT `{$key_deployment}` UNIQUE (registration_id, key_level)";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add {$key_deployment}: ".$q->errorImplode."<br/>\n");
+        }
+
         $deployment_check = "{$p}lti_tool_deployment_chk_1";
         $check_row = $PDOX->rowDie(
             "SELECT CHECK_CLAUSE AS check_clause
@@ -1942,7 +1984,7 @@ $DATABASE_UPGRADE = function($oldversion) {
             array(':constraint_name' => $deployment_check)
         );
         $check_clause = is_array($check_row) ? (string) $check_row['check_clause'] : '';
-        if ( $check_clause === '' || stripos($check_clause, 'not null') !== false ) {
+        if ( $check_clause === '' || stripos($check_clause, 'key_level') === false ) {
             if ( $constraint_exists($deployment_table, $deployment_check) ) {
                 $sql = "ALTER TABLE {$deployment_table} DROP CHECK `{$deployment_check}`";
                 echo("Upgrading: ".$sql."<br/>\n");
@@ -1951,36 +1993,20 @@ $DATABASE_UPGRADE = function($oldversion) {
                 if ( ! $q->success ) die("Unable to drop {$deployment_check}: ".$q->errorImplode."<br/>\n");
             }
             $sql = "ALTER TABLE {$deployment_table} ADD CONSTRAINT `{$deployment_check}` CHECK (
-                org_id IS NULL OR context_id IS NULL
+                (org_id IS NULL AND context_id IS NULL AND key_level = 1)
+                OR (org_id IS NOT NULL AND context_id IS NULL AND key_level IS NULL)
+                OR (org_id IS NULL AND context_id IS NOT NULL AND key_level IS NULL)
             )";
             echo("Upgrading: ".$sql."<br/>\n");
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryReturnError($sql);
             if ( ! $q->success ) die("Unable to add {$deployment_check}: ".$q->errorImplode."<br/>\n");
         }
-
-        $key_deployment = "{$p}lti_tool_deployment_const_3";
-        if ( ! $PDOX->indexExists($key_deployment, $deployment_table) ) {
-            if ( ! $PDOX->columnExists('key_registration_id', $deployment_table) ) {
-                $sql = "ALTER TABLE {$deployment_table} ADD COLUMN key_registration_id INTEGER AS (
-                    CASE WHEN org_id IS NULL AND context_id IS NULL THEN registration_id ELSE NULL END
-                ) STORED";
-                echo("Upgrading: ".$sql."<br/>\n");
-                error_log("Upgrading: ".$sql);
-                $q = $PDOX->queryReturnError($sql);
-                if ( ! $q->success ) die("Unable to add key_registration_id: ".$q->errorImplode."<br/>\n");
-            }
-            $sql = "ALTER TABLE {$deployment_table} ADD CONSTRAINT `{$key_deployment}` UNIQUE (key_registration_id)";
-            echo("Upgrading: ".$sql."<br/>\n");
-            error_log("Upgrading: ".$sql);
-            $q = $PDOX->queryReturnError($sql);
-            if ( ! $q->success ) die("Unable to add {$key_deployment}: ".$q->errorImplode."<br/>\n");
-        }
     }
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610010012;
+    return 202610010013;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

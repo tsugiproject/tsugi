@@ -54,16 +54,18 @@ class ToolDeploymentService {
             throw new \InvalidArgumentException('This registration is already deployed to that target.');
         }
 
+        $keyLevel = ($orgId === null && $contextId === null) ? 1 : null;
         $stmt = $PDOX->queryReturnError(
             "INSERT INTO {$p}lti_tool_deployment
-                (registration_id, key_id, org_id, context_id, deployment_id, created_at)
+                (registration_id, key_id, org_id, context_id, key_level, deployment_id, created_at)
              VALUES
-                (:registration_id, :key_id, :org_id, :context_id, :deployment_id, NOW())",
+                (:registration_id, :key_id, :org_id, :context_id, :key_level, :deployment_id, NOW())",
             array(
                 ':registration_id' => $registrationId,
                 ':key_id' => (int) $registration['key_id'],
                 ':org_id' => $orgId,
                 ':context_id' => $contextId,
+                ':key_level' => $keyLevel,
                 ':deployment_id' => $deploymentId,
             )
         );
