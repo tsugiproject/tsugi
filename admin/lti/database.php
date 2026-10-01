@@ -1110,15 +1110,6 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         // 2026-09-30 Optional organization placement. Existing courses stay unplaced.
         array('lti_context', 'org_id', 'INTEGER NULL'),
-
-        // 2026-09-30 A registration is LTI 1.3 unless it carries LTI 1.1 credentials.
-        array('lti_tool_registration', 'lti_version', "VARCHAR(8) NOT NULL DEFAULT '1.3'"),
-        array('lti_tool_registration', 'lti11_key', 'VARCHAR(255) NULL'),
-        array('lti_tool_registration', 'lti11_secret', 'TEXT NULL'),
-        array('lti_tool_registration', 'lti11_url', 'TEXT NULL'),
-
-        // 2026-09-30 Parsed Dynamic Registration document. Raw traffic is not stored here.
-        array('lti_tool_registration', 'registration_json', 'JSON NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -1792,9 +1783,10 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    // 2026-09-30 Organization placement and outbound deployment foreign keys.
-    // New lti_org / lti_tool_* tables come from $DATABASE_INSTALL. This block
-    // finishes indexes and foreign keys that existing lti_context rows need first.
+    // Existing courses gain an optional org, and (context_id, key_id) so a
+    // deployment can stay on that tenant key. New lti_org and lti_tool_* tables
+    // are created from $DATABASE_INSTALL in their final form. Deployment foreign
+    // keys are added here, after that context key exists.
     $p = $CFG->dbprefix;
     $context_table = "{$p}lti_context";
     $org_table = "{$p}lti_org";
@@ -1844,33 +1836,10 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
-    $registration_table = "{$p}lti_tool_registration";
-    if ( $PDOX->metadata($registration_table) !== false
-        && $PDOX->columnExists('lti_version', $registration_table)
-        && $PDOX->columnExists('lti11_url', $registration_table) ) {
-        $registration_check = "{$p}lti_tool_registration_chk_1";
-        if ( ! $constraint_exists($registration_table, $registration_check) ) {
-            $sql = "ALTER TABLE {$registration_table} ADD CONSTRAINT `{$registration_check}` CHECK (
-                (lti_version = '1.1'
-                    AND lti11_key IS NOT NULL AND lti11_key <> ''
-                    AND lti11_secret IS NOT NULL AND lti11_secret <> ''
-                    AND lti11_url IS NOT NULL AND lti11_url <> '')
-                OR
-                (lti_version = '1.3'
-                    AND lti11_key IS NULL
-                    AND lti11_secret IS NULL
-                    AND lti11_url IS NULL)
-            )";
-            echo("Upgrading: ".$sql."<br/>\n");
-            error_log("Upgrading: ".$sql);
-            $q = $PDOX->queryReturnError($sql);
-            if ( ! $q->success ) die("Unable to add {$registration_check}: ".$q->errorImplode."<br/>\n");
-        }
-    }
-
     if ( $PDOX->metadata($deployment_table) !== false ) {
         // ON UPDATE RESTRICT: MySQL error 3823 rejects ON UPDATE CASCADE on a
-        // column named by lti_tool_deployment_chk_1. ON DELETE CASCADE is allowed.
+        // column named by lti_tool_deployment_chk_1. These keys are not in the
+        // CREATE because an existing lti_context must gain (context_id, key_id) first.
         $deployment_fks = array(
             "{$p}lti_tool_deployment_ibfk_1" => "FOREIGN KEY (`registration_id`, `key_id`) REFERENCES `{$p}lti_tool_registration` (`registration_id`, `key_id`) ON DELETE CASCADE ON UPDATE CASCADE",
             "{$p}lti_tool_deployment_ibfk_2" => "FOREIGN KEY (`org_id`, `key_id`) REFERENCES `{$org_table}` (`org_id`, `key_id`) ON DELETE RESTRICT ON UPDATE RESTRICT",
@@ -1883,124 +1852,6 @@ $DATABASE_UPGRADE = function($oldversion) {
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryReturnError($sql);
             if ( ! $q->success ) die("Unable to add {$fk_name}: ".$q->errorImplode."<br/>\n");
-        }
-
-        // deleteOrg moves rows off an org before deleting it. RESTRICT makes a
-        // raw DELETE fail instead of cascading into children, registrations,
-        // or deployments. SET NULL on these composite keys would also null key_id.
-        $restrict_org_delete = array(
-            $org_table => array(
-                "{$p}lti_org_ibfk_2" => "FOREIGN KEY (`parent_org_id`, `key_id`) REFERENCES `{$org_table}` (`org_id`, `key_id`) ON DELETE RESTRICT ON UPDATE CASCADE",
-            ),
-            $registration_table => array(
-                "{$p}lti_tool_registration_ibfk_2" => "FOREIGN KEY (`org_id`, `key_id`) REFERENCES `{$org_table}` (`org_id`, `key_id`) ON DELETE RESTRICT ON UPDATE CASCADE",
-            ),
-            $deployment_table => array(
-                "{$p}lti_tool_deployment_ibfk_2" => "FOREIGN KEY (`org_id`, `key_id`) REFERENCES `{$org_table}` (`org_id`, `key_id`) ON DELETE RESTRICT ON UPDATE RESTRICT",
-            ),
-        );
-        foreach ( $restrict_org_delete as $rule_table => $rules ) {
-            if ( $PDOX->metadata($rule_table) === false ) {
-                continue;
-            }
-            foreach ( $rules as $rule_name => $rule_sql ) {
-                $rule_row = $PDOX->rowDie(
-                    "SELECT DELETE_RULE AS delete_rule
-                     FROM information_schema.REFERENTIAL_CONSTRAINTS
-                     WHERE CONSTRAINT_SCHEMA = DATABASE()
-                       AND TABLE_NAME = :table_name
-                       AND CONSTRAINT_NAME = :constraint_name",
-                    array(
-                        ':table_name' => $rule_table,
-                        ':constraint_name' => $rule_name,
-                    )
-                );
-                $delete_rule = is_array($rule_row) ? strtoupper((string) $rule_row['delete_rule']) : '';
-                if ( $delete_rule === 'RESTRICT' ) {
-                    continue;
-                }
-                if ( $constraint_exists($rule_table, $rule_name) ) {
-                    $sql = "ALTER TABLE {$rule_table} DROP FOREIGN KEY `{$rule_name}`";
-                    echo("Upgrading: ".$sql."<br/>\n");
-                    error_log("Upgrading: ".$sql);
-                    $q = $PDOX->queryReturnError($sql);
-                    if ( ! $q->success ) die("Unable to drop {$rule_name}: ".$q->errorImplode."<br/>\n");
-                }
-                $sql = "ALTER TABLE {$rule_table} ADD CONSTRAINT `{$rule_name}` {$rule_sql}";
-                echo("Upgrading: ".$sql."<br/>\n");
-                error_log("Upgrading: ".$sql);
-                $q = $PDOX->queryReturnError($sql);
-                if ( ! $q->success ) die("Unable to add {$rule_name}: ".$q->errorImplode."<br/>\n");
-            }
-        }
-
-        $key_deployment = "{$p}lti_tool_deployment_const_3";
-        if ( $PDOX->columnExists('key_registration_id', $deployment_table) ) {
-            if ( $PDOX->indexExists($key_deployment, $deployment_table) ) {
-                $sql = "ALTER TABLE {$deployment_table} DROP INDEX `{$key_deployment}`";
-                echo("Upgrading: ".$sql."<br/>\n");
-                error_log("Upgrading: ".$sql);
-                $q = $PDOX->queryReturnError($sql);
-                if ( ! $q->success ) die("Unable to drop {$key_deployment}: ".$q->errorImplode."<br/>\n");
-            }
-            $sql = "ALTER TABLE {$deployment_table} DROP COLUMN key_registration_id";
-            echo("Upgrading: ".$sql."<br/>\n");
-            error_log("Upgrading: ".$sql);
-            $q = $PDOX->queryReturnError($sql);
-            if ( ! $q->success ) die("Unable to drop key_registration_id: ".$q->errorImplode."<br/>\n");
-        }
-        if ( ! $PDOX->columnExists('key_level', $deployment_table) ) {
-            $sql = "ALTER TABLE {$deployment_table} ADD COLUMN key_level TINYINT NULL";
-            echo("Upgrading: ".$sql."<br/>\n");
-            error_log("Upgrading: ".$sql);
-            $q = $PDOX->queryReturnError($sql);
-            if ( ! $q->success ) die("Unable to add key_level: ".$q->errorImplode."<br/>\n");
-            $sql = "UPDATE {$deployment_table} SET key_level = 1
-                WHERE org_id IS NULL AND context_id IS NULL";
-            echo("Upgrading: ".$sql."<br/>\n");
-            error_log("Upgrading: ".$sql);
-            $q = $PDOX->queryReturnError($sql);
-            if ( ! $q->success ) die("Unable to mark key deployments: ".$q->errorImplode."<br/>\n");
-            if ( $PDOX->indexExists($key_deployment, $deployment_table) ) {
-                $sql = "ALTER TABLE {$deployment_table} DROP INDEX `{$key_deployment}`";
-                echo("Upgrading: ".$sql."<br/>\n");
-                error_log("Upgrading: ".$sql);
-                $q = $PDOX->queryReturnError($sql);
-                if ( ! $q->success ) die("Unable to drop {$key_deployment}: ".$q->errorImplode."<br/>\n");
-            }
-            $sql = "ALTER TABLE {$deployment_table} ADD CONSTRAINT `{$key_deployment}` UNIQUE (registration_id, key_level)";
-            echo("Upgrading: ".$sql."<br/>\n");
-            error_log("Upgrading: ".$sql);
-            $q = $PDOX->queryReturnError($sql);
-            if ( ! $q->success ) die("Unable to add {$key_deployment}: ".$q->errorImplode."<br/>\n");
-        }
-
-        $deployment_check = "{$p}lti_tool_deployment_chk_1";
-        $check_row = $PDOX->rowDie(
-            "SELECT CHECK_CLAUSE AS check_clause
-             FROM information_schema.CHECK_CONSTRAINTS
-             WHERE CONSTRAINT_SCHEMA = DATABASE()
-               AND CONSTRAINT_NAME = :constraint_name",
-            array(':constraint_name' => $deployment_check)
-        );
-        $check_clause = is_array($check_row) ? (string) $check_row['check_clause'] : '';
-        if ( $check_clause === '' || stripos($check_clause, 'key_level') === false ) {
-            if ( $constraint_exists($deployment_table, $deployment_check) ) {
-                $sql = "ALTER TABLE {$deployment_table} DROP CHECK `{$deployment_check}`";
-                echo("Upgrading: ".$sql."<br/>\n");
-                error_log("Upgrading: ".$sql);
-                $q = $PDOX->queryReturnError($sql);
-                if ( ! $q->success ) die("Unable to drop {$deployment_check}: ".$q->errorImplode."<br/>\n");
-            }
-            $sql = "ALTER TABLE {$deployment_table} ADD CONSTRAINT `{$deployment_check}` CHECK (
-                (org_id IS NULL AND context_id IS NULL AND key_level = 1)
-                OR (org_id IS NOT NULL AND context_id IS NULL AND key_level IS NULL)
-                OR (org_id IS NULL AND context_id IS NOT NULL AND key_level IS NULL)
-            )";
-            echo("Upgrading: ".$sql."<br/>\n");
-            error_log("Upgrading: ".$sql);
-            $q = $PDOX->queryReturnError($sql);
-            if ( ! $q->success ) die("Unable to add {$deployment_check}: ".$q->errorImplode."<br/>\n");
         }
     }
 
