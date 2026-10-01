@@ -10,6 +10,8 @@ if ( !isset($PDOX) ) {
 if ( ! isset($CFG) ) exit;
 
 $DATABASE_UNINSTALL = array(
+"drop table if exists {$CFG->dbprefix}lti_tool_registration_log",
+"drop table if exists {$CFG->dbprefix}lti_tool_message",
 "drop table if exists {$CFG->dbprefix}lti_tool_deployment",
 "drop table if exists {$CFG->dbprefix}lti_tool_registration",
 "drop table if exists {$CFG->dbprefix}lti_result",
@@ -785,13 +787,11 @@ array( "{$CFG->dbprefix}cal_context",
 // org_id NULL means it may be deployed anywhere in that key.
 // A non-null org_id is the top of the subtree it may be deployed into.
 //
-// TODO: Come back and revisit tool placement options in the UI. Placements
-// are where a tool can appear, such as Lessons, the rich text editor, or
-// site nav. That is separate from tool deployment. Sakai stores these as
-// columns on the tool registration, the same way it stores permission
-// columns, so each placement is one-to-one with the registration. Dynamic
-// registration is a better fit for a many-to-many. In IMS dynamic
-// registration these placement options are LTI messages. Do not model that yet.
+// IMS Dynamic Registration messages are rows in lti_tool_message, not columns
+// on this registration. Placements, roles, and custom parameters stay inside
+// message_json. Sakai stores placements as columns; this table does not.
+// registration_json is the parsed registration document. The raw wire text
+// lives in lti_tool_registration_log, which is text so malformed JSON can be kept.
 array( "{$CFG->dbprefix}lti_tool_registration",
 "create table {$CFG->dbprefix}lti_tool_registration (
     registration_id     INTEGER NOT NULL AUTO_INCREMENT,
@@ -813,6 +813,7 @@ array( "{$CFG->dbprefix}lti_tool_registration",
     launch_url          TEXT NULL,
     redirect_uri        TEXT NULL,
     json                MEDIUMTEXT NULL,
+    registration_json   JSON NULL,
 
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -884,6 +885,67 @@ array( "{$CFG->dbprefix}lti_tool_deployment",
     INDEX `{$CFG->dbprefix}lti_tool_deployment_indx_1` (registration_id, key_id),
     INDEX `{$CFG->dbprefix}lti_tool_deployment_indx_2` (org_id, key_id),
     INDEX `{$CFG->dbprefix}lti_tool_deployment_indx_3` (context_id, key_id)
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// One row per Dynamic Registration messages[] entry, in source-document order.
+// sequence is the array index, starting at 0. It is not a UI sort order.
+// message_json keeps the whole parsed descriptor, including placements.
+array( "{$CFG->dbprefix}lti_tool_message",
+"create table {$CFG->dbprefix}lti_tool_message (
+    message_id          INTEGER NOT NULL AUTO_INCREMENT,
+    registration_id     INTEGER NOT NULL,
+    sequence            INTEGER NOT NULL,
+
+    message_type        VARCHAR(255) NOT NULL,
+    target_link_uri     TEXT NULL,
+    label               TEXT NULL,
+    icon_uri            TEXT NULL,
+    message_json        JSON NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_const_pk` PRIMARY KEY (message_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_const_1` UNIQUE (registration_id, sequence),
+
+    INDEX `{$CFG->dbprefix}lti_tool_message_indx_1` (message_type),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_ibfk_1`
+        FOREIGN KEY (`registration_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_registration` (`registration_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// Append-only raw Dynamic Registration traffic. payload_text is LONGTEXT, not
+// JSON, so a body that is not valid JSON is still stored.
+// registration_id stays nullable and is set null when the registration is
+// deleted. cc_import_log cascades away with its import. This log is the
+// certification record, so the payload text survives the registration row.
+array( "{$CFG->dbprefix}lti_tool_registration_log",
+"create table {$CFG->dbprefix}lti_tool_registration_log (
+    log_id              INTEGER NOT NULL AUTO_INCREMENT,
+    registration_id     INTEGER NULL,
+    sequence            INTEGER NOT NULL,
+
+    direction           VARCHAR(16) NOT NULL,
+    phase               VARCHAR(64) NOT NULL,
+    content_type        VARCHAR(255) NULL,
+    http_status         INTEGER NULL,
+    payload_text        LONGTEXT NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_log_const_pk` PRIMARY KEY (log_id),
+
+    INDEX `{$CFG->dbprefix}lti_tool_registration_log_indx_1` (registration_id, sequence),
+    INDEX `{$CFG->dbprefix}lti_tool_registration_log_indx_2` (created_at),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_log_ibfk_1`
+        FOREIGN KEY (`registration_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_registration` (`registration_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE
 
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -1041,6 +1103,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_tool_registration', 'lti11_key', 'VARCHAR(255) NULL'),
         array('lti_tool_registration', 'lti11_secret', 'TEXT NULL'),
         array('lti_tool_registration', 'lti11_url', 'TEXT NULL'),
+
+        // 2026-09-30 Parsed Dynamic Registration document. Raw traffic is not stored here.
+        array('lti_tool_registration', 'registration_json', 'JSON NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -1810,7 +1875,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610010008;
+    return 202610010009;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
