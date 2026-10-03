@@ -46,11 +46,12 @@ class ToolRegistrationDocumentTest extends PlatformSchemaCase
         foreach ( array(2 => 'Third', 0 => 'First', 1 => 'Second') as $sequence => $label ) {
             $stmt = $PDOX->queryReturnError(
                 "INSERT INTO {$p}lti_tool_message
-                    (registration_id, sequence, message_type, label, message_json, created_at)
+                    (registration_id, key_id, sequence, message_type, label, message_json, created_at)
                  VALUES
-                    (:registration_id, :sequence, :message_type, :label, :message_json, NOW())",
+                    (:registration_id, :key_id, :sequence, :message_type, :label, :message_json, NOW())",
                 array(
                     ':registration_id' => $registrationId,
+                    ':key_id' => $this->id['keyA'],
                     ':sequence' => $sequence,
                     ':message_type' => 'LtiResourceLinkRequest',
                     ':label' => $label,
@@ -66,10 +67,13 @@ class ToolRegistrationDocumentTest extends PlatformSchemaCase
 
         $this->assertSqlRejected(
             "INSERT INTO {$p}lti_tool_message
-                (registration_id, sequence, message_type, message_json, created_at)
+                (registration_id, key_id, sequence, message_type, message_json, created_at)
              VALUES
-                (:registration_id, 0, 'LtiResourceLinkRequest', '{\"type\":\"LtiResourceLinkRequest\"}', NOW())",
-            array(':registration_id' => $registrationId),
+                (:registration_id, :key_id, 0, 'LtiResourceLinkRequest', '{\"type\":\"LtiResourceLinkRequest\"}', NOW())",
+            array(
+                ':registration_id' => $registrationId,
+                ':key_id' => $this->id['keyA'],
+            ),
             'lti_tool_message_const_1'
         );
     }

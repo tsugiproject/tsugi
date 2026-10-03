@@ -16,8 +16,12 @@ use Tsugi\Services\Org\OrgService;
  * A registration is LTI 1.3 unless lti_version is 1.1. An LTI 1.1 registration
  * stores lti11_key, lti11_secret, and lti11_url, leaves every lti13_ column
  * null, and gets exactly one deployment whose external deployment_id is null.
- * An LTI 1.3 registration stores lti13_ columns and leaves the lti11_ columns
- * null. lti13_client_id is optional. The registration document can arrive later.
+ * Its message rows are synthesized from $meta['messages'] and
+ * $meta['placements']. Name, email, grade, and roster checkboxes are
+ * stored as $meta['claims'] and $meta['scopes'] on the same registration
+ * document an LTI 1.3 registration uses. An LTI 1.3 registration stores lti13_
+ * columns and leaves the lti11_ columns null. lti13_client_id is optional.
+ * Its messages arrive later in the registration document.
  */
 class ToolRegistrationService {
 
@@ -26,7 +30,7 @@ class ToolRegistrationService {
      * @param string $title
      * @param int|null $ownerOrgId null with a null course means the tenant administers it
      * @param int|null $createdByUserId
-     * @param array<string, mixed> $meta lti_version, lti11_key, lti11_secret, lti11_url, lti13_client_id, lti13_oidc_login_url, lti13_jwks_url, lti13_launch_url, lti13_redirect_uri, json
+     * @param array<string, mixed> $meta lti_version, lti11_key, lti11_secret, lti11_url, messages, placements, claims, scopes, lti13_client_id, lti13_oidc_login_url, lti13_jwks_url, lti13_launch_url, lti13_redirect_uri, json
      * @param int|null $ownerContextId course administrator; mutually exclusive with $ownerOrgId
      * @return int registration_id
      */
@@ -65,8 +69,38 @@ class ToolRegistrationService {
         }
 
         $createdByUserId = self::optionalUserId($createdByUserId, $keyId);
+        $checkedPlacements = array();
+        $sawPlacements = array_key_exists('placements', $meta);
+        if ( $sawPlacements ) {
+            $checkedPlacements = $meta['placements'];
+            unset($meta['placements']);
+        }
+        $messageTypes = array('LtiResourceLinkRequest');
+        $sawMessages = array_key_exists('messages', $meta);
+        if ( $sawMessages ) {
+            $messageTypes = $meta['messages'];
+            unset($meta['messages']);
+        }
+        $claims = array();
+        $sawClaims = array_key_exists('claims', $meta);
+        if ( $sawClaims ) {
+            $claims = $meta['claims'];
+            unset($meta['claims']);
+        }
+        $scopes = array();
+        $sawScopes = array_key_exists('scopes', $meta);
+        if ( $sawScopes ) {
+            $scopes = $meta['scopes'];
+            unset($meta['scopes']);
+        }
         $fields = self::metaFields($meta);
         $shim = $fields['lti_version'] === '1.1';
+        if ( $shim ) {
+            $arranged = ToolMessagePlacement::arrange($messageTypes, $checkedPlacements);
+            ToolRegistrationDocument::lti11Document($fields['lti11_url'], $arranged, $claims, $scopes);
+        } else if ( $sawPlacements || $sawMessages || $sawClaims || $sawScopes ) {
+            throw new \InvalidArgumentException('An LTI 1.3 registration takes launches, placements, claims, and scopes from its registration document.');
+        }
         $owns = $shim && ! $PDOX->inTransaction();
         if ( $owns ) {
             $PDOX->beginTransaction();
@@ -124,6 +158,7 @@ class ToolRegistrationService {
             }
             if ( $shim ) {
                 ToolDeploymentService::createDeployment($id, null);
+                ToolPlacementService::synthesizeLti11Messages($id, $messageTypes, $checkedPlacements, $claims, $scopes);
             }
             if ( $owns ) {
                 $PDOX->commit();

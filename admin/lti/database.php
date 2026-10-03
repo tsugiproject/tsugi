@@ -10,6 +10,10 @@ if ( !isset($PDOX) ) {
 if ( ! isset($CFG) ) exit;
 
 $DATABASE_UNINSTALL = array(
+"drop table if exists {$CFG->dbprefix}lti_tool_deployment_claim",
+"drop table if exists {$CFG->dbprefix}lti_tool_deployment_scope",
+"drop table if exists {$CFG->dbprefix}lti_tool_deployment_placement",
+"drop table if exists {$CFG->dbprefix}lti_tool_message_placement",
 "drop table if exists {$CFG->dbprefix}lti_tool_registration_log",
 "drop table if exists {$CFG->dbprefix}lti_tool_message",
 "drop table if exists {$CFG->dbprefix}lti_tool_deployment_context",
@@ -796,8 +800,9 @@ array( "{$CFG->dbprefix}cal_context",
 // One owner may be set. Both set is rejected by chk_2.
 //
 // IMS Dynamic Registration messages are rows in lti_tool_message, not columns
-// on this registration. Placements, roles, and custom parameters stay inside
-// message_json. Sakai stores placements as columns; this table does not.
+// on this registration. message_json keeps placements, roles, and custom
+// parameters. Placement rows live in lti_tool_message_placement. Sakai stores
+// placements as columns; this table does not.
 // registration_json is the parsed registration document. The raw wire text
 // lives in lti_tool_registration_log, which is text so malformed JSON can be kept.
 array( "{$CFG->dbprefix}lti_tool_registration",
@@ -911,6 +916,10 @@ array( "{$CFG->dbprefix}lti_tool_deployment",
     -- ToolDeploymentService::createDeployment() does that.
     CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_2` UNIQUE (registration_id, deployment_id),
 
+    -- lti_tool_deployment_placement references this so an enabled placement
+    -- cannot name a different registration or tenant than the deployment.
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_3` UNIQUE (tool_deployment_id, registration_id, key_id),
+
     INDEX `{$CFG->dbprefix}lti_tool_deployment_indx_1` (registration_id, key_id),
 
     CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_ibfk_1`
@@ -972,10 +981,21 @@ array( "{$CFG->dbprefix}lti_tool_deployment_context",
 // One row per Dynamic Registration messages[] entry, in source-document order.
 // sequence is the array index, starting at 0. It is not a UI sort order.
 // message_json keeps the whole parsed descriptor, including placements.
+// key_id is copied from the registration. Placements reference
+// (message_id, registration_id, key_id), so a placement cannot leave
+// this message, this registration, or this tenant.
+// An LTI 1.3 registration copies messages from its registration document.
+// An LTI 1.1 registration synthesizes them from launch checkboxes
+// (resource link, deep link, privacy launch) and placement checkboxes.
+// Name, email, grade, and roster checkboxes are claims and scope on
+// registration_json, the same document an LTI 1.3 registration stores.
+// Whether a deployment releases those is a separate allow-list on
+// lti_tool_deployment_claim and lti_tool_deployment_scope.
 array( "{$CFG->dbprefix}lti_tool_message",
 "create table {$CFG->dbprefix}lti_tool_message (
     message_id          INTEGER NOT NULL AUTO_INCREMENT,
     registration_id     INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
     sequence            INTEGER NOT NULL,
 
     message_type        VARCHAR(255) NOT NULL,
@@ -989,13 +1009,126 @@ array( "{$CFG->dbprefix}lti_tool_message",
 
     CONSTRAINT `{$CFG->dbprefix}lti_tool_message_const_pk` PRIMARY KEY (message_id),
     CONSTRAINT `{$CFG->dbprefix}lti_tool_message_const_1` UNIQUE (registration_id, sequence),
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_const_2` UNIQUE (message_id, registration_id, key_id),
 
     INDEX `{$CFG->dbprefix}lti_tool_message_indx_1` (message_type),
+    INDEX `{$CFG->dbprefix}lti_tool_message_indx_2` (registration_id, key_id),
 
     CONSTRAINT `{$CFG->dbprefix}lti_tool_message_ibfk_1`
-        FOREIGN KEY (`registration_id`)
-        REFERENCES `{$CFG->dbprefix}lti_tool_registration` (`registration_id`)
+        FOREIGN KEY (`registration_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_registration` (`registration_id`, `key_id`)
         ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// One placement this message can appear in. Several rows share one message.
+// message_json still holds the original placements array.
+// The same message type may occur more than once on a registration, so a
+// placement string is not an identity. This row is.
+array( "{$CFG->dbprefix}lti_tool_message_placement",
+"create table {$CFG->dbprefix}lti_tool_message_placement (
+    message_placement_id INTEGER NOT NULL AUTO_INCREMENT,
+    message_id          INTEGER NOT NULL,
+    registration_id     INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+
+    placement           VARCHAR(255) NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_placement_const_pk` PRIMARY KEY (message_placement_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_placement_const_1` UNIQUE (message_id, placement),
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_placement_const_2` UNIQUE (message_placement_id, registration_id, key_id),
+
+    INDEX `{$CFG->dbprefix}lti_tool_message_placement_indx_1` (message_id, registration_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_placement_ibfk_1`
+        FOREIGN KEY (`message_id`, `registration_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_message` (`message_id`, `registration_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// Which registered message placements a deployment has enabled.
+// This is not where the deployment may be used. Org and course scope stay
+// on lti_tool_deployment_org and lti_tool_deployment_context.
+// registration_id and key_id are copied from the deployment and must match
+// the placement, so a deployment cannot enable another registration or tenant.
+// Deleting the message, the placement, or the deployment removes the enablement.
+array( "{$CFG->dbprefix}lti_tool_deployment_placement",
+"create table {$CFG->dbprefix}lti_tool_deployment_placement (
+    tool_deployment_id  INTEGER NOT NULL,
+    message_placement_id INTEGER NOT NULL,
+    registration_id     INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_placement_const_pk` PRIMARY KEY (tool_deployment_id, message_placement_id),
+
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_placement_indx_1` (tool_deployment_id, registration_id, key_id),
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_placement_indx_2` (message_placement_id, registration_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_placement_ibfk_1`
+        FOREIGN KEY (`tool_deployment_id`, `registration_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_deployment` (`tool_deployment_id`, `registration_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE RESTRICT,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_placement_ibfk_2`
+        FOREIGN KEY (`message_placement_id`, `registration_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_message_placement` (`message_placement_id`, `registration_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE RESTRICT
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// The admin's choice to release a claim the registration asked for.
+// A row means this deployment allows it. No row means it stays blocked.
+// iss and sub are not stored here. They are always sent.
+// registration_id and key_id match the deployment, so the grant cannot
+// move to another registration or tenant.
+array( "{$CFG->dbprefix}lti_tool_deployment_claim",
+"create table {$CFG->dbprefix}lti_tool_deployment_claim (
+    tool_deployment_id  INTEGER NOT NULL,
+    registration_id     INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+    claim               VARCHAR(64) NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_claim_const_pk` PRIMARY KEY (tool_deployment_id, claim),
+
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_claim_indx_1` (tool_deployment_id, registration_id, key_id),
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_claim_indx_2` (registration_id, claim),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_claim_ibfk_1`
+        FOREIGN KEY (`tool_deployment_id`, `registration_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_deployment` (`tool_deployment_id`, `registration_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE RESTRICT
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// The admin's choice to grant a service scope the registration asked for.
+// A row means this deployment allows that scope URI. No row means it stays blocked.
+array( "{$CFG->dbprefix}lti_tool_deployment_scope",
+"create table {$CFG->dbprefix}lti_tool_deployment_scope (
+    tool_deployment_id  INTEGER NOT NULL,
+    registration_id     INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+    scope               VARCHAR(255) NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_scope_const_pk` PRIMARY KEY (tool_deployment_id, scope),
+
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_scope_indx_1` (tool_deployment_id, registration_id, key_id),
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_scope_indx_2` (registration_id, scope),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_scope_ibfk_1`
+        FOREIGN KEY (`tool_deployment_id`, `registration_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_deployment` (`tool_deployment_id`, `registration_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE RESTRICT
 
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 

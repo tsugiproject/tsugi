@@ -9,13 +9,29 @@ use Tsugi\Core\LTIX;
  *
  * registration_json and lti_tool_message hold the current parsed document.
  * lti_tool_message.sequence is the messages[] array index, starting at 0.
+ * A message placements array becomes one lti_tool_message_placement row per
+ * name. The message row is not repeated for each placement. message_json
+ * still keeps the original array.
  * The log stores the exact payload text before any parse, including text
  * that is not valid JSON. Deleting a registration removes its message rows
- * and leaves the log rows, with registration_id set to null.
+ * and leaves the log rows, with registration_id set to null. Replacing the
+ * document deletes the message rows, which deletes their placements and any
+ * deployment enablement of those placements.
  */
 class ToolRegistrationDocument {
 
     const TOOL_CONFIGURATION = 'https://purl.imsglobal.org/spec/lti-tool-configuration';
+
+    /** @var array<int, string> */
+    private const CLAIM_ORDER = array('iss', 'sub', 'name', 'given_name', 'family_name', 'email');
+
+    /** @var array<int, string> */
+    private const SCOPE_ORDER = array(
+        'https://purl.imsglobal.org/spec/lti-ags/scope/score',
+        'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
+        'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly',
+        'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly',
+    );
 
     /**
      * Write the raw payload, then parse it. A parse failure leaves the log
@@ -40,7 +56,189 @@ class ToolRegistrationDocument {
     }
 
     /**
+     * The same document shape Dynamic Registration stores, built from LTI 1.1 checkboxes.
+     *
+     * iss and sub are always requested. Name and email claims are added when asked.
+     * scope is the service URIs, space-separated, and is omitted when none are asked.
+     *
+     * @param string $launchUrl
+     * @param array<int, array{type: string, placements: array<int, string>}> $messages
+     * @param mixed $claims
+     * @param mixed $scopes
+     * @return array<string, mixed>
+     */
+    public static function lti11Document($launchUrl, array $messages, $claims, $scopes) {
+        $launchUrl = (string) $launchUrl;
+        $rows = array();
+        foreach ( $messages as $message ) {
+            $row = array(
+                'type' => $message['type'],
+                'target_link_uri' => $launchUrl,
+            );
+            if ( count($message['placements']) > 0 ) {
+                $row['placements'] = array_values($message['placements']);
+            }
+            $rows[] = $row;
+        }
+        $document = array(
+            self::TOOL_CONFIGURATION => array(
+                'target_link_uri' => $launchUrl,
+                'claims' => self::normalizeClaims($claims),
+                'messages' => $rows,
+            ),
+        );
+        $scope = self::normalizeScope($scopes);
+        if ( $scope !== '' ) {
+            $document['scope'] = $scope;
+        }
+        return $document;
+    }
+
+    /**
+     * @param mixed $claims
+     * @return array<int, string>
+     */
+    public static function normalizeClaims($claims) {
+        $asked = self::uniqueNames($claims, 'Claim');
+        $allowed = array_fill_keys(self::CLAIM_ORDER, true);
+        foreach ( $asked as $claim ) {
+            if ( ! isset($allowed[$claim]) ) {
+                throw new \InvalidArgumentException('That claim is not a registration claim.');
+            }
+        }
+        $wanted = array_fill_keys($asked, true);
+        $wanted['iss'] = true;
+        $wanted['sub'] = true;
+        $out = array();
+        foreach ( self::CLAIM_ORDER as $claim ) {
+            if ( isset($wanted[$claim]) ) {
+                $out[] = $claim;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * @param mixed $scopes
+     * @return string
+     */
+    public static function normalizeScope($scopes) {
+        $asked = self::uniqueNames($scopes, 'Scope');
+        $allowed = array_fill_keys(self::SCOPE_ORDER, true);
+        foreach ( $asked as $scope ) {
+            if ( ! isset($allowed[$scope]) ) {
+                throw new \InvalidArgumentException('That scope is not a registration scope.');
+            }
+        }
+        $wanted = array_fill_keys($asked, true);
+        $out = array();
+        foreach ( self::SCOPE_ORDER as $scope ) {
+            if ( isset($wanted[$scope]) ) {
+                $out[] = $scope;
+            }
+        }
+        return implode(' ', $out);
+    }
+
+    /**
+     * Claims a deployment may allow. iss and sub are omitted because they are always sent.
+     *
+     * @param array<string, mixed> $document
+     * @return array<int, string>
+     */
+    public static function requestedClaims(array $document) {
+        $config = self::toolConfiguration($document);
+        if ( $config === null || ! isset($config['claims']) || ! is_array($config['claims']) ) {
+            return array();
+        }
+        $out = array();
+        foreach ( $config['claims'] as $claim ) {
+            if ( ! is_string($claim) ) {
+                continue;
+            }
+            $claim = trim($claim);
+            if ( $claim === '' || $claim === 'iss' || $claim === 'sub' ) {
+                continue;
+            }
+            $out[] = $claim;
+        }
+        return $out;
+    }
+
+    /**
+     * Scope URIs a deployment may allow.
+     *
+     * @param array<string, mixed> $document
+     * @return array<int, string>
+     */
+    public static function requestedScopes(array $document) {
+        if ( ! isset($document['scope']) || ! is_string($document['scope']) ) {
+            return array();
+        }
+        $parts = preg_split('/\s+/', trim($document['scope']));
+        if ( ! is_array($parts) ) {
+            return array();
+        }
+        $out = array();
+        foreach ( $parts as $scope ) {
+            if ( $scope !== '' ) {
+                $out[] = $scope;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * @param array<string, mixed> $document
+     * @return array<string, mixed>|null
+     */
+    private static function toolConfiguration(array $document) {
+        if ( ! isset($document[self::TOOL_CONFIGURATION]) || ! is_array($document[self::TOOL_CONFIGURATION]) ) {
+            return null;
+        }
+        $config = $document[self::TOOL_CONFIGURATION];
+        if ( array_is_list($config) ) {
+            return null;
+        }
+        return $config;
+    }
+
+    /**
+     * @param mixed $values
+     * @param string $label
+     * @return array<int, string>
+     */
+    private static function uniqueNames($values, $label) {
+        if ( $values === null ) {
+            $values = array();
+        }
+        if ( ! is_array($values) || ! array_is_list($values) ) {
+            throw new \InvalidArgumentException($label.' requests must be a list.');
+        }
+        $out = array();
+        $seen = array();
+        foreach ( $values as $value ) {
+            if ( ! is_string($value) ) {
+                throw new \InvalidArgumentException('Each '.$label.' request must be a string.');
+            }
+            $value = trim($value);
+            if ( $value === '' ) {
+                throw new \InvalidArgumentException('Each '.$label.' request must be a string.');
+            }
+            if ( isset($seen[$value]) ) {
+                throw new \InvalidArgumentException('That '.$label.' request is already selected.');
+            }
+            $seen[$value] = true;
+            $out[] = $value;
+        }
+        return $out;
+    }
+
+    /**
      * Replace the parsed registration document and rebuild its message rows.
+     *
+     * Grants on deployments of this registration are reduced to claims and
+     * scopes that are still in the new document.
      *
      * @param int $registrationId
      * @param array<string, mixed> $document parsed JSON object
@@ -62,6 +260,11 @@ class ToolRegistrationDocument {
         }
         try {
             self::writeDocument($registrationId, $encoded, $rows);
+            ToolDeploymentGrant::retain(
+                $registrationId,
+                self::requestedClaims($document),
+                self::requestedScopes($document)
+            );
             if ( $owns ) {
                 $PDOX->commit();
             }
@@ -238,6 +441,11 @@ class ToolRegistrationDocument {
     private static function writeDocument($registrationId, $encoded, array $rows) {
         $PDOX = self::db();
         $p = self::prefix();
+        $registration = self::findRegistration($registrationId);
+        if ( $registration === null ) {
+            throw new \InvalidArgumentException('Tool registration was not found.');
+        }
+        $keyId = (int) $registration['key_id'];
         $stmt = $PDOX->queryReturnError(
             "UPDATE {$p}lti_tool_registration
              SET registration_json = :registration_json, updated_at = NOW()
@@ -262,11 +470,12 @@ class ToolRegistrationDocument {
         foreach ( $rows as $row ) {
             $inserted = $PDOX->queryReturnError(
                 "INSERT INTO {$p}lti_tool_message
-                    (registration_id, sequence, message_type, target_link_uri, label, icon_uri, message_json, created_at)
+                    (registration_id, key_id, sequence, message_type, target_link_uri, label, icon_uri, message_json, created_at)
                  VALUES
-                    (:registration_id, :sequence, :message_type, :target_link_uri, :label, :icon_uri, :message_json, NOW())",
+                    (:registration_id, :key_id, :sequence, :message_type, :target_link_uri, :label, :icon_uri, :message_json, NOW())",
                 array(
                     ':registration_id' => $registrationId,
+                    ':key_id' => $keyId,
                     ':sequence' => $row['sequence'],
                     ':message_type' => $row['message_type'],
                     ':target_link_uri' => $row['target_link_uri'],
@@ -278,6 +487,10 @@ class ToolRegistrationDocument {
             if ( ! $inserted->success ) {
                 $detail = isset($inserted->errorImplode) ? (string) $inserted->errorImplode : 'database error';
                 throw new \RuntimeException('Could not store registration message. '.$detail);
+            }
+            $messageId = (int) $PDOX->lastInsertId();
+            foreach ( $row['placements'] as $placement ) {
+                ToolPlacementService::addPlacementToMessage($messageId, $placement);
             }
         }
     }
@@ -350,7 +563,38 @@ class ToolRegistrationDocument {
             'label' => self::scalarString($message, 'label'),
             'icon_uri' => self::scalarString($message, 'icon_uri'),
             'message_json' => self::encodeJson($message),
+            'placements' => self::placementNames($message, $message['type']),
         );
+    }
+
+    /**
+     * Placement names from one message object. Absent or null means none.
+     * The names are checked here so a bad document fails before any row is written.
+     *
+     * @param array<string, mixed> $message
+     * @param string $messageType
+     * @return array<int, string>
+     */
+    private static function placementNames(array $message, $messageType) {
+        if ( ! array_key_exists('placements', $message) || $message['placements'] === null ) {
+            return array();
+        }
+        $placements = $message['placements'];
+        if ( ! is_array($placements) || ! array_is_list($placements) ) {
+            throw new \InvalidArgumentException('Message placements must be a JSON array.');
+        }
+        $out = array();
+        foreach ( $placements as $placement ) {
+            if ( ! is_string($placement) ) {
+                throw new \InvalidArgumentException('Each message placement must be a string.');
+            }
+            $placement = ToolMessagePlacement::assertCompatible($messageType, $placement);
+            if ( isset($out[$placement]) ) {
+                throw new \InvalidArgumentException('That placement is already on this message.');
+            }
+            $out[$placement] = $placement;
+        }
+        return array_values($out);
     }
 
     /**
@@ -537,7 +781,7 @@ class ToolRegistrationDocument {
     private static function findRegistration($registrationId) {
         $p = self::prefix();
         $row = self::db()->rowDie(
-            "SELECT registration_id FROM {$p}lti_tool_registration WHERE registration_id = :registration_id",
+            "SELECT registration_id, key_id FROM {$p}lti_tool_registration WHERE registration_id = :registration_id",
             array(':registration_id' => (int) $registrationId)
         );
         return is_array($row) ? $row : null;
