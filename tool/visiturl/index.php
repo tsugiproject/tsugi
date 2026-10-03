@@ -179,22 +179,32 @@ echo('>');
 echo(__('Visit URL'));
 echo("</a></p>\n");
 
-if ( $timer && ! $already && $visited ) {
-    $egg = 'Wait '.$wait_minutes.' minutes in case the user watches at 2x speed.';
-    echo('<!-- '.$egg.' -->'."\n");
-    echo('<script>window.setTimeout(function(){ console.log('.json_encode($egg).'); }, 5000);</script>'."\n");
+if ( $timer && ! $already ) {
+    if ( $visited ) {
+        $egg = 'Wait '.$wait_minutes.' minutes in case the user watches at 2x speed.';
+        echo('<!-- '.$egg.' -->'."\n");
+        echo('<script>window.setTimeout(function(){ console.log('.json_encode($egg).'); }, 5000);</script>'."\n");
+    }
     echo('<form method="post">'."\n");
     echo(\Tsugi\Controllers\Tool::csrfField()."\n");
+    if ( ! $watch_ready ) {
+        $hover = __('This will be enabled after you watch the video');
+        echo('<span id="visiturl-watched-wrap" title="'.htmlentities($hover, ENT_QUOTES).'" style="display:inline-block; cursor:not-allowed;">');
+    }
     echo('<button type="submit" name="watched" value="1" id="visiturl-watched" class="btn btn-success"');
     if ( ! $watch_ready ) {
-        echo(' disabled="disabled"');
+        echo(' disabled="disabled" style="pointer-events:none;"');
     }
     echo(' data-unlock-at="'.htmlentities((string) $unlock_at).'"');
     echo(' data-visited="'.($visited ? '1' : '0').'"');
     echo(' data-minutes="'.htmlentities((string) $wait_minutes).'"');
     echo('>');
     echo(__('I watched this'));
-    echo("</button></form>\n");
+    echo('</button>');
+    if ( ! $watch_ready ) {
+        echo('</span>');
+    }
+    echo("</form>\n");
 }
 
 if ( $USER->instructor ) {
@@ -214,15 +224,24 @@ if ( $timer && ! $already && $visited ) {
     if ( ! unlock ) return;
     var minutes = parseInt(btn.getAttribute('data-minutes'), 10) || 0;
     if ( minutes < 1 ) minutes = 1;
+    function enableWatched() {
+        btn.removeAttribute('disabled');
+        btn.style.pointerEvents = 'auto';
+        var wrap = document.getElementById('visiturl-watched-wrap');
+        if ( wrap ) {
+            wrap.removeAttribute('title');
+            wrap.style.cursor = '';
+        }
+    }
     var wait = (unlock * 1000) - Date.now();
     if ( wait <= 0 ) {
-        btn.removeAttribute('disabled');
+        enableWatched();
         console.log('Watch timer already expired; enabling I watched this.');
         return;
     }
     console.log('Visit URL pressed; ' + minutes + '-minute timer started.');
     window.setTimeout(function () {
-        btn.removeAttribute('disabled');
+        enableWatched();
         console.log('Watch timer expired; enabling I watched this.');
     }, wait);
 })();
