@@ -268,13 +268,13 @@ class ToolPlacementTest extends PlatformSchemaCase
         ToolPlacementService::addPlacementToMessage($deep, 'ContentArea');
         ToolPlacementService::addPlacementToMessage($deep, 'lessons');
         ToolPlacementService::addPlacementToMessage($launch, 'course_navigation');
+        ToolPlacementService::addPlacementToMessage($launch, 'content_editor');
+        ToolPlacementService::addPlacementToMessage($launch, 'lessons');
         $this->assertSame('course_navigation', ToolMessagePlacement::assertCompatible('LtiResourceLinkRequest', 'course_navigation'));
+        $this->assertSame('content_editor', ToolMessagePlacement::assertCompatible('LtiResourceLinkRequest', 'content_editor'));
 
         $this->expectRejection(function () use ($deep) {
             ToolPlacementService::addPlacementToMessage($deep, 'course_navigation');
-        });
-        $this->expectRejection(function () use ($launch) {
-            ToolPlacementService::addPlacementToMessage($launch, 'content_editor');
         });
         $this->expectRejection(function () use ($registrationId) {
             ToolRegistrationDocument::storeDocument($registrationId, array(
@@ -328,7 +328,7 @@ class ToolPlacementTest extends PlatformSchemaCase
         $this->assertSame('LtiResourceLinkRequest', $messages[0]['message_type']);
         $this->assertSame('https://tool.example/launch', $messages[0]['target_link_uri']);
         $this->assertSame(
-            array('course_navigation'),
+            array('assignment_selection', 'content_editor', 'course_navigation', 'lessons'),
             $this->placementNames(ToolPlacementService::getPlacementsForMessage($messages[0]['message_id']))
         );
         $this->assertSame('LtiDeepLinkingRequest', $messages[1]['message_type']);
@@ -352,7 +352,10 @@ class ToolPlacementTest extends PlatformSchemaCase
         );
         $deploymentId = $this->onlyDeployment($registrationId);
         $this->assertSame(
-            array('course_navigation', 'assignment_selection', 'common_cartridge', 'content_editor', 'lessons'),
+            array(
+                'assignment_selection', 'content_editor', 'course_navigation', 'lessons',
+                'assignment_selection', 'common_cartridge', 'content_editor', 'lessons',
+            ),
             $this->placementNames(ToolPlacementService::getAvailablePlacementsForDeployment($deploymentId))
         );
         $this->assertSame(array(), ToolPlacementService::getEnabledPlacementsForDeployment($deploymentId));
@@ -377,16 +380,20 @@ class ToolPlacementTest extends PlatformSchemaCase
                 'placements' => array('course_navigation'),
             ));
         });
-        $this->expectRejection(function () {
-            ToolRegistrationService::createRegistration($this->id['keyA'], 'Editor without deep link', null, null, array(
-                'lti_version' => '1.1',
-                'lti11_key' => 'editor-key',
-                'lti11_secret' => 'editor-secret',
-                'lti11_url' => 'https://tool.example/launch',
-                'messages' => array('LtiResourceLinkRequest'),
-                'placements' => array('content_editor'),
-            ));
-        });
+        $editor = ToolRegistrationService::createRegistration($this->id['keyA'], 'Editor on a resource link', null, null, array(
+            'lti_version' => '1.1',
+            'lti11_key' => 'editor-key',
+            'lti11_secret' => 'editor-secret',
+            'lti11_url' => 'https://tool.example/launch',
+            'messages' => array('LtiResourceLinkRequest'),
+            'placements' => array('content_editor', 'lessons', 'assignment_selection'),
+        ));
+        $editorMessages = ToolRegistrationDocument::messagesForRegistration($editor);
+        $this->assertSame(array('LtiResourceLinkRequest'), array_column($editorMessages, 'message_type'));
+        $this->assertSame(
+            array('assignment_selection', 'content_editor', 'lessons'),
+            $this->placementNames(ToolPlacementService::getPlacementsForMessage($editorMessages[0]['message_id']))
+        );
         $this->expectRejection(function () {
             ToolRegistrationService::createRegistration($this->id['keyA'], 'No launch', null, null, array(
                 'lti_version' => '1.1',
@@ -412,7 +419,7 @@ class ToolPlacementTest extends PlatformSchemaCase
                 'lti11_key' => 'unknown-key',
                 'lti11_secret' => 'unknown-secret',
                 'lti11_url' => 'https://tool.example/launch',
-                'placements' => array('lessons'),
+                'placements' => array('site_nav'),
             ));
         });
         $this->expectRejection(function () {

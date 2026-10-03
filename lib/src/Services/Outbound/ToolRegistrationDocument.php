@@ -25,12 +25,17 @@ class ToolRegistrationDocument {
     /** @var array<int, string> */
     private const CLAIM_ORDER = array('iss', 'sub', 'name', 'given_name', 'family_name', 'email');
 
+    public const SCOPE_SCORE = 'https://purl.imsglobal.org/spec/lti-ags/scope/score';
+    public const SCOPE_LINEITEM = 'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem';
+    public const SCOPE_RESULT = 'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly';
+    public const SCOPE_ROSTER = 'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly';
+
     /** @var array<int, string> */
     private const SCOPE_ORDER = array(
-        'https://purl.imsglobal.org/spec/lti-ags/scope/score',
-        'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
-        'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly',
-        'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly',
+        self::SCOPE_SCORE,
+        self::SCOPE_LINEITEM,
+        self::SCOPE_RESULT,
+        self::SCOPE_ROSTER,
     );
 
     /**

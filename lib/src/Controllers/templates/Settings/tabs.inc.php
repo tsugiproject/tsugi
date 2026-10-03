@@ -1,9 +1,10 @@
 <?php
 /**
- * Course Settings tabs: Theme, Navigation, Images, Import, Export, Delete.
+ * Course Settings tabs: Theme, Navigation, Images, Tools, Import, Export, Delete.
  *
- * Expected: $setup_url, $navigation_url, $images_url, $import_url, $export_url,
- * $delete_url, $setup_tab ('theme'|'navigation'|'images'|'import'|'export'|'delete')
+ * Expected: $setup_url, $navigation_url, $images_url, $tools_url, $import_url,
+ * $export_url, $delete_url,
+ * $setup_tab ('theme'|'navigation'|'images'|'tools'|'import'|'export'|'delete')
  */
 if ( ! isset($setup_tab) ) {
     $setup_tab = 'theme';
@@ -13,6 +14,9 @@ if ( ! isset($navigation_url) ) {
 }
 if ( ! isset($images_url) ) {
     $images_url = $setup_url;
+}
+if ( ! isset($tools_url) ) {
+    $tools_url = $setup_url;
 }
 if ( ! isset($import_url) ) {
     $import_url = $setup_url;
@@ -34,6 +38,9 @@ if ( ! isset($delete_url) ) {
   </li>
   <li class="<?= $setup_tab === 'images' ? 'active' : '' ?>">
     <a href="<?= htmlspecialchars($images_url) ?>"><?= __('Images') ?></a>
+  </li>
+  <li class="<?= $setup_tab === 'tools' ? 'active' : '' ?>">
+    <a href="<?= htmlspecialchars($tools_url) ?>"><?= __('Tools') ?></a>
   </li>
   <li class="<?= $setup_tab === 'import' ? 'active' : '' ?>">
     <a href="<?= htmlspecialchars($import_url) ?>"><?= __('Import') ?></a>

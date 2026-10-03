@@ -496,7 +496,7 @@ class ToolDeploymentTest extends PlatformSchemaCase
         ToolDeploymentService::createDeployment($reg, null);
     }
 
-    public function testLti11ConsumerKeyIsUniqueInsideOneTenant(): void
+    public function testLti11ConsumerKeyMayRepeat(): void
     {
         $meta = array(
             'lti_version' => '1.1',
@@ -504,21 +504,27 @@ class ToolDeploymentTest extends PlatformSchemaCase
             'lti11_secret' => 'secret-a',
             'lti11_url' => 'https://tool.example/launch',
         );
-        $a = ToolRegistrationService::createRegistration($this->id['keyA'], 'Tenant A', null, null, $meta);
+        $a = ToolRegistrationService::createRegistration($this->id['keyA'], 'First', null, null, $meta);
         $meta['lti11_secret'] = 'secret-b';
-        $b = ToolRegistrationService::createRegistration($this->id['keyB'], 'Tenant B', null, null, $meta);
+        $b = ToolRegistrationService::createRegistration($this->id['keyA'], 'Second', null, null, $meta);
+        $meta['lti11_secret'] = 'secret-c';
+        $c = ToolRegistrationService::createRegistration($this->id['keyB'], 'Other tenant', null, null, $meta);
         $this->assertNotSame($a, $b);
+        $this->assertNotSame($b, $c);
 
         $resolvedA = ToolDeploymentService::resolveLti11('shared-consumer', 'secret-a', $this->id['keyA']);
-        $resolvedB = ToolDeploymentService::resolveLti11('shared-consumer', 'secret-b', $this->id['keyB']);
+        $resolvedB = ToolDeploymentService::resolveLti11('shared-consumer', 'secret-b', $this->id['keyA']);
+        $resolvedC = ToolDeploymentService::resolveLti11('shared-consumer', 'secret-c', $this->id['keyB']);
         $this->assertSame($a, $resolvedA['registration_id']);
         $this->assertSame($b, $resolvedB['registration_id']);
+        $this->assertSame($c, $resolvedC['registration_id']);
         $this->expectRejection(function () {
             ToolDeploymentService::resolveLti11('shared-consumer', 'secret-a', $this->id['keyB']);
         });
-        $this->expectRejection(function () use ($meta) {
-            $meta['lti11_secret'] = 'secret-a-again';
-            ToolRegistrationService::createRegistration($this->id['keyA'], 'Tenant A again', null, null, $meta);
+        $meta['lti11_secret'] = 'secret-a';
+        ToolRegistrationService::createRegistration($this->id['keyA'], 'Same secret again', null, null, $meta);
+        $this->expectRejection(function () {
+            ToolDeploymentService::resolveLti11('shared-consumer', 'secret-a', $this->id['keyA']);
         });
     }
 

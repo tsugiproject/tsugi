@@ -29,7 +29,8 @@ class ToolMessagePlacement {
             'editor_button' => true,
             'migration_selection' => true,
             'homework_submission' => true,
-            // Lessons picker, and a deep-link tool that returns a cartridge.
+            // Lessons, the editor, and assignments also work on a resource link.
+            // A cartridge response is content-item only, like Sakai's import item.
             'lessons' => true,
             'common_cartridge' => true,
         ),
@@ -38,6 +39,9 @@ class ToolMessagePlacement {
             'account_navigation' => true,
             'user_navigation' => true,
             'global_navigation' => true,
+            'lessons' => true,
+            'content_editor' => true,
+            'assignment_selection' => true,
         ),
     );
 
@@ -70,11 +74,13 @@ class ToolMessagePlacement {
     /**
      * Turn LTI 1.1 launch and placement checkboxes into message rows.
      *
-     * Resource link and deep link are independent. At least one is required.
+     * Resource link and content item are independent. At least one is required.
      * A privacy launch is a third message and does not satisfy that rule.
-     * A placement checkbox is rejected when its launch checkbox is off.
-     * Site navigation requires a resource link. Lessons, the editor, assignment
-     * selection, and a cartridge response require a deep link.
+     * A placement is stored on every selected launch that can carry it.
+     * Lessons, the editor, and assignments work on a resource link or a content
+     * item. Course navigation requires a resource link. A cartridge response
+     * requires a content item. LTI 1.1 calls this launch a content item. The
+     * stored message type is still LtiDeepLinkingRequest.
      *
      * @param mixed $messageTypes
      * @param mixed $placements
@@ -98,19 +104,27 @@ class ToolMessagePlacement {
                 throw new \InvalidArgumentException('Each LTI 1.1 placement checkbox must be a string.');
             }
             $placement = trim($placement);
-            $type = self::typeForCheckbox($placement);
+            $types = self::launchesForCheckbox($placement);
             if ( isset($seen[$placement]) ) {
                 throw new \InvalidArgumentException('That placement checkbox is already selected.');
             }
-            if ( ! isset($selected[$type]) ) {
-                $launch = $type === 'LtiResourceLinkRequest' ? 'resource link launch' : 'deep link launch';
+            $matched = array();
+            foreach ( $types as $type ) {
+                if ( isset($selected[$type]) && isset($byType[$type]) ) {
+                    $matched[] = $type;
+                }
+            }
+            if ( count($matched) === 0 ) {
+                $launch = $types === array('LtiResourceLinkRequest') ? 'resource link launch' : 'content item launch';
                 throw new \InvalidArgumentException('That placement requires a '.$launch.'.');
             }
             $seen[$placement] = true;
-            $byType[$type][] = $placement;
+            foreach ( $matched as $type ) {
+                $byType[$type][] = $placement;
+            }
         }
         $out = array();
-        foreach ( array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest', 'LtiDataPrivacyLaunchRequest') as $type ) {
+        foreach ( array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest', 'LtiDataPrivacyLaunchRequest', 'LtiContextLaunchRequest') as $type ) {
             if ( ! isset($selected[$type]) ) {
                 continue;
             }
@@ -134,6 +148,7 @@ class ToolMessagePlacement {
             'LtiResourceLinkRequest' => true,
             'LtiDeepLinkingRequest' => true,
             'LtiDataPrivacyLaunchRequest' => true,
+            'LtiContextLaunchRequest' => true,
         );
         $selected = array();
         foreach ( $messageTypes as $type ) {
@@ -146,22 +161,29 @@ class ToolMessagePlacement {
             $selected[$type] = true;
         }
         if ( ! isset($selected['LtiResourceLinkRequest']) && ! isset($selected['LtiDeepLinkingRequest']) ) {
-            throw new \InvalidArgumentException('An LTI 1.1 registration needs a resource link launch or a deep link launch.');
+            throw new \InvalidArgumentException('An LTI 1.1 registration needs a resource link launch or a content item launch.');
         }
         return $selected;
     }
 
     /**
+     * Launch checkboxes that can carry this placement. One placement may fit both.
+     *
      * @param string $placement
-     * @return string
+     * @return array<int, string>
      */
-    private static function typeForCheckbox($placement) {
+    public static function launchesForCheckbox($placement) {
+        $placement = trim((string) $placement);
+        $types = array();
         foreach ( self::ALLOWED as $messageType => $names ) {
             if ( isset($names[$placement]) ) {
-                return $messageType;
+                $types[] = $messageType;
             }
         }
-        throw new \InvalidArgumentException('That placement is not an LTI 1.1 registration checkbox.');
+        if ( count($types) === 0 ) {
+            throw new \InvalidArgumentException('That placement is not an LTI 1.1 registration checkbox.');
+        }
+        return $types;
     }
 
     /**

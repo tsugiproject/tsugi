@@ -107,19 +107,6 @@ class ToolRegistrationService {
         }
 
         try {
-            if ( $fields['lti11_key'] !== null ) {
-                $existing = $PDOX->rowDie(
-                    "SELECT registration_id FROM {$p}lti_tool_registration
-                     WHERE key_id = :key_id AND lti11_key = :lti11_key",
-                    array(
-                        ':key_id' => $keyId,
-                        ':lti11_key' => $fields['lti11_key'],
-                    )
-                );
-                if ( is_array($existing) ) {
-                    throw new \InvalidArgumentException('This tenant already has that LTI 1.1 consumer key.');
-                }
-            }
             $stmt = $PDOX->queryReturnError(
                 "INSERT INTO {$p}lti_tool_registration
                     (key_id, owner_org_id, owner_context_id, created_by_user_id, title, lti_version, lti11_key, lti11_secret, lti11_url,
@@ -147,9 +134,6 @@ class ToolRegistrationService {
             );
             if ( ! $stmt->success ) {
                 $detail = isset($stmt->errorImplode) ? (string) $stmt->errorImplode : 'database error';
-                if ( $fields['lti11_key'] !== null && stripos($detail, 'Duplicate') !== false ) {
-                    throw new \InvalidArgumentException('This tenant already has that LTI 1.1 consumer key.');
-                }
                 throw new \RuntimeException('Could not create tool registration. '.$detail);
             }
             $id = (int) $PDOX->lastInsertId();
@@ -170,6 +154,306 @@ class ToolRegistrationService {
             throw $ex;
         }
         return $id;
+    }
+
+    /**
+     * Add an LTI 1.1 tool to one course.
+     *
+     * The registration is owned by that course. Its one deployment is
+     * assigned to that course and to no organization. Checked placements
+     * are enabled on the deployment. Checked claims and scopes are both
+     * requested and allowed.
+     *
+     * @param int $contextId
+     * @param string $title
+     * @param int|null $createdByUserId
+     * @param array<string, mixed> $meta
+     * @return int registration_id
+     */
+    public static function createLti11ForCourse($contextId, $title, $createdByUserId, array $meta) {
+        $context = self::findContext($contextId);
+        if ( $context === null ) {
+            throw new \InvalidArgumentException('Course was not found.');
+        }
+        $meta['lti_version'] = '1.1';
+        $createdByUserId = self::creatorOnKey($createdByUserId, (int) $context['key_id']);
+        $PDOX = self::db();
+        $owns = ! $PDOX->inTransaction();
+        if ( $owns ) {
+            $PDOX->beginTransaction();
+        }
+        try {
+            $registrationId = self::createRegistration(
+                (int) $context['key_id'],
+                $title,
+                null,
+                $createdByUserId,
+                $meta,
+                (int) $context['context_id']
+            );
+            $deploymentId = ToolDeploymentService::onlyDeploymentId($registrationId);
+            ToolDeploymentService::assignContext($deploymentId, (int) $context['context_id']);
+            self::enableAvailablePlacements($deploymentId);
+            self::allowRequestedGrants($registrationId, $deploymentId);
+            if ( $owns ) {
+                $PDOX->commit();
+            }
+            return $registrationId;
+        } catch ( \Throwable $ex ) {
+            if ( $owns && $PDOX->inTransaction() ) {
+                $PDOX->rollBack();
+            }
+            throw $ex;
+        }
+    }
+
+    /**
+     * Replace an LTI 1.1 tool this course owns.
+     *
+     * The course assignment stays. Message rows are rebuilt, so placement
+     * enablement is written again and grants follow the new request.
+     *
+     * @param int $contextId
+     * @param int $registrationId
+     * @param string $title
+     * @param array<string, mixed> $meta
+     * @return void
+     */
+    public static function updateLti11ForCourse($contextId, $registrationId, $title, array $meta) {
+        $owned = self::requireOwnedCourseLti11($contextId, $registrationId);
+        $title = trim((string) $title);
+        if ( $title === '' ) {
+            throw new \InvalidArgumentException('Registration title is required.');
+        }
+        if ( mb_strlen($title) > 512 ) {
+            throw new \InvalidArgumentException('Registration title is too long.');
+        }
+        $meta['lti_version'] = '1.1';
+        $split = self::splitCheckboxMeta($meta);
+        $fields = $split['fields'];
+        if ( $fields['lti_version'] !== '1.1' ) {
+            throw new \InvalidArgumentException('This course does not own that tool.');
+        }
+        $arranged = ToolMessagePlacement::arrange($split['messageTypes'], $split['placements']);
+        ToolRegistrationDocument::lti11Document($fields['lti11_url'], $arranged, $split['claims'], $split['scopes']);
+
+        $PDOX = self::db();
+        $p = self::prefix();
+        $owns = ! $PDOX->inTransaction();
+        if ( $owns ) {
+            $PDOX->beginTransaction();
+        }
+        try {
+            $stmt = $PDOX->queryReturnError(
+                "UPDATE {$p}lti_tool_registration
+                 SET title = :title, lti11_key = :lti11_key, lti11_secret = :lti11_secret,
+                     lti11_url = :lti11_url, updated_at = NOW()
+                 WHERE registration_id = :registration_id
+                   AND owner_context_id = :owner_context_id
+                   AND lti_version = '1.1'",
+                array(
+                    ':title' => $title,
+                    ':lti11_key' => $fields['lti11_key'],
+                    ':lti11_secret' => $fields['lti11_secret'],
+                    ':lti11_url' => $fields['lti11_url'],
+                    ':registration_id' => $owned['registration_id'],
+                    ':owner_context_id' => $owned['owner_context_id'],
+                )
+            );
+            if ( ! $stmt->success ) {
+                $detail = isset($stmt->errorImplode) ? (string) $stmt->errorImplode : 'database error';
+                throw new \RuntimeException('Could not update tool registration. '.$detail);
+            }
+            ToolPlacementService::synthesizeLti11Messages(
+                $owned['registration_id'],
+                $split['messageTypes'],
+                $split['placements'],
+                $split['claims'],
+                $split['scopes']
+            );
+            $deploymentId = ToolDeploymentService::onlyDeploymentId($owned['registration_id']);
+            self::enableAvailablePlacements($deploymentId);
+            self::allowRequestedGrants($owned['registration_id'], $deploymentId);
+            if ( $owns ) {
+                $PDOX->commit();
+            }
+        } catch ( \Throwable $ex ) {
+            if ( $owns && $PDOX->inTransaction() ) {
+                $PDOX->rollBack();
+            }
+            throw $ex;
+        }
+    }
+
+    /**
+     * Delete an LTI 1.1 tool this course owns.
+     *
+     * Deployments, messages, placements, and grants go with the registration.
+     *
+     * @param int $contextId
+     * @param int $registrationId
+     * @return void
+     */
+    public static function deleteLti11ForCourse($contextId, $registrationId) {
+        $owned = self::requireOwnedCourseLti11($contextId, $registrationId);
+        $p = self::prefix();
+        $stmt = self::db()->queryReturnError(
+            "DELETE FROM {$p}lti_tool_registration
+             WHERE registration_id = :registration_id
+               AND owner_context_id = :owner_context_id
+               AND lti_version = '1.1'",
+            array(
+                ':registration_id' => $owned['registration_id'],
+                ':owner_context_id' => $owned['owner_context_id'],
+            )
+        );
+        if ( ! $stmt->success ) {
+            $detail = isset($stmt->errorImplode) ? (string) $stmt->errorImplode : 'database error';
+            throw new \RuntimeException('Could not delete tool registration. '.$detail);
+        }
+    }
+
+    /**
+     * The stored LTI 1.1 fields for a tool this course owns.
+     *
+     * @param int $contextId
+     * @param int $registrationId
+     * @return array{registration_id:int, key_id:int, owner_context_id:int, title:string, lti11_key:string, lti11_secret:string, lti11_url:string}
+     */
+    public static function courseLti11($contextId, $registrationId) {
+        return self::requireOwnedCourseLti11($contextId, $registrationId);
+    }
+
+    /**
+     * An LTI 1.1 registration this course can launch.
+     *
+     * The course does not have to own it. A tool shared into the course is included.
+     *
+     * @param int $contextId
+     * @param int $registrationId
+     * @return array{registration_id:int, key_id:int, title:string, lti11_key:string, lti11_secret:string, lti11_url:string}
+     */
+    public static function visibleLti11($contextId, $registrationId) {
+        $registrationId = (int) $registrationId;
+        if ( $registrationId < 1 ) {
+            throw new \InvalidArgumentException('This course does not have that tool.');
+        }
+        $visible = false;
+        foreach ( ToolDeploymentService::getRegistrationsForContext((int) $contextId) as $tool ) {
+            if ( (int) $tool['registration_id'] === $registrationId ) {
+                $visible = true;
+                break;
+            }
+        }
+        if ( ! $visible ) {
+            throw new \InvalidArgumentException('This course does not have that tool.');
+        }
+        $p = self::prefix();
+        $row = self::db()->rowDie(
+            "SELECT registration_id, key_id, title, lti_version, lti11_key, lti11_secret, lti11_url
+             FROM {$p}lti_tool_registration
+             WHERE registration_id = :registration_id",
+            array(':registration_id' => $registrationId)
+        );
+        if ( ! is_array($row) || (string) $row['lti_version'] !== '1.1' ) {
+            throw new \InvalidArgumentException('This test sends an LTI 1.1 launch.');
+        }
+        return array(
+            'registration_id' => (int) $row['registration_id'],
+            'key_id' => (int) $row['key_id'],
+            'title' => (string) $row['title'],
+            'lti11_key' => (string) $row['lti11_key'],
+            'lti11_secret' => (string) $row['lti11_secret'],
+            'lti11_url' => (string) $row['lti11_url'],
+        );
+    }
+
+    /**
+     * How many other LTI 1.1 registrations in this course's tenant store this launch URL.
+     *
+     * The URL is not an identifier. This count is only a note.
+     *
+     * @param int $contextId
+     * @param string $url
+     * @param int $exceptRegistrationId the tool being edited, so it is not counted as another tool
+     * @return int
+     */
+    public static function otherLaunchUrlCount($contextId, $url, $exceptRegistrationId = 0) {
+        $context = self::findContext($contextId);
+        if ( $context === null ) {
+            throw new \InvalidArgumentException('Course was not found.');
+        }
+        $url = trim((string) $url);
+        if ( $url === '' ) {
+            return 0;
+        }
+        $p = self::prefix();
+        $params = array(
+            ':key_id' => (int) $context['key_id'],
+            ':lti11_url' => $url,
+        );
+        $except = '';
+        $exceptRegistrationId = (int) $exceptRegistrationId;
+        if ( $exceptRegistrationId > 0 ) {
+            $except = ' AND registration_id <> :registration_id';
+            $params[':registration_id'] = $exceptRegistrationId;
+        }
+        $row = self::db()->rowDie(
+            "SELECT COUNT(*) AS n
+             FROM {$p}lti_tool_registration
+             WHERE key_id = :key_id AND lti_version = '1.1' AND lti11_url = :lti11_url".$except,
+            $params
+        );
+        return is_array($row) ? (int) $row['n'] : 0;
+    }
+
+    /**
+     * Other LTI 1.1 tools in the same tenant that store each registration's launch URL.
+     *
+     * @param array<int, int> $registrationIds
+     * @return array<int, int> registration_id => count of other tools
+     */
+    public static function otherLaunchUrlCounts(array $registrationIds) {
+        $ids = array();
+        foreach ( $registrationIds as $registrationId ) {
+            $registrationId = (int) $registrationId;
+            if ( $registrationId > 0 ) {
+                $ids[$registrationId] = $registrationId;
+            }
+        }
+        if ( count($ids) === 0 ) {
+            return array();
+        }
+        $p = self::prefix();
+        $params = array();
+        $holders = array();
+        $i = 0;
+        foreach ( $ids as $registrationId ) {
+            $key = ':id'.$i;
+            $holders[] = $key;
+            $params[$key] = $registrationId;
+            $i++;
+        }
+        $rows = self::db()->allRowsDie(
+            "SELECT r.registration_id,
+                    (SELECT COUNT(*)
+                     FROM {$p}lti_tool_registration o
+                     WHERE o.key_id = r.key_id
+                       AND o.lti_version = '1.1'
+                       AND o.lti11_url = r.lti11_url
+                       AND o.registration_id <> r.registration_id) AS other_tools
+             FROM {$p}lti_tool_registration r
+             WHERE r.registration_id IN (".implode(', ', $holders).")",
+            $params
+        );
+        $out = array();
+        foreach ( $ids as $registrationId ) {
+            $out[$registrationId] = 0;
+        }
+        foreach ( $rows as $row ) {
+            $out[(int) $row['registration_id']] = (int) $row['other_tools'];
+        }
+        return $out;
     }
 
     /**
@@ -245,6 +529,116 @@ class ToolRegistrationService {
             'title' => (string) $row['title'],
             'lti_version' => (string) $row['lti_version'],
         );
+    }
+
+    /**
+     * @param int $contextId
+     * @param int $registrationId
+     * @return array{registration_id:int, key_id:int, owner_context_id:int, title:string, lti11_key:string, lti11_secret:string, lti11_url:string, context_id:int}
+     */
+    private static function requireOwnedCourseLti11($contextId, $registrationId) {
+        $context = self::findContext($contextId);
+        if ( $context === null ) {
+            throw new \InvalidArgumentException('Course was not found.');
+        }
+        $registrationId = (int) $registrationId;
+        if ( $registrationId < 1 ) {
+            throw new \InvalidArgumentException('This course does not own that tool.');
+        }
+        $p = self::prefix();
+        $row = self::db()->rowDie(
+            "SELECT registration_id, key_id, owner_context_id, title, lti_version, lti11_key, lti11_secret, lti11_url
+             FROM {$p}lti_tool_registration
+             WHERE registration_id = :registration_id",
+            array(':registration_id' => $registrationId)
+        );
+        if ( ! is_array($row)
+            || (string) $row['lti_version'] !== '1.1'
+            || $row['owner_context_id'] === null
+            || (int) $row['owner_context_id'] !== (int) $context['context_id']
+            || (int) $row['key_id'] !== (int) $context['key_id'] ) {
+            throw new \InvalidArgumentException('This course does not own that tool.');
+        }
+        return array(
+            'registration_id' => (int) $row['registration_id'],
+            'key_id' => (int) $row['key_id'],
+            'owner_context_id' => (int) $row['owner_context_id'],
+            'title' => (string) $row['title'],
+            'lti11_key' => (string) $row['lti11_key'],
+            'lti11_secret' => (string) $row['lti11_secret'],
+            'lti11_url' => (string) $row['lti11_url'],
+            'context_id' => (int) $context['context_id'],
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $meta
+     * @return array{fields:array<string, mixed>, messageTypes:array<int, string>, placements:array<int, string>, claims:array<int, string>, scopes:array<int, string>}
+     */
+    private static function splitCheckboxMeta(array $meta) {
+        $placements = array();
+        if ( array_key_exists('placements', $meta) ) {
+            $placements = $meta['placements'];
+            unset($meta['placements']);
+        }
+        $messageTypes = array('LtiResourceLinkRequest');
+        if ( array_key_exists('messages', $meta) ) {
+            $messageTypes = $meta['messages'];
+            unset($meta['messages']);
+        }
+        $claims = array();
+        if ( array_key_exists('claims', $meta) ) {
+            $claims = $meta['claims'];
+            unset($meta['claims']);
+        }
+        $scopes = array();
+        if ( array_key_exists('scopes', $meta) ) {
+            $scopes = $meta['scopes'];
+            unset($meta['scopes']);
+        }
+        return array(
+            'fields' => self::metaFields($meta),
+            'messageTypes' => $messageTypes,
+            'placements' => $placements,
+            'claims' => $claims,
+            'scopes' => $scopes,
+        );
+    }
+
+    /**
+     * @param int $deploymentId
+     * @return void
+     */
+    private static function enableAvailablePlacements($deploymentId) {
+        foreach ( ToolPlacementService::getAvailablePlacementsForDeployment($deploymentId) as $row ) {
+            ToolPlacementService::enablePlacementForDeployment($deploymentId, (int) $row['message_placement_id']);
+        }
+    }
+
+    /**
+     * Allow each claim and scope the registration asks for that is not already allowed.
+     *
+     * @param int $registrationId
+     * @param int $deploymentId
+     * @return void
+     */
+    private static function allowRequestedGrants($registrationId, $deploymentId) {
+        $document = ToolRegistrationDocument::registrationDocument($registrationId);
+        if ( ! is_array($document) ) {
+            return;
+        }
+        $haveClaims = ToolDeploymentGrant::allowedClaims($deploymentId);
+        foreach ( ToolRegistrationDocument::requestedClaims($document) as $claim ) {
+            if ( ! in_array($claim, $haveClaims, true) ) {
+                ToolDeploymentGrant::allowClaim($deploymentId, $claim);
+            }
+        }
+        $haveScopes = ToolDeploymentGrant::allowedScopes($deploymentId);
+        foreach ( ToolRegistrationDocument::requestedScopes($document) as $scope ) {
+            if ( ! in_array($scope, $haveScopes, true) ) {
+                ToolDeploymentGrant::allowScope($deploymentId, $scope);
+            }
+        }
     }
 
     /**
@@ -401,6 +795,22 @@ class ToolRegistrationService {
      * @param int $keyId
      * @return int|null
      */
+    /**
+     * Record the signed-in user when they belong to this course's tenant.
+     * A site login on another key still adds the tool; created_by stays empty.
+     *
+     * @param mixed $userId
+     * @param int $keyId
+     * @return int|null
+     */
+    private static function creatorOnKey($userId, $keyId) {
+        try {
+            return self::optionalUserId($userId, $keyId);
+        } catch ( \InvalidArgumentException $ex ) {
+            return null;
+        }
+    }
+
     private static function optionalUserId($userId, $keyId) {
         if ( $userId === null ) {
             return null;

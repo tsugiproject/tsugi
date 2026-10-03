@@ -838,9 +838,6 @@ array( "{$CFG->dbprefix}lti_tool_registration",
 
     CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_const_pk` PRIMARY KEY (registration_id),
     CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_const_1` UNIQUE (registration_id, key_id),
-    -- The consumer key is unique inside one tenant. Another tenant may use the
-    -- same key. LTI 1.3 rows keep lti11_key null, and many nulls are allowed.
-    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_const_2` UNIQUE (key_id, lti11_key),
 
     CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_chk_1` CHECK (
         (lti_version = '1.1'

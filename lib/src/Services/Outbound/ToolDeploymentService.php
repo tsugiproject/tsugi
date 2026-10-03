@@ -90,11 +90,12 @@ class ToolDeploymentService {
     }
 
     /**
-     * The registration and its one deployment for an LTI 1.1 consumer key.
+     * The registration and its one deployment for an LTI 1.1 key and secret.
      *
-     * The tenant is already known. The consumer key is not a global lookup.
-     * Another tenant may store the same key. A wrong secret is the same
-     * result as an unknown key.
+     * lti11_key is a stored field, not an identifier. Several registrations in
+     * one tenant may share it. The secret picks among those rows. A wrong
+     * secret, an unknown key, or more than one row with that key and secret
+     * is the same result.
      *
      * @param string $consumerKey
      * @param string $sharedSecret
@@ -111,7 +112,7 @@ class ToolDeploymentService {
             throw new \InvalidArgumentException('Tenant key is required.');
         }
         $p = self::prefix();
-        $row = self::db()->rowDie(
+        $rows = self::db()->allRowsDie(
             "SELECT r.registration_id, r.key_id, r.lti11_key, r.lti11_secret,
                     d.tool_deployment_id, d.deployment_id
              FROM {$p}lti_tool_registration r
@@ -124,17 +125,27 @@ class ToolDeploymentService {
             )
         );
         $secret = (string) $sharedSecret;
-        if ( ! is_array($row) || ! hash_equals((string) $row['lti11_secret'], $secret) ) {
+        $match = null;
+        foreach ( $rows as $row ) {
+            if ( ! hash_equals((string) $row['lti11_secret'], $secret) ) {
+                continue;
+            }
+            if ( $match !== null ) {
+                throw new \InvalidArgumentException('LTI 1.1 registration was not found.');
+            }
+            $match = $row;
+        }
+        if ( ! is_array($match) ) {
             throw new \InvalidArgumentException('LTI 1.1 registration was not found.');
         }
-        if ( $row['deployment_id'] !== null ) {
+        if ( $match['deployment_id'] !== null ) {
             throw new \RuntimeException('An LTI 1.1 deployment must not have an external deployment id.');
         }
         return array(
-            'registration_id' => (int) $row['registration_id'],
-            'key_id' => (int) $row['key_id'],
-            'lti11_key' => (string) $row['lti11_key'],
-            'tool_deployment_id' => (int) $row['tool_deployment_id'],
+            'registration_id' => (int) $match['registration_id'],
+            'key_id' => (int) $match['key_id'],
+            'lti11_key' => (string) $match['lti11_key'],
+            'tool_deployment_id' => (int) $match['tool_deployment_id'],
             'deployment_id' => null,
         );
     }
@@ -218,6 +229,31 @@ class ToolDeploymentService {
             (int) $deployment['key_id'],
             'This deployment is already assigned to that course.'
         );
+    }
+
+    /**
+     * The single deployment on a registration.
+     *
+     * An LTI 1.1 registration has exactly one. Callers that just created
+     * that registration use this to assign the course and its grants.
+     *
+     * @param int $registrationId
+     * @return int tool_deployment_id
+     */
+    public static function onlyDeploymentId($registrationId) {
+        $registrationId = (int) $registrationId;
+        if ( $registrationId < 1 ) {
+            throw new \InvalidArgumentException('Tool registration was not found.');
+        }
+        $rows = self::db()->allRowsDie(
+            "SELECT tool_deployment_id FROM ".self::prefix()."lti_tool_deployment
+             WHERE registration_id = :registration_id",
+            array(':registration_id' => $registrationId)
+        );
+        if ( ! is_array($rows) || count($rows) !== 1 ) {
+            throw new \RuntimeException('This registration does not have exactly one deployment.');
+        }
+        return (int) $rows[0]['tool_deployment_id'];
     }
 
     /**

@@ -8,6 +8,8 @@ use Tsugi\Core\Manifest;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Lumos\Application;
 use Tsugi\Services\Quiz1\Quiz1Repository;
+use Tsugi\Services\Outbound\Lti11CourseTool;
+use Tsugi\Services\Outbound\Lti11TestLaunch;
 use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Lessons\LessonsNormalize;
 use Tsugi\Services\Files\FileRepository;
@@ -174,6 +176,26 @@ class Lessons extends Tool {
             }
         } catch ( \Exception $e ) {
             $quiz1_list = array();
+        }
+        $lti_tools = array();
+        $lti_tools_url = '';
+        try {
+            $context_id = ReqScope::currentContextId();
+            if ( $context_id ) {
+                $lti_tools_url = U::addSession($this->controllerUrl(Settings::ROUTE).'/tools');
+                foreach ( Lti11CourseTool::toolsOnCourse($context_id) as $tool ) {
+                    if ( ! Lti11TestLaunch::hasResourceLink($context_id, $tool['registration_id']) ) {
+                        continue;
+                    }
+                    $lti_tools[] = array(
+                        'id' => (int) $tool['registration_id'],
+                        'title' => $tool['title'],
+                    );
+                }
+            }
+        } catch ( \Exception $e ) {
+            $lti_tools = array();
+            $lti_tools_url = '';
         }
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -2231,6 +2253,24 @@ $(function(){
     }
 
     /**
+     * The lesson item points at a course tool that can take a resource link.
+     *
+     * @param int $registrationId
+     * @return bool
+     */
+    private static function courseToolHasResourceLink($registrationId) {
+        $contextId = ReqScope::currentContextId();
+        if ( ! $contextId || $registrationId < 1 ) {
+            return false;
+        }
+        try {
+            return Lti11TestLaunch::hasResourceLink($contextId, $registrationId);
+        } catch ( \Exception $ex ) {
+            return false;
+        }
+    }
+
+    /**
      * Render an LTI item
      */
     private static function renderItemLti($lessons, $item, $module, $nostyle=false) {
@@ -2240,6 +2280,18 @@ $(function(){
         $launch = isset($item->launch) ? $item->launch : '';
         $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : '';
         $target = isset($item->target) ? $item->target : false;
+        $registration_id = isset($item->registration_id) ? (int) $item->registration_id : 0;
+        if ( $registration_id > 0 && ! self::courseToolHasResourceLink($registration_id) ) {
+            if ( ! $lessons->lessonsViewerIsInstructor() ) {
+                return;
+            }
+            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti tsugi-lessons-lti-missing">');
+            echo('<span style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
+            echo(htmlentities($resource_link_title).' ('.__('Tool not found').')');
+            echo('</span></li>'."\n");
+            return;
+        }
         
         // Not logged in
         if ( ! isset($_SESSION['secret']) ) {
@@ -2262,7 +2314,11 @@ $(function(){
                 self::renderItemIcon(LessonsNormalize::iconKey($item));
                 echo(htmlentities($resource_link_title).' (Login Required)');
                 echo('</span><br/>'."\n");
-                $ltiurl = U::add_url_parm($launch, 'inherit', $resource_link_id);
+                if ( $registration_id > 0 ) {
+                    $ltiurl = $lessons->lessonsLaunchPath($resource_link_id);
+                } else {
+                    $ltiurl = U::add_url_parm($launch, 'inherit', $resource_link_id);
+                }
                 echo('<span style="color:green">'.htmlentities($ltiurl)."</span>\n");
                 echo("\n</li>\n");
                 return;
