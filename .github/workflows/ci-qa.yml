@@ -6,7 +6,16 @@ on:
 
 jobs:
   qa:
+    name: Panther (${{ matrix.db_name }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - db_image: mariadb:10.5
+            db_name: mariadb-10.5
+          - db_image: mysql:8.0
+            db_name: mysql-8.0
     env:
       TSUGI_BASE_URL: http://localhost:8888/tsugi
       TSUGI_ADMIN_PW: tsugi-admin
@@ -18,6 +27,7 @@ jobs:
       TSUGI_APPHOME: http://localhost:8888/tsugi
       TSUGI_DEMO_LOGIN: "1"
       TSUGI_DEMO_SECRET: tsugi-demo
+      TSUGI_DB_IMAGE: ${{ matrix.db_image }}
 
     steps:
       - name: Checkout
@@ -62,7 +72,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: qa-screenshots
+          name: qa-screenshots-${{ matrix.db_name }}
           path: qa/screenshots
           if-no-files-found: warn
 

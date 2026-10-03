@@ -142,8 +142,9 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->assertTrue($opened, 'Catalog did not list the new course.');
         $this->waitForPageText($client, 'Join course');
         $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Join course')]"))->click();
+        // The catalog page already contains the title, so wait for the course URL.
+        $this->assertSame($home, $this->waitForCourseHome($client));
         $this->waitForPageText($client, $title);
-        $this->assertSame($home, $this->courseHomeFromUrl($driver->getCurrentURL()));
 
         $this->studentSeesOnlySharedFiles($client, $home, $shared, [$public, $private, $obscure]);
         $driver->get($home.'/files/Private/'.rawurlencode($private));

@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 use Tsugi\Core\ReqScope;
+use Tsugi\Services\Outbound\Lti11TestLaunch;
 
 /**
  * Base class for LMS tool controllers
@@ -270,6 +271,18 @@ abstract class Tool {
             ? $lti->title
             : $fallback_resource_link_title;
 
+        $registrationId = isset($lti->registration_id) ? (int) $lti->registration_id : 0;
+        if ( $registrationId > 0 ) {
+            return self::sendCourseToolResourceLink(
+                $app,
+                $lti,
+                $registrationId,
+                $resource_link_title,
+                $launch_presentation_return_url,
+                $redirect_path_on_error
+            );
+        }
+
         $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;
         $secret = false;
         if ( isset($_SESSION['secret']) ) {
@@ -327,6 +340,70 @@ abstract class Tool {
         $content = LTI::postLaunchHTML($parms, $endpoint, $debug);
         print($content);
         return '';
+    }
+
+    /**
+     * Lesson item that points at a course tool. The item is one resource link.
+     *
+     * @param Application $app
+     * @param object $lti
+     * @param int $registrationId
+     * @param string $resource_link_title
+     * @param string $launch_presentation_return_url
+     * @param string $redirect_path_on_error
+     * @return RedirectResponse|string
+     */
+    private static function sendCourseToolResourceLink(
+        Application $app,
+        $lti,
+        $registrationId,
+        $resource_link_title,
+        $launch_presentation_return_url,
+        $redirect_path_on_error
+    ) {
+        global $CFG;
+        $contextId = ReqScope::currentContextIdLegacy();
+        $userId = ReqScope::loggedInUserIdLegacy();
+        $userKey = isset($_SESSION['user_key']) ? trim((string) $_SESSION['user_key']) : '';
+        $resourceLinkId = isset($lti->resource_link_id) ? trim((string) $lti->resource_link_id) : '';
+        try {
+            $launch = Lti11TestLaunch::courseResourceLink(
+                $contextId,
+                $registrationId,
+                $userId,
+                $resourceLinkId,
+                $resource_link_title,
+                $launch_presentation_return_url,
+                self::outboundLaunchRole(),
+                $userKey
+            );
+        } catch ( \InvalidArgumentException $ex ) {
+            $app->tsugiFlashError($ex->getMessage());
+            return new RedirectResponse($redirect_path_on_error);
+        }
+        $debug = $CFG->getExtension('launch_debug', false);
+        print(LTI::postLaunchHTML($launch['parameters'], $launch['endpoint'], $debug));
+        return '';
+    }
+
+    /**
+     * Instructor when this person teaches the current course. Otherwise Learner.
+     *
+     * @return string
+     */
+    private static function outboundLaunchRole() {
+        if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
+            return 'Instructor';
+        }
+        $contextId = ReqScope::currentContextIdLegacy();
+        $userId = ReqScope::loggedInUserIdLegacy();
+        if ( $contextId && $userId ) {
+            $membership = Membership::ensureInSession($contextId, $userId);
+            if ( $membership && $membership->isInstructor() ) {
+                return 'Instructor';
+            }
+        }
+        return 'Learner';
     }
 
     /**

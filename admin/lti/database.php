@@ -10,6 +10,16 @@ if ( !isset($PDOX) ) {
 if ( ! isset($CFG) ) exit;
 
 $DATABASE_UNINSTALL = array(
+"drop table if exists {$CFG->dbprefix}lti_tool_deployment_claim",
+"drop table if exists {$CFG->dbprefix}lti_tool_deployment_scope",
+"drop table if exists {$CFG->dbprefix}lti_tool_deployment_placement",
+"drop table if exists {$CFG->dbprefix}lti_tool_message_placement",
+"drop table if exists {$CFG->dbprefix}lti_tool_registration_log",
+"drop table if exists {$CFG->dbprefix}lti_tool_message",
+"drop table if exists {$CFG->dbprefix}lti_tool_deployment_context",
+"drop table if exists {$CFG->dbprefix}lti_tool_deployment_org",
+"drop table if exists {$CFG->dbprefix}lti_tool_deployment",
+"drop table if exists {$CFG->dbprefix}lti_tool_registration",
 "drop table if exists {$CFG->dbprefix}lti_result",
 "drop table if exists {$CFG->dbprefix}lti_service",
 "drop table if exists {$CFG->dbprefix}lti_membership",
@@ -19,6 +29,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}manifest",
 "drop table if exists {$CFG->dbprefix}context_images",
 "drop table if exists {$CFG->dbprefix}lti_context",
+"drop table if exists {$CFG->dbprefix}lti_org",
 "drop table if exists {$CFG->dbprefix}lti_user",
 "drop table if exists {$CFG->dbprefix}lti_issuer",
 "drop table if exists {$CFG->dbprefix}lti_keyset",
@@ -195,6 +206,47 @@ array( "{$CFG->dbprefix}lti_user",
     )
  */
 
+// Organization hierarchy inside one tenant key. The tenant is lti_key.
+// A null parent_org_id is a top-level org. The tenant itself is not an org row.
+array( "{$CFG->dbprefix}lti_org",
+"create table {$CFG->dbprefix}lti_org (
+    org_id              INTEGER NOT NULL AUTO_INCREMENT,
+    key_id              INTEGER NOT NULL,
+    parent_org_id       INTEGER NULL,
+
+    title               VARCHAR(512) NOT NULL,
+    -- Label only. Parent links define the hierarchy, not this value.
+    org_type            VARCHAR(64) NULL,
+
+    entity_version      INTEGER NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_org_const_pk` PRIMARY KEY (org_id),
+
+    -- Referenced by child orgs, registrations, and deployments so those rows
+    -- stay on the same tenant key as this org.
+    CONSTRAINT `{$CFG->dbprefix}lti_org_const_1` UNIQUE (org_id, key_id),
+
+    INDEX `{$CFG->dbprefix}lti_org_indx_1` (key_id),
+    INDEX `{$CFG->dbprefix}lti_org_indx_2` (parent_org_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_org_ibfk_1`
+        FOREIGN KEY (`key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_key` (`key_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    -- Same key_id as the parent, so a child cannot attach to another tenant.
+    -- ON DELETE RESTRICT: OrgService::deleteOrg reparents children first.
+    -- CASCADE here would delete the subtree. Cycles are rejected in moveOrg.
+    -- MySQL cannot CHECK org_id because that column is AUTO_INCREMENT.
+    CONSTRAINT `{$CFG->dbprefix}lti_org_ibfk_2`
+        FOREIGN KEY (`parent_org_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_org` (`org_id`, `key_id`)
+        ON DELETE RESTRICT ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
 array( "{$CFG->dbprefix}lti_context",
 "create table {$CFG->dbprefix}lti_context (
     context_id          INTEGER NOT NULL AUTO_INCREMENT,
@@ -206,6 +258,9 @@ array( "{$CFG->dbprefix}lti_context",
     gc_secret           VARCHAR(128) NULL,
 
     key_id              INTEGER NOT NULL,
+
+    -- Optional org inside this tenant key. NULL leaves an existing course unplaced.
+    org_id              INTEGER NULL,
 
     -- If this course was created by a user within a key
     -- For example Google Glassroom - or an ad-hoc group
@@ -253,8 +308,20 @@ array( "{$CFG->dbprefix}lti_context",
         REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
+    -- A composite (org_id, key_id) foreign key with ON DELETE SET NULL would
+    -- also null key_id. OrgService::placeContext() keeps the course and the org on the same key.
+    CONSTRAINT `{$CFG->dbprefix}lti_context_ibfk_3`
+        FOREIGN KEY (`org_id`)
+        REFERENCES `{$CFG->dbprefix}lti_org` (`org_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
     CONSTRAINT `{$CFG->dbprefix}lti_context_const_1` UNIQUE(key_id, context_sha256),
-    CONSTRAINT `{$CFG->dbprefix}lti_context_const_pk` PRIMARY KEY (context_id)
+    -- Deployment scope and registration ownership reference (context_id, key_id)
+    -- so a course link cannot leave this tenant key.
+    CONSTRAINT `{$CFG->dbprefix}lti_context_const_2` UNIQUE(context_id, key_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_context_const_pk` PRIMARY KEY (context_id),
+
+    INDEX `{$CFG->dbprefix}lti_context_indx_1` (org_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}context_images",
@@ -726,6 +793,373 @@ array( "{$CFG->dbprefix}cal_context",
     CONSTRAINT `{$CFG->dbprefix}cal_context_const_pk` PRIMARY KEY (context_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
+// Outbound LTI tool registration inside one tenant key.
+// key_id is the tenant. It is not an extra owner_tenant_id.
+// owner_org_id and owner_context_id are administrative ownership, not
+// where a deployment may be used. Both null means the tenant administers it.
+// One owner may be set. Both set is rejected by chk_2.
+//
+// IMS Dynamic Registration messages are rows in lti_tool_message, not columns
+// on this registration. message_json keeps placements, roles, and custom
+// parameters. Placement rows live in lti_tool_message_placement. Sakai stores
+// placements as columns; this table does not.
+// registration_json is the parsed registration document. The raw wire text
+// lives in lti_tool_registration_log, which is text so malformed JSON can be kept.
+array( "{$CFG->dbprefix}lti_tool_registration",
+"create table {$CFG->dbprefix}lti_tool_registration (
+    registration_id     INTEGER NOT NULL AUTO_INCREMENT,
+    key_id              INTEGER NOT NULL,
+    owner_org_id        INTEGER NULL,
+    owner_context_id    INTEGER NULL,
+    created_by_user_id  INTEGER NULL,
+
+    title               VARCHAR(512) NOT NULL,
+
+    -- One registration is LTI 1.1 or LTI 1.3, never both.
+    -- lti_version stays '1.1' or '1.3'. Protocol-only columns use lti11_ or lti13_.
+    -- json and registration_json are shared. An LTI 1.1 registration has exactly
+    -- one deployment row, created with the registration. Its deployment_id is null.
+    lti_version         VARCHAR(8) NOT NULL DEFAULT '1.3',
+    lti11_key           VARCHAR(255) NULL,
+    lti11_secret        TEXT NULL,
+    lti11_url           TEXT NULL,
+
+    lti13_client_id     VARCHAR(255) NULL,
+    lti13_oidc_login_url TEXT NULL,
+    lti13_jwks_url      TEXT NULL,
+    lti13_launch_url    TEXT NULL,
+    lti13_redirect_uri  TEXT NULL,
+    json                MEDIUMTEXT NULL,
+    registration_json   JSON NULL,
+
+    entity_version      INTEGER NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_const_pk` PRIMARY KEY (registration_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_const_1` UNIQUE (registration_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_chk_1` CHECK (
+        (lti_version = '1.1'
+            AND lti11_key IS NOT NULL AND lti11_key <> ''
+            AND lti11_secret IS NOT NULL AND lti11_secret <> ''
+            AND lti11_url IS NOT NULL AND lti11_url <> ''
+            AND lti13_client_id IS NULL
+            AND lti13_oidc_login_url IS NULL
+            AND lti13_jwks_url IS NULL
+            AND lti13_launch_url IS NULL
+            AND lti13_redirect_uri IS NULL)
+        OR
+        (lti_version = '1.3'
+            AND lti11_key IS NULL
+            AND lti11_secret IS NULL
+            AND lti11_url IS NULL)
+    ),
+
+    -- Tenant, one organization, or one course. Not an org and a course.
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_chk_2` CHECK (
+        owner_org_id IS NULL OR owner_context_id IS NULL
+    ),
+
+    INDEX `{$CFG->dbprefix}lti_tool_registration_indx_1` (key_id),
+    INDEX `{$CFG->dbprefix}lti_tool_registration_indx_2` (owner_org_id, key_id),
+    INDEX `{$CFG->dbprefix}lti_tool_registration_indx_3` (owner_context_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_ibfk_1`
+        FOREIGN KEY (`key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_key` (`key_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    -- ON DELETE RESTRICT: deleteOrg clears owner_org_id first. CASCADE would
+    -- delete the registration, and that would delete its deployments.
+    -- ON UPDATE RESTRICT: chk_2 names owner_org_id, and MySQL error 3823
+    -- rejects any other referential action on a column named by a CHECK.
+    -- The course-owner foreign key is added in DATABASE_UPGRADE. An existing
+    -- lti_context must gain (context_id, key_id) before that key can be added.
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_ibfk_2`
+        FOREIGN KEY (`owner_org_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_org` (`org_id`, `key_id`)
+        ON DELETE RESTRICT ON UPDATE RESTRICT,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_ibfk_3`
+        FOREIGN KEY (`created_by_user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// One LTI deployment_id for one registration. Scope is not stored here.
+// A deployment may be assigned to many orgs and many courses through the
+// join tables below. key_id is copied from the registration so those
+// assignments cannot leave the tenant. deployment_id is the external LTI id.
+array( "{$CFG->dbprefix}lti_tool_deployment",
+"create table {$CFG->dbprefix}lti_tool_deployment (
+    tool_deployment_id  INTEGER NOT NULL AUTO_INCREMENT,
+    registration_id     INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+
+    deployment_id       VARCHAR(255) NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_pk` PRIMARY KEY (tool_deployment_id),
+
+    -- Join tables reference (tool_deployment_id, key_id) to stay on this tenant.
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_1` UNIQUE (tool_deployment_id, key_id),
+
+    -- One external deployment_id per registration. MySQL allows many NULLs in
+    -- this key, so it does not limit an LTI 1.1 registration to one row.
+    -- ToolDeploymentService::createDeployment() does that.
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_2` UNIQUE (registration_id, deployment_id),
+
+    -- lti_tool_deployment_placement references this so an enabled placement
+    -- cannot name a different registration or tenant than the deployment.
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_const_3` UNIQUE (tool_deployment_id, registration_id, key_id),
+
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_indx_1` (registration_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_ibfk_1`
+        FOREIGN KEY (`registration_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_registration` (`registration_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// Where a deployment may be used. Not registration ownership.
+// The course foreign key is added in DATABASE_UPGRADE. An existing lti_context
+// must gain (context_id, key_id) before that key can be added.
+array( "{$CFG->dbprefix}lti_tool_deployment_org",
+"create table {$CFG->dbprefix}lti_tool_deployment_org (
+    tool_deployment_id  INTEGER NOT NULL,
+    org_id              INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_org_const_pk` PRIMARY KEY (tool_deployment_id, org_id),
+
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_org_indx_1` (org_id, key_id),
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_org_indx_2` (tool_deployment_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_org_ibfk_1`
+        FOREIGN KEY (`tool_deployment_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_deployment` (`tool_deployment_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE RESTRICT,
+
+    -- ON DELETE RESTRICT: deleteOrg moves these assignments first.
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_org_ibfk_2`
+        FOREIGN KEY (`org_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_org` (`org_id`, `key_id`)
+        ON DELETE RESTRICT ON UPDATE RESTRICT
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+array( "{$CFG->dbprefix}lti_tool_deployment_context",
+"create table {$CFG->dbprefix}lti_tool_deployment_context (
+    tool_deployment_id  INTEGER NOT NULL,
+    context_id          INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_context_const_pk` PRIMARY KEY (tool_deployment_id, context_id),
+
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_context_indx_1` (context_id, key_id),
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_context_indx_2` (tool_deployment_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_context_ibfk_1`
+        FOREIGN KEY (`tool_deployment_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_deployment` (`tool_deployment_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE RESTRICT
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// One row per Dynamic Registration messages[] entry, in source-document order.
+// sequence is the array index, starting at 0. It is not a UI sort order.
+// message_json keeps the whole parsed descriptor, including placements.
+// key_id is copied from the registration. Placements reference
+// (message_id, registration_id, key_id), so a placement cannot leave
+// this message, this registration, or this tenant.
+// An LTI 1.3 registration copies messages from its registration document.
+// An LTI 1.1 registration synthesizes them from launch checkboxes
+// (resource link, deep link, privacy launch) and placement checkboxes.
+// Name, email, grade, and roster checkboxes are claims and scope on
+// registration_json, the same document an LTI 1.3 registration stores.
+// Whether a deployment releases those is a separate allow-list on
+// lti_tool_deployment_claim and lti_tool_deployment_scope.
+array( "{$CFG->dbprefix}lti_tool_message",
+"create table {$CFG->dbprefix}lti_tool_message (
+    message_id          INTEGER NOT NULL AUTO_INCREMENT,
+    registration_id     INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+    sequence            INTEGER NOT NULL,
+
+    message_type        VARCHAR(255) NOT NULL,
+    target_link_uri     TEXT NULL,
+    label               TEXT NULL,
+    icon_uri            TEXT NULL,
+    message_json        JSON NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_const_pk` PRIMARY KEY (message_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_const_1` UNIQUE (registration_id, sequence),
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_const_2` UNIQUE (message_id, registration_id, key_id),
+
+    INDEX `{$CFG->dbprefix}lti_tool_message_indx_1` (message_type),
+    INDEX `{$CFG->dbprefix}lti_tool_message_indx_2` (registration_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_ibfk_1`
+        FOREIGN KEY (`registration_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_registration` (`registration_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// One placement this message can appear in. Several rows share one message.
+// message_json still holds the original placements array.
+// The same message type may occur more than once on a registration, so a
+// placement string is not an identity. This row is.
+array( "{$CFG->dbprefix}lti_tool_message_placement",
+"create table {$CFG->dbprefix}lti_tool_message_placement (
+    message_placement_id INTEGER NOT NULL AUTO_INCREMENT,
+    message_id          INTEGER NOT NULL,
+    registration_id     INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+
+    placement           VARCHAR(255) NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_placement_const_pk` PRIMARY KEY (message_placement_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_placement_const_1` UNIQUE (message_id, placement),
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_placement_const_2` UNIQUE (message_placement_id, registration_id, key_id),
+
+    INDEX `{$CFG->dbprefix}lti_tool_message_placement_indx_1` (message_id, registration_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_message_placement_ibfk_1`
+        FOREIGN KEY (`message_id`, `registration_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_message` (`message_id`, `registration_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// Which registered message placements a deployment has enabled.
+// This is not where the deployment may be used. Org and course scope stay
+// on lti_tool_deployment_org and lti_tool_deployment_context.
+// registration_id and key_id are copied from the deployment and must match
+// the placement, so a deployment cannot enable another registration or tenant.
+// Deleting the message, the placement, or the deployment removes the enablement.
+array( "{$CFG->dbprefix}lti_tool_deployment_placement",
+"create table {$CFG->dbprefix}lti_tool_deployment_placement (
+    tool_deployment_id  INTEGER NOT NULL,
+    message_placement_id INTEGER NOT NULL,
+    registration_id     INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_placement_const_pk` PRIMARY KEY (tool_deployment_id, message_placement_id),
+
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_placement_indx_1` (tool_deployment_id, registration_id, key_id),
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_placement_indx_2` (message_placement_id, registration_id, key_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_placement_ibfk_1`
+        FOREIGN KEY (`tool_deployment_id`, `registration_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_deployment` (`tool_deployment_id`, `registration_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE RESTRICT,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_placement_ibfk_2`
+        FOREIGN KEY (`message_placement_id`, `registration_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_message_placement` (`message_placement_id`, `registration_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE RESTRICT
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// The admin's choice to release a claim the registration asked for.
+// A row means this deployment allows it. No row means it stays blocked.
+// iss and sub are not stored here. They are always sent.
+// registration_id and key_id match the deployment, so the grant cannot
+// move to another registration or tenant.
+array( "{$CFG->dbprefix}lti_tool_deployment_claim",
+"create table {$CFG->dbprefix}lti_tool_deployment_claim (
+    tool_deployment_id  INTEGER NOT NULL,
+    registration_id     INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+    claim               VARCHAR(64) NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_claim_const_pk` PRIMARY KEY (tool_deployment_id, claim),
+
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_claim_indx_1` (tool_deployment_id, registration_id, key_id),
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_claim_indx_2` (registration_id, claim),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_claim_ibfk_1`
+        FOREIGN KEY (`tool_deployment_id`, `registration_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_deployment` (`tool_deployment_id`, `registration_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE RESTRICT
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// The admin's choice to grant a service scope the registration asked for.
+// A row means this deployment allows that scope URI. No row means it stays blocked.
+array( "{$CFG->dbprefix}lti_tool_deployment_scope",
+"create table {$CFG->dbprefix}lti_tool_deployment_scope (
+    tool_deployment_id  INTEGER NOT NULL,
+    registration_id     INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+    scope               VARCHAR(255) NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_scope_const_pk` PRIMARY KEY (tool_deployment_id, scope),
+
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_scope_indx_1` (tool_deployment_id, registration_id, key_id),
+    INDEX `{$CFG->dbprefix}lti_tool_deployment_scope_indx_2` (registration_id, scope),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_deployment_scope_ibfk_1`
+        FOREIGN KEY (`tool_deployment_id`, `registration_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_deployment` (`tool_deployment_id`, `registration_id`, `key_id`)
+        ON DELETE CASCADE ON UPDATE RESTRICT
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// Append-only raw Dynamic Registration traffic. payload_text is LONGTEXT, not
+// JSON, so a body that is not valid JSON is still stored.
+// registration_id stays nullable and is set null when the registration is
+// deleted. cc_import_log cascades away with its import. This log is the
+// certification record, so the payload text survives the registration row.
+array( "{$CFG->dbprefix}lti_tool_registration_log",
+"create table {$CFG->dbprefix}lti_tool_registration_log (
+    log_id              INTEGER NOT NULL AUTO_INCREMENT,
+    registration_id     INTEGER NULL,
+    sequence            INTEGER NOT NULL,
+
+    direction           VARCHAR(16) NOT NULL,
+    phase               VARCHAR(64) NOT NULL,
+    content_type        VARCHAR(255) NULL,
+    http_status         INTEGER NULL,
+    payload_text        LONGTEXT NOT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_log_const_pk` PRIMARY KEY (log_id),
+
+    INDEX `{$CFG->dbprefix}lti_tool_registration_log_indx_1` (registration_id, sequence),
+    INDEX `{$CFG->dbprefix}lti_tool_registration_log_indx_2` (created_at),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_log_ibfk_1`
+        FOREIGN KEY (`registration_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_registration` (`registration_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
 );
 
 // Called after a table has been created...
@@ -871,6 +1305,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         // 2026-09-23 Numerator and AGS submission.startedAt on the result.
         array('lti_result', 'score_given', 'DOUBLE NULL'),
         array('lti_result', 'started_at', 'TIMESTAMP NULL'),
+
+        // 2026-09-30 Optional organization placement. Existing courses stay unplaced.
+        array('lti_context', 'org_id', 'INTEGER NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -1568,9 +2005,101 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // Existing courses gain an optional org, and (context_id, key_id) so a
+    // new-table foreign key can stay on that tenant. lti_org and lti_tool_*
+    // are created from $DATABASE_INSTALL in their final form. The two foreign
+    // keys below name lti_context, so they wait until that key exists.
+    $p = $CFG->dbprefix;
+    $context_table = "{$p}lti_context";
+    $org_table = "{$p}lti_org";
+    $deployment_table = "{$p}lti_tool_deployment";
+
+    $constraint_exists = function($table, $name) use ($PDOX) {
+        $sql = "SELECT CONSTRAINT_NAME AS constraint_name
+            FROM information_schema.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = :table_name
+              AND CONSTRAINT_NAME = :constraint_name";
+        $row = $PDOX->rowDie($sql, array(
+            ':table_name' => $table,
+            ':constraint_name' => $name,
+        ));
+        return is_array($row);
+    };
+
+    if ( $PDOX->metadata($org_table) !== false && $PDOX->columnExists('org_id', $context_table) ) {
+        $org_index = "{$p}lti_context_indx_1";
+        if ( ! $PDOX->indexExists($org_index, $context_table) ) {
+            $sql = "ALTER TABLE {$context_table} ADD INDEX `{$org_index}` (`org_id`)";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to index lti_context.org_id: ".$q->errorImplode."<br/>\n");
+        }
+
+        $context_key = "{$p}lti_context_const_2";
+        if ( ! $PDOX->indexExists($context_key, $context_table) ) {
+            $sql = "ALTER TABLE {$context_table} ADD CONSTRAINT `{$context_key}` UNIQUE (`context_id`, `key_id`)";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add lti_context (context_id, key_id) key: ".$q->errorImplode."<br/>\n");
+        }
+
+        $context_fk = "{$p}lti_context_ibfk_3";
+        if ( ! $constraint_exists($context_table, $context_fk) ) {
+            $sql = "ALTER TABLE {$context_table} ADD CONSTRAINT `{$context_fk}`
+                FOREIGN KEY (`org_id`) REFERENCES `{$org_table}` (`org_id`)
+                ON DELETE SET NULL ON UPDATE CASCADE";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add lti_context.org_id foreign key: ".$q->errorImplode."<br/>\n");
+        }
+    }
+
+    $registration_table = "{$p}lti_tool_registration";
+    $scope_context_table = "{$p}lti_tool_deployment_context";
+
+    // ON UPDATE RESTRICT: the registration CHECK names owner_context_id, and
+    // MySQL error 3823 rejects any other referential action on that column.
+    if ( $PDOX->metadata($registration_table) !== false ) {
+        $owner_context_fk = "{$p}lti_tool_registration_ibfk_4";
+        if ( ! $constraint_exists($registration_table, $owner_context_fk) ) {
+            $sql = "ALTER TABLE {$registration_table} ADD CONSTRAINT `{$owner_context_fk}`
+                FOREIGN KEY (`owner_context_id`, `key_id`)
+                REFERENCES `{$context_table}` (`context_id`, `key_id`)
+                ON DELETE RESTRICT ON UPDATE RESTRICT";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add {$owner_context_fk}: ".$q->errorImplode."<br/>\n");
+        }
+    }
+
+    if ( $PDOX->metadata($registration_table) !== false && $PDOX->metadata($deployment_table) !== false ) {
+        // Data only. An LTI 1.1 registration that has no deployment yet gets
+        // one, with a null external deployment_id. Credentials are not rewritten.
+        \Tsugi\Services\Outbound\ToolDeploymentService::ensureLti11Deployments();
+    }
+
+    if ( $PDOX->metadata($scope_context_table) !== false && $PDOX->metadata($deployment_table) !== false ) {
+        $scope_context = "{$p}lti_tool_deployment_context_ibfk_2";
+        if ( ! $constraint_exists($scope_context_table, $scope_context) ) {
+            $sql = "ALTER TABLE {$scope_context_table} ADD CONSTRAINT `{$scope_context}`
+                FOREIGN KEY (`context_id`, `key_id`)
+                REFERENCES `{$context_table}` (`context_id`, `key_id`)
+                ON DELETE CASCADE ON UPDATE RESTRICT";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add {$scope_context}: ".$q->errorImplode."<br/>\n");
+        }
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610010006;
+    return 202610010014;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
