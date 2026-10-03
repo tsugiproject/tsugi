@@ -228,18 +228,17 @@ class OrgService {
      *    this org is a root. This has to happen first. The parent foreign key
      *    would otherwise refuse the delete, and the old CASCADE behavior
      *    deleted the whole subtree.
-     * 2. Clear registration.org_id for registrations scoped to this org. They
-     *    become key-wide and keep key_id. This has to happen before the org
-     *    row goes away. Deleting the registration would cascade into every
-     *    deployment of that registration, including deployments this method
-     *    is about to keep.
-     * 3. Retarget deployments that point at this org. If the parent org
-     *    already has that registration, drop this deployment. Otherwise point
-     *    it at the parent. A root has no parent, so the deployment becomes a
-     *    key deployment: org_id and context_id null, key_id unchanged. Drop
-     *    it instead when that registration already has a key deployment.
-     *    This has to happen before the org delete. The deployment foreign key
-     *    would otherwise refuse the delete, and CASCADE would remove the row.
+     * 2. Clear registration.owner_org_id for registrations administered by this
+     *    org. They become tenant-administered and keep key_id. This has to
+     *    happen before the org row goes away. Deleting the registration would
+     *    cascade into every deployment of that registration.
+     * 3. Move deployment assignments that point at this org. The deployment
+     *    row and its deployment_id stay. If the parent org already has this
+     *    same deployment, drop the assignment. Otherwise point the assignment
+     *    at the parent. A root has no parent, so the assignment is removed.
+     *    That does not make the deployment visible to the whole key. This has
+     *    to happen before the org delete. The assignment foreign key would
+     *    otherwise refuse the delete.
      * 4. Delete the org. Courses placed directly in it are left in place by
      *    the database: lti_context.org_id is a single-column foreign key with
      *    ON DELETE SET NULL, so the course keeps key_id and loses only the
@@ -274,8 +273,8 @@ class OrgService {
      * A later delete screen uses this to say how many courses, deployments,
      * child orgs, and registrations are still here, and to list them so a
      * person can move each one. These are direct rows only. A course placed
-     * in a child belongs to that child. A deployment on a course, on an
-     * ancestor, or on the key is not a holding of this org.
+     * in a child belongs to that child. A deployment assignment on a course,
+     * on an ancestor, or on another org is not a holding of this org.
      *
      * empty is true only when all four lists are empty. That is when a screen
      * may call deleteOrg() without it choosing destinations. deleteOrg()
@@ -779,8 +778,8 @@ class OrgService {
     private static function releaseRegistrations($orgId, $keyId) {
         $stmt = self::db()->queryReturnError(
             "UPDATE ".self::prefix()."lti_tool_registration
-             SET org_id = NULL, updated_at = NOW()
-             WHERE org_id = :org_id AND key_id = :key_id",
+             SET owner_org_id = NULL, updated_at = NOW()
+             WHERE owner_org_id = :org_id AND key_id = :key_id",
             array(
                 ':org_id' => $orgId,
                 ':key_id' => $keyId,
@@ -800,14 +799,14 @@ class OrgService {
     private static function bubbleDeployments($orgId, $keyId, $parentOrgId) {
         $p = self::prefix();
         $PDOX = self::db();
+        $scope = "{$p}lti_tool_deployment_org";
         if ( $parentOrgId !== null ) {
             $drop = $PDOX->queryReturnError(
-                "DELETE d FROM {$p}lti_tool_deployment d
-                 INNER JOIN {$p}lti_tool_deployment kept
-                    ON kept.registration_id = d.registration_id
+                "DELETE scope FROM {$scope} scope
+                 INNER JOIN {$scope} kept
+                    ON kept.tool_deployment_id = scope.tool_deployment_id
                    AND kept.org_id = :parent_org_id
-                   AND kept.tool_deployment_id <> d.tool_deployment_id
-                 WHERE d.org_id = :org_id AND d.key_id = :key_id",
+                 WHERE scope.org_id = :org_id AND scope.key_id = :key_id",
                 array(
                     ':parent_org_id' => $parentOrgId,
                     ':org_id' => $orgId,
@@ -815,11 +814,11 @@ class OrgService {
                 )
             );
             if ( ! $drop->success ) {
-                self::fail($drop, 'Could not drop deployments already covered by the parent organization.');
+                self::fail($drop, 'Could not drop deployment assignments already on the parent organization.');
             }
             $move = $PDOX->queryReturnError(
-                "UPDATE {$p}lti_tool_deployment
-                 SET org_id = :parent_org_id, updated_at = NOW()
+                "UPDATE {$scope}
+                 SET org_id = :parent_org_id
                  WHERE org_id = :org_id AND key_id = :key_id",
                 array(
                     ':parent_org_id' => $parentOrgId,
@@ -828,39 +827,21 @@ class OrgService {
                 )
             );
             if ( ! $move->success ) {
-                self::fail($move, 'Could not move deployments to the parent organization.');
+                self::fail($move, 'Could not move deployment assignments to the parent organization.');
             }
             return;
         }
 
         $drop = $PDOX->queryReturnError(
-            "DELETE d FROM {$p}lti_tool_deployment d
-             INNER JOIN {$p}lti_tool_deployment kept
-                ON kept.registration_id = d.registration_id
-               AND kept.key_id = d.key_id
-               AND kept.org_id IS NULL
-               AND kept.context_id IS NULL
-               AND kept.tool_deployment_id <> d.tool_deployment_id
-             WHERE d.org_id = :org_id AND d.key_id = :key_id",
-            array(
-                ':org_id' => $orgId,
-                ':key_id' => $keyId,
-            )
-        );
-        if ( ! $drop->success ) {
-            self::fail($drop, 'Could not drop deployments already covered by the key.');
-        }
-        $move = $PDOX->queryReturnError(
-            "UPDATE {$p}lti_tool_deployment
-             SET org_id = NULL, key_level = 1, updated_at = NOW()
+            "DELETE FROM {$scope}
              WHERE org_id = :org_id AND key_id = :key_id",
             array(
                 ':org_id' => $orgId,
                 ':key_id' => $keyId,
             )
         );
-        if ( ! $move->success ) {
-            self::fail($move, 'Could not move deployments to the key.');
+        if ( ! $drop->success ) {
+            self::fail($drop, 'Could not remove deployment assignments from the organization.');
         }
     }
 
@@ -897,10 +878,12 @@ class OrgService {
         $p = self::prefix();
         $rows = self::rows(
             "SELECT d.tool_deployment_id, d.registration_id, d.key_id, d.deployment_id, r.title
-             FROM {$p}lti_tool_deployment d
+             FROM {$p}lti_tool_deployment_org scope
+             INNER JOIN {$p}lti_tool_deployment d
+                ON d.tool_deployment_id = scope.tool_deployment_id AND d.key_id = scope.key_id
              INNER JOIN {$p}lti_tool_registration r
                 ON r.registration_id = d.registration_id AND r.key_id = d.key_id
-             WHERE d.org_id = :org_id AND d.key_id = :key_id
+             WHERE scope.org_id = :org_id AND scope.key_id = :key_id
              ORDER BY r.title ASC, d.tool_deployment_id ASC",
             array(':org_id' => $orgId, ':key_id' => $keyId)
         );
@@ -944,9 +927,9 @@ class OrgService {
      */
     private static function registrationsOnOrg($orgId, $keyId) {
         $rows = self::rows(
-            "SELECT registration_id, key_id, org_id, title
+            "SELECT registration_id, key_id, owner_org_id, title
              FROM ".self::prefix()."lti_tool_registration
-             WHERE org_id = :org_id AND key_id = :key_id
+             WHERE owner_org_id = :org_id AND key_id = :key_id
              ORDER BY title ASC, registration_id ASC",
             array(':org_id' => $orgId, ':key_id' => $keyId)
         );
@@ -955,7 +938,7 @@ class OrgService {
             $out[] = array(
                 'registration_id' => (int) $row['registration_id'],
                 'key_id' => (int) $row['key_id'],
-                'org_id' => (int) $row['org_id'],
+                'owner_org_id' => (int) $row['owner_org_id'],
                 'title' => (string) $row['title'],
             );
         }

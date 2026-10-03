@@ -60,8 +60,16 @@ abstract class PlatformSchemaCase extends \PHPUnit\Framework\TestCase
         if ( $PDOX->metadata($p.'lti_org') === false || $PDOX->metadata($p.'lti_tool_deployment') === false ) {
             $this->markTestSkipped('Organization tables are missing. Run php admin/upgrade.php.');
         }
+        if ( $PDOX->metadata($p.'lti_tool_deployment_org') === false
+            || $PDOX->metadata($p.'lti_tool_deployment_context') === false ) {
+            $this->markTestSkipped('Deployment scope tables are missing. Run php admin/upgrade.php.');
+        }
         if ( ! $PDOX->columnExists('org_id', $p.'lti_context') ) {
             $this->markTestSkipped('lti_context.org_id is missing. Run php admin/upgrade.php.');
+        }
+        if ( ! $PDOX->columnExists('owner_org_id', $p.'lti_tool_registration')
+            || ! $PDOX->columnExists('owner_context_id', $p.'lti_tool_registration') ) {
+            $this->markTestSkipped('Registration owner columns are missing. Run php admin/upgrade.php.');
         }
         $check = $PDOX->rowDie(
             "SELECT CONSTRAINT_NAME AS constraint_name
@@ -70,12 +78,12 @@ abstract class PlatformSchemaCase extends \PHPUnit\Framework\TestCase
                AND TABLE_NAME = :table_name
                AND CONSTRAINT_NAME = :constraint_name",
             array(
-                ':table_name' => $p.'lti_tool_deployment',
-                ':constraint_name' => $p.'lti_tool_deployment_chk_1',
+                ':table_name' => $p.'lti_tool_registration',
+                ':constraint_name' => $p.'lti_tool_registration_chk_2',
             )
         );
         if ( ! is_array($check) ) {
-            $this->markTestSkipped('Deployment CHECK constraint is missing. Run php admin/upgrade.php.');
+            $this->markTestSkipped('Registration owner CHECK constraint is missing. Run php admin/upgrade.php.');
         }
     }
 

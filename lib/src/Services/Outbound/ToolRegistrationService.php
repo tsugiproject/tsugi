@@ -6,27 +6,31 @@ use Tsugi\Core\LTIX;
 use Tsugi\Services\Org\OrgService;
 
 /**
- * Outbound LTI tool registration owned by one tenant key.
+ * Outbound LTI tool registration inside one tenant key.
  *
- * org_id null means the registration may be deployed anywhere in that key.
- * A set org_id is the top of the subtree it may be deployed into. The
- * registration itself does not make the tool visible. Deployments do that.
+ * key_id is the tenant boundary. owner_org_id and owner_context_id say who
+ * administers the registration. They do not say where a deployment may be
+ * used. Both null means the tenant administers it. One of them may be set.
+ * The registration itself does not make the tool visible. Deployments do that.
  *
  * A registration is LTI 1.3 unless lti_version is 1.1. An LTI 1.1 registration
- * stores lti11_key, lti11_secret, and lti11_url, and leaves the LTI 1.3
- * columns empty.
+ * stores lti11_key, lti11_secret, and lti11_url, leaves every lti13_ column
+ * null, and gets exactly one deployment whose external deployment_id is null.
+ * An LTI 1.3 registration stores lti13_ columns and leaves the lti11_ columns
+ * null. lti13_client_id is optional. The registration document can arrive later.
  */
 class ToolRegistrationService {
 
     /**
      * @param int $keyId tenant key
      * @param string $title
-     * @param int|null $orgId null scopes the registration to the whole tenant
+     * @param int|null $ownerOrgId null with a null course means the tenant administers it
      * @param int|null $createdByUserId
-     * @param array<string, mixed> $meta lti_version, lti11_key, lti11_secret, lti11_url, client_id, oidc_login_url, jwks_url, launch_url, redirect_uri, json
+     * @param array<string, mixed> $meta lti_version, lti11_key, lti11_secret, lti11_url, lti13_client_id, lti13_oidc_login_url, lti13_jwks_url, lti13_launch_url, lti13_redirect_uri, json
+     * @param int|null $ownerContextId course administrator; mutually exclusive with $ownerOrgId
      * @return int registration_id
      */
-    public static function createRegistration($keyId, $title, $orgId = null, $createdByUserId = null, array $meta = array()) {
+    public static function createRegistration($keyId, $title, $ownerOrgId = null, $createdByUserId = null, array $meta = array(), $ownerContextId = null) {
         $PDOX = self::db();
         $p = self::prefix();
         $keyId = self::requireId($keyId, 'Tenant key');
@@ -39,96 +43,145 @@ class ToolRegistrationService {
         }
         self::requireKey($keyId);
 
-        $orgId = self::optionalOrgId($orgId);
-        if ( $orgId !== null ) {
-            $org = self::requireOrg($orgId);
+        $ownerOrgId = self::optionalOrgId($ownerOrgId);
+        $ownerContextId = self::optionalContextId($ownerContextId);
+        if ( $ownerOrgId !== null && $ownerContextId !== null ) {
+            throw new \InvalidArgumentException('A registration is administered by the tenant, one organization, or one course.');
+        }
+        if ( $ownerOrgId !== null ) {
+            $org = self::requireOrg($ownerOrgId);
             if ( (int) $org['key_id'] !== $keyId ) {
-                throw new \InvalidArgumentException('Registration scope belongs to a different tenant.');
+                throw new \InvalidArgumentException('Registration owner belongs to a different tenant.');
+            }
+        }
+        if ( $ownerContextId !== null ) {
+            $context = self::findContext($ownerContextId);
+            if ( $context === null ) {
+                throw new \InvalidArgumentException('Course was not found.');
+            }
+            if ( (int) $context['key_id'] !== $keyId ) {
+                throw new \InvalidArgumentException('Registration owner belongs to a different tenant.');
             }
         }
 
         $createdByUserId = self::optionalUserId($createdByUserId, $keyId);
         $fields = self::metaFields($meta);
-
-        $stmt = $PDOX->queryReturnError(
-            "INSERT INTO {$p}lti_tool_registration
-                (key_id, org_id, created_by_user_id, title, lti_version, lti11_key, lti11_secret, lti11_url,
-                 client_id, oidc_login_url, jwks_url, launch_url, redirect_uri, json, created_at)
-             VALUES
-                (:key_id, :org_id, :created_by_user_id, :title, :lti_version, :lti11_key, :lti11_secret, :lti11_url,
-                 :client_id, :oidc_login_url, :jwks_url, :launch_url, :redirect_uri, :json, NOW())",
-            array(
-                ':key_id' => $keyId,
-                ':org_id' => $orgId,
-                ':created_by_user_id' => $createdByUserId,
-                ':title' => $title,
-                ':lti_version' => $fields['lti_version'],
-                ':lti11_key' => $fields['lti11_key'],
-                ':lti11_secret' => $fields['lti11_secret'],
-                ':lti11_url' => $fields['lti11_url'],
-                ':client_id' => $fields['client_id'],
-                ':oidc_login_url' => $fields['oidc_login_url'],
-                ':jwks_url' => $fields['jwks_url'],
-                ':launch_url' => $fields['launch_url'],
-                ':redirect_uri' => $fields['redirect_uri'],
-                ':json' => $fields['json'],
-            )
-        );
-        if ( ! $stmt->success ) {
-            $detail = isset($stmt->errorImplode) ? (string) $stmt->errorImplode : 'database error';
-            throw new \RuntimeException('Could not create tool registration. '.$detail);
+        $shim = $fields['lti_version'] === '1.1';
+        $owns = $shim && ! $PDOX->inTransaction();
+        if ( $owns ) {
+            $PDOX->beginTransaction();
         }
-        $id = (int) $PDOX->lastInsertId();
-        if ( $id < 1 ) {
-            throw new \RuntimeException('Could not create tool registration.');
+
+        try {
+            if ( $fields['lti11_key'] !== null ) {
+                $existing = $PDOX->rowDie(
+                    "SELECT registration_id FROM {$p}lti_tool_registration
+                     WHERE key_id = :key_id AND lti11_key = :lti11_key",
+                    array(
+                        ':key_id' => $keyId,
+                        ':lti11_key' => $fields['lti11_key'],
+                    )
+                );
+                if ( is_array($existing) ) {
+                    throw new \InvalidArgumentException('This tenant already has that LTI 1.1 consumer key.');
+                }
+            }
+            $stmt = $PDOX->queryReturnError(
+                "INSERT INTO {$p}lti_tool_registration
+                    (key_id, owner_org_id, owner_context_id, created_by_user_id, title, lti_version, lti11_key, lti11_secret, lti11_url,
+                     lti13_client_id, lti13_oidc_login_url, lti13_jwks_url, lti13_launch_url, lti13_redirect_uri, json, created_at)
+                 VALUES
+                    (:key_id, :owner_org_id, :owner_context_id, :created_by_user_id, :title, :lti_version, :lti11_key, :lti11_secret, :lti11_url,
+                     :lti13_client_id, :lti13_oidc_login_url, :lti13_jwks_url, :lti13_launch_url, :lti13_redirect_uri, :json, NOW())",
+                array(
+                    ':key_id' => $keyId,
+                    ':owner_org_id' => $ownerOrgId,
+                    ':owner_context_id' => $ownerContextId,
+                    ':created_by_user_id' => $createdByUserId,
+                    ':title' => $title,
+                    ':lti_version' => $fields['lti_version'],
+                    ':lti11_key' => $fields['lti11_key'],
+                    ':lti11_secret' => $fields['lti11_secret'],
+                    ':lti11_url' => $fields['lti11_url'],
+                    ':lti13_client_id' => $fields['lti13_client_id'],
+                    ':lti13_oidc_login_url' => $fields['lti13_oidc_login_url'],
+                    ':lti13_jwks_url' => $fields['lti13_jwks_url'],
+                    ':lti13_launch_url' => $fields['lti13_launch_url'],
+                    ':lti13_redirect_uri' => $fields['lti13_redirect_uri'],
+                    ':json' => $fields['json'],
+                )
+            );
+            if ( ! $stmt->success ) {
+                $detail = isset($stmt->errorImplode) ? (string) $stmt->errorImplode : 'database error';
+                if ( $fields['lti11_key'] !== null && stripos($detail, 'Duplicate') !== false ) {
+                    throw new \InvalidArgumentException('This tenant already has that LTI 1.1 consumer key.');
+                }
+                throw new \RuntimeException('Could not create tool registration. '.$detail);
+            }
+            $id = (int) $PDOX->lastInsertId();
+            if ( $id < 1 ) {
+                throw new \RuntimeException('Could not create tool registration.');
+            }
+            if ( $shim ) {
+                ToolDeploymentService::createDeployment($id, null);
+            }
+            if ( $owns ) {
+                $PDOX->commit();
+            }
+        } catch ( \Throwable $ex ) {
+            if ( $owns && $PDOX->inTransaction() ) {
+                $PDOX->rollBack();
+            }
+            throw $ex;
         }
         return $id;
     }
 
     /**
-     * @param int $registrationId
-     * @param int $orgId
-     * @return bool
-     */
-    public static function canDeployToOrg($registrationId, $orgId) {
-        $registration = self::findRegistration((int) $registrationId);
-        $org = self::findOrg((int) $orgId);
-        if ( $registration === null || $org === null ) {
-            return false;
-        }
-        if ( (int) $registration['key_id'] !== (int) $org['key_id'] ) {
-            return false;
-        }
-        if ( $registration['org_id'] === null ) {
-            return true;
-        }
-        return OrgService::isDescendantOrSelf((int) $org['org_id'], (int) $registration['org_id']);
-    }
-
-    /**
-     * A course with no org can receive a tenant-wide registration.
-     * An org-scoped registration requires the course's org to be inside that subtree.
+     * Whether this actor may edit the registration.
+     *
+     * This is not a new permissions table. The actor is a scope Tsugi already
+     * has: the system administrator, one tenant key, one organization, or one
+     * course. A system administrator may manage every registration. A tenant
+     * administrator may manage every registration on that key, including
+     * org-owned and course-owned ones. An organization administrator may
+     * manage a registration owned by that organization or an organization
+     * below it. A course administrator may manage a registration owned by
+     * that course.
      *
      * @param int $registrationId
-     * @param int $contextId
+     * @param array{system?:bool, key_id?:int, org_id?:int, context_id?:int} $actor
      * @return bool
      */
-    public static function canDeployToContext($registrationId, $contextId) {
+    public static function mayAdminister($registrationId, array $actor) {
         $registration = self::findRegistration((int) $registrationId);
-        $context = self::findContext((int) $contextId);
-        if ( $registration === null || $context === null ) {
+        if ( $registration === null ) {
             return false;
         }
-        if ( (int) $registration['key_id'] !== (int) $context['key_id'] ) {
-            return false;
-        }
-        if ( $registration['org_id'] === null ) {
+        if ( ! empty($actor['system']) ) {
             return true;
         }
-        if ( $context['org_id'] === null ) {
-            return false;
+        $keyId = isset($actor['key_id']) ? (int) $actor['key_id'] : 0;
+        if ( $keyId > 0 && $keyId === (int) $registration['key_id'] ) {
+            return true;
         }
-        return OrgService::isDescendantOrSelf((int) $context['org_id'], (int) $registration['org_id']);
+        $orgId = isset($actor['org_id']) ? (int) $actor['org_id'] : 0;
+        if ( $orgId > 0 && $registration['owner_org_id'] !== null ) {
+            $org = self::findOrg($orgId);
+            if ( $org !== null && (int) $org['key_id'] === (int) $registration['key_id']
+                && OrgService::isDescendantOrSelf((int) $registration['owner_org_id'], $orgId) ) {
+                return true;
+            }
+        }
+        $contextId = isset($actor['context_id']) ? (int) $actor['context_id'] : 0;
+        if ( $contextId > 0 && $registration['owner_context_id'] !== null
+            && $contextId === (int) $registration['owner_context_id'] ) {
+            $context = self::findContext($contextId);
+            if ( $context !== null && (int) $context['key_id'] === (int) $registration['key_id'] ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -141,7 +194,7 @@ class ToolRegistrationService {
         }
         $p = self::prefix();
         $row = self::db()->rowDie(
-            "SELECT registration_id, key_id, org_id, title
+            "SELECT registration_id, key_id, owner_org_id, owner_context_id, title, lti_version
              FROM {$p}lti_tool_registration
              WHERE registration_id = :registration_id",
             array(':registration_id' => (int) $registrationId)
@@ -152,8 +205,10 @@ class ToolRegistrationService {
         return array(
             'registration_id' => (int) $row['registration_id'],
             'key_id' => (int) $row['key_id'],
-            'org_id' => $row['org_id'] === null ? null : (int) $row['org_id'],
+            'owner_org_id' => $row['owner_org_id'] === null ? null : (int) $row['owner_org_id'],
+            'owner_context_id' => $row['owner_context_id'] === null ? null : (int) $row['owner_context_id'],
             'title' => (string) $row['title'],
+            'lti_version' => (string) $row['lti_version'],
         );
     }
 
@@ -164,7 +219,7 @@ class ToolRegistrationService {
     private static function metaFields(array $meta) {
         $allowed = array(
             'lti_version', 'lti11_key', 'lti11_secret', 'lti11_url',
-            'client_id', 'oidc_login_url', 'jwks_url', 'launch_url', 'redirect_uri', 'json',
+            'lti13_client_id', 'lti13_oidc_login_url', 'lti13_jwks_url', 'lti13_launch_url', 'lti13_redirect_uri', 'json',
         );
         foreach ( $meta as $key => $_value ) {
             if ( ! in_array($key, $allowed, true) ) {
@@ -185,7 +240,7 @@ class ToolRegistrationService {
                 $out[$key] = $encoded;
                 continue;
             }
-            if ( $key === 'client_id' || $key === 'lti11_key' ) {
+            if ( $key === 'lti13_client_id' || $key === 'lti11_key' ) {
                 $client = trim((string) $meta[$key]);
                 if ( strlen($client) > 255 ) {
                     throw new \InvalidArgumentException('Registration '.$key.' is too long.');
@@ -212,7 +267,7 @@ class ToolRegistrationService {
         }
         $fields['lti_version'] = $version;
         $lti11 = array('lti11_key', 'lti11_secret', 'lti11_url');
-        $lti13 = array('client_id', 'oidc_login_url', 'jwks_url', 'launch_url', 'redirect_uri');
+        $lti13 = array('lti13_client_id', 'lti13_oidc_login_url', 'lti13_jwks_url', 'lti13_launch_url', 'lti13_redirect_uri');
         if ( $version === '1.1' ) {
             foreach ( $lti11 as $key ) {
                 if ( $fields[$key] === null ) {
@@ -346,6 +401,21 @@ class ToolRegistrationService {
             throw new \InvalidArgumentException('Organization was not found.');
         }
         return $orgId;
+    }
+
+    /**
+     * @param mixed $contextId
+     * @return int|null
+     */
+    private static function optionalContextId($contextId) {
+        if ( $contextId === null ) {
+            return null;
+        }
+        $contextId = (int) $contextId;
+        if ( $contextId < 1 ) {
+            throw new \InvalidArgumentException('Course was not found.');
+        }
+        return $contextId;
     }
 
     /**
