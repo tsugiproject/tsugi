@@ -5,8 +5,9 @@ namespace Tsugi\Services\Outbound;
 /**
  * The course Settings form for an LTI 1.1 tool on that course.
  *
- * The checkboxes match the Sakai create-tool form. They become message,
- * placement, claim, and scope rows. This course owns the registration
+ * The checkboxes are the LTI 1.1 choices: a resource link, a content item,
+ * where the tool appears, names, email, and returning a grade. They become
+ * message, placement, claim, and scope rows. This course owns the registration
  * and is the only course the deployment is assigned to. Edit and delete
  * apply only to a tool this course owns.
  */
@@ -29,7 +30,7 @@ class Lti11CourseTool {
             array(
                 'kind' => 'checks',
                 'legend' => 'Launch',
-                'note' => 'The launch URL must support a resource link or a content item. A tool can support both. Privacy and course scoped launches are optional.',
+                'note' => 'The launch URL must support a resource link or a content item. A tool can support both.',
                 'name' => 'messages',
                 'boxes' => array(
                     array(
@@ -39,14 +40,6 @@ class Lti11CourseTool {
                     array(
                         'value' => 'LtiDeepLinkingRequest',
                         'label' => 'The tool URL supports a resource picker (Content Item launch)',
-                    ),
-                    array(
-                        'value' => 'LtiDataPrivacyLaunchRequest',
-                        'label' => 'Tool supports the privacy launch message (experimental)',
-                    ),
-                    array(
-                        'value' => 'LtiContextLaunchRequest',
-                        'label' => 'The tool URL can receive a course scoped launch (experimental)',
                     ),
                 ),
             ),
@@ -76,13 +69,10 @@ class Lti11CourseTool {
             array(
                 'kind' => 'checks',
                 'legend' => 'Services',
-                'note' => 'These are the grade and roster calls this course will allow.',
+                'note' => 'The tool can return a grade to this course.',
                 'name' => 'services',
                 'boxes' => array(
                     array('value' => 'score', 'label' => 'Allow the external tool to return grades'),
-                    array('value' => 'lineitem', 'label' => 'Allow the external tool to create grade columns'),
-                    array('value' => 'result', 'label' => 'Allow the external tool read-only access to the gradebook'),
-                    array('value' => 'roster', 'label' => 'Provide the roster to the external tool'),
                 ),
             ),
         );
@@ -290,9 +280,6 @@ class Lti11CourseTool {
     private static function scopeUri($service) {
         $uris = array(
             'score' => ToolRegistrationDocument::SCOPE_SCORE,
-            'lineitem' => ToolRegistrationDocument::SCOPE_LINEITEM,
-            'result' => ToolRegistrationDocument::SCOPE_RESULT,
-            'roster' => ToolRegistrationDocument::SCOPE_ROSTER,
         );
         if ( ! isset($uris[$service]) ) {
             throw new \InvalidArgumentException('That choice is not part of this form.');

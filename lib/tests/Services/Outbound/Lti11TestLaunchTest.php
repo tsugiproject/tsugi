@@ -29,13 +29,11 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
 
         $choices = Lti11TestLaunch::choices($this->id['eecs280'], $registrationId);
         $this->assertSame(
-            array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest', 'LtiDataPrivacyLaunchRequest', 'LtiContextLaunchRequest'),
+            array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest'),
             array_column($choices, 'type')
         );
         $this->assertTrue($choices[0]['ready']);
         $this->assertFalse($choices[1]['ready']);
-        $this->assertFalse($choices[2]['ready']);
-        $this->assertFalse($choices[3]['ready']);
         $this->assertSame('LtiResourceLinkRequest', Lti11TestLaunch::defaultType($choices));
 
         $launch = Lti11TestLaunch::launch(
@@ -344,7 +342,7 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
             'lti11_url' => 'https://tool.example/launch',
             'lti11_key' => 'course-key-'.bin2hex(random_bytes(4)),
             'lti11_secret' => 'course-secret',
-            'messages' => array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest', 'LtiDataPrivacyLaunchRequest', 'LtiContextLaunchRequest'),
+            'messages' => array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest'),
             'placements' => array('lessons'),
             'privacy' => array('names', 'email'),
             'services' => array('score'),

@@ -49,7 +49,7 @@ class Lti11CourseToolTest extends PlatformSchemaCase
             $types[] = $message['message_type'];
         }
         $this->assertSame(
-            array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest', 'LtiDataPrivacyLaunchRequest', 'LtiContextLaunchRequest'),
+            array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest'),
             $types
         );
         $enabled = array();
@@ -65,7 +65,7 @@ class Lti11CourseToolTest extends PlatformSchemaCase
             ToolDeploymentGrant::allowedClaims($deploymentId)
         );
         $this->assertSame(
-            array(ToolRegistrationDocument::SCOPE_SCORE, ToolRegistrationDocument::SCOPE_ROSTER),
+            array(ToolRegistrationDocument::SCOPE_SCORE),
             ToolDeploymentGrant::allowedScopes($deploymentId)
         );
     }
@@ -94,7 +94,7 @@ class Lti11CourseToolTest extends PlatformSchemaCase
         $registrationId = Lti11CourseTool::addToCourse($this->id['eecs280'], 0, $this->post());
         $state = Lti11CourseTool::formState($this->id['eecs280'], $registrationId);
         $this->assertSame('External quiz', $state['title']);
-        $this->assertContains('LtiContextLaunchRequest', $state['messages']);
+        $this->assertContains('LtiDeepLinkingRequest', $state['messages']);
         $this->assertContains('course_navigation', $state['placements']);
         $this->assertContains('names', $state['privacy']);
         $this->assertContains('score', $state['services']);
@@ -106,7 +106,7 @@ class Lti11CourseToolTest extends PlatformSchemaCase
         $post['messages'] = array('LtiResourceLinkRequest');
         $post['placements'] = array('lessons');
         $post['privacy'] = array('email');
-        $post['services'] = array('lineitem');
+        $post['services'] = array();
         Lti11CourseTool::updateOnCourse($this->id['eecs280'], $registrationId, $post);
 
         $saved = Lti11CourseTool::formState($this->id['eecs280'], $registrationId);
@@ -117,14 +117,11 @@ class Lti11CourseToolTest extends PlatformSchemaCase
         $this->assertSame(array('LtiResourceLinkRequest'), $saved['messages']);
         $this->assertSame(array('lessons'), $saved['placements']);
         $this->assertSame(array('email'), $saved['privacy']);
-        $this->assertSame(array('lineitem'), $saved['services']);
+        $this->assertSame(array(), $saved['services']);
 
         $deploymentId = ToolDeploymentService::onlyDeploymentId($registrationId);
         $this->assertSame(array('email'), ToolDeploymentGrant::allowedClaims($deploymentId));
-        $this->assertSame(
-            array(ToolRegistrationDocument::SCOPE_LINEITEM),
-            ToolDeploymentGrant::allowedScopes($deploymentId)
-        );
+        $this->assertSame(array(), ToolDeploymentGrant::allowedScopes($deploymentId));
         $enabled = array();
         foreach ( ToolPlacementService::getEnabledPlacementsForDeployment($deploymentId) as $row ) {
             $enabled[] = $row['placement'];
@@ -275,10 +272,10 @@ class Lti11CourseToolTest extends PlatformSchemaCase
             'lti11_url' => 'https://tool.example/launch',
             'lti11_key' => 'course-key-'.bin2hex(random_bytes(4)),
             'lti11_secret' => 'course-secret',
-            'messages' => array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest', 'LtiDataPrivacyLaunchRequest', 'LtiContextLaunchRequest'),
+            'messages' => array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest'),
             'placements' => array('lessons', 'content_editor', 'course_navigation'),
             'privacy' => array('names', 'email'),
-            'services' => array('score', 'roster'),
+            'services' => array('score'),
         );
     }
 
