@@ -1136,7 +1136,7 @@ function ltiPickerFieldsHtml(item) {
     }
     let legacy = '';
     if (!selected && item.launch) {
-        legacy = `<p class="help-block">This item still uses a typed launch URL. Choose a course tool to replace it.</p>`;
+        legacy = `<p class="help-block">This link has a launch URL and is not registered. Choose a course tool to supply the key and secret. The launch URL stays.</p>`;
     }
     let picker;
     if ((!ltiTools || !ltiTools.length) && !selected) {
@@ -1162,7 +1162,10 @@ function ltiPickerFieldsHtml(item) {
             </div>
         `;
     }
-    const newTab = item.target === '_blank' ? 'checked' : '';
+    const keepLaunch = item.launch ? 'data-keep="1"' : '';
+    const openChoice = item.target === '_blank' ? '_blank'
+        : (item.target === '_self' ? '_self'
+        : (item.target === 'modal' ? 'modal' : 'iframe'));
     const namesOn = ltiPrivacyChecked(item, 'send_name', found);
     const emailOn = ltiPrivacyChecked(item, 'send_email', found);
     const namesDisabled = found && !found.send_name ? 'disabled' : '';
@@ -1174,6 +1177,10 @@ function ltiPickerFieldsHtml(item) {
             </div>
             ${picker}
             <div class="form-group">
+                <label>Launch URL:</label>
+                <input type="text" id="edit-lti-launch" ${keepLaunch} value="${escapeHtml(item.launch || '')}" placeholder="Filled from the tool when this link has no URL yet">
+            </div>
+            <div class="form-group">
                 <label>Privacy:</label>
                 <div class="checkbox">
                     <label><input type="checkbox" id="edit-lti-send-name" ${namesOn ? 'checked' : ''} ${namesDisabled}> Send user names to the external tool</label>
@@ -1183,9 +1190,20 @@ function ltiPickerFieldsHtml(item) {
                 </div>
             </div>
             <div class="form-group">
-                <label><input type="checkbox" id="edit-lti-target" ${newTab}> Open in a new tab</label>
+                <label>Open:</label>
+                <div class="form-group-radios">
+                    <label><input type="radio" name="edit-lti-open" value="_self" ${openChoice === '_self' ? 'checked' : ''}> Same page</label>
+                    <label><input type="radio" name="edit-lti-open" value="_blank" ${openChoice === '_blank' ? 'checked' : ''}> New page</label>
+                    <label><input type="radio" name="edit-lti-open" value="modal" ${openChoice === 'modal' ? 'checked' : ''}> Modal</label>
+                    <label><input type="radio" name="edit-lti-open" value="iframe" ${openChoice === 'iframe' ? 'checked' : ''}> Embedded inline</label>
+                </div>
             </div>
     `;
+}
+
+function applyLtiOpenTarget(item) {
+    const picked = document.querySelector('input[name="edit-lti-open"]:checked');
+    item.target = picked ? picked.value : 'iframe';
 }
 
 function ltiPrivacyChecked(item, key, tool) {
@@ -1207,6 +1225,10 @@ function onLtiToolPicked() {
     const titleEl = document.getElementById('edit-title');
     if (tool && titleEl && !titleEl.value.trim()) {
         titleEl.value = tool.title;
+    }
+    const launchEl = document.getElementById('edit-lti-launch');
+    if (tool && launchEl && launchEl.getAttribute('data-keep') !== '1') {
+        launchEl.value = tool.launch || '';
     }
     [['edit-lti-send-name', 'send_name'], ['edit-lti-send-email', 'send_email']].forEach(function(pair) {
         const el = document.getElementById(pair[0]);
@@ -2035,13 +2057,9 @@ function harvestItemFormDraft(item) {
     if (toolEl && toolEl.value) {
         item.registration_id = parseInt(toolEl.value, 10);
     }
-    const ltiTargetEl = document.getElementById('edit-lti-target');
-    if (ltiTargetEl) {
-        if (ltiTargetEl.checked) {
-            item.target = '_blank';
-        } else {
-            delete item.target;
-        }
+    const ltiOpenEl = document.querySelector('input[name="edit-lti-open"]:checked');
+    if (ltiOpenEl) {
+        item.target = ltiOpenEl.value;
     }
     const sendNameEl = document.getElementById('edit-lti-send-name');
     if (sendNameEl) {
@@ -2174,7 +2192,9 @@ function updateItemFormFields(item) {
             </div>
             `;
         } else {
-            const openTarget = item.target === '_self' ? '_self' : (item.target === 'modal' ? 'modal' : '_blank');
+            const openTarget = item.target === '_self' ? '_self'
+                : (item.target === 'modal' ? 'modal'
+                : (item.target === 'iframe' ? 'iframe' : '_blank'));
             const hrefVal = item.href || '';
             const hrefSource = item.href_source === 'course' ? 'course' : 'url';
             fieldsHtml += `
@@ -2202,6 +2222,7 @@ function updateItemFormFields(item) {
                     <label><input type="radio" name="edit-target" value="_self" ${openTarget === '_self' ? 'checked' : ''}> Same page</label>
                     <label><input type="radio" name="edit-target" value="_blank" ${openTarget === '_blank' ? 'checked' : ''}> New page</label>
                     <label><input type="radio" name="edit-target" value="modal" ${openTarget === 'modal' ? 'checked' : ''}> Modal</label>
+                    <label><input type="radio" name="edit-target" value="iframe" ${openTarget === 'iframe' ? 'checked' : ''}> Embedded inline</label>
                 </div>
             </div>
             `;
@@ -2578,7 +2599,7 @@ function saveWebLinkItem(item) {
     item.type = 'web_link';
     item.subtype = subtype;
     const targetVal = $('input[name="edit-target"]:checked').val();
-    if (targetVal === '_self' || targetVal === 'modal') {
+    if (targetVal === '_self' || targetVal === 'modal' || targetVal === 'iframe') {
         item.target = targetVal;
     } else {
         item.target = '_blank';
@@ -2640,7 +2661,6 @@ function saveItem() {
         if (item.subtype === 'discussion') {
             delete item.subtype;
         }
-        const openInNewTab = document.getElementById('edit-lti-target') && document.getElementById('edit-lti-target').checked;
         const sendNameEl = document.getElementById('edit-lti-send-name');
         const sendEmailEl = document.getElementById('edit-lti-send-email');
         if (sendNameEl) {
@@ -2652,26 +2672,26 @@ function saveItem() {
         if (!toolId) {
             if (item.launch && !parseInt(item.registration_id, 10)) {
                 item.title = $('#edit-title').val().trim();
-                if (openInNewTab) {
-                    item.target = '_blank';
-                } else {
-                    delete item.target;
+                const launchEl = document.getElementById('edit-lti-launch');
+                if (launchEl && launchEl.value.trim()) {
+                    item.launch = launchEl.value.trim();
                 }
+                applyLtiOpenTarget(item);
             } else {
                 alert('Pick an LTI tool from this course.');
                 return;
             }
         } else {
             const selected = ltiToolById(toolId);
-            delete item.launch;
-            delete item.custom;
-            delete item.href;
-            delete item.url;
-            if (openInNewTab) {
-                item.target = '_blank';
-            } else {
-                delete item.target;
+            const launchEl = document.getElementById('edit-lti-launch');
+            let launch = launchEl ? launchEl.value.trim() : String(item.launch || '').trim();
+            if (!launch && selected && selected.launch) {
+                launch = String(selected.launch).trim();
             }
+            if (launch) {
+                item.launch = launch;
+            }
+            applyLtiOpenTarget(item);
             item.registration_id = toolId;
             const titleVal = $('#edit-title').val().trim();
             item.title = titleVal || (selected ? selected.title : (item.title || ''));

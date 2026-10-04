@@ -710,7 +710,6 @@ class LessonsNormalize {
                 $registration_id = is_numeric($item['registration_id']) ? (int) $item['registration_id'] : 0;
                 if ( $registration_id > 0 ) {
                     $item['registration_id'] = $registration_id;
-                    unset($item['launch']);
                     self::coerceLaunchPrivacy($item);
                     return $item;
                 }

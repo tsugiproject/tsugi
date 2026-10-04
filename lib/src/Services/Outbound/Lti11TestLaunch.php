@@ -149,9 +149,11 @@ class Lti11TestLaunch {
      * @param string $userKey Opaque user id sent to the tool. Empty uses the numeric user id.
      * @param bool|null $sendName Null follows the tool privacy grant. False omits the name.
      * @param bool|null $sendEmail Null follows the tool privacy grant. False omits the email.
+     * @param string $launchUrl Lesson item launch URL. Empty uses the registration URL.
+     * @param string $documentTarget window, iframe, or frame. Empty omits the parameter.
      * @return array{endpoint:string, parameters:array<string, string>}
      */
-    public static function courseResourceLink($contextId, $registrationId, $userId, $resourceLinkId, $resourceLinkTitle, $returnUrl, $role = 'Learner', $userKey = '', $sendName = null, $sendEmail = null) {
+    public static function courseResourceLink($contextId, $registrationId, $userId, $resourceLinkId, $resourceLinkTitle, $returnUrl, $role = 'Learner', $userKey = '', $sendName = null, $sendEmail = null, $launchUrl = '', $documentTarget = '') {
         $tool = ToolRegistrationService::visibleLti11((int) $contextId, (int) $registrationId);
         if ( ! self::hasMessage($tool['registration_id'], 'LtiResourceLinkRequest') ) {
             throw new \InvalidArgumentException('This tool does not have a resource link launch.');
@@ -169,6 +171,10 @@ class Lti11TestLaunch {
         if ( $userId < 1 && $userKey === '' ) {
             throw new \InvalidArgumentException('A user is required to launch.');
         }
+        $endpoint = trim((string) $launchUrl);
+        if ( $endpoint === '' ) {
+            $endpoint = $tool['lti11_url'];
+        }
         $parms = self::resourceLinkParameters(
             $tool,
             (int) $contextId,
@@ -181,13 +187,14 @@ class Lti11TestLaunch {
             '',
             $userKey,
             $sendName,
-            $sendEmail
+            $sendEmail,
+            $documentTarget
         );
         return array(
-            'endpoint' => $tool['lti11_url'],
+            'endpoint' => $endpoint,
             'parameters' => LTI::signParameters(
                 $parms,
-                $tool['lti11_url'],
+                $endpoint,
                 'POST',
                 $tool['lti11_key'],
                 $tool['lti11_secret'],
@@ -278,7 +285,7 @@ class Lti11TestLaunch {
      * @param bool|null $sendEmail
      * @return array<string, string>
      */
-    private static function resourceLinkParameters(array $tool, $contextId, $userId, $returnUrl, $wireType, $role, $resourceLinkId = null, $resourceLinkTitle = null, $resourceLinkDescription = 'Test launch', $userKey = '', $sendName = null, $sendEmail = null) {
+    private static function resourceLinkParameters(array $tool, $contextId, $userId, $returnUrl, $wireType, $role, $resourceLinkId = null, $resourceLinkTitle = null, $resourceLinkDescription = 'Test launch', $userKey = '', $sendName = null, $sendEmail = null, $documentTarget = '') {
         $context = self::contextRow($contextId, (int) $tool['key_id']);
         $key = self::keyRow((int) $tool['key_id']);
         $user = self::userRow($userId, (int) $tool['key_id']);
@@ -294,7 +301,7 @@ class Lti11TestLaunch {
             'lti_version' => 'LTI-1p0',
             'resource_link_id' => $linkId,
             'resource_link_title' => $linkTitle,
-            'user_id' => $userKey !== '' ? $userKey : (string) $userId,
+            'user_id' => (string) $userId,
             'roles' => $role,
             'context_id' => $context['context_id'],
             'context_title' => $context['title'],
@@ -324,8 +331,35 @@ class Lti11TestLaunch {
         if ( preg_match('#^https?://#i', $returnUrl) ) {
             $parms['launch_presentation_return_url'] = $returnUrl;
         }
+        $documentTarget = self::documentTargetForLesson($documentTarget);
+        if ( $documentTarget !== '' ) {
+            $parms['launch_presentation_document_target'] = $documentTarget;
+        }
         $parms['launch_presentation_locale'] = 'en';
         return $parms;
+    }
+
+    /**
+     * LTI launch_presentation_document_target for a lesson open choice.
+     *
+     * Same page and new page own the browser window. Modal and in-page use an iframe.
+     * An empty value omits the parameter.
+     *
+     * @param string $lessonTarget
+     * @return string
+     */
+    public static function documentTargetForLesson($lessonTarget) {
+        $target = strtolower(trim((string) $lessonTarget));
+        if ( $target === '' ) {
+            return '';
+        }
+        if ( $target === '_blank' || $target === 'window' || $target === 'blank' || $target === '_self' || $target === 'self' ) {
+            return 'window';
+        }
+        if ( $target === 'frame' ) {
+            return 'frame';
+        }
+        return 'iframe';
     }
 
     /**
@@ -336,7 +370,7 @@ class Lti11TestLaunch {
     private static function contextRow($contextId, $keyId) {
         $p = self::prefix();
         $row = self::db()->rowDie(
-            "SELECT context_id, context_key, title, short_title
+            "SELECT context_id, title, short_title
              FROM {$p}lti_context
              WHERE context_id = :context_id AND key_id = :key_id",
             array(
@@ -355,9 +389,8 @@ class Lti11TestLaunch {
         if ( $label === '' ) {
             $label = $title;
         }
-        $contextKey = trim((string) $row['context_key']);
         return array(
-            'context_id' => $contextKey !== '' ? $contextKey : (string) $row['context_id'],
+            'context_id' => (string) $row['context_id'],
             'title' => $title,
             'label' => $label,
         );

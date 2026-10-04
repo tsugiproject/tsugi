@@ -13,6 +13,7 @@ use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+use Tsugi\Core\Manifest;
 use Tsugi\Core\ReqScope;
 use Tsugi\Services\Outbound\Lti11TestLaunch;
 
@@ -283,6 +284,11 @@ abstract class Tool {
             );
         }
 
+        if ( Manifest::resolvedId() > 0 ) {
+            $app->tsugiFlashError(__('This tool is unregistered.'));
+            return new RedirectResponse($redirect_path_on_error);
+        }
+
         $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;
         $secret = false;
         if ( isset($_SESSION['secret']) ) {
@@ -374,6 +380,10 @@ abstract class Tool {
         $resourceLinkId = isset($lti->resource_link_id) ? trim((string) $lti->resource_link_id) : '';
         $sendName = property_exists($lti, 'send_name') ? (bool) $lti->send_name : null;
         $sendEmail = property_exists($lti, 'send_email') ? (bool) $lti->send_email : null;
+        $launchUrl = \Tsugi\Services\Lessons\LessonsNormalize::launchUrlForItem($lti);
+        if ( $launchUrl !== '' ) {
+            \Tsugi\Services\Lessons\LessonsService::absolute_url_ref($launchUrl);
+        }
         try {
             $launch = Lti11TestLaunch::courseResourceLink(
                 $contextId,
@@ -385,7 +395,9 @@ abstract class Tool {
                 self::outboundLaunchRole(),
                 $userKey,
                 $sendName,
-                $sendEmail
+                $sendEmail,
+                $launchUrl,
+                isset($lti->target) && trim((string) $lti->target) !== '' ? (string) $lti->target : 'iframe'
             );
         } catch ( \InvalidArgumentException $ex ) {
             $app->tsugiFlashError($ex->getMessage());

@@ -80,16 +80,12 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
 
         global $PDOX;
         $p = $this->p();
-        $context = $PDOX->rowDie(
-            "SELECT context_key FROM {$p}lti_context WHERE context_id = :context_id",
-            array(':context_id' => $this->id['eecs280'])
-        );
         $key = $PDOX->rowDie(
             "SELECT key_key FROM {$p}lti_key WHERE key_id = :key_id",
             array(':key_id' => $this->id['keyA'])
         );
         $stored = Lti11CourseTool::formState($this->id['eecs280'], $registrationId);
-        $this->assertSame($context['context_key'], $parms['context_id']);
+        $this->assertSame((string) $this->id['eecs280'], $parms['context_id']);
         $this->assertSame('EECS 280', $parms['context_title']);
         $this->assertSame($key['key_key'], $parms['tool_consumer_instance_guid']);
         $this->assertSame($stored['lti11_key'], $parms['oauth_consumer_key']);
@@ -191,12 +187,45 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
             'lms-user-1'
         );
         $this->assertSame('https://tool.example/launch', $launch['endpoint']);
+        $imported = Lti11TestLaunch::courseResourceLink(
+            $this->id['eecs280'],
+            $registrationId,
+            $userId,
+            'lti_week_1',
+            'Week 1 quiz',
+            'https://local.dj4e.com/tsugi/lessons/return',
+            'Learner',
+            'lms-user-1',
+            null,
+            null,
+            'https://imported.example/launch'
+        );
+        $this->assertSame('https://imported.example/launch', $imported['endpoint']);
+        $this->assertSame($launch['parameters']['oauth_consumer_key'], $imported['parameters']['oauth_consumer_key']);
+        $this->assertArrayNotHasKey('launch_presentation_document_target', $launch['parameters']);
+        $embedded = Lti11TestLaunch::courseResourceLink(
+            $this->id['eecs280'],
+            $registrationId,
+            $userId,
+            'lti_week_1',
+            'Week 1 quiz',
+            'https://local.dj4e.com/tsugi/lessons/return',
+            'Learner',
+            'lms-user-1',
+            null,
+            null,
+            'https://imported.example/launch',
+            'iframe'
+        );
+        $this->assertSame('iframe', $embedded['parameters']['launch_presentation_document_target']);
+        $this->assertSame('window', Lti11TestLaunch::documentTargetForLesson('_blank'));
+        $this->assertSame('window', Lti11TestLaunch::documentTargetForLesson('_self'));
         $parms = $launch['parameters'];
         $this->assertSame('basic-lti-launch-request', $parms['lti_message_type']);
         $this->assertSame('lti_week_1', $parms['resource_link_id']);
         $this->assertSame('Week 1 quiz', $parms['resource_link_title']);
         $this->assertSame('Learner', $parms['roles']);
-        $this->assertSame('lms-user-1', $parms['user_id']);
+        $this->assertSame((string) $userId, $parms['user_id']);
         $this->assertArrayNotHasKey('resource_link_description', $parms);
         $this->assertSame('Pat Instructor', $parms['lis_person_name_full']);
         $this->assertSame('pat@example.test', $parms['lis_person_contact_email_primary']);
@@ -260,7 +289,7 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         $this->assertSame('_blank', $item['target']);
         $this->assertTrue($item['send_name']);
         $this->assertFalse($item['send_email']);
-        $this->assertArrayNotHasKey('launch', $item);
+        $this->assertSame('https://old.example/launch', $item['launch']);
 
         $contentOnly = $this->post();
         $contentOnly['title'] = 'Picker only';

@@ -10,6 +10,7 @@ use Tsugi\Lumos\Application;
 use Tsugi\Services\Quiz1\Quiz1Repository;
 use Tsugi\Services\Outbound\Lti11CourseTool;
 use Tsugi\Services\Outbound\Lti11TestLaunch;
+use Tsugi\Services\Outbound\ToolRegistrationService;
 use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Lessons\LessonsNormalize;
 use Tsugi\Services\Files\FileRepository;
@@ -188,9 +189,17 @@ class Lessons extends Tool {
                         continue;
                     }
                     $privacy = Lti11TestLaunch::privacy($context_id, $tool['registration_id']);
+                    $launch = '';
+                    try {
+                        $row = ToolRegistrationService::visibleLti11($context_id, $tool['registration_id']);
+                        $launch = $row['lti11_url'];
+                    } catch ( \Exception $e ) {
+                        $launch = '';
+                    }
                     $lti_tools[] = array(
                         'id' => (int) $tool['registration_id'],
                         'title' => $tool['title'],
+                        'launch' => $launch,
                         'send_name' => $privacy['send_name'],
                         'send_email' => $privacy['send_email'],
                     );
@@ -1189,6 +1198,13 @@ $(function(){
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
 
+                    if ( self::ltiItemIsUnregistered($lti) ) {
+                        echo('<li class="tsugi-lessons-module-lti tsugi-lessons-lti-unregistered">');
+                        echo(htmlentities($resource_link_title).' ('.__('unregistered').')');
+                        echo('</li>'."\n");
+                        continue;
+                    }
+
                     if ( $nostyle ) {
                         echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' (Login Required) <br/>'."\n");
                         $ltiurl = U::add_url_parm($lti->launch, 'inherit', $lti->resource_link_id);
@@ -1462,6 +1478,14 @@ $(function(){
     flex: 1 1 auto;
     width: 100%;
     border: 0;
+    background: #fff;
+}
+.tsugi-inline-embed {
+    display: block;
+    width: 100%;
+    height: 640px;
+    margin-top: 8px;
+    border: 1px solid #ccc;
     background: #fff;
 }
 </style>'."\n");
@@ -1890,7 +1914,7 @@ $(function(){
      * stays in this window. An uploaded course file always opens in a new tab.
      *
      * @param mixed $item
-     * @return 'self'|'blank'|'modal'
+     * @return 'self'|'blank'|'modal'|'iframe'
      */
     public static function webLinkOpenMode($item) {
         $target = '';
@@ -1930,6 +1954,9 @@ $(function(){
         if ( $target === 'modal' ) {
             return 'modal';
         }
+        if ( $target === 'iframe' ) {
+            return 'iframe';
+        }
         if ( $target === '' && $type === 'html_page' ) {
             return 'self';
         }
@@ -1943,24 +1970,27 @@ $(function(){
      * @return string
      */
     public static function webLinkTargetAttrs($item) {
-        if ( self::webLinkOpenMode($item) === 'self' ) {
-            return '';
-        }
-        if ( self::webLinkOpenMode($item) === 'modal' ) {
+        $mode = self::webLinkOpenMode($item);
+        if ( $mode === 'self' || $mode === 'modal' || $mode === 'iframe' ) {
             return '';
         }
         return ' target="_blank" rel="noopener noreferrer"';
     }
 
     /**
-     * Render a web link as same-page, new-tab, or in-page modal.
+     * Render a web link as same-page, new-tab, modal, or embedded inline.
      *
      * @param string $href Expanded URL (not yet HTML-encoded)
      */
     private static function renderWebLinkOpenControl($item, $href, $title, $icon_key, $css_class='tsugi-lessons-link') {
         $safe_href = self::safeWebHref($href);
-        if ( self::webLinkOpenMode($item) === 'modal' && $safe_href !== '' ) {
+        $mode = self::webLinkOpenMode($item);
+        if ( $mode === 'modal' && $safe_href !== '' ) {
             self::renderWebLinkModal($item, $safe_href, $title, $icon_key, $css_class);
+            return;
+        }
+        if ( $mode === 'iframe' && $safe_href !== '' ) {
+            self::renderInlineEmbed($safe_href, $title, $icon_key);
             return;
         }
         echo('<a href="'.$safe_href.'"'.self::webLinkTargetAttrs($item).' class="'.$css_class.'" typeof="oer:SupportingMaterial" style="display: inline-flex; align-items: center;">');
@@ -2261,6 +2291,19 @@ $(function(){
      * @param int $registrationId
      * @return bool
      */
+    /**
+     * A manifest-course LTI item with a launch URL and no registration.
+     *
+     * File-backed lessons.json still launches with the session key.
+     *
+     * @param object $item
+     * @return bool
+     */
+    private static function ltiItemIsUnregistered($item) {
+        $registration_id = isset($item->registration_id) ? (int) $item->registration_id : 0;
+        return $registration_id < 1 && Manifest::resolvedId() > 0;
+    }
+
     private static function courseToolHasResourceLink($registrationId) {
         $contextId = ReqScope::currentContextId();
         if ( ! $contextId || $registrationId < 1 ) {
@@ -2274,6 +2317,74 @@ $(function(){
     }
 
     /**
+     * Title plus an iframe, so the lesson navigation stays on the page.
+     *
+     * @param string $safe_src Already HTML-encoded URL
+     * @param string $title
+     * @param mixed $icon_key
+     */
+    private static function renderInlineEmbed($safe_src, $title, $icon_key) {
+        echo('<span style="display: inline-flex; align-items: center;">');
+        if ( $icon_key !== null && $icon_key !== false ) {
+            self::renderItemIcon($icon_key);
+        }
+        echo(htmlentities($title).'</span>');
+        $title_esc = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
+        echo('<iframe class="tsugi-inline-embed" src="'.$safe_src.'" title="'.$title_esc.'"></iframe>');
+    }
+
+    /**
+     * How a registered lesson tool opens. No target stays embedded inline.
+     *
+     * @param object $item
+     * @return 'self'|'blank'|'modal'|'iframe'
+     */
+    private static function ltiOpenMode($item) {
+        $target = isset($item->target) ? strtolower(trim((string) $item->target)) : '';
+        if ( $target === '_blank' || $target === 'blank' || $target === 'window' ) {
+            return 'blank';
+        }
+        if ( $target === '_self' || $target === 'self' ) {
+            return 'self';
+        }
+        if ( $target === 'modal' ) {
+            return 'modal';
+        }
+        return 'iframe';
+    }
+
+    /**
+     * Registered tool: same page, new page, modal, or an iframe under the lesson nav.
+     *
+     * @param object $item
+     * @param string $launch_path
+     * @param string $title
+     */
+    private static function renderRegisteredLtiOpen($item, $launch_path, $title) {
+        $mode = self::ltiOpenMode($item);
+        $icon_key = LessonsNormalize::iconKey($item);
+        if ( $mode === 'modal' ) {
+            $safe = self::safeWebHref($launch_path);
+            if ( $safe !== '' ) {
+                self::renderWebLinkModal($item, $safe, $title, $icon_key, 'tsugi-lessons-link');
+                return;
+            }
+        }
+        if ( $mode === 'iframe' ) {
+            $src = htmlspecialchars($launch_path, ENT_QUOTES, 'UTF-8');
+            self::renderInlineEmbed($src, $title, $icon_key);
+            return;
+        }
+        echo('<a');
+        if ( $mode === 'blank' ) {
+            echo(' target="_blank" rel="noopener noreferrer" onclick="alert(\'Link will open in a new browser tab...\');" ');
+        }
+        echo(' href="'.htmlspecialchars($launch_path, ENT_QUOTES, 'UTF-8').'" style="display: inline-flex; align-items: center;">');
+        self::renderItemIcon($icon_key);
+        echo(htmlentities($title).'</a>');
+    }
+
+    /**
      * Render an LTI item
      */
     private static function renderItemLti($lessons, $item, $module, $nostyle=false) {
@@ -2284,6 +2395,14 @@ $(function(){
         $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : '';
         $target = isset($item->target) ? $item->target : false;
         $registration_id = isset($item->registration_id) ? (int) $item->registration_id : 0;
+        if ( self::ltiItemIsUnregistered($item) ) {
+            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti tsugi-lessons-lti-unregistered">');
+            echo('<span style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
+            echo(htmlentities($resource_link_title).' ('.__('unregistered').')');
+            echo('</span></li>'."\n");
+            return;
+        }
         if ( $registration_id > 0 && ! self::courseToolHasResourceLink($registration_id) ) {
             if ( ! $lessons->lessonsViewerIsInstructor() ) {
                 return;
@@ -2332,11 +2451,15 @@ $(function(){
             
             $rl_dom_id = LessonsService::domIdForResourceLink($resource_link_id);
             echo('<li class="tsugi-lessons-module-lti" id="'.htmlspecialchars($rl_dom_id, ENT_QUOTES, 'UTF-8').'">');
-            echo('<a');
-            if ( $target == "_blank" ) echo(' target="_blank" rel="noopener noreferrer" onclick="alert(\'Link will open in a new browser tab...\');" ');
-            echo(' href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
-            self::renderItemIcon(LessonsNormalize::iconKey($item));
-            echo(htmlentities($title).'</a>');
+            if ( $registration_id > 0 ) {
+                self::renderRegisteredLtiOpen($item, $launch_path, $title);
+            } else {
+                echo('<a');
+                if ( $target == "_blank" ) echo(' target="_blank" rel="noopener noreferrer" onclick="alert(\'Link will open in a new browser tab...\');" ');
+                echo(' href="'.$launch_path.'" style="display: inline-flex; align-items: center;">');
+                self::renderItemIcon(LessonsNormalize::iconKey($item));
+                echo(htmlentities($title).'</a>');
+            }
             self::echoLtiLinkProgressIndicators($resource_link_id, $item, $lessons->moduleProgressGrades(), $lessons->moduleProgressDueDates());
             echo('</li>'."\n");
         }

@@ -1158,6 +1158,29 @@ class LessonsTest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('tsugiOpenLinkModal', $output);
         $this->assertStringNotContainsString('target="_blank" rel="noopener noreferrer" class="tsugi-lessons-link"', $output);
     }
+
+    public function testRenderWebLinkEmbeddedInline() {
+        $lessons = new class extends \Tsugi\Services\Lessons\LessonsService {
+            public function __construct() {
+            }
+        };
+        $module = (object)['title' => 'Test Module'];
+        $item = (object)[
+            'type' => 'web_link',
+            'subtype' => 'reference',
+            'title' => 'Inline Link',
+            'href' => 'http://example.com/inline',
+            'target' => 'iframe',
+        ];
+        ob_start();
+        \Tsugi\Controllers\Lessons::renderItem($lessons, $item, $module);
+        $output = ob_get_clean();
+        $this->assertSame('iframe', \Tsugi\Controllers\Lessons::webLinkOpenMode($item));
+        $this->assertSame('', \Tsugi\Controllers\Lessons::webLinkTargetAttrs($item));
+        $this->assertStringContainsString('class="tsugi-inline-embed"', $output);
+        $this->assertStringContainsString('src="http://example.com/inline"', $output);
+        $this->assertStringNotContainsString('target="_blank"', $output);
+    }
     
     /**
      * Test renderItem() method - assignment item

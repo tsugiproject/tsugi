@@ -8,6 +8,7 @@ use Tsugi\Util\CCIdentifier;
 use Tsugi\Util\U;
 use Tsugi\Services\Files\FileRepository;
 use Tsugi\Services\Pages\PageRepository;
+use Tsugi\Services\Outbound\ToolRegistrationService;
 use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Quiz1\Qti12Exporter;
 use Tsugi\Services\Quiz1\Quiz1Repository;
@@ -419,7 +420,7 @@ class LessonsCartridge {
         }
 
         if ( self::isAssignmentLtiKind($kind) || $type === LessonsNormalize::TYPE_LTI ) {
-            self::processLti($item, $module, $sub_module, $zip, $cc_dom);
+            self::processLti($item, $module, $sub_module, $zip, $cc_dom, $options);
             self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             return;
         }
@@ -1034,15 +1035,45 @@ class LessonsCartridge {
         $cc_dom->add_last_item_lom($item);
     }
 
-    private static function processLti($item, $module, $sub_module, $zip, $cc_dom) {
+    /**
+     * Launch URL stored on the registration, for an item whose launch field is empty.
+     *
+     * @param int $registrationId
+     * @param array{context_id?:int} $options
+     * @param string $title
+     * @return string
+     */
+    private static function registrationLaunchUrl($registrationId, array $options, $title) {
+        $contextId = isset($options['context_id']) ? (int) $options['context_id'] : ReqScope::currentContextIdLegacy();
+        try {
+            $tool = ToolRegistrationService::visibleLti11($contextId, $registrationId);
+        } catch ( \InvalidArgumentException $ex ) {
+            throw new ExportException(
+                'Lesson references registration_id '.$registrationId.' ('.$title.') which was not found in this course.'
+            );
+        }
+        $url = trim($tool['lti11_url']);
+        if ( $url === '' ) {
+            throw new ExportException(
+                'Lesson references registration_id '.$registrationId.' ('.$title.') which has no launch URL.'
+            );
+        }
+        return $url;
+    }
+
+    private static function processLti($item, $module, $sub_module, $zip, $cc_dom, array $options = array()) {
         global $CFG;
         $title = isset($item->title) && $item->title !== '' ? $item->title : $module->title;
         if ( strpos($title, ':') === false ) {
             $title = 'Tool: '.$title;
         }
+        $registrationId = isset($item->registration_id) ? (int) $item->registration_id : 0;
         $endpoint = LessonsNormalize::launchUrlForItem($item);
+        if ( $endpoint === '' && $registrationId > 0 ) {
+            $endpoint = self::registrationLaunchUrl($registrationId, $options, $title);
+        }
         $endpoint = U::absolute_url(LessonsService::expandLink($endpoint));
-        if ( isset($item->resource_link_id) && $item->resource_link_id !== '' && $item->resource_link_id !== null ) {
+        if ( $registrationId < 1 && isset($item->resource_link_id) && $item->resource_link_id !== '' && $item->resource_link_id !== null ) {
             $endpoint = U::add_url_parm($endpoint, 'inherit', $item->resource_link_id);
         }
         $extensions = array('apphome' => $CFG->apphome);
