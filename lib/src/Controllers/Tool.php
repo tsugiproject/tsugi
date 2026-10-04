@@ -384,6 +384,10 @@ abstract class Tool {
         if ( $launchUrl !== '' ) {
             \Tsugi\Services\Lessons\LessonsService::absolute_url_ref($launchUrl);
         }
+        $lessonTarget = isset($lti->target) ? (string) $lti->target : '';
+        $elementId = Lti11TestLaunch::embedsInline($lessonTarget)
+            ? Lti11TestLaunch::parentFrameId($resourceLinkId)
+            : '';
         try {
             $launch = Lti11TestLaunch::courseResourceLink(
                 $contextId,
@@ -397,7 +401,8 @@ abstract class Tool {
                 $sendName,
                 $sendEmail,
                 $launchUrl,
-                isset($lti->target) && trim((string) $lti->target) !== '' ? (string) $lti->target : 'iframe'
+                $lessonTarget !== '' ? $lessonTarget : 'iframe',
+                $elementId
             );
         } catch ( \InvalidArgumentException $ex ) {
             $app->tsugiFlashError($ex->getMessage());

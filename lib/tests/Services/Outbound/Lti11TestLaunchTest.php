@@ -218,6 +218,27 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
             'iframe'
         );
         $this->assertSame('iframe', $embedded['parameters']['launch_presentation_document_target']);
+        $frameId = Lti11TestLaunch::parentFrameId('lti_week_1');
+        $resized = Lti11TestLaunch::courseResourceLink(
+            $this->id['eecs280'],
+            $registrationId,
+            $userId,
+            'lti_week_1',
+            'Week 1 quiz',
+            'https://local.dj4e.com/tsugi/lessons/return',
+            'Learner',
+            'lms-user-1',
+            null,
+            null,
+            'https://imported.example/launch',
+            'iframe',
+            $frameId
+        );
+        $this->assertTrue(Lti11TestLaunch::embedsInline(''));
+        $this->assertTrue(Lti11TestLaunch::embedsInline('iframe'));
+        $this->assertFalse(Lti11TestLaunch::embedsInline('modal'));
+        $this->assertSame($frameId, $resized['parameters']['ext_lti_element_id']);
+        $this->assertNotSame($frameId, $launch['parameters']['ext_lti_element_id']);
         $this->assertSame('window', Lti11TestLaunch::documentTargetForLesson('_blank'));
         $this->assertSame('window', Lti11TestLaunch::documentTargetForLesson('_self'));
         $parms = $launch['parameters'];

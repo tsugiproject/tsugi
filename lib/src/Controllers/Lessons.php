@@ -2019,7 +2019,7 @@ $(function(){
       <a class="tsugi-link-modal-open-new" href="<?= $safe_href ?>" target="_blank" rel="noopener noreferrer"><?= $open_lbl ?></a>
       <button type="button" class="tsugi-overlay-close tsugi-link-modal-close" aria-label="Close" onclick="tsugiCloseLinkModal('<?= $id ?>');">×</button>
     </div>
-    <iframe class="tsugi-link-modal-frame" title="<?= $title_esc ?>" data-src="<?= $safe_href ?>" src="about:blank"></iframe>
+    <iframe class="tsugi-link-modal-frame lti_frameClose" title="<?= $title_esc ?>" data-src="<?= $safe_href ?>" src="about:blank"></iframe>
   </div>
 </div>
 <button type="button" class="<?= htmlspecialchars($css_class, ENT_QUOTES, 'UTF-8') ?> tsugi-video-play-btn" style="display: inline-flex; align-items: center;" onclick="tsugiOpenLinkModal('<?= $id ?>');">
@@ -2322,15 +2322,22 @@ $(function(){
      * @param string $safe_src Already HTML-encoded URL
      * @param string $title
      * @param mixed $icon_key
+     * @param string $frame_id When set, tsugiscripts.js can resize this iframe from lti.frameResize
      */
-    private static function renderInlineEmbed($safe_src, $title, $icon_key) {
+    private static function renderInlineEmbed($safe_src, $title, $icon_key, $frame_id = '') {
         echo('<span style="display: inline-flex; align-items: center;">');
         if ( $icon_key !== null && $icon_key !== false ) {
             self::renderItemIcon($icon_key);
         }
         echo(htmlentities($title).'</span>');
         $title_esc = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
-        echo('<iframe class="tsugi-inline-embed" src="'.$safe_src.'" title="'.$title_esc.'"></iframe>');
+        $class = 'tsugi-inline-embed';
+        $id_attr = '';
+        if ( $frame_id !== '' ) {
+            $class .= ' lti_frameResize';
+            $id_attr = ' id="'.htmlspecialchars($frame_id, ENT_QUOTES, 'UTF-8').'"';
+        }
+        echo('<iframe class="'.$class.'"'.$id_attr.' src="'.$safe_src.'" title="'.$title_esc.'"></iframe>');
     }
 
     /**
@@ -2372,7 +2379,8 @@ $(function(){
         }
         if ( $mode === 'iframe' ) {
             $src = htmlspecialchars($launch_path, ENT_QUOTES, 'UTF-8');
-            self::renderInlineEmbed($src, $title, $icon_key);
+            $frame_id = Lti11TestLaunch::parentFrameId(isset($item->resource_link_id) ? $item->resource_link_id : '');
+            self::renderInlineEmbed($src, $title, $icon_key, $frame_id);
             return;
         }
         echo('<a');

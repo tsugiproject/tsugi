@@ -718,8 +718,12 @@ class LTITest extends \PHPUnit\Framework\TestCase
         $this->assertStringNotContainsString('<input type="submit" name="ext_submit"', $pause);
 
         $auto = \Tsugi\Util\LTI::postLaunchHTML($signed, $this->endpoint, false, 'width="100%"');
+        $this->assertStringContainsString('org.sakailms.lti.prelaunch', $auto);
+        $this->assertStringContainsString('org.tsugi.lti.prelaunch.response', $auto);
+        $this->assertStringContainsString('submitAfterPrelaunch(go);', $auto);
         $this->assertStringContainsString('var autosubmit = true;', $auto);
         $this->assertStringContainsString('if ( ! autosubmit || ! ev.persisted || reloadLaunched ) return;', $auto);
+        $this->assertStringContainsString('if ( isReloadNav() && document.getElementById(frameId) )', $auto);
         $this->assertStringContainsString('if ( ! iframeIsBlank() ) return;', $auto);
         $this->assertMatchesRegularExpression('/reloadLaunched = false;.*?if \( ! iframeIsBlank\(\) \) return;.*?reloadLaunched = true;.*?tsugiLaunchForm\(\);/s', $auto);
     }

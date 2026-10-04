@@ -151,9 +151,10 @@ class Lti11TestLaunch {
      * @param bool|null $sendEmail Null follows the tool privacy grant. False omits the email.
      * @param string $launchUrl Lesson item launch URL. Empty uses the registration URL.
      * @param string $documentTarget window, iframe, or frame. Empty omits the parameter.
+     * @param string $elementId Parent iframe id for lti.frameResize. Empty lets signing assign one.
      * @return array{endpoint:string, parameters:array<string, string>}
      */
-    public static function courseResourceLink($contextId, $registrationId, $userId, $resourceLinkId, $resourceLinkTitle, $returnUrl, $role = 'Learner', $userKey = '', $sendName = null, $sendEmail = null, $launchUrl = '', $documentTarget = '') {
+    public static function courseResourceLink($contextId, $registrationId, $userId, $resourceLinkId, $resourceLinkTitle, $returnUrl, $role = 'Learner', $userKey = '', $sendName = null, $sendEmail = null, $launchUrl = '', $documentTarget = '', $elementId = '') {
         $tool = ToolRegistrationService::visibleLti11((int) $contextId, (int) $registrationId);
         if ( ! self::hasMessage($tool['registration_id'], 'LtiResourceLinkRequest') ) {
             throw new \InvalidArgumentException('This tool does not have a resource link launch.');
@@ -190,6 +191,10 @@ class Lti11TestLaunch {
             $sendEmail,
             $documentTarget
         );
+        $elementId = trim((string) $elementId);
+        if ( preg_match('/^tsugi_element_id_[a-f0-9]{16}$/', $elementId) ) {
+            $parms['ext_lti_element_id'] = $elementId;
+        }
         return array(
             'endpoint' => $endpoint,
             'parameters' => LTI::signParameters(
@@ -337,6 +342,27 @@ class Lti11TestLaunch {
         }
         $parms['launch_presentation_locale'] = 'en';
         return $parms;
+    }
+
+    /**
+     * Embedded inline keeps the lesson navigation. Modal, same page, and new page do not.
+     *
+     * @param string $lessonTarget
+     * @return bool
+     */
+    public static function embedsInline($lessonTarget) {
+        $target = strtolower(trim((string) $lessonTarget));
+        return $target === '' || $target === 'iframe';
+    }
+
+    /**
+     * Iframe id a Tsugi tool posts back in lti.frameResize.
+     *
+     * @param string $resourceLinkId
+     * @return string
+     */
+    public static function parentFrameId($resourceLinkId) {
+        return 'tsugi_element_id_'.substr(hash('sha256', trim((string) $resourceLinkId)), 0, 16);
     }
 
     /**
