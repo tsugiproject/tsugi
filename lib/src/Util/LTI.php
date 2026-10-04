@@ -330,7 +330,35 @@ class LTI {
             "        form.submit();\n" .
             "        console.log('Autosubmitted ' + fid);\n" .
             "      };\n" .
-            "      if ( ! ifr ) { go(); return; }\n" .
+            "      function submitAfterPrelaunch(go) {\n" .
+            "        if ( window.parent === window ) { go(); return; }\n" .
+            "        var launched = false;\n" .
+            "        var plTimeOut = false;\n" .
+            "        function once() {\n" .
+            "          if ( launched ) return;\n" .
+            "          launched = true;\n" .
+            "          if ( plTimeOut ) clearTimeout(plTimeOut);\n" .
+            "          window.removeEventListener('message', onPrelaunch);\n" .
+            "          go();\n" .
+            "        }\n" .
+            "        function onPrelaunch(event) {\n" .
+            "          var message = event.data;\n" .
+            "          try {\n" .
+            "            if ( typeof message == 'string' ) message = JSON.parse(message);\n" .
+            "          } catch (e) { return; }\n" .
+            "          if ( ! message || message.subject != 'org.tsugi.lti.prelaunch.response' ) return;\n" .
+            "          console.log('submitting based on org.tsugi.lti.prelaunch.response');\n" .
+            "          once();\n" .
+            "        }\n" .
+            "        window.addEventListener('message', onPrelaunch);\n" .
+            "        parent.postMessage({ subject: 'org.sakailms.lti.prelaunch' }, '*');\n" .
+            "        console.log('Sending prelaunch request');\n" .
+            "        plTimeOut = setTimeout(function() {\n" .
+            "          console.warn('Submitting after prelaunch timeout');\n" .
+            "          once();\n" .
+            "        }, 2000);\n" .
+            "      }\n" .
+            "      if ( ! ifr ) { submitAfterPrelaunch(go); return; }\n" .
             "      var fired = false;\n" .
             "      var once = function() {\n" .
             "        if ( fired ) return;\n" .
@@ -343,7 +371,7 @@ class LTI {
             "      catch (e) { ifr.src = 'about:blank'; }\n" .
             "      setTimeout(once, 50);\n" .
             "    }\n" .
-            "    if ( isReloadNav() ) {\n" .
+            "    if ( isReloadNav() && document.getElementById(frameId) ) {\n" .
             "      window.addEventListener('pageshow', function() {\n" .
             "        reloadLaunched = false;\n" .
             "        if ( ! iframeIsBlank() ) return;\n" .

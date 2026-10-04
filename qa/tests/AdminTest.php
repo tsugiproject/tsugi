@@ -86,6 +86,7 @@ final class AdminTest extends TsugiPantherTestCase
             'admin/' => 'Administration Console',
             'admin/site' => 'Edit Site Config',
             'admin/catalog' => 'Course catalog',
+            'admin/org/' => 'Pick a tenant',
             'admin/catalog/edit.php' => 'Add catalog listing',
             'admin/key/' => 'LTI Tenants',
             'admin/expire/' => 'Manage Data Expiry',

@@ -142,8 +142,9 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->assertTrue($opened, 'Catalog did not list the new course.');
         $this->waitForPageText($client, 'Join course');
         $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Join course')]"))->click();
+        // The catalog page already contains the title, so wait for the course URL.
+        $this->assertSame($home, $this->waitForCourseHome($client));
         $this->waitForPageText($client, $title);
-        $this->assertSame($home, $this->courseHomeFromUrl($driver->getCurrentURL()));
 
         $this->studentSeesOnlySharedFiles($client, $home, $shared, [$public, $private, $obscure]);
         $driver->get($home.'/files/Private/'.rawurlencode($private));
@@ -470,6 +471,17 @@ final class CourseControllersTest extends TsugiPantherTestCase
     {
         $driver = $client->getWebDriver();
         $itemTitle = 'Panther Due Item';
+        $toolTitle = 'Panther Due Tool';
+        $driver->get($courseHome.'/settings/tools/add');
+        $this->waitForPageText($client, 'Add an LTI 1.1 tool to this course.');
+        $driver->findElement(WebDriverBy::id('lti11_title'))->sendKeys($toolTitle);
+        $driver->findElement(WebDriverBy::id('lti11_lti11_url'))->sendKeys('https://tool.example/panther-due');
+        $driver->findElement(WebDriverBy::id('lti11_lti11_key'))->sendKeys('panther-due-key');
+        $driver->findElement(WebDriverBy::id('lti11_lti11_secret'))->sendKeys('panther-due-secret');
+        $driver->findElement(WebDriverBy::id('messages_LtiResourceLinkRequest'))->click();
+        $driver->findElement(WebDriverBy::cssSelector('#lti11-course-tool button[type="submit"]'))->click();
+        $this->waitForPageText($client, 'The tool was added to this course.');
+
         $driver->get($courseHome.'/lessons/_author');
         $this->waitForPageText($client, 'Add module');
 
@@ -487,13 +499,18 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->executeScript(
             "document.getElementById('edit-item-type').value = 'lti'; updateItemForm();"
         );
-        $this->waitForPageText($client, 'Resource Link ID');
-        $driver->executeScript(
-            "document.getElementById('edit-title').value = arguments[0];
-             document.getElementById('edit-launch').value = 'https://example.com/launch';
-             document.getElementById('edit-resource-link-id').value = 'panther-due-1';",
+        $this->waitForPageText($client, 'Choose a tool');
+        $picked = $driver->executeScript(
+            'var sel = document.getElementById("edit-lti-tool");
+             if (!sel || sel.options.length < 2) { return ""; }
+             sel.selectedIndex = 1;
+             if (typeof onLtiToolPicked === "function") { onLtiToolPicked(); }
+             var title = document.getElementById("edit-title");
+             if (title) { title.value = arguments[0]; }
+             return sel.value;',
             [$itemTitle]
         );
+        $this->assertNotSame('', $picked, 'The lesson LTI picker had no course tool.');
         $driver->findElement(WebDriverBy::xpath("//div[@id='item-modal']//button[contains(., 'Save')]"))->click();
         $driver->executeScript('saveChanges()');
         $this->acceptAlertContaining($driver, 'saved');

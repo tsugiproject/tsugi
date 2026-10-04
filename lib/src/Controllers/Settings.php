@@ -24,7 +24,11 @@ use Tsugi\Services\Cartridge\Package;
 use Tsugi\Services\Cartridge\Pending;
 use Tsugi\Services\Courses\CourseDelete;
 use Tsugi\Services\CourseNav\CourseNav;
+use Tsugi\Services\Outbound\Lti11CourseTool;
+use Tsugi\Services\Outbound\Lti11TestLaunch;
+use Tsugi\Util\LTI;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -38,7 +42,8 @@ use Tsugi\Core\ReqScope;
  * a course context is not. Do not call requireAuth() on those pages.
  *
  * Course-mounted (/courses/{id}/settings): theme, navigation, images,
- * Common Cartridge import/export, and delete course for the active manifest.
+ * add, edit, and delete an LTI 1.1 tool for this course, Common Cartridge import/export,
+ * and delete course for the active manifest.
  * Instructor + manifest only. Nested dispatch from
  * Courses keeps REQUEST_URI prefixed, so isCourseRoute() can tell the two
  * families apart. File-based $CFG->lessons sites keep using the site $CFG->theme.
@@ -69,6 +74,10 @@ class Settings extends Tool {
         self::mapPage($app, $prefix.'/delete', 'deleteCourse', true);
         self::mapPage($app, $prefix.'/navigation', 'navigation', true);
         self::mapPage($app, $prefix.'/images', 'images', true);
+        self::mapPage($app, $prefix.'/tools/launch-url', 'toolsLaunchUrl', false);
+        self::mapPage($app, $prefix.'/tools/test', 'toolsTest', false);
+        self::mapPage($app, $prefix.'/tools/add', 'toolsAdd', true);
+        self::mapPage($app, $prefix.'/tools', 'tools', true);
 
         self::mapPage($app, $prefix.'/encrypt', 'encrypt', true);
         self::mapPage($app, $prefix.'/gclass_login', 'gclassLogin', false);
@@ -1658,6 +1667,317 @@ re-check your login status.
     }
 
     /**
+     * Course-mounted Settings: add, edit, or delete an LTI 1.1 tool on this course.
+     */
+    public function tools(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+        if ( $request->isMethod('POST') ) {
+            return $this->toolsPost($request);
+        }
+
+        global $OUTPUT;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
+        $add_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/add'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $editId = (int) $request->query->get('registration_id', 0);
+        if ( $editId > 0 ) {
+            return new RedirectResponse(self::toolEditUrl($add_url, $editId));
+        }
+
+        $save_url = $tools_url;
+        $test_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/test'));
+        $setup_tab = 'tools';
+        try {
+            $course_tools = Lti11CourseTool::toolsOnCourse(ReqScope::currentContextId());
+        } catch ( \Exception $e ) {
+            $course_tools = array();
+            U::flashError($e->getMessage());
+        }
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php include __DIR__ . '/templates/Settings/tools.inc.php'; ?>
+            </div>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * Course-mounted Settings: the add and edit form for one LTI 1.1 tool.
+     */
+    public function toolsAdd(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+        if ( $request->isMethod('POST') ) {
+            return $this->toolsPost($request);
+        }
+
+        global $OUTPUT;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
+        $add_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/add'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $editId = (int) $request->query->get('registration_id', 0);
+        $form_values = null;
+        if ( $editId > 0 ) {
+            try {
+                $form_values = Lti11CourseTool::formState(ReqScope::currentContextId(), $editId);
+            } catch ( \InvalidArgumentException $e ) {
+                U::flashError($e->getMessage());
+                return new RedirectResponse($tools_url);
+            } catch ( \Exception $e ) {
+                U::flashError(__('Could not open that tool.'));
+                return new RedirectResponse($tools_url);
+            }
+        }
+
+        $save_url = $add_url;
+        $launch_url_count_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/launch-url'));
+        $setup_tab = 'tools';
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php include __DIR__ . '/templates/Settings/tool_form.inc.php'; ?>
+            </div>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * Add, update, or delete an LTI 1.1 tool on this course.
+     */
+    private function toolsPost(Request $request)
+    {
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
+        $add_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/add'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+        $registrationId = 0;
+        if ( isset($_POST['registration_id']) && (is_string($_POST['registration_id']) || is_int($_POST['registration_id'])) && (string) $_POST['registration_id'] !== '' ) {
+            $registrationId = (int) $_POST['registration_id'];
+        }
+        $delete = isset($_POST['tool_action']) && $_POST['tool_action'] === 'delete';
+        $onForm = str_contains((string) $request->getPathInfo(), '/tools/add');
+        $back = $tools_url;
+        if ( ! $delete && $onForm ) {
+            $back = $registrationId > 0 ? self::toolEditUrl($add_url, $registrationId) : $add_url;
+        }
+        $csrf = self::requireCsrf($back);
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        try {
+            if ( isset($_POST['registration_id']) && $_POST['registration_id'] !== '' ) {
+                if ( ! is_string($_POST['registration_id']) && ! is_int($_POST['registration_id']) ) {
+                    throw new \InvalidArgumentException('This course does not own that tool.');
+                }
+                if ( $registrationId < 1 ) {
+                    throw new \InvalidArgumentException('This course does not own that tool.');
+                }
+            }
+            if ( $delete ) {
+                if ( $registrationId < 1 ) {
+                    throw new \InvalidArgumentException('This course does not own that tool.');
+                }
+                Lti11CourseTool::deleteFromCourse(ReqScope::currentContextId(), $registrationId);
+            } else if ( $registrationId > 0 ) {
+                Lti11CourseTool::updateOnCourse(ReqScope::currentContextId(), $registrationId, $_POST);
+            } else {
+                Lti11CourseTool::addToCourse(
+                    ReqScope::currentContextId(),
+                    ReqScope::loggedInUserId(),
+                    $_POST
+                );
+            }
+        } catch ( \InvalidArgumentException $e ) {
+            U::flashError($e->getMessage());
+            return new RedirectResponse($back);
+        } catch ( \Exception $e ) {
+            if ( $delete ) {
+                U::flashError(__('Could not delete the tool.'));
+            } else if ( $registrationId > 0 ) {
+                U::flashError(__('Could not save the tool.'));
+            } else {
+                U::flashError(__('Could not add the tool.'));
+            }
+            return new RedirectResponse($back);
+        }
+
+        if ( $delete ) {
+            U::flashSuccess(__('The tool was deleted.'));
+        } else if ( $registrationId > 0 ) {
+            U::flashSuccess(__('The tool was saved.'));
+        } else {
+            U::flashSuccess(__('The tool was added to this course.'));
+        }
+        return new RedirectResponse($tools_url);
+    }
+
+    /**
+     * How many other tools in this tenant already use a launch URL.
+     *
+     * The course form uses this as a note. A matching URL is still saved.
+     */
+    public function toolsLaunchUrl(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new JsonResponse(array('count' => 0), 404);
+        }
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+        $url = $request->query->get('lti11_url', '');
+        if ( ! is_string($url) ) {
+            $url = '';
+        }
+        $except = (int) $request->query->get('registration_id', 0);
+        $count = Lti11CourseTool::otherLaunchUrlCount(ReqScope::currentContextId(), $url, $except);
+        return new JsonResponse(array('count' => $count));
+    }
+
+    /**
+     * Course-mounted Settings: send a test launch for one tool on this course.
+     */
+    public function toolsTest(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+        if ( $request->isMethod('POST') ) {
+            return new RedirectResponse(U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools')));
+        }
+
+        global $OUTPUT;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
+        $test_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/test'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $registrationId = (int) $request->query->get('registration_id', 0);
+        $launch = null;
+        $launch_choices = array();
+        $launch_html = '';
+        try {
+            $launch_choices = Lti11TestLaunch::choices(ReqScope::currentContextId(), $registrationId);
+            $message = $request->query->get('message', '');
+            if ( ! is_string($message) || $message === '' ) {
+                $message = (string) Lti11TestLaunch::defaultType($launch_choices);
+            }
+            $role = $request->query->get('role', '');
+            if ( ! is_string($role) ) {
+                $role = '';
+            }
+            if ( $message !== '' ) {
+                $launch = Lti11TestLaunch::launch(
+                    ReqScope::currentContextId(),
+                    $registrationId,
+                    ReqScope::loggedInUserId(),
+                    $message,
+                    $request->getUri(),
+                    $role
+                );
+            }
+        } catch ( \InvalidArgumentException $e ) {
+            U::flashError($e->getMessage());
+            return new RedirectResponse($tools_url);
+        } catch ( \Exception $e ) {
+            U::flashError(__('Could not test that tool.'));
+            return new RedirectResponse($tools_url);
+        }
+        if ( is_array($launch) && $launch['ready'] ) {
+            $launch_html = LTI::postLaunchHTML(
+                $launch['parameters'],
+                $launch['endpoint'],
+                true,
+                'width="100%" height="600" scrolling="auto" frameborder="0"',
+                false,
+                $launch['title']
+            );
+        }
+
+        $setup_tab = 'tools';
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php include __DIR__ . '/templates/Settings/tool_test.inc.php'; ?>
+            </div>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * @param string $toolsUrl
+     * @param int $registrationId
+     * @return string
+     */
+    private static function toolEditUrl($toolsUrl, $registrationId) {
+        $sep = strpos($toolsUrl, '?') === false ? '?' : '&';
+        return $toolsUrl.$sep.'registration_id='.(int) $registrationId;
+    }
+
+    /**
      * Course-mounted Settings: theme picker for the current manifest.
      */
     private function courseGet(Request $request)
@@ -1679,6 +1999,7 @@ re-check your login status.
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
         $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
         $setup_tab = 'theme';
 
         $OUTPUT->header();
@@ -1725,6 +2046,7 @@ re-check your login status.
         $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
         $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;
@@ -1821,6 +2143,7 @@ re-check your login status.
         $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
         $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;
@@ -1961,6 +2284,7 @@ re-check your login status.
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
         $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
         $download_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export/download'));
         $gate = $this->courseGate();
         if ( $gate ) {
@@ -2067,6 +2391,7 @@ function goToCanvas(anchors) {
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
         $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;
@@ -2269,6 +2594,7 @@ $(function(){
         $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
         $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
         $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;
@@ -2402,6 +2728,7 @@ $(function(){
     private function deleteCoursePost(Request $request)
     {
         $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;

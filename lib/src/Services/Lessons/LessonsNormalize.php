@@ -104,7 +104,7 @@ class LessonsNormalize {
     /** @var list<string> */
     private static $itemKeyOrder = array(
         'type', 'subtype', 'title', 'description', 'text', 'level', 'class', 'tag',
-        'href', 'url', 'href_source', 'launch', 'resource_link_id', 'quiz_id', 'page_id', 'logical_key', 'target', 'result', 'custom',
+        'href', 'url', 'href_source', 'launch', 'resource_link_id', 'registration_id', 'quiz_id', 'page_id', 'logical_key', 'target', 'send_name', 'send_email', 'result', 'custom',
         'sha256', 'filename', 'path', 'content_type', 'icon',
         'youtube', 'kaltura_id', 'media',
         'note', 'notes', 'TODO', 'todo', 'review', 'project', 'FCP', 'FCPX',
@@ -706,6 +706,15 @@ class LessonsNormalize {
         }
 
         if ( $type === self::TYPE_LTI ) {
+            if ( isset($item['registration_id']) ) {
+                $registration_id = is_numeric($item['registration_id']) ? (int) $item['registration_id'] : 0;
+                if ( $registration_id > 0 ) {
+                    $item['registration_id'] = $registration_id;
+                    self::coerceLaunchPrivacy($item);
+                    return $item;
+                }
+                unset($item['registration_id']);
+            }
             $launch = isset($item['launch']) && is_string($item['launch']) ? $item['launch'] : '';
             if ( self::isBuiltInDiscussionLaunch($launch) ) {
                 return self::canonicalizeDiscussion($item);
@@ -716,6 +725,7 @@ class LessonsNormalize {
                     $item['subtype'] = $inferred;
                 }
             }
+            self::coerceLaunchPrivacy($item);
             return $item;
         }
 
@@ -741,6 +751,21 @@ class LessonsNormalize {
         }
 
         return $item;
+    }
+
+    /**
+     * Keep an explicit privacy choice. An absent key means the launch follows the tool grant.
+     *
+     * @param array<string, mixed> $item
+     * @return void
+     */
+    private static function coerceLaunchPrivacy(array &$item) {
+        foreach ( array('send_name', 'send_email') as $key ) {
+            if ( ! array_key_exists($key, $item) ) {
+                continue;
+            }
+            $item[$key] = $item[$key] === true || $item[$key] === 1 || $item[$key] === '1';
+        }
     }
 
     /**

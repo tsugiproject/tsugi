@@ -145,6 +145,23 @@ trait DemoCourseSteps
         return $match[1];
     }
 
+    protected function waitForCourseHome(\Symfony\Component\Panther\Client $client, int $timeoutSeconds = 15): string
+    {
+        $deadline = microtime(true) + $timeoutSeconds;
+        $url = '';
+        while (microtime(true) < $deadline) {
+            $url = $client->getCurrentURL();
+            if (preg_match('#^(https?://.+?/courses/\d+)#', $url, $match)) {
+                $this->pauseAfterPageChange($client);
+                return $match[1];
+            }
+            usleep(200000);
+        }
+
+        $this->captureScreenshot($client, 'debug-course-home');
+        $this->fail('Course home URL was not found. URL: '.$url);
+    }
+
     protected function waitForPageText(\Symfony\Component\Panther\Client $client, string $expected, int $timeoutSeconds = 15): void
     {
         $deadline = microtime(true) + $timeoutSeconds;

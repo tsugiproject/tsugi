@@ -13,7 +13,9 @@ use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+use Tsugi\Core\Manifest;
 use Tsugi\Core\ReqScope;
+use Tsugi\Services\Outbound\Lti11TestLaunch;
 
 /**
  * Base class for LMS tool controllers
@@ -270,6 +272,26 @@ abstract class Tool {
             ? $lti->title
             : $fallback_resource_link_title;
 
+        $registrationId = isset($lti->registration_id) ? (int) $lti->registration_id : 0;
+        if ( $registrationId > 0 ) {
+            return self::sendCourseToolResourceLink(
+                $app,
+                $lti,
+                $registrationId,
+                $resource_link_title,
+                $launch_presentation_return_url,
+                $redirect_path_on_error
+            );
+        }
+
+        $launchUrl = \Tsugi\Services\Lessons\LessonsNormalize::launchUrlForItem($lti);
+        $builtInDiscussion = \Tsugi\Services\Lessons\LessonsNormalize::typeOf($lti) === \Tsugi\Services\Lessons\LessonsNormalize::TYPE_DISCUSSION
+            || \Tsugi\Services\Lessons\LessonsNormalize::isBuiltInDiscussionLaunch($launchUrl);
+        if ( Manifest::resolvedId() > 0 && ! $builtInDiscussion ) {
+            $app->tsugiFlashError(__('This tool is unregistered.'));
+            return new RedirectResponse($redirect_path_on_error);
+        }
+
         $key = isset($_SESSION['oauth_consumer_key']) ? $_SESSION['oauth_consumer_key'] : false;
         $secret = false;
         if ( isset($_SESSION['secret']) ) {
@@ -287,11 +309,17 @@ abstract class Tool {
             'context_label' => self::outboundContextTitle(),
             'context_title' => self::outboundContextTitle(),
             'user_id' => $_SESSION['user_key'],
-            'lis_person_name_full' => $_SESSION['displayname'],
-            'lis_person_contact_email_primary' => $_SESSION['email'],
             'roles' => 'Learner',
             'launch_presentation_return_url' => $launch_presentation_return_url,
         );
+        $sendName = ! property_exists($lti, 'send_name') || $lti->send_name;
+        $sendEmail = ! property_exists($lti, 'send_email') || $lti->send_email;
+        if ( $sendName && isset($_SESSION['displayname']) && $_SESSION['displayname'] !== '' ) {
+            $parms['lis_person_name_full'] = $_SESSION['displayname'];
+        }
+        if ( $sendEmail && isset($_SESSION['email']) && $_SESSION['email'] !== '' ) {
+            $parms['lis_person_contact_email_primary'] = $_SESSION['email'];
+        }
         if ( isset($_SESSION['avatar']) ) {
             $parms['user_image'] = $_SESSION['avatar'];
         }
@@ -327,6 +355,85 @@ abstract class Tool {
         $content = LTI::postLaunchHTML($parms, $endpoint, $debug);
         print($content);
         return '';
+    }
+
+    /**
+     * Lesson item that points at a course tool. The item is one resource link.
+     *
+     * @param Application $app
+     * @param object $lti
+     * @param int $registrationId
+     * @param string $resource_link_title
+     * @param string $launch_presentation_return_url
+     * @param string $redirect_path_on_error
+     * @return RedirectResponse|string
+     */
+    private static function sendCourseToolResourceLink(
+        Application $app,
+        $lti,
+        $registrationId,
+        $resource_link_title,
+        $launch_presentation_return_url,
+        $redirect_path_on_error
+    ) {
+        global $CFG;
+        $contextId = ReqScope::currentContextIdLegacy();
+        $userId = ReqScope::loggedInUserIdLegacy();
+        $userKey = isset($_SESSION['user_key']) ? trim((string) $_SESSION['user_key']) : '';
+        $resourceLinkId = isset($lti->resource_link_id) ? trim((string) $lti->resource_link_id) : '';
+        $sendName = property_exists($lti, 'send_name') ? (bool) $lti->send_name : null;
+        $sendEmail = property_exists($lti, 'send_email') ? (bool) $lti->send_email : null;
+        $launchUrl = \Tsugi\Services\Lessons\LessonsNormalize::launchUrlForItem($lti);
+        if ( $launchUrl !== '' ) {
+            \Tsugi\Services\Lessons\LessonsService::absolute_url_ref($launchUrl);
+        }
+        $lessonTarget = isset($lti->target) ? (string) $lti->target : '';
+        $elementId = Lti11TestLaunch::embedsInline($lessonTarget)
+            ? Lti11TestLaunch::parentFrameId($resourceLinkId)
+            : '';
+        try {
+            $launch = Lti11TestLaunch::courseResourceLink(
+                $contextId,
+                $registrationId,
+                $userId,
+                $resourceLinkId,
+                $resource_link_title,
+                $launch_presentation_return_url,
+                self::outboundLaunchRole(),
+                $userKey,
+                $sendName,
+                $sendEmail,
+                $launchUrl,
+                $lessonTarget !== '' ? $lessonTarget : 'iframe',
+                $elementId
+            );
+        } catch ( \InvalidArgumentException $ex ) {
+            $app->tsugiFlashError($ex->getMessage());
+            return new RedirectResponse($redirect_path_on_error);
+        }
+        $debug = $CFG->getExtension('launch_debug', false);
+        print(LTI::postLaunchHTML($launch['parameters'], $launch['endpoint'], $debug));
+        return '';
+    }
+
+    /**
+     * Instructor when this person teaches the current course. Otherwise Learner.
+     *
+     * @return string
+     */
+    private static function outboundLaunchRole() {
+        if ( isset($_SESSION['admin']) && $_SESSION['admin'] == 'yes' ) {
+            return 'Instructor';
+        }
+        $contextId = ReqScope::currentContextIdLegacy();
+        $userId = ReqScope::loggedInUserIdLegacy();
+        if ( $contextId && $userId ) {
+            $membership = Membership::ensureInSession($contextId, $userId);
+            if ( $membership && $membership->isInstructor() ) {
+                return 'Instructor';
+            }
+        }
+        return 'Learner';
     }
 
     /**

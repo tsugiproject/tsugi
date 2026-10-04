@@ -773,6 +773,8 @@ var filesBase = filesHomeUrl;
 var appHome = <?= json_encode($app_home ?? '') ?>;
 var quiz1HomeUrl = <?= json_encode($quiz1_home_url ?? '') ?>;
 var quiz1Quizzes = <?= json_encode($quiz1_list ?? array()) ?>;
+var ltiToolsUrl = <?= json_encode($lti_tools_url ?? '') ?>;
+var ltiTools = <?= json_encode($lti_tools ?? array()) ?>;
 var currentPageId = null;
 <?php \Tsugi\UI\CKEditor::renderLinkPickerScript(); ?>
 let courseFilesCache = null;
@@ -953,6 +955,29 @@ function collectUsedResourceLinkIds(skipModuleIndex, skipItemIndex) {
     return used;
 }
 
+function allocateLtiRlid(title, used) {
+    let slug = String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    if (!slug) {
+        slug = 'link';
+    }
+    if (slug.length > 40) {
+        slug = slug.substring(0, 40).replace(/_+$/g, '');
+    }
+    const base = 'lti_' + slug;
+    let rlid = base;
+    let n = 2;
+    while (used[rlid]) {
+        rlid = base + '_' + n;
+        n++;
+        if (n > 50) {
+            rlid = base + '_' + Math.random().toString(16).slice(2, 8);
+            break;
+        }
+    }
+    used[rlid] = true;
+    return rlid;
+}
+
 function allocateDiscussionRlid(title, used) {
     const base = discussionRlidBase(title);
     let rlid = base;
@@ -1086,6 +1111,134 @@ function quizPickerFieldsHtml(item) {
             </div>
             ${picker}
     `;
+}
+
+function ltiToolById(id) {
+    const tid = parseInt(id, 10) || 0;
+    if (!tid) {
+        return null;
+    }
+    return (ltiTools || []).find(function(t) { return t.id === tid; }) || null;
+}
+
+function ltiPickerFieldsHtml(item) {
+    const selected = parseInt(item.registration_id, 10) || 0;
+    const found = ltiToolById(selected);
+    const manage = ltiToolsUrl
+        ? `<div class="file-picker-summary"><a href="${escapeHtml(ltiToolsUrl)}" target="_blank" rel="noopener noreferrer">Manage tools</a></div>`
+        : '';
+    let missingNote = '';
+    let missingOption = '';
+    if (selected && !found) {
+        const missingLabel = escapeHtml((item.title || ('Tool ' + selected))) + ' — missing from this course';
+        missingOption = `<option value="${selected}" selected>${missingLabel}</option>`;
+        missingNote = `<p class="help-block">This lesson still points at a tool that is not in this course or does not have a resource link launch. Students do not see it. Pick another tool or delete the item.</p>`;
+    }
+    let legacy = '';
+    if (!selected && item.launch) {
+        legacy = `<p class="help-block">This link has a launch URL and is not registered. Choose a course tool to supply the key and secret. The launch URL stays.</p>`;
+    }
+    let picker;
+    if ((!ltiTools || !ltiTools.length) && !selected) {
+        picker = `<p>No LTI tools with a resource link in this course yet. <a href="${escapeHtml(ltiToolsUrl)}" target="_blank" rel="noopener noreferrer">Add a tool</a>, then come back and choose it here.</p>
+            <input type="hidden" id="edit-lti-tool" value="">
+            ${legacy}`;
+    } else {
+        const options = (ltiTools || []).map(function(tool) {
+            const label = escapeHtml(tool.title || ('Tool ' + tool.id));
+            return `<option value="${tool.id}" ${tool.id === selected && found ? 'selected' : ''}>${label}</option>`;
+        }).join('');
+        picker = `
+            <div class="form-group">
+                <label>Tool:</label>
+                <select id="edit-lti-tool" onchange="onLtiToolPicked()">
+                    <option value="">Choose a tool…</option>
+                    ${missingOption}
+                    ${options}
+                </select>
+                ${missingNote}
+                ${legacy}
+                ${manage}
+            </div>
+        `;
+    }
+    const keepLaunch = item.launch ? 'data-keep="1"' : '';
+    const openChoice = item.target === '_blank' ? '_blank'
+        : (item.target === '_self' ? '_self'
+        : (item.target === 'modal' ? 'modal' : 'iframe'));
+    const namesOn = ltiPrivacyChecked(item, 'send_name', found);
+    const emailOn = ltiPrivacyChecked(item, 'send_email', found);
+    const namesDisabled = found && !found.send_name ? 'disabled' : '';
+    const emailDisabled = found && !found.send_email ? 'disabled' : '';
+    return `
+            <div class="form-group">
+                <label>Title:</label>
+                <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}" placeholder="Defaults to the tool title">
+            </div>
+            ${picker}
+            <div class="form-group">
+                <label>Launch URL:</label>
+                <input type="text" id="edit-lti-launch" ${keepLaunch} value="${escapeHtml(item.launch || '')}" placeholder="Filled from the tool when this link has no URL yet">
+            </div>
+            <div class="form-group">
+                <label>Privacy:</label>
+                <div class="checkbox">
+                    <label><input type="checkbox" id="edit-lti-send-name" ${namesOn ? 'checked' : ''} ${namesDisabled}> Send user names to the external tool</label>
+                </div>
+                <div class="checkbox">
+                    <label><input type="checkbox" id="edit-lti-send-email" ${emailOn ? 'checked' : ''} ${emailDisabled}> Send email addresses to the external tool</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Open:</label>
+                <div class="form-group-radios">
+                    <label><input type="radio" name="edit-lti-open" value="_self" ${openChoice === '_self' ? 'checked' : ''}> Same page</label>
+                    <label><input type="radio" name="edit-lti-open" value="_blank" ${openChoice === '_blank' ? 'checked' : ''}> New page</label>
+                    <label><input type="radio" name="edit-lti-open" value="modal" ${openChoice === 'modal' ? 'checked' : ''}> Modal</label>
+                    <label><input type="radio" name="edit-lti-open" value="iframe" ${openChoice === 'iframe' ? 'checked' : ''}> Embedded inline</label>
+                </div>
+            </div>
+    `;
+}
+
+function applyLtiOpenTarget(item) {
+    const picked = document.querySelector('input[name="edit-lti-open"]:checked');
+    item.target = picked ? picked.value : 'iframe';
+}
+
+function ltiPrivacyChecked(item, key, tool) {
+    if (item[key] === true) {
+        return !(tool && !tool[key]);
+    }
+    if (item[key] === false) {
+        return false;
+    }
+    if (tool) {
+        return !!tool[key];
+    }
+    return !!(item.launch && !item.registration_id);
+}
+
+function onLtiToolPicked() {
+    const id = parseInt($('#edit-lti-tool').val(), 10);
+    const tool = ltiToolById(id);
+    const titleEl = document.getElementById('edit-title');
+    if (tool && titleEl && !titleEl.value.trim()) {
+        titleEl.value = tool.title;
+    }
+    const launchEl = document.getElementById('edit-lti-launch');
+    if (tool && launchEl && launchEl.getAttribute('data-keep') !== '1') {
+        launchEl.value = tool.launch || '';
+    }
+    [['edit-lti-send-name', 'send_name'], ['edit-lti-send-email', 'send_email']].forEach(function(pair) {
+        const el = document.getElementById(pair[0]);
+        if (!el) {
+            return;
+        }
+        const allowed = !!(tool && tool[pair[1]]);
+        el.disabled = !!(tool && !allowed);
+        el.checked = allowed;
+    });
 }
 
 function onQuizPicked() {
@@ -1900,6 +2053,22 @@ function harvestItemFormDraft(item) {
     if (quizEl && quizEl.value) {
         item.quiz_id = parseInt(quizEl.value, 10);
     }
+    const toolEl = document.getElementById('edit-lti-tool');
+    if (toolEl && toolEl.value) {
+        item.registration_id = parseInt(toolEl.value, 10);
+    }
+    const ltiOpenEl = document.querySelector('input[name="edit-lti-open"]:checked');
+    if (ltiOpenEl) {
+        item.target = ltiOpenEl.value;
+    }
+    const sendNameEl = document.getElementById('edit-lti-send-name');
+    if (sendNameEl) {
+        item.send_name = !!sendNameEl.checked;
+    }
+    const sendEmailEl = document.getElementById('edit-lti-send-email');
+    if (sendEmailEl) {
+        item.send_email = !!sendEmailEl.checked;
+    }
     const pageEl = document.getElementById('edit-page-id');
     if (pageEl && pageEl.value) {
         item.page_id = parseInt(pageEl.value, 10);
@@ -1937,7 +2106,7 @@ function showItemModal(title, item) {
                 <option value="web_link" ${type === 'web_link' ? 'selected' : ''}>Web link</option>
                 <option value="discussion" ${type === 'discussion' ? 'selected' : ''}>Discussion</option>
                 <option value="quiz" ${type === 'quiz' ? 'selected' : ''}>Quiz</option>
-                <option value="lti" ${type === 'lti' ? 'selected' : ''}>LTI</option>
+                <option value="lti" ${type === 'lti' ? 'selected' : ''}>LTI link</option>
                 <option value="file" ${type === 'file' ? 'selected' : ''}>File</option>
                 <option value="html_page" ${type === 'html_page' ? 'selected' : ''}>Page</option>
             </select>
@@ -2023,7 +2192,9 @@ function updateItemFormFields(item) {
             </div>
             `;
         } else {
-            const openTarget = item.target === '_self' ? '_self' : (item.target === 'modal' ? 'modal' : '_blank');
+            const openTarget = item.target === '_self' ? '_self'
+                : (item.target === 'modal' ? 'modal'
+                : (item.target === 'iframe' ? 'iframe' : '_blank'));
             const hrefVal = item.href || '';
             const hrefSource = item.href_source === 'course' ? 'course' : 'url';
             fieldsHtml += `
@@ -2051,6 +2222,7 @@ function updateItemFormFields(item) {
                     <label><input type="radio" name="edit-target" value="_self" ${openTarget === '_self' ? 'checked' : ''}> Same page</label>
                     <label><input type="radio" name="edit-target" value="_blank" ${openTarget === '_blank' ? 'checked' : ''}> New page</label>
                     <label><input type="radio" name="edit-target" value="modal" ${openTarget === 'modal' ? 'checked' : ''}> Modal</label>
+                    <label><input type="radio" name="edit-target" value="iframe" ${openTarget === 'iframe' ? 'checked' : ''}> Embedded inline</label>
                 </div>
             </div>
             `;
@@ -2075,45 +2247,7 @@ function updateItemFormFields(item) {
     } else if (type === 'page') {
         fieldsHtml = pagePickerFieldsHtml(item);
     } else if (type === 'lti') {
-        const customFields = item.custom || [];
-        const customFieldsHtml = customFields.map((field, index) => `
-            <div class="custom-field">
-                <input type="text" placeholder="Key" value="${escapeHtml(field.key || '')}" 
-                       class="custom-key" data-index="${index}">
-                <input type="text" placeholder="Value" value="${escapeHtml(field.value || '')}" 
-                       class="custom-value" data-index="${index}">
-                <button type="button" class="btn btn-danger" onclick="removeCustomField(${index})">Remove</button>
-            </div>
-        `).join('');
-        
-        fieldsHtml = `
-            <div class="form-group">
-                <label>Title:</label>
-                <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}">
-            </div>
-            <div class="form-group">
-                <label>Launch:</label>
-                <input type="text" id="edit-launch" value="${escapeHtml(item.launch || '')}">
-            </div>
-            <div class="form-group">
-                <label>Resource Link ID:</label>
-                <input type="text" id="edit-resource-link-id" value="${escapeHtml(item.resource_link_id || '')}">
-            </div>
-            <div class="form-group">
-                <label>Target:</label>
-                <select id="edit-target">
-                    <option value="">Default (same window)</option>
-                    <option value="_blank" ${item.target === '_blank' ? 'selected' : ''}>New Window (_blank)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Custom Parameters:</label>
-                <div id="custom-fields-container">
-                    ${customFieldsHtml}
-                </div>
-                <button type="button" class="btn btn-primary" onclick="addCustomField()">+ Add Custom Field</button>
-            </div>
-        `;
+        fieldsHtml = ltiPickerFieldsHtml(item);
     } else if (type === 'file') {
         const subtypeVal = item.subtype || '';
         filePickerState = {
@@ -2425,28 +2559,6 @@ function applyWebLinkPick(picked) {
     updateWebLinkSourceRows();
 }
 
-function addCustomField() {
-    const container = $('#custom-fields-container');
-    const index = container.find('.custom-field').length;
-    const fieldHtml = `
-        <div class="custom-field">
-            <input type="text" placeholder="Key" class="custom-key" data-index="${index}">
-            <input type="text" placeholder="Value" class="custom-value" data-index="${index}">
-            <button type="button" class="btn btn-danger" onclick="removeCustomField(${index})">Remove</button>
-        </div>
-    `;
-    container.append(fieldHtml);
-}
-
-function removeCustomField(index) {
-    $('#custom-fields-container .custom-field').eq(index).remove();
-    // Reindex remaining fields
-    $('#custom-fields-container .custom-field').each(function(i) {
-        $(this).find('.custom-key, .custom-value').attr('data-index', i);
-        $(this).find('button').attr('onclick', `removeCustomField(${i})`);
-    });
-}
-
 function saveWebLinkItem(item) {
     const subtype = $('#edit-link-subtype').val() || 'reference';
     item.title = $('#edit-title').val().trim();
@@ -2487,7 +2599,7 @@ function saveWebLinkItem(item) {
     item.type = 'web_link';
     item.subtype = subtype;
     const targetVal = $('input[name="edit-target"]:checked').val();
-    if (targetVal === '_self' || targetVal === 'modal') {
+    if (targetVal === '_self' || targetVal === 'modal' || targetVal === 'iframe') {
         item.target = targetVal;
     } else {
         item.target = '_blank';
@@ -2544,31 +2656,50 @@ function saveItem() {
         const titleVal = $('#edit-title').val().trim();
         item.title = titleVal || (selected ? selected.title : '');
     } else if (type === 'lti') {
-        const custom = [];
-        $('#custom-fields-container .custom-field').each(function() {
-            const key = $(this).find('.custom-key').val().trim();
-            const value = $(this).find('.custom-value').val().trim();
-            if (key && value) {
-                custom.push({ key: key, value: value });
-            }
-        });
+        const toolId = parseInt($('#edit-lti-tool').val(), 10) || 0;
         item.type = 'lti';
         if (item.subtype === 'discussion') {
             delete item.subtype;
         }
-        item.title = $('#edit-title').val().trim();
-        item.launch = $('#edit-launch').val().trim();
-        item.resource_link_id = $('#edit-resource-link-id').val().trim();
-        const targetVal = $('#edit-target').val().trim();
-        if (targetVal) {
-            item.target = targetVal;
-        } else {
-            delete item.target;
+        const sendNameEl = document.getElementById('edit-lti-send-name');
+        const sendEmailEl = document.getElementById('edit-lti-send-email');
+        if (sendNameEl) {
+            item.send_name = !!sendNameEl.checked;
         }
-        if (custom.length > 0) {
-            item.custom = custom;
+        if (sendEmailEl) {
+            item.send_email = !!sendEmailEl.checked;
+        }
+        if (!toolId) {
+            if (item.launch && !parseInt(item.registration_id, 10)) {
+                item.title = $('#edit-title').val().trim();
+                const launchEl = document.getElementById('edit-lti-launch');
+                if (launchEl && launchEl.value.trim()) {
+                    item.launch = launchEl.value.trim();
+                }
+                applyLtiOpenTarget(item);
+            } else {
+                alert('Pick an LTI tool from this course.');
+                return;
+            }
         } else {
-            delete item.custom;
+            const selected = ltiToolById(toolId);
+            const launchEl = document.getElementById('edit-lti-launch');
+            let launch = launchEl ? launchEl.value.trim() : String(item.launch || '').trim();
+            if (!launch && selected && selected.launch) {
+                launch = String(selected.launch).trim();
+            }
+            if (launch) {
+                item.launch = launch;
+            }
+            applyLtiOpenTarget(item);
+            item.registration_id = toolId;
+            const titleVal = $('#edit-title').val().trim();
+            item.title = titleVal || (selected ? selected.title : (item.title || ''));
+            let rlid = String(item.resource_link_id || '').trim();
+            if (!rlid) {
+                rlid = allocateLtiRlid(item.title, collectUsedResourceLinkIds(editingModuleIndex, editingItemIndex));
+            }
+            item.resource_link_id = rlid;
         }
     } else if (type === 'file') {
         if (!filePickerState.sha256 || !filePickerState.href) {
@@ -2635,6 +2766,11 @@ function saveItem() {
     if (item.type !== 'html_page') {
         delete item.page_id;
         delete item.logical_key;
+    }
+    if (item.type !== 'lti') {
+        delete item.registration_id;
+        delete item.send_name;
+        delete item.send_email;
     }
 
     if ($('#edit-item-icon').length) {
