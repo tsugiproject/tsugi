@@ -284,7 +284,10 @@ abstract class Tool {
             );
         }
 
-        if ( Manifest::resolvedId() > 0 ) {
+        $launchUrl = \Tsugi\Services\Lessons\LessonsNormalize::launchUrlForItem($lti);
+        $builtInDiscussion = \Tsugi\Services\Lessons\LessonsNormalize::typeOf($lti) === \Tsugi\Services\Lessons\LessonsNormalize::TYPE_DISCUSSION
+            || \Tsugi\Services\Lessons\LessonsNormalize::isBuiltInDiscussionLaunch($launchUrl);
+        if ( Manifest::resolvedId() > 0 && ! $builtInDiscussion ) {
             $app->tsugiFlashError(__('This tool is unregistered.'));
             return new RedirectResponse($redirect_path_on_error);
         }
