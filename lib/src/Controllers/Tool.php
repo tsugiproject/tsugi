@@ -300,11 +300,17 @@ abstract class Tool {
             'context_label' => self::outboundContextTitle(),
             'context_title' => self::outboundContextTitle(),
             'user_id' => $_SESSION['user_key'],
-            'lis_person_name_full' => $_SESSION['displayname'],
-            'lis_person_contact_email_primary' => $_SESSION['email'],
             'roles' => 'Learner',
             'launch_presentation_return_url' => $launch_presentation_return_url,
         );
+        $sendName = ! property_exists($lti, 'send_name') || $lti->send_name;
+        $sendEmail = ! property_exists($lti, 'send_email') || $lti->send_email;
+        if ( $sendName && isset($_SESSION['displayname']) && $_SESSION['displayname'] !== '' ) {
+            $parms['lis_person_name_full'] = $_SESSION['displayname'];
+        }
+        if ( $sendEmail && isset($_SESSION['email']) && $_SESSION['email'] !== '' ) {
+            $parms['lis_person_contact_email_primary'] = $_SESSION['email'];
+        }
         if ( isset($_SESSION['avatar']) ) {
             $parms['user_image'] = $_SESSION['avatar'];
         }
@@ -366,6 +372,8 @@ abstract class Tool {
         $userId = ReqScope::loggedInUserIdLegacy();
         $userKey = isset($_SESSION['user_key']) ? trim((string) $_SESSION['user_key']) : '';
         $resourceLinkId = isset($lti->resource_link_id) ? trim((string) $lti->resource_link_id) : '';
+        $sendName = property_exists($lti, 'send_name') ? (bool) $lti->send_name : null;
+        $sendEmail = property_exists($lti, 'send_email') ? (bool) $lti->send_email : null;
         try {
             $launch = Lti11TestLaunch::courseResourceLink(
                 $contextId,
@@ -375,7 +383,9 @@ abstract class Tool {
                 $resource_link_title,
                 $launch_presentation_return_url,
                 self::outboundLaunchRole(),
-                $userKey
+                $userKey,
+                $sendName,
+                $sendEmail
             );
         } catch ( \InvalidArgumentException $ex ) {
             $app->tsugiFlashError($ex->getMessage());

@@ -187,9 +187,12 @@ class Lessons extends Tool {
                     if ( ! Lti11TestLaunch::hasResourceLink($context_id, $tool['registration_id']) ) {
                         continue;
                     }
+                    $privacy = Lti11TestLaunch::privacy($context_id, $tool['registration_id']);
                     $lti_tools[] = array(
                         'id' => (int) $tool['registration_id'],
                         'title' => $tool['title'],
+                        'send_name' => $privacy['send_name'],
+                        'send_email' => $privacy['send_email'],
                     );
                 }
             }

@@ -22,6 +22,10 @@ Instructor course tests log in as the demo persona Instructor 01, grant course c
 
 **`DemoCourseTest::testInstructorDemoLoginCreatesCourse`** creates a course, turns Assignments and Discussions on in the left navigation, creates and publishes a page, places that page in a lesson, and opens it from Lessons.
 
+## Course tools
+
+**`CourseToolLaunchDebugTest::testPrivacyCheckboxesAppearInTheLaunchDebugToggle`** adds four LTI 1.1 tools on a course: names only, email only, both, and neither. Each tool's Test page opens the launch debug toggle. The parameter list includes a name or an email only when that privacy box was checked. The test does not submit the launch.
+
 ## Course controllers
 
 **`CourseControllersTest::testInstructorUsesCourseControllers`** uploads a file and checks the folder count, posts an announcement, adds a discussion, and opens the grade book, assignments, and calendar. On course delete it types the confirmation fields but does not submit. It also creates the sample quiz, publishes it, and opens view and print.
@@ -30,7 +34,7 @@ Instructor course tests log in as the demo persona Instructor 01, grant course c
 
 **`DiscussionEquivalenceTest::testThreadsMatchBetweenLessonsLaunchAndController`** adds a discussion to a lesson. Docker sets `discussion_lti_launch`, so the lessons click LTI-launches `tool/tdiscus`. A thread created there shows up in the discussions controller, a thread created in the controller shows up on the next lessons launch, and both titles are on both pages.
 
-**`CourseControllersTest::testInstructorSetsDueDateAndOpensMoreTools`** uploads a file and replaces it, then opens badges, notifications, class grades, student progress, export, and course images. It adds an LTI lesson item, saves a due date, and checks that the item appears on the calendar for that day.
+**`CourseControllersTest::testInstructorSetsDueDateAndOpensMoreTools`** uploads a file and replaces it, then opens badges, notifications, class grades, student progress, export, and course images. It adds a course LTI tool, places that tool in a lesson, saves a due date, and checks that the item appears on the calendar for that day.
 
 **`CourseControllersTest::testInstructorOpensHomeCatalogAnalyticsAndMarksAnnouncementRead`** opens the course home, the catalog, analytics for files, the grade book, and announcements, plus the import form and the map. It posts an announcement and marks it read, then checks that the previously seen count is 1.
 

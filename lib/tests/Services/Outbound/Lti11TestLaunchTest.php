@@ -128,6 +128,23 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         $this->assertArrayNotHasKey('lis_person_name_full', $launch['parameters']);
         $this->assertArrayNotHasKey('lis_person_contact_email_primary', $launch['parameters']);
         $this->assertArrayNotHasKey('launch_presentation_return_url', $launch['parameters']);
+        $asked = Lti11TestLaunch::courseResourceLink(
+            $this->id['eecs280'],
+            $registrationId,
+            $this->insertInstructor(),
+            'lti_private',
+            'Private',
+            '',
+            'Learner',
+            'lms-user-2',
+            true,
+            true
+        );
+        $this->assertArrayNotHasKey('lis_person_name_full', $asked['parameters']);
+        $this->assertArrayNotHasKey('lis_person_contact_email_primary', $asked['parameters']);
+        $privacy = Lti11TestLaunch::privacy($this->id['eecs280'], $registrationId);
+        $this->assertFalse($privacy['send_name']);
+        $this->assertFalse($privacy['send_email']);
     }
 
     public function testASharedToolCanBeTested(): void
@@ -181,6 +198,43 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         $this->assertSame('Learner', $parms['roles']);
         $this->assertSame('lms-user-1', $parms['user_id']);
         $this->assertArrayNotHasKey('resource_link_description', $parms);
+        $this->assertSame('Pat Instructor', $parms['lis_person_name_full']);
+        $this->assertSame('pat@example.test', $parms['lis_person_contact_email_primary']);
+
+        $namesOnly = Lti11TestLaunch::courseResourceLink(
+            $this->id['eecs280'],
+            $registrationId,
+            $userId,
+            'lti_week_1',
+            'Week 1 quiz',
+            'https://local.dj4e.com/tsugi/lessons/return',
+            'Learner',
+            'lms-user-1',
+            true,
+            false
+        );
+        $this->assertSame('Pat Instructor', $namesOnly['parameters']['lis_person_name_full']);
+        $this->assertArrayNotHasKey('lis_person_contact_email_primary', $namesOnly['parameters']);
+
+        $private = Lti11TestLaunch::courseResourceLink(
+            $this->id['eecs280'],
+            $registrationId,
+            $userId,
+            'lti_week_1',
+            'Week 1 quiz',
+            '',
+            'Learner',
+            'lms-user-1',
+            false,
+            false
+        );
+        $this->assertArrayNotHasKey('lis_person_name_full', $private['parameters']);
+        $this->assertArrayNotHasKey('lis_person_name_given', $private['parameters']);
+        $this->assertArrayNotHasKey('lis_person_contact_email_primary', $private['parameters']);
+
+        $privacy = Lti11TestLaunch::privacy($this->id['eecs280'], $registrationId);
+        $this->assertTrue($privacy['send_name']);
+        $this->assertTrue($privacy['send_email']);
         $stored = Lti11CourseTool::formState($this->id['eecs280'], $registrationId);
         $this->assertSame($stored['lti11_key'], $parms['oauth_consumer_key']);
         $this->assertArrayNotHasKey('lti11_secret', $parms);
@@ -195,6 +249,8 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
                     'launch' => 'https://old.example/launch',
                     'resource_link_id' => 'lti_quiz',
                     'target' => '_blank',
+                    'send_name' => true,
+                    'send_email' => 0,
                 )),
             )),
         ));
@@ -202,6 +258,8 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         $this->assertSame(12, $item['registration_id']);
         $this->assertSame('lti_quiz', $item['resource_link_id']);
         $this->assertSame('_blank', $item['target']);
+        $this->assertTrue($item['send_name']);
+        $this->assertFalse($item['send_email']);
         $this->assertArrayNotHasKey('launch', $item);
 
         $contentOnly = $this->post();

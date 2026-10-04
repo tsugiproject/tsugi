@@ -119,6 +119,24 @@ class Lti11TestLaunch {
     }
 
     /**
+     * Whether this course tool is allowed to receive names and email.
+     *
+     * @param int $contextId
+     * @param int $registrationId
+     * @return array{send_name:bool, send_email:bool}
+     */
+    public static function privacy($contextId, $registrationId) {
+        $tool = ToolRegistrationService::visibleLti11((int) $contextId, (int) $registrationId);
+        $claims = ToolDeploymentGrant::allowedClaims(ToolDeploymentService::onlyDeploymentId($tool['registration_id']));
+        return array(
+            'send_name' => in_array('name', $claims, true)
+                || in_array('given_name', $claims, true)
+                || in_array('family_name', $claims, true),
+            'send_email' => in_array('email', $claims, true),
+        );
+    }
+
+    /**
      * Resource link for a lesson item. The item is the link. The tool is the launch.
      *
      * @param int $contextId
@@ -129,9 +147,11 @@ class Lti11TestLaunch {
      * @param string $returnUrl
      * @param string $role Instructor or Learner
      * @param string $userKey Opaque user id sent to the tool. Empty uses the numeric user id.
+     * @param bool|null $sendName Null follows the tool privacy grant. False omits the name.
+     * @param bool|null $sendEmail Null follows the tool privacy grant. False omits the email.
      * @return array{endpoint:string, parameters:array<string, string>}
      */
-    public static function courseResourceLink($contextId, $registrationId, $userId, $resourceLinkId, $resourceLinkTitle, $returnUrl, $role = 'Learner', $userKey = '') {
+    public static function courseResourceLink($contextId, $registrationId, $userId, $resourceLinkId, $resourceLinkTitle, $returnUrl, $role = 'Learner', $userKey = '', $sendName = null, $sendEmail = null) {
         $tool = ToolRegistrationService::visibleLti11((int) $contextId, (int) $registrationId);
         if ( ! self::hasMessage($tool['registration_id'], 'LtiResourceLinkRequest') ) {
             throw new \InvalidArgumentException('This tool does not have a resource link launch.');
@@ -159,7 +179,9 @@ class Lti11TestLaunch {
             $resourceLinkId,
             $title,
             '',
-            $userKey
+            $userKey,
+            $sendName,
+            $sendEmail
         );
         return array(
             'endpoint' => $tool['lti11_url'],
@@ -252,9 +274,11 @@ class Lti11TestLaunch {
      * @param string|null $resourceLinkTitle
      * @param string $resourceLinkDescription
      * @param string $userKey
+     * @param bool|null $sendName
+     * @param bool|null $sendEmail
      * @return array<string, string>
      */
-    private static function resourceLinkParameters(array $tool, $contextId, $userId, $returnUrl, $wireType, $role, $resourceLinkId = null, $resourceLinkTitle = null, $resourceLinkDescription = 'Test launch', $userKey = '') {
+    private static function resourceLinkParameters(array $tool, $contextId, $userId, $returnUrl, $wireType, $role, $resourceLinkId = null, $resourceLinkTitle = null, $resourceLinkDescription = 'Test launch', $userKey = '', $sendName = null, $sendEmail = null) {
         $context = self::contextRow($contextId, (int) $tool['key_id']);
         $key = self::keyRow((int) $tool['key_id']);
         $user = self::userRow($userId, (int) $tool['key_id']);
@@ -284,16 +308,16 @@ class Lti11TestLaunch {
         if ( $key['name'] !== '' ) {
             $parms['tool_consumer_instance_name'] = $key['name'];
         }
-        if ( in_array('name', $claims, true) && $user['full'] !== '' ) {
+        if ( $sendName !== false && in_array('name', $claims, true) && $user['full'] !== '' ) {
             $parms['lis_person_name_full'] = $user['full'];
         }
-        if ( in_array('given_name', $claims, true) && $user['given'] !== '' ) {
+        if ( $sendName !== false && in_array('given_name', $claims, true) && $user['given'] !== '' ) {
             $parms['lis_person_name_given'] = $user['given'];
         }
-        if ( in_array('family_name', $claims, true) && $user['family'] !== '' ) {
+        if ( $sendName !== false && in_array('family_name', $claims, true) && $user['family'] !== '' ) {
             $parms['lis_person_name_family'] = $user['family'];
         }
-        if ( in_array('email', $claims, true) && $user['email'] !== '' ) {
+        if ( $sendEmail !== false && in_array('email', $claims, true) && $user['email'] !== '' ) {
             $parms['lis_person_contact_email_primary'] = $user['email'];
         }
         $returnUrl = trim((string) $returnUrl);

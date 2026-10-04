@@ -1163,6 +1163,10 @@ function ltiPickerFieldsHtml(item) {
         `;
     }
     const newTab = item.target === '_blank' ? 'checked' : '';
+    const namesOn = ltiPrivacyChecked(item, 'send_name', found);
+    const emailOn = ltiPrivacyChecked(item, 'send_email', found);
+    const namesDisabled = found && !found.send_name ? 'disabled' : '';
+    const emailDisabled = found && !found.send_email ? 'disabled' : '';
     return `
             <div class="form-group">
                 <label>Title:</label>
@@ -1170,9 +1174,31 @@ function ltiPickerFieldsHtml(item) {
             </div>
             ${picker}
             <div class="form-group">
+                <label>Privacy:</label>
+                <div class="checkbox">
+                    <label><input type="checkbox" id="edit-lti-send-name" ${namesOn ? 'checked' : ''} ${namesDisabled}> Send user names to the external tool</label>
+                </div>
+                <div class="checkbox">
+                    <label><input type="checkbox" id="edit-lti-send-email" ${emailOn ? 'checked' : ''} ${emailDisabled}> Send email addresses to the external tool</label>
+                </div>
+            </div>
+            <div class="form-group">
                 <label><input type="checkbox" id="edit-lti-target" ${newTab}> Open in a new tab</label>
             </div>
     `;
+}
+
+function ltiPrivacyChecked(item, key, tool) {
+    if (item[key] === true) {
+        return !(tool && !tool[key]);
+    }
+    if (item[key] === false) {
+        return false;
+    }
+    if (tool) {
+        return !!tool[key];
+    }
+    return !!(item.launch && !item.registration_id);
 }
 
 function onLtiToolPicked() {
@@ -1182,6 +1208,15 @@ function onLtiToolPicked() {
     if (tool && titleEl && !titleEl.value.trim()) {
         titleEl.value = tool.title;
     }
+    [['edit-lti-send-name', 'send_name'], ['edit-lti-send-email', 'send_email']].forEach(function(pair) {
+        const el = document.getElementById(pair[0]);
+        if (!el) {
+            return;
+        }
+        const allowed = !!(tool && tool[pair[1]]);
+        el.disabled = !!(tool && !allowed);
+        el.checked = allowed;
+    });
 }
 
 function onQuizPicked() {
@@ -2008,6 +2043,14 @@ function harvestItemFormDraft(item) {
             delete item.target;
         }
     }
+    const sendNameEl = document.getElementById('edit-lti-send-name');
+    if (sendNameEl) {
+        item.send_name = !!sendNameEl.checked;
+    }
+    const sendEmailEl = document.getElementById('edit-lti-send-email');
+    if (sendEmailEl) {
+        item.send_email = !!sendEmailEl.checked;
+    }
     const pageEl = document.getElementById('edit-page-id');
     if (pageEl && pageEl.value) {
         item.page_id = parseInt(pageEl.value, 10);
@@ -2598,6 +2641,14 @@ function saveItem() {
             delete item.subtype;
         }
         const openInNewTab = document.getElementById('edit-lti-target') && document.getElementById('edit-lti-target').checked;
+        const sendNameEl = document.getElementById('edit-lti-send-name');
+        const sendEmailEl = document.getElementById('edit-lti-send-email');
+        if (sendNameEl) {
+            item.send_name = !!sendNameEl.checked;
+        }
+        if (sendEmailEl) {
+            item.send_email = !!sendEmailEl.checked;
+        }
         if (!toolId) {
             if (item.launch && !parseInt(item.registration_id, 10)) {
                 item.title = $('#edit-title').val().trim();
@@ -2698,6 +2749,8 @@ function saveItem() {
     }
     if (item.type !== 'lti') {
         delete item.registration_id;
+        delete item.send_name;
+        delete item.send_email;
     }
 
     if ($('#edit-item-icon').length) {
