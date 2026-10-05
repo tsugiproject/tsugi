@@ -1569,7 +1569,6 @@ class LTIX {
         } else if ( U::isNotEmpty($for_user_subject) ) {
             $row['for_user_pending'] = array(
                 'subject' => $for_user_subject,
-                'legacy_user_id' => U::get($post, 'user_id'),
                 'displayname' => U::get($post, 'for_user_displayname'),
                 'email' => U::get($post, 'for_user_email'),
                 'image' => U::get($post, 'for_user_image'),
@@ -2161,22 +2160,6 @@ class LTIX {
             array(':SHA' => $subject_sha256, ':KID' => $pending['key_id']));
         $user_id = $row ? $row['user_id'] : null;
 
-        // Or attach the subject to a legacy row for the same person, so there are not two
-        if ( $user_id === null && U::isNotEmpty($pending['legacy_user_id']) ) {
-            $row = $PDOX->rowDie("SELECT user_id FROM {$p}lti_user
-                WHERE user_sha256 = :SHA AND key_id = :KID AND subject_sha256 IS NULL",
-                array(':SHA' => lti_sha256($pending['legacy_user_id']), ':KID' => $pending['key_id']));
-            if ( $row ) {
-                $PDOX->queryDie("UPDATE {$p}lti_user SET
-                    subject_key = :subject_key, subject_sha256 = :subject_sha256, updated_at = NOW()
-                    WHERE user_id = :UID",
-                    array(
-                        ':subject_key' => $pending['subject'],
-                        ':subject_sha256' => $subject_sha256,
-                        ':UID' => $row['user_id']));
-                $user_id = $row['user_id'];
-            }
-        }
 
         if ( $user_id === null ) {
             $PDOX->queryDie("INSERT INTO {$p}lti_user
