@@ -1548,6 +1548,33 @@ class LTIX {
             }
         }
 
+        // A for_user (for example, an instructor grading a student who never launched
+        // this tool) has no lti_user row yet, so create one from the claim
+        $for_user_subject = U::get($post, "for_user_subject", false);
+        if ( U::isNotEmpty($for_user_subject) && U::get($row, 'for_user_id') === null ) {
+            $sql = "INSERT INTO {$p}lti_user
+                /*PDOX pk: user_id lk: subject_sha256,key_id */
+                ( subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
+                ( :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
+                ON DUPLICATE KEY UPDATE
+                user_id=LAST_INSERT_ID(user_id), updated_at = NOW();";
+            $PDOX->queryDie($sql, array(
+                ':subject_key' => $for_user_subject,
+                ':subject_sha256' => lti_sha256($for_user_subject),
+                ':displayname' => U::get($post, 'for_user_displayname'),
+                ':email' => U::get($post, 'for_user_email'),
+                ':image' => U::get($post, 'for_user_image'),
+                ':locale' => U::get($post, 'for_user_locale'),
+                ':key_id' => $row['key_id']));
+            $row['for_user_id'] = $PDOX->lastInsertId();
+            $row['for_user_key'] = $for_user_subject;
+            $row['for_user_displayname'] = U::get($post, 'for_user_displayname');
+            $row['for_user_email'] = U::get($post, 'for_user_email');
+            $row['for_user_image'] = U::get($post, 'for_user_image');
+            $row['for_user_locale'] = U::get($post, 'for_user_locale');
+            $actions[] = "=== Inserted for_user id=".$row['for_user_id']." subject=".$for_user_subject;
+        }
+
         if ( $row['membership_id'] === null && $row['context_id'] !== null && $row['user_id'] !== null ) {
             $sql = "INSERT INTO {$p}lti_membership
                 ( context_id, user_id, role, created_at, updated_at ) VALUES
