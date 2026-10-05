@@ -1,12 +1,13 @@
+# mod_fastcgi does not pass the Authorization header to PHP. Copy it into
+# the CGI environment. SetEnvIf still applies in api/, store/, and admin/.
+# Do not use RewriteOptions InheritDown: a child RewriteEngine on would also
+# inherit "RewriteRule ^ tsugi.php" and Apache 404s those routes.
+<IfModule mod_setenvif.c>
+    SetEnvIf Authorization "(.+)" HTTP_AUTHORIZATION=$1
+</IfModule>
+
 <IfModule mod_rewrite.c>
     RewriteEngine on
-    # mod_fastcgi does not pass the Authorization header to PHP. Copy it into
-    # the CGI environment. InheritDownBefore so api/ and other child
-    # .htaccess files (which set RewriteEngine on) still receive it.
-    # PHP then reads REDIRECT_HTTP_AUTHORIZATION after the fastcgi Action redirect.
-    RewriteOptions InheritDownBefore
-    RewriteCond %{HTTP:Authorization} .+
-    RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
     # config.php has secrets; FileRouter would also map /config and /config-dist
     RewriteRule ^config(-dist)?(\.php)?(/.*)?$ - [R=404,L,NS]
     # Cookieless LTI launch for the ReqScope controller. A real file, so it
