@@ -1188,9 +1188,6 @@ function ltiItemIsPublished(item) {
     if (id && courseLinkPublished && Object.prototype.hasOwnProperty.call(courseLinkPublished, id)) {
         return !!courseLinkPublished[id];
     }
-    if (id && savedLtiResourceLinkIds[id]) {
-        return true;
-    }
     return false;
 }
 
@@ -1225,19 +1222,16 @@ function rememberSavedQuizIds() {
 }
 
 function noteLtiLinksAfterSave() {
-    const previous = savedLtiResourceLinkIds;
     (lessonsData.modules || []).forEach(function(mod) {
         (mod.items || []).forEach(function(item) {
             if (!item || item.type !== 'lti') {
                 return;
             }
             const id = String(item.resource_link_id || '').trim();
-            if (!id || previous[id]) {
+            if (!id || Object.prototype.hasOwnProperty.call(courseLinkPublished, id)) {
                 return;
             }
-            if (!Object.prototype.hasOwnProperty.call(courseLinkPublished, id)) {
-                courseLinkPublished[id] = false;
-            }
+            courseLinkPublished[id] = false;
         });
     });
     rememberSavedLtiLinks();

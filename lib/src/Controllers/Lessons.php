@@ -293,7 +293,6 @@ class Lessons extends Tool {
         if ( ! isset($lessons_data['modules']) || ! is_array($lessons_data['modules']) ) {
             return $lessons_data;
         }
-        $previous = $this->savedLtiResourceLinkIds();
         foreach ( $lessons_data['modules'] as $mi => $mod ) {
             if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
                 continue;
@@ -314,12 +313,7 @@ class Lessons extends Tool {
                     continue;
                 }
                 $title = isset($item['title']) ? (string) $item['title'] : '';
-                $this->ensureUnpublishedLtiLink(
-                    $context_id,
-                    $resource_link_id,
-                    $title,
-                    isset($previous[$resource_link_id])
-                );
+                $this->ensureLtiLink($context_id, $resource_link_id, $title);
             }
         }
         return $lessons_data;
@@ -390,19 +384,19 @@ class Lessons extends Tool {
     }
 
     /**
-     * A new lesson tool gets an unpublished link. Saving the lesson updates the
-     * link title and leaves published alone. An older item with no link stays
-     * as it is until publish is toggled.
+     * Make sure a lesson tool has a link. A new row starts unpublished, including
+     * one created for an item that had none, such as after an import. An existing
+     * link keeps its published flag. The title is updated.
      *
      * @param int $contextId
      * @param string $resourceLinkId
      * @param string $title
-     * @param bool $existedBefore This item was already in the saved lesson.
      */
-    private function ensureUnpublishedLtiLink($contextId, $resourceLinkId, $title, $existedBefore) {
+    private function ensureLtiLink($contextId, $resourceLinkId, $title) {
         global $CFG, $PDOX;
         LTIX::getConnection();
         $sha = U::lti_sha256($resourceLinkId);
+        $title = trim($title) !== '' ? trim($title) : $resourceLinkId;
         $row = $PDOX->rowDie(
             "SELECT link_id FROM {$CFG->dbprefix}lti_link
              WHERE context_id = :context_id AND link_sha256 = :link_sha256",
@@ -412,7 +406,6 @@ class Lessons extends Tool {
             )
         );
         if ( is_array($row) && isset($row['link_id']) ) {
-            $title = trim($title) !== '' ? trim($title) : $resourceLinkId;
             $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}lti_link
                  SET title = :title, deleted = 0, updated_at = NOW()
@@ -425,10 +418,6 @@ class Lessons extends Tool {
             );
             return;
         }
-        if ( $existedBefore ) {
-            return;
-        }
-        $title = trim($title) !== '' ? trim($title) : $resourceLinkId;
         $PDOX->queryDie(
             "INSERT INTO {$CFG->dbprefix}lti_link
                 (link_key, link_sha256, title, context_id, published, created_at, updated_at)
