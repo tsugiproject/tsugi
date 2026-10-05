@@ -518,8 +518,6 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->get($courseHome.'/assignments/manage-due-dates');
         $this->waitForPageText($client, 'Manage due dates');
         $this->waitForPageText($client, $itemTitle);
-        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Add missing link rows')]"))->click();
-        $this->waitForPageText($client, 'Added link rows.');
 
         $dueDate = date('Y-m-d');
         $driver->executeScript(
