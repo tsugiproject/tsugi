@@ -170,6 +170,7 @@ class Lessons extends Tool {
                         'id' => (int) $quiz->id,
                         'title' => $quiz->title,
                         'question_count' => (int) $quiz->question_count,
+                        'published' => (int) $quiz->published === 1,
                     );
                 }
             }
@@ -189,6 +190,7 @@ class Lessons extends Tool {
             $lti_tools_url = '';
         }
         $course_resource_link_ids = self::courseResourceLinkIds(ReqScope::currentContextId());
+        $course_link_published = self::courseLinkPublished(ReqScope::currentContextId());
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
@@ -241,6 +243,185 @@ class Lessons extends Tool {
             }
         }
         return $ids;
+    }
+
+    /**
+     * link_key => whether that link is published. Used by the lesson editor.
+     *
+     * @param int $contextId
+     * @return array<string, bool>
+     */
+    private static function courseLinkPublished($contextId) {
+        global $CFG, $PDOX;
+        $contextId = (int) $contextId;
+        if ( $contextId < 1 ) {
+            return array();
+        }
+        LTIX::getConnection();
+        $rows = $PDOX->allRowsDie(
+            "SELECT link_key, published FROM {$CFG->dbprefix}lti_link WHERE context_id = :context_id",
+            array(':context_id' => $contextId)
+        );
+        $flags = array();
+        if ( ! is_array($rows) ) {
+            return $flags;
+        }
+        foreach ( $rows as $row ) {
+            if ( ! is_array($row) || ! isset($row['link_key']) || ! is_string($row['link_key']) ) {
+                continue;
+            }
+            $key = trim($row['link_key']);
+            if ( $key !== '' ) {
+                $flags[$key] = ((int) $row['published']) === 1;
+            }
+        }
+        return $flags;
+    }
+
+    /**
+     * Write publish onto the quiz or lesson-tool link, then drop it from the document.
+     *
+     * The column is the copy lessons and the quiz editor share. A new lesson tool
+     * gets a link on this save. An older tool with no link stays as it is until
+     * the teacher unpublishes it.
+     *
+     * @param array<string, mixed> $lessons_data
+     * @param int $context_id
+     * @return array<string, mixed>
+     */
+    private function applyPublication(array $lessons_data, $context_id) {
+        if ( ! isset($lessons_data['modules']) || ! is_array($lessons_data['modules']) ) {
+            return $lessons_data;
+        }
+        $previous = $this->savedLtiResourceLinkIds();
+        foreach ( $lessons_data['modules'] as $mi => $mod ) {
+            if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
+                continue;
+            }
+            foreach ( $mod['items'] as $ii => $item ) {
+                if ( ! is_array($item) || ! array_key_exists('published', $item) ) {
+                    continue;
+                }
+                $want = (bool) $item['published'];
+                unset($lessons_data['modules'][$mi]['items'][$ii]['published']);
+                $type = isset($item['type']) ? (string) $item['type'] : '';
+                if ( $type === 'quiz' ) {
+                    $quiz_id = isset($item['quiz_id']) ? (int) $item['quiz_id'] : 0;
+                    if ( $quiz_id < 1 ) {
+                        continue;
+                    }
+                    if ( $want ) {
+                        Quiz1Repository::publish($quiz_id, $context_id);
+                    } else if ( Quiz1Repository::ensureLink($quiz_id, $context_id) ) {
+                        Quiz1Repository::unpublish($quiz_id, $context_id);
+                    }
+                    continue;
+                }
+                if ( $type !== 'lti' ) {
+                    continue;
+                }
+                $resource_link_id = isset($item['resource_link_id']) ? trim((string) $item['resource_link_id']) : '';
+                if ( $resource_link_id === '' ) {
+                    continue;
+                }
+                $title = isset($item['title']) ? (string) $item['title'] : '';
+                $this->syncLtiPublication(
+                    $context_id,
+                    $resource_link_id,
+                    $title,
+                    $want,
+                    isset($previous[$resource_link_id])
+                );
+            }
+        }
+        return $lessons_data;
+    }
+
+    /**
+     * Resource link ids already stored in the saved lesson document.
+     *
+     * @return array<string, bool>
+     */
+    private function savedLtiResourceLinkIds() {
+        $doc = Manifest::currentDocument();
+        $ids = array();
+        if ( ! is_array($doc) || ! isset($doc['json']) || ! is_string($doc['json']) ) {
+            return $ids;
+        }
+        $data = json_decode($doc['json'], true);
+        if ( ! is_array($data) || ! isset($data['modules']) || ! is_array($data['modules']) ) {
+            return $ids;
+        }
+        foreach ( $data['modules'] as $mod ) {
+            if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
+                continue;
+            }
+            foreach ( $mod['items'] as $item ) {
+                if ( ! is_array($item) || ! isset($item['type']) || (string) $item['type'] !== 'lti' ) {
+                    continue;
+                }
+                $id = isset($item['resource_link_id']) ? trim((string) $item['resource_link_id']) : '';
+                if ( $id !== '' ) {
+                    $ids[$id] = true;
+                }
+            }
+        }
+        return $ids;
+    }
+
+    /**
+     * Create or update the lesson tool's link. Publish only changes the flag.
+     *
+     * @param int $contextId
+     * @param string $resourceLinkId
+     * @param string $title
+     * @param bool $published
+     * @param bool $existedBefore This item was already in the saved lesson.
+     */
+    private function syncLtiPublication($contextId, $resourceLinkId, $title, $published, $existedBefore) {
+        global $CFG, $PDOX;
+        LTIX::getConnection();
+        $sha = U::lti_sha256($resourceLinkId);
+        $row = $PDOX->rowDie(
+            "SELECT link_id FROM {$CFG->dbprefix}lti_link
+             WHERE context_id = :context_id AND link_sha256 = :link_sha256",
+            array(
+                ':context_id' => (int) $contextId,
+                ':link_sha256' => $sha,
+            )
+        );
+        $flag = $published ? 1 : 0;
+        $title = trim($title) !== '' ? trim($title) : $resourceLinkId;
+        if ( is_array($row) && isset($row['link_id']) ) {
+            $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}lti_link
+                 SET published = :published, title = :title, deleted = 0, updated_at = NOW()
+                 WHERE link_id = :link_id AND context_id = :context_id",
+                array(
+                    ':published' => $flag,
+                    ':title' => $title,
+                    ':link_id' => (int) $row['link_id'],
+                    ':context_id' => (int) $contextId,
+                )
+            );
+            return;
+        }
+        if ( $existedBefore && $published ) {
+            return;
+        }
+        $PDOX->queryDie(
+            "INSERT INTO {$CFG->dbprefix}lti_link
+                (link_key, link_sha256, title, context_id, published, created_at, updated_at)
+             VALUES
+                (:link_key, :link_sha256, :title, :context_id, :published, NOW(), NOW())",
+            array(
+                ':link_key' => $resourceLinkId,
+                ':link_sha256' => $sha,
+                ':title' => $title,
+                ':context_id' => (int) $contextId,
+                ':published' => $flag,
+            )
+        );
     }
 
     /**
@@ -415,6 +596,7 @@ class Lessons extends Tool {
             return $err;
         }
 
+        $lessons_data = $this->applyPublication($lessons_data, $context_id);
         $lessons_data = \Tsugi\Services\Lessons\LessonsNormalize::normalizeDocument($lessons_data);
         $lessons_data['lessons_json_version'] = \Tsugi\Services\Lessons\LessonsNormalize::FORMAT_VERSION;
 
@@ -452,6 +634,10 @@ class Lessons extends Tool {
         if ( ! $lti ) {
             $app->tsugiFlashError(__('Cannot find lti resource link id'));
             return new RedirectResponse($redirect_path);
+        }
+        if ( $l->resourceLinkPublished($anchor) === false && ! $l->lessonsViewerIsInstructor() ) {
+            $app->tsugiFlashError(__('This tool is not published.'));
+            return new RedirectResponse(U::addSession($toolHome));
         }
 
         $module = $l->getModuleByRlid($anchor);
@@ -1197,6 +1383,10 @@ $(function(){
                 echo('<ul class="tsugi-lessons-module-ltis-ul"> <!-- start of ltis -->'."\n");
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
+                    $legacy_rlid = isset($lti->resource_link_id) ? $lti->resource_link_id : '';
+                    if ( ! self::viewerMaySeePublishedLink($lessons, $legacy_rlid) ) {
+                        continue;
+                    }
                     echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">'.htmlentities($resource_link_title).' ('.__('Login Required').') <br/>'."\n");
                     echo("\n</li>\n");
                 }
@@ -1214,6 +1404,13 @@ $(function(){
                 $count = 0;
                 foreach($ltis as $lti ) {
                     $resource_link_title = isset($lti->title) ? $lti->title : $module->title;
+                    $legacy_rlid = isset($lti->resource_link_id) ? $lti->resource_link_id : '';
+                    if ( ! self::viewerMaySeePublishedLink($lessons, $legacy_rlid) ) {
+                        continue;
+                    }
+                    if ( $lessons->resourceLinkPublished($legacy_rlid) === false ) {
+                        $resource_link_title .= ' ('.__('unpublished').')';
+                    }
 
                     if ( self::ltiItemIsUnregistered($lti) ) {
                         echo('<li class="tsugi-lessons-module-lti tsugi-lessons-lti-unregistered">');
@@ -1238,6 +1435,9 @@ $(function(){
 
                     $launch_path = $lessons->lessonsLaunchPath($lti->resource_link_id);
                     $title = isset($lti->title) ? $lti->title : "Autograder";
+                    if ( $lessons->resourceLinkPublished($legacy_rlid) === false ) {
+                        $title .= ' ('.__('unpublished').')';
+                    }
                     $target = isset($lti->target) ? $lti->target : false;
 
                     echo('<li class="tsugi-lessons-module-lti"><a');
@@ -2418,6 +2618,21 @@ $(function(){
     }
 
     /**
+     * Students do not see an unpublished link. Instructors do.
+     * No link row means an older item, which stays visible.
+     *
+     * @param LessonsService $lessons
+     * @param mixed $resource_link_id
+     * @return bool
+     */
+    private static function viewerMaySeePublishedLink($lessons, $resource_link_id) {
+        if ( $lessons->resourceLinkPublished($resource_link_id) !== false ) {
+            return true;
+        }
+        return $lessons->lessonsViewerIsInstructor();
+    }
+
+    /**
      * Render an LTI item
      */
     private static function renderItemLti($lessons, $item, $module, $nostyle=false) {
@@ -2428,11 +2643,17 @@ $(function(){
         $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : '';
         $target = isset($item->target) ? $item->target : false;
         $tool_deployment_id = self::lessonDeploymentId($item);
+        if ( ! self::viewerMaySeePublishedLink($lessons, $resource_link_id) ) {
+            return;
+        }
+        $unpublished_suffix = $lessons->resourceLinkPublished($resource_link_id) === false
+            ? ' ('.__('unpublished').')'
+            : '';
         if ( self::ltiItemIsUnregistered($item) ) {
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti tsugi-lessons-lti-unregistered">');
             echo('<span style="display: inline-flex; align-items: center;">');
             self::renderItemIcon(LessonsNormalize::iconKey($item));
-            echo(htmlentities($resource_link_title).' ('.__('not provisioned').')');
+            echo(htmlentities($resource_link_title.$unpublished_suffix).' ('.__('not provisioned').')');
             echo('</span></li>'."\n");
             return;
         }
@@ -2443,7 +2664,7 @@ $(function(){
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti tsugi-lessons-lti-missing">');
             echo('<span style="display: inline-flex; align-items: center;">');
             self::renderItemIcon(LessonsNormalize::iconKey($item));
-            echo(htmlentities($resource_link_title).' ('.__('Tool not found').')');
+            echo(htmlentities($resource_link_title.$unpublished_suffix).' ('.__('Tool not found').')');
             echo('</span></li>'."\n");
             return;
         }
@@ -2467,7 +2688,7 @@ $(function(){
                 echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">');
                 echo('<span style="display: inline-flex; align-items: center;">');
                 self::renderItemIcon(LessonsNormalize::iconKey($item));
-                echo(htmlentities($resource_link_title).' (Login Required)');
+                echo(htmlentities($resource_link_title.$unpublished_suffix).' (Login Required)');
                 echo('</span><br/>'."\n");
                 if ( $tool_deployment_id > 0 ) {
                     $ltiurl = $lessons->lessonsLaunchPath($resource_link_id);
@@ -2480,7 +2701,7 @@ $(function(){
             }
             
             $launch_path = $lessons->lessonsLaunchPath($resource_link_id);
-            $title = isset($item->title) ? $item->title : "Autograder";
+            $title = (isset($item->title) ? $item->title : "Autograder").$unpublished_suffix;
             
             $rl_dom_id = LessonsService::domIdForResourceLink($resource_link_id);
             echo('<li class="tsugi-lessons-module-lti" id="'.htmlspecialchars($rl_dom_id, ENT_QUOTES, 'UTF-8').'">');

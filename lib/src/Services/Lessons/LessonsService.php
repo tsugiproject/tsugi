@@ -68,6 +68,13 @@ class LessonsService {
     private $lessonsViewerIsInstructor = null;
 
     /**
+     * link_key => published. Null until loaded. A missing key means there is no link row.
+     *
+     * @var array<string,bool>|null
+     */
+    private $linkPublished = null;
+
+    /**
      * Grades and due dates for progress badges while one module is rendered.
      * The lessons controller sets this before item HTML reads it.
      *
@@ -1330,6 +1337,58 @@ class LessonsService {
             }
         }
         return $this->lessonsViewerIsInstructor;
+    }
+
+    /**
+     * True or false when this course has a link for that resource link id.
+     * Null means there is no row yet, so an older lesson item stays visible.
+     *
+     * @param mixed $resource_link_id
+     * @return bool|null
+     */
+    public function resourceLinkPublished($resource_link_id) {
+        $this->loadLinkPublication();
+        $key = trim((string) $resource_link_id);
+        if ( $key === '' || ! array_key_exists($key, $this->linkPublished) ) {
+            return null;
+        }
+        return $this->linkPublished[$key];
+    }
+
+    private function loadLinkPublication() {
+        global $CFG, $PDOX;
+        if ( $this->linkPublished !== null ) {
+            return;
+        }
+        $this->linkPublished = array();
+        $context_id = ReqScope::currentContextIdLegacy();
+        if ( $context_id < 1 ) {
+            return;
+        }
+        try {
+            LTIX::getConnection();
+            $rows = $PDOX->allRowsDie(
+                "SELECT link_key, published
+                 FROM {$CFG->dbprefix}lti_link
+                 WHERE context_id = :context_id",
+                array(':context_id' => $context_id)
+            );
+        } catch ( \Exception $e ) {
+            return;
+        }
+        if ( ! is_array($rows) ) {
+            return;
+        }
+        foreach ( $rows as $row ) {
+            if ( ! is_array($row) || ! isset($row['link_key']) || ! is_string($row['link_key']) ) {
+                continue;
+            }
+            $key = trim($row['link_key']);
+            if ( $key === '' ) {
+                continue;
+            }
+            $this->linkPublished[$key] = ((int) $row['published']) === 1;
+        }
     }
 
 }

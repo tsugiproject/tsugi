@@ -183,7 +183,7 @@ class Quiz1 extends Tool {
                                 <?php else: ?>
                                     <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/publish') ?>" style="display:inline;">
                                         <?= self::csrfField() ?>
-                                        <button type="submit" class="btn btn-xs btn-default"><?= htmlspecialchars($quiz->link_id ? __('Publish again') : __('Publish')) ?></button>
+                                        <button type="submit" class="btn btn-xs btn-default"><?= htmlspecialchars(__('Publish')) ?></button>
                                     </form>
                                 <?php endif; ?>
                                 <?= self::interchangeButtons($home, $quiz->id, true) ?>
@@ -1258,7 +1258,7 @@ class Quiz1 extends Tool {
                     <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/publish') ?>" style="display:inline;">
                         <?= self::csrfField() ?>
                         <input type="hidden" name="next" value="edit">
-                        <button type="submit" class="btn btn-default"><?= htmlspecialchars($quiz->link_id ? __('Publish again') : __('Publish')) ?></button>
+                        <button type="submit" class="btn btn-default"><?= htmlspecialchars(__('Publish')) ?></button>
                     </form>
                     <?php endif; ?>
                     <?= self::interchangeButtons($home, $quiz->id, false) ?>

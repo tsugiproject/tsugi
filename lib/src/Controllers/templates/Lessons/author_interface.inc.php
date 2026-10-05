@@ -777,6 +777,7 @@ var quiz1Quizzes = <?= json_encode($quiz1_list ?? array()) ?>;
 var ltiToolsUrl = <?= json_encode($lti_tools_url ?? '') ?>;
 var ltiTools = <?= json_encode($lti_tools ?? array()) ?>;
 var courseResourceLinkIds = <?= json_encode($course_resource_link_ids ?? array()) ?>;
+var courseLinkPublished = <?= json_encode($course_link_published ?? array(), JSON_FORCE_OBJECT) ?>;
 var currentPageId = null;
 <?php \Tsugi\UI\CKEditor::renderLinkPickerScript(); ?>
 let courseFilesCache = null;
@@ -1161,6 +1162,40 @@ function quizPickerFieldsHtml(item) {
                 <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}" placeholder="Defaults to the quiz title">
             </div>
             ${picker}
+            ${publishedFieldsHtml(quizItemIsPublished(item))}
+    `;
+}
+
+function quizItemIsPublished(item) {
+    if (item && typeof item.published === 'boolean') {
+        return item.published;
+    }
+    const quiz = quiz1ById(item && item.quiz_id);
+    return !!(quiz && quiz.published);
+}
+
+function ltiItemIsPublished(item) {
+    if (item && typeof item.published === 'boolean') {
+        return item.published;
+    }
+    const id = item && item.resource_link_id ? String(item.resource_link_id) : '';
+    if (id && courseLinkPublished && Object.prototype.hasOwnProperty.call(courseLinkPublished, id)) {
+        return !!courseLinkPublished[id];
+    }
+    if (id) {
+        return true;
+    }
+    return false;
+}
+
+function publishedFieldsHtml(on) {
+    return `
+            <div class="form-group">
+                <div class="checkbox">
+                    <label><input type="checkbox" id="edit-published" ${on ? 'checked' : ''}> Published</label>
+                </div>
+                <p class="help-block">Students can see and launch this when it is published.</p>
+            </div>
     `;
 }
 
@@ -1215,9 +1250,9 @@ function ltiPickerFieldsHtml(item) {
         `;
     }
     const keepLaunch = item.launch ? 'data-keep="1"' : '';
-    const openChoice = item.target === '_blank' ? '_blank'
-        : (item.target === '_self' ? '_self'
-        : (item.target === 'modal' ? 'modal' : 'iframe'));
+    const openChoice = item.target === '_self' ? '_self'
+        : (item.target === 'modal' ? 'modal'
+        : (item.target === 'iframe' ? 'iframe' : '_blank'));
     const namesOn = ltiPrivacyChecked(item, 'send_name', found);
     const emailOn = ltiPrivacyChecked(item, 'send_email', found);
     const gradeAllowed = !!(found && found.send_grade);
@@ -1226,6 +1261,7 @@ function ltiPickerFieldsHtml(item) {
     const emailDisabled = found && !found.send_email ? 'disabled' : '';
     const gradeDisabled = gradeAllowed ? '' : 'disabled';
     const gradeNote = gradeAllowed ? '' : '<p class="help-block">This deployment is not allowed to return grades.</p>';
+    const published = publishedFieldsHtml(ltiItemIsPublished(item));
     return `
             <div class="form-group">
                 <label>Title:</label>
@@ -1256,6 +1292,7 @@ function ltiPickerFieldsHtml(item) {
                 </div>
                 ${gradeNote}
             </div>
+            ${published}
             <div class="form-group">
                 <label>Open:</label>
                 <div class="form-group-radios">
@@ -1270,7 +1307,7 @@ function ltiPickerFieldsHtml(item) {
 
 function applyLtiOpenTarget(item) {
     const picked = document.querySelector('input[name="edit-lti-open"]:checked');
-    item.target = picked ? picked.value : 'iframe';
+    item.target = picked ? picked.value : '_blank';
 }
 
 function ltiPrivacyChecked(item, key, tool) {
@@ -2849,6 +2886,12 @@ function saveItem() {
         delete item.send_name;
         delete item.send_email;
         delete item.send_grade;
+    }
+    const publishedEl = document.getElementById('edit-published');
+    if (item.type === 'lti' || item.type === 'quiz') {
+        item.published = !!(publishedEl && publishedEl.checked);
+    } else {
+        delete item.published;
     }
 
     if ($('#edit-item-icon').length) {

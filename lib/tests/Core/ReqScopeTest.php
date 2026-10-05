@@ -390,6 +390,9 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
             $quiz->user_id = $ids['user_id'];
             $quiz->title = 'Request context quiz';
             $quiz_id = Quiz1Repository::insertQuiz($quiz);
+            $created = Quiz1Repository::load($quiz_id, $ids['context_id']);
+            $this->assertGreaterThan(0, (int) $created->link_id);
+            $this->assertSame(0, (int) $created->published);
 
             $session = $_SESSION;
             $rc = ReqScope::fromInternalActivity($ids['user_id'], $ids['context_id'], null);
