@@ -4,6 +4,16 @@
 
 This folder is the Tsugi you are editing. A sibling clone often exists at `/Users/csev/htdocs/tsugi`. **Do not use that tree** unless it is the Cursor workspace. PHP admin scripts must `require` via `__DIR__` so `php admin/upgrade.php` cannot pick up `dj4e/config.php` and jump to `htdocs/tsugi`. See `.cursor/rules/this-checkout-only.mdc`.
 
+## Manifest course waiver (expires 2026-11-16)
+
+This waiver is temporary. Before 2026-11-16, a manifest saved before `lti_content` may break. Treat manifest courses as fresh courses created after this change. Do not spend effort migrating old lesson JSON, old `lti_link` rows, or courses that already have a manifest. If the user says a manifest course can break, accept that until the reminder window below.
+
+Starting 2026-11-02, the waiver is close to expiring. On the first reply in a conversation that touches lessons, manifests, LTI content, or course settings, say this even if the user just said manifest courses can break: CodeRabbit's waiver expires 2026-11-16, and after that it will flag existing manifest courses that regress. Ask whether to extend the date or let it expire. Say it once per conversation, then continue the work.
+
+On or after 2026-11-16 the waiver is expired. Do not keep treating an existing manifest as disposable, and do not move the date yourself. Tell the user the waiver expired and ask whether manifest courses are now production before changing that behavior. Delete this section once that decision is made.
+
+File-based lessons (`$CFG->lessons`, no `manifest_id`) are outside this waiver. Those launches must keep working.
+
 ## Project Structure & Module Organization
 - Root entry points live in `index.php` and `admin/` for the administration console UI. `/login` and `/logout` (and the legacy `login.php` / `logout.php` URLs) are Login/Logout controllers via `tsugi.php`.
 - Core feature areas are organized by domain: `api/` (HTTP endpoints), `lti/` (LTI launch and flow), `mod/` (optional modules), `tool/` (in-tree tools shipped with this repo), `store/` (tool store), `util/` (shared helpers), and `locale/` (translations).

@@ -22,6 +22,27 @@ reviews:
     - "!**/qa/screenshots/**"
 
   path_instructions:
+    - path: "**/*"
+      instructions: |
+        Two lesson stores. Review them separately.
+
+        File-based lessons ($CFG->lessons, a context with no manifest_id) must not regress.
+        Those items launch with the incoming consumer key and secret, and inherit stays on the launch URL.
+        They have no content_id, they are not authored, and they never reach course settings or External Links.
+        Do not require lti_content, a deployment, or a grade column on that path.
+        Flag a change that alters file-backed render or launch.
+
+        Manifest-course waiver, expires 2026-11-16. The file-based rule above does not expire.
+        From 2026-11-02 through 2026-11-15, say in the review summary that this waiver expires 2026-11-16 and that existing manifest regressions will be findings after that.
+        Before 2026-11-16, review a manifest course as a fresh course created after this change.
+        A manifest saved before lti_content may break. Do not file findings about migrating old lesson JSON, old lti_link rows, or courses that already have a manifest.
+        On or after 2026-11-16 this waiver is expired. Do not keep applying it and do not extend the date yourself.
+        Say in the review that the waiver expired and that an existing manifest is production data unless a human has written a new date into this file.
+        New lesson LTI items provision onto lti_content. An imported LTI item stays unprovisioned until a deployment is chosen.
+
+        lti_content belongs in $DATABASE_INSTALL. Upgrade creates a table that is in the install list and missing from the database.
+        Do not ask for a $DATABASE_UPGRADE block only because the table is new.
+
     - path: "composer.json"
       instructions: |
         Tsugi commits vendor/ to git; production does not run Composer.

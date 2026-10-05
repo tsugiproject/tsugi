@@ -1,0 +1,14 @@
+---
+description: Temporary waiver for existing manifest courses. Remind the user as 2026-11-16 gets close.
+alwaysApply: true
+---
+
+# Manifest course waiver
+
+Until 2026-11-16, an existing manifest course may break. A file-based lessons course (`$CFG->lessons`, no `manifest_id`) may not.
+
+From 2026-11-02 on, the first time a conversation touches lessons, manifests, LTI content, or course settings, tell the user even if they just said manifest courses can break:
+
+CodeRabbit's waiver expires 2026-11-16. After that it will flag existing manifest courses that regress. Extend the date, or let it expire?
+
+Say that once in the conversation, then keep working. On or after 2026-11-16 the waiver is over. Do not move the date yourself. Ask whether manifest courses are now production, and delete this rule and the matching section in `AGENTS.md` and `.coderabbit.yaml` once the user decides.
