@@ -1,0 +1,222 @@
+<?php
+// In the top frame, we use cookies for session.
+
+use \Tsugi\Util\U;
+use \Tsugi\UI\CrudForm;
+use \Tsugi\Core\LTIX;
+use \Tsugi\Core\ReqScope;
+
+\Tsugi\Core\LTIX::getConnection();
+
+header('Content-Type: text/html; charset=utf-8');
+
+if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) {
+    die('Must be admin');
+}
+
+$from_location = LTIX::curPageUrlFolder();
+$tablename = "{$CFG->dbprefix}lti_key";
+$fields = array('key_title', 'key_key', 'key_sha256', 'secret',
+    'lms_issuer', 'lms_issuer_sha256',
+    'lms_client',
+    'deploy_key', 'deploy_sha256',
+    'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
+    'xapi_url', 'xapi_user', 'xapi_password',
+    'caliper_url', 'caliper_key',
+    'created_at', 'updated_at',
+    'user_id',
+);
+
+$titles = array(
+    'key_key' => 'LTI 1.1: OAuth Consumer Key',
+    'secret' => 'LTI 1.1: OAuth Consumer Secret',
+
+    'lms_issuer' => 'LTI 1.3 Platform Issuer URL',
+    'deploy_key' => 'LTI 1.3: Deployment ID (This is only a default, the tool will accept any value from the LMS)',
+    'unlock_code' => 'LTI 1.3: Single-use unlock code to LTI Dynamic Registration',
+	'lms_client' => 'LTI 1.3 Platform Client ID - usually a GUID',
+	'lms_oidc_auth' => 'LTI 1.3 Platform OIDC Login / Authorization Endpoint URL',
+	'lms_keyset_url' => 'LTI 1.3 Platform KeySet URL',
+	'lms_token_url' => 'LTI 1.3 Platform Token URL',
+	'lms_token_audience' => 'LTI 1.3 Platform Audience (optional)',
+);
+
+if ( count($_POST) > 0 ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect('key-add') ) return;
+}
+
+if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = null;
+if ( isset($_POST['user_id']) && empty($_POST['user_id']) && ReqScope::isLoggedInLegacy() ) $_POST['user_id'] = ReqScope::loggedInUserIdLegacy();
+
+// Check the complex interaction of constraints
+$key_key = U::get($_POST,'key_key');
+$deploy_key = U::get($_POST,'deploy_key');
+if ( count($_POST) > 0 ) {
+    $key_title = U::get($_POST,'key_title');
+    if ( !is_string($key_title) || empty($key_title) ) {
+        U::flashError('Key title is required');
+        header("Location: key-add");
+        return;
+    }
+}
+
+if ( isset($_POST['doSave']) && isset($_POST['deploy_key']) ) {
+    $_POST['deploy_key'] = \Tsugi\Services\Admin\AdminService::normalize_deploy_key_input($_POST['deploy_key']);
+}
+
+if ( isset($_POST['doSave']) && count($_POST) > 0 ) {
+    $deploy_key = U::get($_POST, 'deploy_key');
+    $lms_issuer = U::get($_POST, 'lms_issuer');
+    $lms_client = U::get($_POST, 'lms_client');
+    if ( ! \Tsugi\Services\Admin\AdminService::validate_key_details($key_key, $deploy_key, $lms_issuer, null, null, $lms_client) ) {
+        header("Location: key-add");
+        return;
+    }
+}
+
+$retval = CrudForm::handleInsert($tablename, $fields);
+if ( $retval == CrudForm::CRUD_SUCCESS || $retval == CrudForm::CRUD_FAIL ) {
+    header("Location: $from_location");
+    return;
+}
+
+$OUTPUT->header();
+$OUTPUT->bodyStart();
+$OUTPUT->topNav();
+$OUTPUT->flashMessages();
+
+?>
+<h1>Adding Tsugi Tenant/Key
+<a class="btn btn-default" href="<?= LTIX::curPageUrlFolder() ?>">Exit</a>
+</h1>
+<ul class="nav nav-tabs">
+  <li class="active"><a href="#data" data-toggle="tab" aria-expanded="true">Key Data</a></li>
+  <li class=""><a href="#info" data-toggle="tab" aria-expanded="true">About Keys</a></li>
+  <li class=""><a href="#dynamic" data-toggle="tab" aria-expanded="true">Brightspace / Sakai / Moodle</a></li>
+  <li class=""><a href="#blackboard" data-toggle="tab" aria-expanded="true">Blackboard</a></li>
+  <li class=""><a href="#canvas" data-toggle="tab" aria-expanded="true">Canvas</a></li>
+</ul>
+<div id="myTabContent" class="tab-content" style="margin-top:10px;">
+<div class="tab-pane fade active in" id="data">
+<p>
+Sometimes you need to give the LMS the Tsugi URLs to make a new security arrangement
+<b>before</b> they can give you the Platform values to put into either a global issuer
+or this form. Tsugi solves this with a concept called "Draft Keys" where you can create a key
+with minimal information and then edit it later (perhaps by dynamic registration) to fill in the
+remaining details. For LTI 1.3, you can leave <b>LTI 1.3 Deployment Id</b> blank so the key accepts any value from the LMS; launches then
+match on issuer and client id only. Set a specific value when you want this tenant to accept only
+that deployment. Dynamic registration can still fill in or change deployment later.
+</p>
+<p>
+See "About Keys" tab for detail on how to create a <b>draft</b> key.
+</p>
+<?php
+
+CrudForm::insertForm($fields, $from_location, $titles);
+
+?>
+</p>
+</div>
+<div class="tab-pane fade" id="info">
+<h2>Tenant Key Options</h2>
+<p>
+A single entry in this table defines a "distinct tenant" in Tsugi.
+Data in Tsugi is isolated to a tenant.  For a key to work it must have at least one of
+<ul>
+<li>An LTI 1.1 <b>oauth_consumer_key</b> that must be unique in this system and
+a <b>secret</b>
+<li>For an LMS that supports LTI 1.3 and Dynamic Registration, enter the <b>issuer</b> and <b>unlock_key</b>
+and leave the other fields blank. Optionally set <b>deployment_id</b> if you want this tenant to match only that deployment.
+If you do not know the <b>deployment_id</b> or it will be set automatically later using Dynamic Registration, leave
+<b>Deployment Id</b> blank to accept any value from the LMS, or enter a placeholder that you edit after registration.
+</li>
+<li>For an LTI 1.3 LMS that does not support Dynamic Registration, you will need to fill in all the fields (except <b>unlock_code</b>).
+Sometimes LMS's create a chicken-and-egg problem where they want the URLs from the tool before they give you some of their values.
+Get as many of the values as you can get, and fill them in while adding the key, then give the LMS the values from Tsugi and they
+should be able to give you the rest of the values and you can come back and edit the entry here.
+</li>
+</ul>
+Some tenants can have both LTI 1.1 and LTI 1.3 values if you want to have automatic conversion of accounts
+created in Tsugi using LTI 1.1 and letting them be converted to support LTI 1.3 without creating a second account.
+</p>
+<h2>LTI 1.3 Dynamic Registration</h2>
+<p>
+If you are planning on using the
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">LTI Dynamic Registration</a>
+or you need to provide the LMS tool
+configuration information before they can provide you the values needed on this page,
+you can create a <b>draft</b> key here with just a title and then view the key detail page
+to see instructions to perform the configuration process.  Launches to draft keys will fail.
+</p>
+<p>
+You can create a <i>draft</i> key by entering a title and nothing else and saving
+it. You can then view all the URLs for this security arrangement and send that to the LMS
+administrators - and then they will give you the URLs generated by their system.
+Then you can come back to this screen and edit the data to enter all of the Platform / LMS
+field values to finish setup and have a launchable key.
+</p>
+<h2>LTI 1.1 to LTI 1.3 Migration</h2>
+<p>
+To receive both LTI 1.1 and LTI 1.3 launches to this "tenant", simply set all four fields.
+If you are adding LTI 1.3 to a pre-existing LTI 1.1 tenant, the LMS must
+support
+LTI Advantage legacy LTI 1.1 support as described in the
+<a href="http://www.imsglobal.org/spec/lti/v1p3/migr#lti-1-1-migration-claim" target="_blank">
+Learning Tools® Interoperability Migration Guide - Migration Claim
+</a>.   The LMS must sign the claim using both the LTI 1.1 and LTI 1.3 security data.
+The migration claim is not required - but if it is present, Tsugi will insist that it is properly
+signed or it will reject the launch.
+</p>
+</div>
+<div class="tab-pane fade" id="dynamic">
+<h2>LTI 1.3</h2>
+<p>
+Congratulations! Your LMS supports
+<a href="https://www.imsglobal.org/spec/lti-dr/v1p0" target="_blank">LTI Dynamic Registration</a>.
+This standard greatly simplifies the process of creating and configuring a security relationship between
+Tsugi and an LMS.
+Create a <b>draft</b> key in Tsugi by entering the <b>title</b> and <b>issuer</b>.  Leave the rest of the fields blank
+and then save the key.  Then immediately view the key to get details on how to run dynamic configuration
+on each LMS.
+</p>
+<p>
+The issuer for all three systems is the base URL of the system as deployed with no slash at the end:
+<pre>
+https://d2l.msu.edu
+https://sakai.dayton.edu
+https://modules.lancaster.ac.uk
+</pre>
+If you are using a test server the issuer is still the base url of the server:
+<pre>
+https://lrngexps.brightspacedemo.com
+https://qa22-mysql.nightly.sakaiproject.org
+https://dev1.sakaicloud.com
+</pre>
+<h2>LTI 1.1</h2>
+<p>
+Create a Tenant key with the LTI key and secret. Then come back here and view the key to
+see the various URLs you can use to install Tsugi in your LMS.
+</p>
+
+</div>
+<div class="tab-pane fade" id="canvas">
+<?php require_once $CFG->dirroot . '/admin/key/canvas-detail.php'; ?>
+</div>
+<div class="tab-pane fade" id="blackboard">
+<?php
+require_once $CFG->dirroot . '/admin/key/blackboard-detail.php';
+?>
+<p>
+Blackboard LTI 1.3 / Advantage setup depends on your Learn version and admin UI; use your Blackboard documentation for developer keys, placements, and deployments. After you create a key here, open its detail page and use the <b>Manual Configuration</b> tab for URLs to register at the LMS.
+</p>
+<h2>LTI 1.1</h2>
+<p>
+Create a Tenant key with the LTI key and secret.  Then come back here and view the key
+to see the various URLs you can use to install Tsugi in Blackboard.
+</p>
+</div>
+</div>
+<?php
+$OUTPUT->footerStart();
+$OUTPUT->footerEnd();
+

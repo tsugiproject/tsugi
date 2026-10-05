@@ -22,7 +22,6 @@ if (!function_exists('gmp_init') && !function_exists('bcadd')) {
     // Web: show error page
     define('COOKIE_SESSION', true);
     require_once dirname(__DIR__) . '/config.php';
-    require_once $CFG->dirroot . '/admin/admin_util.php';
     $OUTPUT->header();
     $OUTPUT->bodyStart();
     $OUTPUT->topNav();
@@ -37,7 +36,6 @@ require_once dirname(__DIR__) . '/config.php';
 use \Tsugi\Util\Ob3DataIntegrity;
 
 if (!$is_cli) {
-    require_once $CFG->dirroot . '/admin/admin_util.php';
     $OUTPUT->header();
     $OUTPUT->bodyStart();
     $OUTPUT->topNav();

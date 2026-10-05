@@ -24,11 +24,6 @@ namespace {
     /**
      * @return bool
      */
-    function isAdmin(): bool
-    {
-        return false;
-    }
-
     /**
      * @return bool
      */

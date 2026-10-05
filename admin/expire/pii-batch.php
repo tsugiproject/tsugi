@@ -4,7 +4,6 @@ use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 
 require_once("../../config.php");
-require_once("expire_util.php");
 
 if ( ! U::isCli() ) die('Must be command line');
 
@@ -13,12 +12,12 @@ if ( ! isset($CFG->expire_pii_days) ) {
 }
 
 $days = $CFG->expire_pii_days;
-$check = sanity_check_days('PII', $days);
+$check = \Tsugi\Services\Admin\AdminService::sanity_check_days('PII', $days);
 if ( is_string($check) ) die($check."\n");
 
 LTIX::getConnection();
 
-$count = get_pii_count($days);
+$count = \Tsugi\Services\Admin\AdminService::get_pii_count($days);
 if ( $count < 1 ) {
     echo("No records to expire\n");
     return;
@@ -26,7 +25,7 @@ if ( $count < 1 ) {
 
 $dryrun = ! ( isset($argv[1]) && $argv[1] == 'remove');
 
-$where = get_pii_where($days);
+$where = \Tsugi\Services\Admin\AdminService::get_pii_where($days);
 $sql = "UPDATE {$CFG->dbprefix}lti_user
     SET displayname=NULL, email=NULL " . $where['sql'];
 $params = $where['params'];

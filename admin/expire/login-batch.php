@@ -4,7 +4,6 @@ use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 
 require_once("../../config.php");
-require_once("expire_util.php");
 
 if ( ! U::isCli() ) die('Must be command line');
 
@@ -22,7 +21,7 @@ if ( $base == 'user' ) {
 } else if ( $base == 'tenant' ) {
     $table = 'lti_key';
     $limit = 1;
-    $where = " AND ".get_safe_key_where().' ';
+    $where = " AND ".\Tsugi\Services\Admin\AdminService::get_safe_key_where().' ';
 } else {
     die('Invalid data value');
 }
@@ -35,12 +34,12 @@ if ( ! isset($CFG->{$cfg}) ) {
 }
 $days = $CFG->{$cfg} + 0;
 
-$check = sanity_check_days('PII', $days);
+$check = \Tsugi\Services\Admin\AdminService::sanity_check_days('PII', $days);
 if ( is_string($check) ) die($check."\n");
 
 LTIX::getConnection();
 
-$count = get_expirable_records($table, $days);
+$count = \Tsugi\Services\Admin\AdminService::get_expirable_records($table, $days);
 if ( $count < 1 ) {
     echo("No records to expire\n");
     return;
@@ -50,7 +49,7 @@ if ( $count < 1 ) {
 if ( !is_numeric($limit) || $limit < 1 ) die('Invalid limit value');
 $limit = (int)$limit;
 
-$where_data = get_expirable_where($days);
+$where_data = \Tsugi\Services\Admin\AdminService::get_expirable_where($days);
 $sql = "DELETE FROM {$CFG->dbprefix}{$table}\n".
     $where_data['sql']."\n".$where.
     "ORDER BY login_at LIMIT " . $limit;

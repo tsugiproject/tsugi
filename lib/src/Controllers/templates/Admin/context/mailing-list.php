@@ -1,0 +1,274 @@
+<?php
+// In the top frame, we use cookies for session.
+
+use \Tsugi\Core\LTIX;
+use \Tsugi\Core\ReqScope;
+use \Tsugi\Util\U;
+
+\Tsugi\Core\LTIX::getConnection();
+
+header('Content-Type: text/html; charset=utf-8');
+
+if ( ! isset($_REQUEST['context_id']) ) {
+    U::flashError("No context_id provided");
+    header('Location: '.LTIX::curPageUrlFolder());
+    return;
+}
+
+if ( ! is_numeric($_REQUEST['context_id']) ) {
+    U::flashError("Invalid context_id");
+    header('Location: '.LTIX::curPageUrlFolder());
+    return;
+}
+
+$context_id = $_REQUEST['context_id'] + 0;
+
+// Handle form submission - POST-Redirect-GET pattern
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['days']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect('mailing-list.php?context_id='.$context_id) ) return;
+    $days = $_POST['days'] + 0;
+    if ( !is_numeric($_POST['days']) || $days < 1 || $days > 365 ) {
+        U::flashError("Days must be between 1 and 365");
+        header('Location: mailing-list.php?context_id='.$context_id);
+        return;
+    }
+    $include_opted_out = isset($_POST['include_opted_out']) ? 1 : 0;
+    $premium_only = isset($_POST['premium_only']) ? 1 : 0;
+    // Redirect to GET to avoid resubmission
+    header('Location: mailing-list.php?context_id='.$context_id.'&days='.$days
+        .'&include_opted_out='.$include_opted_out.'&premium_only='.$premium_only);
+    return;
+}
+
+// Handle GET parameters
+$days = null;
+$include_opted_out = false;
+$premium_only = false;
+if ( isset($_REQUEST['days']) && is_numeric($_REQUEST['days']) ) {
+    $days = $_REQUEST['days'] + 0;
+    if ( $days < 1 || $days > 365 ) {
+        U::flashError("Days must be between 1 and 365");
+        $days = null;
+    }
+}
+if ( isset($_REQUEST['include_opted_out']) && $_REQUEST['include_opted_out'] == '1' ) {
+    $include_opted_out = true;
+}
+if ( isset($_REQUEST['premium_only']) && $_REQUEST['premium_only'] == '1' ) {
+    $premium_only = true;
+}
+
+// Check if user is site admin OR instructor/admin for this context
+$is_context_admin = false;
+if ( \Tsugi\Services\Admin\AdminService::isAdmin() ) {
+    $is_context_admin = true;
+} else if ( ReqScope::isLoggedInLegacy() ) {
+    $effective_uid = ReqScope::loggedInUserIdLegacy();
+    // Check if user is instructor/admin for this context
+    $membership = $PDOX->rowDie(
+        "SELECT role FROM {$CFG->dbprefix}lti_membership 
+         WHERE context_id = :CID AND user_id = :UID",
+        array(':CID' => $context_id, ':UID' => $effective_uid)
+    );
+    if ( $membership && isset($membership['role']) ) {
+        $role = $membership['role'] + 0;
+        // ROLE_INSTRUCTOR = 1000, ROLE_ADMINISTRATOR = 5000
+        if ( $role >= LTIX::ROLE_INSTRUCTOR ) {
+            $is_context_admin = true;
+        }
+    }
+    // Also check if user owns the context or its key
+    if ( ! $is_context_admin ) {
+        $context_check = $PDOX->rowDie(
+            "SELECT context_id FROM {$CFG->dbprefix}lti_context
+             WHERE context_id = :CID AND (
+                 key_id IN (SELECT key_id FROM {$CFG->dbprefix}lti_key WHERE user_id = :UID)
+                 OR user_id = :UID
+             )",
+            array(':CID' => $context_id, ':UID' => $effective_uid)
+        );
+        if ( $context_check ) {
+            $is_context_admin = true;
+        }
+    }
+}
+
+if ( ! $is_context_admin ) {
+    U::flashError("You must be an administrator or instructor for this context");
+    \Tsugi\Controllers\Login::setReturnUrl(LTIX::curPageUrlFolder());
+    header('Location: '.\Tsugi\Controllers\Login::loginUrl());
+    return;
+}
+
+// Get context title
+$context_row = $PDOX->rowDie(
+    "SELECT title FROM {$CFG->dbprefix}lti_context WHERE context_id = :CID",
+    array(':CID' => $context_id)
+);
+$context_title = $context_row ? $context_row['title'] : "Context #$context_id";
+
+// Query for users only if days is provided
+$rows = array();
+if ( $days !== null ) {
+    $rows = \Tsugi\Services\Admin\AdminService::mail_context_audience($context_id, $days, $include_opted_out, $premium_only);
+}
+
+$OUTPUT->header();
+$OUTPUT->bodyStart();
+$OUTPUT->topNav();
+$OUTPUT->flashMessages();
+?>
+
+<h2>Mailing List for: <?= htmlentities($context_title) ?></h2>
+<p>
+  <a href="membership?context_id=<?= htmlentities($context_id) ?>" class="btn btn-default">Back to Membership</a>
+<?php if ( \Tsugi\Services\Admin\AdminService::isAdmin() ) { ?>
+  <a href="bulk-mail.php?context_id=<?= htmlentities($context_id) ?>" class="btn btn-primary">Bulk mail</a>
+<?php } ?>
+</p>
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Generate Mailing List</h3>
+  </div>
+  <div class="panel-body">
+    <p>Generate a mailing list of users who have logged in within a specified number of days.</p>
+    <form method="post" action="mailing-list.php">
+      <?= \Tsugi\Controllers\Tool::csrfField() ?>
+      <input type="hidden" name="context_id" value="<?= htmlentities($context_id) ?>">
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label for="days">Users who logged in within the last:</label>
+        <input type="number" class="form-control" id="days" name="days" value="<?= htmlentities($days !== null ? $days : 30) ?>" min="1" max="365" style="width: 80px; margin: 0 10px; display: inline-block;">
+        <label for="days">days</label>
+      </div>
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>
+          <input type="checkbox" name="include_opted_out" value="1" <?= $include_opted_out ? 'checked' : '' ?>>
+          Include all users including those that have opted out of all email
+        </label>
+      </div>
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>
+          <input type="checkbox" name="premium_only" value="1" <?= $premium_only ? 'checked' : '' ?>>
+          Supporters / premium users only
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary">Generate Mailing List</button>
+    </form>
+  </div>
+</div>
+
+<?php if ( $days !== null ): ?>
+  <p>Users who logged in within the last <?= htmlentities($days) ?> days<?= $include_opted_out ? '' : ' (excluding users who opted out of email)' ?><?= $premium_only ? ' — supporters / premium only' : '' ?></p>
+  
+  <?php if ( count($rows) == 0 ): ?>
+  <div class="alert alert-info">
+    <p>No users found matching the criteria.</p>
+  </div>
+<?php else: 
+  // Build emails array once
+  $emails = array();
+  foreach ( $rows as $row ) {
+      if ( !empty($row['email']) ) {
+          $emails[] = trim($row['email']);
+      }
+  }
+?>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title" style="display: inline-block;">Comma-separated list (<?= count($rows) ?> total)</h3>
+      <button type="button" class="btn btn-sm btn-default" onclick="toggleSection('comma-list-body', this)" style="margin-left: 10px;">Hide</button>
+    </div>
+    <div class="panel-body" id="comma-list-body">
+      <textarea class="form-control" rows="5" readonly style="font-family: monospace;"><?php
+        echo htmlentities(implode(', ', $emails));
+      ?></textarea>
+    </div>
+  </div>
+  
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title" style="display: inline-block;">Semicolon-separated list (<?= count($rows) ?> total)</h3>
+      <button type="button" class="btn btn-sm btn-default" onclick="toggleSection('semicolon-list-body', this)" style="margin-left: 10px;">Show</button>
+    </div>
+    <div class="panel-body" id="semicolon-list-body" style="display: none;">
+      <textarea class="form-control" rows="5" readonly style="font-family: monospace;"><?php
+        echo htmlentities(implode('; ', $emails));
+      ?></textarea>
+    </div>
+  </div>
+  
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title" style="display: inline-block;">One per line (<?= count($rows) ?> total)</h3>
+      <button type="button" class="btn btn-sm btn-default" onclick="toggleSection('line-list-body', this)" style="margin-left: 10px;">Show</button>
+    </div>
+    <div class="panel-body" id="line-list-body" style="display: none;">
+      <textarea class="form-control" rows="10" readonly style="font-family: monospace;"><?php
+        echo htmlentities(implode("\n", $emails));
+      ?></textarea>
+    </div>
+  </div>
+  
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title" style="display: inline-block;">Detailed List</h3>
+      <button type="button" class="btn btn-sm btn-default" onclick="toggleSection('detailed-list-body', this)" style="margin-left: 10px;">Show</button>
+    </div>
+    <div class="panel-body" id="detailed-list-body" style="display: none;">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Display Name</th>
+            <th>Premium</th>
+            <th>Last Login</th>
+            <th>Days Since Login</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php 
+          $now = new DateTime();
+          foreach ( $rows as $row ): 
+            $days_since_login = 'N/A';
+            if ( $row['login_at'] ) {
+              try {
+                $login_date = new DateTime($row['login_at']);
+                $diff = $now->diff($login_date);
+                $days_since_login = $diff->days;
+              } catch (Exception $e) {
+                $days_since_login = 'N/A';
+              }
+            }
+          ?>
+            <tr>
+              <td><?= htmlentities($row['email']) ?></td>
+              <td><?= htmlentities($row['displayname'] ? $row['displayname'] : 'N/A') ?></td>
+              <td><?= (int) U::get($row, 'premium', 0) > 0 ? 'yes' : 'no' ?></td>
+              <td><?= htmlentities($row['login_at'] ? $row['login_at'] : 'Never') ?></td>
+              <td><?= htmlentities($days_since_login) ?></td>
+            </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<?php endif; ?>
+<?php endif; ?>
+
+<script>
+function toggleSection(sectionId, button) {
+    var section = document.getElementById(sectionId);
+    if (section.style.display === 'none' || section.style.display === '') {
+        section.style.display = 'block';
+        button.textContent = 'Hide';
+    } else {
+        section.style.display = 'none';
+        button.textContent = 'Show';
+    }
+}
+</script>
+
+<?php
+$OUTPUT->footer();
+?>

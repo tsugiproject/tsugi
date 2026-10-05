@@ -13,6 +13,10 @@
     # Cookieless LTI launch for the ReqScope controller. A real file, so it
     # does not enter tsugi.php (which would select a cookie session).
     RewriteRule ^reqscope/launch/?$ tool/reqscope/launch.php [L,QSA]
+    # Admin is a controller. Subfolders such as admin/key/ are real directories
+    # (shared libraries), so this has to run before the "skip real directories" rule.
+    RewriteRule ^admin/route\.php$ - [L]
+    RewriteRule ^admin(?:/|$) admin/route.php [L,QSA]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} !=/favicon.ico

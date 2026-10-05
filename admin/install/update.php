@@ -3,24 +3,23 @@
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 
-if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
-require_once("../../config.php");
-require_once("../admin_util.php");
-require_once("install_util.php");
+/**
+ * Web and shell entry for pulling installed modules.
+ * The admin controller calls this after the passphrase gate.
+ * `php admin/install/update.php` calls it from the shell.
+ */
+function tsugi_admin_install_update_run() {
+    global $CFG, $PDOX, $OUTPUT;
 
-if ( ! U::isCli() ) {
-    \Tsugi\Core\Admin::session_start();
-    require_once __DIR__ . "/../gate.php";
-    if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
+    if ( ! U::isCli() ) {
+        // https://stackoverflow.com/questions/3133209/how-to-flush-output-after-each-echo-call
+        @ini_set('zlib.output_compression',0);
+        @ini_set('implicit_flush',1);
+        @ob_end_clean();
+        set_time_limit(0);
+    }
 
-    // https://stackoverflow.com/questions/3133209/how-to-flush-output-after-each-echo-call
-    @ini_set('zlib.output_compression',0);
-    @ini_set('implicit_flush',1);
-    @ob_end_clean();
-    set_time_limit(0);
-}
-
-LTIX::getConnection();
+    LTIX::getConnection();
 
 
 if ( ! U::isCli() ) {
@@ -83,13 +82,13 @@ foreach($tools as $tool) {
         }
 
         echo("doClone: $remote $parent\n");
-        doClone($remote, $path);
+        \Tsugi\Services\Admin\AdminService::doClone($remote, $path);
         continue;
     }
 
     try {
         $repo = new \Tsugi\Util\GitRepo($path);
-        $origin = getRepoOrigin($repo);
+        $origin = \Tsugi\Services\Admin\AdminService::getRepoOrigin($repo);
     } catch (Exception $e) {
         echo("\n**** ERROR\n".$e->getMessage()."\n");
         continue;
@@ -106,7 +105,7 @@ foreach($tools as $tool) {
     echo(htmlentities($pull_output));
 
     // After pull, map stale "master" (or empty) to the repo's real default (often main).
-    $gitversion = resolveGitCheckout($repo, $configured_version);
+    $gitversion = \Tsugi\Services\Admin\AdminService::resolveGitCheckout($repo, $configured_version);
     if ( $gitversion !== $configured_version && U::strlen($configured_version) > 0 ) {
         echo("Resolved: ".htmlentities($configured_version)." -> ".htmlentities($gitversion)."\n");
     }
@@ -133,14 +132,23 @@ foreach($tools as $tool) {
     }
 
     $detail = new \stdClass();
-    addRepoInfo($detail, $repo);
+    \Tsugi\Services\Admin\AdminService::addRepoInfo($detail, $repo);
     print_r($detail);
 
-    updateToolStatus($path, $detail);
+    \Tsugi\Services\Admin\AdminService::updateToolStatus($path, $detail);
 
 }
 
 
 if( ! U::isCli() ) {
     echo("\n</body>\n</html>\n");
+}
+}
+
+if ( PHP_SAPI === 'cli'
+    && isset($_SERVER['SCRIPT_FILENAME'])
+    && realpath($_SERVER['SCRIPT_FILENAME']) === realpath(__FILE__) ) {
+    if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
+    require_once __DIR__ . '/../../config.php';
+    tsugi_admin_install_update_run();
 }

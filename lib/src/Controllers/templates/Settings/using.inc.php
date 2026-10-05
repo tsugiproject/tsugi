@@ -4,7 +4,7 @@
  *
  * Expected: $CFG
  */
-$tools = findAllRegistrations();
+$tools = \Tsugi\Services\Admin\AdminService::findAllRegistrations();
 ?>
 <h1>Using Your Key</h1>
 <p>

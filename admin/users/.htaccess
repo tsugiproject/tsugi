@@ -1,11 +1,3 @@
-<IfModule mod_rewrite.c>
-    RewriteEngine on
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} !=/favicon.ico
-    RewriteRule ^ route.php [L]
-</IfModule>
-
-<IfModule !mod_rewrite.c>
-    FallbackResource route.php
-</IfModule>
+# Shared libraries live here. Send the URL to the admin controller.
+RewriteEngine on
+RewriteRule ^ ../route.php [L,QSA]

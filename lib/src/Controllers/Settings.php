@@ -875,7 +875,6 @@ can visit the administrator dashboard.
             return $gate;
         }
 
-        require_once self::tsugiRoot() . '/admin/context/mail_audience.php';
 
         header('Content-Type: text/html; charset=utf-8');
 
@@ -938,7 +937,7 @@ can visit the administrator dashboard.
 
         $rows = array();
         if ( $days !== null ) {
-            $rows = mail_context_audience($context_id, $days, $include_opted_out, $premium_only);
+            $rows = \Tsugi\Services\Admin\AdminService::mail_context_audience($context_id, $days, $include_opted_out, $premium_only);
         }
 
         $membership_url = $this->pageUrl('context/membership').'?context_id='.$context_id;
@@ -1206,7 +1205,6 @@ you will need to request a key and have it approved.
             return $gate;
         }
 
-        require_once self::tsugiRoot() . '/admin/key/key-util.php';
 
         header('Content-Type: text/html; charset=utf-8');
 
@@ -1245,7 +1243,7 @@ you will need to request a key and have it approved.
         }
 
         if ( isset($_POST['deploy_key']) ) {
-            $_POST['deploy_key'] = normalize_deploy_key_input($_POST['deploy_key']);
+            $_POST['deploy_key'] = \Tsugi\Services\Admin\AdminService::normalize_deploy_key_input($_POST['deploy_key']);
         }
 
         $row = CrudForm::handleUpdate($tablename, $fields, $where_clause,
@@ -1545,7 +1543,6 @@ connect to Google Classroom and install tools.
             return $gate;
         }
 
-        require_once self::tsugiRoot() . '/admin/admin_util.php';
 
         header('Content-Type: text/html; charset=utf-8');
 
@@ -1596,7 +1593,6 @@ connect to Google Classroom and install tools.
             return $keys;
         }
 
-        require_once self::tsugiRoot() . '/admin/admin_util.php';
 
         header('Content-Type: text/html; charset=utf-8');
 

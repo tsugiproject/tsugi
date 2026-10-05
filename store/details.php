@@ -6,7 +6,6 @@ use \Tsugi\Core\LTIX;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
-require_once "../admin/admin_util.php";
 
 LTIX::session_start();
 
@@ -178,7 +177,7 @@ body .bx-wrapper .bx-pager.bx-default-pager a {
 <?php
 
 LTIX::getConnection();
-$registrations = findAllRegistrations(false, true);
+$registrations = \Tsugi\Services\Admin\AdminService::findAllRegistrations(false, true);
 // echo("<pre>\n");var_dump($registrations);echo("</pre>");die();
 if ( count($registrations) < 1 ) $registrations = false;
 
