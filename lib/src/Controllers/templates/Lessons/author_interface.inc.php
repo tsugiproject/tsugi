@@ -1752,6 +1752,10 @@ function onLtiToolPicked() {
         const launchEl = document.getElementById('edit-lti-launch');
         const keptLaunch = launchEl ? launchEl.value.trim() : '';
         placeLtiContent(function(content) {
+            harvestItemFormDraft(item);
+            if ($('#edit-item-icon').length) {
+                applyPickedIcon(item, '#edit-item-icon');
+            }
             item.type = 'lti';
             item.content_id = content.id;
             delete item.tool_deployment_id;
