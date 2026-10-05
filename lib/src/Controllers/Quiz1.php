@@ -135,6 +135,7 @@ class Quiz1 extends Tool {
         $OUTPUT->flashMessages();
         ?>
         <main class="container" role="main" id="main-content">
+            <?= self::quizIconStyles() ?>
             <h1><?= htmlspecialchars(__('Quizzes')) ?>
                 <span class="pull-right">
                     <a href="<?= htmlspecialchars($home.'/add') ?>" class="btn btn-primary"><?= htmlspecialchars(__('New Quiz')) ?></a>
@@ -161,7 +162,7 @@ class Quiz1 extends Tool {
                         <tr>
                             <td><?= htmlspecialchars($quiz->title) ?></td>
                             <td><?= (int) $quiz->question_count ?></td>
-                            <td class="text-right">
+                            <td class="text-right" style="white-space:nowrap;">
                                 <div class="btn-group" style="display:inline-block;">
                                     <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         <?= htmlspecialchars(__('Open')) ?> <span class="caret"></span>
@@ -174,22 +175,12 @@ class Quiz1 extends Tool {
                                         <li><a href="<?= htmlspecialchars($home.'/'.$quiz->id.'/view?print=yes') ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars(__('Print')) ?></a></li>
                                     </ul>
                                 </div>
-                                <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/edit') ?>"<?= self::publishedEditConfirm($quiz->published) ?>><?= htmlspecialchars(__('Edit')) ?></a>
-                                <?php if ( $quiz->link_id && (int) $quiz->published === 1 ): ?>
-                                    <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/unpublish') ?>" style="display:inline;">
-                                        <?= self::csrfField() ?>
-                                        <button type="submit" class="btn btn-xs btn-default"><?= htmlspecialchars(__('Unpublish')) ?></button>
-                                    </form>
-                                <?php else: ?>
-                                    <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/publish') ?>" style="display:inline;">
-                                        <?= self::csrfField() ?>
-                                        <button type="submit" class="btn btn-xs btn-default"><?= htmlspecialchars($quiz->link_id ? __('Publish again') : __('Publish')) ?></button>
-                                    </form>
-                                <?php endif; ?>
                                 <?= self::interchangeButtons($home, $quiz->id, true) ?>
+                                <?= self::publishIconButton($home, $quiz) ?>
+                                <?= self::editIconLink($home.'/'.$quiz->id.'/edit', $quiz->published) ?>
                                 <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/delete') ?>" style="display:inline;" onsubmit="return confirm(<?= htmlspecialchars(json_encode(__('Delete this quiz and all of its questions?')), ENT_QUOTES) ?>);">
                                     <?= self::csrfField() ?>
-                                    <button type="submit" class="btn btn-xs btn-danger"><?= htmlspecialchars(__('Delete')) ?></button>
+                                    <?= self::deleteIconButton() ?>
                                 </form>
                             </td>
                         </tr>
@@ -862,6 +853,48 @@ class Quiz1 extends Tool {
         return ' onclick="return confirm('.htmlspecialchars(json_encode($message), ENT_QUOTES).');"';
     }
 
+    private static function quizIconStyles() {
+        return '<style>'
+            .'.quiz-icon-btn{padding:4px 8px;min-width:30px;line-height:1.2;}'
+            .'.quiz-icon-btn .fa{font-size:14px;}'
+            .'.quiz-icon-btn .publish-on{color:#0b874b;}'
+            .'.quiz-icon-btn .publish-off{color:#8d959f;}'
+            .'</style>';
+    }
+
+    /**
+     * Grey ban when unpublished, green check when published. Posts the existing publish route.
+     *
+     * @param string $home
+     * @param object $quiz
+     * @param string $next
+     */
+    private static function publishIconButton($home, $quiz, $next = '') {
+        $on = $quiz->link_id && (int) $quiz->published === 1;
+        $action = htmlspecialchars($home.'/'.$quiz->id.'/'.($on ? 'unpublish' : 'publish'));
+        $label = htmlspecialchars($on ? __('Published. Click to unpublish.') : __('Unpublished. Click to publish.'));
+        $icon = $on ? 'fa-check-circle publish-on' : 'fa-ban publish-off';
+        $next_field = $next !== '' ? '<input type="hidden" name="next" value="'.htmlspecialchars($next).'">' : '';
+        return '<form method="post" action="'.$action.'" style="display:inline;">'
+            .self::csrfField()
+            .$next_field
+            .'<button type="submit" class="btn btn-xs btn-default quiz-icon-btn" title="'.$label.'" aria-label="'.$label.'">'
+            .'<i class="fa '.$icon.'" aria-hidden="true"></i></button></form>';
+    }
+
+    private static function editIconLink($href, $published) {
+        $label = htmlspecialchars(__('Edit'));
+        return '<a class="btn btn-xs btn-default quiz-icon-btn" href="'.htmlspecialchars($href).'" title="'.$label.'" aria-label="'.$label.'"'
+            .self::publishedEditConfirm($published).'>'
+            .'<i class="fa fa-pencil" aria-hidden="true"></i></a>';
+    }
+
+    private static function deleteIconButton() {
+        $label = htmlspecialchars(__('Delete'));
+        return '<button type="submit" class="btn btn-xs btn-default quiz-icon-btn" title="'.$label.'" aria-label="'.$label.'">'
+            .'<i class="fa fa-trash" aria-hidden="true"></i></button>';
+    }
+
     /**
      * Import / export menus available on every quiz.
      */
@@ -1241,6 +1274,7 @@ class Quiz1 extends Tool {
         $OUTPUT->flashMessages();
         ?>
         <main class="container" role="main" id="main-content">
+            <?= self::quizIconStyles() ?>
             <p><a href="<?= htmlspecialchars($home) ?>">&larr; <?= htmlspecialchars(__('All quizzes')) ?></a></p>
             <h1><?= htmlspecialchars(__('Edit Quiz')) ?>
                 <span class="pull-right">
@@ -1248,19 +1282,7 @@ class Quiz1 extends Tool {
                     <a class="btn btn-primary" href="<?= htmlspecialchars($home.'/link/'.$quiz->link_id) ?>"><?= htmlspecialchars(__('Take quiz')) ?></a>
                     <?php endif; ?>
                     <a class="btn btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/view') ?>"><?= htmlspecialchars(__('View quiz')) ?></a>
-                    <?php if ( $quiz->link_id && (int) $quiz->published === 1 ): ?>
-                    <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/unpublish') ?>" style="display:inline;">
-                        <?= self::csrfField() ?>
-                        <input type="hidden" name="next" value="edit">
-                        <button type="submit" class="btn btn-default"><?= htmlspecialchars(__('Unpublish')) ?></button>
-                    </form>
-                    <?php else: ?>
-                    <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/publish') ?>" style="display:inline;">
-                        <?= self::csrfField() ?>
-                        <input type="hidden" name="next" value="edit">
-                        <button type="submit" class="btn btn-default"><?= htmlspecialchars($quiz->link_id ? __('Publish again') : __('Publish')) ?></button>
-                    </form>
-                    <?php endif; ?>
+                    <?= self::publishIconButton($home, $quiz, 'edit') ?>
                     <?= self::interchangeButtons($home, $quiz->id, false) ?>
                 </span>
             </h1>
@@ -1319,10 +1341,10 @@ class Quiz1 extends Tool {
                                     <input type="hidden" name="direction" value="down">
                                     <button type="submit" class="btn btn-xs btn-default" title="<?= htmlspecialchars(__('Move down')) ?>">&darr;</button>
                                 </form>
-                                <a class="btn btn-xs btn-default" href="<?= htmlspecialchars($home.'/'.$quiz->id.'/questions/'.$q->id.'/edit') ?>"<?= self::publishedEditConfirm($quiz->published) ?>><?= htmlspecialchars(__('Edit')) ?></a>
+                                <?= self::editIconLink($home.'/'.$quiz->id.'/questions/'.$q->id.'/edit', $quiz->published) ?>
                                 <form method="post" action="<?= htmlspecialchars($home.'/'.$quiz->id.'/questions/'.$q->id.'/delete') ?>" style="display:inline;" onsubmit="return confirm(<?= htmlspecialchars(json_encode(__('Delete this question?')), ENT_QUOTES) ?>);">
                                     <?= self::csrfField() ?>
-                                    <button type="submit" class="btn btn-xs btn-danger"><?= htmlspecialchars(__('Delete')) ?></button>
+                                    <?= self::deleteIconButton() ?>
                                 </form>
                             </td>
                         </tr>

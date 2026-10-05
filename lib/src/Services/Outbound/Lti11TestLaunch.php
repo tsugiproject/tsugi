@@ -3,6 +3,7 @@
 namespace Tsugi\Services\Outbound;
 
 use Tsugi\Util\LTI;
+use Tsugi\Util\U;
 
 /**
  * A signed LTI 1.1 test launch for a tool this course can already see.
@@ -103,15 +104,66 @@ class Lti11TestLaunch {
     }
 
     /**
-     * This course can launch the tool as a resource link.
+     * Deployments this course can place on a lesson.
+     *
+     * The option id is tool_deployment_id. A registration with no deployment
+     * in scope for the course is not listed. LTI 1.3 deployments are not
+     * listed: a lesson still signs an LTI 1.1 resource link.
      *
      * @param int $contextId
-     * @param int $registrationId
+     * @return array<int, array{id:int, title:string, lti_version:string, launch:string, send_name:bool, send_email:bool, send_grade:bool}>
+     */
+    public static function lessonChoices($contextId) {
+        $choices = array();
+        foreach ( ToolDeploymentService::getDeploymentsForContext((int) $contextId) as $deployment ) {
+            $registrationId = (int) $deployment['registration_id'];
+            $p = self::prefix();
+            $row = self::db()->rowDie(
+                "SELECT title, lti_version, lti11_url
+                 FROM {$p}lti_tool_registration
+                 WHERE registration_id = :registration_id",
+                array(':registration_id' => $registrationId)
+            );
+            if ( ! is_array($row) || (string) $row['lti_version'] !== '1.1' ) {
+                continue;
+            }
+            if ( ! self::hasMessage($registrationId, 'LtiResourceLinkRequest') ) {
+                continue;
+            }
+            $toolDeploymentId = (int) $deployment['tool_deployment_id'];
+            $privacy = self::privacyFromClaims(ToolDeploymentGrant::allowedClaims($toolDeploymentId));
+            $title = (string) $row['title'];
+            $external = $deployment['deployment_id'];
+            if ( is_string($external) && $external !== '' ) {
+                $title .= ' ('.$external.')';
+            }
+            $choices[] = array(
+                'id' => $toolDeploymentId,
+                'title' => $title,
+                'lti_version' => (string) $row['lti_version'],
+                'launch' => (string) $row['lti11_url'],
+                'send_name' => $privacy['send_name'],
+                'send_email' => $privacy['send_email'],
+                'send_grade' => in_array(
+                    ToolRegistrationDocument::SCOPE_SCORE,
+                    ToolDeploymentGrant::allowedScopes($toolDeploymentId),
+                    true
+                ),
+            );
+        }
+        return $choices;
+    }
+
+    /**
+     * This course can launch the deployment as a resource link.
+     *
+     * @param int $contextId
+     * @param int $toolDeploymentId
      * @return bool
      */
-    public static function hasResourceLink($contextId, $registrationId) {
+    public static function hasResourceLink($contextId, $toolDeploymentId) {
         try {
-            $tool = ToolRegistrationService::visibleLti11((int) $contextId, (int) $registrationId);
+            $tool = ToolRegistrationService::visibleLti11Deployment((int) $contextId, (int) $toolDeploymentId);
         } catch ( \InvalidArgumentException $ex ) {
             return false;
         }
@@ -119,15 +171,22 @@ class Lti11TestLaunch {
     }
 
     /**
-     * Whether this course tool is allowed to receive names and email.
+     * Whether this deployment is allowed to receive names and email.
      *
      * @param int $contextId
-     * @param int $registrationId
+     * @param int $toolDeploymentId
      * @return array{send_name:bool, send_email:bool}
      */
-    public static function privacy($contextId, $registrationId) {
-        $tool = ToolRegistrationService::visibleLti11((int) $contextId, (int) $registrationId);
-        $claims = ToolDeploymentGrant::allowedClaims(ToolDeploymentService::onlyDeploymentId($tool['registration_id']));
+    public static function privacy($contextId, $toolDeploymentId) {
+        $tool = ToolRegistrationService::visibleLti11Deployment((int) $contextId, (int) $toolDeploymentId);
+        return self::privacyFromClaims(ToolDeploymentGrant::allowedClaims((int) $tool['tool_deployment_id']));
+    }
+
+    /**
+     * @param array<int, string> $claims
+     * @return array{send_name:bool, send_email:bool}
+     */
+    private static function privacyFromClaims(array $claims) {
         return array(
             'send_name' => in_array('name', $claims, true)
                 || in_array('given_name', $claims, true)
@@ -137,10 +196,10 @@ class Lti11TestLaunch {
     }
 
     /**
-     * Resource link for a lesson item. The item is the link. The tool is the launch.
+     * Resource link for a lesson item. The item is the link. The deployment is the launch.
      *
      * @param int $contextId
-     * @param int $registrationId
+     * @param int $toolDeploymentId
      * @param int $userId
      * @param string $resourceLinkId
      * @param string $resourceLinkTitle
@@ -152,10 +211,11 @@ class Lti11TestLaunch {
      * @param string $launchUrl Lesson item launch URL. Empty uses the registration URL.
      * @param string $documentTarget window, iframe, or frame. Empty omits the parameter.
      * @param string $elementId Parent iframe id for lti.frameResize. Empty lets signing assign one.
+     * @param bool|null $sendGrade Null follows the score scope. False omits the outcome service.
      * @return array{endpoint:string, parameters:array<string, string>}
      */
-    public static function courseResourceLink($contextId, $registrationId, $userId, $resourceLinkId, $resourceLinkTitle, $returnUrl, $role = 'Learner', $userKey = '', $sendName = null, $sendEmail = null, $launchUrl = '', $documentTarget = '', $elementId = '') {
-        $tool = ToolRegistrationService::visibleLti11((int) $contextId, (int) $registrationId);
+    public static function courseResourceLink($contextId, $toolDeploymentId, $userId, $resourceLinkId, $resourceLinkTitle, $returnUrl, $role = 'Learner', $userKey = '', $sendName = null, $sendEmail = null, $launchUrl = '', $documentTarget = '', $elementId = '', $sendGrade = null) {
+        $tool = ToolRegistrationService::visibleLti11Deployment((int) $contextId, (int) $toolDeploymentId);
         if ( ! self::hasMessage($tool['registration_id'], 'LtiResourceLinkRequest') ) {
             throw new \InvalidArgumentException('This tool does not have a resource link launch.');
         }
@@ -195,6 +255,11 @@ class Lti11TestLaunch {
         if ( preg_match('/^tsugi_element_id_[a-f0-9]{16}$/', $elementId) ) {
             $parms['ext_lti_element_id'] = $elementId;
         }
+        if ( self::includeGrade($tool, $sendGrade) ) {
+            foreach ( self::outcomeParameters($tool, (int) $contextId, $userId, $resourceLinkId, $title) as $key => $value ) {
+                $parms[$key] = $value;
+            }
+        }
         return array(
             'endpoint' => $endpoint,
             'parameters' => LTI::signParameters(
@@ -206,6 +271,155 @@ class Lti11TestLaunch {
                 'Finish Launch'
             ),
         );
+    }
+
+    /**
+     * The deployment's score scope is the grant. A lesson may still decline it.
+     *
+     * @param array<string, mixed> $tool
+     * @param bool|null $sendGrade
+     * @return bool
+     */
+    private static function includeGrade(array $tool, $sendGrade) {
+        $allowed = in_array(
+            ToolRegistrationDocument::SCOPE_SCORE,
+            ToolDeploymentGrant::allowedScopes((int) $tool['tool_deployment_id']),
+            true
+        );
+        if ( ! $allowed ) {
+            return false;
+        }
+        if ( $sendGrade === null ) {
+            return true;
+        }
+        return (bool) $sendGrade;
+    }
+
+    /**
+     * LTI 1.1 fields the tool uses to post a grade back to this course.
+     *
+     * The link is this lesson's resource link. The callback is signed with
+     * the same key and secret as the launch.
+     *
+     * @param array<string, mixed> $tool
+     * @param int $contextId
+     * @param int $userId
+     * @param string $resourceLinkId
+     * @param string $title
+     * @return array<string, string>
+     */
+    private static function outcomeParameters(array $tool, $contextId, $userId, $resourceLinkId, $title) {
+        global $CFG;
+        $userId = (int) $userId;
+        if ( $userId < 1 ) {
+            return array();
+        }
+        $linkId = self::outcomeLinkId($contextId, $resourceLinkId, $title);
+        $resultId = self::outcomeResultId($linkId, $userId);
+        $placement = self::outcomePlacementSecret($linkId);
+        $keyId = (int) $tool['key_id'];
+        $source = $keyId.'::'.$contextId.'::'.$linkId.'::'.$resultId.'::';
+        $www = isset($CFG->wwwroot) ? rtrim((string) $CFG->wwwroot, '/') : '';
+        return array(
+            'lis_outcome_service_url' => $www.'/api/poxresult.php',
+            'lis_result_sourcedid' => $source.U::lti_sha256($source.$placement),
+        );
+    }
+
+    /**
+     * The lesson author creates this row. A launch does not.
+     * The tool secret stays on the registration.
+     *
+     * @param int $contextId
+     * @param string $resourceLinkId
+     * @param string $title
+     * @return int
+     */
+    private static function outcomeLinkId($contextId, $resourceLinkId, $title) {
+        $p = self::prefix();
+        $sha = U::lti_sha256($resourceLinkId);
+        $row = self::db()->rowDie(
+            "SELECT link_id FROM {$p}lti_link
+             WHERE context_id = :context_id AND link_sha256 = :link_sha256",
+            array(
+                ':context_id' => (int) $contextId,
+                ':link_sha256' => $sha,
+            )
+        );
+        if ( ! is_array($row) ) {
+            throw new \InvalidArgumentException('This lesson link has not been created.');
+        }
+        $linkId = (int) $row['link_id'];
+        self::db()->queryDie(
+            "UPDATE {$p}lti_link
+             SET title = :title, deleted = 0, updated_at = NOW()
+             WHERE link_id = :link_id",
+            array(
+                ':title' => $title,
+                ':link_id' => $linkId,
+            )
+        );
+        return $linkId;
+    }
+
+    /**
+     * @param int $linkId
+     * @return string
+     */
+    private static function outcomePlacementSecret($linkId) {
+        $p = self::prefix();
+        $row = self::db()->rowDie(
+            "SELECT placementsecret FROM {$p}lti_link WHERE link_id = :link_id",
+            array(':link_id' => (int) $linkId)
+        );
+        $secret = is_array($row) ? trim((string) $row['placementsecret']) : '';
+        if ( $secret !== '' ) {
+            return $secret;
+        }
+        $secret = bin2hex(random_bytes(32));
+        self::db()->queryDie(
+            "UPDATE {$p}lti_link SET placementsecret = :placementsecret, updated_at = NOW() WHERE link_id = :link_id",
+            array(
+                ':placementsecret' => $secret,
+                ':link_id' => (int) $linkId,
+            )
+        );
+        return $secret;
+    }
+
+    /**
+     * @param int $linkId
+     * @param int $userId
+     * @return int
+     */
+    private static function outcomeResultId($linkId, $userId) {
+        $p = self::prefix();
+        $row = self::db()->rowDie(
+            "SELECT result_id FROM {$p}lti_result WHERE link_id = :link_id AND user_id = :user_id",
+            array(
+                ':link_id' => (int) $linkId,
+                ':user_id' => (int) $userId,
+            )
+        );
+        if ( is_array($row) ) {
+            return (int) $row['result_id'];
+        }
+        $stmt = self::db()->queryReturnError(
+            "INSERT INTO {$p}lti_result (link_id, user_id, created_at, updated_at)
+             VALUES (:link_id, :user_id, NOW(), NOW())",
+            array(
+                ':link_id' => (int) $linkId,
+                ':user_id' => (int) $userId,
+            )
+        );
+        if ( ! $stmt->success ) {
+            throw new \RuntimeException('Could not create the grade row for this lesson.');
+        }
+        $resultId = (int) self::db()->lastInsertId();
+        if ( $resultId < 1 ) {
+            throw new \RuntimeException('Could not create the grade row for this lesson.');
+        }
+        return $resultId;
     }
 
     /**
@@ -294,7 +508,10 @@ class Lti11TestLaunch {
         $context = self::contextRow($contextId, (int) $tool['key_id']);
         $key = self::keyRow((int) $tool['key_id']);
         $user = self::userRow($userId, (int) $tool['key_id']);
-        $claims = ToolDeploymentGrant::allowedClaims(ToolDeploymentService::onlyDeploymentId($tool['registration_id']));
+        $deploymentId = isset($tool['tool_deployment_id'])
+            ? (int) $tool['tool_deployment_id']
+            : ToolDeploymentService::onlyDeploymentId($tool['registration_id']);
+        $claims = ToolDeploymentGrant::allowedClaims($deploymentId);
         $linkId = ($resourceLinkId !== null && $resourceLinkId !== '')
             ? $resourceLinkId
             : 'test-'.$tool['registration_id'];

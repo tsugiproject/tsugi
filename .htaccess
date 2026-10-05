@@ -1,3 +1,11 @@
+# mod_fastcgi does not pass the Authorization header to PHP. Copy it into
+# the CGI environment. SetEnvIf still applies in api/, store/, and admin/.
+# Do not use RewriteOptions InheritDown: a child RewriteEngine on would also
+# inherit "RewriteRule ^ tsugi.php" and Apache 404s those routes.
+<IfModule mod_setenvif.c>
+    SetEnvIf Authorization "(.+)" HTTP_AUTHORIZATION=$1
+</IfModule>
+
 <IfModule mod_rewrite.c>
     RewriteEngine on
     # config.php has secrets; FileRouter would also map /config and /config-dist

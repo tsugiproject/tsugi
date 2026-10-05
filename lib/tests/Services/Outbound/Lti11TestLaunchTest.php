@@ -1,5 +1,7 @@
 <?php
 
+use Tsugi\Core\Result;
+use Tsugi\Util\U;
 use Tsugi\Services\Outbound\Lti11CourseTool;
 use Tsugi\Services\Outbound\Lti11TestLaunch;
 use Tsugi\Services\Outbound\ToolDeploymentService;
@@ -112,6 +114,7 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         $post = $this->post();
         $post['privacy'] = array();
         $registrationId = Lti11CourseTool::addToCourse($this->id['eecs280'], 0, $post);
+        $deploymentId = ToolDeploymentService::onlyDeploymentId($registrationId);
         $launch = Lti11TestLaunch::launch(
             $this->id['eecs280'],
             $registrationId,
@@ -122,9 +125,10 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         $this->assertArrayNotHasKey('lis_person_name_full', $launch['parameters']);
         $this->assertArrayNotHasKey('lis_person_contact_email_primary', $launch['parameters']);
         $this->assertArrayNotHasKey('launch_presentation_return_url', $launch['parameters']);
+        $this->insertLessonLink($this->id['eecs280'], 'lti_private', 'Private');
         $asked = Lti11TestLaunch::courseResourceLink(
             $this->id['eecs280'],
-            $registrationId,
+            $deploymentId,
             $this->insertInstructor(),
             'lti_private',
             'Private',
@@ -136,7 +140,7 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         );
         $this->assertArrayNotHasKey('lis_person_name_full', $asked['parameters']);
         $this->assertArrayNotHasKey('lis_person_contact_email_primary', $asked['parameters']);
-        $privacy = Lti11TestLaunch::privacy($this->id['eecs280'], $registrationId);
+        $privacy = Lti11TestLaunch::privacy($this->id['eecs280'], $deploymentId);
         $this->assertFalse($privacy['send_name']);
         $this->assertFalse($privacy['send_email']);
     }
@@ -170,13 +174,24 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
     public function testLessonLinkLaunchesTheCourseTool(): void
     {
         $registrationId = Lti11CourseTool::addToCourse($this->id['eecs280'], 0, $this->post());
+        $deploymentId = ToolDeploymentService::onlyDeploymentId($registrationId);
         $userId = $this->insertInstructor();
-        $this->assertTrue(Lti11TestLaunch::hasResourceLink($this->id['eecs280'], $registrationId));
-        $this->assertFalse(Lti11TestLaunch::hasResourceLink($this->id['eecs281'], $registrationId));
+        $this->assertTrue(Lti11TestLaunch::hasResourceLink($this->id['eecs280'], $deploymentId));
+        $this->assertFalse(Lti11TestLaunch::hasResourceLink($this->id['eecs281'], $deploymentId));
+        $choiceIds = array();
+        foreach ( Lti11TestLaunch::lessonChoices($this->id['eecs280']) as $choice ) {
+            $choiceIds[] = $choice['id'];
+            if ( $choice['id'] === $deploymentId ) {
+                $this->assertSame('1.1', $choice['lti_version']);
+                $this->assertTrue($choice['send_grade']);
+            }
+        }
+        $this->assertContains($deploymentId, $choiceIds);
 
+        $this->insertLessonLink($this->id['eecs280'], 'lti_week_1', 'Week 1 quiz');
         $launch = Lti11TestLaunch::courseResourceLink(
             $this->id['eecs280'],
-            $registrationId,
+            $deploymentId,
             $userId,
             'lti_week_1',
             'Week 1 quiz',
@@ -187,7 +202,7 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         $this->assertSame('https://tool.example/launch', $launch['endpoint']);
         $imported = Lti11TestLaunch::courseResourceLink(
             $this->id['eecs280'],
-            $registrationId,
+            $deploymentId,
             $userId,
             'lti_week_1',
             'Week 1 quiz',
@@ -203,7 +218,7 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         $this->assertArrayNotHasKey('launch_presentation_document_target', $launch['parameters']);
         $embedded = Lti11TestLaunch::courseResourceLink(
             $this->id['eecs280'],
-            $registrationId,
+            $deploymentId,
             $userId,
             'lti_week_1',
             'Week 1 quiz',
@@ -219,7 +234,7 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         $frameId = Lti11TestLaunch::parentFrameId('lti_week_1');
         $resized = Lti11TestLaunch::courseResourceLink(
             $this->id['eecs280'],
-            $registrationId,
+            $deploymentId,
             $userId,
             'lti_week_1',
             'Week 1 quiz',
@@ -248,10 +263,33 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         $this->assertArrayNotHasKey('resource_link_description', $parms);
         $this->assertSame('Pat Instructor', $parms['lis_person_name_full']);
         $this->assertSame('pat@example.test', $parms['lis_person_contact_email_primary']);
+        $this->assertStringEndsWith('/api/poxresult.php', $parms['lis_outcome_service_url']);
+        $sourced = explode('::', $parms['lis_result_sourcedid']);
+        $this->assertCount(5, $sourced);
+        $this->assertSame((string) $this->id['keyA'], $sourced[0]);
+        $this->assertSame((string) $this->id['eecs280'], $sourced[1]);
+        $withheld = Lti11TestLaunch::courseResourceLink(
+            $this->id['eecs280'],
+            $deploymentId,
+            $userId,
+            'lti_week_1',
+            'Week 1 quiz',
+            'https://local.dj4e.com/tsugi/lessons/return',
+            'Learner',
+            'lms-user-1',
+            null,
+            null,
+            '',
+            '',
+            '',
+            false
+        );
+        $this->assertArrayNotHasKey('lis_outcome_service_url', $withheld['parameters']);
+        $this->assertArrayNotHasKey('lis_result_sourcedid', $withheld['parameters']);
 
         $namesOnly = Lti11TestLaunch::courseResourceLink(
             $this->id['eecs280'],
-            $registrationId,
+            $deploymentId,
             $userId,
             'lti_week_1',
             'Week 1 quiz',
@@ -266,7 +304,7 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
 
         $private = Lti11TestLaunch::courseResourceLink(
             $this->id['eecs280'],
-            $registrationId,
+            $deploymentId,
             $userId,
             'lti_week_1',
             'Week 1 quiz',
@@ -280,7 +318,7 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         $this->assertArrayNotHasKey('lis_person_name_given', $private['parameters']);
         $this->assertArrayNotHasKey('lis_person_contact_email_primary', $private['parameters']);
 
-        $privacy = Lti11TestLaunch::privacy($this->id['eecs280'], $registrationId);
+        $privacy = Lti11TestLaunch::privacy($this->id['eecs280'], $deploymentId);
         $this->assertTrue($privacy['send_name']);
         $this->assertTrue($privacy['send_email']);
         $stored = Lti11CourseTool::formState($this->id['eecs280'], $registrationId);
@@ -293,32 +331,37 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
                 'items' => array(array(
                     'type' => 'lti',
                     'title' => 'Quiz',
-                    'registration_id' => '12',
+                    'registration_id' => '9',
+                    'tool_deployment_id' => '12',
                     'launch' => 'https://old.example/launch',
                     'resource_link_id' => 'lti_quiz',
                     'target' => '_blank',
                     'send_name' => true,
                     'send_email' => 0,
+                    'send_grade' => 1,
                 )),
             )),
         ));
         $item = $doc['modules'][0]['items'][0];
-        $this->assertSame(12, $item['registration_id']);
+        $this->assertSame(12, $item['tool_deployment_id']);
+        $this->assertArrayNotHasKey('registration_id', $item);
         $this->assertSame('lti_quiz', $item['resource_link_id']);
         $this->assertSame('_blank', $item['target']);
         $this->assertTrue($item['send_name']);
         $this->assertFalse($item['send_email']);
+        $this->assertTrue($item['send_grade']);
         $this->assertSame('https://old.example/launch', $item['launch']);
 
         $contentOnly = $this->post();
         $contentOnly['title'] = 'Picker only';
         $contentOnly['messages'] = array('LtiDeepLinkingRequest');
         $contentId = Lti11CourseTool::addToCourse($this->id['eecs280'], 0, $contentOnly);
-        $this->assertFalse(Lti11TestLaunch::hasResourceLink($this->id['eecs280'], $contentId));
+        $contentDeploymentId = ToolDeploymentService::onlyDeploymentId($contentId);
+        $this->assertFalse(Lti11TestLaunch::hasResourceLink($this->id['eecs280'], $contentDeploymentId));
         try {
             Lti11TestLaunch::courseResourceLink(
                 $this->id['eecs280'],
-                $contentId,
+                $contentDeploymentId,
                 $userId,
                 'lti_picker',
                 'Picker',
@@ -330,6 +373,76 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         } catch ( \InvalidArgumentException $ex ) {
             $this->assertStringContainsString('resource link', $ex->getMessage());
         }
+    }
+
+    public function testADeploymentWithoutScoreDoesNotSendAGradeCallback(): void
+    {
+        $post = $this->post();
+        $post['services'] = array();
+        $registrationId = Lti11CourseTool::addToCourse($this->id['eecs280'], 0, $post);
+        $deploymentId = ToolDeploymentService::onlyDeploymentId($registrationId);
+        $choices = Lti11TestLaunch::lessonChoices($this->id['eecs280']);
+        $matched = null;
+        foreach ( $choices as $choice ) {
+            if ( $choice['id'] === $deploymentId ) {
+                $matched = $choice;
+            }
+        }
+        $this->assertNotNull($matched);
+        $this->assertFalse($matched['send_grade']);
+        $launch = Lti11TestLaunch::courseResourceLink(
+            $this->id['eecs280'],
+            $deploymentId,
+            $this->insertInstructor(),
+            'lti_no_grade',
+            'No grade',
+            'https://local.dj4e.com/tsugi/lessons/return',
+            'Learner',
+            'lms-user-2'
+        );
+        $this->assertArrayNotHasKey('lis_outcome_service_url', $launch['parameters']);
+        $this->assertArrayNotHasKey('lis_result_sourcedid', $launch['parameters']);
+    }
+
+    public function testAGradeCallbackStoresTheScoreWithoutALaunch(): void
+    {
+        global $LINK, $PDOX;
+        $registrationId = Lti11CourseTool::addToCourse($this->id['eecs280'], 0, $this->post());
+        $deploymentId = ToolDeploymentService::onlyDeploymentId($registrationId);
+        $userId = $this->insertInstructor();
+        $this->insertLessonLink($this->id['eecs280'], 'lti_graded', 'Graded quiz');
+        $launch = Lti11TestLaunch::courseResourceLink(
+            $this->id['eecs280'],
+            $deploymentId,
+            $userId,
+            'lti_graded',
+            'Graded quiz',
+            'https://local.dj4e.com/tsugi/lessons/return',
+            'Learner',
+            'lms-user-3'
+        );
+        $sourced = explode('::', $launch['parameters']['lis_result_sourcedid']);
+        $this->assertCount(5, $sourced);
+        $p = $this->p();
+        $row = $PDOX->rowDie(
+            "SELECT K.secret, K.key_key, R.result_id, R.grade, R.sourcedid, R.result_url, S.service_key AS service
+             FROM {$p}lti_key AS K
+             JOIN {$p}lti_context AS C ON K.key_id = C.key_id
+             JOIN {$p}lti_link AS L ON C.context_id = L.context_id
+             JOIN {$p}lti_result AS R ON L.link_id = R.link_id
+             LEFT JOIN {$p}lti_service AS S ON S.service_id = R.service_id
+             WHERE R.result_id = :result_id",
+            array(':result_id' => (int) $sourced[3])
+        );
+        $LINK = false;
+        $debug = array();
+        $status = Result::gradeSendStatic('0.42', $row, $debug);
+        $this->assertTrue($status);
+        $stored = $PDOX->rowDie(
+            "SELECT grade FROM {$p}lti_result WHERE result_id = :result_id",
+            array(':result_id' => (int) $sourced[3])
+        );
+        $this->assertEqualsWithDelta(0.42, (float) $stored['grade'], 0.0001);
     }
 
     /**
@@ -346,6 +459,45 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
             'placements' => array('lessons'),
             'privacy' => array('names', 'email'),
             'services' => array('score'),
+        );
+    }
+
+    public function testAGradedLaunchWithoutALinkIsRefused(): void
+    {
+        $registrationId = Lti11CourseTool::addToCourse($this->id['eecs280'], 0, $this->post());
+        $deploymentId = ToolDeploymentService::onlyDeploymentId($registrationId);
+        try {
+            Lti11TestLaunch::courseResourceLink(
+                $this->id['eecs280'],
+                $deploymentId,
+                $this->insertInstructor(),
+                'lti_missing',
+                'Missing',
+                'https://local.dj4e.com/tsugi/lessons/return',
+                'Learner',
+                'lms-user-4'
+            );
+            $this->fail('Expected a missing lesson link to be rejected.');
+        } catch ( \InvalidArgumentException $ex ) {
+            $this->assertStringContainsString('has not been created', $ex->getMessage());
+        }
+    }
+
+    private function insertLessonLink($contextId, $resourceLinkId, $title): void
+    {
+        global $PDOX;
+        $p = $this->p();
+        $PDOX->queryDie(
+            "INSERT INTO {$p}lti_link
+                (link_key, link_sha256, title, context_id, published, created_at, updated_at)
+             VALUES
+                (:link_key, :link_sha256, :title, :context_id, 0, NOW(), NOW())",
+            array(
+                ':link_key' => $resourceLinkId,
+                ':link_sha256' => U::lti_sha256($resourceLinkId),
+                ':title' => $title,
+                ':context_id' => (int) $contextId,
+            )
         );
     }
 

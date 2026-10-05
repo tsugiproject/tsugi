@@ -201,6 +201,7 @@ class Quiz1Repository {
             $question->quiz_id = $quiz->id;
             self::insertQuestion($question);
         }
+        self::ensureLink($quiz->id, (int) $quiz->context_id);
         return $quiz->id;
     }
 
@@ -462,16 +463,20 @@ class Quiz1Repository {
     }
 
     /**
-     * Create the quiz's one lti_link, or mark that same link published again.
+     * The quiz's one lti_link. A new quiz gets this row unpublished.
+     * A quiz created before that rule gets the row the first time something asks for it.
      *
      * @return int|null link_id, or null when the quiz is not in this context
      */
-    public static function publish($quiz_id, $context_id) {
+    public static function ensureLink($quiz_id, $context_id) {
         global $CFG, $PDOX;
         LTIX::getConnection();
 
         $quiz_id = (int) $quiz_id;
         $context_id = (int) $context_id;
+        if ( $quiz_id < 1 || $context_id < 1 ) {
+            return null;
+        }
         $row = $PDOX->rowDie(
             "SELECT quiz_id, title, link_id
              FROM {$CFG->dbprefix}quiz1_quiz
@@ -484,16 +489,6 @@ class Quiz1Repository {
 
         $link_id = isset($row['link_id']) ? (int) $row['link_id'] : 0;
         if ( $link_id > 0 ) {
-            $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}lti_link
-                 SET published = 1, title = :title, updated_at = NOW()
-                 WHERE link_id = :LID AND context_id = :CID",
-                array(
-                    ':title' => $row['title'],
-                    ':LID' => $link_id,
-                    ':CID' => $context_id,
-                )
-            );
             return $link_id;
         }
 
@@ -502,7 +497,7 @@ class Quiz1Repository {
             "INSERT INTO {$CFG->dbprefix}lti_link
                 (link_key, link_sha256, title, context_id, path, published, created_at, updated_at)
              VALUES
-                (:link_key, :link_sha256, :title, :context_id, :path, 1, NOW(), NOW())",
+                (:link_key, :link_sha256, :title, :context_id, :path, 0, NOW(), NOW())",
             array(
                 ':link_key' => $link_key,
                 ':link_sha256' => U::lti_sha256($link_key),
@@ -517,6 +512,39 @@ class Quiz1Repository {
              SET link_id = :LID, updated_at = NOW()
              WHERE quiz_id = :QID AND context_id = :CID",
             array(':LID' => $link_id, ':QID' => $quiz_id, ':CID' => $context_id)
+        );
+        return $link_id;
+    }
+
+    /**
+     * Mark the quiz's link published. The link already exists for a quiz created now.
+     *
+     * @return int|null link_id, or null when the quiz is not in this context
+     */
+    public static function publish($quiz_id, $context_id) {
+        global $CFG, $PDOX;
+        $quiz_id = (int) $quiz_id;
+        $context_id = (int) $context_id;
+        $link_id = self::ensureLink($quiz_id, $context_id);
+        if ( ! $link_id ) {
+            return null;
+        }
+
+        LTIX::getConnection();
+        $row = $PDOX->rowDie(
+            "SELECT title FROM {$CFG->dbprefix}quiz1_quiz
+             WHERE quiz_id = :QID AND context_id = :CID",
+            array(':QID' => $quiz_id, ':CID' => $context_id)
+        );
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_link
+             SET published = 1, title = :title, updated_at = NOW()
+             WHERE link_id = :LID AND context_id = :CID",
+            array(
+                ':title' => $row ? $row['title'] : '',
+                ':LID' => $link_id,
+                ':CID' => $context_id,
+            )
         );
         return $link_id;
     }

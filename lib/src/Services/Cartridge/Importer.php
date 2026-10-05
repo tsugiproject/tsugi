@@ -641,9 +641,9 @@ class Importer {
         $json = json_encode(array('launch_url' => $launch, 'imported' => true));
         $PDOX->queryDie(
             "INSERT INTO {$CFG->dbprefix}lti_link
-                (link_key, link_sha256, title, context_id, path, json, created_at, updated_at)
+                (link_key, link_sha256, title, context_id, path, json, published, created_at, updated_at)
              VALUES
-                (:key, :sha, :title, :cid, :path, :json, NOW(), NOW())",
+                (:key, :sha, :title, :cid, :path, :json, 0, NOW(), NOW())",
             array(
                 ':key' => $key,
                 ':sha' => lti_sha256($key),

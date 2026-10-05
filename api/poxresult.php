@@ -41,6 +41,7 @@ try {
     $operation = $imsx_body->getName();
     $parms = $imsx_body->children();
     $sourcedid = (string) $parms->resultRecord->sourcedGUID->sourcedId;
+    $message_ref = (string) $imsx_header->children()->imsx_messageIdentifier;
 } catch (Exception $e) {
     Net::send400('Could not find sourcedid in XML body');
     return;
@@ -92,15 +93,36 @@ $oauth_consumer_key_up = $row['key_key'];
 $oauth_consumer_secret_up = LTIX::decrypt_secret($row['secret']);
 $placementsecret = $row['placementsecret'];
 $grade = $row['grade'];
-$settingsstr = $row['settings'];
-try {
-    $settings = json_decode($settingsstr);
-    $oauth_consumer_key = $settings->key;
-    $oauth_consumer_secret = LTIX::decrypt_secret($settings->secret);
-} catch(Exception $e) {
-   echo(sprintf($response,uniqid(),'failure', "Could not parse Link settings",$message_ref,"",""));
-   return;
-
+$header_key = LTI::getOAuthKeyFromHeaders();
+$oauth_consumer_key = '';
+$oauth_consumer_secret = '';
+if ( is_string($header_key) && $header_key !== '' ) {
+    $registrations = $PDOX->allRowsDie(
+        "SELECT lti11_secret FROM {$CFG->dbprefix}lti_tool_registration
+         WHERE key_id = :key_id AND lti11_key = :lti11_key AND lti_version = '1.1'",
+        array(
+            ':key_id' => $key_id,
+            ':lti11_key' => $header_key,
+        )
+    );
+    if ( is_array($registrations) && count($registrations) === 1 && isset($registrations[0]['lti11_secret']) ) {
+        $oauth_consumer_key = $header_key;
+        $oauth_consumer_secret = LTIX::decrypt_secret((string) $registrations[0]['lti11_secret']);
+    }
+}
+if ( $oauth_consumer_key === '' ) {
+    try {
+        $settings = json_decode($row['settings']);
+        if ( is_object($settings) && isset($settings->key) ) {
+            $oauth_consumer_key = (string) $settings->key;
+            $oauth_consumer_secret = isset($settings->secret)
+                ? LTIX::decrypt_secret((string) $settings->secret)
+                : '';
+        }
+    } catch (Exception $e) {
+        echo(sprintf($response,uniqid(),'failure', "Could not parse Link settings",$message_ref,"",""));
+        return;
+    }
 }
 
 $sourcebase = $key_id . '::' . $context_id . '::' . $link_id . '::' . $result_id . '::';

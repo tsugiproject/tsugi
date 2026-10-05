@@ -27,6 +27,11 @@ if ( ! isset($course_tools) || ! is_array($course_tools) ) {
     <li style="margin-bottom: 8px;">
         <?= htmlspecialchars($title) ?>
         <?php
+        $ltiVersion = isset($tool['lti_version']) ? (string) $tool['lti_version'] : '';
+        if ( $ltiVersion === '1.1' || $ltiVersion === '1.3' ) { ?>
+        <span class="text-muted">(LTI <?= htmlspecialchars($ltiVersion) ?>)</span>
+        <?php } ?>
+        <?php
         $otherLaunchUrls = isset($tool['other_launch_urls']) ? (int) $tool['other_launch_urls'] : 0;
         $launchNote = \Tsugi\Services\Outbound\Lti11CourseTool::launchUrlNote($otherLaunchUrls);
         if ( $launchNote !== '' ) { ?>

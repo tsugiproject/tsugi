@@ -1036,26 +1036,26 @@ class LessonsCartridge {
     }
 
     /**
-     * Launch URL stored on the registration, for an item whose launch field is empty.
+     * Launch URL stored on the deployment's registration, for an item whose launch field is empty.
      *
-     * @param int $registrationId
+     * @param int $toolDeploymentId
      * @param array{context_id?:int} $options
      * @param string $title
      * @return string
      */
-    private static function registrationLaunchUrl($registrationId, array $options, $title) {
+    private static function deploymentLaunchUrl($toolDeploymentId, array $options, $title) {
         $contextId = isset($options['context_id']) ? (int) $options['context_id'] : ReqScope::currentContextIdLegacy();
         try {
-            $tool = ToolRegistrationService::visibleLti11($contextId, $registrationId);
+            $tool = ToolRegistrationService::visibleLti11Deployment($contextId, $toolDeploymentId);
         } catch ( \InvalidArgumentException $ex ) {
             throw new ExportException(
-                'Lesson references registration_id '.$registrationId.' ('.$title.') which was not found in this course.'
+                'Lesson references tool_deployment_id '.$toolDeploymentId.' ('.$title.') which was not found in this course.'
             );
         }
         $url = trim($tool['lti11_url']);
         if ( $url === '' ) {
             throw new ExportException(
-                'Lesson references registration_id '.$registrationId.' ('.$title.') which has no launch URL.'
+                'Lesson references tool_deployment_id '.$toolDeploymentId.' ('.$title.') which has no launch URL.'
             );
         }
         return $url;
@@ -1067,13 +1067,13 @@ class LessonsCartridge {
         if ( strpos($title, ':') === false ) {
             $title = 'Tool: '.$title;
         }
-        $registrationId = isset($item->registration_id) ? (int) $item->registration_id : 0;
+        $toolDeploymentId = isset($item->tool_deployment_id) ? (int) $item->tool_deployment_id : 0;
         $endpoint = LessonsNormalize::launchUrlForItem($item);
-        if ( $endpoint === '' && $registrationId > 0 ) {
-            $endpoint = self::registrationLaunchUrl($registrationId, $options, $title);
+        if ( $endpoint === '' && $toolDeploymentId > 0 ) {
+            $endpoint = self::deploymentLaunchUrl($toolDeploymentId, $options, $title);
         }
         $endpoint = U::absolute_url(LessonsService::expandLink($endpoint));
-        if ( $registrationId < 1 && isset($item->resource_link_id) && $item->resource_link_id !== '' && $item->resource_link_id !== null ) {
+        if ( $toolDeploymentId < 1 && isset($item->resource_link_id) && $item->resource_link_id !== '' && $item->resource_link_id !== null ) {
             $endpoint = U::add_url_parm($endpoint, 'inherit', $item->resource_link_id);
         }
         $extensions = array('apphome' => $CFG->apphome);

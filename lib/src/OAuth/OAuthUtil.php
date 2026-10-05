@@ -78,11 +78,27 @@ class OAuthUtil {
 
   // Helper to deal with proxy configurations that "eat" the Authorization:
   // header on our behalf - fall back to the alternate Authorization header.
+  //
+  // mod_fastcgi (MAMP) also drops Authorization before PHP sees it. The root
+  // .htaccess copies it with SetEnvIf. The php-fastcgi Action is an internal
+  // redirect, so the copy survives as REDIRECT_HTTP_AUTHORIZATION.
+  // apache_request_headers() only reports HTTP_* names, so check those CGI
+  // variables here.
   public static function get_headers() {
     $headers = OAuthUtil::get_headers_internal();
     if ( ! is_array($headers) ) return $headers;
     if ( (! isset($headers['Authorization'])) && isset($headers['X-Oauth1-Authorization']) ) {
         $headers['Authorization'] = $headers['X-Oauth1-Authorization'];
+    }
+    if ( ! isset($headers['Authorization']) || $headers['Authorization'] === '' ) {
+        $auth = '';
+        if ( isset($_SERVER['HTTP_AUTHORIZATION']) && is_string($_SERVER['HTTP_AUTHORIZATION']) ) {
+            $auth = $_SERVER['HTTP_AUTHORIZATION'];
+        }
+        if ( $auth === '' && isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) && is_string($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) ) {
+            $auth = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+        }
+        if ( $auth !== '' ) $headers['Authorization'] = $auth;
     }
     return $headers;
   }

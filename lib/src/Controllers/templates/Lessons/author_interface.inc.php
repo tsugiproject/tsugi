@@ -15,6 +15,7 @@
  * - $files_json_url: session-bearing URL for course Files JSON (picker)
  * - $files_home_url: session-bearing URL for the Files tool
  * - $quiz1_home_url, $quiz1_list: Quiz1 picker for native quiz items
+ * - $course_resource_link_ids: link keys already used in this course
  * - $pages_json_url, $pages_home_url, $pages_add_url: Pages picker
  * - $lessons_json_url, $pages_base, $app_home: link picker
  */
@@ -399,6 +400,14 @@
     gap: 5px;
 }
 
+.btn-icon .publish-on {
+    color: #0b874b;
+}
+
+.btn-icon .publish-off {
+    color: #8d959f;
+}
+
 .item-details {
     margin-top: 10px;
     padding-top: 10px;
@@ -775,12 +784,16 @@ var quiz1HomeUrl = <?= json_encode($quiz1_home_url ?? '') ?>;
 var quiz1Quizzes = <?= json_encode($quiz1_list ?? array()) ?>;
 var ltiToolsUrl = <?= json_encode($lti_tools_url ?? '') ?>;
 var ltiTools = <?= json_encode($lti_tools ?? array()) ?>;
+var courseResourceLinkIds = <?= json_encode($course_resource_link_ids ?? array()) ?>;
+var courseLinkPublished = <?= json_encode($course_link_published ?? array(), JSON_FORCE_OBJECT) ?>;
 var currentPageId = null;
 <?php \Tsugi\UI\CKEditor::renderLinkPickerScript(); ?>
 let courseFilesCache = null;
 let coursePagesCache = null;
 let filePickerState = emptyFilePickerState();
 let hasChanges = false;
+let savedLtiResourceLinkIds = {};
+let savedQuizIds = {};
 let editingItemIndex = null;
 let editingModuleIndex = null;
 let editingAfterItemIndex = null;
@@ -955,6 +968,55 @@ function collectUsedResourceLinkIds(skipModuleIndex, skipItemIndex) {
     return used;
 }
 
+function claimResourceLinkId(requested, used) {
+    let rlid = String(requested || '').trim();
+    if (!rlid) {
+        return '';
+    }
+    if (!used[rlid]) {
+        used[rlid] = true;
+        return rlid;
+    }
+    const base = rlid;
+    let n = 2;
+    while (used[base + '_' + n]) {
+        n++;
+        if (n > 50) {
+            rlid = base + '_' + Math.random().toString(16).slice(2, 8);
+            used[rlid] = true;
+            return rlid;
+        }
+    }
+    rlid = base + '_' + n;
+    used[rlid] = true;
+    return rlid;
+}
+
+function usedResourceLinkIdsForItem(ownId) {
+    const used = collectUsedResourceLinkIds(editingModuleIndex, editingItemIndex);
+    const keep = String(ownId || '').trim();
+    (courseResourceLinkIds || []).forEach(function(id) {
+        if (typeof id !== 'string') {
+            return;
+        }
+        id = id.trim();
+        if (id && id !== keep) {
+            used[id] = true;
+        }
+    });
+    return used;
+}
+
+function ltiResourceLinkId(title, ownId) {
+    const field = document.getElementById('edit-resource-link-id');
+    const requested = field ? field.value.trim() : '';
+    const used = usedResourceLinkIdsForItem(ownId);
+    if (!requested) {
+        return allocateLtiRlid(title, used);
+    }
+    return claimResourceLinkId(requested, used);
+}
+
 function allocateLtiRlid(title, used) {
     let slug = String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
     if (!slug) {
@@ -1113,6 +1175,174 @@ function quizPickerFieldsHtml(item) {
     `;
 }
 
+function quizItemIsPublished(item) {
+    const quiz = quiz1ById(item && item.quiz_id);
+    return !!(quiz && quiz.published);
+}
+
+function ltiItemIsPublished(item) {
+    if (item && typeof item.published === 'boolean') {
+        return item.published;
+    }
+    const id = item && item.resource_link_id ? String(item.resource_link_id) : '';
+    if (id && courseLinkPublished && Object.prototype.hasOwnProperty.call(courseLinkPublished, id)) {
+        return !!courseLinkPublished[id];
+    }
+    return false;
+}
+
+function rememberSavedLtiLinks() {
+    savedLtiResourceLinkIds = {};
+    (lessonsData.modules || []).forEach(function(mod) {
+        (mod.items || []).forEach(function(item) {
+            if (!item || item.type !== 'lti') {
+                return;
+            }
+            const id = String(item.resource_link_id || '').trim();
+            if (id) {
+                savedLtiResourceLinkIds[id] = true;
+            }
+        });
+    });
+}
+
+function rememberSavedQuizIds() {
+    savedQuizIds = {};
+    (lessonsData.modules || []).forEach(function(mod) {
+        (mod.items || []).forEach(function(item) {
+            if (!item || item.type !== 'quiz') {
+                return;
+            }
+            const id = parseInt(item.quiz_id, 10) || 0;
+            if (id > 0) {
+                savedQuizIds[id] = true;
+            }
+        });
+    });
+}
+
+function noteLtiLinksAfterSave() {
+    (lessonsData.modules || []).forEach(function(mod) {
+        (mod.items || []).forEach(function(item) {
+            if (!item || item.type !== 'lti') {
+                return;
+            }
+            const id = String(item.resource_link_id || '').trim();
+            if (!id || Object.prototype.hasOwnProperty.call(courseLinkPublished, id)) {
+                return;
+            }
+            courseLinkPublished[id] = false;
+        });
+    });
+    rememberSavedLtiLinks();
+    rememberSavedQuizIds();
+}
+
+function publishBlockedReason(kind, id) {
+    if (hasChanges) {
+        return 'Save the lesson before changing publish.';
+    }
+    if (kind === 'quiz') {
+        const quizId = parseInt(id, 10) || 0;
+        if (quizId < 1 || !savedQuizIds[quizId]) {
+            return 'Save the lesson before changing publish.';
+        }
+        return '';
+    }
+    const linkId = String(id || '').trim();
+    if (!linkId || !savedLtiResourceLinkIds[linkId]) {
+        return 'Save the lesson before changing publish.';
+    }
+    return '';
+}
+
+function publishButtonHtml(item) {
+    const kind = itemEditorKind(item);
+    if (kind !== 'lti' && kind !== 'quiz') {
+        return '';
+    }
+    const id = kind === 'quiz'
+        ? String(parseInt(item.quiz_id, 10) || '')
+        : String(item.resource_link_id || '').trim();
+    const on = kind === 'quiz' ? quizItemIsPublished(item) : ltiItemIsPublished(item);
+    const reason = publishBlockedReason(kind, id);
+    const label = reason || (on ? 'Published. Click to unpublish.' : 'Unpublished. Click to publish.');
+    const icon = on ? 'fa-check-circle publish-on' : 'fa-ban publish-off';
+    const idAttr = escapeHtml(id).replace(/"/g, '&quot;');
+    const labelAttr = escapeHtml(label).replace(/"/g, '&quot;');
+    return `<button type="button" class="btn btn-icon publish-toggle-btn" data-publish-kind="${kind}" data-publish-id="${idAttr}" title="${labelAttr}" aria-label="${labelAttr}"><i class="fa ${icon}" aria-hidden="true"></i></button>`;
+}
+
+function refreshPublishButtons() {
+    document.querySelectorAll('.publish-toggle-btn').forEach(function(btn) {
+        const kind = btn.getAttribute('data-publish-kind') || '';
+        const id = String(btn.getAttribute('data-publish-id') || '').trim();
+        const on = kind === 'quiz'
+            ? quizItemIsPublished({ quiz_id: id })
+            : ltiItemIsPublished({ resource_link_id: id });
+        const reason = publishBlockedReason(kind, id);
+        const label = reason || (on ? 'Published. Click to unpublish.' : 'Unpublished. Click to publish.');
+        btn.disabled = false;
+        btn.title = label;
+        btn.setAttribute('aria-label', label);
+        const icon = btn.querySelector('i');
+        if (icon) {
+            icon.className = 'fa ' + (on ? 'fa-check-circle publish-on' : 'fa-ban publish-off');
+        }
+    });
+}
+
+function togglePublished(button) {
+    const kind = button.getAttribute('data-publish-kind') || '';
+    const id = String(button.getAttribute('data-publish-id') || '').trim();
+    const reason = publishBlockedReason(kind, id);
+    if (reason) {
+        alert(reason);
+        return;
+    }
+    const on = kind === 'quiz'
+        ? quizItemIsPublished({ quiz_id: id })
+        : ltiItemIsPublished({ resource_link_id: id });
+    const next = !on;
+    button.disabled = true;
+    const data = {
+        action: kind === 'quiz' ? 'publish-quiz' : 'publish-lti',
+        published: next ? '1' : '0'
+    };
+    if (kind === 'quiz') {
+        data.quiz_id = id;
+    } else {
+        data.resource_link_id = id;
+    }
+    $.ajax({
+        url: window.location.pathname,
+        method: 'POST',
+        headers: tsugiCsrfHeaders(),
+        data: data,
+        success: function(response) {
+            const result = typeof response === 'string' ? JSON.parse(response) : response;
+            if (!result.success) {
+                alert(result.error || 'Could not change publish.');
+                refreshPublishButtons();
+                return;
+            }
+            if (kind === 'quiz') {
+                const quiz = quiz1ById(parseInt(id, 10));
+                if (quiz) {
+                    quiz.published = !!result.published;
+                }
+            } else {
+                courseLinkPublished[id] = !!result.published;
+            }
+            refreshPublishButtons();
+        },
+        error: function() {
+            alert('Could not change publish.');
+            refreshPublishButtons();
+        }
+    });
+}
+
 function ltiToolById(id) {
     const tid = parseInt(id, 10) || 0;
     if (!tid) {
@@ -1122,7 +1352,7 @@ function ltiToolById(id) {
 }
 
 function ltiPickerFieldsHtml(item) {
-    const selected = parseInt(item.registration_id, 10) || 0;
+    const selected = parseInt(item.tool_deployment_id, 10) || 0;
     const found = ltiToolById(selected);
     const manage = ltiToolsUrl
         ? `<div class="file-picker-summary"><a href="${escapeHtml(ltiToolsUrl)}" target="_blank" rel="noopener noreferrer">Manage tools</a></div>`
@@ -1132,27 +1362,28 @@ function ltiPickerFieldsHtml(item) {
     if (selected && !found) {
         const missingLabel = escapeHtml((item.title || ('Tool ' + selected))) + ' — missing from this course';
         missingOption = `<option value="${selected}" selected>${missingLabel}</option>`;
-        missingNote = `<p class="help-block">This lesson still points at a tool that is not in this course or does not have a resource link launch. Students do not see it. Pick another tool or delete the item.</p>`;
+        missingNote = `<p class="help-block">This lesson still points at a deployment that is not in this course or does not have a resource link launch. Students do not see it. Pick another deployment or delete the item.</p>`;
     }
     let legacy = '';
     if (!selected && item.launch) {
-        legacy = `<p class="help-block">This link has a launch URL and is not registered. Choose a course tool to supply the key and secret. The launch URL stays.</p>`;
+        legacy = `<p class="help-block">This link has a launch URL and is not linked to a deployment. Choose a deployment to supply the key and secret. The launch URL stays.</p>`;
     }
     let picker;
     if ((!ltiTools || !ltiTools.length) && !selected) {
-        picker = `<p>No LTI tools with a resource link in this course yet. <a href="${escapeHtml(ltiToolsUrl)}" target="_blank" rel="noopener noreferrer">Add a tool</a>, then come back and choose it here.</p>
+        picker = `<p>No deployments with a resource link in this course yet. <a href="${escapeHtml(ltiToolsUrl)}" target="_blank" rel="noopener noreferrer">Add a tool</a>, then come back and choose it here.</p>
             <input type="hidden" id="edit-lti-tool" value="">
             ${legacy}`;
     } else {
         const options = (ltiTools || []).map(function(tool) {
-            const label = escapeHtml(tool.title || ('Tool ' + tool.id));
+            const version = tool.lti_version === '1.3' ? 'LTI 1.3' : (tool.lti_version === '1.1' ? 'LTI 1.1' : '');
+            const label = escapeHtml(tool.title || ('Deployment ' + tool.id)) + (version ? ' (' + version + ')' : '');
             return `<option value="${tool.id}" ${tool.id === selected && found ? 'selected' : ''}>${label}</option>`;
         }).join('');
         picker = `
             <div class="form-group">
-                <label>Tool:</label>
+                <label>Deployment:</label>
                 <select id="edit-lti-tool" onchange="onLtiToolPicked()">
-                    <option value="">Choose a tool…</option>
+                    <option value="">Choose a deployment…</option>
                     ${missingOption}
                     ${options}
                 </select>
@@ -1163,17 +1394,25 @@ function ltiPickerFieldsHtml(item) {
         `;
     }
     const keepLaunch = item.launch ? 'data-keep="1"' : '';
-    const openChoice = item.target === '_blank' ? '_blank'
-        : (item.target === '_self' ? '_self'
-        : (item.target === 'modal' ? 'modal' : 'iframe'));
+    const openChoice = item.target === '_self' ? '_self'
+        : (item.target === 'modal' ? 'modal'
+        : (item.target === 'iframe' ? 'iframe' : '_blank'));
     const namesOn = ltiPrivacyChecked(item, 'send_name', found);
     const emailOn = ltiPrivacyChecked(item, 'send_email', found);
+    const gradeAllowed = !!(found && found.send_grade);
+    const gradeOn = gradeAllowed && ltiPrivacyChecked(item, 'send_grade', found);
     const namesDisabled = found && !found.send_name ? 'disabled' : '';
     const emailDisabled = found && !found.send_email ? 'disabled' : '';
+    const gradeDisabled = gradeAllowed ? '' : 'disabled';
+    const gradeNote = gradeAllowed ? '' : '<p class="help-block">This deployment is not allowed to return grades.</p>';
     return `
             <div class="form-group">
                 <label>Title:</label>
                 <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}" placeholder="Defaults to the tool title">
+            </div>
+            <div class="form-group">
+                <label>Resource Link ID:</label>
+                <input type="text" id="edit-resource-link-id" value="${escapeHtml(item.resource_link_id || '')}" placeholder="Leave blank to generate from the title">
             </div>
             ${picker}
             <div class="form-group">
@@ -1190,6 +1429,13 @@ function ltiPickerFieldsHtml(item) {
                 </div>
             </div>
             <div class="form-group">
+                <label>Grades:</label>
+                <div class="checkbox">
+                    <label><input type="checkbox" id="edit-lti-send-grade" ${gradeOn ? 'checked' : ''} ${gradeDisabled}> Allow this tool to return a grade</label>
+                </div>
+                ${gradeNote}
+            </div>
+            <div class="form-group">
                 <label>Open:</label>
                 <div class="form-group-radios">
                     <label><input type="radio" name="edit-lti-open" value="_self" ${openChoice === '_self' ? 'checked' : ''}> Same page</label>
@@ -1203,7 +1449,7 @@ function ltiPickerFieldsHtml(item) {
 
 function applyLtiOpenTarget(item) {
     const picked = document.querySelector('input[name="edit-lti-open"]:checked');
-    item.target = picked ? picked.value : 'iframe';
+    item.target = picked ? picked.value : '_blank';
 }
 
 function ltiPrivacyChecked(item, key, tool) {
@@ -1216,7 +1462,7 @@ function ltiPrivacyChecked(item, key, tool) {
     if (tool) {
         return !!tool[key];
     }
-    return !!(item.launch && !item.registration_id);
+    return !!(item.launch && !item.tool_deployment_id);
 }
 
 function onLtiToolPicked() {
@@ -1230,7 +1476,7 @@ function onLtiToolPicked() {
     if (tool && launchEl && launchEl.getAttribute('data-keep') !== '1') {
         launchEl.value = tool.launch || '';
     }
-    [['edit-lti-send-name', 'send_name'], ['edit-lti-send-email', 'send_email']].forEach(function(pair) {
+    [['edit-lti-send-name', 'send_name'], ['edit-lti-send-email', 'send_email'], ['edit-lti-send-grade', 'send_grade']].forEach(function(pair) {
         const el = document.getElementById(pair[0]);
         if (!el) {
             return;
@@ -1325,6 +1571,8 @@ function migrateFCPXToReference() {
 
 // Initialize
 $(document).ready(function() {
+    rememberSavedLtiLinks();
+    rememberSavedQuizIds();
     migrateFCPXToReference();
     loadCoursePages().catch(function() {});
     renderModules();
@@ -1388,6 +1636,11 @@ $(document).ready(function() {
     });
     
     // Event delegation for edit/delete buttons (so they work after reordering)
+    $(document).on('click', '.publish-toggle-btn', function(event) {
+        event.preventDefault();
+        togglePublished(this);
+    });
+
     $(document).on('click', '.edit-item-btn', function() {
         editItemFromButton(this);
     });
@@ -1418,6 +1671,7 @@ function markChanged() {
     if (!hasChanges) {
         hasChanges = true;
         $('#save-bar').removeClass('hidden');
+        refreshPublishButtons();
     }
 }
 
@@ -1719,6 +1973,7 @@ function createItemHtml(item, moduleIndex, itemIndex) {
                         ${isHeader ? `<button type="button" class="btn btn-icon add-item-after-btn" onclick="addItemAfter(${moduleIndex}, ${itemIndex})" title="Add item after this header" aria-label="Add item after this header">
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>` : ''}
+                        ${publishButtonHtml(item)}
                         <button type="button" class="btn btn-icon edit-item-btn" title="Edit Item" aria-label="Edit item">
                             <i class="fa fa-pencil" aria-hidden="true"></i>
                         </button>
@@ -2055,7 +2310,8 @@ function harvestItemFormDraft(item) {
     }
     const toolEl = document.getElementById('edit-lti-tool');
     if (toolEl && toolEl.value) {
-        item.registration_id = parseInt(toolEl.value, 10);
+        item.tool_deployment_id = parseInt(toolEl.value, 10);
+        delete item.registration_id;
     }
     const ltiOpenEl = document.querySelector('input[name="edit-lti-open"]:checked');
     if (ltiOpenEl) {
@@ -2068,6 +2324,10 @@ function harvestItemFormDraft(item) {
     const sendEmailEl = document.getElementById('edit-lti-send-email');
     if (sendEmailEl) {
         item.send_email = !!sendEmailEl.checked;
+    }
+    const sendGradeEl = document.getElementById('edit-lti-send-grade');
+    if (sendGradeEl) {
+        item.send_grade = !!sendGradeEl.checked;
     }
     const pageEl = document.getElementById('edit-page-id');
     if (pageEl && pageEl.value) {
@@ -2669,16 +2929,23 @@ function saveItem() {
         if (sendEmailEl) {
             item.send_email = !!sendEmailEl.checked;
         }
+        const sendGradeEl = document.getElementById('edit-lti-send-grade');
+        if (sendGradeEl) {
+            item.send_grade = !!sendGradeEl.checked;
+        }
         if (!toolId) {
-            if (item.launch && !parseInt(item.registration_id, 10)) {
+            if (item.launch && !parseInt(item.tool_deployment_id, 10)) {
+                delete item.registration_id;
+                delete item.tool_deployment_id;
                 item.title = $('#edit-title').val().trim();
                 const launchEl = document.getElementById('edit-lti-launch');
                 if (launchEl && launchEl.value.trim()) {
                     item.launch = launchEl.value.trim();
                 }
                 applyLtiOpenTarget(item);
+                item.resource_link_id = ltiResourceLinkId(item.title, item.resource_link_id);
             } else {
-                alert('Pick an LTI tool from this course.');
+                alert('Pick a deployment from this course.');
                 return;
             }
         } else {
@@ -2692,14 +2959,11 @@ function saveItem() {
                 item.launch = launch;
             }
             applyLtiOpenTarget(item);
-            item.registration_id = toolId;
+            delete item.registration_id;
+            item.tool_deployment_id = toolId;
             const titleVal = $('#edit-title').val().trim();
             item.title = titleVal || (selected ? selected.title : (item.title || ''));
-            let rlid = String(item.resource_link_id || '').trim();
-            if (!rlid) {
-                rlid = allocateLtiRlid(item.title, collectUsedResourceLinkIds(editingModuleIndex, editingItemIndex));
-            }
-            item.resource_link_id = rlid;
+            item.resource_link_id = ltiResourceLinkId(item.title, item.resource_link_id);
         }
     } else if (type === 'file') {
         if (!filePickerState.sha256 || !filePickerState.href) {
@@ -2769,9 +3033,12 @@ function saveItem() {
     }
     if (item.type !== 'lti') {
         delete item.registration_id;
+        delete item.tool_deployment_id;
         delete item.send_name;
         delete item.send_email;
+        delete item.send_grade;
     }
+    delete item.published;
 
     if ($('#edit-item-icon').length) {
         applyPickedIcon(item, '#edit-item-icon');
@@ -2935,6 +3202,8 @@ function saveChanges() {
             if (result.success) {
                 hasChanges = false;
                 $('#save-bar').addClass('hidden');
+                noteLtiLinksAfterSave();
+                refreshPublishButtons();
                 alert('Changes saved successfully!');
             } else {
                 alert('Error saving: ' + (result.error || 'Unknown error'));

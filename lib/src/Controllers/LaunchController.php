@@ -62,6 +62,10 @@ class LaunchController extends Tool {
             $app->tsugiFlashError(__('Cannot find lti resource link id'));
             return new RedirectResponse($redirect_path);
         }
+        if ( $l->resourceLinkPublished($resource_link_id) === false && ! $l->lessonsViewerIsInstructor() ) {
+            $app->tsugiFlashError(__('This tool is not published.'));
+            return new RedirectResponse(U::addSession(self::determineToolHome(Lessons::ROUTE)));
+        }
 
         $module = $l->getModuleByRlid($resource_link_id);
 
