@@ -210,6 +210,39 @@ class LtiContentService {
     }
 
     /**
+     * Every launch row in this course, keyed by content id.
+     *
+     * @param int $contextId
+     * @return array<int, array<string, mixed>>
+     */
+    public static function rowsForContext($contextId) {
+        $p = self::prefix();
+        $rows = self::db()->allRowsDie(
+            "SELECT c.content_id, c.context_id, c.key_id, c.tool_deployment_id, c.link_id,
+                    c.title, c.launch_url, c.target, c.resource_link_id,
+                    c.send_name, c.send_email, c.send_grade, c.published,
+                    l.published AS link_published
+             FROM {$p}lti_content c
+             LEFT JOIN {$p}lti_link l ON l.link_id = c.link_id
+             WHERE c.context_id = :context_id
+             ORDER BY c.content_id",
+            array(':context_id' => (int) $contextId)
+        );
+        $out = array();
+        if ( ! is_array($rows) ) {
+            return $out;
+        }
+        foreach ( $rows as $row ) {
+            if ( ! is_array($row) ) {
+                continue;
+            }
+            $editor = self::editorRow($row);
+            $out[(int) $editor['id']] = $editor;
+        }
+        return $out;
+    }
+
+    /**
      * Student visibility. A grade column uses the link. Otherwise this row.
      *
      * @param int $contextId
