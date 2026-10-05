@@ -307,7 +307,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->waitForPageText($client, 'QTI Export Test', 30);
         $this->waitForPageText($client, 'Sample quiz created.');
 
-        $driver->findElement(WebDriverBy::xpath("//button[normalize-space()='Publish']"))->click();
+        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Unpublished. Click to publish."]'))->click();
         $this->waitForPageText($client, 'Quiz published.');
 
         $opened = (bool) $driver->executeScript(
@@ -340,7 +340,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Create sample quiz')]"))->click();
         $this->waitForPageText($client, 'QTI Export Test', 30);
         $this->waitForPageText($client, 'Sample quiz created.');
-        $driver->findElement(WebDriverBy::xpath("//button[normalize-space()='Publish']"))->click();
+        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Unpublished. Click to publish."]'))->click();
         $this->waitForPageText($client, 'Quiz published.');
     }
 
@@ -499,7 +499,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->executeScript(
             "document.getElementById('edit-item-type').value = 'lti'; updateItemForm();"
         );
-        $this->waitForPageText($client, 'Choose a tool');
+        $this->waitForPageText($client, 'Choose a deployment');
         $picked = $driver->executeScript(
             'var sel = document.getElementById("edit-lti-tool");
              if (!sel || sel.options.length < 2) { return ""; }
