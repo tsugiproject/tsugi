@@ -1548,31 +1548,19 @@ class LTIX {
             }
         }
 
-        // A for_user (for example, an instructor grading a student who never launched
-        // this tool) has no lti_user row yet, so create one from the claim
+        // A for_user the LMS names but this tool has never seen. Nothing is written
+        // here - LTIX::provisionForUser() creates the rows only when a grade is saved.
         $for_user_subject = U::get($post, "for_user_subject", false);
         if ( U::isNotEmpty($for_user_subject) && U::get($row, 'for_user_id') === null ) {
-            $sql = "INSERT INTO {$p}lti_user
-                /*PDOX pk: user_id lk: subject_sha256,key_id */
-                ( subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
-                ( :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
-                ON DUPLICATE KEY UPDATE
-                user_id=LAST_INSERT_ID(user_id), updated_at = NOW();";
-            $PDOX->queryDie($sql, array(
-                ':subject_key' => $for_user_subject,
-                ':subject_sha256' => lti_sha256($for_user_subject),
-                ':displayname' => U::get($post, 'for_user_displayname'),
-                ':email' => U::get($post, 'for_user_email'),
-                ':image' => U::get($post, 'for_user_image'),
-                ':locale' => U::get($post, 'for_user_locale'),
-                ':key_id' => $row['key_id']));
-            $row['for_user_id'] = $PDOX->lastInsertId();
-            $row['for_user_key'] = $for_user_subject;
-            $row['for_user_displayname'] = U::get($post, 'for_user_displayname');
-            $row['for_user_email'] = U::get($post, 'for_user_email');
-            $row['for_user_image'] = U::get($post, 'for_user_image');
-            $row['for_user_locale'] = U::get($post, 'for_user_locale');
-            $actions[] = "=== Inserted for_user id=".$row['for_user_id']." subject=".$for_user_subject;
+            $row['for_user_pending'] = array(
+                'subject' => $for_user_subject,
+                'displayname' => U::get($post, 'for_user_displayname'),
+                'email' => U::get($post, 'for_user_email'),
+                'image' => U::get($post, 'for_user_image'),
+                'locale' => U::get($post, 'for_user_locale'),
+                'key_id' => $row['key_id'],
+                'link_id' => $row['link_id'],
+            );
         }
 
         if ( $row['membership_id'] === null && $row['context_id'] !== null && $row['user_id'] !== null ) {
@@ -2137,6 +2125,45 @@ class LTIX {
         self::abort_with_error_log('Course has been deleted');
     }
 
+    /**
+     * Create the lti_user and lti_result rows for a for_user this tool has not seen.
+     *
+     * Call this only when saving a grade, not when viewing the page.
+     *
+     * @param array $pending $LAUNCH->for_user_pending
+     * @return int The new lti_user id
+     */
+    public static function provisionForUser($pending) {
+        global $CFG;
+        $PDOX = self::getConnection();
+        $p = $CFG->dbprefix;
+
+        $PDOX->queryDie("INSERT INTO {$p}lti_user
+            /*PDOX pk: user_id lk: subject_sha256,key_id */
+            ( subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
+            ( :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
+            ON DUPLICATE KEY UPDATE user_id=LAST_INSERT_ID(user_id), updated_at = NOW();",
+            array(
+                ':subject_key' => $pending['subject'],
+                ':subject_sha256' => lti_sha256($pending['subject']),
+                ':displayname' => $pending['displayname'],
+                ':email' => $pending['email'],
+                ':image' => $pending['image'],
+                ':locale' => $pending['locale'],
+                ':key_id' => $pending['key_id']));
+        $user_id = $PDOX->lastInsertId();
+
+        $PDOX->queryDie("INSERT INTO {$p}lti_result
+            ( link_id, user_id, created_at, updated_at ) VALUES
+            ( :link_id, :user_id, NOW(), NOW() )
+            ON DUPLICATE KEY UPDATE updated_at = NOW();",
+            array(
+                ':link_id' => $pending['link_id'],
+                ':user_id' => $user_id));
+
+        return $user_id;
+    }
+
     public static function buildLaunch($LTI) {
         global $CFG, $TSUGI_LAUNCH, $TSUGI_KEY;
         global $OUTPUT, $USER, $PROFILE, $CONTEXT, $LINK, $RESULT, $ROSTER;
@@ -2210,6 +2237,9 @@ class LTIX {
             $for_user->admin = isset($LTI['for_user_role']) && $LTI['for_user_role'] >= self::ROLE_ADMINISTRATOR;
             $TSUGI_LAUNCH->for_user = $for_user;
         }
+
+        // for_user the LMS names but this tool has never seen - see provisionForUser()
+        $TSUGI_LAUNCH->for_user_pending = isset($LTI['for_user_pending']) ? $LTI['for_user_pending'] : null;
 
         if ( isset($LTI['key_id']) && ! is_object($TSUGI_KEY) ) {
             $TSUGI_KEY = new \Tsugi\Core\Key();
