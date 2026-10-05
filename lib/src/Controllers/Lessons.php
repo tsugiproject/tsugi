@@ -299,23 +299,12 @@ class Lessons extends Tool {
                 continue;
             }
             foreach ( $mod['items'] as $ii => $item ) {
-                if ( ! is_array($item) || ! array_key_exists('published', $item) ) {
+                if ( ! is_array($item) ) {
                     continue;
                 }
-                $want = (bool) $item['published'];
-                unset($lessons_data['modules'][$mi]['items'][$ii]['published']);
                 $type = isset($item['type']) ? (string) $item['type'] : '';
-                if ( $type === 'quiz' ) {
-                    $quiz_id = isset($item['quiz_id']) ? (int) $item['quiz_id'] : 0;
-                    if ( $quiz_id < 1 ) {
-                        continue;
-                    }
-                    if ( $want ) {
-                        Quiz1Repository::publish($quiz_id, $context_id);
-                    } else if ( Quiz1Repository::ensureLink($quiz_id, $context_id) ) {
-                        Quiz1Repository::unpublish($quiz_id, $context_id);
-                    }
-                    continue;
+                if ( array_key_exists('published', $item) ) {
+                    unset($lessons_data['modules'][$mi]['items'][$ii]['published']);
                 }
                 if ( $type !== 'lti' ) {
                     continue;
@@ -325,11 +314,10 @@ class Lessons extends Tool {
                     continue;
                 }
                 $title = isset($item['title']) ? (string) $item['title'] : '';
-                $this->syncLtiPublication(
+                $this->ensureUnpublishedLtiLink(
                     $context_id,
                     $resource_link_id,
                     $title,
-                    $want,
                     isset($previous[$resource_link_id])
                 );
             }
@@ -370,15 +358,48 @@ class Lessons extends Tool {
     }
 
     /**
-     * Create or update the lesson tool's link. Publish only changes the flag.
+     * Quiz ids already stored in the saved lesson document.
+     *
+     * @return array<int, bool>
+     */
+    private function savedQuizIds() {
+        $doc = Manifest::currentDocument();
+        $ids = array();
+        if ( ! is_array($doc) || ! isset($doc['json']) || ! is_string($doc['json']) ) {
+            return $ids;
+        }
+        $data = json_decode($doc['json'], true);
+        if ( ! is_array($data) || ! isset($data['modules']) || ! is_array($data['modules']) ) {
+            return $ids;
+        }
+        foreach ( $data['modules'] as $mod ) {
+            if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
+                continue;
+            }
+            foreach ( $mod['items'] as $item ) {
+                if ( ! is_array($item) || ! isset($item['type']) || (string) $item['type'] !== 'quiz' ) {
+                    continue;
+                }
+                $id = isset($item['quiz_id']) ? (int) $item['quiz_id'] : 0;
+                if ( $id > 0 ) {
+                    $ids[$id] = true;
+                }
+            }
+        }
+        return $ids;
+    }
+
+    /**
+     * A new lesson tool gets an unpublished link. Saving the lesson updates the
+     * link title and leaves published alone. An older item with no link stays
+     * as it is until publish is toggled.
      *
      * @param int $contextId
      * @param string $resourceLinkId
      * @param string $title
-     * @param bool $published
      * @param bool $existedBefore This item was already in the saved lesson.
      */
-    private function syncLtiPublication($contextId, $resourceLinkId, $title, $published, $existedBefore) {
+    private function ensureUnpublishedLtiLink($contextId, $resourceLinkId, $title, $existedBefore) {
         global $CFG, $PDOX;
         LTIX::getConnection();
         $sha = U::lti_sha256($resourceLinkId);
@@ -390,15 +411,13 @@ class Lessons extends Tool {
                 ':link_sha256' => $sha,
             )
         );
-        $flag = $published ? 1 : 0;
-        $title = trim($title) !== '' ? trim($title) : $resourceLinkId;
         if ( is_array($row) && isset($row['link_id']) ) {
+            $title = trim($title) !== '' ? trim($title) : $resourceLinkId;
             $PDOX->queryDie(
                 "UPDATE {$CFG->dbprefix}lti_link
-                 SET published = :published, title = :title, deleted = 0, updated_at = NOW()
+                 SET title = :title, deleted = 0, updated_at = NOW()
                  WHERE link_id = :link_id AND context_id = :context_id",
                 array(
-                    ':published' => $flag,
                     ':title' => $title,
                     ':link_id' => (int) $row['link_id'],
                     ':context_id' => (int) $contextId,
@@ -406,7 +425,55 @@ class Lessons extends Tool {
             );
             return;
         }
-        if ( $existedBefore && $published ) {
+        if ( $existedBefore ) {
+            return;
+        }
+        $title = trim($title) !== '' ? trim($title) : $resourceLinkId;
+        $PDOX->queryDie(
+            "INSERT INTO {$CFG->dbprefix}lti_link
+                (link_key, link_sha256, title, context_id, published, created_at, updated_at)
+             VALUES
+                (:link_key, :link_sha256, :title, :context_id, 0, NOW(), NOW())",
+            array(
+                ':link_key' => $resourceLinkId,
+                ':link_sha256' => $sha,
+                ':title' => $title,
+                ':context_id' => (int) $contextId,
+            )
+        );
+    }
+
+    /**
+     * Set published on a lesson tool link that is already in the saved document.
+     *
+     * @param int $contextId
+     * @param string $resourceLinkId
+     * @param bool $published
+     */
+    private function setLtiPublished($contextId, $resourceLinkId, $published) {
+        global $CFG, $PDOX;
+        LTIX::getConnection();
+        $sha = U::lti_sha256($resourceLinkId);
+        $flag = $published ? 1 : 0;
+        $row = $PDOX->rowDie(
+            "SELECT link_id FROM {$CFG->dbprefix}lti_link
+             WHERE context_id = :context_id AND link_sha256 = :link_sha256",
+            array(
+                ':context_id' => (int) $contextId,
+                ':link_sha256' => $sha,
+            )
+        );
+        if ( is_array($row) && isset($row['link_id']) ) {
+            $PDOX->queryDie(
+                "UPDATE {$CFG->dbprefix}lti_link
+                 SET published = :published, deleted = 0, updated_at = NOW()
+                 WHERE link_id = :link_id AND context_id = :context_id",
+                array(
+                    ':published' => $flag,
+                    ':link_id' => (int) $row['link_id'],
+                    ':context_id' => (int) $contextId,
+                )
+            );
             return;
         }
         $PDOX->queryDie(
@@ -417,7 +484,7 @@ class Lessons extends Tool {
             array(
                 ':link_key' => $resourceLinkId,
                 ':link_sha256' => $sha,
-                ':title' => $title,
+                ':title' => $resourceLinkId,
                 ':context_id' => (int) $contextId,
                 ':published' => $flag,
             )
@@ -439,6 +506,12 @@ class Lessons extends Tool {
         }
 
         $action = U::get($_POST, 'action');
+        if ( $action === 'publish-lti' ) {
+            return $this->authorPublishLti();
+        }
+        if ( $action === 'publish-quiz' ) {
+            return $this->authorPublishQuiz();
+        }
         if ( $action !== 'save' ) {
             return new Response(json_encode(['success' => false, 'error' => 'Unknown action']), 400, ['Content-Type' => 'application/json']);
         }
@@ -459,6 +532,68 @@ class Lessons extends Tool {
         }
 
         return new Response(json_encode(['success' => true, 'message' => 'Manifest saved']), 200, ['Content-Type' => 'application/json']);
+    }
+
+    /**
+     * Flip publish on one saved lesson tool. The link must already be in the saved document.
+     */
+    private function authorPublishLti() {
+        $resource_link_id = trim((string) U::get($_POST, 'resource_link_id', ''));
+        $want = $this->postedPublishedFlag();
+        if ( $resource_link_id === '' || $want === null ) {
+            return new Response(json_encode(['success' => false, 'error' => 'Missing publish data']), 400, ['Content-Type' => 'application/json']);
+        }
+        $saved = $this->savedLtiResourceLinkIds();
+        if ( ! isset($saved[$resource_link_id]) ) {
+            return new Response(json_encode(['success' => false, 'error' => 'Save the lesson before changing publish.']), 400, ['Content-Type' => 'application/json']);
+        }
+        $context_id = ReqScope::currentContextId();
+        if ( $context_id < 1 ) {
+            return new Response(json_encode(['success' => false, 'error' => 'No course context']), 400, ['Content-Type' => 'application/json']);
+        }
+        $this->setLtiPublished($context_id, $resource_link_id, $want);
+        return new Response(json_encode(['success' => true, 'published' => $want]), 200, ['Content-Type' => 'application/json']);
+    }
+
+    /**
+     * Flip publish on one quiz that is already in the saved lesson.
+     */
+    private function authorPublishQuiz() {
+        $quiz_id = (int) U::get($_POST, 'quiz_id', 0);
+        $want = $this->postedPublishedFlag();
+        if ( $quiz_id < 1 || $want === null ) {
+            return new Response(json_encode(['success' => false, 'error' => 'Missing publish data']), 400, ['Content-Type' => 'application/json']);
+        }
+        $saved = $this->savedQuizIds();
+        if ( ! isset($saved[$quiz_id]) ) {
+            return new Response(json_encode(['success' => false, 'error' => 'Save the lesson before changing publish.']), 400, ['Content-Type' => 'application/json']);
+        }
+        $context_id = ReqScope::currentContextId();
+        if ( $context_id < 1 ) {
+            return new Response(json_encode(['success' => false, 'error' => 'No course context']), 400, ['Content-Type' => 'application/json']);
+        }
+        if ( $want ) {
+            if ( ! Quiz1Repository::publish($quiz_id, $context_id) ) {
+                return new Response(json_encode(['success' => false, 'error' => 'Quiz not found in this course']), 400, ['Content-Type' => 'application/json']);
+            }
+        } else if ( ! Quiz1Repository::unpublish($quiz_id, $context_id) ) {
+            return new Response(json_encode(['success' => false, 'error' => 'Quiz not found in this course']), 400, ['Content-Type' => 'application/json']);
+        }
+        return new Response(json_encode(['success' => true, 'published' => $want]), 200, ['Content-Type' => 'application/json']);
+    }
+
+    /**
+     * @return bool|null
+     */
+    private function postedPublishedFlag() {
+        $published = U::get($_POST, 'published');
+        if ( $published === '1' || $published === 1 || $published === true ) {
+            return true;
+        }
+        if ( $published === '0' || $published === 0 || $published === false ) {
+            return false;
+        }
+        return null;
     }
 
     /**

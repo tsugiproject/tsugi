@@ -660,11 +660,19 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
         }
         try {
             $ids = $this->insertCourseFixture($pdo, LTIX::ROLE_INSTRUCTOR);
-            $quiz = new Quiz1();
-            $quiz->context_id = $ids['context_id'];
-            $quiz->user_id = $ids['user_id'];
-            $quiz->title = 'Draft';
-            $quiz_id = Quiz1Repository::insertQuiz($quiz);
+            $p = $this->prefix();
+            $pdo->queryDie(
+                "INSERT INTO {$p}quiz1_quiz
+                    (context_id, user_id, title, instructions, created_at, updated_at)
+                 VALUES (:CID, :UID, :title, :instructions, NOW(), NOW())",
+                array(
+                    ':CID' => $ids['context_id'],
+                    ':UID' => $ids['user_id'],
+                    ':title' => 'Draft',
+                    ':instructions' => null,
+                )
+            );
+            $quiz_id = (int) $pdo->lastInsertId();
             $this->assertFalse(Quiz1Repository::unpublish($quiz_id, $ids['context_id']));
             $this->assertNull(Quiz1Repository::publish(99999999, $ids['context_id']));
         } finally {

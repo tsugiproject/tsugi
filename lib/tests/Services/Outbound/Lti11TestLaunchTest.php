@@ -1,6 +1,7 @@
 <?php
 
 use Tsugi\Core\Result;
+use Tsugi\Util\U;
 use Tsugi\Services\Outbound\Lti11CourseTool;
 use Tsugi\Services\Outbound\Lti11TestLaunch;
 use Tsugi\Services\Outbound\ToolDeploymentService;
@@ -124,6 +125,7 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         $this->assertArrayNotHasKey('lis_person_name_full', $launch['parameters']);
         $this->assertArrayNotHasKey('lis_person_contact_email_primary', $launch['parameters']);
         $this->assertArrayNotHasKey('launch_presentation_return_url', $launch['parameters']);
+        $this->insertLessonLink($this->id['eecs280'], 'lti_private', 'Private');
         $asked = Lti11TestLaunch::courseResourceLink(
             $this->id['eecs280'],
             $deploymentId,
@@ -186,6 +188,7 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         }
         $this->assertContains($deploymentId, $choiceIds);
 
+        $this->insertLessonLink($this->id['eecs280'], 'lti_week_1', 'Week 1 quiz');
         $launch = Lti11TestLaunch::courseResourceLink(
             $this->id['eecs280'],
             $deploymentId,
@@ -407,6 +410,7 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
         $registrationId = Lti11CourseTool::addToCourse($this->id['eecs280'], 0, $this->post());
         $deploymentId = ToolDeploymentService::onlyDeploymentId($registrationId);
         $userId = $this->insertInstructor();
+        $this->insertLessonLink($this->id['eecs280'], 'lti_graded', 'Graded quiz');
         $launch = Lti11TestLaunch::courseResourceLink(
             $this->id['eecs280'],
             $deploymentId,
@@ -455,6 +459,45 @@ class Lti11TestLaunchTest extends PlatformSchemaCase
             'placements' => array('lessons'),
             'privacy' => array('names', 'email'),
             'services' => array('score'),
+        );
+    }
+
+    public function testAGradedLaunchWithoutALinkIsRefused(): void
+    {
+        $registrationId = Lti11CourseTool::addToCourse($this->id['eecs280'], 0, $this->post());
+        $deploymentId = ToolDeploymentService::onlyDeploymentId($registrationId);
+        try {
+            Lti11TestLaunch::courseResourceLink(
+                $this->id['eecs280'],
+                $deploymentId,
+                $this->insertInstructor(),
+                'lti_missing',
+                'Missing',
+                'https://local.dj4e.com/tsugi/lessons/return',
+                'Learner',
+                'lms-user-4'
+            );
+            $this->fail('Expected a missing lesson link to be rejected.');
+        } catch ( \InvalidArgumentException $ex ) {
+            $this->assertStringContainsString('has not been created', $ex->getMessage());
+        }
+    }
+
+    private function insertLessonLink($contextId, $resourceLinkId, $title): void
+    {
+        global $PDOX;
+        $p = $this->p();
+        $PDOX->queryDie(
+            "INSERT INTO {$p}lti_link
+                (link_key, link_sha256, title, context_id, published, created_at, updated_at)
+             VALUES
+                (:link_key, :link_sha256, :title, :context_id, 0, NOW(), NOW())",
+            array(
+                ':link_key' => $resourceLinkId,
+                ':link_sha256' => U::lti_sha256($resourceLinkId),
+                ':title' => $title,
+                ':context_id' => (int) $contextId,
+            )
         );
     }
 

@@ -400,6 +400,14 @@
     gap: 5px;
 }
 
+.btn-icon .publish-on {
+    color: #0b874b;
+}
+
+.btn-icon .publish-off {
+    color: #8d959f;
+}
+
 .item-details {
     margin-top: 10px;
     padding-top: 10px;
@@ -784,6 +792,8 @@ let courseFilesCache = null;
 let coursePagesCache = null;
 let filePickerState = emptyFilePickerState();
 let hasChanges = false;
+let savedLtiResourceLinkIds = {};
+let savedQuizIds = {};
 let editingItemIndex = null;
 let editingModuleIndex = null;
 let editingAfterItemIndex = null;
@@ -1162,14 +1172,10 @@ function quizPickerFieldsHtml(item) {
                 <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}" placeholder="Defaults to the quiz title">
             </div>
             ${picker}
-            ${publishedFieldsHtml(quizItemIsPublished(item))}
     `;
 }
 
 function quizItemIsPublished(item) {
-    if (item && typeof item.published === 'boolean') {
-        return item.published;
-    }
     const quiz = quiz1ById(item && item.quiz_id);
     return !!(quiz && quiz.published);
 }
@@ -1182,21 +1188,165 @@ function ltiItemIsPublished(item) {
     if (id && courseLinkPublished && Object.prototype.hasOwnProperty.call(courseLinkPublished, id)) {
         return !!courseLinkPublished[id];
     }
-    if (id) {
+    if (id && savedLtiResourceLinkIds[id]) {
         return true;
     }
     return false;
 }
 
-function publishedFieldsHtml(on) {
-    return `
-            <div class="form-group">
-                <div class="checkbox">
-                    <label><input type="checkbox" id="edit-published" ${on ? 'checked' : ''}> Published</label>
-                </div>
-                <p class="help-block">Students can see and launch this when it is published.</p>
-            </div>
-    `;
+function rememberSavedLtiLinks() {
+    savedLtiResourceLinkIds = {};
+    (lessonsData.modules || []).forEach(function(mod) {
+        (mod.items || []).forEach(function(item) {
+            if (!item || item.type !== 'lti') {
+                return;
+            }
+            const id = String(item.resource_link_id || '').trim();
+            if (id) {
+                savedLtiResourceLinkIds[id] = true;
+            }
+        });
+    });
+}
+
+function rememberSavedQuizIds() {
+    savedQuizIds = {};
+    (lessonsData.modules || []).forEach(function(mod) {
+        (mod.items || []).forEach(function(item) {
+            if (!item || item.type !== 'quiz') {
+                return;
+            }
+            const id = parseInt(item.quiz_id, 10) || 0;
+            if (id > 0) {
+                savedQuizIds[id] = true;
+            }
+        });
+    });
+}
+
+function noteLtiLinksAfterSave() {
+    const previous = savedLtiResourceLinkIds;
+    (lessonsData.modules || []).forEach(function(mod) {
+        (mod.items || []).forEach(function(item) {
+            if (!item || item.type !== 'lti') {
+                return;
+            }
+            const id = String(item.resource_link_id || '').trim();
+            if (!id || previous[id]) {
+                return;
+            }
+            if (!Object.prototype.hasOwnProperty.call(courseLinkPublished, id)) {
+                courseLinkPublished[id] = false;
+            }
+        });
+    });
+    rememberSavedLtiLinks();
+    rememberSavedQuizIds();
+}
+
+function publishBlockedReason(kind, id) {
+    if (hasChanges) {
+        return 'Save the lesson before changing publish.';
+    }
+    if (kind === 'quiz') {
+        const quizId = parseInt(id, 10) || 0;
+        if (quizId < 1 || !savedQuizIds[quizId]) {
+            return 'Save the lesson before changing publish.';
+        }
+        return '';
+    }
+    const linkId = String(id || '').trim();
+    if (!linkId || !savedLtiResourceLinkIds[linkId]) {
+        return 'Save the lesson before changing publish.';
+    }
+    return '';
+}
+
+function publishButtonHtml(item) {
+    const kind = itemEditorKind(item);
+    if (kind !== 'lti' && kind !== 'quiz') {
+        return '';
+    }
+    const id = kind === 'quiz'
+        ? String(parseInt(item.quiz_id, 10) || '')
+        : String(item.resource_link_id || '').trim();
+    const on = kind === 'quiz' ? quizItemIsPublished(item) : ltiItemIsPublished(item);
+    const reason = publishBlockedReason(kind, id);
+    const label = reason || (on ? 'Published. Click to unpublish.' : 'Unpublished. Click to publish.');
+    const icon = on ? 'fa-check-circle publish-on' : 'fa-ban publish-off';
+    const idAttr = escapeHtml(id).replace(/"/g, '&quot;');
+    const labelAttr = escapeHtml(label).replace(/"/g, '&quot;');
+    return `<button type="button" class="btn btn-icon publish-toggle-btn" data-publish-kind="${kind}" data-publish-id="${idAttr}" title="${labelAttr}" aria-label="${labelAttr}"><i class="fa ${icon}" aria-hidden="true"></i></button>`;
+}
+
+function refreshPublishButtons() {
+    document.querySelectorAll('.publish-toggle-btn').forEach(function(btn) {
+        const kind = btn.getAttribute('data-publish-kind') || '';
+        const id = String(btn.getAttribute('data-publish-id') || '').trim();
+        const on = kind === 'quiz'
+            ? quizItemIsPublished({ quiz_id: id })
+            : ltiItemIsPublished({ resource_link_id: id });
+        const reason = publishBlockedReason(kind, id);
+        const label = reason || (on ? 'Published. Click to unpublish.' : 'Unpublished. Click to publish.');
+        btn.disabled = false;
+        btn.title = label;
+        btn.setAttribute('aria-label', label);
+        const icon = btn.querySelector('i');
+        if (icon) {
+            icon.className = 'fa ' + (on ? 'fa-check-circle publish-on' : 'fa-ban publish-off');
+        }
+    });
+}
+
+function togglePublished(button) {
+    const kind = button.getAttribute('data-publish-kind') || '';
+    const id = String(button.getAttribute('data-publish-id') || '').trim();
+    const reason = publishBlockedReason(kind, id);
+    if (reason) {
+        alert(reason);
+        return;
+    }
+    const on = kind === 'quiz'
+        ? quizItemIsPublished({ quiz_id: id })
+        : ltiItemIsPublished({ resource_link_id: id });
+    const next = !on;
+    button.disabled = true;
+    const data = {
+        action: kind === 'quiz' ? 'publish-quiz' : 'publish-lti',
+        published: next ? '1' : '0'
+    };
+    if (kind === 'quiz') {
+        data.quiz_id = id;
+    } else {
+        data.resource_link_id = id;
+    }
+    $.ajax({
+        url: window.location.pathname,
+        method: 'POST',
+        headers: tsugiCsrfHeaders(),
+        data: data,
+        success: function(response) {
+            const result = typeof response === 'string' ? JSON.parse(response) : response;
+            if (!result.success) {
+                alert(result.error || 'Could not change publish.');
+                refreshPublishButtons();
+                return;
+            }
+            if (kind === 'quiz') {
+                const quiz = quiz1ById(parseInt(id, 10));
+                if (quiz) {
+                    quiz.published = !!result.published;
+                }
+            } else {
+                courseLinkPublished[id] = !!result.published;
+            }
+            refreshPublishButtons();
+        },
+        error: function() {
+            alert('Could not change publish.');
+            refreshPublishButtons();
+        }
+    });
 }
 
 function ltiToolById(id) {
@@ -1261,7 +1411,6 @@ function ltiPickerFieldsHtml(item) {
     const emailDisabled = found && !found.send_email ? 'disabled' : '';
     const gradeDisabled = gradeAllowed ? '' : 'disabled';
     const gradeNote = gradeAllowed ? '' : '<p class="help-block">This deployment is not allowed to return grades.</p>';
-    const published = publishedFieldsHtml(ltiItemIsPublished(item));
     return `
             <div class="form-group">
                 <label>Title:</label>
@@ -1292,7 +1441,6 @@ function ltiPickerFieldsHtml(item) {
                 </div>
                 ${gradeNote}
             </div>
-            ${published}
             <div class="form-group">
                 <label>Open:</label>
                 <div class="form-group-radios">
@@ -1429,6 +1577,8 @@ function migrateFCPXToReference() {
 
 // Initialize
 $(document).ready(function() {
+    rememberSavedLtiLinks();
+    rememberSavedQuizIds();
     migrateFCPXToReference();
     loadCoursePages().catch(function() {});
     renderModules();
@@ -1492,6 +1642,11 @@ $(document).ready(function() {
     });
     
     // Event delegation for edit/delete buttons (so they work after reordering)
+    $(document).on('click', '.publish-toggle-btn', function(event) {
+        event.preventDefault();
+        togglePublished(this);
+    });
+
     $(document).on('click', '.edit-item-btn', function() {
         editItemFromButton(this);
     });
@@ -1522,6 +1677,7 @@ function markChanged() {
     if (!hasChanges) {
         hasChanges = true;
         $('#save-bar').removeClass('hidden');
+        refreshPublishButtons();
     }
 }
 
@@ -1823,6 +1979,7 @@ function createItemHtml(item, moduleIndex, itemIndex) {
                         ${isHeader ? `<button type="button" class="btn btn-icon add-item-after-btn" onclick="addItemAfter(${moduleIndex}, ${itemIndex})" title="Add item after this header" aria-label="Add item after this header">
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>` : ''}
+                        ${publishButtonHtml(item)}
                         <button type="button" class="btn btn-icon edit-item-btn" title="Edit Item" aria-label="Edit item">
                             <i class="fa fa-pencil" aria-hidden="true"></i>
                         </button>
@@ -2887,12 +3044,7 @@ function saveItem() {
         delete item.send_email;
         delete item.send_grade;
     }
-    const publishedEl = document.getElementById('edit-published');
-    if (item.type === 'lti' || item.type === 'quiz') {
-        item.published = !!(publishedEl && publishedEl.checked);
-    } else {
-        delete item.published;
-    }
+    delete item.published;
 
     if ($('#edit-item-icon').length) {
         applyPickedIcon(item, '#edit-item-icon');
@@ -3056,6 +3208,8 @@ function saveChanges() {
             if (result.success) {
                 hasChanges = false;
                 $('#save-bar').addClass('hidden');
+                noteLtiLinksAfterSave();
+                refreshPublishButtons();
                 alert('Changes saved successfully!');
             } else {
                 alert('Error saving: ' + (result.error || 'Unknown error'));

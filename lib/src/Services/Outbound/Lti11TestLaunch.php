@@ -2,7 +2,6 @@
 
 namespace Tsugi\Services\Outbound;
 
-use Tsugi\Core\LTIX;
 use Tsugi\Util\LTI;
 use Tsugi\Util\U;
 
@@ -315,7 +314,7 @@ class Lti11TestLaunch {
         if ( $userId < 1 ) {
             return array();
         }
-        $linkId = self::outcomeLinkId($tool, $contextId, $resourceLinkId, $title);
+        $linkId = self::outcomeLinkId($contextId, $resourceLinkId, $title);
         $resultId = self::outcomeResultId($linkId, $userId);
         $placement = self::outcomePlacementSecret($linkId);
         $keyId = (int) $tool['key_id'];
@@ -328,17 +327,19 @@ class Lti11TestLaunch {
     }
 
     /**
-     * @param array<string, mixed> $tool
+     * The lesson author creates this row. A launch does not.
+     * The tool secret stays on the registration.
+     *
      * @param int $contextId
      * @param string $resourceLinkId
      * @param string $title
      * @return int
      */
-    private static function outcomeLinkId(array $tool, $contextId, $resourceLinkId, $title) {
+    private static function outcomeLinkId($contextId, $resourceLinkId, $title) {
         $p = self::prefix();
         $sha = U::lti_sha256($resourceLinkId);
         $row = self::db()->rowDie(
-            "SELECT link_id, settings FROM {$p}lti_link
+            "SELECT link_id FROM {$p}lti_link
              WHERE context_id = :context_id AND link_sha256 = :link_sha256",
             array(
                 ':context_id' => (int) $contextId,
@@ -346,76 +347,19 @@ class Lti11TestLaunch {
             )
         );
         if ( ! is_array($row) ) {
-            $stmt = self::db()->queryReturnError(
-                "INSERT INTO {$p}lti_link
-                    (link_key, link_sha256, title, context_id, created_at, updated_at)
-                 VALUES
-                    (:link_key, :link_sha256, :title, :context_id, NOW(), NOW())",
-                array(
-                    ':link_key' => $resourceLinkId,
-                    ':link_sha256' => $sha,
-                    ':title' => $title,
-                    ':context_id' => (int) $contextId,
-                )
-            );
-            if ( ! $stmt->success ) {
-                throw new \RuntimeException('Could not create the grade link for this lesson.');
-            }
-            $linkId = (int) self::db()->lastInsertId();
-            if ( $linkId < 1 ) {
-                throw new \RuntimeException('Could not create the grade link for this lesson.');
-            }
-        } else {
-            $linkId = (int) $row['link_id'];
-            self::db()->queryDie(
-                "UPDATE {$p}lti_link
-                 SET title = :title, deleted = 0, updated_at = NOW()
-                 WHERE link_id = :link_id",
-                array(
-                    ':title' => $title,
-                    ':link_id' => $linkId,
-                )
-            );
+            throw new \InvalidArgumentException('This lesson link has not been created.');
         }
-        self::outcomeToolCredentials($linkId, $tool, is_array($row) ? $row['settings'] : null);
-        return $linkId;
-    }
-
-    /**
-     * @param int $linkId
-     * @param array<string, mixed> $tool
-     * @param mixed $settings
-     * @return void
-     */
-    private static function outcomeToolCredentials($linkId, array $tool, $settings) {
-        $current = null;
-        if ( is_string($settings) && $settings !== '' ) {
-            $decoded = json_decode($settings);
-            if ( is_object($decoded) && isset($decoded->key) ) {
-                $current = (string) $decoded->key;
-            }
-        }
-        if ( $current === (string) $tool['lti11_key'] ) {
-            return;
-        }
-        $secret = LTIX::encrypt_secret((string) $tool['lti11_secret']);
-        if ( ! is_string($secret) || $secret === '' ) {
-            $secret = (string) $tool['lti11_secret'];
-        }
-        $json = json_encode(array(
-            'key' => (string) $tool['lti11_key'],
-            'secret' => $secret,
-        ));
-        if ( ! is_string($json) ) {
-            throw new \RuntimeException('Could not store the grade callback key.');
-        }
+        $linkId = (int) $row['link_id'];
         self::db()->queryDie(
-            "UPDATE ".self::prefix()."lti_link SET settings = :settings, updated_at = NOW() WHERE link_id = :link_id",
+            "UPDATE {$p}lti_link
+             SET title = :title, deleted = 0, updated_at = NOW()
+             WHERE link_id = :link_id",
             array(
-                ':settings' => $json,
-                ':link_id' => (int) $linkId,
+                ':title' => $title,
+                ':link_id' => $linkId,
             )
         );
+        return $linkId;
     }
 
     /**
