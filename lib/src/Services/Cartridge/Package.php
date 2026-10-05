@@ -464,7 +464,9 @@ class Package {
             }
             $items = array();
             foreach ( $kids as $kid ) {
-                $items[] = self::orgItem($kid);
+                foreach ( self::flattenOrgItem($kid) as $row ) {
+                    $items[] = $row;
+                }
             }
             $ids = CC::lomIdentifiersFromItem($el);
             $modules[] = array(
@@ -484,6 +486,61 @@ class Package {
             );
         }
         return $modules;
+    }
+
+    /**
+     * Canvas wraps a graded LTI link in an assignment item and nests the real
+     * link under it with the title "(hidden)". Keep the nested link, in that
+     * spot, and use the wrapper's title.
+     *
+     * @return list<array{identifier:string,identifierref:string,title:string,heading:bool,description:?string,icon:?string,href_source:?string,target:?string}>
+     */
+    private static function flattenOrgItem(\DOMElement $el) {
+        $nested = self::childItems($el);
+        $self = self::orgItem($el);
+        if ( count($nested) < 1 ) {
+            return array($self);
+        }
+        $out = array();
+        if ( $self['identifierref'] === '' ) {
+            $out[] = $self;
+        }
+        foreach ( $nested as $child ) {
+            foreach ( self::flattenOrgItem($child) as $row ) {
+                $out[] = self::inheritWrapper($row, $self);
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * @param array{identifier:string,identifierref:string,title:string,heading:bool,description:?string,icon:?string,href_source:?string,target:?string} $child
+     * @param array{identifier:string,identifierref:string,title:string,heading:bool,description:?string,icon:?string,href_source:?string,target:?string} $wrapper
+     * @return array{identifier:string,identifierref:string,title:string,heading:bool,description:?string,icon:?string,href_source:?string,target:?string}
+     */
+    private static function inheritWrapper(array $child, array $wrapper) {
+        if ( self::placeholderTitle($child['title'] ?? '') && ! self::placeholderTitle($wrapper['title'] ?? '') ) {
+            $child['title'] = $wrapper['title'];
+        }
+        foreach ( array('target', 'description', 'icon', 'href_source') as $key ) {
+            $childVal = $child[$key] ?? null;
+            $wrapVal = $wrapper[$key] ?? null;
+            if ( ($childVal === null || $childVal === '') && $wrapVal !== null && $wrapVal !== '' ) {
+                $child[$key] = $wrapVal;
+            }
+        }
+        return $child;
+    }
+
+    /**
+     * Canvas writes this on the nested LTI item so the wrapper title is the one people see.
+     *
+     * @param mixed $title
+     * @return bool
+     */
+    public static function placeholderTitle($title) {
+        $title = trim((string) $title);
+        return $title === '' || strcasecmp($title, '(hidden)') === 0;
     }
 
     /**
@@ -550,7 +607,7 @@ class Package {
             if ( $byId[$ref]['item_identifier'] === '' && $itemId !== '' ) {
                 $byId[$ref]['item_identifier'] = $itemId;
             }
-            if ( $byId[$ref]['title'] === '' && $title !== '' ) {
+            if ( ! self::placeholderTitle($title) && self::placeholderTitle((string) $byId[$ref]['title']) ) {
                 $byId[$ref]['title'] = $title;
             }
         }

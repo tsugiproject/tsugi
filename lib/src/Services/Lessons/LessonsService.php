@@ -539,6 +539,56 @@ class LessonsService {
     /**
      * Get a module associated with a resource link ID
      */
+    /**
+     * Lesson item that points at an lti_content row.
+     *
+     * @param int $contentId
+     * @return object|null
+     */
+    public function getItemByContentId($contentId) {
+        $contentId = (int) $contentId;
+        if ( $contentId < 1 || ! isset($this->lessons->modules) ) {
+            return null;
+        }
+        foreach ( $this->lessons->modules as $mod ) {
+            if ( ! isset($mod->items) || ! is_array($mod->items) ) {
+                continue;
+            }
+            foreach ( $mod->items as $item ) {
+                $item_obj = is_array($item) ? (object) $item : $item;
+                if ( isset($item_obj->content_id) && (int) $item_obj->content_id === $contentId ) {
+                    return $item_obj;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Module that contains a content launch.
+     *
+     * @param int $contentId
+     * @return object|null
+     */
+    public function getModuleByContentId($contentId) {
+        $contentId = (int) $contentId;
+        if ( $contentId < 1 || ! isset($this->lessons->modules) ) {
+            return null;
+        }
+        foreach ( $this->lessons->modules as $mod ) {
+            if ( ! isset($mod->items) || ! is_array($mod->items) ) {
+                continue;
+            }
+            foreach ( $mod->items as $item ) {
+                $item_obj = is_array($item) ? (object) $item : $item;
+                if ( isset($item_obj->content_id) && (int) $item_obj->content_id === $contentId ) {
+                    return $mod;
+                }
+            }
+        }
+        return null;
+    }
+
     public function getModuleByRlid($resource_link_id)
     {
         foreach($this->lessons->modules as $mod) {

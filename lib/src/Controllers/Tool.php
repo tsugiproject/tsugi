@@ -272,6 +272,22 @@ abstract class Tool {
             ? $lti->title
             : $fallback_resource_link_title;
 
+        $contentId = isset($lti->content_id) ? (int) $lti->content_id : 0;
+        if ( $contentId > 0 ) {
+            $row = \Tsugi\Services\Outbound\LtiContentService::find(ReqScope::currentContextIdLegacy(), $contentId);
+            if ( $row === null ) {
+                $app->tsugiFlashError(__('This tool is not provisioned.'));
+                return new RedirectResponse($redirect_path_on_error);
+            }
+            return self::sendLti11LaunchFromContent(
+                $app,
+                $row,
+                $launch_presentation_return_url,
+                $redirect_path_on_error,
+                $grade_refresh_session_key
+            );
+        }
+
         $toolDeploymentId = isset($lti->tool_deployment_id) ? (int) $lti->tool_deployment_id : 0;
         if ( $toolDeploymentId > 0 ) {
             return self::sendCourseToolResourceLink(
@@ -408,6 +424,81 @@ abstract class Tool {
                 $lessonTarget !== '' ? $lessonTarget : 'iframe',
                 $elementId,
                 $sendGrade
+            );
+        } catch ( \InvalidArgumentException $ex ) {
+            $app->tsugiFlashError($ex->getMessage());
+            return new RedirectResponse($redirect_path_on_error);
+        }
+        $debug = $CFG->getExtension('launch_debug', false);
+        print(LTI::postLaunchHTML($launch['parameters'], $launch['endpoint'], $debug));
+        return '';
+    }
+
+    /**
+     * Sign a lesson launch from an lti_content row.
+     *
+     * @param Application $app
+     * @param array<string, mixed> $row
+     * @param string $launch_presentation_return_url
+     * @param string $redirect_path_on_error
+     * @param string|null $grade_refresh_session_key
+     * @return RedirectResponse|string
+     */
+    public static function sendLti11LaunchFromContent(
+        Application $app,
+        array $row,
+        $launch_presentation_return_url,
+        $redirect_path_on_error,
+        $grade_refresh_session_key = null
+    ) {
+        $sessionRedirect = self::requireOutboundLti11LaunchSession($app, $redirect_path_on_error);
+        if ( $sessionRedirect !== null ) {
+            return $sessionRedirect;
+        }
+        if ( $grade_refresh_session_key !== null ) {
+            GradeUtil::invalidateGradesCurrentUser();
+            $_SESSION[$grade_refresh_session_key] = 1;
+        }
+        global $CFG;
+        $target = isset($row['target']) ? (string) $row['target'] : 'window';
+        if ( $target === 'inline' ) {
+            $documentTarget = '';
+            $embed = true;
+        } else if ( $target === 'iframe' ) {
+            $documentTarget = 'iframe';
+            $embed = false;
+        } else {
+            $documentTarget = 'window';
+            $embed = false;
+        }
+        $resourceLinkId = isset($row['resource_link_id']) ? (string) $row['resource_link_id'] : '';
+        $sendName = array_key_exists('send_name', $row) && $row['send_name'] !== null
+            ? ((int) $row['send_name']) === 1
+            : null;
+        $sendEmail = array_key_exists('send_email', $row) && $row['send_email'] !== null
+            ? ((int) $row['send_email']) === 1
+            : null;
+        $sendGrade = array_key_exists('send_grade', $row) && $row['send_grade'] !== null
+            ? ((int) $row['send_grade']) === 1
+            : null;
+        $userKey = isset($_SESSION['user_key']) ? trim((string) $_SESSION['user_key']) : '';
+        try {
+            $launch = Lti11TestLaunch::courseResourceLink(
+                ReqScope::currentContextIdLegacy(),
+                (int) $row['tool_deployment_id'],
+                ReqScope::loggedInUserIdLegacy(),
+                $resourceLinkId,
+                isset($row['title']) ? (string) $row['title'] : '',
+                $launch_presentation_return_url,
+                self::outboundLaunchRole(),
+                $userKey,
+                $sendName,
+                $sendEmail,
+                isset($row['launch_url']) ? (string) $row['launch_url'] : '',
+                $documentTarget,
+                $embed ? Lti11TestLaunch::parentFrameId($resourceLinkId) : '',
+                $sendGrade,
+                empty($row['link_id'])
             );
         } catch ( \InvalidArgumentException $ex ) {
             $app->tsugiFlashError($ex->getMessage());

@@ -104,7 +104,7 @@ class LessonsNormalize {
     /** @var list<string> */
     private static $itemKeyOrder = array(
         'type', 'subtype', 'title', 'description', 'text', 'level', 'class', 'tag',
-        'href', 'url', 'href_source', 'launch', 'resource_link_id', 'tool_deployment_id', 'quiz_id', 'page_id', 'logical_key', 'target', 'send_name', 'send_email', 'send_grade', 'result', 'custom',
+        'href', 'url', 'href_source', 'launch', 'resource_link_id', 'content_id', 'tool_deployment_id', 'quiz_id', 'page_id', 'logical_key', 'target', 'send_name', 'send_email', 'send_grade', 'result', 'custom',
         'sha256', 'filename', 'path', 'content_type', 'icon',
         'youtube', 'kaltura_id', 'media',
         'note', 'notes', 'TODO', 'todo', 'review', 'project', 'FCP', 'FCPX',
@@ -707,6 +707,22 @@ class LessonsNormalize {
 
         if ( $type === self::TYPE_LTI ) {
             unset($item['registration_id']);
+            if ( isset($item['content_id']) ) {
+                $content_id = is_numeric($item['content_id']) ? (int) $item['content_id'] : 0;
+                if ( $content_id > 0 ) {
+                    $item['content_id'] = $content_id;
+                    unset($item['tool_deployment_id']);
+                    unset($item['launch']);
+                    unset($item['target']);
+                    unset($item['send_name']);
+                    unset($item['send_email']);
+                    unset($item['send_grade']);
+                    unset($item['resource_link_id']);
+                    unset($item['custom']);
+                    return $item;
+                }
+                unset($item['content_id']);
+            }
             if ( isset($item['tool_deployment_id']) ) {
                 $tool_deployment_id = is_numeric($item['tool_deployment_id']) ? (int) $item['tool_deployment_id'] : 0;
                 if ( $tool_deployment_id > 0 ) {
