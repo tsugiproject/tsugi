@@ -77,12 +77,24 @@ final class CourseExternalLinksTest extends TsugiPantherTestCase
         $module->sendKeys('Panther Links Module');
         $driver->findElement(WebDriverBy::id('edit-module-anchor'))->sendKeys('panther-links-module');
         $driver->findElement(WebDriverBy::xpath("//div[@id='item-modal']//button[contains(., 'Save')]"))->click();
-        $this->waitForPageText($client, 'Panther Links Module');
+        $this->waitUntil(
+            function () use ($driver): bool {
+                $closed = $driver->executeScript(
+                    'var modal = document.getElementById("item-modal");
+                     if (!modal) { return false; }
+                     return window.getComputedStyle(modal).display === "none";'
+                );
+                return $closed === true;
+            },
+            'The module dialog did not close.'
+        );
 
         $saved = $driver->executeScript(
-            'if (!window.lessonsData || !lessonsData.modules) { return "no module"; }
+            'if (typeof lessonsData === "undefined" || !lessonsData || !lessonsData.modules) { return "no module"; }
              var mod = lessonsData.modules.find(function (m) { return m && m.title === "Panther Links Module"; });
-             if (!mod) { return "no module"; }
+             if (!mod) {
+                 return "no module: " + lessonsData.modules.map(function (m) { return m && m.title; }).join(" | ");
+             }
              mod.items = mod.items || [];
              mod.items.push({
                  type: "lti",
