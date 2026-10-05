@@ -1548,12 +1548,28 @@ class LTIX {
             }
         }
 
-        // A for_user the LMS names but this tool has never seen. Nothing is written
-        // here - LTIX::provisionForUser() creates the rows only when a grade is saved.
+        // A for_user the LMS names. A known one gets profile fields it was missing;
+        // an unknown one is kept as pending and only written when a grade is saved
+        // (see LTIX::provisionForUser()).
         $for_user_subject = U::get($post, "for_user_subject", false);
-        if ( U::isNotEmpty($for_user_subject) && U::get($row, 'for_user_id') === null ) {
+        if ( U::isNotEmpty($for_user_subject) && U::get($row, 'for_user_id') !== null ) {
+            $for_user_displayname = U::get($post, 'for_user_displayname');
+            $for_user_email = U::get($post, 'for_user_email');
+            if ( U::isNotEmpty($for_user_displayname) || U::isNotEmpty($for_user_email) ) {
+                $sql = "UPDATE {$p}lti_user SET
+                    displayname = COALESCE(NULLIF(:displayname, ''), displayname),
+                    email = COALESCE(NULLIF(:email, ''), email),
+                    updated_at = NOW()
+                    WHERE user_id = :UID";
+                $PDOX->queryDie($sql, array(
+                    ':displayname' => $for_user_displayname,
+                    ':email' => $for_user_email,
+                    ':UID' => $row['for_user_id']));
+            }
+        } else if ( U::isNotEmpty($for_user_subject) ) {
             $row['for_user_pending'] = array(
                 'subject' => $for_user_subject,
+                'legacy_user_id' => U::get($post, 'user_id'),
                 'displayname' => U::get($post, 'for_user_displayname'),
                 'email' => U::get($post, 'for_user_email'),
                 'image' => U::get($post, 'for_user_image'),
@@ -2137,21 +2153,47 @@ class LTIX {
         global $CFG;
         $PDOX = self::getConnection();
         $p = $CFG->dbprefix;
+        $subject_sha256 = lti_sha256($pending['subject']);
 
-        $PDOX->queryDie("INSERT INTO {$p}lti_user
-            /*PDOX pk: user_id lk: subject_sha256,key_id */
-            ( subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
-            ( :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
-            ON DUPLICATE KEY UPDATE user_id=LAST_INSERT_ID(user_id), updated_at = NOW();",
-            array(
-                ':subject_key' => $pending['subject'],
-                ':subject_sha256' => lti_sha256($pending['subject']),
-                ':displayname' => $pending['displayname'],
-                ':email' => $pending['email'],
-                ':image' => $pending['image'],
-                ':locale' => $pending['locale'],
-                ':key_id' => $pending['key_id']));
-        $user_id = $PDOX->lastInsertId();
+        // Reuse a row that already has this subject
+        $row = $PDOX->rowDie("SELECT user_id FROM {$p}lti_user
+            WHERE subject_sha256 = :SHA AND key_id = :KID",
+            array(':SHA' => $subject_sha256, ':KID' => $pending['key_id']));
+        $user_id = $row ? $row['user_id'] : null;
+
+        // Or attach the subject to a legacy row for the same person, so there are not two
+        if ( $user_id === null && U::isNotEmpty($pending['legacy_user_id']) ) {
+            $row = $PDOX->rowDie("SELECT user_id FROM {$p}lti_user
+                WHERE user_sha256 = :SHA AND key_id = :KID AND subject_sha256 IS NULL",
+                array(':SHA' => lti_sha256($pending['legacy_user_id']), ':KID' => $pending['key_id']));
+            if ( $row ) {
+                $PDOX->queryDie("UPDATE {$p}lti_user SET
+                    subject_key = :subject_key, subject_sha256 = :subject_sha256, updated_at = NOW()
+                    WHERE user_id = :UID",
+                    array(
+                        ':subject_key' => $pending['subject'],
+                        ':subject_sha256' => $subject_sha256,
+                        ':UID' => $row['user_id']));
+                $user_id = $row['user_id'];
+            }
+        }
+
+        if ( $user_id === null ) {
+            $PDOX->queryDie("INSERT INTO {$p}lti_user
+                /*PDOX pk: user_id lk: subject_sha256,key_id */
+                ( subject_key, subject_sha256, displayname, email, image, locale, key_id, created_at, updated_at ) VALUES
+                ( :subject_key, :subject_sha256, :displayname, :email, :image, :locale, :key_id, NOW(), NOW() )
+                ON DUPLICATE KEY UPDATE user_id=LAST_INSERT_ID(user_id), updated_at = NOW();",
+                array(
+                    ':subject_key' => $pending['subject'],
+                    ':subject_sha256' => $subject_sha256,
+                    ':displayname' => $pending['displayname'],
+                    ':email' => $pending['email'],
+                    ':image' => $pending['image'],
+                    ':locale' => $pending['locale'],
+                    ':key_id' => $pending['key_id']));
+            $user_id = $PDOX->lastInsertId();
+        }
 
         $PDOX->queryDie("INSERT INTO {$p}lti_result
             ( link_id, user_id, created_at, updated_at ) VALUES
