@@ -238,9 +238,10 @@ class Result extends Entity {
             $comment = $receivedComment !== null ? $receivedComment : false;
         }
 
-        // Check if we are to use SHA256 as the signature
+        // A POX callback has no launch, and $LINK is false. isset() is true
+        // for that, so only read the signature method from a real link.
         $signature = false;
-        if ( isset($LINK) ) {
+        if ( is_object($LINK) ) {
             $signature = $LINK->settingsGet('oauth_signature_method');
             // error_log("Sending... sig=$signature");
         }

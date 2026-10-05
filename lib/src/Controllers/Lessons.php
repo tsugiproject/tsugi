@@ -8,9 +8,7 @@ use Tsugi\Core\Manifest;
 use Tsugi\Grades\GradeUtil;
 use Tsugi\Lumos\Application;
 use Tsugi\Services\Quiz1\Quiz1Repository;
-use Tsugi\Services\Outbound\Lti11CourseTool;
 use Tsugi\Services\Outbound\Lti11TestLaunch;
-use Tsugi\Services\Outbound\ToolRegistrationService;
 use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Lessons\LessonsNormalize;
 use Tsugi\Services\Files\FileRepository;
@@ -184,31 +182,13 @@ class Lessons extends Tool {
             $context_id = ReqScope::currentContextId();
             if ( $context_id ) {
                 $lti_tools_url = U::addSession($this->controllerUrl(Settings::ROUTE).'/tools');
-                foreach ( Lti11CourseTool::toolsOnCourse($context_id) as $tool ) {
-                    if ( ! Lti11TestLaunch::hasResourceLink($context_id, $tool['registration_id']) ) {
-                        continue;
-                    }
-                    $privacy = Lti11TestLaunch::privacy($context_id, $tool['registration_id']);
-                    $launch = '';
-                    try {
-                        $row = ToolRegistrationService::visibleLti11($context_id, $tool['registration_id']);
-                        $launch = $row['lti11_url'];
-                    } catch ( \Exception $e ) {
-                        $launch = '';
-                    }
-                    $lti_tools[] = array(
-                        'id' => (int) $tool['registration_id'],
-                        'title' => $tool['title'],
-                        'launch' => $launch,
-                        'send_name' => $privacy['send_name'],
-                        'send_email' => $privacy['send_email'],
-                    );
-                }
+                $lti_tools = Lti11TestLaunch::lessonChoices($context_id);
             }
         } catch ( \Exception $e ) {
             $lti_tools = array();
             $lti_tools_url = '';
         }
+        $course_resource_link_ids = self::courseResourceLinkIds(ReqScope::currentContextId());
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
@@ -224,6 +204,43 @@ class Lessons extends Tool {
         $OUTPUT->footerStart();
         $OUTPUT->footerEnd();
         return '';
+    }
+
+    /**
+     * Resource link ids already stored on links in this course.
+     *
+     * A lesson item that reuses one of these shares that link's grades.
+     * The author page uses the list to keep a new or edited id unique.
+     * The item's own id is still allowed when that item is saved again.
+     *
+     * @param int $contextId
+     * @return array<int, string>
+     */
+    private static function courseResourceLinkIds($contextId) {
+        global $CFG, $PDOX;
+        $contextId = (int) $contextId;
+        if ( $contextId < 1 ) {
+            return array();
+        }
+        LTIX::getConnection();
+        $rows = $PDOX->allRowsDie(
+            "SELECT link_key FROM {$CFG->dbprefix}lti_link WHERE context_id = :context_id",
+            array(':context_id' => $contextId)
+        );
+        $ids = array();
+        if ( ! is_array($rows) ) {
+            return $ids;
+        }
+        foreach ( $rows as $row ) {
+            if ( ! is_array($row) || ! isset($row['link_key']) || ! is_string($row['link_key']) ) {
+                continue;
+            }
+            $key = trim($row['link_key']);
+            if ( $key !== '' ) {
+                $ids[] = $key;
+            }
+        }
+        return $ids;
     }
 
     /**
@@ -1200,7 +1217,7 @@ $(function(){
 
                     if ( self::ltiItemIsUnregistered($lti) ) {
                         echo('<li class="tsugi-lessons-module-lti tsugi-lessons-lti-unregistered">');
-                        echo(htmlentities($resource_link_title).' ('.__('unregistered').')');
+                        echo(htmlentities($resource_link_title).' ('.__('not provisioned').')');
                         echo('</li>'."\n");
                         continue;
                     }
@@ -2286,31 +2303,39 @@ $(function(){
     }
 
     /**
-     * The lesson item points at a course tool that can take a resource link.
+     * A manifest-course LTI item with no deployment.
      *
-     * @param int $registrationId
-     * @return bool
-     */
-    /**
-     * A manifest-course LTI item with a launch URL and no registration.
-     *
-     * File-backed lessons.json still launches with the session key.
+     * A leftover registration_id does not provision the item. File-backed
+     * lessons.json still launches with the session key.
      *
      * @param object $item
      * @return bool
      */
     private static function ltiItemIsUnregistered($item) {
-        $registration_id = isset($item->registration_id) ? (int) $item->registration_id : 0;
-        return $registration_id < 1 && Manifest::resolvedId() > 0;
+        return self::lessonDeploymentId($item) < 1 && Manifest::resolvedId() > 0;
     }
 
-    private static function courseToolHasResourceLink($registrationId) {
+    /**
+     * @param object $item
+     * @return int tool_deployment_id, or 0 when the item is not provisioned
+     */
+    private static function lessonDeploymentId($item) {
+        return isset($item->tool_deployment_id) ? (int) $item->tool_deployment_id : 0;
+    }
+
+    /**
+     * The lesson item points at a deployment that can take a resource link.
+     *
+     * @param int $toolDeploymentId
+     * @return bool
+     */
+    private static function courseToolHasResourceLink($toolDeploymentId) {
         $contextId = ReqScope::currentContextId();
-        if ( ! $contextId || $registrationId < 1 ) {
+        if ( ! $contextId || $toolDeploymentId < 1 ) {
             return false;
         }
         try {
-            return Lti11TestLaunch::hasResourceLink($contextId, $registrationId);
+            return Lti11TestLaunch::hasResourceLink($contextId, $toolDeploymentId);
         } catch ( \Exception $ex ) {
             return false;
         }
@@ -2402,16 +2427,16 @@ $(function(){
         $launch = isset($item->launch) ? $item->launch : '';
         $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : '';
         $target = isset($item->target) ? $item->target : false;
-        $registration_id = isset($item->registration_id) ? (int) $item->registration_id : 0;
+        $tool_deployment_id = self::lessonDeploymentId($item);
         if ( self::ltiItemIsUnregistered($item) ) {
             echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti tsugi-lessons-lti-unregistered">');
             echo('<span style="display: inline-flex; align-items: center;">');
             self::renderItemIcon(LessonsNormalize::iconKey($item));
-            echo(htmlentities($resource_link_title).' ('.__('unregistered').')');
+            echo(htmlentities($resource_link_title).' ('.__('not provisioned').')');
             echo('</span></li>'."\n");
             return;
         }
-        if ( $registration_id > 0 && ! self::courseToolHasResourceLink($registration_id) ) {
+        if ( $tool_deployment_id > 0 && ! self::courseToolHasResourceLink($tool_deployment_id) ) {
             if ( ! $lessons->lessonsViewerIsInstructor() ) {
                 return;
             }
@@ -2444,7 +2469,7 @@ $(function(){
                 self::renderItemIcon(LessonsNormalize::iconKey($item));
                 echo(htmlentities($resource_link_title).' (Login Required)');
                 echo('</span><br/>'."\n");
-                if ( $registration_id > 0 ) {
+                if ( $tool_deployment_id > 0 ) {
                     $ltiurl = $lessons->lessonsLaunchPath($resource_link_id);
                 } else {
                     $ltiurl = U::add_url_parm($launch, 'inherit', $resource_link_id);
@@ -2459,7 +2484,7 @@ $(function(){
             
             $rl_dom_id = LessonsService::domIdForResourceLink($resource_link_id);
             echo('<li class="tsugi-lessons-module-lti" id="'.htmlspecialchars($rl_dom_id, ENT_QUOTES, 'UTF-8').'">');
-            if ( $registration_id > 0 ) {
+            if ( $tool_deployment_id > 0 ) {
                 self::renderRegisteredLtiOpen($item, $launch_path, $title);
             } else {
                 echo('<a');

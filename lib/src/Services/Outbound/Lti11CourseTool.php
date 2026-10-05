@@ -229,6 +229,8 @@ class Lti11CourseTool {
                 && $registration['lti_version'] === '1.1'
                 && $registration['owner_context_id'] === $contextId;
             $tools[$i]['can_test'] = $registration !== null && $registration['lti_version'] === '1.1';
+            $version = $registration !== null ? (string) $registration['lti_version'] : '';
+            $tools[$i]['lti_version'] = ($version === '1.1' || $version === '1.3') ? $version : '';
             $registrationId = (int) $tool['registration_id'];
             $tools[$i]['other_launch_urls'] = $counts[$registrationId] ?? 0;
         }

@@ -15,6 +15,7 @@
  * - $files_json_url: session-bearing URL for course Files JSON (picker)
  * - $files_home_url: session-bearing URL for the Files tool
  * - $quiz1_home_url, $quiz1_list: Quiz1 picker for native quiz items
+ * - $course_resource_link_ids: link keys already used in this course
  * - $pages_json_url, $pages_home_url, $pages_add_url: Pages picker
  * - $lessons_json_url, $pages_base, $app_home: link picker
  */
@@ -775,6 +776,7 @@ var quiz1HomeUrl = <?= json_encode($quiz1_home_url ?? '') ?>;
 var quiz1Quizzes = <?= json_encode($quiz1_list ?? array()) ?>;
 var ltiToolsUrl = <?= json_encode($lti_tools_url ?? '') ?>;
 var ltiTools = <?= json_encode($lti_tools ?? array()) ?>;
+var courseResourceLinkIds = <?= json_encode($course_resource_link_ids ?? array()) ?>;
 var currentPageId = null;
 <?php \Tsugi\UI\CKEditor::renderLinkPickerScript(); ?>
 let courseFilesCache = null;
@@ -955,6 +957,55 @@ function collectUsedResourceLinkIds(skipModuleIndex, skipItemIndex) {
     return used;
 }
 
+function claimResourceLinkId(requested, used) {
+    let rlid = String(requested || '').trim();
+    if (!rlid) {
+        return '';
+    }
+    if (!used[rlid]) {
+        used[rlid] = true;
+        return rlid;
+    }
+    const base = rlid;
+    let n = 2;
+    while (used[base + '_' + n]) {
+        n++;
+        if (n > 50) {
+            rlid = base + '_' + Math.random().toString(16).slice(2, 8);
+            used[rlid] = true;
+            return rlid;
+        }
+    }
+    rlid = base + '_' + n;
+    used[rlid] = true;
+    return rlid;
+}
+
+function usedResourceLinkIdsForItem(ownId) {
+    const used = collectUsedResourceLinkIds(editingModuleIndex, editingItemIndex);
+    const keep = String(ownId || '').trim();
+    (courseResourceLinkIds || []).forEach(function(id) {
+        if (typeof id !== 'string') {
+            return;
+        }
+        id = id.trim();
+        if (id && id !== keep) {
+            used[id] = true;
+        }
+    });
+    return used;
+}
+
+function ltiResourceLinkId(title, ownId) {
+    const field = document.getElementById('edit-resource-link-id');
+    const requested = field ? field.value.trim() : '';
+    const used = usedResourceLinkIdsForItem(ownId);
+    if (!requested) {
+        return allocateLtiRlid(title, used);
+    }
+    return claimResourceLinkId(requested, used);
+}
+
 function allocateLtiRlid(title, used) {
     let slug = String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
     if (!slug) {
@@ -1122,7 +1173,7 @@ function ltiToolById(id) {
 }
 
 function ltiPickerFieldsHtml(item) {
-    const selected = parseInt(item.registration_id, 10) || 0;
+    const selected = parseInt(item.tool_deployment_id, 10) || 0;
     const found = ltiToolById(selected);
     const manage = ltiToolsUrl
         ? `<div class="file-picker-summary"><a href="${escapeHtml(ltiToolsUrl)}" target="_blank" rel="noopener noreferrer">Manage tools</a></div>`
@@ -1132,27 +1183,28 @@ function ltiPickerFieldsHtml(item) {
     if (selected && !found) {
         const missingLabel = escapeHtml((item.title || ('Tool ' + selected))) + ' — missing from this course';
         missingOption = `<option value="${selected}" selected>${missingLabel}</option>`;
-        missingNote = `<p class="help-block">This lesson still points at a tool that is not in this course or does not have a resource link launch. Students do not see it. Pick another tool or delete the item.</p>`;
+        missingNote = `<p class="help-block">This lesson still points at a deployment that is not in this course or does not have a resource link launch. Students do not see it. Pick another deployment or delete the item.</p>`;
     }
     let legacy = '';
     if (!selected && item.launch) {
-        legacy = `<p class="help-block">This link has a launch URL and is not registered. Choose a course tool to supply the key and secret. The launch URL stays.</p>`;
+        legacy = `<p class="help-block">This link has a launch URL and is not linked to a deployment. Choose a deployment to supply the key and secret. The launch URL stays.</p>`;
     }
     let picker;
     if ((!ltiTools || !ltiTools.length) && !selected) {
-        picker = `<p>No LTI tools with a resource link in this course yet. <a href="${escapeHtml(ltiToolsUrl)}" target="_blank" rel="noopener noreferrer">Add a tool</a>, then come back and choose it here.</p>
+        picker = `<p>No deployments with a resource link in this course yet. <a href="${escapeHtml(ltiToolsUrl)}" target="_blank" rel="noopener noreferrer">Add a tool</a>, then come back and choose it here.</p>
             <input type="hidden" id="edit-lti-tool" value="">
             ${legacy}`;
     } else {
         const options = (ltiTools || []).map(function(tool) {
-            const label = escapeHtml(tool.title || ('Tool ' + tool.id));
+            const version = tool.lti_version === '1.3' ? 'LTI 1.3' : (tool.lti_version === '1.1' ? 'LTI 1.1' : '');
+            const label = escapeHtml(tool.title || ('Deployment ' + tool.id)) + (version ? ' (' + version + ')' : '');
             return `<option value="${tool.id}" ${tool.id === selected && found ? 'selected' : ''}>${label}</option>`;
         }).join('');
         picker = `
             <div class="form-group">
-                <label>Tool:</label>
+                <label>Deployment:</label>
                 <select id="edit-lti-tool" onchange="onLtiToolPicked()">
-                    <option value="">Choose a tool…</option>
+                    <option value="">Choose a deployment…</option>
                     ${missingOption}
                     ${options}
                 </select>
@@ -1168,12 +1220,20 @@ function ltiPickerFieldsHtml(item) {
         : (item.target === 'modal' ? 'modal' : 'iframe'));
     const namesOn = ltiPrivacyChecked(item, 'send_name', found);
     const emailOn = ltiPrivacyChecked(item, 'send_email', found);
+    const gradeAllowed = !!(found && found.send_grade);
+    const gradeOn = gradeAllowed && ltiPrivacyChecked(item, 'send_grade', found);
     const namesDisabled = found && !found.send_name ? 'disabled' : '';
     const emailDisabled = found && !found.send_email ? 'disabled' : '';
+    const gradeDisabled = gradeAllowed ? '' : 'disabled';
+    const gradeNote = gradeAllowed ? '' : '<p class="help-block">This deployment is not allowed to return grades.</p>';
     return `
             <div class="form-group">
                 <label>Title:</label>
                 <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}" placeholder="Defaults to the tool title">
+            </div>
+            <div class="form-group">
+                <label>Resource Link ID:</label>
+                <input type="text" id="edit-resource-link-id" value="${escapeHtml(item.resource_link_id || '')}" placeholder="Leave blank to generate from the title">
             </div>
             ${picker}
             <div class="form-group">
@@ -1188,6 +1248,13 @@ function ltiPickerFieldsHtml(item) {
                 <div class="checkbox">
                     <label><input type="checkbox" id="edit-lti-send-email" ${emailOn ? 'checked' : ''} ${emailDisabled}> Send email addresses to the external tool</label>
                 </div>
+            </div>
+            <div class="form-group">
+                <label>Grades:</label>
+                <div class="checkbox">
+                    <label><input type="checkbox" id="edit-lti-send-grade" ${gradeOn ? 'checked' : ''} ${gradeDisabled}> Allow this tool to return a grade</label>
+                </div>
+                ${gradeNote}
             </div>
             <div class="form-group">
                 <label>Open:</label>
@@ -1216,7 +1283,7 @@ function ltiPrivacyChecked(item, key, tool) {
     if (tool) {
         return !!tool[key];
     }
-    return !!(item.launch && !item.registration_id);
+    return !!(item.launch && !item.tool_deployment_id);
 }
 
 function onLtiToolPicked() {
@@ -1230,7 +1297,7 @@ function onLtiToolPicked() {
     if (tool && launchEl && launchEl.getAttribute('data-keep') !== '1') {
         launchEl.value = tool.launch || '';
     }
-    [['edit-lti-send-name', 'send_name'], ['edit-lti-send-email', 'send_email']].forEach(function(pair) {
+    [['edit-lti-send-name', 'send_name'], ['edit-lti-send-email', 'send_email'], ['edit-lti-send-grade', 'send_grade']].forEach(function(pair) {
         const el = document.getElementById(pair[0]);
         if (!el) {
             return;
@@ -2055,7 +2122,8 @@ function harvestItemFormDraft(item) {
     }
     const toolEl = document.getElementById('edit-lti-tool');
     if (toolEl && toolEl.value) {
-        item.registration_id = parseInt(toolEl.value, 10);
+        item.tool_deployment_id = parseInt(toolEl.value, 10);
+        delete item.registration_id;
     }
     const ltiOpenEl = document.querySelector('input[name="edit-lti-open"]:checked');
     if (ltiOpenEl) {
@@ -2068,6 +2136,10 @@ function harvestItemFormDraft(item) {
     const sendEmailEl = document.getElementById('edit-lti-send-email');
     if (sendEmailEl) {
         item.send_email = !!sendEmailEl.checked;
+    }
+    const sendGradeEl = document.getElementById('edit-lti-send-grade');
+    if (sendGradeEl) {
+        item.send_grade = !!sendGradeEl.checked;
     }
     const pageEl = document.getElementById('edit-page-id');
     if (pageEl && pageEl.value) {
@@ -2669,16 +2741,23 @@ function saveItem() {
         if (sendEmailEl) {
             item.send_email = !!sendEmailEl.checked;
         }
+        const sendGradeEl = document.getElementById('edit-lti-send-grade');
+        if (sendGradeEl) {
+            item.send_grade = !!sendGradeEl.checked;
+        }
         if (!toolId) {
-            if (item.launch && !parseInt(item.registration_id, 10)) {
+            if (item.launch && !parseInt(item.tool_deployment_id, 10)) {
+                delete item.registration_id;
+                delete item.tool_deployment_id;
                 item.title = $('#edit-title').val().trim();
                 const launchEl = document.getElementById('edit-lti-launch');
                 if (launchEl && launchEl.value.trim()) {
                     item.launch = launchEl.value.trim();
                 }
                 applyLtiOpenTarget(item);
+                item.resource_link_id = ltiResourceLinkId(item.title, item.resource_link_id);
             } else {
-                alert('Pick an LTI tool from this course.');
+                alert('Pick a deployment from this course.');
                 return;
             }
         } else {
@@ -2692,14 +2771,11 @@ function saveItem() {
                 item.launch = launch;
             }
             applyLtiOpenTarget(item);
-            item.registration_id = toolId;
+            delete item.registration_id;
+            item.tool_deployment_id = toolId;
             const titleVal = $('#edit-title').val().trim();
             item.title = titleVal || (selected ? selected.title : (item.title || ''));
-            let rlid = String(item.resource_link_id || '').trim();
-            if (!rlid) {
-                rlid = allocateLtiRlid(item.title, collectUsedResourceLinkIds(editingModuleIndex, editingItemIndex));
-            }
-            item.resource_link_id = rlid;
+            item.resource_link_id = ltiResourceLinkId(item.title, item.resource_link_id);
         }
     } else if (type === 'file') {
         if (!filePickerState.sha256 || !filePickerState.href) {
@@ -2769,8 +2845,10 @@ function saveItem() {
     }
     if (item.type !== 'lti') {
         delete item.registration_id;
+        delete item.tool_deployment_id;
         delete item.send_name;
         delete item.send_email;
+        delete item.send_grade;
     }
 
     if ($('#edit-item-icon').length) {

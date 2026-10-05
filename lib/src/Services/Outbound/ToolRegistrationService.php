@@ -348,12 +348,50 @@ class ToolRegistrationService {
         if ( ! $visible ) {
             throw new \InvalidArgumentException('This course does not have that tool.');
         }
+        return self::lti11LaunchFields($registrationId);
+    }
+
+    /**
+     * An LTI 1.1 deployment this course can launch.
+     *
+     * A lesson item stores tool_deployment_id. The deployment is in scope for
+     * the course. Claims and scopes are that deployment's grants.
+     *
+     * @param int $contextId
+     * @param int $toolDeploymentId
+     * @return array{registration_id:int, key_id:int, title:string, lti11_key:string, lti11_secret:string, lti11_url:string, tool_deployment_id:int}
+     */
+    public static function visibleLti11Deployment($contextId, $toolDeploymentId) {
+        $toolDeploymentId = (int) $toolDeploymentId;
+        if ( $toolDeploymentId < 1 ) {
+            throw new \InvalidArgumentException('This course does not have that deployment.');
+        }
+        $found = null;
+        foreach ( ToolDeploymentService::getDeploymentsForContext((int) $contextId) as $row ) {
+            if ( (int) $row['tool_deployment_id'] === $toolDeploymentId ) {
+                $found = $row;
+                break;
+            }
+        }
+        if ( $found === null ) {
+            throw new \InvalidArgumentException('This course does not have that deployment.');
+        }
+        $tool = self::lti11LaunchFields((int) $found['registration_id']);
+        $tool['tool_deployment_id'] = $toolDeploymentId;
+        return $tool;
+    }
+
+    /**
+     * @param int $registrationId
+     * @return array{registration_id:int, key_id:int, title:string, lti11_key:string, lti11_secret:string, lti11_url:string}
+     */
+    private static function lti11LaunchFields($registrationId) {
         $p = self::prefix();
         $row = self::db()->rowDie(
             "SELECT registration_id, key_id, title, lti_version, lti11_key, lti11_secret, lti11_url
              FROM {$p}lti_tool_registration
              WHERE registration_id = :registration_id",
-            array(':registration_id' => $registrationId)
+            array(':registration_id' => (int) $registrationId)
         );
         if ( ! is_array($row) || (string) $row['lti_version'] !== '1.1' ) {
             throw new \InvalidArgumentException('This test sends an LTI 1.1 launch.');

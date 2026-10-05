@@ -104,7 +104,7 @@ class LessonsNormalize {
     /** @var list<string> */
     private static $itemKeyOrder = array(
         'type', 'subtype', 'title', 'description', 'text', 'level', 'class', 'tag',
-        'href', 'url', 'href_source', 'launch', 'resource_link_id', 'registration_id', 'quiz_id', 'page_id', 'logical_key', 'target', 'send_name', 'send_email', 'result', 'custom',
+        'href', 'url', 'href_source', 'launch', 'resource_link_id', 'tool_deployment_id', 'quiz_id', 'page_id', 'logical_key', 'target', 'send_name', 'send_email', 'send_grade', 'result', 'custom',
         'sha256', 'filename', 'path', 'content_type', 'icon',
         'youtube', 'kaltura_id', 'media',
         'note', 'notes', 'TODO', 'todo', 'review', 'project', 'FCP', 'FCPX',
@@ -706,14 +706,15 @@ class LessonsNormalize {
         }
 
         if ( $type === self::TYPE_LTI ) {
-            if ( isset($item['registration_id']) ) {
-                $registration_id = is_numeric($item['registration_id']) ? (int) $item['registration_id'] : 0;
-                if ( $registration_id > 0 ) {
-                    $item['registration_id'] = $registration_id;
+            unset($item['registration_id']);
+            if ( isset($item['tool_deployment_id']) ) {
+                $tool_deployment_id = is_numeric($item['tool_deployment_id']) ? (int) $item['tool_deployment_id'] : 0;
+                if ( $tool_deployment_id > 0 ) {
+                    $item['tool_deployment_id'] = $tool_deployment_id;
                     self::coerceLaunchPrivacy($item);
                     return $item;
                 }
-                unset($item['registration_id']);
+                unset($item['tool_deployment_id']);
             }
             $launch = isset($item['launch']) && is_string($item['launch']) ? $item['launch'] : '';
             if ( self::isBuiltInDiscussionLaunch($launch) ) {
@@ -760,7 +761,7 @@ class LessonsNormalize {
      * @return void
      */
     private static function coerceLaunchPrivacy(array &$item) {
-        foreach ( array('send_name', 'send_email') as $key ) {
+        foreach ( array('send_name', 'send_email', 'send_grade') as $key ) {
             if ( ! array_key_exists($key, $item) ) {
                 continue;
             }

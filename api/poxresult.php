@@ -41,6 +41,7 @@ try {
     $operation = $imsx_body->getName();
     $parms = $imsx_body->children();
     $sourcedid = (string) $parms->resultRecord->sourcedGUID->sourcedId;
+    $message_ref = (string) $imsx_header->children()->imsx_messageIdentifier;
 } catch (Exception $e) {
     Net::send400('Could not find sourcedid in XML body');
     return;

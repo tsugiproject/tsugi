@@ -240,6 +240,7 @@ class Lti11CourseToolTest extends PlatformSchemaCase
 
         $listed = Lti11CourseTool::toolsOnCourse($this->id['eecs280']);
         $this->assertSame('First quiz', $listed[0]['title']);
+        $this->assertSame('1.1', $listed[0]['lti_version']);
         $this->assertSame(1, $listed[0]['other_launch_urls']);
         $state = Lti11CourseTool::formState($this->id['eecs280'], $a);
         $this->assertSame(1, $state['other_launch_urls']);

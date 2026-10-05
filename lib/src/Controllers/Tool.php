@@ -272,12 +272,12 @@ abstract class Tool {
             ? $lti->title
             : $fallback_resource_link_title;
 
-        $registrationId = isset($lti->registration_id) ? (int) $lti->registration_id : 0;
-        if ( $registrationId > 0 ) {
+        $toolDeploymentId = isset($lti->tool_deployment_id) ? (int) $lti->tool_deployment_id : 0;
+        if ( $toolDeploymentId > 0 ) {
             return self::sendCourseToolResourceLink(
                 $app,
                 $lti,
-                $registrationId,
+                $toolDeploymentId,
                 $resource_link_title,
                 $launch_presentation_return_url,
                 $redirect_path_on_error
@@ -288,7 +288,7 @@ abstract class Tool {
         $builtInDiscussion = \Tsugi\Services\Lessons\LessonsNormalize::typeOf($lti) === \Tsugi\Services\Lessons\LessonsNormalize::TYPE_DISCUSSION
             || \Tsugi\Services\Lessons\LessonsNormalize::isBuiltInDiscussionLaunch($launchUrl);
         if ( Manifest::resolvedId() > 0 && ! $builtInDiscussion ) {
-            $app->tsugiFlashError(__('This tool is unregistered.'));
+            $app->tsugiFlashError(__('This tool is not provisioned.'));
             return new RedirectResponse($redirect_path_on_error);
         }
 
@@ -358,11 +358,11 @@ abstract class Tool {
     }
 
     /**
-     * Lesson item that points at a course tool. The item is one resource link.
+     * Lesson item that points at a deployment. The item is one resource link.
      *
      * @param Application $app
      * @param object $lti
-     * @param int $registrationId
+     * @param int $toolDeploymentId
      * @param string $resource_link_title
      * @param string $launch_presentation_return_url
      * @param string $redirect_path_on_error
@@ -371,7 +371,7 @@ abstract class Tool {
     private static function sendCourseToolResourceLink(
         Application $app,
         $lti,
-        $registrationId,
+        $toolDeploymentId,
         $resource_link_title,
         $launch_presentation_return_url,
         $redirect_path_on_error
@@ -383,6 +383,7 @@ abstract class Tool {
         $resourceLinkId = isset($lti->resource_link_id) ? trim((string) $lti->resource_link_id) : '';
         $sendName = property_exists($lti, 'send_name') ? (bool) $lti->send_name : null;
         $sendEmail = property_exists($lti, 'send_email') ? (bool) $lti->send_email : null;
+        $sendGrade = property_exists($lti, 'send_grade') ? (bool) $lti->send_grade : null;
         $launchUrl = \Tsugi\Services\Lessons\LessonsNormalize::launchUrlForItem($lti);
         if ( $launchUrl !== '' ) {
             \Tsugi\Services\Lessons\LessonsService::absolute_url_ref($launchUrl);
@@ -394,7 +395,7 @@ abstract class Tool {
         try {
             $launch = Lti11TestLaunch::courseResourceLink(
                 $contextId,
-                $registrationId,
+                $toolDeploymentId,
                 $userId,
                 $resourceLinkId,
                 $resource_link_title,
@@ -405,7 +406,8 @@ abstract class Tool {
                 $sendEmail,
                 $launchUrl,
                 $lessonTarget !== '' ? $lessonTarget : 'iframe',
-                $elementId
+                $elementId,
+                $sendGrade
             );
         } catch ( \InvalidArgumentException $ex ) {
             $app->tsugiFlashError($ex->getMessage());
