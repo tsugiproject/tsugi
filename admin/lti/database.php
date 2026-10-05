@@ -934,6 +934,9 @@ array( "{$CFG->dbprefix}lti_tool_deployment",
 // by content_id. The lesson may keep its own display title. This row is the
 // launch. A quiz is not a content row; quiz1_quiz already owns its link.
 //
+// The course foreign key is added in DATABASE_UPGRADE. An existing lti_context
+// must gain (context_id, key_id) before that key can be added.
+//
 // link_id NULL is not a grade column. Non-null is gradable, and it is unique
 // so two launches cannot share one link. There is no separate gradable flag.
 // resource_link_id is born here. Creating the link copies it to lti_link.link_key.
@@ -1008,13 +1011,7 @@ array( "{$CFG->dbprefix}lti_content",
     CONSTRAINT `{$CFG->dbprefix}lti_content_ibfk_2`
         FOREIGN KEY (`link_id`)
         REFERENCES `{$CFG->dbprefix}lti_link` (`link_id`)
-        ON DELETE SET NULL ON UPDATE CASCADE,
-
-    -- Same tenant key as the course. Deleting the course deletes the launch.
-    CONSTRAINT `{$CFG->dbprefix}lti_content_ibfk_3`
-        FOREIGN KEY (`context_id`, `key_id`)
-        REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`, `key_id`)
-        ON DELETE CASCADE ON UPDATE RESTRICT
+        ON DELETE SET NULL ON UPDATE CASCADE
 
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -2136,6 +2133,19 @@ $DATABASE_UPGRADE = function($oldversion) {
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryReturnError($sql);
             if ( ! $q->success ) die("Unable to add lti_context (context_id, key_id) key: ".$q->errorImplode."<br/>\n");
+        }
+
+        $content_table = "{$p}lti_content";
+        $content_context_fk = "{$p}lti_content_ibfk_3";
+        if ( $PDOX->metadata($content_table) !== false && ! $constraint_exists($content_table, $content_context_fk) ) {
+            $sql = "ALTER TABLE {$content_table} ADD CONSTRAINT `{$content_context_fk}`
+                FOREIGN KEY (`context_id`, `key_id`)
+                REFERENCES `{$context_table}` (`context_id`, `key_id`)
+                ON DELETE CASCADE ON UPDATE RESTRICT";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add {$content_context_fk}: ".$q->errorImplode."<br/>\n");
         }
 
         $context_fk = "{$p}lti_context_ibfk_3";

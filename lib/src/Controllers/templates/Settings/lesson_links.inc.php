@@ -135,8 +135,8 @@ foreach ( $external_links as $link ) {
         $namesOn = $content !== null && ! empty($content['send_name']);
         $emailOn = $content !== null && ! empty($content['send_email']);
         $gradeOn = $content !== null && ! empty($content['send_grade']);
-        $namesDisabled = ! $ready || ($found && empty($found['send_name']));
-        $emailDisabled = ! $ready || ($found && empty($found['send_email']));
+        $namesDisabled = ! $ready || ! ($found && ! empty($found['send_name']));
+        $emailDisabled = ! $ready || ! ($found && ! empty($found['send_email']));
         $gradeDisabled = ! $ready || ! ($found && ! empty($found['send_grade']));
         $contentId = $content !== null ? (int) $content['id'] : 0;
         $heading = $title !== '' ? $title : __('Tool link');
@@ -184,7 +184,7 @@ foreach ( $external_links as $link ) {
                         </select>
                         <?php } ?>
                         <?php if ( $state === 'proto' ) { ?>
-                        <p class="help-block"><?= __('Not provisioned. Pick a deployment to create the launch.') ?></p>
+                        <p class="help-block"><?= __('Not provisioned. Pick a deployment to enable launching.') ?></p>
                         <?php if ( isset($link['launch']) && (string) $link['launch'] !== '' ) { ?>
                         <p class="help-block"><?= __('Launch URL on the lesson:') ?> <?= htmlspecialchars((string) $link['launch']) ?></p>
                         <?php } ?>

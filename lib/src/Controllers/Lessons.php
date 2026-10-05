@@ -3047,6 +3047,9 @@ $(function(){
         $view = clone $item;
         $view->resource_link_id = $resource_link_id;
         $view->tool_deployment_id = $deploymentId;
+        if ( (int) $row['send_grade'] !== 1 && empty($row['link_id']) ) {
+            $view->result = false;
+        }
         if ( (string) $row['target'] === 'inline' ) {
             $view->target = 'iframe';
         } else if ( (string) $row['target'] === 'iframe' ) {

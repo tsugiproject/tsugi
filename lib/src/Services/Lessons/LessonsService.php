@@ -706,19 +706,28 @@ class LessonsService {
         $require_scheduled = ($duedates_for_display !== array());
         if ( isset($module->items) ) {
             foreach ( $module->items as $item ) {
-                if ( ! LessonsNormalize::isAssignmentLti($item) ) {
-                    continue;
+                $contentRow = self::contentAssignmentRow($item);
+                if ( $contentRow !== null ) {
+                    if ( empty($contentRow['graded']) ) {
+                        continue;
+                    }
+                    $resourceLinkId = $contentRow['resource_link_id'];
+                } else {
+                    if ( ! LessonsNormalize::isAssignmentLti($item) ) {
+                        continue;
+                    }
+                    if ( ! self::ltiLaunchIsGraded($item) ) {
+                        continue;
+                    }
+                    $resourceLinkId = $item->resource_link_id;
                 }
-                if ( ! self::ltiLaunchIsGraded($item) ) {
-                    continue;
-                }
-                if ( $require_scheduled && ! $this->resourceLinkHasDueDateInContext($item->resource_link_id, $duedates_for_display) ) {
+                if ( $require_scheduled && ! $this->resourceLinkHasDueDateInContext($resourceLinkId, $duedates_for_display) ) {
                     continue;
                 }
                 $possible += 1.0;
-                $rlids[] = $item->resource_link_id;
-                if ( isset($allgrades[$item->resource_link_id]) && is_numeric($allgrades[$item->resource_link_id]) ) {
-                    $actual += $allgrades[$item->resource_link_id];
+                $rlids[] = $resourceLinkId;
+                if ( isset($allgrades[$resourceLinkId]) && is_numeric($allgrades[$resourceLinkId]) ) {
+                    $actual += $allgrades[$resourceLinkId];
                 }
             }
         } elseif ( isset($module->lti) ) {

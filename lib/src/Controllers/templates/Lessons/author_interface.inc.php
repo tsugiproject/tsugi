@@ -1503,12 +1503,12 @@ function ltiContentFieldsHtml(item) {
                     <label><input type="radio" name="edit-lti-open" value="inline" ${target === 'inline' ? 'checked' : ''} ${disabled} onchange="patchLtiContent()"> Embedded inline</label>
                 </div>
             </div>
-            ${ready ? `<p class="help-block">Resource link: ${escapeHtml(row.resource_link_id || '')}</p>` : '<p class="help-block">Pick a deployment to create the launch.</p>'}
+            ${ready ? `<p class="help-block">Resource link: ${escapeHtml(row.resource_link_id || '')}</p>` : '<p class="help-block">Pick a deployment to enable launching.</p>'}
     `;
 }
 
 function ltiPickerFieldsHtml(item) {
-    if (!ltiItemIsLegacy(item)) {
+    if ((parseInt(item && item.content_id, 10) || 0) > 0) {
         return ltiContentFieldsHtml(item);
     }
     const selected = parseInt(item.tool_deployment_id, 10) || 0;
@@ -1524,12 +1524,13 @@ function ltiPickerFieldsHtml(item) {
         missingNote = `<p class="help-block">This lesson still points at a deployment that is not in this course or does not have a resource link launch. Students do not see it. Pick another deployment or delete the item.</p>`;
     }
     let legacy = '';
-    if (!selected && item.launch) {
-        legacy = `<p class="help-block">This link has a launch URL and is not linked to a deployment. Choose a deployment to supply the key and secret. The launch URL stays.</p>`;
+    if (!selected) {
+        legacy = `<p class="help-block">Not deployed. Save a title and launch URL now. Choose a deployment when you want this link to launch.</p>`;
     }
     let picker;
     if ((!ltiTools || !ltiTools.length) && !selected) {
-        picker = `<p>No deployments with a resource link in this course yet. <a href="${escapeHtml(ltiToolsUrl)}" target="_blank" rel="noopener noreferrer">Add a tool</a>, then come back and choose it here.</p>
+        picker = `<p class="help-block">Not deployed. Save a title and launch URL now.</p>
+            <p>No deployments with a resource link in this course yet. <a href="${escapeHtml(ltiToolsUrl)}" target="_blank" rel="noopener noreferrer">Add a tool</a> when you want to deploy this link.</p>
             <input type="hidden" id="edit-lti-tool" value="">`;
     } else {
         const options = (ltiTools || []).map(function(tool) {
@@ -1664,7 +1665,7 @@ function applyContentToForm(content) {
     showLtiClaims(true);
 }
 
-function placeLtiContent() {
+function placeLtiContent(done) {
     const id = parseInt($('#edit-lti-tool').val(), 10) || 0;
     if (!id) {
         return;
@@ -1683,6 +1684,11 @@ function placeLtiContent() {
             const result = typeof response === 'string' ? JSON.parse(response) : response;
             if (!result.success || !result.content) {
                 alert(result.error || 'Could not place that tool.');
+                return;
+            }
+            rememberContent(result.content);
+            if (typeof done === 'function') {
+                done(result.content);
                 return;
             }
             applyContentToForm(result.content);
@@ -1735,7 +1741,41 @@ function onLtiToolPicked() {
         placeLtiContent();
         return;
     }
-    const id = parseInt($('#edit-lti-tool').val(), 10);
+    const item = currentEditorItem();
+    const alreadyDeployed = (parseInt(item.tool_deployment_id, 10) || 0) > 0;
+    const id = parseInt($('#edit-lti-tool').val(), 10) || 0;
+    if (!alreadyDeployed) {
+        if (!id) {
+            showLtiClaims(false);
+            return;
+        }
+        const launchEl = document.getElementById('edit-lti-launch');
+        const keptLaunch = launchEl ? launchEl.value.trim() : '';
+        placeLtiContent(function(content) {
+            item.type = 'lti';
+            item.content_id = content.id;
+            delete item.tool_deployment_id;
+            delete item.launch;
+            delete item.target;
+            delete item.send_name;
+            delete item.send_email;
+            delete item.send_grade;
+            delete item.resource_link_id;
+            delete item.custom;
+            if (!item.title && content.title) {
+                item.title = content.title;
+            }
+            updateItemFormFields(item);
+            if (keptLaunch) {
+                const placedLaunch = document.getElementById('edit-lti-launch');
+                if (placedLaunch) {
+                    placedLaunch.value = keptLaunch;
+                    patchLtiContent();
+                }
+            }
+        });
+        return;
+    }
     const tool = ltiToolById(id);
     const titleEl = document.getElementById('edit-title');
     if (tool && titleEl && !titleEl.value.trim()) {
@@ -3272,16 +3312,23 @@ function saveItem() {
             delete item.send_grade;
         }
         if (!toolId) {
-            if (item.launch && !parseInt(item.tool_deployment_id, 10)) {
+            const launchEl = document.getElementById('edit-lti-launch');
+            const launch = launchEl ? launchEl.value.trim() : String(item.launch || '').trim();
+            const hadDeployment = (parseInt(item.tool_deployment_id, 10) || 0) > 0;
+            if (!hadDeployment && launch) {
                 delete item.registration_id;
                 delete item.tool_deployment_id;
+                delete item.content_id;
+                delete item.send_name;
+                delete item.send_email;
+                delete item.send_grade;
                 item.title = $('#edit-title').val().trim();
-                const launchEl = document.getElementById('edit-lti-launch');
-                if (launchEl && launchEl.value.trim()) {
-                    item.launch = launchEl.value.trim();
-                }
+                item.launch = launch;
                 applyLtiOpenTarget(item);
                 item.resource_link_id = ltiResourceLinkId(item.title, item.resource_link_id);
+            } else if (!hadDeployment) {
+                alert('A launch URL is required until this link is deployed.');
+                return;
             } else {
                 alert('Pick a deployment from this course.');
                 return;
