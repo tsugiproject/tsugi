@@ -53,7 +53,22 @@ require_once (__DIR__."/setup_i18n.php");
 if ( defined('COOKIE_SESSION') ) {
     ini_set('session.cookie_httponly', '1');
     ini_set('session.cookie_secure', $CFG->DEVELOPER ? '0' : '1');
+    ini_set('session.use_only_cookies', '1');
     // ini_set('session.use_strict_mode', '1');
+    // The id comes from the cookie. Drop a same-named GET or POST parameter
+    // before session_start(); use_only_cookies is the second lock.
+    $sess = session_name();
+    $in_get = isset($_GET[$sess]);
+    $in_post = isset($_POST[$sess]);
+    if ( $in_get || $in_post ) {
+        unset($_GET[$sess], $_POST[$sess], $_REQUEST[$sess]);
+        $where = trim(($in_get ? 'GET ' : '').($in_post ? 'POST' : ''));
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        $qpos = strpos($uri, '?');
+        $path = $qpos === false ? $uri : substr($uri, 0, $qpos);
+        error_log('ERROR: Cookie session ignored '.$sess.' parameter from '.$where.' path='.$path);
+        print_stack_trace();
+    }
 } else {
     $previous = error_reporting();
     error_reporting(0);
