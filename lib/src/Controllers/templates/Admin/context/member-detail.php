@@ -26,7 +26,7 @@ if ( $row === false || ! isset($row['context_id']) ) {
 
 
 $tablename = "{$CFG->dbprefix}lti_membership";
-$current = $CFG->getCurrentFileUrl(__FILE__);
+$current = \Tsugi\Core\LTIX::curPageUrlNoQuery();
 $from_location = "membership?context_id=".$row['context_id'];
 $allow_delete = true;
 $allow_edit = true;

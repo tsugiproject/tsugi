@@ -11,7 +11,7 @@ use \Tsugi\Core\ReqScope;
 header('Content-Type: text/html; charset=utf-8');
 
 $tablename = "{$CFG->dbprefix}key_request";
-$current = $CFG->getCurrentFileUrl(__FILE__);
+$current = LTIX::curPageUrlNoQuery();
 $title = "Request Entry";
 $from_location = LTIX::curPageUrlFolder();
 $allow_delete = \Tsugi\Services\Admin\AdminService::isAdmin();

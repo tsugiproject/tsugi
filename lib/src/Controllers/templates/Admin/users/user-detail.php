@@ -26,7 +26,9 @@ if ( $row === false || ! isset($row['user_id']) ) {
 
 
 $tablename = "{$CFG->dbprefix}lti_user";
-$current = $CFG->getCurrentFileUrl(__FILE__);
+// This file is included by the users controller. Links stay on that request,
+// not on this template's path under lib/src.
+$current = \Tsugi\Core\LTIX::curPageUrlNoQuery();
 $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';

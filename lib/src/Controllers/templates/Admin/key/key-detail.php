@@ -16,7 +16,7 @@ if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) {
 $inedit = U::get($_REQUEST,'edit');
 
 $tablename = "{$CFG->dbprefix}lti_key";
-$current = $CFG->getCurrentFileUrl(__FILE__);
+$current = LTIX::curPageUrlNoQuery();
 $from_location = LTIX::curPageUrlFolder();
 $allow_delete = true;
 $allow_edit = true;

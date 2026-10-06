@@ -190,10 +190,12 @@ $maxpath = '';
 foreach($tools as $tool ) {
     $path = \Tsugi\Services\Admin\AdminService::trimAsMuchAsYouCan($tool, $CFG->dirroot);
     echo("Checking $path ...<br/>\n");
-    unset($DATABASE_INSTALL);
-    unset($DATABASE_POST_CREATE);
-    unset($DATABASE_UNINSTALL);
-    unset($DATABASE_UPGRADE);
+    // Drop the previous schema file's variables. isset(null) is false,
+    // so a file that omits one of these does not inherit the last file.
+    $DATABASE_INSTALL = null;
+    $DATABASE_POST_CREATE = null;
+    $DATABASE_UNINSTALL = null;
+    $DATABASE_UPGRADE = null;
     require($tool);
     require __DIR__ . '/migrate-run.php';
     flush();

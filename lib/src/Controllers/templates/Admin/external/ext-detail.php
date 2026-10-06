@@ -16,7 +16,7 @@ if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) {
 $tablename = "{$CFG->dbprefix}lti_external";
 $fields = array("external_id", "endpoint", "name", "url", "description", "pubkey", "privkey", "fa_icon", "json");
 $realfields = array("external_id", "endpoint", "name", "url", "description", "pubkey", "privkey", "fa_icon", "json");
-$current = $CFG->getCurrentFileUrl(__FILE__);
+$current = \Tsugi\Core\LTIX::curPageUrlNoQuery();
 $from_location = ".";
 $allow_delete = true;
 $allow_edit = true;
