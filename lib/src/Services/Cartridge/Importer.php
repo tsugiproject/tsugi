@@ -250,7 +250,8 @@ class Importer {
         if ( $kind === 'lti_link' ) {
             $xml = $pkg->readHref($href);
             $xmlTitle = self::firstElementText($xml, 'title');
-            if ( $xmlTitle !== '' && ($title === '' || $title === basename(str_replace('\\', '/', $href))) ) {
+            $fileTitle = basename(str_replace('\\', '/', $href));
+            if ( $xmlTitle !== '' && (Package::placeholderTitle($title) || $title === $fileTitle) ) {
                 $title = $xmlTitle;
             }
             $launch = self::ltiLaunch($xml);
@@ -258,7 +259,8 @@ class Importer {
             if ( $isCopy ) {
                 $linkKey .= '-'.bin2hex(random_bytes(3));
             }
-            $linkId = self::insertLtiLink($context_id, $linkKey, $title, $launch);
+            // The lesson item holds the launch until a deployment is chosen.
+            // No lti_content row and no grade column until then.
             $lesson = array(
                 'type' => LessonsNormalize::TYPE_LTI,
                 'title' => $title,
@@ -267,7 +269,7 @@ class Importer {
             );
             return array(
                 'local_kind' => 'lti_link',
-                'local_id' => $linkId,
+                'local_id' => null,
                 'local_key' => $linkKey,
                 'lesson' => $lesson,
             );
@@ -336,8 +338,9 @@ class Importer {
                     continue;
                 }
                 $lesson = $lessonsByRes[$ref];
-                if ( isset($item['title']) && is_string($item['title']) && $item['title'] !== '' ) {
-                    $lesson['title'] = $item['title'];
+                $orgTitle = isset($item['title']) && is_string($item['title']) ? $item['title'] : '';
+                if ( ! Package::placeholderTitle($orgTitle) ) {
+                    $lesson['title'] = $orgTitle;
                 }
                 self::applyOrgItemExtras($lesson, $item);
                 $items[] = $lesson;
@@ -633,27 +636,6 @@ class Importer {
             return $m[1];
         }
         return '';
-    }
-
-    private static function insertLtiLink($context_id, $resourceId, $title, $launch) {
-        global $CFG, $PDOX;
-        $key = $resourceId !== '' ? $resourceId : ('cc-'.bin2hex(random_bytes(8)));
-        $json = json_encode(array('launch_url' => $launch, 'imported' => true));
-        $PDOX->queryDie(
-            "INSERT INTO {$CFG->dbprefix}lti_link
-                (link_key, link_sha256, title, context_id, path, json, published, created_at, updated_at)
-             VALUES
-                (:key, :sha, :title, :cid, :path, :json, 0, NOW(), NOW())",
-            array(
-                ':key' => $key,
-                ':sha' => lti_sha256($key),
-                ':title' => $title,
-                ':cid' => (int) $context_id,
-                ':path' => $launch,
-                ':json' => $json,
-            )
-        );
-        return (int) $PDOX->lastInsertId();
     }
 
     private static function anchor($title, $identifier) {

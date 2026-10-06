@@ -479,6 +479,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->findElement(WebDriverBy::id('lti11_lti11_key'))->sendKeys('panther-due-key');
         $driver->findElement(WebDriverBy::id('lti11_lti11_secret'))->sendKeys('panther-due-secret');
         $driver->findElement(WebDriverBy::id('messages_LtiResourceLinkRequest'))->click();
+        $driver->findElement(WebDriverBy::id('services_score'))->click();
         $driver->findElement(WebDriverBy::cssSelector('#lti11-course-tool button[type="submit"]'))->click();
         $this->waitForPageText($client, 'The tool was added to this course.');
 
@@ -511,6 +512,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
             [$itemTitle]
         );
         $this->assertNotSame('', $picked, 'The lesson LTI picker had no course tool.');
+        $this->waitForPageText($client, 'Resource link:');
         $driver->findElement(WebDriverBy::xpath("//div[@id='item-modal']//button[contains(., 'Save')]"))->click();
         $driver->executeScript('saveChanges()');
         $this->acceptAlertContaining($driver, 'saved');

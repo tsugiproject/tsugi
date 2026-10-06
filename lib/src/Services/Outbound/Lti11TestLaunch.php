@@ -212,9 +212,10 @@ class Lti11TestLaunch {
      * @param string $documentTarget window, iframe, or frame. Empty omits the parameter.
      * @param string $elementId Parent iframe id for lti.frameResize. Empty lets signing assign one.
      * @param bool|null $sendGrade Null follows the score scope. False omits the outcome service.
+     * @param bool $gradeColumnMissing True when this launch has no lti_link. Sending a grade then fails.
      * @return array{endpoint:string, parameters:array<string, string>}
      */
-    public static function courseResourceLink($contextId, $toolDeploymentId, $userId, $resourceLinkId, $resourceLinkTitle, $returnUrl, $role = 'Learner', $userKey = '', $sendName = null, $sendEmail = null, $launchUrl = '', $documentTarget = '', $elementId = '', $sendGrade = null) {
+    public static function courseResourceLink($contextId, $toolDeploymentId, $userId, $resourceLinkId, $resourceLinkTitle, $returnUrl, $role = 'Learner', $userKey = '', $sendName = null, $sendEmail = null, $launchUrl = '', $documentTarget = '', $elementId = '', $sendGrade = null, $gradeColumnMissing = false) {
         $tool = ToolRegistrationService::visibleLti11Deployment((int) $contextId, (int) $toolDeploymentId);
         if ( ! self::hasMessage($tool['registration_id'], 'LtiResourceLinkRequest') ) {
             throw new \InvalidArgumentException('This tool does not have a resource link launch.');
@@ -256,6 +257,9 @@ class Lti11TestLaunch {
             $parms['ext_lti_element_id'] = $elementId;
         }
         if ( self::includeGrade($tool, $sendGrade) ) {
+            if ( $gradeColumnMissing ) {
+                throw new \InvalidArgumentException('This launch sends a grade and has no grade column.');
+            }
             foreach ( self::outcomeParameters($tool, (int) $contextId, $userId, $resourceLinkId, $title) as $key => $value ) {
                 $parms[$key] = $value;
             }

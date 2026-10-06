@@ -10,6 +10,7 @@ use \Tsugi\Controllers\Courses;
 use \Tsugi\Controllers\Tool;
 use \Tsugi\Core\LTIX;
 use \Tsugi\Core\Membership;
+use \Tsugi\Services\Outbound\LtiContentService;
 use \Tsugi\Services\Quiz1\Quiz1Repository;
 
 use \Tsugi\Core\ReqScope;
@@ -539,6 +540,56 @@ class LessonsService {
     /**
      * Get a module associated with a resource link ID
      */
+    /**
+     * Lesson item that points at an lti_content row.
+     *
+     * @param int $contentId
+     * @return object|null
+     */
+    public function getItemByContentId($contentId) {
+        $contentId = (int) $contentId;
+        if ( $contentId < 1 || ! isset($this->lessons->modules) ) {
+            return null;
+        }
+        foreach ( $this->lessons->modules as $mod ) {
+            if ( ! isset($mod->items) || ! is_array($mod->items) ) {
+                continue;
+            }
+            foreach ( $mod->items as $item ) {
+                $item_obj = is_array($item) ? (object) $item : $item;
+                if ( isset($item_obj->content_id) && (int) $item_obj->content_id === $contentId ) {
+                    return $item_obj;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Module that contains a content launch.
+     *
+     * @param int $contentId
+     * @return object|null
+     */
+    public function getModuleByContentId($contentId) {
+        $contentId = (int) $contentId;
+        if ( $contentId < 1 || ! isset($this->lessons->modules) ) {
+            return null;
+        }
+        foreach ( $this->lessons->modules as $mod ) {
+            if ( ! isset($mod->items) || ! is_array($mod->items) ) {
+                continue;
+            }
+            foreach ( $mod->items as $item ) {
+                $item_obj = is_array($item) ? (object) $item : $item;
+                if ( isset($item_obj->content_id) && (int) $item_obj->content_id === $contentId ) {
+                    return $mod;
+                }
+            }
+        }
+        return null;
+    }
+
     public function getModuleByRlid($resource_link_id)
     {
         foreach($this->lessons->modules as $mod) {
@@ -655,19 +706,28 @@ class LessonsService {
         $require_scheduled = ($duedates_for_display !== array());
         if ( isset($module->items) ) {
             foreach ( $module->items as $item ) {
-                if ( ! LessonsNormalize::isAssignmentLti($item) ) {
-                    continue;
+                $contentRow = self::contentAssignmentRow($item);
+                if ( $contentRow !== null ) {
+                    if ( empty($contentRow['graded']) ) {
+                        continue;
+                    }
+                    $resourceLinkId = $contentRow['resource_link_id'];
+                } else {
+                    if ( ! LessonsNormalize::isAssignmentLti($item) ) {
+                        continue;
+                    }
+                    if ( ! self::ltiLaunchIsGraded($item) ) {
+                        continue;
+                    }
+                    $resourceLinkId = $item->resource_link_id;
                 }
-                if ( ! self::ltiLaunchIsGraded($item) ) {
-                    continue;
-                }
-                if ( $require_scheduled && ! $this->resourceLinkHasDueDateInContext($item->resource_link_id, $duedates_for_display) ) {
+                if ( $require_scheduled && ! $this->resourceLinkHasDueDateInContext($resourceLinkId, $duedates_for_display) ) {
                     continue;
                 }
                 $possible += 1.0;
-                $rlids[] = $item->resource_link_id;
-                if ( isset($allgrades[$item->resource_link_id]) && is_numeric($allgrades[$item->resource_link_id]) ) {
-                    $actual += $allgrades[$item->resource_link_id];
+                $rlids[] = $resourceLinkId;
+                if ( isset($allgrades[$resourceLinkId]) && is_numeric($allgrades[$resourceLinkId]) ) {
+                    $actual += $allgrades[$resourceLinkId];
                 }
             }
         } elseif ( isset($module->lti) ) {
@@ -896,6 +956,21 @@ class LessonsService {
         foreach ( $this->lessons->modules as $modIndex => $module ) {
             if ( isset($module->items) ) {
                 foreach ( $module->items as $item ) {
+                    $contentRow = self::contentAssignmentRow($item);
+                    if ( $contentRow !== null ) {
+                        if ( $for_due_date_management && empty($contentRow['graded']) ) {
+                            continue;
+                        }
+                        $list[] = array(
+                            'module_index' => (int) $modIndex,
+                            'module_title' => $module->title,
+                            'module_anchor' => isset($module->anchor) ? $module->anchor : '',
+                            'item_title' => $contentRow['title'],
+                            'resource_link_id' => $contentRow['resource_link_id'],
+                            'participates_in_grades' => ! empty($contentRow['graded']),
+                        );
+                        continue;
+                    }
                     if ( ! LessonsNormalize::isAssignmentLti($item) ) {
                         continue;
                     }
@@ -935,6 +1010,38 @@ class LessonsService {
             }
         }
         return $list;
+    }
+
+    /**
+     * A lesson item that points at lti_content. The grade column's resource
+     * link id lives on that row. Graded when the launch may return a grade
+     * or the column already exists.
+     *
+     * @param object $item
+     * @return array{title:string,resource_link_id:string,graded:bool}|null
+     */
+    private static function contentAssignmentRow($item) {
+        $contentId = isset($item->content_id) ? (int) $item->content_id : 0;
+        if ( $contentId < 1 ) {
+            return null;
+        }
+        $row = LtiContentService::find(ReqScope::currentContextId(), $contentId);
+        if ( $row === null ) {
+            return null;
+        }
+        $resourceLinkId = isset($row['resource_link_id']) ? trim((string) $row['resource_link_id']) : '';
+        if ( $resourceLinkId === '' ) {
+            return null;
+        }
+        $title = isset($item->title) && is_string($item->title) && $item->title !== ''
+            ? $item->title
+            : (string) ($row['title'] ?? 'Assignment');
+        $graded = (int) ($row['send_grade'] ?? 0) === 1 || ! empty($row['link_id']);
+        return array(
+            'title' => $title,
+            'resource_link_id' => $resourceLinkId,
+            'graded' => $graded,
+        );
     }
 
     public static function makeUrlResource($type,$title,$url) {

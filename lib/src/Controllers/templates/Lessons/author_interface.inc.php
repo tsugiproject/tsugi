@@ -767,7 +767,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <script>
-let lessonsData = <?= $lessons_json ?>;
+var lessonsData = <?= $lessons_json ?>;
 if (!lessonsData.lessons_json_version) {
     lessonsData.lessons_json_version = 2;
 }
@@ -786,6 +786,7 @@ var ltiToolsUrl = <?= json_encode($lti_tools_url ?? '') ?>;
 var ltiTools = <?= json_encode($lti_tools ?? array()) ?>;
 var courseResourceLinkIds = <?= json_encode($course_resource_link_ids ?? array()) ?>;
 var courseLinkPublished = <?= json_encode($course_link_published ?? array(), JSON_FORCE_OBJECT) ?>;
+var ltiContentById = <?= json_encode($lti_content_rows ?? array(), JSON_FORCE_OBJECT) ?>;
 var currentPageId = null;
 <?php \Tsugi\UI\CKEditor::renderLinkPickerScript(); ?>
 let courseFilesCache = null;
@@ -793,7 +794,9 @@ let coursePagesCache = null;
 let filePickerState = emptyFilePickerState();
 let hasChanges = false;
 let savedLtiResourceLinkIds = {};
+let savedLtiContentIds = {};
 let savedQuizIds = {};
+let editingOpenedItem = null;
 let editingItemIndex = null;
 let editingModuleIndex = null;
 let editingAfterItemIndex = null;
@@ -1193,6 +1196,7 @@ function ltiItemIsPublished(item) {
 
 function rememberSavedLtiLinks() {
     savedLtiResourceLinkIds = {};
+    savedLtiContentIds = {};
     (lessonsData.modules || []).forEach(function(mod) {
         (mod.items || []).forEach(function(item) {
             if (!item || item.type !== 'lti') {
@@ -1201,6 +1205,10 @@ function rememberSavedLtiLinks() {
             const id = String(item.resource_link_id || '').trim();
             if (id) {
                 savedLtiResourceLinkIds[id] = true;
+            }
+            const contentId = parseInt(item.content_id, 10) || 0;
+            if (contentId > 0) {
+                savedLtiContentIds[contentId] = true;
             }
         });
     });
@@ -1249,22 +1257,44 @@ function publishBlockedReason(kind, id) {
         }
         return '';
     }
+    if (kind === 'lti-content') {
+        const contentId = parseInt(id, 10) || 0;
+        if (contentId < 1 || !savedLtiContentIds[contentId]) {
+            return 'Save the lesson before changing publish.';
+        }
+        return '';
+    }
     const linkId = String(id || '').trim();
     if (!linkId || !savedLtiResourceLinkIds[linkId]) {
         return 'Save the lesson before changing publish.';
     }
+    const legacy = lessonLtiItemByResourceLinkId(linkId);
+    if (legacy && !ltiItemIsProvisioned(legacy)) {
+        return 'Provision this tool before changing publish.';
+    }
     return '';
 }
 
+function ltiContentIsPublished(contentId) {
+    const row = ltiContentById[String(contentId)];
+    return !!(row && row.published);
+}
+
 function publishButtonHtml(item) {
-    const kind = itemEditorKind(item);
+    let kind = itemEditorKind(item);
     if (kind !== 'lti' && kind !== 'quiz') {
         return '';
     }
-    const id = kind === 'quiz'
+    let id = kind === 'quiz'
         ? String(parseInt(item.quiz_id, 10) || '')
         : String(item.resource_link_id || '').trim();
-    const on = kind === 'quiz' ? quizItemIsPublished(item) : ltiItemIsPublished(item);
+    if (kind === 'lti' && (parseInt(item.content_id, 10) || 0) > 0) {
+        kind = 'lti-content';
+        id = String(parseInt(item.content_id, 10));
+    }
+    const on = kind === 'quiz'
+        ? quizItemIsPublished(item)
+        : (kind === 'lti-content' ? ltiContentIsPublished(id) : legacyLtiPublishOn(item));
     const reason = publishBlockedReason(kind, id);
     const label = reason || (on ? 'Published. Click to unpublish.' : 'Unpublished. Click to publish.');
     const icon = on ? 'fa-check-circle publish-on' : 'fa-ban publish-off';
@@ -1279,7 +1309,7 @@ function refreshPublishButtons() {
         const id = String(btn.getAttribute('data-publish-id') || '').trim();
         const on = kind === 'quiz'
             ? quizItemIsPublished({ quiz_id: id })
-            : ltiItemIsPublished({ resource_link_id: id });
+            : (kind === 'lti-content' ? ltiContentIsPublished(id) : legacyLtiPublishOn(id));
         const reason = publishBlockedReason(kind, id);
         const label = reason || (on ? 'Published. Click to unpublish.' : 'Unpublished. Click to publish.');
         btn.disabled = false;
@@ -1302,7 +1332,7 @@ function togglePublished(button) {
     }
     const on = kind === 'quiz'
         ? quizItemIsPublished({ quiz_id: id })
-        : ltiItemIsPublished({ resource_link_id: id });
+        : (kind === 'lti-content' ? ltiContentIsPublished(id) : legacyLtiPublishOn(id));
     const next = !on;
     button.disabled = true;
     const data = {
@@ -1311,6 +1341,8 @@ function togglePublished(button) {
     };
     if (kind === 'quiz') {
         data.quiz_id = id;
+    } else if (kind === 'lti-content') {
+        data.content_id = id;
     } else {
         data.resource_link_id = id;
     }
@@ -1331,6 +1363,11 @@ function togglePublished(button) {
                 if (quiz) {
                     quiz.published = !!result.published;
                 }
+            } else if (kind === 'lti-content') {
+                if (!ltiContentById[String(id)]) {
+                    ltiContentById[String(id)] = {};
+                }
+                ltiContentById[String(id)].published = !!result.published;
             } else {
                 courseLinkPublished[id] = !!result.published;
             }
@@ -1351,7 +1388,129 @@ function ltiToolById(id) {
     return (ltiTools || []).find(function(t) { return t.id === tid; }) || null;
 }
 
+function ltiItemIsProvisioned(item) {
+    if (!item || itemEditorKind(item) !== 'lti') {
+        return true;
+    }
+    if ((parseInt(item.content_id, 10) || 0) > 0) {
+        return true;
+    }
+    return (parseInt(item.tool_deployment_id, 10) || 0) > 0;
+}
+
+function lessonLtiItemByResourceLinkId(id) {
+    const want = String(id || '').trim();
+    if (!want) {
+        return null;
+    }
+    let found = null;
+    (lessonsData.modules || []).forEach(function(mod) {
+        (mod.items || []).forEach(function(item) {
+            if (item && itemEditorKind(item) === 'lti' && String(item.resource_link_id || '').trim() === want) {
+                found = item;
+            }
+        });
+    });
+    return found;
+}
+
+function legacyLtiPublishOn(itemOrId) {
+    const item = (itemOrId && typeof itemOrId === 'object')
+        ? itemOrId
+        : lessonLtiItemByResourceLinkId(itemOrId);
+    if (item && !ltiItemIsProvisioned(item)) {
+        return false;
+    }
+    return ltiItemIsPublished(item || { resource_link_id: itemOrId });
+}
+
+function ltiItemIsLegacy(item) {
+    if (!item) {
+        return false;
+    }
+    if ((parseInt(item.content_id, 10) || 0) > 0) {
+        return false;
+    }
+    return !!(parseInt(item.tool_deployment_id, 10) > 0 || item.launch || item.resource_link_id);
+}
+
+function ltiContentFieldsHtml(item) {
+    const row = item && item.content_id ? ltiContentById[String(item.content_id)] : null;
+    const selected = row ? (parseInt(row.tool_deployment_id, 10) || 0) : 0;
+    const found = ltiToolById(selected);
+    const manage = ltiToolsUrl
+        ? `<div class="file-picker-summary"><a href="${escapeHtml(ltiToolsUrl)}" target="_blank" rel="noopener noreferrer">Manage tools</a></div>`
+        : '';
+    let missingOption = '';
+    if (selected && !found) {
+        missingOption = `<option value="${selected}" selected>${escapeHtml((item.title || ('Tool ' + selected)))} — missing from this course</option>`;
+    }
+    const options = (ltiTools || []).map(function(tool) {
+        const version = tool.lti_version === '1.3' ? 'LTI 1.3' : (tool.lti_version === '1.1' ? 'LTI 1.1' : '');
+        const label = escapeHtml(tool.title || ('Deployment ' + tool.id)) + (version ? ' (' + version + ')' : '');
+        return `<option value="${tool.id}" ${tool.id === selected && found ? 'selected' : ''}>${label}</option>`;
+    }).join('');
+    const ready = !!(row && row.id);
+    const disabled = ready ? '' : 'disabled';
+    const target = row && row.target ? row.target : 'window';
+    const namesOn = row ? !!row.send_name : false;
+    const emailOn = row ? !!row.send_email : false;
+    const gradeOn = row ? !!row.send_grade : false;
+    const namesDisabled = !ready || (found && !found.send_name) ? 'disabled' : '';
+    const emailDisabled = !ready || (found && !found.send_email) ? 'disabled' : '';
+    const gradeDisabled = !ready || !(found && found.send_grade) ? 'disabled' : '';
+    return `
+            <div class="form-group">
+                <label>Title:</label>
+                <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}" placeholder="Defaults to the tool title">
+            </div>
+            <input type="hidden" id="edit-lti-content-id" value="${ready ? row.id : ''}">
+            <div class="form-group">
+                <label>Deployment:</label>
+                <select id="edit-lti-tool" onchange="onLtiToolPicked()">
+                    <option value="">Choose a deployment…</option>
+                    ${missingOption}
+                    ${options}
+                </select>
+                ${manage}
+            </div>
+            <div class="form-group">
+                <label>Launch URL:</label>
+                <input type="text" id="edit-lti-launch" ${disabled} value="${escapeHtml(row ? row.launch_url : '')}" onchange="patchLtiContent()">
+            </div>
+            <div id="edit-lti-claims" ${ready ? '' : 'style="display:none"'}>
+            <div class="form-group">
+                <label>Privacy:</label>
+                <div class="checkbox">
+                    <label><input type="checkbox" id="edit-lti-send-name" ${namesOn ? 'checked' : ''} ${namesDisabled} onchange="patchLtiContent()"> Send user names to the external tool</label>
+                </div>
+                <div class="checkbox">
+                    <label><input type="checkbox" id="edit-lti-send-email" ${emailOn ? 'checked' : ''} ${emailDisabled} onchange="patchLtiContent()"> Send email addresses to the external tool</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Grades:</label>
+                <div class="checkbox">
+                    <label><input type="checkbox" id="edit-lti-send-grade" ${gradeOn ? 'checked' : ''} ${gradeDisabled} onchange="patchLtiContent()"> Allow this tool to return a grade</label>
+                </div>
+            </div>
+            </div>
+            <div class="form-group">
+                <label>Open:</label>
+                <div class="form-group-radios">
+                    <label><input type="radio" name="edit-lti-open" value="window" ${target === 'window' ? 'checked' : ''} ${disabled} onchange="patchLtiContent()"> New window</label>
+                    <label><input type="radio" name="edit-lti-open" value="iframe" ${target === 'iframe' ? 'checked' : ''} ${disabled} onchange="patchLtiContent()"> Modal</label>
+                    <label><input type="radio" name="edit-lti-open" value="inline" ${target === 'inline' ? 'checked' : ''} ${disabled} onchange="patchLtiContent()"> Embedded inline</label>
+                </div>
+            </div>
+            ${ready ? `<p class="help-block">Resource link: ${escapeHtml(row.resource_link_id || '')}</p>` : '<p class="help-block">Pick a deployment to enable launching.</p>'}
+    `;
+}
+
 function ltiPickerFieldsHtml(item) {
+    if ((parseInt(item && item.content_id, 10) || 0) > 0) {
+        return ltiContentFieldsHtml(item);
+    }
     const selected = parseInt(item.tool_deployment_id, 10) || 0;
     const found = ltiToolById(selected);
     const manage = ltiToolsUrl
@@ -1365,14 +1524,14 @@ function ltiPickerFieldsHtml(item) {
         missingNote = `<p class="help-block">This lesson still points at a deployment that is not in this course or does not have a resource link launch. Students do not see it. Pick another deployment or delete the item.</p>`;
     }
     let legacy = '';
-    if (!selected && item.launch) {
-        legacy = `<p class="help-block">This link has a launch URL and is not linked to a deployment. Choose a deployment to supply the key and secret. The launch URL stays.</p>`;
+    if (!selected) {
+        legacy = `<p class="help-block">Not deployed. Save a title and launch URL now. Choose a deployment when you want this link to launch.</p>`;
     }
     let picker;
     if ((!ltiTools || !ltiTools.length) && !selected) {
-        picker = `<p>No deployments with a resource link in this course yet. <a href="${escapeHtml(ltiToolsUrl)}" target="_blank" rel="noopener noreferrer">Add a tool</a>, then come back and choose it here.</p>
-            <input type="hidden" id="edit-lti-tool" value="">
-            ${legacy}`;
+        picker = `<p class="help-block">Not deployed. Save a title and launch URL now.</p>
+            <p>No deployments with a resource link in this course yet. <a href="${escapeHtml(ltiToolsUrl)}" target="_blank" rel="noopener noreferrer">Add a tool</a> when you want to deploy this link.</p>
+            <input type="hidden" id="edit-lti-tool" value="">`;
     } else {
         const options = (ltiTools || []).map(function(tool) {
             const version = tool.lti_version === '1.3' ? 'LTI 1.3' : (tool.lti_version === '1.1' ? 'LTI 1.1' : '');
@@ -1419,6 +1578,7 @@ function ltiPickerFieldsHtml(item) {
                 <label>Launch URL:</label>
                 <input type="text" id="edit-lti-launch" ${keepLaunch} value="${escapeHtml(item.launch || '')}" placeholder="Filled from the tool when this link has no URL yet">
             </div>
+            <div id="edit-lti-claims" ${selected ? '' : 'style="display:none"'}>
             <div class="form-group">
                 <label>Privacy:</label>
                 <div class="checkbox">
@@ -1434,6 +1594,7 @@ function ltiPickerFieldsHtml(item) {
                     <label><input type="checkbox" id="edit-lti-send-grade" ${gradeOn ? 'checked' : ''} ${gradeDisabled}> Allow this tool to return a grade</label>
                 </div>
                 ${gradeNote}
+            </div>
             </div>
             <div class="form-group">
                 <label>Open:</label>
@@ -1465,8 +1626,160 @@ function ltiPrivacyChecked(item, key, tool) {
     return !!(item.launch && !item.tool_deployment_id);
 }
 
+function rememberContent(content) {
+    if (!content || !content.id) {
+        return;
+    }
+    ltiContentById[String(content.id)] = content;
+}
+
+function applyContentToForm(content) {
+    rememberContent(content);
+    const hidden = document.getElementById('edit-lti-content-id');
+    if (hidden) {
+        hidden.value = String(content.id);
+    }
+    const titleEl = document.getElementById('edit-title');
+    if (titleEl && !titleEl.value.trim() && content.title) {
+        titleEl.value = content.title;
+    }
+    const launchEl = document.getElementById('edit-lti-launch');
+    if (launchEl) {
+        launchEl.disabled = false;
+        launchEl.value = content.launch_url || '';
+    }
+    const found = ltiToolById(content.tool_deployment_id);
+    [['edit-lti-send-name', 'send_name'], ['edit-lti-send-email', 'send_email'], ['edit-lti-send-grade', 'send_grade']].forEach(function(pair) {
+        const el = document.getElementById(pair[0]);
+        if (!el) {
+            return;
+        }
+        const allowed = !!(found && found[pair[1]]);
+        el.disabled = !allowed;
+        el.checked = !!content[pair[1]];
+    });
+    document.querySelectorAll('input[name="edit-lti-open"]').forEach(function(el) {
+        el.disabled = false;
+        el.checked = el.value === (content.target || 'window');
+    });
+    showLtiClaims(true);
+}
+
+function placeLtiContent(done) {
+    const id = parseInt($('#edit-lti-tool').val(), 10) || 0;
+    if (!id) {
+        return;
+    }
+    const titleEl = document.getElementById('edit-title');
+    $.ajax({
+        url: window.location.pathname,
+        method: 'POST',
+        headers: tsugiCsrfHeaders(),
+        data: {
+            action: 'place-lti',
+            tool_deployment_id: id,
+            title: titleEl ? titleEl.value.trim() : ''
+        },
+        success: function(response) {
+            const result = typeof response === 'string' ? JSON.parse(response) : response;
+            if (!result.success || !result.content) {
+                alert(result.error || 'Could not place that tool.');
+                return;
+            }
+            rememberContent(result.content);
+            if (typeof done === 'function') {
+                done(result.content);
+                return;
+            }
+            applyContentToForm(result.content);
+        },
+        error: function() {
+            alert('Could not place that tool.');
+        }
+    });
+}
+
+function patchLtiContent() {
+    const contentId = parseInt($('#edit-lti-content-id').val(), 10) || 0;
+    if (!contentId) {
+        return;
+    }
+    const launchEl = document.getElementById('edit-lti-launch');
+    const targetEl = document.querySelector('input[name="edit-lti-open"]:checked');
+    const nameEl = document.getElementById('edit-lti-send-name');
+    const emailEl = document.getElementById('edit-lti-send-email');
+    const gradeEl = document.getElementById('edit-lti-send-grade');
+    $.ajax({
+        url: window.location.pathname,
+        method: 'POST',
+        headers: tsugiCsrfHeaders(),
+        data: {
+            action: 'patch-lti',
+            content_id: contentId,
+            launch_url: launchEl ? launchEl.value.trim() : '',
+            target: targetEl ? targetEl.value : 'window',
+            send_name: nameEl && nameEl.checked ? '1' : '0',
+            send_email: emailEl && emailEl.checked ? '1' : '0',
+            send_grade: gradeEl && gradeEl.checked ? '1' : '0'
+        },
+        success: function(response) {
+            const result = typeof response === 'string' ? JSON.parse(response) : response;
+            if (!result.success || !result.content) {
+                alert(result.error || 'Could not update that launch.');
+                return;
+            }
+            rememberContent(result.content);
+        },
+        error: function() {
+            alert('Could not update that launch.');
+        }
+    });
+}
+
 function onLtiToolPicked() {
-    const id = parseInt($('#edit-lti-tool').val(), 10);
+    if (document.getElementById('edit-lti-content-id')) {
+        placeLtiContent();
+        return;
+    }
+    const item = currentEditorItem();
+    const alreadyDeployed = (parseInt(item.tool_deployment_id, 10) || 0) > 0;
+    const id = parseInt($('#edit-lti-tool').val(), 10) || 0;
+    if (!alreadyDeployed) {
+        if (!id) {
+            showLtiClaims(false);
+            return;
+        }
+        const launchEl = document.getElementById('edit-lti-launch');
+        const keptLaunch = launchEl ? launchEl.value.trim() : '';
+        placeLtiContent(function(content) {
+            harvestItemFormDraft(item);
+            if ($('#edit-item-icon').length) {
+                applyPickedIcon(item, '#edit-item-icon');
+            }
+            item.type = 'lti';
+            item.content_id = content.id;
+            delete item.tool_deployment_id;
+            delete item.launch;
+            delete item.target;
+            delete item.send_name;
+            delete item.send_email;
+            delete item.send_grade;
+            delete item.resource_link_id;
+            delete item.custom;
+            if (!item.title && content.title) {
+                item.title = content.title;
+            }
+            updateItemFormFields(item);
+            if (keptLaunch) {
+                const placedLaunch = document.getElementById('edit-lti-launch');
+                if (placedLaunch) {
+                    placedLaunch.value = keptLaunch;
+                    patchLtiContent();
+                }
+            }
+        });
+        return;
+    }
     const tool = ltiToolById(id);
     const titleEl = document.getElementById('edit-title');
     if (tool && titleEl && !titleEl.value.trim()) {
@@ -1476,6 +1789,7 @@ function onLtiToolPicked() {
     if (tool && launchEl && launchEl.getAttribute('data-keep') !== '1') {
         launchEl.value = tool.launch || '';
     }
+    showLtiClaims(!!tool);
     [['edit-lti-send-name', 'send_name'], ['edit-lti-send-email', 'send_email'], ['edit-lti-send-grade', 'send_grade']].forEach(function(pair) {
         const el = document.getElementById(pair[0]);
         if (!el) {
@@ -1485,6 +1799,18 @@ function onLtiToolPicked() {
         el.disabled = !!(tool && !allowed);
         el.checked = allowed;
     });
+}
+
+function showLtiClaims(show) {
+    const claims = document.getElementById('edit-lti-claims');
+    if (claims) {
+        claims.style.display = show ? '' : 'none';
+    }
+}
+
+function ltiClaimsVisible() {
+    const claims = document.getElementById('edit-lti-claims');
+    return !!(claims && claims.style.display !== 'none');
 }
 
 function onQuizPicked() {
@@ -2006,6 +2332,13 @@ function getItemTitle(item) {
         }
         return title;
     }
+    if (itemEditorKind(item) === 'lti') {
+        let title = item.title || 'Untitled Item';
+        if (!ltiItemIsProvisioned(item)) {
+            title += ' (not provisioned)';
+        }
+        return title;
+    }
     if (item.title) return item.title;
     if (isHeadingItem(item)) return item.text || 'Heading';
     if (item.href) return item.href;
@@ -2308,25 +2641,44 @@ function harvestItemFormDraft(item) {
     if (quizEl && quizEl.value) {
         item.quiz_id = parseInt(quizEl.value, 10);
     }
+    const contentEl = document.getElementById('edit-lti-content-id');
+    if (contentEl) {
+        const contentId = parseInt(contentEl.value, 10) || 0;
+        if (contentId > 0) {
+            item.content_id = contentId;
+        }
+        delete item.tool_deployment_id;
+        delete item.registration_id;
+        delete item.launch;
+        delete item.target;
+        delete item.send_name;
+        delete item.send_email;
+        delete item.send_grade;
+        delete item.resource_link_id;
+    }
     const toolEl = document.getElementById('edit-lti-tool');
-    if (toolEl && toolEl.value) {
+    if (!contentEl && toolEl && toolEl.value) {
         item.tool_deployment_id = parseInt(toolEl.value, 10);
         delete item.registration_id;
     }
     const ltiOpenEl = document.querySelector('input[name="edit-lti-open"]:checked');
-    if (ltiOpenEl) {
+    if (!contentEl && ltiOpenEl) {
         item.target = ltiOpenEl.value;
     }
     const sendNameEl = document.getElementById('edit-lti-send-name');
-    if (sendNameEl) {
+    if (!contentEl && ltiClaimsVisible() && sendNameEl) {
         item.send_name = !!sendNameEl.checked;
+    } else if (!contentEl) {
+        delete item.send_name;
+        delete item.send_email;
+        delete item.send_grade;
     }
     const sendEmailEl = document.getElementById('edit-lti-send-email');
-    if (sendEmailEl) {
+    if (!contentEl && ltiClaimsVisible() && sendEmailEl) {
         item.send_email = !!sendEmailEl.checked;
     }
     const sendGradeEl = document.getElementById('edit-lti-send-grade');
-    if (sendGradeEl) {
+    if (!contentEl && ltiClaimsVisible() && sendGradeEl) {
         item.send_grade = !!sendGradeEl.checked;
     }
     const pageEl = document.getElementById('edit-page-id');
@@ -2356,6 +2708,7 @@ function currentEditorItem() {
 
 function showItemModal(title, item) {
     draftItem = item ? JSON.parse(JSON.stringify(item)) : getDefaultItem();
+    editingOpenedItem = item ? JSON.parse(JSON.stringify(item)) : null;
     const type = itemFoundationalType(draftItem);
     
     let formHtml = `
@@ -2915,6 +3268,29 @@ function saveItem() {
         item.quiz_id = quizId;
         const titleVal = $('#edit-title').val().trim();
         item.title = titleVal || (selected ? selected.title : '');
+    } else if (type === 'lti' && document.getElementById('edit-lti-content-id')) {
+        const contentId = parseInt($('#edit-lti-content-id').val(), 10) || 0;
+        if (!contentId) {
+            alert('Pick a deployment from this course.');
+            return;
+        }
+        item.type = 'lti';
+        if (item.subtype === 'discussion') {
+            delete item.subtype;
+        }
+        item.content_id = contentId;
+        delete item.registration_id;
+        delete item.tool_deployment_id;
+        delete item.launch;
+        delete item.target;
+        delete item.send_name;
+        delete item.send_email;
+        delete item.send_grade;
+        delete item.resource_link_id;
+        delete item.custom;
+        const row = ltiContentById[String(contentId)];
+        const titleVal = $('#edit-title').val().trim();
+        item.title = titleVal || (row && row.title) || item.title || '';
     } else if (type === 'lti') {
         const toolId = parseInt($('#edit-lti-tool').val(), 10) || 0;
         item.type = 'lti';
@@ -2923,27 +3299,40 @@ function saveItem() {
         }
         const sendNameEl = document.getElementById('edit-lti-send-name');
         const sendEmailEl = document.getElementById('edit-lti-send-email');
-        if (sendNameEl) {
-            item.send_name = !!sendNameEl.checked;
-        }
-        if (sendEmailEl) {
-            item.send_email = !!sendEmailEl.checked;
-        }
         const sendGradeEl = document.getElementById('edit-lti-send-grade');
-        if (sendGradeEl) {
-            item.send_grade = !!sendGradeEl.checked;
+        if (ltiClaimsVisible()) {
+            if (sendNameEl) {
+                item.send_name = !!sendNameEl.checked;
+            }
+            if (sendEmailEl) {
+                item.send_email = !!sendEmailEl.checked;
+            }
+            if (sendGradeEl) {
+                item.send_grade = !!sendGradeEl.checked;
+            }
+        } else {
+            delete item.send_name;
+            delete item.send_email;
+            delete item.send_grade;
         }
         if (!toolId) {
-            if (item.launch && !parseInt(item.tool_deployment_id, 10)) {
+            const launchEl = document.getElementById('edit-lti-launch');
+            const launch = launchEl ? launchEl.value.trim() : String(item.launch || '').trim();
+            const hadDeployment = (parseInt(item.tool_deployment_id, 10) || 0) > 0;
+            if (!hadDeployment && launch) {
                 delete item.registration_id;
                 delete item.tool_deployment_id;
+                delete item.content_id;
+                delete item.send_name;
+                delete item.send_email;
+                delete item.send_grade;
                 item.title = $('#edit-title').val().trim();
-                const launchEl = document.getElementById('edit-lti-launch');
-                if (launchEl && launchEl.value.trim()) {
-                    item.launch = launchEl.value.trim();
-                }
+                item.launch = launch;
                 applyLtiOpenTarget(item);
                 item.resource_link_id = ltiResourceLinkId(item.title, item.resource_link_id);
+            } else if (!hadDeployment) {
+                alert('A launch URL is required until this link is deployed.');
+                return;
             } else {
                 alert('Pick a deployment from this course.');
                 return;
@@ -3034,6 +3423,7 @@ function saveItem() {
     if (item.type !== 'lti') {
         delete item.registration_id;
         delete item.tool_deployment_id;
+        delete item.content_id;
         delete item.send_name;
         delete item.send_email;
         delete item.send_grade;
@@ -3060,7 +3450,26 @@ function saveItem() {
     
     closeModal();
     renderModules();
-    markChanged();
+    let lessonDirty = true;
+    if (item.type === 'lti' && item.content_id && editingItemIndex !== null && editingOpenedItem) {
+        lessonDirty = stableJson(editingOpenedItem) !== stableJson(item);
+    }
+    if (lessonDirty) {
+        markChanged();
+    }
+}
+
+function stableJson(value) {
+    if (value === null || typeof value !== 'object') {
+        return JSON.stringify(value);
+    }
+    if (Array.isArray(value)) {
+        return '[' + value.map(stableJson).join(',') + ']';
+    }
+    const keys = Object.keys(value).sort();
+    return '{' + keys.map(function(key) {
+        return JSON.stringify(key) + ':' + stableJson(value[key]);
+    }).join(',') + '}';
 }
 
 function deleteItem(moduleIndex, itemIndex) {

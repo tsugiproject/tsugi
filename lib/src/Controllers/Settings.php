@@ -26,6 +26,7 @@ use Tsugi\Services\Courses\CourseDelete;
 use Tsugi\Services\CourseNav\CourseNav;
 use Tsugi\Services\Outbound\Lti11CourseTool;
 use Tsugi\Services\Outbound\Lti11TestLaunch;
+use Tsugi\Services\Outbound\LtiContentService;
 use Tsugi\Util\LTI;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -76,6 +77,7 @@ class Settings extends Tool {
         self::mapPage($app, $prefix.'/images', 'images', true);
         self::mapPage($app, $prefix.'/tools/launch-url', 'toolsLaunchUrl', false);
         self::mapPage($app, $prefix.'/tools/test', 'toolsTest', false);
+        self::mapPage($app, $prefix.'/tools/links', 'toolsLinks', false);
         self::mapPage($app, $prefix.'/tools/add', 'toolsAdd', true);
         self::mapPage($app, $prefix.'/tools', 'tools', true);
 
@@ -1700,9 +1702,11 @@ re-check your login status.
 
         $save_url = $tools_url;
         $test_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/test'));
+        $lesson_links_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/links'));
         $setup_tab = 'tools';
+        $contextId = ReqScope::currentContextId();
         try {
-            $course_tools = Lti11CourseTool::toolsOnCourse(ReqScope::currentContextId());
+            $course_tools = Lti11CourseTool::toolsOnCourse($contextId);
         } catch ( \Exception $e ) {
             $course_tools = array();
             U::flashError($e->getMessage());
@@ -1767,6 +1771,7 @@ re-check your login status.
 
         $save_url = $add_url;
         $launch_url_count_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/launch-url'));
+        $lesson_links_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/links'));
         $setup_tab = 'tools';
 
         $OUTPUT->header();
@@ -1856,6 +1861,162 @@ re-check your login status.
             U::flashSuccess(__('The tool was added to this course.'));
         }
         return new RedirectResponse($tools_url);
+    }
+
+    /**
+     * Course-mounted Settings: every lti_content row, plus lesson links
+     * that are not provisioned yet.
+     *
+     * Choosing a deployment on a lesson placement posts place-lti, then saves
+     * content_id onto that item. Grades and the other launch fields post
+     * patch-lti. Pages and assignments will add placements the same way.
+     */
+    public function toolsLinks(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+
+        global $OUTPUT;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
+        $add_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/add'));
+        $lesson_links_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/links'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $contextId = ReqScope::currentContextId();
+        $page = self::externalLinkPage($contextId);
+        $external_links = $page['rows'];
+        $lesson_document = $page['document'];
+        $lti_tools = array();
+        try {
+            $lti_tools = Lti11TestLaunch::lessonChoices($contextId);
+        } catch ( \Exception $e ) {
+            $lti_tools = array();
+        }
+        $can_author = Manifest::canAuthorCurrent();
+        $lessons_author_url = U::addSession($this->controllerUrl(Lessons::ROUTE).'/_author');
+        $setup_tab = 'links';
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php include __DIR__ . '/templates/Settings/lesson_links.inc.php'; ?>
+            </div>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * One row per placement. A content row used in two lesson items is two
+     * lines. Unplaced content is one line. Pages and assignments are not
+     * scanned yet.
+     *
+     * @param int $contextId
+     * @return array{document:array<string,mixed>,rows:list<array<string,mixed>>}
+     */
+    private static function externalLinkPage($contextId) {
+        $doc = Manifest::currentDocument();
+        $data = is_array($doc) && isset($doc['json']) ? json_decode((string) $doc['json'], true) : null;
+        if ( ! is_array($data) ) {
+            $data = array();
+        }
+        $contentById = LtiContentService::rowsForContext((int) $contextId);
+        $order = array();
+        $seen = array();
+        $modules = isset($data['modules']) && is_array($data['modules']) ? $data['modules'] : array();
+        foreach ( $modules as $moduleIndex => $mod ) {
+            if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
+                continue;
+            }
+            $moduleTitle = isset($mod['title']) ? (string) $mod['title'] : '';
+            foreach ( $mod['items'] as $itemIndex => $item ) {
+                if ( ! is_array($item) || ! isset($item['type']) || (string) $item['type'] !== 'lti' ) {
+                    continue;
+                }
+                if ( isset($item['subtype']) && (string) $item['subtype'] === 'discussion' ) {
+                    continue;
+                }
+                $place = array(
+                    'kind' => 'lessons',
+                    'label' => $moduleTitle,
+                    'module_index' => (int) $moduleIndex,
+                    'item_index' => (int) $itemIndex,
+                );
+                $contentId = isset($item['content_id']) ? (int) $item['content_id'] : 0;
+                if ( $contentId > 0 ) {
+                    $seen[$contentId] = true;
+                    $order[] = array(
+                        'state' => 'content',
+                        'content_id' => $contentId,
+                        'title' => isset($item['title']) ? (string) $item['title'] : '',
+                        'launch' => '',
+                        'placements' => array($place),
+                    );
+                    continue;
+                }
+                if ( isset($item['tool_deployment_id']) && (int) $item['tool_deployment_id'] > 0 ) {
+                    continue;
+                }
+                $order[] = array(
+                    'state' => 'proto',
+                    'title' => isset($item['title']) ? (string) $item['title'] : '',
+                    'launch' => isset($item['launch']) ? (string) $item['launch'] : '',
+                    'placements' => array($place),
+                );
+            }
+        }
+        $rows = array();
+        foreach ( $order as $entry ) {
+            if ( isset($entry['state']) && $entry['state'] === 'proto' ) {
+                $entry['content'] = null;
+                $entry['content_id'] = 0;
+                $rows[] = $entry;
+                continue;
+            }
+            $id = (int) $entry['content_id'];
+            $content = isset($contentById[$id]) ? $contentById[$id] : null;
+            $title = trim((string) $entry['title']);
+            if ( $title === '' && is_array($content) ) {
+                $title = (string) $content['title'];
+            }
+            $entry['title'] = $title;
+            $entry['content'] = $content;
+            $rows[] = $entry;
+        }
+        foreach ( $contentById as $id => $content ) {
+            if ( isset($seen[$id]) ) {
+                continue;
+            }
+            $rows[] = array(
+                'state' => 'content',
+                'title' => (string) $content['title'],
+                'launch' => '',
+                'content_id' => (int) $id,
+                'content' => $content,
+                'placements' => array(),
+            );
+        }
+        return array(
+            'document' => $data,
+            'rows' => $rows,
+        );
     }
 
     /**

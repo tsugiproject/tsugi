@@ -10,6 +10,7 @@ if ( !isset($PDOX) ) {
 if ( ! isset($CFG) ) exit;
 
 $DATABASE_UNINSTALL = array(
+"drop table if exists {$CFG->dbprefix}lti_content",
 "drop table if exists {$CFG->dbprefix}lti_tool_deployment_claim",
 "drop table if exists {$CFG->dbprefix}lti_tool_deployment_scope",
 "drop table if exists {$CFG->dbprefix}lti_tool_deployment_placement",
@@ -381,6 +382,9 @@ array( "{$CFG->dbprefix}manifest",
     INDEX `{$CFG->dbprefix}manifest_indx_1` (context_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
+// Gradebook column. Due dates, column publish, the line item, and the grade
+// stay here. Launch URL, open target, custom parameters, and send flags
+// are lti_content. Do not grow this table into launch config.
 array( "{$CFG->dbprefix}lti_link",
 "create table {$CFG->dbprefix}lti_link (
     link_id             INTEGER NOT NULL AUTO_INCREMENT,
@@ -923,6 +927,91 @@ array( "{$CFG->dbprefix}lti_tool_deployment",
         FOREIGN KEY (`registration_id`, `key_id`)
         REFERENCES `{$CFG->dbprefix}lti_tool_registration` (`registration_id`, `key_id`)
         ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// One outbound launch. A lesson item, and later a rich-text URL, points here
+// by content_id. The lesson may keep its own display title. This row is the
+// launch. A quiz is not a content row; quiz1_quiz already owns its link.
+//
+// The course foreign key is added in DATABASE_UPGRADE. An existing lti_context
+// must gain (context_id, key_id) before that key can be added.
+//
+// link_id NULL is not a grade column. Non-null is gradable, and it is unique
+// so two launches cannot share one link. There is no separate gradable flag.
+// resource_link_id is born here. Creating the link copies it to lti_link.link_key.
+//
+// published starts unpublished. While link_id is null, this flag is the only
+// student-visibility flag. Marking the launch gradable copies it onto
+// lti_link.published. After link_id is set, student visibility reads the link.
+//
+// The LTI 1.1 secret stays on lti_tool_registration.lti11_secret. This row
+// does not copy the key or the secret. Deleting a lesson item does not delete
+// this row, the link, or lti_result.
+array( "{$CFG->dbprefix}lti_content",
+"create table {$CFG->dbprefix}lti_content (
+    content_id          INTEGER NOT NULL AUTO_INCREMENT,
+    context_id          INTEGER NOT NULL,
+    key_id              INTEGER NOT NULL,
+    tool_deployment_id  INTEGER NOT NULL,
+
+    link_id             INTEGER NULL,
+
+    title               VARCHAR(512) NULL,
+
+    launch_url          TEXT NOT NULL,
+    -- How the launch opens. Sakai newpage is this column. New rows open in a new window.
+    -- window: a new window.
+    -- iframe: LTI document target iframe, shown as a modal. There is no modal value.
+    -- inline: embedded in the lesson page. A Tsugi extension, not an LTI document target.
+    target              VARCHAR(32) NOT NULL DEFAULT 'window',
+
+    -- Placement custom parameters. Not the registration message custom.
+    custom              JSON NULL,
+
+    resource_link_id    TEXT NOT NULL,
+    -- lti_sha256(resource_link_id). The same value as lti_link.link_sha256
+    -- when the grade column is created.
+    resource_link_sha256 CHAR(64) NOT NULL,
+
+    -- NULL follows the deployment grant. 0 or 1 is this launch's choice.
+    send_name           TINYINT(1) NULL,
+    send_email          TINYINT(1) NULL,
+    send_grade          TINYINT(1) NULL,
+
+    -- New rows are unpublished. Grey ban / green check, same as a link.
+    published           TINYINT(1) NOT NULL DEFAULT 0,
+
+    -- Parked deep-link content item. The return flow is not built.
+    -- Its line item, available window, and submission window belong on lti_link.
+    content_item        JSON NULL,
+
+    entity_version      INTEGER NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_content_const_pk` PRIMARY KEY (content_id),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_content_const_1` UNIQUE (link_id),
+    CONSTRAINT `{$CFG->dbprefix}lti_content_const_2` UNIQUE (context_id, resource_link_sha256),
+    CONSTRAINT `{$CFG->dbprefix}lti_content_chk_1` CHECK (
+        target IN ('window', 'iframe', 'inline')
+    ),
+
+    INDEX `{$CFG->dbprefix}lti_content_indx_1` (context_id, key_id),
+    INDEX `{$CFG->dbprefix}lti_content_indx_2` (tool_deployment_id, key_id),
+
+    -- A deployment delete stops here while a launch still points at it.
+    CONSTRAINT `{$CFG->dbprefix}lti_content_ibfk_1`
+        FOREIGN KEY (`tool_deployment_id`, `key_id`)
+        REFERENCES `{$CFG->dbprefix}lti_tool_deployment` (`tool_deployment_id`, `key_id`)
+        ON DELETE RESTRICT ON UPDATE RESTRICT,
+
+    -- Removing the grade column leaves the launch. It does not remove this row.
+    CONSTRAINT `{$CFG->dbprefix}lti_content_ibfk_2`
+        FOREIGN KEY (`link_id`)
+        REFERENCES `{$CFG->dbprefix}lti_link` (`link_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE
 
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
@@ -2044,6 +2133,19 @@ $DATABASE_UPGRADE = function($oldversion) {
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryReturnError($sql);
             if ( ! $q->success ) die("Unable to add lti_context (context_id, key_id) key: ".$q->errorImplode."<br/>\n");
+        }
+
+        $content_table = "{$p}lti_content";
+        $content_context_fk = "{$p}lti_content_ibfk_3";
+        if ( $PDOX->metadata($content_table) !== false && ! $constraint_exists($content_table, $content_context_fk) ) {
+            $sql = "ALTER TABLE {$content_table} ADD CONSTRAINT `{$content_context_fk}`
+                FOREIGN KEY (`context_id`, `key_id`)
+                REFERENCES `{$context_table}` (`context_id`, `key_id`)
+                ON DELETE CASCADE ON UPDATE RESTRICT";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add {$content_context_fk}: ".$q->errorImplode."<br/>\n");
         }
 
         $context_fk = "{$p}lti_context_ibfk_3";

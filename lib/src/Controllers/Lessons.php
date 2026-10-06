@@ -9,6 +9,7 @@ use Tsugi\Grades\GradeUtil;
 use Tsugi\Lumos\Application;
 use Tsugi\Services\Quiz1\Quiz1Repository;
 use Tsugi\Services\Outbound\Lti11TestLaunch;
+use Tsugi\Services\Outbound\LtiContentService;
 use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Lessons\LessonsNormalize;
 use Tsugi\Services\Files\FileRepository;
@@ -191,6 +192,10 @@ class Lessons extends Tool {
         }
         $course_resource_link_ids = self::courseResourceLinkIds(ReqScope::currentContextId());
         $course_link_published = self::courseLinkPublished(ReqScope::currentContextId());
+        $lti_content_rows = LtiContentService::editorRows(
+            ReqScope::currentContextId(),
+            self::contentIdsInDocument(is_array($lessons_data) ? $lessons_data : array())
+        );
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav();
@@ -281,9 +286,9 @@ class Lessons extends Tool {
     /**
      * Write publish onto the quiz or lesson-tool link, then drop it from the document.
      *
-     * The column is the copy lessons and the quiz editor share. A new lesson tool
-     * gets a link on this save. An older tool with no link stays as it is until
-     * the teacher unpublishes it.
+     * The column is the copy lessons and the quiz editor share. A provisioned
+     * lesson tool (one with a deployment) gets a link on this save. An imported
+     * tool with only a launch URL does not, until a deployment is chosen.
      *
      * @param array<string, mixed> $lessons_data
      * @param int $context_id
@@ -306,6 +311,13 @@ class Lessons extends Tool {
                     unset($lessons_data['modules'][$mi]['items'][$ii]['published']);
                 }
                 if ( $type !== 'lti' ) {
+                    continue;
+                }
+                if ( isset($item['content_id']) && (int) $item['content_id'] > 0 ) {
+                    continue;
+                }
+                $deploymentId = isset($item['tool_deployment_id']) ? (int) $item['tool_deployment_id'] : 0;
+                if ( $deploymentId < 1 ) {
                     continue;
                 }
                 $resource_link_id = isset($item['resource_link_id']) ? trim((string) $item['resource_link_id']) : '';
@@ -352,6 +364,39 @@ class Lessons extends Tool {
     }
 
     /**
+     * Deployment on one saved legacy lesson tool, or 0 when it is not provisioned.
+     *
+     * @param string $resourceLinkId
+     * @return int
+     */
+    private function savedLtiDeploymentId($resourceLinkId) {
+        $doc = Manifest::currentDocument();
+        if ( ! is_array($doc) || ! isset($doc['json']) || ! is_string($doc['json']) ) {
+            return 0;
+        }
+        $data = json_decode($doc['json'], true);
+        if ( ! is_array($data) || ! isset($data['modules']) || ! is_array($data['modules']) ) {
+            return 0;
+        }
+        foreach ( $data['modules'] as $mod ) {
+            if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
+                continue;
+            }
+            foreach ( $mod['items'] as $item ) {
+                if ( ! is_array($item) || ! isset($item['type']) || (string) $item['type'] !== 'lti' ) {
+                    continue;
+                }
+                $id = isset($item['resource_link_id']) ? trim((string) $item['resource_link_id']) : '';
+                if ( $id !== $resourceLinkId ) {
+                    continue;
+                }
+                return isset($item['tool_deployment_id']) ? (int) $item['tool_deployment_id'] : 0;
+            }
+        }
+        return 0;
+    }
+
+    /**
      * Quiz ids already stored in the saved lesson document.
      *
      * @return array<int, bool>
@@ -384,9 +429,8 @@ class Lessons extends Tool {
     }
 
     /**
-     * Make sure a lesson tool has a link. A new row starts unpublished, including
-     * one created for an item that had none, such as after an import. An existing
-     * link keeps its published flag. The title is updated.
+     * Make sure a provisioned lesson tool has a link. A new row starts unpublished.
+     * An existing link keeps its published flag. The title is updated.
      *
      * @param int $contextId
      * @param string $resourceLinkId
@@ -498,6 +542,12 @@ class Lessons extends Tool {
         if ( $action === 'publish-lti' ) {
             return $this->authorPublishLti();
         }
+        if ( $action === 'place-lti' ) {
+            return $this->authorPlaceLti();
+        }
+        if ( $action === 'patch-lti' ) {
+            return $this->authorPatchLti();
+        }
         if ( $action === 'publish-quiz' ) {
             return $this->authorPublishQuiz();
         }
@@ -524,9 +574,119 @@ class Lessons extends Tool {
     }
 
     /**
+     * Content ids stored on lesson items.
+     *
+     * @param array<string, mixed> $lessons_data
+     * @return array<int, int>
+     */
+    private static function contentIdsInDocument(array $lessons_data) {
+        $ids = array();
+        if ( ! isset($lessons_data['modules']) || ! is_array($lessons_data['modules']) ) {
+            return $ids;
+        }
+        foreach ( $lessons_data['modules'] as $mod ) {
+            if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
+                continue;
+            }
+            foreach ( $mod['items'] as $item ) {
+                if ( ! is_array($item) || ! isset($item['content_id']) ) {
+                    continue;
+                }
+                $id = (int) $item['content_id'];
+                if ( $id > 0 ) {
+                    $ids[$id] = $id;
+                }
+            }
+        }
+        return array_values($ids);
+    }
+
+    /**
+     * Copy each content item's outline title onto its lti_content row.
+     *
+     * @param array<string, mixed> $lessons_data
+     * @param int $contextId
+     * @return string|null
+     */
+    private function syncContentTitles(array $lessons_data, $contextId) {
+        if ( ! isset($lessons_data['modules']) || ! is_array($lessons_data['modules']) ) {
+            return null;
+        }
+        foreach ( $lessons_data['modules'] as $mod ) {
+            if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
+                continue;
+            }
+            foreach ( $mod['items'] as $item ) {
+                if ( ! is_array($item) || ! isset($item['content_id']) ) {
+                    continue;
+                }
+                $contentId = (int) $item['content_id'];
+                if ( $contentId < 1 ) {
+                    continue;
+                }
+                if ( LtiContentService::find((int) $contextId, $contentId) === null ) {
+                    return 'That launch was not found in this course.';
+                }
+                $title = isset($item['title']) ? (string) $item['title'] : '';
+                try {
+                    LtiContentService::copyTitle((int) $contextId, $contentId, $title);
+                } catch ( \InvalidArgumentException $ex ) {
+                    return $ex->getMessage();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Create a content row for the deployment the author just picked.
+     */
+    private function authorPlaceLti() {
+        $deploymentId = (int) U::get($_POST, 'tool_deployment_id', 0);
+        $title = trim((string) U::get($_POST, 'title', ''));
+        $context_id = ReqScope::currentContextId();
+        if ( $deploymentId < 1 || $context_id < 1 ) {
+            return new Response(json_encode(['success' => false, 'error' => 'Pick a deployment from this course.']), 400, ['Content-Type' => 'application/json']);
+        }
+        try {
+            $content = LtiContentService::place($context_id, $deploymentId, $title);
+        } catch ( \InvalidArgumentException $ex ) {
+            return new Response(json_encode(['success' => false, 'error' => $ex->getMessage()]), 400, ['Content-Type' => 'application/json']);
+        }
+        return new Response(json_encode(['success' => true, 'content' => $content]), 200, ['Content-Type' => 'application/json']);
+    }
+
+    /**
+     * Write target, launch URL, and send flags onto the content row.
+     */
+    private function authorPatchLti() {
+        $contentId = (int) U::get($_POST, 'content_id', 0);
+        $context_id = ReqScope::currentContextId();
+        if ( $contentId < 1 || $context_id < 1 ) {
+            return new Response(json_encode(['success' => false, 'error' => 'That launch was not found in this course.']), 400, ['Content-Type' => 'application/json']);
+        }
+        $fields = array();
+        foreach ( array('launch_url', 'target', 'send_name', 'send_email', 'send_grade') as $key ) {
+            if ( isset($_POST[$key]) ) {
+                $fields[$key] = $_POST[$key];
+            }
+        }
+        try {
+            $content = LtiContentService::updateLaunch($context_id, $contentId, $fields);
+        } catch ( \InvalidArgumentException $ex ) {
+            return new Response(json_encode(['success' => false, 'error' => $ex->getMessage()]), 400, ['Content-Type' => 'application/json']);
+        }
+        return new Response(json_encode(['success' => true, 'content' => $content]), 200, ['Content-Type' => 'application/json']);
+    }
+
+    /**
      * Flip publish on one saved lesson tool. The link must already be in the saved document.
      */
     private function authorPublishLti() {
+        $content_id = (int) U::get($_POST, 'content_id', 0);
+        if ( $content_id > 0 ) {
+            return $this->authorPublishContent($content_id);
+        }
         $resource_link_id = trim((string) U::get($_POST, 'resource_link_id', ''));
         $want = $this->postedPublishedFlag();
         if ( $resource_link_id === '' || $want === null ) {
@@ -536,11 +696,37 @@ class Lessons extends Tool {
         if ( ! isset($saved[$resource_link_id]) ) {
             return new Response(json_encode(['success' => false, 'error' => 'Save the lesson before changing publish.']), 400, ['Content-Type' => 'application/json']);
         }
+        if ( $this->savedLtiDeploymentId($resource_link_id) < 1 ) {
+            return new Response(json_encode(['success' => false, 'error' => 'Provision this tool before changing publish.']), 400, ['Content-Type' => 'application/json']);
+        }
         $context_id = ReqScope::currentContextId();
         if ( $context_id < 1 ) {
             return new Response(json_encode(['success' => false, 'error' => 'No course context']), 400, ['Content-Type' => 'application/json']);
         }
         $this->setLtiPublished($context_id, $resource_link_id, $want);
+        return new Response(json_encode(['success' => true, 'published' => $want]), 200, ['Content-Type' => 'application/json']);
+    }
+
+    /**
+     * Flip publish on one saved content launch.
+     *
+     * @param int $contentId
+     */
+    private function authorPublishContent($contentId) {
+        $want = $this->postedPublishedFlag();
+        if ( $want === null ) {
+            return new Response(json_encode(['success' => false, 'error' => 'Missing publish data']), 400, ['Content-Type' => 'application/json']);
+        }
+        $doc = Manifest::currentDocument();
+        $data = is_array($doc) && isset($doc['json']) ? json_decode($doc['json'], true) : null;
+        $saved = is_array($data) ? self::contentIdsInDocument($data) : array();
+        if ( ! in_array((int) $contentId, $saved, true) ) {
+            return new Response(json_encode(['success' => false, 'error' => 'Save the lesson before changing publish.']), 400, ['Content-Type' => 'application/json']);
+        }
+        $context_id = ReqScope::currentContextId();
+        if ( $context_id < 1 || ! LtiContentService::setPublished($context_id, (int) $contentId, $want) ) {
+            return new Response(json_encode(['success' => false, 'error' => 'That launch was not found in this course.']), 400, ['Content-Type' => 'application/json']);
+        }
         return new Response(json_encode(['success' => true, 'published' => $want]), 200, ['Content-Type' => 'application/json']);
     }
 
@@ -720,8 +906,12 @@ class Lessons extends Tool {
             return $err;
         }
 
-        $lessons_data = $this->applyPublication($lessons_data, $context_id);
         $lessons_data = \Tsugi\Services\Lessons\LessonsNormalize::normalizeDocument($lessons_data);
+        $err = $this->syncContentTitles($lessons_data, $context_id);
+        if ( $err !== null ) {
+            return $err;
+        }
+        $lessons_data = $this->applyPublication($lessons_data, $context_id);
         $lessons_data['lessons_json_version'] = \Tsugi\Services\Lessons\LessonsNormalize::FORMAT_VERSION;
 
         $json = Manifest::encode($lessons_data);
@@ -754,6 +944,10 @@ class Lessons extends Tool {
             return new RedirectResponse($redirect_path);
         }
 
+        if ( is_string($anchor) && preg_match('/^content-(\d+)$/', $anchor, $content_match) ) {
+            return self::launchContent($app, $l, (int) $content_match[1], $toolHome, $redirect_path);
+        }
+
         $lti = $l->getLtiByRlid($anchor);
         if ( ! $lti ) {
             $app->tsugiFlashError(__('Cannot find lti resource link id'));
@@ -778,6 +972,45 @@ class Lessons extends Tool {
             $return_url,
             $redirect_path,
             $fallback_title,
+            Tool::SESSION_LESSONS_GRADE_REFRESH_AFTER_LAUNCH
+        );
+    }
+
+    /**
+     * Launch a lesson item that points at lti_content.
+     *
+     * @param Application $app
+     * @param LessonsService $lessons
+     * @param int $contentId
+     * @param string $toolHome
+     * @param string $redirect_path
+     * @return RedirectResponse|string
+     */
+    private static function launchContent(Application $app, LessonsService $lessons, $contentId, $toolHome, $redirect_path) {
+        $item = $lessons->getItemByContentId($contentId);
+        if ( ! $item ) {
+            $app->tsugiFlashError(__('Cannot find lti resource link id'));
+            return new RedirectResponse($redirect_path);
+        }
+        $visible = LtiContentService::studentVisible(ReqScope::currentContextId(), (int) $contentId);
+        if ( $visible !== true && ! $lessons->lessonsViewerIsInstructor() ) {
+            $app->tsugiFlashError(__('This tool is not published.'));
+            return new RedirectResponse(U::addSession($toolHome));
+        }
+        $module = $lessons->getModuleByContentId($contentId);
+        $return_url = $module
+            ? $toolHome . '/' . $module->anchor
+            : $toolHome;
+        $row = LtiContentService::find(ReqScope::currentContextId(), (int) $contentId);
+        if ( $row === null ) {
+            $app->tsugiFlashError(__('This tool is not provisioned.'));
+            return new RedirectResponse($redirect_path);
+        }
+        return Tool::sendLti11LaunchFromContent(
+            $app,
+            $row,
+            $return_url,
+            $redirect_path,
             Tool::SESSION_LESSONS_GRADE_REFRESH_AFTER_LAUNCH
         );
     }
@@ -2757,11 +2990,99 @@ $(function(){
     }
 
     /**
+     * Render a lesson item that points at lti_content.
+     *
+     * @param LessonsService $lessons
+     * @param object $item
+     * @param object $module
+     * @param int $contentId
+     * @param bool $nostyle
+     * @return void
+     */
+    private static function renderContentLti($lessons, $item, $module, $contentId, $nostyle=false) {
+        $row = LtiContentService::find(ReqScope::currentContextId(), (int) $contentId);
+        $title = isset($item->title) && is_string($item->title) && $item->title !== ''
+            ? $item->title
+            : (is_array($row) && isset($row['title']) ? (string) $row['title'] : $module->title);
+        $instructor = $lessons->lessonsViewerIsInstructor();
+        if ( $row === null ) {
+            if ( ! $instructor ) {
+                return;
+            }
+            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti tsugi-lessons-lti-missing">');
+            echo('<span style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
+            echo(htmlentities($title).' ('.__('Tool not found').')');
+            echo('</span></li>'."\n");
+            return;
+        }
+        $visible = LtiContentService::studentVisible(ReqScope::currentContextId(), (int) $contentId);
+        if ( $visible !== true && ! $instructor ) {
+            return;
+        }
+        $unpublished_suffix = $visible === true ? '' : ' ('.__('unpublished').')';
+        $deploymentId = (int) $row['tool_deployment_id'];
+        if ( ! self::courseToolHasResourceLink($deploymentId) ) {
+            if ( ! $instructor ) {
+                return;
+            }
+            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti tsugi-lessons-lti-missing">');
+            echo('<span style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
+            echo(htmlentities($title.$unpublished_suffix).' ('.__('Tool not found').')');
+            echo('</span></li>'."\n");
+            return;
+        }
+        if ( ! isset($_SESSION['secret']) ) {
+            echo('<li typeof="oer:assessment" class="tsugi-lessons-module-lti">');
+            echo('<span style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
+            echo(htmlentities($title).' ('.__('Login Required').')');
+            echo('</span></li>'."\n");
+            return;
+        }
+        $resource_link_id = (string) $row['resource_link_id'];
+        $launch_path = $lessons->lessonsLaunchPath('content-'.$contentId);
+        $shown = $title.$unpublished_suffix;
+        $view = clone $item;
+        $view->resource_link_id = $resource_link_id;
+        $view->tool_deployment_id = $deploymentId;
+        if ( (int) $row['send_grade'] !== 1 && empty($row['link_id']) ) {
+            $view->result = false;
+        }
+        if ( (string) $row['target'] === 'inline' ) {
+            $view->target = 'iframe';
+        } else if ( (string) $row['target'] === 'iframe' ) {
+            $view->target = 'modal';
+        } else {
+            $view->target = '_blank';
+        }
+        $rl_dom_id = LessonsService::domIdForResourceLink($resource_link_id);
+        echo('<li class="tsugi-lessons-module-lti" id="'.htmlspecialchars($rl_dom_id, ENT_QUOTES, 'UTF-8').'">');
+        if ( $nostyle ) {
+            echo('<span style="display: inline-flex; align-items: center;">');
+            self::renderItemIcon(LessonsNormalize::iconKey($item));
+            echo(htmlentities($shown).' (Login Required)');
+            echo('</span><br/>'."\n");
+            echo('<span style="color:green">'.htmlentities($launch_path)."</span>\n");
+        } else {
+            self::renderRegisteredLtiOpen($view, $launch_path, $shown);
+            self::echoLtiLinkProgressIndicators($resource_link_id, $view, $lessons->moduleProgressGrades(), $lessons->moduleProgressDueDates());
+        }
+        echo('</li>'."\n");
+    }
+
+    /**
      * Render an LTI item
      */
     private static function renderItemLti($lessons, $item, $module, $nostyle=false) {
         global $CFG;
         
+        $content_id = isset($item->content_id) ? (int) $item->content_id : 0;
+        if ( $content_id > 0 ) {
+            self::renderContentLti($lessons, $item, $module, $content_id, $nostyle);
+            return;
+        }
         $resource_link_title = isset($item->title) ? $item->title : $module->title;
         $launch = isset($item->launch) ? $item->launch : '';
         $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : '';
