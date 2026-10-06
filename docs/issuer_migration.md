@@ -61,7 +61,7 @@ The `lti_issuer` table is unused at runtime once keys are migrated and this code
 
 ## Phase 1: Automatic migration (shipped)
 
-Implemented in `admin/lti/database.php` inside `$DATABASE_UPGRADE`. Runs during the
+Implemented in `lib/src/Services/Lti/database.php` inside `$DATABASE_UPGRADE`. Runs during the
 normal database upgrade (`admin/upgrade.php`).
 
 ### What it does
@@ -157,7 +157,7 @@ Sites with remaining `issuer_id` links will fail LTI 1.3 launch until upgraded.
 
 ## Phase 3: Schema cleanup (shipped, date-gated)
 
-Implemented in `admin/lti/database.php`. Fresh installs no longer create `lti_issuer`
+Implemented in `lib/src/Services/Lti/database.php`. Fresh installs no longer create `lti_issuer`
 or `lti_key.issuer_id`. Existing installations drop the legacy schema during upgrade
 **on or after 1 October 2026 UTC**.
 
@@ -211,7 +211,7 @@ Database version bumped to `202610010000`.
 
 | File | Role |
 |------|------|
-| `admin/lti/database.php` | Phase 1 data migration; phase 3 schema drop (date-gated) |
+| `lib/src/Services/Lti/database.php` | Phase 1 data migration; phase 3 schema drop (date-gated) |
 | `lib/src/Core/LTIX.php` | Launch data load; key-only `lms_*` path |
 | `lti/oidc_login.php` | OIDC login; key-only by `key_id` |
 | `lib/src/Services/Settings/DynamicRegistration.php` | Dynamic registration; writes `lti_key.lms_*` |

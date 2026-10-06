@@ -1,3 +1,0 @@
-# Shared libraries live here. Send the URL to the admin controller.
-RewriteEngine on
-RewriteRule ^ ../route.php [L,QSA]

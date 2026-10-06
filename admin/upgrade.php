@@ -70,6 +70,10 @@ $path_migrations = array(
     'lib/src/Controllers/database/Discussions/database.php' => 'lib/src/Services/Discussions/database.php',
     'tool/peer-grade/database.php' => 'lib/src/Services/PeerGrade/database.php',
     'admin/mail/database.php' => 'lib/src/Services/Mail/database.php',
+    'admin/lti/database.php' => 'lib/src/Services/Lti/database.php',
+    'admin/key/database.php' => 'lib/src/Services/Key/database.php',
+    'admin/blob/database.php' => 'lib/src/Services/Blob/database.php',
+    'admin/install/database.php' => 'lib/src/Services/Admin/database.php',
 );
 foreach ($path_migrations as $old_path => $new_path) {
     $sql = "SELECT plugin_id FROM {$plugins} WHERE plugin_path = :old_path";
@@ -94,29 +98,31 @@ foreach ($path_migrations as $old_path => $new_path) {
     }
 }
 
-echo("Checking Core LTI Tables...<br/>\n");
-$tools = \Tsugi\Services\Admin\AdminService::searchTwoLevels("database.php", $CFG->dirroot.'/admin');
-// A simple precedence order..   Will have to improve this.
-for($i=0; $i<count($tools); $i++) {
-    $tools[$i] = U::remove_relative_path($tools[$i]);
-}
-foreach($tools as $k => $tool ) {
-    if ( strpos($tool,"admin/lti/database.php") && $k != 0 ) {
-        $tmp = $tools[0];
-        $tools[0] = $tools[$k];
-        $tools[$k] = $tmp;
-        break;
-    }
-}
-
 echo("Checking Services Tables...<br/>\n");
-// Scan lib/src/Services for database.php files (Announcements, Pages, Discussions, Badges, etc.)
+// LTI tables come first. Other service schemas follow in path order.
+// Fresh installs create foreign keys to lti_user, lti_context, and lti_link.
+$lti_schema = 'lib/src/Services/Lti/database.php';
 $svcdb = \Tsugi\Services\Admin\AdminService::searchTwoLevels("database.php", $CFG->dirroot.'/lib/src/Services');
-for($i=0; $i<count($svcdb); $i++) {
-    $svcdb[$i] = U::remove_relative_path($svcdb[$i]);
+$services = array();
+foreach ( $svcdb as $tool ) {
+    $services[] = U::remove_relative_path($tool);
 }
-foreach($svcdb as $tool) {
-    if ( in_array($tool, $tools) ) continue;
+usort($services, function ($a, $b) use ($CFG) {
+    $left = \Tsugi\Services\Admin\AdminService::trimAsMuchAsYouCan($a, $CFG->dirroot);
+    $right = \Tsugi\Services\Admin\AdminService::trimAsMuchAsYouCan($b, $CFG->dirroot);
+    return strcmp($left, $right);
+});
+$tools = array();
+$rest = array();
+foreach ( $services as $tool ) {
+    $relative = \Tsugi\Services\Admin\AdminService::trimAsMuchAsYouCan($tool, $CFG->dirroot);
+    if ( $relative === $lti_schema ) {
+        $tools[] = $tool;
+        continue;
+    }
+    $rest[] = $tool;
+}
+foreach ( $rest as $tool ) {
     $tools[] = $tool;
 }
 

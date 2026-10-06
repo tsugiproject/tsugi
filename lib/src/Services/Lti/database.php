@@ -2,7 +2,7 @@
 
 // To allow this to be called directly or from admin/upgrade.php
 if ( !isset($PDOX) ) {
-    require_once "../../config.php";
+    require_once __DIR__ . '/../../../../config.php';
     $CURRENT_FILE = __FILE__;
     require $CFG->dirroot."/admin/migrate-setup.php";
 }
