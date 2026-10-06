@@ -63,17 +63,6 @@ if ( $apphome ) {
 }
 unset($apphome);
 
-// If we have a web socket server, put its URL here
-// Do not add a path here - just the host and port
-// Make sure the port is open on your server
-// $CFG->websocket_secret = 'changeme';
-// $CFG->websocket_url = 'ws://localhost:2021'; // Local dev test
-// $CFG->websocket_url = 'wss://socket.tsugicloud.org:443'; // Production
-
-// If you are running a reverse proxy (proxy_wstunnel) set this to the port
-// you will forward to in your apache config
-// $CFG->websocket_proxyport = 8080;
-
 // If the web server is NOT behind a reverse proxy, you may optionally wish
 // to ignore forwarded IP headers such as x-forwarded-for and variations by
 // setting this to false. This will help to preserve authenticity of IPs by

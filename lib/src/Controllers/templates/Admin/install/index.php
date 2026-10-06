@@ -2,7 +2,6 @@
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\Git;
-use \Tsugi\UI\HandleBars;
 
 
 $LAUNCH = LTIX::session_start();
@@ -32,8 +31,18 @@ if ( ! isset($CFG->install_folder) ) {
     return;
 }
 
+$installReport = \Tsugi\Services\Admin\AdminService::installModuleReport();
+$installed = $installReport['installed'];
+$available = $installReport['available'];
+$required = $installReport['required'];
+$installGit = $CFG->wwwroot.'/admin/install/git.php';
+
 // Check to see if we are in a cluster
 $other_nodes = count(\Tsugi\Services\Admin\AdminService::getClusterIPs());
+$clusterServers = array();
+if ( $other_nodes > 0 ) {
+    $clusterServers = \Tsugi\Services\Admin\AdminService::installClusterServers();
+}
 
 ?>
 <a href="<?= $CFG->wwwroot ?>/admin" style="float: right;" class="btn btn-default">Admin</a>
@@ -57,19 +66,23 @@ It will only handle the normal operations and assume that they work.  If you log
 and edit the files after they are checked out, this tool might not be able to upgrade
 some of these git repos.
 </p>
-<?php if($other_nodes > 0 ) { ?>
+<?php if ( $other_nodes > 0 ) { ?>
 <p><b>Note:</b> This is a clustered environment with <?= $other_nodes+1 ?> nodes,
 it may take some time before installations / updates propagate to all
 the nodes in the cluster.  It can take up to an hour to clear out cluster nodes
 that have left the cluster.  Please be  patient.</p>
 <?php } ?>
 <p>Using: <?= htmlentities($git_version) ?></p>
+<?php if ( ! empty($installReport['error']) ) { ?>
+<p class="text-danger">Module list error:</p>
+<pre class="text-danger"><?= htmlentities((string) $installReport['error']) ?></pre>
+<?php } ?>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#home" data-toggle="tab" aria-expanded="true">Installed Modules</a></li>
-<?php if($other_nodes > 0 ) { ?>
+<?php if ( $other_nodes > 0 ) { ?>
   <li class=""><a href="#cluster-div" data-toggle="tab" aria-expanded="false">Cluster Status</a></li>
 <?php } ?>
-<?php if(isset($CFG->lessons)) { ?>
+<?php if ( isset($CFG->lessons) ) { ?>
   <li class=""><a href="#required-div" data-toggle="tab" aria-expanded="false">Required Modules</a></li>
 <?php } ?>
   <li class=""><a href="#available-div" data-toggle="tab" aria-expanded="false">Available Modules</a></li>
@@ -77,28 +90,20 @@ that have left the cluster.  Please be  patient.</p>
 </ul>
 <div id="myTabContent" class="tab-content" style="margin-top:10px;">
   <div class="tab-pane fade active in" id="home">
-    <ul id="installed_ul">
-    <li><img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner-installed" alt="" role="presentation"></li>
-    </ul>
+    <?php include __DIR__.'/installed.php'; ?>
   </div>
-<?php if($other_nodes > 0 ) { ?>
+<?php if ( $other_nodes > 0 ) { ?>
   <div class="tab-pane fade" id="cluster-div">
-    <ul id="cluster_ul">
-    <li><img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner-cluster" alt="" role="presentation"></li>
-    </ul>
+    <?php include __DIR__.'/cluster.php'; ?>
   </div>
 <?php } ?>
-<?php if(isset($CFG->lessons)) { ?>
+<?php if ( isset($CFG->lessons) ) { ?>
   <div class="tab-pane fade" id="required-div">
-    <ul id="required_ul">
-    <li><img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner-required" alt="" role="presentation"></li>
-    </ul>
+    <?php include __DIR__.'/required.php'; ?>
   </div>
 <?php } ?>
   <div class="tab-pane fade" id="available-div">
-    <ul id="available_ul">
-    <li><img src="<?= $OUTPUT->getSpinnerUrl() ?>" id="spinner-available" alt="" role="presentation"></li>
-    </ul>
+    <?php include __DIR__.'/available.php'; ?>
   </div>
   <div class="tab-pane fade" id="advanced-div">
     <p>This screen allows you to clone a repository into your <b>install_folder</b>.
@@ -106,7 +111,7 @@ that have left the cluster.  Please be  patient.</p>
     installing it. The repository will be checked out into a folder of the
     same name as the respsitory.</p>
     <p>
-    <form method="GET" action="git.php" target="iframe-frame">
+    <form method="GET" action="<?= htmlentities(addSession($installGit)) ?>" target="iframe-frame">
     <input type="hidden" name="command" value="clone">
     Repository: <input size="60" type="text" name="remote"><br/>
     <!-- Sub-Folder: <input type="text" name="folder"> (optional)<br/> -->
@@ -116,46 +121,5 @@ that have left the cluster.  Please be  patient.</p>
     </p>
   </div>
 </div>
-
 <?php
-
-
-
-$OUTPUT->footerStart();
-HandleBars::templateInclude(array('installed', 'available'));
-if( $other_nodes > 0 ) {
-    HandleBars::templateInclude('cluster');
-}
-if(isset($CFG->lessons)) {
-    HandleBars::templateInclude('required');
-}
-?>
-<script>
-$(document).ready(function(){
-    $.getJSON('<?= addSession('repos_json.php') ?>', function(repos) {
-        window.console && console.log(repos);
-        if ( repos && repos.error ) {
-            window.console && console.error(repos.error);
-            alert('Module list error:\n' + repos.error);
-        }
-        tsugiHandlebarsToDiv('installed_ul', 'installed', repos);
-<?php if(isset($CFG->lessons)) { ?>
-        tsugiHandlebarsToDiv('required_ul', 'required', repos);
-<?php } ?>
-        tsugiHandlebarsToDiv('available_ul', 'available', repos);
-    }).fail( function(jqXHR) {
-        var detail = (jqXHR && jqXHR.responseText) ? jqXHR.responseText : 'unknown error';
-        window.console && console.error(detail);
-        alert('getJSON fail:\n' + detail);
-    });
-
-<?php if( $other_nodes > 0 ) { ?>
-    $.getJSON('<?= addSession('cluster_json.php') ?>', function(data) {
-        tsugiHandlebarsToDiv('cluster_ul', 'cluster', data);
-    }).fail( function() { alert('getJSON fail'); } );
-<?php } ?>
-});
-
-</script>
-<?php
-$OUTPUT->footerEnd();
+$OUTPUT->footer();

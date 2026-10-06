@@ -30,7 +30,7 @@ if ( $row === false || $row === null ) {
     return;
 }
 
-require_once $CFG->dirroot . '/admin/mail/nav.php';
+require_once __DIR__ . '/nav.php';
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();

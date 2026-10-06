@@ -13,7 +13,7 @@ if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) {
     return;
 }
 
-require_once $CFG->dirroot . '/admin/mail/nav.php';
+require_once __DIR__ . '/nav.php';
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();

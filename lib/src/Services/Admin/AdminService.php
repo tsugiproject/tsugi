@@ -859,7 +859,7 @@ class AdminService {
         try {
             $repo->run('rev-parse --verify --quiet '.$ref);
             return true;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
     }
@@ -872,13 +872,13 @@ class AdminService {
                 return substr($out, 7);
             }
             if ( U::strlen($out) > 0 ) return $out;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             // fall through
         }
         try {
             $out = trim($repo->run('rev-parse --abbrev-ref HEAD'));
             if ( U::strlen($out) > 0 && $out !== 'HEAD' ) return $out;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             // fall through
         }
         foreach ( array('main', 'master') as $candidate ) {
@@ -942,6 +942,262 @@ class AdminService {
             $retval[] = $row['ipaddr'];
         }
         return $retval;
+    }
+
+    /**
+     * Installed, available, and required modules for the admin install page.
+     *
+     * Also records each installed checkout in lms_tools. GitHub's tsugitools
+     * list is cached for ten minutes.
+     *
+     * @return array{status:string,version:string,detail:string,available:array,installed:array,required:array,error?:string,errors?:array,available_error?:string,available_error_detail?:string}
+     */
+    public static function installModuleReport() {
+        global $CFG, $PDOX;
+
+        $available = array();
+        $required = array();
+        $installed = array();
+        $retval = array(
+            'status' => 'OK',
+            'version' => '',
+            'detail' => '',
+            'available' => $available,
+            'installed' => $installed,
+            'required' => $required,
+        );
+
+        try {
+            $PDOX = \Tsugi\Core\LTIX::getConnection();
+
+            $l = false;
+            if ( isset($CFG->lessons) && $CFG->lessons && file_exists($CFG->lessons) ) {
+                $l = new \Tsugi\Services\Lessons\LessonsService($CFG->lessons);
+            }
+
+            $paths = array();
+            $note = '';
+            $repo_errors = array();
+
+            if ( isset($CFG->git_command) && is_string($CFG->git_command) ) {
+                \Tsugi\Util\Git::set_bin($CFG->git_command);
+            }
+
+            $repo = new \Tsugi\Util\GitRepo($CFG->dirroot);
+            $git_version = $repo->run('--version');
+
+            $origin = self::getRepoOrigin($repo);
+            $tsugi = new \stdClass();
+            $tsugi->clone_url = $origin;
+            $tsugi->html_url = $origin;
+            $tsugi->name = 'Tsugi Admin';
+            $tsugi->description = 'Tsugi Adminstration, Management, and Development Console.';
+            self::addRepoInfo($tsugi, $repo);
+            if ( isset($tsugi->error) ) {
+                $repo_errors[] = $CFG->dirroot.': '.$tsugi->error;
+            }
+            $install_writeable = $tsugi->writeable;
+            $tsugi->tsugitools = false;
+            $tsugi->index = count($installed) + 1;
+            $tsugi->path = $CFG->dirroot;
+            $tsugi->guid = md5($CFG->dirroot);
+            $installed[] = $tsugi;
+            $paths[$origin] = $CFG->dirroot;
+
+            $path = U::remove_relative_path($CFG->install_folder);
+            $folders = self::findAllFolders($path);
+
+            $existing = array();
+            foreach ( $folders as $folder ) {
+                $git = $folder . '/.git';
+                if ( ! is_dir($git) ) continue;
+
+                try {
+                    $repo = new \Tsugi\Util\GitRepo($folder);
+                    $origin = self::getRepoOrigin($repo);
+                    $existing[$origin] = $repo;
+                    $paths[$origin] = $folder;
+                } catch (\Exception $e) {
+                    $repo_errors[] = $folder.': '.$e->getMessage();
+                }
+            }
+
+            if ( $l && isset($l->lessons->required_modules) ) foreach ( $l->lessons->required_modules as $needed ) {
+                if ( isset($existing[$needed]) || isset($existing[$needed.'.git']) ) continue;
+                $detail = new \stdClass();
+                $detail->html_url = $needed;
+                $detail->clone_url = $needed;
+                $detail->name = $needed;
+                $detail->description = '';
+                $detail->index = count($required) + 1;
+                $detail->writeable = $install_writeable;
+                $required[] = $detail;
+            }
+
+            $fail = false;
+            $repos = \Tsugi\Core\Cache::check('repos', 1);
+            if ( ( ! isset($_GET['force']) ) && $repos !== false ) {
+                $expires = \Tsugi\Core\Cache::expires('repos', 1);
+                $note = 'Retrieved from session. Cached for '.$expires.' more seconds to avoid rate limit. Add ?force=yes to force pull from github before cache expires.';
+            } else {
+                $url = 'https://api.github.com/users/tsugitools/repos?language=PHP';
+                $headers = 'User-Agent: TsugiProject';
+                $expiresec = 600;
+                $repos_str = Net::doGet($url, $headers);
+                $note = 'Retrieved from github API. Data is cached for '.$expiresec.' seconds to avoit github limit. Add ?force=yes to force pull from github before cache expires.';
+                if ( U::strlen($repos_str) < 1 ) {
+                    $retval['available_error'] = 'No data retrieved from '.$url;
+                    $retval['available_error_detail'] = '';
+                    $fail = true;
+                } else {
+                    $repos = json_decode($repos_str);
+                    if ( $repos === null ) {
+                        $retval['available_error'] = 'Unable to decode '.$url;
+                        $retval['available_error_detail'] = $repos_str;
+                        $fail = true;
+                    } else if ( is_object($repos) ) {
+                        $retval['available_error'] = 'Did not get list of repositories: '.$url;
+                        $retval['available_error_detail'] = json_encode($repos, JSON_PRETTY_PRINT);
+                        $fail = true;
+                    }
+                }
+                if ( ! $fail ) \Tsugi\Core\Cache::set('repos', 1, $repos, $expiresec);
+            }
+
+            if ( ! $fail ) foreach ( $repos as $repo ) {
+                $detail = new \stdClass();
+                $detail->html_url = $repo->html_url;
+                $detail->clone_url = $repo->clone_url;
+                $detail->name = ucfirst($repo->name);
+                $detail->description = $repo->description;
+                $detail->tsugitools = true;
+                if ( isset($existing[$detail->clone_url]) ) {
+                    $detail->existing = true;
+                    $detail->path = $paths[$detail->clone_url];
+                    $detail->guid = md5($paths[$detail->clone_url]);
+                    $repo = $existing[$detail->clone_url];
+                    self::addRepoInfo($detail, $repo);
+                    if ( isset($detail->error) ) {
+                        $repo_errors[] = $detail->path.': '.$detail->error;
+                    }
+                    unset($existing[$detail->clone_url]);
+                    $detail->index = count($installed) + 1;
+                    $installed[] = $detail;
+                } else {
+                    $detail->writeable = $install_writeable;
+                    $detail->index = count($available) + 1;
+                    $available[] = $detail;
+                }
+            }
+
+            foreach ( $existing as $clone_url => $repo ) {
+                $detail = new \stdClass();
+                $detail->clone_url = $clone_url;
+                $detail->html_url = $clone_url;
+                $detail->name = '';
+                preg_match('/([^\/]+)\.git/', $clone_url, $match);
+                if ( count($match) == 2 ) {
+                    $detail->name = ucwords(preg_replace('/[^0-9a-zA-Z]/', ' ', $match[1]));
+                }
+                $detail->description = '';
+                self::addRepoInfo($detail, $repo);
+                $detail->tsugitools = false;
+                $detail->writeable = $install_writeable;
+                $detail->index = count($installed) + 1;
+                if ( isset($paths[$clone_url]) ) {
+                    $detail->path = $paths[$clone_url];
+                    $detail->guid = md5($paths[$clone_url]);
+                }
+                if ( isset($detail->error) ) {
+                    $path_note = isset($detail->path) ? $detail->path : $clone_url;
+                    $repo_errors[] = $path_note.': '.$detail->error;
+                }
+                $installed[] = $detail;
+            }
+
+            foreach ( $installed as $tool ) {
+                $sql = "INSERT INTO {$CFG->dbprefix}lms_tools
+                    ( toolpath, name, description, clone_url, gitversion, created_at, updated_at ) VALUES
+                    ( :toolpath, :name, :description, :clone_url, :gitversion, NOW(), NOW() )
+                    ON DUPLICATE KEY
+                    UPDATE name=:name, description=:description ";
+                $values = array(
+                    ':toolpath' => $tool->path,
+                    ':name' => $tool->name,
+                    ':description' => $tool->description,
+                    ':clone_url' => $tool->clone_url,
+                    ':gitversion' => (isset($tool->gitversion) ? $tool->gitversion : 'main'),
+                );
+                $PDOX->queryReturnError($sql, $values);
+                self::updateToolStatus($tool->path, $tool);
+            }
+
+            $retval['status'] = count($repo_errors) > 0 ? 'ERROR' : 'OK';
+            $retval['version'] = trim($git_version);
+            $retval['detail'] = $note;
+            $retval['available'] = $available;
+            $retval['installed'] = $installed;
+            $retval['required'] = $required;
+            if ( count($repo_errors) > 0 ) {
+                $retval['error'] = implode("\n", $repo_errors);
+                $retval['errors'] = $repo_errors;
+            }
+        } catch (\Exception $e) {
+            error_log('installModuleReport: '.$e->getMessage());
+            $retval['status'] = 'ERROR';
+            $retval['error'] = $e->getMessage();
+            $retval['available'] = $available;
+            $retval['installed'] = $installed;
+            $retval['required'] = $required;
+        }
+
+        return $retval;
+    }
+
+    /**
+     * Per-server tool status for the admin install cluster tab.
+     *
+     * @return array<int, \stdClass>
+     */
+    public static function installClusterServers() {
+        global $CFG, $PDOX;
+
+        $PDOX = \Tsugi\Core\LTIX::getConnection();
+        $entries = self::getClusterInfo();
+        if ( ! is_array($entries) ) {
+            $entries = array();
+        }
+
+        $grouped = array();
+        foreach ( $entries as $entry ) {
+            $ip = $entry['ipaddr'];
+            if ( ! isset($grouped[$ip]) ) {
+                $grouped[$ip] = array();
+            }
+            $grouped[$ip][] = $entry;
+        }
+
+        $serverIP = Net::serverIP();
+        $servers = array();
+        foreach ( $grouped as $ip => $tools ) {
+            $server = new \stdClass();
+            $server->ipaddr = $ip;
+            $server->ipaddrid = str_replace('.', '_', $ip);
+            $server->local = ($ip == $serverIP);
+            $server->tools = $tools;
+            $install = $PDOX->allRowsDie(
+                "SELECT clone_url, T.created_at AS created_at
+                 FROM {$CFG->dbprefix}lms_tools AS T
+                 LEFT JOIN {$CFG->dbprefix}lms_tools_status AS S
+                    ON S.tool_id = T.tool_id AND S.ipaddr = :ipaddr
+                 WHERE ISNULL(S.ipaddr)",
+                array(':ipaddr' => $ip)
+            );
+            $server->install = is_array($install) ? $install : array();
+            $servers[] = $server;
+        }
+
+        return $servers;
     }
 
     public static function doClone($remote, $folder) {
@@ -1038,7 +1294,7 @@ class AdminService {
         try {
             $update = $repo->run('remote update');
             $detail->writeable = true;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $detail->writeable = false;
             $update = 'Caught exception: '.$e->getMessage(). "\n";
             $errors[] = 'remote update: '.$e->getMessage();
@@ -1046,7 +1302,7 @@ class AdminService {
         $detail->update_note = $update;
         try {
             $status = $repo->run('status -uno');
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $status = 'Caught exception: '.$e->getMessage(). "\n";
             $errors[] = 'status: '.$e->getMessage();
         }
@@ -1055,7 +1311,7 @@ class AdminService {
         // Use -1 so single-commit / shallow repos work (HEAD^ fails there).
         try {
             $commit_log = $repo->run('log -1 --name-status');
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $commit_log = 'Caught exception: '.$e->getMessage(). "\n";
             $errors[] = 'log: '.$e->getMessage();
         }
@@ -1075,7 +1331,7 @@ class AdminService {
         }
         try {
             $detail->gitversion = self::getRepoDefaultBranch($repo);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $detail->gitversion = 'main';
         }
     }

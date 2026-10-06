@@ -424,13 +424,13 @@ URL.
 
 </div>
 <div class="tab-pane fade" id="canvas">
-<?php require_once $CFG->dirroot . '/admin/key/canvas-detail.php'; ?>
+<?php require_once __DIR__ . '/canvas-detail.php'; ?>
 </div>
 <div class="tab-pane fade" id="blackboard">
 
 
 <?php
-require_once $CFG->dirroot . '/admin/key/blackboard-detail.php';
+require_once __DIR__ . '/blackboard-detail.php';
 ?>
 <p>
 Blackboard LTI 1.3 / Advantage setup depends on your Learn version and admin UI; use your Blackboard documentation for developer keys, placements, and deployments. The URLs on the <b>Manual Configuration</b> tab are what you register at the LMS.

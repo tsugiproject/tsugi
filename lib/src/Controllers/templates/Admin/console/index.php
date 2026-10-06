@@ -132,14 +132,6 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'clear12345', _TSUGI.spinnerUrl); return false;" >
   Remove 12345 Data
   </a></li>
-<?php if ( U::isNotEmpty($CFG->websocket_url) ) {?>
-<li>
-  <a href="#" title="Check Socket Server"
-  onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'sock-test', _TSUGI.spinnerUrl, true); return false;" >
-  Check socket server at <?= htmlentities($CFG->websocket_url) ?>
-  </a>
-</li>
-<?php } ?>
 <li><a href="mail/">Mail</a></li>
 <li>
   <a href="#" title="Event Status"

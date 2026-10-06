@@ -7,7 +7,6 @@ use \Tsugi\Util\U;
 use Tsugi\Util\LTI;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
-use Tsugi\Core\WebSocket;
 use Tsugi\UI\HandleBars;
 use Tsugi\UI\Theme;
 
@@ -222,10 +221,6 @@ class Output {
         if ( isset($CFG->youtube_playlist) && $CFG->youtube_playlist ) {
             $retval .= "  youtube_playlist: ".self::json_encode_string_value($CFG->youtube_playlist).",\n";
         }
-        $websocket_url = (WebSocket::enabled() && $LINK) ? '"'.$CFG->websocket_url.'"' : 'false';
-        $retval .= "  websocket_url: ".$websocket_url.",\n";
-        $websocket_token = (WebSocket::enabled() && $LINK) ? '"'.WebSocket::getToken($LINK->launch).'"' : 'false';
-        $retval .= "  websocket_token: ".$websocket_token.",\n";
         $retval .= "  react_token: \"".session_id()."\",\n";
         $retval .= "  window_close_message: \""._m('Application complete - You can close this tab.')."\",\n";
         $retval .= "  session_expire_message: \""._m('Your session has expired')."\"\n";

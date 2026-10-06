@@ -60,7 +60,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'delete_delivery_ev
     return;
 }
 
-require_once $CFG->dirroot . '/admin/mail/nav.php';
+require_once __DIR__ . '/nav.php';
 
 $OUTPUT->header();
 $OUTPUT->bodyStart();

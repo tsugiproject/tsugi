@@ -13,8 +13,6 @@ class Install extends Admin {
     public static function routes(Application $app) {
         self::map($app, self::class, 'index', self::paths('install', true));
         self::map($app, self::class, 'git', self::paths('install/git'));
-        self::map($app, self::class, 'repos', self::paths('install/repos_json'));
-        self::map($app, self::class, 'cluster', self::paths('install/cluster_json'));
         self::map($app, self::class, 'update', self::paths('install/update'));
     }
 
@@ -26,16 +24,6 @@ class Install extends Admin {
     public function git() {
         if ( $r = $this->gate('install.git', 'forbid') ) return $r;
         $this->view('install/git.php');
-    }
-
-    public function repos() {
-        if ( $r = $this->gate('install.repos', 'forbid') ) return $r;
-        $this->view('install/repos_json.php');
-    }
-
-    public function cluster() {
-        if ( $r = $this->gate('install.cluster', 'forbid') ) return $r;
-        $this->view('install/cluster_json.php');
     }
 
     public function update() {

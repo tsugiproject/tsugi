@@ -200,11 +200,11 @@ see the various URLs you can use to install Tsugi in your LMS.
 
 </div>
 <div class="tab-pane fade" id="canvas">
-<?php require_once $CFG->dirroot . '/admin/key/canvas-detail.php'; ?>
+<?php require_once __DIR__ . '/canvas-detail.php'; ?>
 </div>
 <div class="tab-pane fade" id="blackboard">
 <?php
-require_once $CFG->dirroot . '/admin/key/blackboard-detail.php';
+require_once __DIR__ . '/blackboard-detail.php';
 ?>
 <p>
 Blackboard LTI 1.3 / Advantage setup depends on your Learn version and admin UI; use your Blackboard documentation for developer keys, placements, and deployments. After you create a key here, open its detail page and use the <b>Manual Configuration</b> tab for URLs to register at the LMS.

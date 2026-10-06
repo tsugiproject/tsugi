@@ -19,7 +19,6 @@ class Check extends Admin {
         self::map($app, self::class, 'dbsize', self::paths('dbsize'));
         self::map($app, self::class, 'keyset', self::paths('keyset'));
         self::map($app, self::class, 'events', self::paths('events'));
-        self::map($app, self::class, 'socket', self::paths('sock-test'));
         self::map($app, self::class, 'info', self::paths('info'));
     }
 
@@ -61,11 +60,6 @@ class Check extends Admin {
     public function events() {
         if ( $r = $this->gate('admin.events') ) return $r;
         $this->view('check/events.php');
-    }
-
-    public function socket() {
-        if ( $r = $this->gate('admin.socket') ) return $r;
-        $this->view('check/sock-test.php');
     }
 
     public function info() {
