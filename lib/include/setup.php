@@ -64,8 +64,9 @@ if ( defined('COOKIE_SESSION') ) {
         unset($_GET[$sess], $_POST[$sess], $_REQUEST[$sess]);
         $where = trim(($in_get ? 'GET ' : '').($in_post ? 'POST' : ''));
         $uri = $_SERVER['REQUEST_URI'] ?? '';
-        $uri = preg_replace('/([?&])'.preg_quote($sess, '/').'=[^&]*/', '$1'.$sess.'=REDACTED', $uri);
-        error_log('ERROR: Cookie session ignored '.$sess.' parameter from '.$where.' uri='.$uri);
+        $qpos = strpos($uri, '?');
+        $path = $qpos === false ? $uri : substr($uri, 0, $qpos);
+        error_log('ERROR: Cookie session ignored '.$sess.' parameter from '.$where.' path='.$path);
         print_stack_trace();
     }
 } else {
