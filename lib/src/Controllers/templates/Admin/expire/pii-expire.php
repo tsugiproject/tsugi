@@ -73,7 +73,7 @@ $CFG-&gt;expire_pii_days = 120;
 </pre>
 in your <b>config.php</b> and then run the commands:
 <pre>
-cd tsugi/admin/expire
+cd tsugi/admin/expire-maint
 php pii-batch.php [remove]
 </pre>
 If you don't include <b>remove</b> it will just do a dry run and tell you what would

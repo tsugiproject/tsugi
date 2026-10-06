@@ -8,7 +8,7 @@
  * Complement to clean_dataroot_blobs.php (disk orphans). Rows stored only in blob_blob
  * (empty path) are skipped. After deletes, consider clean_blob_blob.php for orphan blob_blob.
  *
- * Usage (from tsugi/admin/blob):
+ * Usage (from tsugi/admin/blob-maint):
  *   php clean_blob_file.php                    dry run: MISSING, MISMATCH (+ OK if -v)
  *   php clean_blob_file.php -v                 verbose: echo rows whose path already matches disk
  *   php clean_blob_file.php apply              UPDATE legacy paths; DELETE unresolvable rows

@@ -31,7 +31,7 @@ column obsolete.
 Recommended cleanup run order (disk-backed blobs)
 ------------------------------------------------
 
-Run these from `tsugi/admin/blob` when reconciling the database with `$CFG->dataroot`:
+Run these from `tsugi/admin/blob-maint` when reconciling the database with `$CFG->dataroot`:
 
 1. **`clean_blob_file.php`** — Dry run first, then **`apply`** (or **`remove`** / **`fix`**, same thing) when you are satisfied. This updates legacy absolute `path` values to the current dataroot, deletes `blob_file` rows whose file cannot be resolved on disk, and is the step that gives you a “clean bill of health” for path metadata.
 
@@ -63,7 +63,7 @@ Don't run this on a production database:
 
 Then you can test migration from legacy `blob_file` to `blob_blob`.
 
-Sample Executions of Admin Scripts in admin/blob
+Sample Executions of Admin Scripts in admin/blob-maint
 ------------------------------------------------
 
 (Prefer the **Recommended cleanup run order** above: `clean_blob_file` → `clean_dataroot_blobs` → `clean_blob_blob`.)

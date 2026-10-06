@@ -6,7 +6,8 @@ use Tsugi\Controllers\Admin;
 use Tsugi\Lumos\Application;
 
 /**
- * Site-wide data expiry. The batch jobs stay command-line scripts.
+ * Site-wide data expiry at /admin/expire.
+ * The batch jobs stay in admin/expire-maint/.
  */
 class Expire extends Admin {
 

@@ -253,7 +253,7 @@ final class AdminTest extends TsugiPantherTestCase
             [
                 'link' => 'Manage Installed Modules',
                 'marker' => ['Installed Modules', 'Install folder'],
-                'href' => '/admin/install/',
+                'href' => '/admin/modules/',
             ],
             [
                 'link' => 'Mail',

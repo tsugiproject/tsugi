@@ -7,7 +7,7 @@ use Tsugi\Lumos\Application;
 
 /**
  * BLOB status, migration, and cleanup screens.
- * The command-line cleaners under admin/blob/ stay scripts.
+ * The command-line cleaners under admin/blob-maint/ stay scripts.
  */
 class Blob extends Admin {
 

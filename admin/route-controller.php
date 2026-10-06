@@ -17,7 +17,7 @@ $adminQuery = $adminQ === false ? '' : substr($adminUri, $adminQ);
 // /admin/key + href "key-detail" is /admin/key-detail, which is not a route.
 $adminFolderIndexes = array(
     'activity', 'badges', 'catalog', 'context', 'expire', 'external',
-    'install', 'key', 'mail', 'org', 'profile', 'site', 'users',
+    'key', 'mail', 'modules', 'org', 'profile', 'site', 'users',
 );
 if ( ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET'
     && preg_match('#/admin/([A-Za-z0-9_-]+)$#', $adminPath, $adminFolderMatch)

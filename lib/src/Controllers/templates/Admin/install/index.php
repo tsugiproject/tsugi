@@ -35,7 +35,7 @@ $installReport = \Tsugi\Services\Admin\AdminService::installModuleReport();
 $installed = $installReport['installed'];
 $available = $installReport['available'];
 $required = $installReport['required'];
-$installGit = $CFG->wwwroot.'/admin/install/git.php';
+$installGit = $CFG->wwwroot.'/admin/modules/git';
 
 // Check to see if we are in a cluster
 $other_nodes = count(\Tsugi\Services\Admin\AdminService::getClusterIPs());

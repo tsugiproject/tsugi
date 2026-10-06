@@ -334,7 +334,7 @@ $CFG->google_translate = false;
 // from these options and towards $CFG->top_menu_callback to insure the top
 // menu works across lti launches, login/logout etc.
 
-// If these are not set, the auto expiration scripts in admin/expire
+// If these are not set, the auto expiration scripts in admin/expire-maint
 // do nothing.  You can still manually expire data in the admin UI without
 // these values. There are software enforced mimimums for these values so you don't
 // inadvertently wipe out your whole database using either the auto expire
@@ -424,7 +424,7 @@ $CFG->DEVELOPER = true;
 // Tsugi stores the blob path in the blob_file table.  Data uploaded to a blob
 // will stay there and data uploaded to a path will stay there regardless of
 // this setting.  There will are separate migration processes to move data
-// between stores - see tsugi/admin/blob for more detail.
+// between stores - see tsugi/admin/blob-maint for more detail.
 
 // This turns on auto-migration as blobs are accessed
 // $CFG->migrateblobs = true;

@@ -88,7 +88,7 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'recent', _TSUGI.spinnerUrl); return false;" >
   Recent Logins
   </a></li>
-<li><a href="install/">Manage Installed Modules</a></li>
+<li><a href="modules/">Manage Installed Modules</a></li>
 <li>
   <a href="#" title="Upgrade Database" 
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'upgrade', _TSUGI.spinnerUrl, true); return false;" >

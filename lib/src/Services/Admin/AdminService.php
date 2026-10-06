@@ -720,7 +720,7 @@ class AdminService {
         return array($row);
     }
 
-        // admin/expire/expire_util.php
+        // Minimums shared with the admin/expire-maint batch scripts.
     // To avoid wiping out all the data
     public static function sanity_check_days($base=false, $days=false) {
         global $tenant_days, $context_days, $user_days, $pii_days;

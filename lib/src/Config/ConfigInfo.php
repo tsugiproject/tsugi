@@ -309,7 +309,7 @@ class ConfigInfo {
      * Tsugi stores the blob path in the blob_file table.  Data uploaded to a blob
      * will stay there and data uploaded to a path will stay there regardless of
      * this setting.  There will are separate migration processes to move blob data
-     * from the database to dataroot.  See tsugi/admin/blob for more detail.
+     * from the database to dataroot.  See tsugi/admin/blob-maint for more detail.
      *
      * You can set dataroot to a temporary folder for dev but never for production
      */
@@ -476,7 +476,7 @@ class ConfigInfo {
      * Indicate which folder to install new modules into.
      *
      * By default we use the built-in admin tools, and
-     * install new tools (see /admin/install/) into mod.  If this is left to
+     * install new tools (see /admin/modules/) into mod.  If this is left to
      * false, it will suppress automatic tool installation in Tsugi admin.
      *
      * $CFG->install_folder = $CFG->dirroot.'/mod';

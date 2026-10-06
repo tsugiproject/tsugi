@@ -95,7 +95,7 @@ is executed.  If you want to migrate a large number of files
 all at once, you can log into the server
 and do the following:
 <pre>
-cd tsugi/admin/blob
+cd tsugi/admin/blob-maint
 php migrate.php
 </pre>
 This <b>migrate.php</b> tool has a dry run mode and must be

@@ -102,7 +102,7 @@ $CFG-&gt;expire_<?= htmlentities($base) ?>_days = 120;   // Choose your value
 </pre>
 in your <b>config.php</b> and then run the commands:
 <pre>
-cd tsugi/admin/expire
+cd tsugi/admin/expire-maint
 php login-batch.php <?= htmlentities($base) ?> [remove]
 </pre>
 If you don't include <b>remove</b> it will just do a dry run and tell you what would

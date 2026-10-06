@@ -65,7 +65,7 @@ should have a blob in the `content` column.  They should have the same value in 
 `blob_id` column and in the `blob_blob` table there should be one row under the
 `blob_id`
 * Look at each of the files in the browser and verify they both work
-* Navigate to `admin/blob` and run (you should not find any un referenced blobs)
+* Navigate to `admin/blob-maint` and run (you should not find any un referenced blobs)
 
     php clean_blob_blob.php
 
@@ -74,7 +74,7 @@ should have a blob in the `content` column.  They should have the same value in 
 
 * Delete both files and verify that the `blob_file` rows are gone - but the `blob_blob`
 row is still there!
-* Navigate to `admin/blob` and run (you should see the unreferenced blob)
+* Navigate to `admin/blob-maint` and run (you should see the unreferenced blob)
 
     php clean_blob_blob.php
     This is a dry run, use 'php clean_blob_blob.php remove' to actually remove the rows.
@@ -104,7 +104,7 @@ should have a blob in the `content` column.  They should have the same value in 
 
 * Look at each of the files in the Tsugi Blob Tool UI and verify they both work
 
-* Navigate to `admin/blob` and run (you should not find any unreferenced files)
+* Navigate to `admin/blob-maint` and run (you should not find any unreferenced files)
 
     php clean_dataroot_blobs.php
     This is a dry run, use 'php clean_dataroot_blobs.php remove' to actually remove the files.
@@ -113,7 +113,7 @@ should have a blob in the `content` column.  They should have the same value in 
 
 * Delete both files in the UI and verify that the `blob_file` rows are gone - but the file
 on disk is still there!
-* Navigate to `admin/blob` and run (you should see the unreferenced file)
+* Navigate to `admin/blob-maint` and run (you should see the unreferenced file)
 
     php clean_dataroot_blobs.php
     This is a dry run, use 'php clean_dataroot_blobs.php remove' to actually remove the files.

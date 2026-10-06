@@ -1,12 +1,13 @@
-# Every admin URL is a controller. Subfolders that still hold shared
-# libraries (key/, install/, ...) would otherwise be served by Apache.
+# Every admin URL is a controller. Maintenance scripts live in
+# admin/blob-maint/, admin/expire-maint/, and admin/install/ so those
+# folder names do not match the routes (/admin/modules for install).
 Options -Indexes
 <IfModule mod_rewrite.c>
     RewriteEngine on
-    RewriteRule ^route\.php$ - [L]
-    RewriteRule ^ route.php [L,QSA]
+    RewriteRule ^route-controller\.php$ - [L]
+    RewriteRule ^ route-controller.php [L,QSA]
 </IfModule>
 
 <IfModule !mod_rewrite.c>
-    FallbackResource route.php
+    FallbackResource route-controller.php
 </IfModule>

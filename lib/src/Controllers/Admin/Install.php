@@ -6,14 +6,15 @@ use Tsugi\Controllers\Admin;
 use Tsugi\Lumos\Application;
 
 /**
- * Installed modules. php admin/install/update.php remains the shell entry.
+ * Installed modules, at /admin/modules.
+ * The shell script stays at admin/install/update.php.
  */
 class Install extends Admin {
 
     public static function routes(Application $app) {
-        self::map($app, self::class, 'index', self::paths('install', true));
-        self::map($app, self::class, 'git', self::paths('install/git'));
-        self::map($app, self::class, 'update', self::paths('install/update'));
+        self::map($app, self::class, 'index', self::paths('modules', true));
+        self::map($app, self::class, 'git', self::paths('modules/git'));
+        self::map($app, self::class, 'update', self::paths('modules/update'));
     }
 
     public function index() {

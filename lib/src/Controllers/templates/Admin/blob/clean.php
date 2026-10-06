@@ -24,7 +24,7 @@ $OUTPUT->header();
 To remove unused files from the on-disk store, you must log in and
 run
 <pre>
-cd tsugi/admin/blob
+cd tsugi/admin/blob-maint
 php clean_dataroot_blobs.php
 </pre>
 since it is a long running task.
@@ -97,7 +97,7 @@ is executed.  If you want to remove a large number of files
 all at once, you can log into the server
 and do the following:
 <pre>
-cd tsugi/admin/blob
+cd tsugi/admin/blob-maint
 php clean_blob_blob.php
 </pre>
 The <b>clean_blob_blob.php</b> tool has a dry run mode and must be

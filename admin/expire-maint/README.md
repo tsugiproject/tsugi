@@ -1,6 +1,6 @@
 
 
-    cd admin/expire
+    cd admin/expire-maint
     php pii-batch.php 
     UPDATE lti_user
         SET displayname=NULL, email=NULL 

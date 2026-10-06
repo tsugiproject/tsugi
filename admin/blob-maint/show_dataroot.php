@@ -3,7 +3,7 @@
 /**
  * Print $CFG->dataroot to stdout (CLI only). One line; empty if unset/false.
  *
- * Usage: cd to tsugi/admin/blob, then: php show_dataroot.php
+ * Usage: cd to tsugi/admin/blob-maint, then: php show_dataroot.php
  */
 
 use \Tsugi\Util\U;

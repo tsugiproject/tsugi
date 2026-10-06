@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Site admin console, mounted by admin/route.php.
+ * Site admin console, mounted by admin/route-controller.php.
  *
  * The passphrase session ($_SESSION['admin'] === 'yes') is the only
  * administrator. Each action passes a capability name. That session is

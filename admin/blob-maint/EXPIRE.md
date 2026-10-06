@@ -4,10 +4,10 @@ Tsugi stores blob metadata in the database (primarily `blob_file`, and optionall
 
 See also [README.md](README.md) for how the three stores relate, **recommended run order** (`clean_blob_file.php` → `clean_dataroot_blobs.php` → `clean_blob_blob.php`), and sample runs of those scripts.
 
-To print the configured dataroot path from the same `config.php` the app uses (CLI only), `cd` into `tsugi/admin/blob` and run `php show_dataroot.php`. Use it to set a shell variable, for example `DATAROOT=$(php show_dataroot.php)` (still from that directory).
+To print the configured dataroot path from the same `config.php` the app uses (CLI only), `cd` into `tsugi/admin/blob-maint` and run `php show_dataroot.php`. Use it to set a shell variable, for example `DATAROOT=$(php show_dataroot.php)` (still from that directory).
 
 ```bash
-cd /path/to/tsugi/admin/blob
+cd /path/to/tsugi/admin/blob-maint
 php show_dataroot.php
 # DATAROOT=$(php show_dataroot.php)
 ```
@@ -23,7 +23,7 @@ php show_dataroot.php
 **Operational pattern.** On a schedule (for example monthly), scan `$CFG->dataroot` and remove files that are **not** referenced by any row in `blob_file`. In this tree, `clean_dataroot_blobs.php` implements that scan: it walks the hashed layout, checks each candidate file against `blob_file`, and can remove unreferenced files (dry run by default; `remove` to apply).
 
 ```bash
-cd /path/to/tsugi/admin/blob
+cd /path/to/tsugi/admin/blob-maint
 php clean_dataroot_blobs.php              # dry run: lists rm targets
 php clean_dataroot_blobs.php verbose      # dry run with per-file OK lines
 php clean_dataroot_blobs.php remove       # actually unlink files / empty dirs
@@ -41,7 +41,7 @@ After removing orphan files, empty directories may remain; `clean_dataroot_blobs
 4. Optionally run **`clean_blob_blob.php`** to remove rows in `blob_blob` that no longer have any `blob_file` pointing at them (see README for when `blob_blob` is in use).
 
 ```bash
-cd /path/to/tsugi/admin/blob
+cd /path/to/tsugi/admin/blob-maint
 php clean_blob_file.php                   # dry run
 php clean_blob_file.php apply             # fix paths + delete unresolvable rows
 php clean_dataroot_blobs.php              # dry run: disk orphans
@@ -68,7 +68,7 @@ php clean_blob_blob.php remove            # delete those blob_blob rows
    `find` measures **days**; `-mtime +800` and `-atime +800` mean last modified and last accessed are **more than 800 days** ago. Both must match.
 
    ```bash
-   cd /path/to/tsugi/admin/blob
+   cd /path/to/tsugi/admin/blob-maint
    php show_dataroot.php   
 
    DATAROOT=/efs/sites/www.ziggy.com
@@ -101,7 +101,7 @@ php clean_blob_blob.php remove            # delete those blob_blob rows
 4. If you use **`blob_blob`**, run **`clean_blob_blob.php`** (dry run, then `remove`) for rows no longer referenced by `blob_file`.
 
 ```bash
-cd /path/to/tsugi/admin/blob
+cd /path/to/tsugi/admin/blob-maint
 php clean_blob_file.php
 php clean_blob_file.php apply
 php clean_dataroot_blobs.php
@@ -121,7 +121,7 @@ php clean_blob_blob.php remove
 
 Use **top-down** when the source of truth is the LMS or Tsugi lifecycle. Use **bottom-up** when the source of truth is a fixed retention window on disk. Many production setups combine both: periodic age pruning plus regular orphan sweeps after large context purges.
 
-Quick reference (always from `tsugi/admin/blob`; order matters — **`clean_blob_file`** before **`clean_dataroot_blobs`**):
+Quick reference (always from `tsugi/admin/blob-maint`; order matters — **`clean_blob_file`** before **`clean_dataroot_blobs`**):
 
 ```bash
 php show_dataroot.php
