@@ -1431,7 +1431,7 @@ $(document).ready( function() {
                 $subject = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )';
                 $message = "Key Request from ".$_SESSION['displayname'].' ('.$_SESSION['email'].' )\n'.
                     "\nNotes\n".$_POST['notes']."\n\n".
-                    "Link: ".$CFG->wwwroot."/admin/key\n";
+                    "Link: ".$CFG->wwwroot."/admin/key/\n";
 
                 Mail::sendTransactional($to, $subject, $message, $user_id, $token);
             }

@@ -4,8 +4,8 @@
 #
 # Usage:
 #   qa/local-panther.sh
-#   qa/local-panther.sh tests/ToolLaunchTest.php
-#   qa/local-panther.sh --skip-composer
+#   qa/local-panther.sh --filter AdminTest
+#   qa/local-panther.sh --skip-composer --filter testAdminConsoleGoesOneClickDeeper
 
 set -euo pipefail
 
@@ -15,7 +15,15 @@ usage() {
   cat <<'EOF'
 Run Panther E2E tests (Composer → drivers → Docker → phpunit).
 
-  qa/local-panther.sh [options] [phpunit-args...]
+  ./qa/local-panther.sh [options] [phpunit-args...]
+
+Script options must come before PHPUnit arguments. A test file path is
+from the repo root (qa/tests/AdminTest.php), not tests/AdminTest.php.
+Prefer --filter. --testdox prints each test name as it finishes.
+
+  ./qa/local-panther.sh --filter AdminTest --testdox
+  PANTHER_CHROME_ARGUMENTS="--no-sandbox --disable-dev-shm-usage" \
+    ./qa/local-panther.sh --skip-composer --filter AdminTest --testdox
 
 Options:
   --skip-composer     Skip composer install
@@ -24,8 +32,10 @@ Options:
 Environment (optional overrides):
   TSUGI_HOST_PORT     Host port for web (maps docker web:80). Default for this script: 8000 so MAMP can use 8888.
                       Set TSUGI_HOST_PORT=8888 to match CI / plain "docker compose up" (default in docker-compose.yml).
-  TSUGI_BASE_URL      Default: http://localhost:<TSUGI_HOST_PORT>/tsugi
   TSUGI_ADMIN_PW      Default: tsugi-admin
+
+The script always points Chrome and the container at http://localhost:<TSUGI_HOST_PORT>/tsugi.
+A TSUGI_BASE_URL already in the environment (for example https://local.dj4e.com/tsugi) is ignored.
   TSUGI_PDO           Default: mysql:host=tsugi_db;dbname=tsugi
   TSUGI_DB_USER       Default: ltiuser
   TSUGI_DB_PASS       Default: ltipassword
@@ -68,24 +78,26 @@ fi
 
 # Keep host port, published port in docker-compose.yml, and Tsugi URL env in sync.
 # Default 8000 here so Apache/MAMP can keep 8888. CI does not run this script; it uses docker-compose's 8888 default.
+# Always assign the URLs. A leftover TSUGI_BASE_URL from another site (local.dj4e.com)
+# would send Chrome to Google login while Docker is sitting on this port.
 TSUGI_HOST_PORT="${TSUGI_HOST_PORT:-8000}"
 export TSUGI_HOST_PORT
-TSUGI_BASE_URL="${TSUGI_BASE_URL:-http://localhost:${TSUGI_HOST_PORT}/tsugi}"
+TSUGI_BASE_URL="http://localhost:${TSUGI_HOST_PORT}/tsugi"
 TSUGI_ADMIN_PW="${TSUGI_ADMIN_PW:-tsugi-admin}"
 TSUGI_PDO="${TSUGI_PDO:-mysql:host=tsugi_db;dbname=tsugi}"
 TSUGI_DB_USER="${TSUGI_DB_USER:-ltiuser}"
 TSUGI_DB_PASS="${TSUGI_DB_PASS:-ltipassword}"
-TSUGI_WWWROOT="${TSUGI_WWWROOT:-http://localhost:${TSUGI_HOST_PORT}/tsugi}"
-TSUGI_APPHOME="${TSUGI_APPHOME:-http://localhost:${TSUGI_HOST_PORT}/tsugi}"
+TSUGI_WWWROOT="$TSUGI_BASE_URL"
+TSUGI_APPHOME="$TSUGI_BASE_URL"
 TSUGI_DEMO_LOGIN="${TSUGI_DEMO_LOGIN:-1}"
 TSUGI_DEMO_SECRET="${TSUGI_DEMO_SECRET:-tsugi-demo}"
 export TSUGI_BASE_URL TSUGI_ADMIN_PW TSUGI_PDO TSUGI_DB_USER TSUGI_DB_PASS TSUGI_WWWROOT TSUGI_APPHOME
 export TSUGI_DEMO_LOGIN TSUGI_DEMO_SECRET
 export PANTHER_NO_SANDBOX="${PANTHER_NO_SANDBOX:-1}"
 export PANTHER_CHROME_ARGUMENTS="${PANTHER_CHROME_ARGUMENTS:---headless=new --no-sandbox --disable-dev-shm-usage}"
-export PANTHER_EXTERNAL_BASE_URI="${PANTHER_EXTERNAL_BASE_URI:-$TSUGI_BASE_URL}"
+export PANTHER_EXTERNAL_BASE_URI="$TSUGI_BASE_URL"
 
-echo "🌐 Host port ${TSUGI_HOST_PORT} (MAMP can use 8888; TSUGI_HOST_PORT=8888 to match CI)"
+echo "🌐 ${TSUGI_BASE_URL}  (port ${TSUGI_HOST_PORT}; MAMP can keep 8888)"
 
 command -v docker >/dev/null 2>&1 || die "docker not found in PATH."
 
@@ -115,8 +127,10 @@ if command -v lsof >/dev/null 2>&1; then
   fi
 fi
 
-echo "🐳 Starting Tsugi (docker compose up -d --build)..."
-docker compose up -d --build
+echo "🐳 Starting Tsugi (docker compose up -d --build --force-recreate)..."
+# Recreate so a container left over from another TSUGI_WWWROOT (for example
+# local.dj4e.com) does not keep the passphrase screen behind DJ4E login.
+docker compose up -d --build --force-recreate
 
 echo "⏳ Waiting for Tsugi at ${TSUGI_BASE_URL}..."
 ok=0

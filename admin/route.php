@@ -11,6 +11,21 @@ $adminUri = $_SERVER['REQUEST_URI'] ?? '';
 $adminQ = strpos($adminUri, '?');
 $adminPath = $adminQ === false ? $adminUri : substr($adminUri, 0, $adminQ);
 $adminQuery = $adminQ === false ? '' : substr($adminUri, $adminQ);
+
+// Folder screens use relative links (key-detail, user-detail, membership).
+// Those resolve inside the folder only when the browser URL ends in /.
+// /admin/key + href "key-detail" is /admin/key-detail, which is not a route.
+$adminFolderIndexes = array(
+    'activity', 'badges', 'catalog', 'context', 'expire', 'external',
+    'install', 'key', 'mail', 'org', 'profile', 'site', 'users',
+);
+if ( ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET'
+    && preg_match('#/admin/([A-Za-z0-9_-]+)$#', $adminPath, $adminFolderMatch)
+    && in_array($adminFolderMatch[1], $adminFolderIndexes, true) ) {
+    header('Location: '.$adminPath.'/'.$adminQuery, true, 302);
+    exit;
+}
+
 if ( $adminPath !== '' && str_ends_with($adminPath, '/') && ! preg_match('#/admin/?$#', $adminPath) ) {
     $_SERVER['REQUEST_URI'] = rtrim($adminPath, '/').$adminQuery;
 }

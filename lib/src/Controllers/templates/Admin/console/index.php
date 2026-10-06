@@ -73,11 +73,11 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
 ?>
 </p>
 <ul>
-<li><a href="site">Edit Site Config</a></li>
-<li><a href="catalog">Course Catalog</a></li>
-<li><a href="org">Manage Organizations</a></li>
-<li><a href="key">Manage Access Keys</a></li>
-<li><a href="expire">Manage Data Expiry</a></li>
+<li><a href="site/">Edit Site Config</a></li>
+<li><a href="catalog/">Course Catalog</a></li>
+<li><a href="org/">Manage Organizations</a></li>
+<li><a href="key/">Manage Access Keys</a></li>
+<li><a href="expire/">Manage Data Expiry</a></li>
 <li><a href="context/">View Contexts</a></li>
 <li><a href="activity/">View Activity</a></li>
 <li><a href="badges/">Badges Awarded</a></li>
@@ -88,7 +88,7 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'recent', _TSUGI.spinnerUrl); return false;" >
   Recent Logins
   </a></li>
-<li><a href="install">Manage Installed Modules</a></li>
+<li><a href="install/">Manage Installed Modules</a></li>
 <li>
   <a href="#" title="Upgrade Database" 
   onclick="showModalIframeUrl(this.title, 'iframe-dialog', 'iframe-frame', 'upgrade', _TSUGI.spinnerUrl, true); return false;" >
@@ -157,7 +157,7 @@ if ( $php_charset && strtoupper($php_charset) !== 'UTF-8' ) {
   Unreferenced BLOB Cleanup
   </a>
 </li>
-<li><a href="external">Manage Remote Tsugi Tools (deprecated)</a></li>
+<li><a href="external/">Manage Remote Tsugi Tools (deprecated)</a></li>
 </ul>
 <p>
 Best viewed with <a href="https://www.mozilla.org/en-US/firefox/" target="_new">FireFox</a> since 

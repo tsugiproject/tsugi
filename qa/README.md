@@ -1,94 +1,77 @@
 # QA Harness (Panther)
 
-This directory contains a PHP-native end-to-end test harness using Symfony Panther.
-It is designed to run against a local Tsugi instance started via Docker Compose.
+End-to-end tests use Symfony Panther (Chrome) against a Docker Tsugi, not your MAMP site. Run every command from the repo root.
 
-## Docker config (same idea as CI)
+`https://local.dj4e.com/tsugi` is the wrong target. That host sends `/admin/` to the DJ4E login before the admin passphrase, so a fresh Chrome never sees the tests' unlock form. The script always opens `http://localhost:8000/tsugi` and ignores a `TSUGI_BASE_URL` already set in the shell.
 
-The `web` service bind-mounts your repo for code, but **`config.php` inside the container is not your host file**. Compose overlays **`docker/tsugi-docker-config.php`** onto `tsugi/config.php`. That file is **fully self-contained** (Docker defaults + `TSUGI_*` env); it does **not** include **`config-dist.php`**. Use **`config-dist.php`** as the template you copy to **`config.php`** for MAMP or production and edit there — also self-contained.
-
-See `docker-compose.yml`, `.dockerignore`, and `Dockerfile`.
-
-## Quick start (one command, matches CI)
-
-From the repo root:
+## Run the suite
 
 ```bash
 ./qa/local-panther.sh
 ```
 
-The script runs Composer, browser drivers, `docker compose up -d --build`, waits for Tsugi, then PHPUnit. Optional arguments are forwarded to PHPUnit (for example a single test class).
+The script installs Composer dev tools, browser drivers, and recreates the Docker stack on port **8000** (MAMP keeps 8888). Inside the container, config is `docker/tsugi-docker-config.php`, not your `config.php`. The admin passphrase is `tsugi-admin`. Demo login is on, with secret `tsugi-demo`.
 
-```bash
-./qa/local-panther.sh tests/ToolLaunchTest.php
-```
-
-Skip steps when iterating:
+The first run builds the image. Later runs:
 
 ```bash
 ./qa/local-panther.sh --skip-composer
 ```
 
-After changing `Dockerfile`, `.dockerignore`, `docker/tsugi-docker-config.php`, or `config-dist.php`, rebuild the web image (the script uses `docker compose up -d --build`).
+`--skip-composer` is a script flag. Put it before anything meant for PHPUnit.
 
-## Unit Tests for tsugi/lib
+## One class, and a log you can read
 
-Run unit tests for the Tsugi PHP library:
+`--filter` matches the class or method name. This is the reliable way to run a subset. Do not pass `tests/AdminTest.php`. Those files are in `qa/tests/`, and PHPUnit looks for a path from the repo root, so that short path does not open.
 
 ```bash
-# Run all lib unit tests
-qa/test-lib.sh
-
-# Run a specific test file
-qa/test-lib.sh tests/Core/LaunchTest.php
-
-# Run tests in a directory
-qa/test-lib.sh tests/Util/
+./qa/local-panther.sh --filter AdminTest --testdox
 ```
 
-The script automatically detects whether to use `lib/vendor/bin/phpunit` (if lib has its own vendor) or `vendor/bin/phpunit` (using root dependencies).
+`--testdox` prints each test name as it finishes. Admin covers the console smoke pages and one more click into each section (add forms and list rows when a row exists). It does not click upgrade, delete, expire, blob cleanup, or send mail.
 
-## Quick start (manual steps)
+A single file, if you want the path:
 
-1) Start Tsugi (export `TSUGI_*` so they are passed into the web container):
+```bash
+./qa/local-panther.sh qa/tests/ToolLaunchTest.php --testdox
+```
 
-   ```bash
-   TSUGI_PDO='mysql:host=tsugi_db;dbname=tsugi' \
-   TSUGI_DB_USER=ltiuser \
-   TSUGI_DB_PASS=ltipassword \
-   TSUGI_WWWROOT='http://localhost:8888/tsugi' \
-   TSUGI_APPHOME='http://localhost:8888' \
-   TSUGI_ADMIN_PW=tsugi-admin \
-   docker compose up -d --build
-   ```
+Other classes in `qa/tests/` include `SmokeTest`, `StoreTest`, `ToolLaunchTest`, `ToolHappyPathTest`, `DemoCourseTest`, `CourseControllersTest`, `OrgAdminTest`, and `KeysetTest`. `KeysetTest` fetches `/lti/keyset.php` and checks the JWKS JSON. It does not open Chrome.
 
-2) Install browser drivers:
+## Watch Chrome
 
-   ```bash
-   vendor/bin/bdi detect drivers
-   ```
+`./qa/panther-watch.sh` opens a real Chrome window, prints each test name, and holds each new URL for 3 seconds. Panther stays headless unless `PANTHER_NO_HEADLESS=1`, which that script sets. With no arguments it runs `AdminTest`. Hold longer with `PANTHER_WATCH_PAUSE=5`.
 
-3) Run the QA suite:
+```bash
+./qa/panther-watch.sh
+./qa/panther-watch.sh --skip-composer
+./qa/panther-watch.sh --skip-composer --filter ToolLaunchTest
+```
 
-   ```bash
-   TSUGI_BASE_URL=http://localhost:8888/tsugi \
-   TSUGI_ADMIN_PW=tsugi-admin \
-   PANTHER_NO_SANDBOX=1 \
-   PANTHER_CHROME_ARGUMENTS="--headless=new --no-sandbox --disable-dev-shm-usage" \
-   vendor/bin/phpunit -c qa/phpunit.xml
-   ```
+`--skip-composer` still has to come before `--filter`. The headless equivalent is `./qa/local-panther.sh --filter AdminTest --testdox`.
 
-## Tool launch targets
+## After a run
 
-Tool launch tests run against built-in tools under `tool/`: `gift`, `peer-grade`,
-and `tdiscus`.
+`composer install` rewrites tracked files under `vendor/composer/`. If you did not change `composer.json` or `composer.lock`, put those back before you commit:
 
-## Notes
+```bash
+git restore vendor/composer
+```
 
-- **Composer and `vendor/composer/*`:** Running `composer install` (including via `./qa/local-panther.sh`) can touch `vendor/composer/autoload_*.php`, `installed.json`, and `installed.php`. Those are not Panther “temp” files; they reflect the install state. If you did **not** intend to change dependencies and `composer.lock` is unchanged, you can discard noise with `git restore vendor/composer` before committing. If you **did** change `composer.json` / `composer.lock` on purpose, commit the lockfile and the tracked Composer metadata together as your team expects.
-- Inside Docker, all settings come from `docker/tsugi-docker-config.php` (duplicated from `config-dist.php` where intentional; Docker entry uses `TSUGI_*` for URLs and database).
-- The PHPUnit admin test reads `TSUGI_ADMIN_PW` from your shell; keep it in sync with the value passed into the web container.
-- Tool launch tests use the built-in store test harness (`/store/test/...`) and
-  switch identities via `?identity=instructor|learner1`. You can override roles
-  in developer mode with `?roles=Instructor` if needed.
-- For CI, see `.github/workflows/ci-qa.yml`.
+## Unit tests for tsugi/lib
+
+These do not start Docker or Chrome:
+
+```bash
+./qa/test-lib.sh
+./qa/test-lib.sh tests/Core/LaunchTest.php
+./qa/test-lib.sh tests/Util/
+```
+
+`qa/test-lib.sh` runs from the repo root and then looks inside `lib/`, so those `tests/...` paths are correct for that script only.
+
+## What not to do by hand
+
+`qa/phpunit.xml` still names `http://localhost:8888/tsugi`. The script overrides that with port 8000. Running `vendor/bin/phpunit -c qa/phpunit.xml` yourself, with no `TSUGI_BASE_URL`, hits MAMP on 8888.
+
+CI is `.github/workflows/ci-qa.yml`. It uses port 8888 because nothing else is bound there.
