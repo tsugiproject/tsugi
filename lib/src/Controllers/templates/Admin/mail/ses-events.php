@@ -1,0 +1,97 @@
+<?php
+
+use \Tsugi\UI\Table;
+use \Tsugi\Core\LTIX;
+use \Tsugi\Util\U;
+use \Tsugi\Services\Mail\MailService;
+
+LTIX::getConnection();
+
+
+if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) {
+    \Tsugi\Controllers\Login::setReturnUrl(LTIX::curPageUrlFolder());
+    header('Location: '.\Tsugi\Controllers\Login::loginUrl());
+    return;
+}
+
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect('ses-events') ) return;
+}
+
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'purge_old') ) {
+    if ( ! U::get($_POST, 'confirm_purge') ) {
+        U::flashError('You must confirm the purge');
+        header('Location: ses-events');
+        return;
+    }
+    if ( ! MailService::sesEventsTableExists() ) {
+        U::flashError('mail_ses_events table missing');
+        header('Location: ses-events');
+        return;
+    }
+    $deleted = \Tsugi\Services\Admin\AdminService::mail_admin_purge_delete('mail_ses_events', MAIL_ADMIN_PURGE_DAYS);
+    if ( $deleted < 0 ) {
+        U::flashError('Purge failed');
+    } else {
+        U::flashSuccess('Deleted '.$deleted.' SES event(s) older than '.MAIL_ADMIN_PURGE_DAYS.' days');
+    }
+    header('Location: ses-events');
+    return;
+}
+
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' && U::get($_POST, 'delete_delivery_events') ) {
+    if ( ! U::get($_POST, 'confirm_delete_delivery') ) {
+        U::flashError('You must confirm deleting delivery events');
+        header('Location: ses-events');
+        return;
+    }
+    if ( ! MailService::sesEventsTableExists() ) {
+        U::flashError('mail_ses_events table missing');
+        header('Location: ses-events');
+        return;
+    }
+    $deleted = \Tsugi\Services\Admin\AdminService::mail_admin_delete_delivery_events();
+    if ( $deleted < 0 ) {
+        U::flashError('Delete delivery events failed');
+    } else {
+        U::flashSuccess('Deleted '.$deleted.' delivery (ignored) SES event(s)');
+    }
+    header('Location: ses-events');
+    return;
+}
+
+require_once __DIR__ . '/nav.php';
+
+$OUTPUT->header();
+$OUTPUT->bodyStart();
+$OUTPUT->topNav();
+$OUTPUT->flashMessages();
+
+mail_admin_nav('events');
+echo('<h1>SES events</h1>');
+echo('<p>Each row is an SES notification Tsugi processed, including the <code>action</code> taken (suppress, ignore_soft_bounce, ignore_delivery, ignore, error).</p>');
+
+if ( ! MailService::sesEventsTableExists() ) {
+    echo('<p style="color:red">mail_ses_events table missing — run Admin → Database Upgrade.</p>');
+    $OUTPUT->footer();
+    return;
+}
+
+\Tsugi\Services\Admin\AdminService::mail_admin_purge_form('ses-events', 'mail_ses_events', 'SES events');
+\Tsugi\Services\Admin\AdminService::mail_admin_delete_delivery_events_form('ses-events');
+
+$query_parms = array();
+$searchfields = array("event_id", "email", "event_type", "event_subtype", "action", "mail_type", "ses_message_id", "sns_message_id", "detail", "created_at");
+$orderfields = array("created_at", "event_id", "email", "event_type", "action");
+$params = $_GET;
+if ( ! isset($params['order_by']) && !isset($params['desc']) ) {
+    $params['order_by'] = 'created_at';
+    $params['desc'] = '1';
+}
+$sql = "SELECT event_id, created_at, event_type, event_subtype, email, action, mail_type, ses_message_id, detail
+    FROM {$CFG->dbprefix}mail_ses_events";
+$view = "event-detail";
+$extra_buttons = array("Mail" => "index", "Admin" => $CFG->wwwroot."/admin");
+Table::pagedAuto($sql, $query_parms, $searchfields, $orderfields, $view, $params, $extra_buttons);
+
+$OUTPUT->footer();

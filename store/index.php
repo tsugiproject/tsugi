@@ -5,7 +5,6 @@ use \Tsugi\Core\LTIX;
 
 if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
 require_once "../config.php";
-require_once "../admin/admin_util.php";
 
 LTIX::session_start();
 
@@ -208,10 +207,10 @@ body .bx-wrapper .bx-pager.bx-default-pager a {
 </style>
 <?php
 
-$registrations = findAllRegistrations(false, true);
+$registrations = \Tsugi\Services\Admin\AdminService::findAllRegistrations(false, true);
 
 // Filter the registrations
-if ( isset($CFG->storehide) && U::strlen($CFG->storehide) > 0 && ! isAdmin() ) {
+if ( isset($CFG->storehide) && U::strlen($CFG->storehide) > 0 && ! \Tsugi\Services\Admin\AdminService::isAdmin() ) {
     $filtered = array();
     foreach($registrations as $name => $tool ) {
         if ( isset($tool['tool_phase']) &&

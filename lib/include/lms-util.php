@@ -5,14 +5,11 @@ use \Tsugi\Core\Membership;
 use \Tsugi\Core\ReqScope;
 use \Tsugi\Util\U;
 
-// Require admin_util.php for isAdmin() function
-require_once(__DIR__ . '/../../admin/admin_util.php');
-
 /**
  * Check if the current logged-in user is an instructor/admin for the current context
  *
  * This function checks:
- * 1. If user is site admin (via isAdmin())
+ * 1. If user is site admin (passphrase session)
  * 2. If user has instructor role or role_override in lti_membership table
  * 3. If user owns the context or its key
  *
@@ -30,7 +27,7 @@ function isInstructor() {
     }
 
     // Check if user is site admin (always true for admins, no need to cache)
-    if ( isAdmin() ) {
+    if ( \Tsugi\Services\Admin\AdminService::isAdmin() ) {
         return true;
     }
 

@@ -309,7 +309,7 @@ class ConfigInfo {
      * Tsugi stores the blob path in the blob_file table.  Data uploaded to a blob
      * will stay there and data uploaded to a path will stay there regardless of
      * this setting.  There will are separate migration processes to move blob data
-     * from the database to dataroot.  See tsugi/admin/blob for more detail.
+     * from the database to dataroot.  See tsugi/admin/blob-maint for more detail.
      *
      * You can set dataroot to a temporary folder for dev but never for production
      */
@@ -476,7 +476,7 @@ class ConfigInfo {
      * Indicate which folder to install new modules into.
      *
      * By default we use the built-in admin tools, and
-     * install new tools (see /admin/install/) into mod.  If this is left to
+     * install new tools (see /admin/modules/) into mod.  If this is left to
      * false, it will suppress automatic tool installation in Tsugi admin.
      *
      * $CFG->install_folder = $CFG->dirroot.'/mod';
@@ -958,24 +958,6 @@ class ConfigInfo {
      * Defaults to $CFG->apphome if defined and $CFG->wwwroot if that is not defined or false
      */
     public $logout_return_url;
-
-    /**
-     * If we have a web socket server, put its URL here
-     * Do not add a path here - just the host and port
-     * Make sure the port is open on your server
-     *
-     * $CFG->websocket_secret = 'changeme';
-     * $CFG->websocket_url = 'ws://localhost:2021'; // Local dev test
-     * $CFG->websocket_url = 'wss://socket.tsugicloud.org:443'; // Production
-     *
-     * If you are running a reverse proxy (proxy_wstunnel) set this to the port
-     * you will forward to in your apache config
-     *
-     * $CFG->websocket_proxyport = 8080;
-    */
-    public $websocket_secret = false;
-    public $websocket_url = false;
-    public $websocket_proxyport = false;
 
     /**
      * If the web server is NOT behind a reverse proxy, you may optionally wish

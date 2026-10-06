@@ -865,7 +865,7 @@ abstract class Tool {
      * Check if the current logged-in user is an instructor/admin for the current context
      * 
      * This method checks:
-     * 1. If user is site admin (via isAdmin())
+     * 1. If user is site admin (passphrase session)
      * 2. If user has instructor role or role_override in lti_membership table
      * 3. If user owns the context or its key
      * 

@@ -5,7 +5,6 @@ use \Tsugi\Util\U;
 use \Tsugi\Util\Net;
 
 require_once "../../config.php";
-require_once "../../admin/admin_util.php";
 
 // No parameter means we require CONTEXT, USER, and LINK
 $LAUNCH = LTIX::requireData(LTIX::USER);
@@ -178,7 +177,7 @@ $OUTPUT->header();
     </style>
 <?php
 
-$registrations = findAllRegistrations(false, true);
+$registrations = \Tsugi\Services\Admin\AdminService::findAllRegistrations(false, true);
 if ( count($registrations) < 1 ) $registrations = false;
 
 $OUTPUT->bodyStart();

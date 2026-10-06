@@ -1,5 +1,4 @@
 <?php
-require_once $CFG->dirroot."/admin/admin_util.php";
 $OUTPUT->header();
 ?>
 </head>
@@ -28,7 +27,7 @@ in an iframe.</li>
 <p>
 <?php
 
-$tools = findFiles();
+$tools = \Tsugi\Services\Admin\AdminService::findFiles();
 if ( count($tools) > 1 ) {
     echo("<p>Tools in this system:</p><ul>\n");
     foreach ($tools as $tool ) {

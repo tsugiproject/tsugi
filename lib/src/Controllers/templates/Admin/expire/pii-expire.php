@@ -1,0 +1,81 @@
+<?php
+use \Tsugi\Util\U;
+use \Tsugi\Blob\Access;
+
+if ( ! isset($_REQUEST['pii_days']) ) die('pii_days required');
+
+
+use \Tsugi\Core\LTIX;
+LTIX::getConnection();
+
+$limit = 1000;
+// Validate limit is a safe integer (MySQL LIMIT doesn't support parameters)
+if ( !is_numeric($limit) || $limit < 1 ) die('Invalid limit value');
+$limit = (int)$limit;
+
+if ( ! isset($_REQUEST['pii_days']) ) die('Required parameter pii_days');
+if ( ! is_numeric($_REQUEST['pii_days']) ) die('pii_days must be a number');
+$days = $_REQUEST['pii_days'] + 0;
+if ($days < 1 ) die('bad value for pii_days');
+
+$check = \Tsugi\Services\Admin\AdminService::sanity_check_days('PII', $days);
+
+if ( is_string($check) ) die($check);
+
+$pii_count = \Tsugi\Services\Admin\AdminService::get_pii_count($days);
+
+// Note pii_where includes only non-null PII users
+$where = \Tsugi\Services\Admin\AdminService::get_pii_where($days);
+$sql = "UPDATE {$CFG->dbprefix}lti_user 
+    SET displayname=NULL, email=NULL " . $where['sql'] . "
+    ORDER BY login_at LIMIT " . $limit;
+$params = $where['params'];
+
+// Create display version of SQL with actual values substituted (for display only)
+$sql_display = \Tsugi\Util\PDOX::sqlDisplay($sql, $params);
+
+if ( isset($_POST['doDelete']) && isset($_POST['pii_days']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(U::addSession($_SERVER['REQUEST_URI'])) ) return;
+    echo("<pre>\n");
+    $start = time();
+
+    $stmt = $PDOX->prepare($sql);
+    $stmt->execute($params);
+
+    $count = $stmt->rowCount();
+    echo("Rows updated: $count\n");
+    $delta = time() - $start;
+    echo("\nEllapsed time: $delta seconds\n");
+    echo("</pre>\n");
+    echo("<p>Process complete - you can close this window.</p>\n");
+    return;
+}
+
+?>
+<h1>Expire Personally Identifable Information</h1>
+<p>
+Preparing to delete PII &gt; <?= $days ?>  days old for <?= $pii_count ?> users
+using the following SQL:
+<pre>
+<?= htmlspecialchars($sql_display) ?>
+</pre>
+<form method="post">
+<?= \Tsugi\Controllers\Tool::csrfField() ?>
+<input type="hidden" name="pii_days" value="<?= $days ?>">
+<input type="submit" name="doDelete" value="Delete PII for <?= $pii_count ?> Users">
+</form>
+<p>
+Note that online we limit the number of records that an be deleted per request to 
+keep requests from timing out.   If you want to automate the process of PII expiration,
+set the value
+<pre>
+$CFG-&gt;expire_pii_days = 120;
+</pre>
+in your <b>config.php</b> and then run the commands:
+<pre>
+cd tsugi/admin/expire-maint
+php pii-batch.php [remove]
+</pre>
+If you don't include <b>remove</b> it will just do a dry run and tell you what would
+have been removed.
+</p>

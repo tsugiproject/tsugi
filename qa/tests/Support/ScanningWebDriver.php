@@ -16,6 +16,8 @@ use Facebook\WebDriver\WebDriverWait;
  */
 final class ScanningWebDriver implements WebDriver, JavaScriptExecutor
 {
+    private string $lastPausedUrl = '';
+
     public function __construct(
         private readonly RemoteWebDriver $inner,
         private readonly TsugiPantherTestCase $test,
@@ -25,9 +27,28 @@ final class ScanningWebDriver implements WebDriver, JavaScriptExecutor
     public function getPageSource()
     {
         $html = $this->readPageSource();
+        $this->pauseOnNewScreen();
         $this->test->assertPageHasNoPhpError($html, $this->currentUrl());
 
         return $html;
+    }
+
+    /**
+     * qa/panther-watch.sh sets PANTHER_WATCH_PAUSE. Headless CI leaves it unset.
+     */
+    private function pauseOnNewScreen(): void
+    {
+        $raw = getenv('PANTHER_WATCH_PAUSE');
+        if ($raw === false || $raw === '' || !is_numeric($raw) || (float) $raw <= 0) {
+            return;
+        }
+        $url = $this->currentUrl();
+        if ($url === '' || $url === $this->lastPausedUrl) {
+            return;
+        }
+        $this->lastPausedUrl = $url;
+        fwrite(STDERR, sprintf("\nWatching %s for %ss\n", $url, $raw));
+        usleep((int) round(((float) $raw) * 1000000));
     }
 
     /**

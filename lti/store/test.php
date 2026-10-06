@@ -6,7 +6,6 @@ use \Tsugi\Core\LTIX;
 use \Tsugi\UI\Theme;
 
 require_once "../../config.php";
-require_once "../../admin/admin_util.php";
 require_once __DIR__ . "/../../store/dev-data.php";
 
 // No parameter means we require CONTEXT, USER, and LINK
@@ -94,7 +93,7 @@ $OUTPUT->header();
     </style>
 <?php
 
-$registrations = findAllRegistrations();
+$registrations = \Tsugi\Services\Admin\AdminService::findAllRegistrations();
 if ( count($registrations) < 1 ) $registrations = false;
 
 // Switch user data if requested

@@ -3,23 +3,23 @@
 use \Tsugi\Util\U;
 use \Tsugi\Core\LTIX;
 
-if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
-require_once __DIR__ . '/../config.php';
-require_once __DIR__ . '/admin_util.php';
+/**
+ * Web and shell entry for the database upgrade.
+ * The admin controller calls this after the passphrase gate.
+ * `php admin/upgrade.php` calls it from the shell.
+ */
+function tsugi_admin_upgrade_run() {
+    global $CFG, $PDOX, $OUTPUT;
 
-if ( ! U::isCli() ) {
-    \Tsugi\Core\Admin::session_start();
-    require_once("gate.php");
-    if ( $REDIRECTED === true || ! isset($_SESSION["admin"]) ) return;
+    if ( ! U::isCli() ) {
+        // https://stackoverflow.com/questions/3133209/how-to-flush-output-after-each-echo-call
+        @ini_set('zlib.output_compression',0);
+        @ini_set('implicit_flush',1);
+        @ob_end_clean();
+        set_time_limit(0);
+    }
 
-    // https://stackoverflow.com/questions/3133209/how-to-flush-output-after-each-echo-call
-    @ini_set('zlib.output_compression',0);
-    @ini_set('implicit_flush',1);
-    @ob_end_clean();
-    set_time_limit(0);
-}
-
-LTIX::getConnection();
+    LTIX::getConnection();
 
 
 if ( ! U::isCli() ) {
@@ -70,6 +70,10 @@ $path_migrations = array(
     'lib/src/Controllers/database/Discussions/database.php' => 'lib/src/Services/Discussions/database.php',
     'tool/peer-grade/database.php' => 'lib/src/Services/PeerGrade/database.php',
     'admin/mail/database.php' => 'lib/src/Services/Mail/database.php',
+    'admin/lti/database.php' => 'lib/src/Services/Lti/database.php',
+    'admin/key/database.php' => 'lib/src/Services/Key/database.php',
+    'admin/blob/database.php' => 'lib/src/Services/Blob/database.php',
+    'admin/install/database.php' => 'lib/src/Services/Admin/database.php',
 );
 foreach ($path_migrations as $old_path => $new_path) {
     $sql = "SELECT plugin_id FROM {$plugins} WHERE plugin_path = :old_path";
@@ -94,35 +98,37 @@ foreach ($path_migrations as $old_path => $new_path) {
     }
 }
 
-echo("Checking Core LTI Tables...<br/>\n");
-$tools = searchTwoLevels("database.php", $CFG->dirroot.'/admin');
-// A simple precedence order..   Will have to improve this.
-for($i=0; $i<count($tools); $i++) {
-    $tools[$i] = U::remove_relative_path($tools[$i]);
-}
-foreach($tools as $k => $tool ) {
-    if ( strpos($tool,"admin/lti/database.php") && $k != 0 ) {
-        $tmp = $tools[0];
-        $tools[0] = $tools[$k];
-        $tools[$k] = $tmp;
-        break;
-    }
-}
-
 echo("Checking Services Tables...<br/>\n");
-// Scan lib/src/Services for database.php files (Announcements, Pages, Discussions, Badges, etc.)
-$svcdb = searchTwoLevels("database.php", $CFG->dirroot.'/lib/src/Services');
-for($i=0; $i<count($svcdb); $i++) {
-    $svcdb[$i] = U::remove_relative_path($svcdb[$i]);
+// LTI tables come first. Other service schemas follow in path order.
+// Fresh installs create foreign keys to lti_user, lti_context, and lti_link.
+$lti_schema = 'lib/src/Services/Lti/database.php';
+$svcdb = \Tsugi\Services\Admin\AdminService::searchTwoLevels("database.php", $CFG->dirroot.'/lib/src/Services');
+$services = array();
+foreach ( $svcdb as $tool ) {
+    $services[] = U::remove_relative_path($tool);
 }
-foreach($svcdb as $tool) {
-    if ( in_array($tool, $tools) ) continue;
+usort($services, function ($a, $b) use ($CFG) {
+    $left = \Tsugi\Services\Admin\AdminService::trimAsMuchAsYouCan($a, $CFG->dirroot);
+    $right = \Tsugi\Services\Admin\AdminService::trimAsMuchAsYouCan($b, $CFG->dirroot);
+    return strcmp($left, $right);
+});
+$tools = array();
+$rest = array();
+foreach ( $services as $tool ) {
+    $relative = \Tsugi\Services\Admin\AdminService::trimAsMuchAsYouCan($tool, $CFG->dirroot);
+    if ( $relative === $lti_schema ) {
+        $tools[] = $tool;
+        continue;
+    }
+    $rest[] = $tool;
+}
+foreach ( $rest as $tool ) {
     $tools[] = $tool;
 }
 
 echo("Checking Installed Modules Tables...<br/>\n");
 // Scan the tools folders
-$moretools = findToolFiles("database.php", $CFG->dirroot);
+$moretools = \Tsugi\Services\Admin\AdminService::findToolFiles("database.php", $CFG->dirroot);
 for($i=0; $i<count($moretools); $i++) {
     $moretools[$i] = U::remove_relative_path($moretools[$i]);
 }
@@ -137,7 +143,7 @@ $discussions_lib = 'lib/src/Services/Discussions/database.php';
 $legacy_discussions = array('tool/tdiscus/database.php');
 $has_discussions_lib = false;
 foreach ( $tools as $tool ) {
-    $relative = U::remove_relative_path(trimAsMuchAsYouCan($tool, $CFG->dirroot));
+    $relative = U::remove_relative_path(\Tsugi\Services\Admin\AdminService::trimAsMuchAsYouCan($tool, $CFG->dirroot));
     if ( $relative === $discussions_lib ) {
         $has_discussions_lib = true;
         break;
@@ -146,7 +152,7 @@ foreach ( $tools as $tool ) {
 if ( $has_discussions_lib ) {
     $filtered = array();
     foreach ( $tools as $tool ) {
-        $relative = U::remove_relative_path(trimAsMuchAsYouCan($tool, $CFG->dirroot));
+        $relative = U::remove_relative_path(\Tsugi\Services\Admin\AdminService::trimAsMuchAsYouCan($tool, $CFG->dirroot));
         $is_legacy = false;
         foreach ( $legacy_discussions as $legacy ) {
             if ( $relative === $legacy || substr($relative, -strlen($legacy)) === $legacy ) {
@@ -166,7 +172,7 @@ $legacy_peer_grade = array('tool/peer-grade/database.php');
 if ( in_array($peer_grade_lib, $tools) ) {
     $filtered = array();
     foreach ( $tools as $tool ) {
-        $relative = trimAsMuchAsYouCan($tool, $CFG->dirroot);
+        $relative = \Tsugi\Services\Admin\AdminService::trimAsMuchAsYouCan($tool, $CFG->dirroot);
         if ( in_array($relative, $legacy_peer_grade) ) continue;
         $filtered[] = $tool;
     }
@@ -182,14 +188,16 @@ if ( count($tools) < 1 ) {
 $maxversion = 0;
 $maxpath = '';
 foreach($tools as $tool ) {
-    $path = trimAsMuchAsYouCan($tool, $CFG->dirroot);
+    $path = \Tsugi\Services\Admin\AdminService::trimAsMuchAsYouCan($tool, $CFG->dirroot);
     echo("Checking $path ...<br/>\n");
-    unset($DATABASE_INSTALL);
-    unset($DATABASE_POST_CREATE);
-    unset($DATABASE_UNINSTALL);
-    unset($DATABASE_UPGRADE);
+    // Drop the previous schema file's variables. isset(null) is false,
+    // so a file that omits one of these does not inherit the last file.
+    $DATABASE_INSTALL = null;
+    $DATABASE_POST_CREATE = null;
+    $DATABASE_UNINSTALL = null;
+    $DATABASE_UPGRADE = null;
     require($tool);
-    require('migrate-run.php');
+    require __DIR__ . '/migrate-run.php';
     flush();
 }
 
@@ -212,4 +220,13 @@ if ( $maxversion > $CFG->dbversion ) {
 
 if( ! U::isCli() ) {
     echo("\n</body>\n</html>\n");
+}
+}
+
+if ( PHP_SAPI === 'cli'
+    && isset($_SERVER['SCRIPT_FILENAME'])
+    && realpath($_SERVER['SCRIPT_FILENAME']) === realpath(__FILE__) ) {
+    if ( ! defined('COOKIE_SESSION') ) define('COOKIE_SESSION', true);
+    require_once __DIR__ . '/../config.php';
+    tsugi_admin_upgrade_run();
 }

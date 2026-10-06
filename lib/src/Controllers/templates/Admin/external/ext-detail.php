@@ -1,0 +1,72 @@
+<?php
+// In the top frame, we use cookies for session.
+
+use \Tsugi\Util\U;
+use \Tsugi\Util\LTI13;
+use \Tsugi\UI\CrudForm;
+
+\Tsugi\Core\LTIX::getConnection();
+
+header('Content-Type: text/html; charset=utf-8');
+
+if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) {
+    die('Must be admin');
+}
+
+$tablename = "{$CFG->dbprefix}lti_external";
+$fields = array("external_id", "endpoint", "name", "url", "description", "pubkey", "privkey", "fa_icon", "json");
+$realfields = array("external_id", "endpoint", "name", "url", "description", "pubkey", "privkey", "fa_icon", "json");
+$current = \Tsugi\Core\LTIX::curPageUrlNoQuery();
+$from_location = ".";
+$allow_delete = true;
+$allow_edit = true;
+$where_clause = '';
+$query_fields = array();
+$titles = array(
+    'endpoint' => 'Launch endpoint on this system under /ext - must be letters, numbers and underscores and must be unique',
+    'name' => 'Name of tool shown to user in the store',
+    'fa_icon' => "An optional FontAwesome icon like 'fa-fast-forward'",
+    'url' => 'URL Where the external tool receives launches',
+    'pubkey' => 'Remote Tsugi Tool Public Key (Do not edit this value, set to blank to re-generate)',
+    'json' => 'Additional settings for your tool registration (see below)'
+);
+
+// Handle the post data
+if ( isset($_POST['doUpdate']) || isset($_POST['doDelete']) ) {
+    if ( \Tsugi\Controllers\Tool::csrfRedirect(U::addsession($from_location)) ) return;
+}
+
+if ( U::get($_POST,'endpoint') ) {
+    if ( strlen(U::get($_POST,'pubkey')) < 1 || strlen(U::get($_POST,'privkey'))) {
+        /** @var true|string $success */
+        $success = LTI13::generatePKCS8Pair($publicKey, $privateKey);
+        if ( $success !== true ) {
+            U::flashError("Could not create key pair:".$success);
+            header("Location: ".U::addsession($from_location));
+            return;
+        }
+        $_POST['pubkey'] = $publicKey;
+        $_POST['privkey'] = $privateKey;
+    }
+}
+$row =  CrudForm::handleUpdate($tablename, $realfields, $where_clause,
+    $query_fields, $allow_edit, $allow_delete);
+
+if ( $row === CrudForm::CRUD_FAIL || $row === CrudForm::CRUD_SUCCESS ) {
+    header("Location: ".U::addsession($from_location));
+    return;
+}
+
+$OUTPUT->header();
+$OUTPUT->bodyStart();
+$OUTPUT->topNav();
+$OUTPUT->flashMessages();
+
+$title = 'Remote Tsugi Tool Entry';
+echo("<h1>$title</h1>\n<p>\n");
+$extra_buttons=false;
+$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
+if ( is_string($retval) ) die($retval);
+echo("</p>\n");
+
+$OUTPUT->footer();

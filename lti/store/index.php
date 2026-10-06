@@ -1,6 +1,5 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/admin/admin_util.php";
 
 use \Tsugi\Core\Settings;
 use \Tsugi\Core\LTIX;
@@ -270,7 +269,7 @@ if ( $allow_lti || $allow_link || $allow_import ) {
 
 // Load Tool Registrations
 if ( $allow_lti ) {
-    $registrations = findAllRegistrations(false, true);
+    $registrations = \Tsugi\Services\Admin\AdminService::findAllRegistrations(false, true);
 
     // Filter the registrations
     if ( isset($CFG->storehide) && is_string($CFG->storehide) && ! $USER->admin ) {

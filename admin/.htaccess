@@ -1,11 +1,13 @@
+# Every admin URL is a controller. Maintenance scripts live in
+# admin/blob-maint/, admin/expire-maint/, and admin/install/ so those
+# folder names do not match the routes (/admin/modules for install).
+Options -Indexes
 <IfModule mod_rewrite.c>
     RewriteEngine on
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} !=/favicon.ico
-    RewriteRule ^ route.php [L]
+    RewriteRule ^route-controller\.php$ - [L]
+    RewriteRule ^ route-controller.php [L,QSA]
 </IfModule>
 
 <IfModule !mod_rewrite.c>
-    FallbackResource route.php
+    FallbackResource route-controller.php
 </IfModule>

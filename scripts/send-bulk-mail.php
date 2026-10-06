@@ -12,7 +12,6 @@ if ( php_sapi_name() !== 'cli' ) {
 }
 
 require_once dirname(__DIR__) . '/config.php';
-require_once dirname(__DIR__) . '/admin/context/mail_audience.php';
 
 use \Tsugi\Core\LTIX;
 use \Tsugi\Util\U;
@@ -56,7 +55,7 @@ CALLING SEQUENCE
   1. Load config.php and connect to the database
   2. Resolve audience:
        --email=...  → single context member (list of one)
-       otherwise    → mail_context_audience() with days / exclude / limit / flags
+       otherwise    → \Tsugi\Services\Admin\AdminService::mail_context_audience() with days / exclude / limit / flags
   3. Print transport, filters, recipient count, and a sample of emails
   4. If --send is omitted → stop (dry-run)
   5. If --send:
@@ -256,7 +255,7 @@ if ( $single_email !== '' ) {
         fwrite(STDERR, "Error: --email looks invalid.\n");
         exit(1);
     }
-    $rows = mail_context_audience_by_email($context_id, $single_email);
+    $rows = \Tsugi\Services\Admin\AdminService::mail_context_audience_by_email($context_id, $single_email);
     $meta = array(
         'source' => 'cli',
         'single_email' => $single_email,
@@ -279,7 +278,7 @@ if ( $single_email !== '' ) {
         fwrite(STDERR, "Error: --limit must be 0 or greater (0 = no limit).\n");
         exit(1);
     }
-    $audience_stats = mail_context_audience_stats(
+    $audience_stats = \Tsugi\Services\Admin\AdminService::mail_context_audience_stats(
         $context_id,
         $days,
         $opts['include_opted_out'],
@@ -291,7 +290,7 @@ if ( $single_email !== '' ) {
         fwrite(STDERR, "Error: invalid audience filters.\n");
         exit(1);
     }
-    $rows = mail_context_audience(
+    $rows = \Tsugi\Services\Admin\AdminService::mail_context_audience(
         $context_id,
         $days,
         $opts['include_opted_out'],

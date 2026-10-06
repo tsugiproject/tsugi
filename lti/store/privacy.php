@@ -1,6 +1,5 @@
 <?php
 require_once "../../config.php";
-require_once $CFG->dirroot."/admin/admin_util.php";
 
 use \Tsugi\Core\LTIX;
 
