@@ -104,9 +104,8 @@ class LtiExtRoster {
         }
 
         $cur_page_url = LTIX::curPageUrl();
-        $row_secret = $row['secret'];
 
-        $valid = LTI::verifyKeyAndSecret($post_key,$row_secret,$cur_page_url, $_POST);
+        $valid = LTI::verifyKeyAndSecret($post_key, $oauth_consumer_secret, $cur_page_url, $_POST);
         if ( is_array($valid) ) {
             Net::send403($valid[0], $valid[1]);
             return;

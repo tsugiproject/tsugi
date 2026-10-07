@@ -25,8 +25,12 @@ class AnalyticsCookie {
         session_start();
 
         $link_id = U::get($_GET, 'link_id');
-        if ( $link_id !== null ) $link_id = $link_id + 0;
-        if ( ! $link_id || $link_id < 1 ) {
+        if ( is_string($link_id) && ctype_digit($link_id) ) {
+            $link_id = (int) $link_id;
+        } else {
+            $link_id = 0;
+        }
+        if ( $link_id < 1 ) {
             http_response_code(403);
             echo(json_encode(array('error' => 'No link_id'), JSON_PRETTY_PRINT));
             return;

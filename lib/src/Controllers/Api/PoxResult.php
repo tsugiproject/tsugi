@@ -222,10 +222,10 @@ class PoxResult {
         } else if ( $operation == "deleteResultRequest" ) {
             $sql = "UPDATE {$CFG->dbprefix}lti_result SET
                 grade=NULL, ipaddr = :IP, updated_at=NOW()
-                WHERE link_id = :LID";
+                WHERE link_id = :LID AND result_id = :RID";
 
             $retval = $PDOX->queryDie($sql, array(
-                ":LID" => $link_id, ":IP" => $ipaddr)
+                ":LID" => $link_id, ":RID" => $result_id, ":IP" => $ipaddr)
             );
             if( $retval->success) {
                 GradeUtil::invalidateGradesCurrentUser();

@@ -35,6 +35,24 @@ final class ApiGuardTest extends ApiTestCase
         $this->assertSame('No link_id', $json['error'] ?? null, $missing->excerpt());
         $this->assertPageHasNoPhpError($missing->body, 'analytics_cookie');
 
+        foreach (['abc', '1.5'] as $bad) {
+            $malformed = $this->http()->request('GET', 'api/analytics_cookie.php', [
+                'query' => ['link_id' => $bad],
+            ]);
+            $this->assertHttpStatus($malformed, 403, 'analytics_cookie '.$bad);
+            $json = $this->assertJsonObject($malformed, 'analytics_cookie '.$bad);
+            $this->assertSame('No link_id', $json['error'] ?? null, $malformed->excerpt());
+            $this->assertPageHasNoPhpError($malformed->body, 'analytics_cookie '.$bad);
+        }
+
+        $array = $this->http()->request('GET', 'api/analytics_cookie.php', [
+            'query' => ['link_id' => ['1']],
+        ]);
+        $this->assertHttpStatus($array, 403, 'analytics_cookie array');
+        $json = $this->assertJsonObject($array, 'analytics_cookie array');
+        $this->assertSame('No link_id', $json['error'] ?? null, $array->excerpt());
+        $this->assertPageHasNoPhpError($array->body, 'analytics_cookie array');
+
         $unknown = $this->http()->request('GET', 'api/analytics_cookie.php', [
             'query' => ['link_id' => 1],
         ]);
