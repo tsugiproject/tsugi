@@ -137,6 +137,21 @@ final class ApiFixtures
     }
 
     /**
+     * @return array<string,mixed>
+     */
+    public static function linkSettings(int $linkId): array
+    {
+        $stmt = self::pdo()->prepare('SELECT settings FROM lti_link WHERE link_id = :id');
+        $stmt->execute([':id' => $linkId]);
+        $raw = $stmt->fetchColumn();
+        if (!is_string($raw) || $raw === '') {
+            return [];
+        }
+        $decoded = json_decode($raw, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
      * @return array{action: string, fields: array<string,string>}|null
      */
     private static function oauthForm(string $html): ?array
@@ -182,7 +197,7 @@ final class ApiFixtures
         return '';
     }
 
-    private static function linkIdForResource(string $resourceLinkId): int
+    private static function pdo(): PDO
     {
         $port = getenv('TSUGI_DB_PORT');
         if ($port === false || $port === '') {
@@ -197,13 +212,17 @@ final class ApiFixtures
             $pass = 'ltipassword';
         }
 
-        $pdo = new PDO(
+        return new PDO(
             'mysql:host=127.0.0.1;port='.$port.';dbname=tsugi',
             $user,
             $pass,
             [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
         );
-        $stmt = $pdo->prepare(
+    }
+
+    private static function linkIdForResource(string $resourceLinkId): int
+    {
+        $stmt = self::pdo()->prepare(
             'SELECT link_id FROM lti_link WHERE link_key = :k ORDER BY link_id DESC LIMIT 1'
         );
         $stmt->execute([':k' => $resourceLinkId]);

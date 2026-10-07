@@ -34,6 +34,39 @@ final class ApiLaunchTest extends ApiTestCase
         $this->assertPageHasNoPhpError($socket->body, 'socket');
     }
 
+    public function testSocketStoresAMessageInRoomZero(): void
+    {
+        $launch = ApiFixtures::giftLaunch($this);
+        $http = $this->http();
+        $text = 'qa-socket-'.bin2hex(random_bytes(4));
+
+        $posted = $http->request('POST', 'api/socket.php', [
+            'query' => $launch->query(),
+            'form' => ['message' => $text],
+        ]);
+        $this->assertHttpStatus($posted, 200, 'socket post');
+        $this->assertSame('', trim($posted->body), $posted->excerpt());
+        $this->assertPageHasNoPhpError($posted->body, 'socket post');
+
+        $room = $http->request('GET', 'api/socket.php', [
+            'query' => $launch->query(),
+        ]);
+        $this->assertHttpStatus($room, 200, 'socket room 0');
+        $rows = json_decode($room->body, true);
+        $this->assertIsArray($rows, $room->excerpt());
+        $messages = array_column($rows, 'message');
+        $this->assertContains($text, $messages, $room->excerpt());
+
+        $other = $http->request('GET', 'api/socket.php/1', [
+            'query' => $launch->query(),
+        ]);
+        $this->assertHttpStatus($other, 200, 'socket room 1');
+        $otherRows = json_decode($other->body, true);
+        $this->assertIsArray($otherRows, $other->excerpt());
+        $this->assertNotContains($text, array_column($otherRows, 'message'), $other->excerpt());
+        $this->assertPageHasNoPhpError($other->body, 'socket room 1');
+    }
+
     public function testSettingsRequireTheLaunchCsrfToken(): void
     {
         $launch = ApiFixtures::giftLaunch($this);
@@ -60,6 +93,27 @@ final class ApiLaunchTest extends ApiTestCase
         $this->assertHttpStatus($saved, 200, 'settings');
         $this->assertSame('{}', trim($saved->body), $saved->excerpt());
         $this->assertPageHasNoPhpError($saved->body, 'settings');
+    }
+
+    public function testSettingsSaveALinkValue(): void
+    {
+        $launch = ApiFixtures::giftLaunch($this);
+        $marker = 'qa-api-'.bin2hex(random_bytes(4));
+
+        $saved = $this->http()->request('POST', 'api/settings.php', [
+            'query' => $launch->query(),
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'X-CSRF-TOKEN' => $launch->csrf,
+            ],
+            'body' => json_encode(['qa_api_marker' => $marker]),
+        ]);
+        $this->assertHttpStatus($saved, 200, 'settings save');
+        $this->assertSame('{}', trim($saved->body), $saved->excerpt());
+        $this->assertPageHasNoPhpError($saved->body, 'settings save');
+
+        $settings = ApiFixtures::linkSettings($launch->linkId);
+        $this->assertSame($marker, $settings['qa_api_marker'] ?? null);
     }
 
     public function testGradeSubmitAndRecordAttemptStopWithoutABudget(): void
@@ -126,5 +180,19 @@ final class ApiLaunchTest extends ApiTestCase
         $json = $this->assertJsonObject($refused, 'analytics_cookie student');
         $this->assertSame('Not authorized', $json['error'] ?? null, $refused->excerpt());
         $this->assertPageHasNoPhpError($refused->body, 'analytics_cookie student');
+    }
+
+    public function testRpcStopsWhenTheSessionHasNoObject(): void
+    {
+        // Annotate clears the launch it is given. A later call has to open its own.
+        $launch = ApiFixtures::giftLaunch($this, true);
+        $token = ApiFixtures::rpcToken(ApiFixtures::dockerCookiePad().'::'.$launch->sessionId);
+
+        $response = $this->http()->request('POST', 'api/rpc.php', [
+            'form' => ['token' => $token],
+        ]);
+        $this->assertHttpStatus($response, 400, 'rpc object');
+        $this->assertStringContainsString('{"detail":"Missing object"}', $response->body, $response->excerpt());
+        $this->assertPageHasNoPhpError($response->body, 'rpc object');
     }
 }
