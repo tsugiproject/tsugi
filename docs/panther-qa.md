@@ -59,3 +59,13 @@ These launch from the store without a site login. Try It picks an identity and t
 **`ToolHappyPathTest::testPeerGradeHappyPathConfigureAssignment`** opens Peer Grade's configure screen, saves an assignment title, and expects the upload screen.
 
 **`ToolHappyPathTest::testTdiscusHappyPathCreateThread`** opens the new-thread form, posts a title and body, and expects that thread title on the discussion.
+
+## API
+
+These hit `/api/` with HTTP and do not open Chrome. They run in the same Docker stack as the browser tests. To walk the same endpoints yourself in a browser, use [api-browser.md](api-browser.md).
+
+**`ApiGuardTest`** calls each endpoint with no session: missing login, missing LTI session, bad content type, bad sourcedid, unknown path, and RPC tokens that do not open a session.
+
+**`ApiCookieTest`** logs in as Instructor 01 through `/login/simulate` and checks notifications plus the analytics cookie errors for a missing or unknown link.
+
+**`ApiLaunchTest`** POSTs the store Try It form for Gift, keeps the LTI session id, and calls the launch-scoped endpoints. It posts a socket message and reads it back from room 0, leaving room 1 without that message. It saves a link setting and reads `qa_api_marker` from `lti_link`. It also unlocks admin with that instructor cookie and reads analytics for the launched link. Grade submit and record-attempt stop at the missing session budget. Annotate and stickygrader are refused: a `tool/gift` session may call `/api/*.php`, and those two live in subdirectories. RPC with that launch session and no `object` stops at `Missing object` and is not asked to call a method.

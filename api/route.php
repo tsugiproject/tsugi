@@ -1,19 +1,30 @@
 <?php
 
-require_once('../config.php');
+// Session mode is fixed before config.php loads. A cookie session is only
+// for notifications and analytics_cookie. Every other /api/ URL, including
+// a 404, stays cookieless so an LTI session id in the query string is used.
+// Do not send /api through tsugi.php: that file defines COOKIE_SESSION
+// unless _LTI_TSUGI is already on the query string.
 
-// Make PHP paths pretty .../install => install.php
-$router = new Tsugi\Util\FileRouter();
-$file = $router->fileCheck();
-if ( $file ) {
-    require_once($file);
-    return;
+$apiUri = $_SERVER['REQUEST_URI'] ?? '';
+$apiQ = strpos($apiUri, '?');
+$apiPath = $apiQ === false ? $apiUri : substr($apiUri, 0, $apiQ);
+$apiPrefix = dirname($_SERVER['SCRIPT_NAME'] ?? '');
+$apiRest = $apiPath;
+if ( $apiPrefix !== '' && $apiPrefix !== '/' && $apiPrefix !== '.' && strpos($apiPath, $apiPrefix) === 0 ) {
+    $apiRest = substr($apiPath, strlen($apiPrefix));
+}
+$apiRest = ltrim($apiRest, '/');
+$apiSlash = strpos($apiRest, '/');
+$apiHead = $apiSlash === false ? $apiRest : substr($apiRest, 0, $apiSlash);
+if ( str_ends_with($apiHead, '.php') ) {
+    $apiHead = substr($apiHead, 0, -4);
 }
 
-// Add 404 Handling
-http_response_code(404);
-$OUTPUT->header();
-$OUTPUT->bodyStart();
-$OUTPUT->topNav();
-echo("<h2>Page not found.</h2>\n");
-$OUTPUT->footer();
+if ( ($apiHead === 'notifications' || $apiHead === 'analytics_cookie') && ! defined('COOKIE_SESSION') ) {
+    define('COOKIE_SESSION', true);
+}
+
+require_once __DIR__ . '/../config.php';
+
+\Tsugi\Controllers\Api\Router::dispatch($apiHead);

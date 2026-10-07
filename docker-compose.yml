@@ -28,11 +28,16 @@ services:
       TSUGI_DEMO_LOGIN: ${TSUGI_DEMO_LOGIN:-}
       TSUGI_DEMO_SECRET: ${TSUGI_DEMO_SECRET:-}
     volumes:
-      # Bind-mount the tree for dev; overlay config.php with a stub that requires
-      # config-dist.php (avoids host secrets/MAMP settings). File bind mounts work
-      # reliably across Docker Desktop platforms; anonymous volumes on a single file do not.
-      - .:/var/www/html/tsugi:delegated
-      - ./docker/tsugi-docker-config.php:/var/www/html/tsugi/config.php:ro
+      # Bind-mount the tree for dev, then overlay config.php so a host config.php
+      # (MAMP / local.dj4e.com) is not what Apache loads. The short nested-file
+      # syntax is listed by inspect but not mounted on Docker Desktop.
+      - type: bind
+        source: .
+        target: /var/www/html/tsugi
+      - type: bind
+        source: ./docker/tsugi-docker-config.php
+        target: /var/www/html/tsugi/config.php
+        read_only: true
     ports:
       # Host port (CI and docs default to 8888). Override locally, e.g. TSUGI_HOST_PORT=8000, to avoid MAMP.
       - "${TSUGI_HOST_PORT:-8888}:80"
