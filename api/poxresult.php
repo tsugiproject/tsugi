@@ -17,11 +17,11 @@ $hct = U::get($request_headers,'Content-Type', U::get($_SERVER, 'CONTENT_TYPE'))
 $response = LTI::getPOXResponse();
 
 if (strpos($hct,'application/xml') === false ) {
+    Net::send400("Must be content type xml, found ".$hct);
     header('Content-Type: text/plain');
 
     echo("Data dump:");
     print_r($request_headers);
-    Net::send400("Must be content type xml, found ".$hct);
     return;
 }
 

@@ -14,6 +14,7 @@ use \Tsugi\Core\Result;
 // https://github.com/sakaiproject/sakai/blob/master/basiclti/docs/sakai_basiclti_api.md
 
 $membership_id = U::get($_POST,'id');
+if ( ! is_string($membership_id) ) $membership_id = '';
 // Parse the sourcedid
 $pieces = explode('::', $membership_id);
 if ( count($pieces) != 4 ) {
@@ -146,7 +147,9 @@ $rows = $PDOX->allRowsDie($sql, array(":CID" => $context_id));
 
 header('Content-Type: application/xml; charset=utf-8');
 
-?><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+// A raw XML declaration is a PHP open tag when short_open_tag is on, so print it.
+echo "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n";
+?>
 <message_response>
    <lti_message_type>basic-lis-readmembershipsforcontext</lti_message_type>
    <members>

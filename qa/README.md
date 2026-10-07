@@ -38,6 +38,8 @@ A single file, if you want the path:
 
 Other classes in `qa/tests/` include `SmokeTest`, `StoreTest`, `ToolLaunchTest`, `ToolHappyPathTest`, `DemoCourseTest`, `CourseControllersTest`, `OrgAdminTest`, and `KeysetTest`. `KeysetTest` fetches `/lti/keyset.php` and checks the JWKS JSON. It does not open Chrome.
 
+`ApiGuardTest`, `ApiCookieTest`, and `ApiLaunchTest` call `/api/` over HTTP and do not open Chrome. Guards need no session. Cookie tests log in through `/login/simulate`. Launch tests POST the store Try It form for Gift and reuse that LTI session id.
+
 ## Watch Chrome
 
 `./qa/panther-watch.sh` opens a real Chrome window, prints each test name, and holds each new URL for 3 seconds. Panther stays headless unless `PANTHER_NO_HEADLESS=1`, which that script sets. With no arguments it runs `AdminTest`. Hold longer with `PANTHER_WATCH_PAUSE=5`.
