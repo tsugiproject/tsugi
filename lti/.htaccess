@@ -1,5 +1,7 @@
 <IfModule mod_rewrite.c>
     RewriteEngine on
+    # This folder does not inherit the root rewrite rules.
+    RewriteRule ^token/?$ token.php [L,QSA]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} !=/favicon.ico

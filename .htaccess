@@ -17,6 +17,13 @@
     # (shared libraries), so this has to run before the "skip real directories" rule.
     RewriteRule ^admin/route\.php$ - [L]
     RewriteRule ^admin(?:/|$) admin/route.php [L,QSA]
+    # LTI Advantage services are cookieless controllers. A browser session
+    # must not start, so these never fall through to tsugi.php.
+    RewriteRule ^ims/nrps/route\.php$ - [L]
+    RewriteRule ^ims/nrps(?:/|$) ims/nrps/route.php [L,QSA]
+    # A directory named token would 301 and drop a POST body. This is a file.
+    RewriteRule ^ims/token\.php$ - [L]
+    RewriteRule ^ims/token/?$ ims/token.php [L,QSA]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} !=/favicon.ico

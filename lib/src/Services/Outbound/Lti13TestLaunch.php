@@ -6,6 +6,7 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Tsugi\Core\Keyset;
 use Tsugi\Core\LTIX;
+use Tsugi\Services\Ims\NamesRoles;
 use Tsugi\Util\LTI13;
 
 /**
@@ -415,7 +416,7 @@ class Lti13TestLaunch {
         }
         if ( in_array(ToolRegistrationDocument::SCOPE_ROSTER, $scopes, true) ) {
             $claims[LTI13::NAMESANDROLES_CLAIM] = array(
-                'context_memberships_url' => $issuer.'/lti/nrps/context/'.$contextId.'/memberships',
+                'context_memberships_url' => NamesRoles::membershipUrl($contextId),
                 'service_versions' => array('2.0'),
             );
         }

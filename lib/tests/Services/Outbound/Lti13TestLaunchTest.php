@@ -1,6 +1,7 @@
 <?php
 
 use Tsugi\Core\Keyset;
+use Tsugi\Services\Ims\NamesRoles;
 use Tsugi\Services\Outbound\Lti13TestLaunch;
 use Tsugi\Services\Outbound\PlatformDynamicRegistration;
 use Tsugi\Services\Outbound\ToolRegistrationDocument;
@@ -125,7 +126,11 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $this->assertSame('test-'.$registrationId, $body->{LTI13::RESOURCE_LINK_CLAIM}->id);
         $this->assertContains(ToolRegistrationDocument::SCOPE_SCORE, $body->{LTI13::ENDPOINT_CLAIM}->scope);
         $this->assertStringContainsString('/lti/ags/context/'.$this->id['eecs280'].'/lineitems', $body->{LTI13::ENDPOINT_CLAIM}->lineitems);
-        $this->assertStringContainsString('/memberships', $body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url);
+        $this->assertSame(
+            NamesRoles::membershipUrl($this->id['eecs280']),
+            $body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url
+        );
+        $this->assertContains('2.0', $body->{LTI13::NAMESANDROLES_CLAIM}->service_versions);
 
         $verified = false;
         foreach ( Keyset::getCurrentKeys() as $row ) {
