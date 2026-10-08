@@ -213,7 +213,7 @@ class Lti11CourseTool {
     /**
      * Tools already visible in this course.
      *
-     * course_owned is true when this course administers an LTI 1.1 registration.
+     * course_owned is true when this course administers the registration.
      * A tool shared from an organization stays visible and is not course_owned.
      *
      * @param int $contextId
@@ -225,10 +225,12 @@ class Lti11CourseTool {
         $counts = ToolRegistrationService::otherLaunchUrlCounts(array_column($tools, 'registration_id'));
         foreach ( $tools as $i => $tool ) {
             $registration = ToolRegistrationService::findRegistration((int) $tool['registration_id']);
+            $versionOwned = $registration !== null ? (string) $registration['lti_version'] : '';
             $tools[$i]['course_owned'] = $registration !== null
-                && $registration['lti_version'] === '1.1'
-                && $registration['owner_context_id'] === $contextId;
-            $tools[$i]['can_test'] = $registration !== null && $registration['lti_version'] === '1.1';
+                && $registration['owner_context_id'] === $contextId
+                && ($versionOwned === '1.1' || $versionOwned === '1.3');
+            $tools[$i]['can_test'] = $registration !== null
+                && ($registration['lti_version'] === '1.1' || $registration['lti_version'] === '1.3');
             $version = $registration !== null ? (string) $registration['lti_version'] : '';
             $tools[$i]['lti_version'] = ($version === '1.1' || $version === '1.3') ? $version : '';
             $registrationId = (int) $tool['registration_id'];
