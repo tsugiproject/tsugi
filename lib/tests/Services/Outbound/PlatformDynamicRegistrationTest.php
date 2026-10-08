@@ -38,6 +38,10 @@ class PlatformDynamicRegistrationTest extends PlatformSchemaCase
             $this->assertStringNotContainsString('?', $config[$key]);
         }
         $this->assertSame('tsugi.org', $config[PlatformDynamicRegistration::PLATFORM_CONFIGURATION]['product_family_code']);
+        $this->assertSame(
+            array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest', 'LtiDataPrivacyLaunchRequest'),
+            array_column($config[PlatformDynamicRegistration::PLATFORM_CONFIGURATION]['messages_supported'], 'type')
+        );
     }
 
     public function testPostCreatesTheToolOnce(): void
@@ -163,6 +167,44 @@ class PlatformDynamicRegistrationTest extends PlatformSchemaCase
         $info = PlatformDynamicRegistration::courseToken($token, $this->id['eecs280']);
         $this->assertIsArray($info);
         $this->assertFalse($info['used']);
+    }
+
+    public function testLoginUrlWithMarkupIsRejected(): void
+    {
+        $token = PlatformDynamicRegistration::startForCourse(
+            $this->id['eecs280'],
+            null,
+            'https://client.example.org/register'
+        );
+        $raw = json_encode(array(
+            'initiate_login_uri' => 'https://client.example.org/lti"><script>',
+            'redirect_uris' => array('https://client.example.org/callback?a=1&b=2'),
+            'jwks_uri' => 'https://client.example.org/jwks.json',
+            'client_name' => 'Markup Garden',
+        ));
+        $this->assertIsString($raw);
+        $result = PlatformDynamicRegistration::accept('Bearer '.$token, $raw, 'application/json');
+        $this->assertSame(400, $result['status']);
+        $this->assertNull($this->registrationIdOrNull('Markup Garden'));
+    }
+
+    public function testLoginUrlQueryStringIsAccepted(): void
+    {
+        $token = PlatformDynamicRegistration::startForCourse(
+            $this->id['eecs280'],
+            null,
+            'https://client.example.org/register'
+        );
+        $raw = json_encode(array(
+            'initiate_login_uri' => 'https://client.example.org/lti?a=1&b=2',
+            'redirect_uris' => array('https://client.example.org/callback'),
+            'jwks_uri' => 'https://client.example.org/jwks.json',
+            'client_name' => 'Query Garden',
+        ));
+        $this->assertIsString($raw);
+        $result = PlatformDynamicRegistration::accept('Bearer '.$token, $raw, 'application/json');
+        $this->assertSame(200, $result['status']);
+        $this->assertSame('https://client.example.org/lti?a=1&b=2', $this->column($this->registrationId('Query Garden'), 'lti13_oidc_login_url'));
     }
 
     public function testUnknownTokenIsRejectedWithoutALogRow(): void

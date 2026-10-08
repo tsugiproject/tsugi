@@ -1295,10 +1295,8 @@ array( "{$CFG->dbprefix}lti_tool_registration_token",
         REFERENCES `{$CFG->dbprefix}lti_org` (`org_id`, `key_id`)
         ON DELETE RESTRICT ON UPDATE RESTRICT,
 
-    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_token_ibfk_3`
-        FOREIGN KEY (`owner_context_id`, `key_id`)
-        REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`, `key_id`)
-        ON DELETE RESTRICT ON UPDATE RESTRICT,
+    -- The course-owner foreign key is added in DATABASE_UPGRADE. An existing
+    -- lti_context must gain (context_id, key_id) before that key can be added.
 
     CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_token_ibfk_4`
         FOREIGN KEY (`created_by_user_id`)
@@ -2196,6 +2194,19 @@ $DATABASE_UPGRADE = function($oldversion) {
             error_log("Upgrading: ".$sql);
             $q = $PDOX->queryReturnError($sql);
             if ( ! $q->success ) die("Unable to add lti_context (context_id, key_id) key: ".$q->errorImplode."<br/>\n");
+        }
+
+        $token_table = "{$p}lti_tool_registration_token";
+        $token_context_fk = "{$p}lti_tool_registration_token_ibfk_3";
+        if ( $PDOX->metadata($token_table) !== false && ! $constraint_exists($token_table, $token_context_fk) ) {
+            $sql = "ALTER TABLE {$token_table} ADD CONSTRAINT `{$token_context_fk}`
+                FOREIGN KEY (`owner_context_id`, `key_id`)
+                REFERENCES `{$context_table}` (`context_id`, `key_id`)
+                ON DELETE RESTRICT ON UPDATE RESTRICT";
+            echo("Upgrading: ".$sql."<br/>\n");
+            error_log("Upgrading: ".$sql);
+            $q = $PDOX->queryReturnError($sql);
+            if ( ! $q->success ) die("Unable to add {$token_context_fk}: ".$q->errorImplode."<br/>\n");
         }
 
         $content_table = "{$p}lti_content";

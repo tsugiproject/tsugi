@@ -26,6 +26,8 @@ Instructor course tests log in as the demo persona Instructor 01, grant course c
 
 **`CourseToolLaunchDebugTest::testPrivacyCheckboxesAppearInTheLaunchDebugToggle`** adds four LTI 1.1 tools on a course: names only, email only, both, and neither. Each tool's Test page opens the launch debug toggle. The parameter list includes a name or an email only when that privacy box was checked. The test does not submit the launch.
 
+**`CourseToolLoopbackTest::testSameServerDynamicRegistrationShowsPrivacyAndDeepLink`** creates a draft tenant key, sets a one-time unlock code, and registers that key into the Panther course through the course tools dynamic registration URL. The same Docker Tsugi is the platform and the tool. The installed tool view lists a deep link and a privacy launch. The test page shows those two launches. It does not click Send.
+
 ## Course controllers
 
 **`CourseControllersTest::testInstructorUsesCourseControllers`** uploads a file and checks the folder count, posts an announcement, adds a discussion, and opens the grade book, assignments, and calendar. On course delete it types the confirmation fields but does not submit. It also creates the sample quiz, publishes it, and opens view and print.

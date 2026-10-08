@@ -173,6 +173,8 @@ class LTI {
     public static function postLaunchHTML($newparms, $endpoint, $debug=false, $iframeattr=false, $endform=false, $iframetitle=null, $protocol='1.1', $jwt=null) {
         global $LastOAuthBodyBaseString;
 
+        $endpoint = htmlspec_utf8(is_string($endpoint) ? $endpoint : '');
+
         if ( isset($newparms["ext_lti_element_id"]) ) {
             $frame_id = $newparms["ext_lti_element_id"];
         } else {

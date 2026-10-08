@@ -156,6 +156,10 @@ class DynamicRegistration {
             array("tsugi_from" => "www.tsugi.org"),
             SakaiCustom::deepLinkCustom(false)
         );
+        $privacy_launch = $CFG->wwwroot;
+        if ( isset($CFG->privacy_url) && is_string($CFG->privacy_url) && $CFG->privacy_url !== '' ) {
+            $privacy_launch = $CFG->privacy_url;
+        }
         $tool->messages = array(
             array(
                 "type" => "LtiDeepLinkingRequest",
@@ -163,15 +167,13 @@ class DynamicRegistration {
                 "target_link_uri" => $CFG->wwwroot . '/lti/store/',
                 "custom_parameters" => $custom_parameters,
             ),
-        );
-        if ( isset($CFG->privacy_url) && is_string($CFG->privacy_url) && $CFG->privacy_url !== '' ) {
-            $tool->messages[] = array(
+            array(
                 "type" => "LtiDataPrivacyLaunchRequest",
                 "label" => $json->client_name,
-                "target_link_uri" => $CFG->wwwroot,
+                "target_link_uri" => $privacy_launch,
                 "custom_parameters" => $custom_parameters,
-            );
-        }
+            ),
+        );
         $tool->messages = array_merge($tool->messages, array(
             array(
                 "type" => "LtiDeepLinkingRequest",

@@ -677,6 +677,11 @@ class LTITest extends \PHPUnit\Framework\TestCase
         $html = \Tsugi\Util\LTI::postLaunchHTML($signed, $this->endpoint, false, '_pause');
         $this->assertStringContainsString('<form', $html);
         $this->assertStringContainsString('action="'.$this->endpoint.'"', $html);
+        $hostile = 'https://evil.example/login"><script>alert(1)</script>';
+        $escaped = \Tsugi\Util\LTI::postLaunchHTML(array('lti_message_type' => 'basic-lti-launch-request'), $hostile, true, '_pause');
+        $this->assertStringNotContainsString($hostile, $escaped);
+        $this->assertStringContainsString('action="https://evil.example/login&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;"', $escaped);
+        $this->assertStringContainsString('https://evil.example/login&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;<br/>', $escaped);
         $this->assertStringContainsString('method="post"', $html);
         $this->assertStringContainsString('encType="application/x-www-form-urlencoded"', $html);
         $this->assertStringContainsString('oauth_consumer_key', $html);

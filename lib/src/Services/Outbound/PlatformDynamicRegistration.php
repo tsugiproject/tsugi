@@ -51,6 +51,7 @@ class PlatformDynamicRegistration {
                 'messages_supported' => array(
                     array('type' => 'LtiResourceLinkRequest'),
                     array('type' => 'LtiDeepLinkingRequest'),
+                    array('type' => 'LtiDataPrivacyLaunchRequest'),
                 ),
             ),
         );
@@ -545,6 +546,9 @@ class PlatformDynamicRegistration {
             return null;
         }
         if ( ! preg_match('#^https?://#i', $url) ) {
+            return null;
+        }
+        if ( preg_match('/[[:cntrl:][:space:]"\'<>`\\\\]/', $url) ) {
             return null;
         }
         $parts = parse_url($url);
