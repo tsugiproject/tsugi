@@ -29,7 +29,7 @@ final class CourseToolLoopbackTest extends TsugiPantherTestCase
         $this->waitForPageText($client, 'LTI Dynamic Registration URL');
         $driver->findElement(WebDriverBy::id('tool_registration_url'))->sendKeys($registrationUrl);
         $driver->findElement(WebDriverBy::cssSelector('form[action*="/tools/dynamic"] button[type="submit"]'))->click();
-        $this->waitForPageText($client, 'LTI Dynamic Registration');
+        $this->waitForPageText($client, 'When the tool finishes, this page returns to the course tools.');
 
         $driver->switchTo()->frame($driver->findElement(WebDriverBy::id('tsugi-dynamic-registration')));
         $this->waitForPageText($client, 'Continue Registration in the LMS', 45);
