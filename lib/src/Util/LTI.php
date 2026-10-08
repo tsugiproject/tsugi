@@ -170,7 +170,7 @@ class LTI {
         return $parms;
     }
 
-    public static function postLaunchHTML($newparms, $endpoint, $debug=false, $iframeattr=false, $endform=false, $iframetitle=null) {
+    public static function postLaunchHTML($newparms, $endpoint, $debug=false, $iframeattr=false, $endform=false, $iframetitle=null, $protocol='1.1', $jwt=null) {
         global $LastOAuthBodyBaseString;
 
         if ( isset($newparms["ext_lti_element_id"]) ) {
@@ -186,13 +186,23 @@ class LTI {
         $debug_id = rand(1000,9999);
         if ( $iframeattr =="_blank" ) {
             $r = "<form action=\"".$endpoint."\" name=\"".$form_id."\" id=\"".$form_id."\" method=\"post\" target=\"_blank\" encType=\"application/x-www-form-urlencoded\">\n" ;
+        } else if ( $iframeattr == "_modal" ) {
+            $r = "<form action=\"".$endpoint."\" name=\"".$form_id."\" id=\"".$form_id."\" method=\"post\" target=\"tsugi_deep_link\" encType=\"application/x-www-form-urlencoded\">\n" ;
         } else if ( $iframeattr && $iframeattr != '_pause') {
             $r = "<form action=\"".$endpoint."\" name=\"".$form_id."\" id=\"".$form_id."\" method=\"post\" target=\"".$frame_id."\" encType=\"application/x-www-form-urlencoded\">\n" ;
         } else {
             $r = "<form action=\"".$endpoint."\" name=\"".$form_id."\" id=\"".$form_id."\" method=\"post\" encType=\"application/x-www-form-urlencoded\">\n" ;
         }
+        $submit_text = isset($newparms['ext_submit']) ? $newparms['ext_submit'] : '';
+        $ltiMessageType = '';
+        if ( $protocol === '1.3' ) {
+            if ( isset($newparms['lti_message_type']) ) {
+                $ltiMessageType = (string) $newparms['lti_message_type'];
+            }
+            unset($newparms['ext_submit']);
+            unset($newparms['lti_message_type']);
+        }
         ksort($newparms);
-        $submit_text = $newparms['ext_submit'];
         foreach($newparms as $key => $value ) {
             $key = htmlspec_utf8($key);
             $value = htmlspec_utf8($value);
@@ -208,6 +218,9 @@ class LTI {
             $r .= "\" value=\"";
             $r .= $value;
             $r .= "\"/>\n";
+        }
+        if ( $protocol === '1.3' && $submit_text !== '' && $iframeattr != '_pause' ) {
+            $r .= "<input type=\"submit\" class=\"btn btn-primary\" value=\"".htmlspec_utf8($submit_text)."\"/>\n";
         }
         if ( $debug ) {
             $r .= "<script language=\"javascript\"> \n";
@@ -227,21 +240,51 @@ class LTI {
             $r .= $debug_id."_Toggle\" href=\"javascript:basicltiDebug_".$debug_id."_Toggle();\">";
             $r .= self::get_string("toggle_debug_data","basiclti")."</a>\n";
             $r .= "<div id=\"basicltiDebug_".$debug_id."_\" style=\"display:none\">\n";
-            $r .=  "<b>".self::get_string("basiclti_endpoint","basiclti")."</b><br/>\n";
+            if ( $protocol === '1.3' ) {
+                $endpointLabel = 'OIDC login endpoint';
+                $parametersLabel = 'LTI 1.3 parameters';
+            } else {
+                $endpointLabel = self::get_string("basiclti_endpoint","basiclti");
+                $parametersLabel = self::get_string("basiclti_parameters","basiclti");
+            }
+            $r .=  "<b>".htmlspec_utf8($endpointLabel)."</b><br/>\n";
             $r .= $endpoint . "<br/>\n&nbsp;<br/>\n";
-            $r .=  "<b>".self::get_string("basiclti_parameters","basiclti")."</b><br/>\n";
+            $r .=  "<b>".htmlspec_utf8($parametersLabel)."</b><br/>\n";
+            if ( $protocol === '1.3' && $ltiMessageType !== '' ) {
+                $r .= "lti_message_type = ".htmlspec_utf8($ltiMessageType)."<br/>\n";
+            }
             foreach($newparms as $key => $value ) {
                 $key = htmlspec_utf8($key);
                 $value = htmlspec_utf8($value);
                 $r .= "$key = $value<br/>\n";
             }
             $r .= "&nbsp;<br/>\n";
-            $r .= "<p><b>".self::get_string("basiclti_base_string","basiclti")."</b><br/>\n".$LastOAuthBodyBaseString."</p>\n";
+            if ( $protocol !== '1.3' ) {
+                $r .= "<p><b>".self::get_string("basiclti_base_string","basiclti")."</b><br/>\n".$LastOAuthBodyBaseString."</p>\n";
+            }
+            if ( $protocol === '1.3' && is_array($jwt) && isset($jwt['signed']) && is_string($jwt['signed']) && $jwt['signed'] !== '' ) {
+                $json = isset($jwt['json']) && is_string($jwt['json']) ? $jwt['json'] : '';
+                $r .= "<style>\n";
+                $r .= "details.tsugi-jwt-expando > summary { cursor: pointer; list-style: none; }\n";
+                $r .= "details.tsugi-jwt-expando > summary::-webkit-details-marker { display: none; }\n";
+                $r .= "details.tsugi-jwt-expando > summary::before { content: ''; display: inline-block; width: 0; height: 0; margin-right: 6px; vertical-align: middle; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 7px solid #333; transition: transform 0.15s ease; }\n";
+                $r .= "details.tsugi-jwt-expando[open] > summary::before { transform: rotate(90deg); }\n";
+                $r .= "</style>\n";
+                $r .= "<details class=\"tsugi-jwt-expando\">\n<summary><b>JWT before signature</b></summary>\n";
+                $r .= "<pre style=\"white-space:pre-wrap;word-break:break-all;\">".htmlspec_utf8($json)."</pre>\n";
+                $r .= "</details>\n";
+                $r .= "<details class=\"tsugi-jwt-expando\">\n<summary><b>Signed JWT (hex)</b></summary>\n";
+                $r .= "<pre style=\"white-space:pre-wrap;word-break:break-all;\">".htmlspec_utf8(bin2hex($jwt['signed']))."</pre>\n";
+                $r .= "</details>\n";
+                $jwtUrl = 'https://jwt.io/#debugger-io?token='.rawurlencode($jwt['signed']);
+                $r .= "<p><a href=\"".htmlspec_utf8($jwtUrl)."\" target=\"_blank\" rel=\"noopener\">Open this signed JWT in jwt.io</a></p>\n";
+                $r .= "<p>The tool supplies nonce when login returns, so the sent token is signed again.</p>\n";
+            }
             $r .= "</div>\n";
         }
         if ( $endform ) $r .= $endform;
         $r .= "</form>\n";
-        if ( $iframeattr && $iframeattr != '_blank' && $iframeattr != '_pause') {
+        if ( $iframeattr && $iframeattr != '_blank' && $iframeattr != '_pause' && $iframeattr != '_modal') {
             $frame_title = $iframetitle;
             if ( $frame_title === null && isset($newparms['resource_link_title']) ) {
                 $frame_title = $newparms['resource_link_title'];
@@ -258,8 +301,8 @@ class LTI {
             }
             $r .= "<p>".htmlspecialchars($frames_msg)."</p>\n</iframe>\n";
         }
-        $ext_submit = "ext_submit";
-        $ext_submit_text = $submit_text;
+        $ext_submit = $protocol === '1.3' ? '' : 'ext_submit';
+        $ext_submit_text = $protocol === '1.3' ? '' : $submit_text;
         $do_autosubmit = ( ! $debug ) && $iframeattr != '_pause';
         // Fresh GET (location-bar Enter) creates an empty iframe, then this
         // script POSTs the LTI launch into it. Reload is different: the
@@ -310,11 +353,13 @@ class LTI {
             "      prepared = true;\n" .
             "      stripSessionInput(form);\n" .
             "      form.style.display = 'none';\n" .
-            "      var nei = document.createElement('input');\n" .
-            "      nei.setAttribute('type', 'hidden');\n" .
-            "      nei.setAttribute('name', extName);\n" .
-            "      nei.setAttribute('value', extVal);\n" .
-            "      form.appendChild(nei);\n" .
+            "      if ( extName ) {\n" .
+            "        var nei = document.createElement('input');\n" .
+            "        nei.setAttribute('type', 'hidden');\n" .
+            "        nei.setAttribute('name', extName);\n" .
+            "        nei.setAttribute('value', extVal);\n" .
+            "        form.appendChild(nei);\n" .
+            "      }\n" .
             "    }\n" .
             "    function tsugiLaunchForm() {\n" .
             "      var form = document.getElementById(fid);\n" .

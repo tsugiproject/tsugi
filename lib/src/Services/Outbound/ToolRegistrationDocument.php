@@ -438,6 +438,42 @@ class ToolRegistrationDocument {
     }
 
     /**
+     * Point a log row that was written before the registration existed at that registration.
+     *
+     * @param int $logId
+     * @param int $registrationId
+     * @param int|null $httpStatus
+     * @return void
+     */
+    public static function attachLog($logId, $registrationId, $httpStatus = null) {
+        $registrationId = self::requireRegistrationId($registrationId);
+        $logId = (int) $logId;
+        if ( $logId < 1 ) {
+            throw new \InvalidArgumentException('Registration log was not found.');
+        }
+        $httpStatus = self::optionalStatus($httpStatus);
+        $PDOX = self::db();
+        $p = self::prefix();
+        $stmt = $PDOX->queryReturnError(
+            "UPDATE {$p}lti_tool_registration_log
+             SET registration_id = :registration_id, http_status = COALESCE(:http_status, http_status)
+             WHERE log_id = :log_id AND registration_id IS NULL",
+            array(
+                ':registration_id' => $registrationId,
+                ':http_status' => $httpStatus,
+                ':log_id' => $logId,
+            )
+        );
+        if ( ! $stmt->success ) {
+            $detail = isset($stmt->errorImplode) ? (string) $stmt->errorImplode : 'database error';
+            throw new \RuntimeException('Could not attach registration log. '.$detail);
+        }
+        if ( $stmt->rowCount() < 1 ) {
+            throw new \RuntimeException('Could not attach registration log.');
+        }
+    }
+
+    /**
      * @param int $registrationId
      * @param string $encoded
      * @param array<int, array<string, mixed>> $rows
