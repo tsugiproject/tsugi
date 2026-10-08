@@ -69,7 +69,7 @@ $cancelUrl = (isset($tools_url) && is_string($tools_url) && $tools_url !== '') ?
     <?php } ?>
     <p id="lti11-course-tool-error" class="alert alert-danger" role="alert" tabindex="-1" hidden></p>
     <p>
-        <button type="submit" class="btn btn-primary"><?= $editing ? __('Save tool') : __('Add tool to this course') ?></button>
+        <button type="submit" class="btn btn-primary"><?= $editing ? __('Save tool') : __('Add LTI 1.1 tool') ?></button>
         <a class="btn btn-default" href="<?= htmlspecialchars($cancelUrl) ?>"><?= __('Cancel') ?></a>
     </p>
 </form>
