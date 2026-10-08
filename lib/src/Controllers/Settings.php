@@ -25,10 +25,7 @@ use Tsugi\Services\Cartridge\Pending;
 use Tsugi\Services\Courses\CourseDelete;
 use Tsugi\Services\CourseNav\CourseNav;
 use Tsugi\Services\Outbound\Lti11CourseTool;
-use Tsugi\Services\Outbound\PlatformDynamicRegistration;
-use Tsugi\Services\Outbound\ToolRegistrationService;
 use Tsugi\Services\Outbound\Lti11TestLaunch;
-use Tsugi\Services\Outbound\Lti13TestLaunch;
 use Tsugi\Services\Outbound\LtiContentService;
 use Tsugi\Util\LTI;
 use Symfony\Component\HttpFoundation\Request;
@@ -78,12 +75,8 @@ class Settings extends Tool {
         self::mapPage($app, $prefix.'/delete', 'deleteCourse', true);
         self::mapPage($app, $prefix.'/navigation', 'navigation', true);
         self::mapPage($app, $prefix.'/images', 'images', true);
-        self::mapPage($app, $prefix.'/tools/dynamic/status', 'toolsDynamicStatus', false);
-        self::mapPage($app, $prefix.'/tools/dynamic/done', 'toolsDynamicDone', false);
-        self::mapPage($app, $prefix.'/tools/dynamic', 'toolsDynamic', true);
-        self::mapPage($app, $prefix.'/tools/view', 'toolsView', false);
         self::mapPage($app, $prefix.'/tools/launch-url', 'toolsLaunchUrl', false);
-        self::mapPage($app, $prefix.'/tools/test', 'toolsTest', true);
+        self::mapPage($app, $prefix.'/tools/test', 'toolsTest', false);
         self::mapPage($app, $prefix.'/tools/links', 'toolsLinks', false);
         self::mapPage($app, $prefix.'/tools/add', 'toolsAdd', true);
         self::mapPage($app, $prefix.'/tools', 'tools', true);
@@ -1693,8 +1686,6 @@ re-check your login status.
         $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
         $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
         $add_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/add'));
-        $dynamic_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/dynamic'));
-        $view_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/view'));
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;
@@ -1796,235 +1787,6 @@ re-check your login status.
     }
 
     /**
-     * Course-mounted Settings: start IMS Dynamic Registration, or show the tool iframe.
-     */
-    public function toolsDynamic(Request $request)
-    {
-        if ( ! self::isCourseRoute() ) {
-            return new RedirectResponse($this->pageUrl());
-        }
-        if ( $request->isMethod('POST') ) {
-            return $this->toolsDynamicPost($request);
-        }
-
-        global $OUTPUT;
-
-        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
-        $gate = $this->courseGate();
-        if ( $gate ) {
-            return $gate;
-        }
-
-        $token = $request->query->get('token', '');
-        if ( ! is_string($token) || $token === '' ) {
-            U::flashError(__('Dynamic registration did not start.'));
-            return new RedirectResponse($tools_url);
-        }
-        $info = PlatformDynamicRegistration::courseToken($token, ReqScope::currentContextId());
-        if ( $info === null ) {
-            U::flashError(__('Dynamic registration did not start.'));
-            return new RedirectResponse($tools_url);
-        }
-        if ( $info['used'] && $info['registration_id'] !== null ) {
-            U::flashSuccess(__('The tool was registered.'));
-            return new RedirectResponse($this->toolViewUrl((int) $info['registration_id']));
-        }
-        if ( ! $info['fresh'] ) {
-            U::flashError(__('That registration link has expired.'));
-            return new RedirectResponse($tools_url);
-        }
-
-        $forward_url = PlatformDynamicRegistration::forwardUrl($info['tool_url'], $token);
-        $status_url = $this->toolQueryUrl('tools/dynamic/status', $token);
-        $setup_url = U::addSession($this->toolHome(self::ROUTE));
-        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
-        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
-        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
-        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
-        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
-        $add_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/add'));
-        $lesson_links_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/links'));
-        $setup_tab = 'tools';
-
-        $OUTPUT->header();
-        $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
-        $OUTPUT->flashMessages();
-        ?>
-        <main class="container" id="main-content">
-            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
-            <div style="margin-top:10px;">
-            <?php include __DIR__ . '/templates/Settings/dynamic_registration.inc.php'; ?>
-            </div>
-        </main>
-        <?php
-        $OUTPUT->footer();
-        return '';
-    }
-
-    /**
-     * @param Request $request
-     * @return RedirectResponse
-     */
-    private function toolsDynamicPost(Request $request)
-    {
-        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
-        $gate = $this->courseGate();
-        if ( $gate ) {
-            return $gate;
-        }
-        $csrf = self::requireCsrf($tools_url);
-        if ( $csrf ) {
-            return $csrf;
-        }
-        $toolUrl = '';
-        if ( isset($_POST['tool_registration_url']) && is_string($_POST['tool_registration_url']) ) {
-            $toolUrl = $_POST['tool_registration_url'];
-        }
-        try {
-            $token = PlatformDynamicRegistration::startForCourse(
-                ReqScope::currentContextId(),
-                ReqScope::loggedInUserId(),
-                $toolUrl
-            );
-        } catch ( \InvalidArgumentException $e ) {
-            U::flashError($e->getMessage());
-            return new RedirectResponse($tools_url);
-        } catch ( \Exception $e ) {
-            U::flashError(__('Could not start dynamic registration.'));
-            return new RedirectResponse($tools_url);
-        }
-        return new RedirectResponse($this->toolQueryUrl('tools/dynamic', $token));
-    }
-
-    /**
-     * The iframe asks this after the tool sends org.imsglobal.lti.close.
-     */
-    public function toolsDynamicStatus(Request $request)
-    {
-        if ( ! self::isCourseRoute() ) {
-            return new JsonResponse(array('ready' => false), 404);
-        }
-        $gate = $this->courseGate();
-        if ( $gate ) {
-            return new JsonResponse(array('ready' => false), 403);
-        }
-        $token = $request->query->get('token', '');
-        $info = is_string($token) ? PlatformDynamicRegistration::courseToken($token, ReqScope::currentContextId()) : null;
-        if ( $info === null || ! $info['used'] || $info['registration_id'] === null ) {
-            return new JsonResponse(array('ready' => false));
-        }
-        return new JsonResponse(array(
-            'ready' => true,
-            'registration_id' => $info['registration_id'],
-            'done_url' => $this->toolQueryUrl('tools/dynamic/done', $token),
-        ));
-    }
-
-    /**
-     * Leave the iframe page for the installed tool once registration is stored.
-     */
-    public function toolsDynamicDone(Request $request)
-    {
-        if ( ! self::isCourseRoute() ) {
-            return new RedirectResponse($this->pageUrl());
-        }
-        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
-        $gate = $this->courseGate();
-        if ( $gate ) {
-            return $gate;
-        }
-        $token = $request->query->get('token', '');
-        $info = is_string($token) ? PlatformDynamicRegistration::courseToken($token, ReqScope::currentContextId()) : null;
-        if ( $info !== null && $info['used'] && $info['registration_id'] !== null ) {
-            U::flashSuccess(__('The tool was registered.'));
-            return new RedirectResponse($this->toolViewUrl((int) $info['registration_id']));
-        }
-        return new RedirectResponse($tools_url);
-    }
-
-    /**
-     * Course-mounted Settings: read-only view of one LTI 1.3 tool.
-     */
-    public function toolsView(Request $request)
-    {
-        if ( ! self::isCourseRoute() ) {
-            return new RedirectResponse($this->pageUrl());
-        }
-
-        global $OUTPUT;
-
-        $setup_url = U::addSession($this->toolHome(self::ROUTE));
-        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
-        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
-        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
-        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
-        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
-        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
-        $add_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/add'));
-        $test_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/test'));
-        $gate = $this->courseGate();
-        if ( $gate ) {
-            return $gate;
-        }
-
-        $registrationId = (int) $request->query->get('registration_id', 0);
-        $contextId = ReqScope::currentContextId();
-        try {
-            $tool_view = ToolRegistrationService::visibleLti13($contextId, $registrationId);
-        } catch ( \InvalidArgumentException $e ) {
-            U::flashError($e->getMessage());
-            return new RedirectResponse($tools_url);
-        } catch ( \Exception $e ) {
-            U::flashError(__('Could not open that tool.'));
-            return new RedirectResponse($tools_url);
-        }
-
-        $save_url = $tools_url;
-        $course_owned = $tool_view['owner_context_id'] !== null && (int) $tool_view['owner_context_id'] === (int) $contextId;
-        $setup_tab = 'tools';
-
-        $OUTPUT->header();
-        $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
-        $OUTPUT->flashMessages();
-        ?>
-        <main class="container" id="main-content">
-            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
-            <div style="margin-top:10px;">
-            <?php include __DIR__ . '/templates/Settings/tool_view.inc.php'; ?>
-            </div>
-        </main>
-        <?php
-        $OUTPUT->footer();
-        return '';
-    }
-
-    /**
-     * Session-bearing URL for the read-only LTI 1.3 tool page.
-     *
-     * @param int $registrationId
-     * @return string
-     */
-    private function toolViewUrl($registrationId) {
-        $url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/view'));
-        return self::toolEditUrl($url, $registrationId);
-    }
-
-    /**
-     * Session-bearing Settings URL plus the one-time registration token.
-     *
-     * @param string $suffix
-     * @param string $token
-     * @return string
-     */
-    private function toolQueryUrl($suffix, $token) {
-        $url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), $suffix));
-        $sep = strpos($url, '?') === false ? '?' : '&';
-        return $url.$sep.'token='.rawurlencode($token);
-    }
-
-    /**
      * Add, update, or delete an LTI 1.1 tool on this course.
      */
     private function toolsPost(Request $request)
@@ -2063,12 +1825,7 @@ re-check your login status.
                 if ( $registrationId < 1 ) {
                     throw new \InvalidArgumentException('This course does not own that tool.');
                 }
-                $found = ToolRegistrationService::findRegistration($registrationId);
-                if ( is_array($found) && $found['lti_version'] === '1.3' ) {
-                    ToolRegistrationService::deleteLti13ForCourse(ReqScope::currentContextId(), $registrationId);
-                } else {
-                    Lti11CourseTool::deleteFromCourse(ReqScope::currentContextId(), $registrationId);
-                }
+                Lti11CourseTool::deleteFromCourse(ReqScope::currentContextId(), $registrationId);
             } else if ( $registrationId > 0 ) {
                 Lti11CourseTool::updateOnCourse(ReqScope::currentContextId(), $registrationId, $_POST);
             } else {
@@ -2289,6 +2046,9 @@ re-check your login status.
         if ( ! self::isCourseRoute() ) {
             return new RedirectResponse($this->pageUrl());
         }
+        if ( $request->isMethod('POST') ) {
+            return new RedirectResponse(U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools')));
+        }
 
         global $OUTPUT;
 
@@ -2304,137 +2064,52 @@ re-check your login status.
         if ( $gate ) {
             return $gate;
         }
-        $postedJwt = '';
-        if ( $request->isMethod('POST') ) {
-            $rawJwt = $request->request->get('deep_link_jwt', '');
-            $postedJwt = is_string($rawJwt) ? $rawJwt : '';
-            if ( $postedJwt === '' || ! Tool::csrfOk() ) {
-                return new RedirectResponse($tools_url);
-            }
-        }
 
-        $registrationId = (int) $request->query->get('registration_id', $request->request->get('registration_id', 0));
+        $registrationId = (int) $request->query->get('registration_id', 0);
         $launch = null;
         $launch_choices = array();
         $launch_html = '';
-        $deep_return = null;
         try {
-            $found = ToolRegistrationService::findRegistration($registrationId);
-            $lti13 = is_array($found) && $found['lti_version'] === '1.3';
-            $launch_choices = $lti13
-                ? Lti13TestLaunch::choices(ReqScope::currentContextId(), $registrationId)
-                : Lti11TestLaunch::choices(ReqScope::currentContextId(), $registrationId);
-            $message = $request->query->get('message', $request->request->get('message', ''));
+            $launch_choices = Lti11TestLaunch::choices(ReqScope::currentContextId(), $registrationId);
+            $message = $request->query->get('message', '');
             if ( ! is_string($message) || $message === '' ) {
                 $message = (string) Lti11TestLaunch::defaultType($launch_choices);
             }
-            $role = $request->query->get('role', $request->request->get('role', ''));
+            $role = $request->query->get('role', '');
             if ( ! is_string($role) ) {
                 $role = '';
             }
-            if ( $postedJwt !== '' ) {
-                if ( ! $lti13 ) {
-                    throw new \InvalidArgumentException('The deep link return is not for this test.');
-                }
-                $accepted = Lti13TestLaunch::acceptReturn($postedJwt);
-                if ( $accepted['context_id'] !== (int) ReqScope::currentContextId()
-                    || $accepted['registration_id'] !== $registrationId
-                    || $accepted['user_id'] !== (int) ReqScope::loggedInUserId() ) {
-                    throw new \InvalidArgumentException('The deep link return is not for this test.');
-                }
-                $want = (int) $request->request->get('item', -1);
-                $chosen = null;
-                $chosenIndex = -1;
-                foreach ( $accepted['items'] as $index => $item ) {
-                    if ( ! preg_match('#^https?://#i', $item['url']) ) {
-                        continue;
-                    }
-                    if ( $chosen === null || $index === $want ) {
-                        $chosen = $item;
-                        $chosenIndex = $index;
-                        if ( $index === $want ) {
-                            break;
-                        }
-                    }
-                }
-                $deep_return = $accepted;
-                $deep_return['index'] = $chosenIndex;
-                $deep_return['jwt'] = $postedJwt;
-                if ( $chosen !== null ) {
-                    $launch = Lti13TestLaunch::launchReturned(
-                        ReqScope::currentContextId(),
-                        $registrationId,
-                        ReqScope::loggedInUserId(),
-                        $chosen['url'],
-                        $request->getUri(),
-                        $accepted['role'],
-                        $chosen['title']
-                    );
-                }
-            }
-            if ( $launch === null && $message !== '' ) {
-                $launch = $lti13
-                    ? Lti13TestLaunch::launch(
-                        ReqScope::currentContextId(),
-                        $registrationId,
-                        ReqScope::loggedInUserId(),
-                        $message,
-                        $request->getUri(),
-                        $role
-                    )
-                    : Lti11TestLaunch::launch(
-                        ReqScope::currentContextId(),
-                        $registrationId,
-                        ReqScope::loggedInUserId(),
-                        $message,
-                        $request->getUri(),
-                        $role
-                    );
+            if ( $message !== '' ) {
+                $launch = Lti11TestLaunch::launch(
+                    ReqScope::currentContextId(),
+                    $registrationId,
+                    ReqScope::loggedInUserId(),
+                    $message,
+                    $request->getUri(),
+                    $role
+                );
             }
         } catch ( \InvalidArgumentException $e ) {
             U::flashError($e->getMessage());
-            if ( $postedJwt !== '' ) {
-                $sep = strpos($test_url, '?') === false ? '?' : '&';
-                return new RedirectResponse($test_url.$sep.'registration_id='.$registrationId.'&message='.rawurlencode('LtiDeepLinkingRequest'));
-            }
             return new RedirectResponse($tools_url);
         } catch ( \Exception $e ) {
             U::flashError(__('Could not test that tool.'));
             return new RedirectResponse($tools_url);
         }
         if ( is_array($launch) && $launch['ready'] ) {
-            $formEndpoint = isset($launch['form_endpoint']) && is_string($launch['form_endpoint']) && $launch['form_endpoint'] !== ''
-                ? $launch['form_endpoint']
-                : $launch['endpoint'];
-            if ( ! empty($launch['modal']) ) {
-                $frame = '_modal';
-            } else if ( ! empty($launch['new_window']) ) {
-                $frame = '_blank';
-            } else {
-                $frame = 'width="100%" height="600" scrolling="auto" frameborder="0"';
-            }
-            $jwtDebug = null;
-            if ( $lti13 && isset($launch['jwt_signed']) && is_string($launch['jwt_signed']) && $launch['jwt_signed'] !== '' ) {
-                $jwtDebug = array(
-                    'json' => isset($launch['jwt_json']) && is_string($launch['jwt_json']) ? $launch['jwt_json'] : '',
-                    'signed' => $launch['jwt_signed'],
-                );
-            }
             $launch_html = LTI::postLaunchHTML(
                 $launch['parameters'],
-                $formEndpoint,
+                $launch['endpoint'],
                 true,
-                $frame,
+                'width="100%" height="600" scrolling="auto" frameborder="0"',
                 false,
-                $launch['title'],
-                $lti13 ? '1.3' : '1.1',
-                $jwtDebug
+                $launch['title']
             );
         }
 
         $setup_tab = 'tools';
         $OUTPUT->header();
-        $OUTPUT->bodyStart($postedJwt === '');
+        $OUTPUT->bodyStart();
         $OUTPUT->topNav();
         $OUTPUT->flashMessages();
         ?>

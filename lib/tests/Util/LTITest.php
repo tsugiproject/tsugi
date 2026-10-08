@@ -703,38 +703,6 @@ class LTITest extends \PHPUnit\Framework\TestCase
         $this->assertStringContainsString('basiclti_endpoint', $html);
         $this->assertStringContainsString('basiclti_parameters', $html);
         $this->assertStringContainsString('basiclti_base_string', $html);
-
-        $lti13 = \Tsugi\Util\LTI::postLaunchHTML($signed, $this->endpoint, true, '_blank', false, null, '1.3');
-        $this->assertStringContainsString('OIDC login endpoint', $lti13);
-        $this->assertStringContainsString('LTI 1.3 parameters', $lti13);
-        $this->assertStringNotContainsString('basiclti_endpoint', $lti13);
-        $this->assertStringNotContainsString('basiclti_parameters', $lti13);
-        $this->assertStringNotContainsString('basiclti_base_string', $lti13);
-        $this->assertStringNotContainsString('ext_submit', $lti13);
-
-        $token = 'header.payload.signature';
-        $withJwt = \Tsugi\Util\LTI::postLaunchHTML(array(
-            'iss' => 'https://platform.example',
-            'login_hint' => 'hint',
-            'lti_message_type' => 'LtiDeepLinkingRequest',
-            'ext_submit' => 'Send Deep link',
-        ), $this->endpoint, true, '_blank', false, null, '1.3', array(
-            'json' => "{\n  \"payload\": {}\n}",
-            'signed' => $token,
-        ));
-        $this->assertStringContainsString('lti_message_type = LtiDeepLinkingRequest', $withJwt);
-        $this->assertStringNotContainsString('name="lti_message_type"', $withJwt);
-        $this->assertStringContainsString('details.tsugi-jwt-expando[open] > summary::before { transform: rotate(90deg); }', $withJwt);
-        $this->assertStringContainsString('<summary><b>JWT before signature</b></summary>', $withJwt);
-        $this->assertStringContainsString('<summary><b>Signed JWT (hex)</b></summary>', $withJwt);
-        $this->assertStringContainsString(bin2hex($token), $withJwt);
-        $jwtLink = 'https://jwt.io/#debugger-io?token='.rawurlencode($token);
-        $this->assertStringContainsString($jwtLink, $withJwt);
-        $detailsEnd = strrpos($withJwt, '</details>');
-        $linkAt = strpos($withJwt, $jwtLink);
-        $this->assertNotFalse($detailsEnd);
-        $this->assertNotFalse($linkAt);
-        $this->assertGreaterThan($detailsEnd, $linkAt);
     }
 
     public function testPostLaunchHTMLManualLaunchDoesNotPrepareForm() {

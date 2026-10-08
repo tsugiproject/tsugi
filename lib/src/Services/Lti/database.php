@@ -10,7 +10,6 @@ if ( !isset($PDOX) ) {
 if ( ! isset($CFG) ) exit;
 
 $DATABASE_UNINSTALL = array(
-"drop table if exists {$CFG->dbprefix}lti_tool_registration_token",
 "drop table if exists {$CFG->dbprefix}lti_content",
 "drop table if exists {$CFG->dbprefix}lti_tool_deployment_claim",
 "drop table if exists {$CFG->dbprefix}lti_tool_deployment_scope",
@@ -1244,68 +1243,6 @@ array( "{$CFG->dbprefix}lti_tool_registration_log",
     INDEX `{$CFG->dbprefix}lti_tool_registration_log_indx_2` (created_at),
 
     CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_log_ibfk_1`
-        FOREIGN KEY (`registration_id`)
-        REFERENCES `{$CFG->dbprefix}lti_tool_registration` (`registration_id`)
-        ON DELETE SET NULL ON UPDATE CASCADE
-
-) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
-
-// One-time IMS Dynamic Registration token. The registration row does not
-// exist yet. The tool POSTs with this token, and only then is the tool created.
-// token_sha256 is the lookup. The raw token is not stored.
-// owner_org_id and owner_context_id match lti_tool_registration: tenant, one
-// organization, or one course. Both set is rejected.
-// used_at stays null until the POST is stored. registration_id is filled then.
-array( "{$CFG->dbprefix}lti_tool_registration_token",
-"create table {$CFG->dbprefix}lti_tool_registration_token (
-    token_id            INTEGER NOT NULL AUTO_INCREMENT,
-    token_sha256        CHAR(64) NOT NULL,
-    key_id              INTEGER NOT NULL,
-    owner_org_id        INTEGER NULL,
-    owner_context_id    INTEGER NULL,
-    created_by_user_id  INTEGER NULL,
-
-    tool_url            TEXT NOT NULL,
-    expires_at          TIMESTAMP NOT NULL,
-    used_at             TIMESTAMP NULL,
-    registration_id     INTEGER NULL,
-
-    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_token_const_pk` PRIMARY KEY (token_id),
-    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_token_const_1` UNIQUE (token_sha256),
-
-    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_token_chk_1` CHECK (
-        owner_org_id IS NULL OR owner_context_id IS NULL
-    ),
-
-    INDEX `{$CFG->dbprefix}lti_tool_registration_token_indx_1` (key_id),
-    INDEX `{$CFG->dbprefix}lti_tool_registration_token_indx_2` (owner_context_id, key_id),
-    INDEX `{$CFG->dbprefix}lti_tool_registration_token_indx_3` (expires_at),
-
-    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_token_ibfk_1`
-        FOREIGN KEY (`key_id`)
-        REFERENCES `{$CFG->dbprefix}lti_key` (`key_id`)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-
-    -- ON UPDATE RESTRICT: chk_1 names these columns. MySQL error 3823 rejects
-    -- any other referential action on a column named by a CHECK.
-    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_token_ibfk_2`
-        FOREIGN KEY (`owner_org_id`, `key_id`)
-        REFERENCES `{$CFG->dbprefix}lti_org` (`org_id`, `key_id`)
-        ON DELETE RESTRICT ON UPDATE RESTRICT,
-
-    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_token_ibfk_3`
-        FOREIGN KEY (`owner_context_id`, `key_id`)
-        REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`, `key_id`)
-        ON DELETE RESTRICT ON UPDATE RESTRICT,
-
-    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_token_ibfk_4`
-        FOREIGN KEY (`created_by_user_id`)
-        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
-        ON DELETE SET NULL ON UPDATE CASCADE,
-
-    CONSTRAINT `{$CFG->dbprefix}lti_tool_registration_token_ibfk_5`
         FOREIGN KEY (`registration_id`)
         REFERENCES `{$CFG->dbprefix}lti_tool_registration` (`registration_id`)
         ON DELETE SET NULL ON UPDATE CASCADE

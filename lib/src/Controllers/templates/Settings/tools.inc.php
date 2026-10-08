@@ -10,21 +10,9 @@ if ( ! isset($course_tools) || ! is_array($course_tools) ) {
 ?>
 <div style="overflow:auto;margin-bottom:10px;">
 <?php if ( isset($add_url) && is_string($add_url) && $add_url !== '' ) { ?>
-    <a class="btn btn-primary" style="float:right;" href="<?= htmlspecialchars($add_url) ?>"><?= __('+ Add LTI 1.1 Tool') ?></a>
+    <a class="btn btn-primary" style="float:right;" href="<?= htmlspecialchars($add_url) ?>"><?= __('+ Add Tool') ?></a>
 <?php } ?>
 </div>
-<?php if ( isset($dynamic_url) && is_string($dynamic_url) && $dynamic_url !== '' ) { ?>
-<form method="post" action="<?= htmlspecialchars($dynamic_url) ?>" style="margin-bottom:16px;">
-    <?= \Tsugi\Controllers\Settings::csrfField() ?>
-    <label for="tool_registration_url"><?= __('LTI Dynamic Registration URL') ?></label>
-    <div>
-        <input type="url" class="form-control" id="tool_registration_url" name="tool_registration_url" required
-            placeholder="https://tool.example.com/register" style="max-width:36em;display:inline-block;">
-        <button type="submit" class="btn btn-default"><?= __('Begin registration') ?></button>
-    </div>
-    <p class="text-muted"><?= __('The tool is created when registration finishes.') ?></p>
-</form>
-<?php } ?>
 <?php if ( count($course_tools) === 0 ) { ?>
 <p><?= __('No external tools are assigned to this course yet.') ?></p>
 <?php } else { ?>
@@ -55,16 +43,8 @@ if ( ! isset($course_tools) || ! is_array($course_tools) ) {
             ?>
         <a class="btn btn-default btn-sm" href="<?= htmlspecialchars($toolTestUrl) ?>"><?= __('Test') ?></a>
         <?php } ?>
-        <?php if ( $ltiVersion === '1.3' && $registrationId > 0 && isset($view_url) && is_string($view_url) && $view_url !== '' ) {
-            $viewSep = strpos($view_url, '?') === false ? '?' : '&';
-            $toolViewUrl = $view_url.$viewSep.'registration_id='.$registrationId;
-            ?>
-        <a class="btn btn-default btn-sm" href="<?= htmlspecialchars($toolViewUrl) ?>"><?= __('View') ?></a>
-        <?php } ?>
-        <?php if ( $owned && $registrationId > 0 && $ltiVersion === '1.1' ) { ?>
+        <?php if ( $owned && $registrationId > 0 ) { ?>
         <a class="btn btn-default btn-sm" href="<?= htmlspecialchars($editUrl) ?>"><?= __('Edit') ?></a>
-        <?php } ?>
-        <?php if ( $owned && $registrationId > 0 && ($ltiVersion === '1.1' || $ltiVersion === '1.3') ) { ?>
         <form method="post" action="<?= htmlspecialchars($save_url) ?>" style="display:inline;" data-confirm="<?= htmlspecialchars(__('Delete this tool from the course?')) ?>" onsubmit="return confirm(this.getAttribute('data-confirm'));">
             <?= \Tsugi\Controllers\Settings::csrfField() ?>
             <input type="hidden" name="registration_id" value="<?= $registrationId ?>">

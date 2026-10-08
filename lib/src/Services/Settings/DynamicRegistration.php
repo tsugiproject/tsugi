@@ -163,16 +163,18 @@ class DynamicRegistration {
                 "target_link_uri" => $CFG->wwwroot . '/lti/store/',
                 "custom_parameters" => $custom_parameters,
             ),
-        );
-        if ( isset($CFG->privacy_url) && is_string($CFG->privacy_url) && $CFG->privacy_url !== '' ) {
-            $tool->messages[] = array(
+            array(
                 "type" => "LtiDataPrivacyLaunchRequest",
                 "label" => $json->client_name,
                 "target_link_uri" => $CFG->wwwroot,
                 "custom_parameters" => $custom_parameters,
-            );
-        }
-        $tool->messages = array_merge($tool->messages, array(
+            ),
+            array(
+                "type" => "MartinImportRequest",
+                "label" => $json->client_name,
+                "target_link_uri" => __("Import from") . " ". $CFG->wwwroot . '/cc/export/',
+                "custom_parameters" => $custom_parameters,
+            ),
             array(
                 "type" => "LtiDeepLinkingRequest",
                 "label" => __("Import from") . " ".$json->client_name,
@@ -207,7 +209,7 @@ class DynamicRegistration {
                 "target_link_uri" => $CFG->wwwroot . '/lti/store/',
                 "custom_parameters" => $custom_parameters,
             ),
-        ));
+        );
 
         $json->{"https://purl.imsglobal.org/spec/lti-tool-configuration"} = $tool;
 
