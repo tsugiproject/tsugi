@@ -163,13 +163,13 @@ class DynamicRegistration {
         $tool->messages = array(
             array(
                 "type" => "LtiDeepLinkingRequest",
-                "label" => $json->client_name,
+                "label" => $json->client_name . ' (Deep Link)',
                 "target_link_uri" => $CFG->wwwroot . '/lti/store/',
                 "custom_parameters" => $custom_parameters,
             ),
             array(
                 "type" => "LtiDataPrivacyLaunchRequest",
-                "label" => $json->client_name,
+                "label" => $json->client_name . ' (Privacy)',
                 "target_link_uri" => $privacy_launch,
                 "custom_parameters" => $custom_parameters,
             ),
@@ -177,35 +177,35 @@ class DynamicRegistration {
         $tool->messages = array_merge($tool->messages, array(
             array(
                 "type" => "LtiDeepLinkingRequest",
-                "label" => __("Import from") . " ".$json->client_name,
+                "label" => $json->client_name . ' (Migration Selection)',
                 "target_link_uri" => $CFG->wwwroot . '/cc/export',
                 "placements" => array( "migration_selection"),
                 "custom_parameters" => $custom_parameters,
             ),
             array(
                 "type" => "LtiDeepLinkingRequest",
-                "label" => $json->client_name,
+                "label" => $json->client_name . ' (Link Selection)',
                 "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=link_selection',
                 "placements" => array( "link_selection"),
                 "custom_parameters" => $custom_parameters,
             ),
             array(
                 "type" => "LtiDeepLinkingRequest",
-                "label" => $json->client_name,
+                "label" => $json->client_name . ' (Editor Button)',
                 "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=editor_button',
                 "placements" => array( "editor_button"),
                 "custom_parameters" => $custom_parameters,
             ),
             array(
                 "type" => "LtiDeepLinkingRequest",
-                "label" => $json->client_name,
+                "label" => $json->client_name . ' (Assignment Selection)',
                 "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=assignment_selection',
                 "placements" => array( "assignment_selection"),
                 "custom_parameters" => $custom_parameters,
             ),
             array(
                 "type" => "LtiDeepLinkingRequest",
-                "label" => $json->client_name,
+                "label" => $json->client_name . ' (Deep Link)',
                 "target_link_uri" => $CFG->wwwroot . '/lti/store/',
                 "custom_parameters" => $custom_parameters,
             ),
