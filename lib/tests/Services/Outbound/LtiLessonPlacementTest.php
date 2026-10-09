@@ -19,14 +19,18 @@ class LtiLessonPlacementTest extends PlatformSchemaCase
         $deploymentId = $this->py4e();
         $choices = LtiLessonPlacement::choices($this->id['eecs280'], $deploymentId);
         $this->assertSame(
-            array('PY4E select item', 'Give me the privacy link', 'Install this'),
+            array('PY4E select item', 'PY4E (privacy)', 'Install PY4E - Trophy (resource link)'),
             array_column($choices, 'label')
         );
         $this->assertSame(array('select', 'install', 'install'), array_column($choices, 'action'));
         $this->assertSame('', $choices[0]['detail']);
+        $this->assertSame('', $choices[1]['detail']);
+        $this->assertSame('', $choices[2]['detail']);
+        $this->assertSame('PY4E', $choices[1]['name']);
+        $this->assertSame('PY4E - Trophy', $choices[2]['name']);
+        $this->assertSame('PY4E - Trophy', LtiLessonPlacement::installName($this->id['eecs280'], $deploymentId, $choices[2]['message_id']));
         $this->assertSame('https://tool.example/select', $choices[0]['launch']);
         $this->assertSame('https://tool.example/privacy', $choices[1]['launch']);
-        $this->assertSame('PY4E - Trophy', $choices[2]['detail']);
         $this->assertSame('https://tool.example/trophy', $choices[2]['launch']);
         $this->assertNotContains('https://tool.example/later', array_column($choices, 'launch'));
         $this->assertNotContains('https://tool.example/assign', array_column($choices, 'launch'));
@@ -157,6 +161,7 @@ class LtiLessonPlacementTest extends PlatformSchemaCase
         );
         $this->assertNull($picked['items']);
         $this->assertSame('https://tool.example/chosen', $picked['url']);
+        $this->assertSame('Chosen page', $picked['title']);
         $placed = LtiContentService::placeAt($this->id['eecs280'], $deploymentId, '', $picked['url']);
         $this->assertSame('https://tool.example/chosen', $placed['launch_url']);
         $this->assertSame('PY4E', $placed['title']);
@@ -185,27 +190,28 @@ class LtiLessonPlacementTest extends PlatformSchemaCase
         $this->assertTrue(LtiContentService::inCourse($this->id['eecs280'], $deploymentId));
         $this->assertSame('1.3', LtiContentService::version($this->id['eecs280'], $deploymentId));
 
-        $slash = function ($url) {
-            return LtiContentService::directorySlashUrl($url);
-        };
-        $this->assertSame(
-            'https://tool.example/mod/trophy/',
-            LtiContentService::browserPostUrl('https://tool.example/mod/trophy', $slash)
-        );
-        $this->assertSame(
-            'https://tool.example/mod/trophy/?x=1',
-            LtiContentService::browserPostUrl('https://tool.example/mod/trophy?x=1', $slash)
-        );
-        $this->assertSame(
-            'https://tool.example/privacy.php',
-            LtiContentService::browserPostUrl('https://tool.example/privacy.php', $slash)
-        );
-        $this->assertSame(
-            'https://tool.example/launch',
-            LtiContentService::browserPostUrl('https://tool.example/launch', function () {
-                return '';
-            })
-        );
+        try {
+            LtiContentService::refuseDroppedPost('https://tool.example/mod/trophy', function () {
+                return array('code' => 301, 'location' => 'https://tool.example/mod/trophy/');
+            });
+            $this->fail('A redirect that drops the POST is refused while authoring.');
+        } catch ( \InvalidArgumentException $ex ) {
+            $this->assertStringContainsString('https://tool.example/mod/trophy/', $ex->getMessage());
+        }
+        try {
+            LtiContentService::refuseDroppedPost('https://tool.example/broken', function () {
+                return array('code' => 404, 'location' => '');
+            });
+            $this->fail('A missing address is refused while authoring.');
+        } catch ( \InvalidArgumentException $ex ) {
+            $this->assertStringContainsString('not found', $ex->getMessage());
+        }
+        LtiContentService::refuseDroppedPost('https://tool.example/launch', function () {
+            return array('code' => 200, 'location' => '');
+        });
+        LtiContentService::refuseDroppedPost('https://tool.example/down', function () {
+            return null;
+        });
 
         $placed = LtiContentService::placeAt(
             $this->id['eecs280'],

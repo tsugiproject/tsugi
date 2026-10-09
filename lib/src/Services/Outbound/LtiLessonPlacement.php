@@ -34,7 +34,7 @@ class LtiLessonPlacement {
      *
      * @param int $contextId
      * @param int $toolDeploymentId
-     * @return array<int, array{message_id:int, action:string, label:string, detail:string, launch:string}>
+     * @return array<int, array{message_id:int, action:string, label:string, name:string, detail:string, launch:string}>
      */
     public static function choices($contextId, $toolDeploymentId) {
         $deployment = self::requireDeployment((int) $contextId, (int) $toolDeploymentId);
@@ -57,15 +57,16 @@ class LtiLessonPlacement {
                     continue;
                 }
                 $deepLink = true;
-                $out[] = self::choice($message, 'select', $deployment['title'].' select item', $deployment['title'], $target);
+                $out[] = self::choice($message, 'select', $deployment['title'].' select item', $deployment['title'], $target, $deployment['title']);
                 continue;
             }
+            $name = self::messageName($message, $deployment['title']);
             if ( $type === 'LtiResourceLinkRequest' ) {
-                $out[] = self::choice($message, 'install', 'Install this', $deployment['title'], $target);
+                $out[] = self::choice($message, 'install', 'Install '.$name.' (resource link)', $name, $target, $name);
                 continue;
             }
             if ( $type === 'LtiDataPrivacyLaunchRequest' ) {
-                $out[] = self::choice($message, 'install', 'Give me the privacy link', $deployment['title'], $target);
+                $out[] = self::choice($message, 'install', $name.' (privacy)', $name, $target, $name);
             }
         }
         return $out;
@@ -80,10 +81,33 @@ class LtiLessonPlacement {
      * @return string
      */
     public static function installTarget($contextId, $toolDeploymentId, $messageId) {
-        $messageId = (int) $messageId;
-        foreach ( self::choices((int) $contextId, (int) $toolDeploymentId) as $choice ) {
+        return self::installChoice((int) $contextId, (int) $toolDeploymentId, (int) $messageId)['launch'];
+    }
+
+    /**
+     * The message label for a resource link or privacy placement.
+     *
+     * This is the lesson title. The button text adds Install or (privacy).
+     *
+     * @param int $contextId
+     * @param int $toolDeploymentId
+     * @param int $messageId
+     * @return string
+     */
+    public static function installName($contextId, $toolDeploymentId, $messageId) {
+        return self::installChoice((int) $contextId, (int) $toolDeploymentId, (int) $messageId)['name'];
+    }
+
+    /**
+     * @param int $contextId
+     * @param int $toolDeploymentId
+     * @param int $messageId
+     * @return array{message_id:int, action:string, label:string, name:string, detail:string, launch:string}
+     */
+    private static function installChoice($contextId, $toolDeploymentId, $messageId) {
+        foreach ( self::choices($contextId, $toolDeploymentId) as $choice ) {
             if ( $choice['message_id'] === $messageId && $choice['action'] === 'install' ) {
-                return $choice['launch'];
+                return $choice;
             }
         }
         throw new \InvalidArgumentException('That launch is not a lesson placement.');
@@ -190,14 +214,30 @@ class LtiLessonPlacement {
     }
 
     /**
+     * The message label, or the tool title when the message has none.
+     *
+     * @param array<string, mixed> $message
+     * @param string $toolTitle
+     * @return string
+     */
+    private static function messageName(array $message, $toolTitle) {
+        $name = $message['label'] === null ? '' : trim((string) $message['label']);
+        if ( $name === '' ) {
+            $name = trim((string) $toolTitle);
+        }
+        return $name === '' ? 'This tool' : $name;
+    }
+
+    /**
      * @param array<string, mixed> $message
      * @param string $action
      * @param string $label
      * @param string $toolTitle
      * @param string $target
-     * @return array{message_id:int, action:string, label:string, detail:string, launch:string}
+     * @param string $name
+     * @return array{message_id:int, action:string, label:string, name:string, detail:string, launch:string}
      */
-    private static function choice(array $message, $action, $label, $toolTitle, $target) {
+    private static function choice(array $message, $action, $label, $toolTitle, $target, $name) {
         $detail = $message['label'] === null ? '' : trim((string) $message['label']);
         if ( $detail !== '' && strcasecmp($detail, trim((string) $toolTitle)) === 0 ) {
             $detail = '';
@@ -206,6 +246,7 @@ class LtiLessonPlacement {
             'message_id' => (int) $message['message_id'],
             'action' => $action,
             'label' => $label,
+            'name' => $name,
             'detail' => $detail,
             'launch' => $target,
         );

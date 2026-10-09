@@ -27,6 +27,7 @@ class LtiContentService {
             throw new \InvalidArgumentException('This tool does not have a resource link launch.');
         }
         $launchUrl = trim((string) $tool['lti11_url']);
+        self::refuseDroppedPost($launchUrl);
         return self::writeContent($contextId, $tool, $title, $launchUrl);
     }
 
@@ -117,6 +118,7 @@ class LtiContentService {
             if ( $launchUrl === '' ) {
                 throw new \InvalidArgumentException('Launch URL is required.');
             }
+            self::refuseDroppedPost($launchUrl);
             $sets[] = 'launch_url = :launch_url';
             $parms[':launch_url'] = $launchUrl;
         }
@@ -564,65 +566,48 @@ class LtiContentService {
     }
 
     /**
-     * The URL a browser can POST an LTI launch to.
+     * Refuse an address that will not accept the launch.
      *
-     * A directory with no trailing slash is redirected, and that redirect drops
-     * the POST. The tool then sees a normal visit and has no launch session.
-     * A path that already names a file is left alone.
+     * Checked when the link is authored. A launch uses the stored address as it is.
+     * A redirect that drops a POST, or a missing address, is refused. No answer
+     * is allowed. The tool may simply be down.
      *
      * @param string $url
-     * @return string
+     * @param callable|null $lookup Returns array{code:int, location:string}, or null when there is no answer.
+     * @return void
      */
-    public static function browserPostUrl($url, $lookup = null) {
-        $url = trim((string) $url);
-        $slashed = self::directorySlashUrl($url);
-        if ( $slashed === $url ) {
-            return $url;
+    public static function refuseDroppedPost($url, $lookup = null) {
+        $reply = $lookup === null ? self::headReply($url) : $lookup($url);
+        if ( ! is_array($reply) ) {
+            return;
         }
-        $location = $lookup === null ? self::redirectLocation($url) : $lookup($url);
-        if ( ! is_string($location) || $location === '' ) {
-            return $url;
+        $code = isset($reply['code']) ? (int) $reply['code'] : 0;
+        if ( $code === 404 || $code === 410 ) {
+            throw new \InvalidArgumentException('This address was not found, so the launch will not arrive.');
         }
-        if ( self::sameResource($location, $slashed) ) {
-            return $slashed;
+        if ( ! in_array($code, array(301, 302, 303), true) ) {
+            return;
         }
-        return $url;
+        $target = isset($reply['location']) ? trim((string) $reply['location']) : '';
+        if ( $target === '' ) {
+            $target = trim((string) $url);
+        }
+        throw new \InvalidArgumentException('This address redirects to '.$target.', so the launch will not arrive.');
     }
 
     /**
-     * The same URL with a trailing slash when the path does not name a file.
+     * The status and redirect target from one HEAD. Null when the host does not answer.
      *
      * @param string $url
-     * @return string
+     * @return array{code:int, location:string}|null
      */
-    public static function directorySlashUrl($url) {
-        $url = trim((string) $url);
-        if ( ! preg_match('~^(https?://[^/?#]+)([^?#]*)(.*)$~i', $url, $match) ) {
-            return $url;
-        }
-        $path = $match[2];
-        if ( $path === '' || str_ends_with($path, '/') ) {
-            return $url;
-        }
-        $slash = strrpos($path, '/');
-        $leaf = $slash === false ? $path : substr($path, $slash + 1);
-        if ( $leaf === '' || str_contains($leaf, '.') ) {
-            return $url;
-        }
-        return $match[1].$path.'/'.$match[3];
-    }
-
-    /**
-     * @param string $url
-     * @return string
-     */
-    private static function redirectLocation($url) {
+    private static function headReply($url) {
         if ( ! function_exists('curl_init') ) {
-            return '';
+            return null;
         }
         $ch = curl_init($url);
         if ( $ch === false ) {
-            return '';
+            return null;
         }
         curl_setopt($ch, CURLOPT_NOBODY, true);
         curl_setopt($ch, CURLOPT_HEADER, true);
@@ -632,13 +617,17 @@ class LtiContentService {
         curl_setopt($ch, CURLOPT_TIMEOUT, 2);
         $raw = curl_exec($ch);
         $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-        if ( ! is_string($raw) || ! in_array($code, array(301, 302, 307, 308), true) ) {
-            return '';
+        if ( ! is_string($raw) || $code < 100 ) {
+            return null;
         }
-        if ( ! preg_match('/^Location:\s*(\S+)/mi', $raw, $match) ) {
-            return '';
+        $location = '';
+        if ( preg_match('/^Location:\s*(\S+)/mi', $raw, $match) ) {
+            $location = self::resolveRedirect($url, $match[1]);
         }
-        return self::resolveRedirect($url, $match[1]);
+        return array(
+            'code' => $code,
+            'location' => $location,
+        );
     }
 
     /**
@@ -665,15 +654,6 @@ class LtiContentService {
         $path = isset($parts['path']) ? $parts['path'] : '/';
         $dir = substr($path, 0, (int) strrpos($path, '/'));
         return $origin.$dir.'/'.$location;
-    }
-
-    /**
-     * @param string $left
-     * @param string $right
-     * @return bool
-     */
-    private static function sameResource($left, $right) {
-        return rtrim($left, '/') === rtrim($right, '/');
     }
 
     /**

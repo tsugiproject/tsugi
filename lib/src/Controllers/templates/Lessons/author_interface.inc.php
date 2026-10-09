@@ -565,6 +565,11 @@
     margin-bottom: 8px;
 }
 
+.lti-place-search {
+    color: #0b70c4;
+    margin-left: 0.4em;
+}
+
 .close {
     font-size: 28px;
     font-weight: bold;
@@ -1676,14 +1681,14 @@ function rememberContent(content) {
     ltiContentById[String(content.id)] = content;
 }
 
-function applyContentToForm(content) {
+function applyContentToForm(content, replaceTitle) {
     rememberContent(content);
     const hidden = document.getElementById('edit-lti-content-id');
     if (hidden) {
         hidden.value = String(content.id);
     }
     const titleEl = document.getElementById('edit-title');
-    if (titleEl && !titleEl.value.trim() && content.title) {
+    if (titleEl && content.title && (replaceTitle || !titleEl.value.trim())) {
         titleEl.value = content.title;
     }
     const launchEl = document.getElementById('edit-lti-launch');
@@ -1706,6 +1711,16 @@ function applyContentToForm(content) {
         el.checked = el.value === (content.target || 'window');
     });
     showLtiClaims(true);
+}
+
+function ltiPlaceError(xhr, fallback) {
+    try {
+        const body = JSON.parse(xhr && xhr.responseText ? xhr.responseText : '');
+        if (body && body.error) {
+            return body.error;
+        }
+    } catch (e) {}
+    return fallback;
 }
 
 function placeLtiContent(done, messageId) {
@@ -1737,8 +1752,8 @@ function placeLtiContent(done, messageId) {
             }
             applyContentToForm(result.content);
         },
-        error: function() {
-            alert('Could not place that tool.');
+        error: function(xhr) {
+            alert(ltiPlaceError(xhr, 'Could not place that tool.'));
         }
     });
 }
@@ -1873,12 +1888,18 @@ function showLtiClaims(show) {
     }
 }
 
-function adoptPlacedContent(content) {
+function adoptPlacedContent(content, replaceTitle) {
+    const item = currentEditorItem();
+    if (item && content.title && (replaceTitle || !item.title)) {
+        item.title = content.title;
+    }
     if (document.getElementById('edit-lti-content-id')) {
-        applyContentToForm(content);
+        applyContentToForm(content, replaceTitle);
         return;
     }
-    const item = currentEditorItem();
+    if (!item) {
+        return;
+    }
     harvestItemFormDraft(item);
     if ($('#edit-item-icon').length) {
         applyPickedIcon(item, '#edit-item-icon');
@@ -1893,7 +1914,7 @@ function adoptPlacedContent(content) {
     delete item.send_grade;
     delete item.resource_link_id;
     delete item.custom;
-    if (!item.title && content.title) {
+    if (content.title && (replaceTitle || !item.title)) {
         item.title = content.title;
     }
     updateItemFormFields(item);
@@ -1930,7 +1951,10 @@ function showLtiPlacementChoices(tool, note) {
     }
     const buttons = placements.map(function(choice) {
         const detail = choice.detail ? `<span class="help-block">${escapeHtml(choice.detail)}</span>` : '';
-        return `<button type="button" class="btn btn-default lti-place-choice" data-message-id="${choice.message_id}" data-action="${escapeHtml(choice.action)}" title="${escapeHtml(choice.launch || '')}">${escapeHtml(choice.label || 'Place')}</button>${detail}`;
+        const search = choice.action === 'select'
+            ? ' <i class="fa fa-search lti-place-search" aria-hidden="true"></i>'
+            : '';
+        return `<button type="button" class="btn btn-default lti-place-choice" data-message-id="${choice.message_id}" data-action="${escapeHtml(choice.action)}" title="${escapeHtml(choice.launch || '')}">${escapeHtml(choice.label || 'Place')}${search}</button>${detail}`;
     }).join('');
     body.innerHTML = noteHtml + '<p>Choose how this tool is added to the lesson.</p>' + buttons;
     body.querySelectorAll('.lti-place-choice').forEach(function(button) {
@@ -1963,7 +1987,7 @@ function closeLtiPlacementModal(placed) {
 
 function installLtiPlacement(messageId) {
     placeLtiContent(function(content) {
-        adoptPlacedContent(content);
+        adoptPlacedContent(content, true);
         ltiToolCommitted = String(content.tool_deployment_id || '');
         closeLtiPlacementModal(true);
     }, messageId);
@@ -2079,12 +2103,12 @@ function placeDeepLinkReturn(itemIndex) {
                 return;
             }
             rememberContent(result.content);
-            adoptPlacedContent(result.content);
+            adoptPlacedContent(result.content, true);
             ltiToolCommitted = String(result.content.tool_deployment_id || '');
             closeLtiPlacementModal(true);
         },
-        error: function() {
-            showLtiPlacementChoices(state.tool, 'Could not place that item.');
+        error: function(xhr) {
+            showLtiPlacementChoices(state.tool, ltiPlaceError(xhr, 'Could not place that item.'));
         }
     });
 }

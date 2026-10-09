@@ -333,7 +333,6 @@ class Lti13TestLaunch {
         if ( $target === '' ) {
             throw new \InvalidArgumentException('This tool has no launch URL.');
         }
-        $target = LtiContentService::browserPostUrl($target);
         $resourceLinkId = trim((string) $resourceLinkId);
         if ( $resourceLinkId === '' ) {
             throw new \InvalidArgumentException('This lesson link has no resource link.');

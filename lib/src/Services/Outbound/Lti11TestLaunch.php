@@ -251,7 +251,6 @@ class Lti11TestLaunch {
         if ( $endpoint === '' ) {
             $endpoint = $tool['lti11_url'];
         }
-        $endpoint = LtiContentService::browserPostUrl($endpoint);
         $parms = self::resourceLinkParameters(
             $tool,
             (int) $contextId,

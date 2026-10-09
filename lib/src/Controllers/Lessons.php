@@ -659,6 +659,8 @@ class Lessons extends Tool {
         try {
             if ( $messageId > 0 ) {
                 $launchUrl = LtiLessonPlacement::installTarget($context_id, $deploymentId, $messageId);
+                $title = LtiLessonPlacement::installName($context_id, $deploymentId, $messageId);
+                LtiContentService::refuseDroppedPost($launchUrl);
                 $content = LtiContentService::placeAt($context_id, $deploymentId, $title, $launchUrl);
             } else {
                 $content = LtiContentService::place($context_id, $deploymentId, $title);
@@ -720,9 +722,10 @@ class Lessons extends Tool {
             if ( $picked['items'] !== null ) {
                 return new Response(json_encode(['success' => true, 'choose' => true, 'items' => $picked['items']]), 200, ['Content-Type' => 'application/json']);
             }
-            if ( $title === '' ) {
+            if ( $picked['title'] !== '' ) {
                 $title = $picked['title'];
             }
+            LtiContentService::refuseDroppedPost($picked['url']);
             $content = LtiContentService::placeAt($context_id, $deploymentId, $title, $picked['url']);
         } catch ( \InvalidArgumentException $ex ) {
             return new Response(json_encode(['success' => false, 'error' => $ex->getMessage()]), 400, ['Content-Type' => 'application/json']);
