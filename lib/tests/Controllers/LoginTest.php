@@ -191,8 +191,8 @@ class LoginTest extends \PHPUnit\Framework\TestCase
 
     public function testSimulateForbiddenWhenSecretUnset() {
         global $CFG;
-        $CFG->demo_login = true;
-        $CFG->demo_secret = false;
+        $CFG->qa_demo_login = true;
+        $CFG->qa_demo_secret = false;
         $login = new Login();
         $response = $login->simulate();
         $this->assertSame(403, $response->getStatusCode());
@@ -200,8 +200,8 @@ class LoginTest extends \PHPUnit\Framework\TestCase
 
     public function testSimulateFormWhenEnabled() {
         global $CFG, $OUTPUT;
-        $CFG->demo_login = true;
-        $CFG->demo_secret = 's3cret';
+        $CFG->qa_demo_login = true;
+        $CFG->qa_demo_secret = 's3cret';
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $OUTPUT = new class {
             public function header() {}
@@ -226,8 +226,8 @@ class LoginTest extends \PHPUnit\Framework\TestCase
 
     public function testSimulateBadSecretStaysOnForm() {
         global $CFG, $OUTPUT;
-        $CFG->demo_login = true;
-        $CFG->demo_secret = 's3cret';
+        $CFG->qa_demo_login = true;
+        $CFG->qa_demo_secret = 's3cret';
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $OUTPUT = new class {
             public function header() {}

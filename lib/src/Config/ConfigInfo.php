@@ -57,6 +57,16 @@ class ConfigInfo {
     public $author_allow = false;
 
     /**
+     * Allow an LTI token grant to fetch a tool key set from loopback or a private address.
+     *
+     * QA back door for local testing. The fetch is HTTPS-only either way.
+     * Leave this false on a public platform. Set it true only on a development
+     * machine, where a local tool such as https://local.py4e.com publishes its
+     * key set on this host.
+     */
+    public $qa_allow_local_jwks = false;
+
+    /**
      * This is how the system will refer to itself.
      */
     public $servicename = 'TSUGI (dev)';
@@ -833,18 +843,40 @@ class ConfigInfo {
     /**
      * Simulated Google site login at /login/simulate for local testing.
      *
-     * Never enable in production. Any request to /login/simulate is HTTP 403
-     * unless this is boolean true and $demo_secret is a non-empty string.
+     * QA back door. Never enable in production. Any request to /login/simulate
+     * is HTTP 403 unless this is boolean true and $qa_demo_secret is a non-empty string.
      */
-    public $demo_login = false;
+    public $qa_demo_login = false;
 
     /**
      * Secret typed into the /login/simulate form.
      *
-     * Plaintext or sha256:... (same pattern as $adminpw). Required when
-     * $demo_login is true; an empty/false value keeps the route at 403.
+     * QA back door. Plaintext or sha256:... (same pattern as $adminpw). Required
+     * when $qa_demo_login is true; an empty/false value keeps the route at 403.
      */
-    public $demo_secret = false;
+    public $qa_demo_secret = false;
+
+    /**
+     * QA setting names that are turned on.
+     *
+     * Boolean true counts. A non-empty string counts, so a QA secret is listed
+     * without its value. False, null, and an empty string do not.
+     *
+     * @return array<int, string>
+     */
+    public function enabledQaSettings() {
+        $enabled = array();
+        foreach ( get_object_vars($this) as $name => $value ) {
+            if ( ! is_string($name) || strncmp($name, 'qa_', 3) !== 0 ) {
+                continue;
+            }
+            if ( $value === true || (is_string($value) && $value !== '') ) {
+                $enabled[] = $name;
+            }
+        }
+        sort($enabled, SORT_STRING);
+        return $enabled;
+    }
 
     /**
      * Enable service worker for push notifications and offline support

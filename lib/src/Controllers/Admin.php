@@ -245,6 +245,30 @@ class Admin extends Tool {
         exit;
     }
 
+    /**
+     * Warning for the admin console command list when any qa_ setting is turned on.
+     *
+     * The unlock form does not call this.
+     */
+    public static function qaNotice() {
+        global $CFG;
+        if ( ! is_object($CFG) || ! method_exists($CFG, 'enabledQaSettings') ) {
+            return '';
+        }
+        $names = $CFG->enabledQaSettings();
+        if ( count($names) < 1 ) {
+            return '';
+        }
+        $shown = array();
+        foreach ( $names as $name ) {
+            $shown[] = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+        }
+        return '<div class="alert alert-warning" style="margin: 10px;">'."\n"
+            .'<p>QA settings enabled, these settings are not suitable for production systems: '
+            .implode(', ', $shown).".</p>\n"
+            ."</div>\n";
+    }
+
     public function index() {
         if ( $r = $this->gate('admin.console') ) return $r;
         $this->view('console/index.php');

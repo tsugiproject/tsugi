@@ -233,11 +233,19 @@ $CFG->autoapprovekeys = false; // A regex like - '/.+@gmail\\.com/'
 $CFG->google_client_id = false; // '96041-nljpjj8jlv4.apps.googleusercontent.com';
 $CFG->google_client_secret = false; // '6Q7w_x4ESrl29a';
 
-// Simulated Google site login for local testing (Cursor, no Google account).
-// /login/simulate is always HTTP 403 unless demo_login is true AND demo_secret
-// is a non-empty string. Never enable in production.
-$CFG->demo_login = false;
-$CFG->demo_secret = false; // 'a-long-random-string' or 'sha256:...';
+// QA back doors. Names start with qa_. Never enable these on a production
+// system. /admin shows a warning when any of them are on.
+//
+// Simulated Google site login (no Google account).
+// /login/simulate is always HTTP 403 unless qa_demo_login is true AND
+// qa_demo_secret is a non-empty string.
+$CFG->qa_demo_login = false;
+$CFG->qa_demo_secret = false; // 'a-long-random-string' or 'sha256:...';
+
+// LTI Advantage token grants fetch the tool jwks_uri over HTTPS and refuse
+// loopback, private, and reserved addresses. Set true only on a development
+// machine so a local tool can publish its key set on this host.
+$CFG->qa_allow_local_jwks = false;
 
 // Google OAuth redirect URI configuration
 // If you want explicit control over the redirect URI, set this to match exactly

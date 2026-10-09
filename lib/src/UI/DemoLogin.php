@@ -18,10 +18,10 @@ class DemoLogin {
      */
     public static function isEnabled() {
         global $CFG;
-        if ( ! isset($CFG->demo_login) || $CFG->demo_login !== true ) {
+        if ( ! isset($CFG->qa_demo_login) || $CFG->qa_demo_login !== true ) {
             return false;
         }
-        $secret = $CFG->demo_secret ?? false;
+        $secret = $CFG->qa_demo_secret ?? false;
         return is_string($secret) && $secret !== '';
     }
 
@@ -33,7 +33,7 @@ class DemoLogin {
     }
 
     /**
-     * Timing-safe check of a posted secret against $CFG->demo_secret.
+     * Timing-safe check of a posted secret against $CFG->qa_demo_secret.
      *
      * Supports plaintext or sha256:... like $CFG->adminpw.
      */
@@ -45,7 +45,7 @@ class DemoLogin {
         if ( ! is_string($posted) || $posted === '' ) {
             return false;
         }
-        $configured = $CFG->demo_secret;
+        $configured = $CFG->qa_demo_secret;
         if ( ! is_string($configured) || $configured === '' ) {
             return false;
         }

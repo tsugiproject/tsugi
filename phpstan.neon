@@ -20,6 +20,9 @@ parameters:
         - cron
         - dev
         - ext
+        - ims
+        - lib/src/Controllers/Ims
+        - lib/src/Services/Ims
         - lti
         - mod
         - tool
