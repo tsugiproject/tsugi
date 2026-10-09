@@ -6,6 +6,7 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Tsugi\Core\Keyset;
 use Tsugi\Core\LTIX;
+use Tsugi\Services\Ims\AssignmentsGrades;
 use Tsugi\Services\Ims\NamesRoles;
 use Tsugi\Util\LTI13;
 
@@ -88,9 +89,12 @@ class Lti13TestLaunch {
      * @param string $messageType
      * @param string $returnUrl
      * @param string $role Instructor or Learner
+     * @param bool $lineItems Include the line items URL. A tool that creates columns keeps them in the course.
+     * @param string|null $targetLinkUri A message target. Empty uses the first message of this type.
+     * @param int $toolDeploymentId Deployment to launch. Zero uses the first deployment on the tool.
      * @return array{title:string, endpoint:string, form_endpoint:string, message_type:string, label:string, role:string, ready:bool, new_window:bool, missing_resource_link:bool, content_item_url:bool, parameters:array<string, string>, jwt_json:string, jwt_signed:string}
      */
-    public static function launch($contextId, $registrationId, $userId, $messageType, $returnUrl, $role = 'Instructor') {
+    public static function launch($contextId, $registrationId, $userId, $messageType, $returnUrl, $role = 'Instructor', $lineItems = true, $targetLinkUri = null, $toolDeploymentId = 0) {
         $tool = ToolRegistrationService::visibleLti13((int) $contextId, (int) $registrationId);
         $spec = self::launches()[$messageType] ?? null;
         $have = false;
@@ -105,6 +109,13 @@ class Lti13TestLaunch {
         }
         $role = Lti11TestLaunch::role($role);
         $target = self::messageTarget($tool, $messageType);
+        $askedTarget = trim((string) $targetLinkUri);
+        if ( $askedTarget !== '' ) {
+            if ( ! self::hasMessageTarget($tool, $messageType, $askedTarget) ) {
+                throw new \InvalidArgumentException('This tool does not have that launch.');
+            }
+            $target = $askedTarget;
+        }
         $missingResourceLink = $messageType === 'LtiResourceLinkRequest' && $target === '';
         $result = array(
             'title' => $tool['title'],
@@ -129,9 +140,11 @@ class Lti13TestLaunch {
         if ( $userId < 1 ) {
             throw new \InvalidArgumentException('A user is required to test a launch.');
         }
-        $deployment = self::deployment($tool);
+        $deployment = ((int) $toolDeploymentId) > 0
+            ? self::deploymentById($tool, (int) $toolDeploymentId)
+            : self::deployment($tool);
         $loginHint = bin2hex(random_bytes(16));
-        $hint = self::encodeHint(array(
+        $hintBody = array(
             'registration_id' => (int) $tool['registration_id'],
             'context_id' => (int) $contextId,
             'user_id' => $userId,
@@ -143,7 +156,11 @@ class Lti13TestLaunch {
             'return_url' => self::httpUrl($returnUrl),
             'iat' => time(),
             'exp' => time() + self::HINT_SECONDS,
-        ));
+        );
+        if ( ! $lineItems ) {
+            $hintBody['lineitems'] = false;
+        }
+        $hint = self::encodeHint($hintBody);
         $issuer = PlatformDynamicRegistration::openIdConfiguration()['issuer'];
         $result['parameters'] = array(
             'iss' => $issuer,
@@ -164,6 +181,9 @@ class Lti13TestLaunch {
             'deployment_id' => $deployment['deployment_id'],
             'return_url' => self::httpUrl($returnUrl),
         );
+        if ( ! $lineItems ) {
+            $previewHint['lineitems'] = false;
+        }
         if ( $messageType === 'LtiDataPrivacyLaunchRequest' ) {
             $claims = self::privacyClaims($tool, $deployment, $previewHint, 'preview');
         } else if ( $messageType === 'LtiDeepLinkingRequest' ) {
@@ -188,9 +208,10 @@ class Lti13TestLaunch {
      * @param string $returnUrl
      * @param string $role
      * @param string $title
+     * @param bool $lineItems Include the line items URL. A tool that creates columns keeps them in the course.
      * @return array{title:string, endpoint:string, form_endpoint:string, message_type:string, label:string, role:string, ready:bool, new_window:bool, modal:bool, missing_resource_link:bool, content_item_url:bool, parameters:array<string, string>, jwt_json:string, jwt_signed:string}
      */
-    public static function launchReturned($contextId, $registrationId, $userId, $target, $returnUrl, $role = 'Instructor', $title = '') {
+    public static function launchReturned($contextId, $registrationId, $userId, $target, $returnUrl, $role = 'Instructor', $title = '', $lineItems = true) {
         $tool = ToolRegistrationService::visibleLti13((int) $contextId, (int) $registrationId);
         $target = self::httpUrl($target);
         if ( $target === '' || $tool['oidc_login_url'] === '' ) {
@@ -207,7 +228,7 @@ class Lti13TestLaunch {
         }
         $deployment = self::deployment($tool);
         $loginHint = bin2hex(random_bytes(16));
-        $hint = self::encodeHint(array(
+        $hintBody = array(
             'registration_id' => (int) $tool['registration_id'],
             'context_id' => (int) $contextId,
             'user_id' => $userId,
@@ -221,7 +242,11 @@ class Lti13TestLaunch {
             'title' => $title,
             'iat' => time(),
             'exp' => time() + self::HINT_SECONDS,
-        ));
+        );
+        if ( ! $lineItems ) {
+            $hintBody['lineitems'] = false;
+        }
+        $hint = self::encodeHint($hintBody);
         $issuer = PlatformDynamicRegistration::openIdConfiguration()['issuer'];
         $previewHint = array(
             'context_id' => (int) $contextId,
@@ -232,6 +257,9 @@ class Lti13TestLaunch {
             'returned' => true,
             'title' => $title,
         );
+        if ( ! $lineItems ) {
+            $previewHint['lineitems'] = false;
+        }
         $preview = self::previewToken(self::resourceLinkClaims($tool, $deployment, $previewHint, 'preview'));
         return array(
             'title' => $tool['title'],
@@ -257,6 +285,125 @@ class Lti13TestLaunch {
             ),
             'jwt_json' => $preview['json'],
             'jwt_signed' => $preview['signed'],
+        );
+    }
+
+    /**
+     * A lesson launch. The content row is the resource link. The stored URL is the target.
+     *
+     * A privacy placement and a content-item placement launch this same way.
+     * The message that supplied the URL is not launched again.
+     *
+     * @param int $contextId
+     * @param int $toolDeploymentId
+     * @param int $userId
+     * @param string $resourceLinkId
+     * @param string $resourceLinkTitle
+     * @param string $returnUrl
+     * @param string $role
+     * @param string $userKey Unused. The token subject is the user id.
+     * @param bool|null $sendName Null follows the deployment grant. False omits the name.
+     * @param bool|null $sendEmail Null follows the deployment grant. False omits the email.
+     * @param string $launchUrl
+     * @param string $documentTarget
+     * @param string $elementId Unused.
+     * @param bool|null $sendGrade Null follows the score scope. False omits the grade service.
+     * @param bool $gradeColumnMissing
+     * @return array{endpoint:string, parameters:array<string, string>, protocol:string}
+     */
+    public static function courseResourceLink($contextId, $toolDeploymentId, $userId, $resourceLinkId, $resourceLinkTitle, $returnUrl, $role = 'Learner', $userKey = '', $sendName = null, $sendEmail = null, $launchUrl = '', $documentTarget = '', $elementId = '', $sendGrade = null, $gradeColumnMissing = false) {
+        unset($userKey, $elementId);
+        $contextId = (int) $contextId;
+        $toolDeploymentId = (int) $toolDeploymentId;
+        $found = null;
+        foreach ( ToolDeploymentService::getDeploymentsForContext($contextId) as $row ) {
+            if ( (int) $row['tool_deployment_id'] === $toolDeploymentId ) {
+                $found = $row;
+                break;
+            }
+        }
+        if ( $found === null ) {
+            throw new \InvalidArgumentException('This course does not have that deployment.');
+        }
+        $tool = ToolRegistrationService::visibleLti13($contextId, (int) $found['registration_id']);
+        if ( $tool['oidc_login_url'] === '' ) {
+            throw new \InvalidArgumentException('This tool has no login URL.');
+        }
+        $target = self::httpUrl($launchUrl);
+        if ( $target === '' ) {
+            throw new \InvalidArgumentException('This tool has no launch URL.');
+        }
+        $resourceLinkId = trim((string) $resourceLinkId);
+        if ( $resourceLinkId === '' ) {
+            throw new \InvalidArgumentException('This lesson link has no resource link.');
+        }
+        $userId = (int) $userId;
+        if ( $userId < 1 ) {
+            throw new \InvalidArgumentException('A user is required to launch.');
+        }
+        $title = trim((string) $resourceLinkTitle);
+        if ( $title === '' ) {
+            $title = $tool['title'];
+        }
+        if ( strlen($title) > 255 ) {
+            $title = substr($title, 0, 255);
+        }
+        $deployment = self::deploymentById($tool, $toolDeploymentId);
+        $gradeAllowed = in_array(
+            ToolRegistrationDocument::SCOPE_SCORE,
+            $deployment['allowed_scopes'],
+            true
+        );
+        $includeGrade = $gradeAllowed && $sendGrade !== false;
+        if ( $includeGrade && $gradeColumnMissing ) {
+            throw new \InvalidArgumentException('This launch sends a grade and has no grade column.');
+        }
+        $role = Lti11TestLaunch::role($role);
+        $loginHint = bin2hex(random_bytes(16));
+        $hintBody = array(
+            'registration_id' => (int) $tool['registration_id'],
+            'context_id' => $contextId,
+            'user_id' => $userId,
+            'role' => $role,
+            'message_type' => 'LtiResourceLinkRequest',
+            'target_link_uri' => $target,
+            'login_hint' => $loginHint,
+            'deployment_id' => $deployment['deployment_id'],
+            'return_url' => self::httpUrl($returnUrl),
+            'lesson' => true,
+            'resource_link_id' => $resourceLinkId,
+            'title' => $title,
+            'iat' => time(),
+            'exp' => time() + self::HINT_SECONDS,
+        );
+        if ( $sendName !== null ) {
+            $hintBody['send_name'] = (bool) $sendName;
+        }
+        if ( $sendEmail !== null ) {
+            $hintBody['send_email'] = (bool) $sendEmail;
+        }
+        if ( ! $includeGrade ) {
+            $hintBody['lineitems'] = false;
+        }
+        $presented = Lti11TestLaunch::documentTargetForLesson($documentTarget);
+        if ( $presented === 'iframe' || $presented === 'frame' ) {
+            $hintBody['document_target'] = 'iframe';
+        } else if ( $presented === 'window' ) {
+            $hintBody['document_target'] = 'window';
+        }
+        $issuer = PlatformDynamicRegistration::openIdConfiguration()['issuer'];
+        return array(
+            'endpoint' => $tool['oidc_login_url'],
+            'protocol' => '1.3',
+            'parameters' => array(
+                'iss' => $issuer,
+                'login_hint' => $loginHint,
+                'target_link_uri' => $target,
+                'client_id' => $tool['client_id'],
+                'lti_deployment_id' => $deployment['deployment_id'],
+                'lti_message_hint' => self::encodeHint($hintBody),
+                'ext_submit' => 'Finish Launch',
+            ),
         );
     }
 
@@ -299,18 +446,15 @@ class Lti13TestLaunch {
         if ( ! in_array($redirectUri, $tool['redirect_uris'], true) ) {
             throw new \InvalidArgumentException('That redirect URL is not registered.');
         }
-        $deployment = self::deployment($tool);
-        if ( $deployment['deployment_id'] !== (string) $hint['deployment_id'] ) {
-            throw new \InvalidArgumentException('That deployment is not part of this launch.');
-        }
+        $deployment = self::deploymentMatching($tool, (string) $hint['deployment_id']);
         $messageType = (string) $hint['message_type'];
         $returned = ! empty($hint['returned']);
         if ( $messageType === 'LtiDeepLinkingRequest' ) {
-            if ( self::messageTarget($tool, $messageType) !== (string) $hint['target_link_uri'] ) {
+            if ( ! self::hasMessageTarget($tool, $messageType, (string) $hint['target_link_uri']) ) {
                 throw new \InvalidArgumentException('This registration has no deep link.');
             }
             $claims = self::deepLinkClaims($tool, $deployment, $hint, $nonce);
-        } else if ( $messageType === 'LtiResourceLinkRequest' && $returned ) {
+        } else if ( $messageType === 'LtiResourceLinkRequest' && ( $returned || ! empty($hint['lesson']) ) ) {
             $claims = self::resourceLinkClaims($tool, $deployment, $hint, $nonce);
         } else if ( $messageType === 'LtiResourceLinkRequest' || $messageType === 'LtiDataPrivacyLaunchRequest' ) {
             if ( self::messageTarget($tool, $messageType) !== (string) $hint['target_link_uri'] ) {
@@ -359,11 +503,7 @@ class Lti13TestLaunch {
             LTI13::VERSION_CLAIM => '1.3.0',
             LTI13::DEPLOYMENT_ID_CLAIM => $deployment['deployment_id'],
             'https://purl.imsglobal.org/spec/lti/claim/target_link_uri' => (string) $hint['target_link_uri'],
-            LTI13::RESOURCE_LINK_CLAIM => array(
-                'id' => ! empty($hint['returned']) ? 'deep-'.$tool['registration_id'] : 'test-'.$tool['registration_id'],
-                'title' => (isset($hint['title']) && (string) $hint['title'] !== '') ? (string) $hint['title'] : $tool['title'],
-                'description' => 'Test launch',
-            ),
+            LTI13::RESOURCE_LINK_CLAIM => self::resourceLinkIdentity($tool, $hint),
             LTI13::ROLES_CLAIM => array(self::roleUri((string) $hint['role'])),
             LTI13::CONTEXT_ID_CLAIM => array(
                 'id' => $context['context_id'],
@@ -376,7 +516,7 @@ class Lti13TestLaunch {
                 'product_family_code' => 'tsugi.org',
             ),
             LTI13::PRESENTATION_CLAIM => array(
-                'document_target' => 'window',
+                'document_target' => (isset($hint['document_target']) && $hint['document_target'] === 'iframe') ? 'iframe' : 'window',
                 'locale' => 'en',
             ),
         );
@@ -388,31 +528,27 @@ class Lti13TestLaunch {
             $claims[LTI13::PRESENTATION_CLAIM]['return_url'] = $returnUrl;
         }
         $allowed = $deployment['allowed_claims'];
-        if ( in_array('name', $allowed, true) && $user['full'] !== '' ) {
+        $sendName = ! array_key_exists('send_name', $hint) || $hint['send_name'] !== false;
+        $sendEmail = ! array_key_exists('send_email', $hint) || $hint['send_email'] !== false;
+        if ( $sendName && in_array('name', $allowed, true) && $user['full'] !== '' ) {
             $claims['name'] = $user['full'];
         }
-        if ( in_array('given_name', $allowed, true) && $user['given'] !== '' ) {
+        if ( $sendName && in_array('given_name', $allowed, true) && $user['given'] !== '' ) {
             $claims['given_name'] = $user['given'];
         }
-        if ( in_array('family_name', $allowed, true) && $user['family'] !== '' ) {
+        if ( $sendName && in_array('family_name', $allowed, true) && $user['family'] !== '' ) {
             $claims['family_name'] = $user['family'];
         }
-        if ( in_array('email', $allowed, true) && $user['email'] !== '' ) {
+        if ( $sendEmail && in_array('email', $allowed, true) && $user['email'] !== '' ) {
             $claims['email'] = $user['email'];
         }
         $scopes = $deployment['allowed_scopes'];
-        $grade = array();
-        foreach ( array(ToolRegistrationDocument::SCOPE_LINEITEM, ToolRegistrationDocument::SCOPE_RESULT, ToolRegistrationDocument::SCOPE_SCORE) as $scope ) {
-            if ( in_array($scope, $scopes, true) ) {
-                $grade[] = $scope;
+        if ( self::includeLineItems($hint) ) {
+            $resourceLinkId = $claims[LTI13::RESOURCE_LINK_CLAIM]['id'];
+            $grade = self::gradeServiceClaim($contextId, $scopes, $resourceLinkId);
+            if ( $grade !== null ) {
+                $claims[LTI13::ENDPOINT_CLAIM] = $grade;
             }
-        }
-        if ( count($grade) > 0 ) {
-            $root = $issuer;
-            $claims[LTI13::ENDPOINT_CLAIM] = array(
-                'scope' => $grade,
-                'lineitems' => $root.'/lti/ags/context/'.$contextId.'/lineitems',
-            );
         }
         if ( in_array(ToolRegistrationDocument::SCOPE_ROSTER, $scopes, true) ) {
             $claims[LTI13::NAMESANDROLES_CLAIM] = array(
@@ -421,6 +557,32 @@ class Lti13TestLaunch {
             );
         }
         return $claims;
+    }
+
+    /**
+     * The resource link in a lesson is the content row. A test launch uses a stand-in id.
+     *
+     * @param array<string, mixed> $tool
+     * @param array<string, mixed> $hint
+     * @return array{id:string, title:string, description?:string}
+     */
+    private static function resourceLinkIdentity(array $tool, array $hint) {
+        $title = (isset($hint['title']) && (string) $hint['title'] !== '') ? (string) $hint['title'] : $tool['title'];
+        if ( ! empty($hint['lesson']) ) {
+            $id = trim((string) (isset($hint['resource_link_id']) ? $hint['resource_link_id'] : ''));
+            if ( $id === '' ) {
+                throw new \InvalidArgumentException('This lesson link has no resource link.');
+            }
+            return array(
+                'id' => $id,
+                'title' => $title,
+            );
+        }
+        return array(
+            'id' => ! empty($hint['returned']) ? 'deep-'.$tool['registration_id'] : 'test-'.$tool['registration_id'],
+            'title' => $title,
+            'description' => 'Test launch',
+        );
     }
 
     /**
@@ -493,7 +655,59 @@ class Lti13TestLaunch {
         if ( in_array('email', $allowed, true) && $user['email'] !== '' ) {
             $claims['email'] = $user['email'];
         }
+        if ( self::includeLineItems($hint) ) {
+            $grade = self::gradeServiceClaim($contextId, $deployment['allowed_scopes'], null);
+            if ( $grade !== null ) {
+                $claims[LTI13::ENDPOINT_CLAIM] = $grade;
+            }
+        }
         return $claims;
+    }
+
+    /**
+     * A missing flag still includes the URL. The test page sets it false to leave the URL out.
+     *
+     * @param array<string, mixed> $hint
+     */
+    private static function includeLineItems(array $hint): bool
+    {
+        return ! array_key_exists('lineitems', $hint) || ! empty($hint['lineitems']);
+    }
+
+    /**
+     * Scopes the deployment actually allows, plus the line-item URLs.
+     *
+     * lineitem is the column coupled to this resource link, when one exists.
+     *
+     * @param array<int, string> $scopes
+     * @return array<string, mixed>|null
+     */
+    private static function gradeServiceClaim(int $contextId, array $scopes, ?string $resourceLinkId) {
+        $grade = array();
+        foreach ( array(
+            ToolRegistrationDocument::SCOPE_LINEITEM,
+            ToolRegistrationDocument::SCOPE_LINEITEM_READONLY,
+            ToolRegistrationDocument::SCOPE_RESULT,
+            ToolRegistrationDocument::SCOPE_SCORE,
+        ) as $scope ) {
+            if ( in_array($scope, $scopes, true) ) {
+                $grade[] = $scope;
+            }
+        }
+        if ( count($grade) < 1 ) {
+            return null;
+        }
+        $claim = array(
+            'scope' => $grade,
+            'lineitems' => AssignmentsGrades::lineItemsUrl($contextId),
+        );
+        if ( is_string($resourceLinkId) && $resourceLinkId !== '' ) {
+            $lineItem = AssignmentsGrades::coupledLineItemUrl($contextId, $resourceLinkId);
+            if ( is_string($lineItem) ) {
+                $claim['lineitem'] = $lineItem;
+            }
+        }
+        return $claim;
     }
 
     /**
@@ -775,6 +989,62 @@ class Lti13TestLaunch {
     }
 
     /**
+     * @param array<string, mixed> $tool
+     * @param string $messageType
+     * @param string $target
+     * @return bool
+     */
+    private static function hasMessageTarget(array $tool, $messageType, $target) {
+        $target = trim((string) $target);
+        if ( $target === '' ) {
+            return false;
+        }
+        foreach ( $tool['messages'] as $message ) {
+            if ( $message['message_type'] !== $messageType ) {
+                continue;
+            }
+            if ( trim((string) $message['target_link_uri']) === $target ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param array<string, mixed> $tool
+     * @param int $toolDeploymentId
+     * @return array{tool_deployment_id:int, deployment_id:string, allowed_claims:array<int, string>, allowed_scopes:array<int, string>}
+     */
+    private static function deploymentById(array $tool, $toolDeploymentId) {
+        $toolDeploymentId = (int) $toolDeploymentId;
+        foreach ( $tool['deployments'] as $deployment ) {
+            if ( (int) $deployment['tool_deployment_id'] !== $toolDeploymentId ) {
+                continue;
+            }
+            if ( (string) $deployment['deployment_id'] === '' ) {
+                throw new \InvalidArgumentException('This course has no deployment for that tool.');
+            }
+            return $deployment;
+        }
+        throw new \InvalidArgumentException('This course has no deployment for that tool.');
+    }
+
+    /**
+     * @param array<string, mixed> $tool
+     * @param string $deploymentId
+     * @return array{tool_deployment_id:int, deployment_id:string, allowed_claims:array<int, string>, allowed_scopes:array<int, string>}
+     */
+    private static function deploymentMatching(array $tool, $deploymentId) {
+        $deploymentId = (string) $deploymentId;
+        foreach ( $tool['deployments'] as $deployment ) {
+            if ( (string) $deployment['deployment_id'] === $deploymentId && $deploymentId !== '' ) {
+                return $deployment;
+            }
+        }
+        throw new \InvalidArgumentException('That deployment is not part of this launch.');
+    }
+
+    /**
      * Target of the first message of this type. A registration launch URL is not a message target.
      *
      * @param array<string, mixed> $tool
@@ -873,6 +1143,12 @@ class Lti13TestLaunch {
             'return_url' => isset($decoded->return_url) ? (string) $decoded->return_url : '',
             'returned' => isset($decoded->returned) && $decoded->returned === true,
             'title' => isset($decoded->title) ? substr((string) $decoded->title, 0, 255) : '',
+            'lineitems' => ! property_exists($decoded, 'lineitems') || $decoded->lineitems !== false,
+            'lesson' => isset($decoded->lesson) && $decoded->lesson === true,
+            'resource_link_id' => isset($decoded->resource_link_id) ? (string) $decoded->resource_link_id : '',
+            'send_name' => property_exists($decoded, 'send_name') ? (bool) $decoded->send_name : null,
+            'send_email' => property_exists($decoded, 'send_email') ? (bool) $decoded->send_email : null,
+            'document_target' => (isset($decoded->document_target) && (string) $decoded->document_target === 'iframe') ? 'iframe' : '',
         );
     }
 

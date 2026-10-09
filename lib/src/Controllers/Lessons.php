@@ -10,6 +10,7 @@ use Tsugi\Lumos\Application;
 use Tsugi\Services\Quiz1\Quiz1Repository;
 use Tsugi\Services\Outbound\Lti11TestLaunch;
 use Tsugi\Services\Outbound\LtiContentService;
+use Tsugi\Services\Outbound\LtiLessonPlacement;
 use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Lessons\LessonsNormalize;
 use Tsugi\Services\Files\FileRepository;
@@ -545,6 +546,12 @@ class Lessons extends Tool {
         if ( $action === 'place-lti' ) {
             return $this->authorPlaceLti();
         }
+        if ( $action === 'deep-link-lti' ) {
+            return $this->authorDeepLinkLti();
+        }
+        if ( $action === 'place-deep-link' ) {
+            return $this->authorPlaceDeepLink();
+        }
         if ( $action === 'patch-lti' ) {
             return $this->authorPatchLti();
         }
@@ -643,13 +650,83 @@ class Lessons extends Tool {
      */
     private function authorPlaceLti() {
         $deploymentId = (int) U::get($_POST, 'tool_deployment_id', 0);
+        $messageId = (int) U::get($_POST, 'message_id', 0);
         $title = trim((string) U::get($_POST, 'title', ''));
         $context_id = ReqScope::currentContextId();
         if ( $deploymentId < 1 || $context_id < 1 ) {
             return new Response(json_encode(['success' => false, 'error' => 'Pick a deployment from this course.']), 400, ['Content-Type' => 'application/json']);
         }
         try {
-            $content = LtiContentService::place($context_id, $deploymentId, $title);
+            if ( $messageId > 0 ) {
+                $launchUrl = LtiLessonPlacement::installTarget($context_id, $deploymentId, $messageId);
+                $title = LtiLessonPlacement::installName($context_id, $deploymentId, $messageId);
+                LtiContentService::refuseDroppedPost($launchUrl);
+                $content = LtiContentService::placeAt($context_id, $deploymentId, $title, $launchUrl);
+            } else {
+                $content = LtiContentService::place($context_id, $deploymentId, $title);
+            }
+        } catch ( \InvalidArgumentException $ex ) {
+            return new Response(json_encode(['success' => false, 'error' => $ex->getMessage()]), 400, ['Content-Type' => 'application/json']);
+        }
+        return new Response(json_encode(['success' => true, 'content' => $content]), 200, ['Content-Type' => 'application/json']);
+    }
+
+    /**
+     * Start the deep link the author chose from the placement list.
+     */
+    private function authorDeepLinkLti() {
+        global $CFG;
+        $deploymentId = (int) U::get($_POST, 'tool_deployment_id', 0);
+        $messageId = (int) U::get($_POST, 'message_id', 0);
+        $context_id = ReqScope::currentContextId();
+        $userId = ReqScope::loggedInUserId();
+        if ( $deploymentId < 1 || $messageId < 1 || $context_id < 1 || $userId < 1 ) {
+            return new Response(json_encode(['success' => false, 'error' => 'Pick a deployment from this course.']), 400, ['Content-Type' => 'application/json']);
+        }
+        $returnUrl = rtrim((string) $CFG->wwwroot, '/').$this->toolHome(self::ROUTE);
+        try {
+            $launch = LtiLessonPlacement::selectLaunch($context_id, $deploymentId, $messageId, $userId, $returnUrl);
+        } catch ( \InvalidArgumentException $ex ) {
+            return new Response(json_encode(['success' => false, 'error' => $ex->getMessage()]), 400, ['Content-Type' => 'application/json']);
+        }
+        $parameters = isset($launch['parameters']) && is_array($launch['parameters']) ? $launch['parameters'] : array();
+        unset($parameters['ext_submit'], $parameters['lti_message_type']);
+        return new Response(json_encode([
+            'success' => true,
+            'endpoint' => isset($launch['form_endpoint']) ? (string) $launch['form_endpoint'] : '',
+            'parameters' => $parameters,
+        ]), 200, ['Content-Type' => 'application/json']);
+    }
+
+    /**
+     * Store the target link URI a deep link return just produced.
+     */
+    private function authorPlaceDeepLink() {
+        $deploymentId = (int) U::get($_POST, 'tool_deployment_id', 0);
+        $title = trim((string) U::get($_POST, 'title', ''));
+        $jwt = trim((string) U::get($_POST, 'jwt', ''));
+        $context_id = ReqScope::currentContextId();
+        if ( $deploymentId < 1 || $context_id < 1 || $jwt === '' ) {
+            return new Response(json_encode(['success' => false, 'error' => 'That deep link return is not for this course.']), 400, ['Content-Type' => 'application/json']);
+        }
+        $index = null;
+        if ( isset($_POST['item']) && $_POST['item'] !== '' ) {
+            $raw = $_POST['item'];
+            if ( ! is_string($raw) || ! preg_match('/^\d+$/', $raw) ) {
+                return new Response(json_encode(['success' => false, 'error' => 'That item is not in the deep link return.']), 400, ['Content-Type' => 'application/json']);
+            }
+            $index = (int) $raw;
+        }
+        try {
+            $picked = LtiLessonPlacement::returnedTarget($context_id, $deploymentId, $jwt, $index);
+            if ( $picked['items'] !== null ) {
+                return new Response(json_encode(['success' => true, 'choose' => true, 'items' => $picked['items']]), 200, ['Content-Type' => 'application/json']);
+            }
+            if ( $picked['title'] !== '' ) {
+                $title = $picked['title'];
+            }
+            LtiContentService::refuseDroppedPost($picked['url']);
+            $content = LtiContentService::placeAt($context_id, $deploymentId, $title, $picked['url']);
         } catch ( \InvalidArgumentException $ex ) {
             return new Response(json_encode(['success' => false, 'error' => $ex->getMessage()]), 400, ['Content-Type' => 'application/json']);
         }
@@ -3022,7 +3099,7 @@ $(function(){
         }
         $unpublished_suffix = $visible === true ? '' : ' ('.__('unpublished').')';
         $deploymentId = (int) $row['tool_deployment_id'];
-        if ( ! self::courseToolHasResourceLink($deploymentId) ) {
+        if ( ! LtiContentService::inCourse(ReqScope::currentContextId(), $deploymentId) ) {
             if ( ! $instructor ) {
                 return;
             }

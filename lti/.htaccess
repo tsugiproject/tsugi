@@ -2,6 +2,9 @@
     RewriteEngine on
     # This folder does not inherit the root rewrite rules.
     RewriteRule ^token/?$ token.php [L,QSA]
+    # Same cookieless controller as /ims/ags. The lti folder does not inherit
+    # the root rewrite, so this alias has to be named here.
+    RewriteRule ^ags(?:/|$) ags.php [L,QSA]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} !=/favicon.ico

@@ -165,9 +165,22 @@ $state_key = 'state_'.md5($state.$session_password);
 let TSUGI_REDIRECT = <?= json_encode($redirect, JSON_UNESCAPED_SLASHES) ?>;
 
 // Adapted from https://github.com/MartinLenord/simple-lti-1p3/blob/cookie-shim/src/web/login_initiation.php
+let state_set = false;
+function leaveForPlatform() {
+    if ( state_set ) {
+        return;
+    }
+    state_set = true;
+    window.location.href = TSUGI_REDIRECT;
+}
 if ( inIframe() ) {
-    let state_set = false;
-    setTimeout(() => { if (!state_set) { console.log('no response from platform'); window.location.href=TSUGI_REDIRECT;} }, 2000);
+    setTimeout(() => {
+        if ( state_set ) {
+            return;
+        }
+        console.log('no response from platform');
+        leaveForPlatform();
+    }, 2000);
 
     let return_url = new URL(<?= json_encode($redirect, JSON_UNESCAPED_SLASHES); ?>);
     let send_data = {
@@ -198,17 +211,14 @@ if ( inIframe() ) {
                 return;
             }
 
-            if ( event.data.subject == 'org.imsglobal.lti.put_data.response' ) {
-                if ( state_set ) {
-                    console.log('LMS Supports legacy windows.postMessage org.imsglobal.lti.put_data.response :)');
-                } else {
-                    console.log('LMS Uses legacy windows.postMessage org.imsglobal.lti.put_data.response :)');
-                }
+            if ( state_set ) {
+                console.log('Second put_data reply ignored');
+                return;
             }
-
-            state_set = true;
-
-            window.location.href=TSUGI_REDIRECT;;
+            if ( event.data.subject == 'org.imsglobal.lti.put_data.response' ) {
+                console.log('LMS Uses legacy windows.postMessage org.imsglobal.lti.put_data.response :)');
+            }
+            leaveForPlatform();
 
         }, false);
 
@@ -221,12 +231,12 @@ if ( inIframe() ) {
     } catch (error) {
         console.log('Failure to to exchange post message')
         console.log(error);
-        window.location.href=TSUGI_REDIRECT;;
+        leaveForPlatform();
     }
 
 } else {
     console.log("Redirecting to "+TSUGI_REDIRECT);
-    window.location.href = TSUGI_REDIRECT;
+    leaveForPlatform();
 }
 </script>
 

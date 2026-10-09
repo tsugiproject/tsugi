@@ -20,6 +20,13 @@ $launchMessage = is_array($launch) && isset($launch['message_type']) ? (string) 
 if ( ! isset($deep_return) || ! is_array($deep_return) ) {
     $deep_return = null;
 }
+$includeLineItems = ! isset($include_lineitems) || $include_lineitems;
+$lineItemsQuery = $includeLineItems ? '' : '&lineitems=0';
+$offerLineItems = ! empty($lti13)
+    && $deep_return === null
+    && is_array($launch)
+    && ! empty($launch['ready'])
+    && in_array($launchMessage, array('LtiResourceLinkRequest', 'LtiDeepLinkingRequest'), true);
 ?>
 <p>
     <a href="<?= htmlspecialchars((string) $tools_url) ?>"><?= __('Back to tools') ?></a>
@@ -31,7 +38,7 @@ if ( ! isset($deep_return) || ! is_array($deep_return) ) {
 <p><?= htmlspecialchars(sprintf(__('Test launch: %s'), $launch['label'])) ?></p>
 <p>
 <?php foreach ( array('Instructor', 'Learner') as $roleName ) {
-    $href = $test_url.$testSep.'registration_id='.$registrationId.'&message='.rawurlencode($launchMessage).'&role='.rawurlencode($roleName);
+    $href = $test_url.$testSep.'registration_id='.$registrationId.'&message='.rawurlencode($launchMessage).'&role='.rawurlencode($roleName).$lineItemsQuery;
     $current = $roleName === $launchRole;
     ?>
     <?php if ( $current ) { ?>
@@ -44,7 +51,7 @@ if ( ! isset($deep_return) || ! is_array($deep_return) ) {
 <?php if ( count($launch_choices) > 1 ) { ?>
 <p>
 <?php foreach ( $launch_choices as $choice ) {
-    $href = $test_url.$testSep.'registration_id='.$registrationId.'&message='.rawurlencode((string) $choice['type']).'&role='.rawurlencode($launchRole);
+    $href = $test_url.$testSep.'registration_id='.$registrationId.'&message='.rawurlencode((string) $choice['type']).'&role='.rawurlencode($launchRole).$lineItemsQuery;
     $current = $choice['type'] === $launch['message_type'];
     ?>
     <?php if ( $current ) { ?>
@@ -55,9 +62,39 @@ if ( ! isset($deep_return) || ! is_array($deep_return) ) {
 <?php } ?>
 </p>
 <?php } ?>
+<?php if ( $offerLineItems ) { ?>
+<form method="post" action="<?= htmlspecialchars((string) $test_url) ?>" style="margin:8px 0;">
+    <?= \Tsugi\Controllers\Tool::csrfField() ?>
+    <input type="hidden" name="registration_id" value="<?= $registrationId ?>">
+    <input type="hidden" name="message" value="<?= htmlspecialchars($launchMessage) ?>">
+    <input type="hidden" name="role" value="<?= htmlspecialchars($launchRole) ?>">
+    <input type="hidden" name="lineitems" value="0">
+    <label>
+        <input type="checkbox" name="lineitems" value="1"<?= $includeLineItems ? ' checked' : '' ?> onchange="this.form.submit()">
+        <?= __('Include the line items URL') ?>
+    </label>
+</form>
+<p><?= __('If the tool creates line items in this course, they stay in the course after the test. Delete them yourself.') ?></p>
+<?php } ?>
 <?php if ( $launch['ready'] ) { ?>
 <?php if ( $deep_return !== null ) { ?>
 <p><?= __('This is the deep link return. Nothing was saved. The form below is a resource link launch to the URL from that return. Look at the debug data, then Send.') ?></p>
+<?php if ( ! empty($lti13) && ! empty($launch['ready']) ) { ?>
+<form method="post" action="<?= htmlspecialchars((string) $test_url) ?>" style="margin:8px 0;">
+    <?= \Tsugi\Controllers\Tool::csrfField() ?>
+    <input type="hidden" name="deep_link_jwt" value="<?= htmlspecialchars($deep_return['jwt']) ?>">
+    <input type="hidden" name="item" value="<?= (int) $deep_return['index'] ?>">
+    <input type="hidden" name="registration_id" value="<?= $registrationId ?>">
+    <input type="hidden" name="message" value="LtiDeepLinkingRequest">
+    <input type="hidden" name="role" value="<?= htmlspecialchars($launchRole) ?>">
+    <input type="hidden" name="lineitems" value="0">
+    <label>
+        <input type="checkbox" name="lineitems" value="1"<?= $includeLineItems ? ' checked' : '' ?> onchange="this.form.submit()">
+        <?= __('Include the line items URL') ?>
+    </label>
+</form>
+<p><?= htmlspecialchars(sprintf(__('This resource link launches %s. If the tool creates line items in this course, they stay in the course after the test. Delete them yourself.'), (string) $launch['endpoint'])) ?></p>
+<?php } ?>
 <?php if ( $deep_return['msg'] !== '' ) { ?>
 <p><?= htmlspecialchars($deep_return['msg']) ?></p>
 <?php } ?>
@@ -80,6 +117,7 @@ if ( ! isset($deep_return) || ! is_array($deep_return) ) {
         <input type="hidden" name="registration_id" value="<?= $registrationId ?>">
         <input type="hidden" name="message" value="LtiDeepLinkingRequest">
         <input type="hidden" name="role" value="<?= htmlspecialchars($launchRole) ?>">
+        <input type="hidden" name="lineitems" value="<?= $includeLineItems ? '1' : '0' ?>">
         <input type="hidden" name="item" value="<?= (int) $index ?>">
         <input type="hidden" name="deep_link_jwt" value="<?= htmlspecialchars($deep_return['jwt']) ?>">
         <button type="submit" class="btn btn-default btn-sm"><?= __('Use this target') ?></button>
@@ -118,6 +156,7 @@ if ( ! isset($deep_return) || ! is_array($deep_return) ) {
     <input type="hidden" name="registration_id" value="<?= $registrationId ?>">
     <input type="hidden" name="message" value="LtiDeepLinkingRequest">
     <input type="hidden" name="role" value="<?= htmlspecialchars($launchRole) ?>">
+    <input type="hidden" name="lineitems" value="<?= $includeLineItems ? '1' : '0' ?>">
     <input type="hidden" name="item" value="0">
     <input type="hidden" name="deep_link_jwt" value="">
 </form>

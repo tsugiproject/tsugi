@@ -2306,14 +2306,16 @@ re-check your login status.
         }
         $postedJwt = '';
         if ( $request->isMethod('POST') ) {
-            $rawJwt = $request->request->get('deep_link_jwt', '');
-            $postedJwt = is_string($rawJwt) ? $rawJwt : '';
-            if ( $postedJwt === '' || ! Tool::csrfOk() ) {
+            if ( ! Tool::csrfOk() ) {
                 return new RedirectResponse($tools_url);
             }
+            $rawJwt = $request->request->get('deep_link_jwt', '');
+            $postedJwt = is_string($rawJwt) ? $rawJwt : '';
         }
 
         $registrationId = (int) $request->query->get('registration_id', $request->request->get('registration_id', 0));
+        $lineItemsFlag = $request->query->get('lineitems', $request->request->get('lineitems', '1'));
+        $include_lineitems = $lineItemsFlag !== '0' && $lineItemsFlag !== 0;
         $launch = null;
         $launch_choices = array();
         $launch_html = '';
@@ -2368,7 +2370,8 @@ re-check your login status.
                         $chosen['url'],
                         $request->getUri(),
                         $accepted['role'],
-                        $chosen['title']
+                        $chosen['title'],
+                        $include_lineitems
                     );
                 }
             }
@@ -2380,7 +2383,8 @@ re-check your login status.
                         ReqScope::loggedInUserId(),
                         $message,
                         $request->getUri(),
-                        $role
+                        $role,
+                        $include_lineitems
                     )
                     : Lti11TestLaunch::launch(
                         ReqScope::currentContextId(),
@@ -2395,7 +2399,8 @@ re-check your login status.
             U::flashError($e->getMessage());
             if ( $postedJwt !== '' ) {
                 $sep = strpos($test_url, '?') === false ? '?' : '&';
-                return new RedirectResponse($test_url.$sep.'registration_id='.$registrationId.'&message='.rawurlencode('LtiDeepLinkingRequest'));
+                $lineItemsRedirect = $include_lineitems ? '' : '&lineitems=0';
+                return new RedirectResponse($test_url.$sep.'registration_id='.$registrationId.'&message='.rawurlencode('LtiDeepLinkingRequest').$lineItemsRedirect);
             }
             return new RedirectResponse($tools_url);
         } catch ( \Exception $e ) {

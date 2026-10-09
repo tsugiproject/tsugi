@@ -21,6 +21,8 @@
     # must not start, so these never fall through to tsugi.php.
     RewriteRule ^ims/nrps/route\.php$ - [L]
     RewriteRule ^ims/nrps(?:/|$) ims/nrps/route.php [L,QSA]
+    RewriteRule ^ims/ags/route\.php$ - [L]
+    RewriteRule ^ims/ags(?:/|$) ims/ags/route.php [L,QSA]
     # A directory named token would 301 and drop a POST body. This is a file.
     RewriteRule ^ims/token\.php$ - [L]
     RewriteRule ^ims/token/?$ ims/token.php [L,QSA]

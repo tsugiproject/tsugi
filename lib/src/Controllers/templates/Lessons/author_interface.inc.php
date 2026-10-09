@@ -532,6 +532,44 @@
     margin: 0;
 }
 
+#lti-place-modal {
+    z-index: 2100;
+}
+
+#lti-place-modal .modal-content.lti-place-wide {
+    max-width: 960px;
+    height: 88vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+#lti-place-modal .modal-content.lti-place-wide #lti-place-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#lti-place-frame {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    border: 1px solid #ccc;
+}
+
+.lti-place-choice {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 8px;
+}
+
+.lti-place-search {
+    color: #0b70c4;
+    margin-left: 0.4em;
+}
+
 .close {
     font-size: 28px;
     font-weight: bold;
@@ -753,6 +791,16 @@
         <div id="modal-body">
             <!-- Form will be inserted here -->
         </div>
+    </div>
+</div>
+
+<div id="lti-place-modal" class="modal">
+    <div class="modal-content" id="lti-place-panel">
+        <div class="modal-header">
+            <h2 id="lti-place-title">Place tool</h2>
+            <button type="button" class="close" onclick="closeLtiPlacementModal()" aria-label="Close">&times;</button>
+        </div>
+        <div id="lti-place-body"></div>
     </div>
 </div>
 
@@ -1467,7 +1515,7 @@ function ltiContentFieldsHtml(item) {
             <input type="hidden" id="edit-lti-content-id" value="${ready ? row.id : ''}">
             <div class="form-group">
                 <label>Deployment:</label>
-                <select id="edit-lti-tool" onchange="onLtiToolPicked()">
+                <select id="edit-lti-tool" onfocus="rememberLtiTool()" onchange="onLtiToolPicked()">
                     <option value="">Choose a deployment…</option>
                     ${missingOption}
                     ${options}
@@ -1541,7 +1589,7 @@ function ltiPickerFieldsHtml(item) {
         picker = `
             <div class="form-group">
                 <label>Deployment:</label>
-                <select id="edit-lti-tool" onchange="onLtiToolPicked()">
+                <select id="edit-lti-tool" onfocus="rememberLtiTool()" onchange="onLtiToolPicked()">
                     <option value="">Choose a deployment…</option>
                     ${missingOption}
                     ${options}
@@ -1633,14 +1681,14 @@ function rememberContent(content) {
     ltiContentById[String(content.id)] = content;
 }
 
-function applyContentToForm(content) {
+function applyContentToForm(content, replaceTitle) {
     rememberContent(content);
     const hidden = document.getElementById('edit-lti-content-id');
     if (hidden) {
         hidden.value = String(content.id);
     }
     const titleEl = document.getElementById('edit-title');
-    if (titleEl && !titleEl.value.trim() && content.title) {
+    if (titleEl && content.title && (replaceTitle || !titleEl.value.trim())) {
         titleEl.value = content.title;
     }
     const launchEl = document.getElementById('edit-lti-launch');
@@ -1665,7 +1713,17 @@ function applyContentToForm(content) {
     showLtiClaims(true);
 }
 
-function placeLtiContent(done) {
+function ltiPlaceError(xhr, fallback) {
+    try {
+        const body = JSON.parse(xhr && xhr.responseText ? xhr.responseText : '');
+        if (body && body.error) {
+            return body.error;
+        }
+    } catch (e) {}
+    return fallback;
+}
+
+function placeLtiContent(done, messageId) {
     const id = parseInt($('#edit-lti-tool').val(), 10) || 0;
     if (!id) {
         return;
@@ -1678,6 +1736,7 @@ function placeLtiContent(done) {
         data: {
             action: 'place-lti',
             tool_deployment_id: id,
+            message_id: messageId || '',
             title: titleEl ? titleEl.value.trim() : ''
         },
         success: function(response) {
@@ -1693,8 +1752,8 @@ function placeLtiContent(done) {
             }
             applyContentToForm(result.content);
         },
-        error: function() {
-            alert('Could not place that tool.');
+        error: function(xhr) {
+            alert(ltiPlaceError(xhr, 'Could not place that tool.'));
         }
     });
 }
@@ -1736,7 +1795,28 @@ function patchLtiContent() {
     });
 }
 
+var ltiToolCommitted = '';
+var ltiPlaceState = null;
+
+function rememberLtiTool() {
+    const el = document.getElementById('edit-lti-tool');
+    ltiToolCommitted = el ? el.value : '';
+}
+
+function restoreLtiTool() {
+    const el = document.getElementById('edit-lti-tool');
+    if (el) {
+        el.value = ltiToolCommitted;
+    }
+}
+
 function onLtiToolPicked() {
+    const pickedId = parseInt($('#edit-lti-tool').val(), 10) || 0;
+    const picked = ltiToolById(pickedId);
+    if (picked && picked.lti_version === '1.3') {
+        openLtiPlacementModal(picked);
+        return;
+    }
     if (document.getElementById('edit-lti-content-id')) {
         placeLtiContent();
         return;
@@ -1807,6 +1887,257 @@ function showLtiClaims(show) {
         claims.style.display = show ? '' : 'none';
     }
 }
+
+function adoptPlacedContent(content, replaceTitle) {
+    const item = currentEditorItem();
+    if (item && content.title && (replaceTitle || !item.title)) {
+        item.title = content.title;
+    }
+    if (document.getElementById('edit-lti-content-id')) {
+        applyContentToForm(content, replaceTitle);
+        return;
+    }
+    if (!item) {
+        return;
+    }
+    harvestItemFormDraft(item);
+    if ($('#edit-item-icon').length) {
+        applyPickedIcon(item, '#edit-item-icon');
+    }
+    item.type = 'lti';
+    item.content_id = content.id;
+    delete item.tool_deployment_id;
+    delete item.launch;
+    delete item.target;
+    delete item.send_name;
+    delete item.send_email;
+    delete item.send_grade;
+    delete item.resource_link_id;
+    delete item.custom;
+    if (content.title && (replaceTitle || !item.title)) {
+        item.title = content.title;
+    }
+    updateItemFormFields(item);
+}
+
+function openLtiPlacementModal(tool) {
+    ltiPlaceState = { tool: tool, jwt: '' };
+    const panel = document.getElementById('lti-place-panel');
+    if (panel) {
+        panel.classList.remove('lti-place-wide');
+    }
+    const title = document.getElementById('lti-place-title');
+    if (title) {
+        title.textContent = tool.title || 'Place tool';
+    }
+    showLtiPlacementChoices(tool, '');
+    $('#lti-place-modal').show();
+}
+
+function showLtiPlacementChoices(tool, note) {
+    const body = document.getElementById('lti-place-body');
+    const panel = document.getElementById('lti-place-panel');
+    if (panel) {
+        panel.classList.remove('lti-place-wide');
+    }
+    if (!body) {
+        return;
+    }
+    const placements = (tool && tool.placements) || [];
+    const noteHtml = note ? `<p class="help-block">${escapeHtml(note)}</p>` : '';
+    if (!placements.length) {
+        body.innerHTML = noteHtml + '<p>This deployment has no lesson placement.</p>';
+        return;
+    }
+    const buttons = placements.map(function(choice) {
+        const detail = choice.detail ? `<span class="help-block">${escapeHtml(choice.detail)}</span>` : '';
+        const search = choice.action === 'select'
+            ? ' <i class="fa fa-search lti-place-search" aria-hidden="true"></i>'
+            : '';
+        return `<button type="button" class="btn btn-default lti-place-choice" data-message-id="${choice.message_id}" data-action="${escapeHtml(choice.action)}" title="${escapeHtml(choice.launch || '')}">${escapeHtml(choice.label || 'Place')}${search}</button>${detail}`;
+    }).join('');
+    body.innerHTML = noteHtml + '<p>Choose how this tool is added to the lesson.</p>' + buttons;
+    body.querySelectorAll('.lti-place-choice').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const messageId = parseInt(button.getAttribute('data-message-id'), 10) || 0;
+            if (button.getAttribute('data-action') === 'select') {
+                startLtiDeepLink(messageId);
+                return;
+            }
+            installLtiPlacement(messageId);
+        });
+    });
+}
+
+function closeLtiPlacementModal(placed) {
+    $('#lti-place-modal').hide();
+    const frame = document.getElementById('lti-place-frame');
+    if (frame) {
+        frame.src = 'about:blank';
+    }
+    const panel = document.getElementById('lti-place-panel');
+    if (panel) {
+        panel.classList.remove('lti-place-wide');
+    }
+    if (!placed) {
+        restoreLtiTool();
+    }
+    ltiPlaceState = null;
+}
+
+function installLtiPlacement(messageId) {
+    placeLtiContent(function(content) {
+        adoptPlacedContent(content, true);
+        ltiToolCommitted = String(content.tool_deployment_id || '');
+        closeLtiPlacementModal(true);
+    }, messageId);
+}
+
+function startLtiDeepLink(messageId) {
+    const tool = ltiPlaceState && ltiPlaceState.tool;
+    if (!tool) {
+        return;
+    }
+    $.ajax({
+        url: window.location.pathname,
+        method: 'POST',
+        headers: tsugiCsrfHeaders(),
+        data: {
+            action: 'deep-link-lti',
+            tool_deployment_id: tool.id,
+            message_id: messageId
+        },
+        success: function(response) {
+            const result = typeof response === 'string' ? JSON.parse(response) : response;
+            if (!result.success || !result.endpoint) {
+                showLtiPlacementChoices(tool, result.error || 'Could not open that deep link.');
+                return;
+            }
+            showLtiDeepLinkFrame(result.endpoint, result.parameters || {});
+        },
+        error: function() {
+            showLtiPlacementChoices(tool, 'Could not open that deep link.');
+        }
+    });
+}
+
+function showLtiDeepLinkFrame(endpoint, parameters) {
+    const body = document.getElementById('lti-place-body');
+    const panel = document.getElementById('lti-place-panel');
+    if (panel) {
+        panel.classList.add('lti-place-wide');
+    }
+    if (!body) {
+        return;
+    }
+    body.innerHTML = '<iframe name="tsugi_lesson_deep_link" id="lti-place-frame" title="Select an item" src="about:blank"></iframe>';
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = endpoint;
+    form.target = 'tsugi_lesson_deep_link';
+    Object.keys(parameters).forEach(function(key) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = parameters[key] == null ? '' : String(parameters[key]);
+        form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+    form.remove();
+}
+
+function showLtiReturnItems(items) {
+    const body = document.getElementById('lti-place-body');
+    const panel = document.getElementById('lti-place-panel');
+    if (panel) {
+        panel.classList.remove('lti-place-wide');
+    }
+    if (!body) {
+        return;
+    }
+    const buttons = (items || []).map(function(item, index) {
+        const label = item.title || item.url || 'Item';
+        return `<button type="button" class="btn btn-default lti-place-choice" data-item="${index}">${escapeHtml(label)}</button>`;
+    }).join('');
+    body.innerHTML = '<p>Choose the item to place in the lesson.</p>' + buttons;
+    body.querySelectorAll('.lti-place-choice').forEach(function(button) {
+        button.addEventListener('click', function() {
+            placeDeepLinkReturn(button.getAttribute('data-item'));
+        });
+    });
+}
+
+function placeDeepLinkReturn(itemIndex) {
+    const state = ltiPlaceState;
+    if (!state || !state.jwt || !state.tool) {
+        return;
+    }
+    const titleEl = document.getElementById('edit-title');
+    const data = {
+        action: 'place-deep-link',
+        tool_deployment_id: state.tool.id,
+        jwt: state.jwt,
+        title: titleEl ? titleEl.value.trim() : ''
+    };
+    if (itemIndex !== undefined && itemIndex !== null && itemIndex !== '') {
+        data.item = String(itemIndex);
+    }
+    $.ajax({
+        url: window.location.pathname,
+        method: 'POST',
+        headers: tsugiCsrfHeaders(),
+        data: data,
+        success: function(response) {
+            const result = typeof response === 'string' ? JSON.parse(response) : response;
+            if (!result.success) {
+                showLtiPlacementChoices(state.tool, result.error || 'Could not place that item.');
+                return;
+            }
+            if (result.choose && result.items) {
+                showLtiReturnItems(result.items);
+                return;
+            }
+            if (!result.content) {
+                showLtiPlacementChoices(state.tool, 'Could not place that item.');
+                return;
+            }
+            rememberContent(result.content);
+            adoptPlacedContent(result.content, true);
+            ltiToolCommitted = String(result.content.tool_deployment_id || '');
+            closeLtiPlacementModal(true);
+        },
+        error: function(xhr) {
+            showLtiPlacementChoices(state.tool, ltiPlaceError(xhr, 'Could not place that item.'));
+        }
+    });
+}
+
+window.addEventListener('message', function(event) {
+    if (!ltiPlaceState) {
+        return;
+    }
+    const message = event.data;
+    if (!message || typeof message !== 'object') {
+        return;
+    }
+    if (message.subject === 'org.imsglobal.lti.close') {
+        showLtiPlacementChoices(ltiPlaceState.tool, '');
+        return;
+    }
+    if (event.origin !== window.location.origin) {
+        return;
+    }
+    if (message.subject === 'org.tsugi.lti.deep_linking_error') {
+        showLtiPlacementChoices(ltiPlaceState.tool, message.message || 'The deep link return could not be checked.');
+        return;
+    }
+    if (message.subject !== 'org.tsugi.lti.deep_linking_response' || !message.jwt) {
+        return;
+    }
+    ltiPlaceState.jwt = message.jwt;
+    placeDeepLinkReturn(null);
+});
 
 function ltiClaimsVisible() {
     const claims = document.getElementById('edit-lti-claims');

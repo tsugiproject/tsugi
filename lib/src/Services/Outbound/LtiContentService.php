@@ -26,13 +26,44 @@ class LtiContentService {
         if ( ! Lti11TestLaunch::hasResourceLink($contextId, (int) $tool['tool_deployment_id']) ) {
             throw new \InvalidArgumentException('This tool does not have a resource link launch.');
         }
+        $launchUrl = trim((string) $tool['lti11_url']);
+        self::refuseDroppedPost($launchUrl);
+        return self::writeContent($contextId, $tool, $title, $launchUrl);
+    }
+
+    /**
+     * Place a launch URL that was chosen from a deployment's messages.
+     *
+     * The caller has already checked that this course can use the deployment
+     * and that the URL is the one the message or the deep link return named.
+     *
+     * @param int $contextId
+     * @param int $toolDeploymentId
+     * @param string $title Outline title. Empty uses the tool title.
+     * @param string $launchUrl
+     * @return array<string, mixed>
+     */
+    public static function placeAt($contextId, $toolDeploymentId, $title, $launchUrl) {
+        $contextId = (int) $contextId;
+        $tool = self::visibleDeployment($contextId, (int) $toolDeploymentId);
+        return self::writeContent($contextId, $tool, $title, $launchUrl);
+    }
+
+    /**
+     * @param int $contextId
+     * @param array<string, mixed> $tool
+     * @param string $title
+     * @param string $launchUrl
+     * @return array<string, mixed>
+     */
+    private static function writeContent($contextId, array $tool, $title, $launchUrl) {
+        $launchUrl = trim((string) $launchUrl);
+        if ( ! preg_match('#^https?://#i', $launchUrl) ) {
+            throw new \InvalidArgumentException('This tool has no launch URL.');
+        }
         $context = self::contextRow($contextId);
         if ( (int) $context['key_id'] !== (int) $tool['key_id'] ) {
             throw new \InvalidArgumentException('That deployment is in a different tenant.');
-        }
-        $launchUrl = trim((string) $tool['lti11_url']);
-        if ( $launchUrl === '' ) {
-            throw new \InvalidArgumentException('This tool has no launch URL.');
         }
         $title = self::titleOrTool(trim((string) $title), (string) $tool['title']);
         $privacy = self::grant((int) $tool['tool_deployment_id']);
@@ -87,6 +118,7 @@ class LtiContentService {
             if ( $launchUrl === '' ) {
                 throw new \InvalidArgumentException('Launch URL is required.');
             }
+            self::refuseDroppedPost($launchUrl);
             $sets[] = 'launch_url = :launch_url';
             $parms[':launch_url'] = $launchUrl;
         }
@@ -468,6 +500,160 @@ class LtiContentService {
             throw new \InvalidArgumentException('That launch was not found in this course.');
         }
         return $row;
+    }
+
+    /**
+     * A deployment this course can see, LTI 1.1 or 1.3.
+     *
+     * @param int $contextId
+     * @param int $toolDeploymentId
+     * @return array{registration_id:int, key_id:int, title:string, tool_deployment_id:int}
+     */
+    private static function visibleDeployment($contextId, $toolDeploymentId) {
+        $toolDeploymentId = (int) $toolDeploymentId;
+        $found = null;
+        foreach ( ToolDeploymentService::getDeploymentsForContext((int) $contextId) as $row ) {
+            if ( (int) $row['tool_deployment_id'] === $toolDeploymentId ) {
+                $found = $row;
+                break;
+            }
+        }
+        if ( $found === null ) {
+            throw new \InvalidArgumentException('This course does not have that deployment.');
+        }
+        $p = self::prefix();
+        $reg = self::db()->rowDie(
+            "SELECT registration_id, key_id, title, lti_version
+             FROM {$p}lti_tool_registration
+             WHERE registration_id = :registration_id",
+            array(':registration_id' => (int) $found['registration_id'])
+        );
+        if ( ! is_array($reg) || (int) $reg['key_id'] !== (int) $found['key_id'] ) {
+            throw new \InvalidArgumentException('This course does not have that deployment.');
+        }
+        return array(
+            'registration_id' => (int) $reg['registration_id'],
+            'key_id' => (int) $reg['key_id'],
+            'title' => (string) $reg['title'],
+            'lti_version' => (string) $reg['lti_version'],
+            'tool_deployment_id' => $toolDeploymentId,
+        );
+    }
+
+    /**
+     * The deployment is still available in this course.
+     *
+     * @param int $contextId
+     * @param int $toolDeploymentId
+     * @return bool
+     */
+    public static function inCourse($contextId, $toolDeploymentId) {
+        try {
+            self::visibleDeployment((int) $contextId, (int) $toolDeploymentId);
+        } catch ( \InvalidArgumentException $ex ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @param int $contextId
+     * @param int $toolDeploymentId
+     * @return string
+     */
+    public static function version($contextId, $toolDeploymentId) {
+        return self::visibleDeployment((int) $contextId, (int) $toolDeploymentId)['lti_version'];
+    }
+
+    /**
+     * Refuse an address that will not accept the launch.
+     *
+     * Checked when the link is authored. A launch uses the stored address as it is.
+     * A redirect that drops a POST, or a missing address, is refused. No answer
+     * is allowed. The tool may simply be down.
+     *
+     * @param string $url
+     * @param callable|null $lookup Returns array{code:int, location:string}, or null when there is no answer.
+     * @return void
+     */
+    public static function refuseDroppedPost($url, $lookup = null) {
+        $reply = $lookup === null ? self::headReply($url) : $lookup($url);
+        if ( ! is_array($reply) ) {
+            return;
+        }
+        $code = isset($reply['code']) ? (int) $reply['code'] : 0;
+        if ( $code === 404 || $code === 410 ) {
+            throw new \InvalidArgumentException('This address was not found, so the launch will not arrive.');
+        }
+        if ( ! in_array($code, array(301, 302, 303), true) ) {
+            return;
+        }
+        $target = isset($reply['location']) ? trim((string) $reply['location']) : '';
+        if ( $target === '' ) {
+            $target = trim((string) $url);
+        }
+        throw new \InvalidArgumentException('This address redirects to '.$target.', so the launch will not arrive.');
+    }
+
+    /**
+     * The status and redirect target from one HEAD. Null when the host does not answer.
+     *
+     * @param string $url
+     * @return array{code:int, location:string}|null
+     */
+    private static function headReply($url) {
+        if ( ! function_exists('curl_init') ) {
+            return null;
+        }
+        $ch = curl_init($url);
+        if ( $ch === false ) {
+            return null;
+        }
+        curl_setopt($ch, CURLOPT_NOBODY, true);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+        $raw = curl_exec($ch);
+        $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        if ( ! is_string($raw) || $code < 100 ) {
+            return null;
+        }
+        $location = '';
+        if ( preg_match('/^Location:\s*(\S+)/mi', $raw, $match) ) {
+            $location = self::resolveRedirect($url, $match[1]);
+        }
+        return array(
+            'code' => $code,
+            'location' => $location,
+        );
+    }
+
+    /**
+     * @param string $from
+     * @param string $location
+     * @return string
+     */
+    private static function resolveRedirect($from, $location) {
+        $location = trim($location);
+        if ( preg_match('~^https?://~i', $location) ) {
+            return $location;
+        }
+        $parts = parse_url($from);
+        if ( ! is_array($parts) || empty($parts['scheme']) || empty($parts['host']) ) {
+            return $location;
+        }
+        $origin = $parts['scheme'].'://'.$parts['host'];
+        if ( isset($parts['port']) ) {
+            $origin .= ':'.$parts['port'];
+        }
+        if ( str_starts_with($location, '/') ) {
+            return $origin.$location;
+        }
+        $path = isset($parts['path']) ? $parts['path'] : '/';
+        $dir = substr($path, 0, (int) strrpos($path, '/'));
+        return $origin.$dir.'/'.$location;
     }
 
     /**
