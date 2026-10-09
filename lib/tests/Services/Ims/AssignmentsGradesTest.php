@@ -173,6 +173,27 @@ class AssignmentsGradesTest extends PlatformSchemaCase
         $this->assertSame('Pending', $stored['grading_progress']);
         $this->assertSame('Submitted', $stored['activity_progress']);
 
+        $stale = AssignmentsGrades::score($token['body']['access_token'], $this->id['eecs280'], $linkId, array(
+            'userId' => (string) $learner,
+            'scoreGiven' => 1,
+            'scoreMaximum' => 10,
+            'comment' => 'late retry',
+            'activityProgress' => 'Completed',
+            'gradingProgress' => 'FullyGraded',
+            'timestamp' => '2026-04-16T18:54:36Z',
+        ));
+        $this->assertSame(204, $stale['status']);
+        $kept = $this->resultRow($linkId, $learner);
+        $this->assertEqualsWithDelta(0.7, (float) $kept['grade'], 0.00001);
+        $this->assertEqualsWithDelta(7.0, (float) $kept['score_given'], 0.00001);
+        $this->assertSame('Pending', $kept['grading_progress']);
+        $this->assertSame('Submitted', $kept['activity_progress']);
+        $this->assertSame('Nice work', $kept['comment']);
+        $this->assertSame(
+            (new \DateTimeImmutable('2026-04-17T12:00:00Z'))->getTimestamp(),
+            (int) $kept['score_epoch']
+        );
+
         $cleared = AssignmentsGrades::score($token['body']['access_token'], $this->id['eecs280'], $linkId, array(
             'userId' => (string) $learner,
             'scoreGiven' => null,
@@ -419,7 +440,8 @@ class AssignmentsGradesTest extends PlatformSchemaCase
     {
         global $PDOX;
         $row = $PDOX->rowDie(
-            "SELECT grade, score_given, grading_progress, activity_progress, comment
+            "SELECT grade, score_given, grading_progress, activity_progress, comment,
+                    UNIX_TIMESTAMP(score_timestamp) AS score_epoch
              FROM {$this->p()}lti_result
              WHERE link_id = :link_id AND user_id = :user_id",
             array(

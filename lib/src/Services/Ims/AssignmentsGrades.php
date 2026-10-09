@@ -14,8 +14,9 @@ use Tsugi\Util\U;
  *
  * A line item is an lti_link. A result is the one lti_result row for that
  * link and user. Posting a score writes that row. Reading results returns
- * that same row. There is no second score log, and a later score replaces
- * the current one.
+ * that same row. There is no second score log. A score replaces the
+ * current one when its timestamp is the same or newer. An older
+ * timestamp is ignored.
  *
  * The launch claim points here only when the deployment allows a grade
  * scope. A call still checks that deployment again.
@@ -535,19 +536,19 @@ class AssignmentsGrades {
                  :comment, :scoring_user_id, {$started}, {$submitted},
                  0, NOW(), NOW())
              ON DUPLICATE KEY UPDATE
-                grade = VALUES(grade),
-                score_given = VALUES(score_given),
-                result_maximum = VALUES(result_maximum),
-                activity_progress = VALUES(activity_progress),
-                grading_progress = VALUES(grading_progress),
-                score_timestamp = VALUES(score_timestamp),
-                comment = IF(:set_comment = 1, VALUES(comment), comment),
-                scoring_user_id = IF(:set_scoring = 1, VALUES(scoring_user_id), scoring_user_id),
-                started_at = IF(:set_started = 1, VALUES(started_at), started_at),
-                submitted_at = IF(:set_submitted = 1, VALUES(submitted_at), submitted_at),
-                deleted = 0,
-                deleted_at = NULL,
-                updated_at = NOW()",
+                grade = IF(score_timestamp IS NULL OR VALUES(score_timestamp) >= score_timestamp, VALUES(grade), grade),
+                score_given = IF(score_timestamp IS NULL OR VALUES(score_timestamp) >= score_timestamp, VALUES(score_given), score_given),
+                result_maximum = IF(score_timestamp IS NULL OR VALUES(score_timestamp) >= score_timestamp, VALUES(result_maximum), result_maximum),
+                activity_progress = IF(score_timestamp IS NULL OR VALUES(score_timestamp) >= score_timestamp, VALUES(activity_progress), activity_progress),
+                grading_progress = IF(score_timestamp IS NULL OR VALUES(score_timestamp) >= score_timestamp, VALUES(grading_progress), grading_progress),
+                comment = IF((score_timestamp IS NULL OR VALUES(score_timestamp) >= score_timestamp) AND :set_comment = 1, VALUES(comment), comment),
+                scoring_user_id = IF((score_timestamp IS NULL OR VALUES(score_timestamp) >= score_timestamp) AND :set_scoring = 1, VALUES(scoring_user_id), scoring_user_id),
+                started_at = IF((score_timestamp IS NULL OR VALUES(score_timestamp) >= score_timestamp) AND :set_started = 1, VALUES(started_at), started_at),
+                submitted_at = IF((score_timestamp IS NULL OR VALUES(score_timestamp) >= score_timestamp) AND :set_submitted = 1, VALUES(submitted_at), submitted_at),
+                deleted = IF(score_timestamp IS NULL OR VALUES(score_timestamp) >= score_timestamp, 0, deleted),
+                deleted_at = IF(score_timestamp IS NULL OR VALUES(score_timestamp) >= score_timestamp, NULL, deleted_at),
+                updated_at = IF(score_timestamp IS NULL OR VALUES(score_timestamp) >= score_timestamp, NOW(), updated_at),
+                score_timestamp = IF(score_timestamp IS NULL OR VALUES(score_timestamp) >= score_timestamp, VALUES(score_timestamp), score_timestamp)",
             $params
         );
     }
