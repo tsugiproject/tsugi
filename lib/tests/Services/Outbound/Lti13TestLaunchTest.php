@@ -1,6 +1,7 @@
 <?php
 
 use Tsugi\Core\Keyset;
+use Tsugi\Services\Ims\AssignmentsGrades;
 use Tsugi\Services\Ims\NamesRoles;
 use Tsugi\Services\Outbound\Lti13TestLaunch;
 use Tsugi\Services\Outbound\PlatformDynamicRegistration;
@@ -125,7 +126,10 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         );
         $this->assertSame('test-'.$registrationId, $body->{LTI13::RESOURCE_LINK_CLAIM}->id);
         $this->assertContains(ToolRegistrationDocument::SCOPE_SCORE, $body->{LTI13::ENDPOINT_CLAIM}->scope);
-        $this->assertStringContainsString('/lti/ags/context/'.$this->id['eecs280'].'/lineitems', $body->{LTI13::ENDPOINT_CLAIM}->lineitems);
+        $this->assertSame(
+            AssignmentsGrades::lineItemsUrl($this->id['eecs280']),
+            $body->{LTI13::ENDPOINT_CLAIM}->lineitems
+        );
         $this->assertSame(
             NamesRoles::membershipUrl($this->id['eecs280']),
             $body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url
@@ -156,6 +160,34 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
             $rejected = true;
         }
         $this->assertTrue($rejected);
+
+        $quiet = Lti13TestLaunch::launch(
+            $this->id['eecs280'],
+            $registrationId,
+            424242,
+            'LtiResourceLinkRequest',
+            'https://local.dj4e.com/tsugi/courses/1/settings/tools/test',
+            'Learner',
+            false
+        );
+        $this->assertStringNotContainsString(LTI13::ENDPOINT_CLAIM, $quiet['jwt_json']);
+        $quietDone = Lti13TestLaunch::complete(array(
+            'scope' => 'openid',
+            'response_type' => 'id_token',
+            'client_id' => $quiet['parameters']['client_id'],
+            'redirect_uri' => 'https://client.example.org/callback',
+            'login_hint' => $quiet['parameters']['login_hint'],
+            'lti_message_hint' => $quiet['parameters']['lti_message_hint'],
+            'nonce' => 'nonce-quiet',
+            'state' => 'quiet-state',
+        ));
+        $quietJwt = LTI13::parse_jwt($quietDone['id_token'], false);
+        $this->assertIsObject($quietJwt);
+        $this->assertObjectNotHasProperty(LTI13::ENDPOINT_CLAIM, $quietJwt->body);
+        $this->assertSame(
+            NamesRoles::membershipUrl($this->id['eecs280']),
+            $quietJwt->body->{LTI13::NAMESANDROLES_CLAIM}->context_memberships_url
+        );
     }
 
     public function testPrivacyLaunchOmitsTheResourceAndTheCourse(): void
@@ -369,6 +401,55 @@ class Lti13TestLaunchTest extends PlatformSchemaCase
         $this->assertSame('https://client.example.org/chosen', $resource->body->{'https://purl.imsglobal.org/spec/lti/claim/target_link_uri'});
         $this->assertSame('Chosen garden', $resource->body->{LTI13::RESOURCE_LINK_CLAIM}->title);
         $this->assertSame('deep-'.$registrationId, $resource->body->{LTI13::RESOURCE_LINK_CLAIM}->id);
+
+        $quiet = Lti13TestLaunch::launch(
+            $this->id['eecs280'],
+            $registrationId,
+            424242,
+            'LtiDeepLinkingRequest',
+            'https://local.dj4e.com/tsugi/courses/1/settings/tools/test',
+            'Instructor',
+            false
+        );
+        $this->assertStringNotContainsString(LTI13::ENDPOINT_CLAIM, $quiet['jwt_json']);
+        $quietDone = Lti13TestLaunch::complete(array(
+            'scope' => 'openid',
+            'response_type' => 'id_token',
+            'client_id' => $quiet['parameters']['client_id'],
+            'redirect_uri' => 'https://client.example.org/callback',
+            'login_hint' => $quiet['parameters']['login_hint'],
+            'lti_message_hint' => $quiet['parameters']['lti_message_hint'],
+            'nonce' => 'nonce-quiet-deep',
+            'state' => 'quiet-deep',
+        ));
+        $quietJwt = LTI13::parse_jwt($quietDone['id_token'], false);
+        $this->assertIsObject($quietJwt);
+        $this->assertObjectNotHasProperty(LTI13::ENDPOINT_CLAIM, $quietJwt->body);
+
+        $quietReturn = Lti13TestLaunch::launchReturned(
+            $this->id['eecs280'],
+            $registrationId,
+            424242,
+            $accepted['items'][0]['url'],
+            'https://local.dj4e.com/tsugi/courses/1/settings/tools/test',
+            'Instructor',
+            $accepted['items'][0]['title'],
+            false
+        );
+        $this->assertStringNotContainsString(LTI13::ENDPOINT_CLAIM, $quietReturn['jwt_json']);
+        $quietSent = Lti13TestLaunch::complete(array(
+            'scope' => 'openid',
+            'response_type' => 'id_token',
+            'client_id' => $quietReturn['parameters']['client_id'],
+            'redirect_uri' => 'https://client.example.org/callback',
+            'login_hint' => $quietReturn['parameters']['login_hint'],
+            'lti_message_hint' => $quietReturn['parameters']['lti_message_hint'],
+            'nonce' => 'nonce-quiet-return',
+            'state' => 'quiet-return',
+        ));
+        $quietResource = LTI13::parse_jwt($quietSent['id_token'], false);
+        $this->assertIsObject($quietResource);
+        $this->assertObjectNotHasProperty(LTI13::ENDPOINT_CLAIM, $quietResource->body);
 
         $rejected = false;
         try {

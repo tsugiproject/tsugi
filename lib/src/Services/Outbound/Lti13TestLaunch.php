@@ -6,6 +6,7 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Tsugi\Core\Keyset;
 use Tsugi\Core\LTIX;
+use Tsugi\Services\Ims\AssignmentsGrades;
 use Tsugi\Services\Ims\NamesRoles;
 use Tsugi\Util\LTI13;
 
@@ -88,9 +89,10 @@ class Lti13TestLaunch {
      * @param string $messageType
      * @param string $returnUrl
      * @param string $role Instructor or Learner
+     * @param bool $lineItems Include the line items URL. A tool that creates columns keeps them in the course.
      * @return array{title:string, endpoint:string, form_endpoint:string, message_type:string, label:string, role:string, ready:bool, new_window:bool, missing_resource_link:bool, content_item_url:bool, parameters:array<string, string>, jwt_json:string, jwt_signed:string}
      */
-    public static function launch($contextId, $registrationId, $userId, $messageType, $returnUrl, $role = 'Instructor') {
+    public static function launch($contextId, $registrationId, $userId, $messageType, $returnUrl, $role = 'Instructor', $lineItems = true) {
         $tool = ToolRegistrationService::visibleLti13((int) $contextId, (int) $registrationId);
         $spec = self::launches()[$messageType] ?? null;
         $have = false;
@@ -131,7 +133,7 @@ class Lti13TestLaunch {
         }
         $deployment = self::deployment($tool);
         $loginHint = bin2hex(random_bytes(16));
-        $hint = self::encodeHint(array(
+        $hintBody = array(
             'registration_id' => (int) $tool['registration_id'],
             'context_id' => (int) $contextId,
             'user_id' => $userId,
@@ -143,7 +145,11 @@ class Lti13TestLaunch {
             'return_url' => self::httpUrl($returnUrl),
             'iat' => time(),
             'exp' => time() + self::HINT_SECONDS,
-        ));
+        );
+        if ( ! $lineItems ) {
+            $hintBody['lineitems'] = false;
+        }
+        $hint = self::encodeHint($hintBody);
         $issuer = PlatformDynamicRegistration::openIdConfiguration()['issuer'];
         $result['parameters'] = array(
             'iss' => $issuer,
@@ -164,6 +170,9 @@ class Lti13TestLaunch {
             'deployment_id' => $deployment['deployment_id'],
             'return_url' => self::httpUrl($returnUrl),
         );
+        if ( ! $lineItems ) {
+            $previewHint['lineitems'] = false;
+        }
         if ( $messageType === 'LtiDataPrivacyLaunchRequest' ) {
             $claims = self::privacyClaims($tool, $deployment, $previewHint, 'preview');
         } else if ( $messageType === 'LtiDeepLinkingRequest' ) {
@@ -188,9 +197,10 @@ class Lti13TestLaunch {
      * @param string $returnUrl
      * @param string $role
      * @param string $title
+     * @param bool $lineItems Include the line items URL. A tool that creates columns keeps them in the course.
      * @return array{title:string, endpoint:string, form_endpoint:string, message_type:string, label:string, role:string, ready:bool, new_window:bool, modal:bool, missing_resource_link:bool, content_item_url:bool, parameters:array<string, string>, jwt_json:string, jwt_signed:string}
      */
-    public static function launchReturned($contextId, $registrationId, $userId, $target, $returnUrl, $role = 'Instructor', $title = '') {
+    public static function launchReturned($contextId, $registrationId, $userId, $target, $returnUrl, $role = 'Instructor', $title = '', $lineItems = true) {
         $tool = ToolRegistrationService::visibleLti13((int) $contextId, (int) $registrationId);
         $target = self::httpUrl($target);
         if ( $target === '' || $tool['oidc_login_url'] === '' ) {
@@ -207,7 +217,7 @@ class Lti13TestLaunch {
         }
         $deployment = self::deployment($tool);
         $loginHint = bin2hex(random_bytes(16));
-        $hint = self::encodeHint(array(
+        $hintBody = array(
             'registration_id' => (int) $tool['registration_id'],
             'context_id' => (int) $contextId,
             'user_id' => $userId,
@@ -221,7 +231,11 @@ class Lti13TestLaunch {
             'title' => $title,
             'iat' => time(),
             'exp' => time() + self::HINT_SECONDS,
-        ));
+        );
+        if ( ! $lineItems ) {
+            $hintBody['lineitems'] = false;
+        }
+        $hint = self::encodeHint($hintBody);
         $issuer = PlatformDynamicRegistration::openIdConfiguration()['issuer'];
         $previewHint = array(
             'context_id' => (int) $contextId,
@@ -232,6 +246,9 @@ class Lti13TestLaunch {
             'returned' => true,
             'title' => $title,
         );
+        if ( ! $lineItems ) {
+            $previewHint['lineitems'] = false;
+        }
         $preview = self::previewToken(self::resourceLinkClaims($tool, $deployment, $previewHint, 'preview'));
         return array(
             'title' => $tool['title'],
@@ -401,18 +418,12 @@ class Lti13TestLaunch {
             $claims['email'] = $user['email'];
         }
         $scopes = $deployment['allowed_scopes'];
-        $grade = array();
-        foreach ( array(ToolRegistrationDocument::SCOPE_LINEITEM, ToolRegistrationDocument::SCOPE_RESULT, ToolRegistrationDocument::SCOPE_SCORE) as $scope ) {
-            if ( in_array($scope, $scopes, true) ) {
-                $grade[] = $scope;
+        if ( self::includeLineItems($hint) ) {
+            $resourceLinkId = $claims[LTI13::RESOURCE_LINK_CLAIM]['id'];
+            $grade = self::gradeServiceClaim($contextId, $scopes, $resourceLinkId);
+            if ( $grade !== null ) {
+                $claims[LTI13::ENDPOINT_CLAIM] = $grade;
             }
-        }
-        if ( count($grade) > 0 ) {
-            $root = $issuer;
-            $claims[LTI13::ENDPOINT_CLAIM] = array(
-                'scope' => $grade,
-                'lineitems' => $root.'/lti/ags/context/'.$contextId.'/lineitems',
-            );
         }
         if ( in_array(ToolRegistrationDocument::SCOPE_ROSTER, $scopes, true) ) {
             $claims[LTI13::NAMESANDROLES_CLAIM] = array(
@@ -493,7 +504,59 @@ class Lti13TestLaunch {
         if ( in_array('email', $allowed, true) && $user['email'] !== '' ) {
             $claims['email'] = $user['email'];
         }
+        if ( self::includeLineItems($hint) ) {
+            $grade = self::gradeServiceClaim($contextId, $deployment['allowed_scopes'], null);
+            if ( $grade !== null ) {
+                $claims[LTI13::ENDPOINT_CLAIM] = $grade;
+            }
+        }
         return $claims;
+    }
+
+    /**
+     * A missing flag still includes the URL. The test page sets it false to leave the URL out.
+     *
+     * @param array<string, mixed> $hint
+     */
+    private static function includeLineItems(array $hint): bool
+    {
+        return ! array_key_exists('lineitems', $hint) || ! empty($hint['lineitems']);
+    }
+
+    /**
+     * Scopes the deployment actually allows, plus the line-item URLs.
+     *
+     * lineitem is the column coupled to this resource link, when one exists.
+     *
+     * @param array<int, string> $scopes
+     * @return array<string, mixed>|null
+     */
+    private static function gradeServiceClaim(int $contextId, array $scopes, ?string $resourceLinkId) {
+        $grade = array();
+        foreach ( array(
+            ToolRegistrationDocument::SCOPE_LINEITEM,
+            ToolRegistrationDocument::SCOPE_LINEITEM_READONLY,
+            ToolRegistrationDocument::SCOPE_RESULT,
+            ToolRegistrationDocument::SCOPE_SCORE,
+        ) as $scope ) {
+            if ( in_array($scope, $scopes, true) ) {
+                $grade[] = $scope;
+            }
+        }
+        if ( count($grade) < 1 ) {
+            return null;
+        }
+        $claim = array(
+            'scope' => $grade,
+            'lineitems' => AssignmentsGrades::lineItemsUrl($contextId),
+        );
+        if ( is_string($resourceLinkId) && $resourceLinkId !== '' ) {
+            $lineItem = AssignmentsGrades::coupledLineItemUrl($contextId, $resourceLinkId);
+            if ( is_string($lineItem) ) {
+                $claim['lineitem'] = $lineItem;
+            }
+        }
+        return $claim;
     }
 
     /**
@@ -873,6 +936,7 @@ class Lti13TestLaunch {
             'return_url' => isset($decoded->return_url) ? (string) $decoded->return_url : '',
             'returned' => isset($decoded->returned) && $decoded->returned === true,
             'title' => isset($decoded->title) ? substr((string) $decoded->title, 0, 255) : '',
+            'lineitems' => ! property_exists($decoded, 'lineitems') || $decoded->lineitems !== false,
         );
     }
 
