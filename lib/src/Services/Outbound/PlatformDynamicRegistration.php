@@ -39,6 +39,7 @@ class PlatformDynamicRegistration {
                 'openid',
                 ToolRegistrationDocument::SCOPE_SCORE,
                 ToolRegistrationDocument::SCOPE_LINEITEM,
+                ToolRegistrationDocument::SCOPE_LINEITEM_READONLY,
                 ToolRegistrationDocument::SCOPE_RESULT,
                 ToolRegistrationDocument::SCOPE_ROSTER,
             ),

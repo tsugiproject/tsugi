@@ -27,6 +27,7 @@ class ToolRegistrationDocument {
 
     public const SCOPE_SCORE = 'https://purl.imsglobal.org/spec/lti-ags/scope/score';
     public const SCOPE_LINEITEM = 'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem';
+    public const SCOPE_LINEITEM_READONLY = 'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly';
     public const SCOPE_RESULT = 'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly';
     public const SCOPE_ROSTER = 'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly';
 
@@ -34,6 +35,7 @@ class ToolRegistrationDocument {
     private const SCOPE_ORDER = array(
         self::SCOPE_SCORE,
         self::SCOPE_LINEITEM,
+        self::SCOPE_LINEITEM_READONLY,
         self::SCOPE_RESULT,
         self::SCOPE_ROSTER,
     );
