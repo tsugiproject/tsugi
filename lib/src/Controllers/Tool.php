@@ -16,6 +16,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Tsugi\Core\Manifest;
 use Tsugi\Core\ReqScope;
 use Tsugi\Services\Outbound\Lti11TestLaunch;
+use Tsugi\Services\Outbound\Lti13TestLaunch;
+use Tsugi\Services\Outbound\LtiContentService;
 
 /**
  * Base class for LMS tool controllers
@@ -482,30 +484,39 @@ abstract class Tool {
             ? ((int) $row['send_grade']) === 1
             : null;
         $userKey = isset($_SESSION['user_key']) ? trim((string) $_SESSION['user_key']) : '';
+        $contextId = ReqScope::currentContextIdLegacy();
+        $launchArgs = array(
+            $contextId,
+            (int) $row['tool_deployment_id'],
+            ReqScope::loggedInUserIdLegacy(),
+            $resourceLinkId,
+            isset($row['title']) ? (string) $row['title'] : '',
+            $launch_presentation_return_url,
+            self::outboundLaunchRole(),
+            $userKey,
+            $sendName,
+            $sendEmail,
+            isset($row['launch_url']) ? (string) $row['launch_url'] : '',
+            $documentTarget,
+            $embed ? Lti11TestLaunch::parentFrameId($resourceLinkId) : '',
+            $sendGrade,
+            empty($row['link_id']),
+        );
         try {
-            $launch = Lti11TestLaunch::courseResourceLink(
-                ReqScope::currentContextIdLegacy(),
-                (int) $row['tool_deployment_id'],
-                ReqScope::loggedInUserIdLegacy(),
-                $resourceLinkId,
-                isset($row['title']) ? (string) $row['title'] : '',
-                $launch_presentation_return_url,
-                self::outboundLaunchRole(),
-                $userKey,
-                $sendName,
-                $sendEmail,
-                isset($row['launch_url']) ? (string) $row['launch_url'] : '',
-                $documentTarget,
-                $embed ? Lti11TestLaunch::parentFrameId($resourceLinkId) : '',
-                $sendGrade,
-                empty($row['link_id'])
-            );
+            $version = LtiContentService::version($contextId, (int) $row['tool_deployment_id']);
+            if ( $version === '1.3' ) {
+                $launch = Lti13TestLaunch::courseResourceLink(...$launchArgs);
+                $protocol = '1.3';
+            } else {
+                $launch = Lti11TestLaunch::courseResourceLink(...$launchArgs);
+                $protocol = '1.1';
+            }
         } catch ( \InvalidArgumentException $ex ) {
             $app->tsugiFlashError($ex->getMessage());
             return new RedirectResponse($redirect_path_on_error);
         }
         $debug = $CFG->getExtension('launch_debug', false);
-        print(LTI::postLaunchHTML($launch['parameters'], $launch['endpoint'], $debug));
+        print(LTI::postLaunchHTML($launch['parameters'], $launch['endpoint'], $debug, false, false, null, $protocol));
         return '';
     }
 

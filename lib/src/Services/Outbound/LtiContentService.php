@@ -26,13 +26,43 @@ class LtiContentService {
         if ( ! Lti11TestLaunch::hasResourceLink($contextId, (int) $tool['tool_deployment_id']) ) {
             throw new \InvalidArgumentException('This tool does not have a resource link launch.');
         }
+        $launchUrl = trim((string) $tool['lti11_url']);
+        return self::writeContent($contextId, $tool, $title, $launchUrl);
+    }
+
+    /**
+     * Place a launch URL that was chosen from a deployment's messages.
+     *
+     * The caller has already checked that this course can use the deployment
+     * and that the URL is the one the message or the deep link return named.
+     *
+     * @param int $contextId
+     * @param int $toolDeploymentId
+     * @param string $title Outline title. Empty uses the tool title.
+     * @param string $launchUrl
+     * @return array<string, mixed>
+     */
+    public static function placeAt($contextId, $toolDeploymentId, $title, $launchUrl) {
+        $contextId = (int) $contextId;
+        $tool = self::visibleDeployment($contextId, (int) $toolDeploymentId);
+        return self::writeContent($contextId, $tool, $title, $launchUrl);
+    }
+
+    /**
+     * @param int $contextId
+     * @param array<string, mixed> $tool
+     * @param string $title
+     * @param string $launchUrl
+     * @return array<string, mixed>
+     */
+    private static function writeContent($contextId, array $tool, $title, $launchUrl) {
+        $launchUrl = trim((string) $launchUrl);
+        if ( ! preg_match('#^https?://#i', $launchUrl) ) {
+            throw new \InvalidArgumentException('This tool has no launch URL.');
+        }
         $context = self::contextRow($contextId);
         if ( (int) $context['key_id'] !== (int) $tool['key_id'] ) {
             throw new \InvalidArgumentException('That deployment is in a different tenant.');
-        }
-        $launchUrl = trim((string) $tool['lti11_url']);
-        if ( $launchUrl === '' ) {
-            throw new \InvalidArgumentException('This tool has no launch URL.');
         }
         $title = self::titleOrTool(trim((string) $title), (string) $tool['title']);
         $privacy = self::grant((int) $tool['tool_deployment_id']);
@@ -468,6 +498,182 @@ class LtiContentService {
             throw new \InvalidArgumentException('That launch was not found in this course.');
         }
         return $row;
+    }
+
+    /**
+     * A deployment this course can see, LTI 1.1 or 1.3.
+     *
+     * @param int $contextId
+     * @param int $toolDeploymentId
+     * @return array{registration_id:int, key_id:int, title:string, tool_deployment_id:int}
+     */
+    private static function visibleDeployment($contextId, $toolDeploymentId) {
+        $toolDeploymentId = (int) $toolDeploymentId;
+        $found = null;
+        foreach ( ToolDeploymentService::getDeploymentsForContext((int) $contextId) as $row ) {
+            if ( (int) $row['tool_deployment_id'] === $toolDeploymentId ) {
+                $found = $row;
+                break;
+            }
+        }
+        if ( $found === null ) {
+            throw new \InvalidArgumentException('This course does not have that deployment.');
+        }
+        $p = self::prefix();
+        $reg = self::db()->rowDie(
+            "SELECT registration_id, key_id, title, lti_version
+             FROM {$p}lti_tool_registration
+             WHERE registration_id = :registration_id",
+            array(':registration_id' => (int) $found['registration_id'])
+        );
+        if ( ! is_array($reg) || (int) $reg['key_id'] !== (int) $found['key_id'] ) {
+            throw new \InvalidArgumentException('This course does not have that deployment.');
+        }
+        return array(
+            'registration_id' => (int) $reg['registration_id'],
+            'key_id' => (int) $reg['key_id'],
+            'title' => (string) $reg['title'],
+            'lti_version' => (string) $reg['lti_version'],
+            'tool_deployment_id' => $toolDeploymentId,
+        );
+    }
+
+    /**
+     * The deployment is still available in this course.
+     *
+     * @param int $contextId
+     * @param int $toolDeploymentId
+     * @return bool
+     */
+    public static function inCourse($contextId, $toolDeploymentId) {
+        try {
+            self::visibleDeployment((int) $contextId, (int) $toolDeploymentId);
+        } catch ( \InvalidArgumentException $ex ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @param int $contextId
+     * @param int $toolDeploymentId
+     * @return string
+     */
+    public static function version($contextId, $toolDeploymentId) {
+        return self::visibleDeployment((int) $contextId, (int) $toolDeploymentId)['lti_version'];
+    }
+
+    /**
+     * The URL a browser can POST an LTI launch to.
+     *
+     * A directory with no trailing slash is redirected, and that redirect drops
+     * the POST. The tool then sees a normal visit and has no launch session.
+     * A path that already names a file is left alone.
+     *
+     * @param string $url
+     * @return string
+     */
+    public static function browserPostUrl($url, $lookup = null) {
+        $url = trim((string) $url);
+        $slashed = self::directorySlashUrl($url);
+        if ( $slashed === $url ) {
+            return $url;
+        }
+        $location = $lookup === null ? self::redirectLocation($url) : $lookup($url);
+        if ( ! is_string($location) || $location === '' ) {
+            return $url;
+        }
+        if ( self::sameResource($location, $slashed) ) {
+            return $slashed;
+        }
+        return $url;
+    }
+
+    /**
+     * The same URL with a trailing slash when the path does not name a file.
+     *
+     * @param string $url
+     * @return string
+     */
+    public static function directorySlashUrl($url) {
+        $url = trim((string) $url);
+        if ( ! preg_match('~^(https?://[^/?#]+)([^?#]*)(.*)$~i', $url, $match) ) {
+            return $url;
+        }
+        $path = $match[2];
+        if ( $path === '' || str_ends_with($path, '/') ) {
+            return $url;
+        }
+        $slash = strrpos($path, '/');
+        $leaf = $slash === false ? $path : substr($path, $slash + 1);
+        if ( $leaf === '' || str_contains($leaf, '.') ) {
+            return $url;
+        }
+        return $match[1].$path.'/'.$match[3];
+    }
+
+    /**
+     * @param string $url
+     * @return string
+     */
+    private static function redirectLocation($url) {
+        if ( ! function_exists('curl_init') ) {
+            return '';
+        }
+        $ch = curl_init($url);
+        if ( $ch === false ) {
+            return '';
+        }
+        curl_setopt($ch, CURLOPT_NOBODY, true);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+        $raw = curl_exec($ch);
+        $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        if ( ! is_string($raw) || ! in_array($code, array(301, 302, 307, 308), true) ) {
+            return '';
+        }
+        if ( ! preg_match('/^Location:\s*(\S+)/mi', $raw, $match) ) {
+            return '';
+        }
+        return self::resolveRedirect($url, $match[1]);
+    }
+
+    /**
+     * @param string $from
+     * @param string $location
+     * @return string
+     */
+    private static function resolveRedirect($from, $location) {
+        $location = trim($location);
+        if ( preg_match('~^https?://~i', $location) ) {
+            return $location;
+        }
+        $parts = parse_url($from);
+        if ( ! is_array($parts) || empty($parts['scheme']) || empty($parts['host']) ) {
+            return $location;
+        }
+        $origin = $parts['scheme'].'://'.$parts['host'];
+        if ( isset($parts['port']) ) {
+            $origin .= ':'.$parts['port'];
+        }
+        if ( str_starts_with($location, '/') ) {
+            return $origin.$location;
+        }
+        $path = isset($parts['path']) ? $parts['path'] : '/';
+        $dir = substr($path, 0, (int) strrpos($path, '/'));
+        return $origin.$dir.'/'.$location;
+    }
+
+    /**
+     * @param string $left
+     * @param string $right
+     * @return bool
+     */
+    private static function sameResource($left, $right) {
+        return rtrim($left, '/') === rtrim($right, '/');
     }
 
     /**

@@ -107,11 +107,13 @@ class Lti11TestLaunch {
      * Deployments this course can place on a lesson.
      *
      * The option id is tool_deployment_id. A registration with no deployment
-     * in scope for the course is not listed. LTI 1.3 deployments are not
-     * listed: a lesson still signs an LTI 1.1 resource link.
+     * in scope for the course is not listed. An LTI 1.1 deployment is listed
+     * when it has a resource link. An LTI 1.3 deployment is listed when a
+     * message can be placed in a lesson. The author picks that message before
+     * a launch URL is stored.
      *
      * @param int $contextId
-     * @return array<int, array{id:int, title:string, lti_version:string, launch:string, send_name:bool, send_email:bool, send_grade:bool}>
+     * @return array<int, array{id:int, title:string, lti_version:string, launch:string, send_name:bool, send_email:bool, send_grade:bool, placements:array<int, array<string, mixed>>}>
      */
     public static function lessonChoices($contextId) {
         $choices = array();
@@ -124,13 +126,24 @@ class Lti11TestLaunch {
                  WHERE registration_id = :registration_id",
                 array(':registration_id' => $registrationId)
             );
-            if ( ! is_array($row) || (string) $row['lti_version'] !== '1.1' ) {
+            if ( ! is_array($row) ) {
                 continue;
             }
-            if ( ! self::hasMessage($registrationId, 'LtiResourceLinkRequest') ) {
-                continue;
-            }
+            $version = (string) $row['lti_version'];
             $toolDeploymentId = (int) $deployment['tool_deployment_id'];
+            $placements = array();
+            if ( $version === '1.3' ) {
+                $placements = LtiLessonPlacement::choices((int) $contextId, $toolDeploymentId);
+                if ( count($placements) === 0 ) {
+                    continue;
+                }
+            } else if ( $version === '1.1' ) {
+                if ( ! self::hasMessage($registrationId, 'LtiResourceLinkRequest') ) {
+                    continue;
+                }
+            } else {
+                continue;
+            }
             $privacy = self::privacyFromClaims(ToolDeploymentGrant::allowedClaims($toolDeploymentId));
             $title = (string) $row['title'];
             $external = $deployment['deployment_id'];
@@ -140,8 +153,8 @@ class Lti11TestLaunch {
             $choices[] = array(
                 'id' => $toolDeploymentId,
                 'title' => $title,
-                'lti_version' => (string) $row['lti_version'],
-                'launch' => (string) $row['lti11_url'],
+                'lti_version' => $version,
+                'launch' => $version === '1.1' ? (string) $row['lti11_url'] : '',
                 'send_name' => $privacy['send_name'],
                 'send_email' => $privacy['send_email'],
                 'send_grade' => in_array(
@@ -149,6 +162,7 @@ class Lti11TestLaunch {
                     ToolDeploymentGrant::allowedScopes($toolDeploymentId),
                     true
                 ),
+                'placements' => $placements,
             );
         }
         return $choices;
@@ -237,6 +251,7 @@ class Lti11TestLaunch {
         if ( $endpoint === '' ) {
             $endpoint = $tool['lti11_url'];
         }
+        $endpoint = LtiContentService::browserPostUrl($endpoint);
         $parms = self::resourceLinkParameters(
             $tool,
             (int) $contextId,
