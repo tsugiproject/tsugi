@@ -104,6 +104,13 @@ $show_tabs = count($enrolled_rows) > 0 && count($other_rows) > 0;
     line-height: 1.3;
     display: block;
 }
+.tsugi-catalog-card-course {
+    display: block;
+    margin-top: 0.15em;
+    color: #333;
+    font-size: 0.92em;
+    line-height: 1.3;
+}
 .tsugi-catalog-card-short {
     display: block;
     margin-top: 0.25em;

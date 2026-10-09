@@ -47,6 +47,7 @@ $OUTPUT->flashMessages();
     <thead>
         <tr>
             <th><?= __('Title') ?></th>
+            <th><?= __('Course') ?></th>
             <th><?= __('Kind') ?></th>
             <th><?= __('Published') ?></th>
             <th><?= __('Order') ?></th>
@@ -57,6 +58,7 @@ $OUTPUT->flashMessages();
     <?php foreach ( $rows as $row ) {
         $id = (int) ($row['catalog_id'] ?? 0);
         $title = (string) ($row['title'] ?? '');
+        $course = trim((string) ($row['context_title'] ?? ''));
         $is_link = trim((string) ($row['external_url'] ?? '')) !== '';
         $kind = $is_link ? __('Link') : __('Course');
         $pub = ! empty($row['published']) ? __('Yes') : __('No');
@@ -64,6 +66,7 @@ $OUTPUT->flashMessages();
     ?>
         <tr>
             <td><?= htmlspecialchars($title) ?></td>
+            <td><?= htmlspecialchars($course) ?></td>
             <td><?= htmlspecialchars($kind) ?></td>
             <td><?= htmlspecialchars($pub) ?></td>
             <td><?= (int) ($row['sort_order'] ?? 0) ?></td>

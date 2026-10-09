@@ -2,7 +2,7 @@
 /**
  * Catalog card grid.
  *
- * Expected: $rows (title, href, hero_url, icon_url, short_description, enrolled)
+ * Expected: $rows (title, context_title, href, hero_url, icon_url, short_description, enrolled)
  */
 if ( ! isset($rows) || ! is_array($rows) || count($rows) < 1 ) {
     return;
@@ -11,6 +11,10 @@ if ( ! isset($rows) || ! is_array($rows) || count($rows) < 1 ) {
 <ul class="tsugi-catalog-cards">
     <?php foreach ( $rows as $row ) {
         $title = isset($row['title']) ? (string) $row['title'] : '';
+        $course = isset($row['context_title']) ? trim((string) $row['context_title']) : '';
+        if ( strcasecmp($course, trim($title)) === 0 ) {
+            $course = '';
+        }
         $href = isset($row['href']) ? (string) $row['href'] : '';
         $hero_url = isset($row['hero_url']) ? (string) $row['hero_url'] : '';
         $icon_url = isset($row['icon_url']) ? (string) $row['icon_url'] : '';
@@ -45,6 +49,9 @@ if ( ! isset($rows) || ! is_array($rows) || count($rows) < 1 ) {
                 <?php } ?>
                 <span class="tsugi-catalog-card-text">
                     <span class="tsugi-catalog-card-title"><?= htmlspecialchars($title) ?></span>
+                    <?php if ( $course !== '' ) { ?>
+                    <span class="tsugi-catalog-card-course"><?= htmlspecialchars($course) ?></span>
+                    <?php } ?>
                     <?php if ( $short !== '' ) { ?>
                     <span class="tsugi-catalog-card-short"><?= htmlspecialchars($short) ?></span>
                     <?php } ?>

@@ -336,6 +336,7 @@ class Catalog extends Tool {
             $entries[] = array(
                 'catalog_id' => (int) ($row['catalog_id'] ?? 0),
                 'title' => $row['title'] ?? '',
+                'context_title' => $row['context_title'] ?? '',
                 'short_description' => $row['short_description'] ?? '',
                 'hero_url' => $row['hero_url'] ?? '',
                 'icon_url' => $row['icon_url'] ?? '',

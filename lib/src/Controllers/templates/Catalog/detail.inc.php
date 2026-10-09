@@ -10,6 +10,10 @@ $enrol_url = isset($enrol_url) ? (string) $enrol_url : '';
 $enter_url = isset($enter_url) ? (string) $enter_url : '';
 $home = isset($home) ? (string) $home : '';
 $title = (string) ($row['title'] ?? '');
+$course = trim((string) ($row['context_title'] ?? ''));
+if ( strcasecmp($course, trim($title)) === 0 ) {
+    $course = '';
+}
 $short = (string) ($row['short_description'] ?? '');
 $body = (string) ($row['description'] ?? '');
 $hero_url = (string) ($row['hero_url'] ?? '');
@@ -58,6 +62,11 @@ $site_home = ! empty($site_home);
     line-height: 1.25;
     padding: 0.85em 1em 0.9em;
     text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+}
+.tsugi-catalog-detail-course {
+    margin: 0.35em 0 0;
+    color: #333;
+    font-size: 1.05em;
 }
 .tsugi-catalog-detail-short {
     font-size: 1.1em;
@@ -117,6 +126,9 @@ $site_home = ! empty($site_home);
         </span>
         <?php } ?>
     </div>
+    <?php if ( $course !== '' ) { ?>
+    <p class="tsugi-catalog-detail-course"><?= htmlspecialchars($course) ?></p>
+    <?php } ?>
     <?php if ( $short !== '' ) { ?>
     <p class="tsugi-catalog-detail-short"><?= htmlspecialchars($short) ?></p>
     <?php } ?>

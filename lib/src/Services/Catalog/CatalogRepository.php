@@ -123,11 +123,13 @@ class CatalogRepository {
             "SELECT CAT.catalog_id, CAT.context_id, CAT.external_url, CAT.title,
                     CAT.short_description, CAT.description, CAT.published, CAT.sort_order, CAT.new_window,
                     CAT.hero_bytes, CAT.hero_updated_at,
+                    COALESCE(NULLIF(MF.title, ''), C.title) AS context_title,
                     CI.hero_bytes AS context_hero_bytes, CI.hero_updated_at AS context_hero_updated_at,
                     CI.icon_bytes, CI.icon_updated_at,
                     {$memberSelect}
              FROM {$p}course_catalog AS CAT
              LEFT JOIN {$p}lti_context AS C ON C.context_id = CAT.context_id
+             LEFT JOIN {$p}manifest AS MF ON C.manifest_id = MF.manifest_id
              LEFT JOIN {$p}context_images AS CI ON CI.context_id = CAT.context_id
              {$memberJoin}
              WHERE CAT.published = 1
@@ -177,11 +179,13 @@ class CatalogRepository {
                     CAT.short_description, CAT.description, CAT.published, CAT.sort_order,
                     CAT.new_window, CAT.hero_bytes, CAT.hero_updated_at, CAT.user_id,
                     CAT.created_at, CAT.updated_at,
+                    COALESCE(NULLIF(MF.title, ''), C.title) AS context_title,
                     CI.hero_bytes AS context_hero_bytes, CI.hero_updated_at AS context_hero_updated_at,
                     CI.icon_bytes, CI.icon_updated_at,
                     {$memberSelect}
              FROM {$p}course_catalog AS CAT
              LEFT JOIN {$p}lti_context AS C ON C.context_id = CAT.context_id
+             LEFT JOIN {$p}manifest AS MF ON C.manifest_id = MF.manifest_id
              LEFT JOIN {$p}context_images AS CI ON CI.context_id = CAT.context_id
              {$memberJoin}
              WHERE CAT.catalog_id = :ID{$pub}",
