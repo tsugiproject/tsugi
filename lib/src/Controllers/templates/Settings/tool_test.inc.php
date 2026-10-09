@@ -65,12 +65,8 @@ $offerLineItems = ! empty($lti13)
 <?php if ( $offerLineItems ) { ?>
 <form method="post" action="<?= htmlspecialchars((string) $test_url) ?>" style="margin:8px 0;">
     <?= \Tsugi\Controllers\Tool::csrfField() ?>
-<?php if ( $deep_return !== null ) { ?>
-    <input type="hidden" name="deep_link_jwt" value="<?= htmlspecialchars($deep_return['jwt']) ?>">
-    <input type="hidden" name="item" value="<?= (int) $deep_return['index'] ?>">
-<?php } ?>
     <input type="hidden" name="registration_id" value="<?= $registrationId ?>">
-    <input type="hidden" name="message" value="<?= htmlspecialchars($deep_return !== null ? 'LtiDeepLinkingRequest' : $launchMessage) ?>">
+    <input type="hidden" name="message" value="<?= htmlspecialchars($launchMessage) ?>">
     <input type="hidden" name="role" value="<?= htmlspecialchars($launchRole) ?>">
     <input type="hidden" name="lineitems" value="0">
     <label>
@@ -151,13 +147,6 @@ $offerLineItems = ! empty($lti13)
         <div id="tsugi-deep-link-return" style="display:none;height:calc(100% - 48px);overflow:auto;">
             <p><?= __('Deep link return. Nothing was saved.') ?></p>
             <pre id="tsugi-deep-link-json" style="white-space:pre-wrap;word-break:break-all;"></pre>
-            <p>
-                <label>
-                    <input type="checkbox" id="tsugi-deep-link-lineitems"<?= $includeLineItems ? ' checked' : '' ?>>
-                    <?= __('Include the line items URL') ?>
-                </label>
-            </p>
-            <p><?= __('If the tool creates line items in this course, they stay in the course after the test. Delete them yourself.') ?></p>
             <p><button type="button" class="btn btn-primary" id="tsugi-deep-link-go"><?= __('Launch the resource link from this return') ?></button></p>
         </div>
     </div>
@@ -223,14 +212,9 @@ $offerLineItems = ! empty($lti13)
         }
     });
     document.getElementById('tsugi-deep-link-go').addEventListener('click', function () {
-        if (!back.elements.deep_link_jwt.value) {
-            return;
+        if (back.elements.deep_link_jwt.value) {
+            back.submit();
         }
-        var lineItems = document.getElementById('tsugi-deep-link-lineitems');
-        if (lineItems && back.elements.lineitems) {
-            back.elements.lineitems.value = lineItems.checked ? '1' : '0';
-        }
-        back.submit();
     });
     function jwtPayload(jwt) {
         try {
