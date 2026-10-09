@@ -310,4 +310,34 @@ class ConfigInfoTest extends \PHPUnit\Framework\TestCase
         $result = $CFG->getBadgeOrganization();
         $this->assertEquals('Service Name', $result);
     }
+
+    public function testEnabledQaSettings() {
+        global $CFG;
+        $previous = $CFG ?? null;
+        $CFG = new ConfigInfo(realpath(dirname(__FILE__)), 'http://localhost:8888/tsugi');
+        try {
+            $this->assertSame(array(), $CFG->enabledQaSettings());
+            $this->assertSame('', \Tsugi\Controllers\Admin::qaNotice());
+
+            $CFG->qa_allow_local_jwks = true;
+            $CFG->qa_demo_login = false;
+            $CFG->qa_demo_secret = '';
+            $this->assertSame(array('qa_allow_local_jwks'), $CFG->enabledQaSettings());
+
+            $CFG->qa_demo_login = true;
+            $CFG->qa_demo_secret = 's3cret';
+            $this->assertSame(
+                array('qa_allow_local_jwks', 'qa_demo_login', 'qa_demo_secret'),
+                $CFG->enabledQaSettings()
+            );
+            $notice = \Tsugi\Controllers\Admin::qaNotice();
+            $this->assertStringContainsString('QA settings enabled, these settings are not suitable for production systems', $notice);
+            $this->assertStringContainsString('qa_allow_local_jwks', $notice);
+            $this->assertStringContainsString('qa_demo_login', $notice);
+            $this->assertStringContainsString('qa_demo_secret', $notice);
+            $this->assertStringNotContainsString('s3cret', $notice);
+        } finally {
+            $CFG = $previous;
+        }
+    }
 }

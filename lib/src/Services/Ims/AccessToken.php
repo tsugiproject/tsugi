@@ -431,10 +431,166 @@ class AccessToken {
     }
 
     /**
+     * CURLOPT_RESOLVE entry for a tool JWKS URL, or null when the URL is refused.
+     *
+     * HTTPS only. Loopback, private, and reserved addresses are refused unless
+     * $CFG->qa_allow_local_jwks is true. The chosen address is pinned so curl
+     * cannot connect somewhere else. When local addresses are allowed, a
+     * hosts-file result is used as-is so a name like local.py4e.com stays on
+     * this machine.
+     */
+    public static function jwksFetchTarget(string $url) {
+        return self::jwksFetchDecision($url)['target'];
+    }
+
+    /**
+     * @return array{target:?string, log_url:string, reason:string, fix:string}
+     */
+    private static function jwksFetchDecision(string $url) {
+        $logUrl = self::jwksUrlForLog($url);
+        $parts = parse_url($url);
+        if ( ! is_array($parts) ) {
+            return self::jwksRefusal(
+                $logUrl,
+                'The jwks_uri could not be parsed as a URL.',
+                'Set the tool registration jwks_uri to an absolute https URL, for example https://tools.example.edu/lti/keyset.'
+            );
+        }
+        $scheme = isset($parts['scheme']) ? strtolower((string) $parts['scheme']) : '';
+        if ( $scheme !== 'https' ) {
+            $shown = $scheme === '' ? '(missing)' : $scheme;
+            return self::jwksRefusal(
+                $logUrl,
+                'Scheme is "'.$shown.'". Only https is fetched.',
+                'Change the tool jwks_uri to https and request a new token. $CFG->qa_allow_local_jwks does not allow http, including for localhost.'
+            );
+        }
+        if ( isset($parts['user']) || isset($parts['pass']) ) {
+            return self::jwksRefusal(
+                $logUrl,
+                'The jwks_uri contains a username or password.',
+                'Remove the userinfo from the tool jwks_uri. The platform fetches that URL itself and will not send embedded credentials.'
+            );
+        }
+        if ( ! isset($parts['host']) || ! is_string($parts['host']) || $parts['host'] === '' ) {
+            return self::jwksRefusal(
+                $logUrl,
+                'The jwks_uri has no host.',
+                'Use an absolute https URL with a host, for example https://tools.example.edu/lti/keyset.'
+            );
+        }
+        $host = $parts['host'];
+        $port = isset($parts['port']) ? (int) $parts['port'] : 443;
+        if ( $port < 1 || $port > 65535 ) {
+            return self::jwksRefusal(
+                $logUrl,
+                'Port '.$port.' is outside 1-65535.',
+                'Use port 443, or another valid TCP port, on an https jwks_uri. When the URL omits the port, 443 is used.'
+            );
+        }
+        $lookup = rtrim($host, '.');
+        if ( ! filter_var($host, FILTER_VALIDATE_IP) && ! self::isDnsName($lookup) ) {
+            return self::jwksRefusal(
+                $logUrl,
+                'Host "'.$host.'" is not a DNS name or an IP address.',
+                'Use a hostname such as tools.example.edu or a dotted IP address. Decimal, hex, and other encoded hosts are refused before any connection.'
+            );
+        }
+        $addresses = self::jwksHostAddresses($host);
+        if ( count($addresses) < 1 ) {
+            return self::jwksRefusal(
+                $logUrl,
+                'Host "'.$host.'" did not resolve to an IP address.',
+                'Fix DNS or /etc/hosts on the platform server, or correct the tool jwks_uri. If this name should point at this machine, add it to /etc/hosts and set $CFG->qa_allow_local_jwks = true in config.php.'
+            );
+        }
+        $allowLocal = self::jwksAllowLocal();
+        $chosen = null;
+        foreach ( $addresses as $ip ) {
+            $routable = Net::isRoutable($ip) ? true : false;
+            if ( ! $routable && ! $allowLocal ) {
+                return self::jwksRefusal(
+                    $logUrl,
+                    'Resolved '.implode(', ', $addresses).'. '.$ip.' is loopback, private, or reserved, and $CFG->qa_allow_local_jwks is false.',
+                    self::localJwksFix()
+                );
+            }
+            if ( $chosen === null || ($routable && ! Net::isRoutable($chosen)) ) {
+                $chosen = $ip;
+            }
+        }
+        if ( ! is_string($chosen) || $chosen === '' ) {
+            return self::jwksRefusal(
+                $logUrl,
+                'No address could be selected from '.implode(', ', $addresses).'.',
+                self::localJwksFix()
+            );
+        }
+        $pinned = strpos($chosen, ':') === false ? $chosen : '['.$chosen.']';
+        return array(
+            'target' => $host.':'.$port.':'.$pinned,
+            'log_url' => $logUrl,
+            'reason' => '',
+            'fix' => '',
+        );
+    }
+
+    /**
+     * @return array{target:?string, log_url:string, reason:string, fix:string}
+     */
+    private static function jwksRefusal(string $logUrl, string $reason, string $fix) {
+        return array(
+            'target' => null,
+            'log_url' => $logUrl,
+            'reason' => $reason,
+            'fix' => $fix,
+        );
+    }
+
+    private static function localJwksFix() {
+        return 'Local testing: set $CFG->qa_allow_local_jwks = true in this platform\'s config.php '
+            .'(the default in config-dist.php is false), keep the jwks_uri on https, and request a new token. '
+            .'A public platform should leave the flag false and register a jwks_uri that resolves to a public address.';
+    }
+
+    private static function jwksUrlForLog(string $url) {
+        $parts = parse_url($url);
+        if ( ! is_array($parts) ) {
+            return '(unparsed url omitted)';
+        }
+        if ( isset($parts['user']) || isset($parts['pass']) ) {
+            $scheme = isset($parts['scheme']) && is_string($parts['scheme']) ? $parts['scheme'] : '';
+            $host = isset($parts['host']) && is_string($parts['host']) ? $parts['host'] : '';
+            return $scheme.'://'.$host.' (userinfo removed)';
+        }
+        return $url;
+    }
+
+    /**
+     * @param array{target:?string, log_url:string, reason:string, fix:string} $decision
+     */
+    private static function logJwksRejection(array $decision) {
+        global $CFG;
+        $wwwroot = isset($CFG->wwwroot) && is_string($CFG->wwwroot) ? $CFG->wwwroot : '';
+        $flag = self::jwksAllowLocal() ? 'true' : 'false';
+        error_log(
+            "LTI token JWKS url rejected\n"
+            .'  url='.$decision['log_url']."\n"
+            .'  platform='.$wwwroot."\n"
+            .'  qa_allow_local_jwks='.$flag."\n"
+            .'  reason='.$decision['reason']."\n"
+            .'  fix='.$decision['fix']
+        );
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     private static function fetchJwks(string $url) {
-        if ( ! preg_match('#^https?://#i', $url) ) {
+        $decision = self::jwksFetchDecision($url);
+        $resolve = $decision['target'];
+        if ( $resolve === null ) {
+            self::logJwksRejection($decision);
             return null;
         }
         $ch = curl_init($url);
@@ -446,7 +602,8 @@ class AccessToken {
             CURLOPT_CONNECTTIMEOUT => 3,
             CURLOPT_TIMEOUT => 5,
             CURLOPT_FOLLOWLOCATION => false,
-            CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
+            CURLOPT_RESOLVE => array($resolve),
         );
         if ( Net::$VERIFY_PEER ) {
             $options[CURLOPT_SSL_VERIFYPEER] = true;
@@ -456,7 +613,14 @@ class AccessToken {
         $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
         if ( ! is_string($body) || $code < 200 || $code >= 300 || strlen($body) > 100000 ) {
             $error = curl_error($ch);
-            error_log('LTI token JWKS fetch failed url='.$url.' code='.$code.' err='.$error);
+            error_log(
+                "LTI token JWKS fetch failed\n"
+                .'  url='.self::jwksUrlForLog($url)."\n"
+                .'  resolve='.$resolve."\n"
+                .'  code='.$code."\n"
+                .'  err='.$error."\n"
+                .'  fix=The URL was accepted, so this is not the private-address check. The key set must be HTTPS JSON with a keys array, and this PHP process must trust the server certificate.'
+            );
             return null;
         }
         $decoded = json_decode($body, true);
@@ -464,6 +628,79 @@ class AccessToken {
             return null;
         }
         return $decoded;
+    }
+
+    private static function jwksAllowLocal() {
+        global $CFG;
+        return isset($CFG->qa_allow_local_jwks) && $CFG->qa_allow_local_jwks === true;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function jwksHostAddresses(string $host) {
+        if ( filter_var($host, FILTER_VALIDATE_IP) ) {
+            return array($host);
+        }
+        $lookup = rtrim($host, '.');
+        if ( ! self::isDnsName($lookup) ) {
+            return array();
+        }
+        $ips = array();
+        $v4 = gethostbynamel($lookup);
+        if ( is_array($v4) ) {
+            foreach ( $v4 as $ip ) {
+                if ( is_string($ip) && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ) {
+                    $ips[] = $ip;
+                }
+            }
+        }
+        // A hosts-file address is enough for local testing. Extra DNS results
+        // are only merged when private addresses are refused, so a public name
+        // cannot hide a private one.
+        if ( count($ips) === 0 || ! self::jwksAllowLocal() ) {
+            foreach ( self::jwksDnsAddresses($lookup) as $ip ) {
+                $ips[] = $ip;
+            }
+        }
+        $unique = array();
+        foreach ( $ips as $ip ) {
+            $unique[$ip] = $ip;
+        }
+        return array_values($unique);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private static function jwksDnsAddresses(string $host) {
+        if ( ! function_exists('dns_get_record') ) {
+            return array();
+        }
+        $rows = @dns_get_record($host, DNS_A | DNS_AAAA);
+        if ( ! is_array($rows) ) {
+            return array();
+        }
+        $ips = array();
+        foreach ( $rows as $row ) {
+            if ( ! is_array($row) ) {
+                continue;
+            }
+            if ( isset($row['ip']) && is_string($row['ip']) && filter_var($row['ip'], FILTER_VALIDATE_IP) ) {
+                $ips[] = $row['ip'];
+            }
+            if ( isset($row['ipv6']) && is_string($row['ipv6']) && filter_var($row['ipv6'], FILTER_VALIDATE_IP) ) {
+                $ips[] = $row['ipv6'];
+            }
+        }
+        return $ips;
+    }
+
+    private static function isDnsName(string $host) {
+        if ( $host === '' || strlen($host) > 253 ) {
+            return false;
+        }
+        return preg_match('/\A(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\z/i', $host) === 1;
     }
 
     /**

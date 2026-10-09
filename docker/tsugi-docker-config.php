@@ -79,10 +79,11 @@ $CFG->dbprefix  = '';
 $CFG->adminpw = getenv('TSUGI_ADMIN_PW') ?: false;
 
 // Simulated Google login for the Panther QA stack. Off unless both are set.
+// Env names stay TSUGI_DEMO_*; the config keys are the qa_ back doors.
 $demoLogin = getenv('TSUGI_DEMO_LOGIN');
-$CFG->demo_login = ($demoLogin === '1' || strcasecmp((string) $demoLogin, 'true') === 0);
+$CFG->qa_demo_login = ($demoLogin === '1' || strcasecmp((string) $demoLogin, 'true') === 0);
 $demoSecret = getenv('TSUGI_DEMO_SECRET');
-$CFG->demo_secret = (is_string($demoSecret) && $demoSecret !== '') ? $demoSecret : false;
+$CFG->qa_demo_secret = (is_string($demoSecret) && $demoSecret !== '') ? $demoSecret : false;
 // $CFG->adminpw = 'tsugi';
 // $CFG->adminpw = 'sha256:9c0ccb0d53dd71b896cde69c78cf977acbcb36546c96bedec1619406145b5e9e';
 

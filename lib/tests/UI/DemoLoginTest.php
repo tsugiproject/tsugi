@@ -31,29 +31,29 @@ class DemoLoginTest extends \PHPUnit\Framework\TestCase
 
     public function testDisabledWhenFlagTrueButSecretMissing() {
         global $CFG;
-        $CFG->demo_login = true;
-        $CFG->demo_secret = false;
+        $CFG->qa_demo_login = true;
+        $CFG->qa_demo_secret = false;
         $this->assertFalse(DemoLogin::isEnabled());
     }
 
     public function testDisabledWhenSecretEmpty() {
         global $CFG;
-        $CFG->demo_login = true;
-        $CFG->demo_secret = '';
+        $CFG->qa_demo_login = true;
+        $CFG->qa_demo_secret = '';
         $this->assertFalse(DemoLogin::isEnabled());
     }
 
     public function testEnabledWhenFlagAndSecretSet() {
         global $CFG;
-        $CFG->demo_login = true;
-        $CFG->demo_secret = 's3cret';
+        $CFG->qa_demo_login = true;
+        $CFG->qa_demo_secret = 's3cret';
         $this->assertTrue(DemoLogin::isEnabled());
     }
 
     public function testSecretMatchesPlaintext() {
         global $CFG;
-        $CFG->demo_login = true;
-        $CFG->demo_secret = 's3cret';
+        $CFG->qa_demo_login = true;
+        $CFG->qa_demo_secret = 's3cret';
         $this->assertTrue(DemoLogin::secretMatches('s3cret'));
         $this->assertFalse(DemoLogin::secretMatches('wrong'));
         $this->assertFalse(DemoLogin::secretMatches(''));
@@ -61,16 +61,16 @@ class DemoLoginTest extends \PHPUnit\Framework\TestCase
 
     public function testSecretMatchesSha256() {
         global $CFG;
-        $CFG->demo_login = true;
-        $CFG->demo_secret = 'sha256:'.hash('sha256', 's3cret');
+        $CFG->qa_demo_login = true;
+        $CFG->qa_demo_secret = 'sha256:'.hash('sha256', 's3cret');
         $this->assertTrue(DemoLogin::secretMatches('s3cret'));
         $this->assertFalse(DemoLogin::secretMatches('wrong'));
     }
 
     public function testSecretDoesNotMatchWhenDisabled() {
         global $CFG;
-        $CFG->demo_login = false;
-        $CFG->demo_secret = 's3cret';
+        $CFG->qa_demo_login = false;
+        $CFG->qa_demo_secret = 's3cret';
         $this->assertFalse(DemoLogin::secretMatches('s3cret'));
     }
 

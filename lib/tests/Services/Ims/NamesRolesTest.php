@@ -124,6 +124,71 @@ class NamesRolesTest extends PlatformSchemaCase
         $this->assertSame('invalid_grant', $wrongAudience['body']['error']);
     }
 
+    public function testJwksFetchRefusesPrivateAddressesUnlessLocalTestingIsEnabled(): void
+    {
+        global $CFG, $PDOX;
+        $previous = isset($CFG->qa_allow_local_jwks) ? $CFG->qa_allow_local_jwks : false;
+        $CFG->qa_allow_local_jwks = false;
+        try {
+            $this->assertNull(AccessToken::jwksFetchTarget('http://127.0.0.1/jwks.json'));
+            $this->assertNull(AccessToken::jwksFetchTarget('https://127.0.0.1/jwks.json'));
+            $this->assertNull(AccessToken::jwksFetchTarget('https://10.1.2.3/jwks.json'));
+            $this->assertNull(AccessToken::jwksFetchTarget('https://192.168.1.9/jwks.json'));
+            $this->assertNull(AccessToken::jwksFetchTarget('https://[::1]/jwks.json'));
+            $this->assertNull(AccessToken::jwksFetchTarget('https://localhost/jwks.json'));
+            $this->assertNull(AccessToken::jwksFetchTarget('https://user@8.8.8.8/jwks.json'));
+            $this->assertSame('8.8.8.8:443:8.8.8.8', AccessToken::jwksFetchTarget('https://8.8.8.8/jwks.json'));
+            $this->assertSame('8.8.8.8:8443:8.8.8.8', AccessToken::jwksFetchTarget('https://8.8.8.8:8443/jwks.json'));
+
+            $CFG->qa_allow_local_jwks = true;
+            $this->assertNull(AccessToken::jwksFetchTarget('http://127.0.0.1/jwks.json'));
+            $this->assertSame('127.0.0.1:443:127.0.0.1', AccessToken::jwksFetchTarget('https://127.0.0.1/jwks.json'));
+            $local = AccessToken::jwksFetchTarget('https://localhost/jwks.json');
+            $this->assertIsString($local);
+            $this->assertStringStartsWith('localhost:443:', $local);
+
+            $CFG->qa_allow_local_jwks = false;
+            $registered = $this->register('Private JWKS Garden');
+            $PDOX->queryDie(
+                "UPDATE {$this->p()}lti_tool_registration
+                 SET lti13_jwks_url = :url
+                 WHERE lti13_client_id = :client",
+                array(
+                    ':url' => 'https://127.0.0.1/jwks.json',
+                    ':client' => $registered['client_id'],
+                )
+            );
+            $keys = $this->keyPair();
+            $audience = PlatformDynamicRegistration::openIdConfiguration()['token_endpoint'];
+            $logFile = tempnam(sys_get_temp_dir(), 'jwks-reject');
+            $this->assertIsString($logFile);
+            $previousLog = ini_get('error_log');
+            ini_set('error_log', $logFile);
+            try {
+                $denied = AccessToken::grant(array(
+                    'grant_type' => 'client_credentials',
+                    'client_assertion_type' => AccessToken::ASSERTION_TYPE,
+                    'client_assertion' => $this->assertion($registered['client_id'], $keys, $audience),
+                    'scope' => ToolRegistrationDocument::SCOPE_ROSTER,
+                ), AccessToken::audiences(), null);
+            } finally {
+                ini_set('error_log', $previousLog === false ? '' : $previousLog);
+            }
+            $logged = (string) file_get_contents($logFile);
+            unlink($logFile);
+            $this->assertSame(401, $denied['status']);
+            $this->assertSame('invalid_client', $denied['body']['error']);
+            $this->assertStringContainsString('LTI token JWKS url rejected', $logged);
+            $this->assertStringContainsString('url=https://127.0.0.1/jwks.json', $logged);
+            $this->assertStringContainsString('qa_allow_local_jwks=false', $logged);
+            $this->assertStringContainsString('127.0.0.1 is loopback, private, or reserved', $logged);
+            $this->assertStringContainsString('$CFG->qa_allow_local_jwks = true', $logged);
+            $this->assertStringContainsString('config.php', $logged);
+        } finally {
+            $CFG->qa_allow_local_jwks = $previous;
+        }
+    }
+
     public function testMembershipPath(): void
     {
         $this->assertSame(12, NamesRoles::contextIdFromPath('/tsugi/ims/nrps/context/12/memberships'));

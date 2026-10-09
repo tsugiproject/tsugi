@@ -17,6 +17,7 @@ try {
 $OUTPUT->header();
 $OUTPUT->bodyStart();
 $OUTPUT->topNav();
+echo \Tsugi\Controllers\Admin::qaNotice();
 define('SANITY_DB_ALLOW_NO_TABLES', true);
 require_once $CFG->dirroot . '/sanity-db.php';
 

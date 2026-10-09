@@ -212,7 +212,7 @@ information with <?= htmlspecialchars($CFG->servicename) ?>.
     }
 
     /**
-     * Config-gated simulated Google login. Always 403 unless demo_login + demo_secret.
+     * Config-gated simulated Google login. Always 403 unless qa_demo_login + qa_demo_secret.
      */
     public function simulate()
     {
