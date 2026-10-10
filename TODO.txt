@@ -1,0 +1,13 @@
+Home - Tell students "what next"
+Better Badge Denormalization
+Review and check due date code in manifest based courses
+Python Shell into Mac store
+SAK-52917 Multi return
+MCP
+Modules view / Udemy View / SCORM view
+Delete when there is content and link - needs to address broken links
+Python CLOC page
+Enable / Disable bits of a deployment - messges / scopes / claims
+CRUD for LTI 1.3 registrations - including Add manually
+Course Nav LTI and Web Link
+
