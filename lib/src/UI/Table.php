@@ -336,10 +336,17 @@ class Table {
                     $stuff = Table::doUrl($params,$override);
                     $sort_attr = ($k == $order_by || ($order_by == '' && $k == 'id')) ? ' aria-sort="'.($desc == 1 ? 'descending' : 'ascending').'"' : '';
                     echo('<th scope="col" class="'.$color.'"'.$sort_attr.'>');
-                    echo(' <a href="'.$thispage);
+                    // Query-only so the link stays on this URL. The last path
+                    // segment (profile?order_by=) is resolved inside a folder
+                    // URL such as /admin/profile/ and 404s as /admin/profile/profile.
+                    // A leading ? is still relative, so cookieless session ids
+                    // are appended the same way as the old last-segment href.
+                    echo(' <a href="');
                     if ( U::strlen($stuff) > 0 ) {
-                        echo("?");
+                        echo('?');
                         echo($stuff);
+                    } else {
+                        echo($thispage);
                     }
                     echo('">');
                     echo(ucwords(str_replace('_',' ',$k)));
