@@ -40,9 +40,15 @@ class Grades extends Tool {
         $app->router->get($prefix, 'Grades@index');
         $app->router->get($prefix.'/', 'Grades@index');
         $app->router->get('/'.self::REDIRECT, 'Grades@index');
+        $app->router->get($prefix.'/outline', 'Grades@outline');
+        $app->router->get($prefix.'/outline/', 'Grades@outline');
         $app->router->get($prefix.'/class', 'Grades@classView');
         $app->router->get($prefix.'/configuration', 'Grades@configuration');
         $app->router->get($prefix.'/analytics', 'Grades@analytics');
+        $app->router->get($prefix.'/resend', 'Grades@resend');
+        $app->router->get($prefix.'/resend/', 'Grades@resend');
+        $app->router->post($prefix.'/resend', 'Grades@resendPost');
+        $app->router->post($prefix.'/resend/', 'Grades@resendPost');
         $app->router->get($prefix.'/student-progress', 'Grades@studentProgress');
         $app->router->get($prefix.'/student-progress/', 'Grades@studentProgress');
         $app->router->get($prefix.'/manage-due-dates', 'Grades@manageDueDates');
@@ -98,17 +104,14 @@ class Grades extends Tool {
     }
 
     /**
-     * Process grade rows: retrieve server grades, sync, and format for display
-     * 
-     * @param array $rows Grade rows from database
-     * @param bool $force Force retrieval of server grades
-     * @return array Processed rows ready for display
+     * Shape grade rows for the table. Does not call the LMS.
+     *
+     * @param array<int,array<string,mixed>> $rows
+     * @return array<int,array<string,mixed>>
      */
-    private function processGradeRows($rows, $force = false) {
-        $RETRIEVE_INTERVAL = 3600; // One Hour
+    private function processGradeRows($rows) {
         $newrows = array();
-        $retrieval_debug = '';
-        
+
         foreach ( $rows as $row ) {
             $newrow = $row;
             unset($newrow['result_id']);
@@ -130,89 +133,9 @@ class Grades extends Tool {
             } else {
                 $newrow['server_status'] = '';
             }
-
-            if ( $row['grade'] <= 0.0 ) {
-                $newrows[] = $newrow;
-                continue;
-            }
-
-            $diff = $row['diff_in_seconds'];
-            // gradeGet reads the LTI 1.1 outcome pair. A 1.3 line item is still shown.
-            $remote_grade = $this->resultHasOutcomeService($row);
-
-            $retrieval_debug .= "\n";
-            if ( U::get($row,'result_url') ) $retrieval_debug .= "result_url=".U::get($row,'result_url')."\n";
-            if ( U::get($row,'service') ) $retrieval_debug .= "service=".U::get($row,'service')."\n";
-            if ( U::get($row,'sourcedid') ) $retrieval_debug .= "sourcedid=".U::get($row,'sourcedid')."\n";
-
-            // Retrieve server grade if needed
-            if ( $remote_grade && ( $force || !isset($row['retrieved_at']) || $row['retrieved_at'] < $row['updated_at'] ||
-                ! U::get($row, 'server_grade') || U::get($row, 'grade') != U::get($row, 'server_grade') ||
-                $diff > $RETRIEVE_INTERVAL ) ) {
-
-                $server_grade = LTIX::gradeGet($row);
-                $retrieval_debug .= "Retrieved server grade: ".$server_grade."\n";
-                
-                if ( is_string($server_grade) && U::strlen(trim($server_grade)) == 0 ) $server_grade = 0.0;
-                if ( is_string($server_grade)) {
-                    $msg = "result_id=".$row['result_id']."\n".
-                        "grade=".$row['grade']." updated=".$row['updated_at']."\n".
-                        "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']."\n".
-                        "error=".$server_grade;
-
-                    error_log("Problem Retrieving Grade: ".session_id()."\n".$msg."\n".
-                      "service=".U::get($row,'service')." sourcedid=".U::get($row,'sourcedid'));
-                    
-                    $newrow['server_status'] = "Problem Retrieving Server Grade: ".$server_grade;
-                    $newrows[] = $newrow;
-                    continue;
-                } else {
-                    $newrow['server_status'] .= ' Server grade retrieved: '.$server_grade;
-                }
-                $row['server_grade'] = $server_grade;
-                $newrow['server_grade'] = $server_grade;
-                $newrow['retrieved_at'] = $row['time_now'];
-                $row['retrieved_at'] = $row['time_now'];
-            }
-
-            // Check if we need to update the server_grade
-            if ( $remote_grade && $row['server_grade'] < $row['grade'] ) {
-                error_log("Patching server grade: ".session_id()." result_id=".$row['result_id']."\n".
-                        "grade=".$row['grade']." updated=".$row['updated_at']."\n".
-                        "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']);
-
-                $debug_log = array();
-                $retrieval_debug .= "Sending Tsugi grade: ".$row['grade']."\n";
-                $status = LTIX::gradeSend($row['grade'], $row, $debug_log);
-                $retrieval_debug .= "Send status: ".$status."\n";
-
-                if ( $status === true ) {
-                    $server_grade = LTIX::gradeGet($row);
-                    $retrieval_debug .= "Re-retrieved server grade: ".$server_grade."\n";
-                    if ( is_string($server_grade) && U::strlen(trim($server_grade)) == 0 ) $server_grade = 0.0;
-                    $newrow['server_grade'] = $server_grade;
-                    $row['server_grade'] = $server_grade;
-                    if ( $server_grade != $row['grade'] ){
-                        $newrow['server_status'] .= " Grade re-send mismatch.";
-                    } else {
-                        $newrow['server_status'] .= " Grade re-sent and checked.";
-                    }
-                } else {
-                    $msg = "result_id=".$row['result_id']."\n".
-                        "grade=".$row['grade']." updated=".$row['updated_at']."\n".
-                        "server_grade=".$row['server_grade']." retrieved=".$row['retrieved_at']."\n".
-                        "error=".$status;
-
-                    error_log("Problem Updating Grade: ".session_id()."\n".$msg."\n".
-                      "service=".U::get($row,'service')." sourcedid=".U::get($row,'sourcedid'));
-                    
-                    $newrow['server_status'] .= " Problem Updating Server Grade";
-                }
-            }
-
             $newrows[] = $newrow;
         }
-        
+
         $showrows = array();
         foreach ( $newrows as $row ) {
             $this->attachGradeMenu($row);
@@ -222,8 +145,8 @@ class Grades extends Tool {
             }
             $showrows[] = $this->orderGradeBookColumns($row);
         }
-        
-        return array('rows' => $showrows, 'debug' => $retrieval_debug);
+
+        return $showrows;
     }
 
     /**
@@ -521,34 +444,17 @@ class Grades extends Tool {
         // Query for user's grades
         $query_parms = array(":UID" => $view_user_id, ":CID" => $context_id);
         $searchfields = array("L.title", "R.grade", "R.comment", "R.updated_at", "retrieved_at");
-        $user_sql =
-            "SELECT R.result_id AS result_id, L.title as title, L.link_key AS resource_link_id,
-                L.link_id AS link_id, L.end_datetime AS due_date, L.score_maximum AS score_maximum,
-                R.grade AS grade, R.score_given AS score_given, R.result_maximum AS result_maximum,
-                R.comment AS comment,
-                R.updated_at as updated_at, server_grade, retrieved_at, sourcedid, result_url, service_key as service,
-                L.lti13_lineitem AS lti13_lineitem, U.subject_key AS subject_key,
-                TIMESTAMPDIFF(SECOND,retrieved_at,NOW()) as diff_in_seconds, NOW() AS time_now,
-                L.link_key AS _link_key,
-                C.category_id AS _category_id, C.position AS _position
-            FROM {$p}lti_result AS R
-            JOIN {$p}lti_link as L ON R.link_id = L.link_id
-            JOIN {$p}lti_user AS U ON R.user_id = U.user_id
-            LEFT JOIN {$p}lti_service AS S ON R.service_id = S.service_id
-            LEFT JOIN {$p}lti_category AS C
-                ON C.category_id = L.category_id AND C.context_id = L.context_id
-            WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL
-              AND L.hidden = 0";
+        $user_sql = $this->visibleGradeSql($p);
         
         $tool_home = $this->toolHome(self::ROUTE);
         $is_admin = $this->isAdmin();
         $analytics_url = $this->gradeAnalyticsUrl($tool_home);
         $show_analytics = $analytics_url !== '';
         $class_url = '';
-        $force_url = '';
+        $resend_url = '';
         if ( $is_instructor ) {
             $class_url = $tool_home . '/class';
-            $force_url = $this->forceReloadUrl(
+            $resend_url = $this->resendUrl(
                 $context_id,
                 $view_user_id,
                 $tool_home,
@@ -556,8 +462,6 @@ class Grades extends Tool {
             );
         }
         $lesson_urls = $this->lessonGradeUrls();
-
-        $force = $request->query->has('force') && $request->query->get('force') == 'yes';
 
         // Record learner analytics
         $this->lmsRecordLaunchAnalytics(self::ROUTE, 'Grade Book');
@@ -574,12 +478,9 @@ class Grades extends Tool {
             $rows = $PDOX->allRowsDie($newsql, $query_parms);
         }
         
-        // Process grades (retrieve server grades, sync, format)
         $this->addGradeBookCodeColumn($rows, $is_instructor);
-        $processed = $this->processGradeRows($rows, $force);
-        $showrows = $processed['rows'];
+        $showrows = $this->processGradeRows($rows);
         $this->linkLaunchableTitles($showrows);
-        $retrieval_debug = $processed['debug'];
         
         $OUTPUT->header();
         $OUTPUT->bodyStart();
@@ -595,22 +496,23 @@ class Grades extends Tool {
         <?php endif; ?>
         <?php
         $this->printGradeCategoryStyles();
-        $outline = $this->courseOutlineModules($context_id, $showrows);
+        $outline_url = $this->outlineTabUrl($view_user_id);
         $grade_nav = array(
             'active' => 'grades',
-            'show_outline' => is_array($outline),
-            'grades_href' => '',
+            'outline_url' => $outline_url,
+            'grades_href' => $this->gradeBookUserUrl('', $view_user_id),
             'class_url' => $class_url,
-            'force_url' => $force_url,
+            'resend_url' => $resend_url,
             'analytics_url' => $analytics_url,
             'configure_url' => $is_instructor ? $tool_home.'/configuration' : '',
             'due_dates_url' => $lesson_urls['due_dates_url'],
             'progress_url' => $lesson_urls['progress_url'],
         );
-        if ( $outline === null && ! $is_instructor && ! $show_analytics ) {
+        if ( $outline_url === '' && ! $is_instructor && ! $show_analytics ) {
             $this->renderGradeRows($grouped, $categories, $showrows, $context_id, $view_user_id);
         } else {
-            $this->renderGradeBookTabs($outline, $grouped, $categories, $showrows, $grade_nav, $context_id, $view_user_id);
+            $this->renderGradeNav($grade_nav);
+            $this->renderGradeRows($grouped, $categories, $showrows, $context_id, $view_user_id);
         }
         // Display user identity from session
         $identity = __("Logged in as: ").htmlspecialchars(U::get($_SESSION, 'user_key', ''));
@@ -621,15 +523,87 @@ class Grades extends Tool {
             $identity .= ' ' . htmlspecialchars($_SESSION['displayname']);
         }
         echo("<p>".$identity."</p>");
-        
-        if ( U::strlen(trim($retrieval_debug)) > 0 && $is_instructor ) {
-            echo("<pre>\n");
-            echo(htmlspecialchars($retrieval_debug));
-            echo("</pre>\n");
-        }
         ?>
         </main>
         <?php
+        $this->finishGradePage();
+    }
+
+    /**
+     * Course outline for this user. Grades stay on their own page.
+     */
+    public function outline(Request $request)
+    {
+        global $CFG, $OUTPUT, $PDOX;
+
+        $this->requireAuth();
+        LTIX::getConnection();
+
+        $context_id = ReqScope::currentContextId();
+        $user_id = ReqScope::loggedInUserId();
+        $is_instructor = $this->isInstructor();
+        $view_user_id = $user_id;
+        $user_info = false;
+        if ( $is_instructor && $request->query->has('user_id') ) {
+            $view_user_id = $request->query->get('user_id') + 0;
+            $user_info = $this->getUserInfo($view_user_id);
+        }
+
+        $p = $CFG->dbprefix;
+        $rows = $PDOX->allRowsDie(
+            $this->visibleGradeSql($p)." ORDER BY L.title ASC",
+            array(':UID' => $view_user_id, ':CID' => $context_id)
+        );
+        $this->addGradeBookCodeColumn($rows, $is_instructor);
+        $showrows = $this->processGradeRows($rows);
+        $this->linkLaunchableTitles($showrows);
+        $outline = $this->courseOutlineModules($context_id, $showrows);
+
+        $tool_home = $this->toolHome(self::ROUTE);
+        $class_url = '';
+        $resend_url = '';
+        if ( $is_instructor ) {
+            $class_url = $tool_home.'/class';
+            $resend_url = $this->resendUrl(
+                $context_id,
+                $view_user_id,
+                $tool_home,
+                (int) $view_user_id !== (int) $user_id
+            );
+        }
+        $lesson_urls = $this->lessonGradeUrls();
+        $context_title = $this->getContextTitle($context_id);
+
+        $this->lmsRecordLaunchAnalytics(self::ROUTE, 'Grade Book');
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav(false);
+        $OUTPUT->flashMessages();
+        \Tsugi\Controllers\Lessons::printLtiProgressStyles();
+        echo '<main class="container" id="main-content">'."\n";
+        echo '<h1>'.htmlspecialchars(__('Grade Book'))."</h1>\n";
+        echo '<p>Class: '.htmlspecialchars($context_title)."</p>\n";
+        if ( $user_info !== false ) {
+            echo '<p>'.htmlspecialchars(__('Results for')).' '.htmlspecialchars($user_info['displayname'])."</p>\n";
+        }
+        $this->printGradeCategoryStyles();
+        $this->renderGradeNav(array(
+            'active' => 'outline',
+            'outline_url' => $this->outlineTabUrl($view_user_id),
+            'grades_href' => $this->gradeBookUserUrl('', $view_user_id),
+            'class_url' => $class_url,
+            'resend_url' => $resend_url,
+            'analytics_url' => $this->gradeAnalyticsUrl($tool_home),
+            'configure_url' => $is_instructor ? $tool_home.'/configuration' : '',
+            'due_dates_url' => $lesson_urls['due_dates_url'],
+            'progress_url' => $lesson_urls['progress_url'],
+        ));
+        if ( ! is_array($outline) ) {
+            echo '<p>'.htmlspecialchars(__('No modules with active links.'))."</p>\n";
+        } else {
+            $this->renderCourseOutline($outline);
+        }
+        echo "</main>\n";
         $this->finishGradePage();
     }
 
@@ -727,10 +701,10 @@ class Grades extends Tool {
         $lesson_urls = $this->lessonGradeUrls();
         $this->renderGradeNav(array(
             'active' => 'class',
-            'show_outline' => $this->hasCourseOutline(),
+            'outline_url' => $this->outlineTabUrl(ReqScope::loggedInUserId()),
             'grades_href' => $tool_home,
             'class_url' => $tool_home . '/class',
-            'force_url' => $this->forceReloadUrl($context_id, ReqScope::loggedInUserId(), $tool_home, false),
+            'resend_url' => $this->resendUrl($context_id, ReqScope::loggedInUserId(), $tool_home, false),
             'analytics_url' => $this->gradeAnalyticsUrl($tool_home),
             'configure_url' => $tool_home . '/configuration',
             'due_dates_url' => $lesson_urls['due_dates_url'],
@@ -833,10 +807,10 @@ class Grades extends Tool {
         $lesson_urls = $this->lessonGradeUrls();
         $this->renderGradeNav(array(
             'active' => 'configuration',
-            'show_outline' => $this->hasCourseOutline(),
+            'outline_url' => $this->outlineTabUrl(ReqScope::loggedInUserId()),
             'grades_href' => $home,
             'class_url' => $home.'/class',
-            'force_url' => $this->forceReloadUrl($context_id, ReqScope::loggedInUserId(), $home, false),
+            'resend_url' => $this->resendUrl($context_id, ReqScope::loggedInUserId(), $home, false),
             'analytics_url' => $this->gradeAnalyticsUrl($home),
             'configure_url' => $home.'/configuration',
             'due_dates_url' => $lesson_urls['due_dates_url'],
@@ -1341,6 +1315,211 @@ class Grades extends Tool {
     }
 
     /**
+     * Explain the resend. The POST is the second press that talks to the LMS.
+     */
+    public function resend(Request $request)
+    {
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        LTIX::getConnection();
+        $user_id = $this->resendTargetUserId($request);
+        $this->beginLessonGradePage('resend', $user_id);
+        $this->renderResendIntro($user_id);
+        $this->renderResendForm($user_id);
+        $this->endLessonGradePage();
+    }
+
+    /**
+     * Read each upward grade from the LMS and send the local grade when the server is behind.
+     */
+    public function resendPost(Request $request)
+    {
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        LTIX::getConnection();
+        $user_id = $this->resendTargetUserId($request);
+        $page = $this->resendPageUrl($user_id);
+        $csrf = self::requireCsrf($page);
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        $this->beginLessonGradePage('resend', $user_id);
+        $this->renderResendIntro($user_id);
+        $this->renderResendForm($user_id);
+        echo '<pre class="grade-resend-log">'."\n";
+        $this->runResendLog($user_id);
+        echo "</pre>\n";
+        $this->endLessonGradePage();
+    }
+
+    /**
+     * @param int $user_id
+     */
+    private function renderResendIntro($user_id)
+    {
+        echo '<h2>'.htmlspecialchars(__('Resend grades'))."</h2>\n";
+        $info = $this->getUserInfo($user_id);
+        if ( is_array($info) && isset($info['displayname']) && (int) $user_id !== (int) ReqScope::loggedInUserId() ) {
+            echo '<p>'.htmlspecialchars(__('Results for')).' '.htmlspecialchars((string) $info['displayname'])."</p>\n";
+        }
+        echo '<p>'.htmlspecialchars(__('Reads each grade that was sent up to the LMS. When the server copy is behind the grade stored here, sends it again.'))."</p>\n";
+    }
+
+    /**
+     * @param int $user_id
+     */
+    private function renderResendForm($user_id)
+    {
+        if ( ! $this->userHasOutcomeResults(ReqScope::currentContextId(), $user_id) ) {
+            echo '<p>'.htmlspecialchars(__('No upward grades to resend.'))."</p>\n";
+            return;
+        }
+        $action = $this->toolHome(self::ROUTE).'/resend';
+        echo '<form method="post" action="'.htmlspecialchars($action).'">';
+        echo self::csrfField();
+        if ( (int) $user_id !== (int) ReqScope::loggedInUserId() ) {
+            echo '<input type="hidden" name="user_id" value="'.(int) $user_id.'">';
+        }
+        echo '<button type="submit" class="btn btn-primary">'.htmlspecialchars(__('Resend grades')).'</button>';
+        echo "</form>\n";
+    }
+
+    /**
+     * The user whose upward grades this page covers.
+     */
+    private function resendTargetUserId(Request $request)
+    {
+        $user_id = (int) ReqScope::loggedInUserId();
+        $requested = 0;
+        if ( $request->request->has('user_id') ) {
+            $requested = (int) $request->request->get('user_id');
+        } else if ( $request->query->has('user_id') ) {
+            $requested = (int) $request->query->get('user_id');
+        }
+        if ( $requested > 0 ) {
+            return $requested;
+        }
+        return $user_id;
+    }
+
+    /**
+     * @param int $user_id
+     */
+    private function resendPageUrl($user_id)
+    {
+        $url = $this->toolHome(self::ROUTE).'/resend';
+        if ( (int) $user_id !== (int) ReqScope::loggedInUserId() ) {
+            $url .= '?user_id='.(int) $user_id;
+        }
+        return $url;
+    }
+
+    /**
+     * @param int $user_id
+     */
+    private function runResendLog($user_id)
+    {
+        set_time_limit(0);
+        $rows = $this->upwardGradeRows(ReqScope::currentContextId(), $user_id);
+        $ok = 0;
+        $fail = 0;
+        if ( count($rows) < 1 ) {
+            $this->echoResendLine(__('No upward grades to resend.'));
+            return;
+        }
+        foreach ( $rows as $row ) {
+            $line = $this->resendOneGrade($row);
+            if ( str_starts_with($line, 'fail') ) {
+                $fail++;
+            } else {
+                $ok++;
+            }
+            $title = trim((string) U::get($row, 'title', ''));
+            if ( $title === '' ) {
+                $title = 'result '.(int) $row['result_id'];
+            }
+            $this->echoResendLine($title.': '.$line);
+        }
+        $this->echoResendLine(__('Done.').' '.$ok.' '.__('success').', '.$fail.' '.__('fail').'.');
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     */
+    private function resendOneGrade($row)
+    {
+        $server = LTIX::gradeGet($row);
+        if ( is_string($server) && trim($server) === '' ) {
+            $server = 0.0;
+        }
+        if ( ! is_numeric($server) ) {
+            $reason = is_string($server) && $server !== '' ? $server : __('could not read the server grade');
+            return 'fail: '.$reason;
+        }
+        if ( (float) $server >= (float) $row['grade'] ) {
+            return 'success';
+        }
+        $debug_log = array();
+        $status = LTIX::gradeSend($row['grade'], $row, $debug_log);
+        if ( $status !== true ) {
+            $reason = is_string($status) && $status !== '' ? $status : __('send failed');
+            return 'fail: '.$reason;
+        }
+        $again = LTIX::gradeGet($row);
+        if ( is_string($again) && trim($again) === '' ) {
+            $again = 0.0;
+        }
+        if ( ! is_numeric($again) ) {
+            return 'fail: '.__('sent, then could not read the server grade');
+        }
+        if ( (float) $again != (float) $row['grade'] ) {
+            return 'fail: '.__('sent, server grade is').' '.$again;
+        }
+        return 'success';
+    }
+
+    /**
+     * @param string $line
+     */
+    private function echoResendLine($line)
+    {
+        echo htmlspecialchars($line)."\n";
+        if ( ob_get_level() > 0 ) {
+            ob_flush();
+        }
+        flush();
+    }
+
+    /**
+     * LTI 1.1 results this resend can read and send.
+     *
+     * @param int $context_id
+     * @param int $user_id
+     * @return array<int,array<string,mixed>>
+     */
+    private function upwardGradeRows($context_id, $user_id)
+    {
+        global $CFG, $PDOX;
+        LTIX::getConnection();
+        $p = $CFG->dbprefix;
+        $rows = $PDOX->allRowsDie(
+            "SELECT R.result_id AS result_id, L.title AS title, R.grade AS grade,
+                R.sourcedid AS sourcedid, S.service_key AS service
+             FROM {$p}lti_result AS R
+             JOIN {$p}lti_link AS L ON R.link_id = L.link_id
+             LEFT JOIN {$p}lti_service AS S ON R.service_id = S.service_id
+             WHERE R.user_id = :UID AND L.context_id = :CID
+               AND R.grade > 0 AND R.deleted = 0 AND L.deleted = 0 AND L.hidden = 0
+               AND R.sourcedid IS NOT NULL AND R.sourcedid <> ''
+               AND R.service_id IS NOT NULL
+             ORDER BY L.title ASC",
+            array(':UID' => (int) $user_id, ':CID' => (int) $context_id)
+        );
+        return is_array($rows) ? $rows : array();
+    }
+
+    /**
      * Analytics view for grades
      */
     public function analytics(Request $request)
@@ -1499,21 +1678,21 @@ class Grades extends Tool {
     }
 
     /**
-     * Force Reload reads LTI 1.1 grades. Hide it when this grade list has none.
+     * Resend tab for this user's LTI 1.1 upward grades. Empty when there are none.
      *
      * @param int $context_id
      * @param int $user_id
      * @param string $tool_home
      * @param bool $include_user
      */
-    private function forceReloadUrl($context_id, $user_id, $tool_home, $include_user)
+    private function resendUrl($context_id, $user_id, $tool_home, $include_user)
     {
         if ( ! $this->userHasOutcomeResults($context_id, $user_id) ) {
             return '';
         }
-        $url = $tool_home.'?force=yes';
+        $url = $tool_home.'/resend';
         if ( $include_user ) {
-            $url .= '&user_id='.(int) $user_id;
+            $url .= '?user_id='.(int) $user_id;
         }
         return $url;
     }
@@ -1612,49 +1791,16 @@ class Grades extends Tool {
     }
 
     /**
-     * @param array<int,array{title:string,href:string,rows:array<int,array<string,mixed>>}>|null $outline
-     * @param array<int,array<string,mixed>> $categories
-     * @param array<int,array<string,mixed>> $rows
-     * @param array{active:string,show_outline:bool,grades_href:string,class_url:string,force_url:string,analytics_url:string,configure_url:string,due_dates_url:string,progress_url:string} $nav
-     * @param int $context_id
-     * @param int $user_id
-     */
-    private function renderGradeBookTabs($outline, $grouped, $categories, $rows, $nav, $context_id = 0, $user_id = 0)
-    {
-        $this->renderGradeNav($nav);
-        echo '<div class="tab-content">';
-        echo '<div class="tab-pane fade active in" id="grades-view" role="tabpanel" aria-labelledby="grades-view-tab">';
-        $this->renderGradeRows($grouped, $categories, $rows, $context_id, $user_id);
-        echo '</div>';
-        if ( is_array($outline) ) {
-            echo '<div class="tab-pane fade" id="outline-view" role="tabpanel" aria-labelledby="outline-view-tab">';
-            $this->renderCourseOutline($outline);
-            echo '</div>';
-        }
-        echo "</div>\n";
-    }
-
-    /**
-     * Grade book tabs. Grades and Course Outline switch panes on the grade list.
-     * The other tabs leave this page.
+     * Grade book tabs. Each tab is its own page, with this page's tab selected.
      *
-     * @param array{active:string,show_outline:bool,grades_href:string,class_url:string,force_url:string,analytics_url:string,configure_url:string,due_dates_url:string,progress_url:string} $nav
+     * @param array{active:string,outline_url:string,grades_href:string,class_url:string,resend_url:string,analytics_url:string,configure_url:string,due_dates_url:string,progress_url:string} $nav
      */
     private function renderGradeNav($nav)
     {
-        $on_grade_list = $nav['grades_href'] === '';
         echo '<ul class="nav nav-tabs tsugi-grade-tabs" role="tablist">';
-        if ( $on_grade_list ) {
-            $this->renderPaneTab('grades-view', __('Grades'), true);
-        } else {
-            $this->renderHrefTab('grades-link', __('Grades'), $nav['grades_href'], $nav['active'] === 'grades');
-        }
-        if ( $nav['show_outline'] ) {
-            if ( $on_grade_list ) {
-                $this->renderPaneTab('outline-view', __('Course Outline'), false);
-            } else {
-                $this->renderHrefTab('outline-link', __('Course Outline'), $nav['grades_href'].'#outline-view', false);
-            }
+        $this->renderHrefTab('grades-link', __('Grades'), $nav['grades_href'], $nav['active'] === 'grades');
+        if ( $nav['outline_url'] !== '' ) {
+            $this->renderHrefTab('outline-link', __('Course Outline'), $nav['outline_url'], $nav['active'] === 'outline');
         }
         if ( $nav['due_dates_url'] !== '' ) {
             $this->renderHrefTab('due-dates-tab', __('Manage due dates'), $nav['due_dates_url'], $nav['active'] === 'due-dates');
@@ -1671,17 +1817,10 @@ class Grades extends Tool {
         if ( $nav['configure_url'] !== '' ) {
             $this->renderHrefTab('grade-config-tab', __('Configuration'), $nav['configure_url'], $nav['active'] === 'configuration');
         }
-        if ( $nav['force_url'] !== '' ) {
-            $this->renderHrefTab('force-reload-tab', __('Force Reload'), $nav['force_url'], false);
+        if ( $nav['resend_url'] !== '' ) {
+            $this->renderHrefTab('resend-tab', __('Resend grades'), $nav['resend_url'], $nav['active'] === 'resend');
         }
         echo "</ul>\n";
-    }
-
-    private function renderPaneTab($id, $label, $active)
-    {
-        echo '<li'.($active ? ' class="active"' : '').' role="presentation">';
-        echo '<a href="#'.$id.'" id="'.$id.'-tab" data-toggle="tab" role="tab" aria-controls="'.$id.'" aria-selected="'.($active ? 'true' : 'false').'">';
-        echo htmlspecialchars($label).'</a></li>';
     }
 
     private function renderHrefTab($id, $label, $href, $active)
@@ -1735,19 +1874,26 @@ class Grades extends Tool {
     /**
      * Same grade book tabs, for the due-date and student-progress pages.
      *
-     * @param string $active due-dates or progress
+     * @param string $active due-dates, progress, or resend
+     * @param int|null $resend_user_id
      */
-    private function renderGradeBookChrome($active)
+    private function renderGradeBookChrome($active, $resend_user_id = null)
     {
         $home = $this->toolHome(self::ROUTE);
         $lesson_urls = $this->lessonGradeUrls();
+        $user_id = $resend_user_id === null ? (int) ReqScope::loggedInUserId() : (int) $resend_user_id;
         $this->printGradeCategoryStyles();
         $this->renderGradeNav(array(
             'active' => $active,
-            'show_outline' => $this->hasCourseOutline(),
-            'grades_href' => $home,
+            'outline_url' => $this->outlineTabUrl($user_id),
+            'grades_href' => $this->gradeBookUserUrl('', $user_id),
             'class_url' => $home.'/class',
-            'force_url' => $this->forceReloadUrl(ReqScope::currentContextId(), ReqScope::loggedInUserId(), $home, false),
+            'resend_url' => $this->resendUrl(
+                ReqScope::currentContextId(),
+                $user_id,
+                $home,
+                $user_id !== (int) ReqScope::loggedInUserId()
+            ),
             'analytics_url' => $this->gradeAnalyticsUrl($home),
             'configure_url' => $home.'/configuration',
             'due_dates_url' => $lesson_urls['due_dates_url'],
@@ -1771,9 +1917,10 @@ class Grades extends Tool {
     }
 
     /**
-     * @param string $active due-dates or progress
+     * @param string $active due-dates, progress, or resend
+     * @param int|null $resend_user_id Whose upward grades the Resend tab covers
      */
-    private function beginLessonGradePage($active)
+    private function beginLessonGradePage($active, $resend_user_id = null)
     {
         global $OUTPUT;
         $context_title = $this->getContextTitle(ReqScope::currentContextId());
@@ -1786,7 +1933,7 @@ class Grades extends Tool {
         echo '<main class="container" id="main-content">'."\n";
         echo '<h1>'.htmlspecialchars(__('Grade Book'))."</h1>\n";
         echo '<p>Class: '.htmlspecialchars($context_title)."</p>\n";
-        $this->renderGradeBookChrome($active);
+        $this->renderGradeBookChrome($active, $resend_user_id);
     }
 
     private function endLessonGradePage()
@@ -1834,13 +1981,58 @@ class Grades extends Tool {
         return null;
     }
 
-    private function hasCourseOutline()
+    /**
+     * One user's visible grade rows. Callers add ORDER BY or paging.
+     *
+     * @param string $p
+     */
+    private function visibleGradeSql($p)
+    {
+        return "SELECT R.result_id AS result_id, L.title as title, L.link_key AS resource_link_id,
+                L.link_id AS link_id, L.end_datetime AS due_date, L.score_maximum AS score_maximum,
+                R.grade AS grade, R.score_given AS score_given, R.result_maximum AS result_maximum,
+                R.comment AS comment,
+                R.updated_at as updated_at, server_grade, retrieved_at, sourcedid, result_url, service_key as service,
+                L.lti13_lineitem AS lti13_lineitem, U.subject_key AS subject_key,
+                TIMESTAMPDIFF(SECOND,retrieved_at,NOW()) as diff_in_seconds, NOW() AS time_now,
+                L.link_key AS _link_key,
+                C.category_id AS _category_id, C.position AS _position
+            FROM {$p}lti_result AS R
+            JOIN {$p}lti_link as L ON R.link_id = L.link_id
+            JOIN {$p}lti_user AS U ON R.user_id = U.user_id
+            LEFT JOIN {$p}lti_service AS S ON R.service_id = S.service_id
+            LEFT JOIN {$p}lti_category AS C
+                ON C.category_id = L.category_id AND C.context_id = L.context_id
+            WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL
+              AND L.hidden = 0";
+    }
+
+    /**
+     * Grade book URL for this user. Another student's id stays on the query string.
+     *
+     * @param string $path
+     * @param int $user_id
+     */
+    private function gradeBookUserUrl($path, $user_id)
+    {
+        $url = $this->toolHome(self::ROUTE).$path;
+        if ( (int) $user_id > 0 && (int) $user_id !== (int) ReqScope::loggedInUserId() ) {
+            $url .= '?user_id='.(int) $user_id;
+        }
+        return $url;
+    }
+
+    /**
+     * Course Outline tab URL, or empty when this course has no lessons.
+     *
+     * @param int $user_id
+     */
+    private function outlineTabUrl($user_id)
     {
         if ( ! Manifest::hasCurrent() ) {
-            return false;
+            return '';
         }
-        $lessons = Manifest::currentLessons();
-        return $lessons && isset($lessons->lessons->modules) && is_array($lessons->lessons->modules);
+        return $this->gradeBookUserUrl('/outline', $user_id);
     }
 
     /**
@@ -2696,6 +2888,7 @@ class Grades extends Tool {
             .grades-configuration h2 { margin-top: 0; }
             .grades-configuration .grades-percent { width: 5.5em; }
             .grades-configuration .form-inline { display: inline-block; margin: 0 0.25em 0.25em 0; vertical-align: middle; }
+            .grade-resend-log { margin-top: 1em; white-space: pre-wrap; }
         </style>';
     }
 
@@ -2703,12 +2896,6 @@ class Grades extends Tool {
     {
         global $OUTPUT;
         $OUTPUT->footerStart();
-        echo "<script>$(function(){\n";
-        echo "  if (location.hash === '#outline-view') {\n";
-        echo "    var outlineTab = $('#outline-view-tab');\n";
-        echo "    if (outlineTab.length) outlineTab.tab('show');\n";
-        echo "  }\n";
-        echo "});</script>\n";
         $OUTPUT->footerEnd();
     }
 }
