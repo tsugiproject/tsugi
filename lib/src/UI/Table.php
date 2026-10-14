@@ -318,6 +318,12 @@ class Table {
                         continue;
                     }
 
+                    $header_key = '_header_'.$k;
+                    if ( isset($row[$header_key]) ) {
+                        echo('<th scope="col">'.$row[$header_key]."</th>\n");
+                        continue;
+                    }
+
                     if ( $orderfields && ! Table::matchColumns($k, $orderfields ) ) {
                         echo("<th scope=\"col\">".CrudForm::fieldToTitle($k)."</th>\n");
                         continue;

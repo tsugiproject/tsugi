@@ -8,9 +8,15 @@ use Tsugi\Core\LTIX;
 use Tsugi\Lumos\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Tsugi\UI\Table;
+use Tsugi\Core\Manifest;
+use Tsugi\Services\Lessons\LessonsNormalize;
 use Tsugi\Services\Lessons\LessonsService;
+use Tsugi\Services\Outbound\LtiContentService;
 
 use Tsugi\Core\ReqScope;
+use Tsugi\Grades\GradeUtil;
+use Tsugi\Services\Grades\GradeCategoryRepository;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class Grades extends Tool {
 
@@ -18,12 +24,31 @@ class Grades extends Tool {
     const NAME = 'Grades';
     const REDIRECT = 'tsugi_controllers_grades';
 
+    /** @var int */
+    private static $gradeKebabSeq = 0;
+
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Grades@index');
         $app->router->get($prefix.'/', 'Grades@index');
         $app->router->get('/'.self::REDIRECT, 'Grades@index');
         $app->router->get($prefix.'/class', 'Grades@classView');
+        $app->router->get($prefix.'/configuration', 'Grades@configuration');
         $app->router->get($prefix.'/analytics', 'Grades@analytics');
+        $app->router->get($prefix.'/student-progress', 'Grades@studentProgress');
+        $app->router->get($prefix.'/student-progress/', 'Grades@studentProgress');
+        $app->router->get($prefix.'/manage-due-dates', 'Grades@manageDueDates');
+        $app->router->get($prefix.'/manage-due-dates/', 'Grades@manageDueDates');
+        $app->router->post($prefix.'/manage-due-dates/add-link-rows', 'Grades@addMissingLinkRowsPost');
+        $app->router->post($prefix.'/manage-due-dates/add-link-rows/', 'Grades@addMissingLinkRowsPost');
+        $app->router->post($prefix.'/manage-due-dates/apply-weekly', 'Grades@applyWeeklyDueDatesPost');
+        $app->router->post($prefix.'/manage-due-dates/apply-weekly/', 'Grades@applyWeeklyDueDatesPost');
+        $app->router->post($prefix.'/manage-due-dates/clear-all', 'Grades@clearAllDueDatesPost');
+        $app->router->post($prefix.'/manage-due-dates/clear-all/', 'Grades@clearAllDueDatesPost');
+        $app->router->post($prefix.'/manage-due-dates', 'Grades@manageDueDatesPost');
+        $app->router->post($prefix.'/manage-due-dates/', 'Grades@manageDueDatesPost');
+        $app->router->post($prefix.'/categories', 'Grades@categoryAddPost');
+        $app->router->post($prefix.'/categories/{id}', 'Grades@categoryPost');
+        $app->router->post($prefix.'/links/{id}', 'Grades@linkPost');
     }
 
     /**
@@ -85,15 +110,26 @@ class Grades extends Tool {
             unset($newrow['sourcedid']);
             unset($newrow['service']);
             unset($newrow['result_url']);
-            $newrow['server_status'] = '';
-            
+            unset($newrow['lti13_lineitem']);
+            unset($newrow['subject_key']);
+            $passed_upward = $this->resultPassedUpward($row);
+            $newrow['_upward'] = $passed_upward ? 1 : 0;
+            if ( ! $passed_upward ) {
+                unset($newrow['server_grade']);
+                unset($newrow['retrieved_at']);
+                unset($newrow['server_status']);
+            } else {
+                $newrow['server_status'] = '';
+            }
+
             if ( $row['grade'] <= 0.0 ) {
                 $newrows[] = $newrow;
                 continue;
             }
 
             $diff = $row['diff_in_seconds'];
-            $remote_grade = U::get($row,'result_url') || (U::get($row,'sourcedid') && U::get($row,'service'));
+            // gradeGet reads the LTI 1.1 outcome pair. A 1.3 line item is still shown.
+            $remote_grade = $this->resultHasOutcomeService($row);
 
             $retrieval_debug .= "\n";
             if ( U::get($row,'result_url') ) $retrieval_debug .= "result_url=".U::get($row,'result_url')."\n";
@@ -168,13 +204,13 @@ class Grades extends Tool {
             $newrows[] = $newrow;
         }
         
-        // Format grades as percentages
         $showrows = array();
         foreach ( $newrows as $row ) {
-            $g = $row['grade'] * 100.0;
-            $row['grade'] = sprintf("%1.1f",$g);
-            $g = $row['server_grade'] * 100.0;
-            $row['server_grade'] = sprintf("%1.1f",$g);
+            $this->attachGradeMenu($row);
+            $this->formatResultGrade($row);
+            if ( array_key_exists('due_date', $row) ) {
+                $row['due_date'] = $this->dueDateLabel($row['due_date']);
+            }
             $showrows[] = $this->orderGradeBookColumns($row);
         }
         
@@ -188,7 +224,7 @@ class Grades extends Tool {
      * @param string[] $leading
      * @return array<string,mixed>
      */
-    private function orderGradeBookColumns($row, $leading = array('title', 'code')) {
+    private function orderGradeBookColumns($row, $leading = array('title', 'code', 'due_date')) {
         $ordered = array();
         if ( array_key_exists('user_id', $row) ) {
             $ordered['user_id'] = $row['user_id'];
@@ -199,7 +235,7 @@ class Grades extends Tool {
             }
         }
         foreach ( $row as $k => $v ) {
-            if ( strpos($k, '_') === 0 ) {
+            if ( strpos($k, '_') === 0 || $k === 'menu' ) {
                 continue;
             }
             if ( array_key_exists($k, $ordered) ) {
@@ -207,12 +243,206 @@ class Grades extends Tool {
             }
             $ordered[$k] = $v;
         }
+        if ( array_key_exists('menu', $row) ) {
+            $ordered['menu'] = $row['menu'];
+        }
         foreach ( $row as $k => $v ) {
             if ( strpos($k, '_') === 0 ) {
                 $ordered[$k] = $v;
             }
         }
         return $ordered;
+    }
+
+    /**
+     * Show a result as points earned over the maximum, such as 8/10.
+     * score_given is the numerator when the tool posted one. Otherwise the
+     * 0-1 grade is scaled by the link maximum, or by 1 when no maximum is stored.
+     *
+     * @param array<string,mixed> $row
+     */
+    private function formatResultGrade(&$row)
+    {
+        if ( array_key_exists('grade', $row) && is_numeric($row['grade']) ) {
+            $row['grade'] = $this->gradeFractionLabel($row, 'grade');
+        }
+        if ( array_key_exists('server_grade', $row) && is_numeric($row['server_grade']) ) {
+            $row['server_grade'] = $this->gradeFractionLabel($row, 'server_grade');
+        }
+        unset($row['score_given']);
+        unset($row['result_maximum']);
+        unset($row['score_maximum']);
+    }
+
+    /**
+     * @param array<int,array<string,mixed>> $rows
+     */
+    private function formatResultGrades(&$rows)
+    {
+        foreach ( $rows as &$row ) {
+            $this->formatResultGrade($row);
+        }
+        unset($row);
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     * @param string $field
+     */
+    private function gradeFractionLabel($row, $field)
+    {
+        $maximum = 1.0;
+        if ( isset($row['result_maximum']) && is_numeric($row['result_maximum']) && (float) $row['result_maximum'] > 0 ) {
+            $maximum = (float) $row['result_maximum'];
+        } else if ( isset($row['score_maximum']) && is_numeric($row['score_maximum']) && (float) $row['score_maximum'] > 0 ) {
+            $maximum = (float) $row['score_maximum'];
+        }
+        $score = (float) $row[$field] * $maximum;
+        if ( $field === 'grade' && isset($row['score_given']) && is_numeric($row['score_given']) ) {
+            $score = (float) $row['score_given'];
+        }
+        return $this->gradeNumber($score).'/'.$this->gradeNumber($maximum);
+    }
+
+    /**
+     * @param float $value
+     */
+    private function gradeNumber($value)
+    {
+        $value = (float) $value;
+        if ( abs($value - round($value)) < 0.000001 ) {
+            return (string) (int) round($value);
+        }
+        return rtrim(rtrim(sprintf('%.4f', $value), '0'), '.');
+    }
+
+    /**
+     * Kebab at the end of a grade row. Progress and status always; server
+     * status and server updated time only when the result is sent upward.
+     * Server status and retrieved time leave the table and live in this menu.
+     *
+     * @param array<string,mixed> $row
+     * @param bool $keep_due
+     */
+    private function attachGradeMenu(&$row, $keep_due = true)
+    {
+        $row['menu'] = '';
+        $row['_html_menu'] = $this->gradeKebabMarkup($row);
+        $row['_header_menu'] = '<span class="sr-only">'.htmlspecialchars(__('More')).'</span>';
+        unset($row['server_status']);
+        unset($row['retrieved_at']);
+        if ( ! $keep_due ) {
+            unset($row['due_date']);
+        }
+    }
+
+    /**
+     * @param array<int,array<string,mixed>> $rows
+     * @param bool $keep_due
+     */
+    private function attachGradeMenus(&$rows, $keep_due = true)
+    {
+        foreach ( $rows as &$row ) {
+            $this->attachGradeMenu($row, $keep_due);
+        }
+        unset($row);
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     */
+    private function gradeKebabMarkup($row)
+    {
+        $grade = (isset($row['grade']) && is_numeric($row['grade'])) ? (float) $row['grade'] : null;
+        $due = array_key_exists('due_date', $row) ? $row['due_date'] : null;
+        $items = array(
+            array(__('Progress'), $this->gradeProgressLabel($grade)),
+            array(__('Status'), $this->gradeStatusLabel($grade, $due)),
+        );
+        if ( $this->rowIsUpward($row) ) {
+            $server_status = trim((string) U::get($row, 'server_status', ''));
+            $retrieved = trim((string) U::get($row, 'retrieved_at', ''));
+            $items[] = array(__('Server status'), $server_status === '' ? '—' : $server_status);
+            $items[] = array(__('Server updated at'), $retrieved === '' ? '—' : $retrieved);
+        }
+        $id = 'grade-kebab-'.self::$gradeKebabSeq;
+        self::$gradeKebabSeq++;
+        $html = '<div class="dropdown grade-kebab">';
+        $html .= '<button type="button" class="btn btn-link btn-xs dropdown-toggle" id="'.htmlspecialchars($id).'" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="'.htmlspecialchars(__('More')).'">';
+        $html .= '<i class="fa fa-ellipsis-v" aria-hidden="true"></i>';
+        $html .= '</button>';
+        $html .= '<ul class="dropdown-menu dropdown-menu-right grade-kebab-menu" aria-labelledby="'.htmlspecialchars($id).'">';
+        foreach ( $items as $item ) {
+            $html .= '<li class="grade-kebab-item" role="presentation">';
+            $html .= '<span class="grade-kebab-label">'.htmlspecialchars($item[0]).'</span>';
+            $html .= '<span class="grade-kebab-value">'.htmlspecialchars($item[1]).'</span>';
+            $html .= '</li>';
+        }
+        $html .= '</ul></div>';
+        return $html;
+    }
+
+    /**
+     * @param float|null $grade
+     */
+    private function gradeProgressLabel($grade)
+    {
+        if ( $grade === null ) {
+            return __('Not started');
+        }
+        if ( $grade > 0.8 ) {
+            return __('Complete');
+        }
+        return (string) (int) round($grade * 100).'%';
+    }
+
+    /**
+     * @param float|null $grade
+     * @param mixed $due
+     */
+    private function gradeStatusLabel($grade, $due)
+    {
+        if ( $due !== null && $due !== '' ) {
+            $grades = array();
+            if ( $grade !== null ) {
+                $grades['row'] = $grade;
+            }
+            $mod = LessonsService::assignmentsDueBadgeModifier('row', $due, $grades);
+            if ( $mod !== 'tsugi-assignments-due-neutral' ) {
+                return \Tsugi\Controllers\Lessons::assignmentsDueStateVisibleLabel($mod);
+            }
+        }
+        if ( $grade !== null && $grade > 0.8 ) {
+            return __('Completed');
+        }
+        return __('No due date');
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     */
+    private function rowIsUpward($row)
+    {
+        if ( array_key_exists('_upward', $row) ) {
+            return (int) $row['_upward'] === 1;
+        }
+        return $this->resultPassedUpward($row);
+    }
+
+    /**
+     * The live due date is lti_link.end_datetime, stored as 11:59 PM that day.
+     *
+     * @param mixed $mysql
+     */
+    private function dueDateLabel($mysql)
+    {
+        if ( $mysql === null || $mysql === '' ) {
+            return '';
+        }
+        if ( preg_match('/^(\d{4}-\d{2}-\d{2})/', (string) $mysql, $match) ) {
+            return $match[1];
+        }
+        return '';
     }
 
     /**
@@ -284,39 +514,56 @@ class Grades extends Tool {
         $searchfields = array("L.title", "R.grade", "R.comment", "R.updated_at", "retrieved_at");
         $user_sql =
             "SELECT R.result_id AS result_id, L.title as title, L.link_key AS resource_link_id,
-                L.link_id AS link_id, R.grade AS grade, R.comment AS comment,
+                L.link_id AS link_id, L.end_datetime AS due_date, L.score_maximum AS score_maximum,
+                R.grade AS grade, R.score_given AS score_given, R.result_maximum AS result_maximum,
+                R.comment AS comment,
                 R.updated_at as updated_at, server_grade, retrieved_at, sourcedid, result_url, service_key as service,
-                TIMESTAMPDIFF(SECOND,retrieved_at,NOW()) as diff_in_seconds, NOW() AS time_now
+                L.lti13_lineitem AS lti13_lineitem, U.subject_key AS subject_key,
+                TIMESTAMPDIFF(SECOND,retrieved_at,NOW()) as diff_in_seconds, NOW() AS time_now,
+                L.link_key AS _link_key,
+                C.category_id AS _category_id, C.position AS _position
             FROM {$p}lti_result AS R
             JOIN {$p}lti_link as L ON R.link_id = L.link_id
+            JOIN {$p}lti_user AS U ON R.user_id = U.user_id
             LEFT JOIN {$p}lti_service AS S ON R.service_id = S.service_id
-            WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL";
+            LEFT JOIN {$p}lti_category AS C
+                ON C.category_id = L.category_id AND C.context_id = L.context_id
+            WHERE R.user_id = :UID AND L.context_id = :CID AND R.grade IS NOT NULL
+              AND L.hidden = 0";
         
-        // Build menu
-        $menu = false;
+        $tool_home = $this->toolHome(self::ROUTE);
+        $is_admin = $this->isAdmin();
+        $show_analytics = $is_instructor || $is_admin;
+        $class_url = '';
+        $force_url = '';
         if ( $is_instructor ) {
-            $menu = new \Tsugi\UI\MenuSet();
-            $tool_home = $this->toolHome(self::ROUTE);
             $class_url = $tool_home . '/class';
-            $menu->addLeft(__('View Class Grades'), $class_url);
-            
-            $force_url = U::add_url_parm($tool_home, "force", "yes");
-            $menu->addRight(__('Force Reload'), $force_url);
+            $force_url = $this->forceReloadUrl(
+                $context_id,
+                $view_user_id,
+                $tool_home,
+                (int) $view_user_id !== (int) $user_id
+            );
         }
-        
+        $analytics_url = $show_analytics ? $tool_home . '/analytics' : '';
+        $lesson_urls = $this->lessonGradeUrls();
+
         $force = $request->query->has('force') && $request->query->get('force') == 'yes';
-        
+
         // Record learner analytics
         $this->lmsRecordLaunchAnalytics(self::ROUTE, 'Grade Book');
         
-        // Check if user is instructor/admin for analytics button
-        $is_admin = $this->isAdmin();
-        $show_analytics = $is_instructor || $is_admin;
-        
-        // Get grades with pagination
-        $DEFAULT_PAGE_LENGTH = 15;
-        $newsql = Table::pagedQuery($user_sql, $query_parms, $searchfields);
-        $rows = $PDOX->allRowsDie($newsql, $query_parms);
+        // Get grades with pagination. A course with categories loads every
+        // visible row so a group is not split across pages.
+        $categories = GradeCategoryRepository::listForContext($context_id);
+        $grouped = count($categories) > 0;
+        if ( $grouped ) {
+            $ordered_sql = $user_sql." ORDER BY (C.category_id IS NULL), C.position ASC, C.category_id ASC, L.title ASC";
+            $rows = $PDOX->allRowsDie($ordered_sql, $query_parms);
+        } else {
+            $newsql = Table::pagedQuery($user_sql, $query_parms, $searchfields);
+            $rows = $PDOX->allRowsDie($newsql, $query_parms);
+        }
         
         // Process grades (retrieve server grades, sync, format)
         $this->addGradeBookCodeColumn($rows, $is_instructor);
@@ -326,28 +573,35 @@ class Grades extends Tool {
         
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav($menu);
+        $OUTPUT->topNav(false);
         $OUTPUT->flashMessages();
         \Tsugi\Controllers\Lessons::printLtiProgressStyles();
         ?>
         <main class="container" id="main-content">
         <h1><?= __('Grade Book') ?></h1>
-        <?php
-        // Show analytics button if instructor/admin
-        if ( $show_analytics ) {
-            $tool_home = $this->toolHome(self::ROUTE);
-            $analytics_url = $tool_home . '/analytics';
-            echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 2px;"><a href="'.htmlspecialchars($analytics_url).'" class="btn btn-default" aria-label="'.htmlspecialchars(__('View grade analytics')).'"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> '.htmlspecialchars(__('Analytics')).'</a></span>');
-        }
-        ?>
         <p>Class: <?= htmlspecialchars($context_title) ?></p>
         <?php if ( $user_info !== false ): ?>
         <p>Results for <?= htmlspecialchars($user_info['displayname']) ?></p>
         <?php endif; ?>
         <?php
-        $searchfields = array();
-        Table::pagedTable($showrows, $searchfields, false);
-        
+        $this->printGradeCategoryStyles();
+        $outline = $this->courseOutlineModules($context_id, $showrows);
+        $grade_nav = array(
+            'active' => 'grades',
+            'show_outline' => is_array($outline),
+            'grades_href' => '',
+            'class_url' => $class_url,
+            'force_url' => $force_url,
+            'analytics_url' => $analytics_url,
+            'configure_url' => $is_instructor ? $tool_home.'/configuration' : '',
+            'due_dates_url' => $lesson_urls['due_dates_url'],
+            'progress_url' => $lesson_urls['progress_url'],
+        );
+        if ( $outline === null && ! $is_instructor && ! $show_analytics ) {
+            $this->renderGradeRows($grouped, $categories, $showrows, $context_id, $view_user_id);
+        } else {
+            $this->renderGradeBookTabs($outline, $grouped, $categories, $showrows, $grade_nav, $context_id, $view_user_id);
+        }
         // Display user identity from session
         $identity = __("Logged in as: ").htmlspecialchars(U::get($_SESSION, 'user_key', ''));
         if ( U::get($_SESSION, 'email') ) {
@@ -366,7 +620,7 @@ class Grades extends Tool {
         ?>
         </main>
         <?php
-        $OUTPUT->footer();
+        $this->finishGradePage();
     }
 
     /**
@@ -410,10 +664,15 @@ class Grades extends Tool {
             $query_parms = array(":LID" => $link_id);
             $searchfields = array("R.user_id", "displayname", "grade", "R.updated_at", "server_grade", "retrieved_at");
             $class_sql =
-                "SELECT R.user_id AS user_id, U.displayname, R.grade,
-                    R.updated_at as updated_at, R.server_grade, R.retrieved_at
+                "SELECT R.user_id AS user_id, U.displayname, U.subject_key AS subject_key, R.grade,
+                    R.score_given AS score_given, R.result_maximum AS result_maximum, L.score_maximum AS score_maximum,
+                    L.end_datetime AS due_date,
+                    R.updated_at as updated_at, R.server_grade, R.retrieved_at,
+                    R.sourcedid AS sourcedid, S.service_key AS service, L.lti13_lineitem AS lti13_lineitem
                 FROM {$p}lti_result AS R
                 INNER JOIN {$p}lti_user as U ON R.user_id = U.user_id
+                INNER JOIN {$p}lti_link AS L ON R.link_id = L.link_id
+                LEFT JOIN {$p}lti_service AS S ON R.service_id = S.service_id
                 WHERE R.link_id = :LID AND R.grade IS NOT NULL AND R.deleted = 0";
         } else {
             $query_parms = array(":CID" => $context_id);
@@ -431,7 +690,7 @@ class Grades extends Tool {
         
         // Get list of links for menu
         $lstmt = $PDOX->queryDie(
-            "SELECT DISTINCT L.title as title, L.link_id AS link_id
+            "SELECT DISTINCT L.title as title, L.link_id AS link_id, L.hidden AS hidden
             FROM {$p}lti_link AS L JOIN {$p}lti_result as R
                 ON L.link_id = R.link_id AND R.grade IS NOT NULL
             WHERE L.context_id = :CID",
@@ -439,27 +698,25 @@ class Grades extends Tool {
         );
         $links = $lstmt->fetchAll();
         
-        // Build menu
-        $menu = new \Tsugi\UI\MenuSet();
         $tool_home = $this->toolHome(self::ROUTE);
-        $menu->addLeft(__('View My Grades'), $tool_home);
-        
+        $menu = false;
         if ( $links !== false && count($links) > 0 ) {
+            $menu = new \Tsugi\UI\MenuSet();
             $submenu = new \Tsugi\UI\Menu();
             foreach($links as $link) {
                 $link_url = $tool_home . '/class?link_id='.$link['link_id'];
-                $submenu->addLink($link['title'], $link_url);
+                $link_title = $link['title'];
+                if ( (int) $link['hidden'] === 1 ) {
+                    $link_title .= ' ('.__('hidden').')';
+                }
+                $submenu->addLink($link_title, $link_url);
             }
             $menu->addRight(__('Activity Detail'), $submenu);
         }
-        
+
         // Record analytics (instructors don't get recorded, but we can still track the page)
         $this->lmsRecordLaunchAnalytics(self::ROUTE, 'Grade Book');
-        
-        // Check if user is instructor/admin for analytics button
-        $is_admin = $this->isAdmin();
-        $show_analytics = true; // Always show for instructors
-        
+
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav($menu);
@@ -468,18 +725,24 @@ class Grades extends Tool {
         ?>
         <main class="container" id="main-content">
         <h1><?= __('Grade Book') ?></h1>
-        <?php
-        // Show analytics button
-        if ( $show_analytics ) {
-            $analytics_url = $tool_home . '/analytics';
-            echo('<span style="position: fixed; right: 10px; top: 75px; z-index: 999; background-color: white; padding: 2px;"><a href="'.htmlspecialchars($analytics_url).'" class="btn btn-default" aria-label="'.htmlspecialchars(__('View grade analytics')).'"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> '.htmlspecialchars(__('Analytics')).'</a></span>');
-        }
-        ?>
         <p>Class: <?= htmlspecialchars($context_title) ?></p>
         <?php if ( $link_info ): ?>
         <p>Link: <?= htmlspecialchars($link_info["title"]) ?></p>
         <?php endif; ?>
         <?php
+        $this->printGradeCategoryStyles();
+        $lesson_urls = $this->lessonGradeUrls();
+        $this->renderGradeNav(array(
+            'active' => 'class',
+            'show_outline' => $this->hasCourseOutline(),
+            'grades_href' => $tool_home,
+            'class_url' => $tool_home . '/class',
+            'force_url' => $this->forceReloadUrl($context_id, ReqScope::loggedInUserId(), $tool_home, false),
+            'analytics_url' => $tool_home . '/analytics',
+            'configure_url' => $tool_home . '/configuration',
+            'due_dates_url' => $lesson_urls['due_dates_url'],
+            'progress_url' => $lesson_urls['progress_url'],
+        ));
         
         // Build detail URL for pagedAuto - link to index (single-student view) so clicking
         // a student in the class list dives into that student's grade detail
@@ -499,12 +762,551 @@ class Grades extends Tool {
             $newsql = Table::pagedQuery($class_sql, $query_parms, $searchfields, $searchfields, $params);
             $class_rows = $PDOX->allRowsDie($newsql, $query_parms);
             $this->addClassViewCodeColumn($class_rows, $link_info);
-            Table::pagedTable($class_rows, $searchfields, $searchfields, $detail_url, $params);
+            $this->attachGradeMenus($class_rows, false);
+            $this->formatResultGrades($class_rows);
+            $this->dropServerColumnsUnlessUpward($class_rows);
+            Table::pagedTable($this->withUniformServerColumns($class_rows), $searchfields, $searchfields, $detail_url, $params);
         }
         ?>
         </main>
         <?php
-        $OUTPUT->footer();
+        $this->finishGradePage();
+    }
+
+    /**
+     * Instructor page for categories and which grades students can see.
+     */
+    public function configuration(Request $request)
+    {
+        global $OUTPUT;
+
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        LTIX::getConnection();
+
+        $context_id = ReqScope::currentContextId();
+        $context_title = $this->getContextTitle($context_id);
+        $this->lmsRecordLaunchAnalytics(self::ROUTE, 'Grade Book');
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav(false);
+        $OUTPUT->flashMessages();
+        \Tsugi\Controllers\Lessons::printLtiProgressStyles();
+        ?>
+        <main class="container" id="main-content">
+        <h1><?= __('Grade Book') ?></h1>
+        <p>Class: <?= htmlspecialchars($context_title) ?></p>
+        <?php
+        $this->printGradeCategoryStyles();
+        $lesson_urls = $this->lessonGradeUrls();
+        $this->renderGradeNav(array(
+            'active' => 'configuration',
+            'show_outline' => $this->hasCourseOutline(),
+            'grades_href' => $home,
+            'class_url' => $home.'/class',
+            'force_url' => $this->forceReloadUrl($context_id, ReqScope::loggedInUserId(), $home, false),
+            'analytics_url' => $home.'/analytics',
+            'configure_url' => $home.'/configuration',
+            'due_dates_url' => $lesson_urls['due_dates_url'],
+            'progress_url' => $lesson_urls['progress_url'],
+        ));
+        $this->renderConfiguration($context_id, $home);
+        ?>
+        </main>
+        <?php
+        $this->finishGradePage();
+    }
+
+    /**
+     * Instructor view of enrollment, recent activity, and lesson assignment completion.
+     */
+    public function studentProgress(Request $request)
+    {
+        global $CFG;
+
+        $this->requireLessonGrades();
+        $context_id = ReqScope::currentContextId();
+        $p = $CFG->dbprefix;
+
+        $l = Manifest::requireCurrentLessons();
+        $assignment_items = $l->enumerateLtiAssignmentItems(true);
+        $assignment_rlids = array();
+        foreach ( $assignment_items as $it ) {
+            if ( isset($it['resource_link_id']) && U::isNotEmpty($it['resource_link_id']) ) {
+                $assignment_rlids[$it['resource_link_id']] = true;
+            }
+        }
+        $total_assignments = count($assignment_rlids);
+
+        $comment_select = "COALESCE(CC.comment_count, 0) AS comment_count";
+        $question_select = "COALESCE(QQ.question_count, 0) AS threads_started";
+        $discussion_joins = "
+        LEFT JOIN (
+            SELECT C.user_id, COUNT(*) AS comment_count
+            FROM {$p}tdiscus_comment C
+            JOIN {$p}tdiscus_thread T ON T.thread_id = C.thread_id
+            JOIN {$p}lti_link LL ON LL.link_id = T.link_id
+            WHERE LL.context_id = :CID2
+            GROUP BY C.user_id
+        ) CC ON CC.user_id = U.user_id
+        LEFT JOIN (
+            SELECT T.user_id, COUNT(*) AS question_count
+            FROM {$p}tdiscus_thread T
+            JOIN {$p}lti_link LL ON LL.link_id = T.link_id
+            WHERE LL.context_id = :CID4
+            GROUP BY T.user_id
+        ) QQ ON QQ.user_id = U.user_id";
+
+        $assignment_grade_clause = "FALSE";
+        $params = array(
+            ':CID' => $context_id,
+            ':CID2' => $context_id,
+            ':CID3' => $context_id,
+            ':CID4' => $context_id,
+        );
+        if ( $total_assignments > 0 ) {
+            $rlid_placeholders = array();
+            $i = 0;
+            foreach ( array_keys($assignment_rlids) as $rlid ) {
+                $i++;
+                $ph = ':RLID'.$i;
+                $rlid_placeholders[] = $ph;
+                $params[$ph] = $rlid;
+            }
+            $assignment_grade_clause = "L.link_key IN (".implode(',', $rlid_placeholders).")";
+        }
+        $group_by_discussion = ", QQ.question_count, CC.comment_count";
+
+        $assignment_count_sql = (int) $total_assignments;
+        $sql = "SELECT
+            U.user_id,
+            U.displayname,
+            U.email,
+            M.created_at AS enrolled_at,
+            MAX(COALESCE(R.updated_at, M.updated_at)) AS last_visited_at,
+            COUNT(DISTINCT CASE
+                WHEN R.grade IS NOT NULL
+                    AND R.grade >= 0.8
+                    AND {$assignment_grade_clause}
+                THEN L.link_key
+                ELSE NULL
+            END) AS completed_assignments,
+            CASE
+                WHEN {$assignment_count_sql} > 0 THEN ROUND(
+                    100 * COUNT(DISTINCT CASE
+                        WHEN R.grade IS NOT NULL
+                            AND R.grade >= 0.8
+                            AND {$assignment_grade_clause}
+                        THEN L.link_key
+                        ELSE NULL
+                    END) / {$assignment_count_sql},
+                    0
+                )
+                ELSE 0
+            END AS progress_pct,
+            {$question_select},
+            {$comment_select}
+        FROM {$p}lti_membership M
+        JOIN {$p}lti_user U
+            ON U.user_id = M.user_id
+        LEFT JOIN {$p}lti_result R
+            ON R.user_id = U.user_id
+            AND R.deleted = 0
+        LEFT JOIN {$p}lti_link L
+            ON L.link_id = R.link_id
+            AND L.context_id = :CID
+        {$discussion_joins}
+        WHERE M.context_id = :CID3
+          AND M.deleted = 0
+        GROUP BY U.user_id, U.displayname, U.email, M.created_at{$group_by_discussion}";
+
+        $this->beginLessonGradePage('progress');
+        echo('<h2>'.__('Student Progress')."</h2>\n");
+        echo('<p>'.__('Instructor view of enrollment, recent activity, assignment completion, and discussion participation.')."</p>\n");
+        echo('<p class="text-muted">'.sprintf(__('Assignments complete uses %1$d lesson assignment(s) with grade >= 80%%.'), $total_assignments)."</p>\n");
+
+        $searchfields = array("U.displayname", "U.email");
+        $orderfields = array(
+            "last_visited_at", "displayname", "email", "enrolled_at",
+            "progress_pct", "threads_started", "comment_count", "completed_assignments",
+        );
+        $table_params = $request->query->all();
+        if ( ! isset($table_params['order_by']) ) {
+            $table_params['order_by'] = 'last_visited_at';
+            $table_params['desc'] = 1;
+        }
+        if ( ! isset($table_params['page_length']) ) {
+            $table_params['page_length'] = 25;
+        }
+        Table::pagedAuto($sql, $params, $searchfields, $orderfields, false, $table_params);
+        $this->endLessonGradePage();
+    }
+
+    /**
+     * Set due dates for lesson assignments in this course.
+     */
+    public function manageDueDates(Request $request)
+    {
+        $this->requireLessonGrades();
+        $context_id = ReqScope::currentContextId();
+        $l = Manifest::requireCurrentLessons();
+        $items = $l->enumerateLtiAssignmentItems(true);
+        $dueMap = GradeUtil::loadDueDatesForContext($context_id);
+        $dates_url = $this->dueDatesUrl();
+
+        $this->beginLessonGradePage('due-dates');
+        echo('<h2>'.__('Manage due dates')."</h2>\n");
+        echo('<p>'.__('Set optional due dates for each assignment (end of that calendar day, 11:59 PM). They are stored on the LTI resource link for this course (end_datetime).')."</p>\n");
+
+        if ( count($items) < 1 ) {
+            echo('<p>'.__('No LTI assignments are defined in the lessons configuration.')."</p>\n");
+            $this->endLessonGradePage();
+            return;
+        }
+
+        $missingRlids = array();
+        foreach ( $items as $it ) {
+            $r = $it['resource_link_id'];
+            if ( ! array_key_exists($r, $dueMap) ) {
+                $missingRlids[$r] = true;
+            }
+        }
+        $missingCount = count($missingRlids);
+
+        if ( $missingCount > 0 ) {
+            echo('<div class="well" style="margin-bottom:1.5em;">');
+            echo('<p><strong>'.__('Add missing link rows').'</strong></p>');
+            echo('<p>'.__('Creates an lti_link row for each lesson assignment that does not have one in this course yet, using the same insert as an LTI launch (<code>ON DUPLICATE KEY UPDATE</code>). If a row already exists for that resource link in this context, nothing is duplicated; a later launch only refreshes <code>updated_at</code>.').'</p>');
+            echo('<p class="text-warning"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> ');
+            echo(__('The resource link id in your lessons file must match the LMS resource link id when students launch, or launches will create a different row.'));
+            echo('</p>');
+            echo('<form method="post" action="'.htmlspecialchars($dates_url.'/add-link-rows').'">');
+            echo(self::csrfField());
+            echo('<button type="submit" class="btn btn-default">');
+            echo('<i class="fa fa-plus-circle" aria-hidden="true"></i> '.__('Add missing link rows').' ('.$missingCount.')');
+            echo('</button>');
+            echo('</form>');
+            echo('</div>');
+        }
+
+        echo('<div class="well" style="margin-bottom:1.5em;">');
+        echo('<p><strong>'.__('Weekly due dates').'</strong></p>');
+        echo('<p>'.__('Lesson modules are ordered as in your lessons file. Pick the due date for all assignments in the first module (week 1). Each later module adds one week; every due is 11:59 PM on that calendar day.').'</p>');
+        echo('<form method="post" action="'.htmlspecialchars($dates_url.'/apply-weekly').'" class="form-inline">');
+        echo(self::csrfField());
+        echo('<div class="form-group" style="margin-right:1em;">');
+        echo('<label for="week1_due" style="margin-right:0.5em;">'.__('First module due date').'</label> ');
+        echo('<input type="date" class="form-control" id="week1_due" name="week1_due" required>');
+        echo('</div> ');
+        echo('<button type="submit" class="btn btn-default"><i class="fa fa-magic" aria-hidden="true"></i> '.__('Apply weekly due dates').'</button>');
+        echo('</form>');
+        echo('<p class="text-muted" style="margin-top:0.75em;margin-bottom:0;">'.__('Only assignments that already have an LTI link row in this course are updated; add link rows first if needed.').'</p>');
+        echo('</div>');
+
+        echo('<div class="well" style="margin-bottom:1.5em;">');
+        echo('<p><strong>'.__('Clear all due dates').'</strong></p>');
+        echo('<p>'.__('Sets due date to empty for every lesson assignment that has an LTI link row in this course.').'</p>');
+        echo('<form method="post" action="'.htmlspecialchars($dates_url.'/clear-all').'" onsubmit=\'return confirm('.
+            json_encode(__('Remove all due dates for lesson assignments in this course?')).');\'>');
+        echo(self::csrfField());
+        echo('<button type="submit" class="btn btn-warning">');
+        echo('<i class="fa fa-eraser" aria-hidden="true"></i> '.__('Clear all due dates'));
+        echo('</button>');
+        echo('</form>');
+        echo('</div>');
+
+        echo('<form method="post" action="'.htmlspecialchars($dates_url).'" class="table-responsive">'."\n");
+        echo(self::csrfField());
+        echo('<table class="table table-bordered table-striped">'."\n");
+        echo('<thead><tr><th>'.__('Module').'</th><th>'.__('Assignment').'</th><th>'.__('Resource link').'</th><th>'.__('Due date').'</th></tr></thead>'."\n");
+        echo("<tbody>\n");
+        foreach ( $items as $it ) {
+            $rlid = $it['resource_link_id'];
+            $hasRow = array_key_exists($rlid, $dueMap);
+            $endVal = '';
+            if ( $hasRow ) {
+                $endVal = self::toDateInputValue($dueMap[$rlid]['end_datetime']);
+            }
+            echo('<tr>');
+            echo('<td>'.htmlspecialchars($it['module_title']).'</td>');
+            echo('<td>'.htmlspecialchars($it['item_title']).'</td>');
+            echo('<td><code>'.htmlspecialchars($rlid).'</code>');
+            if ( ! $hasRow ) {
+                echo('<br><span class="text-warning"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> '.__('No LTI link row yet').'</span>');
+            }
+            echo('</td>');
+            echo('<td>');
+            if ( $hasRow ) {
+                $dueAria = sprintf(
+                    __('Due date for %1$s (resource link %2$s)'),
+                    $it['item_title'],
+                    $rlid
+                );
+                echo('<input type="date" class="form-control" name="end[]" value="'.htmlspecialchars($endVal).'" aria-label="'.htmlspecialchars($dueAria, ENT_QUOTES, 'UTF-8').'">');
+                echo('<input type="hidden" name="rlid[]" value="'.htmlspecialchars($rlid).'">');
+            } else {
+                echo('<span class="text-muted">—</span>');
+            }
+            echo('</td>');
+            echo("</tr>\n");
+        }
+        echo("</tbody></table>\n");
+        echo('<p><button type="submit" class="btn btn-primary">'.__('Save due dates').'</button></p>'."\n");
+        echo("</form>\n");
+        $this->endLessonGradePage();
+    }
+
+    public function manageDueDatesPost(Request $request)
+    {
+        global $CFG, $PDOX;
+
+        $this->requireLessonGrades();
+        $dates_url = $this->dueDatesUrl();
+        $csrf = self::requireCsrf($dates_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        $context_id = ReqScope::currentContextId();
+        $l = Manifest::requireCurrentLessons();
+        $allowed = array();
+        foreach ( $l->enumerateLtiAssignmentItems(true) as $it ) {
+            $allowed[$it['resource_link_id']] = true;
+        }
+
+        $rlids = U::get($_POST, 'rlid');
+        $ends = U::get($_POST, 'end');
+        if ( ! is_array($rlids) || ! is_array($ends) ) {
+            U::flashError(__('Invalid form submission.'));
+            return new RedirectResponse($dates_url);
+        }
+
+        $n = count($rlids);
+        if ( $n !== count($ends) ) {
+            U::flashError(__('Mismatched form fields.'));
+            return new RedirectResponse($dates_url);
+        }
+
+        $p = $CFG->dbprefix;
+        $updated = 0;
+        for ( $i = 0; $i < $n; $i++ ) {
+            $rlid = $rlids[$i];
+            if ( ! isset($allowed[$rlid]) ) {
+                continue;
+            }
+            $endSql = self::parseDueDateEndOfDay($ends[$i]);
+            if ( $ends[$i] !== '' && $endSql === null ) {
+                $this->invalidateDueDatesSessionCache();
+                U::flashError(__('Invalid due date for resource link: ').$rlid);
+                return new RedirectResponse($dates_url);
+            }
+            $stmt = $PDOX->queryReturnError(
+                "UPDATE {$p}lti_link SET end_datetime = :E, updated_at = NOW()
+                 WHERE context_id = :CID AND link_key = :LK AND (deleted IS NULL OR deleted = 0)",
+                array(
+                    ':E' => $endSql,
+                    ':CID' => $context_id,
+                    ':LK' => $rlid,
+                )
+            );
+            if ( ! $stmt->success ) {
+                $this->invalidateDueDatesSessionCache();
+                U::flashError(__('Could not save due dates. Please try again.'));
+                return new RedirectResponse($dates_url);
+            }
+            $updated += $stmt->rowCount();
+        }
+
+        $this->invalidateDueDatesSessionCache();
+        U::flashSuccess(__('Saved due dates.').' ('.$updated.' '.__('link row(s) updated').').');
+        return new RedirectResponse($dates_url);
+    }
+
+    /**
+     * Set end_datetime to NULL for all enumerated lesson assignments that have a link row in this context.
+     */
+    public function clearAllDueDatesPost(Request $request)
+    {
+        global $CFG, $PDOX;
+
+        $this->requireLessonGrades();
+        $dates_url = $this->dueDatesUrl();
+        $csrf = self::requireCsrf($dates_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        $context_id = ReqScope::currentContextId();
+        $l = Manifest::requireCurrentLessons();
+        $allowed = array();
+        foreach ( $l->enumerateLtiAssignmentItems(true) as $it ) {
+            $allowed[$it['resource_link_id']] = true;
+        }
+
+        $p = $CFG->dbprefix;
+        $updated = 0;
+        foreach ( array_keys($allowed) as $rlid ) {
+            $stmt = $PDOX->queryReturnError(
+                "UPDATE {$p}lti_link SET end_datetime = NULL, updated_at = NOW()
+                 WHERE context_id = :CID AND link_key = :LK AND (deleted IS NULL OR deleted = 0)",
+                array(
+                    ':CID' => $context_id,
+                    ':LK' => $rlid,
+                )
+            );
+            if ( ! $stmt->success ) {
+                $this->invalidateDueDatesSessionCache();
+                U::flashError(__('Could not clear due dates. Please try again.'));
+                return new RedirectResponse($dates_url);
+            }
+            $updated += $stmt->rowCount();
+        }
+
+        $this->invalidateDueDatesSessionCache();
+        U::flashSuccess(__('Cleared due dates.').' ('.$updated.' '.__('link row(s) updated').').');
+        return new RedirectResponse($dates_url);
+    }
+
+    /**
+     * Set end_datetime for each link from a base due date on module 0, plus 7 days per module index.
+     */
+    public function applyWeeklyDueDatesPost(Request $request)
+    {
+        global $CFG, $PDOX;
+
+        $this->requireLessonGrades();
+        $dates_url = $this->dueDatesUrl();
+        $csrf = self::requireCsrf($dates_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        $context_id = ReqScope::currentContextId();
+        $raw = U::get($_POST, 'week1_due', '');
+        $baseSql = self::parseDueDateEndOfDay($raw);
+        if ( $baseSql === null ) {
+            U::flashError(__('Enter a valid first-module due date.'));
+            return new RedirectResponse($dates_url);
+        }
+
+        $baseTs = strtotime($baseSql);
+        if ( $baseTs === false ) {
+            U::flashError(__('Enter a valid first-module due date.'));
+            return new RedirectResponse($dates_url);
+        }
+
+        $l = Manifest::requireCurrentLessons();
+        $items = $l->enumerateLtiAssignmentItems(true);
+        $dueMap = GradeUtil::loadDueDatesForContext($context_id);
+
+        $p = $CFG->dbprefix;
+        $updated = 0;
+        $skipped = 0;
+        foreach ( $items as $it ) {
+            $rlid = $it['resource_link_id'];
+            if ( ! array_key_exists($rlid, $dueMap) ) {
+                $skipped++;
+                continue;
+            }
+            $modIdx = isset($it['module_index']) ? (int) $it['module_index'] : 0;
+            $dueTs = strtotime('+' . ($modIdx * 7) . ' days', $baseTs);
+            if ( $dueTs === false ) {
+                $this->invalidateDueDatesSessionCache();
+                U::flashError(__('Could not compute a due date for resource link: ').$rlid);
+                return new RedirectResponse($dates_url);
+            }
+            $endSql = date('Y-m-d H:i:s', $dueTs);
+            $stmt = $PDOX->queryReturnError(
+                "UPDATE {$p}lti_link SET end_datetime = :E, updated_at = NOW()
+                 WHERE context_id = :CID AND link_key = :LK AND (deleted IS NULL OR deleted = 0)",
+                array(
+                    ':E' => $endSql,
+                    ':CID' => $context_id,
+                    ':LK' => $rlid,
+                )
+            );
+            if ( ! $stmt->success ) {
+                $this->invalidateDueDatesSessionCache();
+                U::flashError(__('Could not save due dates. Please try again.'));
+                return new RedirectResponse($dates_url);
+            }
+            $updated += $stmt->rowCount();
+        }
+
+        $msg = __('Applied weekly due dates.').' '.sprintf(__('Updated %d link row(s).'), $updated);
+        if ( $skipped > 0 ) {
+            $msg .= ' '.sprintf(__('Skipped %d assignment(s) with no link row yet.'), $skipped);
+        }
+        $this->invalidateDueDatesSessionCache();
+        U::flashSuccess($msg);
+        return new RedirectResponse($dates_url);
+    }
+
+    /**
+     * Insert lti_link rows for lesson assignments that have no row in this context yet.
+     * Uses the same statement as LTIX::adjustData() so a later launch does not create a duplicate.
+     */
+    public function addMissingLinkRowsPost(Request $request)
+    {
+        global $CFG, $PDOX;
+
+        $this->requireLessonGrades();
+        $dates_url = $this->dueDatesUrl();
+        $csrf = self::requireCsrf($dates_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        $context_id = ReqScope::currentContextId();
+        $l = Manifest::requireCurrentLessons();
+        $items = $l->enumerateLtiAssignmentItems(true);
+        $dueMap = GradeUtil::loadDueDatesForContext($context_id);
+
+        $p = $CFG->dbprefix;
+        $sql = "INSERT INTO {$p}lti_link
+            ( link_key, link_sha256, settings_url, title, context_id, path, created_at, updated_at ) VALUES
+                ( :link_key, :link_sha256, :settings_url, :title, :context_id, :path, NOW(), NOW() )
+            ON DUPLICATE KEY UPDATE updated_at = NOW()";
+
+        $attempted = 0;
+        $inserted = 0;
+        foreach ( $items as $it ) {
+            $rlid = $it['resource_link_id'];
+            if ( array_key_exists($rlid, $dueMap) ) {
+                continue;
+            }
+            $attempted++;
+            $stmt = $PDOX->queryReturnError($sql, array(
+                ':link_key' => $rlid,
+                ':link_sha256' => lti_sha256($rlid),
+                ':settings_url' => null,
+                ':title' => $it['item_title'],
+                ':context_id' => $context_id,
+                ':path' => null,
+            ));
+            if ( ! $stmt->success ) {
+                $this->invalidateDueDatesSessionCache();
+                U::flashError(__('Could not add link rows. Please try again.'));
+                return new RedirectResponse($dates_url);
+            }
+            $rc = $stmt->rowCount();
+            if ( $rc === 1 ) {
+                $inserted++;
+            }
+            $dueMap[$rlid] = array('start_datetime' => null, 'end_datetime' => null);
+        }
+
+        if ( $attempted < 1 ) {
+            U::flashSuccess(__('No missing link rows; nothing to add.'));
+        } else {
+            $this->invalidateDueDatesSessionCache();
+            U::flashSuccess(
+                __('Added link rows.').' '.sprintf(__('New inserts: %d.'), $inserted).' '.
+                sprintf(__('Missing assignments processed: %d. Same insert as launch—no duplicate if a row already existed.'), $attempted)
+            );
+        }
+        return new RedirectResponse($dates_url);
     }
 
     /**
@@ -513,5 +1315,1027 @@ class Grades extends Tool {
     public function analytics(Request $request)
     {
         return $this->showAnalytics(self::ROUTE, 'Grade Book');
+    }
+
+    public function categoryAddPost(Request $request)
+    {
+        return $this->categoryWrite($request, 0, 'add');
+    }
+
+    public function categoryPost(Request $request, $id)
+    {
+        $action = U::get($_POST, 'action', 'save');
+        return $this->categoryWrite($request, (int) $id, is_string($action) ? $action : 'save');
+    }
+
+    public function linkPost(Request $request, $id)
+    {
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        $csrf = self::requireCsrf($this->configurationUrl());
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        $context_id = ReqScope::currentContextId();
+        $action = U::get($_POST, 'action', '');
+        $category_raw = U::get($_POST, 'category_id', '');
+        $category_id = ($category_raw === '' || $category_raw === null) ? null : (int) $category_raw;
+        $error = GradeCategoryRepository::setLinkCategory($context_id, (int) $id, $category_id);
+        if ( $error === null && $action === 'hide' ) {
+            $error = GradeCategoryRepository::setLinkHidden($context_id, (int) $id, true);
+        } else if ( $error === null && $action === 'unhide' ) {
+            $error = GradeCategoryRepository::setLinkHidden($context_id, (int) $id, false);
+        } else if ( $error === null && $action !== 'category' ) {
+            $error = __('Unknown grade action.');
+        }
+
+        if ( $error !== null ) {
+            U::flashError($error);
+        } else if ( $action === 'hide' ) {
+            U::flashSuccess(__('Grade hidden from students.'));
+        } else if ( $action === 'unhide' ) {
+            U::flashSuccess(__('Grade unhidden.'));
+        } else {
+            U::flashSuccess(__('Grade category saved.'));
+        }
+        return new RedirectResponse($this->configurationUrl());
+    }
+
+    /**
+     * @return RedirectResponse
+     */
+    private function categoryWrite(Request $request, $category_id, $action)
+    {
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        $csrf = self::requireCsrf($this->configurationUrl());
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        $context_id = ReqScope::currentContextId();
+        $error = null;
+        $success = '';
+        if ( $action === 'add' ) {
+            $error = GradeCategoryRepository::create(
+                $context_id,
+                U::get($_POST, 'title', ''),
+                U::get($_POST, 'grade_percent', ''),
+                U::get($_POST, 'extra_credit', '') ? true : false
+            );
+            $success = __('Category added.');
+        } else if ( $action === 'save' ) {
+            $error = GradeCategoryRepository::update(
+                $context_id,
+                $category_id,
+                U::get($_POST, 'title', ''),
+                U::get($_POST, 'grade_percent', ''),
+                U::get($_POST, 'extra_credit', '') ? true : false
+            );
+            $success = __('Category saved.');
+        } else if ( $action === 'delete' ) {
+            $error = GradeCategoryRepository::delete($context_id, $category_id);
+            $success = __('Category deleted. Its grades are uncategorized.');
+        } else if ( $action === 'move' ) {
+            $error = GradeCategoryRepository::move(
+                $context_id,
+                $category_id,
+                (string) U::get($_POST, 'direction', '')
+            );
+            $success = __('Category moved.');
+        } else {
+            $error = __('Unknown category action.');
+        }
+
+        if ( $error !== null ) {
+            U::flashError($error);
+        } else if ( $success !== '' ) {
+            U::flashSuccess($success);
+        }
+        return new RedirectResponse($this->configurationUrl());
+    }
+
+    /**
+     * @return string
+     */
+    private function configurationUrl()
+    {
+        return $this->toolHome(self::ROUTE).'/configuration';
+    }
+
+    private function renderConfiguration($context_id, $post_home)
+    {
+        $categories = GradeCategoryRepository::listForContext($context_id);
+        $grade_columns = GradeCategoryRepository::gradeColumns($context_id, 0);
+        $return_inputs = '';
+        include __DIR__ . '/templates/Grades/manage_dialog.inc.php';
+    }
+
+    /**
+     * @param array<int,array<string,mixed>> $categories
+     * @param array<int,array<string,mixed>> $rows
+     * @param int $context_id
+     * @param int $user_id
+     */
+    private function renderGradeRows($grouped, $categories, $rows, $context_id = 0, $user_id = 0)
+    {
+        if ( $grouped ) {
+            $this->renderGroupedGrades($categories, $rows, $context_id, $user_id);
+            return;
+        }
+        Table::pagedTable($this->withUniformServerColumns($rows), array(), false);
+    }
+
+    /**
+     * LTI 1.1 needs sourcedid and the outcome service. LTI 1.3 needs this
+     * link's line item and this user's subject key. Either pair means the
+     * result is sent upward.
+     *
+     * @param array<string,mixed> $row
+     */
+    private function resultPassedUpward($row)
+    {
+        if ( $this->resultHasOutcomeService($row) ) {
+            return true;
+        }
+        $lineitem = trim((string) U::get($row, 'lti13_lineitem', ''));
+        $subject = trim((string) U::get($row, 'subject_key', ''));
+        return $lineitem !== '' && $subject !== '';
+    }
+
+    /**
+     * Force Reload reads LTI 1.1 grades. Hide it when this grade list has none.
+     *
+     * @param int $context_id
+     * @param int $user_id
+     * @param string $tool_home
+     * @param bool $include_user
+     */
+    private function forceReloadUrl($context_id, $user_id, $tool_home, $include_user)
+    {
+        if ( ! $this->userHasOutcomeResults($context_id, $user_id) ) {
+            return '';
+        }
+        $url = $tool_home.'?force=yes';
+        if ( $include_user ) {
+            $url .= '&user_id='.(int) $user_id;
+        }
+        return $url;
+    }
+
+    /**
+     * A visible grade above zero with both sourcedid and an outcome service.
+     *
+     * @param int $context_id
+     * @param int $user_id
+     */
+    private function userHasOutcomeResults($context_id, $user_id)
+    {
+        global $CFG, $PDOX;
+        LTIX::getConnection();
+        $p = $CFG->dbprefix;
+        $row = $PDOX->rowDie(
+            "SELECT R.result_id
+             FROM {$p}lti_result AS R
+             JOIN {$p}lti_link AS L ON R.link_id = L.link_id
+             WHERE R.user_id = :UID AND L.context_id = :CID
+               AND R.grade > 0 AND R.deleted = 0 AND L.deleted = 0 AND L.hidden = 0
+               AND R.sourcedid IS NOT NULL AND R.sourcedid <> ''
+               AND R.service_id IS NOT NULL
+             LIMIT 1",
+            array(':UID' => (int) $user_id, ':CID' => (int) $context_id)
+        );
+        return is_array($row);
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     */
+    private function resultHasOutcomeService($row)
+    {
+        $sourcedid = trim((string) U::get($row, 'sourcedid', ''));
+        $service = trim((string) U::get($row, 'service', ''));
+        if ( $service === '' ) {
+            $service = trim((string) U::get($row, 'service_key', ''));
+        }
+        return $sourcedid !== '' && $service !== '';
+    }
+
+    /**
+     * @param array<int,array<string,mixed>> $rows
+     */
+    private function dropServerColumnsUnlessUpward(&$rows)
+    {
+        foreach ( $rows as &$row ) {
+            $upward = $this->resultPassedUpward($row);
+            unset($row['sourcedid']);
+            unset($row['service']);
+            unset($row['service_key']);
+            unset($row['lti13_lineitem']);
+            unset($row['subject_key']);
+            unset($row['result_url']);
+            if ( ! $upward ) {
+                unset($row['server_grade']);
+                unset($row['retrieved_at']);
+                unset($row['server_status']);
+            }
+        }
+        unset($row);
+    }
+
+    /**
+     * pagedTable reads columns from the first row. Keep server columns on
+     * every row when any visible row is sent upward.
+     *
+     * @param array<int,array<string,mixed>> $rows
+     * @return array<int,array<string,mixed>>
+     */
+    private function withUniformServerColumns($rows)
+    {
+        $keys = array('server_grade', 'retrieved_at', 'server_status');
+        $present = array();
+        foreach ( $rows as $row ) {
+            foreach ( $keys as $key ) {
+                if ( array_key_exists($key, $row) ) {
+                    $present[$key] = true;
+                }
+            }
+        }
+        if ( count($present) < 1 ) {
+            return $rows;
+        }
+        $aligned = array();
+        foreach ( $rows as $row ) {
+            foreach ( $keys as $key ) {
+                if ( isset($present[$key]) && ! array_key_exists($key, $row) ) {
+                    $row[$key] = '';
+                }
+            }
+            $aligned[] = $this->orderGradeBookColumns($row);
+        }
+        return $aligned;
+    }
+
+    /**
+     * @param array<int,array{title:string,href:string,rows:array<int,array<string,mixed>>}>|null $outline
+     * @param array<int,array<string,mixed>> $categories
+     * @param array<int,array<string,mixed>> $rows
+     * @param array{active:string,show_outline:bool,grades_href:string,class_url:string,force_url:string,analytics_url:string,configure_url:string,due_dates_url:string,progress_url:string} $nav
+     * @param int $context_id
+     * @param int $user_id
+     */
+    private function renderGradeBookTabs($outline, $grouped, $categories, $rows, $nav, $context_id = 0, $user_id = 0)
+    {
+        $this->renderGradeNav($nav);
+        echo '<div class="tab-content">';
+        echo '<div class="tab-pane fade active in" id="grades-view" role="tabpanel" aria-labelledby="grades-view-tab">';
+        $this->renderGradeRows($grouped, $categories, $rows, $context_id, $user_id);
+        echo '</div>';
+        if ( is_array($outline) ) {
+            echo '<div class="tab-pane fade" id="outline-view" role="tabpanel" aria-labelledby="outline-view-tab">';
+            $this->renderCourseOutline($outline);
+            echo '</div>';
+        }
+        echo "</div>\n";
+    }
+
+    /**
+     * Grade book tabs. Grades and Course Outline switch panes on the grade list.
+     * The other tabs leave this page.
+     *
+     * @param array{active:string,show_outline:bool,grades_href:string,class_url:string,force_url:string,analytics_url:string,configure_url:string,due_dates_url:string,progress_url:string} $nav
+     */
+    private function renderGradeNav($nav)
+    {
+        $on_grade_list = $nav['grades_href'] === '';
+        echo '<ul class="nav nav-tabs tsugi-grade-tabs" role="tablist">';
+        if ( $on_grade_list ) {
+            $this->renderPaneTab('grades-view', __('Grades'), true);
+        } else {
+            $this->renderHrefTab('grades-link', __('Grades'), $nav['grades_href'], $nav['active'] === 'grades');
+        }
+        if ( $nav['show_outline'] ) {
+            if ( $on_grade_list ) {
+                $this->renderPaneTab('outline-view', __('Course Outline'), false);
+            } else {
+                $this->renderHrefTab('outline-link', __('Course Outline'), $nav['grades_href'].'#outline-view', false);
+            }
+        }
+        if ( $nav['due_dates_url'] !== '' ) {
+            $this->renderHrefTab('due-dates-tab', __('Manage due dates'), $nav['due_dates_url'], $nav['active'] === 'due-dates');
+        }
+        if ( $nav['progress_url'] !== '' ) {
+            $this->renderHrefTab('student-progress-tab', __('Student Progress'), $nav['progress_url'], $nav['active'] === 'progress');
+        }
+        if ( $nav['class_url'] !== '' ) {
+            $this->renderHrefTab('class-grades-tab', __('All Students'), $nav['class_url'], $nav['active'] === 'class');
+        }
+        if ( $nav['analytics_url'] !== '' ) {
+            $this->renderHrefTab('analytics-tab', __('Analytics'), $nav['analytics_url'], false);
+        }
+        if ( $nav['configure_url'] !== '' ) {
+            $this->renderGradeConfigurationTab($nav['configure_url'], $nav['active'] === 'configuration');
+        }
+        if ( $nav['force_url'] !== '' ) {
+            $this->renderHrefTab('force-reload-tab', __('Force Reload'), $nav['force_url'], false);
+        }
+        echo "</ul>\n";
+    }
+
+    private function renderPaneTab($id, $label, $active)
+    {
+        echo '<li'.($active ? ' class="active"' : '').' role="presentation">';
+        echo '<a href="#'.$id.'" id="'.$id.'-tab" data-toggle="tab" role="tab" aria-controls="'.$id.'" aria-selected="'.($active ? 'true' : 'false').'">';
+        echo htmlspecialchars($label).'</a></li>';
+    }
+
+    private function renderHrefTab($id, $label, $href, $active)
+    {
+        echo '<li'.($active ? ' class="active"' : '').' role="presentation">';
+        echo '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'" id="'.htmlspecialchars($id, ENT_QUOTES, 'UTF-8').'">';
+        echo htmlspecialchars($label).'</a></li>';
+    }
+
+    /**
+     * Manage due dates and Student Progress, for an instructor on a lessons or manifest course.
+     *
+     * @return array{due_dates_url:string,progress_url:string}
+     */
+    private function lessonGradeUrls()
+    {
+        if ( ! $this->isInstructor() || ! Manifest::hasCurrent() ) {
+            return array('due_dates_url' => '', 'progress_url' => '');
+        }
+        $home = $this->toolHome(self::ROUTE);
+        return array(
+            'due_dates_url' => $home.'/manage-due-dates',
+            'progress_url' => $home.'/student-progress',
+        );
+    }
+
+    /**
+     * Same grade book tabs, for the due-date and student-progress pages.
+     *
+     * @param string $active due-dates or progress
+     */
+    private function renderGradeBookChrome($active)
+    {
+        $home = $this->toolHome(self::ROUTE);
+        $lesson_urls = $this->lessonGradeUrls();
+        $this->printGradeCategoryStyles();
+        $this->renderGradeNav(array(
+            'active' => $active,
+            'show_outline' => $this->hasCourseOutline(),
+            'grades_href' => $home,
+            'class_url' => $home.'/class',
+            'force_url' => $this->forceReloadUrl(ReqScope::currentContextId(), ReqScope::loggedInUserId(), $home, false),
+            'analytics_url' => $home.'/analytics',
+            'configure_url' => $home.'/configuration',
+            'due_dates_url' => $lesson_urls['due_dates_url'],
+            'progress_url' => $lesson_urls['progress_url'],
+        ));
+    }
+
+    private function requireLessonGrades()
+    {
+        if ( ! Manifest::hasCurrent() ) {
+            die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
+        }
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        LTIX::getConnection();
+    }
+
+    private function dueDatesUrl()
+    {
+        return $this->toolHome(self::ROUTE).'/manage-due-dates';
+    }
+
+    /**
+     * @param string $active due-dates or progress
+     */
+    private function beginLessonGradePage($active)
+    {
+        global $OUTPUT;
+        $context_title = $this->getContextTitle(ReqScope::currentContextId());
+        $this->lmsRecordLaunchAnalytics(self::ROUTE, 'Grade Book');
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav(false);
+        $OUTPUT->flashMessages();
+        \Tsugi\Controllers\Lessons::printLtiProgressStyles();
+        echo '<main class="container" id="main-content">'."\n";
+        echo '<h1>'.htmlspecialchars(__('Grade Book'))."</h1>\n";
+        echo '<p>Class: '.htmlspecialchars($context_title)."</p>\n";
+        $this->renderGradeBookChrome($active);
+    }
+
+    private function endLessonGradePage()
+    {
+        echo "</main>\n";
+        $this->finishGradePage();
+    }
+
+    private function invalidateDueDatesSessionCache()
+    {
+        $context_id = ReqScope::currentContextId();
+        if ( $context_id ) {
+            GradeUtil::invalidateDueDatesCache((int) $context_id);
+        }
+    }
+
+    /**
+     * Value for HTML date input (YYYY-MM-DD) from a stored MySQL datetime.
+     */
+    private static function toDateInputValue($mysql)
+    {
+        if ( $mysql === null || $mysql === '' ) {
+            return '';
+        }
+        if ( preg_match('/^(\d{4}-\d{2}-\d{2})/', $mysql, $m) ) {
+            return $m[1];
+        }
+        return '';
+    }
+
+    /**
+     * Parse a due date from the UI (calendar day only). Stored as 11:59:59 PM that day.
+     *
+     * @return string|null MySQL datetime or null to clear
+     */
+    private static function parseDueDateEndOfDay($s)
+    {
+        $s = trim((string) $s);
+        if ( $s === '' ) {
+            return null;
+        }
+        if ( preg_match('/^\d{4}-\d{2}-\d{2}$/', $s) ) {
+            return $s . ' 23:59:59';
+        }
+        return null;
+    }
+
+    private function hasCourseOutline()
+    {
+        if ( ! Manifest::hasCurrent() ) {
+            return false;
+        }
+        $lessons = Manifest::currentLessons();
+        return $lessons && isset($lessons->lessons->modules) && is_array($lessons->lessons->modules);
+    }
+
+    private function renderGradeConfigurationTab($href, $active)
+    {
+        $hidden_count = 0;
+        foreach ( GradeCategoryRepository::gradeColumns(ReqScope::currentContextId()) as $column ) {
+            if ( (int) $column['hidden'] === 1 ) {
+                $hidden_count++;
+            }
+        }
+        echo '<li'.($active ? ' class="active"' : '').' role="presentation">';
+        echo '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'" id="grade-config-tab">';
+        echo htmlspecialchars(__('Configuration'));
+        if ( $hidden_count > 0 ) {
+            echo ' <span class="badge">'.(int) $hidden_count.' '.htmlspecialchars(__('hidden')).'</span>';
+        }
+        echo '</a></li>';
+    }
+
+    /**
+     * @param array<int,array{title:string,href:string,rows:array<int,array<string,mixed>>}> $outline
+     */
+    private function renderCourseOutline($outline)
+    {
+        if ( count($outline) < 1 ) {
+            echo '<p>'.htmlspecialchars(__('No modules with active links.'))."</p>\n";
+            return;
+        }
+        foreach ( $outline as $module ) {
+            $title = htmlspecialchars($module['title']);
+            $href = isset($module['href']) ? (string) $module['href'] : '';
+            echo '<h2 class="grade-category-heading">';
+            if ( $href !== '' ) {
+                echo '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'">'.$title.'</a>';
+            } else {
+                echo $title;
+            }
+            echo '</h2>';
+            $this->renderGradeTable($module['rows']);
+        }
+    }
+
+    /**
+     * Modules from the course manifest or file-based lessons, in document order.
+     * Null when this course has neither. A module is included only when it has
+     * a visible lti_link for one of its resource links.
+     *
+     * @param array<int,array<string,mixed>> $grade_rows
+     * @return array<int,array{title:string,href:string,rows:array<int,array<string,mixed>>}>|null
+     */
+    private function courseOutlineModules($context_id, $grade_rows)
+    {
+        if ( ! Manifest::hasCurrent() ) {
+            return null;
+        }
+        $lessons = Manifest::currentLessons();
+        if ( ! $lessons || ! isset($lessons->lessons->modules) || ! is_array($lessons->lessons->modules) ) {
+            return null;
+        }
+
+        $grades_by_key = array();
+        foreach ( $grade_rows as $row ) {
+            $key = trim((string) U::get($row, '_link_key', ''));
+            if ( $key === '' || isset($grades_by_key[$key]) ) {
+                continue;
+            }
+            $grades_by_key[$key] = $row;
+        }
+
+        $links = $this->visibleLinksByKey($context_id);
+        $columns = $this->gradeViewColumns($grade_rows);
+        $used = array();
+        $groups = array();
+        foreach ( $lessons->lessons->modules as $module ) {
+            if ( isset($module->hidden) && $module->hidden ) {
+                continue;
+            }
+            $rows = array();
+            foreach ( $this->moduleResourceLinkIds($module) as $resource_link_id ) {
+                if ( isset($used[$resource_link_id]) || ! isset($links[$resource_link_id]) ) {
+                    continue;
+                }
+                $used[$resource_link_id] = true;
+                $grade_row = isset($grades_by_key[$resource_link_id]) ? $grades_by_key[$resource_link_id] : null;
+                $rows[] = $this->outlineRow($links[$resource_link_id], $grade_row, $columns);
+            }
+            if ( count($rows) < 1 ) {
+                continue;
+            }
+            $title = isset($module->title) ? trim((string) $module->title) : '';
+            if ( $title === '' ) {
+                $title = __('Module');
+            }
+            $anchor = isset($module->anchor) ? trim((string) $module->anchor) : '';
+            $groups[] = array(
+                'title' => $title,
+                'href' => $this->moduleHref($anchor),
+                'rows' => $rows,
+            );
+        }
+        return $groups;
+    }
+
+    /**
+     * @return array<string,array<string,mixed>>
+     */
+    private function visibleLinksByKey($context_id)
+    {
+        global $CFG, $PDOX;
+        LTIX::getConnection();
+        $rows = $PDOX->allRowsDie(
+            "SELECT link_id, link_key, title, end_datetime
+             FROM {$CFG->dbprefix}lti_link
+             WHERE context_id = :CID AND deleted = 0 AND hidden = 0",
+            array(':CID' => (int) $context_id)
+        );
+        $links = array();
+        foreach ( $rows as $row ) {
+            $key = trim((string) $row['link_key']);
+            if ( $key === '' || isset($links[$key]) ) {
+                continue;
+            }
+            $links[$key] = $row;
+        }
+        return $links;
+    }
+
+    /**
+     * Course lessons URL for a module anchor. Empty when the module has no anchor.
+     */
+    private function moduleHref($anchor)
+    {
+        $anchor = trim((string) $anchor);
+        if ( $anchor === '' ) {
+            return '';
+        }
+        $parent = U::get_rest_parent();
+        if ( str_ends_with($parent, self::ROUTE) ) {
+            $parent = substr($parent, 0, -strlen(self::ROUTE));
+        }
+        return $parent . Lessons::ROUTE . '/' . urlencode($anchor);
+    }
+
+    /**
+     * Resource link ids in outline order. Items take precedence over legacy lists.
+     *
+     * @return string[]
+     */
+    private function moduleResourceLinkIds($module)
+    {
+        $ids = array();
+        if ( isset($module->items) && is_array($module->items) ) {
+            foreach ( $module->items as $item ) {
+                $resource_link_id = $this->itemResourceLinkId($item);
+                if ( $resource_link_id !== '' ) {
+                    $ids[] = $resource_link_id;
+                }
+            }
+            return $ids;
+        }
+        foreach ( array('lti', 'discussions') as $field ) {
+            if ( ! isset($module->$field) ) {
+                continue;
+            }
+            $list = $module->$field;
+            if ( ! is_array($list) ) {
+                $list = array($list);
+            }
+            foreach ( $list as $item ) {
+                $resource_link_id = $this->itemResourceLinkId($item);
+                if ( $resource_link_id !== '' ) {
+                    $ids[] = $resource_link_id;
+                }
+            }
+        }
+        return $ids;
+    }
+
+    /**
+     * @param object|array<string,mixed> $item
+     */
+    private function itemResourceLinkId($item)
+    {
+        if ( is_array($item) ) {
+            $item = (object) $item;
+        }
+        if ( ! is_object($item) || (isset($item->hidden) && $item->hidden) ) {
+            return '';
+        }
+        $content_id = isset($item->content_id) ? (int) $item->content_id : 0;
+        if ( $content_id > 0 ) {
+            $row = LtiContentService::find(ReqScope::currentContextId(), $content_id);
+            if ( is_array($row) && isset($row['resource_link_id']) ) {
+                return trim((string) $row['resource_link_id']);
+            }
+        }
+        if ( LessonsNormalize::isLtiLaunch($item) && isset($item->resource_link_id) ) {
+            return trim((string) $item->resource_link_id);
+        }
+        return '';
+    }
+
+    /**
+     * Visible grade-list columns, in grade-list order. Server columns appear
+     * when any result on that list has them.
+     *
+     * @param array<int,array<string,mixed>> $grade_rows
+     * @return string[]
+     */
+    private function gradeViewColumns($grade_rows)
+    {
+        $columns = $this->gradeTableColumns($grade_rows);
+        if ( count($columns) < 1 ) {
+            $columns = array('title', 'code', 'due_date', 'grade', 'comment', 'updated_at');
+        }
+        if ( ! in_array('menu', $columns, true) ) {
+            $columns[] = 'menu';
+        }
+        return $columns;
+    }
+
+    /**
+     * @param array<string,mixed> $link
+     * @param array<string,mixed>|null $grade_row
+     * @param string[] $columns
+     * @return array<string,mixed>
+     */
+    private function outlineRow($link, $grade_row, $columns)
+    {
+        $row = array();
+        foreach ( $columns as $key ) {
+            if ( is_array($grade_row) && array_key_exists($key, $grade_row) ) {
+                $row[$key] = $grade_row[$key];
+                $html_key = '_html_'.$key;
+                if ( isset($grade_row[$html_key]) && $grade_row[$html_key] !== '' ) {
+                    $row[$html_key] = $grade_row[$html_key];
+                }
+                continue;
+            }
+            if ( $key === 'title' ) {
+                $title = trim((string) $link['title']);
+                $row[$key] = $title === '' ? (string) $link['link_key'] : $title;
+                continue;
+            }
+            if ( $key === 'due_date' ) {
+                $row[$key] = $this->dueDateLabel(isset($link['end_datetime']) ? $link['end_datetime'] : null);
+                continue;
+            }
+            if ( $key === 'menu' ) {
+                $blank = array(
+                    'grade' => null,
+                    'due_date' => isset($link['end_datetime']) ? $link['end_datetime'] : null,
+                );
+                $this->attachGradeMenu($blank);
+                $row['menu'] = '';
+                $row['_html_menu'] = $blank['_html_menu'];
+                $row['_header_menu'] = $blank['_header_menu'];
+                continue;
+            }
+            $row[$key] = '';
+        }
+        return $row;
+    }
+
+    /**
+     * @param array<int,array<string,mixed>> $categories
+     * @param array<int,array<string,mixed>> $rows
+     * @param int $context_id
+     * @param int $user_id
+     */
+    private function renderGroupedGrades($categories, $rows, $context_id, $user_id)
+    {
+        $by_category = array();
+        foreach ( $rows as $row ) {
+            $category_id = (int) U::get($row, '_category_id', 0);
+            if ( ! isset($by_category[$category_id]) ) {
+                $by_category[$category_id] = array();
+            }
+            $by_category[$category_id][] = $row;
+        }
+
+        $work = $this->categoryWork($context_id, $user_id);
+        $included = $this->overallFromWork($categories, $work, 'include');
+        $after_due = $this->overallFromWork($categories, $work, 'due');
+        $this->echoOverallGrade(__('Overall, incomplete included'), $included['overall']);
+        $this->echoOverallGrade(__('Overall, zero after due date'), $after_due['overall']);
+
+        $shown = 0;
+        foreach ( $categories as $category ) {
+            $category_id = (int) $category['category_id'];
+            $group = isset($by_category[$category_id]) ? $by_category[$category_id] : array();
+            $has_work = isset($work[$category_id]) && count($work[$category_id]) > 0;
+            if ( count($group) < 1 && ! $has_work ) {
+                continue;
+            }
+            $shown += count($group);
+            if ( $has_work ) {
+                $shown++;
+            }
+            echo $this->categoryHeading(
+                (string) $category['title'],
+                (int) $category['grade_percent'],
+                (int) $category['extra_credit'] === 1,
+                $included['averages'][$category_id],
+                $after_due['averages'][$category_id]
+            );
+            if ( count($group) > 0 ) {
+                $this->renderGradeTable($group);
+            } else {
+                echo '<p>'.htmlspecialchars(__('No grades yet.'))."</p>\n";
+            }
+        }
+
+        $uncategorized = isset($by_category[0]) ? $by_category[0] : array();
+        if ( count($uncategorized) > 0 ) {
+            $shown += count($uncategorized);
+            echo '<h2 class="grade-category-heading">'.htmlspecialchars(__('Uncategorized')).'</h2>';
+            $this->renderGradeTable($uncategorized);
+        }
+
+        if ( $shown < 1 ) {
+            echo '<p>'.htmlspecialchars(__('Nothing to display.'))."</p>\n";
+        }
+    }
+
+    private function echoOverallGrade($label, $overall)
+    {
+        if ( $overall === null ) {
+            return;
+        }
+        echo '<p class="grade-overall"><strong>'.htmlspecialchars($label).'</strong> '
+            .htmlspecialchars(sprintf('%1.1f', $overall))."%</p>\n";
+    }
+
+    /**
+     * Visible links in a category, with this user's grade when one exists.
+     * A missing grade is blank. due_passed is 1 when end_datetime is in the past.
+     *
+     * @param int $context_id
+     * @param int $user_id
+     * @return array<int,array<int,array{grade:float|null,due_passed:int}>>
+     */
+    private function categoryWork($context_id, $user_id)
+    {
+        global $CFG, $PDOX;
+        if ( (int) $context_id < 1 || (int) $user_id < 1 ) {
+            return array();
+        }
+        LTIX::getConnection();
+        $p = $CFG->dbprefix;
+        $rows = $PDOX->allRowsDie(
+            "SELECT L.category_id AS category_id, R.grade AS grade,
+                CASE WHEN L.end_datetime IS NOT NULL AND L.end_datetime <= NOW() THEN 1 ELSE 0 END AS due_passed
+             FROM {$p}lti_link AS L
+             LEFT JOIN {$p}lti_result AS R
+                ON R.link_id = L.link_id AND R.user_id = :UID AND R.deleted = 0
+             WHERE L.context_id = :CID AND L.deleted = 0 AND L.hidden = 0
+               AND L.category_id IS NOT NULL",
+            array(':UID' => (int) $user_id, ':CID' => (int) $context_id)
+        );
+        $work = array();
+        foreach ( $rows as $row ) {
+            $category_id = (int) $row['category_id'];
+            $grade = $row['grade'];
+            if ( ! isset($work[$category_id]) ) {
+                $work[$category_id] = array();
+            }
+            $work[$category_id][] = array(
+                'grade' => ($grade === null || $grade === '') ? null : (float) $grade,
+                'due_passed' => (int) $row['due_passed'],
+            );
+        }
+        return $work;
+    }
+
+    /**
+     * include: a blank grade counts as zero.
+     * due: a blank grade counts as zero only after its due date.
+     * Regular weights are the denominator. Extra credit is added on top.
+     *
+     * @param array<int,array<string,mixed>> $categories
+     * @param array<int,array<int,array{grade:float|null,due_passed:int}>> $work
+     * @param string $mode include|due
+     * @return array{overall:float|null,averages:array<int,float|null>}
+     */
+    private function overallFromWork($categories, $work, $mode)
+    {
+        $averages = array();
+        $numerator = 0.0;
+        $denominator = 0.0;
+        foreach ( $categories as $category ) {
+            $category_id = (int) $category['category_id'];
+            $items = isset($work[$category_id]) ? $work[$category_id] : array();
+            $average = $this->categoryWorkAverage($items, $mode);
+            $averages[$category_id] = $average;
+            if ( $average === null ) {
+                continue;
+            }
+            $weight = (int) $category['grade_percent'];
+            if ( $weight < 1 ) {
+                continue;
+            }
+            $numerator += ($average / 100.0) * $weight;
+            if ( (int) $category['extra_credit'] !== 1 ) {
+                $denominator += $weight;
+            }
+        }
+        $overall = null;
+        if ( $denominator > 0 ) {
+            $overall = ($numerator / $denominator) * 100.0;
+        }
+        return array('overall' => $overall, 'averages' => $averages);
+    }
+
+    /**
+     * @param array<int,array{grade:float|null,due_passed:int}> $items
+     * @param string $mode include|due
+     */
+    private function categoryWorkAverage($items, $mode)
+    {
+        $sum = 0.0;
+        $count = 0;
+        foreach ( $items as $item ) {
+            if ( $item['grade'] !== null ) {
+                $sum += $item['grade'] * 100.0;
+                $count++;
+                continue;
+            }
+            if ( $mode === 'include' || ($mode === 'due' && (int) $item['due_passed'] === 1) ) {
+                $count++;
+            }
+        }
+        if ( $count < 1 ) {
+            return null;
+        }
+        return $sum / $count;
+    }
+
+    private function categoryHeading($title, $percent, $extra_credit, $included = null, $after_due = null)
+    {
+        $parts = array();
+        if ( $included !== null ) {
+            $parts[] = sprintf('%1.1f', $included).'% '.__('incomplete included');
+        }
+        if ( $after_due !== null ) {
+            $parts[] = sprintf('%1.1f', $after_due).'% '.__('zero after due date');
+        }
+        if ( $extra_credit ) {
+            $parts[] = (int) $percent.'% '.__('extra credit');
+        } else {
+            $parts[] = (int) $percent.'%';
+        }
+        return '<h2 class="grade-category-heading">'.htmlspecialchars($title)
+            .' <small>'.htmlspecialchars(implode(' · ', $parts)).'</small></h2>';
+    }
+
+    /**
+     * Column order follows the first row, then any later row that still has
+     * a server column because that result is sent upward.
+     *
+     * @param array<int,array<string,mixed>> $rows
+     * @return string[]
+     */
+    private function gradeTableColumns($rows)
+    {
+        $columns = array();
+        foreach ( $rows as $row ) {
+            foreach ( $row as $key => $value ) {
+                if ( isset($columns[$key]) ) {
+                    continue;
+                }
+                if ( strpos($key, '_') === 0 ) {
+                    continue;
+                }
+                if ( substr($key, -3) === '_id' && is_numeric($value) ) {
+                    continue;
+                }
+                $columns[$key] = true;
+            }
+        }
+        return array_keys($columns);
+    }
+
+    /**
+     * @param array<int,array<string,mixed>> $rows
+     */
+    private function renderGradeTable($rows)
+    {
+        if ( count($rows) < 1 ) {
+            return;
+        }
+        echo '<div style="padding:3px;">';
+        echo '<table border="1" class="table table-hover table-condensed table-responsive">';
+        $columns = $this->gradeTableColumns($rows);
+        echo '<thead><tr>';
+        foreach ( $columns as $key ) {
+            $header_key = '_header_'.$key;
+            echo '<th scope="col">';
+            if ( isset($rows[0][$header_key]) ) {
+                echo $rows[0][$header_key];
+            } else {
+                echo htmlspecialchars(ucwords(str_replace('_', ' ', $key)));
+            }
+            echo '</th>';
+        }
+        echo '</tr></thead><tbody>';
+        foreach ( $rows as $row ) {
+            echo '<tr>';
+            foreach ( $columns as $key ) {
+                $value = array_key_exists($key, $row) ? $row[$key] : '';
+                echo '<td>';
+                $html_key = '_html_'.$key;
+                if ( isset($row[$html_key]) && $row[$html_key] !== '' ) {
+                    echo $row[$html_key];
+                } else {
+                    echo htmlspecialchars((string) $value);
+                }
+                echo '</td>';
+            }
+            echo '</tr>';
+        }
+        echo '</tbody></table></div>';
+    }
+
+    private function printGradeCategoryStyles()
+    {
+        echo '<style>
+            .tsugi-grade-tabs { margin: 0 0 1em; }
+            .grade-overall { font-size: 1.3em; }
+            .grade-category-heading { margin-top: 1.25em; font-size: 1.4em; }
+            .grade-category-heading small { color: #777; font-weight: normal; }
+            .grade-kebab .btn-link { color: #333; padding: 0 0.4em; }
+            .grade-kebab-menu { min-width: 16em; padding: 0.35em 0; }
+            .grade-kebab-item { padding: 0.35em 1em; white-space: normal; }
+            .grade-kebab-label { display: block; color: #777; font-size: 0.85em; }
+            .grade-kebab-value { display: block; }
+            .grades-configuration .grades-section { margin-top: 1.5em; }
+            .grades-configuration h2 { margin-top: 0; }
+            .grades-configuration .grades-percent { width: 5.5em; }
+            .grades-configuration .form-inline { display: inline-block; margin: 0 0.25em 0.25em 0; vertical-align: middle; }
+        </style>';
+    }
+
+    private function finishGradePage()
+    {
+        global $OUTPUT;
+        $OUTPUT->footerStart();
+        echo "<script>$(function(){\n";
+        echo "  if (location.hash === '#outline-view') {\n";
+        echo "    var outlineTab = $('#outline-view-tab');\n";
+        echo "    if (outlineTab.length) outlineTab.tab('show');\n";
+        echo "  }\n";
+        echo "});</script>\n";
+        $OUTPUT->footerEnd();
     }
 }

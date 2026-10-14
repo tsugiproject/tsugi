@@ -452,7 +452,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->waitForPageText($client, 'Class: '.$courseTitle);
         $this->waitForPageText($client, 'View My Grades');
 
-        $driver->get($courseHome.'/assignments/student-progress');
+        $driver->get($courseHome.'/grades/student-progress');
         $this->waitForPageText($client, 'Student Progress');
 
         $driver->get($courseHome.'/settings/export');
@@ -517,7 +517,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->executeScript('saveChanges()');
         $this->acceptAlertContaining($driver, 'saved');
 
-        $driver->get($courseHome.'/assignments/manage-due-dates');
+        $driver->get($courseHome.'/grades/manage-due-dates');
         $this->waitForPageText($client, 'Manage due dates');
         $this->waitForPageText($client, $itemTitle);
 

@@ -392,6 +392,7 @@ array( "{$CFG->dbprefix}manifest",
 // total 100. extra_credit is outside that 100: its percent is added to
 // the numerator and left out of the denominator. The database does not
 // check that the regular percents sum to 100.
+// position is the grade book order. Lower numbers come first.
 // Delete is real. lti_link.category_id is ON DELETE SET NULL, so the
 // links stay and become uncategorized. A soft-delete flag would leave
 // that foreign key set, so this table has none.
@@ -408,6 +409,9 @@ array( "{$CFG->dbprefix}lti_category",
     -- Extra credit adds grade_percent to the numerator only.
     -- Regular categories are the denominator.
     extra_credit        TINYINT(1) NOT NULL DEFAULT 0,
+
+    -- Grade book order. Lower numbers come first.
+    position            INTEGER NOT NULL DEFAULT 0,
 
     entity_version      INTEGER NOT NULL DEFAULT 0,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1519,6 +1523,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         // 2026-10-13 Extra credit is outside the 100. Existing categories stay regular.
         array('lti_category', 'extra_credit', 'TINYINT(1) NOT NULL DEFAULT 0'),
 
+        // 2026-10-13 Grade book category order. Lower numbers come first.
+        array('lti_category', 'position', 'INTEGER NOT NULL DEFAULT 0'),
+
         // 2026-09-23 Numerator and AGS submission.startedAt on the result.
         array('lti_result', 'score_given', 'DOUBLE NULL'),
         array('lti_result', 'started_at', 'TIMESTAMP NULL'),
@@ -2360,7 +2367,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610130001;
+    return 202610130002;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
