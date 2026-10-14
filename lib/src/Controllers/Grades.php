@@ -27,6 +27,15 @@ class Grades extends Tool {
     /** @var int */
     private static $gradeKebabSeq = 0;
 
+    /** @var array<string,array{href:string,blank:bool,students:bool}>|null */
+    private $lessonLaunchHrefCache = null;
+
+    /** @var array<string,bool>|null */
+    private $linkHiddenCache = null;
+
+    /** @var array<int,array{link_key:string,link_id:int}>|null */
+    private $publishedQuizById = null;
+
     public static function routes(Application $app, $prefix=self::ROUTE) {
         $app->router->get($prefix, 'Grades@index');
         $app->router->get($prefix.'/', 'Grades@index');
@@ -533,7 +542,8 @@ class Grades extends Tool {
         
         $tool_home = $this->toolHome(self::ROUTE);
         $is_admin = $this->isAdmin();
-        $show_analytics = $is_instructor || $is_admin;
+        $analytics_url = $this->gradeAnalyticsUrl($tool_home);
+        $show_analytics = $analytics_url !== '';
         $class_url = '';
         $force_url = '';
         if ( $is_instructor ) {
@@ -545,7 +555,6 @@ class Grades extends Tool {
                 (int) $view_user_id !== (int) $user_id
             );
         }
-        $analytics_url = $show_analytics ? $tool_home . '/analytics' : '';
         $lesson_urls = $this->lessonGradeUrls();
 
         $force = $request->query->has('force') && $request->query->get('force') == 'yes';
@@ -569,6 +578,7 @@ class Grades extends Tool {
         $this->addGradeBookCodeColumn($rows, $is_instructor);
         $processed = $this->processGradeRows($rows, $force);
         $showrows = $processed['rows'];
+        $this->linkLaunchableTitles($showrows);
         $retrieval_debug = $processed['debug'];
         
         $OUTPUT->header();
@@ -699,36 +709,19 @@ class Grades extends Tool {
         $links = $lstmt->fetchAll();
         
         $tool_home = $this->toolHome(self::ROUTE);
-        $menu = false;
-        if ( $links !== false && count($links) > 0 ) {
-            $menu = new \Tsugi\UI\MenuSet();
-            $submenu = new \Tsugi\UI\Menu();
-            foreach($links as $link) {
-                $link_url = $tool_home . '/class?link_id='.$link['link_id'];
-                $link_title = $link['title'];
-                if ( (int) $link['hidden'] === 1 ) {
-                    $link_title .= ' ('.__('hidden').')';
-                }
-                $submenu->addLink($link_title, $link_url);
-            }
-            $menu->addRight(__('Activity Detail'), $submenu);
-        }
 
         // Record analytics (instructors don't get recorded, but we can still track the page)
         $this->lmsRecordLaunchAnalytics(self::ROUTE, 'Grade Book');
 
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav($menu);
+        $OUTPUT->topNav(false);
         $OUTPUT->flashMessages();
         \Tsugi\Controllers\Lessons::printLtiProgressStyles();
         ?>
         <main class="container" id="main-content">
         <h1><?= __('Grade Book') ?></h1>
         <p>Class: <?= htmlspecialchars($context_title) ?></p>
-        <?php if ( $link_info ): ?>
-        <p>Link: <?= htmlspecialchars($link_info["title"]) ?></p>
-        <?php endif; ?>
         <?php
         $this->printGradeCategoryStyles();
         $lesson_urls = $this->lessonGradeUrls();
@@ -738,12 +731,13 @@ class Grades extends Tool {
             'grades_href' => $tool_home,
             'class_url' => $tool_home . '/class',
             'force_url' => $this->forceReloadUrl($context_id, ReqScope::loggedInUserId(), $tool_home, false),
-            'analytics_url' => $tool_home . '/analytics',
+            'analytics_url' => $this->gradeAnalyticsUrl($tool_home),
             'configure_url' => $tool_home . '/configuration',
             'due_dates_url' => $lesson_urls['due_dates_url'],
             'progress_url' => $lesson_urls['progress_url'],
         ));
-        
+        $activity_html = $this->renderActivityDetail($links, $tool_home, $link_id, $link_info);
+
         // Build detail URL for pagedAuto - link to index (single-student view) so clicking
         // a student in the class list dives into that student's grade detail
         $detail_url = U::reconstruct_query($tool_home, array("detail" => ""));
@@ -754,7 +748,7 @@ class Grades extends Tool {
                 $params['order_by'] = 'latest_grade_updated_at';
                 $params['desc'] = 1;
             }
-            Table::pagedAuto($summary_sql, $query_parms, $searchfields, $orderfields, $detail_url, $params);
+            Table::pagedAuto($summary_sql, $query_parms, $searchfields, $orderfields, $detail_url, $params, false, $activity_html);
         }
         
         if ( $class_sql !== false ) {
@@ -765,12 +759,49 @@ class Grades extends Tool {
             $this->attachGradeMenus($class_rows, false);
             $this->formatResultGrades($class_rows);
             $this->dropServerColumnsUnlessUpward($class_rows);
-            Table::pagedTable($this->withUniformServerColumns($class_rows), $searchfields, $searchfields, $detail_url, $params);
+            Table::pagedTable($this->withUniformServerColumns($class_rows), $searchfields, $searchfields, $detail_url, $params, false, $activity_html);
         }
         ?>
         </main>
         <?php
         $this->finishGradePage();
+    }
+
+    /**
+     * Activity list and the open activity, after the search and sort buttons.
+     *
+     * @param array<int,array<string,mixed>>|false $links
+     * @param array<string,mixed>|false $link_info
+     */
+    private function renderActivityDetail($links, $tool_home, $link_id, $link_info)
+    {
+        if ( ! is_array($links) || count($links) < 1 ) {
+            return '';
+        }
+        $html = '<div class="grade-activity">';
+        $html .= '<div class="dropdown">';
+        $html .= '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">';
+        $html .= htmlspecialchars(__('Activity Detail')).' <span class="caret"></span>';
+        $html .= '</button>';
+        $html .= '<ul class="dropdown-menu">';
+        foreach ( $links as $link ) {
+            $id = (int) $link['link_id'];
+            $title = (string) $link['title'];
+            if ( (int) $link['hidden'] === 1 ) {
+                $title .= ' ('.__('hidden').')';
+            }
+            $href = $tool_home.'/class?link_id='.$id;
+            $html .= '<li'.($id === (int) $link_id ? ' class="active"' : '').'>';
+            $html .= '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'">'.htmlspecialchars($title).'</a>';
+            $html .= '</li>';
+        }
+        $html .= '</ul></div>';
+        if ( is_array($link_info) && isset($link_info['title']) ) {
+            $html .= '<span class="grade-activity-current">'.htmlspecialchars(__('Link:')).' '
+                .htmlspecialchars((string) $link_info['title']).'</span>';
+        }
+        $html .= "</div>\n";
+        return $html;
     }
 
     /**
@@ -806,7 +837,7 @@ class Grades extends Tool {
             'grades_href' => $home,
             'class_url' => $home.'/class',
             'force_url' => $this->forceReloadUrl($context_id, ReqScope::loggedInUserId(), $home, false),
-            'analytics_url' => $home.'/analytics',
+            'analytics_url' => $this->gradeAnalyticsUrl($home),
             'configure_url' => $home.'/configuration',
             'due_dates_url' => $lesson_urls['due_dates_url'],
             'progress_url' => $lesson_urls['progress_url'],
@@ -1314,6 +1345,9 @@ class Grades extends Tool {
      */
     public function analytics(Request $request)
     {
+        if ( ! $this->isLtiLaunchSession() ) {
+            return new RedirectResponse($this->toolHome(self::ROUTE));
+        }
         return $this->showAnalytics(self::ROUTE, 'Grade Book');
     }
 
@@ -1635,7 +1669,7 @@ class Grades extends Tool {
             $this->renderHrefTab('analytics-tab', __('Analytics'), $nav['analytics_url'], false);
         }
         if ( $nav['configure_url'] !== '' ) {
-            $this->renderGradeConfigurationTab($nav['configure_url'], $nav['active'] === 'configuration');
+            $this->renderHrefTab('grade-config-tab', __('Configuration'), $nav['configure_url'], $nav['active'] === 'configuration');
         }
         if ( $nav['force_url'] !== '' ) {
             $this->renderHrefTab('force-reload-tab', __('Force Reload'), $nav['force_url'], false);
@@ -1662,6 +1696,30 @@ class Grades extends Tool {
      *
      * @return array{due_dates_url:string,progress_url:string}
      */
+    /**
+     * The grade book analytics tab is for an LMS launch of this tool.
+     * A course login does not have the launch post, so the tab stays hidden.
+     */
+    private function isLtiLaunchSession()
+    {
+        $postKey = defined('TSUGI_SESSION_LTI_POST') ? TSUGI_SESSION_LTI_POST : 'lti_post';
+        return ! empty($_SESSION[$postKey]);
+    }
+
+    /**
+     * @param string $home
+     */
+    private function gradeAnalyticsUrl($home)
+    {
+        if ( ! $this->isLtiLaunchSession() ) {
+            return '';
+        }
+        if ( ! $this->isInstructor() && ! $this->isAdmin() ) {
+            return '';
+        }
+        return $home.'/analytics';
+    }
+
     private function lessonGradeUrls()
     {
         if ( ! $this->isInstructor() || ! Manifest::hasCurrent() ) {
@@ -1690,7 +1748,7 @@ class Grades extends Tool {
             'grades_href' => $home,
             'class_url' => $home.'/class',
             'force_url' => $this->forceReloadUrl(ReqScope::currentContextId(), ReqScope::loggedInUserId(), $home, false),
-            'analytics_url' => $home.'/analytics',
+            'analytics_url' => $this->gradeAnalyticsUrl($home),
             'configure_url' => $home.'/configuration',
             'due_dates_url' => $lesson_urls['due_dates_url'],
             'progress_url' => $lesson_urls['progress_url'],
@@ -1783,23 +1841,6 @@ class Grades extends Tool {
         }
         $lessons = Manifest::currentLessons();
         return $lessons && isset($lessons->lessons->modules) && is_array($lessons->lessons->modules);
-    }
-
-    private function renderGradeConfigurationTab($href, $active)
-    {
-        $hidden_count = 0;
-        foreach ( GradeCategoryRepository::gradeColumns(ReqScope::currentContextId()) as $column ) {
-            if ( (int) $column['hidden'] === 1 ) {
-                $hidden_count++;
-            }
-        }
-        echo '<li'.($active ? ' class="active"' : '').' role="presentation">';
-        echo '<a href="'.htmlspecialchars($href, ENT_QUOTES, 'UTF-8').'" id="grade-config-tab">';
-        echo htmlspecialchars(__('Configuration'));
-        if ( $hidden_count > 0 ) {
-            echo ' <span class="badge">'.(int) $hidden_count.' '.htmlspecialchars(__('hidden')).'</span>';
-        }
-        echo '</a></li>';
     }
 
     /**
@@ -1927,6 +1968,314 @@ class Grades extends Tool {
     }
 
     /**
+     * Point a grade or outline title at the lessons launch for that resource link.
+     *
+     * @param array<int,array<string,mixed>> $rows
+     */
+    private function linkLaunchableTitles(&$rows)
+    {
+        foreach ( $rows as &$row ) {
+            $this->linkLaunchableTitle($row, U::get($row, '_link_key', ''));
+        }
+        unset($row);
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     * @param mixed $link_key
+     */
+    private function linkLaunchableTitle(&$row, $link_key)
+    {
+        $key = trim((string) $link_key);
+        if ( $key === '' ) {
+            return;
+        }
+        $hrefs = $this->lessonLaunchHrefs();
+        if ( ! isset($hrefs[$key]) ) {
+            return;
+        }
+        $launch = $hrefs[$key];
+        if ( empty($launch['students']) && ! $this->isInstructor() ) {
+            return;
+        }
+        $title = (string) U::get($row, 'title', '');
+        $attrs = ! empty($launch['blank']) ? ' target="_blank" rel="noopener noreferrer"' : '';
+        $row['_html_title'] = '<a href="'.htmlspecialchars($launch['href'], ENT_QUOTES, 'UTF-8').'"'.$attrs.'>'
+            .htmlspecialchars($title).'</a>';
+    }
+
+    /**
+     * Resource link id to the lessons launch, for items lessons itself links.
+     * blank is true when lessons opens that launch in a new tab.
+     * students is false when a learner may not launch it.
+     *
+     * @return array<string,array{href:string,blank:bool,students:bool}>
+     */
+    private function lessonLaunchHrefs()
+    {
+        if ( $this->lessonLaunchHrefCache !== null ) {
+            return $this->lessonLaunchHrefCache;
+        }
+        $hrefs = array();
+        $this->lessonLaunchHrefCache = $hrefs;
+        if ( ! Manifest::hasCurrent() ) {
+            return $hrefs;
+        }
+        $service = Manifest::currentLessons();
+        if ( ! $service || ! isset($service->lessons->modules) || ! is_array($service->lessons->modules) ) {
+            return $hrefs;
+        }
+        $manifest_course = Manifest::resolvedId() > 0;
+        foreach ( $service->lessons->modules as $module ) {
+            if ( isset($module->hidden) && $module->hidden ) {
+                continue;
+            }
+            $anchor = isset($module->anchor) ? trim((string) $module->anchor) : '';
+            foreach ( $this->moduleLaunchItems($module) as $item ) {
+                $this->rememberLaunchHref($hrefs, $service, $item, $manifest_course, $anchor);
+            }
+        }
+        if ( isset($service->lessons->launches) ) {
+            foreach ( $service->getLaunches() as $launch ) {
+                $this->rememberLaunchHref($hrefs, $service, $launch, $manifest_course);
+            }
+        }
+        $this->lessonLaunchHrefCache = $hrefs;
+        return $hrefs;
+    }
+
+    /**
+     * @param array<string,array{href:string,blank:bool,students:bool}> $hrefs
+     * @param object $item
+     * @param string $anchor Lesson module anchor, so a quiz can return there
+     */
+    private function rememberLaunchHref(&$hrefs, LessonsService $service, $item, $manifest_course, $anchor = '')
+    {
+        if ( ! is_object($item) ) {
+            return;
+        }
+        if ( $manifest_course && LessonsNormalize::isAssignmentLti($item) ) {
+            $deployment = isset($item->tool_deployment_id) ? (int) $item->tool_deployment_id : 0;
+            $content_id = isset($item->content_id) ? (int) $item->content_id : 0;
+            if ( $deployment < 1 && $content_id < 1 ) {
+                return;
+            }
+        }
+        $resource_link_id = $this->itemResourceLinkId($item);
+        if ( $resource_link_id === '' || isset($hrefs[$resource_link_id]) ) {
+            return;
+        }
+        $href = $this->lessonItemHref($service, $item, $resource_link_id, $anchor);
+        if ( $href === '' ) {
+            return;
+        }
+        $hrefs[$resource_link_id] = array(
+            'href' => $href,
+            'blank' => $this->lessonItemOpensNewWindow($item),
+            'students' => $this->lessonStudentsMayLaunch($service, $item, $resource_link_id),
+        );
+    }
+
+    /**
+     * Students do not launch a hidden link or an unpublished tool.
+     * A discussion stays available, matching lessons. No link row stays available.
+     *
+     * @param object $item
+     */
+    private function lessonStudentsMayLaunch(LessonsService $service, $item, $resource_link_id)
+    {
+        if ( $this->linkRowHidden($resource_link_id) ) {
+            return false;
+        }
+        if ( LessonsNormalize::isDiscussion($item) ) {
+            return true;
+        }
+        $content_id = isset($item->content_id) ? (int) $item->content_id : 0;
+        if ( $content_id > 0 ) {
+            return LtiContentService::studentVisible(ReqScope::currentContextId(), $content_id) === true;
+        }
+        return $service->resourceLinkPublished($resource_link_id) !== false;
+    }
+
+    /**
+     * @param mixed $link_key
+     */
+    private function linkRowHidden($link_key)
+    {
+        $key = trim((string) $link_key);
+        if ( $key === '' ) {
+            return false;
+        }
+        if ( $this->linkHiddenCache === null ) {
+            $this->linkHiddenCache = array();
+            $context_id = ReqScope::currentContextIdLegacy();
+            if ( $context_id > 0 ) {
+                global $CFG, $PDOX;
+                LTIX::getConnection();
+                $rows = $PDOX->allRowsDie(
+                    "SELECT link_key, hidden FROM {$CFG->dbprefix}lti_link WHERE context_id = :CID",
+                    array(':CID' => $context_id)
+                );
+                if ( is_array($rows) ) {
+                    foreach ( $rows as $row ) {
+                        $row_key = trim((string) $row['link_key']);
+                        if ( $row_key === '' ) {
+                            continue;
+                        }
+                        $this->linkHiddenCache[$row_key] = ((int) $row['hidden']) === 1;
+                    }
+                }
+            }
+        }
+        return ! empty($this->linkHiddenCache[$key]);
+    }
+
+    /**
+     * Same window unless this launch should open in a new tab.
+     * New tab is target _blank, blank, window, or modal. A content row stored
+     * as iframe is the modal case. Inline embed stays in this window.
+     *
+     * @param object $item
+     */
+    private function lessonItemOpensNewWindow($item)
+    {
+        if ( LessonsNormalize::isNativeQuiz($item) ) {
+            return false;
+        }
+        $content_id = isset($item->content_id) ? (int) $item->content_id : 0;
+        if ( $content_id > 0 ) {
+            $row = LtiContentService::find(ReqScope::currentContextId(), $content_id);
+            $stored = is_array($row) && isset($row['target']) ? strtolower(trim((string) $row['target'])) : '';
+            return $stored !== 'inline';
+        }
+        if ( LessonsNormalize::isDiscussion($item) ) {
+            return false;
+        }
+        $target = isset($item->target) ? strtolower(trim((string) $item->target)) : '';
+        return $target === '_blank' || $target === 'blank' || $target === 'window' || $target === 'modal';
+    }
+
+    /**
+     * @param object $item
+     */
+    private function lessonItemHref(LessonsService $service, $item, $resource_link_id, $anchor = '')
+    {
+        if ( LessonsNormalize::isNativeQuiz($item) ) {
+            return $this->quizLaunchHref($item, $anchor);
+        }
+        if ( LessonsNormalize::isDiscussion($item) ) {
+            global $CFG;
+            $use_launch = is_object($CFG) && method_exists($CFG, 'getExtension')
+                ? (bool) $CFG->getExtension('discussion_lti_launch', false)
+                : false;
+            if ( ! $use_launch ) {
+                $home = self::determineToolHome(Discussions::ROUTE);
+                if ( is_string($home) && $home !== '' ) {
+                    return $home.'/'.rawurlencode($resource_link_id);
+                }
+            }
+        }
+        return $service->lessonsLaunchPath($resource_link_id);
+    }
+
+    /**
+     * Same take link lessons uses for a published Quiz1 item.
+     *
+     * @param object $item
+     */
+    private function quizLaunchHref($item, $anchor)
+    {
+        $quiz = $this->publishedQuizLink(LessonsNormalize::quizIdOf($item));
+        if ( $quiz === null ) {
+            return '';
+        }
+        $home = self::determineToolHome(Quiz1::ROUTE);
+        if ( ! is_string($home) || $home === '' ) {
+            return '';
+        }
+        $href = U::addSession(self::joinToolHome($home, 'link/'.(string) $quiz['link_id']));
+        $anchor = trim((string) $anchor);
+        if ( $anchor !== '' && preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$/', $anchor) ) {
+            $href .= (str_contains($href, '?') ? '&' : '?').'from='.rawurlencode($anchor);
+        }
+        return $href;
+    }
+
+    /**
+     * Published Quiz1 link for this course. Hidden and unpublished quizzes are omitted.
+     *
+     * @return array{link_key:string,link_id:int}|null
+     */
+    private function publishedQuizLink($quiz_id)
+    {
+        $quiz_id = (int) $quiz_id;
+        if ( $this->publishedQuizById === null ) {
+            $this->publishedQuizById = array();
+            $context_id = ReqScope::currentContextId();
+            if ( $context_id < 1 ) {
+                $context_id = ReqScope::currentContextIdLegacy();
+            }
+            if ( $context_id > 0 ) {
+                global $CFG, $PDOX;
+                LTIX::getConnection();
+                $rows = $PDOX->allRowsDie(
+                    "SELECT Q.quiz_id AS quiz_id, L.link_id AS link_id, L.link_key AS link_key
+                     FROM {$CFG->dbprefix}quiz1_quiz AS Q
+                     JOIN {$CFG->dbprefix}lti_link AS L ON L.link_id = Q.link_id
+                     WHERE Q.context_id = :CID AND L.context_id = :CID
+                       AND L.deleted = 0 AND L.hidden = 0 AND L.published = 1",
+                    array(':CID' => $context_id)
+                );
+                if ( is_array($rows) ) {
+                    foreach ( $rows as $row ) {
+                        $id = (int) $row['quiz_id'];
+                        $key = trim((string) $row['link_key']);
+                        $link_id = (int) $row['link_id'];
+                        if ( $id < 1 || $link_id < 1 || $key === '' ) {
+                            continue;
+                        }
+                        $this->publishedQuizById[$id] = array(
+                            'link_key' => $key,
+                            'link_id' => $link_id,
+                        );
+                    }
+                }
+            }
+        }
+        if ( $quiz_id < 1 || ! isset($this->publishedQuizById[$quiz_id]) ) {
+            return null;
+        }
+        return $this->publishedQuizById[$quiz_id];
+    }
+
+    /**
+     * @return object[]
+     */
+    private function moduleLaunchItems($module)
+    {
+        $items = array();
+        if ( isset($module->items) && is_array($module->items) ) {
+            foreach ( $module->items as $item ) {
+                $items[] = is_array($item) ? (object) $item : $item;
+            }
+            return $items;
+        }
+        foreach ( array('lti', 'discussions') as $field ) {
+            if ( ! isset($module->$field) ) {
+                continue;
+            }
+            $list = $module->$field;
+            if ( ! is_array($list) ) {
+                $list = array($list);
+            }
+            foreach ( $list as $item ) {
+                $items[] = is_array($item) ? (object) $item : $item;
+            }
+        }
+        return $items;
+    }
+
+    /**
      * Resource link ids in outline order. Items take precedence over legacy lists.
      *
      * @return string[]
@@ -1971,6 +2320,10 @@ class Grades extends Tool {
         }
         if ( ! is_object($item) || (isset($item->hidden) && $item->hidden) ) {
             return '';
+        }
+        if ( LessonsNormalize::isNativeQuiz($item) ) {
+            $quiz = $this->publishedQuizLink(LessonsNormalize::quizIdOf($item));
+            return $quiz === null ? '' : $quiz['link_key'];
         }
         $content_id = isset($item->content_id) ? (int) $item->content_id : 0;
         if ( $content_id > 0 ) {
@@ -2025,6 +2378,7 @@ class Grades extends Tool {
             if ( $key === 'title' ) {
                 $title = trim((string) $link['title']);
                 $row[$key] = $title === '' ? (string) $link['link_key'] : $title;
+                $this->linkLaunchableTitle($row, $link['link_key']);
                 continue;
             }
             if ( $key === 'due_date' ) {
@@ -2068,7 +2422,9 @@ class Grades extends Tool {
         $included = $this->overallFromWork($categories, $work, 'include');
         $after_due = $this->overallFromWork($categories, $work, 'due');
         $this->echoOverallGrade(__('Overall, incomplete included'), $included['overall']);
-        $this->echoOverallGrade(__('Overall, zero after due date'), $after_due['overall']);
+        if ( ! $this->sameOverall($included['overall'], $after_due['overall']) ) {
+            $this->echoOverallGrade(__('Overall, zero after due date'), $after_due['overall']);
+        }
 
         $shown = 0;
         foreach ( $categories as $category ) {
@@ -2115,6 +2471,20 @@ class Grades extends Tool {
         }
         echo '<p class="grade-overall"><strong>'.htmlspecialchars($label).'</strong> '
             .htmlspecialchars(sprintf('%1.1f', $overall))."%</p>\n";
+    }
+
+    /**
+     * True when both overalls are missing or they display as the same percent.
+     *
+     * @param float|null $left
+     * @param float|null $right
+     */
+    private function sameOverall($left, $right)
+    {
+        if ( $left === null || $right === null ) {
+            return $left === null && $right === null;
+        }
+        return sprintf('%1.1f', $left) === sprintf('%1.1f', $right);
     }
 
     /**
@@ -2311,6 +2681,9 @@ class Grades extends Tool {
     {
         echo '<style>
             .tsugi-grade-tabs { margin: 0 0 1em; }
+            .grade-activity { display: inline-block; margin: 0 0 0.5em 0.75em; vertical-align: middle; }
+            .grade-activity .dropdown { display: inline-block; margin-right: 0.75em; vertical-align: middle; }
+            .grade-activity-current { vertical-align: middle; }
             .grade-overall { font-size: 1.3em; }
             .grade-category-heading { margin-top: 1.25em; font-size: 1.4em; }
             .grade-category-heading small { color: #777; font-weight: normal; }

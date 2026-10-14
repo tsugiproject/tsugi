@@ -154,7 +154,7 @@ class Table {
         return $newsql . "\n";
     }
 
-    public static function pagedHeader($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false, $extra_buttons=false) {
+    public static function pagedHeader($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false, $extra_buttons=false, $after_html='') {
         if ( $params === false ) $params = $_GET;
         if ( $orderfields === false ) $orderfields = $searchfields;
 
@@ -260,15 +260,18 @@ class Table {
             echo('<a href="'.$button_url.'" class="btn btn-default">'._m($button_text).'</a>'."\n");
         }
     }
+    if ( is_string($after_html) && $after_html !== '' ) {
+        echo($after_html);
+    }
     ?>
     </form>
     <?php
     }
 
-    public static function pagedTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false, $extra_buttons=false) 
+    public static function pagedTable($rows, $searchfields=array(), $orderfields=false, $view=false, $params=false, $extra_buttons=false, $after_html='') 
     {
         if ( $params === false ) $params = $_GET;
-        self::pagedHeader($rows, $searchfields, $orderfields, $view, $params, $extra_buttons);
+        self::pagedHeader($rows, $searchfields, $orderfields, $view, $params, $extra_buttons, $after_html);
 
         $count = count($rows);
 
@@ -410,7 +413,7 @@ class Table {
     }
 
     public static function pagedAuto($sql, $query_parms, $searchfields,
-        $orderfields=false, $view=false, $params=false, $buttons=false) {
+        $orderfields=false, $view=false, $params=false, $buttons=false, $after_html='') {
         global $PDOX;
 
         if ( $params === false ) $params = $_GET;
@@ -421,7 +424,7 @@ class Table {
 
         $rows = $PDOX->allRowsDie($newsql, $query_parms);
 
-        Table::pagedTable($rows, $searchfields, $orderfields, $view, $params, $buttons);
+        Table::pagedTable($rows, $searchfields, $orderfields, $view, $params, $buttons, $after_html);
     }
 
 }
