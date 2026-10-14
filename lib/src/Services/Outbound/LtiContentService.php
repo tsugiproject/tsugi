@@ -410,6 +410,48 @@ class LtiContentService {
     }
 
     /**
+     * Grade column for a launch that sends a grade and does not have one yet.
+     * A launch that already has a column is left alone, including its published flag.
+     * A new or newly attached column copies this row's published flag, so an
+     * unpublished tool stays unpublished.
+     *
+     * @param int $contextId
+     * @param int $contentId
+     * @return int|null link_id, or null when this launch is missing or not gradable
+     */
+    public static function ensureGradeColumnForLaunch($contextId, $contentId) {
+        $contextId = (int) $contextId;
+        $row = self::find($contextId, (int) $contentId);
+        if ( $row === null ) {
+            return null;
+        }
+        if ( ! empty($row['link_id']) ) {
+            return (int) $row['link_id'];
+        }
+        if ( (int) ($row['send_grade'] ?? 0) !== 1 ) {
+            return null;
+        }
+        $published = (int) ($row['published'] ?? 0) === 1 ? 1 : 0;
+        self::ensureGradeColumn($row);
+        $row = self::find($contextId, (int) $contentId);
+        if ( $row === null || empty($row['link_id']) ) {
+            return null;
+        }
+        $p = self::prefix();
+        self::db()->queryDie(
+            "UPDATE {$p}lti_link
+             SET published = :published, updated_at = NOW()
+             WHERE link_id = :link_id AND context_id = :context_id",
+            array(
+                ':published' => $published,
+                ':link_id' => (int) $row['link_id'],
+                ':context_id' => $contextId,
+            )
+        );
+        return (int) $row['link_id'];
+    }
+
+    /**
      * @param int $toolDeploymentId
      * @return array{send_name:bool, send_email:bool, send_grade:bool}
      */

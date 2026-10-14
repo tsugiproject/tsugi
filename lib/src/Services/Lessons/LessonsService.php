@@ -954,6 +954,7 @@ class LessonsService {
     public function enumerateLtiAssignmentItems($for_due_date_management = false) {
         $list = array();
         foreach ( $this->lessons->modules as $modIndex => $module ) {
+            $moduleHidden = isset($module->hidden) && $module->hidden;
             if ( isset($module->items) ) {
                 foreach ( $module->items as $item ) {
                     $contentRow = self::contentAssignmentRow($item);
@@ -965,6 +966,7 @@ class LessonsService {
                             'module_index' => (int) $modIndex,
                             'module_title' => $module->title,
                             'module_anchor' => isset($module->anchor) ? $module->anchor : '',
+                            'module_hidden' => $moduleHidden,
                             'item_title' => $contentRow['title'],
                             'resource_link_id' => $contentRow['resource_link_id'],
                             'participates_in_grades' => ! empty($contentRow['graded']),
@@ -981,6 +983,7 @@ class LessonsService {
                         'module_index' => (int) $modIndex,
                         'module_title' => $module->title,
                         'module_anchor' => isset($module->anchor) ? $module->anchor : '',
+                        'module_hidden' => $moduleHidden,
                         'item_title' => isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'),
                         'resource_link_id' => $item->resource_link_id,
                         'participates_in_grades' => self::ltiLaunchIsGraded($item),
@@ -1002,6 +1005,7 @@ class LessonsService {
                         'module_index' => (int) $modIndex,
                         'module_title' => $module->title,
                         'module_anchor' => isset($module->anchor) ? $module->anchor : '',
+                        'module_hidden' => $moduleHidden,
                         'item_title' => $lti->title,
                         'resource_link_id' => $lti->resource_link_id,
                         'participates_in_grades' => self::ltiLaunchIsGraded($lti),

@@ -12,6 +12,7 @@ use Tsugi\Core\Manifest;
 use Tsugi\Services\Lessons\LessonsNormalize;
 use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Outbound\LtiContentService;
+use Tsugi\Services\Quiz1\Quiz1Repository;
 
 use Tsugi\Core\ReqScope;
 use Tsugi\Grades\GradeUtil;
@@ -956,7 +957,8 @@ class Grades extends Tool {
         $this->requireLessonGrades();
         $context_id = ReqScope::currentContextId();
         $l = Manifest::requireCurrentLessons();
-        $items = $l->enumerateLtiAssignmentItems(true);
+        $manifest = $this->manifestCourse();
+        $items = $this->dueDateItems($l, $manifest);
         $dueMap = GradeUtil::loadDueDatesForContext($context_id);
         $dates_url = $this->dueDatesUrl();
 
@@ -970,22 +972,31 @@ class Grades extends Tool {
             return;
         }
 
-        $missingRlids = array();
-        foreach ( $items as $it ) {
-            $r = $it['resource_link_id'];
-            if ( ! array_key_exists($r, $dueMap) ) {
-                $missingRlids[$r] = true;
+        $missingCount = 0;
+        if ( $manifest ) {
+            $missingCount = count($this->manifestMissingGradeRows($l, $context_id));
+        } else {
+            $missingRlids = array();
+            foreach ( $items as $it ) {
+                $r = $it['resource_link_id'];
+                if ( ! array_key_exists($r, $dueMap) ) {
+                    $missingRlids[$r] = true;
+                }
             }
+            $missingCount = count($missingRlids);
         }
-        $missingCount = count($missingRlids);
 
         if ( $missingCount > 0 ) {
             echo('<div class="well" style="margin-bottom:1.5em;">');
             echo('<p><strong>'.__('Add missing link rows').'</strong></p>');
-            echo('<p>'.__('Creates an lti_link row for each lesson assignment that does not have one in this course yet, using the same insert as an LTI launch (<code>ON DUPLICATE KEY UPDATE</code>). If a row already exists for that resource link in this context, nothing is duplicated; a later launch only refreshes <code>updated_at</code>.').'</p>');
-            echo('<p class="text-warning"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> ');
-            echo(__('The resource link id in your lessons file must match the LMS resource link id when students launch, or launches will create a different row.'));
-            echo('</p>');
+            if ( $manifest ) {
+                echo('<p>'.__('Creates a grade column for each gradable tool that does not have one, and an unpublished link for each quiz that does not have one. A tool or quiz that is already published stays published, so students do not gain access from this button.').'</p>');
+            } else {
+                echo('<p>'.__('Creates an lti_link row for each lesson assignment that does not have one in this course yet, using the same insert as an LTI launch (<code>ON DUPLICATE KEY UPDATE</code>). If a row already exists for that resource link in this context, nothing is duplicated; a later launch only refreshes <code>updated_at</code>.').'</p>');
+                echo('<p class="text-warning"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> ');
+                echo(__('The resource link id in your lessons file must match the LMS resource link id when students launch, or launches will create a different row.'));
+                echo('</p>');
+            }
             echo('<form method="post" action="'.htmlspecialchars($dates_url.'/add-link-rows').'">');
             echo(self::csrfField());
             echo('<button type="submit" class="btn btn-default">');
@@ -1026,6 +1037,8 @@ class Grades extends Tool {
         echo('<table class="table table-bordered table-striped">'."\n");
         echo('<thead><tr><th>'.__('Module').'</th><th>'.__('Assignment').'</th><th>'.__('Resource link').'</th><th>'.__('Due date').'</th></tr></thead>'."\n");
         echo("<tbody>\n");
+        $linkFlags = $this->dueDateLinkFlags($context_id);
+        $contentPublished = $manifest ? $this->dueDateContentPublished($context_id) : array();
         foreach ( $items as $it ) {
             $rlid = $it['resource_link_id'];
             $hasRow = array_key_exists($rlid, $dueMap);
@@ -1035,7 +1048,9 @@ class Grades extends Tool {
             }
             echo('<tr>');
             echo('<td>'.htmlspecialchars($it['module_title']).'</td>');
-            echo('<td>'.htmlspecialchars($it['item_title']).'</td>');
+            echo('<td>'.htmlspecialchars($it['item_title']));
+            $this->echoDueDateVisibility($it, $linkFlags, $contentPublished);
+            echo('</td>');
             echo('<td><code>'.htmlspecialchars($rlid).'</code>');
             if ( ! $hasRow ) {
                 echo('<br><span class="text-warning"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> '.__('No LTI link row yet').'</span>');
@@ -1076,7 +1091,7 @@ class Grades extends Tool {
         $context_id = ReqScope::currentContextId();
         $l = Manifest::requireCurrentLessons();
         $allowed = array();
-        foreach ( $l->enumerateLtiAssignmentItems(true) as $it ) {
+        foreach ( $this->dueDateItems($l, $this->manifestCourse()) as $it ) {
             $allowed[$it['resource_link_id']] = true;
         }
 
@@ -1145,7 +1160,7 @@ class Grades extends Tool {
         $context_id = ReqScope::currentContextId();
         $l = Manifest::requireCurrentLessons();
         $allowed = array();
-        foreach ( $l->enumerateLtiAssignmentItems(true) as $it ) {
+        foreach ( $this->dueDateItems($l, $this->manifestCourse()) as $it ) {
             $allowed[$it['resource_link_id']] = true;
         }
 
@@ -1202,7 +1217,7 @@ class Grades extends Tool {
         }
 
         $l = Manifest::requireCurrentLessons();
-        $items = $l->enumerateLtiAssignmentItems(true);
+        $items = $this->dueDateItems($l, $this->manifestCourse());
         $dueMap = GradeUtil::loadDueDatesForContext($context_id);
 
         $p = $CFG->dbprefix;
@@ -1249,6 +1264,286 @@ class Grades extends Tool {
     }
 
     /**
+     * This course is showing a saved manifest, not the lessons file.
+     */
+    private function manifestCourse()
+    {
+        return Manifest::resolvedId() > 0;
+    }
+
+    /**
+     * Due-date rows. A manifest course also lists its quizzes.
+     *
+     * @param bool $manifest
+     * @return array<int,array<string,mixed>>
+     */
+    private function dueDateItems(LessonsService $lessons, $manifest)
+    {
+        $items = $lessons->enumerateLtiAssignmentItems(true);
+        if ( ! $manifest || ! isset($lessons->lessons->modules) ) {
+            return $items;
+        }
+        $seen = array();
+        foreach ( $lessons->lessons->modules as $modIndex => $module ) {
+            if ( ! isset($module->items) || ! is_array($module->items) ) {
+                continue;
+            }
+            foreach ( $module->items as $item ) {
+                if ( ! LessonsNormalize::isNativeQuiz($item) ) {
+                    continue;
+                }
+                $quizId = LessonsNormalize::quizIdOf($item);
+                if ( $quizId < 1 || isset($seen[$quizId]) || ! $lessons->quiz1ExistsInCourse($quizId) ) {
+                    continue;
+                }
+                $seen[$quizId] = true;
+                $title = isset($item->title) && is_string($item->title) && $item->title !== ''
+                    ? $item->title
+                    : __('Quiz');
+                $items[] = array(
+                    'module_index' => (int) $modIndex,
+                    'module_title' => isset($module->title) ? $module->title : '',
+                    'module_hidden' => isset($module->hidden) && $module->hidden,
+                    'item_title' => $title,
+                    'resource_link_id' => Quiz1Repository::linkKey($quizId),
+                    'quiz_id' => $quizId,
+                );
+            }
+        }
+        return $items;
+    }
+
+    /**
+     * link_key => published and hidden. A missing key means there is no link row.
+     *
+     * @param int $context_id
+     * @return array<string,array{published:bool,hidden:bool}>
+     */
+    private function dueDateLinkFlags($context_id)
+    {
+        global $CFG, $PDOX;
+        $rows = $PDOX->allRowsDie(
+            "SELECT link_key, published, hidden FROM {$CFG->dbprefix}lti_link
+             WHERE context_id = :CID AND (deleted IS NULL OR deleted = 0)",
+            array(':CID' => (int) $context_id)
+        );
+        $map = array();
+        if ( ! is_array($rows) ) {
+            return $map;
+        }
+        foreach ( $rows as $row ) {
+            if ( ! is_array($row) ) {
+                continue;
+            }
+            $key = trim((string) ($row['link_key'] ?? ''));
+            if ( $key === '' ) {
+                continue;
+            }
+            $map[$key] = array(
+                'published' => (int) ($row['published'] ?? 0) === 1,
+                'hidden' => (int) ($row['hidden'] ?? 0) === 1,
+            );
+        }
+        return $map;
+    }
+
+    /**
+     * resource_link_id => whether students can see this content launch.
+     * A grade column uses the link. Otherwise the content row.
+     *
+     * @param int $context_id
+     * @return array<string,bool>
+     */
+    private function dueDateContentPublished($context_id)
+    {
+        global $CFG, $PDOX;
+        $p = $CFG->dbprefix;
+        $rows = $PDOX->allRowsDie(
+            "SELECT c.resource_link_id, c.link_id, c.published, l.published AS link_published
+             FROM {$p}lti_content c
+             LEFT JOIN {$p}lti_link l ON l.link_id = c.link_id
+             WHERE c.context_id = :CID",
+            array(':CID' => (int) $context_id)
+        );
+        $map = array();
+        if ( ! is_array($rows) ) {
+            return $map;
+        }
+        foreach ( $rows as $row ) {
+            if ( ! is_array($row) ) {
+                continue;
+            }
+            $key = trim((string) ($row['resource_link_id'] ?? ''));
+            if ( $key === '' ) {
+                continue;
+            }
+            if ( ! empty($row['link_id']) ) {
+                $map[$key] = isset($row['link_published']) && (int) $row['link_published'] === 1;
+            } else {
+                $map[$key] = (int) ($row['published'] ?? 0) === 1;
+            }
+        }
+        return $map;
+    }
+
+    /**
+     * Mark a due-date row students cannot open. No link row on a file lesson stays unmarked.
+     *
+     * @param array<string,mixed> $item
+     * @param array<string,array{published:bool,hidden:bool}> $linkFlags
+     * @param array<string,bool> $contentPublished
+     */
+    private function echoDueDateVisibility($item, $linkFlags, $contentPublished)
+    {
+        $rlid = trim((string) ($item['resource_link_id'] ?? ''));
+        $link = ($rlid !== '' && isset($linkFlags[$rlid])) ? $linkFlags[$rlid] : null;
+        $notes = array();
+        if ( $rlid !== '' && array_key_exists($rlid, $contentPublished) ) {
+            if ( ! $contentPublished[$rlid] ) {
+                $notes[] = __('unpublished');
+            }
+        } else if ( ! empty($item['quiz_id']) ) {
+            if ( $link === null || empty($link['published']) ) {
+                $notes[] = __('unpublished');
+            }
+        } else if ( $link !== null && empty($link['published']) ) {
+            $notes[] = __('unpublished');
+        }
+        if ( ! empty($item['module_hidden']) || ($link !== null && ! empty($link['hidden'])) ) {
+            $notes[] = __('hidden');
+        }
+        if ( count($notes) < 1 ) {
+            return;
+        }
+        echo ' <span class="text-muted">('.htmlspecialchars(implode(', ', $notes)).')</span>';
+    }
+
+    /**
+     * Gradable tools with no grade column, and quizzes with no link.
+     *
+     * @param int $context_id
+     * @return array<int,array{kind:string,content_id?:int,quiz_id?:int,title:string}>
+     */
+    private function manifestMissingGradeRows(LessonsService $lessons, $context_id)
+    {
+        $missing = array();
+        $seenContent = array();
+        $seenQuiz = array();
+        if ( ! isset($lessons->lessons->modules) ) {
+            return $missing;
+        }
+        foreach ( $lessons->lessons->modules as $module ) {
+            if ( ! isset($module->items) || ! is_array($module->items) ) {
+                continue;
+            }
+            foreach ( $module->items as $item ) {
+                $contentId = isset($item->content_id) ? (int) $item->content_id : 0;
+                if ( $contentId > 0 ) {
+                    if ( isset($seenContent[$contentId]) ) {
+                        continue;
+                    }
+                    $seenContent[$contentId] = true;
+                    $row = LtiContentService::find((int) $context_id, $contentId);
+                    if ( $row === null || (int) ($row['send_grade'] ?? 0) !== 1 || ! empty($row['link_id']) ) {
+                        continue;
+                    }
+                    $title = isset($item->title) && is_string($item->title) && $item->title !== ''
+                        ? $item->title
+                        : (string) ($row['title'] ?? '');
+                    $missing[] = array(
+                        'kind' => 'content',
+                        'content_id' => $contentId,
+                        'title' => $title,
+                    );
+                    continue;
+                }
+                if ( ! LessonsNormalize::isNativeQuiz($item) ) {
+                    continue;
+                }
+                $quizId = LessonsNormalize::quizIdOf($item);
+                if ( $quizId < 1 || isset($seenQuiz[$quizId]) || ! $lessons->quiz1ExistsInCourse($quizId) ) {
+                    continue;
+                }
+                $seenQuiz[$quizId] = true;
+                if ( $this->quizLinkId((int) $context_id, $quizId) > 0 ) {
+                    continue;
+                }
+                $title = isset($item->title) && is_string($item->title) && $item->title !== ''
+                    ? $item->title
+                    : __('Quiz');
+                $missing[] = array(
+                    'kind' => 'quiz',
+                    'quiz_id' => $quizId,
+                    'title' => $title,
+                );
+            }
+        }
+        return $missing;
+    }
+
+    /**
+     * @param int $context_id
+     * @param int $quiz_id
+     */
+    private function quizLinkId($context_id, $quiz_id)
+    {
+        global $CFG, $PDOX;
+        $row = $PDOX->rowDie(
+            "SELECT link_id FROM {$CFG->dbprefix}quiz1_quiz
+             WHERE quiz_id = :QID AND context_id = :CID",
+            array(':QID' => (int) $quiz_id, ':CID' => (int) $context_id)
+        );
+        if ( ! is_array($row) || empty($row['link_id']) ) {
+            return 0;
+        }
+        return (int) $row['link_id'];
+    }
+
+    /**
+     * @param int $context_id
+     * @param string $dates_url
+     */
+    private function addManifestGradeRows(LessonsService $lessons, $context_id, $dates_url)
+    {
+        $gradeColumns = 0;
+        $quizLinks = 0;
+        $titles = array();
+        foreach ( $this->manifestMissingGradeRows($lessons, $context_id) as $row ) {
+            if ( $row['kind'] === 'content' ) {
+                $linkId = LtiContentService::ensureGradeColumnForLaunch($context_id, (int) $row['content_id']);
+                if ( ! $linkId ) {
+                    continue;
+                }
+                $gradeColumns++;
+                $titles[] = (string) $row['title'];
+                continue;
+            }
+            $linkId = Quiz1Repository::ensureLink((int) $row['quiz_id'], $context_id);
+            if ( ! $linkId ) {
+                continue;
+            }
+            $quizLinks++;
+            $titles[] = (string) $row['title'];
+        }
+
+        if ( $gradeColumns < 1 && $quizLinks < 1 ) {
+            U::flashSuccess(__('No missing link rows; nothing to add.'));
+            return new RedirectResponse($dates_url);
+        }
+
+        $this->invalidateDueDatesSessionCache();
+        $msg = __('Added link rows.').' '.
+            sprintf(__('Grade columns added: %d.'), $gradeColumns).' '.
+            sprintf(__('Quiz links added: %d.'), $quizLinks).' '.
+            __('Published tools and quizzes were left as they were.');
+        if ( count($titles) > 0 ) {
+            $msg .= ' '.implode(', ', $titles).'.';
+        }
+        U::flashSuccess($msg);
+        return new RedirectResponse($dates_url);
+    }
+
+    /**
      * Insert lti_link rows for lesson assignments that have no row in this context yet.
      * Uses the same statement as LTIX::adjustData() so a later launch does not create a duplicate.
      */
@@ -1265,6 +1560,9 @@ class Grades extends Tool {
 
         $context_id = ReqScope::currentContextId();
         $l = Manifest::requireCurrentLessons();
+        if ( $this->manifestCourse() ) {
+            return $this->addManifestGradeRows($l, $context_id, $dates_url);
+        }
         $items = $l->enumerateLtiAssignmentItems(true);
         $dueMap = GradeUtil::loadDueDatesForContext($context_id);
 
