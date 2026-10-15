@@ -450,7 +450,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->get($courseHome.'/grades/class');
         $this->waitForPageText($client, 'Grade Book');
         $this->waitForPageText($client, 'Class: '.$courseTitle);
-        $this->waitForPageText($client, 'View My Grades');
+        $this->waitForPageText($client, 'All Students');
 
         $driver->get($courseHome.'/grades/student-progress');
         $this->waitForPageText($client, 'Student Progress');
@@ -648,7 +648,8 @@ final class CourseControllersTest extends TsugiPantherTestCase
 
         $driver->get($courseHome.'/grades');
         $this->waitForPageText($client, 'QTI Export Test');
-        $this->waitForPageText($client, '54.5');
+        // Six points out of eleven, stored as a fraction with no maximum.
+        $this->waitForPageText($client, '0.5455/1');
     }
 
     private function openHomeCatalogAnalyticsImportAndMap(\Symfony\Component\Panther\Client $client, string $courseHome, string $courseTitle): void
@@ -666,7 +667,9 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->waitForPageText($client, 'Analytics: Files');
 
         $driver->get($courseHome.'/grades/analytics');
-        $this->waitForPageText($client, 'Analytics: Grade Book');
+        $this->waitForPageText($client, 'Grade Book');
+        $this->assertStringNotContainsString('/grades/analytics', $driver->getCurrentURL());
+        $this->assertStringNotContainsString('Analytics: Grade Book', $client->getPageSource());
 
         $driver->get($courseHome.'/announcements/analytics');
         $this->waitForPageText($client, 'Analytics: Announcements');
