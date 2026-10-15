@@ -1097,10 +1097,18 @@ class Grades extends Tool {
             if ( $manifest ) {
                 $published = $this->assignmentIsPublished($it, $linkFlags, $contentPublished);
                 $link = ($rlid !== '' && isset($linkFlags[$rlid])) ? $linkFlags[$rlid] : null;
+                $unprovisioned = empty($it['quiz_id'])
+                    && (int) ($it['content_id'] ?? 0) < 1
+                    && (int) ($it['tool_deployment_id'] ?? 0) < 1;
                 echo('<td><div class="grade-state-icons">');
-                echo($this->publishButtonHtml($rlid, $published, $dates_url));
-                if ( $link !== null ) {
-                    echo($this->hiddenButtonHtml($rlid, ! empty($link['hidden']), $dates_url));
+                if ( $unprovisioned ) {
+                    $hidden = $link !== null && ! empty($link['hidden']);
+                    echo($this->unprovisionedStateIcons($hidden));
+                } else {
+                    echo($this->publishButtonHtml($rlid, $published, $dates_url));
+                    if ( $link !== null ) {
+                        echo($this->hiddenButtonHtml($rlid, ! empty($link['hidden']), $dates_url));
+                    }
                 }
                 if ( ! empty($it['module_hidden']) ) {
                     echo($this->hiddenStatusIcon());
@@ -2520,6 +2528,40 @@ class Grades extends Tool {
     }
 
     /**
+     * An unprovisioned tool has no publish switch yet. Show the marks it will have
+     * once it is connected: unpublished, and the grade column visible unless hidden.
+     *
+     * @param bool $hidden
+     */
+    private function unprovisionedStateIcons($hidden)
+    {
+        $publish = __('Unpublished until this tool is provisioned.');
+        if ( $hidden ) {
+            $hiddenLabel = __('Hidden from the grade book.');
+            $hiddenClass = 'hidden-on';
+            $hiddenIcon = 'fa-eye-slash';
+        } else {
+            $hiddenLabel = __('Shown in the grade book once this tool is published.');
+            $hiddenClass = 'hidden-off';
+            $hiddenIcon = 'fa-eye';
+        }
+        return $this->stateMarkHtml('fa-ban', 'publish-off', $publish)
+            .$this->stateMarkHtml($hiddenIcon, $hiddenClass, $hiddenLabel);
+    }
+
+    /**
+     * @param string $icon
+     * @param string $stateClass
+     * @param string $label
+     */
+    private function stateMarkHtml($icon, $stateClass, $label)
+    {
+        $labelAttr = htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
+        return '<span class="grade-state-icon '.$stateClass.'" title="'.$labelAttr.'" aria-label="'.$labelAttr.'">'
+            .'<i class="fa '.htmlspecialchars($icon, ENT_QUOTES, 'UTF-8').'" aria-hidden="true"></i></span>';
+    }
+
+    /**
      * Lesson module is hidden. The grade column may not exist yet, so this is not a button.
      */
     private function hiddenStatusIcon()
@@ -2555,12 +2597,14 @@ class Grades extends Tool {
         echo '<style>
 .grade-state-icons form { display: inline-block; margin: 0 4px 0 0; }
 .grade-state-btn.btn { padding: 4px 8px; min-width: 32px; line-height: 1; }
-.grade-state-btn .publish-on { color: #0b874b; }
+.grade-state-btn .publish-on,
+.grade-state-btn .hidden-off,
+.grade-state-icon.publish-on,
+.grade-state-icon.hidden-off { color: #0b874b; }
 .grade-state-btn .publish-off,
-.grade-state-btn .hidden-off { color: #8d959f; }
 .grade-state-btn .hidden-on,
-.grade-state-icon { color: #8a6d3b; }
-.grade-state-icon { display: inline-block; padding: 4px 8px; }
+.grade-state-icon { color: #8d959f; }
+.grade-state-icon { display: inline-block; padding: 4px 8px; min-width: 32px; line-height: 1; text-align: center; }
 </style>'."\n";
     }
 
@@ -3162,6 +3206,12 @@ class Grades extends Tool {
             }
         }
         if ( LessonsNormalize::isLtiLaunch($item) && isset($item->resource_link_id) ) {
+            if ( $this->manifestCourse() && LessonsNormalize::isAssignmentLti($item) ) {
+                $deployment = isset($item->tool_deployment_id) ? (int) $item->tool_deployment_id : 0;
+                if ( $deployment < 1 && $content_id < 1 ) {
+                    return '';
+                }
+            }
             return trim((string) $item->resource_link_id);
         }
         return '';
