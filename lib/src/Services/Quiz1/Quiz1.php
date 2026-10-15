@@ -42,6 +42,13 @@ class Quiz1 {
     public $published;
 
     /**
+     * Null when this quiz has no link. Otherwise YYYY-MM-DD, or empty when the link has no due date.
+     *
+     * @var string|null
+     */
+    public $due = null;
+
+    /**
      * @return string[] Validation error messages (empty = valid).
      */
     public function validate() {

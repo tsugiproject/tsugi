@@ -11,6 +11,8 @@ use Tsugi\UI\Table;
 use Tsugi\Core\Manifest;
 use Tsugi\Services\Lessons\LessonsNormalize;
 use Tsugi\Services\Lessons\LessonsService;
+use Tsugi\Services\Lessons\LessonDue;
+use Tsugi\Services\Lessons\LessonPublish;
 use Tsugi\Services\Outbound\LtiContentService;
 use Tsugi\Services\Quiz1\Quiz1Repository;
 
@@ -62,6 +64,10 @@ class Grades extends Tool {
         $app->router->post($prefix.'/manage-due-dates/clear-all/', 'Grades@clearAllDueDatesPost');
         $app->router->post($prefix.'/manage-due-dates', 'Grades@manageDueDatesPost');
         $app->router->post($prefix.'/manage-due-dates/', 'Grades@manageDueDatesPost');
+        $app->router->post($prefix.'/publish', 'Grades@publishPost');
+        $app->router->post($prefix.'/publish/', 'Grades@publishPost');
+        $app->router->post($prefix.'/hide', 'Grades@hidePost');
+        $app->router->post($prefix.'/hide/', 'Grades@hidePost');
         $app->router->post($prefix.'/categories', 'Grades@categoryAddPost');
         $app->router->post($prefix.'/categories/{id}', 'Grades@categoryPost');
         $app->router->post($prefix.'/links/{id}', 'Grades@linkPost');
@@ -157,7 +163,7 @@ class Grades extends Tool {
      * @param string[] $leading
      * @return array<string,mixed>
      */
-    private function orderGradeBookColumns($row, $leading = array('title', 'code', 'due_date')) {
+    private function orderGradeBookColumns($row, $leading = array('title', 'code', 'due_date', 'published')) {
         $ordered = array();
         if ( array_key_exists('user_id', $row) ) {
             $ordered['user_id'] = $row['user_id'];
@@ -482,12 +488,14 @@ class Grades extends Tool {
         $this->addGradeBookCodeColumn($rows, $is_instructor);
         $showrows = $this->processGradeRows($rows);
         $this->linkLaunchableTitles($showrows);
+        $this->addPublishColumn($showrows, $this->gradeBookUserUrl('', $view_user_id));
         
         $OUTPUT->header();
         $OUTPUT->bodyStart();
         $OUTPUT->topNav(false);
         $OUTPUT->flashMessages();
         \Tsugi\Controllers\Lessons::printLtiProgressStyles();
+        $this->printGradeStateIconStyles();
         ?>
         <main class="container" id="main-content">
         <h1><?= __('Grade Book') ?></h1>
@@ -558,7 +566,9 @@ class Grades extends Tool {
         $this->addGradeBookCodeColumn($rows, $is_instructor);
         $showrows = $this->processGradeRows($rows);
         $this->linkLaunchableTitles($showrows);
-        $outline = $this->courseOutlineModules($context_id, $showrows);
+        $outline_return = $this->gradeBookUserUrl('/outline', $view_user_id);
+        $this->addPublishColumn($showrows, $outline_return);
+        $outline = $this->courseOutlineModules($context_id, $showrows, $outline_return);
 
         $tool_home = $this->toolHome(self::ROUTE);
         $class_url = '';
@@ -581,6 +591,7 @@ class Grades extends Tool {
         $OUTPUT->topNav(false);
         $OUTPUT->flashMessages();
         \Tsugi\Controllers\Lessons::printLtiProgressStyles();
+        $this->printGradeStateIconStyles();
         echo '<main class="container" id="main-content">'."\n";
         echo '<h1>'.htmlspecialchars(__('Grade Book'))."</h1>\n";
         echo '<p>Class: '.htmlspecialchars($context_title)."</p>\n";
@@ -693,6 +704,7 @@ class Grades extends Tool {
         $OUTPUT->topNav(false);
         $OUTPUT->flashMessages();
         \Tsugi\Controllers\Lessons::printLtiProgressStyles();
+        $this->printGradeStateIconStyles();
         ?>
         <main class="container" id="main-content">
         <h1><?= __('Grade Book') ?></h1>
@@ -799,6 +811,7 @@ class Grades extends Tool {
         $OUTPUT->topNav(false);
         $OUTPUT->flashMessages();
         \Tsugi\Controllers\Lessons::printLtiProgressStyles();
+        $this->printGradeStateIconStyles();
         ?>
         <main class="container" id="main-content">
         <h1><?= __('Grade Book') ?></h1>
@@ -964,7 +977,11 @@ class Grades extends Tool {
 
         $this->beginLessonGradePage('due-dates');
         echo('<h2>'.__('Manage due dates')."</h2>\n");
-        echo('<p>'.__('Set optional due dates for each assignment (end of that calendar day, 11:59 PM). They are stored on the LTI resource link for this course (end_datetime).')."</p>\n");
+        echo('<p>'.__('Set optional due dates for each assignment (end of that calendar day, 11:59 PM). They are stored on the LTI resource link for this course (end_datetime).'));
+        if ( $manifest ) {
+            echo ' '.__('Publish and unpublish use that same link, so the lesson and the grade book change with it.');
+        }
+        echo "</p>\n";
 
         if ( count($items) < 1 ) {
             echo('<p>'.__('No LTI assignments are defined in the lessons configuration.')."</p>\n");
@@ -1032,10 +1049,16 @@ class Grades extends Tool {
         echo('</form>');
         echo('</div>');
 
-        echo('<form method="post" action="'.htmlspecialchars($dates_url).'" class="table-responsive">'."\n");
+        echo('<form id="due-dates" method="post" action="'.htmlspecialchars($dates_url).'">'."\n");
         echo(self::csrfField());
+        echo("</form>\n");
+        echo('<div class="table-responsive">'."\n");
         echo('<table class="table table-bordered table-striped">'."\n");
-        echo('<thead><tr><th>'.__('Module').'</th><th>'.__('Assignment').'</th><th>'.__('Resource link').'</th><th>'.__('Due date').'</th></tr></thead>'."\n");
+        echo('<thead><tr><th>'.__('Module').'</th><th>'.__('Assignment').'</th><th>'.__('Resource link').'</th><th>'.__('Due date').'</th>');
+        if ( $manifest ) {
+            echo '<th><span class="sr-only">'.htmlspecialchars(__('Published and hidden')).'</span></th>';
+        }
+        echo "</tr></thead>\n";
         echo("<tbody>\n");
         $linkFlags = $this->dueDateLinkFlags($context_id);
         $contentPublished = $manifest ? $this->dueDateContentPublished($context_id) : array();
@@ -1049,7 +1072,9 @@ class Grades extends Tool {
             echo('<tr>');
             echo('<td>'.htmlspecialchars($it['module_title']).'</td>');
             echo('<td>'.htmlspecialchars($it['item_title']));
-            $this->echoDueDateVisibility($it, $linkFlags, $contentPublished);
+            if ( ! $manifest ) {
+                $this->echoDueDateVisibility($it, $linkFlags, $contentPublished);
+            }
             echo('</td>');
             echo('<td><code>'.htmlspecialchars($rlid).'</code>');
             if ( ! $hasRow ) {
@@ -1063,17 +1088,30 @@ class Grades extends Tool {
                     $it['item_title'],
                     $rlid
                 );
-                echo('<input type="date" class="form-control" name="end[]" value="'.htmlspecialchars($endVal).'" aria-label="'.htmlspecialchars($dueAria, ENT_QUOTES, 'UTF-8').'">');
-                echo('<input type="hidden" name="rlid[]" value="'.htmlspecialchars($rlid).'">');
+                echo('<input type="date" class="form-control" form="due-dates" name="end[]" value="'.htmlspecialchars($endVal).'" aria-label="'.htmlspecialchars($dueAria, ENT_QUOTES, 'UTF-8').'">');
+                echo('<input type="hidden" form="due-dates" name="rlid[]" value="'.htmlspecialchars($rlid).'">');
             } else {
                 echo('<span class="text-muted">—</span>');
             }
             echo('</td>');
+            if ( $manifest ) {
+                $published = $this->assignmentIsPublished($it, $linkFlags, $contentPublished);
+                $link = ($rlid !== '' && isset($linkFlags[$rlid])) ? $linkFlags[$rlid] : null;
+                echo('<td><div class="grade-state-icons">');
+                echo($this->publishButtonHtml($rlid, $published, $dates_url));
+                if ( $link !== null ) {
+                    echo($this->hiddenButtonHtml($rlid, ! empty($link['hidden']), $dates_url));
+                }
+                if ( ! empty($it['module_hidden']) ) {
+                    echo($this->hiddenStatusIcon());
+                }
+                echo('</div></td>');
+            }
             echo("</tr>\n");
         }
         echo("</tbody></table>\n");
-        echo('<p><button type="submit" class="btn btn-primary">'.__('Save due dates').'</button></p>'."\n");
-        echo("</form>\n");
+        echo('<p><button type="submit" class="btn btn-primary" form="due-dates">'.__('Save due dates').'</button></p>'."\n");
+        echo("</div>\n");
         $this->endLessonGradePage();
     }
 
@@ -1139,6 +1177,7 @@ class Grades extends Tool {
         }
 
         $this->invalidateDueDatesSessionCache();
+        LessonDue::pullPublished($context_id, array_keys($allowed));
         U::flashSuccess(__('Saved due dates.').' ('.$updated.' '.__('link row(s) updated').').');
         return new RedirectResponse($dates_url);
     }
@@ -1184,6 +1223,7 @@ class Grades extends Tool {
         }
 
         $this->invalidateDueDatesSessionCache();
+        LessonDue::pullPublished($context_id, array_keys($allowed));
         U::flashSuccess(__('Cleared due dates.').' ('.$updated.' '.__('link row(s) updated').').');
         return new RedirectResponse($dates_url);
     }
@@ -1259,6 +1299,13 @@ class Grades extends Tool {
             $msg .= ' '.sprintf(__('Skipped %d assignment(s) with no link row yet.'), $skipped);
         }
         $this->invalidateDueDatesSessionCache();
+        $synced = array();
+        foreach ( $items as $it ) {
+            if ( array_key_exists($it['resource_link_id'], $dueMap) ) {
+                $synced[] = $it['resource_link_id'];
+            }
+        }
+        LessonDue::pullPublished($context_id, $synced);
         U::flashSuccess($msg);
         return new RedirectResponse($dates_url);
     }
@@ -1345,6 +1392,28 @@ class Grades extends Tool {
             );
         }
         return $map;
+    }
+
+    /**
+     * @param int $context_id
+     * @param string $link_key
+     */
+    private function linkIdForKey($context_id, $link_key)
+    {
+        global $CFG, $PDOX;
+        $row = $PDOX->rowDie(
+            "SELECT link_id FROM {$CFG->dbprefix}lti_link
+             WHERE context_id = :CID AND link_key = :LK AND (deleted IS NULL OR deleted = 0)
+             LIMIT 1",
+            array(
+                ':CID' => (int) $context_id,
+                ':LK' => $link_key,
+            )
+        );
+        if ( ! is_array($row) || empty($row['link_id']) ) {
+            return 0;
+        }
+        return (int) $row['link_id'];
     }
 
     /**
@@ -2215,6 +2284,287 @@ class Grades extends Tool {
     }
 
     /**
+     * Publish or unpublish one assignment. The lesson, grade book, and due-date page read the same flag.
+     */
+    public function publishPost(Request $request)
+    {
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        $return = $this->safeGradeReturn(U::get($_POST, 'return', ''));
+        $csrf = self::requireCsrf($return);
+        if ( $csrf ) {
+            return $csrf;
+        }
+        if ( ! $this->manifestCourse() ) {
+            U::flashError(__('File-based lessons do not use publish.'));
+            return new RedirectResponse($return);
+        }
+
+        $context_id = (int) ReqScope::currentContextId();
+        $link_key = trim((string) U::get($_POST, 'link_key', ''));
+        $raw = U::get($_POST, 'published', U::get($_GET, 'published', ''));
+        $want = ($raw === '1' || $raw === 1 || $raw === true);
+        $posted = ($raw === '1' || $raw === 1 || $raw === true || $raw === '0' || $raw === 0 || $raw === false);
+        if ( $context_id < 1 || $link_key === '' || ! $posted ) {
+            U::flashError(__('Missing publish data.'));
+            return new RedirectResponse($return);
+        }
+
+        $allowed = $this->publishableLinkKeys($context_id);
+        if ( ! isset($allowed[$link_key]) ) {
+            U::flashError(__('That assignment is not in this course.'));
+            return new RedirectResponse($return);
+        }
+        $title = is_string($allowed[$link_key]) ? $allowed[$link_key] : '';
+        if ( ! LessonPublish::apply($context_id, $link_key, $want, $title) ) {
+            U::flashError(__('Could not change publish for that assignment.'));
+            return new RedirectResponse($return);
+        }
+        U::flashSuccess($want ? __('Published.') : __('Unpublished.'));
+        return new RedirectResponse($return);
+    }
+
+    /**
+     * Hide or show one grade column. The same flag as Configuration.
+     */
+    public function hidePost(Request $request)
+    {
+        $home = $this->toolHome(self::ROUTE);
+        $this->requireInstructor($home);
+        $return = $this->safeGradeReturn(U::get($_POST, 'return', ''));
+        $csrf = self::requireCsrf($return);
+        if ( $csrf ) {
+            return $csrf;
+        }
+        if ( ! $this->manifestCourse() ) {
+            U::flashError(__('File-based lessons do not use these controls.'));
+            return new RedirectResponse($return);
+        }
+
+        $context_id = (int) ReqScope::currentContextId();
+        $link_key = trim((string) U::get($_POST, 'link_key', ''));
+        $raw = U::get($_POST, 'hidden', '');
+        $want = ($raw === '1' || $raw === 1 || $raw === true);
+        $posted = ($raw === '1' || $raw === 1 || $raw === true || $raw === '0' || $raw === 0 || $raw === false);
+        if ( $context_id < 1 || $link_key === '' || ! $posted ) {
+            U::flashError(__('Missing hide data.'));
+            return new RedirectResponse($return);
+        }
+        $allowed = $this->publishableLinkKeys($context_id);
+        if ( ! isset($allowed[$link_key]) ) {
+            U::flashError(__('That assignment is not in this course.'));
+            return new RedirectResponse($return);
+        }
+        $link_id = $this->linkIdForKey($context_id, $link_key);
+        if ( $link_id < 1 ) {
+            U::flashError(__('That assignment has no link yet.'));
+            return new RedirectResponse($return);
+        }
+        $error = GradeCategoryRepository::setLinkHidden($context_id, $link_id, $want);
+        if ( $error !== null ) {
+            U::flashError($error);
+            return new RedirectResponse($return);
+        }
+        U::flashSuccess($want ? __('Hidden from the grade book.') : __('Shown in the grade book.'));
+        return new RedirectResponse($return);
+    }
+
+    /**
+     * Stay on a grade book page. Anything else returns to the grade list.
+     *
+     * @param mixed $return
+     */
+    private function safeGradeReturn($return)
+    {
+        $home = $this->toolHome(self::ROUTE);
+        if ( ! is_string($return) || ! str_starts_with($return, $home) ) {
+            return $home;
+        }
+        $extra = substr($return, strlen($home));
+        if ( preg_match('#^(/outline|/manage-due-dates)?/?(\?user_id=\d+)?$#', $extra) ) {
+            return $return;
+        }
+        return $home;
+    }
+
+    /**
+     * Link keys an instructor may publish from this course, with a title when the lesson has one.
+     *
+     * @param int $context_id
+     * @return array<string,string>
+     */
+    private function publishableLinkKeys($context_id)
+    {
+        $allowed = array();
+        if ( Manifest::hasCurrent() ) {
+            $lessons = Manifest::currentLessons();
+            if ( $lessons ) {
+                foreach ( $this->dueDateItems($lessons, $this->manifestCourse()) as $it ) {
+                    $key = trim((string) ($it['resource_link_id'] ?? ''));
+                    if ( $key === '' ) {
+                        continue;
+                    }
+                    $allowed[$key] = isset($it['item_title']) ? (string) $it['item_title'] : '';
+                }
+            }
+        }
+        foreach ( $this->dueDateLinkFlags($context_id) as $key => $flags ) {
+            if ( ! isset($allowed[$key]) ) {
+                $allowed[$key] = '';
+            }
+        }
+        return $allowed;
+    }
+
+    /**
+     * @param array<string,mixed> $item
+     * @param array<string,array{published:bool,hidden:bool}> $linkFlags
+     * @param array<string,bool> $contentPublished
+     */
+    private function assignmentIsPublished($item, $linkFlags, $contentPublished)
+    {
+        $rlid = trim((string) ($item['resource_link_id'] ?? ''));
+        $link = ($rlid !== '' && isset($linkFlags[$rlid])) ? $linkFlags[$rlid] : null;
+        if ( $rlid !== '' && array_key_exists($rlid, $contentPublished) ) {
+            return (bool) $contentPublished[$rlid];
+        }
+        if ( ! empty($item['quiz_id']) ) {
+            return $link !== null && ! empty($link['published']);
+        }
+        if ( $link !== null ) {
+            return ! empty($link['published']);
+        }
+        return true;
+    }
+
+    /**
+     * Instructor control on a grade or outline row.
+     *
+     * @param array<int,array<string,mixed>> $rows
+     * @param string $returnUrl
+     */
+    private function addPublishColumn(&$rows, $returnUrl)
+    {
+        if ( ! $this->isInstructor() || ! $this->manifestCourse() ) {
+            return;
+        }
+        foreach ( $rows as &$row ) {
+            $key = trim((string) U::get($row, '_link_key', ''));
+            if ( $key === '' ) {
+                continue;
+            }
+            $on = isset($row['_link_published']) && (int) $row['_link_published'] === 1;
+            $row['published'] = $on ? __('Published') : __('Unpublished');
+            $row['_html_published'] = $this->stateIconsHtml($key, $on, false, $returnUrl);
+            $row['_header_published'] = '<span class="sr-only">'.htmlspecialchars(__('Published and hidden')).'</span>';
+            $row = $this->orderGradeBookColumns($row);
+        }
+        unset($row);
+    }
+
+    /**
+     * @param string $linkKey
+     * @param bool $published
+     * @param string $returnUrl
+     */
+    /**
+     * @param string $linkKey
+     * @param bool $published
+     * @param bool $hidden
+     * @param string $returnUrl
+     */
+    private function stateIconsHtml($linkKey, $published, $hidden, $returnUrl)
+    {
+        return '<div class="grade-state-icons">'
+            .$this->publishButtonHtml($linkKey, $published, $returnUrl)
+            .$this->hiddenButtonHtml($linkKey, $hidden, $returnUrl)
+            .'</div>';
+    }
+
+    /**
+     * @param string $linkKey
+     * @param bool $published
+     * @param string $returnUrl
+     */
+    private function publishButtonHtml($linkKey, $published, $returnUrl)
+    {
+        if ( $published ) {
+            $label = __('Published. Click to unpublish.');
+            $icon = 'fa-check-circle publish-on';
+            $next = '0';
+        } else {
+            $label = __('Unpublished. Click to publish.');
+            $icon = 'fa-ban publish-off';
+            $next = '1';
+        }
+        return $this->stateIconForm('/publish', $linkKey, 'published', $next, $icon, $label, $returnUrl);
+    }
+
+    /**
+     * @param string $linkKey
+     * @param bool $hidden
+     * @param string $returnUrl
+     */
+    private function hiddenButtonHtml($linkKey, $hidden, $returnUrl)
+    {
+        if ( $hidden ) {
+            $label = __('Hidden. Click to show in the grade book.');
+            $icon = 'fa-eye-slash hidden-on';
+            $next = '0';
+        } else {
+            $label = __('Shown in the grade book. Click to hide.');
+            $icon = 'fa-eye hidden-off';
+            $next = '1';
+        }
+        return $this->stateIconForm('/hide', $linkKey, 'hidden', $next, $icon, $label, $returnUrl);
+    }
+
+    /**
+     * Lesson module is hidden. The grade column may not exist yet, so this is not a button.
+     */
+    private function hiddenStatusIcon()
+    {
+        $label = htmlspecialchars(__('Hidden in the lesson'), ENT_QUOTES, 'UTF-8');
+        return '<span class="grade-state-icon" title="'.$label.'"><i class="fa fa-eye-slash hidden-on" aria-hidden="true"></i></span>';
+    }
+
+    /**
+     * @param string $path
+     * @param string $linkKey
+     * @param string $field
+     * @param string $next
+     * @param string $iconClass
+     * @param string $label
+     * @param string $returnUrl
+     */
+    private function stateIconForm($path, $linkKey, $field, $next, $iconClass, $label, $returnUrl)
+    {
+        $action = htmlspecialchars($this->toolHome(self::ROUTE).$path, ENT_QUOTES, 'UTF-8');
+        $labelAttr = htmlspecialchars($label, ENT_QUOTES, 'UTF-8');
+        return '<form method="post" action="'.$action.'">'
+            .self::csrfField()
+            .'<input type="hidden" name="return" value="'.htmlspecialchars($returnUrl, ENT_QUOTES, 'UTF-8').'">'
+            .'<input type="hidden" name="link_key" value="'.htmlspecialchars($linkKey, ENT_QUOTES, 'UTF-8').'">'
+            .'<input type="hidden" name="'.$field.'" value="'.$next.'">'
+            .'<button type="submit" class="btn btn-default btn-icon grade-state-btn" title="'.$labelAttr.'" aria-label="'.$labelAttr.'">'
+            .'<i class="fa '.$iconClass.'" aria-hidden="true"></i></button></form>';
+    }
+
+    private function printGradeStateIconStyles()
+    {
+        echo '<style>
+.grade-state-icons form { display: inline-block; margin: 0 4px 0 0; }
+.grade-state-btn.btn { padding: 4px 8px; min-width: 32px; line-height: 1; }
+.grade-state-btn .publish-on { color: #0b874b; }
+.grade-state-btn .publish-off,
+.grade-state-btn .hidden-off { color: #8d959f; }
+.grade-state-btn .hidden-on,
+.grade-state-icon { color: #8a6d3b; }
+.grade-state-icon { display: inline-block; padding: 4px 8px; }
+</style>'."\n";
+    }
+
+    /**
      * @param string $active due-dates, progress, or resend
      * @param int|null $resend_user_id Whose upward grades the Resend tab covers
      */
@@ -2228,6 +2578,7 @@ class Grades extends Tool {
         $OUTPUT->topNav(false);
         $OUTPUT->flashMessages();
         \Tsugi\Controllers\Lessons::printLtiProgressStyles();
+        $this->printGradeStateIconStyles();
         echo '<main class="container" id="main-content">'."\n";
         echo '<h1>'.htmlspecialchars(__('Grade Book'))."</h1>\n";
         echo '<p>Class: '.htmlspecialchars($context_title)."</p>\n";
@@ -2253,13 +2604,7 @@ class Grades extends Tool {
      */
     private static function toDateInputValue($mysql)
     {
-        if ( $mysql === null || $mysql === '' ) {
-            return '';
-        }
-        if ( preg_match('/^(\d{4}-\d{2}-\d{2})/', $mysql, $m) ) {
-            return $m[1];
-        }
-        return '';
+        return GradeUtil::dueDateInputValue($mysql);
     }
 
     /**
@@ -2269,14 +2614,7 @@ class Grades extends Tool {
      */
     private static function parseDueDateEndOfDay($s)
     {
-        $s = trim((string) $s);
-        if ( $s === '' ) {
-            return null;
-        }
-        if ( preg_match('/^\d{4}-\d{2}-\d{2}$/', $s) ) {
-            return $s . ' 23:59:59';
-        }
-        return null;
+        return GradeUtil::parseDueDateEndOfDay($s);
     }
 
     /**
@@ -2293,7 +2631,7 @@ class Grades extends Tool {
                 R.updated_at as updated_at, server_grade, retrieved_at, sourcedid, result_url, service_key as service,
                 L.lti13_lineitem AS lti13_lineitem, U.subject_key AS subject_key,
                 TIMESTAMPDIFF(SECOND,retrieved_at,NOW()) as diff_in_seconds, NOW() AS time_now,
-                L.link_key AS _link_key,
+                L.link_key AS _link_key, L.published AS _link_published,
                 C.category_id AS _category_id, C.position AS _position
             FROM {$p}lti_result AS R
             JOIN {$p}lti_link as L ON R.link_id = L.link_id
@@ -2362,9 +2700,10 @@ class Grades extends Tool {
      * a visible lti_link for one of its resource links.
      *
      * @param array<int,array<string,mixed>> $grade_rows
+     * @param string $publish_return Where an outline publish button comes back
      * @return array<int,array{title:string,href:string,rows:array<int,array<string,mixed>>}>|null
      */
-    private function courseOutlineModules($context_id, $grade_rows)
+    private function courseOutlineModules($context_id, $grade_rows, $publish_return = '')
     {
         if ( ! Manifest::hasCurrent() ) {
             return null;
@@ -2398,7 +2737,7 @@ class Grades extends Tool {
                 }
                 $used[$resource_link_id] = true;
                 $grade_row = isset($grades_by_key[$resource_link_id]) ? $grades_by_key[$resource_link_id] : null;
-                $rows[] = $this->outlineRow($links[$resource_link_id], $grade_row, $columns);
+                $rows[] = $this->outlineRow($links[$resource_link_id], $grade_row, $columns, $publish_return);
             }
             if ( count($rows) < 1 ) {
                 continue;
@@ -2425,7 +2764,7 @@ class Grades extends Tool {
         global $CFG, $PDOX;
         LTIX::getConnection();
         $rows = $PDOX->allRowsDie(
-            "SELECT link_id, link_key, title, end_datetime
+            "SELECT link_id, link_key, title, end_datetime, published
              FROM {$CFG->dbprefix}lti_link
              WHERE context_id = :CID AND deleted = 0 AND hidden = 0",
             array(':CID' => (int) $context_id)
@@ -2841,6 +3180,14 @@ class Grades extends Tool {
         if ( count($columns) < 1 ) {
             $columns = array('title', 'code', 'due_date', 'grade', 'comment', 'updated_at');
         }
+        if ( $this->isInstructor() && $this->manifestCourse() && ! in_array('published', $columns, true) ) {
+            $menu_at = array_search('menu', $columns, true);
+            if ( $menu_at === false ) {
+                $columns[] = 'published';
+            } else {
+                array_splice($columns, $menu_at, 0, array('published'));
+            }
+        }
         if ( ! in_array('menu', $columns, true) ) {
             $columns[] = 'menu';
         }
@@ -2851,9 +3198,10 @@ class Grades extends Tool {
      * @param array<string,mixed> $link
      * @param array<string,mixed>|null $grade_row
      * @param string[] $columns
+     * @param string $publish_return
      * @return array<string,mixed>
      */
-    private function outlineRow($link, $grade_row, $columns)
+    private function outlineRow($link, $grade_row, $columns, $publish_return = '')
     {
         $row = array();
         foreach ( $columns as $key ) {
@@ -2873,6 +3221,13 @@ class Grades extends Tool {
             }
             if ( $key === 'due_date' ) {
                 $row[$key] = $this->dueDateLabel(isset($link['end_datetime']) ? $link['end_datetime'] : null);
+                continue;
+            }
+            if ( $key === 'published' ) {
+                $on = isset($link['published']) && (int) $link['published'] === 1;
+                $row[$key] = $on ? __('Published') : __('Unpublished');
+                $row['_html_published'] = $this->stateIconsHtml((string) $link['link_key'], $on, false, $publish_return);
+                $row['_header_published'] = '<span class="sr-only">'.htmlspecialchars(__('Published and hidden')).'</span>';
                 continue;
             }
             if ( $key === 'menu' ) {

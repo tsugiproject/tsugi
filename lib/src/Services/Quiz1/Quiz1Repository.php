@@ -3,6 +3,8 @@
 namespace Tsugi\Services\Quiz1;
 
 use Tsugi\Core\LTIX;
+use Tsugi\Grades\GradeUtil;
+use Tsugi\Services\Lessons\LessonDue;
 use Tsugi\Util\U;
 
 /**
@@ -19,7 +21,7 @@ class Quiz1Repository {
 
         $rows = $PDOX->allRowsDie(
             "SELECT Q.quiz_id, Q.title, Q.instructions, Q.created_at, Q.updated_at, Q.link_id,
-                    L.published AS published,
+                    L.published AS published, L.end_datetime AS end_datetime,
                     (SELECT COUNT(*) FROM {$CFG->dbprefix}quiz1_question QQ WHERE QQ.quiz_id = Q.quiz_id) AS question_count
              FROM {$CFG->dbprefix}quiz1_quiz Q
              LEFT JOIN {$CFG->dbprefix}lti_link L ON L.link_id = Q.link_id
@@ -37,6 +39,7 @@ class Quiz1Repository {
             $quiz->question_count = (int) $row['question_count'];
             $quiz->link_id = isset($row['link_id']) ? (int) $row['link_id'] : null;
             $quiz->published = $quiz->link_id ? (int) $row['published'] : null;
+            $quiz->due = $quiz->link_id ? GradeUtil::dueDateInputValue($row['end_datetime'] ?? null) : null;
             $quizzes[] = $quiz;
         }
         return $quizzes;
@@ -513,6 +516,7 @@ class Quiz1Repository {
              WHERE quiz_id = :QID AND context_id = :CID",
             array(':LID' => $link_id, ':QID' => $quiz_id, ':CID' => $context_id)
         );
+        LessonDue::copyOntoLink($context_id, $link_id);
         return $link_id;
     }
 
@@ -546,6 +550,7 @@ class Quiz1Repository {
                 ':CID' => $context_id,
             )
         );
+        LessonDue::copyOntoLink($context_id, $link_id, true);
         return $link_id;
     }
 

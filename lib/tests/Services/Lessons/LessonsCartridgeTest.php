@@ -494,6 +494,54 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testWriteZipStoresDueAndGradableOnLtiAndQuiz() {
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'lti',
+                'title' => 'Assignment: Draft',
+                'launch' => 'https://example.com/draft',
+                'resource_link_id' => 'draft-1',
+                'due' => '2026-10-20',
+                'result' => false,
+            ),
+            array(
+                'type' => 'lti',
+                'title' => 'Assignment: Live',
+                'launch' => 'https://example.com/live',
+                'resource_link_id' => 'live-1',
+                'due' => '2026-11-01',
+            ),
+            array(
+                'type' => 'quiz',
+                'title' => 'Week 1 Quiz',
+                'quiz_id' => 1,
+                'due' => '2026-12-01',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array(
+            'tsugi_lms' => 'generic',
+            'load_quiz' => function ($id) {
+                return SampleQuiz1::build($id);
+            },
+        ));
+        try {
+            $map = $this->zipEntryMap($path);
+            $dom = new \DOMDocument();
+            $this->assertTrue($dom->loadXML($map['imsmanifest.xml']));
+            $draft = CC::lomIdentifiersFromItem($this->itemByTitle($dom, 'Assignment: Draft'));
+            $this->assertSame('2026-10-20', $draft[CC::LOM_CATALOG_DUE]);
+            $this->assertSame('0', $draft[CC::LOM_CATALOG_GRADABLE]);
+            $live = CC::lomIdentifiersFromItem($this->itemByTitle($dom, 'Assignment: Live'));
+            $this->assertSame('2026-11-01', $live[CC::LOM_CATALOG_DUE]);
+            $this->assertSame('1', $live[CC::LOM_CATALOG_GRADABLE]);
+            $quiz = CC::lomIdentifiersFromItem($this->itemByTitle($dom, 'Week 1 Quiz'));
+            $this->assertSame('2026-12-01', $quiz[CC::LOM_CATALOG_DUE]);
+            $this->assertSame('1', $quiz[CC::LOM_CATALOG_GRADABLE]);
+        } finally {
+            @unlink($path);
+        }
+    }
+
     public function testWriteZipGeneric11DoesNotEmitItemLomDescription() {
         $l = $this->lessonsDoc(
             array(

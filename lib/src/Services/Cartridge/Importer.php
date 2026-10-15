@@ -386,6 +386,14 @@ class Importer {
         if ( isset($row['target']) && is_string($row['target']) && $row['target'] !== '' ) {
             $dest['target'] = $row['target'];
         }
+        $type = isset($dest['type']) ? $dest['type'] : '';
+        $due = CC::organizationDue($row);
+        if ( $due !== null && ( $type === LessonsNormalize::TYPE_LTI || $type === LessonsNormalize::TYPE_QUIZ ) ) {
+            $dest['due'] = $due;
+        }
+        if ( CC::organizationGradable($row) === false && $type === LessonsNormalize::TYPE_LTI ) {
+            $dest['result'] = false;
+        }
     }
 
     /**

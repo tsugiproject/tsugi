@@ -8,6 +8,8 @@ use Tsugi\Util\CCIdentifier;
 use Tsugi\Util\U;
 use Tsugi\Services\Files\FileRepository;
 use Tsugi\Services\Pages\PageRepository;
+use Tsugi\Grades\GradeUtil;
+use Tsugi\Services\Outbound\LtiContentService;
 use Tsugi\Services\Outbound\ToolRegistrationService;
 use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Quiz1\Qti12Exporter;
@@ -986,7 +988,7 @@ class LessonsCartridge {
         }
         $xml = Qti12Exporter::export($quiz, $export_opts);
         $cc_dom->zip_finish_qti_assessment($zip, $file, $title, $xml, $quiz);
-        $cc_dom->add_last_item_lom($item);
+        $cc_dom->add_last_item_lom(self::gradeLom($item, $options, isset($quiz->due) ? $quiz->due : ''));
     }
 
     /**
@@ -1079,7 +1081,7 @@ class LessonsCartridge {
         $extensions = array('apphome' => $CFG->apphome);
         $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : null;
         $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, self::customArray($item), $extensions, $resource_link_id);
-        $cc_dom->add_last_item_lom($item);
+        $cc_dom->add_last_item_lom(self::gradeLom($item, $options));
     }
 
     private static function urlItemTitle($item, $module, $kind) {
@@ -1104,6 +1106,119 @@ class LessonsCartridge {
             return '';
         }
         return U::absolute_url(LessonsService::expandLink($href));
+    }
+
+    /**
+     * Lesson item plus the due day and graded flag to store in cartridge LOM.
+     *
+     * The link's due day wins when the link already has one. Otherwise the
+     * day stored on the lesson item is used. A quiz is graded. An LTI item
+     * is not graded when the lesson says so, or when its content row cannot
+     * return a grade and has no grade column.
+     *
+     * @param object $item
+     * @param array<string, mixed> $options
+     * @param string|false $knownLinkDue false when the link has not been read yet
+     * @return object
+     */
+    private static function gradeLom($item, array $options, $knownLinkDue = false) {
+        $lom = clone $item;
+        $due = self::exportDueDay($item, $options, $knownLinkDue);
+        if ( $due !== null ) {
+            $lom->due = $due;
+        } else {
+            unset($lom->due);
+        }
+        $lom->gradable = self::exportGradable($item, $options) ? '1' : '0';
+        return $lom;
+    }
+
+    /**
+     * @param object $item
+     * @param array<string, mixed> $options
+     * @param string|false $knownLinkDue
+     * @return string|null
+     */
+    private static function exportDueDay($item, array $options, $knownLinkDue = false) {
+        if ( $knownLinkDue === false ) {
+            $linkDue = self::lookupLinkDue($item, $options);
+        } else {
+            $linkDue = is_string($knownLinkDue) ? trim($knownLinkDue) : '';
+        }
+        if ( preg_match('/^\d{4}-\d{2}-\d{2}$/', $linkDue) ) {
+            return $linkDue;
+        }
+        $itemDue = (isset($item->due) && is_string($item->due)) ? trim($item->due) : '';
+        if ( preg_match('/^\d{4}-\d{2}-\d{2}$/', $itemDue) ) {
+            return $itemDue;
+        }
+        return null;
+    }
+
+    /**
+     * @param object $item
+     * @param array<string, mixed> $options
+     * @return string
+     */
+    private static function lookupLinkDue($item, array $options) {
+        global $CFG, $PDOX;
+        $contextId = isset($options['context_id']) ? (int) $options['context_id'] : 0;
+        if ( $contextId < 1 ) {
+            return '';
+        }
+        if ( LessonsNormalize::isNativeQuiz($item) ) {
+            $quiz = self::loadQuiz(LessonsNormalize::quizIdOf($item), $options);
+            $due = ($quiz !== null && isset($quiz->due) && is_string($quiz->due)) ? trim($quiz->due) : '';
+            return preg_match('/^\d{4}-\d{2}-\d{2}$/', $due) ? $due : '';
+        }
+        $contentId = isset($item->content_id) ? (int) $item->content_id : 0;
+        if ( $contentId > 0 ) {
+            $row = LtiContentService::find($contextId, $contentId);
+            if ( ! is_array($row) || empty($row['link_id']) ) {
+                return '';
+            }
+            return GradeUtil::dueDateInputValue($row['link_end'] ?? null);
+        }
+        $linkKey = isset($item->resource_link_id) ? trim((string) $item->resource_link_id) : '';
+        if ( $linkKey === '' || ! isset($PDOX) || ! is_object($PDOX) || ! isset($CFG) ) {
+            return '';
+        }
+        $row = $PDOX->rowDie(
+            "SELECT end_datetime FROM {$CFG->dbprefix}lti_link
+             WHERE context_id = :CID AND link_key = :LK AND (deleted IS NULL OR deleted = 0)
+             LIMIT 1",
+            array(':CID' => $contextId, ':LK' => $linkKey)
+        );
+        if ( ! is_array($row) ) {
+            return '';
+        }
+        return GradeUtil::dueDateInputValue($row['end_datetime'] ?? null);
+    }
+
+    /**
+     * @param object $item
+     * @param array<string, mixed> $options
+     * @return bool
+     */
+    private static function exportGradable($item, array $options) {
+        if ( LessonsNormalize::isNativeQuiz($item) ) {
+            return true;
+        }
+        if ( isset($item->result) && $item->result === false ) {
+            return false;
+        }
+        if ( isset($item->send_grade) && ( $item->send_grade === false || $item->send_grade === 0 || $item->send_grade === '0' ) ) {
+            return false;
+        }
+        $contentId = isset($item->content_id) ? (int) $item->content_id : 0;
+        $contextId = isset($options['context_id']) ? (int) $options['context_id'] : 0;
+        if ( $contentId > 0 && $contextId > 0 ) {
+            $row = LtiContentService::find($contextId, $contentId);
+            if ( is_array($row) ) {
+                return (int) ($row['send_grade'] ?? 0) === 1 || ! empty($row['link_id']);
+            }
+        }
+        return true;
     }
 
     /**

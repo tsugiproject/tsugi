@@ -3,6 +3,8 @@
 namespace Tsugi\Services\Outbound;
 
 use Tsugi\Core\LTIX;
+use Tsugi\Grades\GradeUtil;
+use Tsugi\Services\Lessons\LessonDue;
 use Tsugi\Util\U;
 
 /**
@@ -211,7 +213,7 @@ class LtiContentService {
             "SELECT c.content_id, c.context_id, c.key_id, c.tool_deployment_id, c.link_id,
                     c.title, c.launch_url, c.target, c.resource_link_id,
                     c.send_name, c.send_email, c.send_grade, c.published,
-                    l.published AS link_published
+                    l.published AS link_published, l.end_datetime AS link_end
              FROM {$p}lti_content c
              LEFT JOIN {$p}lti_link l ON l.link_id = c.link_id
              WHERE c.content_id = :content_id AND c.context_id = :context_id",
@@ -253,7 +255,7 @@ class LtiContentService {
             "SELECT c.content_id, c.context_id, c.key_id, c.tool_deployment_id, c.link_id,
                     c.title, c.launch_url, c.target, c.resource_link_id,
                     c.send_name, c.send_email, c.send_grade, c.published,
-                    l.published AS link_published
+                    l.published AS link_published, l.end_datetime AS link_end
              FROM {$p}lti_content c
              LEFT JOIN {$p}lti_link l ON l.link_id = c.link_id
              WHERE c.context_id = :context_id
@@ -300,6 +302,9 @@ class LtiContentService {
                     ':context_id' => (int) $contextId,
                 )
             );
+            if ( $published ) {
+                LessonDue::copyOntoLink((int) $contextId, (int) $row['link_id'], true);
+            }
             return true;
         }
         self::db()->queryDie(
@@ -345,6 +350,7 @@ class LtiContentService {
             'send_grade' => (int) $row['send_grade'] === 1,
             'published' => self::effectivePublished($row),
             'link_id' => empty($row['link_id']) ? null : (int) $row['link_id'],
+            'due' => empty($row['link_id']) ? null : GradeUtil::dueDateInputValue($row['link_end'] ?? null),
         );
     }
 
@@ -407,6 +413,7 @@ class LtiContentService {
                 ':content_id' => (int) $row['content_id'],
             )
         );
+        LessonDue::copyOntoLink((int) $row['context_id'], $linkId);
     }
 
     /**

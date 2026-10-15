@@ -248,6 +248,39 @@ class GradeUtil {
     }
 
     /**
+     * Calendar day for a date input. Empty when the link has no due date.
+     *
+     * @param mixed $mysql
+     */
+    public static function dueDateInputValue($mysql) {
+        if ( $mysql === null || $mysql === '' ) {
+            return '';
+        }
+        if ( preg_match('/^(\d{4}-\d{2}-\d{2})/', (string) $mysql, $m) ) {
+            return $m[1];
+        }
+        return '';
+    }
+
+    /**
+     * Parse a due date from the UI (calendar day only). Stored as 11:59:59 PM that day.
+     * An empty value clears the due date. Any other value that is not YYYY-MM-DD is invalid.
+     *
+     * @param mixed $s
+     * @return string|null MySQL datetime, or null when the field is empty
+     */
+    public static function parseDueDateEndOfDay($s) {
+        $s = trim((string) $s);
+        if ( $s === '' ) {
+            return null;
+        }
+        if ( preg_match('/^\d{4}-\d{2}-\d{2}$/', $s) ) {
+            return $s . ' 23:59:59';
+        }
+        return null;
+    }
+
+    /**
      * Due/start times from lti_link for a context, keyed by link_key (resource link id).
      * Cached via {@see Cache::setContext} for {@see self::DUE_DATES_CACHE_TTL} seconds.
      *

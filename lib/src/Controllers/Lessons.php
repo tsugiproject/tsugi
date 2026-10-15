@@ -13,6 +13,8 @@ use Tsugi\Services\Outbound\LtiContentService;
 use Tsugi\Services\Outbound\LtiLessonPlacement;
 use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Lessons\LessonsNormalize;
+use Tsugi\Services\Lessons\LessonDue;
+use Tsugi\Services\Lessons\LessonPublish;
 use Tsugi\Services\Files\FileRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -173,6 +175,8 @@ class Lessons extends Tool {
                         'title' => $quiz->title,
                         'question_count' => (int) $quiz->question_count,
                         'published' => (int) $quiz->published === 1,
+                        'link_id' => ! empty($quiz->link_id) ? (int) $quiz->link_id : null,
+                        'due' => ! empty($quiz->link_id) ? (string) $quiz->due : null,
                     );
                 }
             }
@@ -193,6 +197,8 @@ class Lessons extends Tool {
         }
         $course_resource_link_ids = self::courseResourceLinkIds(ReqScope::currentContextId());
         $course_link_published = self::courseLinkPublished(ReqScope::currentContextId());
+        $course_link_due = self::courseLinkDue(ReqScope::currentContextId());
+        $course_can_publish = Manifest::resolvedId() > 0;
         $lti_content_rows = LtiContentService::editorRows(
             ReqScope::currentContextId(),
             self::contentIdsInDocument(is_array($lessons_data) ? $lessons_data : array())
@@ -282,6 +288,41 @@ class Lessons extends Tool {
             }
         }
         return $flags;
+    }
+
+    /**
+     * link_key => YYYY-MM-DD, or empty when that link has no due date.
+     * A missing key means there is no link row.
+     *
+     * @param int $contextId
+     * @return array<string, string>
+     */
+    private static function courseLinkDue($contextId) {
+        global $CFG, $PDOX;
+        $contextId = (int) $contextId;
+        if ( $contextId < 1 ) {
+            return array();
+        }
+        LTIX::getConnection();
+        $rows = $PDOX->allRowsDie(
+            "SELECT link_key, end_datetime FROM {$CFG->dbprefix}lti_link
+             WHERE context_id = :context_id AND (deleted IS NULL OR deleted = 0)",
+            array(':context_id' => $contextId)
+        );
+        $dates = array();
+        if ( ! is_array($rows) ) {
+            return $dates;
+        }
+        foreach ( $rows as $row ) {
+            if ( ! is_array($row) || ! isset($row['link_key']) || ! is_string($row['link_key']) ) {
+                continue;
+            }
+            $key = trim($row['link_key']);
+            if ( $key !== '' ) {
+                $dates[$key] = GradeUtil::dueDateInputValue($row['end_datetime'] ?? null);
+            }
+        }
+        return $dates;
     }
 
     /**
@@ -475,6 +516,7 @@ class Lessons extends Tool {
                 ':context_id' => (int) $contextId,
             )
         );
+        LessonDue::copyOntoLink((int) $contextId, (int) $PDOX->lastInsertId());
     }
 
     /**
@@ -485,44 +527,7 @@ class Lessons extends Tool {
      * @param bool $published
      */
     private function setLtiPublished($contextId, $resourceLinkId, $published) {
-        global $CFG, $PDOX;
-        LTIX::getConnection();
-        $sha = U::lti_sha256($resourceLinkId);
-        $flag = $published ? 1 : 0;
-        $row = $PDOX->rowDie(
-            "SELECT link_id FROM {$CFG->dbprefix}lti_link
-             WHERE context_id = :context_id AND link_sha256 = :link_sha256",
-            array(
-                ':context_id' => (int) $contextId,
-                ':link_sha256' => $sha,
-            )
-        );
-        if ( is_array($row) && isset($row['link_id']) ) {
-            $PDOX->queryDie(
-                "UPDATE {$CFG->dbprefix}lti_link
-                 SET published = :published, deleted = 0, updated_at = NOW()
-                 WHERE link_id = :link_id AND context_id = :context_id",
-                array(
-                    ':published' => $flag,
-                    ':link_id' => (int) $row['link_id'],
-                    ':context_id' => (int) $contextId,
-                )
-            );
-            return;
-        }
-        $PDOX->queryDie(
-            "INSERT INTO {$CFG->dbprefix}lti_link
-                (link_key, link_sha256, title, context_id, published, created_at, updated_at)
-             VALUES
-                (:link_key, :link_sha256, :title, :context_id, :published, NOW(), NOW())",
-            array(
-                ':link_key' => $resourceLinkId,
-                ':link_sha256' => $sha,
-                ':title' => $resourceLinkId,
-                ':context_id' => (int) $contextId,
-                ':published' => $flag,
-            )
-        );
+        LessonPublish::setLink((int) $contextId, $resourceLinkId, $published);
     }
 
     /**
@@ -557,6 +562,9 @@ class Lessons extends Tool {
         }
         if ( $action === 'publish-quiz' ) {
             return $this->authorPublishQuiz();
+        }
+        if ( $action === 'set-due' ) {
+            return $this->authorSetDue();
         }
         if ( $action !== 'save' ) {
             return new Response(json_encode(['success' => false, 'error' => 'Unknown action']), 400, ['Content-Type' => 'application/json']);
@@ -835,6 +843,94 @@ class Lessons extends Tool {
     }
 
     /**
+     * Store a due date on the link this tool or quiz already has.
+     */
+    private function authorSetDue() {
+        global $CFG, $PDOX;
+        $raw = U::get($_POST, 'due');
+        $raw = is_string($raw) ? $raw : '';
+        $endSql = GradeUtil::parseDueDateEndOfDay($raw);
+        if ( trim($raw) !== '' && $endSql === null ) {
+            return new Response(json_encode(['success' => false, 'error' => 'Enter a due date as YYYY-MM-DD.']), 400, ['Content-Type' => 'application/json']);
+        }
+        $context_id = (int) ReqScope::currentContextId();
+        if ( $context_id < 1 ) {
+            return new Response(json_encode(['success' => false, 'error' => 'No course context']), 400, ['Content-Type' => 'application/json']);
+        }
+        LTIX::getConnection();
+        $link_id = $this->dueLinkId($context_id);
+        if ( $link_id < 1 ) {
+            return new Response(json_encode(['success' => false, 'error' => 'This item has no link yet.']), 400, ['Content-Type' => 'application/json']);
+        }
+        $link = $PDOX->rowDie(
+            "SELECT link_key, published FROM {$CFG->dbprefix}lti_link
+             WHERE link_id = :LID AND context_id = :CID AND (deleted IS NULL OR deleted = 0)",
+            array(':LID' => $link_id, ':CID' => $context_id)
+        );
+        if ( ! is_array($link) || (int) ($link['published'] ?? 0) !== 1 ) {
+            return new Response(json_encode(['success' => false, 'error' => 'Save this due date on the lesson. It is copied to the link when you publish.']), 400, ['Content-Type' => 'application/json']);
+        }
+        $PDOX->queryDie(
+            "UPDATE {$CFG->dbprefix}lti_link
+             SET end_datetime = :E, updated_at = NOW()
+             WHERE link_id = :LID AND context_id = :CID AND (deleted IS NULL OR deleted = 0)",
+            array(
+                ':E' => $endSql,
+                ':LID' => $link_id,
+                ':CID' => $context_id,
+            )
+        );
+        GradeUtil::invalidateDueDatesCache($context_id);
+        LessonDue::pullPublished($context_id, array((string) $link['link_key']));
+        return new Response(json_encode([
+            'success' => true,
+            'due' => GradeUtil::dueDateInputValue($endSql),
+        ]), 200, ['Content-Type' => 'application/json']);
+    }
+
+    /**
+     * The link to update, or 0 when this post does not name one in this course.
+     *
+     * @param int $context_id
+     */
+    private function dueLinkId($context_id) {
+        global $CFG, $PDOX;
+        $content_id = (int) U::get($_POST, 'content_id', 0);
+        if ( $content_id > 0 ) {
+            $row = LtiContentService::find($context_id, $content_id);
+            if ( $row === null || empty($row['link_id']) ) {
+                return 0;
+            }
+            return (int) $row['link_id'];
+        }
+        $quiz_id = (int) U::get($_POST, 'quiz_id', 0);
+        if ( $quiz_id > 0 ) {
+            $row = $PDOX->rowDie(
+                "SELECT link_id FROM {$CFG->dbprefix}quiz1_quiz
+                 WHERE quiz_id = :QID AND context_id = :CID",
+                array(':QID' => $quiz_id, ':CID' => $context_id)
+            );
+            if ( ! is_array($row) || empty($row['link_id']) ) {
+                return 0;
+            }
+            return (int) $row['link_id'];
+        }
+        $rlid = trim((string) U::get($_POST, 'resource_link_id', ''));
+        if ( $rlid === '' ) {
+            return 0;
+        }
+        $row = $PDOX->rowDie(
+            "SELECT link_id FROM {$CFG->dbprefix}lti_link
+             WHERE context_id = :CID AND link_key = :LK AND (deleted IS NULL OR deleted = 0)",
+            array(':CID' => $context_id, ':LK' => $rlid)
+        );
+        if ( ! is_array($row) || empty($row['link_id']) ) {
+            return 0;
+        }
+        return (int) $row['link_id'];
+    }
+
+    /**
      * @return bool|null
      */
     private function postedPublishedFlag() {
@@ -997,6 +1093,7 @@ class Lessons extends Tool {
             return $err;
         }
 
+        $previous = LessonDue::loadDocument($context_id);
         try {
             Manifest::saveNewVersion($context_id, $lessons_data, ReqScope::loggedInUserId(), $comment);
         } catch ( \InvalidArgumentException $e ) {
@@ -1004,6 +1101,7 @@ class Lessons extends Tool {
         } catch ( \Exception $e ) {
             return 'Failed to save manifest';
         }
+        LessonDue::pushChanges($context_id, $previous, $lessons_data);
         return null;
     }
 
@@ -1879,6 +1977,7 @@ $(function(){
                     echo(' href="'.$launch_path.'">'.htmlentities($title).'</a>');
                     $rlid = isset($lti->resource_link_id) ? $lti->resource_link_id : '';
                     self::echoLtiLinkProgressIndicators($rlid, $lti, $allgrades, $moduleDueDates);
+                    self::echoItemDue($lti, $rlid, $moduleDueDates);
                     echo('</li>'."\n");
                 }
 
@@ -2282,6 +2381,29 @@ $(function(){
         echo(' <span class="tsugi-assignments-due-detail"><span class="tsugi-assignments-due-lbl">'.__('Due').'</span> ');
         echo(htmlspecialchars($dateDisp).'</span>');
         echo('</span>');
+    }
+
+    /**
+     * Due day stored on the lesson item, when the link does not have one yet.
+     *
+     * @param object $item
+     * @param mixed $resource_link_id
+     * @param array<string,array<string,mixed>> $duedates
+     */
+    private static function echoItemDue($item, $resource_link_id, $duedates) {
+        $key = trim((string) $resource_link_id);
+        if ( $key !== '' && isset($duedates[$key]) && is_array($duedates[$key]) && U::isNotEmpty(U::get($duedates[$key], 'end_datetime')) ) {
+            return;
+        }
+        $due = (is_object($item) && isset($item->due)) ? trim((string) $item->due) : '';
+        if ( ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $due) ) {
+            return;
+        }
+        $t = strtotime($due.' 12:00:00');
+        $dateDisp = $t ? date('M j, Y', $t) : $due;
+        echo('<span class="tsugi-assignments-due tsugi-assignments-due-badge tsugi-assignments-due-neutral">');
+        echo('<span class="tsugi-assignments-due-detail"><span class="tsugi-assignments-due-lbl">'.__('Due').'</span> ');
+        echo(htmlspecialchars($dateDisp).'</span></span>');
     }
 
     /**
@@ -3145,6 +3267,7 @@ $(function(){
         } else {
             self::renderRegisteredLtiOpen($view, $launch_path, $shown);
             self::echoLtiLinkProgressIndicators($resource_link_id, $view, $lessons->moduleProgressGrades(), $lessons->moduleProgressDueDates());
+            self::echoItemDue($item, $resource_link_id, $lessons->moduleProgressDueDates());
         }
         echo('</li>'."\n");
     }
@@ -3237,6 +3360,7 @@ $(function(){
                 echo(htmlentities($title).'</a>');
             }
             self::echoLtiLinkProgressIndicators($resource_link_id, $item, $lessons->moduleProgressGrades(), $lessons->moduleProgressDueDates());
+            self::echoItemDue($item, $resource_link_id, $lessons->moduleProgressDueDates());
             echo('</li>'."\n");
         }
     }
@@ -3316,6 +3440,18 @@ $(function(){
             echo('<span style="display: inline-flex; align-items: center;">');
             self::renderItemIcon(LessonsNormalize::iconKey($item));
             echo(htmlentities($title).htmlentities($suffix));
+            echo('</span>');
+        }
+        if ( ! $nostyle ) {
+            $linkKey = Quiz1Repository::linkKey($quiz_id);
+            echo('<span class="tsugi-lti-link-meta">');
+            self::echoDueDateBadgeForResourceLink(
+                $linkKey,
+                $lessons->moduleProgressGrades(),
+                $lessons->moduleProgressDueDates(),
+                true
+            );
+            self::echoItemDue($item, $linkKey, $lessons->moduleProgressDueDates());
             echo('</span>');
         }
         echo("</li>\n");

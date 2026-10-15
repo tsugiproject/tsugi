@@ -228,6 +228,23 @@ class CCItemLomDescriptionTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(3, $this->directIdentifierCount($lom));
         $this->assertTrue($this->lomValidatesAgainstCc12Xsd($lom, $xsd));
 
+        $cc = $this->cc12();
+        $cc->add_module('Week 2', '', (object) array(
+            'due' => '2026-10-20',
+            'gradable' => '0',
+        ));
+        $dueItem = $this->organizationItem($cc->saveXML(), $cc->last_identifier);
+        $dueIds = CC::lomIdentifiersFromItem($dueItem);
+        $this->assertSame('2026-10-20', $dueIds[CC::LOM_CATALOG_DUE]);
+        $this->assertSame('0', $dueIds[CC::LOM_CATALOG_GRADABLE]);
+        $this->assertSame('2026-10-20', CC::organizationDue($dueIds[CC::LOM_CATALOG_DUE]));
+        $this->assertFalse(CC::organizationGradable($dueIds[CC::LOM_CATALOG_GRADABLE]));
+        $this->assertNull(CC::organizationDue('tomorrow'));
+        $this->assertNull(CC::organizationGradable('maybe'));
+        $dueLom = $this->itemLom($dueItem);
+        $this->assertSame(2, $this->directIdentifierCount($dueLom));
+        $this->assertTrue($this->lomValidatesAgainstCc12Xsd($dueLom, $xsd));
+
         $bad = new \DOMDocument();
         $bad->loadXML(
             '<?xml version="1.0" encoding="UTF-8"?>'

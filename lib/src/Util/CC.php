@@ -81,6 +81,10 @@ class CC extends \Tsugi\Util\TsugiDOM {
     const LOM_CATALOG_HREF_SOURCE = 'tsugi.href_source';
     /** LOM general.identifier catalog; LTI launch_presentation_document_target values. */
     const LOM_CATALOG_DOCUMENT_TARGET = 'tsugi.launch_presentation_document_target';
+    /** LOM general.identifier catalog; lesson due day YYYY-MM-DD. */
+    const LOM_CATALOG_DUE = 'tsugi.due';
+    /** LOM general.identifier catalog; 1 when the item is graded, 0 when it is not. */
+    const LOM_CATALOG_GRADABLE = 'tsugi.gradable';
 
     public $resource_count = 0;
 
@@ -399,7 +403,61 @@ class CC extends \Tsugi\Util\TsugiDOM {
         if ( $documentTarget !== null ) {
             $pairs[self::LOM_CATALOG_DOCUMENT_TARGET] = $documentTarget;
         }
+        $due = self::organizationDue($source);
+        if ( $due !== null ) {
+            $pairs[self::LOM_CATALOG_DUE] = $due;
+        }
+        $gradable = self::organizationGradable($source);
+        if ( $gradable !== null ) {
+            $pairs[self::LOM_CATALOG_GRADABLE] = $gradable ? '1' : '0';
+        }
         return $pairs;
+    }
+
+    /**
+     * Lesson due day (YYYY-MM-DD) from a lesson/module or a raw value, or null.
+     *
+     * @param mixed $source
+     * @return string|null
+     */
+    public static function organizationDue($source) {
+        if ( is_object($source) && isset($source->due) ) {
+            $source = $source->due;
+        } else if ( is_array($source) && array_key_exists('due', $source) ) {
+            $source = $source['due'];
+        }
+        if ( ! is_string($source) ) {
+            return null;
+        }
+        $source = trim($source);
+        if ( ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $source) ) {
+            return null;
+        }
+        return $source;
+    }
+
+    /**
+     * Whether a lesson item is graded, or null when the source does not say.
+     *
+     * @param mixed $source lesson/module, or a raw 1/0 value
+     * @return bool|null
+     */
+    public static function organizationGradable($source) {
+        if ( is_object($source) && isset($source->gradable) ) {
+            $source = $source->gradable;
+        } else if ( is_array($source) && array_key_exists('gradable', $source) ) {
+            $source = $source['gradable'];
+        }
+        if ( is_bool($source) ) {
+            return $source;
+        }
+        if ( $source === 1 || $source === '1' ) {
+            return true;
+        }
+        if ( $source === 0 || $source === '0' ) {
+            return false;
+        }
+        return null;
     }
 
     /**
@@ -1507,6 +1565,8 @@ class CC extends \Tsugi\Util\TsugiDOM {
             $lti_item = $this->add_child_ns($this->ccNs(), $module, 'item', null,
                 array('identifier' => $lti_identifier, "identifierref" => $lti_resource_id));
             $lti_title = $this->add_child_ns($this->ccNs(), $lti_item, 'title', $title);
+            $this->last_identifier = $lti_identifier;
+            $this->last_identifierref = $lti_resource_id;
             
             // Add to canvas_module_meta as LTI tool (not assignment)
             if ( $this->canvas_items ) {

@@ -4,6 +4,7 @@ require_once "src/Core/I18N.php";
 require_once "include/setup_i18n.php";
 require_once "src/Config/ConfigInfo.php";
 
+use Tsugi\Services\Cartridge\Fingerprint;
 use Tsugi\Services\Cartridge\Importer;
 use Tsugi\Services\Cartridge\Matcher;
 use Tsugi\Services\Cartridge\Package;
@@ -189,6 +190,74 @@ class CartridgeLomDescriptionImportTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testImportRestoresDueAndGradableOnTheLesson() {
+        $l = (object) array(
+            'lessons' => (object) array(
+                'title' => 'Course',
+                'modules' => array(
+                    (object) array(
+                        'title' => 'Week 1',
+                        'anchor' => 'w1',
+                        'items' => array(
+                            (object) array(
+                                'type' => 'lti',
+                                'title' => 'Assignment: Draft',
+                                'launch' => 'https://example.com/draft',
+                                'resource_link_id' => 'draft-1',
+                                'due' => '2026-10-20',
+                                'result' => false,
+                            ),
+                            (object) array(
+                                'type' => 'lti',
+                                'title' => 'Assignment: Live',
+                                'launch' => 'https://example.com/live',
+                                'resource_link_id' => 'live-1',
+                                'due' => '2026-11-01',
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+        $path = $this->dir.'/due.imscc';
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($path, \ZipArchive::CREATE) === true);
+        LessonsCartridge::writeZip($l, $zip, array('tsugi_lms' => 'generic'));
+        $zip->close();
+
+        $pkg = Package::open($path);
+        try {
+            $this->assertSame('2026-10-20', $pkg->modules[0]['items'][0]['due']);
+            $this->assertFalse($pkg->modules[0]['items'][0]['gradable']);
+            $this->assertSame('2026-11-01', $pkg->modules[0]['items'][1]['due']);
+            $this->assertTrue($pkg->modules[0]['items'][1]['gradable']);
+
+            $actions = array();
+            $lessonsByRes = array();
+            foreach ( $pkg->importableResources() as $res ) {
+                $id = (string) ($res['identifier'] ?? '');
+                $kind = Fingerprint::localKind((string) ($res['type'] ?? ''), (string) ($res['href'] ?? ''));
+                $made = $this->materializeKind($pkg, $res, $kind);
+                $actions[$id] = Matcher::NEW;
+                $lessonsByRes[$id] = $made['lesson'];
+            }
+            $session = new Session(10, 3);
+            $ref = new \ReflectionMethod(Importer::class, 'buildLessonsModules');
+            $modules = $ref->invoke(null, $pkg, $session, $actions, $lessonsByRes);
+            $imported = array();
+            foreach ( $modules[0]['items'] as $item ) {
+                $imported[$item['title']] = $item;
+            }
+            $this->assertSame('2026-10-20', $imported['Assignment: Draft']['due']);
+            $this->assertFalse($imported['Assignment: Draft']['result']);
+            $this->assertSame('lti', $imported['Assignment: Draft']['type']);
+            $this->assertSame('2026-11-01', $imported['Assignment: Live']['due']);
+            $this->assertArrayNotHasKey('result', $imported['Assignment: Live']);
+        } finally {
+            $pkg->close();
+        }
+    }
+
     /**
      * @param string $title
      * @param string|null $description
@@ -249,7 +318,16 @@ class CartridgeLomDescriptionImportTest extends \PHPUnit\Framework\TestCase
      * @return array{local_kind:string,local_id:?int,local_key:?string,lesson:?array}
      */
     private function materializeWebLink(Package $pkg, array $res) {
+        return $this->materializeKind($pkg, $res, 'web_link');
+    }
+
+    /**
+     * @param array<string, mixed> $res
+     * @param string $kind
+     * @return array{local_kind:string,local_id:?int,local_key:?string,lesson:?array}
+     */
+    private function materializeKind(Package $pkg, array $res, $kind) {
         $ref = new \ReflectionMethod(Importer::class, 'materialize');
-        return $ref->invoke(null, $pkg, $res, 'web_link', 0, 0, array(), false);
+        return $ref->invoke(null, $pkg, $res, $kind, 0, 0, array(), false);
     }
 }
