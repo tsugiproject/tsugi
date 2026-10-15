@@ -264,7 +264,7 @@ class GradeUtil {
 
     /**
      * Parse a due date from the UI (calendar day only). Stored as 11:59:59 PM that day.
-     * An empty value clears the due date. Any other value that is not YYYY-MM-DD is invalid.
+     * An empty value clears the due date. Any other value that is not a real YYYY-MM-DD day is invalid.
      *
      * @param mixed $s
      * @return string|null MySQL datetime, or null when the field is empty
@@ -274,7 +274,8 @@ class GradeUtil {
         if ( $s === '' ) {
             return null;
         }
-        if ( preg_match('/^\d{4}-\d{2}-\d{2}$/', $s) ) {
+        if ( preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $s, $m)
+                && checkdate((int) $m[2], (int) $m[3], (int) $m[1]) ) {
             return $s . ' 23:59:59';
         }
         return null;

@@ -53,6 +53,7 @@ class LessonDue {
 
     /**
      * After a lesson save, write due dates that changed on the document onto links that already exist.
+     * An item that stays and has its date cleared updates the link. Removing the item leaves the link's date alone.
      *
      * @param array<string, mixed>|null $previous
      * @param array<string, mixed> $current
@@ -64,7 +65,7 @@ class LessonDue {
         }
         $before = self::indexDues(is_array($previous) ? $previous : array());
         $after = self::indexDues($current);
-        $keys = array_unique(array_merge(array_keys($before), array_keys($after)));
+        $keys = array_keys($after);
         $changed = false;
         foreach ( $keys as $key ) {
             $old = isset($before[$key]) ? $before[$key] : '';

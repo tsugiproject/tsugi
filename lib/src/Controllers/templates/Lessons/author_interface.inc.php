@@ -1258,7 +1258,11 @@ function saveDueDate() {
     } catch (e) {
         return;
     }
-    const due = el.value;
+    const due = (el.value || '').trim();
+    if (due && !/^\d{4}-\d{2}-\d{2}$/.test(due)) {
+        alert('Enter a due date as YYYY-MM-DD.');
+        return;
+    }
     rememberItemDue(due);
     markChanged();
     if (!payload.published) {
