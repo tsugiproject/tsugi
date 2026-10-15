@@ -1145,14 +1145,12 @@ class LessonsCartridge {
         } else {
             $linkDue = is_string($knownLinkDue) ? trim($knownLinkDue) : '';
         }
-        if ( preg_match('/^\d{4}-\d{2}-\d{2}$/', $linkDue) ) {
-            return $linkDue;
+        $linkDay = GradeUtil::dueDay($linkDue);
+        if ( $linkDay !== null ) {
+            return $linkDay;
         }
-        $itemDue = (isset($item->due) && is_string($item->due)) ? trim($item->due) : '';
-        if ( preg_match('/^\d{4}-\d{2}-\d{2}$/', $itemDue) ) {
-            return $itemDue;
-        }
-        return null;
+        $itemDue = (isset($item->due) && is_string($item->due)) ? $item->due : '';
+        return GradeUtil::dueDay($itemDue);
     }
 
     /**

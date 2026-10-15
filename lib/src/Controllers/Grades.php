@@ -2012,10 +2012,30 @@ class Grades extends Tool {
         return $this->toolHome(self::ROUTE).'/configuration';
     }
 
+    /**
+     * Lesson assignment link keys, so a column can be categorized before a score exists.
+     *
+     * @return array<int,string>
+     */
+    private function configurationLinkKeys()
+    {
+        if ( ! Manifest::hasCurrent() ) {
+            return array();
+        }
+        $keys = array();
+        foreach ( Manifest::requireCurrentLessons()->enumerateLtiAssignmentItems(true) as $item ) {
+            $key = isset($item['resource_link_id']) ? trim((string) $item['resource_link_id']) : '';
+            if ( $key !== '' ) {
+                $keys[] = $key;
+            }
+        }
+        return $keys;
+    }
+
     private function renderConfiguration($context_id, $post_home)
     {
         $categories = GradeCategoryRepository::listForContext($context_id);
-        $grade_columns = GradeCategoryRepository::gradeColumns($context_id, 0);
+        $grade_columns = GradeCategoryRepository::gradeColumns($context_id, 0, $this->configurationLinkKeys());
         $return_inputs = '';
         include __DIR__ . '/templates/Grades/manage_dialog.inc.php';
     }

@@ -857,6 +857,9 @@ class Lessons extends Tool {
         if ( $context_id < 1 ) {
             return new Response(json_encode(['success' => false, 'error' => 'No course context']), 400, ['Content-Type' => 'application/json']);
         }
+        if ( $this->postedDueTargetIsSaved() === false ) {
+            return new Response(json_encode(['success' => false, 'error' => 'Save the lesson before changing the due date.']), 400, ['Content-Type' => 'application/json']);
+        }
         LTIX::getConnection();
         $link_id = $this->dueLinkId($context_id);
         if ( $link_id < 1 ) {
@@ -886,6 +889,32 @@ class Lessons extends Tool {
             'success' => true,
             'due' => GradeUtil::dueDateInputValue($endSql),
         ]), 200, ['Content-Type' => 'application/json']);
+    }
+
+    /**
+     * Whether the posted due-date target is in the saved lesson.
+     *
+     * Null when the post names no content, quiz, or resource link.
+     *
+     * @return bool|null
+     */
+    private function postedDueTargetIsSaved() {
+        $content_id = (int) U::get($_POST, 'content_id', 0);
+        if ( $content_id > 0 ) {
+            $doc = Manifest::currentDocument();
+            $data = is_array($doc) && isset($doc['json']) ? json_decode($doc['json'], true) : null;
+            $saved = is_array($data) ? self::contentIdsInDocument($data) : array();
+            return in_array($content_id, $saved, true);
+        }
+        $quiz_id = (int) U::get($_POST, 'quiz_id', 0);
+        if ( $quiz_id > 0 ) {
+            return isset($this->savedQuizIds()[$quiz_id]);
+        }
+        $rlid = trim((string) U::get($_POST, 'resource_link_id', ''));
+        if ( $rlid === '' ) {
+            return null;
+        }
+        return isset($this->savedLtiResourceLinkIds()[$rlid]);
     }
 
     /**

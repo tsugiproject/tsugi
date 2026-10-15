@@ -1207,27 +1207,28 @@ function dueDateFieldHtml(due, payload) {
     `;
 }
 
-function rememberItemDue(due) {
-    const value = /^\d{4}-\d{2}-\d{2}$/.test(due || '') ? due : '';
-    if (draftItem && typeof draftItem === 'object') {
-        if (value) {
-            draftItem.due = value;
-        } else {
-            delete draftItem.due;
-        }
+function applyDueValue(target, due) {
+    if (!target || typeof target !== 'object') {
+        return;
     }
+    const value = /^\d{4}-\d{2}-\d{2}$/.test(due || '') ? due : '';
+    if (value) {
+        target.due = value;
+    } else {
+        delete target.due;
+    }
+}
+
+function rememberItemDue(due) {
+    applyDueValue(draftItem, due);
+}
+
+function storeOpenedItemDue(due) {
     if (editingItemIndex === null || !lessonsData.modules || !lessonsData.modules[editingModuleIndex]) {
         return;
     }
     const stored = lessonsData.modules[editingModuleIndex].items[editingItemIndex];
-    if (!stored) {
-        return;
-    }
-    if (value) {
-        stored.due = value;
-    } else {
-        delete stored.due;
-    }
+    applyDueValue(stored, due);
 }
 
 function applyDueFromForm(item) {
@@ -1264,7 +1265,6 @@ function saveDueDate() {
         return;
     }
     rememberItemDue(due);
-    markChanged();
     if (!payload.published) {
         return;
     }
@@ -1282,6 +1282,8 @@ function saveDueDate() {
                 return;
             }
             const due = result.due || '';
+            rememberItemDue(due);
+            storeOpenedItemDue(due);
             if (payload.content_id && ltiContentById[String(payload.content_id)]) {
                 ltiContentById[String(payload.content_id)].due = due;
             }
@@ -2280,12 +2282,23 @@ function ltiClaimsVisible() {
 }
 
 function onQuizPicked() {
-    const id = parseInt($('#edit-quiz-id').val(), 10);
-    const q = (quiz1Quizzes || []).find(function(x) { return x.id === id; });
+    const id = parseInt($('#edit-quiz-id').val(), 10) || 0;
+    const q = quiz1ById(id);
     const titleEl = document.getElementById('edit-title');
     if (q && titleEl && !titleEl.value.trim()) {
         titleEl.value = q.title;
     }
+    const dueEl = document.getElementById('edit-due-date');
+    if (!dueEl) {
+        return;
+    }
+    const published = !!(q && q.published);
+    const linkDue = (q && q.link_id && typeof q.due === 'string') ? q.due : '';
+    dueEl.value = dueValueForEditor(currentEditorItem(), linkDue, published);
+    dueEl.setAttribute('data-due', JSON.stringify({
+        quiz_id: (q && q.link_id) ? id : 0,
+        published: published ? 1 : 0
+    }));
 }
 
 function pagePickerFieldsHtml(item) {

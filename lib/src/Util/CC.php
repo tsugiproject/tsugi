@@ -2,6 +2,8 @@
 
 namespace Tsugi\Util;
 
+use Tsugi\Grades\GradeUtil;
+
 /**
  * This class allows us to produce an IMS Common Cartridge (1.2 by default, 1.1 for Moodle).
  *
@@ -429,11 +431,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
         if ( ! is_string($source) ) {
             return null;
         }
-        $source = trim($source);
-        if ( ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $source) ) {
-            return null;
-        }
-        return $source;
+        return GradeUtil::dueDay($source);
     }
 
     /**

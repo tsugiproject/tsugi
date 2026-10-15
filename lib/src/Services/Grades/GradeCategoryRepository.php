@@ -3,7 +3,6 @@
 namespace Tsugi\Services\Grades;
 
 use Tsugi\Core\LTIX;
-use Tsugi\Util\U;
 
 /**
  * Course grade categories and the link columns that sit in them.
@@ -31,12 +30,16 @@ class GradeCategoryRepository {
     }
 
     /**
-     * Grade columns in this course: links that already have a grade.
+     * Grade columns in this course.
+     *
+     * A column counts before anyone has a score: a result row, a quiz link,
+     * a content launch that sends a grade, or a lesson link key in $link_keys.
      * $user_id adds that student's grade when it is set.
      *
+     * @param array<int,string> $link_keys
      * @return array<int,array<string,mixed>>
      */
-    public static function gradeColumns($context_id, $user_id = 0) {
+    public static function gradeColumns($context_id, $user_id = 0, array $link_keys = array()) {
         global $CFG, $PDOX;
         LTIX::getConnection();
 
@@ -51,13 +54,46 @@ class GradeCategoryRepository {
             $params[':UID'] = (int) $user_id;
         }
 
+        $key_sql = '';
+        $seen = array();
+        foreach ( $link_keys as $key ) {
+            $key = trim((string) $key);
+            if ( $key === '' || isset($seen[$key]) ) {
+                continue;
+            }
+            $seen[$key] = true;
+        }
+        if ( count($seen) > 0 ) {
+            $placeholders = array();
+            $i = 0;
+            foreach ( array_keys($seen) as $key ) {
+                $ph = ':LK'.$i;
+                $placeholders[] = $ph;
+                $params[$ph] = $key;
+                $i++;
+            }
+            $key_sql = ' OR L.link_key IN ('.implode(',', $placeholders).')';
+        }
+
         return $PDOX->allRowsDie(
             "SELECT L.link_id, L.title, L.hidden, L.category_id, {$grade_sql}
              FROM {$p}lti_link L
              WHERE L.context_id = :CID AND L.deleted = 0
-               AND EXISTS (
-                    SELECT 1 FROM {$p}lti_result G
-                    WHERE G.link_id = L.link_id AND G.grade IS NOT NULL AND G.deleted = 0
+               AND (
+                    EXISTS (
+                        SELECT 1 FROM {$p}lti_result G
+                        WHERE G.link_id = L.link_id AND G.deleted = 0
+                    )
+                    OR EXISTS (
+                        SELECT 1 FROM {$p}quiz1_quiz Q
+                        WHERE Q.link_id = L.link_id AND Q.context_id = L.context_id
+                    )
+                    OR EXISTS (
+                        SELECT 1 FROM {$p}lti_content C
+                        WHERE C.link_id = L.link_id AND C.context_id = L.context_id
+                          AND C.send_grade = 1
+                    )
+                    {$key_sql}
                )
              ORDER BY L.hidden ASC, L.title ASC, L.link_id ASC",
             $params
@@ -251,7 +287,7 @@ class GradeCategoryRepository {
         if ( $title === '' ) {
             return __('Enter a category title.');
         }
-        if ( U::strlen($title) > 255 ) {
+        if ( mb_strlen($title, 'UTF-8') > 255 ) {
             return __('Category title is too long.');
         }
         $percent_text = trim((string) $percent);

@@ -2,6 +2,7 @@
 
 namespace Tsugi\Services\Lessons;
 
+use Tsugi\Grades\GradeUtil;
 use Tsugi\Services\Files\FileRepository;
 use Tsugi\Services\Pages\PageRepository;
 
@@ -681,8 +682,8 @@ class LessonsNormalize {
      */
     private static function enrichCanonical(array $item) {
         if ( isset($item['due']) ) {
-            $due = is_string($item['due']) ? trim($item['due']) : '';
-            if ( preg_match('/^\d{4}-\d{2}-\d{2}$/', $due) ) {
+            $due = GradeUtil::dueDay(is_string($item['due']) ? $item['due'] : '');
+            if ( $due !== null ) {
                 $item['due'] = $due;
             } else {
                 unset($item['due']);

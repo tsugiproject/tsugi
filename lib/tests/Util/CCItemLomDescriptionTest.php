@@ -240,6 +240,8 @@ class CCItemLomDescriptionTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('2026-10-20', CC::organizationDue($dueIds[CC::LOM_CATALOG_DUE]));
         $this->assertFalse(CC::organizationGradable($dueIds[CC::LOM_CATALOG_GRADABLE]));
         $this->assertNull(CC::organizationDue('tomorrow'));
+        $this->assertNull(CC::organizationDue('2026-02-31'));
+        $this->assertNull(CC::organizationDue('2026-13-45'));
         $this->assertNull(CC::organizationGradable('maybe'));
         $dueLom = $this->itemLom($dueItem);
         $this->assertSame(2, $this->directIdentifierCount($dueLom));

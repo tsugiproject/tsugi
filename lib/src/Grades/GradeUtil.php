@@ -274,9 +274,24 @@ class GradeUtil {
         if ( $s === '' ) {
             return null;
         }
+        $day = self::dueDay($s);
+        if ( $day === null ) {
+            return null;
+        }
+        return $day . ' 23:59:59';
+    }
+
+    /**
+     * A real calendar day as YYYY-MM-DD, or null.
+     *
+     * @param mixed $value
+     * @return string|null
+     */
+    public static function dueDay($value) {
+        $s = trim((string) $value);
         if ( preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $s, $m)
                 && checkdate((int) $m[2], (int) $m[3], (int) $m[1]) ) {
-            return $s . ' 23:59:59';
+            return $s;
         }
         return null;
     }
