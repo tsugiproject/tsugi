@@ -3,6 +3,7 @@
 namespace Tsugi\Services\Lessons;
 
 use Tsugi\Core\LTIX;
+use Tsugi\Grades\GradeUtil;
 use Tsugi\Services\Outbound\LtiContentService;
 use Tsugi\Services\Quiz1\Quiz1Repository;
 use Tsugi\Util\U;
@@ -107,6 +108,7 @@ class LessonPublish {
         if ( $published ) {
             LessonDue::copyOntoLink($contextId, (int) $PDOX->lastInsertId(), true);
         }
+        GradeUtil::invalidateDueDatesCache($contextId);
         return true;
     }
 

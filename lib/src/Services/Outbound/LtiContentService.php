@@ -404,6 +404,7 @@ class LtiContentService {
                 )
             );
             $linkId = (int) self::db()->lastInsertId();
+            GradeUtil::invalidateDueDatesCache((int) $row['context_id']);
         }
         self::db()->queryDie(
             "UPDATE {$p}lti_content SET link_id = :link_id, updated_at = NOW()

@@ -517,6 +517,7 @@ class Quiz1Repository {
             array(':LID' => $link_id, ':QID' => $quiz_id, ':CID' => $context_id)
         );
         LessonDue::copyOntoLink($context_id, $link_id);
+        GradeUtil::invalidateDueDatesCache($context_id);
         return $link_id;
     }
 
