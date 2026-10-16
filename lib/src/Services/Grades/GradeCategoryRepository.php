@@ -76,7 +76,17 @@ class GradeCategoryRepository {
         }
 
         return $PDOX->allRowsDie(
-            "SELECT L.link_id, L.title, L.hidden, L.category_id, {$grade_sql}
+            "SELECT L.link_id, L.link_key, L.title, L.path, L.hidden, L.published, L.category_id, L.end_datetime,
+                    L.lti13_lineitem,
+                    (SELECT 1 FROM {$p}lti_content Csend
+                      WHERE Csend.link_id = L.link_id AND Csend.context_id = L.context_id AND Csend.send_grade = 1
+                      LIMIT 1) AS send_grade,
+                    (SELECT 1 FROM {$p}lti_result Rup
+                      WHERE Rup.link_id = L.link_id AND Rup.deleted = 0
+                        AND Rup.service_id IS NOT NULL
+                        AND Rup.sourcedid IS NOT NULL AND Rup.sourcedid <> ''
+                      LIMIT 1) AS upward,
+                    {$grade_sql}
              FROM {$p}lti_link L
              WHERE L.context_id = :CID AND L.deleted = 0
                AND (

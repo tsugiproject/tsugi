@@ -29,13 +29,6 @@ $category_options = function($selected) use ($categories) {
     return $html;
 };
 
-$grade_text = function($grade) {
-    if ( $grade === null || $grade === '' ) {
-        return '—';
-    }
-    return sprintf('%1.1f', ((float) $grade) * 100.0);
-};
-
 $column_title = function($title) {
     $title = trim((string) $title);
     if ( $title === '' ) {
@@ -45,7 +38,9 @@ $column_title = function($title) {
 };
 ?>
 <div class="grades-configuration">
+        <?php if ( empty($categories_only) ) { ?>
         <h2><?= htmlspecialchars(__('Configuration')) ?></h2>
+        <?php } ?>
         <section>
           <h3><?= htmlspecialchars(__('Categories')) ?></h3>
           <p><?= htmlspecialchars(__('Regular percents are meant to total 100. Extra credit is added on top of that.')) ?></p>
@@ -119,13 +114,12 @@ $column_title = function($title) {
         </section>
 
         <?php
-        $render_columns = function($columns, $hide_action, $hide_label) use ($post_home, $return_inputs, $category_options, $grade_text, $column_title) {
+        $render_columns = function($columns, $hide_action, $hide_label) use ($post_home, $return_inputs, $category_options, $column_title) {
             if ( count($columns) < 1 ) {
                 return;
             }
             echo '<table class="table table-condensed"><thead><tr>';
             echo '<th scope="col">'.htmlspecialchars(__('Grade')).'</th>';
-            echo '<th scope="col">'.htmlspecialchars(__('Score')).'</th>';
             echo '<th scope="col">'.htmlspecialchars(__('Category')).'</th>';
             echo '<th scope="col"></th>';
             echo '</tr></thead><tbody>';
@@ -134,7 +128,6 @@ $column_title = function($title) {
                 $title = $column_title($column['title']);
                 $action = $post_home.'/links/'.$id;
                 echo '<tr><td>'.htmlspecialchars($title).'</td>';
-                echo '<td>'.htmlspecialchars($grade_text($column['grade'] ?? null)).'</td>';
                 echo '<td colspan="2">';
                 echo '<form method="post" action="'.htmlspecialchars($action).'" class="form-inline">';
                 echo Tool::csrfField();
@@ -151,6 +144,7 @@ $column_title = function($title) {
         };
         ?>
 
+        <?php if ( empty($categories_only) ) { ?>
         <section class="grades-section">
           <h3><?= htmlspecialchars(__('Grades')) ?></h3>
           <?php if ( count($visible_columns) < 1 ) { ?>
@@ -169,4 +163,5 @@ $column_title = function($title) {
               $render_columns($hidden_columns, 'unhide', __('Unhide'));
           } ?>
         </section>
+        <?php } ?>
 </div>

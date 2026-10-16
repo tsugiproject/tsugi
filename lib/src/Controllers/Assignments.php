@@ -101,8 +101,8 @@ class Assignments extends Tool {
             }
             if ( $this->isInstructor() ) {
                 $grades_home = $this->toolHome(Grades::ROUTE);
-                $md_url = U::addSession($grades_home . '/manage-due-dates');
-                echo('<a href="'.htmlspecialchars($md_url).'" class="btn btn-default btn-sm"><i class="fa fa-calendar" aria-hidden="true"></i> '.__('Manage due dates').'</a>');
+                $md_url = U::addSession($grades_home . '/manage');
+                echo('<a href="'.htmlspecialchars($md_url).'" class="btn btn-default btn-sm"><i class="fa fa-calendar" aria-hidden="true"></i> '.__('Manage grade book').'</a>');
                 $sp_url = U::addSession($grades_home . '/student-progress');
                 echo('<a href="'.htmlspecialchars($sp_url).'" class="btn btn-default btn-sm"><i class="fa fa-line-chart" aria-hidden="true"></i> '.__('Student Progress').'</a>');
             }

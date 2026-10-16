@@ -183,10 +183,10 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->waitForPageText($client, 'Grade Book');
         $this->waitForPageText($client, 'student01@notgoogle.com');
         $page = $client->getPageSource();
-        foreach (['Manage due dates', 'Student Progress', 'All Students', 'Configuration', 'Resend grades'] as $instructorOnly) {
+        foreach (['Manage grade book', 'Manage due dates', 'Student Progress', 'All Students', 'Configuration', 'Resend grades'] as $instructorOnly) {
             $this->assertStringNotContainsString($instructorOnly, $page, 'A learner should not see '.$instructorOnly);
         }
-        foreach (['/grades/class', '/grades/configuration', '/grades/student-progress', '/grades/manage-due-dates', '/grades/resend'] as $path) {
+        foreach (['/grades/class', '/grades/configuration', '/grades/manage', '/grades/student-progress', '/grades/manage-due-dates', '/grades/resend'] as $path) {
             $driver->get($home.$path);
             $this->waitForPageText($client, 'You must be an administrator or instructor for this context');
         }
@@ -285,7 +285,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
     {
         $client->getWebDriver()->get($courseHome.'/assignments');
         $this->waitForPageText($client, $courseTitle);
-        $this->waitForPageText($client, 'Manage due dates');
+        $this->waitForPageText($client, 'Manage grade book');
     }
 
     private function openCalendar(\Symfony\Component\Panther\Client $client, string $courseHome): void
@@ -549,7 +549,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->acceptAlertContaining($driver, 'saved');
 
         $driver->get($courseHome.'/grades/manage-due-dates');
-        $this->waitForPageText($client, 'Manage due dates');
+        $this->waitForPageText($client, 'Manage grade book');
         $this->waitForPageText($client, $itemTitle);
 
         $dueDate = date('Y-m-d');
@@ -652,11 +652,11 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->waitForPageText($client, 'Grade Book');
         $this->waitForPageText($client, 'Class: '.$courseTitle);
         $this->waitForPageText($client, 'Course Outline');
-        $this->waitForPageText($client, 'Manage due dates');
+        $this->waitForPageText($client, 'Manage grade book');
         $this->waitForPageText($client, 'Student Progress');
         $this->waitForPageText($client, 'All Students');
-        $this->waitForPageText($client, 'Configuration');
         $page = $client->getPageSource();
+        $this->assertStringNotContainsString('>Configuration<', $page);
         $this->assertStringNotContainsString('id="resend-tab"', $page, 'Resend stays hidden when no grade is sent upward.');
         $this->assertStringNotContainsString('id="analytics-tab"', $page, 'Analytics stays hidden on a course login.');
 
@@ -673,7 +673,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->assertStringNotContainsString('Activity Detail', $client->getPageSource());
 
         $driver->get($courseHome.'/grades/manage-due-dates');
-        $this->waitForPageText($client, 'No LTI assignments are defined in the lessons configuration.');
+        $this->waitForPageText($client, 'No line items or gradable quizzes yet.');
         $this->assertStringNotContainsString('Add missing link rows', $client->getPageSource());
 
         $driver->get($courseHome.'/grades/configuration');
@@ -690,7 +690,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Add category')]"))->click();
         $this->waitForPageText($client, 'Category added.');
         $this->waitForPageText($client, 'Panther Quizzes');
-        $this->waitForPageText($client, 'No visible grades.');
+        $this->waitForPageText($client, 'No line items or gradable quizzes yet.');
 
         $driver->get($courseHome.'/grades');
         $this->waitForPageText($client, 'Nothing to display.');
@@ -809,7 +809,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
             button.click();
             return true;'
         );
-        $this->assertTrue($saved, 'Configuration did not list the quiz.');
+        $this->assertTrue($saved, 'Manage grade book did not list the quiz.');
         $this->waitForPageText($client, 'Grade category saved.');
     }
 
