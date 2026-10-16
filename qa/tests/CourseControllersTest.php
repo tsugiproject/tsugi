@@ -182,7 +182,14 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->get($home.'/grades');
         $this->waitForPageText($client, 'Grade Book');
         $this->waitForPageText($client, 'student01@notgoogle.com');
-        $this->assertStringNotContainsString('View Class Grades', $client->getPageSource());
+        $page = $client->getPageSource();
+        foreach (['Manage due dates', 'Student Progress', 'All Students', 'Configuration', 'Resend grades'] as $instructorOnly) {
+            $this->assertStringNotContainsString($instructorOnly, $page, 'A learner should not see '.$instructorOnly);
+        }
+        foreach (['/grades/class', '/grades/configuration', '/grades/student-progress', '/grades/manage-due-dates', '/grades/resend'] as $path) {
+            $driver->get($home.$path);
+            $this->waitForPageText($client, 'You must be an administrator or instructor for this context');
+        }
 
         $driver->get($home.'/settings');
         $this->waitForPageText($client, 'You must be an administrator or instructor for this context');

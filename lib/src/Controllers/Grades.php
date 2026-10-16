@@ -626,8 +626,8 @@ class Grades extends Tool {
     {
         global $CFG, $OUTPUT, $PDOX;
         
-        $this->requireInstructor();
-        
+        $this->requireInstructor($this->toolHome(self::ROUTE));
+
         LTIX::getConnection();
         
         $context_id = ReqScope::currentContextId();
