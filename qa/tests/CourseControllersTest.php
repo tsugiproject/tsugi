@@ -713,7 +713,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver = $client->getWebDriver();
         $driver->get($courseHome.'/grades/manage-due-dates');
         $this->waitForPageText($client, 'QTI Export Test');
-        $this->waitForPageText($client, 'Publish and unpublish use that same link');
+        $this->waitForPageText($client, 'Publish, unpublish, and hide are the same controls as the grade book.');
         $this->assertStringNotContainsString('Add missing link rows', $client->getPageSource());
         $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Published. Click to unpublish."]'))->click();
         $this->waitForPageText($client, 'Unpublished.');
