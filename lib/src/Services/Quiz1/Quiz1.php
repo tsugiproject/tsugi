@@ -31,8 +31,16 @@ class Quiz1 {
     /** @var int|null Set on list views without loading questions. */
     public $question_count;
 
-    /** @var int|null lti_link.link_id once this quiz has been published. */
+    /** @var int|null lti_link.link_id once this quiz has a link. */
     public $link_id;
+
+    /**
+     * lti_link.link_key for this quiz. Null when the quiz has no link.
+     * Set by load(); export reads it. Not derived from quiz_id.
+     *
+     * @var string|null
+     */
+    public $link_key = null;
 
     /**
      * Null when never published. Otherwise lti_link.published (0 or 1).

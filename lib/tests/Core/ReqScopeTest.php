@@ -375,6 +375,63 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
     public function testLinkKeyIsStable() {
         $this->assertSame('quiz1:42', Quiz1Repository::linkKey(42));
         $this->assertSame('quiz1:42', Quiz1Repository::linkKey('42'));
+        $this->assertTrue(Quiz1Repository::isLegacyLinkKey('quiz1:42'));
+        $allocated = Quiz1Repository::allocateLinkKey();
+        $this->assertMatchesRegularExpression('/^quiz1_k[0-9a-f]{16}$/', $allocated);
+        $this->assertFalse(str_contains($allocated, ':'));
+        $this->assertFalse(Quiz1Repository::isLegacyLinkKey($allocated));
+        $this->assertTrue(Quiz1Repository::isQuizLinkKey($allocated));
+        $this->assertTrue(Quiz1Repository::isQuizLinkKey('quiz1:42'));
+        $this->assertSame('quiz1_colon_42', Quiz1Repository::cartridgeIdentifierForLinkKey('quiz1:42'));
+        $this->assertSame('quiz1:42', Quiz1Repository::linkKeyFromCartridgeIdentifier('quiz1_colon_42'));
+        $this->assertSame('quiz1:42', Quiz1Repository::linkKeyFromCartridgeIdentifier('quiz1_colon_42_R'));
+        $this->assertSame('quiz1_42', Quiz1Repository::linkKeyFromCartridgeIdentifier('quiz1_42'));
+        $this->assertSame('tool_colon_abc', Quiz1Repository::cartridgeIdentifierForLinkKey('tool:abc'));
+        $this->assertSame('tool:abc', Quiz1Repository::linkKeyFromCartridgeIdentifier('tool_colon_abc'));
+        $this->assertSame('tool_abc', Quiz1Repository::linkKeyFromCartridgeIdentifier('tool_abc'));
+        $this->assertSame($allocated, Quiz1Repository::cartridgeIdentifierForLinkKey($allocated));
+        $this->assertSame('quiz1_k0123456789abcdef', Quiz1Repository::linkKeyFromCartridgeIdentifier('quiz1_k0123456789abcdef'));
+        $this->assertSame('quiz1_k0123456789abcdef', Quiz1Repository::cartridgeIdentifierForLinkKey('quiz1_k0123456789abcdef'));
+        $this->assertSame('Q1_ca934192ea441d46', Quiz1Repository::linkKeyFromCartridgeIdentifier('Q1_ca934192ea441d46'));
+        $this->assertSame('Q1_ca934192ea441d46', Quiz1Repository::linkKeyFromCartridgeIdentifier('Q1_ca934192ea441d46_R'));
+    }
+
+    public function testAdoptedQuizLinkKeyStaysPutForALaterCourse() {
+        $pdo = $this->beginFixtureTransaction();
+        if ( $pdo === null ) {
+            $this->markTestSkipped('Database not available for ReqScope fixtures.');
+        }
+        try {
+            $ids = $this->insertCourseFixture($pdo, LTIX::ROLE_INSTRUCTOR);
+            $contextId = $ids['context_id'];
+            $quiz = new Quiz1();
+            $quiz->context_id = $contextId;
+            $quiz->user_id = $ids['user_id'];
+            $quiz->title = 'Fall quiz';
+            $kept = 'quiz1:42';
+            $quizId = Quiz1Repository::insertQuiz($quiz, $kept);
+            $this->assertNotSame(42, $quizId);
+            $this->assertSame($kept, Quiz1Repository::storedLinkKey($quizId, $contextId));
+            $this->assertSame($kept, Quiz1Repository::resourceLinkId($quizId, $contextId));
+            $this->assertSame($quizId, Quiz1Repository::quizIdByLinkKey($contextId, $kept));
+
+            $this->assertTrue(\Tsugi\Services\Lessons\LessonPublish::apply($contextId, $kept, true, 'Fall quiz'));
+            $loaded = Quiz1Repository::load($quizId, $contextId);
+            $this->assertSame(1, (int) $loaded->published);
+            $this->assertSame($kept, $loaded->link_key);
+
+            $other = new Quiz1();
+            $other->context_id = $contextId;
+            $other->user_id = $ids['user_id'];
+            $other->title = 'Other quiz';
+            $otherId = Quiz1Repository::insertQuiz($other);
+            $otherKey = Quiz1Repository::storedLinkKey($otherId, $contextId);
+            $this->assertSame($otherKey, Quiz1Repository::adoptLinkKey($otherId, $contextId, $kept));
+            $this->assertSame($kept, Quiz1Repository::storedLinkKey($quizId, $contextId));
+            $this->assertFalse(\Tsugi\Services\Lessons\LessonPublish::apply($contextId, Quiz1Repository::linkKey($quizId), true));
+        } finally {
+            $pdo->rollBack();
+        }
     }
 
     public function testFromInternalActivityLoadsMemberAndReusesLinkAndResult() {
@@ -441,7 +498,9 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
                 "SELECT link_key FROM {$this->prefix()}lti_link WHERE link_id = :LID",
                 array(':LID' => $link_id)
             );
-            $this->assertSame(Quiz1Repository::linkKey($quiz_id), $row['link_key']);
+            $this->assertMatchesRegularExpression('/^quiz1_k[0-9a-f]{16}$/', $row['link_key']);
+            $this->assertNotSame(Quiz1Repository::linkKey($quiz_id), $row['link_key']);
+            $this->assertSame($row['link_key'], Quiz1Repository::resourceLinkId($quiz_id, $ids['context_id']));
             $this->assertSame($session, $_SESSION);
         } finally {
             $pdo->rollBack();

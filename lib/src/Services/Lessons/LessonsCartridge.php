@@ -977,7 +977,14 @@ class LessonsCartridge {
         if ( is_string($quiz->title) && $quiz->title !== '' && ( ! isset($item->title) || $item->title === '' ) ) {
             $title = $quiz->title;
         }
-        $file = $cc_dom->add_qti_assessment($sub_module, $title, $quiz_id);
+        $linkKey = self::quizExportLinkKey($quiz, $options);
+        $file = $cc_dom->add_qti_assessment(
+            $sub_module,
+            $title,
+            $quiz_id,
+            null,
+            Quiz1Repository::cartridgeIdentifierForLinkKey($linkKey)
+        );
         $export_opts = array(
             'schema_location' => $cc_dom->qtiSchemaLocation(),
         );
@@ -988,7 +995,12 @@ class LessonsCartridge {
         }
         $xml = Qti12Exporter::export($quiz, $export_opts);
         $cc_dom->zip_finish_qti_assessment($zip, $file, $title, $xml, $quiz);
-        $cc_dom->add_last_item_lom(self::gradeLom($item, $options, isset($quiz->due) ? $quiz->due : ''));
+        $cc_dom->add_last_item_lom(self::gradeLom(
+            $item,
+            $options,
+            isset($quiz->due) ? $quiz->due : '',
+            $linkKey
+        ));
     }
 
     /**
@@ -1119,9 +1131,10 @@ class LessonsCartridge {
      * @param object $item
      * @param array<string, mixed> $options
      * @param string|false $knownLinkDue false when the link has not been read yet
+     * @param string|null $quizLinkKey Quiz resource link id to store in LOM
      * @return object
      */
-    private static function gradeLom($item, array $options, $knownLinkDue = false) {
+    private static function gradeLom($item, array $options, $knownLinkDue = false, $quizLinkKey = null) {
         $lom = clone $item;
         $due = self::exportDueDay($item, $options, $knownLinkDue);
         if ( $due !== null ) {
@@ -1130,7 +1143,28 @@ class LessonsCartridge {
             unset($lom->due);
         }
         $lom->gradable = self::exportGradable($item, $options) ? '1' : '0';
+        if ( LessonsNormalize::isNativeQuiz($item) && is_string($quizLinkKey) && trim($quizLinkKey) !== '' ) {
+            $lom->resource_link_id = trim($quizLinkKey);
+        }
         return $lom;
+    }
+
+    /**
+     * Resource link id to write for this quiz. The link's stored key, not quiz_id.
+     *
+     * @param object $quiz
+     * @param array<string, mixed> $options
+     */
+    private static function quizExportLinkKey($quiz, array $options) {
+        if ( isset($quiz->link_key) && is_string($quiz->link_key) && trim($quiz->link_key) !== '' ) {
+            return trim($quiz->link_key);
+        }
+        $quizId = isset($quiz->id) ? (int) $quiz->id : 0;
+        $contextId = isset($options['context_id']) ? (int) $options['context_id'] : ReqScope::currentContextIdLegacy();
+        if ( $quizId < 1 || $contextId < 1 ) {
+            return '';
+        }
+        return Quiz1Repository::storedLinkKey($quizId, $contextId);
     }
 
     /**

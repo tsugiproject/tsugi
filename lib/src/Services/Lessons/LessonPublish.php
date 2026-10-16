@@ -32,18 +32,49 @@ class LessonPublish {
         if ( $contextId < 1 || $linkKey === '' ) {
             return false;
         }
-        if ( preg_match('/^quiz1:(\d+)$/', $linkKey, $match) ) {
-            $quizId = (int) $match[1];
+        $quizId = self::quizIdForLinkKey($contextId, $linkKey);
+        if ( $quizId > 0 ) {
             if ( $published ) {
                 return Quiz1Repository::publish($quizId, $contextId) !== null;
             }
             return Quiz1Repository::unpublish($quizId, $contextId);
+        }
+        if ( Quiz1Repository::isLegacyLinkKey($linkKey) ) {
+            return false;
         }
         $contentId = self::contentIdForLink($contextId, $linkKey);
         if ( $contentId > 0 ) {
             return LtiContentService::setPublished($contextId, $contentId, $published);
         }
         return self::setLink($contextId, $linkKey, $published, $title);
+    }
+
+    /**
+     * Quiz that owns this resource link id in the course.
+     * A stored key wins, including a legacy quiz1:{id} that was imported
+     * onto a quiz with a different primary key. quiz1:{id} still means
+     * that quiz when the quiz has no link yet.
+     *
+     * @param int $contextId
+     * @param string $linkKey
+     */
+    private static function quizIdForLinkKey($contextId, $linkKey) {
+        $quizId = Quiz1Repository::quizIdByLinkKey($contextId, $linkKey);
+        if ( $quizId > 0 ) {
+            return $quizId;
+        }
+        if ( ! Quiz1Repository::isLegacyLinkKey($linkKey) ) {
+            return 0;
+        }
+        $legacyId = (int) substr($linkKey, strlen('quiz1:'));
+        if ( $legacyId < 1 ) {
+            return 0;
+        }
+        $stored = Quiz1Repository::storedLinkKey($legacyId, $contextId);
+        if ( $stored !== '' && $stored !== $linkKey ) {
+            return 0;
+        }
+        return $legacyId;
     }
 
     /**

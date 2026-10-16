@@ -6,6 +6,7 @@ use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Core\ReqScope;
 use Tsugi\Grades\GradeUtil;
+use Tsugi\Services\Quiz1\Quiz1Repository;
 
 /**
  * Due dates on a lesson item, and on the link once that item has one.
@@ -204,8 +205,14 @@ class LessonDue {
      */
     private static function itemMatchesLink(array $item, $contextId, $linkKey) {
         $quizId = isset($item['quiz_id']) ? (int) $item['quiz_id'] : 0;
-        if ( $quizId > 0 && $linkKey === 'quiz1:'.$quizId ) {
-            return true;
+        if ( $quizId > 0 ) {
+            $stored = Quiz1Repository::storedLinkKey($quizId, $contextId);
+            if ( $stored !== '' ) {
+                return $stored === $linkKey;
+            }
+            if ( $linkKey === Quiz1Repository::linkKey($quizId) ) {
+                return true;
+            }
         }
         $resource = isset($item['resource_link_id']) ? trim((string) $item['resource_link_id']) : '';
         if ( $resource !== '' && $resource === $linkKey ) {

@@ -20,7 +20,6 @@ if ( ! isset($CFG->lessons) ) {
 // Load the Lesson
 $l = new LessonsService($CFG->lessons);
 
-// Helper function to get module path from DOMNode
 function get_module_path($module_node, $cc_dom) {
     // Use reflection to access private modulePaths property
     $reflection = new \ReflectionClass($cc_dom);
@@ -29,6 +28,18 @@ function get_module_path($module_node, $cc_dom) {
     $modulePaths = $property->getValue($cc_dom);
     $moduleHash = spl_object_hash($module_node);
     return isset($modulePaths[$moduleHash]) ? $modulePaths[$moduleHash] : '';
+}
+
+/**
+ * Cartridge item identifier for a lesson resource link id.
+ * ":" is written as _colon_. Null when the lesson has no link id.
+ *
+ * @param mixed $resource_link_id
+ * @return string|null
+ */
+function legacy_export_identifier($resource_link_id) {
+    $identifier = \Tsugi\Services\Quiz1\Quiz1Repository::cartridgeIdentifierForLinkKey($resource_link_id);
+    return $identifier !== '' ? $identifier : null;
 }
 
 /**
@@ -118,7 +129,10 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $topic,
 
         // If there is no LTI involved
         if ( $topic == "lms" || ! isset($CFG->tdiscus) ) {
-            $cc_dom->zip_add_topic_to_module($zip, $sub_module, $title, $text, $parentPath);
+            $cc_dom->zip_add_topic_to_module(
+                $zip, $sub_module, $title, $text, $parentPath,
+                legacy_export_identifier(isset($item_obj->resource_link_id) ? $item_obj->resource_link_id : null)
+            );
             return;
         }
 
@@ -139,11 +153,12 @@ function process_cc_item($item_obj, $module, $sub_module, $zip, $cc_dom, $topic,
         $endpoint = U::add_url_parm($endpoint, 'inherit', $item_obj->resource_link_id);
         $extensions = array('apphome' => $CFG->apphome);
         $resource_link_id = isset($item_obj->resource_link_id) ? $item_obj->resource_link_id : null;
+        $identifier = legacy_export_identifier($resource_link_id);
 
         if ( $topic == 'lti_grade' ) {
-            $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parentPath);
+            $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parentPath, $identifier);
         } else {
-            $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parentPath);
+            $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parentPath, $identifier);
         }
         return;
     }
@@ -429,7 +444,10 @@ foreach($l->lessons->modules as $module) {
 
 			// If there is no LTI involved
             if ( $topic ==  "lms" || ! isset($CFG->tdiscus) ) {
-                $cc_dom->zip_add_topic_to_module($zip, $sub_module, $title, $text, $parent_path_legacy);
+                $cc_dom->zip_add_topic_to_module(
+                    $zip, $sub_module, $title, $text, $parent_path_legacy,
+                    legacy_export_identifier(isset($discussion->resource_link_id) ? $discussion->resource_link_id : null)
+                );
                 continue;
             }
 
@@ -450,11 +468,12 @@ foreach($l->lessons->modules as $module) {
             $endpoint = U::add_url_parm($endpoint, 'inherit', $discussion->resource_link_id);
             $extensions = array('apphome' => $CFG->apphome);
             $resource_link_id = isset($discussion->resource_link_id) ? $discussion->resource_link_id : null;
+            $identifier = legacy_export_identifier($resource_link_id);
 
             if ( $topic == 'lti_grade' ) {
-                $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parent_path_legacy);
+                $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parent_path_legacy, $identifier);
             } else {
-                $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parent_path_legacy);
+                $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parent_path_legacy, $identifier);
             }
         }
     }

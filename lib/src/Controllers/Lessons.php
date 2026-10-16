@@ -344,6 +344,7 @@ class Lessons extends Tool {
             if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
                 continue;
             }
+            $this->ensureQuizLinksInItems($mod['items'], $context_id);
             foreach ( $mod['items'] as $ii => $item ) {
                 if ( ! is_array($item) ) {
                     continue;
@@ -371,6 +372,31 @@ class Lessons extends Tool {
             }
         }
         return $lessons_data;
+    }
+
+    /**
+     * A quiz placed in a lesson gets a resource link id that is not its primary key.
+     * A quiz that already has a link, including quiz1:42 from an older course, keeps that id.
+     *
+     * @param array<int, mixed> $items
+     * @param int $context_id
+     */
+    private function ensureQuizLinksInItems(array $items, $context_id) {
+        foreach ( $items as $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            if ( isset($item['items']) && is_array($item['items']) ) {
+                $this->ensureQuizLinksInItems($item['items'], $context_id);
+            }
+            if ( (isset($item['type']) ? (string) $item['type'] : '') !== 'quiz' ) {
+                continue;
+            }
+            $quizId = isset($item['quiz_id']) ? (int) $item['quiz_id'] : 0;
+            if ( $quizId > 0 ) {
+                Quiz1Repository::ensureLink($quizId, $context_id);
+            }
+        }
     }
 
     /**
@@ -3472,7 +3498,7 @@ $(function(){
             echo('</span>');
         }
         if ( ! $nostyle ) {
-            $linkKey = Quiz1Repository::linkKey($quiz_id);
+            $linkKey = Quiz1Repository::resourceLinkId($quiz_id, ReqScope::currentContextIdLegacy());
             echo('<span class="tsugi-lti-link-meta">');
             self::echoDueDateBadgeForResourceLink(
                 $linkKey,

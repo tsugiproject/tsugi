@@ -213,7 +213,11 @@ class Importer {
             }
             $quiz->context_id = $context_id;
             $quiz->user_id = $user_id;
-            Quiz1Repository::insertQuiz($quiz);
+            // The item identifier is the resource link id. _colon_ restores to ":".
+            // An older hash such as Q1_ca934192ea441d46 is kept as-is.
+            // A copy of a resource this course already imported mints a new key.
+            $linkKey = $isCopy ? null : self::quizLinkKeyFromResource($res);
+            Quiz1Repository::insertQuiz($quiz, $linkKey !== '' ? $linkKey : null);
             $lesson = array(
                 'type' => LessonsNormalize::TYPE_QUIZ,
                 'title' => $quiz->title,
@@ -255,7 +259,14 @@ class Importer {
                 $title = $xmlTitle;
             }
             $launch = self::ltiLaunch($xml);
-            $linkKey = (string) $res['identifier'];
+            $linkKey = Quiz1Repository::linkKeyFromCartridgeIdentifier(
+                trim((string) ($res['item_identifier'] ?? '')) !== ''
+                    ? $res['item_identifier']
+                    : ($res['identifier'] ?? '')
+            );
+            if ( $linkKey === '' ) {
+                $linkKey = (string) $res['identifier'];
+            }
             if ( $isCopy ) {
                 $linkKey .= '-'.bin2hex(random_bytes(3));
             }
@@ -628,6 +639,19 @@ class Importer {
             }
         }
         return '';
+    }
+
+    /**
+     * Resource link id from the quiz item identifier. The resource id's _R suffix is dropped.
+     *
+     * @param array<string, mixed> $res
+     */
+    private static function quizLinkKeyFromResource(array $res) {
+        $item = trim((string) ($res['item_identifier'] ?? ''));
+        if ( $item === '' ) {
+            $item = trim((string) ($res['identifier'] ?? ''));
+        }
+        return Quiz1Repository::linkKeyFromCartridgeIdentifier($item);
     }
 
     private static function ltiLaunch($xml) {

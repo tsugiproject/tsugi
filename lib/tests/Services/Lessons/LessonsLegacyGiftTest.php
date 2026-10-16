@@ -217,6 +217,13 @@ class LessonsLegacyGiftTest extends \PHPUnit\Framework\TestCase
             $this->assertNotFalse($manifest);
             $this->assertSame(2, substr_count($manifest, 'imsqti_xmlv1p2'));
             $this->assertGreaterThanOrEqual(3, substr_count($manifest, 'imsbasiclti_xmlv1p0'));
+            $this->assertStringContainsString('identifier="q1"', $manifest);
+            $this->assertStringContainsString('identifier="q-mix"', $manifest);
+            $this->assertStringContainsString('identifier="q-missing"', $manifest);
+            $this->assertStringContainsString('identifier="q-num"', $manifest);
+            $this->assertStringContainsString('identifier="ag1"', $manifest);
+            $this->assertStringNotContainsString('identifier="Q1_', $manifest);
+            $this->assertStringNotContainsString('identifier="LT_', $manifest);
             $qtiCount = 0;
             for ( $i = 0; $i < $opened->numFiles; $i++ ) {
                 $name = $opened->getNameIndex($i);
@@ -263,6 +270,8 @@ class LessonsLegacyGiftTest extends \PHPUnit\Framework\TestCase
             $this->assertNotFalse($manifest);
             $this->assertSame(0, substr_count($manifest, 'imsqti_xmlv1p2'));
             $this->assertGreaterThanOrEqual(1, substr_count($manifest, 'imsbasiclti_xmlv1p0'));
+            $this->assertStringContainsString('identifier="q1"', $manifest);
+            $this->assertStringNotContainsString('identifier="LT_', $manifest);
             $opened->close();
         } finally {
             @unlink($filename);
@@ -298,6 +307,39 @@ class LessonsLegacyGiftTest extends \PHPUnit\Framework\TestCase
         $this->assertSame(1, $summary['gift']);
         $this->assertSame(1, $summary['found']);
         $this->assertSame(1, $summary['lti']);
+    }
+
+    public function testAddToModuleUsesResourceLinkIdAsIdentifier() {
+        $filename = tempnam(sys_get_temp_dir(), 'ccgift');
+        unlink($filename);
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($filename, \ZipArchive::CREATE) === true);
+        $cc_dom = new CC();
+        $cc_dom->set_title('Test');
+        $module_node = $cc_dom->add_module('Week 1', '');
+        $helper = new LessonsLegacyGift(true, $this->quizRoot);
+        $this->assertSame('qti', $helper->addToModule(
+            $zip, $cc_dom, $module_node,
+            (object) array(
+                'title' => 'Quiz: Tutorial 1',
+                'launch' => 'tsugi/tool/gift/?quiz=DJ-TUT1.txt',
+                'resource_link_id' => 'quiz1:42',
+            ),
+            (object) array('title' => 'Week 1')
+        ));
+        $zip->addFromString('imsmanifest.xml', $cc_dom->saveXML());
+        $zip->close();
+        try {
+            $opened = new \ZipArchive();
+            $this->assertTrue($opened->open($filename) === true);
+            $manifest = $opened->getFromName('imsmanifest.xml');
+            $this->assertNotFalse($manifest);
+            $this->assertStringContainsString('identifier="quiz1_colon_42"', $manifest);
+            $this->assertStringContainsString('identifierref="quiz1_colon_42_R"', $manifest);
+            $opened->close();
+        } finally {
+            @unlink($filename);
+        }
     }
 
     /**

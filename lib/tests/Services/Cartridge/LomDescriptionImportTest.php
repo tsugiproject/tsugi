@@ -10,6 +10,7 @@ use Tsugi\Services\Cartridge\Matcher;
 use Tsugi\Services\Cartridge\Package;
 use Tsugi\Services\Cartridge\Session;
 use Tsugi\Services\Lessons\LessonsCartridge;
+use Tsugi\Services\Quiz1\SampleQuiz1;
 
 class CartridgeLomDescriptionImportTest extends \PHPUnit\Framework\TestCase
 {
@@ -253,6 +254,57 @@ class CartridgeLomDescriptionImportTest extends \PHPUnit\Framework\TestCase
             $this->assertSame('lti', $imported['Assignment: Draft']['type']);
             $this->assertSame('2026-11-01', $imported['Assignment: Live']['due']);
             $this->assertArrayNotHasKey('result', $imported['Assignment: Live']);
+        } finally {
+            $pkg->close();
+        }
+    }
+
+    public function testImportReadsQuizResourceLinkIdFromLom() {
+        $l = (object) array(
+            'lessons' => (object) array(
+                'title' => 'Course',
+                'modules' => array(
+                    (object) array(
+                        'title' => 'Week 1',
+                        'anchor' => 'w1',
+                        'items' => array(
+                            (object) array(
+                                'type' => 'quiz',
+                                'title' => 'Week 1 Quiz',
+                                'quiz_id' => 7,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+        $path = $this->dir.'/quiz-rlid.imscc';
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($path, \ZipArchive::CREATE) === true);
+        LessonsCartridge::writeZip($l, $zip, array(
+            'tsugi_lms' => 'generic',
+            'load_quiz' => function ($id) {
+                $quiz = SampleQuiz1::build($id);
+                $quiz->link_key = 'quiz1_k0123456789abcdef';
+                return $quiz;
+            },
+        ));
+        $zip->close();
+
+        $pkg = Package::open($path);
+        try {
+            $this->assertSame('quiz1_k0123456789abcdef', $pkg->modules[0]['items'][0]['resource_link_id']);
+            $this->assertSame('quiz1_k0123456789abcdef', $pkg->modules[0]['items'][0]['identifier']);
+            $quizRes = null;
+            foreach ( $pkg->importableResources() as $res ) {
+                if ( (string) ($res['item_identifier'] ?? '') === 'quiz1_k0123456789abcdef' ) {
+                    $quizRes = $res;
+                    break;
+                }
+            }
+            $this->assertNotNull($quizRes);
+            $ref = new \ReflectionMethod(Importer::class, 'quizLinkKeyFromResource');
+            $this->assertSame('quiz1_k0123456789abcdef', $ref->invoke(null, $quizRes));
         } finally {
             $pkg->close();
         }

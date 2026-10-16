@@ -521,7 +521,9 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         $path = $this->writeCartridge($l, array(
             'tsugi_lms' => 'generic',
             'load_quiz' => function ($id) {
-                return SampleQuiz1::build($id);
+                $quiz = SampleQuiz1::build($id);
+                $quiz->link_key = 'quiz1_k0123456789abcdef';
+                return $quiz;
             },
         ));
         try {
@@ -537,6 +539,12 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
             $quiz = CC::lomIdentifiersFromItem($this->itemByTitle($dom, 'Week 1 Quiz'));
             $this->assertSame('2026-12-01', $quiz[CC::LOM_CATALOG_DUE]);
             $this->assertSame('1', $quiz[CC::LOM_CATALOG_GRADABLE]);
+            $this->assertSame('quiz1_k0123456789abcdef', $quiz[CC::LOM_CATALOG_RESOURCE_LINK]);
+            $quizItem = $this->itemByTitle($dom, 'Week 1 Quiz');
+            $this->assertSame('quiz1_k0123456789abcdef', $quizItem->getAttribute('identifier'));
+            $this->assertSame('quiz1_k0123456789abcdef_R', $quizItem->getAttribute('identifierref'));
+            $this->assertArrayNotHasKey(CC::LOM_CATALOG_RESOURCE_LINK, $draft);
+            $this->assertArrayNotHasKey(CC::LOM_CATALOG_RESOURCE_LINK, $live);
         } finally {
             @unlink($path);
         }

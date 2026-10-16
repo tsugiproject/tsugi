@@ -1518,7 +1518,7 @@ JS;
                     'module_title' => isset($module->title) ? $module->title : '',
                     'module_hidden' => isset($module->hidden) && $module->hidden,
                     'item_title' => $title,
-                    'resource_link_id' => Quiz1Repository::linkKey($quizId),
+                    'resource_link_id' => Quiz1Repository::resourceLinkId($quizId, ReqScope::currentContextId()),
                     'quiz_id' => $quizId,
                 );
             }
@@ -1589,7 +1589,7 @@ JS;
                 continue;
             }
             if ( ! isset($byKey[$key]) ) {
-                $where = str_starts_with($key, 'quiz1:') ? __('Quiz') : __('Line item');
+                $where = Quiz1Repository::isQuizLinkKey($key) ? __('Quiz') : __('Line item');
                 $inLesson = $lessons && isset($lessons->resource_links[$key]);
                 $module = '';
                 if ( $inLesson ) {
@@ -1625,9 +1625,14 @@ JS;
 
         foreach ( $this->unlinkedCourseQuizzes($context_id) as $quiz ) {
             $quizId = (int) $quiz['quiz_id'];
-            $key = Quiz1Repository::linkKey($quizId);
+            $key = Quiz1Repository::resourceLinkId($quizId, $context_id);
+            if ( $key === '' ) {
+                continue;
+            }
             if ( isset($byKey[$key]) ) {
-                $byKey[$key]['quiz_id'] = $quizId;
+                if ( empty($byKey[$key]['quiz_id']) ) {
+                    $byKey[$key]['quiz_id'] = $quizId;
+                }
                 continue;
             }
             $title = trim((string) ($quiz['title'] ?? ''));
@@ -1687,7 +1692,7 @@ JS;
     private function gradeSource($it)
     {
         $key = trim((string) ($it['resource_link_id'] ?? ''));
-        $quiz = (int) ($it['quiz_id'] ?? 0) > 0 || str_starts_with($key, 'quiz1:');
+        $quiz = (int) ($it['quiz_id'] ?? 0) > 0 || Quiz1Repository::isQuizLinkKey($key);
         if ( $quiz ) {
             return array(
                 'label' => __('Quiz'),
