@@ -181,21 +181,40 @@ class LessonDue {
             if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
                 continue;
             }
-            foreach ( $mod['items'] as $ii => $item ) {
-                if ( ! is_array($item) || ! self::itemMatchesLink($item, $contextId, $linkKey) ) {
-                    continue;
-                }
-                $current = self::itemDue($item);
-                if ( $current === $due ) {
-                    continue;
-                }
-                if ( $due === '' ) {
-                    unset($doc['modules'][$mi]['items'][$ii]['due']);
-                } else {
-                    $doc['modules'][$mi]['items'][$ii]['due'] = $due;
-                }
+            if ( self::setDueOnItems($doc['modules'][$mi]['items'], $contextId, $linkKey, $due) ) {
                 $changed = true;
             }
+        }
+        return $changed;
+    }
+
+    /**
+     * @param array<int, mixed> $items
+     */
+    private static function setDueOnItems(array &$items, $contextId, $linkKey, $due) {
+        $changed = false;
+        foreach ( $items as $ii => $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            if ( isset($item['items']) && is_array($item['items']) ) {
+                if ( self::setDueOnItems($items[$ii]['items'], $contextId, $linkKey, $due) ) {
+                    $changed = true;
+                }
+            }
+            if ( ! self::itemMatchesLink($item, $contextId, $linkKey) ) {
+                continue;
+            }
+            $current = self::itemDue($item);
+            if ( $current === $due ) {
+                continue;
+            }
+            if ( $due === '' ) {
+                unset($items[$ii]['due']);
+            } else {
+                $items[$ii]['due'] = $due;
+            }
+            $changed = true;
         }
         return $changed;
     }
@@ -263,13 +282,25 @@ class LessonDue {
             if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
                 continue;
             }
-            foreach ( $mod['items'] as $item ) {
-                if ( is_array($item) ) {
-                    $out[] = $item;
-                }
-            }
+            self::collectItems($mod['items'], $out);
         }
         return $out;
+    }
+
+    /**
+     * @param array<int, mixed> $items
+     * @param array<int, array<string, mixed>> $out
+     */
+    private static function collectItems(array $items, array &$out) {
+        foreach ( $items as $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            $out[] = $item;
+            if ( isset($item['items']) && is_array($item['items']) ) {
+                self::collectItems($item['items'], $out);
+            }
+        }
     }
 
     /**

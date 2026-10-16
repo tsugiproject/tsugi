@@ -385,6 +385,20 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('quiz1_colon_42', Quiz1Repository::cartridgeIdentifierForLinkKey('quiz1:42'));
         $this->assertSame('quiz1:42', Quiz1Repository::linkKeyFromCartridgeIdentifier('quiz1_colon_42'));
         $this->assertSame('quiz1:42', Quiz1Repository::linkKeyFromCartridgeIdentifier('quiz1_colon_42_R'));
+        $literal = 'quiz1_colon_42';
+        $literalId = Quiz1Repository::cartridgeIdentifierForLinkKey($literal);
+        $this->assertSame('rlhex_'.bin2hex($literal), $literalId);
+        $this->assertSame($literal, Quiz1Repository::linkKeyFromCartridgeIdentifier($literalId));
+        $this->assertSame($literal, Quiz1Repository::linkKeyFromCartridgeIdentifier($literalId.'_R'));
+        $mixed = 'a:_colon_b';
+        $this->assertSame($mixed, Quiz1Repository::linkKeyFromCartridgeIdentifier(
+            Quiz1Repository::cartridgeIdentifierForLinkKey($mixed)
+        ));
+        $looksEncoded = $literalId;
+        $this->assertNotSame($looksEncoded, Quiz1Repository::cartridgeIdentifierForLinkKey($looksEncoded));
+        $this->assertSame($looksEncoded, Quiz1Repository::linkKeyFromCartridgeIdentifier(
+            Quiz1Repository::cartridgeIdentifierForLinkKey($looksEncoded)
+        ));
         $this->assertSame('quiz1_42', Quiz1Repository::linkKeyFromCartridgeIdentifier('quiz1_42'));
         $this->assertSame('tool_colon_abc', Quiz1Repository::cartridgeIdentifierForLinkKey('tool:abc'));
         $this->assertSame('tool:abc', Quiz1Repository::linkKeyFromCartridgeIdentifier('tool_colon_abc'));

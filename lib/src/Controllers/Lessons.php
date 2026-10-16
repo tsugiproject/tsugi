@@ -483,17 +483,31 @@ class Lessons extends Tool {
             if ( ! is_array($mod) || ! isset($mod['items']) || ! is_array($mod['items']) ) {
                 continue;
             }
-            foreach ( $mod['items'] as $item ) {
-                if ( ! is_array($item) || ! isset($item['type']) || (string) $item['type'] !== 'quiz' ) {
-                    continue;
-                }
-                $id = isset($item['quiz_id']) ? (int) $item['quiz_id'] : 0;
-                if ( $id > 0 ) {
-                    $ids[$id] = true;
-                }
-            }
+            $this->collectSavedQuizIds($mod['items'], $ids);
         }
         return $ids;
+    }
+
+    /**
+     * @param array<int, mixed> $items
+     * @param array<int, bool> $ids
+     */
+    private function collectSavedQuizIds(array $items, array &$ids) {
+        foreach ( $items as $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            if ( isset($item['items']) && is_array($item['items']) ) {
+                $this->collectSavedQuizIds($item['items'], $ids);
+            }
+            if ( ! isset($item['type']) || (string) $item['type'] !== 'quiz' ) {
+                continue;
+            }
+            $id = isset($item['quiz_id']) ? (int) $item['quiz_id'] : 0;
+            if ( $id > 0 ) {
+                $ids[$id] = true;
+            }
+        }
     }
 
     /**

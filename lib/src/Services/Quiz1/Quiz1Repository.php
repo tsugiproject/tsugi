@@ -503,6 +503,8 @@ class Quiz1Repository {
     /**
      * Cartridge item identifier for this resource link id.
      * ":" is written as _colon_ because an XML identifier cannot contain ":".
+     * A key that already contains the letters _colon_ is stored as rlhex_ plus
+     * hex, so import does not turn that text into a colon.
      * Other underscores stay underscores. A key that is already a safe identifier,
      * such as quiz1_k… or Q1_ca934192ea441d46, is kept.
      *
@@ -513,7 +515,11 @@ class Quiz1Repository {
         if ( ! self::acceptableLinkKey($linkKey) ) {
             return '';
         }
-        $identifier = str_replace(':', '_colon_', $linkKey);
+        if ( self::needsHexCartridgeId($linkKey) ) {
+            $identifier = 'rlhex_'.bin2hex($linkKey);
+        } else {
+            $identifier = str_replace(':', '_colon_', $linkKey);
+        }
         if ( preg_match('/^[A-Za-z_][A-Za-z0-9_.-]*$/', $identifier) !== 1 ) {
             return '';
         }
@@ -521,9 +527,26 @@ class Quiz1Repository {
     }
 
     /**
+     * A key that contains _colon_, or that already looks like an rlhex_ encoding,
+     * is stored as hex so the two forms cannot import as each other.
+     *
+     * @param string $linkKey
+     */
+    private static function needsHexCartridgeId($linkKey) {
+        if ( str_contains($linkKey, '_colon_') ) {
+            return true;
+        }
+        if ( ! str_starts_with($linkKey, 'rlhex_') ) {
+            return false;
+        }
+        $hex = substr($linkKey, strlen('rlhex_'));
+        return $hex !== '' && strlen($hex) % 2 === 0 && ctype_xdigit($hex);
+    }
+
+    /**
      * Resource link id carried by a quiz item or resource identifier.
-     * _colon_ is restored to ":". A plain underscore is left alone, so
-     * quiz1_k… and Q1_ca934192ea441d46 stay those strings.
+     * rlhex_ is the exact key, decoded before _colon_ becomes ":".
+     * A plain underscore is left alone, so quiz1_k… and Q1_ca934192ea441d46 stay those strings.
      * A resource identifier's trailing _R is the cartridge suffix, not part of the id.
      *
      * @param mixed $identifier
@@ -537,6 +560,16 @@ class Quiz1Repository {
             $bare = substr($identifier, 0, -2);
             if ( $bare !== '' && ! str_ends_with($bare, '_') ) {
                 $identifier = $bare;
+            }
+        }
+        if ( str_starts_with($identifier, 'rlhex_') ) {
+            $hex = substr($identifier, strlen('rlhex_'));
+            if ( $hex !== '' && strlen($hex) % 2 === 0 && ctype_xdigit($hex) ) {
+                $raw = hex2bin($hex);
+                if ( is_string($raw) && self::acceptableLinkKey($raw)
+                    && self::cartridgeIdentifierForLinkKey($raw) === $identifier ) {
+                    return $raw;
+                }
             }
         }
         $identifier = str_replace('_colon_', ':', $identifier);
