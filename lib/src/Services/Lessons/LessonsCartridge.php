@@ -8,6 +8,7 @@ use Tsugi\Util\CCIdentifier;
 use Tsugi\Util\U;
 use Tsugi\Services\Files\FileRepository;
 use Tsugi\Services\Pages\PageRepository;
+use Tsugi\Services\Outbound\LtiContentService;
 use Tsugi\Services\Outbound\ToolRegistrationService;
 use Tsugi\Services\Quiz1\ExportException;
 use Tsugi\Services\Quiz1\Qti12Exporter;
@@ -414,7 +415,7 @@ class LessonsCartridge {
         }
 
         if ( LessonsNormalize::isDiscussion($item) ) {
-            self::processDiscussion($item, $module, $sub_module, $zip, $cc_dom, $topic);
+            self::processDiscussion($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             return;
         }
@@ -975,7 +976,14 @@ class LessonsCartridge {
         if ( is_string($quiz->title) && $quiz->title !== '' && ( ! isset($item->title) || $item->title === '' ) ) {
             $title = $quiz->title;
         }
-        $file = $cc_dom->add_qti_assessment($sub_module, $title, $quiz_id);
+        $linkKey = self::quizExportLinkKey($quiz, $options);
+        $file = $cc_dom->add_qti_assessment(
+            $sub_module,
+            $title,
+            $quiz_id,
+            null,
+            Quiz1Repository::cartridgeIdentifierForLinkKey($linkKey)
+        );
         $export_opts = array(
             'schema_location' => $cc_dom->qtiSchemaLocation(),
         );
@@ -986,7 +994,7 @@ class LessonsCartridge {
         }
         $xml = Qti12Exporter::export($quiz, $export_opts);
         $cc_dom->zip_finish_qti_assessment($zip, $file, $title, $xml, $quiz);
-        $cc_dom->add_last_item_lom($item);
+        $cc_dom->add_last_item_lom(self::gradeLom($item, $options, $linkKey));
     }
 
     /**
@@ -1004,7 +1012,7 @@ class LessonsCartridge {
         return Quiz1Repository::load($quiz_id, $context_id);
     }
 
-    private static function processDiscussion($item, $module, $sub_module, $zip, $cc_dom, $topic) {
+    private static function processDiscussion($item, $module, $sub_module, $zip, $cc_dom, $topic, array $options = array()) {
         global $CFG;
         $topic = self::exportTopicMode($topic);
         if ( $topic === 'none' ) {
@@ -1021,16 +1029,18 @@ class LessonsCartridge {
 
         $title = __('Discussion:').' '.$title;
         $endpoint = U::absolute_url(LessonsNormalize::launchUrlForItem($item));
-        if ( isset($item->resource_link_id) && $item->resource_link_id !== '' && $item->resource_link_id !== null ) {
-            $endpoint = U::add_url_parm($endpoint, 'inherit', $item->resource_link_id);
+        $resource_link_id = self::exportResourceLinkId($item, $options);
+        if ( $resource_link_id !== '' ) {
+            $endpoint = U::add_url_parm($endpoint, 'inherit', $resource_link_id);
         }
         $extensions = array('apphome' => $CFG->apphome);
-        $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : null;
         $custom_arr = self::customArray($item);
+        $linkId = $resource_link_id !== '' ? $resource_link_id : null;
+        $identifier = self::exportLinkIdentifier($resource_link_id);
         if ( $topic === 'lti_grade' ) {
-            $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id);
+            $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $linkId, null, $identifier);
         } else {
-            $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id);
+            $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $linkId, null, $identifier);
         }
         $cc_dom->add_last_item_lom($item);
     }
@@ -1061,6 +1071,71 @@ class LessonsCartridge {
         return $url;
     }
 
+    /**
+     * Resource link id to write into the cartridge. The lesson item's id,
+     * or the id stored on its content row after the tool is provisioned.
+     *
+     * @param object $item
+     * @param array<string, mixed> $options
+     * @return string
+     */
+    private static function exportResourceLinkId($item, array $options) {
+        $direct = isset($item->resource_link_id) ? trim((string) $item->resource_link_id) : '';
+        if ( $direct !== '' ) {
+            return $direct;
+        }
+        $row = self::exportContentRow($item, $options);
+        if ( ! is_array($row) ) {
+            return '';
+        }
+        return trim((string) ($row['resource_link_id'] ?? ''));
+    }
+
+    /**
+     * Launch URL on the content row, for a provisioned item whose lesson
+     * item no longer stores one.
+     *
+     * @param object $item
+     * @param array<string, mixed> $options
+     * @return string
+     */
+    private static function exportContentLaunchUrl($item, array $options) {
+        $row = self::exportContentRow($item, $options);
+        if ( ! is_array($row) ) {
+            return '';
+        }
+        return trim((string) ($row['launch_url'] ?? ''));
+    }
+
+    /**
+     * @param object $item
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>|null
+     */
+    private static function exportContentRow($item, array $options) {
+        $contentId = isset($item->content_id) ? (int) $item->content_id : 0;
+        if ( $contentId < 1 ) {
+            return null;
+        }
+        $contextId = isset($options['context_id']) ? (int) $options['context_id'] : ReqScope::currentContextIdLegacy();
+        if ( $contextId < 1 ) {
+            return null;
+        }
+        return LtiContentService::find($contextId, $contentId);
+    }
+
+    /**
+     * Cartridge item identifier for a resource link id. Empty when the
+     * id cannot be an XML identifier.
+     *
+     * @param string $resourceLinkId
+     * @return string|null
+     */
+    private static function exportLinkIdentifier($resourceLinkId) {
+        $identifier = Quiz1Repository::cartridgeIdentifierForLinkKey($resourceLinkId);
+        return $identifier !== '' ? $identifier : null;
+    }
+
     private static function processLti($item, $module, $sub_module, $zip, $cc_dom, array $options = array()) {
         global $CFG;
         $title = isset($item->title) && $item->title !== '' ? $item->title : $module->title;
@@ -1072,14 +1147,28 @@ class LessonsCartridge {
         if ( $endpoint === '' && $toolDeploymentId > 0 ) {
             $endpoint = self::deploymentLaunchUrl($toolDeploymentId, $options, $title);
         }
+        if ( $endpoint === '' ) {
+            $endpoint = self::exportContentLaunchUrl($item, $options);
+        }
         $endpoint = U::absolute_url(LessonsService::expandLink($endpoint));
-        if ( $toolDeploymentId < 1 && isset($item->resource_link_id) && $item->resource_link_id !== '' && $item->resource_link_id !== null ) {
-            $endpoint = U::add_url_parm($endpoint, 'inherit', $item->resource_link_id);
+        $resource_link_id = self::exportResourceLinkId($item, $options);
+        if ( $toolDeploymentId < 1 && $resource_link_id !== '' ) {
+            $endpoint = U::add_url_parm($endpoint, 'inherit', $resource_link_id);
         }
         $extensions = array('apphome' => $CFG->apphome);
-        $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : null;
-        $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, self::customArray($item), $extensions, $resource_link_id);
-        $cc_dom->add_last_item_lom($item);
+        $linkId = $resource_link_id !== '' ? $resource_link_id : null;
+        $cc_dom->zip_add_lti_outcome_to_module(
+            $zip,
+            $sub_module,
+            $title,
+            $endpoint,
+            self::customArray($item),
+            $extensions,
+            $linkId,
+            null,
+            self::exportLinkIdentifier($resource_link_id)
+        );
+        $cc_dom->add_last_item_lom(self::gradeLom($item, $options));
     }
 
     private static function urlItemTitle($item, $module, $kind) {
@@ -1104,6 +1193,72 @@ class LessonsCartridge {
             return '';
         }
         return U::absolute_url(LessonsService::expandLink($href));
+    }
+
+    /**
+     * Lesson item plus the graded flag to store in cartridge LOM.
+     *
+     * Due dates stay in the course. A quiz is graded. An LTI item is not
+     * graded when the lesson says so, or when its content row cannot return
+     * a grade and has no grade column.
+     *
+     * @param object $item
+     * @param array<string, mixed> $options
+     * @param string|null $quizLinkKey Quiz resource link id to store in LOM
+     * @return object
+     */
+    private static function gradeLom($item, array $options, $quizLinkKey = null) {
+        $lom = clone $item;
+        unset($lom->due);
+        $lom->gradable = self::exportGradable($item, $options) ? '1' : '0';
+        if ( LessonsNormalize::isNativeQuiz($item) && is_string($quizLinkKey) && trim($quizLinkKey) !== '' ) {
+            $lom->resource_link_id = trim($quizLinkKey);
+        }
+        return $lom;
+    }
+
+    /**
+     * Resource link id to write for this quiz. The link's stored key, not quiz_id.
+     *
+     * @param object $quiz
+     * @param array<string, mixed> $options
+     */
+    private static function quizExportLinkKey($quiz, array $options) {
+        if ( isset($quiz->link_key) && is_string($quiz->link_key) && trim($quiz->link_key) !== '' ) {
+            return trim($quiz->link_key);
+        }
+        $quizId = isset($quiz->id) ? (int) $quiz->id : 0;
+        $contextId = isset($options['context_id']) ? (int) $options['context_id'] : ReqScope::currentContextIdLegacy();
+        if ( $quizId < 1 || $contextId < 1 ) {
+            return '';
+        }
+        return Quiz1Repository::storedLinkKey($quizId, $contextId);
+    }
+
+    /**
+     * @param object $item
+     * @param array<string, mixed> $options
+     * @return bool
+     */
+    private static function exportGradable($item, array $options) {
+        if ( LessonsNormalize::isNativeQuiz($item) ) {
+            return true;
+        }
+        if ( isset($item->result) && $item->result === false ) {
+            return false;
+        }
+        if ( isset($item->send_grade) && ( $item->send_grade === false || $item->send_grade === 0 || $item->send_grade === '0' ) ) {
+            return false;
+        }
+        $contentId = isset($item->content_id) ? (int) $item->content_id : 0;
+        $contextId = isset($options['context_id']) ? (int) $options['context_id'] : 0;
+        if ( $contentId > 0 && $contextId > 0 ) {
+            $row = LtiContentService::find($contextId, $contentId);
+            if ( is_array($row) ) {
+                return (int) ($row['send_grade'] ?? 0) === 1 || ! empty($row['link_id']);
+            }
+        }
+        return true;
     }
 
     /**

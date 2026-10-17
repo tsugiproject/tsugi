@@ -954,6 +954,7 @@ class LessonsService {
     public function enumerateLtiAssignmentItems($for_due_date_management = false) {
         $list = array();
         foreach ( $this->lessons->modules as $modIndex => $module ) {
+            $moduleHidden = isset($module->hidden) && $module->hidden;
             if ( isset($module->items) ) {
                 foreach ( $module->items as $item ) {
                     $contentRow = self::contentAssignmentRow($item);
@@ -965,8 +966,12 @@ class LessonsService {
                             'module_index' => (int) $modIndex,
                             'module_title' => $module->title,
                             'module_anchor' => isset($module->anchor) ? $module->anchor : '',
+                            'module_hidden' => $moduleHidden,
                             'item_title' => $contentRow['title'],
                             'resource_link_id' => $contentRow['resource_link_id'],
+                            'content_id' => isset($item->content_id) ? (int) $item->content_id : 0,
+                            'tool_deployment_id' => isset($item->tool_deployment_id) ? (int) $item->tool_deployment_id : 0,
+                            'due' => self::assignmentDue($item),
                             'participates_in_grades' => ! empty($contentRow['graded']),
                         );
                         continue;
@@ -981,8 +986,12 @@ class LessonsService {
                         'module_index' => (int) $modIndex,
                         'module_title' => $module->title,
                         'module_anchor' => isset($module->anchor) ? $module->anchor : '',
+                        'module_hidden' => $moduleHidden,
                         'item_title' => isset($item->title) ? $item->title : (isset($item->text) ? $item->text : 'Assignment'),
                         'resource_link_id' => $item->resource_link_id,
+                        'content_id' => isset($item->content_id) ? (int) $item->content_id : 0,
+                        'tool_deployment_id' => isset($item->tool_deployment_id) ? (int) $item->tool_deployment_id : 0,
+                        'due' => self::assignmentDue($item),
                         'participates_in_grades' => self::ltiLaunchIsGraded($item),
                     );
                 }
@@ -1002,14 +1011,31 @@ class LessonsService {
                         'module_index' => (int) $modIndex,
                         'module_title' => $module->title,
                         'module_anchor' => isset($module->anchor) ? $module->anchor : '',
+                        'module_hidden' => $moduleHidden,
                         'item_title' => $lti->title,
                         'resource_link_id' => $lti->resource_link_id,
+                        'content_id' => isset($lti->content_id) ? (int) $lti->content_id : 0,
+                        'tool_deployment_id' => isset($lti->tool_deployment_id) ? (int) $lti->tool_deployment_id : 0,
+                        'due' => self::assignmentDue($lti),
                         'participates_in_grades' => self::ltiLaunchIsGraded($lti),
                     );
                 }
             }
         }
         return $list;
+    }
+
+    /**
+     * Due day stored on the lesson item, before a link exists.
+     *
+     * @param object $item
+     * @return string
+     */
+    private static function assignmentDue($item) {
+        if ( ! is_object($item) || ! isset($item->due) || ! is_string($item->due) ) {
+            return '';
+        }
+        return trim($item->due);
     }
 
     /**

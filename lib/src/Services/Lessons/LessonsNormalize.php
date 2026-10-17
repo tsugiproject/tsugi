@@ -2,6 +2,7 @@
 
 namespace Tsugi\Services\Lessons;
 
+use Tsugi\Grades\GradeUtil;
 use Tsugi\Services\Files\FileRepository;
 use Tsugi\Services\Pages\PageRepository;
 
@@ -104,7 +105,7 @@ class LessonsNormalize {
     /** @var list<string> */
     private static $itemKeyOrder = array(
         'type', 'subtype', 'title', 'description', 'text', 'level', 'class', 'tag',
-        'href', 'url', 'href_source', 'launch', 'resource_link_id', 'content_id', 'tool_deployment_id', 'quiz_id', 'page_id', 'logical_key', 'target', 'send_name', 'send_email', 'send_grade', 'result', 'custom',
+        'href', 'url', 'href_source', 'launch', 'resource_link_id', 'content_id', 'tool_deployment_id', 'quiz_id', 'page_id', 'logical_key', 'target', 'send_name', 'send_email', 'send_grade', 'result', 'due', 'custom',
         'sha256', 'filename', 'path', 'content_type', 'icon',
         'youtube', 'kaltura_id', 'media',
         'note', 'notes', 'TODO', 'todo', 'review', 'project', 'FCP', 'FCPX',
@@ -680,6 +681,14 @@ class LessonsNormalize {
      * @return array<string, mixed>
      */
     private static function enrichCanonical(array $item) {
+        if ( isset($item['due']) ) {
+            $due = GradeUtil::dueDay(is_string($item['due']) ? $item['due'] : '');
+            if ( $due !== null ) {
+                $item['due'] = $due;
+            } else {
+                unset($item['due']);
+            }
+        }
         $type = isset($item['type']) ? $item['type'] : '';
 
         if ( $type === self::TYPE_HEADING ) {

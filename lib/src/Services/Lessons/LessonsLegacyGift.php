@@ -7,6 +7,7 @@ use Tsugi\Services\Quiz1\GiftImporter;
 use Tsugi\Services\Quiz1\ImportException;
 use Tsugi\Services\Quiz1\Qti12Exporter;
 use Tsugi\Services\Quiz1\Quiz1;
+use Tsugi\Services\Quiz1\Quiz1Repository;
 use Tsugi\Util\CC;
 use Tsugi\Util\U;
 
@@ -316,7 +317,17 @@ class LessonsLegacyGift {
             $endpoint = U::add_url_parm($endpoint, 'inherit', $resource_link_id);
         }
         $extensions = array('apphome' => isset($CFG->apphome) ? $CFG->apphome : '');
-        $cc_dom->zip_add_lti_outcome_to_module($zip, $module_node, $title, $endpoint, $custom_arr, $extensions, $resource_link_id, $parentPath);
+        $cc_dom->zip_add_lti_outcome_to_module(
+            $zip,
+            $module_node,
+            $title,
+            $endpoint,
+            $custom_arr,
+            $extensions,
+            $resource_link_id,
+            $parentPath,
+            self::exportIdentifier($resource_link_id)
+        );
         return 'lti';
     }
 
@@ -491,6 +502,7 @@ class LessonsLegacyGift {
             'quiz' => $quiz,
             'warnings' => $import_warnings,
             'name' => $name,
+            'resource_link_id' => isset($item->resource_link_id) ? $item->resource_link_id : null,
         );
     }
 
@@ -499,7 +511,13 @@ class LessonsLegacyGift {
      */
     private function writeQti($zip, $cc_dom, $module_node, $title, array $payload, $parentPath) {
         $quiz = $payload['quiz'];
-        $file = $cc_dom->add_qti_assessment($module_node, $title, $quiz->id, $parentPath);
+        $file = $cc_dom->add_qti_assessment(
+            $module_node,
+            $title,
+            $quiz->id,
+            $parentPath,
+            self::exportIdentifier(isset($payload['resource_link_id']) ? $payload['resource_link_id'] : null)
+        );
         $export_opts = array(
             'schema_location' => $cc_dom->qtiSchemaLocation(),
         );
@@ -510,6 +528,18 @@ class LessonsLegacyGift {
         }
         $xml = Qti12Exporter::export($quiz, $export_opts);
         $cc_dom->zip_finish_qti_assessment($zip, $file, $title, $xml, $quiz);
+    }
+
+    /**
+     * Cartridge item identifier for a lesson resource link id.
+     * ":" is written as _colon_. Empty when the lesson has no link id.
+     *
+     * @param mixed $resourceLinkId
+     * @return string|null
+     */
+    private static function exportIdentifier($resourceLinkId) {
+        $identifier = Quiz1Repository::cartridgeIdentifierForLinkKey($resourceLinkId);
+        return $identifier !== '' ? $identifier : null;
     }
 
     /**

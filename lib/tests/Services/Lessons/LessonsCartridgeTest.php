@@ -494,6 +494,66 @@ class LessonsCartridgeTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testWriteZipOmitsDueAndStoresGradableOnLtiAndQuiz() {
+        $l = $this->lessonsDoc(array(
+            array(
+                'type' => 'lti',
+                'title' => 'Assignment: Draft',
+                'launch' => 'https://example.com/draft',
+                'resource_link_id' => 'draft-1',
+                'due' => '2026-10-20',
+                'result' => false,
+            ),
+            array(
+                'type' => 'lti',
+                'title' => 'Assignment: Live',
+                'launch' => 'https://example.com/live',
+                'resource_link_id' => 'live-1',
+                'due' => '2026-11-01',
+            ),
+            array(
+                'type' => 'quiz',
+                'title' => 'Week 1 Quiz',
+                'quiz_id' => 1,
+                'due' => '2026-12-01',
+            ),
+        ));
+        $path = $this->writeCartridge($l, array(
+            'tsugi_lms' => 'generic',
+            'load_quiz' => function ($id) {
+                $quiz = SampleQuiz1::build($id);
+                $quiz->link_key = 'quiz1_k0123456789abcdef';
+                return $quiz;
+            },
+        ));
+        try {
+            $map = $this->zipEntryMap($path);
+            $dom = new \DOMDocument();
+            $this->assertTrue($dom->loadXML($map['imsmanifest.xml']));
+            $draftItem = $this->itemByTitle($dom, 'Assignment: Draft');
+            $this->assertSame('draft-1', $draftItem->getAttribute('identifier'));
+            $draft = CC::lomIdentifiersFromItem($draftItem);
+            $this->assertArrayNotHasKey(CC::LOM_CATALOG_DUE, $draft);
+            $this->assertSame('0', $draft[CC::LOM_CATALOG_GRADABLE]);
+            $liveItem = $this->itemByTitle($dom, 'Assignment: Live');
+            $this->assertSame('live-1', $liveItem->getAttribute('identifier'));
+            $live = CC::lomIdentifiersFromItem($liveItem);
+            $this->assertArrayNotHasKey(CC::LOM_CATALOG_DUE, $live);
+            $this->assertSame('1', $live[CC::LOM_CATALOG_GRADABLE]);
+            $quiz = CC::lomIdentifiersFromItem($this->itemByTitle($dom, 'Week 1 Quiz'));
+            $this->assertArrayNotHasKey(CC::LOM_CATALOG_DUE, $quiz);
+            $this->assertSame('1', $quiz[CC::LOM_CATALOG_GRADABLE]);
+            $this->assertSame('quiz1_k0123456789abcdef', $quiz[CC::LOM_CATALOG_RESOURCE_LINK]);
+            $quizItem = $this->itemByTitle($dom, 'Week 1 Quiz');
+            $this->assertSame('quiz1_k0123456789abcdef', $quizItem->getAttribute('identifier'));
+            $this->assertSame('quiz1_k0123456789abcdef_R', $quizItem->getAttribute('identifierref'));
+            $this->assertArrayNotHasKey(CC::LOM_CATALOG_RESOURCE_LINK, $draft);
+            $this->assertArrayNotHasKey(CC::LOM_CATALOG_RESOURCE_LINK, $live);
+        } finally {
+            @unlink($path);
+        }
+    }
+
     public function testWriteZipGeneric11DoesNotEmitItemLomDescription() {
         $l = $this->lessonsDoc(
             array(

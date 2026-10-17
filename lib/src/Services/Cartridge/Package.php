@@ -522,7 +522,7 @@ class Package {
         if ( self::placeholderTitle($child['title'] ?? '') && ! self::placeholderTitle($wrapper['title'] ?? '') ) {
             $child['title'] = $wrapper['title'];
         }
-        foreach ( array('target', 'description', 'icon', 'href_source') as $key ) {
+        foreach ( array('target', 'description', 'icon', 'href_source', 'due', 'gradable', 'resource_link_id') as $key ) {
             $childVal = $child[$key] ?? null;
             $wrapVal = $wrapper[$key] ?? null;
             if ( ($childVal === null || $childVal === '') && $wrapVal !== null && $wrapVal !== '' ) {
@@ -559,6 +559,9 @@ class Package {
             'icon' => $ids[CC::LOM_CATALOG_ICON] ?? null,
             'href_source' => $ids[CC::LOM_CATALOG_HREF_SOURCE] ?? null,
             'target' => CC::lessonTargetFromDocumentTarget($ids[CC::LOM_CATALOG_DOCUMENT_TARGET] ?? null),
+            'due' => CC::organizationDue($ids[CC::LOM_CATALOG_DUE] ?? null),
+            'gradable' => CC::organizationGradable($ids[CC::LOM_CATALOG_GRADABLE] ?? null),
+            'resource_link_id' => CC::organizationResourceLinkId($ids[CC::LOM_CATALOG_RESOURCE_LINK] ?? null),
         );
     }
 

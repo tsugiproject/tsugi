@@ -460,6 +460,7 @@ function provisionLink(panel, deploymentId, select) {
     if (!places.length) return;
     var snapshots = [];
     var title = '';
+    var resourceLinkId = '';
     for (var i = 0; i < places.length; i++) {
         var item = lessonItemAt(places[i]);
         if (!item) {
@@ -467,6 +468,9 @@ function provisionLink(panel, deploymentId, select) {
             return;
         }
         if (!title) title = (item.title || '').trim();
+        if (!resourceLinkId && item.resource_link_id) {
+            resourceLinkId = String(item.resource_link_id).trim();
+        }
         snapshots.push({ place: places[i], item: JSON.parse(JSON.stringify(item)) });
     }
     var revert = panel.getAttribute('data-deployment') || '';
@@ -479,7 +483,8 @@ function provisionLink(panel, deploymentId, select) {
         data: {
             action: 'place-lti',
             tool_deployment_id: deploymentId,
-            title: title
+            title: title,
+            resource_link_id: resourceLinkId
         },
         success: function(response) {
             var result = typeof response === 'string' ? JSON.parse(response) : response;

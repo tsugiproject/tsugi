@@ -2,6 +2,8 @@
 
 namespace Tsugi\Util;
 
+use Tsugi\Grades\GradeUtil;
+
 /**
  * This class allows us to produce an IMS Common Cartridge (1.2 by default, 1.1 for Moodle).
  *
@@ -81,6 +83,12 @@ class CC extends \Tsugi\Util\TsugiDOM {
     const LOM_CATALOG_HREF_SOURCE = 'tsugi.href_source';
     /** LOM general.identifier catalog; LTI launch_presentation_document_target values. */
     const LOM_CATALOG_DOCUMENT_TARGET = 'tsugi.launch_presentation_document_target';
+    /** LOM general.identifier catalog; lesson due day YYYY-MM-DD. Read on import. Not written on export. */
+    const LOM_CATALOG_DUE = 'tsugi.due';
+    /** LOM general.identifier catalog; 1 when the item is graded, 0 when it is not. */
+    const LOM_CATALOG_GRADABLE = 'tsugi.gradable';
+    /** LOM general.identifier catalog; Quiz1 resource link id to keep across a course import. */
+    const LOM_CATALOG_RESOURCE_LINK = 'tsugi.resource_link_id';
 
     public $resource_count = 0;
 
@@ -399,7 +407,100 @@ class CC extends \Tsugi\Util\TsugiDOM {
         if ( $documentTarget !== null ) {
             $pairs[self::LOM_CATALOG_DOCUMENT_TARGET] = $documentTarget;
         }
+        $gradable = self::organizationGradable($source);
+        if ( $gradable !== null ) {
+            $pairs[self::LOM_CATALOG_GRADABLE] = $gradable ? '1' : '0';
+        }
+        if ( self::lessonType($source) === 'quiz' ) {
+            $link = self::organizationResourceLinkId($source);
+            if ( $link !== null ) {
+                $pairs[self::LOM_CATALOG_RESOURCE_LINK] = $link;
+            }
+        }
         return $pairs;
+    }
+
+    /**
+     * Quiz resource link id to keep on import, or null.
+     *
+     * A raw string is the LOM entry. A lesson object or array is read only
+     * for its resource_link_id field.
+     *
+     * @param mixed $source
+     * @return string|null
+     */
+    public static function organizationResourceLinkId($source) {
+        if ( is_object($source) && isset($source->resource_link_id) ) {
+            $source = $source->resource_link_id;
+        } else if ( is_array($source) && array_key_exists('resource_link_id', $source) ) {
+            $source = $source['resource_link_id'];
+        }
+        if ( ! is_string($source) ) {
+            return null;
+        }
+        $source = trim($source);
+        if ( $source === '' || strlen($source) > 256 ) {
+            return null;
+        }
+        if ( preg_match('/[\x00-\x1F\x7F]/', $source) === 1 ) {
+            return null;
+        }
+        return $source;
+    }
+
+    /**
+     * @param mixed $source
+     */
+    private static function lessonType($source) {
+        if ( is_object($source) && isset($source->type) && is_string($source->type) ) {
+            return $source->type;
+        }
+        if ( is_array($source) && isset($source['type']) && is_string($source['type']) ) {
+            return $source['type'];
+        }
+        return '';
+    }
+
+    /**
+     * Lesson due day (YYYY-MM-DD) from a lesson/module or a raw value, or null.
+     *
+     * @param mixed $source
+     * @return string|null
+     */
+    public static function organizationDue($source) {
+        if ( is_object($source) && isset($source->due) ) {
+            $source = $source->due;
+        } else if ( is_array($source) && array_key_exists('due', $source) ) {
+            $source = $source['due'];
+        }
+        if ( ! is_string($source) ) {
+            return null;
+        }
+        return GradeUtil::dueDay($source);
+    }
+
+    /**
+     * Whether a lesson item is graded, or null when the source does not say.
+     *
+     * @param mixed $source lesson/module, or a raw 1/0 value
+     * @return bool|null
+     */
+    public static function organizationGradable($source) {
+        if ( is_object($source) && isset($source->gradable) ) {
+            $source = $source->gradable;
+        } else if ( is_array($source) && array_key_exists('gradable', $source) ) {
+            $source = $source['gradable'];
+        }
+        if ( is_bool($source) ) {
+            return $source;
+        }
+        if ( $source === 1 || $source === '1' ) {
+            return true;
+        }
+        if ( $source === 0 || $source === '0' ) {
+            return false;
+        }
+        return null;
     }
 
     /**
@@ -781,26 +882,31 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param $title The title of the link
      * @param $text Optional text content for deterministic ID generation
      * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
+     * @param string|null $identifier Item identifier. When set, this is the lesson resource link id
+     *        (a ":" is written as _colon_) instead of a hash.
      *
      * @return The name of a file to contain the web link XML in the ZIP.
      */
-    public function add_topic($module, $title=null, $text=null, $parentPath=null) {
+    public function add_topic($module, $title=null, $text=null, $parentPath=null, $identifier=null) {
         // Get parent path if not provided
         if ($parentPath === null) {
             $moduleHash = spl_object_hash($module);
             $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
         }
         
-        // Generate deterministic identifier
-        $additionalProps = array();
-        if ($text !== null) {
-            $additionalProps['text'] = $text;
+        $fixed = $this->fixedIdentifier($identifier);
+        if ( $fixed !== '' ) {
+            $this->last_identifier = $fixed;
+            $file = 'xml/TO_'.$fixed.'.xml';
+        } else {
+            $additionalProps = array();
+            if ($text !== null) {
+                $additionalProps['text'] = $text;
+            }
+            $this->last_identifier = $this->idGenerator->makeIdentifier('topic', $title ?: '', $parentPath, $additionalProps);
+            $fileHash = substr($this->last_identifier, strpos($this->last_identifier, '_') + 1);
+            $file = 'xml/TO_'.$fileHash.'.xml';
         }
-        $this->last_identifier = $this->idGenerator->makeIdentifier('topic', $title ?: '', $parentPath, $additionalProps);
-        
-        // Generate file name based on identifier (use last part of hash)
-        $fileHash = substr($this->last_identifier, strpos($this->last_identifier, '_') + 1);
-        $file = 'xml/TO_'.$fileHash.'.xml';
         
         $type = $this->topicType();
         $this-> add_resource_item($module, $title, $type, $this->last_identifier, $file);
@@ -819,29 +925,34 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param $url Optional URL/endpoint for deterministic ID generation
      * @param $resourceLinkId Optional resource_link_id for deterministic ID generation
      * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
+     * @param string|null $identifier Item identifier. When set, this is the lesson resource link id
+     *        (a ":" is written as _colon_) instead of a hash.
      *
      * @return The name of a file to contain the lti link XML in the ZIP.
      */
-    public function add_lti_link($module, $title=null, $url=null, $resourceLinkId=null, $parentPath=null) {
+    public function add_lti_link($module, $title=null, $url=null, $resourceLinkId=null, $parentPath=null, $identifier=null) {
         // Get parent path if not provided
         if ($parentPath === null) {
             $moduleHash = spl_object_hash($module);
             $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
         }
-        
-        // Generate deterministic identifier
-        $additionalProps = array();
-        if ($url !== null) {
-            $additionalProps['url'] = $url;
+
+        $fixed = $this->fixedIdentifier($identifier);
+        if ( $fixed !== '' ) {
+            $this->last_identifier = $fixed;
+            $file = 'xml/LT_'.$fixed.'.xml';
+        } else {
+            $additionalProps = array();
+            if ($url !== null) {
+                $additionalProps['url'] = $url;
+            }
+            if ($resourceLinkId !== null) {
+                $additionalProps['resource_link_id'] = $resourceLinkId;
+            }
+            $this->last_identifier = $this->idGenerator->makeIdentifier('lti', $title ?: '', $parentPath, $additionalProps);
+            $fileHash = substr($this->last_identifier, strpos($this->last_identifier, '_') + 1);
+            $file = 'xml/LT_'.$fileHash.'.xml';
         }
-        if ($resourceLinkId !== null) {
-            $additionalProps['resource_link_id'] = $resourceLinkId;
-        }
-        $this->last_identifier = $this->idGenerator->makeIdentifier('lti', $title ?: '', $parentPath, $additionalProps);
-        
-        // Generate file name based on identifier (use last part of hash)
-        $fileHash = substr($this->last_identifier, strpos($this->last_identifier, '_') + 1);
-        $file = 'xml/LT_'.$fileHash.'.xml';
         
         $type = self::LTI_TYPE;
         $this-> add_resource_item($module, $title, $type, $this->last_identifier, $file);
@@ -858,21 +969,31 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param string|null $title
      * @param int|string|null $quizId Stable Quiz1 id for deterministic identifiers
      * @param string|null $parentPath
+     * @param string|null $identifier Item identifier. When set, this is the quiz resource link id
+     *        (a ":" in the id is written as _colon_) instead of a hash of the quiz primary key.
      * @return string Path of the QTI XML file inside the ZIP
      */
-    public function add_qti_assessment($module, $title=null, $quizId=null, $parentPath=null) {
+    public function add_qti_assessment($module, $title=null, $quizId=null, $parentPath=null, $identifier=null) {
         if ($parentPath === null) {
             $moduleHash = spl_object_hash($module);
             $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
         }
 
-        $additionalProps = array();
-        if ($quizId !== null) {
-            $additionalProps['quiz_id'] = (string) $quizId;
+        $fixed = $this->fixedIdentifier($identifier);
+        if ( $fixed !== '' ) {
+            $this->last_identifier = $fixed;
+        } else {
+            $additionalProps = array();
+            if ($quizId !== null) {
+                $additionalProps['quiz_id'] = (string) $quizId;
+            }
+            $this->last_identifier = $this->idGenerator->makeIdentifier('qti', $title ?: '', $parentPath, $additionalProps);
         }
-        $this->last_identifier = $this->idGenerator->makeIdentifier('qti', $title ?: '', $parentPath, $additionalProps);
 
-        $fileHash = substr($this->last_identifier, strpos($this->last_identifier, '_') + 1);
+        $underscore = strpos($this->last_identifier, '_');
+        $fileHash = $underscore === false
+            ? $this->last_identifier
+            : substr($this->last_identifier, $underscore + 1);
         $file = $this->canvas_quiz_wrapper
             ? $this->last_identifier.'/assessment_qti.xml'
             : 'xml/Q1_'.$fileHash.'.xml';
@@ -960,8 +1081,28 @@ class CC extends \Tsugi\Util\TsugiDOM {
     }
 
     /**
-     * @return \DOMElement|null
+     * @param string $identifier Item identifier, before the _R resource suffix
      */
+    private function fixedIdentifier($identifier) {
+        $fixed = is_string($identifier) ? trim($identifier) : '';
+        if ( $fixed === '' || preg_match('/^[A-Za-z_][A-Za-z0-9_.-]*$/', $fixed) !== 1 ) {
+            return '';
+        }
+        if ( $this->identifierTaken($fixed) ) {
+            return '';
+        }
+        return $fixed;
+    }
+
+    /**
+     * @param string $identifier Item identifier, before the _R resource suffix
+     */
+    private function identifierTaken($identifier) {
+        $xpath = new \DOMXpath($this);
+        $nodes = $xpath->query('//*[@identifier="'.$identifier.'" or @identifier="'.$identifier.'_R"]');
+        return $nodes && $nodes->length > 0;
+    }
+
     private function resource_by_identifier($identifier) {
         $xpath = new \DOMXpath($this);
         $nodes = $xpath->query('//*[local-name()="resource" and @identifier="'.$identifier.'"]');
@@ -1357,11 +1498,12 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param $extenions An optional array of tsugi extensions for this link
      * @param $resourceLinkId Optional resource_link_id for deterministic ID generation
      * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
+     * @param string|null $identifier Item identifier. When set, this is the lesson resource link id.
      *
      * @return The name of a file to contain the web link XML in the ZIP.
      */
-    function zip_add_lti_to_module($zip, $module, $title, $url, $custom=null, $extensions=null, $resourceLinkId=null, $parentPath=null) {
-        $file = $this->add_lti_link($module, $title, $url, $resourceLinkId, $parentPath);
+    function zip_add_lti_to_module($zip, $module, $title, $url, $custom=null, $extensions=null, $resourceLinkId=null, $parentPath=null, $identifier=null) {
+        $file = $this->add_lti_link($module, $title, $url, $resourceLinkId, $parentPath, $identifier);
         $lti_dom = new CC_LTI();
         $lti_dom->set_title($title);
         // $lti_dom->set_description('Create a single SQL table and insert some records.');
@@ -1396,6 +1538,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param $extenions An optional array of tsugi extensions for this link
      * @param $resourceLinkId Optional resource_link_id for deterministic ID generation
      * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
+     * @param string|null $identifier Item identifier. When set, this is the lesson resource link id.
      *
      * @return The name of a file to contain the web link XML in the ZIP.
      */
@@ -1424,7 +1567,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
         return $xml;
     }
 
-    function zip_add_lti_outcome_to_module($zip, $module, $title, $url, $custom=null, $extensions=null, $resourceLinkId=null, $parentPath=null) {
+    function zip_add_lti_outcome_to_module($zip, $module, $title, $url, $custom=null, $extensions=null, $resourceLinkId=null, $parentPath=null, $identifier=null) {
         global $CFG;
         
         // Check if Canvas assignment wrapper extension is enabled (OFF by default)
@@ -1437,19 +1580,22 @@ class CC extends \Tsugi\Util\TsugiDOM {
             $parentPath = isset($this->modulePaths[$moduleHash]) ? $this->modulePaths[$moduleHash] : '';
         }
         
-        // Generate deterministic identifier for LTI resource
-        $additionalProps = array();
-        if ($url !== null) {
-            $additionalProps['url'] = $url;
+        $fixed = $this->fixedIdentifier($identifier);
+        if ( $fixed !== '' ) {
+            $lti_identifier = $fixed;
+            $lti_file = 'xml/LT_'.$fixed.'.xml';
+        } else {
+            $additionalProps = array();
+            if ($url !== null) {
+                $additionalProps['url'] = $url;
+            }
+            if ($resourceLinkId !== null) {
+                $additionalProps['resource_link_id'] = $resourceLinkId;
+            }
+            $lti_identifier = $this->idGenerator->makeIdentifier('lti', $title ?: '', $parentPath, $additionalProps);
+            $fileHash = substr($lti_identifier, strpos($lti_identifier, '_') + 1);
+            $lti_file = 'xml/LT_'.$fileHash.'.xml';
         }
-        if ($resourceLinkId !== null) {
-            $additionalProps['resource_link_id'] = $resourceLinkId;
-        }
-        $lti_identifier = $this->idGenerator->makeIdentifier('lti', $title ?: '', $parentPath, $additionalProps);
-        
-        // Generate file name for LTI resource
-        $fileHash = substr($lti_identifier, strpos($lti_identifier, '_') + 1);
-        $lti_file = 'xml/LT_'.$fileHash.'.xml';
         
         // Create LTI resource in manifest (without module item initially)
         $lti_resource_id = $this->add_resource_only(self::LTI_TYPE, $lti_identifier, $lti_file);
@@ -1507,6 +1653,8 @@ class CC extends \Tsugi\Util\TsugiDOM {
             $lti_item = $this->add_child_ns($this->ccNs(), $module, 'item', null,
                 array('identifier' => $lti_identifier, "identifierref" => $lti_resource_id));
             $lti_title = $this->add_child_ns($this->ccNs(), $lti_item, 'title', $title);
+            $this->last_identifier = $lti_identifier;
+            $this->last_identifierref = $lti_resource_id;
             
             // Add to canvas_module_meta as LTI tool (not assignment)
             if ( $this->canvas_items ) {
@@ -1565,11 +1713,12 @@ class CC extends \Tsugi\Util\TsugiDOM {
      * @param $title The title of the link
      * @param $text The url for the link
      * @param $parentPath Optional parent path for deterministic ID generation (auto-detected if not provided)
+     * @param string|null $identifier Item identifier. When set, this is the lesson resource link id.
      *
      * @return The name of a file to contain the web link XML in the ZIP.
      */
-    function zip_add_topic_to_module($zip, $module, $title, $text, $parentPath=null) {
-        $file = $this->add_topic($module, $title, $text, $parentPath);
+    function zip_add_topic_to_module($zip, $module, $title, $text, $parentPath=null, $identifier=null) {
+        $file = $this->add_topic($module, $title, $text, $parentPath, $identifier);
         $web_dom = new CC_Topic($this);
         $web_dom->set_title($title);
         $web_dom->set_text($text);
