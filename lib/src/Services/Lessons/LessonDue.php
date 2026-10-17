@@ -122,6 +122,41 @@ class LessonDue {
     }
 
     /**
+     * Store due days on lesson items. Used before a tool has a link.
+     * An empty day removes the item's due field.
+     *
+     * @param array<string, string> $dues resource link id => YYYY-MM-DD or ''
+     * @return int|null Items whose date changed, or null when this course has no lesson document
+     */
+    public static function writeItemDues($contextId, array $dues) {
+        $contextId = (int) $contextId;
+        if ( $contextId < 1 || count($dues) < 1 ) {
+            return 0;
+        }
+        $doc = self::loadDocument($contextId);
+        if ( ! is_array($doc) ) {
+            return null;
+        }
+        $changed = 0;
+        foreach ( $dues as $key => $due ) {
+            $key = trim((string) $key);
+            if ( $key === '' ) {
+                continue;
+            }
+            $day = GradeUtil::dueDay(is_string($due) ? $due : '');
+            if ( self::setItemDue($doc, $contextId, $key, $day === null ? '' : $day) ) {
+                $changed++;
+            }
+        }
+        if ( $changed < 1 ) {
+            return 0;
+        }
+        $doc = LessonsNormalize::normalizeDocument($doc);
+        Manifest::saveNewVersion($contextId, $doc, ReqScope::loggedInUserId(), 'Due date');
+        return $changed;
+    }
+
+    /**
      * @param int $contextId
      * @return array<string, mixed>|null
      */

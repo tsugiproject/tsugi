@@ -964,7 +964,7 @@ class Grades extends Tool {
 
         $this->beginLessonGradePage('due-dates');
         echo('<h2>'.__('Manage grade book')."</h2>\n");
-        echo('<p>'.__('Every line item in this course, plus quizzes and lesson tools that can still become a column. A due date is the end of that calendar day, 11:59 PM, stored on the link (end_datetime). Publish, unpublish, and hide are the same controls as the grade book.')."</p>\n");
+        echo('<p>'.__('Every line item in this course, plus quizzes and lesson tools that can still become a column. A due date is the end of that calendar day, 11:59 PM, stored on the link (end_datetime). An unprovisioned lesson tool is listed with its resource link id, and its due date is the date on the lesson. Publish, unpublish, and hide are the same controls as the grade book.')."</p>\n");
 
         $categories = GradeCategoryRepository::listForContext($context_id);
         $grade_columns = array();
@@ -981,6 +981,9 @@ class Grades extends Tool {
 
         $missingCount = 0;
         foreach ( $items as $it ) {
+            if ( $this->isUnprovisionedLessonTool($it) ) {
+                continue;
+            }
             $r = trim((string) ($it['resource_link_id'] ?? ''));
             if ( $r === '' || ! array_key_exists($r, $dueMap) ) {
                 $missingCount++;
@@ -1014,14 +1017,21 @@ class Grades extends Tool {
             }
             echo('</td>');
             echo('<td>'.htmlspecialchars($it['item_title']).'</td>');
+            $unprovisionedTool = $this->isUnprovisionedLessonTool($it);
             echo('<td>');
-            if ( $rlid === '' ) {
-                echo('<span class="text-warning"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> '.__('No LTI link row yet').'</span>');
-            } else {
+            if ( $rlid !== '' ) {
                 echo('<code>'.htmlspecialchars($rlid).'</code>');
-                if ( ! $hasRow ) {
-                    echo('<br><span class="text-warning"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> '.__('No LTI link row yet').'</span>');
+            }
+            if ( $unprovisionedTool ) {
+                if ( $rlid !== '' ) {
+                    echo('<br>');
                 }
+                echo('<span class="text-warning"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> '.__('Unprovisioned').'</span>');
+            } else if ( $rlid === '' || ! $hasRow ) {
+                if ( $rlid !== '' ) {
+                    echo('<br>');
+                }
+                echo('<span class="text-warning"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> '.__('No LTI link row yet').'</span>');
             }
             echo('</td>');
             echo('<td>');
@@ -1032,6 +1042,15 @@ class Grades extends Tool {
                     $rlid
                 );
                 echo('<input type="date" class="form-control" form="due-dates" name="end[]" value="'.htmlspecialchars($endVal).'" aria-label="'.htmlspecialchars($dueAria, ENT_QUOTES, 'UTF-8').'">');
+                echo('<input type="hidden" form="due-dates" name="rlid[]" value="'.htmlspecialchars($rlid).'">');
+            } else if ( $unprovisionedTool && $rlid !== '' ) {
+                $lessonDue = GradeUtil::dueDay((string) ($it['due'] ?? ''));
+                $dueAria = sprintf(
+                    __('Due date on the lesson for %1$s (resource link %2$s)'),
+                    $it['item_title'],
+                    $rlid
+                );
+                echo('<input type="date" class="form-control" form="due-dates" name="end[]" value="'.htmlspecialchars($lessonDue ?? '').'" aria-label="'.htmlspecialchars($dueAria, ENT_QUOTES, 'UTF-8').'">');
                 echo('<input type="hidden" form="due-dates" name="rlid[]" value="'.htmlspecialchars($rlid).'">');
             } else {
                 echo('<span class="text-muted">—</span>');
@@ -1071,7 +1090,7 @@ class Grades extends Tool {
 
         if ( $missingCount > 0 ) {
             $add_detail = $manifest
-                ? __('Applies to Lessons tools that send a grade, and to Quiz rows, when they do not have a link yet. LMS and Line item rows are left as they are. A tool or quiz that is already published stays published, so students do not gain access from this button.')
+                ? __('Applies to Lessons tools that send a grade, and to Quiz rows, when they do not have a link yet. An unprovisioned tool is left alone. LMS and Line item rows are left as they are. A tool or quiz that is already published stays published, so students do not gain access from this button.')
                 : __('Applies to Lessons assignments and Quiz rows that do not have a link yet. LMS and Line item rows are left as they are. The insert matches an LTI launch, so a row that already exists is not duplicated.');
             $this->echoCourseUnlockForm(array(
                 'id' => 'unlock-add-links',
@@ -1083,13 +1102,14 @@ class Grades extends Tool {
                 'button_icon' => 'fa-plus-circle',
                 'button_class' => 'btn btn-default',
                 'button_text' => __('Add missing link rows').' ('.$missingCount.')',
+                'confirm' => $this->courseUnlockWarning(__('WARNING: This adds missing link rows on %s in course "%s" (%s members). Existing rows are left as they are. Continue?')),
             ));
         }
 
         if ( $has_lesson_rows ) {
             $weekly_detail = __('Lesson modules are ordered as in your lessons file. Pick the due date for all assignments in the first module (week 1). Each later module adds one week; every due is 11:59 PM on that calendar day.').' ';
             $weekly_detail .= $manifest
-                ? __('Applies to Lessons assignments and to Quiz rows in those modules. LMS and Line item rows are left as they are. Only rows that already have a link are updated.')
+                ? __('Applies to Lessons assignments and to Quiz rows in those modules. An unprovisioned lesson tool stores the date on the lesson. LMS and Line item rows are left as they are. A row that already has a link is updated on the link.')
                 : __('Applies to Lessons assignments. Quiz, LMS, and Line item rows are left as they are. Only rows that already have a link are updated.');
             $this->echoCourseUnlockForm(array(
                 'id' => 'unlock-weekly',
@@ -1101,6 +1121,7 @@ class Grades extends Tool {
                 'button_icon' => 'fa-magic',
                 'button_class' => 'btn btn-default',
                 'button_text' => __('Apply weekly due dates'),
+                'confirm' => $this->courseUnlockWarning(__('WARNING: This replaces lesson due dates on %s in course "%s" (%s members). The dates you had before are not kept. Continue?')),
             ));
         }
 
@@ -1108,12 +1129,13 @@ class Grades extends Tool {
             'id' => 'unlock-clear-dues',
             'action' => $post_url.'/clear-all',
             'heading' => __('Clear all due dates'),
-            'detail' => __('This removes the due date on every Lessons assignment, Quiz, LMS, and Line item in this list that already has a link. Grades, links, and the course stay.'),
+            'detail' => __('This removes the due date on every Lessons assignment, Quiz, LMS, and Line item in this list that already has a link, and on unprovisioned lesson tools. Grades, links, and the course stay.'),
             'note' => '',
             'date_field' => false,
             'button_icon' => 'fa-eraser',
             'button_class' => 'btn btn-danger',
             'button_text' => __('Clear all due dates'),
+            'confirm' => $this->courseUnlockWarning(__('WARNING: This clears every due date on %s in course "%s" (%s members). Grades and links stay. The dates you had before are not kept. Continue?')),
         ));
         $this->echoCourseUnlockScript();
         $this->endLessonGradePage();
@@ -1134,6 +1156,7 @@ class Grades extends Tool {
 
         $context_id = ReqScope::currentContextId();
         $allowed = $this->manageableDueKeys($context_id);
+        $lessonKeys = $this->unprovisionedDueKeys($context_id);
 
         $rlids = U::get($_POST, 'rlid');
         $ends = U::get($_POST, 'end');
@@ -1150,9 +1173,12 @@ class Grades extends Tool {
 
         $p = $CFG->dbprefix;
         $updated = 0;
+        $lessonDues = array();
         for ( $i = 0; $i < $n; $i++ ) {
             $rlid = $rlids[$i];
-            if ( ! isset($allowed[$rlid]) ) {
+            $onLink = isset($allowed[$rlid]);
+            $onLesson = isset($lessonKeys[$rlid]);
+            if ( ! $onLink && ! $onLesson ) {
                 continue;
             }
             $endSql = self::parseDueDateEndOfDay($ends[$i]);
@@ -1160,6 +1186,10 @@ class Grades extends Tool {
                 $this->invalidateDueDatesSessionCache();
                 U::flashError(__('Invalid due date for resource link: ').$rlid);
                 return new RedirectResponse($dates_url);
+            }
+            if ( ! $onLink ) {
+                $lessonDues[$rlid] = $endSql === null ? '' : substr($endSql, 0, 10);
+                continue;
             }
             $stmt = $PDOX->queryReturnError(
                 "UPDATE {$p}lti_link SET end_datetime = :E, updated_at = NOW()
@@ -1178,16 +1208,45 @@ class Grades extends Tool {
             $updated += $stmt->rowCount();
         }
 
+        $lessonUpdated = LessonDue::writeItemDues($context_id, $lessonDues);
+        if ( $lessonUpdated === null ) {
+            $this->invalidateDueDatesSessionCache();
+            U::flashError(__('Could not save the lesson due date.'));
+            return new RedirectResponse($dates_url);
+        }
+
         $this->invalidateDueDatesSessionCache();
         LessonDue::pullPublished($context_id, array_keys($allowed));
-        U::flashSuccess(__('Saved due dates.').' ('.$updated.' '.__('link row(s) updated').').');
+        $msg = __('Saved due dates.').' ('.$updated.' '.__('link row(s) updated').').';
+        if ( $lessonUpdated > 0 ) {
+            $msg .= ' '.sprintf(__('Updated %d lesson due date(s).'), $lessonUpdated);
+        }
+        U::flashSuccess($msg);
         return new RedirectResponse($dates_url);
+    }
+
+    /**
+     * Same warning shape as import and delete: site, course title, and member count.
+     *
+     * @param string $format
+     */
+    private function courseUnlockWarning($format)
+    {
+        $domain = Settings::importSiteDomain();
+        $title = Settings::importReplaceCourseTitle();
+        $members = Settings::importReplaceMemberCount();
+        return sprintf(
+            $format,
+            $domain !== '' ? $domain : __('this site'),
+            $title !== '' ? $title : __('this course'),
+            $members === null ? __('unknown') : number_format($members)
+        );
     }
 
     /**
      * Domain, course title, and member count before a course-wide change.
      *
-     * @param array{id:string,action:string,heading:string,detail:string,note:string,date_field:bool,button_icon:string,button_class:string,button_text:string} $spec
+     * @param array{id:string,action:string,heading:string,detail:string,note:string,date_field:bool,button_icon:string,button_class:string,button_text:string,confirm:string} $spec
      */
     private function echoCourseUnlockForm($spec)
     {
@@ -1222,7 +1281,7 @@ class Grades extends Tool {
         echo('<p style="font-size:1.1em;margin-bottom:8px;"><label for="'.htmlspecialchars($id).'_members">'.sprintf(__('Type the number of members in this course (%s).'), htmlspecialchars($member_label)).'</label></p>');
         echo('<p style="margin-bottom:0;"><input type="text" id="'.htmlspecialchars($id).'_members" class="form-control" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="numeric"></p>');
         echo('</div>');
-        echo('<form id="'.htmlspecialchars($id).'" class="course-unlock" method="post" action="'.htmlspecialchars($spec['action']).'">');
+        echo('<form id="'.htmlspecialchars($id).'" class="course-unlock" method="post" action="'.htmlspecialchars($spec['action']).'" data-confirm="'.htmlspecialchars($spec['confirm'], ENT_QUOTES, 'UTF-8').'">');
         echo(self::csrfField());
         echo('<input type="hidden" name="course_unlock_domain" value="">');
         echo('<input type="hidden" name="course_unlock_title" value="">');
@@ -1253,7 +1312,6 @@ class Grades extends Tool {
         echo 'var courseUnlockTitle = '.json_encode($title).";\n";
         echo 'var courseUnlockMembers = '.json_encode($members).";\n";
         echo 'var courseUnlockMismatch = '.json_encode(__('Type this site\'s domain, this course\'s title, and the number of members before this change.')).";\n";
-        echo 'var courseUnlockReally = '.json_encode(__('Are you really sure?')).";\n";
         echo <<<'JS'
 document.querySelectorAll('form.course-unlock').forEach(function(form) {
     var domainInput = document.getElementById(form.id + '_domain');
@@ -1304,7 +1362,7 @@ document.querySelectorAll('form.course-unlock').forEach(function(form) {
             alert(courseUnlockMismatch);
             return;
         }
-        if ( ! window.confirm(courseUnlockReally) ) {
+        if ( ! window.confirm(form.getAttribute('data-confirm') || '') ) {
             event.preventDefault();
         }
     });
@@ -1355,6 +1413,7 @@ JS;
 
         $context_id = ReqScope::currentContextId();
         $allowed = $this->manageableDueKeys($context_id);
+        $lessonKeys = $this->unprovisionedDueKeys($context_id);
 
         $p = $CFG->dbprefix;
         $updated = 0;
@@ -1375,9 +1434,24 @@ JS;
             $updated += $stmt->rowCount();
         }
 
+        $lessonClear = array();
+        foreach ( array_keys($lessonKeys) as $rlid ) {
+            $lessonClear[$rlid] = '';
+        }
+        $lessonUpdated = LessonDue::writeItemDues($context_id, $lessonClear);
+        if ( $lessonUpdated === null ) {
+            $this->invalidateDueDatesSessionCache();
+            U::flashError(__('Could not clear the lesson due dates.'));
+            return new RedirectResponse($dates_url);
+        }
+
         $this->invalidateDueDatesSessionCache();
         LessonDue::pullPublished($context_id, array_keys($allowed));
-        U::flashSuccess(__('Cleared due dates.').' ('.$updated.' '.__('link row(s) updated').').');
+        $msg = __('Cleared due dates.').' ('.$updated.' '.__('link row(s) updated').').';
+        if ( $lessonUpdated > 0 ) {
+            $msg .= ' '.sprintf(__('Cleared %d lesson due date(s).'), $lessonUpdated);
+        }
+        U::flashSuccess($msg);
         return new RedirectResponse($dates_url);
     }
 
@@ -1429,18 +1503,24 @@ JS;
         $p = $CFG->dbprefix;
         $updated = 0;
         $skipped = 0;
+        $lessonDues = array();
         foreach ( $items as $it ) {
             $rlid = $it['resource_link_id'];
-            if ( ! array_key_exists($rlid, $dueMap) ) {
-                $skipped++;
-                continue;
-            }
             $modIdx = isset($it['module_index']) ? (int) $it['module_index'] : 0;
             $dueTs = strtotime('+' . ($modIdx * 7) . ' days', $baseTs);
             if ( $dueTs === false ) {
                 $this->invalidateDueDatesSessionCache();
                 U::flashError(__('Could not compute a due date for resource link: ').$rlid);
                 return new RedirectResponse($dates_url);
+            }
+            $it['in_lesson'] = true;
+            if ( ! array_key_exists($rlid, $dueMap) ) {
+                if ( $this->isUnprovisionedLessonTool($it) ) {
+                    $lessonDues[$rlid] = date('Y-m-d', $dueTs);
+                } else {
+                    $skipped++;
+                }
+                continue;
             }
             $endSql = date('Y-m-d H:i:s', $dueTs);
             $stmt = $PDOX->queryReturnError(
@@ -1460,7 +1540,17 @@ JS;
             $updated += $stmt->rowCount();
         }
 
+        $lessonUpdated = LessonDue::writeItemDues($context_id, $lessonDues);
+        if ( $lessonUpdated === null ) {
+            $this->invalidateDueDatesSessionCache();
+            U::flashError(__('Could not save the lesson due dates.'));
+            return new RedirectResponse($dates_url);
+        }
+
         $msg = __('Applied weekly due dates.').' '.sprintf(__('Updated %d link row(s).'), $updated);
+        if ( $lessonUpdated > 0 ) {
+            $msg .= ' '.sprintf(__('Updated %d lesson due date(s).'), $lessonUpdated);
+        }
         if ( $skipped > 0 ) {
             $msg .= ' '.sprintf(__('Skipped %d assignment(s) with no link row yet.'), $skipped);
         }
@@ -1747,6 +1837,29 @@ JS;
     }
 
     /**
+     * Resource link ids for lesson tools that are not provisioned yet.
+     * Their due date is stored on the lesson item.
+     *
+     * @param int $context_id
+     * @return array<string,bool>
+     */
+    private function unprovisionedDueKeys($context_id)
+    {
+        $allowed = array();
+        foreach ( $this->manageCatalog($context_id) as $it ) {
+            if ( ! $this->isUnprovisionedLessonTool($it) ) {
+                continue;
+            }
+            $key = trim((string) ($it['resource_link_id'] ?? ''));
+            if ( $key === '' ) {
+                continue;
+            }
+            $allowed[$key] = true;
+        }
+        return $allowed;
+    }
+
+    /**
      * Quizzes in this course that do not have a grade column yet.
      *
      * @param int $context_id
@@ -2010,6 +2123,27 @@ JS;
             return 0;
         }
         return (int) $row['link_id'];
+    }
+
+    /**
+     * A lesson tool with no deployment and no content row. Provisioning creates those.
+     * Add missing link rows does not.
+     *
+     * @param array<string,mixed> $it
+     */
+    private function isUnprovisionedLessonTool($it)
+    {
+        if ( ! $this->manifestCourse() || empty($it['in_lesson']) ) {
+            return false;
+        }
+        if ( (int) ($it['quiz_id'] ?? 0) > 0 ) {
+            return false;
+        }
+        $key = trim((string) ($it['resource_link_id'] ?? ''));
+        if ( str_starts_with($key, 'quiz1:') ) {
+            return false;
+        }
+        return (int) ($it['content_id'] ?? 0) < 1 && (int) ($it['tool_deployment_id'] ?? 0) < 1;
     }
 
     /**

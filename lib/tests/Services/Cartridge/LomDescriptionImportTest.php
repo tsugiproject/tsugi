@@ -191,7 +191,7 @@ class CartridgeLomDescriptionImportTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public function testImportRestoresDueAndGradableOnTheLesson() {
+    public function testImportKeepsGradableWithoutADueDate() {
         $l = (object) array(
             'lessons' => (object) array(
                 'title' => 'Course',
@@ -228,9 +228,9 @@ class CartridgeLomDescriptionImportTest extends \PHPUnit\Framework\TestCase
 
         $pkg = Package::open($path);
         try {
-            $this->assertSame('2026-10-20', $pkg->modules[0]['items'][0]['due']);
+            $this->assertNull($pkg->modules[0]['items'][0]['due']);
             $this->assertFalse($pkg->modules[0]['items'][0]['gradable']);
-            $this->assertSame('2026-11-01', $pkg->modules[0]['items'][1]['due']);
+            $this->assertNull($pkg->modules[0]['items'][1]['due']);
             $this->assertTrue($pkg->modules[0]['items'][1]['gradable']);
 
             $actions = array();
@@ -249,11 +249,80 @@ class CartridgeLomDescriptionImportTest extends \PHPUnit\Framework\TestCase
             foreach ( $modules[0]['items'] as $item ) {
                 $imported[$item['title']] = $item;
             }
-            $this->assertSame('2026-10-20', $imported['Assignment: Draft']['due']);
+            $this->assertArrayNotHasKey('due', $imported['Assignment: Draft']);
+            $this->assertSame('draft-1', $imported['Assignment: Draft']['resource_link_id']);
             $this->assertFalse($imported['Assignment: Draft']['result']);
             $this->assertSame('lti', $imported['Assignment: Draft']['type']);
-            $this->assertSame('2026-11-01', $imported['Assignment: Live']['due']);
+            $this->assertArrayNotHasKey('due', $imported['Assignment: Live']);
+            $this->assertSame('live-1', $imported['Assignment: Live']['resource_link_id']);
             $this->assertArrayNotHasKey('result', $imported['Assignment: Live']);
+        } finally {
+            $pkg->close();
+        }
+    }
+
+    public function testExportImportKeepsLtiResourceLinkId() {
+        $l = (object) array(
+            'lessons' => (object) array(
+                'title' => 'Course',
+                'modules' => array(
+                    (object) array(
+                        'title' => 'Installing Django',
+                        'anchor' => 'install',
+                        'items' => array(
+                            (object) array(
+                                'type' => 'lti',
+                                'title' => 'Auto-grader: Installing Django',
+                                'launch' => 'https://example.com/dj4e/install',
+                                'resource_link_id' => 'dj4e_install',
+                            ),
+                            (object) array(
+                                'type' => 'lti',
+                                'title' => 'Tool: Colon key',
+                                'launch' => 'https://example.com/tool',
+                                'resource_link_id' => 'py4e:install',
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+        $path = $this->dir.'/lti-rlid.imscc';
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($path, \ZipArchive::CREATE) === true);
+        LessonsCartridge::writeZip($l, $zip, array('tsugi_lms' => 'generic'));
+        $zip->close();
+
+        $pkg = Package::open($path);
+        try {
+            $byExportId = array();
+            foreach ( $pkg->modules[0]['items'] as $item ) {
+                $byExportId[(string) $item['identifier']] = $item;
+            }
+            $this->assertArrayHasKey('dj4e_install', $byExportId);
+            $this->assertArrayHasKey('py4e_colon_install', $byExportId);
+
+            $actions = array();
+            $lessonsByRes = array();
+            foreach ( $pkg->importableResources() as $res ) {
+                $id = (string) ($res['identifier'] ?? '');
+                $kind = Fingerprint::localKind((string) ($res['type'] ?? ''), (string) ($res['href'] ?? ''));
+                $made = $this->materializeKind($pkg, $res, $kind);
+                $actions[$id] = Matcher::NEW;
+                $lessonsByRes[$id] = $made['lesson'];
+            }
+            $session = new Session(11, 4);
+            $ref = new \ReflectionMethod(Importer::class, 'buildLessonsModules');
+            $modules = $ref->invoke(null, $pkg, $session, $actions, $lessonsByRes);
+            $imported = array();
+            foreach ( $modules[0]['items'] as $item ) {
+                $imported[$item['resource_link_id']] = $item;
+            }
+            $this->assertSame('lti', $imported['dj4e_install']['type']);
+            $this->assertSame('Auto-grader: Installing Django', $imported['dj4e_install']['title']);
+            $this->assertSame('lti', $imported['py4e:install']['type']);
+            $this->assertSame('Tool: Colon key', $imported['py4e:install']['title']);
+            $this->assertArrayNotHasKey('content_id', $imported['dj4e_install']);
         } finally {
             $pkg->close();
         }

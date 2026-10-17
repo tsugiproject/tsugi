@@ -83,7 +83,7 @@ class CC extends \Tsugi\Util\TsugiDOM {
     const LOM_CATALOG_HREF_SOURCE = 'tsugi.href_source';
     /** LOM general.identifier catalog; LTI launch_presentation_document_target values. */
     const LOM_CATALOG_DOCUMENT_TARGET = 'tsugi.launch_presentation_document_target';
-    /** LOM general.identifier catalog; lesson due day YYYY-MM-DD. */
+    /** LOM general.identifier catalog; lesson due day YYYY-MM-DD. Read on import. Not written on export. */
     const LOM_CATALOG_DUE = 'tsugi.due';
     /** LOM general.identifier catalog; 1 when the item is graded, 0 when it is not. */
     const LOM_CATALOG_GRADABLE = 'tsugi.gradable';
@@ -406,10 +406,6 @@ class CC extends \Tsugi\Util\TsugiDOM {
         $documentTarget = self::documentTargetFromLesson($source);
         if ( $documentTarget !== null ) {
             $pairs[self::LOM_CATALOG_DOCUMENT_TARGET] = $documentTarget;
-        }
-        $due = self::organizationDue($source);
-        if ( $due !== null ) {
-            $pairs[self::LOM_CATALOG_DUE] = $due;
         }
         $gradable = self::organizationGradable($source);
         if ( $gradable !== null ) {

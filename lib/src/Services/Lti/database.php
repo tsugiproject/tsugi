@@ -1003,7 +1003,9 @@ array( "{$CFG->dbprefix}lti_tool_deployment",
 //
 // link_id NULL is not a grade column. Non-null is gradable, and it is unique
 // so two launches cannot share one link. There is no separate gradable flag.
-// resource_link_id is born here. Creating the link copies it to lti_link.link_key.
+// resource_link_id lives here. A cartridge item keeps its id. A launch
+// with no id, or an id this course already uses, is given a new one.
+// Creating the link copies that id to lti_link.link_key.
 //
 // published starts unpublished. While link_id is null, this flag is the only
 // student-visibility flag. Marking the launch gradable copies it onto

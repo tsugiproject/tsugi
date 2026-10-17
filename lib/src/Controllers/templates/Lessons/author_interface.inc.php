@@ -1860,6 +1860,15 @@ function ltiPlaceError(xhr, fallback) {
     return fallback;
 }
 
+function editorResourceLinkId() {
+    const field = document.getElementById('edit-resource-link-id');
+    if (field && field.value.trim()) {
+        return field.value.trim();
+    }
+    const item = typeof currentEditorItem === 'function' ? currentEditorItem() : null;
+    return item && item.resource_link_id ? String(item.resource_link_id).trim() : '';
+}
+
 function placeLtiContent(done, messageId) {
     const id = parseInt($('#edit-lti-tool').val(), 10) || 0;
     if (!id) {
@@ -1874,7 +1883,8 @@ function placeLtiContent(done, messageId) {
             action: 'place-lti',
             tool_deployment_id: id,
             message_id: messageId || '',
-            title: titleEl ? titleEl.value.trim() : ''
+            title: titleEl ? titleEl.value.trim() : '',
+            resource_link_id: editorResourceLinkId()
         },
         success: function(response) {
             const result = typeof response === 'string' ? JSON.parse(response) : response;
@@ -2215,7 +2225,8 @@ function placeDeepLinkReturn(itemIndex) {
         action: 'place-deep-link',
         tool_deployment_id: state.tool.id,
         jwt: state.jwt,
-        title: titleEl ? titleEl.value.trim() : ''
+        title: titleEl ? titleEl.value.trim() : '',
+        resource_link_id: editorResourceLinkId()
     };
     if (itemIndex !== undefined && itemIndex !== null && itemIndex !== '') {
         data.item = String(itemIndex);

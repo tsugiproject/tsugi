@@ -235,16 +235,16 @@ class CCItemLomDescriptionTest extends \PHPUnit\Framework\TestCase
         ));
         $dueItem = $this->organizationItem($cc->saveXML(), $cc->last_identifier);
         $dueIds = CC::lomIdentifiersFromItem($dueItem);
-        $this->assertSame('2026-10-20', $dueIds[CC::LOM_CATALOG_DUE]);
+        $this->assertArrayNotHasKey(CC::LOM_CATALOG_DUE, $dueIds);
         $this->assertSame('0', $dueIds[CC::LOM_CATALOG_GRADABLE]);
-        $this->assertSame('2026-10-20', CC::organizationDue($dueIds[CC::LOM_CATALOG_DUE]));
+        $this->assertSame('2026-10-20', CC::organizationDue('2026-10-20'));
         $this->assertFalse(CC::organizationGradable($dueIds[CC::LOM_CATALOG_GRADABLE]));
         $this->assertNull(CC::organizationDue('tomorrow'));
         $this->assertNull(CC::organizationDue('2026-02-31'));
         $this->assertNull(CC::organizationDue('2026-13-45'));
         $this->assertNull(CC::organizationGradable('maybe'));
         $dueLom = $this->itemLom($dueItem);
-        $this->assertSame(2, $this->directIdentifierCount($dueLom));
+        $this->assertSame(1, $this->directIdentifierCount($dueLom));
         $this->assertTrue($this->lomValidatesAgainstCc12Xsd($dueLom, $xsd));
 
         $bad = new \DOMDocument();

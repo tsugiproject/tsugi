@@ -971,6 +971,7 @@ class LessonsService {
                             'resource_link_id' => $contentRow['resource_link_id'],
                             'content_id' => isset($item->content_id) ? (int) $item->content_id : 0,
                             'tool_deployment_id' => isset($item->tool_deployment_id) ? (int) $item->tool_deployment_id : 0,
+                            'due' => self::assignmentDue($item),
                             'participates_in_grades' => ! empty($contentRow['graded']),
                         );
                         continue;
@@ -990,6 +991,7 @@ class LessonsService {
                         'resource_link_id' => $item->resource_link_id,
                         'content_id' => isset($item->content_id) ? (int) $item->content_id : 0,
                         'tool_deployment_id' => isset($item->tool_deployment_id) ? (int) $item->tool_deployment_id : 0,
+                        'due' => self::assignmentDue($item),
                         'participates_in_grades' => self::ltiLaunchIsGraded($item),
                     );
                 }
@@ -1014,12 +1016,26 @@ class LessonsService {
                         'resource_link_id' => $lti->resource_link_id,
                         'content_id' => isset($lti->content_id) ? (int) $lti->content_id : 0,
                         'tool_deployment_id' => isset($lti->tool_deployment_id) ? (int) $lti->tool_deployment_id : 0,
+                        'due' => self::assignmentDue($lti),
                         'participates_in_grades' => self::ltiLaunchIsGraded($lti),
                     );
                 }
             }
         }
         return $list;
+    }
+
+    /**
+     * Due day stored on the lesson item, before a link exists.
+     *
+     * @param object $item
+     * @return string
+     */
+    private static function assignmentDue($item) {
+        if ( ! is_object($item) || ! isset($item->due) || ! is_string($item->due) ) {
+            return '';
+        }
+        return trim($item->due);
     }
 
     /**

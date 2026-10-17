@@ -8,7 +8,6 @@ use Tsugi\Util\CCIdentifier;
 use Tsugi\Util\U;
 use Tsugi\Services\Files\FileRepository;
 use Tsugi\Services\Pages\PageRepository;
-use Tsugi\Grades\GradeUtil;
 use Tsugi\Services\Outbound\LtiContentService;
 use Tsugi\Services\Outbound\ToolRegistrationService;
 use Tsugi\Services\Quiz1\ExportException;
@@ -416,7 +415,7 @@ class LessonsCartridge {
         }
 
         if ( LessonsNormalize::isDiscussion($item) ) {
-            self::processDiscussion($item, $module, $sub_module, $zip, $cc_dom, $topic);
+            self::processDiscussion($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             self::processChildren($item, $module, $sub_module, $zip, $cc_dom, $topic, $options);
             return;
         }
@@ -995,12 +994,7 @@ class LessonsCartridge {
         }
         $xml = Qti12Exporter::export($quiz, $export_opts);
         $cc_dom->zip_finish_qti_assessment($zip, $file, $title, $xml, $quiz);
-        $cc_dom->add_last_item_lom(self::gradeLom(
-            $item,
-            $options,
-            isset($quiz->due) ? $quiz->due : '',
-            $linkKey
-        ));
+        $cc_dom->add_last_item_lom(self::gradeLom($item, $options, $linkKey));
     }
 
     /**
@@ -1018,7 +1012,7 @@ class LessonsCartridge {
         return Quiz1Repository::load($quiz_id, $context_id);
     }
 
-    private static function processDiscussion($item, $module, $sub_module, $zip, $cc_dom, $topic) {
+    private static function processDiscussion($item, $module, $sub_module, $zip, $cc_dom, $topic, array $options = array()) {
         global $CFG;
         $topic = self::exportTopicMode($topic);
         if ( $topic === 'none' ) {
@@ -1035,16 +1029,18 @@ class LessonsCartridge {
 
         $title = __('Discussion:').' '.$title;
         $endpoint = U::absolute_url(LessonsNormalize::launchUrlForItem($item));
-        if ( isset($item->resource_link_id) && $item->resource_link_id !== '' && $item->resource_link_id !== null ) {
-            $endpoint = U::add_url_parm($endpoint, 'inherit', $item->resource_link_id);
+        $resource_link_id = self::exportResourceLinkId($item, $options);
+        if ( $resource_link_id !== '' ) {
+            $endpoint = U::add_url_parm($endpoint, 'inherit', $resource_link_id);
         }
         $extensions = array('apphome' => $CFG->apphome);
-        $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : null;
         $custom_arr = self::customArray($item);
+        $linkId = $resource_link_id !== '' ? $resource_link_id : null;
+        $identifier = self::exportLinkIdentifier($resource_link_id);
         if ( $topic === 'lti_grade' ) {
-            $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id);
+            $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $linkId, null, $identifier);
         } else {
-            $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $resource_link_id);
+            $cc_dom->zip_add_lti_to_module($zip, $sub_module, $title, $endpoint, $custom_arr, $extensions, $linkId, null, $identifier);
         }
         $cc_dom->add_last_item_lom($item);
     }
@@ -1075,6 +1071,71 @@ class LessonsCartridge {
         return $url;
     }
 
+    /**
+     * Resource link id to write into the cartridge. The lesson item's id,
+     * or the id stored on its content row after the tool is provisioned.
+     *
+     * @param object $item
+     * @param array<string, mixed> $options
+     * @return string
+     */
+    private static function exportResourceLinkId($item, array $options) {
+        $direct = isset($item->resource_link_id) ? trim((string) $item->resource_link_id) : '';
+        if ( $direct !== '' ) {
+            return $direct;
+        }
+        $row = self::exportContentRow($item, $options);
+        if ( ! is_array($row) ) {
+            return '';
+        }
+        return trim((string) ($row['resource_link_id'] ?? ''));
+    }
+
+    /**
+     * Launch URL on the content row, for a provisioned item whose lesson
+     * item no longer stores one.
+     *
+     * @param object $item
+     * @param array<string, mixed> $options
+     * @return string
+     */
+    private static function exportContentLaunchUrl($item, array $options) {
+        $row = self::exportContentRow($item, $options);
+        if ( ! is_array($row) ) {
+            return '';
+        }
+        return trim((string) ($row['launch_url'] ?? ''));
+    }
+
+    /**
+     * @param object $item
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>|null
+     */
+    private static function exportContentRow($item, array $options) {
+        $contentId = isset($item->content_id) ? (int) $item->content_id : 0;
+        if ( $contentId < 1 ) {
+            return null;
+        }
+        $contextId = isset($options['context_id']) ? (int) $options['context_id'] : ReqScope::currentContextIdLegacy();
+        if ( $contextId < 1 ) {
+            return null;
+        }
+        return LtiContentService::find($contextId, $contentId);
+    }
+
+    /**
+     * Cartridge item identifier for a resource link id. Empty when the
+     * id cannot be an XML identifier.
+     *
+     * @param string $resourceLinkId
+     * @return string|null
+     */
+    private static function exportLinkIdentifier($resourceLinkId) {
+        $identifier = Quiz1Repository::cartridgeIdentifierForLinkKey($resourceLinkId);
+        return $identifier !== '' ? $identifier : null;
+    }
+
     private static function processLti($item, $module, $sub_module, $zip, $cc_dom, array $options = array()) {
         global $CFG;
         $title = isset($item->title) && $item->title !== '' ? $item->title : $module->title;
@@ -1086,13 +1147,27 @@ class LessonsCartridge {
         if ( $endpoint === '' && $toolDeploymentId > 0 ) {
             $endpoint = self::deploymentLaunchUrl($toolDeploymentId, $options, $title);
         }
+        if ( $endpoint === '' ) {
+            $endpoint = self::exportContentLaunchUrl($item, $options);
+        }
         $endpoint = U::absolute_url(LessonsService::expandLink($endpoint));
-        if ( $toolDeploymentId < 1 && isset($item->resource_link_id) && $item->resource_link_id !== '' && $item->resource_link_id !== null ) {
-            $endpoint = U::add_url_parm($endpoint, 'inherit', $item->resource_link_id);
+        $resource_link_id = self::exportResourceLinkId($item, $options);
+        if ( $toolDeploymentId < 1 && $resource_link_id !== '' ) {
+            $endpoint = U::add_url_parm($endpoint, 'inherit', $resource_link_id);
         }
         $extensions = array('apphome' => $CFG->apphome);
-        $resource_link_id = isset($item->resource_link_id) ? $item->resource_link_id : null;
-        $cc_dom->zip_add_lti_outcome_to_module($zip, $sub_module, $title, $endpoint, self::customArray($item), $extensions, $resource_link_id);
+        $linkId = $resource_link_id !== '' ? $resource_link_id : null;
+        $cc_dom->zip_add_lti_outcome_to_module(
+            $zip,
+            $sub_module,
+            $title,
+            $endpoint,
+            self::customArray($item),
+            $extensions,
+            $linkId,
+            null,
+            self::exportLinkIdentifier($resource_link_id)
+        );
         $cc_dom->add_last_item_lom(self::gradeLom($item, $options));
     }
 
@@ -1121,27 +1196,20 @@ class LessonsCartridge {
     }
 
     /**
-     * Lesson item plus the due day and graded flag to store in cartridge LOM.
+     * Lesson item plus the graded flag to store in cartridge LOM.
      *
-     * The link's due day wins when the link already has one. Otherwise the
-     * day stored on the lesson item is used. A quiz is graded. An LTI item
-     * is not graded when the lesson says so, or when its content row cannot
-     * return a grade and has no grade column.
+     * Due dates stay in the course. A quiz is graded. An LTI item is not
+     * graded when the lesson says so, or when its content row cannot return
+     * a grade and has no grade column.
      *
      * @param object $item
      * @param array<string, mixed> $options
-     * @param string|false $knownLinkDue false when the link has not been read yet
      * @param string|null $quizLinkKey Quiz resource link id to store in LOM
      * @return object
      */
-    private static function gradeLom($item, array $options, $knownLinkDue = false, $quizLinkKey = null) {
+    private static function gradeLom($item, array $options, $quizLinkKey = null) {
         $lom = clone $item;
-        $due = self::exportDueDay($item, $options, $knownLinkDue);
-        if ( $due !== null ) {
-            $lom->due = $due;
-        } else {
-            unset($lom->due);
-        }
+        unset($lom->due);
         $lom->gradable = self::exportGradable($item, $options) ? '1' : '0';
         if ( LessonsNormalize::isNativeQuiz($item) && is_string($quizLinkKey) && trim($quizLinkKey) !== '' ) {
             $lom->resource_link_id = trim($quizLinkKey);
@@ -1165,66 +1233,6 @@ class LessonsCartridge {
             return '';
         }
         return Quiz1Repository::storedLinkKey($quizId, $contextId);
-    }
-
-    /**
-     * @param object $item
-     * @param array<string, mixed> $options
-     * @param string|false $knownLinkDue
-     * @return string|null
-     */
-    private static function exportDueDay($item, array $options, $knownLinkDue = false) {
-        if ( $knownLinkDue === false ) {
-            $linkDue = self::lookupLinkDue($item, $options);
-        } else {
-            $linkDue = is_string($knownLinkDue) ? trim($knownLinkDue) : '';
-        }
-        $linkDay = GradeUtil::dueDay($linkDue);
-        if ( $linkDay !== null ) {
-            return $linkDay;
-        }
-        $itemDue = (isset($item->due) && is_string($item->due)) ? $item->due : '';
-        return GradeUtil::dueDay($itemDue);
-    }
-
-    /**
-     * @param object $item
-     * @param array<string, mixed> $options
-     * @return string
-     */
-    private static function lookupLinkDue($item, array $options) {
-        global $CFG, $PDOX;
-        $contextId = isset($options['context_id']) ? (int) $options['context_id'] : 0;
-        if ( $contextId < 1 ) {
-            return '';
-        }
-        if ( LessonsNormalize::isNativeQuiz($item) ) {
-            $quiz = self::loadQuiz(LessonsNormalize::quizIdOf($item), $options);
-            $due = ($quiz !== null && isset($quiz->due) && is_string($quiz->due)) ? trim($quiz->due) : '';
-            return preg_match('/^\d{4}-\d{2}-\d{2}$/', $due) ? $due : '';
-        }
-        $contentId = isset($item->content_id) ? (int) $item->content_id : 0;
-        if ( $contentId > 0 ) {
-            $row = LtiContentService::find($contextId, $contentId);
-            if ( ! is_array($row) || empty($row['link_id']) ) {
-                return '';
-            }
-            return GradeUtil::dueDateInputValue($row['link_end'] ?? null);
-        }
-        $linkKey = isset($item->resource_link_id) ? trim((string) $item->resource_link_id) : '';
-        if ( $linkKey === '' || ! isset($PDOX) || ! is_object($PDOX) || ! isset($CFG) ) {
-            return '';
-        }
-        $row = $PDOX->rowDie(
-            "SELECT end_datetime FROM {$CFG->dbprefix}lti_link
-             WHERE context_id = :CID AND link_key = :LK AND (deleted IS NULL OR deleted = 0)
-             LIMIT 1",
-            array(':CID' => $contextId, ':LK' => $linkKey)
-        );
-        if ( ! is_array($row) ) {
-            return '';
-        }
-        return GradeUtil::dueDateInputValue($row['end_datetime'] ?? null);
     }
 
     /**

@@ -700,6 +700,7 @@ class Lessons extends Tool {
         $deploymentId = (int) U::get($_POST, 'tool_deployment_id', 0);
         $messageId = (int) U::get($_POST, 'message_id', 0);
         $title = trim((string) U::get($_POST, 'title', ''));
+        $resourceLinkId = trim((string) U::get($_POST, 'resource_link_id', ''));
         $context_id = ReqScope::currentContextId();
         if ( $deploymentId < 1 || $context_id < 1 ) {
             return new Response(json_encode(['success' => false, 'error' => 'Pick a deployment from this course.']), 400, ['Content-Type' => 'application/json']);
@@ -709,9 +710,9 @@ class Lessons extends Tool {
                 $launchUrl = LtiLessonPlacement::installTarget($context_id, $deploymentId, $messageId);
                 $title = LtiLessonPlacement::installName($context_id, $deploymentId, $messageId);
                 LtiContentService::refuseDroppedPost($launchUrl);
-                $content = LtiContentService::placeAt($context_id, $deploymentId, $title, $launchUrl);
+                $content = LtiContentService::placeAt($context_id, $deploymentId, $title, $launchUrl, $resourceLinkId);
             } else {
-                $content = LtiContentService::place($context_id, $deploymentId, $title);
+                $content = LtiContentService::place($context_id, $deploymentId, $title, $resourceLinkId);
             }
         } catch ( \InvalidArgumentException $ex ) {
             return new Response(json_encode(['success' => false, 'error' => $ex->getMessage()]), 400, ['Content-Type' => 'application/json']);
@@ -753,6 +754,7 @@ class Lessons extends Tool {
         $deploymentId = (int) U::get($_POST, 'tool_deployment_id', 0);
         $title = trim((string) U::get($_POST, 'title', ''));
         $jwt = trim((string) U::get($_POST, 'jwt', ''));
+        $resourceLinkId = trim((string) U::get($_POST, 'resource_link_id', ''));
         $context_id = ReqScope::currentContextId();
         if ( $deploymentId < 1 || $context_id < 1 || $jwt === '' ) {
             return new Response(json_encode(['success' => false, 'error' => 'That deep link return is not for this course.']), 400, ['Content-Type' => 'application/json']);
@@ -774,7 +776,7 @@ class Lessons extends Tool {
                 $title = $picked['title'];
             }
             LtiContentService::refuseDroppedPost($picked['url']);
-            $content = LtiContentService::placeAt($context_id, $deploymentId, $title, $picked['url']);
+            $content = LtiContentService::placeAt($context_id, $deploymentId, $title, $picked['url'], $resourceLinkId);
         } catch ( \InvalidArgumentException $ex ) {
             return new Response(json_encode(['success' => false, 'error' => $ex->getMessage()]), 400, ['Content-Type' => 'application/json']);
         }
