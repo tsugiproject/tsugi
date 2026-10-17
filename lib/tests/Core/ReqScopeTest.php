@@ -408,6 +408,11 @@ class ReqScopeTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('quiz1_k0123456789abcdef', Quiz1Repository::cartridgeIdentifierForLinkKey('quiz1_k0123456789abcdef'));
         $this->assertSame('Q1_ca934192ea441d46', Quiz1Repository::linkKeyFromCartridgeIdentifier('Q1_ca934192ea441d46'));
         $this->assertSame('Q1_ca934192ea441d46', Quiz1Repository::linkKeyFromCartridgeIdentifier('Q1_ca934192ea441d46_R'));
+        $suffix = 'quiz1_custom_R';
+        $suffixId = Quiz1Repository::cartridgeIdentifierForLinkKey($suffix);
+        $this->assertSame('rlhex_'.bin2hex($suffix), $suffixId);
+        $this->assertSame($suffix, Quiz1Repository::linkKeyFromCartridgeIdentifier($suffixId));
+        $this->assertSame($suffix, Quiz1Repository::linkKeyFromCartridgeIdentifier($suffixId.'_R'));
     }
 
     public function testAdoptedQuizLinkKeyStaysPutForALaterCourse() {

@@ -503,8 +503,9 @@ class Quiz1Repository {
     /**
      * Cartridge item identifier for this resource link id.
      * ":" is written as _colon_ because an XML identifier cannot contain ":".
-     * A key that already contains the letters _colon_ is stored as rlhex_ plus
-     * hex, so import does not turn that text into a colon.
+     * A key that already contains the letters _colon_, or that ends in _R, is
+     * stored as rlhex_ plus hex. Import would otherwise turn _colon_ into ":"
+     * or drop a trailing _R that belongs to the id.
      * Other underscores stay underscores. A key that is already a safe identifier,
      * such as quiz1_k… or Q1_ca934192ea441d46, is kept.
      *
@@ -527,13 +528,13 @@ class Quiz1Repository {
     }
 
     /**
-     * A key that contains _colon_, or that already looks like an rlhex_ encoding,
-     * is stored as hex so the two forms cannot import as each other.
+     * A key that contains _colon_, ends in _R, or already looks like an rlhex_
+     * encoding is stored as hex so those forms cannot import as each other.
      *
      * @param string $linkKey
      */
     private static function needsHexCartridgeId($linkKey) {
-        if ( str_contains($linkKey, '_colon_') ) {
+        if ( str_contains($linkKey, '_colon_') || str_ends_with($linkKey, '_R') ) {
             return true;
         }
         if ( ! str_starts_with($linkKey, 'rlhex_') ) {
