@@ -466,8 +466,7 @@ array( "{$CFG->dbprefix}lti_link",
     published           TINYINT(1) NOT NULL DEFAULT 1,
     -- Hidden from students. Independent of published. Existing links stay visible.
     hidden              TINYINT(1) NOT NULL DEFAULT 0,
-    -- LTI 1.1 outcome. Set when a launch stores service_id and a sourcedid.
-    -- Existing rows stay 0 until that launch. Old results are not scanned.
+    -- Set when an LTI 1.1 launch stores service_id and a sourcedid in an associated lti_result.
     upward              TINYINT(1) NOT NULL DEFAULT 0,
     -- AGS gradesReleased. NULL means the tool has not said.
     grades_released     TINYINT(1) NULL,
