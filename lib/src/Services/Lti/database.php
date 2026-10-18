@@ -464,6 +464,9 @@ array( "{$CFG->dbprefix}lti_link",
     published           TINYINT(1) NOT NULL DEFAULT 1,
     -- Hidden from students. Independent of published. Existing links stay visible.
     hidden              TINYINT(1) NOT NULL DEFAULT 0,
+    -- LTI 1.1 outcome. Set when a launch stores service_id and a sourcedid.
+    -- Existing rows stay 0 until that launch. Old results are not scanned.
+    upward              TINYINT(1) NOT NULL DEFAULT 0,
     -- AGS gradesReleased. NULL means the tool has not said.
     grades_released     TINYINT(1) NULL,
 
@@ -1522,6 +1525,10 @@ $DATABASE_UPGRADE = function($oldversion) {
         // The foreign key is added below, after lti_category exists.
         array('lti_link', 'category_id', 'INTEGER NULL'),
 
+        // 2026-10-18 LTI 1.1 outcome flag. Existing links stay 0 until a launch
+        // stores service_id and a sourcedid. Old results are not scanned.
+        array('lti_link', 'upward', 'TINYINT(1) NOT NULL DEFAULT 0'),
+
         // 2026-10-13 Extra credit is outside the 100. Existing categories stay regular.
         array('lti_category', 'extra_credit', 'TINYINT(1) NOT NULL DEFAULT 0'),
 
@@ -2369,7 +2376,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610130002;
+    return 202610180001;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

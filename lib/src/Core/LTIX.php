@@ -1172,7 +1172,7 @@ class LTIX {
             c.lti13_context_groups_url AS lti13_context_groups_url,
             c.settings AS context_settings, c.manifest_id AS manifest_id,
             l.link_id, l.path AS link_path, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
-            l.lti13_lineitem AS lti13_lineitem, l.settings AS link_settings,
+            l.lti13_lineitem AS lti13_lineitem, l.upward AS upward, l.settings AS link_settings,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email, u.user_key AS user_key, u.image AS user_image,
             u.locale AS user_locale,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
@@ -1639,6 +1639,16 @@ class LTIX {
             $row['result_url'] = $post['result_url'];
             $actions[] = "=== Updated result id=".$row['result_id']." result_url=".$row['result_url'].
                 " sourcedid=".$row['sourcedid']." service_id=".$row['service_id'];
+            $sourcedid = $row['sourcedid'] === null ? '' : (string) $row['sourcedid'];
+            if ( (int) ($row['upward'] ?? 0) === 0
+                && (int) $row['link_id'] > 0 && (int) $row['service_id'] > 0 && $sourcedid !== '' ) {
+                $sql = "UPDATE {$p}lti_link
+                    SET upward = 1, updated_at = NOW()
+                    WHERE link_id = :link_id AND upward = 0";
+                $PDOX->queryDie($sql, array(':link_id' => $row['link_id']));
+                $row['upward'] = 1;
+                $actions[] = "=== Marked link id=".$row['link_id']." upward";
+            }
         }
 
         // Here we handle lti13_lineitem
