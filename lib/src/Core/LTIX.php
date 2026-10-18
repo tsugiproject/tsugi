@@ -1639,6 +1639,14 @@ class LTIX {
             $row['result_url'] = $post['result_url'];
             $actions[] = "=== Updated result id=".$row['result_id']." result_url=".$row['result_url'].
                 " sourcedid=".$row['sourcedid']." service_id=".$row['service_id'];
+            $sourcedid = $row['sourcedid'] === null ? '' : (string) $row['sourcedid'];
+            if ( (int) $row['link_id'] > 0 && (int) $row['service_id'] > 0 && $sourcedid !== '' ) {
+                $sql = "UPDATE {$p}lti_link
+                    SET upward = 1, updated_at = NOW()
+                    WHERE link_id = :link_id AND upward = 0";
+                $PDOX->queryDie($sql, array(':link_id' => $row['link_id']));
+                $actions[] = "=== Marked link id=".$row['link_id']." upward";
+            }
         }
 
         // Here we handle lti13_lineitem
