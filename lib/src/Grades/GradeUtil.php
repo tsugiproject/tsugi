@@ -248,6 +248,55 @@ class GradeUtil {
     }
 
     /**
+     * Calendar day for a date input. Empty when the link has no due date.
+     *
+     * @param mixed $mysql
+     */
+    public static function dueDateInputValue($mysql) {
+        if ( $mysql === null || $mysql === '' ) {
+            return '';
+        }
+        if ( preg_match('/^(\d{4}-\d{2}-\d{2})/', (string) $mysql, $m) ) {
+            return $m[1];
+        }
+        return '';
+    }
+
+    /**
+     * Parse a due date from the UI (calendar day only). Stored as 11:59:59 PM that day.
+     * An empty value clears the due date. Any other value that is not a real YYYY-MM-DD day is invalid.
+     *
+     * @param mixed $s
+     * @return string|null MySQL datetime, or null when the field is empty
+     */
+    public static function parseDueDateEndOfDay($s) {
+        $s = trim((string) $s);
+        if ( $s === '' ) {
+            return null;
+        }
+        $day = self::dueDay($s);
+        if ( $day === null ) {
+            return null;
+        }
+        return $day . ' 23:59:59';
+    }
+
+    /**
+     * A real calendar day as YYYY-MM-DD, or null.
+     *
+     * @param mixed $value
+     * @return string|null
+     */
+    public static function dueDay($value) {
+        $s = trim((string) $value);
+        if ( preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $s, $m)
+                && checkdate((int) $m[2], (int) $m[3], (int) $m[1]) ) {
+            return $s;
+        }
+        return null;
+    }
+
+    /**
      * Due/start times from lti_link for a context, keyed by link_key (resource link id).
      * Cached via {@see Cache::setContext} for {@see self::DUE_DATES_CACHE_TTL} seconds.
      *

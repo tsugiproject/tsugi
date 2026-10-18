@@ -39,6 +39,24 @@ class LessonsNormalizeTest extends \PHPUnit\Framework\TestCase
         )));
     }
 
+    public function testDueDayMustBeARealCalendarDate() {
+        $kept = LessonsNormalize::normalizeItem(array(
+            'type' => 'lti',
+            'title' => 'Tool',
+            'resource_link_id' => 'tool-1',
+            'due' => '2026-02-28',
+        ));
+        $this->assertSame('2026-02-28', $kept['due']);
+
+        $dropped = LessonsNormalize::normalizeItem(array(
+            'type' => 'lti',
+            'title' => 'Tool',
+            'resource_link_id' => 'tool-1',
+            'due' => '2026-02-31',
+        ));
+        $this->assertArrayNotHasKey('due', $dropped);
+    }
+
     public function testCanAuthorCurrentIsFalseWithoutManifestSession() {
         $prev = isset($_SESSION) && is_array($_SESSION) ? $_SESSION : array();
         $_SESSION = array();

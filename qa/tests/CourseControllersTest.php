@@ -15,6 +15,8 @@ use Facebook\WebDriver\WebDriverBy;
  * Another opens home, the catalog, tool analytics, import, and the map guard,
  * then marks an announcement read.
  * Another confirms an HTML file before opening it, then scores the sample quiz.
+ * Another walks the grade book: tabs, a category and overall, publish and hide,
+ * a due date, and the points and row menu for a lesson quiz.
  * Another creates a folder, deletes a file, edits an announcement, and restores a page.
  * Another lists the course in the catalog so a student can join and see learner screens.
  */
@@ -50,6 +52,28 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->authorLessonQuizLink($client, $home);
         $this->takeQuizFromLessons($client, $home);
         $this->captureScreenshot($client, 'quiz-from-lessons');
+    }
+
+    public function testInstructorUsesGradeBook(): void
+    {
+        $client = $this->pantherClient();
+        $course = $this->startInstructorCourse($client);
+        $home = $course['home'];
+
+        $this->seeEmptyGradeBook($client, $home, $course['title']);
+        $this->addGradeCategory($client, $home);
+        $this->createAndPublishSampleQuiz($client, $home);
+        $this->authorLessonQuizLink($client, $home);
+        $this->seePublishedQuizOnOutline($client, $home);
+        $this->unpublishAndRepublishQuiz($client, $home);
+        $due = $this->saveQuizDueDate($client, $home);
+        $this->scoreQuizFromOutline($client, $home);
+        $this->seeQuizGrade($client, $home, $due);
+        $this->putQuizInCategory($client, $home);
+        $this->seeCategoryOverall($client, $home);
+        $this->seeActivityDetail($client, $home);
+        $this->hideAndShowQuizGrade($client, $home);
+        $this->captureScreenshot($client, 'grade-book');
     }
 
     public function testInstructorSetsDueDateAndOpensMoreTools(): void
@@ -158,7 +182,14 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->get($home.'/grades');
         $this->waitForPageText($client, 'Grade Book');
         $this->waitForPageText($client, 'student01@notgoogle.com');
-        $this->assertStringNotContainsString('View Class Grades', $client->getPageSource());
+        $page = $client->getPageSource();
+        foreach (['Manage grade book', 'Manage due dates', 'Student Progress', 'All Students', 'Configuration', 'Resend grades'] as $instructorOnly) {
+            $this->assertStringNotContainsString($instructorOnly, $page, 'A learner should not see '.$instructorOnly);
+        }
+        foreach (['/grades/class', '/grades/configuration', '/grades/manage', '/grades/student-progress', '/grades/manage-due-dates', '/grades/resend'] as $path) {
+            $driver->get($home.$path);
+            $this->waitForPageText($client, 'You must be an administrator or instructor for this context');
+        }
 
         $driver->get($home.'/settings');
         $this->waitForPageText($client, 'You must be an administrator or instructor for this context');
@@ -254,7 +285,7 @@ final class CourseControllersTest extends TsugiPantherTestCase
     {
         $client->getWebDriver()->get($courseHome.'/assignments');
         $this->waitForPageText($client, $courseTitle);
-        $this->waitForPageText($client, 'Manage due dates');
+        $this->waitForPageText($client, 'Manage grade book');
     }
 
     private function openCalendar(\Symfony\Component\Panther\Client $client, string $courseHome): void
@@ -450,9 +481,9 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->get($courseHome.'/grades/class');
         $this->waitForPageText($client, 'Grade Book');
         $this->waitForPageText($client, 'Class: '.$courseTitle);
-        $this->waitForPageText($client, 'View My Grades');
+        $this->waitForPageText($client, 'All Students');
 
-        $driver->get($courseHome.'/assignments/student-progress');
+        $driver->get($courseHome.'/grades/student-progress');
         $this->waitForPageText($client, 'Student Progress');
 
         $driver->get($courseHome.'/settings/export');
@@ -517,8 +548,8 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->executeScript('saveChanges()');
         $this->acceptAlertContaining($driver, 'saved');
 
-        $driver->get($courseHome.'/assignments/manage-due-dates');
-        $this->waitForPageText($client, 'Manage due dates');
+        $driver->get($courseHome.'/grades/manage-due-dates');
+        $this->waitForPageText($client, 'Manage grade book');
         $this->waitForPageText($client, $itemTitle);
 
         $dueDate = date('Y-m-d');
@@ -606,9 +637,242 @@ final class CourseControllersTest extends TsugiPantherTestCase
             return true;'
         );
         $this->assertTrue($opened, 'Published quiz did not offer a Take link.');
+        $this->submitAnsweredSampleQuiz($client);
+
+        $driver->get($courseHome.'/grades');
+        $this->waitForPageText($client, 'QTI Export Test');
+        // Six points out of eleven, stored as a fraction with no maximum.
+        $this->waitForPageText($client, '0.5455/1');
+    }
+
+    private function seeEmptyGradeBook(\Symfony\Component\Panther\Client $client, string $courseHome, string $courseTitle): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/grades');
+        $this->waitForPageText($client, 'Grade Book');
+        $this->waitForPageText($client, 'Class: '.$courseTitle);
+        $this->waitForPageText($client, 'Course Outline');
+        $this->waitForPageText($client, 'Manage grade book');
+        $this->waitForPageText($client, 'Student Progress');
+        $this->waitForPageText($client, 'All Students');
+        $page = $client->getPageSource();
+        $this->assertStringNotContainsString('>Configuration<', $page);
+        $this->assertStringNotContainsString('id="resend-tab"', $page, 'Resend stays hidden when no grade is sent upward.');
+        $this->assertStringNotContainsString('id="analytics-tab"', $page, 'Analytics stays hidden on a course login.');
+
+        $driver->get($courseHome.'/grades/outline');
+        $this->waitForPageText($client, 'No modules with active links.');
+        $this->assertStringContainsString('/grades/outline', $driver->getCurrentURL());
+
+        $driver->get($courseHome.'/grades/student-progress');
+        $this->waitForPageText($client, 'Student Progress');
+        $this->waitForPageText($client, 'Instructor view of enrollment');
+
+        $driver->get($courseHome.'/grades/class');
+        $this->waitForPageText($client, 'All Students');
+        $this->assertStringNotContainsString('Activity Detail', $client->getPageSource());
+
+        $driver->get($courseHome.'/grades/manage-due-dates');
+        $this->waitForPageText($client, 'No line items or gradable quizzes yet.');
+        $this->assertStringNotContainsString('Add missing link rows', $client->getPageSource());
+
+        $driver->get($courseHome.'/grades/configuration');
+        $this->waitForPageText($client, 'No categories yet.');
+    }
+
+    private function addGradeCategory(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/grades/configuration');
+        $this->waitForPageText($client, 'Add category');
+        $driver->findElement(WebDriverBy::id('new-category-title'))->sendKeys('Panther Quizzes');
+        $driver->executeScript('document.getElementById("new-category-percent").value = "100";');
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Add category')]"))->click();
+        $this->waitForPageText($client, 'Category added.');
+        $this->waitForPageText($client, 'Panther Quizzes');
+        $this->waitForPageText($client, 'No line items or gradable quizzes yet.');
+
+        $driver->get($courseHome.'/grades');
+        $this->waitForPageText($client, 'Nothing to display.');
+    }
+
+    private function seePublishedQuizOnOutline(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/grades/outline');
+        $this->waitForPageText($client, 'Panther Quiz Module');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $this->assertQuizLaunchLink($client, true);
+
+        $driver->get($courseHome.'/grades');
+        $this->waitForPageText($client, 'Nothing to display.');
+    }
+
+    private function unpublishAndRepublishQuiz(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/grades/manage-due-dates');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $this->waitForPageText($client, 'Publish, unpublish, and hide are the same controls as the grade book.');
+        $this->assertStringNotContainsString('Add missing link rows', $client->getPageSource());
+        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Published. Click to unpublish."]'))->click();
+        $this->waitForPageText($client, 'Unpublished.');
+
+        $driver->get($courseHome.'/grades/outline');
+        $this->waitForPageText($client, 'No modules with active links.');
+        $this->assertQuizLaunchLink($client, false);
+
+        $driver->get($courseHome.'/grades/manage-due-dates');
+        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Unpublished. Click to publish."]'))->click();
+        $this->waitForPageText($client, 'Published.');
+        $this->seePublishedQuizOnOutline($client, $courseHome);
+    }
+
+    private function saveQuizDueDate(\Symfony\Component\Panther\Client $client, string $courseHome): string
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/grades/manage-due-dates');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $dueDate = date('Y-m-d');
+        $set = (bool) $driver->executeScript(
+            'var input = document.querySelector("input[name=\\"end[]\\"]");
+             if (!input) { return false; }
+             input.value = arguments[0];
+             return true;',
+            [$dueDate]
+        );
+        $this->assertTrue($set, 'The quiz had no due-date field.');
+        $driver->findElement(WebDriverBy::xpath("//button[contains(., 'Save due dates')]"))->click();
+        $this->waitForPageText($client, 'Saved due dates.');
+        $kept = (bool) $driver->executeScript(
+            'var input = document.querySelector("input[name=\\"end[]\\"]");
+             return !!(input && input.value === arguments[0]);',
+            [$dueDate]
+        );
+        $this->assertTrue($kept, 'The due date did not stay on the quiz.');
+
+        return $dueDate;
+    }
+
+    private function scoreQuizFromOutline(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/grades/outline');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $opened = (bool) $driver->executeScript(
+            'var a = Array.from(document.querySelectorAll("a")).find(function (el) {
+                var text = (el.textContent || "").replace(/\\s+/g, " ").trim();
+                return text === "QTI Export Test" && /\\/link\\/\\d+/.test(el.getAttribute("href") || "");
+            });
+            if (!a) { return false; }
+            window.location.href = a.href;
+            return true;'
+        );
+        $this->assertTrue($opened, 'Outline quiz title was not a launch link.');
+        $this->submitAnsweredSampleQuiz($client);
+    }
+
+    private function seeQuizGrade(\Symfony\Component\Panther\Client $client, string $courseHome, string $dueDate): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/grades');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $this->waitForPageText($client, '0.5455/1');
+        $this->waitForPageText($client, $dueDate);
+        $this->waitForPageText($client, '55%');
+        $this->waitForPageText($client, 'Up next');
+        $page = $client->getPageSource();
+        $this->assertStringNotContainsString('Server status', $page);
+        $this->assertStringNotContainsString('id="resend-tab"', $page);
+        $this->assertStringNotContainsString('Overall, incomplete included', $page);
+    }
+
+    private function putQuizInCategory(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/grades/configuration');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $saved = (bool) $driver->executeScript(
+            'var row = Array.from(document.querySelectorAll("tr")).find(function (tr) {
+                return (tr.innerText || "").indexOf("QTI Export Test") !== -1;
+            });
+            if (!row) { return false; }
+            var sel = row.querySelector("select[name=\\"category_id\\"]");
+            if (!sel) { return false; }
+            var opt = Array.from(sel.options).find(function (o) {
+                return (o.textContent || "").indexOf("Panther Quizzes") !== -1;
+            });
+            if (!opt) { return false; }
+            sel.value = opt.value;
+            var button = row.querySelector("button[value=\\"category\\"]");
+            if (!button) { return false; }
+            button.click();
+            return true;'
+        );
+        $this->assertTrue($saved, 'Manage grade book did not list the quiz.');
+        $this->waitForPageText($client, 'Grade category saved.');
+    }
+
+    private function seeCategoryOverall(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $client->getWebDriver()->get($courseHome.'/grades');
+        $this->waitForPageText($client, 'Panther Quizzes');
+        $this->waitForPageText($client, 'Overall, incomplete included');
+        $this->waitForPageText($client, '54.5%');
+        $this->waitForPageText($client, 'zero after due date');
+        $this->assertStringNotContainsString('Overall, zero after due date', $client->getPageSource());
+    }
+
+    private function seeActivityDetail(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $client->getWebDriver()->get($courseHome.'/grades/class');
+        $this->waitForPageText($client, 'Activity Detail');
+        $this->waitForPageText($client, 'QTI Export Test');
+    }
+
+    private function hideAndShowQuizGrade(\Symfony\Component\Panther\Client $client, string $courseHome): void
+    {
+        $driver = $client->getWebDriver();
+        $driver->get($courseHome.'/grades');
+        $this->waitForPageText($client, '0.5455/1');
+        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Shown in the grade book. Click to hide."]'))->click();
+        $this->waitForPageText($client, 'Hidden from the grade book.');
+        $this->waitForPageText($client, 'Nothing to display.');
+
+        $driver->get($courseHome.'/grades/manage-due-dates');
+        $this->waitForPageText($client, 'QTI Export Test');
+        $driver->findElement(WebDriverBy::cssSelector('button[aria-label="Hidden. Click to show in the grade book."]'))->click();
+        $this->waitForPageText($client, 'Shown in the grade book.');
+
+        $driver->get($courseHome.'/grades');
+        $this->waitForPageText($client, '0.5455/1');
+        $this->assertStringNotContainsString('id="resend-tab"', $client->getPageSource());
+    }
+
+    private function assertQuizLaunchLink(\Symfony\Component\Panther\Client $client, bool $present): void
+    {
+        $found = (bool) $client->getWebDriver()->executeScript(
+            'var a = Array.from(document.querySelectorAll("a")).find(function (el) {
+                var text = (el.textContent || "").replace(/\\s+/g, " ").trim();
+                if (text !== "QTI Export Test") { return false; }
+                if (!/\\/link\\/\\d+/.test(el.getAttribute("href") || "")) { return false; }
+                if ((el.getAttribute("target") || "") === "_blank") { return false; }
+                return true;
+            });
+            return !!a;'
+        );
+        if ($present) {
+            $this->assertTrue($found, 'Outline did not link the published quiz in this window.');
+            return;
+        }
+        $this->assertFalse($found, 'Outline still linked the unpublished quiz.');
+    }
+
+    private function submitAnsweredSampleQuiz(\Symfony\Component\Panther\Client $client): void
+    {
+        $driver = $client->getWebDriver();
         $this->waitForPageText($client, 'Submit quiz');
         $this->assertStringNotContainsString('This preview does not record a grade.', $client->getPageSource());
-
         $driver->executeScript(
             'function block(needle) {
                 return Array.from(document.querySelectorAll(".quiz1-q")).find(function (b) {
@@ -645,10 +909,6 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->waitForPageText($client, '<strong>6</strong>');
         $this->waitForPageText($client, 'pending manual grading');
         $this->waitForPageText($client, '>Correct<');
-
-        $driver->get($courseHome.'/grades');
-        $this->waitForPageText($client, 'QTI Export Test');
-        $this->waitForPageText($client, '54.5');
     }
 
     private function openHomeCatalogAnalyticsImportAndMap(\Symfony\Component\Panther\Client $client, string $courseHome, string $courseTitle): void
@@ -666,7 +926,9 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->waitForPageText($client, 'Analytics: Files');
 
         $driver->get($courseHome.'/grades/analytics');
-        $this->waitForPageText($client, 'Analytics: Grade Book');
+        $this->waitForPageText($client, 'Grade Book');
+        $this->assertStringNotContainsString('/grades/analytics', $driver->getCurrentURL());
+        $this->assertStringNotContainsString('Analytics: Grade Book', $client->getPageSource());
 
         $driver->get($courseHome.'/announcements/analytics');
         $this->waitForPageText($client, 'Analytics: Announcements');

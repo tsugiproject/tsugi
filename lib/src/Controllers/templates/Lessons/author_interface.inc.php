@@ -834,6 +834,8 @@ var ltiToolsUrl = <?= json_encode($lti_tools_url ?? '') ?>;
 var ltiTools = <?= json_encode($lti_tools ?? array()) ?>;
 var courseResourceLinkIds = <?= json_encode($course_resource_link_ids ?? array()) ?>;
 var courseLinkPublished = <?= json_encode($course_link_published ?? array(), JSON_FORCE_OBJECT) ?>;
+var courseLinkDue = <?= json_encode($course_link_due ?? array(), JSON_FORCE_OBJECT) ?>;
+var courseCanPublish = <?= ! empty($course_can_publish) ? 'true' : 'false' ?>;
 var ltiContentById = <?= json_encode($lti_content_rows ?? array(), JSON_FORCE_OBJECT) ?>;
 var currentPageId = null;
 <?php \Tsugi\UI\CKEditor::renderLinkPickerScript(); ?>
@@ -1182,6 +1184,125 @@ function pageItemHref(logicalKey) {
     return <?= json_encode(\Tsugi\Controllers\Pages::ROUTE) ?> + '/' + encodeURIComponent(logicalKey);
 }
 
+function dueValueForEditor(item, linkDue, published) {
+    const itemDue = item && typeof item.due === 'string' ? item.due : '';
+    const link = typeof linkDue === 'string' ? linkDue : '';
+    if (published && link) {
+        return link;
+    }
+    if (itemDue) {
+        return itemDue;
+    }
+    return link;
+}
+
+function dueDateFieldHtml(due, payload) {
+    const encoded = escapeHtml(JSON.stringify(payload || {}));
+    return `
+            <div class="form-group">
+                <label>Due date:</label>
+                <input type="date" class="form-control" id="edit-due-date" value="${escapeHtml(due || '')}" data-due="${encoded}" onchange="saveDueDate()">
+                <p class="help-block">11:59 PM on that day. Until this is published, the date is stored on the lesson. After it is published, changing it here also updates the link.</p>
+            </div>
+    `;
+}
+
+function applyDueValue(target, due) {
+    if (!target || typeof target !== 'object') {
+        return;
+    }
+    const value = /^\d{4}-\d{2}-\d{2}$/.test(due || '') ? due : '';
+    if (value) {
+        target.due = value;
+    } else {
+        delete target.due;
+    }
+}
+
+function rememberItemDue(due) {
+    applyDueValue(draftItem, due);
+}
+
+function storeOpenedItemDue(due) {
+    if (editingItemIndex === null || !lessonsData.modules || !lessonsData.modules[editingModuleIndex]) {
+        return;
+    }
+    const stored = lessonsData.modules[editingModuleIndex].items[editingItemIndex];
+    applyDueValue(stored, due);
+}
+
+function applyDueFromForm(item) {
+    const el = document.getElementById('edit-due-date');
+    if (!el || !item) {
+        return;
+    }
+    if (item.type !== 'lti' && item.type !== 'quiz') {
+        delete item.due;
+        return;
+    }
+    const due = (el.value || '').trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(due)) {
+        item.due = due;
+    } else {
+        delete item.due;
+    }
+}
+
+function saveDueDate() {
+    const el = document.getElementById('edit-due-date');
+    if (!el) {
+        return;
+    }
+    let payload = {};
+    try {
+        payload = JSON.parse(el.getAttribute('data-due') || '{}');
+    } catch (e) {
+        return;
+    }
+    const due = (el.value || '').trim();
+    if (due && !/^\d{4}-\d{2}-\d{2}$/.test(due)) {
+        alert('Enter a due date as YYYY-MM-DD.');
+        return;
+    }
+    rememberItemDue(due);
+    if (!payload.published) {
+        return;
+    }
+    payload.action = 'set-due';
+    payload.due = due;
+    $.ajax({
+        url: window.location.pathname,
+        method: 'POST',
+        headers: tsugiCsrfHeaders(),
+        data: payload,
+        success: function(response) {
+            const result = typeof response === 'string' ? JSON.parse(response) : response;
+            if (!result.success) {
+                alert(result.error || 'Could not save that due date.');
+                return;
+            }
+            const due = result.due || '';
+            rememberItemDue(due);
+            storeOpenedItemDue(due);
+            if (payload.content_id && ltiContentById[String(payload.content_id)]) {
+                ltiContentById[String(payload.content_id)].due = due;
+            }
+            if (payload.quiz_id) {
+                const quiz = quiz1ById(payload.quiz_id);
+                if (quiz) {
+                    quiz.due = due;
+                }
+            }
+            if (payload.resource_link_id) {
+                courseLinkDue[String(payload.resource_link_id)] = due;
+            }
+        },
+        error: function() {
+            alert('Could not save that due date.');
+        }
+    });
+}
+
 function quizPickerFieldsHtml(item) {
     const selected = parseInt(item.quiz_id, 10) || 0;
     const found = quiz1ById(selected);
@@ -1223,6 +1344,10 @@ function quizPickerFieldsHtml(item) {
                 <input type="text" id="edit-title" value="${escapeHtml(item.title || '')}" placeholder="Defaults to the quiz title">
             </div>
             ${picker}
+            ${dueDateFieldHtml(
+                dueValueForEditor(item, found && found.link_id ? (found.due || '') : '', !!(found && found.published)),
+                {quiz_id: found && found.link_id ? selected : 0, published: (found && found.published) ? 1 : 0}
+            )}
     `;
 }
 
@@ -1331,6 +1456,9 @@ function ltiContentIsPublished(contentId) {
 function publishButtonHtml(item) {
     let kind = itemEditorKind(item);
     if (kind !== 'lti' && kind !== 'quiz') {
+        return '';
+    }
+    if (!courseCanPublish && kind !== 'quiz') {
         return '';
     }
     let id = kind === 'quiz'
@@ -1551,6 +1679,10 @@ function ltiContentFieldsHtml(item) {
                     <label><input type="radio" name="edit-lti-open" value="inline" ${target === 'inline' ? 'checked' : ''} ${disabled} onchange="patchLtiContent()"> Embedded inline</label>
                 </div>
             </div>
+            ${dueDateFieldHtml(
+                dueValueForEditor(item, row && row.link_id ? (row.due || '') : '', !!(row && row.published)),
+                {content_id: row && row.link_id ? row.id : 0, published: (row && row.published && row.link_id) ? 1 : 0}
+            )}
             ${ready ? `<p class="help-block">Resource link: ${escapeHtml(row.resource_link_id || '')}</p>` : '<p class="help-block">Pick a deployment to enable launching.</p>'}
     `;
 }
@@ -1612,6 +1744,10 @@ function ltiPickerFieldsHtml(item) {
     const emailDisabled = found && !found.send_email ? 'disabled' : '';
     const gradeDisabled = gradeAllowed ? '' : 'disabled';
     const gradeNote = gradeAllowed ? '' : '<p class="help-block">This deployment is not allowed to return grades.</p>';
+    const dueRlid = String(item.resource_link_id || '').trim();
+    const dueHasLink = !!(dueRlid && courseLinkDue && Object.prototype.hasOwnProperty.call(courseLinkDue, dueRlid));
+    const duePublished = !!(dueHasLink && courseLinkPublished && courseLinkPublished[dueRlid]);
+    const dueShown = dueValueForEditor(item, dueHasLink ? (courseLinkDue[dueRlid] || '') : '', duePublished);
     return `
             <div class="form-group">
                 <label>Title:</label>
@@ -1653,6 +1789,7 @@ function ltiPickerFieldsHtml(item) {
                     <label><input type="radio" name="edit-lti-open" value="iframe" ${openChoice === 'iframe' ? 'checked' : ''}> Embedded inline</label>
                 </div>
             </div>
+            ${dueDateFieldHtml(dueShown, {resource_link_id: duePublished ? dueRlid : '', published: duePublished ? 1 : 0})}
     `;
 }
 
@@ -1723,6 +1860,15 @@ function ltiPlaceError(xhr, fallback) {
     return fallback;
 }
 
+function editorResourceLinkId() {
+    const field = document.getElementById('edit-resource-link-id');
+    if (field && field.value.trim()) {
+        return field.value.trim();
+    }
+    const item = typeof currentEditorItem === 'function' ? currentEditorItem() : null;
+    return item && item.resource_link_id ? String(item.resource_link_id).trim() : '';
+}
+
 function placeLtiContent(done, messageId) {
     const id = parseInt($('#edit-lti-tool').val(), 10) || 0;
     if (!id) {
@@ -1737,7 +1883,8 @@ function placeLtiContent(done, messageId) {
             action: 'place-lti',
             tool_deployment_id: id,
             message_id: messageId || '',
-            title: titleEl ? titleEl.value.trim() : ''
+            title: titleEl ? titleEl.value.trim() : '',
+            resource_link_id: editorResourceLinkId()
         },
         success: function(response) {
             const result = typeof response === 'string' ? JSON.parse(response) : response;
@@ -2078,7 +2225,8 @@ function placeDeepLinkReturn(itemIndex) {
         action: 'place-deep-link',
         tool_deployment_id: state.tool.id,
         jwt: state.jwt,
-        title: titleEl ? titleEl.value.trim() : ''
+        title: titleEl ? titleEl.value.trim() : '',
+        resource_link_id: editorResourceLinkId()
     };
     if (itemIndex !== undefined && itemIndex !== null && itemIndex !== '') {
         data.item = String(itemIndex);
@@ -2145,12 +2293,23 @@ function ltiClaimsVisible() {
 }
 
 function onQuizPicked() {
-    const id = parseInt($('#edit-quiz-id').val(), 10);
-    const q = (quiz1Quizzes || []).find(function(x) { return x.id === id; });
+    const id = parseInt($('#edit-quiz-id').val(), 10) || 0;
+    const q = quiz1ById(id);
     const titleEl = document.getElementById('edit-title');
     if (q && titleEl && !titleEl.value.trim()) {
         titleEl.value = q.title;
     }
+    const dueEl = document.getElementById('edit-due-date');
+    if (!dueEl) {
+        return;
+    }
+    const published = !!(q && q.published);
+    const linkDue = (q && q.link_id && typeof q.due === 'string') ? q.due : '';
+    dueEl.value = dueValueForEditor(currentEditorItem(), linkDue, published);
+    dueEl.setAttribute('data-due', JSON.stringify({
+        quiz_id: (q && q.link_id) ? id : 0,
+        published: published ? 1 : 0
+    }));
 }
 
 function pagePickerFieldsHtml(item) {
@@ -3764,7 +3923,8 @@ function saveItem() {
     if ($('#edit-item-icon').length) {
         applyPickedIcon(item, '#edit-item-icon');
     }
-    
+    applyDueFromForm(item);
+
     if (editingItemIndex !== null) {
         lessonsData.modules[editingModuleIndex].items[editingItemIndex] = item;
     } else {

@@ -4,11 +4,13 @@ require_once "src/Core/I18N.php";
 require_once "include/setup_i18n.php";
 require_once "src/Config/ConfigInfo.php";
 
+use Tsugi\Services\Cartridge\Fingerprint;
 use Tsugi\Services\Cartridge\Importer;
 use Tsugi\Services\Cartridge\Matcher;
 use Tsugi\Services\Cartridge\Package;
 use Tsugi\Services\Cartridge\Session;
 use Tsugi\Services\Lessons\LessonsCartridge;
+use Tsugi\Services\Quiz1\SampleQuiz1;
 
 class CartridgeLomDescriptionImportTest extends \PHPUnit\Framework\TestCase
 {
@@ -189,6 +191,194 @@ class CartridgeLomDescriptionImportTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testImportKeepsGradableWithoutADueDate() {
+        $l = (object) array(
+            'lessons' => (object) array(
+                'title' => 'Course',
+                'modules' => array(
+                    (object) array(
+                        'title' => 'Week 1',
+                        'anchor' => 'w1',
+                        'items' => array(
+                            (object) array(
+                                'type' => 'lti',
+                                'title' => 'Assignment: Draft',
+                                'launch' => 'https://example.com/draft',
+                                'resource_link_id' => 'draft-1',
+                                'due' => '2026-10-20',
+                                'result' => false,
+                            ),
+                            (object) array(
+                                'type' => 'lti',
+                                'title' => 'Assignment: Live',
+                                'launch' => 'https://example.com/live',
+                                'resource_link_id' => 'live-1',
+                                'due' => '2026-11-01',
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+        $path = $this->dir.'/due.imscc';
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($path, \ZipArchive::CREATE) === true);
+        LessonsCartridge::writeZip($l, $zip, array('tsugi_lms' => 'generic'));
+        $zip->close();
+
+        $pkg = Package::open($path);
+        try {
+            $this->assertNull($pkg->modules[0]['items'][0]['due']);
+            $this->assertFalse($pkg->modules[0]['items'][0]['gradable']);
+            $this->assertNull($pkg->modules[0]['items'][1]['due']);
+            $this->assertTrue($pkg->modules[0]['items'][1]['gradable']);
+
+            $actions = array();
+            $lessonsByRes = array();
+            foreach ( $pkg->importableResources() as $res ) {
+                $id = (string) ($res['identifier'] ?? '');
+                $kind = Fingerprint::localKind((string) ($res['type'] ?? ''), (string) ($res['href'] ?? ''));
+                $made = $this->materializeKind($pkg, $res, $kind);
+                $actions[$id] = Matcher::NEW;
+                $lessonsByRes[$id] = $made['lesson'];
+            }
+            $session = new Session(10, 3);
+            $ref = new \ReflectionMethod(Importer::class, 'buildLessonsModules');
+            $modules = $ref->invoke(null, $pkg, $session, $actions, $lessonsByRes);
+            $imported = array();
+            foreach ( $modules[0]['items'] as $item ) {
+                $imported[$item['title']] = $item;
+            }
+            $this->assertArrayNotHasKey('due', $imported['Assignment: Draft']);
+            $this->assertSame('draft-1', $imported['Assignment: Draft']['resource_link_id']);
+            $this->assertFalse($imported['Assignment: Draft']['result']);
+            $this->assertSame('lti', $imported['Assignment: Draft']['type']);
+            $this->assertArrayNotHasKey('due', $imported['Assignment: Live']);
+            $this->assertSame('live-1', $imported['Assignment: Live']['resource_link_id']);
+            $this->assertArrayNotHasKey('result', $imported['Assignment: Live']);
+        } finally {
+            $pkg->close();
+        }
+    }
+
+    public function testExportImportKeepsLtiResourceLinkId() {
+        $l = (object) array(
+            'lessons' => (object) array(
+                'title' => 'Course',
+                'modules' => array(
+                    (object) array(
+                        'title' => 'Installing Django',
+                        'anchor' => 'install',
+                        'items' => array(
+                            (object) array(
+                                'type' => 'lti',
+                                'title' => 'Auto-grader: Installing Django',
+                                'launch' => 'https://example.com/dj4e/install',
+                                'resource_link_id' => 'dj4e_install',
+                            ),
+                            (object) array(
+                                'type' => 'lti',
+                                'title' => 'Tool: Colon key',
+                                'launch' => 'https://example.com/tool',
+                                'resource_link_id' => 'py4e:install',
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+        $path = $this->dir.'/lti-rlid.imscc';
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($path, \ZipArchive::CREATE) === true);
+        LessonsCartridge::writeZip($l, $zip, array('tsugi_lms' => 'generic'));
+        $zip->close();
+
+        $pkg = Package::open($path);
+        try {
+            $byExportId = array();
+            foreach ( $pkg->modules[0]['items'] as $item ) {
+                $byExportId[(string) $item['identifier']] = $item;
+            }
+            $this->assertArrayHasKey('dj4e_install', $byExportId);
+            $this->assertArrayHasKey('py4e_colon_install', $byExportId);
+
+            $actions = array();
+            $lessonsByRes = array();
+            foreach ( $pkg->importableResources() as $res ) {
+                $id = (string) ($res['identifier'] ?? '');
+                $kind = Fingerprint::localKind((string) ($res['type'] ?? ''), (string) ($res['href'] ?? ''));
+                $made = $this->materializeKind($pkg, $res, $kind);
+                $actions[$id] = Matcher::NEW;
+                $lessonsByRes[$id] = $made['lesson'];
+            }
+            $session = new Session(11, 4);
+            $ref = new \ReflectionMethod(Importer::class, 'buildLessonsModules');
+            $modules = $ref->invoke(null, $pkg, $session, $actions, $lessonsByRes);
+            $imported = array();
+            foreach ( $modules[0]['items'] as $item ) {
+                $imported[$item['resource_link_id']] = $item;
+            }
+            $this->assertSame('lti', $imported['dj4e_install']['type']);
+            $this->assertSame('Auto-grader: Installing Django', $imported['dj4e_install']['title']);
+            $this->assertSame('lti', $imported['py4e:install']['type']);
+            $this->assertSame('Tool: Colon key', $imported['py4e:install']['title']);
+            $this->assertArrayNotHasKey('content_id', $imported['dj4e_install']);
+        } finally {
+            $pkg->close();
+        }
+    }
+
+    public function testImportReadsQuizResourceLinkIdFromLom() {
+        $l = (object) array(
+            'lessons' => (object) array(
+                'title' => 'Course',
+                'modules' => array(
+                    (object) array(
+                        'title' => 'Week 1',
+                        'anchor' => 'w1',
+                        'items' => array(
+                            (object) array(
+                                'type' => 'quiz',
+                                'title' => 'Week 1 Quiz',
+                                'quiz_id' => 7,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+        $path = $this->dir.'/quiz-rlid.imscc';
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($path, \ZipArchive::CREATE) === true);
+        LessonsCartridge::writeZip($l, $zip, array(
+            'tsugi_lms' => 'generic',
+            'load_quiz' => function ($id) {
+                $quiz = SampleQuiz1::build($id);
+                $quiz->link_key = 'quiz1_k0123456789abcdef';
+                return $quiz;
+            },
+        ));
+        $zip->close();
+
+        $pkg = Package::open($path);
+        try {
+            $this->assertSame('quiz1_k0123456789abcdef', $pkg->modules[0]['items'][0]['resource_link_id']);
+            $this->assertSame('quiz1_k0123456789abcdef', $pkg->modules[0]['items'][0]['identifier']);
+            $quizRes = null;
+            foreach ( $pkg->importableResources() as $res ) {
+                if ( (string) ($res['item_identifier'] ?? '') === 'quiz1_k0123456789abcdef' ) {
+                    $quizRes = $res;
+                    break;
+                }
+            }
+            $this->assertNotNull($quizRes);
+            $ref = new \ReflectionMethod(Importer::class, 'quizLinkKeyFromResource');
+            $this->assertSame('quiz1_k0123456789abcdef', $ref->invoke(null, $quizRes));
+        } finally {
+            $pkg->close();
+        }
+    }
+
     /**
      * @param string $title
      * @param string|null $description
@@ -249,7 +439,16 @@ class CartridgeLomDescriptionImportTest extends \PHPUnit\Framework\TestCase
      * @return array{local_kind:string,local_id:?int,local_key:?string,lesson:?array}
      */
     private function materializeWebLink(Package $pkg, array $res) {
+        return $this->materializeKind($pkg, $res, 'web_link');
+    }
+
+    /**
+     * @param array<string, mixed> $res
+     * @param string $kind
+     * @return array{local_kind:string,local_id:?int,local_key:?string,lesson:?array}
+     */
+    private function materializeKind(Package $pkg, array $res, $kind) {
         $ref = new \ReflectionMethod(Importer::class, 'materialize');
-        return $ref->invoke(null, $pkg, $res, 'web_link', 0, 0, array(), false);
+        return $ref->invoke(null, $pkg, $res, $kind, 0, 0, array(), false);
     }
 }

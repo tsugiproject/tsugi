@@ -26,6 +26,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_service",
 "drop table if exists {$CFG->dbprefix}lti_membership",
 "drop table if exists {$CFG->dbprefix}lti_link",
+"drop table if exists {$CFG->dbprefix}lti_category",
 "drop table if exists {$CFG->dbprefix}lti_link_activity",
 "drop table if exists {$CFG->dbprefix}lti_link_user_activity",
 "drop table if exists {$CFG->dbprefix}manifest",
@@ -383,6 +384,55 @@ array( "{$CFG->dbprefix}manifest",
     INDEX `{$CFG->dbprefix}manifest_indx_1` (context_id)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
+// One grade category in a course, like a Canvas assignment group.
+// A link is in at most one category. No row here means the link is
+// uncategorized, which is the default. There is no sentinel category.
+// grade_percent is an integer percent of the overall grade. Zero is a
+// real weight. Regular categories are the denominator and are meant to
+// total 100. extra_credit is outside that 100: its percent is added to
+// the numerator and left out of the denominator. The database does not
+// check that the regular percents sum to 100.
+// position is the grade book order. Lower numbers come first.
+// Delete is real. lti_link.category_id is ON DELETE SET NULL, so the
+// links stay and become uncategorized. A soft-delete flag would leave
+// that foreign key set, so this table has none.
+array( "{$CFG->dbprefix}lti_category",
+"create table {$CFG->dbprefix}lti_category (
+    category_id         INTEGER NOT NULL AUTO_INCREMENT,
+    context_id          INTEGER NOT NULL,
+
+    title               VARCHAR(255) NOT NULL,
+
+    -- Integer percent of the overall grade. Zero contributes nothing.
+    grade_percent       INTEGER NOT NULL DEFAULT 0,
+
+    -- Extra credit adds grade_percent to the numerator only.
+    -- Regular categories are the denominator.
+    extra_credit        TINYINT(1) NOT NULL DEFAULT 0,
+
+    -- Grade book order. Lower numbers come first.
+    position            INTEGER NOT NULL DEFAULT 0,
+
+    entity_version      INTEGER NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP NULL,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_category_const_pk` PRIMARY KEY (category_id),
+
+    -- One name per course. Two weights cannot share a title.
+    CONSTRAINT `{$CFG->dbprefix}lti_category_const_1` UNIQUE (context_id, title),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_category_chk_1` CHECK (
+        grade_percent >= 0 AND grade_percent <= 100
+    ),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_category_ibfk_1`
+        FOREIGN KEY (`context_id`)
+        REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
 // Gradebook column. Due dates, column publish, the line item, and the grade
 // stay here. Launch URL, open target, custom parameters, and send flags
 // are lti_content. Do not grow this table into launch config.
@@ -394,6 +444,11 @@ array( "{$CFG->dbprefix}lti_link",
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
 
     context_id          INTEGER NOT NULL,
+
+    -- Optional grade category in this same course. NULL is uncategorized.
+    -- Same-course is not a foreign key: ON DELETE SET NULL cannot also
+    -- name context_id, because that column is NOT NULL.
+    category_id         INTEGER NULL,
 
     path                TEXT NULL,
     lti13_lineitem      TEXT NULL,
@@ -407,6 +462,8 @@ array( "{$CFG->dbprefix}lti_link",
 
     -- Soft publish. Existing links default to published. Unpublish deletes nothing.
     published           TINYINT(1) NOT NULL DEFAULT 1,
+    -- Hidden from students. Independent of published. Existing links stay visible.
+    hidden              TINYINT(1) NOT NULL DEFAULT 0,
     -- AGS gradesReleased. NULL means the tool has not said.
     grades_released     TINYINT(1) NULL,
 
@@ -440,6 +497,12 @@ array( "{$CFG->dbprefix}lti_link",
         FOREIGN KEY (`context_id`)
         REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
         ON DELETE CASCADE ON UPDATE CASCADE,
+
+    -- Deleting the category leaves the link, with category_id cleared.
+    CONSTRAINT `{$CFG->dbprefix}lti_link_ibfk_2`
+        FOREIGN KEY (`category_id`)
+        REFERENCES `{$CFG->dbprefix}lti_category` (`category_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_1` UNIQUE(link_sha256, context_id),
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_pk` PRIMARY KEY (link_id)
@@ -940,7 +1003,9 @@ array( "{$CFG->dbprefix}lti_tool_deployment",
 //
 // link_id NULL is not a grade column. Non-null is gradable, and it is unique
 // so two launches cannot share one link. There is no separate gradable flag.
-// resource_link_id is born here. Creating the link copies it to lti_link.link_key.
+// resource_link_id lives here. A cartridge item keeps its id. A launch
+// with no id, or an id this course already uses, is given a new one.
+// Creating the link copies that id to lti_link.link_key.
 //
 // published starts unpublished. While link_id is null, this flag is the only
 // student-visibility flag. Marking the launch gradable copies it onto
@@ -1443,6 +1508,7 @@ $DATABASE_UPGRADE = function($oldversion) {
         // 2026-09-23 Gradebook workflow on the link. Existing rows stay published.
         // start_datetime / end_datetime are left alone; they are still the live due UI.
         array('lti_link', 'published', 'TINYINT(1) NOT NULL DEFAULT 1'),
+        array('lti_link', 'hidden', 'TINYINT(1) NOT NULL DEFAULT 0'),
         array('lti_link', 'grades_released', 'TINYINT(1) NULL'),
         array('lti_link', 'available_start_datetime', 'TIMESTAMP NULL'),
         array('lti_link', 'available_end_datetime', 'TIMESTAMP NULL'),
@@ -1451,6 +1517,16 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_link', 'due_datetime', 'TIMESTAMP NULL'),
         array('lti_link', 'ags_resource_id', 'VARCHAR(256) NULL'),
         array('lti_link', 'ags_tag', 'VARCHAR(256) NULL'),
+
+        // 2026-10-13 Optional grade category. NULL stays uncategorized.
+        // The foreign key is added below, after lti_category exists.
+        array('lti_link', 'category_id', 'INTEGER NULL'),
+
+        // 2026-10-13 Extra credit is outside the 100. Existing categories stay regular.
+        array('lti_category', 'extra_credit', 'TINYINT(1) NOT NULL DEFAULT 0'),
+
+        // 2026-10-13 Grade book category order. Lower numbers come first.
+        array('lti_category', 'position', 'INTEGER NOT NULL DEFAULT 0'),
 
         // 2026-09-23 Numerator and AGS submission.startedAt on the result.
         array('lti_result', 'score_given', 'DOUBLE NULL'),
@@ -2273,9 +2349,27 @@ $DATABASE_UPGRADE = function($oldversion) {
         }
     }
 
+    // lti_category is created from $DATABASE_INSTALL. Existing links gain
+    // a nullable category_id here, then the ON DELETE SET NULL key.
+    $category_table = "{$p}lti_category";
+    $link_table = "{$p}lti_link";
+    $link_category_fk = "{$p}lti_link_ibfk_2";
+    if ( $PDOX->metadata($category_table) !== false
+        && $PDOX->columnExists('category_id', $link_table)
+        && ! $constraint_exists($link_table, $link_category_fk) ) {
+        $sql = "ALTER TABLE {$link_table} ADD CONSTRAINT `{$link_category_fk}`
+            FOREIGN KEY (`category_id`)
+            REFERENCES `{$category_table}` (`category_id`)
+            ON DELETE SET NULL ON UPDATE CASCADE";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $q = $PDOX->queryReturnError($sql);
+        if ( ! $q->success ) die("Unable to add {$link_category_fk}: ".$q->errorImplode."<br/>\n");
+    }
+
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610010014;
+    return 202610130002;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

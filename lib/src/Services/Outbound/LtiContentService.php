@@ -3,6 +3,9 @@
 namespace Tsugi\Services\Outbound;
 
 use Tsugi\Core\LTIX;
+use Tsugi\Grades\GradeUtil;
+use Tsugi\Services\Lessons\LessonDue;
+use Tsugi\Services\Quiz1\Quiz1Repository;
 use Tsugi\Util\U;
 
 /**
@@ -18,9 +21,10 @@ class LtiContentService {
      * @param int $contextId
      * @param int $toolDeploymentId
      * @param string $title Outline title. Empty uses the tool title.
+     * @param string $resourceLinkId Cartridge id to keep. Empty mints a new id.
      * @return array<string, mixed>
      */
-    public static function place($contextId, $toolDeploymentId, $title) {
+    public static function place($contextId, $toolDeploymentId, $title, $resourceLinkId = '') {
         $contextId = (int) $contextId;
         $tool = ToolRegistrationService::visibleLti11Deployment($contextId, (int) $toolDeploymentId);
         if ( ! Lti11TestLaunch::hasResourceLink($contextId, (int) $tool['tool_deployment_id']) ) {
@@ -28,7 +32,7 @@ class LtiContentService {
         }
         $launchUrl = trim((string) $tool['lti11_url']);
         self::refuseDroppedPost($launchUrl);
-        return self::writeContent($contextId, $tool, $title, $launchUrl);
+        return self::writeContent($contextId, $tool, $title, $launchUrl, $resourceLinkId);
     }
 
     /**
@@ -41,12 +45,13 @@ class LtiContentService {
      * @param int $toolDeploymentId
      * @param string $title Outline title. Empty uses the tool title.
      * @param string $launchUrl
+     * @param string $resourceLinkId Cartridge id to keep. Empty mints a new id.
      * @return array<string, mixed>
      */
-    public static function placeAt($contextId, $toolDeploymentId, $title, $launchUrl) {
+    public static function placeAt($contextId, $toolDeploymentId, $title, $launchUrl, $resourceLinkId = '') {
         $contextId = (int) $contextId;
         $tool = self::visibleDeployment($contextId, (int) $toolDeploymentId);
-        return self::writeContent($contextId, $tool, $title, $launchUrl);
+        return self::writeContent($contextId, $tool, $title, $launchUrl, $resourceLinkId);
     }
 
     /**
@@ -54,9 +59,10 @@ class LtiContentService {
      * @param array<string, mixed> $tool
      * @param string $title
      * @param string $launchUrl
+     * @param string $resourceLinkId
      * @return array<string, mixed>
      */
-    private static function writeContent($contextId, array $tool, $title, $launchUrl) {
+    private static function writeContent($contextId, array $tool, $title, $launchUrl, $resourceLinkId = '') {
         $launchUrl = trim((string) $launchUrl);
         if ( ! preg_match('#^https?://#i', $launchUrl) ) {
             throw new \InvalidArgumentException('This tool has no launch URL.');
@@ -67,7 +73,7 @@ class LtiContentService {
         }
         $title = self::titleOrTool(trim((string) $title), (string) $tool['title']);
         $privacy = self::grant((int) $tool['tool_deployment_id']);
-        $resourceLinkId = self::newResourceLinkId($contextId);
+        $resourceLinkId = self::resourceLinkIdForNewContent($contextId, $resourceLinkId);
         $p = self::prefix();
         self::db()->queryDie(
             "INSERT INTO {$p}lti_content
@@ -211,7 +217,7 @@ class LtiContentService {
             "SELECT c.content_id, c.context_id, c.key_id, c.tool_deployment_id, c.link_id,
                     c.title, c.launch_url, c.target, c.resource_link_id,
                     c.send_name, c.send_email, c.send_grade, c.published,
-                    l.published AS link_published
+                    l.published AS link_published, l.end_datetime AS link_end
              FROM {$p}lti_content c
              LEFT JOIN {$p}lti_link l ON l.link_id = c.link_id
              WHERE c.content_id = :content_id AND c.context_id = :context_id",
@@ -253,7 +259,7 @@ class LtiContentService {
             "SELECT c.content_id, c.context_id, c.key_id, c.tool_deployment_id, c.link_id,
                     c.title, c.launch_url, c.target, c.resource_link_id,
                     c.send_name, c.send_email, c.send_grade, c.published,
-                    l.published AS link_published
+                    l.published AS link_published, l.end_datetime AS link_end
              FROM {$p}lti_content c
              LEFT JOIN {$p}lti_link l ON l.link_id = c.link_id
              WHERE c.context_id = :context_id
@@ -300,6 +306,9 @@ class LtiContentService {
                     ':context_id' => (int) $contextId,
                 )
             );
+            if ( $published ) {
+                LessonDue::copyOntoLink((int) $contextId, (int) $row['link_id'], true);
+            }
             return true;
         }
         self::db()->queryDie(
@@ -345,6 +354,7 @@ class LtiContentService {
             'send_grade' => (int) $row['send_grade'] === 1,
             'published' => self::effectivePublished($row),
             'link_id' => empty($row['link_id']) ? null : (int) $row['link_id'],
+            'due' => empty($row['link_id']) ? null : GradeUtil::dueDateInputValue($row['link_end'] ?? null),
         );
     }
 
@@ -398,6 +408,7 @@ class LtiContentService {
                 )
             );
             $linkId = (int) self::db()->lastInsertId();
+            GradeUtil::invalidateDueDatesCache((int) $row['context_id']);
         }
         self::db()->queryDie(
             "UPDATE {$p}lti_content SET link_id = :link_id, updated_at = NOW()
@@ -407,6 +418,49 @@ class LtiContentService {
                 ':content_id' => (int) $row['content_id'],
             )
         );
+        LessonDue::copyOntoLink((int) $row['context_id'], $linkId);
+    }
+
+    /**
+     * Grade column for a launch that sends a grade and does not have one yet.
+     * A launch that already has a column is left alone, including its published flag.
+     * A new or newly attached column copies this row's published flag, so an
+     * unpublished tool stays unpublished.
+     *
+     * @param int $contextId
+     * @param int $contentId
+     * @return int|null link_id, or null when this launch is missing or not gradable
+     */
+    public static function ensureGradeColumnForLaunch($contextId, $contentId) {
+        $contextId = (int) $contextId;
+        $row = self::find($contextId, (int) $contentId);
+        if ( $row === null ) {
+            return null;
+        }
+        if ( ! empty($row['link_id']) ) {
+            return (int) $row['link_id'];
+        }
+        if ( (int) ($row['send_grade'] ?? 0) !== 1 ) {
+            return null;
+        }
+        $published = (int) ($row['published'] ?? 0) === 1 ? 1 : 0;
+        self::ensureGradeColumn($row);
+        $row = self::find($contextId, (int) $contentId);
+        if ( $row === null || empty($row['link_id']) ) {
+            return null;
+        }
+        $p = self::prefix();
+        self::db()->queryDie(
+            "UPDATE {$p}lti_link
+             SET published = :published, updated_at = NOW()
+             WHERE link_id = :link_id AND context_id = :context_id",
+            array(
+                ':published' => $published,
+                ':link_id' => (int) $row['link_id'],
+                ':context_id' => $contextId,
+            )
+        );
+        return (int) $row['link_id'];
     }
 
     /**
@@ -426,35 +480,62 @@ class LtiContentService {
     }
 
     /**
+     * Keep a cartridge resource link id when this course does not already
+     * use it. A taken id would violate the content or link unique key, so
+     * the launch gets a new id instead.
+     *
+     * @param int $contextId
+     * @param string $preferred
+     * @return string
+     */
+    private static function resourceLinkIdForNewContent($contextId, $preferred) {
+        $preferred = is_string($preferred) ? trim($preferred) : '';
+        if ( Quiz1Repository::acceptableLinkKey($preferred)
+            && ! self::resourceLinkShaTaken($contextId, U::lti_sha256($preferred)) ) {
+            return $preferred;
+        }
+        return self::newResourceLinkId($contextId);
+    }
+
+    /**
      * @param int $contextId
      * @return string
      */
     private static function newResourceLinkId($contextId) {
-        $p = self::prefix();
         for ( $i = 0; $i < 5; $i++ ) {
             $id = 'lti_'.bin2hex(random_bytes(8));
-            $sha = U::lti_sha256($id);
-            $parms = array(
-                ':context_id' => (int) $contextId,
-                ':sha' => $sha,
-            );
-            $taken = self::db()->rowDie(
-                "SELECT content_id FROM {$p}lti_content
-                 WHERE context_id = :context_id AND resource_link_sha256 = :sha",
-                $parms
-            );
-            if ( ! is_array($taken) ) {
-                $taken = self::db()->rowDie(
-                    "SELECT link_id FROM {$p}lti_link
-                     WHERE context_id = :context_id AND link_sha256 = :sha",
-                    $parms
-                );
-            }
-            if ( ! is_array($taken) ) {
+            if ( ! self::resourceLinkShaTaken($contextId, U::lti_sha256($id)) ) {
                 return $id;
             }
         }
         throw new \InvalidArgumentException('Could not allocate a resource link id.');
+    }
+
+    /**
+     * @param int $contextId
+     * @param string $sha
+     * @return bool
+     */
+    private static function resourceLinkShaTaken($contextId, $sha) {
+        $p = self::prefix();
+        $parms = array(
+            ':context_id' => (int) $contextId,
+            ':sha' => $sha,
+        );
+        $taken = self::db()->rowDie(
+            "SELECT content_id FROM {$p}lti_content
+             WHERE context_id = :context_id AND resource_link_sha256 = :sha",
+            $parms
+        );
+        if ( is_array($taken) ) {
+            return true;
+        }
+        $taken = self::db()->rowDie(
+            "SELECT link_id FROM {$p}lti_link
+             WHERE context_id = :context_id AND link_sha256 = :sha",
+            $parms
+        );
+        return is_array($taken);
     }
 
     /**
