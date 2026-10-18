@@ -253,6 +253,8 @@ array( "{$CFG->dbprefix}lti_org",
 array( "{$CFG->dbprefix}lti_context",
 "create table {$CFG->dbprefix}lti_context (
     context_id          INTEGER NOT NULL AUTO_INCREMENT,
+    -- Same type as context_id. NULL until a later change records one. No foreign key.
+    previous_context_id INTEGER NULL,
     context_sha256      CHAR(64) NOT NULL,
     context_key         TEXT NOT NULL,
     deleted             TINYINT(1) NOT NULL DEFAULT 0,
@@ -1541,6 +1543,9 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         // 2026-09-30 Optional organization placement. Existing courses stay unplaced.
         array('lti_context', 'org_id', 'INTEGER NULL'),
+
+        // 2026-10-18 Optional earlier course. Same type as context_id. No foreign key.
+        array('lti_context', 'previous_context_id', 'INTEGER NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -2376,7 +2381,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610180001;
+    return 202610180002;
 
 }; // Don't forget the semicolon on anonymous functions :)
 
