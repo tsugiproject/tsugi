@@ -9,7 +9,7 @@ Denormalized data for durable badge assertions. Once minted, badge validity does
 
 - **Identity**: `(user_id, context_id, badge_code)` uniquely identifies a badge—one minted badge per user per context per badge code.
 - **issued_at**: Set when the user clicks Publish. Republish keeps this value and the GUID.
-- **accomplishments**: JSON written at publish and refreshed on republish. It holds completion, the criteria narrative, the evidence URL, the image URL, the issuer profile, and the assignment list (`items`). A published badge URL is served from this row. It does not read lessons or the course.
+- **accomplishments**: JSON written at publish and refreshed on republish. It holds completion, the criteria narrative, the evidence URL, the image URL, the SHA-256 of that PNG, the issuer profile, and the assignment list (`items`). A published badge URL is served from this row. It does not read lessons or the course.
 
 An unpublished badge still reads its assignment list from the current lessons.
 

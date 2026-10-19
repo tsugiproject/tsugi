@@ -74,6 +74,12 @@ $DATABASE_UPGRADE = function($oldversion) {
         $PDOX->queryReturnError($sql);
     }
 
+    $cleared = \Tsugi\Services\Badges\BadgeService::clearSnapshotsMissingImageHash();
+    if ( $cleared > 0 ) {
+        echo("Upgrading: clearing {$cleared} badge snapshots that have no image hash<br/>\n");
+        error_log("Upgrading: clearing {$cleared} badge snapshots that have no image hash");
+    }
+
     \Tsugi\Services\Badges\BadgeService::backfillMissingAccomplishments();
 
     return 202609220001;

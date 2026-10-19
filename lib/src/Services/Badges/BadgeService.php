@@ -305,10 +305,7 @@ class BadgeService {
             $narrative .= " at {$servicename}";
         }
 
-        $image = '';
-        if ( isset($CFG->badge_url) && is_string($CFG->badge_url) && $CFG->badge_url !== '' && $code !== '' ) {
-            $image = rtrim($CFG->badge_url, '/') . '/' . $code . '.png';
-        }
+        $image = self::imageSnapshot($code);
         $evidence = (isset($CFG->apphome) && is_string($CFG->apphome)) ? $CFG->apphome : '';
 
         $threshold = null;
@@ -326,10 +323,97 @@ class BadgeService {
             'threshold' => $threshold,
             'narrative' => $narrative,
             'evidence_url' => $evidence,
-            'image_url' => $image,
+            'image_url' => $image['image_url'],
+            'image_sha256' => $image['image_sha256'],
             'issuer' => self::issuerSnapshot(),
             'items' => $items,
         );
+    }
+
+    /**
+     * Public image URL and the SHA-256 of the PNG bytes at badge_path.
+     *
+     * An empty hash means the file was not readable when the snapshot was written.
+     * The key is still stored so a later upgrade does not clear the row again.
+     *
+     * @return array{image_url:string,image_sha256:string}
+     */
+    private static function imageSnapshot(string $code): array {
+        global $CFG;
+
+        $url = '';
+        $sha = '';
+        if ( $code !== '' && isset($CFG->badge_url) && is_string($CFG->badge_url) && $CFG->badge_url !== '' ) {
+            $url = rtrim($CFG->badge_url, '/') . '/' . $code . '.png';
+        }
+        if ( $code !== '' && isset($CFG->badge_path) && is_string($CFG->badge_path) && $CFG->badge_path !== '' ) {
+            $path = rtrim($CFG->badge_path, '/') . '/' . $code . '.png';
+            if ( is_readable($path) ) {
+                $hash = hash_file('sha256', $path);
+                if ( is_string($hash) ) {
+                    $sha = $hash;
+                }
+            }
+        }
+
+        return array(
+            'image_url' => $url,
+            'image_sha256' => $sha,
+        );
+    }
+
+    /**
+     * Clear snapshots that were written before the image URL and hash were stored.
+     *
+     * A later upgrade leaves a row alone once image_sha256 is present, including
+     * when that hash is an empty string because the PNG was missing.
+     *
+     * @return int Rows cleared
+     */
+    public static function clearSnapshotsMissingImageHash(): int {
+        global $CFG, $PDOX;
+
+        $table = "{$CFG->dbprefix}badges";
+        if ( $PDOX->metadata($table) === false ) {
+            return 0;
+        }
+        if ( $PDOX->columnExists('accomplishments', $table) === false ) {
+            return 0;
+        }
+
+        $q = $PDOX->queryReturnError(
+            "SELECT badge_guid, accomplishments
+               FROM {$table}
+              WHERE accomplishments IS NOT NULL AND accomplishments <> ''"
+        );
+        if ( ! $q->success ) {
+            return 0;
+        }
+        $rows = array();
+        while ( $row = $q->fetch(\PDO::FETCH_ASSOC) ) {
+            $rows[] = $row;
+        }
+        $q->closeCursor();
+
+        $cleared = 0;
+        foreach ( $rows as $row ) {
+            $guid = (string) ($row['badge_guid'] ?? '');
+            if ( $guid === '' ) {
+                continue;
+            }
+            $decoded = self::decodeAccomplishments($row['accomplishments'] ?? null);
+            if ( is_array($decoded) && array_key_exists('image_sha256', $decoded) ) {
+                continue;
+            }
+            $uq = $PDOX->queryReturnError(
+                "UPDATE {$table} SET accomplishments = NULL WHERE badge_guid = :GUID",
+                array(':GUID' => $guid)
+            );
+            if ( $uq->success ) {
+                $cleared++;
+            }
+        }
+        return $cleared;
     }
 
     /**
@@ -472,10 +556,7 @@ class BadgeService {
         if ( $servicename !== '' ) {
             $narrative .= " at {$servicename}";
         }
-        $image = '';
-        if ( isset($CFG->badge_url) && is_string($CFG->badge_url) && $CFG->badge_url !== '' && $code !== '' ) {
-            $image = rtrim($CFG->badge_url, '/') . '/' . $code . '.png';
-        }
+        $image = self::imageSnapshot($code);
         $evidence = (isset($CFG->apphome) && is_string($CFG->apphome)) ? $CFG->apphome : '';
 
         return array(
@@ -483,7 +564,8 @@ class BadgeService {
             'threshold' => null,
             'narrative' => $narrative,
             'evidence_url' => $evidence,
-            'image_url' => $image,
+            'image_url' => $image['image_url'],
+            'image_sha256' => $image['image_sha256'],
             'issuer' => self::issuerSnapshot(),
             'items' => array(),
         );
