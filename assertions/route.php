@@ -18,6 +18,29 @@ use \Tsugi\UI\BadgeShare\BadgeShareHead;
 // assertions/.htaccess routes here directly, bypassing tsugi.php
 LTIX::session_start();
 
+/**
+ * Assertion pages are public credentials. The bar is the site name,
+ * opening the app home in a new tab, and Close. No course or build menu.
+ */
+function assertion_nav() {
+    global $CFG, $OUTPUT;
+    $home = (isset($CFG->apphome) && is_string($CFG->apphome) && $CFG->apphome !== '')
+        ? $CFG->apphome
+        : (isset($CFG->wwwroot) && is_string($CFG->wwwroot) ? $CFG->wwwroot : '/');
+    $label = (isset($CFG->servicename) && is_string($CFG->servicename) && $CFG->servicename !== '')
+        ? $CFG->servicename
+        : 'Home';
+    $set = new \Tsugi\UI\MenuSet();
+    $set->setHome(
+        htmlspecialchars($label, ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars($home, ENT_QUOTES, 'UTF-8'),
+        'target="_blank" rel="noopener noreferrer"'
+    );
+    $set->addRight(__('Close'), 'javascript:window_close();');
+    $OUTPUT->menuOverride = $set;
+    $OUTPUT->topNav();
+}
+
 // Parse the URL to extract encrypted ID and resource type
 $url = $_SERVER['REQUEST_URI'];
 $path = trim(parse_url($url, PHP_URL_PATH), '/');
@@ -34,7 +57,7 @@ if (empty($path_parts)) {
     http_response_code(404);
     $OUTPUT->header();
     $OUTPUT->bodyStart();
-    $OUTPUT->topNav();
+    assertion_nav();
     echo("<h2>Page not found.</h2>\n");
     $OUTPUT->footer();
     return;
@@ -49,7 +72,7 @@ if ($first_part === 'publish') {
         http_response_code(400);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Bad Request</h2><p>Missing badge id.</p>\n");
         $OUTPUT->footer();
         return;
@@ -59,7 +82,7 @@ if ($first_part === 'publish') {
         http_response_code(403);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Forbidden</h2><p>You must be logged in to publish a badge.</p>\n");
         $OUTPUT->footer();
         return;
@@ -74,7 +97,7 @@ if ($first_part === 'publish') {
         http_response_code(404);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Badge not found</h2><p>Invalid or expired badge id.</p>\n");
         $OUTPUT->footer();
         return;
@@ -87,7 +110,7 @@ if ($first_part === 'publish') {
         http_response_code(403);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Forbidden</h2><p>You can only publish your own badges.</p>\n");
         $OUTPUT->footer();
         return;
@@ -104,7 +127,7 @@ if ($first_part === 'publish') {
         http_response_code(500);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Error</h2><p>Could not publish badge. Please try again later.</p>\n");
         $OUTPUT->footer();
         return;
@@ -122,7 +145,7 @@ if ($first_part === 'linkedin') {
         http_response_code(404);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Not found</h2><p>Badge not found.</p>\n");
         $OUTPUT->footer();
         return;
@@ -132,7 +155,7 @@ if ($first_part === 'linkedin') {
         http_response_code(404);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Not found</h2><p>LinkedIn sharing is not available for this badge.</p>\n");
         $OUTPUT->footer();
         return;
@@ -193,7 +216,7 @@ if ($first_part === 'badge' && count($path_parts) === 2) {
             http_response_code(404);
             $OUTPUT->header();
             $OUTPUT->bodyStart();
-            $OUTPUT->topNav();
+            assertion_nav();
             echo("<h2>Badge not found.</h2>\n");
             $OUTPUT->footer();
             return;
@@ -275,7 +298,7 @@ if (strpos($first_part, '.vc.json') !== false) {
         http_response_code(404);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Page not found.</h2>\n");
         $OUTPUT->footer();
         return;
@@ -284,7 +307,7 @@ if (strpos($first_part, '.vc.json') !== false) {
     http_response_code(404);
     $OUTPUT->header();
     $OUTPUT->bodyStart();
-    $OUTPUT->topNav();
+    assertion_nav();
     echo("<h2>Page not found.</h2>\n");
     $OUTPUT->footer();
     return;
@@ -567,7 +590,7 @@ switch ($resource) {
         );
         echo("\n");
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         ?>
         <style>
         .badge-share-links { list-style: none; display: inline; margin: 0; padding: 0; }
@@ -785,7 +808,7 @@ switch ($resource) {
         http_response_code(404);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Page not found.</h2>\n");
         $OUTPUT->footer();
         break;
