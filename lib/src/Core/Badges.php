@@ -218,7 +218,8 @@ class Badges {
     /**
      * Live image URL for a badge that has not been published yet.
      *
-     * Public files win. Otherwise the site badge folder.
+     * A course Public image stays on that course's file. A missing Public
+     * file does not fall through to the site badge folder.
      *
      * @param object|null $badge
      * @param string $code
@@ -226,6 +227,10 @@ class Badges {
     public static function liveImageUrl($badge, $code, int $contextId = 0): string {
         global $CFG;
         if ( is_object($badge) ) {
+            $image = (isset($badge->image) && is_string($badge->image)) ? $badge->image : '';
+            if ( CourseBadges::isPublicImage($image) ) {
+                return CourseBadges::displayUrl($badge, $contextId);
+            }
             $url = CourseBadges::displayUrl($badge, $contextId);
             if ( $url !== '' ) {
                 return $url;
