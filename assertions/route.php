@@ -98,7 +98,8 @@ if ($first_part === 'publish') {
     $email = U::get($row, 'email', '');
     $context_title = U::get($row, 'title', '');
     $badge_title = isset($badge->title) ? $badge->title : '';
-    $guid = BadgeService::mintOrGet($current_user_id, $context_id, $code, $displayname, $email, $context_title, $badge_title);
+    $accomplishments = BadgeService::captureAccomplishments($l, $badge, is_string($context_title) ? $context_title : '');
+    $guid = BadgeService::mintOrGet($current_user_id, $context_id, $code, $displayname, $email, $context_title, $badge_title, $accomplishments);
     if ($guid === false) {
         http_response_code(500);
         $OUTPUT->header();
@@ -126,8 +127,7 @@ if ($first_part === 'linkedin') {
         $OUTPUT->footer();
         return;
     }
-    $l = Manifest::requireCurrentLessons();
-    $destination = BadgeService::linkedInDestinationUrl($guid, $share, $l);
+    $destination = BadgeService::linkedInDestinationUrl($guid, $share);
     if ( $destination === null ) {
         http_response_code(404);
         $OUTPUT->header();
@@ -265,6 +265,8 @@ if (strpos($first_part, '.vc.json') !== false) {
     
     if ($resource_file === 'badge.json') {
         $resource = 'badge';
+    } elseif ($resource_file === 'image') {
+        $resource = 'image';
     } elseif ($resource_file === 'issuer.json') {
         $resource = 'issuer';
     } elseif ($resource_file === 'achievement.json') {
@@ -288,26 +290,28 @@ if (strpos($first_part, '.vc.json') !== false) {
     return;
 }
 
-// Load lesson and parse assertion
+// A published badge is the row. An unpublished hex id still needs the current lessons.
 $PDOX = LTIX::getConnection();
-$l = Manifest::requireCurrentLessons();
 
 $row = null;
 $pieces = null;
 $badge = null;
+$frozen = null;
+$l = null;
+$data = null;
 
-// Primary path: minted badge GUID (BadgeService)
 if ( BadgeService::isMintedGuid($encrypted) ) {
-    $data = BadgeService::getAssertionDataForGuid($encrypted, $l);
-    if ( $data ) {
-        $row = $data['row'];
-        $pieces = $data['pieces'];
-        $badge = $data['badge'];
+    $data = BadgeService::getAssertionDataForGuid($encrypted);
+    if ( ! $data ) {
+        error_log("Assertion parse error: badge not found for id: " . substr($encrypted, 0, 50) . "...");
+        die_with_error_log('Badge not found');
     }
-}
-
-// Fallback: hex assertion (always supported)
-if ( $row === null ) {
+    $row = $data['row'];
+    $pieces = $data['pieces'];
+    $badge = $data['badge'];
+    $frozen = $data['frozen'];
+} else {
+    $l = Manifest::requireCurrentLessons();
     $x = Badges::parseAssertionId($encrypted, $l);
     if ( ! is_string($x) ) {
         $row = $x[0];
@@ -331,12 +335,39 @@ $email = $row['email'];
 $title = $row['title'];
 $code = $pieces[1];
 $completion_badge = isset($badge->completion) ? $badge->completion : false;
+$is_minted = is_array($frozen);
+$archive_image = '';
+$claim_frozen = $frozen;
+if ( $is_minted ) {
+    $live_image = isset($frozen['image_url']) && is_string($frozen['image_url']) ? $frozen['image_url'] : '';
+    $evidence_home = isset($frozen['evidence_url']) && is_string($frozen['evidence_url']) ? $frozen['evidence_url'] : '';
+    $evidence_assignments = (isset($frozen['items']) && is_array($frozen['items'])) ? $frozen['items'] : array();
+    $guid_path = rtrim($CFG->wwwroot, '/') . '/assertions/' . urlencode($encrypted);
+    $claim_badge_url = $guid_path . '/badge.json';
+    $claim_issuer_url = $guid_path . '/issuer.json';
+    $claim_achievement_url = $guid_path . '/achievement.json';
+    $issuer_name_plain = (isset($frozen['issuer']['name']) && is_string($frozen['issuer']['name'])) ? $frozen['issuer']['name'] : '';
+    $stored_image_id = (is_array($data) && isset($data['image_id'])) ? (int) $data['image_id'] : 0;
+    if ( $stored_image_id > 0 ) {
+        $archive_image = $guid_path . '/image';
+        $claim_frozen['image_url'] = $archive_image;
+    }
+    $badge_image = $live_image !== '' ? $live_image : $archive_image;
+} else {
+    $badge_image = $CFG->badge_url.'/'.$code.'.png';
+    $evidence_home = isset($CFG->apphome) ? $CFG->apphome : '';
+    $evidence_assignments = BadgeService::getAssignmentsForEvidence($code, $l);
+    $claim_badge_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json";
+    $claim_issuer_url = $CFG->wwwroot . "/assertions/issuer.json";
+    $claim_achievement_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json?format=ob3";
+    $issuer_name_plain = null;
+}
 
 // Route to appropriate handler
 switch ($resource) {
     case 'assert':
         // OB2 Assertion
-        $text = Badges::getOb2Assertion($encrypted, $date, $code, $badge, $title, $email);
+        $text = Badges::getOb2Assertion($encrypted, $date, $code, $badge, $title, $email, $claim_frozen);
         header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
@@ -345,7 +376,7 @@ switch ($resource) {
         
     case 'assert-vc':
         // OB3/VC Assertion
-        $text = Badges::getOb3Assertion($encrypted, $date, $code, $badge, $title, $email);
+        $text = Badges::getOb3Assertion($encrypted, $date, $code, $badge, $title, $email, $claim_frozen);
         header('Content-Type: application/ld+json');
         header('Access-Control-Allow-Origin: *');
         echo($text);
@@ -353,7 +384,7 @@ switch ($resource) {
         
     case 'badge':
         // OB2 BadgeClass
-        $text = Badges::getOb2Badge($encrypted, $code, $badge, $title);
+        $text = Badges::getOb2Badge($encrypted, $code, $badge, $title, $claim_frozen);
         header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
@@ -364,9 +395,9 @@ switch ($resource) {
         // OB2/OB3 Issuer (default to OB2, can use ?format=ob3)
         $format = isset($_GET['format']) ? $_GET['format'] : 'ob2';
         if ($format === 'ob3') {
-            $text = Badges::getOb3Issuer($encrypted, $code, $badge, $title);
+            $text = Badges::getOb3Issuer($encrypted, $code, $badge, $title, $claim_frozen);
         } else {
-            $text = Badges::getOb2Issuer($encrypted, $code, $badge, $title);
+            $text = Badges::getOb2Issuer($encrypted, $code, $badge, $title, $claim_frozen);
         }
         header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
@@ -376,21 +407,36 @@ switch ($resource) {
         
     case 'achievement':
         // OB3 Achievement
-        $text = Badges::getOb3Achievement($encrypted, $code, $badge, $title);
+        $text = Badges::getOb3Achievement($encrypted, $code, $badge, $title, $claim_frozen);
         header('Content-Type: application/ld+json');
         header('Access-Control-Allow-Origin: *');
         echo($text);
         break;
         
+    case 'image':
+        $content = BadgeService::imageContentForGuid($encrypted);
+        if ( ! is_array($content) ) {
+            http_response_code(404);
+            header('Content-Type: text/plain; charset=UTF-8');
+            echo("Badge image not found\n");
+            break;
+        }
+        header('Content-Type: ' . $content['mime_type']);
+        header('Content-Length: ' . strlen($content['image_blob']));
+        header('Cache-Control: public, max-age=3600');
+        header('X-Content-Type-Options: nosniff');
+        echo($content['image_blob']);
+        break;
+
     case 'index':
         // HTML display page
-        $image = $CFG->badge_url.'/'.$code.'.png';
+        $image = $badge_image;
         
         $ob2_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . ".json";
         $ob3_url = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . ".vc.json";
-        $badge_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json";
-        $issuer_url = $CFG->wwwroot . "/assertions/issuer.json";
-        $achievement_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json?format=ob3";
+        $badge_url = $claim_badge_url;
+        $issuer_url = $claim_issuer_url;
+        $achievement_url = $claim_achievement_url;
         // OB1 legacy endpoints expect the long hex string; when viewing minted (GUID), generate it from pieces
         $legacy_hex = $encrypted;
         $legacy_context_id = isset($pieces[2]) ? $pieces[2] : null;
@@ -447,7 +493,9 @@ switch ($resource) {
         
         // Determine issuer organization name using badge_organization with fallback
         // Use getBadgeOrganization() method if available, otherwise fall back to manual logic
-        if (method_exists($CFG, 'getBadgeOrganization')) {
+        if ($issuer_name_plain !== null) {
+            $issuer_org_name = htmlspecialchars($issuer_name_plain, ENT_QUOTES, 'UTF-8');
+        } elseif (method_exists($CFG, 'getBadgeOrganization')) {
             $issuer_org_name = htmlspecialchars($CFG->getBadgeOrganization(), ENT_QUOTES, 'UTF-8');
         } else {
             // Fallback for older ConfigInfo versions without the method
@@ -528,7 +576,7 @@ switch ($resource) {
             
             <div class="row">
                 <div class="col-md-4">
-                    <img id="badge-image" src="<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($badge->title) ?>" class="img-fluid" style="max-width: 200px;">
+                    <img id="badge-image" src="<?= htmlspecialchars($image) ?>"<?php if ( $archive_image !== '' && $archive_image !== $image ): ?> onerror="this.onerror=null;this.src='<?= htmlspecialchars($archive_image, ENT_QUOTES, 'UTF-8') ?>';"<?php endif; ?> alt="<?= htmlspecialchars($badge->title) ?>" class="img-fluid" style="max-width: 200px;">
                 </div>
                 <div class="col-md-8">
                     <h2><?= htmlspecialchars($badge->title) ?></h2>
@@ -604,9 +652,10 @@ switch ($resource) {
             </ul>
             
             <h3>Evidence</h3>
-            <p><a href="<?= htmlspecialchars($CFG->apphome) ?>" target="_blank"><?= htmlspecialchars($CFG->apphome) ?></a></p>
+            <?php if ( $evidence_home !== '' ): ?>
+            <p><a href="<?= htmlspecialchars($evidence_home) ?>" target="_blank"><?= htmlspecialchars($evidence_home) ?></a></p>
+            <?php endif; ?>
             <?php
-            $evidence_assignments = BadgeService::getAssignmentsForEvidence($code, $l);
             if ( ! empty($evidence_assignments) ):
                 $count = count($evidence_assignments);
             ?>
