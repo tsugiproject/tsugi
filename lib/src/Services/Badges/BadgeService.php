@@ -343,7 +343,7 @@ class BadgeService {
 
         $items = array();
         if ( $code !== '' && is_object($lessons) ) {
-            $items = self::getAssignmentsForEvidence($code, $lessons);
+            $items = self::getAssignmentsForEvidence($code, $lessons, $context_id);
         }
 
         return array(
@@ -372,7 +372,7 @@ class BadgeService {
         global $CFG;
 
         if ( CourseBadges::isPublicImage($imagePath) ) {
-            $url = CourseBadges::displayUrl($imagePath);
+            $url = CourseBadges::displayUrl($imagePath, $contextId);
             $sha = '';
             $bytes = CourseBadges::bytes($imagePath, $contextId);
             if ( is_string($bytes) && $bytes !== '' ) {

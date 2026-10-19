@@ -381,7 +381,7 @@ if ( $is_minted ) {
     }
     $badge_image = $live_image !== '' ? $live_image : $archive_image;
 } else {
-    $badge_image = Badges::liveImageUrl($badge, $code);
+    $badge_image = Badges::liveImageUrl($badge, $code, (int) $pieces[2]);
     $evidence_home = isset($CFG->apphome) ? $CFG->apphome : '';
     $evidence_assignments = BadgeService::getAssignmentsForEvidence($code, $l, (int) $pieces[2]);
     $guid_path = rtrim($CFG->wwwroot, '/') . '/assertions/' . urlencode($encrypted);

@@ -223,10 +223,10 @@ class Badges {
      * @param object|null $badge
      * @param string $code
      */
-    public static function liveImageUrl($badge, $code): string {
+    public static function liveImageUrl($badge, $code, int $contextId = 0): string {
         global $CFG;
         if ( is_object($badge) ) {
-            $url = CourseBadges::displayUrl($badge);
+            $url = CourseBadges::displayUrl($badge, $contextId);
             if ( $url !== '' ) {
                 return $url;
             }
@@ -258,8 +258,9 @@ class Badges {
      * @param object|null $badge
      * @param array<string,mixed>|null $frozen
      */
-    private static function claimImage($badge, $code, $frozen): string {
-        $live = self::liveImageUrl($badge, $code);
+    private static function claimImage($badge, $code, $frozen, $encrypted = null): string {
+        $contextId = is_string($encrypted) ? self::contextIdFromAssertion($encrypted) : 0;
+        $live = self::liveImageUrl($badge, $code, $contextId);
         if ( self::useFrozen($frozen) ) {
             return self::frozenString($frozen, 'image_url', $live);
         }
@@ -506,7 +507,7 @@ class Badges {
             return $config_error;
         }
 
-        $image = self::claimImage($badge, $code, $frozen);
+        $image = self::claimImage($badge, $code, $frozen, $encrypted);
         $recipient = 'sha256$' . hash('sha256', $email . $CFG->badge_assert_salt);
         $assert_id = self::buildAssertionUrl($encrypted);
         $badge_url = self::useFrozen($frozen)
@@ -566,7 +567,7 @@ class Badges {
             return $config_error;
         }
 
-        $image = self::claimImage($badge, $code, $frozen);
+        $image = self::claimImage($badge, $code, $frozen, $encrypted);
         $badge_url = self::useFrozen($frozen)
             ? self::assertionResourceUrl($frozen['guid'], 'badge.json')
             : (self::courseScopedResource($encrypted, $badge, 'badge.json') ?? self::buildBadgeUrl($code));
@@ -653,7 +654,7 @@ class Badges {
             return $config_error;
         }
 
-        $image = self::claimImage($badge, $code, $frozen);
+        $image = self::claimImage($badge, $code, $frozen, $encrypted);
         $recipient = 'sha256$' . hash('sha256', $email . $CFG->badge_assert_salt);
         $credential_id = $CFG->wwwroot . "/assertions/" . urlencode($encrypted) . ".vc.json";
         $achievement_id = self::useFrozen($frozen)
@@ -759,7 +760,7 @@ class Badges {
             return $config_error;
         }
 
-        $image = self::claimImage($badge, $code, $frozen);
+        $image = self::claimImage($badge, $code, $frozen, $encrypted);
         $achievement_id = self::useFrozen($frozen)
             ? self::assertionResourceUrl($frozen['guid'], 'achievement.json')
             : (self::courseScopedResource($encrypted, $badge, 'achievement.json') ?? self::buildBadgeUrlWithFormat($code, 'ob3'));

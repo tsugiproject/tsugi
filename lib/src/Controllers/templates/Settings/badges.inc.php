@@ -6,6 +6,7 @@
  * $edit (badge array|null), $public_images, $assignment_choices,
  * $save_url, $badges_url, $files_public_url, $linkedin_add (bool)
  */
+use Tsugi\Core\ReqScope;
 use Tsugi\Services\Badges\CourseBadges;
 
 $editing = is_array($edit);
@@ -57,7 +58,7 @@ foreach ( $public_images as $png ) {
     <?php foreach ( $badges as $i => $badge ) {
         $title = isset($badge['title']) ? (string) $badge['title'] : '';
         $image = isset($badge['image']) ? (string) $badge['image'] : '';
-        $thumb = CourseBadges::displayUrl($image);
+        $thumb = CourseBadges::displayUrl($image, ReqScope::currentContextId());
         $percent = (isset($badge['threshold']) && is_numeric($badge['threshold']))
             ? (int) round(((float) $badge['threshold']) * 100)
             : 100;

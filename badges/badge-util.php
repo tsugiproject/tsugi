@@ -71,7 +71,7 @@ function get_assertion($encrypted, $date, $code, $badge, $title, $email ) {
         return $config_error;
     }
 
-    $image = \Tsugi\Core\Badges::liveImageUrl($badge, $code);
+    $image = \Tsugi\Core\Badges::liveImageUrl($badge, $code, \Tsugi\Core\Badges::contextIdFromAssertion($encrypted));
     $recepient = 'sha256$' . hash('sha256', $email . $CFG->badge_assert_salt);
     $assert_id = $CFG->wwwroot . "/badges/assert.php?id=". $encrypted;
     $badge_url = $CFG->wwwroot . "/badges/badge-info.php?id=". $encrypted;
@@ -108,7 +108,7 @@ function get_badge($encrypted, $code, $badge, $title) {
         return $config_error;
     }
 
-    $image = \Tsugi\Core\Badges::liveImageUrl($badge, $code);
+    $image = \Tsugi\Core\Badges::liveImageUrl($badge, $code, \Tsugi\Core\Badges::contextIdFromAssertion($encrypted));
     // Use code-based URL instead of encrypted ID
     $badge_url = $CFG->wwwroot . "/badges/badge-info.php?code=". urlencode($code);
     $badge_issuer = $CFG->wwwroot . "/badges/badge-issuer.php";

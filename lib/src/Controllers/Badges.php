@@ -160,7 +160,7 @@ class Badges extends Tool {
                 $awarded[] = $badge;
             }
             echo('<tr><td class="info">');
-            $image = CourseBadges::displayUrl($badge);
+            $image = CourseBadges::displayUrl($badge, ReqScope::currentContextId());
             if ( $image === '' ) {
                 echo('<i class="fa fa-certificate" aria-hidden="true" style="padding-right: 5px;"></i>');
             } else {
@@ -247,7 +247,7 @@ class Badges extends Tool {
                     ? $CFG->wwwroot . '/assertions/' . rawurlencode($published_guid) . '.html'
                     : $CFG->wwwroot . '/assertions/' . $encrypted . '.html';
                 $thumb = CourseBadges::isPublicImage($badge->image)
-                    ? CourseBadges::displayUrl($badge)
+                    ? CourseBadges::displayUrl($badge, ReqScope::currentContextId())
                     : '';
                 if ( $thumb === '' ) {
                     $thumb = $CFG->wwwroot.'/badges/images/'.$encrypted.'.png';

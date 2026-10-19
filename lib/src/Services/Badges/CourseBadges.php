@@ -78,9 +78,12 @@ class CourseBadges {
     /**
      * Absolute URL for a Public file, or the site badge folder for a file name.
      *
+     * A Public path is turned into that course's content hash. The same
+     * Public/name.png in two courses must not share one URL.
+     *
      * @param object|string $badge Badge object or image path
      */
-    public static function displayUrl($badge): string {
+    public static function displayUrl($badge, int $contextId = 0): string {
         global $CFG;
 
         $image = '';
@@ -91,7 +94,17 @@ class CourseBadges {
         }
         $public = self::canonicalPublicPath($image);
         if ( $public !== null ) {
-            $href = FileRepository::hrefForPath($public);
+            if ( $contextId < 1 ) {
+                $contextId = ReqScope::currentContextId();
+            }
+            $href = null;
+            if ( $contextId > 0 ) {
+                $link = FileRepository::ensureLink($contextId);
+                $row = $link ? FileRepository::getFileRowByPath($public, $link, $contextId) : null;
+                if ( is_array($row) && isset($row['file_sha256']) ) {
+                    $href = FileRepository::downloadHrefForSha256($row['file_sha256']);
+                }
+            }
             if ( is_string($href) && $href !== '' && isset($CFG->wwwroot) && is_string($CFG->wwwroot) ) {
                 return rtrim($CFG->wwwroot, '/') . $href;
             }
