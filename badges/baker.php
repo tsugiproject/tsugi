@@ -9,13 +9,16 @@ use \Tsugi\Image\Png;
 require_once "../config.php";
 require_once "badge-util.php";
 
-$l = Manifest::requireCurrentLessons();
-
 $PDOX = LTIX::getConnection();
 
 $url = $_SERVER['REQUEST_URI'];
 $pieces = explode('/',$url);
 $encrypted = basename($pieces[count($pieces)-1],'.png');
+
+$l = \Tsugi\Services\Badges\BadgeService::lessonsForAssertion($encrypted);
+if ( ! $l ) {
+    die_with_error_log('Bad badge image');
+}
 
 $x = parse_badge_id($encrypted, $l);
 if ( is_string($x) ) {

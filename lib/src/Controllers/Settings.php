@@ -23,7 +23,10 @@ use Tsugi\Services\Cartridge\ImportException;
 use Tsugi\Services\Cartridge\Package;
 use Tsugi\Services\Cartridge\Pending;
 use Tsugi\Services\Courses\CourseDelete;
+use Tsugi\LinkedIn\LinkedIn;
+use Tsugi\Services\Badges\CourseBadges;
 use Tsugi\Services\CourseNav\CourseNav;
+use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Outbound\Lti11CourseTool;
 use Tsugi\Services\Outbound\PlatformDynamicRegistration;
 use Tsugi\Services\Outbound\ToolRegistrationService;
@@ -45,7 +48,7 @@ use Tsugi\Core\ReqScope;
  * Site-wide (wwwroot/settings): keys, contexts, PII expiry. Login is required;
  * a course context is not. Do not call requireAuth() on those pages.
  *
- * Course-mounted (/courses/{id}/settings): theme, navigation, images,
+ * Course-mounted (/courses/{id}/settings): theme, navigation, images, badges,
  * add, edit, and delete an LTI 1.1 tool for this course, Common Cartridge import/export,
  * and delete course for the active manifest.
  * Instructor + manifest only. Nested dispatch from
@@ -78,6 +81,7 @@ class Settings extends Tool {
         self::mapPage($app, $prefix.'/delete', 'deleteCourse', true);
         self::mapPage($app, $prefix.'/navigation', 'navigation', true);
         self::mapPage($app, $prefix.'/images', 'images', true);
+        self::mapPage($app, $prefix.'/badges', 'badges', true);
         self::mapPage($app, $prefix.'/tools/dynamic/status', 'toolsDynamicStatus', false);
         self::mapPage($app, $prefix.'/tools/dynamic/done', 'toolsDynamicDone', false);
         self::mapPage($app, $prefix.'/tools/dynamic', 'toolsDynamic', true);
@@ -2752,6 +2756,153 @@ re-check your login status.
             ? __('16×9 image saved.')
             : __('Course icon saved.'));
         return new RedirectResponse($images_url);
+    }
+
+    /**
+     * Course-mounted Settings: author the badges array on this manifest.
+     */
+    public function badges(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+        if ( $request->isMethod('POST') ) {
+            return $this->badgesPost($request);
+        }
+
+        global $CFG, $OUTPUT, $PDOX;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $badges_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'badges'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
+        $files_public_url = U::addSession($this->toolHome('/files') . '?folder=' . rawurlencode('Public'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+
+        $doc = Manifest::currentDocument();
+        $decoded = (is_array($doc) && isset($doc['json'])) ? json_decode($doc['json'], true) : null;
+        $badges = CourseBadges::listFromDocument(is_array($decoded) ? ($decoded['badges'] ?? array()) : array());
+        $lessons = Manifest::currentLessons();
+        $assignment_choices = ($lessons instanceof LessonsService)
+            ? CourseBadges::assignmentChoices($lessons)
+            : array();
+        $public_images = CourseBadges::publicPngs(ReqScope::currentContextId());
+        $linkedin_add = LinkedIn::fromConfig($CFG)->canAddToProfile();
+
+        $edit_index = null;
+        $edit = null;
+        $raw = $request->query->get('badge', '');
+        if ( is_scalar($raw) && ctype_digit((string) $raw) ) {
+            $idx = (int) $raw;
+            if ( isset($badges[$idx]) ) {
+                $edit_index = $idx;
+                $edit = $badges[$idx];
+            }
+        }
+        if ( $lessons instanceof LessonsService && is_array($edit) && isset($edit['assignments']) && is_array($edit['assignments']) ) {
+            foreach ( $edit['assignments'] as $saved_id ) {
+                $saved_id = (string) $saved_id;
+                if ( $saved_id === '' || isset($assignment_choices[$saved_id]) ) {
+                    continue;
+                }
+                $place = CourseBadges::placement($lessons, $saved_id);
+                if ( ! empty($place['known']) ) {
+                    $assignment_choices[$saved_id] = $place['title'];
+                }
+            }
+        }
+
+        $save_url = $badges_url;
+        $setup_tab = 'badges';
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php include __DIR__ . '/templates/Settings/badges.inc.php'; ?>
+            </div>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * Save the badges array onto a new manifest version.
+     */
+    private function badgesPost(Request $request)
+    {
+        $badges_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'badges'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+        $csrf = self::requireCsrf($badges_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+
+        global $PDOX;
+        if ( $PDOX === null || $PDOX === false ) {
+            $PDOX = LTIX::getConnection();
+        }
+
+        $doc = Manifest::currentDocument();
+        if ( ! $doc ) {
+            U::flashError(__('Cannot load course manifest.'));
+            return new RedirectResponse($badges_url);
+        }
+        $decoded = json_decode($doc['json'], true);
+        if ( ! is_array($decoded) ) {
+            U::flashError(__('Invalid manifest JSON.'));
+            return new RedirectResponse($badges_url);
+        }
+
+        $lessons = Manifest::currentLessons();
+        if ( ! ($lessons instanceof LessonsService) ) {
+            U::flashError(__('Cannot load course manifest.'));
+            return new RedirectResponse($badges_url);
+        }
+
+        $context_id = ReqScope::currentContextId();
+        try {
+            $decoded['badges'] = CourseBadges::apply(
+                $decoded['badges'] ?? array(),
+                $_POST,
+                $lessons,
+                $context_id
+            );
+            Manifest::saveNewVersion(
+                $context_id,
+                $decoded,
+                ReqScope::loggedInUserId(),
+                'Update badges'
+            );
+        } catch ( \InvalidArgumentException $e ) {
+            U::flashError($e->getMessage());
+            return new RedirectResponse($badges_url);
+        } catch ( \Exception $e ) {
+            U::flashError(__('Failed to save badges.'));
+            return new RedirectResponse($badges_url);
+        }
+
+        U::flashSuccess(__('Badges saved.'));
+        return new RedirectResponse($badges_url);
     }
 
     /**

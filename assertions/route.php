@@ -64,11 +64,11 @@ if ($first_part === 'publish') {
         $OUTPUT->footer();
         return;
     }
-    if ( ! Manifest::hasCurrent() ) {
+    $PDOX = LTIX::getConnection();
+    $l = BadgeService::lessonsForAssertion($hex_id);
+    if ( ! $l ) {
         die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
     }
-    $PDOX = LTIX::getConnection();
-    $l = Manifest::requireCurrentLessons();
     $parsed = Badges::parseAssertionId($hex_id, $l);
     if ( is_string($parsed) ) {
         http_response_code(404);
@@ -98,7 +98,7 @@ if ($first_part === 'publish') {
     $email = U::get($row, 'email', '');
     $context_title = U::get($row, 'title', '');
     $badge_title = isset($badge->title) ? $badge->title : '';
-    $accomplishments = BadgeService::captureAccomplishments($l, $badge, is_string($context_title) ? $context_title : '');
+    $accomplishments = BadgeService::captureAccomplishments($l, $badge, is_string($context_title) ? $context_title : '', $context_id);
     $guid = BadgeService::mintOrGet($current_user_id, $context_id, $code, $displayname, $email, $context_title, $badge_title, $accomplishments);
     if ($guid === false) {
         http_response_code(500);
@@ -183,7 +183,7 @@ if ($first_part === 'badge' && count($path_parts) === 2) {
         // Find the badge by code
         $badge = null;
         foreach($l->lessons->badges as $b) {
-            if ($b->image == $code.'.png') {
+            if (isset($b->image) && \Tsugi\Services\Badges\CourseBadges::imageMatchesCode($b->image, $code)) {
                 $badge = $b;
                 break;
             }
@@ -290,7 +290,7 @@ if (strpos($first_part, '.vc.json') !== false) {
     return;
 }
 
-// A published badge is the row. An unpublished hex id still needs the current lessons.
+// A published badge is the row. An unpublished hex id names its own course.
 $PDOX = LTIX::getConnection();
 
 $row = null;
@@ -311,7 +311,11 @@ if ( BadgeService::isMintedGuid($encrypted) ) {
     $badge = $data['badge'];
     $frozen = $data['frozen'];
 } else {
-    $l = Manifest::requireCurrentLessons();
+    $l = BadgeService::lessonsForAssertion($encrypted);
+    if ( ! $l ) {
+        error_log("Assertion parse error: badge not found for id: " . substr($encrypted, 0, 50) . "...");
+        die_with_error_log('Badge not found');
+    }
     $x = Badges::parseAssertionId($encrypted, $l);
     if ( ! is_string($x) ) {
         $row = $x[0];
@@ -354,12 +358,13 @@ if ( $is_minted ) {
     }
     $badge_image = $live_image !== '' ? $live_image : $archive_image;
 } else {
-    $badge_image = $CFG->badge_url.'/'.$code.'.png';
+    $badge_image = Badges::liveImageUrl($badge, $code);
     $evidence_home = isset($CFG->apphome) ? $CFG->apphome : '';
-    $evidence_assignments = BadgeService::getAssignmentsForEvidence($code, $l);
-    $claim_badge_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json";
-    $claim_issuer_url = $CFG->wwwroot . "/assertions/issuer.json";
-    $claim_achievement_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json?format=ob3";
+    $evidence_assignments = BadgeService::getAssignmentsForEvidence($code, $l, (int) $pieces[2]);
+    $guid_path = rtrim($CFG->wwwroot, '/') . '/assertions/' . urlencode($encrypted);
+    $claim_badge_url = $guid_path . '/badge.json';
+    $claim_issuer_url = $guid_path . '/issuer.json';
+    $claim_achievement_url = $guid_path . '/achievement.json';
     $issuer_name_plain = null;
 }
 
