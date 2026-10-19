@@ -10,8 +10,7 @@ Denormalized data for durable badge assertions. Once minted, badge validity does
 - **Identity**: `(user_id, context_id, badge_code)` uniquely identifies a badge—one minted badge per user per context per badge code.
 - **issued_at**: Set when the user clicks Publish; aligns with Open Badges terminology.
 
-### badge_assignments
-Maps `badge_code` to required `resource_link_id`s (from lessons.json). Used for the Evidence section on assertion pages.
+The Evidence assignment list is read from the current lessons. It is not stored on the badge row.
 
 ## Minting Flow
 

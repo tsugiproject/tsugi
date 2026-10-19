@@ -2,23 +2,11 @@
 
 if ( ! isset($CFG) ) exit;
 
-// Badge assignments - maps badge_code to required resource_link_ids (from lessons.json)
-$DATABASE_INSTALL = array(
-array( "{$CFG->dbprefix}badge_assignments",
-"create table {$CFG->dbprefix}badge_assignments (
-    badge_code         VARCHAR(128) NOT NULL,
-    resource_link_id   VARCHAR(256) NOT NULL,
-    resource_link_title VARCHAR(512) NOT NULL DEFAULT '',
-    seq                SMALLINT NOT NULL DEFAULT 0,
-
-    PRIMARY KEY (badge_code, resource_link_id),
-    INDEX {$CFG->dbprefix}badge_assignments_indx_code (badge_code)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8;"),
-
 // Minted badges table - denormalized data for durable badge assertions
 // Once minted, badge validity does not depend on lti_user, lti_context, or lti_result.
 // A soft-deleted course stays joinable: badge reads do not filter lti_context.deleted.
 // The later hard purge clears context_id; the row stays so the public URL works.
+$DATABASE_INSTALL = array(
 array( "{$CFG->dbprefix}badges",
 "create table {$CFG->dbprefix}badges (
     badge_guid         VARCHAR(40) NOT NULL,
@@ -40,8 +28,7 @@ array( "{$CFG->dbprefix}badges",
 );
 
 $DATABASE_UNINSTALL = array(
-"drop table if exists {$CFG->dbprefix}badges",
-"drop table if exists {$CFG->dbprefix}badge_assignments"
+"drop table if exists {$CFG->dbprefix}badges"
 );
 
 $DATABASE_UPGRADE = function($oldversion) {
@@ -60,6 +47,22 @@ $DATABASE_UPGRADE = function($oldversion) {
         echo("Upgrading: ".$sql."<br/>\n");
         error_log("Upgrading: ".$sql);
         $PDOX->queryReturnError($sql);
+    }
+
+    // Unused. Evidence assignments come from the current lessons.
+    $assignments = "{$CFG->dbprefix}badge_assignments";
+    $exists = $PDOX->queryReturnError(
+        "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = :tname LIMIT 1",
+        array(':tname' => $assignments)
+    );
+    if ( $exists->success && $exists->rowCount() > 0 ) {
+        $exists->closeCursor();
+        $sql = "DROP TABLE {$assignments}";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryReturnError($sql);
+    } else {
+        $exists->closeCursor();
     }
 
     return 202609220001;
