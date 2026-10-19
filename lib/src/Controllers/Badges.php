@@ -155,7 +155,7 @@ class Badges extends Tool {
             if ( $progress < 5 ) $progress = 5;
             if ( $progress > 5 ) $kind = 'warning';
             if ( $progress > 50 ) $kind = 'info';
-            if ( $progress >= $threshold*100 ) {
+            if ( $progress >= (int) round($threshold * 100) ) {
                 $kind = 'success';
                 $awarded[] = $badge;
             }

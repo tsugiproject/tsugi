@@ -11,7 +11,7 @@ use Tsugi\Services\Badges\CourseBadges;
 $editing = is_array($edit);
 $edit_title = $editing && isset($edit['title']) ? (string) $edit['title'] : '';
 $edit_image = $editing && isset($edit['image']) ? (string) $edit['image'] : '';
-$edit_threshold = 80;
+$edit_threshold = $editing ? 100 : 80;
 if ( $editing && isset($edit['threshold']) && is_numeric($edit['threshold']) ) {
     $edit_threshold = (int) round(((float) $edit['threshold']) * 100);
 }
