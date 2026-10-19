@@ -496,5 +496,47 @@ class BadgesTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json', Badges::OB3_OPENBADGES_CONTEXT, 'OB3_OPENBADGES_CONTEXT should be correct');
         $this->assertEquals('badge_issuer_email_not_set@example.com', Badges::DEFAULT_ISSUER_EMAIL, 'DEFAULT_ISSUER_EMAIL should be correct');
     }
+
+    /**
+     * A published badge builds its claims from the stored snapshot.
+     */
+    public function testFrozenAssertionUsesStoredClaims()
+    {
+        $encrypted = 'm0123456789abcdef0123456789abcdef';
+        $date = '2024-01-15T10:30:00Z';
+        $code = 'test-badge';
+        $badge = (object)['title' => 'Stored Badge', 'completion' => true];
+        $title = 'Stored Course';
+        $email = 'student@example.com';
+        $frozen = array(
+            'guid' => $encrypted,
+            'narrative' => 'Completed Stored Badge in course Stored Course at Stored Org',
+            'evidence_url' => 'https://example.test/course',
+            'image_url' => 'https://example.test/bimages/test-badge.png',
+            'issuer' => array(
+                'name' => 'Stored Org',
+                'url' => 'https://example.test/',
+                'email' => 'badges@example.test',
+            ),
+            'items' => array(),
+        );
+
+        $assertion = json_decode(Badges::getOb2Assertion($encrypted, $date, $code, $badge, $title, $email, $frozen), true);
+        $this->assertSame('https://example.test/bimages/test-badge.png', $assertion['image']);
+        $this->assertSame('http://localhost/assertions/' . $encrypted . '/badge.json', $assertion['badge']);
+        $this->assertSame('https://example.test/course', $assertion['evidence'][0]['id']);
+        $this->assertSame($frozen['narrative'], $assertion['evidence'][0]['narrative']);
+
+        $class = json_decode(Badges::getOb2Badge($encrypted, $code, $badge, $title, $frozen), true);
+        $this->assertSame('http://localhost/assertions/' . $encrypted . '/badge.json', $class['id']);
+        $this->assertSame('http://localhost/assertions/' . $encrypted . '/issuer.json', $class['issuer']);
+        $this->assertSame('https://example.test/course', $class['criteria']['id']);
+
+        $issuer = json_decode(Badges::getOb2Issuer($encrypted, $code, $badge, $title, $frozen), true);
+        $this->assertSame('Stored Org', $issuer['name']);
+        $this->assertSame('https://example.test/', $issuer['url']);
+        $this->assertSame('badges@example.test', $issuer['email']);
+        $this->assertSame('http://localhost/assertions/' . $encrypted . '/issuer.json', $issuer['id']);
+    }
 }
 

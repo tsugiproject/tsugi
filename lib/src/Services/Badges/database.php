@@ -19,6 +19,8 @@ array( "{$CFG->dbprefix}badges",
     badge_title        VARCHAR(512) NOT NULL,
     issued_at          DATETIME NOT NULL,
     linkedin_clicks    INTEGER NULL DEFAULT 0,
+    -- Frozen at publish: completion, narrative, issuer, image, evidence, assignment list.
+    accomplishments     MEDIUMTEXT NULL,
 
     PRIMARY KEY (badge_guid),
     UNIQUE KEY {$CFG->dbprefix}badges_unique_user_context_code (user_id, context_id, badge_code),
@@ -64,6 +66,15 @@ $DATABASE_UPGRADE = function($oldversion) {
     } else {
         $exists->closeCursor();
     }
+
+    if ( $PDOX->columnExists('accomplishments', "{$CFG->dbprefix}badges") === false ) {
+        $sql = "ALTER TABLE {$CFG->dbprefix}badges ADD accomplishments MEDIUMTEXT NULL";
+        echo("Upgrading: ".$sql."<br/>\n");
+        error_log("Upgrading: ".$sql);
+        $PDOX->queryReturnError($sql);
+    }
+
+    \Tsugi\Services\Badges\BadgeService::backfillMissingAccomplishments();
 
     return 202609220001;
 };

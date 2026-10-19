@@ -3,10 +3,10 @@
 namespace Tsugi\Services\Badges;
 
 use \Tsugi\Util\U;
-use \Tsugi\Core\LTIX;
-use \Tsugi\Core\Badges;
+use \Tsugi\Core\Manifest;
 use \Tsugi\LinkedIn\LinkedIn;
 use \Tsugi\UI\BadgeShare\LinkedInShare;
+use \Tsugi\Services\Lessons\LessonsService;
 
 /**
  * Service for minted badge operations (OB2/OB3).
@@ -71,8 +71,12 @@ class BadgeService {
     }
 
     /**
-     * Mint a badge or return existing minted badge GUID.
+     * Mint a badge or refresh the snapshot on the existing row.
      *
+     * The GUID and issued_at stay put on republish. Name, email, course title,
+     * badge title, and accomplishments are rewritten from the live course.
+     *
+     * @param array<string,mixed>|null $accomplishments
      * @return string|false The badge GUID, or false if table missing/error
      */
     public static function mintOrGet(
@@ -82,13 +86,23 @@ class BadgeService {
         string $user_displayname,
         string $user_email,
         string $context_title,
-        string $badge_title
+        string $badge_title,
+        ?array $accomplishments = null
     ) {
         global $CFG, $PDOX;
 
         if ( ! self::tableExists() ) {
             return false;
         }
+
+        if ( $accomplishments === null ) {
+            $accomplishments = self::minimalAccomplishments(array(
+                'badge_code' => $badge_code,
+                'badge_title' => $badge_title,
+                'context_title' => $context_title,
+            ));
+        }
+        $json = self::encodeAccomplishments($accomplishments);
 
         $q = $PDOX->queryReturnError(
             "SELECT badge_guid FROM {$CFG->dbprefix}badges WHERE user_id = :UID AND context_id = :CID AND badge_code = :CODE",
@@ -100,15 +114,33 @@ class BadgeService {
         }
 
         $row = $q->fetch(\PDO::FETCH_ASSOC);
+        $q->closeCursor();
         if ( $row ) {
-            return $row['badge_guid'];
+            $uq = $PDOX->queryReturnError(
+                "UPDATE {$CFG->dbprefix}badges
+                    SET user_displayname = :DISPLAYNAME,
+                        user_email = :EMAIL,
+                        context_title = :CTITLE,
+                        badge_title = :BTITLE,
+                        accomplishments = :ACC
+                  WHERE badge_guid = :GUID",
+                array(
+                    ':DISPLAYNAME' => $user_displayname,
+                    ':EMAIL' => $user_email,
+                    ':CTITLE' => $context_title,
+                    ':BTITLE' => $badge_title,
+                    ':ACC' => $json,
+                    ':GUID' => $row['badge_guid'],
+                )
+            );
+            return $uq->success ? $row['badge_guid'] : false;
         }
 
         $guid = self::GUID_PREFIX . bin2hex(random_bytes(16));
         $issued_at = date('Y-m-d H:i:s');
 
         $iq = $PDOX->queryReturnError(
-            "INSERT INTO {$CFG->dbprefix}badges (badge_guid, user_id, context_id, badge_code, user_displayname, user_email, context_title, badge_title, issued_at) VALUES (:GUID, :UID, :CID, :CODE, :DISPLAYNAME, :EMAIL, :CTITLE, :BTITLE, :ISSUED)",
+            "INSERT INTO {$CFG->dbprefix}badges (badge_guid, user_id, context_id, badge_code, user_displayname, user_email, context_title, badge_title, issued_at, accomplishments) VALUES (:GUID, :UID, :CID, :CODE, :DISPLAYNAME, :EMAIL, :CTITLE, :BTITLE, :ISSUED, :ACC)",
             array(
                 ':GUID' => $guid,
                 ':UID' => $user_id,
@@ -119,6 +151,7 @@ class BadgeService {
                 ':CTITLE' => $context_title,
                 ':BTITLE' => $badge_title,
                 ':ISSUED' => $issued_at,
+                ':ACC' => $json,
             )
         );
 
@@ -202,15 +235,23 @@ class BadgeService {
     }
 
     /**
-     * Get assertion data (row, pieces, badge) for a minted GUID.
-     * Used by assertions route to build the shared structure for HTML/JSON handlers.
+     * Assertion data for a minted GUID, from the badge row only.
      *
-     * @return array|null ['row' => [...], 'pieces' => [...], 'badge' => object] or null
+     * @return array{row:array,pieces:array,badge:object,frozen:array}|null
      */
-    public static function getAssertionDataForGuid(string $guid, $lessons): ?array {
+    public static function getAssertionDataForGuid(string $guid): ?array {
         $minted = self::getByGuid($guid);
         if ( ! $minted ) {
             return null;
+        }
+
+        $accomplishments = self::accomplishmentsForRow($minted);
+        $frozen = $accomplishments;
+        $frozen['guid'] = $guid;
+
+        $title = (string) ($minted['badge_title'] ?? '');
+        if ( $title === '' ) {
+            $title = (string) ($minted['badge_code'] ?? '');
         }
 
         $row = array(
@@ -226,22 +267,314 @@ class BadgeService {
             $minted['context_id'],
         );
 
-        $badge = null;
-        foreach ( $lessons->lessons->badges as $b ) {
-            if ( $b->image === $minted['badge_code'] . '.png' ) {
-                $badge = $b;
-                break;
-            }
+        $badge = (object) array(
+            'title' => $title,
+            'image' => $minted['badge_code'] . '.png',
+            'completion' => ! empty($accomplishments['completion']),
+        );
+
+        return array(
+            'row' => $row,
+            'pieces' => $pieces,
+            'badge' => $badge,
+            'frozen' => $frozen,
+        );
+    }
+
+    /**
+     * Snapshot of the badge definition and its assignment list.
+     *
+     * Called at publish, while lessons and the course still exist.
+     *
+     * @param object $badge A lessons badge object
+     * @return array<string,mixed>
+     */
+    public static function captureAccomplishments($lessons, $badge, string $context_title): array {
+        global $CFG;
+
+        $code = '';
+        if ( isset($badge->image) && is_string($badge->image) ) {
+            $code = basename($badge->image, '.png');
         }
-        if ( $badge === null ) {
-            $badge = (object)[
-                'title' => $minted['badge_title'],
-                'image' => $minted['badge_code'] . '.png',
-                'completion' => false,
-            ];
+        $title = (isset($badge->title) && is_string($badge->title) && $badge->title !== '')
+            ? $badge->title
+            : $code;
+        $servicename = (isset($CFG->servicename) && is_string($CFG->servicename)) ? $CFG->servicename : '';
+        $narrative = "Completed {$title} in course {$context_title}";
+        if ( $servicename !== '' ) {
+            $narrative .= " at {$servicename}";
         }
 
-        return array('row' => $row, 'pieces' => $pieces, 'badge' => $badge);
+        $image = '';
+        if ( isset($CFG->badge_url) && is_string($CFG->badge_url) && $CFG->badge_url !== '' && $code !== '' ) {
+            $image = rtrim($CFG->badge_url, '/') . '/' . $code . '.png';
+        }
+        $evidence = (isset($CFG->apphome) && is_string($CFG->apphome)) ? $CFG->apphome : '';
+
+        $threshold = null;
+        if ( isset($badge->threshold) && is_numeric($badge->threshold) ) {
+            $threshold = 0 + $badge->threshold;
+        }
+
+        $items = array();
+        if ( $code !== '' && is_object($lessons) ) {
+            $items = self::getAssignmentsForEvidence($code, $lessons);
+        }
+
+        return array(
+            'completion' => ! empty($badge->completion),
+            'threshold' => $threshold,
+            'narrative' => $narrative,
+            'evidence_url' => $evidence,
+            'image_url' => $image,
+            'issuer' => self::issuerSnapshot(),
+            'items' => $items,
+        );
+    }
+
+    /**
+     * Fill accomplishments for rows published before the column existed.
+     *
+     * Uses the course manifest when the context still has one, otherwise the
+     * site lessons file. A row whose lessons are already gone gets a snapshot
+     * from the scalars already stored on it.
+     */
+    public static function backfillMissingAccomplishments(): void {
+        global $CFG, $PDOX;
+
+        $table = "{$CFG->dbprefix}badges";
+        if ( $PDOX->metadata($table) === false ) {
+            return;
+        }
+        if ( $PDOX->columnExists('accomplishments', $table) === false ) {
+            return;
+        }
+
+        $q = $PDOX->queryReturnError(
+            "SELECT badge_guid, context_id, badge_code, context_title, badge_title
+               FROM {$table}
+              WHERE accomplishments IS NULL OR accomplishments = ''"
+        );
+        if ( ! $q->success ) {
+            return;
+        }
+        $rows = array();
+        while ( $row = $q->fetch(\PDO::FETCH_ASSOC) ) {
+            $rows[] = $row;
+        }
+        $q->closeCursor();
+        if ( count($rows) < 1 ) {
+            return;
+        }
+
+        $siteLessons = self::siteLessons();
+        foreach ( $rows as $row ) {
+            $guid = (string) ($row['badge_guid'] ?? '');
+            if ( $guid === '' ) {
+                continue;
+            }
+            $lessons = self::lessonsForContext(
+                isset($row['context_id']) ? (int) $row['context_id'] : 0,
+                $siteLessons
+            );
+            $badge = self::badgeDefinition($lessons, (string) ($row['badge_code'] ?? ''));
+            if ( $badge ) {
+                $accomplishments = self::captureAccomplishments(
+                    $lessons,
+                    $badge,
+                    (string) ($row['context_title'] ?? '')
+                );
+            } else {
+                $accomplishments = self::minimalAccomplishments($row);
+            }
+            $PDOX->queryReturnError(
+                "UPDATE {$table} SET accomplishments = :ACC WHERE badge_guid = :GUID",
+                array(
+                    ':ACC' => self::encodeAccomplishments($accomplishments),
+                    ':GUID' => $guid,
+                )
+            );
+        }
+    }
+
+    /**
+     * Issuer profile frozen at publish. Signing keys stay in config.
+     *
+     * @return array{name:string,url:string,email:string,logo?:string,linkedin_url?:string}
+     */
+    public static function issuerSnapshot(): array {
+        global $CFG;
+
+        $name = '';
+        if ( isset($CFG->badge_organization) && is_string($CFG->badge_organization) && $CFG->badge_organization !== '' ) {
+            $name = $CFG->badge_organization;
+        } elseif ( is_object($CFG) && method_exists($CFG, 'getBadgeOrganization') ) {
+            $name = (string) $CFG->getBadgeOrganization();
+        } elseif ( isset($CFG->servicename) && is_string($CFG->servicename) ) {
+            $name = $CFG->servicename;
+        }
+
+        $url = '';
+        if ( isset($CFG->badge_organization_url) && is_string($CFG->badge_organization_url) && $CFG->badge_organization_url !== '' ) {
+            $url = $CFG->badge_organization_url;
+        } elseif ( isset($CFG->apphome) && is_string($CFG->apphome) ) {
+            $url = $CFG->apphome;
+        }
+
+        $email = '';
+        if ( isset($CFG->badge_issuer_email) && is_string($CFG->badge_issuer_email) && $CFG->badge_issuer_email !== '' ) {
+            $email = $CFG->badge_issuer_email;
+        }
+
+        $snap = array(
+            'name' => $name,
+            'url' => $url,
+            'email' => $email,
+        );
+        if ( isset($CFG->badge_organization_logo) && is_string($CFG->badge_organization_logo) && $CFG->badge_organization_logo !== '' ) {
+            $snap['logo'] = $CFG->badge_organization_logo;
+        }
+        if ( isset($CFG->linkedin_url) && is_string($CFG->linkedin_url) && $CFG->linkedin_url !== '' ) {
+            $snap['linkedin_url'] = $CFG->linkedin_url;
+        }
+        return $snap;
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     * @return array<string,mixed>
+     */
+    private static function accomplishmentsForRow(array $row): array {
+        $decoded = self::decodeAccomplishments($row['accomplishments'] ?? null);
+        if ( is_array($decoded) ) {
+            return $decoded;
+        }
+        return self::minimalAccomplishments($row);
+    }
+
+    /**
+     * Snapshot from the scalars already on the row, when lessons are gone.
+     *
+     * @param array<string,mixed> $row
+     * @return array<string,mixed>
+     */
+    private static function minimalAccomplishments(array $row): array {
+        global $CFG;
+
+        $code = (string) ($row['badge_code'] ?? '');
+        $title = (string) ($row['badge_title'] ?? '');
+        if ( $title === '' ) {
+            $title = $code;
+        }
+        $context_title = (string) ($row['context_title'] ?? '');
+        $servicename = (isset($CFG->servicename) && is_string($CFG->servicename)) ? $CFG->servicename : '';
+        $narrative = "Completed {$title} in course {$context_title}";
+        if ( $servicename !== '' ) {
+            $narrative .= " at {$servicename}";
+        }
+        $image = '';
+        if ( isset($CFG->badge_url) && is_string($CFG->badge_url) && $CFG->badge_url !== '' && $code !== '' ) {
+            $image = rtrim($CFG->badge_url, '/') . '/' . $code . '.png';
+        }
+        $evidence = (isset($CFG->apphome) && is_string($CFG->apphome)) ? $CFG->apphome : '';
+
+        return array(
+            'completion' => false,
+            'threshold' => null,
+            'narrative' => $narrative,
+            'evidence_url' => $evidence,
+            'image_url' => $image,
+            'issuer' => self::issuerSnapshot(),
+            'items' => array(),
+        );
+    }
+
+    /**
+     * @param array<string,mixed> $accomplishments
+     */
+    private static function encodeAccomplishments(array $accomplishments): string {
+        $json = json_encode($accomplishments, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        return is_string($json) ? $json : '{}';
+    }
+
+    /**
+     * @param mixed $raw
+     * @return array<string,mixed>|null
+     */
+    private static function decodeAccomplishments($raw): ?array {
+        if ( ! is_string($raw) || trim($raw) === '' ) {
+            return null;
+        }
+        $decoded = json_decode($raw, true);
+        if ( ! is_array($decoded) ) {
+            return null;
+        }
+        return $decoded;
+    }
+
+    /**
+     * @return LessonsService|null
+     */
+    private static function siteLessons() {
+        global $CFG;
+        if ( ! isset($CFG->lessons) || ! is_string($CFG->lessons) || ! is_readable($CFG->lessons) ) {
+            return null;
+        }
+        $json = file_get_contents($CFG->lessons);
+        if ( ! is_string($json) || $json === '' ) {
+            return null;
+        }
+        $loaded = LessonsService::tryFromJson($json);
+        return is_object($loaded) ? $loaded : null;
+    }
+
+    /**
+     * @param LessonsService|null $siteLessons
+     * @return LessonsService|null
+     */
+    private static function lessonsForContext(int $context_id, $siteLessons) {
+        global $CFG, $PDOX;
+
+        if ( $context_id > 0 ) {
+            $q = $PDOX->queryReturnError(
+                "SELECT manifest_id FROM {$CFG->dbprefix}lti_context WHERE context_id = :CID",
+                array(':CID' => $context_id)
+            );
+            $manifest_id = 0;
+            if ( $q->success ) {
+                $context = $q->fetch(\PDO::FETCH_ASSOC);
+                $q->closeCursor();
+                if ( is_array($context) && isset($context['manifest_id']) ) {
+                    $manifest_id = (int) $context['manifest_id'];
+                }
+            }
+            if ( $manifest_id > 0 ) {
+                $json = Manifest::loadJson($manifest_id);
+                if ( is_string($json) && $json !== '' ) {
+                    $loaded = LessonsService::tryFromJson($json);
+                    if ( is_object($loaded) ) {
+                        return $loaded;
+                    }
+                }
+            }
+        }
+        return $siteLessons;
+    }
+
+    /**
+     * @param LessonsService|null $lessons
+     * @return object|null
+     */
+    private static function badgeDefinition($lessons, string $badge_code) {
+        if ( ! is_object($lessons) || $badge_code === '' || ! isset($lessons->lessons->badges) || ! is_iterable($lessons->lessons->badges) ) {
+            return null;
+        }
+        foreach ( $lessons->lessons->badges as $badge ) {
+            if ( isset($badge->image) && $badge->image === $badge_code . '.png' ) {
+                return $badge;
+            }
+        }
+        return null;
     }
 
     /**
@@ -317,10 +650,10 @@ class BadgeService {
      *
      * @return string|null LinkedIn URL or null if the badge cannot be shared this way
      */
-    public static function linkedInDestinationUrl(string $guid, bool $share, $lessons): ?string {
+    public static function linkedInDestinationUrl(string $guid, bool $share): ?string {
         global $CFG;
 
-        $data = self::getAssertionDataForGuid($guid, $lessons);
+        $data = self::getAssertionDataForGuid($guid);
         if ( ! $data ) {
             return null;
         }

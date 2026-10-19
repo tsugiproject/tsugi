@@ -8,15 +8,16 @@ Service for minted badge operations (OB2/OB3). Handles badge minting, lookup, an
 Denormalized data for durable badge assertions. Once minted, badge validity does not depend on `lti_user`, `lti_context`, or `lti_result`.
 
 - **Identity**: `(user_id, context_id, badge_code)` uniquely identifies a badge—one minted badge per user per context per badge code.
-- **issued_at**: Set when the user clicks Publish; aligns with Open Badges terminology.
+- **issued_at**: Set when the user clicks Publish. Republish keeps this value and the GUID.
+- **accomplishments**: JSON written at publish and refreshed on republish. It holds completion, the criteria narrative, the evidence URL, the image URL, the issuer profile, and the assignment list (`items`). A published badge URL is served from this row. It does not read lessons or the course.
 
-The Evidence assignment list is read from the current lessons. It is not stored on the badge row.
+An unpublished badge still reads its assignment list from the current lessons.
 
 ## Minting Flow
 
 1. **Badges Awarded** never mints. It uses `getMintedGuidIfExists()` to check; if minted → GUID URL, else → hex URL.
 2. User views their badge via hex URL, sees **Publish** button (if owner and unminted).
-3. User clicks **Publish** → `mintOrGet()` inserts row → redirect to GUID URL.
+3. User clicks **Publish** → `mintOrGet()` inserts the row and the accomplishments snapshot, or refreshes that snapshot on an existing row → redirect to GUID URL.
 4. Badges Awarded then shows the GUID link.
 
 ## Badge Code Changes
