@@ -19,6 +19,9 @@ class BadgeService {
     const GUID_LENGTH = 33;
     const GUID_PREFIX = 'm';
 
+    /** Original badge files at or under this size are stored whole. */
+    const MAX_IMAGE_BYTES = 5242880;
+
     /**
      * Get minted badge GUID if it exists (no minting).
      *
@@ -103,6 +106,7 @@ class BadgeService {
             ));
         }
         $json = self::encodeAccomplishments($accomplishments);
+        $linked = self::imageColumnsReady() ? self::storedImageForBadgeCode($badge_code) : null;
 
         $q = $PDOX->queryReturnError(
             "SELECT badge_guid FROM {$CFG->dbprefix}badges WHERE user_id = :UID AND context_id = :CID AND badge_code = :CODE",
@@ -116,43 +120,56 @@ class BadgeService {
         $row = $q->fetch(\PDO::FETCH_ASSOC);
         $q->closeCursor();
         if ( $row ) {
-            $uq = $PDOX->queryReturnError(
-                "UPDATE {$CFG->dbprefix}badges
+            $sql = "UPDATE {$CFG->dbprefix}badges
                     SET user_displayname = :DISPLAYNAME,
                         user_email = :EMAIL,
                         context_title = :CTITLE,
                         badge_title = :BTITLE,
-                        accomplishments = :ACC
-                  WHERE badge_guid = :GUID",
-                array(
-                    ':DISPLAYNAME' => $user_displayname,
-                    ':EMAIL' => $user_email,
-                    ':CTITLE' => $context_title,
-                    ':BTITLE' => $badge_title,
-                    ':ACC' => $json,
-                    ':GUID' => $row['badge_guid'],
-                )
+                        accomplishments = :ACC";
+            $params = array(
+                ':DISPLAYNAME' => $user_displayname,
+                ':EMAIL' => $user_email,
+                ':CTITLE' => $context_title,
+                ':BTITLE' => $badge_title,
+                ':ACC' => $json,
+                ':GUID' => $row['badge_guid'],
             );
+            if ( is_array($linked) && $linked['image_id'] !== null ) {
+                $sql .= ", image_id = :IMAGE_ID, image_sha256 = :IMAGE_SHA";
+                $params[':IMAGE_ID'] = $linked['image_id'];
+                $params[':IMAGE_SHA'] = $linked['sha256'];
+            }
+            $sql .= " WHERE badge_guid = :GUID";
+            $uq = $PDOX->queryReturnError($sql, $params);
             return $uq->success ? $row['badge_guid'] : false;
         }
 
         $guid = self::GUID_PREFIX . bin2hex(random_bytes(16));
         $issued_at = date('Y-m-d H:i:s');
 
+        $columns = "badge_guid, user_id, context_id, badge_code, user_displayname, user_email, context_title, badge_title, issued_at, accomplishments";
+        $values = ":GUID, :UID, :CID, :CODE, :DISPLAYNAME, :EMAIL, :CTITLE, :BTITLE, :ISSUED, :ACC";
+        $params = array(
+            ':GUID' => $guid,
+            ':UID' => $user_id,
+            ':CID' => $context_id,
+            ':CODE' => $badge_code,
+            ':DISPLAYNAME' => $user_displayname,
+            ':EMAIL' => $user_email,
+            ':CTITLE' => $context_title,
+            ':BTITLE' => $badge_title,
+            ':ISSUED' => $issued_at,
+            ':ACC' => $json,
+        );
+        if ( self::imageColumnsReady() ) {
+            $columns .= ", image_id, image_sha256";
+            $values .= ", :IMAGE_ID, :IMAGE_SHA";
+            $params[':IMAGE_ID'] = (is_array($linked) && $linked['image_id'] !== null) ? $linked['image_id'] : null;
+            $params[':IMAGE_SHA'] = (is_array($linked) && $linked['sha256'] !== '') ? $linked['sha256'] : null;
+        }
         $iq = $PDOX->queryReturnError(
-            "INSERT INTO {$CFG->dbprefix}badges (badge_guid, user_id, context_id, badge_code, user_displayname, user_email, context_title, badge_title, issued_at, accomplishments) VALUES (:GUID, :UID, :CID, :CODE, :DISPLAYNAME, :EMAIL, :CTITLE, :BTITLE, :ISSUED, :ACC)",
-            array(
-                ':GUID' => $guid,
-                ':UID' => $user_id,
-                ':CID' => $context_id,
-                ':CODE' => $badge_code,
-                ':DISPLAYNAME' => $user_displayname,
-                ':EMAIL' => $user_email,
-                ':CTITLE' => $context_title,
-                ':BTITLE' => $badge_title,
-                ':ISSUED' => $issued_at,
-                ':ACC' => $json,
-            )
+            "INSERT INTO {$CFG->dbprefix}badges ($columns) VALUES ($values)",
+            $params
         );
 
         return $iq->success ? $guid : false;
@@ -237,7 +254,7 @@ class BadgeService {
     /**
      * Assertion data for a minted GUID, from the badge row only.
      *
-     * @return array{row:array,pieces:array,badge:object,frozen:array}|null
+     * @return array{row:array,pieces:array,badge:object,frozen:array,image_id:int}|null
      */
     public static function getAssertionDataForGuid(string $guid): ?array {
         $minted = self::getByGuid($guid);
@@ -273,11 +290,17 @@ class BadgeService {
             'completion' => ! empty($accomplishments['completion']),
         );
 
+        $image_id = 0;
+        if ( isset($minted['image_id']) && is_numeric($minted['image_id']) ) {
+            $image_id = (int) $minted['image_id'];
+        }
+
         return array(
             'row' => $row,
             'pieces' => $pieces,
             'badge' => $badge,
             'frozen' => $frozen,
+            'image_id' => $image_id,
         );
     }
 
@@ -360,6 +383,235 @@ class BadgeService {
             'image_url' => $url,
             'image_sha256' => $sha,
         );
+    }
+
+    /**
+     * Copy image bytes into badge_images once, keyed by SHA-256.
+     *
+     * A later call with the same bytes returns the existing row. Files larger
+     * than MAX_IMAGE_BYTES are not stored.
+     *
+     * @return array{image_id:int,sha256:string,mime_type:string,file_size:int}|null
+     */
+    public static function storeImageBytes(string $bytes): ?array {
+        global $CFG, $PDOX;
+
+        if ( $bytes === '' || strlen($bytes) > self::MAX_IMAGE_BYTES ) {
+            return null;
+        }
+        $info = @getimagesizefromstring($bytes);
+        if ( ! is_array($info) || ! isset($info['mime']) || ! is_string($info['mime']) || strpos($info['mime'], 'image/') !== 0 ) {
+            return null;
+        }
+        $table = "{$CFG->dbprefix}badge_images";
+        if ( $PDOX->metadata($table) === false ) {
+            return null;
+        }
+
+        $sha = hash('sha256', $bytes);
+        $found = self::findImageBySha($sha);
+        if ( is_array($found) ) {
+            return $found;
+        }
+
+        $size = strlen($bytes);
+        $iq = $PDOX->queryReturnError(
+            "INSERT INTO {$table} (sha256, mime_type, file_size, image_blob) VALUES (:SHA, :MIME, :SIZE, :BLOB)",
+            array(
+                ':SHA' => $sha,
+                ':MIME' => $info['mime'],
+                ':SIZE' => $size,
+                ':BLOB' => $bytes,
+            )
+        );
+        if ( ! $iq->success ) {
+            return self::findImageBySha($sha);
+        }
+
+        $image_id = (int) $PDOX->lastInsertId();
+        if ( $image_id < 1 ) {
+            return self::findImageBySha($sha);
+        }
+        return array(
+            'image_id' => $image_id,
+            'sha256' => $sha,
+            'mime_type' => $info['mime'],
+            'file_size' => $size,
+        );
+    }
+
+    /**
+     * Bytes for a published badge, joined from badges.image_id.
+     *
+     * @return array{mime_type:string,file_size:int,image_blob:string}|null
+     */
+    public static function imageContentForGuid(string $guid): ?array {
+        global $CFG, $PDOX;
+
+        if ( ! self::isMintedGuid($guid) || $PDOX->metadata("{$CFG->dbprefix}badge_images") === false ) {
+            return null;
+        }
+        $q = $PDOX->queryReturnError(
+            "SELECT i.mime_type, i.file_size, i.image_blob
+               FROM {$CFG->dbprefix}badges b
+               JOIN {$CFG->dbprefix}badge_images i ON i.image_id = b.image_id
+              WHERE b.badge_guid = :GUID",
+            array(':GUID' => $guid)
+        );
+        if ( ! $q->success ) {
+            return null;
+        }
+        $row = $q->fetch(\PDO::FETCH_ASSOC);
+        $q->closeCursor();
+        if ( ! is_array($row) || ! isset($row['image_blob']) || ! is_string($row['image_blob']) || $row['image_blob'] === '' ) {
+            return null;
+        }
+        return array(
+            'mime_type' => is_string($row['mime_type']) ? $row['mime_type'] : 'application/octet-stream',
+            'file_size' => (int) ($row['file_size'] ?? strlen($row['image_blob'])),
+            'image_blob' => $row['image_blob'],
+        );
+    }
+
+    /**
+     * Copy the site badge file onto rows that do not yet point at badge_images.
+     *
+     * A missing file is left alone so a later upgrade can try again. A file over
+     * the cap records its hash and does not store the bytes.
+     */
+    public static function backfillStoredImages(): void {
+        global $CFG, $PDOX;
+
+        $table = "{$CFG->dbprefix}badges";
+        if ( ! self::imageColumnsReady() || $PDOX->metadata("{$CFG->dbprefix}badge_images") === false ) {
+            return;
+        }
+
+        $q = $PDOX->queryReturnError(
+            "SELECT badge_guid, badge_code
+               FROM {$table}
+              WHERE image_id IS NULL AND (image_sha256 IS NULL OR image_sha256 = '')"
+        );
+        if ( ! $q->success ) {
+            return;
+        }
+        $rows = array();
+        while ( $row = $q->fetch(\PDO::FETCH_ASSOC) ) {
+            $rows[] = $row;
+        }
+        $q->closeCursor();
+
+        foreach ( $rows as $row ) {
+            $guid = (string) ($row['badge_guid'] ?? '');
+            $linked = self::storedImageForBadgeCode((string) ($row['badge_code'] ?? ''));
+            if ( $guid === '' || ! is_array($linked) || $linked['sha256'] === '' ) {
+                continue;
+            }
+            if ( $linked['image_id'] !== null ) {
+                $PDOX->queryReturnError(
+                    "UPDATE {$table} SET image_id = :IMAGE_ID, image_sha256 = :IMAGE_SHA WHERE badge_guid = :GUID",
+                    array(
+                        ':IMAGE_ID' => $linked['image_id'],
+                        ':IMAGE_SHA' => $linked['sha256'],
+                        ':GUID' => $guid,
+                    )
+                );
+            } else {
+                $PDOX->queryReturnError(
+                    "UPDATE {$table} SET image_sha256 = :IMAGE_SHA WHERE badge_guid = :GUID",
+                    array(
+                        ':IMAGE_SHA' => $linked['sha256'],
+                        ':GUID' => $guid,
+                    )
+                );
+            }
+        }
+    }
+
+    /**
+     * @return array{image_id:int,sha256:string,mime_type:string,file_size:int}|null
+     */
+    private static function findImageBySha(string $sha): ?array {
+        global $CFG, $PDOX;
+
+        $q = $PDOX->queryReturnError(
+            "SELECT image_id, sha256, mime_type, file_size
+               FROM {$CFG->dbprefix}badge_images
+              WHERE sha256 = :SHA",
+            array(':SHA' => $sha)
+        );
+        if ( ! $q->success ) {
+            return null;
+        }
+        $row = $q->fetch(\PDO::FETCH_ASSOC);
+        $q->closeCursor();
+        if ( ! is_array($row) || ! isset($row['image_id']) ) {
+            return null;
+        }
+        return array(
+            'image_id' => (int) $row['image_id'],
+            'sha256' => (string) $row['sha256'],
+            'mime_type' => (string) ($row['mime_type'] ?? ''),
+            'file_size' => (int) ($row['file_size'] ?? 0),
+        );
+    }
+
+    /**
+     * Read the site badge PNG for this code.
+     *
+     * Null means the file is not there yet. image_id is null when the file is
+     * over the cap; sha256 is still set so the row is not retried.
+     *
+     * @return array{image_id:?int,sha256:string}|null
+     */
+    private static function storedImageForBadgeCode(string $code): ?array {
+        global $CFG;
+
+        if ( $code === '' || ! isset($CFG->badge_path) || ! is_string($CFG->badge_path) || $CFG->badge_path === '' ) {
+            return null;
+        }
+        $path = rtrim($CFG->badge_path, '/') . '/' . $code . '.png';
+        if ( ! is_readable($path) ) {
+            return null;
+        }
+        $size = filesize($path);
+        if ( $size === false ) {
+            return null;
+        }
+        if ( $size > self::MAX_IMAGE_BYTES ) {
+            $sha = hash_file('sha256', $path);
+            error_log("Badge image exceeds " . self::MAX_IMAGE_BYTES . " bytes and was not stored: " . $path);
+            return array(
+                'image_id' => null,
+                'sha256' => is_string($sha) ? $sha : '',
+            );
+        }
+        $bytes = file_get_contents($path);
+        if ( ! is_string($bytes) || $bytes === '' ) {
+            return null;
+        }
+        $stored = self::storeImageBytes($bytes);
+        if ( ! is_array($stored) ) {
+            return null;
+        }
+        return array(
+            'image_id' => $stored['image_id'],
+            'sha256' => $stored['sha256'],
+        );
+    }
+
+    private static function imageColumnsReady(): bool {
+        global $CFG, $PDOX;
+
+        static $ready = null;
+        if ( $ready !== null ) {
+            return $ready;
+        }
+        $table = "{$CFG->dbprefix}badges";
+        $ready = $PDOX->metadata($table) !== false
+            && $PDOX->columnExists('image_id', $table)
+            && $PDOX->columnExists('image_sha256', $table);
+        return $ready;
     }
 
     /**

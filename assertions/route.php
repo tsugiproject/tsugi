@@ -265,6 +265,8 @@ if (strpos($first_part, '.vc.json') !== false) {
     
     if ($resource_file === 'badge.json') {
         $resource = 'badge';
+    } elseif ($resource_file === 'image') {
+        $resource = 'image';
     } elseif ($resource_file === 'issuer.json') {
         $resource = 'issuer';
     } elseif ($resource_file === 'achievement.json') {
@@ -296,6 +298,7 @@ $pieces = null;
 $badge = null;
 $frozen = null;
 $l = null;
+$data = null;
 
 if ( BadgeService::isMintedGuid($encrypted) ) {
     $data = BadgeService::getAssertionDataForGuid($encrypted);
@@ -333,8 +336,10 @@ $title = $row['title'];
 $code = $pieces[1];
 $completion_badge = isset($badge->completion) ? $badge->completion : false;
 $is_minted = is_array($frozen);
+$archive_image = '';
+$claim_frozen = $frozen;
 if ( $is_minted ) {
-    $badge_image = isset($frozen['image_url']) && is_string($frozen['image_url']) ? $frozen['image_url'] : '';
+    $live_image = isset($frozen['image_url']) && is_string($frozen['image_url']) ? $frozen['image_url'] : '';
     $evidence_home = isset($frozen['evidence_url']) && is_string($frozen['evidence_url']) ? $frozen['evidence_url'] : '';
     $evidence_assignments = (isset($frozen['items']) && is_array($frozen['items'])) ? $frozen['items'] : array();
     $guid_path = rtrim($CFG->wwwroot, '/') . '/assertions/' . urlencode($encrypted);
@@ -342,6 +347,12 @@ if ( $is_minted ) {
     $claim_issuer_url = $guid_path . '/issuer.json';
     $claim_achievement_url = $guid_path . '/achievement.json';
     $issuer_name_plain = (isset($frozen['issuer']['name']) && is_string($frozen['issuer']['name'])) ? $frozen['issuer']['name'] : '';
+    $stored_image_id = (is_array($data) && isset($data['image_id'])) ? (int) $data['image_id'] : 0;
+    if ( $stored_image_id > 0 ) {
+        $archive_image = $guid_path . '/image';
+        $claim_frozen['image_url'] = $archive_image;
+    }
+    $badge_image = $live_image !== '' ? $live_image : $archive_image;
 } else {
     $badge_image = $CFG->badge_url.'/'.$code.'.png';
     $evidence_home = isset($CFG->apphome) ? $CFG->apphome : '';
@@ -356,7 +367,7 @@ if ( $is_minted ) {
 switch ($resource) {
     case 'assert':
         // OB2 Assertion
-        $text = Badges::getOb2Assertion($encrypted, $date, $code, $badge, $title, $email, $frozen);
+        $text = Badges::getOb2Assertion($encrypted, $date, $code, $badge, $title, $email, $claim_frozen);
         header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
@@ -365,7 +376,7 @@ switch ($resource) {
         
     case 'assert-vc':
         // OB3/VC Assertion
-        $text = Badges::getOb3Assertion($encrypted, $date, $code, $badge, $title, $email, $frozen);
+        $text = Badges::getOb3Assertion($encrypted, $date, $code, $badge, $title, $email, $claim_frozen);
         header('Content-Type: application/ld+json');
         header('Access-Control-Allow-Origin: *');
         echo($text);
@@ -373,7 +384,7 @@ switch ($resource) {
         
     case 'badge':
         // OB2 BadgeClass
-        $text = Badges::getOb2Badge($encrypted, $code, $badge, $title, $frozen);
+        $text = Badges::getOb2Badge($encrypted, $code, $badge, $title, $claim_frozen);
         header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
         header('Access-Control-Allow-Origin: *');
@@ -384,9 +395,9 @@ switch ($resource) {
         // OB2/OB3 Issuer (default to OB2, can use ?format=ob3)
         $format = isset($_GET['format']) ? $_GET['format'] : 'ob2';
         if ($format === 'ob3') {
-            $text = Badges::getOb3Issuer($encrypted, $code, $badge, $title, $frozen);
+            $text = Badges::getOb3Issuer($encrypted, $code, $badge, $title, $claim_frozen);
         } else {
-            $text = Badges::getOb2Issuer($encrypted, $code, $badge, $title, $frozen);
+            $text = Badges::getOb2Issuer($encrypted, $code, $badge, $title, $claim_frozen);
         }
         header('Content-Type: application/ld+json');
         header('Cache-Control: public, max-age=3600');
@@ -396,12 +407,27 @@ switch ($resource) {
         
     case 'achievement':
         // OB3 Achievement
-        $text = Badges::getOb3Achievement($encrypted, $code, $badge, $title, $frozen);
+        $text = Badges::getOb3Achievement($encrypted, $code, $badge, $title, $claim_frozen);
         header('Content-Type: application/ld+json');
         header('Access-Control-Allow-Origin: *');
         echo($text);
         break;
         
+    case 'image':
+        $content = BadgeService::imageContentForGuid($encrypted);
+        if ( ! is_array($content) ) {
+            http_response_code(404);
+            header('Content-Type: text/plain; charset=UTF-8');
+            echo("Badge image not found\n");
+            break;
+        }
+        header('Content-Type: ' . $content['mime_type']);
+        header('Content-Length: ' . strlen($content['image_blob']));
+        header('Cache-Control: public, max-age=3600');
+        header('X-Content-Type-Options: nosniff');
+        echo($content['image_blob']);
+        break;
+
     case 'index':
         // HTML display page
         $image = $badge_image;
@@ -550,7 +576,7 @@ switch ($resource) {
             
             <div class="row">
                 <div class="col-md-4">
-                    <img id="badge-image" src="<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($badge->title) ?>" class="img-fluid" style="max-width: 200px;">
+                    <img id="badge-image" src="<?= htmlspecialchars($image) ?>"<?php if ( $archive_image !== '' && $archive_image !== $image ): ?> onerror="this.onerror=null;this.src='<?= htmlspecialchars($archive_image, ENT_QUOTES, 'UTF-8') ?>';"<?php endif; ?> alt="<?= htmlspecialchars($badge->title) ?>" class="img-fluid" style="max-width: 200px;">
                 </div>
                 <div class="col-md-8">
                     <h2><?= htmlspecialchars($badge->title) ?></h2>
