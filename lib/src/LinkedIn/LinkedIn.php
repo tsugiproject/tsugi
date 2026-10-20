@@ -58,6 +58,14 @@ class LinkedIn
     }
 
     /**
+     * True when Add to Profile can name an organization.
+     */
+    public function canAddToProfile(): bool
+    {
+        return $this->organizationId !== null || ($this->organizationName !== null && $this->organizationName !== '');
+    }
+
+    /**
      * Build a LinkedIn "Add certification" URL.
      *
      * @param string      $name       Certification name (badge title)

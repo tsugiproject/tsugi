@@ -327,6 +327,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
                 'discussions_widget',
                 'discussions',
                 'grades',
+                'badges',
                 'quiz1',
                 'calendar_widget',
                 'calendar',
@@ -343,10 +344,10 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
             $ids
         );
         $this->assertNotContains('topics', $ids);
-        $this->assertNotContains('badges', $ids);
+        $this->assertContains('badges', $ids);
     }
 
-    public function testStoredBadgesLinkIsDropped()
+    public function testStoredBadgesLinkIsKept()
     {
         $doc = CourseNav::normalize(array(
             'items' => array(
@@ -358,7 +359,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         foreach ( $doc['items'] as $item ) {
             $ids[] = $item['id'];
         }
-        $this->assertNotContains('badges', $ids);
+        $this->assertContains('badges', $ids);
         $this->assertContains('lessons', $ids);
     }
 

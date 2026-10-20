@@ -18,6 +18,29 @@ use \Tsugi\UI\BadgeShare\BadgeShareHead;
 // assertions/.htaccess routes here directly, bypassing tsugi.php
 LTIX::session_start();
 
+/**
+ * Assertion pages are public credentials. The bar is the site name,
+ * opening the app home in a new tab, and Close. No course or build menu.
+ */
+function assertion_nav() {
+    global $CFG, $OUTPUT;
+    $home = (isset($CFG->apphome) && is_string($CFG->apphome) && $CFG->apphome !== '')
+        ? $CFG->apphome
+        : (isset($CFG->wwwroot) && is_string($CFG->wwwroot) ? $CFG->wwwroot : '/');
+    $label = (isset($CFG->servicename) && is_string($CFG->servicename) && $CFG->servicename !== '')
+        ? $CFG->servicename
+        : 'Home';
+    $set = new \Tsugi\UI\MenuSet();
+    $set->setHome(
+        htmlspecialchars($label, ENT_QUOTES, 'UTF-8'),
+        htmlspecialchars($home, ENT_QUOTES, 'UTF-8'),
+        'target="_blank" rel="noopener noreferrer"'
+    );
+    $set->addRight(__('Close'), 'javascript:window_close();');
+    $OUTPUT->menuOverride = $set;
+    $OUTPUT->topNav();
+}
+
 // Parse the URL to extract encrypted ID and resource type
 $url = $_SERVER['REQUEST_URI'];
 $path = trim(parse_url($url, PHP_URL_PATH), '/');
@@ -34,7 +57,7 @@ if (empty($path_parts)) {
     http_response_code(404);
     $OUTPUT->header();
     $OUTPUT->bodyStart();
-    $OUTPUT->topNav();
+    assertion_nav();
     echo("<h2>Page not found.</h2>\n");
     $OUTPUT->footer();
     return;
@@ -49,7 +72,7 @@ if ($first_part === 'publish') {
         http_response_code(400);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Bad Request</h2><p>Missing badge id.</p>\n");
         $OUTPUT->footer();
         return;
@@ -59,22 +82,22 @@ if ($first_part === 'publish') {
         http_response_code(403);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Forbidden</h2><p>You must be logged in to publish a badge.</p>\n");
         $OUTPUT->footer();
         return;
     }
-    if ( ! Manifest::hasCurrent() ) {
+    $PDOX = LTIX::getConnection();
+    $l = BadgeService::lessonsForAssertion($hex_id);
+    if ( ! $l ) {
         die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
     }
-    $PDOX = LTIX::getConnection();
-    $l = Manifest::requireCurrentLessons();
     $parsed = Badges::parseAssertionId($hex_id, $l);
     if ( is_string($parsed) ) {
         http_response_code(404);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Badge not found</h2><p>Invalid or expired badge id.</p>\n");
         $OUTPUT->footer();
         return;
@@ -87,7 +110,7 @@ if ($first_part === 'publish') {
         http_response_code(403);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Forbidden</h2><p>You can only publish your own badges.</p>\n");
         $OUTPUT->footer();
         return;
@@ -98,13 +121,13 @@ if ($first_part === 'publish') {
     $email = U::get($row, 'email', '');
     $context_title = U::get($row, 'title', '');
     $badge_title = isset($badge->title) ? $badge->title : '';
-    $accomplishments = BadgeService::captureAccomplishments($l, $badge, is_string($context_title) ? $context_title : '');
+    $accomplishments = BadgeService::captureAccomplishments($l, $badge, is_string($context_title) ? $context_title : '', $context_id);
     $guid = BadgeService::mintOrGet($current_user_id, $context_id, $code, $displayname, $email, $context_title, $badge_title, $accomplishments);
     if ($guid === false) {
         http_response_code(500);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Error</h2><p>Could not publish badge. Please try again later.</p>\n");
         $OUTPUT->footer();
         return;
@@ -122,7 +145,7 @@ if ($first_part === 'linkedin') {
         http_response_code(404);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Not found</h2><p>Badge not found.</p>\n");
         $OUTPUT->footer();
         return;
@@ -132,7 +155,7 @@ if ($first_part === 'linkedin') {
         http_response_code(404);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Not found</h2><p>LinkedIn sharing is not available for this badge.</p>\n");
         $OUTPUT->footer();
         return;
@@ -183,7 +206,7 @@ if ($first_part === 'badge' && count($path_parts) === 2) {
         // Find the badge by code
         $badge = null;
         foreach($l->lessons->badges as $b) {
-            if ($b->image == $code.'.png') {
+            if (isset($b->image) && \Tsugi\Services\Badges\CourseBadges::imageMatchesCode($b->image, $code)) {
                 $badge = $b;
                 break;
             }
@@ -193,7 +216,7 @@ if ($first_part === 'badge' && count($path_parts) === 2) {
             http_response_code(404);
             $OUTPUT->header();
             $OUTPUT->bodyStart();
-            $OUTPUT->topNav();
+            assertion_nav();
             echo("<h2>Badge not found.</h2>\n");
             $OUTPUT->footer();
             return;
@@ -275,7 +298,7 @@ if (strpos($first_part, '.vc.json') !== false) {
         http_response_code(404);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Page not found.</h2>\n");
         $OUTPUT->footer();
         return;
@@ -284,13 +307,13 @@ if (strpos($first_part, '.vc.json') !== false) {
     http_response_code(404);
     $OUTPUT->header();
     $OUTPUT->bodyStart();
-    $OUTPUT->topNav();
+    assertion_nav();
     echo("<h2>Page not found.</h2>\n");
     $OUTPUT->footer();
     return;
 }
 
-// A published badge is the row. An unpublished hex id still needs the current lessons.
+// A published badge is the row. An unpublished hex id names its own course.
 $PDOX = LTIX::getConnection();
 
 $row = null;
@@ -311,7 +334,11 @@ if ( BadgeService::isMintedGuid($encrypted) ) {
     $badge = $data['badge'];
     $frozen = $data['frozen'];
 } else {
-    $l = Manifest::requireCurrentLessons();
+    $l = BadgeService::lessonsForAssertion($encrypted);
+    if ( ! $l ) {
+        error_log("Assertion parse error: badge not found for id: " . substr($encrypted, 0, 50) . "...");
+        die_with_error_log('Badge not found');
+    }
     $x = Badges::parseAssertionId($encrypted, $l);
     if ( ! is_string($x) ) {
         $row = $x[0];
@@ -354,12 +381,13 @@ if ( $is_minted ) {
     }
     $badge_image = $live_image !== '' ? $live_image : $archive_image;
 } else {
-    $badge_image = $CFG->badge_url.'/'.$code.'.png';
+    $badge_image = Badges::liveImageUrl($badge, $code, (int) $pieces[2]);
     $evidence_home = isset($CFG->apphome) ? $CFG->apphome : '';
-    $evidence_assignments = BadgeService::getAssignmentsForEvidence($code, $l);
-    $claim_badge_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json";
-    $claim_issuer_url = $CFG->wwwroot . "/assertions/issuer.json";
-    $claim_achievement_url = $CFG->wwwroot . "/assertions/badge/" . urlencode($code) . ".json?format=ob3";
+    $evidence_assignments = BadgeService::getAssignmentsForEvidence($code, $l, (int) $pieces[2]);
+    $guid_path = rtrim($CFG->wwwroot, '/') . '/assertions/' . urlencode($encrypted);
+    $claim_badge_url = $guid_path . '/badge.json';
+    $claim_issuer_url = $guid_path . '/issuer.json';
+    $claim_achievement_url = $guid_path . '/achievement.json';
     $issuer_name_plain = null;
 }
 
@@ -562,7 +590,7 @@ switch ($resource) {
         );
         echo("\n");
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         ?>
         <style>
         .badge-share-links { list-style: none; display: inline; margin: 0; padding: 0; }
@@ -780,7 +808,7 @@ switch ($resource) {
         http_response_code(404);
         $OUTPUT->header();
         $OUTPUT->bodyStart();
-        $OUTPUT->topNav();
+        assertion_nav();
         echo("<h2>Page not found.</h2>\n");
         $OUTPUT->footer();
         break;

@@ -67,6 +67,13 @@ class Output {
 
     public $buffer = false;
 
+    /**
+     * When set, topNav() renders this menu and skips the course and site menus.
+     *
+     * @var \Tsugi\UI\MenuSet|false
+     */
+    public $menuOverride = false;
+
     const SUPPRESS_SITE_NAV = 'TSUGI_OUTPUT_SUPPRESS_SITE_NAV';
 
     /** Session key for error flash messages (must match U::FLASH_ERROR) */
@@ -876,7 +883,9 @@ $('a').each(function (x) {
         global $CFG, $TSUGI_LAUNCH;
 
         $menu_set = false;
-        if ( \Tsugi\Controllers\Courses::isCourseMountedRequest() ) {
+        if ( $this->menuOverride instanceof \Tsugi\UI\MenuSet ) {
+            $menu_set = $this->menuOverride;
+        } else if ( \Tsugi\Controllers\Courses::isCourseMountedRequest() ) {
             $cid = \Tsugi\Controllers\Courses::courseIdFromRequest();
             $doc = \Tsugi\Core\Manifest::navigationDocumentForContext($cid);
             $menu_set = \Tsugi\Services\CourseNav\CourseNav::compile($doc, $cid);
@@ -1160,7 +1169,11 @@ $retval .= <<< EOF
 EOF;
 
         if ( $set->home ) {
-            $retval .= '      <a class="navbar-brand" href="'.$set->home->href.'">'.$set->home->link.'</a>'."\n";
+            $home_attr = '';
+            if ( isset($set->home->attr) && is_string($set->home->attr) && $set->home->attr !== '' ) {
+                $home_attr = ' '.$set->home->attr;
+            }
+            $retval .= '      <a class="navbar-brand" href="'.$set->home->href.'"'.$home_attr.'>'.$set->home->link.'</a>'."\n";
         }
         $retval .= "    </div>\n";
         $retval .= '    <div id="'.$collapse_id.'" class="navbar-collapse collapse">'."\n";

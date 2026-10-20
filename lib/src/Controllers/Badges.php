@@ -8,7 +8,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Tsugi\Core\LTIX;
 use Tsugi\Core\Manifest;
 use Tsugi\Grades\GradeUtil;
+use Tsugi\Core\Badges as BadgeJson;
 use Tsugi\Services\Badges\BadgeService;
+use Tsugi\Services\Badges\CourseBadges;
 use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Util\U;
 
@@ -108,15 +110,35 @@ class Badges extends Tool {
 <div id="myTabContent" class="tab-content">
   <div class="tab-pane fade active in" id="home" role="tabpanel" aria-labelledby="home-tab">
 <?php
+        $defined = array();
+        if ( isset($lessons->lessons->badges) && is_iterable($lessons->lessons->badges) ) {
+            foreach ( $lessons->lessons->badges as $badge ) {
+                $defined[] = $badge;
+            }
+        }
+        if ( count($defined) < 1 ) {
+            echo('<p>'.htmlspecialchars(__('No badges are defined for this course.')).'</p>');
+            if ( Manifest::activeId() > 0 ) {
+                $author = new self();
+                if ( $author->isInstructor() ) {
+                    $authorUrl = self::determineToolHome('/settings') . '/badges';
+                    echo('<p><a href="'.htmlspecialchars($authorUrl).'">'.htmlspecialchars(__('Author badges')).'</a></p>');
+                }
+            }
+        }
         echo('<table class="table table-striped table-hover "><tbody>'."\n");
-        foreach($lessons->lessons->badges as $badge) {
-            $threshold = $badge->threshold;
+        foreach($defined as $badge) {
+            $threshold = (isset($badge->threshold) && is_numeric($badge->threshold)) ? $badge->threshold : 1.0;
+            $assignmentIds = (isset($badge->assignments) && is_iterable($badge->assignments)) ? $badge->assignments : array();
             $count = 0;
             $total = 0;
             $scores = array();
-            foreach($badge->assignments as $resource_link_id) {
-                $lti = $lessons->getLtiByRlid($resource_link_id);
-                $graded = LessonsService::ltiLaunchIsGraded($lti);
+            $places = array();
+            foreach($assignmentIds as $resource_link_id) {
+                $id = (string) $resource_link_id;
+                $place = CourseBadges::placement($lessons, $id);
+                $places[$id] = $place;
+                $graded = $place['graded'];
                 $score = 0;
                 if ( $graded && isset($allgrades[$resource_link_id]) ) {
                     $score = 100*$allgrades[$resource_link_id];
@@ -133,15 +155,15 @@ class Badges extends Tool {
             if ( $progress < 5 ) $progress = 5;
             if ( $progress > 5 ) $kind = 'warning';
             if ( $progress > 50 ) $kind = 'info';
-            if ( $progress >= $threshold*100 ) {
+            if ( $progress >= (int) round($threshold * 100) ) {
                 $kind = 'success';
                 $awarded[] = $badge;
             }
             echo('<tr><td class="info">');
-            if ( ! isset($CFG->badge_url) ) {
+            $image = CourseBadges::displayUrl($badge, ReqScope::currentContextId());
+            if ( $image === '' ) {
                 echo('<i class="fa fa-certificate" aria-hidden="true" style="padding-right: 5px;"></i>');
             } else {
-                $image = $CFG->badge_url . '/' . $badge->image;
                 echo('<img src="'.htmlspecialchars($image).'" alt="'.htmlspecialchars($badge->title).'" style="width: 4rem;"/> ');
             }
             echo(htmlspecialchars($badge->title));
@@ -150,9 +172,10 @@ class Badges extends Tool {
             echo('<div class="progress-bar progress-bar-'.$kind.'" style="width: '.$progress.'%"></div>');
             echo('</div>');
             echo("</td></tr>\n");
-            foreach($badge->assignments as $resource_link_id) {
-                $lti = $lessons->getLtiByRlid($resource_link_id);
-                $graded = LessonsService::ltiLaunchIsGraded($lti);
+            foreach($assignmentIds as $resource_link_id) {
+                $id = (string) $resource_link_id;
+                $place = isset($places[$id]) ? $places[$id] : CourseBadges::placement($lessons, $id);
+                $graded = $place['graded'];
                 $score = 0;
                 if ( $graded && isset($allgrades[$resource_link_id]) ) {
                     $score = 100*$allgrades[$resource_link_id];
@@ -163,15 +186,15 @@ class Badges extends Tool {
                 if ( $progress > 5 ) $kind = 'warning';
                 if ( $progress > 50 ) $kind = 'info';
                 if ( $progress >= 100 ) $kind = 'success';
-                $module = $lessons->getModuleByRlid($resource_link_id);
 
                 echo('<tr><td>');
 
-                $href= "Missing ". $resource_link_id;
-                if ($module != null )  $href = $lessons->lessonsHome() . '/' . urlencode($module->anchor);
+                $href = $lessons->lessonsHome();
+                if ( ! empty($place['anchor']) ) {
+                    $href = $lessons->lessonsHome() . '/' . urlencode($place['anchor']);
+                }
 
-                $badge_title = "Missing ". $resource_link_id;
-                if ( $lti != null ) $badge_title = $lti->title;
+                $badge_title = $place['title'];
 
                 echo('<a href="'.htmlspecialchars($href).'">');
                 echo('<i class="fa fa-square-o text-info" aria-hidden="true" style="label label-success; padding-right: 5px;"></i>');
@@ -197,44 +220,17 @@ class Badges extends Tool {
     } else if ( ! ReqScope::isLoggedIn() || ! ReqScope::currentContextId() ) {
         echo("<p>You must be logged in to see your badges.</p>\n");
     } else {
-        // Check badge configuration before attempting to encrypt
-        if ( !isset($CFG->badge_encrypt_password) || empty($CFG->badge_encrypt_password) || $CFG->badge_encrypt_password === false ||
-             !isset($CFG->badge_path) || empty($CFG->badge_path) ||
-             !isset($CFG->badge_url) || empty($CFG->badge_url) ||
-             !isset($CFG->badge_assert_salt) || empty($CFG->badge_assert_salt) || $CFG->badge_assert_salt === false ) {
-            echo("<div class=\"alert alert-warning\">\n");
-            echo("<h3>Badge Configuration Required</h3>\n");
-            echo("<p>The following badge configuration parameters are missing or not set in your <code>config.php</code>:</p>\n");
-            echo("<ul>\n");
-            if ( !isset($CFG->badge_encrypt_password) || empty($CFG->badge_encrypt_password) || $CFG->badge_encrypt_password === false ) {
-                echo("<li><code>\$CFG->badge_encrypt_password</code></li>\n");
+        $filesRequired = false;
+        foreach ( $awarded as $badge ) {
+            $badgeImage = (isset($badge->image) && is_string($badge->image)) ? $badge->image : '';
+            if ( ! CourseBadges::isPublicImage($badgeImage) ) {
+                $filesRequired = true;
+                break;
             }
-            if ( !isset($CFG->badge_assert_salt) || empty($CFG->badge_assert_salt) || $CFG->badge_assert_salt === false ) {
-                echo("<li><code>\$CFG->badge_assert_salt</code></li>\n");
-            }
-            if ( !isset($CFG->badge_path) || empty($CFG->badge_path) ) {
-                echo("<li><code>\$CFG->badge_path</code></li>\n");
-            }
-            if ( !isset($CFG->badge_url) || empty($CFG->badge_url) ) {
-                echo("<li><code>\$CFG->badge_url</code></li>\n");
-            }
-            echo("</ul>\n");
-            echo("<h4>How to Configure Badges</h4>\n");
-            echo("<p>To enable badge functionality, add the following to your <code>config.php</code> file:</p>\n");
-            echo("<pre>\n");
-            echo("// Badge generation settings - once you set these values to something\n");
-            echo("// other than false and start issuing badges - don't change these or\n");
-            echo("// existing badge images that have been downloaded from the system\n");
-            echo("// will be invalidated.\n");
-            echo("\$CFG->badge_encrypt_password = \"somethinglongwithhex387438758974987\";\n");
-            echo("\$CFG->badge_assert_salt = \"mediumlengthhexstring\";\n");
-            echo("\n");
-            echo("// This folder contains the badge images\n");
-            echo("\$CFG->badge_path = \$CFG->dirroot . '/../bimages';\n");
-            echo("\$CFG->badge_url = \$CFG->apphome . '/bimages';\n");
-            echo("</pre>\n");
-            echo("<p>For more information, see <code>config-dist.php</code> in your Tsugi installation.</p>\n");
-            echo("</div>\n");
+        }
+        $configError = BadgeJson::checkBadgeConfig($filesRequired);
+        if ( $configError !== false ) {
+            echo('<div class="alert alert-warning">'.$configError.'</div>');
         } else {
             echo("<ul style=\"list-style: none;\">\n");
             foreach($awarded as $badge) {
@@ -250,8 +246,14 @@ class Badges extends Tool {
                 $assert_url = $published_guid !== null
                     ? $CFG->wwwroot . '/assertions/' . rawurlencode($published_guid) . '.html'
                     : $CFG->wwwroot . '/assertions/' . $encrypted . '.html';
+                $thumb = CourseBadges::isPublicImage($badge->image)
+                    ? CourseBadges::displayUrl($badge, ReqScope::currentContextId())
+                    : '';
+                if ( $thumb === '' ) {
+                    $thumb = $CFG->wwwroot.'/badges/images/'.$encrypted.'.png';
+                }
                 echo('<a href="'.htmlspecialchars($assert_url).'" target="_blank" rel="noopener noreferrer" aria-label="'.__('View badge assertion, opens in new window').'">');
-                echo('<img src="'.htmlspecialchars($CFG->wwwroot.'/badges/images/'.$encrypted.'.png').'" width="90" alt="'.htmlspecialchars($badge->title).'"></a>');
+                echo('<img src="'.htmlspecialchars($thumb).'" width="90" alt="'.htmlspecialchars($badge->title).'"></a>');
                 echo(htmlspecialchars($badge->title));
                 echo("</p></li>\n");
             }

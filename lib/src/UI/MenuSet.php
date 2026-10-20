@@ -36,9 +36,9 @@ class MenuSet {
      *
      * @return MenuSet The instance to allow for chaining
      */
-    public function setHome($link, $href)
+    public function setHome($link, $href, $attr=false)
     {
-        $this->home = new \Tsugi\UI\MenuEntry($link, $href);
+        $this->home = new \Tsugi\UI\MenuEntry($link, $href, $attr);
         return $this;
     }
 

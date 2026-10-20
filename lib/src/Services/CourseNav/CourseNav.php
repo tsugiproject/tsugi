@@ -147,6 +147,7 @@ class CourseNav {
             array('id' => 'discussions_widget', 'kind' => 'widget', 'label' => 'Discussions widget', 'route' => '/discussions', 'site' => false),
             array('id' => 'discussions', 'kind' => 'link', 'label' => 'Discussions', 'route' => '/discussions', 'site' => false),
             array('id' => 'grades', 'kind' => 'link', 'label' => 'Grades', 'route' => '/grades', 'site' => false),
+            array('id' => 'badges', 'kind' => 'link', 'label' => 'Badges', 'route' => '/badges', 'site' => false),
             array('id' => 'quiz1', 'kind' => 'link', 'label' => 'Quizzes', 'route' => '/quiz1', 'site' => false),
             array('id' => 'calendar_widget', 'kind' => 'widget', 'label' => 'Calendar widget', 'route' => '/calendar', 'site' => false),
             array('id' => 'calendar', 'kind' => 'link', 'label' => 'Calendar', 'route' => '/calendar', 'site' => false),

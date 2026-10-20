@@ -14,12 +14,14 @@ if ( !isset($_GET['id']) ) {
 require_once "../config.php";
 require_once "badge-util.php";
 
-$l = Manifest::requireCurrentLessons();
-
 $PDOX = LTIX::getConnection();
 
 //echo("<pre>\n");
 $encrypted = $_GET['id'];
+$l = \Tsugi\Services\Badges\BadgeService::lessonsForAssertion($encrypted);
+if ( ! $l ) {
+    die_with_error_log('Cannot find lessons.json ($CFG->lessons) or an active course manifest');
+}
 $x = parse_badge_id($encrypted, $l);
 if ( is_string($x) ) {
     if ( strpos($x, '<h2>Badge Configuration Required</h2>') !== false ) {

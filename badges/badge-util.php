@@ -59,82 +59,19 @@ function check_badge_config() {
 }
 
 function parse_badge_id($encrypted, $lesson) {
-    global $CFG, $PDOX;
-
-    $config_error = check_badge_config();
-    if ( $config_error !== false ) {
-        return $config_error;
-    }
-
-    $decrypted = \Tsugi\Crypt\AesCtr::decrypt(hex2bin($encrypted), $CFG->badge_encrypt_password, 256);
-    $pieces = explode(':',$decrypted);
-
-    if ( count($pieces) != 3 || !is_numeric($pieces[0]) || !is_numeric($pieces[2])) {
-        return 'Decryption failed';
-    }
-    $pattern = '/[^a-zA-Z0-9_]/';
-    if ( preg_match($pattern, $pieces[1]) ) {
-        return 'File pattern fail';
-    }
-
-    $badge = null;
-    if ( is_object($lesson) && isset($lesson->lessons->badges) && is_iterable($lesson->lessons->badges) ) {
-        foreach ( $lesson->lessons->badges as $candidate ) {
-            if ( isset($candidate->image) && $candidate->image == $pieces[1].'.png' ) {
-                $badge = $candidate;
-                break;
-            }
-        }
-    }
-    $minted = \Tsugi\Services\Badges\BadgeService::mintedDisplayRow(
-        (int) $pieces[0],
-        (string) $pieces[1],
-        (int) $pieces[2]
-    );
-    if ( $badge === null && $minted !== null ) {
-        $badge = \Tsugi\Services\Badges\BadgeService::syntheticBadge(
-            (string) $pieces[1],
-            $minted['badge_title']
-        );
-    }
-    if ( $badge === null ) {
-        return 'Bad badge image';
-    }
-
-    // Load the badge
-    $file = $CFG->badge_path . '/' . $pieces[1] . '.png';
-    $png = file_get_contents($file);
-    if ( $png === false ) return 'File contents fail';
-
-    // Join the course even when it is soft-deleted. Published badges stay valid.
-    $row = $PDOX->rowDie(
-            "SELECT displayname, email, user_key, U.login_at, title FROM {$CFG->dbprefix}lti_user AS U
-            JOIN {$CFG->dbprefix}lti_membership AS M
-            ON U.user_id = M.user_id 
-            JOIN {$CFG->dbprefix}lti_context AS C
-            ON M.context_id = C.context_id 
-            WHERE U.user_id = :UID AND M.context_id = :CID",
-            array(":UID" => $pieces[0], ":CID" => $pieces[2])
-    );
-    if ( $row === false ) {
-        if ( $minted === null ) {
-            return 'Metadata failed';
-        }
-        $row = $minted;
-    }
-
-    return array($row, $png, $pieces, $badge);
+    return \Tsugi\Core\Badges::parseAssertionId($encrypted, $lesson);
 }
 
 function get_assertion($encrypted, $date, $code, $badge, $title, $email ) {
     global $CFG;
 
-    $config_error = check_badge_config();
+    $public = is_object($badge) && isset($badge->image) && \Tsugi\Services\Badges\CourseBadges::isPublicImage($badge->image);
+    $config_error = \Tsugi\Core\Badges::checkBadgeConfig( ! $public );
     if ( $config_error !== false ) {
         return $config_error;
     }
 
-    $image = $CFG->badge_url.'/'.$code.'.png';
+    $image = \Tsugi\Core\Badges::liveImageUrl($badge, $code, \Tsugi\Core\Badges::contextIdFromAssertion($encrypted));
     $recepient = 'sha256$' . hash('sha256', $email . $CFG->badge_assert_salt);
     $assert_id = $CFG->wwwroot . "/badges/assert.php?id=". $encrypted;
     $badge_url = $CFG->wwwroot . "/badges/badge-info.php?id=". $encrypted;
@@ -165,12 +102,13 @@ EOF;
 function get_badge($encrypted, $code, $badge, $title) {
     global $CFG;
 
-    $config_error = check_badge_config();
+    $public = is_object($badge) && isset($badge->image) && \Tsugi\Services\Badges\CourseBadges::isPublicImage($badge->image);
+    $config_error = \Tsugi\Core\Badges::checkBadgeConfig( ! $public );
     if ( $config_error !== false ) {
         return $config_error;
     }
 
-    $image = $CFG->badge_url.'/'.$code.'.png';
+    $image = \Tsugi\Core\Badges::liveImageUrl($badge, $code, \Tsugi\Core\Badges::contextIdFromAssertion($encrypted));
     // Use code-based URL instead of encrypted ID
     $badge_url = $CFG->wwwroot . "/badges/badge-info.php?code=". urlencode($code);
     $badge_issuer = $CFG->wwwroot . "/badges/badge-issuer.php";
@@ -193,7 +131,8 @@ EOF;
 function get_issuer($encrypted, $code, $badge, $title) {
     global $CFG;
 
-    $config_error = check_badge_config();
+    $public = is_object($badge) && isset($badge->image) && \Tsugi\Services\Badges\CourseBadges::isPublicImage($badge->image);
+    $config_error = \Tsugi\Core\Badges::checkBadgeConfig( ! $public );
     if ( $config_error !== false ) {
         return $config_error;
     }

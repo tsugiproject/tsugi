@@ -106,7 +106,7 @@ class BadgeService {
             ));
         }
         $json = self::encodeAccomplishments($accomplishments);
-        $linked = self::imageColumnsReady() ? self::storedImageForBadgeCode($badge_code) : null;
+        $linked = self::imageColumnsReady() ? self::storedImageForBadgeCode($badge_code, $context_id) : null;
 
         $q = $PDOX->queryReturnError(
             "SELECT badge_guid FROM {$CFG->dbprefix}badges WHERE user_id = :UID AND context_id = :CID AND badge_code = :CODE",
@@ -312,12 +312,17 @@ class BadgeService {
      * @param object $badge A lessons badge object
      * @return array<string,mixed>
      */
-    public static function captureAccomplishments($lessons, $badge, string $context_title): array {
+    public static function captureAccomplishments($lessons, $badge, string $context_title, int $context_id = 0): array {
         global $CFG;
 
         $code = '';
+        $imagePath = '';
         if ( isset($badge->image) && is_string($badge->image) ) {
-            $code = basename($badge->image, '.png');
+            $imagePath = $badge->image;
+            $code = CourseBadges::codeFromImage($imagePath);
+            if ( $code === '' ) {
+                $code = basename($imagePath, '.png');
+            }
         }
         $title = (isset($badge->title) && is_string($badge->title) && $badge->title !== '')
             ? $badge->title
@@ -328,7 +333,7 @@ class BadgeService {
             $narrative .= " at {$servicename}";
         }
 
-        $image = self::imageSnapshot($code);
+        $image = self::imageSnapshot($code, $imagePath, $context_id);
         $evidence = (isset($CFG->apphome) && is_string($CFG->apphome)) ? $CFG->apphome : '';
 
         $threshold = null;
@@ -338,7 +343,7 @@ class BadgeService {
 
         $items = array();
         if ( $code !== '' && is_object($lessons) ) {
-            $items = self::getAssignmentsForEvidence($code, $lessons);
+            $items = self::getAssignmentsForEvidence($code, $lessons, $context_id);
         }
 
         return array(
@@ -354,15 +359,30 @@ class BadgeService {
     }
 
     /**
-     * Public image URL and the SHA-256 of the PNG bytes at badge_path.
+     * Public image URL and the SHA-256 of the PNG bytes.
      *
-     * An empty hash means the file was not readable when the snapshot was written.
-     * The key is still stored so a later upgrade does not clear the row again.
+     * A Public files path is read from that course. Anything else is the site
+     * badge folder. An empty hash means the file was not readable when the
+     * snapshot was written. The key is still stored so a later upgrade does
+     * not clear the row again.
      *
      * @return array{image_url:string,image_sha256:string}
      */
-    private static function imageSnapshot(string $code): array {
+    private static function imageSnapshot(string $code, string $imagePath = '', int $contextId = 0): array {
         global $CFG;
+
+        if ( CourseBadges::isPublicImage($imagePath) ) {
+            $url = CourseBadges::displayUrl($imagePath, $contextId);
+            $sha = '';
+            $bytes = CourseBadges::bytes($imagePath, $contextId);
+            if ( is_string($bytes) && $bytes !== '' ) {
+                $sha = hash('sha256', $bytes);
+            }
+            return array(
+                'image_url' => $url,
+                'image_sha256' => $sha,
+            );
+        }
 
         $url = '';
         $sha = '';
@@ -488,7 +508,7 @@ class BadgeService {
         }
 
         $q = $PDOX->queryReturnError(
-            "SELECT badge_guid, badge_code
+            "SELECT badge_guid, badge_code, context_id
                FROM {$table}
               WHERE image_id IS NULL AND (image_sha256 IS NULL OR image_sha256 = '')"
         );
@@ -503,7 +523,10 @@ class BadgeService {
 
         foreach ( $rows as $row ) {
             $guid = (string) ($row['badge_guid'] ?? '');
-            $linked = self::storedImageForBadgeCode((string) ($row['badge_code'] ?? ''));
+            $linked = self::storedImageForBadgeCode(
+                (string) ($row['badge_code'] ?? ''),
+                isset($row['context_id']) ? (int) $row['context_id'] : 0
+            );
             if ( $guid === '' || ! is_array($linked) || $linked['sha256'] === '' ) {
                 continue;
             }
@@ -557,15 +580,28 @@ class BadgeService {
     }
 
     /**
-     * Read the site badge PNG for this code.
+     * Read the PNG for this code.
      *
-     * Null means the file is not there yet. image_id is null when the file is
-     * over the cap; sha256 is still set so the row is not retried.
+     * A manifest badge whose image is in Files Public is copied from that
+     * file. Otherwise the site badge folder is used. Null means the file is
+     * not there yet. image_id is null when the file is over the cap; sha256
+     * is still set so the row is not retried.
      *
      * @return array{image_id:?int,sha256:string}|null
      */
-    private static function storedImageForBadgeCode(string $code): ?array {
+    private static function storedImageForBadgeCode(string $code, int $contextId = 0): ?array {
         global $CFG;
+
+        if ( $contextId > 0 && $code !== '' ) {
+            $lessons = self::lessonsForContext($contextId, null);
+            $defined = self::badgeDefinition($lessons, $code);
+            $imagePath = (is_object($defined) && isset($defined->image) && is_string($defined->image))
+                ? $defined->image
+                : '';
+            if ( CourseBadges::isPublicImage($imagePath) ) {
+                return CourseBadges::storedLink($imagePath, $contextId);
+            }
+        }
 
         if ( $code === '' || ! isset($CFG->badge_path) || ! is_string($CFG->badge_path) || $CFG->badge_path === '' ) {
             return null;
@@ -718,7 +754,8 @@ class BadgeService {
                 $accomplishments = self::captureAccomplishments(
                     $lessons,
                     $badge,
-                    (string) ($row['context_title'] ?? '')
+                    (string) ($row['context_title'] ?? ''),
+                    isset($row['context_id']) ? (int) $row['context_id'] : 0
                 );
             } else {
                 $accomplishments = self::minimalAccomplishments($row);
@@ -863,10 +900,42 @@ class BadgeService {
     }
 
     /**
+     * Lessons for the course named inside an unpublished assertion id.
+     *
+     * A manifest course wins. Otherwise the current file-based lessons.
+     *
+     * @param LessonsService|null $fallback
+     * @return LessonsService|null
+     */
+    public static function lessonsForAssertion(string $encrypted, $fallback = null): ?LessonsService {
+        global $PDOX;
+        if ( ! isset($PDOX) || ! is_object($PDOX) ) {
+            $PDOX = \Tsugi\Core\LTIX::getConnection();
+        }
+        $contextId = \Tsugi\Core\Badges::contextIdFromAssertion($encrypted);
+        if ( $contextId > 0 ) {
+            $course = self::lessonsForContext($contextId, null);
+            if ( $course instanceof LessonsService ) {
+                return $course;
+            }
+        }
+        if ( $fallback instanceof LessonsService ) {
+            return $fallback;
+        }
+        if ( Manifest::hasCurrent() ) {
+            $current = Manifest::currentLessons();
+            if ( $current instanceof LessonsService ) {
+                return $current;
+            }
+        }
+        return null;
+    }
+
+    /**
      * @param LessonsService|null $siteLessons
      * @return LessonsService|null
      */
-    private static function lessonsForContext(int $context_id, $siteLessons) {
+    public static function lessonsForContext(int $context_id, $siteLessons = null) {
         global $CFG, $PDOX;
 
         if ( $context_id > 0 ) {
@@ -904,7 +973,7 @@ class BadgeService {
             return null;
         }
         foreach ( $lessons->lessons->badges as $badge ) {
-            if ( isset($badge->image) && $badge->image === $badge_code . '.png' ) {
+            if ( isset($badge->image) && CourseBadges::imageMatchesCode($badge->image, $badge_code) ) {
                 return $badge;
             }
         }
@@ -916,18 +985,10 @@ class BadgeService {
      *
      * @return array<int, array{resource_link_id:string, title:string, href:?string}>
      */
-    public static function getAssignmentsForEvidence(string $badge_code, $lessons): array {
+    public static function getAssignmentsForEvidence(string $badge_code, $lessons, int $contextId = 0): array {
         global $CFG;
         $base = rtrim($CFG->apphome ?? $CFG->wwwroot ?? '', '/');
-        $badge = null;
-        if ( is_object($lessons) && isset($lessons->lessons->badges) && is_iterable($lessons->lessons->badges) ) {
-            foreach ( $lessons->lessons->badges as $b ) {
-                if ( isset($b->image) && $b->image === $badge_code . '.png' ) {
-                    $badge = $b;
-                    break;
-                }
-            }
-        }
+        $badge = self::badgeDefinition($lessons, $badge_code);
         if ( ! $badge || ! isset($badge->assignments) || ! is_iterable($badge->assignments) ) {
             return array();
         }
@@ -936,8 +997,20 @@ class BadgeService {
             $resource_link_id = (string) $resource_link_id;
             $lti = $lessons->getLtiByRlid($resource_link_id);
             $mod = $lessons->getModuleByRlid($resource_link_id);
-            $title = $lti ? $lti->title : $resource_link_id;
-            $href = $mod ? $base . '/lessons/' . urlencode($mod->anchor) : null;
+            $place = CourseBadges::placement($lessons, $resource_link_id, $contextId);
+            if ( $lti && isset($lti->title) && is_string($lti->title) && $lti->title !== '' ) {
+                $title = $lti->title;
+            } elseif ( ! empty($place['known']) && $place['title'] !== '' ) {
+                $title = $place['title'];
+            } else {
+                $title = $resource_link_id;
+            }
+            $href = null;
+            if ( $mod && isset($mod->anchor) ) {
+                $href = $base . '/lessons/' . urlencode($mod->anchor);
+            } elseif ( ! empty($place['anchor']) ) {
+                $href = $base . '/lessons/' . urlencode($place['anchor']);
+            }
             $result[] = array(
                 'resource_link_id' => $resource_link_id,
                 'title' => $title,

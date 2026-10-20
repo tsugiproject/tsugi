@@ -1,11 +1,11 @@
 <?php
 /**
- * Course Settings tabs: Theme, Navigation, Images, External Tools, External Links,
- * Import, Export, Delete.
+ * Course Settings tabs: Theme, Navigation, Images, Badges, External Tools,
+ * External Links, Import, Export, Delete.
  *
- * Expected: $setup_url, $navigation_url, $images_url, $tools_url, $lesson_links_url,
- * $import_url, $export_url, $delete_url,
- * $setup_tab ('theme'|'navigation'|'images'|'tools'|'links'|'import'|'export'|'delete')
+ * Expected: $setup_url, $navigation_url, $images_url, $badges_url, $tools_url,
+ * $lesson_links_url, $import_url, $export_url, $delete_url,
+ * $setup_tab ('theme'|'navigation'|'images'|'badges'|'tools'|'links'|'import'|'export'|'delete')
  */
 if ( ! isset($setup_tab) ) {
     $setup_tab = 'theme';
@@ -15,6 +15,12 @@ if ( ! isset($navigation_url) ) {
 }
 if ( ! isset($images_url) ) {
     $images_url = $setup_url;
+}
+if ( ! isset($badges_url) || ! is_string($badges_url) || $badges_url === '' ) {
+    $query = strpos($setup_url, '?');
+    $path = $query === false ? $setup_url : substr($setup_url, 0, $query);
+    $tail = $query === false ? '' : substr($setup_url, $query);
+    $badges_url = rtrim($path, '/') . '/badges' . $tail;
 }
 if ( ! isset($tools_url) ) {
     $tools_url = $setup_url;
@@ -48,6 +54,9 @@ if ( ! isset($delete_url) ) {
   </li>
   <li class="<?= $setup_tab === 'images' ? 'active' : '' ?>">
     <a href="<?= htmlspecialchars($images_url) ?>"><?= __('Images') ?></a>
+  </li>
+  <li class="<?= $setup_tab === 'badges' ? 'active' : '' ?>">
+    <a href="<?= htmlspecialchars($badges_url) ?>"><?= __('Badges') ?></a>
   </li>
   <li class="<?= $setup_tab === 'tools' ? 'active' : '' ?>">
     <a href="<?= htmlspecialchars($tools_url) ?>"><?= __('External Tools') ?></a>
