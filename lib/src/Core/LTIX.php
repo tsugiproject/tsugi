@@ -294,6 +294,36 @@ class LTIX {
     }
 
     /**
+     * Bind an ID token nonce to the authenticated state from oidc_login.
+     * Returns true on success or an error string. This does not consume state:
+     * postMessage/postverify may revisit the callback before it forwards to a tool.
+     * JWT signature validation and the existing nonce replay check still apply.
+     */
+    public static function checkOidcNonce($state, $nonce) {
+        global $CFG;
+
+        if ( ! is_string($state) || $state === '' ) {
+            return 'Missing OIDC state';
+        }
+        try {
+            $decoded = JWT::decode($state, new \Firebase\JWT\Key($CFG->cookiesecret, 'HS256'));
+        } catch (\Exception $e) {
+            return 'Unable to decode OIDC state';
+        }
+        if ( ! isset($decoded->time) || ! is_int($decoded->time) || abs($decoded->time - time()) > 60 ) {
+            return 'Bad time in OIDC state';
+        }
+        if ( ! isset($decoded->signature) || $decoded->signature !== self::getBrowserSignature() ) {
+            return 'Invalid browser signature in OIDC state';
+        }
+        if ( ! isset($decoded->nonce) || ! is_string($decoded->nonce) || $decoded->nonce === '' ||
+             ! is_string($nonce) || $nonce === '' || ! hash_equals($decoded->nonce, $nonce) ) {
+            return 'Missing or mismatched OIDC nonce';
+        }
+        return true;
+    }
+
+    /**
      * Extract all of the post data, set up data in tables, and set up session.
      */
     public static function setupSession($needed=self::ALL, $request_data=false) {
@@ -336,6 +366,16 @@ class LTIX {
             $msg = '';
             if ( is_string($post) ) $msg = $post . ' ';
             self::abort_with_error_log('LTI Launch Error: '.$msg, $request_data);
+        }
+
+        // Tools also accept direct posts. Enforce nonce binding here before creating
+        // a launch session, so bypassing oidc_launch cannot bypass its nonce check.
+        if ( $LTI13 ) {
+            $state = U::get($request_data === false ? $_POST : $request_data, 'state');
+            $nonce_check = self::checkOidcNonce($state, U::get($post, 'nonce'));
+            if ( $nonce_check !== true ) {
+                self::abort_with_error_log($nonce_check);
+            }
         }
 
         // We make up a Session ID Key because we don't want a new one
