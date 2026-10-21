@@ -14,8 +14,10 @@ namespace Tsugi\Services\Outbound;
 class ToolMessagePlacement {
 
     /**
-     * IMS Dynamic Registration examples use ContentArea and RichTextEditor.
-     * The snake_case names are the placement strings Tsugi already sends.
+     * IMS Dynamic Registration names ContentArea and RichTextEditor.
+     * Canvas uses its own strings, such as course_navigation and link_selection.
+     * lessons, content_editor, and common_cartridge are Tsugi placements.
+     * A name that is not listed here is still stored. It is not rejected.
      *
      * @var array<string, array<string, true>>
      */
@@ -44,6 +46,34 @@ class ToolMessagePlacement {
             'assignment_selection' => true,
         ),
     );
+
+    /**
+     * Message types the course editor can add.
+     *
+     * @return array<int, string>
+     */
+    public static function knownMessageTypes() {
+        return array(
+            'LtiResourceLinkRequest',
+            'LtiDeepLinkingRequest',
+            'LtiDataPrivacyLaunchRequest',
+            'LtiContextLaunchRequest',
+        );
+    }
+
+    /**
+     * Placements this message type may carry. An unknown type has none.
+     *
+     * @param string $messageType
+     * @return array<int, string>
+     */
+    public static function knownPlacements($messageType) {
+        $messageType = (string) $messageType;
+        if ( ! isset(self::ALLOWED[$messageType]) ) {
+            return array();
+        }
+        return array_keys(self::ALLOWED[$messageType]);
+    }
 
     /**
      * @param string $messageType

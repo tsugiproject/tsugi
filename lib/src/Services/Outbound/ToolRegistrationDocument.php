@@ -41,6 +41,26 @@ class ToolRegistrationDocument {
     );
 
     /**
+     * Scope URIs this registration knows how to store, in display order.
+     *
+     * @return array<int, string>
+     */
+    public static function scopeVocabulary() {
+        return self::SCOPE_ORDER;
+    }
+
+    /**
+     * Claim names this registration knows how to store, in display order.
+     *
+     * iss and sub are included. They are always sent and are not a grant.
+     *
+     * @return array<int, string>
+     */
+    public static function claimVocabulary() {
+        return self::CLAIM_ORDER;
+    }
+
+    /**
      * Write the raw payload, then parse it. A parse failure leaves the log
      * row in place and does not change the registration or its messages.
      *
@@ -281,6 +301,280 @@ class ToolRegistrationDocument {
             }
             throw $ex;
         }
+    }
+
+    /**
+     * Write the parsed document without rebuilding message rows.
+     *
+     * Grants shrink to the claims and scopes still in the document.
+     * Message rows, their placements, and deployment enablement stay.
+     * storeDocument() is the call that replaces messages.
+     *
+     * @param int $registrationId
+     * @param array<string, mixed> $document
+     * @return void
+     */
+    public static function persistDocument($registrationId, array $document) {
+        $registrationId = self::requireRegistrationId($registrationId);
+        if ( array_is_list($document) ) {
+            throw new \InvalidArgumentException('Registration document must be a JSON object.');
+        }
+        $encoded = self::encodeJson($document);
+        $PDOX = self::db();
+        $p = self::prefix();
+        $stmt = $PDOX->queryReturnError(
+            "UPDATE {$p}lti_tool_registration
+             SET registration_json = :registration_json, updated_at = NOW()
+             WHERE registration_id = :registration_id",
+            array(
+                ':registration_json' => $encoded,
+                ':registration_id' => $registrationId,
+            )
+        );
+        if ( ! $stmt->success ) {
+            $detail = isset($stmt->errorImplode) ? (string) $stmt->errorImplode : 'database error';
+            throw new \RuntimeException('Could not store registration JSON. '.$detail);
+        }
+        ToolDeploymentGrant::retain(
+            $registrationId,
+            self::requestedClaims($document),
+            self::requestedScopes($document)
+        );
+    }
+
+    /**
+     * Messages from the document, in source order.
+     *
+     * @param array<string, mixed> $document
+     * @return array<int, array<string, mixed>>
+     */
+    public static function messagesInDocument(array $document) {
+        return self::messageList($document);
+    }
+
+    /**
+     * Copy of the document with its messages array replaced.
+     *
+     * The array is written where messageList() reads it.
+     *
+     * @param array<string, mixed> $document
+     * @param array<int, array<string, mixed>> $messages
+     * @return array<string, mixed>
+     */
+    public static function withMessages(array $document, array $messages) {
+        $messages = array_values($messages);
+        foreach ( $messages as $message ) {
+            if ( ! is_array($message) || array_is_list($message) ) {
+                throw new \InvalidArgumentException('Each registration message must be a JSON object.');
+            }
+        }
+        if ( array_key_exists(self::TOOL_CONFIGURATION, $document) && $document[self::TOOL_CONFIGURATION] !== null ) {
+            $config = $document[self::TOOL_CONFIGURATION];
+            if ( ! is_array($config) || (array_is_list($config) && $config !== array()) ) {
+                throw new \InvalidArgumentException('LTI tool configuration must be a JSON object.');
+            }
+            $config['messages'] = $messages;
+            $document[self::TOOL_CONFIGURATION] = $config;
+            return $document;
+        }
+        $document['messages'] = $messages;
+        return $document;
+    }
+
+    /**
+     * Replace the stored columns and message_json for one message.
+     *
+     * The placement table is not changed here.
+     *
+     * @param int $registrationId
+     * @param int $messageId
+     * @param array<string, mixed> $message
+     * @return void
+     */
+    public static function saveMessageRow($registrationId, $messageId, array $message) {
+        $registrationId = self::requireRegistrationId($registrationId);
+        $existing = self::requireMessageRow($registrationId, $messageId);
+        $row = self::messageRow((int) $existing['sequence'], $message);
+        if ( $row['message_type'] !== (string) $existing['message_type'] ) {
+            throw new \InvalidArgumentException('That message type cannot change.');
+        }
+        $p = self::prefix();
+        $stmt = self::db()->queryReturnError(
+            "UPDATE {$p}lti_tool_message
+             SET target_link_uri = :target_link_uri, label = :label, icon_uri = :icon_uri,
+                 message_json = :message_json, updated_at = NOW()
+             WHERE message_id = :message_id AND registration_id = :registration_id",
+            array(
+                ':target_link_uri' => $row['target_link_uri'],
+                ':label' => $row['label'],
+                ':icon_uri' => $row['icon_uri'],
+                ':message_json' => $row['message_json'],
+                ':message_id' => (int) $existing['message_id'],
+                ':registration_id' => $registrationId,
+            )
+        );
+        if ( ! $stmt->success ) {
+            $detail = isset($stmt->errorImplode) ? (string) $stmt->errorImplode : 'database error';
+            throw new \RuntimeException('Could not store registration message. '.$detail);
+        }
+    }
+
+    /**
+     * Append one message at the next sequence and store its placements.
+     *
+     * @param int $registrationId
+     * @param array<string, mixed> $message
+     * @return int message_id
+     */
+    public static function appendMessageRow($registrationId, array $message) {
+        $registrationId = self::requireRegistrationId($registrationId);
+        $registration = self::findRegistration($registrationId);
+        if ( $registration === null ) {
+            throw new \InvalidArgumentException('Tool registration was not found.');
+        }
+        $p = self::prefix();
+        $PDOX = self::db();
+        $max = $PDOX->rowDie(
+            "SELECT COALESCE(MAX(sequence), -1) AS max_sequence
+             FROM {$p}lti_tool_message
+             WHERE registration_id = :registration_id",
+            array(':registration_id' => $registrationId)
+        );
+        $sequence = is_array($max) ? ((int) $max['max_sequence']) + 1 : 0;
+        $row = self::messageRow($sequence, $message);
+        $owns = ! $PDOX->inTransaction();
+        if ( $owns ) {
+            $PDOX->beginTransaction();
+        }
+        try {
+            $inserted = $PDOX->queryReturnError(
+                "INSERT INTO {$p}lti_tool_message
+                    (registration_id, key_id, sequence, message_type, target_link_uri, label, icon_uri, message_json, created_at)
+                 VALUES
+                    (:registration_id, :key_id, :sequence, :message_type, :target_link_uri, :label, :icon_uri, :message_json, NOW())",
+                array(
+                    ':registration_id' => $registrationId,
+                    ':key_id' => (int) $registration['key_id'],
+                    ':sequence' => $row['sequence'],
+                    ':message_type' => $row['message_type'],
+                    ':target_link_uri' => $row['target_link_uri'],
+                    ':label' => $row['label'],
+                    ':icon_uri' => $row['icon_uri'],
+                    ':message_json' => $row['message_json'],
+                )
+            );
+            if ( ! $inserted->success ) {
+                $detail = isset($inserted->errorImplode) ? (string) $inserted->errorImplode : 'database error';
+                throw new \RuntimeException('Could not store registration message. '.$detail);
+            }
+            $messageId = (int) $PDOX->lastInsertId();
+            if ( $messageId < 1 ) {
+                throw new \RuntimeException('Could not store registration message.');
+            }
+            foreach ( $row['placements'] as $placement ) {
+                ToolPlacementService::addPlacementToMessage($messageId, $placement);
+            }
+            if ( $owns ) {
+                $PDOX->commit();
+            }
+            return $messageId;
+        } catch ( \Throwable $ex ) {
+            if ( $owns && $PDOX->inTransaction() ) {
+                $PDOX->rollBack();
+            }
+            throw $ex;
+        }
+    }
+
+    /**
+     * Delete one message and close the sequence gap after it.
+     *
+     * Placements and deployment enablement of this message go with the row.
+     *
+     * @param int $registrationId
+     * @param int $messageId
+     * @return void
+     */
+    public static function deleteMessageRow($registrationId, $messageId) {
+        $registrationId = self::requireRegistrationId($registrationId);
+        $existing = self::requireMessageRow($registrationId, $messageId);
+        $p = self::prefix();
+        $PDOX = self::db();
+        $owns = ! $PDOX->inTransaction();
+        if ( $owns ) {
+            $PDOX->beginTransaction();
+        }
+        try {
+            $deleted = $PDOX->queryReturnError(
+                "DELETE FROM {$p}lti_tool_message
+                 WHERE message_id = :message_id AND registration_id = :registration_id",
+                array(
+                    ':message_id' => (int) $existing['message_id'],
+                    ':registration_id' => $registrationId,
+                )
+            );
+            if ( ! $deleted->success ) {
+                $detail = isset($deleted->errorImplode) ? (string) $deleted->errorImplode : 'database error';
+                throw new \RuntimeException('Could not delete registration message. '.$detail);
+            }
+            $up = $PDOX->queryReturnError(
+                "UPDATE {$p}lti_tool_message
+                 SET sequence = sequence + 1000000
+                 WHERE registration_id = :registration_id AND sequence > :sequence",
+                array(
+                    ':registration_id' => $registrationId,
+                    ':sequence' => (int) $existing['sequence'],
+                )
+            );
+            if ( ! $up->success ) {
+                $detail = isset($up->errorImplode) ? (string) $up->errorImplode : 'database error';
+                throw new \RuntimeException('Could not delete registration message. '.$detail);
+            }
+            $down = $PDOX->queryReturnError(
+                "UPDATE {$p}lti_tool_message
+                 SET sequence = sequence - 1000001
+                 WHERE registration_id = :registration_id AND sequence >= 1000000",
+                array(':registration_id' => $registrationId)
+            );
+            if ( ! $down->success ) {
+                $detail = isset($down->errorImplode) ? (string) $down->errorImplode : 'database error';
+                throw new \RuntimeException('Could not delete registration message. '.$detail);
+            }
+            if ( $owns ) {
+                $PDOX->commit();
+            }
+        } catch ( \Throwable $ex ) {
+            if ( $owns && $PDOX->inTransaction() ) {
+                $PDOX->rollBack();
+            }
+            throw $ex;
+        }
+    }
+
+    /**
+     * @param int $registrationId
+     * @param int $messageId
+     * @return array<string, mixed>
+     */
+    private static function requireMessageRow($registrationId, $messageId) {
+        $messageId = (int) $messageId;
+        if ( $messageId < 1 ) {
+            throw new \InvalidArgumentException('That message is not on this tool.');
+        }
+        $p = self::prefix();
+        $row = self::db()->rowDie(
+            "SELECT message_id, sequence, message_type
+             FROM {$p}lti_tool_message
+             WHERE message_id = :message_id AND registration_id = :registration_id",
+            array(
+                ':message_id' => $messageId,
+                ':registration_id' => (int) $registrationId,
+            )
+        );
+        if ( ! is_array($row) ) {
+            throw new \InvalidArgumentException('That message is not on this tool.');
+        }
+        return $row;
     }
 
     /**

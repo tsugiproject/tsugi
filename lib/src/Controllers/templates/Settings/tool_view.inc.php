@@ -96,6 +96,11 @@ $list = function ($items) {
     ?>
 <a class="btn btn-default" href="<?= htmlspecialchars($test_url.$testSep.'registration_id='.$registrationId) ?>"><?= __('Test') ?></a>
 <?php } ?>
+<?php if ( ! empty($course_owned) && $registrationId > 0 && isset($edit_url) && is_string($edit_url) && $edit_url !== '' ) {
+    $editSep = strpos($edit_url, '?') === false ? '?' : '&';
+    ?>
+<a class="btn btn-default" href="<?= htmlspecialchars($edit_url.$editSep.'registration_id='.$registrationId) ?>"><?= __('Edit') ?></a>
+<?php } ?>
 <?php if ( ! empty($course_owned) && $registrationId > 0 && isset($save_url) && is_string($save_url) && $save_url !== '' ) { ?>
 <form method="post" action="<?= htmlspecialchars($save_url) ?>" style="display:inline;" data-confirm="<?= htmlspecialchars(__('Delete this tool from the course?')) ?>" onsubmit="return confirm(this.getAttribute('data-confirm'));">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>

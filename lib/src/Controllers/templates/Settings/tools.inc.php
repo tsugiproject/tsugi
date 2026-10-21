@@ -61,6 +61,11 @@ if ( ! isset($course_tools) || ! is_array($course_tools) ) {
             ?>
         <a class="btn btn-default btn-sm" href="<?= htmlspecialchars($toolViewUrl) ?>"><?= __('View') ?></a>
         <?php } ?>
+        <?php if ( $owned && $ltiVersion === '1.3' && $registrationId > 0 && isset($edit_url) && is_string($edit_url) && $edit_url !== '' ) {
+            $lti13Sep = strpos($edit_url, '?') === false ? '?' : '&';
+            ?>
+        <a class="btn btn-default btn-sm" href="<?= htmlspecialchars($edit_url.$lti13Sep.'registration_id='.$registrationId) ?>"><?= __('Edit') ?></a>
+        <?php } ?>
         <?php if ( $owned && $registrationId > 0 && $ltiVersion === '1.1' ) { ?>
         <a class="btn btn-default btn-sm" href="<?= htmlspecialchars($editUrl) ?>"><?= __('Edit') ?></a>
         <?php } ?>

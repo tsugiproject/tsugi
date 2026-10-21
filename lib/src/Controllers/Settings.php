@@ -28,6 +28,7 @@ use Tsugi\Services\Badges\CourseBadges;
 use Tsugi\Services\CourseNav\CourseNav;
 use Tsugi\Services\Lessons\LessonsService;
 use Tsugi\Services\Outbound\Lti11CourseTool;
+use Tsugi\Services\Outbound\Lti13CourseTool;
 use Tsugi\Services\Outbound\PlatformDynamicRegistration;
 use Tsugi\Services\Outbound\ToolRegistrationService;
 use Tsugi\Services\Outbound\Lti11TestLaunch;
@@ -86,6 +87,7 @@ class Settings extends Tool {
         self::mapPage($app, $prefix.'/tools/dynamic/done', 'toolsDynamicDone', false);
         self::mapPage($app, $prefix.'/tools/dynamic', 'toolsDynamic', true);
         self::mapPage($app, $prefix.'/tools/view', 'toolsView', false);
+        self::mapPage($app, $prefix.'/tools/edit', 'toolsEdit', true);
         self::mapPage($app, $prefix.'/tools/launch-url', 'toolsLaunchUrl', false);
         self::mapPage($app, $prefix.'/tools/test', 'toolsTest', true);
         self::mapPage($app, $prefix.'/tools/links', 'toolsLinks', false);
@@ -1699,6 +1701,7 @@ re-check your login status.
         $add_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/add'));
         $dynamic_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/dynamic'));
         $view_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/view'));
+        $edit_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/edit'));
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;
@@ -1967,6 +1970,7 @@ re-check your login status.
         $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
         $add_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/add'));
         $test_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/test'));
+        $edit_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/edit'));
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;
@@ -2002,6 +2006,101 @@ re-check your login status.
         <?php
         $OUTPUT->footer();
         return '';
+    }
+
+    /**
+     * Course-mounted Settings: edit one LTI 1.3 tool this course owns.
+     */
+    public function toolsEdit(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+        if ( $request->isMethod('POST') ) {
+            return $this->toolsEditPost($request);
+        }
+
+        global $OUTPUT;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
+        $add_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/add'));
+        $view_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/view'));
+        $test_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/test'));
+        $edit_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/edit'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $registrationId = (int) $request->query->get('registration_id', 0);
+        $contextId = ReqScope::currentContextId();
+        try {
+            $tool_edit = Lti13CourseTool::editState($contextId, $registrationId);
+        } catch ( \InvalidArgumentException $e ) {
+            U::flashError($e->getMessage());
+            return new RedirectResponse($tools_url);
+        } catch ( \Exception $e ) {
+            U::flashError(__('Could not open that tool.'));
+            return new RedirectResponse($tools_url);
+        }
+
+        $save_url = $tools_url;
+        $setup_tab = 'tools';
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php include __DIR__ . '/templates/Settings/tool_edit.inc.php'; ?>
+            </div>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    private function toolsEditPost(Request $request)
+    {
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
+        $edit_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/edit'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+        $registrationId = 0;
+        if ( isset($_POST['registration_id']) && (is_string($_POST['registration_id']) || is_int($_POST['registration_id'])) ) {
+            $registrationId = (int) $_POST['registration_id'];
+        }
+        $back = $registrationId > 0 ? self::toolEditUrl($edit_url, $registrationId) : $tools_url;
+        $csrf = self::requireCsrf($back);
+        if ( $csrf ) {
+            return $csrf;
+        }
+        try {
+            $message = Lti13CourseTool::apply(ReqScope::currentContextId(), $registrationId, $_POST);
+        } catch ( \InvalidArgumentException $e ) {
+            U::flashError($e->getMessage());
+            return new RedirectResponse($back);
+        } catch ( \Exception $e ) {
+            U::flashError(__('Could not save the tool.'));
+            return new RedirectResponse($back);
+        }
+        U::flashSuccess($message);
+        return new RedirectResponse($back);
     }
 
     /**
