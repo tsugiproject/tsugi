@@ -223,6 +223,7 @@ class Lti11CourseTool {
         $contextId = (int) $contextId;
         $tools = ToolDeploymentService::getRegistrationsForContext($contextId);
         $counts = ToolRegistrationService::otherLaunchUrlCounts(array_column($tools, 'registration_id'));
+        $drafts = Lti13CourseTool::draftIds(array_column($tools, 'registration_id'));
         foreach ( $tools as $i => $tool ) {
             $registration = ToolRegistrationService::findRegistration((int) $tool['registration_id']);
             $versionOwned = $registration !== null ? (string) $registration['lti_version'] : '';
@@ -235,6 +236,10 @@ class Lti11CourseTool {
             $tools[$i]['lti_version'] = ($version === '1.1' || $version === '1.3') ? $version : '';
             $registrationId = (int) $tool['registration_id'];
             $tools[$i]['other_launch_urls'] = $counts[$registrationId] ?? 0;
+            $tools[$i]['draft'] = isset($drafts[$registrationId]);
+            if ( $tools[$i]['draft'] ) {
+                $tools[$i]['can_test'] = false;
+            }
         }
         return $tools;
     }

@@ -31,6 +31,16 @@ class PlatformDynamicRegistrationTest extends PlatformSchemaCase
         $this->assertSame($root.'/lti/keyset', $config['jwks_uri']);
         $this->assertSame($root.'/lti/register', $config['registration_endpoint']);
         $this->assertSame($root.'/lti/openid-configuration', PlatformDynamicRegistration::openIdConfigurationUrl());
+        $urls = array();
+        foreach ( PlatformDynamicRegistration::platformUrls() as $row ) {
+            $urls[$row['label']] = $row['value'];
+        }
+        $this->assertSame($config['issuer'], $urls['Issuer']);
+        $this->assertSame($config['authorization_endpoint'], $urls['OIDC authorization']);
+        $this->assertSame($config['token_endpoint'], $urls['Token endpoint']);
+        $this->assertSame($config['jwks_uri'], $urls['Keyset URL']);
+        $this->assertSame($config['registration_endpoint'], $urls['Registration endpoint']);
+        $this->assertSame($root.'/lti/openid-configuration', $urls['OpenID configuration']);
         $forward = PlatformDynamicRegistration::forwardUrl('https://tool.example/register?x=1', '99:abc');
         $this->assertStringStartsWith('https://tool.example/register?x=1&openid_configuration=', $forward);
         $this->assertStringContainsString('registration_token=99%3Aabc', $forward);
@@ -205,6 +215,59 @@ class PlatformDynamicRegistrationTest extends PlatformSchemaCase
         $result = PlatformDynamicRegistration::accept('Bearer '.$token, $raw, 'application/json');
         $this->assertSame(200, $result['status']);
         $this->assertSame('https://client.example.org/lti?a=1&b=2', $this->column($this->registrationId('Query Garden'), 'lti13_oidc_login_url'));
+    }
+
+    public function testReceivedExtensionsCollapseToTheStandardNames(): void
+    {
+        $token = PlatformDynamicRegistration::startForCourse(
+            $this->id['eecs280'],
+            null,
+            'https://client.example.org/register'
+        );
+        $payload = $this->payload();
+        $payload['client_name'] = 'Folded Garden';
+        $payload[ToolRegistrationDocument::TOOL_CONFIGURATION]['messages'] = array(
+            array(
+                'type' => 'LtiDeepLinkingRequest',
+                'label' => 'Content',
+                'target_link_uri' => 'https://client.example.org/lti/dl',
+                'placements' => array('lessons', 'ContentArea', 'editor_button', 'content_editor', 'RichTextEditor', 'link_selection', 'common_cartridge', 'migration_selection'),
+            ),
+            array(
+                'type' => 'LtiResourceLinkRequest',
+                'label' => 'Nav',
+                'target_link_uri' => 'https://client.example.org/launch',
+                'placements' => array('lessons', 'content_editor'),
+            ),
+        );
+        $raw = json_encode($payload);
+        $this->assertIsString($raw);
+        $result = PlatformDynamicRegistration::accept('Bearer '.$token, $raw, 'application/json');
+        $this->assertSame(200, $result['status']);
+
+        $answered = $result['document'][ToolRegistrationDocument::TOOL_CONFIGURATION]['messages'];
+        $this->assertSame(
+            array('lessons', 'ContentArea', 'editor_button', 'content_editor', 'RichTextEditor', 'link_selection', 'common_cartridge', 'migration_selection'),
+            $answered[0]['placements']
+        );
+        $this->assertSame(array('lessons', 'content_editor'), $answered[1]['placements']);
+
+        $registrationId = $this->registrationId('Folded Garden');
+        $stored = ToolRegistrationDocument::messagesInDocument(ToolRegistrationDocument::registrationDocument($registrationId));
+        $this->assertSame(
+            array('ContentArea', 'RichTextEditor', 'link_selection', 'migration_selection'),
+            $stored[0]['placements']
+        );
+        $this->assertSame(array('ContentArea', 'RichTextEditor'), $stored[1]['placements']);
+
+        $messages = ToolRegistrationDocument::messagesForRegistration($registrationId);
+        $this->assertSame(array('ContentArea', 'RichTextEditor', 'link_selection', 'migration_selection'), $messages[0]['message_json']['placements']);
+        $this->assertSame(array('ContentArea', 'RichTextEditor'), $messages[1]['message_json']['placements']);
+
+        $logs = ToolRegistrationDocument::logsForRegistration($registrationId);
+        $this->assertStringContainsString('editor_button', $logs[0]['payload_text']);
+        $this->assertStringContainsString('lessons', $logs[0]['payload_text']);
+        $this->assertStringContainsString('common_cartridge', $logs[0]['payload_text']);
     }
 
     public function testUnknownTokenIsRejectedWithoutALogRow(): void

@@ -35,6 +35,16 @@ $list = function ($items) {
 ?>
 <p><a href="<?= htmlspecialchars(isset($tools_url) ? (string) $tools_url : '') ?>"><?= __('Back to course tools') ?></a></p>
 <h2 style="margin-top:0;"><?= htmlspecialchars($title) ?> <span class="text-muted">(LTI 1.3)</span></h2>
+<?php
+$missing = \Tsugi\Services\Outbound\Lti13CourseTool::missingRequired(
+    isset($tool_view['oidc_login_url']) ? $tool_view['oidc_login_url'] : '',
+    isset($tool_view['jwks_url']) ? $tool_view['jwks_url'] : '',
+    isset($tool_view['launch_url']) ? $tool_view['launch_url'] : '',
+    $redirects
+);
+if ( count($missing) > 0 ) { ?>
+<p class="text-muted"><?= htmlspecialchars(__('Draft')) ?>. <?= htmlspecialchars(sprintf(__('Still needs %s.'), implode(', ', $missing))) ?></p>
+<?php } ?>
 <dl>
     <dt><?= __('Client ID') ?></dt>
     <dd style="word-break:break-all;margin-bottom:8px;"><?= $field(isset($tool_view['client_id']) ? $tool_view['client_id'] : '') ?></dd>
@@ -52,6 +62,7 @@ $list = function ($items) {
     $claims = isset($deployment['allowed_claims']) && is_array($deployment['allowed_claims']) ? $deployment['allowed_claims'] : array();
     $scopes = isset($deployment['allowed_scopes']) && is_array($deployment['allowed_scopes']) ? $deployment['allowed_scopes'] : array();
     $enabled = isset($deployment['enabled_placements']) && is_array($deployment['enabled_placements']) ? $deployment['enabled_placements'] : array();
+    $enabled = \Tsugi\Services\Outbound\ToolMessagePlacement::displayPlacements($enabled);
     ?>
 <h3><?= __('Deployment') ?></h3>
 <dl>
@@ -84,6 +95,7 @@ $list = function ($items) {
 </dl>
 <?php } ?>
 <?php } ?>
+<?php include __DIR__.'/platform_urls.inc.php'; ?>
 <?php if ( $json !== '' ) { ?>
 <details>
     <summary><?= __('Registration document') ?></summary>

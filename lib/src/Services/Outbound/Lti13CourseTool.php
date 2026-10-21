@@ -60,6 +60,7 @@ class Lti13CourseTool {
                     'value' => $name,
                     'label' => $described['label'],
                     'group' => $described['group'],
+                    'menu' => $described['menu'],
                     'deployments' => self::grantFlags($grantRows, 'placements', (int) $placement['message_placement_id']),
                 );
             }
@@ -97,6 +98,12 @@ class Lti13CourseTool {
             'claim_available' => self::missingRows(self::claimCatalog(), $requestedClaims),
             'messages' => $messages,
             'message_types' => $messageTypes,
+            'missing' => self::missingRequired(
+                self::column($registrationId, 'lti13_oidc_login_url'),
+                self::column($registrationId, 'lti13_jwks_url'),
+                self::column($registrationId, 'lti13_launch_url'),
+                $redirects
+            ),
         );
     }
 
@@ -126,6 +133,64 @@ class Lti13CourseTool {
             }
             throw $ex;
         }
+    }
+
+    /**
+     * Create an empty LTI 1.3 registration this course owns.
+     *
+     * Client id and deployment id are assigned here. The login URL, keyset URL,
+     * launch URL, and a redirect URL can wait. Until those are set, the tool
+     * is a draft. Messages, scopes, and placements are added on the editor.
+     *
+     * @param int $contextId
+     * @param int|null $userId
+     * @param array<string, mixed> $post
+     * @return int registration_id
+     */
+    public static function createManual($contextId, $userId, array $post) {
+        $title = self::posted($post, 'title');
+        if ( $title === '' ) {
+            throw new \InvalidArgumentException('Registration title is required.');
+        }
+        if ( mb_strlen($title) > 512 ) {
+            throw new \InvalidArgumentException('Registration title is too long.');
+        }
+        $login = self::optionalUrl(self::posted($post, 'oidc_login_url'), 'Login URL');
+        $jwks = self::optionalUrl(self::posted($post, 'jwks_url'), 'Keyset URL');
+        $launch = self::optionalUrl(self::posted($post, 'launch_url'), 'Launch URL');
+        $redirect = self::optionalUrl(self::posted($post, 'redirect_uri'), 'Redirect URL');
+        $clientId = self::uuid();
+        $deploymentId = self::uuid();
+        $userId = (int) $userId;
+        $document = array(
+            'client_name' => $title,
+            'client_id' => $clientId,
+            ToolRegistrationDocument::TOOL_CONFIGURATION => array(
+                'deployment_id' => $deploymentId,
+                'messages' => array(),
+            ),
+        );
+        $document = self::putOptional($document, 'initiate_login_uri', $login);
+        $document = self::putOptional($document, 'jwks_uri', $jwks);
+        if ( $redirect !== null ) {
+            $document['redirect_uris'] = array($redirect);
+        }
+        $document = self::putConfigOptional($document, 'target_link_uri', $launch);
+        $made = ToolRegistrationService::createLti13ForCourse(
+            (int) $contextId,
+            $userId > 0 ? $userId : null,
+            $title,
+            array(
+                'lti13_client_id' => $clientId,
+                'lti13_oidc_login_url' => $login,
+                'lti13_jwks_url' => $jwks,
+                'lti13_launch_url' => $launch,
+                'lti13_redirect_uri' => $redirect,
+            ),
+            $document,
+            $deploymentId
+        );
+        return (int) $made['registration_id'];
     }
 
     /**
@@ -220,9 +285,9 @@ class Lti13CourseTool {
         if ( mb_strlen($title) > 512 ) {
             throw new \InvalidArgumentException('Registration title is too long.');
         }
-        $login = self::httpUrl(self::posted($post, 'oidc_login_url'), 'Login URL');
-        $jwks = self::httpUrl(self::posted($post, 'jwks_url'), 'Keyset URL');
-        $launch = self::httpUrl(self::posted($post, 'launch_url'), 'Launch URL');
+        $login = self::optionalUrl(self::posted($post, 'oidc_login_url'), 'Login URL');
+        $jwks = self::optionalUrl(self::posted($post, 'jwks_url'), 'Keyset URL');
+        $launch = self::optionalUrl(self::posted($post, 'launch_url'), 'Launch URL');
         self::updateColumns($contextId, $registrationId, array(
             'title' => $title,
             'lti13_oidc_login_url' => $login,
@@ -231,9 +296,9 @@ class Lti13CourseTool {
         ));
         $document = self::document($registrationId);
         $document['client_name'] = $title;
-        $document['initiate_login_uri'] = $login;
-        $document['jwks_uri'] = $jwks;
-        $document = self::setConfigValue($document, 'target_link_uri', $launch);
+        $document = self::putOptional($document, 'initiate_login_uri', $login);
+        $document = self::putOptional($document, 'jwks_uri', $jwks);
+        $document = self::putConfigOptional($document, 'target_link_uri', $launch);
         ToolRegistrationDocument::persistDocument($registrationId, $document);
     }
 
@@ -273,9 +338,6 @@ class Lti13CourseTool {
         }
         if ( ! $found ) {
             throw new \InvalidArgumentException('That redirect URL is not on this tool.');
-        }
-        if ( count($keep) < 1 ) {
-            throw new \InvalidArgumentException('A tool needs a redirect URL.');
         }
         self::writeRedirects($registrationId, $document, $keep);
     }
@@ -553,7 +615,7 @@ class Lti13CourseTool {
              SET lti13_redirect_uri = :lti13_redirect_uri, updated_at = NOW()
              WHERE registration_id = :registration_id AND lti_version = '1.3'",
             array(
-                ':lti13_redirect_uri' => $uris[0],
+                ':lti13_redirect_uri' => count($uris) > 0 ? $uris[0] : null,
                 ':registration_id' => (int) $registrationId,
             )
         );
@@ -983,9 +1045,12 @@ class Lti13CourseTool {
             array(
                 'label' => __('Tsugi'),
                 'placements' => array(
-                    array('value' => 'common_cartridge', 'label' => __('Common cartridge')),
-                    array('value' => 'content_editor', 'label' => __('Content editor')),
-                    array('value' => 'lessons', 'label' => __('Lessons')),
+                    // These stay here so a stored row still has a label.
+                    // The add menu does not offer them. migration_selection,
+                    // RichTextEditor, and ContentArea are those placements.
+                    array('value' => 'common_cartridge', 'label' => __('Common cartridge'), 'menu' => false),
+                    array('value' => 'content_editor', 'label' => __('Content editor'), 'menu' => false),
+                    array('value' => 'lessons', 'label' => __('Lessons'), 'menu' => false),
                 ),
             ),
         );
@@ -993,7 +1058,7 @@ class Lti13CourseTool {
 
     /**
      * @param string $placement
-     * @return array{label: string, group: string}
+     * @return array{label: string, group: string, menu: bool}
      */
     private static function placementDescribe($placement) {
         foreach ( self::placementCatalog() as $group ) {
@@ -1002,6 +1067,7 @@ class Lti13CourseTool {
                     return array(
                         'label' => $row['label'],
                         'group' => $group['label'],
+                        'menu' => ! (isset($row['menu']) && $row['menu'] === false),
                     );
                 }
             }
@@ -1009,6 +1075,7 @@ class Lti13CourseTool {
         return array(
             'label' => $placement,
             'group' => '',
+            'menu' => false,
         );
     }
 
@@ -1033,6 +1100,9 @@ class Lti13CourseTool {
             $options = array();
             foreach ( $group['placements'] as $row ) {
                 $seen[$row['value']] = true;
+                if ( isset($row['menu']) && $row['menu'] === false ) {
+                    continue;
+                }
                 if ( isset($have[$row['value']]) || ! isset($known[$row['value']]) ) {
                     continue;
                 }
@@ -1166,6 +1236,119 @@ class Lti13CourseTool {
     }
 
     /**
+     * Login URL, keyset URL, launch URL, and one redirect URL.
+     * An empty list means the registration is still a draft.
+     *
+     * @param string|null $login
+     * @param string|null $jwks
+     * @param string|null $launch
+     * @param array<int, mixed> $redirects
+     * @return array<int, string>
+     */
+    public static function missingRequired($login, $jwks, $launch, array $redirects) {
+        $missing = array();
+        if ( trim((string) $login) === '' ) {
+            $missing[] = __('Login URL');
+        }
+        if ( trim((string) $jwks) === '' ) {
+            $missing[] = __('Keyset URL');
+        }
+        if ( trim((string) $launch) === '' ) {
+            $missing[] = __('Launch URL');
+        }
+        $redirect = false;
+        foreach ( $redirects as $uri ) {
+            if ( is_string($uri) && trim($uri) !== '' ) {
+                $redirect = true;
+                break;
+            }
+        }
+        if ( ! $redirect ) {
+            $missing[] = __('Redirect URL');
+        }
+        return $missing;
+    }
+
+    /**
+     * LTI 1.3 registrations in this set that are still missing a required URL.
+     *
+     * @param array<int, mixed> $registrationIds
+     * @return array<int, true>
+     */
+    public static function draftIds(array $registrationIds) {
+        $ids = array();
+        foreach ( $registrationIds as $registrationId ) {
+            $registrationId = (int) $registrationId;
+            if ( $registrationId > 0 ) {
+                $ids[$registrationId] = $registrationId;
+            }
+        }
+        if ( count($ids) === 0 ) {
+            return array();
+        }
+        $params = array();
+        $holders = array();
+        $i = 0;
+        foreach ( $ids as $registrationId ) {
+            $key = ':id'.$i;
+            $holders[] = $key;
+            $params[$key] = $registrationId;
+            $i++;
+        }
+        $p = self::prefix();
+        $rows = self::db()->allRowsDie(
+            "SELECT registration_id
+             FROM {$p}lti_tool_registration
+             WHERE registration_id IN (".implode(', ', $holders).")
+               AND lti_version = '1.3'
+               AND (
+                    lti13_oidc_login_url IS NULL OR lti13_oidc_login_url = ''
+                    OR lti13_jwks_url IS NULL OR lti13_jwks_url = ''
+                    OR lti13_launch_url IS NULL OR lti13_launch_url = ''
+                    OR lti13_redirect_uri IS NULL OR lti13_redirect_uri = ''
+               )",
+            $params
+        );
+        $out = array();
+        foreach ( $rows as $row ) {
+            $out[(int) $row['registration_id']] = true;
+        }
+        return $out;
+    }
+
+    /**
+     * @param array<string, mixed> $document
+     * @param string $key
+     * @param string|null $value
+     * @return array<string, mixed>
+     */
+    private static function putOptional(array $document, $key, $value) {
+        if ( $value === null || $value === '' ) {
+            unset($document[$key]);
+            return $document;
+        }
+        $document[$key] = $value;
+        return $document;
+    }
+
+    /**
+     * @param array<string, mixed> $document
+     * @param string $key
+     * @param string|null $value
+     * @return array<string, mixed>
+     */
+    private static function putConfigOptional(array $document, $key, $value) {
+        if ( $value === null || $value === '' ) {
+            $configKey = ToolRegistrationDocument::TOOL_CONFIGURATION;
+            if ( isset($document[$configKey]) && is_array($document[$configKey]) ) {
+                unset($document[$configKey][$key]);
+            }
+            return $document;
+        }
+        return self::setConfigValue($document, $key, $value);
+    }
+
+    /**
      * @param string $value
      * @param string $label
      * @return string|null
@@ -1236,5 +1419,16 @@ class Lti13CourseTool {
     private static function prefix() {
         global $CFG;
         return (string) $CFG->dbprefix;
+    }
+
+    /**
+     * @return string
+     */
+    private static function uuid() {
+        $data = random_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+        $hex = bin2hex($data);
+        return substr($hex, 0, 8).'-'.substr($hex, 8, 4).'-'.substr($hex, 12, 4).'-'.substr($hex, 16, 4).'-'.substr($hex, 20, 12);
     }
 }

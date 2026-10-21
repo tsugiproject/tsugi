@@ -12,6 +12,9 @@ if ( ! isset($course_tools) || ! is_array($course_tools) ) {
 <?php if ( isset($add_url) && is_string($add_url) && $add_url !== '' ) { ?>
     <a class="btn btn-primary" style="float:right;" href="<?= htmlspecialchars($add_url) ?>"><?= __('+ Add LTI 1.1 Tool') ?></a>
 <?php } ?>
+<?php if ( isset($manual_url) && is_string($manual_url) && $manual_url !== '' ) { ?>
+    <a class="btn btn-primary" style="float:right;margin-right:8px;" href="<?= htmlspecialchars($manual_url) ?>"><?= __('+ Add LTI 1.3 Tool') ?></a>
+<?php } ?>
 </div>
 <?php if ( isset($dynamic_url) && is_string($dynamic_url) && $dynamic_url !== '' ) { ?>
 <form method="post" action="<?= htmlspecialchars($dynamic_url) ?>" style="margin-bottom:16px;">
@@ -42,6 +45,9 @@ if ( ! isset($course_tools) || ! is_array($course_tools) ) {
         $ltiVersion = isset($tool['lti_version']) ? (string) $tool['lti_version'] : '';
         if ( $ltiVersion === '1.1' || $ltiVersion === '1.3' ) { ?>
         <span class="text-muted">(LTI <?= htmlspecialchars($ltiVersion) ?>)</span>
+        <?php if ( ! empty($tool['draft']) ) { ?>
+        <span class="text-muted">(<?= __('Draft') ?>)</span>
+        <?php } ?>
         <?php } ?>
         <?php
         $otherLaunchUrls = isset($tool['other_launch_urls']) ? (int) $tool['other_launch_urls'] : 0;

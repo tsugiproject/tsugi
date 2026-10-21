@@ -88,6 +88,7 @@ class Settings extends Tool {
         self::mapPage($app, $prefix.'/tools/dynamic', 'toolsDynamic', true);
         self::mapPage($app, $prefix.'/tools/view', 'toolsView', false);
         self::mapPage($app, $prefix.'/tools/edit', 'toolsEdit', true);
+        self::mapPage($app, $prefix.'/tools/manual', 'toolsManual', true);
         self::mapPage($app, $prefix.'/tools/launch-url', 'toolsLaunchUrl', false);
         self::mapPage($app, $prefix.'/tools/test', 'toolsTest', true);
         self::mapPage($app, $prefix.'/tools/links', 'toolsLinks', false);
@@ -1702,6 +1703,7 @@ re-check your login status.
         $dynamic_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/dynamic'));
         $view_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/view'));
         $edit_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/edit'));
+        $manual_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/manual'));
         $gate = $this->courseGate();
         if ( $gate ) {
             return $gate;
@@ -2071,7 +2073,7 @@ re-check your login status.
 
     /**
      * @param Request $request
-     * @return RedirectResponse
+     * @return RedirectResponse|JsonResponse
      */
     private function toolsEditPost(Request $request)
     {
@@ -2086,21 +2088,128 @@ re-check your login status.
             $registrationId = (int) $_POST['registration_id'];
         }
         $back = $registrationId > 0 ? self::toolEditUrl($edit_url, $registrationId) : $tools_url;
-        $csrf = self::requireCsrf($back);
+        $live = self::editWantsJson($request);
+        if ( $live ) {
+            $csrf = self::requireCsrfJson();
+        } else {
+            $csrf = self::requireCsrf($back);
+        }
         if ( $csrf ) {
             return $csrf;
         }
         try {
             $message = Lti13CourseTool::apply(ReqScope::currentContextId(), $registrationId, $_POST);
         } catch ( \InvalidArgumentException $e ) {
+            if ( $live ) {
+                return new JsonResponse(array('ok' => false, 'error' => $e->getMessage()), 400);
+            }
             U::flashError($e->getMessage());
             return new RedirectResponse($back);
         } catch ( \Exception $e ) {
+            if ( $live ) {
+                return new JsonResponse(array('ok' => false, 'error' => __('Could not save the tool.')), 500);
+            }
             U::flashError(__('Could not save the tool.'));
             return new RedirectResponse($back);
         }
+        if ( $live ) {
+            return new JsonResponse(array('ok' => true, 'message' => $message));
+        }
         U::flashSuccess($message);
         return new RedirectResponse($back);
+    }
+
+    /**
+     * Turn off and delete on the LTI 1.3 editor post in place.
+     * Add and the text saves still reload so the new markup can be rendered.
+     *
+     * @param Request $request
+     * @return bool
+     */
+    private static function editWantsJson(Request $request) {
+        if ( $request->isXmlHttpRequest() ) {
+            return true;
+        }
+        $accept = (string) $request->headers->get('Accept', '');
+        return str_contains($accept, 'application/json');
+    }
+
+    /**
+     * Course-mounted Settings: create an LTI 1.3 tool without dynamic registration.
+     */
+    public function toolsManual(Request $request)
+    {
+        if ( ! self::isCourseRoute() ) {
+            return new RedirectResponse($this->pageUrl());
+        }
+        if ( $request->isMethod('POST') ) {
+            return $this->toolsManualPost($request);
+        }
+
+        global $OUTPUT;
+
+        $setup_url = U::addSession($this->toolHome(self::ROUTE));
+        $navigation_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'navigation'));
+        $export_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'export'));
+        $import_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'import'));
+        $images_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'images'));
+        $delete_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'delete'));
+        $tools_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools'));
+        $manual_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/manual'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+
+        $setup_tab = 'tools';
+
+        $OUTPUT->header();
+        $OUTPUT->bodyStart();
+        $OUTPUT->topNav();
+        $OUTPUT->flashMessages();
+        ?>
+        <main class="container" id="main-content">
+            <?php include __DIR__ . '/templates/Settings/tabs.inc.php'; ?>
+            <div style="margin-top:10px;">
+            <?php include __DIR__ . '/templates/Settings/tool_manual.inc.php'; ?>
+            </div>
+        </main>
+        <?php
+        $OUTPUT->footer();
+        return '';
+    }
+
+    /**
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    private function toolsManualPost(Request $request)
+    {
+        $manual_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/manual'));
+        $edit_url = U::addSession(self::joinToolHome($this->toolHome(self::ROUTE), 'tools/edit'));
+        $gate = $this->courseGate();
+        if ( $gate ) {
+            return $gate;
+        }
+        $csrf = self::requireCsrf($manual_url);
+        if ( $csrf ) {
+            return $csrf;
+        }
+        try {
+            $registrationId = Lti13CourseTool::createManual(
+                ReqScope::currentContextId(),
+                ReqScope::loggedInUserId(),
+                $_POST
+            );
+        } catch ( \InvalidArgumentException $e ) {
+            U::flashError($e->getMessage());
+            return new RedirectResponse($manual_url);
+        } catch ( \Exception $e ) {
+            U::flashError(__('Could not add the tool.'));
+            return new RedirectResponse($manual_url);
+        }
+        U::flashSuccess(__('The tool was added to this course.'));
+        return new RedirectResponse(self::toolEditUrl($edit_url, $registrationId));
     }
 
     /**

@@ -15,10 +15,25 @@ $deployments = isset($tool_edit['deployments']) && is_array($tool_edit['deployme
 $manyDeployments = count($deployments) > 1;
 $editUrl = isset($edit_url) ? (string) $edit_url : '';
 
-$button = function ($action, $hidden, $label, $class, $confirm = '') use ($editUrl, $registrationId) {
+$button = function ($action, $hidden, $label, $class, $confirm = '', $live = '') use ($editUrl, $registrationId) {
+    $short = '';
+    if ( isset($hidden['deployment_short']) ) {
+        $short = (string) $hidden['deployment_short'];
+        unset($hidden['deployment_short']);
+    }
     $hidden['edit_action'] = $action;
     $hidden['registration_id'] = (string) $registrationId;
     $html = '<form method="post" action="'.htmlspecialchars($editUrl).'" style="display:inline;"';
+    if ( $live === 'toggle' || $live === 'delete' ) {
+        $html .= ' class="lti13-live" data-lti13-live="'.$live.'"';
+        if ( $live === 'toggle' ) {
+            $on = strlen($action) >= 4 && substr($action, -4) === '_off';
+            $html .= ' data-on="'.($on ? '1' : '0').'"';
+        }
+        if ( $short !== '' ) {
+            $html .= ' data-short="'.htmlspecialchars($short).'"';
+        }
+    }
     if ( $confirm !== '' ) {
         $html .= ' data-confirm="'.htmlspecialchars($confirm).'" onsubmit="return confirm(this.getAttribute(\'data-confirm\'));"';
     }
@@ -46,8 +61,8 @@ $switches = function ($onAction, $offAction, $hiddenKey, $hiddenValue, $grants, 
     if ( ! $manyDeployments ) {
         $grant = $grants[0];
         $html .= ! empty($grant['on'])
-            ? '<span>'.htmlspecialchars(__('On')).'</span> '
-            : '<span class="text-muted">'.htmlspecialchars(__('Off')).'</span> ';
+            ? '<span data-lti13-state>'.htmlspecialchars(__('On')).'</span> '
+            : '<span class="text-muted" data-lti13-state>'.htmlspecialchars(__('Off')).'</span> ';
         $action = ! empty($grant['on']) ? $offAction : $onAction;
         $label = ! empty($grant['on']) ? __('Turn off') : __('Turn on');
         $class = ! empty($grant['on']) ? 'btn btn-default btn-sm' : 'btn btn-primary btn-sm';
@@ -58,7 +73,7 @@ $switches = function ($onAction, $offAction, $hiddenKey, $hiddenValue, $grants, 
         foreach ( $extra as $name => $value ) {
             $fields[$name] = $value;
         }
-        $html .= $button($action, $fields, $label, $class);
+        $html .= $button($action, $fields, $label, $class, '', 'toggle');
         return $html;
     }
     foreach ( $grants as $grant ) {
@@ -74,28 +89,45 @@ $switches = function ($onAction, $offAction, $hiddenKey, $hiddenValue, $grants, 
             $hiddenKey => $hiddenValue,
             'tool_deployment_id' => (int) $grant['tool_deployment_id'],
         );
+        if ( $short !== '' ) {
+            $fields['deployment_short'] = $short;
+        }
         foreach ( $extra as $name => $value ) {
             $fields[$name] = $value;
         }
-        $html .= $button($action, $fields, $label, $class).' ';
+        $html .= $button($action, $fields, $label, $class, '', 'toggle').' ';
     }
     if ( $onCount === 0 ) {
-        $html = '<span class="text-muted">'.htmlspecialchars(__('Off')).'</span> '.$html;
+        $html = '<span class="text-muted" data-lti13-state>'.htmlspecialchars(__('Off')).'</span> '.$html;
+    } else {
+        $html = '<span data-lti13-state hidden></span>'.$html;
     }
     return $html;
 };
 
-$rowOpen = function ($off) {
+$rowOpen = function ($off, $attrs = array()) {
     $style = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px;padding:8px;border:1px solid #e5e5e5;';
     if ( $off ) {
         $style .= 'background:#f7f7f7;';
     }
-    return '<div style="'.htmlspecialchars($style).'">';
+    $html = '<div data-lti13-row="1" style="'.htmlspecialchars($style).'"';
+    foreach ( $attrs as $name => $value ) {
+        $html .= ' '.htmlspecialchars((string) $name).'="'.htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8').'"';
+    }
+    $html .= '>';
+    return $html;
 };
 ?>
+<div id="lti13-editor" data-edit-url="<?= htmlspecialchars($editUrl, ENT_QUOTES, 'UTF-8') ?>">
 <p><a href="<?= htmlspecialchars(isset($tools_url) ? (string) $tools_url : '') ?>"><?= __('Back to course tools') ?></a></p>
 <h2 style="margin-top:0;"><?= htmlspecialchars($title) ?> <span class="text-muted">(LTI 1.3)</span></h2>
-<p><?= __('Turn off leaves an item on the tool and stops sending it. Delete removes it. Add puts a known value on the tool and turns it on.') ?></p>
+<?php
+$missing = isset($tool_edit['missing']) && is_array($tool_edit['missing']) ? $tool_edit['missing'] : array();
+if ( count($missing) > 0 ) { ?>
+<p class="text-muted"><?= htmlspecialchars(__('Draft')) ?>. <?= htmlspecialchars(sprintf(__('Still needs %s.'), implode(', ', $missing))) ?></p>
+<?php } ?>
+<p><?= __('Turn off leaves an item on the tool and stops sending it. Delete removes it. Add puts a known value on the tool and turns it on. Turn off and delete stay on this page. Add reloads it.') ?></p>
+<p id="lti13-live-status" role="status" aria-live="polite" hidden></p>
 
 <h3><?= __('Tool') ?></h3>
 <form method="post" action="<?= htmlspecialchars($editUrl) ?>">
@@ -108,30 +140,35 @@ $rowOpen = function ($off) {
     </div>
     <div class="form-group">
         <label for="lti13_login"><?= __('Login URL') ?></label>
-        <input class="form-control" style="max-width:40em;" id="lti13_login" name="oidc_login_url" type="url" required value="<?= htmlspecialchars(isset($tool_edit['oidc_login_url']) ? (string) $tool_edit['oidc_login_url'] : '', ENT_QUOTES, 'UTF-8') ?>">
+        <input class="form-control" style="max-width:40em;" id="lti13_login" name="oidc_login_url" type="url" value="<?= htmlspecialchars(isset($tool_edit['oidc_login_url']) ? (string) $tool_edit['oidc_login_url'] : '', ENT_QUOTES, 'UTF-8') ?>">
     </div>
     <div class="form-group">
         <label for="lti13_jwks"><?= __('Keyset URL') ?></label>
-        <input class="form-control" style="max-width:40em;" id="lti13_jwks" name="jwks_url" type="url" required value="<?= htmlspecialchars(isset($tool_edit['jwks_url']) ? (string) $tool_edit['jwks_url'] : '', ENT_QUOTES, 'UTF-8') ?>">
+        <input class="form-control" style="max-width:40em;" id="lti13_jwks" name="jwks_url" type="url" value="<?= htmlspecialchars(isset($tool_edit['jwks_url']) ? (string) $tool_edit['jwks_url'] : '', ENT_QUOTES, 'UTF-8') ?>">
     </div>
     <div class="form-group">
         <label for="lti13_launch"><?= __('Launch URL') ?></label>
-        <input class="form-control" style="max-width:40em;" id="lti13_launch" name="launch_url" type="url" required value="<?= htmlspecialchars(isset($tool_edit['launch_url']) ? (string) $tool_edit['launch_url'] : '', ENT_QUOTES, 'UTF-8') ?>">
+        <input class="form-control" style="max-width:40em;" id="lti13_launch" name="launch_url" type="url" value="<?= htmlspecialchars(isset($tool_edit['launch_url']) ? (string) $tool_edit['launch_url'] : '', ENT_QUOTES, 'UTF-8') ?>">
     </div>
     <p><button type="submit" class="btn btn-primary"><?= __('Save tool') ?></button></p>
 </form>
 <p class="text-muted" style="word-break:break-all;"><?= __('Client ID') ?>: <?= htmlspecialchars(isset($tool_edit['client_id']) ? (string) $tool_edit['client_id'] : '') ?></p>
 
 <h3><?= __('Redirect URLs') ?></h3>
+<div data-lti13-section="redirects">
 <?php
 $redirects = isset($tool_edit['redirect_uris']) && is_array($tool_edit['redirect_uris']) ? $tool_edit['redirect_uris'] : array();
 foreach ( $redirects as $uri ) {
-    echo $rowOpen(false);
+    echo $rowOpen(false, array(
+        'data-kind' => 'redirect',
+        'data-value' => (string) $uri,
+    ));
     echo '<span style="word-break:break-all;flex:1;">'.htmlspecialchars((string) $uri).'</span>';
-    echo $button('delete_redirect', array('redirect_uri' => (string) $uri), __('Delete'), 'btn btn-danger btn-sm', __('Remove this redirect URL?'));
+    echo $button('delete_redirect', array('redirect_uri' => (string) $uri), __('Delete'), 'btn btn-danger btn-sm', __('Remove this redirect URL?'), 'delete');
     echo '</div>';
 }
 ?>
+</div>
 <form method="post" action="<?= htmlspecialchars($editUrl) ?>" style="margin-top:8px;">
     <?= \Tsugi\Controllers\Settings::csrfField() ?>
     <input type="hidden" name="registration_id" value="<?= $registrationId ?>">
@@ -154,25 +191,29 @@ foreach ( $scopes as $scope ) {
             $off = false;
         }
     }
-    echo $rowOpen($off);
-    echo '<span style="flex:1;min-width:16em;'.($off ? 'color:#777;' : '').'">';
+    echo $rowOpen($off, array(
+        'data-kind' => 'scope',
+        'data-value' => (string) $scope['value'],
+        'data-label' => (string) $scope['label'],
+    ));
+    echo '<span data-lti13-name style="flex:1;min-width:16em;'.($off ? 'color:#777;' : '').'">';
     echo htmlspecialchars((string) $scope['label']);
     echo '<br><span class="text-muted" style="font-size:12px;word-break:break-all;">'.htmlspecialchars((string) $scope['value']).'</span>';
     echo '</span>';
     echo $switches('scope_on', 'scope_off', 'scope', (string) $scope['value'], $grants);
-    echo ' '.$button('delete_scope', array('scope' => (string) $scope['value']), __('Delete'), 'btn btn-danger btn-sm', __('Remove this scope from the tool?'));
+    echo ' '.$button('delete_scope', array('scope' => (string) $scope['value']), __('Delete'), 'btn btn-danger btn-sm', __('Remove this scope from the tool?'), 'delete');
     echo '</div>';
 }
 $scopeAvailable = isset($tool_edit['scope_available']) && is_array($tool_edit['scope_available']) ? $tool_edit['scope_available'] : array();
-if ( count($scopeAvailable) > 0 ) {
-    echo '<p class="text-muted">'.htmlspecialchars(__('Not on this tool')).'</p>';
-    foreach ( $scopeAvailable as $scope ) {
-        echo $rowOpen(true);
-        echo '<span style="flex:1;min-width:16em;color:#777;">'.htmlspecialchars((string) $scope['label']).'</span>';
-        echo $button('add_scope', array('scope' => (string) $scope['value']), __('Add'), 'btn btn-default btn-sm');
-        echo '</div>';
-    }
+echo '<div data-lti13-available="scopes">';
+echo '<p class="text-muted" data-lti13-available-note'.(count($scopeAvailable) > 0 ? '' : ' hidden').'>'.htmlspecialchars(__('Not on this tool')).'</p>';
+foreach ( $scopeAvailable as $scope ) {
+    echo $rowOpen(true);
+    echo '<span style="flex:1;min-width:16em;color:#777;">'.htmlspecialchars((string) $scope['label']).'</span>';
+    echo $button('add_scope', array('scope' => (string) $scope['value']), __('Add'), 'btn btn-default btn-sm');
+    echo '</div>';
 }
+echo '</div>';
 ?>
 
 <h3><?= __('Claims') ?></h3>
@@ -187,38 +228,40 @@ foreach ( $claims as $claim ) {
             $off = false;
         }
     }
-    echo $rowOpen($off);
-    echo '<span style="flex:1;min-width:16em;'.($off ? 'color:#777;' : '').'">'.htmlspecialchars((string) $claim['label']).'</span>';
+    echo $rowOpen($off, array(
+        'data-kind' => 'claim',
+        'data-value' => (string) $claim['value'],
+        'data-label' => (string) $claim['label'],
+    ));
+    echo '<span data-lti13-name style="flex:1;min-width:16em;'.($off ? 'color:#777;' : '').'">'.htmlspecialchars((string) $claim['label']).'</span>';
     if ( $locked ) {
         echo '<span class="text-muted">'.htmlspecialchars(__('Always sent')).'</span>';
     } else {
         echo $switches('claim_on', 'claim_off', 'claim', (string) $claim['value'], $grants);
-        echo ' '.$button('delete_claim', array('claim' => (string) $claim['value']), __('Delete'), 'btn btn-danger btn-sm', __('Remove this claim from the tool?'));
+        echo ' '.$button('delete_claim', array('claim' => (string) $claim['value']), __('Delete'), 'btn btn-danger btn-sm', __('Remove this claim from the tool?'), 'delete');
     }
     echo '</div>';
 }
 $claimAvailable = isset($tool_edit['claim_available']) && is_array($tool_edit['claim_available']) ? $tool_edit['claim_available'] : array();
-if ( count($claimAvailable) > 0 ) {
-    echo '<p class="text-muted">'.htmlspecialchars(__('Not on this tool')).'</p>';
-    foreach ( $claimAvailable as $claim ) {
-        echo $rowOpen(true);
-        echo '<span style="flex:1;min-width:16em;color:#777;">'.htmlspecialchars((string) $claim['label']).'</span>';
-        echo $button('add_claim', array('claim' => (string) $claim['value']), __('Add'), 'btn btn-default btn-sm');
-        echo '</div>';
-    }
+echo '<div data-lti13-available="claims">';
+echo '<p class="text-muted" data-lti13-available-note'.(count($claimAvailable) > 0 ? '' : ' hidden').'>'.htmlspecialchars(__('Not on this tool')).'</p>';
+foreach ( $claimAvailable as $claim ) {
+    echo $rowOpen(true);
+    echo '<span style="flex:1;min-width:16em;color:#777;">'.htmlspecialchars((string) $claim['label']).'</span>';
+    echo $button('add_claim', array('claim' => (string) $claim['value']), __('Add'), 'btn btn-default btn-sm');
+    echo '</div>';
 }
+echo '</div>';
 ?>
 
 <h3><?= __('Messages') ?></h3>
 <?php
 $messages = isset($tool_edit['messages']) && is_array($tool_edit['messages']) ? $tool_edit['messages'] : array();
-if ( count($messages) === 0 ) {
-    echo '<p class="text-muted">'.htmlspecialchars(__('The tool did not declare any messages.')).'</p>';
-}
+echo '<p class="text-muted" data-lti13-messages-empty'.(count($messages) === 0 ? '' : ' hidden').'>'.htmlspecialchars(__('The tool did not declare any messages.')).'</p>';
 foreach ( $messages as $message ) {
     $messageId = (int) $message['message_id'];
     ?>
-<div style="border:1px solid #ddd;padding:12px;margin:0 0 16px;">
+<div data-lti13-message="<?= $messageId ?>" style="border:1px solid #ddd;padding:12px;margin:0 0 16px;">
     <p style="margin-top:0;"><b><?= htmlspecialchars((string) $message['type_label']) ?></b>
     <span class="text-muted"><?= htmlspecialchars((string) $message['message_type']) ?></span></p>
     <form method="post" action="<?= htmlspecialchars($editUrl) ?>">
@@ -236,13 +279,12 @@ foreach ( $messages as $message ) {
         </div>
         <p><button type="submit" class="btn btn-primary btn-sm"><?= __('Save message') ?></button></p>
     </form>
-    <p><?= $button('delete_message', array('message_id' => (string) $messageId), __('Delete'), 'btn btn-danger btn-sm', __('Delete this message?')) ?></p>
+    <p><?= $button('delete_message', array('message_id' => (string) $messageId), __('Delete message'), 'btn btn-danger btn-sm', __('Delete this message?'), 'delete') ?></p>
     <h4><?= __('Placements') ?></h4>
+    <div data-lti13-placements>
     <?php
     $placements = isset($message['placements']) && is_array($message['placements']) ? $message['placements'] : array();
-    if ( count($placements) === 0 ) {
-        echo '<p class="text-muted">'.htmlspecialchars(__('None')).'</p>';
-    }
+    echo '<p class="text-muted" data-lti13-none'.(count($placements) === 0 ? '' : ' hidden').'>'.htmlspecialchars(__('None')).'</p>';
     foreach ( $placements as $placement ) {
         $grants = isset($placement['deployments']) && is_array($placement['deployments']) ? $placement['deployments'] : array();
         $off = true;
@@ -254,8 +296,14 @@ foreach ( $messages as $message ) {
         $group = isset($placement['group']) ? (string) $placement['group'] : '';
         $identifier = (string) $placement['value'];
         $detail = $group === '' ? $identifier : $group.' · '.$identifier;
-        echo $rowOpen($off);
-        echo '<span style="flex:1;min-width:12em;'.($off ? 'color:#777;' : '').'">';
+        echo $rowOpen($off, array(
+            'data-kind' => 'placement',
+            'data-value' => $identifier,
+            'data-label' => (string) $placement['label'],
+            'data-group' => $group,
+            'data-menu' => empty($placement['menu']) ? '0' : '1',
+        ));
+        echo '<span data-lti13-name style="flex:1;min-width:12em;'.($off ? 'color:#777;' : '').'">';
         echo htmlspecialchars((string) $placement['label']);
         if ( $detail !== (string) $placement['label'] ) {
             echo '<br><span class="text-muted" style="font-size:12px;word-break:break-all;">'.htmlspecialchars($detail).'</span>';
@@ -267,13 +315,13 @@ foreach ( $messages as $message ) {
         echo ' '.$button('delete_placement', array(
             'message_id' => (string) $messageId,
             'message_placement_id' => (string) $placement['message_placement_id'],
-        ), __('Delete'), 'btn btn-danger btn-sm', __('Remove this placement from the message?'));
+        ), __('Delete'), 'btn btn-danger btn-sm', __('Remove this placement from the message?'), 'delete');
         echo '</div>';
     }
+    echo '</div>';
     $placementGroups = isset($message['placement_groups']) && is_array($message['placement_groups']) ? $message['placement_groups'] : array();
-    if ( count($placementGroups) > 0 ) {
-        ?>
-    <form method="post" action="<?= htmlspecialchars($editUrl) ?>" style="margin-top:8px;">
+    ?>
+    <form method="post" action="<?= htmlspecialchars($editUrl) ?>" style="margin-top:8px;" data-lti13-placement-add<?= count($placementGroups) > 0 ? '' : ' hidden' ?>>
         <?= \Tsugi\Controllers\Settings::csrfField() ?>
         <input type="hidden" name="registration_id" value="<?= $registrationId ?>">
         <input type="hidden" name="edit_action" value="add_placement">
@@ -302,9 +350,6 @@ foreach ( $messages as $message ) {
             <button type="submit" class="btn btn-default btn-sm"><?= __('Add') ?></button>
         </div>
     </form>
-        <?php
-    }
-    ?>
     <form method="post" action="<?= htmlspecialchars($editUrl) ?>" style="margin-top:8px;">
         <?= \Tsugi\Controllers\Settings::csrfField() ?>
         <input type="hidden" name="registration_id" value="<?= $registrationId ?>">
@@ -345,6 +390,7 @@ foreach ( $messages as $message ) {
     <p><button type="submit" class="btn btn-default"><?= __('Add message') ?></button></p>
 </form>
 
+<?php include __DIR__.'/platform_urls.inc.php'; ?>
 <p style="margin-top:16px;">
 <?php if ( $registrationId > 0 && isset($view_url) && is_string($view_url) && $view_url !== '' ) {
     $viewSep = strpos($view_url, '?') === false ? '?' : '&';
@@ -365,3 +411,309 @@ foreach ( $messages as $message ) {
 </form>
 <?php } ?>
 </p>
+</div>
+<script>
+(function () {
+    var root = document.getElementById('lti13-editor');
+    if (!root) {
+        return;
+    }
+    var text = <?= json_encode(array(
+        'on' => __('On'),
+        'off' => __('Off'),
+        'turnOn' => __('Turn on'),
+        'turnOff' => __('Turn off'),
+        'add' => __('Add'),
+        'failed' => __('Could not save the tool.'),
+        'groups' => array(__('Standard LTI'), __('Canvas'), __('Tsugi'), __('Other')),
+    ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
+    function showStatus(message, isError) {
+        var el = document.getElementById('lti13-live-status');
+        if (!el) {
+            return;
+        }
+        if (!message) {
+            el.hidden = true;
+            el.textContent = '';
+            return;
+        }
+        el.hidden = false;
+        el.className = isError ? 'alert alert-danger' : 'text-muted';
+        el.textContent = message;
+        if (isError) {
+            el.scrollIntoView({block: 'nearest'});
+        }
+    }
+
+    function finish(form) {
+        form.removeAttribute('data-busy');
+        var button = form.querySelector('button');
+        if (button) {
+            button.disabled = false;
+        }
+    }
+
+    function paintRow(row) {
+        if (!row) {
+            return;
+        }
+        var toggles = row.querySelectorAll('form[data-lti13-live="toggle"]');
+        var anyOn = false;
+        for (var i = 0; i < toggles.length; i++) {
+            if (toggles[i].getAttribute('data-on') === '1') {
+                anyOn = true;
+            }
+        }
+        row.style.background = anyOn ? '' : '#f7f7f7';
+        var name = row.querySelector('[data-lti13-name]');
+        if (name) {
+            name.style.color = anyOn ? '' : '#777';
+        }
+        var mark = row.querySelector('[data-lti13-state]');
+        if (!mark || toggles.length === 0) {
+            return;
+        }
+        if (toggles.length === 1) {
+            mark.hidden = false;
+            mark.className = anyOn ? '' : 'text-muted';
+            mark.textContent = anyOn ? text.on : text.off;
+            return;
+        }
+        mark.className = 'text-muted';
+        mark.hidden = anyOn;
+        mark.textContent = anyOn ? '' : text.off;
+    }
+
+    function afterToggle(form, sent) {
+        var nowOn = /_on$/.test(sent);
+        form.setAttribute('data-on', nowOn ? '1' : '0');
+        var action = form.querySelector('input[name="edit_action"]');
+        if (action) {
+            action.value = nowOn ? sent.replace(/_on$/, '_off') : sent.replace(/_off$/, '_on');
+        }
+        var button = form.querySelector('button');
+        if (button) {
+            var short = form.getAttribute('data-short') || '';
+            button.textContent = (nowOn ? text.turnOff : text.turnOn) + (short ? ' ' + short : '');
+            button.className = nowOn ? 'btn btn-default btn-sm' : 'btn btn-primary btn-sm';
+        }
+        paintRow(form.closest('[data-lti13-row]'));
+    }
+
+    function hiddenInput(name, value) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        return input;
+    }
+
+    function addButton(action, fields) {
+        var form = document.createElement('form');
+        form.method = 'post';
+        form.action = root.getAttribute('data-edit-url') || '';
+        form.style.display = 'inline';
+        var token = root.querySelector('input[name="CSRF_TOKEN"]');
+        var registration = root.querySelector('input[name="registration_id"]');
+        form.appendChild(hiddenInput('CSRF_TOKEN', token ? token.value : ''));
+        form.appendChild(hiddenInput('registration_id', registration ? registration.value : ''));
+        form.appendChild(hiddenInput('edit_action', action));
+        Object.keys(fields).forEach(function (name) {
+            form.appendChild(hiddenInput(name, fields[name]));
+        });
+        var button = document.createElement('button');
+        button.type = 'submit';
+        button.className = 'btn btn-default btn-sm';
+        button.textContent = text.add;
+        form.appendChild(button);
+        return form;
+    }
+
+    function greyRow() {
+        var div = document.createElement('div');
+        div.setAttribute('data-lti13-row', '1');
+        div.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px;padding:8px;border:1px solid #e5e5e5;background:#f7f7f7;';
+        return div;
+    }
+
+    function restoreCatalog(row, kind) {
+        var section = root.querySelector('[data-lti13-available="' + kind + '"]');
+        var value = row.getAttribute('data-value') || '';
+        var field = kind === 'scopes' ? 'scope' : 'claim';
+        if (section && value !== '') {
+            var existing = section.querySelectorAll('input[name="' + field + '"]');
+            var seen = false;
+            for (var i = 0; i < existing.length; i++) {
+                if (existing[i].value === value) {
+                    seen = true;
+                }
+            }
+            if (!seen) {
+                var note = section.querySelector('[data-lti13-available-note]');
+                if (note) {
+                    note.hidden = false;
+                }
+                var div = greyRow();
+                var span = document.createElement('span');
+                span.style.cssText = 'flex:1;min-width:16em;color:#777;';
+                span.textContent = row.getAttribute('data-label') || value;
+                div.appendChild(span);
+                var fields = {};
+                fields[field] = value;
+                div.appendChild(addButton(kind === 'scopes' ? 'add_scope' : 'add_claim', fields));
+                section.appendChild(div);
+            }
+        }
+        row.remove();
+    }
+
+    function hasOption(select, value) {
+        var options = select.options;
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].value === value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function restoreOption(card, row) {
+        var form = card.querySelector('[data-lti13-placement-add]');
+        if (!form) {
+            return;
+        }
+        var select = form.querySelector('select');
+        var value = row.getAttribute('data-value') || '';
+        if (!select || value === '' || hasOption(select, value)) {
+            form.hidden = false;
+            return;
+        }
+        var groupName = row.getAttribute('data-group') || '';
+        var label = row.getAttribute('data-label') || value;
+        var group = null;
+        var groups = select.querySelectorAll('optgroup');
+        for (var i = 0; i < groups.length; i++) {
+            if (groups[i].label === groupName) {
+                group = groups[i];
+            }
+        }
+        if (!group) {
+            group = document.createElement('optgroup');
+            group.label = groupName;
+            var index = text.groups.indexOf(groupName);
+            var placed = false;
+            for (var j = 0; j < groups.length; j++) {
+                var other = text.groups.indexOf(groups[j].label);
+                if (index !== -1 && (other === -1 || other > index)) {
+                    select.insertBefore(group, groups[j]);
+                    placed = true;
+                    break;
+                }
+            }
+            if (!placed) {
+                select.appendChild(group);
+            }
+        }
+        var option = document.createElement('option');
+        option.value = value;
+        option.textContent = label !== value ? label + ' (' + value + ')' : label;
+        group.appendChild(option);
+        form.hidden = false;
+    }
+
+    function afterDelete(form) {
+        var row = form.closest('[data-lti13-row]');
+        var kind = row ? row.getAttribute('data-kind') : '';
+        if (kind === 'scope' || kind === 'claim') {
+            restoreCatalog(row, kind === 'scope' ? 'scopes' : 'claims');
+            return;
+        }
+        if (kind === 'redirect') {
+            row.remove();
+            return;
+        }
+        if (kind === 'placement') {
+            var card = form.closest('[data-lti13-message]');
+            if (row.getAttribute('data-menu') === '1' && card) {
+                restoreOption(card, row);
+            }
+            row.remove();
+            if (card) {
+                var list = card.querySelector('[data-lti13-placements]');
+                if (list && !list.querySelector('[data-lti13-row]')) {
+                    var none = list.querySelector('[data-lti13-none]');
+                    if (none) {
+                        none.hidden = false;
+                    }
+                }
+            }
+            return;
+        }
+        var message = form.closest('[data-lti13-message]');
+        if (message) {
+            message.remove();
+        }
+        var left = root.querySelectorAll('[data-lti13-message]');
+        var empty = root.querySelector('[data-lti13-messages-empty]');
+        if (empty) {
+            empty.hidden = left.length !== 0;
+        }
+    }
+
+    function postForm(form) {
+        var actionInput = form.querySelector('input[name="edit_action"]');
+        var sent = actionInput ? actionInput.value : '';
+        var button = form.querySelector('button');
+        if (button) {
+            button.disabled = true;
+        }
+        fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).then(function (response) {
+            return response.json().then(function (data) {
+                return {ok: response.ok && data && data.ok === true, data: data || {}};
+            }, function () {
+                return {ok: false, data: {}};
+            });
+        }).then(function (result) {
+            finish(form);
+            if (!result.ok) {
+                showStatus((result.data && result.data.error) || text.failed, true);
+                return;
+            }
+            showStatus(result.data.message || '', false);
+            if (form.getAttribute('data-lti13-live') === 'toggle') {
+                afterToggle(form, sent);
+            } else {
+                afterDelete(form);
+            }
+        }).catch(function () {
+            finish(form);
+            showStatus(text.failed, true);
+        });
+    }
+
+    root.addEventListener('submit', function (event) {
+        var form = event.target;
+        if (!form || !form.getAttribute || !form.getAttribute('data-lti13-live')) {
+            return;
+        }
+        if (event.defaultPrevented) {
+            return;
+        }
+        event.preventDefault();
+        if (form.getAttribute('data-busy') === '1') {
+            return;
+        }
+        form.setAttribute('data-busy', '1');
+        postForm(form);
+    });
+})();
+</script>

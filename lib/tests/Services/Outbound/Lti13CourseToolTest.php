@@ -1,5 +1,6 @@
 <?php
 
+use Tsugi\Services\Outbound\Lti11CourseTool;
 use Tsugi\Services\Outbound\Lti13CourseTool;
 use Tsugi\Services\Outbound\ToolDeploymentGrant;
 use Tsugi\Services\Outbound\ToolPlacementService;
@@ -181,18 +182,29 @@ class Lti13CourseToolTest extends PlatformSchemaCase
         $this->assertContains('link_selection', $deepGroups['Canvas']);
         $this->assertNotContains('course_navigation', $deepGroups['Canvas']);
         $this->assertNotContains('assignment_selection', $deepGroups['Canvas']);
-        $this->assertContains('lessons', $deepGroups['Tsugi']);
-        $this->assertContains('content_editor', $deepGroups['Tsugi']);
+        $this->assertContains('migration_selection', $deepGroups['Canvas']);
+        $this->assertArrayNotHasKey('Tsugi', $deepGroups);
+        $this->assertLessThan(
+            array_search('Canvas', array_keys($deepGroups), true),
+            array_search('Standard LTI', array_keys($deepGroups), true)
+        );
         $this->assertSame('assignment_selection', $deep['placements'][0]['value']);
         $this->assertSame('Canvas', $deep['placements'][0]['group']);
         $this->assertSame('Assignment selection', $deep['placements'][0]['label']);
+        $this->assertTrue($deep['placements'][0]['menu']);
 
         $linkGroups = $this->groupValues($link['placement_groups']);
-        $this->assertArrayNotHasKey('Standard LTI', $linkGroups);
+        $this->assertSame(array('ContentArea', 'RichTextEditor'), $linkGroups['Standard LTI']);
+        $this->assertContains('account_navigation', $linkGroups['Canvas']);
         $this->assertContains('course_navigation', $linkGroups['Canvas']);
-        $this->assertNotContains('lessons', $linkGroups['Tsugi']);
+        $this->assertArrayNotHasKey('Tsugi', $linkGroups);
+        $this->assertLessThan(
+            array_search('Canvas', array_keys($linkGroups), true),
+            array_search('Standard LTI', array_keys($linkGroups), true)
+        );
         $this->assertSame('lessons', $link['placements'][0]['value']);
         $this->assertSame('Tsugi', $link['placements'][0]['group']);
+        $this->assertFalse($link['placements'][0]['menu']);
 
         Lti13CourseTool::apply($this->id['eecs280'], $made['registration_id'], array(
             'edit_action' => 'add_placement',
@@ -224,6 +236,126 @@ class Lti13CourseToolTest extends PlatformSchemaCase
         $this->assertNotNull($custom);
         $this->assertSame('com.example.sidebar', $custom['label']);
         $this->assertSame('', $custom['group']);
+        $this->assertFalse($custom['menu']);
+    }
+
+    public function testDeleteMessageDropsTheExtraOneAndKeepsTheOther(): void
+    {
+        $made = $this->tool();
+        $before = ToolRegistrationDocument::messagesForRegistration($made['registration_id']);
+        $this->assertCount(2, $before);
+
+        Lti13CourseTool::apply($this->id['eecs280'], $made['registration_id'], array(
+            'edit_action' => 'delete_message',
+            'message_id' => $before[1]['message_id'],
+        ));
+
+        $after = ToolRegistrationDocument::messagesForRegistration($made['registration_id']);
+        $this->assertCount(1, $after);
+        $this->assertSame($before[0]['message_id'], $after[0]['message_id']);
+        $this->assertSame(0, (int) $after[0]['sequence']);
+        $this->assertSame('yes', $after[0]['message_json']['custom_parameters']['keep']);
+        $this->assertSame('lessons', $after[0]['message_json']['placements'][0]);
+
+        $stored = ToolRegistrationDocument::messagesInDocument(
+            ToolRegistrationDocument::registrationDocument($made['registration_id'])
+        );
+        $this->assertCount(1, $stored);
+        $this->assertSame('LtiResourceLinkRequest', $stored[0]['type']);
+    }
+
+    public function testManualAddCreatesAnEmptyToolThisCourseOwns(): void
+    {
+        $registrationId = Lti13CourseTool::createManual($this->id['eecs280'], null, array(
+            'title' => 'Hand Tool',
+            'oidc_login_url' => 'https://tool.example/login',
+            'jwks_url' => 'https://tool.example/jwks',
+            'launch_url' => 'https://tool.example/launch',
+            'redirect_uri' => 'https://tool.example/redirect',
+        ));
+        $found = ToolRegistrationService::findRegistration($registrationId);
+        $this->assertNotNull($found);
+        $this->assertSame('1.3', $found['lti_version']);
+        $this->assertSame($this->id['eecs280'], (int) $found['owner_context_id']);
+
+        $state = Lti13CourseTool::editState($this->id['eecs280'], $registrationId);
+        $this->assertSame('Hand Tool', $state['title']);
+        $this->assertSame('https://tool.example/login', $state['oidc_login_url']);
+        $this->assertSame('https://tool.example/jwks', $state['jwks_url']);
+        $this->assertSame('https://tool.example/launch', $state['launch_url']);
+        $this->assertSame(array('https://tool.example/redirect'), $state['redirect_uris']);
+        $this->assertNotSame('', $state['client_id']);
+        $this->assertSame(array(), $state['messages']);
+        $this->assertCount(1, $state['deployments']);
+
+        $this->expectRejection(function () {
+            Lti13CourseTool::createManual($this->id['eecs280'], null, array(
+                'title' => '',
+                'oidc_login_url' => 'https://tool.example/login',
+                'jwks_url' => 'https://tool.example/jwks',
+                'launch_url' => 'https://tool.example/launch',
+                'redirect_uri' => 'https://tool.example/redirect',
+            ));
+        });
+    }
+
+    public function testAToolWithoutTheRequiredUrlsIsADraftUntilTheyAreSet(): void
+    {
+        $registrationId = Lti13CourseTool::createManual($this->id['eecs280'], null, array(
+            'title' => 'Half Tool',
+        ));
+        $state = Lti13CourseTool::editState($this->id['eecs280'], $registrationId);
+        $this->assertSame(array('Login URL', 'Keyset URL', 'Launch URL', 'Redirect URL'), $state['missing']);
+        $this->assertArrayHasKey($registrationId, Lti13CourseTool::draftIds(array($registrationId)));
+        $listed = $this->listedTool($registrationId);
+        $this->assertTrue($listed['draft']);
+        $this->assertFalse($listed['can_test']);
+
+        Lti13CourseTool::apply($this->id['eecs280'], $registrationId, array(
+            'edit_action' => 'save_profile',
+            'title' => 'Half Tool',
+            'oidc_login_url' => 'https://tool.example/login',
+            'jwks_url' => 'https://tool.example/jwks',
+            'launch_url' => 'https://tool.example/launch',
+        ));
+        $state = Lti13CourseTool::editState($this->id['eecs280'], $registrationId);
+        $this->assertSame(array('Redirect URL'), $state['missing']);
+        $this->assertTrue($this->listedTool($registrationId)['draft']);
+
+        Lti13CourseTool::apply($this->id['eecs280'], $registrationId, array(
+            'edit_action' => 'add_redirect',
+            'redirect_uri' => 'https://tool.example/redirect',
+        ));
+        $state = Lti13CourseTool::editState($this->id['eecs280'], $registrationId);
+        $this->assertSame(array(), $state['missing']);
+        $this->assertFalse($this->listedTool($registrationId)['draft']);
+        $this->assertTrue($this->listedTool($registrationId)['can_test']);
+
+        Lti13CourseTool::apply($this->id['eecs280'], $registrationId, array(
+            'edit_action' => 'delete_redirect',
+            'redirect_uri' => 'https://tool.example/redirect',
+        ));
+        $this->assertSame(array('Redirect URL'), Lti13CourseTool::editState($this->id['eecs280'], $registrationId)['missing']);
+
+        $this->expectRejection(function () {
+            Lti13CourseTool::createManual($this->id['eecs280'], null, array(
+                'title' => 'Bad URL',
+                'oidc_login_url' => 'not a url',
+            ));
+        });
+    }
+
+    /**
+     * @param int $registrationId
+     * @return array<string, mixed>
+     */
+    private function listedTool($registrationId) {
+        foreach ( Lti11CourseTool::toolsOnCourse($this->id['eecs280']) as $tool ) {
+            if ( (int) $tool['registration_id'] === (int) $registrationId ) {
+                return $tool;
+            }
+        }
+        $this->fail('The tool is not on the course list.');
     }
 
     public function testSavingAMessageKeepsTheRestOfTheDescriptor(): void
