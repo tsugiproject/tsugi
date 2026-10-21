@@ -66,6 +66,24 @@ class PlatformDynamicRegistration {
     }
 
     /**
+     * Platform URLs a tool copies when it is configured by hand.
+     * Dynamic registration publishes these same values.
+     *
+     * @return array<int, array{label: string, value: string}>
+     */
+    public static function platformUrls() {
+        $config = self::openIdConfiguration();
+        return array(
+            array('label' => __('Issuer'), 'value' => (string) $config['issuer']),
+            array('label' => __('OIDC authorization'), 'value' => (string) $config['authorization_endpoint']),
+            array('label' => __('Token endpoint'), 'value' => (string) $config['token_endpoint']),
+            array('label' => __('Keyset URL'), 'value' => (string) $config['jwks_uri']),
+            array('label' => __('Registration endpoint'), 'value' => (string) $config['registration_endpoint']),
+            array('label' => __('OpenID configuration'), 'value' => self::openIdConfigurationUrl()),
+        );
+    }
+
+    /**
      * Tool registration URL with the openid configuration and one-time token.
      *
      * @param string $toolUrl
@@ -152,6 +170,9 @@ class PlatformDynamicRegistration {
      * The raw body is logged once the token names a real pending registration,
      * and before JSON parsing. An unknown token is rejected without a log row.
      *
+     * The answer keeps every placement the tool sent, including lessons next
+     * to ContentArea. The stored registration keeps one name for each pair.
+     *
      * @param string $authorization
      * @param string $payloadText
      * @param string|null $contentType
@@ -192,7 +213,8 @@ class PlatformDynamicRegistration {
             $fields = self::registrationFields($decoded);
             $clientId = self::uuid();
             $deploymentId = self::uuid();
-            $document = self::stamp($decoded, $clientId, $deploymentId);
+            $answer = self::stamp($decoded, $clientId, $deploymentId);
+            $document = ToolMessagePlacement::foldReceivedPlacements($answer);
         } catch ( \InvalidArgumentException $ex ) {
             return self::error(400, $ex->getMessage());
         }
@@ -249,7 +271,7 @@ class PlatformDynamicRegistration {
 
         return array(
             'status' => 200,
-            'document' => $document,
+            'document' => $answer,
         );
     }
 

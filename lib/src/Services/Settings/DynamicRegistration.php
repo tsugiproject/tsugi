@@ -84,7 +84,7 @@ class DynamicRegistration {
             return '';
         }
 
-        $OUTPUT->togglePre("LMS-Provided OpenId Configuration", $response);
+        $OUTPUT->togglePre("LMS-Provided OpenId Configuration", self::prettyJson($response));
 
         $platform_configuration = json_decode($response);
         if ( ! $platform_configuration || ! is_object($platform_configuration) ) {
@@ -165,6 +165,10 @@ class DynamicRegistration {
                 "type" => "LtiDeepLinkingRequest",
                 "label" => $json->client_name . ' (' . __('Deep Link') . ')',
                 "target_link_uri" => $CFG->wwwroot . '/lti/store/',
+                // lessons is the Tsugi/Sakai content area. ContentArea is the
+                // standard name. Both go out so Sakai still sees lessons.
+                // A registration imported into Tsugi keeps ContentArea only.
+                "placements" => array("ContentArea", "lessons"),
                 "custom_parameters" => $custom_parameters,
             ),
             array(
@@ -193,7 +197,10 @@ class DynamicRegistration {
                 "type" => "LtiDeepLinkingRequest",
                 "label" => $json->client_name . ' (' . __('Editor Button') . ')',
                 "target_link_uri" => $CFG->wwwroot . '/lti/store/?type=editor_button',
-                "placements" => array( "editor_button"),
+                // RichTextEditor is the standard name and comes first.
+                // editor_button is Canvas. content_editor is Tsugi/Sakai.
+                // All three go out. Import into Tsugi keeps RichTextEditor only.
+                "placements" => array("RichTextEditor", "editor_button", "content_editor"),
                 "custom_parameters" => $custom_parameters,
             ),
             array(
@@ -225,7 +232,7 @@ class DynamicRegistration {
 
         echo("\n<p><b>Sending registration to LMS</b><br>\n");
         echo(htmlentities($url)."\n</p>\n");
-        $OUTPUT->togglePre("Registration data sent to LMS", $body);
+        $OUTPUT->togglePre("Registration data sent to LMS", self::prettyJson($body));
 
         $response = Net::bodyCurl($url, $method, $body, $header);
 
@@ -243,8 +250,8 @@ class DynamicRegistration {
             return '';
         }
 
-        $OUTPUT->togglePre("Registration response from LMS", $response);
-        $resp = json_decode($response);
+        $resp = is_string($response) ? json_decode($response) : null;
+        $OUTPUT->togglePre("Registration response from LMS", self::prettyJson($response));
         if ( ! $resp || ! is_object($resp) ) {
             echo("Unable to parse JSON retrieved from:\n".htmlentities($registration_endpoint)."\n\n");
             echo(htmlentities($response));
@@ -318,5 +325,23 @@ class DynamicRegistration {
         echo('<button onclick="(window.opener || window.parent).postMessage({subject:\'org.imsglobal.lti.close\'}, \'*\')">Continue Registration in the LMS</button>'."\n");
         $OUTPUT->footer();
         return '';
+    }
+
+    /**
+     * Indent JSON for display. Other text is left as it was retrieved.
+     *
+     * @param mixed $raw
+     * @return mixed
+     */
+    private static function prettyJson($raw) {
+        if ( ! is_string($raw) ) {
+            return $raw;
+        }
+        $decoded = json_decode($raw);
+        if ( json_last_error() !== JSON_ERROR_NONE || $decoded === null ) {
+            return $raw;
+        }
+        $pretty = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        return is_string($pretty) ? $pretty : $raw;
     }
 }

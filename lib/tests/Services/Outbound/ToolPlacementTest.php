@@ -22,6 +22,30 @@ class ToolPlacementTest extends PlatformSchemaCase
         }
     }
 
+    public function testRolledUpPlacementsLeadWithTheStandardNames(): void
+    {
+        $this->assertSame(
+            array(
+                'ContentArea',
+                'RichTextEditor',
+                'migration_selection (Canvas extension)',
+                'link_selection (Canvas extension)',
+                'assignment_selection (Canvas extension)',
+                'lessons (Tsugi/Sakai extension)',
+                'com.example.sidebar',
+            ),
+            ToolMessagePlacement::displayPlacements(array(
+                'ContentArea',
+                'migration_selection',
+                'link_selection',
+                'RichTextEditor',
+                'assignment_selection',
+                'lessons',
+                'com.example.sidebar',
+            ))
+        );
+    }
+
     public function testOneMessageCanHaveSeveralPlacements(): void
     {
         $messageId = $this->message($this->registrationOn($this->id['keyA'], 'Picker'), 'LtiDeepLinkingRequest', 'https://tool.example/select');
