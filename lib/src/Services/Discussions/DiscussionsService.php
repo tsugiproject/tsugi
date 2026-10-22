@@ -1084,11 +1084,12 @@ class DiscussionsService {
         $p = $CFG->dbprefix;
 
         // Driving from tdiscus_thread scans every thread on the site, then
-        // discards other courses. context_id is NOT NULL, so equality matches
-        // the old null-safe join. Start from this user's rows, then this course.
+        // discards other courses. DISTINCT materializes mine. Without that,
+        // MySQL can merge this read of tdiscus_user_thread into the UPDATE
+        // and reject it with error 1093.
         $PDOX->queryDie("UPDATE {$p}tdiscus_user_thread UT
             JOIN (
-                SELECT UT2.thread_id
+                SELECT DISTINCT UT2.thread_id
                 FROM {$p}tdiscus_user_thread UT2
                 JOIN {$p}tdiscus_thread T2 ON T2.thread_id = UT2.thread_id
                 JOIN {$p}lti_link L2 ON L2.link_id = T2.link_id
