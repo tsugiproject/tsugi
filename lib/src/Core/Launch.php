@@ -30,6 +30,11 @@ class Launch {
     public $for_user;
 
     /**
+     * A for_user with no lti_user row yet; see LTIX::provisionForUser().
+     */
+    public $for_user_pending = null;
+
+    /**
      * Get the Context associated with the launch.
      */
     public $context;
