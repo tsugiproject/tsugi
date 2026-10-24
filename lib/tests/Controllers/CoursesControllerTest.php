@@ -140,6 +140,85 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $this->assertNull(Courses::gateResponse());
     }
 
+    public function testGateAllowsPlusLaunchOnItsOwnCourse()
+    {
+        $_SESSION['id'] = 7;
+        $_SESSION['oauth_consumer_key'] = 'sakai.example.edu';
+        $_SESSION['lti_post'] = array('context_id' => 'lms-course');
+        $_SESSION['lti'] = array(
+            'context_id' => 42,
+            'link_id' => 9,
+            'plus_course' => 1,
+            'plus_launch_link_id' => 9,
+        );
+        $saved = $_SERVER['REQUEST_URI'] ?? null;
+        $_SERVER['REQUEST_URI'] = '/tsugi/courses/42/home';
+        \Tsugi\Core\ReqScope::resetIdentity();
+        try {
+            $this->assertNull(Courses::gateResponse());
+        } finally {
+            if ( $saved === null ) {
+                unset($_SERVER['REQUEST_URI']);
+            } else {
+                $_SERVER['REQUEST_URI'] = $saved;
+            }
+        }
+    }
+
+    public function testGateRefusesPlusLaunchOnAnotherCourse()
+    {
+        $_SESSION['id'] = 7;
+        $_SESSION['oauth_consumer_key'] = 'sakai.example.edu';
+        $_SESSION['lti_post'] = array('context_id' => 'lms-course');
+        $_SESSION['lti'] = array(
+            'context_id' => 42,
+            'link_id' => 9,
+            'plus_course' => 1,
+            'plus_launch_link_id' => 9,
+        );
+        $saved = $_SERVER['REQUEST_URI'] ?? null;
+        $_SERVER['REQUEST_URI'] = '/tsugi/courses/99';
+        \Tsugi\Core\ReqScope::resetIdentity();
+        try {
+            $response = Courses::gateResponse();
+            $this->assertNotNull($response);
+            $this->assertSame(403, $response->getStatusCode());
+        } finally {
+            if ( $saved === null ) {
+                unset($_SERVER['REQUEST_URI']);
+            } else {
+                $_SERVER['REQUEST_URI'] = $saved;
+            }
+        }
+    }
+
+    public function testGateRefusesOtherLinkInPlusCourse()
+    {
+        $_SESSION['id'] = 7;
+        $_SESSION['oauth_consumer_key'] = 'sakai.example.edu';
+        $_SESSION['lti_post'] = array('context_id' => 'lms-course');
+        $_SESSION['lti'] = array(
+            'context_id' => 42,
+            'link_id' => 3,
+            'plus_course' => 1,
+            'plus_launch_link_id' => 9,
+        );
+        $saved = $_SERVER['REQUEST_URI'] ?? null;
+        $_SERVER['REQUEST_URI'] = '/tsugi/courses/42';
+        \Tsugi\Core\ReqScope::resetIdentity();
+        try {
+            $response = Courses::gateResponse();
+            $this->assertNotNull($response);
+            $this->assertSame(403, $response->getStatusCode());
+        } finally {
+            if ( $saved === null ) {
+                unset($_SERVER['REQUEST_URI']);
+            } else {
+                $_SERVER['REQUEST_URI'] = $saved;
+            }
+        }
+    }
+
     public function testEnsureActiveContextNoOpWhenSame()
     {
         global $PDOX;

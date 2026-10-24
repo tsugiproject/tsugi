@@ -286,6 +286,42 @@ if ( $allow_lti ) {
     $registrations = false;
 }
 
+// Privacy is offered when $CFG->privacy_url is set. Plus is a tenant flag.
+// An LMS that only places the deep-link message can still place these as
+// resource links. Privacy accepts a resource link.
+$otherLaunches = array();
+$privacyUrl = (isset($CFG->privacy_url) && is_string($CFG->privacy_url)) ? trim($CFG->privacy_url) : '';
+if ( $allow_lti ) {
+    if ( $privacyUrl !== '' ) {
+        $otherLaunches[] = array(
+            'id' => 'privacy',
+            'title' => __('Privacy'),
+            'text' => __('Privacy launch'),
+            'url' => $privacyUrl,
+            'fa_icon' => 'fa-user-secret',
+        );
+    }
+    $plusOn = false;
+    $keyId = (isset($LAUNCH->key) && isset($LAUNCH->key->id)) ? (int) $LAUNCH->key->id : 0;
+    if ( $keyId > 0 ) {
+        $PDOX = LTIX::getConnection();
+        $plusRow = $PDOX->rowDie(
+            "SELECT plus FROM {$CFG->dbprefix}lti_key WHERE key_id = :id",
+            array(':id' => $keyId)
+        );
+        $plusOn = is_array($plusRow) && (int) ($plusRow['plus'] ?? 0) === 1;
+    }
+    if ( $plusOn ) {
+        $otherLaunches[] = array(
+            'id' => 'plus',
+            'title' => __('Tsugi Plus'),
+            'text' => __('Tsugi Plus launch'),
+            'url' => $CFG->wwwroot . '/plus',
+            'fa_icon' => 'fa-graduation-cap',
+        );
+    }
+}
+
 $OUTPUT->bodyStart();
 $OUTPUT->flashMessages();
 
@@ -301,7 +337,7 @@ if ( ! $return_url ) {
     return;
 }
 
-if ( ! ( $assignments || $links || $import || $registrations ) ) {
+if ( ! ( $assignments || $links || $import || $registrations || count($otherLaunches) > 0 ) ) {
     echo("<p>No tools, content, imports, or assignments found.</p>");
     $OUTPUT->footer();
     return;
@@ -459,6 +495,42 @@ if ( $l && isset($_GET['assignment']) ) {
     return;
 }
 
+// Place a privacy or Plus resource link. No line item.
+if ( isset($_GET['other']) ) {
+    $otherId = (string) $_GET['other'];
+    $chosen = null;
+    foreach ( $otherLaunches as $item ) {
+        if ( $item['id'] === $otherId ) {
+            $chosen = $item;
+            break;
+        }
+    }
+    if ( ! is_array($chosen) ) {
+        echo("<p>Launch not found</p>\n");
+        $OUTPUT->footer();
+        return;
+    }
+
+    if ( $deeplink ) {
+        $retval = new DeepLinkResponse($deeplink);
+    } else {
+        $retval = new ContentItem();
+    }
+    $fa_icon = $chosen['fa_icon'];
+    $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
+    $custom = SakaiCustom::deepLinkCustom();
+    $retval->addLtiLinkItem($chosen['url'], $chosen['title'], $chosen['text'], $icon, $fa_icon, $custom, false, false);
+    $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
+    $content = $retval->prepareResponse($endform);
+    echo('<center>');
+    echo('<span class="fa '.$fa_icon.' fa-3x" style="color: var(--primary); float:right; margin: 2px"></span>');
+    echo("<h1>".htmlent_utf8($chosen['title'])."</h1>\n");
+    echo($content);
+    echo("</center>\n");
+    $OUTPUT->footer();
+    return;
+}
+
 // Handle the content install
 $content_items = array();
 $val = U::get($_GET,'radio_value');
@@ -605,6 +677,11 @@ if ( $l && ($allow_link || $allow_lti) ) {
 
 if ( $l && $allow_lti ) {
     echo('<li class="'.$active.'"><a href="#assignments" data-toggle="tab" aria-expanded="false">Assignments</a></li>'."\n");
+    $active = '';
+}
+
+if ( count($otherLaunches) > 0 ) {
+    echo('<li class="'.$active.'"><a href="#other" data-toggle="tab" aria-expanded="false">Other launches</a></li>'."\n");
     $active = '';
 }
 
@@ -865,6 +942,18 @@ if ( $l && $allow_lti ) {
     } else {
         echo("</ul>\n");
     }
+    echo("</div>\n");
+}
+
+if ( count($otherLaunches) > 0 ) {
+    echo('<div class="tab-pane fade '.$active.' in" id="other">'."\n");
+    $active = '';
+    echo("<ul>\n");
+    foreach ( $otherLaunches as $item ) {
+        echo('<li><a href="index.php?other='.urlencode($item['id']).'">'.htmlentities($item['title']).'</a>');
+        echo("</li>\n");
+    }
+    echo("</ul>\n");
     echo("</div>\n");
 }
 

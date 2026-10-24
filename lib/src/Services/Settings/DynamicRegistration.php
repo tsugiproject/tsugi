@@ -2,6 +2,7 @@
 
 namespace Tsugi\Services\Settings;
 
+use Tsugi\Services\Outbound\ToolRegistrationDocument;
 use Tsugi\Util\SakaiCustom;
 use Tsugi\Util\U;
 use Tsugi\Util\Net;
@@ -42,7 +43,7 @@ class DynamicRegistration {
 
         if ( $user_id == 0 ) {
             $row = $PDOX->rowDie(
-                "SELECT key_title, key_key, unlock_code, user_id,
+                "SELECT key_title, key_key, unlock_code, user_id, plus,
                     lms_client, lms_oidc_auth, lms_keyset_url, lms_token_url
                 FROM {$CFG->dbprefix}lti_key
                     WHERE key_id = :KID AND unlock_code = :UNLOCK",
@@ -51,7 +52,7 @@ class DynamicRegistration {
             if ( $row && isset($row['user_id']) ) $user_id = $row['user_id']+0;
         } else {
             $row = $PDOX->rowDie(
-                "SELECT key_title, key_key, unlock_code, user_id,
+                "SELECT key_title, key_key, unlock_code, user_id, plus,
                     lms_client, lms_oidc_auth, lms_keyset_url, lms_token_url
                 FROM {$CFG->dbprefix}lti_key
                     WHERE key_id = :KID AND user_id = :UID AND unlock_code = :UNLOCK",
@@ -138,7 +139,7 @@ class DynamicRegistration {
             $tool->better_contacts = array($contact);
         }
 
-        $json->scope = "https://purl.imsglobal.org/spec/lti-ags/scope/score https://purl.imsglobal.org/spec/lti-ags/scope/lineitem https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly";
+        $json->scope = implode(' ', ToolRegistrationDocument::scopeVocabulary());
 
         $tool->product_family_code = "tsugi.org";
         $tool->target_link_uri = $CFG->wwwroot . '/lti/store/';
@@ -178,6 +179,14 @@ class DynamicRegistration {
                 "custom_parameters" => $custom_parameters,
             ),
         );
+        if ( (int) ($row['plus'] ?? 0) === 1 ) {
+            $tool->messages[] = array(
+                "type" => "LtiResourceLinkRequest",
+                "label" => __('Tsugi Plus'),
+                "target_link_uri" => $CFG->wwwroot . '/plus',
+                "custom_parameters" => $custom_parameters,
+            );
+        }
         $tool->messages = array_merge($tool->messages, array(
             array(
                 "type" => "LtiDeepLinkingRequest",

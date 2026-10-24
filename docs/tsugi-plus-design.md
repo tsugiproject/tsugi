@@ -1,0 +1,81 @@
+# Tsugi Plus design
+
+Stored 2026-10-24. This note describes the code. The original brief is [history/plus-course-shell-prompt.md](history/plus-course-shell-prompt.md). That brief asked for the whole Sakai+ use case, including a roster pull and grade columns posted up to the LMS. Those are not in this change. They are listed under Next phase.
+
+Tsugi Plus is one LMS course taught inside Tsugi. The LMS stays the system of record for roster, grades, and notifications. One LMS course is one `lti_context` and one new Lessons JSON v2 manifest. Students launch the same course-navigation link and work inside Tsugi. There is no second course, tenant, link, or line-item table.
+
+## What is built
+
+### Tenant
+
+`lti_key.plus` is off until an admin turns it on. A launch to `/plus` while it is off returns "Tsugi Plus is not enabled for this tenant" and does not create a course.
+
+Checking Tsugi Plus while creating or editing a tenant shows the configuration note. The note says dynamic registration includes a resource link titled Tsugi Plus, and gives the target link URI `$CFG->wwwroot/plus` for an LMS that does not place that message. The note is on the Brightspace, Sakai, Moodle, Manual, and Blackboard screens. The Canvas screen is unchanged.
+
+`lti_key.timezone` is an optional IANA name. It is copied onto the context when the Plus course is created and the context zone is still empty. A later edit of the key does not rewrite existing courses. Abbreviations such as EST are not copied. `$Person.address.timezone` and `$CFG->timezone` are not the course zone.
+
+### Where the LMS places the launch
+
+`/lti/canvas-config/{key_id}.json` is a Canvas developer-key document for this key. One placement: course navigation, `LtiResourceLinkRequest`, `windowTarget` `_blank`. The placement `target_link_uri` is `$CFG->wwwroot/plus`. The top-level `target_link_uri` stays `/lti/oidc_launch`. `oidc_initiation_url` is `/lti/oidc_login/{key_id}`. Redirect and keyset stay `/lti/oidc_launch` and `/lti/keyset`. Scopes are score, lineitem, lineitem.readonly, result.readonly, and contextmembership.readonly. Privacy is public. `lti/store/canvas-config.json` is left as it is. The Canvas admin screen does not show the Plus note.
+
+When `lti_key.plus` is 1, dynamic registration adds one `LtiResourceLinkRequest` titled Tsugi Plus, aimed at `$CFG->wwwroot/plus`. A tenant with `plus` 0 does not include that message. The registration still asks for the same five scopes.
+
+The store deep-link screen has an Other launches tab when there is something to place. Privacy is listed only when `$CFG->privacy_url` is set, and the placed URL is that privacy URL. Tsugi Plus is listed only when `lti_key.plus` is 1. Both are resource links with no line item. If neither is available, the tab is omitted.
+
+### Launch
+
+`/plus` is a cookie session. The cookieless `?_LTI_TSUGI=` parameter is dropped. The launch POST that opens the session empties the previous cookie session first, including a cached membership, and then stores this launch. Another tab that shared the cookie loses the old session.
+
+If that POST arrives inside an iframe, `/plus` does not start the session there. The button calls `window.open` and re-posts the launch into that window. A launch that is already the top window continues there. Leave course, in the avatar menu, calls `window.close()`.
+
+`adjustData` still inserts `lti_context` on `(key_id, context_sha256)`, `lti_user` on `(key_id, subject_sha256)`, `lti_membership` with the mapped role, and one `lti_link` for the resource link. Two subjects with the same email stay two `lti_user` rows.
+
+After the session is stored, `/plus` redirects to `/courses/{context_id}`. `/courses` still refuses an ordinary LMS launch. It allows this Plus launch only when the id in the address is this launch's context, `plus_course` is 1, and the launch link is `plus_launch_link_id`. A different id, the course list, creating a course, and another link in the same Plus course stay refused. Plus is not a course switcher.
+
+### Course
+
+When `plus_course` is still 0 and `manifest_id` is null, the launch attaches `Manifest::starter` through `saveNewVersion`, sets `plus_course` to 1, and sets `plus_launch_link_id` to the link just created. It stores `lti13_deployment_id` and, when the key has a real IANA zone and the context zone is empty, copies that zone. Title and short title are filled only while they are blank. The starter has empty modules and discussions.
+
+If `manifest_id` is already set and `plus_course` is 0, the launch opens that course. It does not replace the manifest and it does not set `plus_course`. If `plus_course` is already 1 and the manifest is missing, the launch stops.
+
+A Plus course keeps `lti13_lineitems`, `lti13_membership_url`, `lti13_context_groups_url`, and `lti13_deployment_id` unless this launch's link is `plus_launch_link_id`. The course title is replaced only while it is blank. A link-level `lti13_lineitem` and link title are not guarded. The first launch still has `plus_course` 0 during `adjustData`, so that launch stores the service URLs normally.
+
+The course is that manifest. It does not read `$CFG->lessons`. A missing manifest is an error page. `Manifest::createCourse` stays the path for a course created inside Tsugi, and that row keeps `plus_course` 0. Bringing in an existing course is lessons import and export after the shell exists.
+
+The starter navigation is the default course menu without the courses widget and without Logout. The avatar menu has Leave course. Logout remains in the menu catalog, so a teacher can add it. Leave course is also available on any course. The navigation is stored when the shell is created. A course created earlier keeps the menu it already stored.
+
+The course-navigation link is not a grade column. This change does not POST a line item for it.
+
+## Schema in this change
+
+On `lti_key`: `plus` (`TINYINT NOT NULL DEFAULT 0`) and optional `timezone`.
+
+On `lti_context`: `plus_course` (`TINYINT NOT NULL DEFAULT 0`), `plus_launch_link_id` (no foreign key; same pattern as `previous_context_id`), `lti13_deployment_id`, `timezone`, and `nrps_at`. Existing rows stay `plus_course` 0, including file-based lessons and ordinary resource links.
+
+`lti_context_plus_log` is created: one row per upward call, with `context_id`, optional `link_id`, optional `user_id`, kind, success, HTTP status, URL, request body, response detail, and `created_at`. Nothing writes it yet.
+
+`nrps_at`, `lti13_deployment_id`, and the log table are in place for the next phase. This change stores the deployment id from the Plus launch. It does not yet send that id on a token call. `LTI13::get_access_token` still adds a deployment id only when `$CFG->token_deployment_id` is set, and nothing in this tree sets that flag.
+
+## Left as it is
+
+A file-based `$CFG->lessons` context has `manifest_id` null and `plus_course` 0. Its launch stays as it is.
+
+An ordinary resource-link launch keeps today's `adjustData` and `Result::gradeSendStatic`: score maximum 1, and a line item created lazily on the first score. `Gradebook::record` still keeps an internal quiz grade local.
+
+`lti/store/canvas-config.json` and `Manifest::createCourse` stay on their current paths. The Canvas tenant screen stays as it was.
+
+## Next phase
+
+Not in this change:
+
+- After a Plus launch, pull `lti13_membership_url` when `nrps_at` is empty or older than 5 minutes for an instructor or 30 minutes for a learner. Use the stored deployment id and the key's token URL. A missing member gets `lti_membership.deleted` 1. Their results, quiz attempts, and posts stay. A later roster row or launch sets `deleted` back to 0. `loadAllData` still drops a deleted membership and would reject that launch instead of restoring it.
+- When a quiz or another gradable activity in a Plus course is saved with a title and a positive point total, POST a line item to `lti_context.lti13_lineitems` with `scoreMaximum` equal to those points, `resourceId` equal to `link_id`, and `endDateTime` of 23:59:59 on the due day in `lti_context.timezone` when that zone is set. Store the returned id on `lti_link.lti13_lineitem`. Do not write that id into `ags_resource_id`. A send-grade flag with no points does not invent a 1-point column. Changing the title, points, or due date PUTs the same line item. Existing scores are not rescaled and not reposted.
+- On a numeric score or comment, POST `{lineitem}/scores` with the subject, `scoreGiven`, `scoreMaximum`, the comment, and the progress pair. `grades_released` 0 withholds that POST. Null means forward. The local `lti_result` row is written even when the POST fails. `gradeSendStatic` stays on the 0–1 path for launches that are not this shell.
+- Write one `lti_context_plus_log` row per roster pull, line-item create or update, and score post. A replay sends the stored request again and appends a new row. The old row stays. The instructor log screen is not built.
+
+## Left open
+
+- Deleting an activity does not DELETE the LMS line item. `LTI13::deleteLineItem` exists and is not called.
+- Letter grades and pass/fail are not sent.
+- Grades are not read back from the LMS.
+- How long `lti_context_plus_log` rows are kept. This design does not pick a retention period.

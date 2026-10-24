@@ -57,7 +57,7 @@ class CrudForm {
      * @param $titles An array of fields->titles
      * @param $fields_defaults An array of fields>default values
      */
-    public static function insertForm($fields, $from_location, $titles=false, $fields_defaults=false) {
+    public static function insertForm($fields, $from_location, $titles=false, $fields_defaults=false, $checkboxes=false) {
         echo('<form method="post" autocomplete="off">'."\n");
         echo(\Tsugi\Controllers\Tool::csrfField()."\n");
 
@@ -71,7 +71,10 @@ class CrudForm {
             echo('<div class="form-group">'."\n");
             echo('<label for="'.$field.'"><span id="'.$field.'_label">'.self::fieldToTitle($field, $titles)."</span><br/>\n");
 
-            if ( self::isSensitiveField($field) ) {
+            if ( self::isCheckbox($field, $checkboxes) ) {
+                $default = !empty($fields_defaults) ? self::valueToField($field, $fields_defaults) : '';
+                self::echoCheckbox($field, (string) $default === '1');
+            } else if ( self::isSensitiveField($field) ) {
                 self::echoSensitiveInput($field);
             } else {
                 echo('<input type="text" size="80" id="'.$field.'" name="'.$field.'"'.(!empty($fields_defaults)?' value="'.htmlent_utf8(self::valueToField($field, $fields_defaults)).'"':'').'>'."\n");
@@ -188,7 +191,7 @@ class CrudForm {
      * @param $titles An array of fields->titles
      */
     public static function updateForm($row, $fields, $current, $from_location,
-        $allow_edit=false, $allow_delete=false, $extra_buttons=false, $titles=false)
+        $allow_edit=false, $allow_delete=false, $extra_buttons=false, $titles=false, $checkboxes=false)
     {
         $key = $fields['0'];
         if ( !isset($_REQUEST[$key]) ) {
@@ -236,6 +239,8 @@ class CrudForm {
                     echo("<button type=\"button\" id=\"show_{$i}\" class=\"btn btn-link\" style=\"padding:0;vertical-align:baseline;\" onclick=\"$('#text_{$i}').show();$('#show_{$i}').hide();$('#hide_{$i}').show();\">"._m('Click to show')."</button>\n");
                     echo("<button type=\"button\" id=\"hide_{$i}\" class=\"btn btn-link\" style=\"padding:0;vertical-align:baseline;display:none;\" onclick=\"$('#text_{$i}').hide();$('#hide_{$i}').hide();$('#show_{$i}').show();\">"._m('Click to hide')."</button>\n");
                     echo("\n</p>\n");
+                } else if ( self::isCheckbox($field, $checkboxes) ) {
+                    echo('<p id="'.$field.'">'.(((string) $value === '1') ? 'Yes' : 'No')."</p>\n");
                 } else {
                     echo('<p id="'.$field.'">'.htmlent_utf8($value)."</p>\n");
                 }
@@ -256,7 +261,9 @@ class CrudForm {
                 $value = $_POST[$field];
             }
 
-            if ( self::isSensitiveField($field) ) {
+            if ( self::isCheckbox($field, $checkboxes) ) {
+                self::echoCheckbox($field, (string) $value === '1');
+            } else if ( self::isSensitiveField($field) ) {
                 $sensitive_value = (isset($_POST[$field]) && $_POST[$field] !== '') ? $_POST[$field] : '';
                 self::echoSensitiveInput($field, true, $sensitive_value);
             } else if ( U::strlen($value) > 60 ) {
@@ -433,6 +440,18 @@ class CrudForm {
     /**
      * Whether a form field holds a secret / credential value.
      */
+    private static function isCheckbox($field, $checkboxes) {
+        return is_array($checkboxes) && in_array($field, $checkboxes, true);
+    }
+
+    /**
+     * Hidden 0 plus a checkbox so an unchecked box still posts a value.
+     */
+    private static function echoCheckbox($field, $checked) {
+        echo('<input type="hidden" name="'.$field.'" value="0">'."\n");
+        echo('<input type="checkbox" id="'.$field.'" name="'.$field.'" value="1"'.($checked ? ' checked' : '').'>'."\n");
+    }
+
     private static function isSensitiveField($field) {
         return strpos($field, "secret") !== false
             || strpos($field, "password") !== false

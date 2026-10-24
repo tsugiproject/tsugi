@@ -22,7 +22,7 @@ $allow_delete = true;
 $allow_edit = true;
 $where_clause = '';
 $query_fields = array();
-$fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key',
+$fields = array('key_id', 'key_title', 'plus', 'key_key', 'secret', 'deploy_key',
      'unlock_code',
      'lms_issuer', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'xapi_url', 'xapi_user', 'xapi_password',
@@ -30,7 +30,7 @@ $fields = array('key_id', 'key_title', 'key_key', 'secret', 'deploy_key',
      'created_at', 'updated_at', 'user_id',
 );
 
-$realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256',
+$realfields = array('key_id', 'key_title', 'plus', 'key_key', 'key_sha256', 'secret', 'deploy_key', 'deploy_sha256',
      'unlock_code',
      'lms_issuer', 'lms_issuer_sha256', 'lms_client', 'lms_oidc_auth', 'lms_keyset_url', 'lms_token_url', 'lms_token_audience',
      'xapi_url', 'xapi_user', 'xapi_password',
@@ -41,6 +41,7 @@ $realfields = array('key_id', 'key_title', 'key_key', 'key_sha256', 'secret', 'd
 $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
+    'plus' => 'Tsugi Plus',
     'deploy_key' => 'LTI 1.3: Deployment ID (This is only a default, the tool will accept any value from the LMS)',
     'unlock_code' => 'LTI 1.3: Dynamic Registration Unlock Code (one time use)',
 );
@@ -53,6 +54,9 @@ if ( isset($_POST['key_key']) && empty($_POST['key_key']) ) $_POST['key_key'] = 
 if ( isset($_POST['user_id']) && empty($_POST['user_id']) ) $_POST['user_id'] = null;
 if ( isset($_POST['deploy_key']) ) {
     $_POST['deploy_key'] = \Tsugi\Services\Admin\AdminService::normalize_deploy_key_input($_POST['deploy_key']);
+}
+if ( isset($_POST['doUpdate']) ) {
+    $_POST['plus'] = (isset($_POST['plus']) && (string) $_POST['plus'] === '1') ? '1' : '0';
 }
 
 // Check the complex interaction of constraints
@@ -148,7 +152,7 @@ $OUTPUT->flashMessages();
 $extra_buttons=false;
 $row['lti13_tool_keyset_url'] = $CFG->wwwroot . '/lti/keyset';
 $from_location = null;
-$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete,$extra_buttons,$titles);
+$retval = CrudForm::updateForm($row, $fields, $current, $from_location, $allow_edit, $allow_delete, $extra_buttons, $titles, array('plus'));
 if ( is_string($retval) ) die($retval);
 echo("</p>\n");
 $dynamicConfigUrl = null;
@@ -273,6 +277,7 @@ others might be useful as well.   The URL to provide to use for Deep Linking Qui
 <?= htmlentities($contentItemUrl) ?>
 </p>
 <?php showDynamicConfig($dynamicConfigUrl); ?>
+<?php require __DIR__ . '/plus-config.php'; ?>
 <h2>LTI 1.1</h2>
 <p>
 You can install Tsugi as a
@@ -316,6 +321,7 @@ Sakai supports the optional part of Dynamic Registration and so it provides the 
 in the Dynamic Registration process so once the process is done - the Tenant should be fully configured and ready to launch.
 You may leave Deployment ID blank on the Tsugi key so it accepts any value from the LMS; Sakai often sends <b>deployment_id</b> <b>1</b> in launches, which is fine when this field is blank.
 </p>
+<?php require __DIR__ . '/plus-config.php'; ?>
 <h2>LTI 1.1</h2>
 <p>
 You can install Tsugi as a
@@ -356,6 +362,7 @@ Moodle supports the optional part of Dynamic Registration and so it provides the
 in the Dynamic Registration process so once the process is done - the Tenant should be fully configured and ready to launch.
 You may leave Deployment ID blank on the Tsugi key so it accepts any value from the LMS; Moodle may still send a concrete deployment id in launches.
 </p>
+<?php require __DIR__ . '/plus-config.php'; ?>
 <h2>LTI 1.1</h2>
 <p>
 You can install Tsugi as a
@@ -407,6 +414,7 @@ LTI 1.3 Tool Keyset URL: <a href="#" onclick="copyToClipboardNoScroll(this, '<?=
 LTI Content Item / Deep Link Endpoint: <a href="#" onclick="copyToClipboardNoScroll(this, '<?= $deep_link ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</a>
 <?= $deep_link ?> 
 </pre>
+<?php require __DIR__ . '/plus-config.php'; ?>
 <h2>LTI 1.1</h2>
 <p>
 You can install Tsugi as a
@@ -435,6 +443,7 @@ require_once __DIR__ . '/blackboard-detail.php';
 <p>
 Blackboard LTI 1.3 / Advantage setup depends on your Learn version and admin UI; use your Blackboard documentation for developer keys, placements, and deployments. The URLs on the <b>Manual Configuration</b> tab are what you register at the LMS.
 </p>
+<?php require __DIR__ . '/plus-config.php'; ?>
 <h2>LTI 1.1</h2>
 <p>
 You can install Tsugi as a

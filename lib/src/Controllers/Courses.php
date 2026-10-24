@@ -1110,9 +1110,13 @@ class Courses extends Tool {
     }
 
     /**
-     * Google site-login only. Every /courses route uses this, including
-     * nested tools and /courses/{id}/image/{kind}. LMS LTI launches already
-     * have a course from the LMS and do not use this URL family.
+     * Google site-login, or the Plus launch for this same course.
+     *
+     * Every /courses route uses this, including nested tools and
+     * /courses/{id}/image/{kind}. An ordinary LMS launch already has its
+     * course and cannot switch. A Plus launch may open /courses/{id} when
+     * that id is the context it just launched, so each tab's address is the
+     * course. It cannot open a different id, the course list, or create.
      *
      * @return Response|null
      */
@@ -1120,13 +1124,36 @@ class Courses extends Tool {
         if ( ! ReqScope::isLoggedIn() ) {
             return new Response('Must be logged in', 403);
         }
-        if ( ! self::isGoogleLoginSession() ) {
-            return new Response(
-                'This session is an LTI launch from an LMS. Course switching is not available.',
-                403
-            );
+        if ( self::isGoogleLoginSession() || self::plusOwnsCourseUrl() ) {
+            return null;
         }
-        return null;
+        return new Response(
+            'This session is an LTI launch from an LMS. Course switching is not available.',
+            403
+        );
+    }
+
+    /**
+     * True when this request is /courses/{id} for the Plus launch in the session.
+     *
+     * The URL id, the launch context, and the Plus launch link must be the
+     * same course. A quiz or other resource link in that course does not pass.
+     */
+    private static function plusOwnsCourseUrl() {
+        $urlId = self::courseIdFromRequest();
+        if ( $urlId < 1 ) {
+            return false;
+        }
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        $lti = (isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey])) ? $_SESSION[$ltiKey] : array();
+        $launchContext = (int) ($lti['context_id'] ?? 0);
+        $linkId = (int) ($lti['link_id'] ?? 0);
+        $plusLink = (int) ($lti['plus_launch_link_id'] ?? 0);
+        $plusCourse = (int) ($lti['plus_course'] ?? 0);
+        if ( $plusCourse !== 1 || $launchContext < 1 || $urlId !== $launchContext ) {
+            return false;
+        }
+        return $plusLink > 0 && $linkId === $plusLink;
     }
 
     /**
