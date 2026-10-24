@@ -438,6 +438,21 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $this->fail('Timed out waiting for an alert containing '.$needle);
     }
 
+    /**
+     * @param array<int, mixed> $arguments
+     */
+    private function waitForScriptTrue(\Facebook\WebDriver\WebDriver $driver, string $script, string $failure, array $arguments = []): void
+    {
+        $deadline = microtime(true) + 15;
+        while (microtime(true) < $deadline) {
+            if ($driver->executeScript($script, $arguments)) {
+                return;
+            }
+            usleep(200000);
+        }
+        $this->fail($failure);
+    }
+
     private function replaceAnUploadedFile(\Symfony\Component\Panther\Client $client, string $courseHome): void
     {
         $driver = $client->getWebDriver();
@@ -531,20 +546,37 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->executeScript(
             "document.getElementById('edit-item-type').value = 'lti'; updateItemForm();"
         );
-        $this->waitForPageText($client, 'Choose a deployment');
         $picked = $driver->executeScript(
-            'var sel = document.getElementById("edit-lti-tool");
+            'var title = document.getElementById("edit-title");
+             if (title) { title.value = arguments[0]; }
+             var sel = document.getElementById("edit-lti-tool");
              if (!sel || sel.options.length < 2) { return ""; }
              sel.selectedIndex = 1;
              if (typeof onLtiToolPicked === "function") { onLtiToolPicked(); }
-             var title = document.getElementById("edit-title");
-             if (title) { title.value = arguments[0]; }
              return sel.value;',
             [$itemTitle]
         );
         $this->assertNotSame('', $picked, 'The lesson LTI picker had no course tool.');
-        $this->waitForPageText($client, 'Resource link:');
+        $this->waitForScriptTrue(
+            $driver,
+            'var el = document.getElementById("edit-lti-content-id");
+             return !!(el && parseInt(el.value, 10) > 0);',
+            'The lesson tool was not placed.'
+        );
+        $driver->executeScript(
+            'var title = document.getElementById("edit-title");
+             if (title) { title.value = arguments[0]; }',
+            [$itemTitle]
+        );
         $driver->findElement(WebDriverBy::xpath("//div[@id='item-modal']//button[contains(., 'Save')]"))->click();
+        $this->waitForScriptTrue(
+            $driver,
+            'return Array.from(document.querySelectorAll(".item-title")).some(function (el) {
+                return el.textContent.indexOf(arguments[0]) !== -1;
+             });',
+            'The lesson outline did not show the placed item.',
+            [$itemTitle]
+        );
         $driver->executeScript('saveChanges()');
         $this->acceptAlertContaining($driver, 'saved');
 
