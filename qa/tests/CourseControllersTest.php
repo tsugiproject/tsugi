@@ -571,8 +571,9 @@ final class CourseControllersTest extends TsugiPantherTestCase
         $driver->findElement(WebDriverBy::xpath("//div[@id='item-modal']//button[contains(., 'Save')]"))->click();
         $this->waitForScriptTrue(
             $driver,
-            'return Array.from(document.querySelectorAll(".item-title")).some(function (el) {
-                return el.textContent.indexOf(arguments[0]) !== -1;
+            'var needle = arguments[0];
+             return Array.from(document.querySelectorAll(".item-title")).some(function (el) {
+                return el.textContent.indexOf(needle) !== -1;
              });',
             'The lesson outline did not show the placed item.',
             [$itemTitle]
