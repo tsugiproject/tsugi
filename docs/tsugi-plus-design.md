@@ -10,13 +10,13 @@ Tsugi Plus is one LMS course taught inside Tsugi. The LMS stays the system of re
 
 `lti_key.plus` is off until an admin turns it on. A launch to `/plus` while it is off returns "Tsugi Plus is not enabled for this tenant" and does not create a course.
 
-Checking Tsugi Plus while creating or editing a tenant shows the configuration note. The note says dynamic registration includes a resource link titled Tsugi Plus, and gives the target link URI `$CFG->wwwroot/plus` for an LMS that does not place that message. The note is on the Brightspace, Sakai, Moodle, Manual, and Blackboard screens. The Canvas screen is unchanged.
+Checking Tsugi Plus while creating or editing a tenant shows the configuration note. The note says dynamic registration includes a resource link titled Tsugi Plus, that an LMS can also place a Plus launch using a deep link request, and gives the target link URI `$CFG->wwwroot/plus` for an LMS that does not place that message. The note is on the Brightspace, Sakai, Moodle, Manual, and Blackboard screens. The Canvas screen is unchanged.
 
 `lti_key.timezone` is an optional IANA name. It is copied onto the context when the Plus course is created and the context zone is still empty. A later edit of the key does not rewrite existing courses. Abbreviations such as EST are not copied. `$Person.address.timezone` and `$CFG->timezone` are not the course zone.
 
 ### Where the LMS places the launch
 
-`/lti/canvas-config/{key_id}.json` is a Canvas developer-key document for this key. One placement: course navigation, `LtiResourceLinkRequest`, `windowTarget` `_blank`. The placement `target_link_uri` is `$CFG->wwwroot/plus`. The top-level `target_link_uri` stays `/lti/oidc_launch`. `oidc_initiation_url` is `/lti/oidc_login/{key_id}`. Redirect and keyset stay `/lti/oidc_launch` and `/lti/keyset`. Scopes are score, lineitem, lineitem.readonly, result.readonly, and contextmembership.readonly. Privacy is public. `lti/store/canvas-config.json` is left as it is. The Canvas admin screen does not show the Plus note.
+`/lti/canvas-config/{key_id}.json?unlock_code=` is a Canvas developer-key document for this key. The unlock code is the tenant's one-time `lti_key.unlock_code`, and `plus` must be 1. A missing or wrong code is a 404. Fetching the document does not clear the code. Dynamic registration still clears it. The Canvas tenant screen shows the URL when Plus is on and the code is set. One placement: course navigation, `LtiResourceLinkRequest`, `windowTarget` `_blank`. The placement `target_link_uri` is `$CFG->wwwroot/plus`. The top-level `target_link_uri` stays `/lti/oidc_launch`. `oidc_initiation_url` is `/lti/oidc_login/{key_id}`. Redirect and keyset stay `/lti/oidc_launch` and `/lti/keyset`. Scopes are score, lineitem, lineitem.readonly, result.readonly, and contextmembership.readonly. Privacy is public. `lti/store/canvas-config.json` is left as it is. The Canvas admin screen shows this JSON URL. It does not show the target link URI note used on the other LMS screens.
 
 When `lti_key.plus` is 1, dynamic registration adds one `LtiResourceLinkRequest` titled Tsugi Plus, aimed at `$CFG->wwwroot/plus`. A tenant with `plus` 0 does not include that message. The registration still asks for the same five scopes.
 
@@ -28,29 +28,35 @@ The store deep-link screen has an Other launches tab when there is something to 
 
 If that POST arrives inside an iframe, `/plus` does not start the session there. The button calls `window.open` and re-posts the launch into that window. A launch that is already the top window continues there. Leave course, in the avatar menu, calls `window.close()`.
 
-`adjustData` still inserts `lti_context` on `(key_id, context_sha256)`, `lti_user` on `(key_id, subject_sha256)`, `lti_membership` with the mapped role, and one `lti_link` for the resource link. Two subjects with the same email stay two `lti_user` rows.
+`adjustData` still inserts `lti_context` on `(key_id, context_sha256)`, `lti_user` on `(key_id, subject_sha256)`, and `lti_membership` with the mapped role. When the launch carries a resource link id it also inserts an `lti_link`. Two subjects with the same email stay two `lti_user` rows.
 
-After the session is stored, `/plus` redirects to `/courses/{context_id}`. `/courses` still refuses an ordinary LMS launch. It allows this Plus launch only when the id in the address is this launch's context, `plus_course` is 1, and the launch link is `plus_launch_link_id`. A different id, the course list, creating a course, and another link in the same Plus course stay refused. Plus is not a course switcher.
+A `/plus` launch is a context launch. It is accepted when the LMS sent no resource link id, as long as the context is present. When the launch has a resource link id, `adjustData` keeps that `lti_link`, and the context stores it in `plus_launch_link_id`. A later `/plus` launch with a different resource link inserts another `lti_link` and replaces `plus_launch_link_id`. The earlier link row stays. A launch with no resource link leaves the stored value. No code treats `plus_launch_link_id` as special beyond that store. It does not decide access, grades, or line items. A second placement aimed at `/plus` in the same LMS course opens the same Tsugi course. Service URLs on that course refresh because the request is `/plus`.
+
+After the session is stored, `/plus` redirects to `/courses/{context_id}`. `/courses` still refuses an ordinary LMS launch. It allows this cookie session when the launch was to `/plus` and the id in the address is this launch's context. A different id, the course list, and creating a course stay refused. Plus is not a course switcher.
+
+A later LMS launch of another tool is that tool's own launch. Trophy is a cookieless `_LTI_TSUGI` session and does not join the Plus cookie. A launch to `/quiz1` takes its context from that launch, and a fresh resource link id is a new `lti_link` in that course. It is not an existing quiz unless the instructor authors one, and that quiz gets its own link. Those launches do not become Plus sessions because the course was once opened through `/plus`.
+
+The session records `plus_context_launch` when `/plus` opens the course. `/courses/{id}` allows that session. A later launch that replaces the session does not keep the flag.
 
 ### Course
 
-When `plus_course` is still 0 and `manifest_id` is null, the launch attaches `Manifest::starter` through `saveNewVersion`, sets `plus_course` to 1, and sets `plus_launch_link_id` to the link just created. It stores `lti13_deployment_id` and, when the key has a real IANA zone and the context zone is empty, copies that zone. Title and short title are filled only while they are blank. The starter has empty modules and discussions.
+When `plus_course` is still 0 and `manifest_id` is null, the launch attaches `Manifest::starter` through `saveNewVersion` and sets `plus_course` to 1. It stores `lti13_deployment_id` and, when the key has a real IANA zone and the context zone is empty, copies that zone. Title and short title are filled only while they are blank. The starter has empty modules and discussions.
 
-If `manifest_id` is already set and `plus_course` is 0, the launch opens that course. It does not replace the manifest and it does not set `plus_course`. If `plus_course` is already 1 and the manifest is missing, the launch stops.
+If `manifest_id` is already set and `plus_course` is 0, the launch opens that course. It does not replace the manifest and it does not set `plus_course` on the row. The session is marked Plus so `/courses/{id}` opens. If `plus_course` is already 1 and the manifest is missing, the launch stops.
 
-A Plus course keeps `lti13_lineitems`, `lti13_membership_url`, `lti13_context_groups_url`, and `lti13_deployment_id` unless this launch's link is `plus_launch_link_id`. The course title is replaced only while it is blank. A link-level `lti13_lineitem` and link title are not guarded. The first launch still has `plus_course` 0 during `adjustData`, so that launch stores the service URLs normally.
+A Plus course keeps `lti13_lineitems`, `lti13_membership_url`, `lti13_context_groups_url`, and `lti13_deployment_id` unless this request is `/plus`. The course title is replaced only while it is blank. A link-level `lti13_lineitem` and link title are not guarded. The first launch still has `plus_course` 0 during `adjustData`, so that launch stores the service URLs normally.
 
 The course is that manifest. It does not read `$CFG->lessons`. A missing manifest is an error page. `Manifest::createCourse` stays the path for a course created inside Tsugi, and that row keeps `plus_course` 0. Bringing in an existing course is lessons import and export after the shell exists.
 
 The starter navigation is the default course menu without the courses widget and without Logout. The avatar menu has Leave course. Logout remains in the menu catalog, so a teacher can add it. Leave course is also available on any course. The navigation is stored when the shell is created. A course created earlier keeps the menu it already stored.
 
-The course-navigation link is not a grade column. This change does not POST a line item for it.
+The resource link on a `/plus` launch is not a grade column. This change does not POST a line item for it. Grades belong to the activity links inside the course.
 
 ## Schema in this change
 
 On `lti_key`: `plus` (`TINYINT NOT NULL DEFAULT 0`) and optional `timezone`.
 
-On `lti_context`: `plus_course` (`TINYINT NOT NULL DEFAULT 0`), `plus_launch_link_id` (no foreign key; same pattern as `previous_context_id`), `lti13_deployment_id`, `timezone`, and `nrps_at`. Existing rows stay `plus_course` 0, including file-based lessons and ordinary resource links.
+On `lti_context`: `plus_course` (`TINYINT NOT NULL DEFAULT 0`), `plus_launch_link_id` (no foreign key; same pattern as `previous_context_id`), `lti13_deployment_id`, `timezone`, and `nrps_at`. Existing rows stay `plus_course` 0, including file-based lessons and ordinary resource links. `plus_launch_link_id` is the context's resource link from the latest `/plus` launch that had one. It is not how the launch is recognized, and it is not a grade column.
 
 `lti_context_plus_log` is created: one row per upward call, with `context_id`, optional `link_id`, optional `user_id`, kind, success, HTTP status, URL, request body, response detail, and `created_at`. Nothing writes it yet.
 

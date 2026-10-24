@@ -7,6 +7,7 @@ $plusLaunchUrl = $CFG->wwwroot . '/plus';
 <h2>Tsugi Plus</h2>
 <p>
 Dynamic registration includes a resource link titled Tsugi Plus. Place that message.
+An LMS can also place a Plus launch using a deep link request.
 If the LMS does not place that message, use this target link URI.
 </p>
 <p>

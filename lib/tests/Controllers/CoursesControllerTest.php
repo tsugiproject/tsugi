@@ -147,9 +147,10 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         $_SESSION['lti_post'] = array('context_id' => 'lms-course');
         $_SESSION['lti'] = array(
             'context_id' => 42,
-            'link_id' => 9,
+            'link_id' => 3,
             'plus_course' => 1,
             'plus_launch_link_id' => 9,
+            'plus_context_launch' => 1,
         );
         $saved = $_SERVER['REQUEST_URI'] ?? null;
         $_SERVER['REQUEST_URI'] = '/tsugi/courses/42/home';
@@ -175,6 +176,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
             'link_id' => 9,
             'plus_course' => 1,
             'plus_launch_link_id' => 9,
+            'plus_context_launch' => 1,
         );
         $saved = $_SERVER['REQUEST_URI'] ?? null;
         $_SERVER['REQUEST_URI'] = '/tsugi/courses/99';
@@ -192,7 +194,7 @@ class CoursesControllerTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    public function testGateRefusesOtherLinkInPlusCourse()
+    public function testGateRefusesPlusCourseWithoutPlusLaunch()
     {
         $_SESSION['id'] = 7;
         $_SESSION['oauth_consumer_key'] = 'sakai.example.edu';

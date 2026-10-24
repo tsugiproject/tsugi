@@ -18,12 +18,21 @@ if ( $keyId < 1 ) {
     return;
 }
 
+$unlock = $_GET['unlock_code'] ?? null;
+if ( ! is_string($unlock) || $unlock === '' ) {
+    http_response_code(404);
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo "Not found\n";
+    return;
+}
+
 $PDOX = LTIX::getConnection();
 $row = $PDOX->rowDie(
     "SELECT key_id, key_title
      FROM {$CFG->dbprefix}lti_key
-     WHERE key_id = :KID AND (deleted IS NULL OR deleted = 0)",
-    array(':KID' => $keyId)
+     WHERE key_id = :KID AND unlock_code = :UNLOCK AND plus = 1
+       AND (deleted IS NULL OR deleted = 0)",
+    array(':KID' => $keyId, ':UNLOCK' => $unlock)
 );
 if ( ! is_array($row) || (int) ($row['key_id'] ?? 0) < 1 ) {
     http_response_code(404);

@@ -296,7 +296,7 @@ if ( $allow_lti ) {
         $otherLaunches[] = array(
             'id' => 'privacy',
             'title' => __('Privacy'),
-            'text' => __('Privacy launch'),
+            'text' => __('Place a link that opens the privacy page.'),
             'url' => $privacyUrl,
             'fa_icon' => 'fa-user-secret',
         );
@@ -315,7 +315,7 @@ if ( $allow_lti ) {
         $otherLaunches[] = array(
             'id' => 'plus',
             'title' => __('Tsugi Plus'),
-            'text' => __('Tsugi Plus launch'),
+            'text' => __('Place a link that opens this course in Tsugi Plus.'),
             'url' => $CFG->wwwroot . '/plus',
             'fa_icon' => 'fa-graduation-cap',
         );
@@ -518,13 +518,20 @@ if ( isset($_GET['other']) ) {
     }
     $fa_icon = $chosen['fa_icon'];
     $icon = $CFG->fontawesome.'/png/'.str_replace('fa-','',$fa_icon).'.png';
+    $title = (isset($_GET['title']) && is_string($_GET['title']) && trim($_GET['title']) !== '') ? trim($_GET['title']) : $chosen['title'];
+    $text = (isset($_GET['description']) && is_string($_GET['description']) && trim($_GET['description']) !== '') ? trim($_GET['description']) : $chosen['text'];
     $custom = SakaiCustom::deepLinkCustom();
-    $retval->addLtiLinkItem($chosen['url'], $chosen['title'], $chosen['text'], $icon, $fa_icon, $custom, false, false);
+    $additionalParams = array();
+    $target = U::get($_GET, 'presentationDocumentTarget');
+    if ( is_string($target) && $target !== '' && $target !== 'none' ) {
+        $additionalParams['presentationDocumentTarget'] = $target;
+    }
+    $retval->addLtiLinkItem($chosen['url'], $title, $text, $icon, $fa_icon, $custom, false, false, $additionalParams);
     $endform = '<a href="index.php" class="btn btn-warning">Back to Store</a>';
     $content = $retval->prepareResponse($endform);
     echo('<center>');
     echo('<span class="fa '.$fa_icon.' fa-3x" style="color: var(--primary); float:right; margin: 2px"></span>');
-    echo("<h1>".htmlent_utf8($chosen['title'])."</h1>\n");
+    echo("<h1>".htmlent_utf8($title)."</h1>\n");
     echo($content);
     echo("</center>\n");
     $OUTPUT->footer();
@@ -725,7 +732,7 @@ if ( $registrations && $allow_lti ) {
 
     echo('<div class="search-container">
     <label class="sr-only" for="keywordFilter">Filter by name</label>
-    <input type="text" class="form-control" placeholder="Filter by name" id="keywordFilter">
+    <input type="text" class="form-control keyword-filter" placeholder="Filter by name" id="keywordFilter">
     </div>');
 
     echo ('<div class="app-container">');
@@ -948,12 +955,15 @@ if ( $l && $allow_lti ) {
 if ( count($otherLaunches) > 0 ) {
     echo('<div class="tab-pane fade '.$active.' in" id="other">'."\n");
     $active = '';
-    echo("<ul>\n");
+    echo('<div class="search-container">
+    <label class="sr-only" for="otherKeywordFilter">'.__('Filter by name').'</label>
+    <input type="text" class="form-control keyword-filter" placeholder="'.__('Filter by name').'" id="otherKeywordFilter">
+    </div>');
+    echo('<div class="app-container">');
     foreach ( $otherLaunches as $item ) {
-        echo('<li><a href="index.php?other='.urlencode($item['id']).'">'.htmlentities($item['title']).'</a>');
-        echo("</li>\n");
+        renderOtherLaunchCard($item, $deeplink);
     }
-    echo("</ul>\n");
+    echo('</div>');
     echo("</div>\n");
 }
 
@@ -1073,6 +1083,62 @@ if ( $l ) foreach($l->lessons->modules as $module) {
 <?php
 
 $OUTPUT->footerStart();
+
+function renderOtherLaunchCard($item, $deeplink) {
+    $id = $item['id'];
+    $title = $item['title'];
+    $text = $item['text'];
+    $fa_icon = $item['fa_icon'];
+    $modal = 'other_'.preg_replace('/[^a-z0-9_]/', '', $id).'_modal';
+    echo('<div class="app filterable">');
+    echo('<div class="panel panel-default">');
+    echo('<div class="panel-heading"><div class="heading-container">');
+    echo('<h3>'.htmlent_utf8($title).'</h3>');
+    echo('<div><span class="tool-icon fa '.htmlspecialchars($fa_icon, ENT_QUOTES, 'UTF-8').'" aria-hidden="true"></span></div>');
+    echo('</div></div>');
+    echo('<div class="panel-body">');
+    echo('<div class="panel-description"><p>'.htmlent_utf8($text).'</p></div>');
+    echo('<div style="text-align: center;">');
+    echo('<button type="button" class="btn btn-primary action-button" role="button" data-toggle="modal" data-target="#'.$modal.'"><span class="fa fa-plus" aria-hidden="true"></span> '.__('Install').'</button>');
+    echo('</div></div></div></div>');
+    ?>
+    <div id="<?= $modal ?>" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span class="fa fa-times" aria-hidden="true"></span><span class="sr-only"><?= __('Cancel') ?></span></button>
+                    <h4 class="modal-title"><?= __('Install Learning App') ?></h4>
+                </div>
+                <div class="modal-body">
+                    <form method="get">
+                        <input type="hidden" name="other" value="<?= htmlspecialchars($id, ENT_QUOTES, 'UTF-8') ?>">
+                        <div class="form-group">
+                            <label><?= __('Title') ?></label>
+                            <input type="text" class="form-control" name="title" value="<?= htmlent_utf8($title) ?>">
+                        </div>
+                        <div class="form-group">
+                            <label><?= __('Description') ?></label>
+                            <textarea class="form-control" rows="5" name="description"><?= htmlent_utf8($text) ?></textarea>
+                        </div>
+<?php if ( ! $deeplink ) { ?>
+                        <div class="form-group">
+                            <label><?= __('Link Target') ?></label> (<?= __('Not all LMS\'s support all options') ?>)
+                            <select name="presentationDocumentTarget">
+                                <option value="none"><?= __('Any') ?></option>
+                                <option value="iframe"><?= __('iFrame') ?></option>
+                                <option value="window"><?= __('New Window') ?></option>
+                            </select>
+                        </div>
+<?php } ?>
+                        <button type="submit" class="btn btn-primary"><?= __('Submit') ?></button>
+                        <button type="button" class="btn btn-link" data-dismiss="modal"><?= __('Cancel') ?></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php
+}
 
 function renderAppPanel($name, $tool, $featured = false, $canInstall = true) {
     global $CFG;
@@ -1220,9 +1286,10 @@ function normalizeLocalDateTimes(form) {
         var filter = filter || {};
 
         filter.setUpListener = function() {
-            $("#keywordFilter").on("keyup", function(){
+            $(".keyword-filter").on("keyup", function(){
                 var search = $(this).val().toLowerCase();
-                $(".app.filterable").each(function(){
+                var pane = $(this).closest(".tab-pane");
+                pane.find(".app.filterable").each(function(){
                     var panel = $(this).find("div.panel");
                     var title = $(this).find("h3").text().toLowerCase();
                     if (title.indexOf(search) >= 0) {

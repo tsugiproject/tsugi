@@ -1136,8 +1136,8 @@ class Courses extends Tool {
     /**
      * True when this request is /courses/{id} for the Plus launch in the session.
      *
-     * The URL id, the launch context, and the Plus launch link must be the
-     * same course. A quiz or other resource link in that course does not pass.
+     * The URL id must be the context this /plus launch opened. The resource
+     * link id is not the check. Another tool's session does not carry the flag.
      */
     private static function plusOwnsCourseUrl() {
         $urlId = self::courseIdFromRequest();
@@ -1147,13 +1147,11 @@ class Courses extends Tool {
         $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
         $lti = (isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey])) ? $_SESSION[$ltiKey] : array();
         $launchContext = (int) ($lti['context_id'] ?? 0);
-        $linkId = (int) ($lti['link_id'] ?? 0);
-        $plusLink = (int) ($lti['plus_launch_link_id'] ?? 0);
         $plusCourse = (int) ($lti['plus_course'] ?? 0);
         if ( $plusCourse !== 1 || $launchContext < 1 || $urlId !== $launchContext ) {
             return false;
         }
-        return $plusLink > 0 && $linkId === $plusLink;
+        return (int) ($lti['plus_context_launch'] ?? 0) === 1;
     }
 
     /**

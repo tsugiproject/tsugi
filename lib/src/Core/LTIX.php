@@ -1669,13 +1669,9 @@ class LTIX {
             $actions[] = "=== Updated result id=".$row['result_id']." lti13_lineitem=".$row['lti13_lineitem'];
         }
 
-        // A Plus course keeps course service URLs unless this launch is the
-        // Plus launch link. Other launches still overwrite them.
-        $plusRefresh = PlusShell::mayRefreshCourse(
-            $row['plus_course'] ?? 0,
-            $row['plus_launch_link_id'] ?? 0,
-            $row['link_id'] ?? 0
-        );
+        // A Plus course keeps course service URLs unless this request is /plus.
+        // Other launches still overwrite them.
+        $plusRefresh = PlusShell::mayRefreshCourse($row['plus_course'] ?? 0);
 
         // Here we handle lti13_membership_url
         if ( $plusRefresh && isset($row['context_id']) && isset($post['lti13_membership_url']) &&

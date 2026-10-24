@@ -23,19 +23,25 @@ class PlusShell {
     const REPOST_FIELD = 'plus_repost';
 
     /**
-     * A Plus course's service URLs stay put unless this launch is the
-     * Plus launch link. Other launches keep today's overwrite.
+     * A Plus course's service URLs stay put unless this request is /plus.
+     * Other launches keep today's overwrite. The resource link id is not the check.
      *
      * @param mixed $plusCourse
-     * @param mixed $plusLaunchLinkId
-     * @param mixed $linkId
      */
-    public static function mayRefreshCourse($plusCourse, $plusLaunchLinkId, $linkId) {
+    public static function mayRefreshCourse($plusCourse) {
         if ( (int) $plusCourse !== 1 ) {
             return true;
         }
-        $launchLink = (int) $plusLaunchLinkId;
-        return $launchLink > 0 && $launchLink === (int) $linkId;
+        return self::requestIsPlus();
+    }
+
+    /**
+     * True when this HTTP request is the Plus launch path.
+     */
+    public static function requestIsPlus() {
+        global $CFG;
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        return self::launchTargetsPlus($uri, ($CFG->wwwroot ?? '') . '/plus');
     }
 
     /**
@@ -232,7 +238,7 @@ class PlusShell {
         }
         $contextId = (int) LTIX::ltiParameter('context_id', 0);
         $linkId = (int) LTIX::ltiParameter('link_id', 0);
-        if ( $contextId < 1 || $linkId < 1 ) {
+        if ( $contextId < 1 ) {
             return array('error' => 'This launch has no course.');
         }
         $keyId = (int) LTIX::ltiParameter('key_id', 0);
@@ -275,11 +281,10 @@ class PlusShell {
         $PDOX->beginTransaction();
         try {
             $row = $PDOX->rowDie(
-                "SELECT c.context_id, c.title, c.short_title, c.manifest_id, c.plus_course,
-                        c.plus_launch_link_id, c.timezone, c.lti13_deployment_id, k.timezone AS key_timezone
-                 FROM {$p}lti_context AS c
-                 JOIN {$p}lti_key AS k ON c.key_id = k.key_id
-                 WHERE c.context_id = :CID
+                "SELECT context_id, title, short_title, manifest_id, plus_course,
+                        plus_launch_link_id, timezone, lti13_deployment_id, key_id
+                 FROM {$p}lti_context
+                 WHERE context_id = :CID
                  FOR UPDATE",
                 array(':CID' => $contextId)
             );
@@ -288,6 +293,8 @@ class PlusShell {
                 return array('error' => 'This launch has no course.');
             }
 
+            $row['key_timezone'] = self::keyTimezone($PDOX, $p, (int) ($row['key_id'] ?? 0));
+            self::absorbLaunchLink($PDOX, $p, $contextId, $linkId, $row);
             $short = self::shortTitle($label);
             if ( (int) $row['plus_course'] === 1 ) {
                 if ( (int) $row['manifest_id'] < 1 ) {
@@ -302,6 +309,7 @@ class PlusShell {
 
             if ( (int) $row['manifest_id'] > 0 ) {
                 $PDOX->commit();
+                $row['plus_course'] = 1;
                 self::remember($row);
                 return array('redirect' => self::courseUrl($contextId));
             }
@@ -317,8 +325,8 @@ class PlusShell {
                 $navigation
             );
 
-            $sets = array('plus_course = 1', 'plus_launch_link_id = :LINK', 'updated_at = NOW()');
-            $params = array(':LINK' => $linkId, ':CID' => $contextId);
+            $sets = array('plus_course = 1', 'updated_at = NOW()');
+            $params = array(':CID' => $contextId);
             if ( $deployment !== '' ) {
                 $sets[] = 'lti13_deployment_id = :DEP';
                 $params[':DEP'] = $deployment;
@@ -345,7 +353,6 @@ class PlusShell {
             );
             $row['manifest_id'] = $manifestId;
             $row['plus_course'] = 1;
-            $row['plus_launch_link_id'] = $linkId;
             $PDOX->commit();
             self::remember($row);
             return array('redirect' => self::courseUrl($contextId));
@@ -356,6 +363,51 @@ class PlusShell {
             error_log('Plus shell: ' . $e->getMessage());
             return array('error' => 'Could not create the course.');
         }
+    }
+
+    /**
+     * Keep the context's resource link current. A missing id leaves the stored link.
+     * Nothing reads this for access, grades, or line items.
+     *
+     * @param mixed $PDOX
+     * @param string $p
+     * @param int $contextId
+     * @param int $linkId
+     * @param array<string, mixed> $row
+     */
+    private static function absorbLaunchLink($PDOX, $p, $contextId, $linkId, array &$row) {
+        if ( $linkId < 1 || (int) ($row['plus_launch_link_id'] ?? 0) === $linkId ) {
+            return;
+        }
+        $PDOX->queryDie(
+            "UPDATE {$p}lti_context SET plus_launch_link_id = :LINK, updated_at = NOW()
+             WHERE context_id = :CID",
+            array(':LINK' => $linkId, ':CID' => $contextId)
+        );
+        $row['plus_launch_link_id'] = $linkId;
+    }
+
+    /**
+     * Tenant zone from the launch session, or a read that does not lock the key.
+     *
+     * @param mixed $PDOX
+     * @param string $p
+     * @param int $keyId
+     * @return mixed
+     */
+    private static function keyTimezone($PDOX, $p, $keyId) {
+        $ltiKey = defined('TSUGI_SESSION_LTI') ? TSUGI_SESSION_LTI : 'lti';
+        if ( isset($_SESSION[$ltiKey]) && is_array($_SESSION[$ltiKey]) && array_key_exists('key_timezone', $_SESSION[$ltiKey]) ) {
+            return $_SESSION[$ltiKey]['key_timezone'];
+        }
+        if ( $keyId < 1 ) {
+            return null;
+        }
+        $key = $PDOX->rowDie(
+            "SELECT timezone FROM {$p}lti_key WHERE key_id = :KID",
+            array(':KID' => $keyId)
+        );
+        return is_array($key) ? ($key['timezone'] ?? null) : null;
     }
 
     /**
@@ -385,6 +437,7 @@ class PlusShell {
         }
         $_SESSION[$ltiKey]['plus_course'] = (int) ($row['plus_course'] ?? 0);
         $_SESSION[$ltiKey]['plus_launch_link_id'] = $row['plus_launch_link_id'] ?? null;
+        $_SESSION[$ltiKey]['plus_context_launch'] = 1;
         if ( is_string($row['title'] ?? null) && trim($row['title']) !== '' ) {
             $_SESSION[$ltiKey]['context_title'] = trim($row['title']);
         }
