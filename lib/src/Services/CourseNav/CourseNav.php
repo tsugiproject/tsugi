@@ -158,6 +158,7 @@ class CourseNav {
             array('id' => 'analytics', 'kind' => 'link', 'label' => 'Analytics', 'route' => '/analytics', 'site' => false),
             array('id' => 'courses_widget', 'kind' => 'widget', 'label' => 'Courses widget', 'route' => '/courses', 'site' => true, 'pin' => 'catalog', 'hint' => 'Switcher for other courses. Place in the upper left or upper right, like other widgets.'),
             array('id' => 'exit_course', 'kind' => 'link', 'label' => 'Exit course', 'route' => '', 'site' => true, 'pin' => 'catalog', 'hint' => 'Leaves the course and returns to the site home.', 'needs_apphome' => true),
+            array('id' => 'leave_course', 'kind' => 'link', 'label' => 'Leave course', 'route' => '', 'site' => true, 'pin' => 'catalog', 'hint' => 'Closes this window. The browser allows that when this window was opened for the course.'),
             array('id' => 'login', 'kind' => 'link', 'label' => 'Login', 'route' => '/login', 'site' => true, 'pin' => 'last', 'hint' => 'Only shown when the user is not logged in.'),
             array('id' => 'logout', 'kind' => 'link', 'label' => 'Logout', 'route' => '/logout', 'site' => true, 'hint' => 'Only shown when the user is logged in. Keep Logout on unless you have another way out of the course.', 'pin' => 'last'),
         );
@@ -350,6 +351,7 @@ class CourseNav {
 
         $submenu = new Menu();
         $exitBuilt = null;
+        $leaveBuilt = null;
         $logoutBuilt = null;
         foreach ( $doc['items'] as $item ) {
             if ( empty($item['dropdown']) ) {
@@ -364,14 +366,21 @@ class CourseNav {
                 $exitBuilt = $built;
                 continue;
             }
+            if ( $id === 'leave_course' ) {
+                $leaveBuilt = $built;
+                continue;
+            }
             if ( $id === 'logout' ) {
                 $logoutBuilt = $built;
                 continue;
             }
-            $submenu->addLink($built['label'], $built['href']);
+            $submenu->addLink($built['label'], $built['href'], false, $built['attr'] ?? false);
         }
         if ( $exitBuilt !== null ) {
-            $submenu->addLink($exitBuilt['label'], $exitBuilt['href']);
+            $submenu->addLink($exitBuilt['label'], $exitBuilt['href'], false, $exitBuilt['attr'] ?? false);
+        }
+        if ( $leaveBuilt !== null ) {
+            $submenu->addLink($leaveBuilt['label'], $leaveBuilt['href'], false, $leaveBuilt['attr'] ?? false);
         }
         if ( self::maySeeSettings() ) {
             $submenu->addLink(__('Settings'), $prefix.'/settings');
@@ -413,17 +422,18 @@ class CourseNav {
         if ( $built === null ) {
             return;
         }
+        $attr = $built['attr'] ?? false;
         if ( $placement === 'left' ) {
-            $set->addLeft($built['label'], $built['href']);
+            $set->addLeft($built['label'], $built['href'], false, $attr);
         } else {
-            $set->addRight($built['label'], $built['href'], false);
+            $set->addRight($built['label'], $built['href'], false, $attr);
         }
     }
 
     /**
      * @param array<string, array<string, mixed>> $known
      * @param array<string, mixed> $item
-     * @return array{label: string, href: string}|null
+     * @return array{label: string, href: string, attr?: string}|null
      */
     private static function linkEntry(array $known, array $item, $prefix) {
         $id = $item['id'] ?? '';
@@ -448,6 +458,13 @@ class CourseNav {
             return array(
                 'label' => __($entry['label']),
                 'href' => $CFG->getHomeUrl(),
+            );
+        }
+        if ( $id === 'leave_course' ) {
+            return array(
+                'label' => __($entry['label']),
+                'href' => '#',
+                'attr' => 'onclick="window.close();setTimeout(function(){if(!window.closed){window.alert(\'This browser kept the tab open. You can close it yourself.\');}},200);return false;"',
             );
         }
         $route = $entry['route'];

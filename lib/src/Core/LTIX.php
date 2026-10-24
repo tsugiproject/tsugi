@@ -18,6 +18,7 @@ use \Tsugi\Core\SQLDialect;
 use \Tsugi\Core\Keyset;
 use \Tsugi\OAuth\OAuthUtil;
 use \Tsugi\Crypt\AesOpenSSL;
+use \Tsugi\Services\Plus\PlusShell;
 
 use \Firebase\JWT\JWT;
 
@@ -1171,6 +1172,10 @@ class LTIX {
             c.lti13_lineitems AS lti13_lineitems, c.lti13_membership_url AS lti13_membership_url,
             c.lti13_context_groups_url AS lti13_context_groups_url,
             c.settings AS context_settings, c.manifest_id AS manifest_id,
+            c.plus_course AS plus_course, c.plus_launch_link_id AS plus_launch_link_id,
+            c.lti13_deployment_id AS lti13_deployment_id, c.timezone AS context_timezone,
+            c.short_title AS context_short_title, k.timezone AS key_timezone,
+            k.plus AS key_plus,
             l.link_id, l.path AS link_path, l.title AS link_title, l.settings AS link_settings, l.settings_url AS link_settings_url,
             l.lti13_lineitem AS lti13_lineitem, l.upward AS upward, l.settings AS link_settings,
             u.user_id, u.displayname AS user_displayname, u.email AS user_email, u.user_key AS user_key, u.image AS user_image,
@@ -1664,8 +1669,12 @@ class LTIX {
             $actions[] = "=== Updated result id=".$row['result_id']." lti13_lineitem=".$row['lti13_lineitem'];
         }
 
+        // A Plus course keeps course service URLs unless this request is /plus.
+        // Other launches still overwrite them.
+        $plusRefresh = PlusShell::mayRefreshCourse($row['plus_course'] ?? 0);
+
         // Here we handle lti13_membership_url
-        if ( isset($row['context_id']) && isset($post['lti13_membership_url']) &&
+        if ( $plusRefresh && isset($row['context_id']) && isset($post['lti13_membership_url']) &&
             array_key_exists('lti13_membership_url',$row) && $post['lti13_membership_url'] != $row['lti13_membership_url'] ) {
             $sql = "UPDATE {$p}lti_context
                 SET lti13_membership_url = :lti13_membership_url, updated_at = NOW()
@@ -1678,7 +1687,7 @@ class LTIX {
         }
 
         // Here we handle lti13_context_groups_url
-        if ( isset($row['context_id']) && isset($post['lti13_context_groups_url']) &&
+        if ( $plusRefresh && isset($row['context_id']) && isset($post['lti13_context_groups_url']) &&
             array_key_exists('lti13_context_groups_url',$row) && $post['lti13_context_groups_url'] != $row['lti13_context_groups_url'] ) {
             $sql = "UPDATE {$p}lti_context
                 SET lti13_context_groups_url = :lti13_context_groups_url, updated_at = NOW()
@@ -1692,7 +1701,7 @@ class LTIX {
 
 
         // Here we handle lti13_lineitems
-        if ( isset($row['context_id']) && isset($post['lti13_lineitems']) &&
+        if ( $plusRefresh && isset($row['context_id']) && isset($post['lti13_lineitems']) &&
             array_key_exists('lti13_lineitems',$row) && $post['lti13_lineitems'] != $row['lti13_lineitems'] ) {
             $sql = "UPDATE {$p}lti_context
                 SET lti13_lineitems = :lti13_lineitems, updated_at = NOW()
@@ -1704,8 +1713,23 @@ class LTIX {
             $actions[] = "=== Updated result id=".$row['result_id']." lti13_lineitems=".$row['lti13_lineitems'];
         }
 
+        if ( $plusRefresh && (int) ($row['plus_course'] ?? 0) === 1 && isset($row['context_id']) ) {
+            $deployment = U::get($post, 'deployment_id');
+            if ( is_string($deployment) && $deployment !== '' && $deployment !== ($row['lti13_deployment_id'] ?? null) ) {
+                $sql = "UPDATE {$p}lti_context
+                    SET lti13_deployment_id = :deployment, updated_at = NOW()
+                    WHERE context_id = :context_id";
+                $PDOX->queryDie($sql, array(
+                    ':deployment' => $deployment,
+                    ':context_id' => $row['context_id']));
+                $row['lti13_deployment_id'] = $deployment;
+                $actions[] = "=== Updated context=".$row['context_id']." lti13_deployment_id=".$deployment;
+            }
+        }
+
         // Here we handle updates to context_title, link_title, user_displayname, user_email, or role
-        if ( isset($row['context_id']) && isset($post['context_title']) && $post['context_title'] != $row['context_title'] ) {
+        if ( isset($row['context_id']) && isset($post['context_title']) && $post['context_title'] != $row['context_title']
+            && PlusShell::mayReplaceTitle($row['plus_course'] ?? 0, $row['context_title'] ?? '') ) {
             $sql = "UPDATE {$p}lti_context SET title = :title, updated_at = NOW() WHERE context_id = :context_id";
             $PDOX->queryDie($sql, array(
                 ':title' => $post['context_title'],
@@ -1716,7 +1740,7 @@ class LTIX {
 
         // Grab the context scoped service URLs...
         $context_services = array('ext_memberships_id', 'ext_memberships_url', 'lineitems_url', 'memberships_url');
-        if ( isset($row['context_id']) ) {
+        if ( $plusRefresh && isset($row['context_id']) ) {
             foreach($context_services as $context_service ) {
                 if ( isset($post[$context_service]) && $post[$context_service] != $row[$context_service] ) {
                     $sql = "UPDATE {$p}lti_context SET {$context_service} = :value, updated_at = NOW()

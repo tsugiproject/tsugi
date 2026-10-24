@@ -22,6 +22,7 @@ $DATABASE_UNINSTALL = array(
 "drop table if exists {$CFG->dbprefix}lti_tool_deployment_org",
 "drop table if exists {$CFG->dbprefix}lti_tool_deployment",
 "drop table if exists {$CFG->dbprefix}lti_tool_registration",
+"drop table if exists {$CFG->dbprefix}lti_context_plus_log",
 "drop table if exists {$CFG->dbprefix}lti_result",
 "drop table if exists {$CFG->dbprefix}lti_service",
 "drop table if exists {$CFG->dbprefix}lti_membership",
@@ -107,6 +108,12 @@ array( "{$CFG->dbprefix}lti_key",
     lms_keyset_url      TEXT NULL,
     lms_token_url       TEXT NULL,
     lms_token_audience  TEXT NULL,
+
+    -- Default IANA zone copied onto a new Plus context. Existing courses keep their own.
+    timezone            VARCHAR(64) NULL,
+
+    -- 1 when this tenant supports a Tsugi Plus course launch.
+    plus                TINYINT(1) NOT NULL DEFAULT 0,
 
     -- Our cache of the LMS data
     lms_cache_keyset    TEXT NULL,
@@ -298,6 +305,17 @@ array( "{$CFG->dbprefix}lti_context",
 
     -- Active course manifest version (NULL = file-based $CFG->lessons)
     manifest_id         INTEGER NULL,
+
+    -- 1 when a Plus launch controls this course. 0 for file-based lessons and ordinary resource links.
+    plus_course         TINYINT(1) NOT NULL DEFAULT 0,
+    -- Deployment id from the Plus launch. Token calls read this.
+    lti13_deployment_id TEXT NULL,
+    -- lti_link of the Plus launch. No foreign key: lti_link already points here.
+    plus_launch_link_id INTEGER NULL,
+    -- When the Names and Roles pull last started.
+    nrps_at             TIMESTAMP NULL,
+    -- IANA zone for line-item endDateTime. Null sends the due day with no shift.
+    timezone            VARCHAR(64) NULL,
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP NULL,
@@ -510,6 +528,46 @@ array( "{$CFG->dbprefix}lti_link",
 
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_1` UNIQUE(link_sha256, context_id),
     CONSTRAINT `{$CFG->dbprefix}lti_link_const_pk` PRIMARY KEY (link_id)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
+
+// One row per upward call on a context: roster, line item, or score.
+// A replay inserts another row. It does not change this one.
+array( "{$CFG->dbprefix}lti_context_plus_log",
+"create table {$CFG->dbprefix}lti_context_plus_log (
+    context_plus_log_id INTEGER NOT NULL AUTO_INCREMENT,
+    context_id          INTEGER NOT NULL,
+    link_id             INTEGER NULL,
+    user_id             INTEGER NULL,
+
+    -- roster, lineitem_create, lineitem_update, score
+    kind                VARCHAR(32) NOT NULL,
+    success             TINYINT(1) NOT NULL DEFAULT 0,
+    http_response       INTEGER NULL,
+    url                 TEXT NULL,
+    request             MEDIUMTEXT NULL,
+    detail              MEDIUMTEXT NULL,
+
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_context_plus_log_const_pk` PRIMARY KEY (context_plus_log_id),
+
+    INDEX `{$CFG->dbprefix}lti_context_plus_log_indx_1` (context_id, created_at),
+
+    CONSTRAINT `{$CFG->dbprefix}lti_context_plus_log_ibfk_1`
+        FOREIGN KEY (`context_id`)
+        REFERENCES `{$CFG->dbprefix}lti_context` (`context_id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_context_plus_log_ibfk_2`
+        FOREIGN KEY (`link_id`)
+        REFERENCES `{$CFG->dbprefix}lti_link` (`link_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
+    CONSTRAINT `{$CFG->dbprefix}lti_context_plus_log_ibfk_3`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `{$CFG->dbprefix}lti_user` (`user_id`)
+        ON DELETE SET NULL ON UPDATE CASCADE
+
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8"),
 
 array( "{$CFG->dbprefix}lti_link_activity",
@@ -1545,6 +1603,15 @@ $DATABASE_UPGRADE = function($oldversion) {
 
         // 2026-10-18 Optional earlier course. Same type as context_id. No foreign key.
         array('lti_context', 'previous_context_id', 'INTEGER NULL'),
+
+        // 2026-10-24 Plus course. Existing courses stay ordinary.
+        array('lti_context', 'plus_course', 'TINYINT(1) NOT NULL DEFAULT 0'),
+        array('lti_context', 'lti13_deployment_id', 'TEXT NULL'),
+        array('lti_context', 'plus_launch_link_id', 'INTEGER NULL'),
+        array('lti_context', 'nrps_at', 'TIMESTAMP NULL'),
+        array('lti_context', 'timezone', 'VARCHAR(64) NULL'),
+        array('lti_key', 'timezone', 'VARCHAR(64) NULL'),
+        array('lti_key', 'plus', 'TINYINT(1) NOT NULL DEFAULT 0'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -2380,7 +2447,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610180002;
+    return 202610240003;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

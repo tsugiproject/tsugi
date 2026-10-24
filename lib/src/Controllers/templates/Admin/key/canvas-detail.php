@@ -29,6 +29,25 @@ launches from any Canvas deployment using that issuer/client pair.
 If you enter a Deployment ID on the Tenant, launches will be restricted
 to that specific Canvas deployment (i.e. it might just be one course).
 </p>
+<?php
+$plusOn = isset($row) && is_array($row) && (int) ($row['plus'] ?? 0) === 1;
+$plusUnlock = (isset($row) && is_array($row) && is_string($row['unlock_code'] ?? null)) ? $row['unlock_code'] : '';
+if ( $plusOn && $plusUnlock !== '' ) {
+    $canvasPlusUrl = $CFG->wwwroot . '/lti/canvas-config/' . (int) $row['key_id'] . '.json?unlock_code=' . rawurlencode($plusUnlock);
+?>
+<p>
+Tsugi Plus uses this JSON URL for the Canvas developer key. It includes the
+one-time unlock code. Canvas can read it again while that code is still set.
+Dynamic registration clears the code.
+</p>
+<p>
+<b>Tsugi Plus JSON URL:
+<button href="#" onclick="copyToClipboardNoScroll(this, '<?= htmlentities($canvasPlusUrl) ?>');return false;"><i class="fa fa-clipboard" aria-hidden="true"></i>Copy</button></b>
+</p>
+<p>
+<?= htmlentities($canvasPlusUrl) ?>
+</p>
+<?php } ?>
 
 <?php if ( isset($canvasContentItemUrl) ) { ?>
 <h2>Canvas LTI 1.1</h2>

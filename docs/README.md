@@ -15,6 +15,7 @@ their code (for example `tool/`, `admin/`).
 | [lti-privacy-launch.md](lti-privacy-launch.md) | LTI 1.3 privacy launch on the course-tools test page |
 | [lessons-json-v2.md](lessons-json-v2.md) | Lessons foundational types, subtypes, and JSON v2 export |
 | [quiz1.md](quiz1.md) | Native Quiz1 editor, semantic model, and CC QTI 1.2.1 export |
+| [tsugi-plus-design.md](tsugi-plus-design.md) | Tsugi Plus as built: one LMS course, one manifest, launch and course navigation |
 | [panther-qa.md](panther-qa.md) | What each Panther browser test walks through |
 
 Related docs elsewhere in the tree:

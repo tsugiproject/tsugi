@@ -16,7 +16,7 @@ if ( ! \Tsugi\Services\Admin\AdminService::isAdmin() ) {
 
 $from_location = LTIX::curPageUrlFolder();
 $tablename = "{$CFG->dbprefix}lti_key";
-$fields = array('key_title', 'key_key', 'key_sha256', 'secret',
+$fields = array('key_title', 'plus', 'key_key', 'key_sha256', 'secret',
     'lms_issuer', 'lms_issuer_sha256',
     'lms_client',
     'deploy_key', 'deploy_sha256',
@@ -31,6 +31,7 @@ $titles = array(
     'key_key' => 'LTI 1.1: OAuth Consumer Key',
     'secret' => 'LTI 1.1: OAuth Consumer Secret',
 
+    'plus' => 'Tsugi Plus',
     'lms_issuer' => 'LTI 1.3 Platform Issuer URL',
     'deploy_key' => 'LTI 1.3: Deployment ID (This is only a default, the tool will accept any value from the LMS)',
     'unlock_code' => 'LTI 1.3: Single-use unlock code to LTI Dynamic Registration',
@@ -58,6 +59,10 @@ if ( count($_POST) > 0 ) {
         header("Location: key-add");
         return;
     }
+}
+
+if ( isset($_POST['doSave']) ) {
+    $_POST['plus'] = (isset($_POST['plus']) && (string) $_POST['plus'] === '1') ? '1' : '0';
 }
 
 if ( isset($_POST['doSave']) && isset($_POST['deploy_key']) ) {
@@ -112,7 +117,7 @@ See "About Keys" tab for detail on how to create a <b>draft</b> key.
 </p>
 <?php
 
-CrudForm::insertForm($fields, $from_location, $titles);
+CrudForm::insertForm($fields, $from_location, $titles, false, array('plus'));
 
 ?>
 </p>
@@ -179,6 +184,7 @@ Create a <b>draft</b> key in Tsugi by entering the <b>title</b> and <b>issuer</b
 and then save the key.  Then immediately view the key to get details on how to run dynamic configuration
 on each LMS.
 </p>
+<?php require __DIR__ . '/plus-config.php'; ?>
 <p>
 The issuer for all three systems is the base URL of the system as deployed with no slash at the end:
 <pre>
@@ -209,6 +215,7 @@ require_once __DIR__ . '/blackboard-detail.php';
 <p>
 Blackboard LTI 1.3 / Advantage setup depends on your Learn version and admin UI; use your Blackboard documentation for developer keys, placements, and deployments. After you create a key here, open its detail page and use the <b>Manual Configuration</b> tab for URLs to register at the LMS.
 </p>
+<?php require __DIR__ . '/plus-config.php'; ?>
 <h2>LTI 1.1</h2>
 <p>
 Create a Tenant key with the LTI key and secret.  Then come back here and view the key

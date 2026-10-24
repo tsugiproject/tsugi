@@ -338,6 +338,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
                 'analytics',
                 'courses_widget',
                 'exit_course',
+                'leave_course',
                 'login',
                 'logout',
             ),
@@ -462,6 +463,29 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         );
         $set = CourseNav::compile($doc, 42);
         $this->assertSame('https://example.org/portal', $this->dropdownHref($set, 'Exit course'));
+    }
+
+    public function testCompileLeaveCourseClosesTheWindow()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 1;
+        $_SESSION['displayname'] = 'Jane';
+        $doc = array(
+            'items' => array(
+                array('id' => 'leave_course', 'dropdown' => true),
+            ),
+        );
+        $set = CourseNav::compile($doc, 42);
+        $dropdown = $set->right->menu[count($set->right->menu)-1]->href;
+        $found = null;
+        foreach ( $dropdown as $entry ) {
+            if ( $entry->link === 'Leave course' ) {
+                $found = $entry;
+            }
+        }
+        $this->assertNotNull($found);
+        $this->assertSame('#', $found->href);
+        $this->assertStringContainsString('window.close()', $found->attr);
     }
 
     public function testCompileUsesCustomHomeLabel()
