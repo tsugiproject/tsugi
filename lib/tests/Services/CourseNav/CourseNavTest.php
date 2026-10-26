@@ -184,6 +184,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $_SERVER['REQUEST_URI'] = '/courses/42/home';
         $_SESSION['id'] = 1;
         $_SESSION['displayname'] = 'Pat';
+        $_SESSION['oauth_consumer_key'] = 'google.com';
         $doc = array(
             'items' => array(
                 array('id' => 'courses_widget', 'right' => true, 'instructor' => true),
@@ -204,6 +205,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $_SERVER['REQUEST_URI'] = '/courses/42/home';
         $_SESSION['id'] = 1;
         $_SESSION['displayname'] = 'Pat';
+        $_SESSION['oauth_consumer_key'] = 'google.com';
         $doc = array(
             'items' => array(
                 array('id' => 'courses_widget', 'left' => true),
@@ -241,6 +243,34 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param \Tsugi\UI\MenuSet $set
+     * @return list<string>
+     */
+    private function navLabels($set)
+    {
+        $labels = array();
+        if ( $set->left !== false ) {
+            foreach ( $set->left->menu as $entry ) {
+                if ( is_string($entry->link) ) {
+                    $labels[] = $entry->link;
+                }
+            }
+        }
+        if ( $set->right === false ) {
+            return $labels;
+        }
+        $last = $set->right->menu[count($set->right->menu) - 1];
+        if ( is_array($last->href) ) {
+            foreach ( $last->href as $entry ) {
+                if ( is_string($entry->link) ) {
+                    $labels[] = $entry->link;
+                }
+            }
+        }
+        return $labels;
+    }
+
+    /**
+     * @param \Tsugi\UI\MenuSet $set
      * @return string|null
      */
     private function dropdownHref($set, $label)
@@ -262,10 +292,12 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
 
     public function testEditorRowsPinsExitCourseThenLogout()
     {
+        $_SESSION['oauth_consumer_key'] = 'google.com';
         $rows = CourseNav::editorRows(CourseNav::defaultDocument());
         $this->assertSame('logout', $rows[count($rows)-1]['id']);
         $this->assertSame('login', $rows[count($rows)-2]['id']);
         $this->assertSame('settings', $rows[count($rows)-3]['id']);
+        $this->assertSame('roster', $rows[count($rows)-4]['id']);
         $this->assertSame('chrome', $rows[count($rows)-3]['kind']);
         $this->assertTrue($rows[count($rows)-1]['dropdown']);
         $this->assertStringContainsString('not logged in', $rows[count($rows)-2]['hint']);
@@ -291,6 +323,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
 
     public function testEditorRowsKeepsSitesWidgetBesideExitEvenWhenEnabled()
     {
+        $_SESSION['oauth_consumer_key'] = 'google.com';
         $doc = array(
             'items' => array(
                 array('id' => 'files', 'left' => true),
@@ -339,6 +372,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
                 'courses_widget',
                 'exit_course',
                 'leave_course',
+                'roster',
                 'login',
                 'logout',
             ),
@@ -346,6 +380,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         );
         $this->assertNotContains('topics', $ids);
         $this->assertContains('badges', $ids);
+        $this->assertTrue(CourseNav::catalogById()['roster']['instructor_locked']);
     }
 
     public function testStoredBadgesLinkIsKept()
@@ -416,6 +451,104 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($rows[0]['custom']);
     }
 
+    public function testNonGoogleLoginHidesMapAndProfile()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 1;
+        $_SESSION['displayname'] = 'Jane';
+        $_SESSION['lti_post'] = array('oauth_nonce' => 'plus');
+        $_SESSION['oauth_consumer_key'] = 'sakai.plus';
+        $doc = array(
+            'items' => array(
+                array('id' => 'map', 'left' => true),
+                array('id' => 'profile', 'dropdown' => true),
+                array('id' => 'courses_widget', 'right' => true),
+                array('id' => 'lessons', 'left' => true),
+            ),
+        );
+        $ids = array();
+        foreach ( CourseNav::editorRows($doc) as $row ) {
+            $ids[] = $row['id'];
+        }
+        $this->assertNotContains('map', $ids);
+        $this->assertNotContains('profile', $ids);
+        $this->assertNotContains('courses_widget', $ids);
+
+        $set = CourseNav::compile($doc, 42);
+        $labels = $this->navLabels($set);
+        $this->assertNotContains('Map', $labels);
+        $this->assertNotContains('Profile', $labels);
+        $this->assertFalse($this->rightMenuContains($set, 'tsugi-courses'));
+
+        $kept = CourseNav::retainSiteAccountItems($doc, array(
+            'items' => array(
+                array('id' => 'lessons', 'left' => true),
+            ),
+        ));
+        $keptIds = array();
+        foreach ( $kept['items'] as $item ) {
+            $keptIds[] = $item['id'];
+        }
+        $this->assertSame(
+            array('map', 'profile', 'courses_widget', 'lessons'),
+            $keptIds
+        );
+    }
+
+    public function testRetainSiteAccountItemsKeepsHiddenPositions()
+    {
+        $_SESSION['lti_post'] = array('oauth_nonce' => 'plus');
+        $_SESSION['oauth_consumer_key'] = 'sakai.plus';
+        $previous = array(
+            'items' => array(
+                array('id' => 'map', 'left' => true),
+                array('id' => 'lessons', 'left' => true),
+                array('id' => 'profile', 'dropdown' => true),
+                array('id' => 'files', 'left' => true),
+            ),
+        );
+        $posted = array(
+            'items' => array(
+                array('id' => 'files', 'left' => true),
+                array('id' => 'lessons', 'left' => true),
+            ),
+        );
+        $kept = CourseNav::retainSiteAccountItems($previous, $posted);
+        $ids = array();
+        foreach ( $kept['items'] as $item ) {
+            $ids[] = $item['id'];
+        }
+        $this->assertSame(array('map', 'files', 'profile', 'lessons'), $ids);
+    }
+
+    public function testGoogleLoginOffersMapAndProfile()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 1;
+        $_SESSION['displayname'] = 'Jane';
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        $doc = array(
+            'items' => array(
+                array('id' => 'map', 'left' => true),
+                array('id' => 'profile', 'dropdown' => true),
+                array('id' => 'courses_widget', 'right' => true),
+            ),
+        );
+        $ids = array();
+        foreach ( CourseNav::editorRows($doc) as $row ) {
+            $ids[] = $row['id'];
+        }
+        $this->assertContains('map', $ids);
+        $this->assertContains('profile', $ids);
+        $this->assertContains('courses_widget', $ids);
+
+        $set = CourseNav::compile($doc, 42);
+        $labels = $this->navLabels($set);
+        $this->assertContains('Map', $labels);
+        $this->assertContains('Profile', $labels);
+        $this->assertTrue($this->rightMenuContains($set, 'tsugi-courses'));
+    }
+
     public function testCompileInjectsHomeAndAvatar()
     {
         $_SERVER['REQUEST_URI'] = '/courses/42/home';
@@ -444,7 +577,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         }
         $this->assertNotContains('Exit course', $labels);
         $this->assertContains('Logout', $labels);
-        $this->assertTrue($this->rightMenuContains($set, 'tsugi-courses'));
+        $this->assertFalse($this->rightMenuContains($set, 'tsugi-courses'));
         $this->assertNotContains('Settings', $labels);
     }
 
@@ -579,6 +712,73 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
             $labels[] = $entry->link;
         }
         $this->assertContains('Logout', $labels);
+    }
+
+    public function testCompileShowsRosterOnlyWhereAnInstructorPlacedIt()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 1;
+        $_SESSION['displayname'] = 'Jane';
+        $_SESSION['isinstructor'] = true;
+        $set = CourseNav::compile(CourseNav::defaultDocument(), 42);
+        $dropdown = $set->right->menu[count($set->right->menu)-1]->href;
+        $labels = array();
+        foreach ( $dropdown as $entry ) {
+            $labels[] = $entry->link;
+        }
+        $this->assertNotContains('Roster', $labels);
+
+        $doc = CourseNav::fromPost(array(
+            'nav_order' => array('roster', 'logout'),
+            'nav' => array(
+                'roster' => array('dropdown' => '1', 'left' => '1'),
+                'logout' => array('dropdown' => '1'),
+            ),
+        ));
+        $roster = $doc['items'][0];
+        $this->assertSame('roster', $roster['id']);
+        $this->assertTrue($roster['instructor']);
+        $this->assertTrue($roster['left']);
+        $this->assertTrue($roster['dropdown']);
+
+        $set = CourseNav::compile($doc, 42);
+        $left = array();
+        foreach ( $set->left->menu as $entry ) {
+            $left[] = $entry->link;
+        }
+        $this->assertContains('Roster', $left);
+        $dropdown = $set->right->menu[count($set->right->menu)-1]->href;
+        $labels = array();
+        $hrefs = array();
+        foreach ( $dropdown as $entry ) {
+            $labels[] = $entry->link;
+            $hrefs[] = $entry->href;
+        }
+        $this->assertContains('Roster', $labels);
+        $matched = false;
+        foreach ( $hrefs as $href ) {
+            if ( is_string($href) && str_contains($href, '/courses/42/roster') ) {
+                $matched = true;
+            }
+        }
+        $this->assertTrue($matched);
+
+        $_SESSION['isinstructor'] = false;
+        unset($_SESSION['instructor']);
+        $set = CourseNav::compile($doc, 42);
+        $left = array();
+        if ( $set->left ) {
+            foreach ( $set->left->menu as $entry ) {
+                $left[] = $entry->link;
+            }
+        }
+        $this->assertNotContains('Roster', $left);
+        $dropdown = $set->right->menu[count($set->right->menu)-1]->href;
+        $labels = array();
+        foreach ( $dropdown as $entry ) {
+            $labels[] = $entry->link;
+        }
+        $this->assertNotContains('Roster', $labels);
     }
 
     public function testIsCourseMountedRequest()

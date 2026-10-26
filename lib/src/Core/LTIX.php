@@ -1181,7 +1181,7 @@ class LTIX {
             u.user_id, u.displayname AS user_displayname, u.email AS user_email, u.user_key AS user_key, u.image AS user_image,
             u.locale AS user_locale,
             u.subscribe AS subscribe, u.user_sha256 AS user_sha256,
-            m.membership_id, m.role, m.role_override,
+            m.membership_id, m.role, m.role_override, m.deleted AS membership_deleted,
             r.result_id, r.grade, r.result_url, r.sourcedid";
 
         if ( $for_user_subject ) {
@@ -1269,10 +1269,13 @@ class LTIX {
 
         // TODO: Fix this per SO - but wait until the migrations have run in production
         // https://stackoverflow.com/questions/44474250/which-is-better-in-mysql-an-ifnull-or-or-logic/44474286
+        // A soft-deleted membership is still loaded, for a file course or a
+        // manifest course. adjustData() clears deleted when this launch arrives.
+        // Filtering m.deleted here drops the whole row and rejects the launch.
+        // A permanent block is a separate feature, not this filter.
         $sql .= "\nAND (c.deleted IS NULL OR c.deleted = 0)
             AND (l.deleted IS NULL OR l.deleted = 0)
             AND (u.deleted IS NULL OR u.deleted = 0)
-            AND (m.deleted IS NULL OR m.deleted = 0)
             AND (r.deleted IS NULL OR r.deleted = 0)";
 
         if ( $profile_table ) {
@@ -1557,7 +1560,9 @@ class LTIX {
             $sql = "INSERT INTO {$p}lti_membership
                 ( context_id, user_id, role, created_at, updated_at ) VALUES
                 ( :context_id, :user_id, :role, NOW(), NOW() )
-                ON DUPLICATE KEY UPDATE updated_at = NOW();";
+                ON DUPLICATE KEY UPDATE
+                membership_id = LAST_INSERT_ID(membership_id),
+                deleted = 0, deleted_at = NULL, updated_at = NOW();";
             $PDOX->queryDie($sql, array(
                 ':context_id' => $row['context_id'],
                 ':user_id' => $row['user_id'],
@@ -1786,6 +1791,16 @@ class LTIX {
                     $actions[] = "=== Updated user=".$row['user_id']." {$user_field}=".$post[$user_field];
                 }
             }
+        }
+
+        if ( isset($row['membership_id']) && (int) ($row['membership_deleted'] ?? 0) === 1 ) {
+            $sql = "UPDATE {$p}lti_membership
+                SET deleted = 0, deleted_at = NULL, updated_at = NOW()
+                WHERE membership_id = :membership_id";
+            $PDOX->queryDie($sql, array(
+                ':membership_id' => $row['membership_id']));
+            $row['membership_deleted'] = 0;
+            $actions[] = "=== Restored membership id=".$row['membership_id'];
         }
 
         if ( isset($row['membership_id']) && isset($post['role']) && $post['role'] != $row['role'] ) {

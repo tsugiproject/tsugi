@@ -1,6 +1,6 @@
 # Tsugi Plus design
 
-Stored 2026-10-24. This note describes the code. The original brief is [history/plus-course-shell-prompt.md](history/plus-course-shell-prompt.md). That brief asked for the whole Sakai+ use case, including a roster pull and grade columns posted up to the LMS. Those are not in this change. They are listed under Next phase.
+Stored 2026-10-24. This note describes the code. The original brief is [history/plus-course-shell-prompt.md](history/plus-course-shell-prompt.md). That brief asked for the whole Sakai+ use case, including a roster pull and grade columns posted up to the LMS. The roster pull is in. Grade columns are listed under Next phase.
 
 Tsugi Plus is one LMS course taught inside Tsugi. The LMS stays the system of record for roster, grades, and notifications. One LMS course is one `lti_context` and one new Lessons JSON v2 manifest. Students launch the same course-navigation link and work inside Tsugi. There is no second course, tenant, link, or line-item table.
 
@@ -52,15 +52,25 @@ The starter navigation is the default course menu without the courses widget and
 
 The resource link on a `/plus` launch is not a grade column. This change does not POST a line item for it. Grades belong to the activity links inside the course.
 
+### Roster
+
+After a Plus launch opens the course, Tsugi pulls `lti13_membership_url` when `nrps_at` is empty or older than 5 minutes for an instructor or 30 minutes for a learner. The pull uses the stored deployment id and the key's token URL. The deployment id is sent on that token call. Other token calls still follow `$CFG->token_deployment_id`.
+
+The browser is redirected before the pull. A named lock keeps two launches from pulling the same course at once. A token failure does not move `nrps_at`, and the next try waits about a minute. A roster HTTP failure does move `nrps_at`, so the next try waits the 5 or 30 minutes. Paging stops after 10 pages or a repeated next link. An incomplete pull, or a pull that failed to save someone, does not mark anyone deleted.
+
+Each returned person is an `lti_user` on `(key_id, subject_sha256)` and an `lti_membership`. The role numbers match a launch. A missing member is left alone until a completed pull has not seen them for 7 days, then `lti_membership.deleted` is set to 1. Their results, quiz attempts, and posts stay. A later roster row or launch sets `deleted` back to 0. `loadAllData` loads a deleted membership so that launch can restore it.
+
+One `lti_context_plus_log` row is written per roster pull, with the count and a debug log. Tokens are not stored. Instructors place Roster in Settings → Navigation, in the upper left, upper right, or avatar menu. It is always instructor only. The first tab lists the people, including memberships marked deleted, and can set or clear that flag. A Plus course adds a Roster log tab with the last start, recent errors, recent pulls, and a button that refreshes now. A person an instructor removes comes back when a later roster row or launch still lists them.
+
 ## Schema in this change
 
 On `lti_key`: `plus` (`TINYINT NOT NULL DEFAULT 0`) and optional `timezone`.
 
 On `lti_context`: `plus_course` (`TINYINT NOT NULL DEFAULT 0`), `plus_launch_link_id` (no foreign key; same pattern as `previous_context_id`), `lti13_deployment_id`, `timezone`, and `nrps_at`. Existing rows stay `plus_course` 0, including file-based lessons and ordinary resource links. `plus_launch_link_id` is the context's resource link from the latest `/plus` launch that had one. It is not how the launch is recognized, and it is not a grade column.
 
-`lti_context_plus_log` is created: one row per upward call, with `context_id`, optional `link_id`, optional `user_id`, kind, success, HTTP status, URL, request body, response detail, and `created_at`. Nothing writes it yet.
+`lti_context_plus_log` is created: one row per upward call, with `context_id`, optional `link_id`, optional `user_id`, kind, success, HTTP status, URL, request body, response detail, and `created_at`. A roster pull writes a row with kind `roster`. Line items and scores do not yet.
 
-`nrps_at`, `lti13_deployment_id`, and the log table are in place for the next phase. This change stores the deployment id from the Plus launch. It does not yet send that id on a token call. `LTI13::get_access_token` still adds a deployment id only when `$CFG->token_deployment_id` is set, and nothing in this tree sets that flag.
+`nrps_at` is the last time a roster pull started. The Plus roster pull sets `$CFG->token_deployment_id` for that call so the stored deployment id is sent, then puts the flag back. `LTI13::get_access_token` still adds a deployment id only when that flag is set. Line-item and score calls do not set it.
 
 ## Left as it is
 
@@ -74,10 +84,9 @@ An ordinary resource-link launch keeps today's `adjustData` and `Result::gradeSe
 
 Not in this change:
 
-- After a Plus launch, pull `lti13_membership_url` when `nrps_at` is empty or older than 5 minutes for an instructor or 30 minutes for a learner. Use the stored deployment id and the key's token URL. A missing member gets `lti_membership.deleted` 1. Their results, quiz attempts, and posts stay. A later roster row or launch sets `deleted` back to 0. `loadAllData` still drops a deleted membership and would reject that launch instead of restoring it.
 - When a quiz or another gradable activity in a Plus course is saved with a title and a positive point total, POST a line item to `lti_context.lti13_lineitems` with `scoreMaximum` equal to those points, `resourceId` equal to `link_id`, and `endDateTime` of 23:59:59 on the due day in `lti_context.timezone` when that zone is set. Store the returned id on `lti_link.lti13_lineitem`. Do not write that id into `ags_resource_id`. A send-grade flag with no points does not invent a 1-point column. Changing the title, points, or due date PUTs the same line item. Existing scores are not rescaled and not reposted.
 - On a numeric score or comment, POST `{lineitem}/scores` with the subject, `scoreGiven`, `scoreMaximum`, the comment, and the progress pair. `grades_released` 0 withholds that POST. Null means forward. The local `lti_result` row is written even when the POST fails. `gradeSendStatic` stays on the 0–1 path for launches that are not this shell.
-- Write one `lti_context_plus_log` row per roster pull, line-item create or update, and score post. A replay sends the stored request again and appends a new row. The old row stays. The instructor log screen is not built.
+- Write one `lti_context_plus_log` row per line-item create or update, and score post. A roster pull already writes its own row. A replay sends the stored request again and appends a new row. The old row stays.
 
 ## Left open
 

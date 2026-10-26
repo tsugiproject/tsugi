@@ -364,6 +364,12 @@ class GoogleLoginService {
             }
         }
 
+        // Google has accepted this user. Read the redirect, then drop the whole
+        // session. The open cookie may still be a Plus launch.
+        $loginReturn = Login::peekReturnUrl();
+        self::resetSessionToEmpty();
+        \Tsugi\Core\ReqScope::resetIdentity();
+
         $welcome = "Welcome ";
         if ( ! $didinsert ) $welcome .= "back ";
         U::flashSuccess($welcome.$displayName." (".$userEmail.")");
@@ -420,6 +426,7 @@ class GoogleLoginService {
         // Drop all Tsugi session caches (cache_*) so membership, due dates, lti_user, lti_link, etc. match this login
         Cache::clearAllSessionCaches();
         \Tsugi\UI\Output::clearTopNavSession();
+        \Tsugi\Core\ReqScope::resetIdentity();
 
         $is_instructor = false;
         if ( isset($context_id) && $context_id ) {
@@ -455,13 +462,22 @@ class GoogleLoginService {
         $result->display_name = $displayName;
         $result->did_insert = $didinsert;
 
-        if ( $redirect_callback && is_callable($redirect_callback) ) {
+        if ( is_string($loginReturn) && $loginReturn !== '' ) {
+            $result->redirect_url = $loginReturn;
+        } else if ( $redirect_callback && is_callable($redirect_callback) ) {
             $result->redirect_url = call_user_func($redirect_callback, $result);
         } else {
             $result->redirect_url = Login::returnAfterLogin($result, null, false);
         }
 
         return $result;
+    }
+
+    /**
+     * Remove every key in the current PHP session.
+     */
+    public static function resetSessionToEmpty() {
+        $_SESSION = array();
     }
 
     /**

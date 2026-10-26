@@ -108,7 +108,7 @@ class CourseNav {
             if ( $dropdown ) {
                 $item['dropdown'] = true;
             }
-            if ( ! empty($row['instructor']) ) {
+            if ( ! empty($entry['instructor_locked']) || ! empty($row['instructor']) ) {
                 $item['instructor'] = true;
             }
             if ( empty($item['left']) && empty($item['right']) && empty($item['dropdown']) ) {
@@ -159,6 +159,7 @@ class CourseNav {
             array('id' => 'courses_widget', 'kind' => 'widget', 'label' => 'Courses widget', 'route' => '/courses', 'site' => true, 'pin' => 'catalog', 'hint' => 'Switcher for other courses. Place in the upper left or upper right, like other widgets.'),
             array('id' => 'exit_course', 'kind' => 'link', 'label' => 'Exit course', 'route' => '', 'site' => true, 'pin' => 'catalog', 'hint' => 'Leaves the course and returns to the site home.', 'needs_apphome' => true),
             array('id' => 'leave_course', 'kind' => 'link', 'label' => 'Leave course', 'route' => '', 'site' => true, 'pin' => 'catalog', 'hint' => 'Closes this window. The browser allows that when this window was opened for the course.'),
+            array('id' => 'roster', 'kind' => 'link', 'label' => 'Roster', 'route' => '/roster', 'site' => false, 'instructor_locked' => true, 'pin' => 'last', 'hint' => 'Always instructor only. Students do not see it.'),
             array('id' => 'login', 'kind' => 'link', 'label' => 'Login', 'route' => '/login', 'site' => true, 'pin' => 'last', 'hint' => 'Only shown when the user is not logged in.'),
             array('id' => 'logout', 'kind' => 'link', 'label' => 'Logout', 'route' => '/logout', 'site' => true, 'hint' => 'Only shown when the user is logged in. Keep Logout on unless you have another way out of the course.', 'pin' => 'last'),
         );
@@ -235,6 +236,9 @@ class CourseNav {
             if ( $id === '' || ! isset($known[$id]) || isset($placed[$id]) ) {
                 continue;
             }
+            if ( self::skipSiteAccountNav($id) ) {
+                continue;
+            }
             if ( self::isPinnedLast($known[$id] ?? array()) || self::isPinnedToCatalog($known[$id] ?? array()) ) {
                 continue;
             }
@@ -242,6 +246,9 @@ class CourseNav {
             $rows[] = self::editorRow($known[$id], $flagsById[$id]);
         }
         foreach ( self::catalog() as $entry ) {
+            if ( self::skipSiteAccountNav($entry['id']) ) {
+                continue;
+            }
             if ( isset($placed[$entry['id']]) ) {
                 continue;
             }
@@ -252,9 +259,13 @@ class CourseNav {
             $empty = array('left' => false, 'right' => false, 'dropdown' => false, 'instructor' => false);
             $rows[] = self::editorRow($entry, $flagsById[$entry['id']] ?? $empty);
         }
+        $empty = array('left' => false, 'right' => false, 'dropdown' => false, 'instructor' => false);
+        if ( isset($known['roster']) ) {
+            $rows[] = self::editorRow($known['roster'], $flagsById['roster'] ?? $empty);
+        }
         $injectedSettings = false;
         foreach ( self::catalog() as $entry ) {
-            if ( ! self::isPinnedLast($entry) ) {
+            if ( ! self::isPinnedLast($entry) || $entry['id'] === 'roster' ) {
                 continue;
             }
             if ( ! $injectedSettings ) {
@@ -319,6 +330,119 @@ class CourseNav {
             'home' => $post['home'] ?? '',
             'items' => $items,
         ));
+    }
+
+    /**
+     * Keep Map, Profile, and the courses widget when this login cannot edit them.
+     *
+     * The editor omits those rows for a non-Google login. A save must not
+     * delete flags that a Google login still uses, and those rows stay in
+     * their previous places while the posted items fill the other slots.
+     *
+     * @param array<string, mixed> $previous
+     * @param array<string, mixed> $posted
+     * @return array<string, mixed>
+     */
+    public static function retainSiteAccountItems(array $previous, array $posted) {
+        if ( self::showsSiteAccountNav() ) {
+            return $posted;
+        }
+        $previousItems = $previous['items'] ?? array();
+        if ( ! is_array($previousItems) ) {
+            $previousItems = array();
+        }
+        $keptById = array();
+        foreach ( $previousItems as $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            $id = isset($item['id']) ? (string) $item['id'] : '';
+            if ( $id !== '' && self::isSiteAccountNav($id) && ! isset($keptById[$id]) ) {
+                $keptById[$id] = $item;
+            }
+        }
+        if ( $keptById === array() ) {
+            return $posted;
+        }
+        $postedItems = $posted['items'] ?? array();
+        if ( ! is_array($postedItems) ) {
+            $postedItems = array();
+        }
+        $editable = array();
+        foreach ( $postedItems as $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            $id = isset($item['id']) ? (string) $item['id'] : '';
+            if ( $id === '' || self::isSiteAccountNav($id) ) {
+                continue;
+            }
+            $editable[] = $item;
+        }
+        $merged = array();
+        $seen = array();
+        $used = 0;
+        foreach ( $previousItems as $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            $id = isset($item['id']) ? (string) $item['id'] : '';
+            if ( $id !== '' && isset($keptById[$id]) ) {
+                if ( ! isset($seen[$id]) ) {
+                    $merged[] = $keptById[$id];
+                    $seen[$id] = true;
+                }
+                continue;
+            }
+            if ( $used >= count($editable) ) {
+                continue;
+            }
+            $next = $editable[$used];
+            $used++;
+            $nid = isset($next['id']) ? (string) $next['id'] : '';
+            if ( $nid === '' || isset($seen[$nid]) ) {
+                continue;
+            }
+            $merged[] = $next;
+            $seen[$nid] = true;
+        }
+        while ( $used < count($editable) ) {
+            $next = $editable[$used];
+            $used++;
+            $nid = isset($next['id']) ? (string) $next['id'] : '';
+            if ( $nid === '' || isset($seen[$nid]) ) {
+                continue;
+            }
+            $merged[] = $next;
+            $seen[$nid] = true;
+        }
+        $posted['items'] = $merged;
+        if ( isset($previous['home']) && ! isset($posted['home']) ) {
+            $posted['home'] = $previous['home'];
+        }
+        return self::normalize($posted);
+    }
+
+    /**
+     * Map, Profile, and the courses widget are the site account.
+     * A Plus launch has no such account yet.
+     */
+    private static function showsSiteAccountNav() {
+        return Courses::isGoogleLoginSession();
+    }
+
+    /**
+     * @param string $id
+     */
+    private static function isSiteAccountNav($id) {
+        return $id === 'map' || $id === 'profile' || $id === 'courses_widget';
+    }
+
+    /**
+     * @param string $id
+     */
+    private static function skipSiteAccountNav($id) {
+        return self::isSiteAccountNav($id) && ! self::showsSiteAccountNav();
     }
 
     /**
@@ -399,6 +523,9 @@ class CourseNav {
      */
     private static function addPlacement(MenuSet $set, array $known, array $item, $placement, $prefix) {
         $id = $item['id'];
+        if ( self::skipSiteAccountNav($id) ) {
+            return;
+        }
         $entry = $known[$id] ?? null;
         if ( ! is_array($entry) ) {
             return;
@@ -437,6 +564,9 @@ class CourseNav {
      */
     private static function linkEntry(array $known, array $item, $prefix) {
         $id = $item['id'] ?? '';
+        if ( self::skipSiteAccountNav($id) ) {
+            return null;
+        }
         $entry = $known[$id] ?? null;
         if ( ! is_array($entry) || $entry['kind'] !== 'link' ) {
             return null;
