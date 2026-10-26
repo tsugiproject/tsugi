@@ -209,6 +209,37 @@ class ManifestTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('Python for Everybody (PY4E)', $l->lessons->title);
     }
 
+    public function testSiteLessonsIgnoresManifestWhenNotGoogleLogin()
+    {
+        global $CFG;
+        $previous = $_SERVER['REQUEST_URI'] ?? null;
+        $_SERVER['REQUEST_URI'] = '/lessons';
+        $CFG->lessons = __DIR__ . '/../fixtures/lessons/py4e-modern-lessons-items.json';
+        $_SESSION['lti_post'] = array('oauth_nonce' => 'plus');
+        $_SESSION['oauth_consumer_key'] = 'sakai.plus';
+        Manifest::rememberInSession(99);
+
+        $this->assertSame(99, Manifest::activeId());
+        $this->assertSame(0, Manifest::resolvedId());
+        $l = Manifest::currentLessons();
+        $this->assertInstanceOf(\Tsugi\Services\Lessons\LessonsService::class, $l);
+        $this->assertSame('Python for Everybody (PY4E)', $l->lessons->title);
+
+        $_SERVER['REQUEST_URI'] = '/courses/42/lessons';
+        $this->assertSame(99, Manifest::resolvedId());
+
+        $_SERVER['REQUEST_URI'] = '/lessons';
+        unset($_SESSION['lti_post']);
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        $this->assertSame(99, Manifest::resolvedId());
+
+        if ( $previous === null ) {
+            unset($_SERVER['REQUEST_URI']);
+        } else {
+            $_SERVER['REQUEST_URI'] = $previous;
+        }
+    }
+
     public function testValidateJsonAcceptsStarter()
     {
         $json = Manifest::encode(Manifest::starter('Valid Course'));

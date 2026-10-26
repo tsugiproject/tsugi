@@ -743,6 +743,11 @@ class Manifest {
      * session still has no manifest_id from Google login.
      */
     public static function resolvedId() {
+        // Site /lessons with a Plus (or other non-Google) cookie must stay on
+        // $CFG->lessons. Course URLs still read the manifest.
+        if ( self::siteLessonsIgnoreManifest() ) {
+            return 0;
+        }
         $id = self::activeId();
         if ( $id > 0 ) {
             return $id;
@@ -752,6 +757,26 @@ class Manifest {
             self::rememberInSession($id);
         }
         return $id;
+    }
+
+    /**
+     * True on site /lessons when this cookie is not a Google login.
+     *
+     * A Plus launch stores its manifest in the shared cookie. /courses/{id}/lessons
+     * still belongs to that course. Cookieless tool launches are not this path.
+     */
+    private static function siteLessonsIgnoreManifest() {
+        if ( ! class_exists('\Tsugi\Controllers\Courses') || ! class_exists('\Tsugi\Controllers\Tool') ) {
+            return false;
+        }
+        if ( \Tsugi\Controllers\Courses::isCourseMountedRequest() ) {
+            return false;
+        }
+        if ( \Tsugi\Controllers\Courses::isGoogleLoginSession() ) {
+            return false;
+        }
+        $path = \Tsugi\Controllers\Tool::requestPath();
+        return (bool) preg_match('#/lessons(?:_launch)?(?:/|$)#', $path);
     }
 
     /**
