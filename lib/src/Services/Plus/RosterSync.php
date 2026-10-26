@@ -46,6 +46,16 @@ class RosterSync {
     }
 
     /**
+     * A finished pull marks people absent only when every returned member was saved.
+     *
+     * @param bool $truncated
+     * @param int $errors
+     */
+    public static function shouldExpire($truncated, $errors) {
+        return ! $truncated && (int) $errors === 0;
+    }
+
+    /**
      * A failed attempt that did not start a pull waits RETRY_SECONDS.
      *
      * @param int|null $ageSeconds
@@ -486,17 +496,19 @@ class RosterSync {
         $debug[] = $stored['debug'];
         $truncated = ! empty($loaded->truncated);
         $expired = 0;
-        if ( ! $truncated ) {
+        if ( self::shouldExpire($truncated, $stored['errors']) ) {
             $expired = self::expireAbsent($contextId);
             if ( $expired > 0 ) {
                 $debug[] = 'Inactive memberships marked deleted '.$expired;
             }
-        } else {
+        } elseif ( $truncated ) {
             $debug[] = 'Paging stopped before the roster was complete. Nobody was marked deleted.';
+        } else {
+            $debug[] = 'Some people could not be saved. Nobody was marked deleted.';
         }
 
         $status = $truncated ? 'truncated' : 'done';
-        $ok = ! $truncated && (int) $stored['errors'] === 0;
+        $ok = self::shouldExpire($truncated, $stored['errors']);
         self::writeLog($contextId, $row, $userId, $ok, $http, self::urlOf($row), array(
             'status' => $status,
             'count' => $stored['count'],

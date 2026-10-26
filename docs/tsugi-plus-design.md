@@ -56,7 +56,7 @@ The resource link on a `/plus` launch is not a grade column. This change does no
 
 After a Plus launch opens the course, Tsugi pulls `lti13_membership_url` when `nrps_at` is empty or older than 5 minutes for an instructor or 30 minutes for a learner. The pull uses the stored deployment id and the key's token URL. The deployment id is sent on that token call. Other token calls still follow `$CFG->token_deployment_id`.
 
-The browser is redirected before the pull. A named lock keeps two launches from pulling the same course at once. A token failure does not move `nrps_at`, and the next try waits about a minute. A roster HTTP failure does move `nrps_at`, so the next try waits the 5 or 30 minutes. Paging stops after 10 pages or a repeated next link. An incomplete pull does not mark anyone deleted.
+The browser is redirected before the pull. A named lock keeps two launches from pulling the same course at once. A token failure does not move `nrps_at`, and the next try waits about a minute. A roster HTTP failure does move `nrps_at`, so the next try waits the 5 or 30 minutes. Paging stops after 10 pages or a repeated next link. An incomplete pull, or a pull that failed to save someone, does not mark anyone deleted.
 
 Each returned person is an `lti_user` on `(key_id, subject_sha256)` and an `lti_membership`. The role numbers match a launch. A missing member is left alone until a completed pull has not seen them for 7 days, then `lti_membership.deleted` is set to 1. Their results, quiz attempts, and posts stay. A later roster row or launch sets `deleted` back to 0. `loadAllData` loads a deleted membership so that launch can restore it.
 

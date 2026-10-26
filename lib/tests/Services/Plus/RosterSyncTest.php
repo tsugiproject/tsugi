@@ -45,6 +45,13 @@ class RosterSyncTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse(RosterSync::failureHold(null, false));
     }
 
+    public function testExpireWaitsForACompleteSave()
+    {
+        $this->assertTrue(RosterSync::shouldExpire(false, 0));
+        $this->assertFalse(RosterSync::shouldExpire(true, 0));
+        $this->assertFalse(RosterSync::shouldExpire(false, 1));
+    }
+
     public function testRolesMatchALaunch()
     {
         $this->assertSame(LTIX::ROLE_LEARNER, RosterSync::roleFor(array(
