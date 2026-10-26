@@ -1,6 +1,6 @@
 # Tsugi Plus design
 
-Stored 2026-10-24. This note describes the code. The original brief is [history/plus-course-shell-prompt.md](history/plus-course-shell-prompt.md). That brief asked for the whole Sakai+ use case, including a roster pull and grade columns posted up to the LMS. The roster pull is in. Grade columns are listed under Next phase.
+Stored 2026-10-24. This note describes the code. The original brief is [history/plus-course-shell-prompt.md](history/plus-course-shell-prompt.md). That brief asked for the whole Sakai+ use case, including a roster pull and grade columns posted up to the LMS. The roster pull is in. Grade columns are created when a result row is first inserted, and again if a grade arrives and the link still has no line item.
 
 Tsugi Plus is one LMS course taught inside Tsugi. The LMS stays the system of record for roster, grades, and notifications. One LMS course is one `lti_context` and one new Lessons JSON v2 manifest. Students launch the same course-navigation link and work inside Tsugi. There is no second course, tenant, link, or line-item table.
 
@@ -62,13 +62,27 @@ Each returned person is an `lti_user` on `(key_id, subject_sha256)` and an `lti_
 
 One `lti_context_plus_log` row is written per roster pull, with the count and a debug log. Tokens are not stored. Instructors place Roster in Settings → Navigation, in the upper left, upper right, or avatar menu. It is always instructor only. The first tab lists the people, including memberships marked deleted, and can set or clear that flag. A Plus course adds a Roster log tab with the last start, recent errors, recent pulls, and a button that refreshes now. A person an instructor removes comes back when a later roster row or launch still lists them.
 
+### Grade columns
+
+A Plus activity link gets a line item when its first `lti_result` row is inserted, and again when a grade is stored and `lti_link.lti13_lineitem` is still empty. The course-navigation link (`plus_launch_link_id`) is not a column. A link with no title or no positive `score_maximum` stays local. The POST goes to `lti_context.lti13_lineitems` with `label`, `scoreMaximum`, `resourceId` equal to `link_id`, and `endDateTime`. When `lti_context.timezone` is set, `endDateTime` is 23:59:59 on the due day (`lti_link.end_datetime`) in that zone. When the zone is empty, the stored clock time is sent as-is. The returned id is stored on `lti_link.lti13_lineitem`. It is not written to `ags_resource_id`. The token call sends the context deployment id.
+
+A numeric score then POSTs to `{lineitem}/scores` with `scoreGiven` (the 0–1 `grade` times `score_maximum`), `scoreMaximum`, the comment, and the progress pair. `grades_released` 0 creates the line item when it can and does not post the score. Null and 1 send. The local `lti_result` row is kept either way. A failed token, line item, or score leaves `server_grade` at the last accepted fraction, sets `retrieved_at`, and stores the error on `server_status`. The next grade send tries again. There is no background retry. Success clears `server_status` and stores the fraction that was sent. Each create and each score post appends an `lti_context_plus_log` row (`lineitem_create` or `score`). Tokens are scrubbed.
+
+The grade book kebab keeps Progress and Status. In a Plus course it also shows Server grade and Server updated at (`retrieved_at`). Server error appears only when `server_status` is set. The student grade list does not show Server grade as its own column. An instructor looking at one student's grades, or at one activity under All Students, can click a grade and store a new point total. When that link already has a line item, the new score is sent. The override does not create a line item. An instructor on a Plus course gets a Grade book log tab. It lists recent line-item and score rows from `lti_context_plus_log`, with errors above the successful sends. Roster rows stay on the Roster log.
+
+Manage grade book, on a Plus course, adds a Line item column. Created means `lti_link.lti13_lineitem` is set. None has a button that asks for the line item on that link, before any score exists. The course launch link says it is not a grade column. A quiz with no `score_maximum` uses the sum of its question points, and that sum is stored on the link, then the line item is created. The same copy happens when the result row is first inserted and when a grade is stored, so a student score does not wait for the button. A link that still has no title or point total is not posted, and the page says so. An ordinary resource link still uses `Result::gradeSendStatic` with score maximum 1.
+
+A due date is included when the line item is created. Saving, clearing, or applying weekly due dates PUTs that line item when one already exists and the stored due date changed. A cleared date sends `endDateTime` null. Title and point-total changes do not PUT yet. Existing scores are not rescaled and not reposted.
+
 ## Schema in this change
 
 On `lti_key`: `plus` (`TINYINT NOT NULL DEFAULT 0`) and optional `timezone`.
 
 On `lti_context`: `plus_course` (`TINYINT NOT NULL DEFAULT 0`), `plus_launch_link_id` (no foreign key; same pattern as `previous_context_id`), `lti13_deployment_id`, `timezone`, and `nrps_at`. Existing rows stay `plus_course` 0, including file-based lessons and ordinary resource links. `plus_launch_link_id` is the context's resource link from the latest `/plus` launch that had one. It is not how the launch is recognized, and it is not a grade column.
 
-`lti_context_plus_log` is created: one row per upward call, with `context_id`, optional `link_id`, optional `user_id`, kind, success, HTTP status, URL, request body, response detail, and `created_at`. A roster pull writes a row with kind `roster`. Line items and scores do not yet.
+`lti_context_plus_log` is created: one row per upward call, with `context_id`, optional `link_id`, optional `user_id`, kind, success, HTTP status, URL, request body, response detail, and `created_at`. A roster pull writes kind `roster`. A line item create writes `lineitem_create`. A due-date change writes `lineitem_update`. A score post writes `score`.
+
+`lti_result.server_status` is the last Plus line-item or score error. It is cleared when a score send succeeds. `server_grade` stays the last accepted 0–1 fraction. `retrieved_at` is the last attempt.
 
 `nrps_at` is the last time a roster pull started. The Plus roster pull sets `$CFG->token_deployment_id` for that call so the stored deployment id is sent, then puts the flag back. `LTI13::get_access_token` still adds a deployment id only when that flag is set. Line-item and score calls do not set it.
 
@@ -76,7 +90,7 @@ On `lti_context`: `plus_course` (`TINYINT NOT NULL DEFAULT 0`), `plus_launch_lin
 
 A file-based `$CFG->lessons` context has `manifest_id` null and `plus_course` 0. Its launch stays as it is.
 
-An ordinary resource-link launch keeps today's `adjustData` and `Result::gradeSendStatic`: score maximum 1, and a line item created lazily on the first score. `Gradebook::record` still keeps an internal quiz grade local.
+An ordinary resource-link launch keeps today's `adjustData` and `Result::gradeSendStatic`: score maximum 1, and a line item created lazily on the first score. A Plus course does not use that 1-point path. `Gradebook::record` still writes the local fraction first.
 
 `lti/store/canvas-config.json` and `Manifest::createCourse` stay on their current paths. The Canvas tenant screen stays as it was.
 
@@ -84,9 +98,8 @@ An ordinary resource-link launch keeps today's `adjustData` and `Result::gradeSe
 
 Not in this change:
 
-- When a quiz or another gradable activity in a Plus course is saved with a title and a positive point total, POST a line item to `lti_context.lti13_lineitems` with `scoreMaximum` equal to those points, `resourceId` equal to `link_id`, and `endDateTime` of 23:59:59 on the due day in `lti_context.timezone` when that zone is set. Store the returned id on `lti_link.lti13_lineitem`. Do not write that id into `ags_resource_id`. A send-grade flag with no points does not invent a 1-point column. Changing the title, points, or due date PUTs the same line item. Existing scores are not rescaled and not reposted.
-- On a numeric score or comment, POST `{lineitem}/scores` with the subject, `scoreGiven`, `scoreMaximum`, the comment, and the progress pair. `grades_released` 0 withholds that POST. Null means forward. The local `lti_result` row is written even when the POST fails. `gradeSendStatic` stays on the 0–1 path for launches that are not this shell.
-- Write one `lti_context_plus_log` row per line-item create or update, and score post. A roster pull already writes its own row. A replay sends the stored request again and appends a new row. The old row stays.
+- Changing the title or points PUTs the same line item. Existing scores are not rescaled and not reposted.
+- A replay of an `lti_context_plus_log` row sends the stored request again and appends a new row. The old row stays.
 
 ## Left open
 

@@ -722,6 +722,8 @@ array( "{$CFG->dbprefix}lti_result",
     deleted_at         TIMESTAMP NULL,
     attempted_at       TIMESTAMP NULL,
     retrieved_at       TIMESTAMP NULL,
+    -- Last Plus line-item or score error. Cleared when a score send succeeds.
+    server_status      VARCHAR(512) NULL,
 
     CONSTRAINT `{$CFG->dbprefix}lti_result_ibfk_1`
         FOREIGN KEY (`link_id`)
@@ -1612,6 +1614,9 @@ $DATABASE_UPGRADE = function($oldversion) {
         array('lti_context', 'timezone', 'VARCHAR(64) NULL'),
         array('lti_key', 'timezone', 'VARCHAR(64) NULL'),
         array('lti_key', 'plus', 'TINYINT(1) NOT NULL DEFAULT 0'),
+
+        // 2026-10-26 Last Plus score or line-item error shown in the grade book.
+        array('lti_result', 'server_status', 'VARCHAR(512) NULL'),
     );
 
     foreach ( $add_some_fields as $add_field ) {
@@ -2447,7 +2452,7 @@ $DATABASE_UPGRADE = function($oldversion) {
 
     // When you increase this number in any database.php file,
     // make sure to update the global value in setup.php
-    return 202610240003;
+    return 202610260001;
 
 }; // Don't forget the semicolon on anonymous functions :)
 

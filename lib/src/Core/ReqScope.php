@@ -2,6 +2,7 @@
 
 namespace Tsugi\Core;
 
+use Tsugi\Services\Plus\GradeSync;
 use Tsugi\Util\U;
 
 /**
@@ -1299,6 +1300,7 @@ class ReqScope {
                AND (deleted IS NULL OR deleted = 0)",
             array(':LID' => $link_id, ':UID' => $user_id)
         );
+        $created = false;
         if ( ! $row ) {
             $PDOX->queryDie(
                 "INSERT INTO {$p}lti_result
@@ -1306,6 +1308,7 @@ class ReqScope {
                  VALUES (:LID, :UID, NOW(), NOW())",
                 array(':LID' => $link_id, ':UID' => $user_id)
             );
+            $created = true;
             $row = $PDOX->rowDie(
                 "SELECT result_id, grade
                  FROM {$p}lti_result
@@ -1316,6 +1319,9 @@ class ReqScope {
         }
         if ( ! $row ) {
             throw new ReqScopeException('Could not load result.', 500);
+        }
+        if ( $created ) {
+            GradeSync::ensureLineItem((int) $link_id);
         }
 
         $result = new Result();
