@@ -1269,8 +1269,10 @@ class LTIX {
 
         // TODO: Fix this per SO - but wait until the migrations have run in production
         // https://stackoverflow.com/questions/44474250/which-is-better-in-mysql-an-ifnull-or-or-logic/44474286
-        // A soft-deleted membership is still loaded. A launch restores it.
-        // Filtering m.deleted here drops the whole row and rejects that launch.
+        // A soft-deleted membership is still loaded, for a file course or a
+        // manifest course. adjustData() clears deleted when this launch arrives.
+        // Filtering m.deleted here drops the whole row and rejects the launch.
+        // A permanent block is a separate feature, not this filter.
         $sql .= "\nAND (c.deleted IS NULL OR c.deleted = 0)
             AND (l.deleted IS NULL OR l.deleted = 0)
             AND (u.deleted IS NULL OR u.deleted = 0)

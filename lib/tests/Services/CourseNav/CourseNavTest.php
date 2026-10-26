@@ -489,10 +489,36 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         foreach ( $kept['items'] as $item ) {
             $keptIds[] = $item['id'];
         }
-        $this->assertContains('lessons', $keptIds);
-        $this->assertContains('map', $keptIds);
-        $this->assertContains('profile', $keptIds);
-        $this->assertContains('courses_widget', $keptIds);
+        $this->assertSame(
+            array('map', 'profile', 'courses_widget', 'lessons'),
+            $keptIds
+        );
+    }
+
+    public function testRetainSiteAccountItemsKeepsHiddenPositions()
+    {
+        $_SESSION['lti_post'] = array('oauth_nonce' => 'plus');
+        $_SESSION['oauth_consumer_key'] = 'sakai.plus';
+        $previous = array(
+            'items' => array(
+                array('id' => 'map', 'left' => true),
+                array('id' => 'lessons', 'left' => true),
+                array('id' => 'profile', 'dropdown' => true),
+                array('id' => 'files', 'left' => true),
+            ),
+        );
+        $posted = array(
+            'items' => array(
+                array('id' => 'files', 'left' => true),
+                array('id' => 'lessons', 'left' => true),
+            ),
+        );
+        $kept = CourseNav::retainSiteAccountItems($previous, $posted);
+        $ids = array();
+        foreach ( $kept['items'] as $item ) {
+            $ids[] = $item['id'];
+        }
+        $this->assertSame(array('map', 'files', 'profile', 'lessons'), $ids);
     }
 
     public function testGoogleLoginOffersMapAndProfile()

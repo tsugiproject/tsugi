@@ -336,7 +336,8 @@ class CourseNav {
      * Keep Map, Profile, and the courses widget when this login cannot edit them.
      *
      * The editor omits those rows for a non-Google login. A save must not
-     * delete flags that a Google login still uses.
+     * delete flags that a Google login still uses, and those rows stay in
+     * their previous places while the posted items fill the other slots.
      *
      * @param array<string, mixed> $previous
      * @param array<string, mixed> $posted
@@ -346,31 +347,76 @@ class CourseNav {
         if ( self::showsSiteAccountNav() ) {
             return $posted;
         }
-        $keep = array();
         $previousItems = $previous['items'] ?? array();
         if ( ! is_array($previousItems) ) {
             $previousItems = array();
         }
+        $keptById = array();
         foreach ( $previousItems as $item ) {
             if ( ! is_array($item) ) {
                 continue;
             }
             $id = isset($item['id']) ? (string) $item['id'] : '';
-            if ( self::isSiteAccountNav($id) ) {
-                $keep[] = $item;
+            if ( $id !== '' && self::isSiteAccountNav($id) && ! isset($keptById[$id]) ) {
+                $keptById[$id] = $item;
             }
         }
-        if ( $keep === array() ) {
+        if ( $keptById === array() ) {
             return $posted;
         }
-        $items = $posted['items'] ?? array();
-        if ( ! is_array($items) ) {
-            $items = array();
+        $postedItems = $posted['items'] ?? array();
+        if ( ! is_array($postedItems) ) {
+            $postedItems = array();
         }
-        foreach ( $keep as $item ) {
-            $items[] = $item;
+        $editable = array();
+        foreach ( $postedItems as $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            $id = isset($item['id']) ? (string) $item['id'] : '';
+            if ( $id === '' || self::isSiteAccountNav($id) ) {
+                continue;
+            }
+            $editable[] = $item;
         }
-        $posted['items'] = $items;
+        $merged = array();
+        $seen = array();
+        $used = 0;
+        foreach ( $previousItems as $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            $id = isset($item['id']) ? (string) $item['id'] : '';
+            if ( $id !== '' && isset($keptById[$id]) ) {
+                if ( ! isset($seen[$id]) ) {
+                    $merged[] = $keptById[$id];
+                    $seen[$id] = true;
+                }
+                continue;
+            }
+            if ( $used >= count($editable) ) {
+                continue;
+            }
+            $next = $editable[$used];
+            $used++;
+            $nid = isset($next['id']) ? (string) $next['id'] : '';
+            if ( $nid === '' || isset($seen[$nid]) ) {
+                continue;
+            }
+            $merged[] = $next;
+            $seen[$nid] = true;
+        }
+        while ( $used < count($editable) ) {
+            $next = $editable[$used];
+            $used++;
+            $nid = isset($next['id']) ? (string) $next['id'] : '';
+            if ( $nid === '' || isset($seen[$nid]) ) {
+                continue;
+            }
+            $merged[] = $next;
+            $seen[$nid] = true;
+        }
+        $posted['items'] = $merged;
         if ( isset($previous['home']) && ! isset($posted['home']) ) {
             $posted['home'] = $previous['home'];
         }
