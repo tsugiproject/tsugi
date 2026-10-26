@@ -233,6 +233,9 @@ class RosterSync {
                     $updated++;
                 }
                 if ( $count <= self::DEBUG_MEMBER_LIMIT ) {
+                    // The email is a mild privacy leak in the Roster log. The first
+                    // rollout keeps it so a pull can be debugged. A later privacy
+                    // pass should revisit this by 2027-04-26.
                     $lines[] = 'member='.self::field($member, 'email').' user_id='.$subject.' count='.$count;
                 }
             } catch ( \Throwable $e ) {
