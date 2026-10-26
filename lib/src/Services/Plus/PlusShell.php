@@ -303,15 +303,13 @@ class PlusShell {
                 }
                 self::fillShortTitle($PDOX, $p, $contextId, $row, $short);
                 $PDOX->commit();
-                self::remember($row);
-                return array('redirect' => self::courseUrl($contextId));
+                return self::opened($contextId, $row, $userId);
             }
 
             if ( (int) $row['manifest_id'] > 0 ) {
                 $PDOX->commit();
                 $row['plus_course'] = 1;
-                self::remember($row);
-                return array('redirect' => self::courseUrl($contextId));
+                return self::opened($contextId, $row, $userId);
             }
 
             $navigation = self::starterNavigation($short);
@@ -354,8 +352,7 @@ class PlusShell {
             $row['manifest_id'] = $manifestId;
             $row['plus_course'] = 1;
             $PDOX->commit();
-            self::remember($row);
-            return array('redirect' => self::courseUrl($contextId));
+            return self::opened($contextId, $row, $userId);
         } catch ( \Exception $e ) {
             if ( $PDOX->inTransaction() ) {
                 $PDOX->rollBack();
@@ -424,6 +421,25 @@ class PlusShell {
             array(':SHORT' => $short, ':CID' => $contextId)
         );
         $row['short_title'] = $short;
+    }
+
+    /**
+     * Remember the course and ask for a roster refresh after the response is sent.
+     *
+     * @param int $contextId
+     * @param array<string, mixed> $row
+     * @param int $userId
+     * @return array{redirect: string}
+     */
+    private static function opened($contextId, array $row, $userId) {
+        self::remember($row);
+        try {
+            $role = (int) LTIX::ltiParameter('role', 0);
+            RosterSync::schedule((int) $contextId, (int) $userId, $role >= LTIX::ROLE_INSTRUCTOR);
+        } catch ( \Throwable $e ) {
+            error_log('Roster sync schedule: '.$e->getMessage());
+        }
+        return array('redirect' => self::courseUrl($contextId));
     }
 
     /**

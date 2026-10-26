@@ -108,7 +108,7 @@ class CourseNav {
             if ( $dropdown ) {
                 $item['dropdown'] = true;
             }
-            if ( ! empty($row['instructor']) ) {
+            if ( ! empty($entry['instructor_locked']) || ! empty($row['instructor']) ) {
                 $item['instructor'] = true;
             }
             if ( empty($item['left']) && empty($item['right']) && empty($item['dropdown']) ) {
@@ -159,6 +159,7 @@ class CourseNav {
             array('id' => 'courses_widget', 'kind' => 'widget', 'label' => 'Courses widget', 'route' => '/courses', 'site' => true, 'pin' => 'catalog', 'hint' => 'Switcher for other courses. Place in the upper left or upper right, like other widgets.'),
             array('id' => 'exit_course', 'kind' => 'link', 'label' => 'Exit course', 'route' => '', 'site' => true, 'pin' => 'catalog', 'hint' => 'Leaves the course and returns to the site home.', 'needs_apphome' => true),
             array('id' => 'leave_course', 'kind' => 'link', 'label' => 'Leave course', 'route' => '', 'site' => true, 'pin' => 'catalog', 'hint' => 'Closes this window. The browser allows that when this window was opened for the course.'),
+            array('id' => 'roster', 'kind' => 'link', 'label' => 'Roster', 'route' => '/roster', 'site' => false, 'instructor_locked' => true, 'pin' => 'last', 'hint' => 'Always instructor only. Students do not see it.'),
             array('id' => 'login', 'kind' => 'link', 'label' => 'Login', 'route' => '/login', 'site' => true, 'pin' => 'last', 'hint' => 'Only shown when the user is not logged in.'),
             array('id' => 'logout', 'kind' => 'link', 'label' => 'Logout', 'route' => '/logout', 'site' => true, 'hint' => 'Only shown when the user is logged in. Keep Logout on unless you have another way out of the course.', 'pin' => 'last'),
         );
@@ -252,9 +253,13 @@ class CourseNav {
             $empty = array('left' => false, 'right' => false, 'dropdown' => false, 'instructor' => false);
             $rows[] = self::editorRow($entry, $flagsById[$entry['id']] ?? $empty);
         }
+        $empty = array('left' => false, 'right' => false, 'dropdown' => false, 'instructor' => false);
+        if ( isset($known['roster']) ) {
+            $rows[] = self::editorRow($known['roster'], $flagsById['roster'] ?? $empty);
+        }
         $injectedSettings = false;
         foreach ( self::catalog() as $entry ) {
-            if ( ! self::isPinnedLast($entry) ) {
+            if ( ! self::isPinnedLast($entry) || $entry['id'] === 'roster' ) {
                 continue;
             }
             if ( ! $injectedSettings ) {

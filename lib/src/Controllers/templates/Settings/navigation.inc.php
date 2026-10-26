@@ -76,7 +76,13 @@
                         <input type="checkbox" name="nav[<?= $id ?>][dropdown]" value="1"<?= ! empty($row['dropdown']) ? ' checked' : '' ?>>
                     <?php } ?>
                 </td>
-                <td><input type="checkbox" name="nav[<?= $id ?>][instructor]" value="1"<?= ! empty($row['instructor']) ? ' checked' : '' ?>></td>
+                <td>
+                    <?php if ( ! empty($row['instructor_locked']) ) { ?>
+                        —
+                    <?php } else { ?>
+                        <input type="checkbox" name="nav[<?= $id ?>][instructor]" value="1"<?= ! empty($row['instructor']) ? ' checked' : '' ?>>
+                    <?php } ?>
+                </td>
                 <?php } ?>
             </tr>
         <?php } ?>

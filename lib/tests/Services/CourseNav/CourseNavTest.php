@@ -266,6 +266,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertSame('logout', $rows[count($rows)-1]['id']);
         $this->assertSame('login', $rows[count($rows)-2]['id']);
         $this->assertSame('settings', $rows[count($rows)-3]['id']);
+        $this->assertSame('roster', $rows[count($rows)-4]['id']);
         $this->assertSame('chrome', $rows[count($rows)-3]['kind']);
         $this->assertTrue($rows[count($rows)-1]['dropdown']);
         $this->assertStringContainsString('not logged in', $rows[count($rows)-2]['hint']);
@@ -339,6 +340,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
                 'courses_widget',
                 'exit_course',
                 'leave_course',
+                'roster',
                 'login',
                 'logout',
             ),
@@ -346,6 +348,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         );
         $this->assertNotContains('topics', $ids);
         $this->assertContains('badges', $ids);
+        $this->assertTrue(CourseNav::catalogById()['roster']['instructor_locked']);
     }
 
     public function testStoredBadgesLinkIsKept()
@@ -579,6 +582,73 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
             $labels[] = $entry->link;
         }
         $this->assertContains('Logout', $labels);
+    }
+
+    public function testCompileShowsRosterOnlyWhereAnInstructorPlacedIt()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 1;
+        $_SESSION['displayname'] = 'Jane';
+        $_SESSION['isinstructor'] = true;
+        $set = CourseNav::compile(CourseNav::defaultDocument(), 42);
+        $dropdown = $set->right->menu[count($set->right->menu)-1]->href;
+        $labels = array();
+        foreach ( $dropdown as $entry ) {
+            $labels[] = $entry->link;
+        }
+        $this->assertNotContains('Roster', $labels);
+
+        $doc = CourseNav::fromPost(array(
+            'nav_order' => array('roster', 'logout'),
+            'nav' => array(
+                'roster' => array('dropdown' => '1', 'left' => '1'),
+                'logout' => array('dropdown' => '1'),
+            ),
+        ));
+        $roster = $doc['items'][0];
+        $this->assertSame('roster', $roster['id']);
+        $this->assertTrue($roster['instructor']);
+        $this->assertTrue($roster['left']);
+        $this->assertTrue($roster['dropdown']);
+
+        $set = CourseNav::compile($doc, 42);
+        $left = array();
+        foreach ( $set->left->menu as $entry ) {
+            $left[] = $entry->link;
+        }
+        $this->assertContains('Roster', $left);
+        $dropdown = $set->right->menu[count($set->right->menu)-1]->href;
+        $labels = array();
+        $hrefs = array();
+        foreach ( $dropdown as $entry ) {
+            $labels[] = $entry->link;
+            $hrefs[] = $entry->href;
+        }
+        $this->assertContains('Roster', $labels);
+        $matched = false;
+        foreach ( $hrefs as $href ) {
+            if ( is_string($href) && str_contains($href, '/courses/42/roster') ) {
+                $matched = true;
+            }
+        }
+        $this->assertTrue($matched);
+
+        $_SESSION['isinstructor'] = false;
+        unset($_SESSION['instructor']);
+        $set = CourseNav::compile($doc, 42);
+        $left = array();
+        if ( $set->left ) {
+            foreach ( $set->left->menu as $entry ) {
+                $left[] = $entry->link;
+            }
+        }
+        $this->assertNotContains('Roster', $left);
+        $dropdown = $set->right->menu[count($set->right->menu)-1]->href;
+        $labels = array();
+        foreach ( $dropdown as $entry ) {
+            $labels[] = $entry->link;
+        }
+        $this->assertNotContains('Roster', $labels);
     }
 
     public function testIsCourseMountedRequest()

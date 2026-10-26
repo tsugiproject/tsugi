@@ -507,18 +507,38 @@ class LTI13 {
      * @param $access_token The access token for this request
      * @param array $debug_log If this is an array, debug information is returned as the
      * process progresses.
+     * @param int $maxPages Stop after this many pages. 0 follows every next link.
+     * A partial result sets truncated on the object. Callers that omit this keep
+     * the previous all-or-nothing return.
+     * @param int|null $http_status Last HTTP status, when the server answered.
      *
      * @return mixed If this works it returns the NRPS object.  If it fails,
      * it returns a string.
      */
-    public static function loadNRPS($membership_url, $access_token, &$debug_log=false) {
+    public static function loadNRPS($membership_url, $access_token, &$debug_log=false, $maxPages=0, &$http_status=null) {
 
         $return_array = null;
+        $http_status = null;
+        $pages = 0;
+        $seen = array();
+        $maxPages = (int) $maxPages;
 
         $membership_url = trim($membership_url);
 
         // Handle paging
         while(1) {
+            $pages++;
+            if ( $maxPages > 0 && $pages > $maxPages ) {
+                if ( is_object($return_array) ) $return_array->truncated = true;
+                if ( is_array($debug_log) ) $debug_log[] = 'Paging stopped after '.$maxPages.' pages';
+                return is_object($return_array) ? $return_array : 'Paging stopped after '.$maxPages.' pages';
+            }
+            if ( isset($seen[$membership_url]) ) {
+                if ( is_object($return_array) ) $return_array->truncated = true;
+                if ( is_array($debug_log) ) $debug_log[] = 'Paging stopped on a repeated URL';
+                return is_object($return_array) ? $return_array : 'Paging stopped on a repeated URL';
+            }
+            $seen[$membership_url] = true;
             if ( is_array($debug_log) ) $debug_log[] = 'Loading: ' . $membership_url;
 
             $ch = curl_init();
@@ -543,11 +563,12 @@ class LTI13 {
             if ( $membership === false ) return self::handle_curl_error($ch, $debug_log);
 
             $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $http_status = (int) $httpcode;
             $headerSize = curl_getinfo($ch , CURLINFO_HEADER_SIZE );
             if ( is_array($debug_log) ) $debug_log[] = "Sent roster request, received status=$httpcode (".U::strlen($membership)." characters)";
 
             if ( empty($membership) ) {
-                return "No data retrieved status=" . $httpcode;
+                return self::partialOrError($return_array, $maxPages, "No data retrieved status=" . $httpcode, $debug_log);
             }
 
             $headerStr = substr( $membership , 0 , $headerSize );
@@ -572,7 +593,7 @@ class LTI13 {
                     if (is_array($debug_log) ) $debug_log[] = $retval;
                     if (is_array($debug_log) ) $debug_log[] = substr($membership, 0, 3000);
                 }
-                return $retval;
+                return self::partialOrError($return_array, $maxPages, $retval, $debug_log);
             }
 
             if ( Net::httpSuccess($httpcode) && isset($json->members) ) {
@@ -592,12 +613,34 @@ class LTI13 {
             }
 
             $status = isset($json->error) ? $json->error : "Unable to load results";
+            if ( ! is_string($status) ) {
+                $status = is_scalar($status) ? (string) $status : "Unable to load results";
+            }
             if ( is_array($debug_log) ) {
                 $debug_log[] = "Error status: $status";
                 if (is_array($debug_log) ) $debug_log[] = substr($membership, 0, 3000);
             }
-            return $status;
+            return self::partialOrError($return_array, $maxPages, $status, $debug_log);
         }
+    }
+
+    /**
+     * Keep members already loaded when a later page fails and a page cap is set.
+     *
+     * @param object|null $loaded
+     * @param int $maxPages
+     * @param string $status
+     * @param array|false $debug_log
+     * @return object|string
+     */
+    private static function partialOrError($loaded, $maxPages, $status, &$debug_log) {
+        if ( (int) $maxPages > 0 && is_object($loaded) ) {
+            $loaded->truncated = true;
+            $loaded->error = $status;
+            if ( is_array($debug_log) ) $debug_log[] = 'Kept members loaded before the error';
+            return $loaded;
+        }
+        return $status;
     }
 
 
