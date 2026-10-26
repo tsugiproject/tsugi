@@ -9,6 +9,7 @@ use \Tsugi\UI\Output;
 use \Tsugi\Util\Net;
 use \Tsugi\Google\GoogleClassroom;
 use \Tsugi\Grades\GradeUtil;
+use \Tsugi\Services\Plus\GradeSync;
 
 /**
  * This is a class to provide access to the user's result data.
@@ -320,6 +321,19 @@ class Result extends Entity {
             }
             error_log($msg);
             if ( is_array($debug_log) )  $debug_log[] = $msg;
+        }
+
+        // A Plus course sends the real point total. The 0–1 line item below
+        // stays for an ordinary resource link.
+        if ( GradeSync::deliverIfPlus(
+            $result_id,
+            $grade,
+            is_string($comment) ? $comment : null,
+            $activity_progress,
+            $grading_progress,
+            $debug_log
+        ) ) {
+            return true;
         }
 
         // Check if we don't have a lineitem_url but do have a lineitems url so we can create a lineitem

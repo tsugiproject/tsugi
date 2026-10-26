@@ -18,6 +18,7 @@ use \Tsugi\Core\SQLDialect;
 use \Tsugi\Core\Keyset;
 use \Tsugi\OAuth\OAuthUtil;
 use \Tsugi\Crypt\AesOpenSSL;
+use \Tsugi\Services\Plus\GradeSync;
 use \Tsugi\Services\Plus\PlusShell;
 
 use \Firebase\JWT\JWT;
@@ -1615,6 +1616,7 @@ class LTIX {
                 ':user_id' => $row['user_id']));
             $row['result_id'] = $PDOX->lastInsertId();
             $actions[] = "=== Inserted result id=".$row['result_id'];
+            GradeSync::ensureLineItem((int) $row['link_id']);
        }
 
         // Set these values to null if they were not in the post
