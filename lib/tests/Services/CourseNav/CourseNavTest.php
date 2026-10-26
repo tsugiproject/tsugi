@@ -184,6 +184,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $_SERVER['REQUEST_URI'] = '/courses/42/home';
         $_SESSION['id'] = 1;
         $_SESSION['displayname'] = 'Pat';
+        $_SESSION['oauth_consumer_key'] = 'google.com';
         $doc = array(
             'items' => array(
                 array('id' => 'courses_widget', 'right' => true, 'instructor' => true),
@@ -204,6 +205,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $_SERVER['REQUEST_URI'] = '/courses/42/home';
         $_SESSION['id'] = 1;
         $_SESSION['displayname'] = 'Pat';
+        $_SESSION['oauth_consumer_key'] = 'google.com';
         $doc = array(
             'items' => array(
                 array('id' => 'courses_widget', 'left' => true),
@@ -241,6 +243,34 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @param \Tsugi\UI\MenuSet $set
+     * @return list<string>
+     */
+    private function navLabels($set)
+    {
+        $labels = array();
+        if ( $set->left !== false ) {
+            foreach ( $set->left->menu as $entry ) {
+                if ( is_string($entry->link) ) {
+                    $labels[] = $entry->link;
+                }
+            }
+        }
+        if ( $set->right === false ) {
+            return $labels;
+        }
+        $last = $set->right->menu[count($set->right->menu) - 1];
+        if ( is_array($last->href) ) {
+            foreach ( $last->href as $entry ) {
+                if ( is_string($entry->link) ) {
+                    $labels[] = $entry->link;
+                }
+            }
+        }
+        return $labels;
+    }
+
+    /**
+     * @param \Tsugi\UI\MenuSet $set
      * @return string|null
      */
     private function dropdownHref($set, $label)
@@ -262,6 +292,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
 
     public function testEditorRowsPinsExitCourseThenLogout()
     {
+        $_SESSION['oauth_consumer_key'] = 'google.com';
         $rows = CourseNav::editorRows(CourseNav::defaultDocument());
         $this->assertSame('logout', $rows[count($rows)-1]['id']);
         $this->assertSame('login', $rows[count($rows)-2]['id']);
@@ -292,6 +323,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
 
     public function testEditorRowsKeepsSitesWidgetBesideExitEvenWhenEnabled()
     {
+        $_SESSION['oauth_consumer_key'] = 'google.com';
         $doc = array(
             'items' => array(
                 array('id' => 'files', 'left' => true),
@@ -419,6 +451,78 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($rows[0]['custom']);
     }
 
+    public function testNonGoogleLoginHidesMapAndProfile()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 1;
+        $_SESSION['displayname'] = 'Jane';
+        $_SESSION['lti_post'] = array('oauth_nonce' => 'plus');
+        $_SESSION['oauth_consumer_key'] = 'sakai.plus';
+        $doc = array(
+            'items' => array(
+                array('id' => 'map', 'left' => true),
+                array('id' => 'profile', 'dropdown' => true),
+                array('id' => 'courses_widget', 'right' => true),
+                array('id' => 'lessons', 'left' => true),
+            ),
+        );
+        $ids = array();
+        foreach ( CourseNav::editorRows($doc) as $row ) {
+            $ids[] = $row['id'];
+        }
+        $this->assertNotContains('map', $ids);
+        $this->assertNotContains('profile', $ids);
+        $this->assertNotContains('courses_widget', $ids);
+
+        $set = CourseNav::compile($doc, 42);
+        $labels = $this->navLabels($set);
+        $this->assertNotContains('Map', $labels);
+        $this->assertNotContains('Profile', $labels);
+        $this->assertFalse($this->rightMenuContains($set, 'tsugi-courses'));
+
+        $kept = CourseNav::retainSiteAccountItems($doc, array(
+            'items' => array(
+                array('id' => 'lessons', 'left' => true),
+            ),
+        ));
+        $keptIds = array();
+        foreach ( $kept['items'] as $item ) {
+            $keptIds[] = $item['id'];
+        }
+        $this->assertContains('lessons', $keptIds);
+        $this->assertContains('map', $keptIds);
+        $this->assertContains('profile', $keptIds);
+        $this->assertContains('courses_widget', $keptIds);
+    }
+
+    public function testGoogleLoginOffersMapAndProfile()
+    {
+        $_SERVER['REQUEST_URI'] = '/courses/42/home';
+        $_SESSION['id'] = 1;
+        $_SESSION['displayname'] = 'Jane';
+        $_SESSION['oauth_consumer_key'] = 'google.com';
+        $doc = array(
+            'items' => array(
+                array('id' => 'map', 'left' => true),
+                array('id' => 'profile', 'dropdown' => true),
+                array('id' => 'courses_widget', 'right' => true),
+            ),
+        );
+        $ids = array();
+        foreach ( CourseNav::editorRows($doc) as $row ) {
+            $ids[] = $row['id'];
+        }
+        $this->assertContains('map', $ids);
+        $this->assertContains('profile', $ids);
+        $this->assertContains('courses_widget', $ids);
+
+        $set = CourseNav::compile($doc, 42);
+        $labels = $this->navLabels($set);
+        $this->assertContains('Map', $labels);
+        $this->assertContains('Profile', $labels);
+        $this->assertTrue($this->rightMenuContains($set, 'tsugi-courses'));
+    }
+
     public function testCompileInjectsHomeAndAvatar()
     {
         $_SERVER['REQUEST_URI'] = '/courses/42/home';
@@ -447,7 +551,7 @@ class CourseNavTest extends \PHPUnit\Framework\TestCase
         }
         $this->assertNotContains('Exit course', $labels);
         $this->assertContains('Logout', $labels);
-        $this->assertTrue($this->rightMenuContains($set, 'tsugi-courses'));
+        $this->assertFalse($this->rightMenuContains($set, 'tsugi-courses'));
         $this->assertNotContains('Settings', $labels);
     }
 

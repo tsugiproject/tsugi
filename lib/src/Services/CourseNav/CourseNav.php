@@ -236,6 +236,9 @@ class CourseNav {
             if ( $id === '' || ! isset($known[$id]) || isset($placed[$id]) ) {
                 continue;
             }
+            if ( self::skipSiteAccountNav($id) ) {
+                continue;
+            }
             if ( self::isPinnedLast($known[$id] ?? array()) || self::isPinnedToCatalog($known[$id] ?? array()) ) {
                 continue;
             }
@@ -243,6 +246,9 @@ class CourseNav {
             $rows[] = self::editorRow($known[$id], $flagsById[$id]);
         }
         foreach ( self::catalog() as $entry ) {
+            if ( self::skipSiteAccountNav($entry['id']) ) {
+                continue;
+            }
             if ( isset($placed[$entry['id']]) ) {
                 continue;
             }
@@ -327,6 +333,73 @@ class CourseNav {
     }
 
     /**
+     * Keep Map, Profile, and the courses widget when this login cannot edit them.
+     *
+     * The editor omits those rows for a non-Google login. A save must not
+     * delete flags that a Google login still uses.
+     *
+     * @param array<string, mixed> $previous
+     * @param array<string, mixed> $posted
+     * @return array<string, mixed>
+     */
+    public static function retainSiteAccountItems(array $previous, array $posted) {
+        if ( self::showsSiteAccountNav() ) {
+            return $posted;
+        }
+        $keep = array();
+        $previousItems = $previous['items'] ?? array();
+        if ( ! is_array($previousItems) ) {
+            $previousItems = array();
+        }
+        foreach ( $previousItems as $item ) {
+            if ( ! is_array($item) ) {
+                continue;
+            }
+            $id = isset($item['id']) ? (string) $item['id'] : '';
+            if ( self::isSiteAccountNav($id) ) {
+                $keep[] = $item;
+            }
+        }
+        if ( $keep === array() ) {
+            return $posted;
+        }
+        $items = $posted['items'] ?? array();
+        if ( ! is_array($items) ) {
+            $items = array();
+        }
+        foreach ( $keep as $item ) {
+            $items[] = $item;
+        }
+        $posted['items'] = $items;
+        if ( isset($previous['home']) && ! isset($posted['home']) ) {
+            $posted['home'] = $previous['home'];
+        }
+        return self::normalize($posted);
+    }
+
+    /**
+     * Map, Profile, and the courses widget are the site account.
+     * A Plus launch has no such account yet.
+     */
+    private static function showsSiteAccountNav() {
+        return Courses::isGoogleLoginSession();
+    }
+
+    /**
+     * @param string $id
+     */
+    private static function isSiteAccountNav($id) {
+        return $id === 'map' || $id === 'profile' || $id === 'courses_widget';
+    }
+
+    /**
+     * @param string $id
+     */
+    private static function skipSiteAccountNav($id) {
+        return self::isSiteAccountNav($id) && ! self::showsSiteAccountNav();
+    }
+
+    /**
      * @param array<string, mixed> $doc
      * @return MenuSet
      */
@@ -404,6 +477,9 @@ class CourseNav {
      */
     private static function addPlacement(MenuSet $set, array $known, array $item, $placement, $prefix) {
         $id = $item['id'];
+        if ( self::skipSiteAccountNav($id) ) {
+            return;
+        }
         $entry = $known[$id] ?? null;
         if ( ! is_array($entry) ) {
             return;
@@ -442,6 +518,9 @@ class CourseNav {
      */
     private static function linkEntry(array $known, array $item, $prefix) {
         $id = $item['id'] ?? '';
+        if ( self::skipSiteAccountNav($id) ) {
+            return null;
+        }
         $entry = $known[$id] ?? null;
         if ( ! is_array($entry) || $entry['kind'] !== 'link' ) {
             return null;

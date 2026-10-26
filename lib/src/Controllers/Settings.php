@@ -2799,8 +2799,14 @@ re-check your login status.
             return new RedirectResponse($navigation_url);
         }
 
-        $nav = CourseNav::fromPost($_POST);
         $context_id = ReqScope::currentContextId();
+        $nav = CourseNav::fromPost($_POST);
+        if ( ! Courses::isGoogleLoginSession() ) {
+            $nav = CourseNav::retainSiteAccountItems(
+                Manifest::navigationDocumentForContext($context_id),
+                $nav
+            );
+        }
         try {
             Manifest::saveNewVersion(
                 $context_id,
