@@ -978,6 +978,11 @@ class RosterSync {
 
     private static function finishRequest() {
         ignore_user_abort(true);
+        // Release the session lock before the roster pull. The next page
+        // can then load while this request is still calling the LMS.
+        if ( session_status() === PHP_SESSION_ACTIVE ) {
+            session_write_close();
+        }
         if ( function_exists('fastcgi_finish_request') ) {
             @fastcgi_finish_request();
         }
